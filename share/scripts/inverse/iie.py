@@ -47,7 +47,7 @@ np.seterr(all='raise')
 
 
 def readin_table(filename):
-    """read in votca table"""
+    """Read in votca table."""
     table_dtype = {'names': ('x', 'y', 'y_flag'),
                    'formats': ('f', 'f', 'U2')}
     x, y, y_flag = np.loadtxt(filename, dtype=table_dtype, comments=['#', '@'],
@@ -56,7 +56,7 @@ def readin_table(filename):
 
 
 def saveto_table(filename, x, y, y_flag, comment=""):
-    """save votca table"""
+    """Save votca table."""
     data = np.zeros((len(x),), dtype='f, f, U2')
     data['f0'] = x
     data['f1'] = y
@@ -65,14 +65,15 @@ def saveto_table(filename, x, y, y_flag, comment=""):
 
 
 def compare_grids(grid_a, grid_b):
-    """check two grids for no point differing more than 0.1 picometer"""
+    """Check two grids for no point differing more than 0.1 picometer."""
     if np.any(grid_a - grid_b > 0.0001):
         raise Exception("Different grids!")
 
 
 def calc_grid_spacing(grid, relative_tolerance=0.01):
-    """returns the spacing of an equidistant 1D grid.
-    fails if not equidistant grid."""
+    """Returns the spacing of an equidistant 1D grid.
+
+    Fails if the grid is not equidistant."""
     diffs = np.diff(grid)
     if abs((max(diffs) - min(diffs)) / max(diffs)) > relative_tolerance:
         raise Exception('the grid is not equidistant')
@@ -81,6 +82,7 @@ def calc_grid_spacing(grid, relative_tolerance=0.01):
 
 def fourier(r, f):
     """Compute the radially 3D FT and the frequency grid of a radially symmetric function.
+
     Some special extrapolations are used to make the results consistent. This function
     is isometric meaning it can be used to calculate the FT and the inverse FT.
     That means inputs can also be omega and f_hat which results in r and f.
@@ -122,7 +124,7 @@ def fourier(r, f):
 
 
 def gen_fourier_matrix(r, fourier_function):
-    """make a fourier matrix"""
+    """Make a fourier matrix."""
     fourier_matrix = np.identity(len(r))
     for col_index, col in enumerate(fourier_matrix.T):
         _, fourier_matrix.T[col_index] = fourier_function(r, col)
@@ -130,15 +132,16 @@ def gen_fourier_matrix(r, fourier_function):
 
 
 def find_nearest_ndx(array, value):
-    """find index of array where closest to value"""
+    """Find index of array where closest to value."""
     array = np.asarray(array)
     ndx = (np.abs(array - value)).argmin()
     return ndx
 
 
 def find_after_cut_off_ndx(array, cut_off):
-    """Find index of array after given cut_off. Assumes array is sorted.
-    Used for finding first index after cut_off."""
+    """Find index of array after given cut_off.
+
+    Assumes array is sorted. Used for finding first index after cut_off."""
     array = np.asarray(array)
     ndx_closest = find_nearest_ndx(array, cut_off)
     if np.isclose(array[ndx_closest], cut_off):
@@ -151,6 +154,8 @@ def find_after_cut_off_ndx(array, cut_off):
 
 
 def r0_removal(*arrays):
+    """Removes the first element from a list of arrays, if the first array
+    starts with 0."""
     r0_removed = False
     if np.isclose(arrays[0][0], 0.0):
         r0_removed = True
@@ -159,6 +164,7 @@ def r0_removal(*arrays):
 
 
 def calc_c(r, g_tgt, G_minus_g, n, rho):
+    """Calculate the direct correlation function c(r) from g(r)."""
     r0_removed, (r, g_tgt, G_minus_g) = r0_removal(r, g_tgt, G_minus_g)
     # total correlation function h
     h = g_tgt - 1
@@ -179,6 +185,7 @@ def calc_c(r, g_tgt, G_minus_g, n, rho):
 
 
 def calc_g(r, c, G_minus_g, n, rho):
+    """Calculate the radial distribution function g(r) from c(r)."""
     r0_removed, (r, c, G_minus_g) = r0_removal(r, c, G_minus_g)
     omega, c_hat = fourier(r, c)
     if n == 1:
@@ -196,8 +203,10 @@ def calc_g(r, c, G_minus_g, n, rho):
 
 def calc_dc_ext(r_short, r_long, c_k_short, g_k_short, g_tgt_short, G_minus_g_short, n,
                 rho):
-    """Calculate Δc_ext with netwon method. Jacobian has an implicit extrapolation of c
-    with zeros on twice its original range."""
+    """Calculate Δc_ext with netwon method.
+
+    This term is used in the iterative extrapolation of g(r). Jacobian has an
+    implicit extrapolation of c with zeros on twice its original range."""
     # _k is iteration k
     # _s is short
     # _tgt is target
@@ -235,7 +244,9 @@ def calc_dc_ext(r_short, r_long, c_k_short, g_k_short, g_tgt_short, G_minus_g_sh
 def extrapolate_g(r_short, r_long, g_short, G_minus_g_short, n, rho,
                   k_max=5, output_c=False, verbose=False):
     """Extrapolate an RDF with integral equation theory.
-    Assumes c = 0 in the extrapolated region.
+
+    Assumes c = 0 in the extrapolated region. This is not a good aproximation
+    in systems with bonds.
 
     Args:
         r_short: Input grid.
@@ -292,16 +303,18 @@ def extrapolate_g(r_short, r_long, g_short, G_minus_g_short, n, rho,
 
 
 def calc_slices(r, g_tgt, g_cur, cut_off, verbose=False):
-    # there are different regions in r used
-    #              |       crucial     |                     # regions (slices)
-    # |   core     |                 nocore               |
-    # 0---------core_end------------cut_off-----------r[-1]  # distances
-    # 0----------ndx_ce--------------ndx_co----------len(r)  # indices
-    #
-    # nocore equals Δ from Delbary et al.
-    # crucial equals Δ' from Delbary et al.
-    # note: Vector w of HNCGN is in region crucial, but with one element less, because
-    # of the antiderivative operator A0
+    """Generate slices for the regions used in the IIE methods.
+
+    There are different regions used:
+                 |       crucial     |                     # regions (slices)
+    |   core     |                 nocore               |
+    0---------core_end------------cut_off-----------r[-1]  # distances
+    0----------ndx_ce--------------ndx_co----------len(r)  # indices
+    nocore equals Δ from Delbary et al.
+    crucial equals Δ' from Delbary et al.
+    note: Vector w of HNCGN is in region crucial, but with one element less,
+    because of the antiderivative operator A0.
+    """
     r, g_tgt, g_cur = map(np.asarray, (r, g_tgt, g_cur))
     ndx_ce = max((np.where(g_tgt > G_MIN)[0][0],
                   np.where(g_cur > G_MIN)[0][0]))
@@ -348,7 +361,9 @@ def calc_U(r, g_tgt, G_minus_g, n, kBT, rho, closure):
 def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
                    closure, newton_mod, cut_jacobian, verbose=False):
     """Calculate a potential update dU using Newtons method and integral equation
-    theory. Supports symmetric molecules with n equal beads.
+    theory.
+
+    Supports symmetric molecules with n equal beads.
 
     Args:
         r: Distance grid.
@@ -417,7 +432,7 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
 
 
 def gauss_newton_constrained(A, C, b, d):
-    """do a gauss-newton update, but eliminate Cx=d first"""
+    """Do a gauss-newton update, but eliminate Cx=d first."""
     m, n = A.shape
     p, n = C.shape
     b.shape = (m)
@@ -455,7 +470,9 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
                          cut_off, constraints,
                          verbose=False):
     """Calculate a potential update dU using the Gauss-Newton method and
-    integral equation theory. Constraints can be added.
+    integral equation theory.
+
+    Constraints can be added.
 
     Args:
         r: Distance grid.
@@ -548,7 +565,7 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
 def extrapolate_U_constant(dU, dU_flag):
     """Extrapolate the potential in the core region by a constant value.
 
-    Returns dU. U_{k+1} = U_k + dU is done by Votca."""
+    Returns dU. U_{k+1} = U_k + dU is done by VOTCA."""
     dU_extrap = dU.copy()
     # find first valid dU value
     first_dU_index = np.where(dU_flag == 'i')[0][0]
@@ -562,7 +579,9 @@ def extrapolate_U_constant(dU, dU_flag):
 def extrapolate_U_power(r, dU, U, g_tgt, g_min, kBT, verbose=False):
     """Extrapolate the potential in the core region including
     the point, where the RDF becomes larger than g_min or where
-    the new potential is convex. A power function is used.
+    the new potential is convex.
+
+    A power function is used.
     The PMF is fitted, not U+dU. The fit is then shifted such
     that the graph is monotonous.
 
@@ -609,7 +628,7 @@ def extrapolate_U_power(r, dU, U, g_tgt, g_min, kBT, verbose=False):
 
 
 def shift_U_cutoff_zero(dU, r, U, cut_off):
-    """Make potential zero at and beyond cut-off"""
+    """Make potential zero at and beyond cut-off."""
     dU_shift = dU.copy()
     # shift dU to be zero at cut_off and beyond
     ndx_co = find_after_cut_off_ndx(r, cut_off)
@@ -620,15 +639,15 @@ def shift_U_cutoff_zero(dU, r, U, cut_off):
 
 
 def fix_U_near_cut_off_full(r, U, cut_off):
-    """Modify the potential close to the cut-off in
-    a way, such that it is more smooth. The derivative
-    of the potential between the last two points will
-    be equal to the derivative between the two points
-    before. The original last two points of dU are
-    therefore ignored.
+    """Modify the potential close to the cut-off in a way, such that it is more
+    smooth.
 
-    This also helps agains an artifact of p-HNCGN,
-    where the last value of dU is a spike."""
+    The derivative of the potential between the last two points will be equal
+    to the derivative between the two points before. The original last two
+    points of dU are therefore ignored.
+
+    This also helps agains an artifact of p-HNCGN, where the last value of dU
+    is a spike."""
     U_fixed = U.copy()
     ndx_co = find_after_cut_off_ndx(r, cut_off)
     second_last_deriv = U[ndx_co-2] - U[ndx_co-3]
@@ -640,7 +659,7 @@ def fix_U_near_cut_off_full(r, U, cut_off):
 
 def upd_flag_g_smaller_g_min(flag, g, g_min):
     """Take a flag list, copy it, and set the flag to 'o'utside if g is smaller
-    g_min"""
+    g_min."""
     flag_new = flag.copy()
     for i, gg in enumerate(g):
         if gg < g_min:
@@ -650,7 +669,7 @@ def upd_flag_g_smaller_g_min(flag, g, g_min):
 
 def upd_flag_by_other_flag(flag, other_flag):
     """Take a flag list, copy it, and set the flag to 'o'utside where some
-    other flag list is 'o'"""
+    other flag list is 'o'."""
     flag_new = flag.copy()
     for i, of in enumerate(other_flag):
         if of == 'o':
@@ -660,7 +679,7 @@ def upd_flag_by_other_flag(flag, other_flag):
 
 def upd_U_const_first_flag_i(U, flag):
     """Take a potential list, copy it, and set the potential at places where
-    flag is 'o' to the first value where flag is 'i'"""
+    flag is 'o' to the first value where flag is 'i'."""
     U_new = U.copy()
     # find first valid U value
     first_U_index = np.where(flag == 'i')[0][0]
@@ -672,7 +691,7 @@ def upd_U_const_first_flag_i(U, flag):
 
 def upd_U_zero_beyond_cut_off(r, U, cut_off):
     """Take a potential list, copy it, and shift U to be zero at cut_off and
-    beyond"""
+    beyond."""
     U_new = U.copy()
     index_cut_off = find_nearest_ndx(r, cut_off)
     U_cut_off = U_new[index_cut_off]
