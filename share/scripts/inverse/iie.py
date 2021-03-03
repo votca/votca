@@ -74,11 +74,7 @@ def compare_grids(grid_a, grid_b):
 
 
 def calc_grid_spacing(grid, relative_tolerance=0.01):
-    """Returns the spacing of an equidistant 1D grid.
-
-    Fails if the grid is not equidistant.
-
-    """
+    """Returns the spacing of an equidistant 1D grid."""
     diffs = np.diff(grid)
     if abs((max(diffs) - min(diffs)) / max(diffs)) > relative_tolerance:
         raise Exception('the grid is not equidistant')
@@ -86,8 +82,7 @@ def calc_grid_spacing(grid, relative_tolerance=0.01):
 
 
 def fourier(r, f):
-    """
-    Compute the radially 3D FT of a radially symmetric function.
+    """Compute the radially 3D FT of a radially symmetric function.
 
     The frequency grid is also returned.  Some special extrapolations are used
     to make the results consistent. This function is isometric meaning it can
