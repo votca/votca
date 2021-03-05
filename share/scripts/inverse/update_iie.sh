@@ -88,22 +88,24 @@ fi
 
 # for_all not necessary for most sim_prog, but also doesn't hurt.
 for_all "non-bonded bonded" do_external rdf "$sim_prog"
-for_all "non-bonded" do_external resample target "$(csg_get_interaction_property inverse.target)" "$(csg_get_interaction_property name).dist.tgt"
+for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
 
+# do not put quotes around arguments with values ($G_cur_flag and some others)!
+# this will give a codacy warning :/
 do_external update iie_pot "$iie_method" \
-"$verbose_flag" \
---closure "$iie_closure" \
---g-tgt $(printf "%s.dist.tgt" "$nb_interactions") \
---g-cur $(printf "%s.dist.new" "$nb_interactions") \
-"$G_cur_flag" \
---U-cur $(printf "%s.pot.cur" "$nb_interactions") \
---U-out $(printf "%s.dpot.new" "$nb_interactions") \
---kBT "$kBT" --densities "$densities" --cut-off "$cut_off" \
---g-extrap-factor "$g_extrap_factor" \
-"$extrap_near_core_flag" \
-"$fix_near_cut_off_flag" \
-"$pressure_constraint_flag" \
-"$cut_jacobian_flag" \
---n-intra "$n_intra"
+    "$verbose_flag" \
+    --closure "$iie_closure" \
+    --g-tgt $(printf "%s.dist.tgt" "$nb_interactions") \
+    --g-cur $(printf "%s.dist.new" "$nb_interactions") \
+    $G_cur_flag \
+    --U-cur $(printf "%s.pot.cur" "$nb_interactions") \
+    --U-out $(printf "%s.dpot.new" "$nb_interactions") \
+    --kBT "$kBT" --densities "$densities" --cut-off "$cut_off" \
+    --g-extrap-factor "$g_extrap_factor" \
+    $extrap_near_core_flag \
+    $fix_near_cut_off_flag \
+    $pressure_constraint_flag \
+    $cut_jacobian_flag \
+    --n-intra "$n_intra"
 
 for_all "bonded" do_external update ibi_single

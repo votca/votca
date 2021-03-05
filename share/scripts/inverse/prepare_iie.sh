@@ -59,31 +59,25 @@ case "$initial_guess_method" in
     # bonded distributions inversion
     for_all "bonded" do_external prepare_single generic --use-bi
     # resample all target distributions
-    for_all "non-bonded" do_external resample target "$(csg_get_interaction_property inverse.target)" "$(csg_get_interaction_property name).dist.tgt"
+    for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
 
     # initial guess from rdf with hnc or py
     # todo: implement propper extrapolation (use raw, then extrapolate)
-    #raw=""
-    out=""
-    for name in $nb_interactions; do
-        #raw="$raw $(critical mktemp ${name}.pot.ie.raw.XXX)"
-        out="$out ${name}.pot.new"
-    done
     if [[ "${initial_guess_ignore_intra}" == "false" && $n_intra -gt 1 ]]; then
         critical cp -t . "${main_dir}/$(printf '%s.dist-incl.tgt' "$nb_interactions")"
         G_tgt_flag="--G-tgt $(printf '%s.dist-incl.tgt' "$nb_interactions")"
     else
-        G_tgt_flag=''
+        G_tgt_flag=""
     fi
 
-    closure_flag="--closure ${initial_guess_closure}"
-
+    # do not put quotes around arguments with values ($G_tgt_flag)!
+    # this will give a codacy warning :/
     do_external dist invert_iie potential_guess \
     "$verbose_flag" \
-    "$closure_flag" \
+    --closure "$initial_guess_closure" \
     --g-tgt $(printf "%s.dist.tgt" "$nb_interactions") \
-    "$G_tgt_flag" \
-    --U-out "$out" \
+    $G_tgt_flag \
+    --U-out $(printf "%s.pot.new" "$nb_interactions") \
     --kBT "$kBT" --densities "$densities" --cut-off "$cut_off" \
     --n-intra "$n_intra"
     ;;
