@@ -71,11 +71,11 @@ To add a new page to the website, you will first need to decide where it belongs
 in the xtp, csg or votca repo. Once you have decided that, navigate to the
 ``share/doc`` folder within that repo. There will be either an ``index.rst``
 file or something like ``XTP-MANUAL.rst``. This file is the main page of that repo on the website. If you look at the ``index.rst`` file in the ``votca`` repo you will
-see that all subpages are listed here, you need to make sure that your new page
+find all the subpages listed here, you need to make sure that your new page
 can be found starting from this file. 
 
 As an example, suppose we want to add a test page, called ``text.rst`` to the
-developers section of the website. In ``votca/share/doc`` we would create the
+developers section of the website. In ``votca/share/doc``, we would create the
 new file. Next, we would update the file ``votca/share/doc/index.rst``, we need
 to add our file to the table of contents of the site. Look for the table of
 contents of the development section and add the test page. It will look
