@@ -314,7 +314,7 @@ bool Orca::WriteShellScript() {
   shell_file << _settings.get("executable") << " " << _input_file_name << " > "
              << _log_file_name << endl;  //" 2> run.error" << endl;
   std::string base_name = _mo_file_name.substr(0, _mo_file_name.size() - 4);
-  shell_file << "orca_2mkl " << base_name << " -molden" << endl;
+  shell_file << _settings.get("executable") << "_2mkl " << base_name << " -molden" << endl;
   shell_file.close();
   return true;
 }
@@ -746,9 +746,9 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
   }
 
   molden.setBasissetInfo(orbitals.getDFTbasisName());
-  std::string file_name =
+  std::string file_name = _run_dir + "/" +
       _mo_file_name.substr(0, _mo_file_name.size() - 4) + ".molden.input";
-
+  XTP_LOG(Log::error, *_pLog) << "Molden file: " << file_name << flush;
   std::ifstream molden_file(file_name);
   if (!molden_file.good()) {
     throw std::runtime_error(
