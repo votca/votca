@@ -56,13 +56,13 @@ topol=$(csg_get_property --allow-empty "cg.inverse.${sim_prog}.rdf.topol")
 [[ -f $topol ]] || die "${0##*/}: topol file '${topol}' not found, possibly you have to add it to cg.inverse.filelist"
 
 traj=$(csg_get_property --allow-empty "cg.inverse.${sim_prog}.rdf.traj")
-[[ -z $traj ]] && traj=$(csg_get_property cg.inverse.${sim_prog}.traj)
+[[ -z $traj ]] && traj=$(csg_get_property "cg.inverse.${sim_prog}.traj")
 [[ -f $traj ]] || die "${0##*/}: traj file '${traj}' not found"
 
 maps=
 #always try to find mapping files
 if : ; then
-  mapping="$(csg_get_property --allow-empty cg.inverse.${sim_prog}.rdf.map)"
+  mapping=$(csg_get_property --allow-empty "cg.inverse.${sim_prog}.rdf.map")
   [[ -z $mapping ]] && mapping="$(csg_get_property --allow-empty cg.inverse.map)"
   #fail if we have bonded interaction, but no mapping file
   [[ -n $(csg_get_property --allow-empty cg.bonded.name) && -z $mapping ]] && die "Mapping file for bonded interaction needed"
@@ -88,10 +88,12 @@ if [[ ${include_intra} = "true" ]]; then
   intra_opts="--include-intra"
   dist_type="dist-incl"
   suffix="_incl"
+  message=" including intramolecular correlations"
 else
   intra_opts=""
   dist_type="dist"
   suffix=""
+  message=""
 fi
 
 with_errors=$(csg_get_property "cg.inverse.${sim_prog}.rdf.with_errors")
@@ -115,7 +117,7 @@ tasks=$(get_number_tasks)
 if is_done "rdf_calculation${suffix}"; then
   echo "rdf calculation is already done"
 else
-  msg "Calculating rdfs with csg_stat using ${tasks} tasks"
+  msg "Calculating rdfs with csg_stat using ${tasks} tasks ${message}"
   # do not put quotes around arguments with values ($error_opts)!
   # this will give a codacy warning :/
   critical csg_stat --nt "${tasks}" --options "${CSGXMLFILE}" --top "${topol}" \

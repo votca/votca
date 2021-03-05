@@ -72,6 +72,7 @@ case "$initial_guess_method" in
 
     # do not put quotes around arguments with values ($G_tgt_flag)!
     # this will give a codacy warning :/
+    msg "Using initial guess for non-bonded interactions using integral equations"
     do_external dist invert_iie potential_guess \
     "$verbose_flag" \
     --closure "$initial_guess_closure" \
