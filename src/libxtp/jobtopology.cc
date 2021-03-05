@@ -379,11 +379,11 @@ void JobTopology::ReadFromHdf5(std::string filename) {
       region = std::make_unique<PolarRegion>(i, _log);
     } else if (type == Staticdummy.identify()) {
       region = std::make_unique<StaticRegion>(i, _log);
-    }else{
-      throw std::runtime_error("Region type:"+type+" not known!");
+    } else {
+      throw std::runtime_error("Region type:" + type + " not known!");
     }
     region->ReadFromCpt(r);
-    if(id!=region->getId()){
+    if (id != region->getId()) {
       throw std::runtime_error("read in the wrong region, ids are mismatched.");
     }
     _regions.push_back(std::move(region));
