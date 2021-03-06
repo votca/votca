@@ -136,7 +136,7 @@ In preparation for a major (not minor!) release the following additional steps n
 Release names
 ~~~~~~~~~~~~~
 
-Some release have names, so far we have:
+Some releases have names, so far we have:
 
 -  1.1: SuperAnn - named after the spouse of a core developer
 -  1.2: SuperDoris - named after the administrator at MPI-P (VOTCA's birthplace)
