@@ -73,7 +73,27 @@ Making a Release
 Similar to the VOTCA containers, releases are also handled by Github actions. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
 To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
 :code:`stable` branch, but testing the creation of a release can be triggered on any branch. To make a release, trigger the action from the
-:code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for the :code:`stable` to :code:`master` branch, see `below <#updates-from-stable>`__). 
+:code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for the :code:`stable` to :code:`master` branch, see `below <#updates-from-stable>`__).
+
+In preparation for a major (not minor!) release the following additional steps need to done in preparation:
+-  Create a branch, e.g. :code:`stable_bump` in :code:`votca/vocta` and all submodule from the current master
+   ::
+
+       git checkout master
+       git submodules foreach git checkout master
+       git checkout -b stable_bump
+       git submodules foreach git checkout -b stable_bump
+
+-  Bump the version in CMake to :code:`<new_major>`-rc.1` replacing :code:`<new_major>`-dev` in :code:`votca/vocta` and all submodule from the current master
+-  Update the :code:`CHANGELOG.rst` files accordingly by changing the top most header from :code:`<new_major>`-dev` to `:code:`<new_major>`-rc.1`
+-  Commit changes in all submodules and update the submodules :code:`votca/vocta`
+   ::
+
+       git submodules foreach git commit -m "Version bumped to :code:`<new_major>-rc.1`
+       git add -u
+       git commit -m " Version bumped to :code:`<new_major>-rc.1`
+       
+     
 
 CPP Resources
 -------------
