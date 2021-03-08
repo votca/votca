@@ -18,7 +18,7 @@ in a list separated by a semicolon, e. g.
 Each mapping file contains a *topology* of the coarse-grained molecule
 and a list of *maps*. Topology specifies coarse-grained beads and bonded
 interactions between them. Each coarse-grained bead has a name, type, a
-list of atoms which belong it, and a link to a map. A map is a
+list of atoms which belong to it, and a link to a map. A map is a
 :math:`c_{Ii}` for an atom :math:`i` belonging to the bead :math:`I`. It
 is used to calculate the position of a coarse-grained bead from the
 positions of atoms which belong to it. Note that :math:`c_{Ii}` will be
@@ -29,9 +29,9 @@ sec. [sec:ref\_mapping].
 
 As an example, we will describe here a mapping file of a united atom
 model of a propane molecule, chemical structure of which is shown in
-fig. [fig:intro:propane]. In this coarse-grained model two bead types
+fig. [fig:intro:propane]. In this coarse-grained model, two bead types
 (A,B) and three beads (A1, B1, A2) are defined, as shown in
-fig. [fig:propane\_map]. We will use centers of mass of the beads as
+fig. [fig:propane\_map]. We will use the centers of mass of the beads as
 coarse-grained coordinates.
 
 Extracts from the ``propane.xml`` file of the tutorial are shown below.
@@ -40,10 +40,10 @@ tag must match the name of the molecule in the atomistic representation.
 In the section all beads are defined by specifying bead name (A1, B1,
 A2), type, and atoms belonging to this bead in the form
 ``residue id:residue name:atom name``. For each bead a map has to be
-specified, which is defined later in section. Note that bead and can be
+specified, which is defined later in the section. Note that bead and bead type can be
 different, which might be useful in a situation when chemically
 different beads (A1, B1) are assigned to the same bead type. After
-defining all beads the bonded interactions of the coarse-grained
+defining all beads, the bonded interactions of the coarse-grained
 molecule must be specified in the section. This is done by using the
 identifiers of the beads in the coarse-grained model. Finally, in the
 section, the mapping coefficients are defined. This includes a weighting
@@ -54,7 +54,7 @@ Verification of a mapping
 -------------------------
 
 Note that the tag should match the molecule name in the reference
-system. A common mistake is that beads have wrong names. In this case,
+system. A common mistake occurs when beads have wrong names. In this case,
 the tool can be used in order to identify the atoms which are read in
 from a topology file ``.tpr``. This tool displays the atoms in the
 format ``residue id:residue name:atom name``. For multicomponent
@@ -118,16 +118,15 @@ Advanced topology handling
 --------------------------
 
 A topology is completely specified by a set of beads, their types, and a
-list of bonded interactions. votcais able to read topologies in the
+list of bonded interactions. VOTCA is able to read topologies in the
 GROMACS\ ``.tpr`` format. For example, one can create a coarse-grained
-topology based on the mapping file and atomistic GROMACStopology using .
-
+topology based on the mapping file and atomistic GROMACS topology.
 .. code:: bash
 
   csg_gmxtopol --top topol.tpr --cg propane.xml --out out.top
 
 In some cases, however, one might want to use a .pdb, H5MD or .dump file
-which does not contain all information about the atomistic topology. In
+which does not contain all the required atomistic topology information. In
 this case, additional information can be supplied in the XMLmapping
 file.
 
@@ -135,11 +134,11 @@ A typical example is lack of a clear definition of molecules, which can
 be a problem for simulations with several molecules with multiple types.
 During coarse-graining, the molecule type is identified by a name tag as
 names must be clearly identified. To do this, it is possible to read a
-topology and then modify parts of it. The new XMLtopology can be used
+topology and then modify parts of it. The new XML topology can be used
 with the ``—tpr`` option, as any other topology file.
 
-For example, if information about a molecule is not present at all, one
-can create one from a ``.pdb`` file as follows
+For example, if information about a molecule is not present at all, a
+XML topology file can be created from a ``.pdb`` file as follows
 
 .. code:: xml
 
@@ -153,13 +152,13 @@ can create one from a ``.pdb`` file as follows
 where :math:`<`\ clear/\ :math:`>` clears all information that was
 present before.
 
-Old versions of GROMACSdid not store molecule names. In order to use
+Old versions of GROMACS did not store molecule names. In order to use
 this feature, a recent ``.tpr`` file containing molecule names should
 always be provided. For old topologies, rerun GROMACS to update the old
 topology file.
 
 If molecule information is already present in the parent topology but
-molecules are not named properly (as it is the case with old
+molecules are not named properly (as is the case with old
 GROMACS\ ``.tpr`` files), one can rename them using
 
 .. code:: xml
@@ -174,10 +173,10 @@ GROMACS\ ``.tpr`` files), one can rename them using
 Here, the file ``topol.tpr`` is loaded first and all molecules are
 renamed afterwards.
 
-If you do not have a .pdb/.gro file and you want to read trajectory from
-LAMMPS .dump file or H5MD then it is also possible to directly define
-topology in XMLfile. Here is an example of such file where the
-trajectory is read from H5MD file:
+If you do not have a .pdb/.gro file and you want to read trajectories from
+a LAMMPS .dump file or H5MD file then it is also possible to directly define
+the topology in a XML file. Here is an example of a XML file where the
+trajectory is read from a H5MD file:
 
 .. code:: xml
 
@@ -226,7 +225,7 @@ trajectory is read from H5MD file:
 
 
 The list of molecules is defined in section ``molecules`` where every
-``molecule`` is replicated ``nmols`` times. Inside ``molecule`` the list
+``molecule`` is replicated ``nmols`` times. Inside ``molecule``, the list
 of ``bead`` has to be defined with the name, type, mass and charge.
 
 The box size can be set by the tag ``box``:
@@ -237,14 +236,14 @@ The box size can be set by the tag ``box``:
 
 where ``xx, yy, zz`` are the dimensions of the box.
 
-A complete reference for XMLtopology file can be found in
+A complete reference for a XML topology file can be found in
 sec. [sec:ref\_topology].
 
 Trajectories
 ------------
 
 A trajectory is a set of frames containing coordinates (velocities and
-forces) for the beads defined in the topology. votcacurrently supports
+forces) for the beads defined in the topology. VOTCA currently supports
 ``.trr``, ``.xtc``, ``.pdb``, ``.gro`` and H5MD ``.h5`` trajectory
 formats.
 
@@ -256,14 +255,14 @@ a coarse-grained trajectory using
   csg_map --top topol.tpr --trj traj.trr --cg propane.xml --out cg.gro
 
 The program also provides the option ``—no-map``. In this case, no
-mapping is done and works as a trajectory converter. In general, mapping
-can be enabled and disabled in most analysis tools, e.g. in or .
+mapping is done and ``csg_map`` instead works as a trajectory converter. In general, mapping
+can be enabled and disabled in most analysis tools, e.g. (what goes here) in or .
 
-Note that the topology files can have a different contents as bonded
+Note, the topology files can have different contents as bonded
 interactions are not provided in all formats. In this case, mapping
 files can be used to define and relabel bonds.
 
-Also note that the default setting concerning mapping varies
+Also note, the default settings concerning mapping varies
 individually between the programs. Some have a default setting that does
 mapping (such as , use ``—no-map`` to disable mapping) and some have
 mapping disabled by default (e.g. , use ``—cg`` to enable mapping).
@@ -295,7 +294,7 @@ program used for simulations. The setting displayed above is later
 extended in the sections on iterative boltzmann inversion (), force
 matching () or statistical analysis ().
 
-Generally, is an analysis tool which can be used for computing radial
+Generally, (what goes here) is an analysis tool which can be used for computing radial
 distribution functions and analysing them. As an example, the command
 
 .. code:: xml
