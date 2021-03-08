@@ -3,11 +3,11 @@ CSG Manual
 
 **Disclamer:**
 This manual is not complete. The best way to start using the software is
-to look at provided tutorials. The reference section is generated
+to look at the provided tutorials. The reference section is generated
 automatically from the source code of the master version, so please make sure that your
 software and manual versions match.
 
-The last, no longer updated version, the old pdf manual can be found `here <http://doc.votca.org/manual.pdf>`_.
+The last, no longer updated version, of the old pdf manual can be found `here <http://doc.votca.org/manual.pdf>`_.
 
 
 .. toctree::
