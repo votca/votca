@@ -26,6 +26,7 @@ Version 2022-dev
 -  remove codecov comments from inside code at PR (#686)
 -  count the number of available CPUs for autogen_mapping script (#688)
 -  fixed issue with molden file path and orca executable path (#692)
+-  Fixed bug in mapping (#690)
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
