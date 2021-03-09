@@ -132,7 +132,9 @@ if [[ ${with_errors} = "yes" ]]; then
       [[ -f $i ]] || die "${0##*/}: Could not find ${name}_*.dist.block after running csg_sat, that usually means the blocksize (cg.inverse.${sim_prog}.rdf.block_length) is too big."
     done
     msg "Calculating average rdfs and its errors for interaction ${name}"
-    do_external table average --output "${name}.${dist_type}.new" "${name}_*.${dist_type}.block"
+    # do not put quotes around strings that should expand to multiple files
+    # this will give a codacy warning :/
+    do_external table average --output "${name}.${dist_type}.new" ${name}_*.${dist_type}.block
     mark_done "${name}_${dist_type}_rdf_average"
   fi
 fi
