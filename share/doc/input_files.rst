@@ -256,7 +256,7 @@ a coarse-grained trajectory using
 
 The program also provides the option ``—no-map``. In this case, no
 mapping is done and ``csg_map`` instead works as a trajectory converter. In general, mapping
-can be enabled and disabled in most analysis tools, e.g. (what goes here) in or .
+can be enabled and disabled in most analysis tools, e.g. in ``csg_stat`` or ``csg_fmatch``. 
 
 Note, the topology files can have different contents as bonded
 interactions are not provided in all formats. In this case, mapping
@@ -294,7 +294,7 @@ program used for simulations. The setting displayed above is later
 extended in the sections on iterative boltzmann inversion (), force
 matching () or statistical analysis ().
 
-Generally, (what goes here) is an analysis tool which can be used for computing radial
+Generally, ``csg_stat`` is an analysis tool which can be used for computing radial
 distribution functions and analysing them. As an example, the command
 
 .. code:: xml
