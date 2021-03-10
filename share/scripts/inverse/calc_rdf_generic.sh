@@ -134,7 +134,7 @@ if [[ ${with_errors} = "yes" ]]; then
     msg "Calculating average rdfs and its errors for interaction ${name}"
     # do not put quotes around strings that should expand to multiple files
     # this will give a codacy warning :/
-    do_external table average --output "${name}.${dist_type}.new" ${name}_*.${dist_type}.block
+    do_external table average --output "${name}.${dist_type}.new" "${name}"_*."${dist_type}".block
     mark_done "${name}_${dist_type}_rdf_average"
   fi
 fi
