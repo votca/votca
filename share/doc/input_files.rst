@@ -18,7 +18,7 @@ in a list separated by a semicolon, e. g.
 Each mapping file contains a *topology* of the coarse-grained molecule
 and a list of *maps*. Topology specifies coarse-grained beads and bonded
 interactions between them. Each coarse-grained bead has a name, type, a
-list of atoms which belong to it, and a link to a map. A map is a
+list of atoms which belong to it, and a link to a map. A map is a ``set of weights``
 :math:`c_{Ii}` for an atom :math:`i` belonging to the bead :math:`I`. It
 is used to calculate the position of a coarse-grained bead from the
 positions of atoms which belong to it. Note that :math:`c_{Ii}` will be
@@ -35,27 +35,27 @@ fig. [fig:propane\_map]. We will use the centers of mass of the beads as
 coarse-grained coordinates.
 
 Extracts from the ``propane.xml`` file of the tutorial are shown below.
-The tag indicates the molecule name in the coarse-grained topology. The
-tag must match the name of the molecule in the atomistic representation.
-In the section all beads are defined by specifying bead name (A1, B1,
+The ``name`` tag indicates the molecule name in the coarse-grained topology. The
+``ident`` tag must match the name of the molecule in the atomistic representation.
+In the ``topology`` section all beads are defined by specifying bead name (A1, B1,
 A2), type, and atoms belonging to this bead in the form
 ``residue id:residue name:atom name``. For each bead a map has to be
-specified, which is defined later in the section. Note that bead and bead type can be
+specified, which is defined later in the ``maps`` section. Note that bead ``type`` and bead ``map`` can be
 different, which might be useful in a situation when chemically
 different beads (A1, B1) are assigned to the same bead type. After
 defining all beads, the bonded interactions of the coarse-grained
-molecule must be specified in the section. This is done by using the
+molecule must be specified in the ``cg_bonded`` section. This is done by using the
 identifiers of the beads in the coarse-grained model. Finally, in the
-section, the mapping coefficients are defined. This includes a weighting
+``mapping`` section, the mapping coefficients are defined. This includes a weighting
 of the atoms in the topology section. In particular, the number of
 weights given should match the number of beads.
 
 Verification of a mapping
 -------------------------
 
-Note that the tag should match the molecule name in the reference
+Note that the ``ident`` tag should match the molecule name in the reference
 system. A common mistake occurs when beads have wrong names. In this case,
-the tool can be used in order to identify the atoms which are read in
+the tool ``csg_dump`` can be used in order to identify the atoms which are read in
 from a topology file ``.tpr``. This tool displays the atoms in the
 format ``residue id:residue name:atom name``. For multicomponent
 systems, it might happen that molecules are not identified correctly.
@@ -120,7 +120,9 @@ Advanced topology handling
 A topology is completely specified by a set of beads, their types, and a
 list of bonded interactions. VOTCA is able to read topologies in the
 GROMACS\ ``.tpr`` format. For example, one can create a coarse-grained
-topology based on the mapping file and atomistic GROMACS topology.
+topology based on the mapping file and atomistic GROMACS topology using
+``csg_gmxtopol``.
+
 .. code:: bash
 
   csg_gmxtopol --top topol.tpr --cg propane.xml --out out.top
@@ -248,13 +250,13 @@ forces) for the beads defined in the topology. VOTCA currently supports
 formats.
 
 Once the mapping file is created, it is easy to convert an atomistic to
-a coarse-grained trajectory using
+a coarse-grained trajectory using ``csg_map``.
 
 .. code:: xml
 
   csg_map --top topol.tpr --trj traj.trr --cg propane.xml --out cg.gro
 
-The program also provides the option ``—no-map``. In this case, no
+The program ``csg_map`` also provides the option ``—no-map``. In this case, no
 mapping is done and ``csg_map`` instead works as a trajectory converter. In general, mapping
 can be enabled and disabled in most analysis tools, e.g. in ``csg_stat`` or ``csg_fmatch``. 
 
@@ -327,6 +329,6 @@ potential) and ``[error]`` is an optional error for ``y``. The token
 The token ``flag`` will be important when extrapolating the table as
 described in sec. [sec:post\_processing].
 
-For historical reasons, uses a slightly different table format, it has
+For historical reasons, ``csg_boltzmann`` uses a slightly different table format, it has
 no ``flag`` column and uses the third column as a force column when
 outputting a potential.
