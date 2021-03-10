@@ -291,8 +291,8 @@ Setting files
 A setting file is written in the format ``.xml``. It consists of a
 general section displayed above, and a specific section depending on the
 program used for simulations. The setting displayed above is later
-extended in the sections on iterative boltzmann inversion (), force
-matching () or statistical analysis ().
+extended in the sections on iterative boltzmann inversion (``csg_inverse``), force
+matching (``csg_fmatch``) or statistical analysis (``csg_stat``).
 
 Generally, ``csg_stat`` is an analysis tool which can be used for computing radial
 distribution functions and analysing them. As an example, the command
