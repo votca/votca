@@ -2,7 +2,7 @@ For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/csg/commits/master>`__.
 
 Version 2021 (released XX.01.21)
-=====================================
+================================
 
 -  fix CI on rawhide (#642)
 -  add auto-cancel workflow to GitHub Actions (#645)
