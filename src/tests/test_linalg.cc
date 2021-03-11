@@ -68,36 +68,4 @@ BOOST_AUTO_TEST_CASE(linalg_constrained_qrsolve_test) {
   BOOST_CHECK_EQUAL(equal, true);
 }
 
-BOOST_AUTO_TEST_CASE(linalg_mkl_test) {
-
-  votca::Index nmax = 10;
-
-  Eigen::MatrixXd H = EigenIO_MatrixMarket::ReadMatrix(
-      std::string(TOOLS_TEST_DATA_FOLDER) + "/linalg/H.mm");
-
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H);
-  Eigen::MatrixXd V_ref = es.eigenvectors().block(0, 0, H.rows(), nmax);
-  Eigen::VectorXd E_ref = es.eigenvalues().segment(0, nmax);
-
-  EigenSystem result = linalg_eigenvalues(H, nmax);
-  bool check_energy = E_ref.isApprox(result.eigenvalues(), 0.0001);
-
-  bool check_vector =
-      result.eigenvectors().cwiseAbs().isApprox(V_ref.cwiseAbs(), 0.0001);
-
-  if (!check_vector || !check_energy) {
-    std::cout << "E_ref" << std::endl;
-    std::cout << E_ref << std::endl;
-    std::cout << "E" << std::endl;
-    std::cout << result.eigenvalues() << std::endl;
-    std::cout << "V_ref" << std::endl;
-    std::cout << V_ref << std::endl;
-    std::cout << "V" << std::endl;
-    std::cout << result.eigenvectors() << std::endl;
-  }
-
-  BOOST_CHECK_EQUAL(check_energy, 1);
-  BOOST_CHECK_EQUAL(check_vector, 1);
-}
-
 BOOST_AUTO_TEST_SUITE_END()
