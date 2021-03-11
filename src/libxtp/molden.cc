@@ -208,7 +208,8 @@ void Molden::parseMoldenFile(const std::string& filename,
   std::ifstream input_file(filename);
   // Check if succesfull
   if (input_file.fail()) {
-    throw std::runtime_error("Could not open molden file.");
+    throw std::runtime_error("Could not open molden file with name: " +
+                             filename);
   }
 
   std::string line;
@@ -230,7 +231,13 @@ void Molden::parseMoldenFile(const std::string& filename,
       boost::trim(units);
       XTP_LOG(Log::error, _log)
           << "Reading atoms using " << units << " units." << std::flush;
-      line = readAtoms(orbitals.QMAtoms(), units, input_file);
+      orbitals.QMAtoms().clearAtoms();
+      if (orbitals.QMAtoms().size() == 0) {
+        line = readAtoms(orbitals.QMAtoms(), units, input_file);
+      } else {
+        throw std::runtime_error(
+            "Could not clear QMAtoms while reading Molden file.");
+      }
       addBasissetInfo(orbitals);
     } else if (sectionType == "GTO") {
       XTP_LOG(Log::error, _log)

@@ -46,13 +46,11 @@
           <dynamical_screening_tolerance help="convergence tolerance for perturbative dynamical screening in BSE" default="1e-5" choices="float+"/>
           <ignore_corelevels help="exclude core MO level from calculation on RPA,GW or BSE level" default="no" choices="RPA,GW,BSE,no"/>
           <eigensolver help="options for BSE eigenvalue decompostion">
-            <dodavidson help="use davidson solver" default="true" choices="bool"/>
             <davidson_correction help="Davidson correction method" default="DPR" choices="DPR,OHLSEN"/>
-            <davidson_tolerance help="Numerical tolerance" default="normal" choices="loose,normal,strict"/>
+            <davidson_tolerance help="Numerical tolerance" default="normal" choices="loose,normal,strict,lapack"/>
             <davidson_ortho help="orthogonalisation routine: GramSchmidt or QR" default="GS" choices="GS,QR"/>
             <davidson_update help=" how large the search space" default="safe" choices="min,safe,max"/>
             <davidson_maxiter help="max iterations" default="50" choices="int+"/>
-            <domatrixfree help="solve without explicitly setting up BSE matrix, (slower but a lot less memory required" default="true" choices="bool">false</domatrixfree>
           </eigensolver>
           <gw_sc_max_iterations help="Maximum number of iterations in eVGW" default="50" choices="int+"/>
           <gw_mixing_order help="Mixing of QP energies in evGW - 0: plain, 1: linear, &gt;1: Anderson" default="20" choices="int+"/>

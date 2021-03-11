@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -31,8 +31,6 @@ class AOMatrix {
  public:
   virtual void Fill(const AOBasis& aobasis) = 0;
   virtual Index Dimension() = 0;
-  using MatrixLibInt =
-      Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 };
 
 // derived class for kinetic energy

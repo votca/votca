@@ -125,16 +125,16 @@ class CheckpointWriter {
   }
 
   template <typename T>
-  CptTable openTable(const std::string& name, const T& obj, std::size_t nRows,
+  CptTable openTable(const std::string& name, std::size_t nRows,
                      bool compact = false) {
     CptTable table;
     try {
       table = CptTable(name, sizeof(typename T::data), _loc);
-      obj.SetupCptTable(table);
+      T::SetupCptTable(table);
     } catch (H5::Exception&) {
       try {
         table = CptTable(name, sizeof(typename T::data), nRows);
-        obj.SetupCptTable(table);
+        T::SetupCptTable(table);
         table.initialize(_loc, compact);
       } catch (H5::Exception&) {
         std::stringstream message;

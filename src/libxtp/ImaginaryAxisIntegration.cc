@@ -1,3 +1,4 @@
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -95,7 +96,7 @@ double ImaginaryAxisIntegration::SigmaGQDiag(double frequency, Index gw_level,
   Eigen::ArrayXcd DeltaE = frequency - _energies.array();
   DeltaE.imag().head(occ) = eta;
   DeltaE.imag().tail(unocc) = -eta;
-  FunctionEvaluation f = FunctionEvaluation(Imx, DeltaE, _dielinv_matrices_r);
+  FunctionEvaluation f(Imx, DeltaE, _dielinv_matrices_r);
   return _gq->Integrate(f);
 }
 

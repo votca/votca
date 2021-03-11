@@ -46,34 +46,25 @@ Segment QMPair::Seg2PbCopy() const {
   return seg2pbc;
 }
 
-void QMPair::SetupCptTable(CptTable& table) const {
-  table.addCol(_id, "index", HOFFSET(data, id));
-  table.addCol(_segments.first->getId(), "Seg1Id", HOFFSET(data, Seg1Id));
-  table.addCol(_segments.second->getId(), "Seg2Id", HOFFSET(data, Seg2Id));
+void QMPair::SetupCptTable(CptTable& table) {
+  table.addCol<Index>("index", HOFFSET(data, id));
+  table.addCol<Index>("Seg1Id", HOFFSET(data, Seg1Id));
+  table.addCol<Index>("Seg2Id", HOFFSET(data, Seg2Id));
 
-  table.addCol(_R[0], "delta_Rx", HOFFSET(data, RX));
-  table.addCol(_R[1], "delta_Ry", HOFFSET(data, RY));
-  table.addCol(_R[2], "delta_Rz", HOFFSET(data, RZ));
-  std::string ptype = get_name(_pair_type);
-  table.addCol(ptype, "pair_type", HOFFSET(data, pair_type));
+  table.addCol<double>("delta_Rx", HOFFSET(data, RX));
+  table.addCol<double>("delta_Ry", HOFFSET(data, RY));
+  table.addCol<double>("delta_Rz", HOFFSET(data, RZ));
+  table.addCol<std::string>("pair_type", HOFFSET(data, pair_type));
 
-  table.addCol(_lambda0.getValue(QMStateType::Electron), "lambda0e",
-               HOFFSET(data, lambda0e));
-  table.addCol(_lambda0.getValue(QMStateType::Hole), "lambda0h",
-               HOFFSET(data, lambda0h));
-  table.addCol(_lambda0.getValue(QMStateType::Singlet), "lambda0s",
-               HOFFSET(data, lambda0s));
-  table.addCol(_lambda0.getValue(QMStateType::Triplet), "lambda0t",
-               HOFFSET(data, lambda0t));
+  table.addCol<double>("lambda0e", HOFFSET(data, lambda0e));
+  table.addCol<double>("lambda0h", HOFFSET(data, lambda0h));
+  table.addCol<double>("lambda0s", HOFFSET(data, lambda0s));
+  table.addCol<double>("lambda0t", HOFFSET(data, lambda0t));
 
-  table.addCol(_Jeff2.getValue(QMStateType::Electron), "jeff2e",
-               HOFFSET(data, jeff2e));
-  table.addCol(_Jeff2.getValue(QMStateType::Hole), "jeff2h",
-               HOFFSET(data, jeff2h));
-  table.addCol(_Jeff2.getValue(QMStateType::Singlet), "jeff2s",
-               HOFFSET(data, jeff2s));
-  table.addCol(_Jeff2.getValue(QMStateType::Triplet), "jeff2t",
-               HOFFSET(data, jeff2t));
+  table.addCol<double>("jeff2e", HOFFSET(data, jeff2e));
+  table.addCol<double>("jeff2h", HOFFSET(data, jeff2h));
+  table.addCol<double>("jeff2s", HOFFSET(data, jeff2s));
+  table.addCol<double>("jeff2t", HOFFSET(data, jeff2t));
 }
 
 void QMPair::WriteData(data& d) const {

@@ -7,3 +7,4 @@ XTP Manual
    theory
    workflows_and_calculators
    qmpackages
+   reference

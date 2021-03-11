@@ -38,7 +38,7 @@ struct BSEOperator_Options {
 };
 
 template <Index cqp, Index cx, Index cd, Index cd2>
-class BSE_OPERATOR : public MatrixFreeOperator {
+class BSE_OPERATOR final : public MatrixFreeOperator {
 
  public:
   BSE_OPERATOR(const Eigen::VectorXd& Hd_operator, const TCMatrix_gwbse& Mmn,
@@ -47,19 +47,22 @@ class BSE_OPERATOR : public MatrixFreeOperator {
 
   void configure(BSEOperator_Options opt);
 
-  Eigen::RowVectorXd OperatorRow(Index index) const override;
-
-  bool useBlock() const override { return cx != 0; }
-
-  Index getBlocksize() const override { return Index(_bse_ctotal); }
-
-  Eigen::MatrixXd OperatorBlock(Index row, Index col) const override;
+  // This method sets up the diagonal of the hermitian BSE hamiltonian.
+  // Otherwise see the matmul function
+  Eigen::VectorXd diagonal() const;
+  /*
+   * This is the main routine for setting up the hermitian parts of the BSE
+   * For the non-hermitian case look at bseoperator_btda.h which combines
+   * the bse_operators. The operator is never set up explicitly, instead only
+   * the product of it with an input matrix is computed. using the template
+   * arguements Different parts of the hamiltonian can be constructed. In
+   * general it is inefficient to set them up independently (unless you need it
+   * for analysis) thus the function combines all parts.
+   */
+  Eigen::MatrixXd matmul(const Eigen::MatrixXd& input) const;
 
  private:
-  Eigen::RowVectorXd Hqp_row(Index index) const;
-  Eigen::RowVectorXd Hd_row(Index index) const;
-  Eigen::RowVectorXd Hd2_row(Index index) const;
-  Eigen::MatrixXd HxBlock(Index row, Index col) const;
+  Eigen::VectorXd Hqp_row(Index v1, Index c1) const;
 
   BSEOperator_Options _opt;
   Index _bse_size;
@@ -75,10 +78,6 @@ class BSE_OPERATOR : public MatrixFreeOperator {
 // type defs for the different operators
 typedef BSE_OPERATOR<1, 2, 1, 0> SingletOperator_TDA;
 typedef BSE_OPERATOR<1, 0, 1, 0> TripletOperator_TDA;
-
-typedef BSE_OPERATOR<1, 4, 1, 1> SingletOperator_BTDA_ApB;
-typedef BSE_OPERATOR<1, 0, 1, 1> TripletOperator_BTDA_ApB;
-typedef BSE_OPERATOR<1, 0, 1, -1> Operator_BTDA_AmB;
 
 typedef BSE_OPERATOR<0, 2, 0, 1> SingletOperator_BTDA_B;
 

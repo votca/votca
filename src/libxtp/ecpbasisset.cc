@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -103,6 +103,7 @@ std::ostream& operator<<(std::ostream& out, const ECPShell& shell) {
       << " Func: " << shell.getnumofFunc() << "\n";
   for (const auto& gaussian : shell._gaussians) {
     out << " Gaussian Decay: " << gaussian._decay;
+    out << " Power: " << gaussian._power;
     out << " Contraction:" << gaussian._contraction << "\n";
   }
   return out;

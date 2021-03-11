@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -28,10 +28,13 @@
 namespace votca {
 namespace xtp {
 
+using MatrixLibInt =
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+
 template <libint2::Operator obtype,
           typename OperatorParams =
               typename libint2::operator_traits<obtype>::oper_params_type>
-std::array<AOMatrix::MatrixLibInt, libint2::operator_traits<obtype>::nopers>
+std::array<MatrixLibInt, libint2::operator_traits<obtype>::nopers>
     computeOneBodyIntegrals(const AOBasis& aobasis,
                             OperatorParams oparams = OperatorParams()) {
 
@@ -41,11 +44,9 @@ std::array<AOMatrix::MatrixLibInt, libint2::operator_traits<obtype>::nopers>
   std::vector<std::vector<Index>> shellpair_list = aobasis.ComputeShellPairs();
 
   Index nopers = static_cast<Index>(libint2::operator_traits<obtype>::nopers);
-  std::array<AOMatrix::MatrixLibInt, libint2::operator_traits<obtype>::nopers>
-      result;
-  for (AOMatrix::MatrixLibInt& r : result) {
-    r = AOMatrix::MatrixLibInt::Zero(aobasis.AOBasisSize(),
-                                     aobasis.AOBasisSize());
+  std::array<MatrixLibInt, libint2::operator_traits<obtype>::nopers> result;
+  for (MatrixLibInt& r : result) {
+    r = MatrixLibInt::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
   }
 
   std::vector<libint2::Engine> engines(nthreads);
@@ -76,7 +77,7 @@ std::array<AOMatrix::MatrixLibInt, libint2::operator_traits<obtype>::nopers>
       Index bf2 = shell2bf[s2];
       Index n2 = shells[s2].size();
       for (unsigned int op = 0; op != nopers; ++op) {
-        Eigen::Map<const AOMatrix::MatrixLibInt> buf_mat(buf[op], n1, n2);
+        Eigen::Map<const MatrixLibInt> buf_mat(buf[op], n1, n2);
         result[op].block(bf1, bf2, n1, n2) = buf_mat;
         if (s1 != s2) {  // if s1 >= s2, copy {s1,s2} to the corresponding
                          // {s2,s1} block, note the transpose!
@@ -114,8 +115,8 @@ Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
     libint2::Shell s = shell.LibintShell();
     engine.compute(s, s);
 
-    Eigen::Map<const AOMatrix::MatrixLibInt> buf_mat(buf[0], shell.getNumFunc(),
-                                                     shell.getNumFunc());
+    Eigen::Map<const MatrixLibInt> buf_mat(buf[0], shell.getNumFunc(),
+                                           shell.getNumFunc());
     return buf_mat;
   } catch (const libint2::Engine::lmax_exceeded& error) {
     std::ostringstream oss;
@@ -173,7 +174,7 @@ void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {
   std::vector<libint2::Shell> shells = aobasis.GenerateLibintBasis();
   std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
 
-  Eigen::MatrixXd result =
+  _aomatrix =
       Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
   // build engines for each thread
@@ -207,15 +208,14 @@ void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {
       Index bf2 = shell2bf[s2];
       Index n2 = shells[s2].size();
 
-      Eigen::Map<const AOMatrix::MatrixLibInt> buf_mat(buf[0], n1, n2);
-      result.block(bf1, bf2, n1, n2) = buf_mat;
+      Eigen::Map<const MatrixLibInt> buf_mat(buf[0], n1, n2);
+      _aomatrix.block(bf1, bf2, n1, n2) = buf_mat;
       if (s1 != s2) {  // if s1 >= s2, copy {s1,s2} to the corresponding
                        // {s2,s1} block, note the transpose!
-        result.block(bf2, bf1, n2, n1) = buf_mat.transpose();
+        _aomatrix.block(bf2, bf1, n2, n1) = buf_mat.transpose();
       }
     }
   }
-  _aomatrix = result;
 }
 
 // This converts V into ((S-1/2 V S-1/2)-1/2 S-1/2)T, which is needed to
