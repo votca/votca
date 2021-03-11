@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
 
         std::stringstream nm;
         nm << bead->getResnr() + 1 - res_offset << ":"
-           << top.getResidue(bead->getResnr())->getName() << ":"
+           << top.getResidue(bead->getResnr()).getName() << ":"
            << bead->getName();
         mi->AddBead(bead, nm.str());
       }

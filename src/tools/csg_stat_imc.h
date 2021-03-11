@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,13 @@
 #ifndef VOTCA_CSG_CSG_STAT_IMC_H
 #define VOTCA_CSG_CSG_STAT_IMC_H
 
-#include "../../include/votca/csg/csgapplication.h"
+// VOTCA includes
 #include <votca/tools/average.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
 
 namespace votca {
 namespace csg {
@@ -149,7 +152,7 @@ class Imc {
   bool _processed_some_frames = false;
 
  public:
-  CsgApplication::Worker *ForkWorker();
+  std::unique_ptr<CsgApplication::Worker> ForkWorker();
   void MergeWorker(CsgApplication::Worker *worker_);
 };
 

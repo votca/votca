@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,23 @@
  *
  */
 
-#include <boost/program_options.hpp>
-#include <boost/tokenizer.hpp>
+// Standard includes
 #include <cmath>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 
-#include <cstdlib>
-#include <votca/csg/cgengine.h>
-#include <votca/csg/csgapplication.h>
+// Third party includes
+#include <boost/program_options.hpp>
+#include <boost/tokenizer.hpp>
+
+// VOTCA includes
 #include <votca/tools/average.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include <votca/csg/cgengine.h>
+#include <votca/csg/csgapplication.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -175,22 +181,22 @@ class CGOrderParam : public CsgApplication {
     Eigen::Vector3d u, v, w;
 
     if (_refmol != "") {
-      for (Bead *bead : conf->Beads()) {
-        if (votca::tools::wildcmp(_refmol, bead->getName())) {
-          _ref = bead->getPos();
+      for (const auto &bead : conf->Beads()) {
+        if (votca::tools::wildcmp(_refmol, bead.getName())) {
+          _ref = bead.getPos();
         }
       }
     }
 
-    for (Bead *bead : conf->Beads()) {
-      if (!votca::tools::wildcmp(_filter, bead->getName())) {
+    for (const auto &bead : conf->Beads()) {
+      if (!votca::tools::wildcmp(_filter, bead.getName())) {
         continue;
       }
-      if (votca::tools::wildcmp(_refmol, bead->getName())) {
+      if (votca::tools::wildcmp(_refmol, bead.getName())) {
         continue;
       }
 
-      eR = bead->getPos() - _ref;
+      eR = bead.getPos() - _ref;
       if ((eR.norm() < _radialcutoff && eR.norm() > _minrad) || _rbins != 1) {
         // cout << eR << endl;
         votca::Index rb = 0;
@@ -202,9 +208,9 @@ class CGOrderParam : public CsgApplication {
         }
 
         eR.normalize();
-        u = bead->getU();
-        v = bead->getV();
-        w = bead->getW();
+        u = bead.getU();
+        v = bead.getV();
+        w = bead.getW();
         u.normalize();
         v.normalize();
         w.normalize();
