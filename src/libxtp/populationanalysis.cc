@@ -25,15 +25,22 @@ namespace xtp {
 
 template <bool T>
 StaticSegment Populationanalysis<T>::CalcChargeperAtom(
-    const Orbitals& orbitals, const QMState& state) const {
+    const Orbitals& orbitals, const QMState& state, bool diff2gs) const {
 
   AOBasis basis = orbitals.SetupDftBasis();
-  Eigen::MatrixXd dmat = orbitals.DensityMatrixFull(state);
+  Eigen::MatrixXd dmat;
+  if (diff2gs) {
+    dmat = orbitals.DensityMatrixWithoutGS(state);
+  } else {
+    dmat = orbitals.DensityMatrixFull(state);
+  }
   AOOverlap overlap;
   overlap.Fill(basis);
   Eigen::VectorXd charges = -CalcElecChargeperAtom(dmat, overlap, basis);
   if (!state.isTransition()) {
-    charges += CalcNucChargeperAtom(orbitals.QMAtoms());
+    if ( diff2gs == false ) {
+      charges += CalcNucChargeperAtom(orbitals.QMAtoms());
+    }
   }
 
   StaticSegment seg =

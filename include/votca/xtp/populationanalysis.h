@@ -41,7 +41,7 @@ template <bool T>
 class Populationanalysis {
  public:
   StaticSegment CalcChargeperAtom(const Orbitals& orbitals,
-                                  const QMState& state) const;
+                                  const QMState& state, bool diff2gs) const;
 
   void CalcChargeperFragment(std::vector<QMFragment<BSE_Population> >& frags,
                              const Orbitals& orbitals, QMStateType type) const;

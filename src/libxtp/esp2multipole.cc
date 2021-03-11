@@ -41,6 +41,8 @@ void Esp2multipole::Initialize(tools::Property& options) {
   std::string statestring = options.get(key + ".state").as<std::string>();
   _state.FromString(statestring);
 
+  _diff2gs = options.get(key + ".diff2gs").as<bool>();
+
   _method = options.get(key + ".method").as<std::string>();
 
   if (_method == "mulliken") {
@@ -122,10 +124,10 @@ StaticSegment Esp2multipole::Extractingcharges(const Orbitals& orbitals) const {
   StaticSegment result("result", 0);
   if (_use_mulliken) {
     Mulliken mulliken;
-    result = mulliken.CalcChargeperAtom(orbitals, _state);
+    result = mulliken.CalcChargeperAtom(orbitals, _state, _diff2gs);
   } else if (_use_lowdin) {
     Lowdin lowdin;
-    result = lowdin.CalcChargeperAtom(orbitals, _state);
+    result = lowdin.CalcChargeperAtom(orbitals, _state, _diff2gs);
   } else if (_use_CHELPG) {
     Espfit esp = Espfit(_log);
     if (_pairconstraint.size() > 0) {

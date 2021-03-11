@@ -3,7 +3,8 @@
   <partialcharges help="Tool to derive partial charges from QM results stores in serialized file" section="sec:overlap">
     <esp_options help="options for the method">
       <esp2multipole>
-        <state help="ground-,excited or transitionstate" default="n2s1" choices="groundstate,singlet,n2s1"/>
+        <state help="ground-,excited or transitionstate" default="n2s1" />
+        <diff2gs help="For excited states output difference to groundstate" default="false" choices="bool"/>
         <method help="Method to use derive partial charges" default="CHELPG" choices="mulliken,loewdin,CHELPG"/>
         <gridsize help="Grid accuracy for numerical integration within CHELPG" default="fine" choices="coarse,medium,fine"/>
       </esp2multipole>

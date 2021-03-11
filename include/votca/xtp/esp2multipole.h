@@ -65,6 +65,7 @@ class Esp2multipole {
   bool _use_CHELPG;
   bool _do_svd;
   double _conditionnumber;
+  bool _diff2gs;
 
   Logger& _log;
   std::vector<std::pair<Index, Index> > _pairconstraint;  //  pairconstraint[i]

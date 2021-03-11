@@ -118,6 +118,13 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
     } else {
       result -= DMATQP;
     }
+  } else if (state.Type() == QMStateType::PQPstate || state.Type() == QMStateType::KSstate ) {
+    Eigen::MatrixXd DMATQP = DensityMatrixKSstate(state);
+    if (state.StateIdx() > getHomo()) {
+      result += DMATQP;
+    } else {
+      result -= DMATQP;
+    }
   } else if (state.Type() != QMStateType::Gstate) {
     throw std::runtime_error(
         "DensityMatrixFull does not yet implement QMStateType:" +
