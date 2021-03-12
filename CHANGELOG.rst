@@ -28,8 +28,8 @@ Version 2022-dev
 -  fixed issue with molden file path and orca executable path (#692)
 -  Fixed bug in mapping (#690)
 
-Version 2021-rc.2 (released XX.01.21)
-=====================================
+Version 2021 (released XX.01.21)
+================================
 
 -  fix CI on rawhide (#663)
 -  add xtp_qmmm2qm to cmake install (#665)
