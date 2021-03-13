@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,23 +52,21 @@ void LAMMPSDumpWriter::Write(Topology *conf) {
   }
   fprintf(_out, "\n");
 
-  for (BeadContainer::iterator iter = conf->Beads().begin();
-       iter != conf->Beads().end(); ++iter) {
-    Bead *bi = *iter;
+  for (const Bead &bead : conf->Beads()) {
+    Index type_id = conf->getBeadTypeId(bead.getType());
 
-    Index type_id = conf->getBeadTypeId(bi->getType());
-
-    fprintf(_out, "%ld %li", bi->getId() + 1, type_id);
-    fprintf(_out, " %f %f %f", bi->getPos().x() * conv::nm2ang,
-            bi->getPos().y() * conv::nm2ang, bi->getPos().z() * conv::nm2ang);
+    fprintf(_out, "%ld %li", bead.getId() + 1, type_id);
+    fprintf(_out, " %f %f %f", bead.getPos().x() * conv::nm2ang,
+            bead.getPos().y() * conv::nm2ang, bead.getPos().z() * conv::nm2ang);
     if (v) {
-      fprintf(_out, " %f %f %f", bi->getVel().x() * conv::nm2ang,
-              bi->getVel().y() * conv::nm2ang, bi->getVel().z() * conv::nm2ang);
+      fprintf(_out, " %f %f %f", bead.getVel().x() * conv::nm2ang,
+              bead.getVel().y() * conv::nm2ang,
+              bead.getVel().z() * conv::nm2ang);
     }
     if (f) {
-      fprintf(_out, " %f %f %f", bi->getF().x() * conv::kj2kcal / conv::nm2ang,
-              bi->getF().y() * conv::kj2kcal / conv::nm2ang,
-              bi->getF().z() * conv::kj2kcal / conv::nm2ang);
+      fprintf(_out, " %f %f %f", bead.getF().x() * conv::kj2kcal / conv::nm2ang,
+              bead.getF().y() * conv::kj2kcal / conv::nm2ang,
+              bead.getF().z() * conv::kj2kcal / conv::nm2ang);
     }
     fprintf(_out, "\n");
   }

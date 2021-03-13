@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,24 @@
  *
  */
 
-#ifndef _VOTCA_CSG_REUPDATE_H
-#define _VOTCA_CSG_REUPDATE_H
-#include "../../include/votca/csg/csgapplication.h"
-#include "../../include/votca/csg/potentialfunctions/potentialfunction.h"
-#include "../../include/votca/csg/potentialfunctions/potentialfunctioncbspl.h"
-#include "../../include/votca/csg/potentialfunctions/potentialfunctionlj126.h"
-#include "../../include/votca/csg/potentialfunctions/potentialfunctionljg.h"
-#include "../../include/votca/csg/topologyreader.h"
+#ifndef VOTCA_CSG_CSG_REUPDATE_H
+#define VOTCA_CSG_CSG_REUPDATE_H
+
+// Third party includes
 #include <boost/program_options.hpp>
+
+// VOTCA includes
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/property.h>
 #include <votca/tools/table.h>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/potentialfunctions/potentialfunction.h"
+#include "votca/csg/potentialfunctions/potentialfunctioncbspl.h"
+#include "votca/csg/potentialfunctions/potentialfunctionlj126.h"
+#include "votca/csg/potentialfunctions/potentialfunctionljg.h"
+#include "votca/csg/topologyreader.h"
 
 using namespace votca::csg;
 using namespace votca::tools;
@@ -76,7 +82,7 @@ class CsgREupdate : public CsgApplication {
   void Run() override;
 
   void EndEvaluate() override;
-  CsgApplication::Worker *ForkWorker(void) override;
+  std::unique_ptr<CsgApplication::Worker> ForkWorker(void) override;
   void MergeWorker(Worker *worker) override;
 
  private:
@@ -152,4 +158,4 @@ class CsgREupdateWorker : public CsgApplication::Worker {
   void EvalNonbonded(Topology *conf, PotentialInfo *potinfo);
 };
 
-#endif /* _VOTCA_CSG_REUPDATE_H */
+#endif  // VOTCA_CSG_CSG_REUPDATE_H
