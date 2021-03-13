@@ -150,12 +150,12 @@ for p in "${what[@]}"; do
     sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
     git add CMakeLists.txt
     if [[ -f CHANGELOG.rst ]]; then
-      sed -i "/^Version ${rel}\>/s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
+      sed -i "/^Version ${rel} /s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
       git add CHANGELOG.rst
     fi
   fi
   if [[ $testing = "no" ]]; then
-    [[ -f CHANGELOG.rst && -z $(grep "^Version ${rel}\>" CHANGELOG.rst) ]] && \
+    [[ -f CHANGELOG.rst && -z $(grep "^Version ${rel} " CHANGELOG.rst) ]] && \
           die "Go and update CHANGELOG.rst in ${p} before making a release"
     #|| true because maybe version has not changed
     git commit -m "Version bumped to $rel" || true
@@ -211,7 +211,7 @@ fi
 new_section="Version ${add_rel} (released $(date +XX.%m.%y))"
 for c in */CHANGELOG.rst; do
   p="${c%/CHANGELOG.rst}"
-  sed -i "/^Version ${rel}\>/i ${new_section}\n${new_section//?/=}\n" "$c"
+  sed -i "/^Version ${rel} /i ${new_section}\n${new_section//?/=}\n" "$c"
   git -C "$p" add CHANGELOG.rst
   git -C "$p" commit -m "CHANGELOG: add ${add_rel} section"
   git add "$p"
