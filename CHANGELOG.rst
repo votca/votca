@@ -11,9 +11,6 @@ Version 2021 (released 13.03.21)
 -  add auto-cancel workflow to GitHub Actions (#343)
 -  remove unused ext/alloc_traits.h from tests (#354)
 
-Version 2021.1 (released XX.03.21)
-==================================
-
 Version 2021-rc.1 (released 13.03.21)
 =====================================
 
