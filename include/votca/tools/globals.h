@@ -53,27 +53,6 @@ struct globals {
 
   /// If Eigen is overloaded with MKL
   static bool VOTCA_MKL;
-
-  /// man pages format strings
-  struct man {
-    static std::string option;
-    static std::string header;
-    static std::string name;
-    static std::string authors;
-    static std::string copyright;
-    static std::string synopsis;
-    static std::string description;
-    static std::string options;
-  };
-
-  /// TEX pages format strings
-  struct tex {
-    static std::string section;
-    static std::string label;
-    static std::string description;
-    static std::string options;
-    static std::string option;
-  };
 };
 
 }  // namespace tools

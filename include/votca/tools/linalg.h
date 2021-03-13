@@ -39,16 +39,6 @@ Eigen::VectorXd linalg_constrained_qrsolve(const Eigen::MatrixXd& A,
                                            const Eigen::VectorXd& b,
                                            const Eigen::MatrixXd& constr);
 
-/**
- * \brief solves A*V=E*V for the first n eigenvalues
- * @param A symmetric matrix to diagonalize, is destroyed during iteration
- * @param nmax number of eigenvalues to return
- *
- * This function is only useful if MKL is used, wraps
- * LAPACKE_dsyevx
- */
-EigenSystem linalg_eigenvalues(Eigen::MatrixXd& A, Index nmax);
-
 }  // namespace tools
 }  // namespace votca
 
