@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/csg/commits/master>`__.
 
-Version 2021 (released XX.01.21)
+Version 2021 (released 13.03.21)
 ================================
 
 -  fix CI on rawhide (#642)
@@ -9,7 +9,7 @@ Version 2021 (released XX.01.21)
 -  namespace bind2nd to fix build on FreeBSD (#668)
 -  replace std::bind2nd by a lambda (#673)
 
-Version 2021-rc.1 (released 15.01.21)
+Version 2021-rc.1 (released 13.03.21)
 =====================================
 
 -  remove topology item (#486)
