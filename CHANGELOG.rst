@@ -38,7 +38,7 @@ Version 2021 (released 13.03.21)
 -  add xtp_qmmm2qm to cmake install (#665)
 -  add auto-cancel workflow to GitHub Actions (#674)
 
-Version 2021-rc.1 (released 13.03.21)
+Version 2021-rc.1 (released 15.01.21)
 =====================================
 
 -  G0W0 rpa energies are fixed in BSE (#383)
