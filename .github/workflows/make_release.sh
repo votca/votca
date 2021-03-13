@@ -150,12 +150,12 @@ for p in "${what[@]}"; do
     sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
     git add CMakeLists.txt
     if [[ -f CHANGELOG.rst ]]; then
-      sed -i "/^Version ${rel}\>/s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
+      sed -i "/^Version ${rel} /s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
       git add CHANGELOG.rst
     fi
   fi
   if [[ $testing = "no" ]]; then
-    [[ -f CHANGELOG.rst && -z $(grep "^Version ${rel}\>" CHANGELOG.rst) ]] && \
+    [[ -f CHANGELOG.rst && -z $(grep "^Version ${rel} " CHANGELOG.rst) ]] && \
           die "Go and update CHANGELOG.rst in ${p} before making a release"
     #|| true because maybe version has not changed
     git commit -m "Version bumped to $rel" || true
