@@ -15,7 +15,10 @@ Version 2022-dev
 -  add missing cmath include (#351)
 -  removed eigenvalue algorithm, now done by eigen  (#352)
 
-Version 2021 (released XX.01.21)
+Version 2021.1 (released XX.03.21)
+==================================
+
+Version 2021 (released 13.03.21)
 ================================
 
 -  fix CI on rawhide (#336)
