@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -787,8 +787,7 @@ void DFTEngine::Prepare(QMMolecule& mol) {
         << TimeStamp() << " Loaded ECP library " << _ecp_name << flush;
 
     std::vector<std::string> results = _ecp.Fill(ecpbasisset, mol);
-    XTP_LOG(Log::info, *_pLog) << TimeStamp() << " Filled ECP Basis of size "
-                               << _ecp.ECPAOBasisSize() << flush;
+    XTP_LOG(Log::info, *_pLog) << TimeStamp() << " Filled ECP Basis" << flush;
     if (results.size() > 0) {
       std::string message = "";
       for (const std::string& element : results) {

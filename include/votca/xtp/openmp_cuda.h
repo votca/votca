@@ -32,17 +32,34 @@
  * \brief Supports operations on Matrices using OPENMP and
  * CUDA.
  *
+ * This class allows to use to a limited amount CPUs and GPUs in parallel using
+ * the OPENMP scheduler.
+ *
  * Each operation works with 2-3 steps
  * 1) Allocate temporary matrices and move fixed data to the gpu before the
  * openmp region is created 2) Inside the openmp region, move the loop data to
  * the GPU and perform calculation there 3) For reduction operations, transfer
- * the GPU data back to the CPU after the loop is finished Each GPU is served by
- * one CPU thread, the other CPU threads perform the normal CPU based operations
- * If no GPU is present all CPUs simply do CPU work.
+ * the GPU data back to the CPU after the loop is finished. Each GPU is served
+ * by one CPU thread, the other CPU threads perform the normal CPU based
+ * operations If no GPU is present all CPUs simply do CPU work.
+ *
+ * While all the temporary data is pushed to the GPU for the CPU case we do not
+ * want to make copies on the CPU. As long as the data is identical for all
+ * threads, so instead we hold a pointer to that data. Only for temporary data
+ * special to a thread we hold pointers or make copies(depending on what is
+ * needed) using the CPU_data structures. So do not let objects you need fall
+ * out of scope in the calling code.
+ *
+ * This class is NOT a generic interface for CPU/GPU calculations. Instead
+ * certain routines were hardcoded for certain computations. Any function
+ * containing "set" or "create" should be called outside the parallel loop.
+ * Functions, which require a threadid arguement should be called inside the
+ * openmp region, with the respective threadid
+ *
  * If this class is created inside an OPENMP region, it still ensures, that over
- * that OPENMP region not more threads access the GPUs then GPUs are present.
+ * that OPENMP region not more threads access the GPUs than GPUs are present.
  * Otherwise it will work purely in serial. So this class does NOT work with
- * nested OPENMP
+ * nested OPENMP( nested OPENMP should be disabled anyway)
  */
 
 namespace votca {
@@ -58,40 +75,126 @@ class OpenMP_CUDA {
     return 0;
 #endif
   }
+
+  // 3c multiply
   void setOperators(const std::vector<Eigen::MatrixXd>& tensor,
                     const Eigen::MatrixXd& rightoperator);
-  void MultiplyRight(Eigen::MatrixXd& matrix);
+  void MultiplyRight(Eigen::MatrixXd& matrix, Index OpenmpThread);
 
+  // 3c
   void setOperators(const Eigen::MatrixXd& leftoperator,
                     const Eigen::MatrixXd& rightoperator);
-  void MultiplyLeftRight(Eigen::MatrixXd& matrix);
+  void MultiplyLeftRight(Eigen::MatrixXd& matrix, Index OpenmpThread);
 
+  // RPA
   void createTemporaries(Index rows, Index cols);
-  void A_TDA(const Eigen::MatrixXd& matrix, const Eigen::VectorXd& vec);
-  Eigen::MatrixXd A_TDA_result();
+  void PushMatrix(const Eigen::MatrixXd& mat, Index OpenmpThread);
+  void A_TDA(const Eigen::VectorXd& vec, Index OpenmpThread);
+
+  // Hd + Hqp + Hd2
+  void createTemporaries(const Eigen::VectorXd& vec,
+                         const Eigen::MatrixXd& input, Index rows1, Index rows2,
+                         Index cols);
+  void PrepareMatrix1(Eigen::MatrixXd& mat, Index OpenmpThread);
+  void SetTempZero(Index OpenmpThread);
+  void PrepareMatrix2(const Eigen::Block<const Eigen::MatrixXd>& mat, bool Hd2,
+                      Index OpenmpThread);
+  void Addvec(const Eigen::VectorXd& row, Index OpenmpThread);
+  void MultiplyRow(Index row, Index OpenmpThread);
+
+  // Hx
+  void createAdditionalTemporaries(Index rows, Index cols);
+  void PushMatrix1(const Eigen::MatrixXd& mat, Index OpenmpThread);
+  void MultiplyBlocks(const Eigen::Block<const Eigen::MatrixXd>& mat, Index i1,
+                      Index i2, Index OpenmpThread);
+
+  Eigen::MatrixXd getReductionVar();
 
  private:
-  const Eigen::MatrixXd* rightoperator_ = nullptr;
-  const Eigen::MatrixXd* leftoperator_ = nullptr;
+  template <class T>
+  class DefaultReference {
+   public:
+    DefaultReference() = default;
+    DefaultReference(T object) : p(&object){};
 
-  std::vector<Eigen::MatrixXd> reduction_;
+    DefaultReference& operator=(const T& object) {
+      p = &object;
+      return *this;
+    }
+
+    const T& operator()() {
+      assert(p != nullptr && "Dangling reference!");
+      return *p;
+    }
+
+   private:
+    const T* p = nullptr;
+  };
+
+  DefaultReference<const Eigen::MatrixXd> rOP_;
+  DefaultReference<const Eigen::MatrixXd> lOP_;
+  DefaultReference<const Eigen::VectorXd> vec_;
+
+  struct CPU_data {
+
+    Eigen::MatrixXd& reduce() { return reduce_mat; }
+    void InitializeReduce(Index rows, Index cols) {
+      reduce_mat = Eigen::MatrixXd::Zero(rows, cols);
+    }
+
+    void InitializeVec(Index size) { temp_vec = Eigen::VectorXd::Zero(size); }
+
+    DefaultReference<Eigen::MatrixXd> ref_mat;
+    Eigen::MatrixXd temp_mat;
+    Eigen::VectorXd temp_vec;
+    Eigen::MatrixXd reduce_mat;
+  };
+
+  std::vector<CPU_data> cpus_;
+
   bool inside_Parallel_region_;
   Index threadID_parent_;
 
+  Index getParentThreadId(Index OpenmpThreadId) const;
+
+  Index getLocalThreadId(Index ParentThreadId) const;
+
+  Index getNumberThreads() const;
+
 #ifdef USE_CUDA
+  bool isGPUthread(Index ParentThreadId) const;
 
-  std::vector<Index> gpuIDs_;
-  std::vector<std::unique_ptr<CudaPipeline>> cuda_pips_;
+  struct GPU_data {
 
-  struct temporaries {
-    std::unique_ptr<CudaMatrix> A = nullptr;
-    std::unique_ptr<CudaMatrix> B = nullptr;
-    std::unique_ptr<CudaMatrix> C = nullptr;
-    std::unique_ptr<CudaMatrix> D = nullptr;
-    std::unique_ptr<CudaMatrix> E = nullptr;
+    explicit GPU_data(Index i)
+        : Id(i), pipeline(std::make_unique<CudaPipeline>(int(i))) {
+      ;
+    }
+
+    Index Id;
+    std::unique_ptr<CudaPipeline> pipeline;
+    std::vector<std::unique_ptr<CudaMatrix>> temp;
+
+    CudaMatrix& Mat(Index i) { return *temp[i]; }
+    CudaPipeline& pipe() { return *pipeline; }
+    void activateGPU() { checkCuda(cudaSetDevice(pipeline->getDeviceId())); }
+
+    void push_back(const Eigen::MatrixXd& m) {
+      temp.push_back(std::make_unique<CudaMatrix>(m, pipeline->get_stream()));
+    }
+    void push_back(Index rows, Index cols) {
+      temp.push_back(
+          std::make_unique<CudaMatrix>(rows, cols, pipeline->get_stream()));
+    }
+
+    void resize(Index id, Index rows, Index cols) {
+      temp[id] =
+          std::make_unique<CudaMatrix>(rows, cols, pipeline->get_stream());
+    }
   };
 
-  std::vector<temporaries> temp_;
+  std::vector<GPU_data> gpus_;
+  static bool isInVector(Index Id, const std::vector<GPU_data>& vec);
 #endif
 };
 

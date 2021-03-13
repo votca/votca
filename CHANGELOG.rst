@@ -1,6 +1,33 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/xtp/commits/master>`__.
 
+Version 2022-dev
+================
+
+-  Updated coordinate precision (#638)
+-  Refactored energy corrections in RPA outside QPs (#577)
+-  Made SetupCptTable static (#650)
+-  using libecpint for pseudo potentials (#588)
+-  implement fchk writer (#649)
+-  Fixing BSE triplet storage (#653) (#654)
+-  added transpose to CudaMatrix (#657)
+-  generate manpage using votca_help2man (#655, #659)
+-  Fix script rst generation (#656)
+-  Clean scripts (#668)
+-  Read MO coefficients computed with orca from the molden file instead of the .gbw binary (#589)
+-  fix lxml detection in cmake (#670)
+-  extend fchk writer with option to print single KS state densities and densities relative to the ground state (#662)
+-  added a more general constructor to cudamatrix (#671)
+-  removed lapack routine for solving BSE and added GPU support (#672)
+-  changed return value from reference to a copy (#676)
+-  add CodeQL static analysis to GitHub Actions (#677)
+-  redo openmp_cuda api, correct davidson for non symmetric problems.  (#684)
+-  changed molecule in csg topology container to actual object instead of pointer (#683)
+-  remove codecov comments from inside code at PR (#686)
+-  count the number of available CPUs for autogen_mapping script (#688)
+-  fixed issue with molden file path and orca executable path (#692)
+-  Fixed bug in mapping (#690)
+
 Version 2021.1 (released XX.03.21)
 ==================================
 
@@ -10,9 +37,6 @@ Version 2021 (released 13.03.21)
 -  fix CI on rawhide (#663)
 -  add xtp_qmmm2qm to cmake install (#665)
 -  add auto-cancel workflow to GitHub Actions (#674)
-
-Version 2021.1 (released XX.03.21)
-==================================
 
 Version 2021-rc.1 (released 13.03.21)
 =====================================

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,7 +23,7 @@
 
 // Local VOTCA includes
 #include "aoshell.h"
-#include "checkpoint.h"
+
 #include "eigen.h"
 #include <libint2/shell.h>
 
@@ -31,6 +31,8 @@ namespace votca {
 namespace xtp {
 class QMMolecule;
 class BasisSet;
+class CheckpointWriter;
+class CheckpointReader;
 
 /**
  * \brief Container to hold Basisfunctions for all atoms
@@ -52,6 +54,14 @@ class AOBasis {
   const std::vector<const AOShell*> getShellsofAtom(Index AtomId) const;
 
   Index getNumofShells() const { return Index(_aoshells.size()); }
+
+  Index getNumberOfPrimitives() const {
+    Index totalPrimitives = 0;
+    for (const AOShell& shell : _aoshells) {
+      totalPrimitives += shell.getSize();
+    }
+    return totalPrimitives;
+  }
 
   Index getMaxNprim() const;
 

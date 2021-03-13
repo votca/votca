@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -33,26 +33,41 @@ void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
   Index rpatotal = _rpamax - _rpamin + 1;
   _energies = dftenergies.segment(_rpamin, rpatotal);
   Index gwsize = Index(gwaenergies.size());
-  Index lumo = _homo + 1;
 
-  Index qpmax = qpmin + gwsize - 1;
   _energies.segment(qpmin - _rpamin, gwsize) = gwaenergies;
 
-  Eigen::VectorXd corrections_occ =
-      _energies.segment(qpmin - _rpamin, lumo - qpmin) -
-      dftenergies.segment(qpmin - _rpamin, lumo - qpmin);
-  Eigen::VectorXd corrections_virt =
-      _energies.segment(lumo - qpmin, gwsize - (lumo - qpmin)) -
-      dftenergies.segment(lumo - qpmin, gwsize - (lumo - qpmin));
-  double max_correction_occ = (corrections_occ.cwiseAbs()).maxCoeff();
-  double max_correction_virt = (corrections_virt.cwiseAbs()).maxCoeff();
+  ShiftUncorrectedEnergies(dftenergies, qpmin, gwsize);
+}
 
-  Index levelaboveqpmax = _rpamax - qpmax;
-  Index levelbelowqpmin = qpmin - _rpamin;
+// Shifts energies of levels that are not QP corrected but
+// used in the RPA:
+// between rpamin and qpmin: by maximum abs of explicit QP corrections
+//                           from qpmin to HOMO
+// between qpmax and rpamax: by maximum abs of explicit QP corrections
+//                           from LUMO to qpmax
+void RPA::ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies,
+                                   Index qpmin, Index gwsize) {
 
-  _energies.segment(0, levelbelowqpmin).array() -= max_correction_occ;
-  _energies.segment(qpmax + 1 - _rpamin, levelaboveqpmax).array() +=
-      max_correction_virt;
+  Index lumo = _homo + 1;
+  Index qpmax = qpmin + gwsize - 1;
+
+  // get max abs QP corrections for occupied/virtual levels
+  double max_correction_occ = getMaxCorrection(dftenergies, qpmin, _homo);
+  double max_correction_virt = getMaxCorrection(dftenergies, lumo, qpmax);
+
+  // shift energies
+  _energies.head(qpmin).array() -= max_correction_occ;
+  _energies.tail(_rpamax - qpmax).array() += max_correction_virt;
+}
+
+double RPA::getMaxCorrection(const Eigen::VectorXd& dftenergies, Index min,
+                             Index max) const {
+
+  Index range = max - min + 1;
+  Eigen::VectorXd corrections =
+      _energies.segment(min, range) - dftenergies.segment(min - _rpamin, range);
+
+  return (corrections.cwiseAbs()).maxCoeff();
 }
 
 template <bool imag>
@@ -68,27 +83,32 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
   OpenMP_CUDA transform;
   transform.createTemporaries(n_unocc, size);
 
-#pragma omp parallel for schedule(dynamic)
-  for (Index m_level = 0; m_level < n_occ; m_level++) {
-    const double qp_energy_m = _energies(m_level);
+#pragma omp parallel
+  {
+    Index threadid = OPENMP::getThreadId();
+#pragma omp for schedule(dynamic)
+    for (Index m_level = 0; m_level < n_occ; m_level++) {
+      const double qp_energy_m = _energies(m_level);
 
-    const Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+      Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+      transform.PushMatrix(Mmn_RPA, threadid);
+      const Eigen::ArrayXd deltaE =
+          _energies.tail(n_unocc).array() - qp_energy_m;
+      Eigen::VectorXd denom;
+      if (imag) {
+        denom = 4 * deltaE / (deltaE.square() + freq2);
+      } else {
+        Eigen::ArrayXd deltEf = deltaE - frequency;
+        Eigen::ArrayXd sum = deltEf / (deltEf.square() + eta2);
+        deltEf = deltaE + frequency;
+        sum += deltEf / (deltEf.square() + eta2);
+        denom = 2 * sum;
+      }
 
-    const Eigen::ArrayXd deltaE = _energies.tail(n_unocc).array() - qp_energy_m;
-    Eigen::VectorXd denom;
-    if (imag) {
-      denom = 4 * deltaE / (deltaE.square() + freq2);
-    } else {
-      Eigen::ArrayXd deltEf = deltaE - frequency;
-      Eigen::ArrayXd sum = deltEf / (deltEf.square() + eta2);
-      deltEf = deltaE + frequency;
-      sum += deltEf / (deltEf.square() + eta2);
-      denom = 2 * sum;
+      transform.A_TDA(denom, threadid);
     }
-
-    transform.A_TDA(Mmn_RPA, denom);
   }
-  Eigen::MatrixXd result = transform.A_TDA_result();
+  Eigen::MatrixXd result = transform.getReductionVar();
   result.diagonal().array() += 1.0;
   return result;
 }
@@ -105,26 +125,31 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
   const Index n_unocc = _rpamax - lumo + 1;
   OpenMP_CUDA transform;
   transform.createTemporaries(n_unocc, size);
+#pragma omp parallel
+  {
+    Index threadid = OPENMP::getThreadId();
+#pragma omp for schedule(dynamic)
+    for (Index m_level = 0; m_level < n_occ; m_level++) {
 
-#pragma omp parallel for schedule(dynamic)
-  for (Index m_level = 0; m_level < n_occ; m_level++) {
+      const double qp_energy_m = _energies(m_level);
+      Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+      transform.PushMatrix(Mmn_RPA, threadid);
+      const Eigen::ArrayXd deltaE =
+          _energies.tail(n_unocc).array() - qp_energy_m;
 
-    const double qp_energy_m = _energies(m_level);
-    const Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
-    const Eigen::ArrayXd deltaE = _energies.tail(n_unocc).array() - qp_energy_m;
+      Eigen::ArrayXd deltaEm = frequency.real() - deltaE;
+      Eigen::ArrayXd deltaEp = frequency.real() + deltaE;
 
-    Eigen::ArrayXd deltaEm = frequency.real() - deltaE;
-    Eigen::ArrayXd deltaEp = frequency.real() + deltaE;
+      double sigma_1 = std::pow(frequency.imag() + _eta, 2);
+      double sigma_2 = std::pow(frequency.imag() - _eta, 2);
 
-    double sigma_1 = std::pow(frequency.imag() + _eta, 2);
-    double sigma_2 = std::pow(frequency.imag() - _eta, 2);
-
-    Eigen::VectorXd chi =
-        deltaEm * (deltaEm.cwiseAbs2() + sigma_1).cwiseInverse() -
-        deltaEp * (deltaEp.cwiseAbs2() + sigma_2).cwiseInverse();
-    transform.A_TDA(Mmn_RPA, chi);
+      Eigen::VectorXd chi =
+          deltaEm * (deltaEm.cwiseAbs2() + sigma_1).cwiseInverse() -
+          deltaEp * (deltaEp.cwiseAbs2() + sigma_2).cwiseInverse();
+      transform.A_TDA(chi, threadid);
+    }
   }
-  Eigen::MatrixXd result = -2 * transform.A_TDA_result();
+  Eigen::MatrixXd result = -2 * transform.getReductionVar();
   result.diagonal().array() += 1.0;
   return result;
 }
