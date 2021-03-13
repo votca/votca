@@ -211,7 +211,7 @@ fi
 new_section="Version ${add_rel} (released $(date +XX.%m.%y))"
 for c in */CHANGELOG.rst; do
   p="${c%/CHANGELOG.rst}"
-  sed -i "/^Version ${rel}\>/i ${new_section}\n${new_section//?/=}\n" "$c"
+  sed -i "/^Version ${rel} /i ${new_section}\n${new_section//?/=}\n" "$c"
   git -C "$p" add CHANGELOG.rst
   git -C "$p" commit -m "CHANGELOG: add ${add_rel} section"
   git add "$p"
