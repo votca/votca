@@ -38,7 +38,7 @@ OPTIONS:
     -j  JOBS        Jobs to use instead of '$j'
     --verbose       Do a verbose build
     --debug         Run in debug more
--D*                 Extra option to give to cmake 
+-D*                 Extra option to give to cmake
 
 Examples:  ${0##*/} --help
            ${0##*/} --test 1.2.3 srcdir
