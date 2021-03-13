@@ -1,12 +1,18 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/xtp/commits/master>`__.
 
+Version 2021.1 (released XX.03.21)
+==================================
+
 Version 2021 (released 13.03.21)
 ================================
 
 -  fix CI on rawhide (#663)
 -  add xtp_qmmm2qm to cmake install (#665)
 -  add auto-cancel workflow to GitHub Actions (#674)
+
+Version 2021.1 (released XX.03.21)
+==================================
 
 Version 2021-rc.1 (released 13.03.21)
 =====================================
