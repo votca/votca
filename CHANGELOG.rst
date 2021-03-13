@@ -12,9 +12,6 @@ Version 2021 (released 13.03.21)
 -  namespace bind2nd to fix build on FreeBSD (#668)
 -  replace std::bind2nd by a lambda (#673)
 
-Version 2021.1 (released XX.03.21)
-==================================
-
 Version 2021-rc.1 (released 13.03.21)
 =====================================
 
