@@ -111,8 +111,8 @@ In preparation for a major (not minor!) release the following additional steps n
        git submodules foreach git checkout -b master_bump
 
 -  Bump the version in CMake to :code:`<major>-dev` replacing :code:`<major+1>-dev` in :code:`votca/votca` and all submodules
--  Create a new secion in :code:`CHANGELOG.rst` files for :code:`<major+1>-dev`
--  Commit changes in all submodules and update the submodules :code:`votca/votca`
+-  Create a new secion in the :code:`CHANGELOG.rst` files for :code:`<major+1>-dev`
+-  Commit changes in all submodules and update the submodules in :code:`votca/votca`
    ::
 
        git submodules foreach git commit -m "Version bumped to <major+1>-dev"
@@ -125,11 +125,11 @@ In preparation for a major (not minor!) release the following additional steps n
        git submodules foreach git push origin master_bump
        git push origin master_bump
 
--  Now create a PR in :code:`votca/votca` from :code:`master_bump` into :code:`master`
--  Once merged create PRs in all submodules from :code:`master_bump` into :code:`master`
+-  Now, create a PR in :code:`votca/votca` from :code:`master_bump` into :code:`master`
+-  Once merged, create PRs in all submodules from :code:`master_bump` into :code:`master`
 -  Once all of these are merged and the automatically "Update master submodules" PR is merged, start with :code:`stable_bump` PRs
--  Create a PR in :code:`votca/votca` from :code:`stable_bump` into :code:`stable`
--  Once merged create PRs in all submodules from :code:`stable_bump` into :code:`stable`
+-  Create a PR in :code:`votca/votca` from the :code:`stable_bump` branch into the :code:`stable` branch
+-  Once merged, create PRs in all submodules from each of the :code:`stable_bump` branches into each of their :code:`stable` branches
 -  Once all of them are merged and merge the automatically "Update stable submodules" PR
 -  Now everything is ready for the automatic release creation by Github Actions
 
