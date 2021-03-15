@@ -78,7 +78,7 @@ To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3A
 Major releases
 ~~~~~~~~~~~~~~
 
-In preparation for a major (not minor!) release the following additional steps need to done:
+In preparation for a major (not minor!) release the following additional steps need to be done:
 -  Create a branch, e.g. :code:`stable_bump` in :code:`votca/votca` and all submodules from the current master
    ::
 
