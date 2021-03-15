@@ -88,8 +88,8 @@ In preparation for a major (not minor!) release the following additional steps n
        git submodules foreach git checkout -b stable_bump
 
 -  Bump the version in CMake to :code:`<major>-rc.1` replacing :code:`<major>-dev` in :code:`votca/votca` and all submodules
--  Update the :code:`CHANGELOG.rst` files accordingly by changing the top most section from :code:`<major>-dev` to `:code:`<major>-rc.1`
--  Commit changes in all submodules and update the submodules :code:`votca/votca`
+-  Update the :code:`CHANGELOG.rst` files accordingly, by changing the top most section from :code:`<major>-dev` to `:code:`<major>-rc.1`
+-  Commit changes in all submodules and update the submodules in :code:`votca/votca`
    ::
 
        git submodules foreach git commit -m "Version bumped to <major>-rc.1"
@@ -102,7 +102,7 @@ In preparation for a major (not minor!) release the following additional steps n
        git submodules foreach git push origin stable_bump
        git push origin stable_bump
 
--  Create a branch, e.g. :code:`master_bump` in :code:`votca/votca` and all submodules from the current master
+-  Create a branch, e.g. :code:`master_bump`, in :code:`votca/votca` and all submodules from the current master
    ::
 
        git checkout master
