@@ -67,18 +67,19 @@ def saveto_table(filename, x, y, y_flag, comment=""):
     np.savetxt(filename, data, header=comment, fmt=['%e', '%e', '%s'])
 
 
-def compare_grids(grid_a, grid_b):
-    """Check two grids for no point differing more than 0.1 picometer."""
-    if np.any(grid_a - grid_b > 0.0001):
-        raise Exception("Different grids!")
-
-
 def calc_grid_spacing(grid, relative_tolerance=0.01):
     """Returns the spacing of an equidistant 1D grid."""
     diffs = np.diff(grid)
     if abs((max(diffs) - min(diffs)) / max(diffs)) > relative_tolerance:
         raise Exception('the grid is not equidistant')
     return np.mean(diffs)
+
+
+def test_calc_grid_spacing():
+    """Check spacing of some grid."""
+    grid = np.linspace(0, 2 * np.pi, num=361)
+    grid_spacing = calc_grid_spacing(grid)
+    assert np.allclose(grid_spacing, np.pi/180)
 
 
 def fourier(r, f):
@@ -126,6 +127,16 @@ def fourier(r, f):
     return omega, f_hat
 
 
+def test_fourier():
+    """Check that Fourier function is invertible."""
+    r = np.linspace(1, 100, 100)
+    f = np.random.random(100)
+    omega, f_hat = fourier(r, f)
+    r_, f_ = fourier(omega, f_hat)
+    assert np.allclose(r, r_)
+    assert np.allclose(f, f_)
+
+
 def gen_fourier_matrix(r, fourier_function):
     """Make a fourier matrix."""
     fourier_matrix = np.identity(len(r))
@@ -139,6 +150,18 @@ def find_nearest_ndx(array, value):
     array = np.asarray(array)
     ndx = (np.abs(array - value)).argmin()
     return ndx
+
+
+def test_find_nearest_ndx():
+    """Check finding the nearest index."""
+    tests = [
+        ([0, 1, 2, 3], -1, 0),
+        ([0, 1, 2, 3], 4.9, 3),
+        ([0, 1, 2, 3], 1.49, 1),
+        ([0, 1, 2, 3], 1.51, 2),
+    ]
+    for grid, val, ndx in tests:
+        assert find_nearest_ndx(grid, val) == ndx
 
 
 def find_after_cut_off_ndx(array, cut_off):
@@ -156,6 +179,19 @@ def find_after_cut_off_ndx(array, cut_off):
         return len(array)
     ndx = np.where(array > cut_off)[0][0]
     return ndx
+
+
+def test_find_after_cut_off_ndx():
+    """Check finding the index after a value."""
+    tests = [
+        ([0, 1, 2, 3], 1.0, 2),
+        ([0, 1, 2, 3], 1.01, 2),
+        ([0, 1, 2, 3], 1.99, 2),
+        ([0, 1, 2, 3], 3.5, 4),
+    ]
+    for grid, val, ndx in tests:
+        print(find_after_cut_off_ndx(grid, val), ndx)
+        assert find_after_cut_off_ndx(grid, val) == ndx
 
 
 def r0_removal(*arrays):
@@ -453,7 +489,8 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
 def gauss_newton_constrained(A, C, b, d):
     """Do a gauss-newton update, but eliminate Cx=d first."""
     m, n = A.shape
-    p, n = C.shape
+    p, n_ = C.shape
+    assert n == n_
     b.shape = (m)
     d.shape = (p)
 
@@ -481,6 +518,21 @@ def gauss_newton_constrained(A, C, b, d):
         x_pivot = (d[i] - np.delete(C, pivot, 1) @ x_elim) / C[i, pivot]
         x = np.insert(x_elim, pivot, x_pivot)
     return x
+
+
+def test_gauss_newton_constrained():
+    """Check Gauss-Newton with some simple cases."""
+    tests = [
+        (np.identity(10), np.ones((1, 10)), np.ones(10), np.array(2), [0.2]*10),
+        (np.identity(5), np.array([[0, 0, 1, 0, 0]]), np.ones(5), np.array(2),
+         [1, 1, 2, 1, 1]),
+        (np.array([[1, 0], [1, 1]]), np.zeros((0, 2)), np.ones(2), np.array([]),
+         [1.0, 0.0]),
+        (np.array([[1, 0], [1, 1]]), np.array([[0, 1]]), np.ones(2), np.array(0.1),
+         [0.95, 0.1]),
+    ]
+    for A, C, b, d, x in tests:
+        assert np.allclose(x, gauss_newton_constrained(A, C, b, d))
 
 
 def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
@@ -890,7 +942,6 @@ def process_input(args):
 
     # todo: compare grids of all
     r = input_arrays['g_tgt'][0]['x']
-    # compare_grids(r, input_arrays['g_cur'][0]['x'])
     # compare grids of G_cur and G_tgt with g_tgt in smart way
     # calculate G_minus_g
     if 'G_tgt' in input_arrays:
