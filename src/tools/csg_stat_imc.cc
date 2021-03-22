@@ -49,8 +49,7 @@ void Imc::Initialize() {
   if (_do_imc) {
     cout << "begin to calculate inverse monte carlo parameters\n";
     if (_include_intra) {
-      throw runtime_error(
-          "error, can not have --do-imc and --include-intra");
+      throw runtime_error("error, can not have --do-imc and --include-intra");
     }
   } else {
     cout << "begin to calculate distribution functions\n";
