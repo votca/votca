@@ -26,8 +26,11 @@ Version 2022-dev
 -  convert maps to unique_ptrs (#653)
 -  add iterative integral equation (iie) method (#675)
 
-Version 2021-rc.2 (released XX.01.21)
-=====================================
+Version 2021.1 (released XX.03.21)
+==================================
+
+Version 2021 (released 13.03.21)
+================================
 
 -  fix CI on rawhide (#642)
 -  add auto-cancel workflow to GitHub Actions (#645)
