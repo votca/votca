@@ -278,11 +278,12 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
         tools::Tokenizer values(this->_settings.get("externalfield"), " ");
         std::vector<std::string> field;
         values.ToVector(field);
-        if(field.size() != 3){
+        if (field.size() != 3) {
           throw std::runtime_error("Electric field does not have 3 values.");
         }
         inp_file << "%scf\n ";
-        inp_file << "  efield " << field[0] << ", " << field[1] << ", " << field[2] << "\n";
+        inp_file << "  efield " << field[0] << ", " << field[1] << ", "
+                 << field[2] << "\n";
         inp_file << "end\n";
         inp_file << std::endl;
       } else {

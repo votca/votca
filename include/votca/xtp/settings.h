@@ -146,20 +146,20 @@ class Settings {
       "ecp",                    // string
       "executable",             // string
       // "external_charge",        // Eigen::Vector9d
-      "functional",       // string
-      "name",             // string
-      "optimize",         // boolean
-      "orca",             // string
-      "polarization",     // boolean
-      "read_guess",       // boolean
-      "spin",             // index
-      "scratch",          // string
-      "use_auxbasisset",  // boolean
-      "use_ecp",          // boolean
-      "write_charges",    // boolean
-      "xtpdft",            // string
-      "use_external_field", // boolean
-      "externalfield"     //Eigen::Vector3d
+      "functional",          // string
+      "name",                // string
+      "optimize",            // boolean
+      "orca",                // string
+      "polarization",        // boolean
+      "read_guess",          // boolean
+      "spin",                // index
+      "scratch",             // string
+      "use_auxbasisset",     // boolean
+      "use_ecp",             // boolean
+      "write_charges",       // boolean
+      "xtpdft",              // string
+      "use_external_field",  // boolean
+      "externalfield"        // Eigen::Vector3d
 
   };
 
