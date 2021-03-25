@@ -21,9 +21,18 @@ Version 2022-dev
 -  removed lapack routine for solving BSE and added GPU support (#672)
 -  changed return value from reference to a copy (#676)
 -  add CodeQL static analysis to GitHub Actions (#677)
+-  redo openmp_cuda api, correct davidson for non symmetric problems.  (#684)
+-  changed molecule in csg topology container to actual object instead of pointer (#683)
+-  remove codecov comments from inside code at PR (#686)
+-  count the number of available CPUs for autogen_mapping script (#688)
+-  fixed issue with molden file path and orca executable path (#692)
+-  Fixed bug in mapping (#690)
 
-Version 2021-rc.2 (released XX.01.21)
-=====================================
+Version 2021.1 (released XX.03.21)
+==================================
+
+Version 2021 (released 13.03.21)
+================================
 
 -  fix CI on rawhide (#663)
 -  add xtp_qmmm2qm to cmake install (#665)
