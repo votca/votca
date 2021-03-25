@@ -14,7 +14,7 @@ endif()
 message("CJ: ${Pytest_FOUND}")
 if(ENABLE_TESTING AND Pytest_FOUND)
   if(ENABLE_COVERAGE_BUILD)
-    set(PY_COV_OPTS "--cov-report=xml --cov=.")
+    set(PY_COV_OPTS --cov-report=xml --cov=.)
   endif()
 
   add_test(unit_iie.py ${Python_EXECUTABLE} -m pytest -q ${PY_COV_OPTS} ${CMAKE_CURRENT_SOURCE_DIR}/iie.py)
