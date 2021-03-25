@@ -157,7 +157,9 @@ class Settings {
       "use_auxbasisset",  // boolean
       "use_ecp",          // boolean
       "write_charges",    // boolean
-      "xtpdft"            // string
+      "xtpdft",            // string
+      "use_external_field", // boolean
+      "externalfield"     //Eigen::Vector3d
 
   };
 
