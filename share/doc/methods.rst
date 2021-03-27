@@ -333,19 +333,22 @@ be refined by employing resampling or extrapolating methods. See sec.
 Iterative methods
 =================
 
-The following sections deal with the methods of Iterative Boltzmann
-Inversion (IBI), Inverse Monte Carlo (IMC), and Relative Entropy (RE).
+The following sections deal with the Iterative Boltzmann Inversion (IBI)
+method, the Inverse Monte Carlo (IMC) method, the Iterative Integral Equation
+(IIE) method, and the Relative Entropy (RE) method.
 
-In general, IBI, IMC, and REare implemented within the same framework.
-Therefore, most settings and parameters of those methods are similar and
-thus described in a general section (see sec.
+In general, IBI, IMC, IIE, and RE are implemented within the same framework.
+Therefore, most of the settings and parameters used by these methods are
+similar and thus described in a general section (see sec.
 [sec:iterative\_methods\_imc]). Further information on iterative methods
-follows in the next chapters, in particular on the IBI, IMC, and
-REmethods.
+follows in the next chapters, in particular on the IBI, IMC, IIE, and RE
+methods.
 
 .. figure:: fig/iterative-methods.png
 
    Flowchart to perform iterative Boltzmann inversion.
+
+.. _iterative-workflow-control:
 
 Iterative workflow control
 --------------------------
@@ -355,7 +358,7 @@ Iterative workflow control
    Block-scheme of the workflow control for the iterative
    methods. The most time-consuming parts are marked in red.
 
-Iterative workflow control is essential for the IBI, IMC, and REmethods.
+Iterative workflow control is essential for the IBI, IMC, IIE, and RE methods.
 
 The general idea of iterative workflow is sketched in
 fig. [fig:flowchart]. During the global initialization the initial guess
@@ -591,20 +594,19 @@ To specify Iterative Boltzmann Inversion as algorithm in the script, add
 Inverse Monte Carlo
 -------------------
 
-In this section, additional options are described to run IMCcoarse
-graining. The usage of IMCis similar to the one of IBIand understanding
-the use of the scripting framework described in
-chapter [sec:iterative\_workflow] is necessary.
+In this section, additional options are described to run IMC coarse graining.
+The usage of IMC is similar to that of IBI, hence, understanding the scripting
+framework described above is also necessary.
 
-**WARNING: multicomponent IMCis still experimental!**
+**WARNING: multicomponent IMC is still experimental!**
 
 General considerations
 ~~~~~~~~~~~~~~~~~~~~~~
 
-In comparison to IBI, IMCneeds significantly more statistics to
+In comparison to IBI, IMC needs significantly more statistics to
 calculate the potential update[Ruehle:2009.a]_. It is
 advisable to perform smoothing on the potential update. Smoothing can be
-performed as described in sec. [ref:ibi:optimize]. In addition, IMCcan
+performed as described in sec. [ref:ibi:optimize]. In addition, IMC can
 lead to problems related to finite size: for methanol, an undersized
 system proved to lead to a linear shift in the
 potential[Ruehle:2009.a]_. It is therefore always
@@ -614,12 +616,12 @@ runlength csg smoothing iterations are well balanced.
 Correlation groups
 ~~~~~~~~~~~~~~~~~~
 
-Unlike IBI, IMCalso takes cross-correlations of interactions into
-account in order to calculate the update. However, it might not always
-be beneficial to evaluate cross-correlations of all pairs of
-interactions. By specifying , votcaallows to define groups of
-interactions, amongst which cross-correlations are taken into account,
-where can be any name.
+Unlike IBI, IMC also takes cross-correlations of interactions into account in
+order to calculate the update. However, it might not always be beneficial to
+evaluate cross-correlations of all pairs of interactions. By specifying
+``group`` for each interaction, as shown in the xml snippet below, one can
+define groups of interactions, amongst which cross-correlations are taken into
+account. ``group`` can be any name.
 
 .. code:: xml
 
@@ -632,40 +634,138 @@ where can be any name.
       <group>solvent</group>
    </imc>
   </non-bonded>
-  <non-bonded>
 
 Regularization
 ~~~~~~~~~~~~~~
 
 To use the regularized version of IMC a :math:`\lambda` value :math:`>0`
-has to be specified by setting . If set to :math:`0` (default value) the
+has to be set with ``imc.groupname.reg``. If set to :math:`0` (default value) the
 unregularized version of IMC is applied.
 
 .. code:: xml
 
-  <non-bonded>
-    <name>CG-CG</name>
-    <type1>CG</type1>
-    <type2>CG</type2>
-     ...
     <inverse>
       <imc>
-        <reg>300</reg>
+        <default_reg>150</default_reg>
+        <solvent>
+            <reg>300</reg>
+        </solvent>
       </imc>
     </inverse>
-  </non-bonded>
+
+Internal degrees of freedom
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For internal degrees of freedom, one can apply the IBI method. In that case,
+one also has to provide a setting_nonbonded file, which will be used to
+calculate the IMC matrix only from the nonbonded interactions.
+
+.. code:: xml
+
+  <inverse>
+    <imc>
+      <bonded_method>ibi</bonded_method>
+      <settings_nonbonded>settings-nonbonded.xml</settings_nonbonded>
+    </imc>
+  </inverse>
+
+Iterative Integral Equation methods
+-----------------------------------
+
+In this section, we describe some options that are relevant only to IIE 
+methods.
+
+General considerations
+~~~~~~~~~~~~~~~~~~~~~~
+
+In comparison to IBI, IIE methods need RDF information on a longer range than
+the cut-off. This means one needs a sufficiently large box or one can try the
+RDF extension method.
+
+Currently, the methods do not allow more than one bead-type, albeit they allow
+for molecular CG representations.
+
+Closure and optimization method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The initial guess can be table, Boltzmann Inversion (BI), or integral equation
+(IE). Three optimization methods are implemented: Newton, Newton-mod, and
+Gauss-Newton. The former two are very similar. With the latter constraints can
+be added. Two closures relations are implemented: hypernetted-chain (HNC) and
+Percus-Yevick (PY). The options in the xml file have to be lowercase.
+
+.. code:: xml
+
+  <inverse>
+    ...
+    <iie>
+      <initial_guess>
+        <method>ie</method>
+        <closure>hnc</closure>
+      </initial_guess>
+      <method>newton</method>
+      <closure>hnc</closure>
+      ...
+    </iie>
+  </inverse>
+
+Pressure constraint
+~~~~~~~~~~~~~~~~~~~
+
+When using the Gauss-Newton method one can impose a pressure constraint (in
+bar). This can lead to instabilities in the core region of the potential and
+make an extrapolation necessary. There is also an option to fix steps near the
+cut-off.
+
+.. code:: xml
+
+  <inverse>
+    ...
+    <iie>
+      <method>gauss-newton</method>
+      ...
+      <pressure_constraint>1.0</pressure_constraint>
+      <extrap_near_core>constant</extrap_near_core>
+      <fix_near_cut_off>none</fix_near_cut_off>
+    </iie>
+  </inverse>
+
+Other options
+~~~~~~~~~~~~~
+
+One can set a a cut-off for the potential, which can (and should) be lower than
+the range of the RDF. Number densities of the CG beads have to be provided. The
+RDF can be extrapolated by a built-in algorithm but the result should be
+validated to be meaningful. One can choose to ignore the RISM formalism for
+the case of bonds in the CG representation (not recommended). The number of
+beads per molecule has to be provided.  
+
+.. code:: xml
+
+  <inverse>
+    ...
+    <iie>
+      ...
+      <cut_off>1.2</cut_off>
+      <densities>4.651</densities>
+      <g_extrap_factor>2</g_extrap_factor>
+      <ignore_intramolecular_correlation>false</ignore_intramolecular_correlation>
+      <n_intra>4</n_intra>
+    </iie>
+  </inverse>
+
 
 Relative Entropy
 ----------------
 
-In this section, additional options are described to run REcoarse
-graining. The usage of REis similar to the one of IBIand IMCand
+In this section, additional options are described to run RE coarse
+graining. The usage of RE is similar to that of IBI and IMC and
 understanding the use of the scripting framework described in
 chapter [sec:iterative\_workflow] is necessary.
 
-Currently, REimplementation supports optimization of two-body non-bonded
+Currently, RE implementation supports optimization of two-body non-bonded
 pair interactions. Support for bonded and N-body interactions is
-possible by further extension of REimplementation.
+possible by further extension of RE implementation.
 
 Potential function and parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -737,7 +837,7 @@ Update scaling parameter
 
 Depending on the quality of the initial guess and sensitivity of the CG
 system to the CG parameters, scaling of the parameter update size may be
-required to ensure the stability and convergence of the REminimization.
+required to ensure the stability and convergence of the RE minimization.
 The scaling parameter, :math:`\chi\in(0...1)`, value can be specified in
 the XMLsettings file.
 

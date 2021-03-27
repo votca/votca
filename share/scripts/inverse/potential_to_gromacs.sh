@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -89,6 +89,7 @@ zero=0
 if [[ $tabtype = "non-bonded" ]]; then
   tablend="$(csg_get_property --allow-empty cg.inverse.gromacs.table_end)"
   mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
+  method="$(csg_get_property cg.inverse.method)"
   if [[ -f ${mdp} ]]; then
     echo "Found setting file '$mdp' now trying to check options in there"
     rlist=$(get_simulation_setting rlist)
@@ -99,7 +100,10 @@ if [[ $tabtype = "non-bonded" ]]; then
       die "${0##*/}: Error table is shorter then what mdp file ($mdp) needs, increase cg.inverse.gromacs.table_end in setting file.\nrlist ($rlist) + tabext ($tabext) > cg.inverse.gromacs.table_end ($tablend)"
     max="$(csg_get_interaction_property max)"
     rvdw="$(get_simulation_setting rvdw)"
-    csg_calc "$max" ">" "$rvdw" && die "${0##*/}: rvdw ($rvdw) is smaller than max ($max)"
+    # with IIE methods, the RDF can be longer than the potential
+    if [[ $method -ne "iie" ]]; then
+        csg_calc "$max" ">" "$rvdw" && die "${0##*/}: rvdw ($rvdw) is smaller than max ($max)"
+    fi
     [[ -z $tablend ]] && tablend=$(csg_calc "$rlist" + "$tabext")
   elif [[ -z $tablend ]]; then
     die "${0##*/}: cg.inverse.gromacs.table_end was not defined in xml seeting file"

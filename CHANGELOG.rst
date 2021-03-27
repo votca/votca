@@ -24,6 +24,7 @@ Version 2022-dev
 -  store beads directly in boost deque (#656)
 -  switched molecule stable_vector to boost deque (#667)
 -  convert maps to unique_ptrs (#653)
+-  add iterative integral equation (iie) method (#675)
 
 Version 2021.1 (released XX.03.21)
 ==================================

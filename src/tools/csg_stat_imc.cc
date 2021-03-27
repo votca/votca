@@ -48,6 +48,9 @@ void Imc::Initialize() {
   // do some output
   if (_do_imc) {
     cout << "begin to calculate inverse monte carlo parameters\n";
+    if (_include_intra) {
+      throw runtime_error("error, can not have --do-imc and --include-intra");
+    }
   } else {
     cout << "begin to calculate distribution functions\n";
   }
@@ -61,14 +64,14 @@ void Imc::Initialize() {
 
   // initialize non-bonded structures
   for (tools::Property *prop : _nonbonded) {
-    interaction_t *i = AddInteraction(prop);
-    i->_is_bonded = false;
+    bool bonded = false;
+    AddInteraction(prop, bonded);
   }
 
   // initialize bonded structures
   for (tools::Property *prop : _bonded) {
-    interaction_t *i = AddInteraction(prop);
-    i->_is_bonded = true;
+    bool bonded = true;
+    AddInteraction(prop, bonded);
   }
 
   // initialize the group structures
@@ -179,7 +182,7 @@ void Imc::BeginEvaluate(Topology *top, Topology *) {
 }
 
 // create an entry for interactions
-Imc::interaction_t *Imc::AddInteraction(tools::Property *p) {
+Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
   string name = p->get("name").value();
   string group;
   if (_do_imc) {
@@ -195,9 +198,16 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p) {
   i->_index = index;
   getGroup(group)->_interactions.push_back(i);
 
+  i->_is_bonded = is_bonded;
   i->_step = p->get("step").as<double>();
   i->_min = p->get("min").as<double>();
   i->_max = p->get("max").as<double>();
+  if (_include_intra && (!i->_is_bonded)) {
+    i->_max = p->get("max_intra").as<double>();
+  } else {
+    i->_max = p->get("max").as<double>();
+  }
+
   i->_norm = 1.0;
   i->_p = p;
 
@@ -399,9 +409,9 @@ void Imc::Worker::DoNonbonded(Topology *top) {
 
         // is it same types or different types?
         if (prop->get("type1").value() == prop->get("type2").value()) {
-          nb->Generate(beads1);
+          nb->Generate(beads1, !(_imc->_include_intra));
         } else {
-          nb->Generate(beads1, beads2);
+          nb->Generate(beads1, beads2, !(_imc->_include_intra));
         }
       }
 
