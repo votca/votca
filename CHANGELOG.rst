@@ -27,6 +27,7 @@ Version 2022-dev
 -  count the number of available CPUs for autogen_mapping script (#688)
 -  fixed issue with molden file path and orca executable path (#692)
 -  Fixed bug in mapping (#690)
+-  added support for external fields in DFT (#698)
 
 Version 2021.1 (released XX.03.21)
 ==================================
