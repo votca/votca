@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,22 +35,21 @@ namespace csg {
 class Residue {
  public:
   /// get the name of the residue
-  const std::string &getName();
+  const std::string &getName() const;
 
   /// get the name of the residue
-  const Index &getId() const { return _id; }
+  Index getId() const { return _id; }
 
  private:
   Index _id;
   std::string _name;
 
- private:
   /// constructor
   Residue(Index id, const std::string &name) : _id(id), _name(name) {}
   friend class Topology;
 };
 
-inline const std::string &Residue::getName() { return _name; }
+inline const std::string &Residue::getName() const { return _name; }
 
 }  // namespace csg
 }  // namespace votca

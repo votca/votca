@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_NBLIST_3BODY_H
-#define _VOTCA_CSG_NBLIST_3BODY_H
+#ifndef VOTCA_CSG_NBLIST_3BODY_H
+#define VOTCA_CSG_NBLIST_3BODY_H
 
 // Local VOTCA includes
 #include "beadlist.h"
@@ -184,7 +184,7 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
     fkt_t _fkt;
   };
 
-  Functor *_match_function;
+  std::unique_ptr<Functor> _match_function;
 };
 
 template <typename triple_type>
@@ -198,23 +198,18 @@ inline void NBList_3Body::SetMatchFunction(
                               const Eigen::Vector3d &, const Eigen::Vector3d &,
                               const double dist12, const double dist13,
                               const double dist23)) {
-  if (_match_function) {
-    delete _match_function;
-  }
-  _match_function = dynamic_cast<Functor *>(new FunctorMember<T>(object, fkt));
+
+  _match_function.reset(new FunctorMember<T>(object, fkt));
 }
 
 inline void NBList_3Body::SetMatchFunction(bool (*fkt)(
     Bead *, Bead *, Bead *, const Eigen::Vector3d &, const Eigen::Vector3d &,
     const Eigen::Vector3d &, const double dist12, const double dist13,
     const double dist23)) {
-  if (_match_function) {
-    delete _match_function;
-  }
-  _match_function = dynamic_cast<Functor *>(new FunctorNonMember(fkt));
+  _match_function.reset(new FunctorNonMember(fkt));
 }
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_NBLIST_3BODY_H */
+#endif  // VOTCA_CSG_NBLIST_3BODY_H

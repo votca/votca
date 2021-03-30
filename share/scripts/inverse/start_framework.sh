@@ -39,6 +39,9 @@ export CSG_MASTER_PID="$$"
 
 export CSG_MAINDIR="$PWD"
 
+[[ -n $(type -p csg_property) ]] || die "csg_property not found"
+csg_property --help > /dev/null || die "Could not run 'csg_property --help'\nRun it by hand to debug the problem!"
+
 if [[ -n ${VOTCA_CSG_DEFAULTS} ]]; then
   [[ -f ${VOTCA_CSG_DEFAULTS} ]] || die "Could not find ${VOTCA_CSG_DEFAULTS}! Is VOTCA_CSG_DEFAULTS set corectly?"
 else

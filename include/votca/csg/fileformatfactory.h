@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_FILEFORMATFACTORY_H
-#define _VOTCA_CSG_FILEFORMATFACTORY_H
+#ifndef VOTCA_CSG_FILEFORMATFACTORY_H
+#define VOTCA_CSG_FILEFORMATFACTORY_H
 
 // Standard includes
 #include <string>
@@ -28,21 +28,19 @@
 namespace votca {
 namespace csg {
 
-namespace TOOLS = votca::tools;
-
 template <typename T>
-class FileFormatFactory : public TOOLS::ObjectFactory<std::string, T> {
+class FileFormatFactory : public tools::ObjectFactory<std::string, T> {
  public:
   FileFormatFactory() = default;
 
-  T *Create(const std::string &file);
+  std::unique_ptr<T> Create(const std::string &file) final;
 };
 
 template <typename T>
-T *FileFormatFactory<T>::Create(const std::string &file) {
+std::unique_ptr<T> FileFormatFactory<T>::Create(const std::string &file) {
   std::string filetype = tools::filesystem::GetFileExtension(file);
   try {
-    return TOOLS::ObjectFactory<std::string, T>::Create(filetype);
+    return tools::ObjectFactory<std::string, T>::Create(filetype);
   } catch (std::exception &) {
     throw std::runtime_error("Error '" + filetype +
                              "' file format of file "
@@ -55,4 +53,4 @@ T *FileFormatFactory<T>::Create(const std::string &file) {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_FILEFORMATFACTORY_H */
+#endif  // VOTCA_CSG_FILEFORMATFACTORY_H

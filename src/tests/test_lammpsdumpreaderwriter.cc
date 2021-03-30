@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,26 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE lammpdumpstrajectoryreaderwriter_test
-#include <boost/test/unit_test.hpp>
 
-#include "../../include/votca/csg/bead.h"
-#include "../../include/votca/csg/orthorhombicbox.h"
-#include "../../include/votca/csg/trajectoryreader.h"
-#include "../../include/votca/csg/trajectorywriter.h"
+// Standard includes
 #include <cmath>
 #include <cstdio>
 #include <fstream>
 #include <string>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
 #include <votca/tools/types.h>
+
+// Local VOTCA includes
+#include "votca/csg/bead.h"
+#include "votca/csg/orthorhombicbox.h"
+#include "votca/csg/trajectoryreader.h"
+#include "votca/csg/trajectorywriter.h"
 
 using namespace std;
 using namespace votca::csg;
@@ -163,8 +170,8 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   }
 
   TrajectoryReader::RegisterPlugins();
-  TrajectoryReader *reader;
-  reader = TrjReaderFactory().Create(lammpsdumpfilename);
+  std::unique_ptr<TrajectoryReader> reader = std::unique_ptr<TrajectoryReader>(
+      TrjReaderFactory().Create(lammpsdumpfilename));
   reader->Open(lammpsdumpfilename);
   reader->FirstFrame(top);
   reader->Close();
@@ -287,16 +294,16 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
 
   // Write the topology object to a file
   TrajectoryWriter::RegisterPlugins();
-  TrajectoryWriter *writer;
-  writer = TrjWriterFactory().Create(lammpsDumpFileName);
+  std::unique_ptr<TrajectoryWriter> writer = std::unique_ptr<TrajectoryWriter>(
+      TrjWriterFactory().Create(lammpsDumpFileName));
   writer->Open(lammpsDumpFileName);
   writer->Write(&top);
   writer->Close();
 
   // Read the .dump file and ensure the information is correct
   TrajectoryReader::RegisterPlugins();
-  TrajectoryReader *reader;
-  reader = TrjReaderFactory().Create(lammpsDumpFileName);
+  std::unique_ptr<TrajectoryReader> reader = std::unique_ptr<TrajectoryReader>(
+      TrjReaderFactory().Create(lammpsDumpFileName));
   reader->Open(lammpsDumpFileName);
   reader->FirstFrame(top);
   reader->Close();

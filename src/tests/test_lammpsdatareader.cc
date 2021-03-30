@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,27 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE lammpdatatopologyreaderwriter_test
-#include <boost/test/unit_test.hpp>
 
-#include "../../include/votca/csg/bead.h"
-#include "../../include/votca/csg/orthorhombicbox.h"
-#include "../../include/votca/csg/topologyreader.h"
-#include "../../include/votca/csg/trajectoryreader.h"
-#include "../../include/votca/csg/trajectorywriter.h"
+// Standard includes
 #include <cmath>
 #include <cstdio>
 #include <fstream>
+#include <memory>
 #include <string>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// VOTCA includes
 #include <votca/tools/elements.h>
 #include <votca/tools/types.h>
+
+// Local VOTCA includes
+#include "votca/csg/bead.h"
+#include "votca/csg/orthorhombicbox.h"
+#include "votca/csg/topologyreader.h"
+#include "votca/csg/trajectoryreader.h"
+#include "votca/csg/trajectorywriter.h"
 
 using namespace std;
 using namespace votca::csg;
@@ -54,8 +62,9 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
   Topology top;
 
   TopologyReader::RegisterPlugins();
-  TopologyReader *lammpsDataReader;
-  lammpsDataReader = TopReaderFactory().Create(lammpsdatafilename);
+  std::unique_ptr<TopologyReader> lammpsDataReader =
+      std::unique_ptr<TopologyReader>(
+          TopReaderFactory().Create(lammpsdatafilename));
   lammpsDataReader->ReadTopology(lammpsdatafilename, top);
 
   BOOST_CHECK_EQUAL(top.BeadCount(), 100);
@@ -99,16 +108,18 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   Topology top;
 
   TopologyReader::RegisterPlugins();
-  TopologyReader *lammpsDataReader;
-  lammpsDataReader = TopReaderFactory().Create(lammpsdatafilename);
+  std::unique_ptr<TopologyReader> lammpsDataReader =
+      std::unique_ptr<TopologyReader>(
+          TopReaderFactory().Create(lammpsdatafilename));
   lammpsDataReader->ReadTopology(lammpsdatafilename, top);
 
   string lammpsdatafilename2 = std::string(CSG_TEST_DATA_FOLDER) +
                                "/lammpsdatareader/test_polymer4.data";
 
   TrajectoryReader::RegisterPlugins();
-  TrajectoryReader *lammpsDataReaderTrj;
-  lammpsDataReaderTrj = TrjReaderFactory().Create(lammpsdatafilename2);
+  std::unique_ptr<TrajectoryReader> lammpsDataReaderTrj =
+      std::unique_ptr<TrajectoryReader>(
+          TrjReaderFactory().Create(lammpsdatafilename2));
 
   lammpsDataReaderTrj->Open(lammpsdatafilename2);
   lammpsDataReaderTrj->FirstFrame(top);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,13 @@
 #ifndef VOTCA_CSG_CSG_STAT_IMC_H
 #define VOTCA_CSG_CSG_STAT_IMC_H
 
-#include "../../include/votca/csg/csgapplication.h"
+// VOTCA includes
 #include <votca/tools/average.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
 
 namespace votca {
 namespace csg {
@@ -48,6 +51,7 @@ class Imc {
 
   void BlockLength(votca::Index length) { _block_length = length; }
   void DoImc(bool do_imc) { _do_imc = do_imc; }
+  void IncludeIntra(bool include_intra) { _include_intra = include_intra; }
   void Extension(std::string ext) { _extension = ext; }
 
  protected:
@@ -93,6 +97,8 @@ class Imc {
   votca::Index _block_length = 0;
   // calculate the inverse monte carlos parameters (cross correlations)
   bool _do_imc = false;
+  // include the intramolecular neighbors
+  bool _include_intra = false;
 
   // file extension for the distributions
   std::string _extension;
@@ -112,7 +118,7 @@ class Imc {
   std::map<std::string, std::unique_ptr<group_t> > _groups;
 
   /// create a new interaction entry based on given options
-  interaction_t *AddInteraction(tools::Property *p);
+  interaction_t *AddInteraction(tools::Property *p, bool is_bonded);
 
   /// get group by name, creates one if it doesn't exist
   group_t *getGroup(const std::string &name);
@@ -149,7 +155,7 @@ class Imc {
   bool _processed_some_frames = false;
 
  public:
-  CsgApplication::Worker *ForkWorker();
+  std::unique_ptr<CsgApplication::Worker> ForkWorker();
   void MergeWorker(CsgApplication::Worker *worker_);
 };
 

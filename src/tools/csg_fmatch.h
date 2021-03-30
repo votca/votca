@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,13 @@
 #ifndef VOTCA_CSG_CSG_FMATCH_H
 #define VOTCA_CSG_CSG_FMATCH_H
 
-#include "../../include/votca/csg/csgapplication.h"
-#include "../../include/votca/csg/trajectoryreader.h"
+// VOTCA includes
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/trajectoryreader.h"
 
 using namespace votca::csg;
 
@@ -136,7 +139,7 @@ class CGForceMatching : public CsgApplication {
   /// \brief list of non-bonded interactions
   std::vector<votca::tools::Property *> _nonbonded;
 
-  using SplineContainer = vector<SplineInfo *>;
+  using SplineContainer = vector<SplineInfo>;
   /// \brief vector of SplineInfo * for all interactions
   SplineContainer _splines;
 
@@ -197,7 +200,7 @@ class CGForceMatching : public CsgApplication {
   void OpenForcesTrajectory();
 
   Topology _top_force;
-  TrajectoryReader *_trjreader_force;
+  std::unique_ptr<TrajectoryReader> _trjreader_force;
 };
 
 #endif  // VOTCA_CSG_CSG_FMATCH_H

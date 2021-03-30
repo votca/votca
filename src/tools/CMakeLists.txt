@@ -1,3 +1,4 @@
+set(CSG_RST_FILES)
 foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_gmxtopol csg_dlptopol csg_density csg_imc_solve)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
@@ -5,17 +6,22 @@ foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat cs
   install(TARGETS ${PROG} EXPORT VOTCA_CSG_Targets RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   add_executable(VOTCA::${PROG} ALIAS ${PROG})
   set_property(TARGET votca_csg APPEND PROPERTY BINARIES "${PROG}")
-  if (TXT2TAGS_FOUND AND BASH)
+  if (BUILD_MANPAGES)
     add_custom_command(OUTPUT ${PROG}.man
-      COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${PROG} --help > ${PROG}.help
-      COMMAND ${BASH} ${CMAKE_CURRENT_BINARY_DIR}/../../scripts/help2t2t ${PROG}.help > ${PROG}.t2t
-      COMMAND ${TXT2TAGS_EXECUTABLE} -q -t man -i ${PROG}.t2t -o ${PROG}.man
-      DEPENDS help2t2t_build ${PROG})
+      COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${PROG}> --format groff --out ${PROG}.man
+      COMMENT "Building ${PROG} manpage"
+      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${PROG})
     add_custom_target(${PROG}_manpage DEPENDS ${PROG}.man)
     add_dependencies(manpages ${PROG}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${PROG}.1)
-    set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${PROG}.help ${PROG}.t2t)
-  endif(TXT2TAGS_FOUND AND BASH)
+  endif()
+  if(VOTCA_SPHINX_DIR)
+    add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg/${PROG}.rst
+      COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${PROG}> --format rst --out ${VOTCA_SPHINX_DIR}/csg/${PROG}.rst
+      COMMENT "Building ${PROG} rst doc"
+      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${PROG})
+    list(APPEND CSG_RST_FILES ${VOTCA_SPHINX_DIR}/csg/${PROG}.rst)
+  endif(VOTCA_SPHINX_DIR)
 
   if(ENABLE_TESTING)
     add_test(integration_${PROG}Help ${PROG} --help)
@@ -23,6 +29,11 @@ foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat cs
     set_tests_properties(integration_${PROG}Help PROPERTIES LABELS "csg;tools;votca;integration")
   endif(ENABLE_TESTING)
 endforeach(PROG)
+
+if(VOTCA_SPHINX_DIR)
+  add_custom_target(doc-csg-rst-progs DEPENDS ${CSG_RST_FILES})
+  add_dependencies(doc-csg doc-csg-rst-progs)
+endif()
 
 if(ENABLE_TESTING)
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_reupdate)
@@ -199,6 +210,27 @@ if(ENABLE_TESTING)
   set_tests_properties(integration_Compare_csg_imc_solve_reg_output_4 PROPERTIES DEPENDS integration_Run_csg_imc_solve_reg)
   set_tests_properties(integration_Compare_csg_imc_solve_reg_output_4 PROPERTIES LABELS "csg;tools;votca;integration")
 
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_stat_imc_multi)
+  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/LJ1-LJ2/smaller_system)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/LJ1-LJ1.dist.tgt ${RUNPATH}/LJ1-LJ1.dist.tgt)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/LJ1-LJ2.dist.tgt ${RUNPATH}/LJ1-LJ2.dist.tgt)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/LJ2-LJ2.dist.tgt ${RUNPATH}/LJ2-LJ2.dist.tgt)
+  add_test(NAME integration_Run_csg_stat_imc_multi
+    COMMAND csg_stat --top ${REFPATH}/topol.xml --trj ${REFPATH}/traj.gro --do-imc
+                   --options ${REFPATH}/settings_imc.xml
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_csg_stat_imc_multi PROPERTIES LABELS "csg;tools;votca;integration")
+  add_test(NAME integration_Compare_csg_stat-imc_multi_output COMMAND $<TARGET_FILE:VOTCA::votca_compare> --etol ${INTEGRATIONTEST_TOLERANCE} -f1 all.imc -f2 ${REFPATH}/all.imc WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Compare_csg_stat-imc_multi_output PROPERTIES DEPENDS integration_Run_csg_stat_imc_multi)
+  set_tests_properties(integration_Compare_csg_stat-imc_multi_output PROPERTIES LABELS "csg;tools;votca;integration")
+  add_test(NAME integration_Compare_csg_stat-imc_multi_output_2 COMMAND $<TARGET_FILE:VOTCA::votca_compare> --etol ${INTEGRATIONTEST_TOLERANCE} -f1 all.gmc -f2 ${REFPATH}/all.gmc WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Compare_csg_stat-imc_multi_output_2 PROPERTIES DEPENDS integration_Run_csg_stat_imc_multi)
+  set_tests_properties(integration_Compare_csg_stat-imc_multi_output_2 PROPERTIES LABELS "csg;tools;votca;integration")
+  add_test(NAME integration_Compare_csg_stat-imc_multi_output_3 COMMAND ${CMAKE_COMMAND} -E compare_files all.idx ${REFPATH}/all.idx WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Compare_csg_stat-imc_multi_output_3 PROPERTIES DEPENDS integration_Run_csg_stat_imc_multi)
+  set_tests_properties(integration_Compare_csg_stat-imc_multi_output_3 PROPERTIES LABELS "csg;tools;votca;integration")
+
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_resample)
   set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/csg_resample)
   file(MAKE_DIRECTORY ${RUNPATH})
@@ -292,6 +324,14 @@ if(ENABLE_TESTING)
       add_test(NAME integration_Compare_csg_dump_gmx_tpr_excl_output COMMAND ${CMAKE_COMMAND} -E compare_files csg_dump_tpr_excl.out ${REFPATH}/csg_dump_tpr_excl.out WORKING_DIRECTORY ${RUNPATH})
       set_tests_properties(integration_Compare_csg_dump_gmx_tpr_excl_output PROPERTIES DEPENDS integration_Run_csg_dump_gmx_tpr_excl)
       set_tests_properties(integration_Compare_csg_dump_gmx_tpr_excl_output PROPERTIES LABELS "csg;tools;votca;integration")
+      add_test(NAME integration_Run_csg_dump_gmx_tpr_cg
+        COMMAND ${BASH} -c "$<TARGET_FILE:csg_dump> --cg ${REFPATH}/../mapping.xml --top topol.tpr > csg_dump_tpr_cg.out"
+        WORKING_DIRECTORY ${RUNPATH})
+      set_tests_properties(integration_Run_csg_dump_gmx_tpr_cg PROPERTIES LABELS "csg;tools;votca;integration")
+      set_tests_properties(integration_Run_csg_dump_gmx_tpr_cg PROPERTIES DEPENDS integration_Run_gmx_grompp)
+      add_test(NAME integration_Compare_csg_dump_gmx_tpr_cg_output COMMAND ${CMAKE_COMMAND} -E compare_files csg_dump_tpr_cg.out ${REFPATH}/csg_dump_tpr_cg.out WORKING_DIRECTORY ${RUNPATH})
+      set_tests_properties(integration_Compare_csg_dump_gmx_tpr_cg_output PROPERTIES DEPENDS integration_Run_csg_dump_gmx_tpr_cg)
+      set_tests_properties(integration_Compare_csg_dump_gmx_tpr_cg_output PROPERTIES LABELS "csg;tools;votca;integration")
     endif()
     add_test(NAME integration_Run_gmx_mdrun COMMAND ${GMX_EXECUTABLE} mdrun WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Run_gmx_mdrun PROPERTIES DEPENDS integration_Run_gmx_grompp)
@@ -345,4 +385,40 @@ if(ENABLE_TESTING)
     set_tests_properties(integration_Compare_csg_property_output4 PROPERTIES LABELS "csg;tools;votca;integration")
 
   endif(BASH)
+
+  if(GMX_FOUND)
+    set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_boltzmann_ppy)
+    set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/ppy/)
+    file(MAKE_DIRECTORY ${RUNPATH})
+    foreach(_SRC topol.top grompp.mdp conf.gro ffgmx.itp ppy10.xml)
+      execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/${_SRC} ${RUNPATH}/${_SRC})
+    endforeach()
+    add_test(NAME integration_Run_gmx_grompp_ppy COMMAND ${GMX_EXECUTABLE} grompp WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Run_gmx_grompp_ppy PROPERTIES LABELS "csg;tools;votca")
+    add_test(NAME integration_Run_csg_boltzmann_ppy
+      COMMAND $<TARGET_FILE:csg_boltzmann> --top topol.tpr --cg ppy10.xml --excl excl.txt
+      WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Run_csg_boltzmann_ppy PROPERTIES DEPENDS integration_Run_gmx_grompp_ppy)
+    set_tests_properties(integration_Run_csg_boltzmann_ppy PROPERTIES LABELS "csg;tools;votca")
+    add_test(NAME Compare_csg_boltzmann_output_ppy COMMAND ${CMAKE_COMMAND} -E compare_files excl.txt ${REFPATH}/excl.txt WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(Compare_csg_boltzmann_output_ppy PROPERTIES DEPENDS integration_Run_csg_boltzmann_ppy)
+    set_tests_properties(Compare_csg_boltzmann_output_ppy PROPERTIES LABELS "csg;tools;votca")
+    
+    set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_boltzmann_mma)
+    set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/mma/)
+    file(MAKE_DIRECTORY ${RUNPATH})
+    foreach(_SRC topol.top grompp.mdp conf.gro ffgmx.itp mapping.xml)
+      execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/${_SRC} ${RUNPATH}/${_SRC})
+    endforeach()
+    add_test(NAME integration_Run_gmx_grompp_mma COMMAND ${GMX_EXECUTABLE} grompp WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Run_gmx_grompp_mma PROPERTIES LABELS "csg;tools;votca")
+    add_test(NAME integration_Run_csg_boltzmann_mma
+      COMMAND $<TARGET_FILE:csg_boltzmann> --top topol.tpr --cg mapping.xml --excl excl.txt
+      WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Run_csg_boltzmann_mma PROPERTIES DEPENDS integration_Run_gmx_grompp_mma)
+    set_tests_properties(integration_Run_csg_boltzmann_mma PROPERTIES LABELS "csg;tools;votca")
+    add_test(NAME Compare_csg_boltzmann_output_mma COMMAND ${CMAKE_COMMAND} -E compare_files excl.txt ${REFPATH}/excl.txt WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(Compare_csg_boltzmann_output_mma PROPERTIES DEPENDS integration_Run_csg_boltzmann_mma)
+    set_tests_properties(Compare_csg_boltzmann_output_mma PROPERTIES LABELS "csg;tools;votca")
+  endif(GMX_FOUND)
 endif()

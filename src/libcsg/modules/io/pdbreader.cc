@@ -103,7 +103,7 @@ bool PDBReader::NextFrame(Topology &top) {
   // Read in information from .pdb file
   ////////////////////////////////////////////////////////////////////////////////
   Index bead_count = 0;
-  while (std::getline(_fl, line)) {
+  while (tools::getline(_fl, line)) {
     if (tools::wildcmp("CRYST1*", line)) {
       string a, b, c, alpha, beta, gamma;
       try {

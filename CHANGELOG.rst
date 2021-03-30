@@ -1,8 +1,44 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/csg/commits/master>`__.
 
-Version 2021-dev
-===============
+Version 2022-dev
+================
+
+-  generate manpage & rst using votca_help2man (#637, #638,
+   #640, #641)
+-  format csg_orientcorr help for rst conversion (#648)
+-  update help of functions_common for rst (#650)
+-  switched topology map to using unique_ptr (#651)
+-  switch to using unique_ptr for cgmoleculedef (#652)
+-  switch boundary conditions to unique_ptr (#654)
+-  switch NBList to unique_ptr (#659)
+-  switch csgapplication worker to unique_ptr (#660)
+-  remove use of new with splines in csg_fmatch (#662)
+-  update boost test floating point comparison header (#663)
+-  switch mutex to unique_ptr (#664)
+-  standardize header formatting (#661)
+-  clean up memory management in partial_rdf (#665)
+-  deleted unused makefile (#666)
+-  memory management of molecules fixed (#657)
+-  switched memory management of residues using boost_deque (#655)
+-  store beads directly in boost deque (#656)
+-  switched molecule stable_vector to boost deque (#667)
+-  convert maps to unique_ptrs (#653)
+-  add iterative integral equation (iie) method (#675)
+
+Version 2021.1 (released XX.03.21)
+==================================
+
+Version 2021 (released 13.03.21)
+================================
+
+-  fix CI on rawhide (#642)
+-  add auto-cancel workflow to GitHub Actions (#645)
+-  namespace bind2nd to fix build on FreeBSD (#668)
+-  replace std::bind2nd by a lambda (#673)
+
+Version 2021-rc.1 (released 15.01.21)
+=====================================
 
 -  remove topology item (#486)
 -  switch to local includes (#487)
@@ -16,7 +52,8 @@ Version 2021-dev
 -  make scripts always executable in builddir (#533, #550, #556)
 -  rename REGRESSIONTEST\_TOLERANCE to INTEGRATIONTEST\_TOLERANCE (#534)
 -  standardising include order and style in library files (#542)
--  move CI to GitHub Ations (#551, #552, #553, #561, #562)
+-  move CI to GitHub Ations (#551, #552, #553, #561, #562, #593, #617,
+   #632)
 -  format CMake internal cpp code (#557)
 -  update codacy badge (#558)
 -  convert markdown to rst format (#559)
@@ -25,13 +62,40 @@ Version 2021-dev
 -  refactored tests to use files instead of data in source code (#572)
 -  corrected max index in csg_resample (#575)
 -  add periodic extrapolation for dihedrals (#576)
+-  bump required CMake version to 3.12 (#599)
+-  Fixed boost test deprecation warnings (#598)
+-  improve error message for broken binaries (#601)
+-  Fixed memory leaks in tests and neighbourlist (#602)
+-  format with clang-11 (#604)
+-  use unique_ptr in factory (#603)
+-  Convert remaining md files to rst (#616)
+-  merge csg-manual (#621, #622)
+-  merge in csgapps repo (#623)
+-  Pdbs with more than 10000 resids can now be written (#627)
 
-Version 1.6.2 (released XX.07.20)
+Version 1.6.4 (released 12.01.21)
+=================================
+* fix exclusion creation in csg_boltzmann (#624, #625)
+
+Version 1.6.3 (released 09.12.20)
+=================================
+
+-  fix test dependencies for parallel ctest (#585)
+-  fix trigger for gmx-2020 warning in run_gromacs.sh (#591)
+-  switch to ghcr.io for CI (#595)
+-  format code with clang-11 (#605)
+-  add gmx2021 builds to CI (#607)
+-  remove set-env call from CI (#608)
+-  use master .clang-format in format action (#610)
+-  strip windows line endings in readers (#614)
+
+Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================
 
 -  move CI to GitHub Actions (#563, #567, #569)
 -  add max scaling parameter to pressure correction (#565)
 -  fix test dependencies for parallel ctest (#573)
+-  fix multicomponent imc (#579, #581)
 
 Version 1.6.1 (released 21.06.20)
 =================================

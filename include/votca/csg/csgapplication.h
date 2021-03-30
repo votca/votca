@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,11 @@
  *
  */
 
-#ifndef _VOTCA_CSG_APPLICATION_H
-#define _VOTCA_CSG_APPLICATION_H
+#ifndef VOTCA_CSG_CSGAPPLICATION_H
+#define VOTCA_CSG_CSGAPPLICATION_H
 
 // VOTCA includes
+#include <memory>
 #include <votca/tools/application.h>
 #include <votca/tools/mutex.h>
 #include <votca/tools/thread.h>
@@ -104,7 +105,6 @@ class CsgApplication : public tools::Application {
   class Worker : public tools::Thread {
    public:
     Worker() = default;
-    ~Worker() override;
 
     /// \brief overload with the actual computation
     virtual void EvalConfiguration(Topology *top,
@@ -116,7 +116,7 @@ class CsgApplication : public tools::Application {
    protected:
     CsgApplication *_app = nullptr;
     Topology _top, _top_cg;
-    TopologyMap *_map = nullptr;
+    std::unique_ptr<TopologyMap> _map;
     Index _id = -1;
 
     void Run(void) override;
@@ -142,7 +142,7 @@ class CsgApplication : public tools::Application {
    * User is required to overload ForkWorker and initialize workers.
    * @return worker
    */
-  virtual Worker *ForkWorker(void);
+  virtual std::unique_ptr<Worker> ForkWorker(void);
 
   /**
    * User is required to overload MergeWorker and merge data from each worker.
@@ -153,7 +153,7 @@ class CsgApplication : public tools::Application {
  protected:
   std::list<CGObserver *> _observers;
   bool _do_mapping;
-  std::vector<Worker *> _myWorkers;
+  std::vector<std::unique_ptr<Worker>> _myWorkers;
   Index _nframes;
   bool _is_first_frame;
   Index _nthreads;
@@ -161,10 +161,10 @@ class CsgApplication : public tools::Application {
   tools::Mutex _traj_readerMutex;
 
   /// \brief stores Mutexes used to impose order for input
-  std::vector<tools::Mutex *> _threadsMutexesIn;
+  std::vector<std::unique_ptr<tools::Mutex>> _threadsMutexesIn;
   /// \brief stores Mutexes used to impose order for output
-  std::vector<tools::Mutex *> _threadsMutexesOut;
-  TrajectoryReader *_traj_reader;
+  std::vector<std::unique_ptr<tools::Mutex>> _threadsMutexesOut;
+  std::unique_ptr<TrajectoryReader> _traj_reader;
 };
 
 inline void CsgApplication::AddObserver(CGObserver *observer) {
@@ -174,4 +174,4 @@ inline void CsgApplication::AddObserver(CGObserver *observer) {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_APPLICATION_H */
+#endif  // VOTCA_CSG_CSGAPPLICATION_H

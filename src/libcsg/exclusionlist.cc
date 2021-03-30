@@ -40,7 +40,7 @@ void ExclusionList::CreateExclusions(Topology *top) {
 
   for (auto &ia : ic) {
     Index beads_in_int = ia->BeadCount();
-    list<Bead *> l;
+    std::vector<Bead *> l;
 
     for (Index ibead = 0; ibead < beads_in_int; ibead++) {
       Index ii = ia->getBeadId(ibead);
@@ -48,6 +48,26 @@ void ExclusionList::CreateExclusions(Topology *top) {
     }
     ExcludeList(l);
   }
+}
+
+const ExclusionList::exclusion_t *ExclusionList::GetExclusions(
+    Bead *bead) const {
+  std::map<Bead *, exclusion_t *>::const_iterator iter =
+      _excl_by_bead.find(bead);
+  if (iter == _excl_by_bead.end()) {
+    return nullptr;
+  }
+
+  return (*iter).second;
+}
+
+ExclusionList::exclusion_t *ExclusionList::GetExclusions(Bead *bead) {
+  std::map<Bead *, exclusion_t *>::iterator iter = _excl_by_bead.find(bead);
+  if (iter == _excl_by_bead.end()) {
+    return nullptr;
+  }
+
+  return (*iter).second;
 }
 
 bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) const {
@@ -68,6 +88,58 @@ bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) const {
   return false;
 }
 
+void ExclusionList::InsertExclusion(Bead *bead1, Bead *bead2) {
+  if (bead2->getId() < bead1->getId()) {
+    std::swap(bead1, bead2);
+  }
+
+  if (bead1 == bead2) {
+    return;
+  }
+
+  if (IsExcluded(bead1, bead2)) {
+    return;
+  }
+
+  exclusion_t *e;
+  if ((e = GetExclusions(bead1)) == nullptr) {
+    e = new exclusion_t;
+    e->_atom = bead1;
+    _exclusions.push_back(e);
+    _excl_by_bead[bead1] = e;
+  }
+  e->_exclude.push_back(bead2);
+}
+
+void ExclusionList::RemoveExclusion(Bead *bead1, Bead *bead2) {
+  if (bead2->getId() < bead1->getId()) {
+    std::swap(bead1, bead2);
+  }
+
+  if (bead1 == bead2) {
+    return;
+  }
+
+  if (!IsExcluded(bead1, bead2)) {
+    return;
+  }
+
+  std::list<exclusion_t *>::iterator ex =
+      std::find_if(_exclusions.begin(), _exclusions.end(),
+                   [&bead1](exclusion_t *e) { return e->_atom == bead1; });
+
+  if (ex == _exclusions.end()) {
+    return;
+  }
+
+  (*ex)->_exclude.remove(bead2);
+  if ((*ex)->_exclude.empty()) {
+    (*ex) = nullptr;
+    _exclusions.erase(ex);
+  }
+  _exclusions.remove(nullptr);
+}
+
 bool compareAtomIdiExclusionList(const ExclusionList::exclusion_t *a,
                                  const ExclusionList::exclusion_t *b) {
   return a->_atom->getId() < b->_atom->getId();
@@ -83,9 +155,8 @@ std::ostream &operator<<(std::ostream &out, ExclusionList &exl) {
   for (auto &_exclusion : exl._exclusions) {
     _exclusion->_exclude.sort(compareAtomIdBeadList);
     out << (Index)(_exclusion->_atom->getId()) + 1;
-    for (list<Bead *>::iterator i = _exclusion->_exclude.begin();
-         i != _exclusion->_exclude.end(); ++i) {
-      out << " " << ((*i)->getId() + 1);
+    for (Bead *bead : _exclusion->_exclude) {
+      out << " " << (bead->getId() + 1);
     }
     out << endl;
   }
