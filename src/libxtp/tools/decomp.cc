@@ -26,19 +26,25 @@
 #include "votca/xtp/gaussianwriter.h"
 #include "votca/xtp/orbitals.h"
 #include <votca/tools/constants.h>
+#include "votca/xtp/pmdecomposition.h"
 
 namespace votca {
 namespace xtp {
 
 void Decomp::ParseOptions(const tools::Property& options) {
-  std::cout << _job_name << std::endl;
-  std::string message = options.get(".message").as<std::string>();
-  std::cout << "I am here" << std::endl;
-
-  std::cout << message << std::endl;
+  orbitals.ReadFromCpt(_job_name + ".orb");
 }
 
-bool Decomp::Run() { return true; }
+bool Decomp::Run() {
+  log.setReportLevel(Log::current_level);
+  log.setMultithreading(true);
+  log.setCommonPreface("\n... ...");
+  XTP_LOG(Log::error,log) << "Starting decomp tool" << std::endl;
+  PMDecomposition pmd(orbitals, log);
+  pmd.compute();
+  XTP_LOG(Log::error, log) << "There you go!!" << std::endl;
+  return true;
+}
 
 }  // namespace xtp
 }  // namespace votca

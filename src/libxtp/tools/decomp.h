@@ -26,6 +26,7 @@
 // Local VOTCA includes
 #include "votca/xtp/logger.h"
 #include "votca/xtp/qmtool.h"
+#include "votca/xtp/orbitals.h"
 
 namespace votca {
 namespace xtp {
@@ -38,11 +39,16 @@ class Decomp final : public QMTool {
 
   std::string Identify() { return "decomp"; }
 
+  private:
+    Orbitals orbitals;
+    Logger log;
+
+
  protected:
   void ParseOptions(const tools::Property& options);
   bool Run();
 };
-
+ 
 }  // namespace xtp
 }  // namespace votca
 

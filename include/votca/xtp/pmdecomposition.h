@@ -20,24 +20,35 @@
 #pragma once
 #ifndef VOTCA_XTP_PMDECOMPOSITION_H
 #define VOTCA_XTP_PMDECOMPOSITION_H
-#include "votca/xtp/orbitals.h"
 #include "logger.h"
+#include "votca/xtp/orbitals.h"
 
 namespace votca {
 namespace xtp {
 
 class PMDecomposition {
-    public:
-    PMDecomposition() = default;
-    PMDecomposition(Orbitals& orbitals, Logger* log)
-        :orbitals(orbitals), log(log){};
-    void compute();
+ public:
+  PMDecomposition() = default;
+  PMDecomposition(Orbitals &orbitals_, Logger &log_)
+      : orbitals(orbitals_), log(log_){};
+  void compute();
 
-    private:
-    Orbitals orbitals;
-    Logger* log;
-
+ private:
+  Orbitals orbitals;
+  Logger &log;
+  Eigen::MatrixXd rotatedorbitals(Eigen::MatrixXd &maxorbs,
+                                  Index s, Index t);
+  Eigen::MatrixXd orbitalselections(Eigen::MatrixXd &m,
+                                    const Eigen::MatrixXd &S);
+  void update_maximums(Eigen::MatrixXd &m, Index col1, Index col2,
+                       Eigen::MatrixXd &new_orbs);
+Eigen::MatrixXd columnwise(const Eigen::MatrixXd &S, Eigen::VectorXd &v);
+Eigen::MatrixXd rowwise(const Eigen::MatrixXd &S, Eigen::VectorXd &v);
+BasisSet basis;
+AOBasis aobasis;
+Eigen::MatrixXd A;
+Eigen::MatrixXd B;
 };
-}
-}
+}  // namespace xtp
+}  // namespace votca
 #endif
