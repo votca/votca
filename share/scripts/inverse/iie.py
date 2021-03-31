@@ -442,24 +442,18 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
         dcdg = np.linalg.inv(F) @ np.diag(1 / (1 + n * rho * G_minus_g_hat
                                                + n * rho * h_hat)**2) @ F
     # calculate jacobian^-1
-    # in the core where RDF=0, the jacobin will have np.inf on the diagonal
+    # in the core where RDF=0, the jacobin will have -np.inf on the diagonal
     # numpy correctly inverts this to zero
     if closure == 'hnc':
         if newton_mod:
             with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
-                jac_inv = kBT * (np.diag(1 - np.log(g_tgt / g_cur) / Delta_g) + dcdg)
-            # ensure this is np.inf on the diagonal where Delta_g is zero
-            Delta_g_zero = np.where(Delta_g == 0)
-            np.fill_diagonal(jac_inv[Delta_g_zero, Delta_g_zero], np.inf)
-        if newton_mod:
-            with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
-                jac_inv1 = kBT * (1 - np.log(g_tgt / g_cur) / Delta_g)
-            jac_inv2 = kBT * dcdg
+                jac_inv1 = kBT * (1 + np.log(g_tgt / g_cur) / Delta_g)
+            jac_inv2 = -kBT * dcdg
             # Some fixes, because we want to define a jacobian matrix
             # Unmodified Newton is less awkward
-            # Ensure this is zero on the diagonal where Delta_g is zero
+            # Ensure this is zero, not nan, on the diagonal where Delta_g is zero
             jac_inv1[Delta_g == 0] = 0
-            # Ensure this is np.inf on the diagonal in the core region
+            # Ensure this is -np.inf, not nan, on the diagonal in the core region
             jac_inv1[:nocore.start] = -np.inf
             jac_inv = np.diag(jac_inv1) + jac_inv2
         else:
@@ -482,7 +476,7 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
     dU = np.concatenate((np.full(nocore.start, np.nan), dU,
                          np.full(len(r) - crucial.stop, np.nan)))
     if r0_removed:
-        dU = np.concatenate(([0], dU))
+        dU = np.concatenate(([np.nan], dU))
     return dU
 
 
