@@ -149,7 +149,7 @@ the capability of building VOTCA and all its dependencies:
 
 ::
 
-    git clone clone https://github.com/spack/spack.git spack
+    git clone https://github.com/spack/spack.git spack
     source spack/share/spack/setup-env.sh
     spack install votca-csg
     spack install votca-xtp
