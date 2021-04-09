@@ -60,7 +60,7 @@ all non-bonded interactions of atoms in the first bead with atoms of the
 potential. Note that will only create the exclusion list for the fist
 molecule in the topology.
 
-To add the exclusions to the GROMACStopology of the molecule, either
+To add the exclusions to the GROMACS topology of the molecule, either
 include the file specified by the –excl option into the .top file as
 follows
 
@@ -70,7 +70,7 @@ follows
       #include "exclusions.txt"
 
 or copy and paste the content of that file to the exclusions section of
-the gromacs topology file.
+the GROMACS topology file.
 
 Statistical analysis
 --------------------
@@ -250,7 +250,7 @@ Program input
 
 needs an atomistic reference run to perform coarse-graining. Therefore,
 the trajectory file *must contain forces* (note that there is a suitable
-option in the GROMACS\ ``.mdp`` file), otherwise will not be able to
+option in the GROMACS ``.mdp`` file), otherwise will not be able to
 run.
 
 In addition, a mapping scheme has to be created, which defines the
@@ -388,16 +388,16 @@ These might come from experiments or from atomistic simulations. To get
 reasonable results out of the iterative process, the reference
 distributions should be of good quality (little noise, etc).
 
-votcacan create initial guesses for the coarse-grained potentials by
-boltzmann inverting the distribution function. If a custom initial guess
+VOTCA can create initial guesses for the coarse-grained potentials by
+Boltzmann inverting the distribution function. If a custom initial guess
 for an interaction shall be used instead, the table can be provided in
 *:math:`<`\ interaction\ :math:`>`.pot.in*. As already mentioned,
-votcaautomatically creates potential tables to run a simulation.
+VOTCA automatically creates potential tables to run a simulation.
 However, it does not know how to run a coarse-grained simulation.
 Therefore, all files needed to run a coarse-grained simulation, except
 for the potentials that are iteratively refined, must be provided and
 added to the in the settings XML-file. If an atomistic topology and a
-mapping definition are present, votcaoffers tools to assist the setup of
+mapping definition are present, VOTCA offers tools to assist the setup of
 a coarse-grained topology (see chapter [sec:usage:cgrun]).
 
 To get an overview of how input files look like, it is suggested to take
@@ -419,7 +419,7 @@ course of the iterative process.
 
 The input files include: target distributions, initial guess (optional)
 and a list of interactions to be iteratively refined. As a target
-distribution, any table file can be given (e.g. GROMACSoutput from
+distribution, any table file can be given (e.g. GROMACS output from
 ``g_rdf``). The program automatically takes care to resample the table
 to the correct grid spacing according to the options provided in
 ``settings.xml``.
