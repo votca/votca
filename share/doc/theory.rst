@@ -1,6 +1,8 @@
 Theoretical background
 ======================
 
+.. _theory_mapping:
+
 Mapping
 -------
 
@@ -187,12 +189,14 @@ so that the non-bonded interactions in the reference system do not
 contribute to the bonded interactions of the coarse-grained model.
 
 This can be done by employing exclusion lists using with the option
-``—excl``. This is described in detail in sec. [sec:exclusions].
+``—excl``. This is described in detail in :ref: `_methods_exclusions`.
 
 .. figure:: fig/excl.png
    :align: center
 
    Example of excluded interactions.
+
+.. _theory_iterative_methods:
 
 Iterative methods
 -----------------
@@ -210,9 +214,12 @@ sampling step, followed by an update of the potential. The update itself
 often requires additional postprocessing such as smoothing,
 interpolation, extrapolation or fitting. Different methods are available
 to update the potential, for instance Iterative Boltzmann Inversion (see
-next section [sec:ibi]) or Inverse Monte Carlo (see section [sec:imc]).
+:ref: `_theory_iterative_boltzmann_inversion`) or Inverse Monte Carlo
+(see :ref: `_theory_inverse_monte_carlo`).
 The whole procedure is then iterated until a convergence criterion is
 satisfied.
+
+.. _theory_iterative_boltzmann_inversion:
 
 Iterative Boltzmann Inversion
 -----------------------------
@@ -250,6 +257,8 @@ distribution function of the reference system in order to obtain
 non-bonded interactions. On the implementation side, IBIhas the same
 issues as the inverse Boltzmann method, i. e. smoothing and
 extrapolation of the potential must be used.
+
+.. _theory_inverse_monte_carlo:
 
 Inverse Monte Carlo
 -------------------
@@ -404,13 +413,13 @@ atoms
    {{{{\mathbf F}}}}_I^\text{ref} = \sum_{j \in {\cal S_I}} \frac{d_{Ii}}{c_{Ii}} {{{{\mathbf f}}}}_j({{{{\mathbf r}}}^n}),
      \label{eq:force_mapping}
 
-where the sum is over all atoms of the CG site *I* (see.
-sec. [sec:mapping\_operator]). The :math:`d_{Ij}` coefficients can, in
+where the sum is over all atoms of the CG site *I* (see
+:ref: `_theory_mapping`). The :math:`d_{Ij}` coefficients can, in
 principle, be chosen arbitrarily, provided that the condition
 :math:` \sum_{i=1}^{n}d_{Ii}=1` is
 satisfied [Noid:2008.1]_. If mapping coefficients for
 the forces are not provided, it is assumed that :math:`d_{Ij} = c_{Ij}`
-(see also sec. [sec:inputfiles]).
+(see also :ref: `_input_files`).
 
 By calculating the reference forces for :math:`L` snapshots we can write
 down :math:`N \times L` equations

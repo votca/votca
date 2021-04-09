@@ -2,7 +2,7 @@ Introduction
 ============
 
 Versatile Object-oriented Toolkit for Coarse-graining Applications, or
-votca, is a package which helps to systematically coarse-grain various
+VOTCA, is a package which helps to systematically coarse-grain various
 systems [Ruehle:2009.a]_. This includes deriving the
 coarse-grained potentials, assessing their quality, preparing input
 files required for coarse-grained simulations, and analyzing the latter.
@@ -19,7 +19,7 @@ require canonical sampling of the coarse-grained system. The sampling
 can be done using either molecular dynamics (MD), stochastic dynamics
 (SD), or Monte Carlo (MC) techniques. The latter are implemented in many
 standard simulation packages. Rather than implementing its own MD/SD/MC
-modules, votcaallows swift and flexible integration of existing programs
+modules, VOTCA allows swift and flexible integration of existing programs
 in such a way that sampling is performed by the program of choice. At
 the moment, an interface to GROMACS [gromacs4]_
 simulation package is provided. The rest of the analysis needed for
@@ -91,7 +91,4 @@ the bash or csh (tcsh)
 
 More details as well as several examples can be found in
 ref. [Ruehle:2009.a]_. Please cite this paper if you
-are using the package. Tutorials can be found on the votcahomepage .
-
-.. |image| image:: fig/propane
-   :width: 4.00000cm
+are using the package.

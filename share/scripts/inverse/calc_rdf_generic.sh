@@ -22,9 +22,9 @@ This script implemtents statistical analysis for the iterative Boltzmann inversi
 using generic csg tools (csg_stat)
 
 With --include-intra intramolecular interactions are included and the
-distributions are saved as *.dist-incl.new.
+distributions are saved as .dist-incl.new.
 
-Usage: ${0##*/} [--help] [--include-intra]"
+Usage: ${0##*/} [--help] [--include-intra]
 EOF
 }
 
