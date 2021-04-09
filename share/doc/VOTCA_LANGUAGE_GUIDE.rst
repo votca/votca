@@ -6,7 +6,7 @@ code consistent between repositories. In the past, there has been
 difficulty in translating functionality between repositories and within
 the same repositories because different properties have been used to
 describe the same object attribute. For general programming guidelines 
-look at the `Developers Guide <share/doc/DEVELOPERS_GUIDE.rst>`__
+look at the `Developers Guide <DEVELOPERS_GUIDE.rst>`__
 
 Types and Ids
 -------------
