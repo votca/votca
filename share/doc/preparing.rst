@@ -6,21 +6,21 @@ Preliminary note
 
 The coarse-grained run requires the molecule topology on the one hand
 and suitable potentials on the other. In this chapter, the generation of
-coarse-grained runs is decribed next, followed by a post-processing of
+coarse-grained runs is described next, followed by a post-processing of
 the potential.
 
 If the potential is of such a form that it allows direct fitting of a
 functional form, the section on post-processing can be skipped. Instead,
 a program of choice should be used to fit a functional form to the
 potential. Nevertheless, special attention should be paid to units
-(angles, bondlengths). The resulting curve can then be specified in the
+(angles, bond lengths). The resulting curve can then be specified in the
 MD package used for simulation. However, most potentials don’t allow an
 easy processing of this kind and tabulated potentials have to be used.
 
 Generating a topology file for a coarse-grained run
 ---------------------------------------------------
 
-WARNING: This section describes experimental features. The exact names and options of the program might change in the near future. The section is specific to GROMACSsupport though a generalization for other MD packages is planned.
+WARNING: This section describes experimental features. The exact names and options of the program might change in the near future. The section is specific to GROMACS support though a generalization for other MD packages is planned.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The mapping definition is close to a topology needed for a coarse
@@ -126,9 +126,9 @@ quadratic), extrapolating just the left or right region of the file
 (``region``) and setting the curvature (``curvature``).
 
 The output ``table_extrapolate.pot`` of the extrapolation step can now
-be used for the coarse-grained run. If GROMACSis used as a molecule
+be used for the coarse-grained run. If GROMACS is used as a molecule
 dynamics package, the potential has to be converted and exported to a
-suitable GROMACSformat as described in the final step.
+suitable GROMACS format as described in the final step.
 
 Exporting the table
 ~~~~~~~~~~~~~~~~~~~
@@ -152,7 +152,7 @@ requires a small xml file ``table.xml`` as shown below:
         </inverse>
       </cg>
 
-where ``<table_end>`` is the GROMACS\ ``rvdw+table_extension`` and
+where ``<table_end>`` is the GROMACS ``rvdw+table_extension`` and
 ``<pot_max>`` is just a number slightly smaller than the upper value of
 single/ double precision. The value given in ``<table_bins>``
 corresponds to the ``step`` value of
@@ -166,11 +166,11 @@ Using the ``xml`` file above, call
         convert_potential gromacs table_extrapolate.pot table.xvg
 
 to convert the extrapolated values in ``table_extrapolate.pot`` to
-``table.xvg`` (The file will contain the GROMACSC12 parts only which are
+``table.xvg`` (The file will contain the GROMACS C12 parts only which are
 stored in the sixth und seventh column, this can be changed by adding
 the ``–ia-type C6`` option (for the fourth and fiveth column) or
 ``–ia-type CB`` option (for the second and third column) after . Ensure
-compatibility with the GROMACStopology. See the GROMACSmanual for
+compatibility with the GROMACS topology. See the GROMACS manual for
 further information).
 
 To obtain a bond table, run
