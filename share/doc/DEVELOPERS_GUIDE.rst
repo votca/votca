@@ -48,8 +48,7 @@ VOTCA dev-tools
 ---------------
 
 Running clang-format on every commit can be a drag, as can changing the
-copyright in every header. Building artifacts locally from a GitLab run
-also takes multiple steps. Fortunately, you will find small scripts in the
+copyright in every header. Fortunately, you will find small scripts in the
 `dev-tools repo <https://github.com/votca/dev-tools>`__, which can
 automate this.
 
@@ -57,7 +56,7 @@ VOTCA Continuous Integration (GitHub Actions)
 ---------------------------------------------
 
 Each pull request to master in the tools, csg, csg-tutorials, xtp, xtp-tutorials or votca repository 
-is built on a machine in the cloud using `GitHub actions <https://docs.github.com/en/actions>`__ (There is still some GitLab for the GPU builds).
+is built on a machine in the cloud using `GitHub actions <https://docs.github.com/en/actions>`__ 
 
 VOTCA can be built on various linux distributions, which are not all natively supported by GitHub actions. For non natively supported distributions, 
 instead of using the default virtual machines, VOTCA first builds and then runs a `docker container <https://www.docker.com/resources/what-container>`__ for each Pull Request. The container contains all the necessary dependencies of VOTCA (see :code:`buildenv` below)
