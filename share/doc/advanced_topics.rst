@@ -34,8 +34,8 @@ If the local keys are already in use, the existing call will be
 overloaded.
 
 As an example, we will illustrate how to overload the script which calls
-the sampling package. The script runs from the GROMACSpackage only on
-one cpu. Our task will be to change the script so that GROMACSuses 8
+the sampling package. The script runs from the GROMACS package only on
+one cpu. Our task will be to change the script so that GROMACS uses 8
 cpus, which is basically the same as adding mpirun options in .
 
 First we find out which script calls :
@@ -113,67 +113,64 @@ version number of the script.
 Used external packages
 ----------------------
 
-GroMaCS
+GROMACS
 ~~~~~~~
 
-Get it from
-
--  
--  
+`Link to Homepage <https://manual.gromacs.org/documentation/>`
 
 ESPResSo
-~~~~~~~~
+~~~~~~~~~~
 
-Get it from
+`Link to Homepage <https://espressomd.org/>`
 
 DL\_POLY
 ~~~~~~~~
 
-Get it from
+`Link to Homepage <https://www.scd.stfc.ac.uk/Pages/DL_POLY.aspx>`
 
 Gnuplot
 ~~~~~~~
 
-Get it from
+`Link to Homepage <http://www.gnuplot.info/>`
 
 LAMMPS
 ~~~~~~
 
-Get it from
+`Link to Homepage <https://lammps.sandia.gov/>`
 
 
 DL\_POLY interface
 ------------------
 
-**WARNING: The DL\_POLYinterface is still experimental (in development)
+**WARNING: The DL\_POLY interface is still experimental (in development)
 but it does support the Iterative Boltzmann Inversion and Inverse Monte
 Carlo schemes. The Force Matching might work as well, although it has
 not been tested thoroughly.**
 
 
-The DL\_POLYinterface fully supports coarse-grain mapping of a full-atom
+The DL\_POLY interface fully supports coarse-grain mapping of a full-atom
 system previuosly simulated with any version of DL\_POLY, including
 DL\_POLY-Classic. However, the full optimization of the effective
 potentials with the aid of iterative methods will only become possible
-when the new release of DL\_POLY-4(4.06) is made public; the reason
-being the incapability of earlier DL\_POLYversions of using
+when the new release of DL\_POLY-4 (4.06) is made public; the reason
+being the incapability of earlier DL\_POLY versions of using
 user-specified tabulated force-fields for intramolecular, aka “bonded”,
 interactions: bonds, angles, dihedral angles (torsions). Below the
 coarse-graining and CG force-field optimization with the aid of the
-latest DL\_POLY-4version (4.06+) are outlined.
+latest DL\_POLY-4 version (4.06+) are outlined.
 
-Running votcawith DL\_POLY-4as MD simulation engine is very similar to
+Running VOTCA with DL\_POLY-4 as MD simulation engine is very similar to
 doing so with GROMACS. The three types of required input files in the
-case of DL\_POLYare: CONTROL – containing the simulation directives and
+case of DL\_POLY are: CONTROL – containing the simulation directives and
 parameters (instead of ``.mdp`` file for GROMACS), FIELD – the topology
 and force-field specifications (instead of ``.top`` and ``.tpr`` files),
 and CONFIG (instead of ``.gro`` file) – the initial configuration file,
 containing the MD cell matrix and particle coordinates (it can also
 include initial velocities and/or forces); for details see
-DL\_POLY-4manual. Most of the votcatools and scripts described above in
-the case of using GROMACSwill work in the same manner, with the
+DL\_POLY-4 manual. Most of the VOTCA tools and scripts described above in
+the case of using GROMACS will work in the same manner, with the
 following conventional substitutions for the (default) file names used
-in options for votcascripts, as necessary:
+in options for VOTCA scripts, as necessary:
 
 .. code:: none
 
@@ -182,31 +179,31 @@ in options for votcascripts, as necessary:
     .dlph = the trajectory read from HISTORY or written to HISTORY_CGV
 
 It is also possible to specify file names different from the standard
-DL\_POLYconvention, in which case the user has to use the corresponding
+DL\_POLY convention, in which case the user has to use the corresponding
 dot-preceded extension(s); for example: FA-FIELD.dlpf instead of FIELD
 or CG-HISTORY.dlph instead of HISTORY\_CGV (see section
 [sec:ref\_programs], as well as the man pages or output of
-votcacommands, with option ``—help``).
+VOTCA commands, with option ``—help``).
 
-votcafollows the DL\_POLYconventions for file names and formats. Thus,
+VOTCA follows the DL\_POLY conventions for file names and formats. Thus,
 ``csg_dlptopol`` and ``csg_map`` produce the CG topology (FIELD\_CGV by
 default), configuration (CONFIG\_CGV), and/or trajectory (HISTORY\_CGV)
 files fully compatible with and usable by DL\_POLY. **Note that the
 ability of these tools to read and write a plethora of different file
 formats provides means to convert input and output files between the
-simulation packages supported by votca, e.g. GROMACS– DL\_POLYor vice
+simulation packages supported by VOTCA, e.g. GROMACS – DL\_POLY or vice
 versa. The user is, however, strongly advised to check the resulting
 files for consistency before using them).**
 
 Similarly, the distribution analysis and potential/force generation
-utilities, such as ``csg_stat`` and votcascripts, will read and write
+utilities, such as ``csg_stat`` and VOTCA scripts, will read and write
 DL\_POLY-formatted files; in particular, the tabulated force-field files
 containing the potential and force/virial data: TABLE – for short-range
 (VdW) “non-bonded” interactions, TABBND, TABANG and TABDIH – for
 “bonded” interations: bonds, bending angles and dihedrals,
-correspondingly (for the format details see DL\_POLY-4manual). Note,
+correspondingly (for the format details see DL\_POLY-4 manual). Note,
 however, that the latter three files can only be used by
-DL\_POLY-4(4.06+).
+DL\_POLY-4 (4.06+).
 
 The user is advised to search for “dlpoly” through the
 ``csg_defaults.xml``, ``csg_table`` files and in scripts located in
