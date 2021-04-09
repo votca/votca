@@ -18,7 +18,7 @@ implementing code consistent with the VOTCA and cpp style and standard.
 Reporting Bugs
 --------------
 
-To report a bug, please create an issue on the appropriate github repo.
+To report a bug, please create an issue on the appropriate GitHub repo.
 Please be sure to provide as much information as possible such as:
 
 -  The error messages
@@ -27,7 +27,7 @@ Please be sure to provide as much information as possible such as:
 -  What dependencies were installed
 -  The calculation that was being run
 
-Issues can be directly created on the appropriate github repo:
+Issues can be directly created on the appropriate GitHub repo:
 
 -  `tools <https://github.com/votca/tools/issues>`__
 -  `csg <https://github.com/votca/csg/issues>`__
@@ -48,29 +48,28 @@ VOTCA dev-tools
 ---------------
 
 Running clang-format on every commit can be a drag, as can changing the
-copyright in every header. Building artifacts locally from a Gitlab run
-also takes multiple steps. Fortunately, you will find small scripts in the
+copyright in every header. Fortunately, you will find small scripts in the
 `dev-tools repo <https://github.com/votca/dev-tools>`__, which can
 automate this.
 
-VOTCA Continuous Integration (Github Actions)
+VOTCA Continuous Integration (GitHub Actions)
 ---------------------------------------------
 
 Each pull request to master in the tools, csg, csg-tutorials, xtp, xtp-tutorials or votca repository 
-is built on a machine in the cloud using `Github actions <https://docs.github.com/en/actions>`__ (There is still some Gitlab for the GPU builds).
+is built on a machine in the cloud using `GitHub actions <https://docs.github.com/en/actions>`__ 
 
-VOTCA can be built on various linux distributions, which are not all natively supported by Github actions. For non natively supported distributions, 
+VOTCA can be built on various linux distributions, which are not all natively supported by GitHub actions. For non natively supported distributions, 
 instead of using the default virtual machines, VOTCA first builds and then runs a `docker container <https://www.docker.com/resources/what-container>`__ for each Pull Request. The container contains all the necessary dependencies of VOTCA (see :code:`buildenv` below)
 
 The docker images can be found at `Docker Hub <https://hub.docker.com/u/votca>`__. The **votca/buildenv** containers are the basic containers, which contain all the dependencies VOTCA requires; VOTCA code itself is not included. The **votca/buildenv** can be found on `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__. 
 The actual containers used for running the test builds are built on top of the **votca/buildenv** containers, the resulting **votca/votca** container can be found on `Docker Hub <https://hub.docker.com/u/votca>`__ as well as `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__.
 
-More information can be found in the `Github workflow files <https://github.com/votca/votca/tree/master/.github/workflows>`__.
+More information can be found in the `GitHub workflow files <https://github.com/votca/votca/tree/master/.github/workflows>`__.
 
 Making a Release
 ----------------
 
-Similar to the VOTCA containers, releases are also handled by Github actions. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
+Similar to the VOTCA containers, releases are also handled by GitHub actions. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
 To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
 :code:`stable` branch, but testing the creation of a release can be triggered on any branch. To make a release, trigger the action from the
 :code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for the :code:`stable` to :code:`master` branch, see `below <#updates-from-stable>`__). 
@@ -211,7 +210,7 @@ General
 VOTCA specifics (indexing, ids, units)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This can all be found here `VOTCA\_LANGUAGE\_GUIDE <share/doc/VOTCA_LANGUAGE_GUIDE.rst>`__
+This can all be found here `VOTCA\_LANGUAGE\_GUIDE <VOTCA_LANGUAGE_GUIDE.rst>`__
 
 Testing
 -------

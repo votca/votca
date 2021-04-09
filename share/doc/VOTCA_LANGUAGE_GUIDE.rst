@@ -6,7 +6,7 @@ code consistent between repositories. In the past, there has been
 difficulty in translating functionality between repositories and within
 the same repositories because different properties have been used to
 describe the same object attribute. For general programming guidelines 
-look at the `Developers Guide <share/doc/DEVELOPERS_GUIDE.rst>`__
+look at the `Developers Guide <DEVELOPERS_GUIDE.rst>`__
 
 Types and Ids
 -------------
@@ -41,7 +41,7 @@ To indicate a unique attribute an id should be used.
 Units in VOTCA
 --------------
 
-VOTCA tried as much as possible to standarize units across both CSG and
+VOTCA tried as much as possible to standardize units across both CSG and
 XTP. Externally, we parse in the units of the respective file format,
 e.g. ``.xyz`` ``Angstrom``, ``.gro`` ``nm``. Internally, we convert all
 parsed units to:
@@ -52,10 +52,10 @@ parsed units to:
 Indexing in VOTCA
 -----------------
 
-All indeces in VOTCA start at ``0``. This is useful, because C++ arrays
+All indices in VOTCA start at ``0``. This is useful, because C++ arrays
 start at index 0.
 
-Apart from special cases all indices and integers in votca should be
+Apart from special cases all indices and integers in VOTCA should be
 ``votca::Index`` which is a typedef for ``long int``. ``.size()``
 methods of std::containers return an ``unsigned long int`` and should be
 cast to ``votca::Index``. i.e: ``votca::Index(vector.size())``
