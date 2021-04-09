@@ -45,7 +45,7 @@ be added manually.
 Post-processing of the potential
 --------------------------------
 
-The votcapackage provides a collection of scripts to handle potentials.
+The VOTCA package provides a collection of scripts to handle potentials.
 They can be modified, refined, integrated or inter- and extrapolated.
 These scripts are the same ones as those used for iterative methods in
 chapter [sec:iterative\_methods]. Scripts are called by . A complete
