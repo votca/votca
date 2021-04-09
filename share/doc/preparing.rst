@@ -1,3 +1,5 @@
+.. _preparing:
+
 Preparing coarse-grained runs
 =============================
 
@@ -20,8 +22,7 @@ easy processing of this kind and tabulated potentials have to be used.
 Generating a topology file for a coarse-grained run
 ---------------------------------------------------
 
-WARNING: This section describes experimental features. The exact names and options of the program might change in the near future. The section is specific to GROMACS support though a generalization for other MD packages is planned.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**WARNING: This section describes experimental features. The exact names and options of the program might change in the near future. The section is specific to GROMACS support though a generalization for other MD packages is planned.**
 
 The mapping definition is close to a topology needed for a coarse
 grained run. To avoid redundant work, can be used to automatically
@@ -42,14 +43,16 @@ and dihedrals. It can directly be used as a topology in GROMACS, however
 the force field definitions (atom types, bond types, etc.) still have to
 be added manually.
 
+.. _preparing_post-processing_of_the_potential:
+
 Post-processing of the potential
 --------------------------------
 
 The VOTCA package provides a collection of scripts to handle potentials.
 They can be modified, refined, integrated or inter- and extrapolated.
 These scripts are the same ones as those used for iterative methods in
-chapter [sec:iterative\_methods]. Scripts are called by . A complete
-list of available scripts can be found in sec. [sec:csg\_table].
+:ref: `_methods_iterative_methods`. Scripts are called by . A complete
+list of available scripts can be found in :ref: `_reference_scripts`.
 
 The post-processing roughly consists of the following steps (see further
 explanations below):

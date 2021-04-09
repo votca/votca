@@ -14,7 +14,7 @@ organized as follows: all scripts are called using two keywords
 
 For example, ``csg_call update imc`` calls the ``update`` script for the
 inverse Monte Carlo procedure. The corresponding keywords are listed in
-sec. [sec:csg\_table] or can be output directly by calling
+:ref: `_reference_scripts` or can be output directly by calling
 
 .. code:: bash
 
@@ -57,7 +57,7 @@ The output should look as follows
       convert_potential gromacs potential_to_gromacs.sh
 
 the third line indicates the script we need. If the output of is not
-clear, one can try to find the right script in sec. [sec:csg\_table].
+clear, one can try to find the right script in :ref: `_reference_scripts`.
 Alternatively, check the folder
 
 .. code:: none
@@ -98,7 +98,7 @@ local path. Now we change the last line of ``my_run_gromacs.sh`` to:
       critical mpirun -np 8 mdrun
 
 This completes the customization. Do not forget to add ``SCRIPTDIR`` to
-in the setting XMLfile (see sec. [sec:ref\_options]).
+in the setting XMLfile (see :ref: `_reference_settings_file`).
 
 You can check the new script by running:
 
@@ -181,8 +181,8 @@ in options for VOTCA scripts, as necessary:
 It is also possible to specify file names different from the standard
 DL\_POLY convention, in which case the user has to use the corresponding
 dot-preceded extension(s); for example: FA-FIELD.dlpf instead of FIELD
-or CG-HISTORY.dlph instead of HISTORY\_CGV (see section
-[sec:ref\_programs], as well as the man pages or output of
+or CG-HISTORY.dlph instead of HISTORY\_CGV (see
+:ref: `_reference_programs`, as well as the man pages or output of
 VOTCA commands, with option ``—help``).
 
 VOTCA follows the DL\_POLY conventions for file names and formats. Thus,
@@ -208,5 +208,5 @@ DL\_POLY-4 (4.06+).
 The user is advised to search for “dlpoly” through the
 ``csg_defaults.xml``, ``csg_table`` files and in scripts located in
 ``share/votca/scripts/inverse/`` in order to find out about the xml-tags
-and options specific for DL\_POLY; see also sections [sec:ref\_options]
-and [sec:csg\_table].
+and options specific for DL\_POLY; see also :ref: `_reference_settings_file`
+and :ref: `_reference_scripts`.

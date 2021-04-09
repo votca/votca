@@ -91,7 +91,4 @@ the bash or csh (tcsh)
 
 More details as well as several examples can be found in
 ref. [Ruehle:2009.a]_. Please cite this paper if you
-are using the package. Tutorials can be found on the VOTCA homepage .
-
-.. |image| image:: fig/propane
-   :width: 4.00000cm
+are using the package.
