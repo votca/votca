@@ -612,7 +612,7 @@ General considerations
 In comparison to IBI, IMC needs significantly more statistics to
 calculate the potential update[Ruehle:2009.a]_. It is
 advisable to perform smoothing on the potential update. Smoothing can be
-performed as described in sec. [ref:ibi:optimize]. In addition, IMC can
+performed as described in :ref:`methods_runtime_optimizations`. In addition, IMC can
 lead to problems related to finite size: for methanol, an undersized
 system proved to lead to a linear shift in the
 potential[Ruehle:2009.a]_. It is therefore always
@@ -1000,6 +1000,8 @@ iteraction without doing potential update
 
 Here, is the scaling factor :math:`A`. is :math:`r_1` and is :math:`r_2`
 used to calculate the average of :math:`G_{ij}(R)`.
+
+.. `_methods_runtime_optimizations`
 
 Runtime optimization
 --------------------
