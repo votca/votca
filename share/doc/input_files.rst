@@ -14,6 +14,8 @@ file is created. When used as a command option, these files are combined
 in a list separated by a semicolon, e. g.
 ``—cg`` ``protein.xml;solvent.xml``.
 
+.. _input_files_fig_mapping:
+
 .. figure:: fig/mapping.png
     :align: center
 
@@ -33,10 +35,10 @@ complete reference for mapping file definitions can be found in
 
 As an example, we will describe here a mapping file of a united atom
 model of a propane molecule, chemical structure of which is shown in
-fig. [fig:intro:propane]. In this coarse-grained model, two bead types
-(A,B) and three beads (A1, B1, A2) are defined, as shown in
-fig. [fig:propane\_map]. We will use the centers of mass of the beads as
-coarse-grained coordinates.
+:ref:`the figure in the introduction<introduction_fig_propane>`. In this
+coarse-grained model, two bead types (A,B) and three beads (A1, B1, A2) are
+defined, as shown in :ref:`the figure above<input_files_fig_mapping>`. We will
+use the centers of mass of the beads as coarse-grained coordinates.
 
 Extracts from the ``propane.xml`` file of the tutorial are shown below.
 The ``name`` tag indicates the molecule name in the coarse-grained topology. The

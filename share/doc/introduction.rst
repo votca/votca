@@ -25,6 +25,8 @@ the moment, an interface to GROMACS [gromacs4]_
 simulation package is provided. The rest of the analysis needed for
 systematic coarse-graining is done using the package tools.
 
+.. _introduction_fig_propane:
+
 .. figure:: fig/propane.png
     :align: center
 

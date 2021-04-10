@@ -105,6 +105,8 @@ The idea of Boltzmann inversion stems from the fact that in a canonical
 ensemble *independent* degrees of freedom :math:`q` obey the Boltzmann
 distribution, i. e.
 
+
+
 .. math::
 
    P(q) = Z^{-1} \exp\left[ - \beta U(q) \right]~,
@@ -130,6 +132,8 @@ Note that the histograms for the bonds :math:`H_r(r)`, angles
 have to be rescaled in order to obtain the volume normalized
 distribution functions :math:`P_r(r)`, :math:`P_\theta(\theta)`, and
 :math:`P_\varphi(\varphi)`, respectively,
+
+A
 
 .. math::
 
@@ -201,23 +205,24 @@ This can be done by employing exclusion lists using with the option
 Iterative methods
 -----------------
 
+.. _theory_fig_iterative_simple:
+
 .. figure:: fig/iteration-scheme-simple.png
    :align: center
 
    Block-scheme of an iterative method.
 
-Iterative workflow control is essential for the IBIand IMCmethods. The
+Iterative workflow control is essential for the IBI and IMC methods. The
 general idea of iterative workflow is sketched in
-fig. [fig:iterative\_methods]. A run starts with an initial guess during
-the global initialization phase. This guess is used for the first
-sampling step, followed by an update of the potential. The update itself
-often requires additional postprocessing such as smoothing,
-interpolation, extrapolation or fitting. Different methods are available
-to update the potential, for instance Iterative Boltzmann Inversion (see
-:ref:`theory_iterative_boltzmann_inversion`) or Inverse Monte Carlo
-(see :ref:`theory_inverse_monte_carlo`).
-The whole procedure is then iterated until a convergence criterion is
-satisfied.
+:ref:`the block-scheme above<theory_fig_iterative_simple>`. A run starts with
+an initial guess during the global initialization phase. This guess is used for
+the first sampling step, followed by an update of the potential. The update
+itself often requires additional postprocessing such as smoothing,
+interpolation, extrapolation or fitting. Different methods are available to
+update the potential, for instance Iterative Boltzmann Inversion (see
+:ref:`theory_iterative_boltzmann_inversion`) or Inverse Monte Carlo (see
+:ref:`theory_inverse_monte_carlo`). The whole procedure is then iterated until
+a convergence criterion is satisfied.
 
 .. _theory_iterative_boltzmann_inversion:
 

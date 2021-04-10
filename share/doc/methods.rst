@@ -341,39 +341,42 @@ The following sections deal with the Iterative Boltzmann Inversion (IBI)
 method, the Inverse Monte Carlo (IMC) method, the Iterative Integral Equation
 (IIE) method, and the Relative Entropy (RE) method.
 
-In general, IBI, IMC, IIE, and RE are implemented within the same framework.
-Therefore, most of the settings and parameters used by these methods are
-similar and thus described in a general section (see 
-:ref:`methods_inverse_monte_carlo`). Further information on iterative methods
-follows in the next chapters, in particular on the IBI, IMC, IIE, and RE
-methods.
+.. _methods_fig_flowchart_spanning:
 
 .. figure:: fig/iterative-methods.png
 
-   Flowchart to perform iterative Boltzmann inversion.
+   Flowchart of the spanning workflow of iterative methods.
+
+In general, IBI, IMC, IIE, and RE are implemented within the same framework.
+Therefore, most of the settings and parameters used by these methods are
+similar and thus described in a general section (see
+:ref:`methods_preparing_the_run`). Further information on iterative methods
+follows in the next chapters, in particular on the IBI, IMC, IIE, and RE
+methods.
 
 .. _methods_iterative_workflow:
 
 Iterative workflow control
 --------------------------
 
-.. figure:: fig/iteration-scheme.png
-
-   Block-scheme of the workflow control for the iterative
-   methods. The most time-consuming parts are marked in red.
-
 Iterative workflow control is essential for the IBI, IMC, IIE, and RE methods.
 
+.. _methods_fig_flowchart_iterative:
+
+.. figure:: fig/iteration-scheme.png
+
+   Forkflow control for the iterative methods. The most time-consuming parts
+   are marked in red.
+
 The general idea of iterative workflow is sketched in
-fig. [fig:flowchart]. During the global initialization the initial guess
-for the coarse-grained potential is calculated from the reference
-function or converted from a given potential guess into the internal
-format. The actual iterative step starts with an iteration
-initialization. It searches for possible checkpoints and copies and
-converts files from the previous step and the base directory. Then, the
-simulation run is prepared by converting potentials into the format
-required by the external sampling program and the actual sampling is
-performed.
+:ref:`the flowchart above<methods_fig_flowchart_iterative>`. During the global
+initialization the initial guess for the coarse-grained potential is calculated
+from the reference function or converted from a given potential guess into the
+internal format. The actual iterative step starts with an iteration
+initialization. It searches for possible checkpoints and copies and converts
+files from the previous step and the base directory. Then, the simulation run
+is prepared by converting potentials into the format required by the external
+sampling program and the actual sampling is performed.
 
 After sampling the phasespace, the potential update is calculated.
 Often, the update requires postprocessing, such as smoothing,
@@ -409,6 +412,8 @@ a look at one of the tutorials provided on .
 
 In what follows we describe how to set up the iterative coarse-graining,
 run the main script, continue the run, and add customized scripts.
+
+.. _methods_preparing_the_run:
 
 Preparing the run
 ~~~~~~~~~~~~~~~~~
@@ -575,13 +580,9 @@ Iterative Boltzmann Inversion
 Input preparation
 ~~~~~~~~~~~~~~~~~
 
-This section describes the usage of IBI, implemented within the
-scripting framework described in
-:ref:`methods_iterative_workflow`. It is suggested to get a basic
-understanding of this framework before proceeding.
-
-An outline of the workflow for performing IBIis given in
-fig. [fig:flow\_ibi].
+This section describes the usage of IBI, implemented within the scripting
+framework described in :ref:`methods_iterative_workflow`. It is suggested to
+get a basic understanding of this framework before proceeding.
 
 To specify Iterative Boltzmann Inversion as algorithm in the script, add
 ``ibi`` in the ``method`` section of the XMLsetting file as shown below.
@@ -1001,7 +1002,7 @@ iteraction without doing potential update
 Here, is the scaling factor :math:`A`. is :math:`r_1` and is :math:`r_2`
 used to calculate the average of :math:`G_{ij}(R)`.
 
-.. `_methods_runtime_optimizations`
+.. _methods_runtime_optimizations:
 
 Runtime optimization
 --------------------
