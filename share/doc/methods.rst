@@ -163,10 +163,10 @@ can be used. Its usage and options are very similar to the ``hist``
 command. If tabulated potentials are written, special care should be
 taken to the parameters ``T`` (temperature) and the ``scale``. The
 ``scale`` enables volume normalization as given in
-eq. [eq:boltzmann\_norm]. Possible values are ``no`` (no scaling),
-``bond`` (normalize bonds) and ``angle`` (normalize angles). To write
-out the tabulated potential for an angle potential at a temperature of
-300K, for instance, type:
+:ref:`the equations in the theory section<theory_eq_boltzmann_norm>`. Possible
+values are ``no`` (no scaling), ``bond`` (normalize bonds) and ``angle``
+(normalize angles). To write out the tabulated potential for an angle potential
+at a temperature of 300K, for instance, type:
 
 .. code:: none
 
@@ -183,10 +183,10 @@ command ``tab``, the potential is prepared for the coarse-grained run in
 Correlation analysis
 ~~~~~~~~~~~~~~~~~~~~
 
-The factorization of :math:`P` in eq. [eq:boltzmann\_pmf] assumed
-uncorrelated quantities. offers two ways to evaluate correlations of
-interactions. One option is to use the linear correlation coefficient
-(command ``cor``).
+The factorization of :math:`P`, :ref:`as shown in the theory
+section<theory_eq_boltzmann_pmf>`, assumed uncorrelated quantities. VOTCA
+offers two ways to evaluate correlations of interactions. One option is to use
+the linear correlation coefficient (command ``cor``).
 
 However, this is not a good measure since ``cor`` calculates the linear
 correlation only which might often lead to misleading
