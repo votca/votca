@@ -25,14 +25,14 @@ whole trajectory and stores all information on bonded interactions in
 memory, which is useful for interactive analysis. For big systems,
 however, one can run out of memory. In this case can be used which,
 however, has a limited number of tasks it can perform (see 
-:ref: `_input_files_setting_files` for an example on its usage).
+:ref:`input_files_setting_files` for an example on its usage).
 
 Another useful tool is . It can be used to convert an atomistic
 trajectory to a coarse-grained one, as it is discussed in
-:ref: `_input_files_trajectories`.
+:ref:`input_files_trajectories`.
 
 To use one has to first define a mapping scheme. This is outlined
-in :ref: `_input_files_mapping_files`. Once the mapping scheme is specified, it
+in :ref:`input_files_mapping_files`. Once the mapping scheme is specified, it
 is possible to generate an exclusion list for the proper sampling of the
 atomistic resolution system.
 
@@ -163,10 +163,10 @@ can be used. Its usage and options are very similar to the ``hist``
 command. If tabulated potentials are written, special care should be
 taken to the parameters ``T`` (temperature) and the ``scale``. The
 ``scale`` enables volume normalization as given in
-eq. [eq:boltzmann\_norm]. Possible values are ``no`` (no scaling),
-``bond`` (normalize bonds) and ``angle`` (normalize angles). To write
-out the tabulated potential for an angle potential at a temperature of
-300K, for instance, type:
+:ref:`the equations in the theory section<theory_eq_boltzmann_norm>`. Possible
+values are ``no`` (no scaling), ``bond`` (normalize bonds) and ``angle``
+(normalize angles). To write out the tabulated potential for an angle potential
+at a temperature of 300K, for instance, type:
 
 .. code:: none
 
@@ -175,18 +175,18 @@ out the tabulated potential for an angle potential at a temperature of
       tab angle.pot *:angle:*
 
 The table is then written into the file ``angle.pot`` in the format
-described in :ref: `_input_files_table_formats`. An optional correlation analysis
+described in :ref:`input_files_table_formats`. An optional correlation analysis
 is described in the next section. After the file has been created by
 command ``tab``, the potential is prepared for the coarse-grained run in
-:ref: `_preparing`.
+:ref:`preparing`.
 
 Correlation analysis
 ~~~~~~~~~~~~~~~~~~~~
 
-The factorization of :math:`P` in eq. [eq:boltzmann\_pmf] assumed
-uncorrelated quantities. offers two ways to evaluate correlations of
-interactions. One option is to use the linear correlation coefficient
-(command ``cor``).
+The factorization of :math:`P`, :ref:`as shown in the theory
+section<theory_eq_boltzmann_pmf>`, assumed uncorrelated quantities. VOTCA
+offers two ways to evaluate correlations of interactions. One option is to use
+the linear correlation coefficient (command ``cor``).
 
 However, this is not a good measure since ``cor`` calculates the linear
 correlation only which might often lead to misleading
@@ -233,7 +233,7 @@ The tabulated potentials created in this section can be further modified
 and prepared for the coarse-grained run: This includes fitting of a
 smooth functional form, extrapolation and clipping of poorly sampled
 regions. Further processing of the potential is decribed in 
-:ref: `_preparing`.
+:ref:`preparing`.
 
 Force matching
 ==============
@@ -256,7 +256,7 @@ option in the GROMACS ``.mdp`` file), otherwise will not be able to
 run.
 
 In addition, a mapping scheme has to be created, which defines the
-coarse-grained model (see :ref: `_input_files`). At last, a control
+coarse-grained model (see :ref:`input_files`). At last, a control
 file has to be created, which contains all the information for
 coarse-graining the interactions and parameters for the force-matching
 run. This file is specified by the tag ``–options`` in the XMLformat. An
@@ -288,11 +288,11 @@ example might look like the following
     </non-bonded>
   </cg>
 
-Similarly to the case of spline fitting (see :ref: `_reference_programs` on
+Similarly to the case of spline fitting (see :ref:`reference_programs` on
 ), the parameters ``min`` and ``max`` have to be chosen in such a way as
 to avoid empty bins within the grid. Determining ``min`` and ``max`` by
-using is recommended (see :ref: `_input_files_setting_files`). A full description
-of all available options can be found in :ref: `_reference_settings_file`.
+using is recommended (see :ref:`input_files_setting_files`). A full description
+of all available options can be found in :ref:`reference_settings_file`.
 
 Program output
 --------------
@@ -330,7 +330,7 @@ potential to the ``.pot`` file.
 In general, each potential contains regions which are not sampled. In
 this case or in the case of further post-processing, the potential can
 be refined by employing resampling or extrapolating methods. See 
-:ref: `_preparing_post-processing_of_the_potential` for further details.
+:ref:`preparing_post-processing_of_the_potential` for further details.
 
 .. _methods_iterative_methods:
 
@@ -341,39 +341,42 @@ The following sections deal with the Iterative Boltzmann Inversion (IBI)
 method, the Inverse Monte Carlo (IMC) method, the Iterative Integral Equation
 (IIE) method, and the Relative Entropy (RE) method.
 
-In general, IBI, IMC, IIE, and RE are implemented within the same framework.
-Therefore, most of the settings and parameters used by these methods are
-similar and thus described in a general section (see 
-:ref: `_methods_inverse_monte_carlo`). Further information on iterative methods
-follows in the next chapters, in particular on the IBI, IMC, IIE, and RE
-methods.
+.. _methods_fig_flowchart_spanning:
 
 .. figure:: fig/iterative-methods.png
 
-   Flowchart to perform iterative Boltzmann inversion.
+   Flowchart of the spanning workflow of iterative methods.
+
+In general, IBI, IMC, IIE, and RE are implemented within the same framework.
+Therefore, most of the settings and parameters used by these methods are
+similar and thus described in a general section (see
+:ref:`methods_preparing_the_run`). Further information on iterative methods
+follows in the next chapters, in particular on the IBI, IMC, IIE, and RE
+methods.
 
 .. _methods_iterative_workflow:
 
 Iterative workflow control
 --------------------------
 
-.. figure:: fig/iteration-scheme.png
-
-   Block-scheme of the workflow control for the iterative
-   methods. The most time-consuming parts are marked in red.
-
 Iterative workflow control is essential for the IBI, IMC, IIE, and RE methods.
 
+.. _methods_fig_flowchart_iterative:
+
+.. figure:: fig/iteration-scheme.png
+
+   Forkflow control for the iterative methods. The most time-consuming parts
+   are marked in red.
+
 The general idea of iterative workflow is sketched in
-fig. [fig:flowchart]. During the global initialization the initial guess
-for the coarse-grained potential is calculated from the reference
-function or converted from a given potential guess into the internal
-format. The actual iterative step starts with an iteration
-initialization. It searches for possible checkpoints and copies and
-converts files from the previous step and the base directory. Then, the
-simulation run is prepared by converting potentials into the format
-required by the external sampling program and the actual sampling is
-performed.
+:ref:`the flowchart above<methods_fig_flowchart_iterative>`. During the global
+initialization the initial guess for the coarse-grained potential is calculated
+from the reference function or converted from a given potential guess into the
+internal format. The actual iterative step starts with an iteration
+initialization. It searches for possible checkpoints and copies and converts
+files from the previous step and the base directory. Then, the simulation run
+is prepared by converting potentials into the format required by the external
+sampling program and the actual sampling is performed.
 
 After sampling the phasespace, the potential update is calculated.
 Often, the update requires postprocessing, such as smoothing,
@@ -402,7 +405,7 @@ Therefore, all files needed to run a coarse-grained simulation, except
 for the potentials that are iteratively refined, must be provided and
 added to the in the settings XML-file. If an atomistic topology and a
 mapping definition are present, VOTCA offers tools to assist the setup of
-a coarse-grained topology (see :ref: `_preparing`).
+a coarse-grained topology (see :ref:`preparing`).
 
 To get an overview of how input files look like, it is suggested to take
 a look at one of the tutorials provided on .
@@ -410,13 +413,15 @@ a look at one of the tutorials provided on .
 In what follows we describe how to set up the iterative coarse-graining,
 run the main script, continue the run, and add customized scripts.
 
+.. _methods_preparing_the_run:
+
 Preparing the run
 ~~~~~~~~~~~~~~~~~
 
 To start the first iteration, one has to prepare the input for the
 sampling program. This means that all files for running a coarse-grained
 simulation must be present and described in a separate XMLfile, in our
-case ``settings.xml`` (see :ref: `_input_files_setting_files` for details). An
+case ``settings.xml`` (see :ref:`input_files_setting_files` for details). An
 extract from this file is given below. The only exception are tabulated
 potentials, which will be created and updated by the script in the
 course of the iterative process.
@@ -438,7 +443,7 @@ you plan to run the iterative procedure.
 A list of interactions to be iteratively refined has to be given in the
 options file. As an example, the ``setting.xml`` file for a propane is
 shown in below. For more details, see the full
-description of all options in :ref: `_reference_settings_file`.
+description of all options in :ref:`reference_settings_file`.
 
 .. code:: xml
 
@@ -575,13 +580,9 @@ Iterative Boltzmann Inversion
 Input preparation
 ~~~~~~~~~~~~~~~~~
 
-This section describes the usage of IBI, implemented within the
-scripting framework described in
-:ref: `_methods_iterative_workflow`. It is suggested to get a basic
-understanding of this framework before proceeding.
-
-An outline of the workflow for performing IBIis given in
-fig. [fig:flow\_ibi].
+This section describes the usage of IBI, implemented within the scripting
+framework described in :ref:`methods_iterative_workflow`. It is suggested to
+get a basic understanding of this framework before proceeding.
 
 To specify Iterative Boltzmann Inversion as algorithm in the script, add
 ``ibi`` in the ``method`` section of the XMLsetting file as shown below.
@@ -612,7 +613,7 @@ General considerations
 In comparison to IBI, IMC needs significantly more statistics to
 calculate the potential update[Ruehle:2009.a]_. It is
 advisable to perform smoothing on the potential update. Smoothing can be
-performed as described in sec. [ref:ibi:optimize]. In addition, IMC can
+performed as described in :ref:`methods_runtime_optimizations`. In addition, IMC can
 lead to problems related to finite size: for methanol, an undersized
 system proved to lead to a linear shift in the
 potential[Ruehle:2009.a]_. It is therefore always
@@ -767,7 +768,7 @@ Relative Entropy
 In this section, additional options are described to run RE coarse
 graining. The usage of RE is similar to that of IBI and IMC and
 understanding the use of the scripting framework described in
-:ref: `_methods_iterative_workflow` is necessary.
+:ref:`methods_iterative_workflow` is necessary.
 
 Currently, RE implementation supports optimization of two-body non-bonded
 pair interactions. Support for bonded and N-body interactions is
@@ -1000,6 +1001,8 @@ iteraction without doing potential update
 
 Here, is the scaling factor :math:`A`. is :math:`r_1` and is :math:`r_2`
 used to calculate the average of :math:`G_{ij}(R)`.
+
+.. _methods_runtime_optimizations:
 
 Runtime optimization
 --------------------
