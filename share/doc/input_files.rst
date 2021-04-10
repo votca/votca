@@ -29,7 +29,7 @@ positions of atoms which belong to it. Note that :math:`c_{Ii}` will be
 automatically re-normalized if their sum is not equal to 1, i. e. in the
 case of a center-of-mass mapping one can simply specify atomic masses. A
 complete reference for mapping file definitions can be found in
-:ref: `_reference_mapping_file`.
+:ref:`reference_mapping_file`.
 
 As an example, we will describe here a mapping file of a united atom
 model of a propane molecule, chemical structure of which is shown in
@@ -63,7 +63,7 @@ the tool ``csg_dump`` can be used in order to identify the atoms which are read 
 from a topology file ``.tpr``. This tool displays the atoms in the
 format ``residue id:residue name:atom name``. For multicomponent
 systems, it might happen that molecules are not identified correctly.
-The workaround for this case is described in :ref: `_input_files_advanced_topology_handling`.
+The workaround for this case is described in :ref:`input_files_advanced_topology_handling`.
 
 To compare coarse-grained and atomistic configurations one can use a
 standard visualization program, e. g. ``vmd``. When comparing
@@ -245,7 +245,7 @@ The box size can be set by the tag ``box``:
 where ``xx, yy, zz`` are the dimensions of the box.
 
 A complete reference for a XML topology file can be found in
-:ref: `_reference_topology_file`.
+:ref:`reference_topology_file`.
 
 .. _input_files_trajectories:
 
@@ -339,7 +339,7 @@ potential) and ``[error]`` is an optional error for ``y``. The token
 ``u`` stands for an ``undefined`` value.
 
 The token ``flag`` will be important when extrapolating the table as
-described in :ref: `_preparing_post-processing_of_the_potential`.
+described in :ref:`preparing_post-processing_of_the_potential`.
 
 For historical reasons, ``csg_boltzmann`` uses a slightly different table format, it has
 no ``flag`` column and uses the third column as a force column when

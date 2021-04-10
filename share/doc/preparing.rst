@@ -51,8 +51,8 @@ Post-processing of the potential
 The VOTCA package provides a collection of scripts to handle potentials.
 They can be modified, refined, integrated or inter- and extrapolated.
 These scripts are the same ones as those used for iterative methods in
-:ref: `_methods_iterative_methods`. Scripts are called by . A complete
-list of available scripts can be found in :ref: `_reference_scripts`.
+:ref:`methods_iterative_methods`. Scripts are called by . A complete
+list of available scripts can be found in :ref:`reference_scripts`.
 
 The post-processing roughly consists of the following steps (see further
 explanations below):

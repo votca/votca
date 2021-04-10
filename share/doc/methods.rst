@@ -25,14 +25,14 @@ whole trajectory and stores all information on bonded interactions in
 memory, which is useful for interactive analysis. For big systems,
 however, one can run out of memory. In this case can be used which,
 however, has a limited number of tasks it can perform (see 
-:ref: `_input_files_setting_files` for an example on its usage).
+:ref:`input_files_setting_files` for an example on its usage).
 
 Another useful tool is . It can be used to convert an atomistic
 trajectory to a coarse-grained one, as it is discussed in
-:ref: `_input_files_trajectories`.
+:ref:`input_files_trajectories`.
 
 To use one has to first define a mapping scheme. This is outlined
-in :ref: `_input_files_mapping_files`. Once the mapping scheme is specified, it
+in :ref:`input_files_mapping_files`. Once the mapping scheme is specified, it
 is possible to generate an exclusion list for the proper sampling of the
 atomistic resolution system.
 
@@ -175,10 +175,10 @@ out the tabulated potential for an angle potential at a temperature of
       tab angle.pot *:angle:*
 
 The table is then written into the file ``angle.pot`` in the format
-described in :ref: `_input_files_table_formats`. An optional correlation analysis
+described in :ref:`input_files_table_formats`. An optional correlation analysis
 is described in the next section. After the file has been created by
 command ``tab``, the potential is prepared for the coarse-grained run in
-:ref: `_preparing`.
+:ref:`preparing`.
 
 Correlation analysis
 ~~~~~~~~~~~~~~~~~~~~
@@ -233,7 +233,7 @@ The tabulated potentials created in this section can be further modified
 and prepared for the coarse-grained run: This includes fitting of a
 smooth functional form, extrapolation and clipping of poorly sampled
 regions. Further processing of the potential is decribed in 
-:ref: `_preparing`.
+:ref:`preparing`.
 
 Force matching
 ==============
@@ -256,7 +256,7 @@ option in the GROMACS ``.mdp`` file), otherwise will not be able to
 run.
 
 In addition, a mapping scheme has to be created, which defines the
-coarse-grained model (see :ref: `_input_files`). At last, a control
+coarse-grained model (see :ref:`input_files`). At last, a control
 file has to be created, which contains all the information for
 coarse-graining the interactions and parameters for the force-matching
 run. This file is specified by the tag ``–options`` in the XMLformat. An
@@ -288,11 +288,11 @@ example might look like the following
     </non-bonded>
   </cg>
 
-Similarly to the case of spline fitting (see :ref: `_reference_programs` on
+Similarly to the case of spline fitting (see :ref:`reference_programs` on
 ), the parameters ``min`` and ``max`` have to be chosen in such a way as
 to avoid empty bins within the grid. Determining ``min`` and ``max`` by
-using is recommended (see :ref: `_input_files_setting_files`). A full description
-of all available options can be found in :ref: `_reference_settings_file`.
+using is recommended (see :ref:`input_files_setting_files`). A full description
+of all available options can be found in :ref:`reference_settings_file`.
 
 Program output
 --------------
@@ -330,7 +330,7 @@ potential to the ``.pot`` file.
 In general, each potential contains regions which are not sampled. In
 this case or in the case of further post-processing, the potential can
 be refined by employing resampling or extrapolating methods. See 
-:ref: `_preparing_post-processing_of_the_potential` for further details.
+:ref:`preparing_post-processing_of_the_potential` for further details.
 
 .. _methods_iterative_methods:
 
@@ -344,7 +344,7 @@ method, the Inverse Monte Carlo (IMC) method, the Iterative Integral Equation
 In general, IBI, IMC, IIE, and RE are implemented within the same framework.
 Therefore, most of the settings and parameters used by these methods are
 similar and thus described in a general section (see 
-:ref: `_methods_inverse_monte_carlo`). Further information on iterative methods
+:ref:`methods_inverse_monte_carlo`). Further information on iterative methods
 follows in the next chapters, in particular on the IBI, IMC, IIE, and RE
 methods.
 
@@ -402,7 +402,7 @@ Therefore, all files needed to run a coarse-grained simulation, except
 for the potentials that are iteratively refined, must be provided and
 added to the in the settings XML-file. If an atomistic topology and a
 mapping definition are present, VOTCA offers tools to assist the setup of
-a coarse-grained topology (see :ref: `_preparing`).
+a coarse-grained topology (see :ref:`preparing`).
 
 To get an overview of how input files look like, it is suggested to take
 a look at one of the tutorials provided on .
@@ -416,7 +416,7 @@ Preparing the run
 To start the first iteration, one has to prepare the input for the
 sampling program. This means that all files for running a coarse-grained
 simulation must be present and described in a separate XMLfile, in our
-case ``settings.xml`` (see :ref: `_input_files_setting_files` for details). An
+case ``settings.xml`` (see :ref:`input_files_setting_files` for details). An
 extract from this file is given below. The only exception are tabulated
 potentials, which will be created and updated by the script in the
 course of the iterative process.
@@ -438,7 +438,7 @@ you plan to run the iterative procedure.
 A list of interactions to be iteratively refined has to be given in the
 options file. As an example, the ``setting.xml`` file for a propane is
 shown in below. For more details, see the full
-description of all options in :ref: `_reference_settings_file`.
+description of all options in :ref:`reference_settings_file`.
 
 .. code:: xml
 
@@ -577,7 +577,7 @@ Input preparation
 
 This section describes the usage of IBI, implemented within the
 scripting framework described in
-:ref: `_methods_iterative_workflow`. It is suggested to get a basic
+:ref:`methods_iterative_workflow`. It is suggested to get a basic
 understanding of this framework before proceeding.
 
 An outline of the workflow for performing IBIis given in
@@ -767,7 +767,7 @@ Relative Entropy
 In this section, additional options are described to run RE coarse
 graining. The usage of RE is similar to that of IBI and IMC and
 understanding the use of the scripting framework described in
-:ref: `_methods_iterative_workflow` is necessary.
+:ref:`methods_iterative_workflow` is necessary.
 
 Currently, RE implementation supports optimization of two-body non-bonded
 pair interactions. Support for bonded and N-body interactions is

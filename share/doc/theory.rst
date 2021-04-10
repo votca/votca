@@ -189,7 +189,7 @@ so that the non-bonded interactions in the reference system do not
 contribute to the bonded interactions of the coarse-grained model.
 
 This can be done by employing exclusion lists using with the option
-``—excl``. This is described in detail in :ref: `_methods_exclusions`.
+``—excl``. This is described in detail in :ref:`methods_exclusions`.
 
 .. figure:: fig/excl.png
    :align: center
@@ -214,8 +214,8 @@ sampling step, followed by an update of the potential. The update itself
 often requires additional postprocessing such as smoothing,
 interpolation, extrapolation or fitting. Different methods are available
 to update the potential, for instance Iterative Boltzmann Inversion (see
-:ref: `_theory_iterative_boltzmann_inversion`) or Inverse Monte Carlo
-(see :ref: `_theory_inverse_monte_carlo`).
+:ref:`theory_iterative_boltzmann_inversion`) or Inverse Monte Carlo
+(see :ref:`theory_inverse_monte_carlo`).
 The whole procedure is then iterated until a convergence criterion is
 satisfied.
 
@@ -414,12 +414,12 @@ atoms
      \label{eq:force_mapping}
 
 where the sum is over all atoms of the CG site *I* (see
-:ref: `_theory_mapping`). The :math:`d_{Ij}` coefficients can, in
+:ref:`theory_mapping`). The :math:`d_{Ij}` coefficients can, in
 principle, be chosen arbitrarily, provided that the condition
 :math:` \sum_{i=1}^{n}d_{Ii}=1` is
 satisfied [Noid:2008.1]_. If mapping coefficients for
 the forces are not provided, it is assumed that :math:`d_{Ij} = c_{Ij}`
-(see also :ref: `_input_files`).
+(see also :ref:`input_files`).
 
 By calculating the reference forces for :math:`L` snapshots we can write
 down :math:`N \times L` equations
