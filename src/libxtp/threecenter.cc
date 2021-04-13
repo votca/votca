@@ -37,8 +37,13 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
     _inv_sqrt = auxAOcoulomb.Pseudo_InvSqrt(1e-8);
     _removedfunctions = auxAOcoulomb.Removedfunctions();
   }
-  _matrix = std::vector<Symmetric_Matrix>(
-      auxbasis.AOBasisSize(), Symmetric_Matrix(dftbasis.AOBasisSize()));
+  _matrix = std::vector<Symmetric_Matrix>(auxbasis.AOBasisSize());
+
+#pragma omp parallel for schedule(dynamic, 4)
+  for (Index i = 0; i < auxbasis.AOBasisSize(); i++) {
+    _matrix[i] = Symmetric_Matrix(dftbasis.AOBasisSize());
+  }
+  
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
   std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
@@ -128,7 +133,7 @@ void TCMatrix_gwbse::Initialize(Index basissize, Index mmin, Index mmax,
   // vector has mtotal elements
   // largest object should be allocated in multithread fashion
   _matrix = std::vector<Eigen::MatrixXd>(_mtotal);
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic, 4)
   for (Index i = 0; i < _mtotal; i++) {
     _matrix[i] = Eigen::MatrixXd::Zero(_ntotal, _auxbasissize);
   }
