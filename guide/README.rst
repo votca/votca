@@ -13,7 +13,7 @@ Building VOTCA
 ^^^^^^^^^^^^^^
 
 Instructions how to build and install VOTCA can be found
-`here <https://www.votca.org/INSTALL.html>`__
+:ref:`here<install>`.
 
 Using the tutorials
 ^^^^^^^^^^^^^^^^^^^
