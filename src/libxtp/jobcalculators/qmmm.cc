@@ -18,10 +18,12 @@
  */
 
 // Standard includes
+#include <algorithm>
 #include <chrono>
 
 // Third party includes
 #include <boost/filesystem.hpp>
+#include <numeric>
 
 // Local VOTCA includes
 #include "votca/xtp/jobtopology.h"
@@ -29,6 +31,7 @@
 
 // Local private VOTCA includes
 #include "qmmm.h"
+#include "votca/xtp/qmstate.h"
 
 namespace votca {
 namespace xtp {
@@ -42,17 +45,12 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
 
   std::string states = options.get(".write_parse.states").as<std::string>();
   tools::Tokenizer tok(states, " ,;\n\t");
-  std::vector<std::string> statestrings = tok.ToVector();
-  _states.reserve(statestrings.size());
-  for (std::string s : statestrings) {
+  for (const auto& s : tok.ToVector()) {
     _states.push_back(QMState(s));
   }
-  bool groundstate_found = false;
-  for (const QMState& state : _states) {
-    if (state.Type() == QMStateType::Gstate) {
-      groundstate_found = true;
-    }
-  }
+  bool groundstate_found = std::any_of(
+      _states.begin(), _states.end(),
+      [](const QMState& state) { return state.Type() == QMStateType::Gstate; });
   if (!groundstate_found) {
     _states.push_back(QMState("n"));
   }
@@ -87,10 +85,11 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
     jobtop.WriteToPdb(workdir + "/" + pdb_filename);
   }
 
-  Index no_static_regions = 0;
-  for (std::unique_ptr<Region>& region : jobtop) {
-    no_static_regions += region->Converged();
-  }
+  Index no_static_regions = std::accumulate(
+      jobtop.begin(), jobtop.end(), 0, [](int count, const auto& region) {
+        return count += region->Converged();
+      });
+
   bool no_top_scf = false;
   if (jobtop.size() - no_static_regions < 2) {
     XTP_LOG(Log::error, pLog)
@@ -133,10 +132,10 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
         converged_regions.push_back(region->Converged());
       }
 
-      double etot = 0.0;
-      for (const std::unique_ptr<Region>& reg : jobtop) {
-        etot += reg->Etotal();
-      }
+      double etot = std::accumulate(
+          jobtop.begin(), jobtop.end(), 0.0,
+          [](double e, const auto& reg) { return e + reg->Etotal(); });
+
       XTP_LOG(Log::error, pLog) << TimeStamp() << " --Total Energy all regions "
                                 << etot << std::flush;
 
@@ -191,9 +190,7 @@ bool QMMM::hasQMRegion() const {
   Logger log;
   QMRegion QMdummy(0, log, "");
   bool found_qm = false;
-  std::vector<const tools::Property*> regions_def =
-      _regions_def.Select("region");
-  for (const tools::Property* reg : regions_def) {
+  for (const tools::Property* reg : _regions_def.Select("region")) {
     std::string type =
         reg->ifExistsReturnElseThrowRuntimeError<std::string>("type");
     if (QMdummy.identify() == type) {
@@ -215,8 +212,6 @@ void QMMM::WriteJobFile(const Topology& top) {
   std::cout << std::endl
             << "... ... Writing job file " << _jobfile << std::flush;
 
-  bool hasQMRegion = this->hasQMRegion();
-
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open()) {
@@ -237,7 +232,7 @@ void QMMM::WriteJobFile(const Topology& top) {
       tools::Property& regions = pInput.add("regions", "");
       tools::Property& region = regions.add("region", "");
       region.add("id", "0");
-      if (hasQMRegion) {
+      if (hasQMRegion()) {
         region.add("state", state.ToString());
       }
       region.add("segments", marker);
@@ -270,8 +265,7 @@ void QMMM::ReadJobFile(Topology& top) {
 
   tools::Property xml;
   xml.LoadFromXML(_jobfile);
-  std::vector<tools::Property*> jobProps = xml.Select("jobs.job");
-  for (tools::Property* job : jobProps) {
+  for (tools::Property* job : xml.Select("jobs.job")) {
 
     Index jobid = job->get("id").as<Index>();
     if (!job->exists("status")) {
