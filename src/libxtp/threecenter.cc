@@ -126,8 +126,12 @@ void TCMatrix_gwbse::Initialize(Index basissize, Index mmin, Index mmax,
   _auxbasissize = basissize;
 
   // vector has mtotal elements
-  _matrix = std::vector<Eigen::MatrixXd>(
-      _mtotal, Eigen::MatrixXd::Zero(_ntotal, _auxbasissize));
+  // largest object should be allocated in multithread fashion
+  _matrix = std::vector<Eigen::MatrixXd>(_mtotal);
+#pragma omp parallel for schedule(dynamic)
+  for (Index i = 0; i < _mtotal; i++) {
+    _matrix[i] = Eigen::MatrixXd::Zero(_ntotal, _auxbasissize);
+  }
 }
 
 /*
@@ -264,9 +268,9 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
 
       // this is basically a transpose of AO3c and at the same time the ao->mo
       // transformation
-      // we do not want to put it into _matrix straight away is because, _matrix
-      // is shared between all threads and we want a nice clean access pattern
-      // to it
+      // we do not want to put it into _matrix straight away is because,
+      // _matrix is shared between all threads and we want a nice clean access
+      // pattern to it
       std::vector<Eigen::MatrixXd> block = std::vector<Eigen::MatrixXd>(
           _mtotal, Eigen::MatrixXd::Zero(_ntotal, ao3c.size()));
 
