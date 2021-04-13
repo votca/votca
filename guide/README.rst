@@ -24,7 +24,7 @@ All the tutorials are in the installation folder, i.e.
 The manual
 ^^^^^^^^^^
 
-The CSG manual can be found `here <https://www.votca.org/csg>`__
+The CSG manual can be found :ref:`here<csg>`
 
 
 Running GROMACS
