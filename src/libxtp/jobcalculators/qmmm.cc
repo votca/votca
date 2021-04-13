@@ -76,7 +76,14 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   Logger& pLog = Thread.getLogger();
 
   JobTopology jobtop = JobTopology(job, pLog, workdir);
-  jobtop.BuildRegions(top, _regions_def);
+  if (job.getInput().exists("restart")) {
+    std::string checkptfile = job.getInput().get("restart").as<std::string>();
+    XTP_LOG(Log::error, pLog)
+        << TimeStamp() << " Restart job from " << checkptfile << std::flush;
+    jobtop.ReadFromHdf5(checkptfile);
+  } else {
+    jobtop.BuildRegions(top, _regions_def);
+  }
 
   if (_print_regions_pdb) {
     std::string pdb_filename = "regions.pdb";
@@ -86,8 +93,8 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   }
 
   Index no_static_regions = std::accumulate(
-      jobtop.begin(), jobtop.end(), 0, [](int count, const auto& region) {
-        return count += region->Converged();
+      jobtop.begin(), jobtop.end(), 0, [](Index count, const auto& region) {
+        return count += Index(region->Converged());
       });
 
   bool no_top_scf = false;
