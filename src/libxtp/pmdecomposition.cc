@@ -104,8 +104,6 @@ Eigen::MatrixXd PMDecomposition::orbitalselections(Eigen::MatrixXd &m, const Eig
         }
         A(s,t) = Ast;
         B(s,t) = Bst;
-        A(t,s) = Ast;
-        B(t,s) = Bst;
         double parameter = Ast + sqrt((Ast * Ast) + (Bst * Bst));
         zeromatrix(s,t) = parameter;
       }
