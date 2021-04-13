@@ -11,10 +11,11 @@ void PMDecomposition::compute() {
   AOOverlap overlap;
   overlap.Fill(aobasis);
   Eigen::MatrixXd S = overlap.Matrix();
-  double diff_D = 100;
+  double diff_D = 10000;
+  Index i = 1;
   while (diff_D > 1) {
+    XTP_LOG(Log::error, log) << "Iteration: " << i << std::flush;
     Eigen::MatrixXd uppertriangular = orbitalselections(mo_coeff, S);
-    XTP_LOG(Log::error, log) << uppertriangular << std::flush;
     Index maxrow, maxcol;
     diff_D = uppertriangular.maxCoeff(&maxrow, &maxcol);
     XTP_LOG(Log::error, log) << maxrow << " " << maxcol << std::flush;
@@ -24,24 +25,29 @@ void PMDecomposition::compute() {
     Eigen::MatrixXd new_orbs(mo_coeff.rows(), 2);
     new_orbs = rotatedorbitals(max_orbs, maxrow, maxcol);
     update_maximums(mo_coeff, maxrow, maxcol, new_orbs);
+
+    i +=1;
   }
+  Orbitals orb2;
+  orb2.MOs().eigenvectors() = mo_coeff;
+  orb2.WriteToCpt("pm_orbitals");
 }
 
-Eigen::MatrixXd PMDecomposition::columnwise(const Eigen::MatrixXd &S, Eigen::VectorXd &v) {
-  Eigen::MatrixXd a(S.rows(), S.cols());
-  for (int p = 0; p < S.rows(); p++) {
-    a.col(p) = v(p) * S.col(p);
-  }
-  return a;
-}
+// Eigen::MatrixXd PMDecomposition::columnwise(const Eigen::MatrixXd &S, Eigen::VectorXd &v) {
+//   Eigen::MatrixXd a(S.rows(), S.cols());
+//   for (int p = 0; p < S.rows(); p++) {
+//     a.col(p) = v(p) * S.col(p);
+//   }
+//   return a;
+// }
 
-Eigen::MatrixXd PMDecomposition::rowwise(const Eigen::MatrixXd &S, Eigen::VectorXd &v) {
-  Eigen::MatrixXd a(S.rows(), S.cols());
-  for (int p = 0; p < S.rows(); p++) {
-    a.row(p) = v(p) * S.row(p);
-  }
-  return a;
-}
+// Eigen::MatrixXd PMDecomposition::rowwise(const Eigen::MatrixXd &S, Eigen::VectorXd &v) {
+//   Eigen::MatrixXd a(S.rows(), S.cols());
+//   for (int p = 0; p < S.rows(); p++) {
+//     a.row(p) = v(p) * S.row(p);
+//   }
+//   return a;
+// }
 
 Eigen::MatrixXd PMDecomposition::rotatedorbitals(Eigen::MatrixXd &maxorbs, Index s, Index t) {
   Eigen::VectorXd vec1, vec2, new_vec1, new_vec2;
@@ -55,6 +61,7 @@ Eigen::MatrixXd PMDecomposition::rotatedorbitals(Eigen::MatrixXd &maxorbs, Index
   new_vec1 = (cos_gamma * vec1) + (sin_gamma * vec2);
   new_vec2 = -1 * (sin_gamma * vec1) + (cos_gamma * vec2);
   neworbitals << new_vec1, new_vec2;
+  XTP_LOG(Log::error, log) << sin_gamma << std::flush;
   return neworbitals;
 }
 
@@ -72,12 +79,12 @@ Eigen::MatrixXd PMDecomposition::orbitalselections(Eigen::MatrixXd &m, const Eig
         req_vec1 = m.col(s);
         req_vec2 = m.col(t);
         req_mat << req_vec1, req_vec2;
-        a = columnwise(S,req_vec1);
-        b = columnwise(S,req_vec2);
-        c = rowwise(a, req_vec2);
-        d = rowwise(b, req_vec1);
-        e = rowwise(a, req_vec1);
-        f = rowwise(b, req_vec2);
+        a = S*req_vec1.asDiagonal();
+        b = S*req_vec2.asDiagonal();
+        c = req_vec2.asDiagonal()*a;
+        d = req_vec1.asDiagonal()*b;
+        e = req_vec1.asDiagonal()*a;
+        f = req_vec2.asDiagonal()*b;
         sps = e.colwise().sum();
         tpt = f.colwise().sum();
         spt = 0.5 * (c.colwise().sum() + d.colwise().sum());
