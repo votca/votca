@@ -83,11 +83,11 @@ void DFTEngine::Initialize(Property& options) {
         key_xtpdft + ".externaldensity.state");
   }
 
-  if (options.get(key_xtpdft + ".use_external_field").as<bool>()) {
+  if (options.get(key + ".use_external_field").as<bool>()) {
     _integrate_ext_field = true;
 
     _extfield = options.ifExistsReturnElseThrowRuntimeError<Eigen::Vector3d>(
-        key_xtpdft + ".externalfield");
+        key + ".externalfield");
   }
 
   _conv_opt.Econverged =

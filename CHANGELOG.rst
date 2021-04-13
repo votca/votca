@@ -28,9 +28,13 @@ Version 2022-dev
 -  added a checkpoint reader to jobtopology class (#691)
 -  fixed issue with molden file path and orca executable path (#692)
 -  Fixed bug in mapping (#690)
+-  added support for external fields in DFT (#698)
 
-Version 2021-rc.2 (released XX.01.21)
-=====================================
+Version 2021.1 (released XX.03.21)
+==================================
+
+Version 2021 (released 13.03.21)
+================================
 
 -  fix CI on rawhide (#663)
 -  add xtp_qmmm2qm to cmake install (#665)

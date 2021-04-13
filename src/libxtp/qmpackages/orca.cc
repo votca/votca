@@ -271,6 +271,29 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
     WriteBackgroundCharges();
   }
 
+  // External Electric field
+  if (_settings.has_key("use_external_field")) {
+    if (_settings.get("use_external_field") == "true") {
+      if (_settings.has_key("externalfield")) {
+        tools::Tokenizer values(this->_settings.get("externalfield"), " ");
+        std::vector<std::string> field;
+        values.ToVector(field);
+        if (field.size() != 3) {
+          throw std::runtime_error("Electric field does not have 3 values.");
+        }
+        inp_file << "%scf\n ";
+        inp_file << "  efield " << field[0] << ", " << field[1] << ", "
+                 << field[2] << "\n";
+        inp_file << "end\n";
+        inp_file << std::endl;
+      } else {
+        throw std::runtime_error(
+            "\nRequested a calculation with an external field, but no field is "
+            "specified.\n");
+      }
+    }
+  }
+
   // Write Orca section specified by the user
   for (const auto& prop : this->_settings.property("orca")) {
     const std::string& prop_name = prop.name();
