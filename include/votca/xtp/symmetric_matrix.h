@@ -36,6 +36,8 @@ namespace xtp {
  */
 class Symmetric_Matrix {
  public:
+ 
+  Symmetric_Matrix()=default;
   Symmetric_Matrix(Index dim) {
     dimension = dim;
     data.resize((dim + 1) * dim / 2);
