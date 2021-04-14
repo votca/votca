@@ -43,7 +43,7 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
   for (Index i = 0; i < auxbasis.AOBasisSize(); i++) {
     _matrix[i] = Symmetric_Matrix(dftbasis.AOBasisSize());
   }
-  
+
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
   std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
