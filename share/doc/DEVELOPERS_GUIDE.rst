@@ -87,8 +87,8 @@ In preparation for a major (not minor!) release the following additional steps n
        git submodules foreach git checkout -b stable_bump
 
 -  Bump the version in each of the CMakeLists files in the :code:votca/votca repository and each of the submodules. This can be done by 
-   replacing :code:`<major>-dev` by :code:`<major>-rc.1` in :code:`votca/votca` and all submodules.
--  Update the :code:`CHANGELOG.rst` files accordingly, by changing the top most section from :code:`<major>-dev` to `:code:`<major>-rc.1`
+   replacing the string :code:`<major>-dev` by :code:`<major>-rc.1` in the main :code:`CMakeLists.txt` of :code:`votca/votca` and all submodules.
+-  Update the :code:`CHANGELOG.rst` files accordingly, by changing the top most section from :code:`<major>-dev` to :code:`<major>-rc.1`
 -  Commit changes in all submodules and update the submodules in :code:`votca/votca`
    ::
 
@@ -111,7 +111,7 @@ In preparation for a major (not minor!) release the following additional steps n
        git submodules foreach git checkout -b master_bump
 
 -  Bump the version in each of the CMakeLists files in the :code:votca/votca repository and each of the submodules. This can be done by 
-   replacing :code:`<major>-dev` by :code:`<major+1>-dev` in :code:`votca/votca` and all submodules.   
+   replacing the string :code:`<major>-dev` by :code:`<major+1>-dev` in the main :code:`CMakeLists.txt` of :code:`votca/votca` and all submodules.   
 -  Create a new secion in the :code:`CHANGELOG.rst` files for :code:`<major+1>-dev`
 -  Commit changes in all submodules and update the submodules in :code:`votca/votca`
    ::
