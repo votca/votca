@@ -84,7 +84,7 @@ class QMFragment {
     out << "Fragment id:" << fragment._id << "\n";
     out << "AtomIndices[" << fragment.size() << "]:";
     IndexParser p;
-    out<< p.CreateIndexString(fragment._atomindices)<<"\n";
+    out << p.CreateIndexString(fragment._atomindices) << "\n";
     out << "\nValue:" << fragment._value;
     out << "\n";
     return out;
