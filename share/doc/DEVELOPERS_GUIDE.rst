@@ -72,7 +72,81 @@ Making a Release
 Similar to the VOTCA containers, releases are also handled by GitHub actions. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
 To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
 :code:`stable` branch, but testing the creation of a release can be triggered on any branch. To make a release, trigger the action from the
-:code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for the :code:`stable` to :code:`master` branch, see `below <#updates-from-stable>`__). 
+:code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for the :code:`stable` to :code:`master` branch, see `below <#updates-from-stable>`__).
+
+Major releases
+~~~~~~~~~~~~~~
+
+In preparation for a major (not minor!) release the following additional steps need to be done:
+-  Create a new branch from the master branch of the :code:votca/votca repository and also in each of the submodules, e.g. :code:stable_bump. 
+   ::
+
+       git checkout master
+       git submodules foreach git checkout master
+       git checkout -b stable_bump
+       git submodules foreach git checkout -b stable_bump
+
+-  Bump the version in each of the CMakeLists files in the :code:votca/votca repository and each of the submodules. This can be done by 
+   replacing the string :code:`<major>-dev` by :code:`<major>-rc.1` in the main :code:`CMakeLists.txt` of :code:`votca/votca` and all submodules.
+-  Update the :code:`CHANGELOG.rst` files accordingly, by changing the top most section from :code:`<major>-dev` to :code:`<major>-rc.1`
+-  Commit changes in all submodules and update the submodules in :code:`votca/votca`
+   ::
+
+       git submodules foreach git commit -m "Version bumped to <major>-rc.1"
+       git add -u
+       git commit -m " Version bumped to <major>-rc.1"
+
+-  Push everything, but do NOT make the pull requests yet
+   ::
+
+       git submodules foreach git push origin stable_bump
+       git push origin stable_bump
+
+-  Create a branch, e.g. :code:`master_bump`, in :code:`votca/votca` and all submodules from the current master
+   ::
+
+       git checkout master
+       git submodules foreach git checkout master
+       git checkout -b master_bump
+       git submodules foreach git checkout -b master_bump
+
+-  Bump the version in each of the CMakeLists files in the :code:votca/votca repository and each of the submodules. This can be done by 
+   replacing the string :code:`<major>-dev` by :code:`<major+1>-dev` in the main :code:`CMakeLists.txt` of :code:`votca/votca` and all submodules.   
+-  Create a new secion in the :code:`CHANGELOG.rst` files for :code:`<major+1>-dev`
+-  Commit changes in all submodules and update the submodules in :code:`votca/votca`
+   ::
+
+       git submodules foreach git commit -m "Version bumped to <major+1>-dev"
+       git add -u
+       git commit -m " Version bumped to <major+1>-dev"
+
+-  Push everything, but do NOT make the pull requests yet
+   ::
+
+       git submodules foreach git push origin master_bump
+       git push origin master_bump
+
+-  Now, create a PR in :code:`votca/votca` from :code:`master_bump` into :code:`master`
+-  Once merged, create PRs in all submodules from :code:`master_bump` into :code:`master`
+-  Once all of these are merged and the automatically "Update master submodules" PR is merged, start with :code:`stable_bump` PRs
+-  Create a PR in :code:`votca/votca` from the :code:`stable_bump` branch into the :code:`stable` branch
+-  Once merged, create PRs in all submodules from each of the :code:`stable_bump` branches into each of their :code:`stable` branches
+-  Once all of them are merged and merge the automatically "Update stable submodules" PR
+-  Now everything is ready for the automatic release creation by Github Actions
+
+Release names
+~~~~~~~~~~~~~
+
+Some releases have names, so far we have:
+
+-  1.1: SuperAnn - named after the spouse of a core developer
+-  1.2: SuperDoris - named after the administrator at MPI-P (VOTCA's birthplace)
+-  1.3: SuperUzma - named after the spouse of a core developer
+-  1.4: SuperKurt - in occasion of Kurt Kremer's 60th birthday
+-  1.5: SuperVictor - named after Victor Rühle, one of the original core developers
+-  1.6: SuperPelagia - named after the spouse of a core developer
+-  1.6.2: SuperGitta - in memory of the grandmother of a core developer
+
 
 CPP Resources
 -------------
