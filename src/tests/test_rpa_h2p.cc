@@ -27,14 +27,14 @@
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/threecenter.h"
-
+#include <libint2/initialize.h>
 using namespace std;
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(rpa_test)
 
 BOOST_AUTO_TEST_CASE(rpa_h2p) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/rpa/molecule.xyz");
@@ -107,6 +107,8 @@ BOOST_AUTO_TEST_CASE(rpa_h2p) {
     cout << rpa_XpY_diag_ref.transpose() << endl;
   }
   BOOST_CHECK_EQUAL(check_rpa_XpY_diag, 1);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

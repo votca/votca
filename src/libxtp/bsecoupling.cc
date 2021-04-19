@@ -539,8 +539,7 @@ Eigen::MatrixXd BSECoupling::CalcJ_dimer(BSE_OPERATOR& H,
 
   // this only works for hermitian/symmetric H so only in TDA
 
-  Eigen::MatrixXd temp = H * projection;
-  Eigen::MatrixXd J_dimer = projection.transpose() * temp;
+  Eigen::MatrixXd J_dimer = projection.transpose() * (H * projection).eval();
 
   XTP_LOG(Log::info, *_pLog)
       << TimeStamp() << "   Setting up overlap matrix size "

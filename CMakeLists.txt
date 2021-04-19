@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(votca-xtp LANGUAGES CXX)
 
-set(PROJECT_VERSION "2021-dev")
+set(PROJECT_VERSION "2022-dev")
 string(REGEX REPLACE "[-.].*$" "" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
   message(FATAL_ERROR "Could not determine SOVERSION (${SOVERSION}) from ${PROJECT_VERSION}")
@@ -43,9 +43,17 @@ endif()
 # User input options                                                   #
 ########################################################################
 
+
 find_package(PkgConfig REQUIRED)
-set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect libxc package")
+set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect libxc and libint package")
 pkg_check_modules(LIBXC REQUIRED IMPORTED_TARGET libxc)
+if(NOT TARGET PkgConfig::LIBINT)
+  pkg_check_modules(LIBINT REQUIRED IMPORTED_TARGET libint2>=2.6)
+endif()
+find_package(ecpint REQUIRED)
+set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculate pseudo potentials")
+message(STATUS "Found libecpint: ${ecpint_DIR}")
+
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 set_package_properties(HDF5 PROPERTIES TYPE REQUIRED PURPOSE "Used to read/write HDF5 data files")
 
@@ -90,7 +98,9 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 endif()
 message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
-option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" OFF)
+find_package(Python 3 COMPONENTS Interpreter)
+set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
+option(BUILD_MANPAGES "Build manpages" ${Python_FOUND})
 add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
 #define this target here, so that individual man pages can append to it.
 if(NOT TARGET manpages)
@@ -115,9 +125,6 @@ if(USE_CUDA)
   set_package_properties(CUDA PROPERTIES TYPE REQUIRED PURPOSE "Used for GPU acceleration")
 endif(USE_CUDA)
 
-find_package(Kokkos 3.0 CONFIG)
-set_package_properties(Kokkos PROPERTIES TYPE OPTIONAL PURPOSE "Used to Ewald solver")
-
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################
@@ -141,6 +148,10 @@ mark_as_advanced( MATH_LIBRARIES )
 ######################################
 # Include the following subdirectory #
 ######################################
+if(VOTCA_SPHINX_DIR)
+  add_custom_target(doc-xtp)
+  file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/xtp)
+endif()
 add_subdirectory(include/votca/xtp)
 add_subdirectory(scripts)
 add_subdirectory(src)

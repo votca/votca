@@ -293,11 +293,11 @@ class Orbitals {
   }
 
   const Eigen::VectorXd &BSETriplets_dynamic() const {
-    return _BSE_singlet_energies_dynamic;
+    return _BSE_triplet_energies_dynamic;
   }
 
   Eigen::VectorXd &BSETriplets_dynamic() {
-    return _BSE_singlet_energies_dynamic;
+    return _BSE_triplet_energies_dynamic;
   }
 
   // access to transition dipole moments
@@ -318,12 +318,14 @@ class Orbitals {
   // want to calculate only the density contribution of hole or electron use
   // DensityMatrixExcitedState
   Eigen::MatrixXd DensityMatrixFull(const QMState &state) const;
+  Eigen::MatrixXd DensityMatrixWithoutGS(const QMState &state) const;
 
   // functions for calculating density matrices
   Eigen::MatrixXd DensityMatrixGroundState() const;
   std::array<Eigen::MatrixXd, 2> DensityMatrixExcitedState(
       const QMState &state) const;
   Eigen::MatrixXd DensityMatrixQuasiParticle(const QMState &state) const;
+  Eigen::MatrixXd DensityMatrixKSstate(const QMState &state) const;
   Eigen::MatrixXd CalculateQParticleAORepresentation() const;
   double getTotalStateEnergy(const QMState &state) const;    // Hartree
   double getExcitedStateEnergy(const QMState &state) const;  // Hartree
@@ -426,7 +428,8 @@ class Orbitals {
   bool _use_Hqp_offdiag = true;
 
   // Version 2: adds BSE energies after perturbative dynamical screening
-  static constexpr int orbitals_version() { return 2; }
+  // Version 3 changed shell ordering
+  static constexpr int orbitals_version() { return 3; }
 };
 
 }  // namespace xtp

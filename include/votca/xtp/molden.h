@@ -39,7 +39,7 @@ class Molden {
   void WriteFile(const std::string& filename, const Orbitals& orbitals) const;
 
   void setBasissetInfo(const std::string& basisset_name,
-                       const std::string& aux_basisset_name) {
+                       const std::string& aux_basisset_name = "") {
     _basisset_name = basisset_name;
     _aux_basisset_name = aux_basisset_name;
   }
@@ -49,23 +49,28 @@ class Molden {
  private:
   // clang-format off
   Logger& _log;
-  std::array<Index,25> _multipliers={{
+
+  std::array<Index,49> _multipliers={{
             1, //s
             1,1,1, //p
             1,1,1,1,1, //d
-            1,1,1,1,1,-1,-1, //f 
-            1,1,1,1,1,-1,-1,-1,-1 //g
+            -1,1,1,1,1,1,-1, //f 
+            -1,-1,1,1,1,1,1,-1,-1, //g
+            -1,-1,-1,1,1,1,1,1,-1,-1,-1, //h
+            -1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1 //i
             }};
-  std::array<Index, 25> _reorderList={{
+  std::array<Index, 49> _reorderList={{
             0, //s
             1,-1,0, //p
             0,1,-1,2,-2, //d
             0,1,-1,2,-2,3,-3, //f 
-            0,1,-1,2,-2,3,-3,4,-4 //g
+            0,1,-1,2,-2,3,-3,4,-4, //g
+            0,1,-1,2,-2,3,-3,4,-4,5,-5, //h
+            0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 //i
             }};
   // clang-format on
-  std::string _basisset_name;
-  std::string _aux_basisset_name;
+  std::string _basisset_name = "";
+  std::string _aux_basisset_name = "";
 
   void writeAtoms(const Orbitals& orbitals, std::ofstream& outFile) const;
   void writeMOs(const Orbitals& orbitals, std::ofstream& outFile) const;
@@ -80,4 +85,4 @@ class Molden {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_MOLDEN_WRITER_H
+#endif  // VOTCA_XTP_MOLDEN_H

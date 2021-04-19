@@ -30,6 +30,7 @@
 #include "votca/xtp/ecpbasisset.h"
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/logger.h"
+#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/vxc_potential.h"
@@ -201,39 +202,20 @@ void GWBSE::Initialize(tools::Property& options) {
     _bseopt.nmax = bse_size;
   }
 
-  // eigensolver options
-  _bseopt.davidson = options.get(key + ".eigensolver.dodavidson").as<bool>();
+  _bseopt.davidson_correction =
+      options.get(key + ".eigensolver.davidson_correction").as<std::string>();
 
-  if (_bseopt.davidson) {
+  _bseopt.davidson_ortho =
+      options.get(key + ".eigensolver.davidson_ortho").as<std::string>();
 
-    _bseopt.matrixfree =
-        options.get(key + ".eigensolver.domatrixfree").as<bool>();
+  _bseopt.davidson_tolerance =
+      options.get(key + ".eigensolver.davidson_tolerance").as<std::string>();
 
-    _bseopt.davidson_correction =
-        options.get(key + ".eigensolver.davidson_correction").as<std::string>();
+  _bseopt.davidson_update =
+      options.get(key + ".eigensolver.davidson_update").as<std::string>();
 
-    _bseopt.davidson_ortho =
-        options.get(key + ".eigensolver.davidson_ortho").as<std::string>();
-
-    _bseopt.davidson_tolerance =
-        options.get(key + ".eigensolver.davidson_tolerance").as<std::string>();
-
-    _bseopt.davidson_update =
-        options.get(key + ".eigensolver.davidson_update").as<std::string>();
-
-    _bseopt.davidson_maxiter =
-        options.get(key + ".eigensolver.davidson_maxiter").as<Index>();
-
-    // check size
-    if (_bseopt.nmax > bse_size / 4) {
-      XTP_LOG(Log::error, *_pLog)
-          << TimeStamp()
-          << " Warning : Too many eigenvalues required for Davidson. Default "
-             "to Lapack diagonalization"
-          << flush;
-      _bseopt.davidson = false;
-    }
-  }
+  _bseopt.davidson_maxiter =
+      options.get(key + ".eigensolver.davidson_maxiter").as<Index>();
 
   _bseopt.useTDA = options.get(key + ".useTDA").as<bool>();
   _orbitals.setTDAApprox(_bseopt.useTDA);
@@ -584,17 +566,24 @@ bool GWBSE::Evaluate() {
         << TimeStamp()
         << " Using native Eigen implementation, no BLAS overload " << flush;
   }
+  Index nogpus = OpenMP_CUDA::UsingGPUs();
+  if (nogpus > 0) {
+    XTP_LOG(Log::error, *_pLog)
+        << TimeStamp() << " Using CUDA support for tensor multiplication with "
+        << nogpus << " GPUs." << flush;
+  }
 
   XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " Molecule Coordinates [A] " << flush;
   for (QMAtom& atom : _orbitals.QMAtoms()) {
-    std::string output =
-        (boost::format("  %1$s"
-                       "   %2$+1.4f %3$+1.4f %4$+1.4f") %
-         atom.getElement() % (atom.getPos().x() * tools::conv::bohr2ang) %
-         (atom.getPos().y() * tools::conv::bohr2ang) %
-         (atom.getPos().z() * tools::conv::bohr2ang))
-            .str();
+    std::string output = (boost::format("%5d"
+                                        "%5s"
+                                        "   %1.4f %1.4f %1.4f") %
+                          atom.getId() % atom.getElement() %
+                          (atom.getPos().x() * tools::conv::bohr2ang) %
+                          (atom.getPos().y() * tools::conv::bohr2ang) %
+                          (atom.getPos().z() * tools::conv::bohr2ang))
+                             .str();
 
     XTP_LOG(Log::error, *_pLog) << output << flush;
   }

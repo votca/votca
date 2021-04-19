@@ -22,6 +22,7 @@
 
 // VOTCA includes
 #include <votca/tools/elements.h>
+#include <votca/tools/getline.h>
 #include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
@@ -52,7 +53,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
   }
   while (intt.good()) {
 
-    std::getline(intt, line);
+    tools::getline(intt, line);
     tools::Tokenizer toker(line, " \t");
     std::vector<std::string> split = toker.ToVector();
 

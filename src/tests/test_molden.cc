@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE moldenreader_test
@@ -36,7 +37,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(molden_test)
 
 BOOST_AUTO_TEST_CASE(moldenreader_test) {
-
+  libint2::initialize();
   Eigen::MatrixXd coeffs_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/molden/orbitalsMOs_ref.mm");
 
@@ -54,8 +55,17 @@ BOOST_AUTO_TEST_CASE(moldenreader_test) {
       std::string(XTP_TEST_DATA_FOLDER) + "/molden/benzene.molden.input",
       orbitals);
 
+  // Check if eigenvalues are equal
+  orbitals_ref.MOs().eigenvalues() =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/molden/orbitals_eigenvalues.mm");
+
+  BOOST_CHECK(orbitals.MOs().eigenvalues().isApprox(
+      orbitals_ref.MOs().eigenvalues(), 1e-4));
+
   // Check if MO's are read correctly
-  BOOST_CHECK(orbitals.MOs().eigenvectors().isApprox(coeffs_ref, 1e-5));
+  BOOST_CHECK(orbitals.MOs().eigenvectors().isApprox(coeffs_ref, 1e-4));
 
   // Check if atoms are read correctly
   BOOST_CHECK(orbitals.QMAtoms().size() == orbitals_ref.QMAtoms().size());
@@ -63,10 +73,12 @@ BOOST_AUTO_TEST_CASE(moldenreader_test) {
     BOOST_CHECK(orbitals.QMAtoms()[i].getPos().isApprox(
         orbitals_ref.QMAtoms()[i].getPos(), 1e-3));
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(moldenwriter_test) {
-
+  libint2::initialize();
   // Setup orbitals object
   Orbitals orbitals_ref;
   orbitals_ref.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
@@ -96,9 +108,17 @@ BOOST_AUTO_TEST_CASE(moldenwriter_test) {
   Orbitals orbitals;
   molden.parseMoldenFile("moldenFile.molden", orbitals);
 
+  Eigen::MatrixXd coeffs_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/molden/orbitalsMOs_ref.mm");
+
   // Check if MO's are equal
-  BOOST_CHECK(orbitals_ref.MOs().eigenvectors().isApprox(
-      orbitals.MOs().eigenvectors(), 1e-5));
+  BOOST_CHECK(coeffs_ref.isApprox(orbitals.MOs().eigenvectors(), 1e-5));
+
+  std::cout << "ref" << std::endl;
+  std::cout << coeffs_ref << std::endl;
+
+  std::cout << "results" << std::endl;
+  std::cout << orbitals.MOs().eigenvectors() << std::endl;
 
   // Check if atoms are equal
   BOOST_CHECK(orbitals.QMAtoms().size() == orbitals_ref.QMAtoms().size());
@@ -106,5 +126,7 @@ BOOST_AUTO_TEST_CASE(moldenwriter_test) {
     BOOST_CHECK(orbitals.QMAtoms()[i].getPos().isApprox(
         orbitals_ref.QMAtoms()[i].getPos(), 1e-3));
   }
+
+  libint2::finalize();
 }
 }

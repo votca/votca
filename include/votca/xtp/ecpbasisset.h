@@ -126,6 +126,8 @@ class ECPBasisSet {
     return _elements.end();
   }
 
+  const std::string& Name() const { return _name; }
+
   std::map<std::string, std::shared_ptr<ECPElement> >::const_iterator begin()
       const {
     return _elements.begin();

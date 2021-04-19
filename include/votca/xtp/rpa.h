@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -92,6 +92,12 @@ class RPA {
   Eigen::MatrixXd Calculate_H2p_ApB() const;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> Diagonalize_H2p_C(
       const Eigen::MatrixXd& C) const;
+
+  void ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies, Index qpmin,
+                                Index gwsize);
+
+  double getMaxCorrection(const Eigen::VectorXd& dftenergies, Index min,
+                          Index max) const;
 };
 
 }  // namespace xtp

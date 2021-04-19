@@ -69,9 +69,13 @@ class DFTEngine {
   Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs) const;
   void PrintMOs(const Eigen::VectorXd& MOEnergies, Log::Level level);
   void CalcElDipole(const Orbitals& orb) const;
-  Mat_p_Energy CalculateERIs(const Eigen::MatrixXd& DMAT) const;
-  Mat_p_Energy CalcEXXs(const Eigen::MatrixXd& MOCoeff,
-                        const Eigen::MatrixXd& Dmat) const;
+
+  std::array<Eigen::MatrixXd, 2> CalcERIs_EXX(const Eigen::MatrixXd& MOCoeff,
+                                              const Eigen::MatrixXd& Dmat,
+                                              double error) const;
+
+  Eigen::MatrixXd CalcERIs(const Eigen::MatrixXd& Dmat, double error) const;
+
   void ConfigOrbfile(Orbitals& orb);
   void SetupInvariantMatrices();
 
@@ -114,7 +118,6 @@ class DFTEngine {
   std::string _four_center_method;  // direct | cache
 
   // Pre-screening
-  bool _with_screening;
   double _screening_eps;
 
   // numerical integration Vxc

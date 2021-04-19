@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE orca_test
@@ -26,6 +27,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/orbreorder.h"
 #include "votca/xtp/qmpackagefactory.h"
 
 using namespace votca::xtp;
@@ -53,6 +55,7 @@ BOOST_AUTO_TEST_CASE(polar_test) {
   polar_ref << 11.40196, -0.00423, 0.00097, -0.00423, 11.42894, 0.01163,
       0.00097, 0.01163, 11.41930;
   bool polar_check = polar_ref.isApprox(polar_mat, 1e-5);
+  BOOST_CHECK_EQUAL(polar_check, true);
   if (!polar_check) {
     std::cout << "res" << std::endl;
     std::cout << polar_mat << std::endl;
@@ -62,7 +65,7 @@ BOOST_AUTO_TEST_CASE(polar_test) {
 }
 
 BOOST_AUTO_TEST_CASE(ext_charges_test) {
-
+  libint2::initialize();
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
       QMPackageFactory::QMPackages().Create("orca");
@@ -101,6 +104,8 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
 
   orb.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
                       "/orca/3-21G_small.xml");
+
+  orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
   orca->setMOsFileName("orca_ext_mos.gbw");
 
   orca->ParseMOsFile(orb);
@@ -119,6 +124,24 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   Eigen::MatrixXd MOs_coeff_ref =
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
           std::string(XTP_TEST_DATA_FOLDER) + "/orca/MOs_coeff_ref.mm");
+
+  // clang-format off
+    std::array<Index, 49> votcaOrder_old = {
+        0,                             // s
+        0, -1, 1,                      // p
+        0, -1, 1, -2, 2,               // d
+        0, -1, 1, -2, 2, -3, 3,        // f
+        0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,  // h
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,-6,6  // i
+    };
+  // clang-format on
+
+  std::array<votca::Index, 49> multiplier;
+  multiplier.fill(1);
+  OrbReorder ord(votcaOrder_old, multiplier);
+  AOBasis aobasis = orb.SetupDftBasis();
+  ord.reorderOrbitals(MOs_coeff_ref, aobasis);
   bool check_coeff = MOs_coeff_ref.isApprox(orb.MOs().eigenvectors(), 1e-5);
   BOOST_CHECK_EQUAL(check_coeff, true);
   if (!check_coeff) {
@@ -127,10 +150,12 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
     std::cout << "ref coeff" << std::endl;
     std::cout << MOs_coeff_ref << std::endl;
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(charges_test) {
-
+  libint2::initialize();
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
       QMPackageFactory::QMPackages().Create("orca");
@@ -169,6 +194,8 @@ BOOST_AUTO_TEST_CASE(charges_test) {
     BOOST_CHECK_EQUAL(ref[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(opt_test) {

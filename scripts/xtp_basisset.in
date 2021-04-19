@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 #
-# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,224 +15,219 @@
 # limitations under the License.
 #
 
-VERSION='@PROJECT_VERSION@ #CSG_GIT_ID#'
-import sys
-import os
-import time
-import numpy as np
-import lxml.etree as lxml
 import argparse
+import os
+import sys
+import time
+from pathlib import Path
+
+import lxml.etree as lxml
+
+VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
 
 PROGTITLE = 'THE VOTCA::XTP converter basissetfiles'
 PROGDESCR = 'Creates votca xml basissetfiles from NWCHEM basissetfiles'
-VOTCAHEADER = '''\
+VOTCAHEADER = f"""
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
 ==================================================
 
-{progtitle}
+{PROGTITLE}
 
 please submit bugs to @PROJECT_CONTACT@
-xtp_basisset, version {version}
+xtp_basisset, version {VERSION}
 
-'''.format(version=VERSION, progtitle=PROGTITLE)
+"""
 
-def okquit(what=''):
-    if what != '': print (what)
+
+def okquit(what: str):
+    """Exit gracefully."""
+    print(what)
     sys.exit(0)
-def xxquit(what=''):
-    if what != '':
-        print("ERROR: {what}".format(what=what))
-    sys.exit(1)
-def sysexe(cmd, silent=False, devfile='/dev/null'):
-    if VERBOSE: print("{0}@{1}$ {2}".format(USER, HOST, cmd))
-    if silent: cmd += ' >> {0} 2>> {0}'.format(devfile)
-    cdx = os.system(cmd)
-    #SYSCMDS.write('{cmd} = {cdx}\n'.format(cmd=cmd, cdx=cdx))
-    return cdx
+
+
+def exists(input_file: str) -> Path:
+    """Check if the input file exists."""
+    path = Path(input_file)
+    if not path.exists():
+        raise argparse.ArgumentTypeError(f"{input_file} doesn't exist!")
+
+    return path
+
 
 # =============================================================================
 # PROGRAM OPTIONS
 # =============================================================================
 
+
 class XtpHelpFormatter(argparse.HelpFormatter):
     def _format_usage(self, usage, action, group, prefix):
         return VOTCAHEADER
-        
+
+
 progargs = argparse.ArgumentParser(prog='xtp_basisset',
-    formatter_class=lambda prog: XtpHelpFormatter(prog,max_help_position=70),
-    description=PROGDESCR)
-    
+                                   formatter_class=lambda prog: XtpHelpFormatter(
+                                       prog, max_help_position=70),
+                                   description=PROGDESCR)
+
 progargs.add_argument('-f', '--input',
-    dest='input',   
-    action='store',
-    required=False,
-    type=str,
-    default='',
-    help='NWchem file containing the basisset or Turbomole folder with element names.')
+                      dest='input',
+                      required=True,
+                      type=exists,
+                      help='NWchem file containing the basisset or Turbomole folder with element names.')
 
 progargs.add_argument('-o', '--outputvotca',
-    dest='outputfile',   
-    action='store',
-    required=False,
-    type=str,
-    default='',
-    help='Path of votca outputfile')
+                      dest='outputfile',
+                      required=True,
+                      help='Path of votca outputfile')
 
 
 progargs.add_argument('-t', '--turbomolebasisset',
-    dest='turbobasis',   
-    action='store',
-    required=False,
-    type=str,
-    default='',
-    help='For turbomole specify the basisset that is supposed to be extracted from Files, for auxbasis sets the basisset the aux basisset is supposed to be used for.')
-    
+                      dest='turbobasis',
+                      default=None,
+                      help='For turbomole specify the basisset that is supposed to be extracted from Files, for auxbasis sets the basisset the aux basisset is supposed to be used for.')
+
 OPTIONS = progargs.parse_args()
-if OPTIONS.input == '':
-    progargs.print_help()
-    okquit("\nQuit here, because: Inputfile not set (option -f/--input)")
-if OPTIONS.outputfile == '':
-    progargs.print_help()
-    okquit("\nQuit here, because: outputfile not set (option -o/--outputvotca)")
 
-def getelemententry(root,element):
+
+def getelemententry(root, element):
     for e in root:
-    #print e.get("name")
-        if e.get("name")==element:
+        # print e.get("name")
+        if e.get("name") == element:
             return e
-    return lxml.SubElement(root,"element",name=element)
+    return lxml.SubElement(root, "element", name=element)
 
-def convertofloat(floatstring):
-    
+
+def convertofloat(floatstring: str) -> float:
+
     if "D" in floatstring:
-        floatstring=floatstring.replace("D","E")
+        floatstring = floatstring.replace("D", "E")
     try:
-        a=float(floatstring)
-        return a
+        return float(floatstring)
     except ValueError:
-        print("Cannot figure out what '{}' means".format(floatstring))
-        sys.exit()
-        return False 
+        print(f"Cannot figure out what '{floatstring}' means")
+        raise
 
 
-def turbomolegetcontributions(element,lines,basissetstringlist,basis,shells):
-    
-    newbasissets=[]
-    start=False
-    basissetfound=False
+def turbomolegetcontributions(element, lines, basissetstringlist, basis, shells) -> None:
+
+    newbasissets = []
+    start = False
+    basissetfound = False
     for line in lines:
-        if line[0]=="#":
+        if line[0] == "#":
             continue
-        elif line in ["\n","\r\n"]:                
+        elif line in ["\n", "\r\n"]:
             continue
         elif "$end" in line:
             continue
-        if line[0]=="*" and basissetfound:
-            #print start
+        if line[0] == "*" and basissetfound:
+            # print start
             if start:
-                #print "Breaking"
+                # print "Breaking"
                 break
             else:
-                start=True
+                start = True
             continue
 
-        if line.split()[0]==element:
-            if line.split()[-1] in basissetstringlist and basissetfound==False:
-                basissetfound=True
+        if line.split()[0] == element:
+            if line.split()[-1] in basissetstringlist and basissetfound == False:
+                basissetfound = True
             continue
         if start and basissetfound:
             if "->" in line:
                 newbasissets.append(line.split()[-1])
                 continue
-            entries=line.split()
-            if len(entries)==2:
+            entries = line.split()
+            if len(entries) == 2:
                 if entries[-1].upper() in shells:
-                    shelltype=entries[-1].upper()
-                    shell=lxml.SubElement(basis,"shell",type=shelltype,scale="1.0")
+                    shelltype = entries[-1].upper()
+                    shell = lxml.SubElement(
+                        basis, "shell", type=shelltype, scale="1.0")
                 else:
-                    
-                    constant=lxml.SubElement(shell,"constant",decay="{:1.6e}".format(convertofloat(entries[0])))
-                    contraction=lxml.SubElement(constant,"contractions",type=shelltype,factor="{:1.6e}".format(convertofloat(entries[1])))
-                    #contraction.text=" "
+
+                    constant = lxml.SubElement(
+                        shell, "constant", decay="{:1.6e}".format(convertofloat(entries[0])))
+                    contraction = lxml.SubElement(
+                        constant, "contractions", type=shelltype, factor="{:1.6e}".format(convertofloat(entries[1])))
+                    # contraction.text=" "
             else:
-                print("Cannot figure out what line '{}' means".format(line))
+                print(f"Cannot figure out what line '{line}' means")
                 sys.exit()
 
-    if len(newbasissets)>0:
-        turbomolegetcontributions(element,lines,newbasissets,basis,shells)
-       
+    if len(newbasissets) > 0:
+        turbomolegetcontributions(element, lines, newbasissets, basis, shells)
 
-    return
-    
 
 # =============================================================================
 # PARSING NWCHEM FILE
 # =============================================================================
+basissetname = OPTIONS.input.stem
+basis = lxml.Element("basis", name=basissetname)
+basis.append(lxml.Comment(
+    f"Basis set created by xtp_basisset from {OPTIONS.input.name} at {time.strftime('%c')}"))
 
-basissetname=os.path.splitext(os.path.basename(OPTIONS.outputfile))[0]
-basis = lxml.Element("basis",name=basissetname)
-basis.append(lxml.Comment("Basis set created by xtp_basisset from {} at {}".format(os.path.basename(OPTIONS.input),time.strftime("%c"))))  
-
-elements=['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'K', 'Ar', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Ni', 'Co', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'I', 'Te', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Pt', 'Ir', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Pa', 'Th', 'Np', 'U', 'Am', 'Pu', 'Bk', 'Cm', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Rf', 'Lr', 'Db', 'Bh', 'Sg', 'Mt', 'Ds', 'Rg', 'Hs', 'Uut', 'Uub', 'Uup', 'Uuq', 'Uuh', 'Uuo']
-shells=["S","P","D","F","G","H","I"]
-
-
-if os.path.isfile(OPTIONS.input):
-    print("File {} seems to be a NWCHEM file".format(OPTIONS.input))
-   
+elements = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'K', 'Ar', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Ni', 'Co', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'I', 'Te', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr',
+            'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Pt', 'Ir', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Pa', 'Th', 'Np', 'U', 'Am', 'Pu', 'Bk', 'Cm', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Rf', 'Lr', 'Db', 'Bh', 'Sg', 'Mt', 'Ds', 'Rg', 'Hs', 'Uut', 'Uub', 'Uup', 'Uuq', 'Uuh', 'Uuo']
+shells = ["S", "P", "D", "F", "G", "H", "I"]
 
 
-    
-    keywords=["BASIS","end","basis","END"]
+if OPTIONS.input.is_file():
+    print(f"File {OPTIONS.input} seems to be a NWCHEM file")
 
-    with open(OPTIONS.input,'r') as f:
+    keywords = ["BASIS", "end", "basis", "END"]
+
+    with open(OPTIONS.input, 'r') as f:
         for line in f.readlines():
-            if line[0]=="#":
+            if line[0] == "#":
                 continue
-            elif line in ["\n","\r\n"]:
-                element=None
+            elif line in ["\n", "\r\n"]:
+                element = None
                 continue
-            entries=line.split()
+            entries = line.split()
             if entries[0] in keywords:
-                element=None
+                element = None
                 continue
             elif entries[0] in elements:
-                element=getelemententry(basis,entries[0])
-                shelltype=entries[1]
-                shell=lxml.SubElement(element,"shell",type=shelltype,scale="1.0")    
-            elif len(entries)>1 and shell!=None:
-                constant=lxml.SubElement(shell,"constant",decay="{:1.6e}".format(convertofloat(entries[0])))
-                for contractionfactor,singleshell in zip(entries[1:],shelltype):
-                    contraction=lxml.SubElement(constant,"contractions",type=singleshell,factor="{:1.6e}".format(convertofloat(contractionfactor)))
-                    #contraction.text=" "
+                element = getelemententry(basis, entries[0])
+                shelltype = entries[1]
+                shell = lxml.SubElement(
+                    element, "shell", type=shelltype, scale="1.0")
+            elif len(entries) > 1 and shell is not None:
+                constant = lxml.SubElement(
+                    shell, "constant", decay="{:1.6e}".format(convertofloat(entries[0])))
+                for contractionfactor, singleshell in zip(entries[1:], shelltype):
+                    contraction = lxml.SubElement(constant, "contractions", type=singleshell, factor="{:1.6e}".format(
+                        convertofloat(contractionfactor)))
+                    # contraction.text=" "
             else:
-               okquit("\nCannot understand line in file:{}".format(line)) 
+                okquit("\nCannot understand line in file:{}".format(line))
 
-elif os.path.isdir(OPTIONS.input):
+elif OPTIONS.input.is_dir():
 
-    print("Directory {} seems to be a Turbomole folder".format(OPTIONS.input))
-    if OPTIONS.turbobasis == '':
+    print(
+        f"Directory {OPTIONS.input.as_posix()} seems to be a Turbomole folder")
+    if OPTIONS.turbobasis is None:
         progargs.print_help()
-        okquit("\nQuit here, because: Turbomole basisset not set (option -t/--turbomolebasisset)")
+        okquit(
+            "\nQuit here, because: Turbomole basisset not set (option -t/--turbomolebasisset)")
     for ele in elements:
         if os.path.isfile(ele.lower()):
-            print ("Opening {}".format(ele.lower()))
-            with open(ele.lower(),'r') as f:
-                lines=f.readlines()
-                element=getelemententry(basis,ele)
-                turbomolegetcontributions(ele.lower(),lines,OPTIONS.turbobasis,element,shells)
+            print(f"Opening {ele.lower()}")
+            with open(ele.lower(), 'r') as f:
+                lines = f.readlines()
+
+            element = getelemententry(basis, ele)
+            turbomolegetcontributions(
+                ele.lower(), lines, OPTIONS.turbobasis, element, shells)
         else:
-           print("File {} belonging to element not found. Skipping element!".format(ele.lower(),element))
-                    
-    
+            print(
+                f"File {ele.lower()} belonging to {element} not found. Skipping element!")
 
 
-            
-print("Imported  new basisset {} from {} written to file {} with xtp_basisset".format(basissetname,OPTIONS.input,OPTIONS.outputfile))
-        
+print(
+    f"Imported  new basisset {basissetname} from {OPTIONS.input.as_posix()} written to file {OPTIONS.outputfile} with xtp_basisset")
+
+
 with open(OPTIONS.outputfile, 'wb') as f:
-            f.write(lxml.tostring(basis, pretty_print=True))
-
-sys.exit(0)
-
+    f.write(lxml.tostring(basis, pretty_print=True))

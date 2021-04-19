@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -62,7 +62,7 @@ void XtpTools::Initialize() {
 
   // Tools-related
   AddProgramOptions("Tools")("execute,e", propt::value<std::string>(),
-                             "List of tools separated by ',' or ' '");
+                             "name of the tool to run");
   AddProgramOptions("Tools")("list,l", "Lists all available tools");
   AddProgramOptions("Tools")("description,d", propt::value<std::string>(),
                              "Short description of a tool");
@@ -109,8 +109,7 @@ bool XtpTools::EvaluateOptions() {
   tools::Tokenizer xtools(OptionsMap()["execute"].as<std::string>(), " ,\n\t");
   std::vector<std::string> calc_string = xtools.ToVector();
   if (calc_string.size() != 1) {
-    throw std::runtime_error(
-        "You can only run one calculator at the same time.");
+    throw std::runtime_error("You can only run one tool at the same time.");
   }
 
   CheckRequired(
@@ -118,7 +117,7 @@ bool XtpTools::EvaluateOptions() {
 
   if (xtp::QMTools().IsRegistered(calc_string[0])) {
     this->SetTool(xtp::QMTools().Create(calc_string[0]));
-    std::cout << "Registered " << calc_string[0];
+    std::cout << "Registered " << calc_string[0] << std::endl;
   } else {
     std::cout << "Tool " << calc_string[0] << " does not exist\n";
     StopExecution();

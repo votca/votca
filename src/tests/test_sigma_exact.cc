@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE sigma_test
@@ -39,7 +40,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(sigma_test)
 
 BOOST_AUTO_TEST_CASE(sigma_full) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/sigma_exact/molecule.xyz");
@@ -114,6 +115,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
     cout << c_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_c, true);
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE sphere_lebedev_rule_test
@@ -34,7 +35,7 @@ using namespace votca;
 BOOST_AUTO_TEST_SUITE(sphere_lebedev_rule_test)
 
 BOOST_AUTO_TEST_CASE(medium_test) {
-
+  libint2::initialize();
   QMMolecule mol("noname", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                    "/sphere_lebedev_rule/CH4.xyz");
@@ -85,10 +86,11 @@ BOOST_AUTO_TEST_CASE(medium_test) {
   BOOST_CHECK_EQUAL(Hphi, true);
   BOOST_CHECK_EQUAL(Htheta, true);
   BOOST_CHECK_EQUAL(Hweight, true);
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(fine_test) {
-
+  libint2::initialize();
   QMMolecule mol("noname", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                    "/sphere_lebedev_rule/molecule.xyz");
@@ -152,9 +154,10 @@ BOOST_AUTO_TEST_CASE(fine_test) {
   BOOST_CHECK_EQUAL(Hphi, true);
   BOOST_CHECK_EQUAL(Htheta, true);
   BOOST_CHECK_EQUAL(Hweight, true);
+  libint2::finalize();
 }
 BOOST_AUTO_TEST_CASE(element_not_implemented) {
-
+  libint2::initialize();
   QMMolecule mol("noname", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                    "/sphere_lebedev_rule/hg.xyz");
@@ -163,10 +166,11 @@ BOOST_AUTO_TEST_CASE(element_not_implemented) {
 
   BOOST_REQUIRE_THROW(spheregrid.CalculateSphericalGrids(mol, "xfine"),
                       std::runtime_error);
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(xfine_test) {
-
+  libint2::initialize();
   QMMolecule mol("noname", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                    "/sphere_lebedev_rule/molecule.xyz");
@@ -229,6 +233,8 @@ BOOST_AUTO_TEST_CASE(xfine_test) {
   BOOST_CHECK_EQUAL(Hphi, true);
   BOOST_CHECK_EQUAL(Htheta, true);
   BOOST_CHECK_EQUAL(Hweight, true);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

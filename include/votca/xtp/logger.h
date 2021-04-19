@@ -46,7 +46,7 @@ namespace xtp {
 /*
  * Custom buffer to store messages
  */
-class LogBuffer : public std::stringbuf {
+class LogBuffer final : public std::stringbuf {
 
  public:
   LogBuffer() : std::stringbuf() { _LogLevel = Log::current_level; }
@@ -109,7 +109,7 @@ class LogBuffer : public std::stringbuf {
   bool _writePreface = true;
 
  protected:
-  int sync() override {
+  int sync() {
 
     std::ostringstream _message;
 
@@ -169,35 +169,30 @@ class Logger final : public std::ostream {
   }
 
  public:
-  Logger() : std::ostream(new LogBuffer()), _ReportLevel(Log::current_level) {
+  Logger() : std::ostream(&_buffer), _ReportLevel(Log::current_level) {
     setMultithreading(_maverick);
   }
   Logger(Log::Level ReportLevel)
-      : std::ostream(new LogBuffer()), _ReportLevel(ReportLevel) {
+      : std::ostream(&_buffer), _ReportLevel(ReportLevel) {
     setMultithreading(_maverick);
   }
 
-  ~Logger() final {
-    delete rdbuf();
-    rdbuf(nullptr);
-  }
-
   Logger &operator()(Log::Level LogLevel) {
-    dynamic_cast<LogBuffer *>(rdbuf())->setLogLevel(LogLevel);
+    _buffer.setLogLevel(LogLevel);
     return *this;
   }
 
   void setReportLevel(Log::Level ReportLevel) { _ReportLevel = ReportLevel; }
   void setMultithreading(bool maverick) {
     _maverick = maverick;
-    dynamic_cast<LogBuffer *>(rdbuf())->setMultithreading(_maverick);
+    _buffer.setMultithreading(_maverick);
   }
   bool isMaverick() const { return _maverick; }
 
   Log::Level getReportLevel() const { return _ReportLevel; }
 
   void setPreface(Log::Level level, const std::string &preface) {
-    dynamic_cast<LogBuffer *>(rdbuf())->setPreface(level, preface);
+    _buffer.setPreface(level, preface);
   }
 
   void setCommonPreface(const std::string &preface) {
@@ -207,22 +202,19 @@ class Logger final : public std::ostream {
     setPreface(Log::warning, preface);
   }
 
-  void EnablePreface() { dynamic_cast<LogBuffer *>(rdbuf())->EnablePreface(); }
+  void EnablePreface() { _buffer.EnablePreface(); }
 
-  void DisablePreface() {
-    dynamic_cast<LogBuffer *>(rdbuf())->DisablePreface();
-  }
+  void DisablePreface() { _buffer.DisablePreface(); }
 
  private:
+  LogBuffer _buffer;
   // at what level of detail output messages
   Log::Level _ReportLevel = Log::error;
 
   // if true, only a single processor job is executed
   bool _maverick = false;
 
-  std::string Messages() {
-    return dynamic_cast<LogBuffer *>(rdbuf())->Messages();
-  }
+  std::string Messages() { return _buffer.Messages(); }
 };
 
 /**

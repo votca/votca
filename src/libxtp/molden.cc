@@ -19,7 +19,8 @@ void Molden::writeAtoms(const Orbitals& orbitals,
 
 void Molden::writeMOs(const Orbitals& orbitals, std::ofstream& outFile) const {
   Eigen::VectorXd energies = orbitals.MOs().eigenvalues();
-  OrbReorder reorder(_reorderList, _multipliers);
+  bool fromVotcaToExternal = true;
+  OrbReorder reorder(_reorderList, _multipliers, fromVotcaToExternal);
   Eigen::MatrixXd moCoefficients = orbitals.MOs().eigenvectors();
   reorder.reorderOrbitals(moCoefficients, orbitals.SetupDftBasis());
 
@@ -182,7 +183,7 @@ std::string Molden::readMOs(Orbitals& orbitals,
   orbitals.setNumberOfAlphaElectrons(number_of_electrons);
   orbitals.setNumberOfOccupiedLevels(number_of_electrons / 2);
 
-  OrbReorder reorder(_reorderList, _multipliers, true);
+  OrbReorder reorder(_reorderList, _multipliers);
   reorder.reorderOrbitals(orbitals.MOs().eigenvectors(),
                           orbitals.SetupDftBasis());
 
@@ -207,7 +208,8 @@ void Molden::parseMoldenFile(const std::string& filename,
   std::ifstream input_file(filename);
   // Check if succesfull
   if (input_file.fail()) {
-    throw std::runtime_error("Could not open molden file.");
+    throw std::runtime_error("Could not open molden file with name: " +
+                             filename);
   }
 
   std::string line;
@@ -229,7 +231,13 @@ void Molden::parseMoldenFile(const std::string& filename,
       boost::trim(units);
       XTP_LOG(Log::error, _log)
           << "Reading atoms using " << units << " units." << std::flush;
-      line = readAtoms(orbitals.QMAtoms(), units, input_file);
+      orbitals.QMAtoms().clearAtoms();
+      if (orbitals.QMAtoms().size() == 0) {
+        line = readAtoms(orbitals.QMAtoms(), units, input_file);
+      } else {
+        throw std::runtime_error(
+            "Could not clear QMAtoms while reading Molden file.");
+      }
       addBasissetInfo(orbitals);
     } else if (sectionType == "GTO") {
       XTP_LOG(Log::error, _log)

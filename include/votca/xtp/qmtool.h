@@ -27,7 +27,7 @@
 #include <boost/format.hpp>
 
 // VOTCA includes
-#include "votca/xtp/eigen.h"
+
 #include <votca/tools/calculator.h>
 #include <votca/tools/property.h>
 
@@ -40,21 +40,8 @@ class QMTool : public tools::Calculator {
   ~QMTool() override = default;
 
   std::string Identify() override = 0;
-  void Initialize(const tools::Property& options) final {
-
-    tools::Property user_options =
-        LoadDefaultsAndUpdateWithUserOptions("xtp", options);
-    _job_name = user_options.ifExistsReturnElseReturnDefault<std::string>(
-        "job_name", _job_name);
-    ParseOptions(user_options);
-  }
-  bool Evaluate() {
-
-    OPENMP::setMaxThreads(_nThreads);
-    std::cout << " Using " << OPENMP::getMaxThreads() << " threads"
-              << std::flush;
-    return Run();
-  }
+  void Initialize(const tools::Property& options) final;
+  bool Evaluate();
 
  protected:
   virtual bool Run() = 0;

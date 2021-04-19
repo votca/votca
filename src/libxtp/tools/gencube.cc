@@ -26,6 +26,7 @@
 // VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
+#include <votca/tools/getline.h>
 
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
@@ -96,12 +97,12 @@ void GenCube::subtractCubes() {
   std::ofstream out(_output_file);
 
   // first two lines of header are garbage
-  getline(in1, s);
+  tools::getline(in1, s);
   out << s << "\n";
-  getline(in1, s);
+  tools::getline(in1, s);
   out << s << " substraction\n";
-  getline(in2, s);
-  getline(in2, s);
+  tools::getline(in2, s);
+  tools::getline(in2, s);
 
   // read rest from header
   Index natoms;

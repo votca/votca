@@ -25,8 +25,8 @@
 
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/aomatrix3d.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/orbreorder.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/vc2index.h"
 #include "votca/xtp/version.h"
@@ -74,6 +74,34 @@ std::vector<Index> Orbitals::SortEnergies() {
   return index;
 }
 
+/*
+ * Returns the density matrix relative to the ground state, for the full density
+ * use DensityMatrixFull
+ */
+Eigen::MatrixXd Orbitals::DensityMatrixWithoutGS(const QMState& state) const {
+  if (state.Type().isExciton()) {
+    std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
+    return DMAT[1] - DMAT[0];
+  } else if (state.Type().isKSState() || state.Type().isPQPState()) {
+    return DensityMatrixKSstate(state);
+  } else if (state.Type() == QMStateType::DQPstate) {
+    Eigen::MatrixXd DMATQP = DensityMatrixQuasiParticle(state);
+    if (state.StateIdx() > getHomo()) {
+      return DMATQP;
+    } else {
+      return -DMATQP;
+    }
+  } else {
+    throw std::runtime_error(
+        "DensityMatrixWithoutGS does not yet implement QMStateType:" +
+        state.Type().ToLongString());
+  }
+}
+
+/*
+ * Returns the density matrix with the ground state density, for the partial
+ * density relative to the ground state use DensityMatrixWithoutGS
+ */
 Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   if (state.isTransition()) {
     return this->TransitionDensityMatrix(state);
@@ -99,7 +127,6 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
 }
 
 // Determine ground state density matrix
-
 Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
   if (!hasMOs()) {
     throw std::runtime_error("Orbitals file does not contain MO coefficients");
@@ -107,6 +134,21 @@ Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
   Eigen::MatrixXd occstates = _mos.eigenvectors().leftCols(_occupied_levels);
   Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
   return dmatGS;
+}
+
+// Density matrix for a single KS orbital
+Eigen::MatrixXd Orbitals::DensityMatrixKSstate(const QMState& state) const {
+  if (!hasMOs()) {
+    throw std::runtime_error("Orbitals file does not contain MO coefficients");
+  }
+  if (state.Type() != QMStateType::KSstate &&
+      state.Type() != QMStateType::PQPstate) {
+    throw std::runtime_error("State:" + state.ToString() +
+                             " is not a Kohn Sham state");
+  }
+  Eigen::VectorXd KSstate = _mos.eigenvectors().col(state.StateIdx());
+  Eigen::MatrixXd dmatKS = KSstate * KSstate.transpose();
+  return dmatKS;
 }
 
 Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const {
@@ -119,7 +161,6 @@ Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const {
 }
 
 // Determine QuasiParticle Density Matrix
-
 Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(
     const QMState& state) const {
   if (state.Type() != QMStateType::DQPstate) {
@@ -567,8 +608,6 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_number_alpha_electrons, "number_alpha_electrons");
   int version;
   r(version, "version");
-  r(_mos, "mos");
-
   // Read qmatoms
   CheckpointReader molgroup = r.openChild("qmmolecule");
   _atoms.ReadFromCpt(molgroup);
@@ -578,6 +617,27 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
 
   r(_dftbasis, "dftbasis");
   r(_auxbasis, "auxbasis");
+
+  r(version, "version");
+  r(_mos, "mos");
+  if (version < 3) {
+    // clang-format off
+    std::array<Index, 49> votcaOrder_old = {
+        0,                             // s
+        0, -1, 1,                      // p
+        0, -1, 1, -2, 2,               // d
+        0, -1, 1, -2, 2, -3, 3,        // f
+        0, -1, 1, -2, 2, -3, 3, -4, 4,  // g
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,  // h
+        0, -1, 1, -2, 2, -3, 3, -4, 4,-5,5,-6,6  // i
+    };
+    // clang-format on
+
+    std::array<Index, 49> multiplier;
+    multiplier.fill(1);
+    OrbReorder ord(votcaOrder_old, multiplier);
+    ord.reorderOrbitals(_mos.eigenvectors(), this->SetupDftBasis());
+  }
 
   r(_rpamin, "rpamin");
   r(_rpamax, "rpamax");

@@ -1,9 +1,0 @@
-<basis name="G">
-  <element name="C">
-    <shell scale="1.0" type="G">
-      <constant decay="5.447178e+00">
-        <contractions factor="1.562850e-01" type="G"/>
-      </constant>
-    </shell>
-  </element>
-</basis>

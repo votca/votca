@@ -1,8 +1,46 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/xtp/commits/master>`__.
 
-Version 2021-dev
-===============
+Version 2022-dev
+================
+
+-  Updated coordinate precision (#638)
+-  Refactored energy corrections in RPA outside QPs (#577)
+-  Made SetupCptTable static (#650)
+-  using libecpint for pseudo potentials (#588)
+-  implement fchk writer (#649)
+-  Fixing BSE triplet storage (#653) (#654)
+-  added transpose to CudaMatrix (#657)
+-  generate manpage using votca_help2man (#655, #659)
+-  Fix script rst generation (#656)
+-  Clean scripts (#668)
+-  Read MO coefficients computed with orca from the molden file instead of the .gbw binary (#589)
+-  fix lxml detection in cmake (#670)
+-  extend fchk writer with option to print single KS state densities and densities relative to the ground state (#662)
+-  added a more general constructor to cudamatrix (#671)
+-  removed lapack routine for solving BSE and added GPU support (#672)
+-  changed return value from reference to a copy (#676)
+-  add CodeQL static analysis to GitHub Actions (#677)
+-  redo openmp_cuda api, correct davidson for non symmetric problems.  (#684)
+-  changed molecule in csg topology container to actual object instead of pointer (#683)
+-  remove codecov comments from inside code at PR (#686)
+-  count the number of available CPUs for autogen_mapping script (#688)
+-  fixed issue with molden file path and orca executable path (#692)
+-  Fixed bug in mapping (#690)
+-  added support for external fields in DFT (#698)
+
+Version 2021.1 (released XX.03.21)
+==================================
+
+Version 2021 (released 13.03.21)
+================================
+
+-  fix CI on rawhide (#663)
+-  add xtp_qmmm2qm to cmake install (#665)
+-  add auto-cancel workflow to GitHub Actions (#674)
+
+Version 2021-rc.1 (released 15.01.21)
+=====================================
 
 -  G0W0 rpa energies are fixed in BSE (#383)
 -  Hqp part of BSE can be separate from QP range (#388)
@@ -21,7 +59,7 @@ Version 2021-dev
 -  check that temperature is positive for KMC (#432)
 -  document cmake options and packages (#434)
 -  remove long gone MKL option for gitlab-ci (#435)
--  add documentation using Sphinx (#433)
+-  add documentation using Sphinx (#433, #615)
 -  add kokkos-based Ewald solver (#444, #446, #485)
 -  allow multiple choices for the calculator options (#442, #445)
 -  move bsecoupling defaults to xml (#451)
@@ -31,7 +69,7 @@ Version 2021-dev
 -  changed to OpenMP reductions instead of hand crafted solutions (#466,
    #471, #493)
 -  switch to GitHub Actions as CI (#467, #474, #477, #482, #500, #502,
-   #518, #549)
+   #518, #549, #637)
 -  move tutorial to its own repo (#450)
 -  removed share/packages folder (#475)
 -  copy orca \*.gbw files in eqm (#472)
@@ -72,17 +110,41 @@ Version 2021-dev
 -  Refactored calculator interface (#570)
 -  Fixed boost test deprecation warnings (#569)
 -  Refactored CUDA-OpenMP integration (#571)
+-  replaced own integrals with the libint library (#559)
 -  improved kmc output (#574)
 -  fix build on Ubuntu 16.04 (#577)
 -  use unique_ptr in factory (#581)
+-  fix QMMM with QP (#590, #591)
+-  fix bug in setCenter of AODipole (#593)
+-  extra check in orca unit test (#594)
+-  fixed atomid numbering while adding containers (#599)
+-  added tool for automatic mapping file generation (#595)
+-  Added GPU support for RPA (#601)
+-  fixed int64 interface to RDKIT (#602)
+-  remove kokkos dependent ewald (#612)
+-  fixed Sphinx warnings (#609)
+-  better error for exceeded angular momentum in libint (#613)
+-  fixed wrong QP-QMMM energy with non-zero QPmin (#620)
+-  fixed density analysis options (#627)
+-  Use libint transformation matrices (#630)
+-  Added script to extract orbitals from qmmm statefile (#629)
+-  clean up XTP app message (#631)
+-  fixed EXX 3c mode (#640)
 
-Version 1.6.3 (released XX.08.20)
+Version 1.6.4 (released 12.01.21)
+=================================
+
+-  fix build on openSUSE (#622)
+-  refactored logger (#625)
+
+Version 1.6.3 (released 09.12.20)
 =================================
 
 -  switch to ghcr.io for CI (#555)
 -  fixing Gaussian guess read keyword (#562, #563)
 -  improved kmc output (#575)
--  use master .clang-format in format action (#582)
+-  use master .clang-format in format action (#582, #584)
+-  strip windows line endings in readers (#596)
 
 Version 1.6.2 *SuperGitta* (released 22.08.20)
 =================================

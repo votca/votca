@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -30,7 +30,7 @@ namespace xtp {
 
 void ECPBasisSet::Load(const std::string& name) {
   tools::Property basis_property;
-  _name = name;
+
   // if name contains .xml, assume a ecp .xml file is located in the working
   // directory
   std::size_t found_xml = name.find(".xml");
@@ -41,7 +41,8 @@ void ECPBasisSet::Load(const std::string& name) {
     xmlFile = tools::GetVotcaShare() + "/xtp/ecps/" + name + ".xml";
   }
   basis_property.LoadFromXML(xmlFile);
-
+  _name =
+      basis_property.get("pseudopotential").getAttribute<std::string>("name");
   std::vector<tools::Property*> elementProps =
       basis_property.Select("pseudopotential.element");
 
@@ -102,6 +103,7 @@ std::ostream& operator<<(std::ostream& out, const ECPShell& shell) {
       << " Func: " << shell.getnumofFunc() << "\n";
   for (const auto& gaussian : shell._gaussians) {
     out << " Gaussian Decay: " << gaussian._decay;
+    out << " Power: " << gaussian._power;
     out << " Contraction:" << gaussian._contraction << "\n";
   }
   return out;

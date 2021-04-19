@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE gw_test
@@ -35,7 +36,7 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(gw_test)
 
 BOOST_AUTO_TEST_CASE(gw_full) {
-
+  libint2::initialize();
   Eigen::VectorXd mo_eigenvalues = Eigen::VectorXd::Zero(17);
   mo_eigenvalues << -10.6784, -0.746424, -0.394948, -0.394948, -0.394948,
       0.165212, 0.227713, 0.227713, 0.227713, 0.763971, 0.763971, 0.763971,
@@ -111,10 +112,12 @@ BOOST_AUTO_TEST_CASE(gw_full) {
     cout << ref << endl;
   }
   BOOST_CHECK_EQUAL(check_offdiag, true);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(gw_full_QP_grid) {
-
+  libint2::initialize();
   Eigen::VectorXd mo_eigenvalues = Eigen::VectorXd::Zero(17);
   mo_eigenvalues << -10.6784, -0.746424, -0.394948, -0.394948, -0.394948,
       0.165212, 0.227713, 0.227713, 0.227713, 0.763971, 0.763971, 0.763971,
@@ -191,6 +194,8 @@ BOOST_AUTO_TEST_CASE(gw_full_QP_grid) {
     cout << ref << endl;
   }
   BOOST_CHECK_EQUAL(check_offdiag, true);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

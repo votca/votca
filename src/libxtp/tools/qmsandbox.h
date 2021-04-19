@@ -44,15 +44,8 @@ class QMSandbox final : public QMTool {
 
  private:
   std::string _orbfile;
+  Logger _log;
 };
-
-void QMSandbox::ParseOptions(const tools::Property& options) {
-
-  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".orbfile", _job_name + ".orb");
-}
-
-bool QMSandbox::Run() { return true; }
 
 }  // namespace xtp
 }  // namespace votca

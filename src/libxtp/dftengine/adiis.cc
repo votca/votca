@@ -23,7 +23,7 @@
 // Local VOTCA includes
 #include "votca/xtp/adiis.h"
 #include "votca/xtp/adiis_costfunction.h"
-#include "votca/xtp/bfgs-trm.h"
+#include "votca/xtp/bfgs_trm.h"
 #include "votca/xtp/logger.h"
 
 namespace votca {

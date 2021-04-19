@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE deltaQ_filter_test
@@ -31,6 +32,7 @@ using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(deltaQ_filter_test)
 
 BOOST_AUTO_TEST_CASE(coeffs_test) {
+  libint2::initialize();
   FilterFactory::RegisterAll();
   std::unique_ptr<StateFilter_base> deltaQ =
       std::unique_ptr<StateFilter_base>(Filter().Create("chargetransfer"));
@@ -236,6 +238,8 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
 
   BOOST_REQUIRE_THROW(deltaQ->CalcIndeces(A, QMStateType::Gstate),
                       std::runtime_error);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

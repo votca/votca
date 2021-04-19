@@ -25,48 +25,13 @@
 // Local VOTCA includes
 #include "votca/xtp/aotransform.h"
 #include "votca/xtp/orbitals.h"
+#include <libint2/initialize.h>
 #include <votca/tools/eigenio_matrixmarket.h>
-
 using namespace votca::xtp;
 using namespace votca;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(aotransform_test)
-
-BOOST_AUTO_TEST_CASE(transform_test) {
-  QMAtom a(0, "C", Eigen::Vector3d::Zero());
-  QMMolecule mol("zero", 0);
-  mol.push_back(a);
-
-  BasisSet bs;
-  bs.Load(std::string(XTP_TEST_DATA_FOLDER) + "/aotransform/all.xml");
-  AOBasis basis;
-  basis.Fill(bs, mol);
-
-  std::array<Eigen::MatrixXd, 7> ref;
-
-  for (unsigned i = 0; i < ref.size(); i++) {
-    ref[i] = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-        std::string(XTP_TEST_DATA_FOLDER) + "/aotransform/ref_" +
-        std::to_string(i) + ".mm");
-  }
-
-  Index ref_index = 0;
-  for (const AOShell& shell : basis) {
-    for (const AOGaussianPrimitive& gauss : shell) {
-      Eigen::MatrixXd transform = AOTransform::getTrafo(gauss);
-      bool check_transform = ref[ref_index].isApprox(transform, 1e-5);
-      BOOST_CHECK_EQUAL(check_transform, 1);
-      if (!check_transform) {
-        std::cout << "ref " << xtp::EnumToString(shell.getL()) << std::endl;
-        std::cout << ref[ref_index] << std::endl;
-        std::cout << "result" << std::endl;
-        std::cout << transform << std::endl;
-      }
-      ref_index++;
-    }
-  }
-}
 
 BOOST_AUTO_TEST_CASE(xintegrate) {
 

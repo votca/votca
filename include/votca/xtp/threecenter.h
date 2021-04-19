@@ -22,39 +22,38 @@
 #define VOTCA_XTP_THREECENTER_H
 
 // Local VOTCA includes
+#include "aobasis.h"
 #include "eigen.h"
 #include "symmetric_matrix.h"
 
 /**
- * \brief Calculates three electron overlap integrals for GW and DFT.
+ * \brief Calculates three electron repulsion integrals for GW and DFT.
  *
  *
  *
  */
 
+namespace libint2 {
+class Engine;
+}
+
 namespace votca {
 namespace xtp {
-
-class AOShell;
-class AOBasis;
 
 // due to different requirements for the data format for DFT and GW we have two
 // different classes TCMatrix_gwbse and TCMatrix_dft which inherit from TCMatrix
 class TCMatrix {
 
  public:
+  virtual ~TCMatrix() = default;
   Index Removedfunctions() const { return _removedfunctions; }
 
  protected:
   Index _removedfunctions = 0;
   Eigen::MatrixXd _inv_sqrt;
-
-  bool FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
-                               const AOShell& shell, const AOShell& shell_row,
-                               const AOShell& shell_col) const;
 };
 
-class TCMatrix_dft : public TCMatrix {
+class TCMatrix_dft final : public TCMatrix {
  public:
   void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis);
 
@@ -71,7 +70,7 @@ class TCMatrix_dft : public TCMatrix {
                  const AOBasis& dftbasis, const AOBasis& auxbasis);
 };
 
-class TCMatrix_gwbse : public TCMatrix {
+class TCMatrix_gwbse final : public TCMatrix {
  public:
   // returns one level as a constant reference
   const Eigen::MatrixXd& operator[](Index i) const { return _matrix[i]; }
@@ -96,7 +95,7 @@ class TCMatrix_gwbse : public TCMatrix {
   void Initialize(Index basissize, Index mmin, Index mmax, Index nmin,
                   Index nmax);
 
-  void Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
+  void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
             const Eigen::MatrixXd& dft_orbitals);
   // Rebuilds ThreeCenterIntegrals, only works if the original basisobjects
   // still exist
@@ -121,11 +120,12 @@ class TCMatrix_gwbse : public TCMatrix {
   const AOBasis* _dftbasis = nullptr;
   const Eigen::MatrixXd* _dft_orbitals = nullptr;
 
-  void Fill3cMO(const AOBasis& gwbasis, const AOBasis& dftbasis,
+  void Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
                 const Eigen::MatrixXd& dft_orbitals);
 
-  std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const AOShell& auxshell,
-                                                const AOBasis& dftbasis) const;
+  std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
+                                                const AOBasis& dftbasis,
+                                                libint2::Engine& engine) const;
 };
 
 }  // namespace xtp

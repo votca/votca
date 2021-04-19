@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_XTPDFT_PRIVATE_H
-#define VOTCA_XTP_XTPDFT_PRIVATE_H
+#ifndef VOTCA_XTP_XTPDFT_H
+#define VOTCA_XTP_XTPDFT_H
 
 // Standard includes
 #include <string>
@@ -69,28 +69,32 @@ class XTPDFT : public QMPackage {
   }
 
  protected:
-  const std::array<Index, 25>& ShellMulitplier() const final {
+  const std::array<Index, 49>& ShellMulitplier() const final {
     return _multipliers;
   }
-  const std::array<Index, 25>& ShellReorder() const final {
+  const std::array<Index, 49>& ShellReorder() const final {
     return _reorderList;
   }
 
  private:
   // clang-format off
-  std::array<Index,25> _multipliers={{
+  std::array<Index,49> _multipliers={{
             1, //s
             1,1,1, //p
             1,1,1,1,1, //d
             1,1,1,1,1,1,1, //f 
-            1,1,1,1,1,1,1,1,1 //g
-            }};
-  std::array<Index,25> _reorderList={{
+            1,1,1,1,1,1,1,1,1, //g
+            1,1,1,1,1,1,1,1,1,1,1, //h
+            1,1,1,1,1,1,1,1,1,1,1,1,1 //i
+  }};
+  std::array<Index,49> _reorderList={{
             0, //s
-            0,-1,1, //p
-            0,-1,1,-2,2, //d
-            0,-1,1,-2,2,-3,3, //f 
-            0,-1,1,-2,2,-3,3,-4,4 //g
+            0,0,0, //p
+            0,0,0,0,0, //d
+            0,0,0,0,0,0,0, //f 
+            0,0,0,0,0,0,0,0,0, //g
+            0,0,0,0,0,0,0,0,0,0,0, //h
+            0,0,0,0,0,0,0,0,0,0,0,0,0, //i
             }};
   // clang-format on
 
@@ -103,4 +107,4 @@ class XTPDFT : public QMPackage {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_XTPDFT_PRIVATE_H
+#endif  // VOTCA_XTP_XTPDFT_H
