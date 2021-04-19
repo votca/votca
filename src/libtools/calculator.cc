@@ -23,14 +23,20 @@
 namespace votca {
 namespace tools {
 
-Property Calculator::LoadDefaults(const std::string package) {
+  void Calculator::DisplayOptions(std::ostream &out)const{
+return;
+
+
+  }
+
+Property Calculator::LoadDefaults() const{
 
   std::string calculator_name = Identify();
   // add default values if specified in VOTCASHARE
   std::string votca_share = GetVotcaShare();
 
   // load the xml description of the calculator (with defaults and test values)
-  std::string xmlFile = votca_share + std::string("/") + package +
+  std::string xmlFile = votca_share + std::string("/") + Package() +
                         std::string("/xml/") + calculator_name +
                         std::string(".xml");
 
@@ -40,7 +46,7 @@ Property Calculator::LoadDefaults(const std::string package) {
 }
 
 void Calculator::UpdateWithUserOptions(Property &default_options,
-                                       const Property &user_options) {
+                                       const Property &user_options) const{
 
   // copy options from the object supplied by the Application
   std::string calculator_name = Identify();
@@ -51,7 +57,7 @@ void Calculator::UpdateWithUserOptions(Property &default_options,
 }
 
 void Calculator::OverwriteDefaultsWithUserInput(const Property &p,
-                                                Property &defaults) {
+                                                Property &defaults) const{
 
   // Go through everything that is defined in user option
   for (const Property &prop : p) {
@@ -70,7 +76,7 @@ void Calculator::OverwriteDefaultsWithUserInput(const Property &p,
   }
 }
 
-std::vector<std::string> Calculator::GetPropertyChoices(const Property &p) {
+std::vector<std::string> Calculator::GetPropertyChoices(const Property &p){
   if (p.hasAttribute("choices")) {
     std::string att = p.getAttribute<std::string>("choices");
     std::size_t start_bracket = att.find('[');
@@ -85,7 +91,7 @@ std::vector<std::string> Calculator::GetPropertyChoices(const Property &p) {
   }
 }
 
-void Calculator::RecursivelyCheckOptions(const Property &p) {
+void Calculator::RecursivelyCheckOptions(const Property &p){
   for (const Property &prop : p) {
     if (prop.HasChildren()) {
       RecursivelyCheckOptions(prop);

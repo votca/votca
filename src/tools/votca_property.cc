@@ -50,7 +50,7 @@ class VotcaProperty final : public Application {
     level = 1;
 
     AddProgramOptions()("file", po::value<string>(), "xml file to parse")(
-        "format", po::value<string>(), "output format [XML TXT TEX]")(
+        "format", po::value<string>(), "output format [XML TXT]")(
         "level", po::value<votca::Index>(), "output from this level ");
   };
 

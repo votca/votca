@@ -38,7 +38,8 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
   class TestCalc : public tools::Calculator {
 
    public:
-    std::string Identify() override { return "testcalc"; }
+    std::string Identify() const override { return "testcalc"; }
+    std::string Package() const override{return "calculators";}
 
     void Initialize(const tools::Property &user_options) override {
 
@@ -69,7 +70,7 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
 
       // Load and check the options
       tools::Property final_opt =
-          LoadDefaultsAndUpdateWithUserOptions("calculators", user_options);
+          LoadDefaultsAndUpdateWithUserOptions(user_options);
 
       std::string prop0 = final_opt.get("option0").as<std::string>();
       Index prop1 = final_opt.get("option1").as<votca::Index>();
@@ -122,8 +123,8 @@ BOOST_AUTO_TEST_CASE(test_choices) {
     std::string _line;
 
    public:
-    std::string Identify() override { return "testchoices"; }
-
+    std::string Identify() const override { return "testchoices"; }
+    std::string Package() const override{return "calculators";}
     void SetOption(const std::string &line) { _line = line; }
 
     void Initialize(const tools::Property &user_options) override {
@@ -144,7 +145,7 @@ BOOST_AUTO_TEST_CASE(test_choices) {
 
       // Load and check the options
       tools::Property final_opt =
-          LoadDefaultsAndUpdateWithUserOptions("calculators", user_options);
+          LoadDefaultsAndUpdateWithUserOptions(user_options);
       std::cout << final_opt << "\n";
     }
   };
