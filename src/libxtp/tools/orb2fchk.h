@@ -36,7 +36,7 @@ class Orb2Fchk final : public QMTool {
 
   ~Orb2Fchk() = default;
 
-  std::string Identify() { return "orb2fchk"; }
+  std::string Identify() const{ return "orb2fchk"; }
 
  protected:
   void ParseOptions(const tools::Property& options);

@@ -41,7 +41,7 @@ class VAverage final : public QMCalculator {
 
   ~VAverage() = default;
 
-  std::string Identify() { return "vaverage"; }
+  std::string Identify() const{ return "vaverage"; }
   bool WriteToStateFile() const { return false; }
 
  protected:

@@ -37,7 +37,7 @@ namespace xtp {
 
 class ExcitonCoupling final : public QMTool {
  public:
-  std::string Identify() { return "excitoncoupling"; }
+  std::string Identify() const{ return "excitoncoupling"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);

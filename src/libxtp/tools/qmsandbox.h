@@ -36,7 +36,7 @@ class QMSandbox final : public QMTool {
   QMSandbox() = default;
   ~QMSandbox() = default;
 
-  std::string Identify() { return "qmsandbox"; }
+  std::string Identify() const { return "qmsandbox"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);

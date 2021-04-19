@@ -36,7 +36,7 @@ class GenCube final : public QMTool {
 
   ~GenCube() = default;
 
-  std::string Identify() { return "gencube"; }
+  std::string Identify() const{ return "gencube"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);

@@ -26,7 +26,7 @@ namespace xtp {
 void QMTool::Initialize(const tools::Property& options) {
 
   tools::Property user_options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", options);
+      LoadDefaultsAndUpdateWithUserOptions(options);
   _job_name = user_options.ifExistsReturnElseReturnDefault<std::string>(
       "job_name", _job_name);
   ParseOptions(user_options);

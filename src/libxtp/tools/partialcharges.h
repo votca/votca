@@ -39,7 +39,7 @@ class Partialcharges final : public QMTool {
   Partialcharges() = default;
   ~Partialcharges() = default;
 
-  std::string Identify() { return "partialcharges"; }
+  std::string Identify() const { return "partialcharges"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);

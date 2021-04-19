@@ -35,7 +35,7 @@ namespace xtp {
 
 class Neighborlist final : public QMCalculator {
  public:
-  std::string Identify() { return "neighborlist"; }
+  std::string Identify() const{ return "neighborlist"; }
   bool WriteToStateFile() const { return true; }
 
  protected:

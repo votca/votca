@@ -39,7 +39,7 @@ class Spectrum final : public QMTool {
 
   ~Spectrum() = default;
 
-  std::string Identify() { return "spectrum"; }
+  std::string Identify() const { return "spectrum"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);

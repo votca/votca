@@ -37,7 +37,7 @@ class Log2Mps final : public QMTool {
   Log2Mps() = default;
   ~Log2Mps() = default;
 
-  std::string Identify() { return "log2mps"; }
+  std::string Identify() const{ return "log2mps"; }
 
  protected:
   void ParseOptions(const tools::Property &user_options);

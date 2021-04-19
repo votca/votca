@@ -33,7 +33,7 @@ class EInternal final : public QMCalculator {
   EInternal() = default;
   ~EInternal() = default;
 
-  std::string Identify() { return "einternal"; }
+  std::string Identify() const{ return "einternal"; }
 
   bool WriteToStateFile() const { return true; }
 

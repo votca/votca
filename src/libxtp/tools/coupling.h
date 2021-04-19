@@ -34,7 +34,7 @@ class Coupling final : public QMTool {
   Coupling() = default;
   ~Coupling() = default;
 
-  std::string Identify() { return "coupling"; }
+  std::string Identify() const { return "coupling"; }
 
  protected:
   void ParseOptions(const tools::Property &user_options);

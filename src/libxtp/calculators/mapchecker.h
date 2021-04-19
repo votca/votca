@@ -37,7 +37,7 @@ class MapChecker final : public QMCalculator {
 
   ~MapChecker() = default;
 
-  std::string Identify() { return "mapchecker"; }
+  std::string Identify() const{ return "mapchecker"; }
   bool WriteToStateFile() const { return false; }
 
  protected:

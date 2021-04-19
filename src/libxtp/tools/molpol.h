@@ -38,7 +38,7 @@ class MolPol final : public QMTool {
 
   ~MolPol() = default;
 
-  std::string Identify() { return "molpol"; }
+  std::string Identify() const{ return "molpol"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);
