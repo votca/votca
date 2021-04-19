@@ -52,6 +52,8 @@ class JobTopology {
 
   void WriteToHdf5(std::string filename) const;
 
+  void ReadFromHdf5(std::string filename);
+
   void WriteToPdb(std::string filename) const;
 
   std::vector<std::unique_ptr<Region> >::iterator begin() {
