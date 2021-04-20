@@ -50,7 +50,7 @@ namespace tools {
  * </tag>
  * The property object can be output to an ostream using format modifiers:
  * cout << XML << property;
- * Supported formats are XML, TXT, TEX, HLP
+ * Supported formats are XML, TXT, HLP
  */
 class Property {
 
@@ -82,6 +82,7 @@ class Property {
    * @param key identifier
    * @param value value
    * @return reference to the created Property object
+   * If more than property with this name exists, return the last added one.
    */
   Property &set(const std::string &key, const std::string &value);
 
@@ -93,6 +94,7 @@ class Property {
    * This function tries to find a property specified by key separated
    * by "." to step down hierarchy. If the property is not
    * found a runtime_exception is thrown.
+   * If more than property with this name exists, return the last added one.
    */
   Property &get(const std::string &key);
   const Property &get(const std::string &key) const;
@@ -105,6 +107,7 @@ class Property {
    * This function tries to find a property specified by key separated
    * by "." to step down hierarchy. If the property is not
    * found a property with that name is added and returned.
+   * If more than property with this name exists, return the last added one.
    */
   Property &getOradd(const std::string &key);
 
@@ -114,6 +117,7 @@ class Property {
    * @return true or false
    */
   bool exists(const std::string &key) const;
+
 
   /**
    * \brief select property based on a filter
@@ -167,7 +171,7 @@ class Property {
       const std::string &key, std::vector<T> possibleReturns) const;
 
   /**
-   * \brief does the property has childs?
+   * \brief does the property have children?
    * \return true or false
    */
   bool HasChildren() const { return !_map.empty(); }
@@ -245,7 +249,7 @@ class Property {
   static Index getIOindex() { return IOindex; };
 
  private:
-  std::map<std::string, Index> _map;
+  std::map<std::string, std::vector<Index> > _map;
   std::map<std::string, std::string> _attributes;
   std::vector<Property> _properties;
 
@@ -365,11 +369,11 @@ template <typename T>
 inline T Property::getAttribute(
     std::map<std::string, std::string>::const_iterator it) const {
   if (it != _attributes.end()) {
-    return lexical_cast<T>((*it).second);
+    return lexical_cast<T>(it->second);
   } else {
     std::stringstream s;
     s << *this << std::endl;
-    throw std::runtime_error(s.str() + "attribute " + (*it).first +
+    throw std::runtime_error(s.str() + "attribute " + it->first +
                              " not found\n");
   }
 }

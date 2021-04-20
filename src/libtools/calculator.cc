@@ -23,11 +23,6 @@
 namespace votca {
 namespace tools {
 
-  void Calculator::DisplayOptions(std::ostream &out)const{
-return;
-
-
-  }
 
 Property Calculator::LoadDefaults() const{
 

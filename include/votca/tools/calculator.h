@@ -83,12 +83,6 @@ class Calculator {
     _nThreads = nThreads;
     _maverick = (_nThreads == 1) ? true : false;
   }
-  /**
-   * \brief Outputs all options of a calculator
-   *
-   * @param output stream
-   */
-  void DisplayOptions(std::ostream &out)const;
 
   /**
    * \brief Loads default options stored in VOTCASHARE

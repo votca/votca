@@ -66,7 +66,6 @@ int Application::Exec(int argc, char **argv) {
     AddProgramOptions()("verbose1", "  be very loud and noisy");
     AddProgramOptions()("verbose2,v", "  be extremly loud and noisy");
     AddProgramOptions("Hidden")("man", "  output man-formatted manual pages");
-    AddProgramOptions("Hidden")("tex", "  output tex-formatted manual pages");
 
     Initialize();  // initialize program-specific parameters
 
@@ -181,7 +180,7 @@ void Application::PrintDescription(std::ostream &out,
         calculator_options.findAttribute("help");
 
     if (atr_it != calculator_options.lastAttribute()) {
-      help_string = (*atr_it).second;
+      help_string = atr_it->second;
     } else {
       if (Log::current_level > 0) {
         out << _format % calculator_name % "Undocumented";
@@ -196,8 +195,8 @@ void Application::PrintDescription(std::ostream &out,
         out << _format % calculator_name % help_string;
         break;
       case HelpLong:
-        votca::tools::PropertyIOManipulator iom(
-            votca::tools::PropertyIOManipulator::HLP, 2, "");
+        PropertyIOManipulator iom(
+            PropertyIOManipulator::HLP, 2, "");
         out << iom << options;
         break;
     }

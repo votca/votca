@@ -50,7 +50,7 @@ const Property &Property::get(const string &key) const {
   }
 
   const Property *p;
-  map<string, Index>::const_iterator iter;
+  std::map<string, std::vector<Index>>::const_iterator iter;
   if (*n == "") {
     p = this;
   } else {
@@ -58,7 +58,7 @@ const Property &Property::get(const string &key) const {
     if (iter == _map.end()) {
       throw std::runtime_error("property not found: " + key);
     }
-    p = &_properties[((*iter).second)];
+    p = &_properties[(iter->second).back()];
   }
   ++n;
   try {
@@ -73,6 +73,10 @@ const Property &Property::get(const string &key) const {
   return *p;
 }
 
+Property &Property::get(const string &key) {
+  return const_cast<Property &>(static_cast<const Property &>(*this).get(key));
+}
+
 Property &Property::set(const std::string &key, const std::string &value) {
   Property &p = get(key);
   p.value() = value;
@@ -85,17 +89,12 @@ Property &Property::add(const std::string &key, const std::string &value) {
     path = path + ".";
   }
   _properties.push_back(Property(key, value, path + _name));
-  _map[key] = Index(_properties.size()) - 1;
+  _map[key].push_back(Index(_properties.size()) - 1);
   return _properties.back();
 }
 
 bool Property::hasAttribute(const std::string &attribute) const {
-  std::map<std::string, std::string>::const_iterator it;
-  it = _attributes.find(attribute);
-  if (it == _attributes.end()) {
-    return false;
-  }
-  return true;
+  return _attributes.find(attribute) != _attributes.end();
 }
 
 bool Property::exists(const std::string &key) const {
@@ -121,7 +120,7 @@ void FixPath(tools::Property &prop, std::string path) {
 void Property::add(const Property &other) {
 
   _properties.push_back(other);
-  _map[other.name()] = Index(_properties.size()) - 1;
+  _map[other.name()].push_back(Index(_properties.size()) - 1);
 
   std::string path = _path;
   if (path != "") {
@@ -131,9 +130,7 @@ void Property::add(const Property &other) {
   FixPath(_properties.back(), path);
 }
 
-Property &Property::get(const string &key) {
-  return const_cast<Property &>(static_cast<const Property &>(*this).get(key));
-}
+
 
 Property &Property::getOradd(const std::string &key) {
   if (exists(key)) {
@@ -151,18 +148,19 @@ std::vector<const Property *> Property::Select(const string &filter) const {
   }
   selection.push_back(this);
   for (const auto &n : tok) {
-    std::vector<const Property *> childs;
+    std::vector<const Property *> children;
     for (const Property *p : selection) {
-      for (const Property &s : p->_properties) {
-        if (wildcmp(n, s.name())) {
-          childs.push_back(&s);
+      for (const Property &child : *p) {
+        if (wildcmp(n, child.name())) {
+          children.push_back(&child);
         }
       }
     }
-    selection = childs;
+    selection = children;
   }
   return selection;
 }
+
 
 std::vector<Property *> Property::Select(const string &filter) {
   Tokenizer tok(filter, ".");
@@ -172,15 +170,15 @@ std::vector<Property *> Property::Select(const string &filter) {
   }
   selection.push_back(this);
   for (const auto &n : tok) {
-    std::vector<Property *> childs;
+    std::vector<Property *> children;
     for (Property *p : selection) {
-      for (Property &s : p->_properties) {
-        if (wildcmp(n, s.name())) {
-          childs.push_back(&s);
+      for (Property &child : *p) {
+        if (wildcmp(n, child.name())) {
+          children.push_back(&child);
         }
       }
     }
-    selection = childs;
+    selection = children;
   }
   return selection;
 }
