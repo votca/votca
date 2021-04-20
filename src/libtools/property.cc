@@ -148,15 +148,15 @@ std::vector<const Property *> Property::Select(const string &filter) const {
   }
   selection.push_back(this);
   for (const auto &n : tok) {
-    std::vector<const Property *> children;
+    std::vector<const Property *> selected;
     for (const Property *p : selection) {
       for (const Property &child : *p) {
         if (wildcmp(n, child.name())) {
-          children.push_back(&child);
+          selected.push_back(&child);
         }
       }
     }
-    selection = children;
+    selection = selected;
   }
   return selection;
 }
@@ -170,15 +170,15 @@ std::vector<Property *> Property::Select(const string &filter) {
   }
   selection.push_back(this);
   for (const auto &n : tok) {
-    std::vector<Property *> children;
+    std::vector<Property *> selected;
     for (Property *p : selection) {
       for (Property &child : *p) {
         if (wildcmp(n, child.name())) {
-          children.push_back(&child);
+          selected.push_back(&child);
         }
       }
     }
-    selection = children;
+    selection = selected;
   }
   return selection;
 }

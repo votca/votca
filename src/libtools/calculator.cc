@@ -108,7 +108,6 @@ void Calculator::RecursivelyCheckOptions(const Property &p){
           }
           oss << " But \"" << prop.value()
               << "\" cannot be converted into one.\n";
-          std::cout << oss.str();
           throw std::runtime_error(oss.str());
         }
       }
