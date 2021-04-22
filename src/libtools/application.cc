@@ -195,8 +195,7 @@ void Application::PrintDescription(std::ostream &out,
         out << format % calculator_name % help_string;
         break;
       case HelpLong:
-        PropertyIOManipulator iom(
-            PropertyIOManipulator::HLP, 2, "");
+        PropertyIOManipulator iom(PropertyIOManipulator::HLP, 2, "");
         out << iom << options;
         break;
     }

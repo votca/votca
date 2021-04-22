@@ -25,6 +25,7 @@ foreach(PROG
     test_linalg
     test_name
     test_objectfactory
+    test_optionshandler
     test_property
     test_reducededge
     test_reducedgraph

@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(load_defaults_test) {
 
    public:
     std::string Identify() const override { return "testcalc"; }
-    std::string Package() const override{return "calculators";}
+    std::string Package() const override { return "calculators"; }
 
     void Initialize(const tools::Property &user_options) override {
 
@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(test_choices) {
 
    public:
     std::string Identify() const override { return "testchoices"; }
-    std::string Package() const override{return "calculators";}
+    std::string Package() const override { return "calculators"; }
     void SetOption(const std::string &line) { _line = line; }
 
     void Initialize(const tools::Property &user_options) override {

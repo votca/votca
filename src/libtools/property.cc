@@ -130,8 +130,6 @@ void Property::add(const Property &other) {
   FixPath(_properties.back(), path);
 }
 
-
-
 Property &Property::getOradd(const std::string &key) {
   if (exists(key)) {
     return get(key);
@@ -160,7 +158,6 @@ std::vector<const Property *> Property::Select(const string &filter) const {
   }
   return selection;
 }
-
 
 std::vector<Property *> Property::Select(const string &filter) {
   Tokenizer tok(filter, ".");

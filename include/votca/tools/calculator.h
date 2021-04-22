@@ -52,15 +52,15 @@ class Calculator {
    */
   virtual std::string Identify() const = 0;
 
-    /**
+  /**
    * \brief Package name
    *
-   * This name is the name of the package the calculator belongs to, e.g. csg, xtp, etc..
+   * This name is the name of the package the calculator belongs to, e.g. csg,
+   * xtp, etc..
    *
    * @return Package name
    */
   virtual std::string Package() const = 0;
-
 
   /**
    * \brief Initializes a calculator from an XML file with options
@@ -97,14 +97,15 @@ class Calculator {
    * a tag is created and/or a default value is assigned to it
    */
   void UpdateWithUserOptions(Property &default_options,
-                             const Property &user_options)const;
+                             const Property &user_options) const;
 
   /**
    * \brief Load the default options and merge them with the user input
    *
    * Defaults are overwritten with user input
    */
-  Property LoadDefaultsAndUpdateWithUserOptions(const Property &user_options) const{
+  Property LoadDefaultsAndUpdateWithUserOptions(
+      const Property &user_options) const {
     Property defaults = LoadDefaults();
     InjectDefaultsAsValues(defaults);
     Property user_options_with_defaults = user_options;
@@ -118,7 +119,8 @@ class Calculator {
   Index _nThreads;
   bool _maverick;
 
-  void OverwriteDefaultsWithUserInput(const Property &p, Property &defaults)const;
+  void OverwriteDefaultsWithUserInput(const Property &p,
+                                      Property &defaults) const;
   // Copy the defaults into the value
   static void InjectDefaultsAsValues(Property &defaults);
   static void RecursivelyCheckOptions(const Property &p);

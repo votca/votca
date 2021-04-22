@@ -118,7 +118,6 @@ class Property {
    */
   bool exists(const std::string &key) const;
 
-
   /**
    * \brief select property based on a filter
    * @param filter
