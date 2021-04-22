@@ -42,7 +42,7 @@ class JobCalculator : public tools::Calculator {
   ~JobCalculator() override = default;
 
   std::string Identify() const override = 0;
-  std::string Package() const final {return "xtp";}
+  std::string Package() const final { return "xtp"; }
   bool EvaluateFrame(const Topology &top) { return Evaluate(top); }
 
   void Initialize(const tools::Property &opt) final {

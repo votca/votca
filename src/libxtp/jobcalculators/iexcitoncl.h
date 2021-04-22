@@ -45,7 +45,7 @@ namespace xtp {
 
 class IEXCITON final : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  std::string Identify() const{ return "iexcitoncl"; }
+  std::string Identify() const { return "iexcitoncl"; }
 
   Job::JobResult EvalJob(const Topology &top, Job &job, QMThread &opThread);
 

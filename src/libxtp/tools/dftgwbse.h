@@ -37,7 +37,7 @@ class DftGwBse final : public QMTool {
 
   ~DftGwBse() = default;
 
-  std::string Identify() const{ return "dftgwbse"; }
+  std::string Identify() const { return "dftgwbse"; }
 
  protected:
   void ParseOptions(const tools::Property &user_options);

@@ -37,7 +37,7 @@ namespace xtp {
 
 class QMMM final : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  std::string Identify() const{ return "qmmm"; }
+  std::string Identify() const { return "qmmm"; }
   Job::JobResult EvalJob(const Topology& top, Job& job, QMThread& Thread);
   void WriteJobFile(const Topology& top);
   void ReadJobFile(Topology& top);

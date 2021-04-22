@@ -35,9 +35,6 @@ class XtpParallel : public xtp::JobApplication {
 
   void Initialize() override;
   bool EvaluateOptions() override;
-
- private:
-  // void    PrintDescription(string name, HelpOutputType _help_output_type);
 };
 
 namespace propt = boost::program_options;

@@ -36,7 +36,7 @@ namespace xtp {
 
 class DensityAnalysis final : public QMTool {
  public:
-  std::string Identify() const{ return "densityanalysis"; }
+  std::string Identify() const { return "densityanalysis"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);

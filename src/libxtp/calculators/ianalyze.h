@@ -31,7 +31,7 @@ namespace xtp {
 
 class IAnalyze final : public QMCalculator {
  public:
-  std::string Identify() const{ return "ianalyze"; }
+  std::string Identify() const { return "ianalyze"; }
   bool WriteToStateFile() const { return false; }
 
  protected:

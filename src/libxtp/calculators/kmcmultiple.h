@@ -33,7 +33,7 @@ class KMCMultiple final : public KMCCalculator {
   KMCMultiple() = default;
   ~KMCMultiple() = default;
   bool WriteToStateFile() const { return false; }
-  std::string Identify() const{ return "kmcmultiple"; }
+  std::string Identify() const { return "kmcmultiple"; }
 
  protected:
   void ParseSpecificOptions(const tools::Property& user_options);

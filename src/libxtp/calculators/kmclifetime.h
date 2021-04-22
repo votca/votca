@@ -30,7 +30,7 @@ class KMCLifetime final : public KMCCalculator {
   KMCLifetime() = default;
   ~KMCLifetime() = default;
   bool WriteToStateFile() const { return false; }
-  std::string Identify() const{ return "kmclifetime"; }
+  std::string Identify() const { return "kmclifetime"; }
 
  protected:
   void ParseSpecificOptions(const tools::Property& user_options);

@@ -36,7 +36,7 @@ class QMCalculator : public tools::Calculator {
 
   std::string Identify() const override = 0;
 
-  std::string Package() const final {return "xtp";}
+  std::string Package() const final { return "xtp"; }
 
   virtual bool WriteToStateFile() const = 0;
 

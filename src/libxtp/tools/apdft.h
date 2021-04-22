@@ -33,7 +33,7 @@ class APDFT final : public QMTool {
   APDFT() = default;
 
   ~APDFT() = default;
-  std::string Identify() const{ return "apdft"; }
+  std::string Identify() const { return "apdft"; }
 
  protected:
   void ParseOptions(const tools::Property &user_options);

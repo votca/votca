@@ -40,7 +40,7 @@ class QMTool : public tools::Calculator {
   ~QMTool() override = default;
 
   std::string Identify() const override = 0;
-  std::string Package() const final {return "xtp";}
+  std::string Package() const final { return "xtp"; }
   void Initialize(const tools::Property& options) final;
   bool Evaluate();
 
