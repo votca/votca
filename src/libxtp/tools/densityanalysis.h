@@ -55,7 +55,7 @@ void DensityAnalysis::ParseOptions(const tools::Property& options) {
   _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".input", _job_name + ".orb");
 
-  _gyration_options = options.get(".density2gyration");
+  _gyration_options = options;
 }
 
 bool DensityAnalysis::Run() {

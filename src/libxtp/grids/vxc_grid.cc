@@ -29,7 +29,7 @@ namespace xtp {
 void Vxc_Grid::SortGridpointsintoBlocks(
     const std::vector<std::vector<GridContainers::Cartesian_gridpoint> >&
         grid) {
-  const double boxsize = 1;  // 1 bohr
+  constexpr double boxsize = 1;  // 1 bohr
 
   Eigen::Array3d min =
       Eigen::Array3d::Ones() * std::numeric_limits<double>::max();
