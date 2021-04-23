@@ -19,9 +19,11 @@
 
 // Local VOTCA includes
 #include "votca/xtp/vxc_grid.h"
+#include "votca/tools/NDimVector.h"
 #include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/radial_euler_maclaurin_rule.h"
 #include "votca/xtp/sphere_lebedev_rule.h"
+#include <votca/tools/NDimVector.h>
 
 namespace votca {
 namespace xtp {
@@ -48,37 +50,17 @@ void Vxc_Grid::SortGridpointsintoBlocks(
   Eigen::Array<Index, 3, 1> numberofboxes =
       (molextension / boxsize).ceil().cast<Index>();
 
-  std::vector<std::vector<
-      std::vector<std::vector<const GridContainers::Cartesian_gridpoint*> > > >
-      boxes;
-  // creating temparray
-  for (Index i = 0; i < numberofboxes.x(); i++) {
-    std::vector<
-        std::vector<std::vector<const GridContainers::Cartesian_gridpoint*> > >
-        boxes_yz;
-    for (Index j = 0; j < numberofboxes.y(); j++) {
-      std::vector<std::vector<const GridContainers::Cartesian_gridpoint*> >
-          boxes_z;
-      for (Index k = 0; k < numberofboxes.z(); k++) {
-        std::vector<const GridContainers::Cartesian_gridpoint*> box;
-        box.reserve(100);
-        boxes_z.push_back(box);
-      }
-      boxes_yz.push_back(boxes_z);
-    }
-    boxes.push_back(boxes_yz);
-  }
+  
+  tools::NDimVector<std::vector<const GridContainers::Cartesian_gridpoint*>,3> boxes(numberofboxes.x(),numberofboxes.y(),numberofboxes.z());
 
   for (const auto& atomgrid : grid) {
     for (const auto& gridpoint : atomgrid) {
       Eigen::Array3d pos = gridpoint.grid_pos - min.matrix();
       Eigen::Array<Index, 3, 1> index = (pos / boxsize).floor().cast<Index>();
-      boxes[index.x()][index.y()][index.z()].push_back(&gridpoint);
+      boxes(index.x(),index.y(),index.z()).push_back(&gridpoint);
     }
   }
-  for (auto& boxes_xy : boxes) {
-    for (auto& boxes_z : boxes_xy) {
-      for (auto& box : boxes_z) {
+  for (auto& box : boxes) {
         if (box.empty()) {
           continue;
         }
@@ -88,8 +70,6 @@ void Vxc_Grid::SortGridpointsintoBlocks(
         }
         _grid_boxes.push_back(gridbox);
       }
-    }
-  }
   return;
 }
 
