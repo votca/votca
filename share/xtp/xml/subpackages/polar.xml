@@ -1,0 +1,6 @@
+<polar help="Options for the electrostatic interaction">
+  <tolerance_energy help="Energy change as convergence criterion" default="1e-5"/>
+  <tolerance_dipole help="Field change as convergence criterion" default="1e-5"/>
+  <max_iter help="Maximum number of iterations" default="500"/>
+  <exp_damp help="Thole sharpness parameter" default="0.39"/>
+</polar>

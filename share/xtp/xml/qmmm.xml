@@ -5,8 +5,6 @@
     <max_iterations help="max iterations for qmmm scf loop" default="100" choices="int+"/>
     <map_file help="xml file with segment definition" default="votca_map.xml"/>
     <job_file help="name of jobfile to which jobs are written" default="qmmm_jobs.xml"/>
-    <write_parse>
-      <states help="states to write jobs for and which to parse from jobfile" default="n e h"/>
-    </write_parse>
+    <write_parse_states help="states to write jobs for and which to parse from jobfile" default="n e h"/>
   </qmmm>
 </options>

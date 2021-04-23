@@ -6,13 +6,7 @@
     <basisset help="Basis set for MOs" default="def2-tzvp"/>
     <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp"/>
     <functional help="Functional name(s) according to LIBXC" default="XC_HYB_GGA_XC_PBEH"/>
-    <dftpackage>
-      <package>
-        <name help="Name of the DFT package" default="xtp" choices="xtp,orca">xtp</name>
-        <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool"/>
-        <use_external_field help="whether or not to use an external field in the dft calculation" default="false" choices="bool"/>
-        <externalfield help="Field in atomic units used if the use external field flag is true" default="0.0 0.0 0.0"/>
-      </package>
+    <dftpackage link="dftpackage.xml"/>
     </dftpackage>
     <use_mpsfile help="check for MPS file with external multipoles for embedding" default="false" choices="bool"/>
     <mpsfile help="MPS file to read from if use_mpsfile"/>

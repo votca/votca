@@ -40,7 +40,7 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
   _regions_def = options.get(".regions");
   _regions_def.add("mapfile", _mapfile);
 
-  std::string states = options.get(".write_parse.states").as<std::string>();
+  std::string states = options.get(".write_parse_states").as<std::string>();
   tools::Tokenizer tok(states, " ,;\n\t");
   std::vector<std::string> statestrings = tok.ToVector();
   _states.reserve(statestrings.size());
