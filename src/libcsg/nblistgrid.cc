@@ -18,6 +18,7 @@
 // Local VOTCA includes
 #include "votca/csg/nblistgrid.h"
 #include "votca/csg/topology.h"
+#include "votca/tools/NDimVector.h"
 
 namespace votca {
 namespace csg {
@@ -94,7 +95,7 @@ void NBListGrid::InitializeGrid(const Eigen::Matrix3d &box) {
   _norm_b = _norm_b / _box_b.dot(_norm_b) * (double)_box_Nb;
   _norm_c = _norm_c / _box_c.dot(_norm_c) * (double)_box_Nc;
 
-  _grid.resize(_box_Na * _box_Nb * _box_Nc);
+_grid=tools::NDimVector<cell_t, 3>(_box_Na , _box_Nb ,_box_Nc);
 
   Index a1, a2, b1, b2, c1, c2;
 
@@ -126,17 +127,17 @@ void NBListGrid::InitializeGrid(const Eigen::Matrix3d &box) {
   for (Index a = _box_Na; a < 2 * _box_Na; ++a) {
     for (Index b = _box_Nb; b < 2 * _box_Nb; ++b) {
       for (Index c = _box_Nc; c < 2 * _box_Nc; ++c) {
-        cell_t &cell = getCell(a % _box_Na, b % _box_Nb, c % _box_Nc);
+        cell_t &cell = _grid(a % _box_Na, b % _box_Nb, c % _box_Nc);
         for (Index aa = a + a1; aa <= a + a2; ++aa) {
           for (Index bb = b + b1; bb <= b + b2; ++bb) {
             for (Index cc = c + c1; cc <= c + c2; ++cc) {
               cell_t *cell2 =
-                  &getCell(aa % _box_Na, bb % _box_Nb, cc % _box_Nc);
+                  &_grid(aa % _box_Na, bb % _box_Nb, cc % _box_Nc);
               if (cell2 == &cell) {
                 continue;  // ignore self
               }
               cell._neighbours.push_back(
-                  &getCell(aa % _box_Na, bb % _box_Nb, cc % _box_Nc));
+                  &_grid(aa % _box_Na, bb % _box_Nb, cc % _box_Nc));
             }
           }
         }
@@ -165,8 +166,9 @@ NBListGrid::cell_t &NBListGrid::getCell(const Eigen::Vector3d &r) {
   }
   c %= _box_Nc;
 
-  return getCell(a, b, c);
+  return _grid(a, b, c);
 }
+
 
 void NBListGrid::TestBead(const Topology &top, NBListGrid::cell_t &cell,
                           Bead *bead) {

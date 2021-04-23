@@ -26,6 +26,7 @@
 
 // Local VOTCA includes
 #include "nblist.h"
+#include "votca/tools/NDimVector.h"
 
 namespace votca {
 namespace csg {
@@ -46,7 +47,7 @@ class NBListGrid : public NBList {
   Eigen::Vector3d _norm_a, _norm_b, _norm_c;
   Index _box_Na, _box_Nb, _box_Nc;
 
-  std::vector<cell_t> _grid;
+  tools::NDimVector<cell_t, 3> _grid;
 
   void InitializeGrid(const Eigen::Matrix3d &box);
 
@@ -57,10 +58,7 @@ class NBListGrid : public NBList {
   void TestCell(const Topology &top, cell_t &cell, Bead *bead);
 };
 
-inline NBListGrid::cell_t &NBListGrid::getCell(const Index &a, const Index &b,
-                                               const Index &c) {
-  return _grid[a + _box_Na * b + _box_Na * _box_Nb * c];
-}
+
 
 }  // namespace csg
 }  // namespace votca
