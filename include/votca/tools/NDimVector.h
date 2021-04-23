@@ -89,6 +89,12 @@ class NDimVector {
   template <typename... IndexTypes>
   T& operator()(Index firstDimension, IndexTypes... otherDimensions) {
     return storage_[linearIndex(firstDimension, otherDimensions...)];
+    static_assert((sizeof...(otherDimensions) + 1 == dim_),
+                  "Number of dimensions given does not match rank");
+    std::array<Index, dim_> indices = {firstDimension, otherDimensions...};
+    Index linear_index =
+        std::inner_product(indices.begin(), indices.end(), offsets_.begin(), 0);
+    return storage_[linear_index];
   }
 
   template <typename... IndexTypes>
