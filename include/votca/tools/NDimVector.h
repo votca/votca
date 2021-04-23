@@ -22,6 +22,7 @@
 
 // Standard includes
 #include "types.h"
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <numeric>
@@ -44,8 +45,27 @@ class NDimVector {
 
   static constexpr int dim_ = dim;
 
+  template <typename... IndexTypes>
+  Index linearIndex(Index firstDimension, IndexTypes... otherDimensions) const {
+    static_assert((sizeof...(otherDimensions) + 1 == dim_),
+                  "Number of dimensions given does not match rank");
+    std::array<Index, dim_> indices = {firstDimension, otherDimensions...};
+    assert(std::all_of(indices.begin(), indices.end(),
+                       [](Index size) { return size >= 0; }) &&
+           "All indeces must be non-negative");
+    assert(std::equal(indices.begin(), indices.end(), dimensions_.begin(),
+                      [](Index index, Index dimension) {
+                        return index < dimension;
+                      }) &&
+           "All indeces must be smaller than dimension");
+    return std::inner_product(indices.begin(), indices.end(), offsets_.begin(),
+                              0);
+  }
+
  public:
   constexpr Index rank() { return dimensions_.size(); }
+
+  NDimVector() = default;
 
   template <typename... IndexTypes>
   NDimVector(Index firstDimension, IndexTypes... otherDimensions) {
@@ -55,32 +75,26 @@ class NDimVector {
                   "Number of dimensions given does not match rank");
     dimensions_ = {firstDimension, otherDimensions...};
 
+    assert(std::all_of(dimensions_.begin(), dimensions_.end(),
+                       [](Index size) { return size >= 0; }) &&
+           "All dimensions must be larger 0");
     Index size = std::accumulate(dimensions_.begin(), dimensions_.end(), 1,
                                  std::multiplies<Index>());
     storage_.resize(size);
     offsets_[0] = 1;
     std::partial_sum(dimensions_.begin(), dimensions_.end() - 1,
                      offsets_.begin() + 1, std::multiplies<Index>());
-   
   }
 
   template <typename... IndexTypes>
   T& operator()(Index firstDimension, IndexTypes... otherDimensions) {
-    static_assert((sizeof...(otherDimensions) + 1 == dim_),
-                  "Number of dimensions given does not match rank");
-    std::array<Index, dim_> indices = {firstDimension, otherDimensions...};
-    Index linear_index=std::inner_product(indices.begin(),indices.end(),offsets_.begin(),0);
-    return storage_[linear_index];
+    return storage_[linearIndex(firstDimension, otherDimensions...)];
   }
 
   template <typename... IndexTypes>
   const T& operator()(Index firstDimension,
                       IndexTypes... otherDimensions) const {
-    static_assert((sizeof...(otherDimensions) + 1 == dim_),
-                  "Number of dimensions given does not match rank");
-    std::array<Index, dim_> indices = {firstDimension, otherDimensions...};
-    Index linear_index=std::inner_product(indices.begin(),indices.end(),offsets_.begin(),0);
-    return storage_[linear_index];
+    return storage_[linearIndex(firstDimension, otherDimensions...)];
   }
 
   Index dimension(Index i) const { return dimensions_[i]; }

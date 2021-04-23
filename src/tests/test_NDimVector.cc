@@ -47,6 +47,13 @@ a(0,1,3)=4;
 int sum=std::accumulate(a.begin(),a.end(),0);
 BOOST_CHECK_EQUAL(sum, 6);
 
+BOOST_CHECK_EQUAL(a(0,1,3),4);
+
+NDimVector<std::vector<int>,3> b(2,3,4);
+b(0,2,2).push_back(1);
+
+
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()
