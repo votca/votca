@@ -1,6 +1,43 @@
 <dftpackage>
-        <name help="Name of the DFT package" default="xtp" choices="xtp,orca">xtp</name>
-        <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool"/>
-        <use_external_field help="whether or not to use an external field in the dft calculation" default="false" choices="bool"/>
-        <externalfield help="Field in atomic units used if the use external field flag is true" default="0.0 0.0 0.0"/>
+  <name help="Name of the DFT package" default="xtp" choices="xtp,orca" />
+  <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool" />
+  <charge help="Molecular charge" default="0" choices="int" />
+  <spin help="Molecular multiplicity" default="1" choices="int+" />
+  <basisset help="Basis set for MOs" default="def2-tzvp" />
+  <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool" />
+  <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp" />
+  <use_external_field help="whether or not to use an external field in the dft calculation" default="false" choices="bool" />
+  <externalfield help="Field in atomic units used if the use ext. field flag is true" unit="Hartree/bohr" default="0.0 0.0 0.0" />
+  <use_ecp help="use an Effective Core Potentials for DFT Calculations" default="false" choices="bool" />
+  <optimize help="Perform a molecular geometry optimization" default="false" choices="bool" />
+  <functional help="Exchange correlation functional used. You can also specify an exchange and a correlation functional" default="XC_HYB_GGA_XC_PBEH" />
+  <scratch help="path to the scratch folder" default="/tmp/qmpackage" />
+  <polarization help="Calculate polarisation" default="false" choices="bool" />
+  <dipole_spacing help="Spacing for splitting multipoles into charges" default="0.1" choices="float+" unit="bohr" />
+  <read_guess help="Read wave function guess" default="false" choices="bool" />
+  <write_charges help="Print atomic charges" default="false" choices="bool" />
+  <convergence_tightness help="How accurate the dft self-consistency has to be fullfilled" default="tight" choices="low,normal,tight,verytight" />
+  <cleanup help="files to remove after the calculation is done. Specify the fileextensions" default="" />
+  <orca help="orca specific keywords can be added here" />
+  <xtpdft help="xtpdft specific keywords can be added here">
+    <with_screening help="screening" default="true" choices="bool" />
+    <use_external_density help="whether or not to use a precomputed external density" default="false" choices="bool" />
+    <screening_eps help="screening eps" default="1e-9" choices="float+" />
+    <four_center_method help="method to compute the four-center integrals" default="direct" choices="direct,RI" />
+    <convergence>
+      <energy help="DeltaE at which calculation is converged" unit="hartree" choices="float+" default="1E-7" />
+      <method help="Main method to use for convergence accelertation" choices="DIIS,mixing" default="DIIS" />
+      <DIIS_start help="DIIS error at which DIIS takes over" default="0.002" choices="float+" />
+      <ADIIS_start help="DIIS error at which ADIIS takes over" default="0.8" choices="float+" />
+      <DIIS_length help="old hamiltonians to keep in history" default="20" choices="int+" />
+      <DIIS_maxout help="if true remove the maximum element in the history if DIIS_length is exceeded.Otherwise, the oldest element is removed." default="false" choices="bool" />
+      <levelshift help="levelshift to apply to hamiltonian " unit="hartree" default="0.0" choices="float+" />
+      <levelshift_end help="DIIS error at levelshifting is disabled" default="0.2" choices="float+" />
+      <max_iterations help="max iterations to use" default="100" choices="int+" />
+      <error help="convergence error" default="1e-7" choices="float+" />
+      <mixing help="mixing parameter for linear mixing of density matrices" default="0.7" choices="float+" />
+    </convergence>
+    <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities)" default="atom" choices="independent,atom" />
+    <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
+  </xtpdft>
 </dftpackage>
