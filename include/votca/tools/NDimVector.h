@@ -61,7 +61,6 @@ class NDimVector {
     offsets_[0] = 1;
     std::partial_sum(dimensions_.begin(), dimensions_.end() - 1,
                      offsets_.begin() + 1, std::multiplies<Index>());
-   
   }
 
   template <typename... IndexTypes>
@@ -69,7 +68,8 @@ class NDimVector {
     static_assert((sizeof...(otherDimensions) + 1 == dim_),
                   "Number of dimensions given does not match rank");
     std::array<Index, dim_> indices = {firstDimension, otherDimensions...};
-    Index linear_index=std::inner_product(indices.begin(),indices.end(),offsets_.begin(),0);
+    Index linear_index =
+        std::inner_product(indices.begin(), indices.end(), offsets_.begin(), 0);
     return storage_[linear_index];
   }
 
@@ -79,7 +79,8 @@ class NDimVector {
     static_assert((sizeof...(otherDimensions) + 1 == dim_),
                   "Number of dimensions given does not match rank");
     std::array<Index, dim_> indices = {firstDimension, otherDimensions...};
-    Index linear_index=std::inner_product(indices.begin(),indices.end(),offsets_.begin(),0);
+    Index linear_index =
+        std::inner_product(indices.begin(), indices.end(), offsets_.begin(), 0);
     return storage_[linear_index];
   }
 

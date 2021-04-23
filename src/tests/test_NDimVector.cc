@@ -35,18 +35,16 @@ BOOST_AUTO_TEST_SUITE(ndimvector_test)
 
 BOOST_AUTO_TEST_CASE(constructor) {
 
-NDimVector<int, 3> a(1,3,4);
-BOOST_CHECK_EQUAL(a.dimension(0), 1);
-BOOST_CHECK_EQUAL(a.dimension(1), 3);
-BOOST_CHECK_EQUAL(a.dimension(2), 4);
-BOOST_CHECK_EQUAL(a.size(), 12);
+  NDimVector<int, 3> a(1, 3, 4);
+  BOOST_CHECK_EQUAL(a.dimension(0), 1);
+  BOOST_CHECK_EQUAL(a.dimension(1), 3);
+  BOOST_CHECK_EQUAL(a.dimension(2), 4);
+  BOOST_CHECK_EQUAL(a.size(), 12);
 
-
-a(0,1,2)=2;
-a(0,1,3)=4;
-int sum=std::accumulate(a.begin(),a.end(),0);
-BOOST_CHECK_EQUAL(sum, 6);
-
+  a(0, 1, 2) = 2;
+  a(0, 1, 3) = 4;
+  int sum = std::accumulate(a.begin(), a.end(), 0);
+  BOOST_CHECK_EQUAL(sum, 6);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
