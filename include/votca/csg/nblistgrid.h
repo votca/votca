@@ -58,8 +58,6 @@ class NBListGrid : public NBList {
   void TestCell(const Topology &top, cell_t &cell, Bead *bead);
 };
 
-
-
 }  // namespace csg
 }  // namespace votca
 
