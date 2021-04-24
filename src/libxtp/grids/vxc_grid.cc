@@ -50,26 +50,26 @@ void Vxc_Grid::SortGridpointsintoBlocks(
   Eigen::Array<Index, 3, 1> numberofboxes =
       (molextension / boxsize).ceil().cast<Index>();
 
-  
-  tools::NDimVector<std::vector<const GridContainers::Cartesian_gridpoint*>,3> boxes(numberofboxes.x(),numberofboxes.y(),numberofboxes.z());
+  tools::NDimVector<std::vector<const GridContainers::Cartesian_gridpoint*>, 3>
+      boxes(numberofboxes.x(), numberofboxes.y(), numberofboxes.z());
 
   for (const auto& atomgrid : grid) {
     for (const auto& gridpoint : atomgrid) {
       Eigen::Array3d pos = gridpoint.grid_pos - min.matrix();
       Eigen::Array<Index, 3, 1> index = (pos / boxsize).floor().cast<Index>();
-      boxes(index.x(),index.y(),index.z()).push_back(&gridpoint);
+      boxes(index.x(), index.y(), index.z()).push_back(&gridpoint);
     }
   }
   for (auto& box : boxes) {
-        if (box.empty()) {
-          continue;
-        }
-        GridBox gridbox;
-        for (const auto& point : box) {
-          gridbox.addGridPoint(*point);
-        }
-        _grid_boxes.push_back(gridbox);
-      }
+    if (box.empty()) {
+      continue;
+    }
+    GridBox gridbox;
+    for (const auto& point : box) {
+      gridbox.addGridPoint(*point);
+    }
+    _grid_boxes.push_back(gridbox);
+  }
   return;
 }
 
