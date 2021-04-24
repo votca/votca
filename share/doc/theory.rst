@@ -1,6 +1,8 @@
 Theoretical background
 ======================
 
+.. _theory_mapping:
+
 Mapping
 -------
 
@@ -33,6 +35,8 @@ case letters are used for the atomistic system.
 The mapping operator :math:`{\mathbf c}_I` is defined by a matrix for each
 bead :math:`I` and links the two descriptions
 
+.. _theory_eq_mapping_scheme:
+
 .. math::
 
    \begin{aligned}
@@ -42,7 +46,6 @@ bead :math:`I` and links the two descriptions
        M_I \sum_{i=1}^{n}c_{Ii} \dot{{\mathbf r}}_i =
        M_I \sum_{i=1}^{n} \frac{ c_{Ii}} {m_i} {\mathbf p}_i .
    \end{aligned}
-   \label{eq:mapping_scheme}
 
 for all :math:`I = 1,\dots,N`.
 
@@ -63,7 +66,7 @@ each of the :math:`N` CG beads. For each site :math:`I`, a set of
 
 An atom :math:`i` in the atomistic model is involved in a CG site, *I*,
 if and only if this atom provides a nonzero contribution to the sum in
-eq. [eq:mapping\_scheme].
+:ref:`the equation above<theory_eq_mapping_scheme>`.
 
 A set of *specific* atoms is defined as
 
@@ -81,11 +84,10 @@ by [Noid:2008.1]_
 .. math::
 
    M_I= \left( \sum_{i \in {\cal I}_I}\frac{c_{Ii}^2}{m_i} \right)^{-1}.
-   \label{eq:cg_mass}
 
 If all atoms are specific and the center of mass of a bead is used for
 mapping, then :math:`c_{Ii} = \frac{m_i}{M_I}`, and the
-condition [eq:cg\_mass] is automatically satisfied.
+condition is automatically satisfied.
 
 .. rubric:: Footnotes
 .. [#] In what follows we adopt notations of ref. [Noid:2008.1]_.
@@ -102,6 +104,8 @@ inversion is structure-based and only requires positions of atoms.
 The idea of Boltzmann inversion stems from the fact that in a canonical
 ensemble *independent* degrees of freedom :math:`q` obey the Boltzmann
 distribution, i. e.
+
+
 
 .. math::
 
@@ -129,6 +133,8 @@ have to be rescaled in order to obtain the volume normalized
 distribution functions :math:`P_r(r)`, :math:`P_\theta(\theta)`, and
 :math:`P_\varphi(\varphi)`, respectively,
 
+.. _theory_eq_boltzmann_norm:
+
 .. math::
 
    \begin{aligned}
@@ -136,17 +142,17 @@ distribution functions :math:`P_r(r)`, :math:`P_\theta(\theta)`, and
    P_\theta(\theta) = \frac{H_\theta(\theta)}{\sin \theta}~,\;
    P_\varphi(\varphi) = H_\varphi (\varphi)~,
    \end{aligned}
-   \label{eq:boltzmann_norm}
 
 where :math:`r` is the bond length :math:`r`, :math:`\theta` is the
 bond angle, and :math:`\varphi` is the torsion angle. The bonded
 coarse-grained potential can then be written as a sum of distribution
 functions
 
+.. _theory_eq_boltzmann_pmf:
+
 .. math::
 
    \begin{aligned}
-       \label{eq:boltzmann_pmf}
        U({r}, \theta, \varphi) &= U_r({r}) + U_{\theta}(\theta) + U_{\varphi}(\varphi)~, \\
        U_q({q}) &= - k_\text{B} T \ln P_q( q ),\; q=r, \theta, \varphi~.
        \nonumber\end{aligned}
@@ -162,7 +168,7 @@ important.
 Another crucial issue is the cross-correlation of the coarse-grained
 degrees of freedom. Independence of the coarse-grained degrees of
 freedom is the main assumption that allows factorization of the
-probability distribution and the potential, eq. [eq:boltzmann\_pmf].
+probability distribution and the potential :ref:`as in the above equation<theory_eq_boltzmann_pmf>`.
 Hence, one has to carefully check whether this assumption holds in
 practice. This can be done by performing coarse-grained simulations and
 comparing cross-correlations for all pairs of degrees of freedom in
@@ -187,32 +193,38 @@ so that the non-bonded interactions in the reference system do not
 contribute to the bonded interactions of the coarse-grained model.
 
 This can be done by employing exclusion lists using with the option
-``—excl``. This is described in detail in sec. [sec:exclusions].
+``—excl``. This is described in detail in :ref:`methods_exclusions`.
 
 .. figure:: fig/excl.png
    :align: center
 
    Example of excluded interactions.
 
+.. _theory_iterative_methods:
+
 Iterative methods
 -----------------
+
+.. _theory_fig_iterative_simple:
 
 .. figure:: fig/iteration-scheme-simple.png
    :align: center
 
    Block-scheme of an iterative method.
 
-Iterative workflow control is essential for the IBIand IMCmethods. The
+Iterative workflow control is essential for the IBI and IMC methods. The
 general idea of iterative workflow is sketched in
-fig. [fig:iterative\_methods]. A run starts with an initial guess during
-the global initialization phase. This guess is used for the first
-sampling step, followed by an update of the potential. The update itself
-often requires additional postprocessing such as smoothing,
-interpolation, extrapolation or fitting. Different methods are available
-to update the potential, for instance Iterative Boltzmann Inversion (see
-next section [sec:ibi]) or Inverse Monte Carlo (see section [sec:imc]).
-The whole procedure is then iterated until a convergence criterion is
-satisfied.
+:ref:`the block-scheme above<theory_fig_iterative_simple>`. A run starts with
+an initial guess during the global initialization phase. This guess is used for
+the first sampling step, followed by an update of the potential. The update
+itself often requires additional postprocessing such as smoothing,
+interpolation, extrapolation or fitting. Different methods are available to
+update the potential, for instance Iterative Boltzmann Inversion (see
+:ref:`theory_iterative_boltzmann_inversion`) or Inverse Monte Carlo (see
+:ref:`theory_inverse_monte_carlo`). The whole procedure is then iterated until
+a convergence criterion is satisfied.
+
+.. _theory_iterative_boltzmann_inversion:
 
 Iterative Boltzmann Inversion
 -----------------------------
@@ -251,6 +263,8 @@ non-bonded interactions. On the implementation side, IBIhas the same
 issues as the inverse Boltzmann method, i. e. smoothing and
 extrapolation of the potential must be used.
 
+.. _theory_inverse_monte_carlo:
+
 Inverse Monte Carlo
 -------------------
 
@@ -269,10 +283,11 @@ solving a set of linear equations
 
 where
 
+.. _theory_eq_covariance:
+
 .. math::
 
    \begin{aligned}
-     \label{eq:covariance}
      A_{\alpha \gamma} = \frac{\partial \left< S_{\alpha} \right> }{\partial U_{\gamma}}  =
      \beta \left( \left<S_{\alpha} \right>\left<S_{\gamma} \right> - \left<S_{\alpha} S_{\gamma} \right>  \right)~,
      \nonumber\end{aligned}
@@ -308,16 +323,15 @@ To get a well defined cross correlation matrix,
 enough smapling or the initial potential guess is far from the real
 solution of the inverse problem, the algorithm might not converge to a
 stable solution. To overcome this instability problem one could
-reformulate equation [eq:covariance] by addition of a penalty term. In
+reformulate :ref:`the above equation<theory_eq_covariance>` by addition of a penalty term. In
 this case the potential update is computed as
 follows:[Murtola:2007]_
 
 .. math::
 
-   \label{eq:regularization}
    \Delta U_\gamma = \arg \min \| A_{\alpha \gamma} \Delta U_\gamma - \left(\left<S_{\alpha}\right> - S_{\alpha}^{\text{ref}}\right) \|^2 + \lambda \| R \Delta U_{\gamma} \|^{2}
 
-Equation [eq:regularization] is known as Tikhonov regularization, where
+This equation is known as Tikhonov regularization, where
 :math:`R` is the regularization operator, which here is the identity
 matrix and :math:`\lambda >0 ` is the regularization parameter. The
 optimal choice for :math:`\lambda` can only be determined if the exact
@@ -404,35 +418,36 @@ atoms
    {{{{\mathbf F}}}}_I^\text{ref} = \sum_{j \in {\cal S_I}} \frac{d_{Ii}}{c_{Ii}} {{{{\mathbf f}}}}_j({{{{\mathbf r}}}^n}),
      \label{eq:force_mapping}
 
-where the sum is over all atoms of the CG site *I* (see.
-sec. [sec:mapping\_operator]). The :math:`d_{Ij}` coefficients can, in
+where the sum is over all atoms of the CG site *I* (see
+:ref:`theory_mapping`). The :math:`d_{Ij}` coefficients can, in
 principle, be chosen arbitrarily, provided that the condition
 :math:` \sum_{i=1}^{n}d_{Ii}=1` is
 satisfied [Noid:2008.1]_. If mapping coefficients for
 the forces are not provided, it is assumed that :math:`d_{Ij} = c_{Ij}`
-(see also sec. [sec:inputfiles]).
+(see also :ref:`input_files`).
 
 By calculating the reference forces for :math:`L` snapshots we can write
 down :math:`N \times L` equations
+
+.. _theory_eq_fmatch1:
 
 .. math::
 
    {{{{\mathbf F}}}}_{Il}^\text{cg}(g_1, \dots ,g_M)={{{\mathbf F}}}_{il}^\text{ref},\;
      I=1,\dots,N,\; l=1,\dots,L~.
-     \label{eq:fmatch1}
 
 Here :math:`{{{{\mathbf F}}}}_{Il}^\text{ref}` is the force on
 the bead :math:`I` and :math:`{{{{\mathbf F}}}}_{Il}^\text{cg} `
 is the coarse-grained representation of this force. The index :math:`l`
 enumerates snapshots picked for coarse-graining. By running the
 simulations long enough one can always ensure that
-:math:`M < N \times L`. In this case the set of equations [eq:fmatch1]
+:math:`M < N times L`. In this case the set of equations
 is overdetermined and can be solved in a least-squares manner.
 
 :math:`{\mathbf F}_{il}^\text{cg}` is, in principle, a non-linear function
 of its parameters :math:`\{g_i\}`. Therefore, it is useful to represent
 the coarse-grained force-field in such a way that
-equations ([eq:fmatch1]) become linear functions of :math:`\{g_i\}`.
+:ref:`equations <theory_eq_fmatch1>` become linear functions of :math:`{g_i}`.
 This can be done using splines to describe the functional form of the
 forces [Izvekov:2005]_. Implementation details are
 discussed in ref. [Ruehle:2009.a]_.
@@ -459,9 +474,10 @@ the target AA ensemble.
 Relative entropy, :math:`S_{\text{rel}}`, is defined as
 [Shell2008]_
 
+.. _theory_eq_srel:
+
 .. math::
 
-   \label{eq:srel}
    S_{\text{rel}} = \sum_{i}p_{\text{AA}}(r_i) \ln\left(
      \frac{p_{\text{AA}}(r_i)}{p_{\text{CG}}\left(M(r_i)\right)}\right) +
    \langle S_{\text{map}} \rangle_{\text{AA}},
@@ -491,11 +507,13 @@ minimization of :math:`S_{\text{rel}}` with respect to the parameters of
 the CG model can be used to optimize the CG model.
 
 In a canonical ensemble, substituting canonical configurational
-probabilities into eq. [eq:srel], the relative entropy simplifies to
+probabilities into :ref:`the definition for the relative entropy<theory_eq_srel>`,
+it simplifies to
+
+.. _theory_eq_srelcan:
 
 .. math::
 
-   \label{eq:srelcan}
    S_{\text{rel}}=\beta\langle U_{\text{CG}} - U_{\text{AA}}\rangle_{\text{AA}}
    - \beta\left( A_{\text{CG}} - A_{\text{AA}}\right)
    + \langle S_{\text{map}}\rangle_{\text{AA}} ,
@@ -529,12 +547,11 @@ where :math:`k` is the iteration index, :math:`\chi\in(0...1)` is the
 scaling parameter that can be adjusted to ensure convergence,
 :math:`\nabla_{\lambda}S_{\text{rel}}` is the vector of the first
 derivatives of :math:`S_{\text{rel}}` with respect to
-:math:`\boldsymbol\lambda`, which can be computed from eq. [eq:srelcan]
+:math:`boldsymbollambda`, which can be computed from `the above equation<theory_eq_srelcan>`
 as
 
 .. math::
 
-   \label{eq:dsrel}
    \nabla_{\lambda}S_{\text{rel}} = \beta \left\langle \frac{\partial
      U_{\text{CG}}}{\partial\lambda}\right\rangle_{\text{AA}} - \beta\left\langle
    \frac{\partial U_{\text{CG}}}{\partial\lambda}\right\rangle_{\text{CG}} ,
@@ -545,7 +562,6 @@ given by
 .. math::
 
    \begin{aligned}
-   \label{eq:Hsrel}
    \mathbf{H}_{ij}&=&\beta \left\langle \frac{\partial^2
      U_{\text{CG}}}{\partial\lambda_i\partial\lambda_j}\right \rangle_{\text{AA}} -
    \beta \left\langle \frac{\partial^2
@@ -558,7 +574,7 @@ given by
    \frac{\partial U_{\text{CG}}}{\partial\lambda_j}\right\rangle_{\text{CG}}.\end{aligned}
 
 To compute :math:`\nabla_{\lambda}S_{\text{rel}}` and :math:`\mathbf{H}`
-from eq. [eq:dsrel] and [eq:Hsrel], we need average CG energy
+from those two equations, we need average CG energy
 derivatives in the AA and CG ensembles. For two-body CG pair potentials,
 :math:`u_{\text{CG}}`, between CG sites, the ensemble averages of the CG
 energy derivatives can be computed as

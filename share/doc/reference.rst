@@ -1,6 +1,8 @@
 Reference
 =========
 
+.. _reference_programs:
+
 Programs
 --------
 
@@ -68,6 +70,7 @@ csg_stat
 
 .. include:: csg_stat.rst
 
+.. _reference_mapping_file:
 
 Mapping file
 ------------
@@ -77,6 +80,8 @@ following keywords:
 
 .. include:: ../csg/mapping.rst
 
+.. _reference_topology_file:
+
 Topology file
 -------------
 
@@ -84,18 +89,21 @@ The XMLtopology file
 
 .. include:: ../csg/topol.rst
 
+.. _reference_settings_file:
+
 Settings file
 -------------
 
 All options for the iterative script are stored in an xml file.
-[sec:ref\_options]
 
 .. include:: ../csg/csg_defaults.rst
+
+.. _reference_scripts:
 
 Scripts
 -------
 
-Scripts are used by and . The script table commonly used (compare
+Scripts are used by ``csg_call`` and ``csg_inverse``. The script table commonly used (compare
 ``csg_call –list``):
 
 Script calls can be overwritten by adding a similar line with the 3rd column

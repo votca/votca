@@ -1,5 +1,9 @@
+.. _input_files:
+
 Input files
 ===========
+
+.. _input_files_mapping_files:
 
 Mapping files
 -------------
@@ -9,6 +13,8 @@ system. It is organized as follows: for each molecule *type* a mapping
 file is created. When used as a command option, these files are combined
 in a list separated by a semicolon, e. g.
 ``—cg`` ``protein.xml;solvent.xml``.
+
+.. _input_files_fig_mapping:
 
 .. figure:: fig/mapping.png
     :align: center
@@ -25,14 +31,14 @@ positions of atoms which belong to it. Note that :math:`c_{Ii}` will be
 automatically re-normalized if their sum is not equal to 1, i. e. in the
 case of a center-of-mass mapping one can simply specify atomic masses. A
 complete reference for mapping file definitions can be found in
-sec. [sec:ref\_mapping].
+:ref:`reference_mapping_file`.
 
 As an example, we will describe here a mapping file of a united atom
 model of a propane molecule, chemical structure of which is shown in
-fig. [fig:intro:propane]. In this coarse-grained model, two bead types
-(A,B) and three beads (A1, B1, A2) are defined, as shown in
-fig. [fig:propane\_map]. We will use the centers of mass of the beads as
-coarse-grained coordinates.
+:ref:`the figure in the introduction<introduction_fig_propane>`. In this
+coarse-grained model, two bead types (A,B) and three beads (A1, B1, A2) are
+defined, as shown in :ref:`the figure above<input_files_fig_mapping>`. We will
+use the centers of mass of the beads as coarse-grained coordinates.
 
 Extracts from the ``propane.xml`` file of the tutorial are shown below.
 The ``name`` tag indicates the molecule name in the coarse-grained topology. The
@@ -59,7 +65,7 @@ the tool ``csg_dump`` can be used in order to identify the atoms which are read 
 from a topology file ``.tpr``. This tool displays the atoms in the
 format ``residue id:residue name:atom name``. For multicomponent
 systems, it might happen that molecules are not identified correctly.
-The workaround for this case is described in sec. [sec:adv\_topology].
+The workaround for this case is described in :ref:`input_files_advanced_topology_handling`.
 
 To compare coarse-grained and atomistic configurations one can use a
 standard visualization program, e. g. ``vmd``. When comparing
@@ -113,6 +119,8 @@ the atomistic run has to be removed using the ``vmd`` menu.
       <!-- more mapping definitions -->
     </maps>
   </cg_molecule> <!-- end of the molecule -->
+
+.. _input_files_advanced_topology_handling:
 
 Advanced topology handling
 --------------------------
@@ -239,7 +247,9 @@ The box size can be set by the tag ``box``:
 where ``xx, yy, zz`` are the dimensions of the box.
 
 A complete reference for a XML topology file can be found in
-sec. [sec:ref\_topology].
+:ref:`reference_topology_file`.
+
+.. _input_files_trajectories:
 
 Trajectories
 ------------
@@ -268,6 +278,8 @@ Also note, the default settings concerning mapping varies
 individually between the programs. Some have a default setting that does
 mapping (such as , use ``—no-map`` to disable mapping) and some have
 mapping disabled by default (e.g. , use ``—cg`` to enable mapping).
+
+.. _input_files_setting_files:
 
 Setting files
 -------------
@@ -307,6 +319,8 @@ computes the distributions of all interactions specified in
 ``settings.xml`` and writes all tabulated distributions as files
 ``interaction name.dist.new``.
 
+.. _input_files_table_formats:
+
 Table formats
 -------------
 
@@ -327,7 +341,7 @@ potential) and ``[error]`` is an optional error for ``y``. The token
 ``u`` stands for an ``undefined`` value.
 
 The token ``flag`` will be important when extrapolating the table as
-described in sec. [sec:post\_processing].
+described in :ref:`preparing_post-processing_of_the_potential`.
 
 For historical reasons, ``csg_boltzmann`` uses a slightly different table format, it has
 no ``flag`` column and uses the third column as a force column when
