@@ -14,6 +14,7 @@ Version 2022-dev
 -  drop csh support in VOTCARC (#342)
 -  add missing cmath include (#351)
 -  removed eigenvalue algorithm, now done by eigen  (#352)
+-  Added N-DimVector (#360)
 
 Version 2021.1 (released XX.03.21)
 ==================================
