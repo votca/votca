@@ -6,5 +6,7 @@
     <map_file help="xml file with segment definition" default="votca_map.xml"/>
     <job_file help="name of jobfile to which jobs are written" default="qmmm_jobs.xml"/>
     <write_parse_states help="states to write jobs for and which to parse from jobfile" default="n e h"/>
+
+    
   </qmmm>
 </options>

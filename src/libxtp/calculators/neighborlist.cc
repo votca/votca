@@ -25,44 +25,48 @@
 namespace votca {
 namespace xtp {
 
+bool InVector(const std::vector<std::string>& vec, const std::string& word) {
+  return std::find(vec.begin(), vec.end(), word) != vec.end();
+}
+
 void Neighborlist::ParseOptions(const tools::Property& options) {
 
-  std::vector<const tools::Property*> segs = options.Select(".segments");
+  if (options.exists(".segmentpairs")) {
+    _useConstantCutoff = false;
+    std::vector<const tools::Property*> segs =
+        options.Select(".segmentpairs.pair");
+    for (const tools::Property* segprop : segs) {
+      double cutoff =
+          segprop->get("cutoff").as<double>() * tools::conv::nm2bohr;
 
-  for (const tools::Property* segprop : segs) {
-    std::string types = segprop->get("segmentname").as<std::string>();
-    double cutoff = segprop->get("cutoff").as<double>() * tools::conv::nm2bohr;
+      std::vector<std::string> names =
+          tools::Tokenizer(segprop->get("name").as<std::string>(), " ")
+              .ToVector();
 
-    tools::Tokenizer tok(types, " ");
-    std::vector<std::string> names;
-    tok.ToVector(names);
-
-    if (names.size() != 2) {
-      throw std::runtime_error(
-          "ERROR: Faulty pair definition for cut-off's: Need two segment names "
-          "separated by a space");
-    }
-    _cutoffs[names[0]][names[1]] = cutoff;
-    _cutoffs[names[1]][names[0]] = cutoff;
-    if (std::find(_included_segments.begin(), _included_segments.end(),
-                  names[0]) == _included_segments.end()) {
-      _included_segments.push_back(names[0]);
-    }
-    if (std::find(_included_segments.begin(), _included_segments.end(),
-                  names[1]) == _included_segments.end()) {
-      _included_segments.push_back(names[1]);
+      if (names.size() != 2) {
+        throw std::runtime_error(
+            "ERROR: Faulty pair definition for cut-off's: Need two segment "
+            "names "
+            "separated by a space");
+      }
+      _cutoffs[names[0]][names[1]] = cutoff;
+      _cutoffs[names[1]][names[0]] = cutoff;
+      if (!InVector(_included_segments, names[0])) {
+        _included_segments.push_back(names[0]);
+      }
+      if (!InVector(_included_segments, names[1])) {
+        _included_segments.push_back(names[1]);
+      }
     }
   }
-
   const std::string& cutoff_type = options.get("cutoff_type").as<std::string>();
   if (cutoff_type == "constant") {
     _useConstantCutoff = true;
     _constantCutoff =
         options.get(".constant").as<double>() * tools::conv::nm2bohr;
   } else {
-    _useConstantCutoff = false;
   }
-  if (options.get(".use_exciton_cutoff").as<bool>()) {
+  if (options.exists(".exciton_cutoff")) {
     _useExcitonCutoff = true;
     _excitonqmCutoff =
         options.get(".exciton_cutoff").as<double>() * tools::conv::nm2bohr;
@@ -94,9 +98,7 @@ bool Neighborlist::Evaluate(Topology& top) {
 
   std::vector<Segment*> segs;
   for (Segment& seg : top.Segments()) {
-    if (_useConstantCutoff ||
-        std::find(_included_segments.begin(), _included_segments.end(),
-                  seg.getType()) != _included_segments.end()) {
+    if (_useConstantCutoff || InVector(_included_segments, seg.getType())) {
       segs.push_back(&seg);
       seg.getApproxSize();
     }
@@ -115,7 +117,7 @@ bool Neighborlist::Evaluate(Topology& top) {
               << std::endl;
     std::cout << "\t" << std::flush;
     for (const std::string& st : _included_segments) {
-      std::cout << " " << st << std::flush;
+      std::cout << " " << st;
     }
     std::cout << std::endl;
   }
@@ -134,19 +136,23 @@ bool Neighborlist::Evaluate(Topology& top) {
   }
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < Index(segs.size()); i++) {
-    Segment* seg1 = segs[i];
+    const Segment* seg1 = segs[i];
     double cutoff = _constantCutoff;
     for (Index j = i + 1; j < Index(segs.size()); j++) {
-      Segment* seg2 = segs[j];
+      const Segment* seg2 = segs[j];
       if (!_useConstantCutoff) {
         try {
           cutoff = _cutoffs.at(seg1->getType()).at(seg2->getType());
         } catch (const std::exception&) {
           std::string pairstring = seg1->getType() + "/" + seg2->getType();
-          if (std::find(skippedpairs.begin(), skippedpairs.end(), pairstring) ==
-              skippedpairs.end()) {
+          if (!InVector(skippedpairs, pairstring)) {
 #pragma omp critical
-            { skippedpairs.push_back(pairstring); }
+            if (!InVector(skippedpairs, pairstring)) {  // nedded because other
+                                                        // thread may have
+                                                        // pushed back in the
+                                                        // meantime.
+              skippedpairs.push_back(pairstring);
+            }
           }
           continue;
         }
