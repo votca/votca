@@ -18,17 +18,21 @@
  */
 
 // Standard includes
+#include <algorithm>
 #include <chrono>
 
 // Third party includes
 #include <boost/filesystem.hpp>
+#include <numeric>
 
 // Local VOTCA includes
+#include "votca/tools/tokenizer.h"
 #include "votca/xtp/jobtopology.h"
 #include "votca/xtp/qmregion.h"
 
 // Local private VOTCA includes
 #include "qmmm.h"
+#include "votca/xtp/qmstate.h"
 
 namespace votca {
 namespace xtp {
@@ -40,19 +44,18 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
   _regions_def = options.get(".regions");
   _regions_def.add("mapfile", _mapfile);
 
-  std::string states = options.get(".write_parse_states").as<std::string>();
-  tools::Tokenizer tok(states, " ,;\n\t");
-  std::vector<std::string> statestrings = tok.ToVector();
+  std::vector<std::string> statestrings =
+      tools::Tokenizer(options.get(".write_parse_states").as<std::string>(),
+                       " ,;\n\t")
+          .ToVector();
+
   _states.reserve(statestrings.size());
   for (std::string s : statestrings) {
     _states.push_back(QMState(s));
   }
-  bool groundstate_found = false;
-  for (const QMState& state : _states) {
-    if (state.Type() == QMStateType::Gstate) {
-      groundstate_found = true;
-    }
-  }
+  bool groundstate_found = std::any_of(
+      _states.begin(), _states.end(),
+      [](const QMState& s) { return s.Type() == QMStateType::Gstate; });
   if (!groundstate_found) {
     _states.push_back(QMState("n"));
   }
@@ -133,10 +136,10 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
         converged_regions.push_back(region->Converged());
       }
 
-      double etot = 0.0;
-      for (const std::unique_ptr<Region>& reg : jobtop) {
-        etot += reg->Etotal();
-      }
+      double etot = std::accumulate(
+          jobtop.begin(), jobtop.end(), 0.0,
+          [](double e,const auto& region) { return region->Etotal() + e; });
+
       XTP_LOG(Log::error, pLog) << TimeStamp() << " --Total Energy all regions "
                                 << etot << std::flush;
 
@@ -191,9 +194,7 @@ bool QMMM::hasQMRegion() const {
   Logger log;
   QMRegion QMdummy(0, log, "");
   bool found_qm = false;
-  std::vector<const tools::Property*> regions_def =
-      _regions_def.Select("region");
-  for (const tools::Property* reg : regions_def) {
+  for (const tools::Property* reg : _regions_def.Select("region")) {
     std::string type =
         reg->ifExistsReturnElseThrowRuntimeError<std::string>("type");
     if (QMdummy.identify() == type) {
