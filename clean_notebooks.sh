@@ -10,4 +10,4 @@ do
 done
 
 # Clean up temporal files
-git clean -f
+git clean -fdx
