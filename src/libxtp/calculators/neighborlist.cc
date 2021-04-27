@@ -27,33 +27,6 @@ namespace xtp {
 
 void Neighborlist::ParseOptions(const tools::Property& options) {
 
-  std::vector<const tools::Property*> segs = options.Select(".segments");
-
-  for (const tools::Property* segprop : segs) {
-    std::string types = segprop->get("type").as<std::string>();
-    double cutoff = segprop->get("cutoff").as<double>() * tools::conv::nm2bohr;
-
-    tools::Tokenizer tok(types, " ");
-    std::vector<std::string> names;
-    tok.ToVector(names);
-
-    if (names.size() != 2) {
-      throw std::runtime_error(
-          "ERROR: Faulty pair definition for cut-off's: Need two segment names "
-          "separated by a space");
-    }
-    _cutoffs[names[0]][names[1]] = cutoff;
-    _cutoffs[names[1]][names[0]] = cutoff;
-    if (std::find(_included_segments.begin(), _included_segments.end(),
-                  names[0]) == _included_segments.end()) {
-      _included_segments.push_back(names[0]);
-    }
-    if (std::find(_included_segments.begin(), _included_segments.end(),
-                  names[1]) == _included_segments.end()) {
-      _included_segments.push_back(names[1]);
-    }
-  }
-
   const std::string& cutoff_type = options.get("cutoff_type").as<std::string>();
   if (cutoff_type == "constant") {
     _useConstantCutoff = true;
@@ -61,6 +34,32 @@ void Neighborlist::ParseOptions(const tools::Property& options) {
         options.get(".constant").as<double>() * tools::conv::nm2bohr;
   } else {
     _useConstantCutoff = false;
+    for (const tools::Property* segprop : options.Select(".segments")) {
+      std::string types = segprop->get("type").as<std::string>();
+      double cutoff =
+          segprop->get("cutoff").as<double>() * tools::conv::nm2bohr;
+
+      tools::Tokenizer tok(types, " ");
+      std::vector<std::string> names;
+      tok.ToVector(names);
+
+      if (names.size() != 2) {
+        throw std::runtime_error(
+            "ERROR: Faulty pair definition for cut-off's: Need two segment "
+            "names "
+            "separated by a space");
+      }
+      _cutoffs[names[0]][names[1]] = cutoff;
+      _cutoffs[names[1]][names[0]] = cutoff;
+      if (std::find(_included_segments.begin(), _included_segments.end(),
+                    names[0]) == _included_segments.end()) {
+        _included_segments.push_back(names[0]);
+      }
+      if (std::find(_included_segments.begin(), _included_segments.end(),
+                    names[1]) == _included_segments.end()) {
+        _included_segments.push_back(names[1]);
+      }
+    }
   }
   if (options.get(".use_exciton_cutoff").as<bool>()) {
     _useExcitonCutoff = true;
