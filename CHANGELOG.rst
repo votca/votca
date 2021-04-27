@@ -31,6 +31,7 @@ Version 2022-dev
 -  added support for external fields in DFT (#698)
 -  allocate threecenter matrices in parallel (#701)
 -  use NDimVector instead of std::vector in vxcgrid. (#703)
+-  Fixing the tutorial (#705)
 
 Version 2021.1 (released XX.03.21)
 ==================================
