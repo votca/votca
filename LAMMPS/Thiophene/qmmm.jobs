@@ -12,9 +12,7 @@
 				</region>
 			</regions>
 		</input>
-		<status>ASSIGNED</status>
-		<host>nbwin1568:14872</host>
-		<time>16:25:18</time>
+		<status>AVAILABLE</status>
 	</job>
 	<job>
 		<id>1</id>
@@ -29,8 +27,6 @@
 				</region>
 			</regions>
 		</input>
-		<status>ASSIGNED</status>
-		<host>nbwin1568:14872</host>
-		<time>16:25:18</time>
+		<status>AVAILABLE</status>
 	</job>
 </jobs>
