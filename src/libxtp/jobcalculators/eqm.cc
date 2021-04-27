@@ -93,7 +93,7 @@ void EQM::WriteJobFile(const Topology& top) {
   ofs << "</jobs>" << std::endl;
   ofs.close();
 
-  std::cout <<" with "<< jobCount << " jobs" << std::flush;
+  std::cout << " with " << jobCount << " jobs" << std::flush;
 }
 
 void EQM::SetJobToFailed(Job::JobResult& jres, Logger& pLog,
