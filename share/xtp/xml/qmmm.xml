@@ -1,12 +1,21 @@
 <?xml version="1.0"?>
 <options>
   <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
-    <print_regions_pdb help="print the geometry of the regions to a pdb file" default="true" choices="bool"/>
-    <max_iterations help="max iterations for qmmm scf loop" default="100" choices="int+"/>
-    <map_file help="xml file with segment definition" default="votca_map.xml"/>
-    <job_file help="name of jobfile to which jobs are written" default="qmmm_jobs.xml"/>
-    <write_parse_states help="states to write jobs for and which to parse from jobfile" default="n e h"/>
+    <print_regions_pdb help="print the geometry of the regions to a pdb file" default="true" choices="bool" />
+    <max_iterations help="max iterations for qmmm scf loop" default="100" choices="int+" />
+    <map_file help="xml file with segment definition" default="votca_map.xml" />
+    <job_file help="name of jobfile to which jobs are written" default="qmmm_jobs.xml" />
+    <write_parse_states help="states to write jobs for and which to parse from jobfile" default="n e h" />
 
-    
+    <regions list="type" help="Definitions of all regions inside qmmmm" default="REQUIRED">
+
+      <region default="OPTIONAL">
+        <id help="id of the region, first region has to have id 0, ids must be consecutive" default="REQUIRED" choices="int+"/>
+        <type help="What kind of region" default="REQUIRED" choices="qm,polar,static"/>
+      </region>
+      <region></region>
+    </regions>
+
+
   </qmmm>
 </options>

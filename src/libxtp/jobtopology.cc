@@ -19,6 +19,7 @@
 
 // Standard includes
 #include <numeric>
+#include <stdexcept>
 
 // Local VOTCA includes
 #include "votca/xtp/checkpoint.h"
@@ -160,10 +161,9 @@ void JobTopology::CreateRegions(
     QMRegion QMdummy(0, _log, "");
     StaticRegion Staticdummy(0, _log);
     PolarRegion Polardummy(0, _log);
-
     if (type == QMdummy.identify()) {
       std::unique_ptr<QMRegion> qmregion =
-          std::unique_ptr<QMRegion>(new QMRegion(id, _log, _workdir));
+          std::make_unique<QMRegion>(id, _log, _workdir);
       QMMapper qmmapper(_log);
       qmmapper.LoadMappingFile(mapfile);
       for (const SegId& seg_index : seg_ids) {
@@ -176,7 +176,7 @@ void JobTopology::CreateRegions(
       region = std::move(qmregion);
     } else if (type == Polardummy.identify()) {
       std::unique_ptr<PolarRegion> polarregion =
-          std::unique_ptr<PolarRegion>(new PolarRegion(id, _log));
+          std::make_unique<PolarRegion>(id, _log);
       PolarMapper polmap(_log);
       polmap.LoadMappingFile(mapfile);
       for (const SegId& seg_index : seg_ids) {
@@ -191,7 +191,7 @@ void JobTopology::CreateRegions(
       region = std::move(polarregion);
     } else if (type == Staticdummy.identify()) {
       std::unique_ptr<StaticRegion> staticregion =
-          std::unique_ptr<StaticRegion>(new StaticRegion(id, _log));
+          std::make_unique<StaticRegion>(id, _log);
       StaticMapper staticmap(_log);
       staticmap.LoadMappingFile(mapfile);
       for (const SegId& seg_index : seg_ids) {
@@ -239,9 +239,7 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
     }
     std::vector<SegId> seg_ids;
     if (region_def->exists("segments")) {
-      std::string seg_ids_string =
-          region_def->get("segments").as<std::string>();
-      tools::Tokenizer tok(seg_ids_string, " \n\t");
+      tools::Tokenizer tok(region_def->get("segments").as<std::string>(), " \n\t");
       for (const std::string& seg_id_string : tok.ToVector()) {
         seg_ids.push_back(SegId(seg_id_string));
       }
@@ -346,6 +344,47 @@ void JobTopology::WriteToHdf5(std::string filename) const {
     CheckpointWriter w =
         cpf.getWriter("region_" + std::to_string(region->getId()));
     region->WriteToCpt(w);
+  }
+}
+
+void JobTopology::ReadFromHdf5(std::string filename) {
+  CheckpointFile cpf(filename, CheckpointAccessLevel::READ);
+  CheckpointReader a = cpf.getReader();
+  Index id = -1;
+  a(id, "jobid");
+  if (id != _job.getId()) {
+    throw std::runtime_error(
+        "Jobid from checkpoint file does not agree with jobid" +
+        std::to_string(id) + ":" + std::to_string(_job.getId()));
+  }
+  _regions.clear();
+  Index no_regions = a.getNumDataSets();
+  _regions.reserve(no_regions);
+
+  QMRegion QMdummy(0, _log, "");
+  StaticRegion Staticdummy(0, _log);
+  PolarRegion Polardummy(0, _log);
+
+  for (Index i = 0; i < no_regions; i++) {
+    CheckpointReader r = cpf.getReader("region_" + std::to_string(i));
+    std::string type;
+    r(type, "type");
+
+    std::unique_ptr<Region> region = nullptr;
+    if (type == QMdummy.identify()) {
+      region = std::make_unique<QMRegion>(i, _log, _workdir);
+    } else if (type == Polardummy.identify()) {
+      region = std::make_unique<PolarRegion>(i, _log);
+    } else if (type == Staticdummy.identify()) {
+      region = std::make_unique<StaticRegion>(i, _log);
+    } else {
+      throw std::runtime_error("Region type:" + type + " not known!");
+    }
+    region->ReadFromCpt(r);
+    if (id != region->getId()) {
+      throw std::runtime_error("read in the wrong region, ids are mismatched.");
+    }
+    _regions.push_back(std::move(region));
   }
 }
 

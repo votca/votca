@@ -49,17 +49,15 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
                        " ,;\n\t")
           .ToVector();
 
-  _states.reserve(statestrings.size());
-  for (std::string s : statestrings) {
-    _states.push_back(QMState(s));
-  }
-  bool groundstate_found = std::any_of(
-      _states.begin(), _states.end(),
-      [](const QMState& s) { return s.Type() == QMStateType::Gstate; });
-  if (!groundstate_found) {
-    _states.push_back(QMState("n"));
-  }
+  _states.push_back(QMState(s));
 }
+bool groundstate_found = std::any_of(
+    _states.begin(), _states.end(),
+    [](const QMState& s) { return s.Type() == QMStateType::Gstate; });
+if (!groundstate_found) {
+  _states.push_back(QMState("n"));
+}
+}  // namespace xtp
 
 Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   std::chrono::time_point<std::chrono::system_clock> start =
@@ -81,7 +79,14 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   Logger& pLog = Thread.getLogger();
 
   JobTopology jobtop = JobTopology(job, pLog, workdir);
-  jobtop.BuildRegions(top, _regions_def);
+  if (job.getInput().exists("restart")) {
+    std::string checkptfile = job.getInput().get("restart").as<std::string>();
+    XTP_LOG(Log::error, pLog)
+        << TimeStamp() << " Restart job from " << checkptfile << std::flush;
+    jobtop.ReadFromHdf5(checkptfile);
+  } else {
+    jobtop.BuildRegions(top, _regions_def);
+  }
 
   if (_print_regions_pdb) {
     std::string pdb_filename = "regions.pdb";
@@ -90,10 +95,11 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
     jobtop.WriteToPdb(workdir + "/" + pdb_filename);
   }
 
-  Index no_static_regions = 0;
-  for (std::unique_ptr<Region>& region : jobtop) {
-    no_static_regions += region->Converged();
-  }
+  Index no_static_regions = std::accumulate(
+      jobtop.begin(), jobtop.end(), 0, [](Index count, const auto& region) {
+        return count += Index(region->Converged());
+      });
+
   bool no_top_scf = false;
   if (jobtop.size() - no_static_regions < 2) {
     XTP_LOG(Log::error, pLog)
@@ -138,7 +144,7 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
 
       double etot = std::accumulate(
           jobtop.begin(), jobtop.end(), 0.0,
-          [](double e,const auto& region) { return region->Etotal() + e; });
+          [](double e, const auto& region) { return region->Etotal() + e; });
 
       XTP_LOG(Log::error, pLog) << TimeStamp() << " --Total Energy all regions "
                                 << etot << std::flush;
@@ -216,8 +222,6 @@ void QMMM::WriteJobFile(const Topology& top) {
   std::cout << std::endl
             << "... ... Writing job file " << _jobfile << std::flush;
 
-  bool hasQMRegion = this->hasQMRegion();
-
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open()) {
@@ -238,7 +242,7 @@ void QMMM::WriteJobFile(const Topology& top) {
       tools::Property& regions = pInput.add("regions", "");
       tools::Property& region = regions.add("region", "");
       region.add("id", "0");
-      if (hasQMRegion) {
+      if (hasQMRegion()) {
         region.add("state", state.ToString());
       }
       region.add("segments", marker);
@@ -271,8 +275,7 @@ void QMMM::ReadJobFile(Topology& top) {
 
   tools::Property xml;
   xml.LoadFromXML(_jobfile);
-  std::vector<tools::Property*> jobProps = xml.Select("jobs.job");
-  for (tools::Property* job : jobProps) {
+  for (tools::Property* job : xml.Select("jobs.job")) {
 
     Index jobid = job->get("id").as<Index>();
     if (!job->exists("status")) {
@@ -286,9 +289,10 @@ void QMMM::ReadJobFile(Topology& top) {
       continue;
     }
 
-    std::string marker = job->get("input.site_energies").as<std::string>();
-    tools::Tokenizer tok(marker, ":");
-    std::vector<std::string> split = tok.ToVector();
+    std::vector<std::string> split =
+        tools::Tokenizer(job->get("input.site_energies").as<std::string>(), ":")
+            .ToVector();
+            
     Index segid = std::stoi(split[0]);
     if (segid < 0 || segid >= Index(top.Segments().size())) {
       throw std::runtime_error("JobSegment id" + std::to_string(segid) +
@@ -339,5 +343,5 @@ void QMMM::ReadJobFile(Topology& top) {
   }
 }
 
-}  // namespace xtp
+}  // namespace votca
 }  // namespace votca
