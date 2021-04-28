@@ -29,6 +29,7 @@ bool InVector(const std::vector<std::string>& vec, const std::string& word) {
   return std::find(vec.begin(), vec.end(), word) != vec.end();
 }
 
+
 void Neighborlist::ParseOptions(const tools::Property& options) {
 
   if (options.exists(".segmentpairs")) {
@@ -59,13 +60,12 @@ void Neighborlist::ParseOptions(const tools::Property& options) {
       }
     }
   }
-  const std::string& cutoff_type = options.get("cutoff_type").as<std::string>();
-  if (cutoff_type == "constant") {
+  else {
     _useConstantCutoff = true;
     _constantCutoff =
         options.get(".constant").as<double>() * tools::conv::nm2bohr;
-  } else {
   }
+
   if (options.exists(".exciton_cutoff")) {
     _useExcitonCutoff = true;
     _excitonqmCutoff =

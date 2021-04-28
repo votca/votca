@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <options>
   <neighborlist help="Determines neighbouring pairs for exciton transport" section="sec:neighborlist">
-    <segmentpairs help="pairs of segments for which cutoffs are specified, constant cutoffs are ignored"  list="name" default="OPTONAL">
-      <pair default="REQUIRED">
-        <name help="Names of the two segments separated by whitespace" default="REQUIRED"/>
-        <cutoff help="Cutoff for that pair" unit="nm" default="REQUIRED" choices="float+"/>
+    <segments>
+      <type help="segments names if the segmentname method is used"/>
+      <cutoff help="cutoff value if the segmentname method is used" unit="nm"/>
+    </segments>
       </pair>
     </segmentpairs>
     <constant help="cutoff for all other types of pairs if the constant method is used" unit="nm" default="1.5" choices="float+"/>
