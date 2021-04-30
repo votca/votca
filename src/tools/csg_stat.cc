@@ -71,13 +71,26 @@ void CsgStatApp::Initialize() {
   AddProgramOptions("Specific options")("options",
                                         boost::program_options::value<string>(),
                                         "  options file for coarse graining")(
-      "do-imc", "  write out additional Inverse Monte Carlo data")(
-      "block-length", boost::program_options::value<votca::Index>(),
-      "  write blocks of this length, the averages are cleared after every "
-      "write")("ext",
-               boost::program_options::value<string>(&_extension)
-                   ->default_value("dist.new"),
-               "Extension of the output");
+      "do-imc",
+      "  write out additional Inverse Monte Carlo data")("block-length",
+                                                         boost::program_options::
+                                                             value<votca::
+                                                                       Index>(),
+                                                         "  write blocks of "
+                                                         "this length, the "
+                                                         "averages are cleared "
+                                                         "after every "
+                                                         "write")("ext",
+                                                                  boost::program_options::value<
+                                                                      string>(
+                                                                      &_extension)
+                                                                      ->default_value(
+                                                                          "dist"
+                                                                          ".ne"
+                                                                          "w"),
+                                                                  "Extension "
+                                                                  "of the "
+                                                                  "output");
 }
 
 bool CsgStatApp::EvaluateOptions() {
