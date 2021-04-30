@@ -62,10 +62,10 @@ jobs:
           - distro: 'fedora:intel'
             toolchain: intel
             cmake_build_type: Debug
-          - distro: 'fedora:intel-oneapi'
+          - distro: 'fedora:intel'
             toolchain: intel-oneapi
             cmake_build_type: Release
-          - distro: 'fedora:intel-oneapi'
+          - distro: 'fedora:intel'
             toolchain: intel-oneapi
             cmake_build_type: Debug
           - distro: 'fedora:gmx2019'
@@ -80,22 +80,6 @@ jobs:
           - distro: 'fedora:gmx2019_d'
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2020'
-            toolchain: gnu
-            cmake_build_type: Release
-            no_regression_testing: true
-          - distro: 'fedora:gmx2020'
-            toolchain: clang
-            cmake_build_type: Release
-            no_regression_testing: true
-          - distro: 'fedora:gmx2020_d'
-            toolchain: gnu
-            cmake_build_type: Release
-            no_regression_testing: true
-          - distro: 'fedora:gmx2020_d'
-            toolchain: clang
-            cmake_build_type: Release
-            no_regression_testing: true
           - distro: 'fedora:gmx2021'
             toolchain: gnu
             cmake_build_type: Release
