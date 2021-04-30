@@ -47,8 +47,10 @@ void CsgApplication::Initialize() {
           "cg", boost::program_options::value<std::string>(),
           "  coarse graining mapping and bond definitions (xml-file)")(
           "map-ignore", boost::program_options::value<std::string>(),
-          "  list of molecules to ignore separated by ;")(
-          "no-map", "  disable mapping and act on original trajectory");
+          "  list of molecules to ignore separated by ;")("no-map",
+                                                          "  disable mapping "
+                                                          "and act on original "
+                                                          "trajectory");
     } else {
       AddProgramOptions("Mapping options")(
           "cg", boost::program_options::value<std::string>(),
