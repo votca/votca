@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2021.1 (released XX.03.21)
 ==================================
 
+-  fix build on F34 and openSUSE (#361)
+
 Version 2021 (released 13.03.21)
 ================================
 
