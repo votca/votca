@@ -121,10 +121,12 @@ void OrientCorrApp::Initialize() {
       "cutoff for the neighbor search")(
       "nbins",
       boost::program_options::value<votca::Index>(&_nbins)->default_value(40),
-      "number of bins for the grid")(
-      "nbmethod",
-      boost::program_options::value<string>(&_nbmethod)->default_value("grid"),
-      "neighbor search algorithm (simple or grid)");
+      "number of bins for the grid")("nbmethod",
+                                     boost::program_options::value<string>(
+                                         &_nbmethod)
+                                         ->default_value("grid"),
+                                     "neighbor search algorithm (simple or "
+                                     "grid)");
 }
 
 std::unique_ptr<NBList> OrientCorrApp::CreateNBSearch() {

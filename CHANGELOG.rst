@@ -32,6 +32,8 @@ Version 2022-dev
 Version 2021.1 (released XX.03.21)
 ==================================
 
+-  format code with clang-12 and drop gmx2020 builds (#691)
+
 Version 2021 (released 13.03.21)
 ================================
 

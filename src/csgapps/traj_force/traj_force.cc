@@ -44,9 +44,14 @@ void TrajForce::Initialize(void) {
       boost::program_options::value<double>(&_scale)->default_value(-1.0),
       "  scaling factor for trajectory forces")(
       "trj-force", boost::program_options::value<string>(),
-      "  atomistic reference trajectory containing forces to add/subtract")(
-      "out", boost::program_options::value<string>(),
-      "  output trajectory file with resultant forces");
+      "  atomistic reference "
+      "trajectory containing forces "
+      "to add/subtract")("out", boost::program_options::value<string>(),
+                         "  output "
+                         "trajectory "
+                         "file with "
+                         "resultant "
+                         "forces");
 }
 
 bool TrajForce::EvaluateOptions() {
