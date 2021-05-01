@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,24 @@
  *
  */
 
-#include "csg_reupdate.h"
-#include "../../include/votca/csg/nblistgrid.h"
+// Standard includes
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
+
+// VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/linalg.h>
-/*
- *
- */
+
+// Local VOTCA includes
+#include "votca/csg/nblistgrid.h"
+
+// Local private VOTCA includes
+#include "csg_reupdate.h"
 
 using namespace std;
 
@@ -454,9 +459,9 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
 // do bonded potential AA ensemble avg energy computations
 void CsgREupdate::AAavgBonded(PotentialInfo *) {}
 
-CsgApplication::Worker *CsgREupdate::ForkWorker() {
+std::unique_ptr<CsgApplication::Worker> CsgREupdate::ForkWorker() {
 
-  CsgREupdateWorker *worker = new CsgREupdateWorker();
+  auto worker = std::make_unique<CsgREupdateWorker>();
 
   // initialize worker
   worker->_options = _options;

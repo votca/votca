@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,27 @@
  *
  */
 
-#include "csg_stat_imc.h"
-#include "../../include/votca/csg/beadlist.h"
-#include "../../include/votca/csg/imcio.h"
-#include "../../include/votca/csg/nblistgrid.h"
-#include "../../include/votca/csg/nblistgrid_3body.h"
-#include <boost/lexical_cast.hpp>
+// Standard includes
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <memory>
 #include <numeric>
+
+// Third party includes
+#include <boost/lexical_cast.hpp>
+
+// VOTCA includes
 #include <votca/tools/rangeparser.h>
+
+// Local VOTCA includes
+#include "votca/csg/beadlist.h"
+#include "votca/csg/imcio.h"
+#include "votca/csg/nblistgrid.h"
+#include "votca/csg/nblistgrid_3body.h"
+
+// Local private VOTCA includes
+#include "csg_stat_imc.h"
 
 namespace votca {
 namespace csg {
@@ -39,6 +48,9 @@ void Imc::Initialize() {
   // do some output
   if (_do_imc) {
     cout << "begin to calculate inverse monte carlo parameters\n";
+    if (_include_intra) {
+      throw runtime_error("error, can not have --do-imc and --include-intra");
+    }
   } else {
     cout << "begin to calculate distribution functions\n";
   }
@@ -52,14 +64,14 @@ void Imc::Initialize() {
 
   // initialize non-bonded structures
   for (tools::Property *prop : _nonbonded) {
-    interaction_t *i = AddInteraction(prop);
-    i->_is_bonded = false;
+    bool bonded = false;
+    AddInteraction(prop, bonded);
   }
 
   // initialize bonded structures
   for (tools::Property *prop : _bonded) {
-    interaction_t *i = AddInteraction(prop);
-    i->_is_bonded = true;
+    bool bonded = true;
+    AddInteraction(prop, bonded);
   }
 
   // initialize the group structures
@@ -159,9 +171,8 @@ void Imc::BeginEvaluate(Topology *top, Topology *) {
 
   for (tools::Property *prop : _bonded) {
     string name = prop->get("name").value();
-
-    std::list<Interaction *> list = top->InteractionsInGroup(name);
-    if (list.empty()) {
+    std::vector<Interaction *> vec = top->InteractionsInGroup(name);
+    if (vec.empty()) {
       throw std::runtime_error(
           "Bonded interaction '" + name +
           "' defined in options xml-file, but not in topology - check name "
@@ -171,7 +182,7 @@ void Imc::BeginEvaluate(Topology *top, Topology *) {
 }
 
 // create an entry for interactions
-Imc::interaction_t *Imc::AddInteraction(tools::Property *p) {
+Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
   string name = p->get("name").value();
   string group;
   if (_do_imc) {
@@ -187,9 +198,16 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p) {
   i->_index = index;
   getGroup(group)->_interactions.push_back(i);
 
+  i->_is_bonded = is_bonded;
   i->_step = p->get("step").as<double>();
   i->_min = p->get("min").as<double>();
   i->_max = p->get("max").as<double>();
+  if (_include_intra && (!i->_is_bonded)) {
+    i->_max = p->get("max_intra").as<double>();
+  } else {
+    i->_max = p->get("max").as<double>();
+  }
+
   i->_norm = 1.0;
   i->_p = p;
 
@@ -391,9 +409,9 @@ void Imc::Worker::DoNonbonded(Topology *top) {
 
         // is it same types or different types?
         if (prop->get("type1").value() == prop->get("type2").value()) {
-          nb->Generate(beads1);
+          nb->Generate(beads1, !(_imc->_include_intra));
         } else {
-          nb->Generate(beads1, beads2);
+          nb->Generate(beads1, beads2, !(_imc->_include_intra));
         }
       }
 
@@ -817,9 +835,9 @@ void Imc::WriteIMCBlock(const string &suffix) {
   }
 }
 
-CsgApplication::Worker *Imc::ForkWorker() {
+std::unique_ptr<CsgApplication::Worker> Imc::ForkWorker() {
 
-  Imc::Worker *worker = new Imc::Worker;
+  auto worker = std::make_unique<Imc::Worker>();
   worker->_current_hists.resize(_interactions.size());
   worker->_current_hists_force.resize(_interactions.size());
   worker->_imc = this;

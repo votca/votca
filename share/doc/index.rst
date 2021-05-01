@@ -1,13 +1,15 @@
+.. _csg:
+
 CSG Manual
 ==========
 
-**Disclamer:**
+**Disclaimer:**
 This manual is not complete. The best way to start using the software is
-to look at provided tutorials. The reference section is generated
+to look at the provided tutorials. The reference section is generated
 automatically from the source code of the master version, so please make sure that your
 software and manual versions match.
 
-The last, no longer updated version, the old pdf manual can be found `here <http://doc.votca.org/manual.pdf>`_.
+The last, no longer updated version, of the old pdf manual can be found `here <http://doc.votca.org/manual.pdf>`_.
 
 
 .. toctree::
@@ -45,4 +47,4 @@ Copyright
 
 VOTCA is free software. The entire package is available under the Apache
 License. For details, check the LICENSE file in the source code. The
-votcasource code is available on our homepage, .
+VOTCA source code is available on our homepage, .
