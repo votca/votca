@@ -29,12 +29,12 @@ namespace tools {
  * \brief Manipulates the format state of the output stream
  *
  * Changes the state of the output stream. Property class reads this state
- * and formats its output according to this state (XML, TXT, T2T, etc)
+ * and formats its output according to this state (XML, TXT,  etc)
  */
 class PropertyIOManipulator {
 
  public:
-  enum Type { XML, HLP, TEX, TXT };
+  enum Type { XML, HLP, TXT };
 
   explicit PropertyIOManipulator(Type type = XML, Index level = 0,
                                  std::string indentation = "",
@@ -84,7 +84,6 @@ class PropertyIOManipulator {
 
 extern PropertyIOManipulator XML;
 extern PropertyIOManipulator TXT;
-extern PropertyIOManipulator TEX;
 extern PropertyIOManipulator HLP;
 
 }  // namespace tools
