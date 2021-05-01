@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/votca/buildenv/fedora:latest
     steps:
-      - name: Checkout votca   
+      - name: Checkout votca
         uses: actions/checkout@v2
         with:
           submodules: true
@@ -66,7 +66,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/.ccache
-          key: ccache-release-${{ steps.setup.outputs.BRANCH }}-${{ steps.setup.outputs.DATE }}  
+          key: ccache-release-${{ steps.setup.outputs.BRANCH }}-${{ steps.setup.outputs.DATE }}
           restore-keys: ccache-release-${{ steps.setup.outputs.BRANCH }}
       - name: Make Release
         run: |
