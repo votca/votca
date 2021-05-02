@@ -1,6 +1,21 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/tools/commits/stable>`__.
 
+Version 2022-dev
+================
+
+-  create script to convert help to rst (#312, #328)
+-  add rst pages to doc (#330, #332)
+-  remove tex and man output from app class (#329)
+-  fix example rst section (#327, #339)
+-  remove author and copyright from rst (#331)
+-  fix rst warnings (#334, #346, #348)
+-  export PYTHONPATH in VOTCARC (#340)
+-  drop csh support in VOTCARC (#342)
+-  add missing cmath include (#351)
+-  removed eigenvalue algorithm, now done by eigen  (#352)
+-  Added N-DimVector (#360)
+
 Version 2021.1 (released XX.03.21)
 ==================================
 

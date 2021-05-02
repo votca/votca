@@ -18,6 +18,9 @@
 #ifndef VOTCA_TOOLS_AVERAGE_H
 #define VOTCA_TOOLS_AVERAGE_H
 
+// Standard includes
+#include <cmath>
+
 namespace votca {
 namespace tools {
 
@@ -66,9 +69,7 @@ void Average<T>::ProcessRange(const iterator_type &begin,
 
 template <typename T>
 T Average<T>::CalcDev() const {
-  double dev = 0.0;
-  dev = std::sqrt((_m2 - _n * _av * _av) / (_n - 1));
-  return dev;
+  return std::sqrt((_m2 - _n * _av * _av) / (_n - 1));
 }
 
 template <typename T>
