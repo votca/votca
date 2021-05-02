@@ -94,6 +94,7 @@ find_path(MKL_INCLUDE_DIR
   PATHS
     /opt/intel
     /opt/intel/mkl
+    /opt/intel/oneapi/mkl/latest
     $ENV{MKLROOT}
     /opt/intel/compilers_and_libraries/linux/mkl
     /usr/include/mkl
@@ -223,6 +224,9 @@ function(find_mkl_library)
         /opt/intel/mkl/lib
         /opt/intel/tbb/lib
         /opt/intel/lib
+        /opt/intel/oneapi/mkl/latest/lib
+        /opt/intel/oneapi/compiler/latest/linux/compiler/lib
+        /opt/intel/oneapi/lib
         $ENV{MKLROOT}/lib
         ${ENV_LIBRARY_PATHS}
         /opt/intel/compilers_and_libraries/linux/mkl/lib
@@ -251,6 +255,9 @@ function(find_mkl_library)
         /opt/intel/mkl/lib
         /opt/intel/tbb/lib
         /opt/intel/lib
+        /opt/intel/oneapi/mkl/latest/lib
+        /opt/intel/oneapi/compiler/latest/linux/compiler/lib
+        /opt/intel/oneapi/lib
         $ENV{MKLROOT}/lib
         ${ENV_LIBRARY_PATHS}
         /opt/intel/compilers_and_libraries/linux/mkl/lib
@@ -369,6 +376,7 @@ find_package_handle_standard_args(MKL
   REQUIRED_VARS MKL_INCLUDE_DIR
                 MKL_Core_LINK_LIBRARY
                 MKL_Interface_LINK_LIBRARY
+                MKL_Threading_LINK_LIBRARY
                 MKL_ThreadLayer_LINK_LIBRARY)
 
 find_package_handle_standard_args(MKL_Static
