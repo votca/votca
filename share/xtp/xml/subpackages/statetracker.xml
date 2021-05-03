@@ -1,0 +1,14 @@
+<statetracker help="combination of different filters you can use to track states, lowest energy state that fits all filters is chosen">
+  <filters default="REQUIRED" choices="[chargetransfer,density,localisation,oscillatorstrength,overlap]" />
+  <oscillatorstrength help="picks first state above a threshold" default="OPTIONAL" choices="float+" />
+  <localisation help="picks first state which is localized (occupation above a threshild) on the fragment" default="OPTIONAL">
+    <fragment help="Fragment definiton using atomids, can be a combination of ids and ranges of ids e.g. 1:5" default="REQUIRED" />
+    <threshold help="Threshold above which a state is considered localized" default="0.1" />
+  </localisation>
+  <chargetransfer help="picks first state which exhibits CT character on the fragment" default="OPTIONAL">
+    <fragment help="Fragment definiton using atomids, can be a combination of ids and ranges of ids e.g. 1:5" default="REQUIRED" />
+    <threshold help="Threshold above which a state is considered a CT state" default="0.8" />
+  </chargetransfer>
+  <density help="Tracks state by comparing the density to an earlier state, you have to specify a minimum threshold, which can be zero" default="OPTIONAL" choices="float+" />
+  <overlap help="Tracks state by calculating the overlap with an earlier state, you have to specify a minimum threshold, which can be zero" default="OPTIONAL" choices="float+" />
+</statetracker>

@@ -1,4 +1,4 @@
-<esp2multipole>
+<esp2multipole help="ways to map electron densities ">
   <state help="ground-,excited or transitionstate" default="n2s1"/>
   <method help="Method to use derive partial charges" default="CHELPG" choices="CHELPG,Mulliken,Lowdin"/>
   <gridsize help="Grid accuracy for numerical integration within CHELPG and GDMA" default="fine" choices="coarse,medium,fine,xfine,xcoarse"/>

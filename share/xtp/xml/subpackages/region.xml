@@ -1,0 +1,11 @@
+<region default="OPTIONAL">
+  <id help="id of the region, first region has to have id 0, ids must be consecutive" default="REQUIRED" choices="int+" />
+  <type help="What kind of region" default="REQUIRED" choices="qm,polar,static" />
+  <segments help="List of segments to include in the region separated by a whitespace. Each segment is defined by an index and a qmstate or a filename for the coordinates. e.g 1:s3 or 0:ORFILES/methane.xyz" default="OPTIONAL"></segments>
+  <cutoff help="specifies the cutoff around either an another region or explicit segments in this region">
+    <radius help="radius" unit="nm" default="REQUIRED" choices="float+" />
+    <geometry help="geometry that should be used for mapping all the segments in the radius" default="n" />
+    <region help="Id of the region the cutoff should refer to, can be the same as this region's id, if segments are specified" default="REQUIRED" choices="int+" />
+    <explicit_segs help="specifies if cutoff with respect to other region should be only towards segments specified explicitly using the `segments` tag" default="false" choices="bool" />
+  </cutoff>
+</region>

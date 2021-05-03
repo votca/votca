@@ -271,8 +271,7 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
       std::vector<SegId> center = seg_ids;
       if (region_def->exists("cutoff.region")) {
         Index id = region_def->get("cutoff.region").as<Index>();
-        bool only_explicit = region_def->ifExistsReturnElseReturnDefault<bool>(
-            "cutoff.relative_to_explicit_segs", false);
+        bool only_explicit = region_def->get("cutoff.explicit_segs").as<bool>();
         if (id < Index(segids_per_region.size())) {
           center = segids_per_region[id];
           if (only_explicit) {

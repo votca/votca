@@ -1,14 +1,11 @@
-<dftpackage>
+<dftpackage help="options for dftpackages"> 
   <name help="Name of the DFT package" default="xtp" choices="xtp,orca" />
-  <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool" />
   <charge help="Molecular charge" default="0" choices="int" />
   <spin help="Molecular multiplicity" default="1" choices="int+" />
   <basisset help="Basis set for MOs" default="def2-tzvp" />
-  <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool" />
-  <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp" />
-  <use_external_field help="whether or not to use an external field in the dft calculation" default="false" choices="bool" />
-  <externalfield help="Field in atomic units used if the use ext. field flag is true" unit="Hartree/bohr" default="0.0 0.0 0.0" />
-  <use_ecp help="use an Effective Core Potentials for DFT Calculations" default="false" choices="bool" />
+  <auxbasisset help="Auxiliary basis set for RI" default="OPTIONAL" />
+  <externalfield help="Field given in x y z components" unit="Hartree/bohr" default="OPTIONAL" />
+  <ecp help="Effective Core Potentials for DFT Calculations" default="OPTIONAL" />
   <optimize help="Perform a molecular geometry optimization" default="false" choices="bool" />
   <functional help="Exchange correlation functional used. You can also specify an exchange and a correlation functional" default="XC_HYB_GGA_XC_PBEH" />
   <scratch help="path to the scratch folder" default="/tmp/qmpackage" />
@@ -16,14 +13,12 @@
   <dipole_spacing help="Spacing for splitting multipoles into charges" default="0.1" choices="float+" unit="bohr" />
   <read_guess help="Read wave function guess" default="false" choices="bool" />
   <write_charges help="Print atomic charges" default="false" choices="bool" />
-  <convergence_tightness help="How accurate the dft self-consistency has to be fullfilled" default="tight" choices="low,normal,tight,verytight" />
-  <cleanup help="files to remove after the calculation is done. Specify the fileextensions" default="" />
-  <orca help="orca specific keywords can be added here" />
+  <convergence_tightness help="How accurate the dft self-consistency has to be" default="tight" choices="low,normal,tight,verytight" />
+  <cleanup help="files to remove after the calculation. Specify the fileextensions" default="" />
+  <orca help="orca specific keywords can be added here, where the xml tag corresponds to the option and the value to the option's value" />
   <xtpdft help="xtpdft specific keywords can be added here">
-    <with_screening help="screening" default="true" choices="bool" />
     <use_external_density help="whether or not to use a precomputed external density" default="false" choices="bool" />
     <screening_eps help="screening eps" default="1e-9" choices="float+" />
-    <four_center_method help="method to compute the four-center integrals" default="direct" choices="direct,RI" />
     <convergence>
       <energy help="DeltaE at which calculation is converged" unit="hartree" choices="float+" default="1E-7" />
       <method help="Main method to use for convergence accelertation" choices="DIIS,mixing" default="DIIS" />

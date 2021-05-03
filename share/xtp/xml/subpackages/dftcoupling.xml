@@ -1,4 +1,4 @@
-<dftcoupling>
+<dftcoupling help="options for electronic coupling via DFT">
   <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0.0" choices="float+"/>
   <levA help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule A" default="1" choices="int+"/>
   <levB help="Output HOMO, ..., HOMO-levels; LUMO, ..., LUMO+levels, molecule B" default="1" choices="int+"/>

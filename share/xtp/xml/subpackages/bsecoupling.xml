@@ -1,4 +1,4 @@
-<bsecoupling>
+<bsecoupling help="options for electronic coupling for excitons via BSE">
   <spin help="Spin type for couplings" default="all" choices="singlet,triplet,all"/>
   <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0" choices="float"/>
   <moleculeA help="Properties of molecule A">
