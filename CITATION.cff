@@ -1,0 +1,24 @@
+# YAML 1.2
+---
+abstract: "VOTCA-XTP is a library which allows you to calculate the electronic properties of organic materials"
+authors: 
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Renaud
+    given-names: Nicolas
+    orcid: "https://orcid.org/0000-0001-9589-2694"
+cff-version: "1.1.0"
+date-released: 2021-05-03
+doi: "10.5281/zenodo.883726"
+keywords: 
+  - "quantum chemistry"
+  - "gw bse"
+  - "Bethe Salpeter equation"
+  - "many-body interaction"
+  - "many-body problem"
+license: "Apache-2.0"
+message: "If you use this software, please cite it using these metadata."
+repository-code: "https://github.com/votca/xtp"
+title: "votca-xtp"
+version: v2021
+...
