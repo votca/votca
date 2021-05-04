@@ -180,6 +180,10 @@ std::vector<Property *> Property::Select(const string &filter) {
   return selection;
 }
 
+void Property::deleteAttribute(const std::string &attribute) {
+  _attributes.erase(attribute);
+}
+
 static void start_hndl(void *data, const char *el, const char **attr) {
   stack<Property *> *property_stack =
       (stack<Property *> *)XML_GetUserData((XML_Parser *)data);

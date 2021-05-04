@@ -158,17 +158,6 @@ class Property {
   template <typename T>
   T as() const;
 
-  template <typename T>
-  T ifExistsReturnElseReturnDefault(const std::string &key,
-                                    T defaultvalue) const;
-
-  template <typename T>
-  T ifExistsReturnElseThrowRuntimeError(const std::string &key) const;
-
-  template <typename T>
-  T ifExistsAndinListReturnElseThrowRuntimeError(
-      const std::string &key, std::vector<T> possibleReturns) const;
-
   /**
    * \brief does the property have children?
    * \return true or false
@@ -200,7 +189,12 @@ class Property {
    */
   template <typename T>
   void setAttribute(const std::string &attribute, const T &value);
+
   /**
+   * \brief deletes an attribute
+   */
+  void deleteAttribute(const std::string& attribute);
+    /**
    * \brief return true if a node has attributes
    */
   bool hasAttributes() const { return _attributes.size() > 0; }
