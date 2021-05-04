@@ -1,0 +1,13 @@
+<a>
+  <tasks default="input,dft,parse,gwbse,esp" choices="[input,dft,parse,gwbse,esp]" />
+  <g default="a" choices="a,b,c,d" />
+  <job_file default="eqm.jobs" />
+  <gwbse link="package.xml">
+    <a default="7"/>
+  </gwbse>
+  <b default="1" choice="int+"/>
+  <c default="-1" choice="int"/>
+  <d default="-3.0" choice="float"/>
+  <e default="REQUIRED"/>
+  <f default="OPTIONAL"/>
+</a>

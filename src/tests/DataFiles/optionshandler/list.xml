@@ -1,0 +1,6 @@
+<segmentpairs list="">
+  <pair>
+    <type help="segments names if the segmentname method is used" />
+    <cutoff help="cutoff value if the segmentname method is used" unit="nm" />
+  </pair>
+</segmentpairs>

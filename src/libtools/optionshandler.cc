@@ -22,6 +22,16 @@
 namespace votca {
 namespace tools {
 
+template <typename T>
+static bool IsValidCast(const tools::Property &prop) {
+  try {
+    prop.as<T>();
+    return true;
+  } catch (const std::runtime_error &e) {
+    return false;
+  }
+}
+
 void OptionsHandler::ResolveLinks(Property &prop) const {
 
   if (prop.hasAttribute("package")) {

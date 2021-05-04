@@ -35,12 +35,6 @@ BOOST_AUTO_TEST_CASE(resolving_links) {
 
   std::string default_loc = std::string(TOOLS_TEST_DATA_FOLDER) + "/optionshandler/";
 
-  votca::tools::Property prop;
-  prop.LoadFromXML(std::string(TOOLS_TEST_DATA_FOLDER) + "/optionshandler/option.xml");
-
-
-  BOOST_CHECK_EQUAL(prop.get("calc.optb.package.distance.go").as<std::string>(),
-                    "yes");
 }
 
 

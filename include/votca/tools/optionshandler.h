@@ -63,15 +63,7 @@ class OptionsHandler {
                             const std::vector<std::string> &choices);
   static std::vector<std::string> GetPropertyChoices(const Property &p);
 
-  template <typename T>
-  static bool IsValidCast(const tools::Property &prop) {
-    try {
-      prop.as<T>();
-      return true;
-    } catch (const std::runtime_error &e) {
-      return false;
-    }
-  }
+ 
 
   std::string defaults_path_;
 };
