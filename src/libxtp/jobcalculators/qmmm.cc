@@ -44,20 +44,19 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
   _regions_def = options.get(".regions");
   _regions_def.add("mapfile", _mapfile);
 
-  std::vector<std::string> statestrings =
-      tools::Tokenizer(options.get(".write_parse_states").as<std::string>(),
-                       " ,;\n\t")
-          .ToVector();
-
-  _states.push_back(QMState(s));
+  for (const auto& s :
+       tools::Tokenizer(options.get(".write_parse_states").as<std::string>(),
+                        " ,;\n\t")
+           .ToVector()) {
+    _states.push_back(QMState(s));
+  }
+  bool groundstate_found = std::any_of(
+      _states.begin(), _states.end(),
+      [](const QMState& s) { return s.Type() == QMStateType::Gstate; });
+  if (!groundstate_found) {
+    _states.push_back(QMState("n"));
+  }
 }
-bool groundstate_found = std::any_of(
-    _states.begin(), _states.end(),
-    [](const QMState& s) { return s.Type() == QMStateType::Gstate; });
-if (!groundstate_found) {
-  _states.push_back(QMState("n"));
-}
-}  // namespace xtp
 
 Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   std::chrono::time_point<std::chrono::system_clock> start =
@@ -292,7 +291,7 @@ void QMMM::ReadJobFile(Topology& top) {
     std::vector<std::string> split =
         tools::Tokenizer(job->get("input.site_energies").as<std::string>(), ":")
             .ToVector();
-            
+
     Index segid = std::stoi(split[0]);
     if (segid < 0 || segid >= Index(top.Segments().size())) {
       throw std::runtime_error("JobSegment id" + std::to_string(segid) +
@@ -343,5 +342,5 @@ void QMMM::ReadJobFile(Topology& top) {
   }
 }
 
-}  // namespace votca
+}  // namespace xtp
 }  // namespace votca
