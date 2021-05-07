@@ -355,8 +355,7 @@ void PrintNodeHLP(std::ostream &out, const Property &p,
                   const Index start_level = 0, Index level = 0,
                   const string &prefix = "", const string &offset = "") {
 
-  using ColorRGB = Color<csRGB>;  // use the RGB palette
-  ColorRGB RGB;                   // Instance of an RGB palette
+  Color<csRGB> RGB;                   // Using RGB palette
   string fmt = "t|%1%%|15t|" + string(RGB.Blue()) + "%2%" +
                string(RGB.Green()) + "%|40t|%3%%|55t|" + string(RGB.Reset()) +
                "%4%\n";

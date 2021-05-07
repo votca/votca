@@ -268,50 +268,6 @@ inline T Property::as() const {
   return lexical_cast<T>(_value, "wrong type in " + _path + "." + _name + "\n");
 }
 
-template <typename T>
-inline T Property::ifExistsReturnElseReturnDefault(const std::string &key,
-                                                   T defaultvalue) const {
-  T result;
-  if (this->exists(key)) {
-    result = this->get(key).as<T>();
-  } else {
-    result = defaultvalue;
-  }
-  return result;
-}
-
-template <typename T>
-inline T Property::ifExistsReturnElseThrowRuntimeError(
-    const std::string &key) const {
-  T result;
-  if (this->exists(key)) {
-    result = this->get(key).as<T>();
-  } else {
-    throw std::runtime_error(
-        (boost::format("Error: %s is not found") % key).str());
-  }
-  return result;
-}
-
-template <typename T>
-inline T Property::ifExistsAndinListReturnElseThrowRuntimeError(
-    const std::string &key, std::vector<T> possibleReturns) const {
-  T result;
-  result = ifExistsReturnElseThrowRuntimeError<T>(key);
-  if (std::find(possibleReturns.begin(), possibleReturns.end(), result) ==
-      possibleReturns.end()) {
-    std::stringstream s;
-    s << "Allowed options are: ";
-    for (Index i = 0; i < Index(possibleReturns.size()); ++i) {
-      s << possibleReturns[i] << " ";
-    }
-    s << std::endl;
-    throw std::runtime_error(
-        s.str() + (boost::format("Error: %s is not allowed") % key).str());
-  }
-  return result;
-}
-
 template <>
 inline std::string Property::as<std::string>() const {
   std::string tmp(_value);
@@ -336,7 +292,7 @@ inline Eigen::Vector3d Property::as<Eigen::Vector3d>() const {
   if (Index(tmp.size()) != result.size()) {
     throw std::runtime_error("Vector has " +
                              boost::lexical_cast<std::string>(tmp.size()) +
-                             " instead of three entries");
+                             " instead of 3 entries");
   }
   result << tmp[0], tmp[1], tmp[2];
   return result;
