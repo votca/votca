@@ -1,10 +1,11 @@
 #include "votca/xtp/pmdecomposition.h"
 #include "votca/xtp/aomatrix.h"
+#include <votca/tools/eigenio_matrixmarket.h>
 
 namespace votca {
 namespace xtp {
 void PMDecomposition::compute() {
-  Eigen::MatrixXd mo_coeff = orbitals.MOs().eigenvectors();
+  Eigen::MatrixXd mo_coeff = orbitals.MOs().eigenvectors().leftCols(orbitals.getNumberOfAlphaElectrons());
   QMMolecule mol = orbitals.QMAtoms();
   basis.Load(orbitals.getDFTbasisName());
   aobasis.Fill(basis, mol);
@@ -13,7 +14,7 @@ void PMDecomposition::compute() {
   Eigen::MatrixXd S = overlap.Matrix();
   double diff_D = 10000;
   Index i = 1;
-  while (diff_D > 1) {
+  while (diff_D > 1e-6) {
     XTP_LOG(Log::error, log) << "Iteration: " << i << std::flush;
     Eigen::MatrixXd uppertriangular = orbitalselections(mo_coeff, S);
     Index maxrow, maxcol;
@@ -28,9 +29,12 @@ void PMDecomposition::compute() {
 
     i +=1;
   }
-  Orbitals orb2;
-  orb2.MOs().eigenvectors() = mo_coeff;
-  orb2.WriteToCpt("pm_orbitals");
+  orbitals.MOs().eigenvectors().leftCols(orbitals.getNumberOfAlphaElectrons()) = mo_coeff;
+  Eigen::MatrixXd check = orbitals.MOs().eigenvectors().transpose() * S * orbitals.MOs().eigenvectors();
+  XTP_LOG(Log::error, log) << check << std::flush;
+  orbitals.WriteToCpt("pm_orbitals.orb");
+  votca::tools::EigenIO_MatrixMarket::WriteMatrix(
+         "test_pm_orbitals.mm", mo_coeff);
 }
 
 // Eigen::MatrixXd PMDecomposition::columnwise(const Eigen::MatrixXd &S, Eigen::VectorXd &v) {
@@ -78,18 +82,16 @@ Eigen::MatrixXd PMDecomposition::orbitalselections(Eigen::MatrixXd &m, const Eig
       if (t > s) {
         req_vec1 = m.col(s);
         req_vec2 = m.col(t);
-        req_mat << req_vec1, req_vec2;
         a = S*req_vec1.asDiagonal();
         b = S*req_vec2.asDiagonal();
-        c = req_vec2.asDiagonal()*a;
-        d = req_vec1.asDiagonal()*b;
-        e = req_vec1.asDiagonal()*a;
-        f = req_vec2.asDiagonal()*b;
-        sps = e.colwise().sum();
+        c = req_vec1.transpose()*a; //vec1.S.vec1
+        d = req_vec1.transpose()*b; //term1 of eq 31
+        e = req_vec1.asDiagonal()*b; //term2 of eq 31
+        f = req_vec2.transpose()*b; //vec2.S.vec2
+        sps = c.colwise().sum();
         tpt = f.colwise().sum();
-        spt = 0.5 * (c.colwise().sum() + d.colwise().sum());
+        spt = 0.5 * (d.colwise().sum() + e.rowwise().sum().transpose());
         std::vector<Index> numfuncpatom = aobasis.getFuncPerAtom();
-        Eigen::RowVectorXd sps_per_atom(numfuncpatom.size()), spt_per_atom(numfuncpatom.size()), tpt_per_atom(numfuncpatom.size());
         Index start = 0;
         double Ast = 0;
         double Bst = 0;
