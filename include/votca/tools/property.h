@@ -261,8 +261,10 @@ template <>
 inline bool Property::as<bool>() const {
   if (_value == "true" || _value == "TRUE" || _value == "1") {
     return true;
-  } else {
+  } else if (_value == "false" || _value == "FALSE" || _value == "0") {
     return false;
+  } else {
+    throw std::runtime_error(_value + " cannot be convert to bool.");
   }
 }
 
@@ -324,72 +326,53 @@ inline std::string Property::as<std::string>() const {
 
 template <>
 inline Eigen::VectorXd Property::as<Eigen::VectorXd>() const {
-  std::vector<double> tmp;
-  Tokenizer tok(as<std::string>(), " ,");
-  tok.ConvertToVector<double>(tmp);
+  std::vector<double> tmp =
+      Tokenizer(as<std::string>(), " ,\n\t").ToVector<double>();
   return Eigen::Map<Eigen::VectorXd>(tmp.data(), tmp.size());
 }
 
 template <>
 inline Eigen::Vector3d Property::as<Eigen::Vector3d>() const {
-  std::vector<double> tmp;
-  Tokenizer tok(as<std::string>(), " ,");
-  tok.ConvertToVector<double>(tmp);
-  Eigen::Vector3d result;
-  if (Index(tmp.size()) != result.size()) {
-    throw std::runtime_error("Vector has " +
-                             boost::lexical_cast<std::string>(tmp.size()) +
-                             " instead of three entries");
+  std::vector<double> tmp =
+      Tokenizer(as<std::string>(), " ,\n\t").ToVector<double>();
+
+  if (tmp.size() != 3) {
+    throw std::runtime_error("Vector has " + std::to_string(tmp.size()) +
+                             " instead of 3 entries");
   }
-  result << tmp[0], tmp[1], tmp[2];
-  return result;
+  return {tmp[0], tmp[1], tmp[2]};
 }
 
 template <>
 inline std::vector<Index> Property::as<std::vector<Index> >() const {
-  std::vector<Index> tmp;
-  Tokenizer tok(as<std::string>(), " ,");
-  tok.ConvertToVector<Index>(tmp);
-  return tmp;
+  return Tokenizer(as<std::string>(), " ,\n\t").ToVector<Index>();
 }
 
 template <>
 inline std::vector<double> Property::as<std::vector<double> >() const {
-  std::vector<double> tmp;
-  Tokenizer tok(as<std::string>(), " ,\n\t");
-  tok.ConvertToVector<double>(tmp);
-  return tmp;
+  return Tokenizer(as<std::string>(), " ,\n\t").ToVector<double>();
 }
 
 template <typename T>
 inline T Property::getAttribute(
     std::map<std::string, std::string>::const_iterator it) const {
   if (it != _attributes.end()) {
-    return lexical_cast<T>((*it).second);
+    return lexical_cast<T>(it->second, "wrong type in attribute " + it->first +
+                                           " of element " + _path + "." +
+                                           _name + "\n");
   } else {
     std::stringstream s;
     s << *this << std::endl;
-    throw std::runtime_error(s.str() + "attribute " + (*it).first +
+    throw std::runtime_error(s.str() + "attribute " + it->first +
                              " not found\n");
   }
 }
 
 template <typename T>
 inline T Property::getAttribute(const std::string &attribute) const {
-  std::map<std::string, std::string>::const_iterator it;
-
-  it = _attributes.find(attribute);
-
-  if (it != _attributes.end()) {
-    return lexical_cast<T>(_attributes.at(attribute),
-                           "wrong type in attribute " + attribute +
-                               " of element " + _path + "." + _name + "\n");
-  } else {
-    std::stringstream s;
-    s << *this << std::endl;
-    throw std::runtime_error(s.str() + "attribute " + attribute +
-                             " not found\n");
-  }
+  std::map<std::string, std::string>::const_iterator it =
+      _attributes.find(attribute);
+  return getAttribute<T>(it);
 }
 template <typename T>
 inline void Property::setAttribute(const std::string &attribute,
