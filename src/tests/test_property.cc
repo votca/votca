@@ -161,4 +161,36 @@ BOOST_AUTO_TEST_CASE(addproperty) {
   BOOST_CHECK_EQUAL(one.get("two.goodbye").path(), "one.two");
 }
 
+BOOST_AUTO_TEST_CASE(attributes) {
+
+  Property two("two", "", "");
+  Property& good = two.add("goodbye", "4");
+  BOOST_CHECK(!good.hasAttributes());
+  good.setAttribute<int>("hello", 2);
+  BOOST_CHECK(good.hasAttribute("hello"));
+
+  BOOST_CHECK(good.hasAttributes());
+
+  good.deleteAttribute("hello");
+  BOOST_CHECK(!good.hasAttributes());
+}
+
+BOOST_AUTO_TEST_CASE(deleteproperty) {
+
+  Property two("two", "", "");
+  two.add("goodbye", "4");
+  two.add("goodbye", "3");
+  Property& bye=two.add("bye", "1");
+  bye.add("hello","5");
+  votca::Index del=two.deleteChildren("goodbye");
+  BOOST_CHECK(!two.exists("goodbye"));
+  BOOST_CHECK_EQUAL(del,2);
+  votca::Index del2=two.deleteChildren("bye.hello");
+  BOOST_CHECK(!bye.exists("hello"));
+  BOOST_CHECK_EQUAL(del2,1);
+
+  votca::Index del3=two.deleteChildren("a.b");
+  BOOST_CHECK_EQUAL(del3,0);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

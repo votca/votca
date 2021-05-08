@@ -78,8 +78,8 @@ std::vector<std::string> Calculator::GetPropertyChoices(const Property &p) {
       std::size_t end_bracket = att.find(']');
       att = att.substr(start_bracket + 1, end_bracket - start_bracket - 1);
     }
-    Tokenizer tok{att, " ,"};
-    return tok.ToVector();
+    ;
+    return Tokenizer{att, " ,"}.ToVector();
   } else {
     return {""};
   }

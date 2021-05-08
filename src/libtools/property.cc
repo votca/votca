@@ -58,7 +58,7 @@ const Property &Property::get(const string &key) const {
     if (iter == _map.end()) {
       throw std::runtime_error("property not found: " + key);
     }
-    p = &_properties[((*iter).second)];
+    p = &_properties[iter->second];
   }
   ++n;
   try {
@@ -184,6 +184,10 @@ std::vector<Property *> Property::Select(const string &filter) {
   }
   return selection;
 }
+
+Index Property::deleteChildren(const std::string &key) { return 0; }
+
+void Property::deleteChild(iterator child_pointer) { return; }
 
 static void start_hndl(void *data, const char *el, const char **attr) {
   stack<Property *> *property_stack =

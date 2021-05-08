@@ -185,6 +185,26 @@ class Property {
   Index size() const { return Index(_properties.size()); }
 
   /**
+   * \brief deletes properties based on a key
+   * @param key
+   * @return returns number of properties removed
+   *
+   * This function tries to delete all properties specified by key separated
+   * by "." to step down hierarchy. If no property is
+   * found nothing happens. This invalidates pointers to all child properties.
+   */
+  Index deleteChildren(const std::string &key);
+  /**
+   * \brief deletes a child property
+   * @param pointer to child
+   *
+   * This function deletes a child of this property, specified by the pointer.
+   * Pointer must point to a valid child. This invalidates pointers to all child
+   * properties.
+   */
+  void deleteChild(iterator child_pointer);
+
+  /**
    * \brief return attribute as type
    *
    * returns an attribute after type conversion, e.g.
@@ -240,6 +260,10 @@ class Property {
   template <typename T>
   T getAttribute(const_AttributeIterator it) const;
 
+  void deleteAttribute(const std::string &attribute) {
+    _attributes.erase(attribute);
+  }
+
   void LoadFromXML(std::string filename);
 
   static Index getIOindex() { return IOindex; };
@@ -256,10 +280,9 @@ class Property {
   static const Index IOindex;
 };
 
-
 template <typename T>
 inline T Property::as() const {
-  std::string trimmed=_value;
+  std::string trimmed = _value;
   boost::trim(trimmed);
   return convertFromString<T>(trimmed);
 }
