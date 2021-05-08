@@ -256,21 +256,12 @@ class Property {
   static const Index IOindex;
 };
 
-// TO DO: write a better function for this!!!!
-template <>
-inline bool Property::as<bool>() const {
-  if (_value == "true" || _value == "TRUE" || _value == "1") {
-    return true;
-  } else if (_value == "false" || _value == "FALSE" || _value == "0") {
-    return false;
-  } else {
-    throw std::runtime_error(_value + " cannot be convert to bool.");
-  }
-}
 
 template <typename T>
 inline T Property::as() const {
-  return lexical_cast<T>(_value, "wrong type in " + _path + "." + _name + "\n");
+  std::string trimmed=_value;
+  boost::trim(trimmed);
+  return convertFromString<T>(trimmed);
 }
 
 template <typename T>
@@ -317,49 +308,11 @@ inline T Property::ifExistsAndinListReturnElseThrowRuntimeError(
   return result;
 }
 
-template <>
-inline std::string Property::as<std::string>() const {
-  std::string tmp(_value);
-  boost::trim(tmp);
-  return tmp;
-}
-
-template <>
-inline Eigen::VectorXd Property::as<Eigen::VectorXd>() const {
-  std::vector<double> tmp =
-      Tokenizer(as<std::string>(), " ,\n\t").ToVector<double>();
-  return Eigen::Map<Eigen::VectorXd>(tmp.data(), tmp.size());
-}
-
-template <>
-inline Eigen::Vector3d Property::as<Eigen::Vector3d>() const {
-  std::vector<double> tmp =
-      Tokenizer(as<std::string>(), " ,\n\t").ToVector<double>();
-
-  if (tmp.size() != 3) {
-    throw std::runtime_error("Vector has " + std::to_string(tmp.size()) +
-                             " instead of 3 entries");
-  }
-  return {tmp[0], tmp[1], tmp[2]};
-}
-
-template <>
-inline std::vector<Index> Property::as<std::vector<Index> >() const {
-  return Tokenizer(as<std::string>(), " ,\n\t").ToVector<Index>();
-}
-
-template <>
-inline std::vector<double> Property::as<std::vector<double> >() const {
-  return Tokenizer(as<std::string>(), " ,\n\t").ToVector<double>();
-}
-
 template <typename T>
 inline T Property::getAttribute(
     std::map<std::string, std::string>::const_iterator it) const {
   if (it != _attributes.end()) {
-    return lexical_cast<T>(it->second, "wrong type in attribute " + it->first +
-                                           " of element " + _path + "." +
-                                           _name + "\n");
+    return convertFromString<T>(it->second);
   } else {
     std::stringstream s;
     s << *this << std::endl;

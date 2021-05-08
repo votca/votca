@@ -145,11 +145,15 @@ BOOST_AUTO_TEST_CASE(wildcmp_test2) {
 
 BOOST_AUTO_TEST_CASE(fromstring) {
 
-BOOST_CHECK_EQUAL(convertFromString<int>("3"),3);
-BOOST_CHECK_EQUAL(convertFromString<bool>("true"),true);
-convertFromString<ConstructibleFromString>("true");
+  BOOST_CHECK_EQUAL(convertFromString<int>("3"), 3);
+  BOOST_CHECK_EQUAL(convertFromString<bool>("true"), true);
+  convertFromString<ConstructibleFromString>("true");
 
+  std::vector<int> r = convertFromString<std::vector<int>>("3,4,5");
+
+  BOOST_CHECK((r == std::vector<int>{3, 4, 5}));
+  Eigen::Vector3i s = convertFromString<Eigen::Vector3i>("3,4,5");
+  BOOST_CHECK(s.isApprox(Eigen::Vector3i{3, 4, 5}));
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()
