@@ -185,24 +185,14 @@ class Property {
   Index size() const { return Index(_properties.size()); }
 
   /**
-   * \brief deletes properties based on a key
-   * @param key
-   * @return returns number of properties removed
-   *
-   * This function tries to delete all properties specified by key separated
-   * by "." to step down hierarchy. If no property is
-   * found nothing happens. This invalidates pointers to all child properties.
-   */
-  Index deleteChildren(const std::string &key);
-  /**
    * \brief deletes a child property
    * @param pointer to child
    *
    * This function deletes a child of this property, specified by the pointer.
-   * Pointer must point to a valid child. This invalidates pointers to all child
-   * properties.
+   * Pointer must point to a valid child. This invalidates pointers and
+   * references to all children.
    */
-  void deleteChild(iterator child_pointer);
+  void deleteChild(Property *child);
 
   /**
    * \brief return attribute as type
@@ -269,7 +259,7 @@ class Property {
   static Index getIOindex() { return IOindex; };
 
  private:
-  std::map<std::string, Index> _map;
+  std::map<std::string, std::vector<Index>> _map;
   std::map<std::string, std::string> _attributes;
   std::vector<Property> _properties;
 
