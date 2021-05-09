@@ -195,7 +195,7 @@ void Property::deleteChild(Property *child) {
   const Property &prop = _properties[index_of_child];
   std::vector<Index> &indices = _map.at(prop.name());
 
-  //erase index from map, if only one element in indeces remove the tag
+  // erase index from map, if only one element in indeces remove the tag
   if (indices.size() == 1) {
     _map.erase(prop.name());
   } else {
@@ -212,7 +212,7 @@ void Property::deleteChild(Property *child) {
     auto place = std::find(indices_last.begin(), indices_last.end(), old_index);
     *place = index_of_child;
     std::swap(_properties[index_of_child], _properties.back());
-  } 
+  }
   _properties.pop_back();
 
   return;
