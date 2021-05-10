@@ -187,12 +187,10 @@ BOOST_AUTO_TEST_CASE(deleteproperty) {
   BOOST_CHECK(!two.exists("bye"));
   BOOST_CHECK(two.exists("goodbye"));
 
-  Property& goodbye1=two.get("goodbye");
+  Property& goodbye1 = two.get("goodbye");
   two.deleteChild(&goodbye1);
   // there is still another goodbye tag
   BOOST_CHECK(two.exists("goodbye"));
-
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()
