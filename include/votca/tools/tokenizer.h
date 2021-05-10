@@ -53,6 +53,7 @@ inline T convert_impl(const std::string &s, type<T>) {
 inline bool convert_impl(const std::string &s, type<bool>) {
   if (s == "true" || s == "TRUE" || s == "1") {
     return true;
+
   } else if (s == "false" || s == "FALSE" || s == "0") {
     return false;
   } else {

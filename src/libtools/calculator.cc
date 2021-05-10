@@ -78,7 +78,7 @@ std::vector<std::string> Calculator::GetPropertyChoices(const Property &p) {
     if (start_bracket != std::string::npos) {
       std::size_t end_bracket = att.find(']');
       att = att.substr(start_bracket + 1, end_bracket - start_bracket - 1);
-    };
+    }
     return Tokenizer{att, " ,"}.ToVector();
   } else {
     return {""};
@@ -134,7 +134,7 @@ bool Calculator::IsValidOption(const Property &prop,
   } else {
     std::string value = prop.as<std::string>();
     std::string att = prop.getAttribute<std::string>("choices");
-    bool has_brackets= att.find('[') != std::string::npos;
+    bool has_brackets = att.find('[') != std::string::npos;
     if (!has_brackets) {
       // There is a single choice out of multiple default valid choices
       is_valid = std::find(std::cbegin(choices), std::cend(choices), value) !=
