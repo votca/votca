@@ -100,11 +100,11 @@ void Map_Sphere::Initialize(const Molecule *in, Bead *out, Property *opts_bead,
 
   // get the beads
   string s(_opts_bead->get("beads").value());
-  vector<string> beads=Tokenizer(s, " \n\t").ToVector();
+  vector<string> beads = Tokenizer(s, " \n\t").ToVector();
 
   // get vector of weights
   Tokenizer tok_weights(_opts_map->get("weights").value(), " \n\t");
-  vector<double> weights=tok_weights.ToVector<double>();
+  vector<double> weights = tok_weights.ToVector<double>();
 
   // check weather weights and # beads matches
   if (beads.size() != weights.size()) {
@@ -123,7 +123,7 @@ void Map_Sphere::Initialize(const Molecule *in, Bead *out, Property *opts_bead,
   vector<double> d;
   if (_opts_map->exists("d")) {
     Tokenizer tok_weights2(_opts_map->get("d").value(), " \n\t");
-    d=tok_weights2.ToVector<double>();
+    d = tok_weights2.ToVector<double>();
     // normalize d coefficients
     norm = 1. / std::accumulate(d.begin(), d.end(), 0.);
     transform(d.begin(), d.end(), d.begin(),

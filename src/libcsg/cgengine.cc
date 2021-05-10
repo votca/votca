@@ -70,7 +70,7 @@ std::unique_ptr<TopologyMap> CGEngine::CreateCGTopology(const Topology &in,
 void CGEngine::LoadMoleculeType(const string &filename) {
   tools::Tokenizer tok(filename, ";");
 
-  for (auto& word: tok) {
+  for (auto &word : tok) {
     auto def = std::make_unique<CGMoleculeDef>();
     string file = word;
     boost::trim(file);

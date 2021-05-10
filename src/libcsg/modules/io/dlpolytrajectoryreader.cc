@@ -306,7 +306,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       }
 
       tools::Tokenizer tok(line, " \t");
-      vector<double> fields=tok.ToVector<double>();
+      vector<double> fields = tok.ToVector<double>();
       // Angs -> nm
       box.col(i) = scale * Eigen::Vector3d(fields[0], fields[1], fields[2]);
     }
@@ -359,9 +359,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
               boost::lexical_cast<string>(i + 1));
         }
 
-        
         tools::Tokenizer tok(line, " \t");
-        vector<double> fields=tok.ToVector<double>();
+        vector<double> fields = tok.ToVector<double>();
         // Angs -> nm
         atom_vecs.col(j) =
             scale * Eigen::Vector3d(fields[0], fields[1], fields[2]);

@@ -205,7 +205,8 @@ std::istream &operator>>(std::istream &in, Vector3d &v) {
   while (in.good()) {
     in.get(c);
     if (c == ']') {  // found end of vector
-      std::vector<double> d=votca::tools::Tokenizer(str, ",").ToVector<double>();
+      std::vector<double> d =
+          votca::tools::Tokenizer(str, ",").ToVector<double>();
       if (d.size() != 3) {
         throw std::runtime_error("error, invalid number of entries in vector");
       }

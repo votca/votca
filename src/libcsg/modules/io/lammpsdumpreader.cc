@@ -119,7 +119,7 @@ void LAMMPSDumpReader::ReadBox(Topology &top) {
   for (Index i = 0; i < 3; ++i) {
     tools::getline(_fl, s);
     boost::algorithm::trim(s);
-    vector<double> v=tools::Tokenizer(s, " ").ToVector<double>();
+    vector<double> v = tools::Tokenizer(s, " ").ToVector<double>();
     if (v.size() != 2) {
       throw std::ios_base::failure("invalid box format");
     }
@@ -158,7 +158,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
 
   {
     tools::Tokenizer tok(itemline.substr(12), " ");
-    fields=tok.ToVector();
+    fields = tok.ToVector();
     Index j = 0;
     for (tools::Tokenizer::iterator i = tok.begin(); i != tok.end(); ++i, ++j) {
       if (*i == "x" || *i == "y" || *i == "z") {

@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
 
     double min, max, step;
     {
-      vector<string> toks=Tokenizer(grid, ":").ToVector();
+      vector<string> toks = Tokenizer(grid, ":").ToVector();
       if (toks.size() != 3) {
         cout << "wrong range format, use min:step:max\n";
         return 1;
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
 
     // in case fit is specified
     if (vm.count("fitgrid")) {
-      vector<string> toks= Tokenizer(fitgrid, ":").ToVector();
+      vector<string> toks = Tokenizer(fitgrid, ":").ToVector();
       if (toks.size() != 3) {
         cout << "wrong range format in fitgrid, use min:step:max\n";
         return 1;

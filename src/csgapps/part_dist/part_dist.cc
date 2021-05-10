@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
   }
 
   // Parse grid
-  vector<string> toks=Tokenizer(grid, ":").ToVector();
+  vector<string> toks = Tokenizer(grid, ":").ToVector();
   if (toks.size() != 3) {
     cout << "Wrong range format, use min:step:max\n";
     return 1;

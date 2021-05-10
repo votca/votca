@@ -110,8 +110,8 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char *wspace,
 {
   // split directives consisting of a few words: the sought keyword must be the
   // first one!
- 
-  vector<string> fields= Tokenizer(line, wspace).ToVector();
+
+  vector<string> fields = Tokenizer(line, wspace).ToVector();
 
   ival = 0;
 
@@ -242,7 +242,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         line = " ";
         sl >> line;  // rest of the atom line
 
-        vector<string> fields=Tokenizer(line, WhiteSpace).ToVector();
+        vector<string> fields = Tokenizer(line, WhiteSpace).ToVector();
 
 #ifdef DEBUG
         cout << "Rest atom specs from dlpoly topology : '" << line << "'"
