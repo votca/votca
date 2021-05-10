@@ -23,11 +23,42 @@
 #include <vector>
 
 // Third party includes
-#include <boost/lexical_cast.hpp>
+#include "eigen.h"
+#include "lexical_cast.h"
 #include <boost/tokenizer.hpp>
-
+#include <type_traits>
 namespace votca {
 namespace tools {
+
+namespace internal {
+
+template <typename T>
+struct type {};
+
+template <typename T,
+          typename std::enable_if_t<std::is_arithmetic<T>::value &&
+                                        !std::is_same<T, bool>::value,
+                                    bool> = true>
+inline T convert_impl(const std::string &s, type<T>) {
+  return lexical_cast<T>(s, "Cannot create arithmetic type from" + s);
+}
+
+template <typename T,
+          typename std::enable_if_t<
+              std::is_constructible<T, std::string>::value, bool> = true>
+inline T convert_impl(const std::string &s, type<T>) {
+  return T(s);
+}
+
+inline bool convert_impl(const std::string &s, type<bool>) {
+  if (s == "true" || s == "TRUE" || s == "1") {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+}  // namespace internal
 
 /**
  * \brief break string into words
@@ -50,8 +81,8 @@ class Tokenizer {
 
   Tokenizer(const std::string &str, const char *separators) : _str(str) {
     boost::char_separator<char> sep(separators);
-    tok = std::make_unique<boost::tokenizer<boost::char_separator<char>>>(_str,
-                                                                          sep);
+    tok_ = std::make_unique<boost::tokenizer<boost::char_separator<char>>>(_str,
+                                                                           sep);
   }
   Tokenizer(const std::string &str, const std::string &separators)
       : Tokenizer(str, separators.c_str()){};
@@ -60,12 +91,12 @@ class Tokenizer {
    * \brief iterator to first element
    * @return begin iterator
    */
-  iterator begin() { return tok->begin(); }
+  iterator begin() { return tok_->begin(); }
   /**
    * \brief end iterator
    * @return end iterator
    */
-  iterator end() { return tok->end(); }
+  iterator end() { return tok_->end(); }
 
   /**
    * \brief store all words in a vector of strings.
@@ -74,15 +105,20 @@ class Tokenizer {
    * This class appends all words to a vector of strings.
    */
   void ToVector(std::vector<std::string> &v) {
-    for (iterator iter = begin(); iter != end(); ++iter) {
-      v.push_back(*iter);
+    for (auto &seg : *this) {
+      v.push_back(seg);
     }
   }
 
-  std::vector<std::string> ToVector() {
-    std::vector<std::string> result;
-    for (iterator iter = begin(); iter != end(); ++iter) {
-      result.push_back(*iter);
+  /**
+   * \brief store all words in a vector of type T, does type conversion.
+   * @return storage vector
+   */
+  template <class T = std::string>
+  std::vector<T> ToVector() {
+    std::vector<T> result;
+    for (auto &seg : *this) {
+      result.push_back(internal::convert_impl(seg, internal::type<T>{}));
     }
     return result;
   }
@@ -107,7 +143,7 @@ class Tokenizer {
   }
 
  private:
-  std::unique_ptr<boost::tokenizer<boost::char_separator<char>>> tok;
+  std::unique_ptr<boost::tokenizer<boost::char_separator<char>>> tok_;
   std::string _str;
 };
 
@@ -115,6 +151,38 @@ class Tokenizer {
 // &quot;bl?h.*&quot; etc. This is good for file globbing or to match hostmasks.
 int wildcmp(const char *wild, const char *string);
 int wildcmp(const std::string &wild, const std::string &string);
+
+namespace internal {
+
+template <class T>
+inline std::vector<T> convert_impl(const std::string &s, type<std::vector<T>>) {
+  return Tokenizer(s, " ,\n\t").ToVector<T>();
+}
+
+template <class T>
+inline Eigen::Matrix<T, Eigen::Dynamic, 1> convert_impl(
+    const std::string &s, type<Eigen::Matrix<T, Eigen::Dynamic, 1>>) {
+  std::vector<T> tmp = convert_impl(s, type<std::vector<T>>{});
+  return Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1>>(tmp.data(),
+                                                         tmp.size());
+}
+
+template <class T>
+inline Eigen::Matrix<T, 3, 1> convert_impl(const std::string &s,
+                                           type<Eigen::Matrix<T, 3, 1>>) {
+  std::vector<T> tmp = convert_impl(s, type<std::vector<T>>{});
+  if (tmp.size() != 3) {
+    throw std::runtime_error("Vector has " + std::to_string(tmp.size()) +
+                             " instead of 3 entries");
+  }
+  return {tmp[0], tmp[1], tmp[2]};
+}
+}  // namespace internal
+
+template <class T>
+T convertFromString(const std::string &s) {
+  return internal::convert_impl(s, internal::type<T>{});
+}
 
 }  // namespace tools
 }  // namespace votca

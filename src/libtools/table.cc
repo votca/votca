@@ -109,9 +109,7 @@ istream &operator>>(istream &in, Table &t) {
     line = line.substr(0, line.find("@"));
 
     // tokenize string and put it to vector
-    Tokenizer tok(line, " \t");
-
-    vector<string> tokens = tok.ToVector();
+    vector<string> tokens = Tokenizer(line, " \t").ToVector();
 
     // skip empty lines
     if (tokens.size() == 0) {
@@ -148,9 +146,7 @@ istream &operator>>(istream &in, Table &t) {
     line = line.substr(0, line.find("@"));
 
     // tokenize string and put it to vector
-    Tokenizer tok(line, " \t");
-    vector<string> tokens;
-    tok.ToVector(tokens);
+    vector<string> tokens = Tokenizer(line, " \t").ToVector();
 
     // skip empty lines
     if (tokens.size() == 0) {
