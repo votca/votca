@@ -32,6 +32,7 @@ Version 2022-dev
 -  allocate threecenter matrices in parallel (#701)
 -  use NDimVector instead of std::vector in vxcgrid. (#703)
 -  Fixing the tutorial (#705)
+-  adapted tokenizer api (#707)
 
 Version 2021.1 (released XX.03.21)
 ==================================
