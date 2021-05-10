@@ -42,7 +42,7 @@ void RangeParser::Parse(std::string str) {
 }
 
 void RangeParser::ParseBlock(std::string str) {
-  std::vector<std::string> toks=Tokenizer(str, ":").ToVector();
+  std::vector<std::string> toks = Tokenizer(str, ":").ToVector();
 
   block_t block;
   block._stride = 1;
