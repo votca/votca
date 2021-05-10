@@ -117,8 +117,7 @@ inline bool XYZReader::ReadFrame(T &container) {
   ++_line;
   if (!_fl.eof()) {
     // read the number of atoms
-    tools::Tokenizer tok1(line, " \t");
-    std::vector<std::string> line1 = tok1.ToVector();
+    std::vector<std::string> line1 = tools::Tokenizer(line, " \t").ToVector();
     if (line1.size() != 1) {
       throw std::runtime_error(
           "First line of xyz file should contain number "

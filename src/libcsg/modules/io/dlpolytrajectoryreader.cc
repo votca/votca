@@ -126,16 +126,16 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 #endif
 
     tools::Tokenizer tok(line, " \t");
-    vector<string> fields = tok.ToVector();
+    vector<Index> fields = tok.ToVector<Index>();
 
     if (fields.size() < 3) {
       throw std::runtime_error("Error: too few directive switches (<3) in '" +
                                _fname + "' header (check its 2-nd line)");
     }
 
-    mavecs = boost::lexical_cast<Index>(fields[0]);
-    mpbct = boost::lexical_cast<Index>(fields[1]);
-    matoms = boost::lexical_cast<Index>(fields[2]);
+    mavecs = fields[0];
+    mpbct = fields[1];
+    matoms = fields[2];
 
     hasVs = (mavecs > 0);  // 1 or 2 => in DL_POLY frame velocity vector follows
                            // coords for each atom/bead
@@ -306,8 +306,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       }
 
       tools::Tokenizer tok(line, " \t");
-      vector<double> fields;
-      tok.ConvertToVector<double>(fields);
+      vector<double> fields=tok.ToVector<double>();
       // Angs -> nm
       box.col(i) = scale * Eigen::Vector3d(fields[0], fields[1], fields[2]);
     }
@@ -360,9 +359,9 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
               boost::lexical_cast<string>(i + 1));
         }
 
-        vector<double> fields;
+        
         tools::Tokenizer tok(line, " \t");
-        tok.ConvertToVector<double>(fields);
+        vector<double> fields=tok.ToVector<double>();
         // Angs -> nm
         atom_vecs.col(j) =
             scale * Eigen::Vector3d(fields[0], fields[1], fields[2]);
