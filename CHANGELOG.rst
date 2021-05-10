@@ -16,6 +16,7 @@ Version 2022-dev
 -  removed eigenvalue algorithm, now done by eigen  (#352)
 -  Added N-DimVector (#360)
 -  properties can be removed and string conversion much improved (#365)
+-  made bool conversion more restrictive (#366)
 
 Version 2021.1 (released XX.03.21)
 ==================================
