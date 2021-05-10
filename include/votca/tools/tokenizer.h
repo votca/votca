@@ -53,8 +53,10 @@ inline T convert_impl(const std::string &s, type<T>) {
 inline bool convert_impl(const std::string &s, type<bool>) {
   if (s == "true" || s == "TRUE" || s == "1") {
     return true;
-  } else{
+  } else if (s == "false" || s == "FALSE" || s == "0") {
     return false;
+  } else {
+    throw std::runtime_error("'"+ s + "' cannot be converted to bool.");
   }
 }
 
