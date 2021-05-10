@@ -19,6 +19,7 @@
 #include "votca/tools/calculator.h"
 #include "votca/tools/globals.h"
 #include "votca/tools/tokenizer.h"
+#include <algorithm>
 
 namespace votca {
 namespace tools {
@@ -78,7 +79,6 @@ std::vector<std::string> Calculator::GetPropertyChoices(const Property &p) {
       std::size_t end_bracket = att.find(']');
       att = att.substr(start_bracket + 1, end_bracket - start_bracket - 1);
     }
-    ;
     return Tokenizer{att, " ,"}.ToVector();
   } else {
     return {""};
@@ -134,21 +134,19 @@ bool Calculator::IsValidOption(const Property &prop,
   } else {
     std::string value = prop.as<std::string>();
     std::string att = prop.getAttribute<std::string>("choices");
-    std::size_t start_bracket = att.find('[');
-    if (start_bracket == std::string::npos) {
+    bool has_brackets= att.find('[') != std::string::npos;
+    if (!has_brackets) {
       // There is a single choice out of multiple default valid choices
-      auto it = std::find(std::cbegin(choices), std::cend(choices), value);
-      is_valid = (it != std::cend(choices));
+      is_valid = std::find(std::cbegin(choices), std::cend(choices), value) !=
+                 std::cend(choices);
     } else {
       // there are multiple valid choices
       Tokenizer tok{value, " ,"};
-      for (const std::string &word : tok) {
-        auto it = std::find(std::cbegin(choices), std::cend(choices), word);
-        if (it == std::cend(choices)) {
-          is_valid = false;
-          break;
-        }
-      }
+      is_valid =
+          std::all_of(tok.begin(), tok.end(), [&](const std::string &word) {
+            return std::find(std::cbegin(choices), std::cend(choices), word) !=
+                   std::cend(choices);
+          });
     }
   }
   return is_valid;

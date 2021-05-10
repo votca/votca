@@ -27,9 +27,7 @@
 namespace votca {
 namespace tools {
 
-RangeParser::RangeParser()
-    //: _has_begin(false) , _has_end(false)
-    = default;
+RangeParser::RangeParser() = default;
 
 void RangeParser::Parse(std::string str) {
   // remove all spaces in string
@@ -44,13 +42,11 @@ void RangeParser::Parse(std::string str) {
 }
 
 void RangeParser::ParseBlock(std::string str) {
-  Tokenizer tokenizer(str, ":");
-  std::vector<std::string> toks;
+  std::vector<std::string> toks=Tokenizer(str, ":").ToVector();
 
   block_t block;
   block._stride = 1;
 
-  tokenizer.ToVector(toks);
   if (toks.size() > 3 || toks.size() < 1) {
     throw std::runtime_error("invalid range");
   }

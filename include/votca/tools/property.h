@@ -20,6 +20,7 @@
 
 // Standard includes
 #include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <list>
 #include <map>
@@ -274,7 +275,12 @@ template <typename T>
 inline T Property::as() const {
   std::string trimmed = _value;
   boost::trim(trimmed);
-  return convertFromString<T>(trimmed);
+  try {
+    return convertFromString<T>(trimmed);
+  } catch (std::runtime_error &e) {
+    throw std::runtime_error("Property with name '" + name() + "' in path '" +
+                             path() + "' and value :" + e.what());
+  }
 }
 
 template <typename T>
