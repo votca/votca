@@ -54,7 +54,7 @@ void GenCube::ParseOptions(const tools::Property& options) {
   _steps.x() = options.get(".xsteps").as<Index>();
   _steps.z() = options.get(".zsteps").as<Index>();
 
-  _state=options.get(".state").as<QMState>();
+  _state = options.get(".state").as<QMState>();
   _dostateonly = options.get(".diff2gs").as<bool>();
 
   _mode = options.get(".mode").as<std::string>();

@@ -32,7 +32,7 @@ namespace xtp {
 
 void GeometryOptimization::Initialize(tools::Property& options) {
 
-  _opt_state=options.get(".state").as<QMState>();
+  _opt_state = options.get(".state").as<QMState>();
   if (!_opt_state.Type().isExciton()) {
     throw std::runtime_error(
         "At the moment only excitonic states can be optimized");

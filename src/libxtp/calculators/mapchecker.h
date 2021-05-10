@@ -69,13 +69,12 @@ void MapChecker::ParseOptions(const tools::Property& options) {
   _mpfile = options.get(".mp_pdbfile").as<std::string>();
 
   _qmstates = options.get(".qm_states").as<std::vector<QMState>>();
-   
-  _mdstates =  options.get(".mp_states").as<std::vector<QMState>>();
+
+  _mdstates = options.get(".mp_states").as<std::vector<QMState>>();
   if (!(_qmstates.empty() && _mdstates.empty())) {
     _mapfile = options.get(".map_file").as<std::string>();
   }
 }
-
 
 std::string MapChecker::AddStatetoFilename(const std::string& filename,
                                            QMState state) const {

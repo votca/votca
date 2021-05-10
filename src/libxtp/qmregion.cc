@@ -39,7 +39,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
         " must always be region 0. Currently only one qm region is possible.");
   }
 
-  _initstate=prop.ifExistsReturnElseThrowRuntimeError<QMState>("state");
+  _initstate = prop.ifExistsReturnElseThrowRuntimeError<QMState>("state");
   if (_initstate.Type() == QMStateType::Hole ||
       _initstate.Type() == QMStateType::Electron) {
     throw std::runtime_error(

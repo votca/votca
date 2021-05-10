@@ -72,7 +72,8 @@ bool XTPDFT::Run() {
 void XTPDFT::CleanUp() {
   if (_cleanup.size() != 0) {
     XTP_LOG(Log::info, *_pLog) << "Removing " << _cleanup << " files" << flush;
-    std::vector<std::string> cleanup_info=tools::Tokenizer(_cleanup, ", ").ToVector();
+    std::vector<std::string> cleanup_info =
+        tools::Tokenizer(_cleanup, ", ").ToVector();
     for (const std::string& substring : cleanup_info) {
       if (substring == "log") {
         std::string file_name = _run_dir + "/" + _log_file_name;

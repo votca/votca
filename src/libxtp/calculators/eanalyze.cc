@@ -29,7 +29,7 @@ void EAnalyze::ParseOptions(const tools::Property &options) {
   _resolution_spatial = options.get(".resolution_spatial").as<double>();
   _seg_pattern = options.get(".match_pattern").as<std::string>();
 
-  _states= options.get(".states").as<std::vector<QMStateType>>();
+  _states = options.get(".states").as<std::vector<QMStateType>>();
 
   _doenergy_landscape = options.get(".do_energy_landscape").as<bool>();
 
@@ -243,7 +243,7 @@ void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
 
   // Prepare bins
   Index BIN = Index((MAX - MIN) / _resolution_spatial + 0.5) + 1;
-  std::vector<std::vector<double> > histCs;
+  std::vector<std::vector<double>> histCs;
   histCs.resize(BIN);
 
   for (Index i = 0; i < tabcorr.size(); ++i) {
