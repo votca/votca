@@ -57,7 +57,7 @@ inline bool convert_impl(const std::string &s, type<bool>) {
   } else if (s == "false" || s == "FALSE" || s == "0") {
     return false;
   } else {
-    throw std::runtime_error("'"+ s + "' cannot be converted to bool.");
+    throw std::runtime_error("'" + s + "' cannot be converted to bool.");
   }
 }
 
