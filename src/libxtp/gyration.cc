@@ -34,9 +34,7 @@ namespace xtp {
 
 void Density2Gyration::Initialize(tools::Property& options) {
   std::string key = Identify();
-
-  std::string statestring = options.get(key + ".state").as<std::string>();
-  _state.FromString(statestring);
+  _state=options.get(key + ".state").as<QMState>();
   _dostateonly = options.ifExistsReturnElseReturnDefault<bool>(
       key + ".difference_to_groundstate", false);
   _gridsize = options.ifExistsReturnElseReturnDefault<std::string>(

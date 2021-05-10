@@ -36,8 +36,7 @@ void APDFT::ParseOptions(const tools::Property &options) {
       ".input", _job_name + ".orb");
   _outputfile = options.ifExistsReturnElseReturnDefault<std::string>(
       ".output", _job_name + "_state.dat");
-  std::string statestring = options.get(".state").as<std::string>();
-  _state.FromString(statestring);
+   _state=options.get(".state").as<QMState>();
 }
 
 bool APDFT::Run() {

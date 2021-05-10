@@ -239,12 +239,7 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
     }
     std::vector<SegId> seg_ids;
     if (region_def->exists("segments")) {
-      std::string seg_ids_string =
-          region_def->get("segments").as<std::string>();
-      tools::Tokenizer tok(seg_ids_string, " \n\t");
-      for (const std::string& seg_id_string : tok.ToVector()) {
-        seg_ids.push_back(SegId(seg_id_string));
-      }
+      seg_ids=region_def->get("segments").as<std::vector<SegId>>();
       for (const SegId& seg_id : seg_ids) {
         if (seg_id.Id() > Index(top.Segments().size() - 1)) {
           throw std::runtime_error("Segment id is not in topology");

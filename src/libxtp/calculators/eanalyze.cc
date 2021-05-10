@@ -17,6 +17,7 @@
 
 // Local private VOTCA includes
 #include "eanalyze.h"
+#include "votca/xtp/qmstate.h"
 
 namespace votca {
 namespace xtp {
@@ -28,13 +29,7 @@ void EAnalyze::ParseOptions(const tools::Property &options) {
   _resolution_spatial = options.get(".resolution_spatial").as<double>();
   _seg_pattern = options.get(".match_pattern").as<std::string>();
 
-  std::string statestrings = options.get(".states").as<std::string>();
-  tools::Tokenizer tok(statestrings, ",\n\t ");
-  std::vector<std::string> string_vec;
-  tok.ToVector(string_vec);
-  for (std::string &state : string_vec) {
-    _states.push_back(QMStateType(state));
-  }
+  _states= options.get(".states").as<std::vector<QMStateType>>();
 
   _doenergy_landscape = options.get(".do_energy_landscape").as<bool>();
 

@@ -56,9 +56,8 @@ std::map<std::string, QMState> IEXCITON::FillParseMaps(
   Tokenizer split_options(Mapstring, ", \t\n");
   std::map<std::string, QMState> type2level;
   for (const std::string& substring : split_options) {
-    std::vector<std::string> segmentpnumber;
     Tokenizer tok(substring, ":");
-    tok.ToVector(segmentpnumber);
+    std::vector<std::string> segmentpnumber=tok.ToVector();
     if (segmentpnumber.size() != 2) {
       throw std::runtime_error("Parser iqm: Segment and exciton labels:" +
                                substring + "are not separated properly");

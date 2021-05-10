@@ -49,9 +49,7 @@ void Md2QmEngine::CheckMappingFile(tools::Property& topology_map) const {
 
       std::vector<std::string> atomnames_seg;
       for (tools::Property* frag : fragments) {
-        std::string mdatoms = frag->get("mdatoms").as<std::string>();
-        tools::Tokenizer tok_md_atoms(mdatoms, " \t\n");
-        std::vector<std::string> atomnames = tok_md_atoms.ToVector();
+        std::vector<std::string> atomnames = frag->get("mdatoms").as<std::vector<std::string>>();
         atomnames_seg.insert(atomnames_seg.end(), atomnames.begin(),
                              atomnames.end());
       }
@@ -155,10 +153,7 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
       std::string fragkey = "fragments.fragment";
       std::vector<tools::Property*> fragments = seg->Select(fragkey);
       for (tools::Property* frag : fragments) {
-        std::string mdatoms = frag->get("mdatoms").as<std::string>();
-        tools::Tokenizer tok_md_atoms(mdatoms, " \t\n");
-        std::vector<std::string> atomnames;
-        tok_md_atoms.ToVector(atomnames);
+        std::vector<std::string> atomnames=frag->get("mdatoms").as<std::vector<std::string>>();
         for (const std::string& atomname : atomnames) {
           tools::Tokenizer tok_atom_name(atomname, ":");
           std::vector<std::string> entries = tok_atom_name.ToVector();

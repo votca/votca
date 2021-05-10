@@ -37,9 +37,7 @@ void Esp2multipole::Initialize(tools::Property& options) {
   _use_mulliken = false;
   _use_CHELPG = false;
   _use_lowdin = false;
-
-  std::string statestring = options.get(key + ".state").as<std::string>();
-  _state.FromString(statestring);
+  _state=options.get(key + ".state").as<QMState>();
 
   _method = options.get(key + ".method").as<std::string>();
 
@@ -70,10 +68,7 @@ void Esp2multipole::Initialize(tools::Property& options) {
       std::vector<tools::Property*> prop_pair =
           options.Select(key + ".constraints.pairs.pair");
       for (tools::Property* prop : prop_pair) {
-        std::string pairstring = prop->as<std::string>();
-        tools::Tokenizer tok(pairstring, "\n\t ,");
-        std::vector<Index> pairvec;
-        tok.ConvertToVector<Index>(pairvec);
+        std::vector<Index> pairvec= prop->as<std::vector<Index>>();
         std::pair<Index, Index> pair;
         pair.first = pairvec[0];
         pair.second = pairvec[1];

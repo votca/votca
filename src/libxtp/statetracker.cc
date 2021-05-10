@@ -27,9 +27,7 @@ using std::flush;
 
 void StateTracker::Initialize(const tools::Property& options) {
 
-  std::string filters = options.get("filters").as<std::string>();
-  tools::Tokenizer tok(filters, " ,;\n");
-  std::vector<std::string> list_filters = tok.ToVector();
+  std::vector<std::string> list_filters = options.get("filters").as<std::vector<std::string>>();
 
   FilterFactory::RegisterAll();
   for (const std::string& filtername : list_filters) {

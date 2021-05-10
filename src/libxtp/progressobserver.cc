@@ -225,8 +225,7 @@ void ProgObserver<JobContainer>::InitCmdLineOpts(
     _restartMode = true;
   }
 
-  tools::Tokenizer toker(restartPattern, "(,)");
-  std::vector<std::string> patterns = toker.ToVector();
+  std::vector<std::string> patterns = tools::Tokenizer(restartPattern, "(,)").ToVector();
 
   std::string category = "";
   for (const std::string &pattern : patterns) {
