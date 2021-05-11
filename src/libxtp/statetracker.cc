@@ -27,9 +27,8 @@ using std::flush;
 
 void StateTracker::Initialize(const tools::Property& options) {
 
-  std::string filters = options.get("filters").as<std::string>();
-  tools::Tokenizer tok(filters, " ,;\n");
-  std::vector<std::string> list_filters = tok.ToVector();
+  std::vector<std::string> list_filters =
+      options.get("filters").as<std::vector<std::string>>();
 
   FilterFactory::RegisterAll();
   for (const std::string& filtername : list_filters) {
@@ -71,7 +70,7 @@ std::vector<Index> StateTracker::ComparePairofVectors(
 }
 
 std::vector<Index> StateTracker::CollapseResults(
-    std::vector<std::vector<Index> >& results) const {
+    std::vector<std::vector<Index>>& results) const {
   if (results.empty()) {
     return std::vector<Index>(0);
   } else {
@@ -89,7 +88,7 @@ QMState StateTracker::CalcState(const Orbitals& orbitals) const {
     return _statehist[0];
   }
 
-  std::vector<std::vector<Index> > results;
+  std::vector<std::vector<Index>> results;
   for (const auto& filter : _filters) {
     if (_statehist.size() < 2 && filter->NeedsInitialState()) {
       XTP_LOG(Log::error, *_log)

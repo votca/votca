@@ -66,14 +66,10 @@ std::vector<double> SegmentMapper<AtomContainer>::getWeights(
 
   std::vector<double> weights;
   if (frag.exists(_mapatom_xml.at("weights"))) {
-    std::string weights_string =
-        frag.get(_mapatom_xml.at("weights")).template as<std::string>();
-    tools::Tokenizer tok_weights(weights_string, " \t\n");
-    tok_weights.ConvertToVector(weights);
+    weights =
+        frag.get(_mapatom_xml.at("weights")).template as<std::vector<double>>();
   } else if (frag.exists("weights")) {
-    std::string weights_string = frag.get("weights").template as<std::string>();
-    tools::Tokenizer tok_weights(weights_string, " \t\n");
-    tok_weights.ConvertToVector(weights);
+    weights = frag.get("weights").template as<std::vector<double>>();
   } else {
     XTP_LOG(Log::error, _log) << " Did not find weights for fragment "
                               << frag.get("name").as<std::string>()
@@ -104,11 +100,10 @@ std::vector<double> SegmentMapper<AtomContainer>::getWeights(
 template <class AtomContainer>
 void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
                                                  const tools::Property& frag) {
-  tools::Tokenizer tok_map_atoms(
-      frag.get(_mapatom_xml["atoms"]).template as<std::string>(), " \t\n");
-  std::vector<std::string> map_atoms = tok_map_atoms.ToVector();
-  tools::Tokenizer tok_md_atoms(frag.get("mdatoms").as<std::string>(), " \t\n");
-  std::vector<std::string> md_atoms = tok_md_atoms.ToVector();
+  std::vector<std::string> map_atoms =
+      frag.get(_mapatom_xml["atoms"]).template as<std::vector<std::string>>();
+  std::vector<std::string> md_atoms =
+      frag.get("mdatoms").as<std::vector<std::string>>();
 
   if (md_atoms.size() != map_atoms.size()) {
     throw std::runtime_error(
@@ -157,9 +152,8 @@ void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
     mapfragment._mdatom_ids.push_back(md_result);
   }
 
-  tools::Tokenizer tok_frame(getFrame(frag), " \t\n");
-  std::vector<Index> frame;
-  tok_frame.ConvertToVector(frame);
+  std::vector<Index> frame =
+      tools::Tokenizer(getFrame(frag), " \t\n").ToVector<Index>();
   if (frame.size() > 3) {
     throw std::runtime_error(
         "Local frame for segment " + seginfo.segname + " fragment " +

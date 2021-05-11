@@ -136,8 +136,7 @@ std::vector<std::string> QMPackage::GetLineAndSplit(
   std::string line;
   tools::getline(input_file, line);
   boost::trim(line);
-  tools::Tokenizer tok(line, separators);
-  return tok.ToVector();
+  return tools::Tokenizer(line, separators).ToVector();
 }
 
 std::string QMPackage::FindDefaultsFile() const {

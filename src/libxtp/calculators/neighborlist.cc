@@ -40,8 +40,7 @@ void Neighborlist::ParseOptions(const tools::Property& options) {
           segprop->get("cutoff").as<double>() * tools::conv::nm2bohr;
 
       tools::Tokenizer tok(types, " ");
-      std::vector<std::string> names;
-      tok.ToVector(names);
+      std::vector<std::string> names = tok.ToVector();
 
       if (names.size() != 2) {
         throw std::runtime_error(

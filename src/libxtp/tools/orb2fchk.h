@@ -17,6 +17,7 @@
  *
  */
 #pragma once
+#include "votca/xtp/qmstate.h"
 #ifndef VOTCA_XTP_ORB2FCHK_H
 #define VOTCA_XTP_ORB2FCHK_H
 
@@ -45,7 +46,7 @@ class Orb2Fchk final : public QMTool {
  private:
   std::string _basename;
   std::string _orbfile;
-  std::string _state_string;
+  QMState state_;
   bool _diff2gs;
   Logger _log;
 };
