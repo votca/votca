@@ -33,10 +33,8 @@ BOOST_AUTO_TEST_SUITE(optionshandler_test)
 
 BOOST_AUTO_TEST_CASE(resolving_links) {
 
-  std::string default_loc = std::string(TOOLS_TEST_DATA_FOLDER) + "/optionshandler/";
-
+  std::string default_loc =
+      std::string(TOOLS_TEST_DATA_FOLDER) + "/optionshandler/";
 }
-
-
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -15,9 +15,13 @@ Version 2022-dev
 -  add missing cmath include (#351)
 -  removed eigenvalue algorithm, now done by eigen  (#352)
 -  Added N-DimVector (#360)
+-  properties can be removed and string conversion much improved (#365)
 
 Version 2021.1 (released XX.03.21)
 ==================================
+
+-  fix build on F34 and openSUSE (#361)
+-  add support for oneapi mkl (#363)
 
 Version 2021 (released 13.03.21)
 ================================

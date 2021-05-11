@@ -26,7 +26,6 @@ namespace tools {
 
 class OptionsHandler {
  public:
-
   OptionsHandler(std::string defaults_path) : defaults_path_(defaults_path) {}
 
   /**
@@ -39,7 +38,6 @@ class OptionsHandler {
    * \brief Loads default options stored in defaults_path_
    */
   Property LoadDefaults(const std::string &calculatorname) const;
-
 
   void RemoveAttributesFromUserOptions(Property &user_options) const;
 
@@ -65,23 +63,25 @@ class OptionsHandler {
    */
   void RemoveOptional(Property &options) const;
 
-  void InjectDefaultsAsValues(Property &options)const;
+  void InjectDefaultsAsValues(Property &options) const;
 
   void CheckChoices(const Property &options) const;
 
-  void CleanAttributes(Property& options, const std::vector<std::string>& attributes) const;
+  void CleanAttributes(Property &options,
+                       const std::vector<std::string> &attributes) const;
   /**
    * \brief Load the default options and merge them with the user input
    *
    * Defaults are overwritten with user input
    */
-  Property ProcessUserInput(
-      const Property &user_input,const std::vector<std::string> &cli_input, const std::string &calcname) const;
+  Property ProcessUserInput(const Property &user_input,
+                            const std::vector<std::string> &cli_input,
+                            const std::string &calcname) const;
 
-  Property CalculatorOptions(const std::string &calcname) const{
-    Property print=LoadDefaults(calcname);
+  Property CalculatorOptions(const std::string &calcname) const {
+    Property print = LoadDefaults(calcname);
     ResolveLinks(print);
-    CleanAttributes(print, {"link","item"});
+    CleanAttributes(print, {"link", "item"});
     return print;
   }
 

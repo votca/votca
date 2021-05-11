@@ -35,7 +35,8 @@ static bool IsValidCast(const tools::Property &prop) {
 void OptionsHandler::ResolveLinks(Property &prop) const {
 
   if (prop.hasAttribute("link")) {
-    std::string relative_path = "subpackages/"+prop.getAttribute<std::string>("link");
+    std::string relative_path =
+        "subpackages/" + prop.getAttribute<std::string>("link");
     std::string file_path = defaults_path_ + relative_path;
     tools::Property package;
     package.LoadFromXML(file_path);

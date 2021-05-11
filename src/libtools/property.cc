@@ -16,10 +16,12 @@
  */
 
 // Standard includes
+#include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <stack>
 #include <stdexcept>
 #include <string>
@@ -50,7 +52,7 @@ const Property &Property::get(const string &key) const {
   }
 
   const Property *p;
-  std::map<string, std::vector<Index>>::const_iterator iter;
+  map<string, std::vector<Index>>::const_iterator iter;
   if (*n == "") {
     p = this;
   } else {
@@ -58,7 +60,7 @@ const Property &Property::get(const string &key) const {
     if (iter == _map.end()) {
       throw std::runtime_error("property not found: " + key);
     }
-    p = &_properties[(iter->second).back()];
+    p = &_properties[iter->second.back()];
   }
   ++n;
   try {
@@ -120,7 +122,7 @@ void FixPath(tools::Property &prop, std::string path) {
 void Property::add(const Property &other) {
 
   _properties.push_back(other);
-  _map[other.name()].push_back(Index(_properties.size()) - 1);
+  _map[other.name()].push_back((_properties.size()) - 1);
 
   std::string path = _path;
   if (path != "") {
@@ -178,6 +180,37 @@ std::vector<Property *> Property::Select(const string &filter) {
     selection = selected;
   }
   return selection;
+}
+
+void Property::deleteChild(Property *child) {
+  // only works for std::vector
+  ptrdiff_t index_of_child = std::distance(_properties.data(), child);
+  assert(&_properties[index_of_child] == child &&
+         "You changed the containertype for property, fix deleteChild");
+  const Property &prop = _properties[index_of_child];
+  std::vector<Index> &indices = _map.at(prop.name());
+
+  // erase index from map, if only one element in indeces remove the tag
+  if (indices.size() == 1) {
+    _map.erase(prop.name());
+  } else {
+    indices.erase(std::remove(indices.begin(), indices.end(), index_of_child),
+                  indices.end());
+  }
+
+  // if child is not the last element we have to do two things, a) switch the
+  // child with the last element and b) update the index of the former last
+  // element
+  if (child != &_properties.back()) {
+    Index old_index = _properties.size() - 1;
+    std::vector<Index> &indices_last = _map.at(_properties.back().name());
+    auto place = std::find(indices_last.begin(), indices_last.end(), old_index);
+    *place = index_of_child;
+    std::swap(_properties[index_of_child], _properties.back());
+  }
+  _properties.pop_back();
+
+  return;
 }
 
 void Property::deleteAttribute(const std::string &attribute) {
@@ -355,7 +388,7 @@ void PrintNodeHLP(std::ostream &out, const Property &p,
                   const Index start_level = 0, Index level = 0,
                   const string &prefix = "", const string &offset = "") {
 
-  Color<csRGB> RGB;                   // Using RGB palette
+  Color<csRGB> RGB;  // Using RGB palette
   string fmt = "t|%1%%|15t|" + string(RGB.Blue()) + "%2%" +
                string(RGB.Green()) + "%|40t|%3%%|55t|" + string(RGB.Reset()) +
                "%4%\n";

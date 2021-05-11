@@ -20,6 +20,7 @@
 
 // Standard includes
 #include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <list>
 #include <map>
@@ -177,6 +178,16 @@ class Property {
   Index size() const { return Index(_properties.size()); }
 
   /**
+   * \brief deletes a child property
+   * @param pointer to child
+   *
+   * This function deletes a child of this property, specified by the pointer.
+   * Pointer must point to a valid child. This invalidates pointers and
+   * references to all children.
+   */
+  void deleteChild(Property *child);
+
+  /**
    * \brief return attribute as type
    *
    * returns an attribute after type conversion, e.g.
@@ -193,8 +204,8 @@ class Property {
   /**
    * \brief deletes an attribute
    */
-  void deleteAttribute(const std::string& attribute);
-    /**
+  void deleteAttribute(const std::string &attribute);
+  /**
    * \brief return true if a node has attributes
    */
   bool hasAttributes() const { return _attributes.size() > 0; }
@@ -242,7 +253,7 @@ class Property {
   static Index getIOindex() { return IOindex; };
 
  private:
-  std::map<std::string, std::vector<Index> > _map;
+  std::map<std::string, std::vector<Index>> _map;
   std::map<std::string, std::string> _attributes;
   std::vector<Property> _properties;
 
@@ -253,72 +264,23 @@ class Property {
   static const Index IOindex;
 };
 
-// TO DO: write a better function for this!!!!
-template <>
-inline bool Property::as<bool>() const {
-  if (_value == "true" || _value == "TRUE" || _value == "1") {
-    return true;
-  } else {
-    return false;
-  }
-}
-
 template <typename T>
 inline T Property::as() const {
-  return lexical_cast<T>(_value, "wrong type in " + _path + "." + _name + "\n");
-}
-
-template <>
-inline std::string Property::as<std::string>() const {
-  std::string tmp(_value);
-  boost::trim(tmp);
-  return tmp;
-}
-
-template <>
-inline Eigen::VectorXd Property::as<Eigen::VectorXd>() const {
-  std::vector<double> tmp;
-  Tokenizer tok(as<std::string>(), " ,");
-  tok.ConvertToVector<double>(tmp);
-  return Eigen::Map<Eigen::VectorXd>(tmp.data(), tmp.size());
-}
-
-template <>
-inline Eigen::Vector3d Property::as<Eigen::Vector3d>() const {
-  std::vector<double> tmp;
-  Tokenizer tok(as<std::string>(), " ,");
-  tok.ConvertToVector<double>(tmp);
-  Eigen::Vector3d result;
-  if (Index(tmp.size()) != result.size()) {
-    throw std::runtime_error("Vector has " +
-                             boost::lexical_cast<std::string>(tmp.size()) +
-                             " instead of 3 entries");
+  std::string trimmed = _value;
+  boost::trim(trimmed);
+  try {
+    return convertFromString<T>(trimmed);
+  } catch (std::runtime_error &e) {
+    throw std::runtime_error("Property with name '" + name() + "' in path '" +
+                             path() + "' and value :" + e.what());
   }
-  result << tmp[0], tmp[1], tmp[2];
-  return result;
-}
-
-template <>
-inline std::vector<Index> Property::as<std::vector<Index> >() const {
-  std::vector<Index> tmp;
-  Tokenizer tok(as<std::string>(), " ,");
-  tok.ConvertToVector<Index>(tmp);
-  return tmp;
-}
-
-template <>
-inline std::vector<double> Property::as<std::vector<double> >() const {
-  std::vector<double> tmp;
-  Tokenizer tok(as<std::string>(), " ,\n\t");
-  tok.ConvertToVector<double>(tmp);
-  return tmp;
 }
 
 template <typename T>
 inline T Property::getAttribute(
     std::map<std::string, std::string>::const_iterator it) const {
   if (it != _attributes.end()) {
-    return lexical_cast<T>(it->second);
+    return convertFromString<T>(it->second);
   } else {
     std::stringstream s;
     s << *this << std::endl;
@@ -329,20 +291,9 @@ inline T Property::getAttribute(
 
 template <typename T>
 inline T Property::getAttribute(const std::string &attribute) const {
-  std::map<std::string, std::string>::const_iterator it;
-
-  it = _attributes.find(attribute);
-
-  if (it != _attributes.end()) {
-    return lexical_cast<T>(_attributes.at(attribute),
-                           "wrong type in attribute " + attribute +
-                               " of element " + _path + "." + _name + "\n");
-  } else {
-    std::stringstream s;
-    s << *this << std::endl;
-    throw std::runtime_error(s.str() + "attribute " + attribute +
-                             " not found\n");
-  }
+  std::map<std::string, std::string>::const_iterator it =
+      _attributes.find(attribute);
+  return getAttribute<T>(it);
 }
 template <typename T>
 inline void Property::setAttribute(const std::string &attribute,
