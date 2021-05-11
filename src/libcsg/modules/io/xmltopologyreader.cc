@@ -281,8 +281,7 @@ void XMLTopologyReader::ParseBonded(tools::Property &el) {
 void XMLTopologyReader::ParseBond(tools::Property &p) {
   string name = p.get("name").as<string>();
   string beads = p.get("beads").as<string>();
-  tools::Tokenizer tok(beads, " \n\t");
-  vector<string> bead_list = tok.ToVector();
+  vector<string> bead_list = tools::Tokenizer(beads, " \n\t").ToVector();
   if (bead_list.size() % 2 == 1) {
     throw runtime_error("Wrong number of beads in bond: " + name);
   }
@@ -319,8 +318,7 @@ void XMLTopologyReader::ParseBond(tools::Property &p) {
 void XMLTopologyReader::ParseAngle(tools::Property &p) {
   string name = p.get("name").as<string>();
   string beads = p.get("beads").as<string>();
-  tools::Tokenizer tok(beads, " \n\t");
-  vector<string> bead_list = tok.ToVector();
+  vector<string> bead_list = tools::Tokenizer(beads, " \n\t").ToVector();
   if (bead_list.size() % 3 == 1) {
     throw runtime_error("Wrong number of beads in angle: " + name);
   }
@@ -358,8 +356,7 @@ void XMLTopologyReader::ParseAngle(tools::Property &p) {
 void XMLTopologyReader::ParseDihedral(tools::Property &p) {
   string name = p.get("name").as<string>();
   string beads = p.get("beads").as<string>();
-  tools::Tokenizer tok(beads, " \n\t");
-  vector<string> bead_list = tok.ToVector();
+  vector<string> bead_list = tools::Tokenizer(beads, " \n\t").ToVector();
   if (bead_list.size() % 4 == 1) {
     throw runtime_error("Wrong number of beads in dihedral: " + name);
   }

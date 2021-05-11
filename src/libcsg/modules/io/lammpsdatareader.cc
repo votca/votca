@@ -283,12 +283,12 @@ void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
     string line;
     tools::getline(fl_, line);
     tools::Tokenizer tok(line, " ");
-    tok.ConvertToVector(fields);
+    fields = tok.ToVector();
     if (fields.size() != 4) {
       throw runtime_error("invalid box format in the lammps data file");
     }
 
-    m(i, i) = stod(fields.at(1)) - stod(fields.at(0));
+    m(i, i) = std::stod(fields.at(1)) - std::stod(fields.at(0));
   }
   top.setBox(m * tools::conv::ang2nm);
 }

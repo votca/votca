@@ -28,6 +28,7 @@ Version 2022-dev
 -  fix issues with IHNC (newton-mod) Integral equation method (#683)
 -  fix links in documentation (#686, #687, #688)
 -  use ndim vector instead of std::vector (#689)
+-  adapted tokenizer api (#693)
 
 Version 2021.1 (released XX.03.21)
 ==================================
