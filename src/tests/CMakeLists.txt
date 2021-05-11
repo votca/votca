@@ -36,6 +36,7 @@ foreach(PROG
     test_akimaspline
     test_linspline
     test_unitconverter
+    test_NDimVector
     test_eigenio_matrixmarket)
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)

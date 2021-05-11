@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <stdexcept>
+#include <vector>
 
 // Third party includes
 #include <boost/lexical_cast.hpp>
