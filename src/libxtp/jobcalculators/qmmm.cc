@@ -44,11 +44,8 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
   _regions_def = options.get(".regions");
   _regions_def.add("mapfile", _mapfile);
 
-  for (const auto& s :
-       tools::Tokenizer(options.get(".io_states").as<std::string>(), " ,;\n\t")
-           .ToVector()) {
-    _states.push_back(QMState(s));
-  }
+  _states = options.get(".io_states").as<std::vector<QMState>>();
+
   bool groundstate_found = std::any_of(
       _states.begin(), _states.end(),
       [](const QMState& s) { return s.Type() == QMStateType::Gstate; });

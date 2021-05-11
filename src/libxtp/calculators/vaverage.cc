@@ -46,9 +46,7 @@ std::vector<double> VAverage::ReadOccfile(std::string filename) const {
   while (intt.good()) {
 
     tools::getline(intt, line);
-    std::vector<std::string> split;
-    tools::Tokenizer toker(line, " \t");
-    toker.ToVector(split);
+    std::vector<std::string> split = tools::Tokenizer(line, " \t").ToVector();
     if (!split.size() || split[0] == "#" || split[0].substr(0, 1) == "#") {
       continue;
     }
@@ -79,9 +77,7 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
   while (intt.good()) {
 
     tools::getline(intt, line);
-    std::vector<std::string> split;
-    tools::Tokenizer toker(line, " \t");
-    toker.ToVector(split);
+    std::vector<std::string> split = tools::Tokenizer(line, " \t").ToVector();
     if (!split.size() || split[0] == "#" || split[0].substr(0, 1) == "#") {
       continue;
     }

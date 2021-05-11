@@ -87,7 +87,7 @@ void JobTopology::BuildRegions(const Topology& top, tools::Property options) {
   SortRegionsDefbyId(regions_def);
   ModifyOptionsByJobFile(regions_def);
 
-  std::vector<std::vector<SegId> > region_seg_ids =
+  std::vector<std::vector<SegId>> region_seg_ids =
       PartitionRegions(regions_def, top);
 
   // around this point the whole jobtopology will be centered
@@ -145,7 +145,7 @@ void JobTopology::ShiftPBC(const Topology& top, const Eigen::Vector3d& center,
 
 void JobTopology::CreateRegions(
     const tools::Property& options, const Topology& top,
-    const std::vector<std::vector<SegId> >& region_seg_ids) {
+    const std::vector<std::vector<SegId>>& region_seg_ids) {
   std::string mapfile =
       options.ifExistsReturnElseThrowRuntimeError<std::string>("mapfile");
   std::vector<const tools::Property*> regions_def = options.Select("region");
@@ -222,12 +222,12 @@ void JobTopology::WriteToPdb(std::string filename) const {
   writer.Close();
 }
 
-std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
+std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
     const std::vector<tools::Property*>& regions_def,
     const Topology& top) const {
 
   std::vector<Index> explicitly_named_segs_per_region;
-  std::vector<std::vector<SegId> > segids_per_region;
+  std::vector<std::vector<SegId>> segids_per_region;
   std::vector<bool> processed_segments =
       std::vector<bool>(top.Segments().size(), false);
   for (const tools::Property* region_def : regions_def) {
@@ -239,10 +239,7 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
     }
     std::vector<SegId> seg_ids;
     if (region_def->exists("segments")) {
-      tools::Tokenizer tok(region_def->get("segments").as<std::string>(), " \n\t");
-      for (const std::string& seg_id_string : tok.ToVector()) {
-        seg_ids.push_back(SegId(seg_id_string));
-      }
+      seg_ids = region_def->get("segments").as<std::vector<SegId>>();
       for (const SegId& seg_id : seg_ids) {
         if (seg_id.Id() > Index(top.Segments().size() - 1)) {
           throw std::runtime_error("Segment id is not in topology");

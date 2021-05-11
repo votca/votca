@@ -34,7 +34,7 @@ void Orb2Fchk::ParseOptions(const tools::Property& options) {
 
   _basename = _job_name;
   _orbfile = _job_name + ".orb";
-  _state_string = options.get(".qmstate").as<std::string>();
+  state_ = options.get(".qmstate").as<QMState>();
   _diff2gs = options.get(".diff2gs").as<bool>();
 }
 
@@ -46,11 +46,11 @@ bool Orb2Fchk::Run() {
   Orbitals orbitals;
   XTP_LOG(Log::error, _log) << "Loading data from " << _orbfile << std::flush;
   XTP_LOG(Log::error, _log)
-      << "Using density of state:  " << _state_string << std::flush;
+      << "Using density of state:  " << state_.ToString() << std::flush;
   orbitals.ReadFromCpt(_orbfile);
 
   GaussianWriter writer(_log);
-  writer.WriteFile(_basename, orbitals, QMState(_state_string), _diff2gs);
+  writer.WriteFile(_basename, orbitals, state_, _diff2gs);
 
   return true;
 }

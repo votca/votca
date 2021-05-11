@@ -44,8 +44,9 @@ double Vxc_Potential<Grid>::getExactExchange(const std::string& functional) {
 
   double exactexchange = 0.0;
   Vxc_Functionals map;
-  tools::Tokenizer tok(functional, " ");
-  std::vector<std::string> functional_names = tok.ToVector();
+
+  std::vector<std::string> functional_names =
+      tools::Tokenizer(functional, " ").ToVector();
 
   if (functional_names.size() > 2) {
     throw std::runtime_error("Too many functional names");
@@ -79,9 +80,8 @@ template <class Grid>
 void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
 
   Vxc_Functionals map;
-  std::vector<std::string> strs;
-  tools::Tokenizer tok(functional, " ,\n\t");
-  tok.ToVector(strs);
+  std::vector<std::string> strs =
+      tools::Tokenizer(functional, " ,\n\t").ToVector();
   xfunc_id = 0;
   _use_separate = false;
   cfunc_id = 0;
