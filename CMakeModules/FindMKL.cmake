@@ -376,7 +376,7 @@ find_package_handle_standard_args(MKL
   REQUIRED_VARS MKL_INCLUDE_DIR
                 MKL_Core_LINK_LIBRARY
                 MKL_Interface_LINK_LIBRARY
-                MKL_Threading_LINK_LIBRARY
+                MKL_ThreadingLibrary_LINK_LIBRARY
                 MKL_ThreadLayer_LINK_LIBRARY)
 
 find_package_handle_standard_args(MKL_Static
