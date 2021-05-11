@@ -38,9 +38,14 @@ namespace votca {
 namespace xtp {
 
 /**
-* \brief Use Davidson algorithm to solve A*V=E*V
-
-**/
+ * \brief Use Davidson algorithm to solve A*V=E*V
+ *
+ * For a rough overview https://joshuagoings.com/2013/08/23/davidsons-method/
+ * For the symmetric case we simply extract the smallest eigenvalues
+ * For the non-symmetric case we need the smallest non-negative eigenvalues
+ * These are harder to extract, because iterative methods tend to converge
+ *towards extreme eigenvalues, thus we use harmonic ritz values.
+ **/
 
 class DavidsonSolver {
 
@@ -51,7 +56,6 @@ class DavidsonSolver {
   void set_max_search_space(Index N) { this->_max_search_space = N; }
   void set_tolerance(std::string tol);
   void set_correction(std::string method);
-  void set_ortho(std::string method);
   void set_size_update(std::string update_size);
   void set_matrix_type(std::string mt);
 
@@ -79,6 +83,7 @@ class DavidsonSolver {
     if (size_initial_guess == 0) {
       size_initial_guess = 2 * neigen;
     }
+    _restart_size = size_initial_guess;
 
     // get the diagonal of the operator
     this->_Adiag = A.diagonal();
@@ -91,15 +96,9 @@ class DavidsonSolver {
 
     for (_i_iter = 0; _i_iter < _iter_max; _i_iter++) {
 
-      bool do_restart = (proj.search_space() > _max_search_space);
-
-      if (do_restart) {
-        restart(rep, proj, size_initial_guess);
-      }
-
       updateProjection(A, proj);
 
-      rep = getRitzEigenPairs(A, proj);
+      rep = getRitzEigenPairs(proj);
 
       bool converged = checkConvergence(rep, proj, neigen);
 
@@ -114,7 +113,12 @@ class DavidsonSolver {
         storeNotConvergedData(rep, proj.root_converged, neigen);
         break;
       }
-      extendProjection(rep, proj);
+      Index extension_size = extendProjection(rep, proj);
+      bool do_restart = (proj.search_space() > _max_search_space);
+
+      if (do_restart) {
+        restart(rep, proj, extension_size);
+      }
     }
 
     printTiming(start);
@@ -127,15 +131,12 @@ class DavidsonSolver {
   double _tol = 1E-4;
   Index _max_search_space = 0;
   Eigen::VectorXd _Adiag;
-
+  Index _restart_size = 0;
   enum CORR { DPR, OLSEN };
   CORR _davidson_correction = CORR::DPR;
 
   enum UPDATE { MIN, SAFE, MAX };
   UPDATE _davidson_update = UPDATE::SAFE;
-
-  enum ORTHO { GS, QR };
-  ORTHO _davidson_ortho = ORTHO::GS;
 
   enum MATRIX_TYPE { SYMM, HAM };
   MATRIX_TYPE _matrix_type = MATRIX_TYPE::SYMM;
@@ -164,86 +165,58 @@ class DavidsonSolver {
     };                  // size of the projection i.e. number of cols in V
     Index size_update;  // size update ...
     std::vector<bool> root_converged;  // keep track of which root have onverged
+
+    // These are only used for harmonic ritz in the non-hermitian case
+    Eigen::MatrixXd AAV;  // A*A*V
+    Eigen::MatrixXd B;    // V.T *A*A*V
   };
 
   template <typename MatrixReplacement>
   void updateProjection(const MatrixReplacement &A,
                         ProjectedSpace &proj) const {
 
-    if (_i_iter == 0 || _davidson_ortho == ORTHO::QR) {
-      /* if we use QR we need to recompute the entire projection
-      since QR will modify original subspace*/
+    if (_i_iter == 0) {
       proj.AV = A * proj.V;
       proj.T = proj.V.transpose() * proj.AV;
+      if (_matrix_type == MATRIX_TYPE::HAM) {
+        proj.AAV = A * proj.AV;
+        proj.B = proj.V.transpose() * proj.AAV;
+      }
 
-    } else if (_davidson_ortho == ORTHO::GS) {
-      /* if we use a GS ortho we do not have to recompute
-      the entire projection as GS doesn't change the original subspace*/
-      Index old_dim = proj.T.cols();
+    } else {
+      /* if we use a Gram Schmid(GS) orthogonalisation we do not have to
+      recompute the entire projection as GS doesn't change the original
+      subspace*/
+      Index old_dim = proj.AV.cols();
       Index new_dim = proj.V.cols();
       Index nvec = new_dim - old_dim;
       proj.AV.conservativeResize(Eigen::NoChange, new_dim);
       proj.AV.rightCols(nvec) = A * proj.V.rightCols(nvec);
-      Eigen::MatrixXd VAV = proj.V.transpose() * proj.AV.rightCols(nvec);
+
       proj.T.conservativeResize(new_dim, new_dim);
-      proj.T.rightCols(nvec) = VAV;
-      proj.T.bottomLeftCorner(nvec, old_dim) =
-          proj.T.topRightCorner(old_dim, nvec).transpose();
-    }
-  }
+      proj.T.rightCols(nvec) = proj.V.transpose() * proj.AV.rightCols(nvec);
 
-  template <typename MatrixReplacement>
-  RitzEigenPair getRitzEigenPairs(const MatrixReplacement &A,
-                                  const ProjectedSpace &proj) const {
-    // get the ritz vectors
-    switch (this->_matrix_type) {
-      case MATRIX_TYPE::SYMM: {
-        return getRitz(proj);
+      if (_matrix_type == MATRIX_TYPE::SYMM) {
+        proj.T.bottomLeftCorner(nvec, old_dim) =
+            proj.T.topRightCorner(old_dim, nvec).transpose();
+
+      } else {
+        proj.T.bottomLeftCorner(nvec, old_dim) =
+            proj.V.rightCols(nvec).transpose() * proj.AV.leftCols(old_dim);
+
+        proj.AAV.conservativeResize(Eigen::NoChange, new_dim);
+        proj.AAV.rightCols(nvec) = A * proj.AV.rightCols(nvec);
+        proj.B.conservativeResize(new_dim, new_dim);
+        proj.B.rightCols(nvec) = proj.V.transpose() * proj.AAV.rightCols(nvec);
+        proj.B.bottomLeftCorner(nvec, old_dim) =
+            proj.V.rightCols(nvec).transpose() * proj.AAV.leftCols(old_dim);
       }
-      case MATRIX_TYPE::HAM: {
-        return getHarmonicRitz(A, proj);
-      }
     }
-    return RitzEigenPair();
   }
+  RitzEigenPair getRitzEigenPairs(const ProjectedSpace &proj) const;
 
-  template <typename MatrixReplacement>
-  RitzEigenPair getHarmonicRitz(const MatrixReplacement &A,
-                                const ProjectedSpace &proj) const {
-
-    /* Compute the Harmonic Ritz vector following
-     * Computing Interior Eigenvalues of Large Matrices
-     * Ronald B Morgan
-     * LINEAR ALGEBRA AND ITS APPLICATIONS 154-156:289-309 (1991)
-     * https://cpb-us-w2.wpmucdn.com/sites.baylor.edu/dist/e/71/files/2015/05/InterEvals-1vgdz91.pdf
-     */
-
-    RitzEigenPair rep;
-    Eigen::MatrixXd B = proj.V.transpose() * (A * proj.AV);
-
-    bool return_eigenvectors = true;
-    Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> ges(proj.T, B,
-                                                       return_eigenvectors);
-    if (ges.info() != Eigen::ComputationInfo::Success) {
-      std::cerr << "A\n" << proj.T;
-      std::cerr << "B\n" << std::endl;
-      throw std::runtime_error("Small generalized eigenvalue problem failed.");
-    }
-
-    ArrayXl idx = DavidsonSolver::argsort(ges.eigenvalues().real());
-    // smallest to largest
-    idx = idx.reverse();
-    // we need the largest values, because this is the inverse value, so reverse
-    // list
-
-    rep.U = DavidsonSolver::extract_vectors(ges.eigenvectors().real(), idx);
-    rep.U.colwise().normalize();
-    rep.lambda = (rep.U.transpose() * proj.T * rep.U).diagonal();
-
-    rep.q = proj.V * rep.U;  // Ritz vectors
-    rep.res = proj.AV * rep.U - rep.q * rep.lambda.asDiagonal();  // residues
-    return rep;
-  }
+  Eigen::MatrixXd qr(const Eigen::MatrixXd &A) const;
+  RitzEigenPair getHarmonicRitz(const ProjectedSpace &proj) const;
 
   RitzEigenPair getRitz(const ProjectedSpace &proj) const;
 
@@ -266,9 +239,8 @@ class DavidsonSolver {
   Eigen::MatrixXd extract_vectors(const Eigen::MatrixXd &V,
                                   const ArrayXl &idx) const;
 
-  Eigen::MatrixXd orthogonalize(const Eigen::MatrixXd &V, Index nupdate);
-  Eigen::MatrixXd qr(const Eigen::MatrixXd &A) const;
-  Eigen::MatrixXd gramschmidt(const Eigen::MatrixXd &A, Index nstart);
+  void orthogonalize(Eigen::MatrixXd &V, Index nupdate) const;
+  void gramschmidt(Eigen::MatrixXd &A, Index nstart) const;
 
   Eigen::VectorXd computeCorrectionVector(const Eigen::VectorXd &qj,
                                           double lambdaj,
@@ -280,13 +252,13 @@ class DavidsonSolver {
   ProjectedSpace initProjectedSpace(Index neigen,
                                     Index size_initial_guess) const;
 
-  void extendProjection(const RitzEigenPair &rep, ProjectedSpace &proj);
+  Index extendProjection(const RitzEigenPair &rep, ProjectedSpace &proj);
 
   bool checkConvergence(const RitzEigenPair &rep, ProjectedSpace &proj,
                         Index neigen);
 
   void restart(const RitzEigenPair &rep, ProjectedSpace &proj,
-               Index size_restart) const;
+               Index newtestvectors) const;
 
   void storeConvergedData(const RitzEigenPair &rep, Index neigen);
 

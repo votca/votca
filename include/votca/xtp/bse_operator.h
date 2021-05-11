@@ -47,7 +47,18 @@ class BSE_OPERATOR final : public MatrixFreeOperator {
 
   void configure(BSEOperator_Options opt);
 
+  // This method sets up the diagonal of the hermitian BSE hamiltonian.
+  // Otherwise see the matmul function
   Eigen::VectorXd diagonal() const;
+  /*
+   * This is the main routine for setting up the hermitian parts of the BSE
+   * For the non-hermitian case look at bseoperator_btda.h which combines
+   * the bse_operators. The operator is never set up explicitly, instead only
+   * the product of it with an input matrix is computed. using the template
+   * arguements Different parts of the hamiltonian can be constructed. In
+   * general it is inefficient to set them up independently (unless you need it
+   * for analysis) thus the function combines all parts.
+   */
   Eigen::MatrixXd matmul(const Eigen::MatrixXd& input) const;
 
  private:

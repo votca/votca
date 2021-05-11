@@ -25,6 +25,24 @@ Version 2022-dev
 
 Version 2021-rc.2 (released XX.01.21)
 =====================================
+-  redo openmp_cuda api, correct davidson for non symmetric problems.  (#684)
+-  changed molecule in csg topology container to actual object instead of pointer (#683)
+-  remove codecov comments from inside code at PR (#686)
+-  count the number of available CPUs for autogen_mapping script (#688)
+-  added a checkpoint reader to jobtopology class (#691)
+-  fixed issue with molden file path and orca executable path (#692)
+-  Fixed bug in mapping (#690)
+-  added support for external fields in DFT (#698)
+-  allocate threecenter matrices in parallel (#701)
+-  use NDimVector instead of std::vector in vxcgrid. (#703)
+-  Fixing the tutorial (#705)
+-  adapted tokenizer api (#707)
+
+Version 2021.1 (released XX.03.21)
+==================================
+
+Version 2021 (released 13.03.21)
+================================
 
 -  fix CI on rawhide (#663)
 -  add xtp_qmmm2qm to cmake install (#665)

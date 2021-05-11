@@ -25,6 +25,7 @@
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/polarregion.h"
+#include "votca/xtp/qmstate.h"
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/vxc_grid.h"
 
@@ -38,9 +39,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
         " must always be region 0. Currently only one qm region is possible.");
   }
 
-  std::string statestring =
-      prop.ifExistsReturnElseThrowRuntimeError<std::string>("state");
-  _initstate.FromString(statestring);
+  _initstate = prop.ifExistsReturnElseThrowRuntimeError<QMState>("state");
   if (_initstate.Type() == QMStateType::Hole ||
       _initstate.Type() == QMStateType::Electron) {
     throw std::runtime_error(

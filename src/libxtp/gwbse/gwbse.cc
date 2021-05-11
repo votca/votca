@@ -205,9 +205,6 @@ void GWBSE::Initialize(tools::Property& options) {
   _bseopt.davidson_correction =
       options.get(key + ".eigensolver.davidson_correction").as<std::string>();
 
-  _bseopt.davidson_ortho =
-      options.get(key + ".eigensolver.davidson_ortho").as<std::string>();
-
   _bseopt.davidson_tolerance =
       options.get(key + ".eigensolver.davidson_tolerance").as<std::string>();
 

@@ -55,7 +55,6 @@ class BSE {
     Index cmax;
     Index nmax;  // number of eigenvectors to calculat
     std::string davidson_correction;
-    std::string davidson_ortho;
     std::string davidson_tolerance;
     std::string davidson_update;
     Index davidson_maxiter;

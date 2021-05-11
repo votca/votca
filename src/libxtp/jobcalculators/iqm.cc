@@ -122,12 +122,10 @@ void IQM::ParseSpecificOptions(const tools::Property& options) {
 
 std::map<std::string, QMState> IQM::FillParseMaps(
     const std::string& Mapstring) {
-  tools::Tokenizer split_options(Mapstring, ", \t\n");
   std::map<std::string, QMState> type2level;
-  for (const std::string& substring : split_options) {
-    std::vector<std::string> segmentpnumber;
-    tools::Tokenizer tok(substring, ":");
-    tok.ToVector(segmentpnumber);
+  for (const std::string& substring : tools::Tokenizer(Mapstring, ", \t\n")) {
+    std::vector<std::string> segmentpnumber =
+        tools::Tokenizer(substring, ":").ToVector();
     if (segmentpnumber.size() != 2) {
       throw std::runtime_error("Parser iqm: Segment and exciton labels:" +
                                substring + "are not separated properly");
@@ -141,7 +139,6 @@ std::map<std::string, QMState> IQM::FillParseMaps(
 
 void IQM::addLinkers(std::vector<const Segment*>& segments,
                      const Topology& top) {
-  std::vector<QMState> result;
   const Segment* seg1 = segments[0];
   const Segment* seg2 = segments[1];
   std::vector<const Segment*> segmentsInMolecule =

@@ -23,6 +23,7 @@
 #include <votca/tools/histogramnew.h>
 
 // Local VOTCA includes
+#include "votca/xtp/qmstate.h"
 #include "votca/xtp/topology.h"
 
 // Local private VOTCA includes
@@ -33,13 +34,7 @@ namespace xtp {
 
 void IAnalyze::ParseOptions(const tools::Property &options) {
 
-  std::string statestrings = options.get(".states").as<std::string>();
-  tools::Tokenizer tok(statestrings, ",\n\t ");
-  std::vector<std::string> string_vec;
-  tok.ToVector(string_vec);
-  for (std::string &state : string_vec) {
-    _states.push_back(QMStateType(state));
-  }
+  _states = options.get(".states").as<std::vector<QMStateType>>();
 
   _resolution_logJ2 = options.get(".resolution_logJ2").as<double>();
   if (options.get(".do_pairtype").as<bool>()) {
@@ -178,7 +173,7 @@ void IAnalyze::IRdependence(Topology &top, QMStateType state) {
 
   // Prepare R bins
   Index pointsR = Index((MAXR - MINR) / _resolution_spatial);
-  std::vector<std::vector<double> > rJ2;
+  std::vector<std::vector<double>> rJ2;
   rJ2.resize(pointsR);
 
   // Loop over distance

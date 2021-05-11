@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,9 +49,8 @@ void Md2QmEngine::CheckMappingFile(tools::Property& topology_map) const {
 
       std::vector<std::string> atomnames_seg;
       for (tools::Property* frag : fragments) {
-        std::string mdatoms = frag->get("mdatoms").as<std::string>();
-        tools::Tokenizer tok_md_atoms(mdatoms, " \t\n");
-        std::vector<std::string> atomnames = tok_md_atoms.ToVector();
+        std::vector<std::string> atomnames =
+            frag->get("mdatoms").as<std::vector<std::string>>();
         atomnames_seg.insert(atomnames_seg.end(), atomnames.begin(),
                              atomnames.end());
       }
@@ -133,13 +132,13 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
   xtptop.setBox(top.getBox() * tools::conv::nm2bohr, top.getBoxType());
 
   // which segmentname does an atom belong to molname atomid
-  std::map<std::string, std::map<Index, std::string> > MolToSegMap;
+  std::map<std::string, std::map<Index, std::string>> MolToSegMap;
 
   // which atomids belong to molname
-  std::map<std::string, std::vector<Index> > MolToAtomIds;
+  std::map<std::string, std::vector<Index>> MolToAtomIds;
 
   // names of segments in one molecule;
-  std::map<std::string, std::vector<std::string> > SegsinMol;
+  std::map<std::string, std::vector<std::string>> SegsinMol;
 
   std::string molkey = "topology.molecules.molecule";
   std::vector<tools::Property*> molecules = topology_map.Select(molkey);
@@ -155,10 +154,8 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
       std::string fragkey = "fragments.fragment";
       std::vector<tools::Property*> fragments = seg->Select(fragkey);
       for (tools::Property* frag : fragments) {
-        std::string mdatoms = frag->get("mdatoms").as<std::string>();
-        tools::Tokenizer tok_md_atoms(mdatoms, " \t\n");
-        std::vector<std::string> atomnames;
-        tok_md_atoms.ToVector(atomnames);
+        std::vector<std::string> atomnames =
+            frag->get("mdatoms").as<std::vector<std::string>>();
         for (const std::string& atomname : atomnames) {
           tools::Tokenizer tok_atom_name(atomname, ":");
           std::vector<std::string> entries = tok_atom_name.ToVector();
@@ -185,21 +182,21 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
     SegsinMol[molname] = segnames;
   }
 
-  for (const csg::Molecule* mol : top.Molecules()) {
-    const std::vector<std::string> segnames = SegsinMol[mol->getName()];
+  for (const csg::Molecule& mol : top.Molecules()) {
+    const std::vector<std::string> segnames = SegsinMol[mol.getName()];
 
     std::map<std::string, Segment*> segments;  // we first add them to topology
                                                // and then modify them via
                                                // pointers;
     for (const std::string& segname : segnames) {
       segments[segname] = &xtptop.AddSegment(segname);
-      segments[segname]->AddMoleculeId(mol->getId());
+      segments[segname]->AddMoleculeId(mol.getId());
     }
 
-    Index IdOffset = DetermineAtomNumOffset(mol, MolToAtomIds[mol->getName()]);
-    for (const csg::Bead* bead : mol->Beads()) {
+    Index IdOffset = DetermineAtomNumOffset(&mol, MolToAtomIds[mol.getName()]);
+    for (const csg::Bead* bead : mol.Beads()) {
       Segment* seg =
-          segments[MolToSegMap[mol->getName()][bead->getId() - IdOffset]];
+          segments[MolToSegMap[mol.getName()][bead->getId() - IdOffset]];
 
       Atom atom(bead->getResnr(), bead->getName(), bead->getId(),
                 bead->getPos() * tools::conv::nm2bohr, bead->getType());

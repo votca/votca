@@ -83,25 +83,30 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
   OpenMP_CUDA transform;
   transform.createTemporaries(n_unocc, size);
 
-#pragma omp parallel for schedule(dynamic)
-  for (Index m_level = 0; m_level < n_occ; m_level++) {
-    const double qp_energy_m = _energies(m_level);
+#pragma omp parallel
+  {
+    Index threadid = OPENMP::getThreadId();
+#pragma omp for schedule(dynamic)
+    for (Index m_level = 0; m_level < n_occ; m_level++) {
+      const double qp_energy_m = _energies(m_level);
 
-    Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
-    transform.PushMatrix(Mmn_RPA);
-    const Eigen::ArrayXd deltaE = _energies.tail(n_unocc).array() - qp_energy_m;
-    Eigen::VectorXd denom;
-    if (imag) {
-      denom = 4 * deltaE / (deltaE.square() + freq2);
-    } else {
-      Eigen::ArrayXd deltEf = deltaE - frequency;
-      Eigen::ArrayXd sum = deltEf / (deltEf.square() + eta2);
-      deltEf = deltaE + frequency;
-      sum += deltEf / (deltEf.square() + eta2);
-      denom = 2 * sum;
+      Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+      transform.PushMatrix(Mmn_RPA, threadid);
+      const Eigen::ArrayXd deltaE =
+          _energies.tail(n_unocc).array() - qp_energy_m;
+      Eigen::VectorXd denom;
+      if (imag) {
+        denom = 4 * deltaE / (deltaE.square() + freq2);
+      } else {
+        Eigen::ArrayXd deltEf = deltaE - frequency;
+        Eigen::ArrayXd sum = deltEf / (deltEf.square() + eta2);
+        deltEf = deltaE + frequency;
+        sum += deltEf / (deltEf.square() + eta2);
+        denom = 2 * sum;
+      }
+
+      transform.A_TDA(denom, threadid);
     }
-
-    transform.A_TDA(denom);
   }
   Eigen::MatrixXd result = transform.getReductionVar();
   result.diagonal().array() += 1.0;
@@ -120,25 +125,29 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
   const Index n_unocc = _rpamax - lumo + 1;
   OpenMP_CUDA transform;
   transform.createTemporaries(n_unocc, size);
+#pragma omp parallel
+  {
+    Index threadid = OPENMP::getThreadId();
+#pragma omp for schedule(dynamic)
+    for (Index m_level = 0; m_level < n_occ; m_level++) {
 
-#pragma omp parallel for schedule(dynamic)
-  for (Index m_level = 0; m_level < n_occ; m_level++) {
+      const double qp_energy_m = _energies(m_level);
+      Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+      transform.PushMatrix(Mmn_RPA, threadid);
+      const Eigen::ArrayXd deltaE =
+          _energies.tail(n_unocc).array() - qp_energy_m;
 
-    const double qp_energy_m = _energies(m_level);
-    Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
-    transform.PushMatrix(Mmn_RPA);
-    const Eigen::ArrayXd deltaE = _energies.tail(n_unocc).array() - qp_energy_m;
+      Eigen::ArrayXd deltaEm = frequency.real() - deltaE;
+      Eigen::ArrayXd deltaEp = frequency.real() + deltaE;
 
-    Eigen::ArrayXd deltaEm = frequency.real() - deltaE;
-    Eigen::ArrayXd deltaEp = frequency.real() + deltaE;
+      double sigma_1 = std::pow(frequency.imag() + _eta, 2);
+      double sigma_2 = std::pow(frequency.imag() - _eta, 2);
 
-    double sigma_1 = std::pow(frequency.imag() + _eta, 2);
-    double sigma_2 = std::pow(frequency.imag() - _eta, 2);
-
-    Eigen::VectorXd chi =
-        deltaEm * (deltaEm.cwiseAbs2() + sigma_1).cwiseInverse() -
-        deltaEp * (deltaEp.cwiseAbs2() + sigma_2).cwiseInverse();
-    transform.A_TDA(chi);
+      Eigen::VectorXd chi =
+          deltaEm * (deltaEm.cwiseAbs2() + sigma_1).cwiseInverse() -
+          deltaEp * (deltaEp.cwiseAbs2() + sigma_2).cwiseInverse();
+      transform.A_TDA(chi, threadid);
+    }
   }
   Eigen::MatrixXd result = -2 * transform.getReductionVar();
   result.diagonal().array() += 1.0;

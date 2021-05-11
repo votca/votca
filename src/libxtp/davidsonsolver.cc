@@ -57,23 +57,10 @@ void DavidsonSolver::checkOptions(Index operator_size) {
         << TimeStamp() << " == Warning : Max search space set to "
         << operator_size << flush;
 
-    this->_davidson_ortho = ORTHO::QR;
-    XTP_LOG(Log::error, _log)
-        << TimeStamp()
-        << " == Warning : Orthogonalization set to QR for stabilty " << flush;
-
     XTP_LOG(Log::error, _log)
         << TimeStamp()
         << " == Warning : If problems appear, try asking for less than "
         << Index(operator_size / 10) << " eigenvalues" << flush;
-  }
-
-  if (this->_matrix_type == MATRIX_TYPE::HAM) {
-    this->_davidson_ortho = ORTHO::QR;
-    XTP_LOG(Log::error, _log)
-        << TimeStamp()
-        << " == Warning : Orthogonalization set to QR for non-symmetric matrix"
-        << flush;
   }
 }
 
@@ -92,16 +79,6 @@ void DavidsonSolver::printOptions(Index operator_size) const {
       break;
   }
 
-  switch (this->_davidson_ortho) {
-    case ORTHO::GS:
-      XTP_LOG(Log::error, _log)
-          << TimeStamp() << " Gram-Schmidt Orthogonalization" << flush;
-      break;
-    case ORTHO::QR:
-      XTP_LOG(Log::error, _log)
-          << TimeStamp() << " QR Orthogonalization" << flush;
-      break;
-  }
   XTP_LOG(Log::error, _log) << TimeStamp() << " Matrix size : " << operator_size
                             << 'x' << operator_size << flush;
 }
@@ -130,17 +107,6 @@ void DavidsonSolver::set_matrix_type(std::string mt) {
     this->_matrix_type = MATRIX_TYPE::SYMM;
   } else {
     throw std::runtime_error(mt + " is not a valid Davidson matrix type");
-  }
-}
-
-void DavidsonSolver::set_ortho(std::string method) {
-  if (method == "GS") {
-    this->_davidson_ortho = ORTHO::GS;
-  } else if (method == "QR") {
-    this->_davidson_ortho = ORTHO::QR;
-  } else {
-    throw std::runtime_error(
-        method + " is not a valid Davidson orthogonalization method");
   }
 }
 
@@ -240,6 +206,19 @@ Eigen::MatrixXd DavidsonSolver::setupInitialEigenvectors(
   }
   return guess;
 }
+DavidsonSolver::RitzEigenPair DavidsonSolver::getRitzEigenPairs(
+    const ProjectedSpace &proj) const {
+  // get the ritz vectors
+  switch (this->_matrix_type) {
+    case MATRIX_TYPE::SYMM: {
+      return getRitz(proj);
+    }
+    case MATRIX_TYPE::HAM: {
+      return getHarmonicRitz(proj);
+    }
+  }
+  return RitzEigenPair();
+}
 
 DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz(
     const DavidsonSolver::ProjectedSpace &proj) const {
@@ -250,9 +229,103 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz(
     std::cerr << "A\n" << proj.T;
     throw std::runtime_error("Small hermitian eigenvalue problem failed.");
   }
-  rep.lambda = es.eigenvalues();
-  rep.U = es.eigenvectors();
+  // we only need enough pairs for either extension of space or restart
+  Index needed_pairs =
+      std::min(proj.T.cols(), std::max(_restart_size, proj.size_update));
+  rep.lambda = es.eigenvalues().head(needed_pairs);
+  rep.U = es.eigenvectors().leftCols(needed_pairs);
 
+  rep.q = proj.V * rep.U;                                       // Ritz vectors
+  rep.res = proj.AV * rep.U - rep.q * rep.lambda.asDiagonal();  // residues
+  return rep;
+}
+
+DavidsonSolver::RitzEigenPair DavidsonSolver::getHarmonicRitz(
+    const ProjectedSpace &proj) const {
+
+  /* Compute the Harmonic Ritz vector following
+   * Computing Interior Eigenvalues of Large Matrices
+   * Ronald B Morgan
+   * LINEAR ALGEBRA AND ITS APPLICATIONS 154-156:289-309 (1991)
+   * https://cpb-us-w2.wpmucdn.com/sites.baylor.edu/dist/e/71/files/2015/05/InterEvals-1vgdz91.pdf
+   */
+
+  RitzEigenPair rep;
+  bool return_eigenvectors = true;
+  Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> ges(proj.T, proj.B,
+                                                     return_eigenvectors);
+  if (ges.info() != Eigen::ComputationInfo::Success) {
+    throw std::runtime_error("Small generalized eigenvalue problem failed.");
+  }
+
+  std::vector<std::pair<Index, Index>> complex_pairs;
+  for (Index i = 0; i < ges.eigenvalues().size(); i++) {
+    if (ges.eigenvalues()(i).imag() != 0) {
+      bool found_partner = false;
+      for (auto &pair : complex_pairs) {
+        if (pair.second > -1) {
+          continue;
+        } else {
+          bool are_pair = (std::abs(ges.eigenvalues()(pair.first).real() -
+                                    ges.eigenvalues()(i).real()) < 1e-9) &&
+                          (std::abs(ges.eigenvalues()(pair.first).imag() +
+                                    ges.eigenvalues()(i).imag()) < 1e-9);
+          if (are_pair) {
+            pair.second = i;
+            found_partner = true;
+          }
+        }
+      }
+
+      if (!found_partner) {
+        complex_pairs.emplace_back(i, -1);
+      }
+    }
+  }
+
+  for (const auto &pair : complex_pairs) {
+    if (pair.second < 0) {
+      throw std::runtime_error("Eigenvalue:" + std::to_string(pair.first) +
+                               " is complex but has no partner.");
+    }
+  }
+  if (!complex_pairs.empty()) {
+    XTP_LOG(Log::warning, _log)
+        << TimeStamp() << " Found " << complex_pairs.size()
+        << " complex pairs in eigenvalue problem" << flush;
+  }
+  Eigen::VectorXd eigenvalues =
+      Eigen::VectorXd::Zero(ges.eigenvalues().size() - complex_pairs.size());
+  Eigen::MatrixXd eigenvectors =
+      Eigen::MatrixXd::Zero(ges.eigenvectors().rows(),
+                            ges.eigenvectors().cols() - complex_pairs.size());
+
+  Index j = 0;
+  for (Index i = 0; i < ges.eigenvalues().size(); i++) {
+    bool is_second_in_complex_pair =
+        std::find_if(complex_pairs.begin(), complex_pairs.end(),
+                     [&](const std::pair<Index, Index> &pair) {
+                       return pair.second == i;
+                     }) != complex_pairs.end();
+    if (is_second_in_complex_pair) {
+      continue;
+    } else {
+      eigenvalues(j) = ges.eigenvalues()(i).real();
+      eigenvectors.col(j) = ges.eigenvectors().col(i).real();
+      eigenvectors.col(j).normalize();
+      j++;
+    }
+  }
+  // we only need enough pairs for either extension of space or restart
+  Index needed_pairs =
+      std::min(proj.T.cols(), std::max(_restart_size, proj.size_update));
+  ArrayXl idx =
+      DavidsonSolver::argsort(eigenvalues).reverse().head(needed_pairs);
+  // we need the largest values, because this is the inverse value, so
+  // reverse list
+
+  rep.U = DavidsonSolver::extract_vectors(eigenvectors, idx);
+  rep.lambda = (rep.U.transpose() * proj.T * rep.U).diagonal();
   rep.q = proj.V * rep.U;                                       // Ritz vectors
   rep.res = proj.AV * rep.U - rep.q * rep.lambda.asDiagonal();  // residues
   return rep;
@@ -287,29 +360,29 @@ bool DavidsonSolver::checkConvergence(const DavidsonSolver::RitzEigenPair &rep,
   return converged;
 }
 
-void DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
-                                      DavidsonSolver::ProjectedSpace &proj) {
+Index DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
+                                       DavidsonSolver::ProjectedSpace &proj) {
 
-  Index nupdate = 0;
+  Index nupdate =
+      std::count(proj.root_converged.begin(), proj.root_converged.end(), false);
+  Index oldsize = proj.V.cols();
+  proj.V.conservativeResize(Eigen::NoChange, oldsize + nupdate);
+
+  Index k = 0;
   for (Index j = 0; j < proj.size_update; j++) {
-
     // skip the roots that have already converged
     if (proj.root_converged[j]) {
       continue;
     }
-
-    nupdate++;
-
     // residue vector
     Eigen::VectorXd w =
         computeCorrectionVector(rep.q.col(j), rep.lambda(j), rep.res.col(j));
-
     // append the correction vector to the search space
-    proj.V.conservativeResize(Eigen::NoChange, proj.V.cols() + 1);
-    proj.V.rightCols<1>() = w.normalized();
+    proj.V.col(oldsize + k) = w.normalized();
+    k++;
   }
-
-  proj.V = orthogonalize(proj.V, nupdate);
+  orthogonalize(proj.V, nupdate);
+  return nupdate;
 }
 
 Eigen::MatrixXd DavidsonSolver::extract_vectors(const Eigen::MatrixXd &V,
@@ -366,17 +439,47 @@ Eigen::VectorXd DavidsonSolver::olsen(const Eigen::VectorXd &r,
   return delta;
 }
 
-Eigen::MatrixXd DavidsonSolver::orthogonalize(const Eigen::MatrixXd &V,
-                                              Index nupdate) {
-  switch (_davidson_ortho) {
-    case ORTHO::GS: {
-      return DavidsonSolver::gramschmidt(V, V.cols() - nupdate);
-    }
-    case ORTHO::QR: {
-      return DavidsonSolver::qr(V);
-    }
+void DavidsonSolver::orthogonalize(Eigen::MatrixXd &V, Index nupdate) const {
+  DavidsonSolver::gramschmidt(V, V.cols() - nupdate);
+}
+
+void DavidsonSolver::gramschmidt(Eigen::MatrixXd &Q, Index nstart) const {
+
+  Index nupdate = Q.cols() - nstart;
+  Eigen::VectorXd norms = Q.rightCols(nupdate).colwise().norm();
+  // orthogonalize with respect to already existing vectors
+  if (nstart > 0) {
+    Q.rightCols(nupdate) -=
+        Q.leftCols(nstart) *
+        (Q.leftCols(nstart).transpose() * Q.rightCols(nupdate));
+    Q.rightCols(nupdate).colwise().normalize();
   }
-  return Eigen::MatrixXd::Zero(0, 0);
+  // orthogonalize vectors to each other
+  for (Index j = nstart + 1; j < Q.cols(); ++j) {
+    Index range = j - nstart;
+    Q.col(j) -= Q.block(0, nstart, Q.rows(), range) *
+                (Q.block(0, nstart, Q.rows(), range).transpose() * Q.col(j));
+    Q.col(j).normalize();
+  }
+  // repeat again two is enough GS
+  // http://stoppels.blog/posts/orthogonalization-performance
+  if (nstart > 0) {
+    Q.rightCols(nupdate) -=
+        Q.leftCols(nstart) *
+        (Q.leftCols(nstart).transpose() * Q.rightCols(nupdate));
+    Q.rightCols(nupdate).colwise().normalize();
+  }
+
+  for (Index j = nstart + 1; j < Q.cols(); ++j) {
+    Index range = j - nstart;
+    Q.col(j) -= Q.block(0, nstart, Q.rows(), range) *
+                (Q.block(0, nstart, Q.rows(), range).transpose() * Q.col(j));
+    if (Q.col(j).norm() <= 1E-12 * norms(range)) {
+      //_info = Eigen::ComputationInfo::NumericalIssue;
+      throw std::runtime_error("Linear dependencies in Gram-Schmidt.");
+    }
+    Q.col(j).normalize();
+  }
 }
 
 Eigen::MatrixXd DavidsonSolver::qr(const Eigen::MatrixXd &A) const {
@@ -389,32 +492,29 @@ Eigen::MatrixXd DavidsonSolver::qr(const Eigen::MatrixXd &A) const {
   return qr.householderQ() * I;
 }
 
-Eigen::MatrixXd DavidsonSolver::gramschmidt(const Eigen::MatrixXd &A,
-                                            Index nstart) {
-  Eigen::MatrixXd Q = A;
-  for (Index j = nstart; j < A.cols(); ++j) {
-    Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
-    Q.col(j).normalize();
-    // two is enough GS
-    // http://stoppels.blog/posts/orthogonalization-performance
-    Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * Q.col(j));
-    if (Q.col(j).norm() <= 1E-12 * A.col(j).norm()) {
-      _info = Eigen::ComputationInfo::NumericalIssue;
-      throw std::runtime_error(
-          "Linear dependencies in Gram-Schmidt. Switch to QR");
-    }
-    Q.col(j).normalize();
-  }
-  return Q;
-}
-
 void DavidsonSolver::restart(const DavidsonSolver::RitzEigenPair &rep,
                              DavidsonSolver::ProjectedSpace &proj,
-                             Index size_restart) const {
-  proj.V = rep.q.leftCols(size_restart);
-  proj.AV = proj.AV * rep.U.leftCols(size_restart);  // corresponds to replacing
-                                                     // V with q.leftCols
-  proj.T = proj.V.transpose() * proj.AV;
+                             Index newvectors) const {
+  Eigen::MatrixXd newV =
+      Eigen::MatrixXd(proj.V.rows(), newvectors + _restart_size);
+  newV.rightCols(newvectors) = proj.V.rightCols(newvectors);
+  if (_matrix_type == MATRIX_TYPE::SYMM) {
+
+    newV.leftCols(_restart_size) = rep.q.leftCols(_restart_size);
+    proj.AV *= rep.U.leftCols(_restart_size);  // corresponds to replacing
+                                               // V with q.leftCols
+  } else {
+    Eigen::MatrixXd orthonormal =
+        DavidsonSolver::qr(rep.U.leftCols(_restart_size));
+    newV.leftCols(_restart_size) =
+        proj.V.leftCols(proj.V.cols() - newvectors) * orthonormal;
+    proj.AV *= orthonormal;
+
+    proj.AAV *= orthonormal;
+    proj.B = newV.leftCols(_restart_size).transpose() * proj.AAV;
+  }
+  proj.T = newV.leftCols(_restart_size).transpose() * proj.AV;
+  proj.V = newV;
 }
 
 void DavidsonSolver::storeConvergedData(
