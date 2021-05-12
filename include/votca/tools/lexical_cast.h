@@ -39,7 +39,7 @@ inline Target lexical_cast(const Source &arg, const std::string &error) {
   try {
     return boost::lexical_cast<Target, Source>(arg);
   } catch (std::exception &) {
-    throw std::runtime_error("invaid type: " + error);
+    throw std::runtime_error("invalid type: " + error);
   }
 }
 

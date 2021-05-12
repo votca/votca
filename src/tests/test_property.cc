@@ -46,8 +46,8 @@ BOOST_AUTO_TEST_CASE(eigen_test) {
   BOOST_CHECK_THROW(prop.get("vec").as<Eigen::Vector3d>(), std::runtime_error);
 
   Property prop2;
-  prop.add("vec", "1 2 3");
-  Eigen::Vector3d result2 = prop.get("vec").as<Eigen::Vector3d>();
+  prop2.add("vec", "1 2 3");
+  Eigen::Vector3d result2 = prop2.get("vec").as<Eigen::Vector3d>();
   Eigen::Vector3d ref2{1, 2, 3};
   BOOST_CHECK_EQUAL(ref2.isApprox(result2, 0.0001), true);
 }
@@ -159,6 +159,38 @@ BOOST_AUTO_TEST_CASE(addproperty) {
   one.add(two);
 
   BOOST_CHECK_EQUAL(one.get("two.goodbye").path(), "one.two");
+}
+
+BOOST_AUTO_TEST_CASE(attributes) {
+
+  Property two("two", "", "");
+  Property& good = two.add("goodbye", "4");
+  BOOST_CHECK(!good.hasAttributes());
+  good.setAttribute<int>("hello", 2);
+  BOOST_CHECK(good.hasAttribute("hello"));
+
+  BOOST_CHECK(good.hasAttributes());
+
+  good.deleteAttribute("hello");
+  BOOST_CHECK(!good.hasAttributes());
+}
+
+BOOST_AUTO_TEST_CASE(deleteproperty) {
+
+  Property two("two", "", "");
+  two.add("goodbye", "4");
+  two.add("goodbye", "3");
+  Property& bye = two.add("bye", "1");
+  bye.add("hello", "5");
+
+  two.deleteChild(&bye);
+  BOOST_CHECK(!two.exists("bye"));
+  BOOST_CHECK(two.exists("goodbye"));
+
+  Property& goodbye1 = two.get("goodbye");
+  two.deleteChild(&goodbye1);
+  // there is still another goodbye tag
+  BOOST_CHECK(two.exists("goodbye"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
