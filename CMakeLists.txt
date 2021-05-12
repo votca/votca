@@ -122,6 +122,10 @@ set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated
 if(MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-as-needed")
 endif()
+option(REQUIRE_MKL "Require MKL" OFF)
+if(REQUIRE_MKL)
+  find_package(MKL REQUIRED)
+endif
 
 ######################################
 # Include the following subdirectory # 
