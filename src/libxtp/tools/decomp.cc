@@ -31,7 +31,7 @@
 namespace votca {
 namespace xtp {
 
-void Decomp::ParseOptions(const tools::Property& options) {
+void Decomp::ParseOptions(const tools::Property&) {
   orbitals.ReadFromCpt(_job_name + ".orb");
 }
 
