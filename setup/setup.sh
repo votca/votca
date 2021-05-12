@@ -95,6 +95,10 @@ else
   cmake_args+=( -DENABLE_REGRESSION_TESTING=${INPUT_REGRESSION_TESTING} )
 fi
 
+if [[ ${INPUT_DISTRO} = "fedora:intel" ]]; then
+  cmake_args+=( -DREQUIRE_MKL=ON )
+fi
+
 if [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then
   # CodeQL does not work with valgrind
   cmake_args+=( -DVALGRIND_EXECUTABLE=FALSE )
