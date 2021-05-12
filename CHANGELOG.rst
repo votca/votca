@@ -5,7 +5,7 @@ Version 2021.1 (released XX.03.21)
 ==================================
 
 -  fix build on F34 and openSUSE (#361)
--  add support for oneapi mkl (#363)
+-  add support for oneapi mkl (#363, #369)
 
 Version 2021 (released 13.03.21)
 ================================
