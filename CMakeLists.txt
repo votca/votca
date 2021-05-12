@@ -125,7 +125,7 @@ endif()
 option(REQUIRE_MKL "Require MKL" OFF)
 if(REQUIRE_MKL)
   find_package(MKL REQUIRED)
-endif
+endif()
 
 ######################################
 # Include the following subdirectory # 
