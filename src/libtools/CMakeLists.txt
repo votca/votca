@@ -34,7 +34,7 @@ if(MKL_FOUND)
 endif()
 
 if(OpenMP_FOUND)
-  target_link_libraries(votca_xtp PUBLIC OpenMP::OpenMP_CXX)
+  target_link_libraries(votca_tools PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
 if(FFTW3_FOUND)
