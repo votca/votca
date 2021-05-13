@@ -94,9 +94,6 @@ set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)
   # in case OpenMP was detected somewhere else
   unset(OpenMP_FOUND)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel" AND MKL_FOUND)
-  # part of mkl
-  unset(OpenMP_FOUND)
 else()
   find_package(OpenMP 4.5)
   set_package_properties(OpenMP PROPERTIES TYPE RECOMMENDED PURPOSE "Used for thread parallelization in tools")
