@@ -81,15 +81,26 @@ endif(Python_EXECUTABLE AND NOT PYTHON_INSTDIR)
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   set(MKL_THREAD_LAYER "Intel OpenMP" CACHE STRING "The thread layer to choose for MKL")
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+else()
   set(MKL_THREAD_LAYER "GNU OpenMP" CACHE STRING "The thread layer to choose for MKL")
 endif()
 find_package(MKL)
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with MKL")
-endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with MKL")
+
+#openmp with clang smaller version 10 and user defined reductions is buggy https://bugs.llvm.org/show_bug.cgi?id=44134
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)
+  # in case OpenMP was detected somewhere else
+  unset(OpenMP_FOUND)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel" AND MKL_FOUND)
+  # part of mkl
+  unset(OpenMP_FOUND)
+else()
+  find_package(OpenMP 4.5)
+  set_package_properties(OpenMP PROPERTIES TYPE RECOMMENDED PURPOSE "Used for thread parallelization in tools")
+endif()
 
 find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
 set_package_properties(Eigen3 PROPERTIES TYPE REQUIRED PURPOSE "C++ vector data structures")
