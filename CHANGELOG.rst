@@ -17,12 +17,13 @@ Version 2022-dev
 -  Added N-DimVector (#360)
 -  properties can be removed and string conversion much improved (#365)
 -  link against MKL:RT to support pyxtp (#349
+-  adapted tokenizer api (#367)
 
 Version 2021.1 (released XX.03.21)
 ==================================
 
 -  fix build on F34 and openSUSE (#361)
--  add support for oneapi mkl (#363)
+-  add support for oneapi mkl (#363, #369)
 
 Version 2021 (released 13.03.21)
 ================================
