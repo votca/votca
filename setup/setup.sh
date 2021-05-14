@@ -47,7 +47,13 @@ fi
 if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=g++ )
 elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
-  cmake_args+=( -DCMAKE_CXX_COMPILER=clang++ -GNinja )
+  if [[ ${INPUT_DISTRO} = "fedora:intel" ]]; then
+    # intel package has its own clang++ that does not support OpenMP
+    # force usage of system clang
+    cmake_args+=( -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -GNinja )
+  else
+    cmake_args+=( -DCMAKE_CXX_COMPILER=clang++ -GNinja )
+  fi
 elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=icpc )
   mkdir ~/Licenses
