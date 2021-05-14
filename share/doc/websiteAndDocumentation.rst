@@ -61,7 +61,7 @@ Editing existing pages
 ----------------------
 
 To edit existing pages, you only need limited knowledge of the reStructuredText
-markup. You can find quick introductions `here <https://docutils.sourceforge.io/docs/user/rst/quickstart.html>`_ and `here <https://docutils.sourceforge.io/docs/user/rst/quickref.html>`_. All pages are stored as
+markup. You can find quick introductions `here <https://docutils.sourceforge.io/docs/user/rst/quickstart.html>`__ and `here <https://docutils.sourceforge.io/docs/user/rst/quickref.html>`__. All pages are stored as
 .rst files in the ``share/doc`` folder of the corresponding repo.
 
 Writing a new page
