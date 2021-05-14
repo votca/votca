@@ -23,15 +23,14 @@ For an installation guide see `here <INSTALL.html>`__.
    tools/index.rst
    csg/index.rst
    xtp/XTP-MANUAL.rst
-	     
+
 .. toctree::
    :maxdepth: 2
    :hidden:
    :caption: Tutorials
-	     
+
    csg-tutorials/README.rst
    xtp-tutorials/XTP-TUTORIAL.rst
-
    
 .. toctree::
    :maxdepth: 2
@@ -51,10 +50,3 @@ For an installation guide see `here <INSTALL.html>`__.
    GitHub <https://github.com/votca>
    Twitter <https://twitter.com/votca_software>
    Forum <https://groups.google.com/g/votca>
-  
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
