@@ -17,6 +17,7 @@ Version 2022-dev
 -  Added N-DimVector (#360)
 -  properties can be removed and string conversion much improved (#365)
 -  adapted tokenizer api (#367)
+-  improve mkl linkage and threading backend selection (#371)
 
 Version 2021.1 (released XX.03.21)
 ==================================
