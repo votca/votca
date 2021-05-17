@@ -25,8 +25,8 @@
 // Local VOTCA includes
 #include "votca/xtp/gaussianwriter.h"
 #include "votca/xtp/orbitals.h"
-#include <votca/tools/constants.h>
 #include "votca/xtp/pmdecomposition.h"
+#include <votca/tools/constants.h>
 
 namespace votca {
 namespace xtp {
@@ -39,7 +39,7 @@ bool Decomp::Run() {
   log.setReportLevel(Log::current_level);
   log.setMultithreading(true);
   log.setCommonPreface("\n... ...");
-  XTP_LOG(Log::error,log) << "Starting decomp tool" << std::endl;
+  XTP_LOG(Log::error, log) << "Starting decomp tool" << std::endl;
   PMDecomposition pmd(orbitals, log);
   pmd.compute();
   XTP_LOG(Log::error, log) << "There you go!!" << std::endl;

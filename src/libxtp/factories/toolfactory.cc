@@ -23,6 +23,7 @@
 // Local private VOTCA includes
 #include "tools/apdft.h"
 #include "tools/coupling.h"
+#include "tools/decomp.h"
 #include "tools/densityanalysis.h"
 #include "tools/dftgwbse.h"
 #include "tools/excitoncoupling.h"
@@ -35,7 +36,6 @@
 #include "tools/partialcharges.h"
 #include "tools/qmsandbox.h"
 #include "tools/spectrum.h"
-#include "tools/decomp.h"
 namespace votca {
 namespace xtp {
 
