@@ -35,18 +35,17 @@ class PMDecomposition {
  private:
   Orbitals orbitals;
   Logger &log;
-  Eigen::MatrixXd rotatedorbitals(Eigen::MatrixXd &maxorbs,
-                                  Index s, Index t);
+  Eigen::MatrixXd rotatedorbitals(Eigen::MatrixXd &maxorbs, Index s, Index t);
   Eigen::MatrixXd orbitalselections(Eigen::MatrixXd &m,
                                     const Eigen::MatrixXd &S);
   void update_maximums(Eigen::MatrixXd &m, Index col1, Index col2,
                        Eigen::MatrixXd &new_orbs);
-Eigen::MatrixXd columnwise(const Eigen::MatrixXd &S, Eigen::VectorXd &v);
-Eigen::MatrixXd rowwise(const Eigen::MatrixXd &S, Eigen::VectorXd &v);
-BasisSet basis;
-AOBasis aobasis;
-Eigen::MatrixXd A;
-Eigen::MatrixXd B;
+  Eigen::MatrixXd columnwise(const Eigen::MatrixXd &S, Eigen::VectorXd &v);
+  Eigen::MatrixXd rowwise(const Eigen::MatrixXd &S, Eigen::VectorXd &v);
+  BasisSet basis;
+  AOBasis aobasis;
+  Eigen::MatrixXd A;
+  Eigen::MatrixXd B;
 };
 }  // namespace xtp
 }  // namespace votca
