@@ -1,3 +1,22 @@
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 #include "votca/xtp/pmdecomposition.h"
 #include "votca/xtp/aomatrix.h"
 #include <votca/tools/eigenio_matrixmarket.h>
@@ -36,22 +55,6 @@ void PMDecomposition::compute() {
   votca::tools::EigenIO_MatrixMarket::WriteMatrix(
          "test_pm_orbitals.mm", mo_coeff);
 }
-
-// Eigen::MatrixXd PMDecomposition::columnwise(const Eigen::MatrixXd &S, Eigen::VectorXd &v) {
-//   Eigen::MatrixXd a(S.rows(), S.cols());
-//   for (int p = 0; p < S.rows(); p++) {
-//     a.col(p) = v(p) * S.col(p);
-//   }
-//   return a;
-// }
-
-// Eigen::MatrixXd PMDecomposition::rowwise(const Eigen::MatrixXd &S, Eigen::VectorXd &v) {
-//   Eigen::MatrixXd a(S.rows(), S.cols());
-//   for (int p = 0; p < S.rows(); p++) {
-//     a.row(p) = v(p) * S.row(p);
-//   }
-//   return a;
-// }
 
 Eigen::MatrixXd PMDecomposition::rotatedorbitals(Eigen::MatrixXd &maxorbs, Index s, Index t) {
   Eigen::VectorXd vec1, vec2, new_vec1, new_vec2;
