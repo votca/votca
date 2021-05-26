@@ -59,30 +59,8 @@ void PMDecomposition::compute() {
                                                   mo_coeff);
 }
 
-<<<<<<< HEAD
-Eigen::MatrixXd PMDecomposition::rotatedorbitals(Eigen::MatrixXd &maxorbs, Index s, Index t) {
-=======
-// Eigen::MatrixXd PMDecomposition::columnwise(const Eigen::MatrixXd &S,
-// Eigen::VectorXd &v) {
-//   Eigen::MatrixXd a(S.rows(), S.cols());
-//   for (int p = 0; p < S.rows(); p++) {
-//     a.col(p) = v(p) * S.col(p);
-//   }
-//   return a;
-// }
-
-// Eigen::MatrixXd PMDecomposition::rowwise(const Eigen::MatrixXd &S,
-// Eigen::VectorXd &v) {
-//   Eigen::MatrixXd a(S.rows(), S.cols());
-//   for (int p = 0; p < S.rows(); p++) {
-//     a.row(p) = v(p) * S.row(p);
-//   }
-//   return a;
-// }
-
 Eigen::MatrixXd PMDecomposition::rotatedorbitals(Eigen::MatrixXd &maxorbs,
                                                  Index s, Index t) {
->>>>>>> 5ea9f2c6a7af2e3b83191c3316b0d8a707e5759c
   Eigen::VectorXd vec1, vec2, new_vec1, new_vec2;
   double gam, sin_gamma, cos_gamma;
   Eigen::MatrixXd neworbitals(maxorbs.rows(), 2);
