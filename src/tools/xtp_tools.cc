@@ -30,7 +30,7 @@ using namespace votca;
 
 class XtpTools final : public xtp::XtpApplication {
  public:
-  XtpTools() { xtp::QMToolFactory::RegisterAll(); }
+  XtpTools(){xtp::QMToolFactory::RegisterAll(); }
 
   ~XtpTools() = default;
 
@@ -55,6 +55,9 @@ protected:
   std::unique_ptr<xtp::QMTool> _tool;
 };
 
+void XtpTools::CreateCalculator(const std::string& name){
+_tool=xtp::QMTools().Create(name);
+}
 void XtpTools::AddCommandLineOptions() {
   namespace propt = boost::program_options;
   AddProgramOptions()("name,n", propt::value<std::string>(),
