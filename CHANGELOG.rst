@@ -34,6 +34,7 @@ Version 2022-dev
 -  Fixing the tutorial (#705)
 -  adapted tokenizer api (#707)
 -  move OpenMP detection to tools (#709)
+-  refactored applications (#710)
 
 Version 2021.1 (released XX.03.21)
 ==================================
