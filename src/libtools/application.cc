@@ -66,7 +66,6 @@ int Application::Exec(int argc, char **argv) {
     AddProgramOptions()("verbose1", "  be very loud and noisy");
     AddProgramOptions()("verbose2,v", "  be extremly loud and noisy");
     AddProgramOptions("Hidden")("man", "  output man-formatted manual pages");
-    AddProgramOptions("Hidden")("tex", "  output tex-formatted manual pages");
 
     Initialize();  // initialize program-specific parameters
 
@@ -163,7 +162,7 @@ void Application::CheckRequired(const string &option_name,
 void Application::PrintDescription(std::ostream &out,
                                    const string &calculator_name,
                                    const string help_path, HelpType help_type) {
-  boost::format _format("%|3t|%1% %|20t|%2% \n");
+  boost::format format("%|3t|%1% %|20t|%2% \n");
   string help_string;
   boost::filesystem::path arg_path;
   Property options;
@@ -181,10 +180,10 @@ void Application::PrintDescription(std::ostream &out,
         calculator_options.findAttribute("help");
 
     if (atr_it != calculator_options.lastAttribute()) {
-      help_string = (*atr_it).second;
+      help_string = atr_it->second;
     } else {
       if (Log::current_level > 0) {
-        out << _format % calculator_name % "Undocumented";
+        out << format % calculator_name % "Undocumented";
       }
       return;
     }
@@ -193,7 +192,7 @@ void Application::PrintDescription(std::ostream &out,
       default:
         break;
       case HelpShort:  // short description of the calculator
-        out << _format % calculator_name % help_string;
+        out << format % calculator_name % help_string;
         break;
       case HelpLong:
         votca::tools::PropertyIOManipulator iom(
@@ -204,7 +203,7 @@ void Application::PrintDescription(std::ostream &out,
 
   } catch (std::exception &) {
     if (Log::current_level > 0) {
-      out << _format % calculator_name % "Undocumented";
+      out << format % calculator_name % "Undocumented";
     }
   }
 }
