@@ -31,8 +31,8 @@
 
 namespace votca {
 namespace xtp {
-  XtpApplication::XtpApplication() =default;
-  XtpApplication::~XtpApplication() =default;
+XtpApplication::XtpApplication() = default;
+XtpApplication::~XtpApplication() = default;
 
 /**
  * \brief Adds program options to the executable
@@ -66,8 +66,7 @@ void XtpApplication::Initialize(void) {
                       "  Number of gpus to use");
 #endif
 
-AddCommandLineOptions();
-
+  AddCommandLineOptions();
 }
 
 bool XtpApplication::EvaluateOptions() {
@@ -117,7 +116,7 @@ bool XtpApplication::EvaluateOptions() {
   return true;
 }
 
-void XtpApplication::Run(){
+void XtpApplication::Run() {
 
   std::string name = ProgramName();
   if (VersionString() != "") {
@@ -126,7 +125,6 @@ void XtpApplication::Run(){
   xtp::HelpTextHeader(name);
 
   execute();
-
 }
 
 void XtpApplication::ShowHelpText(std::ostream& out) {

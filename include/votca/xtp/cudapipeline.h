@@ -88,9 +88,9 @@ class CudaPipeline {
 template <class M1, class M2, class M3>
 inline void CudaPipeline::gemm(M1 &&A, M2 &&B, M3 &&C, double beta) const {
 
-  using m1=std::decay_t<M1>;
-  using m2=std::decay_t<M2>;
-  using m3=std::decay_t<M3>;
+  using m1 = std::decay_t<M1>;
+  using m2 = std::decay_t<M2>;
+  using m3 = std::decay_t<M3>;
   static_assert(!m3::transposed(), "C in gemm cannot be transposed atm");
   // Scalar constanst for calling blas
   double alpha = 1.;

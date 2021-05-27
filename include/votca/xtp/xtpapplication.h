@@ -40,8 +40,7 @@ class XtpApplication : public votca::tools::Application {
   void ShowHelpText(std::ostream& out) final;
 
  protected:
-
-  virtual void execute()=0;
+  virtual void execute() = 0;
   virtual std::string CalculatorType() const = 0;
 
   virtual void EvaluateSpecificOptions() = 0;
@@ -50,7 +49,7 @@ class XtpApplication : public votca::tools::Application {
 
   virtual void CreateCalculator(const std::string& name) = 0;
 
-  virtual void AddCommandLineOptions() =0;
+  virtual void AddCommandLineOptions() = 0;
 
   votca::tools::Property _options;
 

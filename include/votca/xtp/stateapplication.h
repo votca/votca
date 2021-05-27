@@ -36,18 +36,16 @@ class StateApplication : public XtpApplication {
   ~StateApplication() override = default;
 
  protected:
+  virtual bool savetoStateFile() const = 0;
 
- virtual bool savetoStateFile()const =0;
-
-  virtual void ConfigCalculator()=0;
-  virtual bool EvaluateFrame(Topology& top)=0;
+  virtual void ConfigCalculator() = 0;
+  virtual bool EvaluateFrame(Topology& top) = 0;
 
   void EvaluateSpecificOptions() final;
-  virtual void CheckOptions() =0;
+  virtual void CheckOptions() = 0;
   void execute() final;
   void AddCommandLineOptions() final;
-  virtual void AddCommandLineOpt()=0;
-
+  virtual void AddCommandLineOpt() = 0;
 };
 
 }  // namespace xtp

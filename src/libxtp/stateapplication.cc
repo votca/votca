@@ -29,7 +29,6 @@
 namespace votca {
 namespace xtp {
 
-
 void StateApplication::AddCommandLineOptions() {
 
   namespace propt = boost::program_options;
@@ -44,7 +43,6 @@ void StateApplication::AddCommandLineOptions() {
                       "  whether or not to save changes to state file");
 
   AddCommandLineOpt();
-
 }
 
 void StateApplication::EvaluateSpecificOptions() {

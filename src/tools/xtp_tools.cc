@@ -30,7 +30,7 @@ using namespace votca;
 
 class XtpTools final : public xtp::XtpApplication {
  public:
-  XtpTools(){xtp::QMToolFactory::RegisterAll(); }
+  XtpTools() { xtp::QMToolFactory::RegisterAll(); }
 
   ~XtpTools() = default;
 
@@ -40,14 +40,15 @@ class XtpTools final : public xtp::XtpApplication {
     out << "Runs excitation/charge transport tools\n";
   }
 
-protected:
-
+ protected:
   void CreateCalculator(const std::string& name) final;
 
   void execute() final;
-  std::string CalculatorType() const final{return "Tool";}
+  std::string CalculatorType() const final { return "Tool"; }
   void EvaluateSpecificOptions() final;
-  std::vector<std::string> CalculatorNames() const final{return xtp::QMTools().getKeys();}
+  std::vector<std::string> CalculatorNames() const final {
+    return xtp::QMTools().getKeys();
+  }
 
   void AddCommandLineOptions() final;
 
@@ -55,8 +56,8 @@ protected:
   std::unique_ptr<xtp::QMTool> _tool;
 };
 
-void XtpTools::CreateCalculator(const std::string& name){
-_tool=xtp::QMTools().Create(name);
+void XtpTools::CreateCalculator(const std::string& name) {
+  _tool = xtp::QMTools().Create(name);
 }
 void XtpTools::AddCommandLineOptions() {
   namespace propt = boost::program_options;
@@ -85,9 +86,9 @@ void XtpTools::execute() {
   opts.add("job_name", job_name);
 
   Index nThreads = OptionsMap()["nthreads"].as<Index>();
-  
+
   std::cout << "Initializing tool\n";
-    std::cout << "... " << _tool->Identify() << " " << std::flush;
+  std::cout << "... " << _tool->Identify() << " " << std::flush;
   _tool->setnThreads(nThreads);
   _tool->Initialize(_options);
 
@@ -95,7 +96,6 @@ void XtpTools::execute() {
   std::cout << "... " << _tool->Identify() << " " << std::flush;
   _tool->Evaluate();
 }
-
 
 int main(int argc, char** argv) {
 

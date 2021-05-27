@@ -19,18 +19,15 @@
 
 // Local VOTCA includes
 #include "votca/xtp/jobcalculator.h"
+#include "votca/xtp/jobcalculatorfactory.h"
 #include "votca/xtp/progressobserver.h"
 #include "votca/xtp/stateapplication.h"
-#include "votca/xtp/jobcalculatorfactory.h"
-
-
 
 using namespace votca;
 
 class XtpParallel final : public xtp::StateApplication {
  public:
-
- XtpParallel() { xtp::JobCalculatorfactory::RegisterAll(); }
+  XtpParallel() { xtp::JobCalculatorfactory::RegisterAll(); }
 
   ~XtpParallel() = default;
   std::string ProgramName() final { return "xtp_parallel"; }
@@ -38,7 +35,6 @@ class XtpParallel final : public xtp::StateApplication {
   void HelpText(std::ostream& out) final {
     out << "Runs job-based heavy-duty calculators\n";
   }
-
 
  protected:
   void CreateCalculator(const std::string& name);
@@ -55,7 +51,6 @@ class XtpParallel final : public xtp::StateApplication {
   void AddCommandLineOpt() final;
 
  private:
-
   bool _generate_input = false;
   bool _run = false;
   bool _import = false;
@@ -63,11 +58,11 @@ class XtpParallel final : public xtp::StateApplication {
   std::unique_ptr<xtp::JobCalculator> _calc = nullptr;
 };
 
- void XtpParallel::AddCommandLineOpt(){
-    namespace propt = boost::program_options;
-    AddProgramOptions()("ompthreads,p", propt::value<Index>()->default_value(1),
+void XtpParallel::AddCommandLineOpt() {
+  namespace propt = boost::program_options;
+  AddProgramOptions()("ompthreads,p", propt::value<Index>()->default_value(1),
                       "  number of openmp threads to create in each thread");
-    AddProgramOptions()("restart,r",
+  AddProgramOptions()("restart,r",
                       propt::value<std::string>()->default_value(""),
                       "  restart pattern: 'host(pc1:234) stat(FAILED)'");
   AddProgramOptions()("cache,c", propt::value<Index>()->default_value(8),
@@ -77,14 +72,14 @@ class XtpParallel final : public xtp::StateApplication {
                       "  task(s) to perform: write, run, read");
   AddProgramOptions()("maxjobs,m", propt::value<Index>()->default_value(-1),
                       "  maximum number of jobs to process (-1 = inf)");
- }
+}
 
- void XtpParallel::CheckOptions(){
+void XtpParallel::CheckOptions() {
   std::string jobstr = OptionsMap()["jobs"].as<std::string>();
   _generate_input = (jobstr == "write");
   _run = (jobstr == "run");
   _import = (jobstr == "read");
- }
+}
 
 void XtpParallel::CreateCalculator(const std::string& name) {
   _calc = xtp::JobCalculators().Create(name);
@@ -94,7 +89,7 @@ void XtpParallel::ConfigCalculator() {
   std::cout << "... " << _calc->Identify() << std::endl;
 
   _progObs.InitCmdLineOpts(OptionsMap());
-  _calc->setnThreads( OptionsMap()["nthreads"].as<Index>());
+  _calc->setnThreads(OptionsMap()["nthreads"].as<Index>());
   _calc->setOpenMPThreads(OptionsMap()["ompthreads"].as<Index>());
   _calc->setProgObserver(&_progObs);
   _calc->Initialize(_options);
@@ -113,7 +108,6 @@ bool XtpParallel::EvaluateFrame(xtp::Topology& top) {
   std::cout << std::endl;
   return true;
 }
-
 
 int main(int argc, char** argv) {
 
