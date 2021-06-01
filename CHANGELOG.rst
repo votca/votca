@@ -35,6 +35,7 @@ Version 2022-dev
 -  adapted tokenizer api (#707)
 -  move OpenMP detection to tools (#709)
 -  refactored applications (#710)
+-  add command line option for number of gpus (#711)
 
 Version 2021.1 (released XX.03.21)
 ==================================

@@ -78,6 +78,7 @@ class CudaPipeline {
   cublasHandle_t _handle;
 
   // Asynchronous stream
+
   cudaStream_t _stream;
 };
 
