@@ -111,7 +111,7 @@ class CudaMatrix {
 
   void reshape(Index rows, Index cols) {
     assert(rows * cols == size() &&
-           "reshape cannot change the shape of the matrix");
+           "reshape cannot change the size of the matrix only the shape");
     _cols = cols;
     _ld = rows;
   }

@@ -26,8 +26,8 @@
 
 // Local VOTCA includes
 #include "votca/xtp/version.h"
-#include "votca/xtp/votca_xtp_config.h"
 #include "votca/xtp/xtpapplication.h"
+#include "votca/xtp/openmp_cuda.h"
 
 namespace votca {
 namespace xtp {
@@ -79,6 +79,9 @@ bool XtpApplication::EvaluateOptions() {
     StopExecution();
     return true;
   }
+#ifdef USE_CUDA
+  OpenMP_CUDA::SetNoGPUs(OptionsMap()["gpus"].as<Index>());
+#endif
 
   if (OptionsMap().count("description")) {
     CheckRequired("description", "no " + CalculatorType() + " is given");
