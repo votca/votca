@@ -487,8 +487,7 @@ Eigen::MatrixXd OpenMP_CUDA::getReductionVar() {
   for (Index i = 0; i < Index(gpus_.size()); i++) {
     GPU_data& gpu = gpus_[i];
     gpu.activateGPU();
-    Eigen::MatrixXd temp = *(gpu.temp.back());
-    cpus_[i].reduce() += temp;
+    cpus_[i].reduce() = *(gpu.temp.back());
   }
 #endif
   for (Index i = 1; i < Index(cpus_.size()); i++) {
