@@ -25,7 +25,7 @@ namespace xtp {
 
 // Has to be declared because of
 // https://stackoverflow.com/questions/9110487/undefined-reference-to-a-static-member
-Index OpenMP_CUDA::number_of_gpus=0;
+Index OpenMP_CUDA::number_of_gpus = 0;
 
 Index OpenMP_CUDA::UsingGPUs() { return number_of_gpus; }
 
@@ -487,8 +487,8 @@ Eigen::MatrixXd OpenMP_CUDA::getReductionVar() {
   for (Index i = 0; i < Index(gpus_.size()); i++) {
     GPU_data& gpu = gpus_[i];
     gpu.activateGPU();
-    Eigen::MatrixXd temp=*(gpu.temp.back());
-    cpus_[i].reduce()+=temp;
+    Eigen::MatrixXd temp = *(gpu.temp.back());
+    cpus_[i].reduce() += temp;
   }
 #endif
   for (Index i = 1; i < Index(cpus_.size()); i++) {

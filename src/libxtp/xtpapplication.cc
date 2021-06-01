@@ -25,9 +25,9 @@
 #include <votca/tools/propertyiomanipulator.h>
 
 // Local VOTCA includes
+#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/version.h"
 #include "votca/xtp/xtpapplication.h"
-#include "votca/xtp/openmp_cuda.h"
 
 namespace votca {
 namespace xtp {
