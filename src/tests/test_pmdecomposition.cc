@@ -41,32 +41,32 @@ BOOST_AUTO_TEST_CASE(decomposedorbitals_test) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/pmdecomposition/benzene.xyz");
-  BasisSet basis;
-  basis.Load(std::string(XTP_TEST_DATA_FOLDER) +
-             "/pmdecomposition/def2-tzvp.xml");
-
-  AOBasis aobasis;
-  aobasis.Fill(basis, orbitals.QMAtoms());
-  Logger log;
-
   orbitals.setBasisSetSize(222);
   orbitals.setNumberOfOccupiedLevels(21);
 
+  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+                           "/pmdecomposition/def2-tzvp.xml");
+
+  orbitals.MOs().eigenvectors() =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/pmdecomposition/orbitalsMOs_ref.mm");
+
+  orbitals.setNumberOfAlphaElectrons(21);
+
+  Logger log;
+
   PMDecomposition pmd(log);
   pmd.computePMD(orbitals);
-
- votca::tools::EigenIO_MatrixMarket::WriteMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/pmdecomposition/test_pm_orbitals.mm",
-      orbitals.getPMLocalizedOrbitals());
 
   Eigen::MatrixXd LMOs = orbitals.getPMLocalizedOrbitals();
   Eigen::MatrixXd test_MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) +
       "/pmdecomposition/test_pm_orbitals.mm");
 
-    bool checkMOs = LMOs.isApprox(test_MOs, 1e-2);
-     BOOST_CHECK_EQUAL(checkMOs, 1);
+  bool checkMOs = LMOs.isApprox(test_MOs, 1e-3);
+  BOOST_CHECK_EQUAL(checkMOs, 1);
 
-     libint2::finalize(); 
+  libint2::finalize();
 }
 BOOST_AUTO_TEST_SUITE_END()
