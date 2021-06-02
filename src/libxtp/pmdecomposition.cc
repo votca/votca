@@ -23,7 +23,7 @@
 
 namespace votca {
 namespace xtp {
-void PMDecomposition::compute() {
+void PMDecomposition::computePMD(Orbitals &orbitals) {
   Eigen::MatrixXd mo_coeff = orbitals.MOs().eigenvectors().leftCols(
       orbitals.getNumberOfAlphaElectrons());
   QMMolecule mol = orbitals.QMAtoms();
@@ -49,28 +49,19 @@ void PMDecomposition::compute() {
 
     i += 1;
   }
-  orbitals.MOs().eigenvectors().leftCols(orbitals.getNumberOfAlphaElectrons()) =
-      mo_coeff;
-  Eigen::MatrixXd check = orbitals.MOs().eigenvectors().transpose() * S *
-                          orbitals.MOs().eigenvectors();
-  XTP_LOG(Log::error, log) << check << std::flush;
-  orbitals.WriteToCpt("pm_orbitals.orb");
-  votca::tools::EigenIO_MatrixMarket::WriteMatrix("test_pm_orbitals.mm",
-                                                  mo_coeff);
+  orbitals.setPMLocalizedOrbitals(mo_coeff);
 }
 
 Eigen::MatrixXd PMDecomposition::rotatedorbitals(Eigen::MatrixXd &maxorbs,
-                                                 Index s, Index t) {
-  Eigen::VectorXd vec1, vec2, new_vec1, new_vec2;
-  double gam, sin_gamma, cos_gamma;
+                                                 Index s, Index t) {  
   Eigen::MatrixXd neworbitals(maxorbs.rows(), 2);
-  vec1 = maxorbs.col(0);
-  vec2 = maxorbs.col(1);
-  gam = 0.25 * asin(B(s, t) / sqrt((A(s, t) * A(s, t)) + (B(s, t) * B(s, t))));
-  sin_gamma = std::sin(gam);
-  cos_gamma = std::cos(gam);
-  new_vec1 = (cos_gamma * vec1) + (sin_gamma * vec2);
-  new_vec2 = -1 * (sin_gamma * vec1) + (cos_gamma * vec2);
+  Eigen::VectorXd vec1 = maxorbs.col(0);
+  Eigen::VectorXd vec2 = maxorbs.col(1);
+  double gam = 0.25 * asin(B(s, t) / sqrt((A(s, t) * A(s, t)) + (B(s, t) * B(s, t))));
+  double sin_gamma = std::sin(gam);
+  double cos_gamma = std::cos(gam);
+  Eigen::VectorXd new_vec1 = (cos_gamma * vec1) + (sin_gamma * vec2);
+  Eigen::VectorXd new_vec2 = -1 * (sin_gamma * vec1) + (cos_gamma * vec2);
   neworbitals << new_vec1, new_vec2;
   XTP_LOG(Log::error, log) << sin_gamma << std::flush;
   return neworbitals;
@@ -79,26 +70,24 @@ Eigen::MatrixXd PMDecomposition::rotatedorbitals(Eigen::MatrixXd &maxorbs,
 // Function to select n(n-1)/2 orbitals and process Ast and Bst
 Eigen::MatrixXd PMDecomposition::orbitalselections(Eigen::MatrixXd &m,
                                                    const Eigen::MatrixXd &S) {
-  Eigen::VectorXd req_vec1, req_vec2;
-  Eigen::RowVectorXd spt, sps, tpt;
-  Eigen::MatrixXd req_mat(m.rows(), 2), a, b, c, d, e, f;
+  Eigen::MatrixXd req_mat(m.rows(), 2);
   Eigen::MatrixXd zeromatrix = Eigen::MatrixXd::Zero(m.cols(), m.cols());
   A = Eigen::MatrixXd::Zero(m.cols(), m.cols());
   B = Eigen::MatrixXd::Zero(m.cols(), m.cols());
-  for (int s = 0; s < m.cols(); s++) {
-    for (int t = 0; t < m.cols(); t++) {
+  for (Index s = 0; s < m.cols(); s++) {
+    for (Index t = 0; t < m.cols(); t++) {
       if (t > s) {
-        req_vec1 = m.col(s);
-        req_vec2 = m.col(t);
-        a = S * req_vec1.asDiagonal();
-        b = S * req_vec2.asDiagonal();
-        c = req_vec1.transpose() * a;   // vec1.S.vec1
-        d = req_vec1.transpose() * b;   // term1 of eq 31
-        e = req_vec1.asDiagonal() * b;  // term2 of eq 31
-        f = req_vec2.transpose() * b;   // vec2.S.vec2
-        sps = c.colwise().sum();
-        tpt = f.colwise().sum();
-        spt = 0.5 * (d.colwise().sum() + e.rowwise().sum().transpose());
+        Eigen::VectorXd req_vec1 = m.col(s);
+        Eigen::VectorXd req_vec2 = m.col(t);
+        Eigen::MatrixXd a = S * req_vec1.asDiagonal();
+        Eigen::MatrixXd b = S * req_vec2.asDiagonal();
+        Eigen::MatrixXd c = req_vec1.transpose() * a;   // vec1.S.vec1
+        Eigen::MatrixXd d = req_vec1.transpose() * b;   // term1 of eq 31
+        Eigen::MatrixXd e = req_vec1.asDiagonal() * b;  // term2 of eq 31
+        Eigen::MatrixXd f = req_vec2.transpose() * b;   // vec2.S.vec2
+        Eigen::RowVectorXd sps = c.colwise().sum();
+        Eigen::RowVectorXd tpt = f.colwise().sum();
+        Eigen::RowVectorXd spt = 0.5 * (d.colwise().sum() + e.rowwise().sum().transpose());
         std::vector<Index> numfuncpatom = aobasis.getFuncPerAtom();
         Index start = 0;
         double Ast = 0;
@@ -127,5 +116,6 @@ void PMDecomposition::update_maximums(Eigen::MatrixXd &m, Index col1,
   m.col(col1) = new_orbs.col(0);
   m.col(col2) = new_orbs.col(1);
 }
+
 }  // namespace xtp
 }  // namespace votca

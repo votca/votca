@@ -1,8 +1,11 @@
 <?xml version="1.0"?>
 <options>
-  <decomp help="Bla bla bla.">
-  <message>
-    Hello World
-  </message>
+  <decomp help="Allows you to compute localised orbitals using the Pipek-Mezey scheme">
+  <activeatoms help="Indices of atoms in active region">
+    0 1 2 4
+  </activeatoms>
+  <active_DM help="If True then the active density matrix is computed. If False PM decomposition is calculated only" choices="0/1">
+    0
+  </active_DM>
   </decomp>
 </options>

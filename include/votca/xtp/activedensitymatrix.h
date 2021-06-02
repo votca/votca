@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2021 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,39 +16,28 @@
  * limitations under the License.
  *
  */
+
 #pragma once
-#ifndef VOTCA_XTP_DECOMP_H
-#define VOTCA_XTP_DECOMP_H
-
-// VOTCA includes
-#include <votca/tools/constants.h>
-
-// Local VOTCA includes
-#include "votca/xtp/logger.h"
+#ifndef VOTCA_XTP_ACTIVEDENSITYMATRIX_H
+#define VOTCA_XTP_ACTIVEDENSITYMATRIX_H
+#include "logger.h"
 #include "votca/xtp/orbitals.h"
-#include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
+class ActiveDensityMatrix {
+  public:
+  ActiveDensityMatrix (Orbitals &orbitals, std::vector<Index> activeatoms, Logger &log)
+      : orbitals(orbitals), log(log), activeatoms(activeatoms){};
+  void compute_activedensitymatrix(Eigen::MatrixXd &new_mo_coeff);
 
-class Decomp final : public QMTool {
- public:
-  Decomp() = default;
-
-  ~Decomp() = default;
-
-  std::string Identify() { return "decomp"; }
-
- private:
-  Orbitals orbitals;
-  Logger log;
+  private:
+   Orbitals orbitals;
+   Logger &log;
   std::vector<Index> activeatoms;
- protected:
-  void ParseOptions(const tools::Property& options);
-  bool Run();
+  BasisSet basis;
+  AOBasis aobasis;
 };
-
 }  // namespace xtp
 }  // namespace votca
-
-#endif  // VOTCA_XTP_ORB2FCHK_H
+#endif

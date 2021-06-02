@@ -18,6 +18,7 @@
  */
 
 #include "decomp.h"
+#include <sstream>
 
 // Third party includes
 #include <boost/algorithm/string.hpp>
@@ -26,13 +27,25 @@
 #include "votca/xtp/gaussianwriter.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/pmdecomposition.h"
+#include "votca/xtp/activedensitymatrix.h"
 #include <votca/tools/constants.h>
 
 namespace votca {
 namespace xtp {
 
-void Decomp::ParseOptions(const tools::Property&) {
+void Decomp::ParseOptions(const tools::Property& options) {
   orbitals.ReadFromCpt(_job_name + ".orb");
+  std::string temp = options.get("activeatoms").as<std::string>();
+  std::stringstream ss(temp);
+  Index tmp;
+  while (ss >> tmp) {
+    activeatoms.push_back(tmp);
+  }
+  std::cout << "Atoms in active region: ";
+  for (const auto& atom : activeatoms){
+    std::cout << atom << " ";
+  }
+  std::cout << std::endl;
 }
 
 bool Decomp::Run() {
@@ -40,9 +53,10 @@ bool Decomp::Run() {
   log.setMultithreading(true);
   log.setCommonPreface("\n... ...");
   XTP_LOG(Log::error, log) << "Starting decomp tool" << std::endl;
-  PMDecomposition pmd(orbitals, log);
-  pmd.compute();
+  PMDecomposition pmd(log);
+  pmd.computePMD(orbitals);
   XTP_LOG(Log::error, log) << "There you go!!" << std::endl;
+  ActiveDensityMatrix(orbitals, activeatoms, log);
   return true;
 }
 
