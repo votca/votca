@@ -23,6 +23,28 @@
 namespace votca {
 namespace xtp {
 
+// Has to be declared because of
+// https://stackoverflow.com/questions/9110487/undefined-reference-to-a-static-member
+Index OpenMP_CUDA::number_of_gpus = 0;
+
+Index OpenMP_CUDA::UsingGPUs() { return number_of_gpus; }
+
+Index OpenMP_CUDA::AvailableGPUs() {
+#ifdef USE_CUDA
+  return count_available_gpus();
+#else
+  return 0;
+#endif
+}
+
+void OpenMP_CUDA::SetNoGPUs(Index number) {
+  if (number < 0 || number > AvailableGPUs()) {
+    number_of_gpus = AvailableGPUs();
+  } else {
+    number_of_gpus = number;
+  }
+}
+
 OpenMP_CUDA::OpenMP_CUDA() {
 
   inside_Parallel_region_ = OPENMP::InsideActiveParallelRegion();
@@ -31,7 +53,7 @@ OpenMP_CUDA::OpenMP_CUDA() {
   cpus_.resize(getNumberThreads());
 
 #ifdef USE_CUDA
-  Index no_gpus = count_available_gpus();
+  Index no_gpus = UsingGPUs();
   gpus_.clear();
   if (inside_Parallel_region_) {
     if (threadID_parent_ < no_gpus) {

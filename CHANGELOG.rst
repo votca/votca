@@ -25,8 +25,17 @@ Version 2022-dev
 -  changed molecule in csg topology container to actual object instead of pointer (#683)
 -  remove codecov comments from inside code at PR (#686)
 -  count the number of available CPUs for autogen_mapping script (#688)
+-  added a checkpoint reader to jobtopology class (#691)
 -  fixed issue with molden file path and orca executable path (#692)
 -  Fixed bug in mapping (#690)
+-  added support for external fields in DFT (#698)
+-  allocate threecenter matrices in parallel (#701)
+-  use NDimVector instead of std::vector in vxcgrid. (#703)
+-  Fixing the tutorial (#705)
+-  adapted tokenizer api (#707)
+-  move OpenMP detection to tools (#709)
+-  refactored applications (#710)
+-  add command line option for number of gpus (#711)
 
 Version 2021.1 (released XX.03.21)
 ==================================

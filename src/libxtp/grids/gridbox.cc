@@ -19,6 +19,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/gridbox.h"
+#include "votca/xtp/aobasis.h"
 
 namespace votca {
 namespace xtp {

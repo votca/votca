@@ -271,6 +271,28 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
     WriteBackgroundCharges();
   }
 
+  // External Electric field
+  if (_settings.has_key("use_external_field")) {
+    if (_settings.get("use_external_field") == "true") {
+      if (_settings.has_key("externalfield")) {
+        tools::Tokenizer values(this->_settings.get("externalfield"), " ");
+        std::vector<std::string> field = values.ToVector();
+        if (field.size() != 3) {
+          throw std::runtime_error("Electric field does not have 3 values.");
+        }
+        inp_file << "%scf\n ";
+        inp_file << "  efield " << field[0] << ", " << field[1] << ", "
+                 << field[2] << "\n";
+        inp_file << "end\n";
+        inp_file << std::endl;
+      } else {
+        throw std::runtime_error(
+            "\nRequested a calculation with an external field, but no field is "
+            "specified.\n");
+      }
+    }
+  }
+
   // Write Orca section specified by the user
   for (const auto& prop : this->_settings.property("orca")) {
     const std::string& prop_name = prop.name();
@@ -364,8 +386,7 @@ void Orca::CleanUp() {
   // cleaning up the generated files
   if (_cleanup.size() != 0) {
     tools::Tokenizer tok_cleanup(_cleanup, ",");
-    std::vector<std::string> cleanup_info;
-    tok_cleanup.ToVector(cleanup_info);
+    std::vector<std::string> cleanup_info = tok_cleanup.ToVector();
     for (const std::string& substring : cleanup_info) {
       if (substring == "inp") {
         std::string file_name = _run_dir + "/" + _input_file_name;
@@ -473,14 +494,14 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
 
       for (Index i = 0; i < 3; i++) {
         tools::getline(input_file, line);
-        tools::Tokenizer tok2(line, " ");
-        std::vector<std::string> values = tok2.ToVector();
+        std::vector<double> values =
+            tools::Tokenizer(line, " ").ToVector<double>();
         if (values.size() != 3) {
           throw std::runtime_error("polarization line " + line +
                                    " cannot be parsed");
         }
         Eigen::Vector3d row;
-        row << std::stod(values[0]), std::stod(values[1]), std::stod(values[2]);
+        row << values[0], values[1], values[2];
         pol.row(i) = row;
       }
 
@@ -798,8 +819,7 @@ std::string Orca::CreateInputSection(const std::string& key) const {
 
 bool Orca::KeywordIsSingleLine(const std::string& key) const {
   tools::Tokenizer values(this->_settings.get(key), " ");
-  std::vector<std::string> words;
-  values.ToVector(words);
+  std::vector<std::string> words = values.ToVector();
   return ((words.size() <= 1) ? true : false);
 }
 

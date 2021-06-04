@@ -6,6 +6,8 @@
   <basisset help="Basis set for MOs" default="def2-tzvp">def2-tzvp</basisset>
   <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool"/>
   <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp">aux-def2-tzvp</auxbasisset>
+  <use_external_field help="whether or not to use an external field in the dft calculation" default="false" choices="bool"/>
+  <externalfield help="Field in atomic units used if the use ext. field flag is true" default="0.0 0.0 0.0"/>
   <use_ecp help="use an Effective Core Potentials for DFT Calculations" default="false" choices="bool"/>
   <optimize help="Perform a molecular geometry optimization" default="false" choices="bool">false</optimize>
   <functional default="XC_HYB_GGA_XC_PBEH">XC_HYB_GGA_XC_PBEH</functional>
@@ -15,13 +17,12 @@
   <read_guess help="Read wave function guess" default="false" choices="bool">false</read_guess>
   <write_charges help="Print atomic charges" default="false" choices="bool">false</write_charges>
   <convergence_tightness help="" default="tight" choices="low,normal,tight,verytight">tight</convergence_tightness>
-  <cleanup help="files to remove after the calculation is done"> </cleanup>
+  <cleanup help="files to remove after the calculation is done"></cleanup>
   <orca>
     <method help="This is automatically fill with the functional and basis set"/>
   </orca>
   <xtpdft>
     <with_screening help="screening" default="true" choices="bool">true</with_screening>
-    <use_external_field help="whether or not to use an external field" default="false" choices="bool"/>
     <use_external_density help="whether or not to use a precomputed external density" default="false" choices="bool"/>
     <screening_eps help="screening eps" default="1e-9" choices="float+">1e-9</screening_eps>
     <four_center_method help="method to compute the four-center integrals" default="cache" choices="cache,direct,RI">RI</four_center_method>
