@@ -53,8 +53,6 @@ BOOST_AUTO_TEST_CASE(decomposedorbitals_test) {
           std::string(XTP_TEST_DATA_FOLDER) +
           "/pmdecomposition/orbitalsMOs_ref.mm");
 
-  
-
   Logger log;
 
   PMDecomposition pmd(log);
@@ -62,8 +60,7 @@ BOOST_AUTO_TEST_CASE(decomposedorbitals_test) {
 
   Eigen::MatrixXd LMOs = orbitals.getPMLocalizedOrbitals();
   Eigen::MatrixXd test_MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) +
-      "/pmdecomposition/ch3oh.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + "/pmdecomposition/ch3oh.mm");
 
   bool checkMOs = LMOs.isApprox(test_MOs, 2e-6);
   BOOST_CHECK_EQUAL(checkMOs, 1);

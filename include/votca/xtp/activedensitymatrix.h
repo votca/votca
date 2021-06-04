@@ -31,7 +31,7 @@ class ActiveDensityMatrix {
                       Logger &log)
       : orbitals(orbitals), log(log), activeatoms(activeatoms){};
   Eigen::MatrixXd activedensitymatrix(Eigen::MatrixXd &new_mo_coeff);
- Eigen::MatrixXd compute_Dmat_A();
+  Eigen::MatrixXd compute_Dmat_A();
 
  private:
   Orbitals orbitals;

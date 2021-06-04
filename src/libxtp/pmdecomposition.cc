@@ -53,11 +53,12 @@ void PMDecomposition::computePMD(Orbitals &orbitals) {
 }
 
 Eigen::MatrixXd PMDecomposition::rotatedorbitals(Eigen::MatrixXd &maxorbs,
-                                                 Index s, Index t) {  
+                                                 Index s, Index t) {
   Eigen::MatrixXd neworbitals(maxorbs.rows(), 2);
   Eigen::VectorXd vec1 = maxorbs.col(0);
   Eigen::VectorXd vec2 = maxorbs.col(1);
-  double gam = 0.25 * asin(B(s, t) / sqrt((A(s, t) * A(s, t)) + (B(s, t) * B(s, t))));
+  double gam =
+      0.25 * asin(B(s, t) / sqrt((A(s, t) * A(s, t)) + (B(s, t) * B(s, t))));
   double sin_gamma = std::sin(gam);
   double cos_gamma = std::cos(gam);
   Eigen::VectorXd new_vec1 = (cos_gamma * vec1) + (sin_gamma * vec2);
@@ -87,7 +88,8 @@ Eigen::MatrixXd PMDecomposition::orbitalselections(Eigen::MatrixXd &m,
         Eigen::MatrixXd f = req_vec2.transpose() * b;   // vec2.S.vec2
         Eigen::RowVectorXd sps = c.colwise().sum();
         Eigen::RowVectorXd tpt = f.colwise().sum();
-        Eigen::RowVectorXd spt = 0.5 * (d.colwise().sum() + e.rowwise().sum().transpose());
+        Eigen::RowVectorXd spt =
+            0.5 * (d.colwise().sum() + e.rowwise().sum().transpose());
         std::vector<Index> numfuncpatom = aobasis.getFuncPerAtom();
         Index start = 0;
         double Ast = 0;

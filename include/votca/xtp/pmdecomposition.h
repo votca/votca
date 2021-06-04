@@ -28,8 +28,7 @@ namespace xtp {
 
 class PMDecomposition {
  public:
-  PMDecomposition(Logger &log_)
-      : log(log_){};
+  PMDecomposition(Logger &log_) : log(log_){};
   void computePMD(Orbitals &orbitals);
 
  private:
@@ -44,7 +43,6 @@ class PMDecomposition {
   Eigen::MatrixXd A;
   Eigen::MatrixXd B;
 };
-
 
 }  // namespace xtp
 }  // namespace votca

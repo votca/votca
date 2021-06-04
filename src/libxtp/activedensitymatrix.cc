@@ -27,7 +27,7 @@ namespace xtp {
 Eigen::MatrixXd ActiveDensityMatrix::compute_Dmat_A() {
   Eigen::MatrixXd new_mo_coeff = orbitals.getPMLocalizedOrbitals();
   Eigen::MatrixXd dmat = activedensitymatrix(new_mo_coeff);
-  //votca::tools::EigenIO_MatrixMarket::WriteMatrix("ch3oh.mm", dmat);
+  // votca::tools::EigenIO_MatrixMarket::WriteMatrix("ch3oh.mm", dmat);
   return dmat;
 }
 

@@ -346,8 +346,10 @@ class Orbitals {
   bool GetFlagUseHqpOffdiag() const { return _use_Hqp_offdiag; };
   void SetFlagUseHqpOffdiag(bool flag) { _use_Hqp_offdiag = flag; };
 
-  const Eigen::MatrixXd& getPMLocalizedOrbitals() {return _pm_localized_orbitals;};
-  void setPMLocalizedOrbitals(Eigen::MatrixXd& matrix){
+  const Eigen::MatrixXd &getPMLocalizedOrbitals() {
+    return _pm_localized_orbitals;
+  };
+  void setPMLocalizedOrbitals(Eigen::MatrixXd &matrix) {
     _pm_localized_orbitals = matrix;
   }
 
