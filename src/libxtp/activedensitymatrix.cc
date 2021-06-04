@@ -23,9 +23,17 @@
 
 namespace votca {
 namespace xtp {
-void ActiveDensityMatrix::compute_activedensitymatrix(
+
+Eigen::MatrixXd ActiveDensityMatrix::compute_Dmat_A() {
+  Eigen::MatrixXd new_mo_coeff = orbitals.getPMLocalizedOrbitals();
+  Eigen::MatrixXd dmat = activedensitymatrix(new_mo_coeff);
+  //votca::tools::EigenIO_MatrixMarket::WriteMatrix("ch3oh.mm", dmat);
+  return dmat;
+}
+
+Eigen::MatrixXd ActiveDensityMatrix::activedensitymatrix(
     Eigen::MatrixXd &new_mo_coeff) {
-      QMMolecule mol = orbitals.QMAtoms();
+  QMMolecule mol = orbitals.QMAtoms();
   basis.Load(orbitals.getDFTbasisName());
   aobasis.Fill(basis, mol);
   AOOverlap overlap;
@@ -43,15 +51,18 @@ void ActiveDensityMatrix::compute_activedensitymatrix(
     Index start = 0;
     for (Index atom_id = 0; atom_id < Index(numfuncpatom.size()); atom_id++) {
       double iPi_x = iP_u_i.segment(start, numfuncpatom[atom_id]).sum();
-      if ((std::find(activeatoms.begin(),  activeatoms.end(), atom_id) != activeatoms.end()) && iPi_x > 0.4) {
-        active_mo_coeff.conservativeResize(new_mo_coeff.rows(),counter+1);
+      if ((std::find(activeatoms.begin(), activeatoms.end(), atom_id) !=
+           activeatoms.end()) &&
+          iPi_x > 0.4) {
+        active_mo_coeff.conservativeResize(new_mo_coeff.rows(), counter + 1);
         active_mo_coeff.col(counter) = new_mo_coeff.col(i);
+        std::cout << counter << std::endl;
         counter += 1;
       }
       start += numfuncpatom[atom_id];
     }
   }
-  Eigen::MatrixXd Dmat_A = active_mo_coeff * active_mo_coeff.transpose();
+  return active_mo_coeff * active_mo_coeff.transpose();
 }
 }  // namespace xtp
 }  // namespace votca

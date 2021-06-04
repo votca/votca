@@ -16,9 +16,9 @@
 #include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE pmdecomposition_test
+#define BOOST_TEST_MODULE activedensitymatrix_test
 
-// Third party includes
+// Third party includes 
 #include <boost/test/unit_test.hpp>
 
 // VOTCA includes
@@ -28,45 +28,48 @@
 // Local VOTCA includes
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
-#include "votca/xtp/pmdecomposition.h"
+#include "votca/xtp/activedensitymatrix.h"
 
 using namespace votca::xtp;
 using namespace votca;
 using namespace std;
 
-BOOST_AUTO_TEST_SUITE(pmdecomposition_test)
-BOOST_AUTO_TEST_CASE(decomposedorbitals_test) {
+BOOST_AUTO_TEST_SUITE(activedensitymatrix_test)
+BOOST_AUTO_TEST_CASE(activematrix_test) {
 
   libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
-                                  "/pmdecomposition/ch3oh.xyz");
+                                  "/activedensitymatrix/ch3oh.xyz");
   orbitals.setBasisSetSize(86);
-  orbitals.setNumberOfOccupiedLevels(9);
-  orbitals.setNumberOfAlphaElectrons(9);
+  orbitals.setNumberOfOccupiedLevels(9); 
+  orbitals.setNumberOfAlphaElectrons(9); 
 
   orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
-                           "/pmdecomposition/def2-tzvp.xml");
-
-  orbitals.MOs().eigenvectors() =
-      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+                           "/activedensitymatrix/def2-tzvp.xml");
+    Eigen::MatrixXd LMOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
           std::string(XTP_TEST_DATA_FOLDER) +
-          "/pmdecomposition/orbitalsMOs_ref.mm");
+          "/activedensitymatrix/LMOs.mm");
 
-  
+  orbitals.setPMLocalizedOrbitals(LMOs);
 
   Logger log;
+  std::vector<Index> activeatoms={{1,5}};
 
-  PMDecomposition pmd(log);
-  pmd.computePMD(orbitals);
+  ActiveDensityMatrix DMAT_A(orbitals, activeatoms, log);
 
-  Eigen::MatrixXd LMOs = orbitals.getPMLocalizedOrbitals();
-  Eigen::MatrixXd test_MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+  Eigen::MatrixXd DmatA = DMAT_A.compute_Dmat_A();
+
+ votca::tools::EigenIO_MatrixMarket::WriteMatrix(
       std::string(XTP_TEST_DATA_FOLDER) +
-      "/pmdecomposition/ch3oh.mm");
+      "/activedensitymatrix/ch3oh.mm", DmatA);
 
-  bool checkMOs = LMOs.isApprox(test_MOs, 2e-6);
-  BOOST_CHECK_EQUAL(checkMOs, 1);
+  Eigen::MatrixXd test_DmatA = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) +
+      "/activedensitymatrix/ch3oh.mm");
+
+bool checkDmatA = DmatA.isApprox(test_DmatA, 2e-6);
+  BOOST_CHECK_EQUAL(checkDmatA, 1);
 
   libint2::finalize();
 }
