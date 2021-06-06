@@ -79,6 +79,7 @@ Major releases
 
 In preparation for a major (not minor!) release the following additional steps need to be done:
 -  Create a new branch from the master branch of the :code:`votca/votca` repository and also in each of the submodules, e.g. :code:`stable_bump`. 
+   
    ::
 
        git checkout master
