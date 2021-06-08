@@ -10,6 +10,7 @@ source_suffix = {
 
 html_logo = 'customLogo.png'
 html_theme = "sphinx_rtd_theme"
+html_theme_path = ["_themes", ]
 html_theme_options= { 'logo_only' : True }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -18,7 +19,7 @@ html_theme_options= { 'logo_only' : True }
 # The file named "default.css" will overwrite the builtin "default.css".
 # The css/theme.css file is a direct copy of the RTD theme with minor 
 # modifications, modifications to the theme can be made in this file.
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 master_doc = 'index'
 nbsphinx_allow_errors = True
