@@ -642,8 +642,8 @@ double IQM::GetBSECouplingFromProp(const tools::Property& bseprop,
   std::string algorithm = bseprop.getAttribute<std::string>("algorithm");
   bool found = false;
   for (const tools::Property* state : bseprop.Select("coupling")) {
-    QMState state1=state->getAttribute<QMState>("stateA");
-    QMState state2=state->getAttribute<QMState>("stateB");
+    QMState state1 = state->getAttribute<QMState>("stateA");
+    QMState state2 = state->getAttribute<QMState>("stateB");
     if (state1 == stateA && state2 == stateB) {
       J = state->getAttribute<double>(algorithm) * tools::conv::ev2hrt;
       found = true;
@@ -689,7 +689,7 @@ void IQM::ReadJobFile(Topology& top) {
   tools::Property xml;
   // load the QC results in a vector indexed by the pair ID
   xml.LoadFromXML(_jobfile);
- 
+
   // loop over all jobs = pair records in the job file
   for (tools::Property* job : xml.Select("jobs.job")) {
     if (!job->exists("status")) {
@@ -724,9 +724,9 @@ void IQM::ReadJobFile(Topology& top) {
       XTP_LOG(Log::error, log)
           << "No pair " << id[0] << ":" << id[1]
           << " found in the neighbor list. Ignoring" << std::flush;
-          continue;
+      continue;
     }
-     if (qmp->getType() != QMPair::PairType::Hopping) {
+    if (qmp->getType() != QMPair::PairType::Hopping) {
       XTP_LOG(Log::error, log) << "WARNING Pair " << qmp->getId()
                                << " is not of any of the "
                                   "Hopping type. Skipping pair"
@@ -734,9 +734,7 @@ void IQM::ReadJobFile(Topology& top) {
       continue;
     }
 
-
-    const tools::Property& pair_property=job->get("output");
-
+    const tools::Property& pair_property = job->get("output");
 
     if (pair_property.exists("dftcoupling")) {
       const tools::Property& dftprop = pair_property.get("dftcoupling");
@@ -758,10 +756,8 @@ void IQM::ReadJobFile(Topology& top) {
       QMStateType electron = QMStateType(QMStateType::Electron);
       if (dftprop.exists(electron.ToLongString())) {
         const tools::Property& electrons = dftprop.get(electron.ToLongString());
-        QMState stateA =
-            GetElementFromMap(_electron_levels, segA.getType());
-        QMState stateB =
-            GetElementFromMap(_electron_levels, segB.getType());
+        QMState stateA = GetElementFromMap(_electron_levels, segA.getType());
+        QMState stateB = GetElementFromMap(_electron_levels, segB.getType());
         Index levelA = homoA + 1 + stateA.StateIdx();  // e1 is lumo;
         Index levelB = homoB + 1 + stateB.StateIdx();
         double J2 = GetDFTCouplingFromProp(electrons, levelA, levelB);
@@ -776,10 +772,8 @@ void IQM::ReadJobFile(Topology& top) {
       QMStateType singlet = QMStateType(QMStateType::Singlet);
       if (bseprop.exists(singlet.ToLongString())) {
         const tools::Property& singlets = bseprop.get(singlet.ToLongString());
-        QMState stateA =
-            GetElementFromMap(_singlet_levels, segA.getType());
-        QMState stateB =
-            GetElementFromMap(_singlet_levels, segB.getType());
+        QMState stateA = GetElementFromMap(_singlet_levels, segA.getType());
+        QMState stateB = GetElementFromMap(_singlet_levels, segB.getType());
         double J2 = GetBSECouplingFromProp(singlets, stateA, stateB);
         if (J2 >= 0) {
           qmp->setJeff2(J2, singlet);
@@ -789,10 +783,8 @@ void IQM::ReadJobFile(Topology& top) {
       QMStateType triplet = QMStateType(QMStateType::Triplet);
       if (bseprop.exists(triplet.ToLongString())) {
         const tools::Property& triplets = bseprop.get(triplet.ToLongString());
-        QMState stateA =
-            GetElementFromMap(_triplet_levels, segA.getType());
-        QMState stateB =
-            GetElementFromMap(_triplet_levels, segB.getType());
+        QMState stateA = GetElementFromMap(_triplet_levels, segA.getType());
+        QMState stateB = GetElementFromMap(_triplet_levels, segB.getType());
         double J2 = GetBSECouplingFromProp(triplets, stateA, stateB);
         if (J2 >= 0) {
           qmp->setJeff2(J2, triplet);
@@ -806,7 +798,7 @@ void IQM::ReadJobFile(Topology& top) {
                            << "," << bse_s << "," << bse_t
                            << ") Incomplete jobs: " << incomplete_jobs << "\n"
                            << std::flush;
-  std::cout<<log;
+  std::cout << log;
   return;
 }
 }  // namespace xtp
