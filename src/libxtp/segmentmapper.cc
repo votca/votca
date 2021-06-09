@@ -147,9 +147,9 @@ void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
           << _mapatom_xml["name"] << " '" << map_result.second
           << "' do not have same element" << std::flush;
     }
-    mapfragment._mapatom_ids.push_back(map_result);
-    mapfragment._weights.push_back(weight);
-    mapfragment._mdatom_ids.push_back(md_result);
+    mapfragment.mapatom_ids.push_back(map_result);
+    mapfragment.weights.push_back(weight);
+    mapfragment.mdatom_ids.push_back(md_result);
   }
 
   std::vector<Index> frame =
@@ -173,7 +173,7 @@ void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
     }
   }
 
-  mapfragment._map_local_frame = frame;
+  mapfragment.map_local_frame = frame;
   seginfo.fragments.push_back(mapfragment);
 }
 
@@ -308,15 +308,15 @@ void SegmentMapper<AtomContainer>::MapMapAtomonMD(
     const std::vector<const Atom*>& fragment_mdatoms) const {
   std::vector<Eigen::Vector3d> local_map_frame;
   std::vector<Eigen::Vector3d> local_md_frame;
-  for (Index id : frag._map_local_frame) {
+  for (Index id : frag.map_local_frame) {
     Index i = FindVectorIndexFromAtomId(id, fragment_mapatoms);
     local_map_frame.push_back(fragment_mapatoms[i]->getPos());
     local_md_frame.push_back(fragment_mdatoms[i]->getPos());
   }
 
-  Index symmetry = frag._map_local_frame.size();
-  Eigen::Vector3d map_com = CalcWeightedPos(frag._weights, fragment_mapatoms);
-  Eigen::Vector3d md_com = CalcWeightedPos(frag._weights, fragment_mdatoms);
+  Index symmetry = frag.map_local_frame.size();
+  Eigen::Vector3d map_com = CalcWeightedPos(frag.weights, fragment_mapatoms);
+  Eigen::Vector3d md_com = CalcWeightedPos(frag.weights, fragment_mdatoms);
 
   Eigen::Vector3d shift_map2md = md_com - map_com;
 
@@ -449,12 +449,12 @@ AtomContainer SegmentMapper<AtomContainer>::map(
   }
 
   for (FragInfo& frag : seginfo.fragments) {
-    for (atom_id& id : frag._mdatom_ids) {
+    for (atom_id& id : frag.mdatom_ids) {
       id.first += atomidoffset;
     }
 
     std::vector<mapAtom*> fragment_mapatoms;
-    for (const atom_id& id : frag._mapatom_ids) {
+    for (const atom_id& id : frag.mapatom_ids) {
       if (id.second != Result[id.first].getElement()) {
         throw std::runtime_error("Element of mapping atom " +
                                  std::to_string(id.first) + ":" + id.second +
@@ -464,7 +464,7 @@ AtomContainer SegmentMapper<AtomContainer>::map(
       fragment_mapatoms.push_back(&Result[id.first]);
     }
     std::vector<const Atom*> fragment_mdatoms;
-    for (const atom_id& id : frag._mdatom_ids) {
+    for (const atom_id& id : frag.mdatom_ids) {
       const Atom* atom = seg.getAtom(id.first);
       if (atom == nullptr) {
         throw std::runtime_error(
