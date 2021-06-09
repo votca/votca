@@ -36,6 +36,7 @@ Version 2022-dev
 -  move OpenMP detection to tools (#709)
 -  refactored applications (#710)
 -  add command line option for number of gpus (#711)
+-  reworked iqm statefile reading (#712)
 
 Version 2021.1 (released XX.03.21)
 ==================================

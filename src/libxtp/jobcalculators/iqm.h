@@ -59,9 +59,9 @@ class IQM final : public ParallelXJobCalc<std::vector<Job> > {
   void ParseSpecificOptions(const tools::Property& user_options);
 
  private:
-  double GetBSECouplingFromProp(tools::Property& bseprop, const QMState& stateA,
-                                const QMState& stateB);
-  double GetDFTCouplingFromProp(tools::Property& dftprop, Index stateA,
+  double GetBSECouplingFromProp(const tools::Property& bseprop,
+                                const QMState& stateA, const QMState& stateB);
+  double GetDFTCouplingFromProp(const tools::Property& dftprop, Index stateA,
                                 Index stateB);
   void SetJobToFailed(Job::JobResult& jres, Logger& pLog,
                       const std::string& errormessage);

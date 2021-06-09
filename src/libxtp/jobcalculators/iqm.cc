@@ -615,11 +615,11 @@ void IQM::WriteJobFile(const Topology& top) {
   return;
 }
 
-double IQM::GetDFTCouplingFromProp(tools::Property& dftprop, Index stateA,
+double IQM::GetDFTCouplingFromProp(const tools::Property& dftprop, Index stateA,
                                    Index stateB) {
   double J = 0;
   bool found = false;
-  for (tools::Property* state : dftprop.Select("coupling")) {
+  for (const tools::Property* state : dftprop.Select("coupling")) {
     Index state1 = state->getAttribute<Index>("levelA");
     Index state2 = state->getAttribute<Index>("levelB");
     if (state1 == stateA && state2 == stateB) {
@@ -635,17 +635,15 @@ double IQM::GetDFTCouplingFromProp(tools::Property& dftprop, Index stateA,
   }
 }
 
-double IQM::GetBSECouplingFromProp(tools::Property& bseprop,
+double IQM::GetBSECouplingFromProp(const tools::Property& bseprop,
                                    const QMState& stateA,
                                    const QMState& stateB) {
   double J = 0;
   std::string algorithm = bseprop.getAttribute<std::string>("algorithm");
   bool found = false;
-  for (tools::Property* state : bseprop.Select("coupling")) {
-    QMState state1;
-    state1.FromString(state->getAttribute<std::string>("stateA"));
-    QMState state2;
-    state2.FromString(state->getAttribute<std::string>("stateB"));
+  for (const tools::Property* state : bseprop.Select("coupling")) {
+    QMState state1 = state->getAttribute<QMState>("stateA");
+    QMState state2 = state->getAttribute<QMState>("stateB");
     if (state1 == stateA && state2 == stateB) {
       J = state->getAttribute<double>(algorithm) * tools::conv::ev2hrt;
       found = true;
@@ -691,12 +689,9 @@ void IQM::ReadJobFile(Topology& top) {
   tools::Property xml;
   // load the QC results in a vector indexed by the pair ID
   xml.LoadFromXML(_jobfile);
-  std::vector<tools::Property*> jobProps = xml.Select("jobs.job");
-  std::vector<tools::Property*> records =
-      std::vector<tools::Property*>(nblist.size() + 1, nullptr);
 
   // loop over all jobs = pair records in the job file
-  for (tools::Property* job : jobProps) {
+  for (tools::Property* job : xml.Select("jobs.job")) {
     if (!job->exists("status")) {
       throw std::runtime_error(
           "Jobfile is malformed. <status> tag missing on job.");
@@ -707,13 +702,10 @@ void IQM::ReadJobFile(Topology& top) {
       continue;
     }
 
-    // get the output records
-    tools::Property poutput = job->get("output");
     // job file is stupid, because segment ids are only in input have to get
     // them out l
-    std::vector<tools::Property*> segmentprobs = job->Select("input.segment");
     std::vector<Index> id;
-    for (tools::Property* segment : segmentprobs) {
+    for (tools::Property* segment : job->Select("input.segment")) {
       id.push_back(segment->getAttribute<Index>("id"));
     }
     if (id.size() != 2) {
@@ -721,116 +713,92 @@ void IQM::ReadJobFile(Topology& top) {
           "Getting pair ids from jobfile failed, check jobfile.");
     }
 
-    Index idA = id[0];
-    Index idB = id[1];
-
     // segments which correspond to these ids
-    Segment& segA = top.getSegment(idA);
-    Segment& segB = top.getSegment(idB);
+    Segment& segA = top.getSegment(id[0]);
+    Segment& segB = top.getSegment(id[1]);
     // pair that corresponds to the two segments
     QMPair* qmp = nblist.FindPair(&segA, &segB);
-    // output using logger
 
     if (qmp == nullptr) {  // there is no pair in the neighbor list with this
                            // name
       XTP_LOG(Log::error, log)
-          << "No pair " << idA << ":" << idB
+          << "No pair " << id[0] << ":" << id[1]
           << " found in the neighbor list. Ignoring" << std::flush;
-    } else {
-      records[qmp->getId()] = &(job->get("output"));
+      continue;
     }
-
-  }  // finished loading from the file
-
-  for (QMPair* pair : top.NBList()) {
-
-    if (records[pair->getId()] == nullptr) {
-      continue;  // skip pairs which are not in the jobfile
-    }
-
-    const Segment* segmentA = pair->Seg1();
-    const Segment* segmentB = pair->Seg2();
-
-    QMPair::PairType ptype = pair->getType();
-    if (ptype != QMPair::PairType::Hopping) {
-      XTP_LOG(Log::error, log) << "WARNING Pair " << pair->getId()
+    if (qmp->getType() != QMPair::PairType::Hopping) {
+      XTP_LOG(Log::error, log) << "WARNING Pair " << qmp->getId()
                                << " is not of any of the "
                                   "Hopping type. Skipping pair"
                                << std::flush;
       continue;
     }
 
-    tools::Property* pair_property = records[pair->getId()];
+    const tools::Property& pair_property = job->get("output");
 
-    if (pair_property->exists("dftcoupling")) {
-      tools::Property& dftprop = pair_property->get("dftcoupling");
+    if (pair_property.exists("dftcoupling")) {
+      const tools::Property& dftprop = pair_property.get("dftcoupling");
       Index homoA = dftprop.getAttribute<Index>("homoA");
       Index homoB = dftprop.getAttribute<Index>("homoB");
       QMStateType hole = QMStateType(QMStateType::Hole);
       if (dftprop.exists(hole.ToLongString())) {
-        tools::Property& holes = dftprop.get(hole.ToLongString());
-        QMState stateA = GetElementFromMap(_hole_levels, segmentA->getType());
-        QMState stateB = GetElementFromMap(_hole_levels, segmentB->getType());
+        const tools::Property& holes = dftprop.get(hole.ToLongString());
+        QMState stateA = GetElementFromMap(_hole_levels, segA.getType());
+        QMState stateB = GetElementFromMap(_hole_levels, segB.getType());
         Index levelA = homoA - stateA.StateIdx();  // h1 is is homo;
         Index levelB = homoB - stateB.StateIdx();
         double J2 = GetDFTCouplingFromProp(holes, levelA, levelB);
         if (J2 >= 0) {
-          pair->setJeff2(J2, hole);
+          qmp->setJeff2(J2, hole);
           dft_h++;
         }
       }
       QMStateType electron = QMStateType(QMStateType::Electron);
       if (dftprop.exists(electron.ToLongString())) {
-        tools::Property& electrons = dftprop.get(electron.ToLongString());
-        QMState stateA =
-            GetElementFromMap(_electron_levels, segmentA->getType());
-        QMState stateB =
-            GetElementFromMap(_electron_levels, segmentB->getType());
+        const tools::Property& electrons = dftprop.get(electron.ToLongString());
+        QMState stateA = GetElementFromMap(_electron_levels, segA.getType());
+        QMState stateB = GetElementFromMap(_electron_levels, segB.getType());
         Index levelA = homoA + 1 + stateA.StateIdx();  // e1 is lumo;
         Index levelB = homoB + 1 + stateB.StateIdx();
         double J2 = GetDFTCouplingFromProp(electrons, levelA, levelB);
         if (J2 >= 0) {
-          pair->setJeff2(J2, electron);
+          qmp->setJeff2(J2, electron);
           dft_e++;
         }
       }
     }
-    if (pair_property->exists("bsecoupling")) {
-      tools::Property& bseprop = pair_property->get("bsecoupling");
+    if (pair_property.exists("bsecoupling")) {
+      const tools::Property& bseprop = pair_property.get("bsecoupling");
       QMStateType singlet = QMStateType(QMStateType::Singlet);
       if (bseprop.exists(singlet.ToLongString())) {
-        tools::Property& singlets = bseprop.get(singlet.ToLongString());
-        QMState stateA =
-            GetElementFromMap(_singlet_levels, segmentA->getType());
-        QMState stateB =
-            GetElementFromMap(_singlet_levels, segmentB->getType());
+        const tools::Property& singlets = bseprop.get(singlet.ToLongString());
+        QMState stateA = GetElementFromMap(_singlet_levels, segA.getType());
+        QMState stateB = GetElementFromMap(_singlet_levels, segB.getType());
         double J2 = GetBSECouplingFromProp(singlets, stateA, stateB);
         if (J2 >= 0) {
-          pair->setJeff2(J2, singlet);
+          qmp->setJeff2(J2, singlet);
           bse_s++;
         }
       }
       QMStateType triplet = QMStateType(QMStateType::Triplet);
       if (bseprop.exists(triplet.ToLongString())) {
-        tools::Property& triplets = bseprop.get(triplet.ToLongString());
-        QMState stateA =
-            GetElementFromMap(_triplet_levels, segmentA->getType());
-        QMState stateB =
-            GetElementFromMap(_triplet_levels, segmentB->getType());
+        const tools::Property& triplets = bseprop.get(triplet.ToLongString());
+        QMState stateA = GetElementFromMap(_triplet_levels, segA.getType());
+        QMState stateB = GetElementFromMap(_triplet_levels, segB.getType());
         double J2 = GetBSECouplingFromProp(triplets, stateA, stateB);
         if (J2 >= 0) {
-          pair->setJeff2(J2, triplet);
+          qmp->setJeff2(J2, triplet);
           bse_t++;
         }
       }
     }
   }
-
   XTP_LOG(Log::error, log) << "Pairs [total:updated(e,h,s,t)] "
                            << number_of_pairs << ":(" << dft_e << "," << dft_h
                            << "," << bse_s << "," << bse_t
                            << ") Incomplete jobs: " << incomplete_jobs << "\n"
                            << std::flush;
+  std::cout << log;
   return;
 }
 }  // namespace xtp

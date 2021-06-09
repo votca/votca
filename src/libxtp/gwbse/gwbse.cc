@@ -192,8 +192,6 @@ void GWBSE::Initialize(tools::Property& options) {
   XTP_LOG(Log::error, *_pLog)
       << TimeStamp() << " BSE level range occ[" << bse_vmin << ":" << bse_vmax
       << "]  virt[" << bse_cmin << ":" << bse_cmax << "]" << flush;
-  XTP_LOG(Log::error, *_pLog) << TimeStamp() << " BSE Hamiltonian has size "
-                              << bse_size << "x" << bse_size << flush;
 
   _gwopt.reset_3c = options.get(key + ".rebuild_threecenter_freq").as<Index>();
 
@@ -221,6 +219,10 @@ void GWBSE::Initialize(tools::Property& options) {
   } else {
     XTP_LOG(Log::error, *_pLog) << " BSE type: TDA" << flush;
   }
+
+  Index full_bse_size = (_bseopt.useTDA) ? bse_size : 2 * bse_size;
+  XTP_LOG(Log::error, *_pLog) << TimeStamp() << " BSE Hamiltonian has size "
+                              << full_bse_size << "x" << full_bse_size << flush;
 
   _bseopt.use_Hqp_offdiag = options.get(key + ".use_Hqp_offdiag").as<bool>();
 

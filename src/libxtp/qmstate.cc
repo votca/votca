@@ -189,10 +189,7 @@ QMStateType QMState::DetermineType(const std::string& statestring) {
     throw std::runtime_error("Found more than one type in string: " +
                              statestring);
   }
-  QMStateType type;
-  type.FromString(search.str(0));
-
-  return type;
+  return QMStateType(search.str(0));
 }
 
 void QMState::FromString(const std::string& statestring) {
