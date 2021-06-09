@@ -65,7 +65,6 @@ int Application::Exec(int argc, char **argv) {
     AddProgramOptions()("verbose", "  be loud and noisy");
     AddProgramOptions()("verbose1", "  be very loud and noisy");
     AddProgramOptions()("verbose2,v", "  be extremly loud and noisy");
-    AddProgramOptions("Hidden")("man", "  output man-formatted manual pages");
 
     Initialize();  // initialize program-specific parameters
 
