@@ -44,10 +44,12 @@ class NBList : public PairList<Bead *, BeadPair> {
 
   /// Generate the neighbour list based on two bead lists (e.g. bead types)
   virtual void Generate(BeadList &list1, BeadList &list2,
-                        bool do_exclusions = true);
+                        bool do_exclusions = true,
+                        bool only_intramolecular = false);
   /// Generate the neighbour list based on a single bead list
-  virtual void Generate(BeadList &list, bool do_exclusions = true) {
-    Generate(list, list, do_exclusions);
+  virtual void Generate(BeadList &list, bool do_exclusions = true,
+                        bool only_intramolecular = false) {
+    Generate(list, list, do_exclusions, only_intramolecular);
   }
 
   /// set the cutoff for the neighbour search

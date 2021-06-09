@@ -48,8 +48,8 @@ void Imc::Initialize() {
   // do some output
   if (_do_imc) {
     cout << "begin to calculate inverse monte carlo parameters\n";
-    if (_include_intra) {
-      throw runtime_error("error, can not have --do-imc and --include-intra");
+    if (_only_intramolecular) {
+      throw runtime_error("error, can not have --do-imc and --only-intra");
     }
   } else {
     cout << "begin to calculate distribution functions\n";
@@ -202,7 +202,7 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
   i->_step = p->get("step").as<double>();
   i->_min = p->get("min").as<double>();
   i->_max = p->get("max").as<double>();
-  if (_include_intra && (!i->_is_bonded)) {
+  if (_only_intramolecular && (!i->_is_bonded)) {
     i->_max = p->get("max_intra").as<double>();
   } else {
     i->_max = p->get("max").as<double>();
@@ -409,9 +409,9 @@ void Imc::Worker::DoNonbonded(Topology *top) {
 
         // is it same types or different types?
         if (prop->get("type1").value() == prop->get("type2").value()) {
-          nb->Generate(beads1, !(_imc->_include_intra));
+          nb->Generate(beads1, true, _imc->_only_intramolecular);
         } else {
-          nb->Generate(beads1, beads2, !(_imc->_include_intra));
+          nb->Generate(beads1, beads2, true, _imc->_only_intramolecular);
         }
       }
 

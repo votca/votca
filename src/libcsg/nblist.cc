@@ -34,7 +34,8 @@ NBList::~NBList() {
   // TODO: NBList destructor
 }
 
-void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
+void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions,
+                      bool only_intramolecular) {
   BeadList::iterator iter1;
   BeadList::iterator iter2;
   _do_exclusions = do_exclusions;
@@ -63,8 +64,12 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
     if (*iter1 == *iter2) {
       continue;
     }
-
     for (; iter2 != list2.end(); ++iter2) {
+      if (only_intramolecular) {
+        if (iter1->getMoleculeId() != iter2->getMoleculeId()) {
+          continue;
+        }
+      }
       Eigen::Vector3d u = (*iter1)->getPos();
       Eigen::Vector3d v = (*iter2)->getPos();
 
@@ -85,6 +90,5 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
     }
   }
 }
-
 }  // namespace csg
 }  // namespace votca
