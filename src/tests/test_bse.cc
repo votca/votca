@@ -78,7 +78,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.max_dyn_iter = 10;
   opt.dyn_tolerance = 1e-5;
   opt.davidson_correction = "DPR";
-  opt.davidson_ortho = "GS";
   opt.davidson_tolerance = "lapack";
   opt.davidson_update = "safe";
   opt.davidson_maxiter = 50;

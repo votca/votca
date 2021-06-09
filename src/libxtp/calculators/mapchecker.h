@@ -68,27 +68,12 @@ void MapChecker::ParseOptions(const tools::Property& options) {
 
   _mpfile = options.get(".mp_pdbfile").as<std::string>();
 
-  std::string output_qm =
-      options.ifExistsReturnElseReturnDefault<std::string>(".qm_states", "");
+  _qmstates = options.get(".qm_states").as<std::vector<QMState>>();
 
-  _qmstates = StringToStates(output_qm);
-  std::string output_md =
-      options.ifExistsReturnElseReturnDefault<std::string>(".mp_states", "");
-  _mdstates = StringToStates(output_md);
+  _mdstates = options.get(".mp_states").as<std::vector<QMState>>();
   if (!(_qmstates.empty() && _mdstates.empty())) {
     _mapfile = options.get(".map_file").as<std::string>();
   }
-}
-
-std::vector<QMState> MapChecker::StringToStates(
-    const std::string& states_string) const {
-  std::vector<QMState> result;
-  tools::Tokenizer tok_states(states_string, " \t\n");
-  std::vector<std::string> states = tok_states.ToVector();
-  for (const std::string& s : states) {
-    result.push_back(QMState(s));
-  }
-  return result;
 }
 
 std::string MapChecker::AddStatetoFilename(const std::string& filename,

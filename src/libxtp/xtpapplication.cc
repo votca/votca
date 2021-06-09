@@ -25,13 +25,14 @@
 #include <votca/tools/propertyiomanipulator.h>
 
 // Local VOTCA includes
+#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/version.h"
 #include "votca/xtp/xtpapplication.h"
 
 namespace votca {
 namespace xtp {
-
-XtpApplication::XtpApplication() { ; }
+XtpApplication::XtpApplication() = default;
+XtpApplication::~XtpApplication() = default;
 
 /**
  * \brief Adds program options to the executable
@@ -41,11 +42,95 @@ XtpApplication::XtpApplication() { ; }
  *
  */
 void XtpApplication::Initialize(void) {
-  AddProgramOptions()("options,o", boost::program_options::value<std::string>(),
-                      "  calculator options");
+
+  namespace propt = boost::program_options;
+  AddProgramOptions()(
+      "options,o", propt::value<std::string>(),
+      std::string("  " + CalculatorType() + " options").c_str());
+
+  AddProgramOptions()("nthreads,t", propt::value<Index>()->default_value(1),
+                      "  number of threads to create");
+
+  AddProgramOptions()(
+      "execute,e", propt::value<std::string>(),
+      std::string("Name of " + CalculatorType() + " to run").c_str());
+  AddProgramOptions()(
+      "list,l",
+      std::string("Lists all available " + CalculatorType() + "s").c_str());
+  AddProgramOptions()(
+      "description,d", propt::value<std::string>(),
+      std::string("Short description of a " + CalculatorType() + "s").c_str());
+
+#ifdef USE_CUDA
+  AddProgramOptions()("gpus,g", propt::value<Index>()->default_value(-1),
+                      "  Number of gpus to use");
+#endif
+
+  AddCommandLineOptions();
 }
 
-void XtpApplication::ShowHelpText(std::ostream &out) {
+bool XtpApplication::EvaluateOptions() {
+
+  if (OptionsMap().count("list")) {
+    std::cout << "Available XTP" + CalculatorType() + "s: \n";
+    for (const auto& name : CalculatorNames()) {
+      PrintDescription(std::cout, name, "xtp/xml", Application::HelpShort);
+    }
+    StopExecution();
+    return true;
+  }
+#ifdef USE_CUDA
+  OpenMP_CUDA::SetNoGPUs(OptionsMap()["gpus"].as<Index>());
+#endif
+
+  if (OptionsMap().count("description")) {
+    CheckRequired("description", "no " + CalculatorType() + " is given");
+    tools::Tokenizer tok(OptionsMap()["description"].as<std::string>(),
+                         " ,\n\t");
+    for (const std::string& n : tok) {
+      if (CalcExists(n)) {
+        PrintDescription(std::cout, n, "xtp/xml", Application::HelpLong);
+      } else {
+        std::cout << CalculatorType() << " " << n << " does not exist\n";
+      }
+    }
+    StopExecution();
+    return true;
+  }
+  CheckRequired("execute", "Nothing to do here: Abort.");
+
+  tools::Tokenizer calcs(OptionsMap()["execute"].as<std::string>(), " ,\n\t");
+  std::vector<std::string> calc_string = calcs.ToVector();
+  if (calc_string.size() != 1) {
+    throw std::runtime_error("You can only run one " + CalculatorType() +
+                             " at the same time.");
+  }
+
+  if (CalcExists(calc_string[0])) {
+    CreateCalculator(calc_string[0]);
+  } else {
+    std::cout << CalculatorType() << " " << calc_string[0]
+              << " does not exist\n";
+    StopExecution();
+  }
+
+  EvaluateSpecificOptions();
+
+  return true;
+}
+
+void XtpApplication::Run() {
+
+  std::string name = ProgramName();
+  if (VersionString() != "") {
+    name = name + ", version " + VersionString();
+  }
+  xtp::HelpTextHeader(name);
+
+  execute();
+}
+
+void XtpApplication::ShowHelpText(std::ostream& out) {
   std::string name = ProgramName();
   if (VersionString() != "") {
     name = name + ", version " + VersionString();

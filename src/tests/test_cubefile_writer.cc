@@ -45,9 +45,8 @@ Eigen::VectorXd Readcubefile(const std::string& filename) {
   votca::tools::getline(in1, s);
   std::vector<double> cube_values;
   do {
-    votca::tools::Tokenizer tok(s, " ");
-    std::vector<double> values;
-    tok.ConvertToVector<double>(values);
+    std::vector<double> values =
+        votca::tools::Tokenizer(s, " ").ToVector<double>();
     cube_values.insert(cube_values.end(), values.begin(), values.end());
   } while (votca::tools::getline(in1, s));
   return Eigen::Map<Eigen::VectorXd>(cube_values.data(), cube_values.size());

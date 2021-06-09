@@ -22,7 +22,7 @@
 #define VOTCA_XTP_GRID_CONTAINERS_H
 
 // Local VOTCA includes
-#include "aobasis.h"
+#include "eigen.h"
 
 namespace votca {
 namespace xtp {

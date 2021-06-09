@@ -18,7 +18,7 @@
 
 #define BOOST_TEST_MODULE activedensitymatrix_test
 
-// Third party includes 
+// Third party includes
 #include <boost/test/unit_test.hpp>
 
 // VOTCA includes
@@ -26,9 +26,9 @@
 #include <votca/tools/filesystem.h>
 
 // Local VOTCA includes
+#include "votca/xtp/activedensitymatrix.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
-#include "votca/xtp/activedensitymatrix.h"
 
 using namespace votca::xtp;
 using namespace votca;
@@ -42,29 +42,27 @@ BOOST_AUTO_TEST_CASE(activematrix_test) {
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/activedensitymatrix/ch3oh.xyz");
   orbitals.setBasisSetSize(86);
-  orbitals.setNumberOfOccupiedLevels(9); 
-  orbitals.setNumberOfAlphaElectrons(9); 
+  orbitals.setNumberOfOccupiedLevels(9);
+  orbitals.setNumberOfAlphaElectrons(9);
 
   orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
                            "/activedensitymatrix/def2-tzvp.xml");
-    Eigen::MatrixXd LMOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) +
-          "/activedensitymatrix/LMOs.mm");
+  Eigen::MatrixXd LMOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/activedensitymatrix/LMOs.mm");
 
   orbitals.setPMLocalizedOrbitals(LMOs);
 
   Logger log;
-  std::vector<Index> activeatoms={{1,5}};
+  std::vector<Index> activeatoms = {{1, 5}};
 
   ActiveDensityMatrix DMAT_A(orbitals, activeatoms, log);
 
   Eigen::MatrixXd DmatA = DMAT_A.compute_Dmat_A();
 
   Eigen::MatrixXd test_DmatA = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) +
-      "/activedensitymatrix/ch3oh.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + "/activedensitymatrix/ch3oh.mm");
 
-bool checkDmatA = DmatA.isApprox(test_DmatA, 2e-6);
+  bool checkDmatA = DmatA.isApprox(test_DmatA, 2e-6);
   BOOST_CHECK_EQUAL(checkDmatA, 1);
 
   libint2::finalize();

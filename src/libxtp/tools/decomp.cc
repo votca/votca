@@ -24,10 +24,10 @@
 #include <boost/algorithm/string.hpp>
 
 // Local VOTCA includes
+#include "votca/xtp/activedensitymatrix.h"
 #include "votca/xtp/gaussianwriter.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/pmdecomposition.h"
-#include "votca/xtp/activedensitymatrix.h"
 #include <votca/tools/constants.h>
 
 namespace votca {
@@ -42,7 +42,7 @@ void Decomp::ParseOptions(const tools::Property& options) {
     activeatoms.push_back(tmp);
   }
   std::cout << "Atoms in active region: ";
-  for (const auto& atom : activeatoms){
+  for (const auto& atom : activeatoms) {
     std::cout << atom << " ";
   }
   std::cout << std::endl;

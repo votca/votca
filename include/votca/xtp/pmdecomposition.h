@@ -45,7 +45,6 @@ class PMDecomposition {
   Eigen::MatrixXd B;
 };
 
-
 }  // namespace xtp
 }  // namespace votca
 #endif

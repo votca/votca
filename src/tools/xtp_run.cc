@@ -1,3 +1,4 @@
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -20,87 +21,53 @@
 // Local VOTCA includes
 #include "votca/xtp/calculatorfactory.h"
 #include "votca/xtp/stateapplication.h"
+#include <memory>
 
 using namespace votca;
 
-class XtpRun : public xtp::StateApplication {
+class XtpRun final : public xtp::StateApplication {
  public:
-  std::string ProgramName() override { return "xtp_run"; }
+  XtpRun() { xtp::Calculatorfactory::RegisterAll(); }
 
-  void HelpText(std::ostream& out) override {
+  ~XtpRun() = default;
+  std::string ProgramName() final { return "xtp_run"; }
+
+  void HelpText(std::ostream& out) final {
     out << "Runs excitation/charge transport calculators\n";
   }
 
-  void HelpText(){};
+ protected:
+  void CreateCalculator(const std::string& name);
+  void ConfigCalculator();
+  bool savetoStateFile() const final { return _calc->WriteToStateFile(); }
 
-  void Initialize() override;
-  bool EvaluateOptions() override;
+  bool EvaluateFrame(votca::xtp::Topology& top) final;
+  std::string CalculatorType() const { return "Calculator"; }
+  void CheckOptions() final{};
+  std::vector<std::string> CalculatorNames() const {
+    return xtp::Calculators().getKeys();
+  }
+
+  void AddCommandLineOpt() final{};
 
  private:
-  // void    PrintDescription(string name, HelpOutputType _help_output_type);
+  std::unique_ptr<xtp::QMCalculator> _calc = nullptr;
 };
 
-namespace propt = boost::program_options;
-
-void XtpRun::Initialize() {
-  xtp::Calculatorfactory::RegisterAll();
-  xtp::StateApplication::Initialize();
-
-  AddProgramOptions("Calculator")("execute,e", propt::value<std::string>(),
-                                  "Name of calculator to run");
-  AddProgramOptions("Calculator")("list,l", "Lists all available calculators");
-  AddProgramOptions("Calculator")("description,d", propt::value<std::string>(),
-                                  "Short description of a calculator");
+void XtpRun::CreateCalculator(const std::string& name) {
+  _calc = xtp::Calculators().Create(name);
 }
 
-bool XtpRun::EvaluateOptions() {
+void XtpRun::ConfigCalculator() {
+  std::cout << "... " << _calc->Identify() << std::endl;
+  Index nThreads = OptionsMap()["nthreads"].as<Index>();
+  _calc->setnThreads(nThreads);
+  _calc->Initialize(_options);
+}
 
-  std::string helpdir = "xtp/xml";
-  if (OptionsMap().count("list")) {
-    std::cout << "Available XTP calculators:\n";
-    for (const auto& name : xtp::Calculators().getKeys()) {
-      PrintDescription(std::cout, name, helpdir, Application::HelpShort);
-    }
-    StopExecution();
-    return true;
-  }
-
-  if (OptionsMap().count("description")) {
-    CheckRequired("description", "no calculator is given");
-    tools::Tokenizer tok(OptionsMap()["description"].as<std::string>(),
-                         " ,\n\t");
-    // loop over the names in the description string
-    for (const std::string& n : tok) {
-      if (xtp::Calculators().IsRegistered(n)) {
-        PrintDescription(std::cout, n, helpdir, Application::HelpLong);
-      } else {
-        std::cout << "Calculator " << n << " does not exist\n";
-      }
-    }
-    StopExecution();
-    return true;
-  }
-
-  xtp::StateApplication::EvaluateOptions();
-  CheckRequired("execute", "Nothing to do here: Abort.");
-
-  tools::Tokenizer calcs(OptionsMap()["execute"].as<std::string>(), " ,\n\t");
-  std::vector<std::string> calc_string = calcs.ToVector();
-  if (calc_string.size() != 1) {
-    throw std::runtime_error(
-        "You can only run one calculator at the same time.");
-  }
-
-  if (xtp::Calculators().IsRegistered(calc_string[0])) {
-    xtp::StateApplication::SetCalculator(
-        xtp::Calculators().Create(calc_string[0]));
-    _options.LoadFromXML(_op_vm["options"].as<std::string>());
-  } else {
-    std::cout << "Calculator " << calc_string[0] << " does not exist\n";
-    StopExecution();
-  }
-
-  return true;
+bool XtpRun::EvaluateFrame(xtp::Topology& top) {
+  std::cout << "... " << _calc->Identify() << std::endl;
+  return _calc->EvaluateFrame(top);
 }
 
 int main(int argc, char** argv) {
