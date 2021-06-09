@@ -29,16 +29,14 @@ class ActiveDensityMatrix {
  public:
   ActiveDensityMatrix(Orbitals &orbitals, std::vector<Index> activeatoms,
                       Logger &log)
-      : orbitals(orbitals), log(log), activeatoms(activeatoms){};
-  Eigen::MatrixXd activedensitymatrix(Eigen::MatrixXd &new_mo_coeff);
+      : orbitals_(orbitals), log_(log), activeatoms_(activeatoms){};
+  Eigen::MatrixXd activedensitymatrix(Eigen::MatrixXd &localized_mo_coeff);
  Eigen::MatrixXd compute_Dmat_A();
 
  private:
-  Orbitals orbitals;
-  Logger &log;
-  std::vector<Index> activeatoms;
-  BasisSet basis;
-  AOBasis aobasis;
+  Orbitals &orbitals_;
+  Logger &log_;
+  std::vector<Index> activeatoms_;
 };
 }  // namespace xtp
 }  // namespace votca

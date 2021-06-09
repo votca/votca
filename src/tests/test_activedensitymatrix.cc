@@ -60,10 +60,6 @@ BOOST_AUTO_TEST_CASE(activematrix_test) {
 
   Eigen::MatrixXd DmatA = DMAT_A.compute_Dmat_A();
 
- votca::tools::EigenIO_MatrixMarket::WriteMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) +
-      "/activedensitymatrix/ch3oh.mm", DmatA);
-
   Eigen::MatrixXd test_DmatA = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) +
       "/activedensitymatrix/ch3oh.mm");

@@ -14,56 +14,56 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
+ * Reference- A fast intrinsic localization procedure applicable for ab initio and semiempirical linear combination of atomic orbital wave functions
+ * J. Chem. Phys. 90, 4916 (1989); https://doi.org/10.1063/1.456588
+ * János Pipek and Paul G. Mezey
  */
 
 #include "votca/xtp/pmdecomposition.h"
 #include "votca/xtp/aomatrix.h"
-#include <votca/tools/eigenio_matrixmarket.h>
+//#include <votca/tools/eigenio_matrixmarket.h>
+#include <limits>
 
 namespace votca {
 namespace xtp {
-void PMDecomposition::computePMD(Orbitals &orbitals) {
-  Eigen::MatrixXd mo_coeff = orbitals.MOs().eigenvectors().leftCols(
-      orbitals.getNumberOfAlphaElectrons());
-  QMMolecule mol = orbitals.QMAtoms();
-  basis.Load(orbitals.getDFTbasisName());
+void PMDecomposition::computePMD(Orbitals &orbitals_) {
+  Eigen::MatrixXd occ_orbitals = orbitals_.MOs().eigenvectors().leftCols(
+      orbitals_.getNumberOfAlphaElectrons());
+  QMMolecule mol = orbitals_.QMAtoms();
+  basis.Load(orbitals_.getDFTbasisName());
   aobasis.Fill(basis, mol);
   AOOverlap overlap;
   overlap.Fill(aobasis);
-  Eigen::MatrixXd S = overlap.Matrix();
-  double diff_D = 10000;
+  double diff_D = std::numeric_limits<double>::max();
   Index i = 1;
-  while (diff_D > 1e-6) {
-    XTP_LOG(Log::error, log) << "Iteration: " << i << std::flush;
-    Eigen::MatrixXd uppertriangular = orbitalselections(mo_coeff, S);
+  while (diff_D > 1e-6 && i < 10000) {
+    XTP_LOG(Log::error, log_) << "Iteration: " << i << std::flush;
+    Eigen::MatrixXd uppertriangular = orbitalselections(occ_orbitals, overlap.Matrix());
     Index maxrow, maxcol;
     diff_D = uppertriangular.maxCoeff(&maxrow, &maxcol);
-    XTP_LOG(Log::error, log) << maxrow << " " << maxcol << std::flush;
-    XTP_LOG(Log::error, log) << diff_D << std::flush;
-    Eigen::MatrixXd max_orbs(mo_coeff.rows(), 2);
-    max_orbs << mo_coeff.col(maxrow), mo_coeff.col(maxcol);
-    Eigen::MatrixXd new_orbs(mo_coeff.rows(), 2);
+    XTP_LOG(Log::error, log_) << "Orbitals to be changed: " << maxrow << " " << maxcol << std::flush;
+    XTP_LOG(Log::error, log_) << "change in the penalty function: " << diff_D << std::flush;
+    Eigen::MatrixX2d max_orbs(occ_orbitals.rows(), 2);
+    max_orbs << occ_orbitals.col(maxrow), occ_orbitals.col(maxcol);
+    Eigen::MatrixX2d new_orbs(occ_orbitals.rows(), 2);
     new_orbs = rotatedorbitals(max_orbs, maxrow, maxcol);
-    update_maximums(mo_coeff, maxrow, maxcol, new_orbs);
+    update_maximums(occ_orbitals, maxrow, maxcol, new_orbs);
 
     i += 1;
   }
-  orbitals.setPMLocalizedOrbitals(mo_coeff);
+  orbitals_.setPMLocalizedOrbitals(occ_orbitals);
 }
 
-Eigen::MatrixXd PMDecomposition::rotatedorbitals(Eigen::MatrixXd &maxorbs,
+Eigen::MatrixX2d PMDecomposition::rotatedorbitals(Eigen::MatrixX2d &maxorbs,
                                                  Index s, Index t) {  
-  Eigen::MatrixXd neworbitals(maxorbs.rows(), 2);
+  Eigen::MatrixX2d neworbitals(maxorbs.rows(), 2);
   Eigen::VectorXd vec1 = maxorbs.col(0);
   Eigen::VectorXd vec2 = maxorbs.col(1);
   double gam = 0.25 * asin(B(s, t) / sqrt((A(s, t) * A(s, t)) + (B(s, t) * B(s, t))));
-  double sin_gamma = std::sin(gam);
-  double cos_gamma = std::cos(gam);
-  Eigen::VectorXd new_vec1 = (cos_gamma * vec1) + (sin_gamma * vec2);
-  Eigen::VectorXd new_vec2 = -1 * (sin_gamma * vec1) + (cos_gamma * vec2);
+  Eigen::VectorXd new_vec1 = (std::cos(gam) * vec1) + (std::sin(gam) * vec2);
+  Eigen::VectorXd new_vec2 = -1 * (std::sin(gam) * vec1) + (std::cos(gam) * vec2);
   neworbitals << new_vec1, new_vec2;
-  XTP_LOG(Log::error, log) << sin_gamma << std::flush;
+  XTP_LOG(Log::error, log_) << "Sine of the rotation angle = " << std::sin(gam) << std::flush;
   return neworbitals;
 }
 
@@ -75,19 +75,11 @@ Eigen::MatrixXd PMDecomposition::orbitalselections(Eigen::MatrixXd &m,
   A = Eigen::MatrixXd::Zero(m.cols(), m.cols());
   B = Eigen::MatrixXd::Zero(m.cols(), m.cols());
   for (Index s = 0; s < m.cols(); s++) {
-    for (Index t = 0; t < m.cols(); t++) {
-      if (t > s) {
-        Eigen::VectorXd req_vec1 = m.col(s);
-        Eigen::VectorXd req_vec2 = m.col(t);
-        Eigen::MatrixXd a = S * req_vec1.asDiagonal();
-        Eigen::MatrixXd b = S * req_vec2.asDiagonal();
-        Eigen::MatrixXd c = req_vec1.transpose() * a;   // vec1.S.vec1
-        Eigen::MatrixXd d = req_vec1.transpose() * b;   // term1 of eq 31
-        Eigen::MatrixXd e = req_vec1.asDiagonal() * b;  // term2 of eq 31
-        Eigen::MatrixXd f = req_vec2.transpose() * b;   // vec2.S.vec2
-        Eigen::RowVectorXd sps = c.colwise().sum();
-        Eigen::RowVectorXd tpt = f.colwise().sum();
-        Eigen::RowVectorXd spt = 0.5 * (d.colwise().sum() + e.rowwise().sum().transpose());
+    for (Index t = s+1; t < m.cols(); t++) {
+        Eigen::RowVectorXd sps = (m.col(s).asDiagonal() * S * m.col(s).asDiagonal()).colwise().sum();   // vec1.S.vec1
+        Eigen::MatrixXd spt_split = m.col(s).asDiagonal() * S * m.col(t).asDiagonal();   // terms of eq 31 referenced above
+        Eigen::RowVectorXd tpt = (m.col(t).asDiagonal() * S * m.col(t).asDiagonal()).colwise().sum();   // vec2.S.vec2
+        Eigen::RowVectorXd spt = 0.5 * (spt_split.colwise().sum() + spt_split.rowwise().sum().transpose());
         std::vector<Index> numfuncpatom = aobasis.getFuncPerAtom();
         Index start = 0;
         double Ast = 0;
@@ -105,17 +97,15 @@ Eigen::MatrixXd PMDecomposition::orbitalselections(Eigen::MatrixXd &m,
         B(s, t) = Bst;
         double parameter = Ast + sqrt((Ast * Ast) + (Bst * Bst));
         zeromatrix(s, t) = parameter;
-      }
     }
   }
   return zeromatrix;
 }
 
 void PMDecomposition::update_maximums(Eigen::MatrixXd &m, Index col1,
-                                      Index col2, Eigen::MatrixXd &new_orbs) {
+                                      Index col2, Eigen::MatrixX2d &new_orbs) {
   m.col(col1) = new_orbs.col(0);
   m.col(col2) = new_orbs.col(1);
 }
-
 }  // namespace xtp
 }  // namespace votca

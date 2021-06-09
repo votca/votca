@@ -28,17 +28,17 @@ namespace xtp {
 
 class PMDecomposition {
  public:
-  PMDecomposition(Logger &log_)
-      : log(log_){};
-  void computePMD(Orbitals &orbitals);
+  PMDecomposition(Logger &log)
+      : log_(log){};
+  void computePMD(Orbitals &orbitals_);
 
  private:
-  Logger &log;
-  Eigen::MatrixXd rotatedorbitals(Eigen::MatrixXd &maxorbs, Index s, Index t);
+  Logger &log_;
+  Eigen::MatrixX2d rotatedorbitals(Eigen::MatrixX2d &maxorbs, Index s, Index t);
   Eigen::MatrixXd orbitalselections(Eigen::MatrixXd &m,
                                     const Eigen::MatrixXd &S);
   void update_maximums(Eigen::MatrixXd &m, Index col1, Index col2,
-                       Eigen::MatrixXd &new_orbs);
+                       Eigen::MatrixX2d &new_orbs);
   BasisSet basis;
   AOBasis aobasis;
   Eigen::MatrixXd A;
