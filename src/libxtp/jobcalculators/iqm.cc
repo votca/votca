@@ -735,7 +735,7 @@ void IQM::ReadJobFile(Topology& top) {
     }
 
 
-     const tools::Property& pair_property=job->get("output");
+    const tools::Property& pair_property=job->get("output");
 
 
     if (pair_property.exists("dftcoupling")) {
@@ -806,6 +806,7 @@ void IQM::ReadJobFile(Topology& top) {
                            << "," << bse_s << "," << bse_t
                            << ") Incomplete jobs: " << incomplete_jobs << "\n"
                            << std::flush;
+  std::cout<<log;
   return;
 }
 }  // namespace xtp
