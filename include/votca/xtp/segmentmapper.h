@@ -55,10 +55,10 @@ class SegmentMapper {
   typedef std::pair<Index, std::string> atom_id;
 
   struct FragInfo {
-    std::vector<double> _weights;
-    std::vector<atom_id> _mapatom_ids;
-    std::vector<atom_id> _mdatom_ids;
-    std::vector<Index> _map_local_frame;
+    std::vector<double> weights;
+    std::vector<atom_id> mapatom_ids;
+    std::vector<atom_id> mdatom_ids;
+    std::vector<Index> map_local_frame;
   };
 
   struct Seginfo {

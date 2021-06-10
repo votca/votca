@@ -264,8 +264,8 @@ void QMMM::ReadJobFile(Topology& top) {
 
   Eigen::Matrix<double, Eigen::Dynamic, 5> energies =
       Eigen::Matrix<double, Eigen::Dynamic, 5>::Zero(top.Segments().size(), 5);
-  Eigen::Matrix<int, Eigen::Dynamic, 5> found =
-      Eigen::Matrix<int, Eigen::Dynamic, 5>::Zero(top.Segments().size(), 5);
+  Eigen::Matrix<bool, Eigen::Dynamic, 5> found =
+      Eigen::Matrix<bool, Eigen::Dynamic, 5>::Zero(top.Segments().size(), 5);
 
   tools::Property xml;
   xml.LoadFromXML(_jobfile);
@@ -284,8 +284,7 @@ void QMMM::ReadJobFile(Topology& top) {
     }
 
     std::string marker = job->get("input.site_energies").as<std::string>();
-    tools::Tokenizer tok(marker, ":");
-    std::vector<std::string> split = tok.ToVector();
+    std::vector<std::string> split = tools::Tokenizer(marker, ":").ToVector();
     Index segid = std::stoi(split[0]);
     if (segid < 0 || segid >= Index(top.Segments().size())) {
       throw std::runtime_error("JobSegment id" + std::to_string(segid) +
@@ -308,10 +307,10 @@ void QMMM::ReadJobFile(Topology& top) {
     }
 
     energies(segid, state.Type().Type()) = energy;
-    found(segid, state.Type().Type()) = 1;
+    found(segid, state.Type().Type()) = true;
   }
 
-  Eigen::Matrix<int, 1, 5> found_states = found.colwise().sum();
+  Eigen::Matrix<Index, 1, 5> found_states = found.colwise().count();
   std::cout << std::endl;
   for (Index i = 0; i < 5; i++) {
     if (found_states(i) > 0) {
