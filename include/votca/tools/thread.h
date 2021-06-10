@@ -68,9 +68,9 @@ class Thread {
   friend void *runwrapper(void *arg);
 
  private:
-  pthread_attr_t _attr;
-  pthread_t _thread;
-  bool _finished;
+  pthread_attr_t attr_;
+  pthread_t thread_;
+  bool finished_;
 };
 }  // namespace tools
 }  // namespace votca

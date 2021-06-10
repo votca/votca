@@ -119,12 +119,12 @@ BOOST_AUTO_TEST_CASE(test_choices) {
 
   class TestChoices : public tools::Calculator {
 
-    std::string _line;
+    std::string line_;
 
    public:
     std::string Identify() override { return "testchoices"; }
 
-    void SetOption(const std::string &line) { _line = line; }
+    void SetOption(const std::string &line) { line_ = line; }
 
     void Initialize(const tools::Property &user_options) override {
 
@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE(test_choices) {
       std::ofstream defaults("calculators/xml/testchoices.xml");
       defaults << "<options>\n"
                << "<testchoices>\n"
-               << _line << "</testchoices>\n"
+               << line_ << "</testchoices>\n"
                << "</options>";
       defaults.close();
 

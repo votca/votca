@@ -39,23 +39,23 @@ class Average {
   size_t getN() const;
 
  private:
-  size_t _n = 0;
-  T _av = 0;  // average
-  T _m2 = 0;  // second moment
+  size_t n_ = 0;
+  T av_ = 0;  // average
+  T m2_ = 0;  // second moment
 };
 
 template <typename T>
 inline void Average<T>::Process(const T &value) {
-  _av = _av * (double)_n / (double)(_n + 1) + value / (double)(_n + 1);
-  _n++;
-  _m2 += value * value;
+  av_ = av_ * (double)n_ / (double)(n_ + 1) + value / (double)(n_ + 1);
+  n_++;
+  m2_ += value * value;
 }
 
 template <typename T>
 inline void Average<T>::Clear() {
-  _av = 0;
-  _n = 0;
-  _m2 = 0;
+  av_ = 0;
+  n_ = 0;
+  m2_ = 0;
 }
 
 template <typename T>
@@ -69,31 +69,31 @@ void Average<T>::ProcessRange(const iterator_type &begin,
 
 template <typename T>
 T Average<T>::CalcDev() const {
-  return std::sqrt((_m2 - _n * _av * _av) / (_n - 1));
+  return std::sqrt((m2_ - n_ * av_ * av_) / (n_ - 1));
 }
 
 template <typename T>
 T Average<T>::CalcSig2() const {
   double dev = 0.0;
-  dev = _m2 / _n - _av * _av;
+  dev = m2_ / n_ - av_ * av_;
   return dev;
 }
 
 template <typename T>
 const T &Average<T>::getAvg() const {
-  return _av;
+  return av_;
 }
 
 template <typename T>
 const T Average<T>::getM2() const {
   double m2 = 0.0;
-  m2 = _m2 / _n;
+  m2 = m2_ / n_;
   return m2;
 }
 
 template <typename T>
 size_t Average<T>::getN() const {
-  return _n;
+  return n_;
 }
 
 }  // namespace tools

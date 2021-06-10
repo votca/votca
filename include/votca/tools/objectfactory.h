@@ -69,19 +69,19 @@ class ObjectFactory {
      Create an instance of the object identified by key.
   */
   virtual std::unique_ptr<T> Create(const key_t &key);
-  bool IsRegistered(const key_t &_id) const;
+  bool IsRegistered(const key_t &id_) const;
 
   std::vector<key_t> getKeys() const {
     std::vector<key_t> key;
-    key.reserve(_objects.size());
-    for (const auto &pair : _objects) {
+    key.reserve(objects_.size());
+    for (const auto &pair : objects_) {
       key.push_back(pair.first);
     }
     return key;
   }
 
  private:
-  std::map<key_t, creator_t> _objects;
+  std::map<key_t, creator_t> objects_;
 };
 
 template <class parent, class T>
@@ -92,7 +92,7 @@ std::unique_ptr<parent> create_policy_new() {
 template <typename key_t, typename T>
 inline void ObjectFactory<key_t, T>::Register(const key_t &key,
                                               creator_t creator) {
-  (void)_objects
+  (void)objects_
       .insert(typename std::map<key_t, creator_t>::value_type(key, creator))
       .second;
 }
@@ -105,8 +105,8 @@ inline void ObjectFactory<key_t, T>::Register(const key_t &key) {
 
 template <typename key_t, typename T>
 inline std::unique_ptr<T> ObjectFactory<key_t, T>::Create(const key_t &key) {
-  typename std::map<key_t, creator_t>::const_iterator it = _objects.find(key);
-  if (it != _objects.end()) {
+  typename std::map<key_t, creator_t>::const_iterator it = objects_.find(key);
+  if (it != objects_.end()) {
     return (it->second)();
   } else {
     throw std::runtime_error(
@@ -115,8 +115,8 @@ inline std::unique_ptr<T> ObjectFactory<key_t, T>::Create(const key_t &key) {
 }
 
 template <typename key_t, typename T>
-inline bool ObjectFactory<key_t, T>::IsRegistered(const key_t &_id) const {
-  return (_objects.find(_id) != _objects.end());
+inline bool ObjectFactory<key_t, T>::IsRegistered(const key_t &id_) const {
+  return (objects_.find(id_) != objects_.end());
 }
 
 }  // namespace tools

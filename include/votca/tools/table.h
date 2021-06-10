@@ -42,37 +42,37 @@ class Table {
 
   void GenerateGridSpacing(double min, double max, double spacing);
   void resize(Index N);
-  Index size() const { return _x.size(); }
+  Index size() const { return x_.size(); }
 
-  double &x(Index i) { return _x[i]; }
-  double &y(Index i) { return _y[i]; }
+  double &x(Index i) { return x_[i]; }
+  double &y(Index i) { return y_[i]; }
 
-  const double &x(Index i) const { return _x[i]; }
-  const double &y(Index i) const { return _y[i]; }
-  char &flags(Index i) { return _flags[i]; }
-  double &yerr(Index i) { return _yerr[i]; }
+  const double &x(Index i) const { return x_[i]; }
+  const double &y(Index i) const { return y_[i]; }
+  char &flags(Index i) { return flags_[i]; }
+  double &yerr(Index i) { return yerr_[i]; }
 
   void set(const Index &i, const double &x, const double &y) {
-    _x[i] = x;
-    _y[i] = y;
+    x_[i] = x;
+    y_[i] = y;
   }
   void set(const Index &i, const double &x, const double &y,
            const char &flags) {
-    _x[i] = x;
-    _y[i] = y;
-    _flags[i] = flags;
+    x_[i] = x;
+    y_[i] = y;
+    flags_[i] = flags;
   }
   void set(const Index &i, const double &x, const double &y, const char &flags,
            const double &yerr) {
-    _x[i] = x;
-    _y[i] = y;
-    _flags[i] = flags;
-    _yerr[i] = yerr;
+    x_[i] = x;
+    y_[i] = y;
+    flags_[i] = flags;
+    yerr_[i] = yerr;
   }
 
   void set_comment(const std::string comment) {
-    _has_comment = true;
-    _comment_line = comment;
+    has_comment_ = true;
+    comment_line_ = comment;
   }
 
   void Load(std::string filename);
@@ -80,8 +80,8 @@ class Table {
 
   void Smooth(Index Nsmooth);
 
-  bool GetHasYErr() { return _has_yerr; }
-  void SetHasYErr(bool has_yerr) { _has_yerr = has_yerr; }
+  bool GetHasYErr() { return has_yerr_; }
+  void SetHasYErr(bool has_yerr) { has_yerr_ = has_yerr; }
 
   /**
    * \brief Gets the maximum value in the y column
@@ -104,31 +104,31 @@ class Table {
    */
   double getMinX() const;
 
-  Eigen::VectorXd &x() { return _x; }
-  Eigen::VectorXd &y() { return _y; }
-  std::vector<char> &flags() { return _flags; }
-  Eigen::VectorXd &yerr() { return _yerr; }
+  Eigen::VectorXd &x() { return x_; }
+  Eigen::VectorXd &y() { return y_; }
+  std::vector<char> &flags() { return flags_; }
+  Eigen::VectorXd &yerr() { return yerr_; }
 
   void push_back(double x, double y, char flags = ' ');
 
-  const std::string &getErrorDetails() { return _error_details; }
+  const std::string &getErrorDetails() { return error_details_; }
 
-  void setErrorDetails(std::string str) { _error_details = str; }
+  void setErrorDetails(std::string str) { error_details_ = str; }
 
  private:
-  Eigen::VectorXd _x;
-  Eigen::VectorXd _y;
-  std::vector<char> _flags;
-  Eigen::VectorXd _yerr;
-  std::string _error_details = "";
+  Eigen::VectorXd x_;
+  Eigen::VectorXd y_;
+  std::vector<char> flags_;
+  Eigen::VectorXd yerr_;
+  std::string error_details_ = "";
 
-  bool _has_yerr = false;
-  bool _has_comment = false;
+  bool has_yerr_ = false;
+  bool has_comment_ = false;
 
   friend std::ostream &operator<<(std::ostream &out, const Table &t);
   friend std::istream &operator>>(std::istream &in, Table &t);
 
-  std::string _comment_line;
+  std::string comment_line_;
 };
 
 }  // namespace tools

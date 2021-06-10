@@ -51,34 +51,34 @@ class Histogram {
   void ProcessData(DataCollection<double>::selection *data);
 
   /// returns the minimum value
-  double getMin() const { return _min; }
+  double getMin() const { return min_; }
   /// return the maximum value
-  double getMax() const { return _max; }
+  double getMax() const { return max_; }
   /// return the number of grid points
-  Index getN() const { return _options._n; }
-  std::vector<double> &getPdf() { return _pdf; }
-  double getInterval() const { return _interval; }
+  Index getN() const { return options_.n_; }
+  std::vector<double> &getPdf() { return pdf_; }
+  double getInterval() const { return interval_; }
 
   void Normalize(void);
 
   struct options_t {
-    Index _n = 101;
-    bool _auto_interval = true;
-    bool _extend_interval = false;
-    double _min = 0;
-    double _max = 1.;
-    bool _periodic = false;
-    bool _normalize = true;
-    std::string _scale = "no";
+    Index n_ = 101;
+    bool auto_interval_ = true;
+    bool extend_interval_ = false;
+    double min_ = 0;
+    double max_ = 1.;
+    bool periodic_ = false;
+    bool normalize_ = true;
+    std::string scale_ = "no";
   };
 
  private:
-  std::vector<double> _pdf;
-  double _min = 0;
-  double _max = 0;
-  double _interval;
+  std::vector<double> pdf_;
+  double min_ = 0;
+  double max_ = 0;
+  double interval_;
 
-  options_t _options;
+  options_t options_;
 };
 
 inline std::ostream &operator<<(std::ostream &out, Histogram &h) {

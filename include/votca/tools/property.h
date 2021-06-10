@@ -62,7 +62,7 @@ class Property {
   Property() = default;
   Property(const std::string &name, const std::string &value,
            const std::string &path)
-      : _name(name), _value(value), _path(path) {}
+      : name_(name), value_(value), path_(path) {}
 
   /**
    * \brief add a new property to structure
@@ -131,22 +131,22 @@ class Property {
    * \brief reference to value of property
    * @return std::string content
    */
-  std::string &value() { return _value; }
-  const std::string &value() const { return _value; }
+  std::string &value() { return value_; }
+  const std::string &value() const { return value_; }
   /**
    * \brief name of property
    * @return name
    */
-  std::string &name() { return _name; }
-  const std::string &name() const { return _name; }
+  std::string &name() { return name_; }
+  const std::string &name() const { return name_; }
   /**
    * \brief full path of property (including parents)
    * @return path
    *
    * e.g. cg.inverse.value
    */
-  std::string &path() { return _path; }
-  const std::string &path() const { return _path; }
+  std::string &path() { return path_; }
+  const std::string &path() const { return path_; }
   /**
    * \brief return value as type
    *
@@ -171,19 +171,19 @@ class Property {
    * \brief does the property has childs?
    * \return true or false
    */
-  bool HasChildren() const { return !_map.empty(); }
+  bool HasChildren() const { return !map_.empty(); }
 
   /// iterator to iterate over properties
   using iterator = std::vector<Property>::iterator;
   using const_iterator = std::vector<Property>::const_iterator;
   /// \brief iterator to first child property
-  iterator begin() { return _properties.begin(); }
-  const_iterator begin() const { return _properties.begin(); }
+  iterator begin() { return properties_.begin(); }
+  const_iterator begin() const { return properties_.begin(); }
   /// \brief end iterator for child properties
-  iterator end() { return _properties.end(); }
-  const_iterator end() const { return _properties.end(); }
+  iterator end() { return properties_.end(); }
+  const_iterator end() const { return properties_.end(); }
   /// \brief number of child properties
-  Index size() const { return Index(_properties.size()); }
+  Index size() const { return Index(properties_.size()); }
 
   /**
    * \brief deletes a child property
@@ -211,7 +211,7 @@ class Property {
   /**
    * \brief return true if a node has attributes
    */
-  bool hasAttributes() const { return _attributes.size() > 0; }
+  bool hasAttributes() const { return attributes_.size() > 0; }
   /**
    * \brief return true if an attribute exists
    */
@@ -224,21 +224,21 @@ class Property {
    * \brief returns an iterator to an attribute
    */
   AttributeIterator findAttribute(const std::string &attribute) {
-    return _attributes.find(attribute);
+    return attributes_.find(attribute);
   }
   const_AttributeIterator findAttribute(const std::string &attribute) const {
-    return _attributes.find(attribute);
+    return attributes_.find(attribute);
   }
   /**
    * \brief returns an iterator to the first attribute
    */
-  AttributeIterator firstAttribute() { return _attributes.begin(); }
-  const_AttributeIterator firstAttribute() const { return _attributes.begin(); }
+  AttributeIterator firstAttribute() { return attributes_.begin(); }
+  const_AttributeIterator firstAttribute() const { return attributes_.begin(); }
   /**
    * \brief returns an iterator to the last attribute
    */
-  AttributeIterator lastAttribute() { return _attributes.end(); }
-  const_AttributeIterator lastAttribute() const { return _attributes.end(); }
+  AttributeIterator lastAttribute() { return attributes_.end(); }
+  const_AttributeIterator lastAttribute() const { return attributes_.end(); }
   /**
    * \brief return attribute as type
    *
@@ -252,7 +252,7 @@ class Property {
   T getAttribute(const_AttributeIterator it) const;
 
   void deleteAttribute(const std::string &attribute) {
-    _attributes.erase(attribute);
+    attributes_.erase(attribute);
   }
 
   void LoadFromXML(std::string filename);
@@ -260,20 +260,20 @@ class Property {
   static Index getIOindex() { return IOindex; };
 
  private:
-  std::map<std::string, std::vector<Index>> _map;
-  std::map<std::string, std::string> _attributes;
-  std::vector<Property> _properties;
+  std::map<std::string, std::vector<Index>> map_;
+  std::map<std::string, std::string> attributes_;
+  std::vector<Property> properties_;
 
-  std::string _name = "";
-  std::string _value = "";
-  std::string _path = "";
+  std::string name_ = "";
+  std::string value_ = "";
+  std::string path_ = "";
 
   static const Index IOindex;
 };
 
 template <typename T>
 inline T Property::as() const {
-  std::string trimmed = _value;
+  std::string trimmed = value_;
   boost::trim(trimmed);
   try {
     return convertFromString<T>(trimmed);
@@ -330,7 +330,7 @@ inline T Property::ifExistsAndinListReturnElseThrowRuntimeError(
 template <typename T>
 inline T Property::getAttribute(
     std::map<std::string, std::string>::const_iterator it) const {
-  if (it != _attributes.end()) {
+  if (it != attributes_.end()) {
     return convertFromString<T>(it->second);
   } else {
     std::stringstream s;
@@ -343,13 +343,13 @@ inline T Property::getAttribute(
 template <typename T>
 inline T Property::getAttribute(const std::string &attribute) const {
   std::map<std::string, std::string>::const_iterator it =
-      _attributes.find(attribute);
+      attributes_.find(attribute);
   return getAttribute<T>(it);
 }
 template <typename T>
 inline void Property::setAttribute(const std::string &attribute,
                                    const T &value) {
-  _attributes[attribute] =
+  attributes_[attribute] =
       lexical_cast<std::string>(value, "wrong type to set attribute");
 }
 

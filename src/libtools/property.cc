@@ -56,11 +56,11 @@ const Property &Property::get(const string &key) const {
   if (*n == "") {
     p = this;
   } else {
-    iter = _map.find(*n);
-    if (iter == _map.end()) {
+    iter = map_.find(*n);
+    if (iter == map_.end()) {
       throw std::runtime_error("property not found: " + key);
     }
-    p = &_properties[iter->second.back()];
+    p = &properties_[iter->second.back()];
   }
   ++n;
   try {
@@ -86,19 +86,19 @@ Property &Property::set(const std::string &key, const std::string &value) {
 }
 
 Property &Property::add(const std::string &key, const std::string &value) {
-  std::string path = _path;
+  std::string path = path_;
   if (path != "") {
     path = path + ".";
   }
-  _properties.push_back(Property(key, value, path + _name));
-  _map[key].push_back(Index(_properties.size()) - 1);
-  return _properties.back();
+  properties_.push_back(Property(key, value, path + name_));
+  map_[key].push_back(Index(properties_.size()) - 1);
+  return properties_.back();
 }
 
 bool Property::hasAttribute(const std::string &attribute) const {
   std::map<std::string, std::string>::const_iterator it;
-  it = _attributes.find(attribute);
-  if (it == _attributes.end()) {
+  it = attributes_.find(attribute);
+  if (it == attributes_.end()) {
     return false;
   }
   return true;
@@ -126,15 +126,15 @@ void FixPath(tools::Property &prop, std::string path) {
 
 void Property::add(const Property &other) {
 
-  _properties.push_back(other);
-  _map[other.name()].push_back((_properties.size()) - 1);
+  properties_.push_back(other);
+  map_[other.name()].push_back((properties_.size()) - 1);
 
-  std::string path = _path;
+  std::string path = path_;
   if (path != "") {
     path += ".";
   }
-  path += _name;
-  FixPath(_properties.back(), path);
+  path += name_;
+  FixPath(properties_.back(), path);
 }
 
 Property &Property::getOradd(const std::string &key) {
@@ -155,7 +155,7 @@ std::vector<const Property *> Property::Select(const string &filter) const {
   for (const auto &n : tok) {
     std::vector<const Property *> childs;
     for (const Property *p : selection) {
-      for (const Property &s : p->_properties) {
+      for (const Property &s : p->properties_) {
         if (wildcmp(n, s.name())) {
           childs.push_back(&s);
         }
@@ -176,7 +176,7 @@ std::vector<Property *> Property::Select(const string &filter) {
   for (const auto &n : tok) {
     std::vector<Property *> childs;
     for (Property *p : selection) {
-      for (Property &s : p->_properties) {
+      for (Property &s : p->properties_) {
         if (wildcmp(n, s.name())) {
           childs.push_back(&s);
         }
@@ -189,15 +189,15 @@ std::vector<Property *> Property::Select(const string &filter) {
 
 void Property::deleteChild(Property *child) {
   // only works for std::vector
-  ptrdiff_t index_of_child = std::distance(_properties.data(), child);
-  assert(&_properties[index_of_child] == child &&
+  ptrdiff_t index_of_child = std::distance(properties_.data(), child);
+  assert(&properties_[index_of_child] == child &&
          "You changed the containertype for property, fix deleteChild");
-  const Property &prop = _properties[index_of_child];
-  std::vector<Index> &indices = _map.at(prop.name());
+  const Property &prop = properties_[index_of_child];
+  std::vector<Index> &indices = map_.at(prop.name());
 
   // erase index from map, if only one element in indeces remove the tag
   if (indices.size() == 1) {
-    _map.erase(prop.name());
+    map_.erase(prop.name());
   } else {
     indices.erase(std::remove(indices.begin(), indices.end(), index_of_child),
                   indices.end());
@@ -206,14 +206,14 @@ void Property::deleteChild(Property *child) {
   // if child is not the last element we have to do two things, a) switch the
   // child with the last element and b) update the index of the former last
   // element
-  if (child != &_properties.back()) {
-    Index old_index = _properties.size() - 1;
-    std::vector<Index> &indices_last = _map.at(_properties.back().name());
+  if (child != &properties_.back()) {
+    Index old_index = properties_.size() - 1;
+    std::vector<Index> &indices_last = map_.at(properties_.back().name());
     auto place = std::find(indices_last.begin(), indices_last.end(), old_index);
     *place = index_of_child;
-    std::swap(_properties[index_of_child], _properties.back());
+    std::swap(properties_[index_of_child], properties_.back());
   }
-  _properties.pop_back();
+  properties_.pop_back();
 
   return;
 }

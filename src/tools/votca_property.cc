@@ -50,9 +50,8 @@ class VotcaProperty final : public Application {
     level = 1;
 
     AddProgramOptions()("file", po::value<string>(), "xml file to parse")(
-        "format", po::value<string>(),
-        "output format [XML TXT]")("level", po::value<votca::Index>(),
-                                   "output from this level ");
+        "format", po::value<string>(), "output format [XML TXT]")(
+        "level", po::value<votca::Index>(), "output from this level ");
   };
 
   bool EvaluateOptions() {
@@ -62,26 +61,26 @@ class VotcaProperty final : public Application {
 
   void Run() {
 
-    file = _op_vm["file"].as<string>();
+    file = op_vm_["file"].as<string>();
 
-    if (_op_vm.count("format")) {
-      format = _op_vm["format"].as<string>();
+    if (op_vm_.count("format")) {
+      format = op_vm_["format"].as<string>();
     }
-    if (_op_vm.count("level")) {
-      level = _op_vm["level"].as<votca::Index>();
+    if (op_vm_.count("level")) {
+      level = op_vm_["level"].as<votca::Index>();
     }
 
     try {
 
       Property p;
-      map<string, PropertyIOManipulator*> _mformat;
-      _mformat["XML"] = &XML;
-      _mformat["TXT"] = &TXT;
-      _mformat["HLP"] = &HLP;
+      map<string, PropertyIOManipulator*> mformat_;
+      mformat_["XML"] = &XML;
+      mformat_["TXT"] = &TXT;
+      mformat_["HLP"] = &HLP;
       p.LoadFromXML(file);
 
-      if (_mformat.find(format) != _mformat.end()) {
-        PropertyIOManipulator* piom = _mformat.find(format)->second;
+      if (mformat_.find(format) != mformat_.end()) {
+        PropertyIOManipulator* piom = mformat_.find(format)->second;
         piom->setLevel(level);
         piom->setIndentation("");
         piom->setColorScheme<csRGB>();

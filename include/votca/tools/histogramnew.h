@@ -102,19 +102,19 @@ class HistogramNew {
    * \brief get the lower bound of the histogram intervaö
    * \return lower limit of interval
    */
-  double getMin() const { return _min; }
+  double getMin() const { return min_; }
 
   /**
    * \brief get the upper bound of the histogram intervaö
    * \return upper limit of interval
    */
-  double getMax() const { return _max; }
+  double getMax() const { return max_; }
 
   /**
    * \brief Get number of grid points
    * \return number of grid poitns
    */
-  Index getNBins() const { return _nbins; }
+  Index getNBins() const { return nbins_; }
 
   /**
    * \brief Get the count of the bin with the fewest counts
@@ -138,7 +138,7 @@ class HistogramNew {
    * \brief get the grid of histogram
    * \return step per bin
    */
-  double getStep() const { return _step; }
+  double getStep() const { return step_; }
 
   /**
    * \brief normalize the histogram that the integral is 1
@@ -154,23 +154,23 @@ class HistogramNew {
    * \brief get access to content of histogram
    * \return table object with bins in x and values in y
    */
-  Table &data() { return _data; }
-  const Table &data() const { return _data; }
+  Table &data() { return data_; }
+  const Table &data() const { return data_; }
 
   /**
    * \brief set whether interval is periodic
    * \param periodic is periodic
    */
-  void setPeriodic(bool periodic) { _periodic = periodic; }
+  void setPeriodic(bool periodic) { periodic_ = periodic; }
 
  private:
   void Initialize_();
-  double _min = 0;
-  double _max = 0;
-  double _step = 0;
-  bool _periodic = false;
-  Index _nbins = 100;
-  Table _data;
+  double min_ = 0;
+  double max_ = 0;
+  double step_ = 0;
+  bool periodic_ = false;
+  Index nbins_ = 100;
+  Table data_;
 };
 
 inline std::ostream &operator<<(std::ostream &out, HistogramNew &h) {

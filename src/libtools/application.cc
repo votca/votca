@@ -36,7 +36,7 @@ namespace votca {
 namespace tools {
 using namespace std;
 Application::Application()
-    : _op_desc("Allowed options"), _continue_execution(true) {}
+    : op_desc_("Allowed options"), continue_execution_(true) {}
 
 Application::~Application() = default;
 
@@ -60,7 +60,7 @@ void Application::ShowHelpText(std::ostream &out) {
 
 int Application::Exec(int argc, char **argv) {
   try {
-    //_continue_execution = true;
+    // continue_execution_ = true;
     AddProgramOptions()("help,h", "  display this help and exit");
     AddProgramOptions()("verbose", "  be loud and noisy");
     AddProgramOptions()("verbose1", "  be very loud and noisy");
@@ -72,18 +72,18 @@ int Application::Exec(int argc, char **argv) {
                      argv);  // initialize general parameters & read input file
 
     Log::current_level = Log::error;
-    if (_op_vm.count("verbose")) {
+    if (op_vm_.count("verbose")) {
       Log::current_level = Log::warning;
     }
-    if (_op_vm.count("verbose1")) {
+    if (op_vm_.count("verbose1")) {
       Log::current_level = Log::info;
     }
 
-    if (_op_vm.count("verbose2")) {
+    if (op_vm_.count("verbose2")) {
       Log::current_level = Log::debug;
     }
 
-    if (_op_vm.count("help")) {
+    if (op_vm_.count("help")) {
       ShowHelpText(cout);
       return 0;
     }
@@ -93,7 +93,7 @@ int Application::Exec(int argc, char **argv) {
       return -1;
     }
 
-    if (_continue_execution) {
+    if (continue_execution_) {
       Run();
     } else {
       cout << "nothing to be done - stopping here\n";
@@ -109,41 +109,41 @@ boost::program_options::options_description_easy_init
     Application::AddProgramOptions(const string &group) {
   // if no group is given, add it to standard options
   if (group == "") {
-    return _op_desc.add_options();
+    return op_desc_.add_options();
   }
 
   // does group already exist, if yes, add it there
   std::map<string, boost::program_options::options_description>::iterator iter;
-  iter = _op_groups.find(group);
-  if (iter != _op_groups.end()) {
+  iter = op_groups_.find(group);
+  if (iter != op_groups_.end()) {
     return iter->second.add_options();
   }
 
   // no group with given name was found -> create group
-  _op_groups.insert(
+  op_groups_.insert(
       make_pair(group, boost::program_options::options_description(group)));
 
-  return _op_groups[group].add_options();
+  return op_groups_[group].add_options();
 }
 
 void Application::ParseCommandLine(int argc, char **argv) {
   namespace po = boost::program_options;
 
   // default options should be added to visible (the rest is handled via a map))
-  _visible_options.add(_op_desc);
+  visible_options_.add(op_desc_);
 
   // add all categories to list of available options
-  for (const auto &pair : _op_groups) {
-    _op_desc.add(pair.second);
+  for (const auto &pair : op_groups_) {
+    op_desc_.add(pair.second);
     if (pair.first != "Hidden") {
-      _visible_options.add(pair.second);
+      visible_options_.add(pair.second);
     }
   }
 
   // parse the command line
   try {
-    po::store(po::parse_command_line(argc, argv, _op_desc), _op_vm);
-    po::notify(_op_vm);
+    po::store(po::parse_command_line(argc, argv, op_desc_), op_vm_);
+    po::notify(op_vm_);
   } catch (boost::program_options::error &err) {
     throw runtime_error(string("error parsing command line: ") + err.what());
   }
@@ -151,7 +151,7 @@ void Application::ParseCommandLine(int argc, char **argv) {
 
 void Application::CheckRequired(const string &option_name,
                                 const string &error_msg) {
-  if (!_op_vm.count(option_name)) {
+  if (!op_vm_.count(option_name)) {
     ShowHelpText(cout);
     throw std::runtime_error("missing argument " + option_name + "\n" +
                              error_msg);
