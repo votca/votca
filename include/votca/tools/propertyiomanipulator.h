@@ -29,7 +29,7 @@ namespace tools {
  * \brief Manipulates the format state of the output stream
  *
  * Changes the state of the output stream. Property class reads this state
- * and formats its output according to this state (XML, TXT,  etc)
+ * and formats its output according to this state (XML, TXT, etc)
  */
 class PropertyIOManipulator {
 
