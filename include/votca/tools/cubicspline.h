@@ -34,7 +34,7 @@ namespace tools {
     This class does cubic piecewise spline interpolation and spline fitting.
     As representation of a single spline, the general form
     \f[
-        S_i(x) = A(x,h_i) f_i + B(x,h_i) f_{i+1} + C(x,h_i) f'' i_ + d(x,h_i)
+        S_i(x) = A(x,h_i) f_i + B(x,h_i) f_{i+1} + C(x,h_i) f''_i + d(x,h_i)
    f''_{i+1} \f] with \f[
         x_i \le x < x_{i+1}\,,\\
         h_i = x_{i+1} - x_{i}
@@ -42,7 +42,7 @@ namespace tools {
     The \f$f_i\,,\,,f'' i_\f$ are the function values and second derivates
     at point \f$x_i\f$.
 
-    The parameters \f$f'' i_\f$ are no free parameters, they are determined by
+    The parameters \f$f''_i\f$ are no free parameters, they are determined by
    the smoothing condition that the first derivatives are continuous. So the
    only free paramers are the grid points x_i as well as the functon values f_i
    at these points. A spline can be generated in several ways:
