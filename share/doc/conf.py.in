@@ -24,12 +24,6 @@ html_theme_options= { 'logo_only' : True }
 master_doc = 'index'
 nbsphinx_allow_errors = True
 
-html_context = {
-    'css_files': [
-        '_static/theme_overrides.css',  # override wide tables in RTD theme
-        ],
-     }
-
 extensions = [
     'nbsphinx', # Generate sphinx documentation directly from the jupyter notebooks
     'sphinx.ext.mathjax', # Write equations
