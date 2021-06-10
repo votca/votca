@@ -44,7 +44,7 @@ void JobTopology::SortRegionsDefbyId(
 void JobTopology::ModifyOptionsByJobFile(
     std::vector<tools::Property*>& regions_def) const {
 
-  const tools::Property& jobinput = _job.getInput();
+  const tools::Property& jobinput = job_.getInput();
   std::vector<const tools::Property*> regions_def_job =
       jobinput.Select("regions.region");
 
@@ -53,13 +53,13 @@ void JobTopology::ModifyOptionsByJobFile(
     Index id = prop->get("id").as<Index>();
     std::vector<std::string> paths = FindReplacePathsInOptions(*prop, tag);
     if (!paths.empty()) {
-      XTP_LOG(Log::info, _log) << " Region " << std::to_string(id)
+      XTP_LOG(Log::info, log_) << " Region " << std::to_string(id)
                                << " is modified by jobfile" << std::flush;
-      XTP_LOG(Log::info, _log)
+      XTP_LOG(Log::info, log_)
           << " Replacing the following paths with jobfile entries"
           << std::flush;
       for (const std::string& path : paths) {
-        XTP_LOG(Log::info, _log) << " - " << path << std::flush;
+        XTP_LOG(Log::info, log_) << " - " << path << std::flush;
       }
 
       bool found_region_in_jobfile = false;
@@ -92,9 +92,9 @@ void JobTopology::BuildRegions(const Topology& top, tools::Property options) {
 
   // around this point the whole jobtopology will be centered
   CreateRegions(options, top, region_seg_ids);
-  XTP_LOG(Log::error, _log) << " Regions created" << std::flush;
-  for (const auto& region : _regions) {
-    XTP_LOG(Log::error, _log) << *region << std::flush;
+  XTP_LOG(Log::error, log_) << " Regions created" << std::flush;
+  for (const auto& region : regions_) {
+    XTP_LOG(Log::error, log_) << *region << std::flush;
   }
 
   return;
@@ -158,13 +158,13 @@ void JobTopology::CreateRegions(
     std::string type =
         region_def->ifExistsReturnElseThrowRuntimeError<std::string>("type");
     std::unique_ptr<Region> region;
-    QMRegion QMdummy(0, _log, "");
-    StaticRegion Staticdummy(0, _log);
-    PolarRegion Polardummy(0, _log);
+    QMRegion QMdummy(0, log_, "");
+    StaticRegion Staticdummy(0, log_);
+    PolarRegion Polardummy(0, log_);
     if (type == QMdummy.identify()) {
       std::unique_ptr<QMRegion> qmregion =
-          std::make_unique<QMRegion>(id, _log, _workdir);
-      QMMapper qmmapper(_log);
+          std::make_unique<QMRegion>(id, log_, workdir_);
+      QMMapper qmmapper(log_);
       qmmapper.LoadMappingFile(mapfile);
       for (const SegId& seg_index : seg_ids) {
         const Segment& segment = top.getSegment(seg_index.Id());
@@ -176,8 +176,8 @@ void JobTopology::CreateRegions(
       region = std::move(qmregion);
     } else if (type == Polardummy.identify()) {
       std::unique_ptr<PolarRegion> polarregion =
-          std::make_unique<PolarRegion>(id, _log);
-      PolarMapper polmap(_log);
+          std::make_unique<PolarRegion>(id, log_);
+      PolarMapper polmap(log_);
       polmap.LoadMappingFile(mapfile);
       for (const SegId& seg_index : seg_ids) {
         const Segment& segment = top.getSegment(seg_index.Id());
@@ -191,8 +191,8 @@ void JobTopology::CreateRegions(
       region = std::move(polarregion);
     } else if (type == Staticdummy.identify()) {
       std::unique_ptr<StaticRegion> staticregion =
-          std::make_unique<StaticRegion>(id, _log);
-      StaticMapper staticmap(_log);
+          std::make_unique<StaticRegion>(id, log_);
+      StaticMapper staticmap(log_);
       staticmap.LoadMappingFile(mapfile);
       for (const SegId& seg_index : seg_ids) {
         const Segment& segment = top.getSegment(seg_index.Id());
@@ -207,7 +207,7 @@ void JobTopology::CreateRegions(
       throw std::runtime_error("Region type not known!");
     }
     region->Initialize(*region_def);
-    _regions.push_back(std::move(region));
+    regions_.push_back(std::move(region));
   }
 }
 
@@ -215,8 +215,8 @@ void JobTopology::WriteToPdb(std::string filename) const {
 
   csg::PDBWriter writer;
   writer.Open(filename, false);
-  writer.WriteHeader("Job:" + std::to_string(this->_job.getId()));
-  for (const std::unique_ptr<Region>& reg : _regions) {
+  writer.WriteHeader("Job:" + std::to_string(this->job_.getId()));
+  for (const std::unique_ptr<Region>& reg : regions_) {
     reg->WritePDB(writer);
   }
   writer.Close();
@@ -334,10 +334,10 @@ void JobTopology::CheckEnumerationOfRegions(
 void JobTopology::WriteToHdf5(std::string filename) const {
   CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
   CheckpointWriter a = cpf.getWriter();
-  a(_job.getId(), "jobid");
+  a(job_.getId(), "jobid");
   a(XtpVersionStr(), "XTPVersion");
   a(jobtopology_version(), "version");
-  for (const auto& region : _regions) {
+  for (const auto& region : regions_) {
     CheckpointWriter w =
         cpf.getWriter("region_" + std::to_string(region->getId()));
     region->WriteToCpt(w);
@@ -349,18 +349,18 @@ void JobTopology::ReadFromHdf5(std::string filename) {
   CheckpointReader a = cpf.getReader();
   Index id = -1;
   a(id, "jobid");
-  if (id != _job.getId()) {
+  if (id != job_.getId()) {
     throw std::runtime_error(
         "Jobid from checkpoint file does not agree with jobid" +
-        std::to_string(id) + ":" + std::to_string(_job.getId()));
+        std::to_string(id) + ":" + std::to_string(job_.getId()));
   }
-  _regions.clear();
+  regions_.clear();
   Index no_regions = a.getNumDataSets();
-  _regions.reserve(no_regions);
+  regions_.reserve(no_regions);
 
-  QMRegion QMdummy(0, _log, "");
-  StaticRegion Staticdummy(0, _log);
-  PolarRegion Polardummy(0, _log);
+  QMRegion QMdummy(0, log_, "");
+  StaticRegion Staticdummy(0, log_);
+  PolarRegion Polardummy(0, log_);
 
   for (Index i = 0; i < no_regions; i++) {
     CheckpointReader r = cpf.getReader("region_" + std::to_string(i));
@@ -369,11 +369,11 @@ void JobTopology::ReadFromHdf5(std::string filename) {
 
     std::unique_ptr<Region> region = nullptr;
     if (type == QMdummy.identify()) {
-      region = std::make_unique<QMRegion>(i, _log, _workdir);
+      region = std::make_unique<QMRegion>(i, log_, workdir_);
     } else if (type == Polardummy.identify()) {
-      region = std::make_unique<PolarRegion>(i, _log);
+      region = std::make_unique<PolarRegion>(i, log_);
     } else if (type == Staticdummy.identify()) {
-      region = std::make_unique<StaticRegion>(i, _log);
+      region = std::make_unique<StaticRegion>(i, log_);
     } else {
       throw std::runtime_error("Region type:" + type + " not known!");
     }
@@ -381,7 +381,7 @@ void JobTopology::ReadFromHdf5(std::string filename) {
     if (id != region->getId()) {
       throw std::runtime_error("read in the wrong region, ids are mismatched.");
     }
-    _regions.push_back(std::move(region));
+    regions_.push_back(std::move(region));
   }
 }
 

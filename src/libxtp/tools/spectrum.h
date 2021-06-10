@@ -46,12 +46,12 @@ class Spectrum final : public QMTool {
   bool Run();
 
  private:
-  std::string _orbfile;
-  std::string _output_file = "spectrum.dat";
+  std::string orbfile_;
+  std::string output_file_ = "spectrum.dat";
 
-  Logger _log;
+  Logger log_;
 
-  void CheckContent(const Orbitals& _orbitals);
+  void CheckContent(const Orbitals& orbitals_);
 
   double evtonm(double eV);
   double evtoinvcm(double eV);
@@ -59,17 +59,17 @@ class Spectrum final : public QMTool {
   double invcmtonm(double invcm);
   double nmtoev(double nm);
 
-  double _lower = 0.0;  // in eV
-  double _upper;        // in eV
-  Index _n_pt = 100;
+  double lower_ = 0.0;  // in eV
+  double upper_;        // in eV
+  Index n_pt_ = 100;
 
-  Index _minexc = 0;
-  Index _maxexc = std::numeric_limits<Index>::max();
+  Index minexc_ = 0;
+  Index maxexc_ = std::numeric_limits<Index>::max();
 
-  double _fwhm;  // in eV
-  double _shiftby = 0.0;
+  double fwhm_;  // in eV
+  double shiftby_ = 0.0;
 
-  std::string _spectrum_type = "energy";
+  std::string spectrum_type_ = "energy";
   // lineshape functions
   double Gaussian(double x, double center, double fwhm);
   double Lorentzian(double x, double center, double fwhm);

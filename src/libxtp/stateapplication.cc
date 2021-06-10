@@ -54,7 +54,7 @@ void StateApplication::EvaluateSpecificOptions() {
 
 void StateApplication::execute() {
 
-  _options.LoadFromXML(_op_vm["options"].as<std::string>());
+  options_.LoadFromXML(op_vm_["options"].as<std::string>());
   Index nframes = OptionsMap()["nframes"].as<Index>();
   Index fframe = OptionsMap()["first-frame"].as<Index>();
   bool save = OptionsMap()["save"].as<bool>();

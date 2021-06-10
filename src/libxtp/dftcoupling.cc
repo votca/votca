@@ -36,13 +36,13 @@ using std::flush;
 void DFTcoupling::Initialize(tools::Property& options) {
 
   std::string key = "";
-  _degeneracy = options.ifExistsReturnElseReturnDefault<double>(
-      key + "degeneracy", _degeneracy);
-  _degeneracy *= tools::conv::ev2hrt;
-  _numberofstatesA = options.ifExistsReturnElseReturnDefault<Index>(
-      key + "levA", _numberofstatesA);
-  _numberofstatesB = options.ifExistsReturnElseReturnDefault<Index>(
-      key + "levB", _numberofstatesB);
+  degeneracy_ = options.ifExistsReturnElseReturnDefault<double>(
+      key + "degeneracy", degeneracy_);
+  degeneracy_ *= tools::conv::ev2hrt;
+  numberofstatesA_ = options.ifExistsReturnElseReturnDefault<Index>(
+      key + "levA", numberofstatesA_);
+  numberofstatesB_ = options.ifExistsReturnElseReturnDefault<Index>(
+      key + "levB", numberofstatesB_);
 }
 
 void DFTcoupling::WriteToProperty(tools::Property& type_summary,
@@ -85,7 +85,7 @@ std::pair<int, Index> DFTcoupling::DetermineRangeOfStates(
     const Orbitals& orbital, Index numberofstates) const {
   const Eigen::VectorXd& MOEnergies = orbital.MOs().eigenvalues();
   if (std::abs(MOEnergies(orbital.getHomo()) - MOEnergies(orbital.getLumo())) <
-      _degeneracy) {
+      degeneracy_) {
     throw std::runtime_error(
         "Homo Lumo Gap is smaller than degeneracy. "
         "Either your degeneracy is too large or your Homo and Lumo are "
@@ -95,10 +95,10 @@ std::pair<int, Index> DFTcoupling::DetermineRangeOfStates(
   Index minimal = orbital.getHomo() - numberofstates + 1;
   Index maximal = orbital.getLumo() + numberofstates - 1;
 
-  std::vector<Index> deg_min = orbital.CheckDegeneracy(minimal, _degeneracy);
+  std::vector<Index> deg_min = orbital.CheckDegeneracy(minimal, degeneracy_);
   minimal = *std::min_element(deg_min.begin(), deg_min.end());
 
-  std::vector<Index> deg_max = orbital.CheckDegeneracy(maximal, _degeneracy);
+  std::vector<Index> deg_max = orbital.CheckDegeneracy(maximal, degeneracy_);
   maximal = *std::max_element(deg_max.begin(), deg_max.end());
 
   std::pair<Index, Index> result;
@@ -113,11 +113,11 @@ double DFTcoupling::getCouplingElement(Index levelA, Index levelB,
                                        const Orbitals& orbitalsB) const {
 
   Index levelsA = Range_orbA.second;
-  if (_degeneracy != 0) {
+  if (degeneracy_ != 0) {
     std::vector<Index> list_levelsA =
-        orbitalsA.CheckDegeneracy(levelA, _degeneracy);
+        orbitalsA.CheckDegeneracy(levelA, degeneracy_);
     std::vector<Index> list_levelsB =
-        orbitalsB.CheckDegeneracy(levelB, _degeneracy);
+        orbitalsB.CheckDegeneracy(levelB, degeneracy_);
 
     double JAB_sq = 0;
 
@@ -141,15 +141,15 @@ double DFTcoupling::getCouplingElement(Index levelA, Index levelB,
 
 /**
  * \brief evaluates electronic couplings
- * @param _orbitalsA molecular orbitals of molecule A
- * @param _orbitalsB molecular orbitals of molecule B
- * @param _orbitalsAB molecular orbitals of the dimer AB
+ * @param  orbitalsA_ molecular orbitals of molecule A
+ * @param  orbitalsB_ molecular orbitals of molecule B
+ * @param  orbitalsAB_ molecular orbitals of the dimer AB
  */
 void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
                                      const Orbitals& orbitalsB,
                                      const Orbitals& orbitalsAB) {
 
-  XTP_LOG(Log::error, *_pLog) << "Calculating electronic couplings" << flush;
+  XTP_LOG(Log::error, *pLog_) << "Calculating electronic couplings" << flush;
 
   CheckAtomCoordinates(orbitalsA, orbitalsB, orbitalsAB);
 
@@ -161,13 +161,13 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
     throw std::runtime_error("Basis set size is not stored in monomers");
   }
 
-  Range_orbA = DetermineRangeOfStates(orbitalsA, _numberofstatesA);
-  Range_orbB = DetermineRangeOfStates(orbitalsB, _numberofstatesB);
+  Range_orbA = DetermineRangeOfStates(orbitalsA, numberofstatesA_);
+  Range_orbB = DetermineRangeOfStates(orbitalsB, numberofstatesB_);
 
   Index levelsA = Range_orbA.second;
   Index levelsB = Range_orbB.second;
 
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << "Levels:Basis A[" << levelsA << ":" << basisA << "]"
       << " B[" << levelsB << ":" << basisB << "]" << flush;
 
@@ -182,26 +182,26 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   auto MOsB = orbitalsB.MOs().eigenvectors().block(0, Range_orbB.first, basisB,
                                                    Range_orbB.second);
 
-  XTP_LOG(Log::info, *_pLog) << "Calculating overlap matrix for basisset: "
+  XTP_LOG(Log::info, *pLog_) << "Calculating overlap matrix for basisset: "
                              << orbitalsAB.getDFTbasisName() << flush;
 
   Eigen::MatrixXd overlap =
       CalculateOverlapMatrix(orbitalsAB) * orbitalsAB.MOs().eigenvectors();
 
-  XTP_LOG(Log::info, *_pLog)
+  XTP_LOG(Log::info, *pLog_)
       << "Projecting monomers onto dimer orbitals" << flush;
   Eigen::MatrixXd A_AB = MOsA.transpose() * overlap.topRows(basisA);
   Eigen::MatrixXd B_AB = MOsB.transpose() * overlap.bottomRows(basisB);
   Eigen::VectorXd mag_A = A_AB.rowwise().squaredNorm();
   if (mag_A.any() < 0.95) {
-    XTP_LOG(Log::error, *_pLog)
+    XTP_LOG(Log::error, *pLog_)
         << "\nWarning: "
         << "Projection of orbitals of monomer A on dimer is insufficient,mag="
         << mag_A.minCoeff() << flush;
   }
   Eigen::VectorXd mag_B = B_AB.rowwise().squaredNorm();
   if (mag_B.any() < 0.95) {
-    XTP_LOG(Log::error, *_pLog)
+    XTP_LOG(Log::error, *pLog_)
         << "\nWarning: "
         << "Projection of orbitals of monomer B on dimer is insufficient,mag="
         << mag_B.minCoeff() << flush;
@@ -211,19 +211,19 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   psi_AxB_dimer_basis.topRows(A_AB.rows()) = A_AB;
   psi_AxB_dimer_basis.bottomRows(B_AB.rows()) = B_AB;
 
-  XTP_LOG(Log::info, *_pLog)
+  XTP_LOG(Log::info, *pLog_)
       << "Projecting the Fock matrix onto the dimer basis" << flush;
   Eigen::MatrixXd JAB_dimer = psi_AxB_dimer_basis *
                               orbitalsAB.MOs().eigenvalues().asDiagonal() *
                               psi_AxB_dimer_basis.transpose();
-  XTP_LOG(Log::info, *_pLog) << "Constructing Overlap matrix" << flush;
+  XTP_LOG(Log::info, *pLog_) << "Constructing Overlap matrix" << flush;
   Eigen::MatrixXd S_AxB = psi_AxB_dimer_basis * psi_AxB_dimer_basis.transpose();
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S_AxB);
   Eigen::MatrixXd Sm1 = es.operatorInverseSqrt();
-  XTP_LOG(Log::info, *_pLog) << "Smallest eigenvalue of overlap matrix is "
+  XTP_LOG(Log::info, *pLog_) << "Smallest eigenvalue of overlap matrix is "
                              << es.eigenvalues()(0) << flush;
   JAB = Sm1 * JAB_dimer * Sm1;
-  XTP_LOG(Log::error, *_pLog) << "Done with electronic couplings" << flush;
+  XTP_LOG(Log::error, *pLog_) << "Done with electronic couplings" << flush;
 }
 
 }  // namespace xtp

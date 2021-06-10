@@ -49,17 +49,17 @@ class DFTEngine {
  public:
   void Initialize(tools::Property& options);
 
-  void setLogger(Logger* pLog) { _pLog = pLog; }
+  void setLogger(Logger* pLog) { pLog_ = pLog; }
 
   void setExternalcharges(
       std::vector<std::unique_ptr<StaticSite> >* externalsites) {
-    _externalsites = externalsites;
-    _addexternalsites = true;
+    externalsites_ = externalsites;
+    addexternalsites_ = true;
   }
 
   bool Evaluate(Orbitals& orb);
 
-  std::string getDFTBasisName() const { return _dftbasis_name; };
+  std::string getDFTBasisName() const { return dftbasis_name_; };
 
  private:
   void Prepare(QMMolecule& mol);
@@ -103,57 +103,57 @@ class DFTEngine {
       const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
   Eigen::MatrixXd SphericalAverageShells(const Eigen::MatrixXd& dmat,
                                          const AOBasis& dftbasis) const;
-  Logger* _pLog;
+  Logger* pLog_;
 
   // basis sets
-  std::string _auxbasis_name;
-  std::string _dftbasis_name;
-  std::string _ecp_name;
-  AOBasis _dftbasis;
-  AOBasis _auxbasis;
-  ECPAOBasis _ecp;
+  std::string auxbasis_name_;
+  std::string dftbasis_name_;
+  std::string ecp_name_;
+  AOBasis dftbasis_;
+  AOBasis auxbasis_;
+  ECPAOBasis ecp_;
 
-  bool _with_ecp;
+  bool with_ecp_;
 
-  std::string _four_center_method;  // direct | cache
+  std::string four_center_method_;  // direct | cache
 
   // Pre-screening
-  double _screening_eps;
+  double screening_eps_;
 
   // numerical integration Vxc
-  std::string _grid_name;
+  std::string grid_name_;
 
   // AO Matrices
-  AOOverlap _dftAOoverlap;
+  AOOverlap dftAOoverlap_;
 
-  bool _with_guess;
-  std::string _initial_guess;
+  bool with_guess_;
+  std::string initial_guess_;
 
   // Convergence
-  Index _numofelectrons = 0;
-  Index _max_iter;
-  ConvergenceAcc::options _conv_opt;
+  Index numofelectrons_ = 0;
+  Index max_iter_;
+  ConvergenceAcc::options conv_opt_;
   // DIIS variables
-  ConvergenceAcc _conv_accelerator;
+  ConvergenceAcc conv_accelerator_;
   // Electron repulsion integrals
-  ERIs _ERIs;
+  ERIs ERIs_;
 
   // external charges
-  std::vector<std::unique_ptr<StaticSite> >* _externalsites;
-  bool _addexternalsites = false;
+  std::vector<std::unique_ptr<StaticSite> >* externalsites_;
+  bool addexternalsites_ = false;
 
   // exchange and correlation
-  double _ScaHFX;
-  std::string _xc_functional_name;
+  double ScaHFX_;
+  std::string xc_functional_name_;
 
-  bool _integrate_ext_density = false;
+  bool integrate_ext_density_ = false;
   // integrate external density
-  std::string _orbfilename;
-  std::string _gridquality;
-  std::string _state;
+  std::string orbfilename_;
+  std::string gridquality_;
+  std::string state_;
 
-  Eigen::Vector3d _extfield = Eigen::Vector3d::Zero();
-  bool _integrate_ext_field = false;
+  Eigen::Vector3d extfield_ = Eigen::Vector3d::Zero();
+  bool integrate_ext_field_ = false;
 };
 
 }  // namespace xtp

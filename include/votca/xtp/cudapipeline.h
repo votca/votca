@@ -47,10 +47,10 @@ namespace xtp {
  */
 class CudaPipeline {
  public:
-  CudaPipeline(int deviceID) : _deviceID{deviceID} {
+  CudaPipeline(int deviceID) : deviceID_{deviceID} {
     checkCuda(cudaSetDevice(deviceID));
-    cublasCreate(&_handle);
-    cudaStreamCreate(&_stream);
+    cublasCreate(&handle_);
+    cudaStreamCreate(&stream_);
   }
 
   ~CudaPipeline();
@@ -68,18 +68,18 @@ class CudaPipeline {
   template <class M1, class M2, class M3>
   void gemm(M1 &&A, M2 &&B, M3 &&C, double beta = 0.0) const;
 
-  const cudaStream_t &get_stream() const { return _stream; };
+  const cudaStream_t &get_stream() const { return stream_; };
 
-  int getDeviceId() const { return _deviceID; }
+  int getDeviceId() const { return deviceID_; }
 
  private:
-  int _deviceID = 0;
+  int deviceID_ = 0;
   // The cublas handles allocates hardware resources on the host and device.
-  cublasHandle_t _handle;
+  cublasHandle_t handle_;
 
   // Asynchronous stream
 
-  cudaStream_t _stream;
+  cudaStream_t stream_;
 };
 
 /*
@@ -117,14 +117,14 @@ inline void CudaPipeline::gemm(M1 &&A, M2 &&B, M3 &&C, double beta) const {
         " B:" + OutputDimension(B) + " C:" + OutputDimension(C));
   }
 
-  cublasSetStream(_handle, _stream);
+  cublasSetStream(handle_, stream_);
   cublasStatus_t status =
-      cublasDgemm(_handle, transA, transB, int(C.rows()), int(C.cols()), k,
+      cublasDgemm(handle_, transA, transB, int(C.rows()), int(C.cols()), k,
                   palpha, A.data(), int(A.ld()), B.data(), int(B.ld()), pbeta,
                   C.data(), int(C.ld()));
   if (status != CUBLAS_STATUS_SUCCESS) {
     throw std::runtime_error("dgemm failed on gpu " +
-                             std::to_string(_deviceID) +
+                             std::to_string(deviceID_) +
                              " with errorcode:" + cudaGetErrorEnum(status));
   }
 }
@@ -149,14 +149,14 @@ inline void CudaPipeline::diag_gemm(const M &A, const CudaMatrix &b,
                              OutputDimension(A) + " b" + OutputDimension(b));
   }
 
-  cublasSetStream(_handle, _stream);
+  cublasSetStream(handle_, stream_);
   cublasStatus_t status =
-      cublasDdgmm(_handle, mode, int(A.rows()), int(A.cols()), A.data(),
+      cublasDdgmm(handle_, mode, int(A.rows()), int(A.cols()), A.data(),
                   int(A.ld()), b.data(), 1, C.data(), int(C.ld()));
 
   if (status != CUBLAS_STATUS_SUCCESS) {
     throw std::runtime_error("diag_gemm failed on gpu " +
-                             std::to_string(_deviceID) +
+                             std::to_string(deviceID_) +
                              " with errorcode:" + cudaGetErrorEnum(status));
   }
 }

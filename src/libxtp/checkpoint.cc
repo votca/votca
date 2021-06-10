@@ -64,53 +64,53 @@ CheckpointFile::CheckpointFile(std::string fN)
     : CheckpointFile(fN, CheckpointAccessLevel::MODIFY) {}
 
 CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
-    : _fileName(fN), _accessLevel(access) {
+    : fileName_(fN), accessLevel_(access) {
 
   try {
     H5::Exception::dontPrint();
     hid_t fcpl_id = H5Pcreate(H5P_FILE_CREATE);
     H5::FileCreatPropList fcpList(fcpl_id);
-    switch (_accessLevel) {
+    switch (accessLevel_) {
       case CheckpointAccessLevel::READ:
-        _fileHandle = H5::H5File(_fileName, H5F_ACC_RDONLY);
+        fileHandle_ = H5::H5File(fileName_, H5F_ACC_RDONLY);
         break;
       case CheckpointAccessLevel::CREATE:
-        _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC, fcpList);
+        fileHandle_ = H5::H5File(fileName_, H5F_ACC_TRUNC, fcpList);
         break;
       case CheckpointAccessLevel::MODIFY:
-        if (!FileExists(_fileName)) {
-          _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC, fcpList);
+        if (!FileExists(fileName_)) {
+          fileHandle_ = H5::H5File(fileName_, H5F_ACC_TRUNC, fcpList);
         } else {
-          _fileHandle = H5::H5File(_fileName, H5F_ACC_RDWR, fcpList);
+          fileHandle_ = H5::H5File(fileName_, H5F_ACC_RDWR, fcpList);
         }
     }
 
   } catch (H5::Exception&) {
     std::stringstream message;
-    message << "Could not access file " << _fileName;
-    message << " with permission to " << _accessLevel << "." << std::endl;
+    message << "Could not access file " << fileName_;
+    message << " with permission to " << accessLevel_ << "." << std::endl;
 
     throw std::runtime_error(message.str());
   }
 }
 
-std::string CheckpointFile::getFileName() { return _fileName; }
+std::string CheckpointFile::getFileName() { return fileName_; }
 
-H5::H5File CheckpointFile::getHandle() { return _fileHandle; }
+H5::H5File CheckpointFile::getHandle() { return fileHandle_; }
 
-CheckpointWriter CheckpointFile::getWriter(const std::string _path) {
-  if (_accessLevel == CheckpointAccessLevel::READ) {
+CheckpointWriter CheckpointFile::getWriter(const std::string path_) {
+  if (accessLevel_ == CheckpointAccessLevel::READ) {
     throw std::runtime_error("Checkpoint file opened as read only.");
   }
 
   try {
-    return CheckpointWriter(_fileHandle.createGroup(_path), _path);
+    return CheckpointWriter(fileHandle_.createGroup(path_), path_);
   } catch (H5::Exception&) {
     try {
-      return CheckpointWriter(_fileHandle.openGroup(_path), _path);
+      return CheckpointWriter(fileHandle_.openGroup(path_), path_);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not create or open " << _fileName << ":" << _path
+      message << "Could not create or open " << fileName_ << ":" << path_
               << std::endl;
 
       throw std::runtime_error(message.str());
@@ -120,12 +120,12 @@ CheckpointWriter CheckpointFile::getWriter(const std::string _path) {
 
 CheckpointWriter CheckpointFile::getWriter() { return getWriter("/"); }
 
-CheckpointReader CheckpointFile::getReader(const std::string _path) {
+CheckpointReader CheckpointFile::getReader(const std::string path_) {
   try {
-    return CheckpointReader(_fileHandle.openGroup(_path), _path);
+    return CheckpointReader(fileHandle_.openGroup(path_), path_);
   } catch (H5::Exception&) {
     std::stringstream message;
-    message << "Could not open " << _fileName << ":" << _path << std::endl;
+    message << "Could not open " << fileName_ << ":" << path_ << std::endl;
 
     throw std::runtime_error(message.str());
   }

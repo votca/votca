@@ -41,25 +41,25 @@ class NewtonRapson {
  public:
   enum Errors { success, smalldenom, notconverged };
   NewtonRapson(Index max_iterations, double tolerance)
-      : _max_iterations(max_iterations), _tolerance(tolerance) {}
+      : max_iterations_(max_iterations), tolerance_(tolerance) {}
 
   NewtonRapson(Index max_iterations, double tolerance, double alpha)
-      : _max_iterations(max_iterations), _tolerance(tolerance), _alpha(alpha) {}
+      : max_iterations_(max_iterations), tolerance_(tolerance), alpha_(alpha) {}
 
   double FindRoot(const Func& f, double x0) {
-    _info = Errors::notconverged;
+    info_ = Errors::notconverged;
     double x = x0;
-    for (_iter = 0; _iter < _max_iterations; _iter++) {
+    for (iter_ = 0; iter_ < max_iterations_; iter_++) {
 
       std::pair<double, double> res = f(x);
       if (std::abs(res.second) < 1e-12) {
-        _info = Errors::smalldenom;
+        info_ = Errors::smalldenom;
         break;
       }
 
-      double step = -_alpha * res.first / res.second;
-      if (std::abs(step) < _tolerance) {
-        _info = Errors::success;
+      double step = -alpha_ * res.first / res.second;
+      if (std::abs(step) < tolerance_) {
+        info_ = Errors::success;
         break;
       }
 
@@ -69,15 +69,15 @@ class NewtonRapson {
     return x;
   }
 
-  Errors getInfo() const { return _info; }
-  Index getIterations() const { return _iter; }
+  Errors getInfo() const { return info_; }
+  Index getIterations() const { return iter_; }
 
  private:
-  Errors _info = Errors::notconverged;
-  Index _max_iterations;
-  Index _iter;
-  double _tolerance;
-  double _alpha = 1.0;
+  Errors info_ = Errors::notconverged;
+  Index max_iterations_;
+  Index iter_;
+  double tolerance_;
+  double alpha_ = 1.0;
 };
 
 }  // namespace xtp

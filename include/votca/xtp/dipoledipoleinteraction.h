@@ -55,15 +55,15 @@ class DipoleDipoleInteraction
 
   DipoleDipoleInteraction(const eeInteractor& interactor,
                           const std::vector<PolarSegment>& segs)
-      : _interactor(interactor) {
-    _size = 0;
+      : interactor_(interactor) {
+    size_ = 0;
     for (const PolarSegment& seg : segs) {
-      _size += 3 * seg.size();
+      size_ += 3 * seg.size();
     }
-    _sites.reserve(_size / 3);
+    sites_.reserve(size_ / 3);
     for (const PolarSegment& seg : segs) {
       for (const PolarSite& site : seg) {
-        _sites.push_back(&site);
+        sites_.push_back(&site);
       }
     }
   }
@@ -71,30 +71,30 @@ class DipoleDipoleInteraction
   class InnerIterator {
    public:
     InnerIterator(const DipoleDipoleInteraction& xpr, const Index& id)
-        : _xpr(xpr), _id(id){};
+        : xpr_(xpr), id_(id){};
 
     InnerIterator& operator++() {
-      _row++;
+      row_++;
       return *this;
     }
     operator bool() const {
-      return _row < _xpr._size;
+      return row_ < xpr_.size_;
     }  // DO not use the size method, it returns linear dimension*linear
-       // dimension i.e _size^2
-    double value() const { return _xpr(_row, _id); }
-    Index row() const { return _row; }
-    Index col() const { return _id; }
+       // dimension i.e  size_^2
+    double value() const { return xpr_(row_, id_); }
+    Index row() const { return row_; }
+    Index col() const { return id_; }
     Index index() const { return row(); }
 
    private:
-    const DipoleDipoleInteraction& _xpr;
-    const Index _id;
-    Index _row = 0;
+    const DipoleDipoleInteraction& xpr_;
+    const Index id_;
+    Index row_ = 0;
   };
 
-  Index rows() const { return this->_size; }
-  Index cols() const { return this->_size; }
-  Index outerSize() const { return this->_size; }
+  Index rows() const { return this->size_; }
+  Index cols() const { return this->size_; }
+  Index outerSize() const { return this->size_; }
 
   template <typename Vtype>
   Eigen::Product<DipoleDipoleInteraction, Vtype, Eigen::AliasFreeProduct>
@@ -111,26 +111,26 @@ class DipoleDipoleInteraction
     Index xyz2 = Index(j % 3);
 
     if (seg1id == seg2id) {
-      return _sites[seg1id]->getPInv()(xyz1, xyz2);
+      return sites_[seg1id]->getPInv()(xyz1, xyz2);
     } else {
-      const PolarSite& site1 = *_sites[seg1id];
-      const PolarSite& site2 = *_sites[seg2id];
-      return _interactor.FillTholeInteraction(site1, site2)(xyz1, xyz2);
+      const PolarSite& site1 = *sites_[seg1id];
+      const PolarSite& site2 = *sites_[seg2id];
+      return interactor_.FillTholeInteraction(site1, site2)(xyz1, xyz2);
     }
   };
 
   Eigen::VectorXd multiply(const Eigen::VectorXd& v) const {
-    assert(v.size() == _size &&
+    assert(v.size() == size_ &&
            "input vector has the wrong size for multiply with operator");
-    const Index segment_size = Index(_sites.size());
-    Eigen::VectorXd result = Eigen::VectorXd::Zero(_size);
+    const Index segment_size = Index(sites_.size());
+    Eigen::VectorXd result = Eigen::VectorXd::Zero(size_);
 #pragma omp parallel for schedule(dynamic) reduction(+ : result)
     for (Index i = 0; i < segment_size; i++) {
-      const PolarSite& site1 = *_sites[i];
+      const PolarSite& site1 = *sites_[i];
       result.segment<3>(3 * i) += site1.getPInv() * v.segment<3>(3 * i);
       for (Index j = i + 1; j < segment_size; j++) {
-        const PolarSite& site2 = *_sites[j];
-        Eigen::Matrix3d block = _interactor.FillTholeInteraction(site1, site2);
+        const PolarSite& site2 = *sites_[j];
+        Eigen::Matrix3d block = interactor_.FillTholeInteraction(site1, site2);
         result.segment<3>(3 * i) += block * v.segment<3>(3 * j);
         result.segment<3>(3 * j) += block.transpose() * v.segment<3>(3 * i);
       }
@@ -140,9 +140,9 @@ class DipoleDipoleInteraction
   }
 
  private:
-  const eeInteractor& _interactor;
-  std::vector<const PolarSite*> _sites;
-  Index _size;
+  const eeInteractor& interactor_;
+  std::vector<const PolarSite*> sites_;
+  Index size_;
 };
 }  // namespace xtp
 }  // namespace votca

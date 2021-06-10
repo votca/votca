@@ -47,9 +47,9 @@ class BSECoupling : public CouplingBase {
   /**
    * \brief evaluates electronic couplings
    *
-   * @param _orbitalsA molecular orbitals of molecule A
-   * @param _orbitalsB molecular orbitals of molecule B
-   * @param _orbitalsAB molecular orbitals of the dimer AB
+   * @param  orbitalsA molecular orbitals of molecule A
+   * @param  orbitalsB molecular orbitals of molecule B
+   * @param  orbitalsAB molecular orbitals of the dimer AB
    */
   void CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB,
                           const Orbitals& orbitalsAB) override;
@@ -93,15 +93,15 @@ class BSECoupling : public CouplingBase {
   std::array<Eigen::MatrixXd, 2> JAB_singlet;
   std::array<Eigen::MatrixXd, 2> JAB_triplet;
 
-  bool _doTriplets = false;
-  bool _doSinglets = false;
-  bool _output_perturbation = true;
-  Index _levA;
-  Index _levB;
-  Index _occA;
-  Index _unoccA;
-  Index _occB;
-  Index _unoccB;
+  bool doTriplets_ = false;
+  bool doSinglets_ = false;
+  bool output_perturbation_ = true;
+  Index levA_;
+  Index levB_;
+  Index occA_;
+  Index unoccA_;
+  Index occB_;
+  Index unoccB_;
 };
 
 }  // namespace xtp

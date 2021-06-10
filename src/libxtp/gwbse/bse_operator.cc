@@ -27,13 +27,13 @@ namespace xtp {
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 void BSE_OPERATOR<cqp, cx, cd, cd2>::configure(BSEOperator_Options opt) {
-  _opt = opt;
-  Index bse_vmax = _opt.homo;
-  _bse_cmin = _opt.homo + 1;
-  _bse_vtotal = bse_vmax - _opt.vmin + 1;
-  _bse_ctotal = _opt.cmax - _bse_cmin + 1;
-  _bse_size = _bse_vtotal * _bse_ctotal;
-  this->set_size(_bse_size);
+  opt_ = opt;
+  Index bse_vmax = opt_.homo;
+  bse_cmin_ = opt_.homo + 1;
+  bse_vtotal_ = bse_vmax - opt_.vmin + 1;
+  bse_ctotal_ = opt_.cmax - bse_cmin_ + 1;
+  bse_size_ = bse_vtotal_ * bse_ctotal_;
+  this->set_size(bse_size_);
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>
@@ -43,18 +43,18 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
   static_assert(!(cd2 != 0 && cd != 0),
                 "Hamiltonian cannot contain Hd and Hd2 at the same time");
 
-  Index auxsize = _Mmn.auxsize();
-  vc2index vc = vc2index(0, 0, _bse_ctotal);
+  Index auxsize = Mmn_.auxsize();
+  vc2index vc = vc2index(0, 0, bse_ctotal_);
 
-  Index vmin = _opt.vmin - _opt.rpamin;
-  Index cmin = _bse_cmin - _opt.rpamin;
+  Index vmin = opt_.vmin - opt_.rpamin;
+  Index cmin = bse_cmin_ - opt_.rpamin;
 
   OpenMP_CUDA transform;
   if (cd != 0) {
-    transform.createTemporaries(_epsilon_0_inv, input, _bse_ctotal, _bse_vtotal,
+    transform.createTemporaries(epsilon_0_inv_, input, bse_ctotal_, bse_vtotal_,
                                 auxsize);
   } else {
-    transform.createTemporaries(_epsilon_0_inv, input, _bse_vtotal, _bse_ctotal,
+    transform.createTemporaries(epsilon_0_inv_, input, bse_vtotal_, bse_ctotal_,
                                 auxsize);
   }
 
@@ -62,29 +62,29 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
   {
     Index threadid = OPENMP::getThreadId();
 #pragma omp for schedule(dynamic)
-    for (Index c1 = 0; c1 < _bse_ctotal; c1++) {
+    for (Index c1 = 0; c1 < bse_ctotal_; c1++) {
 
       // Temp matrix has to stay in this scope, because it has transform only
       // holds a reference to it
       Eigen::MatrixXd Temp;
       if (cd != 0) {
-        Temp = -cd * (_Mmn[c1 + cmin].block(cmin, 0, _bse_ctotal, auxsize));
+        Temp = -cd * (Mmn_[c1 + cmin].block(cmin, 0, bse_ctotal_, auxsize));
         transform.PrepareMatrix1(Temp, threadid);
       } else if (cd2 != 0) {
-        Temp = -cd2 * (_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize));
+        Temp = -cd2 * (Mmn_[c1 + cmin].block(vmin, 0, bse_vtotal_, auxsize));
         transform.PrepareMatrix1(Temp, threadid);
       }
 
-      for (Index v1 = 0; v1 < _bse_vtotal; v1++) {
+      for (Index v1 = 0; v1 < bse_vtotal_; v1++) {
         transform.SetTempZero(threadid);
         if (cd != 0) {
           transform.PrepareMatrix2(
-              _Mmn[v1 + vmin].block(vmin, 0, _bse_vtotal, auxsize), cd2 != 0,
+              Mmn_[v1 + vmin].block(vmin, 0, bse_vtotal_, auxsize), cd2 != 0,
               threadid);
         }
         if (cd2 != 0) {
           transform.PrepareMatrix2(
-              _Mmn[v1 + vmin].block(cmin, 0, _bse_ctotal, auxsize), cd2 != 0,
+              Mmn_[v1 + vmin].block(cmin, 0, bse_ctotal_, auxsize), cd2 != 0,
               threadid);
         }
         if (cqp != 0) {
@@ -97,20 +97,20 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
   }
   if (cx > 0) {
 
-    transform.createAdditionalTemporaries(_bse_ctotal, auxsize);
+    transform.createAdditionalTemporaries(bse_ctotal_, auxsize);
 #pragma omp parallel
     {
       Index threadid = OPENMP::getThreadId();
 #pragma omp for schedule(dynamic)
-      for (Index v1 = 0; v1 < _bse_vtotal; v1++) {
+      for (Index v1 = 0; v1 < bse_vtotal_; v1++) {
         Index va = v1 + vmin;
         Eigen::MatrixXd Mmn1 =
-            cx * _Mmn[va].block(cmin, 0, _bse_ctotal, auxsize);
+            cx * Mmn_[va].block(cmin, 0, bse_ctotal_, auxsize);
         transform.PushMatrix1(Mmn1, threadid);
-        for (Index v2 = v1; v2 < _bse_vtotal; v2++) {
+        for (Index v2 = v1; v2 < bse_vtotal_; v2++) {
           Index vb = v2 + vmin;
           transform.MultiplyBlocks(
-              _Mmn[vb].block(cmin, 0, _bse_ctotal, auxsize), v1, v2, threadid);
+              Mmn_[vb].block(cmin, 0, bse_ctotal_, auxsize), v1, v2, threadid);
         }
       }
     }
@@ -122,12 +122,12 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
 template <Index cqp, Index cx, Index cd, Index cd2>
 Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(Index v1,
                                                         Index c1) const {
-  Eigen::MatrixXd Result = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_vtotal);
-  Index cmin = _bse_vtotal;
+  Eigen::MatrixXd Result = Eigen::MatrixXd::Zero(bse_ctotal_, bse_vtotal_);
+  Index cmin = bse_vtotal_;
   // v->c
-  Result.col(v1) += cqp * _Hqp.col(c1 + cmin).segment(cmin, _bse_ctotal);
+  Result.col(v1) += cqp * Hqp_.col(c1 + cmin).segment(cmin, bse_ctotal_);
   // c-> v
-  Result.row(c1) -= cqp * _Hqp.col(v1).head(_bse_vtotal);
+  Result.row(c1) -= cqp * Hqp_.col(v1).head(bse_vtotal_);
   return Eigen::Map<Eigen::VectorXd>(Result.data(), Result.size());
 }
 
@@ -137,35 +137,35 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::diagonal() const {
   static_assert(!(cd2 != 0 && cd != 0),
                 "Hamiltonian cannot contain Hd and Hd2 at the same time");
 
-  vc2index vc = vc2index(0, 0, _bse_ctotal);
-  Index vmin = _opt.vmin - _opt.rpamin;
-  Index cmin = _bse_cmin - _opt.rpamin;
+  vc2index vc = vc2index(0, 0, bse_ctotal_);
+  Index vmin = opt_.vmin - opt_.rpamin;
+  Index cmin = bse_cmin_ - opt_.rpamin;
 
-  Eigen::VectorXd result = Eigen::VectorXd::Zero(_bse_size);
+  Eigen::VectorXd result = Eigen::VectorXd::Zero(bse_size_);
 
 #pragma omp parallel for schedule(dynamic) reduction(+ : result)
-  for (Index v = 0; v < _bse_vtotal; v++) {
-    for (Index c = 0; c < _bse_ctotal; c++) {
+  for (Index v = 0; v < bse_vtotal_; v++) {
+    for (Index c = 0; c < bse_ctotal_; c++) {
 
       double entry = 0.0;
       if (cx != 0) {
-        entry += cx * _Mmn[v + vmin].row(cmin + c).squaredNorm();
+        entry += cx * Mmn_[v + vmin].row(cmin + c).squaredNorm();
       }
 
       if (cqp != 0) {
-        Index cmin_qp = _bse_vtotal;
-        entry += cqp * (_Hqp(c + cmin_qp, c + cmin_qp) - _Hqp(v, v));
+        Index cmin_qp = bse_vtotal_;
+        entry += cqp * (Hqp_(c + cmin_qp, c + cmin_qp) - Hqp_(v, v));
       }
       if (cd != 0) {
         entry -=
-            cd * (_Mmn[c + cmin].row(c + cmin) * _epsilon_0_inv.asDiagonal() *
-                  _Mmn[v + vmin].row(v + vmin).transpose())
+            cd * (Mmn_[c + cmin].row(c + cmin) * epsilon_0_inv_.asDiagonal() *
+                  Mmn_[v + vmin].row(v + vmin).transpose())
                      .value();
       }
       if (cd2 != 0) {
         entry -=
-            cd2 * (_Mmn[c + cmin].row(v + vmin) * _epsilon_0_inv.asDiagonal() *
-                   _Mmn[v + vmin].row(c + cmin).transpose())
+            cd2 * (Mmn_[c + cmin].row(v + vmin) * epsilon_0_inv_.asDiagonal() *
+                   Mmn_[v + vmin].row(c + cmin).transpose())
                       .value();
       }
 

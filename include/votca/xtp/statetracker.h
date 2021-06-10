@@ -43,10 +43,10 @@ class StateTracker {
 
  public:
   void Initialize(const tools::Property& options);
-  void setLogger(Logger* log) { _log = log; }
-  void setInitialState(const QMState& state) { _statehist.push_back(state); }
+  void setLogger(Logger* log) { log_ = log; }
+  void setInitialState(const QMState& state) { statehist_.push_back(state); }
   void PrintInfo() const;
-  QMState InitialState() const { return _statehist[0]; }
+  QMState InitialState() const { return statehist_[0]; }
   QMState CalcStateAndUpdate(const Orbitals& orbitals);
   QMState CalcState(const Orbitals& orbitals) const;
 
@@ -61,10 +61,10 @@ class StateTracker {
   std::vector<Index> ComparePairofVectors(std::vector<Index>& vec1,
                                           std::vector<Index>& vec2) const;
 
-  Logger* _log;
+  Logger* log_;
 
-  std::vector<QMState> _statehist;
-  std::vector<std::unique_ptr<StateFilter_base> > _filters;
+  std::vector<QMState> statehist_;
+  std::vector<std::unique_ptr<StateFilter_base> > filters_;
 };
 }  // namespace xtp
 }  // namespace votca

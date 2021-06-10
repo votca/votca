@@ -29,11 +29,11 @@ void Neighborlist::ParseOptions(const tools::Property& options) {
 
   const std::string& cutoff_type = options.get("cutoff_type").as<std::string>();
   if (cutoff_type == "constant") {
-    _useConstantCutoff = true;
-    _constantCutoff =
+    useConstantCutoff_ = true;
+    constantCutoff_ =
         options.get(".constant").as<double>() * tools::conv::nm2bohr;
   } else {
-    _useConstantCutoff = false;
+    useConstantCutoff_ = false;
     for (const tools::Property* segprop : options.Select(".segments")) {
       std::string types = segprop->get("type").as<std::string>();
       double cutoff =
@@ -48,24 +48,24 @@ void Neighborlist::ParseOptions(const tools::Property& options) {
             "names "
             "separated by a space");
       }
-      _cutoffs[names[0]][names[1]] = cutoff;
-      _cutoffs[names[1]][names[0]] = cutoff;
-      if (std::find(_included_segments.begin(), _included_segments.end(),
-                    names[0]) == _included_segments.end()) {
-        _included_segments.push_back(names[0]);
+      cutoffs_[names[0]][names[1]] = cutoff;
+      cutoffs_[names[1]][names[0]] = cutoff;
+      if (std::find(included_segments_.begin(), included_segments_.end(),
+                    names[0]) == included_segments_.end()) {
+        included_segments_.push_back(names[0]);
       }
-      if (std::find(_included_segments.begin(), _included_segments.end(),
-                    names[1]) == _included_segments.end()) {
-        _included_segments.push_back(names[1]);
+      if (std::find(included_segments_.begin(), included_segments_.end(),
+                    names[1]) == included_segments_.end()) {
+        included_segments_.push_back(names[1]);
       }
     }
   }
   if (options.get(".use_exciton_cutoff").as<bool>()) {
-    _useExcitonCutoff = true;
-    _excitonqmCutoff =
+    useExcitonCutoff_ = true;
+    excitonqmCutoff_ =
         options.get(".exciton_cutoff").as<double>() * tools::conv::nm2bohr;
   } else {
-    _useExcitonCutoff = false;
+    useExcitonCutoff_ = false;
   }
 }
 
@@ -75,7 +75,7 @@ Index Neighborlist::DetClassicalPairs(Topology& top) {
   for (Index i = 0; i < top.NBList().size(); i++) {
     const Segment* seg1 = top.NBList()[i]->Seg1();
     const Segment* seg2 = top.NBList()[i]->Seg2();
-    if (top.GetShortestDist(*seg1, *seg2) > _excitonqmCutoff) {
+    if (top.GetShortestDist(*seg1, *seg2) > excitonqmCutoff_) {
       top.NBList()[i]->setType(QMPair::Excitoncl);
 #pragma omp critical
       { classical_pairs++; }
@@ -92,9 +92,9 @@ bool Neighborlist::Evaluate(Topology& top) {
 
   std::vector<Segment*> segs;
   for (Segment& seg : top.Segments()) {
-    if (_useConstantCutoff ||
-        std::find(_included_segments.begin(), _included_segments.end(),
-                  seg.getType()) != _included_segments.end()) {
+    if (useConstantCutoff_ ||
+        std::find(included_segments_.begin(), included_segments_.end(),
+                  seg.getType()) != included_segments_.end()) {
       segs.push_back(&seg);
       seg.getApproxSize();
     }
@@ -108,11 +108,11 @@ bool Neighborlist::Evaluate(Topology& top) {
   } else {
     std::cout << std::endl;
   }
-  if (!_useConstantCutoff) {
+  if (!useConstantCutoff_) {
     std::cout << "The following segments are used in the neigborlist creation"
               << std::endl;
     std::cout << "\t" << std::flush;
-    for (const std::string& st : _included_segments) {
+    for (const std::string& st : included_segments_) {
       std::cout << " " << st << std::flush;
     }
     std::cout << std::endl;
@@ -133,12 +133,12 @@ bool Neighborlist::Evaluate(Topology& top) {
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < Index(segs.size()); i++) {
     Segment* seg1 = segs[i];
-    double cutoff = _constantCutoff;
+    double cutoff = constantCutoff_;
     for (Index j = i + 1; j < Index(segs.size()); j++) {
       Segment* seg2 = segs[j];
-      if (!_useConstantCutoff) {
+      if (!useConstantCutoff_) {
         try {
-          cutoff = _cutoffs.at(seg1->getType()).at(seg2->getType());
+          cutoff = cutoffs_.at(seg1->getType()).at(seg2->getType());
         } catch (const std::exception&) {
           std::string pairstring = seg1->getType() + "/" + seg2->getType();
           if (std::find(skippedpairs.begin(), skippedpairs.end(), pairstring) ==
@@ -192,7 +192,7 @@ bool Neighborlist::Evaluate(Topology& top) {
 
   std::cout << std::endl
             << " ... ... Created " << top.NBList().size() << " direct pairs.";
-  if (_useExcitonCutoff) {
+  if (useExcitonCutoff_) {
     std::cout << std::endl
               << " ... ... Determining classical pairs " << std::endl;
     Index classical_pairs = DetClassicalPairs(top);

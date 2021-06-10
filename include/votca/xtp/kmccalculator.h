@@ -46,7 +46,7 @@ class KMCCalculator : public QMCalculator {
  protected:
   virtual void ParseSpecificOptions(const tools::Property& options) = 0;
 
-  QMStateType _carriertype;
+  QMStateType carriertype_;
 
   void LoadGraph(Topology& top);
   virtual void RunVSSM() = 0;
@@ -68,23 +68,23 @@ class KMCCalculator : public QMCalculator {
 
   void RandomlyCreateCharges();
   void RandomlyAssignCarriertoSite(Chargecarrier& Charge);
-  std::vector<GNode> _nodes;
-  std::vector<Chargecarrier> _carriers;
+  std::vector<GNode> nodes_;
+  std::vector<Chargecarrier> carriers_;
 
-  tools::Random _RandomVariable;
-  std::string _injection_name;
-  std::string _injectionmethod;
-  Index _seed;
-  Index _numberofcarriers;
-  Eigen::Vector3d _field = Eigen::Vector3d::Zero();
-  double _maxrealtime;
-  std::string _trajectoryfile;
-  std::string _ratefile;
-  std::string _occfile;
+  tools::Random RandomVariable_;
+  std::string injection_name_;
+  std::string injectionmethod_;
+  Index seed_;
+  Index numberofcarriers_;
+  Eigen::Vector3d field_ = Eigen::Vector3d::Zero();
+  double maxrealtime_;
+  std::string trajectoryfile_;
+  std::string ratefile_;
+  std::string occfile_;
 
-  Logger _log;
+  Logger log_;
 
-  double _temperature;
+  double temperature_;
 };
 
 }  // namespace xtp

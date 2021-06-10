@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(aomatrices_dipole_test) {
   for (unsigned i = 0; i < dip_ref.size(); i++) {
     dip_ref[i] = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
         std::string(XTP_TEST_DATA_FOLDER) + "/aomatrix3d/dip_ref" +
-        std::to_string(i) + "_nonzero.mm");
+        std::to_string(i) + " nonzero_.mm");
   }
 
   for (unsigned i = 0; i < dip_ref.size(); i++) {

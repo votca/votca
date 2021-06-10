@@ -26,18 +26,18 @@ using namespace std;
 namespace votca {
 namespace xtp {
 void GNode::AddDecayEvent(double decayrate) {
-  _events.push_back(GLink(decayrate));
-  _hasdecay = true;
+  events_.push_back(GLink(decayrate));
+  hasdecay_ = true;
 }
 
 void GNode::AddEvent(GNode* seg2, const Eigen::Vector3d& dr, double rate) {
-  _events.push_back(GLink(seg2, rate, dr));
+  events_.push_back(GLink(seg2, rate, dr));
 }
 
 void GNode::InitEscapeRate() {
-  _escape_rate = 0.0;
-  for (const auto& event : _events) {
-    _escape_rate += event.getRate();
+  escape_rate_ = 0.0;
+  for (const auto& event : events_) {
+    escape_rate_ += event.getRate();
   }
 }
 
@@ -46,7 +46,7 @@ GLink* GNode::findHoppingDestination(double p) const {
 }
 
 void GNode::MakeHuffTree() {
-  hTree.setEvents(&_events);
+  hTree.setEvents(&events_);
   hTree.makeTree();
 }
 
@@ -54,7 +54,7 @@ void GNode::AddEventfromQmPair(const QMPair& pair, std::vector<GNode>& nodes,
                                double rate) {
   Index destination = 0;
   Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-  if (_id == pair.Seg1()->getId()) {
+  if (id_ == pair.Seg1()->getId()) {
     destination = pair.Seg2()->getId();
     dr = pair.R();
   } else {

@@ -46,35 +46,35 @@ class Job {
 
   class JobResult {
    public:
-    void setStatus(JobStatus stat) { _status = stat; }
+    void setStatus(JobStatus stat) { status_ = stat; }
     void setOutput(std::string output) {
-      _has_output = true;
-      _output = tools::Property().add("output", output);
+      has_output_ = true;
+      output_ = tools::Property().add("output", output);
     }
     void setOutput(tools::Property &output) {
-      _has_output = true;
-      _output = output.get("output");
+      has_output_ = true;
+      output_ = output.get("output");
     }
 
-    JobStatus getStatus() const { return _status; }
-    bool hasOutput() const { return _has_output; }
-    const tools::Property &getOutput() const { return _output; }
+    JobStatus getStatus() const { return status_; }
+    bool hasOutput() const { return has_output_; }
+    const tools::Property &getOutput() const { return output_; }
 
-    tools::Property &getOutput() { return _output; }
-    bool hasError() const { return _has_error; }
-    const std::string &getError() const { return _error; }
+    tools::Property &getOutput() { return output_; }
+    bool hasError() const { return has_error_; }
+    const std::string &getError() const { return error_; }
 
     void setError(std::string error) {
-      _has_error = true;
-      _error = error;
+      has_error_ = true;
+      error_ = error;
     }
 
    private:
-    JobStatus _status;
-    tools::Property _output;
-    bool _has_output = false;
-    std::string _error;
-    bool _has_error = false;
+    JobStatus status_;
+    tools::Property output_;
+    bool has_output_ = false;
+    std::string error_;
+    bool has_error_ = false;
   };
 
   void Reset();
@@ -82,73 +82,73 @@ class Job {
   void UpdateFrom(const Job &ext);
   void UpdateFromResult(const JobResult &res);
 
-  Index getId() const { return _id; }
-  std::string getTag() const { return _tag; }
-  tools::Property &getInput() { return _input; }
-  const tools::Property &getInput() const { return _input; }
-  const JobStatus &getStatus() const { return _status; }
-  std::string getStatusStr() const { return ConvertStatus(_status); }
+  Index getId() const { return id_; }
+  std::string getTag() const { return tag_; }
+  tools::Property &getInput() { return input_; }
+  const tools::Property &getInput() const { return input_; }
+  const JobStatus &getStatus() const { return status_; }
+  std::string getStatusStr() const { return ConvertStatus(status_); }
 
-  bool hasHost() const { return _has_host; }
-  bool hasTime() const { return _has_time; }
-  bool hasOutput() const { return _has_output; }
-  bool hasError() const { return _has_error; }
+  bool hasHost() const { return has_host_; }
+  bool hasTime() const { return has_time_; }
+  bool hasOutput() const { return has_output_; }
+  bool hasError() const { return has_error_; }
 
-  bool isAvailable() const { return (_status == AVAILABLE) ? true : false; }
-  bool isAssigned() const { return (_status == ASSIGNED) ? true : false; }
-  bool isFailed() const { return (_status == FAILED) ? true : false; }
-  bool isComplete() const { return (_status == COMPLETE) ? true : false; }
-  bool isFresh() const { return (_attemptsCount < 1) ? true : false; }
+  bool isAvailable() const { return (status_ == AVAILABLE) ? true : false; }
+  bool isAssigned() const { return (status_ == ASSIGNED) ? true : false; }
+  bool isFailed() const { return (status_ == FAILED) ? true : false; }
+  bool isComplete() const { return (status_ == COMPLETE) ? true : false; }
+  bool isFresh() const { return (attemptsCount_ < 1) ? true : false; }
 
-  void setStatus(JobStatus stat) { _status = stat; }
-  void setStatus(std::string stat) { _status = ConvertStatus(stat); }
+  void setStatus(JobStatus stat) { status_ = stat; }
+  void setStatus(std::string stat) { status_ = ConvertStatus(stat); }
   void setTime(std::string time) {
-    _time = time;
-    _has_time = true;
+    time_ = time;
+    has_time_ = true;
   }
   void setHost(std::string host) {
-    _host = host;
-    _has_host = true;
+    host_ = host;
+    has_host_ = true;
   }
   void setOutput(std::string output) {
-    _output = tools::Property().add("output", output);
-    _has_output = true;
+    output_ = tools::Property().add("output", output);
+    has_output_ = true;
   }
 
   const std::string &getHost() const {
-    assert(_has_host && "Job has no host");
-    return _host;
+    assert(has_host_ && "Job has no host");
+    return host_;
   }
   const std::string &getTime() const {
-    assert(_has_time && "Job has no time");
-    return _time;
+    assert(has_time_ && "Job has no time");
+    return time_;
   }
   const tools::Property &getOutput() const {
-    assert(_has_output && "Job has no output");
-    return _output;
+    assert(has_output_ && "Job has no output");
+    return output_;
   }
   const std::string &getError() const {
-    assert(_has_error && "Job has no error");
-    return _error;
+    assert(has_error_ && "Job has no error");
+    return error_;
   }
 
  private:
   // Defined by user
-  Index _id;
-  std::string _tag;
-  JobStatus _status;
-  Index _attemptsCount = 0;
-  tools::Property _input;
+  Index id_;
+  std::string tag_;
+  JobStatus status_;
+  Index attemptsCount_ = 0;
+  tools::Property input_;
 
   // Generated during runtime
-  std::string _host;
-  bool _has_host = false;
-  std::string _time;
-  bool _has_time = false;
-  tools::Property _output;
-  bool _has_error = false;
-  bool _has_output = false;
-  std::string _error;
+  std::string host_;
+  bool has_host_ = false;
+  std::string time_;
+  bool has_time_ = false;
+  tools::Property output_;
+  bool has_error_ = false;
+  bool has_output_ = false;
+  std::string error_;
 };  // namespace xtp
 
 std::vector<Job> LOAD_JOBS(const std::string &xml_file);

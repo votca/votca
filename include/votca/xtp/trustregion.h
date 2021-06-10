@@ -45,32 +45,32 @@ class TrustRegion {
         const Eigen::VectorXd& factor,
         const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>& hessian,
         double trust_radius, Index startindex)
-        : _factor(factor),
-          _hessian(hessian),
-          _trust_radius(trust_radius),
-          _startindex(startindex) {
+        : factor_(factor),
+          hessian_(hessian),
+          trust_radius_(trust_radius),
+          startindex_(startindex) {
       ;
     }
 
     // Calculates \phi and \phi/\phi'
     std::pair<double, double> Evaluate(double lambda) {
-      Index size = _factor.size() - _startindex;
+      Index size = factor_.size() - startindex_;
       Eigen::ArrayXd quotient =
-          (_hessian.eigenvalues().array() + lambda).tail(size);
-      const double p2 = (_factor.array().tail(size) / (quotient.pow(2))).sum();
+          (hessian_.eigenvalues().array() + lambda).tail(size);
+      const double p2 = (factor_.array().tail(size) / (quotient.pow(2))).sum();
       const double p = std::sqrt(p2);
-      const double q2 = (_factor.array().tail(size) / (quotient.pow(3))).sum();
+      const double q2 = (factor_.array().tail(size) / (quotient.pow(3))).sum();
       std::pair<double, double> result;
-      result.first = 1 / _trust_radius - 1 / p;
-      result.second = p2 / q2 * (p - _trust_radius) / _trust_radius;
+      result.first = 1 / trust_radius_ - 1 / p;
+      result.second = p2 / q2 * (p - trust_radius_) / trust_radius_;
       return result;
     }
 
    private:
-    const Eigen::VectorXd& _factor;
-    const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>& _hessian;
-    double _trust_radius;
-    Index _startindex;
+    const Eigen::VectorXd& factor_;
+    const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>& hessian_;
+    double trust_radius_;
+    Index startindex_;
   };
 };
 

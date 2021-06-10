@@ -43,18 +43,18 @@ class CheckpointReader {
   CheckpointReader(const CptLoc& loc) : CheckpointReader(loc, "/"){};
 
   CheckpointReader(const CptLoc& loc, const std::string path)
-      : _loc(loc), _path(path){};
+      : loc_(loc), path_(path){};
 
   template <typename T>
   typename std::enable_if<!std::is_fundamental<T>::value>::type operator()(
       T& var, const std::string& name) const {
     try {
-      ReadData(_loc, var, name);
+      ReadData(loc_, var, name);
     } catch (H5::Exception&) {
       std::stringstream message;
 
-      message << "Could not read " << name << " from " << _loc.getFileName()
-              << ":" << _path << std::endl;
+      message << "Could not read " << name << " from " << loc_.getFileName()
+              << ":" << path_ << std::endl;
 
       throw std::runtime_error(message.str());
     }
@@ -65,11 +65,11 @@ class CheckpointReader {
                           !std::is_same<T, bool>::value>::type
       operator()(T& var, const std::string& name) const {
     try {
-      ReadScalar(_loc, var, name);
+      ReadScalar(loc_, var, name);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not read " << name << " from " << _loc.getFileName()
-              << ":" << _path << "/" << std::endl;
+      message << "Could not read " << name << " from " << loc_.getFileName()
+              << ":" << path_ << "/" << std::endl;
 
       throw std::runtime_error(message.str());
     }
@@ -78,11 +78,11 @@ class CheckpointReader {
   void operator()(bool& v, const std::string& name) const {
     Index temp = Index(v);
     try {
-      ReadScalar(_loc, temp, name);
+      ReadScalar(loc_, temp, name);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not read " << name << " from " << _loc.getFileName()
-              << ":" << _path << std::endl;
+      message << "Could not read " << name << " from " << loc_.getFileName()
+              << ":" << path_ << std::endl;
 
       throw std::runtime_error(message.str());
     }
@@ -91,11 +91,11 @@ class CheckpointReader {
 
   void operator()(std::string& var, const std::string& name) const {
     try {
-      ReadScalar(_loc, var, name);
+      ReadScalar(loc_, var, name);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not read " << name << " from " << _loc.getFileName()
-              << ":" << _path << std::endl;
+      message << "Could not read " << name << " from " << loc_.getFileName()
+              << ":" << path_ << std::endl;
 
       throw std::runtime_error(message.str());
     }
@@ -103,38 +103,38 @@ class CheckpointReader {
 
   CheckpointReader openChild(const std::string& childName) const {
     try {
-      return CheckpointReader(_loc.openGroup(childName),
-                              _path + "/" + childName);
+      return CheckpointReader(loc_.openGroup(childName),
+                              path_ + "/" + childName);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not open " << _loc.getFileName() << ":/" << _path << "/"
+      message << "Could not open " << loc_.getFileName() << ":/" << path_ << "/"
               << childName << std::endl;
 
       throw std::runtime_error(message.str());
     }
   }
 
-  Index getNumDataSets() const { return _loc.getNumObjs(); }
+  Index getNumDataSets() const { return loc_.getNumObjs(); }
 
-  CptLoc getLoc() { return _loc; }
+  CptLoc getLoc() { return loc_; }
 
   template <typename T>
   CptTable openTable(const std::string& name) {
     try {
-      CptTable table = CptTable(name, sizeof(typename T::data), _loc);
+      CptTable table = CptTable(name, sizeof(typename T::data), loc_);
       T::SetupCptTable(table);
       return table;
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not open table " << name << " in " << _loc.getFileName()
-              << ":" << _path << std::endl;
+      message << "Could not open table " << name << " in " << loc_.getFileName()
+              << ":" << path_ << std::endl;
       throw std::runtime_error(message.str());
     }
   }
 
  private:
-  const CptLoc _loc;
-  const std::string _path;
+  const CptLoc loc_;
+  const std::string path_;
   void ReadScalar(const CptLoc& loc, std::string& var,
                   const std::string& name) const {
     const H5::DataType* strType = InferDataType<std::string>::get();
@@ -222,8 +222,8 @@ class CheckpointReader {
       dataset.read(&(v[0]), *dataType);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not read " << name << " from " << _loc.getFileName()
-              << ":" << _path << std::endl;
+      message << "Could not read " << name << " from " << loc_.getFileName()
+              << ":" << path_ << std::endl;
       throw std::runtime_error(message.str());
     }
   }
@@ -247,8 +247,8 @@ class CheckpointReader {
       dataset.read(temp.data(), *dataType);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not read " << name << " from " << _loc.getFileName()
-              << ":" << _path << std::endl;
+      message << "Could not read " << name << " from " << loc_.getFileName()
+              << ":" << path_ << std::endl;
       throw std::runtime_error(message.str());
     }
     v.reserve(dims[0]);

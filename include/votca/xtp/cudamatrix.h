@@ -103,17 +103,17 @@ class CudaMatrixTranspose {
 
 class CudaMatrix {
  public:
-  Index size() const { return _ld * _cols; };
-  Index rows() const { return _ld; };
-  Index ld() const { return _ld; }
-  Index cols() const { return _cols; };
-  double *data() const { return _data.get(); };
+  Index size() const { return ld_ * cols_; };
+  Index rows() const { return ld_; };
+  Index ld() const { return ld_; }
+  Index cols() const { return cols_; };
+  double *data() const { return data_.get(); };
 
   void reshape(Index rows, Index cols) {
     assert(rows * cols == size() &&
            "reshape cannot change the size of the matrix only the shape");
-    _cols = cols;
-    _ld = rows;
+    cols_ = cols;
+    ld_ = rows;
   }
 
   CudaMatrixTranspose<CudaMatrix> transpose() const {
@@ -129,7 +129,7 @@ class CudaMatrix {
 
   template <class T>
   void copy_to_gpu(const T &m) {
-    if (m.rows() != _ld || m.cols() != _cols) {
+    if (m.rows() != ld_ || m.cols() != cols_) {
       throw std::runtime_error("Shape mismatch of cpu (" +
                                std::to_string(m.rows()) + "x" +
                                std::to_string(m.cols()) + ") and gpu matrix" +
@@ -137,15 +137,15 @@ class CudaMatrix {
     }
     checkCublas(cublasSetMatrixAsync(
         int(m.rows()), int(m.cols()), sizeof(double), m.data(),
-        int(m.colStride()), this->data(), int(this->rows()), _stream));
+        int(m.colStride()), this->data(), int(this->rows()), stream_));
   }
 
   template <class T>
   CudaMatrix(const T &matrix, const cudaStream_t &stream)
-      : _ld{static_cast<Index>(matrix.rows())},
-        _cols{static_cast<Index>(matrix.cols())} {
-    _data = alloc_matrix_in_gpu(size_matrix());
-    _stream = stream;
+      : ld_{static_cast<Index>(matrix.rows())},
+        cols_{static_cast<Index>(matrix.cols())} {
+    data_ = alloc_matrix_in_gpu(size_matrix());
+    stream_ = stream;
     copy_to_gpu(matrix);
   }
 
@@ -170,11 +170,11 @@ class CudaMatrix {
   size_t size_matrix() const { return this->size() * sizeof(double); }
 
   // Attributes of the matrix in the device
-  Unique_ptr_to_GPU_data _data{nullptr,
+  Unique_ptr_to_GPU_data data_{nullptr,
                                [](double *x) { checkCuda(cudaFree(x)); }};
-  cudaStream_t _stream = nullptr;
-  Index _ld;
-  Index _cols;
+  cudaStream_t stream_ = nullptr;
+  Index ld_;
+  Index cols_;
 };
 
 }  // namespace xtp
