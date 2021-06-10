@@ -52,4 +52,4 @@ class NematicOrder {
 }  // namespace csg
 }  // namespace votca
 
-#endif /*  VOTCA_CSG_NEMATICORDER_H_ */
+#endif /*  VOTCA_CSG_NEMATICORDER_H */
