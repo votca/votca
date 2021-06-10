@@ -37,6 +37,7 @@ Version 2022-dev
 -  refactored applications (#710)
 -  add command line option for number of gpus (#711)
 -  reworked iqm statefile reading (#712)
+-  made membervariable format consistent (#713)
 
 Version 2021.1 (released XX.03.21)
 ==================================
