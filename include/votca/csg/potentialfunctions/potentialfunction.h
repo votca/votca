@@ -37,15 +37,15 @@ class PotentialFunction {
   virtual void SavePotTab(const std::string &filename, double step, double rmin,
                           double rcut);
   // set all parameters
-  void setParam(const Eigen::VectorXd &param) { _lam = param; }
+  void setParam(const Eigen::VectorXd &param) { lam_ = param; }
   // set ith parameter
-  void setParam(Index i, double val) { _lam(i) = val; }
+  void setParam(Index i, double val) { lam_(i) = val; }
   // set ith parameter among those to be optimized
   virtual void setOptParam(Index i, double val) { setParam(i, val); }
   // set minimum r value to avoid large values
-  void setMinDist(double min) { _min = min; }
+  void setMinDist(double min) { min_ = min; }
   // set cut-off value
-  void setCutOffDist(double cutoff) { _cut_off = cutoff; }
+  void setCutOffDist(double cutoff) { cut_off_ = cutoff; }
   // calculate function
   virtual double CalculateF(double r) const = 0;
   // calculate first derivative w.r.t. ith parameter
@@ -53,27 +53,27 @@ class PotentialFunction {
   // calculate second derivative w.r.t. ith parameter
   virtual double CalculateD2F(Index i, Index j, double r) const = 0;
   // return parameter
-  Eigen::VectorXd &Params() { return _lam; }
+  Eigen::VectorXd &Params() { return lam_; }
   // return ith parameter
-  double getParam(Index i) const { return _lam(i); }
+  double getParam(Index i) const { return lam_(i); }
   // return ith parameter among those to be optimized
   virtual double getOptParam(Index i) const { return getParam(i); }
   // return size of parameters
-  Index getParamSize() const { return _lam.size(); }
+  Index getParamSize() const { return lam_.size(); }
   // return size of parameters to be optimized
   virtual Index getOptParamSize() const { return getParamSize(); }
   // return cut-off value
-  double getCutOff() const { return _cut_off; }
-  double getMinDist() const { return _min; }
+  double getCutOff() const { return cut_off_; }
+  double getMinDist() const { return min_; }
 
  protected:
   PotentialFunction(const std::string &name, Index nlam, double min,
                     double max);
 
-  std::string _name;
-  Eigen::VectorXd _lam;
-  double _cut_off;
-  double _min;
+  std::string name_;
+  Eigen::VectorXd lam_;
+  double cut_off_;
+  double min_;
 };
 }  // namespace csg
 }  // namespace votca

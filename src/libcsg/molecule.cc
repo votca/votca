@@ -27,20 +27,20 @@ namespace csg {
 using namespace std;
 
 void Molecule::AddBead(Bead *bead, const string &name) {
-  _beads.push_back(bead);
-  _bead_names.push_back(name);
-  _beadmap[name] = _beads.size() - 1;
+  beads_.push_back(bead);
+  bead_names_.push_back(name);
+  beadmap_[name] = beads_.size() - 1;
 
-  bead->setMoleculeId(_id);
+  bead->setMoleculeId(id_);
 }
 
 Index Molecule::getBeadByName(const string &name) const {
-  map<string, Index>::const_iterator iter = _beadmap.find(name);
-  if (iter == _beadmap.end()) {
-    std::cout << "cannot find: <" << name << "> in " << _name << "\n";
+  map<string, Index>::const_iterator iter = beadmap_.find(name);
+  if (iter == beadmap_.end()) {
+    std::cout << "cannot find: <" << name << "> in " << name_ << "\n";
     return -1;
   }
-  return _beadmap.at(name);
+  return beadmap_.at(name);
 }
 
 }  // namespace csg

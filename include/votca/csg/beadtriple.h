@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_BEADTRIPLE_H
-#define _VOTCA_CSG_BEADTRIPLE_H
+#ifndef VOTCA_CSG_BEADTRIPLE_H
+#define VOTCA_CSG_BEADTRIPLE_H
 
 // Standard includes
 #include <tuple>
@@ -35,12 +35,12 @@ class BeadTriple : public std::tuple<Bead *, Bead *, Bead *> {
   BeadTriple(Bead *bead1, Bead *bead2, Bead *bead3, Eigen::Vector3d r12,
              Eigen::Vector3d r13, Eigen::Vector3d r23)
       : std::tuple<Bead *, Bead *, Bead *>(bead1, bead2, bead3),
-        _r12(r12),
-        _r13(r13),
-        _r23(r23),
-        _dist12(r12.norm()),
-        _dist13(r13.norm()),
-        _dist23(r23.norm()) {}
+        r12_(r12),
+        r13_(r13),
+        r23_(r23),
+        dist12_(r12.norm()),
+        dist13_(r13.norm()),
+        dist23_(r23.norm()) {}
 
   virtual ~BeadTriple() = default;
 
@@ -50,24 +50,24 @@ class BeadTriple : public std::tuple<Bead *, Bead *, Bead *> {
   const Bead *bead3() { return std::get<2>(*this); }
 
   /// \brief the vector connecting two beads
-  Eigen::Vector3d &r12() { return _r12; }
-  Eigen::Vector3d &r13() { return _r13; }
-  Eigen::Vector3d &r23() { return _r23; }
+  Eigen::Vector3d &r12() { return r12_; }
+  Eigen::Vector3d &r13() { return r13_; }
+  Eigen::Vector3d &r23() { return r23_; }
   /// \brief the distance of the beads
-  double &dist12() { return _dist12; }
-  double &dist13() { return _dist13; }
-  double &dist23() { return _dist23; }
+  double &dist12() { return dist12_; }
+  double &dist13() { return dist13_; }
+  double &dist23() { return dist23_; }
 
  protected:
-  Eigen::Vector3d _r12;
-  Eigen::Vector3d _r13;
-  Eigen::Vector3d _r23;
-  double _dist12;
-  double _dist13;
-  double _dist23;
+  Eigen::Vector3d r12_;
+  Eigen::Vector3d r13_;
+  Eigen::Vector3d r23_;
+  double dist12_;
+  double dist13_;
+  double dist23_;
 };
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_BEADTRIPLE_H */
+#endif /*  VOTCA_CSG_BEADTRIPLE_H */

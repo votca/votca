@@ -58,14 +58,14 @@ class TrajForce : public CsgApplication {
 
  protected:
   /// \brief Scaling of forces, +1 for addition and -1 for subtraction
-  double _scale;
+  double scale_;
   /// \brief Write results to output files
   void WriteOutFiles();
 
   void OpenForcesTrajectory();
-  Topology _top_force;
-  std::unique_ptr<TrajectoryReader> _trjreader_force;
-  std::unique_ptr<TrajectoryWriter> _trjwriter;
+  Topology top_force_;
+  std::unique_ptr<TrajectoryReader> trjreader_force_;
+  std::unique_ptr<TrajectoryWriter> trjwriter_;
 };
 
 #endif  // VOTCA_CSG_TRAJ_FORCE_H

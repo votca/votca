@@ -34,9 +34,9 @@ using namespace std;
 
 bool XYZReader::ReadTopology(string file, Topology &top) {
   top.Cleanup();
-  _file = file;
-  _fl.open(file);
-  if (!_fl.is_open()) {
+  file_ = file;
+  fl_.open(file);
+  if (!fl_.is_open()) {
     throw std::ios_base::failure("Error on open topology file: " + file);
   }
 
@@ -44,22 +44,22 @@ bool XYZReader::ReadTopology(string file, Topology &top) {
 
   ReadFrame<true, Topology>(top);
 
-  _fl.close();
+  fl_.close();
 
   return true;
 }
 
 bool XYZReader::Open(const string &file) {
-  _file = file;
-  _fl.open(file);
-  if (!_fl.is_open()) {
+  file_ = file;
+  fl_.open(file);
+  if (!fl_.is_open()) {
     throw std::ios_base::failure("Error on open trajectory file: " + file);
   }
-  _line = 0;
+  line_ = 0;
   return true;
 }
 
-void XYZReader::Close() { _fl.close(); }
+void XYZReader::Close() { fl_.close(); }
 
 bool XYZReader::FirstFrame(Topology &top) { return NextFrame(top); }
 

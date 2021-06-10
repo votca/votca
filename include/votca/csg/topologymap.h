@@ -38,18 +38,18 @@ class TopologyMap {
   void Apply();
 
  private:
-  const Topology *_in;
-  Topology *_out;
+  const Topology *in_;
+  Topology *out_;
 
   using MapContainer = std::vector<Map>;
-  MapContainer _maps;
+  MapContainer maps_;
 };
 
 inline TopologyMap::TopologyMap(const Topology *in, Topology *out)
-    : _in(in), _out(out) {}
+    : in_(in), out_(out) {}
 
 inline void TopologyMap::AddMoleculeMap(Map map) {
-  _maps.push_back(std::move(map));
+  maps_.push_back(std::move(map));
 }
 
 }  // namespace csg

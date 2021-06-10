@@ -40,10 +40,10 @@ class BondedStatistics : public votca::csg::CGObserver {
   void EvalConfiguration(Topology *conf,
                          Topology *conf_atom = nullptr) override;
 
-  tools::DataCollection<double> &BondedValues() { return _bonded_values; }
+  tools::DataCollection<double> &BondedValues() { return bonded_values_; }
 
  protected:
-  tools::DataCollection<double> _bonded_values;
+  tools::DataCollection<double> bonded_values_;
 };
 }  // namespace csg
 }  // namespace votca

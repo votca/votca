@@ -25,7 +25,7 @@
 namespace votca {
 namespace csg {
 
-NBList_3Body::NBList_3Body() : _do_exclusions(false), _match_function(nullptr) {
+NBList_3Body::NBList_3Body() : do_exclusions_(false), match_function_(nullptr) {
   setTripleType<BeadTriple>();
   SetMatchFunction(NBList_3Body::match_always);
 }
@@ -37,7 +37,7 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
   BeadList::iterator iter1;
   BeadList::iterator iter2;
   BeadList::iterator iter3;
-  _do_exclusions = do_exclusions;
+  do_exclusions_ = do_exclusions;
 
   if (list1.empty()) {
     return;
@@ -105,20 +105,20 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
         // to do: at the moment use only one cutoff value
         // to do: so far only check the distance between bead 1 (central bead)
         // and bead2 and bead 3
-        if ((d12 < _cutoff) && (d13 < _cutoff)) {
+        if ((d12 < cutoff_) && (d13 < cutoff_)) {
           /// experimental: at the moment exclude interaction as soon as one of
           /// the three pairs (1,2) (1,3) (2,3) is excluded!
-          if (_do_exclusions) {
+          if (do_exclusions_) {
             if ((top.getExclusions().IsExcluded(*iter1, *iter2)) ||
                 (top.getExclusions().IsExcluded(*iter1, *iter3)) ||
                 (top.getExclusions().IsExcluded(*iter2, *iter3))) {
               continue;
             }
           }
-          if ((*_match_function)(*iter1, *iter2, *iter3, r12, r13, r23, d12,
+          if ((*match_function_)(*iter1, *iter2, *iter3, r12, r13, r23, d12,
                                  d13, d23)) {
             if (!FindTriple(*iter1, *iter2, *iter3)) {
-              AddTriple(_triple_creator(*iter1, *iter2, *iter3, r12, r13, r23));
+              AddTriple(triple_creator_(*iter1, *iter2, *iter3, r12, r13, r23));
             }
           }
         }

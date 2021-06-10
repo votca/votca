@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_TRIPLELIST_H
-#define _VOTCA_CSG_TRIPLELIST_H
+#ifndef VOTCA_CSG_TRIPLELIST_H
+#define VOTCA_CSG_TRIPLELIST_H
 
 // Standard includes
 #include <map>
@@ -35,14 +35,14 @@ class TripleList {
 
   using iterator = typename std::vector<triple_type *>::iterator;
 
-  iterator begin() { return _triples.begin(); }
-  iterator end() { return _triples.end(); }
+  iterator begin() { return triples_.begin(); }
+  iterator end() { return triples_.end(); }
   typename std::vector<triple_type *>::size_type size() {
-    return _triples.size();
+    return triples_.size();
   }
-  triple_type *front() { return _triples.front(); }
-  triple_type *back() { return _triples.back(); }
-  bool empty() { return _triples.empty(); }
+  triple_type *front() { return triples_.front(); }
+  triple_type *back() { return triples_.back(); }
+  bool empty() { return triples_.empty(); }
 
   void Cleanup();
 
@@ -52,11 +52,11 @@ class TripleList {
   using triple_t = triple_type;
 
  private:
-  std::vector<triple_type *> _triples;
+  std::vector<triple_type *> triples_;
 
   std::map<element_type,
            std::map<element_type, std::map<element_type, triple_type *>>>
-      _triple_map;
+      triple_map_;
 };
 
 template <typename element_type, typename triple_type>
@@ -64,19 +64,19 @@ inline void TripleList<element_type, triple_type>::AddTriple(triple_type *t) {
   //(*t)[i] gives access to ith element of tuple object (i=0,1,2).
   // only consider the permutations of elements (1,2) of the tuple object ->
   // tuple objects of the form (*,1,2) and (*,2,1) are considered to be the same
-  _triple_map[std::get<0>(*t)][std::get<1>(*t)][std::get<2>(*t)] = t;
-  _triple_map[std::get<0>(*t)][std::get<2>(*t)][std::get<1>(*t)] = t;
+  triple_map_[std::get<0>(*t)][std::get<1>(*t)][std::get<2>(*t)] = t;
+  triple_map_[std::get<0>(*t)][std::get<2>(*t)][std::get<1>(*t)] = t;
   /// \todo check if unique
-  _triples.push_back(t);
+  triples_.push_back(t);
 }
 
 template <typename element_type, typename triple_type>
 inline void TripleList<element_type, triple_type>::Cleanup() {
-  for (iterator iter = _triples.begin(); iter != _triples.end(); ++iter) {
+  for (iterator iter = triples_.begin(); iter != triples_.end(); ++iter) {
     delete *iter;
   }
-  _triples.clear();
-  _triple_map.clear();
+  triples_.clear();
+  triple_map_.clear();
 }
 
 template <typename element_type, typename triple_type>
@@ -86,8 +86,8 @@ inline triple_type *TripleList<element_type, triple_type>::FindTriple(
       element_type,
       std::map<element_type, std::map<element_type, triple_type *>>>::iterator
       iter1;
-  iter1 = _triple_map.find(e1);
-  if (iter1 == _triple_map.end()) {
+  iter1 = triple_map_.find(e1);
+  if (iter1 == triple_map_.end()) {
     return nullptr;
   }
 
@@ -110,4 +110,4 @@ inline triple_type *TripleList<element_type, triple_type>::FindTriple(
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_TRIPLELIST_H */
+#endif /*  VOTCA_CSG_TRIPLELIST_H */

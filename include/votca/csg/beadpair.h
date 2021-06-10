@@ -36,22 +36,22 @@ class BeadPair {
  public:
   BeadPair() = default;
   BeadPair(Bead *bead1, Bead *bead2, Eigen::Vector3d r)
-      : _pair(std::pair<Bead *, Bead *>(bead1, bead2)),
-        _r(r),
-        _dist(r.norm()) {}
+      : pair_(std::pair<Bead *, Bead *>(bead1, bead2)),
+        r_(r),
+        dist_(r.norm()) {}
 
-  Bead *first() { return _pair.first; }
-  Bead *second() { return _pair.second; }
+  Bead *first() { return pair_.first; }
+  Bead *second() { return pair_.second; }
   /// \brief the vector connecting two beads
-  const Eigen::Vector3d &r() const { return _r; }
+  const Eigen::Vector3d &r() const { return r_; }
   /// \brief the distance of the beads
-  double dist() const { return _dist; }
+  double dist() const { return dist_; }
 
  protected:
-  std::pair<Bead *, Bead *> _pair;
+  std::pair<Bead *, Bead *> pair_;
 
-  Eigen::Vector3d _r;
-  double _dist;
+  Eigen::Vector3d r_;
+  double dist_;
 };
 
 }  // namespace csg

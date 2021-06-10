@@ -50,12 +50,12 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
 
   } else if (boost::filesystem::extension(filepath) == ".dlpc") {
 
-    _isConfig = true;
+    isConfig_ = true;
     out_name = "CONFIG_CGV";
 
   } else if (boost::filesystem::extension(filepath) == ".dlph") {
 
-    _isConfig = false;
+    isConfig_ = false;
 
   } else {
     throw std::ios_base::failure("Error on creating dlpoly file '" + file +
@@ -64,22 +64,22 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
 
   if (boost::filesystem::basename(filepath).size() == 0) {
     if (filepath.parent_path().string().size() == 0) {
-      _fname = out_name;
+      fname_ = out_name;
     } else {
-      _fname = filepath.parent_path().string() + "/" + out_name;
+      fname_ = filepath.parent_path().string() + "/" + out_name;
     }
   } else {
-    _fname = file;
+    fname_ = file;
   }
 
-  _fl.open(_fname);
-  if (!_fl.is_open()) {
-    throw std::ios_base::failure("Error on creating dlpoly file '" + _fname +
+  fl_.open(fname_);
+  if (!fl_.is_open()) {
+    throw std::ios_base::failure("Error on creating dlpoly file '" + fname_ +
                                  "'");
   }
 }
 
-void DLPOLYTrajectoryWriter::Close() { _fl.close(); }
+void DLPOLYTrajectoryWriter::Close() { fl_.close(); }
 
 void DLPOLYTrajectoryWriter::Write(Topology *conf) {
   static Index nstep = 1;
@@ -100,35 +100,35 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
     mpbct = 3;
   }
 
-  if (_isConfig) {
+  if (isConfig_) {
     double energy = 0.0;
-    _fl << "From VOTCA with love" << endl;
-    _fl << setw(10) << mavecs << setw(10) << mpbct << setw(10)
+    fl_ << "From VOTCA with love" << endl;
+    fl_ << setw(10) << mavecs << setw(10) << mpbct << setw(10)
         << conf->BeadCount() << setw(20) << energy << endl;
     Eigen::Matrix3d m = conf->getBox();
     for (Index i = 0; i < 3; i++) {
-      _fl << fixed << setprecision(10) << setw(20) << m(i, 0) * scale
+      fl_ << fixed << setprecision(10) << setw(20) << m(i, 0) * scale
           << setw(20) << m(i, 1) * scale << setw(20) << m(i, 2) * scale << endl;
     }
 
   } else {
     static double dstep = 0.0;
     if (nstep == 1) {
-      _fl << "From VOTCA with love" << endl;
-      _fl << setw(10) << mavecs << setw(10) << mpbct << setw(10)
+      fl_ << "From VOTCA with love" << endl;
+      fl_ << setw(10) << mavecs << setw(10) << mpbct << setw(10)
           << conf->BeadCount() << endl;
       dstep = conf->getTime() / (double)(conf->getStep());
     }
 
-    _fl << "timestep" << setprecision(9) << setw(10) << conf->getStep()
+    fl_ << "timestep" << setprecision(9) << setw(10) << conf->getStep()
         << setw(10) << conf->BeadCount() << setw(10) << mavecs << setw(10)
         << mpbct;
-    _fl << setprecision(9) << setw(12) << dstep << setw(12) << conf->getTime()
+    fl_ << setprecision(9) << setw(12) << dstep << setw(12) << conf->getTime()
         << endl;
 
     Eigen::Matrix3d m = conf->getBox();
     for (Index i = 0; i < 3; i++) {
-      _fl << setprecision(12) << setw(20) << m(i, 0) * scale << setw(20)
+      fl_ << setprecision(12) << setw(20) << m(i, 0) * scale << setw(20)
           << m(i, 1) * scale << setw(20) << m(i, 2) * scale << endl;
     }
   }
@@ -138,25 +138,26 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
 
     // AB: DL_POLY needs bead TYPE, not name!
 
-    if (_isConfig) {
-      _fl << setw(8) << left << bead->getType() << right << setw(10) << i + 1
+    if (isConfig_) {
+      fl_ << setw(8) << left << bead->getType() << right << setw(10) << i + 1
           << endl;
     } else {
-      _fl << setw(8) << left << bead->getType() << right << setw(10) << i + 1;
-      _fl << setprecision(6) << setw(12) << bead->getMass() << setw(12)
+      fl_ << setw(8) << left << bead->getType() << right << setw(10) << i + 1;
+      fl_ << setprecision(6) << setw(12) << bead->getMass() << setw(12)
           << bead->getQ() << setw(12) << "   0.0" << endl;
     }
 
     // alternative with atom NAME & fixed floating point format (in case the
     // need arises)
-    //_fl << setw(8) << left << bead->getName() << right << setw(10) << i+1;
-    //_fl << fixed << setprecision(6) << setw(12) << bead->getMass() << setw(12)
+    // fl_ << setw(8) << left << bead->getName() << right << setw(10) << i+1;
+    // fl_ << fixed << setprecision(6) << setw(12) << bead->getMass() <<
+    // setw(12)
     //<< bead->getQ() << "   0.0" << endl;
 
     // nm -> Angs
-    _fl << resetiosflags(std::ios::fixed) << setprecision(12) << setw(20)
+    fl_ << resetiosflags(std::ios::fixed) << setprecision(12) << setw(20)
         << bead->getPos().x() * scale;
-    _fl << setw(20) << bead->getPos().y() * scale << setw(20)
+    fl_ << setw(20) << bead->getPos().y() * scale << setw(20)
         << bead->getPos().z() * scale << endl;
 
     if (mavecs > 0) {
@@ -167,9 +168,9 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
       }
 
       // nm -> Angs
-      _fl << setprecision(12) << setw(20) << bead->getVel().x() * scale
+      fl_ << setprecision(12) << setw(20) << bead->getVel().x() * scale
           << setw(20);
-      _fl << bead->getVel().y() * scale << setw(20)
+      fl_ << bead->getVel().y() * scale << setw(20)
           << bead->getVel().z() * scale << endl;
 
       if (mavecs > 1) {
@@ -180,9 +181,9 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
         }
 
         // nm -> Angs
-        _fl << setprecision(12) << setw(20) << bead->getF().x() * scale
+        fl_ << setprecision(12) << setw(20) << bead->getF().x() * scale
             << setw(20);
-        _fl << bead->getF().y() * scale << setw(20) << bead->getF().z() * scale
+        fl_ << bead->getF().y() * scale << setw(20) << bead->getF().z() * scale
             << endl;
       }
     }

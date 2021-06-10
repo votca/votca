@@ -29,9 +29,9 @@ PotentialFunctionLJG::PotentialFunctionLJG(const string &name, double min,
 double PotentialFunctionLJG::CalculateF(double r) const {
 
   // lj 12-6 part + gaussian
-  if (r >= _min && r <= _cut_off) {
-    return _lam(0) / pow(r, 12) - _lam(1) / pow(r, 6) +
-           _lam(2) * exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+  if (r >= min_ && r <= cut_off_) {
+    return lam_(0) / pow(r, 12) - lam_(1) / pow(r, 6) +
+           lam_(2) * exp(-1.0 * lam_(3) * (r - lam_(4)) * (r - lam_(4)));
   } else {
     return 0.0;
   }
@@ -40,7 +40,7 @@ double PotentialFunctionLJG::CalculateF(double r) const {
 // calculate first derivative w.r.t. ith parameter
 double PotentialFunctionLJG::CalculateDF(Index i, double r) const {
 
-  if (r >= _min && r <= _cut_off) {
+  if (r >= min_ && r <= cut_off_) {
 
     switch (i) {
       case 0:
@@ -48,13 +48,13 @@ double PotentialFunctionLJG::CalculateDF(Index i, double r) const {
       case 1:
         return -1.0 / pow(r, 6);
       case 2:
-        return exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+        return exp(-1.0 * lam_(3) * (r - lam_(4)) * (r - lam_(4)));
       case 3:
-        return -1.0 * _lam(2) * (r - _lam(4)) * (r - _lam(4)) *
-               exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+        return -1.0 * lam_(2) * (r - lam_(4)) * (r - lam_(4)) *
+               exp(-1.0 * lam_(3) * (r - lam_(4)) * (r - lam_(4)));
       case 4:
-        return 2.0 * _lam(2) * _lam(3) * (r - _lam(4)) *
-               exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+        return 2.0 * lam_(2) * lam_(3) * (r - lam_(4)) *
+               exp(-1.0 * lam_(3) * (r - lam_(4)) * (r - lam_(4)));
     }
   }
   return 0.0;
@@ -63,7 +63,7 @@ double PotentialFunctionLJG::CalculateDF(Index i, double r) const {
 // calculate second derivative w.r.t. ith parameter
 double PotentialFunctionLJG::CalculateD2F(Index i, Index j, double r) const {
 
-  if (r >= _min && r <= _cut_off) {
+  if (r >= min_ && r <= cut_off_) {
 
     switch (i) {
       case 0:
@@ -80,11 +80,11 @@ double PotentialFunctionLJG::CalculateD2F(Index i, Index j, double r) const {
           case 2:
             return 0.0;
           case 3:
-            return -1.0 * (r - _lam(4)) * (r - _lam(4)) *
-                   exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+            return -1.0 * (r - lam_(4)) * (r - lam_(4)) *
+                   exp(-1.0 * lam_(3) * (r - lam_(4)) * (r - lam_(4)));
           case 4:
-            return 2.0 * _lam(3) * (r - _lam(4)) *
-                   exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+            return 2.0 * lam_(3) * (r - lam_(4)) *
+                   exp(-1.0 * lam_(3) * (r - lam_(4)) * (r - lam_(4)));
           default:
             return 0.0;
         }
@@ -95,15 +95,15 @@ double PotentialFunctionLJG::CalculateD2F(Index i, Index j, double r) const {
           case 1:
             return 0.0;
           case 2:
-            return -1.0 * (r - _lam(4)) * (r - _lam(4)) *
-                   exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+            return -1.0 * (r - lam_(4)) * (r - lam_(4)) *
+                   exp(-1.0 * lam_(3) * (r - lam_(4)) * (r - lam_(4)));
           case 3:
-            return _lam(2) * pow((r - _lam(4)), 4) *
-                   exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+            return lam_(2) * pow((r - lam_(4)), 4) *
+                   exp(-1.0 * lam_(3) * (r - lam_(4)) * (r - lam_(4)));
           case 4:
-            return 2.0 * _lam(2) * (r - _lam(4)) *
-                   (1.0 - _lam(3) * pow((r - _lam(4)), 2)) *
-                   exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+            return 2.0 * lam_(2) * (r - lam_(4)) *
+                   (1.0 - lam_(3) * pow((r - lam_(4)), 2)) *
+                   exp(-1.0 * lam_(3) * (r - lam_(4)) * (r - lam_(4)));
           default:
             return 0.0;
         }
@@ -114,16 +114,16 @@ double PotentialFunctionLJG::CalculateD2F(Index i, Index j, double r) const {
           case 1:
             return 0.0;
           case 2:
-            return 2.0 * _lam(3) * (r - _lam(4)) *
-                   exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+            return 2.0 * lam_(3) * (r - lam_(4)) *
+                   exp(-1.0 * lam_(3) * (r - lam_(4)) * (r - lam_(4)));
           case 3:
-            return 2.0 * _lam(2) * (r - _lam(4)) *
-                   (1.0 - _lam(3) * pow((r - _lam(4)), 2)) *
-                   exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+            return 2.0 * lam_(2) * (r - lam_(4)) *
+                   (1.0 - lam_(3) * pow((r - lam_(4)), 2)) *
+                   exp(-1.0 * lam_(3) * (r - lam_(4)) * (r - lam_(4)));
           case 4:
-            return 2.0 * _lam(2) * _lam(3) *
-                   (2.0 * _lam(3) * pow((r - _lam(4)), 2) - 1.0) *
-                   exp(-1.0 * _lam(3) * (r - _lam(4)) * (r - _lam(4)));
+            return 2.0 * lam_(2) * lam_(3) *
+                   (2.0 * lam_(3) * pow((r - lam_(4)), 2) - 1.0) *
+                   exp(-1.0 * lam_(3) * (r - lam_(4)) * (r - lam_(4)));
         }
     }
   }

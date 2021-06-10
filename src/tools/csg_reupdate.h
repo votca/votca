@@ -55,7 +55,7 @@ struct PotentialInfo {
 
   double rmin, rcut;
 
-  Property *_options;
+  Property *options_;
 };
 
 class CsgREupdate : public CsgApplication {
@@ -87,36 +87,36 @@ class CsgREupdate : public CsgApplication {
 
  private:
  protected:
-  Property _options;
-  std::vector<Property *> _nonbonded;
+  Property options_;
+  std::vector<Property *> nonbonded_;
 
   using PotentialContainer = std::vector<PotentialInfo *>;
-  PotentialContainer _potentials;
+  PotentialContainer potentials_;
 
-  votca::Index _nlamda;
-  Eigen::VectorXd _lamda;
-  // _HS is a symmetric matrix
-  Eigen::MatrixXd _HS;
-  Eigen::VectorXd _DS;
-  Eigen::VectorXd _dUFrame;
-  bool _hessian_check;
+  votca::Index nlamda_;
+  Eigen::VectorXd lamda_;
+  //  HS_ is a symmetric matrix
+  Eigen::MatrixXd HS_;
+  Eigen::VectorXd DS_;
+  Eigen::VectorXd dUFrame_;
+  bool hessian_check_;
 
-  double _UavgAA;
-  double _UavgCG;
-  double _beta;
-  double _relax;
-  votca::Index _nframes;
+  double UavgAA_;
+  double UavgCG_;
+  double beta_;
+  double relax_;
+  votca::Index nframes_;
 
-  bool _gentable;
-  bool _dosteep;
+  bool gentable_;
+  bool dosteep_;
 
-  std::vector<Table *> _aardfs;
-  std::vector<double *> _aardfnorms;
+  std::vector<Table *> aardfs_;
+  std::vector<double *> aardfnorms_;
 
   // file extension for the inputs/outputs
-  std::string _param_in_ext, _param_out_ext;
-  std::string _pot_out_ext;
-  std::string _rdf_ext;
+  std::string param_in_ext_, param_out_ext_;
+  std::string pot_out_ext_;
+  std::string rdf_ext_;
 
   void WriteOutFiles();
   void EvalBonded(Topology *conf, PotentialInfo *potinfo);
@@ -126,10 +126,10 @@ class CsgREupdate : public CsgApplication {
   void AAavgBonded(PotentialInfo *potinfo);
   void AAavgNonbonded(PotentialInfo *potinfo);
 
-  // Formulates _HS dlamda = - _DS system of Lin Eq.
+  // Formulates  HS_ dlamda = -  DS_ system of Lin Eq.
   void REFormulateLinEq();
 
-  // Solve _HS dlamda = - _DS and update _lamda
+  // Solve  HS_ dlamda = -  DS_ and update  lamda_
   void REUpdateLamda();
 };
 
@@ -137,21 +137,21 @@ class CsgREupdateWorker : public CsgApplication::Worker {
  public:
   ~CsgREupdateWorker() override = default;
 
-  Property _options;
-  std::vector<Property *> _nonbonded;
+  Property options_;
+  std::vector<Property *> nonbonded_;
 
   using PotentialContainer = std::vector<PotentialInfo *>;
-  PotentialContainer _potentials;
+  PotentialContainer potentials_;
 
-  votca::Index _nlamda;
-  Eigen::VectorXd _lamda;
-  Eigen::MatrixXd _HS;
-  Eigen::VectorXd _DS;
-  Eigen::VectorXd _dUFrame;
+  votca::Index nlamda_;
+  Eigen::VectorXd lamda_;
+  Eigen::MatrixXd HS_;
+  Eigen::VectorXd DS_;
+  Eigen::VectorXd dUFrame_;
 
-  double _UavgCG;
-  double _beta;
-  votca::Index _nframes;
+  double UavgCG_;
+  double beta_;
+  votca::Index nframes_;
 
   void EvalConfiguration(Topology *conf, Topology *conf_atom) override;
   void EvalBonded(Topology *conf, PotentialInfo *potinfo);

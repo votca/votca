@@ -35,53 +35,53 @@ namespace csg {
 using namespace std;
 
 bool GROReader::ReadTopology(string file, Topology &top) {
-  _topology = true;
+  topology_ = true;
   top.Cleanup();
 
-  _fl.open(file);
-  if (!_fl.is_open()) {
+  fl_.open(file);
+  if (!fl_.is_open()) {
     throw std::ios_base::failure("Error on open topology file: " + file);
   }
 
   NextFrame(top);
 
-  _fl.close();
+  fl_.close();
 
   return true;
 }
 
 bool GROReader::Open(const string &file) {
-  _fl.open(file);
-  if (!_fl.is_open()) {
+  fl_.open(file);
+  if (!fl_.is_open()) {
     throw std::ios_base::failure("Error on open trajectory file: " + file);
   }
   return true;
 }
 
-void GROReader::Close() { _fl.close(); }
+void GROReader::Close() { fl_.close(); }
 
 bool GROReader::FirstFrame(Topology &top) {
-  _topology = false;
+  topology_ = false;
   NextFrame(top);
   return true;
 }
 
 bool GROReader::NextFrame(Topology &top) {
   string tmp;
-  tools::getline(_fl, tmp);  // title
-  if (_fl.eof()) {
-    return !_fl.eof();
+  tools::getline(fl_, tmp);  // title
+  if (fl_.eof()) {
+    return !fl_.eof();
   }
-  tools::getline(_fl, tmp);  // number atoms
+  tools::getline(fl_, tmp);  // number atoms
   Index natoms = std::stoi(tmp);
-  if (!_topology && natoms != top.BeadCount()) {
+  if (!topology_ && natoms != top.BeadCount()) {
     throw std::runtime_error(
         "number of beads in topology and trajectory differ");
   }
 
   for (Index i = 0; i < natoms; i++) {
     string line;
-    tools::getline(_fl, line);
+    tools::getline(fl_, line);
     string resNum, resName, atName, x, y, z;
     try {
       resNum = string(line, 0, 5);   // %5i
@@ -111,7 +111,7 @@ bool GROReader::NextFrame(Topology &top) {
     }
 
     Bead *b;
-    if (_topology) {
+    if (topology_) {
       Index resnr = boost::lexical_cast<Index>(resNum);
       if (resnr < 1) {
         throw std::runtime_error("Misformated gro file, resnr has to be > 0");
@@ -149,8 +149,8 @@ bool GROReader::NextFrame(Topology &top) {
     }
   }
 
-  tools::getline(_fl, tmp);  // read box line
-  if (_fl.eof()) {
+  tools::getline(fl_, tmp);  // read box line
+  if (fl_.eof()) {
     throw std::runtime_error(
         "unexpected end of file in poly file, when boxline");
   }
@@ -176,12 +176,12 @@ bool GROReader::NextFrame(Topology &top) {
   }
   top.setBox(box);
 
-  if (_topology) {
+  if (topology_) {
     cout << "WARNING: topology created from .gro file, masses and charges are "
             "wrong!\n";
   }
 
-  return !_fl.eof();
+  return !fl_.eof();
 }
 
 }  // namespace csg

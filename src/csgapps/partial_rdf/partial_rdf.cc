@@ -42,7 +42,7 @@ using namespace votca::csg;
 
 class CsgStatApp : public CsgApplication {
  public:
-  CsgStatApp() : _write_every(0) {}
+  CsgStatApp() : write_every_(0) {}
 
   string ProgramName() override { return "csg_partial_rdf"; }
   void HelpText(ostream &out) override;
@@ -59,16 +59,16 @@ class CsgStatApp : public CsgApplication {
   void EndEvaluate() override;
 
   std::unique_ptr<CsgApplication::Worker> ForkWorker() override {
-    return _rdf_calculator.ForkWorker();
+    return rdf_calculator_.ForkWorker();
   }
 
   void MergeWorker(CsgApplication::Worker *worker) override {
-    _rdf_calculator.MergeWorker(worker);
+    rdf_calculator_.MergeWorker(worker);
   }
 
  public:
-  RDFCalculator _rdf_calculator;
-  votca::Index _write_every;
+  RDFCalculator rdf_calculator_;
+  votca::Index write_every_;
 };
 
 void CsgStatApp::HelpText(ostream &out) {
@@ -83,7 +83,7 @@ void CsgStatApp::Initialize() {
       "subvolume_radius", boost::program_options::value<double>(),
       "Rdf calc. in spherical subvolume of this radius (from center of box)")(
       "do-vol-corr", "Correct for subvolume truncation in rdf")(
-      "write-every", boost::program_options::value<votca::Index>(&_write_every),
+      "write-every", boost::program_options::value<votca::Index>(&write_every_),
       " (UNIMPLEMENTED) write after every block of this length, "
       "if --blocking   is set, the averages are cleared after every output")(
       "do-blocks", "  write output for blocking analysis");
@@ -95,29 +95,29 @@ bool CsgStatApp::EvaluateOptions() {
   CheckRequired("subvolume_radius");
   CheckRequired("trj", "no trajectory file specified");
 
-  _rdf_calculator.LoadOptions(OptionsMap()["options"].as<string>());
+  rdf_calculator_.LoadOptions(OptionsMap()["options"].as<string>());
 
-  _rdf_calculator.SetSubvolRadius(
+  rdf_calculator_.SetSubvolRadius(
       OptionsMap()["subvolume_radius"].as<double>());
 
-  _rdf_calculator.WriteEvery(_write_every);
+  rdf_calculator_.WriteEvery(write_every_);
   if (OptionsMap().count("do-blocks")) {
-    _rdf_calculator.DoBlocks(true);
+    rdf_calculator_.DoBlocks(true);
   }
 
   if (OptionsMap().count("do-vol-corr")) {
-    _rdf_calculator.DoVolumeCorrection(true);
+    rdf_calculator_.DoVolumeCorrection(true);
   }
 
-  _rdf_calculator.Initialize();
+  rdf_calculator_.Initialize();
   return true;
 }
 
 void CsgStatApp::BeginEvaluate(Topology *top, Topology *top_ref) {
-  _rdf_calculator.BeginEvaluate(top, top_ref);
+  rdf_calculator_.BeginEvaluate(top, top_ref);
 }
 
-void CsgStatApp::EndEvaluate() { _rdf_calculator.EndEvaluate(); }
+void CsgStatApp::EndEvaluate() { rdf_calculator_.EndEvaluate(); }
 
 int main(int argc, char **argv) {
   CsgStatApp app;

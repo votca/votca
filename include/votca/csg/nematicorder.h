@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_NEMATICORDER_H
-#define _VOTCA_CSG_NEMATICORDER_H
+#ifndef VOTCA_CSG_NEMATICORDER_H
+#define VOTCA_CSG_NEMATICORDER_H
 
 // VOTCA includes
 #include <votca/tools/eigen.h>
@@ -35,21 +35,21 @@ class NematicOrder {
   void Process(Topology &top, const std::string &filter = "*");
 
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> &NematicU() {
-    return _nemat_u;
+    return nemat_u_;
   }
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> &NematicV() {
-    return _nemat_v;
+    return nemat_v_;
   }
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> &NematicW() {
-    return _nemat_w;
+    return nemat_w_;
   }
 
  private:
-  Eigen::Matrix3d _mu, _mv, _mw;
-  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> _nemat_u, _nemat_v, _nemat_w;
+  Eigen::Matrix3d mu_, mv_, mw_;
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> nemat_u_, nemat_v_, nemat_w_;
 };
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_NEMATICORDER_H */
+#endif /*  VOTCA_CSG_NEMATICORDER_H_ */

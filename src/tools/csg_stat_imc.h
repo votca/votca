@@ -49,73 +49,73 @@ class Imc {
   /// end coarse graining a trajectory
   void EndEvaluate();
 
-  void BlockLength(votca::Index length) { _block_length = length; }
-  void DoImc(bool do_imc) { _do_imc = do_imc; }
-  void IncludeIntra(bool include_intra) { _include_intra = include_intra; }
-  void Extension(std::string ext) { _extension = ext; }
+  void BlockLength(votca::Index length) { block_length_ = length; }
+  void DoImc(bool do_imc) { do_imc_ = do_imc; }
+  void IncludeIntra(bool include_intra) { include_intra_ = include_intra; }
+  void Extension(std::string ext) { extension_ = ext; }
 
  protected:
-  tools::Average<double> _avg_vol;
+  tools::Average<double> avg_vol_;
 
   using group_matrix = Eigen::MatrixXd;
   using pair_matrix = Eigen::Block<group_matrix>;
 
   /// struct to store collected information for interactions
   struct interaction_t {
-    votca::Index _index;
-    tools::Property *_p;
-    tools::HistogramNew _average;
-    tools::HistogramNew _average_force;
-    double _min, _max, _step;
-    double _norm;
-    double _cut;
-    bool _is_bonded;
-    bool _threebody;
-    bool _force;
+    votca::Index index_;
+    tools::Property *p_;
+    tools::HistogramNew average_;
+    tools::HistogramNew average_force_;
+    double min_, max_, step_;
+    double norm_;
+    double cut_;
+    bool is_bonded_;
+    bool threebody_;
+    bool force_;
   };
 
   // a pair of interactions which are correlated
   struct pair_t {
-    interaction_t *_i1;
-    interaction_t *_i2;
-    votca::Index _offset_i, _offset_j;
-    pair_matrix _corr;
+    interaction_t *i1_;
+    interaction_t *i2_;
+    votca::Index offset_i_, offset_j_;
+    pair_matrix corr_;
     pair_t(interaction_t *i1, interaction_t *i2, votca::Index offset_i,
            votca::Index offset_j, const pair_matrix &corr);
   };
 
   /// struct to store collected information for groups (e.g. crosscorrelations)
   struct group_t {
-    std::vector<interaction_t *> _interactions;
-    group_matrix _corr;
-    std::vector<pair_t> _pairs;
+    std::vector<interaction_t *> interactions_;
+    group_matrix corr_;
+    std::vector<pair_t> pairs_;
   };
 
   /// the options parsed from cg definition file
-  tools::Property _options;
+  tools::Property options_;
   // length of the block to write out and averages are clear after every write
-  votca::Index _block_length = 0;
+  votca::Index block_length_ = 0;
   // calculate the inverse monte carlos parameters (cross correlations)
-  bool _do_imc = false;
+  bool do_imc_ = false;
   // include the intramolecular neighbors
-  bool _include_intra = false;
+  bool include_intra_ = false;
 
   // file extension for the distributions
-  std::string _extension;
+  std::string extension_;
 
   // number of frames we processed
-  votca::Index _nframes;
-  votca::Index _nblock;
+  votca::Index nframes_;
+  votca::Index nblock_;
 
   /// list of bonded interactions
-  std::vector<tools::Property *> _bonded;
+  std::vector<tools::Property *> bonded_;
   /// list of non-bonded interactions
-  std::vector<tools::Property *> _nonbonded;
+  std::vector<tools::Property *> nonbonded_;
 
   /// map interaction-name to interaction
-  std::map<std::string, std::unique_ptr<interaction_t> > _interactions;
+  std::map<std::string, std::unique_ptr<interaction_t> > interactions_;
   /// map group-name to group
-  std::map<std::string, std::unique_ptr<group_t> > _groups;
+  std::map<std::string, std::unique_ptr<group_t> > groups_;
 
   /// create a new interaction entry based on given options
   interaction_t *AddInteraction(tools::Property *p, bool is_bonded);
@@ -137,10 +137,10 @@ class Imc {
 
   class Worker : public CsgApplication::Worker {
    public:
-    std::vector<tools::HistogramNew> _current_hists;
-    std::vector<tools::HistogramNew> _current_hists_force;
-    Imc *_imc;
-    double _cur_vol;
+    std::vector<tools::HistogramNew> current_hists_;
+    std::vector<tools::HistogramNew> current_hists_force_;
+    Imc *imc_;
+    double cur_vol_;
 
     /// evaluate current conformation
     void EvalConfiguration(Topology *top, Topology *top_atom) override;
@@ -152,7 +152,7 @@ class Imc {
   /// update the correlations after interations were processed
   void DoCorrelations(Imc::Worker *worker);
 
-  bool _processed_some_frames = false;
+  bool processed_some_frames_ = false;
 
  public:
   std::unique_ptr<CsgApplication::Worker> ForkWorker();
@@ -162,7 +162,7 @@ class Imc {
 inline Imc::pair_t::pair_t(Imc::interaction_t *i1, Imc::interaction_t *i2,
                            votca::Index offset_i, votca::Index offset_j,
                            const pair_matrix &corr)
-    : _i1(i1), _i2(i2), _offset_i(offset_i), _offset_j(offset_j), _corr(corr) {}
+    : i1_(i1), i2_(i2), offset_i_(offset_i), offset_j_(offset_j), corr_(corr) {}
 
 }  // namespace csg
 }  // namespace votca

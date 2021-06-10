@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
         for (double z = 2.0; z < (box(2, 2) - 2.0); z += 4.0) {
           residue_number++;
 
-          string bead_name = to_string(number_of_H2) + "_H2";
+          string bead_name = to_string(number_of_H2) + " H2_";
           Eigen::Vector3d bead_pos(x, y, z);
           auto bead_ptr =
               top.CreateBead(Bead::spherical, bead_name, bead_type_name,

@@ -57,7 +57,7 @@ class CsgBoltzmann final : public CsgApplication {
   ExclusionList CreateExclusionList(Topology *top_atomistic,
                                     Molecule &atomistic, Topology *top_cg,
                                     Molecule &cg);
-  BondedStatistics _bs;
+  BondedStatistics bs_;
 };
 void CsgBoltzmann::Initialize() {
   CsgApplication::Initialize();
@@ -65,7 +65,7 @@ void CsgBoltzmann::Initialize() {
       "excl", boost::program_options::value<string>(),
       "write atomistic exclusion list to file");
 
-  AddObserver(&_bs);
+  AddObserver(&bs_);
 }
 
 bool CsgBoltzmann::EvaluateOptions() {
@@ -211,7 +211,7 @@ void CsgBoltzmann::InteractiveMode() {
       continue;
     }
 
-    tool->second->Command(_bs, cmd, args);
+    tool->second->Command(bs_, cmd, args);
   }
 }
 

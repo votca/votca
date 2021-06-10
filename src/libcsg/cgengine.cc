@@ -75,7 +75,7 @@ void CGEngine::LoadMoleculeType(const string &filename) {
     string file = word;
     boost::trim(file);
     def->Load(file);
-    _molecule_defs[def->getIdent()] = std::move(def);
+    molecule_defs_[def->getIdent()] = std::move(def);
   }
 }
 
