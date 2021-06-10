@@ -19,6 +19,7 @@ Version 2022-dev
 -  adapted tokenizer api (#367)
 -  improve mkl linkage and threading backend selection (#371)
 -  removed tex option (#372)
+-  made membervariable format consistent (#373)
 
 Version 2021.1 (released XX.03.21)
 ==================================
