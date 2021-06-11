@@ -157,7 +157,7 @@ class Application {
 
   virtual void ShowHelpText(std::ostream &out);
 
-  bool continue_execution_;
+  bool continue_execution_=true;
 
  private:
 /// program options required by all applications

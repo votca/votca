@@ -36,7 +36,7 @@ namespace votca {
 namespace tools {
 using namespace std;
 Application::Application()
-    : op_desc_("Allowed options"), continue_execution_(true) {}
+    : op_desc_("Allowed options"){}
 
 Application::~Application() = default;
 

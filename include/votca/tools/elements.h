@@ -41,17 +41,6 @@ namespace tools {
  */
 class Elements {
  public:
-  Elements()
-      : filled_VdWChelpG_(false),
-        filled_VdWMK_(false),
-        filled_NucCrg_(false),
-        filled_CovRad_(false),
-        filled_Mass_(false),
-        filled_EleNum_(false),
-        filled_EleName_(false),
-        filled_ElPolarizability_(false),
-        filled_EleShort_(false),
-        filled_EleFull_(false){};
 
   /// Determine if the name is a recognized element symbol or name
   bool isElement(std::string name);
