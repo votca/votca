@@ -35,8 +35,7 @@
 namespace votca {
 namespace tools {
 using namespace std;
-Application::Application()
-    : op_desc_("Allowed options"){}
+Application::Application() : op_desc_("Allowed options") {}
 
 Application::~Application() = default;
 
@@ -113,8 +112,8 @@ boost::program_options::options_description_easy_init
   }
 
   // does group already exist, if yes, add it there
-  std::map<string, boost::program_options::options_description>::iterator iter;
-  iter = op_groups_.find(group);
+  std::map<string, boost::program_options::options_description>::iterator iter =
+      op_groups_.find(group);
   if (iter != op_groups_.end()) {
     return iter->second.add_options();
   }

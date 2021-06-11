@@ -168,7 +168,7 @@ bool Elements::isEleShort(std::string shortname) {
 }
 
 bool Elements::isMassAssociatedWithElement(double mass, double tolerance) {
-  auto closestMatch = findShortNameOfElementClosestInMass_(mass);
+  auto closestMatch = findShortNameOfElementClosestInMass(mass);
   if (closestMatch.second / Mass_[closestMatch.first] > tolerance) {
     return false;
   }
@@ -176,7 +176,7 @@ bool Elements::isMassAssociatedWithElement(double mass, double tolerance) {
 }
 
 std::string Elements::getEleShortClosestInMass(double mass, double tolerance) {
-  auto closestMatch = findShortNameOfElementClosestInMass_(mass);
+  auto closestMatch = findShortNameOfElementClosestInMass(mass);
   if (closestMatch.second / Mass_[closestMatch.first] > tolerance) {
     throw std::runtime_error(
         "In attempt to determine if mass is associated "
@@ -189,7 +189,7 @@ std::string Elements::getEleShortClosestInMass(double mass, double tolerance) {
  * Private Methods *
  *******************/
 
-std::pair<std::string, double> Elements::findShortNameOfElementClosestInMass_(
+std::pair<std::string, double> Elements::findShortNameOfElementClosestInMass(
     double mass) {
   if (!this->filled_Mass_) {
     this->FillMass();

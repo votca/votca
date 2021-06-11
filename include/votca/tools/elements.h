@@ -133,7 +133,7 @@ class Elements {
 
   /// Finds the element closest in mass and returns the difference as well as
   /// the string of elements short name
-  std::pair<std::string, double> findShortNameOfElementClosestInMass_(
+  std::pair<std::string, double> findShortNameOfElementClosestInMass(
       double mass);
 
   void FillMass();
