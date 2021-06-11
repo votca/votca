@@ -61,13 +61,13 @@ class VotcaProperty final : public Application {
 
   void Run() {
 
-    file = op_vm_["file"].as<string>();
+    file = OptionsMap()["file"].as<string>();
 
-    if (op_vm_.count("format")) {
-      format = op_vm_["format"].as<string>();
+    if (OptionsMap().count("format")) {
+      format = OptionsMap()["format"].as<string>();
     }
-    if (op_vm_.count("level")) {
-      level = op_vm_["level"].as<votca::Index>();
+    if (OptionsMap().count("level")) {
+      level = OptionsMap()["level"].as<votca::Index>();
     }
 
     try {
