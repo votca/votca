@@ -112,7 +112,7 @@ bool CsgApplication::EvaluateOptions() {
 
   /* check threading options */
   if (DoThreaded()) {
-    nthreads_ = op_vm_["nt"].as<Index>();
+    nthreads_ = OptionsMap()["nt"].as<Index>();
     /* TODO
      * does the number of threads make sense?
      * which criteria should be used? smaller than system's cores?
@@ -200,10 +200,10 @@ bool CsgApplication::ProcessData(Worker *worker) {
 void CsgApplication::Run(void) {
   // create reader for atomistic topology
   std::unique_ptr<TopologyReader> reader =
-      TopReaderFactory().Create(op_vm_["top"].as<std::string>());
+      TopReaderFactory().Create(OptionsMap()["top"].as<std::string>());
   if (reader == nullptr) {
     throw std::runtime_error(std::string("input format not supported: ") +
-                             op_vm_["top"].as<std::string>());
+                             OptionsMap()["top"].as<std::string>());
   }
 
   class DummyWorker : public Worker {
@@ -228,7 +228,7 @@ void CsgApplication::Run(void) {
   //////////////////////////////////////////////////
   // read in the topology for master
   //////////////////////////////////////////////////
-  reader->ReadTopology(op_vm_["top"].as<std::string>(), master->top_);
+  reader->ReadTopology(OptionsMap()["top"].as<std::string>(), master->top_);
   // Ensure that the coarse grained topology will have the same boundaries
   master->top_cg_.setBox(master->top_.getBox());
 
@@ -238,11 +238,11 @@ void CsgApplication::Run(void) {
 
   if (do_mapping_) {
     // read in the coarse graining definitions (xml files)
-    cg.LoadMoleculeType(op_vm_["cg"].as<std::string>());
+    cg.LoadMoleculeType(OptionsMap()["cg"].as<std::string>());
     // create the mapping + cg topology
 
-    if (op_vm_.count("map-ignore") != 0) {
-      tools::Tokenizer tok(op_vm_["map-ignore"].as<std::string>(), ";");
+    if (OptionsMap().count("map-ignore") != 0) {
+      tools::Tokenizer tok(OptionsMap()["map-ignore"].as<std::string>(), ";");
       for (std::string str : tok) {
         boost::trim(str);
         if (str.length() > 0) {
@@ -275,31 +275,31 @@ void CsgApplication::Run(void) {
   //////////////////////////////////////////////////
   // Here trajectory parsing starts
   //////////////////////////////////////////////////
-  if (DoTrajectory() && op_vm_.count("trj")) {
+  if (DoTrajectory() && OptionsMap().count("trj")) {
     double begin = 0;
     Index first_frame;
     bool has_begin = false;
 
-    if (op_vm_.count("begin")) {
+    if (OptionsMap().count("begin")) {
       has_begin = true;
-      begin = op_vm_["begin"].as<double>();
+      begin = OptionsMap()["begin"].as<double>();
     }
 
     nframes_ = -1;
-    if (op_vm_.count("nframes")) {
-      nframes_ = op_vm_["nframes"].as<Index>();
+    if (OptionsMap().count("nframes")) {
+      nframes_ = OptionsMap()["nframes"].as<Index>();
     }
 
-    first_frame = op_vm_["first-frame"].as<Index>();
+    first_frame = OptionsMap()["first-frame"].as<Index>();
 
     // create reader for trajectory
-    traj_reader_ = TrjReaderFactory().Create(op_vm_["trj"].as<std::string>());
+    traj_reader_ = TrjReaderFactory().Create(OptionsMap()["trj"].as<std::string>());
     if (traj_reader_ == nullptr) {
       throw std::runtime_error(std::string("input format not supported: ") +
-                               op_vm_["trj"].as<std::string>());
+                               OptionsMap()["trj"].as<std::string>());
     }
     // open the trajectory
-    traj_reader_->Open(op_vm_["trj"].as<std::string>());
+    traj_reader_->Open(OptionsMap()["trj"].as<std::string>());
 
     //////////////////////////////////////////////////
     // Create all the workers
@@ -312,7 +312,7 @@ void CsgApplication::Run(void) {
       // this will be changed to CopyTopologyData
       // read in the topology
 
-      reader->ReadTopology(op_vm_["top"].as<std::string>(),
+      reader->ReadTopology(OptionsMap()["top"].as<std::string>(),
                            myWorkers_.back()->top_);
       myWorkers_.back()->top_.CheckMoleculeNaming();
 

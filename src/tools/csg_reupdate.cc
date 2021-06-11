@@ -211,7 +211,7 @@ void CsgREupdate::Run() {
 
       if (OptionsMap().count("interaction")) {
 
-        Tokenizer tok(op_vm_["interaction"].as<string>(), ";");
+        Tokenizer tok(OptionsMap()["interaction"].as<string>(), ";");
         vector<string> vtok = tok.ToVector();
         vector<string>::iterator vtok_iter =
             find(vtok.begin(), vtok.end(), name);

@@ -66,24 +66,24 @@ bool TrajForce::EvaluateOptions() {
 void TrajForce::BeginEvaluate(Topology *top, Topology *) {
   top_force_.CopyTopologyData(top);
   trjreader_force_ =
-      TrjReaderFactory().Create(op_vm_["trj-force"].as<string>());
+      TrjReaderFactory().Create(OptionsMap()["trj-force"].as<string>());
   if (trjreader_force_ == nullptr) {
     throw runtime_error(string("input format not supported: ") +
-                        op_vm_["trj-force"].as<string>());
+                        OptionsMap()["trj-force"].as<string>());
   }
   // open the trajectory
-  trjreader_force_->Open(op_vm_["trj-force"].as<string>());
+  trjreader_force_->Open(OptionsMap()["trj-force"].as<string>());
   // read in first frame
   trjreader_force_->FirstFrame(top_force_);
 
   // output trajectory file
-  trjwriter_ = TrjWriterFactory().Create(op_vm_["out"].as<string>());
+  trjwriter_ = TrjWriterFactory().Create(OptionsMap()["out"].as<string>());
   if (trjwriter_ == nullptr) {
     throw runtime_error(string("output trajectory format not supported: ") +
-                        op_vm_["out"].as<string>());
+                        OptionsMap()["out"].as<string>());
   }
   bool append = true;
-  trjwriter_->Open(op_vm_["out"].as<string>(), append);
+  trjwriter_->Open(OptionsMap()["out"].as<string>(), append);
 }
 
 void TrajForce::EndEvaluate() {

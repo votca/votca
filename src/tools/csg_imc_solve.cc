@@ -57,10 +57,10 @@ bool CG_IMC_solve::EvaluateOptions() {
 }
 
 void CG_IMC_solve::Run() {
-  std::string imcfile = op_vm_["imcfile"].as<std::string>();
-  std::string gmcfile = op_vm_["gmcfile"].as<std::string>();
+  std::string imcfile = OptionsMap()["imcfile"].as<std::string>();
+  std::string gmcfile = OptionsMap()["gmcfile"].as<std::string>();
 
-  double reg = op_vm_["regularization"].as<double>();
+  double reg = OptionsMap()["regularization"].as<double>();
 
   Eigen::MatrixXd A = votca::csg::imcio_read_matrix(gmcfile);
   votca::tools::Table B;
@@ -108,7 +108,7 @@ void CG_IMC_solve::Run() {
 
   x.y() = -inverse * A.transpose() * B.y();
 
-  std::string idxfile = op_vm_["idxfile"].as<std::string>();
+  std::string idxfile = OptionsMap()["idxfile"].as<std::string>();
   std::vector<std::pair<std::string, votca::tools::RangeParser> > ranges =
       votca::csg::imcio_read_index(idxfile);
   for (std::pair<std::string, votca::tools::RangeParser>& range : ranges) {

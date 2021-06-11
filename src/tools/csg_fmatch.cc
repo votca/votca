@@ -158,13 +158,13 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *) {
   if (has_existing_forces_) {
     top_force_.CopyTopologyData(top);
     trjreader_force_ =
-        TrjReaderFactory().Create(op_vm_["trj-force"].as<string>());
+        TrjReaderFactory().Create(OptionsMap()["trj-force"].as<string>());
     if (trjreader_force_ == nullptr) {
       throw runtime_error(string("input format not supported: ") +
-                          op_vm_["trj-force"].as<string>());
+                          OptionsMap()["trj-force"].as<string>());
     }
     // open the trajectory
-    trjreader_force_->Open(op_vm_["trj-force"].as<string>());
+    trjreader_force_->Open(OptionsMap()["trj-force"].as<string>());
     // read in first frame
     trjreader_force_->FirstFrame(top_force_);
   }
