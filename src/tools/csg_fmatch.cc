@@ -170,7 +170,8 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *) {
   }
 }
 
-CGForceMatching::SplineInfo::SplineInfo(votca::Index index, bool bonded_interaction,
+CGForceMatching::SplineInfo::SplineInfo(votca::Index index,
+                                        bool bonded_interaction,
                                         votca::Index matr_pos_col,
                                         votca::tools::Property *options) {
   // initialize standard data

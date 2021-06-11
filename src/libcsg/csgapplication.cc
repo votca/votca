@@ -293,7 +293,8 @@ void CsgApplication::Run(void) {
     first_frame = OptionsMap()["first-frame"].as<Index>();
 
     // create reader for trajectory
-    traj_reader_ = TrjReaderFactory().Create(OptionsMap()["trj"].as<std::string>());
+    traj_reader_ =
+        TrjReaderFactory().Create(OptionsMap()["trj"].as<std::string>());
     if (traj_reader_ == nullptr) {
       throw std::runtime_error(std::string("input format not supported: ") +
                                OptionsMap()["trj"].as<std::string>());
