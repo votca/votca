@@ -23,6 +23,8 @@ import argparse
 import h5py
 import shutil
 import json
+import subprocess
+
 VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
 PROGTITLE = 'THE VOTCA::XTP Benchmark'
 PROGDESCR = 'Runs a Thiel set benchmark'
@@ -50,11 +52,9 @@ def ReadEnergyFromHDF5(filename):
     a.flatten()
     return a.flatten()
 
-
-def CheckforXMLFile(filename):
-    print("Checking for '{}' file".format(filename))
-    if not os.path.isfile(filename):
-        xxquit("'{}' file not found".format(filename))
+def HasGPUs():
+    helpstring = subprocess.check_output(['xtp_tools', '-h'])
+    return "--gpus" in helpstring.decode('utf8')
 
 
 class cd:
@@ -115,6 +115,13 @@ progargs.add_argument('--update',
                       default=0,
                       help='Update references')
 
+if HasGPUs():
+    progargs.add_argument('-g', '--gpus',
+                      required=False,
+                      type=int,
+                      default=0,
+                      help='Number of GPUs to use')
+
 
 OPTIONS = progargs.parse_args()
 
@@ -130,9 +137,6 @@ if OPTIONS.run:
     if os.path.isdir('RUN'):
         xxquit("Folder 'RUN' already exists")
     os.mkdir("RUN")
-    CheckforXMLFile('dftgwbse.xml')
-    CheckforXMLFile('gwbse.xml')
-    CheckforXMLFile('xtpdft.xml')
 
     molecules = []
 
@@ -147,9 +151,6 @@ if OPTIONS.run:
                 os.mkdir(dest)
                 shutil.copyfile("Geometries_ThielSet/"+folder +
                                 "/"+geo, dest+"/system.xyz")
-                shutil.copyfile('dftgwbse.xml', dest+'/dftgwbse.xml')
-                shutil.copyfile('gwbse.xml', dest+'/gwbse.xml')
-                shutil.copyfile('xtpdft.xml', dest+'/xtpdft.xml')
 
     print("\nStarting benchmark with {} threads".format(OPTIONS.threads))
     print(30*"-")
@@ -168,7 +169,7 @@ if OPTIONS.run:
             
             start = time.time()
 
-            cmd = 'xtp_tools -e dftgwbse -o dftgwbse.xml -t {} > dftgwbse.log'.format(OPTIONS.threads)
+            cmd = 'xtp_tools -e dftgwbse -n system -t {} > dftgwbse.log'.format(OPTIONS.threads)
             os.system(cmd)
             dt = time.time() - start
             molinfo = {}
