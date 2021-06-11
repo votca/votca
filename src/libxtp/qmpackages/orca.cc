@@ -46,10 +46,8 @@ using namespace std;
 
 void Orca::Initialize(const tools::Property& options) {
 
-  // good luck
-
   // Orca file names
-  const std::string& fileName =
+  std::string fileName =
       options.ifExistsReturnElseReturnDefault<std::string>("job_name",
                                                            "system");
 

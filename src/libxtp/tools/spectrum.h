@@ -51,8 +51,6 @@ class Spectrum final : public QMTool {
 
   Logger log_;
 
-  void CheckContent(const Orbitals& orbitals_);
-
   double evtonm(double eV);
   double evtoinvcm(double eV);
   double nmtoinvcm(double nm);

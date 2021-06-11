@@ -39,7 +39,7 @@ void Spectrum::ParseOptions(const tools::Property& options) {
       ".orbitals", job_name_ + ".orb");
 
   output_file_ = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".output", job_name_ + " spectrum_.dat");
+      ".output", job_name_ + "_spectrum.dat");
 
   n_pt_ = options.get(".points").as<Index>();
   lower_ = options.get(".lower").as<double>();
