@@ -254,8 +254,10 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
   Eigen::VectorXd frequencies_new = frequencies;
   Eigen::Array<bool, Eigen::Dynamic, 1> converged =
       Eigen::Array<bool, Eigen::Dynamic, 1>::Zero(qptotal_);
+#ifdef _OPENMP
   Index use_threads =
       OPENMP::getMaxThreads() > qptotal_ ? qptotal_ : OPENMP::getMaxThreads();
+#endif
 #pragma omp parallel for schedule(dynamic) num_threads(use_threads)
   for (Index gw_level = 0; gw_level < qptotal_; ++gw_level) {
 
