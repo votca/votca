@@ -88,7 +88,7 @@ bool XtpMap::EvaluateOptions() {
   CheckRequired("topology", "Missing topology file");
   CheckRequired("segments", "Missing segment definition file");
   CheckRequired("coordinates", "Missing trajectory input");
-  if (!(op_vm_.count("makesegments"))) {
+  if (!(OptionsMap().count("makesegments"))) {
     CheckRequired("file", "Missing state file");
   }
   return 1;
@@ -107,13 +107,13 @@ void XtpMap::Run() {
   // ++++++++++++++++++++++++++++ //
 
   // Create topology reader
-  string topfile = op_vm_["topology"].as<string>();
+  string topfile = OptionsMap()["topology"].as<string>();
   std::unique_ptr<CSG::TopologyReader> topread =
       CSG::TopReaderFactory().Create(topfile);
 
   if (topread == nullptr) {
     throw runtime_error(string("Input format not supported: ") +
-                        op_vm_["topology"].as<string>());
+                        OptionsMap()["topology"].as<string>());
   }
   CSG::Topology mdtopol;
   topread->ReadTopology(topfile, mdtopol);
@@ -128,19 +128,19 @@ void XtpMap::Run() {
   // ++++++++++++++++++++++++++++++ //
 
   // Create trajectory reader and initialize
-  string trjfile = op_vm_["coordinates"].as<string>();
+  string trjfile = OptionsMap()["coordinates"].as<string>();
   std::unique_ptr<CSG::TrajectoryReader> trjread =
       CSG::TrjReaderFactory().Create(trjfile);
 
   if (trjread == nullptr) {
     throw runtime_error(string("Input format not supported: ") +
-                        op_vm_["coordinates"].as<string>());
+                        OptionsMap()["coordinates"].as<string>());
   }
   trjread->Open(trjfile);
   trjread->FirstFrame(mdtopol);
 
-  string mapfile = op_vm_["segments"].as<string>();
-  if (op_vm_.count("makesegments")) {
+  string mapfile = OptionsMap()["segments"].as<string>();
+  if (OptionsMap().count("makesegments")) {
     if (TOOLS::filesystem::FileExists(mapfile)) {
       cout << endl
            << "xtp_map : map file '" << mapfile
@@ -233,10 +233,10 @@ void XtpMap::Run() {
   }
   XTP::Md2QmEngine md2qm(mapfile);
 
-  votca::Index firstFrame = op_vm_["first-frame"].as<votca::Index>();
-  votca::Index nFrames = op_vm_["nframes"].as<votca::Index>();
+  votca::Index firstFrame = OptionsMap()["first-frame"].as<votca::Index>();
+  votca::Index nFrames = OptionsMap()["nframes"].as<votca::Index>();
   bool beginAt = false;
-  double time = op_vm_["begin"].as<double>();
+  double time = OptionsMap()["begin"].as<double>();
   double startTime = mdtopol.getTime();
   if (time > 0.0) {
     beginAt = true;
@@ -269,7 +269,7 @@ void XtpMap::Run() {
   // Convert MD to QM Topology //
   // +++++++++++++++++++++++++ //
 
-  string statefile = op_vm_["file"].as<string>();
+  string statefile = OptionsMap()["file"].as<string>();
   if (TOOLS::filesystem::FileExists(statefile)) {
     cout << endl
          << "xtp_map : state file '" << statefile

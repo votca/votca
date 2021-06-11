@@ -72,8 +72,8 @@ void XtpTools::EvaluateSpecificOptions() {
 
 void XtpTools::execute() {
 
-  if (op_vm_.find("options") != op_vm_.cend()) {
-    std::string optionsFile = op_vm_["options"].as<std::string>();
+  if (OptionsMap().find("options") != OptionsMap().cend()) {
+    std::string optionsFile = OptionsMap()["options"].as<std::string>();
     options_.LoadFromXML(optionsFile);
   } else {
     // Empty user options
@@ -81,7 +81,7 @@ void XtpTools::execute() {
     opts.add(tool_->Identify(), "");
   }
 
-  std::string job_name = op_vm_["name"].as<std::string>();
+  std::string job_name = OptionsMap()["name"].as<std::string>();
   tools::Property& opts = options_.get("options." + tool_->Identify());
   opts.add("job_name", job_name);
 
