@@ -421,8 +421,7 @@ Eigen::VectorXd DavidsonSolver::computeCorrectionVector(
     }
   }
   //make sure no nan values are there, instead we set them to zero
-  correction = correction.unaryExpr([](double v) { return std::isfinite(v)? v : 0.0; });
-  return correction;
+  return correction.unaryExpr([](double v) { return std::isfinite(v)? v : 0.0; });
 }
 
 Eigen::VectorXd DavidsonSolver::dpr(const Eigen::VectorXd &r,
