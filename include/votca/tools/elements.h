@@ -41,7 +41,6 @@ namespace tools {
  */
 class Elements {
  public:
-
   /// Determine if the name is a recognized element symbol or name
   bool isElement(std::string name);
 

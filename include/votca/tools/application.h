@@ -149,20 +149,16 @@ class Application {
                         const std::string help_path, HelpType help_type);
 
  protected:
-
-
-  
-
   std::map<std::string, boost::program_options::options_description> op_groups_;
 
   virtual void ShowHelpText(std::ostream &out);
 
-  bool continue_execution_=true;
+  bool continue_execution_ = true;
 
  private:
-/// program options required by all applications
+  /// program options required by all applications
   boost::program_options::options_description op_desc_;
-   /// Variable map containing all program options
+  /// Variable map containing all program options
   boost::program_options::variables_map op_vm_;
   /// get input parameters from file, location may be specified in command line
   void ParseCommandLine(int argc, char **argv);
