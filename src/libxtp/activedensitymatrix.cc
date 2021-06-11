@@ -14,7 +14,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * Reference- A Simple, Exact Density-Functional-Theory Embedding Scheme
  *Frederick R. Manby, Martina Stella, Jason D. Goodpaster, and Thomas F. Miller
  *Journal of Chemical Theory and Computation 2012 8 (8), 2564-2568
@@ -45,8 +45,9 @@ Eigen::MatrixXd ActiveDensityMatrix::activedensitymatrix(
 
   for (Index i = 0; i < localized_mo_coeff.cols(); i++) {
     /* calculate <i|P|i> */
-    Eigen::MatrixXd multipliedmatrix =
-        localized_mo_coeff.col(i).transpose() * overlap.Matrix() * localized_mo_coeff.col(i).asDiagonal();
+    Eigen::MatrixXd multipliedmatrix = localized_mo_coeff.col(i).transpose() *
+                                       overlap.Matrix() *
+                                       localized_mo_coeff.col(i).asDiagonal();
     Eigen::RowVectorXd iP_u_i = multipliedmatrix.colwise().sum();
     Index start = 0;
     for (Index atom_id = 0; atom_id < Index(numfuncpatom.size()); atom_id++) {
@@ -54,9 +55,10 @@ Eigen::MatrixXd ActiveDensityMatrix::activedensitymatrix(
       if ((std::find(activeatoms_.begin(), activeatoms_.end(), atom_id) !=
            activeatoms_.end()) &&
           iPi_x > 0.4) {
-        active_mo_coeff.conservativeResize(localized_mo_coeff.rows(), counter + 1);
+        active_mo_coeff.conservativeResize(localized_mo_coeff.rows(),
+                                           counter + 1);
         active_mo_coeff.col(counter) = localized_mo_coeff.col(i);
-        counter ++;
+        counter++;
       }
       start += numfuncpatom[atom_id];
     }
