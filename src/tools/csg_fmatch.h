@@ -68,7 +68,7 @@ class CGForceMatching : public CsgApplication {
   /// parameters
   struct SplineInfo {
     /// \brief constructor
-    SplineInfo(votca::Index index, bool bonded_, votca::Index matr_pos_,
+    SplineInfo(votca::Index index, bool bonded_interaction, votca::Index matr_pos_col,
                votca::tools::Property *options);
     /// \brief number of spline functions
     votca::Index num_splinefun;

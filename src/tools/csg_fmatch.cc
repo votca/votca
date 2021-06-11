@@ -170,14 +170,14 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *) {
   }
 }
 
-CGForceMatching::SplineInfo::SplineInfo(votca::Index index, bool bonded_,
-                                        votca::Index matr_pos_,
+CGForceMatching::SplineInfo::SplineInfo(votca::Index index, bool bonded_interaction,
+                                        votca::Index matr_pos_col,
                                         votca::tools::Property *options) {
   // initialize standard data
   splineIndex = index;
   options_ = options;
   splineName = options->get("name").value();
-  bonded = bonded_;
+  bonded = bonded_interaction;
   // in general natural boundary conditions are used for splines (default is no)
   periodic = 0;
   // check if non-bonded 3-body interaction or not (default is no)
@@ -189,7 +189,7 @@ CGForceMatching::SplineInfo::SplineInfo(votca::Index index, bool bonded_,
   gamma = 0.12;  //(0.12 nm = 1.2 Ang)
 
   // get non-bonded information
-  if (!bonded_) {
+  if (!bonded) {
     // check if option threebody exists
     if (options->exists("threebody")) {
       threebody = options->get("threebody").as<bool>();
@@ -216,7 +216,7 @@ CGForceMatching::SplineInfo::SplineInfo(votca::Index index, bool bonded_,
       type2 = options->get("type2").value();
     }
   }
-  if (bonded_) {
+  if (bonded) {
     // check if option periodic exists
     if (options->exists("fmatch.periodic")) {
       periodic = options->get("fmatch.periodic").as<bool>();
@@ -240,7 +240,7 @@ CGForceMatching::SplineInfo::SplineInfo(votca::Index index, bool bonded_,
   cout << "Number of spline functions for the interaction " << splineName << ":"
        << num_splinefun << endl;
 
-  matr_pos = matr_pos_;
+  matr_pos = matr_pos_col;
 
   // initialize grid for block averaging
   dx_out = options->get("fmatch.out_step").as<double>();
