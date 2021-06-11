@@ -48,7 +48,7 @@ def xxquit(what=''):
 
 def ReadEnergyFromHDF5(filename):
     orb = h5py.File(filename, 'r')
-    a = orb['QMdata']['BSE_singlet']['eigenvalues'].value
+    a = orb['QMdata']['BSE_singlet']['eigenvalues'][()]
     a.flatten()
     return a.flatten()
 

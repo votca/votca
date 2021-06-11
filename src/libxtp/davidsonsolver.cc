@@ -226,7 +226,7 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getRitz(
   DavidsonSolver::RitzEigenPair rep;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(proj.T);
   if (es.info() != Eigen::ComputationInfo::Success) {
-    std::cerr << "A\n" << proj.T;
+    std::cerr << "A\n" << proj.T<<std::endl;
     throw std::runtime_error("Small hermitian eigenvalue problem failed.");
   }
   // we only need enough pairs for either extension of space or restart
@@ -255,6 +255,8 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getHarmonicRitz(
   Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> ges(proj.T, proj.B,
                                                      return_eigenvectors);
   if (ges.info() != Eigen::ComputationInfo::Success) {
+    std::cerr << "A\n" << proj.T<<std::endl;
+    std::cerr << "B\n" << proj.B<<std::endl;
     throw std::runtime_error("Small generalized eigenvalue problem failed.");
   }
 
@@ -377,6 +379,8 @@ Index DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
     // residue vector
     Eigen::VectorXd w =
         computeCorrectionVector(rep.q.col(j), rep.lambda(j), rep.res.col(j));
+          w = w.unaryExpr([](double v) { return std::isfinite(v)? v : 0.0; });
+
     // append the correction vector to the search space
     proj.V.col(oldsize + k) = w.normalized();
     k++;
@@ -405,16 +409,20 @@ Eigen::VectorXd DavidsonSolver::computeCorrectionVector(
    * M.L. Leininger et al .
    * Journal of Computational Chemistry Vol 22, No. 13 1574-1589 (2001)
    */
-
+ Eigen::VectorXd correction;
   switch (this->davidson_correction_) {
     case CORR::DPR: {
-      return dpr(Aqj, lambdaj);
+     correction= dpr(Aqj, lambdaj);
+     break;
     }
     case CORR::OLSEN: {
-      return olsen(Aqj, qj, lambdaj);
+      correction= olsen(Aqj, qj, lambdaj);
+      break;
     }
   }
-  return Eigen::VectorXd::Zero(0);
+  //make sure no nan values are there, instead we set them to zero
+  correction = correction.unaryExpr([](double v) { return std::isfinite(v)? v : 0.0; });
+  return correction;
 }
 
 Eigen::VectorXd DavidsonSolver::dpr(const Eigen::VectorXd &r,
@@ -444,7 +452,6 @@ void DavidsonSolver::orthogonalize(Eigen::MatrixXd &V, Index nupdate) const {
 }
 
 void DavidsonSolver::gramschmidt(Eigen::MatrixXd &Q, Index nstart) const {
-
   Index nupdate = Q.cols() - nstart;
   Eigen::VectorXd norms = Q.rightCols(nupdate).colwise().norm();
   // orthogonalize with respect to already existing vectors
