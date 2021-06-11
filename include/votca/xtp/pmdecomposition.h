@@ -34,11 +34,9 @@ class PMDecomposition {
 
  private:
   Logger &log_;
-  Eigen::MatrixX2d rotatedorbitals(Eigen::MatrixX2d &maxorbs, Index s, Index t);
+  Eigen::MatrixX2d rotateorbitals(Eigen::MatrixX2d &maxorbs, Index s, Index t);
   Eigen::MatrixXd orbitalselections(Eigen::MatrixXd &m,
                                     const Eigen::MatrixXd &S);
-  void update_maximums(Eigen::MatrixXd &m, Index col1, Index col2,
-                       Eigen::MatrixX2d &new_orbs);
   BasisSet basis;
   AOBasis aobasis;
   Eigen::MatrixXd A;

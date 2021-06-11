@@ -26,43 +26,41 @@
 
 namespace votca {
 namespace xtp {
-void PMDecomposition::computePMD(Orbitals &orbitals_) {
-  Eigen::MatrixXd occ_orbitals = orbitals_.MOs().eigenvectors().leftCols(
-      orbitals_.getNumberOfAlphaElectrons());
-  QMMolecule mol = orbitals_.QMAtoms();
-  basis.Load(orbitals_.getDFTbasisName());
+void PMDecomposition::computePMD(Orbitals &orbitals) {
+  Eigen::MatrixXd occ_orbitals = orbitals.MOs().eigenvectors().leftCols(
+      orbitals.getNumberOfAlphaElectrons());
+  QMMolecule mol = orbitals.QMAtoms();
+  basis.Load(orbitals.getDFTbasisName());
   aobasis.Fill(basis, mol);
   AOOverlap overlap;
   overlap.Fill(aobasis);
   double diff_D = std::numeric_limits<double>::max();
-  Index i = 1;
-  while (diff_D > 1e-6 && i < 10000) {
-    XTP_LOG(Log::error, log_) << "Iteration: " << i << std::flush;
-    Eigen::MatrixXd uppertriangular = orbitalselections(occ_orbitals, overlap.Matrix());
+  Index iteration = 1;
+  
+  while (diff_D > 1e-6 && iteration < 10000) {
+    XTP_LOG(Log::error, log_) << "Iteration: " << iteration << std::flush;
+    Eigen::MatrixXd orbpair_functionalvalue = orbitalselections(occ_orbitals, overlap.Matrix());
     Index maxrow, maxcol;
-    diff_D = uppertriangular.maxCoeff(&maxrow, &maxcol);
+    diff_D = orbpair_functionalvalue.maxCoeff(&maxrow, &maxcol);
     XTP_LOG(Log::error, log_) << "Orbitals to be changed: " << maxrow << " " << maxcol << std::flush;
     XTP_LOG(Log::error, log_) << "change in the penalty function: " << diff_D << std::flush;
     Eigen::MatrixX2d max_orbs(occ_orbitals.rows(), 2);
     max_orbs << occ_orbitals.col(maxrow), occ_orbitals.col(maxcol);
-    Eigen::MatrixX2d new_orbs(occ_orbitals.rows(), 2);
-    new_orbs = rotatedorbitals(max_orbs, maxrow, maxcol);
-    update_maximums(occ_orbitals, maxrow, maxcol, new_orbs);
-
-    i += 1;
+    Eigen::MatrixX2d new_orbs = rotateorbitals(max_orbs, maxrow, maxcol);
+    occ_orbitals.col(maxrow) = new_orbs.col(0);
+    occ_orbitals.col(maxcol) = new_orbs.col(1);
+    iteration ++;
   }
-  orbitals_.setPMLocalizedOrbitals(occ_orbitals);
+  orbitals.setPMLocalizedOrbitals(occ_orbitals);
 }
 
-Eigen::MatrixX2d PMDecomposition::rotatedorbitals(Eigen::MatrixX2d &maxorbs,
+//Function to rotate the 2 maximum orbitals
+Eigen::MatrixX2d PMDecomposition::rotateorbitals(Eigen::MatrixX2d &maxorbs,
                                                  Index s, Index t) {  
-  Eigen::MatrixX2d neworbitals(maxorbs.rows(), 2);
-  Eigen::VectorXd vec1 = maxorbs.col(0);
-  Eigen::VectorXd vec2 = maxorbs.col(1);
   double gam = 0.25 * asin(B(s, t) / sqrt((A(s, t) * A(s, t)) + (B(s, t) * B(s, t))));
-  Eigen::VectorXd new_vec1 = (std::cos(gam) * vec1) + (std::sin(gam) * vec2);
-  Eigen::VectorXd new_vec2 = -1 * (std::sin(gam) * vec1) + (std::cos(gam) * vec2);
-  neworbitals << new_vec1, new_vec2;
+  Eigen::MatrixX2d neworbitals(maxorbs.rows(), 2);
+  neworbitals.col(0) = (std::cos(gam) * maxorbs.col(0)) + (std::sin(gam) * maxorbs.col(1));
+  neworbitals.col(1) = -1 * (std::sin(gam) * maxorbs.col(0)) + (std::cos(gam) * maxorbs.col(1));
   XTP_LOG(Log::error, log_) << "Sine of the rotation angle = " << std::sin(gam) << std::flush;
   return neworbitals;
 }
@@ -70,8 +68,7 @@ Eigen::MatrixX2d PMDecomposition::rotatedorbitals(Eigen::MatrixX2d &maxorbs,
 // Function to select n(n-1)/2 orbitals and process Ast and Bst
 Eigen::MatrixXd PMDecomposition::orbitalselections(Eigen::MatrixXd &m,
                                                    const Eigen::MatrixXd &S) {
-  Eigen::MatrixXd req_mat(m.rows(), 2);
-  Eigen::MatrixXd zeromatrix = Eigen::MatrixXd::Zero(m.cols(), m.cols());
+  Eigen::MatrixXd orbital_pairs_functional = Eigen::MatrixXd::Zero(m.cols(), m.cols());
   A = Eigen::MatrixXd::Zero(m.cols(), m.cols());
   B = Eigen::MatrixXd::Zero(m.cols(), m.cols());
   for (Index s = 0; s < m.cols(); s++) {
@@ -95,17 +92,11 @@ Eigen::MatrixXd PMDecomposition::orbitalselections(Eigen::MatrixXd &m,
         }
         A(s, t) = Ast;
         B(s, t) = Bst;
-        double parameter = Ast + sqrt((Ast * Ast) + (Bst * Bst));
-        zeromatrix(s, t) = parameter;
+        orbital_pairs_functional(s, t) = Ast + sqrt((Ast * Ast) + (Bst * Bst));
     }
   }
-  return zeromatrix;
+  return orbital_pairs_functional;
 }
 
-void PMDecomposition::update_maximums(Eigen::MatrixXd &m, Index col1,
-                                      Index col2, Eigen::MatrixX2d &new_orbs) {
-  m.col(col1) = new_orbs.col(0);
-  m.col(col2) = new_orbs.col(1);
-}
 }  // namespace xtp
 }  // namespace votca

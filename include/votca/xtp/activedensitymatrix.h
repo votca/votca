@@ -35,7 +35,6 @@ class ActiveDensityMatrix {
 
  private:
   Orbitals &orbitals_;
-  Logger &log_;
   std::vector<Index> activeatoms_;
 };
 }  // namespace xtp
