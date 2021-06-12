@@ -58,19 +58,19 @@ class CsgMapApp : public CsgApplication {
     CsgApplication::Initialize();
     AddProgramOptions()("out", boost::program_options::value<string>(),
                         "  output file for coarse-grained trajectory")(
-        "vel", "  Write mapped velocities (if available)")(
-        "force",
-        "  Write mapped forces (if "
-        "available)")("hybrid",
-                      "  Create "
-                      "hybrid "
-                      "trajectory "
-                      "containing "
-                      "both "
-                      "atomistic "
-                      "and "
-                      "coarse-"
-                      "grained");
+        "vel",
+        "  Write mapped velocities (if available)")("force",
+                                                    "  Write mapped forces (if "
+                                                    "available)")("hybrid",
+                                                                  "  Create "
+                                                                  "hybrid "
+                                                                  "trajectory "
+                                                                  "containing "
+                                                                  "both "
+                                                                  "atomistic "
+                                                                  "and "
+                                                                  "coarse-"
+                                                                  "grained");
   }
 
   bool EvaluateOptions() override {
