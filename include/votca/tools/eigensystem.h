@@ -27,30 +27,30 @@ namespace tools {
 class EigenSystem {
  public:
   // returns eigenvalues
-  const Eigen::VectorXd& eigenvalues() const { return _eigenvalues; }
-  Eigen::VectorXd& eigenvalues() { return _eigenvalues; }
+  const Eigen::VectorXd& eigenvalues() const { return eigenvalues_; }
+  Eigen::VectorXd& eigenvalues() { return eigenvalues_; }
   // returns eigenvectors
-  const Eigen::MatrixXd& eigenvectors() const { return _eigenvectors; }
-  Eigen::MatrixXd& eigenvectors() { return _eigenvectors; }
+  const Eigen::MatrixXd& eigenvectors() const { return eigenvectors_; }
+  Eigen::MatrixXd& eigenvectors() { return eigenvectors_; }
   // returns left eigenvectors or other in case of nonhermititan problem
-  const Eigen::MatrixXd& eigenvectors2() const { return _eigenvectors_2; }
-  Eigen::MatrixXd& eigenvectors2() { return _eigenvectors_2; }
+  const Eigen::MatrixXd& eigenvectors2() const { return eigenvectors_2_; }
+  Eigen::MatrixXd& eigenvectors2() { return eigenvectors_2_; }
 
-  Eigen::ComputationInfo info() const { return _info; }
-  Eigen::ComputationInfo& info() { return _info; }
+  Eigen::ComputationInfo info() const { return info_; }
+  Eigen::ComputationInfo& info() { return info_; }
 
   void clear() {
-    _info = Eigen::Success;
-    _eigenvalues.resize(0);
-    _eigenvectors.resize(0, 0);
-    _eigenvectors_2.resize(0, 0);
+    info_ = Eigen::Success;
+    eigenvalues_.resize(0);
+    eigenvectors_.resize(0, 0);
+    eigenvectors_2_.resize(0, 0);
   }
 
  private:
-  Eigen::ComputationInfo _info = Eigen::Success;
-  Eigen::VectorXd _eigenvalues;
-  Eigen::MatrixXd _eigenvectors;
-  Eigen::MatrixXd _eigenvectors_2;
+  Eigen::ComputationInfo info_ = Eigen::Success;
+  Eigen::VectorXd eigenvalues_;
+  Eigen::MatrixXd eigenvectors_;
+  Eigen::MatrixXd eigenvectors_2_;
 };
 
 }  // namespace tools

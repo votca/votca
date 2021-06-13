@@ -79,9 +79,9 @@ class Tokenizer {
    * interface or directly transferred to a vector ToVector of ConvertToVector.
    */
 
-  Tokenizer(const std::string &str, const char *separators) : _str(str) {
+  Tokenizer(const std::string &str, const char *separators) : str_(str) {
     boost::char_separator<char> sep(separators);
-    tok_ = std::make_unique<boost::tokenizer<boost::char_separator<char>>>(_str,
+    tok_ = std::make_unique<boost::tokenizer<boost::char_separator<char>>>(str_,
                                                                            sep);
   }
   Tokenizer(const std::string &str, const std::string &separators)
@@ -113,7 +113,7 @@ class Tokenizer {
 
  private:
   std::unique_ptr<boost::tokenizer<boost::char_separator<char>>> tok_;
-  std::string _str;
+  std::string str_;
 };
 
 // Matches a string against a wildcard string such as &quot;*.*&quot; or
