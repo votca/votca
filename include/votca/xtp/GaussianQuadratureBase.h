@@ -36,10 +36,10 @@ class GaussianQuadratureBase {
   void configure(Index order) {
     FillPoints();
     FillAdaptedWeights();
-    CheckOrder(order, _map_points);
-    CheckOrder(order, _map_AdaptedWeights);
-    points_ = _map_points[order];
-    weights_ = _map_AdaptedWeights[order];
+    CheckOrder(order, map_points_);
+    CheckOrder(order, map_AdaptedWeights_);
+    points_ = map_points_[order];
+    weights_ = map_AdaptedWeights_[order];
   }
 
   virtual ~GaussianQuadratureBase() = default;
@@ -66,8 +66,8 @@ class GaussianQuadratureBase {
   Eigen::VectorXd points_;
   Eigen::VectorXd weights_;
 
-  std::map<Index, Eigen::VectorXd> _map_points;
-  std::map<Index, Eigen::VectorXd> _map_AdaptedWeights;
+  std::map<Index, Eigen::VectorXd> map_points_;
+  std::map<Index, Eigen::VectorXd> map_AdaptedWeights_;
 
   virtual bool UseSymmetry() const = 0;
 

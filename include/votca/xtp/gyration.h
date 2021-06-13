@@ -34,7 +34,7 @@ namespace xtp {
 
 class Density2Gyration {
  public:
-  Density2Gyration(Logger& log) : _log(log){};
+  Density2Gyration(Logger& log) : log_(log){};
 
   std::string Identify() { return "density2gyration"; }
 
@@ -47,11 +47,11 @@ class Density2Gyration {
                       const Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d>& es);
   void AnalyzeGeometry(const QMMolecule& atoms);
 
-  QMState _state;
-  bool _dostateonly;
-  std::string _integrationmethod;
-  std::string _gridsize;
-  Logger& _log;
+  QMState state_;
+  bool dostateonly_;
+  std::string integrationmethod_;
+  std::string gridsize_;
+  Logger& log_;
 };
 
 }  // namespace xtp

@@ -29,15 +29,15 @@ namespace xtp {
 
 ImaginaryAxisIntegration::ImaginaryAxisIntegration(
     const Eigen::VectorXd& energies, const TCMatrix_gwbse& Mmn)
-    : _energies(energies), _Mmn(Mmn) {}
+    : energies_(energies), Mmn_(Mmn) {}
 
 void ImaginaryAxisIntegration::configure(
     options opt, const RPA& rpa, const Eigen::MatrixXd& kDielMxInv_zero) {
-  _opt = opt;
+  opt_ = opt;
   QuadratureFactory::RegisterAll();
-  _gq = std::unique_ptr<GaussianQuadratureBase>(
-      Quadratures().Create(_opt.quadrature_scheme));
-  _gq->configure(_opt.order);
+  gq_ = std::unique_ptr<GaussianQuadratureBase>(
+      Quadratures().Create(opt_.quadrature_scheme));
+  gq_->configure(opt_.order);
 
   CalcDielInvVector(rpa, kDielMxInv_zero);
 }
@@ -46,15 +46,15 @@ void ImaginaryAxisIntegration::configure(
 // matrix in a matrix vector
 void ImaginaryAxisIntegration::CalcDielInvVector(
     const RPA& rpa, const Eigen::MatrixXd& kDielMxInv_zero) {
-  _dielinv_matrices_r.resize(_gq->Order());
+  dielinv_matrices_r_.resize(gq_->Order());
 
-  for (Index j = 0; j < _gq->Order(); j++) {
-    double newpoint = _gq->ScaledPoint(j);
+  for (Index j = 0; j < gq_->Order(); j++) {
+    double newpoint = gq_->ScaledPoint(j);
     Eigen::MatrixXd eps_inv_j = rpa.calculate_epsilon_i(newpoint).inverse();
     eps_inv_j.diagonal().array() -= 1.0;
-    _dielinv_matrices_r[j] =
+    dielinv_matrices_r_[j] =
         -eps_inv_j +
-        kDielMxInv_zero * std::exp(-std::pow(_opt.alpha * newpoint, 2));
+        kDielMxInv_zero * std::exp(-std::pow(opt_.alpha * newpoint, 2));
   }
 }
 
@@ -62,42 +62,42 @@ class FunctionEvaluation {
  public:
   FunctionEvaluation(const Eigen::MatrixXd& Imx, const Eigen::ArrayXcd& DeltaE,
                      const std::vector<Eigen::MatrixXd>& dielinv_matrices_r)
-      : _Imx(Imx), _DeltaE(DeltaE), _dielinv_matrices_r(dielinv_matrices_r){};
+      : Imx_(Imx), DeltaE_(DeltaE), dielinv_matrices_r_(dielinv_matrices_r){};
 
   double operator()(Index j, double point, bool symmetry) const {
     Eigen::VectorXcd denominator;
     const std::complex<double> cpoint(0.0, point);
     if (symmetry) {
       denominator =
-          (_DeltaE + cpoint).cwiseInverse() + (_DeltaE - cpoint).cwiseInverse();
+          (DeltaE_ + cpoint).cwiseInverse() + (DeltaE_ - cpoint).cwiseInverse();
     } else {
-      denominator = (_DeltaE + cpoint).cwiseInverse();
+      denominator = (DeltaE_ + cpoint).cwiseInverse();
     }
     return 0.5 / tools::conv::Pi *
-           ((_Imx * (_dielinv_matrices_r[j].conjugate()))
-                .cwiseProduct(denominator.asDiagonal() * _Imx))
+           ((Imx_ * (dielinv_matrices_r_[j].conjugate()))
+                .cwiseProduct(denominator.asDiagonal() * Imx_))
                .sum()
                .real();
   }
 
  private:
-  const Eigen::MatrixXd& _Imx;
-  const Eigen::ArrayXcd& _DeltaE;
-  const std::vector<Eigen::MatrixXd>& _dielinv_matrices_r;
+  const Eigen::MatrixXd& Imx_;
+  const Eigen::ArrayXcd& DeltaE_;
+  const std::vector<Eigen::MatrixXd>& dielinv_matrices_r_;
 };
 
 double ImaginaryAxisIntegration::SigmaGQDiag(double frequency, Index gw_level,
                                              double eta) const {
-  Index lumo = _opt.homo + 1;
-  const Index occ = lumo - _opt.rpamin;
-  const Index unocc = _opt.rpamax - _opt.homo;
-  Index gw_level_offset = gw_level + _opt.qpmin - _opt.rpamin;
-  const Eigen::MatrixXd& Imx = _Mmn[gw_level_offset];
-  Eigen::ArrayXcd DeltaE = frequency - _energies.array();
+  Index lumo = opt_.homo + 1;
+  const Index occ = lumo - opt_.rpamin;
+  const Index unocc = opt_.rpamax - opt_.homo;
+  Index gw_level_offset = gw_level + opt_.qpmin - opt_.rpamin;
+  const Eigen::MatrixXd& Imx = Mmn_[gw_level_offset];
+  Eigen::ArrayXcd DeltaE = frequency - energies_.array();
   DeltaE.imag().head(occ) = eta;
   DeltaE.imag().tail(unocc) = -eta;
-  FunctionEvaluation f(Imx, DeltaE, _dielinv_matrices_r);
-  return _gq->Integrate(f);
+  FunctionEvaluation f(Imx, DeltaE, dielinv_matrices_r_);
+  return gq_->Integrate(f);
 }
 
 }  // namespace xtp

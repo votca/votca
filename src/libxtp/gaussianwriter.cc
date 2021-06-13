@@ -111,7 +111,7 @@ void GaussianWriter::WriteFile(const std::string& basename,
   std::ofstream outFile(basename + ".fchk");
 
   if (outFile.is_open()) {
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "Start writing to " << (basename + ".fchk") << std::flush;
     int temp_int;
     // job description
@@ -298,7 +298,7 @@ void GaussianWriter::WriteFile(const std::string& basename,
                     orbitals.MOs().eigenvalues().size());
     outFile << densityMatrixToString(orbitals, state, diff2gs);
 
-    XTP_LOG(Log::error, _log) << "Done writing \n" << std::flush;
+    XTP_LOG(Log::error, log_) << "Done writing \n" << std::flush;
   }
 }
 

@@ -32,94 +32,94 @@ namespace xtp {
 
 void GeometryOptimization::Initialize(tools::Property& options) {
 
-  _opt_state = options.get(".state").as<QMState>();
-  if (!_opt_state.Type().isExciton()) {
+  opt_state_ = options.get(".state").as<QMState>();
+  if (!opt_state_.Type().isExciton()) {
     throw std::runtime_error(
         "At the moment only excitonic states can be optimized");
   }
   // default convergence parameters from ORCA
-  _conv.deltaE = options.get(".convergence.energy").as<double>();  // Hartree
-  _conv.RMSForce =
+  conv_.deltaE = options.get(".convergence.energy").as<double>();  // Hartree
+  conv_.RMSForce =
       options.get(".convergence.RMSForce").as<double>();  // Hartree/Bohr
-  _conv.MaxForce =
+  conv_.MaxForce =
       options.get(".convergence.MaxForce").as<double>();  // Hartree/Bohr
-  _conv.RMSStep = options.get(".convergence.RMSStep").as<double>();  // Bohr
-  _conv.MaxStep = options.get(".convergence.MaxStep").as<double>();  // Bohr
-  _trust_radius = options.get("optimizer.trust").as<double>();       // Angstrom
-  _trust_radius *= tools::conv::ang2bohr;  // initial trust radius in a.u.
+  conv_.RMSStep = options.get(".convergence.RMSStep").as<double>();  // Bohr
+  conv_.MaxStep = options.get(".convergence.MaxStep").as<double>();  // Bohr
+  trust_radius_ = options.get("optimizer.trust").as<double>();       // Angstrom
+  trust_radius_ *= tools::conv::ang2bohr;  // initial trust radius in a.u.
 
-  _max_iteration = options.get(".maxiter").as<Index>();
-  _trajfile = options.get(".trajectory_file").as<std::string>();
-  _optimizer = options.get(".optimizer.method").as<std::string>();
-  _force_options = options.get(".forces");
-  _statetracker_options = options.get(".statetracker");
+  max_iteration_ = options.get(".maxiter").as<Index>();
+  trajfile_ = options.get(".trajectory_file").as<std::string>();
+  optimizer_ = options.get(".optimizer.method").as<std::string>();
+  force_options_ = options.get(".forces");
+  statetracker_options_ = options.get(".statetracker");
 }
 
 void GeometryOptimization::Evaluate() {
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << "Requested geometry optimization of excited state "
-      << _opt_state.ToString() << std::flush;
+      << opt_state_.ToString() << std::flush;
 
   StateTracker tracker;
-  tracker.Initialize(_statetracker_options);
-  tracker.setInitialState(_opt_state);
-  tracker.setLogger(_pLog);
+  tracker.Initialize(statetracker_options_);
+  tracker.setInitialState(opt_state_);
+  tracker.setLogger(pLog_);
   tracker.PrintInfo();
 
   // get a force object
-  Forces force_engine(_gwbse_engine, tracker);
-  force_engine.Initialize(_force_options);
-  force_engine.setLog(_pLog);
-  XTP_LOG(Log::error, *_pLog)
+  Forces force_engine(gwbse_engine_, tracker);
+  force_engine.Initialize(force_options_);
+  force_engine.setLog(pLog_);
+  XTP_LOG(Log::error, *pLog_)
       << (boost::format("Convergence of total energy: %1$8.6f Hartree ") %
-          _conv.deltaE)
+          conv_.deltaE)
              .str()
       << std::flush;
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << (boost::format("Convergence of RMS Force:    %1$8.6f Hartree/Bohr ") %
-          _conv.RMSForce)
+          conv_.RMSForce)
              .str()
       << std::flush;
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << (boost::format("Convergence of Max Force:    %1$8.6f Hartree/Bohr ") %
-          _conv.MaxForce)
+          conv_.MaxForce)
              .str()
       << std::flush;
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << (boost::format("Convergence of RMS Step:     %1$8.6f Bohr ") %
-          _conv.RMSStep)
+          conv_.RMSStep)
              .str()
       << std::flush;
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << (boost::format("Convergence of Max Step:     %1$8.6f Bohr ") %
-          _conv.MaxStep)
+          conv_.MaxStep)
              .str()
       << std::flush;
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << (boost::format("Initial trust radius:        %1$8.6f Bohr") %
-          _trust_radius)
+          trust_radius_)
              .str()
       << std::flush;
 
   Energy_costfunction e_cost =
-      Energy_costfunction(_gwbse_engine, tracker, _orbitals, force_engine);
-  e_cost.setConvergenceParameters(_conv);
-  e_cost.setLog(_pLog);
+      Energy_costfunction(gwbse_engine_, tracker, orbitals_, force_engine);
+  e_cost.setConvergenceParameters(conv_);
+  e_cost.setLog(pLog_);
   // get the optimizer
-  if (_optimizer == "BFGS-TRM") {
+  if (optimizer_ == "BFGS-TRM") {
     BFGSTRM bfgstrm(e_cost);
     std::vector<std::function<void()> > callbacks;
     std::function<void()> reporting = std::bind(
-        Report, std::cref(bfgstrm), std::cref(force_engine), std::ref(*_pLog));
+        Report, std::cref(bfgstrm), std::cref(force_engine), std::ref(*pLog_));
     callbacks.push_back(reporting);
     std::function<void()> filewrite = std::bind(
-        WriteTrajectory, _trajfile, _orbitals.QMAtoms(), std::cref(bfgstrm));
+        WriteTrajectory, trajfile_, orbitals_.QMAtoms(), std::cref(bfgstrm));
     callbacks.push_back(filewrite);
     bfgstrm.setCallbacks(callbacks);
-    bfgstrm.setNumofIterations(_max_iteration);
-    bfgstrm.setTrustRadius(_trust_radius);
-    bfgstrm.setLog(_pLog);
-    bfgstrm.Optimize(Energy_costfunction::QMAtoms2Vector(_orbitals.QMAtoms()));
+    bfgstrm.setNumofIterations(max_iteration_);
+    bfgstrm.setTrustRadius(trust_radius_);
+    bfgstrm.setLog(pLog_);
+    bfgstrm.Optimize(Energy_costfunction::QMAtoms2Vector(orbitals_.QMAtoms()));
   }
   return;
 }

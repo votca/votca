@@ -44,20 +44,20 @@ class CptTable {
   CptTable() = default;
   CptTable(const std::string& name, const std::size_t& rowSize,
            const std::size_t& nRows)
-      : _name(name),
-        _rowStructure(rowSize),
-        _nRows(nRows),
-        _props(H5::DSetCreatPropList(H5::DSetCreatPropList::DEFAULT)){};
+      : name_(name),
+        rowStructure_(rowSize),
+        nRows_(nRows),
+        props_(H5::DSetCreatPropList(H5::DSetCreatPropList::DEFAULT)){};
 
   CptTable(const std::string& name, const std::size_t& rowSize,
            const CptLoc& loc)
-      : _name(name), _loc(loc), _inited(true), _rowStructure(rowSize) {
+      : name_(name), loc_(loc), inited_(true), rowStructure_(rowSize) {
 
-    _dataset = _loc.openDataSet(_name);
-    _dp = _dataset.getSpace();
+    dataset_ = loc_.openDataSet(name_);
+    dp_ = dataset_.getSpace();
     hsize_t dims[2];
-    _dp.getSimpleExtentDims(dims, nullptr);
-    _nRows = dims[0];
+    dp_.getSimpleExtentDims(dims, nullptr);
+    nRows_ = dims[0];
   }
 
   template <typename U>
@@ -65,40 +65,40 @@ class CptTable {
 
   void initialize(const CptLoc& loc, bool compact) {
     // create the dataspace...
-    if (_inited) {
+    if (inited_) {
       std::stringstream message;
 
-      message << "Checkpoint tables cannot be reinitialized. " << _name
+      message << "Checkpoint tables cannot be reinitialized. " << name_
               << " has either already been initialized or already exists."
               << std::endl;
 
       throw std::runtime_error(message.str());
     }
-    _dims[0] = _nRows;
-    _dims[1] = 1;
+    dims_[0] = nRows_;
+    dims_[1] = 1;
 
-    _dp = H5::DataSpace(2, _dims);
-    _loc = loc;
+    dp_ = H5::DataSpace(2, dims_);
+    loc_ = loc;
 
     if (compact) {
-      _props.setLayout(H5D_layout_t::H5D_COMPACT);
+      props_.setLayout(H5D_layout_t::H5D_COMPACT);
     }
 
     try {
-      _dataset = _loc.createDataSet(_name.c_str(), _rowStructure, _dp, _props);
+      dataset_ = loc_.createDataSet(name_.c_str(), rowStructure_, dp_, props_);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not write " << _name << " from " << _loc.getFileName();
+      message << "Could not write " << name_ << " from " << loc_.getFileName();
       throw std::runtime_error(message.str());
     }
 
-    _inited = true;
+    inited_ = true;
   }
 
   void write(void* buffer, const std::size_t& startIdx,
              const std::size_t& endIdx) {
 
-    if (!_inited) {
+    if (!inited_) {
       std::stringstream message;
       message << "Checkpoint table uninitialized." << std::endl;
       throw std::runtime_error(message.str());
@@ -118,13 +118,13 @@ class CptTable {
 
     H5::DataSpace mspace(2, mDim);
 
-    _dp.selectHyperslab(H5S_SELECT_SET, fCount, fStart);
+    dp_.selectHyperslab(H5S_SELECT_SET, fCount, fStart);
     mspace.selectHyperslab(H5S_SELECT_SET, mCount, mStart);
     try {
-      _dataset.write(buffer, _rowStructure, mspace, _dp);
+      dataset_.write(buffer, rowStructure_, mspace, dp_);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not write " << _name << " from " << _loc.getFileName();
+      message << "Could not write " << name_ << " from " << loc_.getFileName();
       throw std::runtime_error(message.str());
     }
   }
@@ -141,7 +141,7 @@ class CptTable {
   void read(void* buffer, const std::size_t& startIdx,
             const std::size_t& endIdx) {
 
-    if (!_inited) {
+    if (!inited_) {
       std::stringstream message;
       message << "Checkpoint table uninitialized." << std::endl;
       throw std::runtime_error(message.str());
@@ -161,13 +161,13 @@ class CptTable {
 
     H5::DataSpace mspace(2, mDim);
 
-    _dp.selectHyperslab(H5S_SELECT_SET, fCount, fStart);
+    dp_.selectHyperslab(H5S_SELECT_SET, fCount, fStart);
     mspace.selectHyperslab(H5S_SELECT_SET, mCount, mStart);
     try {
-      _dataset.read(buffer, _rowStructure, mspace, _dp);
+      dataset_.read(buffer, rowStructure_, mspace, dp_);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not read " << _name << " from " << _loc.getFileName();
+      message << "Could not read " << name_ << " from " << loc_.getFileName();
       throw std::runtime_error(message.str());
     }
   }
@@ -181,20 +181,20 @@ class CptTable {
     read(dataVec.data(), 0, dataVec.size());
   }
 
-  std::size_t numRows() { return _nRows; }
+  std::size_t numRows() { return nRows_; }
 
   static const std::size_t MaxStringSize = 512;
 
  private:
-  std::string _name;
-  CptLoc _loc;
-  bool _inited = false;
-  H5::CompType _rowStructure;
-  std::size_t _nRows;
-  hsize_t _dims[2];
-  H5::DataSpace _dp;
-  H5::DataSet _dataset;
-  H5::DSetCreatPropList _props;
+  std::string name_;
+  CptLoc loc_;
+  bool inited_ = false;
+  H5::CompType rowStructure_;
+  std::size_t nRows_;
+  hsize_t dims_[2];
+  H5::DataSpace dp_;
+  H5::DataSet dataset_;
+  H5::DSetCreatPropList props_;
 };
 
 template <typename U>
@@ -202,13 +202,13 @@ inline void CptTable::addCol(const std::string& name, const size_t& offset) {
   static_assert(
       std::is_fundamental<U>::value,
       "Columns can only be added for fundamental types and 'const char*'");
-  _rowStructure.insertMember(name, offset, *InferDataType<U>::get());
+  rowStructure_.insertMember(name, offset, *InferDataType<U>::get());
 }
 
 template <>
 inline void CptTable::addCol<std::string>(const std::string& name,
                                           const size_t& offset) {
-  _rowStructure.insertMember(name, offset, *InferDataType<std::string>::get());
+  rowStructure_.insertMember(name, offset, *InferDataType<std::string>::get());
 }
 
 }  // namespace xtp

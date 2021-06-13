@@ -52,20 +52,20 @@ std::vector<Index> OrbReorder::copySegment(const std::array<Index, 49>& input,
 
 OrbReorder::OrbReorder(std::array<Index, 49> reorder,
                        std::array<Index, 49> multipliers, bool reverse)
-    : _multipliers(multipliers), _reorder(reorder), _reverse(reverse) {
+    : multipliers_(multipliers), reorder_(reorder), reverse_(reverse) {
 
   // Compute transpositions for every individual shell
   Index currentFunction = 0;
   for (int l = 0; l < 7; l++) {
     Index nrOfFunctions = NumFuncShell(static_cast<L>(l));
-    if (!_reverse) {  // ordering from external to votca order
-      _transpositions[l] = computeTranspositions(
-          copySegment(_reorder, currentFunction, nrOfFunctions),
-          copySegment(_votcaOrder, currentFunction, nrOfFunctions));
+    if (!reverse_) {  // ordering from external to votca order
+      transpositions_[l] = computeTranspositions(
+          copySegment(reorder_, currentFunction, nrOfFunctions),
+          copySegment(votcaOrder_, currentFunction, nrOfFunctions));
     } else {  // votca order to external order
-      _transpositions[l] = computeTranspositions(
-          copySegment(_votcaOrder, currentFunction, nrOfFunctions),
-          copySegment(_reorder, currentFunction, nrOfFunctions));
+      transpositions_[l] = computeTranspositions(
+          copySegment(votcaOrder_, currentFunction, nrOfFunctions),
+          copySegment(reorder_, currentFunction, nrOfFunctions));
     }
     currentFunction += nrOfFunctions;
   }
@@ -77,10 +77,10 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
   for (const AOShell& shell : basis) {
     Index currentFunction = shell.getStartIndex();
 
-    if (_reverse) {  // multiply first before reversing ordering
+    if (reverse_) {  // multiply first before reversing ordering
       // Get multiplier vector for shell
       std::vector<Index> shellmultiplier =
-          copySegment(_multipliers, shell.getOffset(), shell.getNumFunc());
+          copySegment(multipliers_, shell.getOffset(), shell.getNumFunc());
 
       // multiply shell
       for (Index i = 0; i < shell.getNumFunc(); i++) {
@@ -90,15 +90,15 @@ void OrbReorder::reorderOrbitals(Eigen::MatrixXd& moCoefficients,
 
     // reorder shell
     Index l = static_cast<Index>(shell.getL());
-    for (const Transposition& transposition : _transpositions[l]) {
+    for (const Transposition& transposition : transpositions_[l]) {
       moCoefficients.row(currentFunction + transposition.first)
           .swap(moCoefficients.row(currentFunction + transposition.second));
     }
 
-    if (!_reverse) {  // multiply after reordering
+    if (!reverse_) {  // multiply after reordering
       // Get multiplier vector for shell
       std::vector<Index> shellmultiplier =
-          copySegment(_multipliers, shell.getOffset(), shell.getNumFunc());
+          copySegment(multipliers_, shell.getOffset(), shell.getNumFunc());
 
       // multiply shell
       for (Index i = 0; i < shell.getNumFunc(); i++) {

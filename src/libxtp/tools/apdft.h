@@ -40,10 +40,10 @@ class APDFT final : public QMTool {
   bool Run();
 
  private:
-  std::string _grid_accuracy = "medium";
-  std::string _orbfile;
-  QMState _state;
-  std::string _outputfile;
+  std::string grid_accuracy_ = "medium";
+  std::string orbfile_;
+  QMState state_;
+  std::string outputfile_;
 };
 
 }  // namespace xtp

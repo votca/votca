@@ -53,11 +53,11 @@ class XtpTools final : public xtp::XtpApplication {
   void AddCommandLineOptions() final;
 
  private:
-  std::unique_ptr<xtp::QMTool> _tool;
+  std::unique_ptr<xtp::QMTool> tool_;
 };
 
 void XtpTools::CreateCalculator(const std::string& name) {
-  _tool = xtp::QMTools().Create(name);
+  tool_ = xtp::QMTools().Create(name);
 }
 void XtpTools::AddCommandLineOptions() {
   namespace propt = boost::program_options;
@@ -72,29 +72,29 @@ void XtpTools::EvaluateSpecificOptions() {
 
 void XtpTools::execute() {
 
-  if (_op_vm.find("options") != _op_vm.cend()) {
-    std::string optionsFile = _op_vm["options"].as<std::string>();
-    _options.LoadFromXML(optionsFile);
+  if (OptionsMap().find("options") != OptionsMap().cend()) {
+    std::string optionsFile = OptionsMap()["options"].as<std::string>();
+    options_.LoadFromXML(optionsFile);
   } else {
     // Empty user options
-    tools::Property& opts = _options.add("options", "");
-    opts.add(_tool->Identify(), "");
+    tools::Property& opts = options_.add("options", "");
+    opts.add(tool_->Identify(), "");
   }
 
-  std::string job_name = _op_vm["name"].as<std::string>();
-  tools::Property& opts = _options.get("options." + _tool->Identify());
+  std::string job_name = OptionsMap()["name"].as<std::string>();
+  tools::Property& opts = options_.get("options." + tool_->Identify());
   opts.add("job_name", job_name);
 
   Index nThreads = OptionsMap()["nthreads"].as<Index>();
 
   std::cout << "Initializing tool\n";
-  std::cout << "... " << _tool->Identify() << " " << std::flush;
-  _tool->setnThreads(nThreads);
-  _tool->Initialize(_options);
+  std::cout << "... " << tool_->Identify() << " " << std::flush;
+  tool_->setnThreads(nThreads);
+  tool_->Initialize(options_);
 
   std::cout << "Evaluating tool\n";
-  std::cout << "... " << _tool->Identify() << " " << std::flush;
-  _tool->Evaluate();
+  std::cout << "... " << tool_->Identify() << " " << std::flush;
+  tool_->Evaluate();
 }
 
 int main(int argc, char** argv) {

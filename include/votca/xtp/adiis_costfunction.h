@@ -30,22 +30,22 @@ namespace xtp {
 class ADIIS_costfunction : public Optimiser_costfunction {
  public:
   ADIIS_costfunction(Eigen::VectorXd DiF, Eigen::MatrixXd DiFj) {
-    _DiF = DiF;
-    _DiFj = DiFj;
+    DiF_ = DiF;
+    DiFj_ = DiFj;
   }
 
   double EvaluateCost(const Eigen::VectorXd& parameters) override {
     Eigen::VectorXd c = parameters.cwiseAbs2();
     double xnorm = c.sum();
     c /= xnorm;
-    return (2 * c.transpose() * _DiF + c.transpose() * _DiFj * c).value();
+    return (2 * c.transpose() * DiF_ + c.transpose() * DiFj_ * c).value();
   }
 
   Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters) override {
     Eigen::VectorXd c = parameters.cwiseAbs2();
     double xnorm = c.sum();
     c /= xnorm;
-    Eigen::VectorXd dEdc = 2.0 * _DiF + _DiFj * c + _DiFj.transpose() * c;
+    Eigen::VectorXd dEdc = 2.0 * DiF_ + DiFj_ * c + DiFj_.transpose() * c;
     Eigen::MatrixXd jac = Eigen::MatrixXd::Zero(c.size(), c.size());
     for (Index i = 0; i < jac.rows(); i++) {
       for (Index j = 0; j < jac.cols(); j++) {
@@ -57,7 +57,7 @@ class ADIIS_costfunction : public Optimiser_costfunction {
     return jac.transpose() * dEdc;
   }
 
-  Index NumParameters() const override { return Index(_DiF.size()); }
+  Index NumParameters() const override { return Index(DiF_.size()); }
 
   bool Converged(const Eigen::VectorXd&, double,
                  const Eigen::VectorXd& gradient) override {
@@ -65,8 +65,8 @@ class ADIIS_costfunction : public Optimiser_costfunction {
   }
 
  private:
-  Eigen::VectorXd _DiF;
-  Eigen::MatrixXd _DiFj;
+  Eigen::VectorXd DiF_;
+  Eigen::MatrixXd DiFj_;
 };
 
 }  // namespace xtp

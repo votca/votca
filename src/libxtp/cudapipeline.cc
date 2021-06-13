@@ -28,9 +28,9 @@ namespace xtp {
 CudaPipeline::~CudaPipeline() {
 
   // destroy handle
-  cublasDestroy(_handle);
+  cublasDestroy(handle_);
   // destroy stream
-  cudaStreamDestroy(_stream);
+  cudaStreamDestroy(stream_);
 }
 
 void CudaPipeline::axpy(const CudaMatrix &A, CudaMatrix &B,
@@ -40,12 +40,12 @@ void CudaPipeline::axpy(const CudaMatrix &A, CudaMatrix &B,
     throw std::runtime_error("Shape mismatch in cuda axpy");
   }
 
-  cublasSetStream(_handle, _stream);
+  cublasSetStream(handle_, stream_);
   cublasStatus_t status =
-      cublasDaxpy(_handle, int(A.size()), &alpha, A.data(), 1, B.data(), 1);
+      cublasDaxpy(handle_, int(A.size()), &alpha, A.data(), 1, B.data(), 1);
 
   if (status != CUBLAS_STATUS_SUCCESS) {
-    throw std::runtime_error("axpy failed on gpu " + std::to_string(_deviceID) +
+    throw std::runtime_error("axpy failed on gpu " + std::to_string(deviceID_) +
                              " with errorcode:" + cudaGetErrorEnum(status));
   }
 }

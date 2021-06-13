@@ -53,17 +53,17 @@ class ImaginaryAxisIntegration {
   double SigmaGQDiag(double frequency, Index gw_level, double eta) const;
 
  private:
-  options _opt;
+  options opt_;
 
-  std::unique_ptr<GaussianQuadratureBase> _gq = nullptr;
+  std::unique_ptr<GaussianQuadratureBase> gq_ = nullptr;
 
   // This function calculates and stores inverses of the microscopic dielectric
   // matrix in a matrix vector
   void CalcDielInvVector(const RPA& rpa,
                          const Eigen::MatrixXd& kDielMxInv_zero);
-  const Eigen::VectorXd& _energies;
-  std::vector<Eigen::MatrixXd> _dielinv_matrices_r;
-  const TCMatrix_gwbse& _Mmn;
+  const Eigen::VectorXd& energies_;
+  std::vector<Eigen::MatrixXd> dielinv_matrices_r_;
+  const TCMatrix_gwbse& Mmn_;
 };
 }  // namespace xtp
 }  // namespace votca

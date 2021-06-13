@@ -30,11 +30,11 @@ namespace xtp {
 void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
                                  const Eigen::VectorXd& gwaenergies,
                                  Index qpmin) {
-  Index rpatotal = _rpamax - _rpamin + 1;
-  _energies = dftenergies.segment(_rpamin, rpatotal);
+  Index rpatotal = rpamax_ - rpamin_ + 1;
+  energies_ = dftenergies.segment(rpamin_, rpatotal);
   Index gwsize = Index(gwaenergies.size());
 
-  _energies.segment(qpmin - _rpamin, gwsize) = gwaenergies;
+  energies_.segment(qpmin - rpamin_, gwsize) = gwaenergies;
 
   ShiftUncorrectedEnergies(dftenergies, qpmin, gwsize);
 }
@@ -48,16 +48,16 @@ void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
 void RPA::ShiftUncorrectedEnergies(const Eigen::VectorXd& dftenergies,
                                    Index qpmin, Index gwsize) {
 
-  Index lumo = _homo + 1;
+  Index lumo = homo_ + 1;
   Index qpmax = qpmin + gwsize - 1;
 
   // get max abs QP corrections for occupied/virtual levels
-  double max_correction_occ = getMaxCorrection(dftenergies, qpmin, _homo);
+  double max_correction_occ = getMaxCorrection(dftenergies, qpmin, homo_);
   double max_correction_virt = getMaxCorrection(dftenergies, lumo, qpmax);
 
   // shift energies
-  _energies.head(qpmin).array() -= max_correction_occ;
-  _energies.tail(_rpamax - qpmax).array() += max_correction_virt;
+  energies_.head(qpmin).array() -= max_correction_occ;
+  energies_.tail(rpamax_ - qpmax).array() += max_correction_virt;
 }
 
 double RPA::getMaxCorrection(const Eigen::VectorXd& dftenergies, Index min,
@@ -65,20 +65,20 @@ double RPA::getMaxCorrection(const Eigen::VectorXd& dftenergies, Index min,
 
   Index range = max - min + 1;
   Eigen::VectorXd corrections =
-      _energies.segment(min, range) - dftenergies.segment(min - _rpamin, range);
+      energies_.segment(min, range) - dftenergies.segment(min - rpamin_, range);
 
   return (corrections.cwiseAbs()).maxCoeff();
 }
 
 template <bool imag>
 Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
-  const Index size = _Mmn.auxsize();
+  const Index size = Mmn_.auxsize();
 
-  const Index lumo = _homo + 1;
-  const Index n_occ = lumo - _rpamin;
-  const Index n_unocc = _rpamax - lumo + 1;
+  const Index lumo = homo_ + 1;
+  const Index n_occ = lumo - rpamin_;
+  const Index n_unocc = rpamax_ - lumo + 1;
   const double freq2 = frequency * frequency;
-  const double eta2 = _eta * _eta;
+  const double eta2 = eta_ * eta_;
 
   OpenMP_CUDA transform;
   transform.createTemporaries(n_unocc, size);
@@ -88,12 +88,12 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
     Index threadid = OPENMP::getThreadId();
 #pragma omp for schedule(dynamic)
     for (Index m_level = 0; m_level < n_occ; m_level++) {
-      const double qp_energy_m = _energies(m_level);
+      const double qp_energy_m = energies_(m_level);
 
-      Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+      Eigen::MatrixXd Mmn_RPA = Mmn_[m_level].bottomRows(n_unocc);
       transform.PushMatrix(Mmn_RPA, threadid);
       const Eigen::ArrayXd deltaE =
-          _energies.tail(n_unocc).array() - qp_energy_m;
+          energies_.tail(n_unocc).array() - qp_energy_m;
       Eigen::VectorXd denom;
       if (imag) {
         denom = 4 * deltaE / (deltaE.square() + freq2);
@@ -118,11 +118,11 @@ template Eigen::MatrixXd RPA::calculate_epsilon<false>(double frequency) const;
 
 Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
 
-  const Index size = _Mmn.auxsize();
+  const Index size = Mmn_.auxsize();
 
-  const Index lumo = _homo + 1;
-  const Index n_occ = lumo - _rpamin;
-  const Index n_unocc = _rpamax - lumo + 1;
+  const Index lumo = homo_ + 1;
+  const Index n_occ = lumo - rpamin_;
+  const Index n_unocc = rpamax_ - lumo + 1;
   OpenMP_CUDA transform;
   transform.createTemporaries(n_unocc, size);
 #pragma omp parallel
@@ -131,17 +131,17 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
 #pragma omp for schedule(dynamic)
     for (Index m_level = 0; m_level < n_occ; m_level++) {
 
-      const double qp_energy_m = _energies(m_level);
-      Eigen::MatrixXd Mmn_RPA = _Mmn[m_level].bottomRows(n_unocc);
+      const double qp_energy_m = energies_(m_level);
+      Eigen::MatrixXd Mmn_RPA = Mmn_[m_level].bottomRows(n_unocc);
       transform.PushMatrix(Mmn_RPA, threadid);
       const Eigen::ArrayXd deltaE =
-          _energies.tail(n_unocc).array() - qp_energy_m;
+          energies_.tail(n_unocc).array() - qp_energy_m;
 
       Eigen::ArrayXd deltaEm = frequency.real() - deltaE;
       Eigen::ArrayXd deltaEp = frequency.real() + deltaE;
 
-      double sigma_1 = std::pow(frequency.imag() + _eta, 2);
-      double sigma_2 = std::pow(frequency.imag() - _eta, 2);
+      double sigma_1 = std::pow(frequency.imag() + eta_, 2);
+      double sigma_2 = std::pow(frequency.imag() - eta_, 2);
 
       Eigen::VectorXd chi =
           deltaEm * (deltaEm.cwiseAbs2() + sigma_1).cwiseInverse() -
@@ -155,9 +155,9 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
 }
 
 RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
-  const Index lumo = _homo + 1;
-  const Index n_occ = lumo - _rpamin;
-  const Index n_unocc = _rpamax - lumo + 1;
+  const Index lumo = homo_ + 1;
+  const Index n_occ = lumo - rpamin_;
+  const Index n_unocc = rpamax_ - lumo + 1;
   const Index rpasize = n_occ * n_unocc;
 
   Eigen::VectorXd AmB = Calculate_H2p_AmB();
@@ -178,14 +178,14 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   sol.omega = es.eigenvalues().cwiseSqrt();
   sol.ERPA_correlation += 0.5 * sol.omega.sum();
 
-  XTP_LOG(Log::info, _log) << TimeStamp()
+  XTP_LOG(Log::info, log_) << TimeStamp()
                            << " Lowest neutral excitation energy (eV): "
                            << tools::conv::hrt2ev * sol.omega.minCoeff()
                            << std::flush;
 
   // RPA correlation energy calculated from Eq.9 of J. Chem. Phys. 132, 234114
   // (2010)
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << TimeStamp()
       << " RPA correlation energy (Hartree): " << sol.ERPA_correlation
       << std::flush;
@@ -203,38 +203,38 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
 }
 
 Eigen::VectorXd RPA::Calculate_H2p_AmB() const {
-  const Index lumo = _homo + 1;
-  const Index n_occ = lumo - _rpamin;
-  const Index n_unocc = _rpamax - lumo + 1;
+  const Index lumo = homo_ + 1;
+  const Index n_occ = lumo - rpamin_;
+  const Index n_unocc = rpamax_ - lumo + 1;
   const Index rpasize = n_occ * n_unocc;
   vc2index vc = vc2index(0, 0, n_unocc);
   Eigen::VectorXd AmB = Eigen::VectorXd::Zero(rpasize);
   for (Index v = 0; v < n_occ; v++) {
     Index i = vc.I(v, 0);
     AmB.segment(i, n_unocc) =
-        _energies.segment(n_occ, n_unocc).array() - _energies(v);
+        energies_.segment(n_occ, n_unocc).array() - energies_(v);
   }
   return AmB;
 }
 
 Eigen::MatrixXd RPA::Calculate_H2p_ApB() const {
-  const Index lumo = _homo + 1;
-  const Index n_occ = lumo - _rpamin;
-  const Index n_unocc = _rpamax - lumo + 1;
+  const Index lumo = homo_ + 1;
+  const Index n_occ = lumo - rpamin_;
+  const Index n_unocc = rpamax_ - lumo + 1;
   const Index rpasize = n_occ * n_unocc;
-  const Index auxsize = _Mmn.auxsize();
+  const Index auxsize = Mmn_.auxsize();
   vc2index vc = vc2index(0, 0, n_unocc);
   Eigen::MatrixXd ApB = Eigen::MatrixXd::Zero(rpasize, rpasize);
 #pragma omp parallel for schedule(guided)
   for (Index v2 = 0; v2 < n_occ; v2++) {
     Index i2 = vc.I(v2, 0);
     const Eigen::MatrixXd Mmn_v2T =
-        _Mmn[v2].block(n_occ, 0, n_unocc, auxsize).transpose();
+        Mmn_[v2].block(n_occ, 0, n_unocc, auxsize).transpose();
     for (Index v1 = v2; v1 < n_occ; v1++) {
       Index i1 = vc.I(v1, 0);
       // Multiply with factor 2 to sum over both (identical) spin states
       ApB.block(i1, i2, n_unocc, n_unocc) =
-          2 * 2 * _Mmn[v1].block(n_occ, 0, n_unocc, auxsize) * Mmn_v2T;
+          2 * 2 * Mmn_[v1].block(n_occ, 0, n_unocc, auxsize) * Mmn_v2T;
     }
   }
   ApB.diagonal() += Calculate_H2p_AmB();
@@ -243,15 +243,15 @@ Eigen::MatrixXd RPA::Calculate_H2p_ApB() const {
 
 Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> RPA::Diagonalize_H2p_C(
     const Eigen::MatrixXd& C) const {
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << TimeStamp() << " Diagonalizing two-particle Hamiltonian "
       << std::flush;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(C);  // Uses lower triangle
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << TimeStamp() << " Diagonalization done " << std::flush;
   double minCoeff = es.eigenvalues().minCoeff();
   if (minCoeff <= 0.0) {
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << TimeStamp() << " Detected non-positive eigenvalue: " << minCoeff
         << std::flush;
     throw std::runtime_error("Detected non-positive eigenvalue.");

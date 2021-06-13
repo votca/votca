@@ -47,11 +47,11 @@ class OrbReorder {
   // structure to store the transpositions for the first 7 shell types (i.e.
   // s=0, p, d, f, g, h, i=6)
   using OrbTranspositions = std::array<std::vector<Transposition>, 7>;
-  std::array<Index, 49> _multipliers;
-  std::array<Index, 49> _reorder;
+  std::array<Index, 49> multipliers_;
+  std::array<Index, 49> reorder_;
   // clang-format off
   // the ordering of the m quantumnumbers for every shell
-  std::array<Index, 49> _votcaOrder={{
+  std::array<Index, 49>  votcaOrder_={{
             0, //s
             -1,0,1, //p
             -2,-1,0,1,2, //d
@@ -62,13 +62,13 @@ class OrbReorder {
 }};
 
   // clang-format on
-  OrbTranspositions _transpositions;
+  OrbTranspositions transpositions_;
 
   std::vector<Transposition> computeTranspositions(
       std::vector<Index> vStart, std::vector<Index> vTarget) const;
   std::vector<Index> copySegment(const std::array<Index, 49>& input,
                                  Index start, Index size) const;
-  bool _reverse;
+  bool reverse_;
 };
 
 }  // namespace xtp

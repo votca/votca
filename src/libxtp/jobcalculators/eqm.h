@@ -57,16 +57,16 @@ class EQM final : public ParallelXJobCalc<std::vector<Job> > {
   void SetJobToFailed(Job::JobResult &jres, Logger &pLog,
                       const std::string &errormessage);
 
-  tools::Property _package_options;
-  tools::Property _gwbse_options;
-  tools::Property _esp_options;
+  tools::Property package_options_;
+  tools::Property gwbse_options_;
+  tools::Property esp_options_;
 
   // what to do
-  bool _do_dft_input = false;
-  bool _do_dft_run = false;
-  bool _do_dft_parse = false;
-  bool _do_gwbse = false;
-  bool _do_esp = false;
+  bool do_dft_input_ = false;
+  bool do_dft_run_ = false;
+  bool do_dft_parse_ = false;
+  bool do_gwbse_ = false;
+  bool do_esp_ = false;
 };
 
 }  // namespace xtp

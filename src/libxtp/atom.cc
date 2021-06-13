@@ -29,7 +29,7 @@ namespace xtp {
 
 Atom::Atom(Index resnr, std::string md_atom_name, Index atom_id,
            Eigen::Vector3d pos, std::string type)
-    : _id(atom_id), _name(md_atom_name), _resnr(resnr), _pos(pos) {
+    : id_(atom_id), name_(md_atom_name), resnr_(resnr), pos_(pos) {
 
   std::string elename = GetElementFromString(md_atom_name);
   std::string eletype = GetElementFromString(type);
@@ -54,11 +54,11 @@ Atom::Atom(Index resnr, std::string md_atom_name, Index atom_id,
                                " from atom name: " + md_atom_name +
                                " and atom type:" + type + " do not match.");
     }
-    _element = elename;
+    element_ = elename;
   } else if (found_element_name) {
-    _element = elename;
+    element_ = elename;
   } else if (found_element_type) {
-    _element = elename;
+    element_ = elename;
   } else {
     throw std::runtime_error("Could not get Element from atom name:" +
                              md_atom_name + " or atom type:" + type);
@@ -80,9 +80,9 @@ std::string Atom::GetElementFromString(const std::string& MDName) {
 }
 
 void Atom::Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos) {
-  Eigen::Vector3d dir = _pos - refPos;
+  Eigen::Vector3d dir = pos_ - refPos;
   dir = R * dir;
-  _pos = refPos + dir;  // Rotated Position
+  pos_ = refPos + dir;  // Rotated Position
 }
 
 void Atom::SetupCptTable(CptTable& table) {
@@ -96,25 +96,25 @@ void Atom::SetupCptTable(CptTable& table) {
 }
 
 void Atom::WriteData(data& d) const {
-  d.id = _id;
-  d.element = const_cast<char*>(_element.c_str());
-  d.name = const_cast<char*>(_name.c_str());
-  d.x = _pos[0];
-  d.y = _pos[1];
-  d.z = _pos[2];
-  d.resnr = _resnr;
+  d.id = id_;
+  d.element = const_cast<char*>(element_.c_str());
+  d.name = const_cast<char*>(name_.c_str());
+  d.x = pos_[0];
+  d.y = pos_[1];
+  d.z = pos_[2];
+  d.resnr = resnr_;
 }
 
 void Atom::ReadData(const data& d) {
-  _id = d.id;
-  _element = std::string(d.element);
+  id_ = d.id;
+  element_ = std::string(d.element);
   free(d.element);
-  _name = std::string(d.name);
+  name_ = std::string(d.name);
   free(d.name);
-  _pos[0] = d.x;
-  _pos[2] = d.z;
-  _pos[1] = d.y;
-  _resnr = d.resnr;
+  pos_[0] = d.x;
+  pos_[2] = d.z;
+  pos_[1] = d.y;
+  resnr_ = d.resnr;
 }
 }  // namespace xtp
 }  // namespace votca
