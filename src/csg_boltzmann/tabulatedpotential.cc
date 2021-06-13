@@ -37,8 +37,8 @@ namespace csg {
  * Public Facing Methods
  ******************************************************************************/
 TabulatedPotential::TabulatedPotential() {
-  _tab_smooth1 = _tab_smooth2 = 0;
-  _Temperature = 300;
+  tab_smooth1_ = tab_smooth2_ = 0;
+  Temperature_ = 300;
 }
 
 void TabulatedPotential::Register(map<string, AnalysisTool *> &lib) {
@@ -50,16 +50,16 @@ void TabulatedPotential::Command(BondedStatistics &bs, const string &cmd,
                                  vector<string> &args) {
   if (args[0] == "set") {
     if (cmd == "hist") {
-      SetOption_(_hist_options, args);
+      SetOption_(hist_options_, args);
     } else if (cmd == "tab") {
-      if (!SetOption_(_tab_options, args)) {
+      if (!SetOption_(tab_options_, args)) {
         if (args.size() > 2) {
           if (args[1] == "smooth_pdf") {
-            _tab_smooth1 = boost::lexical_cast<Index>(args[2]);
+            tab_smooth1_ = boost::lexical_cast<Index>(args[2]);
           } else if (args[1] == "smooth_pot") {
-            _tab_smooth2 = boost::lexical_cast<Index>(args[2]);
+            tab_smooth2_ = boost::lexical_cast<Index>(args[2]);
           } else if (args[1] == "T") {
-            _Temperature = boost::lexical_cast<double>(args[2]);
+            Temperature_ = boost::lexical_cast<double>(args[2]);
           } else {
             cout << "unknown option " << args[2] << endl;
             return;
@@ -67,9 +67,9 @@ void TabulatedPotential::Command(BondedStatistics &bs, const string &cmd,
         }
       }
       if (args.size() <= 2) {
-        cout << "smooth_pdf: " << _tab_smooth1 << endl;
-        cout << "smooth_pot: " << _tab_smooth2 << endl;
-        cout << "T: " << _Temperature << endl;
+        cout << "smooth_pdf: " << tab_smooth1_ << endl;
+        cout << "smooth_pot: " << tab_smooth2_ << endl;
+        cout << "T: " << Temperature_ << endl;
       }
     }
   } else if (args.size() >= 2) {
@@ -188,10 +188,10 @@ void TabulatedPotential::Help(const string &cmd, vector<string> &args) {
   cout << "no help text available" << endl;
 }
 
-double TabulatedPotential::getTemperature() const { return _Temperature; }
+double TabulatedPotential::getTemperature() const { return Temperature_; }
 
 pair<int, Index> TabulatedPotential::getSmoothIterations() const {
-  return pair<int, Index>(_tab_smooth1, _tab_smooth2);
+  return pair<int, Index>(tab_smooth1_, tab_smooth2_);
 }
 
 void TabulatedPotential::WriteHistogram(BondedStatistics &bs,
@@ -202,7 +202,7 @@ void TabulatedPotential::WriteHistogram(BondedStatistics &bs,
   for (size_t i = 1; i < args.size(); i++) {
     sel = bs.BondedValues().select(args[i], sel);
   }
-  Histogram h(_hist_options);
+  Histogram h(hist_options_);
   h.ProcessData(sel);
   out.open(args[0]);
   out << h;
@@ -224,21 +224,21 @@ void TabulatedPotential::WritePotential(BondedStatistics &bs,
     sel = bs.BondedValues().select(args[i], sel);
   }
 
-  Histogram h(_tab_options);
+  Histogram h(tab_options_);
 
   h.ProcessData(sel);
-  for (Index i = 0; i < _tab_smooth1; ++i) {
-    Smooth_(h.getPdf(), _tab_options._periodic);
+  for (Index i = 0; i < tab_smooth1_; ++i) {
+    Smooth_(h.getPdf(), tab_options_.periodic_);
   }
   BoltzmannInvert_(h.getPdf());
-  for (Index i = 0; i < _tab_smooth2; ++i) {
-    Smooth_(h.getPdf(), _tab_options._periodic);
+  for (Index i = 0; i < tab_smooth2_; ++i) {
+    Smooth_(h.getPdf(), tab_options_.periodic_);
   }
   out.open(args[0]);
 
   vector<double> F;
   assert(h.getInterval() > 0 && "Interval for pdf histogram is 0");
-  CalcForce_(h.getPdf(), F, h.getInterval(), _tab_options._periodic);
+  CalcForce_(h.getPdf(), F, h.getInterval(), tab_options_.periodic_);
   for (Index i = 0; i < h.getN(); i++) {
     out << h.getMin() + h.getInterval() * ((double)i) << " " << h.getPdf()[i]
         << " " << F[i] << endl;
@@ -256,22 +256,22 @@ bool TabulatedPotential::SetOption_(Histogram::options_t &op,
                                     const vector<string> &args) {
   if (args.size() > 2) {
     if (args[1] == "n") {
-      op._n = boost::lexical_cast<Index>(args[2]);
+      op.n_ = boost::lexical_cast<Index>(args[2]);
     } else if (args[1] == "min") {
-      op._min = boost::lexical_cast<double>(args[2]);
+      op.min_ = boost::lexical_cast<double>(args[2]);
     } else if (args[1] == "max") {
-      op._max = boost::lexical_cast<double>(args[2]);
+      op.max_ = boost::lexical_cast<double>(args[2]);
     } else if (args[1] == "periodic") {
-      op._periodic = boost::lexical_cast<bool>(args[2]);
+      op.periodic_ = boost::lexical_cast<bool>(args[2]);
     } else if (args[1] == "auto") {
-      op._auto_interval = boost::lexical_cast<bool>(args[2]);
+      op.auto_interval_ = boost::lexical_cast<bool>(args[2]);
     } else if (args[1] == "extend") {
-      op._extend_interval = boost::lexical_cast<bool>(args[2]);
+      op.extend_interval_ = boost::lexical_cast<bool>(args[2]);
     } else if (args[1] == "normalize") {
-      op._normalize = boost::lexical_cast<bool>(args[2]);
+      op.normalize_ = boost::lexical_cast<bool>(args[2]);
     } else if (args[1] == "scale") {
       if (args[2] == "no" || args[2] == "bond" || args[2] == "angle") {
-        op._scale = args[2];
+        op.scale_ = args[2];
       } else {
         cout << "scale can be: no, bond or angle\n";
       }
@@ -279,14 +279,14 @@ bool TabulatedPotential::SetOption_(Histogram::options_t &op,
       return false;
     }
   } else {
-    cout << "n: " << op._n << endl;
-    cout << "min: " << op._min << endl;
-    cout << "max: " << op._max << endl;
-    cout << "periodic: " << op._periodic << endl;
-    cout << "auto: " << op._auto_interval << endl;
-    cout << "extend: " << op._extend_interval << endl;
-    cout << "scale: " << op._scale << endl;
-    cout << "normalize: " << op._normalize << endl;
+    cout << "n: " << op.n_ << endl;
+    cout << "min: " << op.min_ << endl;
+    cout << "max: " << op.max_ << endl;
+    cout << "periodic: " << op.periodic_ << endl;
+    cout << "auto: " << op.auto_interval_ << endl;
+    cout << "extend: " << op.extend_interval_ << endl;
+    cout << "scale: " << op.scale_ << endl;
+    cout << "normalize: " << op.normalize_ << endl;
   }
   return true;
 }
@@ -350,14 +350,14 @@ void TabulatedPotential::BoltzmannInvert_(vector<double> &data) {
       min = std::min(i, min);
     }
   }
-  max = -conv::kB * conv::ev2kj_per_mol * _Temperature * std::log(max);
-  min = -conv::kB * conv::ev2kj_per_mol * _Temperature * std::log(min) - max;
+  max = -conv::kB * conv::ev2kj_per_mol * Temperature_ * std::log(max);
+  min = -conv::kB * conv::ev2kj_per_mol * Temperature_ * std::log(min) - max;
 
   for (double &i : data) {
     if (i == 0) {
       i = min;
     } else {
-      i = -conv::kB * conv::ev2kj_per_mol * _Temperature * std::log(i) - max;
+      i = -conv::kB * conv::ev2kj_per_mol * Temperature_ * std::log(i) - max;
     }
   }
 }

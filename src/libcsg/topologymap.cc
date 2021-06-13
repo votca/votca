@@ -23,12 +23,12 @@ namespace votca {
 namespace csg {
 
 void TopologyMap::Apply() {
-  _out->setStep(_in->getStep());
-  _out->setTime(_in->getTime());
-  _out->setBox(_in->getBox());
+  out_->setStep(in_->getStep());
+  out_->setTime(in_->getTime());
+  out_->setBox(in_->getBox());
 
-  for (auto& _map : _maps) {
-    _map.Apply(_out->getBoundary());
+  for (auto& map_ : maps_) {
+    map_.Apply(out_->getBoundary());
   }
 }
 

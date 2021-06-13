@@ -36,43 +36,43 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name, Index nlam,
    * cut-off and beyond take a value of zero.
    *
    * Since region less than rmin is not sampled sufficiently for stability
-   * first _nexcl coefficients are not optimized instead their values are
+   * first  nexcl_ coefficients are not optimized instead their values are
    * extrapolated from first statistically significant knot values near rmin
    */
 
   Index nknots;
 
-  nknots = _lam.size();
+  nknots = lam_.size();
 
-  _nbreak = nknots - 2;
+  nbreak_ = nknots - 2;
 
-  _dr = (_cut_off) / (double(_nbreak - 1));
+  dr_ = (cut_off_) / (double(nbreak_ - 1));
 
   // break point locations
   // since ncoeff = nbreak +2 , r values for last two coefficients are also
   // computed
-  _rbreak = Eigen::VectorXd::Zero(nknots);
+  rbreak_ = Eigen::VectorXd::Zero(nknots);
 
   for (Index i = 0; i < nknots; i++) {
-    _rbreak(i) = double(i) * _dr;
+    rbreak_(i) = double(i) * dr_;
   }
 
-  // exclude knots corresponding to r <= _min
-  _nexcl = std::min((Index)(_min / _dr), _nbreak - 2) + 1;
+  // exclude knots corresponding to r <=  min_
+  nexcl_ = std::min((Index)(min_ / dr_), nbreak_ - 2) + 1;
 
-  // account for finite numerical division of _min/_dr
+  // account for finite numerical division of  min_/ dr_
   // e.g. 0.24/0.02 may result in 11.99999999999999
-  if (_rbreak(_nexcl) == _min) {
-    _nexcl++;
+  if (rbreak_(nexcl_) == min_) {
+    nexcl_++;
   }
 
   // fixing last 4 knots to zeros is reasonable
-  _ncutcoeff = 4;
+  ncutcoeff_ = 4;
 
   // check if we have enough parameters to optimize
-  if ((Index(_lam.size()) - _nexcl - _ncutcoeff) < 1) {
+  if ((Index(lam_.size()) - nexcl_ - ncutcoeff_) < 1) {
     throw std::runtime_error(
-        "In potential " + _name +
+        "In potential " + name_ +
         ": no parameters to optimize!\n"
         "All the knot values fall in the range of either excluded (due to high "
         "repulsive region) or cut-off region.\n"
@@ -84,49 +84,49 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name, Index nlam,
         "3. Use more knot values.\n");
   }
 
-  _M = Eigen::MatrixXd::Zero(4, 4);
-  _M(0, 0) = 1.0;
-  _M(0, 1) = 4.0;
-  _M(0, 2) = 1.0;
-  _M(0, 3) = 0.0;
-  _M(1, 0) = -3.0;
-  _M(1, 1) = 0.0;
-  _M(1, 2) = 3.0;
-  _M(1, 3) = 0.0;
-  _M(2, 0) = 3.0;
-  _M(2, 1) = -6.0;
-  _M(2, 2) = 3.0;
-  _M(2, 3) = 0.0;
-  _M(3, 0) = -1.0;
-  _M(3, 1) = 3.0;
-  _M(3, 2) = -3.0;
-  _M(3, 3) = 1.0;
-  _M /= 6.0;
+  M_ = Eigen::MatrixXd::Zero(4, 4);
+  M_(0, 0) = 1.0;
+  M_(0, 1) = 4.0;
+  M_(0, 2) = 1.0;
+  M_(0, 3) = 0.0;
+  M_(1, 0) = -3.0;
+  M_(1, 1) = 0.0;
+  M_(1, 2) = 3.0;
+  M_(1, 3) = 0.0;
+  M_(2, 0) = 3.0;
+  M_(2, 1) = -6.0;
+  M_(2, 2) = 3.0;
+  M_(2, 3) = 0.0;
+  M_(3, 0) = -1.0;
+  M_(3, 1) = 3.0;
+  M_(3, 2) = -3.0;
+  M_(3, 3) = 1.0;
+  M_ /= 6.0;
 }
 
 Index PotentialFunctionCBSPL::getOptParamSize() const {
 
-  return _lam.size() - _nexcl - _ncutcoeff;
+  return lam_.size() - nexcl_ - ncutcoeff_;
 }
 
 void PotentialFunctionCBSPL::setParam(string filename) {
 
   Table param;
   param.Load(filename);
-  _lam.setZero();
+  lam_.setZero();
 
-  if (param.size() != _lam.size()) {
+  if (param.size() != lam_.size()) {
 
-    throw std::runtime_error("In potential " + _name +
+    throw std::runtime_error("In potential " + name_ +
                              ": parameters size mismatch!\n"
                              "Check input parameter file \"" +
                              filename + "\" \nThere should be " +
-                             boost::lexical_cast<string>(_lam.size()) +
+                             boost::lexical_cast<string>(lam_.size()) +
                              " parameters");
   } else {
-    // force last _ncutcoeff to zero
-    Index nonzero = _lam.size() - _ncutcoeff;
-    _lam.head(nonzero) = param.y().head(nonzero);
+    // force last  ncutcoeff_ to zero
+    Index nonzero = lam_.size() - ncutcoeff_;
+    lam_.head(nonzero) = param.y().head(nonzero);
   }
 }
 
@@ -136,17 +136,17 @@ void PotentialFunctionCBSPL::SaveParam(const string &filename) {
 
   Table param;
   param.SetHasYErr(false);
-  param.resize(_lam.size());
+  param.resize(lam_.size());
 
   // write extrapolated knots with flag 'o'
   // points close to rmin can also be stastically not reliable
   // so flag 3 more points next to rmin as 'o'
-  for (Index i = 0; i < _nexcl + 3; i++) {
-    param.set(i, _rbreak(i), _lam(i), 'o');
+  for (Index i = 0; i < nexcl_ + 3; i++) {
+    param.set(i, rbreak_(i), lam_(i), 'o');
   }
 
-  for (Index i = _nexcl + 3; i < _lam.size(); i++) {
-    param.set(i, _rbreak(i), _lam(i), 'i');
+  for (Index i = nexcl_ + 3; i < lam_.size(); i++) {
+    param.set(i, rbreak_(i), lam_(i), 'i');
   }
 
   param.Save(filename);
@@ -165,17 +165,17 @@ void PotentialFunctionCBSPL::SavePotTab(const string &filename, double step) {
 
 void PotentialFunctionCBSPL::extrapolExclParam() {
 
-  double u0 = _lam(_nexcl);
-  double m = (_lam(_nexcl + 1) - _lam(_nexcl)) /
-             (_rbreak(_nexcl + 1) - _rbreak(_nexcl));
-  double r0 = _rbreak(_nexcl);
+  double u0 = lam_(nexcl_);
+  double m = (lam_(nexcl_ + 1) - lam_(nexcl_)) /
+             (rbreak_(nexcl_ + 1) - rbreak_(nexcl_));
+  double r0 = rbreak_(nexcl_);
 
   /* If the slope m is positive then the potential core
    * will be attractive. So, artificially forcing core to be
    * repulsive by setting m = -m
    */
   if (m > 0) {
-    cout << _name << " potential's extrapolated core is attractive!" << endl;
+    cout << name_ << " potential's extrapolated core is attractive!" << endl;
     cout << "Artifically enforcing repulsive core.\n" << endl;
     m *= -1.0;
   }
@@ -187,37 +187,37 @@ void PotentialFunctionCBSPL::extrapolExclParam() {
 
   double a = m;
   double b = -1.0 * m * r0 + u0;
-  for (Index i = 0; i < _nexcl; i++) {
-    _lam(i) = a * _rbreak(i) + b;
+  for (Index i = 0; i < nexcl_; i++) {
+    lam_(i) = a * rbreak_(i) + b;
   }
 }
 
 void PotentialFunctionCBSPL::setOptParam(Index i, double val) {
 
-  _lam(i + _nexcl) = val;
+  lam_(i + nexcl_) = val;
 }
 
 double PotentialFunctionCBSPL::getOptParam(Index i) const {
 
-  return _lam(i + _nexcl);
+  return lam_(i + nexcl_);
 }
 
 double PotentialFunctionCBSPL::CalculateF(double r) const {
 
-  if (r <= _cut_off) {
+  if (r <= cut_off_) {
 
     double u = 0.0;
-    Index indx = std::min((Index)(r / _dr), _nbreak - 2);
-    double rk = (double)indx * _dr;
-    double t = (r - rk) / _dr;
+    Index indx = std::min((Index)(r / dr_), nbreak_ - 2);
+    double rk = (double)indx * dr_;
+    double t = (r - rk) / dr_;
 
     Eigen::Vector4d R = Eigen::Vector4d::Zero();
     R(0) = 1.0;
     R(1) = t;
     R(2) = t * t;
     R(3) = t * t * t;
-    Eigen::Vector4d B = _lam.segment<4>(indx);
-    u += ((R.transpose() * _M) * B).value();
+    Eigen::Vector4d B = lam_.segment<4>(indx);
+    u += ((R.transpose() * M_) * B).value();
     return u;
 
   } else {
@@ -228,29 +228,29 @@ double PotentialFunctionCBSPL::CalculateF(double r) const {
 // calculate first derivative w.r.t. ith parameter
 double PotentialFunctionCBSPL::CalculateDF(Index i, double r) const {
 
-  // since first _nexcl parameters are not optimized for stability reasons
+  // since first  nexcl_ parameters are not optimized for stability reasons
 
-  if (r <= _cut_off) {
+  if (r <= cut_off_) {
 
-    Index i_opt = i + _nexcl;
+    Index i_opt = i + nexcl_;
     Index indx;
     double rk;
 
-    indx = std::min((Index)(r / _dr), _nbreak - 2);
-    rk = (double)indx * _dr;
+    indx = std::min((Index)(r / dr_), nbreak_ - 2);
+    rk = (double)indx * dr_;
 
     if (i_opt >= indx && i_opt <= indx + 3) {
 
       Eigen::Vector4d R = Eigen::Vector4d::Zero();
 
-      double t = (r - rk) / _dr;
+      double t = (r - rk) / dr_;
 
       R(0) = 1.0;
       R(1) = t;
       R(2) = t * t;
       R(3) = t * t * t;
 
-      Eigen::Vector4d RM = R.transpose() * _M;
+      Eigen::Vector4d RM = R.transpose() * M_;
 
       return RM(i_opt - indx);
 

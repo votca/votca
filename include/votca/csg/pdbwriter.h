@@ -95,7 +95,7 @@ class PDBWriter : public TrajectoryWriter {
 
   BeadContainer &getIterable(Topology &top) { return top.Beads(); }
 
-  std::ofstream _out;
+  std::ofstream out_;
 };
 
 template <class T>
@@ -114,7 +114,7 @@ inline void PDBWriter::WriteContainer(T &container) {
       atomname = atomname.substr(0, 4);
     }
 
-    _out << atomfrmt % (getId(atom) % 100000)  // atom serial number, wrapped
+    out_ << atomfrmt % (getId(atom) % 100000)  // atom serial number, wrapped
                                                // due to pdb limitations
                 % atomname % resname % " "     // chain identifier 1 char
                 % (getResId(container, atom) % 10000)  // residue sequence
@@ -124,7 +124,7 @@ inline void PDBWriter::WriteContainer(T &container) {
     // we skip the charge
     writeSymmetry(atom);
   }
-  _out << std::flush;
+  out_ << std::flush;
 }
 }  // namespace csg
 }  // namespace votca

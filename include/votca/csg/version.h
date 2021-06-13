@@ -54,8 +54,8 @@
 
  */
 
-#ifndef _VOTCA_CSG_VERSION_H
-#define _VOTCA_CSG_VERSION_H
+#ifndef VOTCA_CSG_VERSION_H
+#define VOTCA_CSG_VERSION_H
 
 // Standard includes
 #include <string>
@@ -67,4 +67,4 @@ void HelpTextHeader(const std::string &tool_name);
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_VERSION_H */
+#endif /*  VOTCA_CSG_VERSION_H */

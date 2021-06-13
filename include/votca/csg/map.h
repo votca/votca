@@ -49,10 +49,10 @@ class BeadMap {
                           tools::Property *opts_map) = 0;
 
  protected:
-  const Molecule *_in;
-  Bead *_out;
-  tools::Property *_opts_map;
-  tools::Property *_opts_bead;
+  const Molecule *in_;
+  Bead *out_;
+  tools::Property *opts_map_;
+  tools::Property *opts_bead_;
 };
 
 /*******************************************************
@@ -60,21 +60,21 @@ class BeadMap {
 *******************************************************/
 class Map {
  public:
-  Map(const Molecule &in, Molecule &out) : _in(in), _out(out) {}
+  Map(const Molecule &in, Molecule &out) : in_(in), out_(out) {}
   // Move constructor
   Map(Map &&map);
   // Move assignment
   Map &operator=(Map &&map);
   BeadMap *CreateBeadMap(const BeadMapType type);
 
-  // void AddBeadMap(BeadMap *bmap) { _maps.push_back(bmap); }
+  // void AddBeadMap(BeadMap *bmap) {  maps_.push_back(bmap); }
 
   void Apply(const BoundaryCondition &bc);
 
  protected:
-  Molecule _in;
-  Molecule _out;
-  std::vector<std::unique_ptr<BeadMap>> _maps;
+  Molecule in_;
+  Molecule out_;
+  std::vector<std::unique_ptr<BeadMap>> maps_;
 };
 
 }  // namespace csg

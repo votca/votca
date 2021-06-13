@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_NBLISTGRID_H
-#define _VOTCA_CSG_NBLISTGRID_H
+#ifndef VOTCA_CSG_NBLISTGRID_H
+#define VOTCA_CSG_NBLISTGRID_H
 
 // Standard includes
 #include <vector>
@@ -39,15 +39,15 @@ class NBListGrid : public NBList {
 
  protected:
   struct cell_t {
-    BeadList _beads;
-    std::vector<cell_t *> _neighbours;
+    BeadList beads_;
+    std::vector<cell_t *> neighbours_;
   };
 
-  Eigen::Vector3d _box_a, _box_b, _box_c;
-  Eigen::Vector3d _norm_a, _norm_b, _norm_c;
-  Index _box_Na, _box_Nb, _box_Nc;
+  Eigen::Vector3d box_a_, box_b_, box_c_;
+  Eigen::Vector3d norm_a_, norm_b_, norm_c_;
+  Index box_Na_, box_Nb_, box_Nc_;
 
-  tools::NDimVector<cell_t, 3> _grid;
+  tools::NDimVector<cell_t, 3> grid_;
 
   void InitializeGrid(const Eigen::Matrix3d &box);
 
@@ -61,4 +61,4 @@ class NBListGrid : public NBList {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_NBLISTGRID_H */
+#endif /*  VOTCA_CSG_NBLISTGRID_H */
