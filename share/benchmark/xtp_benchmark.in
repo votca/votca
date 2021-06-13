@@ -114,8 +114,8 @@ progargs.add_argument('--update',
                       const=1,
                       default=0,
                       help='Update references')
-
-if HasGPUs():
+HasGPUs=HasGPUs();
+if HasGPUs:
     progargs.add_argument('-g', '--gpus',
                       required=False,
                       type=int,
@@ -153,6 +153,8 @@ if OPTIONS.run:
                                 "/"+geo, dest+"/system.xyz")
 
     print("\nStarting benchmark with {} threads".format(OPTIONS.threads))
+    if HasGPUs:
+        print(" and {} GPUs".format(OPTIONS.gpus))
     print(30*"-")
 
     moldata = {}

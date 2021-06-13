@@ -379,7 +379,6 @@ Index DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
     // residue vector
     Eigen::VectorXd w =
         computeCorrectionVector(rep.q.col(j), rep.lambda(j), rep.res.col(j));
-          w = w.unaryExpr([](double v) { return std::isfinite(v)? v : 0.0; });
 
     // append the correction vector to the search space
     proj.V.col(oldsize + k) = w.normalized();
