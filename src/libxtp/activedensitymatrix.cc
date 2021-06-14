@@ -32,11 +32,8 @@ Eigen::MatrixXd ActiveDensityMatrix::compute_Dmat_A() {
 }
 Eigen::MatrixXd ActiveDensityMatrix::activedensitymatrix(
     Eigen::MatrixXd &localized_mo_coeff) {
-  QMMolecule mol = orbitals_.QMAtoms();
-  BasisSet basis;
   AOBasis aobasis;
-  basis.Load(orbitals_.getDFTbasisName());
-  aobasis.Fill(basis, mol);
+  aobasis = orbitals_.SetupDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
   Index counter = 0;

@@ -37,7 +37,6 @@ class PMDecomposition {
   Eigen::MatrixX2d rotateorbitals(Eigen::MatrixX2d &maxorbs, Index s, Index t);
   Eigen::MatrixXd orbitalselections(Eigen::MatrixXd &m,
                                     const Eigen::MatrixXd &S);
-  BasisSet basis;
   AOBasis aobasis;
   Eigen::MatrixXd A;
   Eigen::MatrixXd B;

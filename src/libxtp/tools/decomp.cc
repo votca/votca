@@ -56,7 +56,7 @@ bool Decomp::Run() {
   PMDecomposition pmd(log);
   pmd.computePMD(orbitals);
   XTP_LOG(Log::error, log) << "Computing Dmat_A now" << std::endl;
-  ActiveDensityMatrix Dmat_A(orbitals, activeatoms, log);
+  ActiveDensityMatrix Dmat_A(orbitals, activeatoms);
   Dmat_A.compute_Dmat_A();
   return true;
 }

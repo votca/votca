@@ -27,9 +27,8 @@ namespace votca {
 namespace xtp {
 class ActiveDensityMatrix {
  public:
-  ActiveDensityMatrix(Orbitals &orbitals, std::vector<Index> activeatoms,
-                      Logger &log)
-      : orbitals_(orbitals), log_(log), activeatoms_(activeatoms){};
+  ActiveDensityMatrix(Orbitals &orbitals, std::vector<Index> activeatoms)
+      : orbitals_(orbitals), activeatoms_(activeatoms){};
   Eigen::MatrixXd activedensitymatrix(Eigen::MatrixXd &localized_mo_coeff);
  Eigen::MatrixXd compute_Dmat_A();
 

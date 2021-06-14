@@ -29,21 +29,19 @@ namespace xtp {
 void PMDecomposition::computePMD(Orbitals &orbitals) {
   Eigen::MatrixXd occ_orbitals = orbitals.MOs().eigenvectors().leftCols(
       orbitals.getNumberOfAlphaElectrons());
-  QMMolecule mol = orbitals.QMAtoms();
-  basis.Load(orbitals.getDFTbasisName());
-  aobasis.Fill(basis, mol);
+  aobasis = orbitals.SetupDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
-  double diff_D = std::numeric_limits<double>::max();
+  double convergence_limit = std::numeric_limits<double>::max();
   Index iteration = 1;
-  
-  while (diff_D > 1e-6 && iteration < 10000) {
+
+  while (convergence_limit > 1e-6 && iteration < 10000) {
     XTP_LOG(Log::error, log_) << "Iteration: " << iteration << std::flush;
     Eigen::MatrixXd orbpair_functionalvalue = orbitalselections(occ_orbitals, overlap.Matrix());
     Index maxrow, maxcol;
-    diff_D = orbpair_functionalvalue.maxCoeff(&maxrow, &maxcol);
+    convergence_limit = orbpair_functionalvalue.maxCoeff(&maxrow, &maxcol);
     XTP_LOG(Log::error, log_) << "Orbitals to be changed: " << maxrow << " " << maxcol << std::flush;
-    XTP_LOG(Log::error, log_) << "change in the penalty function: " << diff_D << std::flush;
+    XTP_LOG(Log::error, log_) << "change in the penalty function: " << convergence_limit << std::flush;
     Eigen::MatrixX2d max_orbs(occ_orbitals.rows(), 2);
     max_orbs << occ_orbitals.col(maxrow), occ_orbitals.col(maxcol);
     Eigen::MatrixX2d new_orbs = rotateorbitals(max_orbs, maxrow, maxcol);

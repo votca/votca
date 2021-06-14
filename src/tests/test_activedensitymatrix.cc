@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(activematrix_test) {
   Logger log;
   std::vector<Index> activeatoms = {{1, 5}};
 
-  ActiveDensityMatrix DMAT_A(orbitals, activeatoms, log);
+  ActiveDensityMatrix DMAT_A(orbitals, activeatoms);
 
   Eigen::MatrixXd DmatA = DMAT_A.compute_Dmat_A();
 
