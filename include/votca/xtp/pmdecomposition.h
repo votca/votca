@@ -28,8 +28,7 @@ namespace xtp {
 
 class PMDecomposition {
  public:
-  PMDecomposition(Logger &log)
-      : log_(log){};
+  PMDecomposition(Logger &log) : log_(log){};
   void computePMD(Orbitals &orbitals_);
 
  private:
