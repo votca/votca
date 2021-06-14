@@ -42,8 +42,11 @@ void PMDecomposition::computePMD(Orbitals &orbitals) {
         orbitalselections(occ_orbitals, overlap.Matrix());
     Index maxrow, maxcol;
     convergence_limit = orbpair_functionalvalue.maxCoeff(&maxrow, &maxcol);
-    XTP_LOG(Log::error, log_) << "Orbitals to be changed: " << maxrow << " " << maxcol << std::flush;
-    XTP_LOG(Log::error, log_) << "change in the penalty function: " << convergence_limit << std::flush;
+    XTP_LOG(Log::error, log_)
+        << "Orbitals to be changed: " << maxrow << " " << maxcol << std::flush;
+    XTP_LOG(Log::error, log_)
+        << "change in the penalty function: " << convergence_limit
+        << std::flush;
     Eigen::MatrixX2d max_orbs(occ_orbitals.rows(), 2);
     max_orbs << occ_orbitals.col(maxrow), occ_orbitals.col(maxcol);
     Eigen::MatrixX2d new_orbs = rotateorbitals(max_orbs, maxrow, maxcol);
