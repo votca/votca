@@ -39,7 +39,7 @@ class XtpRun final : public xtp::StateApplication {
  protected:
   void CreateCalculator(const std::string& name);
   void ConfigCalculator();
-  bool savetoStateFile() const final { return _calc->WriteToStateFile(); }
+  bool savetoStateFile() const final { return calc_->WriteToStateFile(); }
 
   bool EvaluateFrame(votca::xtp::Topology& top) final;
   std::string CalculatorType() const { return "Calculator"; }
@@ -51,23 +51,23 @@ class XtpRun final : public xtp::StateApplication {
   void AddCommandLineOpt() final{};
 
  private:
-  std::unique_ptr<xtp::QMCalculator> _calc = nullptr;
+  std::unique_ptr<xtp::QMCalculator> calc_ = nullptr;
 };
 
 void XtpRun::CreateCalculator(const std::string& name) {
-  _calc = xtp::Calculators().Create(name);
+  calc_ = xtp::Calculators().Create(name);
 }
 
 void XtpRun::ConfigCalculator() {
-  std::cout << "... " << _calc->Identify() << std::endl;
+  std::cout << "... " << calc_->Identify() << std::endl;
   Index nThreads = OptionsMap()["nthreads"].as<Index>();
-  _calc->setnThreads(nThreads);
-  _calc->Initialize(_options);
+  calc_->setnThreads(nThreads);
+  calc_->Initialize(options_);
 }
 
 bool XtpRun::EvaluateFrame(xtp::Topology& top) {
-  std::cout << "... " << _calc->Identify() << std::endl;
-  return _calc->EvaluateFrame(top);
+  std::cout << "... " << calc_->Identify() << std::endl;
+  return calc_->EvaluateFrame(top);
 }
 
 int main(int argc, char** argv) {

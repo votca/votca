@@ -61,15 +61,15 @@ class Orca : public QMPackage {
 
  protected:
   const std::array<Index, 49>& ShellMulitplier() const final {
-    return _multipliers;
+    return multipliers_;
   }
   const std::array<Index, 49>& ShellReorder() const final {
-    return _reorderList;
+    return reorderList_;
   }
 
  private:
   // clang-format off
-  std::array<Index,49> _multipliers={{
+  std::array<Index,49>  multipliers_={{
             1, //s
             1,1,1, //p
             1,1,1,1,1, //d
@@ -78,7 +78,7 @@ class Orca : public QMPackage {
             -1,-1,-1,1,1,1,1,1,-1,-1,-1, //h
             -1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1 //i
             }};
-  std::array<Index,49> _reorderList{{
+  std::array<Index,49>  reorderList_{{
             0, //s
             0, 1,-1, //p
             0,1,-1,2,-2, //d
@@ -106,7 +106,7 @@ class Orca : public QMPackage {
   bool KeywordIsSingleLine(const std::string& key) const;
   std::string GetOrcaFunctionalName() const;
 
-  std::unordered_map<std::string, std::string> _convergence_map{
+  std::unordered_map<std::string, std::string> convergence_map_{
       {"low", "LooseSCF"},
       {"normal", "StrongSCF"},
       {"tight", "TightSCF"},

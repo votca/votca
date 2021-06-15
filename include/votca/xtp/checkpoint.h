@@ -52,15 +52,15 @@ class CheckpointFile {
   H5::H5File getHandle();
 
   CheckpointWriter getWriter();
-  CheckpointWriter getWriter(const std::string _path);
+  CheckpointWriter getWriter(const std::string path_);
   CheckpointReader getReader();
-  CheckpointReader getReader(const std::string _path);
+  CheckpointReader getReader(const std::string path_);
 
  private:
-  std::string _fileName;
-  H5::H5File _fileHandle;
-  CptLoc _rootLoc;
-  CheckpointAccessLevel _accessLevel;
+  std::string fileName_;
+  H5::H5File fileHandle_;
+  CptLoc rootLoc_;
+  CheckpointAccessLevel accessLevel_;
 };
 
 }  // namespace xtp

@@ -26,7 +26,7 @@ namespace xtp {
 template <class T>
 double MMRegion<T>::charge() const {
   double charge = 0.0;
-  for (const auto& seg : _segments) {
+  for (const auto& seg : segments_) {
     for (const auto& site : seg) {
       charge += site.getCharge();
     }
@@ -36,19 +36,19 @@ double MMRegion<T>::charge() const {
 
 template <class T>
 void MMRegion<T>::WritePDB(csg::PDBWriter& writer) const {
-  for (const auto& seg : _segments) {
+  for (const auto& seg : segments_) {
     writer.WriteContainer(seg);
   }
 }
 
 template <class T>
 void MMRegion<T>::WriteToCpt(CheckpointWriter& w) const {
-  w(_id, "id");
+  w(id_, "id");
   w(identify(), "type");
-  Index size = Index(_segments.size());
+  Index size = Index(segments_.size());
   w(size, "size");
   CheckpointWriter ww = w.openChild("segments");
-  for (const auto& seg : _segments) {
+  for (const auto& seg : segments_) {
     CheckpointWriter www =
         ww.openChild(seg.identify() + "_" + std::to_string(seg.getId()));
     seg.WriteToCpt(www);
@@ -56,17 +56,17 @@ void MMRegion<T>::WriteToCpt(CheckpointWriter& w) const {
 }
 template <class T>
 void MMRegion<T>::ReadFromCpt(CheckpointReader& r) {
-  r(_id, "id");
+  r(id_, "id");
   Index size;
   r(size, "size");
-  _segments.clear();
-  _segments.reserve(size);
+  segments_.clear();
+  segments_.reserve(size);
   T dummy("dummy", 0);
   CheckpointReader rr = r.openChild("segments");
   for (Index i = 0; i < size; i++) {
     CheckpointReader rrr =
         rr.openChild(dummy.identify() + "_" + std::to_string(i));
-    _segments.push_back(T(rrr));
+    segments_.push_back(T(rrr));
   }
 }
 

@@ -45,8 +45,8 @@ class QuadratureFactory
 };
 
 inline QuadratureFactory &Quadratures() {
-  static QuadratureFactory _instance;
-  return _instance;
+  static QuadratureFactory instance_;
+  return instance_;
 }
 
 }  // namespace xtp

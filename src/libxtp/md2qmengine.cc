@@ -124,7 +124,7 @@ void Md2QmEngine::MakeSegmentsWholePBC(Topology& top) const {
 Topology Md2QmEngine::map(const csg::Topology& top) const {
 
   tools::Property topology_map;
-  topology_map.LoadFromXML(_mapfile);
+  topology_map.LoadFromXML(mapfile_);
   CheckMappingFile(topology_map);
   Topology xtptop;
   xtptop.setStep(top.getStep());

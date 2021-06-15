@@ -61,29 +61,29 @@ class ProgObserver {
   std::string GenerateTime();
 
  private:
-  std::string _lockFile = "";
-  std::string _progFile = "";
-  Index _cacheSize = -1;
-  JobContainer _jobs;
+  std::string lockFile_ = "";
+  std::string progFile_ = "";
+  Index cacheSize_ = -1;
+  JobContainer jobs_;
 
-  std::vector<Job *> _jobsToProc;
-  std::vector<Job *> _jobsToSync;
+  std::vector<Job *> jobsToProc_;
+  std::vector<Job *> jobsToSync_;
 
   using iterator = typename JobContainer::iterator;
-  iterator _metajit;
+  iterator metajit_;
   using iterator_vec = typename std::vector<Job *>::iterator;
-  iterator_vec _nextjit;
-  tools::Mutex _lockThread;
-  std::unique_ptr<boost::interprocess::file_lock> _flock;
+  iterator_vec nextjit_;
+  tools::Mutex lockThread_;
+  std::unique_ptr<boost::interprocess::file_lock> flock_;
 
-  std::map<std::string, bool> _restart_hosts;
-  std::map<std::string, bool> _restart_stats;
-  bool _restartMode = false;
-  Index _jobsReported = 0;
+  std::map<std::string, bool> restart_hosts_;
+  std::map<std::string, bool> restart_stats_;
+  bool restartMode_ = false;
+  Index jobsReported_ = 0;
 
-  bool _moreJobsAvailable = false;
-  Index _startJobsCount = 0;
-  Index _maxJobs = 0;
+  bool moreJobsAvailable_ = false;
+  Index startJobsCount_ = 0;
+  Index maxJobs_ = 0;
 };
 
 }  // namespace xtp

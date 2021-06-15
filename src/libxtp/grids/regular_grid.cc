@@ -51,41 +51,41 @@ void Regular_Grid::GridSetup(const Eigen::Array<Index, 3, 1>& steps,
       atoms.CalcSpatialMinMax();
   Eigen::Array3d min = extension.first.array();
   Eigen::Array3d max = extension.second.array();
-  _startingpoint = min - padding;
-  _stepsizes = (max - min + 2 * padding) / (steps - 1).cast<double>();
-  _steps = steps;
+  startingpoint_ = min - padding;
+  stepsizes_ = (max - min + 2 * padding) / (steps - 1).cast<double>();
+  steps_ = steps;
   const Index gridboxsize = 500;
 
   GridBox gridbox;
   for (Index i = 0; i < steps.x(); i++) {
-    double x = _startingpoint.x() + double(i) * _stepsizes.x();
+    double x = startingpoint_.x() + double(i) * stepsizes_.x();
     for (Index j = 0; j < steps.y(); j++) {
-      double y = _startingpoint.y() + double(j) * _stepsizes.y();
+      double y = startingpoint_.y() + double(j) * stepsizes_.y();
       for (Index k = 0; k < steps.z(); k++) {
-        double z = _startingpoint.z() + double(k) * _stepsizes.z();
+        double z = startingpoint_.z() + double(k) * stepsizes_.z();
         GridContainers::Cartesian_gridpoint point;
         point.grid_weight = 1.0;
         point.grid_pos = Eigen::Vector3d(x, y, z);
         gridbox.addGridPoint(point);
         if (gridbox.size() == gridboxsize) {
-          _grid_boxes.push_back(gridbox);
+          grid_boxes_.push_back(gridbox);
           gridbox = GridBox();
         }
       }
     }
   }
   if (gridbox.size() > 0) {
-    _grid_boxes.push_back(gridbox);
+    grid_boxes_.push_back(gridbox);
   }
 #pragma omp parallel for
   for (Index i = 0; i < getBoxesSize(); i++) {
-    _grid_boxes[i].FindSignificantShells(basis);
-    _grid_boxes[i].PrepareForIntegration();
+    grid_boxes_[i].FindSignificantShells(basis);
+    grid_boxes_[i].PrepareForIntegration();
   }
 
-  _totalgridsize = 0;
-  for (auto& box : _grid_boxes) {
-    _totalgridsize += box.size();
+  totalgridsize_ = 0;
+  for (auto& box : grid_boxes_) {
+    totalgridsize_ += box.size();
   }
 }
 

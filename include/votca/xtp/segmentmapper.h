@@ -71,8 +71,8 @@ class SegmentMapper {
     std::vector<atom_id> mapatoms;
     std::map<std::string, std::string> coordfiles;
   };
-  std::map<std::string, std::string> _mapatom_xml;
-  std::map<std::string, Seginfo> _segment_info;
+  std::map<std::string, std::string> mapatom_xml_;
+  std::map<std::string, Seginfo> segment_info_;
 
   Index FindVectorIndexFromAtomId(
       Index atomid, const std::vector<mapAtom*>& fragment_mapatoms) const;
@@ -90,7 +90,7 @@ class SegmentMapper {
                       const std::vector<mapAtom*>& fragment_mapatoms,
                       const std::vector<const Atom*>& fragment_mdatoms) const;
 
-  Logger& _log;
+  Logger& log_;
   std::pair<Index, Index> CalcAtomIdRange(const Segment& seg) const;
   std::pair<Index, Index> CalcAtomIdRange(const std::vector<Index>& seg) const;
 
@@ -103,30 +103,30 @@ class SegmentMapper {
   std::vector<double> getWeights(const tools::Property& frag) const;
 
   std::string getFrame(const tools::Property& frag) const {
-    if (frag.exists(_mapatom_xml.at("frame"))) {
-      return frag.get(_mapatom_xml.at("frame")).template as<std::string>();
+    if (frag.exists(mapatom_xml_.at("frame"))) {
+      return frag.get(mapatom_xml_.at("frame")).template as<std::string>();
     }
     return frag.get("localframe").template as<std::string>();
   }
 
   void FillMap() {
-    _mapatom_xml["tag"] = "MP";
-    _mapatom_xml["name"] = "MPole";
-    _mapatom_xml["atoms"] = "mpoles";
-    _mapatom_xml["coords"] = "multipoles";
-    _mapatom_xml["weights"] = "mp_weights";
-    _mapatom_xml["frame"] = "mp_localframe";
+    mapatom_xml_["tag"] = "MP";
+    mapatom_xml_["name"] = "MPole";
+    mapatom_xml_["atoms"] = "mpoles";
+    mapatom_xml_["coords"] = "multipoles";
+    mapatom_xml_["weights"] = "mp_weights";
+    mapatom_xml_["frame"] = "mp_localframe";
   }
 };
 
 template <>
 inline void SegmentMapper<QMMolecule>::FillMap() {
-  _mapatom_xml["tag"] = "QM";
-  _mapatom_xml["name"] = "QMAtom";
-  _mapatom_xml["atoms"] = "qmatoms";
-  _mapatom_xml["coords"] = "qmcoords";
-  _mapatom_xml["weights"] = "qm_weights";
-  _mapatom_xml["frame"] = "qm_localframe";
+  mapatom_xml_["tag"] = "QM";
+  mapatom_xml_["name"] = "QMAtom";
+  mapatom_xml_["atoms"] = "qmatoms";
+  mapatom_xml_["coords"] = "qmcoords";
+  mapatom_xml_["weights"] = "qm_weights";
+  mapatom_xml_["frame"] = "qm_localframe";
 }
 
 template <>

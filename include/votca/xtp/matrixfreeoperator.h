@@ -48,8 +48,8 @@ class MatrixFreeOperator : public Eigen::EigenBase<MatrixFreeOperator> {
     IsRowMajor = false
   };
 
-  Index rows() const { return this->_size; }
-  Index cols() const { return this->_size; }
+  Index rows() const { return this->size_; }
+  Index cols() const { return this->size_; }
 
   template <typename Vtype>
   Eigen::Product<MatrixFreeOperator, Vtype, Eigen::AliasFreeProduct> operator*(
@@ -64,7 +64,7 @@ class MatrixFreeOperator : public Eigen::EigenBase<MatrixFreeOperator> {
   void set_size(Index size);
 
  private:
-  Index _size;
+  Index size_;
 };
 }  // namespace xtp
 }  // namespace votca

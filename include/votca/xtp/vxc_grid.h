@@ -38,22 +38,22 @@ class Vxc_Grid {
 
   std::vector<const Eigen::Vector3d*> getGridpoints() const;
   std::vector<double> getWeightedDensities() const;
-  Index getGridSize() const { return _totalgridsize; }
-  Index getBoxesSize() const { return Index(_grid_boxes.size()); }
+  Index getGridSize() const { return totalgridsize_; }
+  Index getBoxesSize() const { return Index(grid_boxes_.size()); }
 
-  const GridBox& operator[](Index index) const { return _grid_boxes[index]; }
-  GridBox& operator[](Index index) { return _grid_boxes[index]; }
+  const GridBox& operator[](Index index) const { return grid_boxes_[index]; }
+  GridBox& operator[](Index index) { return grid_boxes_[index]; }
 
   typename std::vector<GridBox>::iterator begin() {
-    return _grid_boxes.begin();
+    return grid_boxes_.begin();
   }
-  typename std::vector<GridBox>::iterator end() { return _grid_boxes.end(); }
+  typename std::vector<GridBox>::iterator end() { return grid_boxes_.end(); }
 
   typename std::vector<GridBox>::const_iterator begin() const {
-    return _grid_boxes.begin();
+    return grid_boxes_.begin();
   }
   typename std::vector<GridBox>::const_iterator end() const {
-    return _grid_boxes.end();
+    return grid_boxes_.end();
   }
 
  private:
@@ -85,9 +85,9 @@ class Vxc_Grid {
       const QMMolecule& atoms,
       std::vector<GridContainers::Cartesian_gridpoint>& atomgrid) const;
 
-  Index _totalgridsize;
-  std::vector<GridBox> _grid_boxes;
-  bool _density_set = false;
+  Index totalgridsize_;
+  std::vector<GridBox> grid_boxes_;
+  bool density_set_ = false;
 };
 
 }  // namespace xtp

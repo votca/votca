@@ -24,7 +24,7 @@ namespace votca {
 namespace xtp {
 bool QMCalculator::EvaluateFrame(Topology& top) {
   libint2::initialize();
-  OPENMP::setMaxThreads(_nThreads);
+  OPENMP::setMaxThreads(nThreads_);
   std::cout << " Using " << OPENMP::getMaxThreads() << " threads" << std::flush;
   bool success = Evaluate(top);
   libint2::finalize();

@@ -37,20 +37,20 @@ class vc2index {
 
  public:
   vc2index(Index vmin, Index cmin, Index ctotal)
-      : _vmin(vmin), _cmin(cmin), _ctotal(ctotal){};
+      : vmin_(vmin), cmin_(cmin), ctotal_(ctotal){};
 
   inline Index I(Index v, Index c) const {
-    return _ctotal * (v - _vmin) + (c - _cmin);
+    return ctotal_ * (v - vmin_) + (c - cmin_);
   }
 
-  inline Index v(Index index) const { return (index / _ctotal + _vmin); }
+  inline Index v(Index index) const { return (index / ctotal_ + vmin_); }
 
-  inline Index c(Index index) const { return (index % _ctotal + _cmin); }
+  inline Index c(Index index) const { return (index % ctotal_ + cmin_); }
 
  private:
-  Index _vmin;
-  Index _cmin;
-  Index _ctotal;
+  Index vmin_;
+  Index cmin_;
+  Index ctotal_;
 };
 }  // namespace xtp
 }  // namespace votca

@@ -44,7 +44,7 @@ void QMNBList::WriteToCpt(CheckpointWriter& w) const {
 
   CptTable table = w.openTable<QMPair>("pairs", size);
   for (Index i = 0; i < size; i++) {
-    (_pairs[i]->WriteData(dataVec[i]));
+    (pairs_[i]->WriteData(dataVec[i]));
   }
   table.write(dataVec);
   for (QMPair::data data : dataVec) {

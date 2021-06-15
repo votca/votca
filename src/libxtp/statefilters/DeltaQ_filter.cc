@@ -29,13 +29,13 @@ namespace xtp {
 void DeltaQ_filter::Initialize(const tools::Property& options) {
   std::string indices =
       options.ifExistsReturnElseThrowRuntimeError<std::string>("fragment");
-  _fragment = QMFragment<double>(0, indices);
-  _fragment.value() =
+  fragment_ = QMFragment<double>(0, indices);
+  fragment_.value() =
       options.ifExistsReturnElseThrowRuntimeError<double>("threshold");
 }
 
 void DeltaQ_filter::Info(Logger& log) const {
-  XTP_LOG(Log::error, log) << "Using Delta Q tracker for fragment " << _fragment
+  XTP_LOG(Log::error, log) << "Using Delta Q tracker for fragment " << fragment_
                            << std::flush;
 }
 
@@ -51,22 +51,22 @@ std::vector<Index> DeltaQ_filter::CalcIndeces(const Orbitals& orb,
   Lowdin low;
   QMFragment<BSE_Population> frag;
 
-  frag.copy_withoutvalue(_fragment);
+  frag.copy_withoutvalue(fragment_);
   std::vector<QMFragment<BSE_Population> > loc = {frag};
   low.CalcChargeperFragment(loc, orb, type);
   Eigen::VectorXd dq = (loc[0].value().H + loc[0].value().E).cwiseAbs();
   for (Index i = 0; i < dq.size(); i++) {
-    if (dq[i] > _fragment.value()) {
+    if (dq[i] > fragment_.value()) {
       indexes.push_back(i);
     }
   }
   return indexes;
 }
 
-void DeltaQ_filter::WriteToCpt(CheckpointWriter& w) { _fragment.WriteToCpt(w); }
+void DeltaQ_filter::WriteToCpt(CheckpointWriter& w) { fragment_.WriteToCpt(w); }
 
 void DeltaQ_filter::ReadFromCpt(CheckpointReader& r) {
-  _fragment.ReadFromCpt(r);
+  fragment_.ReadFromCpt(r);
 }
 
 }  // namespace xtp

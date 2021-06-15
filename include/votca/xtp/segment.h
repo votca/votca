@@ -51,46 +51,46 @@ class Segment : public AtomContainer<Atom> {
 
   /// UxX - UnN
   void setU_xX_nN(double dU, QMStateType state) {
-    _U_xX_nN.setValue(dU, state);
+    U_xX_nN_.setValue(dU, state);
   }
   /// UnX - UnN
   void setU_nX_nN(double dU, QMStateType state) {
-    _U_nX_nN.setValue(dU, state);
+    U_nX_nN_.setValue(dU, state);
   }
   /// UxN - UxX
   void setU_xN_xX(double dU, QMStateType state) {
-    _U_xN_xX.setValue(dU, state);
+    U_xN_xX_.setValue(dU, state);
   }
 
   const Atom* getAtom(Index id) const;
 
   double getU_xX_nN(QMStateType state) const {
-    return _U_xX_nN.getValue(state);
+    return U_xX_nN_.getValue(state);
   }
 
   double getU_nX_nN(QMStateType state) const {
-    return _U_nX_nN.getValue(state);
+    return U_nX_nN_.getValue(state);
   }
 
   double getU_xN_xX(QMStateType state) const {
-    return _U_xN_xX.getValue(state);
+    return U_xN_xX_.getValue(state);
   }
 
   double getSiteEnergy(QMStateType state) const {
-    return _site_eng.getValue(state) + _U_xX_nN.getValue(state);
+    return site_eng_.getValue(state) + U_xX_nN_.getValue(state);
   }
 
   double getEMpoles(QMStateType state) const {
-    return _site_eng.getValue(state);
+    return site_eng_.getValue(state);
   }
 
   void setEMpoles(QMStateType state, double energy) {
-    _site_eng.setValue(energy, state);
+    site_eng_.setValue(energy, state);
   }
 
-  void AddMoleculeId(Index id) { _molecule_ids.push_back(int(id)); }
+  void AddMoleculeId(Index id) { molecule_ids_.push_back(int(id)); }
 
-  const std::vector<Index>& getMoleculeIds() const { return _molecule_ids; }
+  const std::vector<Index>& getMoleculeIds() const { return molecule_ids_; }
 
   double getApproxSize() const;
 
@@ -108,12 +108,12 @@ class Segment : public AtomContainer<Atom> {
   }
 
  private:
-  std::vector<Index> _molecule_ids = std::vector<Index>(0);
+  std::vector<Index> molecule_ids_ = std::vector<Index>(0);
 
-  QMStateCarrierStorage<double> _U_xX_nN;
-  QMStateCarrierStorage<double> _U_nX_nN;
-  QMStateCarrierStorage<double> _U_xN_xX;
-  QMStateCarrierStorage<double> _site_eng;
+  QMStateCarrierStorage<double> U_xX_nN_;
+  QMStateCarrierStorage<double> U_nX_nN_;
+  QMStateCarrierStorage<double> U_xN_xX_;
+  QMStateCarrierStorage<double> site_eng_;
 };
 
 }  // namespace xtp
