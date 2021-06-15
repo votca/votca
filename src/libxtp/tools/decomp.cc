@@ -34,7 +34,7 @@ namespace votca {
 namespace xtp {
 
 void Decomp::ParseOptions(const tools::Property& options) {
-  orbitals.ReadFromCpt(_job_name + ".orb");
+  orbitals.ReadFromCpt(job_name_ + ".orb");
   std::string temp = options.get("activeatoms").as<std::string>();
   std::stringstream ss(temp);
   Index tmp;
