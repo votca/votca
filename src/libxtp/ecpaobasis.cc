@@ -30,7 +30,7 @@ namespace xtp {
 
 Index ECPAOBasis::getMaxL() const {
   int maxL = 0;
-  for (const auto& potential : _aopotentials) {
+  for (const auto& potential : aopotentials_) {
     maxL = std::max(potential.getL(), maxL);
   }
   return Index(maxL);
@@ -38,39 +38,39 @@ Index ECPAOBasis::getMaxL() const {
 
 void ECPAOBasis::AddECPChargeToMolecule(QMMolecule& mol) const {
   for (Index i = 0; i < mol.size(); i++) {
-    mol[i]._ecpcharge = _ncore_perAtom[i];
+    mol[i].ecpcharge_ = ncore_perAtom_[i];
   }
 }
 
 void ECPAOBasis::clear() {
-  _name = "";
-  _aopotentials.clear();
-  _ncore_perAtom.clear();
+  name_ = "";
+  aopotentials_.clear();
+  ncore_perAtom_.clear();
 }
 
 void ECPAOBasis::UpdatePotentialPositions(const QMMolecule& mol) {
-  for (libecpint::ECP& potential : _aopotentials) {
+  for (libecpint::ECP& potential : aopotentials_) {
     const Eigen::Vector3d pos = mol[potential.atom_id].getPos();
     potential.center_ = {pos.x(), pos.y(), pos.z()};
   }
 }
 
 void ECPAOBasis::add(const ECPAOBasis& other) {
-  Index atomindex_offset = Index(_ncore_perAtom.size());
+  Index atomindex_offset = Index(ncore_perAtom_.size());
   for (libecpint::ECP potential : other) {
     potential.atom_id += int(atomindex_offset);
-    _aopotentials.push_back(potential);
+    aopotentials_.push_back(potential);
   }
 
-  _ncore_perAtom.insert(_ncore_perAtom.end(), other._ncore_perAtom.begin(),
-                        other._ncore_perAtom.end());
+  ncore_perAtom_.insert(ncore_perAtom_.end(), other.ncore_perAtom_.begin(),
+                        other.ncore_perAtom_.end());
 }
 
 std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
                                           QMMolecule& atoms) {
-  _aopotentials.clear();
-  _ncore_perAtom.clear();
-  _name = bs.Name();
+  aopotentials_.clear();
+  ncore_perAtom_.clear();
+  name_ = bs.Name();
   std::vector<std::string> non_ecp_elements;
   for (QMAtom& atom : atoms) {
     std::string name = atom.getElement();
@@ -90,21 +90,21 @@ std::vector<std::string> ECPAOBasis::Fill(const ECPBasisSet& bs,
 
     if (element_exists) {
       const ECPElement& element = bs.getElement(name);
-      _ncore_perAtom.push_back(element.getNcore());
+      ncore_perAtom_.push_back(element.getNcore());
 
       libecpint::ECP potential(atom.getPos().data());
       for (const ECPShell& shell : element) {
         for (const auto& gaussian : shell) {
-          potential.addPrimitive(int(gaussian._power), int(shell.getL()),
-                                 gaussian._decay, gaussian._contraction);
+          potential.addPrimitive(int(gaussian.power_), int(shell.getL()),
+                                 gaussian.decay_, gaussian.contraction_);
         }
       }
-      _aopotentials.push_back(potential);
-      _aopotentials.back().atom_id =
+      aopotentials_.push_back(potential);
+      aopotentials_.back().atom_id =
           int(atom.getId());  // add atom id here because copyconstructor  of
                               // libecpint::ECP is broken
     } else {
-      _ncore_perAtom.push_back(0);
+      ncore_perAtom_.push_back(0);
     }
   }
 
@@ -141,11 +141,11 @@ class PotentialIO {
 };
 
 void ECPAOBasis::WriteToCpt(CheckpointWriter& w) const {
-  w(_name, "name");
+  w(name_, "name");
 
-  w(_ncore_perAtom, "atomic ecp charges");
+  w(ncore_perAtom_, "atomic ecp charges");
   Index numofprimitives = 0;
-  for (const auto& potential : _aopotentials) {
+  for (const auto& potential : aopotentials_) {
     numofprimitives += potential.getN();
   }
 
@@ -153,7 +153,7 @@ void ECPAOBasis::WriteToCpt(CheckpointWriter& w) const {
 
   std::vector<PotentialIO::data> dataVec;
   dataVec.reserve(numofprimitives);
-  for (const auto& potential : _aopotentials) {
+  for (const auto& potential : aopotentials_) {
     for (const auto& contrib : potential.gaussians) {
       PotentialIO::data d;
       d.l = Index(contrib.l);
@@ -173,8 +173,8 @@ void ECPAOBasis::WriteToCpt(CheckpointWriter& w) const {
 
 void ECPAOBasis::ReadFromCpt(CheckpointReader& r) {
   clear();
-  r(_name, "name");
-  r(_ncore_perAtom, "atomic ecp charges");
+  r(name_, "name");
+  r(ncore_perAtom_, "atomic ecp charges");
 
   CptTable table = r.openTable<PotentialIO>("Potentials");
   std::vector<PotentialIO::data> dataVec(table.numRows());
@@ -183,12 +183,12 @@ void ECPAOBasis::ReadFromCpt(CheckpointReader& r) {
   for (const PotentialIO::data& d : dataVec) {
     if (d.atomid > atomindex) {
       Eigen::Vector3d pos(d.x, d.y, d.z);
-      _aopotentials.push_back(libecpint::ECP(pos.data()));
-      _aopotentials.back().atom_id = int(d.atomid);
+      aopotentials_.push_back(libecpint::ECP(pos.data()));
+      aopotentials_.back().atom_id = int(d.atomid);
       atomindex = d.atomid;
     }
     // +2 because constructor of libecpint::primitve always subtracts 2
-    _aopotentials.back().addPrimitive(int(d.power) + 2, int(d.l), d.decay,
+    aopotentials_.back().addPrimitive(int(d.power) + 2, int(d.l), d.decay,
                                       d.coeff);
   }
 }
@@ -208,14 +208,14 @@ std::ostream& operator<<(std::ostream& out, const libecpint::ECP& potential) {
 std::ostream& operator<<(std::ostream& out, const ECPAOBasis& ecp) {
 
   out << "Name:" << ecp.Name() << "\n";
-  out << " Potentials:" << ecp._aopotentials.size() << "\n";
+  out << " Potentials:" << ecp.aopotentials_.size() << "\n";
   for (const auto& potential : ecp) {
     out << potential;
   }
   out << "\n"
       << " Atomcharges:";
-  for (Index i = 0; i < Index(ecp._ncore_perAtom.size()); i++) {
-    out << i << ":" << ecp._ncore_perAtom[i] << " ";
+  for (Index i = 0; i < Index(ecp.ncore_perAtom_.size()); i++) {
+    out << i << ":" << ecp.ncore_perAtom_[i] << " ";
   }
   return out;
 }

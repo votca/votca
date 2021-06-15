@@ -166,7 +166,7 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction(
 
   double lambda3 = std::pow(fac1, 3);
   double lambda5 = lambda3;
-  const double au3 = _expdamping * std::pow(R, 3) *
+  const double au3 = expdamping_ * std::pow(R, 3) *
                      site1.getSqrtInvEigenDamp() *
                      site2.getSqrtInvEigenDamp();  // au3 is dimensionless
   if (au3 < 40) {

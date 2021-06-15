@@ -51,7 +51,7 @@ class XtpApplication : public votca::tools::Application {
 
   virtual void AddCommandLineOptions() = 0;
 
-  votca::tools::Property _options;
+  votca::tools::Property options_;
 
  private:
   bool CalcExists(const std::string& name) const {

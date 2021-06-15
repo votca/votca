@@ -42,7 +42,7 @@ class Settings {
  public:
   // Decompose a votca::tools::Property object into Settings
   Settings() = default;
-  Settings(const std::string& root_key) : _root_key{root_key} {};
+  Settings(const std::string& root_key) : root_key_{root_key} {};
   ~Settings() = default;
 
   /**
@@ -87,8 +87,8 @@ class Settings {
       secondary_key = key.substr(key.find(delimiter) + 1);
     }
 
-    auto it = this->_nodes.find(primary_key);
-    if (it == this->_nodes.end()) {
+    auto it = this->nodes_.find(primary_key);
+    if (it == this->nodes_.end()) {
       std::ostringstream oss;
       oss << "Unknown keyword: " << key << "\n";
       throw std::runtime_error(oss.str());
@@ -103,7 +103,7 @@ class Settings {
    * @param key to property
    */
   const votca::tools::Property& property(const std::string& key) const {
-    return _nodes.at(key);
+    return nodes_.at(key);
   }
 
   /**
@@ -127,8 +127,8 @@ class Settings {
 
  private:
   using Settings_map = std::unordered_map<std::string, votca::tools::Property>;
-  Settings_map _nodes;  // {Key, Property} Map
-  std::string _root_key;
+  Settings_map nodes_;  // {Key, Property} Map
+  std::string root_key_;
 
   std::string get_primary_key(const std::string& key) {
     return key.substr(0, key.find("."));
@@ -136,7 +136,7 @@ class Settings {
 
   void check_mandatory_keyword(const std::string& key) const;
 
-  std::vector<std::string> _general_properties = {
+  std::vector<std::string> general_properties_ = {
       "auxbasisset",            // string
       "basisset",               // string
       "charge",                 // index
@@ -163,12 +163,12 @@ class Settings {
 
   };
 
-  std::vector<std::string> _mandatory_keyword = {
+  std::vector<std::string> mandatory_keyword_ = {
       "functional",  // string
       "name",        // string, one of: orca
   };
 
-  std::unordered_map<std::string, std::vector<std::string>> _keyword_options{
+  std::unordered_map<std::string, std::vector<std::string>> keyword_options_{
       {"name", {"orca"}}};
 };
 

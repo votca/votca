@@ -54,9 +54,9 @@ class Density_filter : public StateFilter_base {
 
  private:
   Eigen::VectorXd CalculateDNorm(const Orbitals& orb, QMStateType type) const;
-  double _threshold = 0.0;
+  double threshold_ = 0.0;
 
-  Eigen::MatrixXd _laststate_dmat;
+  Eigen::MatrixXd laststate_dmat_;
 };
 
 }  // namespace xtp

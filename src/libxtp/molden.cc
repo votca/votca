@@ -20,7 +20,7 @@ void Molden::writeAtoms(const Orbitals& orbitals,
 void Molden::writeMOs(const Orbitals& orbitals, std::ofstream& outFile) const {
   Eigen::VectorXd energies = orbitals.MOs().eigenvalues();
   bool fromVotcaToExternal = true;
-  OrbReorder reorder(_reorderList, _multipliers, fromVotcaToExternal);
+  OrbReorder reorder(reorderList_, multipliers_, fromVotcaToExternal);
   Eigen::MatrixXd moCoefficients = orbitals.MOs().eigenvectors();
   reorder.reorderOrbitals(moCoefficients, orbitals.SetupDftBasis());
 
@@ -70,7 +70,7 @@ void Molden::WriteFile(const std::string& filename,
   std::ofstream outFile(filename);
   if (outFile.is_open()) {
 
-    XTP_LOG(Log::error, _log) << "Writing data to " << filename << std::flush;
+    XTP_LOG(Log::error, log_) << "Writing data to " << filename << std::flush;
 
     // print Header
     outFile << "[Molden Format]\n";
@@ -89,7 +89,7 @@ void Molden::WriteFile(const std::string& filename,
 
     outFile << "[MO]\n";
     writeMOs(orbitals, outFile);
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "Finished writing to molden file." << std::flush;
   }
 }
@@ -183,7 +183,7 @@ std::string Molden::readMOs(Orbitals& orbitals,
   orbitals.setNumberOfAlphaElectrons(number_of_electrons);
   orbitals.setNumberOfOccupiedLevels(number_of_electrons / 2);
 
-  OrbReorder reorder(_reorderList, _multipliers);
+  OrbReorder reorder(reorderList_, multipliers_);
   reorder.reorderOrbitals(orbitals.MOs().eigenvectors(),
                           orbitals.SetupDftBasis());
 
@@ -192,15 +192,15 @@ std::string Molden::readMOs(Orbitals& orbitals,
 }
 
 void Molden::addBasissetInfo(Orbitals& orbitals) const {
-  orbitals.setDFTbasisName(_basisset_name);
+  orbitals.setDFTbasisName(basisset_name_);
   orbitals.setBasisSetSize(orbitals.SetupDftBasis().AOBasisSize());
-  orbitals.setAuxbasisName(_aux_basisset_name);
+  orbitals.setAuxbasisName(aux_basisset_name_);
 }
 
 void Molden::parseMoldenFile(const std::string& filename,
                              Orbitals& orbitals) const {
 
-  if (_basisset_name == "") {
+  if (basisset_name_ == "") {
     throw std::runtime_error(
         "Basisset names should be set before reading the molden file.");
   }
@@ -229,7 +229,7 @@ void Molden::parseMoldenFile(const std::string& filename,
     if (sectionType == "Atoms") {
       std::string units = line.substr(close + 1);
       boost::trim(units);
-      XTP_LOG(Log::error, _log)
+      XTP_LOG(Log::error, log_)
           << "Reading atoms using " << units << " units." << std::flush;
       orbitals.QMAtoms().clearAtoms();
       if (orbitals.QMAtoms().size() == 0) {
@@ -240,9 +240,9 @@ void Molden::parseMoldenFile(const std::string& filename,
       }
       addBasissetInfo(orbitals);
     } else if (sectionType == "GTO") {
-      XTP_LOG(Log::error, _log)
+      XTP_LOG(Log::error, log_)
           << "Basisset specification is ignored." << std::flush;
-      XTP_LOG(Log::error, _log)
+      XTP_LOG(Log::error, log_)
           << "Basissets are specified via the mol2orb.xml options file."
           << std::flush;
       std::getline(input_file, line);
@@ -251,7 +251,7 @@ void Molden::parseMoldenFile(const std::string& filename,
         throw std::runtime_error(
             "Atoms should be specified before MO coefficients.");
       } else {
-        XTP_LOG(Log::error, _log)
+        XTP_LOG(Log::error, log_)
             << "Reading molecular orbital coefficients" << std::flush;
         line = readMOs(orbitals, input_file);
       }
@@ -263,7 +263,7 @@ void Molden::parseMoldenFile(const std::string& filename,
     }
   }
 
-  XTP_LOG(Log::error, _log) << "Done parsing molden file" << std::flush;
+  XTP_LOG(Log::error, log_) << "Done parsing molden file" << std::flush;
 }
 
 }  // namespace xtp

@@ -44,11 +44,11 @@ class Orb2Fchk final : public QMTool {
   bool Run();
 
  private:
-  std::string _basename;
-  std::string _orbfile;
+  std::string basename_;
+  std::string orbfile_;
   QMState state_;
-  bool _diff2gs;
-  Logger _log;
+  bool diff2gs_;
+  Logger log_;
 };
 
 }  // namespace xtp

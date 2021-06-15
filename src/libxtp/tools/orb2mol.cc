@@ -8,26 +8,26 @@ namespace xtp {
 
 void Orb2Mol::ParseOptions(const tools::Property&) {
 
-  _moldenfile = _job_name + ".molden.input";
-  _orbfile = _job_name + ".orb";
-  _xyzfile = _job_name + ".xyz";
+  moldenfile_ = job_name_ + ".molden.input";
+  orbfile_ = job_name_ + ".orb";
+  xyzfile_ = job_name_ + ".xyz";
 }
 
 bool Orb2Mol::Run() {
-  _log.setReportLevel(Log::current_level);
-  _log.setMultithreading(true);
-  _log.setCommonPreface("\n... ...");
+  log_.setReportLevel(Log::current_level);
+  log_.setMultithreading(true);
+  log_.setCommonPreface("\n... ...");
 
   Orbitals orbitals;
-  XTP_LOG(Log::error, _log) << "Loading data from " << _orbfile << std::flush;
-  orbitals.ReadFromCpt(_orbfile);
+  XTP_LOG(Log::error, log_) << "Loading data from " << orbfile_ << std::flush;
+  orbitals.ReadFromCpt(orbfile_);
 
-  XTP_LOG(Log::error, _log) << "Start parsing" << std::flush;
+  XTP_LOG(Log::error, log_) << "Start parsing" << std::flush;
 
-  Molden writer(_log);
-  writer.WriteFile(_moldenfile, orbitals);
+  Molden writer(log_);
+  writer.WriteFile(moldenfile_, orbitals);
 
-  XTP_LOG(Log::error, _log) << "Done parsing \n" << std::flush;
+  XTP_LOG(Log::error, log_) << "Done parsing \n" << std::flush;
 
   return true;
 }

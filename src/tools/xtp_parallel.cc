@@ -39,7 +39,7 @@ class XtpParallel final : public xtp::StateApplication {
  protected:
   void CreateCalculator(const std::string& name);
   void ConfigCalculator();
-  bool savetoStateFile() const final { return _import; }
+  bool savetoStateFile() const final { return import_; }
 
   bool EvaluateFrame(votca::xtp::Topology& top) final;
   std::string CalculatorType() const { return "Calculator"; }
@@ -51,11 +51,11 @@ class XtpParallel final : public xtp::StateApplication {
   void AddCommandLineOpt() final;
 
  private:
-  bool _generate_input = false;
-  bool _run = false;
-  bool _import = false;
-  xtp::ProgObserver<std::vector<xtp::Job>> _progObs;
-  std::unique_ptr<xtp::JobCalculator> _calc = nullptr;
+  bool generate_input_ = false;
+  bool run_ = false;
+  bool import_ = false;
+  xtp::ProgObserver<std::vector<xtp::Job>> progObs_;
+  std::unique_ptr<xtp::JobCalculator> calc_ = nullptr;
 };
 
 void XtpParallel::AddCommandLineOpt() {
@@ -76,34 +76,34 @@ void XtpParallel::AddCommandLineOpt() {
 
 void XtpParallel::CheckOptions() {
   std::string jobstr = OptionsMap()["jobs"].as<std::string>();
-  _generate_input = (jobstr == "write");
-  _run = (jobstr == "run");
-  _import = (jobstr == "read");
+  generate_input_ = (jobstr == "write");
+  run_ = (jobstr == "run");
+  import_ = (jobstr == "read");
 }
 
 void XtpParallel::CreateCalculator(const std::string& name) {
-  _calc = xtp::JobCalculators().Create(name);
+  calc_ = xtp::JobCalculators().Create(name);
 }
 
 void XtpParallel::ConfigCalculator() {
-  std::cout << "... " << _calc->Identify() << std::endl;
+  std::cout << "... " << calc_->Identify() << std::endl;
 
-  _progObs.InitCmdLineOpts(OptionsMap());
-  _calc->setnThreads(OptionsMap()["nthreads"].as<Index>());
-  _calc->setOpenMPThreads(OptionsMap()["ompthreads"].as<Index>());
-  _calc->setProgObserver(&_progObs);
-  _calc->Initialize(_options);
+  progObs_.InitCmdLineOpts(OptionsMap());
+  calc_->setnThreads(OptionsMap()["nthreads"].as<Index>());
+  calc_->setOpenMPThreads(OptionsMap()["ompthreads"].as<Index>());
+  calc_->setProgObserver(&progObs_);
+  calc_->Initialize(options_);
   std::cout << std::endl;
 }
 
 bool XtpParallel::EvaluateFrame(xtp::Topology& top) {
-  std::cout << "... " << _calc->Identify() << " " << std::flush;
-  if (_generate_input) {
-    _calc->WriteJobFile(top);
-  } else if (_run) {
-    _calc->EvaluateFrame(top);
-  } else if (_import) {
-    _calc->ReadJobFile(top);
+  std::cout << "... " << calc_->Identify() << " " << std::flush;
+  if (generate_input_) {
+    calc_->WriteJobFile(top);
+  } else if (run_) {
+    calc_->EvaluateFrame(top);
+  } else if (import_) {
+    calc_->ReadJobFile(top);
   }
   std::cout << std::endl;
   return true;

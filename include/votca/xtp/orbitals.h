@@ -46,68 +46,58 @@ class Orbitals {
  public:
   Orbitals();
 
-  bool hasBasisSetSize() const { return (_basis_set_size > 0) ? true : false; }
+  bool hasBasisSetSize() const { return (basis_set_size_ > 0) ? true : false; }
 
-  Index getBasisSetSize() const { return _basis_set_size; }
+  Index getBasisSetSize() const { return basis_set_size_; }
 
   void setBasisSetSize(Index basis_set_size) {
-    _basis_set_size = basis_set_size;
+    basis_set_size_ = basis_set_size;
   }
 
-  Index getLumo() const { return _occupied_levels; }
+  Index getLumo() const { return occupied_levels_; }
 
-  Index getHomo() const { return _occupied_levels - 1; }
+  Index getHomo() const { return occupied_levels_ - 1; }
   // access to DFT number of levels, new, tested
 
   bool hasNumberOfLevels() const {
-    return ((_occupied_levels > 0) ? true : false);
+    return ((occupied_levels_ > 0) ? true : false);
   }
 
   void setNumberOfOccupiedLevels(Index occupied_levels) {
-    _occupied_levels = occupied_levels;
+    occupied_levels_ = occupied_levels;
   }
 
   // access to DFT number of electrons, new, tested
 
   bool hasNumberOfAlphaElectrons() const {
-    return (_number_alpha_electrons > 0) ? true : false;
+    return (number_alpha_electrons_ > 0) ? true : false;
   }
 
-  Index getNumberOfAlphaElectrons() const { return _number_alpha_electrons; };
+  Index getNumberOfAlphaElectrons() const { return number_alpha_electrons_; };
 
   void setNumberOfAlphaElectrons(Index electrons) {
-    _number_alpha_electrons = electrons;
+    number_alpha_electrons_ = electrons;
   }
 
-  bool hasECPName() const { return (_ECP != "") ? true : false; }
+  bool hasECPName() const { return (ECP_ != "") ? true : false; }
 
-  const std::string &getECPName() const { return _ECP; };
+  const std::string &getECPName() const { return ECP_; };
 
-  void setECPName(const std::string &ECP) { _ECP = ECP; };
+  void setECPName(const std::string &ECP) { ECP_ = ECP; };
 
   // access to QM package name, new, tested
 
-  bool hasQMpackage() const { return (!_qm_package.empty()); }
+  bool hasQMpackage() const { return (!qm_package_.empty()); }
 
-  const std::string &getQMpackage() const { return _qm_package; }
+  const std::string &getQMpackage() const { return qm_package_; }
 
-  void setQMpackage(const std::string &qmpackage) { _qm_package = qmpackage; }
+  void setQMpackage(const std::string &qmpackage) { qm_package_ = qmpackage; }
 
   // access to DFT molecular orbital energies, new, tested
-  bool hasMOs() const { return (_mos.eigenvalues().size() > 0) ? true : false; }
+  bool hasMOs() const { return (mos_.eigenvalues().size() > 0) ? true : false; }
 
-  const tools::EigenSystem &MOs() const { return _mos; }
-  tools::EigenSystem &MOs() { return _mos; }
-
-  // access to DFT molecular orbital energy of a specific level
-  double getMOEnergy(Index level) const {
-    if (level < _mos.eigenvalues().size()) {
-      return _mos.eigenvalues()[level];
-    } else {
-      throw std::runtime_error("Level index is outside array range");
-    }
-    return 0;
-  }
+  const tools::EigenSystem &MOs() const { return mos_; }
+  tools::EigenSystem &MOs() { return mos_; }
 
   // determine (pseudo-)degeneracy of a DFT molecular orbital
   std::vector<Index> CheckDegeneracy(Index level,
@@ -116,19 +106,19 @@ class Orbitals {
   Index NumberofStates(QMStateType type) const {
     switch (type.Type()) {
       case QMStateType::Singlet:
-        return Index(_BSE_singlet.eigenvalues().size());
+        return Index(BSE_singlet_.eigenvalues().size());
         break;
       case QMStateType::Triplet:
-        return Index(_BSE_triplet.eigenvalues().size());
+        return Index(BSE_triplet_.eigenvalues().size());
         break;
       case QMStateType::KSstate:
-        return Index(_mos.eigenvalues().size());
+        return Index(mos_.eigenvalues().size());
         break;
       case QMStateType::PQPstate:
-        return Index(_QPpert_energies.size());
+        return Index(QPpert_energies_.size());
         break;
       case QMStateType::DQPstate:
-        return Index(_QPdiag.eigenvalues().size());
+        return Index(QPdiag_.eigenvalues().size());
         break;
       default:
         return 1;
@@ -136,31 +126,31 @@ class Orbitals {
     }
   }
 
-  bool hasQMAtoms() const { return (_atoms.size() > 0) ? true : false; }
+  bool hasQMAtoms() const { return (atoms_.size() > 0) ? true : false; }
 
-  const QMMolecule &QMAtoms() const { return _atoms; }
+  const QMMolecule &QMAtoms() const { return atoms_; }
 
-  QMMolecule &QMAtoms() { return _atoms; }
+  QMMolecule &QMAtoms() { return atoms_; }
 
   void setXCFunctionalName(std::string functionalname) {
-    _functionalname = functionalname;
+    functionalname_ = functionalname;
   }
-  const std::string &getXCFunctionalName() const { return _functionalname; }
+  const std::string &getXCFunctionalName() const { return functionalname_; }
 
   // access to QM total energy, new, tested
-  bool hasQMEnergy() const { return (_qm_energy != 0.0) ? true : false; }
+  bool hasQMEnergy() const { return (qm_energy_ != 0.0) ? true : false; }
 
-  double getDFTTotalEnergy() const { return _qm_energy; }
+  double getDFTTotalEnergy() const { return qm_energy_; }
 
-  void setQMEnergy(double qmenergy) { _qm_energy = qmenergy; }
+  void setQMEnergy(double qmenergy) { qm_energy_ = qmenergy; }
 
   // access to DFT basis set name
 
-  bool hasDFTbasisName() const { return (!_dftbasis.empty()) ? true : false; }
+  bool hasDFTbasisName() const { return (!dftbasis_.empty()) ? true : false; }
 
-  void setDFTbasisName(const std::string basis) { _dftbasis = basis; }
+  void setDFTbasisName(const std::string basis) { dftbasis_ = basis; }
 
-  const std::string &getDFTbasisName() const { return _dftbasis; }
+  const std::string &getDFTbasisName() const { return dftbasis_; }
 
   AOBasis SetupDftBasis() const { return SetupBasis<true>(); }
   AOBasis SetupAuxBasis() const { return SetupBasis<false>(); }
@@ -171,143 +161,143 @@ class Orbitals {
 
   // access to auxiliary basis set name
 
-  bool hasAuxbasisName() const { return (!_auxbasis.empty()) ? true : false; }
+  bool hasAuxbasisName() const { return (!auxbasis_.empty()) ? true : false; }
 
-  void setAuxbasisName(std::string basis) { _auxbasis = basis; }
+  void setAuxbasisName(std::string basis) { auxbasis_ = basis; }
 
-  const std::string &getAuxbasisName() const { return _auxbasis; }
+  const std::string &getAuxbasisName() const { return auxbasis_; }
 
   // access to list of indices used in GWA
 
-  bool hasGWAindices() const { return (_qpmax > 0) ? true : false; }
+  bool hasGWAindices() const { return (qpmax_ > 0) ? true : false; }
 
   void setGWindices(Index qpmin, Index qpmax) {
-    _qpmin = qpmin;
-    _qpmax = qpmax;
+    qpmin_ = qpmin;
+    qpmax_ = qpmax;
   }
 
-  Index getGWAmin() const { return _qpmin; }
+  Index getGWAmin() const { return qpmin_; }
 
-  Index getGWAmax() const { return _qpmax; }
+  Index getGWAmax() const { return qpmax_; }
 
   // access to list of indices used in RPA
 
-  bool hasRPAindices() const { return (_rpamax > 0) ? true : false; }
+  bool hasRPAindices() const { return (rpamax_ > 0) ? true : false; }
 
   void setRPAindices(Index rpamin, Index rpamax) {
-    _rpamin = rpamin;
-    _rpamax = rpamax;
+    rpamin_ = rpamin;
+    rpamax_ = rpamax;
   }
 
-  Index getRPAmin() const { return _rpamin; }
+  Index getRPAmin() const { return rpamin_; }
 
-  Index getRPAmax() const { return _rpamax; }
+  Index getRPAmax() const { return rpamax_; }
 
   // access to list of indices used in BSE
 
-  void setTDAApprox(bool usedTDA) { _useTDA = usedTDA; }
-  bool getTDAApprox() const { return _useTDA; }
+  void setTDAApprox(bool usedTDA) { useTDA_ = usedTDA; }
+  bool getTDAApprox() const { return useTDA_; }
 
-  bool hasBSEindices() const { return (_bse_cmax > 0) ? true : false; }
+  bool hasBSEindices() const { return (bse_cmax_ > 0) ? true : false; }
 
   void setBSEindices(Index vmin, Index cmax) {
-    _bse_vmin = vmin;
-    _bse_vmax = getHomo();
-    _bse_cmin = getLumo();
-    _bse_cmax = cmax;
-    _bse_vtotal = _bse_vmax - _bse_vmin + 1;
-    _bse_ctotal = _bse_cmax - _bse_cmin + 1;
-    _bse_size = _bse_vtotal * _bse_ctotal;
+    bse_vmin_ = vmin;
+    bse_vmax_ = getHomo();
+    bse_cmin_ = getLumo();
+    bse_cmax_ = cmax;
+    bse_vtotal_ = bse_vmax_ - bse_vmin_ + 1;
+    bse_ctotal_ = bse_cmax_ - bse_cmin_ + 1;
+    bse_size_ = bse_vtotal_ * bse_ctotal_;
     return;
   }
 
-  Index getBSEvmin() const { return _bse_vmin; }
+  Index getBSEvmin() const { return bse_vmin_; }
 
-  Index getBSEvmax() const { return _bse_vmax; }
+  Index getBSEvmax() const { return bse_vmax_; }
 
-  Index getBSEcmin() const { return _bse_cmin; }
+  Index getBSEcmin() const { return bse_cmin_; }
 
-  Index getBSEcmax() const { return _bse_cmax; }
+  Index getBSEcmax() const { return bse_cmax_; }
 
-  double getScaHFX() const { return _ScaHFX; }
+  double getScaHFX() const { return ScaHFX_; }
 
-  void setScaHFX(double ScaHFX) { _ScaHFX = ScaHFX; }
+  void setScaHFX(double ScaHFX) { ScaHFX_ = ScaHFX; }
 
   // access to perturbative QP energies
-  bool hasRPAInputEnergies() const { return (_rpa_inputenergies.size() > 0); }
+  bool hasRPAInputEnergies() const { return (rpa_inputenergies_.size() > 0); }
 
-  const Eigen::VectorXd &RPAInputEnergies() const { return _rpa_inputenergies; }
+  const Eigen::VectorXd &RPAInputEnergies() const { return rpa_inputenergies_; }
 
-  Eigen::VectorXd &RPAInputEnergies() { return _rpa_inputenergies; }
+  Eigen::VectorXd &RPAInputEnergies() { return rpa_inputenergies_; }
 
   // access to RPA input energies energies
   bool hasQPpert() const {
-    return (_QPpert_energies.size() > 0) ? true : false;
+    return (QPpert_energies_.size() > 0) ? true : false;
   }
 
-  const Eigen::VectorXd &QPpertEnergies() const { return _QPpert_energies; }
+  const Eigen::VectorXd &QPpertEnergies() const { return QPpert_energies_; }
 
-  Eigen::VectorXd &QPpertEnergies() { return _QPpert_energies; }
+  Eigen::VectorXd &QPpertEnergies() { return QPpert_energies_; }
 
   // access to diagonalized QP energies and wavefunctions
 
   bool hasQPdiag() const {
-    return (_QPdiag.eigenvalues().size() > 0) ? true : false;
+    return (QPdiag_.eigenvalues().size() > 0) ? true : false;
   }
-  const tools::EigenSystem &QPdiag() const { return _QPdiag; }
-  tools::EigenSystem &QPdiag() { return _QPdiag; }
+  const tools::EigenSystem &QPdiag() const { return QPdiag_; }
+  tools::EigenSystem &QPdiag() { return QPdiag_; }
 
   bool hasBSETriplets() const {
-    return (_BSE_triplet.eigenvectors().cols() > 0) ? true : false;
+    return (BSE_triplet_.eigenvectors().cols() > 0) ? true : false;
   }
 
-  const tools::EigenSystem &BSETriplets() const { return _BSE_triplet; }
+  const tools::EigenSystem &BSETriplets() const { return BSE_triplet_; }
 
-  tools::EigenSystem &BSETriplets() { return _BSE_triplet; }
+  tools::EigenSystem &BSETriplets() { return BSE_triplet_; }
 
   // access to singlet energies and wave function coefficients
 
   bool hasBSESinglets() const {
-    return (_BSE_singlet.eigenvectors().cols() > 0) ? true : false;
+    return (BSE_singlet_.eigenvectors().cols() > 0) ? true : false;
   }
 
-  const tools::EigenSystem &BSESinglets() const { return _BSE_singlet; }
+  const tools::EigenSystem &BSESinglets() const { return BSE_singlet_; }
 
-  tools::EigenSystem &BSESinglets() { return _BSE_singlet; }
+  tools::EigenSystem &BSESinglets() { return BSE_singlet_; }
 
   // access to BSE energies with dynamical screening
   bool hasBSESinglets_dynamic() const {
-    return (_BSE_singlet_energies_dynamic.size() > 0) ? true : false;
+    return (BSE_singlet_energies_dynamic_.size() > 0) ? true : false;
   }
 
   const Eigen::VectorXd &BSESinglets_dynamic() const {
-    return _BSE_singlet_energies_dynamic;
+    return BSE_singlet_energies_dynamic_;
   }
 
   Eigen::VectorXd &BSESinglets_dynamic() {
-    return _BSE_singlet_energies_dynamic;
+    return BSE_singlet_energies_dynamic_;
   }
 
   bool hasBSETriplets_dynamic() const {
-    return (_BSE_triplet_energies_dynamic.size() > 0) ? true : false;
+    return (BSE_triplet_energies_dynamic_.size() > 0) ? true : false;
   }
 
   const Eigen::VectorXd &BSETriplets_dynamic() const {
-    return _BSE_triplet_energies_dynamic;
+    return BSE_triplet_energies_dynamic_;
   }
 
   Eigen::VectorXd &BSETriplets_dynamic() {
-    return _BSE_triplet_energies_dynamic;
+    return BSE_triplet_energies_dynamic_;
   }
 
   // access to transition dipole moments
 
   bool hasTransitionDipoles() const {
-    return (_transition_dipoles.size() > 0) ? true : false;
+    return (transition_dipoles_.size() > 0) ? true : false;
   }
 
   const std::vector<Eigen::Vector3d> &TransitionDipoles() const {
-    return _transition_dipoles;
+    return transition_dipoles_;
   }
 
   Eigen::VectorXd Oscillatorstrengths() const;
@@ -343,8 +333,8 @@ class Orbitals {
   void WriteToCpt(CheckpointWriter w) const;
   void ReadFromCpt(CheckpointReader r);
 
-  bool GetFlagUseHqpOffdiag() const { return _use_Hqp_offdiag; };
-  void SetFlagUseHqpOffdiag(bool flag) { _use_Hqp_offdiag = flag; };
+  bool GetFlagUseHqpOffdiag() const { return use_Hqp_offdiag_; };
+  void SetFlagUseHqpOffdiag(bool flag) { use_Hqp_offdiag_ = flag; };
 
   const Eigen::MatrixXd &getPMLocalizedOrbitals() {
     return _pm_localized_orbitals;
@@ -383,58 +373,60 @@ class Orbitals {
   Eigen::MatrixXd CalcAuxMat_cc(const Eigen::VectorXd &coeffs) const;
   Eigen::MatrixXd CalcAuxMat_vv(const Eigen::VectorXd &coeffs) const;
 
-  Index _basis_set_size;
-  Index _occupied_levels;
-  Index _number_alpha_electrons;
-  std::string _ECP = "";
-  bool _useTDA;
+  Index basis_set_size_;
+  Index occupied_levels_;
+  Index number_alpha_electrons_;
+  std::string ECP_ = "";
+  bool useTDA_;
 
-  tools::EigenSystem _mos;
+  tools::EigenSystem mos_;
 
   Eigen::MatrixXd _pm_localized_orbitals;
 
-  QMMolecule _atoms;
+  QMMolecule atoms_;
 
-  double _qm_energy = 0;
+
+  double qm_energy_ = 0;
 
   // new variables for GW-BSE storage
-  Index _rpamin = 0;
-  Index _rpamax = 0;
+  Index rpamin_ = 0;
+  Index rpamax_ = 0;
 
-  Index _qpmin = 0;
-  Index _qpmax = 0;
-  Index _bse_vmin = 0;
-  Index _bse_vmax = 0;
-  Index _bse_cmin = 0;
-  Index _bse_cmax = 0;
-  Index _bse_size = 0;
-  Index _bse_vtotal = 0;
-  Index _bse_ctotal = 0;
+  Index qpmin_ = 0;
+  Index qpmax_ = 0;
+  Index bse_vmin_ = 0;
+  Index bse_vmax_ = 0;
+  Index bse_cmin_ = 0;
+  Index bse_cmax_ = 0;
+  Index bse_size_ = 0;
+  Index bse_vtotal_ = 0;
+  Index bse_ctotal_ = 0;
 
-  double _ScaHFX = 0;
+  double ScaHFX_ = 0;
 
-  std::string _dftbasis = "";
-  std::string _auxbasis = "";
+  std::string dftbasis_ = "";
+  std::string auxbasis_ = "";
 
-  std::string _functionalname = "";
-  std::string _qm_package = "";
+  std::string functionalname_ = "";
+  std::string grid_quality_ = "";
+  std::string qm_package_ = "";
 
-  Eigen::VectorXd _rpa_inputenergies;
+  Eigen::VectorXd rpa_inputenergies_;
   // perturbative quasiparticle energies
-  Eigen::VectorXd _QPpert_energies;
+  Eigen::VectorXd QPpert_energies_;
 
   // quasiparticle energies and coefficients after diagonalization
-  tools::EigenSystem _QPdiag;
+  tools::EigenSystem QPdiag_;
 
-  tools::EigenSystem _BSE_singlet;
-  std::vector<Eigen::Vector3d> _transition_dipoles;
-  tools::EigenSystem _BSE_triplet;
+  tools::EigenSystem BSE_singlet_;
+  std::vector<Eigen::Vector3d> transition_dipoles_;
+  tools::EigenSystem BSE_triplet_;
 
   // singlet and triplet energies after perturbative dynamical screening
-  Eigen::VectorXd _BSE_singlet_energies_dynamic;
-  Eigen::VectorXd _BSE_triplet_energies_dynamic;
+  Eigen::VectorXd BSE_singlet_energies_dynamic_;
+  Eigen::VectorXd BSE_triplet_energies_dynamic_;
 
-  bool _use_Hqp_offdiag = true;
+  bool use_Hqp_offdiag_ = true;
 
   // Version 2: adds BSE energies after perturbative dynamical screening
   // Version 3 changed shell ordering

@@ -43,31 +43,31 @@ class Energy_costfunction : public Optimiser_costfunction {
 
   Energy_costfunction(GWBSEEngine& gwbse_engine, StateTracker& tracker,
                       Orbitals& orbitals, Forces& force_engine)
-      : _gwbse_engine(gwbse_engine),
-        _tracker(tracker),
-        _orbitals(orbitals),
-        _force_engine(force_engine){};
+      : gwbse_engine_(gwbse_engine),
+        tracker_(tracker),
+        orbitals_(orbitals),
+        force_engine_(force_engine){};
 
   double EvaluateCost(const Eigen::VectorXd& parameters) override;
 
   Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters) override;
 
   Index NumParameters() const override {
-    return Index(_orbitals.QMAtoms().size() * 3);
+    return Index(orbitals_.QMAtoms().size() * 3);
   };
 
   bool Converged(const Eigen::VectorXd& delta_parameters, double delta_cost,
                  const Eigen::VectorXd& gradient) override;
 
-  void ForcesReport() const { return _force_engine.Report(); }
+  void ForcesReport() const { return force_engine_.Report(); }
 
-  const conv_paras& getConvParas() const { return _convpara; }
+  const conv_paras& getConvParas() const { return convpara_; }
 
   void setConvergenceParameters(const conv_paras& convergence) {
-    _convpara = convergence;
+    convpara_ = convergence;
   }
 
-  void setLog(Logger* pLog) { _pLog = pLog; }
+  void setLog(Logger* pLog) { pLog_ = pLog; }
 
   void Report(const conv_paras& val);
   static void Vector2QMAtoms(const Eigen::VectorXd& pos, QMMolecule& atoms);
@@ -76,16 +76,16 @@ class Energy_costfunction : public Optimiser_costfunction {
 
  private:
   static std::string Converged(double val, double limit);
-  GWBSEEngine& _gwbse_engine;
-  StateTracker& _tracker;
-  Orbitals& _orbitals;
-  Forces& _force_engine;
-  Index _iteration = 0;
-  double _energy;
+  GWBSEEngine& gwbse_engine_;
+  StateTracker& tracker_;
+  Orbitals& orbitals_;
+  Forces& force_engine_;
+  Index iteration_ = 0;
+  double energy_;
 
-  conv_paras _convpara;
+  conv_paras convpara_;
 
-  Logger* _pLog;
+  Logger* pLog_;
 };
 
 }  // namespace xtp

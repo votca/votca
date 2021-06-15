@@ -34,7 +34,7 @@ namespace xtp {
 
 std::string QMStateType::ToString() const {
   std::string identifier = "";
-  switch (_type) {
+  switch (type_) {
     case QMStateType::Singlet:
       identifier = "s";
       break;
@@ -65,7 +65,7 @@ std::string QMStateType::ToString() const {
 
 std::string QMStateType::ToLongString() const {
   std::string identifier = "";
-  switch (_type) {
+  switch (type_) {
     case QMStateType::Singlet:
       identifier = "singlet";
       break;
@@ -98,21 +98,21 @@ void QMStateType::FromString(const std::string& statetypestring) {
   std::string lower = boost::algorithm::to_lower_copy(statetypestring);
   boost::trim(lower);
   if (lower == "s" || lower == "singlet") {
-    _type = QMStateType::Singlet;
+    type_ = QMStateType::Singlet;
   } else if (lower == "t" || lower == "triplet") {
-    _type = QMStateType::Triplet;
+    type_ = QMStateType::Triplet;
   } else if (lower == "pqp" || lower == "pert-qparticle") {
-    _type = QMStateType::PQPstate;
+    type_ = QMStateType::PQPstate;
   } else if (lower == "dqp" || lower == "diag-qparticle" || lower == "qpdiag") {
-    _type = QMStateType::DQPstate;
+    type_ = QMStateType::DQPstate;
   } else if (lower == "ks" || lower == "kohn-sham-orbital") {
-    _type = QMStateType::KSstate;
+    type_ = QMStateType::KSstate;
   } else if (lower == "n" || lower == "groundstate" || lower == "gs") {
-    _type = QMStateType::Gstate;
+    type_ = QMStateType::Gstate;
   } else if (lower == "h" || lower == "hole") {
-    _type = QMStateType::Hole;
+    type_ = QMStateType::Hole;
   } else if (lower == "e" || lower == "electron") {
-    _type = QMStateType::Electron;
+    type_ = QMStateType::Electron;
   } else {
     throw std::runtime_error("Statetype:" + statetypestring +
                              " not recognized");
@@ -120,31 +120,31 @@ void QMStateType::FromString(const std::string& statetypestring) {
 }
 
 std::string QMState::ToLongString() const {
-  Index index = _index;
-  if (_type == QMStateType::Singlet || _type == QMStateType::Triplet) {
+  Index index = index_;
+  if (type_ == QMStateType::Singlet || type_ == QMStateType::Triplet) {
     index++;
-  } else if (_type == QMStateType::Gstate || _type == QMStateType::Electron ||
-             _type == QMStateType::Hole) {
-    return _type.ToLongString();
+  } else if (type_ == QMStateType::Gstate || type_ == QMStateType::Electron ||
+             type_ == QMStateType::Hole) {
+    return type_.ToLongString();
   }
   std::string result =
-      _type.ToLongString() + (boost::format(" %i") % index).str();
-  if (_transition) {
+      type_.ToLongString() + (boost::format(" %i") % index).str();
+  if (transition_) {
     result = "Groundstate to " + result;
   }
   return result;
 }
 
 std::string QMState::ToString() const {
-  Index index = _index;
-  if (_type == QMStateType::Singlet || _type == QMStateType::Triplet) {
+  Index index = index_;
+  if (type_ == QMStateType::Singlet || type_ == QMStateType::Triplet) {
     index++;
-  } else if (_type == QMStateType::Gstate || _type == QMStateType::Electron ||
-             _type == QMStateType::Hole) {
-    return _type.ToString();
+  } else if (type_ == QMStateType::Gstate || type_ == QMStateType::Electron ||
+             type_ == QMStateType::Hole) {
+    return type_.ToString();
   }
-  std::string result = _type.ToString() + (boost::format("%i") % index).str();
-  if (_transition) {
+  std::string result = type_.ToString() + (boost::format("%i") % index).str();
+  if (transition_) {
     result = "n2" + result;
   }
   return result;
@@ -158,7 +158,7 @@ Index QMState::DetermineIndex(const std::string& statestring) {
   bool found_integer = std::regex_search(statestring, search, reg);
   if (!found_integer) {
 
-    if (_type == QMStateType::Hole || _type == QMStateType::Electron) {
+    if (type_ == QMStateType::Hole || type_ == QMStateType::Electron) {
       return 0;
     }
 
@@ -170,8 +170,8 @@ Index QMState::DetermineIndex(const std::string& statestring) {
   }
 
   Index index = boost::lexical_cast<Index>(search.str(0));
-  if (_type.isExciton() || _type == QMStateType::Electron ||
-      _type == QMStateType::Hole) {
+  if (type_.isExciton() || type_ == QMStateType::Electron ||
+      type_ == QMStateType::Hole) {
     index--;
   }
   return index;
@@ -197,25 +197,25 @@ void QMState::FromString(const std::string& statestring) {
   boost::trim(lower);
   std::string rest;
   if (boost::starts_with(lower, "n2")) {
-    _transition = true;
+    transition_ = true;
     rest = lower.substr(2);
   } else if (boost::starts_with(lower, "groundstate to")) {
-    _transition = true;
+    transition_ = true;
     rest = lower.substr(14);
   } else {
     rest = lower;
-    _transition = false;
+    transition_ = false;
   }
   boost::trim(rest);
 
-  _type = DetermineType(rest);
-  if (_type != QMStateType::Singlet && _transition == true) {
+  type_ = DetermineType(rest);
+  if (type_ != QMStateType::Singlet && transition_ == true) {
     throw std::runtime_error("Transition states only exist for singlets.");
   }
-  if (_type == QMStateType::Gstate) {
-    _index = -1;
+  if (type_ == QMStateType::Gstate) {
+    index_ = -1;
   } else {
-    _index = DetermineIndex(rest);
+    index_ = DetermineIndex(rest);
   }
 }
 

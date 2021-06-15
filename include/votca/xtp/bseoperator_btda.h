@@ -57,13 +57,13 @@ class HamiltonianOperator
   };
 
   HamiltonianOperator(const MatrixReplacementA& A, const MatrixReplacementB& B)
-      : _A(A), _B(B) {
-    _size = 2 * A.cols();
-    _diag = get_diagonal();
+      : A_(A), B_(B) {
+    size_ = 2 * A.cols();
+    diag_ = get_diagonal();
   };
 
-  Eigen::Index rows() const { return this->_size; }
-  Eigen::Index cols() const { return this->_size; }
+  Eigen::Index rows() const { return this->size_; }
+  Eigen::Index cols() const { return this->size_; }
 
   template <typename Vtype>
   Eigen::Product<HamiltonianOperator, Vtype, Eigen::AliasFreeProduct> operator*(
@@ -72,22 +72,22 @@ class HamiltonianOperator
         *this, x.derived());
   }
 
-  Eigen::VectorXd diagonal() const { return _diag; }
+  Eigen::VectorXd diagonal() const { return diag_; }
 
-  const MatrixReplacementA& _A;
-  const MatrixReplacementB& _B;
+  const MatrixReplacementA& A_;
+  const MatrixReplacementB& B_;
 
  private:
   Eigen::VectorXd get_diagonal() const {
-    Eigen::VectorXd diag = Eigen::VectorXd::Zero(_size);
-    Index half = _size / 2;
-    diag.head(half) = _A.diagonal();
+    Eigen::VectorXd diag = Eigen::VectorXd::Zero(size_);
+    Index half = size_ / 2;
+    diag.head(half) = A_.diagonal();
     diag.tail(half) = -diag.head(half);
     return diag;
   }
 
-  Index _size;
-  Eigen::VectorXd _diag;
+  Index size_;
+  Eigen::VectorXd diag_;
 };
 }  // namespace xtp
 }  // namespace votca
@@ -135,13 +135,13 @@ struct generic_product_impl<
      * **/
     const Map<const MatrixXd> m_reshaped(m.data(), m.rows() / 2, m.cols() * 2);
     {
-      const MatrixXd temp = op._A * m_reshaped;
+      const MatrixXd temp = op.A_ * m_reshaped;
       const Map<const MatrixXd> temp_unshaped(temp.data(), m.rows(), m.cols());
       dst.topRows(half) = temp_unshaped.topRows(half);
       dst.bottomRows(half) = -temp_unshaped.bottomRows(half);
     }
     {
-      const MatrixXd temp = op._B * m_reshaped;
+      const MatrixXd temp = op.B_ * m_reshaped;
       const Map<const MatrixXd> temp_unshaped(temp.data(), m.rows(), m.cols());
       dst.topRows(half) += temp_unshaped.bottomRows(half);
       dst.bottomRows(half) -= temp_unshaped.topRows(half);

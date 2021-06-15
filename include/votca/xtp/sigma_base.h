@@ -32,7 +32,7 @@ class RPA;
 
 class Sigma_base {
  public:
-  Sigma_base(TCMatrix_gwbse& Mmn, const RPA& rpa) : _Mmn(Mmn), _rpa(rpa){};
+  Sigma_base(TCMatrix_gwbse& Mmn, const RPA& rpa) : Mmn_(Mmn), rpa_(rpa){};
 
   virtual ~Sigma_base() = default;
 
@@ -49,9 +49,9 @@ class Sigma_base {
   };
 
   void configure(options opt) {
-    _opt = opt;
-    _qptotal = opt.qpmax - opt.qpmin + 1;
-    _rpatotal = opt.rpamax - opt.rpamin + 1;
+    opt_ = opt;
+    qptotal_ = opt.qpmax - opt.qpmin + 1;
+    rpatotal_ = opt.rpamax - opt.rpamin + 1;
   }
 
   // Calculates full exchange matrix
@@ -75,12 +75,12 @@ class Sigma_base {
                                                double frequency2) const = 0;
 
  protected:
-  options _opt;
-  TCMatrix_gwbse& _Mmn;
-  const RPA& _rpa;
+  options opt_;
+  TCMatrix_gwbse& Mmn_;
+  const RPA& rpa_;
 
-  Index _qptotal = 0;
-  Index _rpatotal = 0;
+  Index qptotal_ = 0;
+  Index rpatotal_ = 0;
 };
 }  // namespace xtp
 }  // namespace votca

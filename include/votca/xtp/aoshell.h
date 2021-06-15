@@ -60,26 +60,26 @@ class AOGaussianPrimitive {
   };
 
   AOGaussianPrimitive(const AOGaussianPrimitive::data& d) {
-    _decay = d.decay;
-    _contraction = d.contraction;
-    _powfactor = CalcPowFactor(_decay);
+    decay_ = d.decay;
+    contraction_ = d.contraction;
+    powfactor_ = CalcPowFactor(decay_);
   }
 
   static void SetupCptTable(CptTable& table);
 
   void WriteData(data& d, const AOShell& s) const;
 
-  double getPowfactor() const { return _powfactor; }
-  double getDecay() const { return _decay; }
-  double getContraction() const { return _contraction; }
+  double getPowfactor() const { return powfactor_; }
+  double getDecay() const { return decay_; }
+  double getContraction() const { return contraction_; }
 
  private:
   static double CalcPowFactor(double decay) {
     return std::pow(2.0 * decay / boost::math::constants::pi<double>(), 0.75);
   }
-  double _decay;
-  double _contraction;
-  double _powfactor;  // used in evalspace to speed up DFT
+  double decay_;
+  double contraction_;
+  double powfactor_;  // used in evalspace to speed up DFT
 };
 
 /*
@@ -92,34 +92,34 @@ class AOShell {
   AOShell(const Shell& shell, const QMAtom& atom, Index startIndex);
 
   AOShell(const AOGaussianPrimitive::data& d) {
-    _l = static_cast<L>(d.l);
-    _startIndex = d.startindex;
-    _atomindex = d.atomid;
-    _pos = Eigen::Vector3d(d.x, d.y, d.z);
-    _gaussians.push_back(AOGaussianPrimitive(d));
+    l_ = static_cast<L>(d.l);
+    startIndex_ = d.startindex;
+    atomindex_ = d.atomid;
+    pos_ = Eigen::Vector3d(d.x, d.y, d.z);
+    gaussians_.push_back(AOGaussianPrimitive(d));
   }
 
-  L getL() const { return _l; }
-  Index getNumFunc() const { return NumFuncShell(_l); };
-  Index getCartesianNumFunc() const { return NumFuncShell_cartesian(_l); };
-  Index getStartIndex() const { return _startIndex; }
-  Index getOffset() const { return OffsetFuncShell(_l); }
-  Index getCartesianOffset() const { return OffsetFuncShell_cartesian(_l); }
-  Index getAtomIndex() const { return _atomindex; }
-  Index getSize() const { return _gaussians.size(); }
+  L getL() const { return l_; }
+  Index getNumFunc() const { return NumFuncShell(l_); };
+  Index getCartesianNumFunc() const { return NumFuncShell_cartesian(l_); };
+  Index getStartIndex() const { return startIndex_; }
+  Index getOffset() const { return OffsetFuncShell(l_); }
+  Index getCartesianOffset() const { return OffsetFuncShell_cartesian(l_); }
+  Index getAtomIndex() const { return atomindex_; }
+  Index getSize() const { return gaussians_.size(); }
 
   libint2::Shell LibintShell() const;
 
-  const Eigen::Vector3d& getPos() const { return _pos; }
+  const Eigen::Vector3d& getPos() const { return pos_; }
 
   void CalcMinDecay() {
-    _mindecay = std::numeric_limits<double>::max();
-    for (auto& gaussian : _gaussians) {
-      _mindecay = std::min(_mindecay, gaussian.getDecay());
+    mindecay_ = std::numeric_limits<double>::max();
+    for (auto& gaussian : gaussians_) {
+      mindecay_ = std::min(mindecay_, gaussian.getDecay());
     }
   }
 
-  double getMinDecay() const { return _mindecay; }
+  double getMinDecay() const { return mindecay_; }
 
   void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
                    const Eigen::Vector3d& grid_pos) const;
@@ -129,12 +129,12 @@ class AOShell {
 
   // iterator over pairs (decay constant; contraction coefficient)
   using GaussianIterator = std::vector<AOGaussianPrimitive>::const_iterator;
-  GaussianIterator begin() const { return _gaussians.begin(); }
-  GaussianIterator end() const { return _gaussians.end(); }
+  GaussianIterator begin() const { return gaussians_.begin(); }
+  GaussianIterator end() const { return gaussians_.end(); }
 
   // adds a Gaussian
   void addGaussian(const GaussianPrimitive& gaussian) {
-    _gaussians.push_back(AOGaussianPrimitive(gaussian));
+    gaussians_.push_back(AOGaussianPrimitive(gaussian));
     return;
   }
 
@@ -143,16 +143,16 @@ class AOShell {
   friend std::ostream& operator<<(std::ostream& out, const AOShell& shell);
 
  private:
-  L _l;
+  L l_;
   // scaling factor
   // number of functions in shell
-  double _mindecay;
-  Index _startIndex;
-  Eigen::Vector3d _pos;
-  Index _atomindex;
+  double mindecay_;
+  Index startIndex_;
+  Eigen::Vector3d pos_;
+  Index atomindex_;
 
   // vector of pairs of decay constants and contraction coefficients
-  std::vector<AOGaussianPrimitive> _gaussians;
+  std::vector<AOGaussianPrimitive> gaussians_;
 };
 }  // namespace xtp
 }  // namespace votca
