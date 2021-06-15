@@ -24,10 +24,11 @@ import h5py
 import shutil
 import json
 import subprocess
+import fnmatch
 
 VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
 PROGTITLE = 'THE VOTCA::XTP Benchmark'
-PROGDESCR = 'Runs a Thiel set benchmark'
+PROGDESCR = 'Runs a benchmark on a set of geometries'
 VOTCAHEADER = '''\
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
@@ -40,6 +41,7 @@ benchmark, version {version}
 
 '''.format(version=VERSION, progtitle=PROGTITLE)
 
+
 def xxquit(what=''):
     if what != '':
         print("ERROR: {what}".format(what=what))
@@ -49,8 +51,21 @@ def xxquit(what=''):
 def ReadEnergyFromHDF5(filename):
     orb = h5py.File(filename, 'r')
     a = orb['QMdata']['BSE_singlet']['eigenvalues'][()]
-    a.flatten()
     return a.flatten()
+
+def ReadIndividualTimingsFromLog(logfile):
+
+    steps= ["DFT","GW","BSE"]
+    result={}
+    with open(logfile,'r') as f:
+        for line in f:
+            for step in steps:
+                if f"{step} calculation took " in line:
+                    if step in result:
+                        xxquit(what=f'Logfile {logfile} is corrupted')
+                    else:
+                        result[step]=float(line.split()[-2])
+    return result
 
 def HasGPUs():
     helpstring = subprocess.check_output(['xtp_tools', '-h'])
@@ -97,60 +112,70 @@ progargs.add_argument('-r', '--run',
                       default=0,
                       help='Run benchmark')
 
+progargs.add_argument('-s', '--setup',
+                      action='store_const',
+                      const=1,
+                      default=0,
+                      help='Setup Benchmark')
+
+progargs.add_argument('-i', '--input_folder',
+                      required=False,
+                      type=str,
+                      default="Geometries/Geometries_ThielSet",
+                      help='Folder to take geometries from')
+
+progargs.add_argument('-o', '--output_folder',
+                      required=False,
+                      type=str,
+                      default="RUN",
+                      help='Folder to write benchmark to')
+
 progargs.add_argument('-a', '--analyze',
-                      action='store_const',
-                      const=1,
-                      default=0,
-                      help='Show results')
+                      required=False,
+                      type=str,
+                      help='Process results from folder')
 
-progargs.add_argument('--reset',
-                      action='store_const',
-                      const=1,
-                      default=0,
-                      help='Delete all benchmark run data')
+progargs.add_argument('--reference',
+                      required=False,
+                      type=str,
+                      help='In combination with analyze options compare to a reference')
 
-progargs.add_argument('--update',
-                      action='store_const',
-                      const=1,
-                      default=0,
-                      help='Update references')
-HasGPUs=HasGPUs();
+HasGPUs = HasGPUs()
 if HasGPUs:
     progargs.add_argument('-g', '--gpus',
-                      required=False,
-                      type=int,
-                      default=0,
-                      help='Number of GPUs to use')
+                          required=False,
+                          type=int,
+                          default=0,
+                          help='Number of GPUs to use')
 
 
 OPTIONS = progargs.parse_args()
 
-if OPTIONS.reset:
-    print("Deleting 'RUN' directory")
-    try:
-        shutil.rmtree("RUN")
-    except OSError as e:
-        print("Error: %s - %s." % (e.filename, e.strerror))
+
+if OPTIONS.setup:
+    print("Creating benchmark directory: {}".format(OPTIONS.output_folder))
+    if os.path.isdir(OPTIONS.output_folder):
+        xxquit("Folder '{}' already exists".format(OPTIONS.output_folder))
+    os.mkdir(OPTIONS.output_folder)
+
+    input_molecules = []
+
+    pattern = "*.xyz"
+
+    for path, subdirs, files in os.walk(OPTIONS.input_folder):
+        for name in files:
+            if fnmatch.fnmatch(name, pattern):
+                input_molecules.append([path, name])
+    
+   
+    for mol in input_molecules:
+        newpath=os.path.join(OPTIONS.output_folder,os.path.splitext(mol[1])[0])
+        os.mkdir(newpath)
+        shutil.copyfile(os.path.join(mol[0],mol[1]),os.path.join(newpath,"system.xyz"))
+    
+    print("Created folders for:\n{}".format("\n".join(m[1] for m in input_molecules)))
 
 if OPTIONS.run:
-    print("Creating run directory")
-    if os.path.isdir('RUN'):
-        xxquit("Folder 'RUN' already exists")
-    os.mkdir("RUN")
-
-    molecules = []
-
-    for folder in os.listdir("Geometries_ThielSet"):
-        print("Reading geometries from folder '{}'".format(folder))
-        for geo in os.listdir("Geometries_ThielSet/"+folder):
-            if os.path.splitext("Geometries_ThielSet/"+folder+"/"+geo)[1] == ".xyz":
-                molname = os.path.splitext(geo)[0]
-                print("Creating subfolder '{}'".format(molname))
-                dest = "RUN/{}".format(molname)
-                molecules.append(molname)
-                os.mkdir(dest)
-                shutil.copyfile("Geometries_ThielSet/"+folder +
-                                "/"+geo, dest+"/system.xyz")
 
     print("\nStarting benchmark with {} threads".format(OPTIONS.threads))
     if HasGPUs:
@@ -160,23 +185,28 @@ if OPTIONS.run:
     moldata = {}
     totaltime = time.time()
     referencedata = {}
-    if os.path.isfile("references.json"):
-        print("Loading reference data from 'references.json'")
-        with open("references.json", 'r') as fp:
+    if OPTIONS.reference:
+        print("Loading reference data from '{}'".format(OPTIONS.reference))
+        with open(OPTIONS.reference, 'r') as fp:
             referencedata = json.load(fp)
 
-    for mol in molecules:
+    for mol in os.listdir(OPTIONS.output_folder):
         print("Running {}".format(mol).ljust(30), end="\r")
-        with cd("RUN/{}".format(mol)):
-            
-            start = time.time()
+        with cd(os.path.join(OPTIONS.output_folder,mol)):
 
-            cmd = 'xtp_tools -e dftgwbse -n system -t {} > dftgwbse.log'.format(OPTIONS.threads)
+            start = time.time()
+            if(HasGPUs):
+                cmd = 'xtp_tools -e dftgwbse -n system -t {} -g {} > dftgwbse.log'.format(
+                OPTIONS.threads,OPTIONS.gpus)
+            else:
+                cmd = 'xtp_tools -e dftgwbse -n system -t {} > dftgwbse.log'.format(
+                OPTIONS.threads)
             os.system(cmd)
             dt = time.time() - start
             molinfo = {}
             molinfo["duration[s]"] = dt
-            print("{}".format(mol).ljust(30)+" Duration: \t{:8.2f} seconds.".format(dt), end='')
+            print("{}".format(mol).ljust(30) +
+                  " Duration: \t{:8.2f} seconds.".format(dt), end='')
             if not os.path.isfile("system.orb"):
                 print(" Computation Failed")
                 molinfo["Status"] = "Failed"
@@ -185,6 +215,8 @@ if OPTIONS.run:
                 print(" S1 = {:3.6f}[Hrt]".format(S[0]))
                 molinfo["Status"] = "Success"
                 molinfo["S1[Hrt]"] = S[0]
+                molinfo.update(ReadIndividualTimingsFromLog("dftgwbse.log"))
+
         if referencedata and referencedata[mol]["Status"] == "Success":
             print(" S1_ref = {:3.6f}[Hrt]".format(
                 referencedata[mol]["S1[Hrt]"]))
@@ -202,5 +234,5 @@ if OPTIONS.run:
         float(goodruns)/float(len(moldata))*100.0))
 
     print("Writing benchmark data to 'result.json'")
-    with open('result.json', 'w') as fp:
+    with open(OPTIONS.output_folder+'/result.json', 'w') as fp:
         json.dump(moldata, fp, sort_keys=True, indent=4)

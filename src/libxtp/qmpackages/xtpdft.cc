@@ -53,7 +53,7 @@ bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {
 /**
  * Run calls DFTENGINE
  */
-bool XTPDFT::Run() {
+bool XTPDFT::RunDFT() {
   DFTEngine xtpdft;
   xtpdft.Initialize(xtpdft_options_);
   xtpdft.setLogger(pLog_);

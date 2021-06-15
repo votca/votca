@@ -61,6 +61,19 @@ tools::Property QMPackage::ParseCommonOptions(const tools::Property& options) {
   return settings_.to_property("package");
 }
 
+bool QMPackage::Run() {
+  std::chrono::time_point<std::chrono::system_clock> start =
+      std::chrono::system_clock::now();
+
+  bool error_value = RunDFT();
+
+      std::chrono::duration<double>
+          elapsed_time = std::chrono::system_clock::now() - start;
+  XTP_LOG(Log::error, *pLog_) << TimeStamp() << " DFT calculation took "
+                              << elapsed_time.count() << " seconds." << flush;
+  return error_value;
+}
+
 void QMPackage::ReorderOutput(Orbitals& orbitals) const {
   if (!orbitals.hasQMAtoms()) {
     throw std::runtime_error("Orbitals object has no QMAtoms");

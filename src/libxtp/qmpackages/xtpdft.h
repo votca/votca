@@ -40,7 +40,7 @@ namespace xtp {
 
  */
 
-class XTPDFT : public QMPackage {
+class XTPDFT final: public QMPackage {
  public:
   std::string getPackageName() const final { return "xtp"; }
 
@@ -48,7 +48,7 @@ class XTPDFT : public QMPackage {
 
   bool WriteInputFile(const Orbitals& orbitals) final;
 
-  bool Run() final;
+  bool RunDFT() final;
 
   void CleanUp() final;
 
