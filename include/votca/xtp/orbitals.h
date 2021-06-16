@@ -337,10 +337,10 @@ class Orbitals {
   void SetFlagUseHqpOffdiag(bool flag) { use_Hqp_offdiag_ = flag; };
 
   const Eigen::MatrixXd &getPMLocalizedOrbitals() {
-    return _pm_localized_orbitals;
+    return pm_localized_orbitals_;
   };
   void setPMLocalizedOrbitals(const Eigen::MatrixXd &matrix) {
-    _pm_localized_orbitals = matrix;
+    pm_localized_orbitals_ = matrix;
   }
 
  private:
@@ -381,10 +381,9 @@ class Orbitals {
 
   tools::EigenSystem mos_;
 
-  Eigen::MatrixXd _pm_localized_orbitals;
+  Eigen::MatrixXd pm_localized_orbitals_;
 
   QMMolecule atoms_;
-
 
   double qm_energy_ = 0;
 
