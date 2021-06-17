@@ -153,7 +153,6 @@ bool XtpApplication::EvaluateOptions() {
             entries[1];
       }
     }
-    std::cout << options_ << std::endl;
   }
 
   return true;
