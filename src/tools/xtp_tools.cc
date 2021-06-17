@@ -59,31 +59,11 @@ class XtpTools final : public xtp::XtpApplication {
 void XtpTools::CreateCalculator(const std::string& name) {
   tool_ = xtp::QMTools().Create(name);
 }
-void XtpTools::AddCommandLineOptions() {
-  namespace propt = boost::program_options;
-  AddProgramOptions()("name,n", propt::value<std::string>(),
-                      "Name of the job to run");
-}
+void XtpTools::AddCommandLineOptions() {}
 
-void XtpTools::EvaluateSpecificOptions() {
-  CheckRequired(
-      "name", "Please provide the job name to run (same as the xyz file name)");
-}
+void XtpTools::EvaluateSpecificOptions() {}
 
 void XtpTools::execute() {
-
-  if (OptionsMap().find("options") != OptionsMap().cend()) {
-    std::string optionsFile = OptionsMap()["options"].as<std::string>();
-    options_.LoadFromXML(optionsFile);
-  } else {
-    // Empty user options
-    tools::Property& opts = options_.add("options", "");
-    opts.add(tool_->Identify(), "");
-  }
-
-  std::string job_name = OptionsMap()["name"].as<std::string>();
-  tools::Property& opts = options_.get("options." + tool_->Identify());
-  opts.add("job_name", job_name);
 
   Index nThreads = OptionsMap()["nthreads"].as<Index>();
 
