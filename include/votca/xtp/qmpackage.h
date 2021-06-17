@@ -113,7 +113,7 @@ class QMPackage {
   tools::Property ParseCommonOptions(const tools::Property& options);
   std::string FindDefaultsFile() const;
 
-  virtual bool RunDFT()=0;
+  virtual bool RunDFT() = 0;
   virtual void WriteChargeOption() = 0;
   std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
   void ReorderOutput(Orbitals& orbitals) const;

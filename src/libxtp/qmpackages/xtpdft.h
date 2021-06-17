@@ -40,7 +40,7 @@ namespace xtp {
 
  */
 
-class XTPDFT final: public QMPackage {
+class XTPDFT final : public QMPackage {
  public:
   std::string getPackageName() const final { return "xtp"; }
 

@@ -67,8 +67,8 @@ bool QMPackage::Run() {
 
   bool error_value = RunDFT();
 
-      std::chrono::duration<double>
-          elapsed_time = std::chrono::system_clock::now() - start;
+  std::chrono::duration<double> elapsed_time =
+      std::chrono::system_clock::now() - start;
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " DFT calculation took "
                               << elapsed_time.count() << " seconds." << flush;
   return error_value;
