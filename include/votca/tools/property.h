@@ -79,6 +79,19 @@ class Property {
   void add(const Property &other);
 
   /**
+   * \brief add a new property tree to structure
+   * @param key identifier
+   * @param value value
+   * @return reference to the created Property object
+   * This function adds a property specified by key separated
+   * by "." to step down hierarchy. If the intermediate properties are not
+   * found they are also created.
+   */
+  Property &addTree(const std::string &key, const std::string &value);
+  Property &addTree(const std::vector<std::string> &key,
+                    const std::string &value);
+
+  /**
    * \brief set value of existing property
    * @param key identifier
    * @param value value

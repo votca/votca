@@ -31,6 +31,7 @@
 #include <boost/format.hpp>
 #include <expat.h>
 #include <unistd.h>
+#include <vector>
 
 // Local VOTCA includes
 #include "votca/tools/colors.h"
@@ -83,6 +84,25 @@ Property &Property::set(const std::string &key, const std::string &value) {
   Property &p = get(key);
   p.value() = value;
   return p;
+}
+
+Property &Property::addTree(const std::string &key, const std::string &value) {
+  return addTree(Tokenizer(key, ".").ToVector(), value);
+}
+
+Property &Property::addTree(const std::vector<std::string> &key,
+                            const std::string &value) {
+
+  if (key.size() == 1) {
+    return add(key[0], value);
+  } else {
+    std::vector<std::string> subkey(key.begin() + 1, key.end());
+    if (this->exists(key[0])) {
+      return this->get(key[0]).addTree(subkey, value);
+    } else {
+      return this->add(key[0], "").addTree(subkey, value);
+    }
+  }
 }
 
 Property &Property::add(const std::string &key, const std::string &value) {
@@ -141,7 +161,7 @@ Property &Property::getOradd(const std::string &key) {
   if (exists(key)) {
     return get(key);
   } else {
-    return add(key, "");
+    return addTree(key, "");
   }
 }
 
