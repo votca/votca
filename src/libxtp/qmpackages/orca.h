@@ -35,7 +35,7 @@ namespace xtp {
 
 */
 class Orbitals;
-class Orca final: public QMPackage {
+class Orca final : public QMPackage {
  public:
   std::string getPackageName() const override { return "orca"; }
 
