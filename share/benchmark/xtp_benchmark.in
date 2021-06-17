@@ -225,7 +225,7 @@ if OPTIONS.run:
                 S = ReadEnergyFromHDF5("system.orb")
                 print(" S1 = {:3.6f}[Hrt]".format(S[0]))
                 molinfo["Status"] = "Success"
-                for level in range(S.shape()[0]):
+                for level in range(S.shape[0]):
                     molinfo[f"S{level+1}[Hrt]"] = S[level]
                 
                 molinfo.update(ReadIndividualTimingsFromLog("dftgwbse.log"))
