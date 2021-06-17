@@ -202,11 +202,6 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
   i->_step = p->get("step").as<double>();
   i->_min = p->get("min").as<double>();
   i->_max = p->get("max").as<double>();
-  if (_only_intramolecular && (!i->_is_bonded)) {
-    i->_max = p->get("max_intra").as<double>();
-  } else {
-    i->_max = p->get("max").as<double>();
-  }
 
   i->_norm = 1.0;
   i->_p = p;
@@ -395,10 +390,12 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       {
         // generate the neighbour list
         std::unique_ptr<NBList> nb;
-        if (gridsearch) {
+        if (_imc->_only_intramolecular) {
+            nb = std::unique_ptr<NBList>(new NBListIntra());
+        } else if (gridsearch) {
           nb = std::unique_ptr<NBList>(new NBListGrid());
         } else {
-          nb = std::unique_ptr<NBList>(new NBListGrid());
+          nb = std::unique_ptr<NBList>(new NBList());
         }
 
         nb->setCutoff(i._max + i._step);
@@ -409,9 +406,9 @@ void Imc::Worker::DoNonbonded(Topology *top) {
 
         // is it same types or different types?
         if (prop->get("type1").value() == prop->get("type2").value()) {
-          nb->Generate(beads1, true, _imc->_only_intramolecular);
+          nb->Generate(beads1);
         } else {
-          nb->Generate(beads1, beads2, true, _imc->_only_intramolecular);
+          nb->Generate(beads1, beads2);
         }
       }
 
