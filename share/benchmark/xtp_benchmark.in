@@ -23,6 +23,7 @@ import argparse
 import h5py
 import shutil
 import json
+import math
 import subprocess
 import fnmatch
 
@@ -131,9 +132,10 @@ progargs.add_argument('-o', '--output_folder',
                       help='Folder to write benchmark to')
 
 progargs.add_argument('-a', '--analyze',
-                      required=False,
-                      type=str,
-                      help='Process results from folder')
+                      action='store_const',
+                      const=1,
+                      default=0,
+                      help='Graphically analyse results from outputfolder')
 
 progargs.add_argument('--reference',
                       required=False,
@@ -217,10 +219,6 @@ if OPTIONS.run:
                 molinfo["S1[Hrt]"] = S[0]
                 molinfo.update(ReadIndividualTimingsFromLog("dftgwbse.log"))
 
-        if referencedata and referencedata[mol]["Status"] == "Success":
-            print(" S1_ref = {:3.6f}[Hrt]".format(
-                referencedata[mol]["S1[Hrt]"]))
-
         moldata[mol] = molinfo
 
     print(30*"-")
@@ -233,6 +231,60 @@ if OPTIONS.run:
     print("{:1.2f}% of runs completed successfully".format(
         float(goodruns)/float(len(moldata))*100.0))
 
-    print("Writing benchmark data to 'result.json'")
-    with open(OPTIONS.output_folder+'/result.json', 'w') as fp:
+    resultsfile=OPTIONS.output_folder+'/result.json'
+    if(os.path.isfile(resultsfile)):
+        with open(resultsfile, "r") as f:
+            oldresults=json.load(f)
+        oldresults.update(moldata)
+        moldata=oldresults
+        print(f"Updating benchmark data in '{resultsfile}'")
+    else:
+        print(f"Writing benchmark data to '{resultsfile}'")
+    with open(resultsfile, 'w') as fp:
         json.dump(moldata, fp, sort_keys=True, indent=4)
+
+
+if OPTIONS.analyze:
+    resultsfile=OPTIONS.output_folder+'/result.json'
+    reference=None
+    with open(resultsfile, "r") as f:
+            result=json.load(f)
+    
+    if OPTIONS.reference:
+        with open(OPTIONS.reference, "r") as f:
+            reference=json.load(f)
+
+    
+    def print_timing(molname,keyword):
+        new_value=float(result[molname][keyword])
+        if reference==None:
+            print(f"{keyword}:{new_value:.2f}")
+        else:
+            new_value=float(result[molname][keyword])
+            ref_value=float(reference[molname][keyword])
+            change=(new_value-ref_value)/ref_value
+            print(f"{keyword}: {new_value:.2f}\tref: {ref_value:.2f}\t change:{change*100:.2f}%")
+
+    def print_energy(molname):
+        new_value=float(result[molname]["S1[Hrt]"])
+        if reference==None:
+            print(f"S1[Hrt]: {new_value:.2f}")
+        else:
+            new_value=float(result[molname]["S1[Hrt]"])
+            ref_value=float(reference[molname]["S1[Hrt]"])
+            check="yes"
+            if not math.isclose(new_value,ref_value,rel_tol=1e-4, abs_tol=1e-4):
+                check="WARNING result not close"
+            print(f"S1[Hrt]: {new_value:.5f}\tref: {ref_value:.5f}\tclose: {check}")
+    
+    for molname,data in result.items():
+        print(molname," Timings in [s]")
+        if data["Status"]=="Success":
+            print_energy(molname)
+            print_timing(molname,"DFT")
+            print_timing(molname,"GW")
+            print_timing(molname,"BSE")
+            print_timing(molname,"duration[s]")
+        else:
+            print("not successful")
+        print(30*"-")
