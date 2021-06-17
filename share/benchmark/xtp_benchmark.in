@@ -15,17 +15,17 @@
 # limitations under the License.
 #
 
-import sys
-import os
-import time
-import numpy as np
 import argparse
-import h5py
-import shutil
+import fnmatch
 import json
 import math
+import os
+import shutil
 import subprocess
-import fnmatch
+import sys
+import time
+
+import h5py
 
 VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
 PROGTITLE = 'THE VOTCA::XTP Benchmark'
@@ -50,23 +50,25 @@ def xxquit(what=''):
 
 
 def ReadEnergyFromHDF5(filename):
-    orb = h5py.File(filename, 'r')
-    a = orb['QMdata']['BSE_singlet']['eigenvalues'][()]
-    return a.flatten()
+    with h5py.File(filename, 'r') as orb:
+        arr = orb['QMdata']['BSE_singlet']['eigenvalues'][()]
+    return arr.flatten()
+
 
 def ReadIndividualTimingsFromLog(logfile):
 
-    steps= ["DFT","GW","BSE"]
-    result={}
-    with open(logfile,'r') as f:
+    steps = ["DFT", "GW", "BSE"]
+    result = {}
+    with open(logfile, 'r') as f:
         for line in f:
             for step in steps:
                 if f"{step} calculation took " in line:
                     if step in result:
                         xxquit(what=f'Logfile {logfile} is corrupted')
                     else:
-                        result[step]=float(line.split()[-2])
+                        result[step] = float(line.split()[-2])
     return result
+
 
 def HasGPUs():
     helpstring = subprocess.check_output(['xtp_tools', '-h'])
@@ -102,10 +104,13 @@ progargs = argparse.ArgumentParser(prog='xtp_benchmark',
                                    description=PROGDESCR)
 
 progargs.add_argument('-t', '--threads',
-                      required=False,
                       type=int,
                       default=1,
                       help='Number of OPENMP threads')
+
+progargs.add_argument('-c', '--cmdoptions', nargs="+",
+                      default="gwbse_engine.gwbse_options.gwbse.mode=G0W0",
+                      help="Modify options for dftgwbse via command line by e.g. '-c xmltag.subtag=value'. Use whitespace to separate multiple options")
 
 progargs.add_argument('-r', '--run',
                       action='store_const',
@@ -120,14 +125,10 @@ progargs.add_argument('-s', '--setup',
                       help='Setup Benchmark')
 
 progargs.add_argument('-i', '--input_folder',
-                      required=False,
-                      type=str,
                       default="Geometries/Geometries_ThielSet",
                       help='Folder to take geometries from')
 
 progargs.add_argument('-o', '--output_folder',
-                      required=False,
-                      type=str,
                       default="RUN",
                       help='Folder to write benchmark to')
 
@@ -138,8 +139,6 @@ progargs.add_argument('-a', '--analyze',
                       help='Graphically analyse results from outputfolder')
 
 progargs.add_argument('--reference',
-                      required=False,
-                      type=str,
                       help='In combination with analyze options compare to a reference')
 
 HasGPUs = HasGPUs()
@@ -168,20 +167,32 @@ if OPTIONS.setup:
         for name in files:
             if fnmatch.fnmatch(name, pattern):
                 input_molecules.append([path, name])
-    
-   
+
     for mol in input_molecules:
-        newpath=os.path.join(OPTIONS.output_folder,os.path.splitext(mol[1])[0])
+        newpath = os.path.join(OPTIONS.output_folder,
+                               os.path.splitext(mol[1])[0])
         os.mkdir(newpath)
-        shutil.copyfile(os.path.join(mol[0],mol[1]),os.path.join(newpath,"system.xyz"))
-    
-    print("Created folders for:\n{}".format("\n".join(m[1] for m in input_molecules)))
+        shutil.copyfile(os.path.join(
+            mol[0], mol[1]), os.path.join(newpath, "system.xyz"))
+
+    print("Created folders for:\n{}".format(
+        "\n".join(m[1] for m in input_molecules)))
 
 if OPTIONS.run:
 
     print("\nStarting benchmark with {} threads".format(OPTIONS.threads))
     if HasGPUs:
         print(" and {} GPUs".format(OPTIONS.gpus))
+
+    cmd_options = ""
+    if OPTIONS.cmdoptions:
+        if isinstance(OPTIONS.cmdoptions, str):
+            temp = [OPTIONS.cmdoptions]
+        else:
+            temp = [OPTIONS.cmdoptions]
+        cmd_options = '-c {}'.format(" ".join(temp))
+    if cmd_options:
+        print(f"With options: '{cmd_options}'")
     print(30*"-")
 
     moldata = {}
@@ -194,15 +205,15 @@ if OPTIONS.run:
 
     for mol in os.listdir(OPTIONS.output_folder):
         print("Running {}".format(mol).ljust(30), end="\r")
-        with cd(os.path.join(OPTIONS.output_folder,mol)):
+        with cd(os.path.join(OPTIONS.output_folder, mol)):
 
             start = time.time()
             if(HasGPUs):
-                cmd = 'xtp_tools -e dftgwbse -n system -t {} -g {} > dftgwbse.log'.format(
-                OPTIONS.threads,OPTIONS.gpus)
+                cmd = 'xtp_tools -e dftgwbse -n system -t {} -g {} {}> dftgwbse.log'.format(
+                    OPTIONS.threads, OPTIONS.gpus, cmd_options)
             else:
-                cmd = 'xtp_tools -e dftgwbse -n system -t {} > dftgwbse.log'.format(
-                OPTIONS.threads)
+                cmd = 'xtp_tools -e dftgwbse -n system -t {} {}> dftgwbse.log'.format(
+                    OPTIONS.threads, cmd_options)
             os.system(cmd)
             dt = time.time() - start
             molinfo = {}
@@ -231,12 +242,12 @@ if OPTIONS.run:
     print("{:1.2f}% of runs completed successfully".format(
         float(goodruns)/float(len(moldata))*100.0))
 
-    resultsfile=OPTIONS.output_folder+'/result.json'
+    resultsfile = OPTIONS.output_folder+'/result.json'
     if(os.path.isfile(resultsfile)):
         with open(resultsfile, "r") as f:
-            oldresults=json.load(f)
+            oldresults = json.load(f)
         oldresults.update(moldata)
-        moldata=oldresults
+        moldata = oldresults
         print(f"Updating benchmark data in '{resultsfile}'")
     else:
         print(f"Writing benchmark data to '{resultsfile}'")
@@ -245,46 +256,47 @@ if OPTIONS.run:
 
 
 if OPTIONS.analyze:
-    resultsfile=OPTIONS.output_folder+'/result.json'
-    reference=None
+    resultsfile = OPTIONS.output_folder+'/result.json'
+    reference = None
     with open(resultsfile, "r") as f:
-            result=json.load(f)
-    
+        result = json.load(f)
+
     if OPTIONS.reference:
         with open(OPTIONS.reference, "r") as f:
-            reference=json.load(f)
+            reference = json.load(f)
 
-    
-    def print_timing(molname,keyword):
-        new_value=float(result[molname][keyword])
-        if reference==None:
+    def print_timing(molname, keyword):
+        new_value = float(result[molname][keyword])
+        if reference is None:
             print(f"{keyword}:{new_value:.2f}")
         else:
-            new_value=float(result[molname][keyword])
-            ref_value=float(reference[molname][keyword])
-            change=(new_value-ref_value)/ref_value
-            print(f"{keyword}: {new_value:.2f}\tref: {ref_value:.2f}\t change:{change*100:.2f}%")
+            new_value = float(result[molname][keyword])
+            ref_value = float(reference[molname][keyword])
+            change = (new_value-ref_value)/ref_value
+            print(
+                f"{keyword}: {new_value:.2f}\tref: {ref_value:.2f}\t change:{change*100:.2f}%")
 
     def print_energy(molname):
-        new_value=float(result[molname]["S1[Hrt]"])
-        if reference==None:
+        new_value = float(result[molname]["S1[Hrt]"])
+        if reference == None:
             print(f"S1[Hrt]: {new_value:.2f}")
         else:
-            new_value=float(result[molname]["S1[Hrt]"])
-            ref_value=float(reference[molname]["S1[Hrt]"])
-            check="yes"
-            if not math.isclose(new_value,ref_value,rel_tol=1e-4, abs_tol=1e-4):
-                check="WARNING result not close"
-            print(f"S1[Hrt]: {new_value:.5f}\tref: {ref_value:.5f}\tclose: {check}")
-    
-    for molname,data in result.items():
-        print(molname," Timings in [s]")
-        if data["Status"]=="Success":
+            new_value = float(result[molname]["S1[Hrt]"])
+            ref_value = float(reference[molname]["S1[Hrt]"])
+            check = "yes"
+            if not math.isclose(new_value, ref_value, rel_tol=1e-4, abs_tol=1e-4):
+                check = "WARNING result not close"
+            print(
+                f"S1[Hrt]: {new_value:.5f}\tref: {ref_value:.5f}\tclose: {check}")
+
+    for molname, data in result.items():
+        print(molname, " Timings in [s]")
+        if data["Status"] == "Success":
             print_energy(molname)
-            print_timing(molname,"DFT")
-            print_timing(molname,"GW")
-            print_timing(molname,"BSE")
-            print_timing(molname,"duration[s]")
+            print_timing(molname, "DFT")
+            print_timing(molname, "GW")
+            print_timing(molname, "BSE")
+            print_timing(molname, "duration[s]")
         else:
             print("not successful")
         print(30*"-")
