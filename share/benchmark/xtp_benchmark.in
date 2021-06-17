@@ -226,6 +226,10 @@ if OPTIONS.run:
                 print(" S1 = {:3.6f}[Hrt]".format(S[0]))
                 molinfo["Status"] = "Success"
                 molinfo["S1[Hrt]"] = S[0]
+                molinfo["S2[Hrt]"] = S[1]
+                molinfo["S3[Hrt]"] = S[2]
+                molinfo["S4[Hrt]"] = S[3]
+                molinfo["S5[Hrt]"] = S[4]
                 molinfo.update(ReadIndividualTimingsFromLog("dftgwbse.log"))
 
         moldata[mol] = molinfo
@@ -275,17 +279,18 @@ if OPTIONS.analyze:
                 f"{keyword}: {new_value:.2f}\tref: {ref_value:.2f}\t change:{change*100:.2f}%")
 
     def print_energy(molname):
-        new_value = float(result[molname]["S1[Hrt]"])
-        if reference == None:
-            print(f"S1[Hrt]: {new_value:.2f}")
-        else:
-            new_value = float(result[molname]["S1[Hrt]"])
-            ref_value = float(reference[molname]["S1[Hrt]"])
-            check = "yes"
-            if not math.isclose(new_value, ref_value, rel_tol=1e-4, abs_tol=1e-4):
-                check = "WARNING result not close"
-            print(
-                f"S1[Hrt]: {new_value:.5f}\tref: {ref_value:.5f}\tclose: {check}")
+        for level in range(1,6):
+            new_value = float(result[molname][f"S{level}[Hrt]"])
+            if reference == None:
+                print(f"S{level}[Hrt]: {new_value:.2f}")
+            else:
+                new_value = float(result[molname][f"S{level}[Hrt]"])
+                ref_value = float(reference[molname][f"S{level}[Hrt]"])
+                check = "yes"
+                if not math.isclose(new_value, ref_value, rel_tol=1e-4, abs_tol=1e-4):
+                    check = "WARNING result not close"
+                print(
+                    f"S{level}[Hrt]: {new_value:.5f}\tref: {ref_value:.5f}\tclose: {check}")
 
     for molname, data in result.items():
         print(molname, " Timings in [s]")
