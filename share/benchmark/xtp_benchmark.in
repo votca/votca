@@ -184,15 +184,13 @@ if OPTIONS.run:
     if HasGPUs:
         print(" and {} GPUs".format(OPTIONS.gpus))
 
-    cmd_options = ""
+    cmd_options = "job_name=system "
     if OPTIONS.cmdoptions:
         if isinstance(OPTIONS.cmdoptions, str):
-            temp = [OPTIONS.cmdoptions]
+            cmd_options += OPTIONS.cmdoptions
         else:
-            temp = [OPTIONS.cmdoptions]
-        cmd_options = '-c {}'.format(" ".join(temp))
-    if cmd_options:
-        print(f"With options: '{cmd_options}'")
+            cmd_options += " ".join(OPTIONS.cmdoptions)
+    print(f"With options: '{cmd_options}'")
     print(30*"-")
 
     moldata = {}
@@ -209,10 +207,10 @@ if OPTIONS.run:
 
             start = time.time()
             if(HasGPUs):
-                cmd = 'xtp_tools -e dftgwbse -n system -t {} -g {} {}> dftgwbse.log'.format(
+                cmd = 'xtp_tools -e dftgwbse -t {} -g {} -c {} > dftgwbse.log'.format(
                     OPTIONS.threads, OPTIONS.gpus, cmd_options)
             else:
-                cmd = 'xtp_tools -e dftgwbse -n system -t {} {}> dftgwbse.log'.format(
+                cmd = 'xtp_tools -e dftgwbse -t {} -c {} > dftgwbse.log'.format(
                     OPTIONS.threads, cmd_options)
             os.system(cmd)
             dt = time.time() - start
