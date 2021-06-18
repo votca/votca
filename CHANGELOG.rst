@@ -39,6 +39,7 @@ Version 2022-dev
 -  reworked iqm statefile reading (#712)
 -  made membervariable format consistent (#713)
 -  updated benchmark (#714)
+-  reworked commandline options (#715)
 
 Version 2021.1 (released XX.03.21)
 ==================================
