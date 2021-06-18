@@ -20,6 +20,7 @@ Version 2022-dev
 -  improve mkl linkage and threading backend selection (#371)
 -  removed tex option (#372)
 -  made membervariable format consistent (#373)
+-  added AddTree to property (#374)
 
 Version 2021.1 (released XX.03.21)
 ==================================
