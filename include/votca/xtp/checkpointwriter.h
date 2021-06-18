@@ -46,7 +46,7 @@ class CheckpointWriter {
   CheckpointWriter(const CptLoc& loc) : CheckpointWriter(loc, "/"){};
 
   CheckpointWriter(const CptLoc& loc, const std::string& path)
-      : _loc(loc), _path(path){};
+      : loc_(loc), path_(path){};
 
   // see the following links for details
   // https://stackoverflow.com/a/8671617/1186564
@@ -54,11 +54,11 @@ class CheckpointWriter {
   typename std::enable_if<!std::is_fundamental<T>::value>::type operator()(
       const T& data, const std::string& name) const {
     try {
-      WriteData(_loc, data, name);
+      WriteData(loc_, data, name);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not write " << name << " to " << _loc.getFileName()
-              << ":" << _path;
+      message << "Could not write " << name << " to " << loc_.getFileName()
+              << ":" << path_;
 
       throw std::runtime_error(message.str());
     }
@@ -71,11 +71,11 @@ class CheckpointWriter {
                           !std::is_same<T, bool>::value>::type
       operator()(const T& v, const std::string& name) const {
     try {
-      WriteScalar(_loc, v, name);
+      WriteScalar(loc_, v, name);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not write " << name << " to " << _loc.getFileName()
-              << ":" << _path << std::endl;
+      message << "Could not write " << name << " to " << loc_.getFileName()
+              << ":" << path_ << std::endl;
 
       throw std::runtime_error(message.str());
     }
@@ -84,11 +84,11 @@ class CheckpointWriter {
   void operator()(const bool& v, const std::string& name) const {
     Index temp = static_cast<Index>(v);
     try {
-      WriteScalar(_loc, temp, name);
+      WriteScalar(loc_, temp, name);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not write " << name << " to " << _loc.getFileName()
-              << ":" << _path << std::endl;
+      message << "Could not write " << name << " to " << loc_.getFileName()
+              << ":" << path_ << std::endl;
 
       throw std::runtime_error(message.str());
     }
@@ -96,11 +96,11 @@ class CheckpointWriter {
 
   void operator()(const std::string& v, const std::string& name) const {
     try {
-      WriteScalar(_loc, v, name);
+      WriteScalar(loc_, v, name);
     } catch (H5::Exception&) {
       std::stringstream message;
-      message << "Could not write " << name << " to " << _loc.getFileName()
-              << ":" << _path << std::endl;
+      message << "Could not write " << name << " to " << loc_.getFileName()
+              << ":" << path_ << std::endl;
 
       throw std::runtime_error(message.str());
     }
@@ -108,16 +108,16 @@ class CheckpointWriter {
 
   CheckpointWriter openChild(const std::string& childName) const {
     try {
-      return CheckpointWriter(_loc.openGroup(childName),
-                              _path + "/" + childName);
+      return CheckpointWriter(loc_.openGroup(childName),
+                              path_ + "/" + childName);
     } catch (H5::Exception&) {
       try {
-        return CheckpointWriter(_loc.createGroup(childName),
-                                _path + "/" + childName);
+        return CheckpointWriter(loc_.createGroup(childName),
+                                path_ + "/" + childName);
       } catch (H5::Exception&) {
         std::stringstream message;
-        message << "Could not open or create" << _loc.getFileName() << ":/"
-                << _path << "/" << childName << std::endl;
+        message << "Could not open or create" << loc_.getFileName() << ":/"
+                << path_ << "/" << childName << std::endl;
 
         throw std::runtime_error(message.str());
       }
@@ -125,21 +125,21 @@ class CheckpointWriter {
   }
 
   template <typename T>
-  CptTable openTable(const std::string& name, const T& obj, std::size_t nRows,
+  CptTable openTable(const std::string& name, std::size_t nRows,
                      bool compact = false) {
     CptTable table;
     try {
-      table = CptTable(name, sizeof(typename T::data), _loc);
-      obj.SetupCptTable(table);
+      table = CptTable(name, sizeof(typename T::data), loc_);
+      T::SetupCptTable(table);
     } catch (H5::Exception&) {
       try {
         table = CptTable(name, sizeof(typename T::data), nRows);
-        obj.SetupCptTable(table);
-        table.initialize(_loc, compact);
+        T::SetupCptTable(table);
+        table.initialize(loc_, compact);
       } catch (H5::Exception&) {
         std::stringstream message;
         message << "Could not open table " << name << " in "
-                << _loc.getFileName() << ":" << _path << std::endl;
+                << loc_.getFileName() << ":" << path_ << std::endl;
         throw std::runtime_error(message.str());
       }
     }
@@ -148,8 +148,8 @@ class CheckpointWriter {
   }
 
  private:
-  const CptLoc _loc;
-  const std::string _path;
+  const CptLoc loc_;
+  const std::string path_;
   template <typename T>
   void WriteScalar(const CptLoc& loc, const T& value,
                    const std::string& name) const {

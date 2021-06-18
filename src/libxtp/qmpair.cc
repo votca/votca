@@ -29,97 +29,88 @@ namespace xtp {
 
 QMPair::QMPair(Index id, const Segment* seg1, const Segment* seg2,
                const Eigen::Vector3d& delta_R)
-    : _id(id), _R(delta_R) {
-  _segments.first = seg1;
-  _segments.second = seg2;
+    : id_(id), R_(delta_R) {
+  segments_.first = seg1;
+  segments_.second = seg2;
 }
 
 Segment QMPair::Seg2PbCopy() const {
-  const Eigen::Vector3d& r1 = _segments.first->getPos();
-  const Eigen::Vector3d& r2 = _segments.second->getPos();
-  Segment seg2pbc = Segment(*(_segments.second));
+  const Eigen::Vector3d& r1 = segments_.first->getPos();
+  const Eigen::Vector3d& r2 = segments_.second->getPos();
+  Segment seg2pbc = Segment(*(segments_.second));
   // Check whether pair formed across periodic boundary
-  if ((r2 - r1 - _R).norm() > 1e-8) {
-    seg2pbc.Translate(r1 - r2 + _R);
+  if ((r2 - r1 - R_).norm() > 1e-8) {
+    seg2pbc.Translate(r1 - r2 + R_);
   }
 
   return seg2pbc;
 }
 
-void QMPair::SetupCptTable(CptTable& table) const {
-  table.addCol(_id, "index", HOFFSET(data, id));
-  table.addCol(_segments.first->getId(), "Seg1Id", HOFFSET(data, Seg1Id));
-  table.addCol(_segments.second->getId(), "Seg2Id", HOFFSET(data, Seg2Id));
+void QMPair::SetupCptTable(CptTable& table) {
+  table.addCol<Index>("index", HOFFSET(data, id));
+  table.addCol<Index>("Seg1Id", HOFFSET(data, Seg1Id));
+  table.addCol<Index>("Seg2Id", HOFFSET(data, Seg2Id));
 
-  table.addCol(_R[0], "delta_Rx", HOFFSET(data, RX));
-  table.addCol(_R[1], "delta_Ry", HOFFSET(data, RY));
-  table.addCol(_R[2], "delta_Rz", HOFFSET(data, RZ));
-  std::string ptype = get_name(_pair_type);
-  table.addCol(ptype, "pair_type", HOFFSET(data, pair_type));
+  table.addCol<double>("delta_Rx", HOFFSET(data, RX));
+  table.addCol<double>("delta_Ry", HOFFSET(data, RY));
+  table.addCol<double>("delta_Rz", HOFFSET(data, RZ));
+  table.addCol<std::string>("pair_type", HOFFSET(data, pair_type));
 
-  table.addCol(_lambda0.getValue(QMStateType::Electron), "lambda0e",
-               HOFFSET(data, lambda0e));
-  table.addCol(_lambda0.getValue(QMStateType::Hole), "lambda0h",
-               HOFFSET(data, lambda0h));
-  table.addCol(_lambda0.getValue(QMStateType::Singlet), "lambda0s",
-               HOFFSET(data, lambda0s));
-  table.addCol(_lambda0.getValue(QMStateType::Triplet), "lambda0t",
-               HOFFSET(data, lambda0t));
+  table.addCol<double>("lambda0e", HOFFSET(data, lambda0e));
+  table.addCol<double>("lambda0h", HOFFSET(data, lambda0h));
+  table.addCol<double>("lambda0s", HOFFSET(data, lambda0s));
+  table.addCol<double>("lambda0t", HOFFSET(data, lambda0t));
 
-  table.addCol(_Jeff2.getValue(QMStateType::Electron), "jeff2e",
-               HOFFSET(data, jeff2e));
-  table.addCol(_Jeff2.getValue(QMStateType::Hole), "jeff2h",
-               HOFFSET(data, jeff2h));
-  table.addCol(_Jeff2.getValue(QMStateType::Singlet), "jeff2s",
-               HOFFSET(data, jeff2s));
-  table.addCol(_Jeff2.getValue(QMStateType::Triplet), "jeff2t",
-               HOFFSET(data, jeff2t));
+  table.addCol<double>("jeff2e", HOFFSET(data, jeff2e));
+  table.addCol<double>("jeff2h", HOFFSET(data, jeff2h));
+  table.addCol<double>("jeff2s", HOFFSET(data, jeff2s));
+  table.addCol<double>("jeff2t", HOFFSET(data, jeff2t));
 }
 
 void QMPair::WriteData(data& d) const {
-  d.id = _id;
-  d.Seg1Id = _segments.first->getId();
-  d.Seg2Id = _segments.second->getId();
-  d.RX = _R[0];
-  d.RY = _R[1];
-  d.RZ = _R[2];
-  std::string ptype = get_name(_pair_type);
+  d.id = id_;
+  d.Seg1Id = segments_.first->getId();
+  d.Seg2Id = segments_.second->getId();
+  d.RX = R_[0];
+  d.RY = R_[1];
+  d.RZ = R_[2];
+  std::string ptype = get_name(pair_type_);
   d.pair_type = new char[ptype.length() + 1];
   strcpy(d.pair_type, ptype.c_str());
 
-  d.lambda0e = _lambda0.getValue(QMStateType::Electron);
-  d.lambda0h = _lambda0.getValue(QMStateType::Hole);
-  d.lambda0s = _lambda0.getValue(QMStateType::Singlet);
-  d.lambda0t = _lambda0.getValue(QMStateType::Triplet);
+  d.lambda0e = lambda0_.getValue(QMStateType::Electron);
+  d.lambda0h = lambda0_.getValue(QMStateType::Hole);
+  d.lambda0s = lambda0_.getValue(QMStateType::Singlet);
+  d.lambda0t = lambda0_.getValue(QMStateType::Triplet);
 
-  d.jeff2e = _Jeff2.getValue(QMStateType::Electron);
-  d.jeff2h = _Jeff2.getValue(QMStateType::Hole);
-  d.jeff2s = _Jeff2.getValue(QMStateType::Singlet);
-  d.jeff2t = _Jeff2.getValue(QMStateType::Triplet);
+  d.jeff2e = Jeff2_.getValue(QMStateType::Electron);
+  d.jeff2h = Jeff2_.getValue(QMStateType::Hole);
+  d.jeff2s = Jeff2_.getValue(QMStateType::Singlet);
+  d.jeff2t = Jeff2_.getValue(QMStateType::Triplet);
 }
 
 void QMPair::ReadData(const data& d, const std::vector<Segment>& segments) {
-  _id = d.id;
-  _R[0] = d.RX;
-  _R[1] = d.RY;
-  _R[2] = d.RZ;
+  id_ = d.id;
+  R_[0] = d.RX;
+  R_[1] = d.RY;
+  R_[2] = d.RZ;
 
   std::string type_enum = std::string(d.pair_type);
-  _pair_type = QMPair::get_Enum(type_enum);
+  pair_type_ = QMPair::get_Enum(type_enum);
   free(d.pair_type);
 
-  _lambda0.setValue(d.lambda0e, QMStateType::Electron);
-  _lambda0.setValue(d.lambda0h, QMStateType::Hole);
-  _lambda0.setValue(d.lambda0s, QMStateType::Singlet);
-  _lambda0.setValue(d.lambda0t, QMStateType::Triplet);
+  lambda0_.setValue(d.lambda0e, QMStateType::Electron);
+  lambda0_.setValue(d.lambda0h, QMStateType::Hole);
+  lambda0_.setValue(d.lambda0s, QMStateType::Singlet);
+  lambda0_.setValue(d.lambda0t, QMStateType::Triplet);
 
-  _Jeff2.setValue(d.jeff2e, QMStateType::Electron);
-  _Jeff2.setValue(d.jeff2h, QMStateType::Hole);
-  _Jeff2.setValue(d.jeff2s, QMStateType::Singlet);
-  _Jeff2.setValue(d.jeff2t, QMStateType::Triplet);
+  Jeff2_.setValue(d.jeff2e, QMStateType::Electron);
+  Jeff2_.setValue(d.jeff2h, QMStateType::Hole);
+  Jeff2_.setValue(d.jeff2s, QMStateType::Singlet);
+  Jeff2_.setValue(d.jeff2t, QMStateType::Triplet);
 
-  _segments.first = &segments[d.Seg1Id];
-  _segments.second = &segments[d.Seg2Id];
+  segments_.first = &segments[d.Seg1Id];
+  segments_.second = &segments[d.Seg2Id];
 }
 
 }  // namespace xtp

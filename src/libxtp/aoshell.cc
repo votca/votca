@@ -21,26 +21,26 @@
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/checkpointtable.h"
 
 namespace votca {
 namespace xtp {
 
 AOGaussianPrimitive::AOGaussianPrimitive(const GaussianPrimitive& gaussian)
-    : _decay(gaussian.decay()), _contraction(gaussian.contraction()) {
-  _powfactor = CalcPowFactor(_decay);
+    : decay_(gaussian.decay()), contraction_(gaussian.contraction()) {
+  powfactor_ = CalcPowFactor(decay_);
 }
 
-void AOGaussianPrimitive::SetupCptTable(CptTable& table) const {
-  Index d = 0;
-  double f = 0.0;
-  table.addCol(d, "atomidx", HOFFSET(data, atomid));
-  table.addCol(d, "L", HOFFSET(data, l));
-  table.addCol(d, "startidx", HOFFSET(data, startindex));
-  table.addCol(f, "decay", HOFFSET(data, decay));
-  table.addCol(f, "contr", HOFFSET(data, contraction));
-  table.addCol(f, "pos.x", HOFFSET(data, x));
-  table.addCol(f, "pos.y", HOFFSET(data, y));
-  table.addCol(f, "pos.z", HOFFSET(data, z));
+void AOGaussianPrimitive::SetupCptTable(CptTable& table) {
+  table.addCol<Index>("atomidx", HOFFSET(data, atomid));
+  table.addCol<Index>("L", HOFFSET(data, l));
+  table.addCol<Index>("startidx", HOFFSET(data, startindex));
+  table.addCol<double>("decay", HOFFSET(data, decay));
+  table.addCol<double>("contr", HOFFSET(data, contraction));
+  table.addCol<double>("pos.x", HOFFSET(data, x));
+  table.addCol<double>("pos.y", HOFFSET(data, y));
+  table.addCol<double>("pos.z", HOFFSET(data, z));
+  table.addCol<double>("scale", HOFFSET(data, scale));
 }
 
 void AOGaussianPrimitive::WriteData(data& d, const AOShell& s) const {
@@ -55,10 +55,10 @@ void AOGaussianPrimitive::WriteData(data& d, const AOShell& s) const {
 }
 
 AOShell::AOShell(const Shell& shell, const QMAtom& atom, Index startIndex)
-    : _l(shell.getL()),
-      _startIndex(startIndex),
-      _pos(atom.getPos()),
-      _atomindex(atom.getId()) {
+    : l_(shell.getL()),
+      startIndex_(startIndex),
+      pos_(atom.getPos()),
+      atomindex_(atom.getId()) {
   ;
 }
 
@@ -69,7 +69,7 @@ libint2::Shell AOShell::LibintShell() const {
   libint2::Shell::Contraction contr;
   contr.l = static_cast<int>(getL());
   contr.pure = true;
-  for (const auto& primitive : _gaussians) {
+  for (const auto& primitive : gaussians_) {
     decays.push_back(primitive.getDecay());
     contr.coeff.push_back(primitive.getContraction());
   }
@@ -82,8 +82,8 @@ void AOShell::normalizeContraction() {
   AOOverlap overlap;
   Eigen::MatrixXd block = overlap.singleShellOverlap(*this);
   double norm = std::sqrt(block(0, 0));
-  for (auto& gaussian : _gaussians) {
-    gaussian._contraction /= norm;
+  for (auto& gaussian : gaussians_) {
+    gaussian.contraction_ /= norm;
   }
   return;
 }
@@ -93,11 +93,11 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
                           const Eigen::Vector3d& grid_pos) const {
 
   // need position of shell
-  const Eigen::Vector3d center = (grid_pos - _pos);
+  const Eigen::Vector3d center = (grid_pos - pos_);
   const double distsq = center.squaredNorm();
 
   // iterate over Gaussians in this shell
-  for (const AOGaussianPrimitive& gaussian : _gaussians) {
+  for (const AOGaussianPrimitive& gaussian : gaussians_) {
 
     const double alpha = gaussian.getDecay();
     const double contraction = gaussian.getContraction();
@@ -106,7 +106,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
         gaussian.getPowfactor() * std::exp(-alpha * distsq);
     const Eigen::Vector3d second_term = -2.0 * alpha * center;
 
-    switch (_l) {
+    switch (l_) {
       case L::S: {
         double AOvalue = contraction * expofactor;
         AOvalues(0) += AOvalue;                        // s-function
@@ -294,7 +294,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
             4 * factor * coeff.matrix() + second_term * AOvalue;
       } break;
       default:
-        throw std::runtime_error("Shell type:" + EnumToString(_l) +
+        throw std::runtime_error("Shell type:" + EnumToString(l_) +
                                  " not known");
         break;
     }

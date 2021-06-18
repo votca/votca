@@ -5,6 +5,8 @@
   <spin help="Molecular multiplicity" default="1" choices="int+"/>
   <basisset help="Basis set for MOs" default="def2-tzvp"/>
   <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp"/>
+  <use_external_field help="whether or not to use an external field in the dft calculation" default="false" choices="bool"/>
+  <externalfield help="Field in atomic units used if the use ext. field flag is true" default="0.0 0.0 0.0"/>
   <use_ecp help="use an Effective Core Potentials for DFT Calculations" default="false" choices="bool"/>
   <optimize help="Perform a molecular geometry optimization" default="false" choices="bool"/>
   <functional default="XC_HYB_GGA_XC_PBEH"/>
@@ -19,7 +21,6 @@
     <method help="This is automatically fill with the functional and basis set"/>
   </orca>
   <xtpdft>
-    <use_external_field help="whether or not to use an external field" default="false" choices="bool"/>
     <use_external_density help="whether or not to use a precomputed external density" default="false" choices="bool"/>
     <screening_eps help="screening eps" default="1e-9" choices="float+">1e-9</screening_eps>
     <fock_matrix_reset help="After how many iterations the fock matrix should be rebuild completely" default="8" choices="int+"/>

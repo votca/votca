@@ -30,10 +30,10 @@ namespace xtp {
 class Chargecarrier {
  public:
   Chargecarrier(Index id)
-      : _id(id),
+      : id_(id),
         lifetime(0.0),
         steps(0),
-        _dr_travelled(Eigen::Vector3d::Zero()),
+        dr_travelled_(Eigen::Vector3d::Zero()),
         node(nullptr){};
   bool hasNode() { return (node != nullptr); }
   void updateLifetime(double dt) { lifetime += dt; }
@@ -42,7 +42,7 @@ class Chargecarrier {
   void resetCarrier() {
     lifetime = 0;
     steps = 0;
-    _dr_travelled = Eigen::Vector3d::Zero();
+    dr_travelled_ = Eigen::Vector3d::Zero();
   }
   double getLifetime() const { return lifetime; }
   Index getSteps() const { return steps; }
@@ -62,19 +62,19 @@ class Chargecarrier {
   void jumpAccordingEvent(const GLink& event) {
     ReleaseNode();
     settoNote(event.getDestination());
-    _dr_travelled += event.getDeltaR();
+    dr_travelled_ += event.getDeltaR();
   }
 
-  const Eigen::Vector3d& get_dRtravelled() const { return _dr_travelled; }
+  const Eigen::Vector3d& get_dRtravelled() const { return dr_travelled_; }
 
-  Index getId() const { return _id; }
-  void setId(Index id) { _id = id; }
+  Index getId() const { return id_; }
+  void setId(Index id) { id_ = id; }
 
  private:
-  Index _id;
+  Index id_;
   double lifetime;
   Index steps;
-  Eigen::Vector3d _dr_travelled;
+  Eigen::Vector3d dr_travelled_;
   GNode* node;
 };
 

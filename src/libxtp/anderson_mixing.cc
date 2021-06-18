@@ -27,36 +27,36 @@ namespace votca {
 namespace xtp {
 
 void Anderson::Configure(const Index order, const double alpha) {
-  _order = order + 1;
-  _alpha = alpha;
+  order_ = order + 1;
+  alpha_ = alpha;
 }
 
 void Anderson::UpdateOutput(const Eigen::VectorXd &newOutput) {
 
   // Check if max mixing history is reached and adding new step to history
-  Index size = _output.size();
-  if (size > _order - 1) {
-    _output.erase(_output.begin());
+  Index size = output_.size();
+  if (size > order_ - 1) {
+    output_.erase(output_.begin());
   }
-  _output.push_back(newOutput);
+  output_.push_back(newOutput);
 }
 
 void Anderson::UpdateInput(const Eigen::VectorXd &newInput) {
-  Index size = _output.size();
-  if (size > _order - 1) {
-    _input.erase(_input.begin());
+  Index size = output_.size();
+  if (size > order_ - 1) {
+    input_.erase(input_.begin());
   }
-  _input.push_back(newInput);
+  input_.push_back(newInput);
 }
 
 const Eigen::VectorXd Anderson::MixHistory() {
 
-  const Index iteration = _output.size();
+  const Index iteration = output_.size();
   const Index used_history = iteration - 1;
-  Eigen::VectorXd OutMixed = _output.back();
-  Eigen::VectorXd InMixed = _input.back();
+  Eigen::VectorXd OutMixed = output_.back();
+  Eigen::VectorXd InMixed = input_.back();
 
-  if (iteration > 1 && _order > 1) {
+  if (iteration > 1 && order_ > 1) {
 
     Eigen::VectorXd DeltaN = OutMixed - InMixed;
 
@@ -66,14 +66,14 @@ const Eigen::VectorXd Anderson::MixHistory() {
 
     for (Index m = 1; m < iteration; m++) {
 
-      c(m - 1) = (DeltaN - _output[used_history - m] + _input[used_history - m])
+      c(m - 1) = (DeltaN - output_[used_history - m] + input_[used_history - m])
                      .dot(DeltaN);
 
       for (Index j = 1; j < iteration; j++) {
         A(m - 1, j - 1) =
-            (DeltaN - _output[used_history - m] + _input[used_history - m])
-                .dot((DeltaN - _output[used_history - j] +
-                      _input[used_history - j]));
+            (DeltaN - output_[used_history - m] + input_[used_history - m])
+                .dot((DeltaN - output_[used_history - j] +
+                      input_[used_history - j]));
       }
     }
     // Solving the System to obtain coefficients
@@ -83,14 +83,14 @@ const Eigen::VectorXd Anderson::MixHistory() {
     for (Index n = 1; n < iteration; n++) {
 
       OutMixed += coefficients(n - 1) *
-                  (_output[used_history - n] - _output[used_history]);
+                  (output_[used_history - n] - output_[used_history]);
       InMixed += coefficients(n - 1) *
-                 (_input[used_history - n] - _input[used_history]);
+                 (input_[used_history - n] - input_[used_history]);
     }
   }
 
   // Returning the linear Mix of Input and Output
-  return _alpha * OutMixed + (1 - _alpha) * InMixed;
+  return alpha_ * OutMixed + (1 - alpha_) * InMixed;
 }
 }  // namespace xtp
 }  // namespace votca

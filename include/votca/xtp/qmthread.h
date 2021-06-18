@@ -45,21 +45,21 @@ namespace xtp {
 class QMThread : public tools::Thread {
  public:
   QMThread() = default;
-  QMThread(bool maverick) : _maverick(maverick) { ; }
+  QMThread(bool maverick) : maverick_(maverick) { ; }
   ~QMThread() override = default;
 
-  Index getId() const { return _id; }
-  void setId(Index id) { _id = id; }
-  bool isMaverick() const { return _maverick; }
+  Index getId() const { return id_; }
+  void setId(Index id) { id_ = id; }
+  bool isMaverick() const { return maverick_; }
 
-  Logger& getLogger() { return _logger; }
+  Logger& getLogger() { return logger_; }
   void Run(void) override { ; }
 
  protected:
-  Index _id;
-  std::stringstream _ss;
-  bool _maverick = false;
-  Logger _logger;
+  Index id_;
+  std::stringstream ss_;
+  bool maverick_ = false;
+  Logger logger_;
 };
 
 }  // namespace xtp

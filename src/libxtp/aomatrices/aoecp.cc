@@ -43,9 +43,9 @@ std::ostream& operator<<(std::ostream& out,
 using MatrixLibInt =
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
-void AOECP::FillPotential(const AOBasis& aobasis, ECPAOBasis ecp) {
+void AOECP::FillPotential(const AOBasis& aobasis, const ECPAOBasis& ecp) {
 
-  _aopotential =
+  aopotential_ =
       Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
   std::vector<libecpint::GaussianShell> basis;
   std::vector<Index> cartesian_size;
@@ -93,10 +93,10 @@ void AOECP::FillPotential(const AOBasis& aobasis, ECPAOBasis ecp) {
       libint2::solidharmonics::tform<double>(basis[s1].l, basis[s2].l,
                                              cartesian_result.data(),
                                              spherical_result.data());
-      _aopotential.block(bf1, bf2, n1, n2) = spherical_result;
+      aopotential_.block(bf1, bf2, n1, n2) = spherical_result;
       if (s1 != s2) {  // if s1 >= s2, copy {s1,s2} to the corresponding
                        // {s2,s1} block, note the transpose!
-        _aopotential.block(bf2, bf1, n2, n1) = spherical_result.transpose();
+        aopotential_.block(bf2, bf1, n2, n1) = spherical_result.transpose();
       }
     }
   }

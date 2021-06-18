@@ -47,7 +47,7 @@ void IEXCITON::ParseSpecificOptions(const tools::Property& options) {
 
   if (options.get(".use_states").as<bool>()) {
     std::string parse_string = options.get(".states").as<std::string>();
-    _statemap = FillParseMaps(parse_string);
+    statemap_ = FillParseMaps(parse_string);
   }
 }
 
@@ -56,9 +56,8 @@ std::map<std::string, QMState> IEXCITON::FillParseMaps(
   Tokenizer split_options(Mapstring, ", \t\n");
   std::map<std::string, QMState> type2level;
   for (const std::string& substring : split_options) {
-    std::vector<std::string> segmentpnumber;
     Tokenizer tok(substring, ":");
-    tok.ToVector(segmentpnumber);
+    std::vector<std::string> segmentpnumber = tok.ToVector();
     if (segmentpnumber.size() != 2) {
       throw std::runtime_error("Parser iqm: Segment and exciton labels:" +
                                substring + "are not separated properly");
@@ -119,12 +118,12 @@ Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
                             << " [" << ID_A << ":" << ID_B << "]" << std::flush;
 
   StaticMapper map(pLog);
-  map.LoadMappingFile(_mapfile);
+  map.LoadMappingFile(mapfile_);
   StaticSegment seg1 = map.map(*(pair->Seg1()), mps_fileA);
   StaticSegment seg2 = map.map(pair->Seg2PbCopy(), mps_fileB);
   eeInteractor actor;
   double JAB = actor.CalcStaticEnergy(seg1, seg2);
-  _cutoff = 0;
+  cutoff_ = 0;
   Property job_summary;
   Property& job_output = job_summary.add("output", "");
   Property& pair_summary = job_output.add("pair", "");
@@ -146,12 +145,12 @@ Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
 QMState IEXCITON::GetElementFromMap(const std::string& elementname) const {
   QMState state;
   try {
-    state = _statemap.at(elementname);
+    state = statemap_.at(elementname);
   } catch (std::out_of_range&) {
     std::string errormessage =
         "Map does not have segment of type: " + elementname;
     errormessage += "\n segments in map are:";
-    for (const auto& s : _statemap) {
+    for (const auto& s : statemap_) {
       errormessage += "\n\t" + s.first;
     }
     throw std::runtime_error(errormessage);
@@ -161,11 +160,11 @@ QMState IEXCITON::GetElementFromMap(const std::string& elementname) const {
 
 void IEXCITON::WriteJobFile(const Topology& top) {
 
-  std::cout << "\n... ... Writing job file " << _jobfile << std::flush;
+  std::cout << "\n... ... Writing job file " << jobfile_ << std::flush;
   std::ofstream ofs;
-  ofs.open(_jobfile, std::ofstream::out);
+  ofs.open(jobfile_, std::ofstream::out);
   if (!ofs.is_open()) {
-    throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
+    throw std::runtime_error("\nERROR: bad file handle: " + jobfile_);
   }
   const QMNBList& nblist = top.NBList();
   Index jobCount = 0;
@@ -232,7 +231,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
   log.setReportLevel(Log::current_level);
 
   // load the QC results in a vector indexed by the pair ID
-  xml.LoadFromXML(_jobfile);
+  xml.LoadFromXML(jobfile_);
   std::vector<Property*> jobProps = xml.Select("jobs.job");
   records.resize(number_of_pairs + 1);
 

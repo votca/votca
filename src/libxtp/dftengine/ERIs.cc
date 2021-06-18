@@ -29,7 +29,7 @@ namespace votca {
 namespace xtp {
 
 void ERIs::Initialize(const AOBasis& dftbasis, const AOBasis& auxbasis) {
-  _threecenter.Fill(auxbasis, dftbasis);
+  threecenter_.Fill(auxbasis, dftbasis);
   return;
 }
 
@@ -261,13 +261,13 @@ template std::array<Eigen::MatrixXd, 2> ERIs::Compute4c<false>(
     const Eigen::MatrixXd& dmat, double error) const;
 
 Eigen::MatrixXd ERIs::CalculateERIs_3c(const Eigen::MatrixXd& DMAT) const {
-  assert(_threecenter.size() > 0 &&
+  assert(threecenter_.size() > 0 &&
          "Please call Initialize before running this");
   Eigen::MatrixXd ERIs2 = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
   Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
 #pragma omp parallel for schedule(guided) reduction(+ : ERIs2)
-  for (Index i = 0; i < _threecenter.size(); i++) {
-    const Symmetric_Matrix& threecenter = _threecenter[i];
+  for (Index i = 0; i < threecenter_.size(); i++) {
+    const Symmetric_Matrix& threecenter = threecenter_[i];
     // Trace over prod::DMAT,I(l)=componentwise product over
     const double factor = threecenter.TraceofProd(dmat_sym);
     Eigen::SelfAdjointView<Eigen::MatrixXd, Eigen::Upper> m =
@@ -279,13 +279,13 @@ Eigen::MatrixXd ERIs::CalculateERIs_3c(const Eigen::MatrixXd& DMAT) const {
 }
 
 Eigen::MatrixXd ERIs::CalculateEXX_dmat(const Eigen::MatrixXd& DMAT) const {
-  assert(_threecenter.size() > 0 &&
+  assert(threecenter_.size() > 0 &&
          "Please call Initialize before running this");
   Eigen::MatrixXd EXX = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
 
 #pragma omp parallel for schedule(guided) reduction(+ : EXX)
-  for (Index i = 0; i < _threecenter.size(); i++) {
-    const Eigen::MatrixXd threecenter = _threecenter[i].UpperMatrix();
+  for (Index i = 0; i < threecenter_.size(); i++) {
+    const Eigen::MatrixXd threecenter = threecenter_[i].UpperMatrix();
     EXX -= threecenter.selfadjointView<Eigen::Upper>() * DMAT *
            threecenter.selfadjointView<Eigen::Upper>();
   }
@@ -293,15 +293,15 @@ Eigen::MatrixXd ERIs::CalculateEXX_dmat(const Eigen::MatrixXd& DMAT) const {
 }
 
 Eigen::MatrixXd ERIs::CalculateEXX_mos(const Eigen::MatrixXd& occMos) const {
-  assert(_threecenter.size() > 0 &&
+  assert(threecenter_.size() > 0 &&
          "Please call Initialize before running this");
   Eigen::MatrixXd EXX = Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows());
 
 #pragma omp parallel for schedule(guided) reduction(+ : EXX)
-  for (Index i = 0; i < _threecenter.size(); i++) {
+  for (Index i = 0; i < threecenter_.size(); i++) {
     const Eigen::MatrixXd TCxMOs_T =
         occMos.transpose() *
-        _threecenter[i].UpperMatrix().selfadjointView<Eigen::Upper>();
+        threecenter_[i].UpperMatrix().selfadjointView<Eigen::Upper>();
     EXX -= TCxMOs_T.transpose() * TCxMOs_T;
   }
   return 2 * EXX;

@@ -56,36 +56,36 @@ Index OffsetFuncShell_cartesian(L l);
 class GaussianPrimitive {
  public:
   GaussianPrimitive(double decay, double contraction)
-      : _decay(decay), _contraction(contraction) {}
-  double contraction() const { return _contraction; }
+      : decay_(decay), contraction_(contraction) {}
+  double contraction() const { return contraction_; }
 
-  double decay() const { return _decay; }
+  double decay() const { return decay_; }
 
  private:
-  double _decay;
-  double _contraction;
+  double decay_;
+  double contraction_;
 };
 
 class Shell {
 
  public:
-  Shell(L l, double scale) : _l(l), _scale(scale) { ; }
+  Shell(L l, double scale) : l_(l), scale_(scale) { ; }
 
-  L getL() const { return _l; }
+  L getL() const { return l_; }
 
-  Index getnumofFunc() const { return NumFuncShell(_l); };
+  Index getnumofFunc() const { return NumFuncShell(l_); };
 
-  Index getOffset() const { return OffsetFuncShell(_l); }
+  Index getOffset() const { return OffsetFuncShell(l_); }
 
-  double getScale() const { return _scale; }
+  double getScale() const { return scale_; }
 
-  Index getSize() const { return _gaussians.size(); }
+  Index getSize() const { return gaussians_.size(); }
 
   std::vector<GaussianPrimitive>::const_iterator begin() const {
-    return _gaussians.begin();
+    return gaussians_.begin();
   }
   std::vector<GaussianPrimitive>::const_iterator end() const {
-    return _gaussians.end();
+    return gaussians_.end();
   }
 
   // adds a Gaussian
@@ -93,12 +93,12 @@ class Shell {
   friend std::ostream& operator<<(std::ostream& out, const Shell& shell);
 
  private:
-  L _l;
+  L l_;
   // scaling factor
-  double _scale;
+  double scale_;
 
   // vector of pairs of decay constants and contraction coefficients
-  std::vector<GaussianPrimitive> _gaussians;
+  std::vector<GaussianPrimitive> gaussians_;
 };
 
 /*
@@ -107,25 +107,25 @@ class Shell {
 class Element {
 
  public:
-  Element(std::string type) : _type(type) { ; }
+  Element(std::string type) : type_(type) { ; }
   using ShellIterator = std::vector<Shell>::const_iterator;
-  ShellIterator begin() const { return _shells.begin(); }
-  ShellIterator end() const { return _shells.end(); }
+  ShellIterator begin() const { return shells_.begin(); }
+  ShellIterator end() const { return shells_.end(); }
 
-  const std::string& getType() const { return _type; }
+  const std::string& getType() const { return type_; }
 
   Shell& addShell(L l, double shellScale) {
-    _shells.push_back(Shell(l, shellScale));
-    return _shells.back();
+    shells_.push_back(Shell(l, shellScale));
+    return shells_.back();
   }
 
-  Index NumOfShells() const { return _shells.size(); }
+  Index NumOfShells() const { return shells_.size(); }
 
   friend std::ostream& operator<<(std::ostream& out, const Element& element);
 
  private:
-  std::string _type;
-  std::vector<Shell> _shells;
+  std::string type_;
+  std::vector<Shell> shells_;
 };
 
 /*
@@ -137,24 +137,24 @@ class BasisSet {
 
   const Element& getElement(std::string element_type) const;
 
-  std::map<std::string, Element>::iterator begin() { return _elements.begin(); }
-  std::map<std::string, Element>::iterator end() { return _elements.end(); }
+  std::map<std::string, Element>::iterator begin() { return elements_.begin(); }
+  std::map<std::string, Element>::iterator end() { return elements_.end(); }
 
   std::map<std::string, Element>::const_iterator begin() const {
-    return _elements.begin();
+    return elements_.begin();
   }
   std::map<std::string, Element>::const_iterator end() const {
-    return _elements.end();
+    return elements_.end();
   }
 
   friend std::ostream& operator<<(std::ostream& out, const BasisSet& basis);
 
-  const std::string& Name() const { return _name; }
+  const std::string& Name() const { return name_; }
 
  private:
   Element& addElement(std::string elementType);
-  std::string _name;
-  std::map<std::string, Element> _elements;
+  std::string name_;
+  std::map<std::string, Element> elements_;
 };
 
 }  // namespace xtp
