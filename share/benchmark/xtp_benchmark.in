@@ -23,6 +23,7 @@ import os
 import shutil
 import subprocess
 import sys
+import pathlib
 import time
 
 import h5py
@@ -169,11 +170,11 @@ if OPTIONS.setup:
                 input_molecules.append([path, name])
 
     for mol in input_molecules:
-        newpath = os.path.join(OPTIONS.output_folder,
-                               os.path.splitext(mol[1])[0])
+        newpath = pathlib.Path(OPTIONS.output_folder) / \
+            pathlib.Path(mol[1]).stem
         os.mkdir(newpath)
-        shutil.copyfile(os.path.join(
-            mol[0], mol[1]), os.path.join(newpath, "system.xyz"))
+        shutil.copyfile(pathlib.Path(
+            mol[0])/pathlib.Path(mol[1]), newpath/"system.xyz")
 
     print("Created folders for:\n{}".format(
         "\n".join(m[1] for m in input_molecules)))
@@ -203,7 +204,7 @@ if OPTIONS.run:
 
     for mol in os.listdir(OPTIONS.output_folder):
         print("Running {}".format(mol).ljust(30), end="\r")
-        with cd(os.path.join(OPTIONS.output_folder, mol)):
+        with cd(pathlib.Path(OPTIONS.output_folder)/pathlib.Path(mol)):
 
             start = time.time()
             if(HasGPUs):
@@ -227,7 +228,7 @@ if OPTIONS.run:
                 molinfo["Status"] = "Success"
                 for level in range(S.shape[0]):
                     molinfo[f"S{level+1}[Hrt]"] = S[level]
-                
+
                 molinfo.update(ReadIndividualTimingsFromLog("dftgwbse.log"))
 
         moldata[mol] = molinfo
@@ -277,7 +278,7 @@ if OPTIONS.analyze:
                 f"{keyword}: {new_value:.2f}\tref: {ref_value:.2f}\t change:{change*100:.2f}%")
 
     def print_energy(molname):
-        for level in range(1,6):
+        for level in range(1, 6):
             new_value = float(result[molname][f"S{level}[Hrt]"])
             if reference == None:
                 print(f"S{level}[Hrt]: {new_value:.2f}")
