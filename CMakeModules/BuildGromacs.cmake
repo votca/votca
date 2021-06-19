@@ -5,11 +5,13 @@ endif()
 include(ExternalProject)
 include(GNUInstallDirs)
 enable_language(C)
+file(DOWNLOAD https://gitlab.com/gromacs/gromacs/-/merge_requests/1524.patch ${CMAKE_CURRENT_BINARY_DIR}/1524.patch)
 # ftp://ftp.gromacs.org/pub/gromacs/gromacs-XXX.tar.gz is too unstable for CI, so use Gentoo Mirror
 ExternalProject_Add(Gromacs_build
   URL http://distfiles.gentoo.org/distfiles/gromacs-2019.6.tar.gz https://ftp.gromacs.org/pub/gromacs/gromacs-2019.6.tar.gz
   URL_MD5 a9c41f5b9b11f738a6e04c2427206e09
   PREFIX gromacs INSTALL_DIR gromacs/install
+  PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_BINARY_DIR}/1524.patch
   CMAKE_ARGS 
     -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
     -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
