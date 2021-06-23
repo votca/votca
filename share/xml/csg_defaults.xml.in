@@ -697,6 +697,12 @@
             <DESC>Number of point to calculate the average from for the extrapolation</DESC>
           </points>
         </extrapolate>
+        <ibi>
+          <DESC>Contains all options of the IBI post-update script</DESC>
+          <do>1
+            <DESC>Update cycle for the IBI post-update (1 do, 0 do not). To do the post-update every third step specify "0 0 1", similar to do_potential</DESC>
+          </do>
+        </ibi>
         <kbibi>
           <DESC>Contains all options of the Kirkwood-Buff ramp corrections scripts</DESC>
           <do>1

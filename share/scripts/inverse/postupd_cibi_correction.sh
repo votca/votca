@@ -25,7 +25,7 @@ C-IBI: Targeting cumulative coordination within an iterative protocol
 to derive coarse-grained models of (multi-component) complex fluids,
 J. Chem. Phys. (in press).
 
-Usage: ${0##*/}
+Usage: ${0##*/} infile outfile
 EOF
    exit 0
 fi

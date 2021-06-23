@@ -24,7 +24,7 @@ P. Ganguly, D. Mukherji, C. Junghans, N. F. A. van der Vegt,
 Kirkwood-Buff coarse-grained force fields for aqueous solutions,
 J. Chem. Theo. Comp., 8, 1802 (2012), doi:10.1021/ct3000958
 
-Usage: ${0##*/}
+Usage: ${0##*/} infile outfile
 EOF
    exit 0
 fi
