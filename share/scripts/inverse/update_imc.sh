@@ -32,20 +32,17 @@ do_external imc_stat $sim_prog
 default_reg=$(csg_get_property cg.inverse.imc.default_reg)
 is_num "${default_reg}" || die "${0##*/}: value of cg.inverse.imc.default_reg should be a number"
 
-[[ -n $(csg_get_property --allow-empty cg.bonded.name) ]] && has_bonds=true || has_bonds=false
-bonded_method="$(csg_get_property cg.inverse.imc.bonded_method)"
-
 imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
 imc_groups=$(remove_duplicate $imc_groups)
 [[ -z ${imc_groups} ]] && die "${0##*/}: No imc groups defined"
 for group in $imc_groups; do
+  if [[ $group == "none" ]]; then
+    continue
+  fi
   reg="$(csg_get_property cg.inverse.imc.${group}.reg ${default_reg})" #filter me away
   is_num "${reg}" || die "${0##*/}: value of cg.inverse.imc.${group}.reg should be a number"
   msg "solving linear equations for imc group '$group' (regularization ${reg})"
   critical csg_imc_solve --imcfile "${group}.imc" --gmcfile "${group}.gmc" --idxfile "${group}.idx" --regularization "${reg}"
 done
 
-for_all "non-bonded" do_external update imc_single
-if [[ $has_bonds == true && $bonded_method == "ibi" ]]; then
-    for_all "bonded" do_external update ibi_single
-fi
+for_all "non-bonded bonded" do_external update imc_single
