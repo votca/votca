@@ -30,9 +30,9 @@ name=$(csg_get_interaction_property name)
 bondtype="$(csg_get_interaction_property bondtype)"
 step_nr=$(get_current_step_nr)
 scheme=( $(csg_get_interaction_property inverse.do_potential) )
-scheme_nr=$(( ($step_nr - 1 ) % ${#scheme[@]} ))
+scheme_nr=$(( (step_nr - 1 ) % ${#scheme[@]} ))
 postibi=( $(csg_get_interaction_property inverse.post_update_options.ibi.do) )
-postibi_nr=$(( ($step_nr - 1 ) % ${#postibi[@]} ))
+postibi_nr=$(( (step_nr - 1 ) % ${#postibi[@]} ))
 
 if [[ ${postibi[$postibi_nr]} = 1 ]]; then
 
@@ -47,8 +47,8 @@ post-updates! You might want to set do_potential to 0."
     do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
     kBT="$(csg_get_property cg.inverse.kBT)"
     is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
-    do_external update ibi_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.pure_ibi "${kBT}"
-    do_external potential shift --type "${bondtype}" ${name}.dpot.pure_ibi "$2"
+    do_external update ibi_pot "${name}.dist.tgt" "${name}.dist.new" "${name}.pot.cur" "${name}.dpot.pure_ibi" "${kBT}"
+    do_external potential shift --type "${bondtype}" "${name}.dpot.pure_ibi" "$2"
 else
    echo "No ibi post-update for interaction ${name}"
    do_external postupd dummy "$1" "$2"
