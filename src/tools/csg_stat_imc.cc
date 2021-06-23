@@ -197,7 +197,7 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
   interaction_t *i = success.first->second.get();
   i->index_ = index;
   if (group != "none") {
-      getGroup(group)->interactions_.push_back(i);
+    getGroup(group)->interactions_.push_back(i);
   }
 
   i->is_bonded_ = is_bonded;
