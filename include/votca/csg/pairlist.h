@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_PAIRLIST_H
-#define _VOTCA_CSG_PAIRLIST_H
+#ifndef VOTCA_CSG_PAIRLIST_H
+#define VOTCA_CSG_PAIRLIST_H
 
 // Standard includes
 #include <map>
@@ -41,16 +41,16 @@ class PairList {
   using const_iterator = typename std::vector<pair_type *>::const_iterator;
   typedef typename std::map<element_type, pair_type *> partners;
 
-  iterator begin() { return _pairs.begin(); }
-  iterator end() { return _pairs.end(); }
+  iterator begin() { return pairs_.begin(); }
+  iterator end() { return pairs_.end(); }
 
-  const_iterator begin() const { return _pairs.begin(); }
-  const_iterator end() const { return _pairs.end(); }
-  pair_type *front() { return _pairs.front(); }
-  pair_type *back() { return _pairs.back(); }
-  bool empty() const { return _pairs.empty(); }
+  const_iterator begin() const { return pairs_.begin(); }
+  const_iterator end() const { return pairs_.end(); }
+  pair_type *front() { return pairs_.front(); }
+  pair_type *back() { return pairs_.back(); }
+  bool empty() const { return pairs_.empty(); }
 
-  Index size() const { return Index(_pairs.size()); }
+  Index size() const { return Index(pairs_.size()); }
 
   void Cleanup();
 
@@ -64,9 +64,9 @@ class PairList {
   using pair_t = pair_type;
 
  protected:
-  std::vector<pair_type *> _pairs;
+  std::vector<pair_type *> pairs_;
 
-  std::map<element_type, std::map<element_type, pair_type *>> _pair_map;
+  std::map<element_type, std::map<element_type, pair_type *>> pair_map_;
 };
 
 // this method takes ownership of p
@@ -74,19 +74,19 @@ template <typename element_type, typename pair_type>
 inline void PairList<element_type, pair_type>::AddPair(pair_type *p) {
   /// \todo be careful, same pair object is used, some values might change (e.g.
   /// sign of distance vector)
-  _pair_map[p->first()][p->second()] = p;
-  _pair_map[p->second()][p->first()] = p;
+  pair_map_[p->first()][p->second()] = p;
+  pair_map_[p->second()][p->first()] = p;
   /// \todo check if unique
-  _pairs.push_back(p);
+  pairs_.push_back(p);
 }
 
 template <typename element_type, typename pair_type>
 inline void PairList<element_type, pair_type>::Cleanup() {
-  for (auto &pair : _pairs) {
+  for (auto &pair : pairs_) {
     delete pair;
   }
-  _pairs.clear();
-  _pair_map.clear();
+  pairs_.clear();
+  pair_map_.clear();
 }
 
 template <typename element_type, typename pair_type>
@@ -94,8 +94,8 @@ inline pair_type *PairList<element_type, pair_type>::FindPair(element_type e1,
                                                               element_type e2) {
   typename std::map<element_type, std::map<element_type, pair_type *>>::iterator
       iter1;
-  iter1 = _pair_map.find(e1);
-  if (iter1 == _pair_map.end()) {
+  iter1 = pair_map_.find(e1);
+  if (iter1 == pair_map_.end()) {
     return nullptr;
   }
 
@@ -113,8 +113,8 @@ inline const pair_type *PairList<element_type, pair_type>::FindPair(
     element_type e1, element_type e2) const {
   typename std::map<element_type,
                     std::map<element_type, pair_type *>>::const_iterator iter1;
-  iter1 = _pair_map.find(e1);
-  if (iter1 == _pair_map.end()) {
+  iter1 = pair_map_.find(e1);
+  if (iter1 == pair_map_.end()) {
     return nullptr;
   }
 
@@ -132,7 +132,7 @@ typename PairList<element_type, pair_type>::partners *
     PairList<element_type, pair_type>::FindPartners(element_type e1) {
   typename std::map<element_type, std::map<element_type, pair_type *>>::iterator
       iter;
-  if ((iter = _pair_map.find(e1)) == _pair_map.end()) {
+  if ((iter = pair_map_.find(e1)) == pair_map_.end()) {
     return nullptr;
   }
   return &(iter->second);
@@ -141,4 +141,4 @@ typename PairList<element_type, pair_type>::partners *
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_PAIRLIST_H */
+#endif /*  VOTCA_CSG_PAIRLIST_H */

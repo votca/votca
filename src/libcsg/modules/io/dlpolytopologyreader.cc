@@ -45,7 +45,7 @@ using namespace std;
 namespace votca {
 namespace csg {
 
-string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char *wspace)
+string DLPOLYTopologyReader::NextKeyline_(ifstream &fs, const char *wspace)
 // function to find and read the next line starting with a keyword/directive
 // (skipping comments starting with "#" or ";") NOTE: the line is returned
 // case-preserved, not to alter molecule/atom names (consider if --no-map is
@@ -59,7 +59,7 @@ string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char *wspace)
 
     if (fs.eof()) {
       throw std::runtime_error("Error: unexpected end of dlpoly file '" +
-                               _fname + "'");
+                               fname_ + "'");
     }
 
     i_nws = line.find_first_not_of(wspace);
@@ -68,14 +68,14 @@ string DLPOLYTopologyReader::_NextKeyline(ifstream &fs, const char *wspace)
   return line.substr(i_nws, line.size() - i_nws);
 }
 
-string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char *wspace,
+string DLPOLYTopologyReader::NextKeyInt_(ifstream &fs, const char *wspace,
                                          const string &word, Index &ival)
 // function to read the next line containing only a given keyword and an integer
 // value after it (only skipping comments!) NOTE: this function must only be
 // called when the next directive line has to contain the given keyword and an
 // integer value
 {
-  stringstream sl(_NextKeyline(fs, wspace));
+  stringstream sl(NextKeyline_(fs, wspace));
   string line, sval;
 
   sl >> line;  // allow user not to bother about the case
@@ -83,7 +83,7 @@ string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char *wspace,
 
   if (line.substr(0, word.size()) != word) {
     throw std::runtime_error("Error: unexpected line from dlpoly file '" +
-                             _fname + "', expected '" + word + "' but got '" +
+                             fname_ + "', expected '" + word + "' but got '" +
                              line + "'");
   }
 
@@ -94,7 +94,7 @@ string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char *wspace,
 
   if (i_num > 0) {
     throw std::runtime_error("Error: missing integer number in directive '" +
-                             line + "' in topology file '" + _fname + "'");
+                             line + "' in topology file '" + fname_ + "'");
   }
 
   ival = boost::lexical_cast<Index>(sval);
@@ -102,7 +102,7 @@ string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char *wspace,
   return sl.str();
 }
 
-bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char *wspace,
+bool DLPOLYTopologyReader::isKeyInt_(const string &line, const char *wspace,
                                      const string &word, Index &ival)
 // function to check if the given (last read) directive line starts with a given
 // keyword and has an integer value at the end NOTE: comments are allowed beyond
@@ -110,9 +110,8 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char *wspace,
 {
   // split directives consisting of a few words: the sought keyword must be the
   // first one!
-  Tokenizer tok(line, wspace);
-  vector<string> fields;
-  tok.ToVector(fields);
+
+  vector<string> fields = Tokenizer(line, wspace).ToVector();
 
   ival = 0;
 
@@ -124,7 +123,7 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char *wspace,
 
   if (fields[0].substr(0, word.size()) != word) {
     throw std::runtime_error("Error: unexpected directive from dlpoly file '" +
-                             _fname + "', expected keyword '" + word +
+                             fname_ + "', expected keyword '" + word +
                              "' but got '" + fields[0] + "'");
   }
 
@@ -159,45 +158,45 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 
   if (boost::filesystem::basename(filepath).size() == 0) {
     if (filepath.parent_path().string().size() == 0) {
-      _fname = "FIELD";  // DL_POLY uses fixed file names in current/working
+      fname_ = "FIELD";  // DL_POLY uses fixed file names in current/working
                          // directory
     } else {
-      _fname = filepath.parent_path().string() + "/FIELD";
+      fname_ = filepath.parent_path().string() + "/FIELD";
     }
   } else {
-    _fname = file;
+    fname_ = file;
   }
   std::ifstream fl;
-  fl.open(_fname);
+  fl.open(fname_);
 
   if (!fl.is_open()) {
-    throw std::runtime_error("Error on opening dlpoly file '" + _fname + "'");
+    throw std::runtime_error("Error on opening dlpoly file '" + fname_ + "'");
   } else {
     const char *WhiteSpace = " \t";
-    _NextKeyline(fl, WhiteSpace);         // read title line and skip it
-    line = _NextKeyline(fl, WhiteSpace);  // read next directive line
+    NextKeyline_(fl, WhiteSpace);         // read title line and skip it
+    line = NextKeyline_(fl, WhiteSpace);  // read next directive line
     boost::to_upper(line);
 
     if (line.substr(0, 4) == "UNIT") {      // skip 'unit' line
-      line = _NextKeyline(fl, WhiteSpace);  // read next directive line
+      line = NextKeyline_(fl, WhiteSpace);  // read next directive line
       boost::to_upper(line);
     }
 
     if (line.substr(0, 4) == "NEUT") {  // skip 'neutral groups' line (DL_POLY
                                         // Classic FIELD format)
-      line = _NextKeyline(fl, WhiteSpace);  // look for next directive line
+      line = NextKeyline_(fl, WhiteSpace);  // look for next directive line
       boost::to_upper(line);
     }
 
     Index nmol_types;
 
-    if (!_isKeyInt(line, WhiteSpace, "MOLEC", nmol_types)) {
+    if (!isKeyInt_(line, WhiteSpace, "MOLEC", nmol_types)) {
       throw std::runtime_error("Error: missing integer number in directive '" +
-                               line + "' in topology file '" + _fname + "'");
+                               line + "' in topology file '" + fname_ + "'");
     }
 
 #ifdef DEBUG
-    cout << "Read from dlpoly file '" << _fname << "' : '" << line << "' - "
+    cout << "Read from dlpoly file '" << fname_ << "' : '" << line << "' - "
          << nmol_types << endl;
 #endif
 
@@ -205,26 +204,26 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 
     for (Index nmol_type = 0; nmol_type < nmol_types; nmol_type++) {
 
-      mol_name = _NextKeyline(fl, WhiteSpace);
+      mol_name = NextKeyline_(fl, WhiteSpace);
       Molecule *mi = top.CreateMolecule(mol_name);
 
       Index nreplica = 1;
-      line = _NextKeyInt(fl, WhiteSpace, "NUMMOL", nreplica);
+      line = NextKeyInt_(fl, WhiteSpace, "NUMMOL", nreplica);
 
 #ifdef DEBUG
-      cout << "Read from dlpoly file '" << _fname << "' : '" << mol_name
+      cout << "Read from dlpoly file '" << fname_ << "' : '" << mol_name
            << "' - '" << line << "' - " << nreplica << endl;
 #endif
 
-      line = _NextKeyInt(fl, WhiteSpace, "ATOMS", natoms);
+      line = NextKeyInt_(fl, WhiteSpace, "ATOMS", natoms);
 
 #ifdef DEBUG
-      cout << "Read from dlpoly file '" << _fname << "' : '" << line << "' - "
+      cout << "Read from dlpoly file '" << fname_ << "' : '" << line << "' - "
            << natoms << endl;
 #endif
       std::vector<Index> id_map(natoms);
       for (Index i = 0; i < natoms;) {  // i is altered in repeater loop
-        stringstream sl(_NextKeyline(fl, WhiteSpace));
+        stringstream sl(NextKeyline_(fl, WhiteSpace));
 
 #ifdef DEBUG
         cout << "Read atom specs from dlpoly topology : '" << sl.str() << "'"
@@ -243,9 +242,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         line = " ";
         sl >> line;  // rest of the atom line
 
-        Tokenizer tok(line, WhiteSpace);
-        vector<string> fields;
-        tok.ToVector(fields);
+        vector<string> fields = Tokenizer(line, WhiteSpace).ToVector();
 
 #ifdef DEBUG
         cout << "Rest atom specs from dlpoly topology : '" << line << "'"
@@ -278,7 +275,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 
       while (line != "FINISH") {
 
-        stringstream nl(_NextKeyline(fl, WhiteSpace));
+        stringstream nl(NextKeyline_(fl, WhiteSpace));
         nl >> line;
 
 #ifdef DEBUG
@@ -294,7 +291,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
           nl >> count;
           for (Index i = 0; i < count; i++) {
 
-            stringstream sl(_NextKeyline(fl, WhiteSpace));
+            stringstream sl(NextKeyline_(fl, WhiteSpace));
 #ifdef DEBUG
             cout << "Read unit specs from dlpoly topology : '" << sl.str()
                  << "'" << endl;
@@ -336,7 +333,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
       }
 
 #ifdef DEBUG
-      cout << "Read from dlpoly file '" << _fname << "' : '" << line
+      cout << "Read from dlpoly file '" << fname_ << "' : '" << line
            << "' - done with '" << mol_name << "'" << endl;
 #endif
 
@@ -384,10 +381,10 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 #ifdef DEBUG
   tools::getline(fl, line);  // is "close" found?
   if (line == "close") {
-    cout << "Read from dlpoly file '" << _fname << "' : '" << line
+    cout << "Read from dlpoly file '" << fname_ << "' : '" << line
          << "' - done with topology" << endl;
   } else {
-    cout << "Read from dlpoly file '" << _fname
+    cout << "Read from dlpoly file '" << fname_
          << "' : 'EOF' - done with topology (directive 'close' not read!)"
          << endl;
   }

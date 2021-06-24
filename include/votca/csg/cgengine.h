@@ -75,7 +75,7 @@ class CGEngine {
    * \brief ignores molecule in mapping process
    * \param pattern glob pattern for molecule ident
    */
-  void AddIgnore(const std::string &pattern) { _ignores.push_back(pattern); }
+  void AddIgnore(const std::string &pattern) { ignores_.push_back(pattern); }
 
   /**
    * \brief checks whether molecule is ignored
@@ -85,29 +85,29 @@ class CGEngine {
   bool IsIgnored(const std::string &ident);
 
  private:
-  std::map<std::string, std::unique_ptr<CGMoleculeDef>> _molecule_defs;
+  std::map<std::string, std::unique_ptr<CGMoleculeDef>> molecule_defs_;
 
-  std::list<std::string> _ignores;
+  std::list<std::string> ignores_;
 };
 
 inline CGMoleculeDef *CGEngine::getMoleculeDef(const std::string &name) {
   std::map<std::string, std::unique_ptr<CGMoleculeDef>>::iterator iter;
 
   // if there is only 1 molecule definition, don't care about the name
-  if (_molecule_defs.size() == 1 && name == "unnamed") {
-    return (*(_molecule_defs.begin())).second.get();
+  if (molecule_defs_.size() == 1 && name == "unnamed") {
+    return (*(molecule_defs_.begin())).second.get();
   }
 
-  iter = _molecule_defs.find(name);
-  if (iter == _molecule_defs.end()) {
+  iter = molecule_defs_.find(name);
+  if (iter == molecule_defs_.end()) {
     return nullptr;
   }
   return (*iter).second.get();
 }
 
 inline bool CGEngine::IsIgnored(const std::string &ident) {
-  for (auto &_ignore : _ignores) {
-    if (tools::wildcmp(_ignore, ident)) {
+  for (auto &ignore_ : ignores_) {
+    if (tools::wildcmp(ignore_, ident)) {
       return true;
     }
   }

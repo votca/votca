@@ -26,16 +26,16 @@ namespace votca {
 namespace csg {
 
 double BoundaryCondition::BoxVolume() const noexcept {
-  return std::abs(_box.determinant());
+  return std::abs(box_.determinant());
 }
 
 double BoundaryCondition::getShortestBoxDimension() const {
   assert(getBoxType() != eBoxtype::typeOpen &&
          "Cannot get the shortest dimension of the box because it is open");
 
-  Eigen::Vector3d box_a = _box.col(0);
-  Eigen::Vector3d box_b = _box.col(1);
-  Eigen::Vector3d box_c = _box.col(2);
+  Eigen::Vector3d box_a = box_.col(0);
+  Eigen::Vector3d box_b = box_.col(1);
+  Eigen::Vector3d box_c = box_.col(2);
 
   // create plane normals
   Eigen::Vector3d norm_a = box_b.cross(box_c);

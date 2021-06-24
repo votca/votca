@@ -41,7 +41,7 @@ void TrajForce::Initialize(void) {
   CsgApplication::Initialize();
   AddProgramOptions()(
       "scale",
-      boost::program_options::value<double>(&_scale)->default_value(-1.0),
+      boost::program_options::value<double>(&scale_)->default_value(-1.0),
       "  scaling factor for trajectory forces")(
       "trj-force", boost::program_options::value<string>(),
       "  atomistic reference "
@@ -64,38 +64,38 @@ bool TrajForce::EvaluateOptions() {
 }
 
 void TrajForce::BeginEvaluate(Topology *top, Topology *) {
-  _top_force.CopyTopologyData(top);
-  _trjreader_force =
-      TrjReaderFactory().Create(_op_vm["trj-force"].as<string>());
-  if (_trjreader_force == nullptr) {
+  top_force_.CopyTopologyData(top);
+  trjreader_force_ =
+      TrjReaderFactory().Create(OptionsMap()["trj-force"].as<string>());
+  if (trjreader_force_ == nullptr) {
     throw runtime_error(string("input format not supported: ") +
-                        _op_vm["trj-force"].as<string>());
+                        OptionsMap()["trj-force"].as<string>());
   }
   // open the trajectory
-  _trjreader_force->Open(_op_vm["trj-force"].as<string>());
+  trjreader_force_->Open(OptionsMap()["trj-force"].as<string>());
   // read in first frame
-  _trjreader_force->FirstFrame(_top_force);
+  trjreader_force_->FirstFrame(top_force_);
 
   // output trajectory file
-  _trjwriter = TrjWriterFactory().Create(_op_vm["out"].as<string>());
-  if (_trjwriter == nullptr) {
+  trjwriter_ = TrjWriterFactory().Create(OptionsMap()["out"].as<string>());
+  if (trjwriter_ == nullptr) {
     throw runtime_error(string("output trajectory format not supported: ") +
-                        _op_vm["out"].as<string>());
+                        OptionsMap()["out"].as<string>());
   }
   bool append = true;
-  _trjwriter->Open(_op_vm["out"].as<string>(), append);
+  trjwriter_->Open(OptionsMap()["out"].as<string>(), append);
 }
 
 void TrajForce::EndEvaluate() {
   cout << "\nWe are done, thank you very much!" << endl;
-  _trjreader_force->Close();
-  _trjwriter->Close();
+  trjreader_force_->Close();
+  trjwriter_->Close();
 }
 
 void TrajForce::WriteOutFiles() {}
 
 void TrajForce::EvalConfiguration(Topology *conf, Topology *) {
-  if (conf->BeadCount() != _top_force.BeadCount()) {
+  if (conf->BeadCount() != top_force_.BeadCount()) {
     throw std::runtime_error(
         "number of beads in topology and reference force topology does not "
         "match");
@@ -104,12 +104,12 @@ void TrajForce::EvalConfiguration(Topology *conf, Topology *) {
 
     // \todo check why "conf" HasForce() is false
     // Since "conf" topology Force is set to false
-    // for now using _top_force to store resultant output forces
+    // for now using  top_force_ to store resultant output forces
 
-    _top_force.getBead(i)->F() =
-        conf->getBead(i)->getF() + _scale * _top_force.getBead(i)->getF();
+    top_force_.getBead(i)->F() =
+        conf->getBead(i)->getF() + scale_ * top_force_.getBead(i)->getF();
     Eigen::Vector3d d =
-        conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
+        conf->getBead(i)->getPos() - top_force_.getBead(i)->getPos();
     if (d.norm() > 1e-6) {
       throw std::runtime_error(
           "One or more bead positions in trajectory and reference force "
@@ -117,6 +117,6 @@ void TrajForce::EvalConfiguration(Topology *conf, Topology *) {
     }
   }
 
-  _trjwriter->Write(&_top_force);
-  _trjreader_force->NextFrame(_top_force);
+  trjwriter_->Write(&top_force_);
+  trjreader_force_->NextFrame(top_force_);
 }

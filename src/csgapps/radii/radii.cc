@@ -48,11 +48,11 @@ class CsgTestApp : public CsgApplication {
 
  protected:
   // inverse hydrodynamic radius average
-  votca::tools::Average<double> _inv_r_hydr;
+  votca::tools::Average<double> inv_r_hydr_;
   // radius of gyration squared average
-  votca::tools::Average<double> _r_gyr_sq;
+  votca::tools::Average<double> r_gyr_sq_;
   // mass weighted radius of gyration squared average
-  votca::tools::Average<double> _r_gyr_m_sq;
+  votca::tools::Average<double> r_gyr_m_sq_;
 };
 
 int main(int argc, char **argv) {
@@ -98,8 +98,8 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
     }
 
     // add calculated values to the averages
-    _r_gyr_sq.Process(r_gyr_sq);
-    _inv_r_hydr.Process(inv_r_hydr);
+    r_gyr_sq_.Process(r_gyr_sq);
+    inv_r_hydr_.Process(inv_r_hydr);
 
     // calculate the mass weighted tensor of gyration
     // first calculate mass + center of mass
@@ -119,18 +119,18 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
     r_gyr_m_sq /= M;
 
     // add to average
-    _r_gyr_m_sq.Process(r_gyr_m_sq);
+    r_gyr_m_sq_.Process(r_gyr_m_sq);
   }
 }
 
 // output everything when processing frames is done
 void CsgTestApp::EndEvaluate() {
   cout << "\n\n------------------------------\n";
-  cout << "radius of gyration:                  " << sqrt(_r_gyr_sq.getAvg())
+  cout << "radius of gyration:                  " << sqrt(r_gyr_sq_.getAvg())
        << endl;
-  cout << "mass weighted radius of gyration:    " << sqrt(_r_gyr_m_sq.getAvg())
+  cout << "mass weighted radius of gyration:    " << sqrt(r_gyr_m_sq_.getAvg())
        << endl;
-  cout << "hydrodynamic radius:                 " << 1. / _inv_r_hydr.getAvg()
+  cout << "hydrodynamic radius:                 " << 1. / inv_r_hydr_.getAvg()
        << endl;
   cout << "------------------------------\n";
 }

@@ -23,13 +23,13 @@ namespace csg {
 
 void XYZWriter::Open(std::string file, bool bAppend) {
   if (bAppend) {
-    _out.open(file, std::ios_base::app);
+    out_.open(file, std::ios_base::app);
   } else {
-    _out.open(file);
+    out_.open(file);
   }
 }
 
-void XYZWriter::Close() { _out.close(); }
+void XYZWriter::Close() { out_.close(); }
 
 void XYZWriter::Write(Topology *conf) {
   std::string header = (boost::format("frame: %1$d time: %2$f\n") %

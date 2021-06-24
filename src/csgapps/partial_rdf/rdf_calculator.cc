@@ -39,12 +39,12 @@ namespace votca {
 namespace csg {
 
 RDFCalculator::RDFCalculator()
-    : _write_every(0),
-      _do_blocks(false),
-      _nblock(0),
-      _subvol_rad(0),
-      _do_vol_corr(false),
-      _processed_some_frames(false) {}
+    : write_every_(0),
+      do_blocks_(false),
+      nblock_(0),
+      subvol_rad_(0),
+      do_vol_corr_(false),
+      processed_some_frames_(false) {}
 
 RDFCalculator::~RDFCalculator() = default;
 
@@ -53,37 +53,37 @@ RDFCalculator::~RDFCalculator() = default;
 void RDFCalculator::Initialize() {
   // do some output
   std::cout << "begin to calculate distribution functions\n";
-  std::cout << "# of bonded interactions: " << _bonded.size() << std::endl;
-  std::cout << "# of non-bonded interactions: " << _nonbonded.size()
+  std::cout << "# of bonded interactions: " << bonded_.size() << std::endl;
+  std::cout << "# of non-bonded interactions: " << nonbonded_.size()
             << std::endl;
 
-  if (_bonded.size() + _nonbonded.size() == 0) {
+  if (bonded_.size() + nonbonded_.size() == 0) {
     throw std::runtime_error(
         "No interactions defined in options xml-file - nothing to be done");
   }
 
   // initialize non-bonded structures
-  for (Property *prop : _nonbonded) {
+  for (Property *prop : nonbonded_) {
     interaction_t *i = AddInteraction(prop);
-    i->_is_bonded = false;
+    i->is_bonded_ = false;
   }
 }
 
 void RDFCalculator::BeginEvaluate(Topology *top, Topology *) {
   Eigen::Matrix3d box = top->getBox();
-  _boxc = box.rowwise().sum() / 2.0;
+  boxc_ = box.rowwise().sum() / 2.0;
 
-  std::cout << "Using center of box: " << _boxc << std::endl;
+  std::cout << "Using center of box: " << boxc_ << std::endl;
   // we didn't process any frames so far
-  _nframes = 0;
-  _nblock = 0;
-  _processed_some_frames = false;
+  nframes_ = 0;
+  nblock_ = 0;
+  processed_some_frames_ = false;
 
   // initialize non-bonded structures
-  for (Property *prop : _nonbonded) {
+  for (Property *prop : nonbonded_) {
     std::string name = prop->get("name").value();
 
-    interaction_t &i = *_interactions[name];
+    interaction_t &i = *interactions_[name];
 
     // count total species for ideal densities
 
@@ -107,12 +107,12 @@ void RDFCalculator::BeginEvaluate(Topology *top, Topology *) {
     }
     // calculate normalization factor for rdf
 
-    if (_do_vol_corr) {
+    if (do_vol_corr_) {
       std::cout << "Volume correction on" << std::endl;
-      i._norm = 1. / (4.0 * votca::tools::conv::Pi * i._step);
+      i.norm_ = 1. / (4.0 * votca::tools::conv::Pi * i.step_);
     } else {
       std::cout << "Volume correction off" << std::endl;
-      i._norm = 1. / (4. * votca::tools::conv::Pi * i._step);
+      i.norm_ = 1. / (4. * votca::tools::conv::Pi * i.step_);
     }
   }
 }
@@ -125,35 +125,35 @@ RDFCalculator::interaction_t *RDFCalculator::AddInteraction(Property *p) {
 
   auto inter = std::make_unique<interaction_t>();
   interaction_t *i = inter.get();
-  inter->_index = _interactions.size();
-  _interactions[name] = std::move(inter);
-  getGroup(group)->_interactions.push_back(i);
+  inter->index_ = interactions_.size();
+  interactions_[name] = std::move(inter);
+  getGroup(group)->interactions_.push_back(i);
 
-  i->_step = p->get("step").as<double>();
-  i->_min = p->get("min").as<double>();
-  i->_max = p->get("max").as<double>();
-  i->_norm = 1.0;
-  i->_p = p;
+  i->step_ = p->get("step").as<double>();
+  i->min_ = p->get("min").as<double>();
+  i->max_ = p->get("max").as<double>();
+  i->norm_ = 1.0;
+  i->p_ = p;
 
   // initialize the current and average histogram
-  Index n = (Index)((i->_max - i->_min) / i->_step + 1.000000001);
+  Index n = (Index)((i->max_ - i->min_) / i->step_ + 1.000000001);
 
-  i->_average.Initialize(i->_min, i->_max + i->_step, n);
+  i->average_.Initialize(i->min_, i->max_ + i->step_, n);
 
   return i;
 }
 
 // end of trajectory, post processing data
 void RDFCalculator::EndEvaluate() {
-  if (_nframes > 0) {
-    if (!_do_blocks) {
+  if (nframes_ > 0) {
+    if (!do_blocks_) {
       WriteDist();
     }
   }
   // clear interactions and groups
-  _interactions.clear();
-  _groups.clear();
-  if (!_processed_some_frames) {
+  interactions_.clear();
+  groups_.clear();
+  if (!processed_some_frames_) {
     throw std::runtime_error(
         "no frames were processed. Please check your input");
   }
@@ -161,15 +161,15 @@ void RDFCalculator::EndEvaluate() {
 
 // load options from xml file
 void RDFCalculator::LoadOptions(const std::string &file) {
-  _options.LoadFromXML(file);
-  _bonded = _options.Select("cg.bonded");
-  _nonbonded = _options.Select("cg.non-bonded");
+  options_.LoadFromXML(file);
+  bonded_ = options_.Select("cg.bonded");
+  nonbonded_ = options_.Select("cg.non-bonded");
 }
 
 // evaluate current conformation
 void RDFCalculator::Worker::EvalConfiguration(Topology *top, Topology *) {
-  _cur_vol = 4.0 / 3.0 * votca::tools::conv::Pi * _rdfcalculator->_subvol_rad *
-             _rdfcalculator->_subvol_rad * _rdfcalculator->_subvol_rad;
+  cur_vol_ = 4.0 / 3.0 * votca::tools::conv::Pi * rdfcalculator_->subvol_rad_ *
+             rdfcalculator_->subvol_rad_ * rdfcalculator_->subvol_rad_;
   // process non-bonded interactions
   DoNonbonded(top);
   // process bonded interactions
@@ -178,13 +178,13 @@ void RDFCalculator::Worker::EvalConfiguration(Topology *top, Topology *) {
 
 void RDFCalculator::ClearAverages() {
 
-  _nframes = 0;
-  for (auto &_interaction : _interactions) {
-    _interaction.second->_average.Clear();
+  nframes_ = 0;
+  for (auto &interaction_ : interactions_) {
+    interaction_.second->average_.Clear();
   }
 
-  for (auto &_group : _groups) {
-    _group.second->_corr.setZero();
+  for (auto &group_ : groups_) {
+    group_.second->corr_.setZero();
   }
 }
 
@@ -192,29 +192,29 @@ class IMCNBSearchHandler {
  public:
   IMCNBSearchHandler(HistogramNew *hist, double subvol_rad,
                      Eigen::Vector3d boxc, bool do_vol_corr)
-      : _hist(hist),
-        _subvol_rad(subvol_rad),
-        _boxc(boxc),
-        _do_vol_corr(do_vol_corr) {}
+      : hist_(hist),
+        subvol_rad_(subvol_rad),
+        boxc_(boxc),
+        do_vol_corr_(do_vol_corr) {}
 
-  HistogramNew *_hist;
-  double _subvol_rad;
-  Eigen::Vector3d _boxc;  // center of box
-  bool _do_vol_corr;
+  HistogramNew *hist_;
+  double subvol_rad_;
+  Eigen::Vector3d boxc_;  // center of box
+  bool do_vol_corr_;
 
   bool FoundPair(Bead *b1, Bead *, const Eigen::Vector3d &, const double dist) {
 
-    if (_do_vol_corr) {
-      double dr = (b1->Pos() - _boxc).norm();
-      if (dist + dr > _subvol_rad) {
+    if (do_vol_corr_) {
+      double dr = (b1->Pos() - boxc_).norm();
+      if (dist + dr > subvol_rad_) {
         // 2.0 is because everything is normalized to 4 PI
-        _hist->Process(dist, 2.0 / SurfaceRatio(dist, dr));
+        hist_->Process(dist, 2.0 / SurfaceRatio(dist, dr));
       } else {
-        _hist->Process(dist);
+        hist_->Process(dist);
       }
 
     } else {
-      _hist->Process(dist);
+      hist_->Process(dist);
     }
     return false;
   }
@@ -222,34 +222,34 @@ class IMCNBSearchHandler {
   double SurfaceRatio(double dist, double r) {
     // r: distance of particle from ex center
     // dist: distance between particles
-    return (1.0 + (_subvol_rad * _subvol_rad - r * r - dist * dist) /
+    return (1.0 + (subvol_rad_ * subvol_rad_ - r * r - dist * dist) /
                       (2.0 * dist * r));
   }
 };
 
 // process non-bonded interactions for current frame
 void RDFCalculator::Worker::DoNonbonded(Topology *top) {
-  for (Property *prop : _rdfcalculator->_nonbonded) {
+  for (Property *prop : rdfcalculator_->nonbonded_) {
     std::string name = prop->get("name").value();
 
-    interaction_t &i = *_rdfcalculator->_interactions[name];
+    interaction_t &i = *rdfcalculator_->interactions_[name];
 
     // generate the bead lists
     BeadList beads1, beads2;
 
     beads1.GenerateInSphericalSubvolume(*top, prop->get("type1").value(),
-                                        _rdfcalculator->_boxc,
-                                        _rdfcalculator->_subvol_rad);
+                                        rdfcalculator_->boxc_,
+                                        rdfcalculator_->subvol_rad_);
     beads2.GenerateInSphericalSubvolume(*top, prop->get("type2").value(),
-                                        _rdfcalculator->_boxc,
-                                        _rdfcalculator->_subvol_rad);
+                                        rdfcalculator_->boxc_,
+                                        rdfcalculator_->subvol_rad_);
 
-    _cur_beadlist_1_count = (double)beads1.size();
-    _cur_beadlist_2_count = (double)beads2.size();
+    cur_beadlist_1_count_ = (double)beads1.size();
+    cur_beadlist_2_count_ = (double)beads2.size();
 
     // same types, so put factor 1/2 because of already counted interactions
     if (prop->get("type1").value() == prop->get("type2").value()) {
-      _cur_beadlist_2_count /= 2.0;
+      cur_beadlist_2_count_ /= 2.0;
     }
 
     // generate the neighbour list
@@ -257,11 +257,11 @@ void RDFCalculator::Worker::DoNonbonded(Topology *top) {
 
     bool gridsearch = true;
 
-    if (_rdfcalculator->_options.exists("cg.nbsearch")) {
-      if (_rdfcalculator->_options.get("cg.nbsearch").as<std::string>() ==
+    if (rdfcalculator_->options_.exists("cg.nbsearch")) {
+      if (rdfcalculator_->options_.get("cg.nbsearch").as<std::string>() ==
           "grid") {
         gridsearch = true;
-      } else if (_rdfcalculator->_options.get("cg.nbsearch")
+      } else if (rdfcalculator_->options_.get("cg.nbsearch")
                      .as<std::string>() == "simple") {
         gridsearch = false;
       } else {
@@ -274,14 +274,14 @@ void RDFCalculator::Worker::DoNonbonded(Topology *top) {
       nb = std::make_unique<NBList>();
     }
 
-    nb->setCutoff(i._max + i._step);
+    nb->setCutoff(i.max_ + i.step_);
 
     // clear the current histogram
-    _current_hists[i._index].Clear();
+    current_hists_[i.index_].Clear();
 
-    IMCNBSearchHandler h(&(_current_hists[i._index]),
-                         _rdfcalculator->_subvol_rad, _rdfcalculator->_boxc,
-                         _rdfcalculator->_do_vol_corr);
+    IMCNBSearchHandler h(&(current_hists_[i.index_]),
+                         rdfcalculator_->subvol_rad_, rdfcalculator_->boxc_,
+                         rdfcalculator_->do_vol_corr_);
     nb->SetMatchFunction(&h, &IMCNBSearchHandler::FoundPair);
 
     // is it same types or different types?
@@ -292,27 +292,27 @@ void RDFCalculator::Worker::DoNonbonded(Topology *top) {
     }
 
     // store particle number in subvolume for each interaction
-    i._avg_beadlist_1_count.Process(_cur_beadlist_1_count);
-    i._avg_beadlist_2_count.Process(_cur_beadlist_2_count);
+    i.avg_beadlist_1_count_.Process(cur_beadlist_1_count_);
+    i.avg_beadlist_2_count_.Process(cur_beadlist_2_count_);
   }
 }
 
 // process non-bonded interactions for current frame
 void RDFCalculator::Worker::DoBonded(Topology *top) {
-  for (Property *prop : _rdfcalculator->_bonded) {
+  for (Property *prop : rdfcalculator_->bonded_) {
     std::string name = prop->get("name").value();
 
-    interaction_t &i = *_rdfcalculator->_interactions[name];
+    interaction_t &i = *rdfcalculator_->interactions_[name];
 
     // clear the current histogram
-    _current_hists[i._index].Clear();
+    current_hists_[i.index_].Clear();
 
     // now fill with new data
     std::vector<Interaction *> vec = top->InteractionsInGroup(name);
 
     for (auto ic : vec) {
       double v = ic->EvaluateVar(*top);
-      _current_hists[i._index].Process(v);
+      current_hists_[i.index_].Process(v);
     }
   }
 }
@@ -320,9 +320,9 @@ void RDFCalculator::Worker::DoBonded(Topology *top) {
 // returns a group, creates it if doesn't exist
 RDFCalculator::group_t *RDFCalculator::getGroup(const std::string &name) {
   std::map<std::string, std::unique_ptr<group_t>>::iterator iter;
-  iter = _groups.find(name);
-  if (iter == _groups.end()) {
-    return (_groups[name] = std::make_unique<group_t>()).get();
+  iter = groups_.find(name);
+  if (iter == groups_.end()) {
+    return (groups_[name] = std::make_unique<group_t>()).get();
   }
   return (*iter).second.get();
 }
@@ -331,73 +331,73 @@ RDFCalculator::group_t *RDFCalculator::getGroup(const std::string &name) {
 void RDFCalculator::WriteDist(const std::string &suffix) {
 
   // for all interactions
-  for (auto &_interaction : _interactions) {
+  for (auto &interaction_ : interactions_) {
     // calculate the rdf
-    Table &t = _interaction.second->_average.data();
+    Table &t = interaction_.second->average_.data();
     Table dist(t);
 
-    _interaction.second->_norm /=
-        (_interaction.second->_avg_beadlist_1_count.getAvg() *
-         _interaction.second->_avg_beadlist_2_count.getAvg());
-    dist.y() = _avg_vol.getAvg() * _interaction.second->_norm *
+    interaction_.second->norm_ /=
+        (interaction_.second->avg_beadlist_1_count_.getAvg() *
+         interaction_.second->avg_beadlist_2_count_.getAvg());
+    dist.y() = avg_vol_.getAvg() * interaction_.second->norm_ *
                dist.y().cwiseQuotient(dist.x().cwiseAbs2());
 
-    dist.Save((_interaction.first) + suffix + ".dist.new");
-    std::cout << "written " << (_interaction.first) + suffix + ".dist.new\n";
+    dist.Save((interaction_.first) + suffix + ".dist.new");
+    std::cout << "written " << (interaction_.first) + suffix + ".dist.new\n";
 
     std::cout << "Avg. number of particles in subvol for "
-              << (_interaction.first) << std::endl;
+              << (interaction_.first) << std::endl;
     std::cout << "beadlist 1: "
-              << _interaction.second->_avg_beadlist_1_count.getAvg()
+              << interaction_.second->avg_beadlist_1_count_.getAvg()
               << std::endl;
     std::cout << "beadlist 2: "
-              << _interaction.second->_avg_beadlist_2_count.getAvg()
+              << interaction_.second->avg_beadlist_2_count_.getAvg()
               << std::endl;
   }
 
-  std::cout << "Volume used for normalization: " << _avg_vol.getAvg()
+  std::cout << "Volume used for normalization: " << avg_vol_.getAvg()
             << std::endl;
 }
 
 std::unique_ptr<CsgApplication::Worker> RDFCalculator::ForkWorker() {
   auto worker = std::make_unique<RDFCalculator::Worker>();
 
-  worker->_current_hists.resize(_interactions.size());
-  worker->_rdfcalculator = this;
+  worker->current_hists_.resize(interactions_.size());
+  worker->rdfcalculator_ = this;
 
-  for (auto &_interaction : _interactions) {
-    interaction_t *i = _interaction.second.get();
-    worker->_current_hists[i->_index].Initialize(
-        i->_average.getMin(), i->_average.getMax(), i->_average.getNBins());
+  for (auto &interaction_ : interactions_) {
+    interaction_t *i = interaction_.second.get();
+    worker->current_hists_[i->index_].Initialize(
+        i->average_.getMin(), i->average_.getMax(), i->average_.getNBins());
   }
   return worker;
 }
 
 void RDFCalculator::MergeWorker(CsgApplication::Worker *worker_) {
-  _processed_some_frames = true;
+  processed_some_frames_ = true;
   RDFCalculator::Worker *worker =
       dynamic_cast<RDFCalculator::Worker *>(worker_);
   // update the average
 
-  ++_nframes;
+  ++nframes_;
 
-  _avg_vol.Process(worker->_cur_vol);
+  avg_vol_.Process(worker->cur_vol_);
 
-  for (auto &_interaction : _interactions) {
-    interaction_t *i = _interaction.second.get();
-    i->_average.data().y() =
-        (((double)_nframes - 1.0) * i->_average.data().y() +
-         worker->_current_hists[i->_index].data().y()) /
-        (double)_nframes;
+  for (auto &interaction_ : interactions_) {
+    interaction_t *i = interaction_.second.get();
+    i->average_.data().y() =
+        (((double)nframes_ - 1.0) * i->average_.data().y() +
+         worker->current_hists_[i->index_].data().y()) /
+        (double)nframes_;
   }
 
-  if (_write_every != 0) {
-    if ((_nframes % _write_every) == 0) {
-      _nblock++;
+  if (write_every_ != 0) {
+    if ((nframes_ % write_every_) == 0) {
+      nblock_++;
       std::string suffix =
-          std::string("_") + boost::lexical_cast<std::string>(_nblock);
+          std::string("_") + boost::lexical_cast<std::string>(nblock_);
       WriteDist(suffix);
-      if (_do_blocks) {
+      if (do_blocks_) {
         ClearAverages();
       }
     }

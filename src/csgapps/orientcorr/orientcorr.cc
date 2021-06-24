@@ -71,16 +71,16 @@ class OrientCorrApp : public CsgApplication {
   static std::unique_ptr<NBList> CreateNBSearch();
 
  protected:
-  votca::tools::HistogramNew _cor;
-  votca::tools::HistogramNew _count;
-  votca::tools::HistogramNew _cor_excl;
-  votca::tools::HistogramNew _count_excl;
-  static string _nbmethod;
-  double _cut_off;
-  votca::Index _nbins;
+  votca::tools::HistogramNew cor_;
+  votca::tools::HistogramNew count_;
+  votca::tools::HistogramNew cor_excl_;
+  votca::tools::HistogramNew count_excl_;
+  static string nbmethod_;
+  double cut_off_;
+  votca::Index nbins_;
 };
 
-string OrientCorrApp::_nbmethod;
+string OrientCorrApp::nbmethod_;
 
 // Earch thread has a worker and analysis data
 class MyWorker : public CsgApplication::Worker {
@@ -95,14 +95,14 @@ class MyWorker : public CsgApplication::Worker {
                  const double dist);
 
   // accumulator of the 3/2*u(0)u(r) - 1/2
-  votca::tools::HistogramNew _cor;
+  votca::tools::HistogramNew cor_;
   // number of hits for each bin
-  votca::tools::HistogramNew _count;
+  votca::tools::HistogramNew count_;
   // accumulator of the 3/2*u(0)u(r) - 1/2, only inter-molecular
-  votca::tools::HistogramNew _cor_excl;
+  votca::tools::HistogramNew cor_excl_;
   // number of hits for each bin, only inter-molecular
-  votca::tools::HistogramNew _count_excl;
-  double _cut_off;
+  votca::tools::HistogramNew count_excl_;
+  double cut_off_;
 };
 
 int main(int argc, char **argv) {
@@ -117,23 +117,23 @@ void OrientCorrApp::Initialize() {
   // some application specific options
   AddProgramOptions("Neighbor search options")(
       "cutoff,c",
-      boost::program_options::value<double>(&_cut_off)->default_value(1.0),
+      boost::program_options::value<double>(&cut_off_)->default_value(1.0),
       "cutoff for the neighbor search")(
       "nbins",
-      boost::program_options::value<votca::Index>(&_nbins)->default_value(40),
+      boost::program_options::value<votca::Index>(&nbins_)->default_value(40),
       "number of bins for the grid")("nbmethod",
                                      boost::program_options::value<string>(
-                                         &_nbmethod)
+                                         &nbmethod_)
                                          ->default_value("grid"),
                                      "neighbor search algorithm (simple or "
                                      "grid)");
 }
 
 std::unique_ptr<NBList> OrientCorrApp::CreateNBSearch() {
-  if (_nbmethod == "simple") {
+  if (nbmethod_ == "simple") {
     return std::make_unique<NBList>();
   }
-  if (_nbmethod == "grid") {
+  if (nbmethod_ == "grid") {
     return std::make_unique<NBListGrid>();
   }
 
@@ -144,20 +144,20 @@ std::unique_ptr<NBList> OrientCorrApp::CreateNBSearch() {
 
 // initialize the histograms
 void OrientCorrApp::BeginEvaluate(Topology *, Topology *) {
-  _cor.Initialize(0, _cut_off, _nbins);
-  _count.Initialize(0, _cut_off, _nbins);
-  _cor_excl.Initialize(0, _cut_off, _nbins);
-  _count_excl.Initialize(0, _cut_off, _nbins);
+  cor_.Initialize(0, cut_off_, nbins_);
+  count_.Initialize(0, cut_off_, nbins_);
+  cor_excl_.Initialize(0, cut_off_, nbins_);
+  count_excl_.Initialize(0, cut_off_, nbins_);
 }
 
 // creates worker for each thread
 std::unique_ptr<CsgApplication::Worker> OrientCorrApp::ForkWorker() {
   auto worker = std::make_unique<MyWorker>();
-  worker->_cut_off = _cut_off;
-  worker->_cor.Initialize(0, worker->_cut_off, _nbins);
-  worker->_count.Initialize(0, worker->_cut_off, _nbins);
-  worker->_cor_excl.Initialize(0, worker->_cut_off, _nbins);
-  worker->_count_excl.Initialize(0, worker->_cut_off, _nbins);
+  worker->cut_off_ = cut_off_;
+  worker->cor_.Initialize(0, worker->cut_off_, nbins_);
+  worker->count_.Initialize(0, worker->cut_off_, nbins_);
+  worker->cor_excl_.Initialize(0, worker->cut_off_, nbins_);
+  worker->count_excl_.Initialize(0, worker->cut_off_, nbins_);
   return worker;
 }
 
@@ -201,8 +201,8 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
   cout << "done\n";
 
   // the neighbor search only finds pairs, add self-self correlation parts here
-  _cor.Process(0.0f, (double)mapped.BeadCount());
-  _count.Process(0.0f, (double)mapped.BeadCount());
+  cor_.Process(0.0f, (double)mapped.BeadCount());
+  count_.Process(0.0f, (double)mapped.BeadCount());
 
   // search for all beads
   BeadList b;
@@ -210,7 +210,7 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *) {
 
   // create/initialize neighborsearch
   std::unique_ptr<NBList> nb = OrientCorrApp::CreateNBSearch();
-  nb->setCutoff(_cut_off);
+  nb->setCutoff(cut_off_);
 
   // set callback for each pair found
   nb->SetMatchFunction(this, &MyWorker::FoundPair);
@@ -227,16 +227,16 @@ bool MyWorker::FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &,
   double P2 = 3. / 2. * tmp * tmp - 0.5;
 
   // calculate average without exclusions
-  _cor.Process(dist, P2);
-  _count.Process(dist);
+  cor_.Process(dist, P2);
+  count_.Process(dist);
 
   if (b1->getMoleculeId() == b2->getMoleculeId()) {
     return false;
   }
 
   // calculate average with excluding intramolecular contributions
-  _cor_excl.Process(dist, P2);
-  _count_excl.Process(dist);
+  cor_excl_.Process(dist, P2);
+  count_excl_.Process(dist);
 
   return false;
 }
@@ -244,18 +244,18 @@ bool MyWorker::FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &,
 // merge analysed data of a worker into main applications
 void OrientCorrApp::MergeWorker(Worker *worker) {
   MyWorker *myWorker = dynamic_cast<MyWorker *>(worker);
-  _cor.data().y() += myWorker->_cor.data().y();
-  _count.data().y() += myWorker->_count.data().y();
-  _cor_excl.data().y() += myWorker->_cor_excl.data().y();
-  _count_excl.data().y() += myWorker->_count_excl.data().y();
+  cor_.data().y() += myWorker->cor_.data().y();
+  count_.data().y() += myWorker->count_.data().y();
+  cor_excl_.data().y() += myWorker->cor_excl_.data().y();
+  count_excl_.data().y() += myWorker->count_excl_.data().y();
 }
 
 // write out the data
 void OrientCorrApp::EndEvaluate() {
-  _cor.data().y() = _cor.data().y().cwiseQuotient(_count.data().y());
-  _cor.data().Save("correlation.dat");
+  cor_.data().y() = cor_.data().y().cwiseQuotient(count_.data().y());
+  cor_.data().Save("correlation.dat");
 
-  _cor_excl.data().y() =
-      _cor_excl.data().y().cwiseQuotient(_count_excl.data().y());
-  _cor_excl.data().Save("correlation_excl.dat");
+  cor_excl_.data().y() =
+      cor_excl_.data().y().cwiseQuotient(count_excl_.data().y());
+  cor_excl_.data().Save("correlation_excl.dat");
 }

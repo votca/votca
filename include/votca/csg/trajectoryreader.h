@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_TRAJECTORYREADER_H
-#define _VOTCA_CSG_TRAJECTORYREADER_H
+#ifndef VOTCA_CSG_TRAJECTORYREADER_H
+#define VOTCA_CSG_TRAJECTORYREADER_H
 
 // Standard includes
 #include <string>
@@ -51,11 +51,11 @@ class TrajectoryReader {
 
 // important - singleton pattern, make sure factory is created before accessed
 inline FileFormatFactory<TrajectoryReader> &TrjReaderFactory() {
-  static FileFormatFactory<TrajectoryReader> _TrjReaderFactory;
-  return _TrjReaderFactory;
+  static FileFormatFactory<TrajectoryReader> TrjReaderFactory_;
+  return TrjReaderFactory_;
 }
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_TRAJECTORYREADER_H */
+#endif /*  VOTCA_CSG_TRAJECTORYREADER_H */

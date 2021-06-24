@@ -81,7 +81,7 @@ using InteractionContainer = std::vector<Interaction *>;
 class Topology {
  public:
   /// constructor
-  Topology() { _bc = std::make_unique<OpenBox>(); }
+  Topology() { bc_ = std::make_unique<OpenBox>(); }
   ~Topology();
 
   /**
@@ -157,19 +157,19 @@ class Topology {
    * \brief number of molecules in the system
    * @return number of molecule in topology
    */
-  Index MoleculeCount() const { return _molecules.size(); }
+  Index MoleculeCount() const { return molecules_.size(); }
 
   /**
    * number of beads in the system
    * @return number of beads in the system
    */
-  Index BeadCount() const { return _beads.size(); }
+  Index BeadCount() const { return beads_.size(); }
 
   /**
    * number of residues in the system
    * \return number of residues
    */
-  Index ResidueCount() const { return _residues.size(); }
+  Index ResidueCount() const { return residues_.size(); }
 
   /**
    * get molecule by index
@@ -182,29 +182,29 @@ class Topology {
    * access containter with all beads
    * @return bead container
    */
-  BeadContainer &Beads() { return _beads; }
+  BeadContainer &Beads() { return beads_; }
 
   /**
    * access containter with all residues
    * @return bead container
    */
-  ResidueContainer &Residues() { return _residues; }
-  const ResidueContainer &Residues() const { return _residues; }
+  ResidueContainer &Residues() { return residues_; }
+  const ResidueContainer &Residues() const { return residues_; }
 
   /**
    * access  containter with all molecules
    * @return molecule container
    */
-  MoleculeContainer &Molecules() { return _molecules; }
-  const MoleculeContainer &Molecules() const { return _molecules; }
+  MoleculeContainer &Molecules() { return molecules_; }
+  const MoleculeContainer &Molecules() const { return molecules_; }
 
   /**
    * access containter with all bonded interactions
    * @return bonded interaction container
    */
-  InteractionContainer &BondedInteractions() { return _interactions; }
+  InteractionContainer &BondedInteractions() { return interactions_; }
   const InteractionContainer &BondedInteractions() const {
-    return _interactions;
+    return interactions_;
   }
 
   void AddBondedInteraction(Interaction *ic);
@@ -240,17 +240,17 @@ class Topology {
    * @param[in] Index i is the id of the bead
    * @return Bead * is a pointer to the bead
    **/
-  Bead *getBead(const Index i) { return &_beads[i]; }
-  const Bead *getBead(const Index i) const { return &_beads[i]; }
-  Residue &getResidue(const Index i) { return _residues[i]; }
-  const Residue &getResidue(const Index i) const { return _residues[i]; }
-  Molecule *getMolecule(const Index i) { return &_molecules[i]; }
-  const Molecule *getMolecule(const Index i) const { return &_molecules[i]; }
+  Bead *getBead(const Index i) { return &beads_[i]; }
+  const Bead *getBead(const Index i) const { return &beads_[i]; }
+  Residue &getResidue(const Index i) { return residues_[i]; }
+  const Residue &getResidue(const Index i) const { return residues_[i]; }
+  Molecule *getMolecule(const Index i) { return &molecules_[i]; }
+  const Molecule *getMolecule(const Index i) const { return &molecules_[i]; }
 
   /**
    * delete all molecule information
    */
-  void ClearMoleculeList() { _molecules.clear(); }
+  void ClearMoleculeList() { molecules_.clear(); }
 
   /**
    * \brief adds all the beads+molecules+residues from other topology
@@ -299,69 +299,69 @@ class Topology {
 
     switch (boxtype) {
       case BoundaryCondition::typeTriclinic:
-        _bc = std::make_unique<TriclinicBox>();
+        bc_ = std::make_unique<TriclinicBox>();
         break;
       case BoundaryCondition::typeOrthorhombic:
-        _bc = std::make_unique<OrthorhombicBox>();
+        bc_ = std::make_unique<OrthorhombicBox>();
         break;
       default:
-        _bc = std::make_unique<OpenBox>();
+        bc_ = std::make_unique<OpenBox>();
         break;
     }
 
-    _bc->setBox(box);
+    bc_->setBox(box);
   };
 
   /**
    * get the simulation box
    * \return triclinic box matrix
    */
-  const Eigen::Matrix3d &getBox() const { return _bc->getBox(); };
+  const Eigen::Matrix3d &getBox() const { return bc_->getBox(); };
 
   /**
    * @brief Return the boundary condition object
    */
   const BoundaryCondition &getBoundary() const {
-    assert(_bc && "Cannot return boundary condition is null");
-    return *_bc;
+    assert(bc_ && "Cannot return boundary condition is null");
+    return *bc_;
   };
   /**
    * set the time of current frame
    * \param t simulation time in ns
    */
-  void setTime(double t) { _time = t; };
+  void setTime(double t) { time_ = t; };
 
   /**
    * get the time of current frame
    * \return simulation time in ns
    */
-  double getTime() const { return _time; };
+  double getTime() const { return time_; };
 
   /**
    * set the step number of current frame
    * \param s step number
    */
-  void setStep(Index s) { _step = s; };
+  void setStep(Index s) { step_ = s; };
 
   /**
    * get the step number of current frame
    * \return step number
    */
-  Index getStep() const { return _step; };
+  Index getStep() const { return step_; };
 
   /**
    * Sets the particle group. (For the H5MD file format)
    * \param particle_group The name of a particle group.
    */
   void setParticleGroup(std::string particle_group) {
-    _particle_group = particle_group;
+    particle_group_ = particle_group;
   };
 
   /**
    * Gets the particle group.
    * \return The name of a particle group.
    */
-  std::string getParticleGroup() const { return _particle_group; };
+  std::string getParticleGroup() const { return particle_group_; };
 
   /**
    * \brief pbc correct distance of two beads
@@ -409,22 +409,22 @@ class Topology {
    * access exclusion list
    * \return exclusion list
    */
-  ExclusionList &getExclusions() { return _exclusions; }
-  const ExclusionList &getExclusions() const { return _exclusions; }
+  ExclusionList &getExclusions() { return exclusions_; }
+  const ExclusionList &getExclusions() const { return exclusions_; }
 
-  BoundaryCondition::eBoxtype getBoxType() const { return _bc->getBoxType(); }
+  BoundaryCondition::eBoxtype getBoxType() const { return bc_->getBoxType(); }
 
   template <typename iteratable>
   void InsertExclusion(Bead *bead1, iteratable &l);
 
-  bool HasVel() { return _has_vel; }
-  void SetHasVel(const bool v) { _has_vel = v; }
+  bool HasVel() { return has_vel_; }
+  void SetHasVel(const bool v) { has_vel_ = v; }
 
-  bool HasForce() { return _has_force; }
-  void SetHasForce(const bool v) { _has_force = v; }
+  bool HasForce() { return has_force_; }
+  void SetHasForce(const bool v) { has_force_ = v; }
 
  protected:
-  std::unique_ptr<BoundaryCondition> _bc;
+  std::unique_ptr<BoundaryCondition> bc_;
 
   BoundaryCondition::eBoxtype autoDetectBoxType(
       const Eigen::Matrix3d &box) const;
@@ -433,68 +433,68 @@ class Topology {
   std::unordered_map<std::string, Index> beadtypes_;
 
   /// beads in the topology
-  BeadContainer _beads;
+  BeadContainer beads_;
 
   /// molecules in the topology
-  MoleculeContainer _molecules;
+  MoleculeContainer molecules_;
 
   /// residues in the topology
-  ResidueContainer _residues;
+  ResidueContainer residues_;
 
   /// bonded interactions in the topology
-  InteractionContainer _interactions;
+  InteractionContainer interactions_;
 
-  ExclusionList _exclusions;
+  ExclusionList exclusions_;
 
-  std::map<std::string, Index> _interaction_groups;
+  std::map<std::string, Index> interaction_groups_;
 
-  std::map<std::string, std::vector<Interaction *>> _interactions_by_group;
+  std::map<std::string, std::vector<Interaction *>> interactions_by_group_;
 
-  double _time = 0.0;
-  Index _step = 0;
-  bool _has_vel = false;
-  bool _has_force = false;
+  double time_ = 0.0;
+  Index step_ = 0;
+  bool has_vel_ = false;
+  bool has_force_ = false;
 
   /// The particle group (For H5MD file format)
-  std::string _particle_group = "unassigned";
+  std::string particle_group_ = "unassigned";
 };
 
 inline Bead *Topology::CreateBead(Bead::Symmetry symmetry, std::string name,
                                   std::string type, Index resnr, double m,
                                   double q) {
 
-  _beads.push_back(Bead(_beads.size(), type, symmetry, name, resnr, m, q));
-  return &_beads.back();
+  beads_.push_back(Bead(beads_.size(), type, symmetry, name, resnr, m, q));
+  return &beads_.back();
 }
 
 inline Molecule *Topology::CreateMolecule(std::string name) {
-  _molecules.push_back(Molecule(_molecules.size(), name));
-  return &_molecules.back();
+  molecules_.push_back(Molecule(molecules_.size(), name));
+  return &molecules_.back();
 }
 
 inline Residue &Topology::CreateResidue(std::string name, Index id) {
   // Note that Residue constructor is intentionally private and only topology
   // class can create it, hence emplace back will not work because the vector
   // class does not have access to the constructor.
-  _residues.push_back(Residue(id, name));
-  return _residues.back();
+  residues_.push_back(Residue(id, name));
+  return residues_.back();
 }
 
 inline Residue &Topology::CreateResidue(std::string name) {
   // Note that Residue constructor is intentionally private and only topology
   // class can create it, hence emplace back will not work because the vector
   // class does not have access to the constructor.
-  _residues.push_back(Residue(_residues.size(), name));
-  return _residues.back();
+  residues_.push_back(Residue(residues_.size(), name));
+  return residues_.back();
 }
 
 inline Molecule *Topology::MoleculeByIndex(Index index) {
-  return &_molecules[index];
+  return &molecules_[index];
 }
 
 template <typename iteratable>
 inline void Topology::InsertExclusion(Bead *bead1, iteratable &l) {
-  _exclusions.InsertExclusion(bead1, l);
+  exclusions_.InsertExclusion(bead1, l);
 }
 
 }  // namespace csg

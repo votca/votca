@@ -32,31 +32,31 @@ using namespace std;
 
 void PDBWriter::Open(string file, bool bAppend) {
   if (bAppend) {
-    _out.open(file, std::ios_base::app);
+    out_.open(file, std::ios_base::app);
   } else {
-    _out.open(file);
+    out_.open(file);
   }
 }
 
 void PDBWriter::WriteHeader(std::string header) {
   if (header.size() < 10 || header.substr(0, 10) != "HEADER    ") {
-    _out << "HEADER    ";
+    out_ << "HEADER    ";
   }
-  _out << header;
+  out_ << header;
   if (header.back() != '\n') {
-    _out << "\n";
+    out_ << "\n";
   }
 }
 
-void PDBWriter::Close() { _out.close(); }
+void PDBWriter::Close() { out_.close(); }
 
 void PDBWriter::Write(Topology *conf) {
 
-  _out << boost::format("MODEL     %1$4d\n") % (conf->getStep() + 1)
+  out_ << boost::format("MODEL     %1$4d\n") % (conf->getStep() + 1)
        << std::flush;
   ;
   WriteContainer<Topology>(*conf);
-  _out << "ENDMDL" << std::endl;
+  out_ << "ENDMDL" << std::endl;
 }
 
 void PDBWriter::WriteBox(const Eigen::Matrix3d &box) {
@@ -70,7 +70,7 @@ void PDBWriter::WriteBox(const Eigen::Matrix3d &box) {
       180 / tools::conv::Pi * std::acos(box.col(0).dot(box.col(2)) / (a * c));
   double gamma =
       180 / tools::conv::Pi * std::acos(box.col(0).dot(box.col(1)) / (a * b));
-  _out << boxfrmt % a % b % c % alpha % beta % gamma;
+  out_ << boxfrmt % a % b % c % alpha % beta % gamma;
 }
 
 void PDBWriter::writeSymmetry(const Bead &bead) {
@@ -80,7 +80,7 @@ void PDBWriter::writeSymmetry(const Bead &bead) {
         "HETATM%1$5d %2$4s %3$3s %4$1s%5$4d    %6$8.3f%7$8.3f%8$8.3f\n");
     Eigen::Vector3d ru = 0.1 * bead.getU() + r;
 
-    _out << beadfrmt % (bead.getId() + 1) % 100000  // atom serial number
+    out_ << beadfrmt % (bead.getId() + 1) % 100000  // atom serial number
                 % bead.getName()                    // atom name
                 % "REU"                             // residue name
                 % " "                               // chain identifier 1 char
@@ -89,7 +89,7 @@ void PDBWriter::writeSymmetry(const Bead &bead) {
 
     if (bead.getSymmetry() > 2) {
       Eigen::Vector3d rv = 0.1 * bead.getV() + r;
-      _out << beadfrmt % (bead.getId() + 1) % 100000  // atom serial number
+      out_ << beadfrmt % (bead.getId() + 1) % 100000  // atom serial number
                   % bead.getName()                    // atom name
                   % "REV"                             // residue name
                   % " "                               // chain identifier 1 char

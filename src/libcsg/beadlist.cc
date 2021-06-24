@@ -28,7 +28,7 @@ namespace csg {
 using namespace std;
 
 Index BeadList::Generate(Topology &top, const string &select) {
-  _topology = &top;
+  topology_ = &top;
   bool selectByName = false;
   string pSelect;  // parsed selection string
 
@@ -43,11 +43,11 @@ Index BeadList::Generate(Topology &top, const string &select) {
   for (auto &bead : top.Beads()) {
     if (!selectByName) {
       if (tools::wildcmp(pSelect, bead.getType())) {
-        _beads.push_back(&bead);
+        beads_.push_back(&bead);
       }
     } else {
       if (tools::wildcmp(pSelect, bead.getName())) {
-        _beads.push_back(&bead);
+        beads_.push_back(&bead);
       }
     }
   }
@@ -58,7 +58,7 @@ Index BeadList::GenerateInSphericalSubvolume(Topology &top,
                                              const string &select,
                                              Eigen::Vector3d ref,
                                              double radius) {
-  _topology = &top;
+  topology_ = &top;
   bool selectByName = false;
   string pSelect;  // parsed selection string
 
@@ -71,16 +71,16 @@ Index BeadList::GenerateInSphericalSubvolume(Topology &top,
   }
 
   for (auto &bead : top.Beads()) {
-    if (_topology->BCShortestConnection(ref, bead.getPos()).norm() > radius) {
+    if (topology_->BCShortestConnection(ref, bead.getPos()).norm() > radius) {
       continue;
     }
     if (!selectByName) {
       if (tools::wildcmp(pSelect, bead.getType())) {
-        _beads.push_back(&bead);
+        beads_.push_back(&bead);
       }
     } else {
       if (tools::wildcmp(pSelect, bead.getName())) {
-        _beads.push_back(&bead);
+        beads_.push_back(&bead);
       }
     }
   }
