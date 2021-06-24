@@ -30,6 +30,7 @@ Version 2022-dev
 -  use ndim vector instead of std::vector (#689)
 -  adapted tokenizer api (#693)
 -  made membervariable format consistent (#694)
+-  add ability to run ibi as a postupd method (#696)
 
 Version 2021.1 (released XX.03.21)
 ==================================
