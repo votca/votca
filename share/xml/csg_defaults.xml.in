@@ -384,24 +384,11 @@
       <DESC>Special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
     </map>
     <method>
-      <DESC>method to be performed: ibi/iie/imc/ft/optimizer</DESC>
+      <DESC>method to be performed: ibi/iie/imc/re/optimizer</DESC>
     </method>
 
     <iie>
       <DESC>general options for the IIE schemes (hncgn/ihnc/hncn/pygn/ipy/pyn)</DESC>
-
-      <initial_guess>
-        <DESC>Settings for the initial guess</DESC>
-        <method>ie
-          <DESC>Method for the initial potential guess: table/bi/ie</DESC>
-        </method>
-        <closure>
-          <DESC>OZ equation closure in case of method=ie: hnc/py</DESC>
-        </closure>
-        <ignore_intramolecular_correlation>false
-          <DESC>If true, the initial guess will ignore the presence of intramolecular correlation in the CG molecule.</DESC>
-        </ignore_intramolecular_correlation>
-      </initial_guess>
 
       <method>gauss-newton
         <DESC>Update method to use: gauss-newton/newton/newton-mod.
@@ -409,11 +396,8 @@
           newton_mod is a modified newton scheme that results in an IBI like expression e.g. IHNC.</DESC>
       </method>
       <closure>hnc
-        <DESC>OZ equation closure for the IIE update: hnc/py</DESC>
+        <DESC>Ornstein-Zernike equation closure for the iie update: hnc/py</DESC>
       </closure>
-      <ignore_intramolecular_correlation>false
-        <DESC>If true, the IIE updates (not the initial guess) will ignore the presence of intramolecular correlation in the CG molecule.</DESC>
-      </ignore_intramolecular_correlation>
       <cut_off>
         <DESC>Cut-off used for non-bonded potenitals in MD.
           Potential will be set to zero beyond this point.</DESC>
@@ -424,15 +408,12 @@
       <cut_jacobian>true
         <DESC>Wether to cut the Jacobian before multiplying with Δg. Only for Newton methods</DESC>
       </cut_jacobian>
-      <densities>
-        <DESC>List of densities of the beads, sorted by bead name. TODO: replace by automatic calculation.</DESC>
-      </densities>
-      <n_intra>
-        <DESC>List of n_intra, the number of equal beads, sorted by bead name. TODO: replace by automatic calculation.</DESC>
-      </n_intra>
       <pressure_constraint>none
-      <DESC>Apply pressure constraint. Only for hncgn/pygn</DESC>
+        <DESC>If not none, apply value as pressure constraint. Only for method=gauss-newton</DESC>
       </pressure_constraint>
+      <residual_weighting>rdf
+        <DESC>TODO: implement! Function to use for weighting the residuals. Only for method=gauss-newton. Valid values are: none, rdf (default), rdf_over_r6</DESC>
+      </residual_weighting>
       <extrap_near_core>power
         <DESC>Method for extrapolation in and close to core region. Valid values are: power (default), constant, none</DESC>
       </extrap_near_core>
@@ -443,6 +424,16 @@
         <DESC>Print some info and dump compressed numpy arrays. Valid values are: true (default), false</DESC>
       </verbose>
     </iie>
+    <initial_guess>
+      <DESC>Settings for the initial guess. Only for method=ibi,iie,imc. Only for non-bonded interactions.</DESC>
+        <!--TODO: can probably be adapted to methods re and optimizer-->
+      <method>bi
+        <DESC>Method for the initial potential guess: table/bi/ie</DESC>
+      </method>
+      <closure>hnc
+        <DESC>Ornstein-Zernike equation closure in case of method=ie: hnc/py</DESC>
+      </closure>
+    </initial_guess>
 
     <optimizer>
       <cma>

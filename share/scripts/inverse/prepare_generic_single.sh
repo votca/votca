@@ -104,7 +104,10 @@ fi
 
 if [[ $use_bi == true ]]; then
     if [[ $table_present == true ]]; then
-        msg "there is a table ${name}.pot.in present, but you still choose BI"
+        msg --color blue "############################################################################################"
+        msg --color blue "# WARNING there is a table ${name}.pot.in present, but cg.inverse.initial_guess.method=bi. #"
+        msg --color blue "#         Change it to table if you want to use the .pot.in table.                         #"
+        msg --color blue "############################################################################################"
     fi
     bi_init
 elif [[ $use_table == true ]]; then

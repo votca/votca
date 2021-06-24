@@ -36,10 +36,9 @@ check_bonded_update() {
   local do_potential=$(csg_get_interaction_property inverse.do_potential)
   local imc_group=$(csg_get_interaction_property inverse.imc.group)
   if [[ $do_potential != 0 ]] || [[ $imc_group != "none" ]]; then
-    die_msg="using IMC for bonded potentials is not implemented yet.\n"\
-"Make sure to set update_potential to 0 and imc.group to 'none' for\n"\
-"each bonded interaction. You can still use post_update ibi."
-    die "$die_msg"
+    die "using IMC for bonded potentials is not implemented yet.
+Make sure to set update_potential to 0 and imc.group to 'none' for
+each bonded interaction. You can still use post_update ibi."
   fi
 }
 export -f check_bonded_update
