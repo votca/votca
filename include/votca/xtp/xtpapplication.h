@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include <algorithm>
 #ifndef VOTCA_XTP_XTPAPPLICATION_H
 #define VOTCA_XTP_XTPAPPLICATION_H
 
@@ -31,15 +32,32 @@ namespace xtp {
 class XtpApplication : public votca::tools::Application {
  public:
   XtpApplication();
-  ~XtpApplication() override = default;
+  ~XtpApplication() override;
 
-  void Initialize() override;
-  bool EvaluateOptions() override = 0;
-  void Run(void) override = 0;
-  void ShowHelpText(std::ostream &out) override;
+  void Initialize() final;
+  bool EvaluateOptions() final;
+  void Run() final;
+  void ShowHelpText(std::ostream& out) final;
 
  protected:
-  votca::tools::Property _options;
+  virtual void execute() = 0;
+  virtual std::string CalculatorType() const = 0;
+
+  virtual void EvaluateSpecificOptions() = 0;
+
+  virtual std::vector<std::string> CalculatorNames() const = 0;
+
+  virtual void CreateCalculator(const std::string& name) = 0;
+
+  virtual void AddCommandLineOptions() = 0;
+
+  votca::tools::Property options_;
+
+ private:
+  bool CalcExists(const std::string& name) const {
+    std::vector<std::string> names = CalculatorNames();
+    return (std::find(names.begin(), names.end(), name) != names.end());
+  }
 };
 
 }  // namespace xtp

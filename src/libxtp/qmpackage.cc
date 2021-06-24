@@ -36,29 +36,42 @@ tools::Property QMPackage::ParseCommonOptions(const tools::Property& options) {
 
   std::string key = "package";
 
-  _settings.read_property(options, key);
+  settings_.read_property(options, key);
 
   if (tools::VotcaShareSet()) {
     Settings qmpackage_defaults{key};
     qmpackage_defaults.load_from_xml(this->FindDefaultsFile());
-    _settings.amend(qmpackage_defaults);
+    settings_.amend(qmpackage_defaults);
   } else {
     std::cout << "Warning: VOTCASHARE environment variable not defined\n";
   }
-  _settings.validate();
+  settings_.validate();
 
-  _charge = _settings.get<Index>("charge");
-  _spin = _settings.get<Index>("spin");
-  _basisset_name = _settings.get("basisset");
+  charge_ = settings_.get<Index>("charge");
+  spin_ = settings_.get<Index>("spin");
+  basisset_name_ = settings_.get("basisset");
 
-  if (_settings.has_key("cleanup")) {
-    _cleanup = _settings.get("cleanup");
+  if (settings_.has_key("cleanup")) {
+    cleanup_ = settings_.get("cleanup");
   }
 
   if (getPackageName() != "xtp") {
-    _scratch_dir = _settings.get("scratch");
+    scratch_dir_ = settings_.get("scratch");
   }
-  return _settings.to_property("package");
+  return settings_.to_property("package");
+}
+
+bool QMPackage::Run() {
+  std::chrono::time_point<std::chrono::system_clock> start =
+      std::chrono::system_clock::now();
+
+  bool error_value = RunDFT();
+
+  std::chrono::duration<double> elapsed_time =
+      std::chrono::system_clock::now() - start;
+  XTP_LOG(Log::error, *pLog_) << TimeStamp() << " DFT calculation took "
+                              << elapsed_time.count() << " seconds." << flush;
+  return error_value;
 }
 
 void QMPackage::ReorderOutput(Orbitals& orbitals) const {
@@ -78,7 +91,7 @@ void QMPackage::ReorderOutput(Orbitals& orbitals) const {
   if (orbitals.hasMOs()) {
     OrbReorder reorder(ShellReorder(), ShellMulitplier());
     reorder.reorderOrbitals(orbitals.MOs().eigenvectors(), dftbasis);
-    XTP_LOG(Log::info, *_pLog) << "Reordered MOs" << flush;
+    XTP_LOG(Log::info, *pLog_) << "Reordered MOs" << flush;
   }
 
   return;
@@ -101,7 +114,7 @@ std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
 
   std::vector<QMPackage::MinimalMMCharge> multipoles_split;
   // Calculate virtual charge positions
-  double a = _settings.get<double>("dipole_spacing");  // this is in a0
+  double a = settings_.get<double>("dipole_spacing");  // this is in a0
   double mag_d = aps.getDipole().norm();               // this is in e * a0
   const Eigen::Vector3d dir_d = aps.getDipole().normalized();
   const Eigen::Vector3d A = aps.getPos() + 0.5 * a * dir_d;

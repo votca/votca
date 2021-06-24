@@ -25,15 +25,16 @@ namespace votca {
 namespace xtp {
 void QMTool::Initialize(const tools::Property& options) {
 
-  tools::Property user_options = LoadDefaultsAndUpdateWithUserOptions(options);
-  _job_name = user_options.ifExistsReturnElseReturnDefault<std::string>(
-      "job_name", _job_name);
+  tools::Property user_options =
+      LoadDefaultsAndUpdateWithUserOptions("xtp", options);
+  job_name_ = user_options.ifExistsReturnElseReturnDefault<std::string>(
+      "job_name", job_name_);
   ParseOptions(user_options);
 }
 
 bool QMTool::Evaluate() {
   libint2::initialize();
-  OPENMP::setMaxThreads(_nThreads);
+  OPENMP::setMaxThreads(nThreads_);
   std::cout << " Using " << OPENMP::getMaxThreads() << " threads" << std::flush;
   bool success = Run();
   libint2::finalize();

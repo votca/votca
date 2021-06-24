@@ -49,8 +49,7 @@ class QMPackage {
   /// writes a coordinate file WITHOUT taking into account PBCs
   virtual bool WriteInputFile(const Orbitals& orbitals) = 0;
 
-  virtual bool Run() = 0;
-
+  bool Run();
   virtual bool ParseLogFile(Orbitals& orbitals) = 0;
 
   virtual bool ParseMOsFile(Orbitals& orbitals) = 0;
@@ -66,54 +65,55 @@ class QMPackage {
         typename Segmenttype::iterator>::value_type;
     for (const Segmenttype& segment : mmregion) {
       for (const Sitetype& site : segment) {
-        _externalsites.push_back(
+        externalsites_.push_back(
             std::unique_ptr<StaticSite>(new Sitetype(site)));
       }
     }
-    if (_settings.get<bool>("write_charges")) {
+    if (settings_.get<bool>("write_charges")) {
       WriteChargeOption();
     }
   }
 
-  void setRunDir(const std::string& run_dir) { _run_dir = run_dir; }
+  void setRunDir(const std::string& run_dir) { run_dir_ = run_dir; }
 
   void setInputFileName(const std::string& input_file_name) {
-    _input_file_name = input_file_name;
+    input_file_name_ = input_file_name;
   }
 
   void setLogFileName(const std::string& log_file_name) {
-    _log_file_name = log_file_name;
+    log_file_name_ = log_file_name;
   }
 
-  void setMOsFileName(const std::string& mo_file) { _mo_file_name = mo_file; }
+  void setMOsFileName(const std::string& mo_file) { mo_file_name_ = mo_file; }
 
-  void setLog(Logger* pLog) { _pLog = pLog; }
+  void setLog(Logger* pLog) { pLog_ = pLog; }
 
   void setCharge(Index charge) {
-    _charge = charge;
-    _spin = std::abs(charge) + 1;
+    charge_ = charge;
+    spin_ = std::abs(charge) + 1;
   }
 
-  bool GuessRequested() const { return _settings.get<bool>("read_guess"); }
+  bool GuessRequested() const { return settings_.get<bool>("read_guess"); }
 
   virtual StaticSegment GetCharges() const = 0;
 
   virtual Eigen::Matrix3d GetPolarizability() const = 0;
 
-  std::string getLogFile() const { return _log_file_name; };
+  std::string getLogFile() const { return log_file_name_; };
 
-  std::string getMOFile() const { return _mo_file_name; };
+  std::string getMOFile() const { return mo_file_name_; };
 
  protected:
   struct MinimalMMCharge {
-    MinimalMMCharge(const Eigen::Vector3d& pos, double q) : _pos(pos), _q(q){};
-    Eigen::Vector3d _pos;
-    double _q;
+    MinimalMMCharge(const Eigen::Vector3d& pos, double q) : pos_(pos), q_(q){};
+    Eigen::Vector3d pos_;
+    double q_;
   };
 
   tools::Property ParseCommonOptions(const tools::Property& options);
   std::string FindDefaultsFile() const;
 
+  virtual bool RunDFT() = 0;
   virtual void WriteChargeOption() = 0;
   std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
   void ReorderOutput(Orbitals& orbitals) const;
@@ -130,23 +130,23 @@ class QMPackage {
   virtual const std::array<Index, 49>& ShellMulitplier() const = 0;
   virtual const std::array<Index, 49>& ShellReorder() const = 0;
 
-  Settings _settings{"package"};
+  Settings settings_{"package"};
 
-  Index _charge;
-  Index _spin;  // 2S+1mem
-  std::string _basisset_name;
-  std::string _cleanup = "";
-  std::string _input_file_name;
-  std::string _log_file_name;
-  std::string _mo_file_name;
-  std::string _options = "";
-  std::string _run_dir;
-  std::string _scratch_dir;
-  std::string _shell_file_name;
+  Index charge_;
+  Index spin_;  // 2S+1mem
+  std::string basisset_name_;
+  std::string cleanup_ = "";
+  std::string input_file_name_;
+  std::string log_file_name_;
+  std::string mo_file_name_;
+  std::string options_ = "";
+  std::string run_dir_;
+  std::string scratch_dir_;
+  std::string shell_file_name_;
 
-  Logger* _pLog;
+  Logger* pLog_;
 
-  std::vector<std::unique_ptr<StaticSite> > _externalsites;
+  std::vector<std::unique_ptr<StaticSite> > externalsites_;
 };
 
 }  // namespace xtp

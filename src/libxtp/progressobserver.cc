@@ -44,26 +44,26 @@ template <typename JobContainer>
 typename ProgObserver<JobContainer>::Job *
     ProgObserver<JobContainer>::RequestNextJob(QMThread &thread) {
 
-  _lockThread.Lock();
+  lockThread_.Lock();
   Job *jobToProc = nullptr;
 
   XTP_LOG(Log::error, thread.getLogger())
       << "Requesting next job" << std::flush;
 
   // NEED NEW CHUNK?
-  if (_nextjit == _jobsToProc.end() && _moreJobsAvailable) {
+  if (nextjit_ == jobsToProc_.end() && moreJobsAvailable_) {
     SyncWithProgFile(thread);
-    _nextjit = _jobsToProc.begin();
-    if (_nextjit == _jobsToProc.end()) {
-      _moreJobsAvailable = false;
+    nextjit_ = jobsToProc_.begin();
+    if (nextjit_ == jobsToProc_.end()) {
+      moreJobsAvailable_ = false;
       XTP_LOG(Log::error, thread.getLogger())
           << "Sync did not yield any new jobs." << std::flush;
     }
   }
 
   // JOBS EATEN ALL UP?
-  if (_nextjit == _jobsToProc.end()) {
-    if (_maxJobs == _startJobsCount) {
+  if (nextjit_ == jobsToProc_.end()) {
+    if (maxJobs_ == startJobsCount_) {
       XTP_LOG(Log::error, thread.getLogger())
           << "Next job: ID = - (reached maximum for this process)"
           << std::flush;
@@ -74,16 +74,16 @@ typename ProgObserver<JobContainer>::Job *
   }
   // TAKE A BITE
   else {
-    jobToProc = *_nextjit;
-    ++_nextjit;
+    jobToProc = *nextjit_;
+    ++nextjit_;
     XTP_LOG(Log::error, thread.getLogger())
         << "Next job: ID = " << jobToProc->getId() << std::flush;
   }
 
   if (!thread.isMaverick() && jobToProc != nullptr) {
     Index idx = jobToProc->getId();
-    Index frac = (_jobs.size() >= 10) ? 10 : _jobs.size();
-    Index rounded = Index(double(_jobs.size()) / double(frac)) * frac;
+    Index frac = (jobs_.size() >= 10) ? 10 : jobs_.size();
+    Index rounded = Index(double(jobs_.size()) / double(frac)) * frac;
     Index tenth = rounded / frac;
     if (idx % tenth == 0) {
       double percent = double(idx) / double(rounded) * 100 + 0.5;
@@ -91,14 +91,14 @@ typename ProgObserver<JobContainer>::Job *
     }
   }
 
-  _lockThread.Unlock();
+  lockThread_.Unlock();
   return jobToProc;
 }
 
 template <typename JobContainer>
 void ProgObserver<JobContainer>::ReportJobDone(Job &job, Result &res,
                                                QMThread &thread) {
-  _lockThread.Lock();
+  lockThread_.Lock();
   XTP_LOG(Log::error, thread.getLogger())
       << "Reporting job results" << std::flush;
   // RESULTS, TIME, HOST
@@ -106,11 +106,11 @@ void ProgObserver<JobContainer>::ReportJobDone(Job &job, Result &res,
   job.setTime(GenerateTime());
   job.setHost(GenerateHost());
   // PRINT PROGRESS BAR
-  _jobsReported += 1;
+  jobsReported_ += 1;
   if (!thread.isMaverick()) {
     std::cout << std::endl << thread.getLogger() << std::flush;
   }
-  _lockThread.Unlock();
+  lockThread_.Unlock();
   return;
 }
 
@@ -134,54 +134,54 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
   // INTERPROCESS FILE LOCKING (THREAD LOCK IN ::RequestNextJob)
   this->LockProgFile(thread);
 
-  std::string progFile = _progFile;
-  std::string progBackFile = _progFile + "~";
+  std::string progFile = progFile_;
+  std::string progBackFile = progFile_ + "~";
 
   // LOAD EXTERNAL JOBS FROM SHARED XML & UPDATE INTERNAL JOBS
   XTP_LOG(Log::info, thread.getLogger())
       << "Update internal structures from job file" << std::flush;
   JobContainer jobs_ext = LOAD_JOBS(progFile);
-  UPDATE_JOBS(jobs_ext, _jobs, GenerateHost());
+  UPDATE_JOBS(jobs_ext, jobs_, GenerateHost());
 
   // GENERATE BACK-UP FOR SHARED XML
   XTP_LOG(Log::info, thread.getLogger())
       << "Create job-file back-up" << std::flush;
-  WRITE_JOBS(_jobs, progBackFile);
+  WRITE_JOBS(jobs_, progBackFile);
 
   // ASSIGN NEW JOBS IF AVAILABLE
   XTP_LOG(Log::error, thread.getLogger())
       << "Assign jobs from stack" << std::flush;
-  _jobsToProc.clear();
+  jobsToProc_.clear();
 
-  Index cacheSize = _cacheSize;
-  while (int(_jobsToProc.size()) < cacheSize) {
-    if (_metajit == _jobs.end() || _startJobsCount == _maxJobs) {
+  Index cacheSize = cacheSize_;
+  while (int(jobsToProc_.size()) < cacheSize) {
+    if (metajit_ == jobs_.end() || startJobsCount_ == maxJobs_) {
       break;
     }
 
     bool startJob = false;
 
     // Start if job available or restart patterns matched
-    if ((_metajit->isAvailable()) ||
-        (_restartMode && _restart_stats.count(_metajit->getStatusStr())) ||
-        (_restartMode && _restart_hosts.count(_metajit->getHost()))) {
+    if ((metajit_->isAvailable()) ||
+        (restartMode_ && restart_stats_.count(metajit_->getStatusStr())) ||
+        (restartMode_ && restart_hosts_.count(metajit_->getHost()))) {
       startJob = true;
     }
 
     if (startJob) {
-      _metajit->Reset();
-      _metajit->setStatus("ASSIGNED");
-      _metajit->setHost(GenerateHost());
-      _metajit->setTime(GenerateTime());
-      _jobsToProc.push_back(&*_metajit);
-      _startJobsCount += 1;
+      metajit_->Reset();
+      metajit_->setStatus("ASSIGNED");
+      metajit_->setHost(GenerateHost());
+      metajit_->setTime(GenerateTime());
+      jobsToProc_.push_back(&*metajit_);
+      startJobsCount_ += 1;
     }
 
-    ++_metajit;
+    ++metajit_;
   }
 
   // UPDATE PROGRESS STATUS FILE
-  WRITE_JOBS(_jobs, progFile);
+  WRITE_JOBS(jobs_, progFile);
 
   // RELEASE PROGRESS STATUS FILE
   this->ReleaseProgFile(thread);
@@ -190,39 +190,39 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
 
 template <typename JobContainer>
 void ProgObserver<JobContainer>::LockProgFile(QMThread &thread) {
-  _flock = std::unique_ptr<boost::interprocess::file_lock>(
-      new boost::interprocess::file_lock(_lockFile.c_str()));
-  _flock->lock();
+  flock_ = std::unique_ptr<boost::interprocess::file_lock>(
+      new boost::interprocess::file_lock(lockFile_.c_str()));
+  flock_->lock();
   XTP_LOG(Log::warning, thread.getLogger())
-      << "Imposed lock on " << _lockFile << std::flush;
+      << "Imposed lock on " << lockFile_ << std::flush;
   XTP_LOG(Log::warning, thread.getLogger())
-      << "Sleep ... " << _lockFile << std::flush;
+      << "Sleep ... " << lockFile_ << std::flush;
   XTP_LOG(Log::warning, thread.getLogger())
-      << "Wake up ... " << _lockFile << std::flush;
+      << "Wake up ... " << lockFile_ << std::flush;
 }
 
 template <typename JobContainer>
 void ProgObserver<JobContainer>::ReleaseProgFile(QMThread &thread) {
-  _flock->unlock();
+  flock_->unlock();
   XTP_LOG(Log::warning, thread.getLogger())
-      << "Releasing " << _lockFile << ". " << std::flush;
+      << "Releasing " << lockFile_ << ". " << std::flush;
 }
 
 template <typename JobContainer>
 void ProgObserver<JobContainer>::InitCmdLineOpts(
     const boost::program_options::variables_map &optsMap) {
 
-  _lockFile = optsMap["file"].as<std::string>();
-  _cacheSize = optsMap["cache"].as<Index>();
-  _maxJobs = optsMap["maxjobs"].as<Index>();
+  lockFile_ = optsMap["file"].as<std::string>();
+  cacheSize_ = optsMap["cache"].as<Index>();
+  maxJobs_ = optsMap["maxjobs"].as<Index>();
   std::string restartPattern = optsMap["restart"].as<std::string>();
 
   // restartPattern = e.g. host(pckr124:1234) stat(FAILED)
   boost::algorithm::replace_all(restartPattern, " ", "");
   if (restartPattern == "") {
-    _restartMode = false;
+    restartMode_ = false;
   } else {
-    _restartMode = true;
+    restartMode_ = true;
   }
 
   std::vector<std::string> patterns =
@@ -235,13 +235,13 @@ void ProgObserver<JobContainer>::InitCmdLineOpts(
       category = pattern;
 
     } else if (category == "host") {
-      _restart_hosts[pattern] = true;
+      restart_hosts_[pattern] = true;
     } else if (category == "stat") {
       if (pattern == "ASSIGNED" || pattern == "COMPLETE") {
         std::cout << "Restart if status == " << pattern
                   << "? Not necessarily a good idea." << std::endl;
       }
-      _restart_stats[pattern] = true;
+      restart_stats_[pattern] = true;
     }
 
     else {
@@ -257,15 +257,15 @@ template <typename JobContainer>
 void ProgObserver<JobContainer>::InitFromProgFile(std::string progFile,
                                                   QMThread &thread) {
 
-  _progFile = progFile;
-  _jobsReported = 0;
+  progFile_ = progFile;
+  jobsReported_ = 0;
 
   XTP_LOG(Log::error, thread.getLogger())
-      << "Job file = '" << _progFile << "', ";
+      << "Job file = '" << progFile_ << "', ";
   XTP_LOG(Log::info, thread.getLogger())
-      << "lock file = '" << _lockFile << "', ";
+      << "lock file = '" << lockFile_ << "', ";
   XTP_LOG(Log::error, thread.getLogger())
-      << "cache size =  " << _cacheSize << std::flush;
+      << "cache size =  " << cacheSize_ << std::flush;
 
   XTP_LOG(Log::error, thread.getLogger())
       << "Initialize jobs from " << progFile << std::flush;
@@ -275,31 +275,31 @@ void ProgObserver<JobContainer>::InitFromProgFile(std::string progFile,
   this->LockProgFile(thread);
 
   // ... Clear container
-  _jobs.clear();
+  jobs_.clear();
 
   // ... Load new, set availability bool
-  _jobs = LOAD_JOBS(progFile);
-  _metajit = _jobs.begin();
-  WRITE_JOBS(_jobs, progFile + "~");
+  jobs_ = LOAD_JOBS(progFile);
+  metajit_ = jobs_.begin();
+  WRITE_JOBS(jobs_, progFile + "~");
   XTP_LOG(Log::error, thread.getLogger())
-      << "Registered " << _jobs.size() << " jobs." << std::flush;
-  if (_jobs.size() > 0) {
-    _moreJobsAvailable = true;
+      << "Registered " << jobs_.size() << " jobs." << std::flush;
+  if (jobs_.size() > 0) {
+    moreJobsAvailable_ = true;
   } else {
-    _moreJobsAvailable = false;
+    moreJobsAvailable_ = false;
   }
 
   // SUMMARIZE OBSERVER VARIABLES: RESTART PATTERN, CACHE, LOCK FILE
-  if (_restartMode && _restart_hosts.size()) {
+  if (restartMode_ && restart_hosts_.size()) {
     std::string infostr = "Restart if host == ";
-    for (const std::pair<const std::string, bool> &host : _restart_hosts) {
+    for (const std::pair<const std::string, bool> &host : restart_hosts_) {
       infostr += host.first + " ";
     }
     XTP_LOG(Log::error, thread.getLogger()) << infostr << std::flush;
   }
-  if (_restartMode && _restart_stats.size()) {
+  if (restartMode_ && restart_stats_.size()) {
     std::string infostr = "Restart if stat == ";
-    for (const std::pair<const std::string, bool> &host : _restart_hosts) {
+    for (const std::pair<const std::string, bool> &host : restart_hosts_) {
       infostr += host.first + " ";
     }
     XTP_LOG(Log::error, thread.getLogger()) << infostr << std::flush;

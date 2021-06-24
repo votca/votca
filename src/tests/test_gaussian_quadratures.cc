@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_SUITE(gaussian_quadratures_test)
 BOOST_AUTO_TEST_CASE(gauss_legendre) {
 
   QuadratureFactory::RegisterAll();
-  std::unique_ptr<GaussianQuadratureBase> _gq =
+  std::unique_ptr<GaussianQuadratureBase> gq_ =
       Quadratures().Create("legendre");
 
   std::vector<int> orders{8, 10, 12, 14, 16, 18, 20, 40, 100};
@@ -66,8 +66,8 @@ BOOST_AUTO_TEST_CASE(gauss_legendre) {
 
   Eigen::VectorXd integrals(9);
   for (Index i = 0; i < 9; i++) {
-    _gq->configure(orders[i]);
-    integrals(i) = _gq->Integrate(f);
+    gq_->configure(orders[i]);
+    integrals(i) = gq_->Integrate(f);
   }
 
   Eigen::VectorXd integrals_ref =
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(gauss_legendre) {
 BOOST_AUTO_TEST_CASE(modified_gauss_legendre) {
 
   QuadratureFactory::RegisterAll();
-  std::unique_ptr<GaussianQuadratureBase> _gq =
+  std::unique_ptr<GaussianQuadratureBase> gq_ =
       std::unique_ptr<GaussianQuadratureBase>(
           Quadratures().Create("modified_legendre"));
 
@@ -97,8 +97,8 @@ BOOST_AUTO_TEST_CASE(modified_gauss_legendre) {
 
   Eigen::VectorXd integrals(9);
   for (Index i = 0; i < 9; i++) {
-    _gq->configure(orders[i]);
-    integrals(i) = _gq->Integrate(f);
+    gq_->configure(orders[i]);
+    integrals(i) = gq_->Integrate(f);
   }
 
   Eigen::VectorXd integrals_ref =
@@ -119,15 +119,15 @@ BOOST_AUTO_TEST_CASE(modified_gauss_legendre) {
 BOOST_AUTO_TEST_CASE(gauss_laguerre) {
 
   QuadratureFactory::RegisterAll();
-  std::unique_ptr<GaussianQuadratureBase> _gq =
+  std::unique_ptr<GaussianQuadratureBase> gq_ =
       std::unique_ptr<GaussianQuadratureBase>(Quadratures().Create("laguerre"));
   std::vector<int> orders{8, 10, 12, 14, 16, 18, 20, 40, 100};
   FunctionEvaluation f = FunctionEvaluation();
 
   Eigen::VectorXd integrals(9);
   for (Index i = 0; i < 9; i++) {
-    _gq->configure(orders[i]);
-    integrals(i) = _gq->Integrate(f);
+    gq_->configure(orders[i]);
+    integrals(i) = gq_->Integrate(f);
   }
 
   Eigen::VectorXd integrals_ref =
@@ -148,15 +148,15 @@ BOOST_AUTO_TEST_CASE(gauss_laguerre) {
 BOOST_AUTO_TEST_CASE(gauss_hermite) {
 
   QuadratureFactory::RegisterAll();
-  std::unique_ptr<GaussianQuadratureBase> _gq =
+  std::unique_ptr<GaussianQuadratureBase> gq_ =
       std::unique_ptr<GaussianQuadratureBase>(Quadratures().Create("hermite"));
   std::vector<int> orders{8, 10, 12, 14, 16, 18, 20, 40, 100};
   FunctionEvaluation f = FunctionEvaluation();
 
   Eigen::VectorXd integrals(9);
   for (Index i = 0; i < 9; i++) {
-    _gq->configure(orders[i]);
-    integrals(i) = _gq->Integrate(f);
+    gq_->configure(orders[i]);
+    integrals(i) = gq_->Integrate(f);
   }
 
   Eigen::VectorXd integrals_ref =

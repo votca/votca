@@ -44,26 +44,26 @@ class DftGwBse final : public QMTool {
   bool Run();
 
  private:
-  std::string _guess_file;
-  bool _do_guess;
+  std::string guess_file_;
+  bool do_guess_;
 
-  std::string _mpsfile;
-  bool _do_external;
+  std::string mpsfile_;
+  bool do_external_;
 
-  std::string _xyzfile;
-  std::string _xml_output;  // .xml output
-  std::string _package;
-  std::string _archive_file;  // .orb file to parse to
-  std::string _guess_orbA;
-  std::string _guess_orbB;
+  std::string xyzfile_;
+  std::string xml_output_;  // .xml output
+  std::string package_;
+  std::string archive_file_;  // .orb file to parse to
+  std::string guess_orbA_;
+  std::string guess_orbB_;
 
-  tools::Property _package_options;
-  tools::Property _gwbseengine_options;
-  tools::Property _geoopt_options;
+  tools::Property package_options_;
+  tools::Property gwbseengine_options_;
+  tools::Property geoopt_options_;
 
-  Logger _log;
+  Logger log_;
 
-  bool _do_optimize;
+  bool do_optimize_;
 };
 
 }  // namespace xtp

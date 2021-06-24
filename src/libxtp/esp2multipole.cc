@@ -32,21 +32,21 @@ using std::flush;
 
 void Esp2multipole::Initialize(tools::Property& options) {
   std::string key = Identify();
-  _do_svd = false;
+  do_svd_ = false;
 
-  _use_mulliken = false;
-  _use_CHELPG = false;
-  _use_lowdin = false;
-  _state = options.get(key + ".state").as<QMState>();
+  use_mulliken_ = false;
+  use_CHELPG_ = false;
+  use_lowdin_ = false;
+  state_ = options.get(key + ".state").as<QMState>();
 
-  _method = options.get(key + ".method").as<std::string>();
+  method_ = options.get(key + ".method").as<std::string>();
 
-  if (_method == "mulliken") {
-    _use_mulliken = true;
-  } else if (_method == "loewdin") {
-    _use_lowdin = true;
-  } else if (_method == "CHELPG") {
-    _use_CHELPG = true;
+  if (method_ == "mulliken") {
+    use_mulliken_ = true;
+  } else if (method_ == "loewdin") {
+    use_lowdin_ = true;
+  } else if (method_ == "CHELPG") {
+    use_CHELPG_ = true;
   }
 
   if (options.exists(key + ".constraints")) {
@@ -59,9 +59,9 @@ void Esp2multipole::Initialize(tools::Property& options) {
         QMFragment<double> reg = QMFragment<double>(index, indices);
         index++;
         reg.value() = prop->get("charge").as<double>();
-        _regionconstraint.push_back(reg);
-        XTP_LOG(Log::error, _log) << "Fit constrained by Region" << flush;
-        XTP_LOG(Log::error, _log) << reg;
+        regionconstraint_.push_back(reg);
+        XTP_LOG(Log::error, log_) << "Fit constrained by Region" << flush;
+        XTP_LOG(Log::error, log_) << reg;
       }
     }
     if (options.exists(key + ".constraints.pairs")) {
@@ -72,20 +72,20 @@ void Esp2multipole::Initialize(tools::Property& options) {
         std::pair<Index, Index> pair;
         pair.first = pairvec[0];
         pair.second = pairvec[1];
-        _pairconstraint.push_back(pair);
-        XTP_LOG(Log::error, _log)
+        pairconstraint_.push_back(pair);
+        XTP_LOG(Log::error, log_)
             << "Charges " << pair.first << " " << pair.second
             << " constrained to be equal." << flush;
       }
     }
   }
 
-  _gridsize = options.ifExistsReturnElseReturnDefault<std::string>(
+  gridsize_ = options.ifExistsReturnElseReturnDefault<std::string>(
       key + ".gridsize", "medium");
 
   if (options.exists(key + ".svd")) {
-    _do_svd = options.get(key + ".svd.do_svd").as<bool>();
-    _conditionnumber = options.get(key + ".svd.conditionnumber").as<double>();
+    do_svd_ = options.get(key + ".svd.do_svd").as<bool>();
+    conditionnumber_ = options.get(key + ".svd.conditionnumber").as<double>();
   }
 
   return;
@@ -95,15 +95,15 @@ void Esp2multipole::PrintDipoles(const Orbitals& orbitals,
                                  const StaticSegment& seg) const {
   Eigen::Vector3d classical_dip = seg.CalcDipole();
 
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << "El Dipole from fitted charges [e*bohr]:\n\t\t"
       << boost::format(
              " dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f") %
              classical_dip.x() % classical_dip.y() % classical_dip.z() %
              classical_dip.squaredNorm()
       << flush;
-  Eigen::Vector3d qm_dip = orbitals.CalcElDipole(_state);
-  XTP_LOG(Log::error, _log)
+  Eigen::Vector3d qm_dip = orbitals.CalcElDipole(state_);
+  XTP_LOG(Log::error, log_)
       << "El Dipole from exact qm density [e*bohr]:\n\t\t"
       << boost::format(
              " dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f") %
@@ -112,28 +112,28 @@ void Esp2multipole::PrintDipoles(const Orbitals& orbitals,
 }
 
 StaticSegment Esp2multipole::Extractingcharges(const Orbitals& orbitals) const {
-  XTP_LOG(Log::error, _log) << "===== Running on " << OPENMP::getMaxThreads()
+  XTP_LOG(Log::error, log_) << "===== Running on " << OPENMP::getMaxThreads()
                             << " threads ===== " << flush;
   StaticSegment result("result", 0);
-  if (_use_mulliken) {
+  if (use_mulliken_) {
     Mulliken mulliken;
-    result = mulliken.CalcChargeperAtom(orbitals, _state);
-  } else if (_use_lowdin) {
+    result = mulliken.CalcChargeperAtom(orbitals, state_);
+  } else if (use_lowdin_) {
     Lowdin lowdin;
-    result = lowdin.CalcChargeperAtom(orbitals, _state);
-  } else if (_use_CHELPG) {
-    Espfit esp = Espfit(_log);
-    if (_pairconstraint.size() > 0) {
-      esp.setPairConstraint(_pairconstraint);
+    result = lowdin.CalcChargeperAtom(orbitals, state_);
+  } else if (use_CHELPG_) {
+    Espfit esp = Espfit(log_);
+    if (pairconstraint_.size() > 0) {
+      esp.setPairConstraint(pairconstraint_);
     }
-    if (_regionconstraint.size() > 0) {
-      esp.setRegionConstraint(_regionconstraint);
+    if (regionconstraint_.size() > 0) {
+      esp.setRegionConstraint(regionconstraint_);
     }
 
-    if (_do_svd) {
-      esp.setUseSVD(_conditionnumber);
+    if (do_svd_) {
+      esp.setUseSVD(conditionnumber_);
     }
-    result = esp.Fit2Density(orbitals, _state, _gridsize);
+    result = esp.Fit2Density(orbitals, state_, gridsize_);
   }
 
   PrintDipoles(orbitals, result);

@@ -24,12 +24,12 @@ namespace votca {
 namespace xtp {
 
 void OscillatorStrength_filter::Initialize(const tools::Property& options) {
-  _threshold = options.ifExistsReturnElseThrowRuntimeError<double>(".");
+  threshold_ = options.ifExistsReturnElseThrowRuntimeError<double>(".");
 }
 
 void OscillatorStrength_filter::Info(Logger& log) const {
   XTP_LOG(Log::error, log)
-      << "Using oscillator strength tracker with threshold " << _threshold
+      << "Using oscillator strength tracker with threshold " << threshold_
       << std::flush;
 }
 
@@ -45,7 +45,7 @@ std::vector<Index> OscillatorStrength_filter::CalcIndeces(
   Eigen::VectorXd oscs = orb.Oscillatorstrengths();
   std::vector<Index> indexes;
   for (Index i = 0; i < oscs.size(); i++) {
-    if (oscs[i] > _threshold) {
+    if (oscs[i] > threshold_) {
       indexes.push_back(i);
     }
   }
@@ -53,11 +53,11 @@ std::vector<Index> OscillatorStrength_filter::CalcIndeces(
 }
 
 void OscillatorStrength_filter::WriteToCpt(CheckpointWriter& w) {
-  w(_threshold, "threshold");
+  w(threshold_, "threshold");
 }
 
 void OscillatorStrength_filter::ReadFromCpt(CheckpointReader& r) {
-  r(_threshold, "threshold");
+  r(threshold_, "threshold");
 }
 
 }  // namespace xtp

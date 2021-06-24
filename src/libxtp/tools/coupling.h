@@ -41,101 +41,101 @@ class Coupling final : public QMTool {
   bool Run();
 
  private:
-  std::string _MOsA, _MOsB, _MOsAB;
-  std::string _logA, _logB, _logAB;
+  std::string MOsA_, MOsB_, MOsAB_;
+  std::string logA_, logB_, logAB_;
 
-  std::string _package;
-  tools::Property _package_options;
-  tools::Property _dftcoupling_options;
+  std::string package_;
+  tools::Property package_options_;
+  tools::Property dftcoupling_options_;
 
-  std::string _output_file;
+  std::string output_file_;
 
-  Logger _log;
+  Logger log_;
 };
 
 void Coupling::ParseOptions(const tools::Property &options) {
 
-  _MOsA = options.get(".moleculeA.orbitals").as<std::string>();
-  _MOsB = options.get(".moleculeB.orbitals").as<std::string>();
-  _MOsAB = options.get(".dimerAB.orbitals").as<std::string>();
+  MOsA_ = options.get(".moleculeA.orbitals").as<std::string>();
+  MOsB_ = options.get(".moleculeB.orbitals").as<std::string>();
+  MOsAB_ = options.get(".dimerAB.orbitals").as<std::string>();
 
-  _logA = options.get(".moleculeA.log").as<std::string>();
-  _logB = options.get(".moleculeB.log").as<std::string>();
-  _logAB = options.get(".dimerAB.log").as<std::string>();
+  logA_ = options.get(".moleculeA.log").as<std::string>();
+  logB_ = options.get(".moleculeB.log").as<std::string>();
+  logAB_ = options.get(".dimerAB.log").as<std::string>();
 
-  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
-      "output", _job_name + "_coupling.xml");
+  output_file_ = options.ifExistsReturnElseReturnDefault<std::string>(
+      "output", job_name_ + " coupling_.xml");
 
-  _package_options = options.get(".dftpackage");
-  _package = _package_options.get("package.name").as<std::string>();
-  _dftcoupling_options = options.get(".dftcoupling_options");
+  package_options_ = options.get(".dftpackage");
+  package_ = package_options_.get("package.name").as<std::string>();
+  dftcoupling_options_ = options.get(".dftcoupling_options");
 
   QMPackageFactory::RegisterAll();
 }
 
 bool Coupling::Run() {
 
-  _log.setReportLevel(Log::current_level);
-  _log.setMultithreading(true);
+  log_.setReportLevel(Log::current_level);
+  log_.setMultithreading(true);
 
-  _log.setCommonPreface("\n... ...");
+  log_.setCommonPreface("\n... ...");
 
   // get the corresponding object from the QMPackageFactory
   std::unique_ptr<QMPackage> qmpackage = std::unique_ptr<QMPackage>(
-      QMPackageFactory::QMPackages().Create(_package));
-  qmpackage->setLog(&_log);
-  qmpackage->Initialize(_package_options);
+      QMPackageFactory::QMPackages().Create(package_));
+  qmpackage->setLog(&log_);
+  qmpackage->Initialize(package_options_);
   qmpackage->setRunDir(".");
   Orbitals orbitalsA, orbitalsB, orbitalsAB;
 
-  qmpackage->setLogFileName(_logA);
+  qmpackage->setLogFileName(logA_);
   bool parse_logA_status = qmpackage->ParseLogFile(orbitalsA);
   if (!parse_logA_status) {
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "Failed to read log of molecule A" << std::flush;
   }
 
-  qmpackage->setLogFileName(_logB);
+  qmpackage->setLogFileName(logB_);
   bool parse_logB_status = qmpackage->ParseLogFile(orbitalsB);
   if (!parse_logB_status) {
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "Failed to read log of molecule B" << std::flush;
   }
 
-  qmpackage->setLogFileName(_logAB);
+  qmpackage->setLogFileName(logAB_);
   bool parse_logAB_status = qmpackage->ParseLogFile(orbitalsAB);
   if (!parse_logAB_status) {
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "Failed to read log of molecule AB" << std::flush;
   }
 
-  qmpackage->setMOsFileName(_MOsA);
+  qmpackage->setMOsFileName(MOsA_);
   bool parse_orbitalsA_status = qmpackage->ParseMOsFile(orbitalsA);
   if (!parse_orbitalsA_status) {
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "Failed to read orbitals of molecule A" << std::flush;
   }
 
-  qmpackage->setMOsFileName(_MOsB);
+  qmpackage->setMOsFileName(MOsB_);
   bool parse_orbitalsB_status = qmpackage->ParseMOsFile(orbitalsB);
   if (!parse_orbitalsB_status) {
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "Failed to read orbitals of molecule B" << std::flush;
   }
 
-  qmpackage->setMOsFileName(_MOsAB);
+  qmpackage->setMOsFileName(MOsAB_);
   bool parse_orbitalsAB_status = qmpackage->ParseMOsFile(orbitalsAB);
   if (!parse_orbitalsAB_status) {
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "Failed to read orbitals of dimer AB" << std::flush;
   }
 
   DFTcoupling dftcoupling;
-  dftcoupling.setLogger(&_log);
-  dftcoupling.Initialize(_dftcoupling_options);
+  dftcoupling.setLogger(&log_);
+  dftcoupling.Initialize(dftcoupling_options_);
 
   dftcoupling.CalculateCouplings(orbitalsA, orbitalsB, orbitalsAB);
-  std::cout << _log;
+  std::cout << log_;
 
   // output the results
   tools::Property summary;
@@ -145,7 +145,7 @@ bool Coupling::Run() {
 
   tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
 
-  std::ofstream ofs(_output_file, std::ofstream::out);
+  std::ofstream ofs(output_file_, std::ofstream::out);
   ofs << job_output;
   ofs.close();
 

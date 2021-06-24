@@ -34,14 +34,14 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
   {
     AOCoulomb auxAOcoulomb;
     auxAOcoulomb.Fill(auxbasis);
-    _inv_sqrt = auxAOcoulomb.Pseudo_InvSqrt(1e-8);
-    _removedfunctions = auxAOcoulomb.Removedfunctions();
+    inv_sqrt_ = auxAOcoulomb.Pseudo_InvSqrt(1e-8);
+    removedfunctions_ = auxAOcoulomb.Removedfunctions();
   }
-  _matrix = std::vector<Symmetric_Matrix>(auxbasis.AOBasisSize());
+  matrix_ = std::vector<Symmetric_Matrix>(auxbasis.AOBasisSize());
 
 #pragma omp parallel for schedule(dynamic, 4)
   for (Index i = 0; i < auxbasis.AOBasisSize(); i++) {
-    _matrix[i] = Symmetric_Matrix(dftbasis.AOBasisSize());
+    matrix_[i] = Symmetric_Matrix(dftbasis.AOBasisSize());
   }
 
   Index nthreads = OPENMP::getMaxThreads();
@@ -106,10 +106,10 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
     }
 
     for (Index i = 0; i < Index(block.size()); ++i) {
-      Eigen::MatrixXd temp = _inv_sqrt * block[i];
+      Eigen::MatrixXd temp = inv_sqrt_ * block[i];
       for (Index mu = 0; mu < temp.rows(); ++mu) {
         for (Index j = 0; j < temp.cols(); ++j) {
-          _matrix[mu](i + start, j) = temp(mu, j);
+          matrix_[mu](i + start, j) = temp(mu, j);
         }
       }
     }
@@ -122,20 +122,20 @@ void TCMatrix_gwbse::Initialize(Index basissize, Index mmin, Index mmax,
                                 Index nmin, Index nmax) {
 
   // here as storage indices starting from zero
-  _nmin = nmin;
-  _nmax = nmax;
-  _ntotal = nmax - nmin + 1;
-  _mmin = mmin;
-  _mmax = mmax;
-  _mtotal = mmax - mmin + 1;
-  _auxbasissize = basissize;
+  nmin_ = nmin;
+  nmax_ = nmax;
+  ntotal_ = nmax - nmin + 1;
+  mmin_ = mmin;
+  mmax_ = mmax;
+  mtotal_ = mmax - mmin + 1;
+  auxbasissize_ = basissize;
 
   // vector has mtotal elements
   // largest object should be allocated in multithread fashion
-  _matrix = std::vector<Eigen::MatrixXd>(_mtotal);
+  matrix_ = std::vector<Eigen::MatrixXd>(mtotal_);
 #pragma omp parallel for schedule(dynamic, 4)
-  for (Index i = 0; i < _mtotal; i++) {
-    _matrix[i] = Eigen::MatrixXd::Zero(_ntotal, _auxbasissize);
+  for (Index i = 0; i < mtotal_; i++) {
+    matrix_[i] = Eigen::MatrixXd::Zero(ntotal_, auxbasissize_);
   }
 }
 
@@ -145,13 +145,13 @@ void TCMatrix_gwbse::Initialize(Index basissize, Index mmin, Index mmax,
  */
 void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
   OpenMP_CUDA gemm;
-  gemm.setOperators(_matrix, matrix);
+  gemm.setOperators(matrix_, matrix);
 #pragma omp parallel
   {
     Index threadid = OPENMP::getThreadId();
 #pragma omp for schedule(dynamic)
     for (Index i = 0; i < msize(); i++) {
-      gemm.MultiplyRight(_matrix[i], threadid);
+      gemm.MultiplyRight(matrix_[i], threadid);
     }
   }
 }
@@ -164,9 +164,9 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 void TCMatrix_gwbse::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
                           const Eigen::MatrixXd& dft_orbitals) {
   // needed for Rebuild())
-  _auxbasis = &auxbasis;
-  _dftbasis = &dftbasis;
-  _dft_orbitals = &dft_orbitals;
+  auxbasis_ = &auxbasis;
+  dftbasis_ = &dftbasis;
+  dft_orbitals_ = &dft_orbitals;
 
   Fill3cMO(auxbasis, dftbasis, dft_orbitals);
 
@@ -175,7 +175,7 @@ void TCMatrix_gwbse::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
   AOCoulomb auxcoulomb;
   auxcoulomb.Fill(auxbasis);
   Eigen::MatrixXd inv_sqrt = auxcoulomb.Pseudo_InvSqrt_GWBSE(auxoverlap, 5e-7);
-  _removedfunctions = auxcoulomb.Removedfunctions();
+  removedfunctions_ = auxcoulomb.Removedfunctions();
   MultiplyRightWithAuxMatrix(inv_sqrt);
 
   return;
@@ -241,9 +241,9 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
                               const Eigen::MatrixXd& dft_orbitals) {
 
   const Eigen::MatrixXd dftm =
-      dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
+      dft_orbitals.block(0, mmin_, dft_orbitals.rows(), mtotal_);
   const Eigen::MatrixXd dftn =
-      dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal).transpose();
+      dft_orbitals.block(0, nmin_, dft_orbitals.rows(), ntotal_).transpose();
 
   OpenMP_CUDA transform;
   transform.setOperators(dftn, dftm);
@@ -273,11 +273,11 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
 
       // this is basically a transpose of AO3c and at the same time the ao->mo
       // transformation
-      // we do not want to put it into _matrix straight away is because,
-      // _matrix is shared between all threads and we want a nice clean access
+      // we do not want to put it into  matrix_ straight away is because,
+      //  matrix_ is shared between all threads and we want a nice clean access
       // pattern to it
       std::vector<Eigen::MatrixXd> block = std::vector<Eigen::MatrixXd>(
-          _mtotal, Eigen::MatrixXd::Zero(_ntotal, ao3c.size()));
+          mtotal_, Eigen::MatrixXd::Zero(ntotal_, ao3c.size()));
 
       Index dim = static_cast<Index>(ao3c.size());
       for (Index k = 0; k < dim; ++k) {
@@ -288,8 +288,8 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
       }
 
       // put into correct position
-      for (Index m_level = 0; m_level < _mtotal; m_level++) {
-        _matrix[m_level].block(0, auxshell2bf[aux], _ntotal, auxshell.size()) =
+      for (Index m_level = 0; m_level < mtotal_; m_level++) {
+        matrix_[m_level].block(0, auxshell2bf[aux], ntotal_, auxshell.size()) =
             block[m_level];
       }  // m-th DFT orbital
     }    // shells of GW basis set

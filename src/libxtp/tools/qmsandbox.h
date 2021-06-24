@@ -43,8 +43,8 @@ class QMSandbox final : public QMTool {
   bool Run();
 
  private:
-  std::string _orbfile;
-  Logger _log;
+  std::string orbfile_;
+  Logger log_;
 };
 
 }  // namespace xtp

@@ -52,7 +52,7 @@ PolarSite::PolarSite(Index id, std::string element, Eigen::Vector3d pos)
 PolarSite::PolarSite(const data& d) { ReadData(d); }
 
 Eigen::Vector3d PolarSite::getDipole() const {
-  Eigen::Vector3d dipole = _Q.segment<3>(1);
+  Eigen::Vector3d dipole = Q_.segment<3>(1);
   dipole += Induced_Dipole();
   return dipole;
 }
@@ -60,14 +60,14 @@ Eigen::Vector3d PolarSite::getDipole() const {
 void PolarSite::setpolarization(const Eigen::Matrix3d& pol) {
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
   es.computeDirect(pol);
-  _pinv = es.eigenvectors() * es.eigenvalues().cwiseInverse().asDiagonal() *
+  pinv_ = es.eigenvectors() * es.eigenvalues().cwiseInverse().asDiagonal() *
           es.eigenvectors().transpose();
-  _eigendamp_invsqrt = 1.0 / std::sqrt(es.eigenvalues().maxCoeff());
+  eigendamp_invsqrt_ = 1.0 / std::sqrt(es.eigenvalues().maxCoeff());
 }
 
 std::string PolarSite::writepolarization() const {
   double conv_pol = std::pow(tools::conv::bohr2ang, 3);
-  Eigen::MatrixX3d pol = _pinv.inverse() * conv_pol;
+  Eigen::MatrixX3d pol = pinv_.inverse() * conv_pol;
   return (boost::format("     P %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f "
                         "%6$+1.7f\n") %
           pol(0, 0) % pol(1, 0) % pol(2, 0) % pol(1, 1) % pol(1, 2) % pol(2, 2))
@@ -115,33 +115,33 @@ void PolarSite::SetupCptTable(CptTable& table) {
 }
 
 void PolarSite::WriteData(data& d) const {
-  d.id = _id;
-  d.element = const_cast<char*>(_element.c_str());
-  d.posX = _pos[0];
-  d.posY = _pos[1];
-  d.posZ = _pos[2];
+  d.id = id_;
+  d.element = const_cast<char*>(element_.c_str());
+  d.posX = pos_[0];
+  d.posY = pos_[1];
+  d.posZ = pos_[2];
 
-  d.rank = _rank;
+  d.rank = rank_;
 
-  d.Q00 = _Q[0];
-  d.Q11c = _Q[1];
-  d.Q11s = _Q[2];
-  d.Q10 = _Q[3];
-  d.Q20 = _Q[4];
-  d.Q21c = _Q[5];
-  d.Q21s = _Q[6];
-  d.Q22c = _Q[7];
-  d.Q22s = _Q[8];
+  d.Q00 = Q_[0];
+  d.Q11c = Q_[1];
+  d.Q11s = Q_[2];
+  d.Q10 = Q_[3];
+  d.Q20 = Q_[4];
+  d.Q21c = Q_[5];
+  d.Q21s = Q_[6];
+  d.Q22c = Q_[7];
+  d.Q22s = Q_[8];
 
-  d.Vx = _V[0];
-  d.Vy = _V[1];
-  d.Vz = _V[2];
+  d.Vx = V_[0];
+  d.Vy = V_[1];
+  d.Vz = V_[2];
 
-  d.Vx_noE = _V_noE[0];
-  d.Vy_noE = _V_noE[1];
-  d.Vz_noE = _V_noE[2];
+  d.Vx_noE = V_noE_[0];
+  d.Vy_noE = V_noE_[1];
+  d.Vz_noE = V_noE_[2];
 
-  Eigen::Matrix3d P = _pinv.inverse();
+  Eigen::Matrix3d P = pinv_.inverse();
   d.pxx = P(0, 0);
   d.pxy = P(0, 1);
   d.pxz = P(0, 2);
@@ -149,38 +149,38 @@ void PolarSite::WriteData(data& d) const {
   d.pyz = P(1, 2);
   d.pzz = P(2, 2);
 
-  d.d_x_ind = _induced_dipole.x();
-  d.d_y_ind = _induced_dipole.y();
-  d.d_z_ind = _induced_dipole.z();
+  d.d_x_ind = induced_dipole_.x();
+  d.d_y_ind = induced_dipole_.y();
+  d.d_z_ind = induced_dipole_.z();
 }
 
 void PolarSite::ReadData(const data& d) {
-  _id = d.id;
-  _element = std::string(d.element);
+  id_ = d.id;
+  element_ = std::string(d.element);
   free(d.element);
-  _pos[0] = d.posX;
-  _pos[1] = d.posY;
-  _pos[2] = d.posZ;
+  pos_[0] = d.posX;
+  pos_[1] = d.posY;
+  pos_[2] = d.posZ;
 
-  _rank = d.rank;
+  rank_ = d.rank;
 
-  _Q[0] = d.Q00;
-  _Q[1] = d.Q11c;
-  _Q[2] = d.Q11s;
-  _Q[3] = d.Q10;
-  _Q[4] = d.Q20;
-  _Q[5] = d.Q21c;
-  _Q[6] = d.Q21s;
-  _Q[7] = d.Q22c;
-  _Q[8] = d.Q22s;
+  Q_[0] = d.Q00;
+  Q_[1] = d.Q11c;
+  Q_[2] = d.Q11s;
+  Q_[3] = d.Q10;
+  Q_[4] = d.Q20;
+  Q_[5] = d.Q21c;
+  Q_[6] = d.Q21s;
+  Q_[7] = d.Q22c;
+  Q_[8] = d.Q22s;
 
-  _V[0] = d.Vx;
-  _V[1] = d.Vy;
-  _V[2] = d.Vz;
+  V_[0] = d.Vx;
+  V_[1] = d.Vy;
+  V_[2] = d.Vz;
 
-  _V_noE[0] = d.Vx_noE;
-  _V_noE[1] = d.Vy_noE;
-  _V_noE[2] = d.Vz_noE;
+  V_noE_[0] = d.Vx_noE;
+  V_noE_[1] = d.Vy_noE;
+  V_noE_[2] = d.Vz_noE;
 
   Eigen::Matrix3d Ps;
   Ps(0, 0) = d.pxx;
@@ -195,9 +195,9 @@ void PolarSite::ReadData(const data& d) {
 
   this->setpolarization(Ps);
 
-  _induced_dipole.x() = d.d_x_ind;
-  _induced_dipole.y() = d.d_y_ind;
-  _induced_dipole.z() = d.d_z_ind;
+  induced_dipole_.x() = d.d_x_ind;
+  induced_dipole_.y() = d.d_y_ind;
+  induced_dipole_.z() = d.d_z_ind;
 }
 
 }  // namespace xtp

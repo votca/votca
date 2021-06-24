@@ -45,7 +45,7 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
   const Eigen::Vector3d diff = pos_row - pos_col;       // get difference r_{ij}
   const double distsq = diff.squaredNorm();             // get |R_{ij}|^2
   // get kvector modulus
-  const double kmodulus = _k.squaredNorm();  // get |k|^2
+  const double kmodulus = k_.squaredNorm();  // get |k|^2
 
   std::array<int, 9> n_orbitals = AOTransform::n_orbitals();
   std::array<int, 165> nx = AOTransform::nx();
@@ -81,10 +81,10 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
                                              // complex numbers
       Eigen::Vector3cd PmA;
       PmA.real() = fak2 * (decay_row * pos_row + decay_col * pos_col) - pos_row;
-      PmA.imag() = fak * _k;
+      PmA.imag() = fak * k_;
       Eigen::Vector3cd PmB;
       PmB.real() = fak2 * (decay_row * pos_row + decay_col * pos_col) - pos_col;
-      PmB.imag() = fak * _k;
+      PmB.imag() = fak * k_;
 
       const COMPLEX cfak(fak, 0.0);
       const COMPLEX cfak2(fak2, 0.0);
@@ -95,8 +95,8 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
                    0.0);  // s-s element
 
       // calculate s-W-s matrix element
-      double kdotr_row = _k.dot(pos_row);
-      double kdotr_col = _k.dot(pos_col);
+      double kdotr_row = k_.dot(pos_row);
+      double kdotr_col = k_.dot(pos_col);
       COMPLEX kexparg(
           fak2 * (-0.25) * (kmodulus),
           fak2 * (decay_row) * (kdotr_row) + fak2 * (decay_col) * (kdotr_col));
@@ -697,12 +697,12 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
 void AOPlanewave::FillPotential(const AOBasis& aobasis,
                                 const std::vector<Eigen::Vector3d>& kpoints) {
 
-  _aopotential =
+  aopotential_ =
       Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
   for (const auto& kpoint : kpoints) {
     setkVector(kpoint);
-    _aopotential += Fill(aobasis);
+    aopotential_ += Fill(aobasis);
   }
 
   return;

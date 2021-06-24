@@ -43,34 +43,34 @@ class DensityAnalysis final : public QMTool {
   bool Run();
 
  private:
-  std::string _orbfile;
-  std::string _output_file;
-  tools::Property _gyration_options;
+  std::string orbfile_;
+  std::string output_file_;
+  tools::Property gyration_options_;
 
-  Logger _log;
+  Logger log_;
 };
 
 void DensityAnalysis::ParseOptions(const tools::Property& options) {
 
-  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".input", _job_name + ".orb");
+  orbfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".input", job_name_ + ".orb");
 
-  _gyration_options = options;
+  gyration_options_ = options.get(".density2gyration");
 }
 
 bool DensityAnalysis::Run() {
-  _log.setReportLevel(Log::current_level);
-  _log.setMultithreading(true);
+  log_.setReportLevel(Log::current_level);
+  log_.setMultithreading(true);
 
-  _log.setCommonPreface("\n... ...");
+  log_.setCommonPreface("\n... ...");
 
   Orbitals orbitals;
-  XTP_LOG(Log::error, _log)
-      << " Loading QM data from " << _orbfile << std::flush;
-  orbitals.ReadFromCpt(_orbfile);
+  XTP_LOG(Log::error, log_)
+      << " Loading QM data from " << orbfile_ << std::flush;
+  orbitals.ReadFromCpt(orbfile_);
 
-  Density2Gyration density2gyration(_log);
-  density2gyration.Initialize(_gyration_options);
+  Density2Gyration density2gyration(log_);
+  density2gyration.Initialize(gyration_options_);
   density2gyration.AnalyzeDensity(orbitals);
 
   return true;

@@ -33,6 +33,13 @@ Version 2022-dev
 -  use NDimVector instead of std::vector in vxcgrid. (#703)
 -  Fixing the tutorial (#705)
 -  adapted tokenizer api (#707)
+-  move OpenMP detection to tools (#709)
+-  refactored applications (#710)
+-  add command line option for number of gpus (#711)
+-  reworked iqm statefile reading (#712)
+-  made membervariable format consistent (#713)
+-  updated benchmark (#714)
+-  reworked commandline options (#715)
 
 Version 2021.1 (released XX.03.21)
 ==================================

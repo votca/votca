@@ -52,25 +52,25 @@ class DavidsonSolver {
  public:
   DavidsonSolver(Logger &log);
 
-  void set_iter_max(Index N) { this->_iter_max = N; }
-  void set_max_search_space(Index N) { this->_max_search_space = N; }
+  void set_iter_max(Index N) { this->iter_max_ = N; }
+  void set_max_search_space(Index N) { this->max_search_space_ = N; }
   void set_tolerance(std::string tol);
   void set_correction(std::string method);
   void set_size_update(std::string update_size);
   void set_matrix_type(std::string mt);
 
-  Eigen::ComputationInfo info() const { return _info; }
-  Eigen::VectorXd eigenvalues() const { return this->_eigenvalues; }
-  Eigen::MatrixXd eigenvectors() const { return this->_eigenvectors; }
-  Eigen::MatrixXd residues() const { return this->_res; }
-  Index num_iterations() const { return this->_i_iter; }
+  Eigen::ComputationInfo info() const { return info_; }
+  Eigen::VectorXd eigenvalues() const { return this->eigenvalues_; }
+  Eigen::MatrixXd eigenvectors() const { return this->eigenvectors_; }
+  Eigen::MatrixXd residues() const { return this->res_; }
+  Index num_iterations() const { return this->i_iter_; }
 
   template <typename MatrixReplacement>
   void solve(const MatrixReplacement &A, Index neigen,
              Index size_initial_guess = 0) {
 
-    if (_max_search_space < neigen) {
-      _max_search_space = neigen * 5;
+    if (max_search_space_ < neigen) {
+      max_search_space_ = neigen * 5;
     }
     std::chrono::time_point<std::chrono::system_clock> start =
         std::chrono::system_clock::now();
@@ -83,18 +83,18 @@ class DavidsonSolver {
     if (size_initial_guess == 0) {
       size_initial_guess = 2 * neigen;
     }
-    _restart_size = size_initial_guess;
+    restart_size_ = size_initial_guess;
 
     // get the diagonal of the operator
-    this->_Adiag = A.diagonal();
+    this->Adiag_ = A.diagonal();
 
     // target the lowest diagonal element
     ProjectedSpace proj = initProjectedSpace(neigen, size_initial_guess);
     RitzEigenPair rep;
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << TimeStamp() << " iter\tSearch Space\tNorm" << flush;
 
-    for (_i_iter = 0; _i_iter < _iter_max; _i_iter++) {
+    for (i_iter_ = 0; i_iter_ < iter_max_; i_iter_++) {
 
       updateProjection(A, proj);
 
@@ -104,7 +104,7 @@ class DavidsonSolver {
 
       printIterationData(rep, proj, neigen);
 
-      bool last_iter = _i_iter == (_iter_max - 1);
+      bool last_iter = i_iter_ == (iter_max_ - 1);
 
       if (converged) {
         storeConvergedData(rep, neigen);
@@ -114,7 +114,7 @@ class DavidsonSolver {
         break;
       }
       Index extension_size = extendProjection(rep, proj);
-      bool do_restart = (proj.search_space() > _max_search_space);
+      bool do_restart = (proj.search_space() > max_search_space_);
 
       if (do_restart) {
         restart(rep, proj, extension_size);
@@ -125,26 +125,26 @@ class DavidsonSolver {
   }
 
  private:
-  Logger &_log;
-  Index _iter_max = 50;
-  Index _i_iter = 0;
-  double _tol = 1E-4;
-  Index _max_search_space = 0;
-  Eigen::VectorXd _Adiag;
-  Index _restart_size = 0;
+  Logger &log_;
+  Index iter_max_ = 50;
+  Index i_iter_ = 0;
+  double tol_ = 1E-4;
+  Index max_search_space_ = 0;
+  Eigen::VectorXd Adiag_;
+  Index restart_size_ = 0;
   enum CORR { DPR, OLSEN };
-  CORR _davidson_correction = CORR::DPR;
+  CORR davidson_correction_ = CORR::DPR;
 
   enum UPDATE { MIN, SAFE, MAX };
-  UPDATE _davidson_update = UPDATE::SAFE;
+  UPDATE davidson_update_ = UPDATE::SAFE;
 
   enum MATRIX_TYPE { SYMM, HAM };
-  MATRIX_TYPE _matrix_type = MATRIX_TYPE::SYMM;
+  MATRIX_TYPE matrix_type_ = MATRIX_TYPE::SYMM;
 
-  Eigen::VectorXd _eigenvalues;
-  Eigen::MatrixXd _eigenvectors;
-  Eigen::VectorXd _res;
-  Eigen::ComputationInfo _info = Eigen::ComputationInfo::NoConvergence;
+  Eigen::VectorXd eigenvalues_;
+  Eigen::MatrixXd eigenvectors_;
+  Eigen::VectorXd res_;
+  Eigen::ComputationInfo info_ = Eigen::ComputationInfo::NoConvergence;
 
   struct RitzEigenPair {
     Eigen::VectorXd lambda;  // eigenvalues
@@ -175,10 +175,10 @@ class DavidsonSolver {
   void updateProjection(const MatrixReplacement &A,
                         ProjectedSpace &proj) const {
 
-    if (_i_iter == 0) {
+    if (i_iter_ == 0) {
       proj.AV = A * proj.V;
       proj.T = proj.V.transpose() * proj.AV;
-      if (_matrix_type == MATRIX_TYPE::HAM) {
+      if (matrix_type_ == MATRIX_TYPE::HAM) {
         proj.AAV = A * proj.AV;
         proj.B = proj.V.transpose() * proj.AAV;
       }
@@ -196,7 +196,7 @@ class DavidsonSolver {
       proj.T.conservativeResize(new_dim, new_dim);
       proj.T.rightCols(nvec) = proj.V.transpose() * proj.AV.rightCols(nvec);
 
-      if (_matrix_type == MATRIX_TYPE::SYMM) {
+      if (matrix_type_ == MATRIX_TYPE::SYMM) {
         proj.T.bottomLeftCorner(nvec, old_dim) =
             proj.T.topRightCorner(old_dim, nvec).transpose();
 

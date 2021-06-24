@@ -41,8 +41,8 @@ class FilterFactory
 };
 
 inline FilterFactory &Filter() {
-  static FilterFactory _instance;
-  return _instance;
+  static FilterFactory instance_;
+  return instance_;
 }
 
 }  // namespace xtp
