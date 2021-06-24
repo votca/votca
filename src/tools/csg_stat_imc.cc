@@ -195,31 +195,10 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
   auto success = interactions_.insert(
       std::make_pair(name, std::make_unique<interaction_t>()));
   interaction_t *i = success.first->second.get();
-<<<<<<< HEAD
-  i->_index = index;
-  if (group != "none") {
-      getGroup(group)->interactions_.push_back(i);
-  }
-
-  i->_is_bonded = is_bonded;
-  i->_step = p->get("step").as<double>();
-  i->_min = p->get("min").as<double>();
-  i->_max = p->get("max").as<double>();
-  if (_include_intra && (!i->_is_bonded)) {
-    i->_max = p->get("max_intra").as<double>();
-||||||| e427dadd
-  i->_index = index;
-  getGroup(group)->_interactions.push_back(i);
-
-  i->_is_bonded = is_bonded;
-  i->_step = p->get("step").as<double>();
-  i->_min = p->get("min").as<double>();
-  i->_max = p->get("max").as<double>();
-  if (_include_intra && (!i->_is_bonded)) {
-    i->_max = p->get("max_intra").as<double>();
-=======
   i->index_ = index;
-  getGroup(group)->interactions_.push_back(i);
+  if (group != "none") {
+    getGroup(group)->interactions_.push_back(i);
+  }
 
   i->is_bonded_ = is_bonded;
   i->step_ = p->get("step").as<double>();
@@ -227,7 +206,6 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
   i->max_ = p->get("max").as<double>();
   if (include_intra_ && (!i->is_bonded_)) {
     i->max_ = p->get("max_intra").as<double>();
->>>>>>> master
   } else {
     i->max_ = p->get("max").as<double>();
   }
