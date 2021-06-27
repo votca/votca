@@ -32,7 +32,9 @@
 
 
 import argparse
+from collections import defaultdict
 import sys
+import xml.etree.ElementTree as ET
 try:
     import numpy as np
 except ImportError:
@@ -137,6 +139,18 @@ def test_fourier():
     assert np.allclose(f, f_)
 
 
+def fourier_all(r, table_mat):
+    """Fourier along first dimension of table matrix (all interactions)."""
+    omega, _ = fourier(r, table_mat[:, 0, 0])  # get length
+    table_hat_mat = np.empty((len(omega), *table_mat.shape[1:]))
+    for b1 in range(table_mat.shape[1]):
+        for b2 in range(table_mat.shape[2]):
+            y = table_mat[:, b1, b2]
+            _, y_hat = fourier(r, y)
+            table_hat_mat[:, b1, b2] = y_hat
+    return omega, table_hat_mat
+
+
 def gen_fourier_matrix(r, fourier_function):
     """Make a fourier matrix."""
     fourier_matrix = np.identity(len(r))
@@ -208,6 +222,69 @@ def r0_removal(*arrays):
     return r0_removed, arrays
 
 
+def get_non_bonded(options_xml):
+    """Yield tuple (name, bead_types) for each non-bonded interaction.
+
+    bead_types is a set of the interaction's bead types."""
+    for non_bonded in options_xml.findall('non-bonded'):
+        type_set = frozenset({non_bonded.find('type1').text,
+                              non_bonded.find('type2').text})
+        yield non_bonded.find('name').text, type_set
+
+
+def get_densities(topol_xml, volume):
+    """Return the densities of all bead types as a dict."""
+    densities = defaultdict(lambda: 0.0)
+    for molecule in topol_xml.find('molecules').findall('molecule'):
+        for bead in molecule.findall('bead'):
+            densities[bead.attrib['type']] += int(molecule.attrib['nmols']) / volume
+    densities = dict(densities)
+    return densities
+
+
+def get_bead_types(non_bonded_dict):
+    """Return a sorted list of bead types."""
+    bead_types = {bead
+                  for value in non_bonded_dict.values()
+                  for bead in value}
+    bead_types = sorted(list(bead_types))
+    return bead_types
+
+
+def gen_interaction_matrix(r, interaction_dict, non_bonded_dict):
+    bead_types = get_bead_types(non_bonded_dict)
+    non_bonded_dict_inv = {v: k for k, v in non_bonded_dict.items()}
+    interaction_matrix = np.empty((len(r), len(bead_types), len(bead_types)))
+    for b1, bead1 in enumerate(bead_types):
+        for b2, bead2 in enumerate(bead_types):
+            interaction_name = non_bonded_dict_inv[frozenset({bead1, bead2})]
+            interaction_matrix[:, b1, b2] = interaction_dict[interaction_name]['y']
+    return interaction_matrix
+
+
+# inverse of the above
+def gen_interaction_dict(r, interaction_matrix, non_bonded_dict):
+    bead_types = get_bead_types(non_bonded_dict)
+    non_bonded_dict_inv = {v: k for k, v in non_bonded_dict.items()}
+    interaction_dict = {}
+    for b1, bead1 in enumerate(bead_types):
+        for b2, bead2 in enumerate(bead_types):
+            interaction_name = non_bonded_dict_inv[frozenset({bead1, bead2})]
+            interaction_dict[interaction_name] = {'x': r,
+                                                  'y': interaction_matrix[:, b1, b2]}
+    return interaction_dict
+
+
+def gen_density_matrix(densities, non_bonded_dict):
+    bead_types = get_bead_types(non_bonded_dict)
+    try:
+        density_matrix = np.diag(np.array([densities[bt] for bt in bead_types]))
+    except KeyError:
+        raise Exception("Could not construct density matrix. Inconsistency between "
+                        "topology and options file?")
+    return density_matrix
+
+
 def calc_c(r, g_tgt, G_minus_g, n, rho):
     """Calculate the direct correlation function c(r) from g(r)."""
     r0_removed, (r, g_tgt, G_minus_g) = r0_removal(r, g_tgt, G_minus_g)
@@ -227,6 +304,17 @@ def calc_c(r, g_tgt, G_minus_g, n, rho):
     if r0_removed:
         c = np.concatenate(([np.nan], c))
     return c
+
+
+def calc_c_matrix(r, omega, h_hat_mat, G_minus_g_hat_mat, rho_mat):
+    """Calculate the direct correlation function c(r) from g(r)."""
+    # Omega_hat_mat
+    Omega_hat_mat = G_minus_g_hat_mat + np.identity(G_minus_g_hat_mat.shape[1])
+    # direct correlation function c from OZ
+    c_hat_mat = np.linalg.inv(Omega_hat_mat) @ h_hat_mat @ np.linalg.inv(
+        (Omega_hat_mat + rho_mat * h_hat_mat))
+    _, c_mat = fourier_all(omega, c_hat_mat)
+    return c_mat
 
 
 def calc_g(r, c, G_minus_g, n, rho):
@@ -398,6 +486,33 @@ def calc_U(r, g_tgt, G_minus_g, n, kBT, rho, closure):
         elif closure == 'py':
             U = kBT * np.log(1 - c/g_tgt)
     return U
+
+
+def calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat, kBT, closure):
+    """
+    Calculate a potential U using integral equation theory.
+
+    Args:
+        r: Distance grid.
+        g_mat: matrix of RDF
+        h_hat_mat: matrix of Fourier of TCF
+        G_minus_g_mat: matrix of Fourier of intramolecular RDF
+        rho_mat: diagonal matrix of densities of the bead types
+        kBT: Boltzmann constant times temperature.
+        closure: OZ-equation closure ('hnc' or 'py').
+
+    Returns:
+        matrix of the calculated potentias.
+    """
+    # calculate direct correlation function
+    c_mat = calc_c_matrix(r, omega, h_hat_mat, G_minus_g_hat_mat, rho_mat)
+    np.savez_compressed('/tmp/u_mat.npz', c_mat=c_mat)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        if closure == 'hnc':
+            U_mat = kBT * (-np.log(g_mat) + (g_mat - 1) - c_mat)
+        elif closure == 'py':
+            U_mat = kBT * np.log(1 - c_mat/g_mat)
+    return U_mat
 
 
 def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
@@ -780,7 +895,7 @@ def upd_U_zero_beyond_cut_off(r, U, cut_off):
     return U_new
 
 
-def get_args():
+def get_args(iie_args=None):
     """Define and parse command line arguments."""
     description = """
     Calculate U or ΔU with Integral Equations.
@@ -800,7 +915,6 @@ def get_args():
     parser_gauss_newton = subparsers.add_parser(
         'gauss-newton',
         help='potential update using Gauss-Newton method')
-
     # all subparsers
     for pars in [parser_pot_guess, parser_newton, parser_newton_mod,
                  parser_gauss_newton]:
@@ -810,34 +924,37 @@ def get_args():
         pars.add_argument('--closure', type=str, choices=['hnc', 'py'],
                           required=True,
                           help='Closure equation to use for the OZ equation')
-        pars.add_argument('--g-tgt', type=argparse.FileType('r'),
-                          nargs='+', required=True,
-                          metavar=('X-X.dist.tgt', 'X-Y.dist.tgt'),
-                          help='RDF target files')
         pars.add_argument('--kBT', type=float, required=True, help='')
-        pars.add_argument('--densities', type=float,
-                          nargs='+', required=True,
-                          metavar=('rho_X', 'rho_Y'),
+        pars.add_argument('--volume', type=float,
+                          required=True,
+                          metavar='VOL',
                           help='list of number densities of beads')
-        pars.add_argument('--n-intra', type=int,
-                          nargs='+', required=True,
-                          metavar=('n_X', 'n_Y'),
-                          help='number of beads per molecule')
-        # todo: this might need to be split up for multicomponent
         pars.add_argument('--cut-off', type=float, required=True,
-                          help='cutt-off (co) of potential')
-        pars.add_argument('--U-out', type=argparse.FileType('wb'),
-                          nargs='+', required=True,
-                          metavar=('X-X.dpot.new', 'X-Y.dpot.new'),
-                          help='U or ΔU output files')
+                          help='cutt-off (co) of all potentials')
+        pars.add_argument('--topol', type=argparse.FileType('r'),
+                          required=True,
+                          metavar='TOPOL',
+                          help='XML topology file')
+        pars.add_argument('--options', type=argparse.FileType('r'),
+                          required=True,
+                          metavar='SETTINGS',
+                          help='XML settings file')
+        pars.add_argument('--g-tgt-ext', type=str,
+                          required=True,
+                          metavar='RDF_TGT_EXT',
+                          help='extension of RDF target files')
+        pars.add_argument('--U-out-ext', type=str,
+                          required=True,
+                          metavar='U_OUT_EXT',
+                          help='extension of U or ΔU output files')
         pars.add_argument('--g-extrap-factor', type=float, required=False,
                           help='factor by which to extrapolate RDFs')
     # intial potential guess subparsers
     for pars in [parser_pot_guess]:
-        pars.add_argument('--G-tgt', type=argparse.FileType('r'),
-                          nargs='+', required=False,
-                          metavar=('X-X-incl.dist.tgt', 'X-Y-incl.dist.tgt'),
-                          help='RDF (including intramolecular) target files')
+        pars.add_argument('--G-tgt-ext', type=str,
+                          required=True,
+                          metavar='RDF_INCL_TGT_EXT',
+                          help='extension of incl. RDF target files')
     # update potential subparsers
     for pars in [parser_newton, parser_newton_mod, parser_gauss_newton]:
         pars.add_argument('--g-cur', type=argparse.FileType('r'),
@@ -869,113 +986,131 @@ def get_args():
     parser_gauss_newton.add_argument('--fix-near-cut-off',
                                      dest='fix_near_cut_off',
                                      type=str, choices=['none', 'full-deriv'])
-
-    args = parser.parse_args()
-
+    # parse
+    if iie_args is None:
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args(iie_args)
     # check for subcommand
     if args.subcommand is None:
         parser.print_help()
         raise Exception("subcommand needed")
-
-    # close writable files directly due to weird bug, where np.savetxt would
-    # write empty file, use filename later.
-    # I should report it, but on the other side, argparse opened files do not
-    # get closed at any point, so this is better
-    for f in args.U_out:
-        f.close()
-    args.U_out = [f.name for f in args.U_out]
-
     return args
 
 
 def process_input(args):
     """Process arguments and perform some checks."""
-    # infering variables from input
-    n_beads = len(args.densities)
-    # nr. of interactions equals nr. of elements in triangular matrix incl.
-    # the diagonal
-    n_interactions = (n_beads * (n_beads + 1)) // 2
-
-    # some checks on input
-    # test for same number of interactions
-    file_arguments_names = ['g_tgt', 'G_tgt', 'g_cur', 'G_cur', 'U_cur',
-                            'U_out']
-    file_arguments = [(argname, vars(args)[argname])
-                      for argname in file_arguments_names
-                      if vars(args).get(argname) is not None]
-    file_arguments_wrong = [(argname, flist)
-                            for argname, flist in file_arguments
-                            if len(flist) != n_interactions]
-    for argname, flist in file_arguments_wrong:
-        raise Exception("""N = {} densities provided, therefore
-                        there should be (N * (N + 1)) // 2 = {}
-                        files for {}, but {} was
-                        provided""".format(n_beads, n_interactions, argname,
-                                           [f.name for f in flist]))
-    # multicomponent not implemented
-    if any((len(files) != 1 for files in [args.g_tgt, args.densities])):
-        raise Exception('not implemented for multiple components!')
-    if len(args.n_intra) > 1:
-        raise Exception('not implemented for multiple components!')
-    # todo: if n_intra == 1, check if G close to g at G[-1]
-    # todo for multicomponent: check order of input and output by filename
-    # todo for multicomponent: allow not existing X-Y? particles would overlap
-    # todo for multicomponent: do not allow same bead on different moleculetypes
-
+    # TODO: g_cur, G_cur
+    # args.options.read() can be called only once
+    options = ET.fromstring(args.options.read())
+    topology = ET.fromstring(args.topol.read())
+    # get densities
+    densities = get_densities(topology, args.volume)
+    # get non_bonded_dict
+    non_bonded_dict = {nb_name: nb_ts for nb_name, nb_ts in get_non_bonded(options)}
+    non_bonded_dict_inv = {v: k for k, v in non_bonded_dict.items()}
+    if len(non_bonded_dict) != len(non_bonded_dict_inv):
+        raise Exception("Some non-bonded name was not unique or some non-bonded "
+                        "interactions had the same bead types.")
+    # dict of table extensions
+    table_infos = {
+        'g_tgt': {'extension': args.g_tgt_ext, 'check-grid': True},
+        'G_tgt': {'extension': args.G_tgt_ext, 'check-grid': False},
+        # is not loaded but calculated
+        'G_minus_g_tgt': {'extension': None, 'check-grid': True},
+    }
     # load input arrays
-    input_arrays = {}  # input_arrays['g_tgt'][0]['x']
-    input_arguments_names = ['g_tgt', 'G_tgt', 'g_cur', 'G_cur', 'U_cur']
-    input_arguments = [(argname, vars(args)[argname])
-                       for argname in input_arguments_names
-                       if vars(args).get(argname) is not None]
-    for argname, flist in input_arguments:
-        input_arrays[argname] = []
-        for f in flist:
-            x, y, flag = readin_table(f)
-            input_arrays[argname].append({'x': x, 'y': y, 'flag': flag})
-
-    # todo: compare grids of all
-    r = input_arrays['g_tgt'][0]['x']
-    # compare grids of G_cur and G_tgt with g_tgt in smart way
-    # calculate G_minus_g
-    if 'G_tgt' in input_arrays:
-        g_name = 'g_tgt'
-        G_name = 'G_tgt'
-    elif 'G_cur' in input_arrays:
-        g_name = 'g_cur'
-        G_name = 'G_cur'
+    input_arrays = {}  # will hold all input data
+    for table_name, table_info in table_infos.items():
+        if table_info['extension'] is None:  # if no extension, do not load
+            continue
+        input_arrays[table_name] = {}
+        for non_bonded_name in non_bonded_dict.keys():
+            x, y, flag = readin_table(non_bonded_name + table_info['extension'])
+            input_arrays[table_name][non_bonded_name] = {'x': x, 'y': y, 'flag': flag}
+    # make G - g. G can be shorter than g
+    input_arrays['G_minus_g_tgt'] = {}
+    for non_bonded_name, g_dict in input_arrays['g_tgt'].items():
+        # TODO: check subgrids of g and grid of G
+        G_dict = input_arrays['G_tgt'][non_bonded_name]
+        G_len = G_dict['y'].shape[0]
+        G_minus_g_tgt = np.zeros_like(g_dict['y'])
+        G_minus_g_tgt[:G_len] = (G_dict['y'] - g_dict['y'][:G_len])
+        input_arrays['G_minus_g_tgt'][non_bonded_name] = {
+            'x': g_dict['x'], 'y': G_minus_g_tgt, 'flag': g_dict['flag']}
+    # check for same grid and define r
+    r = None
+    for table_name, table_info in table_infos.items():
+        for non_bonded_name in non_bonded_dict.keys():
+            x = input_arrays[table_name][non_bonded_name]['x']
+            if table_info['check-grid']:
+                if r is not None:
+                    # compare with first r
+                    if not np.allclose(x, r):
+                        raise RuntimeError("Grids of tables do not match")
+                else:
+                    # set r
+                    r = x
+    # check if starts at r = 0.0, if so: remove
+    all_first_x = np.array([input_arrays[table_name][non_bonded_name]['x'][0]
+                            for table_name, table_info in table_infos.items()
+                            for non_bonded_name in non_bonded_dict.keys()])
+    # if all r[0] = 0
+    if np.allclose(all_first_x, np.zeros_like(all_first_x)):
+        for table_name, table_info in table_infos.items():
+            for non_bonded_name in non_bonded_dict.keys():
+                for key in ('x', 'y', 'flag'):
+                    input_arrays[table_name][non_bonded_name][key] = (
+                        input_arrays[table_name][non_bonded_name][key][1:])
+        r = r[1:]
+        r0_removed = True
+    # if they do not start with 0 but are all the same value
+    elif np.allclose(all_first_x, all_first_x[0]):
+        r0_removed = False
     else:
-        print("No intramolecular correlations provided, assuming there are \
-              none.")
-        # this will result in zero arrays in input_arrays['G_minus_g'] in the
-        # below loop
-        g_name = 'g_tgt'
-        G_name = 'g_tgt'
-    input_arrays['G_minus_g'] = []
-    for g_dict, G_dict in zip(input_arrays[g_name], input_arrays[G_name]):
-        G_minus_g = np.zeros_like(g_dict['y'])
-        G_minus_g[:G_dict['y'].shape[0]] = (G_dict['y']
-                                            - g_dict['y']
-                                            [:G_dict['y'].shape[0]])
-        input_arrays['G_minus_g'].append({'y': G_minus_g})
-    return r, input_arrays
+        raise Exception('either all or no input tables should start at r=0')
+    # settings
+    # copy some directly from args
+    settings_to_copy = ('kBT', 'closure', 'cut_off', 'verbose', 'U_out_ext')
+    settings = {key: vars(args)[key] for key in settings_to_copy}
+    settings['non-bonded-dict'] = non_bonded_dict
+    settings['densities'] = densities
+    settings['r0-removed'] = r0_removed
+    return r, input_arrays, settings
 
 
-def potential_guess(r, input_arrays, args):
+def potential_guess(r, input_arrays, settings):
     """Do the potential guess."""
-    U1 = calc_U(r,
-                input_arrays['g_tgt'][0]['y'],
-                input_arrays['G_minus_g'][0]['y'],
-                args.n_intra[0], args.kBT, args.densities[0],
-                args.closure)
-    U_flag1 = np.array(['i'] * len(r))
-    U_flag2 = upd_flag_g_smaller_g_min(U_flag1,
-                                       input_arrays['g_tgt'][0]['y'],
-                                       G_MIN)
-    U2 = upd_U_const_first_flag_i(U1, U_flag2)
-    U3 = upd_U_zero_beyond_cut_off(r, U2, args.cut_off)
-    comment = "created by: {}".format(" ".join(sys.argv))
-    saveto_table(args.U_out[0], r, U3, U_flag2, comment)
+    # prepare matrices
+    g_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
+                                   settings['non-bonded-dict'])
+    h_mat = g_mat - 1
+    omega, h_hat_mat = fourier_all(r, h_mat)
+    G_minus_g_mat = gen_interaction_matrix(
+        r, input_arrays['G_minus_g_tgt'], settings['non-bonded-dict'])
+    _, G_minus_g_hat_mat = fourier_all(r, G_minus_g_mat)
+    rho_mat = gen_density_matrix(settings['densities'], settings['non-bonded-dict'])
+    # perform actual math
+    U1_mat = calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat,
+                           settings['kBT'], settings['closure'])
+    # extrapolate and save potentials
+    for non_bonded_name, U_dict in gen_interaction_dict(
+            r, U1_mat, settings['non-bonded-dict']).items():
+        U1 = U_dict['y']
+        U_flag1 = np.array(['i'] * len(r))
+        if settings['r0-removed']:
+            r_out = np.concatenate(([0.0], r))
+            U1 = np.concatenate(([np.nan], U1))
+            U_flag1 = np.concatenate((['o'], U_flag1))
+        else:
+            r_out = r
+        U_flag2 = upd_flag_g_smaller_g_min(
+            U_flag1, input_arrays['g_tgt'][non_bonded_name]['y'], G_MIN)
+        U2 = upd_U_const_first_flag_i(U1, U_flag2)
+        U3 = upd_U_zero_beyond_cut_off(r_out, U2, settings['cut_off'])
+        comment = "created by: {}".format(" ".join(sys.argv))
+        fn = non_bonded_name + settings['U_out_ext']
+        saveto_table(fn, r_out, U3, U_flag2, comment)
 
 
 def newton_update(r, input_arrays, args):
@@ -1104,18 +1239,18 @@ def main():
     args = get_args()
 
     # process and prepare input
-    r, input_arrays = process_input(args)
+    r, input_arrays, settings = process_input(args)
 
     # guess potential from distribution
-    if args.subcommand in ['potential_guess']:
-        potential_guess(r, input_arrays, args)
+    if args.subcommand == 'potential_guess':
+        potential_guess(r, input_arrays, settings)
 
     # newton update
-    if args.subcommand in ['newton', 'newton-mod']:
+    if args.subcommand in ('newton', 'newton-mod'):
         newton_update(r, input_arrays, args)
 
     # gauss-newton update
-    if args.subcommand in ['gauss-newton']:
+    if args.subcommand == 'gauss-newton':
         gauss_newton_update(r, input_arrays, args)
 
 

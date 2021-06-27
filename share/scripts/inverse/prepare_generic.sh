@@ -16,13 +16,13 @@
 #
 
 if [ "$1" = "--help" ]; then
-cat <<EOF
+  cat <<EOF
 ${0##*/}, version %version%
 This script prepares potentials in a generic way
 
 Usage: ${0##*/}
 EOF
-   exit 0
+  exit 0
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
@@ -31,59 +31,30 @@ initial_guess_method="$(csg_get_property "cg.inverse.initial_guess.method")"
 verbose=$(csg_get_property cg.inverse.iie.verbose)
 
 if [ "${verbose}" == 'true' ]; then
-    verbose_flag="--verbose"
+  verbose_flag="--verbose"
 elif [ "${verbose}" == 'false' ]; then
-    verbose_flag=""
+  verbose_flag=""
 else
-    die "verbose has to be 'true' or 'false'"
+  die "verbose has to be 'true' or 'false'"
 fi
 
 case "$initial_guess_method" in
 "table")
-    for_all "bonded non-bonded" do_external prepare_single generic --use-table
-    ;;
+  for_all "bonded non-bonded" do_external prepare_single generic --use-table
+  ;;
 "bi")
-    for_all "bonded non-bonded" do_external prepare_single generic --use-bi
-    ;;
+  for_all "bonded non-bonded" do_external prepare_single generic --use-bi
+  ;;
 "ie")
-    main_dir=$(get_main_dir)
-    nb_interactions=$(csg_get_property --allow-empty cg.non-bonded.name)
-    kBT="$(csg_get_property cg.inverse.kBT)"
-    densities="$(csg_get_property cg.inverse.iie.densities)"
-    n_intra="$(csg_get_property cg.inverse.iie.n_intra)"
-    cut_off="$(csg_get_property cg.inverse.iie.cut_off)"
-    # only for IE
-    initial_guess_closure=$(csg_get_property "cg.inverse.initial_guess.closure")
-
-    # bonded distributions inversion
+  bonded_interactions=( $(csg_get_property --allow-empty cg.bonded.name) )
+  if [[ -n $bonded_interactions ]]; then
     for_all "bonded" do_external prepare_single generic --use-bi
-    # resample all target distributions
-    for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
-
-    # initial guess from rdf with hnc or py
-    # todo: implement propper extrapolation (use raw, then extrapolate)
-    if [[ "${initial_guess_ignore_intra}" == "false" && $n_intra -gt 1 ]]; then
-        critical cp -t . "${main_dir}/$(printf '%s.dist-incl.tgt' "$nb_interactions")"
-        G_tgt_flag="--G-tgt $(printf '%s.dist-incl.tgt' "$nb_interactions")"
-    else
-        G_tgt_flag=""
-    fi
-
-    # do not put quotes around arguments with values ($G_tgt_flag)!
-    # this will give a codacy warning :/
-    msg "Using initial guess for non-bonded interactions using integral equations"
-    do_external dist invert_iie potential_guess \
-    "$verbose_flag" \
-    --closure "$initial_guess_closure" \
-    --g-tgt $(printf "%s.dist.tgt" "$nb_interactions") \
-    $G_tgt_flag \
-    --U-out $(printf "%s.pot.new" "$nb_interactions") \
-    --kBT "$kBT" --densities "$densities" --cut-off "$cut_off" \
-    --n-intra "$n_intra"
-    ;;
+  fi
+  do_external initial_guess ie
+  ;;
 *)
-    die "cg.inverse.${method}.initial_guess has to be either table, bi, or ie"
-    ;;
+  die "cg.inverse.${method}.initial_guess has to be either table, bi, or ie"
+  ;;
 esac
 
 if [[ $sim_prog != @(gromacs|lammps) ]] ; then

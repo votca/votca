@@ -35,6 +35,9 @@ ignore_intramolecular_correlation="$(csg_get_property cg.inverse.iie.ignore_intr
 sim_prog="$(csg_get_property cg.inverse.program)"
 nb_interactions=$(csg_get_property --allow-empty cg.non-bonded.name)
 
+# TODO: check do_potential -> only apply dpot if it is
+#for_all non-bonded '$(csg_get_interaction_property inverse.do_potential)'
+
 # TODO: outsource the extrapolation!
 if [[ $iie_method == 'gauss-newton' ]]; then
     pressure_constraint=$(csg_get_property cg.inverse.iie.pressure_constraint)

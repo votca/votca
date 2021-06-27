@@ -40,6 +40,11 @@ initstep imc initialize_step_generic.sh
 initstep optimizer initialize_step_optimizer.sh
 initstep re initialize_step_re.sh
 
+# aditional scripts for the initial guess
+initial_guess ie initial_guess_ie.sh
+initial_guess_single bi initial_guess_single_bi.sh
+initial_guess_single table initial_guess_single_table.sh
+
 # the update step
 
 # add up the potential

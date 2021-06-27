@@ -68,8 +68,11 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *) {
         for (votca::Index j = 0; j < 3; j++) {
           cout << " " << box(i, j);
         }
-        cout << endl << "           ";
+        if (i < 2) {
+            cout << endl << "           ";
+        }
       }
+      cout << "\n Volume: " << fixed << top->BoxVolume() << endl;
     }
 
     cout << "\nList of residues:\n";
