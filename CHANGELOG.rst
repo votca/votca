@@ -41,6 +41,7 @@ Version 2022-dev
 -  updated benchmark (#714)
 -  reworked commandline options (#715)
 -  renamed cmd line arguments in xtp_parallel (#718)
+-  added incremental Fokc matrix building (#716)
 
 Version 2021.1 (released XX.03.21)
 ==================================
