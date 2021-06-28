@@ -38,6 +38,10 @@ Version 2022-dev
 -  add command line option for number of gpus (#711)
 -  reworked iqm statefile reading (#712)
 -  made membervariable format consistent (#713)
+-  updated benchmark (#714)
+-  reworked commandline options (#715)
+-  renamed cmd line arguments in xtp_parallel (#718)
+-  added incremental Fokc matrix building (#716)
 
 Version 2021.1 (released XX.03.21)
 ==================================

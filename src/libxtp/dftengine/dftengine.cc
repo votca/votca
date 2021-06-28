@@ -284,7 +284,7 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
       Etwo += 0.5 * Dmat.cwiseProduct(J).sum();
       K += both[1];
       H += 0.5 * ScaHFX_ * K;
-      exx = 0.25* ScaHFX_ * Dmat.cwiseProduct(K).sum();
+      exx = 0.25 * ScaHFX_ * Dmat.cwiseProduct(K).sum();
       XTP_LOG(Log::info, *pLog_)
           << TimeStamp() << " Filled F+K matrix " << flush;
     } else {

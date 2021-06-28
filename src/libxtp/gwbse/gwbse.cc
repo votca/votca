@@ -646,6 +646,9 @@ bool GWBSE::Evaluate() {
 
   Eigen::MatrixXd Hqp;
   if (do_gw_) {
+
+    std::chrono::time_point<std::chrono::system_clock> start =
+        std::chrono::system_clock::now();
     Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
     GW gw = GW(*pLog_, Mmn, vxc, orbitals_.MOs().eigenvalues());
     gw.configure(gwopt_);
@@ -678,6 +681,11 @@ bool GWBSE::Evaluate() {
 
     orbitals_.QPdiag().eigenvectors() = es.eigenvectors();
     orbitals_.QPdiag().eigenvalues() = es.eigenvalues();
+    std::chrono::duration<double> elapsed_time =
+        std::chrono::system_clock::now() - start;
+    XTP_LOG(Log::error, *pLog_) << TimeStamp() << " GW calculation took "
+                                << elapsed_time.count() << " seconds." << flush;
+
   } else {
     if (orbitals_.getGWAmax() != gwopt_.qpmax ||
         orbitals_.getGWAmin() != gwopt_.qpmin ||
@@ -695,6 +703,9 @@ bool GWBSE::Evaluate() {
 
   // proceed only if BSE requested
   if (do_bse_singlets_ || do_bse_triplets_) {
+
+    std::chrono::time_point<std::chrono::system_clock> start =
+        std::chrono::system_clock::now();
 
     BSE bse = BSE(*pLog_, Mmn);
     bse.configure(bseopt_, orbitals_.RPAInputEnergies(), Hqp);
@@ -730,6 +741,11 @@ bool GWBSE::Evaluate() {
                                             orbitals_);
       }
     }
+
+    std::chrono::duration<double> elapsed_time =
+        std::chrono::system_clock::now() - start;
+    XTP_LOG(Log::error, *pLog_) << TimeStamp() << " BSE calculation took "
+                                << elapsed_time.count() << " seconds." << flush;
   }
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " GWBSE calculation finished " << flush;

@@ -49,8 +49,7 @@ class QMPackage {
   /// writes a coordinate file WITHOUT taking into account PBCs
   virtual bool WriteInputFile(const Orbitals& orbitals) = 0;
 
-  virtual bool Run() = 0;
-
+  bool Run();
   virtual bool ParseLogFile(Orbitals& orbitals) = 0;
 
   virtual bool ParseMOsFile(Orbitals& orbitals) = 0;
@@ -114,6 +113,7 @@ class QMPackage {
   tools::Property ParseCommonOptions(const tools::Property& options);
   std::string FindDefaultsFile() const;
 
+  virtual bool RunDFT() = 0;
   virtual void WriteChargeOption() = 0;
   std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
   void ReorderOutput(Orbitals& orbitals) const;

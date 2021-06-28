@@ -31,7 +31,8 @@ class IncrementalFockBuilder {
  public:
   IncrementalFockBuilder(Logger& log, double start_threshold,
                          Index fock_matrix_reset)
-      : log_(log),start_incremental_F_threshold_(start_threshold),
+      : log_(log),
+        start_incremental_F_threshold_(start_threshold),
         fock_matrix_reset_(fock_matrix_reset) {}
 
   void Configure(const Eigen::MatrixXd& dmat) {
