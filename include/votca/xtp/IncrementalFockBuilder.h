@@ -69,7 +69,7 @@ class IncrementalFockBuilder {
       last_reset_iteration_ = Iteration;
       next_reset_threshold_ = DiisError / 10.0;
       XTP_LOG(Log::info, log_)
-          << TimeStamp() << "== reset incremental 4c build" << std::endl;
+          << TimeStamp() << " Reset incremental 4c build" << std::endl;
     }
   }
 
