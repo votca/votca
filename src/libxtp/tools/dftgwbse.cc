@@ -68,7 +68,7 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
   archive_file_ = job_name_ + ".orb";
 
   // XML OUTPUT
-  xml_output_ = job_name_ + " summary_.xml";
+  xml_output_ = job_name_ + "_summary.xml";
 
   // check for MPS file with external multipoles for embedding
   do_external_ = options.get("use_mpsfile").as<bool>();

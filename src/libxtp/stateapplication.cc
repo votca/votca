@@ -47,14 +47,11 @@ void StateApplication::AddCommandLineOptions() {
 
 void StateApplication::EvaluateSpecificOptions() {
   CheckRequired("file", "Please provide the state file");
-  CheckRequired("options",
-                "Please provide an xml file with calculator options");
   CheckOptions();
 }
 
 void StateApplication::execute() {
 
-  options_.LoadFromXML(OptionsMap()["options"].as<std::string>());
   Index nframes = OptionsMap()["nframes"].as<Index>();
   Index fframe = OptionsMap()["first-frame"].as<Index>();
   bool save = OptionsMap()["save"].as<bool>();

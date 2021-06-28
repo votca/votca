@@ -342,7 +342,7 @@ bool Orca::WriteShellScript() {
 /**
  * Runs the Orca job.
  */
-bool Orca::Run() {
+bool Orca::RunDFT() {
 
   XTP_LOG(Log::error, *pLog_) << "Running Orca job\n" << flush;
 
