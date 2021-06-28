@@ -54,8 +54,6 @@ void DFTEngine::Initialize(Property& options) {
     auxbasis_name_ = options.get(key + ".auxbasisset").as<string>();
   }
 
-
-
   if (!auxbasis_name_.empty()) {
     screening_eps_ = options.get(key_xtpdft + ".screening_eps").as<double>();
     fock_matrix_reset_ =
