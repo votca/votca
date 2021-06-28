@@ -59,7 +59,7 @@ void ERDiabatizationFrame::ParseOptions(const tools::Property& user_options) {
 
 bool ERDiabatizationFrame::Run() {
 
-  OPENMP::setMaxThreads(_nThreads);
+  OPENMP::setMaxThreads(nThreads_);
 
   // set logger
 
