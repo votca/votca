@@ -40,6 +40,7 @@ Version 2022-dev
 -  made membervariable format consistent (#713)
 -  updated benchmark (#714)
 -  reworked commandline options (#715)
+-  renamed cmd line arguments in xtp_parallel (#718)
 
 Version 2021.1 (released XX.03.21)
 ==================================
