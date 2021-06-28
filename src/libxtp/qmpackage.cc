@@ -35,7 +35,6 @@ using std::flush;
 tools::Property QMPackage::ParseCommonOptions(const tools::Property& options) {
 
   std::string key = "package";
-  std::cout << options << std::endl;
   settings_.read_property(options, key);
 
   if (tools::VotcaShareSet()) {

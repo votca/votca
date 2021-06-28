@@ -26,6 +26,7 @@
 #include <votca/tools/elements.h>
 
 // Local VOTCA includes
+#include "votca/xtp/IncrementalFockBuilder.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/density_integration.h"
@@ -34,7 +35,6 @@
 #include "votca/xtp/logger.h"
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"
-
 using boost::format;
 using namespace boost::filesystem;
 using namespace std;
@@ -57,12 +57,10 @@ void DFTEngine::Initialize(Property& options) {
   four_center_method_ =
       options.get(key_xtpdft + ".four_center_method").as<std::string>();
 
-
-  if (four_center_method_!= "RI") {
+  if (four_center_method_ != "RI") {
     screening_eps_ = options.get(key_xtpdft + ".screening_eps").as<double>();
     fock_matrix_reset_ =
         options.get(key_xtpdft + ".fock_matrix_reset").as<Index>();
-
   }
   if (options.get(key + ".use_ecp").as<bool>()) {
     ecp_name_ = options.get(key + ".ecp").as<string>();
@@ -244,21 +242,18 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
       << flush;
 
   Eigen::MatrixXd J = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
-  Eigen::MatrixXd Ddiff = Dmat;
-  Eigen::MatrixXd Dlast = Dmat;
   Eigen::MatrixXd K;
   if (ScaHFX_ > 0) {
     K = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
   }
 
-  bool reset_incremental_fock_formation = false;
-  bool incremental_Fbuild_started = false;
-  double start_incremental_F_threshold = 1e-5;
-  double next_reset_threshold = 0.0;
-  Index last_reset_iteration = 0;
+  double start_incremental_F_threshold = 1e-5;  // Valeev libint
   if (four_center_method_ == "RI") {
-    start_incremental_F_threshold = 0.0;
+    start_incremental_F_threshold = 0.0;  // Disable if RI is used
   }
+  IncrementalFockBuilder incremental_fock(*pLog_, start_incremental_F_threshold,
+                                          fock_matrix_reset_);
+  incremental_fock.Configure(Dmat);
 
   for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
     XTP_LOG(Log::error, *pLog_) << flush;
@@ -274,45 +269,26 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     double Etwo = e_vxc.energy();
     double exx = 0.0;
 
-    if (!incremental_Fbuild_started &&
-        conv_accelerator_.getDIIsError() < start_incremental_F_threshold) {
-      incremental_Fbuild_started = true;
-      reset_incremental_fock_formation = false;
-      last_reset_iteration = this_iter - 1;
-      next_reset_threshold = conv_accelerator_.getDIIsError() / 1e3;
-      XTP_LOG(Log::info, *pLog_)
-          << TimeStamp() << " Using incremental 4c build" << flush;
-    }
-    if (reset_incremental_fock_formation || !incremental_Fbuild_started) {
-      J = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
-      if (ScaHFX_ > 0) {
-        K = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
-      }
-      Ddiff = Dmat;
-    }
-    if (reset_incremental_fock_formation && incremental_Fbuild_started) {
-      reset_incremental_fock_formation = false;
-      last_reset_iteration = this_iter;
-      next_reset_threshold = conv_accelerator_.getDIIsError() / 1e1;
-      XTP_LOG(Log::info, *pLog_)
-          << TimeStamp() << "== reset incremental 4c build" << std::endl;
-    }
+    incremental_fock.Start(this_iter, conv_accelerator_.getDIIsError());
+    incremental_fock.resetMatrices(J, K, Dmat);
+    incremental_fock.UpdateCriteria(conv_accelerator_.getDIIsError(),
+                                    this_iter);
 
     double integral_error =
         std::min(conv_accelerator_.getDIIsError() * 1e-5, 1e-5);
     if (ScaHFX_ > 0) {
-      std::array<Eigen::MatrixXd, 2> both =
-          CalcERIs_EXX(MOs.eigenvectors(), Ddiff, integral_error);
+      std::array<Eigen::MatrixXd, 2> both = CalcERIs_EXX(
+          MOs.eigenvectors(), incremental_fock.getDmat_diff(), integral_error);
       J += both[0];
       H += J;
       Etwo += 0.5 * Dmat.cwiseProduct(J).sum();
       K += both[1];
       H += 0.5 * ScaHFX_ * K;
-      exx = ScaHFX_ / 4 * Dmat.cwiseProduct(K).sum();
+      exx = 0.25* ScaHFX_ * Dmat.cwiseProduct(K).sum();
       XTP_LOG(Log::info, *pLog_)
           << TimeStamp() << " Filled F+K matrix " << flush;
     } else {
-      J += CalcERIs(Ddiff, integral_error);
+      J += CalcERIs(incremental_fock.getDmat_diff(), integral_error);
       XTP_LOG(Log::info, *pLog_) << TimeStamp() << " Filled F matrix " << flush;
       H += J;
       Etwo += 0.5 * Dmat.cwiseProduct(J).sum();
@@ -335,14 +311,9 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Total Energy "
                                 << std::setprecision(12) << totenergy << flush;
 
-
     Dmat = conv_accelerator_.Iterate(Dmat, H, MOs, totenergy);
-    if (conv_accelerator_.getDIIsError() < next_reset_threshold ||
-        this_iter - last_reset_iteration >= fock_matrix_reset_) {
-      reset_incremental_fock_formation = true;
-    }
-    Ddiff = Dmat - Dlast;
-    Dlast = Dmat;
+    incremental_fock.UpdateDmats(Dmat, conv_accelerator_.getDIIsError(),
+                                 this_iter);
 
     PrintMOs(MOs.eigenvalues(), Log::info);
 
