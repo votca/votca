@@ -41,9 +41,9 @@ namespace xtp {
 
 class Esp2multipole {
  public:
-  Esp2multipole(Logger& log) : _log(log) {
-    _pairconstraint.resize(0);
-    _regionconstraint.resize(0);
+  Esp2multipole(Logger& log) : log_(log) {
+    pairconstraint_.resize(0);
+    regionconstraint_.resize(0);
   }
 
   std::string Identify() { return "esp2multipole"; }
@@ -52,27 +52,27 @@ class Esp2multipole {
 
   StaticSegment Extractingcharges(const Orbitals& orbitals) const;
 
-  std::string GetStateString() const { return _state.ToString(); }
+  std::string GetStateString() const { return state_.ToString(); }
 
  private:
   void PrintDipoles(const Orbitals& orbitals, const StaticSegment& seg) const;
 
-  QMState _state;
-  std::string _method;
-  std::string _gridsize;
-  bool _use_mulliken;
-  bool _use_lowdin;
-  bool _use_CHELPG;
-  bool _do_svd;
-  double _conditionnumber;
+  QMState state_;
+  std::string method_;
+  std::string gridsize_;
+  bool use_mulliken_;
+  bool use_lowdin_;
+  bool use_CHELPG_;
+  bool do_svd_;
+  double conditionnumber_;
 
-  Logger& _log;
-  std::vector<std::pair<Index, Index> > _pairconstraint;  //  pairconstraint[i]
+  Logger& log_;
+  std::vector<std::pair<Index, Index> > pairconstraint_;  //  pairconstraint[i]
                                                           //  is all the
                                                           //  atomindices which
                                                           //  have the same
                                                           //  charge
-  std::vector<QMFragment<double> > _regionconstraint;
+  std::vector<QMFragment<double> > regionconstraint_;
 };
 
 }  // namespace xtp

@@ -39,45 +39,44 @@ using namespace std;
 void XTPDFT::Initialize(const tools::Property& options) {
   const std::string& job_name =
       options.ifExistsReturnElseReturnDefault<std::string>("job_name", "votca");
-  _log_file_name = job_name + ".orb";
-  _mo_file_name = _log_file_name;
-  _xtpdft_options = ParseCommonOptions(options);
+  log_file_name_ = job_name + ".orb";
+  mo_file_name_ = log_file_name_;
+  xtpdft_options_ = ParseCommonOptions(options);
 }
 
 bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {
-  _orbitals = orbitals;
-  _orbitals.setQMpackage(getPackageName());
+  orbitals_ = orbitals;
+  orbitals_.setQMpackage(getPackageName());
   return true;
 }
 
 /**
  * Run calls DFTENGINE
  */
-bool XTPDFT::Run() {
+bool XTPDFT::RunDFT() {
   DFTEngine xtpdft;
-  xtpdft.Initialize(_xtpdft_options);
-  xtpdft.setLogger(_pLog);
+  xtpdft.Initialize(xtpdft_options_);
+  xtpdft.setLogger(pLog_);
 
-  if (_settings.get<bool>("write_charges")) {
-    xtpdft.setExternalcharges(&_externalsites);
+  if (settings_.get<bool>("write_charges")) {
+    xtpdft.setExternalcharges(&externalsites_);
   }
-  bool success = xtpdft.Evaluate(_orbitals);
-  std::string file_name = _run_dir + "/" + _log_file_name;
-  XTP_LOG(Log::error, *_pLog)
-      << "Writing result to " << _log_file_name << flush;
-  _orbitals.WriteToCpt(file_name);
+  bool success = xtpdft.Evaluate(orbitals_);
+  std::string file_name = run_dir_ + "/" + log_file_name_;
+  XTP_LOG(Log::error, *pLog_)
+      << "Writing result to " << log_file_name_ << flush;
+  orbitals_.WriteToCpt(file_name);
   return success;
 }
 
 void XTPDFT::CleanUp() {
-  if (_cleanup.size() != 0) {
-    XTP_LOG(Log::info, *_pLog) << "Removing " << _cleanup << " files" << flush;
-    tools::Tokenizer tok_cleanup(_cleanup, ", ");
-    std::vector<std::string> cleanup_info;
-    tok_cleanup.ToVector(cleanup_info);
+  if (cleanup_.size() != 0) {
+    XTP_LOG(Log::info, *pLog_) << "Removing " << cleanup_ << " files" << flush;
+    std::vector<std::string> cleanup_info =
+        tools::Tokenizer(cleanup_, ", ").ToVector();
     for (const std::string& substring : cleanup_info) {
       if (substring == "log") {
-        std::string file_name = _run_dir + "/" + _log_file_name;
+        std::string file_name = run_dir_ + "/" + log_file_name_;
         remove(file_name.c_str());
       }
     }
@@ -93,15 +92,15 @@ bool XTPDFT::ParseMOsFile(Orbitals&) { return true; }
 
 bool XTPDFT::ParseLogFile(Orbitals& orbitals) {
   try {
-    std::string file_name = _run_dir + "/" + _log_file_name;
+    std::string file_name = run_dir_ + "/" + log_file_name_;
     orbitals.ReadFromCpt(file_name);
-    XTP_LOG(Log::error, *_pLog) << (boost::format("QM energy[Hrt]: %4.8f ") %
+    XTP_LOG(Log::error, *pLog_) << (boost::format("QM energy[Hrt]: %4.8f ") %
                                     orbitals.getDFTTotalEnergy())
                                        .str()
                                 << flush;
   } catch (std::runtime_error& error) {
-    XTP_LOG(Log::error, *_pLog)
-        << "Reading" << _log_file_name << " failed" << flush;
+    XTP_LOG(Log::error, *pLog_)
+        << "Reading" << log_file_name_ << " failed" << flush;
     return false;
   }
   return true;

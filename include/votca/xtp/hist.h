@@ -39,55 +39,55 @@ template <class T>
 class hist {
  public:
   T getDiff() const {
-    if (_filled > 1) {
-      return _metric - _metric_old;
-    } else if (_filled == 1) {
-      return _metric;
+    if (filled_ > 1) {
+      return metric_ - metric_old_;
+    } else if (filled_ == 1) {
+      return metric_;
     } else {
       throw std::runtime_error("hist is not filled yet");
     }
   }
 
-  const T& back() const { return _metric; }
+  const T& back() const { return metric_; }
   void push_back(const T& metric) {
-    _metric_old = std::move(_metric);
-    _metric = metric;
-    _filled++;
+    metric_old_ = std::move(metric_);
+    metric_ = metric;
+    filled_++;
   }
   void push_back(T&& metric) {
-    _metric_old = std::move(_metric);
-    _metric = std::move(metric);
-    _filled++;
+    metric_old_ = std::move(metric_);
+    metric_ = std::move(metric);
+    filled_++;
   }
 
-  bool filled() const { return _filled > 0; }
+  bool filled() const { return filled_ > 0; }
 
   void WriteToCpt(CheckpointWriter& w) const {
-    w(_filled, "filled");
-    if (_filled > 0) {
-      WriteMetric(_metric, "metric", w);
+    w(filled_, "filled");
+    if (filled_ > 0) {
+      WriteMetric(metric_, "metric", w);
     }
-    if (_filled > 1) {
-      WriteMetric(_metric_old, "metric_old", w);
+    if (filled_ > 1) {
+      WriteMetric(metric_old_, "metric_old", w);
     }
   }
 
   void ReadFromCpt(CheckpointReader& r) {
-    r(_filled, "filled");
-    if (_filled > 0) {
-      ReadMetric(_metric, "metric", r);
+    r(filled_, "filled");
+    if (filled_ > 0) {
+      ReadMetric(metric_, "metric", r);
     }
-    if (_filled > 1) {
-      ReadMetric(_metric_old, "metric_old", r);
+    if (filled_ > 1) {
+      ReadMetric(metric_old_, "metric_old", r);
     }
   }
 
  private:
   void ReadMetric(T&, std::string tag, CheckpointReader& r);
   void WriteMetric(const T&, std::string tag, CheckpointWriter& w) const;
-  Index _filled = 0;
-  T _metric;
-  T _metric_old;
+  Index filled_ = 0;
+  T metric_;
+  T metric_old_;
 };
 
 template <class T>

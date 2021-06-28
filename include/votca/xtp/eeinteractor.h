@@ -39,7 +39,7 @@ enum Estatic : bool {
 class eeInteractor {
  public:
   explicit eeInteractor() = default;
-  explicit eeInteractor(double expdamping) : _expdamping(expdamping){};
+  explicit eeInteractor(double expdamping) : expdamping_(expdamping){};
 
   Eigen::Matrix3d FillTholeInteraction(const PolarSite& site1,
                                        const PolarSite& site2) const;
@@ -59,25 +59,25 @@ class eeInteractor {
   class E_terms {
    public:
     E_terms& operator+=(const E_terms& right) {
-      this->_data += right._data;
+      this->data_ += right.data_;
       return *this;
     }
 
     E_terms operator+(E_terms right) const {
-      right._data += this->_data;
+      right.data_ += this->data_;
       return right;
     }
 
-    double sum() { return _data.sum(); }
+    double sum() { return data_.sum(); }
 
-    double& E_indu_indu() { return _data.x(); }
-    double& E_indu_stat() { return _data.y(); }
-    double& E_internal() { return _data.z(); }
+    double& E_indu_indu() { return data_.x(); }
+    double& E_indu_stat() { return data_.y(); }
+    double& E_internal() { return data_.z(); }
 
-    const Eigen::Vector3d& data() const { return _data; }
+    const Eigen::Vector3d& data() const { return data_; }
 
    private:
-    Eigen::Vector3d _data = Eigen::Vector3d::Zero();
+    Eigen::Vector3d data_ = Eigen::Vector3d::Zero();
   };
 
   template <class S1, class S2>
@@ -109,7 +109,7 @@ class eeInteractor {
   E_terms CalcPolarEnergy_site(const PolarSite& site1,
                                const PolarSite& site2) const;
 
-  double _expdamping = 0.39;  // dimensionless
+  double expdamping_ = 0.39;  // dimensionless
 };
 
 }  // namespace xtp

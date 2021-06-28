@@ -42,8 +42,8 @@ class QMPackageFactory : public tools::ObjectFactory<std::string, QMPackage> {
   static void RegisterAll(void);
 
   static QMPackageFactory &QMPackages() {
-    static QMPackageFactory _instance;
-    return _instance;
+    static QMPackageFactory instance_;
+    return instance_;
   }
 };
 

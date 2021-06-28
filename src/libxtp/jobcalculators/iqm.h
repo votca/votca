@@ -59,9 +59,9 @@ class IQM final : public ParallelXJobCalc<std::vector<Job> > {
   void ParseSpecificOptions(const tools::Property& user_options);
 
  private:
-  double GetBSECouplingFromProp(tools::Property& bseprop, const QMState& stateA,
-                                const QMState& stateB);
-  double GetDFTCouplingFromProp(tools::Property& dftprop, Index stateA,
+  double GetBSECouplingFromProp(const tools::Property& bseprop,
+                                const QMState& stateA, const QMState& stateB);
+  double GetDFTCouplingFromProp(const tools::Property& dftprop, Index stateA,
                                 Index stateB);
   void SetJobToFailed(Job::JobResult& jres, Logger& pLog,
                       const std::string& errormessage);
@@ -73,31 +73,31 @@ class IQM final : public ParallelXJobCalc<std::vector<Job> > {
   QMState GetElementFromMap(const std::map<std::string, QMState>& elementmap,
                             const std::string& elementname) const;
 
-  tools::Property _dftpackage_options;
-  tools::Property _gwbse_options;
-  tools::Property _bsecoupling_options;
-  tools::Property _dftcoupling_options;
+  tools::Property dftpackage_options_;
+  tools::Property gwbse_options_;
+  tools::Property bsecoupling_options_;
+  tools::Property dftcoupling_options_;
 
   // what to do
-  bool _do_dft_input = false;
-  bool _do_dft_run = false;
-  bool _do_dft_parse = false;
-  bool _do_dftcoupling = false;
-  bool _do_gwbse = false;
-  bool _do_bsecoupling = false;
+  bool do_dft_input_ = false;
+  bool do_dft_run_ = false;
+  bool do_dft_parse_ = false;
+  bool do_dftcoupling_ = false;
+  bool do_gwbse_ = false;
+  bool do_bsecoupling_ = false;
 
-  std::map<std::string, QMState> _linkers;
+  std::map<std::string, QMState> linkers_;
 
   // what to write in the storage
-  bool _store_dft = false;
-  bool _store_gw = false;
+  bool store_dft_ = false;
+  bool store_gw_ = false;
 
   // parsing options
-  std::map<std::string, QMState> _singlet_levels;
-  std::map<std::string, QMState> _triplet_levels;
+  std::map<std::string, QMState> singlet_levels_;
+  std::map<std::string, QMState> triplet_levels_;
 
-  std::map<std::string, QMState> _hole_levels;
-  std::map<std::string, QMState> _electron_levels;
+  std::map<std::string, QMState> hole_levels_;
+  std::map<std::string, QMState> electron_levels_;
 };
 
 }  // namespace xtp

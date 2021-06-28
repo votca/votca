@@ -32,7 +32,7 @@ namespace votca {
 namespace xtp {
 class GaussianWriter {
  public:
-  GaussianWriter(Logger& log) : _log(log) { gaussianMultipliers.fill(-1); }
+  GaussianWriter(Logger& log) : log_(log) { gaussianMultipliers.fill(-1); }
 
   ~GaussianWriter() = default;
 
@@ -42,7 +42,7 @@ class GaussianWriter {
                  bool diff2gs = false) const;
 
  private:
-  Logger& _log;
+  Logger& log_;
   Index toGaussianL(L l) const;
   std::string reorderedMOCoefficients(const Orbitals& orbitals) const;
   std::string densityMatrixToString(const Orbitals& orbitals,

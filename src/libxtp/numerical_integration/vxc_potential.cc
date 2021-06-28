@@ -32,9 +32,9 @@ namespace votca {
 namespace xtp {
 template <class Grid>
 Vxc_Potential<Grid>::~Vxc_Potential() {
-  if (_setXC) {
+  if (setXC_) {
     xc_func_end(&xfunc);
-    if (_use_separate) {
+    if (use_separate_) {
       xc_func_end(&cfunc);
     }
   }
@@ -44,8 +44,9 @@ double Vxc_Potential<Grid>::getExactExchange(const std::string& functional) {
 
   double exactexchange = 0.0;
   Vxc_Functionals map;
-  tools::Tokenizer tok(functional, " ");
-  std::vector<std::string> functional_names = tok.ToVector();
+
+  std::vector<std::string> functional_names =
+      tools::Tokenizer(functional, " ").ToVector();
 
   if (functional_names.size() > 2) {
     throw std::runtime_error("Too many functional names");
@@ -79,18 +80,17 @@ template <class Grid>
 void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
 
   Vxc_Functionals map;
-  std::vector<std::string> strs;
-  tools::Tokenizer tok(functional, " ,\n\t");
-  tok.ToVector(strs);
+  std::vector<std::string> strs =
+      tools::Tokenizer(functional, " ,\n\t").ToVector();
   xfunc_id = 0;
-  _use_separate = false;
+  use_separate_ = false;
   cfunc_id = 0;
   if (strs.size() == 1) {
     xfunc_id = map.getID(strs[0]);
   } else if (strs.size() == 2) {
     xfunc_id = map.getID(strs[0]);
     cfunc_id = map.getID(strs[1]);
-    _use_separate = true;
+    use_separate_ = true;
   } else {
     throw std::runtime_error(
         "LIBXC. Please specify one combined or an exchange and a correlation "
@@ -101,12 +101,12 @@ void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
     throw std::runtime_error(
         (boost::format("Functional %s not found\n") % strs[0]).str());
   }
-  if (xfunc.info->kind != 2 && !_use_separate) {
+  if (xfunc.info->kind != 2 && !use_separate_) {
     throw std::runtime_error(
         "Your functional misses either correlation or exchange, please specify "
         "another functional, separated by whitespace");
   }
-  if (_use_separate) {
+  if (use_separate_) {
     if (xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED) != 0) {
       throw std::runtime_error(
           (boost::format("Functional %s not found\n") % strs[1]).str());
@@ -116,7 +116,7 @@ void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
           "Your functionals are not one exchange and one correlation");
     }
   }
-  _setXC = true;
+  setXC_ = true;
   return;
 }
 template <class Grid>
@@ -134,7 +134,7 @@ typename Vxc_Potential<Grid>::XC_entry Vxc_Potential<Grid>::EvaluateXC(
                      &result.df_dsigma);
       break;
   }
-  if (_use_separate) {
+  if (use_separate_) {
     typename Vxc_Potential<Grid>::XC_entry temp;
     // via libxc correlation part only
     switch (cfunc.info->family) {
@@ -162,8 +162,8 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
   Mat_p_Energy vxc = Mat_p_Energy(density_matrix.rows(), density_matrix.cols());
 
 #pragma omp parallel for schedule(guided) reduction(+ : vxc)
-  for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
-    const GridBox& box = _grid[i];
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    const GridBox& box = grid_[i];
     if (!box.Matrixsize()) {
       continue;
     }

@@ -8,12 +8,12 @@ namespace xtp {
 void QMSandbox::ParseOptions(const tools::Property&) {}
 
 bool QMSandbox::Run() {
-  _log.setReportLevel(Log::current_level);
-  _log.setMultithreading(true);
-  _log.setCommonPreface("\n... ...");
+  log_.setReportLevel(Log::current_level);
+  log_.setMultithreading(true);
+  log_.setCommonPreface("\n... ...");
 
   QMMolecule atoms("", 0);
-  atoms.LoadFromFile(_job_name + ".xyz");
+  atoms.LoadFromFile(job_name_ + ".xyz");
 
   BasisSet bs;
   bs.Load("def2-svp");

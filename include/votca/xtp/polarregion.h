@@ -55,7 +55,7 @@ class PolarRegion : public MMRegion<PolarSegment> {
 
   void Reset() override;
 
-  double Etotal() const override { return _E_hist.back().Etotal(); }
+  double Etotal() const override { return E_hist_.back().Etotal(); }
 
   void WriteToCpt(CheckpointWriter& w) const override;
 
@@ -83,11 +83,11 @@ class PolarRegion : public MMRegion<PolarSegment> {
       const Eigen::VectorXd& initial_guess);
   void WriteInducedDipolesToSegments(const Eigen::VectorXd& x);
 
-  hist<Energy_terms> _E_hist;
-  double _deltaE = 1e-5;
-  double _deltaD = 1e-5;
-  Index _max_iter = 100;
-  double _exp_damp = 0.39;
+  hist<Energy_terms> E_hist_;
+  double deltaE_ = 1e-5;
+  double deltaD_ = 1e-5;
+  Index max_iter_ = 100;
+  double exp_damp_ = 0.39;
 };
 
 }  // namespace xtp

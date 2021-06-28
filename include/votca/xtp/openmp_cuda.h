@@ -68,13 +68,9 @@ namespace xtp {
 class OpenMP_CUDA {
  public:
   OpenMP_CUDA();
-  static Index UsingGPUs() {
-#ifdef USE_CUDA
-    return count_available_gpus();
-#else
-    return 0;
-#endif
-  }
+  static Index UsingGPUs();
+  static Index AvailableGPUs();
+  static void SetNoGPUs(Index number);
 
   // 3c multiply
   void setOperators(const std::vector<Eigen::MatrixXd>& tensor,
@@ -154,6 +150,8 @@ class OpenMP_CUDA {
 
   bool inside_Parallel_region_;
   Index threadID_parent_;
+
+  static Index number_of_gpus;
 
   Index getParentThreadId(Index OpenmpThreadId) const;
 

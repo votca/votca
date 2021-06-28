@@ -35,41 +35,41 @@ using boost::format;
 Job::Job(const tools::Property &prop) {
 
   // DEFINED BY USER
-  _id = prop.get("id").as<Index>();
-  _tag = prop.get("tag").as<std::string>();
-  _input = prop.get("input");
+  id_ = prop.get("id").as<Index>();
+  tag_ = prop.get("tag").as<std::string>();
+  input_ = prop.get("input");
   if (prop.exists("status")) {
-    _status = ConvertStatus(prop.get("status").as<std::string>());
+    status_ = ConvertStatus(prop.get("status").as<std::string>());
   } else {
-    _status = AVAILABLE;
+    status_ = AVAILABLE;
   }
 
   // GENERATED DURING RUNTIME
   if (prop.exists("host")) {
-    _host = prop.get("host").as<std::string>();
-    _has_host = true;
+    host_ = prop.get("host").as<std::string>();
+    has_host_ = true;
   }
   if (prop.exists("time")) {
-    _time = prop.get("time").as<std::string>();
-    _has_time = true;
+    time_ = prop.get("time").as<std::string>();
+    has_time_ = true;
   }
   if (prop.exists("output")) {
-    _output = prop.get("output");
-    _has_output = true;
+    output_ = prop.get("output");
+    has_output_ = true;
   }
   if (prop.exists("error")) {
-    _error = prop.get("error").as<std::string>();
-    _has_error = true;
+    error_ = prop.get("error").as<std::string>();
+    has_error_ = true;
   }
 }
 
 Job::Job(Index id, const std::string &tag, const tools::Property &input,
          JobStatus status) {
 
-  _id = id;
-  _tag = tag;
-  _input = input.get("input");
-  _status = status;
+  id_ = id;
+  tag_ = tag;
+  input_ = input.get("input");
+  status_ = status;
 }
 
 std::string Job::ConvertStatus(JobStatus status) const {
@@ -111,10 +111,10 @@ Job::JobStatus Job::ConvertStatus(std::string status) const {
 }
 
 void Job::Reset() {
-  _output = tools::Property();
-  _has_output = false;
-  _error = "";
-  _has_error = false;
+  output_ = tools::Property();
+  has_output_ = false;
+  error_ = "";
+  has_error_ = false;
   return;
 }
 
@@ -124,60 +124,60 @@ void Job::ToStream(std::ofstream &ofs) const {
                                       "\t\t");
   std::string tab = "\t";
   ofs << tab << "<job>\n";
-  ofs << tab << tab << (format("<id>%1$d</id>\n") % _id).str();
-  ofs << tab << tab << (format("<tag>%1$s</tag>\n") % _tag).str();
-  ofs << iomXML << _input;
+  ofs << tab << tab << (format("<id>%1$d</id>\n") % id_).str();
+  ofs << tab << tab << (format("<tag>%1$s</tag>\n") % tag_).str();
+  ofs << iomXML << input_;
   ofs << tab << tab
-      << (format("<status>%1$s</status>\n") % ConvertStatus(_status)).str();
+      << (format("<status>%1$s</status>\n") % ConvertStatus(status_)).str();
 
-  if (_has_host) {
-    ofs << tab << tab << (format("<host>%1$s</host>\n") % _host).str();
+  if (has_host_) {
+    ofs << tab << tab << (format("<host>%1$s</host>\n") % host_).str();
   }
-  if (_has_time) {
-    ofs << tab << tab << (format("<time>%1$s</time>\n") % _time).str();
+  if (has_time_) {
+    ofs << tab << tab << (format("<time>%1$s</time>\n") % time_).str();
   }
-  if (_has_output) {
-    ofs << iomXML << _output;
+  if (has_output_) {
+    ofs << iomXML << output_;
   }
-  if (_has_error) {
-    ofs << tab << tab << (format("<error>%1$s</error>\n") % _error).str();
+  if (has_error_) {
+    ofs << tab << tab << (format("<error>%1$s</error>\n") % error_).str();
   }
   ofs << tab << "</job>\n";
   return;
 }
 
 void Job::UpdateFrom(const Job &ext) {
-  _status = ext.getStatus();
+  status_ = ext.getStatus();
   if (ext.hasHost()) {
-    _has_host = true;
-    _host = ext.getHost();
+    has_host_ = true;
+    host_ = ext.getHost();
   }
   if (ext.hasTime()) {
-    _has_time = true;
-    _time = ext.getTime();
+    has_time_ = true;
+    time_ = ext.getTime();
   }
   if (ext.hasOutput()) {
-    _has_output = true;
-    _output = ext.getOutput();
+    has_output_ = true;
+    output_ = ext.getOutput();
   }
   if (ext.hasError()) {
-    _has_error = true;
-    _error = ext.getError();
+    has_error_ = true;
+    error_ = ext.getError();
   }
   return;
 }
 
 void Job::UpdateFromResult(const JobResult &res) {
-  _status = res.getStatus();
+  status_ = res.getStatus();
   if (res.hasOutput()) {
-    _output = res.getOutput();
-    _has_output = true;
+    output_ = res.getOutput();
+    has_output_ = true;
   }
   if (res.hasError()) {
-    _error = res.getError();
-    _has_error = true;
+    error_ = res.getError();
+    has_error_ = true;
   }
-  _attemptsCount++;
+  attemptsCount_++;
   return;
 }
 

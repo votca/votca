@@ -48,10 +48,10 @@ class CouplingBase {
                          const Orbitals& orbitalsA,
                          const Orbitals& orbitalsB) const = 0;
 
-  void setLogger(Logger* pLog) { _pLog = pLog; }
+  void setLogger(Logger* pLog) { pLog_ = pLog; }
 
  protected:
-  Logger* _pLog;
+  Logger* pLog_;
   void CheckAtomCoordinates(const Orbitals& orbitalsA,
                             const Orbitals& orbitalsB,
                             const Orbitals& orbitalsAB) const;

@@ -49,7 +49,7 @@ class Sigma_PPM : public Sigma_base {
                                        double frequency2) const final;
 
  private:
-  PPM _ppm;
+  PPM ppm_;
 };
 }  // namespace xtp
 }  // namespace votca

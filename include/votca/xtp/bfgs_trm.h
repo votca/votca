@@ -34,38 +34,38 @@ namespace xtp {
 
 class BFGSTRM {
  public:
-  BFGSTRM(Optimiser_costfunction& costfunction) : _costfunction(costfunction) {
-    _hessian = Eigen::MatrixXd::Identity(costfunction.NumParameters(),
+  BFGSTRM(Optimiser_costfunction& costfunction) : costfunction_(costfunction) {
+    hessian_ = Eigen::MatrixXd::Identity(costfunction.NumParameters(),
                                          costfunction.NumParameters());
   }
 
-  void setLog(Logger* pLog) { _pLog = pLog; }
+  void setLog(Logger* pLog) { pLog_ = pLog; }
 
-  void setTrustRadius(double trust_radius) { _trust_radius = trust_radius; }
+  void setTrustRadius(double trust_radius) { trust_radius_ = trust_radius; }
 
-  double getTrustRadius() const { return _trust_radius; }
+  double getTrustRadius() const { return trust_radius_; }
 
   void setCallbacks(const std::vector<std::function<void()> >& callbacks) {
-    _callbacks = callbacks;
+    callbacks_ = callbacks;
   }
 
-  void setNumofIterations(Index iterations) { _max_iteration = iterations; }
+  void setNumofIterations(Index iterations) { max_iteration_ = iterations; }
 
   void Optimize(const Eigen::VectorXd& initialparameters);
 
-  bool Success() const { return _success; }
-  std::string getErrorMessage() const { return _errormessage; }
+  bool Success() const { return success_; }
+  std::string getErrorMessage() const { return errormessage_; }
 
-  double getCost() const { return _cost; }
+  double getCost() const { return cost_; }
 
-  Index getIteration() const { return _iteration; }
+  Index getIteration() const { return iteration_; }
 
-  const Eigen::VectorXd getParameters() const { return _parameters; }
+  const Eigen::VectorXd getParameters() const { return parameters_; }
 
-  void setInitialHessian(const Eigen::MatrixXd& hessian) { _hessian = hessian; }
+  void setInitialHessian(const Eigen::MatrixXd& hessian) { hessian_ = hessian; }
 
  private:
-  Optimiser_costfunction& _costfunction;
+  Optimiser_costfunction& costfunction_;
 
   void UpdateHessian(const Eigen::VectorXd& delta_pos,
                      const Eigen::VectorXd& delta_gradient);
@@ -74,22 +74,22 @@ class BFGSTRM {
   bool AcceptRejectStep(const Eigen::VectorXd& delta_pos,
                         const Eigen::VectorXd& gradient, double energy_delta);
 
-  std::string _errormessage;
-  bool _success = true;
-  Index _iteration = 0;
+  std::string errormessage_;
+  bool success_ = true;
+  Index iteration_ = 0;
 
-  std::vector<std::function<void()> > _callbacks;
+  std::vector<std::function<void()> > callbacks_;
 
-  Eigen::MatrixXd _hessian;
-  Eigen::VectorXd _parameters;
+  Eigen::MatrixXd hessian_;
+  Eigen::VectorXd parameters_;
 
-  double _cost = std::numeric_limits<double>::max();
+  double cost_ = std::numeric_limits<double>::max();
 
-  double _trust_radius = 0.1;
+  double trust_radius_ = 0.1;
 
-  Index _max_iteration = 200;
+  Index max_iteration_ = 200;
 
-  Logger* _pLog;
+  Logger* pLog_;
 };
 
 }  // namespace xtp

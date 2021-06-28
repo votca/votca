@@ -35,9 +35,9 @@ class QMMolecule;
 template <class T>
 class AOPotential {
  public:
-  Index Dimension() { return _aopotential.rows(); }
+  Index Dimension() { return aopotential_.rows(); }
   const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& Matrix() const {
-    return _aopotential;
+    return aopotential_;
   }
 
  protected:
@@ -46,7 +46,7 @@ class AOPotential {
   virtual void FillBlock(
       Eigen::Block<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>>& matrix,
       const AOShell& shell_row, const AOShell& shell_col) const = 0;
-  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> _aopotential;
+  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> aopotential_;
 };
 
 // derived class for Effective Core Potentials
@@ -75,9 +75,9 @@ class AOMultipole : public AOPotential<double> {
                  const AOShell& shell_col) const override;
 
  private:
-  void setSite(const StaticSite* site) { _site = site; };
+  void setSite(const StaticSite* site) { site_ = site; };
 
-  const StaticSite* _site;
+  const StaticSite* site_;
 };
 
 class AOPlanewave : public AOPotential<std::complex<double>> {
@@ -91,8 +91,8 @@ class AOPlanewave : public AOPotential<std::complex<double>> {
                  const AOShell& shell_col) const override;
 
  private:
-  void setkVector(const Eigen::Vector3d& k) { _k = k; };
-  Eigen::Vector3d _k;
+  void setkVector(const Eigen::Vector3d& k) { k_ = k; };
+  Eigen::Vector3d k_;
 };
 
 }  // namespace xtp

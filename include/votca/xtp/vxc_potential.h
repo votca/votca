@@ -36,7 +36,7 @@ namespace xtp {
 template <class Grid>
 class Vxc_Potential {
  public:
-  explicit Vxc_Potential(const Grid& grid) : _grid(grid){};
+  explicit Vxc_Potential(const Grid& grid) : grid_(grid){};
   ~Vxc_Potential();
 
   static double getExactExchange(const std::string& functional);
@@ -53,10 +53,10 @@ class Vxc_Potential {
 
   XC_entry EvaluateXC(double rho, double sigma) const;
 
-  const Grid _grid;
+  const Grid grid_;
   int xfunc_id;
-  bool _setXC = false;
-  bool _use_separate;
+  bool setXC_ = false;
+  bool use_separate_;
   int cfunc_id;
   xc_func_type xfunc;  // handle for exchange functional
   xc_func_type cfunc;  // handle for correlation functional

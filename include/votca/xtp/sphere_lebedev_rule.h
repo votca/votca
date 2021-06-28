@@ -29,7 +29,7 @@
 
 // Local VOTCA includes
 #include "grid_containers.h"
-#include "qmatom.h"
+#include "qmmolecule.h"
 
 namespace votca {
 namespace xtp {

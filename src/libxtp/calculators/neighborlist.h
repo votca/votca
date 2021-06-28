@@ -45,12 +45,12 @@ class Neighborlist final : public QMCalculator {
  private:
   Index DetClassicalPairs(Topology& top);
 
-  std::vector<std::string> _included_segments;
-  std::map<std::string, std::map<std::string, double> > _cutoffs;
-  bool _useConstantCutoff;
-  double _constantCutoff;
-  bool _useExcitonCutoff;
-  double _excitonqmCutoff;
+  std::vector<std::string> included_segments_;
+  std::map<std::string, std::map<std::string, double> > cutoffs_;
+  bool useConstantCutoff_;
+  double constantCutoff_;
+  bool useExcitonCutoff_;
+  double excitonqmCutoff_;
 };
 
 }  // namespace xtp

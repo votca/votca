@@ -150,7 +150,7 @@ Eigen::VectorXd AOTransform::XIntegrate(Index size, double U) {
 
 Index AOTransform::getBlockSize(Index lmax) {
   // Each cartesian shells has (l+1)(l+2)/2 elements
-  // Sum of all shells up to _lmax leads to blocksize=1+11/6 l+l^2+1/6 l^3
+  // Sum of all shells up to  lmax_ leads to blocksize=1+11/6 l+l^2+1/6 l^3
   Index blocksize = 6 + 11 * lmax + 6 * lmax * lmax + lmax * lmax * lmax;
   blocksize /= 6;
   return blocksize;

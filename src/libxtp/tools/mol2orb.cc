@@ -13,28 +13,28 @@ namespace xtp {
 
 void Mol2Orb::ParseOptions(const tools::Property& options) {
 
-  _moldenfile = _job_name + ".molden.input";
-  _orbfile = _job_name + ".orb";
+  moldenfile_ = job_name_ + ".molden.input";
+  orbfile_ = job_name_ + ".orb";
 
-  _basisset_name = options.get(".basisset").as<std::string>();
-  _aux_basisset_name = options.get(".auxbasisset").as<std::string>();
+  basisset_name_ = options.get(".basisset").as<std::string>();
+  aux_basisset_name_ = options.get(".auxbasisset").as<std::string>();
 }
 
 bool Mol2Orb::Run() {
-  _log.setReportLevel(Log::current_level);
-  _log.setMultithreading(true);
-  _log.setCommonPreface("\n... ...");
+  log_.setReportLevel(Log::current_level);
+  log_.setMultithreading(true);
+  log_.setCommonPreface("\n... ...");
 
   Orbitals orbitals;
 
-  Molden molden(_log);
-  molden.setBasissetInfo(_basisset_name, _aux_basisset_name);
-  molden.parseMoldenFile(_moldenfile, orbitals);
+  Molden molden(log_);
+  molden.setBasissetInfo(basisset_name_, aux_basisset_name_);
+  molden.parseMoldenFile(moldenfile_, orbitals);
 
   // Save orbitals object
-  XTP_LOG(Log::error, _log) << "Saving data to " << _orbfile << std::flush;
-  orbitals.WriteToCpt(_orbfile);
-  XTP_LOG(Log::error, _log) << "Done parsing\n" << std::flush;
+  XTP_LOG(Log::error, log_) << "Saving data to " << orbfile_ << std::flush;
+  orbitals.WriteToCpt(orbfile_);
+  XTP_LOG(Log::error, log_) << "Done parsing\n" << std::flush;
   return true;
 }
 
