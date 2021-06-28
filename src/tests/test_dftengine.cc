@@ -1,3 +1,6 @@
+
+
+
 /*
  * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
  *
@@ -111,7 +114,7 @@ BOOST_AUTO_TEST_CASE(dft_full) {
   Orbitals orb;
   orb.QMAtoms() = Water();
 
-  std::ofstream xml("dftengine.xml");
+  std::ofstream xml("dftengine2.xml");
   xml << "<package>" << std::endl;
   xml << "<spin>1</spin>" << std::endl;
   xml << "<name>xtp</name>" << std::endl;
@@ -126,7 +129,6 @@ BOOST_AUTO_TEST_CASE(dft_full) {
   xml << "<use_external_density>false</use_external_density>" << std::endl;
   xml << "<with_screening choices=\"bool\">true</with_screening>\n";
   xml << "<screening_eps  choices=\"float+\">1e-9</screening_eps>\n";
-  xml << "<four_center_method>direct</four_center_method>\n";
   xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
   xml << "<convergence>" << std::endl;
   xml << "    <energy>1e-7</energy>" << std::endl;
@@ -149,7 +151,7 @@ BOOST_AUTO_TEST_CASE(dft_full) {
   xml << "</package>" << std::endl;
   xml.close();
   votca::tools::Property prop;
-  prop.LoadFromXML("dftengine.xml");
+  prop.LoadFromXML("dftengine2.xml");
 
   Logger log;
   dft.setLogger(&log);

@@ -54,10 +54,9 @@ void DFTEngine::Initialize(Property& options) {
     auxbasis_name_ = options.get(key + ".auxbasisset").as<string>();
   }
 
-  four_center_method_ =
-      options.get(key_xtpdft + ".four_center_method").as<std::string>();
 
-  if (four_center_method_ != "RI") {
+
+  if (!auxbasis_name_.empty()) {
     screening_eps_ = options.get(key_xtpdft + ".screening_eps").as<double>();
     fock_matrix_reset_ =
         options.get(key_xtpdft + ".fock_matrix_reset").as<Index>();
@@ -154,7 +153,7 @@ void DFTEngine::CalcElDipole(const Orbitals& orb) const {
 std::array<Eigen::MatrixXd, 2> DFTEngine::CalcERIs_EXX(
     const Eigen::MatrixXd& MOCoeff, const Eigen::MatrixXd& Dmat,
     double error) const {
-  if (four_center_method_ == "RI") {
+  if (!auxbasis_name_.empty()) {
     if (conv_accelerator_.getUseMixing() || MOCoeff.rows() == 0) {
       return ERIs_.CalculateERIs_EXX_3c(Eigen::MatrixXd::Zero(0, 0), Dmat);
     } else {
@@ -169,7 +168,7 @@ std::array<Eigen::MatrixXd, 2> DFTEngine::CalcERIs_EXX(
 
 Eigen::MatrixXd DFTEngine::CalcERIs(const Eigen::MatrixXd& Dmat,
                                     double error) const {
-  if (four_center_method_ == "RI") {
+  if (!auxbasis_name_.empty()) {
     return ERIs_.CalculateERIs_3c(Dmat);
   } else {
     return ERIs_.CalculateERIs_4c(Dmat, error);
@@ -248,7 +247,7 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
   }
 
   double start_incremental_F_threshold = 1e-5;  // Valeev libint
-  if (four_center_method_ == "RI") {
+  if (!auxbasis_name_.empty()) {
     start_incremental_F_threshold = 0.0;  // Disable if RI is used
   }
   IncrementalFockBuilder incremental_fock(*pLog_, start_incremental_F_threshold,
@@ -465,7 +464,7 @@ void DFTEngine::SetupInvariantMatrices() {
   conv_accelerator_.setOverlap(dftAOoverlap_, 1e-8);
   conv_accelerator_.PrintConfigOptions();
 
-  if (four_center_method_ == "RI") {
+  if (!auxbasis_name_.empty()) {
     // prepare invariant part of electron repulsion integrals
     ERIs_.Initialize(dftbasis_, auxbasis_);
     XTP_LOG(Log::info, *pLog_)
@@ -738,7 +737,7 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
   if (with_ecp_) {
     orb.setECPName(ecp_name_);
   }
-  if (four_center_method_ == "RI") {
+  if (!auxbasis_name_.empty()) {
     orb.setAuxbasisName(auxbasis_name_);
   }
 
@@ -802,7 +801,7 @@ void DFTEngine::Prepare(QMMolecule& mol) {
       << TimeStamp() << " Loaded DFT Basis Set " << dftbasis_name_ << " with "
       << dftbasis_.AOBasisSize() << " functions" << flush;
 
-  if (four_center_method_ == "RI") {
+  if (!auxbasis_name_.empty()) {
     BasisSet auxbasisset;
     auxbasisset.Load(auxbasis_name_);
     auxbasis_.Fill(auxbasisset, mol);

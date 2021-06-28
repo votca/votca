@@ -115,10 +115,8 @@ class DFTEngine {
 
   bool with_ecp_;
 
-  std::string four_center_method_;
-
-  // Pre-screening
   Index fock_matrix_reset_;
+  // Pre-screening
   double screening_eps_;
 
   // numerical integration Vxc
