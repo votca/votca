@@ -82,7 +82,6 @@ BOOST_AUTO_TEST_CASE(on_test) {
   iteration++;
   fb.UpdateCriteria(1e-6, iteration);
   fb.UpdateDmats(dmat, 1e-6, iteration);
-  
 
   // now reset should trigger
   fb.resetMatrices(J, K, dmat);
