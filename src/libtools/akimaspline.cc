@@ -45,7 +45,7 @@ void AkimaSpline::Interpolate(const Eigen::VectorXd &x,
   const Index N = x.size();
 
   // copy the grid points into f
-  _r = x;
+  r_ = x;
 
   // initialize vectors p1,p2,p3,p4 and t
   p0 = Eigen::VectorXd::Zero(N);
@@ -60,7 +60,7 @@ void AkimaSpline::Interpolate(const Eigen::VectorXd &x,
 
   // boundary conditions
   // >> determine t(0), t(1) and t(N-2), t(N-1)
-  switch (_boundaries) {
+  switch (boundaries_) {
     case splineNormal:
       // Akima method: estimation of two more points on each side using a
       // degree two polyomial
@@ -160,14 +160,14 @@ void AkimaSpline::Fit(const Eigen::VectorXd &, const Eigen::VectorXd &) {
 
 double AkimaSpline::Calculate(double r) {
   Index interval = getInterval(r);
-  double z = r - _r[interval];
+  double z = r - r_[interval];
   return p0(interval) + p1(interval) * z + p2(interval) * z * z +
          p3(interval) * z * z * z;
 }
 
 double AkimaSpline::CalculateDerivative(double r) {
   Index interval = getInterval(r);
-  double z = r - _r[interval];
+  double z = r - r_[interval];
   return +p1(interval) + 2.0 * p2(interval) * z + 3.0 * p3(interval) * z * z;
 }
 

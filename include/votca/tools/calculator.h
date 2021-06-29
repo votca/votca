@@ -80,8 +80,8 @@ class Calculator {
    *
    */
   void setnThreads(Index nThreads) {
-    _nThreads = nThreads;
-    _maverick = (_nThreads == 1) ? true : false;
+    nThreads_ = nThreads;
+    maverick_ = (nThreads_ == 1) ? true : false;
   }
 
   /**
@@ -116,8 +116,8 @@ class Calculator {
   }
 
  protected:
-  Index _nThreads;
-  bool _maverick;
+  Index nThreads_;
+  bool maverick_;
 
   void OverwriteDefaultsWithUserInput(const Property &p,
                                       Property &defaults) const;

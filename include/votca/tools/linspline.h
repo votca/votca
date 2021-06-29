@@ -36,7 +36,7 @@ class LinSpline : public Spline {
   // default constructor
   LinSpline() = default;
   // LinSpline() :
-  //    _boundaries(splineNormal) {}
+  //     boundaries_(splineNormal) {}
 
   // destructor
   ~LinSpline() override = default;

@@ -21,13 +21,13 @@
 namespace votca {
 namespace tools {
 
-Mutex::Mutex() { pthread_mutex_init(&_mutexVar, nullptr); }
+Mutex::Mutex() { pthread_mutex_init(&mutexVar_, nullptr); }
 
-Mutex::~Mutex() { pthread_mutex_destroy(&_mutexVar); }
+Mutex::~Mutex() { pthread_mutex_destroy(&mutexVar_); }
 
-void Mutex::Lock() { pthread_mutex_lock(&_mutexVar); }
+void Mutex::Lock() { pthread_mutex_lock(&mutexVar_); }
 
-void Mutex::Unlock() { pthread_mutex_unlock(&_mutexVar); }
+void Mutex::Unlock() { pthread_mutex_unlock(&mutexVar_); }
 
 }  // namespace tools
 }  // namespace votca

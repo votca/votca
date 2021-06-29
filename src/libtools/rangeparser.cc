@@ -45,40 +45,40 @@ void RangeParser::ParseBlock(std::string str) {
   std::vector<std::string> toks = Tokenizer(str, ":").ToVector();
 
   block_t block;
-  block._stride = 1;
+  block.stride_ = 1;
 
   if (toks.size() > 3 || toks.size() < 1) {
     throw std::runtime_error("invalid range");
   }
 
-  block._begin = block._end = std::stoi(toks[0]);
+  block.begin_ = block.end_ = std::stoi(toks[0]);
 
   if (toks.size() == 2) {
-    block._end = std::stoi(toks[1]);
+    block.end_ = std::stoi(toks[1]);
   }
 
   if (toks.size() == 3) {
-    block._stride = std::stoi(toks[1]);
-    block._end = std::stoi(toks[2]);
+    block.stride_ = std::stoi(toks[1]);
+    block.end_ = std::stoi(toks[2]);
   }
 
-  if (block._begin * block._stride > block._end * block._stride) {
+  if (block.begin_ * block.stride_ > block.end_ * block.stride_) {
     throw std::runtime_error(
         std::string("invalid range " + str +
                     ": begin, end and stride do not form a closed interval"));
   }
 
-  _blocks.push_back(block);
+  blocks_.push_back(block);
 }
 
 RangeParser::iterator& RangeParser::iterator::operator++() {
-  _current += (*_block)._stride;
-  if (_current > (*_block)._end) {
-    ++_block;
-    if (_block != _parent->_blocks.end()) {
-      _current = (*_block)._begin;
+  current_ += (*block_).stride_;
+  if (current_ > (*block_).end_) {
+    ++block_;
+    if (block_ != parent_->blocks_.end()) {
+      current_ = (*block_).begin_;
     } else {
-      _current = -1;
+      current_ = -1;
     }
   }
   return *this;

@@ -79,9 +79,9 @@ class Tokenizer {
    * interface or directly transferred to a vector ToVector of ConvertToVector.
    */
 
-  Tokenizer(const std::string &str, const char *separators) : _str(str) {
+  Tokenizer(const std::string &str, const char *separators) : str_(str) {
     boost::char_separator<char> sep(separators);
-    tok_ = std::make_unique<boost::tokenizer<boost::char_separator<char>>>(_str,
+    tok_ = std::make_unique<boost::tokenizer<boost::char_separator<char>>>(str_,
                                                                            sep);
   }
   Tokenizer(const std::string &str, const std::string &separators)
@@ -99,18 +99,6 @@ class Tokenizer {
   iterator end() { return tok_->end(); }
 
   /**
-   * \brief store all words in a vector of strings.
-   * @param v storage vector
-   *
-   * This class appends all words to a vector of strings.
-   */
-  void ToVector(std::vector<std::string> &v) {
-    for (auto &seg : *this) {
-      v.push_back(seg);
-    }
-  }
-
-  /**
    * \brief store all words in a vector of type T, does type conversion.
    * @return storage vector
    */
@@ -123,28 +111,9 @@ class Tokenizer {
     return result;
   }
 
-  /**
-   * \brief store all words in a vector with type conversion.
-   * @param v storage vector
-   *
-   * This class appends all words to a vector of arbitrary type (e.g. double)
-   * and also does type conversion.
-   */
-  template <typename T>
-  void ConvertToVector(std::vector<T> &v) {
-    std::vector<std::string> tmp;
-    ToVector(tmp);
-    v.resize(tmp.size());
-    typename std::vector<T>::iterator viter = v.begin();
-    typename std::vector<std::string>::iterator iter;
-    for (iter = tmp.begin(); iter != tmp.end(); ++iter, ++viter) {
-      *viter = boost::lexical_cast<T, std::string>(*iter);
-    }
-  }
-
  private:
   std::unique_ptr<boost::tokenizer<boost::char_separator<char>>> tok_;
-  std::string _str;
+  std::string str_;
 };
 
 // Matches a string against a wildcard string such as &quot;*.*&quot; or

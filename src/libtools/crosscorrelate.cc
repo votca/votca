@@ -28,8 +28,8 @@ void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection& data) {
   Eigen::VectorXcd frequency = fft.fwd(input);
   Eigen::VectorXcd magnitude = frequency.cwiseAbs2();
 
-  _corrfunc.resize(N);
-  Eigen::Map<Eigen::VectorXd> corr_map(_corrfunc.data(), N);
+  corrfunc_.resize(N);
+  Eigen::Map<Eigen::VectorXd> corr_map(corrfunc_.data(), N);
   corr_map = fft.inv(magnitude);
   double d = corr_map(0);
   corr_map.array() /= d;

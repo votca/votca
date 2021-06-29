@@ -193,4 +193,16 @@ BOOST_AUTO_TEST_CASE(deleteproperty) {
   BOOST_CHECK(two.exists("goodbye"));
 }
 
+BOOST_AUTO_TEST_CASE(addTree) {
+
+  Property two("two", "", "");
+  two.addTree("a.b.c", "3");
+  BOOST_CHECK(two.exists("a.b.c"));
+
+  Property three("two", "", "");
+  three.add("a", "");
+  three.addTree("a.b.c", "3");
+  BOOST_CHECK(three.exists("a.b.c"));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
