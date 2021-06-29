@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(on_test) {
   Logger log;
 
   // switched on
-  IncrementalFockBuilder fb(log, 1e-5, 3);
+  IncrementalFockBuilder fb(log, 1e-5, 2);
 
   Eigen::MatrixXd dmat = Eigen::MatrixXd::Random(10, 10);
   fb.Configure(dmat);
@@ -81,7 +81,8 @@ BOOST_AUTO_TEST_CASE(on_test) {
   fb.UpdateDmats(dmat, 1e-6, iteration);
   iteration++;
   fb.UpdateCriteria(1e-6, iteration);
-  fb.UpdateDmats(dmat, 1e-6, iteration);
+  fb.UpdateDmats(dmat, 1e-6, iteration);\
+  
 
   // now reset should trigger
   fb.resetMatrices(J, K, dmat);
