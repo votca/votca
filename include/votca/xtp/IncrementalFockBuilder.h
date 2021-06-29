@@ -34,7 +34,6 @@ class IncrementalFockBuilder {
       : log_(log),
         start_incremental_F_threshold_(start_threshold),
         fock_matrix_reset_(fock_matrix_reset) {}
-        
 
   void Configure(const Eigen::MatrixXd& dmat) {
     Ddiff_ = dmat;
