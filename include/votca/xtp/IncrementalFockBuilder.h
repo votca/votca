@@ -34,6 +34,7 @@ class IncrementalFockBuilder {
       : log_(log),
         start_incremental_F_threshold_(start_threshold),
         fock_matrix_reset_(fock_matrix_reset) {}
+        
 
   void Configure(const Eigen::MatrixXd& dmat) {
     Ddiff_ = dmat;
@@ -46,9 +47,10 @@ class IncrementalFockBuilder {
       incremental_Fbuild_started_ = true;
       reset_incremental_fock_formation_ = false;
       last_reset_iteration_ = iteration - 1;
-      next_reset_threshold_ = DiisError * 1e-3;
-      XTP_LOG(Log::info, log_)
-          << TimeStamp() << " Using incremental 4c build" << std::flush;
+      next_reset_threshold_ = DiisError / 10.0;
+      XTP_LOG(Log::error, log_)
+          << TimeStamp() << " Using incremental 4c build from here"
+          << std::flush;
     }
   }
 
@@ -68,15 +70,15 @@ class IncrementalFockBuilder {
       reset_incremental_fock_formation_ = false;
       last_reset_iteration_ = Iteration;
       next_reset_threshold_ = DiisError / 10.0;
-      XTP_LOG(Log::info, log_)
-          << TimeStamp() << " Reset incremental 4c build" << std::endl;
+      XTP_LOG(Log::error, log_)
+          << TimeStamp() << " Reset incremental 4c build" << std::flush;
     }
   }
 
   void UpdateDmats(const Eigen::MatrixXd& dmat, double DiisError,
                    Index Iteration) {
     if (DiisError < next_reset_threshold_ ||
-        Iteration - last_reset_iteration_ >= fock_matrix_reset_) {
+        Iteration - last_reset_iteration_ > fock_matrix_reset_) {
       reset_incremental_fock_formation_ = true;
     }
     Ddiff_ = dmat - Dlast_;
@@ -85,8 +87,8 @@ class IncrementalFockBuilder {
 
  private:
   Logger& log_;
-  double start_incremental_F_threshold_ =
-      1e-5;  // Diis error from which to start using incremental builds
+  double start_incremental_F_threshold_;  // Diis error from which to start
+                                          // using incremental builds
   Index fock_matrix_reset_;  // After how many iterations the fock matrix should
                              // be reset regardless
 

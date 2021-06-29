@@ -246,7 +246,7 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     K = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
   }
 
-  double start_incremental_F_threshold = 1e-5;  // Valeev libint
+  double start_incremental_F_threshold = 1e-4;
   if (!auxbasis_name_.empty()) {
     start_incremental_F_threshold = 0.0;  // Disable if RI is used
   }
