@@ -31,8 +31,6 @@
 #include "eigen.h"
 #include "logger.h"
 
-using boost::format;
-using std::flush;
 
 namespace votca {
 namespace xtp {
@@ -62,7 +60,6 @@ class DavidsonSolver {
   Eigen::ComputationInfo info() const { return info_; }
   Eigen::VectorXd eigenvalues() const { return this->eigenvalues_; }
   Eigen::MatrixXd eigenvectors() const { return this->eigenvectors_; }
-  Eigen::MatrixXd residues() const { return this->res_; }
   Index num_iterations() const { return this->i_iter_; }
 
   template <typename MatrixReplacement>
@@ -83,6 +80,7 @@ class DavidsonSolver {
     if (size_initial_guess == 0) {
       size_initial_guess = 2 * neigen;
     }
+
     restart_size_ = size_initial_guess;
 
     // get the diagonal of the operator
@@ -92,7 +90,7 @@ class DavidsonSolver {
     ProjectedSpace proj = initProjectedSpace(neigen, size_initial_guess);
     RitzEigenPair rep;
     XTP_LOG(Log::error, log_)
-        << TimeStamp() << " iter\tSearch Space\tNorm" << flush;
+        << TimeStamp() << " iter\tSearch Space\tNorm" << std::flush;
 
     for (i_iter_ = 0; i_iter_ < iter_max_; i_iter_++) {
 
@@ -125,6 +123,8 @@ class DavidsonSolver {
   }
 
  private:
+
+  using ArrayXb =Eigen::Array<bool,Eigen::Dynamic,1>;
   Logger &log_;
   Index iter_max_ = 50;
   Index i_iter_ = 0;
@@ -143,7 +143,6 @@ class DavidsonSolver {
 
   Eigen::VectorXd eigenvalues_;
   Eigen::MatrixXd eigenvectors_;
-  Eigen::VectorXd res_;
   Eigen::ComputationInfo info_ = Eigen::ComputationInfo::NoConvergence;
 
   struct RitzEigenPair {
@@ -164,7 +163,7 @@ class DavidsonSolver {
       return V.cols();
     };                  // size of the projection i.e. number of cols in V
     Index size_update;  // size update ...
-    std::vector<bool> root_converged;  // keep track of which root have onverged
+    ArrayXb root_converged;  // keep track of which root have onverged
 
     // These are only used for harmonic ritz in the non-hermitian case
     Eigen::MatrixXd AAV;  // A*A*V
@@ -252,10 +251,10 @@ class DavidsonSolver {
   ProjectedSpace initProjectedSpace(Index neigen,
                                     Index size_initial_guess) const;
 
-  Index extendProjection(const RitzEigenPair &rep, ProjectedSpace &proj);
+  Index extendProjection(const RitzEigenPair &rep, ProjectedSpace &proj)const;
 
   bool checkConvergence(const RitzEigenPair &rep, ProjectedSpace &proj,
-                        Index neigen);
+                        Index neigen)const;
 
   void restart(const RitzEigenPair &rep, ProjectedSpace &proj,
                Index newtestvectors) const;
@@ -263,7 +262,7 @@ class DavidsonSolver {
   void storeConvergedData(const RitzEigenPair &rep, Index neigen);
 
   void storeNotConvergedData(const RitzEigenPair &rep,
-                             std::vector<bool> &root_converged, Index neigen);
+                             const ArrayXb &root_converged, Index neigen);
 
   void storeEigenPairs(const RitzEigenPair &rep, Index neigen);
 };
