@@ -31,7 +31,6 @@
 #include "eigen.h"
 #include "logger.h"
 
-
 namespace votca {
 namespace xtp {
 
@@ -123,8 +122,7 @@ class DavidsonSolver {
   }
 
  private:
-
-  using ArrayXb =Eigen::Array<bool,Eigen::Dynamic,1>;
+  using ArrayXb = Eigen::Array<bool, Eigen::Dynamic, 1>;
   Logger &log_;
   Index iter_max_ = 50;
   Index i_iter_ = 0;
@@ -161,8 +159,8 @@ class DavidsonSolver {
     Eigen::MatrixXd T;   // V.T * A * V
     Index search_space() const {
       return V.cols();
-    };                  // size of the projection i.e. number of cols in V
-    Index size_update;  // size update ...
+    };                       // size of the projection i.e. number of cols in V
+    Index size_update;       // size update ...
     ArrayXb root_converged;  // keep track of which root have onverged
 
     // These are only used for harmonic ritz in the non-hermitian case
@@ -251,10 +249,10 @@ class DavidsonSolver {
   ProjectedSpace initProjectedSpace(Index neigen,
                                     Index size_initial_guess) const;
 
-  Index extendProjection(const RitzEigenPair &rep, ProjectedSpace &proj)const;
+  Index extendProjection(const RitzEigenPair &rep, ProjectedSpace &proj) const;
 
   bool checkConvergence(const RitzEigenPair &rep, ProjectedSpace &proj,
-                        Index neigen)const;
+                        Index neigen) const;
 
   void restart(const RitzEigenPair &rep, ProjectedSpace &proj,
                Index newtestvectors) const;
