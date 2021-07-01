@@ -15,7 +15,7 @@ jobs:
         toolchain: [gnu]
         cmake_build_type: [Debug]
         no_regression_testing: [true]
-        code_analyzer: [coverage,codeql]
+        code_analyzer: [coverage]
     runs-on: ubuntu-latest
     container: ghcr.io/votca/buildenv/${{ matrix.distro }}
     steps:
