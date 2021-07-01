@@ -37,7 +37,7 @@ namespace xtp {
 using namespace std;
 
 void XTPDFT::Initialize(const tools::Property& options) {
-  const std::string& job_name =
+  const std::string job_name =
       options.ifExistsReturnElseReturnDefault<std::string>("job_name", "votca");
   log_file_name_ = job_name + ".orb";
   mo_file_name_ = log_file_name_;
