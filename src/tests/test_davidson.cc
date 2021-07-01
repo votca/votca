@@ -321,8 +321,6 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
     std::cout << lambda_ref.head(neigen) << std::endl;
     std::cout << "Davidson eigenvalues" << std::endl;
     std::cout << lambda << std::endl;
-    std::cout << "Residue norms" << std::endl;
-    std::cout << DS.residues() << std::endl;
   }
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);
 
@@ -380,8 +378,6 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free_large) {
     std::cout << lambda_ref.head(neigen) << std::endl;
     std::cout << "Davidson eigenvalues" << std::endl;
     std::cout << lambda << std::endl;
-    std::cout << "Residue norms" << std::endl;
-    std::cout << DS.residues() << std::endl;
   }
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);
 

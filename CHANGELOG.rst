@@ -43,6 +43,7 @@ Version 2022-dev
 -  renamed cmd line arguments in xtp_parallel (#718)
 -  added incremental Fock matrix building (#716)
 -  disable codeql check in GitHub Actions (#720)
+-  replace std::vector by Eigen::Array<bool,..> (#719)
 
 Version 2021.1 (released XX.03.21)
 ==================================

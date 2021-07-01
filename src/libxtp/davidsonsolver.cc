@@ -34,14 +34,14 @@ DavidsonSolver::DavidsonSolver(Logger &log) : log_(log) {}
 void DavidsonSolver::printTiming(
     const std::chrono::time_point<std::chrono::system_clock> &start) const {
   XTP_LOG(Log::error, log_)
-      << TimeStamp() << "-----------------------------------" << flush;
+      << TimeStamp() << "-----------------------------------" << std::flush;
   std::chrono::time_point<std::chrono::system_clock> end =
       std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = end - start;
   XTP_LOG(Log::error, log_) << TimeStamp() << "- Davidson ran for "
-                            << elapsed_time.count() << "secs." << flush;
+                            << elapsed_time.count() << "secs." << std::flush;
   XTP_LOG(Log::error, log_)
-      << TimeStamp() << "-----------------------------------" << flush;
+      << TimeStamp() << "-----------------------------------" << std::flush;
 }
 
 void DavidsonSolver::checkOptions(Index operator_size) {
@@ -50,54 +50,55 @@ void DavidsonSolver::checkOptions(Index operator_size) {
     XTP_LOG(Log::error, log_)
         << TimeStamp() << " == Warning : Max search space ("
         << max_search_space_ << ") larger than system size (" << operator_size
-        << ")" << flush;
+        << ")" << std::flush;
 
     max_search_space_ = operator_size;
     XTP_LOG(Log::error, log_)
         << TimeStamp() << " == Warning : Max search space set to "
-        << operator_size << flush;
+        << operator_size << std::flush;
 
     XTP_LOG(Log::error, log_)
         << TimeStamp()
         << " == Warning : If problems appear, try asking for less than "
-        << Index(operator_size / 10) << " eigenvalues" << flush;
+        << Index(operator_size / 10) << " eigenvalues" << std::flush;
   }
 }
 
 void DavidsonSolver::printOptions(Index operator_size) const {
 
-  XTP_LOG(Log::error, log_) << TimeStamp() << " Davidson Solver using "
-                            << OPENMP::getMaxThreads() << " threads." << flush;
-  XTP_LOG(Log::error, log_) << TimeStamp() << " Tolerance : " << tol_ << flush;
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Davidson Solver using " << OPENMP::getMaxThreads()
+      << " threads." << std::flush;
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Tolerance : " << tol_ << std::flush;
 
   switch (this->davidson_correction_) {
     case CORR::DPR:
-      XTP_LOG(Log::error, log_) << TimeStamp() << " DPR Correction" << flush;
+      XTP_LOG(Log::error, log_)
+          << TimeStamp() << " DPR Correction" << std::flush;
       break;
     case CORR::OLSEN:
-      XTP_LOG(Log::error, log_) << TimeStamp() << " Olsen Correction" << flush;
+      XTP_LOG(Log::error, log_)
+          << TimeStamp() << " Olsen Correction" << std::flush;
       break;
   }
 
   XTP_LOG(Log::error, log_) << TimeStamp() << " Matrix size : " << operator_size
-                            << 'x' << operator_size << flush;
+                            << 'x' << operator_size << std::flush;
 }
 
 void DavidsonSolver::printIterationData(
     const DavidsonSolver::RitzEigenPair &rep,
     const DavidsonSolver::ProjectedSpace &proj, Index neigen) const {
 
-  Index converged_roots = 0;
-  for (Index i = 0; i < neigen; i++) {
-    converged_roots += proj.root_converged[i];
-  }
+  Index converged_roots = proj.root_converged.head(neigen).count();
   double percent_converged = 100 * double(converged_roots) / double(neigen);
   XTP_LOG(Log::error, log_)
       << TimeStamp()
       << format(" %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged") % i_iter_ %
              proj.search_space() % rep.res_norm().head(neigen).maxCoeff() %
              percent_converged
-      << flush;
+      << std::flush;
 }
 
 void DavidsonSolver::set_matrix_type(std::string mt) {
@@ -294,7 +295,7 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::getHarmonicRitz(
   if (!complex_pairs.empty()) {
     XTP_LOG(Log::warning, log_)
         << TimeStamp() << " Found " << complex_pairs.size()
-        << " complex pairs in eigenvalue problem" << flush;
+        << " complex pairs in eigenvalue problem" << std::flush;
   }
   Eigen::VectorXd eigenvalues =
       Eigen::VectorXd::Zero(ges.eigenvalues().size() - complex_pairs.size());
@@ -342,31 +343,22 @@ DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace(
 
   // update variables
   proj.size_update = DavidsonSolver::getSizeUpdate(neigen);
-  proj.root_converged = std::vector<bool>(proj.size_update, false);
-
+  proj.root_converged = ArrayXb::Constant(proj.size_update, false);
   return proj;
 }
 
 bool DavidsonSolver::checkConvergence(const DavidsonSolver::RitzEigenPair &rep,
                                       DavidsonSolver::ProjectedSpace &proj,
-                                      Index neigen) {
-
-  Eigen::ArrayXd res_norm = rep.res_norm();
-  bool converged = true;
-  for (Index j = 0; j < proj.size_update; j++) {
-    proj.root_converged[j] = (res_norm[j] < tol_);
-    if (j < neigen) {
-      converged &= (res_norm[j] < tol_);
-    }
-  }
-  return converged;
+                                      Index neigen) const {
+  proj.root_converged = (rep.res_norm().head(proj.size_update) < tol_);
+  return proj.root_converged.head(neigen).all();
 }
 
-Index DavidsonSolver::extendProjection(const DavidsonSolver::RitzEigenPair &rep,
-                                       DavidsonSolver::ProjectedSpace &proj) {
+Index DavidsonSolver::extendProjection(
+    const DavidsonSolver::RitzEigenPair &rep,
+    DavidsonSolver::ProjectedSpace &proj) const {
 
-  Index nupdate =
-      std::count(proj.root_converged.begin(), proj.root_converged.end(), false);
+  Index nupdate = (proj.root_converged == false).count();
   Index oldsize = proj.V.cols();
   proj.V.conservativeResize(Eigen::NoChange, oldsize + nupdate);
 
@@ -528,12 +520,12 @@ void DavidsonSolver::storeConvergedData(
 
   DavidsonSolver::storeEigenPairs(rep, neigen);
   XTP_LOG(Log::error, log_) << TimeStamp() << " Davidson converged after "
-                            << i_iter_ << " iterations." << flush;
+                            << i_iter_ << " iterations." << std::flush;
   info_ = Eigen::ComputationInfo::Success;
 }
 
 void DavidsonSolver::storeNotConvergedData(
-    const DavidsonSolver::RitzEigenPair &rep, std::vector<bool> &root_converged,
+    const DavidsonSolver::RitzEigenPair &rep, const ArrayXb &root_converged,
     Index neigen) {
 
   DavidsonSolver::storeEigenPairs(rep, neigen);
@@ -553,7 +545,7 @@ void DavidsonSolver::storeNotConvergedData(
   XTP_LOG(Log::error, log_)
       << TimeStamp() << "- Warning : Davidson "
       << format("%1$5.2f%%") % percent_converged << " converged after "
-      << i_iter_ << " iterations." << flush;
+      << i_iter_ << " iterations." << std::flush;
   info_ = Eigen::ComputationInfo::NoConvergence;
 }
 
@@ -563,7 +555,6 @@ void DavidsonSolver::storeEigenPairs(const DavidsonSolver::RitzEigenPair &rep,
   this->eigenvalues_ = rep.lambda.head(neigen);
   this->eigenvectors_ = rep.q.leftCols(neigen);
   this->eigenvectors_.colwise().normalize();
-  this->res_ = rep.res_norm().head(neigen);
 }
 
 }  // namespace xtp
