@@ -1,3 +1,4 @@
+
 <dftpackage help="options for dftpackages"> 
   <name help="Name of the DFT package" default="xtp" choices="xtp,orca" />
   <charge help="Molecular charge" default="0" choices="int" />
@@ -19,6 +20,7 @@
   <xtpdft help="xtpdft specific keywords can be added here">
     <use_external_density help="whether or not to use a precomputed external density" default="false" choices="bool" />
     <screening_eps help="screening eps" default="1e-9" choices="float+" />
+    <fock_matrix_reset help="how often the fock matrix is reset" default="5" choices="int+" />
     <convergence>
       <energy help="DeltaE at which calculation is converged" unit="hartree" choices="float+" default="1E-7" />
       <method help="Main method to use for convergence accelertation" choices="DIIS,mixing" default="DIIS" />

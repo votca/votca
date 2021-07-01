@@ -115,8 +115,7 @@ class DFTEngine {
 
   bool with_ecp_;
 
-  std::string four_center_method_;  // direct | cache
-
+  Index fock_matrix_reset_;
   // Pre-screening
   double screening_eps_;
 

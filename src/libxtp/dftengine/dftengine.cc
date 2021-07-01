@@ -26,6 +26,7 @@
 #include <votca/tools/elements.h>
 
 // Local VOTCA includes
+#include "votca/xtp/IncrementalFockBuilder.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/density_integration.h"
@@ -34,7 +35,6 @@
 #include "votca/xtp/logger.h"
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"
-
 using boost::format;
 using namespace boost::filesystem;
 using namespace std;
@@ -54,13 +54,11 @@ void DFTEngine::Initialize(Property& options) {
     auxbasis_name_ = options.get(key + ".auxbasisset").as<string>();
   }
 
-  four_center_method_ =
-      options.get(key_xtpdft + ".four_center_method").as<std::string>();
-
-  if (four_center_method_ != "RI") {
+  if (!auxbasis_name_.empty()) {
     screening_eps_ = options.get(key_xtpdft + ".screening_eps").as<double>();
+    fock_matrix_reset_ =
+        options.get(key_xtpdft + ".fock_matrix_reset").as<Index>();
   }
-
   if (options.get(key + ".use_ecp").as<bool>()) {
     ecp_name_ = options.get(key + ".ecp").as<string>();
     with_ecp_ = true;
@@ -153,7 +151,7 @@ void DFTEngine::CalcElDipole(const Orbitals& orb) const {
 std::array<Eigen::MatrixXd, 2> DFTEngine::CalcERIs_EXX(
     const Eigen::MatrixXd& MOCoeff, const Eigen::MatrixXd& Dmat,
     double error) const {
-  if (four_center_method_ == "RI") {
+  if (!auxbasis_name_.empty()) {
     if (conv_accelerator_.getUseMixing() || MOCoeff.rows() == 0) {
       return ERIs_.CalculateERIs_EXX_3c(Eigen::MatrixXd::Zero(0, 0), Dmat);
     } else {
@@ -168,7 +166,7 @@ std::array<Eigen::MatrixXd, 2> DFTEngine::CalcERIs_EXX(
 
 Eigen::MatrixXd DFTEngine::CalcERIs(const Eigen::MatrixXd& Dmat,
                                     double error) const {
-  if (four_center_method_ == "RI") {
+  if (!auxbasis_name_.empty()) {
     return ERIs_.CalculateERIs_3c(Dmat);
   } else {
     return ERIs_.CalculateERIs_4c(Dmat, error);
@@ -240,6 +238,20 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
          "----------------------------"
       << flush;
 
+  Eigen::MatrixXd J = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
+  Eigen::MatrixXd K;
+  if (ScaHFX_ > 0) {
+    K = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
+  }
+
+  double start_incremental_F_threshold = 1e-4;
+  if (!auxbasis_name_.empty()) {
+    start_incremental_F_threshold = 0.0;  // Disable if RI is used
+  }
+  IncrementalFockBuilder incremental_fock(*pLog_, start_incremental_F_threshold,
+                                          fock_matrix_reset_);
+  incremental_fock.Configure(Dmat);
+
   for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
     XTP_LOG(Log::error, *pLog_) << flush;
     XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Iteration " << this_iter + 1
@@ -254,20 +266,29 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     double Etwo = e_vxc.energy();
     double exx = 0.0;
 
+    incremental_fock.Start(this_iter, conv_accelerator_.getDIIsError());
+    incremental_fock.resetMatrices(J, K, Dmat);
+    incremental_fock.UpdateCriteria(conv_accelerator_.getDIIsError(),
+                                    this_iter);
+
+    double integral_error =
+        std::min(conv_accelerator_.getDIIsError() * 1e-5, 1e-5);
     if (ScaHFX_ > 0) {
-      std::array<Eigen::MatrixXd, 2> both =
-          CalcERIs_EXX(MOs.eigenvectors(), Dmat, 1e-12);
-      H += both[0];
-      Etwo += 0.5 * Dmat.cwiseProduct(both[0]).sum();
-      H += 0.5 * ScaHFX_ * both[1];
-      exx = ScaHFX_ / 4 * Dmat.cwiseProduct(both[1]).sum();
+      std::array<Eigen::MatrixXd, 2> both = CalcERIs_EXX(
+          MOs.eigenvectors(), incremental_fock.getDmat_diff(), integral_error);
+      J += both[0];
+      H += J;
+      Etwo += 0.5 * Dmat.cwiseProduct(J).sum();
+      K += both[1];
+      H += 0.5 * ScaHFX_ * K;
+      exx = 0.25 * ScaHFX_ * Dmat.cwiseProduct(K).sum();
       XTP_LOG(Log::info, *pLog_)
           << TimeStamp() << " Filled F+K matrix " << flush;
     } else {
-      Eigen::MatrixXd Hartree = CalcERIs(Dmat, 1e-12);
+      J += CalcERIs(incremental_fock.getDmat_diff(), integral_error);
       XTP_LOG(Log::info, *pLog_) << TimeStamp() << " Filled F matrix " << flush;
-      H += Hartree;
-      Etwo += 0.5 * Dmat.cwiseProduct(Hartree).sum();
+      H += J;
+      Etwo += 0.5 * Dmat.cwiseProduct(J).sum();
     }
 
     Etwo += exx;
@@ -288,6 +309,8 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
                                 << std::setprecision(12) << totenergy << flush;
 
     Dmat = conv_accelerator_.Iterate(Dmat, H, MOs, totenergy);
+    incremental_fock.UpdateDmats(Dmat, conv_accelerator_.getDIIsError(),
+                                 this_iter);
 
     PrintMOs(MOs.eigenvalues(), Log::info);
 
@@ -439,7 +462,7 @@ void DFTEngine::SetupInvariantMatrices() {
   conv_accelerator_.setOverlap(dftAOoverlap_, 1e-8);
   conv_accelerator_.PrintConfigOptions();
 
-  if (four_center_method_ == "RI") {
+  if (!auxbasis_name_.empty()) {
     // prepare invariant part of electron repulsion integrals
     ERIs_.Initialize(dftbasis_, auxbasis_);
     XTP_LOG(Log::info, *pLog_)
@@ -558,12 +581,16 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
     double E_two_alpha = 0.0;
     double E_two_beta = 0.0;
 
+    double integral_error = std::min(1e-5 * 0.5 *
+                                         (Convergence_alpha.getDIIsError() +
+                                          Convergence_beta.getDIIsError()),
+                                     1e-5);
     if (ScaHFX_ > 0) {
       std::array<Eigen::MatrixXd, 2> both_alpha =
-          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_alpha, 1e-15);
+          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_alpha, integral_error);
 
       std::array<Eigen::MatrixXd, 2> both_beta =
-          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_beta, 1e-15);
+          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_beta, integral_error);
       Eigen::MatrixXd Hartree = both_alpha[0] + both_beta[0];
       E_two_alpha += Hartree.cwiseProduct(dftAOdmat_alpha).sum();
       E_two_beta += Hartree.cwiseProduct(dftAOdmat_beta).sum();
@@ -573,8 +600,8 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
       H_beta += Hartree + ScaHFX_ * both_beta[1];
 
     } else {
-      Eigen::MatrixXd Hartree =
-          ERIs_atom.CalculateERIs_4c(dftAOdmat_alpha + dftAOdmat_beta, 1e-15);
+      Eigen::MatrixXd Hartree = ERIs_atom.CalculateERIs_4c(
+          dftAOdmat_alpha + dftAOdmat_beta, integral_error);
       E_two_alpha += Hartree.cwiseProduct(dftAOdmat_alpha).sum();
       E_two_beta += Hartree.cwiseProduct(dftAOdmat_beta).sum();
       H_alpha += Hartree;
@@ -708,7 +735,7 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
   if (with_ecp_) {
     orb.setECPName(ecp_name_);
   }
-  if (four_center_method_ == "RI") {
+  if (!auxbasis_name_.empty()) {
     orb.setAuxbasisName(auxbasis_name_);
   }
 
@@ -772,7 +799,7 @@ void DFTEngine::Prepare(QMMolecule& mol) {
       << TimeStamp() << " Loaded DFT Basis Set " << dftbasis_name_ << " with "
       << dftbasis_.AOBasisSize() << " functions" << flush;
 
-  if (four_center_method_ == "RI") {
+  if (!auxbasis_name_.empty()) {
     BasisSet auxbasisset;
     auxbasisset.Load(auxbasis_name_);
     auxbasis_.Fill(auxbasisset, mol);
