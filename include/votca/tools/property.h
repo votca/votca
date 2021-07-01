@@ -132,6 +132,11 @@ class Property {
    */
   bool exists(const std::string &key) const;
 
+
+  template <typename T>
+  T ifExistsReturnElseReturnDefault(const std::string &key,
+                                    T defaultvalue) const;
+
   /**
    * \brief select property based on a filter
    * @param filter
@@ -314,6 +319,20 @@ inline void Property::setAttribute(const std::string &attribute,
   attributes_[attribute] =
       lexical_cast<std::string>(value, "wrong type to set attribute");
 }
+
+
+template <typename T>
+inline T Property::ifExistsReturnElseReturnDefault(const std::string &key,
+                                                   T defaultvalue) const {
+  T result;
+  if (this->exists(key)) {
+    result = this->get(key).as<T>();
+  } else {
+    result = defaultvalue;
+  }
+  return result;
+}
+
 
 }  // namespace tools
 }  // namespace votca

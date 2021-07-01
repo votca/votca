@@ -60,7 +60,7 @@ Property OptionsHandler::LoadDefaults(const std::string &calculatorname) const {
   return defaults_all.get("options." + calculatorname);
 }
 
-void OptionsHandler::InjectDefaultsAsValues(Property &defaults) {
+void OptionsHandler::InjectDefaultsAsValues(Property &defaults) const{
   for (Property &prop : defaults) {
     if (prop.HasChildren()) {
       InjectDefaultsAsValues(prop);
@@ -68,15 +68,6 @@ void OptionsHandler::InjectDefaultsAsValues(Property &defaults) {
       prop.set(".", prop.getAttribute<std::string>("default"));
     }
   }
-}
-
-Property OptionsHandler::LoadDefaultsAndUpdateWithUserOptions(
-    const Property &user_options, const std::string &calcname) const {
-  Property defaults = LoadDefaults(calcname);
-  InjectDefaultsAsValues(defaults);
-  UpdateWithUserOptions(defaults, user_options, calcname);
-  RecursivelyCheckOptions(defaults);
-  return defaults;
 }
 
 void OptionsHandler::UpdateWithUserOptions(Property &default_options,
@@ -130,24 +121,24 @@ void OptionsHandler::RecursivelyCheckOptions(const Property &p) {
       RecursivelyCheckOptions(prop);
     } else {
       std::vector<std::string> choices = GetPropertyChoices(prop);
-      const std::string &head = choices.front();
-      if (head != "") {
-        if (!IsValidOption(prop, choices)) {
-          std::ostringstream oss;
-          oss << "\nThe input value for \"" << prop.name() << "\"";
-          if (choices.size() == 1) {
-            oss << " should be a \"" << head << "\"";
-          } else {
-            oss << " should be one of the following values: ";
-            for (const std::string &c : choices) {
-              oss << "\"" << c << "\""
-                  << " ";
-            }
+      if (choices.empty()) {
+        return;
+      }
+      if (!IsValidOption(prop, choices)) {
+        std::ostringstream oss;
+        oss << "\nThe input value for \"" << prop.name() << "\"";
+        if (choices.size() == 1) {
+          oss << " should be a \"" << choices.front() << "\"";
+        } else {
+          oss << " should be one of the following values: ";
+          for (const std::string &c : choices) {
+            oss << "\"" << c << "\""
+                << " ";
           }
-          oss << " But \"" << prop.value()
-              << "\" cannot be converted into one.\n";
-          throw std::runtime_error(oss.str());
         }
+        oss << " But \"" << prop.value()
+            << "\" cannot be converted into one.\n";
+        throw std::runtime_error(oss.str());
       }
     }
   }

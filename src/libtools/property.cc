@@ -116,7 +116,7 @@ Property &Property::add(const std::string &key, const std::string &value) {
 }
 
 bool Property::hasAttribute(const std::string &attribute) const {
-  return _attributes.find(attribute) != _attributes.end();
+  return attributes_.find(attribute) != attributes_.end();
 }
 
 bool Property::exists(const std::string &key) const {
@@ -180,6 +180,8 @@ std::vector<const Property *> Property::Select(const string &filter) const {
   }
   return selection;
 }
+
+
 
 std::vector<Property *> Property::Select(const string &filter) {
   Tokenizer tok(filter, ".");
