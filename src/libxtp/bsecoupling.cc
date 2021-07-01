@@ -40,7 +40,7 @@ void BSECoupling::Initialize(Property& options) {
   std::string key = Identify();
 
   string spintype =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".spin");
+      options.get(key + ".spin").as<std::string>();
   if (spintype == "all") {
     doSinglets_ = true;
     doTriplets_ = true;
@@ -56,8 +56,7 @@ void BSECoupling::Initialize(Property& options) {
             .str());
   }
 
-  output_perturbation_ = options.ifExistsReturnElseReturnDefault<bool>(
-      key + ".use_perturbation", output_perturbation_);
+  output_perturbation_ = options.get( key + ".use_perturbation").as<bool>();
 
   levA_ = options.get(key + ".moleculeA.states").as<Index>();
   levB_ = options.get(key + ".moleculeB.states").as<Index>();

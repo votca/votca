@@ -47,7 +47,7 @@ class QMTool : public tools::Calculator {
  protected:
   virtual bool Run() = 0;
   virtual void ParseOptions(const tools::Property& opt) = 0;
-  std::string job_name_ = "votca";
+  std::string job_name_;
 };
 
 }  // namespace xtp

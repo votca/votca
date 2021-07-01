@@ -62,23 +62,23 @@ void GWBSEEngine::Initialize(tools::Property& options,
 
   // XML option file for GWBSE
   if (do_gwbse_) {
-    gwbse_options_ = options.get(".gwbse_options");
+    gwbse_options_ = options.get(".gwbse");
   }
   // DFT log and MO file names
   MO_file_ = qmpackage_->getMOFile();
   dftlog_file_ = qmpackage_->getLogFile();
 
   // Logger redirection
-  redirect_logger_ = options.ifExistsReturnElseReturnDefault<bool>(
-      ".redirect_logger", redirect_logger_);
+  redirect_logger_ = options.get(
+      ".redirect_logger").as<bool>();
   logger_file_ = "gwbse.log";
 
   // for requested merged guess, two archived orbitals objects are needed
   if (do_guess_) {
     guess_archiveA_ =
-        options.ifExistsReturnElseThrowRuntimeError<std::string>(".archiveA");
+        options.get(".archiveA").as<std::string>();
     guess_archiveB_ =
-        options.ifExistsReturnElseThrowRuntimeError<std::string>(".archiveB");
+        options.get(".archiveB").as<std::string>();
   }
 
   return;

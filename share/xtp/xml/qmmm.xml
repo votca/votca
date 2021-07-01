@@ -13,6 +13,7 @@
         <type help="qmregion with dft and optionally gwbse" item="qm"/>
         <state help="initial state to track or ground state for dftcalculations" default="n" />
         <gwbse link="gwbse.xml" default="OPTIONAL" />
+        <dftpackage link="dftpackage.xml"/>
         <statetracker link="statetracker.xml" default="OPTIONAL" />
         <extgrid help="grid on which the interaction with classical regions is compute" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
         <delta_e help="if energy difference for this region is below this value it is considered converged" unit="Hartree" default="5e-5" choices="float+" />

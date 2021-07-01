@@ -20,6 +20,7 @@
 // Standard includes
 #include <numeric>
 #include <stdexcept>
+#include <string>
 
 // Local VOTCA includes
 #include "votca/xtp/checkpoint.h"
@@ -147,16 +148,16 @@ void JobTopology::CreateRegions(
     const tools::Property& options, const Topology& top,
     const std::vector<std::vector<SegId>>& region_seg_ids) {
   std::string mapfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>("mapfile");
+      options.get("mapfile").as<std::string>();
   std::vector<const tools::Property*> regions_def = options.Select("region");
   // around this point the whole jobtopology will be centered for removing pbc
   Eigen::Vector3d center = top.getSegment(region_seg_ids[0][0].Id()).getPos();
 
   for (const tools::Property* region_def : regions_def) {
-    Index id = region_def->ifExistsReturnElseThrowRuntimeError<Index>("id");
+    Index id = region_def->get("id").as<Index>();
     const std::vector<SegId>& seg_ids = region_seg_ids[id];
     std::string type =
-        region_def->ifExistsReturnElseThrowRuntimeError<std::string>("type");
+        region_def->get("type").as<std::string>();
     std::unique_ptr<Region> region;
     QMRegion QMdummy(0, log_, "");
     StaticRegion Staticdummy(0, log_);
@@ -251,12 +252,12 @@ std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
 
     if (region_def->exists("cutoff")) {
       double cutoff = tools::conv::nm2bohr *
-                      region_def->ifExistsReturnElseThrowRuntimeError<double>(
-                          "cutoff.radius");
+                      region_def->get(
+                          "cutoff.radius").as<double>();
 
       std::string seg_geometry =
-          region_def->ifExistsReturnElseReturnDefault<std::string>(
-              "cutoff.geometry", "n");
+          region_def->get(
+              "cutoff.geometry").as<std::string>();
       double min = top.getBox().diagonal().minCoeff();
       if (cutoff > 0.5 * min) {
         throw std::runtime_error(
@@ -318,7 +319,7 @@ void JobTopology::CheckEnumerationOfRegions(
   std::vector<Index> reg_ids;
   for (const tools::Property* region_def : regions_def) {
     reg_ids.push_back(
-        region_def->ifExistsReturnElseThrowRuntimeError<Index>("id"));
+        region_def->get("id").as<Index>());
   }
 
   std::vector<Index> v(reg_ids.size());

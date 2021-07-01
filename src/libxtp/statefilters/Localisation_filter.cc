@@ -28,10 +28,10 @@ namespace xtp {
 
 void Localisation_filter::Initialize(const tools::Property& options) {
   std::string indices =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>("fragment");
+      options.get("fragment").as<std::string>();
   fragment_ = QMFragment<double>(0, indices);
   fragment_.value() =
-      options.ifExistsReturnElseThrowRuntimeError<double>("threshold");
+      options.get("threshold").as<double>();
 }
 
 void Localisation_filter::Info(Logger& log) const {

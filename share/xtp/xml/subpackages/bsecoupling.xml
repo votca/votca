@@ -1,6 +1,7 @@
 <bsecoupling help="options for electronic coupling for excitons via BSE">
   <spin help="Spin type for couplings" default="all" choices="singlet,triplet,all"/>
   <degeneracy help="Criterium for the degeneracy of two levels" unit="eV" default="0" choices="float"/>
+  <use_perturbation help="Output coupling via perturbation theory as value" default="true" choices="bool"/>
   <moleculeA help="Properties of molecule A">
     <states help="Number of excitons considered" default="5" choices="int+"/>
     <occLevels help="occupied levels for CTstates" default="5" choices="int+"/>

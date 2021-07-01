@@ -349,7 +349,7 @@ void GWBSE::Initialize(tools::Property& options) {
     Index index = 0;
     for (tools::Property* prop : prop_region) {
       std::string indices =
-          prop->ifExistsReturnElseThrowRuntimeError<std::string>("indices");
+          prop->get("indices").as<std::string>();
       fragments_.push_back(QMFragment<BSE_Population>(index, indices));
       index++;
     }

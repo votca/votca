@@ -50,7 +50,7 @@ void DFTEngine::Initialize(Property& options) {
   const string key_xtpdft = "package.xtpdft";
   dftbasis_name_ = options.get(key + ".basisset").as<string>();
 
-  if (options.get(key + ".use_auxbasisset").as<bool>()) {
+  if (options.exists(key + ".auxbasisset")) {
     auxbasis_name_ = options.get(key + ".auxbasisset").as<string>();
   }
 
@@ -59,7 +59,7 @@ void DFTEngine::Initialize(Property& options) {
     fock_matrix_reset_ =
         options.get(key_xtpdft + ".fock_matrix_reset").as<Index>();
   }
-  if (options.get(key + ".use_ecp").as<bool>()) {
+  if (options.exists(key + ".ecp")) {
     ecp_name_ = options.get(key + ".ecp").as<string>();
     with_ecp_ = true;
   } else {
@@ -71,21 +71,20 @@ void DFTEngine::Initialize(Property& options) {
   grid_name_ = options.get(key_xtpdft + ".integration_grid").as<string>();
   xc_functional_name_ = options.get(key + ".functional").as<string>();
 
-  if (options.get(key_xtpdft + ".use_external_density").as<bool>()) {
+  if (options.exists(key_xtpdft + ".externaldensity")) {
     integrate_ext_density_ = true;
-    orbfilename_ = options.ifExistsReturnElseThrowRuntimeError<string>(
-        key_xtpdft + ".externaldensity.orbfile");
-    gridquality_ = options.ifExistsReturnElseThrowRuntimeError<string>(
-        key_xtpdft + ".externaldensity.gridquality");
-    state_ = options.ifExistsReturnElseThrowRuntimeError<string>(
-        key_xtpdft + ".externaldensity.state");
+    orbfilename_ = options.get(
+        key_xtpdft + ".externaldensity.orbfile").as<std::string>();
+    gridquality_ = options.get(
+        key_xtpdft + ".externaldensity.gridquality").as<std::string>();
+    state_ = options.get(
+        key_xtpdft + ".externaldensity.state").as<std::string>();
   }
 
-  if (options.get(key + ".use_external_field").as<bool>()) {
+  if (options.exists(key + ".externalfield")) {
     integrate_ext_field_ = true;
-
-    extfield_ = options.ifExistsReturnElseThrowRuntimeError<Eigen::Vector3d>(
-        key + ".externalfield");
+    extfield_ = options.get(
+        key + ".externalfield").as<Eigen::Vector3d>();
   }
 
   conv_opt_.Econverged =
@@ -119,8 +118,6 @@ void DFTEngine::Initialize(Property& options) {
       options.get(key_xtpdft + ".convergence.DIIS_start").as<double>();
   conv_opt_.adiis_start =
       options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
-
-  return;
 }
 
 void DFTEngine::PrintMOs(const Eigen::VectorXd& MOEnergies, Log::Level level) {
