@@ -42,6 +42,7 @@ Version 2022-dev
 -  reworked commandline options (#715)
 -  renamed cmd line arguments in xtp_parallel (#718)
 -  added incremental Fock matrix building (#716)
+-  disable codeql check in GitHub Actions (#720)
 
 Version 2021.1 (released XX.03.21)
 ==================================
