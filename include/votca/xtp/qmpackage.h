@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include <memory>
 #ifndef VOTCA_XTP_QMPACKAGE_H
 #define VOTCA_XTP_QMPACKAGE_H
 
@@ -28,7 +29,6 @@
 #include "aobasis.h"
 #include "classicalsegment.h"
 #include "logger.h"
-#include "settings.h"
 #include "staticsite.h"
 
 #include "votca/xtp/orbreorder.h"
@@ -44,7 +44,7 @@ class QMPackage {
 
   virtual std::string getPackageName() const = 0;
 
-  virtual void Initialize(const tools::Property& options) = 0;
+  void Initialize(const tools::Property& options);
 
   /// writes a coordinate file WITHOUT taking into account PBCs
   virtual bool WriteInputFile(const Orbitals& orbitals) = 0;
@@ -66,10 +66,10 @@ class QMPackage {
     for (const Segmenttype& segment : mmregion) {
       for (const Sitetype& site : segment) {
         externalsites_.push_back(
-            std::unique_ptr<StaticSite>(new Sitetype(site)));
+            std::make_unique<StaticSite>(site));
       }
     }
-    if (settings_.get<bool>("write_charges")) {
+    if ( options_.get("write_charges").as<bool>()) {
       WriteChargeOption();
     }
   }
@@ -93,7 +93,7 @@ class QMPackage {
     spin_ = std::abs(charge) + 1;
   }
 
-  bool GuessRequested() const { return settings_.get<bool>("read_guess"); }
+  bool GuessRequested() const { return options_.get("read_guess").as<bool>(); }
 
   virtual StaticSegment GetCharges() const = 0;
 
@@ -104,14 +104,14 @@ class QMPackage {
   std::string getMOFile() const { return mo_file_name_; };
 
  protected:
+
+ virtual void ParseSpecificOptions(const tools::Property& options) =0;
   struct MinimalMMCharge {
     MinimalMMCharge(const Eigen::Vector3d& pos, double q) : pos_(pos), q_(q){};
     Eigen::Vector3d pos_;
     double q_;
   };
 
-  tools::Property ParseCommonOptions(const tools::Property& options);
-  std::string FindDefaultsFile() const;
 
   virtual bool RunDFT() = 0;
   virtual void WriteChargeOption() = 0;
@@ -130,8 +130,6 @@ class QMPackage {
   virtual const std::array<Index, 49>& ShellMulitplier() const = 0;
   virtual const std::array<Index, 49>& ShellReorder() const = 0;
 
-  Settings settings_{"package"};
-
   Index charge_;
   Index spin_;  // 2S+1mem
   std::string basisset_name_;
@@ -139,10 +137,11 @@ class QMPackage {
   std::string input_file_name_;
   std::string log_file_name_;
   std::string mo_file_name_;
-  std::string options_ = "";
+  std::string input_options_ = "";
   std::string run_dir_;
   std::string scratch_dir_;
   std::string shell_file_name_;
+  tools::Property options_;
 
   Logger* pLog_;
 
