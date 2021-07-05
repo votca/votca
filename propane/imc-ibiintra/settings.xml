@@ -6,12 +6,16 @@
     <step>0.001</step>
     <inverse>
       <target>bond.dist.tgt</target>
+      <do_potential>0</do_potential>
       <post_update>ibi smooth</post_update>
       <post_update_options>
         <smooth>
           <iterations>2</iterations>
         </smooth>
       </post_update_options>
+      <imc>
+        <group>none</group>
+      </imc>
       <post_add></post_add>
       <gromacs>
         <table>table_b1.xvg</table>
@@ -26,12 +30,16 @@
     <step>0.001</step>
     <inverse>
       <target>angle.dist.tgt</target>
+      <do_potential>0</do_potential>
       <post_update>ibi smooth</post_update>
       <post_update_options>
         <smooth>
           <iterations>2</iterations>
         </smooth>
       </post_update_options>
+      <imc>
+        <group>none</group>
+      </imc>
       <post_add></post_add>
       <gromacs>
         <table>table_a1.xvg</table>
@@ -132,5 +140,6 @@
     <scriptpath>$PWD</scriptpath>
     <log_file>inverse.log</log_file>
     <restart_file>restart_points.log</restart_file>
+    <map>map.xml</map>
   </inverse>
 </cg>
