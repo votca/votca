@@ -204,36 +204,7 @@ std::vector<Property *> Property::Select(const string &filter) {
   return selection;
 }
 
-void Property::deleteChild(Property *child) {
-  // only works for std::vector
-  ptrdiff_t index_of_child = std::distance(properties_.data(), child);
-  assert(&properties_[index_of_child] == child &&
-         "You changed the containertype for property, fix deleteChild");
-  const Property &prop = properties_[index_of_child];
-  std::vector<Index> &indices = map_.at(prop.name());
 
-  // erase index from map, if only one element in indeces remove the tag
-  if (indices.size() == 1) {
-    map_.erase(prop.name());
-  } else {
-    indices.erase(std::remove(indices.begin(), indices.end(), index_of_child),
-                  indices.end());
-  }
-
-  // if child is not the last element we have to do two things, a) switch the
-  // child with the last element and b) update the index of the former last
-  // element
-  if (child != &properties_.back()) {
-    Index old_index = properties_.size() - 1;
-    std::vector<Index> &indices_last = map_.at(properties_.back().name());
-    auto place = std::find(indices_last.begin(), indices_last.end(), old_index);
-    *place = index_of_child;
-    std::swap(properties_[index_of_child], properties_.back());
-  }
-  properties_.pop_back();
-
-  return;
-}
 
 void Property::deleteAttribute(const std::string &attribute) {
   attributes_.erase(attribute);

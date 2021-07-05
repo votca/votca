@@ -30,6 +30,7 @@
 // Third party includes
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
+#include <utility>
 
 // Local VOTCA includes
 #include "eigen.h"
@@ -132,7 +133,6 @@ class Property {
    */
   bool exists(const std::string &key) const;
 
-
   template <typename T>
   T ifExistsReturnElseReturnDefault(const std::string &key,
                                     T defaultvalue) const;
@@ -196,14 +196,13 @@ class Property {
   Index size() const { return Index(properties_.size()); }
 
   /**
-   * \brief deletes a child property
-   * @param pointer to child
+   * \brief deletes all children that fulfill a condition
+   * @param condition unary function which takes a const reference to a property
+   * and returns a bool
    *
-   * This function deletes a child of this property, specified by the pointer.
-   * Pointer must point to a valid child. This invalidates pointers and
-   * references to all children.
    */
-  void deleteChild(Property *child);
+  template <class cond>
+  void deleteChildren(cond condition);
 
   /**
    * \brief return attribute as type
@@ -320,7 +319,6 @@ inline void Property::setAttribute(const std::string &attribute,
       lexical_cast<std::string>(value, "wrong type to set attribute");
 }
 
-
 template <typename T>
 inline T Property::ifExistsReturnElseReturnDefault(const std::string &key,
                                                    T defaultvalue) const {
@@ -333,6 +331,23 @@ inline T Property::ifExistsReturnElseReturnDefault(const std::string &key,
   return result;
 }
 
+template <class cond>
+void Property::deleteChildren(cond condition) {
+
+  properties_.erase(
+      std::remove_if(properties_.begin(), properties_.end(), condition),
+      properties_.end());
+
+
+  //rebuild map_
+  map_.clear();
+  Index index = 0;
+  for (const auto &prop : properties_) {
+    map_[prop.name()].push_back(index);
+    index++;
+  }
+  return;
+}
 
 }  // namespace tools
 }  // namespace votca

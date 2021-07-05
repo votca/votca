@@ -50,14 +50,6 @@ class OptionsHandler {
    */
   Property LoadDefaults(const std::string &calculatorname) const;
 
-  void RemoveAttributesFromUserOptions(Property &user_options) const;
-
-  /**
-   * \brief Updates default options with user options
-   */
-  void UpdateWithUserOptions(Property &options, const Property &user_options,
-                             const std::string &calcname) const;
-
 
   /**
    * \brief Checks that all options with default="REQUIRED" are filled in
@@ -85,6 +77,8 @@ class OptionsHandler {
   static std::vector<std::string> GetPropertyChoices(const Property &p);
 
   std::string defaults_path_;
+
+  std::vector<std::string> reserved_keywords_{"OPTIONAL","REQUIRED"};
 };
 
 }  // namespace tools

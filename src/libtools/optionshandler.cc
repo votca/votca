@@ -41,8 +41,8 @@ void OptionsHandler::ResolveLinks(Property &prop) const {
     std::string file_path = defaults_path_ + relative_path;
     tools::Property package;
     package.LoadFromXML(file_path);
-    const tools::Property& options=package.get(prop.name());
-    for ( Property::const_AttributeIterator attr = options.firstAttribute();
+    const tools::Property &options = package.get(prop.name());
+    for (Property::const_AttributeIterator attr = options.firstAttribute();
          attr != options.lastAttribute(); ++attr) {
       prop.setAttribute(attr->first, attr->second);
     }
@@ -60,7 +60,37 @@ void OptionsHandler::ResolveLinks(Property &prop) const {
 Property OptionsHandler::ProcessUserInput(const Property &user_input,
                                           const std::string &calcname) const {
   Property print = LoadDefaults(calcname);
-  return user_input;
+
+  OverwriteDefaultsWithUserInput(user_input.get("options." + calcname), print);
+
+  RemoveOptional(print);
+  CheckRequired(print);
+  InjectDefaultsAsValues(print);
+  RecursivelyCheckOptions(print);
+  return print;
+}
+
+void OptionsHandler::CheckRequired(const Property &options) const {
+  for (const auto &child : options) {
+    CheckRequired(child);
+  }
+  if (options.hasAttribute("default") &&
+      options.getAttribute<std::string>("default") == "REQUIRED" &&
+      options.as<std::string>().empty()) {
+    throw std::runtime_error("Please specify an input for:" + options.path() +
+                             "." + options.name());
+  }
+}
+
+void OptionsHandler::RemoveOptional(Property &options) const {
+  options.deleteChildren([](const Property &p) {
+    return p.hasAttribute("default") &&
+           p.getAttribute<std::string>("default") == "OPTIONAL" &&
+           p.as<std::string>().empty();
+  });
+  for (auto &child : options) {
+    RemoveOptional(child);
+  }
 }
 
 Property OptionsHandler::CalculatorOptions(const std::string &calcname) const {
@@ -96,19 +126,13 @@ void OptionsHandler::InjectDefaultsAsValues(Property &defaults) const {
     if (prop.HasChildren()) {
       InjectDefaultsAsValues(prop);
     } else if (prop.hasAttribute("default")) {
-      prop.set(".", prop.getAttribute<std::string>("default"));
+      std::string value = prop.getAttribute<std::string>("default");
+      if (std::none_of(
+              reserved_keywords_.begin(), reserved_keywords_.end(),
+              [value](const std::string &keyword) { return value == keyword; }))
+        prop.set(".", value);
     }
   }
-}
-
-void OptionsHandler::UpdateWithUserOptions(Property &default_options,
-                                           const Property &user_options,
-                                           const std::string &calcname) const {
-
-  Property options = user_options.get("options." + calcname);
-
-  // if a value is given override default values
-  OverwriteDefaultsWithUserInput(options, default_options);
 }
 
 void OptionsHandler::OverwriteDefaultsWithUserInput(const Property &user_input,
