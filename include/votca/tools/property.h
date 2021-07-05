@@ -77,7 +77,7 @@ class Property {
    * \brief add a copy of an existing property to a property
    * @param other other property
    */
-  void add(const Property &other);
+  Property& add(const Property &other);
 
   /**
    * \brief add a new property tree to structure

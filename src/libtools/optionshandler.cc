@@ -61,7 +61,8 @@ Property OptionsHandler::ProcessUserInput(const Property &user_input,
                                           const std::string &calcname) const {
   Property print = LoadDefaults(calcname);
 
-  OverwriteDefaultsWithUserInput(user_input.get("options." + calcname), print);
+  OverwriteDefaultsWithUserInput(user_input.get("options"),
+                                 print.get("options"));
 
   RemoveOptional(print);
   CheckRequired(print);
@@ -138,20 +139,43 @@ void OptionsHandler::InjectDefaultsAsValues(Property &defaults) const {
 void OptionsHandler::OverwriteDefaultsWithUserInput(const Property &user_input,
                                                     Property &defaults) const {
 
-  for (const Property &prop : user_input) {
-    if (prop.HasChildren()) {
-      if (defaults.exists(prop.name())) {
-        OverwriteDefaultsWithUserInput(prop, defaults.get(prop.name()));
-      } else {
-        Property &new_prop = defaults.add(prop.name(), "");
-        new_prop = prop;
+  // There are 4 distinct cases
+  // a) normal option that can be copied over
+  // b) a list="" attribute is discovered
+  // c) a list="keyword" attribute is found, which is even more complicated
+  // d) an unchecked attriute is found,then the whole set is simply copied
+  // over from the user_options, should be done afterwards, as an unchecked
+  // session is not checked and simply copied over
+
+  if (!defaults.hasAttribute("list")) {
+    defaults.value() = user_input.value();
+
+    for (auto &child : defaults) {
+      if (user_input.exists(child.name())) {
+        OverwriteDefaultsWithUserInput(user_input.get(child.name()), child);
       }
-    } else if (defaults.exists(prop.name())) {
-      defaults.set(prop.name(), prop.value());
-    } else {
+    }
+  } else if (defaults.getAttribute<std::string>("list").empty()) {
+    if (defaults.size() != 1) {
       throw std::runtime_error(
-          "You added an xml tag, which is not a valid input option:" +
-          prop.path() + "/" + prop.name());
+          "Developers: List with empty key should have exactly one child!");
+    }
+    std::vector<const Property *> entries =
+        user_input.Select(defaults.begin()->name());
+    if (entries.empty()) {
+      defaults.deleteChildren([](const Property &) { return true; });
+    } else {
+      OverwriteDefaultsWithUserInput(*entries[0], *(defaults.begin()));
+      for (Index i = 1; i < Index(entries.size()); i++) {
+        Property &child = defaults.add(*entries[i]);
+        OverwriteDefaultsWithUserInput(*entries[i], child);
+      }
+    }
+  }
+
+  if (defaults.hasAttribute("unchecked")) {
+    for (const auto &child : user_input) {
+      defaults.add(child);
     }
   }
 }

@@ -139,7 +139,7 @@ void FixPath(tools::Property &prop, std::string path) {
   }
 }
 
-void Property::add(const Property &other) {
+Property& Property::add(const Property &other) {
 
   properties_.push_back(other);
   map_[other.name()].push_back((properties_.size()) - 1);
@@ -150,6 +150,7 @@ void Property::add(const Property &other) {
   }
   path += name_;
   FixPath(properties_.back(), path);
+  return properties_.back();
 }
 
 Property &Property::getOradd(const std::string &key) {
