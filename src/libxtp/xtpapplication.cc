@@ -201,7 +201,7 @@ void XtpApplication::PrintShortHelp(std::ostream &out,
 void XtpApplication::PrintLongHelp(
     std::ostream &out, const std::string &calculator_name,
     tools::PropertyIOManipulator::Type format) const {
-  tools::OptionsHandler handler(tools::GetVotcaShare() + "xtp/xml/");
+  tools::OptionsHandler handler(tools::GetVotcaShare() + "/xtp/xml/");
   tools::Property options = handler.CalculatorOptions(calculator_name);
   tools::PropertyIOManipulator iom(format, 2, "");
   out << iom << options;
