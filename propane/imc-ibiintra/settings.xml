@@ -1,0 +1,136 @@
+<cg>
+  <bonded>
+    <name>bond</name>
+    <min>0.</min>
+    <max>0.180</max>
+    <step>0.001</step>
+    <inverse>
+      <target>bond.dist.tgt</target>
+      <post_update>ibi smooth</post_update>
+      <post_update_options>
+        <smooth>
+          <iterations>2</iterations>
+        </smooth>
+      </post_update_options>
+      <post_add></post_add>
+      <gromacs>
+        <table>table_b1.xvg</table>
+      </gromacs>
+    </inverse>
+  </bonded>
+
+  <bonded>
+    <name>angle</name>
+    <min>0</min>
+    <max>3.144</max>
+    <step>0.001</step>
+    <inverse>
+      <target>angle.dist.tgt</target>
+      <post_update>ibi smooth</post_update>
+      <post_update_options>
+        <smooth>
+          <iterations>2</iterations>
+        </smooth>
+      </post_update_options>
+      <post_add></post_add>
+      <gromacs>
+        <table>table_a1.xvg</table>
+      </gromacs>
+    </inverse>
+  </bonded>
+
+  <non-bonded>
+    <name>A-A</name>
+    <type1>A</type1>
+    <type2>A</type2>
+    <min>0.31</min>
+    <max>1.36</max>
+    <step>0.01</step>
+    <inverse>
+      <target>A-A.dist.tgt</target>
+      <do_potential>1 0 0</do_potential>
+      <post_update>smooth</post_update>
+      <post_update_options>
+        <smooth>
+          <iterations>2</iterations>
+        </smooth>
+      </post_update_options>
+      <post_add></post_add>
+      <imc>
+        <group>all</group>
+      </imc>
+      <gromacs>
+        <table>table_A_A.xvg</table>
+      </gromacs>
+    </inverse>
+  </non-bonded>
+  
+  <non-bonded>
+    <name>B-B</name>
+    <type1>B</type1>
+    <type2>B</type2>
+    <min>0.31</min>
+    <max>1.38</max>
+    <step>0.01</step>
+    <inverse>
+      <target>B-B.dist.tgt</target>
+      <do_potential>0 1 0</do_potential>
+      <post_update>smooth</post_update>
+      <post_update_options>
+        <smooth>
+          <iterations>2</iterations>
+        </smooth>
+      </post_update_options>
+      <post_add></post_add>
+      <imc>
+        <group>all</group>
+      </imc>
+      <gromacs>
+        <table>table_B_B.xvg</table>
+      </gromacs>
+    </inverse>
+  </non-bonded>
+
+  <non-bonded>
+    <name>A-B</name>
+    <type1>A</type1>
+    <type2>B</type2>
+    <min>0.31</min>
+    <max>1.36</max>
+    <step>0.01</step>
+    <inverse>
+      <target>A-B.dist.tgt</target>
+      <do_potential>0 0 1</do_potential>
+      <post_update>smooth</post_update>
+      <post_update_options>
+        <smooth>
+          <iterations>2</iterations>
+        </smooth>
+      </post_update_options>
+      <post_add></post_add>
+      <imc>
+        <group>all</group>
+      </imc>
+      <gromacs>
+        <table>table_A_B.xvg</table>
+      </gromacs>
+    </inverse>
+  </non-bonded>
+
+  <inverse>
+    <kBT>1.6629</kBT>
+    <program>gromacs</program>
+    <gromacs>
+      <equi_time>20</equi_time>
+      <table_bins>0.002</table_bins>
+      <pot_max>1000000</pot_max>
+      <table_end>2.5</table_end>
+    </gromacs>
+    <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
+    <iterations_max>300</iterations_max>
+    <method>imc</method>
+    <scriptpath>$PWD</scriptpath>
+    <log_file>inverse.log</log_file>
+    <restart_file>restart_points.log</restart_file>
+  </inverse>
+</cg>
