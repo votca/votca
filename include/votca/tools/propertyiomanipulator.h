@@ -83,8 +83,8 @@ class PropertyIOManipulator {
 };
 
 extern PropertyIOManipulator XML;
-extern PropertyIOManipulator TXT;
 extern PropertyIOManipulator HLP;
+extern PropertyIOManipulator TXT;
 
 }  // namespace tools
 }  // namespace votca

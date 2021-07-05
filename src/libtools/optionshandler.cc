@@ -50,6 +50,14 @@ void OptionsHandler::ResolveLinks(Property &prop) const {
   }
 }
 
+Property OptionsHandler::ProcessUserInput(const Property &user_input,
+                                          const std::string &calcname) const {
+                                            return user_input;
+                                          }
+
+void OptionsHandler::CleanAttributes(
+    Property &options, const std::vector<std::string> &attributes) const {}
+
 // load the xml description of the calculator (with defaults and test values)
 Property OptionsHandler::LoadDefaults(const std::string &calculatorname) const {
   Property defaults_all;
@@ -60,7 +68,7 @@ Property OptionsHandler::LoadDefaults(const std::string &calculatorname) const {
   return defaults_all.get("options." + calculatorname);
 }
 
-void OptionsHandler::InjectDefaultsAsValues(Property &defaults) const{
+void OptionsHandler::InjectDefaultsAsValues(Property &defaults) const {
   for (Property &prop : defaults) {
     if (prop.HasChildren()) {
       InjectDefaultsAsValues(prop);

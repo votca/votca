@@ -135,19 +135,6 @@ class Application {
    */
   void StopExecution() { continue_execution_ = false; }
 
-  /// length of the output help
-  enum HelpType { HelpShort, HelpLong };
-
-  /**
-   * \brief Print long/short descriptions of calculators
-   *
-   * @param calculator_name name of a calculator
-   * @param help_path path in VOTCASHARE were xml file with help is stored
-   * @param helptype Index or short (with options) help
-   */
-  void PrintDescription(std::ostream &out, const std::string &calculator_name,
-                        const std::string help_path, HelpType help_type);
-
  protected:
   std::map<std::string, boost::program_options::options_description> op_groups_;
 

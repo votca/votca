@@ -29,6 +29,23 @@ class OptionsHandler {
   OptionsHandler(std::string defaults_path) : defaults_path_(defaults_path) {}
 
   /**
+   * \brief Load the default options and merge them with the user input
+   *
+   * Defaults are overwritten with user input
+   */
+  Property ProcessUserInput(const Property &user_input,
+                            const std::string &calcname) const;
+
+  Property CalculatorOptions(const std::string &calcname) const {
+    Property print = LoadDefaults(calcname);
+    ResolveLinks(print);
+    CleanAttributes(print, {"link", "item"});
+    return print;
+  }
+
+ private:
+
+ /**
    * \brief Resolves "link" attribute in the Property by filling in defaults.
    * Already existing tags are not overwritten
    */
@@ -47,11 +64,6 @@ class OptionsHandler {
   void UpdateWithUserOptions(Property &options, const Property &user_options,
                              const std::string &calcname) const;
 
-  /**
-   * \brief Updates default options with user options from commandline
-   */
-  void UpdateWithUserCommandline(Property &options,
-                                 const std::vector<std::string> &updates) const;
 
   /**
    * \brief Checks that all options with default="REQUIRED" are filled in
@@ -69,23 +81,7 @@ class OptionsHandler {
 
   void CleanAttributes(Property &options,
                        const std::vector<std::string> &attributes) const;
-  /**
-   * \brief Load the default options and merge them with the user input
-   *
-   * Defaults are overwritten with user input
-   */
-  Property ProcessUserInput(const Property &user_input,
-                            const std::vector<std::string> &cli_input,
-                            const std::string &calcname) const;
 
-  Property CalculatorOptions(const std::string &calcname) const {
-    Property print = LoadDefaults(calcname);
-    ResolveLinks(print);
-    CleanAttributes(print, {"link", "item"});
-    return print;
-  }
-
- private:
   void OverwriteDefaultsWithUserInput(const Property &p,
                                       Property &defaults) const;
   // Copy the defaults into the value
