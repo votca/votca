@@ -17,6 +17,7 @@
 
 // Local VOTCA includes
 #include "votca/tools/optionshandler.h"
+#include <algorithm>
 #include <stdexcept>
 
 namespace votca {
@@ -40,7 +41,13 @@ void OptionsHandler::ResolveLinks(Property &prop) const {
     std::string file_path = defaults_path_ + relative_path;
     tools::Property package;
     package.LoadFromXML(file_path);
-    for (const auto &child : package) {
+    const tools::Property& options=package.get(prop.name());
+    for ( Property::const_AttributeIterator attr = options.firstAttribute();
+         attr != options.lastAttribute(); ++attr) {
+      prop.setAttribute(attr->first, attr->second);
+    }
+
+    for (const auto &child : options) {
       prop.add(child);
     }
   }
@@ -52,11 +59,27 @@ void OptionsHandler::ResolveLinks(Property &prop) const {
 
 Property OptionsHandler::ProcessUserInput(const Property &user_input,
                                           const std::string &calcname) const {
-                                            return user_input;
-                                          }
+  Property print = LoadDefaults(calcname);
+  return user_input;
+}
+
+Property OptionsHandler::CalculatorOptions(const std::string &calcname) const {
+  Property print = LoadDefaults(calcname);
+  CleanAttributes(print, {"link"});
+  return print;
+}
 
 void OptionsHandler::CleanAttributes(
-    Property &options, const std::vector<std::string> &attributes) const {}
+    Property &options, const std::vector<std::string> &attributes) const {
+  for (const auto &attribute : attributes) {
+    if (options.hasAttribute(attribute)) {
+      options.deleteAttribute(attribute);
+    }
+  }
+  for (auto &child : options) {
+    CleanAttributes(child, attributes);
+  }
+}
 
 // load the xml description of the calculator (with defaults and test values)
 Property OptionsHandler::LoadDefaults(const std::string &calculatorname) const {
@@ -65,7 +88,7 @@ Property OptionsHandler::LoadDefaults(const std::string &calculatorname) const {
       defaults_path_ + "/" + calculatorname + ".xml";
   defaults_all.LoadFromXML(defaults_file_path);
   ResolveLinks(defaults_all);
-  return defaults_all.get("options." + calculatorname);
+  return defaults_all;
 }
 
 void OptionsHandler::InjectDefaultsAsValues(Property &defaults) const {

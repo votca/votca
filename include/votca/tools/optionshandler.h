@@ -36,13 +36,7 @@ class OptionsHandler {
   Property ProcessUserInput(const Property &user_input,
                             const std::string &calcname) const;
 
-  Property CalculatorOptions(const std::string &calcname) const {
-    Property print = LoadDefaults(calcname);
-    ResolveLinks(print);
-    CleanAttributes(print, {"link", "item"});
-    return print;
-  }
-
+  Property CalculatorOptions(const std::string &calcname) const;
  private:
 
  /**
