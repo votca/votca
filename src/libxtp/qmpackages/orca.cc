@@ -48,7 +48,7 @@ using namespace std;
 void Orca::ParseSpecificOptions(const tools::Property& options) {
 
   // Orca file names
-  std::string fileName = options.get("job_name").as<std::string>();
+  std::string fileName = options.get("temporary_file").as<std::string>();
 
   input_file_name_ = fileName + ".inp";
   log_file_name_ = fileName + ".log";

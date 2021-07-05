@@ -34,35 +34,15 @@ namespace xtp {
 void DftGwBse::ParseOptions(const tools::Property& options) {
 
   // molecule coordinates
-  xyzfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".molecule", job_name_ + ".xyz");
-
-  // job tasks
-  do_optimize_ = options.get(".optimize").as<bool>();
+  xyzfile_ = job_name_ + ".xyz";
 
   // options for dft package
   package_options_ = options.get(".dftpackage");
-  package_options_.add("job_name", job_name_);
-  package_ = package_options_.get("package.name").as<std::string>();
 
-  // set the basis sets and functional in DFT package
-  package_options_.get("package").add(
-      "basisset", options.get("basisset").as<std::string>());
-  package_options_.get("package").add(
-      "auxbasisset", options.get("auxbasisset").as<std::string>());
-  package_options_.get("package").add(
-      "functional", options.get("functional").as<std::string>());
+  package_ = package_options_.get("name").as<std::string>();
 
   // GWBSEENGINE options
   gwbseengine_options_ = options.get(".gwbse_engine");
-
-  // set the basis sets and functional in GWBSE
-  gwbseengine_options_.get("gwbse_options.gwbse")
-      .add("basisset", options.get("basisset").as<std::string>());
-  gwbseengine_options_.get("gwbse_options.gwbse")
-      .add("auxbasisset", options.get("auxbasisset").as<std::string>());
-  gwbseengine_options_.get("gwbse_options.gwbse.vxc")
-      .add("functional", options.get("functional").as<std::string>());
 
   // lets get the archive file name from the xyz file name
   archive_file_ = job_name_ + ".orb";
@@ -70,20 +50,20 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
   // XML OUTPUT
   xml_output_ = job_name_ + "_summary.xml";
 
-  // check for MPS file with external multipoles for embedding
-  do_external_ = options.get("use_mpsfile").as<bool>();
-  if (do_external_) {
+  if (options.exists(".mpsfile")) {
+    do_external_=true;
     mpsfile_ = options.get(".mpsfile").as<std::string>();
   }
 
   // check if guess is requested
-  do_guess_ = options.get("use_guess").as<bool>();
-  if (do_guess_) {
+  if (options.exists(".guess")) {
+    do_guess_=true;
     guess_file_ = options.get(".guess").as<std::string>();
   }
 
   // if optimization is chosen, get options for geometry_optimizer
-  if (do_optimize_) {
+  if (options.exists(".geometry_optimization")) {
+    do_optimize_=true;
     geoopt_options_ = options.get(".geometry_optimization");
   }
 

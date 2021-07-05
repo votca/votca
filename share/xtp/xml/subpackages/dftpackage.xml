@@ -14,10 +14,11 @@
   <dipole_spacing help="Spacing for splitting multipoles into charges" default="0.1" choices="float+" unit="bohr" />
   <read_guess help="Read wave function guess" default="false" choices="bool" />
   <write_charges help="Print atomic charges" default="false" choices="bool" />
+  <temporary_file help="Filename for temporary files without extension" default="temp"/>
   <convergence_tightness help="How accurate the dft self-consistency has to be" default="tight" choices="low,normal,tight,verytight" />
   <cleanup help="files to remove after the calculation. Specify the fileextensions" default="" />
   <orca help="orca specific keywords can be added here, where the xml tag corresponds to the option and the value to the option's value" />
-  <xtpdft help="xtpdft specific keywords can be added here">
+  <xtpdft help="xtpdft specific keywords can be added here" >
     <use_external_density help="whether or not to use a precomputed external density" default="false" choices="bool" />
     <screening_eps help="screening eps" default="1e-9" choices="float+" />
     <fock_matrix_reset help="how often the fock matrix is reset" default="5" choices="int+" />

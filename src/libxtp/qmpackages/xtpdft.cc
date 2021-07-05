@@ -37,10 +37,9 @@ namespace xtp {
 using namespace std;
 
 void XTPDFT::ParseSpecificOptions(const tools::Property& options) {
+  std::cout<<"QM\n"<<options<<std::endl;
   const std::string job_name =
-     options.get(
-      "job_name").as<std::string>();
-
+     options.get("temporary_file").as<std::string>();
   log_file_name_ = job_name + ".orb";
   mo_file_name_ = log_file_name_;
 

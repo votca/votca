@@ -2,18 +2,16 @@
 <options>
   <!-- xtp_tools -e dftgwbse options.xml -->
   <dftgwbse help="Compute electronic excitations using GW-BSE">
-    <optimize help="Perform a molecular geometry optimization" default="false" choices="bool"/>
+    <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
     <dftpackage link="dftpackage.xml"/>
-    <use_mpsfile help="check for MPS file with external multipoles for embedding" default="false" choices="bool"/>
-    <mpsfile help="MPS file to read from if use_mpsfile"/>
-    <use_guess help="Use a precomputed wave function" default="false" choices="bool"/>
-    <guess help="File to read the wave function if the use guess flag is set to true"/>
+    <mpsfile help="MPS file to read from with external multipoles for embedding" default="OPTIONAL"/>
+    <guess help="File to read the wave function if the use guess flag is set to true" default="OPTIONAL"/>
     <gwbse_engine>
       <tasks help="task to compute" default="input,dft,parse,gwbse" choices="[input,dft,parse,gwbse]"/>
       <gwbse link="gwbse.xml"/>
       <redirect_logger help="Redirect Logger" default="false" choices="bool"/>
     </gwbse_engine>
-    <geometry_optimization help="geometry optimization options">
+    <geometry_optimization help="geometry optimization options" default="OPTIONAL">
       <state help="initial state to optimize for" default="s1"/>
       <maxiter help="Maximum iteration number" default="50" choices="int+"/>
       <trajectory_file help="File to write trajectory" default="optimisation.trj"/>
