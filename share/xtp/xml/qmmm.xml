@@ -7,10 +7,8 @@
     <job_file help="name of jobfile to which jobs are written" default="qmmm_jobs.xml" />
     <io_states help="states to write jobs for and which to parse from jobfile" default="n e h" />
 
-    <regions list="type" help="Definitions of all regions inside qmmmm" default="REQUIRED">
-
-      <region default="OPTIONAL" link="region.xml">
-        <type help="qmregion with dft and optionally gwbse" item="qm"/>
+    <regions list="" help="Definitions of all regions inside qmmmm" default="REQUIRED">
+      <qmregion default="OPTIONAL" link="region.xml" help="qmregion with dft and optionally gwbse">
         <state help="initial state to track or ground state for dftcalculations" default="n" />
         <gwbse link="gwbse.xml" default="OPTIONAL" />
         <dftpackage link="dftpackage.xml"/>
@@ -18,16 +16,13 @@
         <extgrid help="grid on which the interaction with classical regions is compute" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
         <delta_e help="if energy difference for this region is below this value it is considered converged" unit="Hartree" default="5e-5" choices="float+" />
         <delta_d help="if RMS difference of density matrix is below this value it is considered converged"  default="5e-5" choices="float+" />
-      </region>
-      <region default="OPTIONAL" link="region.xml">
-        <type help="polar region with polarisation dipoles and thole damping" item="polar"/>
+      </qmregion>
+      <polarregion default="OPTIONAL" help="polar region with polarisation dipoles and thole damping" link="region.xml">
         <polar link="polar.xml"/>
         <delta_e help="if energy difference for this region is below this value it is considered converged" unit="Hartree" default="5e-5" choices="float+" />
         <delta_d help="if RMS difference of all dipoles in the is below this value it is considered converged"  unit="bohr" default="5e-5" choices="float+" />
-      </region>
-      <region default="OPTIONAL" link="region.xml">
-        <type help="static region consisting of multipoles(up to quadrupoles) " item="static"/>
-      </region>
+      </polarregion>
+      <staticregion default="OPTIONAL" link="region.xml"/>
     </regions>
 
 

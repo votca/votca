@@ -45,7 +45,7 @@ class PolarRegion : public MMRegion<PolarSegment> {
  public:
   PolarRegion(Index id, Logger& log) : MMRegion<PolarSegment>(id, log) {}
 
-  std::string identify() const override { return "polar"; }
+  std::string identify() const override { return "polarregion"; }
 
   void Initialize(const tools::Property& prop) override;
 

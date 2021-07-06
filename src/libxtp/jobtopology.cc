@@ -47,7 +47,7 @@ void JobTopology::ModifyOptionsByJobFile(
 
   const tools::Property& jobinput = job_.getInput();
   std::vector<const tools::Property*> regions_def_job =
-      jobinput.Select("regions.region");
+      jobinput.Select("regions.*region");
 
   std::string tag = "jobfile";
   for (tools::Property* prop : regions_def) {
@@ -83,7 +83,7 @@ void JobTopology::ModifyOptionsByJobFile(
 
 void JobTopology::BuildRegions(const Topology& top, tools::Property options) {
 
-  std::vector<tools::Property*> regions_def = options.Select("region");
+  std::vector<tools::Property*> regions_def = options.Select("*region");
   CheckEnumerationOfRegions(regions_def);
   SortRegionsDefbyId(regions_def);
   ModifyOptionsByJobFile(regions_def);
@@ -157,7 +157,7 @@ void JobTopology::CreateRegions(
     Index id = region_def->get("id").as<Index>();
     const std::vector<SegId>& seg_ids = region_seg_ids[id];
     std::string type =
-        region_def->get("type").as<std::string>();
+        region_def->name();
     std::unique_ptr<Region> region;
     QMRegion QMdummy(0, log_, "");
     StaticRegion Staticdummy(0, log_);

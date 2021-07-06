@@ -23,6 +23,7 @@
 // VOTCA includes
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <ostream>
 #include <stdexcept>
 #include <votca/tools/globals.h>
 #include <votca/tools/optionshandler.h>
@@ -52,7 +53,7 @@ void XtpApplication::Initialize(void) {
   namespace propt = boost::program_options;
   AddProgramOptions()(
       "options,o", propt::value<std::string>(),
-      std::string("  " + CalculatorType() + " options").c_str());
+      std::string("  " + CalculatorType() + " user options.").c_str());
 
   AddProgramOptions()("nthreads,t", propt::value<Index>()->default_value(1),
                       "  number of threads to create");
@@ -113,7 +114,16 @@ bool XtpApplication::EvaluateOptions() {
   if (OptionsMap().count("printoptions")) {
     std::string calcname = OptionsMap()["printoptions"].as<std::string>();
     if (CalcExists(calcname)) {
-      PrintLongHelp(std::cout, calcname,
+      std::string optionsFile;
+      if (OptionsMap().count("options")) {
+        optionsFile = OptionsMap()["options"].as<std::string>();
+      }else{
+        throw std::runtime_error("Please specify a --options file to print options for calculator to.");
+      }
+      std::ofstream out;
+      out.open(optionsFile);
+      std::cout<<"Writing options for calculator "<<calcname<<" to "<<optionsFile<<std::endl;
+      PrintLongHelp(out, calcname,
                     tools::PropertyIOManipulator::Type::XML);
     } else {
       std::cout << CalculatorType() << " " << calcname << " does not exist\n";
@@ -160,7 +170,6 @@ bool XtpApplication::EvaluateOptions() {
 
   tools::OptionsHandler handler(tools::GetVotcaShare() + "/xtp/xml/");
   options_ = handler.ProcessUserInput(useroptions, calcname).get("options."+calcname);
-  std::cout<<options_<<std::endl;
   return true;
 }
 

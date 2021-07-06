@@ -1,6 +1,5 @@
 <region default="OPTIONAL">
   <id help="id of the region, first region has to have id 0, ids must be consecutive" default="REQUIRED" choices="int+" />
-  <type help="What kind of region" default="REQUIRED" choices="qm,polar,static" />
   <segments help="List of segments to include in the region separated by a whitespace. Each segment is defined by an index and a qmstate or a filename for the coordinates. e.g 1:s3 or 0:ORFILES/methane.xyz" default="OPTIONAL"></segments>
   <cutoff help="specifies the cutoff around either an another region or explicit segments in this region">
     <radius help="radius" unit="nm" default="REQUIRED" choices="float+" />

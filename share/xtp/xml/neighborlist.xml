@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <options>
   <neighborlist help="Determines neighbouring pairs for exciton transport" section="sec:neighborlist">
-  <segmentpairs list="">
-    <pair>
-      <type help="segments names if the segmentname method is used"/>
-      <cutoff help="cutoff value if the segmentname method is used" unit="nm"/>
-    </pair>
+    <segmentpairs help="list of pairs of molecules for which to create pairs" list="pair" default="OPTIONAL">
+      <pair help="Definition of one pair">
+        <type help="names of two segmenttypes to create a pair" default="REQUIRED"/>
+        <cutoff help="cutoff value if the segmentname method is used" unit="nm" default="REQUIRED"/>
+      </pair>
     </segmentpairs>
-    <constant help="cutoff for all other types of pairs if the constant method is used" unit="nm" default="1.5" choices="float+"/>
-    <exciton_cutoff help="cutoff for classical exciton transition charge treatment" units="nm" default="OPTIONAL" choices="float+"/>
+    <constant help="cutoff for all other types of pairs if the constant method is used" unit="nm" default="1.5" choices="float+" />
+    <exciton_cutoff help="cutoff for classical exciton transition charge treatment" units="nm" default="OPTIONAL" choices="float+" />
   </neighborlist>
 </options>
