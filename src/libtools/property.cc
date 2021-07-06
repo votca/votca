@@ -139,7 +139,7 @@ void FixPath(tools::Property &prop, std::string path) {
   }
 }
 
-Property& Property::add(const Property &other) {
+Property &Property::add(const Property &other) {
 
   properties_.push_back(other);
   map_[other.name()].push_back((properties_.size()) - 1);
@@ -182,8 +182,6 @@ std::vector<const Property *> Property::Select(const string &filter) const {
   return selection;
 }
 
-
-
 std::vector<Property *> Property::Select(const string &filter) {
   Tokenizer tok(filter, ".");
   std::vector<Property *> selection;
@@ -204,8 +202,6 @@ std::vector<Property *> Property::Select(const string &filter) {
   }
   return selection;
 }
-
-
 
 void Property::deleteAttribute(const std::string &attribute) {
   attributes_.erase(attribute);

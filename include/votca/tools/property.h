@@ -77,7 +77,7 @@ class Property {
    * \brief add a copy of an existing property to a property
    * @param other other property
    */
-  Property& add(const Property &other);
+  Property &add(const Property &other);
 
   /**
    * \brief add a new property tree to structure
@@ -338,8 +338,7 @@ void Property::deleteChildren(cond condition) {
       std::remove_if(properties_.begin(), properties_.end(), condition),
       properties_.end());
 
-
-  //rebuild map_
+  // rebuild map_
   map_.clear();
   Index index = 0;
   for (const auto &prop : properties_) {
