@@ -37,9 +37,9 @@ class OptionsHandler {
                             const std::string &calcname) const;
 
   Property CalculatorOptions(const std::string &calcname) const;
- private:
 
- /**
+ private:
+  /**
    * \brief Resolves "link" attribute in the Property by filling in defaults.
    * Already existing tags are not overwritten
    */
@@ -50,6 +50,12 @@ class OptionsHandler {
    */
   Property LoadDefaults(const std::string &calculatorname) const;
 
+  /**
+   * \brief Checks if all keywords in user_input (apart from sections named
+   * "unchecked") have corresponding keys in defaults
+   */
+  void CheckUserInput(const Property &user_input,
+                      const Property &defaults) const;
 
   /**
    * \brief Checks that all options with default="REQUIRED" are filled in
@@ -78,7 +84,7 @@ class OptionsHandler {
 
   std::string defaults_path_;
 
-  std::vector<std::string> reserved_keywords_{"OPTIONAL","REQUIRED"};
+  std::vector<std::string> reserved_keywords_{"OPTIONAL", "REQUIRED"};
 };
 
 }  // namespace tools

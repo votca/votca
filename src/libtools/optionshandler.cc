@@ -17,8 +17,10 @@
 
 // Local VOTCA includes
 #include "votca/tools/optionshandler.h"
+#include "votca/tools/propertyiomanipulator.h"
 #include <algorithm>
 #include <stdexcept>
+#include <string>
 
 namespace votca {
 namespace tools {
@@ -41,10 +43,12 @@ void OptionsHandler::ResolveLinks(Property &prop) const {
     std::string file_path = defaults_path_ + relative_path;
     tools::Property package;
     package.LoadFromXML(file_path);
-    const tools::Property &options = package.get(prop.name());
+    const tools::Property &options = *(package.begin());
     for (Property::const_AttributeIterator attr = options.firstAttribute();
          attr != options.lastAttribute(); ++attr) {
-      prop.setAttribute(attr->first, attr->second);
+      if (!prop.hasAttribute(attr->first)) {
+        prop.setAttribute(attr->first, attr->second);
+      }
     }
 
     for (const auto &child : options) {
@@ -61,14 +65,31 @@ Property OptionsHandler::ProcessUserInput(const Property &user_input,
                                           const std::string &calcname) const {
   Property print = LoadDefaults(calcname);
 
+  CheckUserInput(user_input, print);
+
   OverwriteDefaultsWithUserInput(user_input.get("options"),
                                  print.get("options"));
-
   RemoveOptional(print);
   CheckRequired(print);
   InjectDefaultsAsValues(print);
   RecursivelyCheckOptions(print);
   return print;
+}
+
+void OptionsHandler::CheckUserInput(const Property &user_input,
+                                    const Property &defaults) const {
+  if (user_input.hasAttribute("unchecked")) {
+    return;
+  } else {
+    for (const auto &child : user_input) {
+      if (defaults.exists(child.name())) {
+        CheckUserInput(child, defaults.get(child.name()));
+      } else {
+        throw std::runtime_error("Votca has no option:" + child.path() + "." +
+                                 child.name());
+      }
+    }
+  }
 }
 
 void OptionsHandler::CheckRequired(const Property &options) const {
@@ -96,7 +117,8 @@ void OptionsHandler::RemoveOptional(Property &options) const {
 
 Property OptionsHandler::CalculatorOptions(const std::string &calcname) const {
   Property print = LoadDefaults(calcname);
-  CleanAttributes(print, {"link"});
+  InjectDefaultsAsValues(print);
+  CleanAttributes(print, {"link", "default"});
   return print;
 }
 
@@ -126,24 +148,23 @@ void OptionsHandler::InjectDefaultsAsValues(Property &defaults) const {
   for (Property &prop : defaults) {
     if (prop.HasChildren()) {
       InjectDefaultsAsValues(prop);
-    } else if (prop.hasAttribute("default")) {
+    } else if (prop.hasAttribute("default") && prop.as<std::string>().empty()) {
       std::string value = prop.getAttribute<std::string>("default");
       if (std::none_of(
               reserved_keywords_.begin(), reserved_keywords_.end(),
               [value](const std::string &keyword) { return value == keyword; }))
-        prop.set(".", value);
+        prop.value() = value;
+      ;
     }
   }
 }
 
 void OptionsHandler::OverwriteDefaultsWithUserInput(const Property &user_input,
                                                     Property &defaults) const {
-
-  // There are 4 distinct cases
+  // There are 3 distinct cases
   // a) normal option that can be copied over
-  // b) a list="" attribute is discovered
-  // c) a list="keyword" attribute is found, which is even more complicated
-  // d) an unchecked attriute is found,then the whole set is simply copied
+  // b) a list attribute is discovered
+  // c) an unchecked attriute is found,then the whole set is simply copied
   // over from the user_options, should be done afterwards, as an unchecked
   // session is not checked and simply copied over
 
@@ -155,20 +176,37 @@ void OptionsHandler::OverwriteDefaultsWithUserInput(const Property &user_input,
         OverwriteDefaultsWithUserInput(user_input.get(child.name()), child);
       }
     }
-  } else if (defaults.getAttribute<std::string>("list").empty()) {
-    if (defaults.size() != 1) {
-      throw std::runtime_error(
-          "Developers: List with empty key should have exactly one child!");
+  } else {
+    std::map<std::string, Index> tags;
+    for (const auto &child : defaults) {
+      tags[child.name()]++;
     }
-    std::vector<const Property *> entries =
-        user_input.Select(defaults.begin()->name());
-    if (entries.empty()) {
-      defaults.deleteChildren([](const Property &) { return true; });
-    } else {
-      OverwriteDefaultsWithUserInput(*entries[0], *(defaults.begin()));
-      for (Index i = 1; i < Index(entries.size()); i++) {
-        Property &child = defaults.add(*entries[i]);
-        OverwriteDefaultsWithUserInput(*entries[i], child);
+
+    for (const auto &tag : tags) {
+      if (tag.second > 1) {
+        throw std::runtime_error(
+            "Developers: Each distinct tag in list should only appear once.");
+      }
+      std::vector<const tools::Property *> inputs =
+          user_input.Select(tag.first);
+
+      // if the input has no elements with that tag, remove all children from
+      // default with that tag as well
+      if (inputs.empty()) {
+        defaults.deleteChildren(
+            [&](const Property &prop) { return prop.name() == tag.first; });
+      } else {
+        // copy the element from defaults if the user_input has the element more
+        // than once
+        std::vector<Property *> added_elements;
+        added_elements.push_back(&defaults.get(tag.first));
+        for (Index i = 1; i < Index(inputs.size()); i++) {
+          added_elements.push_back(&defaults.add(*added_elements[0]));
+        }
+        // for each element in both lists do the overwrite again
+        for (Index i = 0; i < Index(inputs.size()); i++) {
+          OverwriteDefaultsWithUserInput(*inputs[i], *added_elements[i]);
+        }
       }
     }
   }
@@ -195,13 +233,14 @@ std::vector<std::string> OptionsHandler::GetPropertyChoices(const Property &p) {
 }
 
 void OptionsHandler::RecursivelyCheckOptions(const Property &p) {
+
   for (const Property &prop : p) {
     if (prop.HasChildren()) {
       RecursivelyCheckOptions(prop);
     } else {
       std::vector<std::string> choices = GetPropertyChoices(prop);
       if (choices.empty()) {
-        return;
+        continue;
       }
       if (!IsValidOption(prop, choices)) {
         std::ostringstream oss;
@@ -225,6 +264,7 @@ void OptionsHandler::RecursivelyCheckOptions(const Property &p) {
 
 bool OptionsHandler::IsValidOption(const Property &prop,
                                    const std::vector<std::string> &choices) {
+
   const std::string &head = choices.front();
   std::ostringstream oss;
   bool is_valid = true;
