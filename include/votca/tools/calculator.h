@@ -84,59 +84,10 @@ class Calculator {
     maverick_ = (nThreads_ == 1) ? true : false;
   }
 
-  /**
-   * \brief Loads default options stored in VOTCASHARE
-   */
-  Property LoadDefaults() const;
-
-  /**
-   * \brief Updates user options with default options stored in VOTCASHARE
-   *
-   * If a value is not given or tag is not present and at the same time
-   * a default value exists in the corresponding XML file in VOTCASHARE
-   * a tag is created and/or a default value is assigned to it
-   */
-  void UpdateWithUserOptions(Property &default_options,
-                             const Property &user_options) const;
-
-  /**
-   * \brief Load the default options and merge them with the user input
-   *
-   * Defaults are overwritten with user input
-   */
-  Property LoadDefaultsAndUpdateWithUserOptions(
-      const Property &user_options) const {
-    Property defaults = LoadDefaults();
-    InjectDefaultsAsValues(defaults);
-    Property user_options_with_defaults = user_options;
-    InjectDefaultsAsValues(user_options_with_defaults);
-    UpdateWithUserOptions(defaults, user_options_with_defaults);
-    RecursivelyCheckOptions(defaults);
-    return defaults;
-  }
-
  protected:
   Index nThreads_;
   bool maverick_;
 
-  void OverwriteDefaultsWithUserInput(const Property &p,
-                                      Property &defaults) const;
-  // Copy the defaults into the value
-  static void InjectDefaultsAsValues(Property &defaults);
-  static void RecursivelyCheckOptions(const Property &p);
-  static bool IsValidOption(const Property &prop,
-                            const std::vector<std::string> &choices);
-  static std::vector<std::string> GetPropertyChoices(const Property &p);
-
-  template <typename T>
-  static bool IsValidCast(const tools::Property &prop) {
-    try {
-      prop.as<T>();
-      return true;
-    } catch (const std::runtime_error &e) {
-      return false;
-    }
-  }
 };
 
 }  // namespace tools
