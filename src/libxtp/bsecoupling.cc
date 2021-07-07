@@ -36,18 +36,16 @@ using boost::format;
 using namespace tools;
 
 void BSECoupling::Initialize(Property& options) {
-
-  std::string key = Identify();
-
-  string spintype =
-      options.get(key + ".spin").as<std::string>();
+  string spintype = options.get("spin").as<std::string>();
   if (spintype == "all") {
     doSinglets_ = true;
     doTriplets_ = true;
   } else if (spintype == "triplet") {
     doTriplets_ = true;
+    doSinglets_ = false;
   } else if (spintype == "singlet") {
     doSinglets_ = true;
+    doTriplets_ = false;
   } else {
     throw std::runtime_error(
         (boost::format(
@@ -55,15 +53,14 @@ void BSECoupling::Initialize(Property& options) {
          spintype)
             .str());
   }
+  output_perturbation_ = options.get("use_perturbation").as<bool>();
 
-  output_perturbation_ = options.get( key + ".use_perturbation").as<bool>();
-
-  levA_ = options.get(key + ".moleculeA.states").as<Index>();
-  levB_ = options.get(key + ".moleculeB.states").as<Index>();
-  occA_ = options.get(key + ".moleculeA.occLevels").as<Index>();
-  occB_ = options.get(key + ".moleculeB.occLevels").as<Index>();
-  unoccA_ = options.get(key + ".moleculeA.unoccLevels").as<Index>();
-  unoccB_ = options.get(key + ".moleculeB.unoccLevels").as<Index>();
+  levA_ = options.get("moleculeA.states").as<Index>();
+  levB_ = options.get("moleculeB.states").as<Index>();
+  occA_ = options.get("moleculeA.occLevels").as<Index>();
+  occB_ = options.get("moleculeB.occLevels").as<Index>();
+  unoccA_ = options.get("moleculeA.unoccLevels").as<Index>();
+  unoccB_ = options.get("moleculeB.unoccLevels").as<Index>();
 }
 
 void BSECoupling::WriteToProperty(Property& summary, const QMState& stateA,

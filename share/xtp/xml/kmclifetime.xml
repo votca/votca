@@ -4,7 +4,7 @@
     <lifetimefile help="File from which lifetimes are read in." default="lifetimes.xml"/>
     <ratefile help="File containing the rates" default="rates.dat"/>
     <trajectoryfile help="Name of the trajectory file" default="trajectory.csv"/>
-    <numberofinsertions help="number of decays to simulate" default="4000" choiches="int+"/>
+    <numberofinsertions help="number of decays to simulate" default="4000" choices="int+"/>
     <seed help="Integer to initialise the random number generator" default="23" choices="int+"/>
     <numberofcarriers help="Number of electrons/holes in the simulation box" default="1" choices="int+"/>
     <injectionpattern help="Name pattern that specifies on which sites injection is possible. Use the wildcard '*' to inject on any site." default="*"/>

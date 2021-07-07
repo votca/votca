@@ -37,7 +37,8 @@ void Neighborlist::ParseOptions(const tools::Property& options) {
         options.Select(".segmentpairs.pair");
     for (const tools::Property* segprop : segs) {
       useConstantCutoff_ = false;
-      std::vector<std::string> names = segprop->get("type").as<std::vector<std::string>>();
+      std::vector<std::string> names =
+          segprop->get("type").as<std::vector<std::string>>();
       double cutoff =
           segprop->get("cutoff").as<double>() * tools::conv::nm2bohr;
 

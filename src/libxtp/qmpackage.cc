@@ -34,8 +34,6 @@ using std::flush;
 
 void QMPackage::Initialize(const tools::Property& options) {
 
-  std::string key = "package";
-
   charge_ = options.get("charge").as<Index>();
   spin_ = options.get("spin").as<Index>();
   basisset_name_ = options.get("basisset").as<std::string>();
@@ -43,7 +41,7 @@ void QMPackage::Initialize(const tools::Property& options) {
   cleanup_ = options.get("cleanup").as<std::string>();
   scratch_dir_ = options.get("scratch").as<std::string>();
 
-  options_=options;
+  options_ = options;
 
   ParseSpecificOptions(options);
 }
@@ -102,7 +100,7 @@ std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
   std::vector<QMPackage::MinimalMMCharge> multipoles_split;
   // Calculate virtual charge positions
   double a = options_.get("dipole_spacing").as<double>();  // this is in a0
-  double mag_d = aps.getDipole().norm();               // this is in e * a0
+  double mag_d = aps.getDipole().norm();                   // this is in e * a0
   const Eigen::Vector3d dir_d = aps.getDipole().normalized();
   const Eigen::Vector3d A = aps.getPos() + 0.5 * a * dir_d;
   const Eigen::Vector3d B = aps.getPos() - 0.5 * a * dir_d;
@@ -138,7 +136,6 @@ std::vector<std::string> QMPackage::GetLineAndSplit(
   boost::trim(line);
   return tools::Tokenizer(line, separators).ToVector();
 }
-
 
 }  // namespace xtp
 }  // namespace votca

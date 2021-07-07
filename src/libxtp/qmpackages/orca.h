@@ -24,7 +24,6 @@
 // Local VOTCA includes
 #include "votca/xtp/orbreorder.h"
 #include "votca/xtp/qmpackage.h"
-#include <unordered_map>
 
 namespace votca {
 namespace xtp {
@@ -106,7 +105,7 @@ class Orca final : public QMPackage {
   bool KeywordIsSingleLine(const std::string& key) const;
   std::string GetOrcaFunctionalName() const;
 
-  std::unordered_map<std::string, std::string> convergence_map_{
+  std::map<std::string, std::string> convergence_map_{
       {"low", "LooseSCF"},
       {"normal", "StrongSCF"},
       {"tight", "TightSCF"},

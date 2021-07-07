@@ -46,8 +46,8 @@ namespace xtp {
 
 void DFTEngine::Initialize(Property& options) {
 
-  string key = "package";
-  const string key_xtpdft = "package.xtpdft";
+  string key = "dftpackage";
+  const string key_xtpdft = key + ".xtpdft";
   dftbasis_name_ = options.get(key + ".basisset").as<string>();
 
   if (options.exists(key + ".auxbasisset")) {
@@ -61,30 +61,26 @@ void DFTEngine::Initialize(Property& options) {
   }
   if (options.exists(key + ".ecp")) {
     ecp_name_ = options.get(key + ".ecp").as<string>();
-    with_ecp_ = true;
-  } else {
-    with_ecp_ = false;
   }
-  with_guess_ = options.get(key + ".read_guess").as<bool>();
-  initial_guess_ = options.get(key_xtpdft + ".initial_guess").as<string>();
+
+  initial_guess_ = options.get(key + ".initial_guess").as<string>();
 
   grid_name_ = options.get(key_xtpdft + ".integration_grid").as<string>();
   xc_functional_name_ = options.get(key + ".functional").as<string>();
 
   if (options.exists(key_xtpdft + ".externaldensity")) {
     integrate_ext_density_ = true;
-    orbfilename_ = options.get(
-        key_xtpdft + ".externaldensity.orbfile").as<std::string>();
-    gridquality_ = options.get(
-        key_xtpdft + ".externaldensity.gridquality").as<std::string>();
-    state_ = options.get(
-        key_xtpdft + ".externaldensity.state").as<std::string>();
+    orbfilename_ =
+        options.get(key_xtpdft + ".externaldensity.orbfile").as<std::string>();
+    gridquality_ = options.get(key_xtpdft + ".externaldensity.gridquality")
+                       .as<std::string>();
+    state_ =
+        options.get(key_xtpdft + ".externaldensity.state").as<std::string>();
   }
 
   if (options.exists(key + ".externalfield")) {
     integrate_ext_field_ = true;
-    extfield_ = options.get(
-        key + ".externalfield").as<Eigen::Vector3d>();
+    extfield_ = options.get(key + ".externalfield").as<Eigen::Vector3d>();
   }
 
   conv_opt_.Econverged =
@@ -205,7 +201,7 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
   Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
   ConfigOrbfile(orb);
 
-  if (with_guess_) {
+  if (initial_guess_ == "orbfile") {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Reading guess from orbitals object/file" << flush;
     MOs = orb.MOs();
@@ -374,7 +370,7 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Nuclear Repulsion Energy is "
                               << std::setprecision(9) << E0 << flush;
 
-  if (with_ecp_) {
+  if (!ecp_name_.empty()) {
     AOECP dftAOECP;
     dftAOECP.FillPotential(dftbasis_, ecp_);
     H0 += dftAOECP.Matrix();
@@ -382,7 +378,7 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
         << TimeStamp() << " Filled DFT ECP matrix" << flush;
   }
 
-  if (addexternalsites_) {
+  if (externalsites_ != nullptr) {
     XTP_LOG(Log::error, *pLog_) << TimeStamp() << " " << externalsites_->size()
                                 << " External sites" << flush;
     if (externalsites_->size() < 200) {
@@ -481,7 +477,7 @@ void DFTEngine::SetupInvariantMatrices() {
 
 Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
     const QMAtom& uniqueAtom) const {
-  bool with_ecp = with_ecp_;
+  bool with_ecp = !ecp_name_.empty();
   if (uniqueAtom.getElement() == "H" || uniqueAtom.getElement() == "He") {
     with_ecp = false;
   }
@@ -706,7 +702,7 @@ Eigen::MatrixXd DFTEngine::AtomicGuess(const QMMolecule& mol) const {
 }
 
 void DFTEngine::ConfigOrbfile(Orbitals& orb) {
-  if (with_guess_) {
+  if (initial_guess_ == "orbfile") {
 
     if (orb.hasDFTbasisName()) {
       if (orb.getDFTbasisName() != dftbasis_name_) {
@@ -729,15 +725,15 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
   orb.setBasisSetSize(dftbasis_.AOBasisSize());
   orb.setXCFunctionalName(xc_functional_name_);
   orb.setScaHFX(ScaHFX_);
-  if (with_ecp_) {
+  if (!ecp_name_.empty()) {
     orb.setECPName(ecp_name_);
   }
   if (!auxbasis_name_.empty()) {
     orb.setAuxbasisName(auxbasis_name_);
   }
 
-  if (with_guess_) {
-    if (orb.hasECPName() || with_ecp_) {
+  if (initial_guess_ == "orbfile") {
+    if (orb.hasECPName() || !ecp_name_.empty()) {
       if (orb.getECPName() != ecp_name_) {
         throw runtime_error(
             (boost::format("ECPs in orb file: %1% and options %2% differ") %
@@ -804,7 +800,7 @@ void DFTEngine::Prepare(QMMolecule& mol) {
         << TimeStamp() << " Loaded AUX Basis Set " << auxbasis_name_ << " with "
         << auxbasis_.AOBasisSize() << " functions" << flush;
   }
-  if (with_ecp_) {
+  if (!ecp_name_.empty()) {
     ECPBasisSet ecpbasisset;
     ecpbasisset.Load(ecp_name_);
     XTP_LOG(Log::error, *pLog_)

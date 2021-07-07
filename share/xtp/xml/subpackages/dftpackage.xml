@@ -6,17 +6,17 @@
   <basisset help="Basis set for MOs" default="def2-tzvp" />
   <auxbasisset help="Auxiliary basis set for RI" default="OPTIONAL" />
   <externalfield help="Field given in x y z components" unit="Hartree/bohr" default="OPTIONAL" />
+  <executable help="Path to executable for dftpackage" default="OPTIONAL" />
   <ecp help="Effective Core Potentials for DFT Calculations" default="OPTIONAL" />
   <optimize help="Perform a molecular geometry optimization" default="false" choices="bool" />
   <functional help="Exchange correlation functional used. You can also specify an exchange and a correlation functional" default="XC_HYB_GGA_XC_PBEH" />
   <scratch help="path to the scratch folder" default="/tmp/qmpackage" />
   <polarization help="Calculate polarisation" default="false" choices="bool" />
   <dipole_spacing help="Spacing for splitting multipoles into charges" default="0.1" choices="float+" unit="bohr" />
-  <read_guess help="Read wave function guess" default="false" choices="bool" />
-  <write_charges help="Print atomic charges" default="false" choices="bool" />
   <temporary_file help="Filename for temporary files without extension" default="temp"/>
   <convergence_tightness help="How accurate the dft self-consistency has to be" default="tight" choices="low,normal,tight,verytight" />
   <cleanup help="files to remove after the calculation. Specify the fileextensions" default="" />
+  <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities) or previous calculation keyword orbfile" default="atom" choices="independent,atom,orbfile" />
   <orca help="orca specific keywords can be added here, where the xml tag corresponds to the option and the value to the option's value" unchecked=""/>
   <xtpdft help="xtpdft specific keywords can be added here" >
     <use_external_density help="whether or not to use a precomputed external density" default="false" choices="bool" />
@@ -35,7 +35,7 @@
       <error help="convergence error" default="1e-7" choices="float+" />
       <mixing help="mixing parameter for linear mixing of density matrices" default="0.7" choices="float+" />
     </convergence>
-    <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities)" default="atom" choices="independent,atom" />
+    
     <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
   </xtpdft>
 </dftpackage>

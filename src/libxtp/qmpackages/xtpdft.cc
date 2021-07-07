@@ -37,12 +37,9 @@ namespace xtp {
 using namespace std;
 
 void XTPDFT::ParseSpecificOptions(const tools::Property& options) {
-  std::cout<<"QM\n"<<options<<std::endl;
-  const std::string job_name =
-     options.get("temporary_file").as<std::string>();
+  const std::string job_name = options.get("temporary_file").as<std::string>();
   log_file_name_ = job_name + ".orb";
   mo_file_name_ = log_file_name_;
-
 }
 
 bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {
@@ -59,7 +56,7 @@ bool XTPDFT::RunDFT() {
   xtpdft.Initialize(options_);
   xtpdft.setLogger(pLog_);
 
-  if (options_.get("write_charges").as<bool>()) {
+  if (!externalsites_.empty()) {
     xtpdft.setExternalcharges(&externalsites_);
   }
   bool success = xtpdft.Evaluate(orbitals_);

@@ -117,14 +117,16 @@ bool XtpApplication::EvaluateOptions() {
       std::string optionsFile;
       if (OptionsMap().count("options")) {
         optionsFile = OptionsMap()["options"].as<std::string>();
-      }else{
-        throw std::runtime_error("Please specify a --options file to print options for calculator to.");
+      } else {
+        throw std::runtime_error(
+            "Please specify a --options file to print options for calculator "
+            "to.");
       }
       std::ofstream out;
       out.open(optionsFile);
-      std::cout<<"Writing options for calculator "<<calcname<<" to "<<optionsFile<<std::endl;
-      PrintLongHelp(out, calcname,
-                    tools::PropertyIOManipulator::Type::XML);
+      std::cout << "Writing options for calculator " << calcname << " to "
+                << optionsFile << std::endl;
+      PrintLongHelp(out, calcname, tools::PropertyIOManipulator::Type::XML);
     } else {
       std::cout << CalculatorType() << " " << calcname << " does not exist\n";
     }
@@ -169,7 +171,8 @@ bool XtpApplication::EvaluateOptions() {
   }
 
   tools::OptionsHandler handler(tools::GetVotcaShare() + "/xtp/xml/");
-  options_ = handler.ProcessUserInput(useroptions, calcname).get("options."+calcname);
+  options_ = handler.ProcessUserInput(useroptions, calcname)
+                 .get("options." + calcname);
   return true;
 }
 

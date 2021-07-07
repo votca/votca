@@ -31,9 +31,7 @@ bool QMCalculator::EvaluateFrame(Topology& top) {
   return success;
 }
 
-void QMCalculator::Initialize(const tools::Property& opt) {
-  ParseOptions(opt);
-}
+void QMCalculator::Initialize(const tools::Property& opt) { ParseOptions(opt); }
 
 }  // namespace xtp
 }  // namespace votca

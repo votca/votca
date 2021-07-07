@@ -18,10 +18,11 @@
  */
 
 #pragma once
-#include <memory>
+
 #ifndef VOTCA_XTP_QMPACKAGE_H
 #define VOTCA_XTP_QMPACKAGE_H
 
+#include <memory>
 // VOTCA includes
 #include <votca/tools/property.h>
 
@@ -30,7 +31,6 @@
 #include "classicalsegment.h"
 #include "logger.h"
 #include "staticsite.h"
-
 #include "votca/xtp/orbreorder.h"
 
 namespace votca {
@@ -65,13 +65,10 @@ class QMPackage {
         typename Segmenttype::iterator>::value_type;
     for (const Segmenttype& segment : mmregion) {
       for (const Sitetype& site : segment) {
-        externalsites_.push_back(
-            std::make_unique<StaticSite>(site));
+        externalsites_.push_back(std::make_unique<StaticSite>(site));
       }
     }
-    if ( options_.get("write_charges").as<bool>()) {
-      WriteChargeOption();
-    }
+    WriteChargeOption();
   }
 
   void setRunDir(const std::string& run_dir) { run_dir_ = run_dir; }
@@ -93,7 +90,9 @@ class QMPackage {
     spin_ = std::abs(charge) + 1;
   }
 
-  bool GuessRequested() const { return options_.get("read_guess").as<bool>(); }
+  bool GuessRequested() const {
+    return options_.get("initial_guess").as<std::string>() == "orbfile";
+  }
 
   virtual StaticSegment GetCharges() const = 0;
 
@@ -104,14 +103,12 @@ class QMPackage {
   std::string getMOFile() const { return mo_file_name_; };
 
  protected:
-
- virtual void ParseSpecificOptions(const tools::Property& options) =0;
+  virtual void ParseSpecificOptions(const tools::Property& options) = 0;
   struct MinimalMMCharge {
     MinimalMMCharge(const Eigen::Vector3d& pos, double q) : pos_(pos), q_(q){};
     Eigen::Vector3d pos_;
     double q_;
   };
-
 
   virtual bool RunDFT() = 0;
   virtual void WriteChargeOption() = 0;
@@ -137,7 +134,6 @@ class QMPackage {
   std::string input_file_name_;
   std::string log_file_name_;
   std::string mo_file_name_;
-  std::string input_options_ = "";
   std::string run_dir_;
   std::string scratch_dir_;
   std::string shell_file_name_;

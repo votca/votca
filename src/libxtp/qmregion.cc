@@ -64,8 +64,8 @@ void QMRegion::Initialize(const tools::Property& prop) {
     }
   }
 
-  grid_accuracy_for_ext_interaction_ = prop.get(
-      "grid_for_potential").as<std::string>();
+  grid_accuracy_for_ext_interaction_ =
+      prop.get("grid_for_potential").as<std::string>();
   DeltaE_ = prop.get("tolerance_energy").as<double>();
   DeltaD_ = prop.get("tolerance_density").as<double>();
 

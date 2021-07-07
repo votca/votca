@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include "votca/tools/propertyiomanipulator.h"
 #ifndef VOTCA_XTP_XTPAPPLICATION_H
 #define VOTCA_XTP_XTPAPPLICATION_H
 
@@ -27,6 +26,7 @@
 #include <algorithm>
 #include <votca/tools/application.h>
 #include <votca/tools/property.h>
+#include <votca/tools/propertyiomanipulator.h>
 
 namespace votca {
 namespace xtp {
@@ -40,7 +40,6 @@ class XtpApplication : public votca::tools::Application {
   bool EvaluateOptions() final;
   void Run() final;
   void ShowHelpText(std::ostream &out) final;
-
 
  protected:
   virtual void execute() = 0;

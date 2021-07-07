@@ -263,7 +263,7 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   inp_file << "end\n "
            << "\n"
            << endl;  // This end is for the basis set block
-  if (options_.get("write_charges").as<bool>()) {
+  if (!externalsites_.empty()) {
     WriteBackgroundCharges();
   }
 
@@ -276,19 +276,20 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
     inp_file << "end\n";
     inp_file << std::endl;
   }
-
+  std::string input_options;
   // Write Orca section specified by the user
   for (const auto& prop : this->options_.get("orca")) {
     const std::string& prop_name = prop.name();
     if (prop_name == "pointcharges") {
-      input_options_ += this->CreateInputSection("orca.pointcharges");
+      input_options += this->CreateInputSection("orca.pointcharges");
     } else if (prop_name != "method") {
-      input_options_ += this->CreateInputSection("orca." + prop_name);
+      input_options += this->CreateInputSection("orca." + prop_name);
     }
   }
   // Write main DFT method
-  input_options_ += this->WriteMethod();
-  inp_file << input_options_;
+  input_options += this->WriteMethod();
+  inp_file << input_options;
+  inp_file << '\n';
   inp_file.close();
   // and now generate a shell script to run both jobs, if neccessary
 
@@ -307,7 +308,7 @@ bool Orca::WriteShellScript() {
   shell_file << "#!/bin/bash" << endl;
   shell_file << "mkdir -p " << scratch_dir_ << endl;
 
-  if (options_.get("read_guess").as<bool>()) {
+  if (options_.get("initial_guess").as<std::string>() == "orbfile") {
     if (!(boost::filesystem::exists(run_dir_ + "/molA.gbw") &&
           boost::filesystem::exists(run_dir_ + "/molB.gbw"))) {
       throw runtime_error(
@@ -315,7 +316,7 @@ bool Orca::WriteShellScript() {
           "directory.");
     }
     shell_file << options_.get("executable").as<std::string>()
-               << " mergefrag_ molA.gbw molB.gbw dimer.gbw > merge.log" << endl;
+               << "_mergefrag molA.gbw molB.gbw dimer.gbw > merge.log" << endl;
   }
   shell_file << options_.get("executable").as<std::string>() << " "
              << input_file_name_ << " > " << log_file_name_
@@ -363,7 +364,7 @@ bool Orca::RunDFT() {
  */
 void Orca::CleanUp() {
 
-  if (options_.get("read_guess").as<bool>()) {
+  if (options_.get("initial_guess").as<std::string>() == "orbfile") {
     remove((run_dir_ + "/" + "molA.gbw").c_str());
     remove((run_dir_ + "/" + "molB.gbw").c_str());
     remove((run_dir_ + "/" + "dimer.gbw").c_str());

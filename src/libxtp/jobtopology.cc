@@ -147,8 +147,7 @@ void JobTopology::ShiftPBC(const Topology& top, const Eigen::Vector3d& center,
 void JobTopology::CreateRegions(
     const tools::Property& options, const Topology& top,
     const std::vector<std::vector<SegId>>& region_seg_ids) {
-  std::string mapfile =
-      options.get("mapfile").as<std::string>();
+  std::string mapfile = options.get("mapfile").as<std::string>();
   std::vector<const tools::Property*> regions_def = options.Select("region");
   // around this point the whole jobtopology will be centered for removing pbc
   Eigen::Vector3d center = top.getSegment(region_seg_ids[0][0].Id()).getPos();
@@ -156,8 +155,7 @@ void JobTopology::CreateRegions(
   for (const tools::Property* region_def : regions_def) {
     Index id = region_def->get("id").as<Index>();
     const std::vector<SegId>& seg_ids = region_seg_ids[id];
-    std::string type =
-        region_def->name();
+    std::string type = region_def->name();
     std::unique_ptr<Region> region;
     QMRegion QMdummy(0, log_, "");
     StaticRegion Staticdummy(0, log_);
@@ -251,13 +249,11 @@ std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
     explicitly_named_segs_per_region.push_back(Index(seg_ids.size()));
 
     if (region_def->exists("cutoff")) {
-      double cutoff = tools::conv::nm2bohr *
-                      region_def->get(
-                          "cutoff.radius").as<double>();
+      double cutoff =
+          tools::conv::nm2bohr * region_def->get("cutoff.radius").as<double>();
 
       std::string seg_geometry =
-          region_def->get(
-              "cutoff.geometry").as<std::string>();
+          region_def->get("cutoff.geometry").as<std::string>();
       double min = top.getBox().diagonal().minCoeff();
       if (cutoff > 0.5 * min) {
         throw std::runtime_error(
@@ -318,8 +314,7 @@ void JobTopology::CheckEnumerationOfRegions(
     const std::vector<tools::Property*>& regions_def) const {
   std::vector<Index> reg_ids;
   for (const tools::Property* region_def : regions_def) {
-    reg_ids.push_back(
-        region_def->get("id").as<Index>());
+    reg_ids.push_back(region_def->get("id").as<Index>());
   }
 
   std::vector<Index> v(reg_ids.size());
