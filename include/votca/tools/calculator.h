@@ -87,7 +87,6 @@ class Calculator {
  protected:
   Index nThreads_;
   bool maverick_;
-
 };
 
 }  // namespace tools

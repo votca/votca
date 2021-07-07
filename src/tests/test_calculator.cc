@@ -33,6 +33,6 @@ using namespace ::votca;
 
 BOOST_AUTO_TEST_SUITE(calculator_test)
 
-
+BOOST_AUTO_TEST_CASE(empty) {}
 
 BOOST_AUTO_TEST_SUITE_END()

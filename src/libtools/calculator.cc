@@ -19,9 +19,6 @@
 #include "votca/tools/calculator.h"
 #include "votca/tools/globals.h"
 
-
 namespace votca {
-namespace tools {
-
-}  // namespace tools
+namespace tools {}  // namespace tools
 }  // namespace votca
