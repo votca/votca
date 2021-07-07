@@ -248,7 +248,7 @@ BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
            << "<executable>some/path/orca</executable>\n"
            << "<basisset>" << std::string(XTP_TEST_DATA_FOLDER)
            << "/orca/3-21G.xml</basisset>\n"
-           << "<functional>pbe0</functional>\n"
+           << "<functional>XC_HYB_GGA_XC_PBEH</functional>\n"
            << "<read_guess>false</read_guess>\n"
            << "<write_charges>false</write_charges>\n"
            << "<scratch>/tmp/qmpackage</scratch>\n"

@@ -32,8 +32,7 @@ bool QMCalculator::EvaluateFrame(Topology& top) {
 }
 
 void QMCalculator::Initialize(const tools::Property& opt) {
-  tools::Property options = LoadDefaultsAndUpdateWithUserOptions(opt);
-  ParseOptions(options);
+  ParseOptions(opt);
 }
 
 }  // namespace xtp

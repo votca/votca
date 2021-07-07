@@ -46,10 +46,7 @@ class JobCalculator : public tools::Calculator {
   bool EvaluateFrame(const Topology &top) { return Evaluate(top); }
 
   void Initialize(const tools::Property &opt) final {
-
-    tools::Property options = LoadDefaultsAndUpdateWithUserOptions(opt);
-
-    ParseOptions(options);
+    ParseOptions(opt);
   }
   virtual void WriteJobFile(const Topology &top) = 0;
   virtual void ReadJobFile(Topology &top) = 0;

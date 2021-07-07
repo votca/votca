@@ -85,6 +85,7 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
 
   std::ofstream opt("bsecoupling.xml");
   opt << "<bsecoupling>" << std::endl;
+  opt << "        <use_perturbation>true</use_perturbation>"<<std::endl;
   opt << "        <spin>singlet</spin>" << std::endl;
   opt << "       <moleculeA>" << std::endl;
   opt << "                <states>1</states>" << std::endl;

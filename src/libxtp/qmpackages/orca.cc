@@ -124,9 +124,8 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
   ECPBasisSet ecp;
   ecp.Load(options_.get("ecp").as<std::string>());
 
-  XTP_LOG(Log::error, *pLog_)
-      << "Loaded Pseudopotentials " << options_.get("ecp").as<std::string>()
-      << flush;
+  XTP_LOG(Log::error, *pLog_) << "Loaded Pseudopotentials "
+                              << options_.get("ecp").as<std::string>() << flush;
 
   for (const std::string& element_name : UniqueElements) {
     try {
@@ -318,11 +317,12 @@ bool Orca::WriteShellScript() {
     shell_file << options_.get("executable").as<std::string>()
                << " mergefrag_ molA.gbw molB.gbw dimer.gbw > merge.log" << endl;
   }
-  shell_file << options_.get("executable").as<std::string>() << " " << input_file_name_ << " > "
-             << log_file_name_ << endl;  //" 2> run.error" << endl;
+  shell_file << options_.get("executable").as<std::string>() << " "
+             << input_file_name_ << " > " << log_file_name_
+             << endl;  //" 2> run.error" << endl;
   std::string base_name = mo_file_name_.substr(0, mo_file_name_.size() - 4);
-  shell_file << options_.get("executable").as<std::string>() << "_2mkl " << base_name
-             << " -molden" << endl;
+  shell_file << options_.get("executable").as<std::string>() << "_2mkl "
+             << base_name << " -molden" << endl;
   shell_file.close();
   return true;
 }
@@ -828,40 +828,30 @@ std::string Orca::WriteMethod() const {
 
 std::string Orca::GetOrcaFunctionalName() const {
 
-  if (!tools::VotcaShareSet()) {
-    throw std::runtime_error(
-        "VOTCASHARE not set unable to import functional info");
+  std::map<std::string, std::string> votca_to_orca;
+
+  votca_to_orca["XC_HYB_GGA_XC_B1LYP"] = "B1LYP";
+  votca_to_orca["XC_HYB_GGA_XC_B3LYP"] = "B3LYP";
+  votca_to_orca["XC_HYB_GGA_XC_PBEH"] = "PBE0";
+  votca_to_orca["XC_GGA_C_PBE"] = "PBE";
+  votca_to_orca["XC_GGA_X_PBE"] = "PBE";
+
+  std::string votca_functional =
+      options_.get("functional").as<std::vector<std::string>>()[0];
+
+  std::string orca_functional;
+  if (votca_to_orca.count(votca_functional)) {
+    orca_functional = votca_to_orca.at(votca_functional);
+  } else if (options_.exists("orca." + votca_functional)) {
+    orca_functional =
+        options_.get("orca." + votca_functional).as<std::string>();
   } else {
-    tools::Property all_functionals;
-
-    auto xml_file =
-        tools::GetVotcaShare() + "/xtp/data/orca_functional_names.xml";
-
-    all_functionals.LoadFromXML(xml_file);
-
-    const tools::Property& functional_names =
-        all_functionals.get("functionals");
-
-    std::string input_name = options_.get("functional").as<std::string>();
-    // Some functionals have a composed named separated by a space
-    // In the case just look for the first part
-    std::size_t plus = input_name.find(' ');
-    if (plus != std::string::npos) {
-      input_name = input_name.substr(0, plus);
-    }
-
-    if (functional_names.exists(input_name)) {
-      return functional_names.get(input_name).as<std::string>();
-    } else {
-      std::ostringstream oss;
-      oss << "The libxc functional \"" << input_name << "\"\n"
-          << "doesn't seem to have a corresponding name in Orca.\n"
-          << "Check the "
-          << "\"${VOTCASHARE}/xtp/data/orca_functional_names.xml\""
-          << "file for the whole list of known libxc/orca functionals";
-      throw runtime_error(oss.str());
-    }
+    throw std::runtime_error(
+        "Cannot translate " + votca_functional +
+        " to orca functional names. Please add a <" + votca_functional +
+        "> to your orca input options with the functional orca should use.");
   }
+  return orca_functional;
 }
 
 }  // namespace xtp
