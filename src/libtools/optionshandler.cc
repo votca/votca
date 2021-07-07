@@ -198,14 +198,14 @@ void OptionsHandler::OverwriteDefaultsWithUserInput(const Property &user_input,
       } else {
         // copy the element from defaults if the user_input has the element more
         // than once
-        std::vector<Property *> added_elements;
-        added_elements.push_back(&defaults.get(tag.first));
+        Property copy=defaults.get(tag.first);
         for (Index i = 1; i < Index(inputs.size()); i++) {
-          added_elements.push_back(&defaults.add(*added_elements[0]));
+          defaults.add(copy);
         }
+        std::vector<Property*> newdefault_elements=defaults.Select(tag.first);
         // for each element in both lists do the overwrite again
         for (Index i = 0; i < Index(inputs.size()); i++) {
-          OverwriteDefaultsWithUserInput(*inputs[i], *added_elements[i]);
+          OverwriteDefaultsWithUserInput(*inputs[i], *newdefault_elements[i]);
         }
       }
     }
