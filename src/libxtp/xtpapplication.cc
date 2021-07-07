@@ -173,6 +173,7 @@ bool XtpApplication::EvaluateOptions() {
   tools::OptionsHandler handler(tools::GetVotcaShare() + "/xtp/xml/");
   options_ = handler.ProcessUserInput(useroptions, calcname)
                  .get("options." + calcname);
+  std::cout<<options_<<std::endl;
   return true;
 }
 

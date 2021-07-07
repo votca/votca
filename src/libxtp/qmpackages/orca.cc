@@ -1,3 +1,4 @@
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -28,15 +29,19 @@
 
 // VOTCA includes
 #include <stdexcept>
+#include <string>
 #include <votca/tools/elements.h>
 #include <votca/tools/getline.h>
 
 // Local VOTCA includes
 #include "votca/tools/globals.h"
+#include "votca/tools/tokenizer.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/ecpaobasis.h"
 #include "votca/xtp/molden.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/vxc_grid.h"
+#include "votca/xtp/vxc_potential.h"
 
 // Local private VOTCA includes
 #include "orca.h"
@@ -544,9 +549,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
 
     std::string::size_type energy_pos = line.find("FINAL SINGLE");
     if (energy_pos != std::string::npos) {
-
-      boost::algorithm::split(results, line, boost::is_any_of(" "),
-                              boost::algorithm::token_compress_on);
+      results = tools::Tokenizer(line, " ").ToVector();
       std::string energy = results[4];
       boost::trim(energy);
       orbitals.setQMEnergy(boost::lexical_cast<double>(energy));
@@ -558,9 +561,19 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
 
     std::string::size_type HFX_pos = line.find("Fraction HF Exchange ScalHFX");
     if (HFX_pos != std::string::npos) {
-      boost::algorithm::split(results, line, boost::is_any_of(" "),
-                              boost::algorithm::token_compress_on);
+      results = tools::Tokenizer(line, " ").ToVector();
       double ScaHFX = boost::lexical_cast<double>(results.back());
+
+      double ScaHFX_temp = Vxc_Potential<Vxc_Grid>::getExactExchange(
+          options_.get("functional").as<std::string>());
+      if (std::abs(ScaHFX - ScaHFX_temp) > 1e-9) {
+        throw std::runtime_error(
+            "The exact exchange part from the orca logfile " +
+            std::to_string(ScaHFX) + "does not agree with the LIBXC version." +
+            std::to_string(ScaHFX_temp));
+      }
+      orbitals.setXCGrid("xfine");  // TODO find a better approximation for the
+                                    // orca grid.
       orbitals.setScaHFX(ScaHFX);
       XTP_LOG(Log::error, *pLog_)
           << "DFT with " << ScaHFX << " of HF exchange!" << flush;
@@ -568,8 +581,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
 
     std::string::size_type dim_pos = line.find("Basis Dimension");
     if (dim_pos != std::string::npos) {
-      boost::algorithm::split(results, line, boost::is_any_of(" "),
-                              boost::algorithm::token_compress_on);
+      results = tools::Tokenizer(line, " ").ToVector();
       std::string dim =
           results[4];  // The 4th element of results vector is the Basis Dim
       boost::trim(dim);

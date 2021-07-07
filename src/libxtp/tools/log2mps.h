@@ -53,7 +53,7 @@ void Log2Mps::ParseOptions(const tools::Property &options) {
 
   QMPackageFactory::RegisterAll();
 
-  package_ = options.get(".package").as<std::string>();
+  package_ = options.get(".dftpackage").as<std::string>();
 
   if (package_ == "xtp") {
     throw std::runtime_error(

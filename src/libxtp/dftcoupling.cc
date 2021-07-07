@@ -35,14 +35,13 @@ using std::flush;
 
 void DFTcoupling::Initialize(tools::Property& options) {
 
-  std::string key = "";
-  degeneracy_ = options.ifExistsReturnElseReturnDefault<double>(
-      key + "degeneracy", degeneracy_);
+  degeneracy_ = options.get(
+       "degeneracy").as<double>();
   degeneracy_ *= tools::conv::ev2hrt;
-  numberofstatesA_ = options.ifExistsReturnElseReturnDefault<Index>(
-      key + "levA", numberofstatesA_);
-  numberofstatesB_ = options.ifExistsReturnElseReturnDefault<Index>(
-      key + "levB", numberofstatesB_);
+  numberofstatesA_ = options.get(
+       "levA").as<Index>();
+  numberofstatesB_ = options.get(
+       "levB").as<Index>();
 }
 
 void DFTcoupling::WriteToProperty(tools::Property& type_summary,

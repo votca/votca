@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
 <options>
   <coupling help="Compute the electronic couplings from log and orbital files." section="sec:coupling">
+    <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
     <dftpackage link="dftpackage.xml"/>
     <dftcoupling link="dftcoupling.xml"/>
-    <moleculeA help="">
+    <moleculeA>
       <log help="Log file of molecule A" default="A.log"/>
       <orbitals help="Orbitals file" default="A.orb"/>
     </moleculeA>

@@ -40,7 +40,7 @@ class APDFT final : public QMTool {
   bool Run();
 
  private:
-  std::string grid_accuracy_ = "medium";
+  std::string grid_accuracy_;
   std::string orbfile_;
   QMState state_;
   std::string outputfile_;

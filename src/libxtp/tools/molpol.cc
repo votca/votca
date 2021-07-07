@@ -39,7 +39,7 @@ void MolPol::ParseOptions(const tools::Property& options) {
   polar_options_ = options.get(".options_polar");
 
   // polar targer or qmpackage logfile
-  const std::string& mode = options.get("mode").as<std::string>();
+  std::string mode = options.get("mode").as<std::string>();
 
   if (mode == "file") {
     Eigen::VectorXd target_vec =

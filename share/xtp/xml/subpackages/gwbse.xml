@@ -5,9 +5,6 @@
   <qpmax help="only needed, if ranges is factor or explicit, highest MO to be used in GW" default="" />
   <bsemin help="only needed, if ranges is factor or explicit, lowest MO to be used in BSE" default="" />
   <bsemax help="only needed, if ranges is factor or explicit, highest MO to be used in BSE" default="" />
-  <vxc help="Exchange correlation functional computation for GW">
-    <grid help="grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
-  </vxc>
   <auxbasisset help="Auxiliary basis set for RI, only used if DFT has no auxiliary set" default="OPTIONAL" />
   <scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" default="0.0" unit="hartree" choices="float" />
   <mode help="use single short (G0W0) or self-consistent GW (evGW)" default="evGW" choices="evGW,G0W0" />

@@ -1,3 +1,5 @@
+
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -23,9 +25,11 @@
 #include <boost/format.hpp>
 
 // VOTCA includes
+#include <stdexcept>
 #include <votca/tools/constants.h>
 
 // Local VOTCA includes
+#include "votca/xtp/basisset.h"
 #include "votca/xtp/bse.h"
 #include "votca/xtp/ecpbasisset.h"
 #include "votca/xtp/gwbse.h"
@@ -242,15 +246,28 @@ void GWBSE::Initialize(tools::Property& options) {
     do_dynamical_screening_bse_ = true;
   }
 
-  functional_ = options.get(key + ".vxc.functional").as<std::string>();
-  grid_ = options.get(key + ".vxc.grid").as<std::string>();
+  functional_ = orbitals_.getXCFunctionalName();
+  grid_ = orbitals_.getXCGrid();
 
-  auxbasis_name_ = options.get(key + ".auxbasisset").as<std::string>();
-  dftbasis_name_ = options.get(key + ".basisset").as<std::string>();
-  if (dftbasis_name_ != orbitals_.getDFTbasisName()) {
-    throw std::runtime_error(
-        "Name of the Basisset from .orb file: " + orbitals_.getDFTbasisName() +
-        " and from GWBSE optionfile " + dftbasis_name_ + " do not agree.");
+  dftbasis_name_ = orbitals_.getDFTbasisName();
+  if (orbitals_.hasAuxbasisName()) {
+    auxbasis_name_ = orbitals_.getAuxbasisName();
+  } else if (options.exists(key + ".auxbasisset")) {
+    auxbasis_name_ = options.get(key + ".auxbasisset").as<std::string>();
+  } else {
+    auxbasis_name_ = "aux-" + dftbasis_name_;
+    try {
+      BasisSet b;
+      b.Load(auxbasis_name_);
+    } catch (std::runtime_error&) {
+      std::runtime_error(
+          "There is no auxbasis from the dftcalculation nor did you specify an "
+          "auxbasisset for the gwbse calculation. Also no auxiliary basisset "
+          "for basisset " +
+          dftbasis_name_ + " could be found!");
+    }
+    XTP_LOG(Log::error, *pLog_)
+        << " Could not find an auxbasisset using " << auxbasis_name_ << flush;
   }
 
   std::string mode = options.get(key + ".mode").as<std::string>();
@@ -259,23 +276,6 @@ void GWBSE::Initialize(tools::Property& options) {
   } else if (mode == "evGW") {
     gwopt_.g_sc_limit = 0.1 * gwopt_.gw_sc_limit;
     gwopt_.eta = 0.1;
-  }
-
-  // Check if the exact exchange of the functional matches the exact exchange in
-  // orb file. If not display a warning.
-  double ScaHFX_temp = Vxc_Potential<Vxc_Grid>::getExactExchange(functional_);
-  if (ScaHFX_temp != orbitals_.getScaHFX()) {
-    XTP_LOG(Log::error, *pLog_)
-        << (boost::format(
-                "WARNING: GWBSE exact exchange a=%s differs from qmpackage "
-                "exact exchange a=%s, \n probably your functionals are "
-                "inconsistent \n or dft orbitals were loaded from a package"
-                " other than votca or orca. \n The GWBSE exact exchange will "
-                "be used.") %
-            ScaHFX_temp % orbitals_.getScaHFX())
-               .str()
-        << std::flush;
-    orbitals_.setScaHFX(ScaHFX_temp);
   }
 
   XTP_LOG(Log::error, *pLog_) << " Running GW as: " << mode << flush;
@@ -365,23 +365,25 @@ void GWBSE::Initialize(tools::Property& options) {
         << " RPA Hamiltonian size: " << (homo + 1 - rpamin) * (rpamax - homo)
         << flush;
   }
-  gwopt_.order = options.get(key + ".quadrature_order").as<Index>();
-  XTP_LOG(Log::error, *pLog_)
-      << " Quadrature integration order : " << gwopt_.order << flush;
-  gwopt_.quadrature_scheme =
-      options.get(key + ".quadrature_scheme").as<std::string>();
-  XTP_LOG(Log::error, *pLog_)
-      << " Quadrature integration scheme : " << gwopt_.quadrature_scheme
-      << flush;
-  gwopt_.alpha = options.get(key + ".alpha").as<double>();
-  XTP_LOG(Log::error, *pLog_)
-      << " Alpha smoothing parameter : " << gwopt_.alpha << flush;
-
+  if (gwopt_.sigma_integration == "cda") {
+    gwopt_.order = options.get(key + ".quadrature_order").as<Index>();
+    XTP_LOG(Log::error, *pLog_)
+        << " Quadrature integration order : " << gwopt_.order << flush;
+    gwopt_.quadrature_scheme =
+        options.get(key + ".quadrature_scheme").as<std::string>();
+    XTP_LOG(Log::error, *pLog_)
+        << " Quadrature integration scheme : " << gwopt_.quadrature_scheme
+        << flush;
+    gwopt_.alpha = options.get(key + ".alpha").as<double>();
+    XTP_LOG(Log::error, *pLog_)
+        << " Alpha smoothing parameter : " << gwopt_.alpha << flush;
+  }
   gwopt_.qp_solver = options.get(key + ".qp_solver").as<std::string>();
-  gwopt_.qp_grid_steps = options.get(key + ".qp_grid_steps").as<Index>();
-  gwopt_.qp_grid_spacing = options.get(key + ".qp_grid_spacing").as<double>();
+  
   XTP_LOG(Log::error, *pLog_) << " QP solver: " << gwopt_.qp_solver << flush;
   if (gwopt_.qp_solver == "grid") {
+    gwopt_.qp_grid_steps = options.get(key + ".qp_grid_steps").as<Index>();
+    gwopt_.qp_grid_spacing = options.get(key + ".qp_grid_spacing").as<double>();
     XTP_LOG(Log::error, *pLog_)
         << " QP grid steps: " << gwopt_.qp_grid_steps << flush;
     XTP_LOG(Log::error, *pLog_)
@@ -408,13 +410,14 @@ void GWBSE::Initialize(tools::Property& options) {
     }
   }
 
-  sigma_plot_states_ =
-      options.get(key + ".sigma_plot_states").as<std::string>();
-  sigma_plot_steps_ = options.get(key + ".sigma_plot_steps").as<Index>();
-  sigma_plot_spacing_ = options.get(key + ".sigma_plot_spacing").as<double>();
-  sigma_plot_filename_ =
-      options.get(key + ".sigma_plot_filename").as<std::string>();
-  if (!sigma_plot_states_.empty()) {
+  if (options.exists(key + ".sigma_plot")) {
+    sigma_plot_states_ =
+        options.get(key + ".sigma_plot.states").as<std::string>();
+    sigma_plot_steps_ = options.get(key + ".sigma_plot.steps").as<Index>();
+    sigma_plot_spacing_ = options.get(key + ".sigma_plot.spacing").as<double>();
+    sigma_plot_filename_ =
+        options.get(key + ".sigma_plot.filename").as<std::string>();
+
     XTP_LOG(Log::error, *pLog_)
         << " Sigma plot states: " << sigma_plot_states_ << flush;
     XTP_LOG(Log::error, *pLog_)
