@@ -44,6 +44,7 @@ Version 2022-dev
 -  added incremental Fock matrix building (#716)
 -  disable codeql check in GitHub Actions (#720)
 -  replace std::vector by Eigen::Array<bool,..> (#719)
+-  overhaul complete option handling (#704)
 
 Version 2021.1 (released XX.03.21)
 ==================================
