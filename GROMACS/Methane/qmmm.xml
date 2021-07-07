@@ -31,6 +31,7 @@
               <screening_eps help="screening eps" default="1e-9" choices="float+">1e-9</screening_eps>
               <use_external_field help="whether or not to use an external field" default="false" choices="bool">false</use_external_field>
               <use_external_density help="whether or not to use a precomputed external density" default="false" choices="bool">false</use_external_density>
+              <fock_matrix_reset help="how often the fock matrix should be reset" default="5" choices="int+">5</fock_matrix_reset>
               <four_center_method help="method to compute the four-center integrals" default="cache" choices="cache,direct,RI">cache</four_center_method>
               <convergence>
                 <energy help="DeltaE at which calculation is converged" unit="hartree" choices="float+" default="1E-7">1e-7</energy>
