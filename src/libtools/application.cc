@@ -21,7 +21,6 @@
 // Third party includes
 #include <boost/algorithm/string/replace.hpp>
 
-
 // Local VOTCA includes
 #include "votca/tools/application.h"
 #include "votca/tools/globals.h"
@@ -154,7 +153,6 @@ void Application::CheckRequired(const string &option_name,
                              error_msg);
   }
 }
-
 
 }  // namespace tools
 }  // namespace votca

@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(check_required) {
   Property user_input2;
   user_input2.addTree("options." + calcname, "1");
   BOOST_CHECK_THROW(opt.ProcessUserInput(user_input2, calcname),
-                      std::runtime_error);
+                    std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(check_optional) {
@@ -103,34 +103,34 @@ BOOST_AUTO_TEST_CASE(check_choices) {
   Property user_input1;
   user_input1.addTree("options." + calcname + ".tasks", "input,dft,blabla");
   BOOST_CHECK_THROW(opt.ProcessUserInput(user_input1, calcname),
-                      std::runtime_error);
+                    std::runtime_error);
 
   Property user_input_falseoption;
-  user_input_falseoption.addTree("options." + calcname + ".oinkoink", "input,dft,blabla");
+  user_input_falseoption.addTree("options." + calcname + ".oinkoink",
+                                 "input,dft,blabla");
   BOOST_CHECK_THROW(opt.ProcessUserInput(user_input_falseoption, calcname),
-                      std::runtime_error);
+                    std::runtime_error);
 
   Property user_input2;
   user_input2.addTree("options." + calcname + ".g", "e");
   BOOST_CHECK_THROW(opt.ProcessUserInput(user_input2, calcname),
-                      std::runtime_error);
+                    std::runtime_error);
 
   Property user_input3;
   user_input3.addTree("options." + calcname + ".b", "-1");
   BOOST_CHECK_THROW(opt.ProcessUserInput(user_input3, calcname),
-                      std::runtime_error);
+                    std::runtime_error);
 
   Property user_input4;
   user_input4.addTree("options." + calcname + ".c", "a");
   BOOST_CHECK_THROW(opt.ProcessUserInput(user_input4, calcname),
-                      std::runtime_error);
+                    std::runtime_error);
 
   Property user_input5;
   user_input5.addTree("options." + calcname + ".d", "a");
   BOOST_CHECK_THROW(opt.ProcessUserInput(user_input5, calcname),
-                      std::runtime_error);
+                    std::runtime_error);
 }
-
 
 BOOST_AUTO_TEST_CASE(check_list) {
 
@@ -144,8 +144,8 @@ BOOST_AUTO_TEST_CASE(check_list) {
   user_input.addTree("options." + calcname + ".d.a", "3");
   user_input.addTree("options." + calcname + ".d.a", "4");
   user_input.addTree("options." + calcname + ".d.b.type", "4");
-  auto& temp=user_input.addTree("options." + calcname + ".d.b","");
-  temp.add("type","5");
+  auto& temp = user_input.addTree("options." + calcname + ".d.b", "");
+  temp.add("type", "5");
   Property result = opt.ProcessUserInput(user_input, calcname);
 
   BOOST_CHECK(result.Select("options.calc_list.d.a").size() == 2);
@@ -164,8 +164,8 @@ BOOST_AUTO_TEST_CASE(check_brokenlist) {
 
   Property user_input;
   user_input.addTree("options." + calcname + ".d.a", "3");
-  BOOST_CHECK_THROW(opt.ProcessUserInput(user_input, calcname),std::runtime_error);
-
+  BOOST_CHECK_THROW(opt.ProcessUserInput(user_input, calcname),
+                    std::runtime_error);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
