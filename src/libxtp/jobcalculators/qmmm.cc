@@ -24,8 +24,10 @@
 // Third party includes
 #include <boost/filesystem.hpp>
 #include <numeric>
+#include <stdexcept>
 
 // Local VOTCA includes
+#include "votca/tools/property.h"
 #include "votca/tools/tokenizer.h"
 #include "votca/xtp/jobtopology.h"
 #include "votca/xtp/qmregion.h"
@@ -41,8 +43,8 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
 
   print_regions_pdb_ = options.get(".print_regions_pdb").as<bool>();
   max_iterations_ = options.get(".max_iterations").as<Index>();
-  regions_def_ = options.get(".regions");
-  regions_def_.add("mapfile", mapfile_);
+  regions_def_.second = options.get(".regions");
+  regions_def_.first = mapfile_;
 
   states_ = options.get(".io_states").as<std::vector<QMState>>();
 
@@ -194,24 +196,23 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
 bool QMMM::hasQMRegion() const {
   Logger log;
   QMRegion QMdummy(0, log, "");
-  bool found_qm = false;
-  for (const tools::Property* reg : regions_def_.Select("region")) {
-    std::string type = reg->get("type").as<std::string>();
-    if (QMdummy.identify() == type) {
-      found_qm = true;
-      break;
+  return std::any_of(regions_def_.second.begin(), regions_def_.second.end(),
+                     [&](const tools::Property& reg) {
+                       return reg.name() == QMdummy.identify();
+                     });
+}
+
+std::string QMMM::getFirstRegionName() const{
+  for(const auto& reg:regions_def_.second){
+    if(reg.get("id").as<Index>==0){
+      return reg.name();
     }
   }
-  return found_qm;
+  throw std::runtime_error("region ids do not start at 0");
+  return "";
 }
 
 void QMMM::WriteJobFile(const Topology& top) {
-
-  if (!write_parse_) {
-    throw std::runtime_error(
-        "Cannot write jobfile, please add <write_parse><states>e "
-        "s1</states></write_parse> to your options.");
-  }
 
   std::cout << std::endl
             << "... ... Writing job file " << jobfile_ << std::flush;
@@ -224,6 +225,8 @@ void QMMM::WriteJobFile(const Topology& top) {
 
   ofs << "<jobs>" << std::endl;
   Index jobid = 0;
+  std::string regionname=getFirstRegionName();
+  bool hasqm=hasQMRegion();
   for (const Segment& seg : top.Segments()) {
     for (const QMState& state : states_) {
 
@@ -234,9 +237,9 @@ void QMMM::WriteJobFile(const Topology& top) {
       tools::Property& pInput = Input.add("input", "");
       pInput.add("site_energies", marker);
       tools::Property& regions = pInput.add("regions", "");
-      tools::Property& region = regions.add("region", "");
+      tools::Property& region = regions.add(regionname, "");
       region.add("id", "0");
-      if (hasQMRegion()) {
+      if (hasqm) {
         region.add("state", state.ToString());
       }
       region.add("segments", marker);
@@ -253,12 +256,6 @@ void QMMM::WriteJobFile(const Topology& top) {
   return;
 }
 void QMMM::ReadJobFile(Topology& top) {
-
-  if (!write_parse_) {
-    throw std::runtime_error(
-        "Cannot read jobfile, please add <write_parse><states>n e "
-        "h</states></write_parse> to your options.");
-  }
 
   Index incomplete_jobs = 0;
 

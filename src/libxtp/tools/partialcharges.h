@@ -61,7 +61,7 @@ void Partialcharges::ParseOptions(const tools::Property& options) {
       ".input", job_name_ + ".orb");
   output_file_ = options.ifExistsReturnElseReturnDefault<std::string>(
       ".output", job_name_ + ".mps");
-  esp_options_ = options.get(".esp_options");
+  esp_options_ = options.get(".esp2multipole");
 }
 
 bool Partialcharges::Run() {

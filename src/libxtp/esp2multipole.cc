@@ -19,6 +19,7 @@
 
 // Third party includes
 #include <boost/format.hpp>
+#include <utility>
 
 // Local VOTCA includes
 #include "votca/xtp/esp2multipole.h"
@@ -31,15 +32,14 @@ namespace xtp {
 using std::flush;
 
 void Esp2multipole::Initialize(tools::Property& options) {
-  std::string key = Identify();
   do_svd_ = false;
 
   use_mulliken_ = false;
   use_CHELPG_ = false;
   use_lowdin_ = false;
-  state_ = options.get(key + ".state").as<QMState>();
+  state_ = options.get(".state").as<QMState>();
 
-  method_ = options.get(key + ".method").as<std::string>();
+  method_ = options.get(".method").as<std::string>();
 
   if (method_ == "mulliken") {
     use_mulliken_ = true;
@@ -49,43 +49,35 @@ void Esp2multipole::Initialize(tools::Property& options) {
     use_CHELPG_ = true;
   }
 
-  if (options.exists(key + ".constraints")) {
-    if (options.exists(key + ".constraints.regions")) {
-      std::vector<tools::Property*> prop_region =
-          options.Select(key + ".constraints.regions.region");
-      Index index = 0;
-      for (tools::Property* prop : prop_region) {
-        std::string indices = prop->get("indices").as<std::string>();
-        QMFragment<double> reg = QMFragment<double>(index, indices);
-        index++;
-        reg.value() = prop->get("charge").as<double>();
-        regionconstraint_.push_back(reg);
-        XTP_LOG(Log::error, log_) << "Fit constrained by Region" << flush;
-        XTP_LOG(Log::error, log_) << reg;
-      }
+  if (options.exists(".constraints")) {
+    std::vector<tools::Property*> prop_region =
+        options.Select(".constraints.region");
+    Index index = 0;
+    for (tools::Property* prop : prop_region) {
+      std::string indices = prop->get("indices").as<std::string>();
+      QMFragment<double> reg = QMFragment<double>(index, indices);
+      index++;
+      reg.value() = prop->get("charge").as<double>();
+      regionconstraint_.push_back(reg);
+      XTP_LOG(Log::error, log_) << "Fit constrained by Region" << flush;
+      XTP_LOG(Log::error, log_) << reg;
     }
-    if (options.exists(key + ".constraints.pairs")) {
-      std::vector<tools::Property*> prop_pair =
-          options.Select(key + ".constraints.pairs.pair");
-      for (tools::Property* prop : prop_pair) {
-        std::vector<Index> pairvec = prop->as<std::vector<Index>>();
-        std::pair<Index, Index> pair;
-        pair.first = pairvec[0];
-        pair.second = pairvec[1];
-        pairconstraint_.push_back(pair);
-        XTP_LOG(Log::error, log_)
-            << "Charges " << pair.first << " " << pair.second
-            << " constrained to be equal." << flush;
-      }
+    std::vector<tools::Property*> prop_pair =
+        options.Select(".constraints.pair");
+    for (tools::Property* prop : prop_pair) {
+      std::vector<Index> pairvec = prop->as<std::vector<Index>>();
+      pairconstraint_.emplace_back(pairvec[0], pairvec[1]);
+      XTP_LOG(Log::error, log_)
+          << "Charges " << pairvec[0] << " " << pairvec[1]
+          << " constrained to be equal." << flush;
     }
   }
 
-  gridsize_ = options.get(
-      key + ".gridsize").as<std::string>();
+  gridsize_ = options.get(".gridsize").as<std::string>();
 
-  if (options.exists(key + ".svd")) {
-    do_svd_ = options.get(key + ".svd.do_svd").as<bool>();
-    conditionnumber_ = options.get(key + ".svd.conditionnumber").as<double>();
+  if (options.exists(".svd")) {
+    do_svd_ = true;
+    conditionnumber_ = options.get(".svd.conditionnumber").as<double>();
   }
 
   return;

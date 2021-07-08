@@ -40,7 +40,7 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
   package_options_ = options.get(".dftpackage");
 
   // GWBSEENGINE options
-  gwbseengine_options_ = options.get(".gwbse_engine");
+  gwbseengine_options_ = options;
 
   // lets get the archive file name from the xyz file name
   archive_file_ = job_name_ + ".orb";

@@ -27,12 +27,9 @@ using std::flush;
 
 void StateTracker::Initialize(const tools::Property& options) {
 
-  std::vector<std::string> list_filters =
-      options.get("filters").as<std::vector<std::string>>();
-
   FilterFactory::RegisterAll();
-  for (const std::string& filtername : list_filters) {
-    filters_.push_back(Filter().Create(filtername));
+  for (const tools::Property& filter : options) {
+    filters_.push_back(Filter().Create(filter.name()));
   }
 
   for (auto& filter : filters_) {

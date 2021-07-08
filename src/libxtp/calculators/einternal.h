@@ -52,7 +52,7 @@ class EInternal final : public QMCalculator {
 
   std::map<std::string, bool> has_seg_;
 
-  std::string energiesXML_;
+  std::string energies_file_;
 };
 
 }  // namespace xtp

@@ -173,6 +173,11 @@ bool XtpApplication::EvaluateOptions() {
   }
 
   tools::OptionsHandler handler(tools::GetVotcaShare() + "/xtp/xml/");
+
+  //This is a terrible low level hack, but I do not want to refactor all of xtp_calculators now as well
+  if(calcname=="qmmm"){
+    handler.setAdditionalChoices({"jobfile"});
+  }
   options_ = handler.ProcessUserInput(useroptions, calcname)
                  .get("options." + calcname);
   std::cout<<options_<<std::endl;

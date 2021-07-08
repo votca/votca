@@ -1,5 +1,4 @@
 <statetracker help="combination of different filters you can use to track states, lowest energy state that fits all filters is chosen">
-  <filters default="REQUIRED" choices="[chargetransfer,density,localisation,oscillatorstrength,overlap]" />
   <oscillatorstrength help="picks first state above a threshold" default="OPTIONAL" choices="float+" />
   <localisation help="picks first state which is localized (occupation above a threshild) on the fragment" default="OPTIONAL">
     <fragment help="Fragment definiton using atomids, can be a combination of ids and ranges of ids e.g. 1:5" default="REQUIRED" />

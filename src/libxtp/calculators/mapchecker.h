@@ -141,7 +141,7 @@ std::string MapChecker::AddSteptoFilename(const std::string& filename,
   std::string base = tools::filesystem::GetFileBase(filename);
   std::string fileending = tools::filesystem::GetFileExtension(filename);
   std::string filename_comp =
-      base + " step__" + std::to_string(step) + "." + fileending;
+      base + "_step_" + std::to_string(step) + "." + fileending;
   return filename_comp;
 }
 
