@@ -31,11 +31,11 @@ namespace xtp {
 void MolPol::ParseOptions(const tools::Property& options) {
 
   std::string mps_input = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".mpsinput", job_name_ + ".mps");
+      ".input", job_name_ + ".mps");
 
   input_.LoadFromFile(mps_input);
   mps_output_ = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".mpsoutput", job_name_ + " polar_.mps");
+      ".output", job_name_ + " polar_.mps");
   polar_options_ = options.get(".options_polar");
 
   // polar targer or qmpackage logfile

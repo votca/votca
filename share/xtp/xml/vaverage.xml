@@ -3,6 +3,6 @@
   <vaverage help="Writes a file containing the positions of molecules and the average carrier velocity on this molecule">
     <ratefile help="file with kmc rates from kmcmultiple" default="rates.dat"/>
     <occfile help="file with site occupations from kmcmultiple" default="occupation.dat"/>
-    <outputfile help="outputfile" default="velocities.dat"/>
+    <output help="outputfile name " default="velocities.dat"/>
   </vaverage>
 </options>
