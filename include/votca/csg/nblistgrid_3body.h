@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_NBLISTGRID_3BODY_H
-#define _VOTCA_CSG_NBLISTGRID_3BODY_H
+#ifndef VOTCA_CSG_NBLISTGRID_3BODY_H
+#define VOTCA_CSG_NBLISTGRID_3BODY_H
 
 // Standard includes
 #include <vector>
@@ -37,17 +37,17 @@ class NBListGrid_3Body : public NBList_3Body {
 
  protected:
   struct cell_t {
-    BeadList _beads1;
-    BeadList _beads2;
-    BeadList _beads3;
-    std::vector<cell_t *> _neighbours;
+    BeadList beads1_;
+    BeadList beads2_;
+    BeadList beads3_;
+    std::vector<cell_t *> neighbours_;
   };
 
-  Eigen::Vector3d _box_a, _box_b, _box_c;
-  Eigen::Vector3d _norm_a, _norm_b, _norm_c;
-  Index _box_Na, _box_Nb, _box_Nc;
+  Eigen::Vector3d box_a_, box_b_, box_c_;
+  Eigen::Vector3d norm_a_, norm_b_, norm_c_;
+  Index box_Na_, box_Nb_, box_Nc_;
 
-  std::vector<cell_t> _grid;
+  std::vector<cell_t> grid_;
 
   void InitializeGrid(const Eigen::Matrix3d &box);
 
@@ -60,10 +60,10 @@ class NBListGrid_3Body : public NBList_3Body {
 inline NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const Index &a,
                                                            const Index &b,
                                                            const Index &c) {
-  return _grid[a + _box_Na * b + _box_Na * _box_Nb * c];
+  return grid_[a + box_Na_ * b + box_Na_ * box_Nb_ * c];
 }
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_NBLISTGRID_3BODY_H */
+#endif /*  VOTCA_CSG_NBLISTGRID_3BODY_H */

@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_MOLECULEITEM_H
-#define _VOTCA_CSG_MOLECULEITEM_H
+#ifndef VOTCA_CSG_MOLECULEITEM_H
+#define VOTCA_CSG_MOLECULEITEM_H
 
 // Standard includes
 #include <cassert>
@@ -34,23 +34,23 @@ class MoleculeItem {
    * Returns the molecule the pointer points at
    */
   Molecule *getMolecule() const {
-    assert(_mol != nullptr);
-    return _mol;
+    assert(mol_ != nullptr);
+    return mol_;
   }
 
   /**
    * stores a pointer to a molecule
    */
-  void setMolecule(Molecule *mol) { _mol = mol; }
+  void setMolecule(Molecule *mol) { mol_ = mol; }
 
  protected:
-  MoleculeItem(Molecule *mol) : _mol(mol) {}
+  MoleculeItem(Molecule *mol) : mol_(mol) {}
 
-  Molecule *_mol = nullptr;
+  Molecule *mol_ = nullptr;
 
   friend class BaseBead;
 };
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_MOLECULEITEM_H
+#endif  //  VOTCA_CSG_MOLECULEITEM_H

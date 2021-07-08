@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,26 +105,25 @@ class CsgApplication : public tools::Application {
   class Worker : public tools::Thread {
    public:
     Worker() = default;
-    ~Worker() override;
 
     /// \brief overload with the actual computation
     virtual void EvalConfiguration(Topology *top,
                                    Topology *top_ref = nullptr) = 0;
 
     /// \brief returns worker id
-    Index getId() { return _id; }
+    Index getId() { return id_; }
 
    protected:
-    CsgApplication *_app = nullptr;
-    Topology _top, _top_cg;
-    TopologyMap *_map = nullptr;
-    Index _id = -1;
+    CsgApplication *app_ = nullptr;
+    Topology top_, top_cg_;
+    std::unique_ptr<TopologyMap> map_;
+    Index id_ = -1;
 
     void Run(void) override;
 
-    void setApplication(CsgApplication *app) { _app = app; }
+    void setApplication(CsgApplication *app) { app_ = app; }
 
-    void setId(Index id) { _id = id; }
+    void setId(Index id) { id_ = id; }
 
     friend class CsgApplication;
   };
@@ -143,7 +142,7 @@ class CsgApplication : public tools::Application {
    * User is required to overload ForkWorker and initialize workers.
    * @return worker
    */
-  virtual Worker *ForkWorker(void);
+  virtual std::unique_ptr<Worker> ForkWorker(void);
 
   /**
    * User is required to overload MergeWorker and merge data from each worker.
@@ -152,24 +151,24 @@ class CsgApplication : public tools::Application {
   virtual void MergeWorker(Worker *worker);
 
  protected:
-  std::list<CGObserver *> _observers;
-  bool _do_mapping;
-  std::vector<Worker *> _myWorkers;
-  Index _nframes;
-  bool _is_first_frame;
-  Index _nthreads;
-  tools::Mutex _nframesMutex;
-  tools::Mutex _traj_readerMutex;
+  std::list<CGObserver *> observers_;
+  bool do_mapping_;
+  std::vector<std::unique_ptr<Worker>> myWorkers_;
+  Index nframes_;
+  bool is_first_frame_;
+  Index nthreads_;
+  tools::Mutex nframesMutex_;
+  tools::Mutex traj_readerMutex_;
 
   /// \brief stores Mutexes used to impose order for input
-  std::vector<tools::Mutex *> _threadsMutexesIn;
+  std::vector<std::unique_ptr<tools::Mutex>> threadsMutexesIn_;
   /// \brief stores Mutexes used to impose order for output
-  std::vector<tools::Mutex *> _threadsMutexesOut;
-  std::unique_ptr<TrajectoryReader> _traj_reader;
+  std::vector<std::unique_ptr<tools::Mutex>> threadsMutexesOut_;
+  std::unique_ptr<TrajectoryReader> traj_reader_;
 };
 
 inline void CsgApplication::AddObserver(CGObserver *observer) {
-  _observers.push_back(observer);
+  observers_.push_back(observer);
 }
 
 }  // namespace csg

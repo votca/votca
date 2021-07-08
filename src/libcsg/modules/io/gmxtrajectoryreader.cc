@@ -33,11 +33,11 @@ namespace votca {
 namespace csg {
 
 bool GMXTrajectoryReader::Open(const std::string &file) {
-  _filename = file;
+  filename_ = file;
   return true;
 }
 
-void GMXTrajectoryReader::Close() { close_trx(_gmx_status); }
+void GMXTrajectoryReader::Close() { close_trx(gmx_status_); }
 
 bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
   gmx_output_env_t *oenv;
@@ -49,43 +49,43 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
   xvg_format_t xvg = exvgNONE;
 #endif
   output_env_init(&oenv, gmx::getProgramContext(), timeunit, FALSE, xvg, 0);
-  if (!read_first_frame(oenv, &_gmx_status, (char *)_filename.c_str(),
-                        &_gmx_frame, TRX_READ_X | TRX_READ_V | TRX_READ_F)) {
-    throw std::runtime_error(std::string("cannot open ") + _filename);
+  if (!read_first_frame(oenv, &gmx_status_, (char *)filename_.c_str(),
+                        &gmx_frame_, TRX_READ_X | TRX_READ_V | TRX_READ_F)) {
+    throw std::runtime_error(std::string("cannot open ") + filename_);
   }
   output_env_done(oenv);
 
   Eigen::Matrix3d m;
   for (Index i = 0; i < 3; i++) {
     for (Index j = 0; j < 3; j++) {
-      m(i, j) = _gmx_frame.box[j][i];
+      m(i, j) = gmx_frame_.box[j][i];
     }
   }
   conf.setBox(m);
-  conf.setTime(_gmx_frame.time);
-  conf.setStep(_gmx_frame.step);
+  conf.setTime(gmx_frame_.time);
+  conf.setStep(gmx_frame_.step);
   std::cout << std::endl;
 
-  if (_gmx_frame.natoms != (Index)conf.Beads().size()) {
+  if (gmx_frame_.natoms != (Index)conf.Beads().size()) {
     throw std::runtime_error(
         "number of beads in trajectory do not match topology");
   }
 
   // conf.HasPos(true);
-  // conf.HasF(_gmx_frame.bF);
+  // conf.HasF( gmx_frame_.bF);
 
-  for (Index i = 0; i < _gmx_frame.natoms; i++) {
-    Eigen::Vector3d r = {_gmx_frame.x[i][XX], _gmx_frame.x[i][YY],
-                         _gmx_frame.x[i][ZZ]};
+  for (Index i = 0; i < gmx_frame_.natoms; i++) {
+    Eigen::Vector3d r = {gmx_frame_.x[i][XX], gmx_frame_.x[i][YY],
+                         gmx_frame_.x[i][ZZ]};
     conf.getBead(i)->setPos(r);
-    if (_gmx_frame.bF) {
-      Eigen::Vector3d f = {_gmx_frame.f[i][XX], _gmx_frame.f[i][YY],
-                           _gmx_frame.f[i][ZZ]};
+    if (gmx_frame_.bF) {
+      Eigen::Vector3d f = {gmx_frame_.f[i][XX], gmx_frame_.f[i][YY],
+                           gmx_frame_.f[i][ZZ]};
       conf.getBead(i)->setF(f);
     }
-    if (_gmx_frame.bV) {
-      Eigen::Vector3d v = {_gmx_frame.v[i][XX], _gmx_frame.v[i][YY],
-                           _gmx_frame.v[i][ZZ]};
+    if (gmx_frame_.bV) {
+      Eigen::Vector3d v = {gmx_frame_.v[i][XX], gmx_frame_.v[i][YY],
+                           gmx_frame_.v[i][ZZ]};
       conf.getBead(i)->setVel(v);
     }
   }
@@ -102,7 +102,7 @@ bool GMXTrajectoryReader::NextFrame(Topology &conf) {
   xvg_format_t xvg = exvgNONE;
 #endif
   output_env_init(&oenv, gmx::getProgramContext(), timeunit, FALSE, xvg, 0);
-  if (!read_next_frame(oenv, _gmx_status, &_gmx_frame)) {
+  if (!read_next_frame(oenv, gmx_status_, &gmx_frame_)) {
     return false;
   }
   output_env_done(oenv);
@@ -110,27 +110,27 @@ bool GMXTrajectoryReader::NextFrame(Topology &conf) {
   Eigen::Matrix3d m;
   for (Index i = 0; i < 3; i++) {
     for (Index j = 0; j < 3; j++) {
-      m(i, j) = _gmx_frame.box[j][i];
+      m(i, j) = gmx_frame_.box[j][i];
     }
   }
-  conf.setTime(_gmx_frame.time);
-  conf.setStep(_gmx_frame.step);
+  conf.setTime(gmx_frame_.time);
+  conf.setStep(gmx_frame_.step);
   conf.setBox(m);
 
-  // conf.HasF(_gmx_frame.bF);
+  // conf.HasF( gmx_frame_.bF);
 
-  for (Index i = 0; i < _gmx_frame.natoms; i++) {
-    Eigen::Vector3d r = {_gmx_frame.x[i][XX], _gmx_frame.x[i][YY],
-                         _gmx_frame.x[i][ZZ]};
+  for (Index i = 0; i < gmx_frame_.natoms; i++) {
+    Eigen::Vector3d r = {gmx_frame_.x[i][XX], gmx_frame_.x[i][YY],
+                         gmx_frame_.x[i][ZZ]};
     conf.getBead(i)->setPos(r);
-    if (_gmx_frame.bF) {
-      Eigen::Vector3d f = {_gmx_frame.f[i][XX], _gmx_frame.f[i][YY],
-                           _gmx_frame.f[i][ZZ]};
+    if (gmx_frame_.bF) {
+      Eigen::Vector3d f = {gmx_frame_.f[i][XX], gmx_frame_.f[i][YY],
+                           gmx_frame_.f[i][ZZ]};
       conf.getBead(i)->setF(f);
     }
-    if (_gmx_frame.bV) {
-      Eigen::Vector3d v = {_gmx_frame.v[i][XX], _gmx_frame.v[i][YY],
-                           _gmx_frame.v[i][ZZ]};
+    if (gmx_frame_.bV) {
+      Eigen::Vector3d v = {gmx_frame_.v[i][XX], gmx_frame_.v[i][YY],
+                           gmx_frame_.v[i][ZZ]};
       conf.getBead(i)->setVel(v);
     }
   }

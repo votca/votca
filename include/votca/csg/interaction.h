@@ -44,77 +44,77 @@ class Interaction {
   virtual ~Interaction() = default;
   virtual double EvaluateVar(const Topology &top) = 0;
 
-  std::string getName() const { return _name; }
+  std::string getName() const { return name_; }
 
   void setGroup(const std::string &group) {
-    _group = group;
+    group_ = group;
     RebuildName();
   }
   const std::string &getGroup() const {
-    assert(_group.compare("") != 0);
-    return _group;
+    assert(group_.compare("") != 0);
+    return group_;
   }
 
   // the group id is set by topology, when interaction is added to it
   // \todo if the group name is changed later, group id should be updated by
   // topology
   Index getGroupId() {
-    assert(_group_id != -1);
-    return _group_id;
+    assert(group_id_ != -1);
+    return group_id_;
   }
-  void setGroupId(Index id) { _group_id = id; }
+  void setGroupId(Index id) { group_id_ = id; }
 
   void setIndex(const Index &index) {
-    _index = index;
+    index_ = index;
     RebuildName();
   }
   const Index &getIndex() const {
-    assert(_index != -1);
-    return _index;
+    assert(index_ != -1);
+    return index_;
   }
 
   void setMolecule(const Index &mol) {
-    _mol = mol;
+    mol_ = mol;
     RebuildName();
   }
   const Index &getMolecule() const {
-    assert(_mol != -1);
-    return _mol;
+    assert(mol_ != -1);
+    return mol_;
   }
 
   virtual Eigen::Vector3d Grad(const Topology &top, Index bead) = 0;
-  Index BeadCount() const { return _beads.size(); }
+  Index BeadCount() const { return beads_.size(); }
   Index getBeadId(Index bead) const {
-    assert(bead > -1 && boost::lexical_cast<size_t>(bead) < _beads.size());
-    return _beads[bead];
+    assert(bead > -1 && boost::lexical_cast<size_t>(bead) < beads_.size());
+    return beads_[bead];
   }
 
  protected:
-  Index _index = -1;
-  std::string _group = "";
-  Index _group_id = -1;
-  std::string _name = "";
-  Index _mol = -1;
-  std::vector<Index> _beads;
+  Index index_ = -1;
+  std::string group_ = "";
+  Index group_id_ = -1;
+  std::string name_ = "";
+  Index mol_ = -1;
+  std::vector<Index> beads_;
 
   void RebuildName();
 };
 
 inline void Interaction::RebuildName() {
   std::stringstream s;
-  if (_mol != -1) {
-    { s << "molecule " << _mol; }
+  if (mol_ != -1) {
+    { s << "molecule " << mol_; }
   }
-  if (!_group.empty()) {
-    s << ":" << _group;
-    if (_group_id != -1) {
-      s << " " << _group_id;
+  if (!group_.empty()) {
+    s << ":" << group_;
+    if (group_id_ != -1) {
+      s << " " << group_id_;
     }
   }
-  if (_index != -1) {
-    { s << ":index " << _index; }
+  if (index_ != -1) {
+    { s << ":index " << index_; }
   }
-  _name = s.str();
+  name_ = s.str();
 }
 
 /**
@@ -123,16 +123,16 @@ inline void Interaction::RebuildName() {
 class IBond : public Interaction {
  public:
   IBond(Index bead1, Index bead2) {
-    _beads.resize(2);
-    _beads[0] = bead1;
-    _beads[1] = bead2;
+    beads_.resize(2);
+    beads_[0] = bead1;
+    beads_[1] = bead2;
   }
 
   IBond(std::list<Index> &beads) {
     assert(beads.size() >= 2);
-    _beads.resize(2);
+    beads_.resize(2);
     for (Index i = 0; i < 2; ++i) {
-      _beads[i] = beads.front();
+      beads_[i] = beads.front();
       beads.pop_front();
     }
   }
@@ -148,16 +148,16 @@ class IBond : public Interaction {
 class IAngle : public Interaction {
  public:
   IAngle(Index bead1, Index bead2, Index bead3) {
-    _beads.resize(3);
-    _beads[0] = bead1;
-    _beads[1] = bead2;
-    _beads[2] = bead3;
+    beads_.resize(3);
+    beads_[0] = bead1;
+    beads_[1] = bead2;
+    beads_[2] = bead3;
   }
   IAngle(std::list<Index> &beads) {
     assert(beads.size() >= 3);
-    _beads.resize(3);
+    beads_.resize(3);
     for (Index i = 0; i < 3; ++i) {
-      _beads[i] = beads.front();
+      beads_[i] = beads.front();
       beads.pop_front();
     }
   }
@@ -174,17 +174,17 @@ class IAngle : public Interaction {
 class IDihedral : public Interaction {
  public:
   IDihedral(Index bead1, Index bead2, Index bead3, Index bead4) {
-    _beads.resize(4);
-    _beads[0] = bead1;
-    _beads[1] = bead2;
-    _beads[2] = bead3;
-    _beads[3] = bead4;
+    beads_.resize(4);
+    beads_[0] = bead1;
+    beads_[1] = bead2;
+    beads_[2] = bead3;
+    beads_[3] = bead4;
   }
   IDihedral(std::list<Index> &beads) {
     assert(beads.size() >= 4);
-    _beads.resize(4);
+    beads_.resize(4);
     for (Index i = 0; i < 4; ++i) {
-      _beads[i] = beads.front();
+      beads_[i] = beads.front();
       beads.pop_front();
     }
   }
@@ -196,24 +196,24 @@ class IDihedral : public Interaction {
 };
 
 inline double IBond::EvaluateVar(const Topology &top) {
-  return top.getDist(_beads[0], _beads[1]).norm();
+  return top.getDist(beads_[0], beads_[1]).norm();
 }
 
 inline Eigen::Vector3d IBond::Grad(const Topology &top, Index bead) {
-  Eigen::Vector3d r = top.getDist(_beads[0], _beads[1]);
+  Eigen::Vector3d r = top.getDist(beads_[0], beads_[1]);
   r.normalize();
   return (bead == 0) ? -r : r;
 }
 
 inline double IAngle::EvaluateVar(const Topology &top) {
-  Eigen::Vector3d v1(top.getDist(_beads[1], _beads[0]));
-  Eigen::Vector3d v2(top.getDist(_beads[1], _beads[2]));
+  Eigen::Vector3d v1(top.getDist(beads_[1], beads_[0]));
+  Eigen::Vector3d v2(top.getDist(beads_[1], beads_[2]));
   return std::acos(v1.dot(v2) / sqrt(v1.squaredNorm() * v2.squaredNorm()));
 }
 
 inline Eigen::Vector3d IAngle::Grad(const Topology &top, Index bead) {
-  Eigen::Vector3d v1(top.getDist(_beads[1], _beads[0]));
-  Eigen::Vector3d v2(top.getDist(_beads[1], _beads[2]));
+  Eigen::Vector3d v1(top.getDist(beads_[1], beads_[0]));
+  Eigen::Vector3d v2(top.getDist(beads_[1], beads_[2]));
 
   double acos_prime =
       1.0 / (sqrt(1 - std::pow(v1.dot(v2), 2) /
@@ -241,9 +241,9 @@ inline Eigen::Vector3d IAngle::Grad(const Topology &top, Index bead) {
 }
 
 inline double IDihedral::EvaluateVar(const Topology &top) {
-  Eigen::Vector3d v1(top.getDist(_beads[0], _beads[1]));
-  Eigen::Vector3d v2(top.getDist(_beads[1], _beads[2]));
-  Eigen::Vector3d v3(top.getDist(_beads[2], _beads[3]));
+  Eigen::Vector3d v1(top.getDist(beads_[0], beads_[1]));
+  Eigen::Vector3d v2(top.getDist(beads_[1], beads_[2]));
+  Eigen::Vector3d v3(top.getDist(beads_[2], beads_[3]));
   Eigen::Vector3d n1 = v1.cross(v2);  // calculate the normal vector
   Eigen::Vector3d n2 = v2.cross(v3);  // calculate the normal vector
   double sign = (v1.dot(n2) < 0) ? -1 : 1;
@@ -252,9 +252,9 @@ inline double IDihedral::EvaluateVar(const Topology &top) {
 }
 
 inline Eigen::Vector3d IDihedral::Grad(const Topology &top, Index bead) {
-  Eigen::Vector3d v1(top.getDist(_beads[0], _beads[1]));
-  Eigen::Vector3d v2(top.getDist(_beads[1], _beads[2]));
-  Eigen::Vector3d v3(top.getDist(_beads[2], _beads[3]));
+  Eigen::Vector3d v1(top.getDist(beads_[0], beads_[1]));
+  Eigen::Vector3d v2(top.getDist(beads_[1], beads_[2]));
+  Eigen::Vector3d v3(top.getDist(beads_[2], beads_[3]));
   Eigen::Vector3d n1, n2;
   n1 = v1.cross(v2);  // calculate the normal vector
   n2 = v2.cross(v3);  // calculate the normal vector

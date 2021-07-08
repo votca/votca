@@ -50,7 +50,7 @@ class GROWriter : public TrajectoryWriter {
   void Write(Topology *conf) override;
 
  private:
-  FILE *_out;
+  FILE *out_;
 };
 
 }  // namespace csg

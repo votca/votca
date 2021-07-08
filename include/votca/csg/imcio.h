@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_IMCIO_H
-#define _VOTCA_CSG_IMCIO_H
+#ifndef VOTCA_CSG_IMCIO_H
+#define VOTCA_CSG_IMCIO_H
 
 // Standard includes
 #include <list>
@@ -45,4 +45,4 @@ std::vector<std::pair<std::string, tools::RangeParser> > imcio_read_index(
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_IMCIO_H */
+#endif /*  VOTCA_CSG_IMCIO_H */

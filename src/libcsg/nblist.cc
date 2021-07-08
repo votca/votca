@@ -25,7 +25,7 @@
 namespace votca {
 namespace csg {
 
-NBList::NBList() : _do_exclusions(false), _match_function(nullptr) {
+NBList::NBList() : do_exclusions_(false), match_function_(nullptr) {
   setPairType<BeadPair>();
   SetMatchFunction(NBList::match_always);
 }
@@ -37,7 +37,7 @@ NBList::~NBList() {
 void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
   BeadList::iterator iter1;
   BeadList::iterator iter2;
-  _do_exclusions = do_exclusions;
+  do_exclusions_ = do_exclusions;
 
   if (list1.empty()) {
     return;
@@ -70,15 +70,15 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
 
       Eigen::Vector3d r = top.BCShortestConnection(u, v);
       double d = r.norm();
-      if (d < _cutoff) {
-        if (_do_exclusions) {
+      if (d < cutoff_) {
+        if (do_exclusions_) {
           if (top.getExclusions().IsExcluded(*iter1, *iter2)) {
             continue;
           }
         }
-        if ((*_match_function)(*iter1, *iter2, r, d)) {
+        if ((*match_function_)(*iter1, *iter2, r, d)) {
           if (!FindPair(*iter1, *iter2)) {
-            AddPair(_pair_creator(*iter1, *iter2, r));
+            AddPair(pair_creator_(*iter1, *iter2, r));
           }
         }
       }

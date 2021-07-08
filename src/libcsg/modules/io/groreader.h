@@ -69,8 +69,8 @@ class GROReader : public TrajectoryReader, public TopologyReader {
   void Close() override;
 
  private:
-  std::ifstream _fl;
-  bool _topology;
+  std::ifstream fl_;
+  bool topology_;
 };
 
 }  // namespace csg

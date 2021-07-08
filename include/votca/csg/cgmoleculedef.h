@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,13 @@
  *
  */
 
-#ifndef _VOTCA_CSG_CGMOLECULEDEF_H
-#define _VOTCA_CSG_CGMOLECULEDEF_H
+#ifndef VOTCA_CSG_CGMOLECULEDEF_H
+#define VOTCA_CSG_CGMOLECULEDEF_H
 
 // Standard includes
 #include <list>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -51,38 +52,38 @@ class CGMoleculeDef {
   ~CGMoleculeDef();
 
   Molecule *CreateMolecule(Topology &top);
-  Map *CreateMap(Molecule &in, Molecule &out);
+  Map CreateMap(const Molecule &in, Molecule &out);
 
   void Load(std::string filename);
 
-  const std::string &getName() { return _name; }
-  const std::string &getIdent() { return _ident; }
+  const std::string &getName() { return name_; }
+  const std::string &getIdent() { return ident_; }
 
  private:
-  tools::Property _options;
+  tools::Property options_;
 
   struct beaddef_t {
-    std::string _name;
-    std::string _type;
-    Bead::Symmetry _symmetry;
-    std::string _mapping;
-    std::vector<std::string> _subbeads;
-    tools::Property *_options;
+    std::string name_;
+    std::string type_;
+    Bead::Symmetry symmetry_;
+    std::string mapping_;
+    std::vector<std::string> subbeads_;
+    tools::Property *options_;
   };
 
   // name of the coarse grained molecule
-  std::string _name;
+  std::string name_;
   // name of the molecule to coarse grain
-  std::string _ident;
+  std::string ident_;
 
   // beads of the cg molecule
-  std::vector<beaddef_t *> _beads;
-  std::map<std::string, beaddef_t *> _beads_by_name;
+  std::vector<beaddef_t *> beads_;
+  std::map<std::string, beaddef_t *> beads_by_name_;
 
   // mapping schemes
-  std::map<std::string, tools::Property *> _maps;
+  std::map<std::string, tools::Property *> maps_;
 
-  std::vector<tools::Property *> _bonded;
+  std::vector<tools::Property *> bonded_;
 
   void ParseTopology(tools::Property &options);
   void ParseBeads(tools::Property &options);
@@ -96,4 +97,4 @@ class CGMoleculeDef {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_CGMOLECULEDEF_H */
+#endif  // VOTCA_CSG_CGMOLECULEDEF_H

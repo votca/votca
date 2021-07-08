@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,8 +88,8 @@ bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
   NextFrame(top);
 
   fl_.close();
-  for (Molecule *mol : top.Molecules()) {
-    RenameMolecule(*mol);
+  for (auto &mol : top.Molecules()) {
+    RenameMolecule(mol);
   }
 
   return true;
@@ -283,12 +283,12 @@ void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
     string line;
     tools::getline(fl_, line);
     tools::Tokenizer tok(line, " ");
-    tok.ConvertToVector(fields);
+    fields = tok.ToVector();
     if (fields.size() != 4) {
       throw runtime_error("invalid box format in the lammps data file");
     }
 
-    m(i, i) = stod(fields.at(1)) - stod(fields.at(0));
+    m(i, i) = std::stod(fields.at(1)) - std::stod(fields.at(0));
   }
   top.setBox(m * tools::conv::ang2nm);
 }
