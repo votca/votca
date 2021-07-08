@@ -496,7 +496,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     }
 
     Eigen::Vector3d xyz_pos(x, y, z);
-    b->setPos(xyz_pos);
+    b->setPos(xyz_pos * tools::conv::ang2nm);
   }
 
   if (top.BeadCount() != numberOf_["atoms"]) {

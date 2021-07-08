@@ -35,6 +35,7 @@ Version 2021.1 (released XX.03.21)
 ==================================
 
 -  format code with clang-12 and drop gmx2020 builds (#691)
+-  fix pos scaling (ang2nm) in lammps data reader (#697)
 
 Version 2021 (released 13.03.21)
 ================================
