@@ -238,7 +238,6 @@ BOOST_AUTO_TEST_CASE(opt_test) {
 }
 
 BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
-  unsetenv("VOTCASHARE");
   std::ofstream defaults("user_input.xml");
 
   defaults << "<dftpackage>\n"

@@ -147,7 +147,7 @@ BOOST_AUTO_TEST_CASE(dft_full) {
 
   Logger log;
   dft.setLogger(&log);
-  dft.Initialize(prop);
+  dft.Initialize(prop.get("dftpackage"));
   dft.Evaluate(orb);
 
   BOOST_CHECK_CLOSE(orb.getDFTTotalEnergy(), -75.891017293070945, 1e-5);
@@ -241,7 +241,7 @@ BOOST_AUTO_TEST_CASE(density_guess) {
 
   Logger log;
   dft.setLogger(&log);
-  dft.Initialize(prop);
+  dft.Initialize(prop.get("dftpackage"));
   dft.Evaluate(orb);
 
   BOOST_CHECK_CLOSE(orb.getDFTTotalEnergy(), -75.891684954029387, 1e-5);

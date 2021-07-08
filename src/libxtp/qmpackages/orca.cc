@@ -40,8 +40,6 @@
 #include "votca/xtp/ecpaobasis.h"
 #include "votca/xtp/molden.h"
 #include "votca/xtp/orbitals.h"
-#include "votca/xtp/vxc_grid.h"
-#include "votca/xtp/vxc_potential.h"
 
 // Local private VOTCA includes
 #include "orca.h"
@@ -563,15 +561,6 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     if (HFX_pos != std::string::npos) {
       results = tools::Tokenizer(line, " ").ToVector();
       double ScaHFX = boost::lexical_cast<double>(results.back());
-
-      double ScaHFX_temp = Vxc_Potential<Vxc_Grid>::getExactExchange(
-          options_.get("functional").as<std::string>());
-      if (std::abs(ScaHFX - ScaHFX_temp) > 1e-9) {
-        throw std::runtime_error(
-            "The exact exchange part from the orca logfile " +
-            std::to_string(ScaHFX) + "does not agree with the LIBXC version." +
-            std::to_string(ScaHFX_temp));
-      }
       orbitals.setXCGrid("xfine");  // TODO find a better approximation for the
                                     // orca grid.
       orbitals.setScaHFX(ScaHFX);

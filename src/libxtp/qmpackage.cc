@@ -33,7 +33,6 @@ namespace xtp {
 using std::flush;
 
 void QMPackage::Initialize(const tools::Property& options) {
-
   charge_ = options.get("charge").as<Index>();
   spin_ = options.get("spin").as<Index>();
   basisset_name_ = options.get("basisset").as<std::string>();

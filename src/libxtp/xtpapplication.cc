@@ -126,7 +126,9 @@ bool XtpApplication::EvaluateOptions() {
       out.open(optionsFile);
       std::cout << "Writing options for calculator " << calcname << " to "
                 << optionsFile << std::endl;
+      out<<"<options>\n";
       PrintLongHelp(out, calcname, tools::PropertyIOManipulator::Type::XML);
+      out<<"</options>\n"<<std::endl;
     } else {
       std::cout << CalculatorType() << " " << calcname << " does not exist\n";
     }
