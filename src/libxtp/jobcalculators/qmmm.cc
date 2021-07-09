@@ -204,7 +204,7 @@ bool QMMM::hasQMRegion() const {
 
 std::string QMMM::getFirstRegionName() const{
   for(const auto& reg:regions_def_.second){
-    if(reg.get("id").as<Index>==0){
+    if(reg.get("id").as<Index>()==0){
       return reg.name();
     }
   }

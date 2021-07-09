@@ -6,7 +6,6 @@
     <map_file help="xml file with segment definition" default="votca_map.xml" />
     <job_file help="name of jobfile to which jobs are written" default="qmmm_jobs.xml" />
     <io_states help="states to write jobs for and which to parse from jobfile" default="n e h" />
-
     <regions list="" help="Definitions of all regions inside qmmmm" default="REQUIRED">
       <qmregion default="OPTIONAL" link="region.xml" help="qmregion with dft and optionally gwbse">
         <state help="initial state to track or ground state for dftcalculations" default="n" />
