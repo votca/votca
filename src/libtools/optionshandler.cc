@@ -190,7 +190,7 @@ void OptionsHandler::OverwriteDefaultsWithUserInput(const Property &user_input,
       }
       std::vector<const tools::Property *> inputs =
           user_input.Select(tag.first);
-      
+
       // if the input has no elements with that tag, remove all children from
       // default with that tag as well
       if (inputs.empty()) {
