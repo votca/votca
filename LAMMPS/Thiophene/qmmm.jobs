@@ -4,12 +4,12 @@
 		<tag>vacuum</tag>
 		<input>
 			<regions>
-				<region>
+				<staticregion>
 					<id>1</id>
 					<cutoff>
 						<radius>0.0</radius>
 					</cutoff>
-				</region>
+				</staticregion>
 			</regions>
 		</input>
 		<status>AVAILABLE</status>
@@ -19,12 +19,12 @@
 		<tag>static</tag>
 		<input>
 			<regions>
-				<region>
+				<staticregion>
 					<id>1</id>
 					<cutoff>
 						<radius>2.2</radius>
 					</cutoff>
-				</region>
+				</staticregion>
 			</regions>
 		</input>
 		<status>AVAILABLE</status>
