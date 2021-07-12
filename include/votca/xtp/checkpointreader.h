@@ -14,6 +14,7 @@
  *
  */
 #pragma once
+#include "H5public.h"
 #ifndef VOTCA_XTP_CHECKPOINTREADER_H
 #define VOTCA_XTP_CHECKPOINTREADER_H
 
@@ -112,6 +113,23 @@ class CheckpointReader {
 
       throw std::runtime_error(message.str());
     }
+  }
+
+  std::vector<std::string> getChildGroupNames() const {
+    std::vector<std::string> result;
+    char pStr[128];
+    for (hsize_t i = 0; i < loc_.getNumObjs(); i++) {
+      memset(pStr, 0, 128);
+      loc_.getObjnameByIdx(i, pStr, 128);
+      try{ 
+        loc_.openGroup(pStr);
+        result.push_back(pStr);
+      } catch(H5::Exception&){
+        ;
+      }
+      
+    }
+    return result;
   }
 
   Index getNumDataSets() const { return loc_.getNumObjs(); }

@@ -48,10 +48,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
   if (initstate_.Type().isExciton() || initstate_.Type().isGWState()) {
 
     do_gwbse_ = true;
-    gwbseoptions_.add("gwbse", "");
-    tools::Property& prop_gwbse = gwbseoptions_.get("gwbse");
-    prop_gwbse = prop.get("gwbse");
-
+    gwbseoptions_=prop.get("gwbse");
     if (prop.exists("statetracker")) {
       tools::Property filter = prop.get("statetracker");
       statetracker_.setLogger(&log_);

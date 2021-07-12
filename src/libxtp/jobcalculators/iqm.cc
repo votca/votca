@@ -26,6 +26,7 @@
 #include <votca/tools/constants.h>
 
 // Local VOTCA includes
+#include "votca/tools/property.h"
 #include "votca/xtp/atom.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/qmpackagefactory.h"
@@ -74,20 +75,16 @@ void IQM::ParseSpecificOptions(const tools::Property& options) {
     store_gw_ = true;
   }
 
-  dftpackage_options_ = this->UpdateDFTOptions(options);
-  gwbse_options_ = this->UpdateGWBSEOptions(options);
-
-  dftcoupling_options_ = options.get(".dftcoupling_options");
-  tools::Property& prop_bsecoupling =
-      bsecoupling_options_.add("bsecoupling", "");
-  prop_bsecoupling = options.get("bsecoupling");
+  dftpackage_options_ = options.get(".dftpackage");
+  gwbse_options_ = options.get("gwbse");
+  dftcoupling_options_ = options.get(".dftcoupling");
+  bsecoupling_options_ = options.get("bsecoupling");
 
   // read linker groups
   std::string linker =
       options.ifExistsReturnElseReturnDefault<std::string>(".linker_names", "");
-  tools::Tokenizer toker(linker, ", \t\n");
-  std::vector<std::string> linkers = toker.ToVector();
-  for (const std::string& link : linkers) {
+
+  for (const std::string& link : tools::Tokenizer(linker, ", \t\n").ToVector()) {
     tools::Tokenizer toker2(link, ":");
     std::vector<std::string> link_split = toker2.ToVector();
     if (link_split.size() != 2) {
@@ -297,10 +294,8 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     dft_logger.setPreface(Log::error, (format("\nDFT ERR ...")).str());
     dft_logger.setPreface(Log::warning, (format("\nDFT WAR ...")).str());
     dft_logger.setPreface(Log::debug, (format("\nDFT DBG ...")).str());
-    std::string dftname = "package.name";
-    std::string package = dftpackage_options_.get(dftname).as<std::string>();
-    std::unique_ptr<QMPackage> qmpackage = std::unique_ptr<QMPackage>(
-        QMPackageFactory::QMPackages().Create(package));
+    std::string package = dftpackage_options_.get("name").as<std::string>();
+    std::unique_ptr<QMPackage> qmpackage = QMPackageFactory::QMPackages().Create(package);
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(qmpackage_work_dir);
     qmpackage->Initialize(dftpackage_options_);
