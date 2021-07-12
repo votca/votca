@@ -24,7 +24,5 @@
       </polarregion>
       <staticregion default="OPTIONAL" link="region.xml"/>
     </regions>
-
-
   </qmmm>
 </options>

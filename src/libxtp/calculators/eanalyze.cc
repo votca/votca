@@ -92,7 +92,7 @@ bool EAnalyze::Evaluate(Topology &top) {
       PairHist(top, state);
     }
   }
-
+  std::cout << std::endl;
   return true;
 }
 
