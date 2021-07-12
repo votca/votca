@@ -193,7 +193,7 @@ void QMRegion::AppendResult(tools::Property& prop) const {
 void QMRegion::Reset() {
 
   std::string dft_package_name =
-      dftoptions_.get("package.name").as<std::string>();
+      dftoptions_.get("name").as<std::string>();
   qmpackage_ = std::unique_ptr<QMPackage>(
       QMPackageFactory::QMPackages().Create(dft_package_name));
   qmpackage_->setLog(&log_);
