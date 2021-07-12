@@ -36,7 +36,19 @@ class OptionsHandler {
   Property ProcessUserInput(const Property &user_input,
                             const std::string &calcname) const;
 
+  /**
+   * \brief Resolve links and return all the options of a calculator
+   *
+   */
   Property CalculatorOptions(const std::string &calcname) const;
+
+  /**
+   * \brief Allows to bypass the choice evaluation for a specific calculator
+   *
+   */
+  void setAdditionalChoices(std::vector<std::string> choices) {
+    additional_choices_ = choices;
+  }
 
  private:
   /**
@@ -77,13 +89,14 @@ class OptionsHandler {
   void OverwriteDefaultsWithUserInput(const Property &p,
                                       Property &defaults) const;
   // Copy the defaults into the value
-  static void RecursivelyCheckOptions(const Property &p);
-  static bool IsValidOption(const Property &prop,
-                            const std::vector<std::string> &choices);
+  void RecursivelyCheckOptions(const Property &p) const;
+  bool IsValidOption(const Property &prop,
+                     const std::vector<std::string> &choices) const;
   static std::vector<std::string> GetPropertyChoices(const Property &p);
 
   std::string defaults_path_;
 
+  std::vector<std::string> additional_choices_{};
   std::vector<std::string> reserved_keywords_{"OPTIONAL", "REQUIRED"};
 };
 

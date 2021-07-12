@@ -98,7 +98,7 @@ void OptionsHandler::CheckRequired(const Property &options) const {
   }
   if (options.hasAttribute("default") &&
       options.getAttribute<std::string>("default") == "REQUIRED" &&
-      options.as<std::string>().empty()) {
+      !options.hasAttribute("injected")) {
     throw std::runtime_error("Please specify an input for:" + options.path() +
                              "." + options.name());
   }
@@ -108,7 +108,7 @@ void OptionsHandler::RemoveOptional(Property &options) const {
   options.deleteChildren([](const Property &p) {
     return p.hasAttribute("default") &&
            p.getAttribute<std::string>("default") == "OPTIONAL" &&
-           p.as<std::string>().empty();
+           !p.hasAttribute("injected");
   });
   for (auto &child : options) {
     RemoveOptional(child);
@@ -118,7 +118,7 @@ void OptionsHandler::RemoveOptional(Property &options) const {
 Property OptionsHandler::CalculatorOptions(const std::string &calcname) const {
   Property print = LoadDefaults(calcname);
   InjectDefaultsAsValues(print);
-  CleanAttributes(print, {"link", "default"});
+  CleanAttributes(print, {"link"});
   return print;
 }
 
@@ -148,7 +148,7 @@ void OptionsHandler::InjectDefaultsAsValues(Property &defaults) const {
   for (Property &prop : defaults) {
     if (prop.HasChildren()) {
       InjectDefaultsAsValues(prop);
-    } else if (prop.hasAttribute("default") && prop.as<std::string>().empty()) {
+    } else if (prop.hasAttribute("default") && !prop.hasAttribute("injected")) {
       std::string value = prop.getAttribute<std::string>("default");
       if (std::none_of(
               reserved_keywords_.begin(), reserved_keywords_.end(),
@@ -170,13 +170,14 @@ void OptionsHandler::OverwriteDefaultsWithUserInput(const Property &user_input,
 
   if (!defaults.hasAttribute("list")) {
     defaults.value() = user_input.value();
-
+    defaults.setAttribute("injected", "true");
     for (auto &child : defaults) {
       if (user_input.exists(child.name())) {
         OverwriteDefaultsWithUserInput(user_input.get(child.name()), child);
       }
     }
   } else {
+    defaults.setAttribute("injected", "true");
     std::map<std::string, Index> tags;
     for (const auto &child : defaults) {
       tags[child.name()]++;
@@ -189,7 +190,7 @@ void OptionsHandler::OverwriteDefaultsWithUserInput(const Property &user_input,
       }
       std::vector<const tools::Property *> inputs =
           user_input.Select(tag.first);
-
+      
       // if the input has no elements with that tag, remove all children from
       // default with that tag as well
       if (inputs.empty()) {
@@ -233,7 +234,7 @@ std::vector<std::string> OptionsHandler::GetPropertyChoices(const Property &p) {
   }
 }
 
-void OptionsHandler::RecursivelyCheckOptions(const Property &p) {
+void OptionsHandler::RecursivelyCheckOptions(const Property &p) const {
 
   for (const Property &prop : p) {
     if (prop.HasChildren()) {
@@ -263,8 +264,8 @@ void OptionsHandler::RecursivelyCheckOptions(const Property &p) {
   }
 }
 
-bool OptionsHandler::IsValidOption(const Property &prop,
-                                   const std::vector<std::string> &choices) {
+bool OptionsHandler::IsValidOption(
+    const Property &prop, const std::vector<std::string> &choices) const {
 
   const std::string &head = choices.front();
   std::ostringstream oss;
@@ -298,6 +299,10 @@ bool OptionsHandler::IsValidOption(const Property &prop,
         }
       }
     }
+  }
+  if (std::find(additional_choices_.begin(), additional_choices_.end(),
+                prop.as<std::string>()) != additional_choices_.end()) {
+    is_valid = true;
   }
   return is_valid;
 }

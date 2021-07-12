@@ -130,6 +130,14 @@ BOOST_AUTO_TEST_CASE(check_choices) {
   user_input5.addTree("options." + calcname + ".d", "a");
   BOOST_CHECK_THROW(opt.ProcessUserInput(user_input5, calcname),
                     std::runtime_error);
+
+  opt.setAdditionalChoices({"a"});
+  Property result_choices = opt.ProcessUserInput(user_input5, calcname);
+  BOOST_CHECK(
+      result_choices.get("options." + calcname + ".d").as<std::string>() ==
+      "a");
+  BOOST_CHECK_THROW(opt.ProcessUserInput(user_input3, calcname),
+                    std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(check_list) {
