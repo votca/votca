@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<options>
+  <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
+    <map_file>system.xml</map_file>
+    <job_file>qmmm_mm_jobs.xml</job_file>
+    <io_states>n e h</io_states>
+    <regions>
+      <polarregion>
+        <id>0</id>
+        <segments>jobfile</segments>
+        <cutoff>
+          <geometry>n</geometry>
+          <radius>0.5</radius>
+          <region>0</region>
+        </cutoff>
+      </polarregion>
+      <staticregion>
+        <id>1</id>
+        <cutoff>
+          <explicit_segs>true</explicit_segs>
+          <radius>1.4</radius>
+          <region>0</region>
+        </cutoff>
+      </staticregion>
+    </regions>
+  </qmmm>
+</options>
