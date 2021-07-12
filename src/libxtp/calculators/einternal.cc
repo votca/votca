@@ -31,7 +31,8 @@ void EInternal::ParseOptions(const tools::Property &options) {
 
 void EInternal::ParseEnergies() {
 
-  std::cout << "\n... ... Site, reorg. energies from " << energies_file_ << ".\n";
+  std::cout << "\n... ... Site, reorg. energies from " << energies_file_
+            << ".\n";
 
   tools::Property alloc;
   alloc.LoadFromXML(energies_file_);

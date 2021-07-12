@@ -84,7 +84,8 @@ void IQM::ParseSpecificOptions(const tools::Property& options) {
   std::string linker =
       options.ifExistsReturnElseReturnDefault<std::string>(".linker_names", "");
 
-  for (const std::string& link : tools::Tokenizer(linker, ", \t\n").ToVector()) {
+  for (const std::string& link :
+       tools::Tokenizer(linker, ", \t\n").ToVector()) {
     tools::Tokenizer toker2(link, ":");
     std::vector<std::string> link_split = toker2.ToVector();
     if (link_split.size() != 2) {
@@ -295,7 +296,8 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     dft_logger.setPreface(Log::warning, (format("\nDFT WAR ...")).str());
     dft_logger.setPreface(Log::debug, (format("\nDFT DBG ...")).str());
     std::string package = dftpackage_options_.get("name").as<std::string>();
-    std::unique_ptr<QMPackage> qmpackage = QMPackageFactory::QMPackages().Create(package);
+    std::unique_ptr<QMPackage> qmpackage =
+        QMPackageFactory::QMPackages().Create(package);
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(qmpackage_work_dir);
     qmpackage->Initialize(dftpackage_options_);

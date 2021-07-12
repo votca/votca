@@ -81,10 +81,10 @@ class JobTopology {
 
  private:
   std::vector<std::vector<SegId> > PartitionRegions(
-      const tools::Property& regions_def,
-      const Topology& top) const;
+      const tools::Property& regions_def, const Topology& top) const;
 
-  void CreateRegions( const std::pair<std::string, tools::Property>& options, const Topology& top,
+  void CreateRegions(const std::pair<std::string, tools::Property>& options,
+                     const Topology& top,
                      const std::vector<std::vector<SegId> >& region_seg_ids);
 
   void ModifyOptionsByJobFile(tools::Property& regions_def) const;
@@ -95,7 +95,7 @@ class JobTopology {
 
   void CheckEnumerationOfRegions(const tools::Property& regions_def) const;
   std::vector<const tools::Property*> SortRegionsDefbyId(
-     const tools::Property& regions_def) const;
+      const tools::Property& regions_def) const;
 
   Job& job_;
   Logger& log_;

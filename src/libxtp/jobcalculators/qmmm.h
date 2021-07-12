@@ -48,8 +48,8 @@ class QMMM final : public ParallelXJobCalc<std::vector<Job> > {
  private:
   bool hasQMRegion() const;
   std::string getFirstRegionName() const;
-  
-  std::pair<std::string,tools::Property> regions_def_;
+
+  std::pair<std::string, tools::Property> regions_def_;
 
   Index max_iterations_;
   bool print_regions_pdb_ = false;

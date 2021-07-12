@@ -48,7 +48,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
   if (initstate_.Type().isExciton() || initstate_.Type().isGWState()) {
 
     do_gwbse_ = true;
-    gwbseoptions_=prop.get("gwbse");
+    gwbseoptions_ = prop.get("gwbse");
     if (prop.exists("statetracker")) {
       tools::Property filter = prop.get("statetracker");
       statetracker_.setLogger(&log_);
@@ -192,8 +192,7 @@ void QMRegion::AppendResult(tools::Property& prop) const {
 
 void QMRegion::Reset() {
 
-  std::string dft_package_name =
-      dftoptions_.get("name").as<std::string>();
+  std::string dft_package_name = dftoptions_.get("name").as<std::string>();
   qmpackage_ = std::unique_ptr<QMPackage>(
       QMPackageFactory::QMPackages().Create(dft_package_name));
   qmpackage_->setLog(&log_);

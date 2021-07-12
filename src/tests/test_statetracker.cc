@@ -95,8 +95,8 @@ BOOST_AUTO_TEST_CASE(readwrite_hdf5) {
   tracker.PrintInfo();
   std::stringstream ss;
   ss << log << std::flush;
-  
-  std::string output1=ss.str();
+
+  std::string output1 = ss.str();
 
   {
     CheckpointFile f("statetracker_test.hdf5");
@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE(readwrite_hdf5) {
   tracker2.ReadFromCpt(r);
   tracker2.setLogger(&log);
   tracker2.PrintInfo();
-    std::stringstream ss2;
+  std::stringstream ss2;
   ss2 << log << std::flush;
   BOOST_CHECK_EQUAL(tracker.InitialState().ToString(),
                     tracker2.InitialState().ToString());

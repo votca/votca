@@ -126,9 +126,9 @@ bool XtpApplication::EvaluateOptions() {
       out.open(optionsFile);
       std::cout << "Writing options for calculator " << calcname << " to "
                 << optionsFile << std::endl;
-      out<<"<options>\n";
+      out << "<options>\n";
       PrintLongHelp(out, calcname, tools::PropertyIOManipulator::Type::XML);
-      out<<"</options>\n"<<std::endl;
+      out << "</options>\n" << std::endl;
     } else {
       std::cout << CalculatorType() << " " << calcname << " does not exist\n";
     }
@@ -174,8 +174,9 @@ bool XtpApplication::EvaluateOptions() {
 
   tools::OptionsHandler handler(tools::GetVotcaShare() + "/xtp/xml/");
 
-  //This is a terrible low level hack, but I do not want to refactor all of xtp_calculators now as well
-  if(calcname=="qmmm"){
+  // This is a terrible low level hack, but I do not want to refactor all of
+  // xtp_calculators now as well
+  if (calcname == "qmmm") {
     handler.setAdditionalChoices({"jobfile"});
   }
   options_ = handler.ProcessUserInput(useroptions, calcname)

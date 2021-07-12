@@ -202,9 +202,9 @@ bool QMMM::hasQMRegion() const {
                      });
 }
 
-std::string QMMM::getFirstRegionName() const{
-  for(const auto& reg:regions_def_.second){
-    if(reg.get("id").as<Index>()==0){
+std::string QMMM::getFirstRegionName() const {
+  for (const auto& reg : regions_def_.second) {
+    if (reg.get("id").as<Index>() == 0) {
       return reg.name();
     }
   }
@@ -225,8 +225,8 @@ void QMMM::WriteJobFile(const Topology& top) {
 
   ofs << "<jobs>" << std::endl;
   Index jobid = 0;
-  std::string regionname=getFirstRegionName();
-  bool hasqm=hasQMRegion();
+  std::string regionname = getFirstRegionName();
+  bool hasqm = hasQMRegion();
   for (const Segment& seg : top.Segments()) {
     for (const QMState& state : states_) {
 

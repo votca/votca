@@ -70,8 +70,8 @@ void GWBSEEngine::Initialize(tools::Property& options,
   dftlog_file_ = qmpackage_->getLogFile();
 
   // Logger redirection
-  if(options.exists(".logging_file")){
-  logger_file_ = options.get(".logging_file").as<std::string>();
+  if (options.exists(".logging_file")) {
+    logger_file_ = options.get(".logging_file").as<std::string>();
   }
 
   // for requested merged guess, two archived orbitals objects are needed

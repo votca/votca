@@ -67,9 +67,8 @@ void Esp2multipole::Initialize(tools::Property& options) {
     for (tools::Property* prop : prop_pair) {
       std::vector<Index> pairvec = prop->as<std::vector<Index>>();
       pairconstraint_.emplace_back(pairvec[0], pairvec[1]);
-      XTP_LOG(Log::error, log_)
-          << "Charges " << pairvec[0] << " " << pairvec[1]
-          << " constrained to be equal." << flush;
+      XTP_LOG(Log::error, log_) << "Charges " << pairvec[0] << " " << pairvec[1]
+                                << " constrained to be equal." << flush;
     }
   }
 

@@ -138,9 +138,7 @@ class Orbitals {
   }
   const std::string &getXCFunctionalName() const { return functionalname_; }
 
-  void setXCGrid(std::string grid){
-    grid_quality_=grid;
-  }
+  void setXCGrid(std::string grid) { grid_quality_ = grid; }
   const std::string &getXCGrid() const { return grid_quality_; }
 
   // access to QM total energy, new, tested

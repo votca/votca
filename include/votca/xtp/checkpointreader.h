@@ -121,13 +121,12 @@ class CheckpointReader {
     for (hsize_t i = 0; i < loc_.getNumObjs(); i++) {
       memset(pStr, 0, 128);
       loc_.getObjnameByIdx(i, pStr, 128);
-      try{ 
+      try {
         loc_.openGroup(pStr);
         result.push_back(pStr);
-      } catch(H5::Exception&){
+      } catch (H5::Exception&) {
         ;
       }
-      
     }
     return result;
   }

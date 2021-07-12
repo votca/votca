@@ -255,13 +255,14 @@ void IEXCITON::ReadJobFile(Topology& top) {
     } else {
       incomplete_jobs++;
     }
-  } 
+  }
 
   XTP_LOG(Log::error, log) << "Neighborlist size " << top.NBList().size()
                            << std::flush;
 
-  XTP_LOG(Log::error, log) << "Pairs in jobfile [total:updated:incomplete] " << jobProps.size() << ":"
-                           << updated_jobs << ":" <<incomplete_jobs << std::flush;
+  XTP_LOG(Log::error, log) << "Pairs in jobfile [total:updated:incomplete] "
+                           << jobProps.size() << ":" << updated_jobs << ":"
+                           << incomplete_jobs << std::flush;
   std::cout << log;
 }
 
