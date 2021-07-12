@@ -145,8 +145,7 @@ void StateTracker::ReadFromCpt(CheckpointReader& r) {
     statehist_.push_back(QMState(s));
   }
   filters_.clear();
-  for (const std::string filtername : r.getChildGroupNames()) {
-
+  for (const std::string& filtername : r.getChildGroupNames()) {
     CheckpointReader rr = r.openChild(filtername);
     filters_.push_back(Filter().Create(filtername));
     filters_.back()->ReadFromCpt(rr);
