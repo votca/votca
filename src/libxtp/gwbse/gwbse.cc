@@ -195,7 +195,7 @@ void GWBSE::Initialize(tools::Property& options) {
       << TimeStamp() << " BSE level range occ[" << bse_vmin << ":" << bse_vmax
       << "]  virt[" << bse_cmin << ":" << bse_cmax << "]" << flush;
 
-  gwopt_.reset_3c = options.get(".gw.rebuild_threecenter_freq").as<Index>();
+  gwopt_.reset_3c = options.get(".gw.rebuild_3c_freq").as<Index>();
 
   bseopt_.nmax = options.get(".bse.exctotal").as<Index>();
   if (bseopt_.nmax > bse_size || bseopt_.nmax < 0) {
@@ -203,15 +203,15 @@ void GWBSE::Initialize(tools::Property& options) {
   }
 
   bseopt_.davidson_correction =
-      options.get("bse.eigensolver.correction").as<std::string>();
+      options.get("bse.davidson.correction").as<std::string>();
 
   bseopt_.davidson_tolerance =
-      options.get("bse.eigensolver.tolerance").as<std::string>();
+      options.get("bse.davidson.tolerance").as<std::string>();
 
   bseopt_.davidson_update =
-      options.get("bse.eigensolver.update").as<std::string>();
+      options.get("bse.davidson.update").as<std::string>();
 
-  bseopt_.davidson_maxiter = options.get("bse.eigensolver.maxiter").as<Index>();
+  bseopt_.davidson_maxiter = options.get("bse.davidson.maxiter").as<Index>();
 
   bseopt_.useTDA = options.get("bse.useTDA").as<bool>();
   orbitals_.setTDAApprox(bseopt_.useTDA);
@@ -236,9 +236,9 @@ void GWBSE::Initialize(tools::Property& options) {
   }
 
   bseopt_.max_dyn_iter =
-      options.get("bse.dynamical_screening_max_iterations").as<Index>();
+      options.get("bse.dyn_screen_max_iter").as<Index>();
   bseopt_.dyn_tolerance =
-      options.get("bse.dynamical_screening_tolerance").as<double>();
+      options.get("bse.dyn_screen_tol").as<double>();
   if (bseopt_.max_dyn_iter > 0) {
     do_dynamical_screening_bse_ = true;
   }
@@ -284,14 +284,14 @@ void GWBSE::Initialize(tools::Property& options) {
                                                    // for qp iteration
                                                    // [Hartree]]
   gwopt_.g_sc_max_iterations =
-      options.get("gw.qp_sc_max_iterations").as<Index>();  // convergence
+      options.get("gw.qp_sc_max_iter").as<Index>();  // convergence
                                                            // criteria for qp
                                                            // iteration
                                                            // [Hartree]]
 
   if (mode == "evGW") {
     gwopt_.gw_sc_max_iterations =
-        options.get("gw.sc_max_iterations").as<Index>();
+        options.get("gw.sc_max_iter").as<Index>();
   }
 
   gwopt_.gw_sc_limit =
