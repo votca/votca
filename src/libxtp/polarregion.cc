@@ -36,7 +36,7 @@ void PolarRegion::Initialize(const tools::Property& prop) {
   tools::Property options_polar;
   options_polar.add("polar", "");
   tools::Property& prop_polar = options_polar.get("polar");
-  prop_polar = prop.get("polar");
+  prop_polar = prop;
 
   max_iter_ = options_polar.ifExistsReturnElseReturnDefault(key + ".max_iter",
                                                             max_iter_);
