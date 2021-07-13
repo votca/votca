@@ -506,6 +506,8 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   bool found_success = false;
   orbitals.setQMpackage(getPackageName());
   orbitals.setDFTbasisName(basisset_name_);
+  orbitals.setXCFunctionalName(
+      options_.get("functional").as<std::vector<std::string>>()[0]);
   if (options_.exists("ecp")) {
     orbitals.setECPName(options_.get("ecp").as<std::string>());
   }
