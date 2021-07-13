@@ -36,7 +36,7 @@ void MolPol::ParseOptions(const tools::Property& options) {
   input_.LoadFromFile(mps_input);
   mps_output_ = options.ifExistsReturnElseReturnDefault<std::string>(
       ".output", job_name_ + " polar_.mps");
-  polar_options_ = options.get(".options_polar");
+  polar_options_ = options.get("polar");
 
   // polar targer or qmpackage logfile
   std::string mode = options.get("mode").as<std::string>();

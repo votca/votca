@@ -60,11 +60,12 @@ void Log2Mps::ParseOptions(const tools::Property &options) {
         "XTP has no log file. For xtp package just run the partialcharges tool "
         "on you .orb file");
   }
+
   logfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".logfile", job_name_ + ".log");
+      ".input", job_name_ + ".log");
 
   mpsfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".mpsfile", job_name_ + ".mps");
+      ".output", job_name_ + ".mps");
 
   std::cout << "\n... ... " << logfile_ << " => " << mpsfile_ << "\n";
 }
