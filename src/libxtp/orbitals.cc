@@ -651,7 +651,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
     r(functionalname_, "XCFunctional");
     r(grid_quality_, "XC_grid_quality");
   } catch (std::runtime_error& e) {
-    ;
+    grid_quality_="medium";
   }
   r(ScaHFX_, "ScaHFX");
   r(useTDA_, "useTDA");

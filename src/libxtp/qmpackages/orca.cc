@@ -510,6 +510,10 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     orbitals.setECPName(options_.get("ecp").as<std::string>());
   }
 
+  orbitals.setXCGrid("xfine");  // TODO find a better approximation for the
+                                  // orca grid.
+  orbitals.setXCFunctionalName(options_.get("functional").as<std::string>());
+
   XTP_LOG(Log::error, *pLog_) << "Parsing " << log_file_name_ << flush;
   std::string log_file_name_full = run_dir_ + "/" + log_file_name_;
   // check if LOG file is complete
@@ -558,11 +562,11 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     }
 
     std::string::size_type HFX_pos = line.find("Fraction HF Exchange ScalHFX");
+
     if (HFX_pos != std::string::npos) {
       results = tools::Tokenizer(line, " ").ToVector();
       double ScaHFX = boost::lexical_cast<double>(results.back());
-      orbitals.setXCGrid("xfine");  // TODO find a better approximation for the
-                                    // orca grid.
+
       orbitals.setScaHFX(ScaHFX);
       XTP_LOG(Log::error, *pLog_)
           << "DFT with " << ScaHFX << " of HF exchange!" << flush;

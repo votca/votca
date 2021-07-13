@@ -14,7 +14,6 @@
  *
  */
 #pragma once
-#include "H5public.h"
 #ifndef VOTCA_XTP_CHECKPOINTREADER_H
 #define VOTCA_XTP_CHECKPOINTREADER_H
 

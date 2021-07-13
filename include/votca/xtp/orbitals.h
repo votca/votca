@@ -424,7 +424,8 @@ class Orbitals {
 
   // Version 2: adds BSE energies after perturbative dynamical screening
   // Version 3 changed shell ordering
-  static constexpr int orbitals_version() { return 3; }
+  // Versio 4 added vxc grid quality
+  static constexpr int orbitals_version() { return 4; }
 };
 
 }  // namespace xtp

@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include "votca/tools/property.h"
 #include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
@@ -70,6 +71,16 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   std::unique_ptr<QMPackage> orca =
       QMPackageFactory::QMPackages().Create("orca");
   Logger log;
+
+  tools::Property opt;
+  opt.add("functional","XC_HYB_GGA_XC_PBEH");
+  opt.add("charge","0");
+  opt.add("spin","0");
+  opt.add("basisset","3-21G");
+  opt.add("cleanup","");
+  opt.add("scratch", "");
+  opt.add("temporary_file","temp");
+  orca->Initialize(opt);
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
   orca->setLogFileName("orca_ext_charges.log");
@@ -204,6 +215,16 @@ BOOST_AUTO_TEST_CASE(opt_test) {
   std::unique_ptr<QMPackage> orca =
       QMPackageFactory::QMPackages().Create("orca");
   Logger log;
+
+  tools::Property opt;
+  opt.add("functional","XC_HYB_GGA_XC_PBEH");
+  opt.add("charge","0");
+  opt.add("spin","0");
+  opt.add("basisset","3-21G");
+  opt.add("cleanup","");
+  opt.add("scratch", "");
+  opt.add("temporary_file","temp");
+  orca->Initialize(opt);
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
   orca->setLogFileName("orca_opt.log");
