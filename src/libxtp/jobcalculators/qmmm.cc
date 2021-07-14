@@ -50,8 +50,7 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
   use_gs_for_ex_ = options.get("io_jobfile.use_gs_for_ex").as<bool>();
 
   states_ = options.get("io_jobfile.states").as<std::vector<QMState>>();
-  which_segments_ =
-      options.get("io_jobfile.segments").as<std::string>();
+  which_segments_ = options.get("io_jobfile.segments").as<std::string>();
 
   bool groundstate_found = std::any_of(
       states_.begin(), states_.end(),
