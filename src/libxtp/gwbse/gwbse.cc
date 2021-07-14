@@ -235,10 +235,8 @@ void GWBSE::Initialize(tools::Property& options) {
         << " BSE with Hqp offdiagonal elements" << flush;
   }
 
-  bseopt_.max_dyn_iter =
-      options.get("bse.dyn_screen_max_iter").as<Index>();
-  bseopt_.dyn_tolerance =
-      options.get("bse.dyn_screen_tol").as<double>();
+  bseopt_.max_dyn_iter = options.get("bse.dyn_screen_max_iter").as<Index>();
+  bseopt_.dyn_tolerance = options.get("bse.dyn_screen_tol").as<double>();
   if (bseopt_.max_dyn_iter > 0) {
     do_dynamical_screening_bse_ = true;
   }
@@ -285,13 +283,12 @@ void GWBSE::Initialize(tools::Property& options) {
                                                    // [Hartree]]
   gwopt_.g_sc_max_iterations =
       options.get("gw.qp_sc_max_iter").as<Index>();  // convergence
-                                                           // criteria for qp
-                                                           // iteration
-                                                           // [Hartree]]
+                                                     // criteria for qp
+                                                     // iteration
+                                                     // [Hartree]]
 
   if (mode == "evGW") {
-    gwopt_.gw_sc_max_iterations =
-        options.get("gw.sc_max_iter").as<Index>();
+    gwopt_.gw_sc_max_iterations = options.get("gw.sc_max_iter").as<Index>();
   }
 
   gwopt_.gw_sc_limit =

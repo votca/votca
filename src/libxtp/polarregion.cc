@@ -32,9 +32,9 @@ namespace votca {
 namespace xtp {
 
 void PolarRegion::Initialize(const tools::Property& prop) {
-  max_iter_ = prop.get( "polar.max_iter").as<Index>();
+  max_iter_ = prop.get("polar.max_iter").as<Index>();
   deltaD_ = prop.get("polar.tolerance_dipole").as<double>();
-  deltaE_ =prop.get("polar.tolerance_energy").as<double>();
+  deltaE_ = prop.get("polar.tolerance_energy").as<double>();
   exp_damp_ = prop.get("polar.exp_damp").as<double>();
 }
 

@@ -52,7 +52,7 @@ PolarSite::PolarSite(Index id, std::string element, Eigen::Vector3d pos)
 PolarSite::PolarSite(const data& d) { ReadData(d); }
 
 Eigen::Vector3d PolarSite::getDipole() const {
-  return Q_.segment<3>(1)+induced_dipole_;
+  return Q_.segment<3>(1) + induced_dipole_;
 }
 
 void PolarSite::setpolarization(const Eigen::Matrix3d& pol) {
