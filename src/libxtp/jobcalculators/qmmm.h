@@ -56,9 +56,7 @@ class QMMM final : public ParallelXJobCalc<std::vector<Job> > {
   bool print_regions_pdb_ = false;
   bool use_gs_for_ex_ = false;
   std::vector<QMState> states_;
-  std::string whichSegments_;
-  std::vector<Index> segments_;
-  bool all_segments_ = true;
+  std::vector<Index> segments_to_write_;
 };
 
 }  // namespace xtp

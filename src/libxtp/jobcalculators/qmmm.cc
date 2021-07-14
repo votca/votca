@@ -32,6 +32,7 @@
 #include "votca/tools/tokenizer.h"
 #include "votca/xtp/jobtopology.h"
 #include "votca/xtp/qmregion.h"
+#include "votca/xtp/IndexParser.h"
 
 // Local private VOTCA includes
 #include "qmmm.h"
@@ -46,20 +47,17 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
   max_iterations_ = options.get(".max_iterations").as<Index>();
   regions_def_.second = options.get(".regions");
   regions_def_.first = mapfile_;
-  use_gs_for_ex_ = options.get(".use_gs_for_ex").as<bool>();
+  use_gs_for_ex_ = options.get("io_jobfile.use_gs_for_ex").as<bool>();
 
-  states_ = options.get(".io_states").as<std::vector<QMState>>();
-  whichSegments_ = options.get(".segments").as<std::string>();
+  states_ = options.get("io_jobfile.states").as<std::vector<QMState>>();
+  std::string whichSegments = options.get("io_jobfile.segments").as<std::string>();
 
   if (whichSegments_ == "all") {
-    all_segments_ = true;
-  } else {
-    all_segments_ = false;
-    std::stringstream ss(whichSegments_);
-    Index segID;
-    while (ss >> segID) {
-      segments_.push_back(segID);
+    for(Index i = 0; i < top.Segments().size(); ++i){
+      segments_to_write_.push_back(i);
     }
+  } else {
+    segments_to_write_ = parser.CreateIndexVector(whichSegments)
   }
 
   bool groundstate_found = std::any_of(
