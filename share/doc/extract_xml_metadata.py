@@ -101,7 +101,7 @@ def main():
 
 def get_root_children(file_name: Path) -> List[ET.Element]:
     """Get all the node children from root."""
-    tree = ET.parse(str(file_name))
+    tree = ET.parse(file_name)
     root = tree.getroot()
     resolve_links(file_name, root)
     return list(root)
@@ -111,7 +111,7 @@ def resolve_links(file_name: Path, elem: ET.Element):
     if "link" in elem.attrib:
         link = elem.attrib.get("link")
         package_path = file_name.parent/"subpackages"/link
-        tree = ET.parse(str(package_path))
+        tree = ET.parse(package_path)
         root = tree.getroot()
         for child in root:
             elem.append(child)
