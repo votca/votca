@@ -12,22 +12,7 @@
 				</staticregion>
 			</regions>
 		</input>
-		<status>COMPLETE</status>
-		<host>jens:110832</host>
-		<time>22:02:03</time>
-		<output>
-			<regions>
-				<region Tot_charge="0.000000e+00" id="0" size="1" type="qmregion">
-					<E_total>-14966.726199</E_total>
-					<Initial_State>s1</Initial_State>
-					<Final_State>s1</Final_State>
-				</region>
-				<region Tot_charge="0.000000e+00" id="1" size="0" type="staticregion"/>
-			</regions>
-			<E_tot>-14966.726199</E_tot>
-			<Compute_Time>11</Compute_Time>
-			<Total_Charge>0.000000</Total_Charge>
-		</output>
+		<status>AVAILABLE</status>
 	</job>
 	<job>
 		<id>1</id>
@@ -42,21 +27,6 @@
 				</staticregion>
 			</regions>
 		</input>
-		<status>COMPLETE</status>
-		<host>jens:110832</host>
-		<time>22:02:16</time>
-		<output>
-			<regions>
-				<region Tot_charge="0.000000e+00" id="0" size="1" type="qmregion">
-					<E_total>-14966.832734</E_total>
-					<Initial_State>s1</Initial_State>
-					<Final_State>s1</Final_State>
-				</region>
-				<region Tot_charge="-7.266410e-14" id="1" size="328" type="staticregion"/>
-			</regions>
-			<E_tot>-14966.832734</E_tot>
-			<Compute_Time>13</Compute_Time>
-			<Total_Charge>-0.000000</Total_Charge>
-		</output>
+		<status>AVAILABLE</status>
 	</job>
 </jobs>
