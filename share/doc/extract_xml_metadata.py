@@ -25,10 +25,10 @@ msg = "extract_metadata.py -i file.xml"
 
 parser = argparse.ArgumentParser(description=msg)
 parser.add_argument('-i', required=True,
-                    help="Input file in YAML format")
+                    help="Input file in XML format")
 parser.add_argument('-o', help="Optional output file", default=None)
-parser.add_argument("-m", "--mode", help="Operation mode: xtp, csg, qm",
-                    choices=["xtp", "csg", "qm"], default="xtp")
+parser.add_argument("-m", "--mode", help="Operation mode: xtp, csg",
+                    choices=["xtp", "csg"], default="xtp")
 
 MAXIMUM_LINE_LENGTH = 60
 
@@ -48,7 +48,8 @@ def xtp_table_header(x: str) -> str:
     """Create a table for XTP calculators."""
     return f"""
 {x}
-The following table contains the defaults input options for the calculator,
+The following table contains the defaults input options for the calculator, The default `OPTIONAL` means this option is switched off, if no input is given. 
+`REQUIRED` arguments have to be specified, otherwise an error is thrown.
 {DEFAULTS_TABLE_HEADER}"""
 
 
@@ -87,8 +88,6 @@ def main():
         table = xtp_create_rst_table(file_name)
     elif args.mode == "csg":
         table = csg_create_rst_table(file_name)
-    else:
-        table = qmpackage_create_rst_table(file_name)
 
     # Print
     if args.o is not None:
@@ -102,9 +101,22 @@ def main():
 
 def get_root_children(file_name: Path) -> List[ET.Element]:
     """Get all the node children from root."""
-    tree = ET.parse(file_name)
+    tree = ET.parse(str(file_name))
     root = tree.getroot()
+    resolve_links(file_name, root)
     return list(root)
+
+
+def resolve_links(file_name: Path, elem: ET.Element):
+    if "link" in elem.attrib:
+        link = elem.attrib.get("link")
+        package_path = file_name.parent/"subpackages"/link
+        tree = ET.parse(str(package_path))
+        root = tree.getroot()
+        for child in root:
+            elem.append(child)
+    for child in elem:
+        resolve_links(file_name, child)
 
 
 def xtp_extract_metadata(file_name: Path) -> Tuple[str, ET.Element]:
@@ -163,7 +175,7 @@ def xtp_create_rst_table(file_name: Path) -> str:
     """Create an RST table using the metadata in the XML file."""
     header, elements = xtp_extract_metadata(file_name)
     header = generate_title(file_name.stem) + header
-    s = xtp_table_header(header) if elements else f"{header}\n"
+    s = xtp_table_header(header) if elements is not None else f"{header}\n"
     for elem in elements:
         s += xtp_get_recursive_attributes(elem)
 
@@ -177,15 +189,6 @@ def csg_create_rst_table(file_name: Path) -> str:
     s = csg_table_header(header)
     for elem in elements:
         s += csg_get_recursive_attributes(elem)
-    return s
-
-
-def qmpackage_create_rst_table(file_name) -> str:
-    """Create an RST table using the metadata in the XML file."""
-    children = get_root_children(file_name)
-    s = DEFAULTS_TABLE_HEADER
-    for elem in children:
-        s += xtp_get_recursive_attributes(elem)
     return s
 
 
@@ -229,7 +232,7 @@ def generate_note(stem: str) -> str:
     """Generate note specifying path to the xml file."""
     note = f"""
 .. note::
-   An *xml* file containing the defaults for the `{stem}` calculator can be found at `$VOTCASHARE/xtp/xml/{stem}.xml`
+   An *xml* file containing the defaults for the `{stem}` calculator can be created via `-p {stem} -o FILENAME` command line options `
 """
     return note
 
