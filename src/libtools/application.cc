@@ -92,7 +92,7 @@ int Application::Exec(int argc, char **argv) {
     if (continue_execution_) {
       Run();
     } else {
-      cout << "nothing to be done - stopping here\n";
+      cout << "Done - stopping here\n";
     }
   } catch (std::exception &error) {
     cerr << "an error occurred:\n" << error.what() << endl;
