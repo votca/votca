@@ -20,6 +20,7 @@
 // Standard includes
 #include <algorithm>
 #include <chrono>
+#include <sstream>
 
 // Third party includes
 #include <boost/filesystem.hpp>
@@ -45,8 +46,21 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
   max_iterations_ = options.get(".max_iterations").as<Index>();
   regions_def_.second = options.get(".regions");
   regions_def_.first = mapfile_;
+  use_gs_for_ex_ = options.get(".use_gs_for_ex").as<bool>();
 
   states_ = options.get(".io_states").as<std::vector<QMState>>();
+  whichSegments_ = options.get(".segments").as<std::string>();
+
+  if (whichSegments_ == "all") {
+    all_segments_ = true;
+  } else {
+    all_segments_ = false;
+    std::stringstream ss(whichSegments_);
+    Index segID;
+    while (ss >> segID) {
+      segments_.push_back(segID);
+    }
+  }
 
   bool groundstate_found = std::any_of(
       states_.begin(), states_.end(),
@@ -225,36 +239,55 @@ void QMMM::WriteJobFile(const Topology& top) {
 
   ofs << "<jobs>" << std::endl;
   Index jobid = 0;
-  std::string regionname = getFirstRegionName();
-  bool hasqm = hasQMRegion();
-  for (const Segment& seg : top.Segments()) {
-    for (const QMState& state : states_) {
-
-      std::string marker = std::to_string(seg.getId()) + ":" + state.ToString();
-      std::string tag = seg.getType() + "_" + marker;
-
-      tools::Property Input;
-      tools::Property& pInput = Input.add("input", "");
-      pInput.add("site_energies", marker);
-      tools::Property& regions = pInput.add("regions", "");
-      tools::Property& region = regions.add(regionname, "");
-      region.add("id", "0");
-      if (hasqm) {
-        region.add("state", state.ToString());
+  if (all_segments_) {
+    for (const Segment& seg : top.Segments()) {
+      for (const QMState& state : states_) {
+        Job job = createJob(seg, state, jobid);
+        job.ToStream(ofs);
+        jobid++;
       }
-      region.add("segments", marker);
-      Job job(jobid, tag, Input, Job::AVAILABLE);
-      job.ToStream(ofs);
-      jobid++;
+    }
+  } else {
+    for (Index segID : segments_) {
+      const Segment& seg = top.Segments()[segID];
+      for (const QMState& state : states_) {
+        Job job = createJob(seg, state, jobid);
+        job.ToStream(ofs);
+        jobid++;
+      }
     }
   }
 
   ofs << "</jobs>" << std::endl;
   ofs.close();
   std::cout << std::endl
-            << "... ... In total " << jobid + 1 << " jobs" << std::flush;
+            << "... ... In total " << jobid << " jobs" << std::flush;
   return;
 }
+
+Job QMMM::createJob(const Segment& seg, const QMState& state, Index jobid) {
+  std::string marker = std::to_string(seg.getId()) + ":" + state.ToString();
+  std::string tag = seg.getType() + "_" + marker;
+
+  tools::Property Input;
+  tools::Property& pInput = Input.add("input", "");
+  pInput.add("site_energies", marker);
+  tools::Property& regions = pInput.add("regions", "");
+  tools::Property& region = regions.add(getFirstRegionName(), "");
+  region.add("id", "0");
+  if (hasQMRegion()) {
+    region.add("state", state.ToString());
+  }
+  if (use_gs_for_ex_ && (state.Type() == QMStateType::Singlet ||
+                         state.Type() == QMStateType::Triplet)) {
+    region.add("segments", std::to_string(seg.getId()) + ":n");
+  } else {
+    region.add("segments", marker);
+  }
+  Job job(jobid, tag, Input, Job::AVAILABLE);
+  return job;
+}
+
 void QMMM::ReadJobFile(Topology& top) {
 
   Index incomplete_jobs = 0;
