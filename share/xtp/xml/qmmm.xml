@@ -5,9 +5,11 @@
     <max_iterations help="max iterations for qmmm scf loop" default="100" choices="int+" />
     <map_file help="xml file with segment definition" default="votca_map.xml" />
     <job_file help="name of jobfile to which jobs are written" default="qmmm_jobs.xml" />
-    <io_states help="states to write jobs for and which to parse from jobfile" default="n e h" />
+<io_jobfile help="options to write a jobfile">
+    <states help="states to write jobs for and which to parse from jobfile" default="n e h" />
     <segments help="segments to write jobs for and which to parse from jobfile" default="all"/>
     <use_gs_for_ex help="If true uses the ground state geometry for excited states" default="false"/>
+  </io_jobfile>
     <regions list="" help="Definitions of all regions inside qmmmm" default="REQUIRED">
       <qmregion default="OPTIONAL" link="region.xml" help="qmregion with dft and optionally gwbse">
         <state help="initial state to track or ground state for dftcalculations" default="n" />
