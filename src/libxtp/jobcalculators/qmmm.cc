@@ -50,16 +50,8 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
   use_gs_for_ex_ = options.get("io_jobfile.use_gs_for_ex").as<bool>();
 
   states_ = options.get("io_jobfile.states").as<std::vector<QMState>>();
-  std::string whichSegments =
+  which_segments_ =
       options.get("io_jobfile.segments").as<std::string>();
-
-  if (whichSegments_ == "all") {
-    for (Index i = 0; i < top.Segments().size(); ++i) {
-      segments_to_write_.push_back(i);
-    }
-  } else {
-    segments_to_write_ = parser.CreateIndexVector(whichSegments)
-  }
 
   bool groundstate_found = std::any_of(
       states_.begin(), states_.end(),
@@ -236,9 +228,18 @@ void QMMM::WriteJobFile(const Topology& top) {
     throw std::runtime_error("\nERROR: bad file handle: " + jobfile_);
   }
 
+  std::vector<Index> segments_to_write;
+  if (which_segments_ == "all") {
+    for (Index i = 0; i < Index(top.Segments().size()); ++i) {
+      segments_to_write.push_back(i);
+    }
+  } else {
+    segments_to_write = IndexParser().CreateIndexVector(which_segments_);
+  }
+
   ofs << "<jobs>" << std::endl;
   Index jobid = 0;
-  for (Index segID : segments_to_write_) {
+  for (Index segID : segments_to_write) {
     const Segment& seg = top.Segments()[segID];
     for (const QMState& state : states_) {
       Job job = createJob(seg, state, jobid);
@@ -254,7 +255,8 @@ void QMMM::WriteJobFile(const Topology& top) {
   return;
 }
 
-Job QMMM::createJob(const Segment& seg, const QMState& state, Index jobid) {
+Job QMMM::createJob(const Segment& seg, const QMState& state,
+                    Index jobid) const {
   std::string marker = std::to_string(seg.getId()) + ":" + state.ToString();
   std::string tag = seg.getType() + "_" + marker;
 
