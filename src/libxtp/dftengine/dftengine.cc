@@ -419,7 +419,10 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
       counter++;
     }
     if (counter == limit) {
-      XTP_LOG(Log::error, *pLog_) << "              ... ("<<externalsites_->size()-limit<<" sites not displayed)\n"<< std::flush;
+      XTP_LOG(Log::error, *pLog_)
+          << "              ... (" << externalsites_->size() - limit
+          << " sites not displayed)\n"
+          << std::flush;
     }
 
     Mat_p_Energy ext_multipoles =

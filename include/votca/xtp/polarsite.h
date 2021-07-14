@@ -58,8 +58,7 @@ class PolarSite : public StaticSite {
 
   double getSqrtInvEigenDamp() const { return eigendamp_invsqrt_; }
 
-  void Rotate(const Eigen::Matrix3d& R,
-              const Eigen::Vector3d& ref_pos) final {
+  void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos) final {
     StaticSite::Rotate(R, ref_pos);
     pinv_ = R.transpose() * pinv_ * R;
   }

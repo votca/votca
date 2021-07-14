@@ -510,7 +510,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   }
 
   orbitals.setXCGrid("xfine");  // TODO find a better approximation for the
-                                  // orca grid.
+                                // orca grid.
   orbitals.setXCFunctionalName(options_.get("functional").as<std::string>());
 
   XTP_LOG(Log::error, *pLog_) << "Parsing " << log_file_name_ << flush;
