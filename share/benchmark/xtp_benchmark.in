@@ -150,7 +150,6 @@ if HasGPUs:
                           default=0,
                           help='Number of GPUs to use')
 
-
 OPTIONS = progargs.parse_args()
 
 
