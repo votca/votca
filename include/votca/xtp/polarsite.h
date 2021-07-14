@@ -33,7 +33,7 @@ namespace xtp {
 
  The units are atomic units, e.g. Bohr, Hartree.
 */
-class PolarSite : public StaticSite {
+class PolarSite final: public StaticSite {
 
  public:
   // delete these two functions because we do not want to be able to read
