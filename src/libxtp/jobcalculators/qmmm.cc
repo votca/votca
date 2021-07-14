@@ -30,9 +30,9 @@
 // Local VOTCA includes
 #include "votca/tools/property.h"
 #include "votca/tools/tokenizer.h"
+#include "votca/xtp/IndexParser.h"
 #include "votca/xtp/jobtopology.h"
 #include "votca/xtp/qmregion.h"
-#include "votca/xtp/IndexParser.h"
 
 // Local private VOTCA includes
 #include "qmmm.h"
@@ -50,10 +50,11 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
   use_gs_for_ex_ = options.get("io_jobfile.use_gs_for_ex").as<bool>();
 
   states_ = options.get("io_jobfile.states").as<std::vector<QMState>>();
-  std::string whichSegments = options.get("io_jobfile.segments").as<std::string>();
+  std::string whichSegments =
+      options.get("io_jobfile.segments").as<std::string>();
 
   if (whichSegments_ == "all") {
-    for(Index i = 0; i < top.Segments().size(); ++i){
+    for (Index i = 0; i < top.Segments().size(); ++i) {
       segments_to_write_.push_back(i);
     }
   } else {
@@ -237,22 +238,12 @@ void QMMM::WriteJobFile(const Topology& top) {
 
   ofs << "<jobs>" << std::endl;
   Index jobid = 0;
-  if (all_segments_) {
-    for (const Segment& seg : top.Segments()) {
-      for (const QMState& state : states_) {
-        Job job = createJob(seg, state, jobid);
-        job.ToStream(ofs);
-        jobid++;
-      }
-    }
-  } else {
-    for (Index segID : segments_) {
-      const Segment& seg = top.Segments()[segID];
-      for (const QMState& state : states_) {
-        Job job = createJob(seg, state, jobid);
-        job.ToStream(ofs);
-        jobid++;
-      }
+  for (Index segID : segments_to_write_) {
+    const Segment& seg = top.Segments()[segID];
+    for (const QMState& state : states_) {
+      Job job = createJob(seg, state, jobid);
+      job.ToStream(ofs);
+      jobid++;
     }
   }
 
