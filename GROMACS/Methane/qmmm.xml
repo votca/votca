@@ -32,7 +32,7 @@
         <id>1</id>
         <cutoff>
           <geometry>n</geometry>
-          <radius>1.4</radius>
+          <radius>1</radius>
           <region>0</region>
         </cutoff>
       </polarregion>
