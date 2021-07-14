@@ -45,21 +45,21 @@ class PolarSite : public StaticSite {
   PolarSite(Index id, std::string element)
       : PolarSite(id, element, Eigen::Vector3d::Zero()){};
 
-  ~PolarSite() override = default;
+  ~PolarSite() final = default;
 
-  void setpolarization(const Eigen::Matrix3d& pol) override;
+  void setpolarization(const Eigen::Matrix3d& pol) final;
 
   Eigen::Matrix3d getpolarization() const { return pinv_.inverse(); }
 
   const Eigen::Matrix3d& getPInv() const { return pinv_; }
 
   // MULTIPOLES DEFINITION
-  Eigen::Vector3d getDipole() const override;
+  Eigen::Vector3d getDipole() const final;
 
   double getSqrtInvEigenDamp() const { return eigendamp_invsqrt_; }
 
   void Rotate(const Eigen::Matrix3d& R,
-              const Eigen::Vector3d& ref_pos) override {
+              const Eigen::Vector3d& ref_pos) final {
     StaticSite::Rotate(R, ref_pos);
     pinv_ = R.transpose() * pinv_ * R;
   }
@@ -135,7 +135,7 @@ class PolarSite : public StaticSite {
   void WriteData(data& d) const;
   void ReadData(const data& d);
 
-  std::string identify() const override { return "polarsite"; }
+  std::string identify() const final { return "polarsite"; }
 
   friend std::ostream& operator<<(std::ostream& out, const PolarSite& site) {
     out << site.getId() << " " << site.getElement() << " " << site.getRank();
@@ -145,7 +145,7 @@ class PolarSite : public StaticSite {
   }
 
  private:
-  std::string writepolarization() const override;
+  std::string writepolarization() const final;
 
   // PolarSite has two external fields,
   // the first is used for interaction with regions, which are further out, i.e.

@@ -190,8 +190,7 @@ void Orca::WriteBackgroundCharges() {
     if (site->getCharge() != 0.0) {
       total_background++;
     }
-    std::vector<MinimalMMCharge> split_multipoles = SplitMultipoles(*site);
-    total_background += split_multipoles.size();
+    total_background += SplitMultipoles(*site).size();
   }  // counting only
 
   crg_file << total_background << endl;

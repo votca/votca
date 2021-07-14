@@ -18,6 +18,7 @@
  */
 
 // Third party includes
+#include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
@@ -380,34 +381,45 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
   if (externalsites_ != nullptr) {
     XTP_LOG(Log::error, *pLog_) << TimeStamp() << " " << externalsites_->size()
                                 << " External sites" << std::flush;
-    if (externalsites_->size() < 200) {
-      XTP_LOG(Log::error, *pLog_)
-          << " Name      Coordinates[a0]     charge[e]         dipole[e*a0]    "
-             "              quadrupole[e*a0^2]         "
-          << std::flush;
-
-      for (const std::unique_ptr<StaticSite>& site : *externalsites_) {
-        std::string output =
-            (boost::format("  %1$s"
-                           "   %2$+1.4f %3$+1.4f %4$+1.4f"
-                           "   %5$+1.4f") %
-             site->getElement() % site->getPos()[0] % site->getPos()[1] %
-             site->getPos()[2] % site->getCharge())
-                .str();
-        const Eigen::Vector3d& dipole = site->getDipole();
-        output += (boost::format("   %1$+1.4f %2$+1.4f %3$+1.4f") % dipole[0] %
-                   dipole[1] % dipole[2])
-                      .str();
-        if (site->getRank() > 1) {
-          Eigen::VectorXd quadrupole = site->Q().tail<5>();
-          output += (boost::format(
-                         "   %1$+1.4f %2$+1.4f %3$+1.4f %4$+1.4f %5$+1.4f") %
-                     quadrupole[0] % quadrupole[1] % quadrupole[2] %
-                     quadrupole[3] % quadrupole[4])
-                        .str();
-        }
-        XTP_LOG(Log::error, *pLog_) << output << std::flush;
+    bool has_quadrupoles = std::any_of(
+        externalsites_->begin(), externalsites_->end(),
+        [](const std::unique_ptr<StaticSite>& s) { return s->getRank() == 2; });
+    std::string header =
+        " Name      Coordinates[a0]     charge[e]         dipole[e*a0]    ";
+    if (has_quadrupoles) {
+      header += "              quadrupole[e*a0^2]";
+    }
+    XTP_LOG(Log::error, *pLog_) << header << std::flush;
+    Index limit = 50;
+    Index counter = 0;
+    for (const std::unique_ptr<StaticSite>& site : *externalsites_) {
+      if (counter == limit) {
+        break;
       }
+      std::string output =
+          (boost::format("  %1$s"
+                         "   %2$+1.4f %3$+1.4f %4$+1.4f"
+                         "   %5$+1.4f") %
+           site->getElement() % site->getPos()[0] % site->getPos()[1] %
+           site->getPos()[2] % site->getCharge())
+              .str();
+      const Eigen::Vector3d& dipole = site->getDipole();
+      output += (boost::format("   %1$+1.4f %2$+1.4f %3$+1.4f") % dipole[0] %
+                 dipole[1] % dipole[2])
+                    .str();
+      if (site->getRank() > 1) {
+        Eigen::VectorXd quadrupole = site->Q().tail<5>();
+        output +=
+            (boost::format("   %1$+1.4f %2$+1.4f %3$+1.4f %4$+1.4f %5$+1.4f") %
+             quadrupole[0] % quadrupole[1] % quadrupole[2] % quadrupole[3] %
+             quadrupole[4])
+                .str();
+      }
+      XTP_LOG(Log::error, *pLog_) << output << std::flush;
+      counter++;
+    }
+    if (counter == limit) {
+      XTP_LOG(Log::error, *pLog_) << "              ... ("<<externalsites_->size()-limit<<" sites not displayed)\n"<< std::flush;
     }
 
     Mat_p_Energy ext_multipoles =

@@ -65,7 +65,7 @@ class QMPackage {
         typename Segmenttype::iterator>::value_type;
     for (const Segmenttype& segment : mmregion) {
       for (const Sitetype& site : segment) {
-        externalsites_.push_back(std::make_unique<StaticSite>(site));
+        externalsites_.push_back(std::make_unique<Sitetype>(site));
       }
     }
     WriteChargeOption();

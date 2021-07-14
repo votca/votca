@@ -19,9 +19,9 @@
   <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities) or previous calculation keyword orbfile" default="atom" choices="independent,atom,orbfile" />
   <orca help="orca specific keywords can be added here, where the xml tag corresponds to the option and the value to the option's value" unchecked=""/>
   <xtpdft help="xtpdft specific keywords can be added here" >
-    <use_external_density help="whether or not to use a precomputed external density" default="false" choices="bool" />
     <screening_eps help="screening eps" default="1e-9" choices="float+" />
     <fock_matrix_reset help="how often the fock matrix is reset" default="5" choices="int+" />
+    <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
     <convergence>
       <energy help="DeltaE at which calculation is converged" unit="hartree" choices="float+" default="1E-7" />
       <method help="Main method to use for convergence accelertation" choices="DIIS,mixing" default="DIIS" />
@@ -35,7 +35,5 @@
       <error help="convergence error" default="1e-7" choices="float+" />
       <mixing help="mixing parameter for linear mixing of density matrices" default="0.7" choices="float+" />
     </convergence>
-    
-    <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
   </xtpdft>
 </dftpackage>
