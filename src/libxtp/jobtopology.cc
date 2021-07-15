@@ -219,7 +219,6 @@ void JobTopology::CreateRegions(
       throw std::runtime_error("Region type not known!");
     }
     region->Initialize(region_def);
-    std::cout<<region_def<<std::endl;
     regions_.push_back(std::move(region));
   }
 }
