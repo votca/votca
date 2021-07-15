@@ -39,24 +39,23 @@ static bool IsValidCast(const tools::Property &prop) {
 void OptionsHandler::ResolveLinks(Property &prop) const {
 
   if (prop.hasAttribute("link")) {
-    Tokenizer tok(prop.getAttribute<std::string>("link")," ,");
-    for (std::string path :tok){
-    std::string relative_path =
-        "subpackages/" + path;
-    std::string file_path = defaults_path_ + relative_path;
-    tools::Property package;
-    package.LoadFromXML(file_path);
-    const tools::Property &options = *(package.begin());
-    for (Property::const_AttributeIterator attr = options.firstAttribute();
-         attr != options.lastAttribute(); ++attr) {
-      if (!prop.hasAttribute(attr->first)) {
-        prop.setAttribute(attr->first, attr->second);
+    Tokenizer tok(prop.getAttribute<std::string>("link"), " ,");
+    for (std::string path : tok) {
+      std::string relative_path = "subpackages/" + path;
+      std::string file_path = defaults_path_ + relative_path;
+      tools::Property package;
+      package.LoadFromXML(file_path);
+      const tools::Property &options = *(package.begin());
+      for (Property::const_AttributeIterator attr = options.firstAttribute();
+           attr != options.lastAttribute(); ++attr) {
+        if (!prop.hasAttribute(attr->first)) {
+          prop.setAttribute(attr->first, attr->second);
+        }
       }
-    }
 
-    for (const auto &child : options) {
-      prop.add(child);
-    }
+      for (const auto &child : options) {
+        prop.add(child);
+      }
     }
   }
 
