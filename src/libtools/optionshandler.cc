@@ -18,6 +18,7 @@
 // Local VOTCA includes
 #include "votca/tools/optionshandler.h"
 #include "votca/tools/propertyiomanipulator.h"
+#include "votca/tools/tokenizer.h"
 #include <algorithm>
 #include <stdexcept>
 #include <string>
@@ -38,8 +39,10 @@ static bool IsValidCast(const tools::Property &prop) {
 void OptionsHandler::ResolveLinks(Property &prop) const {
 
   if (prop.hasAttribute("link")) {
+    Tokenizer tok(prop.getAttribute<std::string>("link")," ,");
+    for (std::string path :tok){
     std::string relative_path =
-        "subpackages/" + prop.getAttribute<std::string>("link");
+        "subpackages/" + path;
     std::string file_path = defaults_path_ + relative_path;
     tools::Property package;
     package.LoadFromXML(file_path);
@@ -53,6 +56,7 @@ void OptionsHandler::ResolveLinks(Property &prop) const {
 
     for (const auto &child : options) {
       prop.add(child);
+    }
     }
   }
 
