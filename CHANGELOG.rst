@@ -46,6 +46,7 @@ Version 2022-dev
 -  replace std::vector by Eigen::Array<bool,..> (#719)
 -  overhaul complete option handling (#704)
 -  Fixed exciton options checking (#726)
+-  added basis gpu runner and test to suite (#725)
 
 Version 2021.2 (released XX.07.21)
 ==================================
