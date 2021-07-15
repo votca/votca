@@ -30,6 +30,7 @@
 // Third party includes
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
+#include <utility>
 
 // Local VOTCA includes
 #include "eigen.h"
@@ -51,7 +52,7 @@ namespace tools {
  * </tag>
  * The property object can be output to an ostream using format modifiers:
  * cout << XML << property;
- * Supported formats are XML, TXT, TEX, HLP
+ * Supported formats are XML, TXT, HLP
  */
 class Property {
 
@@ -76,7 +77,7 @@ class Property {
    * \brief add a copy of an existing property to a property
    * @param other other property
    */
-  void add(const Property &other);
+  Property &add(const Property &other);
 
   /**
    * \brief add a new property tree to structure
@@ -96,6 +97,7 @@ class Property {
    * @param key identifier
    * @param value value
    * @return reference to the created Property object
+   * If more than property with this name exists, return the last added one.
    */
   Property &set(const std::string &key, const std::string &value);
 
@@ -107,6 +109,7 @@ class Property {
    * This function tries to find a property specified by key separated
    * by "." to step down hierarchy. If the property is not
    * found a runtime_exception is thrown.
+   * If more than property with this name exists, return the last added one.
    */
   Property &get(const std::string &key);
   const Property &get(const std::string &key) const;
@@ -119,6 +122,7 @@ class Property {
    * This function tries to find a property specified by key separated
    * by "." to step down hierarchy. If the property is not
    * found a property with that name is added and returned.
+   * If more than property with this name exists, return the last added one.
    */
   Property &getOradd(const std::string &key);
 
@@ -128,6 +132,10 @@ class Property {
    * @return true or false
    */
   bool exists(const std::string &key) const;
+
+  template <typename T>
+  T ifExistsReturnElseReturnDefault(const std::string &key,
+                                    T defaultvalue) const;
 
   /**
    * \brief select property based on a filter
@@ -169,19 +177,8 @@ class Property {
   template <typename T>
   T as() const;
 
-  template <typename T>
-  T ifExistsReturnElseReturnDefault(const std::string &key,
-                                    T defaultvalue) const;
-
-  template <typename T>
-  T ifExistsReturnElseThrowRuntimeError(const std::string &key) const;
-
-  template <typename T>
-  T ifExistsAndinListReturnElseThrowRuntimeError(
-      const std::string &key, std::vector<T> possibleReturns) const;
-
   /**
-   * \brief does the property has childs?
+   * \brief does the property have children?
    * \return true or false
    */
   bool HasChildren() const { return !map_.empty(); }
@@ -199,14 +196,13 @@ class Property {
   Index size() const { return Index(properties_.size()); }
 
   /**
-   * \brief deletes a child property
-   * @param pointer to child
+   * \brief deletes all children that fulfill a condition
+   * @param condition unary function which takes a const reference to a property
+   * and returns a bool
    *
-   * This function deletes a child of this property, specified by the pointer.
-   * Pointer must point to a valid child. This invalidates pointers and
-   * references to all children.
    */
-  void deleteChild(Property *child);
+  template <class cond>
+  void deleteChildren(cond condition);
 
   /**
    * \brief return attribute as type
@@ -221,6 +217,11 @@ class Property {
    */
   template <typename T>
   void setAttribute(const std::string &attribute, const T &value);
+
+  /**
+   * \brief deletes an attribute
+   */
+  void deleteAttribute(const std::string &attribute);
   /**
    * \brief return true if a node has attributes
    */
@@ -264,10 +265,6 @@ class Property {
   template <typename T>
   T getAttribute(const_AttributeIterator it) const;
 
-  void deleteAttribute(const std::string &attribute) {
-    attributes_.erase(attribute);
-  }
-
   void LoadFromXML(std::string filename);
 
   static Index getIOindex() { return IOindex; };
@@ -297,50 +294,6 @@ inline T Property::as() const {
 }
 
 template <typename T>
-inline T Property::ifExistsReturnElseReturnDefault(const std::string &key,
-                                                   T defaultvalue) const {
-  T result;
-  if (this->exists(key)) {
-    result = this->get(key).as<T>();
-  } else {
-    result = defaultvalue;
-  }
-  return result;
-}
-
-template <typename T>
-inline T Property::ifExistsReturnElseThrowRuntimeError(
-    const std::string &key) const {
-  T result;
-  if (this->exists(key)) {
-    result = this->get(key).as<T>();
-  } else {
-    throw std::runtime_error(
-        (boost::format("Error: %s is not found") % key).str());
-  }
-  return result;
-}
-
-template <typename T>
-inline T Property::ifExistsAndinListReturnElseThrowRuntimeError(
-    const std::string &key, std::vector<T> possibleReturns) const {
-  T result;
-  result = ifExistsReturnElseThrowRuntimeError<T>(key);
-  if (std::find(possibleReturns.begin(), possibleReturns.end(), result) ==
-      possibleReturns.end()) {
-    std::stringstream s;
-    s << "Allowed options are: ";
-    for (Index i = 0; i < Index(possibleReturns.size()); ++i) {
-      s << possibleReturns[i] << " ";
-    }
-    s << std::endl;
-    throw std::runtime_error(
-        s.str() + (boost::format("Error: %s is not allowed") % key).str());
-  }
-  return result;
-}
-
-template <typename T>
 inline T Property::getAttribute(
     std::map<std::string, std::string>::const_iterator it) const {
   if (it != attributes_.end()) {
@@ -364,6 +317,35 @@ inline void Property::setAttribute(const std::string &attribute,
                                    const T &value) {
   attributes_[attribute] =
       lexical_cast<std::string>(value, "wrong type to set attribute");
+}
+
+template <typename T>
+inline T Property::ifExistsReturnElseReturnDefault(const std::string &key,
+                                                   T defaultvalue) const {
+  T result;
+  if (this->exists(key)) {
+    result = this->get(key).as<T>();
+  } else {
+    result = defaultvalue;
+  }
+  return result;
+}
+
+template <class cond>
+void Property::deleteChildren(cond condition) {
+
+  properties_.erase(
+      std::remove_if(properties_.begin(), properties_.end(), condition),
+      properties_.end());
+
+  // rebuild map_
+  map_.clear();
+  Index index = 0;
+  for (const auto &prop : properties_) {
+    map_[prop.name()].push_back(index);
+    index++;
+  }
+  return;
 }
 
 }  // namespace tools

@@ -20,8 +20,6 @@
 
 // Third party includes
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/format.hpp>
 
 // Local VOTCA includes
 #include "votca/tools/application.h"
@@ -59,7 +57,6 @@ void Application::ShowHelpText(std::ostream &out) {
 
 int Application::Exec(int argc, char **argv) {
   try {
-    // continue_execution_ = true;
     AddProgramOptions()("help,h", "  display this help and exit");
     AddProgramOptions()("verbose", "  be loud and noisy");
     AddProgramOptions()("verbose1", "  be very loud and noisy");
@@ -95,7 +92,7 @@ int Application::Exec(int argc, char **argv) {
     if (continue_execution_) {
       Run();
     } else {
-      cout << "nothing to be done - stopping here\n";
+      cout << "Done - stopping here\n";
     }
   } catch (std::exception &error) {
     cerr << "an error occurred:\n" << error.what() << endl;
@@ -154,55 +151,6 @@ void Application::CheckRequired(const string &option_name,
     ShowHelpText(cout);
     throw std::runtime_error("missing argument " + option_name + "\n" +
                              error_msg);
-  }
-}
-
-void Application::PrintDescription(std::ostream &out,
-                                   const string &calculator_name,
-                                   const string help_path, HelpType help_type) {
-  boost::format format("%|3t|%1% %|20t|%2% \n");
-  string help_string;
-  boost::filesystem::path arg_path;
-  Property options;
-  // loading the documentation xml file from VOTCASHARE
-  string xmlFile = (arg_path / tools::GetVotcaShare() / help_path /
-                    (boost::format("%1%.%2%") % calculator_name % "xml").str())
-                       .string()
-                       .c_str();
-
-  try {
-
-    options.LoadFromXML(xmlFile);
-    Property &calculator_options = options.get("options." + calculator_name);
-    Property::AttributeIterator atr_it =
-        calculator_options.findAttribute("help");
-
-    if (atr_it != calculator_options.lastAttribute()) {
-      help_string = atr_it->second;
-    } else {
-      if (Log::current_level > 0) {
-        out << format % calculator_name % "Undocumented";
-      }
-      return;
-    }
-
-    switch (help_type) {
-      default:
-        break;
-      case HelpShort:  // short description of the calculator
-        out << format % calculator_name % help_string;
-        break;
-      case HelpLong:
-        votca::tools::PropertyIOManipulator iom(
-            votca::tools::PropertyIOManipulator::HLP, 2, "");
-        out << iom << options;
-        break;
-    }
-
-  } catch (std::exception &) {
-    if (Log::current_level > 0) {
-      out << format % calculator_name % "Undocumented";
-    }
   }
 }
 

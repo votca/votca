@@ -21,6 +21,8 @@ Version 2022-dev
 -  removed tex option (#372)
 -  made membervariable format consistent (#373)
 -  added AddTree to property (#374)
+-  added optionshandler (#375)
+-  made bool conversion more restrictive (#366)
 
 Version 2021.1 (released XX.03.21)
 ==================================
