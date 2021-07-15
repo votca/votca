@@ -5,7 +5,9 @@
     <max_iterations help="max iterations for qmmm scf loop">50</max_iterations>
     <map_file help="xml file with segment definition">system.xml</map_file>
     <job_file help="name of jobfile to which jobs are written">qmmm.jobs</job_file>
-    <io_states>n s1 t1</io_states>
+    <io_jobfile>
+    <states>n s1 t1</states>
+    </io_jobfile>
     <regions>
       <qmregion help="definition of a region">
         <id help="id of a region has to start from 0">0</id>
