@@ -1,0 +1,25 @@
+<topology>
+  <molecules>
+    <molecule name="Protein" nmols="1000" nbeads="3">
+      <bead name="A1" type="A" mass="43.089" q="0.0" />
+      <bead name="B1" type="B" mass="43.089" q="0.0" />
+      <bead name="A2" type="A" mass="43.089" q="0.0" />
+    </molecule>
+  </molecules>
+  <!-- bonded terms -->
+  <bonded>
+    <bond>
+      <name>bond</name>
+      <beads>
+        Protein:A1 Protein:B1
+        Protein:B1 Protein:A2
+      </beads>
+    </bond>
+    <angle>
+      <name>angle</name>
+      <beads>
+        Protein:A1 Protein:B1 Protein:A2
+      </beads>
+    </angle>
+  </bonded>
+</topology>
