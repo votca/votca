@@ -32,12 +32,12 @@ scheme_nr=$(( ( $step_nr - 1 ) % ${#scheme[@]} ))
 name=$(csg_get_interaction_property name)
 group=$(csg_get_interaction_property inverse.imc.group)
 
-if [[ $group == "none" ]] && [[ "${scheme[$scheme_nr]}" == 1 ]]; then
+if [[ $group == "none" ]] && [[ ${scheme[$scheme_nr]} == 1 ]]; then
     die_msg="for interaction $name the imc group is 'none' but\n"\
 "update_potential is non-zero. No imc update was calculated, so no update\n"\
 "can be made."
     die "$die_msg"
-elif [ "${scheme[$scheme_nr]}" = 1 ]; then
+elif [[ ${scheme[$scheme_nr]} == 1 ]]; then
   echo "Update potential ${name} : yes"
   kBT=$(csg_get_property cg.inverse.kBT)
   is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
