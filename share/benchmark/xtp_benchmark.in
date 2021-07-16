@@ -110,7 +110,7 @@ progargs.add_argument('-t', '--threads',
                       help='Number of OPENMP threads')
 
 progargs.add_argument('-c', '--cmdoptions', nargs="+",
-                      default="gwbse_engine.gwbse_options.gwbse.mode=G0W0",
+                      default="gwbse_engine.gwbse.gw.mode=G0W0",
                       help="Modify options for dftgwbse via command line by e.g. '-c xmltag.subtag=value'. Use whitespace to separate multiple options")
 
 progargs.add_argument('-r', '--run',
@@ -149,7 +149,6 @@ if HasGPUs:
                           type=int,
                           default=0,
                           help='Number of GPUs to use')
-
 
 OPTIONS = progargs.parse_args()
 

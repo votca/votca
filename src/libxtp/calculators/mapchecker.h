@@ -37,7 +37,7 @@ class MapChecker final : public QMCalculator {
 
   ~MapChecker() = default;
 
-  std::string Identify() { return "mapchecker"; }
+  std::string Identify() const { return "mapchecker"; }
   bool WriteToStateFile() const { return false; }
 
  protected:
@@ -141,7 +141,7 @@ std::string MapChecker::AddSteptoFilename(const std::string& filename,
   std::string base = tools::filesystem::GetFileBase(filename);
   std::string fileending = tools::filesystem::GetFileExtension(filename);
   std::string filename_comp =
-      base + " step__" + std::to_string(step) + "." + fileending;
+      base + "_step_" + std::to_string(step) + "." + fileending;
   return filename_comp;
 }
 

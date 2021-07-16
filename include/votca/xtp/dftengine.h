@@ -54,7 +54,6 @@ class DFTEngine {
   void setExternalcharges(
       std::vector<std::unique_ptr<StaticSite> >* externalsites) {
     externalsites_ = externalsites;
-    addexternalsites_ = true;
   }
 
   bool Evaluate(Orbitals& orb);
@@ -113,8 +112,6 @@ class DFTEngine {
   AOBasis auxbasis_;
   ECPAOBasis ecp_;
 
-  bool with_ecp_;
-
   Index fock_matrix_reset_;
   // Pre-screening
   double screening_eps_;
@@ -125,7 +122,6 @@ class DFTEngine {
   // AO Matrices
   AOOverlap dftAOoverlap_;
 
-  bool with_guess_;
   std::string initial_guess_;
 
   // Convergence
@@ -138,8 +134,7 @@ class DFTEngine {
   ERIs ERIs_;
 
   // external charges
-  std::vector<std::unique_ptr<StaticSite> >* externalsites_;
-  bool addexternalsites_ = false;
+  std::vector<std::unique_ptr<StaticSite> >* externalsites_ = nullptr;
 
   // exchange and correlation
   double ScaHFX_;

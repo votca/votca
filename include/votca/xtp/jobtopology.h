@@ -48,7 +48,8 @@ class JobTopology {
  public:
   JobTopology(Job& job, Logger& log, std::string workdir)
       : job_(job), log_(log), workdir_(workdir){};
-  void BuildRegions(const Topology& top, tools::Property options);
+  void BuildRegions(const Topology& top,
+                    std::pair<std::string, tools::Property> options);
 
   void WriteToHdf5(std::string filename) const;
 
@@ -80,29 +81,21 @@ class JobTopology {
 
  private:
   std::vector<std::vector<SegId> > PartitionRegions(
-      const std::vector<tools::Property*>& regions_def,
-      const Topology& top) const;
+      const tools::Property& regions_def, const Topology& top) const;
 
-  void CreateRegions(const tools::Property& options, const Topology& top,
+  void CreateRegions(const std::pair<std::string, tools::Property>& options,
+                     const Topology& top,
                      const std::vector<std::vector<SegId> >& region_seg_ids);
 
-  void UpdateFromJobfile(tools::Property& options,
-                         const tools::Property& job_opt,
-                         const std::vector<std::string>& paths) const;
-  std::vector<std::string> FindReplacePathsInOptions(
-      const tools::Property& options, std::string tag) const;
-  void ModifyOptionsByJobFile(std::vector<tools::Property*>& regions_def) const;
-  void UpdateFromJobfile(tools::Property& options,
-                         const tools::Property& job_opt,
-                         const std::string& tag) const;
+  void ModifyOptionsByJobFile(tools::Property& regions_def) const;
 
   template <class T>
   void ShiftPBC(const Topology& top, const Eigen::Vector3d& center,
                 T& mol) const;
 
-  void CheckEnumerationOfRegions(
-      const std::vector<tools::Property*>& regions_def) const;
-  void SortRegionsDefbyId(std::vector<tools::Property*>& regions_def) const;
+  void CheckEnumerationOfRegions(const tools::Property& regions_def) const;
+  std::vector<const tools::Property*> SortRegionsDefbyId(
+      const tools::Property& regions_def) const;
 
   Job& job_;
   Logger& log_;

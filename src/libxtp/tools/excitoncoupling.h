@@ -37,7 +37,7 @@ namespace xtp {
 
 class ExcitonCoupling final : public QMTool {
  public:
-  std::string Identify() { return "excitoncoupling"; }
+  std::string Identify() const { return "excitoncoupling"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);
@@ -70,8 +70,7 @@ void ExcitonCoupling::ParseOptions(const tools::Property& options) {
     mpsA_ = options.get(".mpsA").as<std::string>();
     mpsB_ = options.get(".mpsB").as<std::string>();
   }
-  output_file_ = options.ifExistsReturnElseReturnDefault<std::string>(
-      "output", job_name_ + " excitoncoupling_.xml");
+  output_file_ = job_name_ + "_excitoncoupling.xml";
 }
 
 bool ExcitonCoupling::Run() {

@@ -36,12 +36,10 @@ namespace votca {
 namespace xtp {
 using namespace std;
 
-void XTPDFT::Initialize(const tools::Property& options) {
-  const std::string job_name =
-      options.ifExistsReturnElseReturnDefault<std::string>("job_name", "votca");
+void XTPDFT::ParseSpecificOptions(const tools::Property& options) {
+  const std::string job_name = options.get("temporary_file").as<std::string>();
   log_file_name_ = job_name + ".orb";
   mo_file_name_ = log_file_name_;
-  xtpdft_options_ = ParseCommonOptions(options);
 }
 
 bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {
@@ -55,10 +53,10 @@ bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {
  */
 bool XTPDFT::RunDFT() {
   DFTEngine xtpdft;
-  xtpdft.Initialize(xtpdft_options_);
+  xtpdft.Initialize(options_);
   xtpdft.setLogger(pLog_);
 
-  if (settings_.get<bool>("write_charges")) {
+  if (!externalsites_.empty()) {
     xtpdft.setExternalcharges(&externalsites_);
   }
   bool success = xtpdft.Evaluate(orbitals_);

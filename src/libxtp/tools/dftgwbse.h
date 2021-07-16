@@ -37,7 +37,7 @@ class DftGwBse final : public QMTool {
 
   ~DftGwBse() = default;
 
-  std::string Identify() { return "dftgwbse"; }
+  std::string Identify() const { return "dftgwbse"; }
 
  protected:
   void ParseOptions(const tools::Property &user_options);
@@ -45,17 +45,11 @@ class DftGwBse final : public QMTool {
 
  private:
   std::string guess_file_;
-  bool do_guess_;
-
   std::string mpsfile_;
-  bool do_external_;
 
   std::string xyzfile_;
-  std::string xml_output_;  // .xml output
-  std::string package_;
+  std::string xml_output_;    // .xml output
   std::string archive_file_;  // .orb file to parse to
-  std::string guess_orbA_;
-  std::string guess_orbB_;
 
   tools::Property package_options_;
   tools::Property gwbseengine_options_;

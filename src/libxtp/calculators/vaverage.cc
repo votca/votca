@@ -31,7 +31,7 @@ void VAverage::ParseOptions(const tools::Property& options) {
 
   ratefile_ = options.get(".ratefile").as<std::string>();
   occfile_ = options.get(".occfile").as<std::string>();
-  outputfile_ = options.get(".outputfile").as<std::string>();
+  outputfile_ = options.get(".output").as<std::string>();
 }
 
 std::vector<double> VAverage::ReadOccfile(std::string filename) const {

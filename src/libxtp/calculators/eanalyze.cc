@@ -31,9 +31,9 @@ void EAnalyze::ParseOptions(const tools::Property &options) {
 
   states_ = options.get(".states").as<std::vector<QMStateType>>();
 
-  doenergy_landscape_ = options.get(".do_energy_landscape").as<bool>();
+  doenergy_landscape_ = options.get(".output_energy_landscape").as<bool>();
 
-  if (options.get(".do_distance_mode").as<bool>()) {
+  if (options.exists(".distancemode")) {
     std::string distancemode = options.get("distancemode").as<std::string>();
     if (distancemode == "centerofmass") {
       atomdistances_ = false;
@@ -92,7 +92,7 @@ bool EAnalyze::Evaluate(Topology &top) {
       PairHist(top, state);
     }
   }
-
+  std::cout << std::endl;
   return true;
 }
 

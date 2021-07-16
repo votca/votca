@@ -18,13 +18,15 @@
  */
 
 #pragma once
-#include <algorithm>
+
 #ifndef VOTCA_XTP_XTPAPPLICATION_H
 #define VOTCA_XTP_XTPAPPLICATION_H
 
 // Third party includes
+#include <algorithm>
 #include <votca/tools/application.h>
 #include <votca/tools/property.h>
+#include <votca/tools/propertyiomanipulator.h>
 
 namespace votca {
 namespace xtp {
@@ -37,7 +39,7 @@ class XtpApplication : public votca::tools::Application {
   void Initialize() final;
   bool EvaluateOptions() final;
   void Run() final;
-  void ShowHelpText(std::ostream& out) final;
+  void ShowHelpText(std::ostream &out) final;
 
  protected:
   virtual void execute() = 0;
@@ -47,14 +49,20 @@ class XtpApplication : public votca::tools::Application {
 
   virtual std::vector<std::string> CalculatorNames() const = 0;
 
-  virtual void CreateCalculator(const std::string& name) = 0;
+  virtual void CreateCalculator(const std::string &name) = 0;
 
   virtual void AddCommandLineOptions() = 0;
 
   votca::tools::Property options_;
 
  private:
-  bool CalcExists(const std::string& name) const {
+  void PrintShortHelp(std::ostream &out,
+                      const std::string &calculator_name) const;
+
+  void PrintLongHelp(std::ostream &out, const std::string &calculator_name,
+                     tools::PropertyIOManipulator::Type format) const;
+
+  bool CalcExists(const std::string &name) const {
     std::vector<std::string> names = CalculatorNames();
     return (std::find(names.begin(), names.end(), name) != names.end());
   }

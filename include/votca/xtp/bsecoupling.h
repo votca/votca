@@ -1,3 +1,4 @@
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -93,9 +94,9 @@ class BSECoupling : public CouplingBase {
   std::array<Eigen::MatrixXd, 2> JAB_singlet;
   std::array<Eigen::MatrixXd, 2> JAB_triplet;
 
-  bool doTriplets_ = false;
-  bool doSinglets_ = false;
-  bool output_perturbation_ = true;
+  bool doTriplets_;
+  bool doSinglets_;
+  bool output_perturbation_;
   Index levA_;
   Index levB_;
   Index occA_;

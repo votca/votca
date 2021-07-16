@@ -27,7 +27,7 @@ namespace xtp {
 
 double Energy_costfunction::EvaluateCost(const Eigen::VectorXd& parameters) {
   Vector2QMAtoms(parameters, orbitals_.QMAtoms());
-  gwbse_engine_.setRedirectLogger(true);
+  gwbse_engine_.setLoggerFile("");
   std::string logger_file;
   if (iteration_ == 0) {
     logger_file =
@@ -39,7 +39,6 @@ double Energy_costfunction::EvaluateCost(const Eigen::VectorXd& parameters) {
   }
   gwbse_engine_.setLoggerFile(logger_file);
   gwbse_engine_.ExcitationEnergies(orbitals_);
-  gwbse_engine_.setRedirectLogger(false);
   energy_ = orbitals_.getTotalStateEnergy(
       tracker_.CalcStateAndUpdate(orbitals_));  // in Hartree
   return energy_;

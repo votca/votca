@@ -36,7 +36,7 @@ void Spectrum::ParseOptions(const tools::Property& options) {
 
   // orbitals file or pure DFT output
   orbfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".orbitals", job_name_ + ".orb");
+      ".input", job_name_ + ".orb");
 
   output_file_ = options.ifExistsReturnElseReturnDefault<std::string>(
       ".output", job_name_ + "_spectrum.dat");

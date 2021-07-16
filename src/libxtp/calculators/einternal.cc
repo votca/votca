@@ -26,15 +26,16 @@ namespace xtp {
 
 void EInternal::ParseOptions(const tools::Property &options) {
 
-  energiesXML_ = options.get(".energiesXML").as<std::string>();
+  energies_file_ = options.get(".energies_file").as<std::string>();
 }
 
 void EInternal::ParseEnergies() {
 
-  std::cout << "\n... ... Site, reorg. energies from " << energiesXML_ << ".\n";
+  std::cout << "\n... ... Site, reorg. energies from " << energies_file_
+            << ".\n";
 
   tools::Property alloc;
-  alloc.LoadFromXML(energiesXML_);
+  alloc.LoadFromXML(energies_file_);
 
   std::string key = "topology.molecules.molecule";
   std::vector<tools::Property *> mols = alloc.Select(key);

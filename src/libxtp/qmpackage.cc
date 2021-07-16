@@ -32,32 +32,17 @@ namespace votca {
 namespace xtp {
 using std::flush;
 
-tools::Property QMPackage::ParseCommonOptions(const tools::Property& options) {
+void QMPackage::Initialize(const tools::Property& options) {
+  charge_ = options.get("charge").as<Index>();
+  spin_ = options.get("spin").as<Index>();
+  basisset_name_ = options.get("basisset").as<std::string>();
 
-  std::string key = "package";
-  settings_.read_property(options, key);
+  cleanup_ = options.get("cleanup").as<std::string>();
+  scratch_dir_ = options.get("scratch").as<std::string>();
 
-  if (tools::VotcaShareSet()) {
-    Settings qmpackage_defaults{key};
-    qmpackage_defaults.load_from_xml(this->FindDefaultsFile());
-    settings_.amend(qmpackage_defaults);
-  } else {
-    std::cout << "Warning: VOTCASHARE environment variable not defined\n";
-  }
-  settings_.validate();
+  options_ = options;
 
-  charge_ = settings_.get<Index>("charge");
-  spin_ = settings_.get<Index>("spin");
-  basisset_name_ = settings_.get("basisset");
-
-  if (settings_.has_key("cleanup")) {
-    cleanup_ = settings_.get("cleanup");
-  }
-
-  if (getPackageName() != "xtp") {
-    scratch_dir_ = settings_.get("scratch");
-  }
-  return settings_.to_property("package");
+  ParseSpecificOptions(options);
 }
 
 bool QMPackage::Run() {
@@ -113,8 +98,8 @@ std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
 
   std::vector<QMPackage::MinimalMMCharge> multipoles_split;
   // Calculate virtual charge positions
-  double a = settings_.get<double>("dipole_spacing");  // this is in a0
-  double mag_d = aps.getDipole().norm();               // this is in e * a0
+  double a = options_.get("dipole_spacing").as<double>();  // this is in a0
+  double mag_d = aps.getDipole().norm();                   // this is in e * a0
   const Eigen::Vector3d dir_d = aps.getDipole().normalized();
   const Eigen::Vector3d A = aps.getPos() + 0.5 * a * dir_d;
   const Eigen::Vector3d B = aps.getPos() - 0.5 * a * dir_d;
@@ -149,10 +134,6 @@ std::vector<std::string> QMPackage::GetLineAndSplit(
   tools::getline(input_file, line);
   boost::trim(line);
   return tools::Tokenizer(line, separators).ToVector();
-}
-
-std::string QMPackage::FindDefaultsFile() const {
-  return tools::GetVotcaShare() + "/xtp/data/qmpackage_defaults.xml";
 }
 
 }  // namespace xtp
