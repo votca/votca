@@ -109,12 +109,13 @@ def get_root_children(file_name: Path) -> List[ET.Element]:
 
 def resolve_links(file_name: Path, elem: ET.Element):
     if "link" in elem.attrib:
-        link = elem.attrib.get("link")
-        package_path = file_name.parent/"subpackages"/link
-        tree = ET.parse(package_path)
-        root = tree.getroot()
-        for child in root:
-            elem.append(child)
+        links = elem.attrib.get("link").split(" ,")
+        for link in links:
+            package_path = file_name.parent/"subpackages"/link
+            tree = ET.parse(package_path)
+            root = tree.getroot()
+            for child in root:
+                elem.append(child)
     for child in elem:
         resolve_links(file_name, child)
 
