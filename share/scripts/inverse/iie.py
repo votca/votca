@@ -237,6 +237,7 @@ def get_densities(topol_xml, volume):
     densities = defaultdict(lambda: 0.0)
     for molecule in topol_xml.find('molecules').findall('molecule'):
         for bead in molecule.findall('bead'):
+            print(int(molecule.attrib['nmols']), volume)
             densities[bead.attrib['type']] += int(molecule.attrib['nmols']) / volume
     densities = dict(densities)
     return densities
@@ -309,7 +310,13 @@ def calc_c(r, g_tgt, G_minus_g, n, rho):
 def calc_c_matrix(r, omega, h_hat_mat, G_minus_g_hat_mat, rho_mat):
     """Calculate the direct correlation function c(r) from g(r)."""
     # Omega_hat_mat
-    Omega_hat_mat = G_minus_g_hat_mat + np.identity(G_minus_g_hat_mat.shape[1])
+    # TODO: figure out density factor here!
+    #       see https://cbp.tnw.utwente.nl/PolymeerDictaat/node16.html
+    #       I think Omega is actually non-symmetric in some cases!
+    # TODO: figure out diagonal here, for e.g. symmetric naphtalene
+    #       I think the original formula assumes every atom is unique
+    Omega_hat_mat = (rho_mat * G_minus_g_hat_mat
+                     + np.identity(G_minus_g_hat_mat.shape[1]))
     # direct correlation function c from OZ
     c_hat_mat = np.linalg.inv(Omega_hat_mat) @ h_hat_mat @ np.linalg.inv(
         (Omega_hat_mat + rho_mat * h_hat_mat))
@@ -506,12 +513,14 @@ def calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat, kBT, c
     """
     # calculate direct correlation function
     c_mat = calc_c_matrix(r, omega, h_hat_mat, G_minus_g_hat_mat, rho_mat)
-    np.savez_compressed('/tmp/u_mat.npz', c_mat=c_mat)
+    np.savez_compressed('/tmp/c_mat.npz', c_mat=c_mat)
     with np.errstate(divide='ignore', invalid='ignore'):
         if closure == 'hnc':
             U_mat = kBT * (-np.log(g_mat) + (g_mat - 1) - c_mat)
         elif closure == 'py':
             U_mat = kBT * np.log(1 - c_mat/g_mat)
+    np.savez_compressed('/tmp/U_mat.npz', U_mat=U_mat, g_mat=g_mat, h_mat=(g_mat - 1),
+                        c_mat=c_mat)
     return U_mat
 
 

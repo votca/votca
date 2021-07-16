@@ -94,8 +94,12 @@ if [[ $use_bi == true ]]; then
     do_external initial_guess_single bi
 elif [[ $use_table == true ]]; then
     do_external initial_guess_single table
-elif [[ $table_overwrite == true && $table_present == true ]]; then
-    do_external initial_guess_single table
+elif [[ $table_overwrite == true ]]; then
+    if [[ $table_present == true ]]; then
+        msg "there is a table ${name}.pot.in present, gonna use it"
+        do_external initial_guess_single table
+    fi
+    # if no table present ignore with --table-overwrite
 else
     # this is the old default behaviour
     if [[ $table_present == true ]]; then
