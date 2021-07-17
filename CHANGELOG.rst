@@ -45,6 +45,7 @@ Version 2022-dev
 -  disable codeql check in GitHub Actions (#720)
 -  replace std::vector by Eigen::Array<bool,..> (#719)
 -  overhaul complete option handling (#704)
+-  Fixed exciton options checking (#726)
 
 Version 2021.1 (released XX.03.21)
 ==================================
