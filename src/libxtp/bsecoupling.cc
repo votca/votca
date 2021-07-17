@@ -273,84 +273,73 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
       << TimeStamp() << "   molecule B has " << bseB_triplet_exc
       << " triplet excitons with dimension " << bseB_size << flush;
 
-  if (levA_ > bseA_singlet_exc) {
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << "  Number of excitons you want is greater than stored for molecule "
-           "A. Setting to max number available"
-        << flush;
-    levA_ = bseA_singlet_exc;
+  if (doSinglets_) {
+    if (levA_ > bseA_singlet_exc) {
+      XTP_LOG(Log::error, *pLog_) << TimeStamp()
+                                  << "  Number of excitons you want is greater "
+                                     "than stored for molecule "
+                                     "A. Setting to max number available"
+                                  << flush;
+      levA_ = bseA_singlet_exc;
+    }
+    if (levB_ > bseB_singlet_exc) {
+      XTP_LOG(Log::error, *pLog_) << TimeStamp()
+                                  << "  Number of excitons you want is greater "
+                                     "than stored for molecule "
+                                     "B. Setting to max number available"
+                                  << flush;
+      levB_ = bseB_singlet_exc;
+    }
   }
-  if (levB_ > bseB_singlet_exc) {
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << "  Number of excitons you want is greater than stored for molecule "
-           "B. Setting to max number available"
-        << flush;
-    levB_ = bseB_singlet_exc;
+  if (doTriplets_) {
+    if (levA_ > bseA_triplet_exc) {
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp()
+          << "  Number of Frenkel states you want is greater than stored for "
+             "molecule A. Setting to max number available"
+          << flush;
+      levA_ = bseA_triplet_exc;
+    }
+    if (levB_ > bseB_triplet_exc) {
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp()
+          << "  Number of Frenkel states you want is greater than stored for "
+             "molecule B. Setting to max number available"
+          << flush;
+      levB_ = bseB_triplet_exc;
+    }
   }
-
-  if (levA_ > bseA_singlet_exc) {
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << "  Number of Frenkel states you want is greater than stored for "
-           "molecule A. Setting to max number available"
-        << flush;
-    levA_ = bseA_singlet_exc;
-  }
-  if (levB_ > bseB_singlet_exc) {
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << "  Number of Frenkel states you want is greater than stored for "
-           "molecule B. Setting to max number available"
-        << flush;
-    levB_ = bseB_singlet_exc;
-  }
-
-  if (unoccA_ > bseA_ctotal) {
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << "  Number of occupied orbitals in molecule A for CT creation "
-           "exceeds number of KS-orbitals in BSE"
-        << flush;
-    unoccA_ = bseA_ctotal;
-  } else if (unoccA_ < 0) {
-    unoccA_ = bseA_ctotal;
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << "  Number of occupied orbitals in molecule B for CT creation "
-           "exceeds number of KS-orbitals in BSE"
-        << flush;
-  }
-  if (unoccB_ > bseB_ctotal) {
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << "  Number of occupied orbitals in molecule B for CT creation "
-           "exceeds number of KS-orbitals in BSE"
-        << flush;
-    unoccB_ = bseB_ctotal;
-  } else if (unoccB_ < 0) {
-    unoccB_ = bseB_ctotal;
-  }
-
-  if (occA_ > bseA_vtotal) {
+  if (unoccA_ > bseA_ctotal || unoccA_ < 0) {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp()
         << "  Number of unoccupied orbitals in molecule A for CT creation "
            "exceeds number of KS-orbitals in BSE"
         << flush;
-    occA_ = bseA_vtotal;
-  } else if (occA_ < 0) {
-    occA_ = bseA_vtotal;
+    unoccA_ = bseA_ctotal;
   }
-  if (occB_ > bseB_vtotal) {
+  if (unoccB_ > bseB_ctotal || unoccB_ < 0) {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp()
         << "  Number of unoccupied orbitals in molecule B for CT creation "
            "exceeds number of KS-orbitals in BSE"
         << flush;
-    occB_ = bseB_vtotal;
-  } else if (occB_ < 0) {
+    unoccB_ = bseB_ctotal;
+  }
+
+  if (occA_ > bseA_vtotal || occA_ < 0) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << "  Number of occupied orbitals in molecule A for CT creation "
+           "exceeds number of KS-orbitals in BSE"
+        << flush;
+    occA_ = bseA_vtotal;
+  }
+  if (occB_ > bseB_vtotal || occB_ < 0) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << "  Number of occupied orbitals in molecule B for CT creation "
+           "exceeds number of KS-orbitals in BSE"
+        << flush;
     occB_ = bseB_vtotal;
   }
 
