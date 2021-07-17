@@ -19,6 +19,7 @@
 #define VOTCA_TOOLS_TOKENIZER_H
 
 // Standard includes
+#include <boost/algorithm/string/case_conv.hpp>
 #include <string>
 #include <vector>
 
@@ -51,10 +52,12 @@ inline T convert_impl(const std::string &s, type<T>) {
 }
 
 inline bool convert_impl(const std::string &s, type<bool>) {
-  if (s == "true" || s == "TRUE" || s == "1") {
+  if (boost::to_lower_copy(s) == "true" || s == "1") {
     return true;
-  } else {
+  } else if (boost::to_lower_copy(s) == "false" || s == "0") {
     return false;
+  } else {
+    throw std::runtime_error("'" + s + "' cannot be converted to bool.");
   }
 }
 
@@ -79,9 +82,9 @@ class Tokenizer {
    * interface or directly transferred to a vector ToVector of ConvertToVector.
    */
 
-  Tokenizer(const std::string &str, const char *separators) : _str(str) {
+  Tokenizer(const std::string &str, const char *separators) : str_(str) {
     boost::char_separator<char> sep(separators);
-    tok_ = std::make_unique<boost::tokenizer<boost::char_separator<char>>>(_str,
+    tok_ = std::make_unique<boost::tokenizer<boost::char_separator<char>>>(str_,
                                                                            sep);
   }
   Tokenizer(const std::string &str, const std::string &separators)
@@ -113,7 +116,7 @@ class Tokenizer {
 
  private:
   std::unique_ptr<boost::tokenizer<boost::char_separator<char>>> tok_;
-  std::string _str;
+  std::string str_;
 };
 
 // Matches a string against a wildcard string such as &quot;*.*&quot; or

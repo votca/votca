@@ -18,6 +18,12 @@ Version 2022-dev
 -  properties can be removed and string conversion much improved (#365)
 -  link against MKL:RT to support pyxtp (#349
 -  adapted tokenizer api (#367)
+-  improve mkl linkage and threading backend selection (#371)
+-  removed tex option (#372)
+-  made membervariable format consistent (#373)
+-  added AddTree to property (#374)
+-  added optionshandler (#375)
+-  made bool conversion more restrictive (#366)
 
 Version 2021.1 (released XX.03.21)
 ==================================

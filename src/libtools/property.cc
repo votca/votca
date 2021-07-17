@@ -31,6 +31,7 @@
 #include <boost/format.hpp>
 #include <expat.h>
 #include <unistd.h>
+#include <vector>
 
 // Local VOTCA includes
 #include "votca/tools/colors.h"
@@ -56,11 +57,11 @@ const Property &Property::get(const string &key) const {
   if (*n == "") {
     p = this;
   } else {
-    iter = _map.find(*n);
-    if (iter == _map.end()) {
+    iter = map_.find(*n);
+    if (iter == map_.end()) {
       throw std::runtime_error("property not found: " + key);
     }
-    p = &_properties[iter->second.back()];
+    p = &properties_[iter->second.back()];
   }
   ++n;
   try {
@@ -85,23 +86,37 @@ Property &Property::set(const std::string &key, const std::string &value) {
   return p;
 }
 
+Property &Property::addTree(const std::string &key, const std::string &value) {
+  return addTree(Tokenizer(key, ".").ToVector(), value);
+}
+
+Property &Property::addTree(const std::vector<std::string> &key,
+                            const std::string &value) {
+
+  if (key.size() == 1) {
+    return add(key[0], value);
+  } else {
+    std::vector<std::string> subkey(key.begin() + 1, key.end());
+    if (this->exists(key[0])) {
+      return this->get(key[0]).addTree(subkey, value);
+    } else {
+      return this->add(key[0], "").addTree(subkey, value);
+    }
+  }
+}
+
 Property &Property::add(const std::string &key, const std::string &value) {
-  std::string path = _path;
+  std::string path = path_;
   if (path != "") {
     path = path + ".";
   }
-  _properties.push_back(Property(key, value, path + _name));
-  _map[key].push_back(Index(_properties.size()) - 1);
-  return _properties.back();
+  properties_.push_back(Property(key, value, path + name_));
+  map_[key].push_back(Index(properties_.size()) - 1);
+  return properties_.back();
 }
 
 bool Property::hasAttribute(const std::string &attribute) const {
-  std::map<std::string, std::string>::const_iterator it;
-  it = _attributes.find(attribute);
-  if (it == _attributes.end()) {
-    return false;
-  }
-  return true;
+  return attributes_.find(attribute) != attributes_.end();
 }
 
 bool Property::exists(const std::string &key) const {
@@ -124,24 +139,25 @@ void FixPath(tools::Property &prop, std::string path) {
   }
 }
 
-void Property::add(const Property &other) {
+Property &Property::add(const Property &other) {
 
-  _properties.push_back(other);
-  _map[other.name()].push_back((_properties.size()) - 1);
+  properties_.push_back(other);
+  map_[other.name()].push_back((properties_.size()) - 1);
 
-  std::string path = _path;
+  std::string path = path_;
   if (path != "") {
     path += ".";
   }
-  path += _name;
-  FixPath(_properties.back(), path);
+  path += name_;
+  FixPath(properties_.back(), path);
+  return properties_.back();
 }
 
 Property &Property::getOradd(const std::string &key) {
   if (exists(key)) {
     return get(key);
   } else {
-    return add(key, "");
+    return addTree(key, "");
   }
 }
 
@@ -153,15 +169,15 @@ std::vector<const Property *> Property::Select(const string &filter) const {
   }
   selection.push_back(this);
   for (const auto &n : tok) {
-    std::vector<const Property *> childs;
+    std::vector<const Property *> selected;
     for (const Property *p : selection) {
-      for (const Property &s : p->_properties) {
-        if (wildcmp(n, s.name())) {
-          childs.push_back(&s);
+      for (const Property &child : *p) {
+        if (wildcmp(n, child.name())) {
+          selected.push_back(&child);
         }
       }
     }
-    selection = childs;
+    selection = selected;
   }
   return selection;
 }
@@ -174,48 +190,21 @@ std::vector<Property *> Property::Select(const string &filter) {
   }
   selection.push_back(this);
   for (const auto &n : tok) {
-    std::vector<Property *> childs;
+    std::vector<Property *> selected;
     for (Property *p : selection) {
-      for (Property &s : p->_properties) {
-        if (wildcmp(n, s.name())) {
-          childs.push_back(&s);
+      for (Property &child : *p) {
+        if (wildcmp(n, child.name())) {
+          selected.push_back(&child);
         }
       }
     }
-    selection = childs;
+    selection = selected;
   }
   return selection;
 }
 
-void Property::deleteChild(Property *child) {
-  // only works for std::vector
-  ptrdiff_t index_of_child = std::distance(_properties.data(), child);
-  assert(&_properties[index_of_child] == child &&
-         "You changed the containertype for property, fix deleteChild");
-  const Property &prop = _properties[index_of_child];
-  std::vector<Index> &indices = _map.at(prop.name());
-
-  // erase index from map, if only one element in indeces remove the tag
-  if (indices.size() == 1) {
-    _map.erase(prop.name());
-  } else {
-    indices.erase(std::remove(indices.begin(), indices.end(), index_of_child),
-                  indices.end());
-  }
-
-  // if child is not the last element we have to do two things, a) switch the
-  // child with the last element and b) update the index of the former last
-  // element
-  if (child != &_properties.back()) {
-    Index old_index = _properties.size() - 1;
-    std::vector<Index> &indices_last = _map.at(_properties.back().name());
-    auto place = std::find(indices_last.begin(), indices_last.end(), old_index);
-    *place = index_of_child;
-    std::swap(_properties[index_of_child], _properties.back());
-  }
-  _properties.pop_back();
-
-  return;
+void Property::deleteAttribute(const std::string &attribute) {
+  attributes_.erase(attribute);
 }
 
 static void start_hndl(void *data, const char *el, const char **attr) {
@@ -389,8 +378,7 @@ void PrintNodeHLP(std::ostream &out, const Property &p,
                   const Index start_level = 0, Index level = 0,
                   const string &prefix = "", const string &offset = "") {
 
-  using ColorRGB = Color<csRGB>;  // use the RGB palette
-  ColorRGB RGB;                   // Instance of an RGB palette
+  Color<csRGB> RGB;  // Using RGB palette
   string fmt = "t|%1%%|15t|" + string(RGB.Blue()) + "%2%" +
                string(RGB.Green()) + "%|40t|%3%%|55t|" + string(RGB.Reset()) +
                "%4%\n";

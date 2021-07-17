@@ -183,14 +183,27 @@ BOOST_AUTO_TEST_CASE(deleteproperty) {
   Property& bye = two.add("bye", "1");
   bye.add("hello", "5");
 
-  two.deleteChild(&bye);
+  two.deleteChildren([](const Property& p) { return p.name() == "bye"; });
   BOOST_CHECK(!two.exists("bye"));
   BOOST_CHECK(two.exists("goodbye"));
-
-  Property& goodbye1 = two.get("goodbye");
-  two.deleteChild(&goodbye1);
+  two.deleteChildren([](const Property& p) {
+    return p.name() == "goodbye" && p.as<votca::Index>() == 4;
+  });
   // there is still another goodbye tag
   BOOST_CHECK(two.exists("goodbye"));
+  BOOST_CHECK(two.get("goodbye").as<votca::Index>() == 3);
+}
+
+BOOST_AUTO_TEST_CASE(addTree) {
+
+  Property two("two", "", "");
+  two.addTree("a.b.c", "3");
+  BOOST_CHECK(two.exists("a.b.c"));
+
+  Property three("two", "", "");
+  three.add("a", "");
+  three.addTree("a.b.c", "3");
+  BOOST_CHECK(three.exists("a.b.c"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

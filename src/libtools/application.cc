@@ -20,8 +20,6 @@
 
 // Third party includes
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/format.hpp>
 
 // Local VOTCA includes
 #include "votca/tools/application.h"
@@ -35,8 +33,7 @@
 namespace votca {
 namespace tools {
 using namespace std;
-Application::Application()
-    : _op_desc("Allowed options"), _continue_execution(true) {}
+Application::Application() : op_desc_("Allowed options") {}
 
 Application::~Application() = default;
 
@@ -60,13 +57,10 @@ void Application::ShowHelpText(std::ostream &out) {
 
 int Application::Exec(int argc, char **argv) {
   try {
-    //_continue_execution = true;
     AddProgramOptions()("help,h", "  display this help and exit");
     AddProgramOptions()("verbose", "  be loud and noisy");
     AddProgramOptions()("verbose1", "  be very loud and noisy");
     AddProgramOptions()("verbose2,v", "  be extremly loud and noisy");
-    AddProgramOptions("Hidden")("man", "  output man-formatted manual pages");
-    AddProgramOptions("Hidden")("tex", "  output tex-formatted manual pages");
 
     Initialize();  // initialize program-specific parameters
 
@@ -74,18 +68,18 @@ int Application::Exec(int argc, char **argv) {
                      argv);  // initialize general parameters & read input file
 
     Log::current_level = Log::error;
-    if (_op_vm.count("verbose")) {
+    if (op_vm_.count("verbose")) {
       Log::current_level = Log::warning;
     }
-    if (_op_vm.count("verbose1")) {
+    if (op_vm_.count("verbose1")) {
       Log::current_level = Log::info;
     }
 
-    if (_op_vm.count("verbose2")) {
+    if (op_vm_.count("verbose2")) {
       Log::current_level = Log::debug;
     }
 
-    if (_op_vm.count("help")) {
+    if (op_vm_.count("help")) {
       ShowHelpText(cout);
       return 0;
     }
@@ -95,10 +89,10 @@ int Application::Exec(int argc, char **argv) {
       return -1;
     }
 
-    if (_continue_execution) {
+    if (continue_execution_) {
       Run();
     } else {
-      cout << "nothing to be done - stopping here\n";
+      cout << "Done - stopping here\n";
     }
   } catch (std::exception &error) {
     cerr << "an error occurred:\n" << error.what() << endl;
@@ -111,41 +105,41 @@ boost::program_options::options_description_easy_init
     Application::AddProgramOptions(const string &group) {
   // if no group is given, add it to standard options
   if (group == "") {
-    return _op_desc.add_options();
+    return op_desc_.add_options();
   }
 
   // does group already exist, if yes, add it there
-  std::map<string, boost::program_options::options_description>::iterator iter;
-  iter = _op_groups.find(group);
-  if (iter != _op_groups.end()) {
+  std::map<string, boost::program_options::options_description>::iterator iter =
+      op_groups_.find(group);
+  if (iter != op_groups_.end()) {
     return iter->second.add_options();
   }
 
   // no group with given name was found -> create group
-  _op_groups.insert(
+  op_groups_.insert(
       make_pair(group, boost::program_options::options_description(group)));
 
-  return _op_groups[group].add_options();
+  return op_groups_[group].add_options();
 }
 
 void Application::ParseCommandLine(int argc, char **argv) {
   namespace po = boost::program_options;
 
   // default options should be added to visible (the rest is handled via a map))
-  _visible_options.add(_op_desc);
+  visible_options_.add(op_desc_);
 
   // add all categories to list of available options
-  for (const auto &pair : _op_groups) {
-    _op_desc.add(pair.second);
+  for (const auto &pair : op_groups_) {
+    op_desc_.add(pair.second);
     if (pair.first != "Hidden") {
-      _visible_options.add(pair.second);
+      visible_options_.add(pair.second);
     }
   }
 
   // parse the command line
   try {
-    po::store(po::parse_command_line(argc, argv, _op_desc), _op_vm);
-    po::notify(_op_vm);
+    po::store(po::parse_command_line(argc, argv, op_desc_), op_vm_);
+    po::notify(op_vm_);
   } catch (boost::program_options::error &err) {
     throw runtime_error(string("error parsing command line: ") + err.what());
   }
@@ -153,59 +147,10 @@ void Application::ParseCommandLine(int argc, char **argv) {
 
 void Application::CheckRequired(const string &option_name,
                                 const string &error_msg) {
-  if (!_op_vm.count(option_name)) {
+  if (!op_vm_.count(option_name)) {
     ShowHelpText(cout);
     throw std::runtime_error("missing argument " + option_name + "\n" +
                              error_msg);
-  }
-}
-
-void Application::PrintDescription(std::ostream &out,
-                                   const string &calculator_name,
-                                   const string help_path, HelpType help_type) {
-  boost::format _format("%|3t|%1% %|20t|%2% \n");
-  string help_string;
-  boost::filesystem::path arg_path;
-  Property options;
-  // loading the documentation xml file from VOTCASHARE
-  string xmlFile = (arg_path / tools::GetVotcaShare() / help_path /
-                    (boost::format("%1%.%2%") % calculator_name % "xml").str())
-                       .string()
-                       .c_str();
-
-  try {
-
-    options.LoadFromXML(xmlFile);
-    Property &calculator_options = options.get("options." + calculator_name);
-    Property::AttributeIterator atr_it =
-        calculator_options.findAttribute("help");
-
-    if (atr_it != calculator_options.lastAttribute()) {
-      help_string = (*atr_it).second;
-    } else {
-      if (Log::current_level > 0) {
-        out << _format % calculator_name % "Undocumented";
-      }
-      return;
-    }
-
-    switch (help_type) {
-      default:
-        break;
-      case HelpShort:  // short description of the calculator
-        out << _format % calculator_name % help_string;
-        break;
-      case HelpLong:
-        votca::tools::PropertyIOManipulator iom(
-            votca::tools::PropertyIOManipulator::HLP, 2, "");
-        out << iom << options;
-        break;
-    }
-
-  } catch (std::exception &) {
-    if (Log::current_level > 0) {
-      out << _format % calculator_name % "Undocumented";
-    }
   }
 }
 

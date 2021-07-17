@@ -26,8 +26,17 @@ target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options Eig
 	Boost::filesystem Boost::system EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
 if(MKL_FOUND)
   target_link_libraries(votca_tools PUBLIC MKL::RT)
+  # https://software.intel.com/en-us/articles/symbol-lookup-error-when-linking-intel-mkl-with-gcc-on-ubuntu
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_options(votca_tools PUBLIC "-Wl,--no-as-needed")
+  endif()
   install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindMKL.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 endif()
+
+if(OpenMP_FOUND)
+  target_link_libraries(votca_tools PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
 if(FFTW3_FOUND)
   # fftw3.h gets included in our public eigen.h through Eigen/FFT
   target_link_libraries(votca_tools PUBLIC FFTW3::fftw3)

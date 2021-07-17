@@ -39,7 +39,7 @@ namespace tools {
         x_i \le x < x_{i+1}\,,\\
         h_i = x_{i+1} - x_{i}
     \f]
-    The \f$f_i\,,\,,f''_i\f$ are the function values and second derivates
+    The \f$f_i\,,\,,f'' i_\f$ are the function values and second derivates
     at point \f$x_i\f$.
 
     The parameters \f$f''_i\f$ are no free parameters, they are determined by
@@ -79,8 +79,8 @@ class CubicSpline : public Spline {
 
   // set spline parameters to values that were externally computed
   void setSplineData(const Eigen::VectorXd &f, const Eigen::VectorXd &f2) {
-    _f = f;
-    _f2 = f2;
+    f_ = f;
+    f2_ = f2;
   }
 
   /**
@@ -140,11 +140,11 @@ class CubicSpline : public Spline {
 
  private:
   // y values of grid points
-  Eigen::VectorXd _f;
+  Eigen::VectorXd f_;
   // second derivatives of grid points
-  Eigen::VectorXd _f2;
+  Eigen::VectorXd f2_;
   // A spline can be written in the form
-  // S_i(x) =   A(x,x_i,x_i+1)*f_i     + B(x,x_i,x_i+1)*f''_i
+  // S_i(x) =   A(x,x_i,x_i+1)*f_i     + B(x,x_i,x_i+1)*f'' i_
   //          + C(x,x_i,x_i+1)*f_{i+1} + D(x,x_i,x_i+1)*f''_{i+1}
   double A(double r);
   double B(double r);
@@ -173,8 +173,8 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, Index offset1,
   Index spi = getInterval(x);
   M(offset1, offset2 + spi) += A(x) * scale;
   M(offset1, offset2 + spi + 1) += B(x) * scale;
-  M(offset1, offset2 + spi + _r.size()) += C(x) * scale;
-  M(offset1, offset2 + spi + _r.size() + 1) += D(x) * scale;
+  M(offset1, offset2 + spi + r_.size()) += C(x) * scale;
+  M(offset1, offset2 + spi + r_.size() + 1) += D(x) * scale;
 }
 
 // for adding f'(x)*scale1 + f(x)*scale2 as needed for threebody interactions
@@ -185,8 +185,8 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, Index offset1,
   Index spi = getInterval(x);
   M(offset1, offset2 + spi) += Aprime(x) * scale1;
   M(offset1, offset2 + spi + 1) += Bprime(x) * scale1;
-  M(offset1, offset2 + spi + _r.size()) += Cprime(x) * scale1;
-  M(offset1, offset2 + spi + _r.size() + 1) += Dprime(x) * scale1;
+  M(offset1, offset2 + spi + r_.size()) += Cprime(x) * scale1;
+  M(offset1, offset2 + spi + r_.size() + 1) += Dprime(x) * scale1;
 
   AddToFitMatrix(M, x, offset1, offset2, scale2);
 }
@@ -198,62 +198,62 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, vector_type &x,
     Index spi = getInterval(x(i));
     M(offset1 + i, offset2 + spi) = A(x(i));
     M(offset1 + i, offset2 + spi + 1) = B(x(i));
-    M(offset1 + i, offset2 + spi + _r.size()) = C(x(i));
-    M(offset1 + i, offset2 + spi + _r.size() + 1) = D(x(i));
+    M(offset1 + i, offset2 + spi + r_.size()) = C(x(i));
+    M(offset1 + i, offset2 + spi + r_.size() + 1) = D(x(i));
   }
 }
 
 template <typename matrix_type>
 inline void CubicSpline::AddBCSumZeroToFitMatrix(matrix_type &M, Index offset1,
                                                  Index offset2) {
-  for (Index i = 0; i < _r.size(); ++i) {
+  for (Index i = 0; i < r_.size(); ++i) {
     M(offset1, offset2 + i) = 1;
-    M(offset1, offset2 + _r.size() + i) = 0;
+    M(offset1, offset2 + r_.size() + i) = 0;
   }
 }
 
 template <typename matrix_type>
 inline void CubicSpline::AddBCToFitMatrix(matrix_type &M, Index offset1,
                                           Index offset2) {
-  for (Index i = 0; i < _r.size() - 2; ++i) {
+  for (Index i = 0; i < r_.size() - 2; ++i) {
     M(offset1 + i + 1, offset2 + i) = A_prime_l(i);
     M(offset1 + i + 1, offset2 + i + 1) = B_prime_l(i) - A_prime_r(i);
     M(offset1 + i + 1, offset2 + i + 2) = -B_prime_r(i);
 
-    M(offset1 + i + 1, offset2 + _r.size() + i) = C_prime_l(i);
-    M(offset1 + i + 1, offset2 + _r.size() + i + 1) =
+    M(offset1 + i + 1, offset2 + r_.size() + i) = C_prime_l(i);
+    M(offset1 + i + 1, offset2 + r_.size() + i + 1) =
         D_prime_l(i) - C_prime_r(i);
-    M(offset1 + i + 1, offset2 + _r.size() + i + 2) = -D_prime_r(i);
+    M(offset1 + i + 1, offset2 + r_.size() + i + 2) = -D_prime_r(i);
   }
-  switch (_boundaries) {
+  switch (boundaries_) {
     case splineNormal:
-      M(offset1, offset2 + _r.size()) = 1;
-      M(offset1 + _r.size() - 1, offset2 + 2 * _r.size() - 1) = 1;
+      M(offset1, offset2 + r_.size()) = 1;
+      M(offset1 + r_.size() - 1, offset2 + 2 * r_.size() - 1) = 1;
       break;
     case splineDerivativeZero:
       // y
       M(offset1 + 0, offset2 + 0) = -1 * A_prime_l(0);
       M(offset1 + 0, offset2 + 1) = -1 * B_prime_l(0);
 
-      M(offset1 + _r.size() - 1, offset2 + _r.size() - 2) =
-          A_prime_l(_r.size() - 2);
-      M(offset1 + _r.size() - 1, offset2 + _r.size() - 1) =
-          B_prime_l(_r.size() - 2);
+      M(offset1 + r_.size() - 1, offset2 + r_.size() - 2) =
+          A_prime_l(r_.size() - 2);
+      M(offset1 + r_.size() - 1, offset2 + r_.size() - 1) =
+          B_prime_l(r_.size() - 2);
 
       // y''
-      M(offset1 + 0, offset2 + _r.size() + 0) = D_prime_l(0);
-      M(offset1 + 0, offset2 + _r.size() + 1) = C_prime_l(0);
+      M(offset1 + 0, offset2 + r_.size() + 0) = D_prime_l(0);
+      M(offset1 + 0, offset2 + r_.size() + 1) = C_prime_l(0);
 
-      M(offset1 + _r.size() - 1, offset2 + 2 * _r.size() - 2) =
-          C_prime_l(_r.size() - 2);
-      M(offset1 + _r.size() - 1, offset2 + 2 * _r.size() - 1) =
-          D_prime_l(_r.size() - 2);
+      M(offset1 + r_.size() - 1, offset2 + 2 * r_.size() - 2) =
+          C_prime_l(r_.size() - 2);
+      M(offset1 + r_.size() - 1, offset2 + 2 * r_.size() - 1) =
+          D_prime_l(r_.size() - 2);
       break;
     case splinePeriodic:
       M(offset1, offset2) = 1;
-      M(offset1, offset2 + _r.size() - 1) = -1;
-      M(offset1 + _r.size() - 1, offset2 + _r.size()) = 1;
-      M(offset1 + _r.size() - 1, offset2 + 2 * _r.size() - 1) = -1;
+      M(offset1, offset2 + r_.size() - 1) = -1;
+      M(offset1 + r_.size() - 1, offset2 + r_.size()) = 1;
+      M(offset1 + r_.size() - 1, offset2 + 2 * r_.size() - 1) = -1;
       break;
   }
 }
