@@ -41,7 +41,7 @@ Thread::~Thread() = default;
 
 void Thread::Start() {
 
-  pthread_attr_init(&_attr);
+  pthread_attr_init(&attr_);
   /*
    * according to the POSIX standard, threads are created in the joinable state
    * by default
@@ -52,11 +52,11 @@ void Thread::Start() {
    * pthread_join(thread)
    *
    */
-  pthread_attr_setdetachstate(&_attr, PTHREAD_CREATE_JOINABLE);
-  _finished = false;
+  pthread_attr_setdetachstate(&attr_, PTHREAD_CREATE_JOINABLE);
+  finished_ = false;
 
   Index rc =
-      pthread_create(&_thread, &_attr, runwrapper, static_cast<void *>(this));
+      pthread_create(&thread_, &attr_, runwrapper, static_cast<void *>(this));
   if (rc) {
     throw std::runtime_error("ERROR; return code from pthread_create() is " +
                              boost::lexical_cast<std::string>(rc));
@@ -65,15 +65,15 @@ void Thread::Start() {
 
 void Thread::WaitDone() {
   void *status;
-  Index rc = pthread_join(_thread, &status);
+  Index rc = pthread_join(thread_, &status);
   if (rc) {
     throw std::runtime_error("ERROR; return code from pthread_join() is " +
                              boost::lexical_cast<std::string>(rc));
   }
-  _finished = true;
-  pthread_attr_destroy(&_attr);
+  finished_ = true;
+  pthread_attr_destroy(&attr_);
 }
 
-bool Thread::IsFinished() const { return _finished; }
+bool Thread::IsFinished() const { return finished_; }
 }  // namespace tools
 }  // namespace votca

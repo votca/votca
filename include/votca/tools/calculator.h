@@ -50,7 +50,18 @@ class Calculator {
    *
    * @return calculator name
    */
-  virtual std::string Identify() = 0;
+  virtual std::string Identify() const = 0;
+
+  /**
+   * \brief Package name
+   *
+   * This name is the name of the package the calculator belongs to, e.g. csg,
+   * xtp, etc..
+   *
+   * @return Package name
+   */
+  virtual std::string Package() const = 0;
+
   /**
    * \brief Initializes a calculator from an XML file with options
    *
@@ -69,68 +80,13 @@ class Calculator {
    *
    */
   void setnThreads(Index nThreads) {
-    _nThreads = nThreads;
-    _maverick = (_nThreads == 1) ? true : false;
-  }
-  /**
-   * \brief Outputs all options of a calculator
-   *
-   * @param output stream
-   */
-  void DisplayOptions(std::ostream &out);
-
-  /**
-   * \brief Loads default options stored in VOTCASHARE
-   */
-  Property LoadDefaults(const std::string package = "tools");
-
-  /**
-   * \brief Updates user options with default options stored in VOTCASHARE
-   *
-   * If a value is not given or tag is not present and at the same time
-   * a default value exists in the corresponding XML file in VOTCASHARE
-   * a tag is created and/or a default value is assigned to it
-   */
-  void UpdateWithUserOptions(Property &default_options,
-                             const Property &user_options);
-
-  /**
-   * \brief Load the default options and merge them with the user input
-   *
-   * Defaults are overwritten with user input
-   */
-  Property LoadDefaultsAndUpdateWithUserOptions(const std::string package,
-                                                const Property &user_options) {
-    Property defaults = LoadDefaults(package);
-    InjectDefaultsAsValues(defaults);
-    Property user_options_with_defaults = user_options;
-    InjectDefaultsAsValues(user_options_with_defaults);
-    UpdateWithUserOptions(defaults, user_options_with_defaults);
-    RecursivelyCheckOptions(defaults);
-    return defaults;
+    nThreads_ = nThreads;
+    maverick_ = (nThreads_ == 1) ? true : false;
   }
 
  protected:
-  Index _nThreads;
-  bool _maverick;
-
-  void OverwriteDefaultsWithUserInput(const Property &p, Property &defaults);
-  // Copy the defaults into the value
-  static void InjectDefaultsAsValues(Property &defaults);
-  static void RecursivelyCheckOptions(const Property &p);
-  static bool IsValidOption(const Property &prop,
-                            const std::vector<std::string> &choices);
-  static std::vector<std::string> GetPropertyChoices(const Property &p);
-
-  template <typename T>
-  static bool IsValidCast(const tools::Property &prop) {
-    try {
-      prop.as<T>();
-      return true;
-    } catch (const std::runtime_error &e) {
-      return false;
-    }
-  }
+  Index nThreads_;
+  bool maverick_;
 };
 
 }  // namespace tools

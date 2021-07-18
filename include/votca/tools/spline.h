@@ -80,7 +80,7 @@ class Spline {
    * \brief Set the boundary type of the spline
    * \param boundary of type eBoundary
    */
-  void setBC(eBoundary bc) { _boundaries = bc; }
+  void setBC(eBoundary bc) { boundaries_ = bc; }
 
   /**
    * \brief Set the boundary type of the spline
@@ -89,13 +89,13 @@ class Spline {
   void setBCInt(Index bc) {
     switch (bc) {
       case 0:
-        _boundaries = splineNormal;
+        boundaries_ = splineNormal;
         break;
       case 1:
-        _boundaries = splinePeriodic;
+        boundaries_ = splinePeriodic;
         break;
       case 2:
-        _boundaries = splineDerivativeZero;
+        boundaries_ = splineDerivativeZero;
         break;
     }
   }
@@ -148,26 +148,26 @@ class Spline {
    * \brief Get the grid array x
    * \return pointer to the corresponding array
    */
-  Eigen::VectorXd &getX() { return _r; }
-  const Eigen::VectorXd &getX() const { return _r; }
+  Eigen::VectorXd &getX() { return r_; }
+  const Eigen::VectorXd &getX() const { return r_; }
   /**
-   * \brief Get the spline data _f
+   * \brief Get the spline data  f_
    * \return reference to the corresponding array
    */
-  // Eigen::VectorXd &getSplineF() { return _f; }
-  // const Eigen::VectorXd &getSplineF() const { return _f; }
+  // Eigen::VectorXd &getSplineF() { return  f_; }
+  // const Eigen::VectorXd &getSplineF() const { return  f_; }
 
   /**
    * \brief Get second derivatives (cubic splines)
    * \return reference to the corresponding array
    */
-  // Eigen::VectorXd &getSplineF2() { return _f2; }
-  // const Eigen::VectorXd &getSplineF2() const { return _f; }
+  // Eigen::VectorXd &getSplineF2() { return  f2_; }
+  // const Eigen::VectorXd &getSplineF2() const { return  f_; }
 
  protected:
-  eBoundary _boundaries = eBoundary::splineNormal;
+  eBoundary boundaries_ = eBoundary::splineNormal;
   // the grid points
-  Eigen::VectorXd _r;
+  Eigen::VectorXd r_;
 };
 
 }  // namespace tools

@@ -16,10 +16,12 @@
  */
 
 // Standard includes
+#include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <stack>
 #include <stdexcept>
 #include <string>
@@ -29,6 +31,7 @@
 #include <boost/format.hpp>
 #include <expat.h>
 #include <unistd.h>
+#include <vector>
 
 // Local VOTCA includes
 #include "votca/tools/colors.h"
@@ -50,15 +53,15 @@ const Property &Property::get(const string &key) const {
   }
 
   const Property *p;
-  map<string, Index>::const_iterator iter;
+  map<string, std::vector<Index>>::const_iterator iter;
   if (*n == "") {
     p = this;
   } else {
-    iter = _map.find(*n);
-    if (iter == _map.end()) {
+    iter = map_.find(*n);
+    if (iter == map_.end()) {
       throw std::runtime_error("property not found: " + key);
     }
-    p = &_properties[((*iter).second)];
+    p = &properties_[iter->second.back()];
   }
   ++n;
   try {
@@ -73,29 +76,47 @@ const Property &Property::get(const string &key) const {
   return *p;
 }
 
+Property &Property::get(const string &key) {
+  return const_cast<Property &>(static_cast<const Property &>(*this).get(key));
+}
+
 Property &Property::set(const std::string &key, const std::string &value) {
   Property &p = get(key);
   p.value() = value;
   return p;
 }
 
+Property &Property::addTree(const std::string &key, const std::string &value) {
+  return addTree(Tokenizer(key, ".").ToVector(), value);
+}
+
+Property &Property::addTree(const std::vector<std::string> &key,
+                            const std::string &value) {
+
+  if (key.size() == 1) {
+    return add(key[0], value);
+  } else {
+    std::vector<std::string> subkey(key.begin() + 1, key.end());
+    if (this->exists(key[0])) {
+      return this->get(key[0]).addTree(subkey, value);
+    } else {
+      return this->add(key[0], "").addTree(subkey, value);
+    }
+  }
+}
+
 Property &Property::add(const std::string &key, const std::string &value) {
-  std::string path = _path;
+  std::string path = path_;
   if (path != "") {
     path = path + ".";
   }
-  _properties.push_back(Property(key, value, path + _name));
-  _map[key] = Index(_properties.size()) - 1;
-  return _properties.back();
+  properties_.push_back(Property(key, value, path + name_));
+  map_[key].push_back(Index(properties_.size()) - 1);
+  return properties_.back();
 }
 
 bool Property::hasAttribute(const std::string &attribute) const {
-  std::map<std::string, std::string>::const_iterator it;
-  it = _attributes.find(attribute);
-  if (it == _attributes.end()) {
-    return false;
-  }
-  return true;
+  return attributes_.find(attribute) != attributes_.end();
 }
 
 bool Property::exists(const std::string &key) const {
@@ -118,28 +139,25 @@ void FixPath(tools::Property &prop, std::string path) {
   }
 }
 
-void Property::add(const Property &other) {
+Property &Property::add(const Property &other) {
 
-  _properties.push_back(other);
-  _map[other.name()] = Index(_properties.size()) - 1;
+  properties_.push_back(other);
+  map_[other.name()].push_back((properties_.size()) - 1);
 
-  std::string path = _path;
+  std::string path = path_;
   if (path != "") {
     path += ".";
   }
-  path += _name;
-  FixPath(_properties.back(), path);
-}
-
-Property &Property::get(const string &key) {
-  return const_cast<Property &>(static_cast<const Property &>(*this).get(key));
+  path += name_;
+  FixPath(properties_.back(), path);
+  return properties_.back();
 }
 
 Property &Property::getOradd(const std::string &key) {
   if (exists(key)) {
     return get(key);
   } else {
-    return add(key, "");
+    return addTree(key, "");
   }
 }
 
@@ -151,15 +169,15 @@ std::vector<const Property *> Property::Select(const string &filter) const {
   }
   selection.push_back(this);
   for (const auto &n : tok) {
-    std::vector<const Property *> childs;
+    std::vector<const Property *> selected;
     for (const Property *p : selection) {
-      for (const Property &s : p->_properties) {
-        if (wildcmp(n, s.name())) {
-          childs.push_back(&s);
+      for (const Property &child : *p) {
+        if (wildcmp(n, child.name())) {
+          selected.push_back(&child);
         }
       }
     }
-    selection = childs;
+    selection = selected;
   }
   return selection;
 }
@@ -172,17 +190,21 @@ std::vector<Property *> Property::Select(const string &filter) {
   }
   selection.push_back(this);
   for (const auto &n : tok) {
-    std::vector<Property *> childs;
+    std::vector<Property *> selected;
     for (Property *p : selection) {
-      for (Property &s : p->_properties) {
-        if (wildcmp(n, s.name())) {
-          childs.push_back(&s);
+      for (Property &child : *p) {
+        if (wildcmp(n, child.name())) {
+          selected.push_back(&child);
         }
       }
     }
-    selection = childs;
+    selection = selected;
   }
   return selection;
+}
+
+void Property::deleteAttribute(const std::string &attribute) {
+  attributes_.erase(attribute);
 }
 
 static void start_hndl(void *data, const char *el, const char **attr) {
@@ -352,96 +374,11 @@ void PrintNodeXML(std::ostream &out, const Property &p,
   }
 }
 
-void PrintNodeTEX(std::ostream &out, const Property &p,
-                  PropertyIOManipulator *piom, Index level = 0,
-                  string prefix = "") {
-
-  Index start_level = 0;
-  if (piom) {
-    start_level = piom->getLevel();
-  }
-
-  string head_name;
-  string section("");  // reference of the description section in the manual
-  string help("");
-  // if this is the head node, print the header
-  if (level == start_level) {
-
-    string header_format(
-        "\\subsection{%1%}\n"
-        "\\label{%2%}\n%3%\n"
-        "\\rowcolors{1}{invisiblegray}{white}\n"
-        "{\\small\n "
-        "\\begin{longtable}{m{3cm}|m{2cm}|m{1cm}|m{8cm}}\n"
-        " option & default & unit & description\\\\\n\\hline\n");
-
-    head_name = p.name();
-    string label =
-        "calc:" + head_name;  // reference of the xml file in the manual
-    if (p.hasAttribute("section")) {
-      section = p.getAttribute<string>("section");
-    }
-    if (p.hasAttribute("help")) {
-      help = p.getAttribute<string>("help");
-    }
-    out << boost::format(header_format) % head_name % label % help;
-    prefix = p.name();
-  }
-
-  if (level > start_level) {
-    // if this node has children or a value or is not the first, start recursive
-    // printing
-    if ((p.value() != "" || p.HasChildren()) && level > -1) {
-      string tex_name = boost::replace_all_copy(p.name(), "_", "\\_");
-      string defaults("");  // default value if supplied
-      if (p.hasAttribute("default")) {
-        defaults = p.getAttribute<string>("default");
-      }
-      string unit("");  // unit, if supplied
-      if (p.hasAttribute("unit")) {
-        unit = p.getAttribute<string>("unit");
-      }
-      if (p.hasAttribute("help")) {
-        help = p.getAttribute<string>("help");
-      }
-
-      string body_format(
-          " \\hspace{%1%pt}\\hypertarget{%2%}{%3%} & %4% & %5% & %6% \\\\\n");
-
-      out << boost::format(body_format) %
-                 Index((level - start_level - 1) * 10) % prefix % tex_name %
-                 defaults % unit % help;
-    }
-  }
-
-  // continue iteratively through the rest of the nodes
-  for (const Property &pp : p) {
-    level++;
-    if (prefix == "") {
-      PrintNodeTEX(out, pp, piom, level, prefix);
-    } else {
-      PrintNodeTEX(out, pp, piom, level, prefix);
-    }
-    level--;
-  }
-
-  // if this is the head node, print the footer
-  if (level == start_level) {
-    string footer_format(
-        "\\end{longtable}\n}\n"
-        "\\noindent Return to the description of "
-        "\\slink{%1%}{\\texttt{%2%}}.\n");
-
-    out << boost::format(footer_format) % section % head_name;
-  }
-}
-
 void PrintNodeHLP(std::ostream &out, const Property &p,
                   const Index start_level = 0, Index level = 0,
                   const string &prefix = "", const string &offset = "") {
 
-  using ColorRGB = Color<csRGB>;  // use the RGB palette
-  ColorRGB RGB;                   // Instance of an RGB palette
+  Color<csRGB> RGB;  // Using RGB palette
   string fmt = "t|%1%%|15t|" + string(RGB.Blue()) + "%2%" +
                string(RGB.Green()) + "%|40t|%3%%|55t|" + string(RGB.Reset()) +
                "%4%\n";
@@ -536,9 +473,6 @@ std::ostream &operator<<(std::ostream &out, const Property &p) {
         break;
       case PropertyIOManipulator::TXT:
         PrintNodeTXT(out, p, level, 0, "", indentation);
-        break;
-      case PropertyIOManipulator::TEX:
-        PrintNodeTEX(out, p, pm);
         break;
       case PropertyIOManipulator::HLP:
         PrintNodeHLP(out, p, level, 0, "", indentation);

@@ -29,63 +29,62 @@ namespace tools {
  * \brief Manipulates the format state of the output stream
  *
  * Changes the state of the output stream. Property class reads this state
- * and formats its output according to this state (XML, TXT, T2T, etc)
+ * and formats its output according to this state (XML, TXT, etc)
  */
 class PropertyIOManipulator {
 
  public:
-  enum Type { XML, HLP, TEX, TXT };
+  enum Type { XML, HLP, TXT };
 
   explicit PropertyIOManipulator(Type type = XML, Index level = 0,
                                  std::string indentation = "",
                                  ColorSchemeBase *color_scheme = nullptr)
-      : _type(type),
-        _level(level),
-        _indentation(indentation),
-        _color_scheme(color_scheme) {
+      : type_(type),
+        level_(level),
+        indentation_(indentation),
+        color_scheme_(color_scheme) {
     ;
   }
 
-  ~PropertyIOManipulator() { delete _color_scheme; }
+  ~PropertyIOManipulator() { delete color_scheme_; }
   friend std::ostream &operator<<(std::ostream &os,
                                   PropertyIOManipulator &piom) {
     os.pword(int(Property::getIOindex())) = &piom;
     return os;
   }
 
-  const Type &getType() { return _type; }
-  void setType(Type type) { _type = type; }
-  const Index &getLevel() { return _level; }
-  void setLevel(Index level) { _level = level; }
-  const std::string &getIndentation() { return _indentation; }
-  void setIndentation(std::string indentation) { _indentation = indentation; }
+  const Type &getType() { return type_; }
+  void setType(Type type) { type_ = type; }
+  const Index &getLevel() { return level_; }
+  void setLevel(Index level) { level_ = level; }
+  const std::string &getIndentation() { return indentation_; }
+  void setIndentation(std::string indentation) { indentation_ = indentation; }
   const ColorSchemeBase *getColorScheme() {
-    if (!_color_scheme) {
+    if (!color_scheme_) {
       return &DEFAULT_COLORS;
     }
-    return _color_scheme;
+    return color_scheme_;
   }
 
   template <typename T>
   const ColorSchemeBase *setColorScheme() {
-    if (_color_scheme) {
-      delete _color_scheme;
+    if (color_scheme_) {
+      delete color_scheme_;
     }
-    _color_scheme = new Color<T>();
-    return _color_scheme;
+    color_scheme_ = new Color<T>();
+    return color_scheme_;
   }
 
  private:
-  Type _type;
-  Index _level;
-  std::string _indentation;
-  ColorSchemeBase *_color_scheme;
+  Type type_;
+  Index level_;
+  std::string indentation_;
+  ColorSchemeBase *color_scheme_;
 };
 
 extern PropertyIOManipulator XML;
-extern PropertyIOManipulator TXT;
-extern PropertyIOManipulator TEX;
 extern PropertyIOManipulator HLP;
+extern PropertyIOManipulator TXT;
 
 }  // namespace tools
 }  // namespace votca

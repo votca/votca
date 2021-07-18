@@ -25,6 +25,7 @@ foreach(PROG
     test_linalg
     test_name
     test_objectfactory
+    test_optionshandler
     test_property
     test_reducededge
     test_reducedgraph
@@ -36,6 +37,7 @@ foreach(PROG
     test_akimaspline
     test_linspline
     test_unitconverter
+    test_NDimVector
     test_eigenio_matrixmarket)
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)

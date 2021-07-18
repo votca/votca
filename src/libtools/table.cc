@@ -36,11 +36,11 @@ using namespace boost;
 using namespace std;
 
 void Table::resize(Index N) {
-  _x.conservativeResize(N);
-  _y.conservativeResize(N);
-  _flags.resize(N);
-  if (_has_yerr) {
-    _yerr.conservativeResize(N);
+  x_.conservativeResize(N);
+  y_.conservativeResize(N);
+  flags_.resize(N);
+  if (has_yerr_) {
+    yerr_.conservativeResize(N);
   }
 }
 
@@ -63,8 +63,8 @@ void Table::Save(string filename) const {
     throw runtime_error(string("error, cannot open file ") + filename);
   }
 
-  if (_has_comment) {
-    string str = "# " + _comment_line;
+  if (has_comment_) {
+    string str = "# " + comment_line_;
     boost::replace_all(str, "\n", "\n# ");
     boost::replace_all(str, "\\n", "\n# ");
     out << str << endl;
@@ -75,22 +75,22 @@ void Table::Save(string filename) const {
 }
 
 void Table::clear(void) {
-  _x.resize(0);
-  _y.resize(0);
-  _flags.resize(0);
-  _yerr.resize(0);
+  x_.resize(0);
+  y_.resize(0);
+  flags_.resize(0);
+  yerr_.resize(0);
 }
 
-double Table::getMaxY() const { return _y.maxCoeff(); }
+double Table::getMaxY() const { return y_.maxCoeff(); }
 
-double Table::getMinY() const { return _y.minCoeff(); }
+double Table::getMinY() const { return y_.minCoeff(); }
 
-double Table::getMaxX() const { return _x.maxCoeff(); }
+double Table::getMaxX() const { return x_.maxCoeff(); }
 
-double Table::getMinX() const { return _x.minCoeff(); }
+double Table::getMinX() const { return x_.minCoeff(); }
 
 // TODO: this functon is weired, reading occours twice, cleanup!!
-// TODO: modify function to work properly, when _has_yerr is true
+// TODO: modify function to work properly, when  has_yerr_ is true
 istream &operator>>(istream &in, Table &t) {
   size_t N = 0;
   bool bHasN = false;
@@ -109,9 +109,7 @@ istream &operator>>(istream &in, Table &t) {
     line = line.substr(0, line.find("@"));
 
     // tokenize string and put it to vector
-    Tokenizer tok(line, " \t");
-
-    vector<string> tokens = tok.ToVector();
+    vector<string> tokens = Tokenizer(line, " \t").ToVector();
 
     // skip empty lines
     if (tokens.size() == 0) {
@@ -148,9 +146,7 @@ istream &operator>>(istream &in, Table &t) {
     line = line.substr(0, line.find("@"));
 
     // tokenize string and put it to vector
-    Tokenizer tok(line, " \t");
-    vector<string> tokens;
-    tok.ToVector(tokens);
+    vector<string> tokens = Tokenizer(line, " \t").ToVector();
 
     // skip empty lines
     if (tokens.size() == 0) {
@@ -189,9 +185,9 @@ void Table::GenerateGridSpacing(double min, double max, double spacing) {
   double r_init;
 
   for (r_init = min, i = 0; i < vec_size - 1; r_init += spacing) {
-    _x[i++] = r_init;
+    x_[i++] = r_init;
   }
-  _x[i] = max;
+  x_[i] = max;
 }
 
 void Table::Smooth(Index Nsmooth) {
@@ -202,8 +198,8 @@ void Table::Smooth(Index Nsmooth) {
         "Smoothing only works for arrays of size 3 and larger");
   }
   for (Index i = 0; i < Nsmooth; i++) {
-    _y.segment(1, n_2) =
-        (0.25 * (_y.head(n_2) + 2 * _y.segment(1, n_2) + _y.tail(n_2))).eval();
+    y_.segment(1, n_2) =
+        (0.25 * (y_.head(n_2) + 2 * y_.segment(1, n_2) + y_.tail(n_2))).eval();
   }
 }
 
@@ -211,22 +207,22 @@ std::ostream &operator<<(std::ostream &out, const Table &t) {
   // TODO: use a smarter precision guess, XXX.YYYYY=8, so 10 should be enough
   out.precision(10);
 
-  if (t._has_yerr) {
-    for (Index i = 0; i < t._x.size(); ++i) {
-      out << t._x[i] << " " << t._y[i] << " " << t._yerr[i];
-      if (t._flags[i] == '\0' || t._flags[i] == ' ') {
+  if (t.has_yerr_) {
+    for (Index i = 0; i < t.x_.size(); ++i) {
+      out << t.x_[i] << " " << t.y_[i] << " " << t.yerr_[i];
+      if (t.flags_[i] == '\0' || t.flags_[i] == ' ') {
         out << "\n";
       } else {
-        out << " " << t._flags[i] << "\n";
+        out << " " << t.flags_[i] << "\n";
       }
     }
   } else {
-    for (Index i = 0; i < t._x.size(); ++i) {
-      out << t._x[i] << " " << t._y[i];
-      if (t._flags[i] == '\0' || t._flags[i] == ' ') {
+    for (Index i = 0; i < t.x_.size(); ++i) {
+      out << t.x_[i] << " " << t.y_[i];
+      if (t.flags_[i] == '\0' || t.flags_[i] == ' ') {
         out << "\n";
       } else {
-        out << " " << t._flags[i] << "\n";
+        out << " " << t.flags_[i] << "\n";
       }
     }
   }
@@ -234,13 +230,13 @@ std::ostream &operator<<(std::ostream &out, const Table &t) {
   return out;
 }
 
-// TODO: modify this function to be able to treat _has_yerr == true
+// TODO: modify this function to be able to treat  has_yerr_ == true
 void Table::push_back(double x, double y, char flags) {
   Index n = size();
   resize(n + 1);
-  _x[n] = x;
-  _y[n] = y;
-  _flags[n] = flags;
+  x_[n] = x;
+  y_[n] = y;
+  flags_[n] = flags;
 }
 }  // namespace tools
 }  // namespace votca
