@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/csg/commits/master>`__.
 
-Version 2021.1 (released XX.03.21)
+Version 2021.1 (released 18.07.21)
 ==================================
 
 -  format code with clang-12 and drop gmx2020 builds (#691)
