@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,22 @@
  *
  */
 
-#include "../../include/votca/csg/version.h"
-#include <boost/program_options.hpp>
+// Standard includes
 #include <iostream>
+
+// Third party includes
+#include <boost/program_options.hpp>
+
+// VOTCA includes
 #include <votca/tools/akimaspline.h>
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/linspline.h>
 #include <votca/tools/spline.h>
 #include <votca/tools/table.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include "votca/csg/version.h"
 
 using namespace std;
 namespace po = boost::program_options;
@@ -107,9 +114,7 @@ int main(int argc, char **argv) {
 
     double min, max, step;
     {
-      Tokenizer tok(grid, ":");
-      vector<string> toks;
-      tok.ToVector(toks);
+      vector<string> toks = Tokenizer(grid, ":").ToVector();
       if (toks.size() != 3) {
         cout << "wrong range format, use min:step:max\n";
         return 1;
@@ -146,9 +151,7 @@ int main(int argc, char **argv) {
 
     // in case fit is specified
     if (vm.count("fitgrid")) {
-      Tokenizer tok(fitgrid, ":");
-      vector<string> toks;
-      tok.ToVector(toks);
+      vector<string> toks = Tokenizer(fitgrid, ":").ToVector();
       if (toks.size() != 3) {
         cout << "wrong range format in fitgrid, use min:step:max\n";
         return 1;

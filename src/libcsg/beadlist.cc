@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ namespace csg {
 using namespace std;
 
 Index BeadList::Generate(Topology &top, const string &select) {
-  _topology = &top;
+  topology_ = &top;
   bool selectByName = false;
   string pSelect;  // parsed selection string
 
@@ -40,14 +40,14 @@ Index BeadList::Generate(Topology &top, const string &select) {
     pSelect = select;
   }
 
-  for (auto &iter : top.Beads()) {
+  for (auto &bead : top.Beads()) {
     if (!selectByName) {
-      if (tools::wildcmp(pSelect, iter->getType())) {
-        _beads.push_back(iter);
+      if (tools::wildcmp(pSelect, bead.getType())) {
+        beads_.push_back(&bead);
       }
     } else {
-      if (tools::wildcmp(pSelect, iter->getName())) {
-        _beads.push_back(iter);
+      if (tools::wildcmp(pSelect, bead.getName())) {
+        beads_.push_back(&bead);
       }
     }
   }
@@ -58,7 +58,7 @@ Index BeadList::GenerateInSphericalSubvolume(Topology &top,
                                              const string &select,
                                              Eigen::Vector3d ref,
                                              double radius) {
-  _topology = &top;
+  topology_ = &top;
   bool selectByName = false;
   string pSelect;  // parsed selection string
 
@@ -70,17 +70,17 @@ Index BeadList::GenerateInSphericalSubvolume(Topology &top,
     pSelect = select;
   }
 
-  for (auto &iter : top.Beads()) {
-    if (_topology->BCShortestConnection(ref, iter->getPos()).norm() > radius) {
+  for (auto &bead : top.Beads()) {
+    if (topology_->BCShortestConnection(ref, bead.getPos()).norm() > radius) {
       continue;
     }
     if (!selectByName) {
-      if (tools::wildcmp(pSelect, iter->getType())) {
-        _beads.push_back(iter);
+      if (tools::wildcmp(pSelect, bead.getType())) {
+        beads_.push_back(&bead);
       }
     } else {
-      if (tools::wildcmp(pSelect, iter->getName())) {
-        _beads.push_back(iter);
+      if (tools::wildcmp(pSelect, bead.getName())) {
+        beads_.push_back(&bead);
       }
     }
   }

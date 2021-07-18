@@ -158,17 +158,17 @@ class TabulatedPotential : public AnalysisTool {
   void CalcForce_(std::vector<double> &U, std::vector<double> &F, double dx,
                   bool bPeriodic);
 
-  TOOLS::Histogram::options_t _tab_options;
-  TOOLS::Histogram::options_t _hist_options;
+  TOOLS::Histogram::options_t tab_options_;
+  TOOLS::Histogram::options_t hist_options_;
 
   /// How many times the data is smoothed before the histogram is
   /// boltzmann inverted.
-  Index _tab_smooth1;
+  Index tab_smooth1_;
   /// How many times the data is smoothed after the histogram is boltzmann
   /// inverted.
-  Index _tab_smooth2;
+  Index tab_smooth2_;
   /// Temperature in units of Kelvin
-  double _Temperature;
+  double Temperature_;
 };
 }  // namespace csg
 }  // namespace votca

@@ -15,11 +15,16 @@
  *
  */
 
+// Third party includes
 #include <boost/program_options.hpp>
-#include <votca/csg/cgengine.h>
-#include <votca/csg/csgapplication.h>
+
+// VOTCA includes
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include <votca/csg/cgengine.h>
+#include <votca/csg/csgapplication.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -42,24 +47,24 @@ class CsgFluctuations : public CsgApplication {
     // add program option to pick molecule
     AddProgramOptions("Fluctuation options")(
         "filter",
-        boost::program_options::value<string>(&_filter)->default_value("*"),
+        boost::program_options::value<string>(&filter_)->default_value("*"),
         "filter molecule names")("rmax",
                                  boost::program_options::value<double>(),
                                  "maximal distance to be considered")(
         "rmin",
-        boost::program_options::value<double>(&_rmin)->default_value(0.0),
+        boost::program_options::value<double>(&rmin_)->default_value(0.0),
         "minimal distance to be considered")(
         "refmol",
-        boost::program_options::value<string>(&_refmol)->default_value(""),
+        boost::program_options::value<string>(&refmol_)->default_value(""),
         "Reference molecule")(
         "nbin",
-        boost::program_options::value<votca::Index>(&_nbins)->default_value(
+        boost::program_options::value<votca::Index>(&nbins_)->default_value(
             100),
         "Number of bins")(
         "geometry", boost::program_options::value<string>(),
         "(sphere|x|y|z) Take radial or x, y, z slabs from rmin to rmax")(
         "outfile",
-        boost::program_options::value<string>(&_outfilename)
+        boost::program_options::value<string>(&outfilename_)
             ->default_value("fluctuations.dat"),
         "Output file");
   }
@@ -75,55 +80,55 @@ class CsgFluctuations : public CsgApplication {
   bool DoMapping() override { return true; }
 
   void BeginEvaluate(Topology *top, Topology *) override {
-    _filter = OptionsMap()["filter"].as<string>();
-    _refmol = OptionsMap()["refmol"].as<string>();
-    _rmin = OptionsMap()["rmin"].as<double>();
-    _rmax = OptionsMap()["rmax"].as<double>();
-    _nbins = OptionsMap()["nbin"].as<votca::Index>();
-    _outfilename = OptionsMap()["outfile"].as<string>();
-    _geometryinput = OptionsMap()["geometry"].as<string>();
-    _nframes = 0;
+    filter_ = OptionsMap()["filter"].as<string>();
+    refmol_ = OptionsMap()["refmol"].as<string>();
+    rmin_ = OptionsMap()["rmin"].as<double>();
+    rmax_ = OptionsMap()["rmax"].as<double>();
+    nbins_ = OptionsMap()["nbin"].as<votca::Index>();
+    outfilename_ = OptionsMap()["outfile"].as<string>();
+    geometryinput_ = OptionsMap()["geometry"].as<string>();
+    nframes_ = 0;
 
-    _do_spherical = false;
+    do_spherical_ = false;
 
-    if (_geometryinput == "sphere") {
+    if (geometryinput_ == "sphere") {
       cout << "Doing spherical slabs" << endl;
-      _do_spherical = true;
-    } else if (_geometryinput == "x") {
+      do_spherical_ = true;
+    } else if (geometryinput_ == "x") {
       cout << "Doing slabs along x-axis" << endl;
-      _dim = 0;
-    } else if (_geometryinput == "y") {
+      dim_ = 0;
+    } else if (geometryinput_ == "y") {
       cout << "Doing slabs along  y-axis" << endl;
-      _dim = 1;
-    } else if (_geometryinput == "z") {
+      dim_ = 1;
+    } else if (geometryinput_ == "z") {
       cout << "Doing slabs along  z-axis" << endl;
-      _dim = 2;
+      dim_ = 2;
     } else {
       throw std::runtime_error("Unrecognized geometry option. (sphere|x|y|z)");
     }
 
-    _N_avg = Eigen::VectorXd::Zero(_nbins);
-    _N_sq_avg = Eigen::VectorXd::Zero(_nbins);
+    N_avg_ = Eigen::VectorXd::Zero(nbins_);
+    N_sq_avg_ = Eigen::VectorXd::Zero(nbins_);
 
-    if (_do_spherical) {
-      cout << "Calculating fluctions for " << _rmin << "<r<" << _rmax;
-      cout << "using " << _nbins << " bins" << endl;
+    if (do_spherical_) {
+      cout << "Calculating fluctions for " << rmin_ << "<r<" << rmax_;
+      cout << "using " << nbins_ << " bins" << endl;
     } else {
-      cout << "Calculating fluctions for " << _rmin << "<" << _geometryinput
-           << "<" << _rmax;
-      cout << "using " << _nbins << " bins" << endl;
+      cout << "Calculating fluctions for " << rmin_ << "<" << geometryinput_
+           << "<" << rmax_;
+      cout << "using " << nbins_ << " bins" << endl;
     }
 
-    if (_refmol == "" && _do_spherical) {
+    if (refmol_ == "" && do_spherical_) {
       Eigen::Matrix3d box = top->getBox();
-      _ref = box.rowwise().sum() / 2;
+      ref_ = box.rowwise().sum() / 2;
 
-      cout << "Reference is center of box " << _ref << endl;
+      cout << "Reference is center of box " << ref_ << endl;
     }
 
-    _outfile.open(_outfilename);
-    if (!_outfile) {
-      throw runtime_error("cannot open" + _outfilename + " for output");
+    outfile_.open(outfilename_);
+    if (!outfile_) {
+      throw runtime_error("cannot open" + outfilename_ + " for output");
     }
   }
 
@@ -134,21 +139,21 @@ class CsgFluctuations : public CsgApplication {
 
  protected:
   // number of particles in dV
-  votca::Index _nbins;
-  Eigen::VectorXd _N_avg;
+  votca::Index nbins_;
+  Eigen::VectorXd N_avg_;
   // sqare
-  Eigen::VectorXd _N_sq_avg;
-  string _filter;
-  string _refmol;
-  double _rmax;
-  double _rmin;
-  Eigen::Vector3d _ref;
-  votca::Index _nframes;
-  string _outfilename;
-  ofstream _outfile;
-  string _geometryinput;
-  bool _do_spherical;
-  votca::Index _dim;
+  Eigen::VectorXd N_sq_avg_;
+  string filter_;
+  string refmol_;
+  double rmax_;
+  double rmin_;
+  Eigen::Vector3d ref_;
+  votca::Index nframes_;
+  string outfilename_;
+  ofstream outfile_;
+  string geometryinput_;
+  bool do_spherical_;
+  votca::Index dim_;
 };
 
 int main(int argc, char **argv) {
@@ -159,34 +164,34 @@ int main(int argc, char **argv) {
 
 void CsgFluctuations::EvalConfiguration(Topology *conf, Topology *) {
 
-  if (_refmol != "") {
-    for (Bead *bead : conf->Beads()) {
-      if (votca::tools::wildcmp(_refmol, bead->getName())) {
-        _ref = bead->getPos();
-        cout << " Solute pos " << _ref << endl;
+  if (refmol_ != "") {
+    for (const auto &bead : conf->Beads()) {
+      if (votca::tools::wildcmp(refmol_, bead.getName())) {
+        ref_ = bead.getPos();
+        cout << " Solute pos " << ref_ << endl;
       }
     }
   }
 
   votca::tools::HistogramNew hist;
-  hist.Initialize(_rmin, _rmax, _nbins);
+  hist.Initialize(rmin_, rmax_, nbins_);
 
   /* check how many molecules are in each bin*/
-  for (Bead *bead : conf->Beads()) {
-    if (!votca::tools::wildcmp(_filter, bead->getName())) {
+  for (const auto &bead : conf->Beads()) {
+    if (!votca::tools::wildcmp(filter_, bead.getName())) {
       continue;
     }
     double r = 0;
-    if (_do_spherical) {
-      Eigen::Vector3d eR = bead->getPos() - _ref;
+    if (do_spherical_) {
+      Eigen::Vector3d eR = bead.getPos() - ref_;
       r = eR.norm();
     } else {
-      Eigen::Vector3d eR = bead->getPos();
-      if (_dim == 0) {
+      Eigen::Vector3d eR = bead.getPos();
+      if (dim_ == 0) {
         r = eR.x();
-      } else if (_dim == 1) {
+      } else if (dim_ == 1) {
         r = eR.y();
-      } else if (_dim == 2) {
+      } else if (dim_ == 2) {
         r = eR.z();
       }
     }
@@ -194,26 +199,26 @@ void CsgFluctuations::EvalConfiguration(Topology *conf, Topology *) {
   }
 
   /* update averages*/
-  _N_avg += hist.data().y();
-  _N_sq_avg += hist.data().y().cwiseAbs2();
+  N_avg_ += hist.data().y();
+  N_sq_avg_ += hist.data().y().cwiseAbs2();
 
-  _nframes++;
+  nframes_++;
 }
 
 // output everything when processing frames is done
 void CsgFluctuations::EndEvaluate() {
-  cout << "Writing results to " << _outfilename << endl;
-  _outfile << "# radius number_fluct avg_number" << endl;
+  cout << "Writing results to " << outfilename_ << endl;
+  outfile_ << "# radius number_fluct avg_number" << endl;
 
-  for (votca::Index i = 0; i < _nbins; i++) {
-    _N_avg[i] /= (double)_nframes;
-    _N_sq_avg[i] /= (double)_nframes;
+  for (votca::Index i = 0; i < nbins_; i++) {
+    N_avg_[i] /= (double)nframes_;
+    N_sq_avg_[i] /= (double)nframes_;
   }
-  for (votca::Index i = 0; i < _nbins; i++) {
-    _outfile << _rmin + (double)i * (_rmax - _rmin) / (double)_nbins << " ";
-    _outfile << (_N_sq_avg[i] - _N_avg[i] * _N_avg[i]) / _N_avg[i]
+  for (votca::Index i = 0; i < nbins_; i++) {
+    outfile_ << rmin_ + (double)i * (rmax_ - rmin_) / (double)nbins_ << " ";
+    outfile_ << (N_sq_avg_[i] - N_avg_[i] * N_avg_[i]) / N_avg_[i]
              << " ";  // fluctuation
-    _outfile << _N_avg[i] << endl;
+    outfile_ << N_avg_[i] << endl;
   }
 }
 

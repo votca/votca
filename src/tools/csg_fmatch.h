@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,13 @@
 #ifndef VOTCA_CSG_CSG_FMATCH_H
 #define VOTCA_CSG_CSG_FMATCH_H
 
-#include "../../include/votca/csg/csgapplication.h"
-#include "../../include/votca/csg/trajectoryreader.h"
+// VOTCA includes
 #include <votca/tools/cubicspline.h>
 #include <votca/tools/property.h>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/trajectoryreader.h"
 
 using namespace votca::csg;
 
@@ -65,8 +68,8 @@ class CGForceMatching : public CsgApplication {
   /// parameters
   struct SplineInfo {
     /// \brief constructor
-    SplineInfo(votca::Index index, bool bonded_, votca::Index matr_pos_,
-               votca::tools::Property *options);
+    SplineInfo(votca::Index index, bool bonded_interaction,
+               votca::Index matr_pos_col, votca::tools::Property *options);
     /// \brief number of spline functions
     votca::Index num_splinefun;
     /// \brief number of spline grid points
@@ -88,7 +91,7 @@ class CGForceMatching : public CsgApplication {
     double gamma;
     /// \brief CubicSpline object
     votca::tools::CubicSpline Spline;
-    /// \brief position in the _A matrix (first coloumn which is occupied with
+    /// \brief position in the  A_ matrix (first coloumn which is occupied with
     /// this particular spline)
     votca::Index matr_pos;
     /// \brief dx for output. Calculated in the code
@@ -127,77 +130,77 @@ class CGForceMatching : public CsgApplication {
     string type1, type2, type3;  //
 
     /// \brief pointer to Property object to handle input options
-    votca::tools::Property *_options;
+    votca::tools::Property *options_;
   };
   /// \brief Property object to handle input options
-  votca::tools::Property _options;
+  votca::tools::Property options_;
   /// \brief list of bonded interactions
-  std::vector<votca::tools::Property *> _bonded;
+  std::vector<votca::tools::Property *> bonded_;
   /// \brief list of non-bonded interactions
-  std::vector<votca::tools::Property *> _nonbonded;
+  std::vector<votca::tools::Property *> nonbonded_;
 
-  using SplineContainer = vector<SplineInfo *>;
+  using SplineContainer = vector<SplineInfo>;
   /// \brief vector of SplineInfo * for all interactions
-  SplineContainer _splines;
+  SplineContainer splines_;
 
   /// \brief matrix used to store force matching equations
-  Eigen::MatrixXd _A;
+  Eigen::MatrixXd A_;
   /// \brief vector used to store reference forces on CG beads (from atomistic
   /// simulations)
-  Eigen::VectorXd _b;
-  /// \brief Solution of matrix equation _A * _x = _b : CG force-field
+  Eigen::VectorXd b_;
+  /// \brief Solution of matrix equation  A_ *  x_ =  b_ : CG force-field
   /// parameters
-  Eigen::VectorXd _x;  //
+  Eigen::VectorXd x_;  //
   /// \brief Additional matrix to handle constrained least squares fit
   /// contains constraints, which allow to get a real (smooth) spline (see VOTCA
   /// paper)
-  Eigen::MatrixXd _B_constr;
+  Eigen::MatrixXd B_constr_;
 
   /// \brief Counter for trajectory frames
-  votca::Index _frame_counter;
+  votca::Index frame_counter_;
   /// \brief Number of CG beads
-  votca::Index _nbeads;
+  votca::Index nbeads_;
 
   /// \brief accuracy for evaluating the difference in bead positions
-  double _dist;
+  double dist_;
 
   /// \brief Flag: true for constrained least squares, false for simple least
   /// squares
-  bool _constr_least_sq;
+  bool constr_least_sq_;
   /// \brief used in EvalConf to distinguish constrained and simple least
   /// squares
-  votca::Index _least_sq_offset;
+  votca::Index least_sq_offset_;
   /// \brief Number of frames used in one block for block averaging
-  votca::Index _nframes;
+  votca::Index nframes_;
   /// \brief Current number of blocks
-  votca::Index _nblocks;
+  votca::Index nblocks_;
 
-  /// \brief Counters for lines and columns in _B_constr
-  votca::Index _line_cntr, _col_cntr;
+  /// \brief Counters for lines and columns in  B_constr_
+  votca::Index line_cntr_, col_cntr_;
 
-  bool _has_existing_forces;
+  bool has_existing_forces_;
 
   /// \brief Solves FM equations for one block and stores the results for
   /// further processing
   void FmatchAccumulateData();
-  /// \brief Assigns smoothing conditions to matrices _A and _B_constr
+  /// \brief Assigns smoothing conditions to matrices  A_ and  B_constr_
   void FmatchAssignSmoothCondsToMatrix(Eigen::MatrixXd &Matrix);
   /// \brief For each trajectory frame writes equations for bonded interactions
-  /// to matrix _A
+  /// to matrix  A_
   void EvalBonded(Topology *conf, SplineInfo *sinfo);
   /// \brief For each trajectory frame writes equations for non-bonded
-  /// interactions to matrix _A
+  /// interactions to matrix  A_
   void EvalNonbonded(Topology *conf, SplineInfo *sinfo);
   /// \brief For each trajectory frame writes equations for non-bonded threebody
-  /// interactions to matrix _A
+  /// interactions to matrix  A_
   void EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo);
   /// \brief Write results to output files
   void WriteOutFiles();
 
   void OpenForcesTrajectory();
 
-  Topology _top_force;
-  std::unique_ptr<TrajectoryReader> _trjreader_force;
+  Topology top_force_;
+  std::unique_ptr<TrajectoryReader> trjreader_force_;
 };
 
 #endif  // VOTCA_CSG_CSG_FMATCH_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,23 @@
  *
  */
 
-#include <boost/program_options.hpp>
-#include <boost/tokenizer.hpp>
+// Standard includes
 #include <cmath>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 
-#include <cstdlib>
-#include <votca/csg/cgengine.h>
-#include <votca/csg/csgapplication.h>
+// Third party includes
+#include <boost/program_options.hpp>
+#include <boost/tokenizer.hpp>
+
+// VOTCA includes
 #include <votca/tools/average.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include <votca/csg/cgengine.h>
+#include <votca/csg/csgapplication.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -44,21 +50,21 @@ class CGOrderParam : public CsgApplication {
     CsgApplication::Initialize();
     AddProgramOptions()(
         "filter",
-        boost::program_options::value<string>(&_filter)->default_value("*"),
+        boost::program_options::value<string>(&filter_)->default_value("*"),
         "filter molecule names")(
         "radialcut",
-        boost::program_options::value<double>(&_radialcutoff)
+        boost::program_options::value<double>(&radialcutoff_)
             ->default_value(0.0),
         "radial cutoff: distance from center where bead is considered")(
         "minrad",
-        boost::program_options::value<double>(&_minrad)->default_value(0.0),
+        boost::program_options::value<double>(&minrad_)->default_value(0.0),
         "minimal distance a parcle has to be apart from center to be "
         "considerd")(
         "refmol",
-        boost::program_options::value<string>(&_refmol)->default_value(""),
+        boost::program_options::value<string>(&refmol_)->default_value(""),
         "Reference molecule")(
         "rbinw",
-        boost::program_options::value<double>(&_rbinw)->default_value(0),
+        boost::program_options::value<double>(&rbinw_)->default_value(0),
         "Do multiple r_bins multiple histograms");
   }
 
@@ -77,95 +83,95 @@ class CGOrderParam : public CsgApplication {
 
     filter = OptionsMap()["filter"].as<string>();
 
-    _minrad = 0;
+    minrad_ = 0;
 
-    _radialcutoff = OptionsMap()["radialcut"].as<double>();
-    _minrad = OptionsMap()["minrad"].as<double>();
-    _refmol = OptionsMap()["refmol"].as<string>();
-    _rbinw = OptionsMap()["rbinw"].as<double>();
+    radialcutoff_ = OptionsMap()["radialcut"].as<double>();
+    minrad_ = OptionsMap()["minrad"].as<double>();
+    refmol_ = OptionsMap()["refmol"].as<string>();
+    rbinw_ = OptionsMap()["rbinw"].as<double>();
 
-    if (_rbinw == 0 && _radialcutoff <= 0) {
-      throw runtime_error("_radialcut > 0 has to be specified");
+    if (rbinw_ == 0 && radialcutoff_ <= 0) {
+      throw runtime_error(" radialcut_ > 0 has to be specified");
     }
 
     setFilter(filter);
 
-    _file_u.open("hist_u.xvg");
-    if (!_file_u) {
+    file_u_.open("hist_u.xvg");
+    if (!file_u_) {
       throw runtime_error("cannot open hist_u.xvg for output");
     }
-    _file_v.open("hist_v.xvg");
-    if (!_file_v) {
+    file_v_.open("hist_v.xvg");
+    if (!file_v_) {
       throw runtime_error("cannot open hist_v.xvg for output");
     }
-    _file_w.open("hist_w.xvg");
-    if (!_file_w) {
+    file_w_.open("hist_w.xvg");
+    if (!file_w_) {
       throw runtime_error("cannot open hist_w.xvg for output");
     }
 
-    _n = 0;
+    n_ = 0;
 
     Eigen::Matrix3d box = top->getBox();
     Eigen::Vector3d a = box.col(0);
 
-    if (_refmol == "") {
+    if (refmol_ == "") {
 
-      _ref = box.rowwise().sum() / 2;
+      ref_ = box.rowwise().sum() / 2;
 
-      cout << "Refernce is center of box " << _ref << endl;
+      cout << "Refernce is center of box " << ref_ << endl;
     }
 
     boxl = a.norm() / 2;
-    if (_rbinw > 0) {
-      _rbins = (votca::Index)(boxl / _rbinw) + 1;
-      cout << "radial bins " << _rbins << endl;
+    if (rbinw_ > 0) {
+      rbins_ = (votca::Index)(boxl / rbinw_) + 1;
+      cout << "radial bins " << rbins_ << endl;
     } else {
-      _rbins = 1;
-      cout << "considering atoms between " << _minrad << " and "
-           << _radialcutoff << endl;
+      rbins_ = 1;
+      cout << "considering atoms between " << minrad_ << " and "
+           << radialcutoff_ << endl;
     }
 
-    _nbin = 100;
-    _hist_u = Eigen::MatrixXd::Zero(_rbins, _nbin);
-    _hist_v = Eigen::MatrixXd::Zero(_rbins, _nbin);
-    _hist_w = Eigen::MatrixXd::Zero(_rbins, _nbin);
-    _nmol = Eigen::VectorXi::Zero(_rbins);
+    nbin_ = 100;
+    hist_u_ = Eigen::MatrixXd::Zero(rbins_, nbin_);
+    hist_v_ = Eigen::MatrixXd::Zero(rbins_, nbin_);
+    hist_w_ = Eigen::MatrixXd::Zero(rbins_, nbin_);
+    nmol_ = Eigen::VectorXi::Zero(rbins_);
   }
 
   void EndEvaluate() override {
 
     cout << "Average number of molecules within cutoff " << endl;
-    for (votca::Index i = 0; i < _rbins; i++) {
-      cout << (double)i * _rbinw << " " << (double)_nmol[i] / (double)_n
+    for (votca::Index i = 0; i < rbins_; i++) {
+      cout << (double)i * rbinw_ << " " << (double)nmol_[i] / (double)n_
            << endl;
     }
 
-    double exp_value = 1.0 / (double)_nbin;
+    double exp_value = 1.0 / (double)nbin_;
     double orderparam = 0;
 
-    for (votca::Index n = 0; n < _nbin; n++) {
-      _hist_u(0, n) /= (double)_nmol[0];  // normalize to numberframes and avg.
+    for (votca::Index n = 0; n < nbin_; n++) {
+      hist_u_(0, n) /= (double)nmol_[0];  // normalize to numberframes and avg.
                                           // number of molecules
-      _hist_v(0, n) /= (double)_nmol[0];
-      _hist_w(0, n) /= (double)_nmol[0];
+      hist_v_(0, n) /= (double)nmol_[0];
+      hist_w_(0, n) /= (double)nmol_[0];
 
-      _file_u << (double)n * 2 / double(_nbin - 1) << " " << _hist_u(0, n)
+      file_u_ << (double)n * 2 / double(nbin_ - 1) << " " << hist_u_(0, n)
               << endl;
-      _file_v << (double)n * 2 / double(_nbin - 1) << " " << _hist_v(0, n)
+      file_v_ << (double)n * 2 / double(nbin_ - 1) << " " << hist_v_(0, n)
               << endl;
-      _file_w << (double)n * 2 / double(_nbin - 1) << " " << _hist_w(0, n)
+      file_w_ << (double)n * 2 / double(nbin_ - 1) << " " << hist_w_(0, n)
               << endl;
 
-      orderparam += (_hist_u(0, n) - exp_value) * (_hist_u(0, n) - exp_value);
+      orderparam += (hist_u_(0, n) - exp_value) * (hist_u_(0, n) - exp_value);
     }
 
-    orderparam = sqrt(orderparam / (double)_nbin);
+    orderparam = sqrt(orderparam / (double)nbin_);
 
-    cout << "Orderparam " << _radialcutoff << " " << orderparam << endl;
+    cout << "Orderparam " << radialcutoff_ << " " << orderparam << endl;
 
-    _file_u.close();
-    _file_v.close();
-    _file_w.close();
+    file_u_.close();
+    file_v_.close();
+    file_w_.close();
   };
 
   void EvalConfiguration(Topology *conf, Topology * = nullptr) override {
@@ -174,80 +180,80 @@ class CGOrderParam : public CsgApplication {
     votca::Index nu, nv, nw;
     Eigen::Vector3d u, v, w;
 
-    if (_refmol != "") {
-      for (Bead *bead : conf->Beads()) {
-        if (votca::tools::wildcmp(_refmol, bead->getName())) {
-          _ref = bead->getPos();
+    if (refmol_ != "") {
+      for (const auto &bead : conf->Beads()) {
+        if (votca::tools::wildcmp(refmol_, bead.getName())) {
+          ref_ = bead.getPos();
         }
       }
     }
 
-    for (Bead *bead : conf->Beads()) {
-      if (!votca::tools::wildcmp(_filter, bead->getName())) {
+    for (const auto &bead : conf->Beads()) {
+      if (!votca::tools::wildcmp(filter_, bead.getName())) {
         continue;
       }
-      if (votca::tools::wildcmp(_refmol, bead->getName())) {
+      if (votca::tools::wildcmp(refmol_, bead.getName())) {
         continue;
       }
 
-      eR = bead->getPos() - _ref;
-      if ((eR.norm() < _radialcutoff && eR.norm() > _minrad) || _rbins != 1) {
+      eR = bead.getPos() - ref_;
+      if ((eR.norm() < radialcutoff_ && eR.norm() > minrad_) || rbins_ != 1) {
         // cout << eR << endl;
         votca::Index rb = 0;
-        if (_rbinw > 0) {
-          rb = (votca::Index)((eR.norm()) / boxl * (double)_rbins);
+        if (rbinw_ > 0) {
+          rb = (votca::Index)((eR.norm()) / boxl * (double)rbins_);
         }
-        if (rb >= _rbins) {
+        if (rb >= rbins_) {
           continue;
         }
 
         eR.normalize();
-        u = bead->getU();
-        v = bead->getV();
-        w = bead->getW();
+        u = bead.getU();
+        v = bead.getV();
+        w = bead.getW();
         u.normalize();
         v.normalize();
         w.normalize();
 
-        nu = (votca::Index)((eR.dot(u) + 1) / 2) * _nbin;
-        nv = (votca::Index)((eR.dot(v) + 1) / 2) * _nbin;
-        nw = (votca::Index)((eR.dot(w) + 1) / 2) * _nbin;
+        nu = (votca::Index)((eR.dot(u) + 1) / 2) * nbin_;
+        nv = (votca::Index)((eR.dot(v) + 1) / 2) * nbin_;
+        nw = (votca::Index)((eR.dot(w) + 1) / 2) * nbin_;
 
-        _hist_u(rb, nu) += 1;
-        _hist_v(rb, nv) += 1;
-        _hist_w(rb, nw) += 1;
-        _nmol[rb]++;
+        hist_u_(rb, nu) += 1;
+        hist_v_(rb, nv) += 1;
+        hist_w_(rb, nw) += 1;
+        nmol_[rb]++;
       }
     }
 
-    _n++;
+    n_++;
   }
 
-  void setOut(const string &filename) { _filename = filename; }
+  void setOut(const string &filename) { filename_ = filename; }
 
-  void setFilter(const string &filter) { _filter = filter; }
+  void setFilter(const string &filter) { filter_ = filter; }
 
  protected:
-  ofstream _file;
-  string _filename;
-  votca::Index _n;
-  Eigen::Vector3d _ref;
-  ofstream _file_u;
-  ofstream _file_v;
-  ofstream _file_w;
-  Eigen::MatrixXd _hist_u;
-  Eigen::MatrixXd _hist_v;
-  Eigen::MatrixXd _hist_w;
-  votca::Index _nbin;
-  Eigen::VectorXi _nmol;
-  double _radialcutoff;
-  double _minrad;
-  votca::Index _rbins;
-  double _rbinw;
+  ofstream file_;
+  string filename_;
+  votca::Index n_;
+  Eigen::Vector3d ref_;
+  ofstream file_u_;
+  ofstream file_v_;
+  ofstream file_w_;
+  Eigen::MatrixXd hist_u_;
+  Eigen::MatrixXd hist_v_;
+  Eigen::MatrixXd hist_w_;
+  votca::Index nbin_;
+  Eigen::VectorXi nmol_;
+  double radialcutoff_;
+  double minrad_;
+  votca::Index rbins_;
+  double rbinw_;
   double boxl;
 
-  string _filter;
-  string _refmol;
+  string filter_;
+  string refmol_;
 };
 
 int main(int argc, char **argv) {

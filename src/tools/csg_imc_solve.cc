@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,17 @@
  *
  */
 
-#include "csg_imc_solve.h"
-#include "../../include/votca/csg/imcio.h"
+// Standard includes
 #include <fstream>
+
+// VOTCA includes
 #include <votca/tools/table.h>
+
+// Local VOTCA includes
+#include "votca/csg/imcio.h"
+
+// Local private VOTCA includes
+#include "csg_imc_solve.h"
 
 int main(int argc, char** argv) {
   CG_IMC_solve app;
@@ -50,10 +57,10 @@ bool CG_IMC_solve::EvaluateOptions() {
 }
 
 void CG_IMC_solve::Run() {
-  std::string imcfile = _op_vm["imcfile"].as<std::string>();
-  std::string gmcfile = _op_vm["gmcfile"].as<std::string>();
+  std::string imcfile = OptionsMap()["imcfile"].as<std::string>();
+  std::string gmcfile = OptionsMap()["gmcfile"].as<std::string>();
 
-  double reg = _op_vm["regularization"].as<double>();
+  double reg = OptionsMap()["regularization"].as<double>();
 
   Eigen::MatrixXd A = votca::csg::imcio_read_matrix(gmcfile);
   votca::tools::Table B;
@@ -101,7 +108,7 @@ void CG_IMC_solve::Run() {
 
   x.y() = -inverse * A.transpose() * B.y();
 
-  std::string idxfile = _op_vm["idxfile"].as<std::string>();
+  std::string idxfile = OptionsMap()["idxfile"].as<std::string>();
   std::vector<std::pair<std::string, votca::tools::RangeParser> > ranges =
       votca::csg::imcio_read_index(idxfile);
   for (std::pair<std::string, votca::tools::RangeParser>& range : ranges) {

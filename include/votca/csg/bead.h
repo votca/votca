@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -229,19 +229,19 @@ class Bead : public BaseBead {
   const Eigen::Vector3d &getF() const;
 
   /** does this configuration store velocities? */
-  bool HasVel() { return bead_velocity_set_; }
+  bool HasVel() const noexcept { return bead_velocity_set_; }
 
   /** does this configuration store forces? */
-  bool HasF() { return bead_force_set_; }
+  bool HasF() const noexcept { return bead_force_set_; }
 
   /** does this configuration store u-orientations? */
-  bool HasU() { return bU_; }
+  bool HasU() const noexcept { return bU_; }
 
   /** does this configuration store v-orientations? */
-  bool HasV() { return bV_; }
+  bool HasV() const noexcept { return bV_; }
 
   /** does this configuration store w-orientations? */
-  bool HasW() { return bW_; }
+  bool HasW() const noexcept { return bW_; }
 
   /** dos the bead store a velocity */
   void HasVel(bool b);

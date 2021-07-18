@@ -15,10 +15,15 @@
  *
  */
 
+// Standard includes
 #include <cstdlib>
-#include <votca/csg/csgapplication.h>
+
+// VOTCA includes
 #include <votca/tools/average.h>
 #include <votca/tools/tokenizer.h>
+
+// Local VOTCA includes
+#include <votca/csg/csgapplication.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -43,11 +48,11 @@ class CsgTestApp : public CsgApplication {
 
  protected:
   // inverse hydrodynamic radius average
-  votca::tools::Average<double> _inv_r_hydr;
+  votca::tools::Average<double> inv_r_hydr_;
   // radius of gyration squared average
-  votca::tools::Average<double> _r_gyr_sq;
+  votca::tools::Average<double> r_gyr_sq_;
   // mass weighted radius of gyration squared average
-  votca::tools::Average<double> _r_gyr_m_sq;
+  votca::tools::Average<double> r_gyr_m_sq_;
 };
 
 int main(int argc, char **argv) {
@@ -58,21 +63,21 @@ int main(int argc, char **argv) {
 
 void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
   // loop over all molecules
-  for (Molecule *mol : top->Molecules()) {
+  for (const auto &mol : top->Molecules()) {
     // does the id match if given?
     if (OptionsMap().count("mol")) {
-      if (OptionsMap()["mol"].as<votca::Index>() != mol->getId() + 1) {
+      if (OptionsMap()["mol"].as<votca::Index>() != mol.getId() + 1) {
         continue;
       }
     }
     // otherwise does the name pattern match?
     else if (!votca::tools::wildcmp(OptionsMap()["molname"].as<string>(),
-                                    mol->getName())) {
+                                    mol.getName())) {
       continue;  // if not skip this molecule
     }
 
     // Number of beads in the molecule
-    votca::Index N = mol->BeadCount();
+    votca::Index N = mol.BeadCount();
 
     // sqared tensor of gyration for current snapshot
     double r_gyr_sq = 0;
@@ -84,7 +89,7 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
       for (votca::Index j = i + 1; j < N; ++j) {
         // distance between bead i and j
         Eigen::Vector3d r_ij =
-            mol->getBead(i)->getPos() - mol->getBead(j)->getPos();
+            mol.getBead(i)->getPos() - mol.getBead(j)->getPos();
         // radius of gyration squared
         r_gyr_sq += r_ij.squaredNorm() / (double)(N * N);
         // hydrodynamic radius
@@ -93,39 +98,39 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
     }
 
     // add calculated values to the averages
-    _r_gyr_sq.Process(r_gyr_sq);
-    _inv_r_hydr.Process(inv_r_hydr);
+    r_gyr_sq_.Process(r_gyr_sq);
+    inv_r_hydr_.Process(inv_r_hydr);
 
     // calculate the mass weighted tensor of gyration
     // first calculate mass + center of mass
     double M = 0;
     Eigen::Vector3d cm(0, 0, 0);
     for (votca::Index i = 0; i < N; ++i) {
-      M += mol->getBead(i)->getMass();
-      cm += mol->getBead(i)->getPos() * mol->getBead(i)->getMass();
+      M += mol.getBead(i)->getMass();
+      cm += mol.getBead(i)->getPos() * mol.getBead(i)->getMass();
     }
     cm /= M;
     // now tensor of gyration based on cm
     double r_gyr_m_sq = 0;
     for (votca::Index i = 0; i < N; ++i) {
-      Eigen::Vector3d r_ij = mol->getBead(i)->getPos() - cm;
-      r_gyr_m_sq += mol->getBead(i)->getMass() * r_ij.squaredNorm();
+      Eigen::Vector3d r_ij = mol.getBead(i)->getPos() - cm;
+      r_gyr_m_sq += mol.getBead(i)->getMass() * r_ij.squaredNorm();
     }
     r_gyr_m_sq /= M;
 
     // add to average
-    _r_gyr_m_sq.Process(r_gyr_m_sq);
+    r_gyr_m_sq_.Process(r_gyr_m_sq);
   }
 }
 
 // output everything when processing frames is done
 void CsgTestApp::EndEvaluate() {
   cout << "\n\n------------------------------\n";
-  cout << "radius of gyration:                  " << sqrt(_r_gyr_sq.getAvg())
+  cout << "radius of gyration:                  " << sqrt(r_gyr_sq_.getAvg())
        << endl;
-  cout << "mass weighted radius of gyration:    " << sqrt(_r_gyr_m_sq.getAvg())
+  cout << "mass weighted radius of gyration:    " << sqrt(r_gyr_m_sq_.getAvg())
        << endl;
-  cout << "hydrodynamic radius:                 " << 1. / _inv_r_hydr.getAvg()
+  cout << "hydrodynamic radius:                 " << 1. / inv_r_hydr_.getAvg()
        << endl;
   cout << "------------------------------\n";
 }

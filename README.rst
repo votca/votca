@@ -29,7 +29,7 @@ If you use this package, please cite the following VOTCA papers:
      (2009) <http://dx.doi.org/10.1021/ct900369w>`__.
 
 In case of questions, please post them in the google discussion group
-for votca at: http://groups.google.com/group/votca
+for VOTCA at: http://groups.google.com/group/votca
 
 You can contact the VOTCA Development Team at devs@votca.org.
 

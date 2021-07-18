@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,14 +55,14 @@ class XYZWriter : public TrajectoryWriter {
     return atom.getElement();
   }
 
-  std::string getName(Bead *bead) { return bead->getName(); }
+  std::string getName(std::unique_ptr<Bead> &bead) { return bead->getName(); }
 
   template <class Atom>
   Eigen::Vector3d getPos(Atom &atom) {
     return atom.getPos() * tools::conv::bohr2ang;
   }
 
-  Eigen::Vector3d getPos(Bead *bead) {
+  Eigen::Vector3d getPos(std::unique_ptr<Bead> &bead) {
     return bead->Pos() * tools::conv::nm2ang;
   }
 
@@ -73,13 +73,13 @@ class XYZWriter : public TrajectoryWriter {
 
   BeadContainer &getIterable(Topology &top) { return top.Beads(); }
 
-  std::ofstream _out;
+  std::ofstream out_;
 };
 
 template <class T>
 inline void XYZWriter::Write(T &container, std::string header) {
-  _out << getSize(container) << "\n";
-  _out << header << "\n";
+  out_ << getSize(container) << "\n";
+  out_ << header << "\n";
 
   boost::format fmter("%1$s%2$10.5f%3$10.5f%4$10.5f\n");
 
@@ -94,9 +94,9 @@ inline void XYZWriter::Write(T &container, std::string header) {
       atomname = " " + atomname;
     }
 
-    _out << fmter % atomname % r.x() % r.y() % r.z();
+    out_ << fmter % atomname % r.x() % r.y() % r.z();
   }
-  _out << std::flush;
+  out_ << std::flush;
 }
 }  // namespace csg
 }  // namespace votca

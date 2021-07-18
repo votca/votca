@@ -1,6 +1,36 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/csg/commits/master>`__.
 
+Version 2022-dev
+================
+
+-  generate manpage & rst using votca_help2man (#637, #638,
+   #640, #641)
+-  format csg_orientcorr help for rst conversion (#648)
+-  update help of functions_common for rst (#650)
+-  switched topology map to using unique_ptr (#651)
+-  switch to using unique_ptr for cgmoleculedef (#652)
+-  switch boundary conditions to unique_ptr (#654)
+-  switch NBList to unique_ptr (#659)
+-  switch csgapplication worker to unique_ptr (#660)
+-  remove use of new with splines in csg_fmatch (#662)
+-  update boost test floating point comparison header (#663)
+-  switch mutex to unique_ptr (#664)
+-  standardize header formatting (#661)
+-  clean up memory management in partial_rdf (#665)
+-  deleted unused makefile (#666)
+-  memory management of molecules fixed (#657)
+-  switched memory management of residues using boost_deque (#655)
+-  store beads directly in boost deque (#656)
+-  switched molecule stable_vector to boost deque (#667)
+-  convert maps to unique_ptrs (#653)
+-  add iterative integral equation (iie) method (#675)
+-  fix issues with IHNC (newton-mod) Integral equation method (#683)
+-  fix links in documentation (#686, #687, #688)
+-  use ndim vector instead of std::vector (#689)
+-  adapted tokenizer api (#693)
+-  made membervariable format consistent (#694)
+
 Version 2021.2 (released XX.07.21)
 ==================================
 

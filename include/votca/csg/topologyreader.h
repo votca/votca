@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_TOPOLOGYREADER_H
-#define _VOTCA_CSG_TOPOLOGYREADER_H
+#ifndef VOTCA_CSG_TOPOLOGYREADER_H
+#define VOTCA_CSG_TOPOLOGYREADER_H
 
 // Standard includes
 #include <string>
@@ -39,10 +39,10 @@ class TopologyReader {
 
 // important - singleton pattern, make sure factory is created before accessed
 inline FileFormatFactory<TopologyReader> &TopReaderFactory() {
-  static FileFormatFactory<TopologyReader> _TopReaderFactory;
-  return _TopReaderFactory;
+  static FileFormatFactory<TopologyReader> TopReaderFactory_;
+  return TopReaderFactory_;
 }
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_TOPOLOGYREADER_H
+#endif  //  VOTCA_CSG_TOPOLOGYREADER_H

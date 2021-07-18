@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_LAMMPSDUMPREADER_H
-#define _VOTCA_CSG_LAMMPSDUMPREADER_H
+#ifndef VOTCA_CSG_LAMMPSDUMPREADER_H
+#define VOTCA_CSG_LAMMPSDUMPREADER_H
 
 #include "../../../../include/votca/csg/topologyreader.h"
 #include "../../../../include/votca/csg/trajectoryreader.h"
@@ -70,13 +70,13 @@ class LAMMPSDumpReader : public TrajectoryReader, public TopologyReader {
   void ReadNumAtoms(Topology &top);
   void ReadAtoms(Topology &top, std::string itemline);
 
-  std::ifstream _fl;
-  std::string _fname;
-  bool _topology;
-  Index _natoms;
+  std::ifstream fl_;
+  std::string fname_;
+  bool topology_;
+  Index natoms_;
 };
 
 }  // namespace csg
 }  // namespace votca
 
-#endif  // _VOTCA_CSG_LAMMPSDUMPREADER_H
+#endif  //  VOTCA_CSG_LAMMPSDUMPREADER_H
