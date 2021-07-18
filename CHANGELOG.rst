@@ -1,6 +1,9 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/xtp/commits/master>`__.
 
+Version 2021.2 (released XX.07.21)
+==================================
+
 Version 2021.1 (released 18.07.21)
 ==================================
 
