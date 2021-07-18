@@ -47,7 +47,10 @@ Version 2022-dev
 -  overhaul complete option handling (#704)
 -  Fixed exciton options checking (#726)
 
-Version 2021.1 (released XX.03.21)
+Version 2021.2 (released XX.07.21)
+==================================
+
+Version 2021.1 (released 18.07.21)
 ==================================
 
 Version 2021 (released 13.03.21)
