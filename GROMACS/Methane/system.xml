@@ -8,7 +8,8 @@
         <segment>
           <name>Methane</name>
           <qmcoords_n>QC_FILES/methane.xyz</qmcoords_n>
-          <qmcoords_s>QC_FILES/methane.xyz</qmcoords_s>
+	  <qmcoords_s>QC_FILES/methane.xyz</qmcoords_s>
+	  <qmcoords_t>QC_FILES/methane.xyz</qmcoords_t>
           <U_xX_nN_h>1.0000</U_xX_nN_h>
           <U_nX_nN_h>0.1000</U_nX_nN_h>
           <U_xN_xX_h>0.2000</U_xN_xX_h>

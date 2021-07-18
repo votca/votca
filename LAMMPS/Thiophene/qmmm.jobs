@@ -4,33 +4,29 @@
 		<tag>vacuum</tag>
 		<input>
 			<regions>
-				<region>
+				<staticregion>
 					<id>1</id>
 					<cutoff>
 						<radius>0.0</radius>
 					</cutoff>
-				</region>
+				</staticregion>
 			</regions>
 		</input>
-		<status>ASSIGNED</status>
-		<host>nbwin1568:14872</host>
-		<time>16:25:18</time>
+		<status>AVAILABLE</status>
 	</job>
 	<job>
 		<id>1</id>
 		<tag>static</tag>
 		<input>
 			<regions>
-				<region>
+				<staticregion>
 					<id>1</id>
 					<cutoff>
 						<radius>2.2</radius>
 					</cutoff>
-				</region>
+				</staticregion>
 			</regions>
 		</input>
-		<status>ASSIGNED</status>
-		<host>nbwin1568:14872</host>
-		<time>16:25:18</time>
+		<status>AVAILABLE</status>
 	</job>
 </jobs>
