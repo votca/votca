@@ -24,16 +24,14 @@
 #define VOTCA_XTP_ATOM_H
 
 // Standard includes
+#include "eigen.h"
 #include <exception>
 #include <map>
 #include <string>
-
-// Local VOTCA includes
-#include "checkpointreader.h"
-#include "checkpointwriter.h"
-
+#include <votca/tools/types.h>
 namespace votca {
 namespace xtp {
+class CptTable;
 class Atom {
  public:
   struct data {
@@ -54,19 +52,19 @@ class Atom {
 
   static std::string GetElementFromString(const std::string& MDName);
 
-  Index getId() const { return _id; }
-  const std::string& getName() const { return _name; }
-  std::string getElement() const { return _element; }
+  Index getId() const { return id_; }
+  const std::string& getName() const { return name_; }
+  std::string getElement() const { return element_; }
 
-  Index getResnr() const { return _resnr; }
+  Index getResnr() const { return resnr_; }
 
-  void setResnr(Index resnr) { _resnr = resnr; }
-  void Translate(const Eigen::Vector3d& shift) { _pos = _pos + shift; }
+  void setResnr(Index resnr) { resnr_ = resnr; }
+  void Translate(const Eigen::Vector3d& shift) { pos_ = pos_ + shift; }
 
   void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos);
 
-  const Eigen::Vector3d& getPos() const { return _pos; }
-  void setPos(const Eigen::Vector3d& r) { _pos = r; }
+  const Eigen::Vector3d& getPos() const { return pos_; }
+  void setPos(const Eigen::Vector3d& r) { pos_ = r; }
 
   std::string identify() const { return "atom"; }
 
@@ -78,19 +76,19 @@ class Atom {
     return out;
   }
 
-  void SetupCptTable(CptTable& table) const;
+  static void SetupCptTable(CptTable& table);
 
   void WriteData(data& d) const;
 
   void ReadData(const data& d);
 
  private:
-  Index _id = -1;
-  std::string _name = "";
+  Index id_ = -1;
+  std::string name_ = "";
 
-  std::string _element = "";
-  Index _resnr = -1;
-  Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
+  std::string element_ = "";
+  Index resnr_ = -1;
+  Eigen::Vector3d pos_ = Eigen::Vector3d::Zero();
 };
 
 }  // namespace xtp

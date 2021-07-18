@@ -34,11 +34,11 @@ namespace xtp {
 class PolarRegion;
 class MolPol final : public QMTool {
  public:
-  MolPol() : _input("", 0){};
+  MolPol() : input_("", 0){};
 
   ~MolPol() = default;
 
-  std::string Identify() { return "molpol"; }
+  std::string Identify() const { return "molpol"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);
@@ -50,18 +50,18 @@ class MolPol final : public QMTool {
   Eigen::Matrix3d CalcClassicalPol(const PolarSegment& input) const;
   Eigen::Vector3d CalcInducedDipole(const PolarSegment& input,
                                     const Eigen::Vector3d& ext_field) const;
-  Logger _log;
+  Logger log_;
 
-  std::string _mps_output;
-  PolarSegment _input;
-  Eigen::Matrix3d _polarization_target;
+  std::string mps_output_;
+  PolarSegment input_;
+  Eigen::Matrix3d polarization_target_;
 
-  Eigen::VectorXd _weights;
+  Eigen::VectorXd weights_;
 
-  tools::Property _polar_options;
+  tools::Property polar_options_;
 
-  double _tolerance_pol = 1e-4;
-  Index _max_iter = 1000;
+  double tolerance_pol_ = 1e-4;
+  Index max_iter_ = 1000;
 };
 
 }  // namespace xtp

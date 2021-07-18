@@ -40,15 +40,13 @@ namespace xtp {
 
  */
 
-class XTPDFT : public QMPackage {
+class XTPDFT final : public QMPackage {
  public:
   std::string getPackageName() const final { return "xtp"; }
 
-  void Initialize(const tools::Property& options) final;
-
   bool WriteInputFile(const Orbitals& orbitals) final;
 
-  bool Run() final;
+  bool RunDFT() final;
 
   void CleanUp() final;
 
@@ -69,16 +67,17 @@ class XTPDFT : public QMPackage {
   }
 
  protected:
+  void ParseSpecificOptions(const tools::Property& options) final;
   const std::array<Index, 49>& ShellMulitplier() const final {
-    return _multipliers;
+    return multipliers_;
   }
   const std::array<Index, 49>& ShellReorder() const final {
-    return _reorderList;
+    return reorderList_;
   }
 
  private:
   // clang-format off
-  std::array<Index,49> _multipliers={{
+  std::array<Index,49>  multipliers_={{
             1, //s
             1,1,1, //p
             1,1,1,1,1, //d
@@ -87,7 +86,7 @@ class XTPDFT : public QMPackage {
             1,1,1,1,1,1,1,1,1,1,1, //h
             1,1,1,1,1,1,1,1,1,1,1,1,1 //i
   }};
-  std::array<Index,49> _reorderList={{
+  std::array<Index,49>  reorderList_={{
             0, //s
             0,0,0, //p
             0,0,0,0,0, //d
@@ -99,9 +98,9 @@ class XTPDFT : public QMPackage {
   // clang-format on
 
   void WriteChargeOption() final { return; }
-  tools::Property _xtpdft_options;
+  tools::Property xtpdft_options_;
 
-  Orbitals _orbitals;
+  Orbitals orbitals_;
 };
 
 }  // namespace xtp

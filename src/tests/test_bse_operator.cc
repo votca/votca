@@ -32,7 +32,7 @@
 using namespace votca::xtp;
 using namespace std;
 
-BOOST_AUTO_TEST_SUITE(bse_test)
+BOOST_AUTO_TEST_SUITE(bse_operator_test)
 
 BOOST_AUTO_TEST_CASE(bse_operator) {
   libint2::initialize();
@@ -86,25 +86,38 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   orbitals.setBSEindices(0, 16);
   HqpOperator Hqp_op(epsilon_inv, Mmn, Hqp);
   Hqp_op.configure(opt);
-  Eigen::MatrixXd hqp_mat = Hqp_op.get_full_matrix();
+  const Eigen::MatrixXd identity =
+      Eigen::MatrixXd::Identity(Hqp_op.rows(), Hqp_op.cols());
+  Eigen::MatrixXd hqp_mat = Hqp_op * identity;
 
   Eigen::MatrixXd hqp_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/bse_operator/hqp_ref.mm");
 
   bool check_hqp = hqp_mat.isApprox(hqp_ref, 0.001);
   BOOST_CHECK_EQUAL(check_hqp, true);
-
+  bool check_hqpdiag = hqp_mat.diagonal().isApprox(Hqp_op.diagonal(), 0.001);
+  BOOST_CHECK_EQUAL(check_hqpdiag, true);
   HxOperator Hx(epsilon_inv, Mmn, Hqp);
   Hx.configure(opt);
-  Eigen::MatrixXd hx_mat = Hx.get_full_matrix();
+  Eigen::MatrixXd hx_mat = Hx * identity;
   Eigen::MatrixXd hx_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/bse_operator/hx_ref.mm");
 
   bool check_hx = hx_mat.isApprox(hx_ref, 0.001);
   BOOST_CHECK_EQUAL(check_hx, true);
+  if (!check_hx) {
+    cout << "hx ref" << endl;
+    cout << hx_ref << endl;
+    cout << "hx result" << endl;
+    cout << hx_mat << endl;
+  }
+
+  bool check_hxdiag = hx_mat.diagonal().isApprox(Hx.diagonal(), 0.001);
+  BOOST_CHECK_EQUAL(check_hxdiag, true);
   HdOperator Hd(epsilon_inv, Mmn, Hqp);
   Hd.configure(opt);
-  Eigen::MatrixXd hd_mat = Hd.get_full_matrix();
+  Eigen::MatrixXd hd_mat = Hd * identity;
+
   Eigen::MatrixXd hd_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/bse_operator/hd_ref.mm");
 
@@ -118,9 +131,12 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   }
   BOOST_CHECK_EQUAL(check_hd, true);
 
+  bool check_hddiag = hd_mat.diagonal().isApprox(Hd.diagonal(), 0.001);
+  BOOST_CHECK_EQUAL(check_hddiag, true);
+
   Hd2Operator Hd2(epsilon_inv, Mmn, Hqp);
   Hd2.configure(opt);
-  Eigen::MatrixXd hd2_mat = Hd2.get_full_matrix();
+  Eigen::MatrixXd hd2_mat = Hd2 * identity;
   Eigen::MatrixXd hd2_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/bse_operator/hd2_ref.mm");
 
@@ -132,6 +148,9 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
     cout << hd2_mat << endl;
   }
   BOOST_CHECK_EQUAL(check_hd2, true);
+  bool check_hd2diag = hd2_mat.diagonal().isApprox(Hd2.diagonal(), 0.001);
+  BOOST_CHECK_EQUAL(check_hd2diag, true);
+
   libint2::finalize();
 }
 

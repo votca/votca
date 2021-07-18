@@ -28,38 +28,38 @@ namespace xtp {
 
 void DIIS::Update(Index maxerrorindex, const Eigen::MatrixXd& errormatrix) {
 
-  if (int(_errormatrixhist.size()) == _histlength) {
-    _errormatrixhist.erase(_errormatrixhist.begin() + maxerrorindex);
-    _Diis_Bs.erase(_Diis_Bs.begin() + maxerrorindex);
-    for (std::vector<double>& subvec : _Diis_Bs) {
+  if (int(errormatrixhist_.size()) == histlength_) {
+    errormatrixhist_.erase(errormatrixhist_.begin() + maxerrorindex);
+    Diis_Bs_.erase(Diis_Bs_.begin() + maxerrorindex);
+    for (std::vector<double>& subvec : Diis_Bs_) {
       subvec.erase(subvec.begin() + maxerrorindex);
     }
   }
 
-  _errormatrixhist.push_back(errormatrix);
+  errormatrixhist_.push_back(errormatrix);
 
   std::vector<double> Bijs;
-  for (Index i = 0; i < Index(_errormatrixhist.size()) - 1; i++) {
+  for (Index i = 0; i < Index(errormatrixhist_.size()) - 1; i++) {
     double value =
-        errormatrix.cwiseProduct((_errormatrixhist[i]).transpose()).sum();
+        errormatrix.cwiseProduct((errormatrixhist_[i]).transpose()).sum();
     Bijs.push_back(value);
-    _Diis_Bs[i].push_back(value);
+    Diis_Bs_[i].push_back(value);
   }
   Bijs.push_back(errormatrix.cwiseProduct(errormatrix.transpose()).sum());
-  _Diis_Bs.push_back(Bijs);
+  Diis_Bs_.push_back(Bijs);
   return;
 }
 
 Eigen::VectorXd DIIS::CalcCoeff() {
   success = true;
-  const Index size = Index(_errormatrixhist.size());
+  const Index size = Index(errormatrixhist_.size());
 
   // C2-DIIS
   Eigen::MatrixXd B = Eigen::MatrixXd::Zero(size, size);
 
   for (Index i = 0; i < B.rows(); i++) {
     for (Index j = 0; j <= i; j++) {
-      B(i, j) = _Diis_Bs[i][j];
+      B(i, j) = Diis_Bs_[i][j];
       if (i != j) {
         B(j, i) = B(i, j);
       }

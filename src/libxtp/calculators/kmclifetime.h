@@ -30,7 +30,7 @@ class KMCLifetime final : public KMCCalculator {
   KMCLifetime() = default;
   ~KMCLifetime() = default;
   bool WriteToStateFile() const { return false; }
-  std::string Identify() { return "kmclifetime"; }
+  std::string Identify() const { return "kmclifetime"; }
 
  protected:
   void ParseSpecificOptions(const tools::Property& user_options);
@@ -44,13 +44,13 @@ class KMCLifetime final : public KMCCalculator {
                    double simtime, const Chargecarrier& affectedcarrier) const;
 
   void ReadLifetimeFile(std::string filename);
-  std::string _probfile;
-  bool _do_carrierenergy;
-  std::string _energy_outputfile;
-  double _alpha;
-  unsigned long _outputsteps;
-  unsigned long _insertions;
-  std::string _lifetimefile;
+  std::string probfile_;
+  bool do_carrierenergy_;
+  std::string energy_outputfile_;
+  double alpha_;
+  unsigned long outputsteps_;
+  unsigned long insertions_;
+  std::string lifetimefile_;
 };
 
 }  // namespace xtp

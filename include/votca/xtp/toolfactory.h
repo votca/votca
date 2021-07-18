@@ -42,8 +42,8 @@ class QMToolFactory : public tools::ObjectFactory<std::string, QMTool> {
 };
 
 inline QMToolFactory &QMTools() {
-  static QMToolFactory _instance;
-  return _instance;
+  static QMToolFactory instance_;
+  return instance_;
 }
 
 }  // namespace xtp

@@ -47,7 +47,7 @@ class StaticRegion;
 class Region {
 
  public:
-  Region(Index id, Logger& log) : _id(id), _log(log){};
+  Region(Index id, Logger& log) : id_(id), log_(log){};
   virtual ~Region() = default;
 
   virtual void WriteToCpt(CheckpointWriter& w) const = 0;
@@ -70,13 +70,13 @@ class Region {
 
   virtual double charge() const = 0;
 
-  bool Successful() const { return _info; }
+  bool Successful() const { return info_; }
 
-  std::string ErrorMsg() const { return _errormsg; }
+  std::string ErrorMsg() const { return errormsg_; }
 
   void AddResults(tools::Property& prop) const;
 
-  Index getId() const { return _id; }
+  Index getId() const { return id_; }
 
   virtual double Etotal() const = 0;
 
@@ -87,8 +87,8 @@ class Region {
   }
 
  protected:
-  bool _info = true;
-  std::string _errormsg = "";
+  bool info_ = true;
+  std::string errormsg_ = "";
   std::vector<double> ApplyInfluenceOfOtherRegions(
       std::vector<std::unique_ptr<Region> >& regions);
   virtual void AppendResult(tools::Property& prop) const = 0;
@@ -96,8 +96,8 @@ class Region {
   virtual double InteractwithPolarRegion(const PolarRegion& region) = 0;
   virtual double InteractwithStaticRegion(const StaticRegion& region) = 0;
 
-  Index _id = -1;
-  Logger& _log;
+  Index id_ = -1;
+  Logger& log_;
 };
 
 }  // namespace xtp

@@ -38,14 +38,14 @@ class StateTracker;
 class Forces {
  public:
   Forces(GWBSEEngine& gwbse_engine, const StateTracker& tracker)
-      : _gwbse_engine(gwbse_engine), _tracker(tracker){};
+      : gwbse_engine_(gwbse_engine), tracker_(tracker){};
 
   void Initialize(tools::Property& options);
   void Calculate(const Orbitals& orbitals);
 
-  void setLog(Logger* pLog) { _pLog = pLog; }
+  void setLog(Logger* pLog) { pLog_ = pLog; }
 
-  const Eigen::MatrixX3d& GetForces() const { return _forces; };
+  const Eigen::MatrixX3d& GetForces() const { return forces_; };
   void Report() const;
 
  private:
@@ -53,15 +53,15 @@ class Forces {
   Eigen::Vector3d NumForceCentral(Orbitals orbitals, Index atom_index);
   void RemoveTotalForce();
 
-  double _displacement;
-  std::string _force_method;
+  double displacement_;
+  std::string force_method_;
 
-  GWBSEEngine& _gwbse_engine;
-  const StateTracker& _tracker;
-  bool _remove_total_force = true;
+  GWBSEEngine& gwbse_engine_;
+  const StateTracker& tracker_;
+  bool remove_total_force_ = true;
 
-  Eigen::MatrixX3d _forces;
-  Logger* _pLog;
+  Eigen::MatrixX3d forces_;
+  Logger* pLog_;
 };
 
 }  // namespace xtp

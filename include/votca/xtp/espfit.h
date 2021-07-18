@@ -39,39 +39,39 @@ class QMMolecule;
 
 class Espfit {
  public:
-  Espfit(Logger& log) : _log(log) {
-    _pairconstraint.resize(0);
-    _regionconstraint.resize(0);
+  Espfit(Logger& log) : log_(log) {
+    pairconstraint_.resize(0);
+    regionconstraint_.resize(0);
   }
 
   void setUseSVD(double conditionnumber) {
-    _do_svd = true;
-    _conditionnumber = conditionnumber;
+    do_svd_ = true;
+    conditionnumber_ = conditionnumber;
   }
 
   void setPairConstraint(std::vector<std::pair<Index, Index> > pairconstraint) {
-    _pairconstraint = pairconstraint;
+    pairconstraint_ = pairconstraint;
   }
 
   void setRegionConstraint(std::vector<QMFragment<double> > regionconstraint) {
-    _regionconstraint = regionconstraint;
+    regionconstraint_ = regionconstraint;
   }
 
   StaticSegment Fit2Density(const Orbitals& orbitals, const QMState& state,
                             std::string gridsize);
 
  private:
-  Logger& _log;
-  bool _do_svd = true;
-  double _conditionnumber = 1e-8;
+  Logger& log_;
+  bool do_svd_ = true;
+  double conditionnumber_ = 1e-8;
 
-  std::vector<std::pair<Index, Index> > _pairconstraint;  //  pairconstraint[i]
+  std::vector<std::pair<Index, Index> > pairconstraint_;  //  pairconstraint[i]
                                                           //  is all the
                                                           //  atomindices which
                                                           //  have the same
                                                           //  charge
 
-  std::vector<QMFragment<double> > _regionconstraint;
+  std::vector<QMFragment<double> > regionconstraint_;
 
   void EvalNuclearPotential(const QMMolecule& atoms, Grid& grid);
 

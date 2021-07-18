@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -31,27 +31,25 @@ class AOMatrix {
  public:
   virtual void Fill(const AOBasis& aobasis) = 0;
   virtual Index Dimension() = 0;
-  using MatrixLibInt =
-      Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 };
 
 // derived class for kinetic energy
 class AOKinetic : public AOMatrix {
  public:
   void Fill(const AOBasis& aobasis) final;
-  Index Dimension() final { return _aomatrix.rows(); }
-  const Eigen::MatrixXd& Matrix() const { return _aomatrix; }
+  Index Dimension() final { return aomatrix_.rows(); }
+  const Eigen::MatrixXd& Matrix() const { return aomatrix_; }
 
  private:
-  Eigen::MatrixXd _aomatrix;
+  Eigen::MatrixXd aomatrix_;
 };
 
 // derived class for atomic orbital overlap
 class AOOverlap : public AOMatrix {
  public:
   void Fill(const AOBasis& aobasis) final;
-  Index Dimension() final { return _aomatrix.rows(); }
-  const Eigen::MatrixXd& Matrix() const { return _aomatrix; }
+  Index Dimension() final { return aomatrix_.rows(); }
+  const Eigen::MatrixXd& Matrix() const { return aomatrix_; }
 
   Eigen::MatrixXd singleShellOverlap(const AOShell& shell) const;
   Index Removedfunctions() const { return removedfunctions; }
@@ -63,15 +61,15 @@ class AOOverlap : public AOMatrix {
  private:
   Index removedfunctions;
   double smallestEigenvalue;
-  Eigen::MatrixXd _aomatrix;
+  Eigen::MatrixXd aomatrix_;
 };
 
 // derived class for atomic orbital Coulomb interaction
 class AOCoulomb : public AOMatrix {
  public:
   void Fill(const AOBasis& aobasis) final;
-  Index Dimension() final { return _aomatrix.rows(); }
-  const Eigen::MatrixXd& Matrix() const { return _aomatrix; }
+  Index Dimension() final { return aomatrix_.rows(); }
+  const Eigen::MatrixXd& Matrix() const { return aomatrix_; }
 
   Eigen::MatrixXd Pseudo_InvSqrt_GWBSE(const AOOverlap& auxoverlap,
                                        double etol);
@@ -81,7 +79,7 @@ class AOCoulomb : public AOMatrix {
  private:
   void computeCoulombIntegrals(const AOBasis& aobasis);
   Index removedfunctions;
-  Eigen::MatrixXd _aomatrix;
+  Eigen::MatrixXd aomatrix_;
 };
 
 /* derived class for atomic orbital electrical dipole matrices, required for
@@ -90,18 +88,18 @@ class AOCoulomb : public AOMatrix {
 class AODipole : public AOMatrix {
  public:
   void Fill(const AOBasis& aobasis) final;
-  Index Dimension() final { return _aomatrix[0].rows(); }
-  const std::array<Eigen::MatrixXd, 3>& Matrix() const { return _aomatrix; }
+  Index Dimension() final { return aomatrix_[0].rows(); }
+  const std::array<Eigen::MatrixXd, 3>& Matrix() const { return aomatrix_; }
 
   void setCenter(const Eigen::Vector3d& r) {
     for (Index i = 0; i < 3; i++) {
-      _r[i] = r[i];
+      r_[i] = r[i];
     }
   }  // definition of a center around which the moment should be calculated
 
  private:
-  std::array<Eigen::MatrixXd, 3> _aomatrix;
-  std::array<libint2::Shell::real_t, 3> _r = {0, 0, 0};
+  std::array<Eigen::MatrixXd, 3> aomatrix_;
+  std::array<libint2::Shell::real_t, 3> r_ = {0, 0, 0};
 };
 
 }  // namespace xtp

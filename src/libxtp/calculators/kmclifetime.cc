@@ -41,35 +41,35 @@ namespace xtp {
 
 void KMCLifetime::ParseSpecificOptions(const tools::Property& options) {
 
-  _insertions = options.get(".numberofinsertions").as<unsigned long>();
-  _lifetimefile = options.get(".lifetimefile").as<std::string>();
+  insertions_ = options.get(".numberofinsertions").as<unsigned long>();
+  lifetimefile_ = options.get(".lifetimefile").as<std::string>();
 
-  _probfile = options.ifExistsReturnElseReturnDefault<std::string>(
+  probfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
       ".decayprobfile", "");
 
   const tools::Property& carrier_options = options.get(".carrierenergy");
-  _do_carrierenergy = carrier_options.get(".run").as<bool>();
-  _energy_outputfile = carrier_options.get(".outputfile").as<std::string>();
-  _alpha = carrier_options.get(".alpha").as<double>();
-  _outputsteps = carrier_options.get(".outputsteps").as<unsigned long>();
+  do_carrierenergy_ = carrier_options.get(".run").as<bool>();
+  energy_outputfile_ = carrier_options.get(".outputfile").as<std::string>();
+  alpha_ = carrier_options.get(".alpha").as<double>();
+  outputsteps_ = carrier_options.get(".outputsteps").as<unsigned long>();
 
-  _log.setReportLevel(Log::current_level);
-  _log.setCommonPreface("\n ...");
+  log_.setReportLevel(Log::current_level);
+  log_.setCommonPreface("\n ...");
 
-  _carriertype = QMStateType(QMStateType::Singlet);
-  XTP_LOG(Log::error, _log)
-      << "carrier type:" << _carriertype.ToLongString() << std::flush;
-  _field = Eigen::Vector3d::Zero();
+  carriertype_ = QMStateType(QMStateType::Singlet);
+  XTP_LOG(Log::error, log_)
+      << "carrier type:" << carriertype_.ToLongString() << std::flush;
+  field_ = Eigen::Vector3d::Zero();
 }
 
 void KMCLifetime::WriteDecayProbability(std::string filename) {
 
-  Eigen::VectorXd outrates = Eigen::VectorXd::Zero(_nodes.size());
-  Eigen::VectorXd inrates = Eigen::VectorXd::Zero(_nodes.size());
-  Eigen::VectorXd decayrates = Eigen::VectorXd::Ones(_nodes.size());
+  Eigen::VectorXd outrates = Eigen::VectorXd::Zero(nodes_.size());
+  Eigen::VectorXd inrates = Eigen::VectorXd::Zero(nodes_.size());
+  Eigen::VectorXd decayrates = Eigen::VectorXd::Ones(nodes_.size());
 
-  for (unsigned i = 0; i < _nodes.size(); i++) {
-    GNode& node = _nodes[i];
+  for (unsigned i = 0; i < nodes_.size(); i++) {
+    GNode& node = nodes_[i];
     if (node.canDecay()) {
       for (const GLink& event : node.Events()) {
         if (event.isDecayEvent()) {
@@ -91,8 +91,8 @@ void KMCLifetime::WriteDecayProbability(std::string filename) {
     throw std::runtime_error(error_msg);
   }
   probs << "#SiteID, Relative Prob outgoing, Relative Prob ingoing\n";
-  for (unsigned i = 0; i < _nodes.size(); i++) {
-    probs << _nodes[i].getId() << " " << outrates[i] << " " << inrates[i]
+  for (unsigned i = 0; i < nodes_.size(); i++) {
+    probs << nodes_[i].getId() << " " << outrates[i] << " " << inrates[i]
           << std::endl;
   }
   probs.close();
@@ -103,11 +103,11 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
   tools::Property xml;
   xml.LoadFromXML(filename);
   std::vector<tools::Property*> jobProps = xml.Select("lifetimes.site");
-  if (jobProps.size() != _nodes.size()) {
+  if (jobProps.size() != nodes_.size()) {
     throw std::runtime_error(
         (boost::format("The number of sites in the topology: %i does not match "
                        "the number in the lifetimefile: %i") %
-         _nodes.size() % jobProps.size())
+         nodes_.size() % jobProps.size())
             .str());
   }
 
@@ -115,7 +115,7 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
     Index site_id = prop->getAttribute<Index>("id");
     double lifetime = boost::lexical_cast<double>(prop->value());
     bool check = false;
-    for (auto& node : _nodes) {
+    for (auto& node : nodes_) {
       if (node.getId() == site_id && !(node.canDecay())) {
         node.AddDecayEvent(1.0 / lifetime);
         check = true;
@@ -133,7 +133,7 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
               .str());
     }
   }
-  for (auto& node : _nodes) {
+  for (auto& node : nodes_) {
     node.InitEscapeRate();
     node.MakeHuffTree();
   }
@@ -157,13 +157,13 @@ void KMCLifetime::RunVSSM() {
 
   std::chrono::time_point<std::chrono::system_clock> realtime_start =
       std::chrono::system_clock::now();
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << "\nAlgorithm: VSSM for Multiple Charges with finite Lifetime\n"
          "number of charges: "
-      << _numberofcarriers << "\nnumber of nodes: " << _nodes.size()
+      << numberofcarriers_ << "\nnumber of nodes: " << nodes_.size()
       << std::flush;
 
-  if (_numberofcarriers > Index(_nodes.size())) {
+  if (numberofcarriers_ > Index(nodes_.size())) {
     throw std::runtime_error(
         "ERROR in kmclifetime: specified number of charges is greater than the "
         "number of nodes. This conflicts with single occupation.");
@@ -172,37 +172,37 @@ void KMCLifetime::RunVSSM() {
   std::fstream traj;
   std::fstream energyfile;
 
-  XTP_LOG(Log::error, _log)
-      << "Writing trajectory to " << _trajectoryfile << "." << std::flush;
+  XTP_LOG(Log::error, log_)
+      << "Writing trajectory to " << trajectoryfile_ << "." << std::flush;
 
-  traj.open(_trajectoryfile, std::fstream::out);
+  traj.open(trajectoryfile_, std::fstream::out);
   if (!traj.is_open()) {
-    std::string error_msg = "Unable to write to file " + _trajectoryfile;
+    std::string error_msg = "Unable to write to file " + trajectoryfile_;
     throw std::runtime_error(error_msg);
   }
 
   traj << "#Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last "
           "Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]\n";
 
-  if (_do_carrierenergy) {
+  if (do_carrierenergy_) {
 
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "Tracking the energy of one charge carrier and exponential average "
            "with alpha="
-        << _alpha << " to " << _energy_outputfile << std::flush;
-    energyfile.open(_energy_outputfile, std::fstream::out);
+        << alpha_ << " to " << energy_outputfile_ << std::flush;
+    energyfile.open(energy_outputfile_, std::fstream::out);
     if (!energyfile.is_open()) {
-      std::string error_msg = "Unable to write to file " + _energy_outputfile;
+      std::string error_msg = "Unable to write to file " + energy_outputfile_;
       throw std::runtime_error(error_msg);
     }
 
-    energyfile << "Simtime [s]\tSteps\tCarrier ID\tEnergy_a=" << _alpha
+    energyfile << "Simtime [s]\tSteps\tCarrier ID\tEnergy_a=" << alpha_
                << "[eV]\n";
   }
 
   // Injection
-  XTP_LOG(Log::error, _log)
-      << "\ninjection method: " << _injectionmethod << std::flush;
+  XTP_LOG(Log::error, log_)
+      << "\ninjection method: " << injectionmethod_ << std::flush;
 
   RandomlyCreateCharges();
 
@@ -215,23 +215,23 @@ void KMCLifetime::RunVSSM() {
 
   time_t now = time(nullptr);
   tm* localtm = localtime(&now);
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << "Run started at " << asctime(localtm) << std::flush;
 
   double avlifetime = 0.0;
   double meanfreepath = 0.0;
   Eigen::Vector3d difflength_squared = Eigen::Vector3d::Zero();
 
-  double avgenergy = _carriers[0].getCurrentEnergy();
-  Index carrieridold = _carriers[0].getId();
+  double avgenergy = carriers_[0].getCurrentEnergy();
+  Index carrieridold = carriers_[0].getId();
 
-  while (insertioncount < _insertions) {
+  while (insertioncount < insertions_) {
     std::chrono::duration<double> elapsed_time =
         std::chrono::system_clock::now() - realtime_start;
-    if (elapsed_time.count() > (_maxrealtime * 60. * 60.)) {
-      XTP_LOG(Log::error, _log)
-          << "\nReal time limit of " << _maxrealtime << " hours ("
-          << Index(_maxrealtime * 60 * 60 + 0.5)
+    if (elapsed_time.count() > (maxrealtime_ * 60. * 60.)) {
+      XTP_LOG(Log::error, log_)
+          << "\nReal time limit of " << maxrealtime_ << " hours ("
+          << Index(maxrealtime_ * 60 * 60 + 0.5)
           << " seconds) has been reached. Stopping here.\n"
           << std::flush;
       break;
@@ -239,7 +239,7 @@ void KMCLifetime::RunVSSM() {
 
     double cumulated_rate = 0;
 
-    for (const auto& carrier : _carriers) {
+    for (const auto& carrier : carriers_) {
       cumulated_rate += carrier.getCurrentEscapeRate();
     }
     if (cumulated_rate == 0) {  // this should not happen: no possible jumps
@@ -251,26 +251,26 @@ void KMCLifetime::RunVSSM() {
     // go forward in time
     double dt = Promotetime(cumulated_rate);
 
-    if (_do_carrierenergy) {
+    if (do_carrierenergy_) {
       bool print = false;
-      if (_carriers[0].getId() > carrieridold) {
-        avgenergy = _carriers[0].getCurrentEnergy();
+      if (carriers_[0].getId() > carrieridold) {
+        avgenergy = carriers_[0].getCurrentEnergy();
         print = true;
-        carrieridold = _carriers[0].getId();
-      } else if (step % _outputsteps == 0) {
+        carrieridold = carriers_[0].getId();
+      } else if (step % outputsteps_ == 0) {
         avgenergy =
-            _alpha * _carriers[0].getCurrentEnergy() + (1 - _alpha) * avgenergy;
+            alpha_ * carriers_[0].getCurrentEnergy() + (1 - alpha_) * avgenergy;
         print = true;
       }
       if (print) {
-        energyfile << simtime << "\t" << step << "\t" << _carriers[0].getId()
+        energyfile << simtime << "\t" << step << "\t" << carriers_[0].getId()
                    << "\t" << avgenergy * tools::conv::hrt2ev << std::endl;
       }
     }
 
     simtime += dt;
     step++;
-    for (auto& carrier : _carriers) {
+    for (auto& carrier : carriers_) {
       carrier.updateLifetime(dt);
       carrier.updateSteps(1);
       carrier.updateOccupationtime(dt);
@@ -290,7 +290,7 @@ void KMCLifetime::RunVSSM() {
 
       // determine where it will jump to
       ResetForbiddenlist(forbiddendests);
-      boost::progress_display progress(_insertions);
+      boost::progress_display progress(insertions_);
 
       while (true) {
         // LEVEL 2
@@ -310,7 +310,7 @@ void KMCLifetime::RunVSSM() {
           RandomlyAssignCarriertoSite(*affectedcarrier);
           affectedcarrier->resetCarrier();
           insertioncount++;
-          affectedcarrier->setId(_numberofcarriers - 1 + insertioncount);
+          affectedcarrier->setId(numberofcarriers_ - 1 + insertioncount);
           secondlevel = false;
           break;
         } else {
@@ -348,7 +348,7 @@ void KMCLifetime::RunVSSM() {
     }
   }
 
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << "\nTotal runtime:\t\t\t\t\t" << simtime
       << " s\n"
          "Total KMC steps:\t\t\t\t"
@@ -363,38 +363,38 @@ void KMCLifetime::RunVSSM() {
       << " nm\n"
       << std::flush;
 
-  WriteOccupationtoFile(simtime, _occfile);
+  WriteOccupationtoFile(simtime, occfile_);
   traj.close();
-  if (_do_carrierenergy) {
+  if (do_carrierenergy_) {
     energyfile.close();
   }
   return;
 }
 
 bool KMCLifetime::Evaluate(Topology& top) {
-  XTP_LOG(Log::error, _log) << "\n-----------------------------------"
+  XTP_LOG(Log::error, log_) << "\n-----------------------------------"
                                "\n      KMCLIFETIME started"
                                "\n-----------------------------------\n"
                             << std::flush;
 
-  XTP_LOG(Log::info, _log) << "\nInitialising random number generator"
+  XTP_LOG(Log::info, log_) << "\nInitialising random number generator"
                            << std::flush;
 
-  _RandomVariable.init(_seed);
+  RandomVariable_.init(seed_);
   LoadGraph(top);
-  ReadLifetimeFile(_lifetimefile);
+  ReadLifetimeFile(lifetimefile_);
 
-  if (!_probfile.empty()) {
-    WriteDecayProbability(_probfile);
+  if (!probfile_.empty()) {
+    WriteDecayProbability(probfile_);
   }
   RunVSSM();
 
   time_t now = time(nullptr);
   tm* localtm = localtime(&now);
 
-  XTP_LOG(Log::info, _log) << " KMCLIFETIME finished at:" << asctime(localtm)
+  XTP_LOG(Log::info, log_) << " KMCLIFETIME finished at:" << asctime(localtm)
                            << std::flush;
-  std::cout << _log;
+  std::cout << log_;
   return true;
 }
 

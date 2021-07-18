@@ -159,7 +159,7 @@ void BasisSet::Load(const std::string& name) {
   }
   tools::Property basis_property;
   basis_property.LoadFromXML(xmlFile);
-  _name = basis_property.get("basis").getAttribute<std::string>("name");
+  name_ = basis_property.get("basis").getAttribute<std::string>("name");
   std::vector<tools::Property*> elementProps =
       basis_property.Select("basis.element");
 
@@ -203,7 +203,7 @@ void BasisSet::Load(const std::string& name) {
 
 // adding an Element to a Basis Set
 Element& BasisSet::addElement(std::string elementType) {
-  auto e = _elements.insert({elementType, Element(elementType)});
+  auto e = elements_.insert({elementType, Element(elementType)});
   if (!e.second) {
     throw std::runtime_error("Inserting element into basisset failed!");
   }
@@ -212,9 +212,9 @@ Element& BasisSet::addElement(std::string elementType) {
 
 const Element& BasisSet::getElement(std::string element_type) const {
   std::map<std::string, Element>::const_iterator itm =
-      _elements.find(element_type);
-  if (itm == _elements.end()) {
-    throw std::runtime_error("Basis set " + _name +
+      elements_.find(element_type);
+  if (itm == elements_.end()) {
+    throw std::runtime_error("Basis set " + name_ +
                              " does not have element of type " + element_type);
   }
   return itm->second;
@@ -224,7 +224,7 @@ std::ostream& operator<<(std::ostream& out, const Shell& shell) {
 
   out << "Type:" << EnumToString(shell.getL()) << " Scale:" << shell.getScale()
       << " Func: " << shell.getnumofFunc() << "\n";
-  for (const auto& gaussian : shell._gaussians) {
+  for (const auto& gaussian : shell.gaussians_) {
     out << " Gaussian Decay: " << gaussian.decay();
     out << " Contraction: " << gaussian.contraction();
     out << "\n";
@@ -241,7 +241,7 @@ std::ostream& operator<<(std::ostream& out, const Element& element) {
 }
 
 std::ostream& operator<<(std::ostream& out, const BasisSet& basis) {
-  out << "BasisSet:" << basis._name << "\n";
+  out << "BasisSet:" << basis.name_ << "\n";
   for (const auto& element : basis) {
     out << element.second;
   }
@@ -250,8 +250,8 @@ std::ostream& operator<<(std::ostream& out, const BasisSet& basis) {
 }
 
 GaussianPrimitive& Shell::addGaussian(double decay, double contraction) {
-  _gaussians.push_back(GaussianPrimitive(decay, contraction));
-  return _gaussians.back();
+  gaussians_.push_back(GaussianPrimitive(decay, contraction));
+  return gaussians_.back();
 }
 
 }  // namespace xtp

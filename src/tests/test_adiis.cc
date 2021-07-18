@@ -32,21 +32,21 @@ using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(adiis_test)
 
 BOOST_AUTO_TEST_CASE(coeffs_test) {
-  std::vector<Eigen::MatrixXd> _dmatHist;
-  std::vector<Eigen::MatrixXd> _mathist;
+  std::vector<Eigen::MatrixXd> dmatHist_;
+  std::vector<Eigen::MatrixXd> mathist_;
 
   ADIIS adiis;
 
   for (votca::Index i = 0; i < 3; i++) {
-    _dmatHist.push_back(votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+    dmatHist_.push_back(votca::tools::EigenIO_MatrixMarket::ReadMatrix(
         std::string(XTP_TEST_DATA_FOLDER) + "/adiis/dmatHist_" +
         std::to_string(i) + ".mm"));
-    _mathist.push_back(votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+    mathist_.push_back(votca::tools::EigenIO_MatrixMarket::ReadMatrix(
         std::string(XTP_TEST_DATA_FOLDER) + "/adiis/mathist_" +
         std::to_string(i) + ".mm"));
   }
 
-  Eigen::VectorXd Coeffs = adiis.CalcCoeff(_dmatHist, _mathist);
+  Eigen::VectorXd Coeffs = adiis.CalcCoeff(dmatHist_, mathist_);
 
   Eigen::VectorXd Ref = Eigen::VectorXd::Zero(3);
   Ref << 4.45639501e-17, 1.76102089e-18, 1;

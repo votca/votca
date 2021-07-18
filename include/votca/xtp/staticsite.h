@@ -1,3 +1,4 @@
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -56,7 +57,7 @@ class StaticSite {
     double Q22s;
   };
   StaticSite(Index id, std::string element, Eigen::Vector3d pos)
-      : _id(id), _element(element), _pos(pos){};
+      : id_(id), element_(element), pos_(pos){};
 
   StaticSite(Index id, std::string element)
       : StaticSite(id, element, Eigen::Vector3d::Zero()){};
@@ -73,35 +74,35 @@ class StaticSite {
   StaticSite() = default;
 
  public:
-  Index getId() const { return _id; }
-  Index getRank() const { return _rank; }
-  const std::string& getElement() const { return _element; }
-  const Eigen::Vector3d& getPos() const { return _pos; }
+  Index getId() const { return id_; }
+  Index getRank() const { return rank_; }
+  const std::string& getElement() const { return element_; }
+  const Eigen::Vector3d& getPos() const { return pos_; }
 
   void setMultipole(const Vector9d& multipole, Index rank) {
-    _Q = multipole;
-    _rank = rank;
+    Q_ = multipole;
+    rank_ = rank;
   }
   // sets rank to 0 as well
   void setCharge(double q) {
-    _Q(0) = q;
-    _rank = 0;
+    Q_(0) = q;
+    rank_ = 0;
   }
 
-  void setPos(const Eigen::Vector3d& position) { _pos = position; }
+  void setPos(const Eigen::Vector3d& position) { pos_ = position; }
 
   // COORDINATES TRANSFORMATION
   void Translate(const Eigen::VectorXd& shift);
   virtual void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos);
 
   // MULTIPOLES DEFINITION
-  double getCharge() const { return _Q(0); }
+  double getCharge() const { return Q_(0); }
   const Vector9d& Q() const {
-    return _Q;
+    return Q_;
   }  // Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s,...[NOT following Stone
      // order for dipoles]
 
-  virtual Eigen::Vector3d getDipole() const { return _Q.segment<3>(1); }
+  virtual Eigen::Vector3d getDipole() const { return Q_.segment<3>(1); }
 
   Eigen::Matrix3d CalculateCartesianMultipole() const;
 
@@ -110,7 +111,7 @@ class StaticSite {
 
   std::string WriteMpsLine(std::string unit = "bohr") const;
 
-  virtual void SetupCptTable(CptTable& table) const;
+  static void SetupCptTable(CptTable& table);
 
   void WriteData(data& d) const;
   void ReadData(const data& d);
@@ -127,12 +128,12 @@ class StaticSite {
  protected:
   virtual std::string writepolarization() const;
 
-  Index _id = -1;
-  std::string _element = "";
-  Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
-  Index _rank = 0;
+  Index id_ = -1;
+  std::string element_ = "";
+  Eigen::Vector3d pos_ = Eigen::Vector3d::Zero();
+  Index rank_ = 0;
 
-  Vector9d _Q = Vector9d::Zero();  // Q00,Q11c,Q11s,Q10,Q20,Q21c,Q21s,Q22c,Q22s
+  Vector9d Q_ = Vector9d::Zero();  // Q00,Q11c,Q11s,Q10,Q20,Q21c,Q21s,Q22c,Q22s
 };
 }  // namespace xtp
 }  // namespace votca

@@ -87,63 +87,63 @@ class QMPair {
     ReadData(d, segments);
   }
 
-  Index getId() const { return _id; }
-  void setId(Index id) { _id = id; }
+  Index getId() const { return id_; }
+  void setId(Index id) { id_ = id; }
 
-  const Eigen::Vector3d& R() const { return _R; }
-  double Dist() const { return _R.norm(); }
+  const Eigen::Vector3d& R() const { return R_; }
+  double Dist() const { return R_.norm(); }
 
   void setLambdaO(double lO, QMStateType state) {
-    _lambda0.setValue(lO, state);
+    lambda0_.setValue(lO, state);
   }
   double getLambdaO(QMStateType state) const {
-    return _lambda0.getValue(state);
+    return lambda0_.getValue(state);
   }
 
   double getReorg12(QMStateType state) const {
-    return _segments.first->getU_nX_nN(state) +
-           _segments.second->getU_xN_xX(state);
+    return segments_.first->getU_nX_nN(state) +
+           segments_.second->getU_xN_xX(state);
   }  // 1->2
   double getReorg21(QMStateType state) const {
-    return _segments.first->getU_xN_xX(state) +
-           _segments.second->getU_nX_nN(state);
+    return segments_.first->getU_xN_xX(state) +
+           segments_.second->getU_nX_nN(state);
   }  // 2->1
 
-  double getJeff2(QMStateType state) const { return _Jeff2.getValue(state); }
+  double getJeff2(QMStateType state) const { return Jeff2_.getValue(state); }
   void setJeff2(double Jeff2, QMStateType state) {
-    _Jeff2.setValue(Jeff2, state);
+    Jeff2_.setValue(Jeff2, state);
   }
 
   double getdE12(QMStateType state) const {
-    return _segments.first->getSiteEnergy(state) -
-           _segments.second->getSiteEnergy(state);
+    return segments_.first->getSiteEnergy(state) -
+           segments_.second->getSiteEnergy(state);
   }
 
   Segment Seg2PbCopy() const;
-  const Segment* Seg1() const { return _segments.first; }
-  const Segment* Seg2() const { return _segments.second; }
+  const Segment* Seg1() const { return segments_.first; }
+  const Segment* Seg2() const { return segments_.second; }
 
-  const Segment* first() { return _segments.first; }
-  const Segment* second() { return _segments.second; }
+  const Segment* first() { return segments_.first; }
+  const Segment* second() { return segments_.second; }
 
-  void setType(PairType pair_type) { _pair_type = pair_type; }
-  const PairType& getType() const { return _pair_type; }
+  void setType(PairType pair_type) { pair_type_ = pair_type; }
+  const PairType& getType() const { return pair_type_; }
 
-  void SetupCptTable(CptTable& table) const;
+  static void SetupCptTable(CptTable& table);
   void WriteData(data& d) const;
 
   void ReadData(const data& d, const std::vector<Segment>& segments);
 
  private:
-  Index _id = -1;
-  std::pair<const Segment*, const Segment*> _segments;
+  Index id_ = -1;
+  std::pair<const Segment*, const Segment*> segments_;
 
-  Eigen::Vector3d _R = Eigen::Vector3d::Zero();
+  Eigen::Vector3d R_ = Eigen::Vector3d::Zero();
 
-  PairType _pair_type = PairType::Hopping;
+  PairType pair_type_ = PairType::Hopping;
 
-  QMStateCarrierStorage<double> _lambda0;
-  QMStateCarrierStorage<double> _Jeff2;
+  QMStateCarrierStorage<double> lambda0_;
+  QMStateCarrierStorage<double> Jeff2_;
 };
 
 }  // namespace xtp

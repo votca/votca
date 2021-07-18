@@ -41,7 +41,7 @@ class VAverage final : public QMCalculator {
 
   ~VAverage() = default;
 
-  std::string Identify() { return "vaverage"; }
+  std::string Identify() const { return "vaverage"; }
   bool WriteToStateFile() const { return false; }
 
  protected:
@@ -49,10 +49,10 @@ class VAverage final : public QMCalculator {
   bool Evaluate(Topology& top);
 
  private:
-  Logger _log;
-  std::string _ratefile;
-  std::string _occfile;
-  std::string _outputfile;
+  Logger log_;
+  std::string ratefile_;
+  std::string occfile_;
+  std::string outputfile_;
 
   std::vector<double> ReadOccfile(std::string filename) const;
   std::vector<Rate_Engine::PairRates> ReadRatefile(std::string filename) const;
