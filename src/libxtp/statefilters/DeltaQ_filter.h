@@ -54,7 +54,7 @@ class DeltaQ_filter : public StateFilter_base {
   void ReadFromCpt(CheckpointReader& r) final;
 
  private:
-  QMFragment<double> _fragment;
+  QMFragment<double> fragment_;
 };
 
 }  // namespace xtp

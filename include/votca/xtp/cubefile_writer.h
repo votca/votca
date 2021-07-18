@@ -36,7 +36,7 @@ class CubeFile_Writer {
 
  public:
   CubeFile_Writer(Eigen::Array<Index, 3, 1> steps, double padding, Logger& log)
-      : _steps(steps), _padding(padding), _log(log){};
+      : steps_(steps), padding_(padding), log_(log){};
 
   void WriteFile(const std::string& filename, const Orbitals& orb,
                  QMState state, bool dostateonly) const;
@@ -46,9 +46,9 @@ class CubeFile_Writer {
       const Orbitals& orb, QMState state, bool dostateonly,
       const Regular_Grid& grid) const;
 
-  Eigen::Array<Index, 3, 1> _steps;
-  double _padding;
-  Logger& _log;
+  Eigen::Array<Index, 3, 1> steps_;
+  double padding_;
+  Logger& log_;
 };
 
 }  // namespace xtp

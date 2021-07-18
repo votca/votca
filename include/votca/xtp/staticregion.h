@@ -34,7 +34,7 @@ class StaticRegion : public MMRegion<StaticSegment> {
  public:
   StaticRegion(Index id, Logger& log) : MMRegion<StaticSegment>(id, log) {}
 
-  std::string identify() const override { return "static"; }
+  std::string identify() const override { return "staticregion"; }
 
   void Initialize(const tools::Property&) override { return; }
 

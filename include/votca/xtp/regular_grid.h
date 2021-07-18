@@ -38,33 +38,33 @@ class Regular_Grid {
   void GridSetup(const Eigen::Array3d& stepsize, const Eigen::Array3d& padding,
                  const QMMolecule& atoms, const AOBasis& basis);
 
-  Index getGridSize() const { return _totalgridsize; }
-  Index getBoxesSize() const { return Index(_grid_boxes.size()); }
+  Index getGridSize() const { return totalgridsize_; }
+  Index getBoxesSize() const { return Index(grid_boxes_.size()); }
 
-  const GridBox& operator[](Index index) const { return _grid_boxes[index]; }
-  GridBox& operator[](Index index) { return _grid_boxes[index]; }
+  const GridBox& operator[](Index index) const { return grid_boxes_[index]; }
+  GridBox& operator[](Index index) { return grid_boxes_[index]; }
 
-  std::vector<GridBox>::iterator begin() { return _grid_boxes.begin(); }
-  std::vector<GridBox>::iterator end() { return _grid_boxes.end(); }
+  std::vector<GridBox>::iterator begin() { return grid_boxes_.begin(); }
+  std::vector<GridBox>::iterator end() { return grid_boxes_.end(); }
 
   std::vector<GridBox>::const_iterator begin() const {
-    return _grid_boxes.begin();
+    return grid_boxes_.begin();
   }
-  std::vector<GridBox>::const_iterator end() const { return _grid_boxes.end(); }
+  std::vector<GridBox>::const_iterator end() const { return grid_boxes_.end(); }
 
-  Eigen::Array3d getStepSizes() const { return _stepsizes; }
+  Eigen::Array3d getStepSizes() const { return stepsizes_; }
 
-  Eigen::Vector3d getStartingPoint() const { return _startingpoint; }
+  Eigen::Vector3d getStartingPoint() const { return startingpoint_; }
 
-  Eigen::Array<Index, 3, 1> getSteps() const { return _steps; }
+  Eigen::Array<Index, 3, 1> getSteps() const { return steps_; }
 
  private:
-  Index _totalgridsize;
-  std::vector<GridBox> _grid_boxes;
+  Index totalgridsize_;
+  std::vector<GridBox> grid_boxes_;
 
-  Eigen::Array3d _stepsizes = Eigen::Array3d::Zero();
-  Eigen::Vector3d _startingpoint = Eigen::Vector3d::Zero();
-  Eigen::Array<Index, 3, 1> _steps = Eigen::Array<Index, 3, 1>::Zero();
+  Eigen::Array3d stepsizes_ = Eigen::Array3d::Zero();
+  Eigen::Vector3d startingpoint_ = Eigen::Vector3d::Zero();
+  Eigen::Array<Index, 3, 1> steps_ = Eigen::Array<Index, 3, 1>::Zero();
 };
 
 }  // namespace xtp

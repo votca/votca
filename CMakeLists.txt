@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(votca-xtp LANGUAGES CXX)
 
-set(PROJECT_VERSION "2021.1")
+set(PROJECT_VERSION "2022-dev")
 string(REGEX REPLACE "[-.].*$" "" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
   message(FATAL_ERROR "Could not determine SOVERSION (${SOVERSION}) from ${PROJECT_VERSION}")
@@ -30,19 +30,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 
-#openmp with clang smaller version 10 and user defined reductions is buggy https://bugs.llvm.org/show_bug.cgi?id=44134
-if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)
-  find_package(OpenMP 4.5)
-  set_package_properties(OpenMP PROPERTIES TYPE RECOMMENDED PURPOSE "Used for thread parallelization in xtp")
-else()
-  # in case OpenMP was detected somewhere else
-  unset(OpenMP_FOUND)
-endif()
-
 ########################################################################
 # User input options                                                   #
 ########################################################################
-
 
 find_package(PkgConfig REQUIRED)
 set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect libxc and libint package")
@@ -50,6 +40,9 @@ pkg_check_modules(LIBXC REQUIRED IMPORTED_TARGET libxc)
 if(NOT TARGET PkgConfig::LIBINT)
   pkg_check_modules(LIBINT REQUIRED IMPORTED_TARGET libint2>=2.6)
 endif()
+find_package(ecpint REQUIRED)
+set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculate pseudo potentials")
+message(STATUS "Found libecpint: ${ecpint_DIR}")
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 set_package_properties(HDF5 PROPERTIES TYPE REQUIRED PURPOSE "Used to read/write HDF5 data files")
@@ -95,7 +88,9 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 endif()
 message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
-option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" OFF)
+find_package(Python 3 COMPONENTS Interpreter)
+set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
+option(BUILD_MANPAGES "Build manpages" ${Python_FOUND})
 add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
 #define this target here, so that individual man pages can append to it.
 if(NOT TARGET manpages)
@@ -143,6 +138,10 @@ mark_as_advanced( MATH_LIBRARIES )
 ######################################
 # Include the following subdirectory #
 ######################################
+if(VOTCA_SPHINX_DIR)
+  add_custom_target(doc-xtp)
+  file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/xtp)
+endif()
 add_subdirectory(include/votca/xtp)
 add_subdirectory(scripts)
 add_subdirectory(src)

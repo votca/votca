@@ -39,7 +39,7 @@ class Sigma_CDA : public Sigma_base {
 
  public:
   Sigma_CDA(TCMatrix_gwbse& Mmn, RPA& rpa)
-      : Sigma_base(Mmn, rpa), _gq(rpa.getRPAInputEnergies(), Mmn){};
+      : Sigma_base(Mmn, rpa), gq_(rpa.getRPAInputEnergies(), Mmn){};
 
   ~Sigma_CDA() = default;
 
@@ -82,8 +82,8 @@ class Sigma_CDA : public Sigma_base {
       const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta,
       double alpha) const;
 
-  ImaginaryAxisIntegration _gq;
-  Eigen::MatrixXd _kDielMxInv_zero;  // kappa = eps^-1 - 1 matrix
+  ImaginaryAxisIntegration gq_;
+  Eigen::MatrixXd kDielMxInv_zero_;  // kappa = eps^-1 - 1 matrix
 };
 
 }  // namespace xtp

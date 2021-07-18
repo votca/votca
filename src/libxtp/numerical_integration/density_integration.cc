@@ -29,11 +29,11 @@ double DensityIntegration<Grid>::IntegratePotential(
     const Eigen::Vector3d& rvector) const {
 
   double result = 0.0;
-  assert(!_densities.empty() && "Density not calculated");
-  for (Index i = 0; i < _grid.getBoxesSize(); i++) {
-    const std::vector<Eigen::Vector3d>& points = _grid[i].getGridPoints();
-    const std::vector<double>& densities = _densities[i];
-    for (Index j = 0; j < _grid[i].size(); j++) {
+  assert(!densities_.empty() && "Density not calculated");
+  for (Index i = 0; i < grid_.getBoxesSize(); i++) {
+    const std::vector<Eigen::Vector3d>& points = grid_[i].getGridPoints();
+    const std::vector<double>& densities = densities_[i];
+    for (Index j = 0; j < grid_[i].size(); j++) {
       double dist = (points[j] - rvector).norm();
       result -= densities[j] / dist;
     }
@@ -46,11 +46,11 @@ Eigen::Vector3d DensityIntegration<Grid>::IntegrateField(
     const Eigen::Vector3d& rvector) const {
 
   Eigen::Vector3d result = Eigen::Vector3d::Zero();
-  assert(!_densities.empty() && "Density not calculated");
-  for (Index i = 0; i < _grid.getBoxesSize(); i++) {
-    const std::vector<Eigen::Vector3d>& points = _grid[i].getGridPoints();
-    const std::vector<double>& densities = _densities[i];
-    for (Index j = 0; j < _grid[i].size(); j++) {
+  assert(!densities_.empty() && "Density not calculated");
+  for (Index i = 0; i < grid_.getBoxesSize(); i++) {
+    const std::vector<Eigen::Vector3d>& points = grid_[i].getGridPoints();
+    const std::vector<double>& densities = densities_[i];
+    for (Index j = 0; j < grid_[i].size(); j++) {
       Eigen::Vector3d r = points[j] - rvector;
       result -= densities[j] * r / std::pow(r.norm(), 3);  // x,y,z
     }
@@ -60,9 +60,9 @@ Eigen::Vector3d DensityIntegration<Grid>::IntegrateField(
 
 template <class Grid>
 void DensityIntegration<Grid>::SetupDensityContainer() {
-  _densities = std::vector<std::vector<double> >(_grid.getBoxesSize());
-  for (Index i = 0; i < _grid.getBoxesSize(); i++) {
-    _densities[i] = std::vector<double>(_grid[i].size(), 0.0);
+  densities_ = std::vector<std::vector<double> >(grid_.getBoxesSize());
+  for (Index i = 0; i < grid_.getBoxesSize(); i++) {
+    densities_[i] = std::vector<double>(grid_[i].size(), 0.0);
   }
 }
 
@@ -74,8 +74,8 @@ double DensityIntegration<Grid>::IntegrateDensity(
   SetupDensityContainer();
 
 #pragma omp parallel for schedule(guided) reduction(+ : N)
-  for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
-    const GridBox& box = _grid[i];
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    const GridBox& box = grid_[i];
     if (!box.Matrixsize()) {
       continue;
     }
@@ -86,7 +86,7 @@ double DensityIntegration<Grid>::IntegrateDensity(
     for (Index p = 0; p < box.size(); p++) {
       Eigen::VectorXd ao = box.CalcAOValues(points[p]);
       double rho = (ao.transpose() * DMAT_here * ao)(0, 0) * weights[p];
-      _densities[i][p] = rho;
+      densities_[i][p] = rho;
       N += rho;
     }
   }
@@ -102,8 +102,8 @@ Gyrationtensor DensityIntegration<Grid>::IntegrateGyrationTensor(
 
   SetupDensityContainer();
 #pragma omp parallel for schedule(guided)reduction(+:N)reduction(+:centroid)reduction(+:gyration)
-  for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
-    const GridBox& box = _grid[i];
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    const GridBox& box = grid_[i];
     if (!box.Matrixsize()) {
       continue;
     }
@@ -115,7 +115,7 @@ Gyrationtensor DensityIntegration<Grid>::IntegrateGyrationTensor(
     for (Index p = 0; p < box.size(); p++) {
       Eigen::VectorXd ao = box.CalcAOValues(points[p]);
       double rho = (ao.transpose() * DMAT_here * ao).value() * weights[p];
-      _densities[i][p] = rho;
+      densities_[i][p] = rho;
       N += rho;
       centroid += rho * points[p];
       gyration += rho * points[p] * points[p].transpose();
@@ -139,11 +139,11 @@ Eigen::MatrixXd DensityIntegration<Grid>::IntegratePotential(
   Eigen::MatrixXd Potential = Eigen::MatrixXd::Zero(
       externalbasis.AOBasisSize(), externalbasis.AOBasisSize());
 
-  assert(!_densities.empty() && "Density not calculated");
-  for (Index i = 0; i < _grid.getBoxesSize(); i++) {
-    const std::vector<Eigen::Vector3d>& points = _grid[i].getGridPoints();
-    const std::vector<double>& densities = _densities[i];
-    for (Index j = 0; j < _grid[i].size(); j++) {
+  assert(!densities_.empty() && "Density not calculated");
+  for (Index i = 0; i < grid_.getBoxesSize(); i++) {
+    const std::vector<Eigen::Vector3d>& points = grid_[i].getGridPoints();
+    const std::vector<double>& densities = densities_[i];
+    for (Index j = 0; j < grid_[i].size(); j++) {
       if (densities[j] < 1e-12) {
         continue;
       }

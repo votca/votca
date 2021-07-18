@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,6 +20,7 @@
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/basisset.h"
+#include "votca/xtp/checkpoint.h"
 #include "votca/xtp/make_libint_work.h"
 #include "votca/xtp/qmmolecule.h"
 // include libint last otherwise it overrides eigen
@@ -30,7 +31,7 @@ namespace xtp {
 
 Index AOBasis::getMaxL() const {
   Index n = 0;
-  for (const auto& shell : _aoshells) {
+  for (const auto& shell : aoshells_) {
     n = std::max(static_cast<Index>(shell.getL()), n);
   }
   return n;
@@ -38,7 +39,7 @@ Index AOBasis::getMaxL() const {
 
 Index AOBasis::getMaxNprim() const {
   Index n = 0;
-  for (const auto& shell : _aoshells) {
+  for (const auto& shell : aoshells_) {
     n = std::max(shell.getSize(), n);
   }
   return n;
@@ -46,10 +47,10 @@ Index AOBasis::getMaxNprim() const {
 
 std::vector<Index> AOBasis::getMapToBasisFunctions() const {
   std::vector<Index> result;
-  result.reserve(_aoshells.size());
+  result.reserve(aoshells_.size());
 
   Index n = 0;
-  for (const auto& shell : _aoshells) {
+  for (const auto& shell : aoshells_) {
     result.push_back(n);
     n += shell.getNumFunc();
   }
@@ -58,13 +59,13 @@ std::vector<Index> AOBasis::getMapToBasisFunctions() const {
 
 AOShell& AOBasis::addShell(const Shell& shell, const QMAtom& atom,
                            Index startIndex) {
-  _aoshells.push_back(AOShell(shell, atom, startIndex));
-  return _aoshells.back();
+  aoshells_.push_back(AOShell(shell, atom, startIndex));
+  return aoshells_.back();
 }
 
 const std::vector<const AOShell*> AOBasis::getShellsofAtom(Index AtomId) const {
   std::vector<const AOShell*> result;
-  for (const auto& aoshell : _aoshells) {
+  for (const auto& aoshell : aoshells_) {
     if (aoshell.getAtomIndex() == AtomId) {
       result.push_back(&aoshell);
     }
@@ -73,12 +74,12 @@ const std::vector<const AOShell*> AOBasis::getShellsofAtom(Index AtomId) const {
 }
 
 void AOBasis::add(const AOBasis& other) {
-  Index atomindex_offset = Index(_FuncperAtom.size());
+  Index atomindex_offset = Index(FuncperAtom_.size());
   for (AOShell shell : other) {
-    shell._atomindex += atomindex_offset;
-    shell._startIndex = _AOBasisSize;
-    _AOBasisSize += shell.getNumFunc();
-    _aoshells.push_back(shell);
+    shell.atomindex_ += atomindex_offset;
+    shell.startIndex_ = AOBasisSize_;
+    AOBasisSize_ += shell.getNumFunc();
+    aoshells_.push_back(shell);
   }
 
   FillFuncperAtom();
@@ -86,7 +87,7 @@ void AOBasis::add(const AOBasis& other) {
 
 void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
   clear();
-  _name = bs.Name();
+  name_ = bs.Name();
   // loop over atoms
   for (const QMAtom& atom : atoms) {
     Index atomfunc = 0;
@@ -94,8 +95,8 @@ void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
     const Element& element = bs.getElement(name);
     for (const Shell& shell : element) {
       Index numfuncshell = NumFuncShell(shell.getL());
-      AOShell& aoshell = addShell(shell, atom, _AOBasisSize);
-      _AOBasisSize += numfuncshell;
+      AOShell& aoshell = addShell(shell, atom, AOBasisSize_);
+      AOBasisSize_ += numfuncshell;
       atomfunc += numfuncshell;
       for (const GaussianPrimitive& gaussian : shell) {
         aoshell.addGaussian(gaussian);
@@ -109,21 +110,21 @@ void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
 }
 
 void AOBasis::FillFuncperAtom() {
-  _FuncperAtom.clear();
+  FuncperAtom_.clear();
   Index currentIndex = -1;
-  for (const auto& shell : _aoshells) {
+  for (const auto& shell : aoshells_) {
     if (shell.getAtomIndex() == currentIndex) {
-      _FuncperAtom[shell.getAtomIndex()] += shell.getNumFunc();
+      FuncperAtom_[shell.getAtomIndex()] += shell.getNumFunc();
     } else {
       currentIndex = shell.getAtomIndex();
-      _FuncperAtom.push_back(shell.getNumFunc());
+      FuncperAtom_.push_back(shell.getNumFunc());
     }
   }
 }
 std::vector<libint2::Shell> AOBasis::GenerateLibintBasis() const {
   std::vector<libint2::Shell> libintshells;
-  libintshells.reserve(_aoshells.size());
-  for (const auto& shell : _aoshells) {
+  libintshells.reserve(aoshells_.size());
+  for (const auto& shell : aoshells_) {
     libintshells.push_back(shell.LibintShell());
   }
   return libintshells;
@@ -173,41 +174,34 @@ std::vector<std::vector<Index>> AOBasis::ComputeShellPairs(
 }
 
 void AOBasis::UpdateShellPositions(const QMMolecule& mol) {
-  for (AOShell& shell : _aoshells) {
-    shell._pos = mol[shell.getAtomIndex()].getPos();
+  for (AOShell& shell : aoshells_) {
+    shell.pos_ = mol[shell.getAtomIndex()].getPos();
   }
 }
 
 void AOBasis::clear() {
-  _name = "";
-  _aoshells.clear();
-  _FuncperAtom.clear();
-  _AOBasisSize = 0;
+  name_ = "";
+  aoshells_.clear();
+  FuncperAtom_.clear();
+  AOBasisSize_ = 0;
 }
 
 void AOBasis::WriteToCpt(CheckpointWriter& w) const {
-  w(_name, "name");
-  w(_AOBasisSize, "basissize");
+  w(name_, "name");
+  w(AOBasisSize_, "basissize");
   Index numofprimitives = 0;
-  for (const auto& shell : _aoshells) {
+  for (const auto& shell : aoshells_) {
     numofprimitives += shell.getSize();
   }
 
-  // this is all to make dummy AOGaussian
-  Shell s(L::S, 0);
-  GaussianPrimitive d(0.1, 0.1);
-  QMAtom dummy(0, "H", Eigen::Vector3d::Zero());
-  AOShell s1(s, dummy, 0);
-  s1.addGaussian(d);
-  const AOGaussianPrimitive& dummy2 = *s1.begin();
-
-  CptTable table = w.openTable("Contractions", dummy2, numofprimitives);
+  CptTable table =
+      w.openTable<AOGaussianPrimitive>("Contractions", numofprimitives);
 
   std::vector<AOGaussianPrimitive::data> dataVec(numofprimitives);
   Index i = 0;
-  for (const auto& shell : _aoshells) {
+  for (const auto& shell : aoshells_) {
     for (const auto& gaussian : shell) {
-      gaussian.WriteData(dataVec[i]);
+      gaussian.WriteData(dataVec[i], shell);
       i++;
     }
   }
@@ -217,28 +211,20 @@ void AOBasis::WriteToCpt(CheckpointWriter& w) const {
 
 void AOBasis::ReadFromCpt(CheckpointReader& r) {
   clear();
-  r(_name, "name");
-  r(_AOBasisSize, "basissize");
-  if (_AOBasisSize > 0) {
-    // this is all to make dummy AOGaussian
-    Shell s(L::S, 0);
-    GaussianPrimitive d(0.1, 0.1);
-    QMAtom dummy(0, "H", Eigen::Vector3d::Zero());
-    AOShell s1(s, dummy, 0);
-    s1.addGaussian(d);
-    const AOGaussianPrimitive& dummy2 = *s1.begin();
+  r(name_, "name");
+  r(AOBasisSize_, "basissize");
+  if (AOBasisSize_ > 0) {
 
-    CptTable table = r.openTable("Contractions", dummy2);
+    CptTable table = r.openTable<AOGaussianPrimitive>("Contractions");
     std::vector<AOGaussianPrimitive::data> dataVec(table.numRows());
     table.read(dataVec);
     Index laststartindex = -1;
     for (std::size_t i = 0; i < table.numRows(); ++i) {
       if (dataVec[i].startindex != laststartindex) {
-        _aoshells.push_back(AOShell(dataVec[i]));
+        aoshells_.push_back(AOShell(dataVec[i]));
         laststartindex = dataVec[i].startindex;
       } else {
-        _aoshells.back()._gaussians.push_back(
-            AOGaussianPrimitive(dataVec[i], _aoshells.back()));
+        aoshells_.back().gaussians_.push_back(AOGaussianPrimitive(dataVec[i]));
       }
     }
 

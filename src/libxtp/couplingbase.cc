@@ -49,7 +49,7 @@ void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA,
       monomer = &atomsB[i - atomsA.size()];
     } else {
       // Linker
-      XTP_LOG(Log::error, *_pLog)
+      XTP_LOG(Log::error, *pLog_)
           << (boost::format(
                   "Neither Monomer A nor Monomer B contains "
                   "atom %s on line %u. Hence, this atom is part of a linker.") %
@@ -70,7 +70,7 @@ void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA,
   }
 
   if (!coordinates_agree) {
-    XTP_LOG(Log::error, *_pLog)
+    XTP_LOG(Log::error, *pLog_)
         << "======WARNING=======\n Coordinates of monomer "
            "and dimer atoms do not agree"
         << std::flush;

@@ -44,7 +44,7 @@ class EAnalyze final : public QMCalculator {
 
   ~EAnalyze() = default;
   bool WriteToStateFile() const { return false; }
-  std::string Identify() { return "eanalyze"; }
+  std::string Identify() const { return "eanalyze"; }
 
  protected:
   void ParseOptions(const tools::Property &user_options);
@@ -55,19 +55,19 @@ class EAnalyze final : public QMCalculator {
   void PairHist(const Topology &top, QMStateType state) const;
   void SiteCorr(const Topology &top, QMStateType state) const;
 
-  double _resolution_pairs;
-  double _resolution_sites;
-  double _resolution_spatial;
-  bool _atomdistances = false;
+  double resolution_pairs_;
+  double resolution_sites_;
+  double resolution_spatial_;
+  bool atomdistances_ = false;
 
-  std::vector<QMStateType> _states;
+  std::vector<QMStateType> states_;
 
-  bool _doenergy_landscape;
-  Index _first_seg;
-  Index _last_seg;
+  bool doenergy_landscape_;
+  Index first_seg_;
+  Index last_seg_;
 
-  std::string _seg_pattern;
-  std::vector<Segment *> _seg_shortlist;
+  std::string seg_pattern_;
+  std::vector<Segment *> seg_shortlist_;
 };
 
 }  // namespace xtp

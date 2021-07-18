@@ -63,7 +63,7 @@ class ERIs {
     return Compute4c<true>(DMAT, error);
   }
 
-  Index Removedfunctions() const { return _threecenter.Removedfunctions(); }
+  Index Removedfunctions() const { return threecenter_.Removedfunctions(); }
 
   static double CalculateEnergy(const Eigen::MatrixXd& DMAT,
                                 const Eigen::MatrixXd& matrix_operator) {
@@ -93,7 +93,7 @@ class ERIs {
   std::array<Eigen::MatrixXd, 2> Compute4c(const Eigen::MatrixXd& dmat,
                                            double error) const;
 
-  TCMatrix_dft _threecenter;
+  TCMatrix_dft threecenter_;
 
   Eigen::MatrixXd schwarzscreen_;  // Square matrix containing <ab|ab> for all
                                    // shells

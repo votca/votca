@@ -33,7 +33,7 @@ class EInternal final : public QMCalculator {
   EInternal() = default;
   ~EInternal() = default;
 
-  std::string Identify() { return "einternal"; }
+  std::string Identify() const { return "einternal"; }
 
   bool WriteToStateFile() const { return true; }
 
@@ -44,15 +44,15 @@ class EInternal final : public QMCalculator {
  private:
   void ParseEnergies();
 
-  std::map<std::string, QMStateCarrierStorage<double> > _seg_U_xX_nN;
-  std::map<std::string, QMStateCarrierStorage<double> > _seg_U_nX_nN;
-  std::map<std::string, QMStateCarrierStorage<double> > _seg_U_xN_xX;
+  std::map<std::string, QMStateCarrierStorage<double> > seg_U_xX_nN_;
+  std::map<std::string, QMStateCarrierStorage<double> > seg_U_nX_nN_;
+  std::map<std::string, QMStateCarrierStorage<double> > seg_U_xN_xX_;
 
-  std::map<std::string, QMStateCarrierStorage<bool> > _seg_has_state;
+  std::map<std::string, QMStateCarrierStorage<bool> > seg_has_state_;
 
-  std::map<std::string, bool> _has_seg;
+  std::map<std::string, bool> has_seg_;
 
-  std::string _energiesXML;
+  std::string energies_file_;
 };
 
 }  // namespace xtp

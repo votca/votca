@@ -27,16 +27,16 @@ namespace votca {
 namespace xtp {
 
 void Overlap_filter::Initialize(const tools::Property& options) {
-  _threshold = options.ifExistsReturnElseThrowRuntimeError<double>(".");
+  threshold_ = options.get(".").as<double>();
 }
 
 void Overlap_filter::Info(Logger& log) const {
-  if (_threshold == 0.0) {
+  if (threshold_ == 0.0) {
     XTP_LOG(Log::error, log)
         << "Using overlap filter with no threshold " << std::flush;
   } else {
     XTP_LOG(Log::error, log)
-        << "Using overlap filter with threshold " << _threshold << std::flush;
+        << "Using overlap filter with threshold " << threshold_ << std::flush;
   }
 }
 
@@ -47,7 +47,7 @@ Eigen::VectorXd Overlap_filter::CalculateOverlap(const Orbitals& orb,
 
   Eigen::MatrixXd coeffs = CalcAOCoeffs(orb, type);
   if (type.isSingleParticleState()) {
-    return (coeffs.transpose() * S_ao.Matrix() * _laststatecoeff).cwiseAbs();
+    return (coeffs.transpose() * S_ao.Matrix() * laststatecoeff_).cwiseAbs();
   } else {
 
     Index basis = orb.getBasisSetSize();
@@ -57,7 +57,7 @@ Eigen::VectorXd Overlap_filter::CalculateOverlap(const Orbitals& orb,
       {
         Eigen::VectorXd state = coeffs.col(i).head(basis * basis);
         Eigen::Map<const Eigen::MatrixXd> mat(state.data(), basis, basis);
-        Eigen::VectorXd laststate = _laststatecoeff.head(basis * basis);
+        Eigen::VectorXd laststate = laststatecoeff_.head(basis * basis);
         Eigen::Map<const Eigen::MatrixXd> lastmat(laststate.data(), basis,
                                                   basis);
 
@@ -68,7 +68,7 @@ Eigen::VectorXd Overlap_filter::CalculateOverlap(const Orbitals& orb,
       if (!orb.getTDAApprox()) {
         Eigen::VectorXd state = coeffs.col(i).tail(basis * basis);
         Eigen::Map<const Eigen::MatrixXd> mat(state.data(), basis, basis);
-        Eigen::VectorXd laststate = _laststatecoeff.tail(basis * basis);
+        Eigen::VectorXd laststate = laststatecoeff_.tail(basis * basis);
         Eigen::Map<const Eigen::MatrixXd> lastmat(laststate.data(), basis,
                                                   basis);
 
@@ -158,7 +158,7 @@ void Overlap_filter::UpdateHist(const Orbitals& orb, QMState state) {
   if (state.Type() == QMStateType::DQPstate) {
     offset = orb.getGWAmin();
   }
-  _laststatecoeff = aocoeffs.col(state.StateIdx() - offset);
+  laststatecoeff_ = aocoeffs.col(state.StateIdx() - offset);
 }
 
 std::vector<Index> Overlap_filter::CalcIndeces(const Orbitals& orb,
@@ -168,17 +168,17 @@ std::vector<Index> Overlap_filter::CalcIndeces(const Orbitals& orb,
     offset = orb.getGWAmin();
   }
   Eigen::VectorXd Overlap = CalculateOverlap(orb, type);
-  return ReduceAndSortIndecesUp(Overlap, offset, _threshold);
+  return ReduceAndSortIndecesUp(Overlap, offset, threshold_);
 }
 
 void Overlap_filter::WriteToCpt(CheckpointWriter& w) {
-  w(_laststatecoeff, "laststatecoeff");
-  w(_threshold, "threshold");
+  w(laststatecoeff_, "laststatecoeff");
+  w(threshold_, "threshold");
 }
 
 void Overlap_filter::ReadFromCpt(CheckpointReader& r) {
-  r(_laststatecoeff, "laststatecoeff");
-  r(_threshold, "threshold");
+  r(laststatecoeff_, "laststatecoeff");
+  r(threshold_, "threshold");
 }
 
 }  // namespace xtp
