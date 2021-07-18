@@ -31,7 +31,10 @@ Version 2022-dev
 -  adapted tokenizer api (#693)
 -  made membervariable format consistent (#694)
 
-Version 2021.1 (released XX.03.21)
+Version 2021.2 (released XX.07.21)
+==================================
+
+Version 2021.1 (released 18.07.21)
 ==================================
 
 -  format code with clang-12 and drop gmx2020 builds (#691)
