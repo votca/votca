@@ -24,7 +24,10 @@ Version 2022-dev
 -  added optionshandler (#375)
 -  made bool conversion more restrictive (#366)
 
-Version 2021.1 (released XX.03.21)
+Version 2021.2 (released XX.07.21)
+==================================
+
+Version 2021.1 (released 18.07.21)
 ==================================
 
 -  fix build on F34 and openSUSE (#361)
