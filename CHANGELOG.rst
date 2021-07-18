@@ -7,6 +7,8 @@ Version 2021.2 (released XX.07.21)
 Version 2021.1 (released 18.07.21)
 ==================================
 
+-  no changes since v2021
+
 Version 2021 (released 13.03.21)
 ================================
 
