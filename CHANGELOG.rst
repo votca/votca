@@ -25,7 +25,8 @@ Version 2022-dev
 -  switched molecule stable_vector to boost deque (#667)
 -  convert maps to unique_ptrs (#653)
 -  add iterative integral equation (iie) method (#675)
--  fix issues with IHNC (newton-mod) Integral equation method (#683)
+-  fix issues with IHNC (newton-mod) Integral equation method (#683,
+   #700)
 -  fix links in documentation (#686, #687, #688)
 -  use ndim vector instead of std::vector (#689)
 -  adapted tokenizer api (#693)
