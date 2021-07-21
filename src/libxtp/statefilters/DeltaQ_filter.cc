@@ -27,11 +27,9 @@ namespace votca {
 namespace xtp {
 
 void DeltaQ_filter::Initialize(const tools::Property& options) {
-  std::string indices =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>("fragment");
+  std::string indices = options.get("fragment").as<std::string>();
   fragment_ = QMFragment<double>(0, indices);
-  fragment_.value() =
-      options.ifExistsReturnElseThrowRuntimeError<double>("threshold");
+  fragment_.value() = options.get("threshold").as<double>();
 }
 
 void DeltaQ_filter::Info(Logger& log) const {

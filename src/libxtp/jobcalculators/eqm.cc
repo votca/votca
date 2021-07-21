@@ -59,8 +59,8 @@ void EQM::ParseSpecificOptions(const tools::Property& options) {
   }
 
   // set the basis sets and functional for DFT and GWBSE
-  gwbse_options_ = this->UpdateGWBSEOptions(options);
-  package_options_ = this->UpdateDFTOptions(options);
+  gwbse_options_ = options.get("gwbse");
+  package_options_ = options.get("dftpackage");
   esp_options_ = options.get(".esp_options");
 }
 
@@ -164,11 +164,9 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     dft_logger.setPreface(Log::error, (format("\nDFT ERR ...")).str());
     dft_logger.setPreface(Log::warning, (format("\nDFT WAR ...")).str());
     dft_logger.setPreface(Log::debug, (format("\nDFT DBG ...")).str());
-    std::string dft_key = "package";
-    std::string package =
-        package_options_.get(dft_key + ".name").as<std::string>();
-    std::unique_ptr<QMPackage> qmpackage = std::unique_ptr<QMPackage>(
-        QMPackageFactory::QMPackages().Create(package));
+    std::string package = package_options_.get(".name").as<std::string>();
+    std::unique_ptr<QMPackage> qmpackage =
+        QMPackageFactory::QMPackages().Create(package);
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(work_dir);
     qmpackage->Initialize(package_options_);

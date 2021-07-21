@@ -44,7 +44,7 @@ class EAnalyze final : public QMCalculator {
 
   ~EAnalyze() = default;
   bool WriteToStateFile() const { return false; }
-  std::string Identify() { return "eanalyze"; }
+  std::string Identify() const { return "eanalyze"; }
 
  protected:
   void ParseOptions(const tools::Property &user_options);

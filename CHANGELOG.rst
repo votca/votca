@@ -38,9 +38,23 @@ Version 2022-dev
 -  add command line option for number of gpus (#711)
 -  reworked iqm statefile reading (#712)
 -  made membervariable format consistent (#713)
+-  updated benchmark (#714)
+-  reworked commandline options (#715)
+-  renamed cmd line arguments in xtp_parallel (#718)
+-  added incremental Fock matrix building (#716)
+-  disable codeql check in GitHub Actions (#720)
+-  replace std::vector by Eigen::Array<bool,..> (#719)
+-  overhaul complete option handling (#704)
+-  Fixed exciton options checking (#726)
+-  added basis gpu runner and test to suite (#725)
 
-Version 2021.1 (released XX.03.21)
+Version 2021.2 (released XX.07.21)
 ==================================
+
+Version 2021.1 (released 18.07.21)
+==================================
+
+-  no changes since v2021
 
 Version 2021 (released 13.03.21)
 ================================

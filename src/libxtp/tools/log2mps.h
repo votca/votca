@@ -37,7 +37,7 @@ class Log2Mps final : public QMTool {
   Log2Mps() = default;
   ~Log2Mps() = default;
 
-  std::string Identify() { return "log2mps"; }
+  std::string Identify() const { return "log2mps"; }
 
  protected:
   void ParseOptions(const tools::Property &user_options);
@@ -53,18 +53,19 @@ void Log2Mps::ParseOptions(const tools::Property &options) {
 
   QMPackageFactory::RegisterAll();
 
-  package_ = options.get(".package").as<std::string>();
+  package_ = options.get(".dftpackage").as<std::string>();
 
   if (package_ == "xtp") {
     throw std::runtime_error(
         "XTP has no log file. For xtp package just run the partialcharges tool "
         "on you .orb file");
   }
+
   logfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".logfile", job_name_ + ".log");
+      ".input", job_name_ + ".log");
 
   mpsfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".mpsfile", job_name_ + ".mps");
+      ".output", job_name_ + ".mps");
 
   std::cout << "\n... ... " << logfile_ << " => " << mpsfile_ << "\n";
 }

@@ -27,12 +27,9 @@ using std::flush;
 
 void StateTracker::Initialize(const tools::Property& options) {
 
-  std::vector<std::string> list_filters =
-      options.get("filters").as<std::vector<std::string>>();
-
   FilterFactory::RegisterAll();
-  for (const std::string& filtername : list_filters) {
-    filters_.push_back(Filter().Create(filtername));
+  for (const tools::Property& filter : options) {
+    filters_.push_back(Filter().Create(filter.name()));
   }
 
   for (auto& filter : filters_) {
@@ -139,6 +136,7 @@ void StateTracker::WriteToCpt(CheckpointWriter& w) const {
 }
 
 void StateTracker::ReadFromCpt(CheckpointReader& r) {
+  FilterFactory::RegisterAll();
   std::vector<std::string> statehiststring;
   r(statehiststring, "statehist");
   statehist_.clear();
@@ -146,9 +144,11 @@ void StateTracker::ReadFromCpt(CheckpointReader& r) {
   for (const std::string& s : statehiststring) {
     statehist_.push_back(QMState(s));
   }
-  for (auto& filter : filters_) {
-    CheckpointReader rr = r.openChild(filter->Identify());
-    filter->ReadFromCpt(rr);
+  filters_.clear();
+  for (const std::string& filtername : r.getChildGroupNames()) {
+    CheckpointReader rr = r.openChild(filtername);
+    filters_.push_back(Filter().Create(filtername));
+    filters_.back()->ReadFromCpt(rr);
   }
 }
 

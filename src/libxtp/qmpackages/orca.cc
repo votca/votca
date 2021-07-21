@@ -1,3 +1,4 @@
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -27,11 +28,14 @@
 #include <boost/format.hpp>
 
 // VOTCA includes
+#include <stdexcept>
+#include <string>
 #include <votca/tools/elements.h>
 #include <votca/tools/getline.h>
 
 // Local VOTCA includes
 #include "votca/tools/globals.h"
+#include "votca/tools/tokenizer.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/ecpaobasis.h"
 #include "votca/xtp/molden.h"
@@ -44,18 +48,15 @@ namespace votca {
 namespace xtp {
 using namespace std;
 
-void Orca::Initialize(const tools::Property& options) {
+void Orca::ParseSpecificOptions(const tools::Property& options) {
 
   // Orca file names
-  std::string fileName = options.ifExistsReturnElseReturnDefault<std::string>(
-      "job_name", "system");
+  std::string fileName = options.get("temporary_file").as<std::string>();
 
   input_file_name_ = fileName + ".inp";
   log_file_name_ = fileName + ".log";
   shell_file_name_ = fileName + ".sh";
   mo_file_name_ = fileName + ".gbw";
-
-  ParseCommonOptions(options);
 }
 
 /* Custom basis sets are written on a per-element basis to
@@ -124,10 +125,10 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
   std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
 
   ECPBasisSet ecp;
-  ecp.Load(settings_.get("ecp"));
+  ecp.Load(options_.get("ecp").as<std::string>());
 
-  XTP_LOG(Log::error, *pLog_)
-      << "Loaded Pseudopotentials " << settings_.get("ecp") << flush;
+  XTP_LOG(Log::error, *pLog_) << "Loaded Pseudopotentials "
+                              << options_.get("ecp").as<std::string>() << flush;
 
   for (const std::string& element_name : UniqueElements) {
     try {
@@ -171,7 +172,7 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
 }
 
 void Orca::WriteChargeOption() {
-  this->settings_.add("orca.pointcharges", "\"background.crg\"");
+  this->options_.addTree("orca.pointcharges", "\"background.crg\"");
 }
 
 /* For QM/MM the molecules in the MM environment are represented by
@@ -189,8 +190,7 @@ void Orca::WriteBackgroundCharges() {
     if (site->getCharge() != 0.0) {
       total_background++;
     }
-    std::vector<MinimalMMCharge> split_multipoles = SplitMultipoles(*site);
-    total_background += split_multipoles.size();
+    total_background += SplitMultipoles(*site).size();
   }  // counting only
 
   crg_file << total_background << endl;
@@ -247,9 +247,10 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
            << " "
            << "="
            << "\"system.bas\";" << endl;
-  if (settings_.has_key("auxbasisset")) {
+  if (options_.exists("auxbasisset")) {
     std::string aux_file_name = run_dir_ + "/" + "system.aux";
-    std::string auxbasisset_name = settings_.get("auxbasisset");
+    std::string auxbasisset_name =
+        options_.get("auxbasisset").as<std::string>();
     WriteBasisset(qmatoms, auxbasisset_name, aux_file_name);
     inp_file << "GTOAuxName"
              << " "
@@ -258,50 +259,39 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   }  // write_auxbasis set
 
   // ECPs
-  if (settings_.has_key("ecp")) {
+  if (options_.exists("ecp")) {
     WriteECP(inp_file, qmatoms);
   }
   inp_file << "end\n "
            << "\n"
            << endl;  // This end is for the basis set block
-  if (settings_.get<bool>("write_charges")) {
+  if (!externalsites_.empty()) {
     WriteBackgroundCharges();
   }
 
   // External Electric field
-  if (settings_.has_key("use_external_field")) {
-    if (settings_.get("use_external_field") == "true") {
-      if (settings_.has_key("externalfield")) {
-        tools::Tokenizer values(this->settings_.get("externalfield"), " ");
-        std::vector<std::string> field = values.ToVector();
-        if (field.size() != 3) {
-          throw std::runtime_error("Electric field does not have 3 values.");
-        }
-        inp_file << "%scf\n ";
-        inp_file << "  efield " << field[0] << ", " << field[1] << ", "
-                 << field[2] << "\n";
-        inp_file << "end\n";
-        inp_file << std::endl;
-      } else {
-        throw std::runtime_error(
-            "\nRequested a calculation with an external field, but no field is "
-            "specified.\n");
-      }
-    }
+  if (options_.exists("externalfield")) {
+    Eigen::Vector3d field = options_.get("externalfield").as<Eigen::Vector3d>();
+    inp_file << "%scf\n ";
+    inp_file << "  efield " << field.x() << ", " << field.y() << ", "
+             << field.z() << "\n";
+    inp_file << "end\n";
+    inp_file << std::endl;
   }
-
+  std::string input_options;
   // Write Orca section specified by the user
-  for (const auto& prop : this->settings_.property("orca")) {
+  for (const auto& prop : this->options_.get("orca")) {
     const std::string& prop_name = prop.name();
     if (prop_name == "pointcharges") {
-      options_ += this->CreateInputSection("orca.pointcharges");
+      input_options += this->CreateInputSection("orca.pointcharges");
     } else if (prop_name != "method") {
-      options_ += this->CreateInputSection("orca." + prop_name);
+      input_options += this->CreateInputSection("orca." + prop_name);
     }
   }
   // Write main DFT method
-  options_ += this->WriteMethod();
-  inp_file << options_;
+  input_options += this->WriteMethod();
+  inp_file << input_options;
+  inp_file << '\n';
   inp_file.close();
   // and now generate a shell script to run both jobs, if neccessary
 
@@ -320,21 +310,22 @@ bool Orca::WriteShellScript() {
   shell_file << "#!/bin/bash" << endl;
   shell_file << "mkdir -p " << scratch_dir_ << endl;
 
-  if (settings_.get<bool>("read_guess")) {
+  if (options_.get("initial_guess").as<std::string>() == "orbfile") {
     if (!(boost::filesystem::exists(run_dir_ + "/molA.gbw") &&
           boost::filesystem::exists(run_dir_ + "/molB.gbw"))) {
       throw runtime_error(
           "Using guess relies on a molA.gbw and a molB.gbw file being in the "
           "directory.");
     }
-    shell_file << settings_.get("executable")
-               << " mergefrag_ molA.gbw molB.gbw dimer.gbw > merge.log" << endl;
+    shell_file << options_.get("executable").as<std::string>()
+               << "_mergefrag molA.gbw molB.gbw dimer.gbw > merge.log" << endl;
   }
-  shell_file << settings_.get("executable") << " " << input_file_name_ << " > "
-             << log_file_name_ << endl;  //" 2> run.error" << endl;
+  shell_file << options_.get("executable").as<std::string>() << " "
+             << input_file_name_ << " > " << log_file_name_
+             << endl;  //" 2> run.error" << endl;
   std::string base_name = mo_file_name_.substr(0, mo_file_name_.size() - 4);
-  shell_file << settings_.get("executable") << "_2mkl " << base_name
-             << " -molden" << endl;
+  shell_file << options_.get("executable").as<std::string>() << "_2mkl "
+             << base_name << " -molden" << endl;
   shell_file.close();
   return true;
 }
@@ -342,7 +333,7 @@ bool Orca::WriteShellScript() {
 /**
  * Runs the Orca job.
  */
-bool Orca::Run() {
+bool Orca::RunDFT() {
 
   XTP_LOG(Log::error, *pLog_) << "Running Orca job\n" << flush;
 
@@ -375,16 +366,15 @@ bool Orca::Run() {
  */
 void Orca::CleanUp() {
 
-  if (settings_.get<bool>("read_guess")) {
+  if (options_.get("initial_guess").as<std::string>() == "orbfile") {
     remove((run_dir_ + "/" + "molA.gbw").c_str());
     remove((run_dir_ + "/" + "molB.gbw").c_str());
     remove((run_dir_ + "/" + "dimer.gbw").c_str());
   }
   // cleaning up the generated files
-  if (cleanup_.size() != 0) {
+  if (!cleanup_.empty()) {
     tools::Tokenizer tok_cleanup(cleanup_, ",");
-    std::vector<std::string> cleanup_info = tok_cleanup.ToVector();
-    for (const std::string& substring : cleanup_info) {
+    for (const std::string& substring : tok_cleanup) {
       if (substring == "inp") {
         std::string file_name = run_dir_ + "/" + input_file_name_;
         remove(file_name.c_str());
@@ -515,9 +505,13 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   bool found_success = false;
   orbitals.setQMpackage(getPackageName());
   orbitals.setDFTbasisName(basisset_name_);
-  if (settings_.has_key("ecp")) {
-    orbitals.setECPName(settings_.get("ecp"));
+  if (options_.exists("ecp")) {
+    orbitals.setECPName(options_.get("ecp").as<std::string>());
   }
+
+  orbitals.setXCGrid("xfine");  // TODO find a better approximation for the
+                                // orca grid.
+  orbitals.setXCFunctionalName(options_.get("functional").as<std::string>());
 
   XTP_LOG(Log::error, *pLog_) << "Parsing " << log_file_name_ << flush;
   std::string log_file_name_full = run_dir_ + "/" + log_file_name_;
@@ -556,9 +550,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
 
     std::string::size_type energy_pos = line.find("FINAL SINGLE");
     if (energy_pos != std::string::npos) {
-
-      boost::algorithm::split(results, line, boost::is_any_of(" "),
-                              boost::algorithm::token_compress_on);
+      results = tools::Tokenizer(line, " ").ToVector();
       std::string energy = results[4];
       boost::trim(energy);
       orbitals.setQMEnergy(boost::lexical_cast<double>(energy));
@@ -569,10 +561,11 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     }
 
     std::string::size_type HFX_pos = line.find("Fraction HF Exchange ScalHFX");
+
     if (HFX_pos != std::string::npos) {
-      boost::algorithm::split(results, line, boost::is_any_of(" "),
-                              boost::algorithm::token_compress_on);
+      results = tools::Tokenizer(line, " ").ToVector();
       double ScaHFX = boost::lexical_cast<double>(results.back());
+
       orbitals.setScaHFX(ScaHFX);
       XTP_LOG(Log::error, *pLog_)
           << "DFT with " << ScaHFX << " of HF exchange!" << flush;
@@ -580,8 +573,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
 
     std::string::size_type dim_pos = line.find("Basis Dimension");
     if (dim_pos != std::string::npos) {
-      boost::algorithm::split(results, line, boost::is_any_of(" "),
-                              boost::algorithm::token_compress_on);
+      results = tools::Tokenizer(line, " ").ToVector();
       std::string dim =
           results[4];  // The 4th element of results vector is the Basis Dim
       boost::trim(dim);
@@ -804,10 +796,10 @@ std::string Orca::CreateInputSection(const std::string& key) const {
   std::string section = key.substr(key.find(".") + 1);
   stream << "%" << section;
   if (KeywordIsSingleLine(key)) {
-    stream << " " << this->settings_.get(key) << "\n";
+    stream << " " << options_.get(key).as<std::string>() << "\n";
   } else {
     stream << "\n"
-           << this->settings_.get(key) << "\n"
+           << options_.get(key).as<std::string>() << "\n"
            << "end\n";
   }
 
@@ -815,21 +807,21 @@ std::string Orca::CreateInputSection(const std::string& key) const {
 }
 
 bool Orca::KeywordIsSingleLine(const std::string& key) const {
-  tools::Tokenizer values(this->settings_.get(key), " ");
+  tools::Tokenizer values(this->options_.get(key).as<std::string>(), " ");
   std::vector<std::string> words = values.ToVector();
   return ((words.size() <= 1) ? true : false);
 }
 
 std::string Orca::WriteMethod() const {
   std::stringstream stream;
-  std::string opt = (settings_.get<bool>("optimize")) ? "Opt" : "";
-  const tools::Property& orca = settings_.property("orca");
+  std::string opt = (options_.get("optimize").as<bool>()) ? "Opt" : "";
+  const tools::Property& orca = options_.get("orca");
   std::string user_method =
       (orca.exists("method")) ? orca.get("method").as<std::string>() : "";
   std::string convergence = "";
   if (!orca.exists("scf")) {
-    convergence =
-        this->convergence_map_.at(settings_.get("convergence_tightness"));
+    convergence = this->convergence_map_.at(
+        options_.get("convergence_tightness").as<std::string>());
   }
   stream << "! DFT " << this->GetOrcaFunctionalName() << " " << convergence
          << " " << opt
@@ -841,39 +833,30 @@ std::string Orca::WriteMethod() const {
 
 std::string Orca::GetOrcaFunctionalName() const {
 
-  if (!tools::VotcaShareSet()) {
-    return settings_.get("functional");
+  std::map<std::string, std::string> votca_to_orca;
+
+  votca_to_orca["XC_HYB_GGA_XC_B1LYP"] = "B1LYP";
+  votca_to_orca["XC_HYB_GGA_XC_B3LYP"] = "B3LYP";
+  votca_to_orca["XC_HYB_GGA_XC_PBEH"] = "PBE0";
+  votca_to_orca["XC_GGA_C_PBE"] = "PBE";
+  votca_to_orca["XC_GGA_X_PBE"] = "PBE";
+
+  std::string votca_functional =
+      options_.get("functional").as<std::vector<std::string>>()[0];
+
+  std::string orca_functional;
+  if (votca_to_orca.count(votca_functional)) {
+    orca_functional = votca_to_orca.at(votca_functional);
+  } else if (options_.exists("orca." + votca_functional)) {
+    orca_functional =
+        options_.get("orca." + votca_functional).as<std::string>();
   } else {
-    tools::Property all_functionals;
-
-    auto xml_file =
-        tools::GetVotcaShare() + "/xtp/data/orca_functional_names.xml";
-
-    all_functionals.LoadFromXML(xml_file);
-
-    const tools::Property& functional_names =
-        all_functionals.get("functionals");
-
-    std::string input_name = settings_.get("functional");
-    // Some functionals have a composed named separated by a space
-    // In the case just look for the first part
-    std::size_t plus = input_name.find(' ');
-    if (plus != std::string::npos) {
-      input_name = input_name.substr(0, plus);
-    }
-
-    if (functional_names.exists(input_name)) {
-      return functional_names.get(input_name).as<std::string>();
-    } else {
-      std::ostringstream oss;
-      oss << "The libxc functional \"" << input_name << "\"\n"
-          << "doesn't seem to have a corresponding name in Orca.\n"
-          << "Check the "
-          << "\"${VOTCASHARE}/xtp/data/orca_functional_names.xml\""
-          << "file for the whole list of known libxc/orca functionals";
-      throw runtime_error(oss.str());
-    }
+    throw std::runtime_error(
+        "Cannot translate " + votca_functional +
+        " to orca functional names. Please add a <" + votca_functional +
+        "> to your orca input options with the functional orca should use.");
   }
+  return orca_functional;
 }
 
 }  // namespace xtp

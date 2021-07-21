@@ -18,9 +18,11 @@
  */
 
 #pragma once
+
 #ifndef VOTCA_XTP_QMPACKAGE_H
 #define VOTCA_XTP_QMPACKAGE_H
 
+#include <memory>
 // VOTCA includes
 #include <votca/tools/property.h>
 
@@ -28,9 +30,7 @@
 #include "aobasis.h"
 #include "classicalsegment.h"
 #include "logger.h"
-#include "settings.h"
 #include "staticsite.h"
-
 #include "votca/xtp/orbreorder.h"
 
 namespace votca {
@@ -44,13 +44,12 @@ class QMPackage {
 
   virtual std::string getPackageName() const = 0;
 
-  virtual void Initialize(const tools::Property& options) = 0;
+  void Initialize(const tools::Property& options);
 
   /// writes a coordinate file WITHOUT taking into account PBCs
   virtual bool WriteInputFile(const Orbitals& orbitals) = 0;
 
-  virtual bool Run() = 0;
-
+  bool Run();
   virtual bool ParseLogFile(Orbitals& orbitals) = 0;
 
   virtual bool ParseMOsFile(Orbitals& orbitals) = 0;
@@ -66,13 +65,10 @@ class QMPackage {
         typename Segmenttype::iterator>::value_type;
     for (const Segmenttype& segment : mmregion) {
       for (const Sitetype& site : segment) {
-        externalsites_.push_back(
-            std::unique_ptr<StaticSite>(new Sitetype(site)));
+        externalsites_.push_back(std::make_unique<Sitetype>(site));
       }
     }
-    if (settings_.get<bool>("write_charges")) {
-      WriteChargeOption();
-    }
+    WriteChargeOption();
   }
 
   void setRunDir(const std::string& run_dir) { run_dir_ = run_dir; }
@@ -94,7 +90,9 @@ class QMPackage {
     spin_ = std::abs(charge) + 1;
   }
 
-  bool GuessRequested() const { return settings_.get<bool>("read_guess"); }
+  bool GuessRequested() const {
+    return options_.get("initial_guess").as<std::string>() == "orbfile";
+  }
 
   virtual StaticSegment GetCharges() const = 0;
 
@@ -105,15 +103,14 @@ class QMPackage {
   std::string getMOFile() const { return mo_file_name_; };
 
  protected:
+  virtual void ParseSpecificOptions(const tools::Property& options) = 0;
   struct MinimalMMCharge {
     MinimalMMCharge(const Eigen::Vector3d& pos, double q) : pos_(pos), q_(q){};
     Eigen::Vector3d pos_;
     double q_;
   };
 
-  tools::Property ParseCommonOptions(const tools::Property& options);
-  std::string FindDefaultsFile() const;
-
+  virtual bool RunDFT() = 0;
   virtual void WriteChargeOption() = 0;
   std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
   void ReorderOutput(Orbitals& orbitals) const;
@@ -130,8 +127,6 @@ class QMPackage {
   virtual const std::array<Index, 49>& ShellMulitplier() const = 0;
   virtual const std::array<Index, 49>& ShellReorder() const = 0;
 
-  Settings settings_{"package"};
-
   Index charge_;
   Index spin_;  // 2S+1mem
   std::string basisset_name_;
@@ -139,10 +134,10 @@ class QMPackage {
   std::string input_file_name_;
   std::string log_file_name_;
   std::string mo_file_name_;
-  std::string options_ = "";
   std::string run_dir_;
   std::string scratch_dir_;
   std::string shell_file_name_;
+  tools::Property options_;
 
   Logger* pLog_;
 

@@ -55,10 +55,6 @@ class GWBSEEngine {
 
   void setLoggerFile(std::string logger_file) { logger_file_ = logger_file; };
 
-  void setRedirectLogger(bool redirect_logger) {
-    redirect_logger_ = redirect_logger;
-  };
-
   const tools::Property& ReportSummary() const { return summary_; };
 
  private:
@@ -72,7 +68,6 @@ class GWBSEEngine {
   bool do_dft_run_ = false;
   bool do_dft_parse_ = false;
   bool do_gwbse_ = false;
-  bool redirect_logger_ = false;
 
   // DFT log and MO file names
   std::string MO_file_;      // file containing the MOs from qmpackage...

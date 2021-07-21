@@ -35,17 +35,15 @@ namespace xtp {
 
 */
 class Orbitals;
-class Orca : public QMPackage {
+class Orca final : public QMPackage {
  public:
   std::string getPackageName() const override { return "orca"; }
-
-  void Initialize(const tools::Property& options) override;
 
   bool WriteInputFile(const Orbitals& orbitals) override;
 
   bool WriteShellScript();
 
-  bool Run() override;
+  bool RunDFT() override;
 
   void CleanUp() override;
 
@@ -60,6 +58,7 @@ class Orca : public QMPackage {
   Eigen::Matrix3d GetPolarizability() const override;
 
  protected:
+  void ParseSpecificOptions(const tools::Property& options) final;
   const std::array<Index, 49>& ShellMulitplier() const final {
     return multipliers_;
   }
@@ -106,7 +105,7 @@ class Orca : public QMPackage {
   bool KeywordIsSingleLine(const std::string& key) const;
   std::string GetOrcaFunctionalName() const;
 
-  std::unordered_map<std::string, std::string> convergence_map_{
+  std::map<std::string, std::string> convergence_map_{
       {"low", "LooseSCF"},
       {"normal", "StrongSCF"},
       {"tight", "TightSCF"},
