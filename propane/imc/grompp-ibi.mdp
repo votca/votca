@@ -30,9 +30,10 @@ tc-grps = System
 Pcoupl = no
 
 ; initial generation
-gen-vel = no
+gen-vel = yes
+gen-temp = 200
 
 ; tabulated potentials
 energygrps = A B
 energygrp-table = A A  B B  A B
-table-extension = 0.0
+table-extension = 1.0
