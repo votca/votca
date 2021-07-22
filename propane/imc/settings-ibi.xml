@@ -127,6 +127,8 @@
       <table_end>2.5</table_end>
       <mdp>grompp-ibi.mdp</mdp>
     </gromacs>
+    <!-- do not store trajectory -->
+    <cleanlist>traj.xtc</cleanlist>
     <!-- these files are copied for each new run -->
     <filelist>grompp-ibi.mdp topol.top table.xvg table_a1.xvg table_b1.xvg index.ndx</filelist>
     <!-- do so many iterations -->

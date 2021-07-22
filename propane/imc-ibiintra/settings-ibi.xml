@@ -178,6 +178,8 @@
         <topol>topology.xml</topol>
       </rdf>
     </gromacs>
+    <!-- do not store trajectory -->
+    <cleanlist>traj.xtc</cleanlist>
     <!-- these files are copied for each new run -->
     <filelist>grompp-ibi.mdp topol.top table.xvg index.ndx topology.xml</filelist>
     <!-- do so many iterations -->
