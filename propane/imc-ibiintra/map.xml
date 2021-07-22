@@ -1,27 +1,27 @@
 <cg_molecule>
-  <name>Protein</name>
-  <ident>Protein</ident>
+  <name>propane</name>
+  <ident>propane</ident>
   <topology>
     <cg_beads>
       <cg_bead>
         <name>A1</name>
         <type>A</type>
         <mapping>unity</mapping>
-        <beads>1:Protein:A1</beads>
+        <beads>1:propane:A1</beads>
       </cg_bead>
 
       <cg_bead>
         <name>B1</name>
         <type>B</type>
         <mapping>unity</mapping>
-        <beads>1:Protein:B1</beads>
+        <beads>1:propane:B1</beads>
       </cg_bead>
 
       <cg_bead>
         <name>A2</name>
         <type>A</type>
         <mapping>unity</mapping>
-        <beads>1:Protein:A2</beads>
+        <beads>1:propane:A2</beads>
       </cg_bead>
     </cg_beads>
 

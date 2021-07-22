@@ -1,6 +1,6 @@
 <topology>
   <molecules>
-    <molecule name="Protein" nmols="1000" nbeads="3">
+    <molecule name="propane" nmols="1000" nbeads="3">
       <bead name="A1" type="A" mass="43.089" q="0.0" />
       <bead name="B1" type="B" mass="43.089" q="0.0" />
       <bead name="A2" type="A" mass="43.089" q="0.0" />
@@ -11,14 +11,14 @@
     <bond>
       <name>bond</name>
       <beads>
-        Protein:A1 Protein:B1
-        Protein:B1 Protein:A2
+        propane:A1 propane:B1
+        propane:B1 propane:A2
       </beads>
     </bond>
     <angle>
       <name>angle</name>
       <beads>
-        Protein:A1 Protein:B1 Protein:A2
+        propane:A1 propane:B1 propane:A2
       </beads>
     </angle>
   </bonded>
