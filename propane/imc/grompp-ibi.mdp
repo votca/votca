@@ -23,7 +23,7 @@ rvdw = 1.2
 
 ; Temperature coupling
 tau-t = 0.5
-ref-t = 300
+ref-t = 200
 tc-grps = System
 
 ; Pressure coupling
