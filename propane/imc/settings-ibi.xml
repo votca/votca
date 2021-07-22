@@ -133,12 +133,5 @@
     <iterations_max>10</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>ibi</method>
-    <!-- directory for user scripts -->
-    <scriptpath>$PWD</scriptpath>
-    <!-- write log to this file -->
-    <log_file>inverse.log</log_file>
-    <!-- write restart step to this file -->
-    <restart_file>restart_points.log</restart_file>
-    <!-- imc specific stuff -->
   </inverse>
 </cg>

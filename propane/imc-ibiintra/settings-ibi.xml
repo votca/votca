@@ -179,17 +179,11 @@
       </rdf>
     </gromacs>
     <!-- these files are copied for each new run -->
-    <filelist>grompp-ibi.mdp topol.top table.xvg table_a1.xvg table_b1.xvg index.ndx topology.xml</filelist>
+    <filelist>grompp-ibi.mdp topol.top table.xvg index.ndx topology.xml</filelist>
     <!-- do so many iterations -->
     <iterations_max>10</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>ibi</method>
-    <!-- directory for user scripts -->
-    <scriptpath>$PWD</scriptpath>
-    <!-- write log to this file -->
-    <log_file>inverse.log</log_file>
-    <!-- write restart step to this file -->
-    <restart_file>restart_points.log</restart_file>
     <!-- mapping file needed when there are bonded interactions -->
     <map>map.xml</map>
   </inverse>
