@@ -131,7 +131,7 @@
     <!-- do so many iterations -->
     <iterations_max>10</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
-    <method>imc</method>
+    <method>ibi</method>
     <!-- directory for user scripts -->
     <scriptpath>$PWD</scriptpath>
     <!-- write log to this file -->
