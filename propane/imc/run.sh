@@ -2,14 +2,13 @@
 
 set -e
 
-ln -sf settings-ibi.mdp settings.xml
-ln -sf grompp-ibi.mdp grompp.mdp
-echo 'running csg_inverse --options "settings.xml"'
-csg_inverse --options settings.xml
+# pre-iterations with IBI
+cmd='csg_inverse --options "settings-ibi.xml"'
+echo "now running: ${cmd}"
+$cmd
 rm done
 
-ln -sf settings-imc.mdp settings.xml
-ln -sf grompp-imc.mdp grompp.mdp
-echo 'running csg_inverse --options "settings.xml"'
-csg_inverse --options settings.xml
-rm -f settings.xml grompp.mdp
+# IMC iterations
+cmd='csg_inverse --options "settings-imc.xml"'
+echo "now running: ${cmd}"
+$cmd
