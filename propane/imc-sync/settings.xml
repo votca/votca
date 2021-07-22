@@ -14,7 +14,7 @@
       <!-- target distribution (rdf), just give gromas rdf.xvg -->
       <target>A-A.dist.tgt</target>
       <!-- update cycles -->
-      <do_potential>1 0 0</do_potential>
+      <do_potential>1</do_potential>
       <!-- additional post processing of dU before added to potential -->
       <post_update>smooth</post_update>
       <!-- some options for the post update scripts -->
@@ -51,7 +51,7 @@
       <!-- target distribution (rdf), just give gromas rdf.xvg -->
       <target>B-B.dist.tgt</target>
       <!-- update cycles -->
-      <do_potential>0 1 0</do_potential>
+      <do_potential>1</do_potential>
       <!-- additional post processing of dU before added to potential -->
       <post_update>smooth</post_update>
       <!-- some options for the post update scripts -->
@@ -87,7 +87,7 @@
       <!-- target distribution (rdf), just give gromas rdf.xvg -->
       <target>A-B.dist.tgt</target>
       <!-- update cycles -->
-      <do_potential>0 0 1</do_potential>
+      <do_potential>1</do_potential>
       <!-- additional post processing of dU before added to potential -->
       <post_update>smooth</post_update>
       <!-- some options for the post update scripts -->

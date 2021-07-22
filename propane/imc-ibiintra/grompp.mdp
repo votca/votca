@@ -6,7 +6,7 @@ define                   =
 integrator               = sd 
 ; Start time and timestep in ps
 tinit                    = 0
-dt                       = 0.002
+dt                       = 0.001
 nsteps                   = 1000000
 ; For exact run continuation or redoing part of a run
 init_step                = 0

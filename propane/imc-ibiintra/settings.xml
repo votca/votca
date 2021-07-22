@@ -27,7 +27,7 @@
     <name>angle</name>
     <min>0</min>
     <max>3.144</max>
-    <step>0.001</step>
+    <step>0.01</step>
     <inverse>
       <target>angle.dist.tgt</target>
       <do_potential>0</do_potential>
@@ -133,8 +133,11 @@
       <table_bins>0.002</table_bins>
       <pot_max>1000000</pot_max>
       <table_end>2.5</table_end>
+      <imc>
+        <topol>topology.xml</topol>
+      </imc>
     </gromacs>
-    <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
+    <filelist>grompp.mdp topol.top table.xvg index.ndx topology.xml</filelist>
     <iterations_max>300</iterations_max>
     <method>imc</method>
     <scriptpath>$PWD</scriptpath>
