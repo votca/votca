@@ -172,7 +172,6 @@
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
       <table_end>2.5</table_end>
-      <mdp>grompp-imc.mdp</mdp>
       <imc>
         <!-- needed for claculating bonded distributions -->
         <topol>topology.xml</topol>
