@@ -183,7 +183,7 @@
     <!-- these files are copied for each new run -->
     <filelist>grompp-ibi.mdp topol.top table.xvg index.ndx topology.xml</filelist>
     <!-- do so many iterations -->
-    <iterations_max>10</iterations_max>
+    <iterations_max>5</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>ibi</method>
     <!-- mapping file needed when there are bonded interactions -->
