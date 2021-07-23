@@ -26,7 +26,7 @@
   <bonded>
     <name>angle</name>
     <min>0</min>
-    <max>3.144</max>
+    <max>3.14</max>
     <step>0.01</step>
     <inverse>
       <target>angle.dist.tgt</target>
@@ -182,7 +182,7 @@
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg index.ndx topology.xml</filelist>
     <!-- do so many iterations -->
-    <iterations_max>20</iterations_max>
+    <iterations_max>10</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>imc</method>
     <!-- mapping file needed when there are bonded interactions -->

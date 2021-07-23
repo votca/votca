@@ -26,7 +26,7 @@
   <bonded>
     <name>angle</name>
     <min>0</min>
-    <max>3.144</max>
+    <max>3.14</max>
     <step>0.01</step>
     <inverse>
       <target>angle.dist.tgt</target>
