@@ -1,6 +1,7 @@
 *~
 .*.swp
 */*/step_*
+*/*/*/step_*
 *.orig
 
 Makefile
