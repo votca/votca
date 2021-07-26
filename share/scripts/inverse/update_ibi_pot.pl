@@ -65,14 +65,20 @@ my @dpot;
 my @flag;
 
 sub maxindex {
-  my( $aref, $idx_max ) = ( shift, 0 );
-  $aref->[$idx_max] > $aref->[$_] or $idx_max = $_ for 1 .. $#{$aref};
-  return $idx_max;
+  my $index = 0;
+  my $max = 0.0;
+  for my $i (0 .. $#_) {
+    if ($_[$i] > $max) {
+      $max = $_[$i];
+      $index = $i;
+    }
+  }
+  return $index;
 }
-my $ndx_max_rdf_cur = maxindex(\@rdf_cur);
 
-#start from the middle and make the outside regions have the last valid value
-# go to end
+my $ndx_max_rdf_cur = maxindex(@rdf_cur);
+
+# go from ndx_max_rdf to end of table and fill the end with the last valid value encountered
 my $value=0.0;
 for (my $i=$ndx_max_rdf_cur;$i<=$#r_aim;$i++){
   if (($rdf_aim[$i] > 1e-10) && ($rdf_cur[$i] > 1e-10)) {
@@ -90,7 +96,7 @@ for (my $i=$ndx_max_rdf_cur;$i<=$#r_aim;$i++){
     $value=$dpot[$i];
   }
 }
-# go to beginning
+# go from ndx_max_rdf to beginning of table and fill the end with the last valid value encountered
 $value=0.0;
 for (my $i=$ndx_max_rdf_cur-1;$i>=0;$i--){
   if (($rdf_aim[$i] > 1e-10) && ($rdf_cur[$i] > 1e-10)) {
