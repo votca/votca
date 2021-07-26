@@ -64,6 +64,7 @@ my $outfile="$ARGV[3]";
 my @dpot;
 my @flag;
 
+# return the index of largest value in an array
 sub maxindex {
   my $index = 0;
   my $max = 0.0;
