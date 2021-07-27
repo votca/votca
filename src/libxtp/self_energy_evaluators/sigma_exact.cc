@@ -18,7 +18,7 @@
  */
 
 // Local VOTCA includes
-#include "votca/xtp/sigma_exact.h"
+#include "sigma_exact.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/threecenter.h"
 #include "votca/xtp/vc2index.h"

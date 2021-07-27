@@ -23,7 +23,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/ppm.h"
-#include "votca/xtp/sigma_ppm.h"
+#include "sigma_ppm.h"
 #include "votca/xtp/threecenter.h"
 
 namespace votca {
