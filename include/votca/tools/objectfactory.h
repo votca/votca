@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 // Third party includes
@@ -38,16 +39,11 @@ namespace tools {
    which identifies it uniquely. This allows the implementation of new features
    (e.g. new file formats, new mapping algorithms) without touching or
    recompiling existing bits of code.
-
-    If you don't understand this, read the book by Alexandresku (Modern C++
-   design) everything explained there in detail!
 */
-template <typename key_t, typename T>
+template <typename key_t, typename T, typename... args_t>
 class ObjectFactory {
- private:
-  using creator_t = std::unique_ptr<T> (*)();
-
  public:
+  using creator_t = std::unique_ptr<T> (*)(args_t &&...);
   ObjectFactory() = default;
   virtual ~ObjectFactory() = default;
 
@@ -68,7 +64,7 @@ class ObjectFactory {
   /**
      Create an instance of the object identified by key.
   */
-  virtual std::unique_ptr<T> Create(const key_t &key);
+  virtual std::unique_ptr<T> Create(const key_t &key, args_t &&... arguments);
   bool IsRegistered(const key_t &id_) const;
 
   std::vector<key_t> getKeys() const {
@@ -84,38 +80,38 @@ class ObjectFactory {
   std::map<key_t, creator_t> objects_;
 };
 
-template <class parent, class T>
-std::unique_ptr<parent> create_policy_new() {
-  return std::make_unique<T>();
+template <class parent, class T, typename... args_t>
+std::unique_ptr<parent> create_policy_new(args_t&&... args) {
+  return std::make_unique<T>(std::forward<args_t>(args)...);
 }
 
-template <typename key_t, typename T>
-inline void ObjectFactory<key_t, T>::Register(const key_t &key,
+template <typename key_t, typename T, typename... args_t>
+inline void ObjectFactory<key_t, T, args_t...>::Register(const key_t &key,
                                               creator_t creator) {
-  (void)objects_
-      .insert(typename std::map<key_t, creator_t>::value_type(key, creator))
-      .second;
+  objects_.insert(
+      typename std::map<key_t, creator_t>::value_type(key, creator));
 }
 
-template <typename key_t, typename T>
+template <typename key_t, typename T, typename... args_t>
 template <typename obj_t>
-inline void ObjectFactory<key_t, T>::Register(const key_t &key) {
+inline void ObjectFactory<key_t, T, args_t...>::Register(const key_t &key) {
   Register(key, create_policy_new<T, obj_t>);
 }
 
-template <typename key_t, typename T>
-inline std::unique_ptr<T> ObjectFactory<key_t, T>::Create(const key_t &key) {
+template <typename key_t, typename T, typename... args_t>
+inline std::unique_ptr<T> ObjectFactory<key_t, T, args_t...>::Create(
+    const key_t &key, args_t &&... arguments) {
   typename std::map<key_t, creator_t>::const_iterator it = objects_.find(key);
   if (it != objects_.end()) {
-    return (it->second)();
+    return (it->second)(std::forward<args_t>(arguments)...);
   } else {
     throw std::runtime_error(
         "factory key " + boost::lexical_cast<std::string>(key) + " not found.");
   }
 }
 
-template <typename key_t, typename T>
-inline bool ObjectFactory<key_t, T>::IsRegistered(const key_t &id_) const {
+template <typename key_t, typename T, typename... args_t>
+inline bool ObjectFactory<key_t, T, args_t...>::IsRegistered(const key_t &id_) const {
   return (objects_.find(id_) != objects_.end());
 }
 
