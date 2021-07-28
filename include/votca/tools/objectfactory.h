@@ -64,7 +64,7 @@ class ObjectFactory {
   /**
      Create an instance of the object identified by key.
   */
-  virtual std::unique_ptr<T> Create(const key_t &key, args_t &&... arguments);
+  virtual std::unique_ptr<T> Create(const key_t &key, args_t &&...arguments);
   bool IsRegistered(const key_t &id_) const;
 
   std::vector<key_t> getKeys() const {
@@ -81,13 +81,13 @@ class ObjectFactory {
 };
 
 template <class parent, class T, typename... args_t>
-std::unique_ptr<parent> create_policy_new(args_t&&... args) {
+std::unique_ptr<parent> create_policy_new(args_t &&...args) {
   return std::make_unique<T>(std::forward<args_t>(args)...);
 }
 
 template <typename key_t, typename T, typename... args_t>
 inline void ObjectFactory<key_t, T, args_t...>::Register(const key_t &key,
-                                              creator_t creator) {
+                                                         creator_t creator) {
   objects_.insert(
       typename std::map<key_t, creator_t>::value_type(key, creator));
 }
@@ -100,7 +100,7 @@ inline void ObjectFactory<key_t, T, args_t...>::Register(const key_t &key) {
 
 template <typename key_t, typename T, typename... args_t>
 inline std::unique_ptr<T> ObjectFactory<key_t, T, args_t...>::Create(
-    const key_t &key, args_t &&... arguments) {
+    const key_t &key, args_t &&...arguments) {
   typename std::map<key_t, creator_t>::const_iterator it = objects_.find(key);
   if (it != objects_.end()) {
     return (it->second)(std::forward<args_t>(arguments)...);
@@ -111,7 +111,8 @@ inline std::unique_ptr<T> ObjectFactory<key_t, T, args_t...>::Create(
 }
 
 template <typename key_t, typename T, typename... args_t>
-inline bool ObjectFactory<key_t, T, args_t...>::IsRegistered(const key_t &id_) const {
+inline bool ObjectFactory<key_t, T, args_t...>::IsRegistered(
+    const key_t &id_) const {
   return (objects_.find(id_) != objects_.end());
 }
 
