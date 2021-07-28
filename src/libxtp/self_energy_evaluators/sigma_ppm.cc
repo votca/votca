@@ -22,8 +22,8 @@
 #include <votca/tools/globals.h>
 
 // Local VOTCA includes
-#include "votca/xtp/ppm.h"
 #include "sigma_ppm.h"
+#include "votca/xtp/ppm.h"
 #include "votca/xtp/threecenter.h"
 
 namespace votca {

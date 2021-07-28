@@ -17,9 +17,9 @@
  *
  */
 
-#include <votca/tools/constants.h>
-#include "votca/xtp/gw.h"
 #include "sigma_cda.h"
+#include "votca/xtp/gw.h"
+#include <votca/tools/constants.h>
 
 namespace votca {
 namespace xtp {

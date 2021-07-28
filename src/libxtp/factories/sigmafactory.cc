@@ -23,8 +23,8 @@
 
 // Local private VOTCA includes
 #include "self_energy_evaluators/sigma_cda.h"
-#include "self_energy_evaluators/sigma_ppm.h"
 #include "self_energy_evaluators/sigma_exact.h"
+#include "self_energy_evaluators/sigma_ppm.h"
 
 namespace votca {
 namespace xtp {

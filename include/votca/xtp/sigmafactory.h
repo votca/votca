@@ -33,8 +33,8 @@
 namespace votca {
 namespace xtp {
 
-class SigmaFactory
-    : public tools::ObjectFactory<std::string, Sigma_base,TCMatrix_gwbse&,RPA&> {
+class SigmaFactory : public tools::ObjectFactory<std::string, Sigma_base,
+                                                 TCMatrix_gwbse &, RPA &> {
  private:
   SigmaFactory() = default;
 
