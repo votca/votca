@@ -128,22 +128,6 @@ class Topology {
   Residue &CreateResidue(std::string name, Index id);
 
   /**
-   * \brief Create molecules based on the residue.
-   *
-   * This function scans the topology and creates molecules based on the resiude
-   * id. All beads with the same resid are put Index one molecule.
-   */
-  void CreateMoleculesByResidue();
-
-  /**
-   * \brief put the whole topology in one molecule
-   * \param name name of the new molecule
-   *
-   *  This function creates one big molecule for all beads in the topology.
-   */
-  void CreateOneBigMolecule(std::string name);
-
-  /**
    * \brief create molecules based on blocks of atoms
    * \param[in] name molecule name
    * \param[in] first first bead
@@ -251,12 +235,6 @@ class Topology {
    * delete all molecule information
    */
   void ClearMoleculeList() { molecules_.clear(); }
-
-  /**
-   * \brief adds all the beads+molecules+residues from other topology
-   * \param top topology to add
-   */
-  void Add(Topology *top);
 
   /**
    * \brief copy topology data of different topology
