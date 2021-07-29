@@ -23,6 +23,7 @@ Version 2022-dev
 -  added AddTree to property (#374)
 -  added optionshandler (#375)
 -  made bool conversion more restrictive (#366)
+-  made factory more general (#377)
 
 Version 2021.2 (released XX.07.21)
 ==================================
