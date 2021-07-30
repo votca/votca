@@ -32,6 +32,7 @@ Version 2022-dev
 -  adapted tokenizer api (#693)
 -  made membervariable format consistent (#694)
 -  removed unused functions (#702)
+-  reworked lammps molecule naming (#703)
 
 Version 2021.2 (released XX.07.21)
 ==================================
