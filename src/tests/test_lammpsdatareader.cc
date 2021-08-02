@@ -68,12 +68,12 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
   lammpsDataReader->ReadTopology(lammpsdatafilename, top);
 
   BOOST_CHECK_EQUAL(top.BeadCount(), 100);
-  Eigen::Vector3d first_bead_correct_pos(62.806, 52.5127, 49.8873);
+  Eigen::Vector3d first_bead_correct_pos(6.2806, 5.25127, 4.98873);
   Bead *firstBead = top.getBead(0);
   auto first_bead_pos = firstBead->getPos();
   BOOST_CHECK(first_bead_correct_pos.isApprox(first_bead_pos, 1e-3));
 
-  Eigen::Vector3d last_bead_correct_pos(102.78495, 78.0388, 59.9629);
+  Eigen::Vector3d last_bead_correct_pos(10.278495, 7.80388, 5.99629);
   Bead *lastBead = top.getBead(99);
   auto last_bead_pos = lastBead->getPos();
   BOOST_CHECK(last_bead_correct_pos.isApprox(last_bead_pos, 1e-3));
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
 
   BOOST_CHECK_EQUAL(top.BeadCount(), 100);
 
-  Eigen::Vector3d first_bead_correct_pos(65.7991, 51.04235, 58.480193);
+  Eigen::Vector3d first_bead_correct_pos(6.57991, 5.104235, 5.8480193);
   Bead *firstBead = top.getBead(0);
   auto first_bead_pos = firstBead->getPos();
 
@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   cout << first_bead_pos << endl;
 
   BOOST_CHECK(first_bead_correct_pos.isApprox(first_bead_pos, 1e-3));
-  Eigen::Vector3d last_bead_correct_pos(108.431, 83.94695, 68.5254);
+  Eigen::Vector3d last_bead_correct_pos(10.8431, 8.394695, 6.85254);
   Bead *lastBead = top.getBead(99);
   auto last_bead_pos = lastBead->getPos();
 

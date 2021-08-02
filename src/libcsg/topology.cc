@@ -99,58 +99,6 @@ void Topology::CreateMoleculesByRange(string name, Index first, Index nbeads,
   }
 }
 
-/// \todo clean up CreateMoleculesByResidue!
-void Topology::CreateMoleculesByResidue() {
-  // first create a molecule for each residue
-  for (const auto &residue_ : residues_) {
-    CreateMolecule(residue_.getName());
-  }
-
-  // add the beads to the corresponding molecules based on their resid
-  for (auto &bead_ : beads_) {
-
-    MoleculeByIndex(bead_.getResnr())
-        ->AddBead(&bead_, string("1:TRI:") + bead_.getName());
-  }
-
-  /// \todo sort beads in molecules that all beads are stored in the same order.
-  /// This is needed for the mapping!
-}
-
-void Topology::CreateOneBigMolecule(string name) {
-  Molecule *mi = CreateMolecule(name);
-
-  for (auto &bead_ : beads_) {
-    stringstream n("");
-    n << bead_.getResnr() + 1 << ":" << residues_[bead_.getResnr()].getName()
-      << ":" << bead_.getName();
-    mi->AddBead(&bead_, n.str());
-  }
-}
-
-void Topology::Add(Topology *top) {
-
-  Index res0 = ResidueCount();
-
-  for (const auto &bi : top->beads_) {
-    string type = bi.getType();
-    CreateBead(bi.getSymmetry(), bi.getName(), type, bi.getResnr() + res0,
-               bi.getMass(), bi.getQ());
-  }
-
-  for (const auto &residue_ : top->residues_) {
-    CreateResidue(residue_.getName());
-  }
-
-  // \todo beadnames in molecules!!
-  for (auto &molecule_ : top->molecules_) {
-    Molecule *mi = CreateMolecule(molecule_.getName());
-    for (Index i = 0; i < mi->BeadCount(); i++) {
-      mi->AddBead(mi->getBead(i), "invalid");
-    }
-  }
-}
-
 void Topology::CopyTopologyData(Topology *top) {
 
   bc_->setBox(top->getBox());
@@ -238,10 +186,9 @@ void Topology::CheckMoleculeNaming(void) {
 }
 
 void Topology::AddBondedInteraction(Interaction *ic) {
-  map<string, Index>::iterator iter;
-  iter = interaction_groups_.find(ic->getGroup());
+  map<string, Index>::iterator iter = interaction_groups_.find(ic->getGroup());
   if (iter != interaction_groups_.end()) {
-    ic->setGroupId((*iter).second);
+    ic->setGroupId(iter->second);
   } else {
     Index i = interaction_groups_.size();
     interaction_groups_[ic->getGroup()] = i;
