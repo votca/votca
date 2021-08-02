@@ -28,13 +28,7 @@ fi
 sim_prog="$(csg_get_property cg.inverse.program)"
 method="$(csg_get_property cg.inverse.method)"
 initial_guess_method="$(csg_get_property "cg.inverse.${method}.initial_guess.method")"
-main_dir=$(get_main_dir)
-nb_interactions=$(csg_get_property --allow-empty cg.non-bonded.name)
-kBT="$(csg_get_property cg.inverse.kBT)"
-densities="$(csg_get_property cg.inverse.iie.densities)"
-n_intra="$(csg_get_property cg.inverse.iie.n_intra)"
 verbose=$(csg_get_property cg.inverse.iie.verbose)
-cut_off="$(csg_get_property cg.inverse.iie.cut_off)"
 
 if [ "${verbose}" == 'true' ]; then
     verbose_flag="--verbose"
@@ -52,6 +46,12 @@ case "$initial_guess_method" in
     for_all "bonded non-bonded" do_external prepare_single generic --use-bi
     ;;
 "ie")
+    main_dir=$(get_main_dir)
+    nb_interactions=$(csg_get_property --allow-empty cg.non-bonded.name)
+    kBT="$(csg_get_property cg.inverse.kBT)"
+    densities="$(csg_get_property cg.inverse.iie.densities)"
+    n_intra="$(csg_get_property cg.inverse.iie.n_intra)"
+    cut_off="$(csg_get_property cg.inverse.iie.cut_off)"
     # only for IE
     initial_guess_closure=$(csg_get_property "cg.inverse.${method}.initial_guess.closure")
     initial_guess_ignore_intra=$(csg_get_property "cg.inverse.${method}.initial_guess.ignore_intramolecular_correlation")

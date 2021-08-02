@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ C-IBI: Targeting cumulative coordination within an iterative protocol
 to derive coarse-grained models of (multi-component) complex fluids,
 J. Chem. Phys. (in press).
 
-Usage: ${0##*/}
+Usage: ${0##*/} infile outfile
 EOF
    exit 0
 fi

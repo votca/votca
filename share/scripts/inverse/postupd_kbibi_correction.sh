@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ P. Ganguly, D. Mukherji, C. Junghans, N. F. A. van der Vegt,
 Kirkwood-Buff coarse-grained force fields for aqueous solutions,
 J. Chem. Theo. Comp., 8, 1802 (2012), doi:10.1021/ct3000958
 
-Usage: ${0##*/}
+Usage: ${0##*/} infile outfile
 EOF
    exit 0
 fi

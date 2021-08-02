@@ -196,7 +196,9 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
       std::make_pair(name, std::make_unique<interaction_t>()));
   interaction_t *i = success.first->second.get();
   i->index_ = index;
-  getGroup(group)->interactions_.push_back(i);
+  if (group != "none") {
+    getGroup(group)->interactions_.push_back(i);
+  }
 
   i->is_bonded_ = is_bonded;
   i->step_ = p->get("step").as<double>();
