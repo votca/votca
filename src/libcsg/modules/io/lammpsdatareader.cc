@@ -16,7 +16,12 @@
  */
 
 // Standard includes
+#include <cstddef>
+#include <iterator>
+#include <set>
+#include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 // VOTCA includes
@@ -28,6 +33,7 @@
 #include <boost/algorithm/string.hpp>
 
 // Local VOTCA includes
+#include "votca/csg/molecule.h"
 #include "votca/csg/topology.h"
 
 // Local private VOTCA includes
@@ -89,9 +95,8 @@ bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
   NextFrame(top);
 
   fl_.close();
-  for (auto &mol : top.Molecules()) {
-    RenameMolecule(mol);
-  }
+
+  RenameMolecules(top.Molecules());
 
   return true;
 }
@@ -135,7 +140,7 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
       MatchFourFieldLabels_(fields, top);
     } else if (fields.size() != 0) {
       string err = "Unrecognized line in lammps .data file:\n" + line;
-      throw runtime_error(err);
+      throw std::runtime_error(err);
     }
     tools::getline(fl_, line);
   }
@@ -146,23 +151,56 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
  * Private Facing Methods                                                    *
  *****************************************************************************/
 
-void LAMMPSDataReader::RenameMolecule(Molecule &mol) const {
-  if (mol.getName() == "UNKNOWN") {
-    std::map<std::string, Index> molname_map;
-    for (const Bead *atom : mol.Beads()) {
-      std::string atomname = atom->getName();
-      std::string element = atomname.substr(0, 1);
-      if (std::islower(atomname[1])) {
-        element += atomname[1];
-      }
-      molname_map[element]++;
-    }
+std::pair<std::string, std::string> getNames(const Molecule &mol) {
 
-    std::string molname = "";
-    for (auto const &pair : molname_map) {
-      molname += (pair.first + std::to_string(pair.second));
+  std::string longname = "";
+  std::map<std::string, Index> molname_map;
+  for (const Bead *atom : mol.Beads()) {
+    std::string atomname = atom->getName();
+    std::string element = atomname.substr(0, 1);
+    if (std::islower(atomname[1])) {
+      element += atomname[1];
     }
-    mol.setName(molname);
+    longname += element;
+    molname_map[element]++;
+  }
+
+  // We compress the molecule into its chemical composition + an index
+  std::string shortname = "";
+  for (auto const &pair : molname_map) {
+    shortname += pair.first + std::to_string(pair.second);
+  }
+  return std::make_pair(shortname, longname);
+}
+
+void LAMMPSDataReader::RenameMolecules(MoleculeContainer &molecules) const {
+
+  std::map<std::string, std::set<std::string>> shortname_longnames;
+  // create compressed and long names for each molecule
+  for (const auto &mol : molecules) {
+    if (mol.getName() == "UNKNOWN") {
+      auto names = getNames(mol);
+      shortname_longnames[names.first].insert(names.second);
+    }
+  }
+
+  for (auto &mol : molecules) {
+    if (mol.getName() == "UNKNOWN") {
+      auto names = getNames(mol);
+      // if only one longname exists for a shortname, just use the shortname
+      if (shortname_longnames[names.first].size() == 1) {
+        mol.setName(names.first);
+      } else {
+        // if more than one longname exists for a shortname, sort the longnames
+        // alphabetically and just append the index to the short name
+        // e.g. if you have CCCH and CHCC they will compress to C3H-0 and C3H-1
+        // respectively
+        ptrdiff_t i =
+            std::distance(shortname_longnames[names.first].begin(),
+                          shortname_longnames[names.first].find(names.second));
+        mol.setName(names.first + "-" + std::to_string(i));
+      }
+    }
   }
 }
 
@@ -535,6 +573,13 @@ void LAMMPSDataReader::ReadBonds_(Topology &top) {
 
       Index atom1Index = atomIdToIndex_[atom1Id];
       Index atom2Index = atomIdToIndex_[atom2Id];
+      if (atomIdToMoleculeId_[atom1Index] != atomIdToMoleculeId_[atom2Index]) {
+        throw std::runtime_error(
+            "Lammps Atoms " + std::to_string(atom1Id + 1) + " and " +
+            std::to_string(atom2Id + 1) + " belong to different molecules (" +
+            std::to_string(atomIdToMoleculeId_[atom1Index] + 1) + ":" +
+            std::to_string(atomIdToMoleculeId_[atom2Index] + 1) + ")");
+      }
 
       Interaction *ic = new IBond(atom1Index, atom2Index);
       ic->setGroup("BONDS");
