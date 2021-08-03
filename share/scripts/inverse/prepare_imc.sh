@@ -32,12 +32,17 @@ if [[ ${#names[@]} -gt 1 ]]; then
   msg --color blue "####################################################"
 fi
 
-
-[[ -n $(csg_get_property --allow-empty cg.bonded.name) ]] && has_bonds=true || has_bonds=false
-bonded_method="$(csg_get_property cg.inverse.imc.bonded_method)"
-
-if [[ $has_bonds == true && $bonded_method == "imc" ]]; then
-  die "using IMC for bonded potentials is not implemented yet"
-fi
+check_bonded_update() {
+  local do_potential=$(csg_get_interaction_property inverse.do_potential)
+  local imc_group=$(csg_get_interaction_property inverse.imc.group)
+  if [[ $do_potential != 0 ]] || [[ $imc_group != "none" ]]; then
+    die_msg="using IMC for bonded potentials is not implemented yet.\n"\
+"Make sure to set update_potential to 0 and imc.group to 'none' for\n"\
+"each bonded interaction. You can still use post_update ibi."
+    die "$die_msg"
+  fi
+}
+export -f check_bonded_update
+for_all "bonded" check_bonded_update
 
 do_external prepare generic

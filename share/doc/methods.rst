@@ -663,17 +663,17 @@ unregularized version of IMC is applied.
 Internal degrees of freedom
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For internal degrees of freedom, one can apply the IBI method. In that case,
-one also has to provide a setting_nonbonded file, which will be used to
-calculate the IMC matrix only from the nonbonded interactions.
+For internal degrees of freedom, one can apply the IBI method as a post update
+method.
 
 .. code:: xml
 
   <inverse>
     <imc>
-      <bonded_method>ibi</bonded_method>
-      <settings_nonbonded>settings-nonbonded.xml</settings_nonbonded>
+      <group>none</group>
     </imc>
+    <do_potential>0</do_potential>
+    <post_update>ibi</post_update>
   </inverse>
 
 Iterative Integral Equation methods

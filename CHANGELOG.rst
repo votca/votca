@@ -31,6 +31,7 @@ Version 2022-dev
 -  use ndim vector instead of std::vector (#689)
 -  adapted tokenizer api (#693)
 -  made membervariable format consistent (#694)
+-  add ability to run ibi as a postupd method (#696)
 -  removed unused functions (#702)
 -  reworked lammps molecule naming (#703)
 
