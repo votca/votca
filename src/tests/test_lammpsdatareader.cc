@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(test_molecules) {
   std::unique_ptr<TopologyReader> lammpsDataReader =
       TopReaderFactory().Create(lammpsdatafilename);
   BOOST_REQUIRE_THROW(lammpsDataReader->ReadTopology(lammpsdatafilename, top),
-                    std::runtime_error);
+                      std::runtime_error);
   string lammpsdatafilename2 = std::string(CSG_TEST_DATA_FOLDER) +
                                "/lammpsdatareader/test_twomolecules.data";
 
@@ -172,7 +172,8 @@ BOOST_AUTO_TEST_CASE(test_molecules) {
 
   lammpsDataReader2->ReadTopology(lammpsdatafilename2, top2);
   std::vector<std::string> refnames{"H2O1-1", "H2O1-0"};
-  // the first molecule has order OHH while the second has HHO so the second is lexicographically first
+  // the first molecule has order OHH while the second has HHO so the second is
+  // lexicographically first
   votca::Index i = 0;
   for (const auto &mol : top2.Molecules()) {
     BOOST_CHECK_EQUAL(mol.getName(), refnames[i]);
