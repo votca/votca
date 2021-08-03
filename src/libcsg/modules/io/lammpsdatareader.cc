@@ -18,11 +18,11 @@
 // Standard includes
 #include <cstddef>
 #include <iterator>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
-#include <set>
 
 // VOTCA includes
 #include <votca/tools/elements.h>
@@ -168,7 +168,7 @@ std::pair<std::string, std::string> getNames(const Molecule &mol) {
   // We compress the molecule into its chemical composition + an index
   std::string shortname = "";
   for (auto const &pair : molname_map) {
-    shortname += pair.first+std::to_string(pair.second);
+    shortname += pair.first + std::to_string(pair.second);
   }
   return std::make_pair(shortname, longname);
 }
@@ -193,7 +193,8 @@ void LAMMPSDataReader::RenameMolecules(MoleculeContainer &molecules) const {
       } else {
         // if more than one longname exists for a shortname, sort the longnames
         // alphabetically and just append the index to the short name
-        // e.g. if you have CCCH and CHCC they will compress to C3H-0 and C3H-1 respectively
+        // e.g. if you have CCCH and CHCC they will compress to C3H-0 and C3H-1
+        // respectively
         ptrdiff_t i =
             std::distance(shortname_longnames[names.first].begin(),
                           shortname_longnames[names.first].find(names.second));
