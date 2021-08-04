@@ -24,12 +24,8 @@
 namespace votca {
 namespace xtp {
 void QMTool::Initialize(const tools::Property& options) {
-
-  tools::Property user_options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", options);
-  job_name_ = user_options.ifExistsReturnElseReturnDefault<std::string>(
-      "job_name", job_name_);
-  ParseOptions(user_options);
+  job_name_ = options.get("job_name").as<std::string>();
+  ParseOptions(options);
 }
 
 bool QMTool::Evaluate() {

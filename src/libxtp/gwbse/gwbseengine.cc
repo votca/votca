@@ -20,6 +20,7 @@
 // Third party includes
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <string>
 
 // Local VOTCA includes
 #include "votca/xtp/gwbse.h"
@@ -62,23 +63,21 @@ void GWBSEEngine::Initialize(tools::Property& options,
 
   // XML option file for GWBSE
   if (do_gwbse_) {
-    gwbse_options_ = options.get(".gwbse_options");
+    gwbse_options_ = options.get(".gwbse");
   }
   // DFT log and MO file names
   MO_file_ = qmpackage_->getMOFile();
   dftlog_file_ = qmpackage_->getLogFile();
 
   // Logger redirection
-  redirect_logger_ = options.ifExistsReturnElseReturnDefault<bool>(
-      ".redirect_logger", redirect_logger_);
-  logger_file_ = "gwbse.log";
+  if (options.exists(".logging_file")) {
+    logger_file_ = options.get(".logging_file").as<std::string>();
+  }
 
   // for requested merged guess, two archived orbitals objects are needed
   if (do_guess_) {
-    guess_archiveA_ =
-        options.ifExistsReturnElseThrowRuntimeError<std::string>(".archiveA");
-    guess_archiveB_ =
-        options.ifExistsReturnElseThrowRuntimeError<std::string>(".archiveB");
+    guess_archiveA_ = options.get(".archiveA").as<std::string>();
+    guess_archiveB_ = options.get(".archiveB").as<std::string>();
   }
 
   return;
@@ -95,7 +94,7 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   // define own logger for GW-BSE that is written into a runFolder logfile
   Logger gwbse_engine_logger(pLog_->getReportLevel());
   Logger* logger = pLog_;
-  if (redirect_logger_) {
+  if (!logger_file_.empty()) {
     gwbse_engine_logger.setMultithreading(false);
     gwbse_engine_logger.setPreface(Log::info, "\n ...");
     gwbse_engine_logger.setPreface(Log::error, "\n ...");
@@ -158,7 +157,7 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     gwbse.Evaluate();
     gwbse.addoutput(output_summary);
   }
-  if (redirect_logger_) {
+  if (!logger_file_.empty()) {
     WriteLoggerToFile(logger);
   }
   return;

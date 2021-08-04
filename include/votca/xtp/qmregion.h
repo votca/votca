@@ -65,7 +65,7 @@ class QMRegion : public Region {
 
   void WritePDB(csg::PDBWriter& writer) const override;
 
-  std::string identify() const override { return "qm"; }
+  std::string identify() const override { return "qmregion"; }
 
   void push_back(const QMMolecule& mol);
 

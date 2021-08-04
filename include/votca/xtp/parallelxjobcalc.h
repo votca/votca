@@ -58,7 +58,7 @@ class ParallelXJobCalc : public JobCalculator {
   ParallelXJobCalc() = default;
   ~ParallelXJobCalc() override = default;
 
-  std::string Identify() override = 0;
+  std::string Identify() const override = 0;
 
   void ParseOptions(const tools::Property &opt) final {
     ParseCommonOptions(opt);

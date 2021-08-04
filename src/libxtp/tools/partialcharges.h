@@ -1,3 +1,5 @@
+
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -39,7 +41,7 @@ class Partialcharges final : public QMTool {
   Partialcharges() = default;
   ~Partialcharges() = default;
 
-  std::string Identify() { return "partialcharges"; }
+  std::string Identify() const { return "partialcharges"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);
@@ -59,7 +61,7 @@ void Partialcharges::ParseOptions(const tools::Property& options) {
       ".input", job_name_ + ".orb");
   output_file_ = options.ifExistsReturnElseReturnDefault<std::string>(
       ".output", job_name_ + ".mps");
-  esp_options_ = options.get(".esp_options");
+  esp_options_ = options.get(".esp2multipole");
 }
 
 bool Partialcharges::Run() {

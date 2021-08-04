@@ -1,3 +1,4 @@
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -136,6 +137,9 @@ class Orbitals {
     functionalname_ = functionalname;
   }
   const std::string &getXCFunctionalName() const { return functionalname_; }
+
+  void setXCGrid(std::string grid) { grid_quality_ = grid; }
+  const std::string &getXCGrid() const { return grid_quality_; }
 
   // access to QM total energy, new, tested
   bool hasQMEnergy() const { return (qm_energy_ != 0.0) ? true : false; }
@@ -420,7 +424,8 @@ class Orbitals {
 
   // Version 2: adds BSE energies after perturbative dynamical screening
   // Version 3 changed shell ordering
-  static constexpr int orbitals_version() { return 3; }
+  // Versio 4 added vxc grid quality
+  static constexpr int orbitals_version() { return 4; }
 };
 
 }  // namespace xtp

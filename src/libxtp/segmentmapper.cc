@@ -199,7 +199,7 @@ void SegmentMapper<AtomContainer>::LoadMappingFile(const std::string& mapfile) {
       seginfo.segname = segname;
       std::string fragkey = "fragments.fragment";
 
-      seginfo.map2md = seg->ifExistsReturnElseThrowRuntimeError<bool>("map2md");
+      seginfo.map2md = seg->get("map2md").as<bool>();
 
       std::vector<tools::Property*> fragments = seg->Select(fragkey);
       for (tools::Property* frag : fragments) {

@@ -39,7 +39,7 @@ class Orb2Mol final : public QMTool {
 
   ~Orb2Mol() = default;
 
-  std::string Identify() { return "orb2mol"; }
+  std::string Identify() const { return "orb2mol"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);

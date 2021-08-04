@@ -21,8 +21,12 @@
 #include <boost/format.hpp>
 
 // VOTCA includes
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+#include <ostream>
 #include <stdexcept>
 #include <votca/tools/globals.h>
+#include <votca/tools/optionshandler.h>
 #include <votca/tools/propertyiomanipulator.h>
 
 // Local VOTCA includes
@@ -49,7 +53,7 @@ void XtpApplication::Initialize(void) {
   namespace propt = boost::program_options;
   AddProgramOptions()(
       "options,o", propt::value<std::string>(),
-      std::string("  " + CalculatorType() + " options").c_str());
+      std::string("  " + CalculatorType() + " user options.").c_str());
 
   AddProgramOptions()("nthreads,t", propt::value<Index>()->default_value(1),
                       "  number of threads to create");
@@ -85,8 +89,8 @@ bool XtpApplication::EvaluateOptions() {
 
   if (OptionsMap().count("list")) {
     std::cout << "Available XTP" + CalculatorType() + "s: \n";
-    for (const auto& name : CalculatorNames()) {
-      PrintDescription(std::cout, name, "xtp/xml", Application::HelpShort);
+    for (const auto &name : CalculatorNames()) {
+      PrintShortHelp(std::cout, name);
     }
     StopExecution();
     return true;
@@ -98,7 +102,8 @@ bool XtpApplication::EvaluateOptions() {
   if (OptionsMap().count("description")) {
     std::string calcname = OptionsMap()["description"].as<std::string>();
     if (CalcExists(calcname)) {
-      PrintDescription(std::cout, calcname, "xtp/xml", Application::HelpLong);
+      PrintLongHelp(std::cout, calcname,
+                    tools::PropertyIOManipulator::Type::HLP);
     } else {
       std::cout << CalculatorType() << " " << calcname << " does not exist\n";
     }
@@ -109,10 +114,21 @@ bool XtpApplication::EvaluateOptions() {
   if (OptionsMap().count("printoptions")) {
     std::string calcname = OptionsMap()["printoptions"].as<std::string>();
     if (CalcExists(calcname)) {
-      tools::Property opt;
-      std::cout << "XML options for " << calcname << std::endl;
-      opt.LoadFromXML(tools::GetVotcaShare() + "/xtp/xml/" + calcname + ".xml");
-      std::cout << opt.get("options") << std::endl;
+      std::string optionsFile;
+      if (OptionsMap().count("options")) {
+        optionsFile = OptionsMap()["options"].as<std::string>();
+      } else {
+        throw std::runtime_error(
+            "Please specify a --options file to print options for calculator "
+            "to.");
+      }
+      std::ofstream out;
+      out.open(optionsFile);
+      std::cout << "Writing options for calculator " << calcname << " to "
+                << optionsFile << std::endl;
+      out << "<options>\n";
+      PrintLongHelp(out, calcname, tools::PropertyIOManipulator::Type::XML);
+      out << "</options>\n" << std::endl;
     } else {
       std::cout << CalculatorType() << " " << calcname << " does not exist\n";
     }
@@ -133,28 +149,38 @@ bool XtpApplication::EvaluateOptions() {
 
   EvaluateSpecificOptions();
 
+  tools::Property useroptions;
   if (OptionsMap().count("options")) {
     std::string optionsFile = OptionsMap()["options"].as<std::string>();
-    options_.LoadFromXML(optionsFile);
+    useroptions.LoadFromXML(optionsFile);
   } else {
     // Empty user options
-    tools::Property& opts = options_.add("options", "");
+    tools::Property &opts = useroptions.add("options", "");
     opts.add(calcname, "");
   }
 
   if (OptionsMap().count("cmdoptions")) {
-    for (const std::string& opt :
+    for (const std::string &opt :
          OptionsMap()["cmdoptions"].as<std::vector<std::string>>()) {
       std::vector<std::string> entries = tools::Tokenizer(opt, "=").ToVector();
       if (entries.size() != 2) {
         throw std::runtime_error(opt + " is not well formated!");
       } else {
-        options_.getOradd("options." + calcname + "." + entries[0]).value() =
+        useroptions.getOradd("options." + calcname + "." + entries[0]).value() =
             entries[1];
       }
     }
   }
 
+  tools::OptionsHandler handler(tools::GetVotcaShare() + "/xtp/xml/");
+
+  // This is a terrible low level hack, but I do not want to refactor all of
+  // xtp_calculators now as well
+  if (calcname == "qmmm") {
+    handler.setAdditionalChoices({"jobfile"});
+  }
+  options_ = handler.ProcessUserInput(useroptions, calcname)
+                 .get("options." + calcname);
   return true;
 }
 
@@ -169,7 +195,7 @@ void XtpApplication::Run() {
   execute();
 }
 
-void XtpApplication::ShowHelpText(std::ostream& out) {
+void XtpApplication::ShowHelpText(std::ostream &out) {
   std::string name = ProgramName();
   if (VersionString() != "") {
     name = name + ", version " + VersionString();
@@ -177,6 +203,28 @@ void XtpApplication::ShowHelpText(std::ostream& out) {
   xtp::HelpTextHeader(name);
   HelpText(out);
   out << "\n\n" << VisibleOptions() << std::endl;
+}
+
+void XtpApplication::PrintShortHelp(std::ostream &out,
+                                    const std::string &calculator_name) const {
+  std::string xmlfile =
+      tools::GetVotcaShare() + "/xtp/xml/" + calculator_name + ".xml";
+
+  tools::Property options;
+  options.LoadFromXML(xmlfile);
+  std::string help_string = options.get("options." + calculator_name)
+                                .getAttribute<std::string>("help");
+  boost::format format("%|3t|%1% %|20t|%2% \n");
+  out << format % calculator_name % help_string;
+}
+
+void XtpApplication::PrintLongHelp(
+    std::ostream &out, const std::string &calculator_name,
+    tools::PropertyIOManipulator::Type format) const {
+  tools::OptionsHandler handler(tools::GetVotcaShare() + "/xtp/xml/");
+  tools::Property options = handler.CalculatorOptions(calculator_name);
+  tools::PropertyIOManipulator iom(format, 2, "");
+  out << iom << options;
 }
 
 }  // namespace xtp

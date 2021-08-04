@@ -1,5 +1,6 @@
+
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,37 +18,21 @@
  *
  */
 
-#pragma once
-#ifndef VOTCA_XTP_QMSANDBOX_H
-#define VOTCA_XTP_QMSANDBOX_H
-
 // Local VOTCA includes
-#include "votca/xtp/aobasis.h"
-#include "votca/xtp/aomatrix.h"
-#include "votca/xtp/logger.h"
-#include "votca/xtp/qmpackagefactory.h"
-#include "votca/xtp/qmtool.h"
+#include <votca/xtp/sigmafactory.h>
+
+// Local private VOTCA includes
+#include "self_energy_evaluators/sigma_cda.h"
+#include "self_energy_evaluators/sigma_exact.h"
+#include "self_energy_evaluators/sigma_ppm.h"
 
 namespace votca {
 namespace xtp {
 
-class QMSandbox final : public QMTool {
- public:
-  QMSandbox() = default;
-  ~QMSandbox() = default;
-
-  std::string Identify() { return "qmsandbox"; }
-
- protected:
-  void ParseOptions(const tools::Property& user_options);
-  bool Run();
-
- private:
-  std::string orbfile_;
-  Logger log_;
-};
-
+void SigmaFactory::RegisterAll(void) {
+  Sigma().Register<Sigma_CDA>("cda");
+  Sigma().Register<Sigma_Exact>("exact");
+  Sigma().Register<Sigma_PPM>("ppm");
+}
 }  // namespace xtp
 }  // namespace votca
-
-#endif  // VOTCA_XTP_QMSANDBOX_H
