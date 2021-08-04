@@ -68,10 +68,10 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
       // holds a reference to it
       Eigen::MatrixXd Temp;
       if (cd != 0) {
-        Temp = -cd * (Mmn_[c1 + cmin].block(cmin, 0, bse_ctotal_, auxsize));
+        Temp = -cd * (Mmn_[c1 + cmin].middleRows(cmin, bse_ctotal_));
         transform.PrepareMatrix1(Temp, threadid);
       } else if (cd2 != 0) {
-        Temp = -cd2 * (Mmn_[c1 + cmin].block(vmin, 0, bse_vtotal_, auxsize));
+        Temp = -cd2 * (Mmn_[c1 + cmin].middleRows(vmin, bse_vtotal_));
         transform.PrepareMatrix1(Temp, threadid);
       }
 
@@ -79,12 +79,12 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
         transform.SetTempZero(threadid);
         if (cd != 0) {
           transform.PrepareMatrix2(
-              Mmn_[v1 + vmin].block(vmin, 0, bse_vtotal_, auxsize), cd2 != 0,
+              Mmn_[v1 + vmin].middleRows(vmin, bse_vtotal_), cd2 != 0,
               threadid);
         }
         if (cd2 != 0) {
           transform.PrepareMatrix2(
-              Mmn_[v1 + vmin].block(cmin, 0, bse_ctotal_, auxsize), cd2 != 0,
+              Mmn_[v1 + vmin].middleRows(cmin,  bse_ctotal_), cd2 != 0,
               threadid);
         }
         if (cqp != 0) {
@@ -105,12 +105,12 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
       for (Index v1 = 0; v1 < bse_vtotal_; v1++) {
         Index va = v1 + vmin;
         Eigen::MatrixXd Mmn1 =
-            cx * Mmn_[va].block(cmin, 0, bse_ctotal_, auxsize);
+            cx * Mmn_[va].middleRows(cmin, bse_ctotal_);
         transform.PushMatrix1(Mmn1, threadid);
         for (Index v2 = v1; v2 < bse_vtotal_; v2++) {
           Index vb = v2 + vmin;
           transform.MultiplyBlocks(
-              Mmn_[vb].block(cmin, 0, bse_ctotal_, auxsize), v1, v2, threadid);
+              Mmn_[vb].middleRows(cmin, bse_ctotal_), v1, v2, threadid);
         }
       }
     }

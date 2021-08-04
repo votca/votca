@@ -241,9 +241,9 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
                               const Eigen::MatrixXd& dft_orbitals) {
 
   const Eigen::MatrixXd dftm =
-      dft_orbitals.block(0, mmin_, dft_orbitals.rows(), mtotal_);
+      dft_orbitals.middleCols(mmin_, mtotal_);
   const Eigen::MatrixXd dftn =
-      dft_orbitals.block(0, nmin_, dft_orbitals.rows(), ntotal_).transpose();
+      dft_orbitals.middleCols(nmin_, ntotal_).transpose();
 
   OpenMP_CUDA transform;
   transform.setOperators(dftn, dftm);
@@ -289,7 +289,7 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
 
       // put into correct position
       for (Index m_level = 0; m_level < mtotal_; m_level++) {
-        matrix_[m_level].block(0, auxshell2bf[aux], ntotal_, auxshell.size()) =
+        matrix_[m_level].middleCols( auxshell2bf[aux], auxshell.size()) =
             block[m_level];
       }  // m-th DFT orbital
     }    // shells of GW basis set

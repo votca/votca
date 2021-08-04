@@ -49,10 +49,10 @@ class Sigma_Exact : public Sigma_base {
                                        double frequency2) const final;
 
  private:
-  RPA::rpa_eigensolution rpa_solution_;    // Eigenvalues, eigenvectors from RPA
+  Eigen::VectorXd rpa_omegas_;    // Eigenvalues from RPA
   std::vector<Eigen::MatrixXd> residues_;  // Residues
 
-  Eigen::MatrixXd CalcResidues(Index gw_level) const;
+  Eigen::MatrixXd CalcResidues(Index gw_level, const Eigen::MatrixXd & XpY) const;
 };
 }  // namespace xtp
 }  // namespace votca

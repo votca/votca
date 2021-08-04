@@ -155,7 +155,7 @@ Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const {
   if (!hasQPdiag()) {
     throw std::runtime_error("Orbitals file does not contain QP coefficients");
   }
-  return mos_.eigenvectors().block(0, qpmin_, mos_.eigenvectors().rows(),
+  return mos_.eigenvectors().middleCols(qpmin_,
                                    qpmax_ - qpmin_ + 1) *
          QPdiag_.eigenvectors();
 }
@@ -221,10 +221,10 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
     coeffs += BSE_singlet_.eigenvectors2().col(state.StateIdx());
   }
   coeffs *= std::sqrt(2.0);
-  auto occlevels = mos_.eigenvectors().block(
-      0, bse_vmin_, mos_.eigenvectors().rows(), bse_vtotal_);
-  auto virtlevels = mos_.eigenvectors().block(
-      0, bse_cmin_, mos_.eigenvectors().rows(), bse_ctotal_);
+  auto occlevels = mos_.eigenvectors().middleCols(
+       bse_vmin_,  bse_vtotal_);
+  auto virtlevels = mos_.eigenvectors().middleCols(
+     bse_cmin_, bse_ctotal_);
   Eigen::Map<const Eigen::MatrixXd> mat(coeffs.data(), bse_ctotal_,
                                         bse_vtotal_);
 
@@ -276,13 +276,13 @@ std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState_R(
 
   std::array<Eigen::MatrixXd, 2> dmatEX;
   // hole part as matrix products
-  Eigen::MatrixXd occlevels = mos_.eigenvectors().block(
-      0, bse_vmin_, mos_.eigenvectors().rows(), bse_vtotal_);
+  Eigen::MatrixXd occlevels = mos_.eigenvectors().middleCols(
+      bse_vmin_,  bse_vtotal_);
   dmatEX[0] = occlevels * CalcAuxMat_vv(coeffs) * occlevels.transpose();
 
   // electron part as matrix products
-  Eigen::MatrixXd virtlevels = mos_.eigenvectors().block(
-      0, bse_cmin_, mos_.eigenvectors().rows(), bse_ctotal_);
+  Eigen::MatrixXd virtlevels = mos_.eigenvectors().middleCols(
+      bse_cmin_, bse_ctotal_);
   dmatEX[1] = virtlevels * CalcAuxMat_cc(coeffs) * virtlevels.transpose();
 
   return dmatEX;
@@ -342,12 +342,12 @@ std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState_AR(
   Eigen::VectorXd coeffs = BSECoefs_AR.col(state.StateIdx());
 
   std::array<Eigen::MatrixXd, 2> dmatAR;
-  Eigen::MatrixXd virtlevels = mos_.eigenvectors().block(
-      0, bse_cmin_, mos_.eigenvectors().rows(), bse_ctotal_);
+  Eigen::MatrixXd virtlevels = mos_.eigenvectors().middleCols(
+      bse_cmin_, bse_ctotal_);
   dmatAR[0] = virtlevels * CalcAuxMat_cc(coeffs) * virtlevels.transpose();
   // electron part as matrix products
-  Eigen::MatrixXd occlevels = mos_.eigenvectors().block(
-      0, bse_vmin_, mos_.eigenvectors().rows(), bse_vtotal_);
+  Eigen::MatrixXd occlevels = mos_.eigenvectors().middleCols(
+       bse_vmin_, bse_vtotal_);
   dmatAR[1] = occlevels * CalcAuxMat_vv(coeffs) * occlevels.transpose();
 
   return dmatAR;
@@ -437,9 +437,9 @@ std::array<Eigen::MatrixXd, 3> Orbitals::CalcFreeTransition_Dipoles() const {
   std::array<Eigen::MatrixXd, 3> interlevel_dipoles;
 
   Eigen::MatrixXd empty =
-      dft_orbitals.block(0, bse_cmin_, basis.AOBasisSize(), bse_ctotal_);
+      dft_orbitals.middleCols(bse_cmin_,  bse_ctotal_);
   Eigen::MatrixXd occ =
-      dft_orbitals.block(0, bse_vmin_, basis.AOBasisSize(), bse_vtotal_);
+      dft_orbitals.middleCols(bse_vmin_, bse_vtotal_);
   for (Index i = 0; i < 3; i++) {
     interlevel_dipoles[i] = empty.transpose() * dft_dipole.Matrix()[i] * occ;
   }

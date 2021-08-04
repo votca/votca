@@ -532,9 +532,8 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
       << TimeStamp() << " Set hybrid exchange factor: " << orbitals_.getScaHFX()
       << flush;
   Index qptotal = gwopt_.qpmax - gwopt_.qpmin + 1;
-  Index basissize = Index(orbitals_.MOs().eigenvectors().rows());
   Eigen::MatrixXd mos =
-      orbitals_.MOs().eigenvectors().block(0, gwopt_.qpmin, basissize, qptotal);
+      orbitals_.MOs().eigenvectors().middleCols( gwopt_.qpmin, qptotal);
 
   Eigen::MatrixXd vxc = mos.transpose() * e_vxc_ao.matrix() * mos;
   XTP_LOG(Log::error, *pLog_)

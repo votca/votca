@@ -139,14 +139,13 @@ Eigen::MatrixXd BSECoupling::SetupCTStates(Index bseA_vtotal, Index bseB_vtotal,
 
   Index noAB = occA_ * unoccB_;
   Index noBA = unoccA_ * occB_;
-  Index bseAB_total = bseAB_vtotal + bseAB_ctotal;
   Index bseAB_size = bseAB_vtotal * bseAB_ctotal;
   Eigen::MatrixXd CTstates = Eigen::MatrixXd::Zero(bseAB_size, noAB + noBA);
 
-  auto A_occ = A_AB.block(0, bseA_vtotal - occA_, bseAB_total, occA_);
-  auto A_unocc = A_AB.block(0, bseA_vtotal, bseAB_total, unoccA_);
-  auto B_occ = B_AB.block(0, bseB_vtotal - occB_, bseAB_total, occB_);
-  auto B_unocc = B_AB.block(0, bseB_vtotal, bseAB_total, unoccB_);
+  auto A_occ = A_AB.middleCols( bseA_vtotal - occA_, occA_);
+  auto A_unocc = A_AB.middleCols( bseA_vtotal,  unoccA_);
+  auto B_occ = B_AB.middleCols( bseB_vtotal - occB_, occB_);
+  auto B_unocc = B_AB.middleCols( bseB_vtotal, unoccB_);
 
   const Eigen::MatrixXd A_occ_occ = A_occ.topRows(bseAB_vtotal);
   const Eigen::MatrixXd B_unocc_unocc = B_unocc.bottomRows(bseAB_ctotal);
@@ -348,7 +347,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   Index bseAB_cmin = orbitalsAB.getBSEcmin();
   Index bseAB_vmax = orbitalsAB.getBSEvmax();
   Index bseAB_vmin = orbitalsAB.getBSEvmin();
-  Index basisAB = orbitalsAB.getBasisSetSize();
   Index bseAB_vtotal = bseAB_vmax - bseAB_vmin + 1;
   Index bseAB_ctotal = bseAB_cmax - bseAB_cmin + 1;
   Index bseAB_total = bseAB_vtotal + bseAB_ctotal;
@@ -366,11 +364,11 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
       << " to " << bseAB_cmax << " total: " << bseAB_total << flush;
 
   Eigen::MatrixXd MOsA =
-      orbitalsA.MOs().eigenvectors().block(0, bseA_vmin, basisA, bseA_total);
+      orbitalsA.MOs().eigenvectors().middleCols(bseA_vmin, bseA_total);
   Eigen::MatrixXd MOsB =
-      orbitalsB.MOs().eigenvectors().block(0, bseB_vmin, basisB, bseB_total);
-  Eigen::MatrixXd MOsAB = orbitalsAB.MOs().eigenvectors().block(
-      0, bseAB_vmin, basisAB, bseAB_total);
+      orbitalsB.MOs().eigenvectors().middleCols(bseB_vmin, bseB_total);
+  Eigen::MatrixXd MOsAB = orbitalsAB.MOs().eigenvectors().middleCols(
+       bseAB_vmin, bseAB_total);
 
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Calculating overlap matrix for basisset: "

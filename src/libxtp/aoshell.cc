@@ -88,13 +88,15 @@ void AOShell::normalizeContraction() {
   return;
 }
 
-void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
-                          Eigen::Block<Eigen::MatrixX3d>& gradAOvalues,
+AOShell::AOValues AOShell::EvalAOspace(
                           const Eigen::Vector3d& grid_pos) const {
 
   // need position of shell
   const Eigen::Vector3d center = (grid_pos - pos_);
   const double distsq = center.squaredNorm();
+  AOShell::AOValues AO(getNumFunc());
+  Eigen::VectorXd& AOvalues=AO.values;
+  Eigen::MatrixX3d& gradAOvalues=AO.derivatives;
 
   // iterate over Gaussians in this shell
   for (const AOGaussianPrimitive& gaussian : gaussians_) {
@@ -299,17 +301,9 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
         break;
     }
   }  // contractions
-  return;
-}  // namespace xtp
+  return AO;
+}  
 
-void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
-                          const Eigen::Vector3d& grid_pos) const {
-
-  Eigen::MatrixX3d temp = Eigen::MatrixX3d::Zero(AOvalues.size(), 3);
-  Eigen::Block<Eigen::MatrixX3d> temp2 =
-      temp.block(0, 0, temp.rows(), temp.cols());
-  EvalAOspace(AOvalues, temp2, grid_pos);
-}
 
 std::ostream& operator<<(std::ostream& out, const AOShell& shell) {
   out << "AtomIndex:" << shell.getAtomIndex();

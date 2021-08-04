@@ -27,11 +27,12 @@ namespace votca {
 namespace xtp {
 
 void Sigma_Exact::PrepareScreening() {
-  rpa_solution_ = rpa_.Diagonalize_H2p();
+  RPA::rpa_eigensolution rpa_solution = rpa_.Diagonalize_H2p();
+  rpa_omegas_=rpa_solution.omega;
   residues_ = std::vector<Eigen::MatrixXd>(qptotal_);
 #pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < qptotal_; gw_level++) {
-    residues_[gw_level] = CalcResidues(gw_level);
+    residues_[gw_level] = CalcResidues(gw_level,rpa_solution.XpY);
   }
   return;
 }
@@ -43,8 +44,8 @@ double Sigma_Exact::CalcCorrelationDiagElement(Index gw_level,
   const Index n_occ = lumo - opt_.rpamin;
   const Index n_unocc = opt_.rpamax - opt_.homo;
   double sigma = 0.0;
-  for (Index s = 0; s < rpa_solution_.omega.size(); s++) {
-    const double eigenvalue = rpa_solution_.omega(s);
+  for (Index s = 0; s < rpa_omegas_.size(); s++) {
+    const double eigenvalue = rpa_omegas_(s);
     const Eigen::ArrayXd res_12 = residues_[gw_level].col(s).cwiseAbs2();
     Eigen::ArrayXd temp = -rpa_.getRPAInputEnergies().array() + frequency;
     temp.segment(0, n_occ) += eigenvalue;
@@ -62,8 +63,8 @@ double Sigma_Exact::CalcCorrelationDiagElementDerivative(
   const Index n_occ = lumo - opt_.rpamin;
   const Index n_unocc = opt_.rpamax - opt_.homo;
   double dsigma_domega = 0.0;
-  for (Index s = 0; s < rpa_solution_.omega.size(); s++) {
-    const double eigenvalue = rpa_solution_.omega(s);
+  for (Index s = 0; s < rpa_omegas_.size(); s++) {
+    const double eigenvalue = rpa_omegas_(s);
     const Eigen::ArrayXd res_12 = residues_[gw_level].col(s).cwiseAbs2();
     Eigen::ArrayXd temp = -rpa_.getRPAInputEnergies().array() + frequency;
     temp.segment(0, n_occ) += eigenvalue;
@@ -82,10 +83,10 @@ double Sigma_Exact::CalcCorrelationOffDiagElement(Index gw_level1,
   const Index lumo = opt_.homo + 1;
   const Index n_occ = lumo - opt_.rpamin;
   const Index n_unocc = opt_.rpamax - opt_.homo;
-  const Index rpasize = rpa_solution_.omega.size();
+  const Index rpasize = rpa_omegas_.size();
   double sigma_c = 0.0;
   for (Index s = 0; s < rpasize; s++) {
-    const double eigenvalue = rpa_solution_.omega(s);
+    const double eigenvalue = rpa_omegas_(s);
     const Eigen::VectorXd& res1 = residues_[gw_level1].col(s);
     const Eigen::VectorXd& res2 = residues_[gw_level2].col(s);
     const Eigen::VectorXd res_12 = res1.cwiseProduct(res2);
@@ -104,20 +105,19 @@ double Sigma_Exact::CalcCorrelationOffDiagElement(Index gw_level1,
   return 2.0 * sigma_c;
 }
 
-Eigen::MatrixXd Sigma_Exact::CalcResidues(Index gw_level) const {
+Eigen::MatrixXd Sigma_Exact::CalcResidues(Index gw_level, const Eigen::MatrixXd& XpY) const {
   const Index lumo = opt_.homo + 1;
   const Index n_occ = lumo - opt_.rpamin;
   const Index n_unocc = opt_.rpamax - opt_.homo;
   const Index rpasize = n_occ * n_unocc;
   const Index qpoffset = opt_.qpmin - opt_.rpamin;
-  const Index auxsize = Mmn_.auxsize();
   vc2index vc = vc2index(0, 0, n_unocc);
   const Eigen::MatrixXd& Mmn_i = Mmn_[gw_level + qpoffset];
   Eigen::MatrixXd res = Eigen::MatrixXd::Zero(rpatotal_, rpasize);
   for (Index v = 0; v < n_occ; v++) {  // Sum over v
-    auto Mmn_v = Mmn_[v].block(n_occ, 0, n_unocc, auxsize);
-    const Eigen::MatrixXd fc = Mmn_v * Mmn_i.transpose();  // Sum over chi
-    auto XpY_v = rpa_solution_.XpY.block(vc.I(v, 0), 0, n_unocc, rpasize);
+    auto Mmn_v = Mmn_[v].middleRows(n_occ,  n_unocc);
+    auto fc = Mmn_v * Mmn_i.transpose();  // Sum over chi
+    auto XpY_v = XpY.middleRows(vc.I(v, 0), n_unocc);
     res += fc.transpose() * XpY_v;  // Sum over c
   }
   return res;

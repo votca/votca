@@ -173,9 +173,9 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   }
 
   // constructing merged orbitals
-  auto MOsA = orbitalsA.MOs().eigenvectors().block(0, Range_orbA.first, basisA,
+  auto MOsA = orbitalsA.MOs().eigenvectors().middleCols(Range_orbA.first,
                                                    Range_orbA.second);
-  auto MOsB = orbitalsB.MOs().eigenvectors().block(0, Range_orbB.first, basisB,
+  auto MOsB = orbitalsB.MOs().eigenvectors().middleCols( Range_orbB.first,
                                                    Range_orbB.second);
 
   XTP_LOG(Log::info, *pLog_) << "Calculating overlap matrix for basisset: "

@@ -42,8 +42,8 @@ std::vector<std::vector<double> >
     const std::vector<double>& weights = box.getGridWeights();
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
-      Eigen::VectorXd ao = box.CalcAOValues(points[p]);
-      result[i][p] = weights[p] * amplitude_here.dot(ao);
+      AOShell::AOValues ao = box.CalcAOValues(points[p]);
+      result[i][p] = weights[p] * amplitude_here.dot(ao.values);
     }
   }
   return result;
