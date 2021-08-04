@@ -41,8 +41,7 @@ void GridBox::FindSignificantShells(const AOBasis& basis) {
   }
 }
 
-AOShell::AOValues GridBox::CalcAOValues(
-    const Eigen::Vector3d& point) const {
+AOShell::AOValues GridBox::CalcAOValues(const Eigen::Vector3d& point) const {
   AOShell::AOValues result(Matrixsize());
   for (Index j = 0; j < Shellsize(); ++j) {
     const AOShell::AOValues val = significant_shells[j]->EvalAOspace(point);

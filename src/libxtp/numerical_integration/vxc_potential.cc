@@ -188,12 +188,14 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
       if (rho * weight < 1.e-20) {
         continue;  // skip the rest, if density is very small
       }
-      const Eigen::Vector3d rho_grad = ao.values.transpose() * DMAT_symm * ao.derivatives;
+      const Eigen::Vector3d rho_grad =
+          ao.values.transpose() * DMAT_symm * ao.derivatives;
       const double sigma = (rho_grad.transpose() * rho_grad).value();
       const Eigen::VectorXd grad = ao.derivatives * rho_grad;
       typename Vxc_Potential<Grid>::XC_entry xc = EvaluateXC(rho, sigma);
       EXC_box += weight * rho * xc.f_xc;
-      auto addXC = weight * (0.5 * xc.df_drho * ao.values + 2.0 * xc.df_dsigma * grad);
+      auto addXC =
+          weight * (0.5 * xc.df_drho * ao.values + 2.0 * xc.df_dsigma * grad);
       Vxc_here.noalias() += addXC * ao.values.transpose();
     }
     box.AddtoBigMatrix(vxc.matrix(), Vxc_here);

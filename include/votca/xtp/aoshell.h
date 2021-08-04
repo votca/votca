@@ -121,16 +121,14 @@ class AOShell {
 
   double getMinDecay() const { return mindecay_; }
 
-  struct AOValues
-  {
+  struct AOValues {
 
-    AOValues(Index size){
-      values=Eigen::VectorXd::Zero(size);
-      derivatives=Eigen::MatrixX3d::Zero(size,3);
+    AOValues(Index size) {
+      values = Eigen::VectorXd::Zero(size);
+      derivatives = Eigen::MatrixX3d::Zero(size, 3);
     }
     Eigen::VectorXd values;
     Eigen::MatrixX3d derivatives;
-
   };
 
   AOValues EvalAOspace(const Eigen::Vector3d& grid_pos) const;
