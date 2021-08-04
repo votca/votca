@@ -39,7 +39,7 @@ class ERDiabatizationFrame final : public QMTool {
 
   ~ERDiabatizationFrame() = default;
 
-  std::string Identify() { return "erdiabatization"; }
+  std::string Identify() const { return "erdiabatization"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options) final;
