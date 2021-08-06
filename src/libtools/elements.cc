@@ -176,13 +176,8 @@ bool Elements::isMassAssociatedWithElement(double mass, double tolerance) {
 }
 
 std::string Elements::getEleShortClosestInMass(double mass, double tolerance) {
-<<<<<<< HEAD
-  auto closestMatch = findShortNameOfElementClosestInMass_(mass);
-  if (closestMatch.second / _Mass[closestMatch.first] > tolerance) {
-=======
   auto closestMatch = findShortNameOfElementClosestInMass(mass);
   if (closestMatch.second > tolerance) {
->>>>>>> Update elements.cc
     throw std::runtime_error(
         "In attempt to determine if mass is associated "
         " with an element the mass exceeds tolerance of a possible match");
