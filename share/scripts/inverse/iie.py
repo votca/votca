@@ -513,14 +513,11 @@ def calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat, kBT, c
     """
     # calculate direct correlation function
     c_mat = calc_c_matrix(r, omega, h_hat_mat, G_minus_g_hat_mat, rho_mat)
-    np.savez_compressed('/tmp/c_mat.npz', c_mat=c_mat)
     with np.errstate(divide='ignore', invalid='ignore'):
         if closure == 'hnc':
             U_mat = kBT * (-np.log(g_mat) + (g_mat - 1) - c_mat)
         elif closure == 'py':
             U_mat = kBT * np.log(1 - c_mat/g_mat)
-    np.savez_compressed('/tmp/U_mat.npz', U_mat=U_mat, g_mat=g_mat, h_mat=(g_mat - 1),
-                        c_mat=c_mat)
     return U_mat
 
 
@@ -1102,6 +1099,10 @@ def potential_guess(r, input_arrays, settings):
     # perform actual math
     U1_mat = calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat,
                            settings['kBT'], settings['closure'])
+    if settings['verbose']:
+        np.savez_compressed('potential-guess-arrays.npz', r=r, omega=omega,
+                            g_mat=g_mat, h_hat_mat=h_hat_mat,
+                            G_minus_g_hat_mat=G_minus_g_hat_mat, rho_mat=rho_mat)
     # extrapolate and save potentials
     for non_bonded_name, U_dict in gen_interaction_dict(
             r, U1_mat, settings['non-bonded-dict']).items():
