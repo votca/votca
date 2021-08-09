@@ -1101,7 +1101,8 @@ def potential_guess(r, input_arrays, settings):
     if settings['verbose']:
         np.savez_compressed('potential-guess-arrays.npz', r=r, omega=omega,
                             g_mat=g_mat, h_hat_mat=h_hat_mat,
-                            G_minus_g_hat_mat=G_minus_g_hat_mat, rho_mat=rho_mat)
+                            G_minus_g_hat_mat=G_minus_g_hat_mat, rho_mat=rho_mat,
+                            U1_mat=U1_mat)
     # extrapolate and save potentials
     for non_bonded_name, U_dict in gen_interaction_dict(
             r, U1_mat, settings['non-bonded-dict']).items():
