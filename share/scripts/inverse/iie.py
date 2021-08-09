@@ -237,7 +237,6 @@ def get_densities(topol_xml, volume):
     densities = defaultdict(lambda: 0.0)
     for molecule in topol_xml.find('molecules').findall('molecule'):
         for bead in molecule.findall('bead'):
-            print(int(molecule.attrib['nmols']), volume)
             densities[bead.attrib['type']] += int(molecule.attrib['nmols']) / volume
     densities = dict(densities)
     return densities
