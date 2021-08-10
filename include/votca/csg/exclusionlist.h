@@ -29,7 +29,7 @@
 namespace votca {
 namespace csg {
 
-/// \todo fill _excl_by_bead
+/// \todo fill  excl_by_bead_
 /// \todo no ids but pointers, use PairList
 
 class Topology;
@@ -49,8 +49,8 @@ class ExclusionList {
   void ExcludeList(iterable &l);
 
   struct exclusion_t {
-    Bead *_atom;
-    std::list<Bead *> _exclude;
+    Bead *atom_;
+    std::list<Bead *> exclude_;
   };
 
   void CreateExclusions(Topology *top);
@@ -59,8 +59,8 @@ class ExclusionList {
 
   using iterator = std::list<exclusion_t *>::iterator;
 
-  iterator begin() { return _exclusions.begin(); }
-  iterator end() { return _exclusions.end(); }
+  iterator begin() { return exclusions_.begin(); }
+  iterator end() { return exclusions_.end(); }
 
   bool IsExcluded(Bead *bead1, Bead *bead2) const;
 
@@ -72,8 +72,8 @@ class ExclusionList {
   void RemoveExclusion(Bead *bead1, Bead *bead2);
 
  private:
-  std::list<exclusion_t *> _exclusions;
-  std::map<Bead *, exclusion_t *> _excl_by_bead;
+  std::list<exclusion_t *> exclusions_;
+  std::map<Bead *, exclusion_t *> excl_by_bead_;
 
   friend std::ostream &operator<<(std::ostream &out, ExclusionList &exl);
 };
@@ -118,11 +118,11 @@ inline void ExclusionList::InsertExclusion(Bead *beadA, iterable &l) {
     exclusion_t *e;
     if ((e = GetExclusions(bead1)) == nullptr) {
       e = new exclusion_t;
-      e->_atom = bead1;
-      _exclusions.push_back(e);
-      _excl_by_bead[bead1] = e;
+      e->atom_ = bead1;
+      exclusions_.push_back(e);
+      excl_by_bead_[bead1] = e;
     }
-    e->_exclude.push_back(bead2);
+    e->exclude_.push_back(bead2);
   }
 }
 

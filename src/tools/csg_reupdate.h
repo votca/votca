@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,24 @@
  *
  */
 
-#ifndef _VOTCA_CSG_REUPDATE_H
-#define _VOTCA_CSG_REUPDATE_H
-#include "../../include/votca/csg/csgapplication.h"
-#include "../../include/votca/csg/potentialfunctions/potentialfunction.h"
-#include "../../include/votca/csg/potentialfunctions/potentialfunctioncbspl.h"
-#include "../../include/votca/csg/potentialfunctions/potentialfunctionlj126.h"
-#include "../../include/votca/csg/potentialfunctions/potentialfunctionljg.h"
-#include "../../include/votca/csg/topologyreader.h"
+#ifndef VOTCA_CSG_CSG_REUPDATE_H
+#define VOTCA_CSG_CSG_REUPDATE_H
+
+// Third party includes
 #include <boost/program_options.hpp>
+
+// VOTCA includes
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/property.h>
 #include <votca/tools/table.h>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/potentialfunctions/potentialfunction.h"
+#include "votca/csg/potentialfunctions/potentialfunctioncbspl.h"
+#include "votca/csg/potentialfunctions/potentialfunctionlj126.h"
+#include "votca/csg/potentialfunctions/potentialfunctionljg.h"
+#include "votca/csg/topologyreader.h"
 
 using namespace votca::csg;
 using namespace votca::tools;
@@ -49,7 +55,7 @@ struct PotentialInfo {
 
   double rmin, rcut;
 
-  Property *_options;
+  Property *options_;
 };
 
 class CsgREupdate : public CsgApplication {
@@ -76,41 +82,41 @@ class CsgREupdate : public CsgApplication {
   void Run() override;
 
   void EndEvaluate() override;
-  CsgApplication::Worker *ForkWorker(void) override;
+  std::unique_ptr<CsgApplication::Worker> ForkWorker(void) override;
   void MergeWorker(Worker *worker) override;
 
  private:
  protected:
-  Property _options;
-  std::vector<Property *> _nonbonded;
+  Property options_;
+  std::vector<Property *> nonbonded_;
 
   using PotentialContainer = std::vector<PotentialInfo *>;
-  PotentialContainer _potentials;
+  PotentialContainer potentials_;
 
-  votca::Index _nlamda;
-  Eigen::VectorXd _lamda;
-  // _HS is a symmetric matrix
-  Eigen::MatrixXd _HS;
-  Eigen::VectorXd _DS;
-  Eigen::VectorXd _dUFrame;
-  bool _hessian_check;
+  votca::Index nlamda_;
+  Eigen::VectorXd lamda_;
+  //  HS_ is a symmetric matrix
+  Eigen::MatrixXd HS_;
+  Eigen::VectorXd DS_;
+  Eigen::VectorXd dUFrame_;
+  bool hessian_check_;
 
-  double _UavgAA;
-  double _UavgCG;
-  double _beta;
-  double _relax;
-  votca::Index _nframes;
+  double UavgAA_;
+  double UavgCG_;
+  double beta_;
+  double relax_;
+  votca::Index nframes_;
 
-  bool _gentable;
-  bool _dosteep;
+  bool gentable_;
+  bool dosteep_;
 
-  std::vector<Table *> _aardfs;
-  std::vector<double *> _aardfnorms;
+  std::vector<Table *> aardfs_;
+  std::vector<double *> aardfnorms_;
 
   // file extension for the inputs/outputs
-  std::string _param_in_ext, _param_out_ext;
-  std::string _pot_out_ext;
-  std::string _rdf_ext;
+  std::string param_in_ext_, param_out_ext_;
+  std::string pot_out_ext_;
+  std::string rdf_ext_;
 
   void WriteOutFiles();
   void EvalBonded(Topology *conf, PotentialInfo *potinfo);
@@ -120,10 +126,10 @@ class CsgREupdate : public CsgApplication {
   void AAavgBonded(PotentialInfo *potinfo);
   void AAavgNonbonded(PotentialInfo *potinfo);
 
-  // Formulates _HS dlamda = - _DS system of Lin Eq.
+  // Formulates  HS_ dlamda = -  DS_ system of Lin Eq.
   void REFormulateLinEq();
 
-  // Solve _HS dlamda = - _DS and update _lamda
+  // Solve  HS_ dlamda = -  DS_ and update  lamda_
   void REUpdateLamda();
 };
 
@@ -131,25 +137,25 @@ class CsgREupdateWorker : public CsgApplication::Worker {
  public:
   ~CsgREupdateWorker() override = default;
 
-  Property _options;
-  std::vector<Property *> _nonbonded;
+  Property options_;
+  std::vector<Property *> nonbonded_;
 
   using PotentialContainer = std::vector<PotentialInfo *>;
-  PotentialContainer _potentials;
+  PotentialContainer potentials_;
 
-  votca::Index _nlamda;
-  Eigen::VectorXd _lamda;
-  Eigen::MatrixXd _HS;
-  Eigen::VectorXd _DS;
-  Eigen::VectorXd _dUFrame;
+  votca::Index nlamda_;
+  Eigen::VectorXd lamda_;
+  Eigen::MatrixXd HS_;
+  Eigen::VectorXd DS_;
+  Eigen::VectorXd dUFrame_;
 
-  double _UavgCG;
-  double _beta;
-  votca::Index _nframes;
+  double UavgCG_;
+  double beta_;
+  votca::Index nframes_;
 
   void EvalConfiguration(Topology *conf, Topology *conf_atom) override;
   void EvalBonded(Topology *conf, PotentialInfo *potinfo);
   void EvalNonbonded(Topology *conf, PotentialInfo *potinfo);
 };
 
-#endif /* _VOTCA_CSG_REUPDATE_H */
+#endif  // VOTCA_CSG_CSG_REUPDATE_H

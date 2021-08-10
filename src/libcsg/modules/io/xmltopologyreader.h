@@ -53,9 +53,9 @@ class BondBead {
 
 class XMLBead {
  public:
-  XMLBead(std::string _name, std::string _type, double _mass = 1.0,
-          double _q = 0.0)
-      : name(_name), type(_type), mass(_mass), q(_q){};
+  XMLBead(std::string name_, std::string type_, double mass_ = 1.0,
+          double q_ = 0.0)
+      : name(name_), type(type_), mass(mass_), q(q_){};
   XMLBead() = default;
 
   Index pid;
@@ -67,7 +67,7 @@ class XMLBead {
 
 class XMLMolecule {
  public:
-  XMLMolecule(std::string _name, Index _nmols) : name(_name), nmols(_nmols) {}
+  XMLMolecule(std::string name_, Index nmols_) : name(name_), nmols(nmols_) {}
   std::string name;
   Index nmols;
   Index pid;
@@ -105,12 +105,12 @@ class XMLTopologyReader : public TopologyReader {
   void ParseDihedral(tools::Property &p);
 
  private:
-  Topology *_top;
-  MoleculesMap _molecules;
-  Index _mol_index;
-  Index _bead_index;
+  Topology *top_;
+  MoleculesMap molecules_;
+  Index mol_index_;
+  Index bead_index_;
 
-  bool _has_base_topology;
+  bool has_base_topology_;
 };
 
 }  // namespace csg

@@ -33,10 +33,10 @@ namespace votca {
 namespace csg {
 
 void GMXTrajectoryWriter::Open(std::string file, bool) {
-  _file = open_trx((char *)file.c_str(), "w");
+  file_ = open_trx((char *)file.c_str(), "w");
 }
 
-void GMXTrajectoryWriter::Close() { close_trx(_file); }
+void GMXTrajectoryWriter::Close() { close_trx(file_); }
 
 void GMXTrajectoryWriter::Write(Topology *conf) {
   static Index step = 0;
@@ -95,7 +95,7 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
     }
   }
 
-  write_trxframe(_file, &frame, nullptr);
+  write_trxframe(file_, &frame, nullptr);
 
   step++;
   delete[] x;

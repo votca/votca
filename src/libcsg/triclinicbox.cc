@@ -34,9 +34,9 @@ namespace csg {
 Eigen::Vector3d TriclinicBox::BCShortestConnection(
     const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const {
   Eigen::Vector3d r_tp = r_j - r_i;
-  Eigen::Vector3d r_dp = r_tp - _box.col(2) * std::round(r_tp.z() / _box(2, 2));
-  Eigen::Vector3d r_sp = r_dp - _box.col(1) * std::round(r_dp.y() / _box(1, 1));
-  return r_sp - _box.col(0) * std::round(r_sp.x() / _box(0, 0));
+  Eigen::Vector3d r_dp = r_tp - box_.col(2) * std::round(r_tp.z() / box_(2, 2));
+  Eigen::Vector3d r_sp = r_dp - box_.col(1) * std::round(r_dp.y() / box_(1, 1));
+  return r_sp - box_.col(0) * std::round(r_sp.x() / box_(0, 0));
 }
 
 }  // namespace csg

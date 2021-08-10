@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,16 @@
  *
  */
 
-#include "../../include/votca/csg/csgapplication.h"
-#include "../../include/votca/csg/topology.h"
-#include "../../include/votca/csg/trajectorywriter.h"
+// Standard includes
 #include <cstddef>
 #include <fstream>
 #include <stdexcept>
 #include <string>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/topology.h"
+#include "votca/csg/trajectorywriter.h"
 
 using namespace std;
 using namespace votca::csg;
@@ -79,15 +82,15 @@ class CsgMapApp : public CsgApplication {
 
   void BeginEvaluate(Topology *top, Topology *top_ref) override;
   void EvalConfiguration(Topology *top, Topology *top_ref) override {
-    if (!_do_hybrid) {
+    if (!do_hybrid_) {
       // simply write the topology mapped by csgapplication class
-      if (_do_vel) {
+      if (do_vel_) {
         top->SetHasVel(true);
       }
-      if (_do_force) {
+      if (do_force_) {
         top->SetHasForce(true);
       }
-      _writer->Write(top);
+      writer_->Write(top);
     } else {
       // we want to combine atomistic and coarse-grained into one topology
       Topology hybtol;
@@ -97,22 +100,22 @@ class CsgMapApp : public CsgApplication {
       hybtol.setStep(top->getStep());
 
       // copy all residues from both
-      for (auto &residue : top_ref->Residues()) {
-        hybtol.CreateResidue(residue->getName());
+      for (const auto &residue : top_ref->Residues()) {
+        hybtol.CreateResidue(residue.getName());
       }
-      for (auto &residue : top->Residues()) {
-        hybtol.CreateResidue(residue->getName());
+      for (const auto &residue : top->Residues()) {
+        hybtol.CreateResidue(residue.getName());
       }
 
       // copy all molecules and beads
 
-      for (auto &molecule : top_ref->Molecules()) {
-        Molecule *mi = hybtol.CreateMolecule(molecule->getName());
-        for (votca::Index i = 0; i < molecule->BeadCount(); i++) {
+      for (const auto &molecule : top_ref->Molecules()) {
+        Molecule *mi = hybtol.CreateMolecule(molecule.getName());
+        for (votca::Index i = 0; i < molecule.BeadCount(); i++) {
           // copy atomistic beads of molecule
-          votca::Index beadid = molecule->getBead(i)->getId();
+          votca::Index beadid = molecule.getBead(i)->getId();
 
-          Bead *bi = molecule->getBead(i);
+          const Bead *bi = molecule.getBead(i);
           if (!hybtol.BeadTypeExist(bi->getType())) {
             hybtol.RegisterBeadType(bi->getType());
           }
@@ -128,17 +131,17 @@ class CsgMapApp : public CsgApplication {
             bn->setF(bi->getF());
           }
 
-          mi->AddBead(hybtol.Beads()[beadid], molecule->getBeadName(i));
+          mi->AddBead(&hybtol.Beads()[beadid], molecule.getBeadName(i));
         }
 
         if (mi->getId() < top->MoleculeCount()) {
           // copy cg beads of molecule
-          Molecule *cgmol = top->Molecules()[mi->getId()];
+          Molecule *cgmol = top->getMolecule(mi->getId());
           for (votca::Index i = 0; i < cgmol->BeadCount(); i++) {
             Bead *bi = cgmol->getBead(i);
             // todo: this is a bit dirty as a cg bead will always have the resid
             // of its first parent
-            Bead *bparent = molecule->getBead(0);
+            const Bead *bparent = molecule.getBead(0);
             Bead *bn = hybtol.CreateBead(bi->getSymmetry(), bi->getName(),
                                          bi->getType(), bparent->getResnr(),
                                          bi->getMass(), bi->getQ());
@@ -152,47 +155,47 @@ class CsgMapApp : public CsgApplication {
       }
       hybtol.setBox(top_ref->getBox());
 
-      _writer->Write(&hybtol);
+      writer_->Write(&hybtol);
     }
   }
 
-  void EndEvaluate() override { _writer->Close(); }
+  void EndEvaluate() override { writer_->Close(); }
 
  protected:
-  std::unique_ptr<TrajectoryWriter> _writer;
-  bool _do_hybrid;
-  bool _do_vel;
-  bool _do_force;
+  std::unique_ptr<TrajectoryWriter> writer_;
+  bool do_hybrid_;
+  bool do_vel_;
+  bool do_force_;
 };
 
 void CsgMapApp::BeginEvaluate(Topology *, Topology *) {
   string out = OptionsMap()["out"].as<string>();
   cout << "writing coarse-grained trajectory to " << out << endl;
-  _writer = TrjWriterFactory().Create(out);
-  if (_writer == nullptr) {
+  writer_ = TrjWriterFactory().Create(out);
+  if (writer_ == nullptr) {
     throw runtime_error("output format not supported: " + out);
   }
 
-  _do_hybrid = false;
+  do_hybrid_ = false;
   if (OptionsMap().count("hybrid")) {
-    if (!_do_mapping) {
+    if (!do_mapping_) {
       throw runtime_error("options hybrid and no-map not compatible");
     }
     cout << "Doing hybrid mapping..." << endl;
-    _do_hybrid = true;
+    do_hybrid_ = true;
   }
 
-  _do_vel = false;
+  do_vel_ = false;
   if (OptionsMap().count("vel")) {
-    _do_vel = true;
+    do_vel_ = true;
   }
 
-  _do_force = false;
+  do_force_ = false;
   if (OptionsMap().count("force")) {
-    _do_force = true;
+    do_force_ = true;
   }
 
-  _writer->Open(out);
+  writer_->Open(out);
 }
 
 int main(int argc, char **argv) {

@@ -29,10 +29,10 @@ namespace csg {
 PotentialFunction::PotentialFunction(const string &name, Index nlam, double min,
                                      double max) {
 
-  _name = name;
-  _lam = Eigen::VectorXd::Zero(nlam);
-  _min = min;
-  _cut_off = max;
+  name_ = name;
+  lam_ = Eigen::VectorXd::Zero(nlam);
+  min_ = min;
+  cut_off_ = max;
 }
 
 void PotentialFunction::setParam(string filename) {
@@ -40,17 +40,17 @@ void PotentialFunction::setParam(string filename) {
   Table param;
   param.Load(filename);
 
-  if (param.size() != _lam.size()) {
+  if (param.size() != lam_.size()) {
 
-    throw std::runtime_error("In potential " + _name +
+    throw std::runtime_error("In potential " + name_ +
                              ": parameters size mismatch!\n"
                              "Check input parameter file \"" +
                              filename + "\" \nThere should be " +
-                             boost::lexical_cast<string>(_lam.size()) +
+                             boost::lexical_cast<string>(lam_.size()) +
                              " parameters");
   } else {
-    for (Index i = 0; i < _lam.size(); i++) {
-      _lam(i) = param.y(i);
+    for (Index i = 0; i < lam_.size(); i++) {
+      lam_(i) = param.y(i);
     }
   }
 }
@@ -59,28 +59,28 @@ void PotentialFunction::SaveParam(const string &filename) {
 
   Table param;
   param.SetHasYErr(false);
-  param.resize(_lam.size());
+  param.resize(lam_.size());
 
-  for (Index i = 0; i < _lam.size(); i++) {
-    param.set(i, double(i), _lam(i), 'i');
+  for (Index i = 0; i < lam_.size(); i++) {
+    param.set(i, double(i), lam_(i), 'i');
   }
 
   param.Save(filename);
 }
 
 void PotentialFunction::SavePotTab(const string &filename, double step) {
-  Index ngrid = (Index)((_cut_off - _min) / step + 1.00000001);
+  Index ngrid = (Index)((cut_off_ - min_) / step + 1.00000001);
   Table pot_tab;
   pot_tab.SetHasYErr(false);
   pot_tab.resize(ngrid);
   double r_init;
   Index i;
 
-  for (r_init = _min, i = 0; i < ngrid - 1; r_init += step) {
+  for (r_init = min_, i = 0; i < ngrid - 1; r_init += step) {
     pot_tab.set(i++, r_init, CalculateF(r_init), 'i');
   }
 
-  pot_tab.set(i, _cut_off, CalculateF(_cut_off), 'i');
+  pot_tab.set(i, cut_off_, CalculateF(cut_off_), 'i');
   pot_tab.Save(filename);
 }
 

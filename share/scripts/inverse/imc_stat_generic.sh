@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ else
   for_all "non-bonded bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
 
   critical csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" \
-        --begin $equi_time --first-frame $first_frame --nt $tasks
+      --begin $equi_time --first-frame $first_frame --nt $tasks
+      
   mark_done "imc_analysis"
 fi

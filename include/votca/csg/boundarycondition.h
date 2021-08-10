@@ -57,13 +57,13 @@ class BoundaryCondition {
    * set the simulation box
    * \param box triclinic box matrix
    */
-  void setBox(const Eigen::Matrix3d &box) noexcept { _box = box; };
+  void setBox(const Eigen::Matrix3d &box) noexcept { box_ = box; };
 
   /**
    * get the simulation box
    * \return triclinic box matrix
    */
-  const Eigen::Matrix3d &getBox() const noexcept { return _box; };
+  const Eigen::Matrix3d &getBox() const noexcept { return box_; };
 
   /**
    * @brief Self explanatory gets the shortest dimension of the boundary
@@ -90,7 +90,7 @@ class BoundaryCondition {
   virtual eBoxtype getBoxType() const noexcept = 0;
 
  protected:
-  Eigen::Matrix3d _box;
+  Eigen::Matrix3d box_;
 };
 
 }  // namespace csg
