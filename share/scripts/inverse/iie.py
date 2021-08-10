@@ -313,12 +313,11 @@ def calc_c_matrix(r, omega, h_hat_mat, G_minus_g_hat_mat, rho_mat):
     #       see https://cbp.tnw.utwente.nl/PolymeerDictaat/node16.html
     #       I think Omega is actually non-symmetric in some cases!
     # TODO: figure out diagonal here, for e.g. symmetric naphtalene
-    #       I think the original formula assumes every atom is unique
     Omega_hat_mat = (rho_mat * G_minus_g_hat_mat
                      + np.identity(G_minus_g_hat_mat.shape[1]))
     # direct correlation function c from OZ
     c_hat_mat = np.linalg.inv(Omega_hat_mat) @ h_hat_mat @ np.linalg.inv(
-        (Omega_hat_mat + rho_mat * h_hat_mat))
+        (Omega_hat_mat + rho_mat @ h_hat_mat))  # the order should not be altered
     _, c_mat = fourier_all(omega, c_hat_mat)
     return c_mat
 
@@ -1098,6 +1097,9 @@ def potential_guess(r, input_arrays, settings):
     # perform actual math
     U1_mat = calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat,
                            settings['kBT'], settings['closure'])
+    # TODO: problem, the off diagonal elements can be different, even though all input
+    #       is symmetric. Found no paper on what to do :/
+    # I should probably average!
     if settings['verbose']:
         np.savez_compressed('potential-guess-arrays.npz', r=r, omega=omega,
                             g_mat=g_mat, h_hat_mat=h_hat_mat,
