@@ -38,6 +38,8 @@ Version 2022-dev
 Version 2021.2 (released XX.07.21)
 ==================================
 
+-  made masses in test more accurate. (#705)
+
 Version 2021.1 (released 18.07.21)
 ==================================
 
