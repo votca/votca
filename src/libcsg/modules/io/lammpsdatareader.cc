@@ -252,7 +252,8 @@ bool LAMMPSDataReader::MatchFourFieldLabels_(vector<string> fields,
 
 void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
   if (!data_.count("Masses")) {
-    throw runtime_error( "Masses must first be parsed before the atoms can be read.");
+    throw runtime_error(
+        "Masses must first be parsed before the atoms can be read.");
   }
 
   Index index = 0;
@@ -473,7 +474,8 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       }
 
       if (atomtypes_.count(atomTypeId) == 0) {
-        throw runtime_error("Unrecognized atomTypeId, the atomtypes map "
+        throw runtime_error(
+            "Unrecognized atomTypeId, the atomtypes map "
             "may be uninitialized");
       }
 
