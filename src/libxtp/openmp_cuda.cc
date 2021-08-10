@@ -396,8 +396,8 @@ void OpenMP_CUDA::MultiplyRow(Index row, Index OpenmpThread) {
   if (isGPUthread(parentid)) {
     GPU_data& gpu = gpus_[threadid];
     gpu.activateGPU();
-    gpu.pipe().gemm(gpu.Mat(4).transpose(), gpu.Mat(1),
-                    gpu.Mat(6).row(row), 0.0);
+    gpu.pipe().gemm(gpu.Mat(4).transpose(), gpu.Mat(1), gpu.Mat(6).row(row),
+                    0.0);
   } else {
     cpucomp();
   }
@@ -461,14 +461,13 @@ void OpenMP_CUDA::MultiplyBlocks(const Eigen::Block<const Eigen::MatrixXd>& mat,
     gpu.Mat(3).copy_to_gpu(mat);
     gpu.pipe().gemm(gpu.Mat(2), gpu.Mat(3).transpose(), gpu.Mat(4));
     Index blocksize = gpu.Mat(4).rows();
-    gpu.pipe().gemm(
-        gpu.Mat(4), gpu.Mat(1).middleRows(i2 * blocksize, blocksize),
-        gpu.Mat(6).middleRows(i1 * blocksize,blocksize), 1.0);
+    gpu.pipe().gemm(gpu.Mat(4),
+                    gpu.Mat(1).middleRows(i2 * blocksize, blocksize),
+                    gpu.Mat(6).middleRows(i1 * blocksize, blocksize), 1.0);
     if (i1 != i2) {
       gpu.pipe().gemm(gpu.Mat(4).transpose(),
-                      gpu.Mat(1).middleRows(i1 * blocksize,blocksize),
-                      gpu.Mat(6).middleRows(i2 * blocksize,blocksize),
-                      1.0);
+                      gpu.Mat(1).middleRows(i1 * blocksize, blocksize),
+                      gpu.Mat(6).middleRows(i2 * blocksize, blocksize), 1.0);
     }
   } else {
     cpucomp();
