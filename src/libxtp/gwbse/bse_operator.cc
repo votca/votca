@@ -84,7 +84,7 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
         }
         if (cd2 != 0) {
           transform.PrepareMatrix2(
-              Mmn_[v1 + vmin].middleRows(cmin,  bse_ctotal_), cd2 != 0,
+              Mmn_[v1 + vmin].middleRows(cmin, bse_ctotal_), cd2 != 0,
               threadid);
         }
         if (cqp != 0) {
@@ -104,13 +104,12 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::matmul(
 #pragma omp for schedule(dynamic)
       for (Index v1 = 0; v1 < bse_vtotal_; v1++) {
         Index va = v1 + vmin;
-        Eigen::MatrixXd Mmn1 =
-            cx * Mmn_[va].middleRows(cmin, bse_ctotal_);
+        Eigen::MatrixXd Mmn1 = cx * Mmn_[va].middleRows(cmin, bse_ctotal_);
         transform.PushMatrix1(Mmn1, threadid);
         for (Index v2 = v1; v2 < bse_vtotal_; v2++) {
           Index vb = v2 + vmin;
-          transform.MultiplyBlocks(
-              Mmn_[vb].middleRows(cmin, bse_ctotal_), v1, v2, threadid);
+          transform.MultiplyBlocks(Mmn_[vb].middleRows(cmin, bse_ctotal_), v1,
+                                   v2, threadid);
         }
       }
     }

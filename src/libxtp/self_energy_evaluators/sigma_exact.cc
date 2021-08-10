@@ -28,11 +28,11 @@ namespace xtp {
 
 void Sigma_Exact::PrepareScreening() {
   RPA::rpa_eigensolution rpa_solution = rpa_.Diagonalize_H2p();
-  rpa_omegas_=rpa_solution.omega;
+  rpa_omegas_ = rpa_solution.omega;
   residues_ = std::vector<Eigen::MatrixXd>(qptotal_);
 #pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < qptotal_; gw_level++) {
-    residues_[gw_level] = CalcResidues(gw_level,rpa_solution.XpY);
+    residues_[gw_level] = CalcResidues(gw_level, rpa_solution.XpY);
   }
   return;
 }
@@ -105,7 +105,8 @@ double Sigma_Exact::CalcCorrelationOffDiagElement(Index gw_level1,
   return 2.0 * sigma_c;
 }
 
-Eigen::MatrixXd Sigma_Exact::CalcResidues(Index gw_level, const Eigen::MatrixXd& XpY) const {
+Eigen::MatrixXd Sigma_Exact::CalcResidues(Index gw_level,
+                                          const Eigen::MatrixXd& XpY) const {
   const Index lumo = opt_.homo + 1;
   const Index n_occ = lumo - opt_.rpamin;
   const Index n_unocc = opt_.rpamax - opt_.homo;
@@ -115,7 +116,7 @@ Eigen::MatrixXd Sigma_Exact::CalcResidues(Index gw_level, const Eigen::MatrixXd&
   const Eigen::MatrixXd& Mmn_i = Mmn_[gw_level + qpoffset];
   Eigen::MatrixXd res = Eigen::MatrixXd::Zero(rpatotal_, rpasize);
   for (Index v = 0; v < n_occ; v++) {  // Sum over v
-    auto Mmn_v = Mmn_[v].middleRows(n_occ,  n_unocc);
+    auto Mmn_v = Mmn_[v].middleRows(n_occ, n_unocc);
     auto fc = Mmn_v * Mmn_i.transpose();  // Sum over chi
     auto XpY_v = XpY.middleRows(vc.I(v, 0), n_unocc);
     res += fc.transpose() * XpY_v;  // Sum over c

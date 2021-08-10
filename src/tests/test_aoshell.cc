@@ -92,9 +92,9 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
 
     Eigen::Vector3d gridpos = Eigen::Vector3d::Ones();
 
-    AOShell::AOValues ao= shell.EvalAOspace(gridpos);
+    AOShell::AOValues ao = shell.EvalAOspace(gridpos);
 
-    ao.derivatives.middleRows(0,1);
+    ao.derivatives.middleRows(0, 1);
 
     bool ao_check = aoval_ref.col(0)
                         .segment(shell.getStartIndex(), shell.getNumFunc())
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
     }
     BOOST_CHECK_EQUAL(ao_check, 1);
     bool aograd_check =
-        aograd_ref.middleRows(shell.getStartIndex(),shell.getNumFunc())
+        aograd_ref.middleRows(shell.getStartIndex(), shell.getNumFunc())
             .isApprox(ao.derivatives, 1e-5);
     if (!aograd_check) {
       std::cout << shell << std::endl;

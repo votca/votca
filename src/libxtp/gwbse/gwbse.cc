@@ -533,7 +533,7 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
       << flush;
   Index qptotal = gwopt_.qpmax - gwopt_.qpmin + 1;
   Eigen::MatrixXd mos =
-      orbitals_.MOs().eigenvectors().middleCols( gwopt_.qpmin, qptotal);
+      orbitals_.MOs().eigenvectors().middleCols(gwopt_.qpmin, qptotal);
 
   Eigen::MatrixXd vxc = mos.transpose() * e_vxc_ao.matrix() * mos;
   XTP_LOG(Log::error, *pLog_)
