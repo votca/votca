@@ -397,7 +397,7 @@ void OpenMP_CUDA::MultiplyRow(Index row, Index OpenmpThread) {
     GPU_data& gpu = gpus_[threadid];
     gpu.activateGPU();
     gpu.pipe().gemm(gpu.Mat(4).transpose(), gpu.Mat(1),
-                    gpu.Mat(6).block(row, 0, 1, gpu.Mat(6).cols()), 0.0);
+                    gpu.Mat(6).row(row), 0.0);
   } else {
     cpucomp();
   }
@@ -446,14 +446,12 @@ void OpenMP_CUDA::MultiplyBlocks(const Eigen::Block<const Eigen::MatrixXd>& mat,
   auto cpucomp = [&]() {
     CPU_data& cpu = cpus_[threadid];
     const Eigen::MatrixXd block = cpu.ref_mat() * mat.transpose();
-    cpu.reduce().block(i1 * block.rows(), 0, block.rows(),
-                       cpu.reduce().cols()) +=
-        block * rOP_().block(i2 * block.rows(), 0, block.rows(), rOP_().cols());
+    cpu.reduce().middleRows(i1 * block.rows(), block.rows()) +=
+        block * rOP_().middleRows(i2 * block.rows(), block.rows());
     if (i1 != i2) {
-      cpu.reduce().block(i2 * block.rows(), 0, block.rows(),
-                         cpu.reduce().cols()) +=
+      cpu.reduce().middleRows(i2 * block.rows(), block.rows()) +=
           block.transpose() *
-          rOP_().block(i1 * block.rows(), 0, block.rows(), rOP_().cols());
+          rOP_().middleRows(i1 * block.rows(), block.rows());
     }
   };
 #ifdef USE_CUDA
@@ -463,14 +461,13 @@ void OpenMP_CUDA::MultiplyBlocks(const Eigen::Block<const Eigen::MatrixXd>& mat,
     gpu.Mat(3).copy_to_gpu(mat);
     gpu.pipe().gemm(gpu.Mat(2), gpu.Mat(3).transpose(), gpu.Mat(4));
     Index blocksize = gpu.Mat(4).rows();
-    Index inputcols = gpu.Mat(1).cols();
     gpu.pipe().gemm(
-        gpu.Mat(4), gpu.Mat(1).block(i2 * blocksize, 0, blocksize, inputcols),
-        gpu.Mat(6).block(i1 * blocksize, 0, blocksize, inputcols), 1.0);
+        gpu.Mat(4), gpu.Mat(1).middleRows(i2 * blocksize, blocksize),
+        gpu.Mat(6).middleRows(i1 * blocksize,blocksize), 1.0);
     if (i1 != i2) {
       gpu.pipe().gemm(gpu.Mat(4).transpose(),
-                      gpu.Mat(1).block(i1 * blocksize, 0, blocksize, inputcols),
-                      gpu.Mat(6).block(i2 * blocksize, 0, blocksize, inputcols),
+                      gpu.Mat(1).middleRows(i1 * blocksize,blocksize),
+                      gpu.Mat(6).middleRows(i2 * blocksize,blocksize),
                       1.0);
     }
   } else {
