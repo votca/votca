@@ -43,7 +43,23 @@ extra="$(critical mktemp ${name}.dist.tgt_extrapolated.XXXXX)"
 if [[ $tabtype = "non-bonded" ]]; then
   extra2="$(critical mktemp ${name}.dist.tgt_extrapolated_left.XXXXX)"
   do_external table extrapolate --function linear --avgpoints 1 --region left "${smooth}" "${extra2}"
-  do_external table extrapolate --function constant --avgpoints 1 --region right "${extra2}" "${extra}"
+  # improve RDF in the core region where it is close to zero and sampling is bad using
+  # an extrapolation scheme
+  improve_dist_near_core_target="$(csg_get_interaction_property improve_dist_near_core.target)"
+  if [[ $improve_dist_near_core_target == "true" ]]; then
+      improve_dist_near_core_function="$(csg_get_interaction_property improve_dist_near_core.function)"
+      extra3="$(critical mktemp ${name}.dist.tgt_improved.XXXXX)"
+      fit_start_g="$(csg_get_interaction_property improve_dist_near_core.fit_start_g)"
+      fit_end_g="$(csg_get_interaction_property improve_dist_near_core.fit_end_g)"
+      do_external table improve --in="${extra2}" --out="${extra3}" \
+          --function="$improve_dist_near_core_function" \
+          --fit_start_g="$fit_start_g" --fit_end_g="$fit_end_g" 
+  elif [[ $improve_dist_near_core_target == "false" ]]; then
+      extra3="$extra2"
+  else
+      die "${0##*/}: improve_dist_near_core.target is ${improve_dist_near_core_target}. Needs to be 'true' or 'false'"
+  fi
+  do_external table extrapolate --function constant --avgpoints 1 --region right "${extra3}" "${extra}"
 elif [[ $tabtype = bond || $tabtype = angle || $tabtype = dihedral ]]; then
   do_external table extrapolate --function linear --avgpoints 1 --region leftright "${smooth}" "${extra}"
 else

@@ -864,5 +864,22 @@
         </target_weights>
       </optimizer>
     </inverse>
+    <improve_dist_near_core>
+      <target>false
+        <DESC>Weather to modify the target distributions. true or false.</DESC>
+      </target>
+      <new>false
+        <DESC>Weather to modify the new distributions. true or false.</DESC>
+      </new>
+      <function>exponential
+        <DESC>Which functional form to assume for the PMF in the core region. exponential or power.</DESC>
+      </function>
+      <fit_start_g>1e-4
+        <DESC>Lower value of the RDF at which the fit starts.</DESC>
+      </fit_start_g>
+      <fit_end_g>1e-1
+        <DESC>Upper value of the RDF at which the fit starts.</DESC>
+      </fit_end_g>
+    </improve_dist_near_core>
   </non-bonded>
 </cg>
