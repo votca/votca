@@ -18,7 +18,7 @@ implementing code consistent with the VOTCA and cpp style and standard.
 Reporting Bugs
 --------------
 
-To report a bug, please create an issue on the appropriate github repo.
+To report a bug, please create an issue on the appropriate GitHub repo.
 Please be sure to provide as much information as possible such as:
 
 -  The error messages
@@ -27,7 +27,7 @@ Please be sure to provide as much information as possible such as:
 -  What dependencies were installed
 -  The calculation that was being run
 
-Issues can be directly created on the appropriate github repo:
+Issues can be directly created on the appropriate GitHub repo:
 
 -  `tools <https://github.com/votca/tools/issues>`__
 -  `csg <https://github.com/votca/csg/issues>`__
@@ -48,32 +48,106 @@ VOTCA dev-tools
 ---------------
 
 Running clang-format on every commit can be a drag, as can changing the
-copyright in every header. Building artifacts locally from a Gitlab run
-also takes multiple steps. Fortunately, you will find small scripts in the
+copyright in every header. Fortunately, you will find small scripts in the
 `dev-tools repo <https://github.com/votca/dev-tools>`__, which can
 automate this.
 
-VOTCA Continuous Integration (Github Actions)
+VOTCA Continuous Integration (GitHub Actions)
 ---------------------------------------------
 
 Each pull request to master in the tools, csg, csg-tutorials, xtp, xtp-tutorials or votca repository 
-is built on a machine in the cloud using `Github actions <https://docs.github.com/en/actions>`__ (There is still some Gitlab for the GPU builds).
+is built on a machine in the cloud using `GitHub actions <https://docs.github.com/en/actions>`__ 
 
-VOTCA can be built on various linux distributions, which are not all natively supported by Github actions. For non natively supported distributions, 
+VOTCA can be built on various linux distributions, which are not all natively supported by GitHub actions. For non natively supported distributions, 
 instead of using the default virtual machines, VOTCA first builds and then runs a `docker container <https://www.docker.com/resources/what-container>`__ for each Pull Request. The container contains all the necessary dependencies of VOTCA (see :code:`buildenv` below)
 
 The docker images can be found at `Docker Hub <https://hub.docker.com/u/votca>`__. The **votca/buildenv** containers are the basic containers, which contain all the dependencies VOTCA requires; VOTCA code itself is not included. The **votca/buildenv** can be found on `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__. 
 The actual containers used for running the test builds are built on top of the **votca/buildenv** containers, the resulting **votca/votca** container can be found on `Docker Hub <https://hub.docker.com/u/votca>`__ as well as `VOTCA's GitHub Container registry <https://github.com/orgs/votca/packages>`__.
 
-More information can be found in the `Github workflow files <https://github.com/votca/votca/tree/master/.github/workflows>`__.
+More information can be found in the `GitHub workflow files <https://github.com/votca/votca/tree/master/.github/workflows>`__.
 
 Making a Release
 ----------------
 
-Similar to the VOTCA containers, releases are also handled by Github actions. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
+Similar to the VOTCA containers, releases are also handled by GitHub actions. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
 To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
 :code:`stable` branch, but testing the creation of a release can be triggered on any branch. To make a release, trigger the action from the
-:code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for the :code:`stable` to :code:`master` branch, see `below <#updates-from-stable>`__). 
+:code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for the :code:`stable` to :code:`master` branch, see `below <#updates-from-stable>`__).
+
+Major releases
+~~~~~~~~~~~~~~
+
+In preparation for a major (not minor!) release the following additional steps need to be done:
+-  Create a new branch from the master branch of the :code:`votca/votca` repository and also in each of the submodules, e.g. :code:`stable_bump`. 
+   
+   ::
+
+       git checkout master
+       git submodules foreach git checkout master
+       git checkout -b stable_bump
+       git submodules foreach git checkout -b stable_bump
+
+-  Bump the version in each of the CMakeLists files in the :code:`votca/votca` repository and each of the submodules. This can be done by 
+   replacing the string :code:`<major>-dev` by :code:`<major>-rc.1` in the main :code:`CMakeLists.txt` of :code:`votca/votca` and all submodules.
+-  Update the :code:`CHANGELOG.rst` files accordingly, by changing the top most section from :code:`<major>-dev` to :code:`<major>-rc.1`
+-  Commit changes in all submodules and update the submodules in :code:`votca/votca`
+   ::
+
+       git submodules foreach git commit -m "Version bumped to <major>-rc.1"
+       git add -u
+       git commit -m " Version bumped to <major>-rc.1"
+
+-  Push everything, but do NOT make the pull requests yet
+   ::
+
+       git submodules foreach git push origin stable_bump
+       git push origin stable_bump
+
+-  Create a branch, e.g. :code:`master_bump`, in :code:`votca/votca` and all submodules from the current master
+   ::
+
+       git checkout master
+       git submodules foreach git checkout master
+       git checkout -b master_bump
+       git submodules foreach git checkout -b master_bump
+
+-  Bump the version in each of the CMakeLists files in the :code:`votca/votca` repository and each of the submodules. This can be done by 
+   replacing the string :code:`<major>-dev` by :code:`<major+1>-dev` in the main :code:`CMakeLists.txt` of :code:`votca/votca` and all submodules.   
+-  Create a new secion in the :code:`CHANGELOG.rst` files for :code:`<major+1>-dev`
+-  Commit changes in all submodules and update the submodules in :code:`votca/votca`
+   ::
+
+       git submodules foreach git commit -m "Version bumped to <major+1>-dev"
+       git add -u
+       git commit -m " Version bumped to <major+1>-dev"
+
+-  Push everything, but do NOT make the pull requests yet
+   ::
+
+       git submodules foreach git push origin master_bump
+       git push origin master_bump
+
+-  Now, create a PR in :code:`votca/votca` from :code:`master_bump` into :code:`master`
+-  Once merged, create PRs in all submodules from :code:`master_bump` into :code:`master`
+-  Once all of these are merged and the automatically "Update master submodules" PR is merged, start with :code:`stable_bump` PRs
+-  Create a PR in :code:`votca/votca` from the :code:`stable_bump` branch into the :code:`stable` branch
+-  Once merged, create PRs in all submodules from each of the :code:`stable_bump` branches into each of their :code:`stable` branches
+-  Once all of them are merged and merge the automatically "Update stable submodules" PR
+-  Now everything is ready for the automatic release creation by Github Actions
+
+Release names
+~~~~~~~~~~~~~
+
+Some releases have names, so far we have:
+
+-  1.1: SuperAnn - named after the spouse of a core developer
+-  1.2: SuperDoris - named after the administrator at MPI-P (VOTCA's birthplace)
+-  1.3: SuperUzma - named after the spouse of a core developer
+-  1.4: SuperKurt - in occasion of Kurt Kremer's 60th birthday
+-  1.5: SuperVictor - named after Victor Rühle, one of the original core developers
+-  1.6: SuperPelagia - named after the spouse of a core developer
+-  1.6.2: SuperGitta - in memory of the grandmother of a core developer
+
 
 CPP Resources
 -------------
@@ -211,7 +285,7 @@ General
 VOTCA specifics (indexing, ids, units)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This can all be found here `VOTCA\_LANGUAGE\_GUIDE <share/doc/VOTCA_LANGUAGE_GUIDE.rst>`__
+This can all be found here `VOTCA\_LANGUAGE\_GUIDE <VOTCA_LANGUAGE_GUIDE.rst>`__
 
 Testing
 -------
