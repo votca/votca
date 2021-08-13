@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_TRAJECTORYWRITER_H
-#define _VOTCA_CSG_TRAJECTORYWRITER_H
+#ifndef VOTCA_CSG_TRAJECTORYWRITER_H
+#define VOTCA_CSG_TRAJECTORYWRITER_H
 
 // Standard includes
 #include <fstream>
@@ -45,11 +45,11 @@ class TrajectoryWriter {
 
 // important - singleton pattern, make sure factory is created before accessed
 inline FileFormatFactory<TrajectoryWriter> &TrjWriterFactory() {
-  static FileFormatFactory<TrajectoryWriter> _TrjWriterFactory;
-  return _TrjWriterFactory;
+  static FileFormatFactory<TrajectoryWriter> TrjWriterFactory_;
+  return TrjWriterFactory_;
 }
 
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_TRAJECTORYWRITER_H */
+#endif /*  VOTCA_CSG_TRAJECTORYWRITER_H */

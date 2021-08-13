@@ -1,0 +1,55 @@
+LAMMPS data file. 
+ 6 atoms
+ 5 bonds
+ 2 angles
+ 0 dihedrals
+ 0 impropers
+ 2 atom types
+ 2 bond types
+ 1 angle types
+ 0 dihedral types
+ 0 improper types
+ -100 101.0  xlo xhi
+ -100 101.0  ylo yhi
+ -100 101.0  zlo zhi
+
+Masses
+
+1 16.000000
+2 1.000000
+
+Pair Coeffs
+
+1 0.210000 2.959920
+2 0.170000 3.000010
+
+Bond Coeffs
+
+1 344.300000 1.087000
+2 418.300000 1.429000
+
+Angle Coeffs
+
+1 48.460000 120.010000
+
+Atoms
+
+1 1 1 -0.1062000 -22.5210000 18.0870000 1.5060000
+2 1 2 0.0472000 -21.6720010 17.5630000 1.1950000
+3 1 2 0.0472000 -23.2719990 17.3309990 1.7360000
+4 2 2 -0.0084000 -22.9100000 19.2029990 0.5070000
+5 2 2 0.0688000 -21.9800000 19.7400000 0.1950000
+6 2 1 0.0269000 -23.7840000 20.2339990 1.1660000
+
+Bonds
+
+1 1 1 2
+2 1 1 3
+3 1 4 6
+4 1 5 6
+5 1 1 6
+# The last bond is failing because it connects two molecules
+Angles
+
+1 1 2 1 3
+2 1 4 6 5

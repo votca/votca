@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 // Standard includes
 #include <fstream>
+#include <memory>
 
 // VOTCA includes
 #include <votca/tools/tokenizer.h>
@@ -34,28 +35,22 @@ namespace po = boost::program_options;
 
 CGEngine::CGEngine() = default;
 
-CGEngine::~CGEngine() {
-  for (auto &_molecule_def : _molecule_defs) {
-    delete _molecule_def.second;
-  }
-  _molecule_defs.clear();
-}
-
 /**
     \todo melts with different molecules
 */
-TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out) {
-  MoleculeContainer &mols = in.Molecules();
-  TopologyMap *m = new TopologyMap(&in, &out);
-  for (auto mol : mols) {
-    if (IsIgnored(mol->getName())) {
+std::unique_ptr<TopologyMap> CGEngine::CreateCGTopology(const Topology &in,
+                                                        Topology &out) {
+  const MoleculeContainer &mols = in.Molecules();
+  auto m = std::make_unique<TopologyMap>(&in, &out);
+  for (const auto &mol : mols) {
+    if (IsIgnored(mol.getName())) {
       continue;
     }
-    CGMoleculeDef *def = getMoleculeDef(mol->getName());
+    CGMoleculeDef *def = getMoleculeDef(mol.getName());
     if (!def) {
       cout << "--------------------------------------\n"
-           << "WARNING: unknown molecule \"" << mol->getName() << "\" with id "
-           << mol->getId() << " in topology" << endl
+           << "WARNING: unknown molecule \"" << mol.getName() << "\" with id "
+           << mol.getId() << " in topology" << endl
            << "molecule will not be mapped to CG representation\n"
            << "Check weather a mapping file for all molecule exists, was "
               "specified in --cg "
@@ -65,23 +60,22 @@ TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out) {
       continue;
     }
     Molecule *mcg = def->CreateMolecule(out);
-    Map *map = def->CreateMap(*mol, *mcg);
-    m->AddMoleculeMap(map);
+    Map map = def->CreateMap(mol, *mcg);
+    m->AddMoleculeMap(std::move(map));
   }
   out.RebuildExclusions();
   return m;
 }
 
-void CGEngine::LoadMoleculeType(string filename) {
+void CGEngine::LoadMoleculeType(const string &filename) {
   tools::Tokenizer tok(filename, ";");
 
-  for (tools::Tokenizer::iterator iter = tok.begin(); iter != tok.end();
-       ++iter) {
-    CGMoleculeDef *def = new CGMoleculeDef();
-    string file = *iter;
+  for (auto &word : tok) {
+    auto def = std::make_unique<CGMoleculeDef>();
+    string file = word;
     boost::trim(file);
     def->Load(file);
-    _molecule_defs[def->getIdent()] = def;
+    molecule_defs_[def->getIdent()] = std::move(def);
   }
 }
 

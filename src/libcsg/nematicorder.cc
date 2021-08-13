@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,56 +24,56 @@ namespace csg {
 using namespace std;
 
 void NematicOrder::Process(Topology &top, const string &filter) {
-  _mu = Eigen::Matrix3d::Zero();
-  _mv = Eigen::Matrix3d::Zero();
-  _mw = Eigen::Matrix3d::Zero();
+  mu_ = Eigen::Matrix3d::Zero();
+  mv_ = Eigen::Matrix3d::Zero();
+  mw_ = Eigen::Matrix3d::Zero();
   Index N = 0;
   bool bU, bV, bW;
   bU = bV = bW = false;
 
-  for (auto bead : top.Beads()) {
+  for (const auto &bead : top.Beads()) {
 
-    if (!tools::wildcmp(filter, bead->getName())) {
+    if (!tools::wildcmp(filter, bead.getName())) {
       continue;
     }
 
-    if (bead->getSymmetry() == 1) {
+    if (bead.getSymmetry() == 1) {
       continue;
     }
 
-    if (bead->HasU()) {
-      _mu += bead->getU() * bead->getU().transpose();
-      _mu.diagonal().array() -= 1. / 3.;
+    if (bead.HasU()) {
+      mu_ += bead.getU() * bead.getU().transpose();
+      mu_.diagonal().array() -= 1. / 3.;
       bU = true;
     }
 
-    if (bead->HasV()) {
-      _mu += bead->getV() * bead->getV().transpose();
-      _mu.diagonal().array() -= 1. / 3.;
+    if (bead.HasV()) {
+      mu_ += bead.getV() * bead.getV().transpose();
+      mu_.diagonal().array() -= 1. / 3.;
       bV = true;
     }
 
-    if (bead->HasW()) {
-      _mu += bead->getW() * bead->getW().transpose();
-      _mu.diagonal().array() -= 1. / 3.;
+    if (bead.HasW()) {
+      mu_ += bead.getW() * bead.getW().transpose();
+      mu_.diagonal().array() -= 1. / 3.;
       bW = true;
     }
     N++;
   }
 
   double f = 1. / (double)N * 3. / 2.;
-  _mu = f * _mu;
-  _mv = f * _mv;
-  _mw = f * _mw;
+  mu_ = f * mu_;
+  mv_ = f * mv_;
+  mw_ = f * mw_;
 
   if (bU) {
-    _nemat_u.computeDirect(_mu);
+    nemat_u_.computeDirect(mu_);
   }
   if (bV) {
-    _nemat_v.computeDirect(_mv);
+    nemat_v_.computeDirect(mv_);
   }
   if (bW) {
-    _nemat_w.computeDirect(_mw);
+    nemat_w_.computeDirect(mw_);
   }
 }
 

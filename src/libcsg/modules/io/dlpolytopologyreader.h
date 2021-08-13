@@ -59,24 +59,24 @@ class DLPOLYTopologyReader : public TopologyReader {
 
   /// set the topology file name: <name>.dlpf (convention: ".dlpf"="FIELD")
   void setFname(std::string name) {
-    _fname = name;
+    fname_ = name;
     return;
   }
   /// get the topology file name: <name>.dlpf (convention: ".dlpf"="FIELD")
-  std::string getFname() { return _fname; }
+  std::string getFname() { return fname_; }
 
  private:
-  std::string _fname;
+  std::string fname_;
   /// function to find and read the next line starting with a keyword/directive
   /// (skipping comments starting with "#" or ";")
-  std::string _NextKeyline(std::ifstream &fs, const char *wspace);
+  std::string NextKeyline_(std::ifstream &fs, const char *wspace);
   /// function to read the next line containing only a given keyword and an
   /// integer value after it (only skipping comments!)
-  std::string _NextKeyInt(std::ifstream &fs, const char *wspace,
+  std::string NextKeyInt_(std::ifstream &fs, const char *wspace,
                           const std::string &word, Index &ival);
   /// function to check if the given (last read) directive line starts with a
   /// given keyword and has an integer value at the end
-  bool _isKeyInt(const std::string &line, const char *wspace,
+  bool isKeyInt_(const std::string &line, const char *wspace,
                  const std::string &word, Index &ival);
 };
 

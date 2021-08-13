@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_CGOBSERVER_H
-#define _VOTCA_CSG_CGOBSERVER_H
+#ifndef VOTCA_CSG_CGOBSERVER_H
+#define VOTCA_CSG_CGOBSERVER_H
 
 #include "topology.h"
 
@@ -29,7 +29,7 @@ namespace csg {
    Each application which performs analysis operations should use CGEngine. It
    offers a hook (callback class) during the coarse-graining process to evaluate
    each frame. The user does not have to take care about mapping and other
-   stoff. Just oberload this class and analyze properties of interest.
+   stuff. Just overload this class and analyze properties of interest.
 
  */
 
@@ -47,4 +47,4 @@ class CGObserver {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_CGOBSERVER_H */
+#endif /*  VOTCA_CSG_CGOBSERVER_H */

@@ -76,12 +76,12 @@ class GMXTrajectoryReader : public TrajectoryReader {
   void Close() override;
 
  private:
-  std::string _filename;
+  std::string filename_;
 
-  // gmx status used in read_first_frame and _read_next_frame;
-  t_trxstatus *_gmx_status;
+  // gmx status used in read_first_frame and  read_next_frame_;
+  t_trxstatus *gmx_status_;
   /// gmx frame
-  t_trxframe _gmx_frame;
+  t_trxframe gmx_frame_;
 };
 
 }  // namespace csg

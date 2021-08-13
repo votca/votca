@@ -1,5 +1,5 @@
 This folder contains some small analysis programs which are written
-based on the votca csg framework, but are not useful for the broad
+based on the VOTCA csg framework, but are not useful for the broad
 public.
 
 Programs

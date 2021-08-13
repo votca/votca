@@ -37,34 +37,34 @@ using namespace boost;
 using namespace std;
 
 bool PDBReader::ReadTopology(string file, Topology &top) {
-  _topology = true;
+  topology_ = true;
   top.Cleanup();
 
-  _fl.open(file);
-  if (!_fl.is_open()) {
+  fl_.open(file);
+  if (!fl_.is_open()) {
     throw std::ios_base::failure("Error on open topology file: " + file);
   }
 
   NextFrame(top);
-  _fl.close();
+  fl_.close();
 
   return true;
 }
 
 bool PDBReader::Open(const string &file) {
 
-  _fl.open(file);
-  if (!_fl.is_open()) {
+  fl_.open(file);
+  if (!fl_.is_open()) {
     throw std::ios_base::failure("Error on open trajectory file: " + file);
   }
 
   return true;
 }
 
-void PDBReader::Close() { _fl.close(); }
+void PDBReader::Close() { fl_.close(); }
 
 bool PDBReader::FirstFrame(Topology &top) {
-  _topology = false;
+  topology_ = false;
   return NextFrame(top);
 }
 
@@ -103,7 +103,7 @@ bool PDBReader::NextFrame(Topology &top) {
   // Read in information from .pdb file
   ////////////////////////////////////////////////////////////////////////////////
   Index bead_count = 0;
-  while (tools::getline(_fl, line)) {
+  while (tools::getline(fl_, line)) {
     if (tools::wildcmp("CRYST1*", line)) {
       string a, b, c, alpha, beta, gamma;
       try {
@@ -144,7 +144,7 @@ bool PDBReader::NextFrame(Topology &top) {
       top.setBox(box);
     }
     // Only read the CONECT keyword if the topology is set too true
-    if (_topology && tools::wildcmp("CONECT*", line)) {
+    if (topology_ && tools::wildcmp("CONECT*", line)) {
       vector<string> bonded_atms;
       string atm1;
       // Keep track of the number of bonds
@@ -262,7 +262,7 @@ bool PDBReader::NextFrame(Topology &top) {
 
       Bead *b;
       // Only read the CONECT keyword if the topology is set too true
-      if (_topology) {
+      if (topology_) {
         Index resnr;
         try {
           resnr = boost::lexical_cast<Index>(resNum);
@@ -346,12 +346,12 @@ bool PDBReader::NextFrame(Topology &top) {
       bead_vec.push_back(b);
     }
 
-    if ((line == "ENDMDL") || (line == "END") || (_fl.eof())) {
+    if ((line == "ENDMDL") || (line == "END") || (fl_.eof())) {
       break;
     }
   }
 
-  if (!_topology && (bead_count > 0) && bead_count != top.BeadCount()) {
+  if (!topology_ && (bead_count > 0) && bead_count != top.BeadCount()) {
     throw std::runtime_error(
         "number of beads in topology and trajectory differ");
   }
@@ -362,7 +362,7 @@ bool PDBReader::NextFrame(Topology &top) {
 
   // Extra processing is done if the file is a topology file, in which case the
   // atoms must be sorted into molecules and the bond interactions recorded
-  if (_topology) {
+  if (topology_) {
     // Now we need to add the bond pairs
     // WARNING We are assuming the atom ids are contiguous with no gaps
 
@@ -521,7 +521,7 @@ bool PDBReader::NextFrame(Topology &top) {
     top.RebuildExclusions();
   }
 
-  return !_fl.eof();
+  return !fl_.eof();
 }
 }  // namespace csg
 }  // namespace votca

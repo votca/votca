@@ -65,24 +65,24 @@ class DLPOLYTrajectoryReader : public TrajectoryReader {
   /// set/get the original configuration or trajectory file name:
   /// <name>.dlpc/<name>.dlph (convention: ".dlpc"="CONFIG", ".dlph"="HISTORY")
   void setFname(std::string name) {
-    _fname = name;
+    fname_ = name;
     return;
   }
-  std::string getFname() { return _fname; }
+  std::string getFname() { return fname_; }
 
   /// set/check the flag for the read-in file as configuration, i.e. not
   /// trajectory format
   void setIsConfig(bool isConf) {
-    _isConfig = isConf;
+    isConfig_ = isConf;
     return;
   }
-  bool getIsConfig() { return _isConfig; }
+  bool getIsConfig() { return isConfig_; }
 
  private:
-  std::ifstream _fl;
-  std::string _fname;
-  bool _first_frame;
-  bool _isConfig;
+  std::ifstream fl_;
+  std::string fname_;
+  bool first_frame_;
+  bool isConfig_;
 };
 
 }  // namespace csg

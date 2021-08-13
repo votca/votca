@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,21 @@
  *
  */
 
-#include "../../include/votca/csg/csgapplication.h"
-#include "../../include/votca/csg/version.h"
-#include "csg_stat_imc.h"
-#include <boost/program_options.hpp>
+// Standard includes
 #include <cstdlib>
 #include <fstream>
-#include <iostream>
+#include <memory>
 
-// using namespace votca::tools;
+// Third party includes
+#include <boost/program_options.hpp>
+
+// Local VOTCA includes
+#include "votca/csg/csgapplication.h"
+#include "votca/csg/version.h"
+
+// Local private VOTCA includes
+#include "csg_stat_imc.h"
+
 using namespace std;
 using namespace votca::csg;
 
@@ -43,16 +49,18 @@ class CsgStatApp : public CsgApplication {
   void BeginEvaluate(Topology *top, Topology *top_ref) override;
   void EndEvaluate() override;
 
-  CsgApplication::Worker *ForkWorker() override { return _imc.ForkWorker(); }
+  std::unique_ptr<CsgApplication::Worker> ForkWorker() override {
+    return imc_.ForkWorker();
+  }
 
   void MergeWorker(CsgApplication::Worker *worker) override {
-    _imc.MergeWorker(worker);
+    imc_.MergeWorker(worker);
   }
 
  public:
-  Imc _imc;
-  votca::Index _block_length;
-  string _extension;
+  Imc imc_;
+  votca::Index block_length_;
+  string extension_;
 };
 
 void CsgStatApp::HelpText(ostream &out) {
@@ -72,19 +80,13 @@ void CsgStatApp::Initialize() {
                                         boost::program_options::value<string>(),
                                         "  options file for coarse graining")(
       "do-imc", "  write out additional Inverse Monte Carlo data")(
+      "include-intra", "  do not exclude intramolecular neighbors")(
       "block-length", boost::program_options::value<votca::Index>(),
-      "  write blocks of "
-      "this length, the "
-      "averages are cleared "
-      "after every "
+      "  write blocks of this length, the averages are cleared after every "
       "write")("ext",
-               boost::program_options::value<string>(&_extension)
-                   ->default_value("dist"
-                                   ".ne"
-                                   "w"),
-               "Extension "
-               "of the "
-               "output");
+               boost::program_options::value<string>(&extension_)
+                   ->default_value("dist.new"),
+               "Extension of the output");
 }
 
 bool CsgStatApp::EvaluateOptions() {
@@ -92,29 +94,33 @@ bool CsgStatApp::EvaluateOptions() {
   CheckRequired("options");
   CheckRequired("trj", "no trajectory file specified");
 
-  _imc.LoadOptions(OptionsMap()["options"].as<string>());
+  imc_.LoadOptions(OptionsMap()["options"].as<string>());
 
   if (OptionsMap().count("block-length")) {
-    _imc.BlockLength(OptionsMap()["block-length"].as<votca::Index>());
+    imc_.BlockLength(OptionsMap()["block-length"].as<votca::Index>());
   } else {
-    _imc.BlockLength(0);
+    imc_.BlockLength(0);
   }
 
   if (OptionsMap().count("do-imc")) {
-    _imc.DoImc(true);
+    imc_.DoImc(true);
   }
 
-  _imc.Extension(_extension);
+  if (OptionsMap().count("include-intra")) {
+    imc_.IncludeIntra(true);
+  }
 
-  _imc.Initialize();
+  imc_.Extension(extension_);
+
+  imc_.Initialize();
   return true;
 }
 
 void CsgStatApp::BeginEvaluate(Topology *top, Topology *top_ref) {
-  _imc.BeginEvaluate(top, top_ref);
+  imc_.BeginEvaluate(top, top_ref);
 }
 
-void CsgStatApp::EndEvaluate() { _imc.EndEvaluate(); }
+void CsgStatApp::EndEvaluate() { imc_.EndEvaluate(); }
 
 int main(int argc, char **argv) {
   CsgStatApp app;

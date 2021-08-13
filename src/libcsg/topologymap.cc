@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,21 +22,13 @@
 namespace votca {
 namespace csg {
 
-TopologyMap::~TopologyMap() {
-
-  for (auto& _map : _maps) {
-    delete _map;
-  }
-  _maps.clear();
-}
-
 void TopologyMap::Apply() {
-  _out->setStep(_in->getStep());
-  _out->setTime(_in->getTime());
-  _out->setBox(_in->getBox());
+  out_->setStep(in_->getStep());
+  out_->setTime(in_->getTime());
+  out_->setBox(in_->getBox());
 
-  for (auto& _map : _maps) {
-    _map->Apply(_out->getBoundary());
+  for (auto& map_ : maps_) {
+    map_.Apply(out_->getBoundary());
   }
 }
 

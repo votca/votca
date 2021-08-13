@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,6 +32,17 @@ if [[ ${#names[@]} -gt 1 ]]; then
   msg --color blue "####################################################"
 fi
 
-[[ -n $(csg_get_property --allow-empty cg.bonded.name) ]] && die "IMC does not support bonded interactions, go and implement it"
+check_bonded_update() {
+  local do_potential=$(csg_get_interaction_property inverse.do_potential)
+  local imc_group=$(csg_get_interaction_property inverse.imc.group)
+  if [[ $do_potential != 0 ]] || [[ $imc_group != "none" ]]; then
+    die_msg="using IMC for bonded potentials is not implemented yet.\n"\
+"Make sure to set update_potential to 0 and imc.group to 'none' for\n"\
+"each bonded interaction. You can still use post_update ibi."
+    die "$die_msg"
+  fi
+}
+export -f check_bonded_update
+for_all "bonded" check_bonded_update
 
 do_external prepare generic

@@ -56,17 +56,50 @@ my @pot_flags_cur;
 (readin_table($cur_pot_file,@pot_r_cur,@pot_cur,@pot_flags_cur)) || die "$progname: error at readin_table\n";
 
 #should never happen due to resample, but better check
-die "Different grids \n" if (($r_aim[1]-$r_aim[0]-$r_cur[1]+$r_cur[0])>0.0001);
+die "Different grids \n" if (($r_aim[1]-$r_aim[0]-$r_cur[1]+$r_cur[0]) > 0.0001);
 die "Different start potential point \n" if (($r_aim[0]-$r_cur[0]) > 0.0001);
 die "Different end potential point \n" if ( $#r_aim != $#r_cur );
 
 my $outfile="$ARGV[3]";
 my @dpot;
 my @flag;
-my $value=0.0;
 
-#start from the end to make the begining have the last value
-for (my $i=$#r_aim;$i>=0;$i--){
+# return the index of largest value in an array
+sub maxindex {
+  my $index = 0;
+  my $max = 0.0;
+  for my $i (0 .. $#_) {
+    if ($_[$i] > $max) {
+      $max = $_[$i];
+      $index = $i;
+    }
+  }
+  return $index;
+}
+
+my $ndx_max_rdf_cur = maxindex(@rdf_cur);
+
+# go from ndx_max_rdf to end of table and fill the end with the last valid value encountered
+my $value=0.0;
+for (my $i=$ndx_max_rdf_cur;$i<=$#r_aim;$i++){
+  if (($rdf_aim[$i] > 1e-10) && ($rdf_cur[$i] > 1e-10)) {
+    $dpot[$i]=log($rdf_cur[$i]/$rdf_aim[$i])*$pref;
+    $flag[$i]="i";
+  } else {
+    $dpot[$i]=$value;
+    $flag[$i]="o";
+  }
+  if($pot_flags_cur[$i] =~ /[u]/) {
+    $dpot[$i]=$value;
+    $flag[$i]="o";
+  }
+  else {
+    $value=$dpot[$i];
+  }
+}
+# go from ndx_max_rdf to beginning of table and fill the end with the last valid value encountered
+$value=0.0;
+for (my $i=$ndx_max_rdf_cur-1;$i>=0;$i--){
   if (($rdf_aim[$i] > 1e-10) && ($rdf_cur[$i] > 1e-10)) {
     $dpot[$i]=log($rdf_cur[$i]/$rdf_aim[$i])*$pref;
     $flag[$i]="i";

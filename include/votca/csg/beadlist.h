@@ -49,22 +49,22 @@ class BeadList {
   Index GenerateInSphericalSubvolume(Topology &top, const std::string &select,
                                      Eigen::Vector3d ref, double radius);
 
-  Index size() const { return _beads.size(); }
+  Index size() const { return beads_.size(); }
 
-  bool empty() const { return _beads.empty(); }
+  bool empty() const { return beads_.empty(); }
 
-  void push_back(Bead *bead) { _beads.push_back(bead); }
+  void push_back(Bead *bead) { beads_.push_back(bead); }
 
   using iterator = typename std::vector<Bead *>::iterator;
 
-  iterator begin() { return _beads.begin(); }
-  iterator end() { return _beads.end(); }
+  iterator begin() { return beads_.begin(); }
+  iterator end() { return beads_.end(); }
 
-  const Topology &getTopology() const { return *_topology; }
+  const Topology &getTopology() const { return *topology_; }
 
  private:
-  std::vector<Bead *> _beads;
-  Topology *_topology = nullptr;
+  std::vector<Bead *> beads_;
+  Topology *topology_ = nullptr;
 };
 
 }  // namespace csg

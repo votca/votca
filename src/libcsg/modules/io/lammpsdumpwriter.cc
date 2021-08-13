@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,52 +27,50 @@ using namespace std;
 using namespace votca::tools;
 
 void LAMMPSDumpWriter::Open(std::string file, bool bAppend) {
-  _out = fopen(file.c_str(), bAppend ? "at" : "wt");
+  out_ = fopen(file.c_str(), bAppend ? "at" : "wt");
 }
 
-void LAMMPSDumpWriter::Close() { fclose(_out); }
+void LAMMPSDumpWriter::Close() { fclose(out_); }
 
 void LAMMPSDumpWriter::Write(Topology *conf) {
   Topology *top = conf;
   Eigen::Matrix3d box = conf->getBox();
-  fprintf(_out, "ITEM: TIMESTEP\n%ld\n", top->getStep());
-  fprintf(_out, "ITEM: NUMBER OF ATOMS\n%li\n", (Index)top->Beads().size());
-  fprintf(_out, "ITEM: BOX BOUNDS pp pp pp\n");
-  fprintf(_out, "0 %f\n0 %f\n0 %f\n", box(0, 0) * conv::nm2ang,
+  fprintf(out_, "ITEM: TIMESTEP\n%ld\n", top->getStep());
+  fprintf(out_, "ITEM: NUMBER OF ATOMS\n%li\n", (Index)top->Beads().size());
+  fprintf(out_, "ITEM: BOX BOUNDS pp pp pp\n");
+  fprintf(out_, "0 %f\n0 %f\n0 %f\n", box(0, 0) * conv::nm2ang,
           box(1, 1) * conv::nm2ang, box(2, 2) * conv::nm2ang);
 
-  fprintf(_out, "ITEM: ATOMS id type x y z");
+  fprintf(out_, "ITEM: ATOMS id type x y z");
   bool v = top->HasVel();
   if (v) {
-    fprintf(_out, " vx vy vz");
+    fprintf(out_, " vx vy vz");
   }
   bool f = top->HasForce();
   if (f) {
-    fprintf(_out, " fx fy fz");
+    fprintf(out_, " fx fy fz");
   }
-  fprintf(_out, "\n");
+  fprintf(out_, "\n");
 
-  for (BeadContainer::iterator iter = conf->Beads().begin();
-       iter != conf->Beads().end(); ++iter) {
-    Bead *bi = *iter;
+  for (const Bead &bead : conf->Beads()) {
+    Index type_id = conf->getBeadTypeId(bead.getType());
 
-    Index type_id = conf->getBeadTypeId(bi->getType());
-
-    fprintf(_out, "%ld %li", bi->getId() + 1, type_id);
-    fprintf(_out, " %f %f %f", bi->getPos().x() * conv::nm2ang,
-            bi->getPos().y() * conv::nm2ang, bi->getPos().z() * conv::nm2ang);
+    fprintf(out_, "%ld %li", bead.getId() + 1, type_id);
+    fprintf(out_, " %f %f %f", bead.getPos().x() * conv::nm2ang,
+            bead.getPos().y() * conv::nm2ang, bead.getPos().z() * conv::nm2ang);
     if (v) {
-      fprintf(_out, " %f %f %f", bi->getVel().x() * conv::nm2ang,
-              bi->getVel().y() * conv::nm2ang, bi->getVel().z() * conv::nm2ang);
+      fprintf(out_, " %f %f %f", bead.getVel().x() * conv::nm2ang,
+              bead.getVel().y() * conv::nm2ang,
+              bead.getVel().z() * conv::nm2ang);
     }
     if (f) {
-      fprintf(_out, " %f %f %f", bi->getF().x() * conv::kj2kcal / conv::nm2ang,
-              bi->getF().y() * conv::kj2kcal / conv::nm2ang,
-              bi->getF().z() * conv::kj2kcal / conv::nm2ang);
+      fprintf(out_, " %f %f %f", bead.getF().x() * conv::kj2kcal / conv::nm2ang,
+              bead.getF().y() * conv::kj2kcal / conv::nm2ang,
+              bead.getF().z() * conv::kj2kcal / conv::nm2ang);
     }
-    fprintf(_out, "\n");
+    fprintf(out_, "\n");
   }
-  fflush(_out);
+  fflush(out_);
 }
 
 }  // namespace csg

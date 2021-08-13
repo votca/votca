@@ -51,9 +51,9 @@ class NBList : public PairList<Bead *, BeadPair> {
   }
 
   /// set the cutoff for the neighbour search
-  void setCutoff(double cutoff) { _cutoff = cutoff; }
+  void setCutoff(double cutoff) { cutoff_ = cutoff; }
   /// get the cutoff for the neighbour search
-  double getCutoff() const { return _cutoff; }
+  double getCutoff() const { return cutoff_; }
 
   /**
    *  \brief match function for class member functions
@@ -89,9 +89,9 @@ class NBList : public PairList<Bead *, BeadPair> {
 
  protected:
   /// cutoff
-  double _cutoff;
+  double cutoff_;
   /// take into account exclusions from topolgoy
-  bool _do_exclusions;
+  bool do_exclusions_;
 
   /// policy function to create new bead types
   template <typename pair_type>
@@ -102,7 +102,7 @@ class NBList : public PairList<Bead *, BeadPair> {
 
   using pair_creator_t = BeadPair *(*)(Bead *, Bead *, const Eigen::Vector3d &);
   /// the current bead pair creator function
-  pair_creator_t _pair_creator;
+  pair_creator_t pair_creator_;
 
  protected:
   /// Functor for match function to be able to set member and non-member
@@ -121,39 +121,39 @@ class NBList : public PairList<Bead *, BeadPair> {
    public:
     using fkt_t = bool (T::*)(Bead *, Bead *, const Eigen::Vector3d &, double);
 
-    FunctorMember(T *cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
+    FunctorMember(T *cls, fkt_t fkt) : cls_(cls), fkt_(fkt) {}
 
     bool operator()(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
                     double dist) override {
-      return (_cls->*_fkt)(b1, b2, r, dist);
+      return (cls_->*fkt_)(b1, b2, r, dist);
     }
 
    private:
-    T *_cls;
-    fkt_t _fkt;
+    T *cls_;
+    fkt_t fkt_;
   };
 
   /// Functor for non-member functions
   class FunctorNonMember : public Functor {
    public:
     using fkt_t = bool (*)(Bead *, Bead *, const Eigen::Vector3d &, double);
-    FunctorNonMember(fkt_t fkt) : _fkt(fkt) {}
+    FunctorNonMember(fkt_t fkt) : fkt_(fkt) {}
 
     bool operator()(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
                     double dist) override {
-      return (*_fkt)(b1, b2, r, dist);
+      return (*fkt_)(b1, b2, r, dist);
     }
 
    private:
-    fkt_t _fkt;
+    fkt_t fkt_;
   };
 
-  std::unique_ptr<Functor> _match_function;
+  std::unique_ptr<Functor> match_function_;
 };
 
 template <typename pair_type>
 void NBList::setPairType() {
-  _pair_creator = NBList::beadpair_create_policy<pair_type>;
+  pair_creator_ = NBList::beadpair_create_policy<pair_type>;
 }
 
 template <typename T>
@@ -161,13 +161,13 @@ inline void NBList::SetMatchFunction(T *object,
                                      bool (T::*fkt)(Bead *, Bead *,
                                                     const Eigen::Vector3d &,
                                                     double)) {
-  _match_function.reset(new FunctorMember<T>(object, fkt));
+  match_function_.reset(new FunctorMember<T>(object, fkt));
 }
 
 inline void NBList::SetMatchFunction(bool (*fkt)(Bead *, Bead *,
                                                  const Eigen::Vector3d &,
                                                  double)) {
-  _match_function.reset(new FunctorNonMember(fkt));
+  match_function_.reset(new FunctorNonMember(fkt));
 }
 
 }  // namespace csg

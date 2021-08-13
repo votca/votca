@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,61 +45,68 @@ class Interaction;
 class Molecule {
  public:
   /// get the molecule ID
-  Index getId() const { return _id; }
+  Index getId() const { return id_; }
 
   /// get the name of the molecule
-  const std::string &getName() const { return _name; }
+  const std::string &getName() const { return name_; }
 
   /// set the name of the molecule
-  void setName(const std::string &name) { _name = name; }
+  void setName(const std::string &name) { name_ = name; }
 
   /// Add a bead to the molecule
   void AddBead(Bead *bead, const std::string &name);
   /// get the id of a bead in the molecule
-  Bead *getBead(Index bead) { return _beads[bead]; }
-  Index getBeadId(Index bead) { return _beads[bead]->getId(); }
-  Index getBeadIdByName(const std::string &name);
+  Bead *getBead(Index bead) { return beads_[bead]; }
+  const Bead *getBead(Index bead) const { return beads_[bead]; }
+  Index getBeadId(Index bead) const { return beads_[bead]->getId(); }
+  Index getBeadIdByName(const std::string &name) const;
 
   /// get the number of beads in the molecule
-  Index BeadCount() const { return _beads.size(); }
+  Index BeadCount() const { return beads_.size(); }
 
-  const std::vector<Bead *> &Beads() const { return _beads; }
-  std::vector<Bead *> &Beads() { return _beads; }
+  const std::vector<Bead *> &Beads() const { return beads_; }
+  std::vector<Bead *> &Beads() { return beads_; }
   /// find a bead by it's name
-  Index getBeadByName(const std::string &name);
-  std::string getBeadName(Index bead) { return _bead_names[bead]; }
+  Index getBeadByName(const std::string &name) const;
+  std::string getBeadName(const Index bead) { return bead_names_[bead]; }
+  const std::string &getBeadName(const Index bead) const {
+    return bead_names_[bead];
+  }
 
   /// Add an interaction to the molecule
-  void AddInteraction(Interaction *ic) { _interactions.push_back(ic); }
+  void AddInteraction(Interaction *ic) { interactions_.push_back(ic); }
 
-  std::vector<Interaction *> Interactions() { return _interactions; }
+  std::vector<Interaction *> Interactions() { return interactions_; }
+  const std::vector<Interaction *> &Interactions() const {
+    return interactions_;
+  }
 
  private:
   // maps a name to a bead id
-  std::map<std::string, Index> _beadmap;
-  std::vector<Interaction *> _interactions;
+  std::map<std::string, Index> beadmap_;
+  std::vector<Interaction *> interactions_;
 
   // id of the molecules
-  Index _id;
+  Index id_;
 
   // name of the molecule
-  std::string _name;
+  std::string name_;
   // the beads in the molecule
-  std::vector<Bead *> _beads;
-  std::vector<std::string> _bead_names;
+  std::vector<Bead *> beads_;
+  std::vector<std::string> bead_names_;
 
   /// constructor
-  Molecule(Index id, std::string name) : _id(id), _name(name) {}
+  Molecule(Index id, std::string name) : id_(id), name_(name) {}
 
   friend class Topology;
 };
 
-inline Index Molecule::getBeadIdByName(const std::string &name) {
+inline Index Molecule::getBeadIdByName(const std::string &name) const {
   Index i = getBeadByName(name);
   if (i < 0) {
-    { return i; }
+    return i;
   }
-  return _beads[i]->getId();
+  return beads_[i]->getId();
 }
 
 }  // namespace csg
