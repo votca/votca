@@ -37,7 +37,7 @@ void Correlate::CalcCorrelations(DataCollection<double>::selection &data) {
     ym /= Nd;
     double norm = std::sqrt((xsq - Nd * xm * xm) * (ysq - Nd * ym * ym));
     p = (p - Nd * xm * ym) / norm;
-    _corr.push_back(p);
+    corr_.push_back(p);
   }
 }
 

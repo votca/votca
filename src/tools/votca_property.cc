@@ -34,57 +34,54 @@ using namespace std;
 using namespace votca::tools;
 namespace po = boost::program_options;
 
-class VotcaProperty : public Application {
+class VotcaProperty final : public Application {
 
  public:
-  VotcaProperty();
-  ~VotcaProperty() override;
+  VotcaProperty() = default;
+  ~VotcaProperty() = default;
 
-  string ProgramName() override { return "votca_property"; }
+  string ProgramName() { return "votca_property"; }
 
-  void HelpText(ostream& out) override {
-    out << "Helper for parsing XML files";
-  }
+  void HelpText(ostream& out) { out << "Helper for parsing XML files"; }
 
-  void Initialize() override {
+  void Initialize() {
 
     format = "XML";
     level = 1;
 
     AddProgramOptions()("file", po::value<string>(), "xml file to parse")(
         "format", po::value<string>(),
-        "output format [XML TXT TEX]")("level", po::value<votca::Index>(),
-                                       "output from this level ");
+        "output format [XML TXT]")("level", po::value<votca::Index>(),
+                                   "output from this level ");
   };
 
-  bool EvaluateOptions() override {
+  bool EvaluateOptions() {
     CheckRequired("file", "Missing XML file");
     return true;
   };
 
-  void Run() override {
+  void Run() {
 
-    file = _op_vm["file"].as<string>();
+    file = OptionsMap()["file"].as<string>();
 
-    if (_op_vm.count("format")) {
-      format = _op_vm["format"].as<string>();
+    if (OptionsMap().count("format")) {
+      format = OptionsMap()["format"].as<string>();
     }
-    if (_op_vm.count("level")) {
-      level = _op_vm["level"].as<votca::Index>();
+    if (OptionsMap().count("level")) {
+      level = OptionsMap()["level"].as<votca::Index>();
     }
 
     try {
 
       Property p;
-      map<string, PropertyIOManipulator*> _mformat;
-      _mformat["XML"] = &XML;
-      _mformat["TXT"] = &TXT;
-      _mformat["TEX"] = &TEX;
-      _mformat["HLP"] = &HLP;
+      map<string, PropertyIOManipulator*> mformat_;
+      mformat_["XML"] = &XML;
+      mformat_["TXT"] = &TXT;
+      mformat_["HLP"] = &HLP;
       p.LoadFromXML(file);
 
-      if (_mformat.find(format) != _mformat.end()) {
-        PropertyIOManipulator* piom = _mformat.find(format)->second;
+      if (mformat_.find(format) != mformat_.end()) {
+        PropertyIOManipulator* piom = mformat_.find(format)->second;
         piom->setLevel(level);
         piom->setIndentation("");
         piom->setColorScheme<csRGB>();
@@ -103,10 +100,6 @@ class VotcaProperty : public Application {
   string format;
   votca::Index level;
 };
-
-VotcaProperty::VotcaProperty(void) = default;
-
-VotcaProperty::~VotcaProperty(void) = default;
 
 int main(int argc, char** argv) {
   VotcaProperty vp;

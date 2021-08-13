@@ -41,7 +41,7 @@ class Mutex {
   void Unlock();
 
  private:
-  pthread_mutex_t _mutexVar;
+  pthread_mutex_t mutexVar_;
 };
 
 }  // namespace tools

@@ -28,93 +28,93 @@ namespace tools {
 
 Histogram::Histogram() = default;
 
-Histogram::Histogram(const options_t& op) : _options(op) {}
+Histogram::Histogram(const options_t& op) : options_(op) {}
 
 Histogram::~Histogram() = default;
 
 void Histogram::ProcessData(DataCollection<double>::selection* data) {
 
-  _pdf.assign(_options._n, 0);
+  pdf_.assign(options_.n_, 0);
 
-  if (_options._auto_interval) {
-    _min = std::numeric_limits<double>::max();
-    _max = std::numeric_limits<double>::min();
-    _options._extend_interval = true;
+  if (options_.auto_interval_) {
+    min_ = std::numeric_limits<double>::max();
+    max_ = std::numeric_limits<double>::min();
+    options_.extend_interval_ = true;
   } else {
-    _min = _options._min;
-    _max = _options._max;
+    min_ = options_.min_;
+    max_ = options_.max_;
   }
   for (auto& array : *data) {
-    if (_options._extend_interval || _options._auto_interval) {
+    if (options_.extend_interval_ || options_.auto_interval_) {
       for (auto& value : *array) {
-        _min = std::min(value, _min);
-        _max = std::max(value, _max);
+        min_ = std::min(value, min_);
+        max_ = std::max(value, max_);
       }
     }
   }
 
-  _interval = (_max - _min) / (double)(_options._n - 1);
+  interval_ = (max_ - min_) / (double)(options_.n_ - 1);
 
   double v = 1.;
   for (auto& array : *data) {
     for (auto& value : *array) {
-      Index ii = (Index)floor((value - _min) / _interval +
+      Index ii = (Index)floor((value - min_) / interval_ +
                               0.5);  // the interval should
                                      // be centered around
                                      // the sampling point
-      if (ii < 0 || ii >= _options._n) {
-        if (_options._periodic) {
+      if (ii < 0 || ii >= options_.n_) {
+        if (options_.periodic_) {
           while (ii < 0) {
-            ii += _options._n;
+            ii += options_.n_;
           }
-          ii = ii % _options._n;
+          ii = ii % options_.n_;
         } else {
           continue;
         }
       }
-      _pdf[ii] += v;
+      pdf_[ii] += v;
     }
   }
 
-  if (_options._scale == "bond") {
-    for (size_t i = 0; i < _pdf.size(); ++i) {
-      double r = _min + _interval * (double)i;
+  if (options_.scale_ == "bond") {
+    for (size_t i = 0; i < pdf_.size(); ++i) {
+      double r = min_ + interval_ * (double)i;
       if (std::fabs(r) < 1e-10) {
-        r = _min + _interval * (double)(i + 1);
-        _pdf[i] = _pdf[i + 1];
+        r = min_ + interval_ * (double)(i + 1);
+        pdf_[i] = pdf_[i + 1];
       }
-      _pdf[i] /= (r * r);
+      pdf_[i] /= (r * r);
     }
-  } else if (_options._scale == "angle") {
-    for (size_t i = 0; i < _pdf.size(); ++i) {
-      double alpha = _min + _interval * (double)i;
+  } else if (options_.scale_ == "angle") {
+    for (size_t i = 0; i < pdf_.size(); ++i) {
+      double alpha = min_ + interval_ * (double)i;
       double sa = sin(alpha);
       if (std::fabs(sa) < 1e-5) {
-        if (i < _pdf.size() - 1) {
-          alpha = _min + _interval * (double)(i + 1);
-          _pdf[i] = _pdf[i + 1] / sin(alpha);
+        if (i < pdf_.size() - 1) {
+          alpha = min_ + interval_ * (double)(i + 1);
+          pdf_[i] = pdf_[i + 1] / sin(alpha);
         } else {
-          _pdf[i] = _pdf[i - 1];
+          pdf_[i] = pdf_[i - 1];
         }
 
       } else {
-        _pdf[i] /= sa;
+        pdf_[i] /= sa;
       }
     }
   }
 
-  if (_options._periodic) {
-    _pdf[0] = (_pdf[0] + _pdf[_options._n - 1]);
-    _pdf[_options._n - 1] = _pdf[0];
+  if (options_.periodic_) {
+    pdf_[0] = (pdf_[0] + pdf_[options_.n_ - 1]);
+    pdf_[options_.n_ - 1] = pdf_[0];
   }
-  if (_options._normalize) {
+  if (options_.normalize_) {
     Normalize();
   }
 }
 
 void Histogram::Normalize() {
-  double norm = 1. / (_interval * accumulate(_pdf.begin(), _pdf.end(), 0.0));
-  std::transform(_pdf.begin(), _pdf.end(), _pdf.begin(),
+  double norm = 1. / (interval_ * accumulate(pdf_.begin(), pdf_.end(), 0.0));
+  std::transform(pdf_.begin(), pdf_.end(), pdf_.begin(),
                  std::bind2nd(std::multiplies<double>(), norm));
 }
 
