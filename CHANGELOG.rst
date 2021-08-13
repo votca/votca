@@ -3,7 +3,9 @@ For more detailed information about the changes see the history of the
 
 Version 2021.2 (released XX.07.21)
 ==================================
+
 -  changed tolerance for getting element names from mass (#378)
+-  format code with clang-12.0.1 (#380)
 
 Version 2021.1 (released 18.07.21)
 ==================================
