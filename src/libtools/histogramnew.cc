@@ -26,71 +26,71 @@ namespace votca {
 namespace tools {
 
 void HistogramNew::Initialize_() {
-  if (_periodic) {
-    _step = (_max - _min) / double(_nbins);
+  if (periodic_) {
+    step_ = (max_ - min_) / double(nbins_);
   } else {
-    _step = (_max - _min) / (double(_nbins) - 1.0);
+    step_ = (max_ - min_) / (double(nbins_) - 1.0);
   }
 
-  if (_nbins == 1) {
-    _step = 1;
+  if (nbins_ == 1) {
+    step_ = 1;
   }
-  _data.resize(_nbins);
-  double v = _min;
-  for (Index i = 0; i < _nbins; v += _step, ++i) {
-    _data.x(i) = v;
+  data_.resize(nbins_);
+  double v = min_;
+  for (Index i = 0; i < nbins_; v += step_, ++i) {
+    data_.x(i) = v;
   }
-  _data.y() = Eigen::VectorXd::Zero(_nbins);
-  _data.yerr() = Eigen::VectorXd::Zero(_nbins);
-  _data.flags() = std::vector<char>(_nbins, 'i');
+  data_.y() = Eigen::VectorXd::Zero(nbins_);
+  data_.yerr() = Eigen::VectorXd::Zero(nbins_);
+  data_.flags() = std::vector<char>(nbins_, 'i');
 }
 
 void HistogramNew::Initialize(double min, double max, Index nbins) {
-  _min = min;
-  _max = max;
-  _nbins = nbins;
+  min_ = min;
+  max_ = max;
+  nbins_ = nbins;
   Initialize_();
 }
 
 void HistogramNew::Process(const double &v, double scale) {
 
-  Index i = (Index)floor((v - _min) / _step + 0.5);
-  if (i < 0 || i >= _nbins) {
-    if (_periodic) {
+  Index i = (Index)floor((v - min_) / step_ + 0.5);
+  if (i < 0 || i >= nbins_) {
+    if (periodic_) {
       if (i < 0) {
-        i = _nbins - ((-i) % _nbins);
+        i = nbins_ - ((-i) % nbins_);
       } else {
-        i = i % _nbins;
+        i = i % nbins_;
       }
     } else {
       return;
     }
   }
-  _data.y(i) += scale;
+  data_.y(i) += scale;
 }
 
-double HistogramNew::getMinBinVal() const { return _data.getMinY(); }
+double HistogramNew::getMinBinVal() const { return data_.getMinY(); }
 
-double HistogramNew::getMaxBinVal() const { return _data.getMaxY(); }
+double HistogramNew::getMaxBinVal() const { return data_.getMaxY(); }
 
 pair<double, double> HistogramNew::getInterval(Index bin) const {
   pair<double, double> bounds;
   double value = static_cast<double>(bin);
-  bounds.first = value * _step + _min;
-  bounds.second += _step;
+  bounds.first = value * step_ + min_;
+  bounds.second += step_;
   return bounds;
 }
 
 void HistogramNew::Normalize() {
   double area = 0;
-  area = _data.y().cwiseAbs().sum() * _step;
+  area = data_.y().cwiseAbs().sum() * step_;
   double scale = 1. / area;
-  _data.y() *= scale;
+  data_.y() *= scale;
 }
 
 void HistogramNew::Clear() {
-  _data.y() = Eigen::VectorXd::Zero(_nbins);
-  _data.yerr() = Eigen::VectorXd::Zero(_nbins);
+  data_.y() = Eigen::VectorXd::Zero(nbins_);
+  data_.yerr() = Eigen::VectorXd::Zero(nbins_);
 }
 
 }  // namespace tools

@@ -63,15 +63,15 @@ static const char BoldWhite[] = {0x1b, '[', '1', ';', '3', '7', 'm', 0};
 
 class ColorScheme {
  public:
-  virtual const char *_reset() const = 0;
-  virtual const char *_black() const = 0;
-  virtual const char *_red() const = 0;
-  virtual const char *_green() const = 0;
-  virtual const char *_yellow() const = 0;
-  virtual const char *_blue() const = 0;
-  virtual const char *_magenta() const = 0;
-  virtual const char *_cyan() const = 0;
-  virtual const char *_white() const = 0;
+  virtual const char *reset() const = 0;
+  virtual const char *black() const = 0;
+  virtual const char *red() const = 0;
+  virtual const char *green() const = 0;
+  virtual const char *yellow() const = 0;
+  virtual const char *blue() const = 0;
+  virtual const char *magenta() const = 0;
+  virtual const char *cyan() const = 0;
+  virtual const char *white() const = 0;
 };
 
 class ColorSchemeBase {
@@ -89,45 +89,45 @@ class ColorSchemeBase {
 };
 
 template <typename TColorScheme>
-class Color : public ColorSchemeBase {
-  TColorScheme _cs;
+class Color final : public ColorSchemeBase {
+  TColorScheme cs_;
 
  public:
-  const char *Reset() const override { return _cs._reset(); }
-  const char *Black() const override { return _cs._black(); }
-  const char *Red() const override { return _cs._red(); }
-  const char *Green() const override { return _cs._green(); }
-  const char *Yellow() const override { return _cs._yellow(); }
-  const char *Blue() const override { return _cs._blue(); }
-  const char *Magenta() const override { return _cs._magenta(); }
-  const char *Cyan() const override { return _cs._cyan(); }
-  const char *White() const override { return _cs._white(); }
+  const char *Reset() const { return cs_.reset(); }
+  const char *Black() const { return cs_.black(); }
+  const char *Red() const { return cs_.red(); }
+  const char *Green() const { return cs_.green(); }
+  const char *Yellow() const { return cs_.yellow(); }
+  const char *Blue() const { return cs_.blue(); }
+  const char *Magenta() const { return cs_.magenta(); }
+  const char *Cyan() const { return cs_.cyan(); }
+  const char *White() const { return cs_.white(); }
 };
 
-class csDefault : public ColorScheme {
+class csDefault final : public ColorScheme {
  public:
-  const char *_reset() const override { return Colors::Empty; }
-  const char *_black() const override { return Colors::Empty; }
-  const char *_red() const override { return Colors::Empty; }
-  const char *_green() const override { return Colors::Empty; }
-  const char *_yellow() const override { return Colors::Empty; }
-  const char *_blue() const override { return Colors::Empty; }
-  const char *_magenta() const override { return Colors::Empty; }
-  const char *_cyan() const override { return Colors::Empty; }
-  const char *_white() const override { return Colors::Empty; }
+  const char *reset() const { return Colors::Empty; }
+  const char *black() const { return Colors::Empty; }
+  const char *red() const { return Colors::Empty; }
+  const char *green() const { return Colors::Empty; }
+  const char *yellow() const { return Colors::Empty; }
+  const char *blue() const { return Colors::Empty; }
+  const char *magenta() const { return Colors::Empty; }
+  const char *cyan() const { return Colors::Empty; }
+  const char *white() const { return Colors::Empty; }
 };
 
-class csRGB : public ColorScheme {
+class csRGB final : public ColorScheme {
  public:
-  const char *_reset() const override { return Colors::Reset; }
-  const char *_black() const override { return Colors::Black; }
-  const char *_red() const override { return Colors::Red; }
-  const char *_green() const override { return Colors::Green; }
-  const char *_yellow() const override { return Colors::Yellow; }
-  const char *_blue() const override { return Colors::Blue; }
-  const char *_magenta() const override { return Colors::Magenta; }
-  const char *_cyan() const override { return Colors::Cyan; }
-  const char *_white() const override { return Colors::White; }
+  const char *reset() const { return Colors::Reset; }
+  const char *black() const { return Colors::Black; }
+  const char *red() const { return Colors::Red; }
+  const char *green() const { return Colors::Green; }
+  const char *yellow() const { return Colors::Yellow; }
+  const char *blue() const { return Colors::Blue; }
+  const char *magenta() const { return Colors::Magenta; }
+  const char *cyan() const { return Colors::Cyan; }
+  const char *white() const { return Colors::White; }
 };
 
 extern Color<csDefault> DEFAULT_COLORS;

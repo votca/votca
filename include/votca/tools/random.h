@@ -33,21 +33,21 @@ class Random {
     if (seed < 0) {
       throw std::runtime_error("seed integer must be positive.");
     }
-    _mt = std::mt19937(unsigned(seed));
+    mt_ = std::mt19937(unsigned(seed));
   }
   // draws a random double from [0,1)
-  double rand_uniform() { return _distribution(_mt); }
+  double rand_uniform() { return distribution_(mt_); }
   // sets maxint for a uniform integer distribution [0,maxint]
   void setMaxInt(Index maxint) {
-    _int_distribution = std::uniform_int_distribution<Index>{0, maxint};
+    int_distribution_ = std::uniform_int_distribution<Index>{0, maxint};
   }
   // draws from a uniform integer distribution [0,maxint]
-  Index rand_uniform_int() { return _int_distribution(_mt); }
+  Index rand_uniform_int() { return int_distribution_(mt_); }
 
  private:
-  std::mt19937 _mt;
-  std::uniform_real_distribution<double> _distribution{0.0, 1.0};
-  std::uniform_int_distribution<Index> _int_distribution;
+  std::mt19937 mt_;
+  std::uniform_real_distribution<double> distribution_{0.0, 1.0};
+  std::uniform_int_distribution<Index> int_distribution_;
 };
 
 }  // namespace tools
