@@ -25,10 +25,10 @@ msg = "extract_metadata.py -i file.xml"
 
 parser = argparse.ArgumentParser(description=msg)
 parser.add_argument('-i', required=True,
-                    help="Input file in YAML format")
+                    help="Input file in XML format")
 parser.add_argument('-o', help="Optional output file", default=None)
-parser.add_argument("-m", "--mode", help="Operation mode: xtp, csg, qm",
-                    choices=["xtp", "csg", "qm"], default="xtp")
+parser.add_argument("-m", "--mode", help="Operation mode: xtp, csg",
+                    choices=["xtp", "csg"], default="xtp")
 
 MAXIMUM_LINE_LENGTH = 60
 
@@ -39,8 +39,8 @@ DEFAULTS_TABLE_HEADER = """
    :align: center
 
    * - Property Name
-     - Description
      - Default Value
+     - Description
      - Valid Input"""
 
 
@@ -48,7 +48,8 @@ def xtp_table_header(x: str) -> str:
     """Create a table for XTP calculators."""
     return f"""
 {x}
-The following table contains the defaults input options for the calculator,
+The following table contains the defaults input options for the calculator, The default `OPTIONAL` means this option is switched off, if no input is given. 
+`REQUIRED` arguments have to be specified, otherwise an error is thrown.
 {DEFAULTS_TABLE_HEADER}"""
 
 
@@ -63,8 +64,8 @@ The following table contains the input options for CSG,
    :align: center
 
    * - Property Name
-     - Description
-     - Default Value"""
+     - Default Value
+     - Description"""
 
 
 XTP_TABLE_LINE = """
@@ -87,8 +88,6 @@ def main():
         table = xtp_create_rst_table(file_name)
     elif args.mode == "csg":
         table = csg_create_rst_table(file_name)
-    else:
-        table = qmpackage_create_rst_table(file_name)
 
     # Print
     if args.o is not None:
@@ -104,7 +103,24 @@ def get_root_children(file_name: Path) -> List[ET.Element]:
     """Get all the node children from root."""
     tree = ET.parse(file_name)
     root = tree.getroot()
+    resolve_links(file_name, root)
     return list(root)
+
+
+def resolve_links(file_name: Path, elem: ET.Element):
+    if "link" in elem.attrib:
+        s=elem.attrib.get("link")
+        #python split method cannot split for "," and " " so we replace all "," by " "
+        s.replace(',', ' ')
+        links = elem.attrib.get("link").split(" ")
+        for link in links:
+            package_path = file_name.parent/"subpackages"/link
+            tree = ET.parse(package_path)
+            root = tree.getroot()
+            for child in root:
+                elem.append(child)
+    for child in elem:
+        resolve_links(file_name, child)
 
 
 def xtp_extract_metadata(file_name: Path) -> Tuple[str, ET.Element]:
@@ -131,7 +147,7 @@ def xtp_get_recursive_attributes(elem: ET.Element, root_name: str = "") -> str:
     description = split_line(elem.attrib.get("help", ""))
     default = split_line(elem.attrib.get("default", ""))
     choices = multiline(elem.attrib.get("choices", ""))
-    s += XTP_TABLE_LINE(name, description, default, choices)
+    s += XTP_TABLE_LINE(name, default, description, choices)
 
     return s
 
@@ -150,10 +166,10 @@ def csg_get_recursive_attributes(elem: ET.Element, root_name: str = "") -> str:
 
         name = root_name + elem.tag
         default = "" if elem.text is None else ' '.join(elem.text.split())
-        s += CGS_TABLE_LINE(name, description, default)
+        s += CGS_TABLE_LINE(name, default, description)
         s += ''.join(
-            csg_get_recursive_attributes(el,
-                                         f"{name}.") for el in children if el.tag != "DESC")
+            csg_get_recursive_attributes(
+                el, f"{name}.") for el in children if el.tag != "DESC")
         return s
 
     return s
@@ -163,7 +179,7 @@ def xtp_create_rst_table(file_name: Path) -> str:
     """Create an RST table using the metadata in the XML file."""
     header, elements = xtp_extract_metadata(file_name)
     header = generate_title(file_name.stem) + header
-    s = xtp_table_header(header) if elements else f"{header}\n"
+    s = xtp_table_header(header) if elements is not None else f"{header}\n"
     for elem in elements:
         s += xtp_get_recursive_attributes(elem)
 
@@ -177,15 +193,6 @@ def csg_create_rst_table(file_name: Path) -> str:
     s = csg_table_header(header)
     for elem in elements:
         s += csg_get_recursive_attributes(elem)
-    return s
-
-
-def qmpackage_create_rst_table(file_name) -> str:
-    """Create an RST table using the metadata in the XML file."""
-    children = get_root_children(file_name)
-    s = DEFAULTS_TABLE_HEADER
-    for elem in children:
-        s += xtp_get_recursive_attributes(elem)
     return s
 
 
@@ -229,7 +236,7 @@ def generate_note(stem: str) -> str:
     """Generate note specifying path to the xml file."""
     note = f"""
 .. note::
-   An *xml* file containing the defaults for the `{stem}` calculator can be found at `$VOTCASHARE/xtp/xml/{stem}.xml`
+   An *xml* file containing the defaults for the `{stem}` calculator can be created via `-p {stem} -o FILENAME` command line options `
 """
     return note
 
