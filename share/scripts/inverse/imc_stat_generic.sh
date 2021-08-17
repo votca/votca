@@ -27,7 +27,6 @@ EOF
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
-[[ -n $(csg_get_property --allow-empty cg.bonded.name) ]] && has_bonds=true || has_bonds=false
 
 topol=$(csg_get_property --allow-empty cg.inverse.$sim_prog.imc.topol)
 [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.$sim_prog.topol)
