@@ -125,6 +125,21 @@ class CudaMatrix {
     return CudaMatrixBlock<CudaMatrix>(*this, rowoffset, coloffset, rows, cols);
   }
 
+  CudaMatrixBlock<CudaMatrix> row(Index row) const {
+    return CudaMatrixBlock<CudaMatrix>(*this, row, 0, 1, cols());
+  }
+
+  CudaMatrixBlock<CudaMatrix> col(Index col) const {
+    return CudaMatrixBlock<CudaMatrix>(*this, 0, col, rows(), 1);
+  }
+
+  CudaMatrixBlock<CudaMatrix> middleRows(Index rowoffset, Index rows) const {
+    return CudaMatrixBlock<CudaMatrix>(*this, rowoffset, 0, rows, cols());
+  }
+  CudaMatrixBlock<CudaMatrix> middleCols(Index coloffset, Index cols) const {
+    return CudaMatrixBlock<CudaMatrix>(*this, 0, coloffset, rows(), cols);
+  }
+
   static constexpr bool transposed() { return false; }
 
   template <class T>

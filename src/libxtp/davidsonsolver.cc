@@ -455,8 +455,8 @@ void DavidsonSolver::gramschmidt(Eigen::MatrixXd &Q, Index nstart) const {
   // orthogonalize vectors to each other
   for (Index j = nstart + 1; j < Q.cols(); ++j) {
     Index range = j - nstart;
-    Q.col(j) -= Q.block(0, nstart, Q.rows(), range) *
-                (Q.block(0, nstart, Q.rows(), range).transpose() * Q.col(j));
+    Q.col(j) -= Q.middleCols(nstart, range) *
+                (Q.middleCols(nstart, range).transpose() * Q.col(j));
     Q.col(j).normalize();
   }
   // repeat again two is enough GS
@@ -470,8 +470,8 @@ void DavidsonSolver::gramschmidt(Eigen::MatrixXd &Q, Index nstart) const {
 
   for (Index j = nstart + 1; j < Q.cols(); ++j) {
     Index range = j - nstart;
-    Q.col(j) -= Q.block(0, nstart, Q.rows(), range) *
-                (Q.block(0, nstart, Q.rows(), range).transpose() * Q.col(j));
+    Q.col(j) -= Q.middleCols(nstart, range) *
+                (Q.middleCols(nstart, range).transpose() * Q.col(j));
     if (Q.col(j).norm() <= 1E-12 * norms(range)) {
       // info_ = Eigen::ComputationInfo::NumericalIssue;
       throw std::runtime_error("Linear dependencies in Gram-Schmidt.");

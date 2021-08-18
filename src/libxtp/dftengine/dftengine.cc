@@ -144,8 +144,7 @@ std::array<Eigen::MatrixXd, 2> DFTEngine::CalcERIs_EXX(
     if (conv_accelerator_.getUseMixing() || MOCoeff.rows() == 0) {
       return ERIs_.CalculateERIs_EXX_3c(Eigen::MatrixXd::Zero(0, 0), Dmat);
     } else {
-      Eigen::MatrixXd occblock =
-          MOCoeff.block(0, 0, MOCoeff.rows(), numofelectrons_ / 2);
+      Eigen::MatrixXd occblock = MOCoeff.leftCols(numofelectrons_ / 2);
       return ERIs_.CalculateERIs_EXX_3c(occblock, Dmat);
     }
   } else {
