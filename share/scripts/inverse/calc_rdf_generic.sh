@@ -97,7 +97,7 @@ else
 fi
 
 with_errors=$(csg_get_property "cg.inverse.${sim_prog}.rdf.with_errors")
-if [[ ${with_errors} = "yes" ]]; then
+if [[ ${with_errors} == "yes" ]]; then
   suffix="${suffix}_with_errors"
   block_length=$(csg_get_property "cg.inverse.${sim_prog}.rdf.block_length")
   if [[ ${CSG_RUNTEST} ]] && csg_calc "${block_length}" ">" "2"; then
@@ -110,7 +110,6 @@ else
   suffix="$suffix"
   ext_opt="${dist_type}.new"
 fi
-
 
 tasks=$(get_number_tasks)
 #rdf calculation is maybe done already in a different interaction
@@ -126,10 +125,35 @@ else
   mark_done "rdf_calculation${suffix}"
 fi
 
+# improve new RDF at low values
+improve_dist_near_core_new="$(csg_get_interaction_property improve_dist_near_core.new)"
+if [[ $improve_dist_near_core_new == "true" ]]; then
+  if ! is_done "${name}_${dist_type}_rdf_improve"; then
+    improve_dist_near_core_function="$(csg_get_interaction_property improve_dist_near_core.function)"
+    fit_start_g="$(csg_get_interaction_property improve_dist_near_core.fit_start_g)"
+    fit_end_g="$(csg_get_interaction_property improve_dist_near_core.fit_end_g)"
+    if [[ ${with_errors} = "yes" ]]; then
+      # improve all blocks
+      files_to_do=${name}_*.${dist_type}.block
+    else
+      # improve the one file
+      files_to_do=${name}.${dist_type}.new
+    fi
+    for i in ${files_to_do}; do
+      [[ -f $i ]] || die "${0##*/}: Could not find ${i} after running csg_stat, that usually means the blocksize (cg.inverse.${sim_prog}.rdf.block_length) is too big."
+      critical mv "${i}" "${i}.raw"
+      do_external dist improve_near_core --in="${i}.raw" --out="${i}" \
+        --function="$improve_dist_near_core_function" \
+        --gmin="$fit_start_g" --gmax="$fit_end_g" 
+    done
+    mark_done "${name}_${dist_type}_rdf_improve"
+  fi
+fi
+
 if [[ ${with_errors} = "yes" ]]; then
   if ! is_done "${name}_${dist_type}_rdf_average"; then
-    for i in ${name}_*.dist.block; do
-      [[ -f $i ]] || die "${0##*/}: Could not find ${name}_*.dist.block after running csg_sat, that usually means the blocksize (cg.inverse.${sim_prog}.rdf.block_length) is too big."
+    for i in ${name}_*.${dist_type}.block; do
+      [[ -f $i ]] || die "${0##*/}: Could not find ${name}_*.dist.block after running csg_stat, that usually means the blocksize (cg.inverse.${sim_prog}.rdf.block_length) is too big."
     done
     msg "Calculating average rdfs and its errors for interaction ${name}"
     # do not put quotes around strings that should expand to multiple files
