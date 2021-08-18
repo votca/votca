@@ -23,6 +23,7 @@
 
 #include <boost/math/constants/constants.hpp>
 #include <vector>
+#include <iomanip>
 
 // Local VOTCA includes
 #include "backgroundpolarizer.h"

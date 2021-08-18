@@ -23,6 +23,7 @@
 
 #include <array>
 #include <vector>
+#include <iomanip>
 // Local VOTCA includes
 #include "ewd_segment.h"
 

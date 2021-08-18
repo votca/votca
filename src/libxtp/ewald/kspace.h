@@ -23,6 +23,7 @@
 
 #include <boost/math/constants/constants.hpp>
 #include <complex>
+#include <iomanip>
 #include <vector>
 
 // Local VOTCA includes
