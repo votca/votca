@@ -405,7 +405,7 @@
         <DESC>Lenght factor by which RDF will be extrapolated</DESC>
       </g_extrap_factor>
       <g_min>1e-10
-        <DESC>Minimum value of the RDF to be considered valid. Determines range for potential calculations.
+        <DESC>Minimum value of the RDF to be considered valid. Determines range for potential update.
           If too high, it can lead to too little repulsive potential.
           If too low, badly sampled RDF region can lead to weird potential spikes.
           Best is to choose a low number and improve_rdf_near_core.
@@ -455,6 +455,13 @@
         <verbose>true
           <DESC>Print some info and dump compressed numpy arrays. Valid values are: true (default), false</DESC>
         </verbose>
+        <g_min>1e-10
+          <DESC>Minimum value of the RDF to be considered valid. Determines range for potential guess.
+            If too high, it can lead to too little repulsive potential.
+            If too low, badly sampled RDF region can lead to weird potential spikes.
+            Best is to choose a low number and improve_rdf_near_core.
+          </DESC>
+        </g_min>
       </ie>
     </initial_guess>
 
