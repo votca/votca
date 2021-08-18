@@ -66,14 +66,13 @@ volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
 # do not put quotes around arguments with values ($G_tgt_flag)!
 # this will give a codacy warning :/
 msg "Using initial guess for non-bonded interactions using integral equations"
-# some of those arguments, e.g. kBT, are also contained in a settings.xml file. But I do not check for defaults in iie.py.
+# Some arguments (cut_off, kBT) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
+# Others could also be read from the settings file, but this bash script handles the defaults.
 do_external dist invert_iie potential_guess \
     "$verbose_flag" \
     --closure "$ie_closure" \
-    --kBT "$kBT" \
     --g-min "$g_min" \
     --volume "$volume" \
-    --cut-off "$cut_off" \
     --topol "$topol" \
     --options "$CSGXMLFILE" \
     --g-tgt-ext ".dist.tgt" \

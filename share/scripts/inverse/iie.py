@@ -569,13 +569,10 @@ def get_args(iie_args=None):
         pars.add_argument('--closure', type=str, choices=['hnc', 'py'],
                           required=True,
                           help='Closure equation to use for the OZ equation')
-        pars.add_argument('--kBT', type=float, required=True, help='')
         pars.add_argument('--volume', type=float,
                           required=True,
                           metavar='VOL',
                           help='list of number densities of beads')
-        pars.add_argument('--cut-off', type=float, required=True,
-                          help='cutt-off (co) of all potentials')
         pars.add_argument('--topol', type=argparse.FileType('r'),
                           required=True,
                           metavar='TOPOL',
@@ -719,11 +716,19 @@ def process_input(args):
         raise Exception('either all or no input tables should start at r=0')
     # settings
     # copy some directly from args
-    settings_to_copy = ('kBT', 'closure', 'cut_off', 'verbose', 'U_out_ext', 'g_min')
+    settings_to_copy = ('closure', 'verbose', 'U_out_ext', 'g_min')
     settings = {key: vars(args)[key] for key in settings_to_copy}
     settings['non-bonded-dict'] = non_bonded_dict
     settings['densities'] = densities
     settings['r0-removed'] = r0_removed
+    # others from options xml
+    settings['kBT'] = float(options.find("./inverse/kBT").text)
+    if args.subcommand == 'potential_guess':
+        settings['cut_off'] = float(
+            options.find("./inverse/initial_guess/ie/cut_off").text)
+    else:
+        settings['cut_off'] = float(
+            options.find("./inverse/iie/cut_off").text)
     return r, input_arrays, settings
 
 
