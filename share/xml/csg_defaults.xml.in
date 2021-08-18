@@ -442,6 +442,12 @@
       <table_overwrite>true
         <DESC>if method is bi/ie but a .pot.in file is present, overwrite that one interaction</DESC>
       </table_overwrite>
+      <scale_non_bonded>1.0
+        <DESC>extra scaling factor applied to the non-bonded potentials after the initial guess</DESC>
+      </scale_non_bonded>
+      <scale_bonded>1.0
+        <DESC>extra scaling factor applied to the bonded potentials after the initial guess</DESC>
+      </scale_bonded>
       <ie>
         <closure>hnc
           <DESC>Ornstein-Zernike equation closure in case of method=ie: hnc/py</DESC>

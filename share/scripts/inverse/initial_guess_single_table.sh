@@ -41,4 +41,18 @@ extrapolate="$(critical mktemp ${name}.pot.in.extrapolate.XXX)"
 do_external potential extrapolate --type "$bondtype" "${smooth}" "${extrapolate}"
 shifted="$(critical mktemp ${name}.pot.in.shifted.XXX)"
 do_external potential shift --type "${bondtype}" ${extrapolate} ${shifted}
-do_external table change_flag "${shifted}" "${output}"
+# scale new potentials
+if [[ ${bondtype} == "non-bonded" ]]; then
+  scale_param="scale_non_bonded"
+else
+  scale_param="scale_bonded"
+fi
+scaling_factor="$(csg_get_property "cg.inverse.initial_guess.${scale_param}")"
+if $(awk "BEGIN {exit (${scaling_factor} != 1.0 ? 0 : 1)}"); then
+  scaled="$(critical mktemp ${name}.pot.new.scaled.XXX)"
+  do_external table linearop "${shifted}" "${scaled}" "${scaling_factor}" "0"
+else
+  scaled="${shifted}"
+fi
+# set all flags to 'i'
+do_external table change_flag "${scaled}" "${output}"

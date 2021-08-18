@@ -34,17 +34,34 @@ output="${name}.pot.new"
 
 target=$(csg_get_interaction_property inverse.target)
 msg "Using initial guess from dist ${target} for ${name}"
-#resample target dist
+# resample target dist
 do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
 # initial guess from rdf
 raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
 kbt="$(csg_get_property cg.inverse.kBT)"
 dist_min="$(csg_get_property cg.inverse.dist_min)"
 do_external dist invert --type "${bondtype}" --kbT "${kbt}" --min "${dist_min}" ${name}.dist.tgt ${raw}
+# smooth
 smooth="$(critical mktemp ${name}.pot.new.smooth.XXX)"
 critical csg_resample --in ${raw} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
+# extrapolate
 extrapolate="$(critical mktemp ${name}.pot.new.extrapolate.XXX)"
 do_external potential extrapolate --type "$bondtype" "${smooth}" "${extrapolate}"
+# shift
 shifted="$(critical mktemp ${name}.pot.new.shifted.XXX)"
 do_external potential shift --type "${bondtype}" ${extrapolate} ${shifted}
-do_external table change_flag "${shifted}" "${output}"
+# scale new potentials
+if [[ ${bondtype} == "non-bonded" ]]; then
+  scale_param="scale_non_bonded"
+else
+  scale_param="scale_bonded"
+fi
+scaling_factor="$(csg_get_property "cg.inverse.initial_guess.${scale_param}")"
+if $(awk "BEGIN {exit (${scaling_factor} != 1.0 ? 0 : 1)}"); then
+  scaled="$(critical mktemp ${name}.pot.new.scaled.XXX)"
+  do_external table linearop "${shifted}" "${scaled}" "${scaling_factor}" "0"
+else
+  scaled="${shifted}"
+fi
+# set all flags to 'i'
+do_external table change_flag "${scaled}" "${output}"

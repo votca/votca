@@ -80,5 +80,12 @@ do_external dist invert_iie potential_guess \
     --G-tgt-ext ".dist-incl.tgt" \
     --U-out-ext ".pot.new"
 
+# scale new potentials
+scaling_factor_non_bonded="$(csg_get_property "cg.inverse.initial_guess.scale_non_bonded")"
+if $(awk "BEGIN {exit (${scaling_factor_non_bonded} != 1.0 ? 0 : 1)}"); then
+  for_all "non-bonded" 'mv $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.new.raw'
+  for_all "non-bonded" 'do_external table linearop $(csg_get_interaction_property name).pot.new.raw $(csg_get_interaction_property name).pot.new '"${scaling_factor_non_bonded} 0"
+fi
+
 # overwrite with .pot.in if table_overwrite and present
 for_all "non-bonded" do_external prepare_single generic --table-overwrite
