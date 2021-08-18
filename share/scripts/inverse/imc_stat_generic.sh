@@ -61,3 +61,10 @@ else
       
   mark_done "imc_analysis"
 fi
+
+improve_dist_near_core_new_all=( $(csg_get_interaction_property --all improve_dist_near_core.new) )
+# if any interaction has this setting
+if [[ " ${improve_dist_near_core_new_all[@]} " =~ "true" ]]; then
+  die "${0##*/}: improve_dist_near_core.new is not yet supported by IMC"
+  # IMC uses custom distribution (or rather ΔS) in .imc files, not .dist.new files
+fi
