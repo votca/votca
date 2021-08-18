@@ -28,15 +28,6 @@ fi
 sim_prog="$(csg_get_property cg.inverse.program)"
 method="$(csg_get_property cg.inverse.method)"
 initial_guess_method="$(csg_get_property cg.inverse.initial_guess.method)"
-verbose="$(csg_get_property cg.inverse.iie.verbose)"
-
-if [ "${verbose}" == 'true' ]; then
-  verbose_flag="--verbose"
-elif [ "${verbose}" == 'false' ]; then
-  verbose_flag=""
-else
-  die "verbose has to be 'true' or 'false'"
-fi
 
 case "$initial_guess_method" in
 "table")
