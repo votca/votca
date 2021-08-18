@@ -35,7 +35,7 @@ class BGPol final : public QMCalculator {
   BGPol() = default;
   ~BGPol() = default;
 
-  std::string Identify() { return "ewaldbg"; }
+  std::string Identify() const { return "bgpol"; }
 
   bool WriteToStateFile() const { return true; }
 
