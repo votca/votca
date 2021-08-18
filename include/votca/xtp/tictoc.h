@@ -63,7 +63,7 @@ class TicToc {
     auto s = duration_cast<seconds>(ms);
     ms -= s;
 
-    int fs_count = 0;
+    long fs_count = 0;
     int printPrecision = 3;
     if (precision > 6) {
       fs_count = ms.count();
