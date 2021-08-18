@@ -404,6 +404,13 @@
       <g_extrap_factor>1.0
         <DESC>Lenght factor by which RDF will be extrapolated</DESC>
       </g_extrap_factor>
+      <g_min>1e-10
+        <DESC>Minimum value of the RDF to be considered valid. Determines range for potential calculations.
+          If too high, it can lead to too little repulsive potential.
+          If too low, badly sampled RDF region can lead to weird potential spikes.
+          Best is to choose a low number and improve_rdf_near_core.
+        </DESC>
+      </g_min>
       <cut_jacobian>true
         <DESC>Wether to cut the Jacobian before multiplying with Δg. Only for Newton methods</DESC>
       </cut_jacobian>

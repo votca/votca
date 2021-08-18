@@ -40,6 +40,7 @@ nb_names=( $(for_all "non-bonded" csg_get_interaction_property name) )
 nb_names="${nb_names[@]}"
 kBT="$(csg_get_property cg.inverse.kBT)"
 cut_off="$(csg_get_property cg.inverse.initial_guess.ie.cut_off)"
+g_min="$(csg_get_property cg.inverse.initial_guess.ie.g_min)"
 ie_closure="$(csg_get_property cg.inverse.initial_guess.ie.closure)"
 
 # resample all target distributions
@@ -70,6 +71,7 @@ do_external dist invert_iie potential_guess \
     "$verbose_flag" \
     --closure "$ie_closure" \
     --kBT "$kBT" \
+    --g-min "$g_min" \
     --volume "$volume" \
     --cut-off "$cut_off" \
     --topol "$topol" \

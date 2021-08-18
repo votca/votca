@@ -481,58 +481,6 @@ def extrapolate_U_constant(dU, dU_flag):
     return dU_extrap
 
 
-def extrapolate_U_power(r, dU, U, g_tgt, g_min, kBT, verbose=False):
-    """
-    Extrapolate the potential in the core region.
-
-    This includes the point, where the RDF becomes larger than g_min or where
-    the new potential is convex.  A power function is used.  The PMF is fitted,
-    not U+dU. The fit is then shifted such that the graph is monotonous.
-
-    Extrapolation is done, because p-HNCGN often has artifacs at
-    the core, especially when pressure is far off.
-
-    Returns dU. U_{k+1} = U_k + dU is done by Votca.
-
-    """
-    # make copy
-    dU_extrap = dU.copy()
-    # calc PMF
-    with np.errstate(divide='ignore', over='ignore'):
-        pmf = np.nan_to_num(-kBT * np.log(g_tgt))
-    # index first minimum
-    ndx_fm = np.where(np.nan_to_num(np.diff(pmf)) > 0)[0][0]
-    # index core end
-    ndx_ce = np.where(g_tgt > g_min)[0][0]
-    if verbose:
-        print('ndx_fm, r_fm', ndx_fm, r[ndx_fm])
-        print('ndx_ce, r_ce', ndx_ce, r[ndx_ce])
-    # fit pmf region
-    fit_region = slice(ndx_ce, ndx_ce + 3)
-    # fit pmf with power function a*x^b
-    pmf_shift = -pmf[ndx_fm] + 0.01
-    fit_x = np.log(r[fit_region])
-    fit_y = np.log(pmf[fit_region] + pmf_shift)
-    b, log_a = np.polyfit(fit_x, fit_y, 1)
-    a = np.exp(log_a)
-    if verbose:
-        print('pmf fit a*x^b. Coefficients a, b:', a, b)
-    with np.errstate(divide='ignore', over='ignore', under='ignore'):
-        pmf_fit = np.nan_to_num(a * r**b - pmf_shift)
-
-    # region to extrapolate
-    ndx_ex1 = ndx_ce + 1
-    ndx_ex2 = np.where(np.nan_to_num(np.diff(np.diff(U + dU))) > 0)[0][0]
-    ndx_ex = max(ndx_ex1, ndx_ex2)
-    if verbose:
-        print('extrapolate up to:', r[ndx_ex])
-    # extrapolate
-    U_extrap = U + dU
-    U_extrap[:ndx_ex] = pmf_fit[:ndx_ex] + (U_extrap[ndx_ex] - pmf_fit[ndx_ex])
-    dU_extrap = U_extrap - U
-    return dU_extrap
-
-
 def shift_U_cutoff_zero(dU, r, U, cut_off):
     """Make potential zero at and beyond cut-off."""
     dU_shift = dU.copy()
@@ -646,6 +594,9 @@ def get_args(iie_args=None):
                           help='extension of U or ΔU output files')
         pars.add_argument('--g-extrap-factor', type=float, required=False,
                           help='factor by which to extrapolate RDFs')
+        pars.add_argument('--g-min', type=float, required=True,
+                          help='minimum value of RDF to be considered, determines valid'
+                          'range')
     # intial potential guess subparsers
     for pars in [parser_pot_guess]:
         pars.add_argument('--G-tgt-ext', type=str,
@@ -768,7 +719,7 @@ def process_input(args):
         raise Exception('either all or no input tables should start at r=0')
     # settings
     # copy some directly from args
-    settings_to_copy = ('kBT', 'closure', 'cut_off', 'verbose', 'U_out_ext')
+    settings_to_copy = ('kBT', 'closure', 'cut_off', 'verbose', 'U_out_ext', 'g_min')
     settings = {key: vars(args)[key] for key in settings_to_copy}
     settings['non-bonded-dict'] = non_bonded_dict
     settings['densities'] = densities
@@ -790,9 +741,6 @@ def potential_guess(r, input_arrays, settings):
     # perform actual math
     U1_mat = calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat,
                            settings['kBT'], settings['closure'])
-    # TODO: problem, the off diagonal elements can be different, even though all input
-    #       is symmetric. Found no paper on what to do :/
-    # I should probably average!
     if settings['verbose']:
         np.savez_compressed('potential-guess-arrays.npz', r=r, omega=omega,
                             g_mat=g_mat, h_hat_mat=h_hat_mat,
@@ -810,7 +758,7 @@ def potential_guess(r, input_arrays, settings):
         else:
             r_out = r
         U_flag2 = upd_flag_g_smaller_g_min(
-            U_flag1, input_arrays['g_tgt'][non_bonded_name]['y'], G_MIN)
+            U_flag1, input_arrays['g_tgt'][non_bonded_name]['y'], settings['g_min'])
         U2 = upd_U_const_first_flag_i(U1, U_flag2)
         U3 = upd_U_zero_beyond_cut_off(r_out, U2, settings['cut_off'])
         comment = "created by: {}".format(" ".join(sys.argv))
@@ -908,12 +856,6 @@ def gauss_newton_update(r, input_arrays, args):
         dU_extrap = np.nan_to_num(dU_pure)
     elif args.extrap_near_core == 'constant':
         dU_extrap = extrapolate_U_constant(dU_pure, dU_flag)
-    elif args.extrap_near_core == 'power':
-        dU_extrap = extrapolate_U_power(r, dU_pure,
-                                        input_arrays['U_cur'][0]['y'],
-                                        input_arrays['g_tgt'][0]['y'],
-                                        G_MIN_EXTRAPOLATE, args.kBT,
-                                        verbose=args.verbose)
     else:
         raise Exception("unknown extrapolation scheme for inside and near "
                         "core region: " + args.extrap_near_core)
