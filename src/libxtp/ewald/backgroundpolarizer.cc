@@ -20,6 +20,7 @@
 #include "backgroundpolarizer.h"
 #include "kspace.h"
 #include "rspace.h"
+#include "votca/xtp/tictoc.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -37,6 +38,8 @@ Index BackgroundPolarizer::computeSystemSize(
 }
 
 void BackgroundPolarizer::Polarize(std::vector<EwdSegment>& ewaldSegments) {
+
+  TicToc timer;
 
   Index systemSize = computeSystemSize(ewaldSegments);
 
@@ -75,6 +78,8 @@ void BackgroundPolarizer::Polarize(std::vector<EwdSegment>& ewaldSegments) {
 
   // Get static field from the sites and convert it into a big 1D vector
   // The  same for the initial guess
+
+  XTP_LOG(Log::error, _log) << "Compute the initial guess" << std::endl;
   Eigen::VectorXd staticField = Eigen::VectorXd::Zero(systemSize);
   Eigen::VectorXd initialGuess = Eigen::VectorXd::Zero(systemSize);
   Index index = 0;
@@ -88,7 +93,6 @@ void BackgroundPolarizer::Polarize(std::vector<EwdSegment>& ewaldSegments) {
       index += 3;
     }
   }
-  std::cout << "Computed initial guess" << std::endl;
 
   Eigen::VectorXd initialGuess2 = initialGuess * 0.0529177249;
   Eigen::VectorXd staticField2 = staticField * 5.14220652e11;
@@ -102,6 +106,10 @@ void BackgroundPolarizer::Polarize(std::vector<EwdSegment>& ewaldSegments) {
   }
   outfile << std::endl;
 
+  XTP_LOG(Log::error, _log) << "Done with static fields, elapsed time: " << timer.elapsedTimeAsString() << std::endl;
+
+  XTP_LOG(Log::error, _log) << "Create dipole interaction matrix" << std::endl;
+
   // Set up the dipole interaction matrix
   Eigen::MatrixXd inducedDipoleInteraction(systemSize, systemSize);
   inducedDipoleInteraction.fill(0);
@@ -110,6 +118,7 @@ void BackgroundPolarizer::Polarize(std::vector<EwdSegment>& ewaldSegments) {
   kspace.addShapeCorrectionTo(inducedDipoleInteraction);
   kspace.addSICorrectionTo(inducedDipoleInteraction);
 
+  XTP_LOG(Log::error, _log) << "Add inverse polarization matrix" << std::endl;
   //Add  the inverse polarization
   Index diagIndex = 0;
   for (auto& seg : ewaldSegments) {
@@ -119,9 +128,6 @@ void BackgroundPolarizer::Polarize(std::vector<EwdSegment>& ewaldSegments) {
       diagIndex += 3;
     }
   }
-  std::cout << "Setup the inverse polarization matrix. \nStarting "
-               "preconditioned conjugate gradient solver"
-            << std::endl;
 
   Eigen::VectorXd inducedField = inducedDipoleInteraction * initialGuess;
 
@@ -135,6 +141,9 @@ void BackgroundPolarizer::Polarize(std::vector<EwdSegment>& ewaldSegments) {
   }
   outfile4 << std::endl;
 
+  XTP_LOG(Log::error, _log) << "Done setting up matrices, elapsed time: " << timer.elapsedTimeAsString() << std::endl;
+  XTP_LOG(Log::error, _log) << "Starting the conjugate gradient solver" << std::endl;
+
   // Solving the linear system
   Eigen::ConjugateGradient<Eigen::MatrixXd, Eigen::Lower | Eigen::Upper,
                            Eigen::DiagonalPreconditioner<double>>
@@ -144,16 +153,18 @@ void BackgroundPolarizer::Polarize(std::vector<EwdSegment>& ewaldSegments) {
   cg.compute(inducedDipoleInteraction);
   Eigen::VectorXd x = cg.solveWithGuess(staticField, initialGuess);
 
-  std::cout << TimeStamp() << " CG: #iterations: " << cg.iterations()
+  XTP_LOG(Log::error, _log) << TimeStamp() << " CG: #iterations: " << cg.iterations()
             << ", estimated error: " << cg.error() << std::endl;
 
   if (cg.info() == Eigen::ComputationInfo::NoConvergence) {
-    std::cout << "PCG iterations did not converge" << std::endl;
+    XTP_LOG(Log::error, _log) << "PCG iterations did not converge" << std::endl;
   }
 
   if (cg.info() == Eigen::ComputationInfo::NumericalIssue) {
-    std::cout << "PCG had a numerical issue" << std::endl;
+    XTP_LOG(Log::error, _log) << "PCG had a numerical issue" << std::endl;
   }
+
+  XTP_LOG(Log::error, _log) << "Done solving, elapsed time: " << timer.elapsedTimeAsString() << std::endl;
 
   x = -0.05291 * x;  // convert to CTP units
 

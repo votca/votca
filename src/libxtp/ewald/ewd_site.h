@@ -25,6 +25,8 @@
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/logger.h"
 
+#include <iomanip>
+
 namespace votca {
 namespace xtp {
 
