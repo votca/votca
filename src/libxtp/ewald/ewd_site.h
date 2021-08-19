@@ -91,6 +91,41 @@ class EwdSite {
 
   void resetInductionField() { _field_induced = Eigen::Vector3d::Zero(); }
 
+  struct data {
+    Index id;
+    double posX;
+    double posY;
+    double posZ;
+
+    Index rank;
+
+    double charge;
+    double dipX;
+    double dipY;
+    double dipZ;
+    double quadXX;
+    double quadXY;
+    double quadXZ;
+    double quadYY;
+    double quadYZ;
+    double quadZZ;
+
+    double d_x_ind;
+    double d_y_ind;
+    double d_z_ind;
+
+    double fieldX_stat;
+    double fieldY_stat;
+    double fieldZ_stat;
+    double fieldX_ind;
+    double fieldY_ind;
+    double fieldZ_ind;
+  };
+
+
+  void WriteData(data& d);
+  static void SetupCptTable(CptTable& table);
+
  private:
   Index _id;
   Index _rank;

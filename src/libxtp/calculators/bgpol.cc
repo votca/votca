@@ -78,29 +78,27 @@ bool BGPol::Evaluate(Topology& top) {
       site.updatePos(unit_cell.placeCoordInBox(site.getPos()));
     }
     // Should be deleted when merged and after compare with ctp is done
-    //seg.calcPos();
+    seg.calcPos();
   }
 
   // Polarize the neutral background
   BackgroundPolarizer BgPol(_log, unit_cell, ewd_options);
   BgPol.Polarize(_ewald_background);
 
-  // Update the original data in spherical coordinates
-  // TODO
-
   // Write the result to an hdf5 file
-  WriteToHdf5("background_polarization.hdf5");
+  std::string output_file_name = "background_polarization.hdf5";
+  WriteToHdf5(output_file_name, _ewald_background);
 
   return true;
 }
 
-void BGPol::WriteToHdf5(std::string filename) const {
+void BGPol::WriteToHdf5(std::string filename, std::vector<EwdSegment> background) const {
   CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
   CheckpointWriter a = cpf.getWriter();
   CheckpointWriter ww = a.openChild("polar_background");
-  for (const auto& seg : _polar_background) {
+  for (EwdSegment& seg : background) {
     CheckpointWriter www =
-        ww.openChild(seg.identify() + "_" + std::to_string(seg.getId()));
+        ww.openChild("background_" + std::to_string(seg.getId()));
     seg.WriteToCpt(www);
   }
 }

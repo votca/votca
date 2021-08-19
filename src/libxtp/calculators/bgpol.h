@@ -39,7 +39,7 @@ class BGPol final : public QMCalculator {
 
   bool WriteToStateFile() const { return true; }
 
-  void WriteToHdf5(std::string filename) const;
+  void WriteToHdf5(std::string filename, std::vector<EwdSegment> background) const;
 
  protected:
   void ParseOptions(const tools::Property &user_options);

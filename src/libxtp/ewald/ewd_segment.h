@@ -66,6 +66,15 @@ class EwdSegment {
 
   Index size() const { return _sites.size();}
 
+  void WriteToCpt(CheckpointWriter& w) {
+    CptTable table = w.openTable<EwdSite>("background_sites", _sites.size());
+    std::vector<EwdSite::data> dataVec(_sites.size());
+    for (std::size_t i = 0; i < _sites.size(); ++i) {
+      _sites[i].WriteData(dataVec[i]);
+    }
+    table.write(dataVec);
+  }
+
   void calcPos() {
     tools::Elements element;
     Eigen::Vector3d pos = Eigen::Vector3d::Zero();
