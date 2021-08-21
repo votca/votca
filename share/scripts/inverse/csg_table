@@ -82,6 +82,7 @@ postupd tag tag_file.sh
 postupd extrapolate postupd_extrapolate.sh
 postupd kbibi postupd_kbibi_correction.sh
 postupd cibi postupd_cibi_correction.sh
+postupd ibi postupd_ibi.sh
 
 # post add
 post add post_add.sh

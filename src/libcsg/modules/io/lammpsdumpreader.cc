@@ -36,44 +36,44 @@ using namespace boost;
 using namespace std;
 
 bool LAMMPSDumpReader::ReadTopology(string file, Topology &top) {
-  _topology = true;
+  topology_ = true;
   top.Cleanup();
 
-  _fl.open(file);
-  if (!_fl.is_open()) {
+  fl_.open(file);
+  if (!fl_.is_open()) {
     throw std::ios_base::failure("Error on open topology file: " + file);
   }
-  _fname = file;
+  fname_ = file;
 
   NextFrame(top);
 
-  _fl.close();
+  fl_.close();
 
   return true;
 }
 
 bool LAMMPSDumpReader::Open(const string &file) {
-  _fl.open(file);
-  if (!_fl.is_open()) {
+  fl_.open(file);
+  if (!fl_.is_open()) {
     throw std::ios_base::failure("Error on open trajectory file: " + file);
   }
-  _fname = file;
+  fname_ = file;
   return true;
 }
 
-void LAMMPSDumpReader::Close() { _fl.close(); }
+void LAMMPSDumpReader::Close() { fl_.close(); }
 
 bool LAMMPSDumpReader::FirstFrame(Topology &top) {
-  _topology = false;
+  topology_ = false;
   NextFrame(top);
   return true;
 }
 
 bool LAMMPSDumpReader::NextFrame(Topology &top) {
   string line;
-  tools::getline(_fl, line);
+  tools::getline(fl_, line);
   boost::algorithm::trim(line);
-  while (!_fl.eof()) {
+  while (!fl_.eof()) {
     if (line.substr(0, 5) != "ITEM:") {
       throw std::ios_base::failure("unexpected line in lammps file:\n" + line);
     }
@@ -92,20 +92,20 @@ bool LAMMPSDumpReader::NextFrame(Topology &top) {
       throw std::ios_base::failure("unknown item lammps file : " +
                                    line.substr(6));
     }
-    tools::getline(_fl, line);
+    tools::getline(fl_, line);
     boost::algorithm::trim(line);
   }
-  if (_topology) {
+  if (topology_) {
     cout << "WARNING: topology created from .dump file, masses, charges, "
             "types, residue names are wrong!\n";
   }
-  return !_fl.eof();
+  return !fl_.eof();
   ;
 }
 
 void LAMMPSDumpReader::ReadTimestep(Topology &top) {
   string s;
-  tools::getline(_fl, s);
+  tools::getline(fl_, s);
   boost::algorithm::trim(s);
   top.setStep(boost::lexical_cast<Index>(s));
   cout << "Reading frame, timestep " << top.getStep() << endl;
@@ -117,12 +117,9 @@ void LAMMPSDumpReader::ReadBox(Topology &top) {
   Eigen::Matrix3d m = Eigen::Matrix3d::Zero();
 
   for (Index i = 0; i < 3; ++i) {
-    tools::getline(_fl, s);
+    tools::getline(fl_, s);
     boost::algorithm::trim(s);
-
-    tools::Tokenizer tok(s, " ");
-    vector<double> v;
-    tok.ConvertToVector(v);
+    vector<double> v = tools::Tokenizer(s, " ").ToVector<double>();
     if (v.size() != 2) {
       throw std::ios_base::failure("invalid box format");
     }
@@ -133,21 +130,21 @@ void LAMMPSDumpReader::ReadBox(Topology &top) {
 
 void LAMMPSDumpReader::ReadNumAtoms(Topology &top) {
   string s;
-  tools::getline(_fl, s);
+  tools::getline(fl_, s);
   boost::algorithm::trim(s);
-  _natoms = boost::lexical_cast<Index>(s);
-  if (!_topology && _natoms != top.BeadCount()) {
+  natoms_ = boost::lexical_cast<Index>(s);
+  if (!topology_ && natoms_ != top.BeadCount()) {
     std::runtime_error("number of beads in topology and trajectory differ");
   }
 }
 
 void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
-  if (_topology) {
+  if (topology_) {
     top.CreateResidue("dum");
     if (!top.BeadTypeExist("no")) {
       top.RegisterBeadType("no");
     }
-    for (Index i = 0; i < _natoms; ++i) {
+    for (Index i = 0; i < natoms_; ++i) {
       (void)top.CreateBead(Bead::spherical, "no", "no", 0, 0, 0);
     }
   }
@@ -161,7 +158,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
 
   {
     tools::Tokenizer tok(itemline.substr(12), " ");
-    tok.ToVector(fields);
+    fields = tok.ToVector();
     Index j = 0;
     for (tools::Tokenizer::iterator i = tok.begin(); i != tok.end(); ++i, ++j) {
       if (*i == "x" || *i == "y" || *i == "z") {
@@ -184,15 +181,15 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
         "error, id not found in any column of the atoms section");
   }
 
-  for (Index i = 0; i < _natoms; ++i) {
+  for (Index i = 0; i < natoms_; ++i) {
     string s;
-    tools::getline(_fl, s);
+    tools::getline(fl_, s);
     boost::algorithm::trim(s);
-    if (_fl.eof()) {
+    if (fl_.eof()) {
       throw std::runtime_error("Error: unexpected end of lammps file '" +
-                               _fname + "' only " +
+                               fname_ + "' only " +
                                boost::lexical_cast<string>(i) + " atoms of " +
-                               boost::lexical_cast<string>(_natoms) + " read.");
+                               boost::lexical_cast<string>(natoms_) + " read.");
     }
 
     tools::Tokenizer tok(s, " ");
@@ -200,11 +197,11 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
     vector<string> fields2 = tok.ToVector();
     // internal numbering begins with 0
     Index atom_id = boost::lexical_cast<Index>(fields2[id]);
-    if (atom_id > _natoms) {
+    if (atom_id > natoms_) {
       throw std::runtime_error(
           "Error: found atom with id " + boost::lexical_cast<string>(atom_id) +
-          " but only " + boost::lexical_cast<string>(_natoms) +
-          " atoms defined in header of file '" + _fname + "'");
+          " but only " + boost::lexical_cast<string>(natoms_) +
+          " atoms defined in header of file '" + fname_ + "'");
     }
     Bead *b = top.getBead(atom_id - 1);
     b->HasPos(pos);
@@ -246,7 +243,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
         b->F().y() = stod(*itok) * tools::conv::kcal2kj / tools::conv::ang2nm;
       } else if (fields[j] == "fz") {
         b->F().z() = stod(*itok) * tools::conv::kcal2kj / tools::conv::ang2nm;
-      } else if ((fields[j] == "type") && _topology) {
+      } else if ((fields[j] == "type") && topology_) {
         if (!top.BeadTypeExist(*itok)) {
           top.RegisterBeadType(*itok);
         }

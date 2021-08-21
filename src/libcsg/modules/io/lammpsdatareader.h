@@ -120,7 +120,7 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
   void ReadDihedrals_(Topology &top);
   void SkipImpropers_();
 
-  void RenameMolecule(Molecule &mol) const;
+  void RenameMolecules(MoleculeContainer &molecules) const;
 
   enum lammps_format {
     style_angle_bond_molecule = 0,
@@ -139,7 +139,7 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
    * a mass cannot be associated with an element we will assume it is pseudo
    * atom or course grained watom which we will represent as a bead. So
    * when creating the atom names we will take this into account. So say we have
-   *the following masses in the lammps .data file:
+   * the following masses in the lammps .data file:
    *
    * Masses
    *

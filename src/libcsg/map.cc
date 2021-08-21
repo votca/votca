@@ -58,19 +58,19 @@ class Map_Sphere : public BeadMap {
   void AddElem(const Bead *in, double weight, double force_weight);
 
   struct element_t {
-    const Bead *_in;
-    double _weight;
-    double _force_weight;
+    const Bead *in_;
+    double weight_;
+    double force_weight_;
   };
-  std::vector<element_t> _matrix;
+  std::vector<element_t> matrix_;
 };
 
 void Map_Sphere::AddElem(const Bead *in, double weight, double force_weight) {
   element_t el;
-  el._in = in;
-  el._weight = weight;
-  el._force_weight = force_weight;
-  _matrix.push_back(el);
+  el.in_ = in;
+  el.weight_ = weight;
+  el.force_weight_ = force_weight;
+  matrix_.push_back(el);
 }
 
 /*******************************************************
@@ -83,31 +83,28 @@ class Map_Ellipsoid : public Map_Sphere {
 };
 
 void Map::Apply(const BoundaryCondition &bc) {
-  for (auto &_map : _maps) {
-    _map->Apply(bc);
+  for (auto &map_ : maps_) {
+    map_->Apply(bc);
   }
 }
 
 void Map_Sphere::Initialize(const Molecule *in, Bead *out, Property *opts_bead,
                             Property *opts_map) {
 
-  _in = in;
-  _out = out;
-  _opts_map = opts_map;
-  _opts_bead = opts_bead;
+  in_ = in;
+  out_ = out;
+  opts_map_ = opts_map;
+  opts_bead_ = opts_bead;
 
-  vector<string> beads;
-  vector<double> weights;
   vector<double> fweights;
 
   // get the beads
-  string s(_opts_bead->get("beads").value());
-  Tokenizer tok_beads(s, " \n\t");
-  tok_beads.ToVector(beads);
+  string s(opts_bead_->get("beads").value());
+  vector<string> beads = Tokenizer(s, " \n\t").ToVector();
 
   // get vector of weights
-  Tokenizer tok_weights(_opts_map->get("weights").value(), " \n\t");
-  tok_weights.ConvertToVector<double>(weights);
+  Tokenizer tok_weights(opts_map_->get("weights").value(), " \n\t");
+  vector<double> weights = tok_weights.ToVector<double>();
 
   // check weather weights and # beads matches
   if (beads.size() != weights.size()) {
@@ -124,9 +121,9 @@ void Map_Sphere::Initialize(const Molecule *in, Bead *out, Property *opts_bead,
             [&norm](double w) { return w * norm; });
   // get the d vector if exists or initialize same as weights
   vector<double> d;
-  if (_opts_map->exists("d")) {
-    Tokenizer tok_weights2(_opts_map->get("d").value(), " \n\t");
-    tok_weights2.ConvertToVector(d);
+  if (opts_map_->exists("d")) {
+    Tokenizer tok_weights2(opts_map_->get("d").value(), " \n\t");
+    d = tok_weights2.ToVector<double>();
     // normalize d coefficients
     norm = 1. / std::accumulate(d.begin(), d.end(), 0.);
     transform(d.begin(), d.end(), d.begin(),
@@ -172,21 +169,21 @@ void Map_Sphere::Initialize(const Molecule *in, Bead *out, Property *opts_bead,
 
 void Map_Sphere::Apply(const BoundaryCondition &bc) {
 
-  assert(_matrix.size() > 0 && "Cannot map to sphere there are no beads");
+  assert(matrix_.size() > 0 && "Cannot map to sphere there are no beads");
 
   bool bPos, bVel, bF;
   bPos = bVel = bF = false;
-  _out->ClearParentBeads();
+  out_->ClearParentBeads();
 
   // the following is needed for pbc treatment
   Eigen::Vector3d r0 = Eigen::Vector3d::Zero();
   string name0;
   Index id0 = 0;
-  if (_matrix.size() > 0) {
-    if (_matrix.front()._in->HasPos()) {
-      r0 = _matrix.front()._in->getPos();
-      name0 = _matrix.front()._in->getName();
-      id0 = _matrix.front()._in->getId();
+  if (matrix_.size() > 0) {
+    if (matrix_.front().in_->HasPos()) {
+      r0 = matrix_.front().in_->getPos();
+      name0 = matrix_.front().in_->getName();
+      id0 = matrix_.front().in_->getId();
     }
   }
 
@@ -195,15 +192,15 @@ void Map_Sphere::Apply(const BoundaryCondition &bc) {
   Eigen::Vector3d f = Eigen::Vector3d::Zero();
   Eigen::Vector3d vel = Eigen::Vector3d::Zero();
 
-  const Bead *bead_max_dist = _matrix.at(0)._in;
+  const Bead *bead_max_dist = matrix_.at(0).in_;
   double max_bead_dist = 0;
   if (bead_max_dist->HasPos()) {
     max_bead_dist = bc.BCShortestConnection(r0, bead_max_dist->getPos()).norm();
   }
 
-  for (const auto &iter : _matrix) {
-    const Bead *bead = iter._in;
-    _out->AddParentBead(bead->getId());
+  for (const auto &iter : matrix_) {
+    const Bead *bead = iter.in_;
+    out_->AddParentBead(bead->getId());
     M += bead->getMass();
     if (bead->HasPos()) {
       Eigen::Vector3d r = bc.BCShortestConnection(r0, bead->getPos());
@@ -211,7 +208,7 @@ void Map_Sphere::Apply(const BoundaryCondition &bc) {
         max_bead_dist = r.norm();
         bead_max_dist = bead;
       }
-      cg += iter._weight * (r + r0);
+      cg += iter.weight_ * (r + r0);
       bPos = true;
     }
   }
@@ -234,33 +231,33 @@ void Map_Sphere::Apply(const BoundaryCondition &bc) {
     }
   }
 
-  for (const auto &iter : _matrix) {
-    const Bead *bead = iter._in;
+  for (const auto &iter : matrix_) {
+    const Bead *bead = iter.in_;
     if (bead->HasVel()) {
-      vel += iter._weight * bead->getVel();
+      vel += iter.weight_ * bead->getVel();
       bVel = true;
     }
     if (bead->HasF()) {
-      f += iter._force_weight * bead->getF();
+      f += iter.force_weight_ * bead->getF();
       bF = true;
     }
   }
-  _out->setMass(M);
+  out_->setMass(M);
   if (bPos) {
-    _out->setPos(cg);
+    out_->setPos(cg);
   }
   if (bVel) {
-    _out->setVel(vel);
+    out_->setVel(vel);
   }
   if (bF) {
-    _out->setF(f);
+    out_->setF(f);
   }
 }
 
 /// \todo implement this function
 void Map_Ellipsoid::Apply(const BoundaryCondition &bc) {
 
-  assert(_matrix.size() > 0 && "Cannot map to ellipsoid there are no beads");
+  assert(matrix_.size() > 0 && "Cannot map to ellipsoid there are no beads");
 
   bool bPos, bVel, bF;
   bPos = bVel = bF = false;
@@ -269,11 +266,11 @@ void Map_Ellipsoid::Apply(const BoundaryCondition &bc) {
   Eigen::Vector3d r0 = Eigen::Vector3d::Zero();
   string name0;
   Index id0 = 0;
-  if (_matrix.size() > 0) {
-    if (_matrix.front()._in->HasPos()) {
-      r0 = _matrix.front()._in->getPos();
-      name0 = _matrix.front()._in->getName();
-      id0 = _matrix.front()._in->getId();
+  if (matrix_.size() > 0) {
+    if (matrix_.front().in_->HasPos()) {
+      r0 = matrix_.front().in_->getPos();
+      name0 = matrix_.front().in_->getName();
+      id0 = matrix_.front().in_->getId();
     }
   }
   Eigen::Vector3d cg = Eigen::Vector3d::Zero();
@@ -283,24 +280,24 @@ void Map_Ellipsoid::Apply(const BoundaryCondition &bc) {
 
   Index n;
   n = 0;
-  _out->ClearParentBeads();
+  out_->ClearParentBeads();
 
-  const Bead *bead_max_dist = _matrix.at(0)._in;
+  const Bead *bead_max_dist = matrix_.at(0).in_;
   double max_bead_dist = 0;
   if (bead_max_dist->HasPos()) {
     max_bead_dist = bc.BCShortestConnection(r0, bead_max_dist->getPos()).norm();
   }
 
-  for (const auto &iter : _matrix) {
-    const Bead *bead = iter._in;
-    _out->AddParentBead(bead->getId());
+  for (const auto &iter : matrix_) {
+    const Bead *bead = iter.in_;
+    out_->AddParentBead(bead->getId());
     if (bead->HasPos()) {
       Eigen::Vector3d r = bc.BCShortestConnection(r0, bead->getPos());
       if (r.norm() > max_bead_dist) {
         max_bead_dist = r.norm();
         bead_max_dist = bead;
       }
-      cg += iter._weight * (r + r0);
+      cg += iter.weight_ * (r + r0);
       bPos = true;
     }
   }
@@ -323,100 +320,100 @@ void Map_Ellipsoid::Apply(const BoundaryCondition &bc) {
     }
   }
 
-  for (const auto &iter : _matrix) {
-    const Bead *bead = iter._in;
+  for (const auto &iter : matrix_) {
+    const Bead *bead = iter.in_;
     if (bead->HasVel() == true) {
-      vel += iter._weight * bead->getVel();
+      vel += iter.weight_ * bead->getVel();
       bVel = true;
     }
     if (bead->HasF()) {
       /// \todo fix me, right calculation should be F_i = m_cg / sum(w_i) *
       /// sum(w_i/m_i*F_i)
-      // f += (*iter)._weight * _in->getBeadF((*iter)._in);
-      f += iter._force_weight * bead->getF();
+      // f += (*iter). weight_ *  in_->getBeadF((*iter). in_);
+      f += iter.force_weight_ * bead->getF();
       bF = true;
     }
 
-    if (iter._weight > 0 && bead->HasPos()) {
+    if (iter.weight_ > 0 && bead->HasPos()) {
       c += bead->getPos();
       n++;
     }
   }
 
   if (bPos) {
-    _out->setPos(cg);
+    out_->setPos(cg);
   }
   if (bVel) {
-    _out->setVel(vel);
+    out_->setVel(vel);
   }
   if (bF) {
-    _out->setF(f);
+    out_->setF(f);
   }
 
-  if (!_matrix[0]._in->HasPos()) {
-    _out->setU(Eigen::Vector3d::UnitX());
-    _out->setV(Eigen::Vector3d::UnitY());
-    _out->setW(Eigen::Vector3d::UnitZ());
+  if (!matrix_[0].in_->HasPos()) {
+    out_->setU(Eigen::Vector3d::UnitX());
+    out_->setV(Eigen::Vector3d::UnitY());
+    out_->setW(Eigen::Vector3d::UnitZ());
     return;
   }
 
   Eigen::Matrix3d m = Eigen::Matrix3d::Zero();
   // calculate the tensor of gyration
   c = c / (double)n;
-  for (auto &iter : _matrix) {
-    if (iter._weight == 0) {
+  for (auto &iter : matrix_) {
+    if (iter.weight_ == 0) {
       continue;
     }
-    const Bead *bead = iter._in;
+    const Bead *bead = iter.in_;
     Eigen::Vector3d v = bead->getPos() - c;
     // v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)
     //    + vec(0.5, -1, 0) * (drand48()-0.5)
     //    + vec(0, 0, 1) * (drand48()-0.5);
 
     // Normalize the tensor with 1/number_of_atoms_per_bead
-    m += v * v.transpose() / (double)_matrix.size();
+    m += v * v.transpose() / (double)matrix_.size();
   }
 
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig;
   eig.computeDirect(m);
 
   Eigen::Vector3d u = eig.eigenvectors().col(0);
-  Eigen::Vector3d v = _matrix[1]._in->getPos() - _matrix[0]._in->getPos();
+  Eigen::Vector3d v = matrix_[1].in_->getPos() - matrix_[0].in_->getPos();
   v.normalize();
 
-  _out->setV(v);
+  out_->setV(v);
 
-  Eigen::Vector3d w = _matrix[2]._in->getPos() - _matrix[0]._in->getPos();
+  Eigen::Vector3d w = matrix_[2].in_->getPos() - matrix_[0].in_->getPos();
   w.normalize();
 
   if (v.cross(w).dot(u) < 0) {
     u = -u;
   }
-  _out->setU(u);
+  out_->setU(u);
 
   // write out w
   w = u.cross(v);
   w.normalize();
-  _out->setW(w);
+  out_->setW(w);
 }
 
 Map::Map(Map &&map)
-    : _in(map._in), _out(map._out), _maps(std::move(map._maps)) {}
+    : in_(map.in_), out_(map.out_), maps_(std::move(map.maps_)) {}
 
 Map &Map::operator=(Map &&map) {
-  _in = map._in;
-  _out = map._out;
-  _maps = std::move(map._maps);
+  in_ = map.in_;
+  out_ = map.out_;
+  maps_ = std::move(map.maps_);
   return *this;
 }
 
 BeadMap *Map::CreateBeadMap(const BeadMapType type) {
   if (type == BeadMapType::Spherical) {
-    _maps.push_back(std::make_unique<Map_Sphere>());
+    maps_.push_back(std::make_unique<Map_Sphere>());
   } else {
-    _maps.push_back(std::make_unique<Map_Ellipsoid>());
+    maps_.push_back(std::make_unique<Map_Ellipsoid>());
   }
-  return _maps.back().get();
+  return maps_.back().get();
 }
 
 }  // namespace csg

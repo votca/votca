@@ -25,14 +25,27 @@ Version 2022-dev
 -  switched molecule stable_vector to boost deque (#667)
 -  convert maps to unique_ptrs (#653)
 -  add iterative integral equation (iie) method (#675)
--  fix issues with IHNC (newton-mod) Integral equation method (#683)
+-  fix issues with IHNC (newton-mod) Integral equation method (#683,
+   #700)
 -  fix links in documentation (#686, #687, #688)
 -  use ndim vector instead of std::vector (#689)
+-  adapted tokenizer api (#693)
+-  made membervariable format consistent (#694)
+-  add ability to run ibi as a postupd method (#696)
+-  removed unused functions (#702)
+-  reworked lammps molecule naming (#703)
 
-Version 2021.1 (released XX.03.21)
+Version 2021.2 (released XX.07.21)
+==================================
+
+-  made masses in test more accurate (#705)
+-  format code with clang-12.0.1 (#707)
+
+Version 2021.1 (released 18.07.21)
 ==================================
 
 -  format code with clang-12 and drop gmx2020 builds (#691)
+-  fix pos scaling (ang2nm) in lammps data reader (#697)
 
 Version 2021 (released 13.03.21)
 ================================

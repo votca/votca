@@ -66,10 +66,10 @@ class RDFCalculator {
   /// end coarse graining a trajectory
   void EndEvaluate();
 
-  void WriteEvery(Index write_every) { _write_every = write_every; }
-  void DoBlocks(bool do_blocks) { _do_blocks = do_blocks; }
-  void DoVolumeCorrection(bool do_vol_corr) { _do_vol_corr = do_vol_corr; }
-  void SetSubvolRadius(double r) { _subvol_rad = r; }
+  void WriteEvery(Index write_every) { write_every_ = write_every; }
+  void DoBlocks(bool do_blocks) { do_blocks_ = do_blocks; }
+  void DoVolumeCorrection(bool do_vol_corr) { do_vol_corr_ = do_vol_corr; }
+  void SetSubvolRadius(double r) { subvol_rad_ = r; }
   double AnalyticVolumeCorrection(double t) {
 
     std::cout << "DBG " << t << " "
@@ -80,63 +80,63 @@ class RDFCalculator {
   }
 
  protected:
-  Average<double> _avg_vol;
+  Average<double> avg_vol_;
 
   using group_matrix = Eigen::MatrixXd;
   using pair_matrix = Eigen::Block<group_matrix>;
 
   /// struct to store collected information for interactions
   struct interaction_t {
-    Index _index;
-    Property *_p;
-    HistogramNew _average;
-    double _min, _max, _step;
-    double _norm;
-    bool _is_bonded;
-    Average<double> _avg_beadlist_1_count;
-    Average<double> _avg_beadlist_2_count;
+    Index index_;
+    Property *p_;
+    HistogramNew average_;
+    double min_, max_, step_;
+    double norm_;
+    bool is_bonded_;
+    Average<double> avg_beadlist_1_count_;
+    Average<double> avg_beadlist_2_count_;
   };
 
   // a pair of interactions which are correlated
   struct pair_t {
-    interaction_t *_i1;
-    interaction_t *_i2;
-    Index _offset_i, _offset_j;
-    pair_matrix _corr;
+    interaction_t *i1_;
+    interaction_t *i2_;
+    Index offset_i_, offset_j_;
+    pair_matrix corr_;
     pair_t(interaction_t *i1, interaction_t *i2, Index offset_i, Index offset_j,
            const pair_matrix &corr);
   };
 
   /// struct to store collected information for groups (e.g. crosscorrelations)
   struct group_t {
-    std::list<interaction_t *> _interactions;
-    group_matrix _corr;
-    std::vector<pair_t> _pairs;
+    std::list<interaction_t *> interactions_;
+    group_matrix corr_;
+    std::vector<pair_t> pairs_;
   };
 
   /// the options parsed from cg definition file
-  Property _options;
+  Property options_;
   // we want to write out every so many frames
-  Index _write_every;
+  Index write_every_;
   // we want do do block averaging -> clear averagings every write out
-  bool _do_blocks;
+  bool do_blocks_;
 
   // number of frames we processed
-  Index _nframes;
-  Index _nblock;
-  double _subvol_rad;
-  Eigen::Vector3d _boxc;  // center of box
-  bool _do_vol_corr;
+  Index nframes_;
+  Index nblock_;
+  double subvol_rad_;
+  Eigen::Vector3d boxc_;  // center of box
+  bool do_vol_corr_;
 
   /// list of bonded interactions
-  std::vector<Property *> _bonded;
+  std::vector<Property *> bonded_;
   /// list of non-bonded interactions
-  std::vector<Property *> _nonbonded;
+  std::vector<Property *> nonbonded_;
 
   /// std::map ineteractionm-name to interaction
-  std::map<std::string, std::unique_ptr<interaction_t>> _interactions;
+  std::map<std::string, std::unique_ptr<interaction_t>> interactions_;
   /// std::map group-name to group
-  std::map<std::string, std::unique_ptr<group_t>> _groups;
+  std::map<std::string, std::unique_ptr<group_t>> groups_;
 
   /// create a new interaction entry based on given options
   interaction_t *AddInteraction(Property *p);
@@ -150,12 +150,12 @@ class RDFCalculator {
 
   class Worker : public CsgApplication::Worker {
    public:
-    std::vector<HistogramNew> _current_hists;
-    RDFCalculator *_rdfcalculator;
-    double _cur_vol;
-    double _cur_beadlist_1_count;  // need to normalize to avg density for
+    std::vector<HistogramNew> current_hists_;
+    RDFCalculator *rdfcalculator_;
+    double cur_vol_;
+    double cur_beadlist_1_count_;  // need to normalize to avg density for
                                    // subvol
-    double _cur_beadlist_2_count;
+    double cur_beadlist_2_count_;
 
     /// evaluate current conformation
     void EvalConfiguration(Topology *top, Topology *top_atom) override;
@@ -167,7 +167,7 @@ class RDFCalculator {
   /// update the correlations after interations were processed
   void DoCorrelations(RDFCalculator::Worker *worker);
 
-  bool _processed_some_frames;
+  bool processed_some_frames_;
 
  public:
   std::unique_ptr<CsgApplication::Worker> ForkWorker();
@@ -178,7 +178,7 @@ inline RDFCalculator::pair_t::pair_t(RDFCalculator::interaction_t *i1,
                                      RDFCalculator::interaction_t *i2,
                                      Index offset_i, Index offset_j,
                                      const pair_matrix &corr)
-    : _i1(i1), _i2(i2), _offset_i(offset_i), _offset_j(offset_j), _corr(corr) {}
+    : i1_(i1), i2_(i2), offset_i_(offset_i), offset_j_(offset_j), corr_(corr) {}
 
 }  // namespace csg
 }  // namespace votca

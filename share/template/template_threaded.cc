@@ -77,8 +77,8 @@ class CsgTestApp : public CsgApplication {
 
  protected:
   // data belonging to the main class CsgTestApp
-  votca::tools::HistogramNew _rdf;
-  double _cut_off;
+  votca::tools::HistogramNew rdf_;
+  double cut_off_;
 };
 
 // derive from CsgApplication::Worker and define your worker
@@ -88,8 +88,8 @@ class RDFWorker : public CsgApplication::Worker {
   // override EvalConfiguration with your analysis routine
   void EvalConfiguration(Topology *, Topology *) override;
   // data belonging to this particular worker
-  votca::tools::HistogramNew _rdf;
-  double _cut_off;
+  votca::tools::HistogramNew rdf_;
+  double cut_off_;
 };
 
 int main(int argc, char **argv) {
@@ -106,8 +106,8 @@ void CsgTestApp::Initialize() {
 }
 
 void CsgTestApp::BeginEvaluate(Topology *, Topology *) {
-  _cut_off = OptionsMap()["c"].as<double>();
-  _rdf.Initialize(0, _cut_off, 50);
+  cut_off_ = OptionsMap()["c"].as<double>();
+  rdf_.Initialize(0, cut_off_, 50);
 }
 
 // create and initialize single workers
@@ -117,8 +117,8 @@ void CsgTestApp::BeginEvaluate(Topology *, Topology *) {
 std::unique_ptr<CsgApplication::Worker> CsgTestApp::ForkWorker() {
   auto worker = std::make_unique<RDFWorker>();
   // initialize
-  worker->_cut_off = OptionsMap()["c"].as<double>();
-  worker->_rdf.Initialize(0, worker->_cut_off, 50);
+  worker->cut_off_ = OptionsMap()["c"].as<double>();
+  worker->rdf_.Initialize(0, worker->cut_off_, 50);
   return worker;
 }
 
@@ -128,10 +128,10 @@ void RDFWorker::EvalConfiguration(Topology *top, Topology *) {
   BeadList b;
   b.Generate(*top, "*");
   NBListGrid nb;
-  nb.setCutoff(_cut_off);
+  nb.setCutoff(cut_off_);
   nb.Generate(b);
   for (auto &pair : nb) {
-    _rdf.Process(pair->dist());
+    rdf_.Process(pair->dist());
   }
 }
 
@@ -161,10 +161,10 @@ void CsgTestApp::MergeWorker(Worker *worker) {
 
   // merging of data in this simple example is easy and does not have to follow
   // the original order of frames (since plain summing is commutative)
-  _rdf.data().y() = _rdf.data().y() + myRDFWorker->_rdf.data().y();
+  rdf_.data().y() = rdf_.data().y() + myRDFWorker->rdf_.data().y();
 }
 
 void CsgTestApp::EndEvaluate() {
-  _rdf.data().y() = _rdf.data().y().cwiseQuotient(_rdf.data().x().cwiseAbs2());
-  _rdf.data().Save("rdf.dat");
+  rdf_.data().y() = rdf_.data().y().cwiseQuotient(rdf_.data().x().cwiseAbs2());
+  rdf_.data().Save("rdf.dat");
 }

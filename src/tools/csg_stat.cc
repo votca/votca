@@ -50,17 +50,17 @@ class CsgStatApp : public CsgApplication {
   void EndEvaluate() override;
 
   std::unique_ptr<CsgApplication::Worker> ForkWorker() override {
-    return _imc.ForkWorker();
+    return imc_.ForkWorker();
   }
 
   void MergeWorker(CsgApplication::Worker *worker) override {
-    _imc.MergeWorker(worker);
+    imc_.MergeWorker(worker);
   }
 
  public:
-  Imc _imc;
-  votca::Index _block_length;
-  string _extension;
+  Imc imc_;
+  votca::Index block_length_;
+  string extension_;
 };
 
 void CsgStatApp::HelpText(ostream &out) {
@@ -84,7 +84,7 @@ void CsgStatApp::Initialize() {
       "block-length", boost::program_options::value<votca::Index>(),
       "  write blocks of this length, the averages are cleared after every "
       "write")("ext",
-               boost::program_options::value<string>(&_extension)
+               boost::program_options::value<string>(&extension_)
                    ->default_value("dist.new"),
                "Extension of the output");
 }
@@ -94,33 +94,33 @@ bool CsgStatApp::EvaluateOptions() {
   CheckRequired("options");
   CheckRequired("trj", "no trajectory file specified");
 
-  _imc.LoadOptions(OptionsMap()["options"].as<string>());
+  imc_.LoadOptions(OptionsMap()["options"].as<string>());
 
   if (OptionsMap().count("block-length")) {
-    _imc.BlockLength(OptionsMap()["block-length"].as<votca::Index>());
+    imc_.BlockLength(OptionsMap()["block-length"].as<votca::Index>());
   } else {
-    _imc.BlockLength(0);
+    imc_.BlockLength(0);
   }
 
   if (OptionsMap().count("do-imc")) {
-    _imc.DoImc(true);
+    imc_.DoImc(true);
   }
 
   if (OptionsMap().count("only-intra")) {
-    _imc.OnlyIntra(true);
+    imc_.OnlyIntra(true);
   }
 
-  _imc.Extension(_extension);
+  imc_.Extension(extension_);
 
-  _imc.Initialize();
+  imc_.Initialize();
   return true;
 }
 
 void CsgStatApp::BeginEvaluate(Topology *top, Topology *top_ref) {
-  _imc.BeginEvaluate(top, top_ref);
+  imc_.BeginEvaluate(top, top_ref);
 }
 
-void CsgStatApp::EndEvaluate() { _imc.EndEvaluate(); }
+void CsgStatApp::EndEvaluate() { imc_.EndEvaluate(); }
 
 int main(int argc, char **argv) {
   CsgStatApp app;

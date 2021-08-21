@@ -47,7 +47,7 @@ using namespace std;
 // here the data structures are prepared to handle all the data
 void Imc::Initialize() {
   // do some output
-  if (_do_imc) {
+  if (do_imc_) {
     cout << "begin to calculate inverse monte carlo parameters\n";
     if (_only_intramolecular) {
       throw runtime_error("error, can not have --do-imc and --only-intra");
@@ -55,46 +55,46 @@ void Imc::Initialize() {
   } else {
     cout << "begin to calculate distribution functions\n";
   }
-  cout << "# of bonded interactions: " << _bonded.size() << endl;
-  cout << "# of non-bonded interactions: " << _nonbonded.size() << endl;
+  cout << "# of bonded interactions: " << bonded_.size() << endl;
+  cout << "# of non-bonded interactions: " << nonbonded_.size() << endl;
 
-  if (_bonded.size() + _nonbonded.size() == 0) {
+  if (bonded_.size() + nonbonded_.size() == 0) {
     throw std::runtime_error(
         "No interactions defined in options xml-file - nothing to be done");
   }
 
   // initialize non-bonded structures
-  for (tools::Property *prop : _nonbonded) {
+  for (tools::Property *prop : nonbonded_) {
     bool bonded = false;
     AddInteraction(prop, bonded);
   }
 
   // initialize bonded structures
-  for (tools::Property *prop : _bonded) {
+  for (tools::Property *prop : bonded_) {
     bool bonded = true;
     AddInteraction(prop, bonded);
   }
 
   // initialize the group structures
-  if (_do_imc) {
+  if (do_imc_) {
     InitializeGroups();
   }
 }
 
 void Imc::BeginEvaluate(Topology *top, Topology *) {
   // we didn't process any frames so far
-  _nframes = 0;
-  _nblock = 0;
-  _processed_some_frames = false;
+  nframes_ = 0;
+  nblock_ = 0;
+  processed_some_frames_ = false;
 
   // initialize non-bonded structures
-  for (tools::Property *prop : _nonbonded) {
+  for (tools::Property *prop : nonbonded_) {
     string name = prop->get("name").value();
 
-    interaction_t &i = *_interactions[name];
+    interaction_t &i = *interactions_[name];
 
     // Preliminary: Quickest way to incorporate 3 body correlations
-    if (i._threebody) {
+    if (i.threebody_) {
 
       // generate the bead lists
       BeadList beads1, beads2, beads3;
@@ -129,10 +129,10 @@ void Imc::BeginEvaluate(Topology *top, Topology *) {
       }
     }
     // 2body
-    if (!i._threebody) {
+    if (!i.threebody_) {
 
       double max_dist = 0.5 * top->ShortestBoxSize();
-      double max = i._average.getMax();
+      double max = i.average_.getMax();
       if (max > max_dist) {
         throw std::runtime_error("The max of interaction \"" + name +
                                  "\" bigger is than half the box.");
@@ -163,14 +163,14 @@ void Imc::BeginEvaluate(Topology *top, Topology *) {
 
       // calculate normalization factor for rdf
       if (prop->get("type1").value() == prop->get("type2").value()) {
-        i._norm = 2. / (double)(beads1.size() * beads2.size());
+        i.norm_ = 2. / (double)(beads1.size() * beads2.size());
       } else {
-        i._norm = 1. / (double)(beads1.size() * beads2.size());
+        i.norm_ = 1. / (double)(beads1.size() * beads2.size());
       }
     }
   }
 
-  for (tools::Property *prop : _bonded) {
+  for (tools::Property *prop : bonded_) {
     string name = prop->get("name").value();
     std::vector<Interaction *> vec = top->InteractionsInGroup(name);
     if (vec.empty()) {
@@ -186,16 +186,17 @@ void Imc::BeginEvaluate(Topology *top, Topology *) {
 Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
   string name = p->get("name").value();
   string group;
-  if (_do_imc) {
+  if (do_imc_) {
     group = p->get("inverse.imc.group").value();
   } else {
     group = "none";
   }
 
-  votca::Index index = Index(_interactions.size());
-  auto success = _interactions.insert(
+  votca::Index index = Index(interactions_.size());
+  auto success = interactions_.insert(
       std::make_pair(name, std::make_unique<interaction_t>()));
   interaction_t *i = success.first->second.get();
+<<<<<<< HEAD
   i->_index = index;
   getGroup(group)->_interactions.push_back(i);
 
@@ -203,26 +204,55 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
   i->_step = p->get("step").as<double>();
   i->_min = p->get("min").as<double>();
   i->_max = p->get("max").as<double>();
+||||||| e427dadd
+  i->_index = index;
+  getGroup(group)->_interactions.push_back(i);
 
-  i->_norm = 1.0;
-  i->_p = p;
+  i->_is_bonded = is_bonded;
+  i->_step = p->get("step").as<double>();
+  i->_min = p->get("min").as<double>();
+  i->_max = p->get("max").as<double>();
+  if (_include_intra && (!i->_is_bonded)) {
+    i->_max = p->get("max_intra").as<double>();
+  } else {
+    i->_max = p->get("max").as<double>();
+  }
+=======
+  i->index_ = index;
+  if (group != "none") {
+    getGroup(group)->interactions_.push_back(i);
+  }
+
+  i->is_bonded_ = is_bonded;
+  i->step_ = p->get("step").as<double>();
+  i->min_ = p->get("min").as<double>();
+  i->max_ = p->get("max").as<double>();
+  if (include_intra_ && (!i->is_bonded_)) {
+    i->max_ = p->get("max_intra").as<double>();
+  } else {
+    i->max_ = p->get("max").as<double>();
+  }
+>>>>>>> master
+
+  i->norm_ = 1.0;
+  i->p_ = p;
 
   // if option threebody does not exist, replace it by default of 0
-  i->_threebody = p->ifExistsReturnElseReturnDefault<bool>("threebody", 0);
+  i->threebody_ = p->ifExistsReturnElseReturnDefault<bool>("threebody", 0);
 
   // if option force does not exist, replace it by default of 0
-  i->_force = p->ifExistsReturnElseReturnDefault<bool>("force", 0);
+  i->force_ = p->ifExistsReturnElseReturnDefault<bool>("force", 0);
 
   // if option cut does not exist, replace it by default of 0.37 nm
-  i->_cut = p->ifExistsReturnElseReturnDefault<double>("cut", 0.37);
+  i->cut_ = p->ifExistsReturnElseReturnDefault<double>("cut", 0.37);
 
   // initialize the current and average histogram
   votca::Index n =
-      static_cast<votca::Index>((i->_max - i->_min) / i->_step + 1.000000001);
+      static_cast<votca::Index>((i->max_ - i->min_) / i->step_ + 1.000000001);
 
-  i->_average.Initialize(i->_min, i->_max, n);
-  if (i->_force) {
-    i->_average_force.Initialize(i->_min, i->_max, n);
+  i->average_.Initialize(i->min_, i->max_, n);
+  if (i->force_) {
+    i->average_force_.Initialize(i->min_, i->max_, n);
   }
 
   return i;
@@ -230,19 +260,19 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
 
 // end of trajectory, post processing data
 void Imc::EndEvaluate() {
-  if (_nframes > 0) {
-    if (_block_length == 0) {
-      string suffix = string(".") + _extension;
+  if (nframes_ > 0) {
+    if (block_length_ == 0) {
+      string suffix = string(".") + extension_;
       WriteDist(suffix);
-      if (_do_imc) {
+      if (do_imc_) {
         WriteIMCData();
       }
     }
   }
   // clear interactions and groups
-  _interactions.clear();
-  _groups.clear();
-  if (!_processed_some_frames) {
+  interactions_.clear();
+  groups_.clear();
+  if (!processed_some_frames_) {
     throw std::runtime_error(
         "no frames were processed. Please check your input");
   }
@@ -250,15 +280,15 @@ void Imc::EndEvaluate() {
 
 // load options from xml file
 void Imc::LoadOptions(const string &file) {
-  _options.LoadFromXML(file);
-  _bonded = _options.Select("cg.bonded");
-  _nonbonded = _options.Select("cg.non-bonded");
+  options_.LoadFromXML(file);
+  bonded_ = options_.Select("cg.bonded");
+  nonbonded_ = options_.Select("cg.non-bonded");
 }
 
 // evaluate current conformation
 void Imc::Worker::EvalConfiguration(Topology *top, Topology *) {
 
-  _cur_vol = top->BoxVolume();
+  cur_vol_ = top->BoxVolume();
   // process non-bonded interactions
   DoNonbonded(top);
   // process bonded interactions
@@ -266,49 +296,49 @@ void Imc::Worker::EvalConfiguration(Topology *top, Topology *) {
 }
 
 void Imc::ClearAverages() {
-  _nframes = 0;
+  nframes_ = 0;
 
-  for (auto &inter : _interactions) {
-    inter.second->_average.Clear();
-    if (inter.second->_force) {
-      inter.second->_average_force.Clear();
+  for (auto &inter : interactions_) {
+    inter.second->average_.Clear();
+    if (inter.second->force_) {
+      inter.second->average_force_.Clear();
     }
   }
-  for (auto &group : _groups) {
-    group.second->_corr.setZero();
+  for (auto &group : groups_) {
+    group.second->corr_.setZero();
   }
 }
 
 class IMCNBSearchHandler {
  public:
   explicit IMCNBSearchHandler(votca::tools::HistogramNew *hist)
-      : _hist(*hist) {}
+      : hist_(*hist) {}
 
-  votca::tools::HistogramNew &_hist;
+  votca::tools::HistogramNew &hist_;
 
   bool FoundPair(Bead *, Bead *, const Eigen::Vector3d &, const double dist) {
-    _hist.Process(dist);
+    hist_.Process(dist);
     return false;
   }
 };
 
 // process non-bonded interactions for current frame
 void Imc::Worker::DoNonbonded(Topology *top) {
-  for (tools::Property *prop : _imc->_nonbonded) {
+  for (tools::Property *prop : imc_->nonbonded_) {
     string name = prop->get("name").value();
 
-    interaction_t &i = *_imc->_interactions[name];
+    interaction_t &i = *imc_->interactions_[name];
 
     // clear the current histogram
-    _current_hists[i._index].Clear();
-    _current_hists_force[i._index].Clear();
+    current_hists_[i.index_].Clear();
+    current_hists_force_[i.index_].Clear();
 
     bool gridsearch = true;
 
-    if (_imc->_options.exists("cg.nbsearch")) {
-      if (_imc->_options.get("cg.nbsearch").as<string>() == "grid") {
+    if (imc_->options_.exists("cg.nbsearch")) {
+      if (imc_->options_.get("cg.nbsearch").as<string>() == "grid") {
         gridsearch = true;
-      } else if (_imc->_options.get("cg.nbsearch").as<string>() == "simple") {
+      } else if (imc_->options_.get("cg.nbsearch").as<string>() == "simple") {
         gridsearch = false;
       } else {
         throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
@@ -316,7 +346,7 @@ void Imc::Worker::DoNonbonded(Topology *top) {
     }
 
     // Preleminary: Quickest way to incorporate 3 body correlations
-    if (i._threebody) {
+    if (i.threebody_) {
 
       // generate the bead lists
       BeadList beads1, beads2, beads3;
@@ -334,7 +364,7 @@ void Imc::Worker::DoNonbonded(Topology *top) {
         nb = std::make_unique<NBList_3Body>();
       }
 
-      nb->setCutoff(i._cut);  // implement different cutoffs for different
+      nb->setCutoff(i.cut_);  // implement different cutoffs for different
                               // interactions!
       // Here, a is the distance between two beads of a triple, where the 3-body
       // interaction is zero
@@ -376,11 +406,11 @@ void Imc::Worker::DoNonbonded(Topology *top) {
         Eigen::Vector3d rik = triple->r13();
         double var = std::acos(rij.dot(rik) /
                                sqrt(rij.squaredNorm() * rik.squaredNorm()));
-        _current_hists[i._index].Process(var);
+        current_hists_[i.index_].Process(var);
       }
     }
     // 2body interaction
-    if (!i._threebody) {
+    if (!i.threebody_) {
 
       // generate the bead lists
       BeadList beads1, beads2;
@@ -399,22 +429,34 @@ void Imc::Worker::DoNonbonded(Topology *top) {
           nb = std::unique_ptr<NBList>(new NBList());
         }
 
-        nb->setCutoff(i._max + i._step);
+        nb->setCutoff(i.max_ + i.step_);
 
-        IMCNBSearchHandler h(&(_current_hists[i._index]));
+        IMCNBSearchHandler h(&(current_hists_[i.index_]));
 
         nb->SetMatchFunction(&h, &IMCNBSearchHandler::FoundPair);
 
         // is it same types or different types?
         if (prop->get("type1").value() == prop->get("type2").value()) {
+<<<<<<< HEAD
           nb->Generate(beads1);
+||||||| e427dadd
+          nb->Generate(beads1, !(_imc->_include_intra));
+=======
+          nb->Generate(beads1, !(imc_->include_intra_));
+>>>>>>> master
         } else {
+<<<<<<< HEAD
           nb->Generate(beads1, beads2);
+||||||| e427dadd
+          nb->Generate(beads1, beads2, !(_imc->_include_intra));
+=======
+          nb->Generate(beads1, beads2, !(imc_->include_intra_));
+>>>>>>> master
         }
       }
 
       // if one wants to calculate the mean force
-      if (i._force) {
+      if (i.force_) {
         std::unique_ptr<NBList> nb_force;
         if (gridsearch) {
           nb_force = std::unique_ptr<NBList>(new NBListGrid());
@@ -422,7 +464,7 @@ void Imc::Worker::DoNonbonded(Topology *top) {
           nb_force = std::unique_ptr<NBList>(new NBListGrid());
         }
 
-        nb_force->setCutoff(i._max + i._step);
+        nb_force->setCutoff(i.max_ + i.step_);
 
         // is it same types or different types?
         if (prop->get("type1").value() == prop->get("type2").value()) {
@@ -440,7 +482,7 @@ void Imc::Worker::DoNonbonded(Topology *top) {
           r12.normalize();
           double var = pair->dist();
           double scale = 0.5 * (F2 - F1).dot(r12);
-          _current_hists_force[i._index].Process(var, scale);
+          current_hists_force_[i.index_].Process(var, scale);
         }
       }
     }
@@ -449,18 +491,18 @@ void Imc::Worker::DoNonbonded(Topology *top) {
 
 // process non-bonded interactions for current frame
 void Imc::Worker::DoBonded(Topology *top) {
-  for (tools::Property *prop : _imc->_bonded) {
+  for (tools::Property *prop : imc_->bonded_) {
     string name = prop->get("name").value();
 
-    interaction_t &i = *_imc->_interactions[name];
+    interaction_t &i = *imc_->interactions_[name];
 
     // clear the current histogram
-    _current_hists[i._index].Clear();
+    current_hists_[i.index_].Clear();
 
     // now fill with new data
     for (Interaction *ic : top->InteractionsInGroup(name)) {
       double v = ic->EvaluateVar(*top);
-      _current_hists[i._index].Process(v);
+      current_hists_[i.index_].Process(v);
     }
   }
 }
@@ -468,10 +510,10 @@ void Imc::Worker::DoBonded(Topology *top) {
 // returns a group, creates it if doesn't exist
 Imc::group_t *Imc::getGroup(const string &name) {
   map<string, std::unique_ptr<group_t> >::iterator iter;
-  iter = _groups.find(name);
-  if (iter == _groups.end()) {
+  iter = groups_.find(name);
+  if (iter == groups_.end()) {
     auto success =
-        _groups.insert(std::make_pair(name, std::make_unique<group_t>()));
+        groups_.insert(std::make_pair(name, std::make_unique<group_t>()));
     return success.first->second.get();
   }
   return (*iter).second.get();
@@ -479,7 +521,7 @@ Imc::group_t *Imc::getGroup(const string &name) {
 
 // initialize the groups after interactions are added
 void Imc::InitializeGroups() {
-  if (!_do_imc) {
+  if (!do_imc_) {
     return;
   }
   map<string, group_t *>::iterator group_iter;
@@ -487,19 +529,19 @@ void Imc::InitializeGroups() {
   // clear all the pairs
 
   // iterator over all groups
-  for (auto &group : _groups) {
+  for (auto &group : groups_) {
     auto &grp = group.second;
-    grp->_pairs.clear();
+    grp->pairs_.clear();
 
-    auto &interactions = grp->_interactions;
+    auto &interactions = grp->interactions_;
     // count number of bins needed in matrix
     votca::Index n = std::accumulate(interactions.begin(), interactions.end(),
                                      0, [](votca::Index j, interaction_t *i) {
-                                       return j + i->_average.getNBins();
+                                       return j + i->average_.getNBins();
                                      });
 
     // handy access to matrix
-    group_matrix &M = grp->_corr;
+    group_matrix &M = grp->corr_;
 
     // initialize matrix with zeroes
     M = Eigen::MatrixXd::Zero(n, n);
@@ -509,14 +551,14 @@ void Imc::InitializeGroups() {
     votca::Index offset_j = 0;
     // iterate over all possible cominations of pairs
     for (votca::Index i = 0; i < votca::Index(interactions.size()); i++) {
-      votca::Index n1 = interactions[i]->_average.getNBins();
+      votca::Index n1 = interactions[i]->average_.getNBins();
       offset_j = offset_i;
       for (votca::Index j = i; j < votca::Index(interactions.size()); j++) {
-        votca::Index n2 = interactions[j]->_average.getNBins();
+        votca::Index n2 = interactions[j]->average_.getNBins();
         // create matrix proxy with sub-matrix
         pair_matrix corr = M.block(offset_i, offset_j, n1, n2);
         // add the pair
-        grp->_pairs.push_back(
+        grp->pairs_.push_back(
             pair_t(interactions[i], interactions[j], offset_i, offset_j, corr));
         offset_j += n2;
       }
@@ -527,20 +569,20 @@ void Imc::InitializeGroups() {
 
 // update the correlation matrix
 void Imc::DoCorrelations(Imc::Worker *worker) {
-  if (!_do_imc) {
+  if (!do_imc_) {
     return;
   }
 
-  for (auto &group : _groups) {
+  for (auto &group : groups_) {
     auto &grp = group.second;
     // update correlation for all pairs
-    for (auto &pair : grp->_pairs) {
-      Eigen::VectorXd &a = worker->_current_hists[pair._i1->_index].data().y();
-      Eigen::VectorXd &b = worker->_current_hists[pair._i2->_index].data().y();
-      pair_matrix &M = pair._corr;
+    for (auto &pair : grp->pairs_) {
+      Eigen::VectorXd &a = worker->current_hists_[pair.i1_->index_].data().y();
+      Eigen::VectorXd &b = worker->current_hists_[pair.i2_->index_].data().y();
+      pair_matrix &M = pair.corr_;
 
-      M = ((((double)_nframes - 1.0) * M) + a * b.transpose()) /
-          (double)_nframes;
+      M = ((((double)nframes_ - 1.0) * M) + a * b.transpose()) /
+          (double)nframes_;
     }
   }
 }
@@ -552,32 +594,32 @@ void Imc::WriteDist(const string &suffix) {
   cout << std::endl;  // Cosmetic, put \n before printing names of distribution
                       // files.
   // for all interactions
-  for (auto &pair : _interactions) {
+  for (auto &pair : interactions_) {
     // calculate the rdf
     auto &interaction = pair.second;
-    votca::tools::Table &t = interaction->_average.data();
+    votca::tools::Table &t = interaction->average_.data();
 
     // if no average force calculation, dummy table
     votca::tools::Table force;
     // if average force calculation, table force contains force data
-    if (interaction->_force) {
-      force = interaction->_average_force.data();
+    if (interaction->force_) {
+      force = interaction->average_force_.data();
     }
 
     votca::tools::Table dist(t);
-    if (!interaction->_is_bonded) {
+    if (!interaction->is_bonded_) {
       // Quickest way to incorporate 3 body correlations
-      if (interaction->_threebody) {
+      if (interaction->threebody_) {
         // \TODO normalize bond and angle differently....
         double norm = dist.y().cwiseAbs().sum();
         if (norm > 0) {
           dist.y() =
-              interaction->_norm * dist.y() / (norm * interaction->_step);
+              interaction->norm_ * dist.y() / (norm * interaction->step_);
         }
       }
 
       // 2body
-      if (!interaction->_threebody) {
+      if (!interaction->threebody_) {
         // force normalization
         // normalize by number of pairs found at a specific distance
         for (votca::Index i = 0; i < force.y().size(); ++i) {
@@ -595,12 +637,12 @@ void Imc::WriteDist(const string &suffix) {
         // normalization is calculated using exact shell volume (difference of
         // spheres)
         for (votca::Index i = 0; i < dist.y().size(); ++i) {
-          double x1 = dist.x()[i] - 0.5 * interaction->_step;
-          double x2 = x1 + interaction->_step;
+          double x1 = dist.x()[i] - 0.5 * interaction->step_;
+          double x2 = x1 + interaction->step_;
           if (x1 < 0) {
             dist.y()[i] = 0;
           } else {
-            dist.y()[i] = _avg_vol.getAvg() * interaction->_norm * dist.y()[i] /
+            dist.y()[i] = avg_vol_.getAvg() * interaction->norm_ * dist.y()[i] /
                           (4. / 3. * M_PI * (x2 * x2 * x2 - x1 * x1 * x1));
           }
         }
@@ -610,7 +652,7 @@ void Imc::WriteDist(const string &suffix) {
       // \TODO normalize bond and angle differently....
       double norm = dist.y().cwiseAbs().sum();
       if (norm > 0) {
-        dist.y() = interaction->_norm * dist.y() / (norm * interaction->_step);
+        dist.y() = interaction->norm_ * dist.y() / (norm * interaction->step_);
       }
     }
 
@@ -618,7 +660,7 @@ void Imc::WriteDist(const string &suffix) {
     cout << "written " << (pair.first) + suffix << "\n";
 
     // preliminary
-    if (interaction->_force) {
+    if (interaction->force_) {
       force.Save((pair.first) + ".force.new");
       cout << "written " << (pair.first) + ".force.new"
            << "\n";
@@ -633,23 +675,23 @@ void Imc::WriteDist(const string &suffix) {
  *      - calculate th
  */
 void Imc::WriteIMCData(const string &suffix) {
-  if (!_do_imc) {
+  if (!do_imc_) {
     return;
   }
   // map<string, interaction_t *>::iterator ic_iter;
   map<string, group_t *>::iterator group_iter;
 
   // iterate over all groups
-  for (auto &group : _groups) {
+  for (auto &group : groups_) {
     auto &grp = group.second;
     string grp_name = group.first;
 
     // number of total bins for all interactions in group is matrix dimension
-    votca::Index n = grp->_corr.rows();
+    votca::Index n = grp->corr_.rows();
 
     // build full set of equations + copy some data to make
     // code better to read
-    group_matrix gmc(grp->_corr);
+    group_matrix gmc(grp->corr_);
     tools::Table dS;
     dS.resize(n);
     // the next two variables are to later extract the individual parts
@@ -661,50 +703,50 @@ void Imc::WriteIMCData(const string &suffix) {
     // copy all averages+r of group to one vector
     n = 0;
     votca::Index begin = 1;
-    for (interaction_t *ic : grp->_interactions) {
+    for (interaction_t *ic : grp->interactions_) {
 
       // sub vector for dS
       Eigen::VectorBlock<Eigen::VectorXd> sub_dS =
-          dS.y().segment(n, ic->_average.getNBins());
+          dS.y().segment(n, ic->average_.getNBins());
 
       // sub vector for r
       Eigen::VectorBlock<Eigen::VectorXd> sub_r =
-          dS.x().segment(n, ic->_average.getNBins());
+          dS.x().segment(n, ic->average_.getNBins());
 
       // read in target and calculate dS
       CalcDeltaS(ic, sub_dS);
 
       // copy r
-      sub_r = ic->_average.data().x();
+      sub_r = ic->average_.data().x();
 
       // save size
       votca::tools::RangeParser rp;
-      votca::Index end = begin + ic->_average.getNBins() - 1;
+      votca::Index end = begin + ic->average_.getNBins() - 1;
       rp.Add(begin, end);
       ranges.push_back(std::pair<std::string, votca::tools::RangeParser>(
-          ic->_p->get("name").as<string>(), rp));
+          ic->p_->get("name").as<string>(), rp));
       begin = end + 1;
       // save name
 
       // shift subrange by size of current
-      n += ic->_average.getNBins();
+      n += ic->average_.getNBins();
     }
 
     // now we need to calculate the
     // A_ij = <S_i*S_j> - <S_i>*<S_j>
-    for (pair_t &pair : grp->_pairs) {
-      interaction_t *i1 = pair._i1;
-      interaction_t *i2 = pair._i2;
+    for (pair_t &pair : grp->pairs_) {
+      interaction_t *i1 = pair.i1_;
+      interaction_t *i2 = pair.i2_;
 
       // make reference to <S_i>
-      Eigen::VectorXd &a = i1->_average.data().y();
+      Eigen::VectorXd &a = i1->average_.data().y();
       // make reference to <S_j>
-      Eigen::VectorXd &b = i2->_average.data().y();
+      Eigen::VectorXd &b = i2->average_.data().y();
 
-      votca::Index i = pair._offset_i;
-      votca::Index j = pair._offset_j;
-      votca::Index n1 = i1->_average.getNBins();
-      votca::Index n2 = i2->_average.getNBins();
+      votca::Index i = pair.offset_i_;
+      votca::Index j = pair.offset_j_;
+      votca::Index n1 = i1->average_.getNBins();
+      votca::Index n2 = i2->average_.getNBins();
 
       pair_matrix M = gmc.block(i, j, n1, n2);
       M = -(M - a * b.transpose());
@@ -721,50 +763,50 @@ void Imc::WriteIMCData(const string &suffix) {
 // calculate deviation from target vectors
 void Imc::CalcDeltaS(interaction_t *interaction,
                      Eigen::VectorBlock<Eigen::VectorXd> &dS) {
-  const string &name = interaction->_p->get("name").as<string>();
+  const string &name = interaction->p_->get("name").as<string>();
 
   tools::Table target;
   target.Load(name + ".dist.tgt");
 
-  if (!interaction->_is_bonded) {
+  if (!interaction->is_bonded_) {
     for (votca::Index i = 0; i < target.y().size(); ++i) {
-      double x1 = target.x()[i] - 0.5 * interaction->_step;
-      double x2 = x1 + interaction->_step;
+      double x1 = target.x()[i] - 0.5 * interaction->step_;
+      double x2 = x1 + interaction->step_;
       if (x1 < 0) {
         x1 = x2 = 0;
       }
-      target.y()[i] = 1. / (_avg_vol.getAvg() * interaction->_norm) *
+      target.y()[i] = 1. / (avg_vol_.getAvg() * interaction->norm_) *
                       target.y()[i] *
                       (4. / 3. * M_PI * (x2 * x2 * x2 - x1 * x1 * x1));
     }
   } else {
-    target.y() = (1.0 / interaction->_norm) * target.y();
+    target.y() = (1.0 / interaction->norm_) * target.y();
   }
-  if (target.y().size() != interaction->_average.data().y().size()) {
+  if (target.y().size() != interaction->average_.data().y().size()) {
     throw std::runtime_error(
         "number of grid points in target does not match the grid");
   }
 
-  dS = interaction->_average.data().y() - target.y();
+  dS = interaction->average_.data().y() - target.y();
 }
 
 void Imc::WriteIMCBlock(const string &suffix) {
 
-  if (!_do_imc) {
+  if (!do_imc_) {
     return;
   }
 
   // iterate over all groups
-  for (auto &group : _groups) {
+  for (auto &group : groups_) {
     auto &grp = group.second;
     string grp_name = group.first;
     list<interaction_t *>::iterator iter;
 
     // number of total bins for all interactions in group is matrix dimension
-    votca::Index n = grp->_corr.rows();
+    votca::Index n = grp->corr_.rows();
 
     // build full set of equations + copy some data to make code better to read
-    group_matrix gmc(grp->_corr);
+    group_matrix gmc(grp->corr_);
     Eigen::VectorXd dS(n);
     Eigen::VectorXd r(n);
     // the next two variables are to later extract the individual parts
@@ -774,26 +816,26 @@ void Imc::WriteIMCBlock(const string &suffix) {
 
     // copy all averages+r of group to one vector
     n = 0;
-    for (interaction_t *ic : grp->_interactions) {
+    for (interaction_t *ic : grp->interactions_) {
       // sub vector for dS
       Eigen::VectorBlock<Eigen::VectorXd> sub_dS =
-          dS.segment(n, ic->_average.getNBins());
+          dS.segment(n, ic->average_.getNBins());
 
       // sub vector for r
       Eigen::VectorBlock<Eigen::VectorXd> sub_r =
-          r.segment(n, ic->_average.getNBins());
+          r.segment(n, ic->average_.getNBins());
 
       // read in target and calculate dS
-      sub_dS = ic->_average.data().y();
+      sub_dS = ic->average_.data().y();
       // copy r
-      sub_r = ic->_average.data().x();
+      sub_r = ic->average_.data().x();
       // save size
-      sizes.push_back(ic->_average.getNBins());
+      sizes.push_back(ic->average_.getNBins());
       // save name
-      names.push_back(ic->_p->get("name").as<string>());
+      names.push_back(ic->p_->get("name").as<string>());
 
       // shift subrange by size of current
-      n += ic->_average.getNBins();
+      n += ic->average_.getNBins();
     }
 
     // write the dS
@@ -822,9 +864,9 @@ void Imc::WriteIMCBlock(const string &suffix) {
       throw runtime_error(string("error, cannot open file ") + name_cor);
     }
 
-    for (votca::Index i = 0; i < grp->_corr.rows(); ++i) {
-      for (votca::Index j = 0; j < grp->_corr.cols(); ++j) {
-        out_cor << grp->_corr(i, j) << " ";
+    for (votca::Index i = 0; i < grp->corr_.rows(); ++i) {
+      for (votca::Index j = 0; j < grp->corr_.cols(); ++j) {
+        out_cor << grp->corr_(i, j) << " ";
       }
       out_cor << endl;
     }
@@ -836,58 +878,58 @@ void Imc::WriteIMCBlock(const string &suffix) {
 std::unique_ptr<CsgApplication::Worker> Imc::ForkWorker() {
 
   auto worker = std::make_unique<Imc::Worker>();
-  worker->_current_hists.resize(_interactions.size());
-  worker->_current_hists_force.resize(_interactions.size());
-  worker->_imc = this;
+  worker->current_hists_.resize(interactions_.size());
+  worker->current_hists_force_.resize(interactions_.size());
+  worker->imc_ = this;
 
-  for (auto &interaction : _interactions) {
+  for (auto &interaction : interactions_) {
     auto &i = interaction.second;
-    worker->_current_hists[i->_index].Initialize(
-        i->_average.getMin(), i->_average.getMax(), i->_average.getNBins());
+    worker->current_hists_[i->index_].Initialize(
+        i->average_.getMin(), i->average_.getMax(), i->average_.getNBins());
     // preliminary
-    if (interaction.second->_force) {
-      worker->_current_hists_force[i->_index].Initialize(
-          i->_average_force.getMin(), i->_average_force.getMax(),
-          i->_average_force.getNBins());
+    if (interaction.second->force_) {
+      worker->current_hists_force_[i->index_].Initialize(
+          i->average_force_.getMin(), i->average_force_.getMax(),
+          i->average_force_.getNBins());
     }
   }
   return worker;
 }
 
 void Imc::MergeWorker(CsgApplication::Worker *worker_) {
-  _processed_some_frames = true;
+  processed_some_frames_ = true;
   Imc::Worker *worker = dynamic_cast<Imc::Worker *>(worker_);
   // update the average
   map<string, interaction_t *>::iterator ic_iter;
   // map<string, group_t *>::iterator group_iter;
 
-  ++_nframes;
-  _avg_vol.Process(worker->_cur_vol);
-  for (auto &interaction : _interactions) {
+  ++nframes_;
+  avg_vol_.Process(worker->cur_vol_);
+  for (auto &interaction : interactions_) {
     auto &i = interaction.second;
-    i->_average.data().y() =
-        (((double)_nframes - 1.0) * i->_average.data().y() +
-         worker->_current_hists[i->_index].data().y()) /
-        (double)_nframes;
+    i->average_.data().y() =
+        (((double)nframes_ - 1.0) * i->average_.data().y() +
+         worker->current_hists_[i->index_].data().y()) /
+        (double)nframes_;
     // preliminary
-    if (i->_force) {
-      i->_average_force.data().y() =
-          (((double)_nframes - 1.0) * i->_average_force.data().y() +
-           worker->_current_hists_force[i->_index].data().y()) /
-          (double)_nframes;
+    if (i->force_) {
+      i->average_force_.data().y() =
+          (((double)nframes_ - 1.0) * i->average_force_.data().y() +
+           worker->current_hists_force_[i->index_].data().y()) /
+          (double)nframes_;
     }
   }
 
   // update correlation matrices
-  if (_do_imc) {
+  if (do_imc_) {
     DoCorrelations(worker);
   }
 
-  if (_block_length != 0) {
-    if ((_nframes % _block_length) == 0) {
-      _nblock++;
-      string suffix = string("_") + boost::lexical_cast<string>(_nblock) +
-                      string(".") + _extension;
+  if (block_length_ != 0) {
+    if ((nframes_ % block_length_) == 0) {
+      nblock_++;
+      string suffix = string("_") + boost::lexical_cast<string>(nblock_) +
+                      string(".") + extension_;
       WriteDist(suffix);
       WriteIMCData(suffix);
       WriteIMCBlock(suffix);

@@ -41,8 +41,8 @@ class CsgTestApp : public CsgApplication {
   void EndEvaluate() override;
 
  protected:
-  votca::tools::HistogramNew _rdf;
-  double _cut_off;
+  votca::tools::HistogramNew rdf_;
+  double cut_off_;
 };
 
 int main(int argc, char **argv) {
@@ -55,10 +55,10 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
   BeadList b;
   b.Generate(*top, "*");
   NBListGrid nb;
-  nb.setCutoff(_cut_off);
+  nb.setCutoff(cut_off_);
   nb.Generate(b);
   for (auto &pair : nb) {
-    _rdf.Process(pair->dist());
+    rdf_.Process(pair->dist());
   }
 }
 
@@ -70,8 +70,8 @@ void CsgTestApp::Initialize() {
 }
 
 void CsgTestApp::BeginEvaluate(Topology *, Topology *) {
-  _cut_off = OptionsMap()["c"].as<double>();
-  _rdf.Initialize(0, _cut_off, 50);
+  cut_off_ = OptionsMap()["c"].as<double>();
+  rdf_.Initialize(0, cut_off_, 50);
 }
 
-void CsgTestApp::EndEvaluate() { _rdf.data().Save("rdf.dat"); }
+void CsgTestApp::EndEvaluate() { rdf_.data().Save("rdf.dat"); }

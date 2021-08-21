@@ -58,19 +58,19 @@ class CsgMapApp : public CsgApplication {
     CsgApplication::Initialize();
     AddProgramOptions()("out", boost::program_options::value<string>(),
                         "  output file for coarse-grained trajectory")(
-        "vel",
-        "  Write mapped velocities (if available)")("force",
-                                                    "  Write mapped forces (if "
-                                                    "available)")("hybrid",
-                                                                  "  Create "
-                                                                  "hybrid "
-                                                                  "trajectory "
-                                                                  "containing "
-                                                                  "both "
-                                                                  "atomistic "
-                                                                  "and "
-                                                                  "coarse-"
-                                                                  "grained");
+        "vel", "  Write mapped velocities (if available)")(
+        "force",
+        "  Write mapped forces (if "
+        "available)")("hybrid",
+                      "  Create "
+                      "hybrid "
+                      "trajectory "
+                      "containing "
+                      "both "
+                      "atomistic "
+                      "and "
+                      "coarse-"
+                      "grained");
   }
 
   bool EvaluateOptions() override {
@@ -82,15 +82,15 @@ class CsgMapApp : public CsgApplication {
 
   void BeginEvaluate(Topology *top, Topology *top_ref) override;
   void EvalConfiguration(Topology *top, Topology *top_ref) override {
-    if (!_do_hybrid) {
+    if (!do_hybrid_) {
       // simply write the topology mapped by csgapplication class
-      if (_do_vel) {
+      if (do_vel_) {
         top->SetHasVel(true);
       }
-      if (_do_force) {
+      if (do_force_) {
         top->SetHasForce(true);
       }
-      _writer->Write(top);
+      writer_->Write(top);
     } else {
       // we want to combine atomistic and coarse-grained into one topology
       Topology hybtol;
@@ -155,47 +155,47 @@ class CsgMapApp : public CsgApplication {
       }
       hybtol.setBox(top_ref->getBox());
 
-      _writer->Write(&hybtol);
+      writer_->Write(&hybtol);
     }
   }
 
-  void EndEvaluate() override { _writer->Close(); }
+  void EndEvaluate() override { writer_->Close(); }
 
  protected:
-  std::unique_ptr<TrajectoryWriter> _writer;
-  bool _do_hybrid;
-  bool _do_vel;
-  bool _do_force;
+  std::unique_ptr<TrajectoryWriter> writer_;
+  bool do_hybrid_;
+  bool do_vel_;
+  bool do_force_;
 };
 
 void CsgMapApp::BeginEvaluate(Topology *, Topology *) {
   string out = OptionsMap()["out"].as<string>();
   cout << "writing coarse-grained trajectory to " << out << endl;
-  _writer = TrjWriterFactory().Create(out);
-  if (_writer == nullptr) {
+  writer_ = TrjWriterFactory().Create(out);
+  if (writer_ == nullptr) {
     throw runtime_error("output format not supported: " + out);
   }
 
-  _do_hybrid = false;
+  do_hybrid_ = false;
   if (OptionsMap().count("hybrid")) {
-    if (!_do_mapping) {
+    if (!do_mapping_) {
       throw runtime_error("options hybrid and no-map not compatible");
     }
     cout << "Doing hybrid mapping..." << endl;
-    _do_hybrid = true;
+    do_hybrid_ = true;
   }
 
-  _do_vel = false;
+  do_vel_ = false;
   if (OptionsMap().count("vel")) {
-    _do_vel = true;
+    do_vel_ = true;
   }
 
-  _do_force = false;
+  do_force_ = false;
   if (OptionsMap().count("force")) {
-    _do_force = true;
+    do_force_ = true;
   }
 
-  _writer->Open(out);
+  writer_->Open(out);
 }
 
 int main(int argc, char **argv) {

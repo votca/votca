@@ -207,4 +207,4 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 }  // namespace csg
 }  // namespace votca
 
-#endif  // SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
+#endif

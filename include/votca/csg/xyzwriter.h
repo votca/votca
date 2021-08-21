@@ -73,13 +73,13 @@ class XYZWriter : public TrajectoryWriter {
 
   BeadContainer &getIterable(Topology &top) { return top.Beads(); }
 
-  std::ofstream _out;
+  std::ofstream out_;
 };
 
 template <class T>
 inline void XYZWriter::Write(T &container, std::string header) {
-  _out << getSize(container) << "\n";
-  _out << header << "\n";
+  out_ << getSize(container) << "\n";
+  out_ << header << "\n";
 
   boost::format fmter("%1$s%2$10.5f%3$10.5f%4$10.5f\n");
 
@@ -94,9 +94,9 @@ inline void XYZWriter::Write(T &container, std::string header) {
       atomname = " " + atomname;
     }
 
-    _out << fmter % atomname % r.x() % r.y() % r.z();
+    out_ << fmter % atomname % r.x() % r.y() % r.z();
   }
-  _out << std::flush;
+  out_ << std::flush;
 }
 }  // namespace csg
 }  // namespace votca

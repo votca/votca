@@ -53,7 +53,7 @@ class GMXTrajectoryWriter : public TrajectoryWriter {
   void Write(Topology *conf) override;
 
  private:
-  t_trxstatus *_file;
+  t_trxstatus *file_;
 };
 
 }  // namespace csg

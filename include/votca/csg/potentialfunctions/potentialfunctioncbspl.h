@@ -57,21 +57,21 @@ class PotentialFunctionCBSPL : public PotentialFunction {
  protected:
   // exclude these many first coefficients from optimization
   // since the region relevant to these coefficients is not sampled
-  // the value of _nexcl is determined from rmin
-  Index _nexcl;
+  // the value of  nexcl_ is determined from rmin
+  Index nexcl_;
   // fix these many coeff near the cut-off to zero to ensure
   // zero potential and force values near cut-off
-  Index _ncutcoeff;
+  Index ncutcoeff_;
 
-  Index _nbreak;
-  double _dr;
-  Eigen::VectorXd _rbreak;
+  Index nbreak_;
+  double dr_;
+  Eigen::VectorXd rbreak_;
 
   // this should not be a 4x4 matrix because of alignment problems
   // as certain eigen datastructures require alignment modifiers if
   // stored in std:: datastructures, to avoid making the code more
   // complicated, we revert back to dynamic sized matrices here.
-  Eigen::MatrixXd _M;
+  Eigen::MatrixXd M_;
 };
 }  // namespace csg
 }  // namespace votca
