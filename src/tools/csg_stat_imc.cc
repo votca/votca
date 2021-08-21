@@ -49,7 +49,7 @@ void Imc::Initialize() {
   // do some output
   if (do_imc_) {
     cout << "begin to calculate inverse monte carlo parameters\n";
-    if (_only_intramolecular) {
+    if (only_intramolecular_) {
       throw runtime_error("error, can not have --do-imc and --only-intra");
     }
   } else {
@@ -196,28 +196,6 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
   auto success = interactions_.insert(
       std::make_pair(name, std::make_unique<interaction_t>()));
   interaction_t *i = success.first->second.get();
-<<<<<<< HEAD
-  i->_index = index;
-  getGroup(group)->_interactions.push_back(i);
-
-  i->_is_bonded = is_bonded;
-  i->_step = p->get("step").as<double>();
-  i->_min = p->get("min").as<double>();
-  i->_max = p->get("max").as<double>();
-||||||| e427dadd
-  i->_index = index;
-  getGroup(group)->_interactions.push_back(i);
-
-  i->_is_bonded = is_bonded;
-  i->_step = p->get("step").as<double>();
-  i->_min = p->get("min").as<double>();
-  i->_max = p->get("max").as<double>();
-  if (_include_intra && (!i->_is_bonded)) {
-    i->_max = p->get("max_intra").as<double>();
-  } else {
-    i->_max = p->get("max").as<double>();
-  }
-=======
   i->index_ = index;
   if (group != "none") {
     getGroup(group)->interactions_.push_back(i);
@@ -227,12 +205,6 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
   i->step_ = p->get("step").as<double>();
   i->min_ = p->get("min").as<double>();
   i->max_ = p->get("max").as<double>();
-  if (include_intra_ && (!i->is_bonded_)) {
-    i->max_ = p->get("max_intra").as<double>();
-  } else {
-    i->max_ = p->get("max").as<double>();
-  }
->>>>>>> master
 
   i->norm_ = 1.0;
   i->p_ = p;
@@ -421,7 +393,7 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       {
         // generate the neighbour list
         std::unique_ptr<NBList> nb;
-        if (_imc->_only_intramolecular) {
+        if (_imc->only_intramolecular_) {
             nb = std::unique_ptr<NBList>(new NBListIntra());
         } else if (gridsearch) {
           nb = std::unique_ptr<NBList>(new NBListGrid());
@@ -437,21 +409,9 @@ void Imc::Worker::DoNonbonded(Topology *top) {
 
         // is it same types or different types?
         if (prop->get("type1").value() == prop->get("type2").value()) {
-<<<<<<< HEAD
           nb->Generate(beads1);
-||||||| e427dadd
-          nb->Generate(beads1, !(_imc->_include_intra));
-=======
-          nb->Generate(beads1, !(imc_->include_intra_));
->>>>>>> master
         } else {
-<<<<<<< HEAD
           nb->Generate(beads1, beads2);
-||||||| e427dadd
-          nb->Generate(beads1, beads2, !(_imc->_include_intra));
-=======
-          nb->Generate(beads1, beads2, !(imc_->include_intra_));
->>>>>>> master
         }
       }
 
