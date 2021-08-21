@@ -33,6 +33,7 @@
 #include "votca/csg/imcio.h"
 #include "votca/csg/nblistgrid.h"
 #include "votca/csg/nblistgrid_3body.h"
+#include "votca/csg/nblistintra.h"
 
 // Local private VOTCA includes
 #include "csg_stat_imc.h"

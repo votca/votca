@@ -51,7 +51,7 @@ class Imc {
 
   void BlockLength(votca::Index length) { _block_length = length; }
   void DoImc(bool do_imc) { _do_imc = do_imc; }
-  void IncludeIntra(bool only_intramolecular) { _only_intramolecular = only_intramolecular; }
+  void OnlyIntra(bool only_intramolecular) { _only_intramolecular = only_intramolecular; }
   void Extension(std::string ext) { _extension = ext; }
 
  protected:

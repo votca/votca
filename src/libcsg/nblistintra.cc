@@ -41,9 +41,23 @@ void NBListIntra::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
   const Topology &top = list1.getTopology();
 
   for (iter1 = list1.begin(); iter1 != list1.end(); ++iter1) {
-    (*iter1)->getMolecule().Beads()
+
+    if (&list1 == &list2) {
+      iter2 = iter1;
+      ++iter2;
+    } else {
+      iter2 = list2.begin();
+    }
+
+    if (iter2 == list2.end()) {
+      continue;
+    }
+    if (*iter1 == *iter2) {
+      continue;
+    }
 
     for (; iter2 != list2.end(); ++iter2) {
+      // skip if the two beads are not from the same molecule
       if ((*iter1)->getMoleculeId() != (*iter2)->getMoleculeId()) {
         continue;
       }

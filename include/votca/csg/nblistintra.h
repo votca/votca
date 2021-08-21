@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_NBLISTGRID_H
-#define _VOTCA_CSG_NBLISTGRID_H
+#ifndef _VOTCA_CSG_NBLISTINTRA_H
+#define _VOTCA_CSG_NBLISTINTRA_H
 
 // Standard includes
 #include <vector>
@@ -34,7 +34,7 @@ namespace csg {
 class NBListIntra : public NBList {
  public:
   void Generate(BeadList &list1, BeadList &list2,
-                bool do_exclusions = true) override;
+          bool do_exclusions = true) override;
   void Generate(BeadList &list, bool do_exclusions = true) override;
 
  protected:
@@ -47,4 +47,4 @@ class NBListIntra : public NBList {
 }  // namespace csg
 }  // namespace votca
 
-#endif /* _VOTCA_CSG_NBLISTGRID_H */
+#endif /* _VOTCA_CSG_NBLISTINTRA */
