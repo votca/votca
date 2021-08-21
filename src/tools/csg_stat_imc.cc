@@ -393,7 +393,7 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       {
         // generate the neighbour list
         std::unique_ptr<NBList> nb;
-        if (_imc->only_intramolecular_) {
+        if (imc_->only_intramolecular_) {
             nb = std::unique_ptr<NBList>(new NBListIntra());
         } else if (gridsearch) {
           nb = std::unique_ptr<NBList>(new NBListGrid());
