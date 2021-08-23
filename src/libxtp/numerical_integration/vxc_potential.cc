@@ -171,7 +171,7 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
     }
     double EXC_box = 0.0;
     // two because we have to use the density matrix and its transpose
-    const Eigen::MatrixXd DMAT_here = 2*box.ReadFromBigMatrix(density_matrix);
+    const Eigen::MatrixXd DMAT_here = 2 * box.ReadFromBigMatrix(density_matrix);
     double cutoff =
         1.e-40 / double(density_matrix.rows()) / double(density_matrix.rows());
     if (DMAT_here.cwiseAbs2().maxCoeff() < cutoff) {
@@ -185,14 +185,13 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
       AOShell::AOValues ao = box.CalcAOValues(points[p]);
-      Eigen::VectorXd temp=ao.values.transpose()*DMAT_here;
+      Eigen::VectorXd temp = ao.values.transpose() * DMAT_here;
       double rho = 0.5 * temp.dot(ao.values);
       const double weight = weights[p];
       if (rho * weight < 1.e-20) {
         continue;  // skip the rest, if density is very small
       }
-      const Eigen::Vector3d rho_grad =
-          temp.transpose() * ao.derivatives;
+      const Eigen::Vector3d rho_grad = temp.transpose() * ao.derivatives;
 
       typename Vxc_Potential<Grid>::XC_entry xc =
           EvaluateXC(rho, rho_grad.squaredNorm());
