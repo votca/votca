@@ -1,0 +1,6 @@
+<polar help="Options for the electrostatic interaction">
+  <tolerance_energy help="if energy difference for this region is below this value it is considered converged" unit="Hartree" default="5e-5" choices="float+" />
+  <tolerance_dipole help="convergence for interior iterations to converge polarisation response, solving linear syste," unit="bohr" default="5e-5" choices="float+" />
+  <max_iter help="Maximum number of iterations for interior iteration" default="500"/>
+  <exp_damp help="Thole sharpness parameter" default="0.39"/>
+</polar>

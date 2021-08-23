@@ -39,7 +39,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
         " must always be region 0. Currently only one qm region is possible.");
   }
 
-  initstate_ = prop.ifExistsReturnElseThrowRuntimeError<QMState>("state");
+  initstate_ = prop.get("state").as<QMState>();
   if (initstate_.Type() == QMStateType::Hole ||
       initstate_.Type() == QMStateType::Electron) {
     throw std::runtime_error(
@@ -48,10 +48,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
   if (initstate_.Type().isExciton() || initstate_.Type().isGWState()) {
 
     do_gwbse_ = true;
-    gwbseoptions_.add("gwbse", "");
-    tools::Property& prop_gwbse = gwbseoptions_.get("gwbse");
-    prop_gwbse = prop.get("gwbse");
-
+    gwbseoptions_ = prop.get("gwbse");
     if (prop.exists("statetracker")) {
       tools::Property filter = prop.get("statetracker");
       statetracker_.setLogger(&log_);
@@ -64,12 +61,12 @@ void QMRegion::Initialize(const tools::Property& prop) {
     }
   }
 
-  grid_accuracy_for_ext_interaction_ = prop.ifExistsReturnElseReturnDefault(
-      "grid_for_potential", grid_accuracy_for_ext_interaction_);
-  DeltaE_ = prop.ifExistsReturnElseReturnDefault("tolerance_energy", DeltaE_);
-  DeltaD_ = prop.ifExistsReturnElseReturnDefault("tolerance_density", DeltaD_);
+  grid_accuracy_for_ext_interaction_ =
+      prop.get("grid_for_potential").as<std::string>();
+  DeltaE_ = prop.get("tolerance_energy").as<double>();
+  DeltaD_ = prop.get("tolerance_density").as<double>();
 
-  dftoptions_ = prop.get("options_dft");
+  dftoptions_ = prop.get("dftpackage");
 }
 
 bool QMRegion::Converged() const {
@@ -195,8 +192,7 @@ void QMRegion::AppendResult(tools::Property& prop) const {
 
 void QMRegion::Reset() {
 
-  std::string dft_package_name =
-      dftoptions_.get("package.name").as<std::string>();
+  std::string dft_package_name = dftoptions_.get("name").as<std::string>();
   qmpackage_ = std::unique_ptr<QMPackage>(
       QMPackageFactory::QMPackages().Create(dft_package_name));
   qmpackage_->setLog(&log_);

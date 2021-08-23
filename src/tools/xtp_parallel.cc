@@ -60,12 +60,12 @@ class XtpParallel final : public xtp::StateApplication {
 
 void XtpParallel::AddCommandLineOpt() {
   namespace propt = boost::program_options;
-  AddProgramOptions()("ompthreads,p", propt::value<Index>()->default_value(1),
+  AddProgramOptions()("ompthreads,x", propt::value<Index>()->default_value(1),
                       "  number of openmp threads to create in each thread");
   AddProgramOptions()("restart,r",
                       propt::value<std::string>()->default_value(""),
                       "  restart pattern: 'host(pc1:234) stat(FAILED)'");
-  AddProgramOptions()("cache,c", propt::value<Index>()->default_value(8),
+  AddProgramOptions()("cache,q", propt::value<Index>()->default_value(8),
                       "  assigns jobs in blocks of this size");
   AddProgramOptions()("jobs,j",
                       propt::value<std::string>()->default_value("run"),

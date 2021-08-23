@@ -33,19 +33,12 @@ namespace xtp {
 
 using std::flush;
 void Forces::Initialize(tools::Property& options) {
+  force_method_ = options.get(".method").as<std::string>();
 
-  std::vector<std::string> choices = {"forward", "central"};
-  force_method_ =
-      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-          ".method", choices);
-
-  displacement_ = options.ifExistsReturnElseReturnDefault<double>(
-      ".displacement", 0.001);  // Angstrom
+  displacement_ = options.get(".displacement").as<double>();  // Angstrom
   displacement_ *= tools::conv::ang2bohr;
 
-  remove_total_force_ = options.ifExistsReturnElseReturnDefault<bool>(
-      ".CoMforce_removal", remove_total_force_);
-  return;
+  remove_total_force_ = options.get(".CoMforce_removal").as<bool>();
 }
 
 void Forces::Calculate(const Orbitals& orbitals) {

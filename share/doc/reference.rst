@@ -13,11 +13,6 @@ xtp_basisset
 ^^^^^^^^^^^^
 .. include:: xtp_basisset.rst
 
-xtp_parallel
-^^^^^^^^^^^^
-
-.. include:: xtp_parallel.rst
-
 xtp_update_mapfile
 ^^^^^^^^^^^^^^^^^^
 

@@ -36,7 +36,7 @@ namespace xtp {
 
 class DensityAnalysis final : public QMTool {
  public:
-  std::string Identify() { return "densityanalysis"; }
+  std::string Identify() const { return "densityanalysis"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);
@@ -55,7 +55,7 @@ void DensityAnalysis::ParseOptions(const tools::Property& options) {
   orbfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
       ".input", job_name_ + ".orb");
 
-  gyration_options_ = options.get(".density2gyration");
+  gyration_options_ = options;
 }
 
 bool DensityAnalysis::Run() {

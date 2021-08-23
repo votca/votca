@@ -34,7 +34,7 @@ class Coupling final : public QMTool {
   Coupling() = default;
   ~Coupling() = default;
 
-  std::string Identify() { return "coupling"; }
+  std::string Identify() const { return "coupling"; }
 
  protected:
   void ParseOptions(const tools::Property &user_options);
@@ -44,7 +44,6 @@ class Coupling final : public QMTool {
   std::string MOsA_, MOsB_, MOsAB_;
   std::string logA_, logB_, logAB_;
 
-  std::string package_;
   tools::Property package_options_;
   tools::Property dftcoupling_options_;
 
@@ -67,7 +66,6 @@ void Coupling::ParseOptions(const tools::Property &options) {
       "output", job_name_ + " coupling_.xml");
 
   package_options_ = options.get(".dftpackage");
-  package_ = package_options_.get("package.name").as<std::string>();
   dftcoupling_options_ = options.get(".dftcoupling_options");
 
   QMPackageFactory::RegisterAll();
@@ -81,8 +79,9 @@ bool Coupling::Run() {
   log_.setCommonPreface("\n... ...");
 
   // get the corresponding object from the QMPackageFactory
-  std::unique_ptr<QMPackage> qmpackage = std::unique_ptr<QMPackage>(
-      QMPackageFactory::QMPackages().Create(package_));
+  std::unique_ptr<QMPackage> qmpackage =
+      std::unique_ptr<QMPackage>(QMPackageFactory::QMPackages().Create(
+          package_options_.get("name").as<std::string>()));
   qmpackage->setLog(&log_);
   qmpackage->Initialize(package_options_);
   qmpackage->setRunDir(".");
@@ -142,9 +141,6 @@ bool Coupling::Run() {
   tools::Property &job_output = summary.add("output", "");
   tools::Property &pair_summary = job_output.add("pair", "");
   dftcoupling.Addoutput(pair_summary, orbitalsA, orbitalsB);
-
-  tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
-
   std::ofstream ofs(output_file_, std::ofstream::out);
   ofs << job_output;
   ofs.close();

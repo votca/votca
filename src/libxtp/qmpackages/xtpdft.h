@@ -40,15 +40,13 @@ namespace xtp {
 
  */
 
-class XTPDFT : public QMPackage {
+class XTPDFT final : public QMPackage {
  public:
   std::string getPackageName() const final { return "xtp"; }
 
-  void Initialize(const tools::Property& options) final;
-
   bool WriteInputFile(const Orbitals& orbitals) final;
 
-  bool Run() final;
+  bool RunDFT() final;
 
   void CleanUp() final;
 
@@ -69,6 +67,7 @@ class XTPDFT : public QMPackage {
   }
 
  protected:
+  void ParseSpecificOptions(const tools::Property& options) final;
   const std::array<Index, 49>& ShellMulitplier() const final {
     return multipliers_;
   }

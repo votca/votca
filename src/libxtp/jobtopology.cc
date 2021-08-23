@@ -18,10 +18,13 @@
  */
 
 // Standard includes
+#include <algorithm>
 #include <numeric>
 #include <stdexcept>
+#include <string>
 
 // Local VOTCA includes
+#include "votca/tools/property.h"
 #include "votca/xtp/checkpoint.h"
 #include "votca/xtp/jobtopology.h"
 #include "votca/xtp/polarregion.h"
@@ -33,64 +36,108 @@
 namespace votca {
 namespace xtp {
 
-void JobTopology::SortRegionsDefbyId(
-    std::vector<tools::Property*>& regions_def) const {
-  std::sort(regions_def.begin(), regions_def.end(),
+std::vector<const tools::Property*> JobTopology::SortRegionsDefbyId(
+    const tools::Property& regions_def) const {
+  std::vector<const tools::Property*> view;
+  for (const auto& child : regions_def) {
+    view.push_back(&child);
+  }
+  std::sort(view.begin(), view.end(),
             [](const tools::Property* A, const tools::Property* B) {
               return (A->get("id").as<Index>()) < (B->get("id").as<Index>());
             });
+  return view;
 }
 
-void JobTopology::ModifyOptionsByJobFile(
-    std::vector<tools::Property*>& regions_def) const {
+std::vector<std::string> ModifyRegionOptionsFromJobFileRegion(
+    tools::Property& opt, const tools::Property& job_opt) {
+  std::vector<std::string> modified_options;
+  for (auto& child : opt) {
+    if (child.as<std::string>() == "jobfile") {
+      if (job_opt.exists(child.name())) {
+        const tools::Property& job_opt_child = job_opt.get(child.name());
+        modified_options.push_back(child.path() + "." + child.name());
+        if (job_opt_child.HasChildren()) {
+          child.value() = "";
+          for (const auto& job_childchild : job_opt_child) {
+            child.add(job_childchild);
+          }
+        } else {
+          child.value() = job_opt_child.value();
+        }
+      } else {
+        throw std::runtime_error("Requested to replace:" + child.path() + "." +
+                                 child.name() +
+                                 " but no option in jobfile found");
+      }
+    } else if (job_opt.exists(child.name())) {
+      std::vector<std::string> child_modified_options =
+          ModifyRegionOptionsFromJobFileRegion(child,
+                                               job_opt.get(child.name()));
+      modified_options.insert(modified_options.end(),
+                              child_modified_options.begin(),
+                              child_modified_options.end());
+    }
+  }
+  return modified_options;
+}
 
-  const tools::Property& jobinput = job_.getInput();
+void JobTopology::ModifyOptionsByJobFile(tools::Property& regions_def) const {
+
+  const tools::Property& prop = job_.getInput();
   std::vector<const tools::Property*> regions_def_job =
-      jobinput.Select("regions.region");
+      prop.Select("regions.*region");
 
-  std::string tag = "jobfile";
-  for (tools::Property* prop : regions_def) {
-    Index id = prop->get("id").as<Index>();
-    std::vector<std::string> paths = FindReplacePathsInOptions(*prop, tag);
-    if (!paths.empty()) {
-      XTP_LOG(Log::info, log_) << " Region " << std::to_string(id)
+  for (const auto& job_region : regions_def_job) {
+
+    Index job_region_id = job_region->get("id").as<Index>();
+
+    auto found_prop =
+        std::find_if(regions_def.begin(), regions_def.end(),
+                     [job_region_id](const tools::Property& p) {
+                       return p.get("id").as<Index>() == job_region_id;
+                     });
+    if (found_prop == regions_def.end()) {
+      throw std::runtime_error(
+          "Your jobfile options want to modify a region with id " +
+          std::to_string(job_region_id) +
+          " it does not exist in your region specifications.");
+    }
+
+    tools::Property& region = *found_prop;
+    if (region.name() != job_region->name()) {
+      throw std::runtime_error("Types of region with id" +
+                               std::to_string(job_region_id) +
+                               " do not agree jobfile:" + job_region->name() +
+                               " options:" + region.name());
+    }
+
+    std::vector<std::string> changed_options =
+        ModifyRegionOptionsFromJobFileRegion(region, *job_region);
+
+    if (!changed_options.empty()) {
+      XTP_LOG(Log::info, log_) << " Region " << job_region_id
                                << " is modified by jobfile" << std::flush;
       XTP_LOG(Log::info, log_)
           << " Replacing the following paths with jobfile entries"
           << std::flush;
-      for (const std::string& path : paths) {
+      for (const std::string& path : changed_options) {
         XTP_LOG(Log::info, log_) << " - " << path << std::flush;
       }
-
-      bool found_region_in_jobfile = false;
-      const tools::Property* job_prop = nullptr;
-      for (const tools::Property* prop_job : regions_def_job) {
-        Index id2 = prop_job->get("id").as<Index>();
-        if (id2 == id) {
-          job_prop = prop_job;
-          found_region_in_jobfile = true;
-        }
-      }
-      if (!found_region_in_jobfile) {
-        throw std::runtime_error("Region " + std::to_string(id) +
-                                 " was not found in jobfile.");
-      }
-      UpdateFromJobfile(*prop, *job_prop, paths);
     }
   }
 }
 
-void JobTopology::BuildRegions(const Topology& top, tools::Property options) {
+void JobTopology::BuildRegions(
+    const Topology& top, std::pair<std::string, tools::Property> options) {
 
-  std::vector<tools::Property*> regions_def = options.Select("region");
-  CheckEnumerationOfRegions(regions_def);
-  SortRegionsDefbyId(regions_def);
-  ModifyOptionsByJobFile(regions_def);
+  CheckEnumerationOfRegions(options.second);
+  ModifyOptionsByJobFile(options.second);
 
   std::vector<std::vector<SegId>> region_seg_ids =
-      PartitionRegions(regions_def, top);
+      PartitionRegions(options.second, top);
 
-  // around this point the whole jobtopology will be centered
+  // // around this point the whole jobtopology will be centered
   CreateRegions(options, top, region_seg_ids);
   XTP_LOG(Log::error, log_) << " Regions created" << std::flush;
   for (const auto& region : regions_) {
@@ -98,38 +145,6 @@ void JobTopology::BuildRegions(const Topology& top, tools::Property options) {
   }
 
   return;
-}
-
-std::vector<std::string> JobTopology::FindReplacePathsInOptions(
-    const tools::Property& options, std::string tag) const {
-  std::vector<std::string> result;
-  std::string options_path = "options.qmmm.regions.region";
-  for (const tools::Property& sub : options) {
-    if (sub.HasChildren()) {
-      std::vector<std::string> subresult = FindReplacePathsInOptions(sub, tag);
-      result.insert(result.end(), subresult.begin(), subresult.end());
-    } else if (sub.value() == tag) {
-      std::string path = sub.path() + "." + sub.name();
-      std::size_t pos = path.find(options_path);
-      if (pos != std::string::npos) {
-        path.replace(pos, options_path.size(), "");
-      }
-      result.push_back(path);
-    }
-  }
-  return result;
-}
-
-void JobTopology::UpdateFromJobfile(
-    tools::Property& options, const tools::Property& job_opt,
-    const std::vector<std::string>& paths) const {
-  for (const std::string& path : paths) {
-    if (job_opt.exists(path)) {
-      options.set(path, job_opt.get(path).value());
-    } else {
-      throw std::runtime_error("Jobfile does not contain options for " + path);
-    }
-  }
 }
 
 template <class T>
@@ -144,19 +159,16 @@ void JobTopology::ShiftPBC(const Topology& top, const Eigen::Vector3d& center,
 }
 
 void JobTopology::CreateRegions(
-    const tools::Property& options, const Topology& top,
+    const std::pair<std::string, tools::Property>& options, const Topology& top,
     const std::vector<std::vector<SegId>>& region_seg_ids) {
-  std::string mapfile =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>("mapfile");
-  std::vector<const tools::Property*> regions_def = options.Select("region");
+  std::string mapfile = options.first;
   // around this point the whole jobtopology will be centered for removing pbc
   Eigen::Vector3d center = top.getSegment(region_seg_ids[0][0].Id()).getPos();
 
-  for (const tools::Property* region_def : regions_def) {
-    Index id = region_def->ifExistsReturnElseThrowRuntimeError<Index>("id");
+  for (const tools::Property& region_def : options.second) {
+    Index id = region_def.get("id").as<Index>();
     const std::vector<SegId>& seg_ids = region_seg_ids[id];
-    std::string type =
-        region_def->ifExistsReturnElseThrowRuntimeError<std::string>("type");
+    std::string type = region_def.name();
     std::unique_ptr<Region> region;
     QMRegion QMdummy(0, log_, "");
     StaticRegion Staticdummy(0, log_);
@@ -206,7 +218,7 @@ void JobTopology::CreateRegions(
     } else {
       throw std::runtime_error("Region type not known!");
     }
-    region->Initialize(*region_def);
+    region->Initialize(region_def);
     regions_.push_back(std::move(region));
   }
 }
@@ -223,14 +235,16 @@ void JobTopology::WriteToPdb(std::string filename) const {
 }
 
 std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
-    const std::vector<tools::Property*>& regions_def,
-    const Topology& top) const {
+    const tools::Property& regions_def, const Topology& top) const {
+
+  std::vector<const tools::Property*> sorted_regions =
+      SortRegionsDefbyId(regions_def);
 
   std::vector<Index> explicitly_named_segs_per_region;
   std::vector<std::vector<SegId>> segids_per_region;
   std::vector<bool> processed_segments =
       std::vector<bool>(top.Segments().size(), false);
-  for (const tools::Property* region_def : regions_def) {
+  for (const tools::Property* region_def : sorted_regions) {
 
     if (!region_def->exists("segments") && !region_def->exists("cutoff")) {
       throw std::runtime_error(
@@ -250,13 +264,11 @@ std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
     explicitly_named_segs_per_region.push_back(Index(seg_ids.size()));
 
     if (region_def->exists("cutoff")) {
-      double cutoff = tools::conv::nm2bohr *
-                      region_def->ifExistsReturnElseThrowRuntimeError<double>(
-                          "cutoff.radius");
+      double cutoff =
+          tools::conv::nm2bohr * region_def->get("cutoff.radius").as<double>();
 
       std::string seg_geometry =
-          region_def->ifExistsReturnElseReturnDefault<std::string>(
-              "cutoff.geometry", "n");
+          region_def->get("cutoff.geometry").as<std::string>();
       double min = top.getBox().diagonal().minCoeff();
       if (cutoff > 0.5 * min) {
         throw std::runtime_error(
@@ -266,32 +278,32 @@ std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
                 .str());
       }
       std::vector<SegId> center = seg_ids;
-      if (region_def->exists("cutoff.region")) {
-        Index id = region_def->get("cutoff.region").as<Index>();
-        bool only_explicit = region_def->ifExistsReturnElseReturnDefault<bool>(
-            "cutoff.relative_to_explicit_segs", false);
-        if (id < Index(segids_per_region.size())) {
-          center = segids_per_region[id];
-          if (only_explicit) {
-            Index no_of_segs = explicitly_named_segs_per_region[id];
-            if (no_of_segs == 0) {
-              throw std::runtime_error(
-                  "Region with id '" + std::to_string(id) +
-                  "' does not have explicitly named segments");
-            }
-            center.resize(no_of_segs, SegId(0, "n"));
-            // need the second argument because resize can also increase
-            // capacity of vector and then needs a constructor,
-            // here we shrink, so should not happen
+
+      Index id = region_def->get("cutoff.region").as<Index>();
+      bool only_explicit = region_def->get("cutoff.explicit_segs").as<bool>();
+      if (id < Index(segids_per_region.size())) {
+        center = segids_per_region[id];
+        if (only_explicit) {
+          Index no_of_segs = explicitly_named_segs_per_region[id];
+          if (no_of_segs == 0) {
+            throw std::runtime_error(
+                "Region with id '" + std::to_string(id) +
+                "' does not have explicitly named segments");
           }
-        } else {
-          throw std::runtime_error("Region with id '" + std::to_string(id) +
-                                   "' used for cutoff does not exist");
+          center.resize(no_of_segs, SegId(0, "n"));
+          // need the second argument because resize can also increase
+          // capacity of vector and then needs a constructor,
+          // here we shrink, so should not happen
         }
+      } else if (id != region_def->get("id").as<Index>()) {
+        throw std::runtime_error("Region with id '" + std::to_string(id) +
+                                 "' used for cutoff does not exist");
       }
+
       if (center.empty()) {
         throw std::runtime_error(
-            "Region needs either a segment or another region to which to apply "
+            "Region needs either a segment or another region to which to "
+            "apply "
             "the cutoff");
       }
       for (const SegId& segid : center) {
@@ -315,18 +327,18 @@ std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
 }
 
 void JobTopology::CheckEnumerationOfRegions(
-    const std::vector<tools::Property*>& regions_def) const {
+    const tools::Property& regions_def) const {
   std::vector<Index> reg_ids;
-  for (const tools::Property* region_def : regions_def) {
-    reg_ids.push_back(
-        region_def->ifExistsReturnElseThrowRuntimeError<Index>("id"));
+  for (const tools::Property& region_def : regions_def) {
+    reg_ids.push_back(region_def.get("id").as<Index>());
   }
 
   std::vector<Index> v(reg_ids.size());
   std::iota(v.begin(), v.end(), 0);
   if (!std::is_permutation(reg_ids.begin(), reg_ids.end(), v.begin())) {
     throw std::runtime_error(
-        "Region id definitions are not clear. You must start at id 0 and then "
+        "Region id definitions are not clear. You must start at id 0 and "
+        "then "
         "ascending order. i.e. 0 1 2 3.");
   }
 }

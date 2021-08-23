@@ -41,16 +41,11 @@ class JobCalculator : public tools::Calculator {
   JobCalculator() = default;
   ~JobCalculator() override = default;
 
-  std::string Identify() override = 0;
-
+  std::string Identify() const override = 0;
+  std::string Package() const final { return "xtp"; }
   bool EvaluateFrame(const Topology &top) { return Evaluate(top); }
 
-  void Initialize(const tools::Property &opt) final {
-
-    tools::Property options = LoadDefaultsAndUpdateWithUserOptions("xtp", opt);
-
-    ParseOptions(options);
-  }
+  void Initialize(const tools::Property &opt) final { ParseOptions(opt); }
   virtual void WriteJobFile(const Topology &top) = 0;
   virtual void ReadJobFile(Topology &top) = 0;
 

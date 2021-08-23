@@ -63,7 +63,7 @@ class Esp2multipole {
   bool use_mulliken_;
   bool use_lowdin_;
   bool use_CHELPG_;
-  bool do_svd_;
+  bool do_svd_ = false;
   double conditionnumber_;
 
   Logger& log_;

@@ -25,22 +25,22 @@
 namespace votca {
 namespace xtp {
 
+bool InVector(const std::vector<std::string>& vec, const std::string& word) {
+  return std::find(vec.begin(), vec.end(), word) != vec.end();
+}
+
 void Neighborlist::ParseOptions(const tools::Property& options) {
 
-  const std::string& cutoff_type = options.get("cutoff_type").as<std::string>();
-  if (cutoff_type == "constant") {
-    useConstantCutoff_ = true;
-    constantCutoff_ =
-        options.get(".constant").as<double>() * tools::conv::nm2bohr;
-  } else {
+  if (options.exists(".segmentpairs")) {
     useConstantCutoff_ = false;
-    for (const tools::Property* segprop : options.Select(".segments")) {
-      std::string types = segprop->get("type").as<std::string>();
+    std::vector<const tools::Property*> segs =
+        options.Select(".segmentpairs.pair");
+    for (const tools::Property* segprop : segs) {
+      useConstantCutoff_ = false;
+      std::vector<std::string> names =
+          segprop->get("type").as<std::vector<std::string>>();
       double cutoff =
           segprop->get("cutoff").as<double>() * tools::conv::nm2bohr;
-
-      tools::Tokenizer tok(types, " ");
-      std::vector<std::string> names = tok.ToVector();
 
       if (names.size() != 2) {
         throw std::runtime_error(
@@ -50,17 +50,20 @@ void Neighborlist::ParseOptions(const tools::Property& options) {
       }
       cutoffs_[names[0]][names[1]] = cutoff;
       cutoffs_[names[1]][names[0]] = cutoff;
-      if (std::find(included_segments_.begin(), included_segments_.end(),
-                    names[0]) == included_segments_.end()) {
+      if (!InVector(included_segments_, names[0])) {
         included_segments_.push_back(names[0]);
       }
-      if (std::find(included_segments_.begin(), included_segments_.end(),
-                    names[1]) == included_segments_.end()) {
+      if (!InVector(included_segments_, names[1])) {
         included_segments_.push_back(names[1]);
       }
     }
+  } else {
+    useConstantCutoff_ = true;
+    constantCutoff_ =
+        options.get(".constant").as<double>() * tools::conv::nm2bohr;
   }
-  if (options.get(".use_exciton_cutoff").as<bool>()) {
+
+  if (options.exists(".exciton_cutoff")) {
     useExcitonCutoff_ = true;
     excitonqmCutoff_ =
         options.get(".exciton_cutoff").as<double>() * tools::conv::nm2bohr;
@@ -92,9 +95,7 @@ bool Neighborlist::Evaluate(Topology& top) {
 
   std::vector<Segment*> segs;
   for (Segment& seg : top.Segments()) {
-    if (useConstantCutoff_ ||
-        std::find(included_segments_.begin(), included_segments_.end(),
-                  seg.getType()) != included_segments_.end()) {
+    if (useConstantCutoff_ || InVector(included_segments_, seg.getType())) {
       segs.push_back(&seg);
       seg.getApproxSize();
     }
@@ -113,7 +114,7 @@ bool Neighborlist::Evaluate(Topology& top) {
               << std::endl;
     std::cout << "\t" << std::flush;
     for (const std::string& st : included_segments_) {
-      std::cout << " " << st << std::flush;
+      std::cout << " " << st;
     }
     std::cout << std::endl;
   }
@@ -132,19 +133,23 @@ bool Neighborlist::Evaluate(Topology& top) {
   }
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < Index(segs.size()); i++) {
-    Segment* seg1 = segs[i];
+    const Segment* seg1 = segs[i];
     double cutoff = constantCutoff_;
     for (Index j = i + 1; j < Index(segs.size()); j++) {
-      Segment* seg2 = segs[j];
+      const Segment* seg2 = segs[j];
       if (!useConstantCutoff_) {
         try {
           cutoff = cutoffs_.at(seg1->getType()).at(seg2->getType());
         } catch (const std::exception&) {
           std::string pairstring = seg1->getType() + "/" + seg2->getType();
-          if (std::find(skippedpairs.begin(), skippedpairs.end(), pairstring) ==
-              skippedpairs.end()) {
+          if (!InVector(skippedpairs, pairstring)) {
 #pragma omp critical
-            { skippedpairs.push_back(pairstring); }
+            if (!InVector(skippedpairs, pairstring)) {  // nedded because other
+                                                        // thread may have
+                                                        // pushed back in the
+                                                        // meantime.
+              skippedpairs.push_back(pairstring);
+            }
           }
           continue;
         }
