@@ -33,9 +33,13 @@ namespace csg {
 
 class NBListIntra : public NBList {
  public:
-  void Generate(BeadList &list1, BeadList &list2,
-          bool do_exclusions = true) override;
-  void Generate(BeadList &list, bool do_exclusions = true) override;
+  virtual void Generate(BeadList &list1, BeadList &list2);
+  virtual void Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
+    Generate(list1, list2);
+  }
+  virtual void Generate(BeadList &list, bool do_exclusions) {
+    Generate(list, list);
+  }
 
  protected:
   struct cell_t {

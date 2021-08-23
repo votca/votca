@@ -25,10 +25,9 @@ namespace csg {
 
 using namespace std;
 
-void NBListIntra::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
+void NBListIntra::Generate(BeadList &list1, BeadList &list2) {
   BeadList::iterator iter1;
   BeadList::iterator iter2;
-  do_exclusions_ = do_exclusions;
 
   if (list1.empty()) {
     return;
@@ -56,6 +55,9 @@ void NBListIntra::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
       continue;
     }
 
+    // TODO: This could probably be coded much more efficiently by
+    // sorting list2 for getMoleculeId and then only go throuh the matching
+    // sublist.
     for (; iter2 != list2.end(); ++iter2) {
       // skip if the two beads are not from the same molecule
       if ((*iter1)->getMoleculeId() != (*iter2)->getMoleculeId()) {
@@ -67,11 +69,6 @@ void NBListIntra::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
       Eigen::Vector3d r = top.BCShortestConnection(u, v);
       double d = r.norm();
       if (d < cutoff_) {
-        if (do_exclusions_) {
-          if (top.getExclusions().IsExcluded(*iter1, *iter2)) {
-            continue;
-          }
-        }
         if ((*match_function_)(*iter1, *iter2, r, d)) {
           if (!FindPair(*iter1, *iter2)) {
             AddPair(pair_creator_(*iter1, *iter2, r));
