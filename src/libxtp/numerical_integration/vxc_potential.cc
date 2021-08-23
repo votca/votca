@@ -182,20 +182,21 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
 
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
-      Eigen::MatrixX3d ao_grad = Eigen::MatrixX3d::Zero(box.Matrixsize(), 3);
-      Eigen::VectorXd ao = box.CalcAOValue_and_Grad(ao_grad, points[p]);
-      const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
+      AOShell::AOValues ao = box.CalcAOValues(points[p]);
+      const double rho = 0.5 * ao.values.dot(DMAT_symm * ao.values);
       const double weight = weights[p];
       if (rho * weight < 1.e-20) {
         continue;  // skip the rest, if density is very small
       }
-      const Eigen::Vector3d rho_grad = ao.transpose() * DMAT_symm * ao_grad;
+      const Eigen::Vector3d rho_grad =
+          ao.values.transpose() * DMAT_symm * ao.derivatives;
       const double sigma = (rho_grad.transpose() * rho_grad).value();
-      const Eigen::VectorXd grad = ao_grad * rho_grad;
+      const Eigen::VectorXd grad = ao.derivatives * rho_grad;
       typename Vxc_Potential<Grid>::XC_entry xc = EvaluateXC(rho, sigma);
       EXC_box += weight * rho * xc.f_xc;
-      auto addXC = weight * (0.5 * xc.df_drho * ao + 2.0 * xc.df_dsigma * grad);
-      Vxc_here.noalias() += addXC * ao.transpose();
+      auto addXC =
+          weight * (0.5 * xc.df_drho * ao.values + 2.0 * xc.df_dsigma * grad);
+      Vxc_here.noalias() += addXC * ao.values.transpose();
     }
     box.AddtoBigMatrix(vxc.matrix(), Vxc_here);
     vxc.energy() += EXC_box;

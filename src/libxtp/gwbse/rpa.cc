@@ -222,19 +222,18 @@ Eigen::MatrixXd RPA::Calculate_H2p_ApB() const {
   const Index n_occ = lumo - rpamin_;
   const Index n_unocc = rpamax_ - lumo + 1;
   const Index rpasize = n_occ * n_unocc;
-  const Index auxsize = Mmn_.auxsize();
   vc2index vc = vc2index(0, 0, n_unocc);
   Eigen::MatrixXd ApB = Eigen::MatrixXd::Zero(rpasize, rpasize);
 #pragma omp parallel for schedule(guided)
   for (Index v2 = 0; v2 < n_occ; v2++) {
     Index i2 = vc.I(v2, 0);
     const Eigen::MatrixXd Mmn_v2T =
-        Mmn_[v2].block(n_occ, 0, n_unocc, auxsize).transpose();
+        Mmn_[v2].middleRows(n_occ, n_unocc).transpose();
     for (Index v1 = v2; v1 < n_occ; v1++) {
       Index i1 = vc.I(v1, 0);
       // Multiply with factor 2 to sum over both (identical) spin states
       ApB.block(i1, i2, n_unocc, n_unocc) =
-          2 * 2 * Mmn_[v1].block(n_occ, 0, n_unocc, auxsize) * Mmn_v2T;
+          2 * 2 * Mmn_[v1].middleRows(n_occ, n_unocc) * Mmn_v2T;
     }
   }
   ApB.diagonal() += Calculate_H2p_AmB();

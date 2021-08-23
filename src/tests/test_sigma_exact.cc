@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include "votca/xtp/sigma_base.h"
 #include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
@@ -31,7 +32,7 @@
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/rpa.h"
-#include "votca/xtp/sigma_exact.h"
+#include "votca/xtp/sigmafactory.h"
 #include "votca/xtp/threecenter.h"
 
 using namespace votca::xtp;
@@ -66,18 +67,19 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   RPA rpa(log, Mmn);
   rpa.setRPAInputEnergies(mo_energy);
   rpa.configure(4, 0, 16);
+  Sigma().RegisterAll();
+  std::unique_ptr<Sigma_base> sigma = Sigma().Create("exact", Mmn, rpa);
 
-  Sigma_Exact sigma = Sigma_Exact(Mmn, rpa);
-  Sigma_Exact::options opt;
+  Sigma_base::options opt;
   opt.homo = 4;
   opt.qpmin = 0;
   opt.qpmax = 16;
   opt.rpamin = 0;
   opt.rpamax = 16;
   opt.eta = 1e-3;
-  sigma.configure(opt);
+  sigma->configure(opt);
 
-  Eigen::MatrixXd x = sigma.CalcExchangeMatrix();
+  Eigen::MatrixXd x = sigma->CalcExchangeMatrix();
 
   Eigen::MatrixXd x_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/x_ref.mm");
@@ -91,9 +93,9 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   }
   BOOST_CHECK_EQUAL(check_x, true);
 
-  sigma.PrepareScreening();
-  Eigen::MatrixXd c = sigma.CalcCorrelationOffDiag(mo_energy);
-  c.diagonal() = sigma.CalcCorrelationDiag(mo_energy);
+  sigma->PrepareScreening();
+  Eigen::MatrixXd c = sigma->CalcCorrelationOffDiag(mo_energy);
+  c.diagonal() = sigma->CalcCorrelationDiag(mo_energy);
 
   Eigen::MatrixXd c_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/c_ref.mm");
