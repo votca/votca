@@ -169,7 +169,7 @@ bool Elements::isEleShort(std::string shortname) {
 
 bool Elements::isMassAssociatedWithElement(double mass, double tolerance) {
   auto closestMatch = findShortNameOfElementClosestInMass(mass);
-  if (closestMatch.second / Mass_[closestMatch.first] > tolerance) {
+  if (closestMatch.second > tolerance) {
     return false;
   }
   return true;
@@ -177,7 +177,7 @@ bool Elements::isMassAssociatedWithElement(double mass, double tolerance) {
 
 std::string Elements::getEleShortClosestInMass(double mass, double tolerance) {
   auto closestMatch = findShortNameOfElementClosestInMass(mass);
-  if (closestMatch.second / Mass_[closestMatch.first] > tolerance) {
+  if (closestMatch.second > tolerance) {
     throw std::runtime_error(
         "In attempt to determine if mass is associated "
         " with an element the mass exceeds tolerance of a possible match");
