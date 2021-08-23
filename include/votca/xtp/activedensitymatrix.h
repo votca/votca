@@ -29,8 +29,8 @@ class ActiveDensityMatrix {
  public:
   ActiveDensityMatrix(Orbitals &orbitals, std::vector<Index> activeatoms)
       : orbitals_(orbitals), activeatoms_(activeatoms){};
-  Eigen::MatrixXd activedensitymatrix(Eigen::MatrixXd &localized_mo_coeff);
-  Eigen::MatrixXd compute_Dmat_A();
+  std::array<Eigen::MatrixXd, 2> activedensitymatrix(Eigen::MatrixXd &localized_mo_coeff);
+  std::array<Eigen::MatrixXd, 2> compute_Dmat_A();
 
  private:
   Orbitals &orbitals_;

@@ -22,7 +22,6 @@
 
 #include "votca/xtp/pmdecomposition.h"
 #include "votca/xtp/aomatrix.h"
-//#include <votca/tools/eigenio_matrixmarket.h>
 #include <limits>
 
 namespace votca {
@@ -54,7 +53,7 @@ void PMDecomposition::computePMD(Orbitals &orbitals) {
     occ_orbitals.col(maxcol) = new_orbs.col(1);
     iteration++;
   }
-  orbitals.setPMLocalizedOrbitals(occ_orbitals);
+  orbitals.setPMLocalizedOrbital(occ_orbitals);
 }
 
 // Function to rotate the 2 maximum orbitals

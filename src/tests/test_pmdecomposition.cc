@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(decomposedorbitals_test) {
   PMDecomposition pmd(log);
   pmd.computePMD(orbitals);
 
-  Eigen::MatrixXd LMOs = orbitals.getPMLocalizedOrbitals();
+  Eigen::MatrixXd LMOs = orbitals.getPMLocalizedOrbital();
   Eigen::MatrixXd test_MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/pmdecomposition/ch3oh.mm");
 

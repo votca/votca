@@ -26,11 +26,13 @@
 namespace votca {
 namespace xtp {
 
-Eigen::MatrixXd ActiveDensityMatrix::compute_Dmat_A() {
-  Eigen::MatrixXd localized_mo_coeff = orbitals_.getPMLocalizedOrbitals();
-  return activedensitymatrix(localized_mo_coeff);
+std::array<Eigen::MatrixXd, 2> ActiveDensityMatrix::compute_Dmat_A() {
+  Eigen::MatrixXd localized_mo_coeff = orbitals_.getPMLocalizedOrbital();
+  std::array<Eigen::MatrixXd, 2> two_distinct_regions = activedensitymatrix(localized_mo_coeff);
+  return two_distinct_regions;
 }
-Eigen::MatrixXd ActiveDensityMatrix::activedensitymatrix(
+
+std::array<Eigen::MatrixXd, 2> ActiveDensityMatrix::activedensitymatrix(
     Eigen::MatrixXd &localized_mo_coeff) {
   AOBasis aobasis;
   aobasis = orbitals_.SetupDftBasis();
@@ -55,12 +57,16 @@ Eigen::MatrixXd ActiveDensityMatrix::activedensitymatrix(
         active_mo_coeff.conservativeResize(localized_mo_coeff.rows(),
                                            counter + 1);
         active_mo_coeff.col(counter) = localized_mo_coeff.col(i);
+        localized_mo_coeff.col(i).setZero();
         counter++;
       }
       start += numfuncpatom[atom_id];
     }
   }
-  return active_mo_coeff * active_mo_coeff.transpose();
+  std::array<Eigen::MatrixXd, 2> result;
+  result[0] = active_mo_coeff * active_mo_coeff.transpose();
+  result[1] = localized_mo_coeff;
+  return result;
 }
 }  // namespace xtp
 }  // namespace votca

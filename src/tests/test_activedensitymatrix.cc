@@ -38,26 +38,27 @@ BOOST_AUTO_TEST_SUITE(activedensitymatrix_test)
 BOOST_AUTO_TEST_CASE(activematrix_test) {
 
   libint2::initialize();
-  Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+  Orbitals orbitals_;
+  orbitals_.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/activedensitymatrix/ch3oh.xyz");
-  orbitals.setBasisSetSize(86);
-  orbitals.setNumberOfOccupiedLevels(9);
-  orbitals.setNumberOfAlphaElectrons(9);
+  orbitals_.setBasisSetSize(86);
+  orbitals_.setNumberOfOccupiedLevels(9);
+  orbitals_.setNumberOfAlphaElectrons(9);
 
-  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+  orbitals_.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
                            "/activedensitymatrix/def2-tzvp.xml");
   Eigen::MatrixXd LMOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/activedensitymatrix/LMOs.mm");
 
-  orbitals.setPMLocalizedOrbitals(LMOs);
+  orbitals_.setPMLocalizedOrbital(LMOs);
 
   Logger log;
   std::vector<Index> activeatoms = {{1, 5}};
 
-  ActiveDensityMatrix DMAT_A(orbitals, activeatoms);
+  ActiveDensityMatrix DMAT_A(orbitals_, activeatoms);
 
-  Eigen::MatrixXd DmatA = DMAT_A.compute_Dmat_A();
+  std::array<Eigen::MatrixXd, 2> Dmat = DMAT_A.compute_Dmat_A();
+  Eigen::MatrixXd DmatA = Dmat[0];
 
   Eigen::MatrixXd test_DmatA = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/activedensitymatrix/ch3oh.mm");
