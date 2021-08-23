@@ -80,7 +80,7 @@ void CsgStatApp::Initialize() {
                                         boost::program_options::value<string>(),
                                         "  options file for coarse graining")(
       "do-imc", "  write out additional Inverse Monte Carlo data")(
-      "include-intra", "  do not exclude intramolecular neighbors")(
+      "only-intra", "  only do intramolecular neighbors")(
       "block-length", boost::program_options::value<votca::Index>(),
       "  write blocks of this length, the averages are cleared after every "
       "write")("ext",
@@ -106,8 +106,8 @@ bool CsgStatApp::EvaluateOptions() {
     imc_.DoImc(true);
   }
 
-  if (OptionsMap().count("include-intra")) {
-    imc_.IncludeIntra(true);
+  if (OptionsMap().count("only-intra")) {
+    imc_.OnlyIntra(true);
   }
 
   imc_.Extension(extension_);

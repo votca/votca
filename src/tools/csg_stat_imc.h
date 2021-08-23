@@ -51,7 +51,7 @@ class Imc {
 
   void BlockLength(votca::Index length) { block_length_ = length; }
   void DoImc(bool do_imc) { do_imc_ = do_imc; }
-  void IncludeIntra(bool include_intra) { include_intra_ = include_intra; }
+  void OnlyIntra(bool only_intramolecular) { only_intramolecular_ = only_intramolecular; }
   void Extension(std::string ext) { extension_ = ext; }
 
  protected:
@@ -98,7 +98,7 @@ class Imc {
   // calculate the inverse monte carlos parameters (cross correlations)
   bool do_imc_ = false;
   // include the intramolecular neighbors
-  bool include_intra_ = false;
+  bool only_intramolecular_ = false;
 
   // file extension for the distributions
   std::string extension_;
