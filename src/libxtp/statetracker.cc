@@ -27,7 +27,6 @@ using std::flush;
 
 void StateTracker::Initialize(const tools::Property& options) {
 
-
   FilterFactory factory;
   for (const tools::Property& filter : options) {
     filters_.push_back(factory.Create(filter.name()));

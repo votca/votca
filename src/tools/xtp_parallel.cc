@@ -27,7 +27,7 @@ using namespace votca;
 
 class XtpParallel final : public xtp::StateApplication {
  public:
-  XtpParallel() =default;
+  XtpParallel() = default;
   ~XtpParallel() = default;
   std::string ProgramName() final { return "xtp_parallel"; }
 

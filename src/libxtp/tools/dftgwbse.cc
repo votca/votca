@@ -84,8 +84,8 @@ bool DftGwBse::Run() {
     orbitals.QMAtoms().LoadFromFile(xyzfile_);
   }
 
-  std::unique_ptr<QMPackage> qmpackage =QMPackageFactory().Create(
-          package_options_.get("name").as<std::string>());
+  std::unique_ptr<QMPackage> qmpackage =
+      QMPackageFactory().Create(package_options_.get("name").as<std::string>());
   qmpackage->setLog(&log_);
   qmpackage->Initialize(package_options_);
   qmpackage->setRunDir(".");

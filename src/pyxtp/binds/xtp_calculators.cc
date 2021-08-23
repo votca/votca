@@ -15,11 +15,11 @@
  */
 
 #include "votca/xtp/statesaver.h"
-#include <votca/tools/optionshandler.h>
 #include "xtp_bind_calculators.h"
 #include <iostream>
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
+#include <votca/tools/optionshandler.h>
 
 namespace py = pybind11;
 using namespace votca;
@@ -41,9 +41,10 @@ void call_calculator(const std::string& calculatorName,
   votca::tools::Property prop;
   prop.LoadFromXML(xmlFile);
 
- votca::tools::OptionsHandler handler(tools::GetVotcaShare() + "/xtp/xml/");
- votca::tools::Property options = handler.ProcessUserInput(prop, calculatorName)
-                 .get("options." + calculatorName);
+  votca::tools::OptionsHandler handler(tools::GetVotcaShare() + "/xtp/xml/");
+  votca::tools::Property options =
+      handler.ProcessUserInput(prop, calculatorName)
+          .get("options." + calculatorName);
 
   // Call calculator
   pyxtp::XTPCalculators calc;

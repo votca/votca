@@ -27,7 +27,7 @@ using namespace votca;
 
 class XtpRun final : public xtp::StateApplication {
  public:
-  XtpRun()= default;
+  XtpRun() = default;
 
   ~XtpRun() = default;
   std::string ProgramName() final { return "xtp_run"; }

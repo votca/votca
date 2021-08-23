@@ -57,7 +57,8 @@ BOOST_AUTO_TEST_SUITE(gaussian_quadratures_test)
 
 BOOST_AUTO_TEST_CASE(gauss_legendre) {
 
-  std::unique_ptr<GaussianQuadratureBase> gq_ = QuadratureFactory().Create("legendre");
+  std::unique_ptr<GaussianQuadratureBase> gq_ =
+      QuadratureFactory().Create("legendre");
 
   std::vector<int> orders{8, 10, 12, 14, 16, 18, 20, 40, 100};
   FunctionEvaluation f = FunctionEvaluation();
@@ -114,7 +115,8 @@ BOOST_AUTO_TEST_CASE(modified_gauss_legendre) {
 
 BOOST_AUTO_TEST_CASE(gauss_laguerre) {
 
-  std::unique_ptr<GaussianQuadratureBase> gq_ = QuadratureFactory().Create("laguerre");
+  std::unique_ptr<GaussianQuadratureBase> gq_ =
+      QuadratureFactory().Create("laguerre");
   std::vector<int> orders{8, 10, 12, 14, 16, 18, 20, 40, 100};
   FunctionEvaluation f = FunctionEvaluation();
 
@@ -141,8 +143,8 @@ BOOST_AUTO_TEST_CASE(gauss_laguerre) {
 
 BOOST_AUTO_TEST_CASE(gauss_hermite) {
 
-
-  std::unique_ptr<GaussianQuadratureBase> gq_ = QuadratureFactory().Create("hermite");
+  std::unique_ptr<GaussianQuadratureBase> gq_ =
+      QuadratureFactory().Create("hermite");
   std::vector<int> orders{8, 10, 12, 14, 16, 18, 20, 40, 100};
   FunctionEvaluation f = FunctionEvaluation();
 

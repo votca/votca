@@ -15,8 +15,8 @@
  */
 
 #include "xtp_bind_tools.h"
-#include <votca/tools/optionshandler.h>
 #include <iostream>
+#include <votca/tools/optionshandler.h>
 
 using namespace votca;
 
@@ -26,9 +26,9 @@ void call_tool(const std::string& name, Index nThreads, std::string xmlfile) {
   votca::tools::Property prop;
   prop.LoadFromXML(xmlfile);
 
- votca::tools::OptionsHandler handler(tools::GetVotcaShare() + "/xtp/xml/");
- votca::tools::Property options = handler.ProcessUserInput(prop, name)
-                 .get("options." + name);
+  votca::tools::OptionsHandler handler(tools::GetVotcaShare() + "/xtp/xml/");
+  votca::tools::Property options =
+      handler.ProcessUserInput(prop, name).get("options." + name);
 
   // Call calculator
   pyxtp::XTPTools tool;
@@ -37,7 +37,7 @@ void call_tool(const std::string& name, Index nThreads, std::string xmlfile) {
 
 void XTPTools::Initialize(const std::string& name, Index nThreads,
                           votca::tools::Property prop) {
-  tool_ =  xtp::QMToolFactory().Create(name);
+  tool_ = xtp::QMToolFactory().Create(name);
   tool_->setnThreads(nThreads);
   tool_->Initialize(prop);
   tool_->Evaluate();
