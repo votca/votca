@@ -48,7 +48,8 @@ Version 2022-dev
 -  Fixed exciton options checking (#726)
 -  added basis gpu runner and test to suite (#725)
 -  turned sigma choice into a factory (#731)
--  use middleRows/Cols and refactor numerical integration (#732)
+-  use middleRows-Cols and refactor numerical integration (#732)
+-  increase performance of numerical integration (#733)
 
 Version 2021.2 (released XX.07.21)
 ==================================
