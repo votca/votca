@@ -44,7 +44,7 @@ class XTPCalculators {
            bool save);
 
  private:
-  std::unique_ptr<xtp::QMCalculator> _calculator;
+  std::unique_ptr<xtp::QMCalculator> calculator_;
 };
 
 }  // namespace pyxtp

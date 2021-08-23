@@ -15,6 +15,7 @@
  */
 
 #include "votca/xtp/statesaver.h"
+#include <votca/tools/optionshandler.h>
 #include "xtp_bind_calculators.h"
 #include <iostream>
 #include <pybind11/embed.h>
@@ -39,18 +40,22 @@ void call_calculator(const std::string& calculatorName,
   // Load properties
   votca::tools::Property prop;
   prop.LoadFromXML(xmlFile);
+
+ votca::tools::OptionsHandler handler(tools::GetVotcaShare() + "/xtp/xml/");
+ votca::tools::Property options = handler.ProcessUserInput(prop, calculatorName)
+                 .get("options." + calculatorName);
+
   // Call calculator
   pyxtp::XTPCalculators calc;
-  calc.Initialize(calculatorName, nThreads, prop);
+  calc.Initialize(calculatorName, nThreads, options);
   calc.Run(stateFile, nFrames, firstFrame, save);
 }
 
 void XTPCalculators::Initialize(const std::string& name, Index nThreads,
                                 votca::tools::Property prop) {
-  xtp::Calculatorfactory factory;
-  _calculator = factory.Create(name);
-  _calculator->setnThreads(nThreads);
-  _calculator->Initialize(prop);
+  calculator_ = xtp::Calculatorfactory().Create(name);
+  calculator_->setnThreads(nThreads);
+  calculator_->Initialize(prop);
   std::cout << "Calculator has been Initialized\n";
 }
 
@@ -85,8 +90,8 @@ void XTPCalculators::Run(const std::string& stateFile, Index nFrames,
   for (Index i = firstFrame; i < nFrames; i++) {
     std::cout << "Evaluating frame " << frames[i] << std::endl;
     xtp::Topology top = statsav.ReadFrame(frames[i]);
-    _calculator->EvaluateFrame(top);
-    if (save && _calculator->WriteToStateFile()) {
+    calculator_->EvaluateFrame(top);
+    if (save && calculator_->WriteToStateFile()) {
       statsav.WriteFrame(top);
     } else {
       std::cout << "Changes have not been written to state file." << std::endl;

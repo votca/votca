@@ -34,7 +34,7 @@ ImaginaryAxisIntegration::ImaginaryAxisIntegration(
 void ImaginaryAxisIntegration::configure(
     options opt, const RPA& rpa, const Eigen::MatrixXd& kDielMxInv_zero) {
   opt_ = opt;
-  gq_ = QuadratureFactory().Create(opt_.quadrature_scheme));
+  gq_ = QuadratureFactory().Create(opt_.quadrature_scheme);
   gq_->configure(opt_.order);
 
   CalcDielInvVector(rpa, kDielMxInv_zero);

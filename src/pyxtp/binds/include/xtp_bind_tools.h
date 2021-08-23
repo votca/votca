@@ -14,7 +14,7 @@
  *
  */
 
-#if !defined(XTP_BIND_TOOLS_H_)
+#ifndef XTP_BIND_TOOLS_H_
 #define XTP_BIND_TOOLS_H_
 
 #include "votca/tools/property.h"
@@ -38,7 +38,7 @@ class XTPTools {
                   votca::tools::Property prop);
 
  private:
-  std::unique_ptr<xtp::QMTool> _tool;
+  std::unique_ptr<xtp::QMTool> tool_;
 };
 }  // namespace pyxtp
 

@@ -36,17 +36,11 @@ namespace xtp {
 class SigmaFactory : public tools::ObjectFactory<std::string, Sigma_base,
                                                  TCMatrix_gwbse &, RPA &> {
  private:
-  SigmaFactory() = default;
+  void RegisterAll(void);
 
  public:
-  static void RegisterAll(void);
-  friend SigmaFactory &Sigma();
+  SigmaFactory() { RegisterAll(); }
 };
-
-inline SigmaFactory &Sigma() {
-  static SigmaFactory instance_;
-  return instance_;
-}
 
 }  // namespace xtp
 }  // namespace votca

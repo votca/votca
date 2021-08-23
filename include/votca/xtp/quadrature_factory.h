@@ -42,14 +42,6 @@ class QuadratureFactory
   QuadratureFactory() { this->RegisterAll(); };
 };
 
-<<<<<<< HEAD
-=======
-inline QuadratureFactory &Quadratures() {
-  static QuadratureFactory instance_;
-  return instance_;
-}
-
->>>>>>> master
 }  // namespace xtp
 }  // namespace votca
 

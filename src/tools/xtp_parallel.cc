@@ -27,8 +27,7 @@ using namespace votca;
 
 class XtpParallel final : public xtp::StateApplication {
  public:
-  XtpParallel() { xtp::JobCalculatorfactory::RegisterAll(); }
-
+  XtpParallel() =default;
   ~XtpParallel() = default;
   std::string ProgramName() final { return "xtp_parallel"; }
 
@@ -45,7 +44,7 @@ class XtpParallel final : public xtp::StateApplication {
   std::string CalculatorType() const { return "Calculator"; }
   void CheckOptions() final;
   std::vector<std::string> CalculatorNames() const {
-    return xtp::JobCalculators().getKeys();
+    return xtp::JobCalculatorfactory().getKeys();
   }
 
   void AddCommandLineOpt() final;

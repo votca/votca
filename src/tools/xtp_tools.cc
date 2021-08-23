@@ -30,7 +30,7 @@ using namespace votca;
 
 class XtpTools final : public xtp::XtpApplication {
  public:
-  XtpTools() { xtp::QMToolFactory::RegisterAll(); }
+  XtpTools() = default;
 
   ~XtpTools() = default;
 
