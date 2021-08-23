@@ -35,17 +35,17 @@ class StateApplication : public XtpApplication {
 
   ~StateApplication() override = default;
 
-  void Initialize() override;
-  bool EvaluateOptions() override;
-  void Run() override;
-
-  void BeginEvaluate(Index nThreads);
-  bool EvaluateFrame(Topology& top);
-
-  void SetCalculator(std::unique_ptr<QMCalculator>&& calculator);
-
  protected:
-  std::unique_ptr<QMCalculator> _calculator;
+  virtual bool savetoStateFile() const = 0;
+
+  virtual void ConfigCalculator() = 0;
+  virtual bool EvaluateFrame(Topology& top) = 0;
+
+  void EvaluateSpecificOptions() final;
+  virtual void CheckOptions() = 0;
+  void execute() final;
+  void AddCommandLineOptions() final;
+  virtual void AddCommandLineOpt() = 0;
 };
 
 }  // namespace xtp

@@ -31,25 +31,25 @@ namespace xtp {
 
 void APDFT::ParseOptions(const tools::Property &options) {
 
-  _grid_accuracy = options.get(".grid").as<std::string>();
-  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".input", _job_name + ".orb");
-  _outputfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".output", _job_name + "_state.dat");
-  _state = options.get(".state").as<QMState>();
+  grid_accuracy_ = options.get(".grid").as<std::string>();
+  orbfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".input", job_name_ + ".orb");
+  outputfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".output", job_name_ + "_state.dat");
+  state_ = options.get(".state").as<QMState>();
 }
 
 bool APDFT::Run() {
 
   Orbitals orb;
-  orb.ReadFromCpt(_orbfile);
+  orb.ReadFromCpt(orbfile_);
   AOBasis basis = orb.SetupDftBasis();
   Vxc_Grid grid;
-  grid.GridSetup(_grid_accuracy, orb.QMAtoms(), basis);
+  grid.GridSetup(grid_accuracy_, orb.QMAtoms(), basis);
 
   DensityIntegration<Vxc_Grid> integration(grid);
 
-  integration.IntegrateDensity(orb.DensityMatrixFull(_state));
+  integration.IntegrateDensity(orb.DensityMatrixFull(state_));
   std::vector<double> potential_values;
   potential_values.reserve(orb.QMAtoms().size());
   for (const auto &atom : orb.QMAtoms()) {
@@ -57,7 +57,7 @@ bool APDFT::Run() {
   }
 
   std::fstream outfile;
-  outfile.open(_outputfile, std::fstream::out);
+  outfile.open(outputfile_, std::fstream::out);
   outfile << "AtomId, Element, Potential[Hartree]" << std::endl;
   for (Index i = 0; i < orb.QMAtoms().size(); i++) {
     outfile << orb.QMAtoms()[i].getId() << " " << orb.QMAtoms()[i].getElement()

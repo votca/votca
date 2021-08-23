@@ -24,21 +24,21 @@ namespace votca {
 namespace xtp {
 
 void Density_filter::Initialize(const tools::Property& options) {
-  _threshold = options.ifExistsReturnElseThrowRuntimeError<double>(".");
+  threshold_ = options.get(".").as<double>();
 }
 
 void Density_filter::Info(Logger& log) const {
-  if (_threshold == 0.0) {
+  if (threshold_ == 0.0) {
     XTP_LOG(Log::error, log)
         << "Using density filter with no threshold " << std::flush;
   } else {
     XTP_LOG(Log::error, log)
-        << "Using density filter with threshold " << _threshold << std::flush;
+        << "Using density filter with threshold " << threshold_ << std::flush;
   }
 }
 
 void Density_filter::UpdateHist(const Orbitals& orb, QMState state) {
-  _laststate_dmat = orb.DensityMatrixFull(state);
+  laststate_dmat_ = orb.DensityMatrixFull(state);
 }
 
 Eigen::VectorXd Density_filter::CalculateDNorm(const Orbitals& orb,
@@ -47,9 +47,9 @@ Eigen::VectorXd Density_filter::CalculateDNorm(const Orbitals& orb,
   Eigen::VectorXd norm = Eigen::VectorXd::Zero(nostates);
   for (Index i = 0; i < nostates; i++) {
     QMState state(type, i, false);
-    norm(i) = (orb.DensityMatrixFull(state) - _laststate_dmat).norm();
+    norm(i) = (orb.DensityMatrixFull(state) - laststate_dmat_).norm();
   }
-  double lastnorm = _laststate_dmat.norm();
+  double lastnorm = laststate_dmat_.norm();
   return norm / lastnorm;
 }
 
@@ -60,17 +60,17 @@ std::vector<Index> Density_filter::CalcIndeces(const Orbitals& orb,
   if (type == QMStateType::DQPstate) {
     offset = orb.getGWAmin();
   }
-  return ReduceAndSortIndecesDown(Overlap, offset, _threshold);
+  return ReduceAndSortIndecesDown(Overlap, offset, threshold_);
 }
 
 void Density_filter::WriteToCpt(CheckpointWriter& w) {
-  w(_laststate_dmat, "laststatedmat");
-  w(_threshold, "threshold");
+  w(laststate_dmat_, "laststatedmat");
+  w(threshold_, "threshold");
 }
 
 void Density_filter::ReadFromCpt(CheckpointReader& r) {
-  r(_laststate_dmat, "laststatedmat");
-  r(_threshold, "threshold");
+  r(laststate_dmat_, "laststatedmat");
+  r(threshold_, "threshold");
 }
 
 }  // namespace xtp

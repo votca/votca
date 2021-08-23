@@ -30,24 +30,24 @@ class GLink {
 
  public:
   GLink(GNode* dest, double rate, const Eigen::Vector3d& dr)
-      : destination(dest), _rate(rate), _dr(dr){};
+      : destination(dest), rate_(rate), dr_(dr){};
 
-  GLink(double rate) : _rate(rate), _decayevent(true){};
+  GLink(double rate) : rate_(rate), decayevent_(true){};
 
-  double getValue() const { return _rate; }
-  double getRate() const { return _rate; }
+  double getValue() const { return rate_; }
+  double getRate() const { return rate_; }
   GNode* getDestination() const {
-    assert(!_decayevent && "Decay event has no destination");
+    assert(!decayevent_ && "Decay event has no destination");
     return destination;
   }
-  const Eigen::Vector3d& getDeltaR() const { return _dr; }
-  bool isDecayEvent() const { return _decayevent; }
+  const Eigen::Vector3d& getDeltaR() const { return dr_; }
+  bool isDecayEvent() const { return decayevent_; }
 
  private:
   GNode* destination = nullptr;
-  double _rate = 0.0;
-  Eigen::Vector3d _dr = Eigen::Vector3d::Zero();
-  bool _decayevent = false;
+  double rate_ = 0.0;
+  Eigen::Vector3d dr_ = Eigen::Vector3d::Zero();
+  bool decayevent_ = false;
 };
 }  // namespace xtp
 }  // namespace votca

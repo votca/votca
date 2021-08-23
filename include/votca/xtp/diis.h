@@ -35,15 +35,15 @@ class DIIS {
   void Update(Index maxerrorindex, const Eigen::MatrixXd& errormatrix);
   Eigen::VectorXd CalcCoeff();
 
-  void setHistLength(Index length) { _histlength = length; }
+  void setHistLength(Index length) { histlength_ = length; }
 
   bool Info() { return success; }
 
  private:
   bool success = true;
-  Index _histlength;
-  std::vector<std::vector<double> > _Diis_Bs;
-  std::vector<Eigen::MatrixXd> _errormatrixhist;
+  Index histlength_;
+  std::vector<std::vector<double> > Diis_Bs_;
+  std::vector<Eigen::MatrixXd> errormatrixhist_;
 };
 
 }  // namespace xtp

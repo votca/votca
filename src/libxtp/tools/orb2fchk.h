@@ -37,18 +37,18 @@ class Orb2Fchk final : public QMTool {
 
   ~Orb2Fchk() = default;
 
-  std::string Identify() { return "orb2fchk"; }
+  std::string Identify() const { return "orb2fchk"; }
 
  protected:
   void ParseOptions(const tools::Property& options);
   bool Run();
 
  private:
-  std::string _basename;
-  std::string _orbfile;
+  std::string basename_;
+  std::string orbfile_;
   QMState state_;
-  bool _diff2gs;
-  Logger _log;
+  bool diff2gs_;
+  Logger log_;
 };
 
 }  // namespace xtp

@@ -54,41 +54,41 @@ class ConvergenceAcc {
   };
 
   void Configure(const ConvergenceAcc::options& opt) {
-    _opt = opt;
-    if (_opt.mode == KSmode::closed) {
-      _nocclevels = _opt.numberofelectrons / 2;
-    } else if (_opt.mode == KSmode::open) {
-      _nocclevels = _opt.numberofelectrons;
-    } else if (_opt.mode == KSmode::fractional) {
-      _nocclevels = 0;
+    opt_ = opt;
+    if (opt_.mode == KSmode::closed) {
+      nocclevels_ = opt_.numberofelectrons / 2;
+    } else if (opt_.mode == KSmode::open) {
+      nocclevels_ = opt_.numberofelectrons;
+    } else if (opt_.mode == KSmode::fractional) {
+      nocclevels_ = 0;
     }
-    _diis.setHistLength(_opt.histlength);
+    diis_.setHistLength(opt_.histlength);
   }
-  void setLogger(Logger* log) { _log = log; }
+  void setLogger(Logger* log) { log_ = log; }
 
   void PrintConfigOptions() const;
 
   bool isConverged() const {
-    if (_totE.size() < 2) {
+    if (totE_.size() < 2) {
       return false;
     } else {
-      return std::abs(getDeltaE()) < _opt.Econverged &&
-             getDIIsError() < _opt.error_converged;
+      return std::abs(getDeltaE()) < opt_.Econverged &&
+             getDIIsError() < opt_.error_converged;
     }
   }
 
   double getDeltaE() const {
-    if (_totE.size() < 2) {
+    if (totE_.size() < 2) {
       return 0;
     } else {
-      return _totE.back() - _totE[_totE.size() - 2];
+      return totE_.back() - totE_[totE_.size() - 2];
     }
   }
   void setOverlap(AOOverlap& S, double etol);
 
-  double getDIIsError() const { return _diiserror; }
+  double getDIIsError() const { return diiserror_; }
 
-  bool getUseMixing() const { return _usedmixing; }
+  bool getUseMixing() const { return usedmixing_; }
 
   Eigen::MatrixXd Iterate(const Eigen::MatrixXd& dmat, Eigen::MatrixXd& H,
                           tools::EigenSystem& MOs, double totE);
@@ -98,7 +98,7 @@ class ConvergenceAcc {
   Eigen::MatrixXd DensityMatrix(const tools::EigenSystem& MOs) const;
 
  private:
-  options _opt;
+  options opt_;
 
   Eigen::MatrixXd DensityMatrixGroundState(const Eigen::MatrixXd& MOs) const;
   Eigen::MatrixXd DensityMatrixGroundState_unres(
@@ -106,21 +106,21 @@ class ConvergenceAcc {
   Eigen::MatrixXd DensityMatrixGroundState_frac(
       const tools::EigenSystem& MOs) const;
 
-  bool _usedmixing = true;
-  double _diiserror = std::numeric_limits<double>::max();
-  Logger* _log;
-  const AOOverlap* _S;
+  bool usedmixing_ = true;
+  double diiserror_ = std::numeric_limits<double>::max();
+  Logger* log_;
+  const AOOverlap* S_;
 
   Eigen::MatrixXd Sminusahalf;
-  std::vector<Eigen::MatrixXd> _mathist;
-  std::vector<Eigen::MatrixXd> _dmatHist;
-  std::vector<double> _totE;
+  std::vector<Eigen::MatrixXd> mathist_;
+  std::vector<Eigen::MatrixXd> dmatHist_;
+  std::vector<double> totE_;
 
-  Index _nocclevels;
-  Index _maxerrorindex = 0;
-  double _maxerror = 0.0;
-  ADIIS _adiis;
-  DIIS _diis;
+  Index nocclevels_;
+  Index maxerrorindex_ = 0;
+  double maxerror_ = 0.0;
+  ADIIS adiis_;
+  DIIS diis_;
 };
 
 }  // namespace xtp

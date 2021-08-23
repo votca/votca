@@ -31,7 +31,7 @@ namespace xtp {
 void Vxc_Grid::SortGridpointsintoBlocks(
     const std::vector<std::vector<GridContainers::Cartesian_gridpoint> >&
         grid) {
-  const double boxsize = 1;  // 1 bohr
+  constexpr double boxsize = 1;  // 1 bohr
 
   Eigen::Array3d min =
       Eigen::Array3d::Ones() * std::numeric_limits<double>::max();
@@ -68,7 +68,7 @@ void Vxc_Grid::SortGridpointsintoBlocks(
     for (const auto& point : box) {
       gridbox.addGridPoint(*point);
     }
-    _grid_boxes.push_back(gridbox);
+    grid_boxes_.push_back(gridbox);
   }
   return;
 }
@@ -77,43 +77,43 @@ void Vxc_Grid::FindSignificantShells(const AOBasis& basis) {
 
 #pragma omp parallel for
   for (Index i = 0; i < getBoxesSize(); i++) {
-    _grid_boxes[i].FindSignificantShells(basis);
+    grid_boxes_[i].FindSignificantShells(basis);
   }
 
   std::vector<GridBox> grid_boxes_copy;
   // use vector of bool to indicate if a gridbox has already been merged into
   // another
-  std::vector<bool> Merged = std::vector<bool>(_grid_boxes.size(), false);
-  for (Index i = 0; i < Index(_grid_boxes.size()); i++) {
+  std::vector<bool> Merged = std::vector<bool>(grid_boxes_.size(), false);
+  for (Index i = 0; i < Index(grid_boxes_.size()); i++) {
     if (Merged[i]) {
       continue;
     }
-    GridBox box = _grid_boxes[i];
+    GridBox box = grid_boxes_[i];
     if (box.Shellsize() < 1) {
       continue;
     }
     Merged[i] = true;
-    for (Index j = i + 1; j < Index(_grid_boxes.size()); j++) {
-      if (GridBox::compareGridboxes(_grid_boxes[i], _grid_boxes[j])) {
+    for (Index j = i + 1; j < Index(grid_boxes_.size()); j++) {
+      if (GridBox::compareGridboxes(grid_boxes_[i], grid_boxes_[j])) {
         Merged[j] = true;
-        box.addGridBox(_grid_boxes[j]);
+        box.addGridBox(grid_boxes_[j]);
       }
     }
     grid_boxes_copy.push_back(box);
   }
 
-  _totalgridsize = 0;
+  totalgridsize_ = 0;
   for (auto& box : grid_boxes_copy) {
-    _totalgridsize += box.size();
+    totalgridsize_ += box.size();
     box.PrepareForIntegration();
   }
-  _grid_boxes = grid_boxes_copy;
+  grid_boxes_ = grid_boxes_copy;
 }
 
 std::vector<const Eigen::Vector3d*> Vxc_Grid::getGridpoints() const {
   std::vector<const Eigen::Vector3d*> gridpoints;
   gridpoints.reserve(this->getGridSize());
-  for (const auto& box : _grid_boxes) {
+  for (const auto& box : grid_boxes_) {
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     for (const Eigen::Vector3d& point : points) {
       gridpoints.push_back(&point);

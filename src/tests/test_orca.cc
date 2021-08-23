@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include "votca/tools/property.h"
 #include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
@@ -68,6 +69,16 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   QMPackageFactory factory;
   std::unique_ptr<QMPackage> orca = factory.Create("orca");
   Logger log;
+
+  tools::Property opt;
+  opt.add("functional", "XC_HYB_GGA_XC_PBEH");
+  opt.add("charge", "0");
+  opt.add("spin", "0");
+  opt.add("basisset", "3-21G");
+  opt.add("cleanup", "");
+  opt.add("scratch", "");
+  opt.add("temporary_file", "temp");
+  orca->Initialize(opt);
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
   orca->setLogFileName("orca_ext_charges.log");
@@ -200,6 +211,16 @@ BOOST_AUTO_TEST_CASE(opt_test) {
   QMPackageFactory factory;
   std::unique_ptr<QMPackage> orca = factory.Create("orca");
   Logger log;
+
+  tools::Property opt;
+  opt.add("functional", "XC_HYB_GGA_XC_PBEH");
+  opt.add("charge", "0");
+  opt.add("spin", "0");
+  opt.add("basisset", "3-21G");
+  opt.add("cleanup", "");
+  opt.add("scratch", "");
+  opt.add("temporary_file", "temp");
+  orca->Initialize(opt);
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
   orca->setLogFileName("orca_opt.log");
@@ -234,28 +255,30 @@ BOOST_AUTO_TEST_CASE(opt_test) {
 }
 
 BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
-  unsetenv("VOTCASHARE");
   std::ofstream defaults("user_input.xml");
 
-  defaults << "<package>\n"
+  defaults << "<dftpackage>\n"
            << "<name>orca</name>\n"
            << "<charge>0</charge>\n"
            << "<spin>1</spin>\n"
            << "<executable>some/path/orca</executable>\n"
            << "<basisset>" << std::string(XTP_TEST_DATA_FOLDER)
            << "/orca/3-21G.xml</basisset>\n"
-           << "<functional>pbe0</functional>\n"
-           << "<read_guess>false</read_guess>\n"
-           << "<write_charges>false</write_charges>\n"
+           << "<functional>XC_HYB_GGA_XC_PBEH</functional>\n"
            << "<scratch>/tmp/qmpackage</scratch>\n"
+           << "<dipole_spacing>0.1</dipole_spacing>\n"
            << "<optimize>false</optimize>\n"
+           << "<polarization>false</polarization>\n"
            << "<convergence_tightness>tight</convergence_tightness>\n"
+           << "<temporary_file>system</temporary_file>\n"
+           << "<initial_guess>atom</initial_guess>\n"
+           << "<cleanup></cleanup>\n"
            << "<orca>\n"
            << "<method></method>\n"
            << "<scf>GUESS PMODEL</scf>\n"
            << "<maxcore>3000</maxcore>\n"
            << "</orca>\n"
-           << "</package>";
+           << "</dftpackage>";
   defaults.close();
 
   votca::tools::Property prop;
@@ -266,7 +289,7 @@ BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(".");
-  orca->Initialize(prop);
+  orca->Initialize(prop.get("dftpackage"));
 
   Orbitals orb;
   orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
@@ -296,12 +319,11 @@ BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
 
   // Check method
   index1 = inp.find("!");
-  BOOST_CHECK_EQUAL(inp.substr(index1), "! DFT pbe0   \n");
+  BOOST_CHECK_EQUAL(inp.substr(index1, 10), "! DFT PBE0");
 
   // Check singleline orca kewords
   index1 = inp.find("%maxcore");
   index2 = inp.find("\n", index1);
-  std::cout << "\ninp: " << inp.substr(index1) << "\n";
   BOOST_CHECK_EQUAL(inp.substr(index1, index2 - index1), "%maxcore 3000");
 }
 

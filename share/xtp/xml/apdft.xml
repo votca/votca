@@ -1,7 +1,10 @@
 <?xml version="1.0"?>
 <options>
   <apdft help="Write Electrostatic potentials at core positions">
+    <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
     <grid help="grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine"/>
-    <state help="QM state to generate potential" default="N"/>
+    <state help="QM state to generate potential" default="n"/>
+    <input help="orbfile to read from, otherwise use job_name" default="OPTIONAL"/>
+    <output help="File to write atoms atomids and potentials at those positions from" default="OPTIONAL"/>
   </apdft>
 </options>

@@ -30,32 +30,32 @@ namespace xtp {
 class ECPGaussianPrimitive {
  public:
   ECPGaussianPrimitive(Index power, double decay, double contraction)
-      : _power(power), _decay(decay), _contraction(contraction) {
+      : power_(power), decay_(decay), contraction_(contraction) {
     ;
   }
 
-  Index _power;
-  double _decay;
-  double _contraction;
+  Index power_;
+  double decay_;
+  double contraction_;
 };
 
 class ECPShell {
 
  public:
-  ECPShell(L l) : _l(l) { ; }
-  L getL() const { return _l; }
+  ECPShell(L l) : l_(l) { ; }
+  L getL() const { return l_; }
 
-  Index getnumofFunc() const { return NumFuncShell(_l); }
+  Index getnumofFunc() const { return NumFuncShell(l_); }
 
-  Index getOffset() const { return OffsetFuncShell(_l); }
+  Index getOffset() const { return OffsetFuncShell(l_); }
 
-  Index getSize() const { return _gaussians.size(); }
+  Index getSize() const { return gaussians_.size(); }
 
   std::vector<ECPGaussianPrimitive>::const_iterator begin() const {
-    return _gaussians.begin();
+    return gaussians_.begin();
   }
   std::vector<ECPGaussianPrimitive>::const_iterator end() const {
-    return _gaussians.end();
+    return gaussians_.end();
   }
 
   // adds a Gaussian of a pseudopotential
@@ -65,9 +65,9 @@ class ECPShell {
   friend std::ostream& operator<<(std::ostream& out, const ECPShell& shell);
 
  private:
-  L _l;
+  L l_;
   // vector of pairs of decay constants and contraction coefficients
-  std::vector<ECPGaussianPrimitive> _gaussians;
+  std::vector<ECPGaussianPrimitive> gaussians_;
 };
 
 /*
@@ -76,36 +76,36 @@ class ECPShell {
 class ECPElement {
  public:
   ECPElement(std::string type, L lmax, Index ncore)
-      : _type(type), _lmax(lmax), _ncore(ncore) {
+      : type_(type), lmax_(lmax), ncore_(ncore) {
     ;
   }
   using ECPShellIterator = std::vector<ECPShell>::const_iterator;
-  ECPShellIterator begin() const { return _shells.begin(); }
-  ECPShellIterator end() const { return _shells.end(); }
+  ECPShellIterator begin() const { return shells_.begin(); }
+  ECPShellIterator end() const { return shells_.end(); }
 
-  const std::string& getType() const { return _type; }
+  const std::string& getType() const { return type_; }
 
-  L getLmax() const { return _lmax; }
+  L getLmax() const { return lmax_; }
 
-  Index getNcore() const { return _ncore; }
+  Index getNcore() const { return ncore_; }
 
   ECPShell& addShell(L l) {
-    _shells.push_back(ECPShell(l));
-    return _shells.back();
+    shells_.push_back(ECPShell(l));
+    return shells_.back();
   }
 
-  Index NumOfShells() const { return _shells.size(); }
+  Index NumOfShells() const { return shells_.size(); }
 
   friend std::ostream& operator<<(std::ostream& out, const ECPElement& element);
 
  private:
-  std::string _type;
+  std::string type_;
   //  applies to the highest angular momentum lmax
-  L _lmax;
+  L lmax_;
   // replaces ncore electrons
-  Index _ncore;
+  Index ncore_;
 
-  std::vector<ECPShell> _shells;
+  std::vector<ECPShell> shells_;
 };
 
 /*
@@ -120,28 +120,28 @@ class ECPBasisSet {
   const ECPElement& getElement(std::string element_type) const;
 
   std::map<std::string, std::shared_ptr<ECPElement> >::iterator begin() {
-    return _elements.begin();
+    return elements_.begin();
   }
   std::map<std::string, std::shared_ptr<ECPElement> >::iterator end() {
-    return _elements.end();
+    return elements_.end();
   }
 
-  const std::string& Name() const { return _name; }
+  const std::string& Name() const { return name_; }
 
   std::map<std::string, std::shared_ptr<ECPElement> >::const_iterator begin()
       const {
-    return _elements.begin();
+    return elements_.begin();
   }
   std::map<std::string, std::shared_ptr<ECPElement> >::const_iterator end()
       const {
-    return _elements.end();
+    return elements_.end();
   }
 
   friend std::ostream& operator<<(std::ostream& out, const ECPBasisSet& basis);
 
  private:
-  std::string _name;
-  std::map<std::string, std::shared_ptr<ECPElement> > _elements;
+  std::string name_;
+  std::map<std::string, std::shared_ptr<ECPElement> > elements_;
 };
 
 }  // namespace xtp

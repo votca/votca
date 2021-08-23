@@ -29,8 +29,7 @@
 namespace votca {
 namespace xtp {
 
-void StateApplication::Initialize(void) {
-  XtpApplication::Initialize();
+void StateApplication::AddCommandLineOptions() {
 
   namespace propt = boost::program_options;
 
@@ -40,27 +39,19 @@ void StateApplication::Initialize(void) {
                       "  start from this frame");
   AddProgramOptions()("nframes,n", propt::value<Index>()->default_value(1),
                       "  number of frames to process");
-  AddProgramOptions()("nthreads,t", propt::value<Index>()->default_value(1),
-                      "  number of threads to create");
   AddProgramOptions()("save,s", propt::value<bool>()->default_value(true),
                       "  whether or not to save changes to state file");
+
+  AddCommandLineOpt();
 }
 
-bool StateApplication::EvaluateOptions(void) {
+void StateApplication::EvaluateSpecificOptions() {
   CheckRequired("file", "Please provide the state file");
-  return true;
+  CheckOptions();
 }
 
-void StateApplication::Run() {
+void StateApplication::execute() {
 
-  std::string name = ProgramName();
-  if (VersionString() != "") {
-    name = name + ", version " + VersionString();
-  }
-  xtp::HelpTextHeader(name);
-
-  _options.LoadFromXML(_op_vm["options"].as<std::string>());
-  Index nThreads = OptionsMap()["nthreads"].as<Index>();
   Index nframes = OptionsMap()["nframes"].as<Index>();
   Index fframe = OptionsMap()["first-frame"].as<Index>();
   bool save = OptionsMap()["save"].as<bool>();
@@ -74,7 +65,7 @@ void StateApplication::Run() {
   }
   // INITIALIZE & RUN CALCULATORS
   std::cout << "Initializing calculator" << std::endl;
-  BeginEvaluate(nThreads);
+  ConfigCalculator();
   std::cout << frames.size() << " frames in statefile, Ids are: ";
   for (Index frame : frames) {
     std::cout << frame << " ";
@@ -97,31 +88,12 @@ void StateApplication::Run() {
     std::cout << "Evaluating frame " << frames[i] << std::endl;
     Topology top = statsav.ReadFrame(frames[i]);
     EvaluateFrame(top);
-    if (save && _calculator->WriteToStateFile()) {
+    if (save && savetoStateFile()) {
       statsav.WriteFrame(top);
     } else {
       std::cout << "Changes have not been written to state file." << std::endl;
     }
   }
-}
-
-void StateApplication::SetCalculator(
-    std::unique_ptr<QMCalculator>&& calculator) {
-  _calculator = std::move(calculator);
-}
-
-void StateApplication::BeginEvaluate(Index nThreads = 1) {
-  std::cout << "... " << _calculator->Identify() << " ";
-  _calculator->setnThreads(nThreads);
-  _calculator->Initialize(_options);
-  std::cout << std::endl;
-}
-
-bool StateApplication::EvaluateFrame(Topology& top) {
-  std::cout << "... " << _calculator->Identify() << " " << std::flush;
-  _calculator->EvaluateFrame(top);
-  std::cout << std::endl;
-  return true;
 }
 
 }  // namespace xtp

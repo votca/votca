@@ -32,25 +32,25 @@ namespace xtp {
 
 void Orb2Fchk::ParseOptions(const tools::Property& options) {
 
-  _basename = _job_name;
-  _orbfile = _job_name + ".orb";
+  basename_ = job_name_;
+  orbfile_ = job_name_ + ".orb";
   state_ = options.get(".qmstate").as<QMState>();
-  _diff2gs = options.get(".diff2gs").as<bool>();
+  diff2gs_ = options.get(".diff2gs").as<bool>();
 }
 
 bool Orb2Fchk::Run() {
-  _log.setReportLevel(Log::current_level);
-  _log.setMultithreading(true);
-  _log.setCommonPreface("\n... ...");
+  log_.setReportLevel(Log::current_level);
+  log_.setMultithreading(true);
+  log_.setCommonPreface("\n... ...");
 
   Orbitals orbitals;
-  XTP_LOG(Log::error, _log) << "Loading data from " << _orbfile << std::flush;
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_) << "Loading data from " << orbfile_ << std::flush;
+  XTP_LOG(Log::error, log_)
       << "Using density of state:  " << state_.ToString() << std::flush;
-  orbitals.ReadFromCpt(_orbfile);
+  orbitals.ReadFromCpt(orbfile_);
 
-  GaussianWriter writer(_log);
-  writer.WriteFile(_basename, orbitals, state_, _diff2gs);
+  GaussianWriter writer(log_);
+  writer.WriteFile(basename_, orbitals, state_, diff2gs_);
 
   return true;
 }

@@ -35,37 +35,37 @@ namespace votca {
 namespace xtp {
 
 Topology::Topology(const Topology &top) {
-  _segments = top._segments;
-  _time = top._time;
-  _step = top._step;
+  segments_ = top.segments_;
+  time_ = top.time_;
+  step_ = top.step_;
   this->setBox(top.getBox());
   for (const QMPair *pair : top.NBList()) {
-    const Segment &seg1 = _segments[pair->Seg1()->getId()];
-    const Segment &seg2 = _segments[pair->Seg2()->getId()];
-    _nblist.Add(seg1, seg2, pair->R());
+    const Segment &seg1 = segments_[pair->Seg1()->getId()];
+    const Segment &seg2 = segments_[pair->Seg2()->getId()];
+    nblist_.Add(seg1, seg2, pair->R());
   }
 }
 
 Topology &Topology::operator=(const Topology &top) {
   if (&top != this) {
-    _segments = top._segments;
-    _time = top._time;
-    _step = top._step;
+    segments_ = top.segments_;
+    time_ = top.time_;
+    step_ = top.step_;
     this->setBox(top.getBox());
-    _nblist.Cleanup();
+    nblist_.Cleanup();
     for (const QMPair *pair : top.NBList()) {
-      const Segment &seg1 = _segments[pair->Seg1()->getId()];
-      const Segment &seg2 = _segments[pair->Seg2()->getId()];
-      _nblist.Add(seg1, seg2, pair->R());
+      const Segment &seg1 = segments_[pair->Seg1()->getId()];
+      const Segment &seg2 = segments_[pair->Seg2()->getId()];
+      nblist_.Add(seg1, seg2, pair->R());
     }
   }
   return *this;
 }
 
 Segment &Topology::AddSegment(std::string segment_name) {
-  Index segment_id = Index(_segments.size());
-  _segments.push_back(Segment(segment_name, segment_id));
-  return _segments.back();
+  Index segment_id = Index(segments_.size());
+  segments_.push_back(Segment(segment_name, segment_id));
+  return segments_.back();
 }
 
 // +++++++++++++++++ //
@@ -79,25 +79,25 @@ void Topology::setBox(const Eigen::Matrix3d &box,
     boxtype = AutoDetectBoxType(box);
   }
 
-  if (_bc != nullptr) {
+  if (bc_ != nullptr) {
     if (Log::verbose()) {
       std::cout << "Removing periodic box. Creating new... " << std::endl;
     }
   }
-  _bc.reset(nullptr);
+  bc_.reset(nullptr);
   switch (boxtype) {
     case csg::BoundaryCondition::typeTriclinic:
-      _bc.reset(new csg::TriclinicBox());
+      bc_.reset(new csg::TriclinicBox());
       break;
     case csg::BoundaryCondition::typeOrthorhombic:
-      _bc.reset(new csg::OrthorhombicBox());
+      bc_.reset(new csg::OrthorhombicBox());
       break;
     default:
-      _bc.reset(new csg::OpenBox());
+      bc_.reset(new csg::OpenBox());
       break;
   }
 
-  _bc->setBox(box);
+  bc_->setBox(box);
 }
 
 csg::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(
@@ -128,7 +128,7 @@ csg::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(
 
 Eigen::Vector3d Topology::PbShortestConnect(const Eigen::Vector3d &r1,
                                             const Eigen::Vector3d &r2) const {
-  return _bc->BCShortestConnection(r1, r2);
+  return bc_->BCShortestConnection(r1, r2);
 }
 
 double Topology::GetShortestDist(const Segment &seg1,
@@ -159,7 +159,7 @@ std::vector<const Segment *> Topology::FindAllSegmentsOnMolecule(
   }
   Index molid = common_elements[0];
 
-  for (const Segment &seg : _segments) {
+  for (const Segment &seg : segments_) {
     if (std::find(seg.getMoleculeIds().begin(), seg.getMoleculeIds().end(),
                   molid) != seg.getMoleculeIds().end()) {
       results.push_back(&seg);
@@ -174,7 +174,7 @@ void Topology::WriteToPdb(std::string filename) const {
   writer.Open(filename, false);
   writer.WriteHeader("Frame:" + std::to_string(this->getStep()));
   writer.WriteBox(this->getBox() * tools::conv::bohr2ang);
-  for (const Segment &seg : _segments) {
+  for (const Segment &seg : segments_) {
     writer.WriteContainer(seg);
   }
   writer.Close();
@@ -183,34 +183,34 @@ void Topology::WriteToPdb(std::string filename) const {
 void Topology::WriteToCpt(CheckpointWriter &w) const {
   w(XtpVersionStr(), "XTPVersion");
   w(topology_version(), "version");
-  w(_time, "time");
-  w(_step, "step");
+  w(time_, "time");
+  w(step_, "step");
   w(this->getBox(), "box");
   CheckpointWriter ww = w.openChild("segments");
-  for (const Segment &seg : _segments) {
+  for (const Segment &seg : segments_) {
     CheckpointWriter u = ww.openChild("segment" + std::to_string(seg.getId()));
     seg.WriteToCpt(u);
   }
   CheckpointWriter www = w.openChild("neighborlist");
-  _nblist.WriteToCpt(www);
+  nblist_.WriteToCpt(www);
 }
 
 void Topology::ReadFromCpt(CheckpointReader &r) {
-  r(_time, "time");
-  r(_step, "step");
+  r(time_, "time");
+  r(step_, "step");
   Eigen::Matrix3d box;
   r(box, "box");
   setBox(box);
   CheckpointReader v = r.openChild("segments");
-  _segments.clear();
+  segments_.clear();
   Index count = v.getNumDataSets();
-  _segments.reserve(count);
+  segments_.reserve(count);
   for (Index i = 0; i < count; i++) {
     CheckpointReader w = v.openChild("segment" + std::to_string(i));
-    _segments.push_back(Segment(w));
+    segments_.push_back(Segment(w));
   }
   CheckpointReader rr = r.openChild("neighborlist");
-  _nblist.ReadFromCpt(rr, _segments);
+  nblist_.ReadFromCpt(rr, segments_);
 }
 
 }  // namespace xtp

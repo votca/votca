@@ -37,9 +37,30 @@ Version 2021-rc.2 (released XX.01.21)
 -  use NDimVector instead of std::vector in vxcgrid. (#703)
 -  Fixing the tutorial (#705)
 -  adapted tokenizer api (#707)
+-  move OpenMP detection to tools (#709)
+-  refactored applications (#710)
+-  add command line option for number of gpus (#711)
+-  reworked iqm statefile reading (#712)
+-  made membervariable format consistent (#713)
+-  updated benchmark (#714)
+-  reworked commandline options (#715)
+-  renamed cmd line arguments in xtp_parallel (#718)
+-  added incremental Fock matrix building (#716)
+-  disable codeql check in GitHub Actions (#720)
+-  replace std::vector by Eigen::Array<bool,..> (#719)
+-  overhaul complete option handling (#704)
+-  Fixed exciton options checking (#726)
+-  added basis gpu runner and test to suite (#725)
+-  turned sigma choice into a factory (#731)
+-  use middleRows/Cols and refactor numerical integration (#732)
 
-Version 2021.1 (released XX.03.21)
+Version 2021.2 (released XX.07.21)
 ==================================
+
+Version 2021.1 (released 18.07.21)
+==================================
+
+-  no changes since v2021
 
 Version 2021 (released 13.03.21)
 ================================

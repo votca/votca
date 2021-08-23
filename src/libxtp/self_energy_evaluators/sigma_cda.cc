@@ -17,9 +17,9 @@
  *
  */
 
+#include "sigma_cda.h"
+#include "votca/xtp/gw.h"
 #include <votca/tools/constants.h>
-#include <votca/xtp/gw.h>
-#include <votca/xtp/sigma_cda.h>
 
 namespace votca {
 namespace xtp {
@@ -29,19 +29,19 @@ namespace xtp {
 // integration and for the Gaussian tail
 void Sigma_CDA::PrepareScreening() {
   ImaginaryAxisIntegration::options opt;
-  opt.homo = _opt.homo;
-  opt.order = _opt.order;
-  opt.qptotal = _qptotal;
-  opt.qpmin = _opt.qpmin;
-  opt.rpamax = _opt.rpamax;
-  opt.rpamin = _opt.rpamin;
-  opt.alpha = _opt.alpha;
-  opt.quadrature_scheme = _opt.quadrature_scheme;
+  opt.homo = opt_.homo;
+  opt.order = opt_.order;
+  opt.qptotal = qptotal_;
+  opt.qpmin = opt_.qpmin;
+  opt.rpamax = opt_.rpamax;
+  opt.rpamin = opt_.rpamin;
+  opt.alpha = opt_.alpha;
+  opt.quadrature_scheme = opt_.quadrature_scheme;
   // prepare the zero frequency inverse for Gaussian tail
-  _kDielMxInv_zero =
-      _rpa.calculate_epsilon_r(std::complex<double>(0.0, 0.0)).inverse();
-  _kDielMxInv_zero.diagonal().array() -= 1.0;
-  _gq.configure(opt, _rpa, _kDielMxInv_zero);
+  kDielMxInv_zero_ =
+      rpa_.calculate_epsilon_r(std::complex<double>(0.0, 0.0)).inverse();
+  kDielMxInv_zero_.diagonal().array() -= 1.0;
+  gq_.configure(opt, rpa_, kDielMxInv_zero_);
 }
 
 // This function is used in the calculation of the residues and
@@ -54,7 +54,7 @@ double Sigma_CDA::CalcDiagContribution(
     double eta) const {
   std::complex<double> delta_eta(delta, eta);
 
-  Eigen::MatrixXd DielMxInv = _rpa.calculate_epsilon_r(delta_eta);
+  Eigen::MatrixXd DielMxInv = rpa_.calculate_epsilon_r(delta_eta);
   Eigen::VectorXd x =
       DielMxInv.partialPivLu().solve(Imx_row.transpose()) - Imx_row.transpose();
   return x.dot(Imx_row.transpose());
@@ -82,16 +82,16 @@ double Sigma_CDA::CalcResiduePrefactor(double e_f, double e_m,
 double Sigma_CDA::CalcResidueContribution(double frequency,
                                           Index gw_level) const {
 
-  const Eigen::VectorXd& rpa_energies = _rpa.getRPAInputEnergies();
+  const Eigen::VectorXd& rpa_energies = rpa_.getRPAInputEnergies();
   Index rpatotal = rpa_energies.size();
-  Index gw_level_offset = gw_level + _opt.qpmin - _opt.rpamin;
+  Index gw_level_offset = gw_level + opt_.qpmin - opt_.rpamin;
 
   double sigma_c = 0.0;
   double sigma_c_tail = 0.0;
-  Index homo = _opt.homo - _opt.rpamin;
+  Index homo = opt_.homo - opt_.rpamin;
   Index lumo = homo + 1;
   double fermi_rpa = (rpa_energies(lumo) + rpa_energies(homo)) / 2.0;
-  const Eigen::MatrixXd& Imx = _Mmn[gw_level_offset];
+  const Eigen::MatrixXd& Imx = Mmn_[gw_level_offset];
 
   for (Index i = 0; i < rpatotal; ++i) {
     double delta = rpa_energies(i) - frequency;
@@ -104,12 +104,12 @@ double Sigma_CDA::CalcResidueContribution(double frequency,
     // all the other cases.
     if (std::abs(factor) > 1e-10) {
       sigma_c +=
-          factor * CalcDiagContribution(Imx.row(i), abs_delta, _rpa.getEta());
+          factor * CalcDiagContribution(Imx.row(i), abs_delta, rpa_.getEta());
     }
     // adds the contribution from the Gaussian tail
     if (abs_delta > 1e-10) {
       sigma_c_tail +=
-          CalcDiagContributionValue_tail(Imx.row(i), delta, _opt.alpha);
+          CalcDiagContributionValue_tail(Imx.row(i), delta, opt_.alpha);
     }
   }
   return sigma_c + sigma_c_tail;
@@ -122,7 +122,7 @@ double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
                                              double frequency) const {
 
   double sigma_c_residue = CalcResidueContribution(frequency, gw_level);
-  double sigma_c_integral = _gq.SigmaGQDiag(frequency, gw_level, _rpa.getEta());
+  double sigma_c_integral = gq_.SigmaGQDiag(frequency, gw_level, rpa_.getEta());
   return sigma_c_residue + sigma_c_integral;
 }
 
@@ -136,7 +136,7 @@ double Sigma_CDA::CalcDiagContributionValue_tail(
                        std::exp(std::pow(alpha * delta, 2)) *
                        std::erfc(std::abs(alpha * delta));
 
-  double value = (Imx_row * _kDielMxInv_zero).dot(Imx_row);
+  double value = (Imx_row * kDielMxInv_zero_).dot(Imx_row);
   return value * erfc_factor;
 }
 

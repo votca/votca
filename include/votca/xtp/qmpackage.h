@@ -18,9 +18,11 @@
  */
 
 #pragma once
+
 #ifndef VOTCA_XTP_QMPACKAGE_H
 #define VOTCA_XTP_QMPACKAGE_H
 
+#include <memory>
 // VOTCA includes
 #include <votca/tools/property.h>
 
@@ -28,9 +30,7 @@
 #include "aobasis.h"
 #include "classicalsegment.h"
 #include "logger.h"
-#include "settings.h"
 #include "staticsite.h"
-
 #include "votca/xtp/orbreorder.h"
 
 namespace votca {
@@ -44,13 +44,12 @@ class QMPackage {
 
   virtual std::string getPackageName() const = 0;
 
-  virtual void Initialize(const tools::Property& options) = 0;
+  void Initialize(const tools::Property& options);
 
   /// writes a coordinate file WITHOUT taking into account PBCs
   virtual bool WriteInputFile(const Orbitals& orbitals) = 0;
 
-  virtual bool Run() = 0;
-
+  bool Run();
   virtual bool ParseLogFile(Orbitals& orbitals) = 0;
 
   virtual bool ParseMOsFile(Orbitals& orbitals) = 0;
@@ -66,54 +65,52 @@ class QMPackage {
         typename Segmenttype::iterator>::value_type;
     for (const Segmenttype& segment : mmregion) {
       for (const Sitetype& site : segment) {
-        _externalsites.push_back(
-            std::unique_ptr<StaticSite>(new Sitetype(site)));
+        externalsites_.push_back(std::make_unique<Sitetype>(site));
       }
     }
-    if (_settings.get<bool>("write_charges")) {
-      WriteChargeOption();
-    }
+    WriteChargeOption();
   }
 
-  void setRunDir(const std::string& run_dir) { _run_dir = run_dir; }
+  void setRunDir(const std::string& run_dir) { run_dir_ = run_dir; }
 
   void setInputFileName(const std::string& input_file_name) {
-    _input_file_name = input_file_name;
+    input_file_name_ = input_file_name;
   }
 
   void setLogFileName(const std::string& log_file_name) {
-    _log_file_name = log_file_name;
+    log_file_name_ = log_file_name;
   }
 
-  void setMOsFileName(const std::string& mo_file) { _mo_file_name = mo_file; }
+  void setMOsFileName(const std::string& mo_file) { mo_file_name_ = mo_file; }
 
-  void setLog(Logger* pLog) { _pLog = pLog; }
+  void setLog(Logger* pLog) { pLog_ = pLog; }
 
   void setCharge(Index charge) {
-    _charge = charge;
-    _spin = std::abs(charge) + 1;
+    charge_ = charge;
+    spin_ = std::abs(charge) + 1;
   }
 
-  bool GuessRequested() const { return _settings.get<bool>("read_guess"); }
+  bool GuessRequested() const {
+    return options_.get("initial_guess").as<std::string>() == "orbfile";
+  }
 
   virtual StaticSegment GetCharges() const = 0;
 
   virtual Eigen::Matrix3d GetPolarizability() const = 0;
 
-  std::string getLogFile() const { return _log_file_name; };
+  std::string getLogFile() const { return log_file_name_; };
 
-  std::string getMOFile() const { return _mo_file_name; };
+  std::string getMOFile() const { return mo_file_name_; };
 
  protected:
+  virtual void ParseSpecificOptions(const tools::Property& options) = 0;
   struct MinimalMMCharge {
-    MinimalMMCharge(const Eigen::Vector3d& pos, double q) : _pos(pos), _q(q){};
-    Eigen::Vector3d _pos;
-    double _q;
+    MinimalMMCharge(const Eigen::Vector3d& pos, double q) : pos_(pos), q_(q){};
+    Eigen::Vector3d pos_;
+    double q_;
   };
 
-  tools::Property ParseCommonOptions(const tools::Property& options);
-  std::string FindDefaultsFile() const;
-
+  virtual bool RunDFT() = 0;
   virtual void WriteChargeOption() = 0;
   std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
   void ReorderOutput(Orbitals& orbitals) const;
@@ -130,23 +127,21 @@ class QMPackage {
   virtual const std::array<Index, 49>& ShellMulitplier() const = 0;
   virtual const std::array<Index, 49>& ShellReorder() const = 0;
 
-  Settings _settings{"package"};
+  Index charge_;
+  Index spin_;  // 2S+1mem
+  std::string basisset_name_;
+  std::string cleanup_ = "";
+  std::string input_file_name_;
+  std::string log_file_name_;
+  std::string mo_file_name_;
+  std::string run_dir_;
+  std::string scratch_dir_;
+  std::string shell_file_name_;
+  tools::Property options_;
 
-  Index _charge;
-  Index _spin;  // 2S+1mem
-  std::string _basisset_name;
-  std::string _cleanup = "";
-  std::string _input_file_name;
-  std::string _log_file_name;
-  std::string _mo_file_name;
-  std::string _options = "";
-  std::string _run_dir;
-  std::string _scratch_dir;
-  std::string _shell_file_name;
+  Logger* pLog_;
 
-  Logger* _pLog;
-
-  std::vector<std::unique_ptr<StaticSite> > _externalsites;
+  std::vector<std::unique_ptr<StaticSite> > externalsites_;
 };
 
 }  // namespace xtp

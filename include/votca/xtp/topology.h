@@ -52,30 +52,30 @@ class Topology {
 
   Segment &AddSegment(std::string segment_name);
 
-  Segment &getSegment(Index id) { return _segments[id]; }
-  const Segment &getSegment(Index id) const { return _segments[id]; }
+  Segment &getSegment(Index id) { return segments_[id]; }
+  const Segment &getSegment(Index id) const { return segments_[id]; }
 
-  std::vector<Segment> &Segments() { return _segments; }
-  const std::vector<Segment> &Segments() const { return _segments; }
+  std::vector<Segment> &Segments() { return segments_; }
+  const std::vector<Segment> &Segments() const { return segments_; }
 
   // Periodic boundary: Can be 'open', 'orthorhombic', 'triclinic'
   Eigen::Vector3d PbShortestConnect(const Eigen::Vector3d &r1,
                                     const Eigen::Vector3d &r2) const;
-  const Eigen::Matrix3d &getBox() const { return _bc->getBox(); }
-  double BoxVolume() const { return _bc->BoxVolume(); }
+  const Eigen::Matrix3d &getBox() const { return bc_->getBox(); }
+  double BoxVolume() const { return bc_->BoxVolume(); }
   void setBox(const Eigen::Matrix3d &box,
               csg::BoundaryCondition::eBoxtype boxtype =
                   csg::BoundaryCondition::typeAuto);
 
-  QMNBList &NBList() { return _nblist; }
-  const QMNBList &NBList() const { return _nblist; }
+  QMNBList &NBList() { return nblist_; }
+  const QMNBList &NBList() const { return nblist_; }
 
   // Trajectory meta data: step number, time, frame (= Db ID)
 
-  Index getStep() const { return _step; }
-  void setStep(Index step) { _step = step; }
-  double getTime() const { return _time; }
-  void setTime(double time) { _time = time; }
+  Index getStep() const { return step_; }
+  void setStep(Index step) { step_ = step; }
+  double getTime() const { return time_; }
+  void setTime(double time) { time_ = time; }
 
   void WriteToCpt(CheckpointWriter &w) const;
 
@@ -89,13 +89,13 @@ class Topology {
       const Segment &seg1, const Segment &seg2) const;
 
  private:
-  std::vector<Segment> _segments;
+  std::vector<Segment> segments_;
 
-  std::unique_ptr<csg::BoundaryCondition> _bc = nullptr;
-  QMNBList _nblist;
+  std::unique_ptr<csg::BoundaryCondition> bc_ = nullptr;
+  QMNBList nblist_;
 
-  double _time;
-  Index _step;
+  double time_;
+  Index step_;
 
   csg::BoundaryCondition::eBoxtype AutoDetectBoxType(
       const Eigen::Matrix3d &box);

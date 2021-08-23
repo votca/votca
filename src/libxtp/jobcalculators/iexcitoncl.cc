@@ -45,9 +45,9 @@ namespace xtp {
 
 void IEXCITON::ParseSpecificOptions(const tools::Property& options) {
 
-  if (options.get(".use_states").as<bool>()) {
+  if (options.exists("states")) {
     std::string parse_string = options.get(".states").as<std::string>();
-    _statemap = FillParseMaps(parse_string);
+    statemap_ = FillParseMaps(parse_string);
   }
 }
 
@@ -118,12 +118,12 @@ Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
                             << " [" << ID_A << ":" << ID_B << "]" << std::flush;
 
   StaticMapper map(pLog);
-  map.LoadMappingFile(_mapfile);
+  map.LoadMappingFile(mapfile_);
   StaticSegment seg1 = map.map(*(pair->Seg1()), mps_fileA);
   StaticSegment seg2 = map.map(pair->Seg2PbCopy(), mps_fileB);
   eeInteractor actor;
   double JAB = actor.CalcStaticEnergy(seg1, seg2);
-  _cutoff = 0;
+  cutoff_ = 0;
   Property job_summary;
   Property& job_output = job_summary.add("output", "");
   Property& pair_summary = job_output.add("pair", "");
@@ -145,12 +145,12 @@ Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
 QMState IEXCITON::GetElementFromMap(const std::string& elementname) const {
   QMState state;
   try {
-    state = _statemap.at(elementname);
+    state = statemap_.at(elementname);
   } catch (std::out_of_range&) {
     std::string errormessage =
         "Map does not have segment of type: " + elementname;
     errormessage += "\n segments in map are:";
-    for (const auto& s : _statemap) {
+    for (const auto& s : statemap_) {
       errormessage += "\n\t" + s.first;
     }
     throw std::runtime_error(errormessage);
@@ -160,11 +160,11 @@ QMState IEXCITON::GetElementFromMap(const std::string& elementname) const {
 
 void IEXCITON::WriteJobFile(const Topology& top) {
 
-  std::cout << "\n... ... Writing job file " << _jobfile << std::flush;
+  std::cout << "\n... ... Writing job file " << jobfile_ << std::flush;
   std::ofstream ofs;
-  ofs.open(_jobfile, std::ofstream::out);
+  ofs.open(jobfile_, std::ofstream::out);
   if (!ofs.is_open()) {
-    throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
+    throw std::runtime_error("\nERROR: bad file handle: " + jobfile_);
   }
   const QMNBList& nblist = top.NBList();
   Index jobCount = 0;
@@ -221,72 +221,48 @@ void IEXCITON::WriteJobFile(const Topology& top) {
 
 void IEXCITON::ReadJobFile(Topology& top) {
 
-  Property xml;
-  std::vector<Property*> records;
-  // gets the neighborlist from the topology
-  QMNBList& nblist = top.NBList();
-  Index number_of_pairs = nblist.size();
-  Index current_pairs = 0;
   Logger log;
   log.setReportLevel(Log::current_level);
-
-  // load the QC results in a vector indexed by the pair ID
-  xml.LoadFromXML(_jobfile);
+  Property xml;
+  xml.LoadFromXML(jobfile_);
   std::vector<Property*> jobProps = xml.Select("jobs.job");
-  records.resize(number_of_pairs + 1);
 
-  // to skip pairs which are not in the jobfile
-  for (auto& record : records) {
-    record = nullptr;
-  }
+  Index updated_jobs = 0;
+  Index incomplete_jobs = 0;
+
   // loop over all jobs = pair records in the job file
-  for (Property* prop : jobProps) {
+  for (const Property* prop : jobProps) {
     // if job produced an output, then continue with analysis
     if (prop->exists("output") && prop->exists("output.pair")) {
-      current_pairs++;
-      Property& poutput = prop->get("output.pair");
+      const Property& poutput = prop->get("output.pair");
       Index idA = poutput.getAttribute<Index>("idA");
       Index idB = poutput.getAttribute<Index>("idB");
       Segment& segA = top.getSegment(idA);
       Segment& segB = top.getSegment(idB);
-      QMPair* qmp = nblist.FindPair(&segA, &segB);
+      QMPair* qmp = top.NBList().FindPair(&segA, &segB);
 
       if (qmp == nullptr) {
         XTP_LOG(Log::error, log)
             << "No pair " << idA << ":" << idB
             << " found in the neighbor list. Ignoring" << std::flush;
-      } else {
-        records[qmp->getId()] = &(prop->get("output.pair"));
+      } else if (qmp->getType() == QMPair::Excitoncl) {
+        updated_jobs++;
+        const Property& pCoupling = poutput.get("Coupling");
+        double jAB = pCoupling.getAttribute<double>("jABstatic");
+        double Jeff2 = jAB * jAB * tools::conv::ev2hrt * tools::conv::ev2hrt;
+        qmp->setJeff2(Jeff2, QMStateType::Singlet);
       }
     } else {
-      Property thebadone = prop->get("id");
-      throw std::runtime_error(
-          "\nERROR: Job file incomplete.\n Job with id " +
-          thebadone.as<std::string>() +
-          " is not finished. Check your job file for FAIL, "
-          "AVAILABLE, or ASSIGNED. Exiting\n");
-    }
-  }  // finished loading from the file
-
-  // loop over all pairs in the neighbor list
-  XTP_LOG(Log::error, log) << "Neighborlist size " << top.NBList().size()
-                           << std::flush;
-  for (QMPair* pair : top.NBList()) {
-
-    if (records[pair->getId()] == nullptr) {
-      continue;  // skip pairs which are not in the jobfile
-    }
-
-    if (pair->getType() == QMPair::Excitoncl) {
-      Property* pair_property = records[pair->getId()];
-      const Property& pCoupling = pair_property->get("Coupling");
-      double jAB = pCoupling.getAttribute<double>("jABstatic");
-      double Jeff2 = jAB * jAB * tools::conv::ev2hrt * tools::conv::ev2hrt;
-      pair->setJeff2(Jeff2, QMStateType::Singlet);
+      incomplete_jobs++;
     }
   }
-  XTP_LOG(Log::error, log) << "Pairs [total:updated] " << number_of_pairs << ":"
-                           << current_pairs << std::flush;
+
+  XTP_LOG(Log::error, log) << "Neighborlist size " << top.NBList().size()
+                           << std::flush;
+
+  XTP_LOG(Log::error, log) << "Pairs in jobfile [total:updated:incomplete] "
+                           << jobProps.size() << ":" << updated_jobs << ":"
+                           << incomplete_jobs << std::flush;
   std::cout << log;
 }
 

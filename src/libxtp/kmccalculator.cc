@@ -38,19 +38,19 @@ namespace votca {
 namespace xtp {
 
 void KMCCalculator::ParseCommonOptions(const tools::Property& options) {
-  _seed = options.get(".seed").as<Index>();
+  seed_ = options.get(".seed").as<Index>();
 
-  _numberofcarriers = options.get(".numberofcarriers").as<Index>();
-  _injection_name = options.get(".injectionpattern").as<std::string>();
-  _maxrealtime = options.get(".maxrealtime").as<double>();
-  _trajectoryfile = options.get(".trajectoryfile").as<std::string>();
-  _temperature = options.get(".temperature").as<double>();
+  numberofcarriers_ = options.get(".numberofcarriers").as<Index>();
+  injection_name_ = options.get(".injectionpattern").as<std::string>();
+  maxrealtime_ = options.get(".maxrealtime").as<double>();
+  trajectoryfile_ = options.get(".trajectoryfile").as<std::string>();
+  temperature_ = options.get(".temperature").as<double>();
 
-  _temperature *= (tools::conv::kB * tools::conv::ev2hrt);
-  _occfile = options.get(".occfile").as<std::string>();
-  _ratefile = options.get(".ratefile").as<std::string>();
+  temperature_ *= (tools::conv::kB * tools::conv::ev2hrt);
+  occfile_ = options.get(".occfile").as<std::string>();
+  ratefile_ = options.get(".ratefile").as<std::string>();
 
-  _injectionmethod = options.get(".injectionmethod").as<std::string>();
+  injectionmethod_ = options.get(".injectionmethod").as<std::string>();
 }
 
 void KMCCalculator::LoadGraph(Topology& top) {
@@ -60,49 +60,49 @@ void KMCCalculator::LoadGraph(Topology& top) {
   if (segs.size() < 1) {
     throw std::runtime_error("Your state file contains no segments!");
   }
-  _nodes.reserve(segs.size());
+  nodes_.reserve(segs.size());
   for (Segment& seg : segs) {
     bool injectable = false;
-    if (tools::wildcmp(_injection_name, seg.getType())) {
+    if (tools::wildcmp(injection_name_, seg.getType())) {
       injectable = true;
     }
-    _nodes.push_back(GNode(seg, _carriertype, injectable));
+    nodes_.push_back(GNode(seg, carriertype_, injectable));
   }
 
   QMNBList& nblist = top.NBList();
   if (nblist.size() < 1) {
     throw std::runtime_error("neighborlist contains no pairs!");
   }
-  if (_temperature <= 0) {
+  if (temperature_ <= 0) {
     throw std::runtime_error(
         "Your Temperature is negative or zero, please specify the temperature "
         "in Kelvin.");
   }
 
-  Rate_Engine rate_engine(_temperature, _field);
-  XTP_LOG(Log::error, _log) << "\nCalculating initial rates." << std::flush;
-  XTP_LOG(Log::error, _log) << rate_engine << std::flush;
-  XTP_LOG(Log::error, _log)
-      << "    carriertype: " << _carriertype.ToLongString() << std::flush;
+  Rate_Engine rate_engine(temperature_, field_);
+  XTP_LOG(Log::error, log_) << "\nCalculating initial rates." << std::flush;
+  XTP_LOG(Log::error, log_) << rate_engine << std::flush;
+  XTP_LOG(Log::error, log_)
+      << "    carriertype: " << carriertype_.ToLongString() << std::flush;
 
   for (const QMPair* pair : nblist) {
-    Rate_Engine::PairRates rates = rate_engine.Rate(*pair, _carriertype);
-    _nodes[pair->Seg1()->getId()].AddEventfromQmPair(*pair, _nodes,
+    Rate_Engine::PairRates rates = rate_engine.Rate(*pair, carriertype_);
+    nodes_[pair->Seg1()->getId()].AddEventfromQmPair(*pair, nodes_,
                                                      rates.rate12);
-    _nodes[pair->Seg2()->getId()].AddEventfromQmPair(*pair, _nodes,
+    nodes_[pair->Seg2()->getId()].AddEventfromQmPair(*pair, nodes_,
                                                      rates.rate21);
   }
-  _RandomVariable.setMaxInt(Index(_nodes.size()));
-  XTP_LOG(Log::error, _log) << "    Rates for " << _nodes.size()
+  RandomVariable_.setMaxInt(Index(nodes_.size()));
+  XTP_LOG(Log::error, log_) << "    Rates for " << nodes_.size()
                             << " sites are computed." << std::flush;
-  WriteRatestoFile(_ratefile, nblist);
+  WriteRatestoFile(ratefile_, nblist);
 
   Index events = 0;
   Index max = std::numeric_limits<Index>::min();
   Index min = std::numeric_limits<Index>::max();
   double minlength = std::numeric_limits<double>::max();
   double maxlength = 0;
-  for (const auto& node : _nodes) {
+  for (const auto& node : nodes_) {
 
     Index size = Index(node.Events().size());
     for (const auto& event : node.Events()) {
@@ -119,7 +119,7 @@ void KMCCalculator::LoadGraph(Topology& top) {
 
     events += size;
     if (size == 0) {
-      XTP_LOG(Log::info, _log)
+      XTP_LOG(Log::info, log_)
           << "Node " << node.getId() << " has 0 jumps" << std::flush;
     } else if (size < min) {
       min = size;
@@ -127,15 +127,15 @@ void KMCCalculator::LoadGraph(Topology& top) {
       max = size;
     }
   }
-  double avg = double(events) / double(_nodes.size());
+  double avg = double(events) / double(nodes_.size());
   double deviation = 0.0;
-  for (const auto& node : _nodes) {
+  for (const auto& node : nodes_) {
     double size = double(node.Events().size());
     deviation += (size - avg) * (size - avg);
   }
-  deviation = std::sqrt(deviation / double(_nodes.size()));
+  deviation = std::sqrt(deviation / double(nodes_.size()));
 
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << "Nblist has " << nblist.size() << " pairs. Nodes contain " << events
       << " jump events\n"
       << "with avg=" << avg << " std=" << deviation << " max=" << max
@@ -144,12 +144,12 @@ void KMCCalculator::LoadGraph(Topology& top) {
       << " nm Maximum distance =" << maxlength * tools::conv::bohr2nm << " nm\n"
       << std::flush;
   double conv = std::pow(tools::conv::bohr2nm, 3);
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << "spatial carrier density: "
-      << double(_numberofcarriers) / (top.BoxVolume() * conv) << " nm^-3"
+      << double(numberofcarriers_) / (top.BoxVolume() * conv) << " nm^-3"
       << std::flush;
 
-  for (auto& node : _nodes) {
+  for (auto& node : nodes_) {
     node.InitEscapeRate();
     node.MakeHuffTree();
   }
@@ -201,15 +201,15 @@ bool KMCCalculator::CheckSurrounded(
 
 void KMCCalculator::RandomlyCreateCharges() {
 
-  XTP_LOG(Log::error, _log) << "looking for injectable nodes..." << std::flush;
-  for (Index i = 0; i < _numberofcarriers; i++) {
+  XTP_LOG(Log::error, log_) << "looking for injectable nodes..." << std::flush;
+  for (Index i = 0; i < numberofcarriers_; i++) {
     Chargecarrier newCharge(i);
     RandomlyAssignCarriertoSite(newCharge);
 
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "starting position for charge " << i << ": segment "
         << newCharge.getCurrentNodeId() << std::flush;
-    _carriers.push_back(newCharge);
+    carriers_.push_back(newCharge);
   }
   return;
 }
@@ -217,40 +217,40 @@ void KMCCalculator::RandomlyCreateCharges() {
 void KMCCalculator::RandomlyAssignCarriertoSite(Chargecarrier& Charge) {
   Index nodeId_guess = -1;
   do {
-    nodeId_guess = _RandomVariable.rand_uniform_int();
-  } while (_nodes[nodeId_guess].isOccupied() ||
-           _nodes[nodeId_guess].isInjectable() ==
+    nodeId_guess = RandomVariable_.rand_uniform_int();
+  } while (nodes_[nodeId_guess].isOccupied() ||
+           nodes_[nodeId_guess].isInjectable() ==
                false);  // maybe already occupied? or maybe not injectable?
   if (Charge.hasNode()) {
     Charge.ReleaseNode();
   }
-  Charge.settoNote(&_nodes[nodeId_guess]);
+  Charge.settoNote(&nodes_[nodeId_guess]);
 
   return;
 }
 
 double KMCCalculator::Promotetime(double cumulated_rate) {
   double dt = 0;
-  double rand_u = 1 - _RandomVariable.rand_uniform();
+  double rand_u = 1 - RandomVariable_.rand_uniform();
   dt = -1 / cumulated_rate * std::log(rand_u);
   return dt;
 }
 
 const GLink& KMCCalculator::ChooseHoppingDest(const GNode& node) {
-  double u = 1 - _RandomVariable.rand_uniform();
+  double u = 1 - RandomVariable_.rand_uniform();
   return *(node.findHoppingDestination(u));
 }
 
 Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate) {
-  if (_carriers.size() == 1) {
-    return &_carriers[0];
+  if (carriers_.size() == 1) {
+    return &carriers_[0];
   }
   Chargecarrier* carrier = nullptr;
-  double u = 1 - _RandomVariable.rand_uniform();
-  for (Index i = 0; i < _numberofcarriers; i++) {
-    u -= _carriers[i].getCurrentEscapeRate() / cumulated_rate;
-    if (u <= 0 || i == _numberofcarriers - 1) {
-      carrier = &_carriers[i];
+  double u = 1 - RandomVariable_.rand_uniform();
+  for (Index i = 0; i < numberofcarriers_; i++) {
+    u -= carriers_[i].getCurrentEscapeRate() / cumulated_rate;
+    if (u <= 0 || i == numberofcarriers_ - 1) {
+      carrier = &carriers_[i];
       break;
     }
   }
@@ -258,17 +258,17 @@ Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate) {
 }
 void KMCCalculator::WriteRatestoFile(std::string filename,
                                      const QMNBList& nblist) {
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << "\nRates are written to " << filename << std::flush;
   fstream ratefs;
   ratefs.open(filename, fstream::out);
   ratefs << "#PairID,SiteID1,SiteID2, ,rate12[1/s],rate21[1/s] at "
-         << _temperature * tools::conv::hrt2ev / tools::conv::kB
-         << "K for carrier:" << _carriertype.ToString() << endl;
+         << temperature_ * tools::conv::hrt2ev / tools::conv::kB
+         << "K for carrier:" << carriertype_.ToString() << endl;
 
-  Rate_Engine rate_engine(_temperature, _field);
+  Rate_Engine rate_engine(temperature_, field_);
   for (const QMPair* pair : nblist) {
-    Rate_Engine::PairRates rates = rate_engine.Rate(*pair, _carriertype);
+    Rate_Engine::PairRates rates = rate_engine.Rate(*pair, carriertype_);
     ratefs << pair->getId() << " " << pair->Seg1()->getId() << " "
            << pair->Seg2()->getId() << " " << rates.rate12 << " "
            << rates.rate21 << "\n";
@@ -279,14 +279,14 @@ void KMCCalculator::WriteRatestoFile(std::string filename,
 
 void KMCCalculator::WriteOccupationtoFile(double simtime,
                                           std::string filename) {
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << "\nOccupations are written to " << filename << std::flush;
   fstream probs;
   probs.open(filename, fstream::out);
   probs << "#SiteID, Occupation prob at "
-        << _temperature * tools::conv::hrt2ev / tools::conv::kB
-        << "K for carrier:" << _carriertype.ToString() << endl;
-  for (const GNode& node : _nodes) {
+        << temperature_ * tools::conv::hrt2ev / tools::conv::kB
+        << "K for carrier:" << carriertype_.ToString() << endl;
+  for (const GNode& node : nodes_) {
     double occupationprobability = node.OccupationTime() / simtime;
     probs << node.getId() << "\t" << occupationprobability << endl;
   }

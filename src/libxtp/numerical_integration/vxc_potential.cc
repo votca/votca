@@ -32,9 +32,9 @@ namespace votca {
 namespace xtp {
 template <class Grid>
 Vxc_Potential<Grid>::~Vxc_Potential() {
-  if (_setXC) {
+  if (setXC_) {
     xc_func_end(&xfunc);
-    if (_use_separate) {
+    if (use_separate_) {
       xc_func_end(&cfunc);
     }
   }
@@ -83,14 +83,14 @@ void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
   std::vector<std::string> strs =
       tools::Tokenizer(functional, " ,\n\t").ToVector();
   xfunc_id = 0;
-  _use_separate = false;
+  use_separate_ = false;
   cfunc_id = 0;
   if (strs.size() == 1) {
     xfunc_id = map.getID(strs[0]);
   } else if (strs.size() == 2) {
     xfunc_id = map.getID(strs[0]);
     cfunc_id = map.getID(strs[1]);
-    _use_separate = true;
+    use_separate_ = true;
   } else {
     throw std::runtime_error(
         "LIBXC. Please specify one combined or an exchange and a correlation "
@@ -101,12 +101,12 @@ void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
     throw std::runtime_error(
         (boost::format("Functional %s not found\n") % strs[0]).str());
   }
-  if (xfunc.info->kind != 2 && !_use_separate) {
+  if (xfunc.info->kind != 2 && !use_separate_) {
     throw std::runtime_error(
         "Your functional misses either correlation or exchange, please specify "
         "another functional, separated by whitespace");
   }
-  if (_use_separate) {
+  if (use_separate_) {
     if (xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED) != 0) {
       throw std::runtime_error(
           (boost::format("Functional %s not found\n") % strs[1]).str());
@@ -116,7 +116,7 @@ void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
           "Your functionals are not one exchange and one correlation");
     }
   }
-  _setXC = true;
+  setXC_ = true;
   return;
 }
 template <class Grid>
@@ -134,7 +134,7 @@ typename Vxc_Potential<Grid>::XC_entry Vxc_Potential<Grid>::EvaluateXC(
                      &result.df_dsigma);
       break;
   }
-  if (_use_separate) {
+  if (use_separate_) {
     typename Vxc_Potential<Grid>::XC_entry temp;
     // via libxc correlation part only
     switch (cfunc.info->family) {
@@ -162,8 +162,8 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
   Mat_p_Energy vxc = Mat_p_Energy(density_matrix.rows(), density_matrix.cols());
 
 #pragma omp parallel for schedule(guided) reduction(+ : vxc)
-  for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
-    const GridBox& box = _grid[i];
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    const GridBox& box = grid_[i];
     if (!box.Matrixsize()) {
       continue;
     }
@@ -182,20 +182,21 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
 
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
-      Eigen::MatrixX3d ao_grad = Eigen::MatrixX3d::Zero(box.Matrixsize(), 3);
-      Eigen::VectorXd ao = box.CalcAOValue_and_Grad(ao_grad, points[p]);
-      const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
+      AOShell::AOValues ao = box.CalcAOValues(points[p]);
+      const double rho = 0.5 * ao.values.dot(DMAT_symm * ao.values);
       const double weight = weights[p];
       if (rho * weight < 1.e-20) {
         continue;  // skip the rest, if density is very small
       }
-      const Eigen::Vector3d rho_grad = ao.transpose() * DMAT_symm * ao_grad;
+      const Eigen::Vector3d rho_grad =
+          ao.values.transpose() * DMAT_symm * ao.derivatives;
       const double sigma = (rho_grad.transpose() * rho_grad).value();
-      const Eigen::VectorXd grad = ao_grad * rho_grad;
+      const Eigen::VectorXd grad = ao.derivatives * rho_grad;
       typename Vxc_Potential<Grid>::XC_entry xc = EvaluateXC(rho, sigma);
       EXC_box += weight * rho * xc.f_xc;
-      auto addXC = weight * (0.5 * xc.df_drho * ao + 2.0 * xc.df_dsigma * grad);
-      Vxc_here.noalias() += addXC * ao.transpose();
+      auto addXC =
+          weight * (0.5 * xc.df_drho * ao.values + 2.0 * xc.df_dsigma * grad);
+      Vxc_here.noalias() += addXC * ao.values.transpose();
     }
     box.AddtoBigMatrix(vxc.matrix(), Vxc_here);
     vxc.energy() += EXC_box;

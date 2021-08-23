@@ -26,6 +26,7 @@
 #include <votca/tools/constants.h>
 
 // Local VOTCA includes
+#include "votca/tools/property.h"
 #include "votca/xtp/atom.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/qmpackagefactory.h"
@@ -45,54 +46,51 @@ void IQM::ParseSpecificOptions(const tools::Property& options) {
   // job tasks
   std::string tasks_string = options.get(".tasks").as<std::string>();
   if (tasks_string.find("input") != std::string::npos) {
-    _do_dft_input = true;
+    do_dft_input_ = true;
   }
   if (tasks_string.find("dft") != std::string::npos) {
-    _do_dft_run = true;
+    do_dft_run_ = true;
   }
   if (tasks_string.find("parse") != std::string::npos) {
-    _do_dft_parse = true;
+    do_dft_parse_ = true;
   }
   if (tasks_string.find("dftcoupling") != std::string::npos) {
-    _do_dftcoupling = true;
+    do_dftcoupling_ = true;
   }
   if (tasks_string.find("gw") != std::string::npos) {
-    _do_gwbse = true;
+    do_gwbse_ = true;
   }
   if (tasks_string.find("bsecoupling") != std::string::npos) {
-    _do_bsecoupling = true;
+    do_bsecoupling_ = true;
   }
 
   // storage options
   std::string store_string = options.get(".store").as<std::string>();
   if (store_string.find("dft") != std::string::npos) {
-    _store_dft = true;
+    store_dft_ = true;
   }
   if (store_string.find("gw") != std::string::npos) {
-    _store_gw = true;
+    store_gw_ = true;
   }
 
-  _dftpackage_options = this->UpdateDFTOptions(options);
-  _gwbse_options = this->UpdateGWBSEOptions(options);
-
-  _dftcoupling_options = options.get(".dftcoupling_options");
-  tools::Property& prop_bsecoupling =
-      _bsecoupling_options.add("bsecoupling", "");
-  prop_bsecoupling = options.get("bsecoupling");
+  dftpackage_options_ = options.get(".dftpackage");
+  gwbse_options_ = options.get("gwbse");
+  dftcoupling_options_ = options.get(".dftcoupling");
+  bsecoupling_options_ = options.get("bsecoupling");
 
   // read linker groups
   std::string linker =
       options.ifExistsReturnElseReturnDefault<std::string>(".linker_names", "");
-  tools::Tokenizer toker(linker, ", \t\n");
-  std::vector<std::string> linkers = toker.ToVector();
-  for (const std::string& link : linkers) {
+
+  for (const std::string& link :
+       tools::Tokenizer(linker, ", \t\n").ToVector()) {
     tools::Tokenizer toker2(link, ":");
     std::vector<std::string> link_split = toker2.ToVector();
     if (link_split.size() != 2) {
       throw std::runtime_error(
           "Linker molecule has to be defined NAME:STATEGEO .e.g. DCV5T:n");
     }
-    _linkers[link_split[0]] = QMState(link_split[1]);
+    linkers_[link_split[0]] = QMState(link_split[1]);
   }
 
   // options for parsing data into state file
@@ -100,23 +98,23 @@ void IQM::ParseSpecificOptions(const tools::Property& options) {
   if (options.exists(key_read + ".singlet")) {
     std::string parse_string_s =
         options.get(key_read + ".singlet").as<std::string>();
-    _singlet_levels = FillParseMaps(parse_string_s);
+    singlet_levels_ = FillParseMaps(parse_string_s);
   }
   if (options.exists(key_read + ".triplet")) {
     std::string parse_string_t =
         options.get(key_read + ".triplet").as<std::string>();
-    _triplet_levels = FillParseMaps(parse_string_t);
+    triplet_levels_ = FillParseMaps(parse_string_t);
   }
 
   if (options.exists(key_read + ".hole")) {
     std::string parse_string_h =
         options.get(key_read + ".hole").as<std::string>();
-    _hole_levels = FillParseMaps(parse_string_h);
+    hole_levels_ = FillParseMaps(parse_string_h);
   }
   if (options.exists(key_read + ".electron")) {
     std::string parse_string_e =
         options.get(key_read + ".electron").as<std::string>();
-    _electron_levels = FillParseMaps(parse_string_e);
+    electron_levels_ = FillParseMaps(parse_string_e);
   }
 }
 
@@ -154,7 +152,7 @@ void IQM::addLinkers(std::vector<const Segment*>& segments,
 }
 
 bool IQM::isLinker(const std::string& name) {
-  return _linkers.count(name) == 1;
+  return linkers_.count(name) == 1;
 }
 
 void IQM::SetJobToFailed(Job::JobResult& jres, Logger& pLog,
@@ -188,7 +186,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   Logger& pLog = opThread.getLogger();
 
   QMMapper mapper(pLog);
-  mapper.LoadMappingFile(_mapfile);
+  mapper.LoadMappingFile(mapfile_);
 
   // get the information about the job executed by the thread
   Index job_ID = job.getId();
@@ -255,7 +253,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir)
           .generic_string();
 
-  if (_linkers.size() > 0) {
+  if (linkers_.size() > 0) {
     addLinkers(segments, top);
   }
   Orbitals orbitalsAB;
@@ -272,7 +270,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     orbitalsAB.QMAtoms().AddContainer(mapper.map(*(segments[1]), stateB));
 
     for (Index i = 2; i < Index(segments.size()); i++) {
-      QMState linker_state = _linkers.at(segments[i]->getType());
+      QMState linker_state = linkers_.at(segments[i]->getType());
       orbitalsAB.QMAtoms().AddContainer(
           mapper.map(*(segments[i]), linker_state));
     }
@@ -284,7 +282,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     orbitalsAB.QMAtoms().AddContainer(mapper.map(seg2, stateB));
   }
 
-  if (_do_dft_input || _do_dft_run || _do_dft_parse) {
+  if (do_dft_input_ || do_dft_run_ || do_dft_parse_) {
     std::string qmpackage_work_dir =
         (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir)
             .generic_string();
@@ -295,19 +293,18 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     dft_logger.setPreface(Log::error, (format("\nDFT ERR ...")).str());
     dft_logger.setPreface(Log::warning, (format("\nDFT WAR ...")).str());
     dft_logger.setPreface(Log::debug, (format("\nDFT DBG ...")).str());
-    std::string dftname = "package.name";
-    std::string package = _dftpackage_options.get(dftname).as<std::string>();
-    QMPackageFactory factory;
-    std::unique_ptr<QMPackage> qmpackage = factory.Create(package);
+    std::string package = dftpackage_options_.get("name").as<std::string>();
+    std::unique_ptr<QMPackage> qmpackage =
+        QMPackageFactory().Create(package);
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(qmpackage_work_dir);
-    qmpackage->Initialize(_dftpackage_options);
+    qmpackage->Initialize(dftpackage_options_);
 
     // if asked, prepare the input files
-    if (_do_dft_input) {
+    if (do_dft_input_) {
       boost::filesystem::create_directories(qmpackage_work_dir);
       if (qmpackage->GuessRequested()) {
-        if (_linkers.size() > 0) {
+        if (linkers_.size() > 0) {
           throw std::runtime_error(
               "Error: You are using a linker and want "
               "to use a monomer guess for the dimer. These are mutually "
@@ -381,17 +378,17 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       qmpackage->WriteInputFile(orbitalsAB);
     }
 
-    if (_do_dft_run) {
+    if (do_dft_run_) {
       XTP_LOG(Log::error, pLog) << "Running DFT" << std::flush;
-      bool _run_dft_status = qmpackage->Run();
-      if (!_run_dft_status) {
+      bool run_dft_status_ = qmpackage->Run();
+      if (!run_dft_status_) {
         SetJobToFailed(jres, pLog, qmpackage->getPackageName() + " run failed");
         WriteLoggerToFile(work_dir + "/dft.log", dft_logger);
         return jres;
       }
     }
 
-    if (_do_dft_parse) {
+    if (do_dft_parse_) {
       bool parse_log_status = qmpackage->ParseLogFile(orbitalsAB);
       if (!parse_log_status) {
         SetJobToFailed(jres, pLog, "LOG parsing failed");
@@ -419,10 +416,10 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   }
   tools::Property job_summary;
   tools::Property& job_output = job_summary.add("output", "");
-  if (_do_dftcoupling) {
+  if (do_dftcoupling_) {
     DFTcoupling dftcoupling;
     dftcoupling.setLogger(&pLog);
-    dftcoupling.Initialize(_dftcoupling_options);
+    dftcoupling.Initialize(dftcoupling_options_);
     Orbitals orbitalsB;
     Orbitals orbitalsA;
 
@@ -452,7 +449,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   }
 
   // do excited states calculation
-  if (_do_gwbse) {
+  if (do_gwbse_) {
     try {
       XTP_LOG(Log::error, pLog) << "Running GWBSE" << std::flush;
       Logger gwbse_logger(Log::current_level);
@@ -463,7 +460,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       gwbse_logger.setPreface(Log::debug, (format("\nGWBSE DBG ...")).str());
       GWBSE gwbse = GWBSE(orbitalsAB);
       gwbse.setLogger(&gwbse_logger);
-      gwbse.Initialize(_gwbse_options);
+      gwbse.Initialize(gwbse_options_);
       gwbse.Evaluate();
       WriteLoggerToFile(work_dir + "/gwbse.log", gwbse_logger);
     } catch (std::runtime_error& error) {
@@ -472,15 +469,15 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       return jres;
     }
 
-  }  // end of excited state calculation, exciton data is in _orbitalsAB
+  }  // end of excited state calculation, exciton data is in  orbitalsAB_
 
   // calculate the coupling
 
-  if (_do_bsecoupling) {
+  if (do_bsecoupling_) {
     XTP_LOG(Log::error, pLog) << "Running BSECoupling" << std::flush;
     BSECoupling bsecoupling;
     // orbitals must be loaded from a file
-    if (!_do_gwbse) {
+    if (!do_gwbse_) {
       try {
         orbitalsAB.ReadFromCpt(orbFileAB);
       } catch (std::runtime_error&) {
@@ -521,7 +518,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       bsecoupling_logger.setPreface(Log::debug,
                                     (format("\nBSECOU DBG ...")).str());
       bsecoupling.setLogger(&bsecoupling_logger);
-      bsecoupling.Initialize(_bsecoupling_options);
+      bsecoupling.Initialize(bsecoupling_options_);
       bsecoupling.CalculateCouplings(orbitalsA, orbitalsB, orbitalsAB);
       bsecoupling.Addoutput(job_output, orbitalsA, orbitalsB);
       WriteLoggerToFile(work_dir + "/bsecoupling.log", bsecoupling_logger);
@@ -537,14 +534,14 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   sout << iomXML << job_summary;
   XTP_LOG(Log::error, pLog) << TimeStamp() << " Finished evaluating pair "
                             << ID_A << ":" << ID_B << std::flush;
-  if (_store_dft || _store_gw) {
+  if (store_dft_ || store_gw_) {
     boost::filesystem::create_directories(orb_dir);
     XTP_LOG(Log::error, pLog)
         << "Saving orbitals to " << orbFileAB << std::flush;
-    if (!_store_dft) {
+    if (!store_dft_) {
       orbitalsAB.MOs().clear();
     }
-    if (!_store_gw) {
+    if (!store_gw_) {
       orbitalsAB.QPdiag().clear();
       orbitalsAB.QPpertEnergies().resize(0);
     }
@@ -563,11 +560,11 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
 void IQM::WriteJobFile(const Topology& top) {
 
   std::cout << std::endl
-            << "... ... Writing job file " << _jobfile << std::flush;
+            << "... ... Writing job file " << jobfile_ << std::flush;
   std::ofstream ofs;
-  ofs.open(_jobfile, std::ofstream::out);
+  ofs.open(jobfile_, std::ofstream::out);
   if (!ofs.is_open()) {
-    throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
+    throw std::runtime_error("\nERROR: bad file handle: " + jobfile_);
   }
 
   const QMNBList& nblist = top.NBList();
@@ -613,11 +610,11 @@ void IQM::WriteJobFile(const Topology& top) {
   return;
 }
 
-double IQM::GetDFTCouplingFromProp(tools::Property& dftprop, Index stateA,
+double IQM::GetDFTCouplingFromProp(const tools::Property& dftprop, Index stateA,
                                    Index stateB) {
   double J = 0;
   bool found = false;
-  for (tools::Property* state : dftprop.Select("coupling")) {
+  for (const tools::Property* state : dftprop.Select("coupling")) {
     Index state1 = state->getAttribute<Index>("levelA");
     Index state2 = state->getAttribute<Index>("levelB");
     if (state1 == stateA && state2 == stateB) {
@@ -633,17 +630,15 @@ double IQM::GetDFTCouplingFromProp(tools::Property& dftprop, Index stateA,
   }
 }
 
-double IQM::GetBSECouplingFromProp(tools::Property& bseprop,
+double IQM::GetBSECouplingFromProp(const tools::Property& bseprop,
                                    const QMState& stateA,
                                    const QMState& stateB) {
   double J = 0;
   std::string algorithm = bseprop.getAttribute<std::string>("algorithm");
   bool found = false;
-  for (tools::Property* state : bseprop.Select("coupling")) {
-    QMState state1;
-    state1.FromString(state->getAttribute<std::string>("stateA"));
-    QMState state2;
-    state2.FromString(state->getAttribute<std::string>("stateB"));
+  for (const tools::Property* state : bseprop.Select("coupling")) {
+    QMState state1 = state->getAttribute<QMState>("stateA");
+    QMState state2 = state->getAttribute<QMState>("stateB");
     if (state1 == stateA && state2 == stateB) {
       J = state->getAttribute<double>(algorithm) * tools::conv::ev2hrt;
       found = true;
@@ -688,13 +683,10 @@ void IQM::ReadJobFile(Topology& top) {
 
   tools::Property xml;
   // load the QC results in a vector indexed by the pair ID
-  xml.LoadFromXML(_jobfile);
-  std::vector<tools::Property*> jobProps = xml.Select("jobs.job");
-  std::vector<tools::Property*> records =
-      std::vector<tools::Property*>(nblist.size() + 1, nullptr);
+  xml.LoadFromXML(jobfile_);
 
   // loop over all jobs = pair records in the job file
-  for (tools::Property* job : jobProps) {
+  for (tools::Property* job : xml.Select("jobs.job")) {
     if (!job->exists("status")) {
       throw std::runtime_error(
           "Jobfile is malformed. <status> tag missing on job.");
@@ -705,13 +697,10 @@ void IQM::ReadJobFile(Topology& top) {
       continue;
     }
 
-    // get the output records
-    tools::Property poutput = job->get("output");
     // job file is stupid, because segment ids are only in input have to get
     // them out l
-    std::vector<tools::Property*> segmentprobs = job->Select("input.segment");
     std::vector<Index> id;
-    for (tools::Property* segment : segmentprobs) {
+    for (tools::Property* segment : job->Select("input.segment")) {
       id.push_back(segment->getAttribute<Index>("id"));
     }
     if (id.size() != 2) {
@@ -719,116 +708,92 @@ void IQM::ReadJobFile(Topology& top) {
           "Getting pair ids from jobfile failed, check jobfile.");
     }
 
-    Index idA = id[0];
-    Index idB = id[1];
-
     // segments which correspond to these ids
-    Segment& segA = top.getSegment(idA);
-    Segment& segB = top.getSegment(idB);
+    Segment& segA = top.getSegment(id[0]);
+    Segment& segB = top.getSegment(id[1]);
     // pair that corresponds to the two segments
     QMPair* qmp = nblist.FindPair(&segA, &segB);
-    // output using logger
 
     if (qmp == nullptr) {  // there is no pair in the neighbor list with this
                            // name
       XTP_LOG(Log::error, log)
-          << "No pair " << idA << ":" << idB
+          << "No pair " << id[0] << ":" << id[1]
           << " found in the neighbor list. Ignoring" << std::flush;
-    } else {
-      records[qmp->getId()] = &(job->get("output"));
+      continue;
     }
-
-  }  // finished loading from the file
-
-  for (QMPair* pair : top.NBList()) {
-
-    if (records[pair->getId()] == nullptr) {
-      continue;  // skip pairs which are not in the jobfile
-    }
-
-    const Segment* segmentA = pair->Seg1();
-    const Segment* segmentB = pair->Seg2();
-
-    QMPair::PairType ptype = pair->getType();
-    if (ptype != QMPair::PairType::Hopping) {
-      XTP_LOG(Log::error, log) << "WARNING Pair " << pair->getId()
+    if (qmp->getType() != QMPair::PairType::Hopping) {
+      XTP_LOG(Log::error, log) << "WARNING Pair " << qmp->getId()
                                << " is not of any of the "
                                   "Hopping type. Skipping pair"
                                << std::flush;
       continue;
     }
 
-    tools::Property* pair_property = records[pair->getId()];
+    const tools::Property& pair_property = job->get("output");
 
-    if (pair_property->exists("dftcoupling")) {
-      tools::Property& dftprop = pair_property->get("dftcoupling");
+    if (pair_property.exists("dftcoupling")) {
+      const tools::Property& dftprop = pair_property.get("dftcoupling");
       Index homoA = dftprop.getAttribute<Index>("homoA");
       Index homoB = dftprop.getAttribute<Index>("homoB");
       QMStateType hole = QMStateType(QMStateType::Hole);
       if (dftprop.exists(hole.ToLongString())) {
-        tools::Property& holes = dftprop.get(hole.ToLongString());
-        QMState stateA = GetElementFromMap(_hole_levels, segmentA->getType());
-        QMState stateB = GetElementFromMap(_hole_levels, segmentB->getType());
+        const tools::Property& holes = dftprop.get(hole.ToLongString());
+        QMState stateA = GetElementFromMap(hole_levels_, segA.getType());
+        QMState stateB = GetElementFromMap(hole_levels_, segB.getType());
         Index levelA = homoA - stateA.StateIdx();  // h1 is is homo;
         Index levelB = homoB - stateB.StateIdx();
         double J2 = GetDFTCouplingFromProp(holes, levelA, levelB);
         if (J2 >= 0) {
-          pair->setJeff2(J2, hole);
+          qmp->setJeff2(J2, hole);
           dft_h++;
         }
       }
       QMStateType electron = QMStateType(QMStateType::Electron);
       if (dftprop.exists(electron.ToLongString())) {
-        tools::Property& electrons = dftprop.get(electron.ToLongString());
-        QMState stateA =
-            GetElementFromMap(_electron_levels, segmentA->getType());
-        QMState stateB =
-            GetElementFromMap(_electron_levels, segmentB->getType());
+        const tools::Property& electrons = dftprop.get(electron.ToLongString());
+        QMState stateA = GetElementFromMap(electron_levels_, segA.getType());
+        QMState stateB = GetElementFromMap(electron_levels_, segB.getType());
         Index levelA = homoA + 1 + stateA.StateIdx();  // e1 is lumo;
         Index levelB = homoB + 1 + stateB.StateIdx();
         double J2 = GetDFTCouplingFromProp(electrons, levelA, levelB);
         if (J2 >= 0) {
-          pair->setJeff2(J2, electron);
+          qmp->setJeff2(J2, electron);
           dft_e++;
         }
       }
     }
-    if (pair_property->exists("bsecoupling")) {
-      tools::Property& bseprop = pair_property->get("bsecoupling");
+    if (pair_property.exists("bsecoupling")) {
+      const tools::Property& bseprop = pair_property.get("bsecoupling");
       QMStateType singlet = QMStateType(QMStateType::Singlet);
       if (bseprop.exists(singlet.ToLongString())) {
-        tools::Property& singlets = bseprop.get(singlet.ToLongString());
-        QMState stateA =
-            GetElementFromMap(_singlet_levels, segmentA->getType());
-        QMState stateB =
-            GetElementFromMap(_singlet_levels, segmentB->getType());
+        const tools::Property& singlets = bseprop.get(singlet.ToLongString());
+        QMState stateA = GetElementFromMap(singlet_levels_, segA.getType());
+        QMState stateB = GetElementFromMap(singlet_levels_, segB.getType());
         double J2 = GetBSECouplingFromProp(singlets, stateA, stateB);
         if (J2 >= 0) {
-          pair->setJeff2(J2, singlet);
+          qmp->setJeff2(J2, singlet);
           bse_s++;
         }
       }
       QMStateType triplet = QMStateType(QMStateType::Triplet);
       if (bseprop.exists(triplet.ToLongString())) {
-        tools::Property& triplets = bseprop.get(triplet.ToLongString());
-        QMState stateA =
-            GetElementFromMap(_triplet_levels, segmentA->getType());
-        QMState stateB =
-            GetElementFromMap(_triplet_levels, segmentB->getType());
+        const tools::Property& triplets = bseprop.get(triplet.ToLongString());
+        QMState stateA = GetElementFromMap(triplet_levels_, segA.getType());
+        QMState stateB = GetElementFromMap(triplet_levels_, segB.getType());
         double J2 = GetBSECouplingFromProp(triplets, stateA, stateB);
         if (J2 >= 0) {
-          pair->setJeff2(J2, triplet);
+          qmp->setJeff2(J2, triplet);
           bse_t++;
         }
       }
     }
   }
-
   XTP_LOG(Log::error, log) << "Pairs [total:updated(e,h,s,t)] "
                            << number_of_pairs << ":(" << dft_e << "," << dft_h
                            << "," << bse_s << "," << bse_t
                            << ") Incomplete jobs: " << incomplete_jobs << "\n"
                            << std::flush;
+  std::cout << log;
   return;
 }
 }  // namespace xtp

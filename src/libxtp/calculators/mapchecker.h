@@ -37,7 +37,7 @@ class MapChecker final : public QMCalculator {
 
   ~MapChecker() = default;
 
-  std::string Identify() { return "mapchecker"; }
+  std::string Identify() const { return "mapchecker"; }
   bool WriteToStateFile() const { return false; }
 
  protected:
@@ -51,28 +51,28 @@ class MapChecker final : public QMCalculator {
 
   std::vector<QMState> StringToStates(const std::string& states_string) const;
 
-  std::string _segmentfile;
-  std::string _qmfile;
-  std::string _mpfile;
-  std::string _mapfile = "";
+  std::string segmentfile_;
+  std::string qmfile_;
+  std::string mpfile_;
+  std::string mapfile_ = "";
 
-  std::vector<QMState> _qmstates;
-  std::vector<QMState> _mdstates;
+  std::vector<QMState> qmstates_;
+  std::vector<QMState> mdstates_;
 };
 
 void MapChecker::ParseOptions(const tools::Property& options) {
 
-  _segmentfile = options.get(".md_pdbfile").as<std::string>();
+  segmentfile_ = options.get(".md_pdbfile").as<std::string>();
 
-  _qmfile = options.get(".qm_pdbfile").as<std::string>();
+  qmfile_ = options.get(".qm_pdbfile").as<std::string>();
 
-  _mpfile = options.get(".mp_pdbfile").as<std::string>();
+  mpfile_ = options.get(".mp_pdbfile").as<std::string>();
 
-  _qmstates = options.get(".qm_states").as<std::vector<QMState>>();
+  qmstates_ = options.get(".qm_states").as<std::vector<QMState>>();
 
-  _mdstates = options.get(".mp_states").as<std::vector<QMState>>();
-  if (!(_qmstates.empty() && _mdstates.empty())) {
-    _mapfile = options.get(".map_file").as<std::string>();
+  mdstates_ = options.get(".mp_states").as<std::vector<QMState>>();
+  if (!(qmstates_.empty() && mdstates_.empty())) {
+    mapfile_ = options.get(".map_file").as<std::string>();
   }
 }
 
@@ -86,7 +86,7 @@ std::string MapChecker::AddStatetoFilename(const std::string& filename,
 
 bool MapChecker::Evaluate(Topology& top) {
   std::cout << std::endl;
-  std::string filename = AddSteptoFilename(_segmentfile, top.getStep());
+  std::string filename = AddSteptoFilename(segmentfile_, top.getStep());
   std::cout << "Writing segments to " << filename << std::endl;
   top.WriteToPdb(filename);
 
@@ -96,9 +96,9 @@ bool MapChecker::Evaluate(Topology& top) {
 
   QMMapper map(log);
 
-  for (QMState state : _qmstates) {
-    map.LoadMappingFile(_mapfile);
-    std::string filename_qm = AddStatetoFilename(_qmfile, state);
+  for (QMState state : qmstates_) {
+    map.LoadMappingFile(mapfile_);
+    std::string filename_qm = AddStatetoFilename(qmfile_, state);
     csg::PDBWriter qmwriter;
     std::string filename_qm_state =
         AddSteptoFilename(filename_qm, top.getStep());
@@ -115,9 +115,9 @@ bool MapChecker::Evaluate(Topology& top) {
   }
 
   PolarMapper mp(log);
-  for (QMState state : _mdstates) {
-    mp.LoadMappingFile(_mapfile);
-    std::string filename_mp = AddStatetoFilename(_mpfile, state);
+  for (QMState state : mdstates_) {
+    mp.LoadMappingFile(mapfile_);
+    std::string filename_mp = AddStatetoFilename(mpfile_, state);
     csg::PDBWriter mpwriter;
     std::string filename_mp_state =
         AddSteptoFilename(filename_mp, top.getStep());

@@ -31,29 +31,29 @@ void StateTracker::Initialize(const tools::Property& options) {
       options.get("filters").as<std::vector<std::string>>();
 
   FilterFactory factory;
-  for (const std::string& filtername : list_filters) {
-    _filters.push_back(factory.Create(filtername));
+  for (const tools::Property& filter : options) {
+    filters_.push_back(factory.Create(filter.name()));
   }
 
-  for (auto& filter : _filters) {
+  for (auto& filter : filters_) {
     const tools::Property& filterop = options.get(filter->Identify());
     filter->Initialize(filterop);
   }
 }
 
 void StateTracker::PrintInfo() const {
-  XTP_LOG(Log::error, *_log)
-      << "Initial state: " << _statehist[0].ToString() << flush;
-  if (_statehist.size() > 1) {
-    XTP_LOG(Log::error, *_log)
-        << "Last state: " << _statehist.back().ToString() << flush;
+  XTP_LOG(Log::error, *log_)
+      << "Initial state: " << statehist_[0].ToString() << flush;
+  if (statehist_.size() > 1) {
+    XTP_LOG(Log::error, *log_)
+        << "Last state: " << statehist_.back().ToString() << flush;
   }
 
-  if (_filters.empty()) {
-    XTP_LOG(Log::error, *_log) << "WARNING: No tracker is used " << flush;
+  if (filters_.empty()) {
+    XTP_LOG(Log::error, *log_) << "WARNING: No tracker is used " << flush;
   } else {
-    for (const auto& filter : _filters) {
-      filter->Info(*_log);
+    for (const auto& filter : filters_) {
+      filter->Info(*log_);
     }
   }
 }
@@ -84,32 +84,32 @@ std::vector<Index> StateTracker::CollapseResults(
 
 QMState StateTracker::CalcState(const Orbitals& orbitals) const {
 
-  if (_filters.empty()) {
-    return _statehist[0];
+  if (filters_.empty()) {
+    return statehist_[0];
   }
 
   std::vector<std::vector<Index>> results;
-  for (const auto& filter : _filters) {
-    if (_statehist.size() < 2 && filter->NeedsInitialState()) {
-      XTP_LOG(Log::error, *_log)
+  for (const auto& filter : filters_) {
+    if (statehist_.size() < 2 && filter->NeedsInitialState()) {
+      XTP_LOG(Log::error, *log_)
           << "Filter " << filter->Identify()
           << " not used in first iteration as it needs a reference state"
           << flush;
       continue;
     }
-    results.push_back(filter->CalcIndeces(orbitals, _statehist[0].Type()));
+    results.push_back(filter->CalcIndeces(orbitals, statehist_[0].Type()));
   }
 
   std::vector<Index> result = CollapseResults(results);
   QMState state;
   if (result.size() < 1) {
-    state = _statehist.back();
-    XTP_LOG(Log::error, *_log)
+    state = statehist_.back();
+    XTP_LOG(Log::error, *log_)
         << "No State found by tracker using last state: " << state.ToString()
         << flush;
   } else {
-    state = QMState(_statehist.back().Type(), result[0], false);
-    XTP_LOG(Log::error, *_log)
+    state = QMState(statehist_.back().Type(), result[0], false);
+    XTP_LOG(Log::error, *log_)
         << "Next State is: " << state.ToString() << flush;
   }
   return state;
@@ -117,8 +117,8 @@ QMState StateTracker::CalcState(const Orbitals& orbitals) const {
 
 QMState StateTracker::CalcStateAndUpdate(const Orbitals& orbitals) {
   QMState result = CalcState(orbitals);
-  _statehist.push_back(result);
-  for (auto& filter : _filters) {
+  statehist_.push_back(result);
+  for (auto& filter : filters_) {
     filter->UpdateHist(orbitals, result);
   }
   return result;
@@ -126,29 +126,32 @@ QMState StateTracker::CalcStateAndUpdate(const Orbitals& orbitals) {
 
 void StateTracker::WriteToCpt(CheckpointWriter& w) const {
   std::vector<std::string> statehiststring;
-  statehiststring.reserve(_statehist.size());
-  for (const QMState& s : _statehist) {
+  statehiststring.reserve(statehist_.size());
+  for (const QMState& s : statehist_) {
     statehiststring.push_back(s.ToString());
   }
   w(statehiststring, "statehist");
 
-  for (const auto& filter : _filters) {
+  for (const auto& filter : filters_) {
     CheckpointWriter ww = w.openChild(filter->Identify());
     filter->WriteToCpt(ww);
   }
 }
 
 void StateTracker::ReadFromCpt(CheckpointReader& r) {
+  FilterFactory::RegisterAll();
   std::vector<std::string> statehiststring;
   r(statehiststring, "statehist");
-  _statehist.clear();
-  _statehist.reserve(statehiststring.size());
+  statehist_.clear();
+  statehist_.reserve(statehiststring.size());
   for (const std::string& s : statehiststring) {
-    _statehist.push_back(QMState(s));
+    statehist_.push_back(QMState(s));
   }
-  for (auto& filter : _filters) {
-    CheckpointReader rr = r.openChild(filter->Identify());
-    filter->ReadFromCpt(rr);
+  filters_.clear();
+  for (const std::string& filtername : r.getChildGroupNames()) {
+    CheckpointReader rr = r.openChild(filtername);
+    filters_.push_back(Filter().Create(filtername));
+    filters_.back()->ReadFromCpt(rr);
   }
 }
 

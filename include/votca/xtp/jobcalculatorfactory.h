@@ -42,6 +42,14 @@ class JobCalculatorfactory
   JobCalculatorfactory() { this->RegisterAll(); };
 };
 
+<<<<<<< HEAD
+=======
+inline JobCalculatorfactory &JobCalculators() {
+  static JobCalculatorfactory instance_;
+  return instance_;
+}
+
+>>>>>>> master
 }  // namespace xtp
 }  // namespace votca
 

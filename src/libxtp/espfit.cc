@@ -39,7 +39,7 @@ StaticSegment Espfit::Fit2Density(const Orbitals& orbitals,
   // setting up grid
   Grid grid;
   grid.setupCHELPGGrid(orbitals.QMAtoms());
-  XTP_LOG(Log::info, _log) << TimeStamp()
+  XTP_LOG(Log::info, log_) << TimeStamp()
                            << " Done setting up CHELPG grid with "
                            << grid.size() << " points " << flush;
 
@@ -51,32 +51,32 @@ StaticSegment Espfit::Fit2Density(const Orbitals& orbitals,
 
   Vxc_Grid numintgrid;
   numintgrid.GridSetup(gridsize, orbitals.QMAtoms(), basis);
-  XTP_LOG(Log::info, _log) << TimeStamp() << " Setup " << gridsize
+  XTP_LOG(Log::info, log_) << TimeStamp() << " Setup " << gridsize
                            << " Numerical Grid with "
                            << numintgrid.getGridSize() << " gridpoints."
                            << flush;
   DensityIntegration<Vxc_Grid> numway(numintgrid);
   double N = numway.IntegrateDensity(dmat);
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << TimeStamp()
       << " Calculated Densities at Numerical Grid, Number of electrons is " << N
       << flush;
 
   if (std::abs(N - N_comp) > 0.001) {
-    XTP_LOG(Log::error, _log) << "=======================" << flush;
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_) << "=======================" << flush;
+    XTP_LOG(Log::error, log_)
         << "WARNING: Calculated Densities at Numerical Grid, Number of "
            "electrons "
         << N << " is far away from the the real value " << N_comp
         << ", you should increase the accuracy of the integration grid."
         << flush;
     N = N_comp;
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "WARNING: Electronnumber set to " << N << flush;
-    XTP_LOG(Log::error, _log) << "=======================" << flush;
+    XTP_LOG(Log::error, log_) << "=======================" << flush;
   }
 
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << TimeStamp() << " Calculating ESP at CHELPG grid points" << flush;
 #pragma omp parallel for
   for (Index i = 0; i < grid.size(); i++) {
@@ -84,7 +84,7 @@ StaticSegment Espfit::Fit2Density(const Orbitals& orbitals,
         numway.IntegratePotential(grid.getGridPositions()[i]);
   }
 
-  XTP_LOG(Log::info, _log) << TimeStamp() << " Electron contribution calculated"
+  XTP_LOG(Log::info, log_) << TimeStamp() << " Electron contribution calculated"
                            << flush;
   double netcharge = 0.0;
   if (!state.isTransition()) {
@@ -96,7 +96,7 @@ StaticSegment Espfit::Fit2Density(const Orbitals& orbitals,
     netcharge = double(Znuc) - N;
   }
   netcharge = std::round(netcharge);
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << TimeStamp() << " Netcharge constrained to " << netcharge << flush;
   return FitPartialCharges(orbitals, grid, netcharge);
   ;
@@ -106,7 +106,7 @@ void Espfit::EvalNuclearPotential(const QMMolecule& atoms, Grid& grid) {
 
   const std::vector<Eigen::Vector3d>& gridpoints = grid.getGridPositions();
   Eigen::VectorXd& gridvalues = grid.getGridValues();
-  XTP_LOG(Log::info, _log) << TimeStamp()
+  XTP_LOG(Log::info, log_) << TimeStamp()
                            << " Calculating ESP of nuclei at CHELPG grid points"
                            << flush;
 
@@ -125,21 +125,21 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
                                         const Grid& grid, double netcharge) {
   const QMMolecule& atomlist = orbitals.QMAtoms();
   const Index NoOfConstraints =
-      1 + Index(_regionconstraint.size()) + Index(_pairconstraint.size());
+      1 + Index(regionconstraint_.size()) + Index(pairconstraint_.size());
   const Index matrixSize = atomlist.size() + NoOfConstraints;
-  XTP_LOG(Log::info, _log) << TimeStamp()
+  XTP_LOG(Log::info, log_) << TimeStamp()
                            << " Setting up Matrices for fitting of size "
                            << matrixSize << " x " << matrixSize << flush;
 
   const std::vector<Eigen::Vector3d>& gridpoints = grid.getGridPositions();
   const Eigen::VectorXd& potential = grid.getGridValues();
-  XTP_LOG(Log::info, _log) << TimeStamp() << " Using " << atomlist.size()
+  XTP_LOG(Log::info, log_) << TimeStamp() << " Using " << atomlist.size()
                            << " Fittingcenters and " << gridpoints.size()
                            << " Gridpoints." << flush;
 
   Eigen::MatrixXd Amat = Eigen::MatrixXd::Zero(matrixSize, matrixSize);
   Eigen::VectorXd Bvec = Eigen::VectorXd::Zero(matrixSize);
-// setting up _Amat
+// setting up  Amat_
 #pragma omp parallel for
   for (Index i = 0; i < atomlist.size(); i++) {
     for (Index j = i; j < atomlist.size(); j++) {
@@ -170,8 +170,8 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
   Bvec(atomlist.size()) = netcharge;  // netcharge!!!!
 
   // Pairconstraint
-  for (Index i = 0; i < Index(_pairconstraint.size()); i++) {
-    const std::pair<Index, Index>& pair = _pairconstraint[i];
+  for (Index i = 0; i < Index(pairconstraint_.size()); i++) {
+    const std::pair<Index, Index>& pair = pairconstraint_[i];
     Amat(pair.first, atomlist.size() + 1 + i) = 1.0;
     Amat(atomlist.size() + 1 + i, pair.first) = 1.0;
     Amat(pair.second, atomlist.size() + 1 + i) = -1.0;
@@ -179,26 +179,26 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
   }
 
   // Regionconstraint
-  for (Index i = 0; i < Index(_regionconstraint.size()); i++) {
-    const QMFragment<double>& reg = _regionconstraint[i];
+  for (Index i = 0; i < Index(regionconstraint_.size()); i++) {
+    const QMFragment<double>& reg = regionconstraint_[i];
     for (Index index : reg) {
-      Amat(index, atomlist.size() + i + 1 + _pairconstraint.size()) = 1.0;
-      Amat(atomlist.size() + i + 1 + _pairconstraint.size(), index) = 1.0;
+      Amat(index, atomlist.size() + i + 1 + pairconstraint_.size()) = 1.0;
+      Amat(atomlist.size() + i + 1 + pairconstraint_.size(), index) = 1.0;
     }
-    Bvec(atomlist.size() + i + 1 + _pairconstraint.size()) = reg.value();
+    Bvec(atomlist.size() + i + 1 + pairconstraint_.size()) = reg.value();
   }
 
-  XTP_LOG(Log::info, _log) << TimeStamp() << " Solving linear Equation "
+  XTP_LOG(Log::info, log_) << TimeStamp() << " Solving linear Equation "
                            << flush;
   Eigen::VectorXd charges;
-  if (_do_svd) {
+  if (do_svd_) {
     Eigen::JacobiSVD<Eigen::MatrixXd> svd;
-    svd.setThreshold(_conditionnumber);
+    svd.setThreshold(conditionnumber_);
     svd.compute(Amat, Eigen::ComputeThinU | Eigen::ComputeThinV);
     charges = svd.solve(Bvec);
-    XTP_LOG(Log::info, _log) << TimeStamp() << " SVD Done. " << flush;
+    XTP_LOG(Log::info, log_) << TimeStamp() << " SVD Done. " << flush;
     if ((Bvec.size() - svd.nonzeroSingularValues()) != 0) {
-      XTP_LOG(Log::error, _log)
+      XTP_LOG(Log::error, log_)
           << TimeStamp() << Bvec.size() - svd.nonzeroSingularValues()
           << " Sites could not be fitted and are set to zero." << flush;
     }
@@ -209,7 +209,7 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
           "Espfit: Solving the constrained equation failed. Maybe try SVD.");
     }
     charges = QR.solve(Bvec);
-    XTP_LOG(Log::info, _log)
+    XTP_LOG(Log::info, log_)
         << TimeStamp() << " Solved linear least square fit ." << flush;
   }
   // remove constraints from charges
@@ -217,7 +217,7 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
   StaticSegment seg =
       StaticSegment(orbitals.QMAtoms().getType(), orbitals.QMAtoms().getId());
 
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << " Sum of fitted charges: " << charges.sum() << flush;
   for (Index i = 0; i < atomlist.size(); i++) {
     seg.push_back(StaticSite(atomlist[i], charges(i)));
@@ -234,10 +234,10 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
     rmse += (potential(k) - temp) * (potential(k) - temp);
     totalPotSq += potential(k) * potential(k);
   }
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << " RMSE of fit:  " << std::sqrt(rmse / double(gridpoints.size()))
       << flush;
-  XTP_LOG(Log::error, _log)
+  XTP_LOG(Log::error, log_)
       << " RRMSE of fit: " << std::sqrt(rmse / totalPotSq) << flush;
 
   return seg;
