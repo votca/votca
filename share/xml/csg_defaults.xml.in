@@ -581,6 +581,9 @@
       <target>
         <DESC>target distribution (e.g. rdf) which is tried to match during iterations to match</DESC>
       </target>
+      <target_intra>
+        <DESC>target intramolecular distribution (e.g. intramolecular rdf) which is used for the ie initial guess</DESC>
+      </target_intra>
       <p_target>
         <DESC>pressure contribution of this interaction</DESC>
       </p_target>

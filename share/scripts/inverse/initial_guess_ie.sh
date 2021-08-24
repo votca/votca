@@ -47,9 +47,9 @@ ie_closure="$(csg_get_property cg.inverse.initial_guess.ie.closure)"
 # TODO: resample dist-incl.tgt or better dist-intra.tgt
 # TODO: one might want longer tgt RDF for initial guess but short for iterative update with extrapolation or vice-versa
 for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
+for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
 
 # initial guess from rdf with hnc or py
-# TODO: implement propper extrapolation (use raw, then extrapolate)
 for nb_name in $nb_names; do
   critical cp -t . "${main_dir}/${nb_name}.dist-incl.tgt"
 done

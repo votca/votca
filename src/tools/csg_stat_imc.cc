@@ -15,6 +15,9 @@
  *
  */
 
+// Local private VOTCA includes
+#include "csg_stat_imc.h"
+
 // Standard includes
 #include <fstream>
 #include <iomanip>
@@ -35,9 +38,6 @@
 #include "votca/csg/nblistgrid_3body.h"
 #include "votca/csg/nblistintra.h"
 
-// Local private VOTCA includes
-#include "csg_stat_imc.h"
-
 namespace votca {
 namespace csg {
 
@@ -49,8 +49,8 @@ void Imc::Initialize() {
   // do some output
   if (do_imc_) {
     cout << "begin to calculate inverse monte carlo parameters\n";
-    if (only_intramolecular_) {
-      throw runtime_error("error, can not have --do-imc and --only-intra");
+    if (only_intra_nb_) {
+      throw runtime_error("error, can not have --do-imc and --only-intra-nb");
     }
   } else {
     cout << "begin to calculate distribution functions\n";
@@ -69,6 +69,8 @@ void Imc::Initialize() {
     AddInteraction(prop, bonded);
   }
 
+  // TODO: no bonded interactions if only_intra_nb_
+  //       but it is hard to implement
   // initialize bonded structures
   for (tools::Property *prop : bonded_) {
     bool bonded = true;
@@ -393,7 +395,7 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       {
         // generate the neighbour list
         std::unique_ptr<NBList> nb;
-        if (imc_->only_intramolecular_) {
+        if (imc_->only_intra_nb_) {
             nb = std::unique_ptr<NBList>(new NBListIntra());
         } else if (gridsearch) {
           nb = std::unique_ptr<NBList>(new NBListGrid());
