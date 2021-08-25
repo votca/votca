@@ -79,7 +79,6 @@ do_external update iie_pot "$iie_method" \
     --g-tgt-ext ".dist.tgt" \
     --g-cur-ext ".dist.new" \
     --g-cur-intra-ext ".dist-intra.new" \
-    --U-cur-ext ".pot.cur" \
     --out-ext ".dpot.new" \
     --g-extrap-factor "$g_extrap_factor" \
     ${pressure_constraint_flag-} \

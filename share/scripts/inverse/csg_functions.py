@@ -118,6 +118,7 @@ def fourier_all(r, table_mat):
     """Fourier along first dimension of table matrix (all interactions)."""
     omega, _ = fourier(r, table_mat[:, 0, 0])  # get length
     table_hat_mat = np.empty((len(omega), *table_mat.shape[1:]))
+    table_hat_mat.fill(np.nan)
     for b1 in range(table_mat.shape[1]):
         for b2 in range(table_mat.shape[2]):
             y = table_mat[:, b1, b2]
@@ -230,6 +231,7 @@ def gen_interaction_matrix(r, interaction_dict, non_bonded_dict):
     bead_types = get_bead_types(non_bonded_dict)
     non_bonded_dict_inv = {v: k for k, v in non_bonded_dict.items()}
     interaction_matrix = np.empty((len(r), len(bead_types), len(bead_types)))
+    interaction_matrix.fill(np.nan)
     for b1, bead1 in enumerate(bead_types):
         for b2, bead2 in enumerate(bead_types):
             interaction_name = non_bonded_dict_inv[frozenset({bead1, bead2})]
