@@ -75,8 +75,8 @@ def improve_dist_near_core(r, g, pmf_function, fit_start_g, fit_end_g):
     g_extrap = g.copy()
     # find first peak
     g_max_ndx = np.argmax(g)
-    # fit start from fit_start_g
-    fit_start_ndx = min(np.nonzero(g > fit_start_g)[0])
+    # fit start behind last point where g is smaller than fit_start_g
+    fit_start_ndx = max(np.nonzero(g < fit_start_g)[0]) + 1
     # fit end from fit_end_g and before first peak
     fit_end_ndx = max(np.nonzero(g[0:g_max_ndx] < fit_end_g)[0]) + 1
     if fit_end_ndx - fit_start_ndx < 3:

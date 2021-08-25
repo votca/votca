@@ -44,7 +44,7 @@ if not sys.version_info >= (3, 5):
     raise Exception("This script needs Python 3.5+.")
 from csg_functions import (
     readin_table, saveto_table, calc_grid_spacing, fourier, fourier_all,
-    gen_fourier_matrix, find_nearest_ndx, find_after_cut_off_ndx, r0_removal,
+    gen_fourier_matrix, find_after_cut_off_ndx, r0_removal,
     get_non_bonded, get_densities, gen_interaction_matrix, gen_interaction_dict,
     gen_density_matrix, gauss_newton_constrained, upd_flag_g_smaller_g_min,
     upd_flag_by_other_flag, gen_flag_isfinite, extrapolate_dU_left_constant
@@ -78,7 +78,7 @@ def calc_c(r, g_tgt, G_minus_g, n, rho):
     return c
 
 
-def calc_c_matrix(r, omega, h_hat_mat, G_minus_g_hat_mat, rho_mat):
+def calc_c_matrix(r, omega, h_hat_mat, G_minus_g_hat_mat, rho_mat, verbose=False):
     """Calculate the direct correlation function c(r) from g(r)."""
     # Omega_hat_mat
     # TODO: figure out density factor here!
@@ -86,12 +86,16 @@ def calc_c_matrix(r, omega, h_hat_mat, G_minus_g_hat_mat, rho_mat):
     #       I think Omega is actually non-symmetric in some cases!
     #       The order could also be reverse: G_minus_g_hat_mat @ rho_mat
     # TODO: figure out diagonal here, for e.g. symmetric naphtalene
-    Omega_hat_mat = (rho_mat @ G_minus_g_hat_mat
+    Omega_hat_mat = (G_minus_g_hat_mat @ rho_mat
                      + np.identity(G_minus_g_hat_mat.shape[1]))
     # direct correlation function c from OZ
     c_hat_mat = np.linalg.inv(Omega_hat_mat) @ h_hat_mat @ np.linalg.inv(
         (Omega_hat_mat + rho_mat @ h_hat_mat))  # the order should not be altered
     _, c_mat = fourier_all(omega, c_hat_mat)
+    if verbose:
+        np.savez_compressed('calc-c-matrix.npz', r=r, omega=omega,
+                            h_hat_mat=h_hat_mat, G_minus_g_hat_mat=G_minus_g_hat_mat,
+                            rho_mat=rho_mat, c_mat=c_mat)
     return c_mat
 
 
@@ -266,7 +270,8 @@ def calc_U(r, g_tgt, G_minus_g, n, kBT, rho, closure):
     return U
 
 
-def calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat, kBT, closure):
+def calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat, kBT, closure,
+                  verbose=False):
     """
     Calculate a potential U using integral equation theory.
 
@@ -278,17 +283,23 @@ def calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat, kBT, c
         rho_mat: diagonal matrix of densities of the bead types
         kBT: Boltzmann constant times temperature.
         closure: OZ-equation closure ('hnc' or 'py').
+        verbose: output calc_U_matrix.npz
 
     Returns:
         matrix of the calculated potentias.
     """
     # calculate direct correlation function
-    c_mat = calc_c_matrix(r, omega, h_hat_mat, G_minus_g_hat_mat, rho_mat)
+    c_mat = calc_c_matrix(r, omega, h_hat_mat, G_minus_g_hat_mat, rho_mat, verbose)
     with np.errstate(divide='ignore', invalid='ignore'):
         if closure == 'hnc':
             U_mat = kBT * (-np.log(g_mat) + (g_mat - 1) - c_mat)
         elif closure == 'py':
             U_mat = kBT * np.log(1 - c_mat/g_mat)
+    if verbose:
+        np.savez_compressed('calc-U-matrix.npz', r=r, omega=omega,
+                            g_mat=g_mat, h_hat_mat=h_hat_mat,
+                            G_minus_g_hat_mat=G_minus_g_hat_mat, rho_mat=rho_mat,
+                            kBT=kBT, closure=closure, U_mat=U_mat)
     return U_mat
 
 
@@ -656,7 +667,8 @@ def potential_guess(r, input_arrays, settings):
     rho_mat = gen_density_matrix(settings['densities'], settings['non-bonded-dict'])
     # perform actual math
     U1_mat = calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat,
-                           settings['kBT'], settings['closure'])
+                           settings['kBT'], settings['closure'],
+                           verbose=settings['verbose'])
     if settings['verbose']:
         np.savez_compressed('potential-guess-arrays.npz', r=r, omega=omega,
                             g_mat=g_mat, h_hat_mat=h_hat_mat,
