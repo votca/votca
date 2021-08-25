@@ -14,15 +14,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-if [ "$1" = "--help" ]; then
+show_help () {
 cat <<EOF
 ${0##*/}, version %version%
 This script resamples distribution to grid spacing of the setting xml file and extrapolates if needed
 
-Usage: ${0##*/} input output
+Usage: ${0##*/} [options] input output
+
+Allowed options:
+    --help       show this help
+    --no-extrap  do no extrapolation, e.g. for intramolecular non-bonded
 EOF
-   exit 0
-fi
+}
+
+do_extrap="yes"
+
+### begin parsing options
+shopt -s extglob
+while [[ ${1} = --* ]]; do
+  case $1 in
+  --no-extrap)
+    do_extrap="no"
+    shift ;;
+  -h | --help)
+    show_help
+    exit 0;;
+  *)
+    die "Unknown option '$1'";;
+  esac
+done
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing argument"
 input="$1"
@@ -37,32 +58,41 @@ name=$(csg_get_interaction_property name)
 tabtype="$(csg_get_interaction_property bondtype)"
 
 comment="$(get_table_comment)"
-smooth="$(critical mktemp ${name}.dist.tgt_smooth.XXXXX)"
-critical csg_resample --in ${main_dir}/${input} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
-extra="$(critical mktemp ${name}.dist.tgt_extrapolated.XXXXX)"
-if [[ $tabtype = "non-bonded" ]]; then
-  extra2="$(critical mktemp ${name}.dist.tgt_extrapolated_left.XXXXX)"
-  do_external table extrapolate --function linear --avgpoints 1 --region left "${smooth}" "${extra2}"
-  # improve RDF in the core region where it is close to zero and sampling is bad using
-  # an extrapolation scheme from the better sampled onset of the RDF
-  improve_dist_near_core_target="$(csg_get_interaction_property improve_dist_near_core.target)"
-  if [[ $improve_dist_near_core_target == "true" ]]; then
+# resample
+resampled="$(critical mktemp ${name}.dist.tgt_resampled.XXXXX)"
+critical csg_resample --in ${main_dir}/${input} --out ${resampled} --grid ${min}:${step}:${max} --comment "${comment}"
+# extrapolate
+if [[ $do_extrap == "yes" ]]; then
+  extrapolated="$(critical mktemp ${name}.dist.tgt_extrapolated.XXXXX)"
+  if [[ $tabtype == "non-bonded" ]]; then
+    # extrapolate left
+    extrapolated2="$(critical mktemp ${name}.dist.tgt_extrapolated_left.XXXXX)"
+    do_external table extrapolate --function linear --avgpoints 1 --region left "${resampled}" "${extrapolated2}"
+    # improve RDF in the core region where it is close to zero and sampling is bad using
+    # an extrapolation scheme from the better sampled onset of the RDF
+    improve_dist_near_core_target="$(csg_get_interaction_property improve_dist_near_core.target)"
+    if [[ $improve_dist_near_core_target == "true" ]]; then
       improve_dist_near_core_function="$(csg_get_interaction_property improve_dist_near_core.function)"
-      extra3="$(critical mktemp ${name}.dist.tgt_improved.XXXXX)"
+      extrapolated3="$(critical mktemp ${name}.dist.tgt_improved.XXXXX)"
       fit_start_g="$(csg_get_interaction_property improve_dist_near_core.fit_start_g)"
       fit_end_g="$(csg_get_interaction_property improve_dist_near_core.fit_end_g)"
-      do_external dist improve_near_core --in="${extra2}" --out="${extra3}" \
-          --function="$improve_dist_near_core_function" \
-          --gmin="$fit_start_g" --gmax="$fit_end_g" 
-  elif [[ $improve_dist_near_core_target == "false" ]]; then
-      extra3="$extra2"
-  else
+      do_external dist improve_near_core --in="${extrapolated2}" --out="${extrapolated3}" \
+      --function="$improve_dist_near_core_function" \
+      --gmin="$fit_start_g" --gmax="$fit_end_g" 
+    elif [[ $improve_dist_near_core_target == "false" ]]; then
+      extrapolated3="$extrapolated2"
+    else
       die "${0##*/}: improve_dist_near_core.target is ${improve_dist_near_core_target}. Needs to be 'true' or 'false'"
+    fi
+    # extrapolate right
+    do_external table extrapolate --function constant --avgpoints 1 --region right "${extrapolated3}" "${extrapolated}"
+  elif [[ $tabtype == bond || $tabtype == angle || $tabtype == dihedral ]]; then
+    # extrapolate on both sides
+    do_external table extrapolate --function linear --avgpoints 1 --region leftright "${resampled}" "${extrapolated}"
+  else
+    die "${0##*/}: Resample of distribution of type $tabtype is not implemented yet"
   fi
-  do_external table extrapolate --function constant --avgpoints 1 --region right "${extra3}" "${extra}"
-elif [[ $tabtype = bond || $tabtype = angle || $tabtype = dihedral ]]; then
-  do_external table extrapolate --function linear --avgpoints 1 --region leftright "${smooth}" "${extra}"
 else
-  die "${0##*/}: Resample of distribution of type $tabtype is not implemented yet"
+  extrapolated="${resampled}"
 fi
-do_external dist adjust "${extra}" "${output}"
+do_external dist adjust "${extrapolated}" "${output}"

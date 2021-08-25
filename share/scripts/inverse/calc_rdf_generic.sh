@@ -21,21 +21,21 @@ ${0##*/}, version %version%
 This script implemtents statistical analysis for the iterative Boltzmann inversion
 using generic csg tools (csg_stat)
 
-With --include-intra intramolecular interactions are included and the
-distributions are saved as .dist-incl.new.
+With --only-intra-nb intramolecular non-bonded distributions are saved as
+.dist-intra.new.
 
-Usage: ${0##*/} [--help] [--include-intra]
+Usage: ${0##*/} [--help] [--only-intra-nb]
 EOF
 }
 
-include_intra=false
+only_intra_nb=false
 while [[ $# -gt 0 ]]
 do
     key="$1"
 
     case "${key}" in
-    --include-intra)
-        include_intra=true
+    --only-intra-nb)
+        only_intra_nb=true
         shift  # past argument
         ;;
     --help)
@@ -84,11 +84,11 @@ if [[ ${CSG_RUNTEST} ]] && csg_calc "${first_frame}" ">" "0"; then
   first_frame=0
 fi
 
-if [[ ${include_intra} = "true" ]]; then
-  intra_opts="--include-intra"
-  dist_type="dist-incl"
-  suffix="_incl"
-  message=" including intramolecular correlations"
+if [[ ${only_intra_nb} = "true" ]]; then
+  intra_opts="--only-intra-nb"
+  dist_type="dist-intra"
+  suffix="_intra"
+  message=" only intramolecular correlations"
 else
   intra_opts=""
   dist_type="dist"
@@ -127,7 +127,7 @@ fi
 
 # improve new RDF at low values
 improve_dist_near_core_new="$(csg_get_interaction_property improve_dist_near_core.new)"
-if [[ $improve_dist_near_core_new == "true" ]]; then
+if [[ $improve_dist_near_core_new == "true" && $dist_type == "dist" ]]; then  # do not do this for dist_intra
   if ! is_done "${name}_${dist_type}_rdf_improve"; then
     improve_dist_near_core_function="$(csg_get_interaction_property improve_dist_near_core.function)"
     fit_start_g="$(csg_get_interaction_property improve_dist_near_core.fit_start_g)"

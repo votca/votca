@@ -337,3 +337,26 @@ def upd_flag_by_other_flag(flag, other_flag):
         if of == 'o':
             flag_new[i] = 'o'
     return flag_new
+
+
+def gen_flag_isfinite(U):
+    """
+    Generate a flag list based on if the elements of U are finite.
+    """
+    return np.where(np.isfinite(U), ['i'] * len(U), ['o'] * len(U))
+
+
+def extrapolate_dU_left_constant(dU, dU_flag):
+    """
+    Extrapolate the potential update in the core region by a constant value.
+
+    The first valid value, determined by the flag, is used
+    """
+    dU_extrap = dU.copy()
+    # find first valid dU value
+    first_dU_index = np.where(dU_flag == 'i')[0][0]
+    first_dU = dU[first_dU_index]
+
+    # replace out of range dU values with constant first value
+    dU_extrap = np.where(dU_flag == 'i', dU, first_dU)
+    return dU_extrap

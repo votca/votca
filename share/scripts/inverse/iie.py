@@ -47,7 +47,7 @@ from csg_functions import (
     gen_fourier_matrix, find_nearest_ndx, find_after_cut_off_ndx, r0_removal,
     get_non_bonded, get_densities, gen_interaction_matrix, gen_interaction_dict,
     gen_density_matrix, gauss_newton_constrained, upd_flag_g_smaller_g_min,
-    upd_flag_by_other_flag
+    upd_flag_by_other_flag, gen_flag_isfinite, extrapolate_dU_left_constant
 )
 
 
@@ -146,7 +146,7 @@ def calc_dc_ext(r_short, r_long, c_k_short, g_k_short, g_tgt_short, G_minus_g_sh
 def extrapolate_g(r_short, r_long, g_short, G_minus_g_short, n, rho,
                   k_max=5, output_c=False, verbose=False):
     """
-    Extrapolate an RDF with integral equation theory.
+    Extrapolate an RDF to larger r with integral equation theory.
 
     Assumes c = 0 in the extrapolated region. This is not a good aproximation
     in systems with bonds.
@@ -465,23 +465,6 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     return dU
 
 
-def extrapolate_U_constant(dU, dU_flag):
-    """
-    Extrapolate the potential in the core region by a constant value.
-
-    Returns dU. U_{k+1} = U_k + dU is done by VOTCA.
-
-    """
-    dU_extrap = dU.copy()
-    # find first valid dU value
-    first_dU_index = np.where(dU_flag == 'i')[0][0]
-    first_dU = dU[first_dU_index]
-
-    # replace out of range dU values with constant first value
-    dU_extrap = np.where(dU_flag == 'i', dU, first_dU)
-    return dU_extrap
-
-
 def shift_U_cutoff_zero(dU, r, U, cut_off):
     """Make potential zero at and beyond cut-off."""
     dU_shift = dU.copy()
@@ -491,54 +474,6 @@ def shift_U_cutoff_zero(dU, r, U, cut_off):
     dU_shift -= U_before_cut_off
     dU_shift[ndx_co:] = -1 * U[ndx_co:]
     return dU_shift
-
-
-def fix_U_near_cut_off_full(r, U, cut_off):
-    """
-    Modify the potential close to the cut-off to make it more smooth.
-
-    The derivative of the potential between the last two points will be equal
-    to the derivative between the two points before. The original last two
-    points of dU are therefore ignored.
-
-    This also helps agains an artifact of p-HNCGN, where the last value of dU
-    is a spike.
-
-    """
-    U_fixed = U.copy()
-    ndx_co = find_after_cut_off_ndx(r, cut_off)
-    second_last_deriv = U[ndx_co-2] - U[ndx_co-3]
-    shift = -1.0 * second_last_deriv - U[ndx_co-2]
-    # modify up to second last value
-    U_fixed[:ndx_co-1] += shift
-    return U_fixed
-
-
-def upd_U_const_first_flag_i(U, flag):
-    """
-    Extrapolate potential with constant values where flag is 'o'.
-
-    Take a potential list, copy it, and set the potential at places where
-    flag is 'o' to the first value where flag is 'i'.
-
-    """
-    U_new = U.copy()
-    # find first valid U value
-    first_U_index = np.where(flag == 'i')[0][0]
-    first_U = U_new[first_U_index]
-    # replace out of range U values
-    U_new = np.where(flag == 'i', U_new, first_U)
-    return U_new
-
-
-def upd_U_zero_beyond_cut_off(r, U, cut_off):
-    """Shift potential to be zero at cut_off and beyond."""
-    U_new = U.copy()
-    index_cut_off = find_nearest_ndx(r, cut_off)
-    U_cut_off = U_new[index_cut_off]
-    U_new -= U_cut_off
-    U_new[index_cut_off:] = 0
-    return U_new
 
 
 def get_args(iie_args=None):
@@ -586,7 +521,7 @@ def get_args(iie_args=None):
                           required=True,
                           metavar='RDF_TGT_EXT',
                           help='extension of RDF target files')
-        pars.add_argument('--U-out-ext', type=str,
+        pars.add_argument('--out-ext', type=str,
                           required=True,
                           metavar='U_OUT_EXT',
                           help='extension of U or ΔU output files')
@@ -597,24 +532,20 @@ def get_args(iie_args=None):
                           'range')
     # intial potential guess subparsers
     for pars in [parser_pot_guess]:
-        pars.add_argument('--G-tgt-ext', type=str,
+        pars.add_argument('--g-tgt-intra-ext', type=str,
                           required=True,
-                          metavar='RDF_INCL_TGT_EXT',
-                          help='extension of incl. RDF target files')
+                          metavar='RDF_TGT_INTRA_EXT',
+                          help='extension of intramol. RDF target files')
     # update potential subparsers
     for pars in [parser_newton, parser_newton_mod, parser_gauss_newton]:
-        pars.add_argument('--g-cur', type=argparse.FileType('r'),
-                          nargs='+', required=True,
-                          metavar=('X-X.dist.cur', 'X-Y.dist.cur'),
-                          help='RDF current files')
-        pars.add_argument('--G-cur', type=argparse.FileType('r'),
-                          nargs='+', required=False,
-                          metavar=('X-X-incl.dist.cur', 'X-Y-incl.dist.cur'),
-                          help='RDF (including intramolecular) current files')
-        pars.add_argument('--U-cur', type=argparse.FileType('r'),
-                          nargs='+', required=True,
-                          metavar=('X-X.pot.cur', 'X-Y.pot.cur'),
-                          help='potential current files')
+        pars.add_argument('--g-cur-ext', type=str,
+                          required=True,
+                          metavar='RDF_CUR_EXT',
+                          help='extension of current RDF files')
+        pars.add_argument('--g-cur-intra-ext', type=str,
+                          required=True,
+                          metavar='RDF_CUR_INTRA_EXT',
+                          help='extension of current intramol. RDF files')
     # Newton's method only options
     for pars in [parser_newton, parser_newton_mod]:
         pars.add_argument('--cut-jacobian', dest='cut_jacobian', action='store_true',
@@ -625,13 +556,6 @@ def get_args(iie_args=None):
     parser_gauss_newton.add_argument('--pressure-constraint',
                                      dest='pressure_constraint',
                                      type=str, default=None)
-    parser_gauss_newton.add_argument('--extrap-near-core',
-                                     dest='extrap_near_core',
-                                     type=str, choices=['none', 'constant',
-                                                        'power'])
-    parser_gauss_newton.add_argument('--fix-near-cut-off',
-                                     dest='fix_near_cut_off',
-                                     type=str, choices=['none', 'full-deriv'])
     # parse
     if iie_args is None:
         args = parser.parse_args()
@@ -661,42 +585,28 @@ def process_input(args):
     # dict of table extensions
     table_infos = {
         'g_tgt': {'extension': args.g_tgt_ext, 'check-grid': True},
-        'G_tgt': {'extension': args.G_tgt_ext, 'check-grid': False},
-        # is not loaded but calculated
-        'G_minus_g_tgt': {'extension': None, 'check-grid': True},
+        'G_minus_g_tgt': {'extension': args.g_tgt_intra_ext, 'check-grid': True},
     }
     # load input arrays
     input_arrays = {}  # will hold all input data
     for table_name, table_info in table_infos.items():
-        if table_info['extension'] is None:  # if no extension, do not load
-            continue
         input_arrays[table_name] = {}
         for non_bonded_name in non_bonded_dict.keys():
             x, y, flag = readin_table(non_bonded_name + table_info['extension'])
             input_arrays[table_name][non_bonded_name] = {'x': x, 'y': y, 'flag': flag}
-    # make G - g. G can be shorter than g
-    input_arrays['G_minus_g_tgt'] = {}
-    for non_bonded_name, g_dict in input_arrays['g_tgt'].items():
-        # TODO: check subgrids of g and grid of G
-        G_dict = input_arrays['G_tgt'][non_bonded_name]
-        G_len = G_dict['y'].shape[0]
-        G_minus_g_tgt = np.zeros_like(g_dict['y'])
-        G_minus_g_tgt[:G_len] = (G_dict['y'] - g_dict['y'][:G_len])
-        input_arrays['G_minus_g_tgt'][non_bonded_name] = {
-            'x': g_dict['x'], 'y': G_minus_g_tgt, 'flag': g_dict['flag']}
     # check for same grid and define r
     r = None
     for table_name, table_info in table_infos.items():
         for non_bonded_name in non_bonded_dict.keys():
             x = input_arrays[table_name][non_bonded_name]['x']
             if table_info['check-grid']:
-                if r is not None:
+                if r is None:
+                    # set first r
+                    r = x
+                else:
                     # compare with first r
                     if not np.allclose(x, r):
                         raise RuntimeError("Grids of tables do not match")
-                else:
-                    # set r
-                    r = x
     # check if starts at r = 0.0, if so: remove
     all_first_x = np.array([input_arrays[table_name][non_bonded_name]['x'][0]
                             for table_name, table_info in table_infos.items()
@@ -717,7 +627,7 @@ def process_input(args):
         raise Exception('either all or no input tables should start at r=0')
     # settings
     # copy some directly from args
-    settings_to_copy = ('closure', 'verbose', 'U_out_ext', 'g_min')
+    settings_to_copy = ('closure', 'verbose', 'out_ext', 'g_min')
     settings = {key: vars(args)[key] for key in settings_to_copy}
     settings['non-bonded-dict'] = non_bonded_dict
     settings['densities'] = densities
@@ -755,21 +665,19 @@ def potential_guess(r, input_arrays, settings):
     # extrapolate and save potentials
     for non_bonded_name, U_dict in gen_interaction_dict(
             r, U1_mat, settings['non-bonded-dict']).items():
-        U1 = U_dict['y']
-        U_flag1 = np.array(['i'] * len(r))
+        U = U_dict['y']
+        U_flag = gen_flag_isfinite(U)
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r))
-            U1 = np.concatenate(([np.nan], U1))
-            U_flag1 = np.concatenate((['o'], U_flag1))
+            U = np.concatenate(([np.nan], U))
+            U_flag = np.concatenate((['o'], U_flag))
         else:
             r_out = r
-        U_flag2 = upd_flag_g_smaller_g_min(
-            U_flag1, input_arrays['g_tgt'][non_bonded_name]['y'], settings['g_min'])
-        U2 = upd_U_const_first_flag_i(U1, U_flag2)
-        U3 = upd_U_zero_beyond_cut_off(r_out, U2, settings['cut_off'])
+        # change NaN in the core region to first valid value
+        U = extrapolate_dU_left_constant(U, U_flag)
         comment = "created by: {}".format(" ".join(sys.argv))
-        fn = non_bonded_name + settings['U_out_ext']
-        saveto_table(fn, r_out, U3, U_flag2, comment)
+        fn = non_bonded_name + settings['out_ext']
+        saveto_table(fn, r_out, U, U_flag, comment)
 
 
 def newton_update(r, input_arrays, args):

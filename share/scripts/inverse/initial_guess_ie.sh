@@ -20,7 +20,7 @@ cat <<EOF
 ${0##*/}, version %version%
 This script calculates an integral equation initial guess
 
-Usage: ${0##*/}
+Usage: ${0##*/} [--help]
 EOF
    exit 0
 fi
@@ -38,21 +38,13 @@ main_dir=$(get_main_dir)
 sim_prog="$(csg_get_property cg.inverse.program)"
 nb_names=( $(for_all "non-bonded" csg_get_interaction_property name) )
 nb_names="${nb_names[@]}"
-kBT="$(csg_get_property cg.inverse.kBT)"
-cut_off="$(csg_get_property cg.inverse.initial_guess.ie.cut_off)"
 g_min="$(csg_get_property cg.inverse.initial_guess.ie.g_min)"
 ie_closure="$(csg_get_property cg.inverse.initial_guess.ie.closure)"
 
 # resample all target distributions
-# TODO: resample dist-incl.tgt or better dist-intra.tgt
 # TODO: one might want longer tgt RDF for initial guess but short for iterative update with extrapolation or vice-versa
 for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
-for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
-
-# initial guess from rdf with hnc or py
-for nb_name in $nb_names; do
-  critical cp -t . "${main_dir}/${nb_name}.dist-incl.tgt"
-done
+for_all "non-bonded" do_external resample target --no-extrap '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
 
 # topology for molecular conections and volume
 topol=$(csg_get_property --allow-empty cg.inverse.initial_guess.ie.topol)
@@ -63,11 +55,9 @@ topol=$(csg_get_property --allow-empty cg.inverse.initial_guess.ie.topol)
 volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
 ([[ -n "$volume" ]] && is_num "$volume") || die "could not determine the volume from file ${topol}"
 
-# do not put quotes around arguments with values ($G_tgt_flag)!
-# this will give a codacy warning :/
 msg "Using initial guess for non-bonded interactions using integral equations"
 # Some arguments (cut_off, kBT) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
-# Others could also be read from the settings file, but this bash script handles the defaults.
+# Others (closure, g_min, ...) could also be read from the settings file, but this bash script handles the defaults.
 do_external dist invert_iie potential_guess \
     "$verbose_flag" \
     --closure "$ie_closure" \
@@ -76,8 +66,8 @@ do_external dist invert_iie potential_guess \
     --topol "$topol" \
     --options "$CSGXMLFILE" \
     --g-tgt-ext ".dist.tgt" \
-    --G-tgt-ext ".dist-incl.tgt" \
-    --U-out-ext ".pot.new"
+    --g-tgt-intra-ext ".dist-intra.tgt" \
+    --out-ext ".pot.new"
 
 # scale new potentials
 scaling_factor_non_bonded="$(csg_get_property "cg.inverse.initial_guess.scale_non_bonded")"
