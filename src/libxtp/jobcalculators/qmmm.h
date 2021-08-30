@@ -47,6 +47,7 @@ class QMMM final : public ParallelXJobCalc<std::vector<Job> > {
 
  private:
   bool hasQMRegion() const;
+  bool usesEwald() const;
   Job createJob(const Segment& seg, const QMState& state, Index jobid) const;
   std::string getFirstRegionName() const;
 

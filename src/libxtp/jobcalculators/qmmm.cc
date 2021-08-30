@@ -68,6 +68,10 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   if (!this->hasQMRegion()) {
     qmmm_work_dir = "MMMM";
   }
+
+  if (this->usesEwald()){
+    std::cout << "EWALD EWALD EWALD !!!!" << std::endl;
+  }
   std::string frame_dir =
       "frame_" + boost::lexical_cast<std::string>(top.getStep());
   std::string job_dir =
@@ -203,6 +207,14 @@ bool QMMM::hasQMRegion() const {
   return std::any_of(regions_def_.second.begin(), regions_def_.second.end(),
                      [&](const tools::Property& reg) {
                        return reg.name() == QMdummy.identify();
+                     });
+}
+
+bool QMMM::usesEwald() const {
+  Logger log;
+  return std::any_of(regions_def_.second.begin(), regions_def_.second.end(),
+                     [&](const tools::Property& reg) {
+                       return reg.name() == "ewaldregion";
                      });
 }
 

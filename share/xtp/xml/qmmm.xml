@@ -10,6 +10,7 @@
       <segments help="segments to write jobs for and which to parse from jobfile" default="all"/>
       <use_gs_for_ex help="If true uses the ground state geometry for excited states" default="false"/>
     </io_jobfile>
+    <ewald_background help="path to file containing background fields" default="OPTIONAL"/>
     <regions list="" help="Definitions of all regions inside qmmmm" default="REQUIRED">
       <qmregion default="OPTIONAL" link="region.xml" help="qmregion with dft and optionally gwbse">
         <state help="initial state to track or ground state for dftcalculations" default="n" />

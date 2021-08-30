@@ -137,6 +137,12 @@ void JobTopology::BuildRegions(
   std::vector<std::vector<SegId>> region_seg_ids =
       PartitionRegions(options.second, top);
 
+  for (const std::vector<SegId>& vec : region_seg_ids) {
+    for (const SegId& segID : vec) {
+      std::cout << segID.Id() << std::endl;
+    }
+  }
+
   // // around this point the whole jobtopology will be centered
   CreateRegions(options, top, region_seg_ids);
   XTP_LOG(Log::error, log_) << " Regions created" << std::flush;
@@ -245,6 +251,11 @@ std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
   std::vector<bool> processed_segments =
       std::vector<bool>(top.Segments().size(), false);
   for (const tools::Property* region_def : sorted_regions) {
+std::cout << "GOT HERE " << region_def->name() <<  std::endl;
+    if (region_def->name() == "ewaldregion"){
+      std::cout << "GOT HERE " << region_def->name() <<  std::endl;
+      continue;
+    }
 
     if (!region_def->exists("segments") && !region_def->exists("cutoff")) {
       throw std::runtime_error(
