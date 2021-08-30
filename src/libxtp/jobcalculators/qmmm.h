@@ -58,6 +58,7 @@ class QMMM final : public ParallelXJobCalc<std::vector<Job> > {
   bool use_gs_for_ex_ = false;
   std::vector<QMState> states_;
   std::string which_segments_;
+  std::string ewald_background_;
 };
 
 }  // namespace xtp

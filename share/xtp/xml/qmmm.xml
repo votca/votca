@@ -24,6 +24,10 @@
       </qmregion>
       <polarregion default="OPTIONAL" help="polar region with polarisation dipoles and thole damping" link="region.xml polar.xml"/>w
       <staticregion default="OPTIONAL" link="region.xml"/>
+      <ewaldregion default="OPTIONAl">
+      <id/>
+      <path/>
+      </ewaldregion>
     </regions>
   </qmmm>
 </options>

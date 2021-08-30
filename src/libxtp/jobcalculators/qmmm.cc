@@ -52,11 +52,17 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
   states_ = options.get("io_jobfile.states").as<std::vector<QMState>>();
   which_segments_ = options.get("io_jobfile.segments").as<std::string>();
 
+
+
   bool groundstate_found = std::any_of(
       states_.begin(), states_.end(),
       [](const QMState& state) { return state.Type() == QMStateType::Gstate; });
   if (!groundstate_found) {
     states_.push_back(QMState("n"));
+  }
+
+  if (options.exists(".ewald_background")) {
+    ewald_background_ = options.get(".ewald_background").as<std::string>();
   }
 }
 
@@ -69,9 +75,6 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
     qmmm_work_dir = "MMMM";
   }
 
-  if (this->usesEwald()){
-    std::cout << "EWALD EWALD EWALD !!!!" << std::endl;
-  }
   std::string frame_dir =
       "frame_" + boost::lexical_cast<std::string>(top.getStep());
   std::string job_dir =

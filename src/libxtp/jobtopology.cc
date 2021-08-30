@@ -149,7 +149,6 @@ void JobTopology::BuildRegions(
   for (const auto& region : regions_) {
     XTP_LOG(Log::error, log_) << *region << std::flush;
   }
-
   return;
 }
 
@@ -221,13 +220,16 @@ void JobTopology::CreateRegions(
       }
       region = std::move(staticregion);
 
+    } else if (type == "ewaldregion") {
+      std::cout << "EWALD DETECTED!" << std::endl;
+      continue;
     } else {
       throw std::runtime_error("Region type not known!");
     }
     region->Initialize(region_def);
     regions_.push_back(std::move(region));
   }
-}
+}  // namespace xtp
 
 void JobTopology::WriteToPdb(std::string filename) const {
 
@@ -251,12 +253,9 @@ std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
   std::vector<bool> processed_segments =
       std::vector<bool>(top.Segments().size(), false);
   for (const tools::Property* region_def : sorted_regions) {
-std::cout << "GOT HERE " << region_def->name() <<  std::endl;
-    if (region_def->name() == "ewaldregion"){
-      std::cout << "GOT HERE " << region_def->name() <<  std::endl;
-      continue;
+    if (region_def->name() == "ewaldregion") {
+      continue;  // we don't need to do anything for the ewald.
     }
-
     if (!region_def->exists("segments") && !region_def->exists("cutoff")) {
       throw std::runtime_error(
           "Region definition needs either segments or a cutoff to find "
@@ -340,8 +339,10 @@ std::cout << "GOT HERE " << region_def->name() <<  std::endl;
 void JobTopology::CheckEnumerationOfRegions(
     const tools::Property& regions_def) const {
   std::vector<Index> reg_ids;
+  std::vector<std::string> reg_names;
   for (const tools::Property& region_def : regions_def) {
     reg_ids.push_back(region_def.get("id").as<Index>());
+    reg_names.push_back(region_def.name());
   }
 
   std::vector<Index> v(reg_ids.size());
@@ -352,6 +353,37 @@ void JobTopology::CheckEnumerationOfRegions(
         "then "
         "ascending order. i.e. 0 1 2 3.");
   }
+
+  Index counter = 0;
+  for (const auto& name : reg_names) {
+    if (name == "ewaldregion" && counter != Index(reg_names.size() - 1)) {
+      std::cout << counter << std::endl;
+      std::cout << reg_names.size() << std::endl;
+      throw std::runtime_error(
+          "The Ewald region must be the last region in the region definition.");
+    } else {
+      break;
+    }
+    counter += 1;
+  }
+  if (counter == 1 && reg_names[0] != "polarregion") {
+    throw std::runtime_error(
+        "If the second region is an ewald region, the first region must be "
+        "polarizable. Options are: qm in polar in ewald or polar in "
+        "ewald.");
+  }
+  if (counter == 2 && reg_names[0] != "qmregion" &&
+      reg_names[1] != "polarregion") {
+    throw std::runtime_error(
+        "QM in polar in a polarized background is not yet implemented.");
+  }
+  if (counter > 2){
+    throw std::runtime_error(
+      "Can't have more than 2 inner regions when using an ewald background."
+    );
+  }
+
+  return;
 }
 
 void JobTopology::WriteToHdf5(std::string filename) const {
