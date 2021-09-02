@@ -354,37 +354,31 @@ void JobTopology::CheckEnumerationOfRegions(
         "ascending order. i.e. 0 1 2 3.");
   }
 
-  Index counter = 0;
+  // Check if Ewald is used, if so check if the regions are setup in the right
+  // order, since we only have two supported configurations
+  Index ewdPos = 0;
   for (const auto& name : reg_names) {
-    if (name == "ewaldregion" && counter != Index(reg_names.size() - 1)) {
-      std::cout << counter << std::endl;
-      std::cout << reg_names.size() << std::endl;
-      throw std::runtime_error(
-          "The Ewald region must be the last region in the region definition.");
-    } else {
+    if (name == "ewaldregion") {
       break;
     }
-    counter += 1;
+    ewdPos += 1;
   }
-  if (counter == 1 && reg_names[0] != "polarregion") {
-    throw std::runtime_error(
-        "If the second region is an ewald region, the first region must be "
-        "polarizable. Options are: qm in polar in ewald or polar in "
-        "ewald.");
+  if (ewdPos < Index(reg_names.size())) {
+    if (ewdPos == 1 && reg_names[0] == "polarregion") {
+      return; 
+    } else if (ewdPos == 2 && reg_names[0] == "qmregion" &&
+               reg_names[1] == "polarregion") {
+      throw std::runtime_error("The qm in polar in a background is not yet implemented.");     
+    } else { 
+      throw std::runtime_error(
+          "The ewald background can only be used in the following "
+          "configurations: \n - A polarregion (region 0) in  the ewald "
+          "background (region 1)\n - A qmregion (region 0) in a polarregion "
+          "(region 1) in the ewald background (region 2)\n");
+    }
   }
-  if (counter == 2 && reg_names[0] != "qmregion" &&
-      reg_names[1] != "polarregion") {
-    throw std::runtime_error(
-        "QM in polar in a polarized background is not yet implemented.");
-  }
-  if (counter > 2){
-    throw std::runtime_error(
-      "Can't have more than 2 inner regions when using an ewald background."
-    );
-  }
-
   return;
-}
+}  // namespace xtp
 
 void JobTopology::WriteToHdf5(std::string filename) const {
   CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
