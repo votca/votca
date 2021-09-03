@@ -52,7 +52,7 @@
 
     <fragments help="fragment definitions for bse analysis" default="OPTIONAL" list="">
       <fragment>
-        <indices help="indeces of atoms in this fragment, e.g. 1 3 13:17" default="REQUIRED" />
+        <indices help="indices of atoms in this fragment, e.g. 1 3 13:17" default="REQUIRED" />
       </fragment>
     </fragments>
   </bse>
