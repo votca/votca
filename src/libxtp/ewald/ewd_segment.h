@@ -42,6 +42,18 @@ class EwdSegment {
     _id = pol.getId();
     _position = pol.getPos();
   }
+
+  EwdSegment(CheckpointReader&r){
+    CptTable table = r.openTable<EwdSite>("background_sites");
+    _sites.clear();
+    _sites.reserve(table.numRows());
+    std::vector<typename EwdSite::data> dataVec(table.numRows());
+    table.read(dataVec);
+    for (std::size_t i = 0; i < table.numRows(); ++i) {
+      _sites.push_back(EwdSite(dataVec[i]));
+    }
+  };
+
   ~EwdSegment() = default;
 
   const Eigen::Vector3d& getPos() const { return _position; }
@@ -74,6 +86,7 @@ class EwdSegment {
     }
     table.write(dataVec);
   }
+
 
   void calcPos() {
     tools::Elements element;

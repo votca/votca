@@ -32,6 +32,7 @@
 #include "votca/xtp/segmentmapper.h"
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/version.h"
+#include "ewald/ewaldbackground.h"
 
 namespace votca {
 namespace xtp {
@@ -178,6 +179,7 @@ void JobTopology::CreateRegions(
     QMRegion QMdummy(0, log_, "");
     StaticRegion Staticdummy(0, log_);
     PolarRegion Polardummy(0, log_);
+    EwaldBackground ewaldBG;
     if (type == QMdummy.identify()) {
       std::unique_ptr<QMRegion> qmregion =
           std::make_unique<QMRegion>(id, log_, workdir_);
@@ -219,9 +221,9 @@ void JobTopology::CreateRegions(
         staticregion->push_back(mol);
       }
       region = std::move(staticregion);
-
     } else if (type == "ewaldregion") {
-      std::cout << "EWALD DETECTED!" << std::endl;
+      ewaldBG.Initialize(region_def.get("path").as<std::string>());
+      ewaldBG.ApplyBackgroundFields(regions_, options.second);
       continue;
     } else {
       throw std::runtime_error("Region type not known!");
@@ -254,7 +256,7 @@ std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
       std::vector<bool>(top.Segments().size(), false);
   for (const tools::Property* region_def : sorted_regions) {
     if (region_def->name() == "ewaldregion") {
-      continue;  // we don't need to do anything for the ewald.
+      continue;  // we don't need to do anything here for the ewald.
     }
     if (!region_def->exists("segments") && !region_def->exists("cutoff")) {
       throw std::runtime_error(
@@ -353,7 +355,6 @@ void JobTopology::CheckEnumerationOfRegions(
         "then "
         "ascending order. i.e. 0 1 2 3.");
   }
-
   // Check if Ewald is used, if so check if the regions are setup in the right
   // order, since we only have two supported configurations
   Index ewdPos = 0;

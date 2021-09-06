@@ -33,6 +33,7 @@ namespace xtp {
 class EwdSite {
  public:
   EwdSite(const PolarSite& pol);
+
   ~EwdSite() = default;
 
   friend std::ostream& operator<<(std::ostream& out, const EwdSite& site) {
@@ -79,7 +80,7 @@ class EwdSite {
 
   Index getRank() const { return _rank; }
 
-  std::string getElement() const { return _element;}
+  std::string getElement() const { return _element; }
 
   const Eigen::Vector3d& getStaticField() const { return _field_static; }
 
@@ -122,8 +123,10 @@ class EwdSite {
     double fieldZ_ind;
   };
 
+  EwdSite(const data& d) { ReadData(d); }
 
   void WriteData(data& d);
+  void ReadData(const data& d);
   static void SetupCptTable(CptTable& table);
 
  private:

@@ -43,6 +43,8 @@ EwdSite::EwdSite(const PolarSite& pol) {
   _quadrupole = (1.0 / 3.0) * pol.CalculateCartesianMultipole();
 }
 
+
+
 void EwdSite::WriteData(data& d) {
   d.id = _id;
   d.rank = _rank;
@@ -54,12 +56,12 @@ void EwdSite::WriteData(data& d) {
   d.dipX = _dipole_static[0];
   d.dipY = _dipole_static[1];
   d.dipZ = _dipole_static[2];
-  d.quadXX = _quadrupole(0,0);
-  d.quadXY = _quadrupole(0,1);
-  d.quadXZ = _quadrupole(0,2);
-  d.quadYY = _quadrupole(1,1);
-  d.quadYZ = _quadrupole(1,2);
-  d.quadZZ = _quadrupole(2,2);
+  d.quadXX = _quadrupole(0, 0);
+  d.quadXY = _quadrupole(0, 1);
+  d.quadXZ = _quadrupole(0, 2);
+  d.quadYY = _quadrupole(1, 1);
+  d.quadYZ = _quadrupole(1, 2);
+  d.quadZZ = _quadrupole(2, 2);
 
   d.d_x_ind = _dipole_induced[0];
   d.d_y_ind = _dipole_induced[1];
@@ -73,13 +75,43 @@ void EwdSite::WriteData(data& d) {
   d.fieldZ_ind = _field_induced[2];
 }
 
+void EwdSite::ReadData(const data& d) {
+  _id = d.id;
+  _rank = d.rank;
+  _position[0] = d.posX;
+  _position[1] = d.posY;
+  _position[2] = d.posZ;
+
+  _charge = d.charge;
+  _dipole_static[0] = d.dipX;
+  _dipole_static[1] = d.dipY;
+  _dipole_static[2] = d.dipZ;
+  _quadrupole(0, 1) = d.quadXX;
+  _quadrupole(0, 2) = d.quadXY;
+  _quadrupole(0, 3) = d.quadXZ;
+  _quadrupole(1, 1) = d.quadYY;
+  _quadrupole(1, 2) = d.quadYZ;
+  _quadrupole(2, 2) = d.quadZZ;
+
+  _dipole_induced[0] = d.d_x_ind;
+  _dipole_induced[1] = d.d_y_ind;
+  _dipole_induced[2] = d.d_z_ind;
+
+  _field_static[0] = d.fieldX_stat;
+  _field_induced[0] = d.fieldX_ind;
+  _field_static[1] = d.fieldY_stat;
+  _field_induced[1] = d.fieldY_ind;
+  _field_static[2] = d.fieldZ_stat;
+  _field_induced[2] = d.fieldZ_ind;
+}
+
 void EwdSite::SetupCptTable(CptTable& table) {
   table.addCol<Index>("index", HOFFSET(data, id));
   table.addCol<Index>("rank", HOFFSET(data, rank));
   table.addCol<double>("posX", HOFFSET(data, posX));
   table.addCol<double>("posY", HOFFSET(data, posY));
   table.addCol<double>("posZ", HOFFSET(data, posZ));
-  
+
   table.addCol<double>("charge", HOFFSET(data, charge));
   table.addCol<double>("dipX", HOFFSET(data, dipX));
   table.addCol<double>("dipY", HOFFSET(data, dipY));
@@ -103,7 +135,9 @@ void EwdSite::SetupCptTable(CptTable& table) {
   table.addCol<double>("fieldZ_ind", HOFFSET(data, fieldZ_ind));
 }
 
-void EwdSite::induceDirect() { _dipole_induced = -_polarization * _field_static; }
+void EwdSite::induceDirect() {
+  _dipole_induced = -_polarization * _field_static;
+}
 
 }  // namespace xtp
 }  // namespace votca
