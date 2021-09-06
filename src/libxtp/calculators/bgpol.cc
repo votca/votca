@@ -20,9 +20,9 @@
 #include "votca/xtp/topology.h"
 
 // Local private VOTCA includes
+#include "bgpol.h"
 #include "ewald/ewd_segment.h"
 #include "ewald/unitcell.h"
-#include "bgpol.h"
 
 namespace votca {
 namespace xtp {
@@ -70,7 +70,8 @@ bool BGPol::Evaluate(Topology& top) {
     _ewald_background.push_back(eseg);
   }
 
-  UnitCell unit_cell(top.getBox());
+  uc_matrix_ = top.getBox();
+  UnitCell unit_cell(uc_matrix_);
 
   // Place atoms in the simulation box
   for (EwdSegment& seg : _ewald_background) {
@@ -92,7 +93,9 @@ bool BGPol::Evaluate(Topology& top) {
   return true;
 }
 
-void BGPol::WriteToHdf5(std::string filename, std::vector<EwdSegment> background) const {
+void BGPol::WriteToHdf5(std::string filename,
+                        std::vector<EwdSegment> background) const {
+  // Write the polarization state including all segments
   CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
   CheckpointWriter a = cpf.getWriter();
   CheckpointWriter ww = a.openChild("polar_background");
@@ -101,6 +104,29 @@ void BGPol::WriteToHdf5(std::string filename, std::vector<EwdSegment> background
         ww.openChild("background_" + std::to_string(seg.getId()));
     seg.WriteToCpt(www);
   }
+
+  // Write the ewald options
+  CheckpointWriter w2 = a.openChild("ewald_options");
+  w2(ewd_options.alpha, "alpha");
+  w2(ewd_options.k_cutoff, "k_cutoff");
+  w2(ewd_options.r_cutoff, "r_cutoff");
+  w2(ewd_options.sharpness, "sharpness");
+  switch (ewd_options.shape) {
+    case Shape::cube:
+      w2(std::string("cube"), "shape");
+      break;
+    case Shape::xyslab:
+      w2(std::string("xyslab"), "shape");
+      break;
+    case Shape::sphere:
+      w2(std::string("sphere"), "shape");
+      break;
+    default:
+      throw std::runtime_error("Shape not recognized!");
+  }
+  // Write the unit cell info
+  CheckpointWriter w3 = a.openChild("unit_cell");
+  w3(uc_matrix_, "unit_cell_matrix");
 }
 
 }  // namespace xtp

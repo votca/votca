@@ -50,6 +50,7 @@ class BGPol final : public QMCalculator {
  std::string _mapfile;
  Logger _log;
  std::vector<PolarSegment> _polar_background;
+ Eigen::Matrix3d uc_matrix_;
 };
 
 }  // namespace xtp
