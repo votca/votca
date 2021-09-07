@@ -24,10 +24,10 @@
 
 #include "votca/tools/property.h"
 // Local VOTCA includes
-#include "votca/xtp/region.h"
+#include "ewd_segment.h"
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/logger.h"
-#include "ewd_segment.h"
+#include "votca/xtp/region.h"
 
 namespace votca {
 namespace xtp {
@@ -44,11 +44,7 @@ class EwaldBackground {
 
   void ApplyBackgroundFields(
       std::vector<std::unique_ptr<votca::xtp::Region>>& regions,
-      const tools::Property& regions_def) {
-    for(auto& site : background[0]){
-      std::cout << site << std::endl << std::endl;
-    }
-  }
+      const tools::Property& regions_def);
 
  private:
   void ImportBackgroundFromHdf5(std::string filename);

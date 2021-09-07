@@ -36,10 +36,13 @@ void EwaldBackground::ImportBackgroundFromHdf5(std::string filename){
     CheckpointReader rr = r.openChild("background_" + std::to_string(i));
     background.push_back(EwdSegment(rr));
   }
-
-  // for(const auto& site : background[0]){
-  //   std::cout << site << std::endl;
-  // }
 }
+
+
+void EwaldBackground::ApplyBackgroundFields(
+      std::vector<std::unique_ptr<votca::xtp::Region>>& regions,
+      const tools::Property& regions_def) {
+    std::cout << regions_def << std::endl;
+  }
 }
 }  // namespace votca
