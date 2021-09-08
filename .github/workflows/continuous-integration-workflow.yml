@@ -155,6 +155,8 @@ jobs:
       - name: Tests
         run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
         working-directory: builddir
+        env:
+          MKL_THREADING_LAYER: gnu
       - name: Doxygen
         if: ${{ ! matrix.module_build }}
         run: cmake --build builddir --target doxygen
