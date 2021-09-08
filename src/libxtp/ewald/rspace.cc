@@ -38,6 +38,34 @@ void RSpace::computeStaticField() {
   }
 }
 
+void RSpace::computeTotalField(
+    PolarSegment& seg, const std::vector<SegId> pCloud_indices) {
+  EwdSegment& currentSeg = _ewaldSegments[seg.getId()];
+  for (const Neighbour& neighbour : _nbList.getNeighboursOf(seg.getId())) {
+    if (neighbour.getShift() == Eigen::Vector3d::Zero() &&
+        (std::find(pCloud_indices.begin(), pCloud_indices.end(),
+                   neighbour.getId()) < pCloud_indices.end())) {
+      continue;  // we should not compute any ewald stuff for segments in the
+                 // polarization cloud
+    }
+    EwdSegment& nbSeg = _ewaldSegments[neighbour.getId()];
+    for (Index i = 0; i < currentSeg.size(); i++) {
+      // So this appears a bit weird, but we need the "ewald" representation
+      // to compute the total field at a site, but this field should be applied
+      // to the polarsite in the polarization cloud. Both sites are the same
+      // site, but they are just different representations. If you wonder why,
+      // we use spherical coordinates for the electrostatics in votca, but this
+      // ewald bit uses cartesian.
+      EwdSite& site = currentSeg[i];
+      PolarSite& siteWeNeedToUpdate = seg[i];
+      for (EwdSite& nbSite : nbSeg) {
+        siteWeNeedToUpdate.V() +=
+            totalFieldAtBy(site, nbSite, neighbour.getShift());
+      }
+    }
+  }
+}
+
 void RSpace::addInducedDipoleInteractionTo(Eigen::MatrixXd& result) {
   for (Index segId = 0; segId < Index(_ewaldSegments.size()); ++segId) {
     // The first part can be done in the same way as the static field ...
@@ -190,6 +218,28 @@ Eigen::Vector3d RSpace::staticFieldAtBy(EwdSite& site, const EwdSite& nbSite,
   if (rank > 0) {  // dipole
     field += nbSite.getStaticDipole() * rR3s;
     field += -rR5s * dr * dr.dot(nbSite.getStaticDipole());
+    if (rank > 1) {  // quadrupole
+      // Using that the trace of a quadrupole contributes nothing, we can skip
+      // that part
+      field += rR5s * 2 * nbSite.getQuadrupole() * dr;
+      field += -rR7s * dr * dr.dot(nbSite.getQuadrupole() * dr);
+    }
+  }
+  return field;
+}
+
+Eigen::Vector3d RSpace::totalFieldAtBy(EwdSite& site, const EwdSite& nbSite,
+                                       const Eigen::Vector3d shift) {
+  computeDistanceVariables(site.getPos() - (nbSite.getPos() + shift));
+  computeScreenedInteraction();
+
+  Eigen::Vector3d field = Eigen::Vector3d::Zero();
+  Index rank = nbSite.getRank();
+  // charge
+  field += -nbSite.getCharge() * dr * rR3s;
+  if (rank > 0) {  // dipole
+    field += nbSite.getTotalDipole() * rR3s;
+    field += -rR5s * dr * dr.dot(nbSite.getTotalDipole());
     if (rank > 1) {  // quadrupole
       // Using that the trace of a quadrupole contributes nothing, we can skip
       // that part

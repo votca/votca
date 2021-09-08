@@ -45,6 +45,7 @@ class KSpace {
 
   void computeStaticField();
   void computeShapeField();
+  void computeTotalField();
   void computeIntraMolecularCorrection();
 
   void addInducedDipoleInteractionTo(Eigen::MatrixXd& result);

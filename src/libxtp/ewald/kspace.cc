@@ -94,6 +94,10 @@ void KSpace::computeStaticField() {
   }
 }
 
+void KSpace::computeTotalField(){
+  
+}
+
 void KSpace::addInducedDipoleInteractionTo(Eigen::MatrixXd& result) {
   for (const KVector& kvec : _kvector_list) {
     Eigen::VectorXcd SkInteraction = getSkInteractionVector(kvec.getVector()).conjugate();

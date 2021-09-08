@@ -28,6 +28,7 @@
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/region.h"
+#include "votca/xtp/segid.h"
 
 namespace votca {
 namespace xtp {
@@ -44,10 +45,12 @@ class EwaldBackground {
 
   void ApplyBackgroundFields(
       std::vector<std::unique_ptr<votca::xtp::Region>>& regions,
-      const tools::Property& regions_def);
+      const std::vector<std::vector<SegId>>& region_seg_ids);
 
  private:
   void ImportBackgroundFromHdf5(std::string filename);
+
+  void bgFieldAtSegment(PolarSegment& seg, std::vector<SegId> pCloud_indices);
 
   std::vector<EwdSegment> background;
 };

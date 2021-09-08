@@ -22,14 +22,16 @@
 #define VOTCA_XTP_RSPACE_H
 
 #include <boost/math/constants/constants.hpp>
-#include <vector>
 #include <iomanip>
+#include <vector>
 
 // Local VOTCA includes
 #include "backgroundpolarizer.h"
 #include "ewd_nblist.h"
 #include "ewd_segment.h"
 #include "unitcell.h"
+#include "votca/xtp/classicalsegment.h"
+#include "votca/xtp/segid.h"
 
 namespace votca {
 namespace xtp {
@@ -66,7 +68,8 @@ class RSpace {
     XTP_LOG(Log::error, _log) << "Thole sharpness: " << thole << std::endl;
     XTP_LOG(Log::error, _log)
         << "Max R copies: [" << maxCopies[0] << ", " << maxCopies[1] << ", "
-        << maxCopies[2] << "]" << std::endl << std::endl;
+        << maxCopies[2] << "]" << std::endl
+        << std::endl;
 
     setupNeighbourList();
   };
@@ -78,6 +81,9 @@ class RSpace {
   void computeInducedField();
 
   void computeIntraMolecularField();
+
+  void computeTotalField(PolarSegment& seg,
+                                   const std::vector<SegId> pCloud_indices);
 
   void addInducedDipoleInteractionTo(Eigen::MatrixXd& result);
 
@@ -100,6 +106,10 @@ class RSpace {
       const Eigen::Vector3d shift = Eigen::Vector3d::Zero());
 
   Eigen::Vector3d inducedFieldAtBy(
+      EwdSite& site, const EwdSite& nbSite,
+      const Eigen::Vector3d shift = Eigen::Vector3d::Zero());
+
+  Eigen::Vector3d totalFieldAtBy(
       EwdSite& site, const EwdSite& nbSite,
       const Eigen::Vector3d shift = Eigen::Vector3d::Zero());
 

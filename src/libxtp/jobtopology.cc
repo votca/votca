@@ -138,12 +138,6 @@ void JobTopology::BuildRegions(
   std::vector<std::vector<SegId>> region_seg_ids =
       PartitionRegions(options.second, top);
 
-  for (const std::vector<SegId>& vec : region_seg_ids) {
-    for (const SegId& segID : vec) {
-      std::cout << segID.Id() << std::endl;
-    }
-  }
-
   // // around this point the whole jobtopology will be centered
   CreateRegions(options, top, region_seg_ids);
   XTP_LOG(Log::error, log_) << " Regions created" << std::flush;
@@ -223,7 +217,7 @@ void JobTopology::CreateRegions(
       region = std::move(staticregion);
     } else if (type == "ewaldregion") {
       ewaldBG.Initialize(region_def.get("path").as<std::string>());
-      ewaldBG.ApplyBackgroundFields(regions_, options.second);
+      ewaldBG.ApplyBackgroundFields(regions_, region_seg_ids);
       continue;
     } else {
       throw std::runtime_error("Region type not known!");
