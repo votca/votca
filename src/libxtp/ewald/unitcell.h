@@ -56,6 +56,8 @@ class UnitCell {
     centerOfBox = L1*0.5+L2*0.5+L3*0.5;
   }
 
+  UnitCell() : UnitCell(Eigen::Matrix3d::Identity()) {}
+
   ~UnitCell() = default;
 
   double getVolume() const { return cell_volume; }

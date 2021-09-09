@@ -46,6 +46,7 @@ void BGPol::ParseOptions(const tools::Property& options) {
   } else {
     throw std::runtime_error("Unknown shape in option file\n");
   }
+  output_file_name_ = options.get("output_file").as<std::string>();
 }
 
 bool BGPol::Evaluate(Topology& top) {
@@ -56,40 +57,19 @@ bool BGPol::Evaluate(Topology& top) {
   XTP_LOG(Log::error, _log) << std::endl;
 
   // Map multipole and polarization data to segments
+  std::vector<PolarSegment> polar_background;
   PolarMapper polmap(_log);
   polmap.LoadMappingFile(_mapfile);
   for (const Segment& seg : top.Segments()) {
     PolarSegment mol = polmap.map(seg, SegId(seg.getId(), "n"));
-    _polar_background.push_back(mol);
-  }
-
-  // Convert data to a cartesian representation
-  std::vector<EwdSegment> _ewald_background;
-  for (const PolarSegment& pseg : _polar_background) {
-    EwdSegment eseg(pseg);
-    _ewald_background.push_back(eseg);
-  }
-
-  uc_matrix_ = top.getBox();
-  UnitCell unit_cell(uc_matrix_);
-
-  // Place atoms in the simulation box
-  for (EwdSegment& seg : _ewald_background) {
-    for (EwdSite& site : seg) {
-      site.updatePos(unit_cell.placeCoordInBox(site.getPos()));
-    }
-    // Should be deleted when merged and after compare with ctp is done
-    seg.calcPos();
+    polar_background.push_back(mol);
   }
 
   // Polarize the neutral background
-  BackgroundPolarizer BgPol(_log, unit_cell, ewd_options);
-  BgPol.Polarize(_ewald_background);
-
-  // Write the result to an hdf5 file
-  std::string output_file_name = "background_polarization.hdf5";
-  WriteToHdf5(output_file_name, _ewald_background);
-
+  uc_matrix_ = top.getBox();
+  Background Bg(_log, top.getBox(), ewd_options, polar_background);
+  Bg.Polarize();
+  Bg.writeToStateFile(output_file_name_);
   return true;
 }
 

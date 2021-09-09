@@ -38,8 +38,8 @@ void RSpace::computeStaticField() {
   }
 }
 
-void RSpace::computeTotalField(
-    PolarSegment& seg, const std::vector<SegId> pCloud_indices) {
+void RSpace::computeTotalField(PolarSegment& seg,
+                               const std::vector<SegId> pCloud_indices) {
   EwdSegment& currentSeg = _ewaldSegments[seg.getId()];
   for (const Neighbour& neighbour : _nbList.getNeighboursOf(seg.getId())) {
     if (neighbour.getShift() == Eigen::Vector3d::Zero() &&
@@ -59,8 +59,8 @@ void RSpace::computeTotalField(
       EwdSite& site = currentSeg[i];
       PolarSite& siteWeNeedToUpdate = seg[i];
       for (EwdSite& nbSite : nbSeg) {
-        siteWeNeedToUpdate.V() +=
-            totalFieldAtBy(site, nbSite, neighbour.getShift());
+        siteWeNeedToUpdate.addToBackgroundField(
+            totalFieldAtBy(site, nbSite, neighbour.getShift()));
       }
     }
   }

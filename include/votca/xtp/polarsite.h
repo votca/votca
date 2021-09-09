@@ -54,6 +54,11 @@ class PolarSite final : public StaticSite {
     V_ += V_background;
   }
 
+  void addToBackgroundField(Eigen::Vector3d backgroundField){
+    V_background += backgroundField;
+    V_ += V_background;
+  }
+
   Eigen::Matrix3d getpolarization() const { return pinv_.inverse(); }
 
   const Eigen::Matrix3d& getPInv() const { return pinv_; }

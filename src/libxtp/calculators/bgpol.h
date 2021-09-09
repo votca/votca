@@ -22,10 +22,10 @@
 #define VOTCA_XTP_BGPOL_H
 
 // Local VOTCA includes
-#include "votca/xtp/qmcalculator.h"
-#include "votca/xtp/logger.h"
+#include "ewald/background.h"
 #include "votca/xtp/classicalsegment.h"
-#include "ewald/backgroundpolarizer.h"
+#include "votca/xtp/logger.h"
+#include "votca/xtp/qmcalculator.h"
 
 namespace votca {
 namespace xtp {
@@ -39,18 +39,19 @@ class BGPol final : public QMCalculator {
 
   bool WriteToStateFile() const { return true; }
 
-  void WriteToHdf5(std::string filename, std::vector<EwdSegment> background) const;
+  void WriteToHdf5(std::string filename,
+                   std::vector<EwdSegment> background) const;
 
  protected:
   void ParseOptions(const tools::Property &user_options);
   bool Evaluate(Topology &top);
 
  private:
- EwaldOptions ewd_options;
- std::string _mapfile;
- Logger _log;
- std::vector<PolarSegment> _polar_background;
- Eigen::Matrix3d uc_matrix_;
+  Logger _log;
+  EwaldOptions ewd_options;
+  std::string _mapfile;
+  std::string output_file_name_;
+  Eigen::Matrix3d uc_matrix_;
 };
 
 }  // namespace xtp
