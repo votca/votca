@@ -46,7 +46,7 @@ void BGPol::ParseOptions(const tools::Property& options) {
   } else {
     throw std::runtime_error("Unknown shape in option file\n");
   }
-  output_file_name_ = options.get("output_file").as<std::string>();
+  output_file_name_ = options.get("output_file").as<std::string>() + ".hdf5";
 }
 
 bool BGPol::Evaluate(Topology& top) {
@@ -72,42 +72,6 @@ bool BGPol::Evaluate(Topology& top) {
   Bg.writeToStateFile(output_file_name_);
   return true;
 }
-
-// void BGPol::WriteToHdf5(std::string filename,
-//                         std::vector<EwdSegment> background) const {
-//   // Write the polarization state including all segments
-//   CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
-//   CheckpointWriter a = cpf.getWriter();
-//   CheckpointWriter ww = a.openChild("polar_background");
-//   for (EwdSegment& seg : background) {
-//     CheckpointWriter www =
-//         ww.openChild("background_" + std::to_string(seg.getId()));
-//     seg.WriteToCpt(www);
-//   }
-
-//   // Write the ewald options
-//   CheckpointWriter w2 = a.openChild("ewald_options");
-//   w2(ewd_options.alpha, "alpha");
-//   w2(ewd_options.k_cutoff, "k_cutoff");
-//   w2(ewd_options.r_cutoff, "r_cutoff");
-//   w2(ewd_options.sharpness, "sharpness");
-//   switch (ewd_options.shape) {
-//     case Shape::cube:
-//       w2(std::string("cube"), "shape");
-//       break;
-//     case Shape::xyslab:
-//       w2(std::string("xyslab"), "shape");
-//       break;
-//     case Shape::sphere:
-//       w2(std::string("sphere"), "shape");
-//       break;
-//     default:
-//       throw std::runtime_error("Shape not recognized!");
-//   }
-//   // Write the unit cell info
-//   CheckpointWriter w3 = a.openChild("unit_cell");
-//   w3(uc_matrix_, "unit_cell_matrix");
-// }
 
 }  // namespace xtp
 

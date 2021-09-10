@@ -159,8 +159,40 @@ void Background::Polarize() {
   // TODO: Write the results x back to the ewald sites
 }
 
+void Background::writeToStateFile(std::string& state_file){
+  // Write the polarization state including all segments
+  CheckpointFile cpf(state_file, CheckpointAccessLevel::CREATE);
+  CheckpointWriter a = cpf.getWriter();
+  CheckpointWriter ww = a.openChild("polar_background");
+  for (EwdSegment& seg : ewald_background_) {
+    CheckpointWriter www =
+        ww.openChild("background_" + std::to_string(seg.getId()));
+    seg.WriteToCpt(www);
+  }
 
-
+  // Write the ewald options
+  CheckpointWriter w2 = a.openChild("ewald_options");
+  w2(options_.alpha, "alpha");
+  w2(options_.k_cutoff, "k_cutoff");
+  w2(options_.r_cutoff, "r_cutoff");
+  w2(options_.sharpness, "sharpness");
+  switch (options_.shape) {
+    case Shape::cube:
+      w2(std::string("cube"), "shape");
+      break;
+    case Shape::xyslab:
+      w2(std::string("xyslab"), "shape");
+      break;
+    case Shape::sphere:
+      w2(std::string("sphere"), "shape");
+      break;
+    default:
+      throw std::runtime_error("Shape not recognized!");
+  }
+  // Write the unit cell info
+  CheckpointWriter w3 = a.openChild("unit_cell");
+  w3(unit_cell_.getMatrix(), "unit_cell_matrix");
+}
 
 Index Background::computeSystemSize(
     std::vector<EwdSegment>& segments) const {

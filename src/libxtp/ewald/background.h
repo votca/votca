@@ -49,7 +49,7 @@ class Background {
 
   void Polarize();
 
-  void writeToStateFile(std::string& state_file) { ; }
+  void writeToStateFile(std::string& state_file);
 
   void readFromStateFile(std::string& state_file) { ; }
 

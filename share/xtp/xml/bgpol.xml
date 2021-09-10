@@ -7,5 +7,6 @@
     <thole_sharpness help="ewald splitting param" units="dim less" default="0.390"/>
     <shape help="shape for the ewald shape correction" choices="xyslab,cube,sphere" default="cube"/>
     <mapfile help="path to mapping file">xtpmap.xml</mapfile>
+    <output_file>background_polarization</output_file>
   </bgpol>
 </options>
