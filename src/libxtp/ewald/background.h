@@ -31,19 +31,10 @@
 #include "unitcell.h"
 #include "kspace.h"
 #include "rspace.h"
+#include "ewaldoptions.h"
 
 namespace votca {
 namespace xtp {
-
-enum class Shape { xyslab, cube, sphere };
-
-struct EwaldOptions {
-  double k_cutoff;
-  double r_cutoff;
-  double alpha;
-  double sharpness;
-  Shape shape;
-};
 
 class Background {
  public:
@@ -71,8 +62,6 @@ class Background {
   EwaldOptions options_;
   std::vector<EwdSegment> ewald_background_;
 
-  RSpace rspace;
-  KSpace kspace;
 };
 }  // namespace xtp
 }  // namespace votca

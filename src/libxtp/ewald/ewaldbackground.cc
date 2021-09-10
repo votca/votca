@@ -67,8 +67,7 @@ void EwaldBackground::ApplyBackgroundFields(
 
 }
 
-void EwaldBackground::bgFieldAtSegment(PolarSegment& seg, std::vector<SegId> pCloud_indices){
-rspace.
+void EwaldBackground::bgFieldAtSegment(PolarSegment& seg, std::vector<SegId> pCloud_indices){ ; 
 }
 
 }  // namespace xtp

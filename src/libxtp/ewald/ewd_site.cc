@@ -21,7 +21,7 @@
 #include "votca/xtp/topology.h"
 
 // Local private VOTCA includes
-#include "backgroundpolarizer.h"
+#include "background.h"
 #include "ewd_site.h"
 #include "unitcell.h"
 

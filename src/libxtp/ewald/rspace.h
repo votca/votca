@@ -26,16 +26,16 @@
 #include <vector>
 
 // Local VOTCA includes
-#include "backgroundpolarizer.h"
+#include "background.h"
 #include "ewd_nblist.h"
 #include "ewd_segment.h"
+#include "ewaldoptions.h"
 #include "unitcell.h"
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/segid.h"
 
 namespace votca {
 namespace xtp {
-
 class RSpace {
  public:
   RSpace(const EwaldOptions& options, const UnitCell& unitcell,

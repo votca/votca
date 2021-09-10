@@ -42,20 +42,24 @@ void RSpace::computeTotalField(PolarSegment& seg,
                                const std::vector<SegId> pCloud_indices) {
   EwdSegment& currentSeg = _ewaldSegments[seg.getId()];
   for (const Neighbour& neighbour : _nbList.getNeighboursOf(seg.getId())) {
-    if (neighbour.getShift() == Eigen::Vector3d::Zero() &&
-        (std::find(pCloud_indices.begin(), pCloud_indices.end(),
-                   neighbour.getId()) < pCloud_indices.end())) {
-      continue;  // we should not compute any ewald stuff for segments in the
-                 // polarization cloud
+    if (neighbour.getShift() == Eigen::Vector3d::Zero()) {
+      bool neighbourInPCloud =
+          std::find_if(pCloud_indices.begin(), pCloud_indices.end(), [&neighbour](SegId x) { return x.Id() == neighbour.getId();}) <
+          pCloud_indices.end();
+      if (neighbourInPCloud) {
+        continue;  // we should not compute any ewald stuff for segments in the
+                   // polarization cloud
+      }
     }
+
     EwdSegment& nbSeg = _ewaldSegments[neighbour.getId()];
     for (Index i = 0; i < currentSeg.size(); i++) {
       // So this appears a bit weird, but we need the "ewald" representation
-      // to compute the total field at a site, but this field should be applied
-      // to the polarsite in the polarization cloud. Both sites are the same
-      // site, but they are just different representations. If you wonder why,
-      // we use spherical coordinates for the electrostatics in votca, but this
-      // ewald bit uses cartesian.
+      // to compute the total field at a site, but this field should be
+      // applied to the polarsite in the polarization cloud. Both sites are
+      // the same site, but they are just different representations. If you
+      // wonder why, we use spherical coordinates for the electrostatics in
+      // votca, but this ewald bit uses cartesian.
       EwdSite& site = currentSeg[i];
       PolarSite& siteWeNeedToUpdate = seg[i];
       for (EwdSite& nbSite : nbSeg) {

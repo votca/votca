@@ -28,9 +28,10 @@
 
 // Local VOTCA includes
 
-#include "backgroundpolarizer.h"
+#include "background.h"
 #include "ewd_segment.h"
 #include "unitcell.h"
+#include "ewaldoptions.h"
 
 namespace votca {
 namespace xtp {
