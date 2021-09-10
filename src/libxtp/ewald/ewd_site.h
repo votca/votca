@@ -74,6 +74,8 @@ class EwdSite {
 
   const Eigen::Vector3d getInducedDipole() const { return _dipole_induced; }
 
+  void setInducedDipole(Eigen::Vector3d dip) {_dipole_induced = dip;}
+
   double getCharge() const { return _charge; }
 
   const Eigen::Matrix3d& getQuadrupole() const { return _quadrupole; }

@@ -156,7 +156,14 @@ void Background::Polarize() {
       << "Done solving, elapsed time: " << timer.elapsedTimeAsString()
       << std::endl;
 
-  // TODO: Write the results x back to the ewald sites
+  // Copy paste the solution back in to the sites
+  index = 0;
+  for (auto& seg : ewald_background_) {
+    for (auto& site : seg) {
+      site.setInducedDipole(x.segment<3>(index));
+      index += 3;
+    }
+  }
 }
 
 void Background::writeToStateFile(std::string& state_file){
