@@ -27,11 +27,9 @@
 #include <vector>
 
 // Local VOTCA includes
-
-#include "background.h"
+#include "ewaldoptions.h"
 #include "ewd_segment.h"
 #include "unitcell.h"
-#include "ewaldoptions.h"
 
 namespace votca {
 namespace xtp {
@@ -40,9 +38,21 @@ class KVector;
 
 class KSpace {
  public:
-  KSpace(const EwaldOptions& options, const UnitCell& unitcell,
-         std::vector<EwdSegment>& ewaldSegments, Logger& log);
+  KSpace(const EwaldOptions& options, const UnitCell& unitcell, Logger& log);
   ~KSpace() = default;
+
+  void Initialize(std::vector<EwdSegment>& segments) {
+    _ewaldSegments = segments;
+
+    systemSize = 0;
+    for (const auto& seg : _ewaldSegments) {
+      segmentOffSet.push_back(systemSize);
+      systemSize += 3 * seg.size();
+    }
+
+    // precompute the K-Vectors
+    computeKVectors();
+  }
 
   void computeStaticField();
   void computeShapeField();
@@ -77,7 +87,7 @@ class KSpace {
   double l3, l5, l7, l9;
   double thole, thole2, thole3, thole_u3;
   UnitCell _unit_cell;
-  std::vector<EwdSegment>& _ewaldSegments;
+  std::vector<EwdSegment> _ewaldSegments;
   std::vector<KVector> _kvector_list;
   double fourPiVolume;
   double cutoff, cutoff2;

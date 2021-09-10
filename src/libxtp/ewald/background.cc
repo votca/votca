@@ -29,7 +29,7 @@ namespace xtp {
 Background::Background(Logger& log, const Eigen::Matrix3d& uc_matrix,
                        const EwaldOptions options,
                        std::vector<PolarSegment>& polar_background)
-    : log_(log), unit_cell_(uc_matrix), options_(options) {
+    : log_(log), unit_cell_(uc_matrix), options_(options), rspace(options, unit_cell_, log), kspace(options, unit_cell_, log) {
   // Convert site data to a cartesian representation
   for (const PolarSegment& pseg : polar_background) {
     EwdSegment eseg(pseg);
@@ -43,6 +43,8 @@ Background::Background(Logger& log, const Eigen::Matrix3d& uc_matrix,
     // Should be deleted when merged and after compare with ctp is done
     seg.calcPos();
   }
+  rspace.Initialize(ewald_background_);
+  kspace.Initialize(ewald_background_);
 }
 
 void Background::Polarize() {
@@ -50,11 +52,6 @@ void Background::Polarize() {
   TicToc timer;
 
   Index systemSize = computeSystemSize(ewald_background_);
-
-  XTP_LOG(Log::error, log_) << unit_cell_ << std::endl;
-  XTP_LOG(Log::error, log_) << "Setup real and reciprocal space" << std::endl;
-  RSpace rspace(options_, unit_cell_, ewald_background_, log_);
-  KSpace kspace(options_, unit_cell_, ewald_background_, log_);
 
   XTP_LOG(Log::error, log_)
       << "Compute real space permanent fields" << std::endl;
@@ -166,7 +163,7 @@ void Background::Polarize() {
   }
 }
 
-void Background::writeToStateFile(std::string& state_file){
+void Background::writeToStateFile(std::string& state_file) {
   // Write the polarization state including all segments
   CheckpointFile cpf(state_file, CheckpointAccessLevel::CREATE);
   CheckpointWriter a = cpf.getWriter();
@@ -201,8 +198,7 @@ void Background::writeToStateFile(std::string& state_file){
   w3(unit_cell_.getMatrix(), "unit_cell_matrix");
 }
 
-Index Background::computeSystemSize(
-    std::vector<EwdSegment>& segments) const {
+Index Background::computeSystemSize(std::vector<EwdSegment>& segments) const {
   Index systemSize = 0;
   for (const auto& seg : segments) {
     systemSize += 3 * seg.size();

@@ -27,11 +27,8 @@ namespace votca {
 namespace xtp {
 
 KSpace::KSpace(const EwaldOptions& options, const UnitCell& unitcell,
-               std::vector<EwdSegment>& ewaldSegments, Logger& log)
-    : options(options),
-      _unit_cell(unitcell),
-      _ewaldSegments(ewaldSegments),
-      _log(log) {
+               Logger& log)
+    : options(options), _unit_cell(unitcell), _log(log) {
   a1 = options.alpha;
   a2 = a1 * a1;
   a3 = a1 * a2;
@@ -70,7 +67,7 @@ KSpace::KSpace(const EwaldOptions& options, const UnitCell& unitcell,
                             << std::endl;
 
   systemSize = 0;
-  for (const auto& seg : ewaldSegments) {
+  for (const auto& seg : _ewaldSegments) {
     segmentOffSet.push_back(systemSize);
     systemSize += 3 * seg.size();
   }
@@ -94,19 +91,19 @@ void KSpace::computeStaticField() {
   }
 }
 
-void KSpace::computeTotalField(){
-  
-}
+void KSpace::computeTotalField() {}
 
 void KSpace::addInducedDipoleInteractionTo(Eigen::MatrixXd& result) {
   for (const KVector& kvec : _kvector_list) {
-    Eigen::VectorXcd SkInteraction = getSkInteractionVector(kvec.getVector()).conjugate();
+    Eigen::VectorXcd SkInteraction =
+        getSkInteractionVector(kvec.getVector()).conjugate();
     for (Index i = 0; i < Index(_ewaldSegments.size()); ++i) {
       EwdSegment& seg = _ewaldSegments[i];
       Index startRow = segmentOffSet[i];
       for (EwdSite& site : seg) {
         double kPosDot = kvec.getVector().dot(site.getPos());
-        Eigen::VectorXd realPart = (std::exp(ii * kPosDot)  * SkInteraction).imag();
+        Eigen::VectorXd realPart =
+            (std::exp(ii * kPosDot) * SkInteraction).imag();
         result.row(startRow + 0) +=
             -fourPiVolume * kvec.getVector()[0] * kvec.getAk() * realPart;
         result.row(startRow + 1) +=
@@ -129,8 +126,7 @@ Eigen::VectorXcd KSpace::getSkInteractionVector(
     Index offset = segmentOffSet[segId];
     Index siteCounter = 0;
     for (const EwdSite& site : currentSeg) {
-      std::complex<double> expKR =
-          std::exp(ii * kvector.dot(site.getPos()));
+      std::complex<double> expKR = std::exp(ii * kvector.dot(site.getPos()));
       result.segment<3>(offset + siteCounter) += expKR * ii * kvector;
       siteCounter += 3;
     }
@@ -269,9 +265,9 @@ Eigen::Matrix3d KSpace::inducedDipoleInteractionAtBy(EwdSite& site,
   computeTholeVariables(site.getPolarizationMatrix(),
                         nbSite.getPolarizationMatrix());
   Eigen::Matrix3d interaction = Eigen::Matrix3d::Zero();
-  if (R1 < 1e-4) { // if the same atom, add a correction term
+  if (R1 < 1e-4) {  // if the same atom, add a correction term
     interaction.diagonal().array() += 4. / 3. * a3 * rSqrtPi;
-  } else { // if not the same atom, add the actual interaction
+  } else {  // if not the same atom, add the actual interaction
     interaction.diagonal().array() += l3 * rR3s;
     interaction -= dr * dr.transpose() * l5 * rR5s;
   }

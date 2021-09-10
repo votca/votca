@@ -26,10 +26,9 @@
 #include <vector>
 
 // Local VOTCA includes
-#include "background.h"
+#include "ewaldoptions.h"
 #include "ewd_nblist.h"
 #include "ewd_segment.h"
-#include "ewaldoptions.h"
 #include "unitcell.h"
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/segid.h"
@@ -38,9 +37,8 @@ namespace votca {
 namespace xtp {
 class RSpace {
  public:
-  RSpace(const EwaldOptions& options, const UnitCell& unitcell,
-         std::vector<EwdSegment>& ewaldSegments, Logger& log)
-      : _unit_cell(unitcell), _ewaldSegments(ewaldSegments), _log(log) {
+  RSpace(const EwaldOptions& options, const UnitCell& unitcell, Logger& log)
+      : _unit_cell(unitcell), _log(log) {
     cutoff = options.r_cutoff;
     a1 = options.alpha;
     a2 = a1 * a1;
@@ -50,12 +48,6 @@ class RSpace {
     thole = options.sharpness;
     thole2 = thole * thole;
     thole3 = thole * thole2;
-
-    systemSize = 0;
-    for (const auto& seg : ewaldSegments) {
-      segmentOffSet.push_back(systemSize);
-      systemSize += 3 * seg.size();
-    }
 
     maxCopies = _unit_cell.getNrOfRealSpaceCopiesForCutOff(cutoff);
 
@@ -70,9 +62,18 @@ class RSpace {
         << "Max R copies: [" << maxCopies[0] << ", " << maxCopies[1] << ", "
         << maxCopies[2] << "]" << std::endl
         << std::endl;
+  }
 
+  void Initialize(std::vector<EwdSegment>& segments) {
+    _ewaldSegments = segments;
+
+    systemSize = 0;
+    for (const auto& seg : _ewaldSegments) {
+      segmentOffSet.push_back(systemSize);
+      systemSize += 3 * seg.size();
+    }
     setupNeighbourList();
-  };
+  }
 
   ~RSpace() = default;
 
@@ -83,7 +84,7 @@ class RSpace {
   void computeIntraMolecularField();
 
   void computeTotalField(PolarSegment& seg,
-                                   const std::vector<SegId> pCloud_indices);
+                         const std::vector<SegId> pCloud_indices);
 
   void addInducedDipoleInteractionTo(Eigen::MatrixXd& result);
 
@@ -125,7 +126,7 @@ class RSpace {
   double thole, thole2, thole3, thole_u3;
   UnitCell _unit_cell;
   Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-  std::vector<EwdSegment>& _ewaldSegments;
+  std::vector<EwdSegment> _ewaldSegments;
   EwdNbList _nbList;
   double rR1, rR2;  // reciprocal (i.e. 1.0/ ...) distance and powers
   double R1, R2;    // distance and powers

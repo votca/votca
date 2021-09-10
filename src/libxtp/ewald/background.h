@@ -27,23 +27,24 @@
 #include "votca/xtp/logger.h"
 
 // Private VOTCA includes
-#include "ewd_segment.h"
-#include "unitcell.h"
 #include "kspace.h"
 #include "rspace.h"
 #include "ewaldoptions.h"
+#include "ewd_segment.h"
+#include "unitcell.h"
 
 namespace votca {
 namespace xtp {
 
 class Background {
  public:
-  Background(Logger& log, const Eigen::Matrix3d& uc_matrix, const EwaldOptions options,
+  Background(Logger& log, const Eigen::Matrix3d& uc_matrix,
+             const EwaldOptions options,
              std::vector<PolarSegment>& polar_background);
 
-  Background(Logger& log, std::string& state_file) : log_(log) {
-    readFromStateFile(state_file);
-  }
+  // Background(Logger& log, std::string& state_file) : log_(log) {
+  //   readFromStateFile(state_file);
+  // }
 
   ~Background() = default;
 
@@ -61,7 +62,8 @@ class Background {
   UnitCell unit_cell_;
   EwaldOptions options_;
   std::vector<EwdSegment> ewald_background_;
-
+  RSpace rspace;
+  KSpace kspace;
 };
 }  // namespace xtp
 }  // namespace votca
