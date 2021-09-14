@@ -89,6 +89,11 @@ else()
 endif()
 find_package(MKL)
 set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with MKL")
+option(REQUIRE_MKL "Require MKL" OFF)
+if(REQUIRE_MKL)
+  find_package(MKL REQUIRED)
+endif()
+
 
 #openmp with clang smaller version 10 and user defined reductions is buggy https://bugs.llvm.org/show_bug.cgi?id=44134
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)
