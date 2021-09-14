@@ -140,11 +140,6 @@ jobs:
           cmake_build_type: ${{ matrix.cmake_build_type }}
           ctest_args: ${{ matrix.ctest_args }}
           cmake_args: ${{ matrix.cmake_args }}
-          #- uses: actions/cache@v2
-          #  with:
-          #    path: ~/.ccache
-          #    key: ${{ steps.setup.outputs.cache_key }}
-          #    restore-keys: ${{ steps.setup.outputs.cache_restore_key }}
       - name: CMake
         run: cmake -B builddir ${{ steps.setup.outputs.cmake_args }} .
       - name: Build
