@@ -38,6 +38,8 @@ class MMRegion : public Region {
   MMRegion(Index id, Logger& log) : Region(id, log){};
   void WriteToCpt(CheckpointWriter& w) const override;
 
+  using SegmentType = T;
+
   void ReadFromCpt(CheckpointReader& r) override;
 
   Index size() const override { return Index(segments_.size()); }
