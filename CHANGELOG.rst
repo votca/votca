@@ -50,6 +50,7 @@ Version 2022-dev
 -  turned sigma choice into a factory (#731)
 -  use middleRows-Cols and refactor numerical integration (#732)
 -  increase performance of numerical integration (#733)
+-  upgrade xtp to cxx17 (#737)
 
 Version 2021.2 (released XX.07.21)
 ==================================
