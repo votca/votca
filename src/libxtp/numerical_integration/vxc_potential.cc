@@ -159,6 +159,8 @@ template <class Grid>
 Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
     const Eigen::MatrixXd& density_matrix) const {
 
+  assert(density_matrix.isApprox(density_matrix.transpose()) &&
+         "Density matrix has to be symmetric!");
   Mat_p_Energy vxc = Mat_p_Energy(density_matrix.rows(), density_matrix.cols());
 
 #pragma omp parallel for schedule(guided) reduction(+ : vxc)
@@ -168,8 +170,8 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
       continue;
     }
     double EXC_box = 0.0;
-    const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
-    const Eigen::MatrixXd DMAT_symm = DMAT_here + DMAT_here.transpose();
+    // two because we have to use the density matrix and its transpose
+    const Eigen::MatrixXd DMAT_here = 2 * box.ReadFromBigMatrix(density_matrix);
     double cutoff =
         1.e-40 / double(density_matrix.rows()) / double(density_matrix.rows());
     if (DMAT_here.cwiseAbs2().maxCoeff() < cutoff) {
@@ -183,20 +185,21 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
       AOShell::AOValues ao = box.CalcAOValues(points[p]);
-      const double rho = 0.5 * ao.values.dot(DMAT_symm * ao.values);
+      Eigen::VectorXd temp = ao.values.transpose() * DMAT_here;
+      double rho = 0.5 * temp.dot(ao.values);
       const double weight = weights[p];
       if (rho * weight < 1.e-20) {
         continue;  // skip the rest, if density is very small
       }
-      const Eigen::Vector3d rho_grad =
-          ao.values.transpose() * DMAT_symm * ao.derivatives;
-      const double sigma = (rho_grad.transpose() * rho_grad).value();
-      const Eigen::VectorXd grad = ao.derivatives * rho_grad;
-      typename Vxc_Potential<Grid>::XC_entry xc = EvaluateXC(rho, sigma);
+      const Eigen::Vector3d rho_grad = temp.transpose() * ao.derivatives;
+
+      typename Vxc_Potential<Grid>::XC_entry xc =
+          EvaluateXC(rho, rho_grad.squaredNorm());
       EXC_box += weight * rho * xc.f_xc;
-      auto addXC =
+      auto grad = ao.derivatives * rho_grad;
+      temp.noalias() =
           weight * (0.5 * xc.df_drho * ao.values + 2.0 * xc.df_dsigma * grad);
-      Vxc_here.noalias() += addXC * ao.values.transpose();
+      Vxc_here.noalias() += temp * ao.values.transpose();
     }
     box.AddtoBigMatrix(vxc.matrix(), Vxc_here);
     vxc.energy() += EXC_box;

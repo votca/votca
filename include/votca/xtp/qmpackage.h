@@ -59,10 +59,8 @@ class QMPackage {
   template <class MMRegion>
   void AddRegion(const MMRegion& mmregion) {
 
-    using Segmenttype =
-        typename std::iterator_traits<typename MMRegion::iterator>::value_type;
-    using Sitetype = typename std::iterator_traits<
-        typename Segmenttype::iterator>::value_type;
+    using Segmenttype = typename MMRegion::SegmentType;
+    using Sitetype = typename Segmenttype::Atom_Type;
     for (const Segmenttype& segment : mmregion) {
       for (const Sitetype& site : segment) {
         externalsites_.push_back(std::make_unique<Sitetype>(site));

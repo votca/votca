@@ -51,8 +51,7 @@ class ParallelXJobCalc : public JobCalculator {
 
  public:
   class JobOperator;
-  using Job = typename std::iterator_traits<
-      typename JobContainer::iterator>::value_type;
+  using Job = typename JobContainer::value_type;
   using Result = typename Job::JobResult;
 
   ParallelXJobCalc() = default;
