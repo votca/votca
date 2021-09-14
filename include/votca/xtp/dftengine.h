@@ -29,10 +29,10 @@
 #include "convergenceacc.h"
 #include "ecpaobasis.h"
 #include "logger.h"
+#include "qmmolecule.h"
 #include "staticsite.h"
 #include "vxc_grid.h"
 #include "vxc_potential.h"
-
 namespace votca {
 namespace xtp {
 class Orbitals;
@@ -57,6 +57,8 @@ class DFTEngine {
   }
 
   bool Evaluate(Orbitals& orb);
+
+  bool EvaluateActiveRegion(Orbitals& orb);
 
   std::string getDFTBasisName() const { return dftbasis_name_; };
 
@@ -148,6 +150,9 @@ class DFTEngine {
 
   Eigen::Vector3d extfield_ = Eigen::Vector3d::Zero();
   bool integrate_ext_field_ = false;
+
+  std::string active_atoms_as_string;
+
 };
 
 }  // namespace xtp

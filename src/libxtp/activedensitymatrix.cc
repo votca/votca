@@ -64,8 +64,10 @@ std::array<Eigen::MatrixXd, 2> ActiveDensityMatrix::activedensitymatrix(
     }
   }
   std::array<Eigen::MatrixXd, 2> result;
-  result[0] = active_mo_coeff * active_mo_coeff.transpose();
+  std::cout << active_mo_coeff.cols() << std::endl;
+  result[0] = 2 * active_mo_coeff * active_mo_coeff.transpose();
   result[1] = localized_mo_coeff;
+  std::cout << "No. of electrons: " << result[0].cwiseProduct(overlap.Matrix()).sum();
   return result;
 }
 }  // namespace xtp

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2021 The VOTCA Development Team
+ *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,40 +16,40 @@
  * limitations under the License.
  *
  */
-#pragma once
-#ifndef VOTCA_XTP_DECOMP_H
-#define VOTCA_XTP_DECOMP_H
 
-// VOTCA includes
-#include <votca/tools/constants.h>
+#pragma once
+#ifndef VOTCA_XTP_QMINQM_H
+#define VOTCA_XTP_QMINQM_H
+
+// Standard includes
+#include <cstdio>
 
 // Local VOTCA includes
 #include "votca/xtp/logger.h"
-#include "votca/xtp/orbitals.h"
 #include "votca/xtp/qmtool.h"
 
 namespace votca {
 namespace xtp {
 
-class Decomp final : public QMTool {
+class QMinQM final : public QMTool {
  public:
-  Decomp() = default;
+  QMinQM() = default;
 
-  ~Decomp() = default;
+  ~QMinQM() = default;
 
-  std::string Identify() const { return "decomp"; }
-
- private:
-  Orbitals orbitals;
-  Logger log;
-  std::vector<Index> activeatoms;
+  std::string Identify() const { return "qminqm"; }
 
  protected:
-  void ParseOptions(const tools::Property& options);
+  void ParseOptions(const tools::Property &user_options);
   bool Run();
+
+ private:
+  std::string archive_file_;  // .orb file to parse to
+  tools::Property options_;
+  Logger log_;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_ORB2FCHK_H
+#endif  // VOTCA_XTP_DFTGWBSE_H

@@ -62,7 +62,6 @@ BOOST_AUTO_TEST_CASE(activematrix_test) {
 
   Eigen::MatrixXd test_DmatA = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/activedensitymatrix/ch3oh.mm");
-
   bool checkDmatA = DmatA.isApprox(test_DmatA, 2e-6);
   BOOST_CHECK_EQUAL(checkDmatA, 1);
 

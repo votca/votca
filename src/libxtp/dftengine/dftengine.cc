@@ -28,6 +28,8 @@
 
 // Local VOTCA includes
 #include "votca/xtp/IncrementalFockBuilder.h"
+#include "votca/xtp/IndexParser.h"
+#include "votca/xtp/activedensitymatrix.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/density_integration.h"
@@ -37,7 +39,6 @@
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/pmdecomposition.h"
-#include "votca/xtp/activedensitymatrix.h"
 
 namespace votca {
 namespace xtp {
@@ -112,6 +113,10 @@ void DFTEngine::Initialize(tools::Property& options) {
       options.get(key_xtpdft + ".convergence.DIIS_start").as<double>();
   conv_opt_.adiis_start =
       options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
+  if (options.exists(".activeatoms")) {
+    active_atoms_as_string = options.get("activeatoms").as<std::string>();
+    std::cout << active_atoms_as_string << std::endl;
+  }
 }
 
 void DFTEngine::PrintMOs(const Eigen::VectorXd& MOEnergies, Log::Level level) {
@@ -248,7 +253,6 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     XTP_LOG(Log::error, *pLog_) << std::flush;
     XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Iteration " << this_iter + 1
                                 << " of " << max_iter_ << std::flush;
-
     Mat_p_Energy e_vxc = vxcpotential.IntegrateVXC(Dmat);
     XTP_LOG(Log::info, *pLog_)
         << TimeStamp() << " Filled DFT Vxc matrix " << std::flush;
@@ -350,157 +354,211 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
   return true;
 }
 
-if (bool True) {  // user has selected true
-  bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
-    tools::EigenSystem MOs2;
-    MOs2.eigenvalues() = MOs.eigenvalues();
-    MOs2.eigenvectors() = MOs.eigenvectors();
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp() << " Passing localized orbitals as the initial guess"
-        << flush;
+bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
+  Prepare(orb.QMAtoms());
+  // setup orbitals after DFT
+  tools::EigenSystem MOs2;
+  MOs2.eigenvalues() = orb.MOs().eigenvalues();
+  MOs2.eigenvectors() = orb.MOs().eigenvectors();
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Passing localized orbitals as the initial guess"
+      << std::endl;
+  Eigen::MatrixXd LMOs = orb.getPMLocalizedOrbital();
+  MOs2.eigenvectors().leftCols(orb.getNumberOfAlphaElectrons()) = LMOs;
+  std::vector<Index> activeatoms =
+      IndexParser().CreateIndexVector(active_atoms_as_string);
+  ActiveDensityMatrix DMAT_A(orb, activeatoms);
+  std::array<Eigen::MatrixXd, 2> TotalDmat = DMAT_A.compute_Dmat_A();
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Active density formation done" << std::endl;
+  Eigen::MatrixXd Dmat = orb.DensityMatrixGroundState();
+  Eigen::MatrixXd Dmat_A = TotalDmat[0];
+  Eigen::MatrixXd Dmat_B = Dmat - Dmat_A;
+  // setup initial parameters after DFT
+  Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
+  AOBasis aobasis = orb.SetupDftBasis();
+  AOOverlap overlap;
+  overlap.Fill(aobasis);
+  Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
+  Mat_p_Energy e_vxc = vxcpotential.IntegrateVXC(Dmat);
+  Mat_p_Energy e_vxc_A = vxcpotential.IntegrateVXC(Dmat_A);
 
-    Eigen::MatrixXd LMOs = orb.getPMLocalizedorbitals();
-    MOs2.eigenvectors().leftCols(orbitals.getNumberOfAlphaElectrons()) = LMOs;
-    ActiveDensityMatrix DMAT_A(LMOs,
-                               activeatoms);  // write active atoms correctly
-    std::array<Eigen::MatrixXd, 2> TotalDmat =
-        DMAT_A.compute_Dmat_A();
-      Dmat_A = TotalDmat[0];
-      Eigen::MatrixXd MOs_B = TotalDmat[1];
-    Eigen::MatrixXd Dmat_B = Dmat - Dmat_A; // or TotalDmat[1] * TotalDmat[1].transpose()
-
-    XTP_LOG(Log::info, *pLog_)
-        << TimeStamp()
-        << " Active Density Matrix gives N=" << std::setprecision(9)
-        << Dmat_A.cwiseProduct(dftAOoverlap_.Matrix()).sum()
-        << " electrons in the active region." << flush;
-
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp() << " STARTING SCF cycle for active region" << flush;
-    XTP_LOG(Log::error, *pLog_)
-        << " ----------------------------------------------"
-           "----------------------------"
-        << flush;
-
-    for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
-      XTP_LOG(Log::error, *pLog_) << flush;
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " Iteration " << this_iter + 1 << " of "
-          << max_iter_ << flush;
-
-      Mat_p_Energy e_vxc_a = vxcpotential.IntegrateVXC(Dmat_A);
-      Eigen::MatrixXd Modified_Dmat = Dmat_B + Dmat_A;
-      Mat_p_Energy e_vxc_modified = vxcpotential.IntegrateVXC(Modified_Dmat);
-
-      XTP_LOG(Log::info, *pLog_)
-          << TimeStamp() << " Filled DFT Vxc matrix for active region" << flush;
-
-      Eigen::MatrixXd H_embedding =
-          H0.matrix() + e_vxc_modified.matrix() -
-          e_vxc_a.matrix();
-
-      double Eone_active = Dmat_A.cwiseProduct(H0.matrix()).sum();
-      double Etwo_active = Dmat_A.cwiseProduct(e_vxc_modified.matrix()).sum() -
-                           e_vxc_a.energy();
-      Eigen::MatrixXd Projection_matrix =
-          overlap * Dmat_B * overlap;  // overlap not well defined here
-      Index mu = 1000000;              // give user option with default as 1e+6
-      double Ethree = mu * Dmat_A.cwiseProduct(Projection_matrix).sum();
-      double exx_active = 0.0;
-      // J and K are taken care of here
-      if (ScaHFX_ > 0) {
-        std::array<Eigen::MatrixXd, 2> both_for_active =
-            CalcERIs_EXX(MOs2.eigenvectors(), Dmat_A, 1e-12); //Mos2 here is not right
-        std::array<Eigen::MatrixXd, 2> both_modified =
-            CalcERIs_EXX(MOs2.eigenvectors(), Modified_Dmat, 1e-12); //this is right   
-        H_embedding +=
-            (both_modified[0] - both_for_active[0]);
-        Etwo_active +=
-            0.5 * Dmat_A.cwiseProduct(both_modified[0] - both_for_active[0]).sum();
-        H_embedding += 0.5 * ScaHFX_ * (both_modified[1] - both_for_active[1]);
-        exx_active = ScaHFX_ / 4 *
-                     Dmat_A.cwiseProduct(both_modified[1] - both_for_active[1]).sum();
-        XTP_LOG(Log::info, *pLog_)
-            << TimeStamp() << " Filled F+K matrix " << flush;
-      } else {
-        Eigen::MatrixXd Hartree_active = CalcERIs(Dmat_A, 1e-12);
-        Eigen::MatrixXd Hartree_modified = CalcERIs(Modified_Dmat, 1e-12);
-        XTP_LOG(Log::info, *pLog_)
-            << TimeStamp() << " Filled F matrix " << flush;
-        H_embedding += (Hartree_modified - Hartree_active);
-        Etwo_active +=
-            0.5 * Dmat_A.cwiseProduct(Hartree_modified - Hartree_active).sum();
-      }
-
-      Etwo_active += exx_active;
-      double totalenergy_active =
-          Eone_active + H0.energy() + Etwo_active + Ethree;
-
-      XTP_LOG(Log::info, *pLog_)
-          << TimeStamp() << " Single particle energy in the active region "
-          << std::setprecision(12) << Eone_active << flush;
-      XTP_LOG(Log::info, *pLog_)
-          << TimeStamp() << " Two particle energy in the active region "
-          << std::setprecision(12) << Etwo_active << flush;
-      XTP_LOG(Log::info, *pLog_)
-          << TimeStamp() << std::setprecision(12)
-          << " Local Exc contribution for active region "
-          << Dmat_A.cwiseProduct(e_vxc.matrix()).sum() - e_vxc_a.energy()
-          << flush;
-      if (ScaHFX_ > 0) {
-        XTP_LOG(Log::info, *pLog_)
-            << TimeStamp() << std::setprecision(12)
-            << " Non local Ex contribution " << exx_active << flush;
-      }
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " Total Energy in the active region "
-          << std::setprecision(12) << totalenergy_active << flush;
-
-      Dmat = conv_accelerator_.Iterate(Dmat_A, H_embedding, MOs2,
-                                       totalenergy_active);
-      PrintMOs(LMOs.eigenvalues(), Log::info);
-      if (conv_accelerator_.isConverged()) {
-        XTP_LOG(Log::error, *pLog_)
-            << TimeStamp()
-            << " Total Energy of the active region has converged to "
-            << std::setprecision(9) << conv_accelerator_.getDeltaE()
-            << "[Ha] after " << this_iter + 1
-            << " iterations. DIIS error is converged up to "
-            << conv_accelerator_.getDIIsError() << flush;
-        XTP_LOG(Log::error, *pLog_)
-            << TimeStamp() << " Final Single Point Energy in the active region "
-            << std::setprecision(12) << totalenergy_active << " Ha" << flush;
-        XTP_LOG(Log::error, *pLog_)
-            << TimeStamp() << std::setprecision(12)
-            << " Final Local Exc contribution in the active region "
-            << Dmat_A.cwiseProduct(e_vxc_modified.matrix()).sum() -
-                   e_vxc_a.energy()
-            << " Ha" << flush;
-        if (ScaHFX_ > 0) {
-          XTP_LOG(Log::error, *pLog_) << TimeStamp() << std::setprecision(12)
-                                      << " Final Non Local Ex contribution "
-                                      << exx_active << " Ha" << flush;
-        }
-
-        PrintMOs(LMOs.eigenvalues(), Log::error);
-        orb.setQMEnergy(totalenergy_active);  // you are overwriting here
-        orb.MOs() = LMOs;                     // overwriting here again
-        CalcElDipole(orb);                    // not sure about this line
-        break;
-      } else if (this_iter == max_iter_ - 1) {
-        XTP_LOG(Log::error, *pLog_)
-            << TimeStamp()
-            << " DFT calculation for active region has not converged after "
-            << max_iter_
-            << " iterations. Use more iterations or another convergence "
-               "acceleration scheme."
-            << std::flush;
-        return false;
-      }
-    }
-    return true;
+  double DFTEnergy = Dmat.cwiseProduct(H0.matrix()).sum();
+  double DFTEnergy_A = TotalDmat[0].cwiseProduct(H0.matrix()).sum();
+  Eigen::MatrixXd dummy;
+  Eigen::MatrixXd J = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
+  Eigen::MatrixXd J_A = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
+  Eigen::MatrixXd K;
+  Eigen::MatrixXd K_A;
+  double exx = 0;
+  double exx_A = 0;
+  if (ScaHFX_ > 0) {
+    std::array<Eigen::MatrixXd, 2> both = CalcERIs_EXX(dummy, Dmat, 1e-12);
+    std::array<Eigen::MatrixXd, 2> both_A =
+        CalcERIs_EXX(dummy, TotalDmat[0], 1e-12);
+    K = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
+    K_A = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
+    J = both[0];
+    K = 0.5 * ScaHFX_ * both[1];
+    DFTEnergy += 0.5 * Dmat.cwiseProduct(J).sum();
+    exx = 0.5 * Dmat.cwiseProduct(K).sum();
+    J_A = both_A[0];
+    K_A = 0.5 * ScaHFX_ * both_A[1];
+    DFTEnergy_A += 0.5 * TotalDmat[0].cwiseProduct(J_A).sum();
+    exx_A = 0.5 * Dmat_A.cwiseProduct(K_A).sum();
+  } else {
+    J = CalcERIs(Dmat, 1e-12);
+    J_A = CalcERIs(TotalDmat[0], 1e-12);
+    DFTEnergy += 0.5 * Dmat.cwiseProduct(J).sum();
+    DFTEnergy_A += 0.5 * TotalDmat[0].cwiseProduct(J_A).sum();
   }
-}
+
+  Eigen::MatrixXd H = H0.matrix() + J + K + e_vxc.matrix();
+  DFTEnergy += exx + e_vxc.energy() + H0.energy();
+  std::cout << "EDFT = " << DFTEnergy;
+
+  Eigen::MatrixXd H_A = H0.matrix() + J_A + K_A + e_vxc_A.matrix();
+  DFTEnergy_A += exx_A + e_vxc_A.energy() + H0.energy();
+  std::cout << "EDFT_A = " << DFTEnergy_A;
+
+  Eigen::MatrixXd vemb = J - J_A + K - K_A + e_vxc.matrix() - e_vxc_A.matrix();
+  Eigen::MatrixXd vemb_actual = (J - J_A + K - K_A);
+
+  Index mu = 1000;
+  Eigen::MatrixXd Projection_matrix =
+      mu * overlap.Matrix() * Dmat_B * overlap.Matrix();
+
+  // Eigen::MatrixXd H0_embedding = H0.matrix() + e_vxc.matrix() -
+  //                                e_vxc_active_constant.matrix() +
+  //                                mu * Projection_matrix;
+  // double exx_B = 0;
+  // double eJ_B = 0;
+  // if (ScaHFX_ > 0) {
+  //   std::array<Eigen::MatrixXd, 2> both_for_active_constant =
+  //       CalcERIs_EXX(dummy, TotalDmat[0], 1e-12);
+  //   std::array<Eigen::MatrixXd, 2> both_for_B =
+  //       CalcERIs_EXX(dummy, Dmat_B, 1e-12);
+
+  //   Eigen::MatrixXd J_active_constant = both_for_active_constant[0];
+  //   Eigen::MatrixXd K_active_constant = both_for_active_constant[1];
+  //   H0_embedding += (J - J_active_constant);
+  //   H0_embedding += 0.5 * ScaHFX_ * (K - K_active_constant);
+
+  //   eJ_B = 0.5 * Dmat_B.cwiseProduct(both_for_B[0]).sum();
+  //   exx_B = 0.25 * ScaHFX_ * Dmat_B.cwiseProduct(both_for_B[1]).sum();
+  // } else {
+  //   Eigen::MatrixXd J_active_constant = CalcERIs(TotalDmat[0], 1e-12);
+  //   Eigen::MatrixXd J_forB = CalcERIs(Dmat_B, 1e-12);
+
+  //   H0_embedding += (J - J_active_constant);
+
+  //   eJ_B = 0.5 * Dmat_B.cwiseProduct(J_forB).sum();
+  // }
+  // XTP_LOG(Log::error, *pLog_)
+  //     << TimeStamp() << " Core embedding potential setup " << std::flush;
+
+  // Mat_p_Energy e_vxc_B = vxcpotential.IntegrateVXC(Dmat_B);
+  // double E0_B =
+  //     e_vxc_B.energy() + exx_B + eJ_B +
+  //     Dmat_B.cwiseProduct(H0.matrix()).sum() + H0.energy();
+
+  // XTP_LOG(Log::error, *pLog_)
+  //     << TimeStamp() << " Energy of inactive region is :  " << E0_B
+  //     << std::flush;
+
+  for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
+    XTP_LOG(Log::error, *pLog_) << std::flush;
+    XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Iteration " << this_iter + 1
+                                << " of " << max_iter_ << std::flush;
+    double E0_active = Dmat_A.cwiseProduct(H0.matrix()).sum();
+    //   double E0_embedding = Dmat_A.cwiseProduct(H0_embedding).sum();
+    Mat_p_Energy e_vxc_active = vxcpotential.IntegrateVXC(Dmat_A);
+    double E_active = E0_active + e_vxc_active.energy();
+    //   double E_AinB = E0_embedding + e_vxc_active.energy();
+
+    Eigen::MatrixXd H_active = H0.matrix() + e_vxc_active.matrix();
+    //   Eigen::MatrixXd H_embedding = H0_embedding + e_vxc_active.matrix();
+
+    //   double exx_AinB = 0.0;
+    double exx_active = 0.0;
+    if (ScaHFX_ > 0) {
+      std::array<Eigen::MatrixXd, 2> both_active =
+          CalcERIs_EXX(dummy, Dmat_A, 1e-12);
+      H_active += both_active[0];
+      H_active += 0.5 * ScaHFX_ * both_active[1];
+      E_active += 0.5 * Dmat_A.cwiseProduct(both_active[0]).sum();
+      exx_active = 0.25 * ScaHFX_ * Dmat_A.cwiseProduct(both_active[1]).sum();
+      //     H_embedding += both_active[0];
+      //     E_AinB += 0.5 * Dmat_A.cwiseProduct(both_active[0]).sum();
+      //     H_embedding += 0.5 * ScaHFX_ * both_active[1];
+      //     exx_AinB = ScaHFX_ / 4 * Dmat_A.cwiseProduct(both_active[1]).sum();
+      XTP_LOG(Log::info, *pLog_)
+          << TimeStamp() << " Filled F+K matrix " << std::flush;
+    } else {
+      Eigen::MatrixXd J_active = CalcERIs(Dmat_A, 1e-12);
+      XTP_LOG(Log::info, *pLog_)
+          << TimeStamp() << " Filled F matrix " << std::flush;
+      H_active += J_active;
+      E_active += 0.5 * Dmat_A.cwiseProduct(J_active).sum();
+      //     H_embedding += J_active;
+      //     E_AinB += 0.5 * Dmat_A.cwiseProduct(J_active).sum();
+    }
+    E_active += exx_active + e_vxc_active.energy() + H0.energy();
+    Eigen::MatrixXd Htotal = H_active + vemb + Projection_matrix;
+    // E_AinB += exx_AinB;
+    // double TotalEnergy_AinB =
+    //     E_AinB -
+    //     TotalDmat[0]
+    //         .cwiseProduct(e_vxc.matrix() - e_vxc_active_constant.matrix())
+    //         .sum() +
+    //     e_vxc.energy() - e_vxc_active_constant.energy() + E0_B;
+    double TotalEnergy =
+        DFTEnergy - DFTEnergy_A + E_active +
+        (Dmat_A - TotalDmat[0]).cwiseProduct(vemb_actual).sum() +
+        Dmat_A.cwiseProduct(Projection_matrix).sum() + e_vxc.energy() - e_vxc_A.energy();
+
+    Dmat_A = conv_accelerator_.Iterate(Dmat_A, Htotal, MOs2, TotalEnergy);
+    PrintMOs(MOs2.eigenvalues(), Log::info);
+    if (conv_accelerator_.isConverged()) {
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Total embedding energy has converged to "
+          << std::setprecision(9) << conv_accelerator_.getDeltaE()
+          << "[Ha] after " << this_iter + 1
+          << " iterations. DIIS error is converged up to "
+          << conv_accelerator_.getDIIsError() << std::flush;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Final Single Point Energy of embedding "
+          << std::setprecision(12) << TotalEnergy << " Ha" << std::flush;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " mu * tr (Dmat_A * P) = " << std::setprecision(12)
+          << Dmat_A.cwiseProduct(Projection_matrix).sum() << " Ha"
+          << std::flush;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " E_active = " << std::setprecision(12) << E_active
+          << " Ha" << std::flush;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Embedding pot contri = " << std::setprecision(12)
+          << (Dmat_A - TotalDmat[0]).cwiseProduct(vemb_actual).sum() << " Ha"
+          << std::flush;
+
+      PrintMOs(MOs2.eigenvalues(), Log::error);
+      orb.setQMEnergy(TotalEnergy);  // you are overwriting here
+      orb.MOs() = MOs2;
+      CalcElDipole(orb);
+      break;
+    } else if (this_iter == max_iter_ - 1) {
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp()
+          << " DFT calculation for active region has not converged after "
+          << max_iter_
+          << " iterations. Use more iterations or another convergence "
+             "acceleration scheme."
+          << std::flush;
+      return false;
+    }
+  }
+  return true;
+}  // namespace xtp
 
 Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
 

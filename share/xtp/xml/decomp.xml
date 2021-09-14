@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <options>
   <decomp help="Allows you to compute localised orbitals using the Pipek-Mezey scheme">
+ <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
   <activeatoms help="Indices of atoms in active region">
     1 5
   </activeatoms>
