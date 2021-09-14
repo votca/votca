@@ -43,7 +43,6 @@ void ERIs::Initialize_4c(const AOBasis& dftbasis) {
   return;
 }
 
-
 std::vector<std::vector<libint2::ShellPair>> ERIs::ComputeShellPairData(
     const std::vector<libint2::Shell>& basis,
     const std::vector<std::vector<Index>>& shellpairs) const {
@@ -77,7 +76,6 @@ Eigen::MatrixXd ERIs::ComputeShellBlockNorm(const Eigen::MatrixXd& dmat) const {
   }
   return result.selfadjointView<Eigen::Upper>();
 }
-
 
 Eigen::MatrixXd ERIs::CalculateERIs_3c(const Eigen::MatrixXd& DMAT) const {
   assert(threecenter_.size() > 0 &&

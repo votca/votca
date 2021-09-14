@@ -41,7 +41,7 @@ Eigen::Matrix<double, N, 1> eeInteractor::VSiteA(
   if (N > 1 || rankB > 0) {
     const double fac2 = std::pow(fac1, 2);
     // Dipole-Charge Interaction
-    if constexpr(N > 1) {
+    if constexpr (N > 1) {
       V.template segment<3>(1) =
           fac2 * a * siteB.getCharge();  // T_1alpha,00 (alpha=x,y,z)
     }
@@ -109,7 +109,7 @@ Eigen::Matrix<double, N, 1> eeInteractor::VSiteA(
 
         dQ.rightCols<4>() *= sqr3;
 
-      if constexpr (N > 4) {
+        if constexpr (N > 4) {
           V.template segment<5>(4) += dQ.transpose() * siteB.Q().segment<3>(1);
         }
         if (rankB > 1) {

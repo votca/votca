@@ -25,7 +25,6 @@
 namespace votca {
 namespace xtp {
 
-
 Eigen::MatrixXd AOOverlap::Pseudo_InvSqrt(double etol) {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(aomatrix_);
   smallestEigenvalue = es.eigenvalues()(0);
@@ -48,7 +47,6 @@ Eigen::MatrixXd AOOverlap::Sqrt() {
   smallestEigenvalue = es.eigenvalues()(0);
   return es.operatorSqrt();
 }
-
 
 // This converts V into ((S-1/2 V S-1/2)-1/2 S-1/2)T, which is needed to
 // construct 4c integrals,
@@ -102,7 +100,6 @@ Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt(double etol) {
   return es.eigenvectors() * diagonal.asDiagonal() *
          es.eigenvectors().transpose();
 }
-
 
 }  // namespace xtp
 }  // namespace votca

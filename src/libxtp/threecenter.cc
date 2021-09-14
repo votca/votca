@@ -23,10 +23,8 @@
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/symmetric_matrix.h"
 
-
 namespace votca {
 namespace xtp {
-
 
 void TCMatrix_gwbse::Initialize(Index basissize, Index mmin, Index mmax,
                                 Index nmin, Index nmax) {
@@ -90,7 +88,6 @@ void TCMatrix_gwbse::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
 
   return;
 }
-
 
 }  // namespace xtp
 }  // namespace votca

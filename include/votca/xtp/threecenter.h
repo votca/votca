@@ -118,7 +118,6 @@ class TCMatrix_gwbse final : public TCMatrix {
 
   void Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
                 const Eigen::MatrixXd& dft_orbitals);
-
 };
 
 }  // namespace xtp

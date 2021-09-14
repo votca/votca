@@ -21,8 +21,8 @@
 #include "votca/xtp/ERIs.h"
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
-#include "votca/xtp/threecenter.h"
 #include "votca/xtp/openmp_cuda.h"
+#include "votca/xtp/threecenter.h"
 
 // include libint last otherwise it overrides eigen
 #include "votca/xtp/make_libint_work.h"
@@ -187,7 +187,6 @@ Eigen::MatrixXd AOOverlap::singleShellOverlap(const AOShell& shell) const {
   }
 }
 
-
 /***********************************
  * DIPOLE
  ***********************************/
@@ -201,7 +200,6 @@ void AODipole::Fill(const AOBasis& aobasis) {
                                     // y-dipole, z-dipole
   }
 }
-
 
 /***********************************
  * COULOMB
@@ -258,7 +256,6 @@ void AOCoulomb::computeCoulombIntegrals(const AOBasis& aobasis) {
     }
   }
 }
-
 
 Eigen::MatrixXd ERIs::ComputeSchwarzShells(const AOBasis& basis) const {
 
@@ -530,9 +527,9 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
  * by calculating the 3-center repulsion integral of the functions in the
  * aux shell with ALL functions in the DFT basis set
  */
-std::vector<Eigen::MatrixXd> ComputeAO3cBlock(
-    const libint2::Shell& auxshell, const AOBasis& dftbasis,
-    libint2::Engine& engine) {
+std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
+                                              const AOBasis& dftbasis,
+                                              libint2::Engine& engine) {
   std::vector<Eigen::MatrixXd> ao3c = std::vector<Eigen::MatrixXd>(
       auxshell.size(),
       Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize()));
