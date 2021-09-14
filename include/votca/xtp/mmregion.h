@@ -38,7 +38,7 @@ class MMRegion : public Region {
   MMRegion(Index id, Logger& log) : Region(id, log){};
   void WriteToCpt(CheckpointWriter& w) const override;
 
-  using SegmentType =T;
+  using SegmentType = T;
 
   void ReadFromCpt(CheckpointReader& r) override;
 
