@@ -20,11 +20,7 @@
 // Local VOTCA includes
 #include "votca/xtp/ERIs.h"
 #include "votca/xtp/aobasis.h"
-#include "votca/xtp/make_libint_work.h"
 #include "votca/xtp/symmetric_matrix.h"
-
-// include libint last otherwise it overrides eigen
-#include <libint2.hpp>
 namespace votca {
 namespace xtp {
 
@@ -45,48 +41,6 @@ void ERIs::Initialize_4c(const AOBasis& dftbasis) {
 
   schwarzscreen_ = ComputeSchwarzShells(dftbasis);
   return;
-}
-
-Eigen::MatrixXd ERIs::ComputeSchwarzShells(const AOBasis& basis) const {
-
-  Index noshells = basis.getNumofShells();
-
-  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(noshells, noshells);
-  Index nthreads = OPENMP::getMaxThreads();
-  std::vector<libint2::Engine> engines(nthreads);
-  double epsilon = 0.0;
-  engines[0] = libint2::Engine(libint2::Operator::coulomb, basis.getMaxNprim(),
-                               static_cast<int>(basis.getMaxL()), 0, epsilon);
-
-  for (Index i = 1; i < nthreads; ++i) {
-    engines[i] = engines[0];
-  }
-
-  std::vector<libint2::Shell> shells = basis.GenerateLibintBasis();
-  using MatrixLibInt =
-      Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-
-#pragma omp parallel for schedule(dynamic)
-  for (Index s1 = 0l; s1 < basis.getNumofShells(); ++s1) {
-    Index thread_id = OPENMP::getThreadId();
-    libint2::Engine& engine = engines[thread_id];
-    const libint2::Engine::target_ptr_vec& buf = engine.results();
-    Index n1 = shells[s1].size();
-
-    for (Index s2 = 0l; s2 <= s1; ++s2) {
-      Index n2 = shells[s2].size();
-      Index n12 = n1 * n2;
-
-      engines[thread_id]
-          .compute2<libint2::Operator::coulomb, libint2::BraKet::xx_xx, 0>(
-              shells[s1], shells[s2], shells[s1], shells[s2]);
-
-      Eigen::Map<const MatrixLibInt> buf_mat(buf[0], n12, n12);
-
-      result(s2, s1) = std::sqrt(buf_mat.cwiseAbs().maxCoeff());
-    }
-  }
-  return result.selfadjointView<Eigen::Upper>();
 }
 
 std::vector<std::vector<libint2::ShellPair>> ERIs::ComputeShellPairData(
@@ -122,143 +76,6 @@ Eigen::MatrixXd ERIs::ComputeShellBlockNorm(const Eigen::MatrixXd& dmat) const {
   }
   return result.selfadjointView<Eigen::Upper>();
 }
-
-template <bool with_exchange>
-std::array<Eigen::MatrixXd, 2> ERIs::Compute4c(const Eigen::MatrixXd& dmat,
-                                               double error) const {
-  assert(schwarzscreen_.rows() > 0 && schwarzscreen_.cols() > 0 &&
-         "Please call Initialize_4c before running this");
-  Index nthreads = OPENMP::getMaxThreads();
-
-  Eigen::MatrixXd hartree = Eigen::MatrixXd::Zero(dmat.rows(), dmat.cols());
-  Eigen::MatrixXd exchange;
-  if (with_exchange) {
-    exchange = Eigen::MatrixXd::Zero(dmat.rows(), dmat.cols());
-  }
-  Eigen::MatrixXd dnorm_block = ComputeShellBlockNorm(dmat);
-  double fock_precision = error;
-  // engine precision controls primitive truncation, assume worst-case scenario
-  // (all primitive combinations add up constructively)
-  Index max_nprim4 = maxnprim_ * maxnprim_ * maxnprim_ * maxnprim_;
-  double engine_precision = std::min(fock_precision / dnorm_block.maxCoeff(),
-                                     std::numeric_limits<double>::epsilon()) /
-                            double(max_nprim4);
-  std::vector<libint2::Engine> engines(nthreads);
-  engines[0] = libint2::Engine(libint2::Operator::coulomb, int(maxnprim_),
-                               int(maxL_), 0);
-  engines[0].set_precision(engine_precision);  // shellset-dependent precision
-                                               // control will likely break
-                                               // positive definiteness
-                                               // stick with this simple recipe
-  for (Index i = 1; i < nthreads; ++i) {
-    engines[i] = engines[0];
-  }
-  Index nshells = basis_.size();
-
-#pragma omp parallel for schedule(dynamic)reduction(+ : hartree)reduction(+: exchange)
-  for (Index s1 = 0; s1 < nshells; ++s1) {
-    Index thread_id = OPENMP::getThreadId();
-    libint2::Engine& engine = engines[thread_id];
-    const auto& buf = engine.results();
-    Index start_1 = starts_[s1];
-    const libint2::Shell& shell1 = basis_[s1];
-    Index n1 = shell1.size();
-
-    auto sp12_iter = shellpairdata_[s1].begin();
-    for (Index s2 : shellpairs_[s1]) {
-      Index start_2 = starts_[s2];
-      const libint2::Shell& shell2 = basis_[s2];
-      Index n2 = shell2.size();
-      double dnorm_12 = dnorm_block(s1, s2);
-      const libint2::ShellPair* sp12 = &(*sp12_iter);
-      ++sp12_iter;
-
-      for (Index s3 = 0; s3 <= s1; ++s3) {
-
-        Index start_3 = starts_[s3];
-        const libint2::Shell& shell3 = basis_[s3];
-        Index n3 = shell3.size();
-        auto sp34_iter = shellpairdata_[s3].begin();
-        double dnorm_123 = std::max(dnorm_block(s1, s3),
-                                    std::max(dnorm_block(s2, s3), dnorm_12));
-        Index s4max = (s1 == s3) ? s2 : s3;
-        for (Index s4 : shellpairs_[s3]) {
-          if (s4 > s4max) {
-            break;
-          }  // for each s3, s4 are stored in monotonically increasing
-             // order
-
-          const libint2::ShellPair* sp34 = &(*sp34_iter);
-          // must update the iter even if going to skip s4
-          ++sp34_iter;
-          double dnorm_1234 =
-              std::max(dnorm_block(s1, s4),
-                       std::max(dnorm_block(s2, s4),
-                                std::max(dnorm_block(s3, s4), dnorm_123)));
-
-          if (dnorm_1234 * schwarzscreen_(s1, s2) * schwarzscreen_(s3, s4) <
-              fock_precision) {
-            continue;
-          }
-
-          const libint2::Shell& shell4 = basis_[s4];
-          engine
-              .compute2<libint2::Operator::coulomb, libint2::BraKet::xx_xx, 0>(
-                  shell1, shell2, shell3, shell4, sp12, sp34);
-          const auto* buf_1234 = buf[0];
-          if (buf_1234 == nullptr) {
-            continue;  // if all integrals screened out, skip to next quartet
-          }
-          Index start_4 = starts_[s4];
-          Index n4 = shell4.size();
-          Index s12_deg = (s1 == s2) ? 1 : 2;
-          Index s34_deg = (s3 == s4) ? 1 : 2;
-          Index s12_34_deg = (s1 == s3) ? (s2 == s4 ? 1 : 2) : 2;
-          Index s1234_deg = s12_deg * s34_deg * s12_34_deg;
-
-          for (Index f1 = 0, f1234 = 0; f1 != n1; ++f1) {
-            const Index bf1 = f1 + start_1;
-            for (Index f2 = 0; f2 != n2; ++f2) {
-              const Index bf2 = f2 + start_2;
-              for (Index f3 = 0; f3 != n3; ++f3) {
-                const Index bf3 = f3 + start_3;
-                for (Index f4 = 0; f4 != n4; ++f4, ++f1234) {
-                  const Index bf4 = f4 + start_4;
-
-                  const double value = buf_1234[f1234];
-
-                  const double value_scal_by_deg = value * double(s1234_deg);
-
-                  hartree(bf1, bf2) += dmat(bf3, bf4) * value_scal_by_deg;
-                  hartree(bf3, bf4) += dmat(bf1, bf2) * value_scal_by_deg;
-                  if (with_exchange) {
-                    exchange(bf1, bf3) -= dmat(bf2, bf4) * value_scal_by_deg;
-                    exchange(bf2, bf3) -= dmat(bf1, bf4) * value_scal_by_deg;
-                    exchange(bf2, bf4) -= dmat(bf1, bf3) * value_scal_by_deg;
-                    exchange(bf1, bf4) -= dmat(bf2, bf3) * value_scal_by_deg;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  std::array<Eigen::MatrixXd, 2> result2;
-  // 0.25=0.5(symmetrisation)*0.5(our dmat has a factor 2)
-  result2[0] = 0.25 * (hartree + hartree.transpose());
-  if (with_exchange) {
-    // prefactor
-    result2[1] = 0.125 * (exchange + exchange.transpose());
-  }
-  return result2;
-}
-
-template std::array<Eigen::MatrixXd, 2> ERIs::Compute4c<true>(
-    const Eigen::MatrixXd& dmat, double error) const;
-template std::array<Eigen::MatrixXd, 2> ERIs::Compute4c<false>(
-    const Eigen::MatrixXd& dmat, double error) const;
 
 Eigen::MatrixXd ERIs::CalculateERIs_3c(const Eigen::MatrixXd& DMAT) const {
   assert(threecenter_.size() > 0 &&
