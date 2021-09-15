@@ -25,6 +25,7 @@
 #include <complex>
 #include <iomanip>
 #include <vector>
+#include "votca/xtp/segid.h"
 
 // Local VOTCA includes
 #include "ewaldoptions.h"
@@ -112,7 +113,8 @@ class KSpace {
   void computeTotalField(PolarSegment& seg);
   void applyTotalShapeField(PolarSegment& seg);
   void applySICorrection(PolarSegment& seg);
-
+  void applyAPeriodicCorrection(PolarSegment& seg,
+                                std::vector<SegId> pCloud_indices);
 
   void addInducedDipoleInteractionTo(Eigen::MatrixXd& result);
   void addShapeCorrectionTo(Eigen::MatrixXd& result);
@@ -134,6 +136,7 @@ class KSpace {
 
   Eigen::Matrix3d inducedDipoleInteractionAtBy(EwdSite& site,
                                                const EwdSite& nbSite);
+  Eigen::Vector3d kspaceCorrectionFieldAtBy(EwdSite& site, const EwdSite& nbSite);
 
   std::vector<Index> segmentOffSet;
 

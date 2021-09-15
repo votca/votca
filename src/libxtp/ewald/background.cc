@@ -282,7 +282,7 @@ void Background::bgFieldAtSegment(PolarSegment& seg,
   kspace.computeTotalField(seg);
   kspace.applyTotalShapeField(seg);
   kspace.applySICorrection(seg);
-  //kspace.applyAPeriodicSubtraction(seg, pCloud_indices);
+  kspace.applyAPeriodicCorrection(seg, pCloud_indices);
 }
 
 }  // namespace xtp

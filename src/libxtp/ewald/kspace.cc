@@ -170,6 +170,42 @@ Eigen::Vector3d KSpace::computeShapeField() {
   return shapeField;
 }
 
+void KSpace::applyAPeriodicCorrection(PolarSegment& seg,
+                                      std::vector<SegId> pCloud_indices) {
+  EwdSegment currentSeg = _ewaldSegments[seg.getId()];
+  for (SegId& id : pCloud_indices) {
+    if (id.Id() != seg.getId()) {
+      EwdSegment& nbSeg = _ewaldSegments[id.Id()];
+      for (EwdSite& site : currentSeg) {
+        for (EwdSite& site2 : nbSeg) {
+        }
+      }
+    }
+  }
+}
+
+Eigen::Vector3d KSpace::kspaceCorrectionFieldAtBy(EwdSite& site,
+                                                  const EwdSite& nbSite) {
+  computeDistanceVariables(site.getPos() - nbSite.getPos());
+  computeScreenedInteraction();
+
+  Eigen::Vector3d field = Eigen::Vector3d::Zero();
+  Index rank = nbSite.getRank();
+  // charge
+  field += -nbSite.getCharge() * dr * rR3s;
+  if (rank > 0) {  // dipole
+    field += nbSite.getTotalDipole() * rR3s;
+    field += -rR5s * dr * dr.dot(nbSite.getStaticDipole());
+    if (rank > 1) {  // quadrupole
+      // Using that the trace of a quadrupole contributes nothing, we can skip
+      // that part
+      field += rR5s * 2 * nbSite.getQuadrupole() * dr;
+      field += -rR7s * dr * dr.dot(nbSite.getQuadrupole() * dr);
+    }
+  }
+  return field;
+}
+
 void KSpace::applyStaticShapeField() {
   Eigen::Vector3d shapeField = computeShapeField();
 
@@ -181,9 +217,9 @@ void KSpace::applyStaticShapeField() {
   }
 }
 
-void KSpace::applyTotalShapeField(PolarSegment& seg){
+void KSpace::applyTotalShapeField(PolarSegment& seg) {
   Eigen::Vector3d shapeField = computeShapeField();
-  for (PolarSite& site : seg){
+  for (PolarSite& site : seg) {
     site.addToBackgroundField(-shapeField);
   }
 }
@@ -198,11 +234,12 @@ void KSpace::computeIntraMolecularCorrection() {
   }
 }
 
-void KSpace::applySICorrection(PolarSegment& seg){
+void KSpace::applySICorrection(PolarSegment& seg) {
   EwdSegment& currentSeg = _ewaldSegments[seg.getId()];
-  for (Index i = 0; i < currentSeg.size(); i++){
-    for (Index j = 0; j < currentSeg.size(); j++){
-      seg[i].addToBackgroundField(-totalFieldAtBy(currentSeg[i], currentSeg[j]));
+  for (Index i = 0; i < currentSeg.size(); i++) {
+    for (Index j = 0; j < currentSeg.size(); j++) {
+      seg[i].addToBackgroundField(
+          -totalFieldAtBy(currentSeg[i], currentSeg[j]));
     }
   }
 }
@@ -263,7 +300,8 @@ Eigen::Matrix3d KSpace::inducedDipoleInteractionAtBy(EwdSite& site,
   return interaction;
 }
 
-Eigen::Vector3d KSpace::staticFieldAtBy(const EwdSite& site, const EwdSite& nbSite) {
+Eigen::Vector3d KSpace::staticFieldAtBy(const EwdSite& site,
+                                        const EwdSite& nbSite) {
   computeDistanceVariables(site.getPos() - nbSite.getPos());
   computeScreenedInteraction();
 
@@ -288,7 +326,8 @@ Eigen::Vector3d KSpace::staticFieldAtBy(const EwdSite& site, const EwdSite& nbSi
   return field;
 }
 
-Eigen::Vector3d KSpace::totalFieldAtBy(const EwdSite& site, const EwdSite& nbSite) {
+Eigen::Vector3d KSpace::totalFieldAtBy(const EwdSite& site,
+                                       const EwdSite& nbSite) {
   computeDistanceVariables(site.getPos() - nbSite.getPos());
   computeScreenedInteraction();
 
@@ -312,7 +351,6 @@ Eigen::Vector3d KSpace::totalFieldAtBy(const EwdSite& site, const EwdSite& nbSit
   }
   return field;
 }
-
 
 std::complex<double> KSpace::computeSk(const Eigen::Vector3d& kvector) const {
   std::complex<double> sk(0.0, 0.0);
