@@ -17,7 +17,7 @@ Version 2022-dev
 -  Added N-DimVector (#360)
 -  properties can be removed and string conversion much improved (#365)
 -  adapted tokenizer api (#367)
--  improve mkl linkage and threading backend selection (#371)
+-  improve mkl linkage and threading backend selection (#371, #383)
 -  removed tex option (#372)
 -  made membervariable format consistent (#373)
 -  added AddTree to property (#374)
