@@ -43,7 +43,7 @@ class EwdSegment {
     _position = pol.getPos();
   }
 
-  EwdSegment(CheckpointReader&r){
+  EwdSegment(CheckpointReader&r, Index id){
     CptTable table = r.openTable<EwdSite>("background_sites");
     _sites.clear();
     _sites.reserve(table.numRows());
@@ -52,6 +52,8 @@ class EwdSegment {
     for (std::size_t i = 0; i < table.numRows(); ++i) {
       _sites.push_back(EwdSite(dataVec[i]));
     }
+    _id = id;
+    calcPos();
   };
 
   ~EwdSegment() = default;

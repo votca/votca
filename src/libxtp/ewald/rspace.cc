@@ -51,7 +51,6 @@ void RSpace::computeTotalField(PolarSegment& seg,
                    // polarization cloud
       }
     }
-
     EwdSegment& nbSeg = _ewaldSegments[neighbour.getId()];
     for (Index i = 0; i < currentSeg.size(); i++) {
       // So this appears a bit weird, but we need the "ewald" representation

@@ -41,7 +41,25 @@ void KSpace::computeStaticField() {
   }
 }
 
-void KSpace::computeTotalField() {}
+/**
+ * This functions computes the TOTAL kspace field.
+ * Note that the kvectors are computed and setup at initialization of this class
+ * If the segments/sites contain induced dipoles (which they should if loaded
+ * from a state file) then the kvectors Sk values etc will all have been
+ * computed with the
+ */
+void KSpace::computeTotalField(PolarSegment& seg) {
+  EwdSegment& currentSeg = _ewaldSegments[seg.getId()];
+  for (EwdSite& site : currentSeg) {
+    for (const KVector& kvec : _kvector_list) {
+      site.addToStaticField(
+          fourPiVolume * kvec.getVector() * kvec.getAk() *
+          (ii * std::exp(ii * kvec.getVector().dot(site.getPos())) *
+           std::conj(kvec.getSk()))
+              .real());
+    }
+  }
+}
 
 void KSpace::addInducedDipoleInteractionTo(Eigen::MatrixXd& result) {
   for (const KVector& kvec : _kvector_list) {
@@ -126,7 +144,7 @@ void KSpace::addSICorrectionTo(Eigen::MatrixXd& result) {
   }
 }
 
-void KSpace::computeShapeField() {
+Eigen::Vector3d KSpace::computeShapeField() {
   Eigen::Vector3d dip_tot = Eigen::Vector3d::Zero();
   Eigen::Vector3d shapeField = Eigen::Vector3d::Zero();
 
@@ -134,7 +152,7 @@ void KSpace::computeShapeField() {
   for (const EwdSegment& seg : _ewaldSegments) {
     for (const EwdSite& sit : seg) {
       dip_tot += sit.getCharge() * sit.getPos();
-      dip_tot += sit.getStaticDipole();
+      dip_tot += sit.getTotalDipole();
     }
   }
 
@@ -149,6 +167,11 @@ void KSpace::computeShapeField() {
     default:
       throw std::runtime_error("Shape not implemented.");
   }
+  return shapeField;
+}
+
+void KSpace::applyStaticShapeField() {
+  Eigen::Vector3d shapeField = computeShapeField();
 
   // Apply the field to the sites
   for (EwdSegment& seg : _ewaldSegments) {
@@ -158,12 +181,28 @@ void KSpace::computeShapeField() {
   }
 }
 
+void KSpace::applyTotalShapeField(PolarSegment& seg){
+  Eigen::Vector3d shapeField = computeShapeField();
+  for (PolarSite& site : seg){
+    site.addToBackgroundField(-shapeField);
+  }
+}
+
 void KSpace::computeIntraMolecularCorrection() {
   for (EwdSegment& seg : _ewaldSegments) {
     for (EwdSite& sit1 : seg) {
       for (EwdSite& sit2 : seg) {
         sit1.addToStaticField(-staticFieldAtBy(sit1, sit2));
       }
+    }
+  }
+}
+
+void KSpace::applySICorrection(PolarSegment& seg){
+  EwdSegment& currentSeg = _ewaldSegments[seg.getId()];
+  for (Index i = 0; i < currentSeg.size(); i++){
+    for (Index j = 0; j < currentSeg.size(); j++){
+      seg[i].addToBackgroundField(-totalFieldAtBy(currentSeg[i], currentSeg[j]));
     }
   }
 }
@@ -224,7 +263,7 @@ Eigen::Matrix3d KSpace::inducedDipoleInteractionAtBy(EwdSite& site,
   return interaction;
 }
 
-Eigen::Vector3d KSpace::staticFieldAtBy(EwdSite& site, const EwdSite& nbSite) {
+Eigen::Vector3d KSpace::staticFieldAtBy(const EwdSite& site, const EwdSite& nbSite) {
   computeDistanceVariables(site.getPos() - nbSite.getPos());
   computeScreenedInteraction();
 
@@ -248,6 +287,32 @@ Eigen::Vector3d KSpace::staticFieldAtBy(EwdSite& site, const EwdSite& nbSite) {
   }
   return field;
 }
+
+Eigen::Vector3d KSpace::totalFieldAtBy(const EwdSite& site, const EwdSite& nbSite) {
+  computeDistanceVariables(site.getPos() - nbSite.getPos());
+  computeScreenedInteraction();
+
+  Eigen::Vector3d field = Eigen::Vector3d::Zero();
+  Index rank = nbSite.getRank();
+  if (R1 < 1e-2) {
+    field += 4.0 / 3.0 * a3 * rSqrtPi * nbSite.getStaticDipole();
+  } else {
+    // charge
+    field += -nbSite.getCharge() * dr * rR3s;
+    if (rank > 0) {  // dipole
+      field += nbSite.getTotalDipole() * rR3s;
+      field += -rR5s * dr * dr.dot(nbSite.getTotalDipole());
+      if (rank > 1) {  // quadrupole
+        // Using that the trace of a quadrupole contributes nothing, we can skip
+        // that part
+        field += rR5s * 2 * nbSite.getQuadrupole() * dr;
+        field += -rR7s * dr * dr.dot(nbSite.getQuadrupole() * dr);
+      }
+    }
+  }
+  return field;
+}
+
 
 std::complex<double> KSpace::computeSk(const Eigen::Vector3d& kvector) const {
   std::complex<double> sk(0.0, 0.0);

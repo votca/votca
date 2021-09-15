@@ -123,6 +123,7 @@ class EwdSite {
     double fieldX_ind;
     double fieldY_ind;
     double fieldZ_ind;
+    char* element;
   };
 
   EwdSite(const data& d) { ReadData(d); }

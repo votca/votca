@@ -104,9 +104,15 @@ class KSpace {
   }
 
   void computeStaticField();
-  void computeShapeField();
-  void computeTotalField();
+  void applyStaticShapeField();
+  Eigen::Vector3d computeShapeField();
   void computeIntraMolecularCorrection();
+
+  // Total Field Calculations
+  void computeTotalField(PolarSegment& seg);
+  void applyTotalShapeField(PolarSegment& seg);
+  void applySICorrection(PolarSegment& seg);
+
 
   void addInducedDipoleInteractionTo(Eigen::MatrixXd& result);
   void addShapeCorrectionTo(Eigen::MatrixXd& result);
@@ -123,7 +129,8 @@ class KSpace {
   void computeScreenedInteraction();
   void computeDistanceVariables(Eigen::Vector3d distVec);
 
-  Eigen::Vector3d staticFieldAtBy(EwdSite& site, const EwdSite& nbSite);
+  Eigen::Vector3d staticFieldAtBy(const EwdSite& site, const EwdSite& nbSite);
+  Eigen::Vector3d totalFieldAtBy(const EwdSite& site, const EwdSite& nbSite);
 
   Eigen::Matrix3d inducedDipoleInteractionAtBy(EwdSite& site,
                                                const EwdSite& nbSite);

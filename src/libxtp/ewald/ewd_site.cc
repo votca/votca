@@ -73,6 +73,8 @@ void EwdSite::WriteData(data& d) {
   d.fieldY_ind = _field_induced[1];
   d.fieldZ_stat = _field_static[2];
   d.fieldZ_ind = _field_induced[2];
+
+  d.element = const_cast<char*>(_element.c_str());
 }
 
 void EwdSite::ReadData(const data& d) {
@@ -103,6 +105,7 @@ void EwdSite::ReadData(const data& d) {
   _field_induced[1] = d.fieldY_ind;
   _field_static[2] = d.fieldZ_stat;
   _field_induced[2] = d.fieldZ_ind;
+  _element = std::string(d.element);
 }
 
 void EwdSite::SetupCptTable(CptTable& table) {
@@ -133,6 +136,7 @@ void EwdSite::SetupCptTable(CptTable& table) {
   table.addCol<double>("fieldX_ind", HOFFSET(data, fieldX_ind));
   table.addCol<double>("fieldY_ind", HOFFSET(data, fieldY_ind));
   table.addCol<double>("fieldZ_ind", HOFFSET(data, fieldZ_ind));
+  table.addCol<std::string>("element", HOFFSET(data, element));
 }
 
 void EwdSite::induceDirect() {

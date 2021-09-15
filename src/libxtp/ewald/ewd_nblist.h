@@ -21,8 +21,8 @@
 #ifndef VOTCA_XTP_EWDNBLIST_H
 #define VOTCA_XTP_EWDNBLIST_H
 
-#include <vector>
 #include <algorithm>
+#include <vector>
 // Local VOTCA includes
 #include "votca/xtp/classicalsegment.h"
 
@@ -31,29 +31,30 @@ namespace xtp {
 
 class Neighbour {
  public:
-  Neighbour(Index id, Eigen::Vector3d dr,Eigen::Vector3d shift, double dist)
-      : segId(id), _dr(dr),_shift(shift), _dist(dist){};
+  Neighbour(Index id, Eigen::Vector3d dr, Eigen::Vector3d shift, double dist)
+      : segId(id), _dr(dr), _shift(shift), _dist(dist){};
 
   ~Neighbour() = default;
 
   Index getId() const { return segId; }
 
-  bool operator<(const Neighbour& other){
-    if(this->_dist < other.getDist()){
+  bool operator<(const Neighbour& other) {
+    if (this->_dist < other.getDist()) {
       return true;
     }
     return false;
-  } 
+  }
 
-  bool operator>(const Neighbour& other){
-    if(this->_dist > other.getDist()){
+  bool operator>(const Neighbour& other) {
+    if (this->_dist > other.getDist()) {
       return true;
     }
     return false;
-  } 
+  }
 
-  bool operator==(const Neighbour& other){
-    if(this->segId == other.getId() && this->_dr.isApprox(other.getDr(), 1e-5)){
+  bool operator==(const Neighbour& other) {
+    if (this->segId == other.getId() &&
+        this->_dr.isApprox(other.getDr(), 1e-5)) {
       return true;
     }
     return false;
@@ -61,7 +62,7 @@ class Neighbour {
 
   const Eigen::Vector3d& getDr() const { return _dr; }
 
-  const Eigen::Vector3d& getShift() const {return _shift;}
+  const Eigen::Vector3d& getShift() const { return _shift; }
 
   double getDist() const { return _dist; }
 
@@ -77,15 +78,21 @@ class EwdNbList {
   EwdNbList() = default;
   ~EwdNbList() = default;
 
-  void setSize(Index size) { _nbList.resize(size); }
+  void setSize(Index size) {
+    size_ = size;
+    _nbList.resize(size);
+  }
 
   Index getSize() const { return _nbList.size(); }
 
   void addNeighbourTo(Index segId, Neighbour nb) {
+    if (nb.getId()> size_){
+      throw std::runtime_error("Trying to add neighbour with index " + std::to_string(nb.getId()) + " but max size is " + std::to_string(size_));
+    }
     _nbList[segId].push_back(nb);
   }
 
-  void sortOnDistance(Index segId){
+  void sortOnDistance(Index segId) {
     std::sort(_nbList[segId].begin(), _nbList[segId].end());
   }
 
@@ -95,6 +102,7 @@ class EwdNbList {
 
  private:
   std::vector<std::vector<Neighbour>> _nbList;
+  Index size_;
 };
 }  // namespace xtp
 }  // namespace votca

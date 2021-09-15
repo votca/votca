@@ -18,8 +18,8 @@
  */
 
 #include "background.h"
-#include "votca/xtp/tictoc.h"
 #include "votca/xtp/polarregion.h"
+#include "votca/xtp/tictoc.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -64,7 +64,7 @@ void Background::Polarize() {
   XTP_LOG(Log::error, log_)
       << "Compute reciprocal space permanent fields" << std::endl;
   kspace.computeStaticField();
-  kspace.computeShapeField();
+  kspace.applyStaticShapeField();
   kspace.computeIntraMolecularCorrection();
 
   std::ofstream infile2;
@@ -209,7 +209,7 @@ void Background::readFromStateFile(const std::string& state_file) {
   CheckpointReader r = cpf.getReader("polar_background");
   for (Index i = 0; i < r.getNumDataSets(); ++i) {
     CheckpointReader rr = r.openChild("background_" + std::to_string(i));
-    ewald_background_.push_back(EwdSegment(rr));
+    ewald_background_.push_back(EwdSegment(rr, i));
   }
   // ewald options
   CheckpointReader r2 = cpf.getReader("ewald_options");
@@ -233,6 +233,9 @@ void Background::readFromStateFile(const std::string& state_file) {
   Eigen::Matrix3d uc;
   r3(uc, "unit_cell_matrix");
   unit_cell_.reinitialize(uc);
+
+  rspace.Initialize(options_, unit_cell_, ewald_background_);
+  kspace.Initialize(options_, unit_cell_, ewald_background_);
 }
 
 Index Background::computeSystemSize(std::vector<EwdSegment>& segments) const {
@@ -242,7 +245,6 @@ Index Background::computeSystemSize(std::vector<EwdSegment>& segments) const {
   }
   return systemSize;
 }
-
 
 void Background::ApplyBackgroundFields(
     std::vector<std::unique_ptr<votca::xtp::Region>>& regions,
@@ -257,23 +259,30 @@ void Background::ApplyBackgroundFields(
   // Because we implement it step wise
   if (region_seg_ids.size() > 1) {
     throw std::runtime_error(
-        "The qm region inside a polar region inside a ewald background is not "
+        "The qm region inside a polar region inside an ewald background is not "
         "yet implemented.");
   }
 
   // Apply background fields to sites in the polarization cloud
-  if (region_seg_ids.size() == 1) {  // i.e. only a polariation cloud
+  if (region_seg_ids.size() == 1) {  // i.e. only a polarization cloud
     PolarRegion* pCloud = dynamic_cast<PolarRegion*>(regions[0].get());
     std::vector<SegId> pCloud_original_ids = region_seg_ids[0];
-    for (Index i = 0; i < pCloud->size(); i++){
+    for (Index i = 0; i < pCloud->size(); i++) {
       // (*pCloud)[i] will be the ith segment in pCloud
+      // pCloud_original_ids has the old topology ids, which are used in the
+      // ewald background.
       bgFieldAtSegment((*pCloud)[i], pCloud_original_ids);
     }
   }
-
 }
 
-void Background::bgFieldAtSegment(PolarSegment& seg, std::vector<SegId> pCloud_indices){ ; 
+void Background::bgFieldAtSegment(PolarSegment& seg,
+                                  std::vector<SegId> pCloud_indices) {
+  rspace.computeTotalField(seg, pCloud_indices);
+  kspace.computeTotalField(seg);
+  kspace.applyTotalShapeField(seg);
+  kspace.applySICorrection(seg);
+  //kspace.applyAPeriodicSubtraction(seg, pCloud_indices);
 }
 
 }  // namespace xtp
