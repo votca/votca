@@ -22,8 +22,8 @@
 #define VOTCA_XTP_UNITCELL_H
 
 #include <array>
-#include <vector>
 #include <iomanip>
+#include <vector>
 // Local VOTCA includes
 #include "ewd_segment.h"
 
@@ -31,7 +31,20 @@ namespace votca {
 namespace xtp {
 class UnitCell {
  public:
-  UnitCell(Eigen::Matrix3d _box) : cell_matrix(_box) {
+  UnitCell(Eigen::Matrix3d _box) { initialize(_box); }
+
+  UnitCell() : UnitCell(Eigen::Matrix3d::Identity()) { ; }
+
+  ~UnitCell() = default;
+
+  double getVolume() const { return cell_volume; }
+
+  const Eigen::Matrix3d& getMatrix() const { return cell_matrix; }
+
+  void reinitialize(Eigen::Matrix3d& mat) { initialize(mat); }
+
+  void initialize(Eigen::Matrix3d& mat) {
+    cell_matrix = mat;
     Eigen::Vector3d L1 = cell_matrix.col(0);
     Eigen::Vector3d L2 = cell_matrix.col(1);
     Eigen::Vector3d L3 = cell_matrix.col(2);
@@ -53,16 +66,8 @@ class UnitCell {
     }
     cell_matrix_inv = cell_matrix.inverse();
     cell_volume = L1.dot(L2.cross(L3));
-    centerOfBox = L1*0.5+L2*0.5+L3*0.5;
+    centerOfBox = L1 * 0.5 + L2 * 0.5 + L3 * 0.5;
   }
-
-  UnitCell() : UnitCell(Eigen::Matrix3d::Identity()) {}
-
-  ~UnitCell() = default;
-
-  double getVolume() const { return cell_volume; }
-
-  const Eigen::Matrix3d& getMatrix() const { return cell_matrix; }
 
   Eigen::Matrix3d getInverseMatrix() const {
     return 2 * boost::math::constants::pi<double>() * cell_matrix_inv;
@@ -94,9 +99,9 @@ class UnitCell {
     Eigen::Vector3d r_sp =
         r_dp - cell_matrix.col(1) * std::round(r_dp.y() / cell_matrix(1, 1));
     return r_sp - cell_matrix.col(0) * std::round(r_sp.x() / cell_matrix(0, 0));
-  }  
+  }
 
-  Eigen::Vector3d placeCoordInBox(const Eigen::Vector3d pos){
+  Eigen::Vector3d placeCoordInBox(const Eigen::Vector3d pos) {
     return minImage(pos, centerOfBox) + centerOfBox;
   }
 
@@ -111,7 +116,7 @@ class UnitCell {
   friend std::ostream& operator<<(std::ostream& out, const UnitCell cell) {
     Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols,
                                  ", ", " ", "[", "]", "", "");
-    out << "************* UNIT CELL PARAMS *************" << std::endl;                             
+    out << "************* UNIT CELL PARAMS *************" << std::endl;
     out << std::setprecision(8) << "RSpace Cell (nm)  : "
         << (0.05291 * cell.getMatrix()).format(CommaInitFmt) << std::endl;
     out << std::setprecision(5) << "KSpace Cell (nm-1): "

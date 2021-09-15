@@ -37,8 +37,12 @@ namespace votca {
 namespace xtp {
 class RSpace {
  public:
-  RSpace(const EwaldOptions& options, const UnitCell& unitcell, Logger& log)
-      : _unit_cell(unitcell), _log(log) {
+  RSpace(Logger& log)
+      : _log(log) {
+  }
+
+  void Initialize(const EwaldOptions& options, const UnitCell& unitcell,
+                  std::vector<EwdSegment>& segments) {
     cutoff = options.r_cutoff;
     a1 = options.alpha;
     a2 = a1 * a1;
@@ -48,6 +52,8 @@ class RSpace {
     thole = options.sharpness;
     thole2 = thole * thole;
     thole3 = thole * thole2;
+
+    _unit_cell = unitcell;
 
     maxCopies = _unit_cell.getNrOfRealSpaceCopiesForCutOff(cutoff);
 
@@ -62,9 +68,7 @@ class RSpace {
         << "Max R copies: [" << maxCopies[0] << ", " << maxCopies[1] << ", "
         << maxCopies[2] << "]" << std::endl
         << std::endl;
-  }
 
-  void Initialize(std::vector<EwdSegment>& segments) {
     _ewaldSegments = segments;
 
     systemSize = 0;

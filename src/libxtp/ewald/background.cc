@@ -19,6 +19,7 @@
 
 #include "background.h"
 #include "votca/xtp/tictoc.h"
+#include "votca/xtp/polarregion.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -29,7 +30,11 @@ namespace xtp {
 Background::Background(Logger& log, const Eigen::Matrix3d& uc_matrix,
                        const EwaldOptions options,
                        std::vector<PolarSegment>& polar_background)
-    : log_(log), unit_cell_(uc_matrix), options_(options), rspace(options, unit_cell_, log), kspace(options, unit_cell_, log) {
+    : log_(log),
+      unit_cell_(uc_matrix),
+      options_(options),
+      rspace(log),
+      kspace(log) {
   // Convert site data to a cartesian representation
   for (const PolarSegment& pseg : polar_background) {
     EwdSegment eseg(pseg);
@@ -43,8 +48,8 @@ Background::Background(Logger& log, const Eigen::Matrix3d& uc_matrix,
     // Should be deleted when merged and after compare with ctp is done
     seg.calcPos();
   }
-  rspace.Initialize(ewald_background_);
-  kspace.Initialize(ewald_background_);
+  rspace.Initialize(options_, unit_cell_, ewald_background_);
+  kspace.Initialize(options_, unit_cell_, ewald_background_);
 }
 
 void Background::Polarize() {
@@ -198,12 +203,77 @@ void Background::writeToStateFile(std::string& state_file) {
   w3(unit_cell_.getMatrix(), "unit_cell_matrix");
 }
 
+void Background::readFromStateFile(const std::string& state_file) {
+  // Read sites and multipoles etc.
+  CheckpointFile cpf(state_file, CheckpointAccessLevel::READ);
+  CheckpointReader r = cpf.getReader("polar_background");
+  for (Index i = 0; i < r.getNumDataSets(); ++i) {
+    CheckpointReader rr = r.openChild("background_" + std::to_string(i));
+    ewald_background_.push_back(EwdSegment(rr));
+  }
+  // ewald options
+  CheckpointReader r2 = cpf.getReader("ewald_options");
+  r2(options_.alpha, "alpha");
+  r2(options_.k_cutoff, "k_cutoff");
+  r2(options_.r_cutoff, "r_cutoff");
+  r2(options_.sharpness, "sharpness");
+  std::string shape;
+  r2(shape, "shape");
+  if (shape == "cube") {
+    options_.shape = Shape::cube;
+  } else if (shape == "xyslab") {
+    options_.shape = Shape::xyslab;
+  } else if (shape == "sphere") {
+    options_.shape = Shape::sphere;
+  } else {
+    throw std::runtime_error("Unknown shape in state file.");
+  }
+  // unit cell info
+  CheckpointReader r3 = cpf.getReader("unit_cell");
+  Eigen::Matrix3d uc;
+  r3(uc, "unit_cell_matrix");
+  unit_cell_.reinitialize(uc);
+}
+
 Index Background::computeSystemSize(std::vector<EwdSegment>& segments) const {
   Index systemSize = 0;
   for (const auto& seg : segments) {
     systemSize += 3 * seg.size();
   }
   return systemSize;
+}
+
+
+void Background::ApplyBackgroundFields(
+    std::vector<std::unique_ptr<votca::xtp::Region>>& regions,
+    const std::vector<std::vector<SegId>>& region_seg_ids) {
+  // Sanity check
+  if (region_seg_ids.size() > 2) {
+    throw std::runtime_error(
+        "You requested a calculation with more than two inner regions. This is "
+        "not allowed, the ewald background can only be used with a polar inner "
+        "region or with a qm region inside a polar region.");
+  }
+  // Because we implement it step wise
+  if (region_seg_ids.size() > 1) {
+    throw std::runtime_error(
+        "The qm region inside a polar region inside a ewald background is not "
+        "yet implemented.");
+  }
+
+  // Apply background fields to sites in the polarization cloud
+  if (region_seg_ids.size() == 1) {  // i.e. only a polariation cloud
+    PolarRegion* pCloud = dynamic_cast<PolarRegion*>(regions[0].get());
+    std::vector<SegId> pCloud_original_ids = region_seg_ids[0];
+    for (Index i = 0; i < pCloud->size(); i++){
+      // (*pCloud)[i] will be the ith segment in pCloud
+      bgFieldAtSegment((*pCloud)[i], pCloud_original_ids);
+    }
+  }
+
+}
+
+void Background::bgFieldAtSegment(PolarSegment& seg, std::vector<SegId> pCloud_indices){ ; 
 }
 
 }  // namespace xtp

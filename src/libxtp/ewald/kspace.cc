@@ -26,56 +26,6 @@
 namespace votca {
 namespace xtp {
 
-KSpace::KSpace(const EwaldOptions& options, const UnitCell& unitcell,
-               Logger& log)
-    : options(options), _unit_cell(unitcell), _log(log) {
-  a1 = options.alpha;
-  a2 = a1 * a1;
-  a3 = a1 * a2;
-  a4 = a2 * a2;
-  a5 = a4 * a1;
-  fourPiVolume =
-      4.0 * boost::math::constants::pi<double>() / _unit_cell.getVolume();
-  cutoff = options.k_cutoff;
-  cutoff2 = cutoff * cutoff;
-
-  // compute max k-space vectors
-  const Eigen::Matrix3d& inverseCellMatrix = _unit_cell.getInverseMatrix();
-  for (Index i = 0; i < 3; ++i) {
-    max_K[i] =
-        static_cast<Index>(std::ceil(cutoff / inverseCellMatrix.col(i).norm()));
-  }
-
-  XTP_LOG(Log::error, _log)
-      << "************* KSPACE: PARAMETERS *************" << std::endl;
-  XTP_LOG(Log::error, _log) << "kspace cutoff: " << cutoff << "a.u. ("
-                            << (1 / 0.05291) * cutoff << " nm-1)" << std::endl;
-  switch (options.shape) {
-    case Shape::sphere:
-      XTP_LOG(Log::error, _log) << "shape: sphere" << std::endl;
-      break;
-    case Shape::cube:
-      XTP_LOG(Log::error, _log) << "shape: cube" << std::endl;
-      break;
-    case Shape::xyslab:
-      XTP_LOG(Log::error, _log) << "shape: xyslab" << std::endl;
-      break;
-  }
-
-  XTP_LOG(Log::error, _log) << "Max K copies: [" << max_K[0] << ", " << max_K[1]
-                            << ", " << max_K[2] << "]" << std::endl
-                            << std::endl;
-
-  systemSize = 0;
-  for (const auto& seg : _ewaldSegments) {
-    segmentOffSet.push_back(systemSize);
-    systemSize += 3 * seg.size();
-  }
-
-  // precompute the K-Vectors
-  computeKVectors();
-}
-
 void KSpace::computeStaticField() {
   for (Index i = 0; i < Index(_ewaldSegments.size()); ++i) {
     EwdSegment& seg = _ewaldSegments[i];

@@ -32,7 +32,7 @@
 #include "votca/xtp/segmentmapper.h"
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/version.h"
-#include "ewald/ewaldbackground.h"
+#include "ewald/background.h"
 
 namespace votca {
 namespace xtp {
@@ -173,7 +173,7 @@ void JobTopology::CreateRegions(
     QMRegion QMdummy(0, log_, "");
     StaticRegion Staticdummy(0, log_);
     PolarRegion Polardummy(0, log_);
-    EwaldBackground ewaldBG;
+    Background bg(log_);
     if (type == QMdummy.identify()) {
       std::unique_ptr<QMRegion> qmregion =
           std::make_unique<QMRegion>(id, log_, workdir_);
@@ -216,8 +216,8 @@ void JobTopology::CreateRegions(
       }
       region = std::move(staticregion);
     } else if (type == "ewaldregion") {
-      ewaldBG.Initialize(region_def.get("path").as<std::string>());
-      ewaldBG.ApplyBackgroundFields(regions_, region_seg_ids);
+      bg.readFromStateFile(region_def.get("path").as<std::string>());
+      bg.ApplyBackgroundFields(regions_, region_seg_ids);
       continue;
     } else {
       throw std::runtime_error("Region type not known!");

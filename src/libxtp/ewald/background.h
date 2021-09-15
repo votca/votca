@@ -25,12 +25,14 @@
 // Local VOTCA includes
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/logger.h"
+#include "votca/xtp/region.h"
+#include "votca/xtp/segid.h"
 
 // Private VOTCA includes
-#include "kspace.h"
-#include "rspace.h"
 #include "ewaldoptions.h"
 #include "ewd_segment.h"
+#include "kspace.h"
+#include "rspace.h"
 #include "unitcell.h"
 
 namespace votca {
@@ -42,22 +44,26 @@ class Background {
              const EwaldOptions options,
              std::vector<PolarSegment>& polar_background);
 
-  // Background(Logger& log, std::string& state_file) : log_(log) {
-  //   readFromStateFile(state_file);
-  // }
+  Background(Logger& log) : log_(log), kspace(log), rspace(log) {}
 
   ~Background() = default;
 
   void Polarize();
 
+  void ApplyBackgroundFields(
+      std::vector<std::unique_ptr<votca::xtp::Region>>& regions,
+      const std::vector<std::vector<SegId>>& region_seg_ids);
+
   void writeToStateFile(std::string& state_file);
 
-  void readFromStateFile(std::string& state_file) { ; }
+  void readFromStateFile(const std::string& state_file);
 
  private:
   Index computeSystemSize(std::vector<EwdSegment>& ewaldSegments) const;
   Eigen::VectorXd solveLinearSystem(Eigen::MatrixXd A, Eigen::VectorXd b,
                                     Eigen::VectorXd guess);
+
+  void bgFieldAtSegment(PolarSegment& seg, std::vector<SegId> pCloud_indices);
   Logger& log_;
   UnitCell unit_cell_;
   EwaldOptions options_;
