@@ -48,11 +48,16 @@ class Background {
 
   ~Background() = default;
 
+  Index size() { return ewald_background_.size(); }
+
   void Polarize();
 
   void ApplyBackgroundFields(
       std::vector<std::unique_ptr<votca::xtp::Region>>& regions,
       const std::vector<std::vector<SegId>>& region_seg_ids);
+
+  double interactionEnergy(std::vector<std::unique_ptr<Region>>& regions,
+                           std::vector<std::vector<SegId>>& region_seg_ids);
 
   void writeToStateFile(std::string& state_file);
 
@@ -62,7 +67,6 @@ class Background {
   Index computeSystemSize(std::vector<EwdSegment>& ewaldSegments) const;
   Eigen::VectorXd solveLinearSystem(Eigen::MatrixXd A, Eigen::VectorXd b,
                                     Eigen::VectorXd guess);
-
   void bgFieldAtSegment(PolarSegment& seg, std::vector<SegId> pCloud_indices);
   Logger& log_;
   UnitCell unit_cell_;

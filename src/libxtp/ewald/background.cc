@@ -285,5 +285,34 @@ void Background::bgFieldAtSegment(PolarSegment& seg,
   kspace.applyAPeriodicCorrection(seg, pCloud_indices);
 }
 
+double Background::interactionEnergy(
+    std::vector<std::unique_ptr<Region>>& regions,
+    std::vector<std::vector<SegId>>& region_seg_ids) {
+      
+  // two cases:
+  if (regions.size() == 1) {  // case 1: polar in ewald
+    // Create the polarization cloud in "ewald representation"
+    PolarRegion* polarregion =
+        dynamic_cast<PolarRegion*>(regions[0].get());
+    std::vector<EwdSegment> pCloudX;
+    for (const PolarSegment& pseg : *polarregion) {
+      EwdSegment eseg(pseg);
+      pCloudX.push_back(eseg);
+    }
+    // compute the interaction energy between the polar cloud and the total bg.
+    double energy = 0;
+    energy += rspace.backgroundInteractionEnergy();
+    energy += kspace.backgroundInteractionEnergy();
+    energy += kspace.selfInteractionEnergy();
+    energy += kspace.aPeriodicCorrectionEnergy();
+    energy += kspace.shapeCorrectionEnergy();
+    return energy;
+  } else if (regions.size() == 2) {  // case 2: qm in polar in ewald
+    throw std::runtime_error("qm in polar in ewald is not yet implemented");
+  } else {
+    throw std::runtime_error(
+        "Impossible region definitions with the ewald background");
+  }
+}
 }  // namespace xtp
 }  // namespace votca

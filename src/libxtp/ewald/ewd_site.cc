@@ -34,7 +34,7 @@ EwdSite::EwdSite(const PolarSite& pol) {
   _position = pol.getPos();
   _charge = pol.getCharge();
   _dipole_static = pol.getStaticDipole();
-  _dipole_induced = Eigen::Vector3d::Zero();
+  _dipole_induced = pol.getInducedDipole();
   _polarization = pol.getpolarization();
   _element = pol.getElement();
   // the 1/3 saves factors in further calculations

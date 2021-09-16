@@ -68,6 +68,8 @@ class PolarSite final : public StaticSite {
 
   Eigen::Vector3d getStaticDipole() const;
 
+  Eigen::Vector3d getInducedDipole() const;
+
   double getSqrtInvEigenDamp() const { return eigendamp_invsqrt_; }
 
   void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos) final {

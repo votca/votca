@@ -59,6 +59,10 @@ Eigen::Vector3d PolarSite::getStaticDipole() const {
   return Q_.segment<3>(1);
 }
 
+Eigen::Vector3d PolarSite::getInducedDipole() const {
+  return induced_dipole_;
+}
+
 void PolarSite::setpolarization(const Eigen::Matrix3d& pol) {
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
   es.computeDirect(pol);

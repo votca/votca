@@ -21,11 +21,11 @@
 #ifndef VOTCA_XTP_KSPACE_H
 #define VOTCA_XTP_KSPACE_H
 
+#include "votca/xtp/segid.h"
 #include <boost/math/constants/constants.hpp>
 #include <complex>
 #include <iomanip>
 #include <vector>
-#include "votca/xtp/segid.h"
 
 // Local VOTCA includes
 #include "votca/xtp/ewaldoptions.h"
@@ -120,6 +120,14 @@ class KSpace {
   void addShapeCorrectionTo(Eigen::MatrixXd& result);
   void addSICorrectionTo(Eigen::MatrixXd& result);
 
+  double backgroundInteractionEnergy() { return 0.0; }
+
+  double selfInteractionEnergy() { return 0.0; }
+
+  double aPeriodicCorrectionEnergy() { return 0.0; }
+
+  double shapeCorrectionEnergy() { return 0.0; }
+
  private:
   void computeTholeVariables(const Eigen::Matrix3d& pol1,
                              const Eigen::Matrix3d& pol2);
@@ -136,7 +144,8 @@ class KSpace {
 
   Eigen::Matrix3d inducedDipoleInteractionAtBy(EwdSite& site,
                                                const EwdSite& nbSite);
-  Eigen::Vector3d kspaceCorrectionFieldAtBy(EwdSite& site, const EwdSite& nbSite);
+  Eigen::Vector3d kspaceCorrectionFieldAtBy(EwdSite& site,
+                                            const EwdSite& nbSite);
 
   std::vector<Index> segmentOffSet;
 

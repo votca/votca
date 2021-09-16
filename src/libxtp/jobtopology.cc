@@ -129,8 +129,10 @@ void JobTopology::ModifyOptionsByJobFile(tools::Property& regions_def) const {
   }
 }
 
-void JobTopology::computeBackgroundInteractionEnergy(){
-  std::cout << "Evaluating the background energy" << std::endl;
+double JobTopology::computeBackgroundInteractionEnergy(){
+  // Sanity check
+  assert(bg_.size() > 0);
+  return bg_.interactionEnergy(regions_, region_seg_ids_);
 }
 
 void JobTopology::BuildRegions(

@@ -92,6 +92,8 @@ class RSpace {
 
   void addInducedDipoleInteractionTo(Eigen::MatrixXd& result);
 
+  double backgroundInteractionEnergy() {return 0.0;}
+
  private:
   void computeDistanceVariables(Eigen::Vector3d distVec);
 

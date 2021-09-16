@@ -80,7 +80,7 @@ class JobTopology {
     return regions_.end();
   }
 
-  void computeBackgroundInteractionEnergy();
+  double computeBackgroundInteractionEnergy();
 
  private:
   std::vector<std::vector<SegId> > PartitionRegions(

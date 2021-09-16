@@ -52,8 +52,6 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
   states_ = options.get("io_jobfile.states").as<std::vector<QMState>>();
   which_segments_ = options.get("io_jobfile.segments").as<std::string>();
 
-
-
   bool groundstate_found = std::any_of(
       states_.begin(), states_.end(),
       [](const QMState& state) { return state.Type() == QMStateType::Gstate; });
@@ -191,8 +189,11 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
     etot += reg->Etotal();
     charge += reg->charge();
   }
-  if (usesEwald()){
-    jobtop.computeBackgroundInteractionEnergy();
+  if (usesEwald()) {
+    double ewaldEnergy = jobtop.computeBackgroundInteractionEnergy();
+    tools::Property& ewaldresult =
+        regionsresults.add("ewald", std::to_string(ewaldEnergy));
+    etot += ewaldEnergy;
   }
   std::chrono::time_point<std::chrono::system_clock> end =
       std::chrono::system_clock::now();
@@ -218,10 +219,9 @@ bool QMMM::hasQMRegion() const {
 
 bool QMMM::usesEwald() const {
   Logger log;
-  return std::any_of(regions_def_.second.begin(), regions_def_.second.end(),
-                     [&](const tools::Property& reg) {
-                       return reg.name() == "ewaldregion";
-                     });
+  return std::any_of(
+      regions_def_.second.begin(), regions_def_.second.end(),
+      [&](const tools::Property& reg) { return reg.name() == "ewaldregion"; });
 }
 
 std::string QMMM::getFirstRegionName() const {
