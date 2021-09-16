@@ -21,8 +21,8 @@
 
 // Local private VOTCA includes
 #include "bgpol.h"
-#include "ewald/ewd_segment.h"
-#include "ewald/unitcell.h"
+#include "votca/xtp/ewd_segment.h"
+#include "votca/xtp/unitcell.h"
 
 namespace votca {
 namespace xtp {

@@ -26,6 +26,7 @@
 #include "logger.h"
 #include "region.h"
 #include "topology.h"
+#include "votca/xtp/background.h"
 
 /**
  * \brief Class to set up the topology, e.g division of molecules into different
@@ -47,7 +48,7 @@ class SegId;
 class JobTopology {
  public:
   JobTopology(Job& job, Logger& log, std::string workdir)
-      : job_(job), log_(log), workdir_(workdir){};
+      : job_(job), log_(log), workdir_(workdir), bg_(log){};
   void BuildRegions(const Topology& top,
                     std::pair<std::string, tools::Property> options);
 
@@ -79,6 +80,8 @@ class JobTopology {
     return regions_.end();
   }
 
+  void computeBackgroundInteractionEnergy();
+
  private:
   std::vector<std::vector<SegId> > PartitionRegions(
       const tools::Property& regions_def, const Topology& top) const;
@@ -100,7 +103,9 @@ class JobTopology {
   Job& job_;
   Logger& log_;
   std::vector<std::unique_ptr<Region> > regions_;
+  std::vector<std::vector<SegId>> region_seg_ids_;
   std::string workdir_ = "";
+  Background bg_;
 
   static constexpr int jobtopology_version() { return 1; }
 };

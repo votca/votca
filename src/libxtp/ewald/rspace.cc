@@ -17,7 +17,7 @@
  *
  */
 
-#include "rspace.h"
+#include "votca/xtp/rspace.h"
 #include <vector>
 
 namespace votca {

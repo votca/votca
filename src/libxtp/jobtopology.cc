@@ -32,7 +32,7 @@
 #include "votca/xtp/segmentmapper.h"
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/version.h"
-#include "ewald/background.h"
+#include "votca/xtp/background.h"
 
 namespace votca {
 namespace xtp {
@@ -129,17 +129,21 @@ void JobTopology::ModifyOptionsByJobFile(tools::Property& regions_def) const {
   }
 }
 
+void JobTopology::computeBackgroundInteractionEnergy(){
+  std::cout << "Evaluating the background energy" << std::endl;
+}
+
 void JobTopology::BuildRegions(
     const Topology& top, std::pair<std::string, tools::Property> options) {
 
   CheckEnumerationOfRegions(options.second);
   ModifyOptionsByJobFile(options.second);
 
-  std::vector<std::vector<SegId>> region_seg_ids =
+  region_seg_ids_ =
       PartitionRegions(options.second, top);
 
   // // around this point the whole jobtopology will be centered
-  CreateRegions(options, top, region_seg_ids);
+  CreateRegions(options, top, region_seg_ids_);
   XTP_LOG(Log::error, log_) << " Regions created" << std::flush;
   for (const auto& region : regions_) {
     XTP_LOG(Log::error, log_) << *region << std::flush;
@@ -173,7 +177,6 @@ void JobTopology::CreateRegions(
     QMRegion QMdummy(0, log_, "");
     StaticRegion Staticdummy(0, log_);
     PolarRegion Polardummy(0, log_);
-    Background bg(log_);
     if (type == QMdummy.identify()) {
       std::unique_ptr<QMRegion> qmregion =
           std::make_unique<QMRegion>(id, log_, workdir_);
@@ -216,8 +219,8 @@ void JobTopology::CreateRegions(
       }
       region = std::move(staticregion);
     } else if (type == "ewaldregion") {
-      bg.readFromStateFile(region_def.get("path").as<std::string>());
-      bg.ApplyBackgroundFields(regions_, region_seg_ids);
+      bg_.readFromStateFile(region_def.get("path").as<std::string>());
+      bg_.ApplyBackgroundFields(regions_, region_seg_ids);
       continue;
     } else {
       throw std::runtime_error("Region type not known!");

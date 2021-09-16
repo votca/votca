@@ -27,7 +27,7 @@
 #include "votca/xtp/classicalsegment.h"
 
 // Private VOTCA includes
-#include "ewd_site.h"
+#include "votca/xtp/ewd_site.h"
 
 namespace votca {
 namespace xtp {

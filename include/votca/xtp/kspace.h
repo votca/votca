@@ -28,9 +28,9 @@
 #include "votca/xtp/segid.h"
 
 // Local VOTCA includes
-#include "ewaldoptions.h"
-#include "ewd_segment.h"
-#include "unitcell.h"
+#include "votca/xtp/ewaldoptions.h"
+#include "votca/xtp/ewd_segment.h"
+#include "votca/xtp/unitcell.h"
 
 namespace votca {
 namespace xtp {

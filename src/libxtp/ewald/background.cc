@@ -17,7 +17,7 @@
  *
  */
 
-#include "background.h"
+#include "votca/xtp/background.h"
 #include "votca/xtp/polarregion.h"
 #include "votca/xtp/tictoc.h"
 #include <fstream>

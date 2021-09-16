@@ -26,10 +26,10 @@
 #include <vector>
 
 // Local VOTCA includes
-#include "ewaldoptions.h"
-#include "ewd_nblist.h"
-#include "ewd_segment.h"
-#include "unitcell.h"
+#include "votca/xtp/ewaldoptions.h"
+#include "votca/xtp/ewd_nblist.h"
+#include "votca/xtp/ewd_segment.h"
+#include "votca/xtp/unitcell.h"
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/segid.h"
 

@@ -191,6 +191,9 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
     etot += reg->Etotal();
     charge += reg->charge();
   }
+  if (usesEwald()){
+    jobtop.computeBackgroundInteractionEnergy();
+  }
   std::chrono::time_point<std::chrono::system_clock> end =
       std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = end - start;

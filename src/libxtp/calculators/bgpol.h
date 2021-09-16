@@ -22,7 +22,7 @@
 #define VOTCA_XTP_BGPOL_H
 
 // Local VOTCA includes
-#include "ewald/background.h"
+#include "votca/xtp/background.h"
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/qmcalculator.h"

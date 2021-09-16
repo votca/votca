@@ -21,7 +21,7 @@
 #include <vector>
 
 // Local includes
-#include "kspace.h"
+#include "votca/xtp/kspace.h"
 
 namespace votca {
 namespace xtp {
