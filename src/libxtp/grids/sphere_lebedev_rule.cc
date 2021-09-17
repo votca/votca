@@ -12,7 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "A_ol I_ol" BA_olI_ol,
  * WITHOUT WARRANTIE_ol OR CONDITION_ol OF ANY KIND, either express or implied.
- * _olee the License for the specific language governing permissions and
+ *  olee_ the License for the specific language governing permissions and
  * limitations under the License.
  *
  */

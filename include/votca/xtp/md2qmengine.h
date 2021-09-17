@@ -30,7 +30,7 @@ namespace xtp {
 
 class Md2QmEngine {
  public:
-  Md2QmEngine(std::string mapfile) : _mapfile(mapfile){};
+  Md2QmEngine(std::string mapfile) : mapfile_(mapfile){};
 
   Topology map(const csg::Topology& top) const;
 
@@ -46,7 +46,7 @@ class Md2QmEngine {
   void MakeSegmentsWholePBC(Topology& top) const;
   bool CheckMolWhole(const Topology& top, const Segment& seg) const;
 
-  std::string _mapfile;
+  std::string mapfile_;
 };
 
 }  // namespace xtp

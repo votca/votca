@@ -32,8 +32,8 @@ std::vector<std::vector<double> >
   auto result = SetupAmplitudeContainer();
 
 #pragma omp parallel for schedule(guided)
-  for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
-    const GridBox& box = _grid[i];
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    const GridBox& box = grid_[i];
     if (!box.Matrixsize()) {
       continue;
     }
@@ -42,8 +42,8 @@ std::vector<std::vector<double> >
     const std::vector<double>& weights = box.getGridWeights();
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
-      Eigen::VectorXd ao = box.CalcAOValues(points[p]);
-      result[i][p] = weights[p] * amplitude_here.dot(ao);
+      AOShell::AOValues ao = box.CalcAOValues(points[p]);
+      result[i][p] = weights[p] * amplitude_here.dot(ao.values);
     }
   }
   return result;
@@ -53,9 +53,9 @@ template <class Grid>
 std::vector<std::vector<double> >
     AmplitudeIntegration<Grid>::SetupAmplitudeContainer() {
   std::vector<std::vector<double> > amplitudes =
-      std::vector<std::vector<double> >(_grid.getBoxesSize());
-  for (Index i = 0; i < _grid.getBoxesSize(); i++) {
-    amplitudes[i] = std::vector<double>(_grid[i].size(), 0.0);
+      std::vector<std::vector<double> >(grid_.getBoxesSize());
+  for (Index i = 0; i < grid_.getBoxesSize(); i++) {
+    amplitudes[i] = std::vector<double>(grid_[i].size(), 0.0);
   }
   return amplitudes;
 }

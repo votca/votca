@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,72 +21,45 @@
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/checkpointtable.h"
 
 namespace votca {
 namespace xtp {
 
-AOGaussianPrimitive::AOGaussianPrimitive(const GaussianPrimitive& gaussian,
-                                         const AOShell& aoshell)
-    : _decay(gaussian.decay()),
-      _contraction(gaussian.contraction()),
-      _aoshell(aoshell) {
-  _powfactor = CalcPowFactor(_decay);
+AOGaussianPrimitive::AOGaussianPrimitive(const GaussianPrimitive& gaussian)
+    : decay_(gaussian.decay()), contraction_(gaussian.contraction()) {
+  powfactor_ = CalcPowFactor(decay_);
 }
 
-AOGaussianPrimitive::AOGaussianPrimitive(const AOGaussianPrimitive& gaussian,
-                                         const AOShell& aoshell)
-    : _decay(gaussian._decay),
-      _contraction(gaussian._contraction),
-      _aoshell(aoshell),
-      _powfactor(gaussian._powfactor) {
-  ;
+void AOGaussianPrimitive::SetupCptTable(CptTable& table) {
+  table.addCol<Index>("atomidx", HOFFSET(data, atomid));
+  table.addCol<Index>("L", HOFFSET(data, l));
+  table.addCol<Index>("startidx", HOFFSET(data, startindex));
+  table.addCol<double>("decay", HOFFSET(data, decay));
+  table.addCol<double>("contr", HOFFSET(data, contraction));
+  table.addCol<double>("pos.x", HOFFSET(data, x));
+  table.addCol<double>("pos.y", HOFFSET(data, y));
+  table.addCol<double>("pos.z", HOFFSET(data, z));
+  table.addCol<double>("scale", HOFFSET(data, scale));
 }
 
-void AOGaussianPrimitive::SetupCptTable(CptTable& table) const {
-  table.addCol(getShell().getAtomIndex(), "atomidx", HOFFSET(data, atomid));
-  table.addCol(static_cast<Index>(getShell().getL()), "L", HOFFSET(data, l));
-  table.addCol(getShell().getStartIndex(), "startidx",
-               HOFFSET(data, startindex));
-  table.addCol(getDecay(), "decay", HOFFSET(data, decay));
-  table.addCol(getContraction(), "contr", HOFFSET(data, contraction));
-  table.addCol(getShell().getPos().x(), "pos.x", HOFFSET(data, x));
-  table.addCol(getShell().getPos().y(), "pos.y", HOFFSET(data, y));
-  table.addCol(getShell().getPos().z(), "pos.z", HOFFSET(data, z));
-  table.addCol(getShell().getScale(), "scale", HOFFSET(data, scale));
-}
-
-void AOGaussianPrimitive::WriteData(data& d) const {
-  d.atomid = getShell().getAtomIndex();
-  d.l = static_cast<Index>(getShell().getL());
-  d.startindex = getShell().getStartIndex();
+void AOGaussianPrimitive::WriteData(data& d, const AOShell& s) const {
+  d.atomid = s.getAtomIndex();
+  d.l = static_cast<Index>(s.getL());
+  d.startindex = s.getStartIndex();
   d.decay = getDecay();
   d.contraction = getContraction();
-  d.x = getShell().getPos().x();
-  d.y = getShell().getPos().y();
-  d.z = getShell().getPos().z();
-  d.scale = getShell().getScale();
+  d.x = s.getPos().x();
+  d.y = s.getPos().y();
+  d.z = s.getPos().z();
 }
 
 AOShell::AOShell(const Shell& shell, const QMAtom& atom, Index startIndex)
-    : _l(shell.getL()),
-      _scale(shell.getScale()),
-      _startIndex(startIndex),
-      _pos(atom.getPos()),
-      _atomindex(atom.getId()) {
+    : l_(shell.getL()),
+      startIndex_(startIndex),
+      pos_(atom.getPos()),
+      atomindex_(atom.getId()) {
   ;
-}
-
-AOShell::AOShell(const AOShell& shell) {
-  _l = shell._l;
-  _scale = shell._scale;
-  _mindecay = shell._mindecay;
-  _startIndex = shell._startIndex;
-  _pos = shell._pos;
-  _atomindex = shell._atomindex;
-  _gaussians.reserve(shell._gaussians.size());
-  for (const auto& gaus : shell._gaussians) {
-    _gaussians.push_back(AOGaussianPrimitive(gaus, *this));
-  }
 }
 
 libint2::Shell AOShell::LibintShell() const {
@@ -96,7 +69,7 @@ libint2::Shell AOShell::LibintShell() const {
   libint2::Shell::Contraction contr;
   contr.l = static_cast<int>(getL());
   contr.pure = true;
-  for (const auto& primitive : _gaussians) {
+  for (const auto& primitive : gaussians_) {
     decays.push_back(primitive.getDecay());
     contr.coeff.push_back(primitive.getContraction());
   }
@@ -109,22 +82,23 @@ void AOShell::normalizeContraction() {
   AOOverlap overlap;
   Eigen::MatrixXd block = overlap.singleShellOverlap(*this);
   double norm = std::sqrt(block(0, 0));
-  for (auto& gaussian : _gaussians) {
-    gaussian._contraction /= norm;
+  for (auto& gaussian : gaussians_) {
+    gaussian.contraction_ /= norm;
   }
   return;
 }
 
-void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
-                          Eigen::Block<Eigen::MatrixX3d>& gradAOvalues,
-                          const Eigen::Vector3d& grid_pos) const {
+AOShell::AOValues AOShell::EvalAOspace(const Eigen::Vector3d& grid_pos) const {
 
   // need position of shell
-  const Eigen::Vector3d center = (grid_pos - _pos);
+  const Eigen::Vector3d center = (grid_pos - pos_);
   const double distsq = center.squaredNorm();
+  AOShell::AOValues AO(getNumFunc());
+  Eigen::VectorXd& AOvalues = AO.values;
+  Eigen::MatrixX3d& gradAOvalues = AO.derivatives;
 
   // iterate over Gaussians in this shell
-  for (const AOGaussianPrimitive& gaussian : _gaussians) {
+  for (const AOGaussianPrimitive& gaussian : gaussians_) {
 
     const double alpha = gaussian.getDecay();
     const double contraction = gaussian.getContraction();
@@ -133,7 +107,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
         gaussian.getPowfactor() * std::exp(-alpha * distsq);
     const Eigen::Vector3d second_term = -2.0 * alpha * center;
 
-    switch (_l) {
+    switch (l_) {
       case L::S: {
         double AOvalue = contraction * expofactor;
         AOvalues(0) += AOvalue;                        // s-function
@@ -321,29 +295,19 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
             4 * factor * coeff.matrix() + second_term * AOvalue;
       } break;
       default:
-        throw std::runtime_error("Shell type:" + EnumToString(_l) +
+        throw std::runtime_error("Shell type:" + EnumToString(l_) +
                                  " not known");
         break;
     }
   }  // contractions
-  return;
-}  // namespace xtp
-
-void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
-                          const Eigen::Vector3d& grid_pos) const {
-
-  Eigen::MatrixX3d temp = Eigen::MatrixX3d::Zero(AOvalues.size(), 3);
-  Eigen::Block<Eigen::MatrixX3d> temp2 =
-      temp.block(0, 0, temp.rows(), temp.cols());
-  EvalAOspace(AOvalues, temp2, grid_pos);
+  return AO;
 }
 
 std::ostream& operator<<(std::ostream& out, const AOShell& shell) {
   out << "AtomIndex:" << shell.getAtomIndex();
   out << " Shelltype:" << EnumToString(shell.getL())
       << " StartIndex:" << shell.getStartIndex()
-      << " Scale:" << shell.getScale() << " MinDecay:" << shell.getMinDecay()
-      << "\n";
+      << " MinDecay:" << shell.getMinDecay() << "\n";
   for (const auto& gaussian : shell) {
     out << " Gaussian Decay: " << gaussian.getDecay();
     out << " Contraction: " << gaussian.getContraction();

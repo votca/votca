@@ -33,7 +33,7 @@ class KMCMultiple final : public KMCCalculator {
   KMCMultiple() = default;
   ~KMCMultiple() = default;
   bool WriteToStateFile() const { return false; }
-  std::string Identify() { return "kmcmultiple"; }
+  std::string Identify() const { return "kmcmultiple"; }
 
  protected:
   void ParseSpecificOptions(const tools::Property& user_options);
@@ -56,11 +56,11 @@ class KMCMultiple final : public KMCCalculator {
   void PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor, double simtime,
                       unsigned long step);
 
-  double _runtime;
-  double _outputtime;
-  std::string _timefile = "";
-  Index _intermediateoutput_frequency = 10000;
-  unsigned long _diffusionresolution = 1000;
+  double runtime_;
+  double outputtime_;
+  std::string timefile_ = "";
+  Index intermediateoutput_frequency_ = 10000;
+  unsigned long diffusionresolution_ = 1000;
 };
 
 }  // namespace xtp

@@ -41,11 +41,11 @@ class BSE {
 
  public:
   //  BSE(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp_in)
-  //    : _log(log), _Mmn(Mmn), _Hqp_in(Hqp_in){};
-  BSE(Logger& log, TCMatrix_gwbse& Mmn) : _log(log), _Mmn(Mmn){};
+  //    :  log_(log),  Mmn_(Mmn),  Hqp_in_(Hqp_in){};
+  BSE(Logger& log, TCMatrix_gwbse& Mmn) : log_(log), Mmn_(Mmn){};
 
   struct options {
-    bool useTDA = true;
+    bool useTDA;
     Index homo;
     Index rpamin;
     Index rpamax;
@@ -53,11 +53,8 @@ class BSE {
     Index qpmax;
     Index vmin;
     Index cmax;
-    Index nmax;       // number of eigenvectors to calculate
-    bool davidson;    // use davidson to diagonalize the matrix
-    bool matrixfree;  // use matrix free method
+    Index nmax;  // number of eigenvectors to calculat
     std::string davidson_correction;
-    std::string davidson_ortho;
     std::string davidson_tolerance;
     std::string davidson_update;
     Index davidson_maxiter;
@@ -73,7 +70,7 @@ class BSE {
   void Solve_singlets(Orbitals& orb) const;
   void Solve_triplets(Orbitals& orb) const;
 
-  Eigen::MatrixXd getHqp() const { return _Hqp; };
+  Eigen::MatrixXd getHqp() const { return Hqp_; };
 
   SingletOperator_TDA getSingletOperator_TDA() const;
   TripletOperator_TDA getTripletOperator_TDA() const;
@@ -86,7 +83,7 @@ class BSE {
   void Perturbative_DynamicalScreening(const QMStateType& type, Orbitals& orb);
 
  private:
-  options _opt;
+  options opt_;
 
   struct Interaction {
     Eigen::VectorXd exchange_contrib;
@@ -99,20 +96,20 @@ class BSE {
     Eigen::VectorXd cross_term;
   };
 
-  Logger& _log;
-  Index _bse_vmax;
-  Index _bse_cmin;
-  Index _bse_size;
-  Index _bse_vtotal;
-  Index _bse_ctotal;
+  Logger& log_;
+  Index bse_vmax_;
+  Index bse_cmin_;
+  Index bse_size_;
+  Index bse_vtotal_;
+  Index bse_ctotal_;
 
-  Index _max_dyn_iter;
-  double _dyn_tolerance;
+  Index max_dyn_iter_;
+  double dyn_tolerance_;
 
-  Eigen::VectorXd _epsilon_0_inv;
+  Eigen::VectorXd epsilon_0_inv_;
 
-  TCMatrix_gwbse& _Mmn;
-  Eigen::MatrixXd _Hqp;
+  TCMatrix_gwbse& Mmn_;
+  Eigen::MatrixXd Hqp_;
 
   tools::EigenSystem Solve_singlets_TDA() const;
   tools::EigenSystem Solve_singlets_BTDA() const;
@@ -153,10 +150,8 @@ class BSE {
                                               const BSE_OPERATOR& H) const;
 
   template <typename BSE_OPERATOR>
-  ExpectationValues ExpectationValue_Operator_State(const QMStateType& type,
-                                                    const Orbitals& orb,
-                                                    const BSE_OPERATOR& H,
-                                                    const Index state) const;
+  ExpectationValues ExpectationValue_Operator_State(
+      const QMState& state, const Orbitals& orb, const BSE_OPERATOR& H) const;
 };
 }  // namespace xtp
 }  // namespace votca

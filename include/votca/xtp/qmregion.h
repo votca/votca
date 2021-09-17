@@ -44,7 +44,7 @@ class QMRegion : public Region {
 
  public:
   QMRegion(Index id, Logger& log, std::string workdir)
-      : Region(id, log), _workdir(workdir) {
+      : Region(id, log), workdir_(workdir) {
     QMPackageFactory::RegisterAll();
   };
   ~QMRegion() override = default;
@@ -61,18 +61,18 @@ class QMRegion : public Region {
 
   void ApplyQMFieldToPolarSegments(std::vector<PolarSegment>& segments) const;
 
-  Index size() const override { return _size; }
+  Index size() const override { return size_; }
 
   void WritePDB(csg::PDBWriter& writer) const override;
 
-  std::string identify() const override { return "qm"; }
+  std::string identify() const override { return "qmregion"; }
 
   void push_back(const QMMolecule& mol);
 
   void Reset() override;
 
   double charge() const override;
-  double Etotal() const override { return _E_hist.back(); }
+  double Etotal() const override { return E_hist_.back(); }
 
  protected:
   void AppendResult(tools::Property& prop) const override;
@@ -84,28 +84,28 @@ class QMRegion : public Region {
   void AddNucleiFields(std::vector<PolarSegment>& segments,
                        const StaticSegment& seg) const;
 
-  Index _size = 0;
-  Orbitals _orb;
+  Index size_ = 0;
+  Orbitals orb_;
 
-  QMState _initstate;
-  std::string _workdir = "";
-  std::unique_ptr<QMPackage> _qmpackage = nullptr;
+  QMState initstate_;
+  std::string workdir_ = "";
+  std::unique_ptr<QMPackage> qmpackage_ = nullptr;
 
-  std::string _grid_accuracy_for_ext_interaction = "medium";
+  std::string grid_accuracy_for_ext_interaction_ = "medium";
 
-  hist<double> _E_hist;
-  hist<Eigen::MatrixXd> _Dmat_hist;
+  hist<double> E_hist_;
+  hist<Eigen::MatrixXd> Dmat_hist_;
 
   // convergence options
-  double _DeltaD = 5e-5;
-  double _DeltaE = 5e-5;
+  double DeltaD_ = 5e-5;
+  double DeltaE_ = 5e-5;
 
-  bool _do_gwbse = false;
+  bool do_gwbse_ = false;
 
-  tools::Property _dftoptions;
-  tools::Property _gwbseoptions;
+  tools::Property dftoptions_;
+  tools::Property gwbseoptions_;
 
-  StateTracker _statetracker;
+  StateTracker statetracker_;
 };
 
 }  // namespace xtp

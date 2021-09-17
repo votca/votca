@@ -36,9 +36,7 @@ class GridBox {
 
  public:
   void FindSignificantShells(const AOBasis& basis);
-  Eigen::VectorXd CalcAOValue_and_Grad(Eigen::MatrixX3d& ao_grad,
-                                       const Eigen::Vector3d& point) const;
-  Eigen::VectorXd CalcAOValues(const Eigen::Vector3d& pos) const;
+  AOShell::AOValues CalcAOValues(const Eigen::Vector3d& point) const;
 
   const std::vector<Eigen::Vector3d>& getGridPoints() const { return grid_pos; }
 

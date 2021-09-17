@@ -55,7 +55,7 @@ class OscillatorStrength_filter : public StateFilter_base {
   void ReadFromCpt(CheckpointReader& r) final;
 
  private:
-  double _threshold = 0.0;
+  double threshold_ = 0.0;
 };
 
 }  // namespace xtp

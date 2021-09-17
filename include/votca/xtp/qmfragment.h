@@ -40,7 +40,7 @@ namespace xtp {
 template <class T>
 class QMFragment {
  public:
-  QMFragment(Index id, std::string atoms) : _id(id) { FillAtomIndices(atoms); }
+  QMFragment(Index id, std::string atoms) : id_(id) { FillAtomIndices(atoms); }
 
   QMFragment() = default;
 
@@ -48,58 +48,57 @@ class QMFragment {
 
   template <class T2>
   void copy_withoutvalue(const QMFragment<T2>& frag) {
-    _id = frag.getId();
-    _atomindices = frag.getIndices();
+    id_ = frag.getId();
+    atomindices_ = frag.getIndices();
   }
 
-  void setId(Index id) { _id = id; }
-  Index getId() const { return _id; }
+  void setId(Index id) { id_ = id; }
+  Index getId() const { return id_; }
   void FillFromString(std::string atoms) { FillAtomIndices(atoms); }
 
-  const T& value() const { return _value; }
+  const T& value() const { return value_; }
 
-  T& value() { return _value; }
+  T& value() { return value_; }
 
-  Index size() const { return Index(_atomindices.size()); }
+  Index size() const { return Index(atomindices_.size()); }
 
-  const std::vector<Index>& getIndices() const { return _atomindices; }
+  const std::vector<Index>& getIndices() const { return atomindices_; }
 
   double ExtractFromVector(const Eigen::VectorXd& atomentries) const {
     double result = 0;
-    for (Index index : _atomindices) {
+    for (Index index : atomindices_) {
       result += atomentries(index);
     }
     return result;
   }
 
   typename std::vector<Index>::const_iterator begin() const {
-    return _atomindices.begin();
+    return atomindices_.begin();
   }
   typename std::vector<Index>::const_iterator end() const {
-    return _atomindices.end();
+    return atomindices_.end();
   }
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const QMFragment& fragment) {
-    out << "Fragment id:" << fragment._id << "\n";
+    out << "Fragment id:" << fragment.id_ << "\n";
     out << "AtomIndices[" << fragment.size() << "]:";
-    for (Index id : fragment._atomindices) {
-      out << id << " ";
-    }
-    out << "\nValue:" << fragment._value;
+    IndexParser p;
+    out << p.CreateIndexString(fragment.atomindices_) << "\n";
+    out << "\nValue:" << fragment.value_;
     out << "\n";
     return out;
   };
 
   void WriteToCpt(CheckpointWriter& w) const {
-    w(_atomindices, "indices");
-    w(_id, "id");
+    w(atomindices_, "indices");
+    w(id_, "id");
     WriteValue(w);
   }
 
   void ReadFromCpt(CheckpointReader& r) {
-    r(_atomindices, "indices");
-    r(_id, "id");
+    r(atomindices_, "indices");
+    r(id_, "id");
     ReadValue(r);
   }
 
@@ -109,33 +108,33 @@ class QMFragment {
 
   void FillAtomIndices(const std::string& atoms) {
     IndexParser p;
-    _atomindices = p.CreateIndexVector(atoms);
+    atomindices_ = p.CreateIndexVector(atoms);
   }
 
-  std::vector<Index> _atomindices;
-  Index _id = -1;
-  T _value{};
+  std::vector<Index> atomindices_;
+  Index id_ = -1;
+  T value_{};
 };
 
 template <class T>
 inline void QMFragment<T>::ReadValue(CheckpointReader& r) {
-  r(_value, "value");
+  r(value_, "value");
 }
 template <class T>
 inline void QMFragment<T>::WriteValue(CheckpointWriter& w) const {
-  w(_value, "value");
+  w(value_, "value");
 }
 
 template <>
 inline void QMFragment<BSE_Population>::ReadValue(CheckpointReader& r) {
   CheckpointReader rr = r.openChild("BSE_pop");
-  _value.ReadFromCpt(rr);
+  value_.ReadFromCpt(rr);
 }
 
 template <>
 inline void QMFragment<BSE_Population>::WriteValue(CheckpointWriter& w) const {
   CheckpointWriter ww = w.openChild("BSE_pop");
-  _value.WriteToCpt(ww);
+  value_.WriteToCpt(ww);
 }
 
 }  // namespace xtp

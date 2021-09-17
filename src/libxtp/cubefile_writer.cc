@@ -44,9 +44,7 @@ std::vector<std::vector<double>> CubeFile_Writer::CalculateValues(
   } else {
     Eigen::MatrixXd mat;
     if (state.Type().isExciton() && dostateonly) {
-      std::array<Eigen::MatrixXd, 2> DMAT =
-          orb.DensityMatrixExcitedState(state);
-      mat = DMAT[1] - DMAT[0];
+      mat = orb.DensityMatrixWithoutGS(state);
     } else {
       mat = orb.DensityMatrixFull(state);
     }
@@ -75,15 +73,15 @@ void CubeFile_Writer::WriteFile(const std::string& filename,
                                 bool dostateonly) const {
 
   Regular_Grid grid;
-  Eigen::Array3d padding = Eigen::Array3d::Ones() * _padding;
+  Eigen::Array3d padding = Eigen::Array3d::Ones() * padding_;
   AOBasis basis = orb.SetupDftBasis();
-  XTP_LOG(Log::info, _log) << " Loaded DFT Basis Set " << orb.getDFTbasisName()
+  XTP_LOG(Log::info, log_) << " Loaded DFT Basis Set " << orb.getDFTbasisName()
                            << std::flush;
-  grid.GridSetup(_steps, padding, orb.QMAtoms(), basis);
-  XTP_LOG(Log::info, _log) << " Calculating Gridvalues " << std::flush;
+  grid.GridSetup(steps_, padding, orb.QMAtoms(), basis);
+  XTP_LOG(Log::info, log_) << " Calculating Gridvalues " << std::flush;
   auto temp = CalculateValues(orb, state, dostateonly, grid);
   std::vector<double> grid_values = FlattenValues(temp);
-  XTP_LOG(Log::info, _log) << " Calculated Gridvalues " << std::flush;
+  XTP_LOG(Log::info, log_) << " Calculated Gridvalues " << std::flush;
   bool do_amplitude = (state.Type().isSingleParticleState());
   std::ofstream out(filename);
   if (!out.is_open()) {
