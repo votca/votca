@@ -55,6 +55,8 @@ Version 2022-dev
 Version 2021.2 (released XX.07.21)
 ==================================
 
+-  no changes since v2021.1
+
 Version 2021.1 (released 18.07.21)
 ==================================
 
