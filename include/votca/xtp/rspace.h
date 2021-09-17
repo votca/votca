@@ -26,20 +26,18 @@
 #include <vector>
 
 // Local VOTCA includes
+#include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/ewaldoptions.h"
 #include "votca/xtp/ewd_nblist.h"
 #include "votca/xtp/ewd_segment.h"
-#include "votca/xtp/unitcell.h"
-#include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/segid.h"
+#include "votca/xtp/unitcell.h"
 
 namespace votca {
 namespace xtp {
 class RSpace {
  public:
-  RSpace(Logger& log)
-      : _log(log) {
-  }
+  RSpace(Logger& log) : _log(log) {}
 
   void Initialize(const EwaldOptions& options, const UnitCell& unitcell,
                   std::vector<EwdSegment>& segments) {
@@ -92,7 +90,8 @@ class RSpace {
 
   void addInducedDipoleInteractionTo(Eigen::MatrixXd& result);
 
-  double backgroundInteractionEnergy() {return 0.0;}
+  double backgroundInteractionEnergy(std::vector<EwdSegment>& pCloudX,
+                                     std::vector<SegId>& pCloud_indices);
 
  private:
   void computeDistanceVariables(Eigen::Vector3d distVec);
@@ -119,6 +118,9 @@ class RSpace {
   Eigen::Vector3d totalFieldAtBy(
       EwdSite& site, const EwdSite& nbSite,
       const Eigen::Vector3d shift = Eigen::Vector3d::Zero());
+
+  double totalEnergyTwoSites(const EwdSite site, const EwdSite nbSite,
+                             const Eigen::Vector3d shift);
 
   /****************************/
   /* VARIABLES                */

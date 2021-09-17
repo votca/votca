@@ -288,7 +288,7 @@ void Background::bgFieldAtSegment(PolarSegment& seg,
 double Background::interactionEnergy(
     std::vector<std::unique_ptr<Region>>& regions,
     std::vector<std::vector<SegId>>& region_seg_ids) {
-      
+
   // two cases:
   if (regions.size() == 1) {  // case 1: polar in ewald
     // Create the polarization cloud in "ewald representation"
@@ -301,7 +301,7 @@ double Background::interactionEnergy(
     }
     // compute the interaction energy between the polar cloud and the total bg.
     double energy = 0;
-    energy += rspace.backgroundInteractionEnergy();
+    energy += rspace.backgroundInteractionEnergy(pCloudX, region_seg_ids[0]);
     energy += kspace.backgroundInteractionEnergy();
     energy += kspace.selfInteractionEnergy();
     energy += kspace.aPeriodicCorrectionEnergy();

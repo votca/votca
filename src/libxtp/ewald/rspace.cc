@@ -38,14 +38,42 @@ void RSpace::computeStaticField() {
   }
 }
 
+double RSpace::backgroundInteractionEnergy(std::vector<EwdSegment>& pCloudX,
+                                           std::vector<SegId>& pCloud_indices) {
+  double energy = 0.0;
+  for (const EwdSegment& pSegment : pCloudX) {
+    for (const Neighbour& nb : _nbList.getNeighboursOf(pSegment.getId())) {
+      if (nb.getShift() == Eigen::Vector3d::Zero()) {
+        bool neighbourInPCloud =
+            std::find_if(pCloud_indices.begin(), pCloud_indices.end(),
+                         [&nb](SegId x) { return x.Id() == nb.getId(); }) <
+            pCloud_indices.end();
+        if (neighbourInPCloud) {
+          continue;  // we should not compute any ewald stuff for segments in
+                     // the polarization cloud
+        }
+      }
+      EwdSegment& nbSeg = _ewaldSegments[nb.getId()];
+      for (const EwdSite& site : pSegment) {
+        for (const EwdSite& nbSite : nbSeg) {
+          energy += totalEnergyTwoSites(site, nbSite, nb.getShift());
+        }
+      }
+    }
+  }
+  return energy;
+}
+
 void RSpace::computeTotalField(PolarSegment& seg,
                                const std::vector<SegId> pCloud_indices) {
   EwdSegment& currentSeg = _ewaldSegments[seg.getId()];
   for (const Neighbour& neighbour : _nbList.getNeighboursOf(seg.getId())) {
     if (neighbour.getShift() == Eigen::Vector3d::Zero()) {
       bool neighbourInPCloud =
-          std::find_if(pCloud_indices.begin(), pCloud_indices.end(), [&neighbour](SegId x) { return x.Id() == neighbour.getId();}) <
-          pCloud_indices.end();
+          std::find_if(pCloud_indices.begin(), pCloud_indices.end(),
+                       [&neighbour](SegId x) {
+                         return x.Id() == neighbour.getId();
+                       }) < pCloud_indices.end();
       if (neighbourInPCloud) {
         continue;  // we should not compute any ewald stuff for segments in the
                    // polarization cloud
@@ -277,6 +305,24 @@ Eigen::Matrix3d RSpace::inducedDipoleInteractionAtBy(
   interaction.diagonal().array() += l3 * rR3s;
   interaction -= dr * dr.transpose() * l5 * rR5s;
   return interaction;
+}
+
+double RSpace::totalEnergyTwoSites(const EwdSite site, const EwdSite nbSite,
+                                   const Eigen::Vector3d shift) {
+  computeDistanceVariables(site.getPos() - (nbSite.getPos() + shift));
+  computeScreenedInteraction();
+  computeTholeVariables(site.getPolarizationMatrix(),
+                        nbSite.getPolarizationMatrix());
+  double energy = 0.0;
+  Eigen::Vector3d dr2 = dr.array() * dr.array();
+  energy += site.getCharge() * rR1s * nbSite.getCharge();
+  energy -= site.getCharge() * rR3s * dr.dot(nbSite.getTotalDipole());
+  energy += nbSite.getCharge() * rR3s * dr.dot(site.getTotalDipole());
+  energy -= site.getTotalDipole().transpose() * ((dr * dr.transpose()) * rR5s) *
+            nbSite.getTotalDipole();
+  energy += site.getTotalDipole().transpose() * (dr2.asDiagonal() * rR5s) *
+            nbSite.getTotalDipole();
+  return energy;
 }
 
 }  // namespace xtp

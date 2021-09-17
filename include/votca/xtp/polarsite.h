@@ -159,7 +159,6 @@ class PolarSite final : public StaticSite {
 
  private:
   std::string writepolarization() const final;
-
   // PolarSite has two external fields,
   // the first is used for interaction with regions, which are further out, i.e.
   // the interaction energy with it is included in the polar region energy
