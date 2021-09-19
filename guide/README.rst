@@ -12,27 +12,8 @@ Installation
 Building VOTCA
 ^^^^^^^^^^^^^^
 
-The simplest way is to use CMake:
-
-.. code:: bash
-
-    prefix=~/votca
-    version=master # or 'stable' or 'v1.4.1'
-    git clone -b ${version} --recursive https://github.com/votca/votca.git
-    cd votca
-    mkdir build
-    cd build
-    cmake -DCMAKE_INSTALL_PREFIX=${prefix} ..
-    make -j5
-    make install
-
-To build a gromacs version for VOTCA use
-
-.. code:: bash
-
-    cmake -DBUILD_OWN_GROMACS=ON ..
-    make -j5
-    make install
+Instructions how to build and install VOTCA can be found
+:ref:`here<install>`.
 
 Using the tutorials
 ^^^^^^^^^^^^^^^^^^^
@@ -40,12 +21,11 @@ Using the tutorials
 All the tutorials are in the installation folder, i.e.
 ``${prefix}/share/votca/csg-tutorials``.
 
-Downloading the manual
-^^^^^^^^^^^^^^^^^^^^^^
+The manual
+^^^^^^^^^^
 
-The corresponding version of the manual can be found on
-`github <https://github.com/votca/csg-manual/releases>`__ (development
-version `here <http://doc.votca.org/manual.pdf>`__).
+The CSG manual can be found :ref:`here<csg>`
+
 
 Running GROMACS
 ---------------
