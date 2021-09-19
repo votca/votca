@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/tools/commits/stable>`__.
 
-Version 2021.2 (released XX.07.21)
+Version 2021.2 (released 19.09.21)
 ==================================
 
 -  changed tolerance for getting element names from mass (#378)
