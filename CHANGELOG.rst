@@ -25,7 +25,10 @@ Version 2022-dev
 -  made bool conversion more restrictive (#366)
 -  made factory more general (#377)
 
-Version 2021.2 (released XX.07.21)
+Version 2021.3 (released XX.09.21)
+==================================
+
+Version 2021.2 (released 19.09.21)
 ==================================
 
 -  changed tolerance for getting element names from mass (#378)
