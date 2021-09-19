@@ -52,7 +52,10 @@ Version 2022-dev
 -  increase performance of numerical integration (#733)
 -  upgrade xtp to cxx17 (#737)
 
-Version 2021.2 (released XX.07.21)
+Version 2021.3 (released XX.09.21)
+==================================
+
+Version 2021.2 (released 19.09.21)
 ==================================
 
 -  no changes since v2021.1
