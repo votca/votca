@@ -175,14 +175,14 @@ jobs:
         with:
           repository: votca/doxygen
           path: builddir/devdoc
-          token: ${{ secrets.VOTCA_BOT_TOKEN }}
+          token: ${{ secrets.VOTCA_BOT_TOKEN || github.token }}
       - name: Checkout Website repo
         if: ${{ matrix.deploy }}
         uses: actions/checkout@v2
         with:
           repository: votca/votca.github.io
           path: builddir/userdoc
-          token: ${{ secrets.VOTCA_BOT_TOKEN }}
+          token: ${{ secrets.VOTCA_BOT_TOKEN || github.token }}
       - name: Deploy Doxygen and Website
         if: ${{ matrix.deploy && steps.setup.outputs.build_sphinx == 'true' }}
         run: ${GITHUB_WORKSPACE}/.github/workflows/deploy.sh
