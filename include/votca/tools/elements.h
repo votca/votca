@@ -41,18 +41,6 @@ namespace tools {
  */
 class Elements {
  public:
-  Elements()
-      : _filled_VdWChelpG(false),
-        _filled_VdWMK(false),
-        _filled_NucCrg(false),
-        _filled_CovRad(false),
-        _filled_Mass(false),
-        _filled_EleNum(false),
-        _filled_EleName(false),
-        _filled_ElPolarizability(false),
-        _filled_EleShort(false),
-        _filled_EleFull(false){};
-
   /// Determine if the name is a recognized element symbol or name
   bool isElement(std::string name);
 
@@ -118,33 +106,33 @@ class Elements {
 
  private:
   // cache variables
-  bool _filled_VdWChelpG = false;
-  bool _filled_VdWMK = false;
-  bool _filled_NucCrg = false;
-  bool _filled_CovRad = false;
-  bool _filled_Mass = false;
-  bool _filled_EleNum = false;
-  bool _filled_EleName = false;
-  bool _filled_ElPolarizability = false;
-  bool _filled_EleShort = false;
-  bool _filled_EleFull = false;
+  bool filled_VdWChelpG_ = false;
+  bool filled_VdWMK_ = false;
+  bool filled_NucCrg_ = false;
+  bool filled_CovRad_ = false;
+  bool filled_Mass_ = false;
+  bool filled_EleNum_ = false;
+  bool filled_EleName_ = false;
+  bool filled_ElPolarizability_ = false;
+  bool filled_EleShort_ = false;
+  bool filled_EleFull_ = false;
 
-  std::map<std::string, double> _VdWChelpG;
-  std::map<std::string, double> _VdWMK;
-  std::map<std::string, Index> _NucCrg;
-  std::map<std::string, double> _CovRad;
-  std::map<std::string, double> _Mass;
-  std::map<std::string, Index> _EleNum;
-  std::map<Index, std::string> _EleName;
+  std::map<std::string, double> VdWChelpG_;
+  std::map<std::string, double> VdWMK_;
+  std::map<std::string, Index> NucCrg_;
+  std::map<std::string, double> CovRad_;
+  std::map<std::string, double> Mass_;
+  std::map<std::string, Index> EleNum_;
+  std::map<Index, std::string> EleName_;
 
-  std::map<std::string, double> _ElPolarizability;
+  std::map<std::string, double> ElPolarizability_;
 
-  std::map<std::string, std::string> _EleShort;
-  std::map<std::string, std::string> _EleFull;
+  std::map<std::string, std::string> EleShort_;
+  std::map<std::string, std::string> EleFull_;
 
   /// Finds the element closest in mass and returns the difference as well as
   /// the string of elements short name
-  std::pair<std::string, double> findShortNameOfElementClosestInMass_(
+  std::pair<std::string, double> findShortNameOfElementClosestInMass(
       double mass);
 
   void FillMass();

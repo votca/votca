@@ -40,11 +40,11 @@ class CrossCorrelate {
 
   void AutoCorrelate(DataCollection<double>::selection& data);
 
-  std::vector<double>& getData() { return _corrfunc; }
-  const std::vector<double>& getData() const { return _corrfunc; }
+  std::vector<double>& getData() { return corrfunc_; }
+  const std::vector<double>& getData() const { return corrfunc_; }
 
  private:
-  std::vector<double> _corrfunc;
+  std::vector<double> corrfunc_;
 };
 
 inline std::ostream& operator<<(std::ostream& out, const CrossCorrelate& c) {

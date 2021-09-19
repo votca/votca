@@ -113,9 +113,9 @@ class Application {
    * \brief get available program options & descriptions
    * \return variables_map (see boost documentation)
    */
-  boost::program_options::variables_map &OptionsMap() { return _op_vm; }
+  boost::program_options::variables_map &OptionsMap() { return op_vm_; }
   boost::program_options::options_description &OptionsDesc() {
-    return _op_desc;
+    return op_desc_;
   }
 
   /**
@@ -123,7 +123,7 @@ class Application {
    * \return Option descriptions without the "Hidden" group
    */
   boost::program_options::options_description &VisibleOptions() {
-    return _visible_options;
+    return visible_options_;
   }
 
   /**
@@ -133,44 +133,25 @@ class Application {
    * and then wants to stop execution successfully. Call StopExecution and
    * return true in EvaluateOptions.
    */
-  void StopExecution() { _continue_execution = false; }
-
-  /// length of the output help
-  enum HelpType { HelpShort, HelpLong };
-
-  /**
-   * \brief Print long/short descriptions of calculators
-   *
-   * @param calculator_name name of a calculator
-   * @param help_path path in VOTCASHARE were xml file with help is stored
-   * @param helptype Index or short (with options) help
-   */
-  void PrintDescription(std::ostream &out, const std::string &calculator_name,
-                        const std::string help_path, HelpType help_type);
+  void StopExecution() { continue_execution_ = false; }
 
  protected:
-  /// Variable map containing all program options
-  boost::program_options::variables_map _op_vm;
-
-  /// program options required by all applications
-  boost::program_options::options_description _op_desc;
-
-  std::map<std::string, boost::program_options::options_description> _op_groups;
+  std::map<std::string, boost::program_options::options_description> op_groups_;
 
   virtual void ShowHelpText(std::ostream &out);
 
-  void ShowManPage(std::ostream &out);
-
-  void ShowTEXPage(std::ostream &out);
-
-  bool _continue_execution;
+  bool continue_execution_ = true;
 
  private:
+  /// program options required by all applications
+  boost::program_options::options_description op_desc_;
+  /// Variable map containing all program options
+  boost::program_options::variables_map op_vm_;
   /// get input parameters from file, location may be specified in command line
   void ParseCommandLine(int argc, char **argv);
 
   /// program options without the Hidden group
-  boost::program_options::options_description _visible_options;
+  boost::program_options::options_description visible_options_;
 };
 
 }  // namespace tools

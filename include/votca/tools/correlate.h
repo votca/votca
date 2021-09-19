@@ -43,11 +43,11 @@ class Correlate {
    */
   void CalcCorrelations(DataCollection<double>::selection &data);
 
-  std::vector<double> &getData() { return _corr; }
-  const std::vector<double> &getData() const { return _corr; }
+  std::vector<double> &getData() { return corr_; }
+  const std::vector<double> &getData() const { return corr_; }
 
  private:
-  std::vector<double> _corr;
+  std::vector<double> corr_;
 };
 
 inline std::ostream &operator<<(std::ostream &out, const Correlate &c) {

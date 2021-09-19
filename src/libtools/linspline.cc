@@ -27,6 +27,16 @@ namespace tools {
 
 using namespace std;
 
+double LinSpline::Calculate(double r) {
+  Index interval = getInterval(r);
+  return a(interval) * r + b(interval);
+}
+
+double LinSpline::CalculateDerivative(double r) {
+  Index interval = getInterval(r);
+  return a(interval);
+}
+
 void LinSpline::Interpolate(const Eigen::VectorXd &x,
                             const Eigen::VectorXd &y) {
   if (x.size() != y.size()) {
@@ -44,10 +54,10 @@ void LinSpline::Interpolate(const Eigen::VectorXd &x,
   const Index N = x.size();
 
   // adjust the grid
-  _r.resize(N);
+  r_.resize(N);
 
   // copy the grid points into f
-  _r = x;
+  r_ = x;
 
   // LINEAR SPLINE: a(i) * x + b(i)
   // where i=number of interval
@@ -74,7 +84,7 @@ void LinSpline::Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
   }
 
   const Index N = x.size();
-  const Index ngrid = _r.size();
+  const Index ngrid = r_.size();
 
   // construct the equation
   // A*u = b
@@ -90,9 +100,9 @@ void LinSpline::Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
   for (Index i = 0; i < N; i++) {
     Index interval = getInterval(x(i));
     A(i, interval) =
-        1 - (x(i) - _r(interval)) / (_r(interval + 1) - _r(interval));
+        1 - (x(i) - r_(interval)) / (r_(interval + 1) - r_(interval));
     A(i, interval + 1) =
-        (x(i) - _r(interval)) / (_r(interval + 1) - _r(interval));
+        (x(i) - r_(interval)) / (r_(interval + 1) - r_(interval));
   }
 
   // now do a qr solve
@@ -105,8 +115,8 @@ void LinSpline::Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
   a = Eigen::VectorXd::Zero(ngrid - 1);
   b = Eigen::VectorXd::Zero(ngrid - 1);
   for (Index i = 0; i < ngrid - 1; i++) {
-    a(i) = (sol(i + 1) - sol(i)) / (_r(i + 1) - _r(i));
-    b(i) = -a(i) * _r(i) + sol(i);
+    a(i) = (sol(i + 1) - sol(i)) / (r_(i + 1) - r_(i));
+    b(i) = -a(i) * r_(i) + sol(i);
   }
 }
 }  // namespace tools
