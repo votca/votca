@@ -1,6 +1,9 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/csg/commits/master>`__.
 
+Version 2021.3 (released XX.09.21)
+==================================
+
 Version 2021.2 (released 19.09.21)
 ==================================
 
