@@ -19,53 +19,53 @@
 
 // Local VOTCA includes
 #include "votca/xtp/qmatom.h"
-
+#include "votca/xtp/checkpointtable.h"
 namespace votca {
 namespace xtp {
 
 QMAtom::QMAtom(Index index, std::string element, Eigen::Vector3d pos)
-    : _index(index), _element(element), _pos(pos) {
+    : index_(index), element_(element), pos_(pos) {
   tools::Elements elements;
-  _nuccharge = elements.getNucCrg(_element);
+  nuccharge_ = elements.getNucCrg(element_);
 }
 
 QMAtom::QMAtom(const data& d) { ReadData(d); }
 
 void QMAtom::Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos) {
-  Eigen::Vector3d dir = _pos - refPos;
+  Eigen::Vector3d dir = pos_ - refPos;
   dir = R * dir;
-  _pos = refPos + dir;  // Rotated Position
+  pos_ = refPos + dir;  // Rotated Position
 }
 
-void QMAtom::SetupCptTable(CptTable& table) const {
-  table.addCol(_index, "index", HOFFSET(data, index));
-  table.addCol(_element, "element", HOFFSET(data, element));
-  table.addCol(_pos[0], "posX", HOFFSET(data, x));
-  table.addCol(_pos[1], "posY", HOFFSET(data, y));
-  table.addCol(_pos[2], "posZ", HOFFSET(data, z));
-  table.addCol(_nuccharge, "nuccharge", HOFFSET(data, nuccharge));
-  table.addCol(_ecpcharge, "ecpcharge", HOFFSET(data, ecpcharge));
+void QMAtom::SetupCptTable(CptTable& table) {
+  table.addCol<Index>("index", HOFFSET(data, index));
+  table.addCol<std::string>("element", HOFFSET(data, element));
+  table.addCol<double>("posX", HOFFSET(data, x));
+  table.addCol<double>("posY", HOFFSET(data, y));
+  table.addCol<double>("posZ", HOFFSET(data, z));
+  table.addCol<Index>("nuccharge", HOFFSET(data, nuccharge));
+  table.addCol<Index>("ecpcharge", HOFFSET(data, ecpcharge));
 }
 
 void QMAtom::WriteData(data& d) const {
-  d.index = _index;
-  d.element = const_cast<char*>(_element.c_str());
-  d.x = _pos[0];
-  d.y = _pos[1];
-  d.z = _pos[2];
-  d.nuccharge = _nuccharge;
-  d.ecpcharge = _ecpcharge;
+  d.index = index_;
+  d.element = const_cast<char*>(element_.c_str());
+  d.x = pos_[0];
+  d.y = pos_[1];
+  d.z = pos_[2];
+  d.nuccharge = nuccharge_;
+  d.ecpcharge = ecpcharge_;
 }
 
 void QMAtom::ReadData(const data& d) {
-  _element = std::string(d.element);
+  element_ = std::string(d.element);
   free(d.element);
-  _index = d.index;
-  _pos[0] = d.x;
-  _pos[1] = d.y;
-  _pos[2] = d.z;
-  _nuccharge = d.nuccharge;
-  _ecpcharge = d.ecpcharge;
+  index_ = d.index;
+  pos_[0] = d.x;
+  pos_[1] = d.y;
+  pos_[2] = d.z;
+  nuccharge_ = d.nuccharge;
+  ecpcharge_ = d.ecpcharge;
 }
 }  // namespace xtp
 }  // namespace votca

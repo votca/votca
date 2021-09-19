@@ -36,22 +36,22 @@ class PPM {
 
   void PPM_construct_parameters(const RPA& rpa);
 
-  const Eigen::VectorXd& getPpm_weight() const { return _ppm_weight; }
+  const Eigen::VectorXd& getPpm_weight() const { return ppm_weight_; }
 
-  const Eigen::VectorXd& getPpm_freq() const { return _ppm_freq; }
+  const Eigen::VectorXd& getPpm_freq() const { return ppm_freq_; }
 
-  const Eigen::MatrixXd& getPpm_phi() const { return _ppm_phi; }
+  const Eigen::MatrixXd& getPpm_phi() const { return ppm_phi_; }
 
-  void FreeMatrix() { _ppm_phi.resize(0, 0); }
+  void FreeMatrix() { ppm_phi_.resize(0, 0); }
 
  private:
   double screening_r;
   double screening_i;
 
   // PPM related variables and functions
-  Eigen::MatrixXd _ppm_phi;
-  Eigen::VectorXd _ppm_freq;
-  Eigen::VectorXd _ppm_weight;
+  Eigen::MatrixXd ppm_phi_;
+  Eigen::VectorXd ppm_freq_;
+  Eigen::VectorXd ppm_weight_;
 };
 }  // namespace xtp
 }  // namespace votca

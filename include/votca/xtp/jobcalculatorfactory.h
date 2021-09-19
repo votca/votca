@@ -45,8 +45,8 @@ class JobCalculatorfactory
 };
 
 inline JobCalculatorfactory &JobCalculators() {
-  static JobCalculatorfactory _instance;
-  return _instance;
+  static JobCalculatorfactory instance_;
+  return instance_;
 }
 
 }  // namespace xtp

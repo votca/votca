@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -35,9 +35,9 @@ class QMMolecule;
 template <class T>
 class AOPotential {
  public:
-  Index Dimension() { return _aopotential.rows(); }
+  Index Dimension() { return aopotential_.rows(); }
   const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& Matrix() const {
-    return _aopotential;
+    return aopotential_;
   }
 
  protected:
@@ -46,7 +46,7 @@ class AOPotential {
   virtual void FillBlock(
       Eigen::Block<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>>& matrix,
       const AOShell& shell_row, const AOShell& shell_col) const = 0;
-  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> _aopotential;
+  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> aopotential_;
 };
 
 // derived class for Effective Core Potentials
@@ -55,27 +55,10 @@ class AOECP : public AOPotential<double> {
   void FillPotential(const AOBasis& aobasis, const ECPAOBasis& ecp);
 
  protected:
-  void FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                 const AOShell& shell_row,
-                 const AOShell& shell_col) const override;
+  void FillBlock(Eigen::Block<Eigen::MatrixXd>&, const AOShell&,
+                 const AOShell&) const final{};
 
  private:
-  Eigen::VectorXd ExpandContractions(const AOGaussianPrimitive& gaussian,
-                                     const AOShell& shell) const;
-  void setECP(const ECPAOBasis* ecp) { _ecp = ecp; }
-  const ECPAOBasis* _ecp;
-  Eigen::MatrixXd calcVNLmatrix(
-      Index lmax_ecp, const Eigen::Vector3d& posC,
-      const AOGaussianPrimitive& g_row, const AOGaussianPrimitive& g_col,
-      const Eigen::Matrix<int, 4, 5>& power_ecp,
-      const Eigen::Matrix<double, 4, 5>& gamma_ecp,
-      const Eigen::Matrix<double, 4, 5>& pref_ecp) const;
-
-  void getBLMCOF(Index lmax_ecp, Index lmax_dft, const Eigen::Vector3d& pos,
-                 Eigen::Tensor<double, 3>& BLC,
-                 Eigen::Tensor<double, 3>& C) const;
-  Eigen::VectorXd CalcNorms(double decay, Index size) const;
-  Eigen::VectorXd CalcInt_r_exp(Index nmax, double decay) const;
 };
 
 class AOMultipole : public AOPotential<double> {
@@ -92,9 +75,9 @@ class AOMultipole : public AOPotential<double> {
                  const AOShell& shell_col) const override;
 
  private:
-  void setSite(const StaticSite* site) { _site = site; };
+  void setSite(const StaticSite* site) { site_ = site; };
 
-  const StaticSite* _site;
+  const StaticSite* site_;
 };
 
 class AOPlanewave : public AOPotential<std::complex<double>> {
@@ -108,8 +91,8 @@ class AOPlanewave : public AOPotential<std::complex<double>> {
                  const AOShell& shell_col) const override;
 
  private:
-  void setkVector(const Eigen::Vector3d& k) { _k = k; };
-  Eigen::Vector3d _k;
+  void setkVector(const Eigen::Vector3d& k) { k_ = k; };
+  Eigen::Vector3d k_;
 };
 
 }  // namespace xtp

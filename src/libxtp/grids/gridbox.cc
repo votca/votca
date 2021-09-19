@@ -19,6 +19,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/gridbox.h"
+#include "votca/xtp/aobasis.h"
 
 namespace votca {
 namespace xtp {
@@ -40,27 +41,15 @@ void GridBox::FindSignificantShells(const AOBasis& basis) {
   }
 }
 
-Eigen::VectorXd GridBox::CalcAOValue_and_Grad(
-    Eigen::MatrixX3d& ao_grad, const Eigen::Vector3d& point) const {
-  Eigen::VectorXd ao = Eigen::VectorXd::Zero(Matrixsize());
+AOShell::AOValues GridBox::CalcAOValues(const Eigen::Vector3d& point) const {
+  AOShell::AOValues result(Matrixsize());
   for (Index j = 0; j < Shellsize(); ++j) {
-    Eigen::Block<Eigen::MatrixX3d> grad_block =
-        ao_grad.block(aoranges[j].start, 0, aoranges[j].size, 3);
-    Eigen::VectorBlock<Eigen::VectorXd> ao_block =
-        ao.segment(aoranges[j].start, aoranges[j].size);
-    significant_shells[j]->EvalAOspace(ao_block, grad_block, point);
+    const AOShell::AOValues val = significant_shells[j]->EvalAOspace(point);
+    result.derivatives.middleRows(aoranges[j].start, aoranges[j].size) =
+        val.derivatives;
+    result.values.segment(aoranges[j].start, aoranges[j].size) = val.values;
   }
-  return ao;
-}
-
-Eigen::VectorXd GridBox::CalcAOValues(const Eigen::Vector3d& pos) const {
-  Eigen::VectorXd ao = Eigen::VectorXd::Zero(Matrixsize());
-  for (Index j = 0; j < Shellsize(); ++j) {
-    Eigen::VectorBlock<Eigen::VectorXd> ao_block =
-        ao.segment(aoranges[j].start, aoranges[j].size);
-    significant_shells[j]->EvalAOspace(ao_block, pos);
-  }
-  return ao;
+  return result;
 }
 
 void GridBox::AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,

@@ -85,6 +85,7 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
 
   std::ofstream opt("bsecoupling.xml");
   opt << "<bsecoupling>" << std::endl;
+  opt << "        <use_perturbation>true</use_perturbation>" << std::endl;
   opt << "        <spin>singlet</spin>" << std::endl;
   opt << "       <moleculeA>" << std::endl;
   opt << "                <states>1</states>" << std::endl;
@@ -120,7 +121,7 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
   Eigen::MatrixXd Hqp =
       qpcoeff * AB.QPdiag().eigenvalues().asDiagonal() * qpcoeff.transpose();
   AB.RPAInputEnergies() = Hqp.diagonal();
-  coup.Initialize(prop);
+  coup.Initialize(prop.get("bsecoupling"));
   log.setReportLevel(Log::error);
   coup.CalculateCouplings(A, B, AB);
   votca::tools::Property output;

@@ -31,7 +31,7 @@ namespace xtp {
 
 class IAnalyze final : public QMCalculator {
  public:
-  std::string Identify() { return "ianalyze"; }
+  std::string Identify() const { return "ianalyze"; }
   bool WriteToStateFile() const { return false; }
 
  protected:
@@ -42,12 +42,12 @@ class IAnalyze final : public QMCalculator {
   void IHist(Topology &top, QMStateType state);
   void IRdependence(Topology &top, QMStateType state);
 
-  double _resolution_logJ2;
-  std::vector<QMStateType> _states;
-  double _resolution_spatial;
-  std::vector<QMPair::PairType> _pairtype;
-  bool _do_pairtype = false;
-  bool _do_IRdependence = false;
+  double resolution_logJ2_;
+  std::vector<QMStateType> states_;
+  double resolution_spatial_;
+  std::vector<QMPair::PairType> pairtype_;
+  bool do_pairtype_ = false;
+  bool do_IRdependence_ = false;
 };
 
 }  // namespace xtp

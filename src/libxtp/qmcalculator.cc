@@ -24,17 +24,14 @@ namespace votca {
 namespace xtp {
 bool QMCalculator::EvaluateFrame(Topology& top) {
   libint2::initialize();
-  OPENMP::setMaxThreads(_nThreads);
+  OPENMP::setMaxThreads(nThreads_);
   std::cout << " Using " << OPENMP::getMaxThreads() << " threads" << std::flush;
   bool success = Evaluate(top);
   libint2::finalize();
   return success;
 }
 
-void QMCalculator::Initialize(const tools::Property& opt) {
-  tools::Property options = LoadDefaultsAndUpdateWithUserOptions("xtp", opt);
-  ParseOptions(options);
-}
+void QMCalculator::Initialize(const tools::Property& opt) { ParseOptions(opt); }
 
 }  // namespace xtp
 }  // namespace votca

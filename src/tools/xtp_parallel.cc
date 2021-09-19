@@ -18,85 +18,94 @@
  */
 
 // Local VOTCA includes
-#include "votca/xtp/jobapplication.h"
+#include "votca/xtp/jobcalculator.h"
 #include "votca/xtp/jobcalculatorfactory.h"
+#include "votca/xtp/progressobserver.h"
+#include "votca/xtp/stateapplication.h"
 
-using namespace std;
 using namespace votca;
 
-class XtpParallel : public xtp::JobApplication {
+class XtpParallel final : public xtp::StateApplication {
  public:
-  string ProgramName() override { return "xtp_parallel"; }
+  XtpParallel() { xtp::JobCalculatorfactory::RegisterAll(); }
 
-  void HelpText(ostream& out) override {
-    out << "Runs job-based heavy-duty calculators" << endl;
+  ~XtpParallel() = default;
+  std::string ProgramName() final { return "xtp_parallel"; }
+
+  void HelpText(std::ostream& out) final {
+    out << "Runs job-based heavy-duty calculators\n";
   }
-  void HelpText(){};
 
-  void Initialize() override;
-  bool EvaluateOptions() override;
+ protected:
+  void CreateCalculator(const std::string& name);
+  void ConfigCalculator();
+  bool savetoStateFile() const final { return import_; }
+
+  bool EvaluateFrame(votca::xtp::Topology& top) final;
+  std::string CalculatorType() const { return "Calculator"; }
+  void CheckOptions() final;
+  std::vector<std::string> CalculatorNames() const {
+    return xtp::JobCalculators().getKeys();
+  }
+
+  void AddCommandLineOpt() final;
 
  private:
-  // void    PrintDescription(string name, HelpOutputType _help_output_type);
+  bool generate_input_ = false;
+  bool run_ = false;
+  bool import_ = false;
+  xtp::ProgObserver<std::vector<xtp::Job>> progObs_;
+  std::unique_ptr<xtp::JobCalculator> calc_ = nullptr;
 };
 
-namespace propt = boost::program_options;
-
-void XtpParallel::Initialize() {
-  xtp::JobCalculatorfactory::RegisterAll();
-  xtp::JobApplication::Initialize();
-
-  AddProgramOptions("Calculator")("execute,e", propt::value<string>(),
-                                  "Name of calculator to run");
-  AddProgramOptions("Calculator")("list,l", "Lists all available calculators");
-  AddProgramOptions("Calculator")("description,d", propt::value<string>(),
-                                  "Short description of a calculator");
+void XtpParallel::AddCommandLineOpt() {
+  namespace propt = boost::program_options;
+  AddProgramOptions()("ompthreads,x", propt::value<Index>()->default_value(1),
+                      "  number of openmp threads to create in each thread");
+  AddProgramOptions()("restart,r",
+                      propt::value<std::string>()->default_value(""),
+                      "  restart pattern: 'host(pc1:234) stat(FAILED)'");
+  AddProgramOptions()("cache,q", propt::value<Index>()->default_value(8),
+                      "  assigns jobs in blocks of this size");
+  AddProgramOptions()("jobs,j",
+                      propt::value<std::string>()->default_value("run"),
+                      "  task(s) to perform: write, run, read");
+  AddProgramOptions()("maxjobs,m", propt::value<Index>()->default_value(-1),
+                      "  maximum number of jobs to process (-1 = inf)");
 }
 
-bool XtpParallel::EvaluateOptions() {
+void XtpParallel::CheckOptions() {
+  std::string jobstr = OptionsMap()["jobs"].as<std::string>();
+  generate_input_ = (jobstr == "write");
+  run_ = (jobstr == "run");
+  import_ = (jobstr == "read");
+}
 
-  if (OptionsMap().count("list")) {
-    cout << "Available XTP calculators: \n";
-    for (const auto& name : xtp::JobCalculators().getKeys()) {
-      PrintDescription(std::cout, name, "xtp/xml", Application::HelpShort);
-    }
-    StopExecution();
-    return true;
+void XtpParallel::CreateCalculator(const std::string& name) {
+  calc_ = xtp::JobCalculators().Create(name);
+}
+
+void XtpParallel::ConfigCalculator() {
+  std::cout << "... " << calc_->Identify() << std::endl;
+
+  progObs_.InitCmdLineOpts(OptionsMap());
+  calc_->setnThreads(OptionsMap()["nthreads"].as<Index>());
+  calc_->setOpenMPThreads(OptionsMap()["ompthreads"].as<Index>());
+  calc_->setProgObserver(&progObs_);
+  calc_->Initialize(options_);
+  std::cout << std::endl;
+}
+
+bool XtpParallel::EvaluateFrame(xtp::Topology& top) {
+  std::cout << "... " << calc_->Identify() << " " << std::flush;
+  if (generate_input_) {
+    calc_->WriteJobFile(top);
+  } else if (run_) {
+    calc_->EvaluateFrame(top);
+  } else if (import_) {
+    calc_->ReadJobFile(top);
   }
-
-  if (OptionsMap().count("description")) {
-    CheckRequired("description", "no calculator is given");
-    tools::Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
-    // loop over the names in the description string
-    for (const std::string& n : tok) {
-      if (xtp::JobCalculators().IsRegistered(n)) {
-        PrintDescription(std::cout, n, "xtp/xml", Application::HelpLong);
-      } else {
-        cout << "Calculator " << n << " does not exist\n";
-      }
-    }
-    StopExecution();
-    return true;
-  }
-
-  xtp::JobApplication::EvaluateOptions();
-  CheckRequired("execute", "Nothing to do here: Abort.");
-
-  tools::Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
-  std::vector<std::string> calc_string = calcs.ToVector();
-  if (calc_string.size() != 1) {
-    throw std::runtime_error(
-        "You can only run one calculator at the same time.");
-  }
-
-  if (xtp::JobCalculators().IsRegistered(calc_string[0])) {
-    xtp::JobApplication::SetCalculator(
-        xtp::JobCalculators().Create(calc_string[0]));
-  } else {
-    cout << "Jobcalculator " << calc_string[0] << " does not exist\n";
-    StopExecution();
-  }
-
+  std::cout << std::endl;
   return true;
 }
 
