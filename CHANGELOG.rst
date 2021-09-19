@@ -35,7 +35,10 @@ Version 2022-dev
 -  removed unused functions (#702)
 -  reworked lammps molecule naming (#703)
 
-Version 2021.2 (released XX.07.21)
+Version 2021.3 (released XX.09.21)
+==================================
+
+Version 2021.2 (released 19.09.21)
 ==================================
 
 -  made masses in test more accurate (#705)
