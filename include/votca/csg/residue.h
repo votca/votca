@@ -38,18 +38,18 @@ class Residue {
   const std::string &getName() const;
 
   /// get the name of the residue
-  Index getId() const { return _id; }
+  Index getId() const { return id_; }
 
  private:
-  Index _id;
-  std::string _name;
+  Index id_;
+  std::string name_;
 
   /// constructor
-  Residue(Index id, const std::string &name) : _id(id), _name(name) {}
+  Residue(Index id, const std::string &name) : id_(id), name_(name) {}
   friend class Topology;
 };
 
-inline const std::string &Residue::getName() const { return _name; }
+inline const std::string &Residue::getName() const { return name_; }
 
 }  // namespace csg
 }  // namespace votca

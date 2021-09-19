@@ -63,9 +63,9 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
 
   /// set the cutoff for the neighbour search
   /// to do: at the moment use only one single cutoff value
-  void setCutoff(const double cutoff) { _cutoff = cutoff; }
+  void setCutoff(const double cutoff) { cutoff_ = cutoff; }
   /// get the cutoff for the neighbour search
-  double getCutoff() { return _cutoff; }
+  double getCutoff() { return cutoff_; }
 
   /**
    *  \brief match function for class member functions
@@ -108,9 +108,9 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
 
  protected:
   /// cutoff (at the moment use only one cutoff value)
-  double _cutoff;
+  double cutoff_;
   /// take into account exclusions from topolgoy
-  bool _do_exclusions;
+  bool do_exclusions_;
 
   /// policy function to create new bead types
   template <typename triple_type>
@@ -128,7 +128,7 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
                                            const Eigen::Vector3d &,
                                            const Eigen::Vector3d &);
   /// the current bead pair creator function
-  triple_creator_t _triple_creator;
+  triple_creator_t triple_creator_;
 
  protected:
   /// Functor for match function to be able to set member and non-member
@@ -151,18 +151,18 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
                               const Eigen::Vector3d &, const Eigen::Vector3d &,
                               const double, const double, const double);
 
-    FunctorMember(T *cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
+    FunctorMember(T *cls, fkt_t fkt) : cls_(cls), fkt_(fkt) {}
 
     bool operator()(Bead *b1, Bead *b2, Bead *b3, const Eigen::Vector3d &r12,
                     const Eigen::Vector3d &r13, const Eigen::Vector3d &r23,
                     const double dist12, const double dist13,
                     const double dist23) override {
-      return (_cls->*_fkt)(b1, b2, b3, r12, r13, r23, dist12, dist13, dist23);
+      return (cls_->*fkt_)(b1, b2, b3, r12, r13, r23, dist12, dist13, dist23);
     }
 
    private:
-    T *_cls;
-    fkt_t _fkt;
+    T *cls_;
+    fkt_t fkt_;
   };
 
   /// Functor for non-member functions
@@ -171,25 +171,25 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
     using fkt_t = bool (*)(Bead *, Bead *, Bead *, const Eigen::Vector3d &,
                            const Eigen::Vector3d &, const Eigen::Vector3d &,
                            const double, const double, const double);
-    FunctorNonMember(fkt_t fkt) : _fkt(fkt) {}
+    FunctorNonMember(fkt_t fkt) : fkt_(fkt) {}
 
     bool operator()(Bead *b1, Bead *b2, Bead *b3, const Eigen::Vector3d &r12,
                     const Eigen::Vector3d &r13, const Eigen::Vector3d &r23,
                     const double dist12, const double dist13,
                     const double dist23) override {
-      return (*_fkt)(b1, b2, b3, r12, r13, r23, dist12, dist13, dist23);
+      return (*fkt_)(b1, b2, b3, r12, r13, r23, dist12, dist13, dist23);
     }
 
    private:
-    fkt_t _fkt;
+    fkt_t fkt_;
   };
 
-  std::unique_ptr<Functor> _match_function;
+  std::unique_ptr<Functor> match_function_;
 };
 
 template <typename triple_type>
 void NBList_3Body::setTripleType() {
-  _triple_creator = NBList_3Body::beadtriple_create_policy<triple_type>;
+  triple_creator_ = NBList_3Body::beadtriple_create_policy<triple_type>;
 }
 
 template <typename T>
@@ -199,14 +199,14 @@ inline void NBList_3Body::SetMatchFunction(
                               const double dist12, const double dist13,
                               const double dist23)) {
 
-  _match_function.reset(new FunctorMember<T>(object, fkt));
+  match_function_.reset(new FunctorMember<T>(object, fkt));
 }
 
 inline void NBList_3Body::SetMatchFunction(bool (*fkt)(
     Bead *, Bead *, Bead *, const Eigen::Vector3d &, const Eigen::Vector3d &,
     const Eigen::Vector3d &, const double dist12, const double dist13,
     const double dist23)) {
-  _match_function.reset(new FunctorNonMember(fkt));
+  match_function_.reset(new FunctorNonMember(fkt));
 }
 
 }  // namespace csg

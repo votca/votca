@@ -18,6 +18,7 @@
 // Local VOTCA includes
 #include "votca/csg/nblistgrid.h"
 #include "votca/csg/topology.h"
+#include "votca/tools/NDimVector.h"
 
 namespace votca {
 namespace csg {
@@ -27,7 +28,7 @@ using namespace std;
 void NBListGrid::Generate(BeadList &list1, BeadList &list2,
                           bool do_exclusions) {
 
-  _do_exclusions = do_exclusions;
+  do_exclusions_ = do_exclusions;
   if (list1.empty()) {
     return;
   }
@@ -42,7 +43,7 @@ void NBListGrid::Generate(BeadList &list1, BeadList &list2,
 
   // Add all beads of list1
   for (auto &iter : list1) {
-    getCell(iter->getPos())._beads.push_back(iter);
+    getCell(iter->getPos()).beads_.push_back(iter);
   }
 
   for (auto &iter : list2) {
@@ -52,7 +53,7 @@ void NBListGrid::Generate(BeadList &list1, BeadList &list2,
 }
 
 void NBListGrid::Generate(BeadList &list, bool do_exclusions) {
-  _do_exclusions = do_exclusions;
+  do_exclusions_ = do_exclusions;
   if (list.empty()) {
     return;
   }
@@ -64,79 +65,78 @@ void NBListGrid::Generate(BeadList &list, bool do_exclusions) {
   for (auto &iter : list) {
     cell_t &cell = getCell(iter->getPos());
     TestBead(top, cell, iter);
-    getCell(iter->getPos())._beads.push_back(iter);
+    getCell(iter->getPos()).beads_.push_back(iter);
   }
 }
 void NBListGrid::InitializeGrid(const Eigen::Matrix3d &box) {
-  _box_a = box.col(0);
-  _box_b = box.col(1);
-  _box_c = box.col(2);
+  box_a_ = box.col(0);
+  box_b_ = box.col(1);
+  box_c_ = box.col(2);
 
   // create plane normals
-  _norm_a = _box_b.cross(_box_c);
-  _norm_b = _box_c.cross(_box_a);
-  _norm_c = _box_a.cross(_box_b);
+  norm_a_ = box_b_.cross(box_c_);
+  norm_b_ = box_c_.cross(box_a_);
+  norm_c_ = box_a_.cross(box_b_);
 
-  _norm_a.normalize();
-  _norm_b.normalize();
-  _norm_c.normalize();
+  norm_a_.normalize();
+  norm_b_.normalize();
+  norm_c_.normalize();
 
-  double la = _box_a.dot(_norm_a);
-  double lb = _box_b.dot(_norm_b);
-  double lc = _box_c.dot(_norm_c);
+  double la = box_a_.dot(norm_a_);
+  double lb = box_b_.dot(norm_b_);
+  double lc = box_c_.dot(norm_c_);
 
   // calculate grid size, each grid has to be at least size of cut-off
-  _box_Na = Index(std::max(std::abs(la / _cutoff), 1.0));
-  _box_Nb = Index(std::max(std::abs(lb / _cutoff), 1.0));
-  _box_Nc = Index(std::max(std::abs(lc / _cutoff), 1.0));
+  box_Na_ = Index(std::max(std::abs(la / cutoff_), 1.0));
+  box_Nb_ = Index(std::max(std::abs(lb / cutoff_), 1.0));
+  box_Nc_ = Index(std::max(std::abs(lc / cutoff_), 1.0));
 
-  _norm_a = _norm_a / _box_a.dot(_norm_a) * (double)_box_Na;
-  _norm_b = _norm_b / _box_b.dot(_norm_b) * (double)_box_Nb;
-  _norm_c = _norm_c / _box_c.dot(_norm_c) * (double)_box_Nc;
+  norm_a_ = norm_a_ / box_a_.dot(norm_a_) * (double)box_Na_;
+  norm_b_ = norm_b_ / box_b_.dot(norm_b_) * (double)box_Nb_;
+  norm_c_ = norm_c_ / box_c_.dot(norm_c_) * (double)box_Nc_;
 
-  _grid.resize(_box_Na * _box_Nb * _box_Nc);
+  grid_ = tools::NDimVector<cell_t, 3>(box_Na_, box_Nb_, box_Nc_);
 
   Index a1, a2, b1, b2, c1, c2;
 
   a1 = b1 = c1 = -1;
   a2 = b2 = c2 = 1;
 
-  if (_box_Na < 3) {
+  if (box_Na_ < 3) {
     a2 = 0;
   }
-  if (_box_Nb < 3) {
+  if (box_Nb_ < 3) {
     b2 = 0;
   }
-  if (_box_Nc < 3) {
+  if (box_Nc_ < 3) {
     c2 = 0;
   }
 
-  if (_box_Na < 2) {
+  if (box_Na_ < 2) {
     a1 = 0;
   }
-  if (_box_Nb < 2) {
+  if (box_Nb_ < 2) {
     b1 = 0;
   }
-  if (_box_Nc < 2) {
+  if (box_Nc_ < 2) {
     c1 = 0;
   }
 
   // wow, setting up the neighbours is an ugly for construct!
   // loop from N..2*N to avoid if and only use %
-  for (Index a = _box_Na; a < 2 * _box_Na; ++a) {
-    for (Index b = _box_Nb; b < 2 * _box_Nb; ++b) {
-      for (Index c = _box_Nc; c < 2 * _box_Nc; ++c) {
-        cell_t &cell = getCell(a % _box_Na, b % _box_Nb, c % _box_Nc);
+  for (Index a = box_Na_; a < 2 * box_Na_; ++a) {
+    for (Index b = box_Nb_; b < 2 * box_Nb_; ++b) {
+      for (Index c = box_Nc_; c < 2 * box_Nc_; ++c) {
+        cell_t &cell = grid_(a % box_Na_, b % box_Nb_, c % box_Nc_);
         for (Index aa = a + a1; aa <= a + a2; ++aa) {
           for (Index bb = b + b1; bb <= b + b2; ++bb) {
             for (Index cc = c + c1; cc <= c + c2; ++cc) {
-              cell_t *cell2 =
-                  &getCell(aa % _box_Na, bb % _box_Nb, cc % _box_Nc);
+              cell_t *cell2 = &grid_(aa % box_Na_, bb % box_Nb_, cc % box_Nc_);
               if (cell2 == &cell) {
                 continue;  // ignore self
               }
-              cell._neighbours.push_back(
-                  &getCell(aa % _box_Na, bb % _box_Nb, cc % _box_Nc));
+              cell.neighbours_.push_back(
+                  &grid_(aa % box_Na_, bb % box_Nb_, cc % box_Nc_));
             }
           }
         }
@@ -146,32 +146,32 @@ void NBListGrid::InitializeGrid(const Eigen::Matrix3d &box) {
 }
 
 NBListGrid::cell_t &NBListGrid::getCell(const Eigen::Vector3d &r) {
-  Index a = (Index)floor(r.dot(_norm_a));
-  Index b = (Index)floor(r.dot(_norm_b));
-  Index c = (Index)floor(r.dot(_norm_c));
+  Index a = (Index)floor(r.dot(norm_a_));
+  Index b = (Index)floor(r.dot(norm_b_));
+  Index c = (Index)floor(r.dot(norm_c_));
 
   if (a < 0) {
-    a = _box_Na + a % _box_Na;
+    a = box_Na_ + a % box_Na_;
   }
-  a %= _box_Na;
+  a %= box_Na_;
 
   if (b < 0) {
-    b = _box_Nb + b % _box_Nb;
+    b = box_Nb_ + b % box_Nb_;
   }
-  b %= _box_Nb;
+  b %= box_Nb_;
 
   if (c < 0) {
-    c = _box_Nc + c % _box_Nc;
+    c = box_Nc_ + c % box_Nc_;
   }
-  c %= _box_Nc;
+  c %= box_Nc_;
 
-  return getCell(a, b, c);
+  return grid_(a, b, c);
 }
 
 void NBListGrid::TestBead(const Topology &top, NBListGrid::cell_t &cell,
                           Bead *bead) {
   TestCell(top, cell, bead);
-  for (auto &neighbour : cell._neighbours) {
+  for (auto &neighbour : cell.neighbours_) {
     TestCell(top, *neighbour, bead);
   }
 }
@@ -180,20 +180,20 @@ void NBListGrid::TestCell(const Topology &top, NBListGrid::cell_t &cell,
                           Bead *bead) {
   const Eigen::Vector3d &u = bead->getPos();
 
-  for (auto &_bead : cell._beads) {
+  for (auto &bead_ : cell.beads_) {
 
-    const Eigen::Vector3d &v = _bead->getPos();
+    const Eigen::Vector3d &v = bead_->getPos();
     const Eigen::Vector3d &r = top.BCShortestConnection(v, u);
     double d = r.norm();
-    if (d < _cutoff) {
-      if (_do_exclusions) {
-        if (top.getExclusions().IsExcluded(_bead, bead)) {
+    if (d < cutoff_) {
+      if (do_exclusions_) {
+        if (top.getExclusions().IsExcluded(bead_, bead)) {
           continue;
         }
       }
-      if ((*_match_function)(_bead, bead, r, d)) {
-        if (!FindPair(_bead, bead)) {
-          AddPair(_pair_creator(_bead, bead, r));
+      if ((*match_function_)(bead_, bead, r, d)) {
+        if (!FindPair(bead_, bead)) {
+          AddPair(pair_creator_(bead_, bead, r));
         }
       }
     }

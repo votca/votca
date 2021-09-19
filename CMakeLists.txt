@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(votca-csg LANGUAGES CXX)
 
-set(PROJECT_VERSION "2021.2")
+set(PROJECT_VERSION "2022-dev")
 string(REGEX REPLACE "[-.].*$" "" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
   message(FATAL_ERROR "Could not determine SOVERSION (${SOVERSION}) from ${PROJECT_VERSION}")
@@ -51,18 +51,11 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
-option(BUILD_MANPAGES "Build manpages" ON)
+# iie methods needs python 3.5
+find_package(Python 3.5 REQUIRED COMPONENTS Interpreter)
+set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used for csg scripts")
+option(BUILD_MANPAGES "Build manpages" ${Python_FOUND})
 add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
-if (BUILD_MANPAGES)
-  find_package(TXT2TAGS)
-  set_package_properties(TXT2TAGS PROPERTIES TYPE OPTIONAL PURPOSE "Used to build manpages")
-  find_package(UnixCommands)
-  set_package_properties(UnixCommands PROPERTIES TYPE OPTIONAL PURPOSE "Used to build manpages")
-else (BUILD_MANPAGES)
-  #we use TXT2TAGS_FOUND conditionals in other CMakeLists.txt
-  #so that TXT2TAGS is never required
-  set(TXT2TAGS_FOUND)
-endif (BUILD_MANPAGES)
 
 find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system regex)
 find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
@@ -119,6 +112,10 @@ mark_as_advanced( MATH_LIBRARIES )
 ######################################
 if(NOT TARGET manpages)
   add_custom_target(manpages ALL)
+endif()
+if(VOTCA_SPHINX_DIR)
+  add_custom_target(doc-csg)
+  file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/csg)
 endif()
 add_subdirectory(src)
 add_subdirectory(scripts)

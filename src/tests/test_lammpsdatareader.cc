@@ -1,5 +1,6 @@
+
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +16,30 @@
  *
  */
 
-#include <memory>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE lammpdatatopologyreaderwriter_test
-#include <boost/test/unit_test.hpp>
 
-#include "../../include/votca/csg/bead.h"
-#include "../../include/votca/csg/orthorhombicbox.h"
-#include "../../include/votca/csg/topologyreader.h"
-#include "../../include/votca/csg/trajectoryreader.h"
-#include "../../include/votca/csg/trajectorywriter.h"
+// Standard includes
 #include <cmath>
 #include <cstdio>
 #include <fstream>
+#include <memory>
 #include <string>
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// VOTCA includes
 #include <votca/tools/elements.h>
 #include <votca/tools/types.h>
+
+// Local VOTCA includes
+#include "votca/csg/bead.h"
+#include "votca/csg/orthorhombicbox.h"
+#include "votca/csg/topologyreader.h"
+#include "votca/csg/trajectoryreader.h"
+#include "votca/csg/trajectorywriter.h"
 
 using namespace std;
 using namespace votca::csg;
@@ -56,8 +64,7 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
 
   TopologyReader::RegisterPlugins();
   std::unique_ptr<TopologyReader> lammpsDataReader =
-      std::unique_ptr<TopologyReader>(
-          TopReaderFactory().Create(lammpsdatafilename));
+      TopReaderFactory().Create(lammpsdatafilename);
   lammpsDataReader->ReadTopology(lammpsdatafilename, top);
 
   BOOST_CHECK_EQUAL(top.BeadCount(), 100);
@@ -102,8 +109,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
 
   TopologyReader::RegisterPlugins();
   std::unique_ptr<TopologyReader> lammpsDataReader =
-      std::unique_ptr<TopologyReader>(
-          TopReaderFactory().Create(lammpsdatafilename));
+      TopReaderFactory().Create(lammpsdatafilename);
   lammpsDataReader->ReadTopology(lammpsdatafilename, top);
 
   string lammpsdatafilename2 = std::string(CSG_TEST_DATA_FOLDER) +
@@ -111,8 +117,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
 
   TrajectoryReader::RegisterPlugins();
   std::unique_ptr<TrajectoryReader> lammpsDataReaderTrj =
-      std::unique_ptr<TrajectoryReader>(
-          TrjReaderFactory().Create(lammpsdatafilename2));
+      TrjReaderFactory().Create(lammpsdatafilename2);
 
   lammpsDataReaderTrj->Open(lammpsdatafilename2);
   lammpsDataReaderTrj->FirstFrame(top);
@@ -145,6 +150,35 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   votca::Index numDihedralInter = 97;
   votca::Index totalInter = numBondInter + numAngleInter + numDihedralInter;
   BOOST_CHECK_EQUAL(interaction_cont.size(), totalInter);
+}
+
+BOOST_AUTO_TEST_CASE(test_molecules) {
+
+  string lammpsdatafilename = std::string(CSG_TEST_DATA_FOLDER) +
+                              "/lammpsdatareader/test_bondedmolecules.data";
+  Topology top;
+
+  TopologyReader::RegisterPlugins();
+  std::unique_ptr<TopologyReader> lammpsDataReader =
+      TopReaderFactory().Create(lammpsdatafilename);
+  BOOST_REQUIRE_THROW(lammpsDataReader->ReadTopology(lammpsdatafilename, top),
+                      std::runtime_error);
+  string lammpsdatafilename2 = std::string(CSG_TEST_DATA_FOLDER) +
+                               "/lammpsdatareader/test_twomolecules.data";
+
+  Topology top2;
+  std::unique_ptr<TopologyReader> lammpsDataReader2 =
+      TopReaderFactory().Create(lammpsdatafilename2);
+
+  lammpsDataReader2->ReadTopology(lammpsdatafilename2, top2);
+  std::vector<std::string> refnames{"H2O1-1", "H2O1-0"};
+  // the first molecule has order OHH while the second has HHO so the second is
+  // lexicographically first
+  votca::Index i = 0;
+  for (const auto &mol : top2.Molecules()) {
+    BOOST_CHECK_EQUAL(mol.getName(), refnames[i]);
+    i++;
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

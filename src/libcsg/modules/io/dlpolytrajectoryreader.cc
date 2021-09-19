@@ -55,12 +55,12 @@ bool DLPOLYTrajectoryReader::Open(const string &file)
 
   } else if (boost::filesystem::extension(filepath) == ".dlpc") {
 
-    _isConfig = true;
+    isConfig_ = true;
     inp_name = "CONFIG";
 
   } else if (boost::filesystem::extension(filepath) == ".dlph") {
 
-    _isConfig = false;
+    isConfig_ = false;
 
   } else {
     throw std::ios_base::failure("Error on opening dlpoly file '" + file +
@@ -69,28 +69,28 @@ bool DLPOLYTrajectoryReader::Open(const string &file)
 
   if (boost::filesystem::basename(filepath).size() == 0) {
     if (filepath.parent_path().string().size() == 0) {
-      _fname = inp_name;
+      fname_ = inp_name;
     } else {
-      _fname = filepath.parent_path().string() + "/" + inp_name;
+      fname_ = filepath.parent_path().string() + "/" + inp_name;
     }
   } else {
-    _fname = file;
+    fname_ = file;
   }
 
-  _fl.open(_fname);
-  if (!_fl.is_open()) {
-    throw std::ios_base::failure("Error on opening dlpoly file '" + _fname +
+  fl_.open(fname_);
+  if (!fl_.is_open()) {
+    throw std::ios_base::failure("Error on opening dlpoly file '" + fname_ +
                                  "'");
   }
   return true;
 }
 
-void DLPOLYTrajectoryReader::Close() { _fl.close(); }
+void DLPOLYTrajectoryReader::Close() { fl_.close(); }
 
 bool DLPOLYTrajectoryReader::FirstFrame(Topology &conf) {
-  _first_frame = true;
+  first_frame_ = true;
   bool res = NextFrame(conf);
-  _first_frame = false;
+  first_frame_ = false;
   return res;
 }
 
@@ -109,33 +109,33 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
   BoundaryCondition::eBoxtype pbc_type = BoundaryCondition::typeAuto;
 
-  if (_first_frame) {
+  if (first_frame_) {
 
-    tools::getline(_fl, line);  // title
+    tools::getline(fl_, line);  // title
 
 #ifdef DEBUG
-    cout << "Read from dlpoly file '" << _fname << "' : '" << line
+    cout << "Read from dlpoly file '" << fname_ << "' : '" << line
          << "' - header" << endl;
 #endif
 
-    tools::getline(_fl, line);  // 2nd header line
+    tools::getline(fl_, line);  // 2nd header line
 
 #ifdef DEBUG
-    cout << "Read from dlpoly file '" << _fname << "' : '" << line
+    cout << "Read from dlpoly file '" << fname_ << "' : '" << line
          << "' - directives line" << endl;
 #endif
 
     tools::Tokenizer tok(line, " \t");
-    vector<string> fields = tok.ToVector();
+    vector<Index> fields = tok.ToVector<Index>();
 
     if (fields.size() < 3) {
       throw std::runtime_error("Error: too few directive switches (<3) in '" +
-                               _fname + "' header (check its 2-nd line)");
+                               fname_ + "' header (check its 2-nd line)");
     }
 
-    mavecs = boost::lexical_cast<Index>(fields[0]);
-    mpbct = boost::lexical_cast<Index>(fields[1]);
-    matoms = boost::lexical_cast<Index>(fields[2]);
+    mavecs = fields[0];
+    mpbct = fields[1];
+    matoms = fields[2];
 
     hasVs = (mavecs > 0);  // 1 or 2 => in DL_POLY frame velocity vector follows
                            // coords for each atom/bead
@@ -144,7 +144,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
 #ifdef DEBUG
     if (hasVs != conf.HasVel() || hasFs != conf.HasForce()) {
-      cout << "WARNING: N of atom vectors (keytrj) in '" << _fname
+      cout << "WARNING: N of atom vectors (keytrj) in '" << fname_
            << "' header differs from that read with topology" << endl;
     }
 #endif
@@ -153,13 +153,13 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     conf.SetHasForce(hasFs);
 
 #ifdef DEBUG
-    cout << "Read from dlpoly file '" << _fname << "' : keytrj - " << mavecs
+    cout << "Read from dlpoly file '" << fname_ << "' : keytrj - " << mavecs
          << ", hasV - " << conf.HasVel() << ", hasF - " << conf.HasForce()
          << endl;
 #endif
 
     if (matoms != conf.BeadCount()) {
-      throw std::runtime_error("Number of atoms/beads in '" + _fname +
+      throw std::runtime_error("Number of atoms/beads in '" + fname_ +
                                "' header differs from that read with topology");
     }
 
@@ -172,36 +172,36 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     }
 
 #ifdef DEBUG
-    cout << "Read from dlpoly file '" << _fname << "' : pbc_type (imcon) - '"
+    cout << "Read from dlpoly file '" << fname_ << "' : pbc_type (imcon) - '"
          << pbc_type << "'" << endl;
 
     if (pbc_type != conf.getBoxType())
-      cout << "WARNING: PBC type in dlpoly file '" << _fname
+      cout << "WARNING: PBC type in dlpoly file '" << fname_
            << "' header differs from that read with topology" << endl;
-// throw std::runtime_error("Error: Boundary conditions in '"+_fname+"'
+// throw std::runtime_error("Error: Boundary conditions in '"+ fname_+"'
 // header differs from that read with topology");
 #endif
-  } else if (_isConfig) {
+  } else if (isConfig_) {
 
     return false;
   }
   // read normal frame
 
-  if (!_isConfig) {
-    tools::getline(_fl, line);  // timestep line - only present in HISTORY, and
+  if (!isConfig_) {
+    tools::getline(fl_, line);  // timestep line - only present in HISTORY, and
                                 // not in CONFIG
 #ifdef DEBUG
-    cout << "Read from dlpoly file '" << _fname << "' : '" << line << "'"
+    cout << "Read from dlpoly file '" << fname_ << "' : '" << line << "'"
          << endl;
 #endif
   }
 
-  if (!_fl.eof()) {
+  if (!fl_.eof()) {
     Index nstep;
     Index natoms;
     Index navecs;
 
-    if (_isConfig) {
+    if (isConfig_) {
       // use the above read specs from the header, and skip the data missing in
       // CONFIG
 
@@ -237,29 +237,29 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
                                             // column in 'timestep' line
 
 #ifdef DEBUG
-      cout << "Read from dlpoly file '" << _fname << "' : natoms = " << natoms
+      cout << "Read from dlpoly file '" << fname_ << "' : natoms = " << natoms
            << ", levcfg = " << fields[3];
       cout << ", dt = " << fields[5] << ", time = " << stime << endl;
 #endif
 
       if (natoms != conf.BeadCount()) {
         throw std::runtime_error(
-            "Error: N of atoms/beads in '" + _fname +
+            "Error: N of atoms/beads in '" + fname_ +
             "' header differs from that found in topology");
       }
       if (natoms != matoms) {
         throw std::runtime_error(
-            "Error: N of atoms/beads in '" + _fname +
+            "Error: N of atoms/beads in '" + fname_ +
             "' header differs from that found in the frame");
       }
       if (navecs != mavecs) {
         throw std::runtime_error(
-            "Error: N of atom vectors (keytrj) in '" + _fname +
+            "Error: N of atom vectors (keytrj) in '" + fname_ +
             "' header differs from that found in the frame");
       }
       if (npbct != mpbct) {
         throw std::runtime_error(
-            "Error: boundary conditions (imcon) in '" + _fname +
+            "Error: boundary conditions (imcon) in '" + fname_ +
             "' header differs from that found in the frame");
       }
 
@@ -292,22 +292,21 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     Eigen::Matrix3d box = Eigen::Matrix3d::Zero();
     for (Index i = 0; i < 3; i++) {  // read 3 box/cell lines
 
-      tools::getline(_fl, line);
+      tools::getline(fl_, line);
 
 #ifdef DEBUG
-      cout << "Read from dlpoly file '" << _fname << "' : '" << line
+      cout << "Read from dlpoly file '" << fname_ << "' : '" << line
            << "' - box vector # " << i + 1 << endl;
 #endif
 
-      if (_fl.eof()) {
+      if (fl_.eof()) {
         throw std::runtime_error("Error: unexpected EOF in dlpoly file '" +
-                                 _fname + "', when reading box vector" +
+                                 fname_ + "', when reading box vector" +
                                  boost::lexical_cast<string>(i));
       }
 
       tools::Tokenizer tok(line, " \t");
-      vector<double> fields;
-      tok.ConvertToVector<double>(fields);
+      vector<double> fields = tok.ToVector<double>();
       // Angs -> nm
       box.col(i) = scale * Eigen::Vector3d(fields[0], fields[1], fields[2]);
     }
@@ -317,16 +316,16 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     for (Index i = 0; i < natoms; i++) {
 
       {
-        tools::getline(_fl, line);  // atom header line
+        tools::getline(fl_, line);  // atom header line
 
 #ifdef DEBUG
-        cout << "Read from dlpoly file '" << _fname << "' : '" << line << "'"
+        cout << "Read from dlpoly file '" << fname_ << "' : '" << line << "'"
              << endl;
 #endif
 
-        if (_fl.eof()) {
+        if (fl_.eof()) {
           throw std::runtime_error("Error: unexpected EOF in dlpoly file '" +
-                                   _fname + "', when reading atom/bead # " +
+                                   fname_ + "', when reading atom/bead # " +
                                    boost::lexical_cast<string>(i + 1));
         }
 
@@ -335,7 +334,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
         Index id = boost::lexical_cast<Index>(fields[1]);
         if (i + 1 != id) {
           throw std::runtime_error(
-              "Error: unexpected atom/bead index in dlpoly file '" + _fname +
+              "Error: unexpected atom/bead index in dlpoly file '" + fname_ +
               "' : expected " + boost::lexical_cast<string>(i + 1) +
               " but got " + boost::lexical_cast<string>(id));
         }
@@ -345,24 +344,23 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       Eigen::Matrix3d atom_vecs = Eigen::Matrix3d::Zero();
       for (Index j = 0; j < std::min(navecs, Index(2)) + 1; j++) {
 
-        tools::getline(_fl, line);  // read atom positions
+        tools::getline(fl_, line);  // read atom positions
 
 #ifdef DEBUG
-        cout << "Read from dlpoly file '" << _fname << "' : '" << line << "'"
+        cout << "Read from dlpoly file '" << fname_ << "' : '" << line << "'"
              << endl;
 #endif
 
-        if (_fl.eof()) {
+        if (fl_.eof()) {
           throw std::runtime_error(
-              "Error: unexpected EOF in dlpoly file '" + _fname +
+              "Error: unexpected EOF in dlpoly file '" + fname_ +
               "', when reading atom/bead vector # " +
               boost::lexical_cast<string>(j) + " of atom " +
               boost::lexical_cast<string>(i + 1));
         }
 
-        vector<double> fields;
         tools::Tokenizer tok(line, " \t");
-        tok.ConvertToVector<double>(fields);
+        vector<double> fields = tok.ToVector<double>();
         // Angs -> nm
         atom_vecs.col(j) =
             scale * Eigen::Vector3d(fields[0], fields[1], fields[2]);
@@ -370,19 +368,19 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
       b->setPos(atom_vecs.col(0));
 #ifdef DEBUG
-      cout << "Crds from dlpoly file '" << _fname << "' : " << atom_vecs.col(0)
+      cout << "Crds from dlpoly file '" << fname_ << "' : " << atom_vecs.col(0)
            << endl;
 #endif
       if (navecs > 0) {
         b->setVel(atom_vecs.col(1));
 #ifdef DEBUG
-        cout << "Vels from dlpoly file '" << _fname
+        cout << "Vels from dlpoly file '" << fname_
              << "' : " << atom_vecs.col(1) << endl;
 #endif
         if (navecs > 1) {
           b->setF(atom_vecs.col(2));
 #ifdef DEBUG
-          cout << "Frcs from dlpoly file '" << _fname
+          cout << "Frcs from dlpoly file '" << fname_
                << "' : " << atom_vecs.col(2) << endl;
 #endif
         }
@@ -390,7 +388,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     }
   }
 
-  return !_fl.eof();
+  return !fl_.eof();
 }
 
 }  // namespace csg

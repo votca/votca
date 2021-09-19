@@ -120,7 +120,7 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
   void ReadDihedrals_(Topology &top);
   void SkipImpropers_();
 
-  void RenameMolecule(Molecule &mol) const;
+  void RenameMolecules(MoleculeContainer &molecules) const;
 
   enum lammps_format {
     style_angle_bond_molecule = 0,

@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,6 +36,9 @@ imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
 imc_groups=$(remove_duplicate $imc_groups)
 [[ -z ${imc_groups} ]] && die "${0##*/}: No imc groups defined"
 for group in $imc_groups; do
+  if [[ $group == "none" ]]; then
+    continue
+  fi
   reg="$(csg_get_property cg.inverse.imc.${group}.reg ${default_reg})" #filter me away
   is_num "${reg}" || die "${0##*/}: value of cg.inverse.imc.${group}.reg should be a number"
   msg "solving linear equations for imc group '$group' (regularization ${reg})"

@@ -60,23 +60,23 @@ class DLPOLYTrajectoryWriter : public TrajectoryWriter {
   /// <name>.dlpc or <name>.dlph (convention: ".dlpc"="CONFIG_CGV",
   /// ".dlph"="HISTORY_CGV")
   void setFname(std::string name) {
-    _fname = name;
+    fname_ = name;
     return;
   }
-  std::string getFname() { return _fname; }
+  std::string getFname() { return fname_; }
 
   /// set/check the flag for the created file as configuration, i.e. not
   /// trajectory format
   void setIsConfig(bool isConf) {
-    _isConfig = isConf;
+    isConfig_ = isConf;
     return;
   }
-  bool getIsConfig() { return _isConfig; }
+  bool getIsConfig() { return isConfig_; }
 
  private:
-  std::ofstream _fl;
-  std::string _fname;
-  bool _isConfig;
+  std::ofstream fl_;
+  std::string fname_;
+  bool isConfig_;
 };
 
 }  // namespace csg
