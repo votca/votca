@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<options>
+  <gpu_benchmark help="Run a cpu and gpu benchmark for the gpu routines">
+    <job_name help="Input orbfile for which to run the benchmark without fileextension" default="system"/>
+    <repetitions  help="How often each run should be executed to collect statistics" default="5" choices="int+"/>
+  </gpu_benchmark>
+</options>

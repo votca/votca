@@ -18,11 +18,9 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_APDFT_H
-#define VOTCA_XTP_APDFT_H
+#ifndef VOTCA_XTP_GPUBENCHMARK_H
+#define VOTCA_XTP_GPUBENCHMARK_H
 
-// Local VOTCA includes
-#include "votca/xtp/qmstate.h"
 #include "votca/xtp/qmtool.h"
 
 namespace votca {
@@ -40,8 +38,8 @@ class GPUBenchmark final : public QMTool {
   bool Run();
 
  private:
-  Index size_;
 
+ Index repetitions_;
 };
 
 }  // namespace xtp
