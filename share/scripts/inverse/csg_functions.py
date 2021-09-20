@@ -65,7 +65,7 @@ def fourier(r, f):
     The frequency grid is also returned.  Some special extrapolations are used
     to make the results consistent. This function is isometric meaning it can
     be used to calculate the FT and the inverse FT.  That means inputs can also
-    be omega and f_hat which results in r and f.
+    be k and f_hat which results in r and f.
 
     Args:
         r: Input grid. Must be evenly spaced. Can start at zero or at Δr, but nowhere
@@ -73,7 +73,7 @@ def fourier(r, f):
         f: Input function. Must have same length as r and correspond to its values.
 
     Returns:
-        (omega, f_hat): The reciprocal grid and the FT of f.
+        (k, f_hat): The reciprocal grid and the FT of f.
 
     """
     Delta_r = calc_grid_spacing(r)
@@ -95,36 +95,36 @@ def fourier(r, f):
         n = (len(r)-1)*2-1
     else:  # odd
         n = len(r)*2-1
-    omega = np.fft.rfftfreq(n=n, d=Delta_r)
+    k = np.fft.rfftfreq(n=n, d=Delta_r)
     with np.errstate(divide='ignore', invalid='ignore'):
-        f_hat = -2 / omega / 1 * Delta_r * np.imag(np.fft.rfft(r * f, n=n))
+        f_hat = -2 / k / 1 * Delta_r * np.imag(np.fft.rfft(r * f, n=n))
     if r0_added:
         f_hat = f_hat[1:]
-        omega = omega[1:]
-    return omega, f_hat
+        k = k[1:]
+    return k, f_hat
 
 
 def test_fourier():
     """Check that Fourier function is invertible."""
     r = np.linspace(1, 100, 100)
     f = np.random.random(100)
-    omega, f_hat = fourier(r, f)
-    r_, f_ = fourier(omega, f_hat)
+    k, f_hat = fourier(r, f)
+    r_, f_ = fourier(k, f_hat)
     assert np.allclose(r, r_)
     assert np.allclose(f, f_)
 
 
 def fourier_all(r, table_mat):
     """Fourier along first dimension of table matrix (all interactions)."""
-    omega, _ = fourier(r, table_mat[:, 0, 0])  # get length
-    table_hat_mat = np.empty((len(omega), *table_mat.shape[1:]))
+    k, _ = fourier(r, table_mat[:, 0, 0])  # get length
+    table_hat_mat = np.empty((len(k), *table_mat.shape[1:]))
     table_hat_mat.fill(np.nan)
     for b1 in range(table_mat.shape[1]):
         for b2 in range(table_mat.shape[2]):
             y = table_mat[:, b1, b2]
             _, y_hat = fourier(r, y)
             table_hat_mat[:, b1, b2] = y_hat
-    return omega, table_hat_mat
+    return k, table_hat_mat
 
 
 def gen_fourier_matrix(r, fourier_function):
@@ -208,14 +208,24 @@ def get_non_bonded(options_xml):
         yield non_bonded.find('name').text, type_set
 
 
-def get_densities(topol_xml, volume):
+def get_density_dict(topol_xml, volume):
     """Return the densities of all bead types as a dict."""
-    densities = defaultdict(lambda: 0.0)
+    density_dict = defaultdict(lambda: 0.0)
     for molecule in topol_xml.find('molecules').findall('molecule'):
         for bead in molecule.findall('bead'):
-            densities[bead.attrib['type']] += int(molecule.attrib['nmols']) / volume
-    densities = dict(densities)
-    return densities
+            density_dict[bead.attrib['type']] += int(molecule.attrib['nmols']) / volume
+    density_dict = dict(density_dict)
+    return density_dict
+
+
+def get_n_intra_dict(topol_xml):
+    """Return the number beads per molecules."""
+    n_intra_dict = defaultdict(lambda: 0)
+    for molecule in topol_xml.find('molecules').findall('molecule'):
+        for bead in molecule.findall('bead'):
+            n_intra_dict[bead.attrib['type']] += 1
+    n_intra = dict(n_intra_dict)
+    return n_intra
 
 
 def get_bead_types(non_bonded_dict):
@@ -252,14 +262,14 @@ def gen_interaction_dict(r, interaction_matrix, non_bonded_dict):
     return interaction_dict
 
 
-def gen_density_matrix(densities, non_bonded_dict):
+def gen_beadtype_property_array(property_dict, non_bonded_dict):
     bead_types = get_bead_types(non_bonded_dict)
     try:
-        density_matrix = np.diag(np.array([densities[bt] for bt in bead_types]))
+        property_array = np.array([property_dict[bt] for bt in bead_types])
     except KeyError:
-        raise Exception("Could not construct density matrix. Inconsistency between "
+        raise Exception("Could not construct density array. Inconsistency between "
                         "topology and options file?")
-    return density_matrix
+    return property_array
 
 
 def gauss_newton_constrained(A, C, b, d):

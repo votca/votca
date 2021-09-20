@@ -44,10 +44,11 @@ if not sys.version_info >= (3, 5):
     raise Exception("This script needs Python 3.5+.")
 from csg_functions import (
     readin_table, saveto_table, calc_grid_spacing, fourier, fourier_all,
-    gen_fourier_matrix, find_after_cut_off_ndx, r0_removal,
-    get_non_bonded, get_densities, gen_interaction_matrix, gen_interaction_dict,
-    gen_density_matrix, gauss_newton_constrained, upd_flag_g_smaller_g_min,
-    upd_flag_by_other_flag, gen_flag_isfinite, extrapolate_dU_left_constant
+    gen_beadtype_property_array, gen_fourier_matrix, find_after_cut_off_ndx,
+    r0_removal, get_non_bonded, get_density_dict, get_n_intra_dict,
+    gen_interaction_matrix, gen_interaction_dict, gauss_newton_constrained,
+    upd_flag_g_smaller_g_min, upd_flag_by_other_flag, gen_flag_isfinite,
+    extrapolate_dU_left_constant
 )
 
 
@@ -57,59 +58,76 @@ G_MIN_EXTRAPOLATE = 1e-1
 np.seterr(all='raise')
 
 
-def calc_c(r, g_tgt, G_minus_g, n, rho):
-    """Calculate the direct correlation function c(r) from g(r)."""
-    r0_removed, (r, g_tgt, G_minus_g) = r0_removal(r, g_tgt, G_minus_g)
-    # total correlation function h
-    h = g_tgt - 1
-    # FT of h
-    omega, h_hat = fourier(r, h)
-    # direct correlation function c from OZ
-    if n == 1:
-        # single bead case
-        c_hat = h_hat / (1 + rho * h_hat)
-    else:
-        _, G_minus_g_hat = fourier(r, G_minus_g)
-        c_hat = h_hat / ((1 + n * rho * G_minus_g_hat)**2
-                         + (1 + n * rho * G_minus_g_hat) * n * rho * h_hat)
-    _, c = fourier(omega, c_hat)
-    if r0_removed:
-        c = np.concatenate(([np.nan], c))
-    return c
+def gen_Omega_hat_mat(G_minus_g_hat_mat, rhos, n_intra):
+    # σ is any row sum of ω
+    sigma_R = G_minus_g_hat_mat @ np.diag(rhos) + np.identity(len(rhos))
+    # weighting of row sum σ
+    Omega_hat_mat = np.diag(np.sqrt(n_intra)) @ sigma_R @ np.diag(1/np.sqrt(n_intra))
+    return Omega_hat_mat
 
 
-def calc_c_matrix(r, omega, h_hat_mat, G_minus_g_hat_mat, rho_mat, verbose=False):
-    """Calculate the direct correlation function c(r) from g(r)."""
-    # Omega_hat_mat
-    # TODO: figure out density factor here!
-    #       see https://cbp.tnw.utwente.nl/PolymeerDictaat/node16.html
-    #       I think Omega is actually non-symmetric in some cases!
-    #       The order could also be reverse: G_minus_g_hat_mat @ rho_mat
-    # TODO: figure out diagonal here, for e.g. symmetric naphtalene
-    Omega_hat_mat = (G_minus_g_hat_mat @ rho_mat
-                     + np.identity(G_minus_g_hat_mat.shape[1]))
-    # direct correlation function c from OZ
-    c_hat_mat = np.linalg.inv(Omega_hat_mat) @ h_hat_mat @ np.linalg.inv(
-        (Omega_hat_mat + rho_mat @ h_hat_mat))  # the order should not be altered
-    _, c_mat = fourier_all(omega, c_hat_mat)
+def adapt_reduced_matrix(mat, n_intra):
+    """Adapt the prefactors of a matrix to be compatible with the symmetry reduced RISM
+    equation.
+
+    The input matrix is already reduced (rows are atom types not atoms), but factors
+    need to be applied."""
+    Mat = np.diag(np.sqrt(n_intra)) @ mat @ np.diag(np.sqrt(n_intra))
+    return Mat
+
+
+def unadapt_reduced_matrix(Mat, n_intra):
+    """Unadapt the prefactors of a matrix compatible with the symmetry reduced RISM
+    equation back to the regular form.
+
+    The input matrix is already reduced (rows are atom types not atoms) and adapted.
+    Factors are applied to get back to the regular matrix."""
+    mat = np.diag(1/np.sqrt(n_intra)) @ Mat @ np.diag(1/np.sqrt(n_intra))
+    return mat
+
+
+def transpose(mat):
+    """First dimension is radius or k. Transpose means swapping the last two axis."""
+    return np.swapaxes(mat, -1, -2)
+
+
+def calc_c_matrix(r, k, h_hat_mat, G_minus_g_hat_mat, rhos, n_intra, verbose=False):
+    """Calculate the direct correlation function c from g for all interactions."""
+    # row sum of ω, after Bertagnolli and my own notes
+    Omega_hat_mat = gen_Omega_hat_mat(G_minus_g_hat_mat, rhos, n_intra)
+    # H_hat_mat after Bertagnolli
+    H_hat_mat = adapt_reduced_matrix(h_hat_mat, n_intra)
+    # Rho_mat after Bertagnolli
+    Rhos = rhos / n_intra
+    # intermediate step
+    # have to transpose to solve x·a = b with numpy by solving a'·x' = b'
+    H_over_Omega_plus_rho_H = transpose(np.linalg.solve(
+        transpose(Omega_hat_mat + np.diag(Rhos) @ H_hat_mat),
+        transpose(H_hat_mat)))
+    # direct correlation function C from symmetry reduced OZ
+    C_hat_mat = np.linalg.solve(Omega_hat_mat, H_over_Omega_plus_rho_H)
+    # c_hat from C_hat
+    c_hat_mat = unadapt_reduced_matrix(C_hat_mat, n_intra)
+    # c from c_hat
+    _, c_mat = fourier_all(k, c_hat_mat)
     if verbose:
-        np.savez_compressed('calc-c-matrix.npz', r=r, omega=omega,
+        np.savez_compressed('calc-c-matrix.npz', r=r, k=k,
                             h_hat_mat=h_hat_mat, G_minus_g_hat_mat=G_minus_g_hat_mat,
-                            rho_mat=rho_mat, c_mat=c_mat)
+                            rhos=rhos, c_mat=c_mat)
     return c_mat
 
 
 def calc_g(r, c, G_minus_g, n, rho):
     """Calculate the radial distribution function g(r) from c(r)."""
     r0_removed, (r, c, G_minus_g) = r0_removal(r, c, G_minus_g)
-    omega, c_hat = fourier(r, c)
+    k, c_hat = fourier(r, c)
     if n == 1:
         h_hat = c_hat / (1 - rho * c_hat)
     else:
         _, G_minus_g_hat = fourier(r, G_minus_g)
         h_hat = ((c_hat * (1 + n * rho * G_minus_g_hat)**2)
                  / (1 - n * rho * (1 + n * rho * G_minus_g_hat) * c_hat))
-    _, h = fourier(omega, h_hat)
+    _, h = fourier(k, h_hat)
     g = h + 1
     if r0_removed:
         g = np.concatenate(([np.nan], g))
@@ -270,8 +288,8 @@ def calc_U(r, g_tgt, G_minus_g, n, kBT, rho, closure):
     return U
 
 
-def calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat, kBT, closure,
-                  verbose=False):
+def calc_U_matrix(r, k, g_mat, h_hat_mat, G_minus_g_hat_mat, rhos, n_intra, kBT,
+                  closure, verbose=False):
     """
     Calculate a potential U using integral equation theory.
 
@@ -280,7 +298,8 @@ def calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat, kBT, c
         g_mat: matrix of RDF
         h_hat_mat: matrix of Fourier of TCF
         G_minus_g_mat: matrix of Fourier of intramolecular RDF
-        rho_mat: diagonal matrix of densities of the bead types
+        rhos: array of densities of the bead types
+        n_intra: array with number of bead per molecule
         kBT: Boltzmann constant times temperature.
         closure: OZ-equation closure ('hnc' or 'py').
         verbose: output calc_U_matrix.npz
@@ -289,16 +308,16 @@ def calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat, kBT, c
         matrix of the calculated potentias.
     """
     # calculate direct correlation function
-    c_mat = calc_c_matrix(r, omega, h_hat_mat, G_minus_g_hat_mat, rho_mat, verbose)
+    c_mat = calc_c_matrix(r, k, h_hat_mat, G_minus_g_hat_mat, rhos, n_intra, verbose)
     with np.errstate(divide='ignore', invalid='ignore'):
         if closure == 'hnc':
             U_mat = kBT * (-np.log(g_mat) + (g_mat - 1) - c_mat)
         elif closure == 'py':
             U_mat = kBT * np.log(1 - c_mat/g_mat)
     if verbose:
-        np.savez_compressed('calc-U-matrix.npz', r=r, omega=omega,
+        np.savez_compressed('calc-U-matrix.npz', r=r, k=k,
                             g_mat=g_mat, h_hat_mat=h_hat_mat,
-                            G_minus_g_hat_mat=G_minus_g_hat_mat, rho_mat=rho_mat,
+                            G_minus_g_hat_mat=G_minus_g_hat_mat, rhos=rhos,
                             kBT=kBT, closure=closure, U_mat=U_mat)
     return U_mat
 
@@ -519,7 +538,7 @@ def get_args(iie_args=None):
         pars.add_argument('--volume', type=float,
                           required=True,
                           metavar='VOL',
-                          help='list of number densities of beads')
+                          help='the volume of the box')
         pars.add_argument('--topol', type=argparse.FileType('r'),
                           required=True,
                           metavar='TOPOL',
@@ -585,8 +604,9 @@ def process_input(args):
     # args.options.read() can be called only once
     options = ET.fromstring(args.options.read())
     topology = ET.fromstring(args.topol.read())
-    # get densities
-    densities = get_densities(topology, args.volume)
+    # get density_dict and n_intra_dict
+    density_dict = get_density_dict(topology, args.volume)
+    n_intra_dict = get_n_intra_dict(topology)
     # get non_bonded_dict
     non_bonded_dict = {nb_name: nb_ts for nb_name, nb_ts in get_non_bonded(options)}
     non_bonded_dict_inv = {v: k for k, v in non_bonded_dict.items()}
@@ -636,12 +656,17 @@ def process_input(args):
         r0_removed = False
     else:
         raise Exception('either all or no input tables should start at r=0')
+    # process input further
+    rhos = gen_beadtype_property_array(density_dict, non_bonded_dict)
+    n_intra = gen_beadtype_property_array(n_intra_dict, non_bonded_dict)
     # settings
     # copy some directly from args
     settings_to_copy = ('closure', 'verbose', 'out_ext', 'g_min')
     settings = {key: vars(args)[key] for key in settings_to_copy}
     settings['non-bonded-dict'] = non_bonded_dict
-    settings['densities'] = densities
+    # settings['densities'] = densities  # not sure if needed later
+    settings['rhos'] = rhos
+    settings['n_intra'] = n_intra
     settings['r0-removed'] = r0_removed
     # others from options xml
     settings['kBT'] = float(options.find("./inverse/kBT").text)
@@ -660,20 +685,20 @@ def potential_guess(r, input_arrays, settings):
     g_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
                                    settings['non-bonded-dict'])
     h_mat = g_mat - 1
-    omega, h_hat_mat = fourier_all(r, h_mat)
+    k, h_hat_mat = fourier_all(r, h_mat)
     G_minus_g_mat = gen_interaction_matrix(
         r, input_arrays['G_minus_g_tgt'], settings['non-bonded-dict'])
     _, G_minus_g_hat_mat = fourier_all(r, G_minus_g_mat)
-    rho_mat = gen_density_matrix(settings['densities'], settings['non-bonded-dict'])
     # perform actual math
-    U1_mat = calc_U_matrix(r, omega, g_mat, h_hat_mat, G_minus_g_hat_mat, rho_mat,
+    U1_mat = calc_U_matrix(r, k, g_mat, h_hat_mat, G_minus_g_hat_mat,
+                           settings['rhos'], settings['n_intra'],
                            settings['kBT'], settings['closure'],
                            verbose=settings['verbose'])
     if settings['verbose']:
-        np.savez_compressed('potential-guess-arrays.npz', r=r, omega=omega,
+        np.savez_compressed('potential-guess-arrays.npz', r=r, k=k,
                             g_mat=g_mat, h_hat_mat=h_hat_mat,
-                            G_minus_g_hat_mat=G_minus_g_hat_mat, rho_mat=rho_mat,
-                            U1_mat=U1_mat)
+                            G_minus_g_hat_mat=G_minus_g_hat_mat, rhos=settings['rhos'],
+                            n_intra=settings['n_intra'], U1_mat=U1_mat)
     # extrapolate and save potentials
     for non_bonded_name, U_dict in gen_interaction_dict(
             r, U1_mat, settings['non-bonded-dict']).items():
