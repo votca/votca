@@ -16,9 +16,9 @@ Version 2022-dev
 -  removed eigenvalue algorithm, now done by eigen  (#352)
 -  Added N-DimVector (#360)
 -  properties can be removed and string conversion much improved (#365)
--  link against MKL:RT to support pyxtp (#349
+-  link against MKL:RT to support pyxtp (#349)
 -  adapted tokenizer api (#367)
--  improve mkl linkage and threading backend selection (#371)
+-  improve mkl linkage and threading backend selection (#371, #383)
 -  removed tex option (#372)
 -  made membervariable format consistent (#373)
 -  added AddTree to property (#374)
@@ -26,7 +26,10 @@ Version 2022-dev
 -  made bool conversion more restrictive (#366)
 -  made factory more general (#377)
 
-Version 2021.2 (released XX.07.21)
+Version 2021.3 (released XX.09.21)
+==================================
+
+Version 2021.2 (released 19.09.21)
 ==================================
 
 -  changed tolerance for getting element names from mass (#378)
