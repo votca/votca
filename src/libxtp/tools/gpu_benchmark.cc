@@ -19,7 +19,9 @@
 #include <chrono>
 #include <iomanip>
 #include <numeric>
+#include <string>
 
+#include "votca/tools/property.h"
 #include "votca/xtp/bse_operator.h"
 #include "votca/xtp/eigen.h"
 #include "votca/xtp/logger.h"
@@ -47,11 +49,12 @@ std::pair<double, double> CalcStatistics(const std::vector<double>& v) {
 }
 
 template <class T>
-void RunPart(T&& payload, const std::string& name, Index repetitions) {
+tools::Property RunPart(T&& payload, const std::string& name,
+                        Index repetitions) {
   std::vector<double> individual_timings;
   individual_timings.reserve(repetitions);
   Index count = 0;
-  std::cout << name << std::endl;
+  std::cout << "name" << std::endl;
   for (Index i = 0; i < repetitions; i++) {
     std::chrono::time_point<std::chrono::steady_clock> start =
         std::chrono::steady_clock::now();
@@ -63,7 +66,15 @@ void RunPart(T&& payload, const std::string& name, Index repetitions) {
             .count());
   }
   auto [mean1, std1] = CalcStatistics(individual_timings);
-  std::cout << "t_avg[s]:" << mean1 << " std[s]:" << std1 << std::endl;
+  std::cout << "avg:" << mean1 << " std:" << std1 << std::endl;
+  tools::Property output(name, "", "");
+  output.add("avg", std::to_string(mean1));
+  output.add("std", std::to_string(std1));
+  tools::Property& runs = output.add("runs", "");
+  for (double time : individual_timings) {
+    runs.add("timing", std::to_string(time));
+  }
+  return output;
 }
 
 bool GPUBenchmark::Run() {
@@ -92,12 +103,24 @@ bool GPUBenchmark::Run() {
   std::cout << "rpamin:" << orb.getRPAmin() << " rpamax:" << orb.getRPAmax()
             << std::endl;
 
-  RunPart(
+  tools::Property output("GPU_Benchmark", "", "");
+  output.add("Repetitions", std::to_string(repetitions_));
+  output.add("CPUs", std::to_string(OPENMP::getMaxThreads()));
+
+  output.add("GPUs", std::to_string(OpenMP_CUDA::UsingGPUs()));
+  output.add("MKL_overload", std::to_string(XTP_HAS_MKL_OVERLOAD()));
+  output.add("Basisset",basis.Name());
+  output.add("Basissetsize",std::to_string(basis.AOBasisSize()));
+  output.add("AuxBasisset",auxbasis.Name());
+  output.add("AuxBasissetsize",std::to_string(auxbasis.AOBasisSize()));
+  output.add("rpamin",std::to_string(orb.getRPAmin()));
+  output.add("rpamax",std::to_string(orb.getRPAmax()));
+  output.add(RunPart(
       [&]() {
         Mmn.Fill(auxbasis, basis, orb.MOs().eigenvectors());
         return 1;
       },
-      "Filling Three Center", repetitions_);
+      "Filling Three Center", repetitions_));
 
   Eigen::MatrixXd op =
       Eigen::MatrixXd::Identity(auxbasis.AOBasisSize(), auxbasis.AOBasisSize());
@@ -116,22 +139,22 @@ bool GPUBenchmark::Run() {
   double frequency = 0.5;
   Eigen::MatrixXd result =
       Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), auxbasis.AOBasisSize());
-  RunPart(
+  output.add(RunPart(
       [&]() {
         result += rpa.calculate_epsilon_i(frequency);
         result += rpa.calculate_epsilon_r(-frequency);
         return 1;
       },
-      "RPA evaluation", repetitions_);
+      "RPA evaluation", repetitions_));
 
   Index hqp_size = orb.getBSEcmax() - orb.getBSEvmin() + 1;
   Eigen::MatrixXd Hqp_fake = Eigen::MatrixXd::Random(hqp_size, hqp_size);
   BSEOperator_Options opt;
-  opt.cmax=orb.getBSEcmax();
-  opt.homo=orb.getHomo();
-  opt.qpmin=orb.getGWAmin();
-  opt.rpamin=orb.getRPAmin();
-  opt.vmin=orb.getBSEvmin();
+  opt.cmax = orb.getBSEcmax();
+  opt.homo = orb.getHomo();
+  opt.qpmin = orb.getGWAmin();
+  opt.rpamin = orb.getRPAmin();
+  opt.vmin = orb.getBSEvmin();
   SingletOperator_TDA s_op(result, Mmn, Hqp_fake);
   s_op.configure(opt);
   TripletOperator_TDA t_op(result, Mmn, Hqp_fake);
@@ -144,35 +167,36 @@ bool GPUBenchmark::Run() {
   Eigen::MatrixXd state = Eigen::MatrixXd::Random(s_op.size(), spacesize);
   Eigen::MatrixXd result_op = Eigen::MatrixXd::Zero(s_op.size(), spacesize);
 
-  RunPart(
+  output.add(RunPart(
       [&]() {
         result_op += s_op * state;
         return 1;
       },
-      "SingletOperator_TDA", repetitions_);
+      "SingletOperator_TDA", repetitions_));
 
-  RunPart(
+  output.add(RunPart(
       [&]() {
         result_op += t_op * state;
         return 1;
       },
-      "TripletOperator_TDA", repetitions_);
+      "TripletOperator_TDA", repetitions_));
 
-  RunPart(
+  output.add(RunPart(
       [&]() {
         result_op += sbtda_op * state;
         return 1;
       },
-      "SingletOperator_BTDA_B", repetitions_);
+      "SingletOperator_BTDA_B", repetitions_));
 
-  RunPart(
+  output.add(RunPart(
       [&]() {
         result_op += hx_op * state;
         return 1;
       },
-      "HxOperator", repetitions_);
+      "HxOperator", repetitions_));
 
-  frequency+=result_op.sum();
+  std::cout<<output<<std::endl;
+  frequency += result_op.sum();
   return true;
 }
 
