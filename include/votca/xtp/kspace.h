@@ -39,64 +39,64 @@ class KVector;
 
 class KSpace {
  public:
-  KSpace(Logger& log) : _log(log) { ; }
+  KSpace(Logger& log) : log_(log) { ; }
   ~KSpace() = default;
 
   void Initialize(const EwaldOptions& options, const UnitCell& unitcell,
                   std::vector<EwdSegment>& segments) {
-    this->options = options;
-    this->_unit_cell = unitcell;
+    this->options_ = options;
+    this->unit_cell_ = unitcell;
     a1 = options.alpha;
     a2 = a1 * a1;
     a3 = a1 * a2;
     a4 = a2 * a2;
     a5 = a4 * a1;
     fourPiVolume =
-        4.0 * boost::math::constants::pi<double>() / _unit_cell.getVolume();
+        4.0 * boost::math::constants::pi<double>() / unit_cell_.getVolume();
     cutoff = options.k_cutoff;
     cutoff2 = cutoff * cutoff;
 
-    _unit_cell = unitcell;
+    unit_cell_ = unitcell;
 
     // compute max k-space vectors
-    const Eigen::Matrix3d& inverseCellMatrix = _unit_cell.getInverseMatrix();
+    const Eigen::Matrix3d& inverseCellMatrix = unit_cell_.getInverseMatrix();
     for (Index i = 0; i < 3; ++i) {
       max_K[i] = static_cast<Index>(
           std::ceil(cutoff / inverseCellMatrix.col(i).norm()));
     }
 
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "************* KSPACE: PARAMETERS *************" << std::endl;
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "kspace cutoff: " << cutoff << "a.u. (" << (1 / 0.05291) * cutoff
         << " nm-1)" << std::endl;
     switch (options.shape) {
       case Shape::sphere:
-        XTP_LOG(Log::error, _log) << "shape: sphere" << std::endl;
+        XTP_LOG(Log::error, log_) << "shape: sphere" << std::endl;
         break;
       case Shape::cube:
-        XTP_LOG(Log::error, _log) << "shape: cube" << std::endl;
+        XTP_LOG(Log::error, log_) << "shape: cube" << std::endl;
         break;
       case Shape::xyslab:
-        XTP_LOG(Log::error, _log) << "shape: xyslab" << std::endl;
+        XTP_LOG(Log::error, log_) << "shape: xyslab" << std::endl;
         break;
     }
 
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "Max K copies: [" << max_K[0] << ", " << max_K[1] << ", " << max_K[2]
         << "]" << std::endl
         << std::endl;
 
     systemSize = 0;
-    for (const auto& seg : _ewaldSegments) {
+    for (const auto& seg : ewaldSegments_) {
       segmentOffSet.push_back(systemSize);
       systemSize += 3 * seg.size();
     }
 
-    _ewaldSegments = segments;
+    ewaldSegments_ = segments;
 
     systemSize = 0;
-    for (const auto& seg : _ewaldSegments) {
+    for (const auto& seg : ewaldSegments_) {
       segmentOffSet.push_back(systemSize);
       systemSize += 3 * seg.size();
     }
@@ -154,9 +154,9 @@ class KSpace {
   double a1, a2, a3, a4, a5;  // alpha (splitting param) and its powers
   double l3, l5, l7, l9;
   double thole, thole2, thole3, thole_u3;
-  UnitCell _unit_cell;
-  std::vector<EwdSegment> _ewaldSegments;
-  std::vector<KVector> _kvector_list;
+  UnitCell unit_cell_;
+  std::vector<EwdSegment> ewaldSegments_;
+  std::vector<KVector> kvector_list_;
   double fourPiVolume;
   double cutoff, cutoff2;
   Eigen::Vector3d dr = Eigen::Vector3d::Zero();
@@ -169,8 +169,8 @@ class KSpace {
   double rR1, rR2;  // reciprocal (i.e. 1.0/ ...) distance and powers
   double pi = boost::math::constants::pi<double>();
   double rSqrtPi = 1.0 / std::sqrt(pi);
-  Logger& _log;
-  EwaldOptions options;
+  Logger& log_;
+  EwaldOptions options_;
 };
 
 /**
@@ -184,15 +184,15 @@ class KSpace {
  */
 class KVector {
  public:
-  KVector(const Eigen::Vector3d& kvector) : _kvector(kvector){};
+  KVector(const Eigen::Vector3d& kvector) : kvector_(kvector){};
   ~KVector() = default;
 
-  const Eigen::Vector3d& getVector() const { return _kvector; }
-  double getAk() const { return _Ak; }
-  std::complex<double> getSk() const { return _Sk; }
+  const Eigen::Vector3d& getVector() const { return kvector_; }
+  double getAk() const { return Ak_; }
+  std::complex<double> getSk() const { return Sk_; }
 
-  void setAk(double Ak) { _Ak = Ak; }
-  void setSk(std::complex<double> Sk) { _Sk = Sk; }
+  void setAk(double Ak) { Ak_ = Ak; }
+  void setSk(std::complex<double> Sk) { Sk_ = Sk; }
 
   friend std::ostream& operator<<(std::ostream& out, const KVector& kvector) {
     out << std::scientific << std::setprecision(5)
@@ -202,30 +202,30 @@ class KVector {
   }
 
   bool operator<(const KVector& other) {
-    if (this->_kvector.norm() < other.getVector().norm()) {
+    if (this->kvector_.norm() < other.getVector().norm()) {
       return true;
     }
     return false;
   }
 
   bool operator>(const KVector& other) {
-    if (this->_kvector.norm() > other.getVector().norm()) {
+    if (this->kvector_.norm() > other.getVector().norm()) {
       return true;
     }
     return false;
   }
 
   bool operator==(const KVector& other) {
-    if (this->_kvector.norm() == other.getVector().norm()) {
+    if (this->kvector_.norm() == other.getVector().norm()) {
       return true;
     }
     return false;
   }
 
  private:
-  Eigen::Vector3d _kvector;
-  double _Ak = 0;
-  std::complex<double> _Sk;
+  Eigen::Vector3d kvector_;
+  double Ak_ = 0;
+  std::complex<double> Sk_;
 };
 
 }  // namespace xtp

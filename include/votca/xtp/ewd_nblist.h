@@ -32,21 +32,21 @@ namespace xtp {
 class Neighbour {
  public:
   Neighbour(Index id, Eigen::Vector3d dr, Eigen::Vector3d shift, double dist)
-      : segId(id), _dr(dr), _shift(shift), _dist(dist){};
+      : segId(id), dr_(dr), shift_(shift), dist_(dist){};
 
   ~Neighbour() = default;
 
   Index getId() const { return segId; }
 
   bool operator<(const Neighbour& other) {
-    if (this->_dist < other.getDist()) {
+    if (this->dist_ < other.getDist()) {
       return true;
     }
     return false;
   }
 
   bool operator>(const Neighbour& other) {
-    if (this->_dist > other.getDist()) {
+    if (this->dist_ > other.getDist()) {
       return true;
     }
     return false;
@@ -54,23 +54,23 @@ class Neighbour {
 
   bool operator==(const Neighbour& other) {
     if (this->segId == other.getId() &&
-        this->_dr.isApprox(other.getDr(), 1e-5)) {
+        this->dr_.isApprox(other.getDr(), 1e-5)) {
       return true;
     }
     return false;
   }
 
-  const Eigen::Vector3d& getDr() const { return _dr; }
+  const Eigen::Vector3d& getDr() const { return dr_; }
 
-  const Eigen::Vector3d& getShift() const { return _shift; }
+  const Eigen::Vector3d& getShift() const { return shift_; }
 
-  double getDist() const { return _dist; }
+  double getDist() const { return dist_; }
 
  private:
   Index segId;
-  Eigen::Vector3d _dr;
-  Eigen::Vector3d _shift;
-  double _dist;
+  Eigen::Vector3d dr_;
+  Eigen::Vector3d shift_;
+  double dist_;
 };
 
 class EwdNbList {
@@ -80,28 +80,30 @@ class EwdNbList {
 
   void setSize(Index size) {
     size_ = size;
-    _nbList.resize(size);
+    nbList_.resize(size);
   }
 
-  Index getSize() const { return _nbList.size(); }
+  Index getSize() const { return nbList_.size(); }
 
   void addNeighbourTo(Index segId, Neighbour nb) {
-    if (nb.getId()> size_){
-      throw std::runtime_error("Trying to add neighbour with index " + std::to_string(nb.getId()) + " but max size is " + std::to_string(size_));
+    if (nb.getId() > size_) {
+      throw std::runtime_error("Trying to add neighbour with index " +
+                               std::to_string(nb.getId()) +
+                               " but max size is " + std::to_string(size_));
     }
-    _nbList[segId].push_back(nb);
+    nbList_[segId].push_back(nb);
   }
 
   void sortOnDistance(Index segId) {
-    std::sort(_nbList[segId].begin(), _nbList[segId].end());
+    std::sort(nbList_[segId].begin(), nbList_[segId].end());
   }
 
   const std::vector<Neighbour>& getNeighboursOf(Index segId) const {
-    return _nbList[segId];
+    return nbList_[segId];
   }
 
  private:
-  std::vector<std::vector<Neighbour>> _nbList;
+  std::vector<std::vector<Neighbour>> nbList_;
   Index size_;
 };
 }  // namespace xtp

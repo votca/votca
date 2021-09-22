@@ -27,10 +27,10 @@ namespace votca {
 namespace xtp {
 
 void KSpace::computeStaticField() {
-  for (Index i = 0; i < Index(_ewaldSegments.size()); ++i) {
-    EwdSegment& seg = _ewaldSegments[i];
+  for (Index i = 0; i < Index(ewaldSegments_.size()); ++i) {
+    EwdSegment& seg = ewaldSegments_[i];
     for (EwdSite& site : seg) {
-      for (const KVector& kvec : _kvector_list) {
+      for (const KVector& kvec : kvector_list_) {
         site.addToStaticField(
             fourPiVolume * kvec.getVector() * kvec.getAk() *
             (ii * std::exp(ii * kvec.getVector().dot(site.getPos())) *
@@ -49,9 +49,9 @@ void KSpace::computeStaticField() {
  * computed with the
  */
 void KSpace::computeTotalField(PolarSegment& seg) {
-  EwdSegment& currentSeg = _ewaldSegments[seg.getId()];
+  EwdSegment& currentSeg = ewaldSegments_[seg.getId()];
   for (EwdSite& site : currentSeg) {
-    for (const KVector& kvec : _kvector_list) {
+    for (const KVector& kvec : kvector_list_) {
       site.addToStaticField(
           fourPiVolume * kvec.getVector() * kvec.getAk() *
           (ii * std::exp(ii * kvec.getVector().dot(site.getPos())) *
@@ -62,11 +62,11 @@ void KSpace::computeTotalField(PolarSegment& seg) {
 }
 
 void KSpace::addInducedDipoleInteractionTo(Eigen::MatrixXd& result) {
-  for (const KVector& kvec : _kvector_list) {
+  for (const KVector& kvec : kvector_list_) {
     Eigen::VectorXcd SkInteraction =
         getSkInteractionVector(kvec.getVector()).conjugate();
-    for (Index i = 0; i < Index(_ewaldSegments.size()); ++i) {
-      EwdSegment& seg = _ewaldSegments[i];
+    for (Index i = 0; i < Index(ewaldSegments_.size()); ++i) {
+      EwdSegment& seg = ewaldSegments_[i];
       Index startRow = segmentOffSet[i];
       for (EwdSite& site : seg) {
         double kPosDot = kvec.getVector().dot(site.getPos());
@@ -89,8 +89,8 @@ Eigen::VectorXcd KSpace::getSkInteractionVector(
   Eigen::VectorXcd result(systemSize);
   result.fill(0);
 
-  for (Index segId = 0; segId < Index(_ewaldSegments.size()); ++segId) {
-    EwdSegment& currentSeg = _ewaldSegments[segId];
+  for (Index segId = 0; segId < Index(ewaldSegments_.size()); ++segId) {
+    EwdSegment& currentSeg = ewaldSegments_[segId];
     Index offset = segmentOffSet[segId];
     Index siteCounter = 0;
     for (const EwdSite& site : currentSeg) {
@@ -103,11 +103,11 @@ Eigen::VectorXcd KSpace::getSkInteractionVector(
 }
 
 void KSpace::addShapeCorrectionTo(Eigen::MatrixXd& result) {
-  for (Index i = 0; i < Index(_ewaldSegments.size()); ++i) {
-    EwdSegment& seg = _ewaldSegments[i];
+  for (Index i = 0; i < Index(ewaldSegments_.size()); ++i) {
+    EwdSegment& seg = ewaldSegments_[i];
     Index startRow = segmentOffSet[i];
     for (EwdSite& site : seg) {
-      switch (options.shape) {
+      switch (options_.shape) {
         case Shape::xyslab:
           for (Index j = 2; j < systemSize; j = j + 3) {
             result(startRow + 2, j) += fourPiVolume;
@@ -132,8 +132,8 @@ void KSpace::addShapeCorrectionTo(Eigen::MatrixXd& result) {
 
 void KSpace::addSICorrectionTo(Eigen::MatrixXd& result) {
   // Intramolecular correction
-  for (Index segId = 0; segId < Index(_ewaldSegments.size()); ++segId) {
-    EwdSegment& currentSeg = _ewaldSegments[segId];
+  for (Index segId = 0; segId < Index(ewaldSegments_.size()); ++segId) {
+    EwdSegment& currentSeg = ewaldSegments_[segId];
     Index startRow = segmentOffSet[segId];
     Index startCol = startRow;
     for (Index site_ind1 = 0; site_ind1 < currentSeg.size(); ++site_ind1) {
@@ -149,14 +149,14 @@ Eigen::Vector3d KSpace::computeShapeField() {
   Eigen::Vector3d shapeField = Eigen::Vector3d::Zero();
 
   // Compute total dipole
-  for (const EwdSegment& seg : _ewaldSegments) {
+  for (const EwdSegment& seg : ewaldSegments_) {
     for (const EwdSite& sit : seg) {
       dip_tot += sit.getCharge() * sit.getPos();
       dip_tot += sit.getTotalDipole();
     }
   }
 
-  switch (options.shape) {
+  switch (options_.shape) {
     case Shape::xyslab:
       shapeField[2] = -fourPiVolume * dip_tot[2];
       break;
@@ -172,10 +172,10 @@ Eigen::Vector3d KSpace::computeShapeField() {
 
 void KSpace::applyAPeriodicCorrection(PolarSegment& seg,
                                       std::vector<SegId> pCloud_indices) {
-  EwdSegment currentSeg = _ewaldSegments[seg.getId()];
+  EwdSegment currentSeg = ewaldSegments_[seg.getId()];
   for (SegId& id : pCloud_indices) {
     if (id.Id() != seg.getId()) {
-      EwdSegment& nbSeg = _ewaldSegments[id.Id()];
+      EwdSegment& nbSeg = ewaldSegments_[id.Id()];
       for (EwdSite& site : currentSeg) {
         for (EwdSite& site2 : nbSeg) {
         }
@@ -210,7 +210,7 @@ void KSpace::applyStaticShapeField() {
   Eigen::Vector3d shapeField = computeShapeField();
 
   // Apply the field to the sites
-  for (EwdSegment& seg : _ewaldSegments) {
+  for (EwdSegment& seg : ewaldSegments_) {
     for (EwdSite& sit : seg) {
       sit.addToStaticField(-shapeField);
     }
@@ -225,7 +225,7 @@ void KSpace::applyTotalShapeField(PolarSegment& seg) {
 }
 
 void KSpace::computeIntraMolecularCorrection() {
-  for (EwdSegment& seg : _ewaldSegments) {
+  for (EwdSegment& seg : ewaldSegments_) {
     for (EwdSite& sit1 : seg) {
       for (EwdSite& sit2 : seg) {
         sit1.addToStaticField(-staticFieldAtBy(sit1, sit2));
@@ -235,7 +235,7 @@ void KSpace::computeIntraMolecularCorrection() {
 }
 
 void KSpace::applySICorrection(PolarSegment& seg) {
-  EwdSegment& currentSeg = _ewaldSegments[seg.getId()];
+  EwdSegment& currentSeg = ewaldSegments_[seg.getId()];
   for (Index i = 0; i < currentSeg.size(); i++) {
     for (Index j = 0; j < currentSeg.size(); j++) {
       seg[i].addToBackgroundField(
@@ -354,7 +354,7 @@ Eigen::Vector3d KSpace::totalFieldAtBy(const EwdSite& site,
 
 std::complex<double> KSpace::computeSk(const Eigen::Vector3d& kvector) const {
   std::complex<double> sk(0.0, 0.0);
-  for (const EwdSegment& seg : _ewaldSegments) {
+  for (const EwdSegment& seg : ewaldSegments_) {
     for (const EwdSite& site : seg) {
       std::complex<double> generalizedCharge =
           (site.getCharge() + ii * kvector.dot(site.getTotalDipole()) -
@@ -379,14 +379,14 @@ void KSpace::computeKVectors() {
         if (ix == 0 && iy == 0 && iz == 0) {
           continue;
         }
-        Eigen::Vector3d kvector = _unit_cell.getKVector(ix, iy, iz);
-        _kvector_list.push_back(KVector(kvector));
+        Eigen::Vector3d kvector = unit_cell_.getKVector(ix, iy, iz);
+        kvector_list_.push_back(KVector(kvector));
       }
     }
   }
-  std::sort(_kvector_list.begin(), _kvector_list.end());
-  for (Index i = 0; i < static_cast<Index>(_kvector_list.size()); ++i) {
-    KVector& kvec = _kvector_list[i];
+  std::sort(kvector_list_.begin(), kvector_list_.end());
+  for (Index i = 0; i < static_cast<Index>(kvector_list_.size()); ++i) {
+    KVector& kvec = kvector_list_[i];
     kvec.setSk(computeSk(kvec.getVector()));
     kvec.setAk(computeAk(kvec.getVector()));
   }
