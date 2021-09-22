@@ -44,7 +44,7 @@ class Background {
              const EwaldOptions options,
              std::vector<PolarSegment>& polar_background);
 
-  Background(Logger& log) : log_(log), kspace(log), rspace(log) {}
+  Background(Logger& log) : log_(log), rspace(log),  kspace(log) {}
 
   ~Background() = default;
 
@@ -73,7 +73,7 @@ class Background {
     if (other.ewald_background_.size() != this->ewald_background_.size()) {
       return false;
     } else {
-      for (Index i = 0; i < this->ewald_background_.size(); ++i) {
+      for (Index i = 0; i < Index(this->ewald_background_.size()); ++i) {
         if (this->ewald_background_[i] != other.ewald_background_[i]) {
           return false;
         }

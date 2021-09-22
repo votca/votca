@@ -24,10 +24,10 @@ namespace votca {
 namespace xtp {
 
 void RSpace::computeStaticField() {
-  for (Index segId = 0; segId < Index(_ewaldSegments.size()); ++segId) {
-    EwdSegment& currentSeg = _ewaldSegments[segId];
-    for (const Neighbour& neighbour : _nbList.getNeighboursOf(segId)) {
-      EwdSegment& nbSeg = _ewaldSegments[neighbour.getId()];
+  for (Index segId = 0; segId < Index(ewaldSegments_.size()); ++segId) {
+    EwdSegment& currentSeg = ewaldSegments_[segId];
+    for (const Neighbour& neighbour : nbList_.getNeighboursOf(segId)) {
+      EwdSegment& nbSeg = ewaldSegments_[neighbour.getId()];
       for (EwdSite& site : currentSeg) {
         for (EwdSite& nbSite : nbSeg) {
           site.addToStaticField(
@@ -42,7 +42,7 @@ double RSpace::backgroundInteractionEnergy(std::vector<EwdSegment>& pCloudX,
                                            std::vector<SegId>& pCloud_indices) {
   double energy = 0.0;
   for (const EwdSegment& pSegment : pCloudX) {
-    for (const Neighbour& nb : _nbList.getNeighboursOf(pSegment.getId())) {
+    for (const Neighbour& nb : nbList_.getNeighboursOf(pSegment.getId())) {
       if (nb.getShift() == Eigen::Vector3d::Zero()) {
         bool neighbourInPCloud =
             std::find_if(pCloud_indices.begin(), pCloud_indices.end(),
@@ -53,7 +53,7 @@ double RSpace::backgroundInteractionEnergy(std::vector<EwdSegment>& pCloudX,
                      // the polarization cloud
         }
       }
-      EwdSegment& nbSeg = _ewaldSegments[nb.getId()];
+      EwdSegment& nbSeg = ewaldSegments_[nb.getId()];
       for (const EwdSite& site : pSegment) {
         for (const EwdSite& nbSite : nbSeg) {
           energy += totalEnergyTwoSites(site, nbSite, nb.getShift());
@@ -66,8 +66,8 @@ double RSpace::backgroundInteractionEnergy(std::vector<EwdSegment>& pCloudX,
 
 void RSpace::computeTotalField(PolarSegment& seg,
                                const std::vector<SegId> pCloud_indices) {
-  EwdSegment& currentSeg = _ewaldSegments[seg.getId()];
-  for (const Neighbour& neighbour : _nbList.getNeighboursOf(seg.getId())) {
+  EwdSegment& currentSeg = ewaldSegments_[seg.getId()];
+  for (const Neighbour& neighbour : nbList_.getNeighboursOf(seg.getId())) {
     if (neighbour.getShift() == Eigen::Vector3d::Zero()) {
       bool neighbourInPCloud =
           std::find_if(pCloud_indices.begin(), pCloud_indices.end(),
@@ -79,7 +79,7 @@ void RSpace::computeTotalField(PolarSegment& seg,
                    // polarization cloud
       }
     }
-    EwdSegment& nbSeg = _ewaldSegments[neighbour.getId()];
+    EwdSegment& nbSeg = ewaldSegments_[neighbour.getId()];
     for (Index i = 0; i < currentSeg.size(); i++) {
       // So this appears a bit weird, but we need the "ewald" representation
       // to compute the total field at a site, but this field should be
@@ -98,11 +98,11 @@ void RSpace::computeTotalField(PolarSegment& seg,
 }
 
 void RSpace::addInducedDipoleInteractionTo(Eigen::MatrixXd& result) {
-  for (Index segId = 0; segId < Index(_ewaldSegments.size()); ++segId) {
+  for (Index segId = 0; segId < Index(ewaldSegments_.size()); ++segId) {
     // The first part can be done in the same way as the static field ...
-    EwdSegment& currentSeg = _ewaldSegments[segId];
-    for (const Neighbour& neighbour : _nbList.getNeighboursOf(segId)) {
-      EwdSegment& nbSeg = _ewaldSegments[neighbour.getId()];
+    EwdSegment& currentSeg = ewaldSegments_[segId];
+    for (const Neighbour& neighbour : nbList_.getNeighboursOf(segId)) {
+      EwdSegment& nbSeg = ewaldSegments_[neighbour.getId()];
       Index startRow = segmentOffSet[segId];
       for (EwdSite& site : currentSeg) {
         Index startCol = segmentOffSet[neighbour.getId()];
@@ -134,10 +134,10 @@ void RSpace::addInducedDipoleInteractionTo(Eigen::MatrixXd& result) {
 }
 
 void RSpace::computeInducedField() {
-  for (Index segId = 0; segId < Index(_ewaldSegments.size()); ++segId) {
-    EwdSegment& currentSeg = _ewaldSegments[segId];
-    for (const Neighbour& neighbour : _nbList.getNeighboursOf(segId)) {
-      EwdSegment& nbSeg = _ewaldSegments[neighbour.getId()];
+  for (Index segId = 0; segId < Index(ewaldSegments_.size()); ++segId) {
+    EwdSegment& currentSeg = ewaldSegments_[segId];
+    for (const Neighbour& neighbour : nbList_.getNeighboursOf(segId)) {
+      EwdSegment& nbSeg = ewaldSegments_[neighbour.getId()];
       for (EwdSite& site : currentSeg) {
         for (EwdSite& nbSite : nbSeg) {
           site.addToInducedField(
@@ -149,8 +149,8 @@ void RSpace::computeInducedField() {
 }
 
 void RSpace::computeIntraMolecularField() {
-  for (Index segId = 0; segId < Index(_ewaldSegments.size()); ++segId) {
-    EwdSegment& currentSeg = _ewaldSegments[segId];
+  for (Index segId = 0; segId < Index(ewaldSegments_.size()); ++segId) {
+    EwdSegment& currentSeg = ewaldSegments_[segId];
     for (Index site_ind1 = 0; site_ind1 < currentSeg.size(); ++site_ind1) {
       for (Index site_ind2 = site_ind1 + 1; site_ind2 < currentSeg.size();
            ++site_ind2) {
@@ -205,12 +205,12 @@ void RSpace::computeTholeVariables(const Eigen::Matrix3d& pol1,
 }
 
 void RSpace::setupNeighbourList() {
-  _nbList.setSize(_ewaldSegments.size());
-  for (Index segId = 0; segId < static_cast<Index>(_ewaldSegments.size());
+  nbList_.setSize(ewaldSegments_.size());
+  for (Index segId = 0; segId < static_cast<Index>(ewaldSegments_.size());
        ++segId) {
-    EwdSegment& currentSeg = _ewaldSegments[segId];
-    for (const EwdSegment seg : _ewaldSegments) {
-      Eigen::Vector3d minImage_dr = _unit_cell.minImage(seg, currentSeg);
+    EwdSegment& currentSeg = ewaldSegments_[segId];
+    for (const EwdSegment seg : ewaldSegments_) {
+      Eigen::Vector3d minImage_dr = unit_cell_.minImage(seg, currentSeg);
       Eigen::Vector3d dr_dir = seg.getPos() - currentSeg.getPos();
       // triple for-loop is over all unitcell copies
       for (Index n1 = -maxCopies[0]; n1 < maxCopies[0]; ++n1) {
@@ -221,19 +221,19 @@ void RSpace::setupNeighbourList() {
               continue;
             }
             // LVector is the vector pointing to the n1,n2,n3th box
-            Eigen::Vector3d lvector = _unit_cell.getLVector(n1, n2, n3);
+            Eigen::Vector3d lvector = unit_cell_.getLVector(n1, n2, n3);
             Eigen::Vector3d dr_l = minImage_dr + lvector;
             Eigen::Vector3d shift = dr_l - dr_dir;
             double dist = dr_l.norm();
             if (dist < cutoff) {
-              _nbList.addNeighbourTo(segId,
+              nbList_.addNeighbourTo(segId,
                                      Neighbour(seg.getId(), dr_l, shift, dist));
             }
           }
         }
       }
     }
-    _nbList.sortOnDistance(segId);
+    nbList_.sortOnDistance(segId);
   }
 }
 

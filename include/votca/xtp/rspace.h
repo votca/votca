@@ -37,7 +37,7 @@ namespace votca {
 namespace xtp {
 class RSpace {
  public:
-  RSpace(Logger& log) : _log(log) {}
+  RSpace(Logger& log) : log_(log) {}
 
   void Initialize(const EwaldOptions& options, const UnitCell& unitcell,
                   std::vector<EwdSegment>& segments) {
@@ -51,26 +51,26 @@ class RSpace {
     thole2 = thole * thole;
     thole3 = thole * thole2;
 
-    _unit_cell = unitcell;
+    unit_cell_ = unitcell;
 
-    maxCopies = _unit_cell.getNrOfRealSpaceCopiesForCutOff(cutoff);
+    maxCopies = unit_cell_.getNrOfRealSpaceCopiesForCutOff(cutoff);
 
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_)
         << "************* RSPACE: PARAMETERS *************" << std::endl;
-    XTP_LOG(Log::error, _log) << "rspace cutoff: " << cutoff << "a.u. ("
+    XTP_LOG(Log::error, log_) << "rspace cutoff: " << cutoff << "a.u. ("
                               << 0.05291 * cutoff << " nm)" << std::endl;
-    XTP_LOG(Log::error, _log) << "Ewald splitting: " << a1 << "a.u. ("
+    XTP_LOG(Log::error, log_) << "Ewald splitting: " << a1 << "a.u. ("
                               << 18.897259 * a1 << " nm-1)" << std::endl;
-    XTP_LOG(Log::error, _log) << "Thole sharpness: " << thole << std::endl;
-    XTP_LOG(Log::error, _log)
+    XTP_LOG(Log::error, log_) << "Thole sharpness: " << thole << std::endl;
+    XTP_LOG(Log::error, log_)
         << "Max R copies: [" << maxCopies[0] << ", " << maxCopies[1] << ", "
         << maxCopies[2] << "]" << std::endl
         << std::endl;
 
-    _ewaldSegments = segments;
+    ewaldSegments_ = segments;
 
     systemSize = 0;
-    for (const auto& seg : _ewaldSegments) {
+    for (const auto& seg : ewaldSegments_) {
       segmentOffSet.push_back(systemSize);
       systemSize += 3 * seg.size();
     }
@@ -132,10 +132,10 @@ class RSpace {
   double a1, a2, a3, a4, a5;  // alpha (splitting param) and its powers
   double l3, l5, l7, l9;
   double thole, thole2, thole3, thole_u3;
-  UnitCell _unit_cell;
+  UnitCell unit_cell_;
   Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-  std::vector<EwdSegment> _ewaldSegments;
-  EwdNbList _nbList;
+  std::vector<EwdSegment> ewaldSegments_;
+  EwdNbList nbList_;
   double rR1, rR2;  // reciprocal (i.e. 1.0/ ...) distance and powers
   double R1, R2;    // distance and powers
   double rSqrtPiExp;
@@ -146,7 +146,7 @@ class RSpace {
   double rR1s, rR3s, rR5s, rR7s;
   std::array<Index, 3> maxCopies;
 
-  Logger& _log;
+  Logger& log_;
 };
 }  // namespace xtp
 }  // namespace votca

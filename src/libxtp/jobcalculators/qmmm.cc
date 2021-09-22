@@ -191,8 +191,7 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   }
   if (usesEwald()) {
     double ewaldEnergy = jobtop.computeBackgroundInteractionEnergy();
-    tools::Property& ewaldresult =
-        regionsresults.add("ewald", std::to_string(ewaldEnergy));
+    regionsresults.add("ewald", std::to_string(ewaldEnergy));
     etot += ewaldEnergy;
   }
   std::chrono::time_point<std::chrono::system_clock> end =
