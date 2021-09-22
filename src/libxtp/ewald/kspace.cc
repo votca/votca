@@ -106,7 +106,7 @@ void KSpace::addShapeCorrectionTo(Eigen::MatrixXd& result) {
   for (Index i = 0; i < Index(ewaldSegments_.size()); ++i) {
     EwdSegment& seg = ewaldSegments_[i];
     Index startRow = segmentOffSet[i];
-    for (EwdSite& site : seg) {
+    for (Index siteCounter = 0;  siteCounter < seg.size(); ++siteCounter) {
       switch (options_.shape) {
         case Shape::xyslab:
           for (Index j = 2; j < systemSize; j = j + 3) {
@@ -175,11 +175,12 @@ void KSpace::applyAPeriodicCorrection(PolarSegment& seg,
   EwdSegment currentSeg = ewaldSegments_[seg.getId()];
   for (SegId& id : pCloud_indices) {
     if (id.Id() != seg.getId()) {
-      EwdSegment& nbSeg = ewaldSegments_[id.Id()];
-      for (EwdSite& site : currentSeg) {
-        for (EwdSite& site2 : nbSeg) {
-        }
-      }
+      // EwdSegment& nbSeg = ewaldSegments_[id.Id()];
+      // for (EwdSite& site : currentSeg) {
+      //   for (EwdSite& site2 : nbSeg) {
+
+      //   }
+      // }
     }
   }
 }
