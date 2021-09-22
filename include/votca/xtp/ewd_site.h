@@ -119,6 +119,13 @@ class EwdSite {
     double quadYZ;
     double quadZZ;
 
+    double polXX;
+    double polXY;
+    double polXZ;
+    double polYY;
+    double polYZ;
+    double polZZ;
+
     double d_x_ind;
     double d_y_ind;
     double d_z_ind;

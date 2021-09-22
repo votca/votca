@@ -43,8 +43,6 @@ EwdSite::EwdSite(const PolarSite& pol) {
   quadrupole_ = (1.0 / 3.0) * pol.CalculateCartesianMultipole();
 }
 
-
-
 void EwdSite::WriteData(data& d) {
   d.id = id_;
   d.rank = rank_;
@@ -62,6 +60,13 @@ void EwdSite::WriteData(data& d) {
   d.quadYY = quadrupole_(1, 1);
   d.quadYZ = quadrupole_(1, 2);
   d.quadZZ = quadrupole_(2, 2);
+
+  d.polXX = polarization_(0, 0);
+  d.polXY = polarization_(0, 1);
+  d.polXZ = polarization_(0, 2);
+  d.polYY = polarization_(1, 1);
+  d.polYZ = polarization_(1, 2);
+  d.polZZ = polarization_(2, 2);
 
   d.d_x_ind = dipole_induced_[0];
   d.d_y_ind = dipole_induced_[1];
@@ -88,12 +93,25 @@ void EwdSite::ReadData(const data& d) {
   dipole_static_[0] = d.dipX;
   dipole_static_[1] = d.dipY;
   dipole_static_[2] = d.dipZ;
-  quadrupole_(0, 1) = d.quadXX;
-  quadrupole_(0, 2) = d.quadXY;
-  quadrupole_(0, 3) = d.quadXZ;
+  quadrupole_(0, 0) = d.quadXX;
+  quadrupole_(0, 1) = d.quadXY;
+  quadrupole_(0, 2) = d.quadXZ;
   quadrupole_(1, 1) = d.quadYY;
   quadrupole_(1, 2) = d.quadYZ;
   quadrupole_(2, 2) = d.quadZZ;
+  quadrupole_(2, 0) = d.quadXY;
+  quadrupole_(2, 0) = d.quadXZ;
+  quadrupole_(2, 1) = d.quadYZ;
+
+  polarization_(0, 0) = d.polXX;
+  polarization_(0, 1) = d.polXY;
+  polarization_(0, 2) = d.polXZ;
+  polarization_(1, 1) = d.polYY;
+  polarization_(1, 2) = d.polYZ;
+  polarization_(2, 2) = d.polZZ;
+  polarization_(2, 0) = d.polXY;
+  polarization_(2, 0) = d.polXZ;
+  polarization_(2, 1) = d.polYZ;
 
   dipole_induced_[0] = d.d_x_ind;
   dipole_induced_[1] = d.d_y_ind;
@@ -125,6 +143,13 @@ void EwdSite::SetupCptTable(CptTable& table) {
   table.addCol<double>("quadYY", HOFFSET(data, quadYY));
   table.addCol<double>("quadYZ", HOFFSET(data, quadYZ));
   table.addCol<double>("quadZZ", HOFFSET(data, quadZZ));
+
+  table.addCol<double>("polXX", HOFFSET(data, polXX));
+  table.addCol<double>("polXY", HOFFSET(data, polXY));
+  table.addCol<double>("polXZ", HOFFSET(data, polXZ));
+  table.addCol<double>("polYY", HOFFSET(data, polYY));
+  table.addCol<double>("polYZ", HOFFSET(data, polYZ));
+  table.addCol<double>("polZZ", HOFFSET(data, polZZ));
 
   table.addCol<double>("d_x_ind", HOFFSET(data, d_x_ind));
   table.addCol<double>("d_y_ind", HOFFSET(data, d_y_ind));

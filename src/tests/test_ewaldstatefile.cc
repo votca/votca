@@ -16,7 +16,7 @@
 #include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE orbitals_test
+#define BOOST_TEST_MODULE ewald_test
 
 // Standard includes
 #include <fstream>
