@@ -19,7 +19,7 @@
 
 #include "votca/xtp/background.h"
 #include "votca/xtp/polarregion.h"
-#include "votca/xtp/tictoc.h"
+#include "votca/xtp/timer.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -53,8 +53,8 @@ Background::Background(Logger& log, const Eigen::Matrix3d& uc_matrix,
 }
 
 void Background::Polarize() {
-
-  TicToc timer;
+  
+  Timer timer;
 
   Index systemSize = computeSystemSize(ewald_background_);
 

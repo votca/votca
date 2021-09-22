@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef TICTOC_H
-#define TICTOC_H
+#ifndef TIMER_H
+#define TIMER_H
 
 #include <chrono>
 #include <iomanip>
@@ -16,11 +16,11 @@
  *  To start the timer create an object, the elapsed duration can be queried
  *  anytime either as a chrono duration, a string or a full message.
  */
-class TicToc {
+class Timer {
  public:
-  TicToc() { start = std::chrono::high_resolution_clock::now(); }
+  Timer() { start = std::chrono::high_resolution_clock::now(); }
 
-  TicToc(std::string id) {
+  Timer(std::string id) {
     start = std::chrono::high_resolution_clock::now();
     timer_id = id;
   }
