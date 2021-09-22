@@ -58,6 +58,23 @@ class EwdSegment {
 
   ~EwdSegment() = default;
 
+  bool operator==(const EwdSegment& other){
+    if (other.size() != this->size()){
+      return false;
+    } else {
+      for(Index i = 0; i < other.size(); ++i){
+        if(this->_sites[i] != other._sites[i]){
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  bool operator!=(const EwdSegment& other){
+    return !operator==(other);
+  }
+
   const Eigen::Vector3d& getPos() const { return _position; }
 
   Index getId() const {return _id;}

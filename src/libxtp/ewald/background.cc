@@ -168,7 +168,7 @@ void Background::Polarize() {
   }
 }
 
-void Background::writeToStateFile(std::string& state_file) {
+void Background::writeToStateFile(std::string state_file) {
   // Write the polarization state including all segments
   CheckpointFile cpf(state_file, CheckpointAccessLevel::CREATE);
   CheckpointWriter a = cpf.getWriter();
@@ -203,7 +203,7 @@ void Background::writeToStateFile(std::string& state_file) {
   w3(unit_cell_.getMatrix(), "unit_cell_matrix");
 }
 
-void Background::readFromStateFile(const std::string& state_file) {
+void Background::readFromStateFile(const std::string state_file) {
   // Read sites and multipoles etc.
   CheckpointFile cpf(state_file, CheckpointAccessLevel::READ);
   CheckpointReader r = cpf.getReader("polar_background");
@@ -300,7 +300,7 @@ double Background::interactionEnergy(
       pCloudX.push_back(eseg);
     }
     // compute the interaction energy between the polar cloud and the total bg.
-    double energy = 0;
+    double energy = 0.0;
     energy += rspace.backgroundInteractionEnergy(pCloudX, region_seg_ids[0]);
     energy += kspace.backgroundInteractionEnergy();
     energy += kspace.selfInteractionEnergy();

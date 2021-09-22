@@ -45,18 +45,22 @@ class EwdSite {
   }
 
   bool operator==(const EwdSite& other) {
-    if (this->getId() == other.getId()) {
-      return true;
-    }
-    return false;
-  }
-
-  bool operator!=(const EwdSite& other) {
-    if (this->getId() == other.getId()) {
+    if ((this->_id != other._id) || (this->_rank != other._rank) ||
+        (this->_position != other._position) ||
+        (this->_charge != other._charge) ||
+        (this->_dipole_static != other._dipole_static) ||
+        (this->_dipole_induced != other._dipole_induced) ||
+        (this->_quadrupole != other._quadrupole) ||
+        (this->_polarization != other._polarization) ||
+        (this->_element != other._element) ||
+        (this->_field_static != other._field_static) ||
+        (this->_field_induced != other._field_induced)) {
       return false;
     }
     return true;
   }
+
+  bool operator!=(const EwdSite& other) { return !operator==(other); }
 
   Index getId() const { return _id; }
 
@@ -74,7 +78,7 @@ class EwdSite {
 
   const Eigen::Vector3d getInducedDipole() const { return _dipole_induced; }
 
-  void setInducedDipole(Eigen::Vector3d dip) {_dipole_induced = dip;}
+  void setInducedDipole(Eigen::Vector3d dip) { _dipole_induced = dip; }
 
   double getCharge() const { return _charge; }
 

@@ -28,6 +28,21 @@ struct EwaldOptions {
   double alpha;
   double sharpness;
   Shape shape;
+
+  bool operator==(const EwaldOptions& other){
+    bool equal = true;
+    equal = equal && (this->alpha == other.alpha);
+    equal = equal && (this->k_cutoff == other.k_cutoff);
+    equal = equal && (this->r_cutoff == other.r_cutoff);
+    equal = equal && (this->sharpness == other.sharpness);
+    equal = equal && (this->shape == other.shape);
+    return equal;
+  }
+
+  bool operator!=(const EwaldOptions& other){
+    return !operator==(other);
+  }
+
 };
 
 #endif

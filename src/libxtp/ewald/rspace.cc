@@ -309,6 +309,12 @@ Eigen::Matrix3d RSpace::inducedDipoleInteractionAtBy(
 
 double RSpace::totalEnergyTwoSites(const EwdSite site, const EwdSite nbSite,
                                    const Eigen::Vector3d shift) {
+  if ((site.getPos() - (nbSite.getPos() + shift)).norm() == 0) {
+    std::cout << site.getPos().transpose() << std::endl;
+    std::cout << nbSite.getPos().transpose() << std::endl;
+    std::cout << shift.transpose() << std::endl;
+    throw std::runtime_error("distance is 0");
+  }
   computeDistanceVariables(site.getPos() - (nbSite.getPos() + shift));
   computeScreenedInteraction();
   computeTholeVariables(site.getPolarizationMatrix(),

@@ -48,7 +48,7 @@ class Background {
 
   ~Background() = default;
 
-  Index size() { return ewald_background_.size(); }
+  Index size() const { return ewald_background_.size(); }
 
   void Polarize();
 
@@ -59,9 +59,28 @@ class Background {
   double interactionEnergy(std::vector<std::unique_ptr<Region>>& regions,
                            std::vector<std::vector<SegId>>& region_seg_ids);
 
-  void writeToStateFile(std::string& state_file);
+  void writeToStateFile(std::string state_file);
 
-  void readFromStateFile(const std::string& state_file);
+  void readFromStateFile(const std::string state_file);
+
+  bool operator==(const Background& other) {
+    if (other.unit_cell_.getMatrix() != this->unit_cell_.getMatrix()) {
+      return false;
+    }
+    if ( (this->options_ != other.options_) ){
+      return false;
+    }
+    if (other.ewald_background_.size() != this->ewald_background_.size()) {
+      return false;
+    } else {
+      for (Index i = 0; i < this->ewald_background_.size(); ++i) {
+        if (this->ewald_background_[i] != other.ewald_background_[i]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
  private:
   Index computeSystemSize(std::vector<EwdSegment>& ewaldSegments) const;
