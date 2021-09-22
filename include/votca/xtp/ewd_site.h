@@ -55,8 +55,6 @@ class EwdSite {
         (this->element_ != other.element_) ||
         (this->field_static_ != other.field_static_) ||
         (this->field_induced_ != other.field_induced_)) {
-      std::cout << " SITES UNEQUAL " << std::endl;
-      std::cout << " site 1 \n" << *this << "\nsite 2 \n" << other << std::endl;
       return false;
     }
     return true;
