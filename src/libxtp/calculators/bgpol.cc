@@ -28,21 +28,21 @@ namespace votca {
 namespace xtp {
 
 void BGPol::ParseOptions(const tools::Property& options) {
-  _mapfile = options.get(".mapfile").as<std::string>();
-  ewd_options.alpha =
+  mapfile_ = options.get(".mapfile").as<std::string>();
+  ewd_options_.alpha =
       (1.0 / tools::conv::nm2bohr) * options.get(".alpha").as<double>();
-  ewd_options.k_cutoff =
+  ewd_options_.k_cutoff =
       (1.0 / tools::conv::nm2bohr) * options.get(".k_cutoff").as<double>();
-  ewd_options.r_cutoff =
+  ewd_options_.r_cutoff =
       tools::conv::nm2bohr * options.get(".r_cutoff").as<double>();
-  ewd_options.sharpness = options.get(".thole_sharpness").as<double>();
+  ewd_options_.sharpness = options.get(".thole_sharpness").as<double>();
   std::string shape_str = options.get(".shape").as<std::string>();
   if (shape_str == "cube") {
-    ewd_options.shape = Shape::cube;
+    ewd_options_.shape = Shape::cube;
   } else if (shape_str == "sphere") {
-    ewd_options.shape = Shape::sphere;
+    ewd_options_.shape = Shape::sphere;
   } else if (shape_str == "xyslab") {
-    ewd_options.shape = Shape::xyslab;
+    ewd_options_.shape = Shape::xyslab;
   } else {
     throw std::runtime_error("Unknown shape in option file\n");
   }
@@ -50,16 +50,16 @@ void BGPol::ParseOptions(const tools::Property& options) {
 }
 
 bool BGPol::Evaluate(Topology& top) {
-  _log.setReportLevel(Log::current_level);
-  _log.setMultithreading(true);
-  // Make XTP_LOG behave like std::cout
-  _log.setCommonPreface("... ...");
-  XTP_LOG(Log::error, _log) << std::endl;
+  log_.setReportLevel(Log::current_level);
+  log_.setMultithreading(true);
+  // Make XTPlog_ behave like std::cout
+  log_.setCommonPreface("... ...");
+  XTP_LOG(Log::error, log_) << std::endl;
 
   // Map multipole and polarization data to segments
   std::vector<PolarSegment> polar_background;
-  PolarMapper polmap(_log);
-  polmap.LoadMappingFile(_mapfile);
+  PolarMapper polmap(log_);
+  polmap.LoadMappingFile(mapfile_);
   for (const Segment& seg : top.Segments()) {
     PolarSegment mol = polmap.map(seg, SegId(seg.getId(), "n"));
     polar_background.push_back(mol);
@@ -67,7 +67,7 @@ bool BGPol::Evaluate(Topology& top) {
 
   // Polarize the neutral background
   uc_matrix_ = top.getBox();
-  Background Bg(_log, top.getBox(), ewd_options, polar_background);
+  Background Bg(log_, top.getBox(), ewd_options_, polar_background);
   Bg.Polarize();
   Bg.writeToStateFile(output_file_name_);
   return true;

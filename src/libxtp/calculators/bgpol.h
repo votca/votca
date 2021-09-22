@@ -44,9 +44,9 @@ class BGPol final : public QMCalculator {
   bool Evaluate(Topology &top);
 
  private:
-  Logger _log;
-  EwaldOptions ewd_options;
-  std::string _mapfile;
+  Logger log_;
+  EwaldOptions ewd_options_;
+  std::string mapfile_;
   std::string output_file_name_;
   Eigen::Matrix3d uc_matrix_;
 };
