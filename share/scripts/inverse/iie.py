@@ -616,8 +616,18 @@ def process_input(args):
     # dict of table extensions
     table_infos = {
         'g_tgt': {'extension': args.g_tgt_ext, 'check-grid': True},
-        'G_minus_g_tgt': {'extension': args.g_tgt_intra_ext, 'check-grid': True},
     }
+    if args.subcommand == 'potential_guess':
+        table_infos = {
+            **table_infos,
+            'G_minus_g_tgt': {'extension': args.g_tgt_intra_ext, 'check-grid': True},
+        }
+    elif args.subcommand in ('newton', 'gauss-newton'):
+        table_infos = {
+            **table_infos,
+            'g_cur': {'extension': args.g_cur_ext, 'check-grid': True},
+            'G_minus_g_cur': {'extension': args.g_cur_intra_ext, 'check-grid': True},
+        }
     # load input arrays
     input_arrays = {}  # will hold all input data
     for table_name, table_info in table_infos.items():
@@ -661,7 +671,8 @@ def process_input(args):
     n_intra = gen_beadtype_property_array(n_intra_dict, non_bonded_dict)
     # settings
     # copy some directly from args
-    settings_to_copy = ('closure', 'verbose', 'out_ext', 'g_min')
+    settings_to_copy = ('closure', 'verbose', 'out_ext', 'g_min', 'g_extrap_factor',
+                        'subcommand')
     settings = {key: vars(args)[key] for key in settings_to_copy}
     settings['non-bonded-dict'] = non_bonded_dict
     # settings['densities'] = densities  # not sure if needed later
@@ -840,16 +851,16 @@ def main():
     r, input_arrays, settings = process_input(args)
 
     # guess potential from distribution
-    if args.subcommand == 'potential_guess':
+    if settings['subcommand'] == 'potential_guess':
         potential_guess(r, input_arrays, settings)
 
     # newton update
-    if args.subcommand in ('newton', 'newton-mod'):
-        newton_update(r, input_arrays, args)
+    if settings['subcommand'] in ('newton', 'newton-mod'):
+        newton_update(r, input_arrays, settings)
 
     # gauss-newton update
-    if args.subcommand == 'gauss-newton':
-        gauss_newton_update(r, input_arrays, args)
+    if settings['subcommand'] == 'gauss-newton':
+        gauss_newton_update(r, input_arrays, settings)
 
 
 if __name__ == '__main__':
