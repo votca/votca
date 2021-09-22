@@ -29,83 +29,83 @@ namespace votca {
 namespace xtp {
 
 EwdSite::EwdSite(const PolarSite& pol) {
-  _id = pol.getId();
-  _rank = pol.getRank();
-  _position = pol.getPos();
-  _charge = pol.getCharge();
-  _dipole_static = pol.getStaticDipole();
-  _dipole_induced = pol.getInducedDipole();
-  _polarization = pol.getpolarization();
-  _element = pol.getElement();
+  id_ = pol.getId();
+  rank_ = pol.getRank();
+  position_ = pol.getPos();
+  charge_ = pol.getCharge();
+  dipole_static_ = pol.getStaticDipole();
+  dipole_induced_ = pol.getInducedDipole();
+  polarization_ = pol.getpolarization();
+  element_ = pol.getElement();
   // the 1/3 saves factors in further calculations
   // The quadrupole in the Ewald site should by multiplied by 3 to obtain the
   // true quadrupole
-  _quadrupole = (1.0 / 3.0) * pol.CalculateCartesianMultipole();
+  quadrupole_ = (1.0 / 3.0) * pol.CalculateCartesianMultipole();
 }
 
 
 
 void EwdSite::WriteData(data& d) {
-  d.id = _id;
-  d.rank = _rank;
-  d.posX = _position[0];
-  d.posY = _position[1];
-  d.posZ = _position[2];
+  d.id = id_;
+  d.rank = rank_;
+  d.posX = position_[0];
+  d.posY = position_[1];
+  d.posZ = position_[2];
 
-  d.charge = _charge;
-  d.dipX = _dipole_static[0];
-  d.dipY = _dipole_static[1];
-  d.dipZ = _dipole_static[2];
-  d.quadXX = _quadrupole(0, 0);
-  d.quadXY = _quadrupole(0, 1);
-  d.quadXZ = _quadrupole(0, 2);
-  d.quadYY = _quadrupole(1, 1);
-  d.quadYZ = _quadrupole(1, 2);
-  d.quadZZ = _quadrupole(2, 2);
+  d.charge = charge_;
+  d.dipX = dipole_static_[0];
+  d.dipY = dipole_static_[1];
+  d.dipZ = dipole_static_[2];
+  d.quadXX = quadrupole_(0, 0);
+  d.quadXY = quadrupole_(0, 1);
+  d.quadXZ = quadrupole_(0, 2);
+  d.quadYY = quadrupole_(1, 1);
+  d.quadYZ = quadrupole_(1, 2);
+  d.quadZZ = quadrupole_(2, 2);
 
-  d.d_x_ind = _dipole_induced[0];
-  d.d_y_ind = _dipole_induced[1];
-  d.d_z_ind = _dipole_induced[2];
+  d.d_x_ind = dipole_induced_[0];
+  d.d_y_ind = dipole_induced_[1];
+  d.d_z_ind = dipole_induced_[2];
 
-  d.fieldX_stat = _field_static[0];
-  d.fieldX_ind = _field_induced[0];
-  d.fieldY_stat = _field_static[1];
-  d.fieldY_ind = _field_induced[1];
-  d.fieldZ_stat = _field_static[2];
-  d.fieldZ_ind = _field_induced[2];
+  d.fieldX_stat = field_static_[0];
+  d.fieldX_ind = field_induced_[0];
+  d.fieldY_stat = field_static_[1];
+  d.fieldY_ind = field_induced_[1];
+  d.fieldZ_stat = field_static_[2];
+  d.fieldZ_ind = field_induced_[2];
 
-  d.element = const_cast<char*>(_element.c_str());
+  d.element = const_cast<char*>(element_.c_str());
 }
 
 void EwdSite::ReadData(const data& d) {
-  _id = d.id;
-  _rank = d.rank;
-  _position[0] = d.posX;
-  _position[1] = d.posY;
-  _position[2] = d.posZ;
+  id_ = d.id;
+  rank_ = d.rank;
+  position_[0] = d.posX;
+  position_[1] = d.posY;
+  position_[2] = d.posZ;
 
-  _charge = d.charge;
-  _dipole_static[0] = d.dipX;
-  _dipole_static[1] = d.dipY;
-  _dipole_static[2] = d.dipZ;
-  _quadrupole(0, 1) = d.quadXX;
-  _quadrupole(0, 2) = d.quadXY;
-  _quadrupole(0, 3) = d.quadXZ;
-  _quadrupole(1, 1) = d.quadYY;
-  _quadrupole(1, 2) = d.quadYZ;
-  _quadrupole(2, 2) = d.quadZZ;
+  charge_ = d.charge;
+  dipole_static_[0] = d.dipX;
+  dipole_static_[1] = d.dipY;
+  dipole_static_[2] = d.dipZ;
+  quadrupole_(0, 1) = d.quadXX;
+  quadrupole_(0, 2) = d.quadXY;
+  quadrupole_(0, 3) = d.quadXZ;
+  quadrupole_(1, 1) = d.quadYY;
+  quadrupole_(1, 2) = d.quadYZ;
+  quadrupole_(2, 2) = d.quadZZ;
 
-  _dipole_induced[0] = d.d_x_ind;
-  _dipole_induced[1] = d.d_y_ind;
-  _dipole_induced[2] = d.d_z_ind;
+  dipole_induced_[0] = d.d_x_ind;
+  dipole_induced_[1] = d.d_y_ind;
+  dipole_induced_[2] = d.d_z_ind;
 
-  _field_static[0] = d.fieldX_stat;
-  _field_induced[0] = d.fieldX_ind;
-  _field_static[1] = d.fieldY_stat;
-  _field_induced[1] = d.fieldY_ind;
-  _field_static[2] = d.fieldZ_stat;
-  _field_induced[2] = d.fieldZ_ind;
-  _element = std::string(d.element);
+  field_static_[0] = d.fieldX_stat;
+  field_induced_[0] = d.fieldX_ind;
+  field_static_[1] = d.fieldY_stat;
+  field_induced_[1] = d.fieldY_ind;
+  field_static_[2] = d.fieldZ_stat;
+  field_induced_[2] = d.fieldZ_ind;
+  element_ = std::string(d.element);
 }
 
 void EwdSite::SetupCptTable(CptTable& table) {
@@ -140,7 +140,7 @@ void EwdSite::SetupCptTable(CptTable& table) {
 }
 
 void EwdSite::induceDirect() {
-  _dipole_induced = -_polarization * _field_static;
+  dipole_induced_ = -polarization_ * field_static_;
 }
 
 }  // namespace xtp

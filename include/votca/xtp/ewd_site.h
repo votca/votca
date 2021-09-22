@@ -45,16 +45,16 @@ class EwdSite {
   }
 
   bool operator==(const EwdSite& other) {
-    if ((this->_id != other._id) || (this->_rank != other._rank) ||
-        (this->_position != other._position) ||
-        (this->_charge != other._charge) ||
-        (this->_dipole_static != other._dipole_static) ||
-        (this->_dipole_induced != other._dipole_induced) ||
-        (this->_quadrupole != other._quadrupole) ||
-        (this->_polarization != other._polarization) ||
-        (this->_element != other._element) ||
-        (this->_field_static != other._field_static) ||
-        (this->_field_induced != other._field_induced)) {
+    if ((this->id_ != other.id_) || (this->rank_ != other.rank_) ||
+        (this->position_ != other.position_) ||
+        (this->charge_ != other.charge_) ||
+        (this->dipole_static_ != other.dipole_static_) ||
+        (this->dipole_induced_ != other.dipole_induced_) ||
+        (this->quadrupole_ != other.quadrupole_) ||
+        (this->polarization_ != other.polarization_) ||
+        (this->element_ != other.element_) ||
+        (this->field_static_ != other._field_static) ||
+        (this->field_induced_ != other.field_induced_)) {
       return false;
     }
     return true;
@@ -62,41 +62,41 @@ class EwdSite {
 
   bool operator!=(const EwdSite& other) { return !operator==(other); }
 
-  Index getId() const { return _id; }
+  Index getId() const { return id_; }
 
-  const Eigen::Vector3d& getPos() const { return _position; }
+  const Eigen::Vector3d& getPos() const { return position_; }
 
-  void updatePos(Eigen::Vector3d pos) { _position = pos; }
+  void updatePos(Eigen::Vector3d pos) { position_ = pos; }
 
-  const Eigen::Vector3d& getStaticDipole() const { return _dipole_static; }
+  const Eigen::Vector3d& getStaticDipole() const { return dipole_static_; }
 
   const Eigen::Vector3d getTotalDipole() const {
-    return _dipole_static + _dipole_induced;
+    return dipole_static_ + dipole_induced_;
   }
 
-  const Eigen::Matrix3d& getPolarizationMatrix() const { return _polarization; }
+  const Eigen::Matrix3d& getPolarizationMatrix() const { return polarization_; }
 
-  const Eigen::Vector3d getInducedDipole() const { return _dipole_induced; }
+  const Eigen::Vector3d getInducedDipole() const { return dipole_induced_; }
 
-  void setInducedDipole(Eigen::Vector3d dip) { _dipole_induced = dip; }
+  void setInducedDipole(Eigen::Vector3d dip) { dipole_induced_ = dip; }
 
-  double getCharge() const { return _charge; }
+  double getCharge() const { return charge_; }
 
-  const Eigen::Matrix3d& getQuadrupole() const { return _quadrupole; }
+  const Eigen::Matrix3d& getQuadrupole() const { return quadrupole_; }
 
-  Index getRank() const { return _rank; }
+  Index getRank() const { return rank_; }
 
-  std::string getElement() const { return _element; }
+  std::string getElement() const { return element_; }
 
-  const Eigen::Vector3d& getStaticField() const { return _field_static; }
+  const Eigen::Vector3d& getStaticField() const { return field_static_; }
 
-  void addToStaticField(Eigen::Vector3d field) { _field_static += field; }
+  void addToStaticField(Eigen::Vector3d field) { field_static_ += field; }
 
-  void addToInducedField(Eigen::Vector3d field) { _field_induced += field; }
+  void addToInducedField(Eigen::Vector3d field) { field_induced_ += field; }
 
   void induceDirect();
 
-  void resetInductionField() { _field_induced = Eigen::Vector3d::Zero(); }
+  void resetInductionField() { field_induced_ = Eigen::Vector3d::Zero(); }
 
   struct data {
     Index id;
@@ -137,17 +137,17 @@ class EwdSite {
   static void SetupCptTable(CptTable& table);
 
  private:
-  Index _id;
-  Index _rank;
-  Eigen::Vector3d _position;
-  double _charge;
-  Eigen::Vector3d _dipole_static;
-  Eigen::Vector3d _dipole_induced = Eigen::Vector3d::Zero();
-  Eigen::Matrix3d _quadrupole;
-  Eigen::Vector3d _field_static = Eigen::Vector3d::Zero();
-  Eigen::Vector3d _field_induced = Eigen::Vector3d::Zero();
-  Eigen::Matrix3d _polarization;
-  std::string _element;
+  Index id_;
+  Index rank_;
+  Eigen::Vector3d position_;
+  double charge_;
+  Eigen::Vector3d dipole_static_;
+  Eigen::Vector3d dipole_induced_ = Eigen::Vector3d::Zero();
+  Eigen::Matrix3d quadrupole_;
+  Eigen::Vector3d field_static_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d field_induced_ = Eigen::Vector3d::Zero();
+  Eigen::Matrix3d polarization_;
+  std::string element_;
 };
 }  // namespace xtp
 }  // namespace votca
