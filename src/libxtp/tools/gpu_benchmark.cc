@@ -54,7 +54,7 @@ tools::Property RunPart(T&& payload, const std::string& name,
   std::vector<double> individual_timings;
   individual_timings.reserve(repetitions);
   Index count = 0;
-  std::cout << "name" << std::endl;
+  std::cout << name << std::endl;
   for (Index i = 0; i < repetitions; i++) {
     std::chrono::time_point<std::chrono::steady_clock> start =
         std::chrono::steady_clock::now();
