@@ -209,7 +209,7 @@ void RSpace::setupNeighbourList() {
   for (Index segId = 0; segId < static_cast<Index>(ewaldSegments_.size());
        ++segId) {
     EwdSegment& currentSeg = ewaldSegments_[segId];
-    for (const EwdSegment seg : ewaldSegments_) {
+    for (const EwdSegment& seg : ewaldSegments_) {
       Eigen::Vector3d minImage_dr = unit_cell_.minImage(seg, currentSeg);
       Eigen::Vector3d dr_dir = seg.getPos() - currentSeg.getPos();
       // triple for-loop is over all unitcell copies
