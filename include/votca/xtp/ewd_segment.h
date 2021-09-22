@@ -37,33 +37,39 @@ class EwdSegment {
   EwdSegment(const PolarSegment& pol) {
     for (const PolarSite& psite : pol) {
       EwdSite esite(psite);
-      _sites.push_back(esite);
+      sites_.push_back(esite);
     }
-    _id = pol.getId();
-    _position = pol.getPos();
+    id_ = pol.getId();
+    position_ = pol.getPos();
   }
 
   EwdSegment(CheckpointReader&r, Index id){
-    CptTable table = r.openTable<EwdSite>("background_sites");
-    _sites.clear();
-    _sites.reserve(table.numRows());
+    CptTable table = r.openTable<EwdSite>("backgroundsites_");
+    sites_.clear();
+    sites_.reserve(table.numRows());
     std::vector<typename EwdSite::data> dataVec(table.numRows());
     table.read(dataVec);
     for (std::size_t i = 0; i < table.numRows(); ++i) {
-      _sites.push_back(EwdSite(dataVec[i]));
+      sites_.push_back(EwdSite(dataVec[i]));
     }
-    _id = id;
+    id_ = id;
     calcPos();
   };
 
   ~EwdSegment() = default;
 
   bool operator==(const EwdSegment& other){
+    if (other.id_ != this->id_){
+      return false;
+    }
+    if (other.position_ != this->position_){
+      return false;
+    }
     if (other.size() != this->size()){
       return false;
     } else {
       for(Index i = 0; i < other.size(); ++i){
-        if(this->_sites[i] != other._sites[i]){
+        if(this->sites_[i] != other.sites_[i]){
           return false;
         }
       }
@@ -75,33 +81,33 @@ class EwdSegment {
     return !operator==(other);
   }
 
-  const Eigen::Vector3d& getPos() const { return _position; }
+  const Eigen::Vector3d& getPos() const { return position_; }
 
-  Index getId() const {return _id;}
+  Index getId() const {return id_;}
 
-  const EwdSite& at(Index index) const { return _sites.at(index); }
-  EwdSite& at(Index index) { return _sites.at(index); }
+  const EwdSite& at(Index index) const { return sites_.at(index); }
+  EwdSite& at(Index index) { return sites_.at(index); }
 
-  const EwdSite& operator[](Index index) const { return _sites[index]; }
-  EwdSite& operator[](Index index) { return _sites[index]; }
+  const EwdSite& operator[](Index index) const { return sites_[index]; }
+  EwdSite& operator[](Index index) { return sites_[index]; }
 
-  typename std::vector<EwdSite>::iterator begin() { return _sites.begin(); }
-  typename std::vector<EwdSite>::iterator end() { return _sites.end(); }
+  typename std::vector<EwdSite>::iterator begin() { return sites_.begin(); }
+  typename std::vector<EwdSite>::iterator end() { return sites_.end(); }
 
   typename std::vector<EwdSite>::const_iterator begin() const {
-    return _sites.begin();
+    return sites_.begin();
   }
   typename std::vector<EwdSite>::const_iterator end() const {
-    return _sites.end();
+    return sites_.end();
   }
 
-  Index size() const { return _sites.size();}
+  Index size() const { return sites_.size();}
 
   void WriteToCpt(CheckpointWriter& w) {
-    CptTable table = w.openTable<EwdSite>("background_sites", _sites.size());
-    std::vector<EwdSite::data> dataVec(_sites.size());
-    for (std::size_t i = 0; i < _sites.size(); ++i) {
-      _sites[i].WriteData(dataVec[i]);
+    CptTable table = w.openTable<EwdSite>("backgroundsites_", sites_.size());
+    std::vector<EwdSite::data> dataVec(sites_.size());
+    for (std::size_t i = 0; i < sites_.size(); ++i) {
+      sites_[i].WriteData(dataVec[i]);
     }
     table.write(dataVec);
   }
@@ -111,18 +117,18 @@ class EwdSegment {
     tools::Elements element;
     Eigen::Vector3d pos = Eigen::Vector3d::Zero();
     double totalmass = 0.0;
-    for (const auto& site : _sites) {
+    for (const auto& site : sites_) {
       double mass = element.getMass(site.getElement());
       totalmass += mass;
       pos += mass * site.getPos();
     }
-    _position = pos / totalmass;
+    position_ = pos / totalmass;
   }
 
  private:
-  Index _id;
-  std::vector<EwdSite> _sites;
-  Eigen::Vector3d _position;
+  Index id_;
+  std::vector<EwdSite> sites_;
+  Eigen::Vector3d position_;
 };
 }  // namespace xtp
 }  // namespace votca
