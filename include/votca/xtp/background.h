@@ -44,7 +44,7 @@ class Background {
              const EwaldOptions options,
              std::vector<PolarSegment>& polar_background);
 
-  Background(Logger& log) : log_(log), rspace(log),  kspace(log) {}
+  Background(Logger& log) : log_(log), rspace(log), kspace(log) {}
 
   ~Background() = default;
 
@@ -65,16 +65,21 @@ class Background {
 
   bool operator==(const Background& other) {
     if (other.unit_cell_.getMatrix() != this->unit_cell_.getMatrix()) {
+      std::cout << "UnitCellWrong" << std::endl;
       return false;
     }
-    if ( (this->options_ != other.options_) ){
+    if ((this->options_ != other.options_)) {
+      std::cout << "optionsWrong" << std::endl;
       return false;
     }
     if (other.ewald_background_.size() != this->ewald_background_.size()) {
+      std::cout << "BackgroundSizesWrong" << std::endl;
       return false;
+
     } else {
       for (Index i = 0; i < Index(this->ewald_background_.size()); ++i) {
         if (this->ewald_background_[i] != other.ewald_background_[i]) {
+          std::cout << "Site "  << i << " Is wrong!!!" << std::endl;
           return false;
         }
       }
