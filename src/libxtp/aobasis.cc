@@ -93,7 +93,6 @@ void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
       Index numfuncshell = NumFuncShell(shell.getL());
       AOShell& aoshell = addShell(shell, atom, AOBasisSize_);
       AOBasisSize_ += numfuncshell;
-      atomfunc += numfuncshell;
       for (const GaussianPrimitive& gaussian : shell) {
         aoshell.addGaussian(gaussian);
       }
