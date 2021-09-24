@@ -22,21 +22,25 @@
   \section intro_sec Introduction
 
   This page is the C++ code documentation of the VOTCA package
-  (http://www.votca.org). The main target of VOTCA is the implementation of
+  (http://www.votca.org). The main target of VOTCA-CSG is the implementation of
   systematic coarse-graining techniques. However, it offers a powerful,
   object-oriented framework to develop analysis tools for particle based
   molecular simulations.
+
+  A later addition is the VOTCA-XTP package for charge/excition transport and
+  electronic structure calculations using GW-BSE. Here we focus on CSG first.
 
   \section started_sec Getting started
   To start developing custom analysis tools, a good place to start is the
   csgapps repository:
 
-  https://github.com/votca/csgapps
+  https://github.com/votca/csg/tree/master/src/csgapps
 
   It contains several small analysis tools which were implemented based upon the
-  VOTCA framework. We highly recomment to use an IDE such as Netbeans for
-  development since it offers lots of guides to get started with new code (code
-  completion, code documentation popups, navigation thourh code, ...).
+  VOTCA-CSG framework. We highly recomment to use an IDE such as Visual Studio
+  Code for development since it offers lots of guides to get started with new
+  code (code completion, code documentation popups, navigation through code,
+  ...).
 
   The main container for the whole structure is the Topology, so it is a good
   advise to get comfortable with this class. Also the standard applications in

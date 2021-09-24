@@ -34,6 +34,7 @@ Version 2022-dev
 -  add ability to run ibi as a postupd method (#696)
 -  removed unused functions (#702)
 -  reworked lammps molecule naming (#703)
+-  Updated doxygen intro (#712)
 
 Version 2021.3 (released XX.09.21)
 ==================================
