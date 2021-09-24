@@ -26,6 +26,7 @@
 
 // VOTCA includes
 #include <votca/tools/tokenizer.h>
+#include <votca/tools/filesystem.h>
 
 // Local VOTCA includes
 #include "qmstate.h"
@@ -61,6 +62,14 @@ class SegId {
   bool hasFile() const { return hasfilename_; }
   std::string FileName() const { return filename_; }
   QMState getQMState() const { return state_; }
+
+  bool operator==(const SegId& other) {
+    if (this->id_ == other.Id()) {
+      return true;
+    }
+    return false;
+  }
+
 
  private:
   void TestStringForQMState(const std::string& result) {

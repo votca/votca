@@ -58,6 +58,10 @@ void QMMM::ParseSpecificOptions(const tools::Property& options) {
   if (!groundstate_found) {
     states_.push_back(QMState("n"));
   }
+
+  if (options.exists(".ewald_background")) {
+    ewald_background_ = options.get(".ewald_background").as<std::string>();
+  }
 }
 
 Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
@@ -68,6 +72,7 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   if (!this->hasQMRegion()) {
     qmmm_work_dir = "MMMM";
   }
+
   std::string frame_dir =
       "frame_" + boost::lexical_cast<std::string>(top.getStep());
   std::string job_dir =
@@ -184,6 +189,11 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
     etot += reg->Etotal();
     charge += reg->charge();
   }
+  if (usesEwald()) {
+    double ewaldEnergy = jobtop.computeBackgroundInteractionEnergy();
+    regionsresults.add("ewald", std::to_string(ewaldEnergy));
+    etot += ewaldEnergy;
+  }
   std::chrono::time_point<std::chrono::system_clock> end =
       std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = end - start;
@@ -204,6 +214,13 @@ bool QMMM::hasQMRegion() const {
                      [&](const tools::Property& reg) {
                        return reg.name() == QMdummy.identify();
                      });
+}
+
+bool QMMM::usesEwald() const {
+  Logger log;
+  return std::any_of(
+      regions_def_.second.begin(), regions_def_.second.end(),
+      [&](const tools::Property& reg) { return reg.name() == "ewaldregion"; });
 }
 
 std::string QMMM::getFirstRegionName() const {
