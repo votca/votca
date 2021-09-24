@@ -14,6 +14,7 @@ implementing code consistent with the VOTCA and cpp style and standard.
 -  `Updating Git Submodules <#updating-git-submodules>`__
 -  `Updates from stable <#updates-from-stable>`__
 -  `Failed Release Builds <#failed-release-builds>`__
+-  `
 
 Reporting Bugs
 --------------
@@ -40,9 +41,12 @@ Formatting code
 
 VOTCA uses ``clang-format`` to format the code, code that is not
 properly formatted is automatically rejected. The style files can be
-found in each repo. If you have a version ``>7.1`` of ``clang-format``
-you can just run ``make format`` and your code will be formatted. For an even
-more automated version, see `VOTCA dev-tools <#votca-dev-tools>`__
+found in each repo. CMake provides a format target which you can run to format your code.
+The easiest way to format your code is just a ``@votca-bot format`` comment in the PR, which then will automatically format your code.
+
+Doxygen documentation
+---------------
+A complete overview of all C++ classes and code can be found `here <https://doc.votca.org/>`_ . 
 
 VOTCA dev-tools
 ---------------
