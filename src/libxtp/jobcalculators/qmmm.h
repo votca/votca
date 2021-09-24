@@ -47,6 +47,7 @@ class QMMM final : public ParallelXJobCalc<std::vector<Job> > {
 
  private:
   bool hasQMRegion() const;
+  bool usesEwald() const;
   Job createJob(const Segment& seg, const QMState& state, Index jobid) const;
   std::string getFirstRegionName() const;
 
@@ -57,6 +58,7 @@ class QMMM final : public ParallelXJobCalc<std::vector<Job> > {
   bool use_gs_for_ex_ = false;
   std::vector<QMState> states_;
   std::string which_segments_;
+  std::string ewald_background_;
 };
 
 }  // namespace xtp

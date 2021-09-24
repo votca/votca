@@ -32,6 +32,7 @@
 #include "votca/xtp/segmentmapper.h"
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/version.h"
+#include "votca/xtp/background.h"
 
 namespace votca {
 namespace xtp {
@@ -128,22 +129,27 @@ void JobTopology::ModifyOptionsByJobFile(tools::Property& regions_def) const {
   }
 }
 
+double JobTopology::computeBackgroundInteractionEnergy(){
+  // Sanity check
+  assert(bg_.size() > 0);
+  return bg_.interactionEnergy(regions_, region_seg_ids_);
+}
+
 void JobTopology::BuildRegions(
     const Topology& top, std::pair<std::string, tools::Property> options) {
 
   CheckEnumerationOfRegions(options.second);
   ModifyOptionsByJobFile(options.second);
 
-  std::vector<std::vector<SegId>> region_seg_ids =
+  region_seg_ids_ =
       PartitionRegions(options.second, top);
 
   // // around this point the whole jobtopology will be centered
-  CreateRegions(options, top, region_seg_ids);
+  CreateRegions(options, top, region_seg_ids_);
   XTP_LOG(Log::error, log_) << " Regions created" << std::flush;
   for (const auto& region : regions_) {
     XTP_LOG(Log::error, log_) << *region << std::flush;
   }
-
   return;
 }
 
@@ -214,14 +220,17 @@ void JobTopology::CreateRegions(
         staticregion->push_back(mol);
       }
       region = std::move(staticregion);
-
+    } else if (type == "ewaldregion") {
+      bg_.readFromStateFile(region_def.get("path").as<std::string>());
+      bg_.ApplyBackgroundFields(regions_, region_seg_ids);
+      continue;
     } else {
       throw std::runtime_error("Region type not known!");
     }
     region->Initialize(region_def);
     regions_.push_back(std::move(region));
   }
-}
+}  // namespace xtp
 
 void JobTopology::WriteToPdb(std::string filename) const {
 
@@ -245,7 +254,9 @@ std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
   std::vector<bool> processed_segments =
       std::vector<bool>(top.Segments().size(), false);
   for (const tools::Property* region_def : sorted_regions) {
-
+    if (region_def->name() == "ewaldregion") {
+      continue;  // we don't need to do anything here for the ewald.
+    }
     if (!region_def->exists("segments") && !region_def->exists("cutoff")) {
       throw std::runtime_error(
           "Region definition needs either segments or a cutoff to find "
@@ -329,8 +340,10 @@ std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
 void JobTopology::CheckEnumerationOfRegions(
     const tools::Property& regions_def) const {
   std::vector<Index> reg_ids;
+  std::vector<std::string> reg_names;
   for (const tools::Property& region_def : regions_def) {
     reg_ids.push_back(region_def.get("id").as<Index>());
+    reg_names.push_back(region_def.name());
   }
 
   std::vector<Index> v(reg_ids.size());
@@ -341,7 +354,31 @@ void JobTopology::CheckEnumerationOfRegions(
         "then "
         "ascending order. i.e. 0 1 2 3.");
   }
-}
+  // Check if Ewald is used, if so check if the regions are setup in the right
+  // order, since we only have two supported configurations
+  Index ewdPos = 0;
+  for (const auto& name : reg_names) {
+    if (name == "ewaldregion") {
+      break;
+    }
+    ewdPos += 1;
+  }
+  if (ewdPos < Index(reg_names.size())) {
+    if (ewdPos == 1 && reg_names[0] == "polarregion") {
+      return; 
+    } else if (ewdPos == 2 && reg_names[0] == "qmregion" &&
+               reg_names[1] == "polarregion") {
+      throw std::runtime_error("The qm in polar in a background is not yet implemented.");     
+    } else { 
+      throw std::runtime_error(
+          "The ewald background can only be used in the following "
+          "configurations: \n - A polarregion (region 0) in  the ewald "
+          "background (region 1)\n - A qmregion (region 0) in a polarregion "
+          "(region 1) in the ewald background (region 2)\n");
+    }
+  }
+  return;
+}  // namespace xtp
 
 void JobTopology::WriteToHdf5(std::string filename) const {
   CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);

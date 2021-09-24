@@ -49,12 +49,26 @@ class PolarSite final : public StaticSite {
 
   void setpolarization(const Eigen::Matrix3d& pol) final;
 
+  void setBackgroundField(Eigen::Vector3d backgroundField){
+    V_background = backgroundField;
+    V_ += V_background;
+  }
+
+  void addToBackgroundField(Eigen::Vector3d backgroundField){
+    V_background += backgroundField;
+    V_ += V_background;
+  }
+
   Eigen::Matrix3d getpolarization() const { return pinv_.inverse(); }
 
   const Eigen::Matrix3d& getPInv() const { return pinv_; }
 
   // MULTIPOLES DEFINITION
   Eigen::Vector3d getDipole() const final;
+
+  Eigen::Vector3d getStaticDipole() const;
+
+  Eigen::Vector3d getInducedDipole() const;
 
   double getSqrtInvEigenDamp() const { return eigendamp_invsqrt_; }
 
@@ -72,7 +86,7 @@ class PolarSite final : public StaticSite {
   Eigen::Vector3d& V_noE() { return V_noE_; }
 
   void Reset() {
-    V_.setZero();
+    V_ = V_background;
     V_noE_.setZero();
   }
 
@@ -145,7 +159,6 @@ class PolarSite final : public StaticSite {
 
  private:
   std::string writepolarization() const final;
-
   // PolarSite has two external fields,
   // the first is used for interaction with regions, which are further out, i.e.
   // the interaction energy with it is included in the polar region energy
@@ -154,6 +167,8 @@ class PolarSite final : public StaticSite {
   // i.e. the interaction energy with it is included in the other region's
   // energy
   Eigen::Vector3d V_noE_ = Eigen::Vector3d::Zero();
+
+  Eigen::Vector3d V_background = Eigen::Vector3d::Zero();
 
   Eigen::Vector3d induced_dipole_ = Eigen::Vector3d::Zero();
   Eigen::Matrix3d pinv_ = Eigen::Matrix3d::Zero();
