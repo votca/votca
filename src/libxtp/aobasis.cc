@@ -87,14 +87,12 @@ void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
   name_ = bs.Name();
   // loop over atoms
   for (const QMAtom& atom : atoms) {
-    Index atomfunc = 0;
     const std::string& name = atom.getElement();
     const Element& element = bs.getElement(name);
     for (const Shell& shell : element) {
       Index numfuncshell = NumFuncShell(shell.getL());
       AOShell& aoshell = addShell(shell, atom, AOBasisSize_);
       AOBasisSize_ += numfuncshell;
-      atomfunc += numfuncshell;
       for (const GaussianPrimitive& gaussian : shell) {
         aoshell.addGaussian(gaussian);
       }
