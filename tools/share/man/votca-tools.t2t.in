@@ -1,0 +1,52 @@
+votca-tools
+VOTCA Development Team 
+@VOTCA_DATE@
+
+%to build votca-tools.man run:
+%txt2tags -q -t man -i votca-tools.t2t.in -o votca-tools.man.in
+%make the manpage type 7, txt2tags does 1 by default
+%!postproc(man): "^(\.TH.*) 1 "  "\1 7 "
+
+= NAME =
+
+votca-tools - The basic tools library of the VOTCA package
+
+= DESCRIPTION =
+
+votca-tools provides the basic functions used by all parts of the VOTCA package.
+
+Please visit the program site at __http://www.votca.org__.
+
+= SYNOPSIS =
+
+If VOTCA was installed in a non-default location one can use the VOTCARC file to set the important environment variables (PATH, MANPATH, CSGSHARE).
+
+In bash shell:
+**source VOTCARC.bash**
+
+In tcsh shell:
+**source VOTCARC.csh**
+
+In sh shell:
+**. VOTCARC.bash**
+
+= AUTHORS =
+
+Written and maintained by the VOTCA Development Team <devs@votca.org>
+
+
+= COPYRIGHT =
+
+Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
