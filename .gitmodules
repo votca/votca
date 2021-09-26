@@ -1,6 +1,3 @@
-[submodule "csg"]
-	path = csg
-	url = ../../votca/csg.git
 [submodule "xtp"]
 	path = xtp
 	url = ../../votca/xtp.git
