@@ -1,0 +1,36 @@
+
+WARNING: The votca lammps data reader is only able to read lammps files formatted in the following styles:
+angle
+atom
+bond
+full
+molecule
+
+These styles use the following formats in the atom block:
+atom-ID molecule-ID atom-type charge x y z
+atom-ID molecule-ID atom-type charge x y z nx ny nz
+atom-ID molecule-ID atom-type x y z
+atom-ID molecule-ID atom-type x y z nx ny nz
+atom-ID atom-type x y z
+atom-ID atom-type x y z nx ny nz
+
+Unable to associate mass 18.01540 with element assuming pseudo atom, assigning name Bead1 .
+I have 3 beads in 3 molecules
+Boundary Condition: orthorhombic
+ Box matix: 4.031 0 0
+            0 4.031 0
+            0 0 4.031
+           
+List of residues:
+0 name: DUM id: 0
+1 name: DUM id: 1
+2 name: DUM id: 2
+3 name: DUM id: 3
+
+List of molecules:
+molecule: 1 Be1 beads: 1
+0 Name Bead1 Type Bead1 Mass 18.0154 Resnr 1 Resname DUM Charge 0
+molecule: 2 Be1 beads: 1
+1 Name Bead1 Type Bead1 Mass 18.0154 Resnr 2 Resname DUM Charge 0
+molecule: 3 Be1 beads: 1
+2 Name Bead1 Type Bead1 Mass 18.0154 Resnr 3 Resname DUM Charge 0
