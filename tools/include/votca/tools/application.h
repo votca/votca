@@ -1,0 +1,160 @@
+/*
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#ifndef VOTCA_TOOLS_APPLICATION_H
+#define VOTCA_TOOLS_APPLICATION_H
+
+// Third party includes
+#include <boost/program_options.hpp>
+
+// Local VOTCA includes
+#include "property.h"
+
+namespace votca {
+namespace tools {
+
+class Application {
+ public:
+  Application();
+  virtual ~Application();
+
+  /**
+   * \brief executes the program
+   * \param argc argc from main
+   * \param argv argv from main
+   * \return return code
+   */
+  int Exec(int argc, char **argv);
+
+  /**
+   * \brief program name
+   * \return string with program name
+   *
+   * overload this function to set the program name
+   */
+  virtual std::string ProgramName() = 0;
+
+  /**
+   * \brief version string of application
+   * \return version string
+   */
+  virtual std::string VersionString() { return ""; }
+
+  /**
+   * \brief help text of application without version information
+   * \param out ostream for output
+   */
+  virtual void HelpText(std::ostream &out) = 0;
+
+  /**
+   * \brief Initialize application data
+   *
+   * Initialize is called by run before parsing the command line.
+   * All necessary command line arguments can be added here
+   */
+  virtual void Initialize() = 0;
+
+  /**
+   * \brief Process command line options
+   * \return true to continue, false to stop
+   *
+   * EvaluateOptions is called by Run after parsing the command line.
+   * return true if everything is ok, false to stop and show help text.
+   */
+  virtual bool EvaluateOptions() = 0;
+
+  /**
+   * \brief Check weather required option is set
+   * \param option_name name of the option
+   * \param error_msg error message if option is missing
+   *
+   * CheckRequired is called from EvaluateOptions if a required options is set.
+   * If not, the list of possible options is shown and an exception with
+   * the error message given in error_msg is thrown
+   */
+  void CheckRequired(const std::string &option_name,
+                     const std::string &error_msg = "");
+
+  /**
+   * \brief Main body of application
+   *
+   * Run is called after command line was parsed + evaluated. All
+   * the work should be done in here.
+   */
+  virtual void Run() = 0;
+
+  /**
+   * \brief add option for command line
+   * \param group group string
+   * \return easy_init of boost, see documentation
+   *
+   * Adds an option to the available command line options. If no group is
+   * specified, it is added to the standard group (Allowed Options). If group
+   * is given, a sub group for this set of options will be created.
+   */
+  boost::program_options::options_description_easy_init AddProgramOptions(
+      const std::string &group = "");
+
+  /**
+   * \brief get available program options & descriptions
+   * \return variables_map (see boost documentation)
+   */
+  boost::program_options::variables_map &OptionsMap() { return op_vm_; }
+  boost::program_options::options_description &OptionsDesc() {
+    return op_desc_;
+  }
+
+  /**
+   * \brief filters out the Hidden group from the options descriptions
+   * \return Option descriptions without the "Hidden" group
+   */
+  boost::program_options::options_description &VisibleOptions() {
+    return visible_options_;
+  }
+
+  /**
+   * \brief call StopExecution after EvaluateOptions
+   *
+   * This is useful if the program executes an operation in EvaluateOptions
+   * and then wants to stop execution successfully. Call StopExecution and
+   * return true in EvaluateOptions.
+   */
+  void StopExecution() { continue_execution_ = false; }
+
+ protected:
+  std::map<std::string, boost::program_options::options_description> op_groups_;
+
+  virtual void ShowHelpText(std::ostream &out);
+
+  bool continue_execution_ = true;
+
+ private:
+  /// program options required by all applications
+  boost::program_options::options_description op_desc_;
+  /// Variable map containing all program options
+  boost::program_options::variables_map op_vm_;
+  /// get input parameters from file, location may be specified in command line
+  void ParseCommandLine(int argc, char **argv);
+
+  /// program options without the Hidden group
+  boost::program_options::options_description visible_options_;
+};
+
+}  // namespace tools
+}  // namespace votca
+
+#endif  // VOTCA_TOOLS_APPLICATION_H
