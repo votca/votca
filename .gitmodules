@@ -1,6 +1,3 @@
-[submodule "tools"]
-	path = tools
-	url = ../../votca/tools.git
 [submodule "csg"]
 	path = csg
 	url = ../../votca/csg.git

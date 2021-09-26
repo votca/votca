@@ -1,0 +1,12 @@
+<options>
+  <calc_list>
+    <d list="">
+      <a default="3" />
+      <b>
+        <type default="2" />
+      </b>
+      <f default="a"/>
+    </d>
+    <c default="5"/>
+  </calc_list>
+</options>

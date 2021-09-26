@@ -1,0 +1,10 @@
+<options>
+  <calc_choices>
+    <tasks default="input,dft,parse,gwbse,esp" choices="[input,dft,parse,gwbse,esp]" />
+    <g default="a" choices="a,b,c,d" />
+    <job_file default="eqm.jobs" />
+    <b default="1" choices="int+" />
+    <c default="-1" choices="int" />
+    <d default="-3.0" choices="float" />
+  </calc_choices>
+</options>
