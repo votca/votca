@@ -1,0 +1,17 @@
+<cg>
+  <fmatch>
+    <constrainedLS>true</constrainedLS>
+    <frames_per_block>1</frames_per_block>
+  </fmatch>
+  <non-bonded>
+    <name>CG-CG</name>
+    <type1>*</type1>
+    <type2>*</type2>
+    <fmatch>
+      <min>0.24</min>
+      <max>0.5</max>
+      <step>0.02</step>
+      <out_step>0.02</out_step>
+    </fmatch>
+  </non-bonded>
+</cg>

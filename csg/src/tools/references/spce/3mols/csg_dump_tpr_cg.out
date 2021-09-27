@@ -1,0 +1,19 @@
+I have 9 beads in 3 molecules
+I have 3 beads in 3 molecules for the coarsegraining
+Boundary Condition: orthorhombic
+ Box matix: 1.86206 0 0
+            0 1.86206 0
+            0 0 1.86206
+           
+List of residues:
+0 name: SOL id: 0
+1 name: SOL id: 1
+2 name: SOL id: 2
+
+List of molecules:
+molecule: 1 SOL beads: 1
+0 Name CG Type CG Mass 18.0154 Resnr 0 Resname SOL Charge 0
+molecule: 2 SOL beads: 1
+1 Name CG Type CG Mass 18.0154 Resnr 1 Resname SOL Charge 0
+molecule: 3 SOL beads: 1
+2 Name CG Type CG Mass 18.0154 Resnr 2 Resname SOL Charge 0
