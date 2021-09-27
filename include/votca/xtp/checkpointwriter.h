@@ -169,7 +169,7 @@ class CheckpointWriter {
   void WriteScalar(const CptLoc& loc, const std::string& value,
                    const std::string& name) const {
 
-    std::cout << "WriteScalar "  << std::endl;
+    std::cout << "WriteScalar " << std::endl;
 
     hsize_t dims[1] = {1};
     H5::DataSpace dp(1, dims);
@@ -183,11 +183,8 @@ class CheckpointWriter {
       attr = loc.openAttribute(name);
     }
 
-    std::vector<const char*> c_str_copy;
-    c_str_copy.reserve(value.size());
-    c_str_copy.push_back(value.c_str());
-
-    attr.write(*strType, &c_str_copy);
+    // Actually write the buffer
+    attr.write(*strType, value);
   }
 
   template <typename T>

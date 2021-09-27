@@ -157,11 +157,7 @@ class CheckpointReader {
 
     H5::Attribute attr = loc.openAttribute(name);
 
-    H5std_string readbuf("");
-
-    attr.read(*strType, readbuf);
-
-    var = readbuf;
+    attr.read(*strType, var);
   }
 
   template <typename T>

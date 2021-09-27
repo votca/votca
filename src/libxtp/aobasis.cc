@@ -166,6 +166,7 @@ void AOBasis::WriteToCpt(CheckpointWriter& w) const {
 void AOBasis::ReadFromCpt(CheckpointReader& r) {
   clear();
   r(name_, "name");
+  std::cout << "Name that is Read: " << name_ << std::endl;
   r(AOBasisSize_, "basissize");
   if (AOBasisSize_ > 0) {
 
