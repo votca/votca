@@ -1,0 +1,17 @@
+#State = Running
+#Created on Tue 19 May 2020 07:24:41 AM MDT by junghans@pn1806404-fedora
+#called from optimizer_prepare_state.sh, version 1.7-dev gitid: 3926882 (dirty)
+#settings file: '/home/junghans/votca/build/csg-tutorials/spce/cma/simple/settings.xml'
+#working directory: /home/junghans/votca/build/csg-tutorials/spce/cma/simple/step_000
+#Interactions: CG-CG
+#Method: cma
+#Format sig eps wc h p s conv flag
+2.588746e-01 5.101023e+00 3.647198e-01 5.410218e+00 3.269255e-01 4.397877e-02  12.6602 complete
+2.739173e-01 5.096149e+00 3.466646e-01 5.410289e+00 3.306533e-01 7.786995e-02 0 active
+2.386490e-01 5.131901e+00 3.810173e-01 5.430652e+00 2.936323e-01 7.583764e-02 0 pending
+2.338529e-01 5.121055e+00 3.543679e-01 5.411829e+00 3.226274e-01 3.617370e-02 0 pending
+2.312633e-01 5.090524e+00 3.368523e-01 5.418901e+00 2.916554e-01 5.126552e-02 0 pending
+2.442129e-01 5.126856e+00 3.401337e-01 5.388338e+00 3.230336e-01 5.769409e-02 0 pending
+2.578609e-01 5.126284e+00 3.437615e-01 5.430476e+00 3.141733e-01 7.964129e-02 0 pending
+2.551036e-01 5.112180e+00 3.519211e-01 5.424367e+00 2.946580e-01 7.080033e-02 0 pending
+2.385123e-01 5.123212e+00 3.993467e-01 5.416627e+00 3.287842e-01 4.051835e-02 0 pending

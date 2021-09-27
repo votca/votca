@@ -1,0 +1,92 @@
+#Created on Tue 19 May 2020 07:30:40 AM MDT by junghans@pn1806404-fedora
+#called from tag_file.sh, version 1.7-dev gitid: 3926882 (dirty)
+#settings file: '/home/junghans/votca/build/csg-tutorials/spce/simplex/simple/settings.xml'
+#working directory: /home/junghans/votca/build/csg-tutorials/spce/simplex/simple/step_001
+#Created on Tue 19 May 2020 07:30:40 AM MDT by junghans@pn1806404-fedora
+#called from table_functional.sh, version 1.7-dev gitid: 3926882 (dirty)
+#settings file: '/home/junghans/votca/build/csg-tutorials/spce/simplex/simple/settings.xml'
+#working directory: /home/junghans/votca/build/csg-tutorials/spce/simplex/simple/step_001
+#
+#Plot script:
+#sig=0.263
+#eps=3.6
+#wc=0.28
+#h=5.2
+#p=0.32
+#s=0.055
+#load '/home/junghans/votca/build/csg-tutorials/spce/simplex/simple/function_CKDg.in'
+#set samples 67
+#set table 'table.plot.dX8'
+#plot [0.24:0.9] f(x)
+#
+# Gnuplot output:
+# Curve 0 of 1, 67 points
+# Curve title: "f(x)"
+# x y type
+0.24 20.0507 i
+0.25 9.25214 i
+0.26 3.96725 i
+0.27 1.64631 i
+0.28 0.893718 i
+0.29 0.926955 i
+0.3 1.26992 i
+0.31 1.53949 i
+0.32 1.66919 i
+0.33 1.65017 i
+0.34 1.48989 i
+0.35 1.2108 i
+0.36 0.846669 i
+0.37 0.43733 i
+0.38 0.0229821 i
+0.39 -0.360908 i
+0.4 -0.687256 i
+0.41 -0.939158 i
+0.42 -1.10987 i
+0.43 -1.20137 i
+0.44 -1.22208 i
+0.45 -1.18431 i
+0.46 -1.10201 i
+0.47 -0.988905 i
+0.48 -0.857413 i
+0.49 -0.718019 i
+0.5 -0.579149 i
+0.51 -0.44732 i
+0.52 -0.327429 i
+0.53 -0.223081 i
+0.54 -0.136882 i
+0.55 -0.0706858 i
+0.56 -0.0257585 i
+0.57 -0.00290225 i
+0.58 7.30114e-05 i
+0.59 3.04043e-05 i
+0.6 1.22496e-05 i
+0.61 4.77476e-06 i
+0.62 1.80063e-06 i
+0.63 6.56963e-07 i
+0.64 2.319e-07 i
+0.65 7.91959e-08 i
+0.66 2.61667e-08 i
+0.67 8.36445e-09 i
+0.68 2.58684e-09 i
+0.69 7.74007e-10 i
+0.7 2.24059e-10 i
+0.71 6.27516e-11 i
+0.72 1.70032e-11 i
+0.73 4.45736e-12 i
+0.74 1.13049e-12 i
+0.75 2.77398e-13 i
+0.76 6.58537e-14 i
+0.77 1.51252e-14 i
+0.78 3.36097e-15 i
+0.79 7.22555e-16 i
+0.8 1.50287e-16 i
+0.81 3.02422e-17 i
+0.82 5.88776e-18 i
+0.83 1.10899e-18 i
+0.84 2.0209e-19 i
+0.85 3.56265e-20 i
+0.86 6.07383e-21 i
+0.87 9.99253e-22 i
+0.88 1.56434e-22 i
+0.89 2.10385e-23 i
+0.9 0 i

@@ -103,7 +103,7 @@ ref_p                    = 1.0
 ; GENERATE VELOCITIES FOR STARTUP RUN
 gen_vel                  = yes
 gen_temp                 = 300
-gen_seed                 = -1
+gen_seed                 = 1993
 
 ; OPTIONS FOR BONDS    
 constraints              = none
