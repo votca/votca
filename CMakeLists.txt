@@ -1,12 +1,14 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 
-project(csg-tutorials)
+project(csg-tutorials LANGUAGES NONE)
 
-set(PROJECT_VERSION "1.7-dev")
+set(PROJECT_VERSION "2022-dev")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
+# not used, but stops GNUInstallDirs.cmake from warning
+set(CMAKE_INSTALL_LIBDIR "lib64")
 include(GNUInstallDirs)
 include(FeatureSummary)
 
@@ -17,6 +19,7 @@ if(ENABLE_REGRESSION_TESTING)
   add_feature_info(ENABLE_EXPERIMENTAL_TESTS ENABLE_EXPERIMENTAL_TESTS "Enable experimental regression tests")
   set(REGRESSIONTEST_TOLERANCE "1e-1" CACHE STRING "Tolerance for the regression tests")
   mark_as_advanced(REGRESSIONTEST_TOLERANCE)
+  enable_language(CXX) # needed by mpi for VOTCA_CSG
   enable_testing()
   find_package(LMP)
   set_package_properties(LMP PROPERTIES TYPE OPTIONAL PURPOSE "Lammps binary needed to run lammps regression tests")
@@ -35,6 +38,8 @@ if(ENABLE_REGRESSION_TESTING)
   set_package_properties(ESPRESSO PROPERTIES TYPE OPTIONAL PURPOSE "ESPResSo MD python module needed to run ESPResSo MD regression tests")
   find_package(CMA)
   set_package_properties(CMA PROPERTIES TYPE OPTIONAL PURPOSE "CMA python module needed to run CMA regression tests")
+  find_package(Gnuplot)
+  set_package_properties(Gnuplot PROPERTIES TYPE OPTIONAL PURPOSE "gnuplot needed to run CMA/simplex regression tests")
   find_package(VOTCA_TOOLS REQUIRED NO_MODULE)
   set_package_properties(VOTCA_TOOLS PROPERTIES TYPE REQUIRED PURPOSE "VOTCA tools votca_compare used in testing")
   if(DEFINED VOTCA_TOOLS_VERSION AND NOT VOTCA_TOOLS_VERSION STREQUAL PROJECT_VERSION)
@@ -73,6 +78,9 @@ if(ENABLE_REGRESSION_TESTING)
       continue()
     endif()
     if(NOT CMA_FOUND AND DIR MATCHES "cma/")
+      continue()
+    endif()
+    if(NOT Gnuplot_FOUND AND DIR MATCHES "(cma/|simplex|realtime)")
       continue()
     endif()
     if(NOT ENABLE_EXPERIMENTAL_TESTS)
@@ -137,6 +145,19 @@ if(ENABLE_REGRESSION_TESTING)
   message(STATUS "Use VOTCASHARE=${VOTCA_SHARE} PATH=${VOTCA_PATH}:\$PATH VOTCA_CSG_DEFAULTS=${VOTCA_CSG_DEFAULTS} for out-of-cmake testing")
 endif()
 
+if(VOTCA_SPHINX_DIR)
+  file(GLOB RSTS ${CMAKE_CURRENT_SOURCE_DIR}/guide/*.rst)
+  set(MANUAL_RST_FILES)
+  foreach(_RST ${RSTS})
+    get_filename_component(_FILE "${_RST}" NAME)
+    add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg-tutorials/${_FILE}
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_RST} ${VOTCA_SPHINX_DIR}/csg-tutorials/${_FILE}
+      DEPENDS ${_RST})
+    list(APPEND MANUAL_RST_FILES ${VOTCA_SPHINX_DIR}/csg-tutorials/${_FILE})
+  endforeach()
+  add_custom_target(doc-csg-tutorials DEPENDS ${MANUAL_RST_FILES} ${MANUAL_PNG_FILES})
+endif()
+
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/csg-tutorials
 	PATTERN ".git*" EXCLUDE PATTERN "step_*" EXCLUDE
 	PATTERN "CMake*" EXCLUDE PATTERN "cmake_install.cmake" EXCLUDE
@@ -151,7 +172,7 @@ if(ENABLE_TESTING)
   add_test(regression_UninstallExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
            -P ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/FileExists.cmake)
 
-  set_tests_properties(regression_UninstallExists PROPERTIES LABELS "regression")
+  set_tests_properties(regression_UninstallExists PROPERTIES LABELS "csg-tutorials;votca")
 endif(ENABLE_TESTING)
 add_custom_target(uninstall-csg-tutorials COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 if(NOT TARGET uninstall)
