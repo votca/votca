@@ -19,7 +19,7 @@ if(ENABLE_REGRESSION_TESTING)
   add_feature_info(ENABLE_EXPERIMENTAL_TESTS ENABLE_EXPERIMENTAL_TESTS "Enable experimental regression tests")
   set(REGRESSIONTEST_TOLERANCE "1e-1" CACHE STRING "Tolerance for the regression tests")
   mark_as_advanced(REGRESSIONTEST_TOLERANCE)
-  enable_language(CXX) # needed by mpi for VOTCA_CSG
+  enable_language(CXX) # needed by mpi and VOTCA_CSG
   enable_testing()
   find_package(LMP)
   set_package_properties(LMP PROPERTIES TYPE OPTIONAL PURPOSE "Lammps binary needed to run lammps regression tests")
@@ -40,7 +40,7 @@ if(ENABLE_REGRESSION_TESTING)
   set_package_properties(CMA PROPERTIES TYPE OPTIONAL PURPOSE "CMA python module needed to run CMA regression tests")
   find_package(Gnuplot)
   set_package_properties(Gnuplot PROPERTIES TYPE OPTIONAL PURPOSE "gnuplot needed to run CMA/simplex regression tests")
-  find_package(VOTCA_TOOLS REQUIRED NO_MODULE)
+  find_package(VOTCA_TOOLS REQUIRED NO_MODULE) # for votca_compare
   set_package_properties(VOTCA_TOOLS PROPERTIES TYPE REQUIRED PURPOSE "VOTCA tools votca_compare used in testing")
   if(DEFINED VOTCA_TOOLS_VERSION AND NOT VOTCA_TOOLS_VERSION STREQUAL PROJECT_VERSION)
     message(FATAL_ERROR "Incompatible VOTCA Tools version found (needed ${PROJECT_VERSION}, found ${VOTCA_TOOLS_VERSION})")
