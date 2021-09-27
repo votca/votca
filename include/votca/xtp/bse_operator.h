@@ -43,7 +43,7 @@ class BSE_OPERATOR final : public MatrixFreeOperator {
  public:
   BSE_OPERATOR(const Eigen::VectorXd& Hd_operator, const TCMatrix_gwbse& Mmn,
                const Eigen::MatrixXd& Hqp)
-      : _epsilon_0_inv(Hd_operator), _Mmn(Mmn), _Hqp(Hqp){};
+      : epsilon_0_inv_(Hd_operator), Mmn_(Mmn), Hqp_(Hqp){};
 
   void configure(BSEOperator_Options opt);
 
@@ -64,15 +64,15 @@ class BSE_OPERATOR final : public MatrixFreeOperator {
  private:
   Eigen::VectorXd Hqp_row(Index v1, Index c1) const;
 
-  BSEOperator_Options _opt;
-  Index _bse_size;
-  Index _bse_vtotal;
-  Index _bse_ctotal;
-  Index _bse_cmin;
+  BSEOperator_Options opt_;
+  Index bse_size_;
+  Index bse_vtotal_;
+  Index bse_ctotal_;
+  Index bse_cmin_;
 
-  const Eigen::VectorXd& _epsilon_0_inv;
-  const TCMatrix_gwbse& _Mmn;
-  const Eigen::MatrixXd& _Hqp;
+  const Eigen::VectorXd& epsilon_0_inv_;
+  const TCMatrix_gwbse& Mmn_;
+  const Eigen::MatrixXd& Hqp_;
 };
 
 // type defs for the different operators

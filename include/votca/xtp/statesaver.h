@@ -33,7 +33,7 @@ namespace xtp {
 
 class StateSaver {
  public:
-  StateSaver(std::string file) : _hdf5file(file){};
+  StateSaver(std::string file) : hdf5file_(file){};
 
   void WriteFrame(const Topology &top);
 
@@ -44,7 +44,7 @@ class StateSaver {
  private:
   bool TopStepisinFrames(Index frameid) const;
 
-  std::string _hdf5file;
+  std::string hdf5file_;
 };
 }  // namespace xtp
 }  // namespace votca

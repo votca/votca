@@ -33,7 +33,6 @@
 #include "tools/orb2fchk.h"
 #include "tools/orb2mol.h"
 #include "tools/partialcharges.h"
-#include "tools/qmsandbox.h"
 #include "tools/spectrum.h"
 
 namespace votca {
@@ -43,7 +42,6 @@ void QMToolFactory::RegisterAll(void) {
 
   QMTools().Register<Log2Mps>("log2mps");
   QMTools().Register<DftGwBse>("dftgwbse");
-  QMTools().Register<QMSandbox>("qmsandbox");
   QMTools().Register<Spectrum>("spectrum");
   QMTools().Register<ExcitonCoupling>("excitoncoupling");
   QMTools().Register<GenCube>("gencube");

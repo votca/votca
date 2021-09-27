@@ -34,57 +34,33 @@ namespace xtp {
 void DftGwBse::ParseOptions(const tools::Property& options) {
 
   // molecule coordinates
-  _xyzfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".molecule", _job_name + ".xyz");
-
-  // job tasks
-  _do_optimize = options.get(".optimize").as<bool>();
+  xyzfile_ = job_name_ + ".xyz";
 
   // options for dft package
-  _package_options = options.get(".dftpackage");
-  _package_options.add("job_name", _job_name);
-  _package = _package_options.get("package.name").as<std::string>();
-
-  // set the basis sets and functional in DFT package
-  _package_options.get("package").add(
-      "basisset", options.get("basisset").as<std::string>());
-  _package_options.get("package").add(
-      "auxbasisset", options.get("auxbasisset").as<std::string>());
-  _package_options.get("package").add(
-      "functional", options.get("functional").as<std::string>());
+  package_options_ = options.get(".dftpackage");
 
   // GWBSEENGINE options
-  _gwbseengine_options = options.get(".gwbse_engine");
-
-  // set the basis sets and functional in GWBSE
-  _gwbseengine_options.get("gwbse_options.gwbse")
-      .add("basisset", options.get("basisset").as<std::string>());
-  _gwbseengine_options.get("gwbse_options.gwbse")
-      .add("auxbasisset", options.get("auxbasisset").as<std::string>());
-  _gwbseengine_options.get("gwbse_options.gwbse.vxc")
-      .add("functional", options.get("functional").as<std::string>());
+  gwbseengine_options_ = options;
 
   // lets get the archive file name from the xyz file name
-  _archive_file = _job_name + ".orb";
+  archive_file_ = job_name_ + ".orb";
 
   // XML OUTPUT
-  _xml_output = _job_name + "_summary.xml";
+  xml_output_ = job_name_ + "_summary.xml";
 
-  // check for MPS file with external multipoles for embedding
-  _do_external = options.get("use_mpsfile").as<bool>();
-  if (_do_external) {
-    _mpsfile = options.get(".mpsfile").as<std::string>();
+  if (options.exists(".mpsfile")) {
+    mpsfile_ = options.get(".mpsfile").as<std::string>();
   }
 
   // check if guess is requested
-  _do_guess = options.get("use_guess").as<bool>();
-  if (_do_guess) {
-    _guess_file = options.get(".guess").as<std::string>();
+  if (options.exists(".guess")) {
+    guess_file_ = options.get(".guess").as<std::string>();
   }
 
   // if optimization is chosen, get options for geometry_optimizer
-  if (_do_optimize) {
-    _geoopt_options = options.get(".geometry_optimization");
+  if (options.exists(".geometry_optimization")) {
+    do_optimize_ = true;
+    geoopt_options_ = options.get(".geometry_optimization");
   }
 
   // register all QM packages
@@ -93,63 +69,62 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
 
 bool DftGwBse::Run() {
 
-  _log.setReportLevel(Log::current_level);
+  log_.setReportLevel(Log::current_level);
 
-  _log.setMultithreading(true);
-  _log.setCommonPreface("\n... ...");
+  log_.setMultithreading(true);
+  log_.setCommonPreface("\n... ...");
 
   // Get orbitals object
   Orbitals orbitals;
 
-  if (_do_guess) {
-    XTP_LOG(Log::error, _log)
-        << "Reading guess from " << _guess_file << std::flush;
-    orbitals.ReadFromCpt(_guess_file);
+  if (!guess_file_.empty()) {
+    XTP_LOG(Log::error, log_)
+        << "Reading guess from " << guess_file_ << std::flush;
+    orbitals.ReadFromCpt(guess_file_);
   } else {
-    XTP_LOG(Log::error, _log)
-        << "Reading structure from " << _xyzfile << std::flush;
-    orbitals.QMAtoms().LoadFromFile(_xyzfile);
+    XTP_LOG(Log::error, log_)
+        << "Reading structure from " << xyzfile_ << std::flush;
+    orbitals.QMAtoms().LoadFromFile(xyzfile_);
   }
 
-  std::unique_ptr<QMPackage> qmpackage = std::unique_ptr<QMPackage>(
-      QMPackageFactory::QMPackages().Create(_package));
-  qmpackage->setLog(&_log);
-  qmpackage->Initialize(_package_options);
+  std::unique_ptr<QMPackage> qmpackage =
+      std::unique_ptr<QMPackage>(QMPackageFactory::QMPackages().Create(
+          package_options_.get("name").as<std::string>()));
+  qmpackage->setLog(&log_);
+  qmpackage->Initialize(package_options_);
   qmpackage->setRunDir(".");
 
-  if (_do_external) {
-    StaticRegion region(0, _log);
+  if (!mpsfile_.empty()) {
+    StaticRegion region(0, log_);
     StaticSegment seg = StaticSegment("", 0);
-    seg.LoadFromFile(_mpsfile);
+    seg.LoadFromFile(mpsfile_);
     region.push_back(seg);
     qmpackage->AddRegion(region);
   }
 
   GWBSEEngine gwbse_engine;
-  gwbse_engine.setLog(&_log);
+  gwbse_engine.setLog(&log_);
   gwbse_engine.setQMPackage(qmpackage.get());
-  gwbse_engine.Initialize(_gwbseengine_options, _archive_file);
+  gwbse_engine.Initialize(gwbseengine_options_, archive_file_);
 
-  if (_do_optimize) {
+  if (do_optimize_) {
     GeometryOptimization geoopt(gwbse_engine, orbitals);
-    geoopt.setLog(&_log);
-    geoopt.Initialize(_geoopt_options);
+    geoopt.setLog(&log_);
+    geoopt.Initialize(geoopt_options_);
     geoopt.Evaluate();
   } else {
     gwbse_engine.ExcitationEnergies(orbitals);
   }
 
-  XTP_LOG(Log::error, _log) << "Saving data to " << _archive_file << std::flush;
-  orbitals.WriteToCpt(_archive_file);
+  XTP_LOG(Log::error, log_) << "Saving data to " << archive_file_ << std::flush;
+  orbitals.WriteToCpt(archive_file_);
 
   tools::Property summary = gwbse_engine.ReportSummary();
   if (summary.exists("output")) {  // only do gwbse summary output if we
                                    // actually did gwbse
-    tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1,
-                                        "");
-    XTP_LOG(Log::error, _log)
-        << "Writing output to " << _xml_output << std::flush;
-    std::ofstream ofout(_xml_output, std::ofstream::out);
+    XTP_LOG(Log::error, log_)
+        << "Writing output to " << xml_output_ << std::flush;
+    std::ofstream ofout(xml_output_, std::ofstream::out);
     ofout << (summary.get("output"));
     ofout.close();
   }

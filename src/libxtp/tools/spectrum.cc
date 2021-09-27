@@ -35,37 +35,37 @@ namespace xtp {
 void Spectrum::ParseOptions(const tools::Property& options) {
 
   // orbitals file or pure DFT output
-  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".orbitals", _job_name + ".orb");
+  orbfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".input", job_name_ + ".orb");
 
-  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".output", _job_name + "_spectrum.dat");
+  output_file_ = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".output", job_name_ + "_spectrum.dat");
 
-  _n_pt = options.get(".points").as<Index>();
-  _lower = options.get(".lower").as<double>();
-  _upper = options.get(".upper").as<double>();
-  _fwhm = options.get(".fwhm").as<double>();
+  n_pt_ = options.get(".points").as<Index>();
+  lower_ = options.get(".lower").as<double>();
+  upper_ = options.get(".upper").as<double>();
+  fwhm_ = options.get(".fwhm").as<double>();
 
-  _spectrum_type = options.get(".type").as<std::string>();
-  _minexc = options.get(".minexc").as<Index>();
-  _maxexc = options.get(".maxexc").as<Index>();
-  _shiftby = options.get(".shift").as<double>();
+  spectrum_type_ = options.get(".type").as<std::string>();
+  minexc_ = options.get(".minexc").as<Index>();
+  maxexc_ = options.get(".maxexc").as<Index>();
+  shiftby_ = options.get(".shift").as<double>();
 }
 
 bool Spectrum::Run() {
-  _log.setReportLevel(Log::current_level);
-  _log.setMultithreading(true);
+  log_.setReportLevel(Log::current_level);
+  log_.setMultithreading(true);
 
-  _log.setCommonPreface("\n... ...");
+  log_.setCommonPreface("\n... ...");
 
-  XTP_LOG(Log::error, _log)
-      << "Calculating absorption spectrum plot " << _orbfile << std::flush;
+  XTP_LOG(Log::error, log_)
+      << "Calculating absorption spectrum plot " << orbfile_ << std::flush;
 
   Orbitals orbitals;
   // load the QM data from serialized orbitals object
-  XTP_LOG(Log::error, _log)
-      << " Loading QM data from " << _orbfile << std::flush;
-  orbitals.ReadFromCpt(_orbfile);
+  XTP_LOG(Log::error, log_)
+      << " Loading QM data from " << orbfile_ << std::flush;
+  orbitals.ReadFromCpt(orbfile_);
 
   // check if orbitals contains singlet energies and transition dipoles
   if (!orbitals.hasBSESinglets()) {
@@ -84,15 +84,15 @@ bool Spectrum::Run() {
       orbitals.TransitionDipoles();
   Eigen::VectorXd osc = orbitals.Oscillatorstrengths();
 
-  if (_maxexc > Index(TransitionDipoles.size())) {
-    _maxexc = Index(TransitionDipoles.size()) - 1;
+  if (maxexc_ > Index(TransitionDipoles.size())) {
+    maxexc_ = Index(TransitionDipoles.size()) - 1;
   }
 
-  Index n_exc = _maxexc - _minexc + 1;
-  XTP_LOG(Log::error, _log)
+  Index n_exc = maxexc_ - minexc_ + 1;
+  XTP_LOG(Log::error, log_)
       << " Considering " << n_exc << " excitation with max energy "
-      << BSESingletEnergies(_maxexc) << " eV / min wave length "
-      << evtonm(BSESingletEnergies[_maxexc - 1]) << " nm" << std::flush;
+      << BSESingletEnergies(maxexc_) << " eV / min wave length "
+      << evtonm(BSESingletEnergies[maxexc_ - 1]) << " nm" << std::flush;
 
   /*
    *
@@ -126,72 +126,72 @@ bool Spectrum::Run() {
    *
    */
 
-  std::ofstream ofs(_output_file, std::ofstream::out);
+  std::ofstream ofs(output_file_, std::ofstream::out);
 
-  if (_spectrum_type == "energy") {
+  if (spectrum_type_ == "energy") {
     ofs << "# E(eV)    epsGaussian    IM(eps)Gaussian   epsLorentz    "
            "Im(esp)Lorentz\n";
-    for (Index i_pt = 0; i_pt <= _n_pt; i_pt++) {
+    for (Index i_pt = 0; i_pt <= n_pt_; i_pt++) {
 
-      double e = (_lower + double(i_pt) * (_upper - _lower) / double(_n_pt));
+      double e = (lower_ + double(i_pt) * (upper_ - lower_) / double(n_pt_));
 
       double eps_Gaussian = 0.0;
       double imeps_Gaussian = 0.0;
       double eps_Lorentzian = 0.0;
       double imeps_Lorentzian = 0.0;
 
-      for (Index i_exc = _minexc; i_exc <= _maxexc; i_exc++) {
+      for (Index i_exc = minexc_; i_exc <= maxexc_; i_exc++) {
         eps_Gaussian +=
             osc[i_exc] *
-            Gaussian(e, BSESingletEnergies(i_exc) + _shiftby, _fwhm);
+            Gaussian(e, BSESingletEnergies(i_exc) + shiftby_, fwhm_);
         imeps_Gaussian += osc[i_exc] * BSESingletEnergies(i_exc) *
-                          Gaussian(e, BSESingletEnergies(i_exc), _fwhm);
+                          Gaussian(e, BSESingletEnergies(i_exc), fwhm_);
         eps_Lorentzian +=
-            osc[i_exc] * Lorentzian(e, BSESingletEnergies(i_exc), _fwhm);
+            osc[i_exc] * Lorentzian(e, BSESingletEnergies(i_exc), fwhm_);
         imeps_Lorentzian += osc[i_exc] * BSESingletEnergies(i_exc) *
-                            Lorentzian(e, BSESingletEnergies(i_exc), _fwhm);
+                            Lorentzian(e, BSESingletEnergies(i_exc), fwhm_);
       }
 
       ofs << e << "    " << eps_Gaussian << "   " << imeps_Gaussian << "   "
           << eps_Lorentzian << "   " << imeps_Lorentzian << std::endl;
     }
 
-    XTP_LOG(Log::error, _log)
-        << " Spectrum in energy range from  " << _lower << " to " << _upper
-        << " eV and with broadening of FWHM " << _fwhm
-        << " eV written to file  " << _output_file << std::flush;
+    XTP_LOG(Log::error, log_)
+        << " Spectrum in energy range from  " << lower_ << " to " << upper_
+        << " eV and with broadening of FWHM " << fwhm_
+        << " eV written to file  " << output_file_ << std::flush;
   }
 
-  if (_spectrum_type == "wavelength") {
+  if (spectrum_type_ == "wavelength") {
 
     ofs << "# lambda(nm)    epsGaussian    IM(eps)Gaussian   epsLorentz    "
            "Im(esp)Lorentz\n";
-    for (Index i_pt = 0; i_pt <= _n_pt; i_pt++) {
+    for (Index i_pt = 0; i_pt <= n_pt_; i_pt++) {
 
       double lambda =
-          (_lower + double(i_pt) * (_upper - _lower) / double(_n_pt));
+          (lower_ + double(i_pt) * (upper_ - lower_) / double(n_pt_));
       double eps_Gaussian = 0.0;
       double imeps_Gaussian = 0.0;
       double eps_Lorentzian = 0.0;
       double imeps_Lorentzian = 0.0;
 
-      for (Index i_exc = _minexc; i_exc <= _maxexc; i_exc++) {
-        double exc_lambda = nmtoev(BSESingletEnergies(i_exc) + _shiftby);
-        eps_Gaussian += osc[i_exc] * Gaussian(lambda, exc_lambda, _fwhm);
+      for (Index i_exc = minexc_; i_exc <= maxexc_; i_exc++) {
+        double exc_lambda = nmtoev(BSESingletEnergies(i_exc) + shiftby_);
+        eps_Gaussian += osc[i_exc] * Gaussian(lambda, exc_lambda, fwhm_);
         imeps_Gaussian +=
-            osc[i_exc] * exc_lambda * Gaussian(lambda, exc_lambda, _fwhm);
-        eps_Lorentzian += osc[i_exc] * Lorentzian(lambda, exc_lambda, _fwhm);
+            osc[i_exc] * exc_lambda * Gaussian(lambda, exc_lambda, fwhm_);
+        eps_Lorentzian += osc[i_exc] * Lorentzian(lambda, exc_lambda, fwhm_);
         imeps_Lorentzian +=
-            osc[i_exc] * exc_lambda * Lorentzian(lambda, exc_lambda, _fwhm);
+            osc[i_exc] * exc_lambda * Lorentzian(lambda, exc_lambda, fwhm_);
       }
 
       ofs << lambda << "    " << eps_Gaussian << "   " << imeps_Gaussian
           << "   " << eps_Lorentzian << "   " << imeps_Lorentzian << std::endl;
     }
-    XTP_LOG(Log::error, _log)
-        << " Spectrum in wavelength range from  " << _lower << " to " << _upper
-        << " nm and with broadening of FWHM " << _fwhm
-        << " nm written to file  " << _output_file << std::flush;
+    XTP_LOG(Log::error, log_)
+        << " Spectrum in wavelength range from  " << lower_ << " to " << upper_
+        << " nm and with broadening of FWHM " << fwhm_
+        << " nm written to file  " << output_file_ << std::flush;
   }
 
   ofs.close();

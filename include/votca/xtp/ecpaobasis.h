@@ -46,17 +46,17 @@ class ECPAOBasis {
   std::vector<std::string> Fill(const ECPBasisSet& bs, QMMolecule& atoms);
 
   using constECPAOShellIterator = std::vector<libecpint::ECP>::const_iterator;
-  constECPAOShellIterator begin() const { return _aopotentials.begin(); }
-  constECPAOShellIterator end() const { return _aopotentials.end(); }
+  constECPAOShellIterator begin() const { return aopotentials_.begin(); }
+  constECPAOShellIterator end() const { return aopotentials_.end(); }
 
   using ECPAOShellIterator = std::vector<libecpint::ECP>::iterator;
-  ECPAOShellIterator begin() { return _aopotentials.begin(); }
-  ECPAOShellIterator end() { return _aopotentials.end(); }
+  ECPAOShellIterator begin() { return aopotentials_.begin(); }
+  ECPAOShellIterator end() { return aopotentials_.end(); }
 
   Index getMaxL() const;
   void AddECPChargeToMolecule(QMMolecule& mol) const;
 
-  const std::string& Name() const { return _name; }
+  const std::string& Name() const { return name_; }
 
   void UpdatePotentialPositions(const QMMolecule& mol);
 
@@ -71,11 +71,11 @@ class ECPAOBasis {
  private:
   void clear();
 
-  std::vector<Index> _ncore_perAtom;
+  std::vector<Index> ncore_perAtom_;
 
-  std::vector<libecpint::ECP> _aopotentials;
+  std::vector<libecpint::ECP> aopotentials_;
 
-  std::string _name = "";
+  std::string name_ = "";
 };
 
 }  // namespace xtp

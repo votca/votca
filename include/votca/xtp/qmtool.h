@@ -39,14 +39,15 @@ class QMTool : public tools::Calculator {
   QMTool() = default;
   ~QMTool() override = default;
 
-  std::string Identify() override = 0;
+  std::string Identify() const override = 0;
+  std::string Package() const final { return "xtp"; }
   void Initialize(const tools::Property& options) final;
   bool Evaluate();
 
  protected:
   virtual bool Run() = 0;
   virtual void ParseOptions(const tools::Property& opt) = 0;
-  std::string _job_name = "votca";
+  std::string job_name_;
 };
 
 }  // namespace xtp

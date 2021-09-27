@@ -41,7 +41,7 @@ void ECPBasisSet::Load(const std::string& name) {
     xmlFile = tools::GetVotcaShare() + "/xtp/ecps/" + name + ".xml";
   }
   basis_property.LoadFromXML(xmlFile);
-  _name =
+  name_ =
       basis_property.get("pseudopotential").getAttribute<std::string>("name");
   std::vector<tools::Property*> elementProps =
       basis_property.Select("pseudopotential.element");
@@ -82,15 +82,15 @@ void ECPBasisSet::Load(const std::string& name) {
 ECPElement& ECPBasisSet::addElement(std::string elementType, L lmax,
                                     Index ncore) {
   std::shared_ptr<ECPElement> element(new ECPElement(elementType, lmax, ncore));
-  _elements[elementType] = element;
+  elements_[elementType] = element;
   return *element;
 }
 
 const ECPElement& ECPBasisSet::getElement(std::string element_type) const {
   std::map<std::string, std::shared_ptr<ECPElement> >::const_iterator itm =
-      _elements.find(element_type);
-  if (itm == _elements.end()) {
-    throw std::runtime_error("Basis set " + _name +
+      elements_.find(element_type);
+  if (itm == elements_.end()) {
+    throw std::runtime_error("Basis set " + name_ +
                              " does not have element of type " + element_type);
   }
   const ECPElement& element = *((*itm).second);
@@ -101,10 +101,10 @@ std::ostream& operator<<(std::ostream& out, const ECPShell& shell) {
 
   out << "Type:" << xtp::EnumToString(shell.getL())
       << " Func: " << shell.getnumofFunc() << "\n";
-  for (const auto& gaussian : shell._gaussians) {
-    out << " Gaussian Decay: " << gaussian._decay;
-    out << " Power: " << gaussian._power;
-    out << " Contraction:" << gaussian._contraction << "\n";
+  for (const auto& gaussian : shell.gaussians_) {
+    out << " Gaussian Decay: " << gaussian.decay_;
+    out << " Power: " << gaussian.power_;
+    out << " Contraction:" << gaussian.contraction_ << "\n";
   }
   return out;
 }
@@ -119,7 +119,7 @@ std::ostream& operator<<(std::ostream& out, const ECPElement& element) {
 }
 
 std::ostream& operator<<(std::ostream& out, const ECPBasisSet& basis) {
-  out << "BasisSet:" << basis._name << "\n";
+  out << "BasisSet:" << basis.name_ << "\n";
   for (const auto& element : basis) {
     out << (*element.second);
   }
@@ -130,8 +130,8 @@ std::ostream& operator<<(std::ostream& out, const ECPBasisSet& basis) {
 // adds a Gaussian of a pseudopotential
 ECPGaussianPrimitive& ECPShell::addGaussian(Index power, double decay,
                                             double contraction) {
-  _gaussians.push_back(ECPGaussianPrimitive(power, decay, contraction));
-  return _gaussians.back();
+  gaussians_.push_back(ECPGaussianPrimitive(power, decay, contraction));
+  return gaussians_.back();
 }
 
 }  // namespace xtp

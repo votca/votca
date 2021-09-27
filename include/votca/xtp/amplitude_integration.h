@@ -32,14 +32,14 @@ namespace xtp {
 template <class Grid>
 class AmplitudeIntegration {
  public:
-  explicit AmplitudeIntegration(const Grid& grid) : _grid(grid){};
+  explicit AmplitudeIntegration(const Grid& grid) : grid_(grid){};
 
   std::vector<std::vector<double> > IntegrateAmplitude(
       const Eigen::VectorXd& amplitude);
 
  private:
   std::vector<std::vector<double> > SetupAmplitudeContainer();
-  const Grid _grid;
+  const Grid grid_;
 };
 
 }  // namespace xtp

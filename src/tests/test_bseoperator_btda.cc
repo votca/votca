@@ -38,17 +38,17 @@ class HermitianBlockOperator : public MatrixFreeOperator {
 
   void attach_matrix(const Eigen::MatrixXd &mat);
   Eigen::MatrixXd matmul(const Eigen::MatrixXd &input) const {
-    return _mat * input;
+    return mat_ * input;
   }
 
-  Eigen::VectorXd diagonal() const { return _mat.diagonal(); }
+  Eigen::VectorXd diagonal() const { return mat_.diagonal(); }
 
  private:
-  Eigen::MatrixXd _mat;
+  Eigen::MatrixXd mat_;
 };
 
 void HermitianBlockOperator::attach_matrix(const Eigen::MatrixXd &mat) {
-  _mat = mat;
+  mat_ = mat;
 }
 
 BOOST_AUTO_TEST_CASE(bse_test_operatorbtda) {

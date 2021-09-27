@@ -23,10 +23,10 @@ namespace votca {
 namespace xtp {
 
 // get the size
-Index MatrixFreeOperator::size() const { return this->_size; }
+Index MatrixFreeOperator::size() const { return this->size_; }
 
 // set the size
-void MatrixFreeOperator::set_size(Index size) { this->_size = size; }
+void MatrixFreeOperator::set_size(Index size) { this->size_ = size; }
 
 }  // namespace xtp
 }  // namespace votca

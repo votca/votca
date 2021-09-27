@@ -25,12 +25,12 @@ namespace xtp {
 
 std::ostream& operator<<(std::ostream& out, const Rate_Engine& rate_engine) {
   out << "Rate engine initialized:\n";
-  out << " Ratetype:" << rate_engine._ratetype << "\n";
+  out << " Ratetype:" << rate_engine.ratetype_ << "\n";
   out << " Temperature T[k] = "
-      << rate_engine._temperature * tools::conv::hrt2ev / tools::conv::kB
+      << rate_engine.temperature_ * tools::conv::hrt2ev / tools::conv::kB
       << "\n";
   Eigen::Vector3d field =
-      rate_engine._field * tools::conv::hrt2ev / tools::conv::bohr2nm;
+      rate_engine.field_ * tools::conv::hrt2ev / tools::conv::bohr2nm;
   out << " Electric field[V/nm](x,y,z) =" << field.x() << " " << field.y()
       << " " << field.z() << " ||F|| " << field.norm() << std::endl;
   return out;
@@ -56,13 +56,13 @@ Rate_Engine::PairRates Rate_Engine::Rate(const QMPair& pair,
   }
   double dG_Field = 0.0;
   if (charge != 0.0) {
-    dG_Field = charge * pair.R().dot(_field);
+    dG_Field = charge * pair.R().dot(field_);
   }
   double dG_Site = pair.getdE12(carriertype);
   double dG = dG_Site + dG_Field;
   double J2 = pair.getJeff2(carriertype);
   PairRates result;
-  if (_ratetype == "marcus") {
+  if (ratetype_ == "marcus") {
     result.rate12 = Marcusrate(J2, dG, reorg12);
     result.rate21 = Marcusrate(J2, -dG, reorg21);
   } else {
@@ -76,9 +76,9 @@ double Rate_Engine::Marcusrate(double Jeff2, double deltaG,
 
   double hbar = tools::conv::hbar * tools::conv::ev2hrt;
   return 2 * tools::conv::Pi / hbar * Jeff2 /
-         std::sqrt(4 * tools::conv::Pi * reorg * _temperature) *
+         std::sqrt(4 * tools::conv::Pi * reorg * temperature_) *
          std::exp(-(deltaG - reorg) * (deltaG - reorg) /
-                  (4 * reorg * _temperature));
+                  (4 * reorg * temperature_));
 }
 }  // namespace xtp
 }  // namespace votca

@@ -22,8 +22,8 @@
 #define VOTCA_XTP_SIGMA_PPM_H
 
 // Local VOTCA includes
-#include "ppm.h"
-#include "sigma_base.h"
+#include "votca/xtp/ppm.h"
+#include "votca/xtp/sigma_base.h"
 
 namespace votca {
 namespace xtp {
@@ -49,7 +49,7 @@ class Sigma_PPM : public Sigma_base {
                                        double frequency2) const final;
 
  private:
-  PPM _ppm;
+  PPM ppm_;
 };
 }  // namespace xtp
 }  // namespace votca

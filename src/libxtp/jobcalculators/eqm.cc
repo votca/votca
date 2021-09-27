@@ -40,37 +40,37 @@ void EQM::ParseSpecificOptions(const tools::Property& options) {
   QMPackageFactory::RegisterAll();
 
   // job tasks
-  std::string _tasks_string = options.get(".tasks").as<std::string>();
+  std::string tasks_string_ = options.get(".tasks").as<std::string>();
 
-  if (_tasks_string.find("input") != std::string::npos) {
-    _do_dft_input = true;
+  if (tasks_string_.find("input") != std::string::npos) {
+    do_dft_input_ = true;
   }
-  if (_tasks_string.find("dft") != std::string::npos) {
-    _do_dft_run = true;
+  if (tasks_string_.find("dft") != std::string::npos) {
+    do_dft_run_ = true;
   }
-  if (_tasks_string.find("parse") != std::string::npos) {
-    _do_dft_parse = true;
+  if (tasks_string_.find("parse") != std::string::npos) {
+    do_dft_parse_ = true;
   }
-  if (_tasks_string.find("gwbse") != std::string::npos) {
-    _do_gwbse = true;
+  if (tasks_string_.find("gwbse") != std::string::npos) {
+    do_gwbse_ = true;
   }
-  if (_tasks_string.find("esp") != std::string::npos) {
-    _do_esp = true;
+  if (tasks_string_.find("esp") != std::string::npos) {
+    do_esp_ = true;
   }
 
   // set the basis sets and functional for DFT and GWBSE
-  _gwbse_options = this->UpdateGWBSEOptions(options);
-  _package_options = this->UpdateDFTOptions(options);
-  _esp_options = options.get(".esp_options");
+  gwbse_options_ = options.get("gwbse");
+  package_options_ = options.get("dftpackage");
+  esp_options_ = options.get(".esp_options");
 }
 
 void EQM::WriteJobFile(const Topology& top) {
 
-  std::cout << "\n... ... Writing job file: " << _jobfile << std::flush;
+  std::cout << "\n... ... Writing job file: " << jobfile_ << std::flush;
   std::ofstream ofs;
-  ofs.open(_jobfile, std::ofstream::out);
+  ofs.open(jobfile_, std::ofstream::out);
   if (!ofs.is_open()) {
-    throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
+    throw std::runtime_error("\nERROR: bad file handle: " + jobfile_);
   }
   ofs << "<jobs>" << std::endl;
   Index jobCount = 0;
@@ -117,8 +117,8 @@ void EQM::WriteLoggerToFile(const std::string& logfile, Logger& logger) {
 Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   Orbitals orbitals;
   Job::JobResult jres = Job::JobResult();
-  tools::Property _job_input = job.getInput();
-  std::vector<tools::Property*> lSegments = _job_input.Select("segment");
+  tools::Property job_input_ = job.getInput();
+  std::vector<tools::Property*> lSegments = job_input_.Select("segment");
   Index segId = lSegments.front()->getAttribute<Index>("id");
   std::string segType = lSegments.front()->getAttribute<std::string>("type");
   std::string qmgeo_state = "n";
@@ -131,7 +131,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
 
   Logger& pLog = opThread.getLogger();
   QMMapper mapper(pLog);
-  mapper.LoadMappingFile(_mapfile);
+  mapper.LoadMappingFile(mapfile_);
   orbitals.QMAtoms() = mapper.map(seg, state);
   XTP_LOG(Log::error, pLog)
       << TimeStamp() << " Evaluating site " << seg.getId() << std::flush;
@@ -156,7 +156,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   segId = seg.getId();
   segment_summary.setAttribute("id", segId);
   segment_summary.setAttribute("type", segName);
-  if (_do_dft_input || _do_dft_run || _do_dft_parse) {
+  if (do_dft_input_ || do_dft_run_ || do_dft_parse_) {
     XTP_LOG(Log::error, pLog) << "Running DFT" << std::flush;
     Logger dft_logger(votca::Log::current_level);
     dft_logger.setMultithreading(false);
@@ -164,22 +164,20 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     dft_logger.setPreface(Log::error, (format("\nDFT ERR ...")).str());
     dft_logger.setPreface(Log::warning, (format("\nDFT WAR ...")).str());
     dft_logger.setPreface(Log::debug, (format("\nDFT DBG ...")).str());
-    std::string dft_key = "package";
-    std::string package =
-        _package_options.get(dft_key + ".name").as<std::string>();
-    std::unique_ptr<QMPackage> qmpackage = std::unique_ptr<QMPackage>(
-        QMPackageFactory::QMPackages().Create(package));
+    std::string package = package_options_.get(".name").as<std::string>();
+    std::unique_ptr<QMPackage> qmpackage =
+        QMPackageFactory::QMPackages().Create(package);
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(work_dir);
-    qmpackage->Initialize(_package_options);
+    qmpackage->Initialize(package_options_);
 
     // create input for DFT
-    if (_do_dft_input) {
+    if (do_dft_input_) {
       boost::filesystem::create_directories(work_dir);
       qmpackage->WriteInputFile(orbitals);
     }
 
-    if (_do_dft_run) {
+    if (do_dft_run_) {
       bool run_dft_status = qmpackage->Run();
       if (!run_dft_status) {
         std::string output = "DFT run failed";
@@ -189,7 +187,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     }
 
     // parse the log/orbitals files
-    if (_do_dft_parse) {
+    if (do_dft_parse_) {
       bool parse_log_status = qmpackage->ParseLogFile(orbitals);
       if (!parse_log_status) {
         std::string output = "log incomplete; ";
@@ -222,7 +220,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     WriteLoggerToFile(work_dir + "/dft.log", dft_logger);
   }
 
-  if (!_do_dft_parse && (_do_gwbse || _do_esp)) {
+  if (!do_dft_parse_ && (do_gwbse_ || do_esp_)) {
     // load the DFT data from serialized orbitals object
     std::string ORB_FILE =
         eqm_work_dir + "/molecules/" + frame_dir + "/" + orb_file;
@@ -231,7 +229,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     orbitals.ReadFromCpt(ORB_FILE);
   }
 
-  if (_do_gwbse) {
+  if (do_gwbse_) {
     XTP_LOG(Log::error, pLog) << "Running GWBSE" << std::flush;
     try {
       GWBSE gwbse = GWBSE(orbitals);
@@ -242,7 +240,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       gwbse_logger.setPreface(Log::warning, (format("\nGWBSE WAR ...")).str());
       gwbse_logger.setPreface(Log::debug, (format("\nGWBSE DBG ...")).str());
       gwbse.setLogger(&gwbse_logger);
-      gwbse.Initialize(_gwbse_options);
+      gwbse.Initialize(gwbse_options_);
       gwbse.Evaluate();
       gwbse.addoutput(segment_summary);
       WriteLoggerToFile(work_dir + "/gwbse.log", gwbse_logger);
@@ -253,11 +251,11 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     }
   }
 
-  if (_do_esp) {
+  if (do_esp_) {
     XTP_LOG(Log::error, pLog) << "Running ESPFIT" << std::flush;
     try {
       Esp2multipole esp2multipole = Esp2multipole(pLog);
-      esp2multipole.Initialize(_esp_options);
+      esp2multipole.Initialize(esp_options_);
       std::string ESPDIR =
           "MP_FILES/" + frame_dir + "/" + esp2multipole.GetStateString();
       StaticSegment seg2 = esp2multipole.Extractingcharges(orbitals);
@@ -279,7 +277,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   XTP_LOG(Log::error, pLog) << TimeStamp() << " Finished evaluating site "
                             << seg.getId() << std::flush;
 
-  if (_do_dft_parse || _do_gwbse) {
+  if (do_dft_parse_ || do_gwbse_) {
     XTP_LOG(Log::error, pLog) << "Saving data to " << orb_file << std::flush;
     std::string DIR = eqm_work_dir + "/molecules/" + frame_dir;
     boost::filesystem::create_directories(DIR);

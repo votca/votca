@@ -69,20 +69,20 @@ Index count_available_gpus() {
 }
 
 CudaMatrix::CudaMatrix(Index nrows, Index ncols, const cudaStream_t& stream)
-    : _ld(nrows), _cols(ncols) {
-  _data = alloc_matrix_in_gpu(size_matrix());
-  _stream = stream;
+    : ld_(nrows), cols_(ncols) {
+  data_ = alloc_matrix_in_gpu(size_matrix());
+  stream_ = stream;
 }
 
 CudaMatrix::operator Eigen::MatrixXd() const {
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(this->rows(), this->cols());
   checkCuda(cudaMemcpyAsync(result.data(), this->data(), this->size_matrix(),
-                            cudaMemcpyDeviceToHost, this->_stream));
-  checkCuda(cudaStreamSynchronize(this->_stream));
+                            cudaMemcpyDeviceToHost, this->stream_));
+  checkCuda(cudaStreamSynchronize(this->stream_));
   return result;
 }
 
-void CudaMatrix::setZero() { cudaMemset(_data.get(), 0, size_matrix()); }
+void CudaMatrix::setZero() { cudaMemset(data_.get(), 0, size_matrix()); }
 
 CudaMatrix::Unique_ptr_to_GPU_data CudaMatrix::alloc_matrix_in_gpu(
     size_t size_arr) const {

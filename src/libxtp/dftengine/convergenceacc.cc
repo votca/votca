@@ -24,13 +24,13 @@ namespace votca {
 namespace xtp {
 
 void ConvergenceAcc::setOverlap(AOOverlap& S, double etol) {
-  _S = &S;
+  S_ = &S;
   Sminusahalf = S.Pseudo_InvSqrt(etol);
-  XTP_LOG(Log::error, *_log)
+  XTP_LOG(Log::error, *log_)
       << TimeStamp() << " Smallest value of AOOverlap matrix is "
-      << _S->SmallestEigenValue() << std::flush;
-  XTP_LOG(Log::error, *_log)
-      << TimeStamp() << " Removed " << _S->Removedfunctions()
+      << S_->SmallestEigenValue() << std::flush;
+  XTP_LOG(Log::error, *log_)
+      << TimeStamp() << " Removed " << S_->Removedfunctions()
       << " basisfunction from inverse overlap matrix" << std::flush;
   return;
 }
@@ -40,64 +40,64 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
                                         tools::EigenSystem& MOs, double totE) {
   Eigen::MatrixXd H_guess = Eigen::MatrixXd::Zero(H.rows(), H.cols());
 
-  if (int(_mathist.size()) == _opt.histlength) {
-    _totE.erase(_totE.begin() + _maxerrorindex);
-    _mathist.erase(_mathist.begin() + _maxerrorindex);
-    _dmatHist.erase(_dmatHist.begin() + _maxerrorindex);
+  if (int(mathist_.size()) == opt_.histlength) {
+    totE_.erase(totE_.begin() + maxerrorindex_);
+    mathist_.erase(mathist_.begin() + maxerrorindex_);
+    dmatHist_.erase(dmatHist_.begin() + maxerrorindex_);
   }
 
-  _totE.push_back(totE);
-  if (_opt.mode != KSmode::fractional) {
+  totE_.push_back(totE);
+  if (opt_.mode != KSmode::fractional) {
     double gap =
-        MOs.eigenvalues()(_nocclevels) - MOs.eigenvalues()(_nocclevels - 1);
-    if ((_diiserror > _opt.levelshiftend && _opt.levelshift > 0.0) ||
+        MOs.eigenvalues()(nocclevels_) - MOs.eigenvalues()(nocclevels_ - 1);
+    if ((diiserror_ > opt_.levelshiftend && opt_.levelshift > 0.0) ||
         gap < 1e-6) {
       Levelshift(H, MOs.eigenvectors());
     }
   }
-  const Eigen::MatrixXd& S = _S->Matrix();
+  const Eigen::MatrixXd& S = S_->Matrix();
   Eigen::MatrixXd errormatrix =
       Sminusahalf.transpose() * (H * dmat * S - S * dmat * H) * Sminusahalf;
-  _diiserror = errormatrix.cwiseAbs().maxCoeff();
+  diiserror_ = errormatrix.cwiseAbs().maxCoeff();
 
-  _mathist.push_back(H);
-  _dmatHist.push_back(dmat);
+  mathist_.push_back(H);
+  dmatHist_.push_back(dmat);
 
-  if (_opt.maxout) {
-    if (_diiserror > _maxerror) {
-      _maxerror = _diiserror;
-      _maxerrorindex = _mathist.size() - 1;
+  if (opt_.maxout) {
+    if (diiserror_ > maxerror_) {
+      maxerror_ = diiserror_;
+      maxerrorindex_ = mathist_.size() - 1;
     }
   }
 
-  _diis.Update(_maxerrorindex, errormatrix);
+  diis_.Update(maxerrorindex_, errormatrix);
   bool diis_error = false;
-  XTP_LOG(Log::error, *_log)
+  XTP_LOG(Log::error, *log_)
       << TimeStamp() << " DIIs error " << getDIIsError() << std::flush;
 
-  XTP_LOG(Log::error, *_log)
+  XTP_LOG(Log::error, *log_)
       << TimeStamp() << " Delta Etot " << getDeltaE() << std::flush;
 
-  if ((_diiserror < _opt.adiis_start || _diiserror < _opt.diis_start) &&
-      _opt.usediis && _mathist.size() > 2) {
+  if ((diiserror_ < opt_.adiis_start || diiserror_ < opt_.diis_start) &&
+      opt_.usediis && mathist_.size() > 2) {
     Eigen::VectorXd coeffs;
     // use ADIIs if energy has risen a lot in current iteration
 
-    if (_diiserror > _opt.diis_start ||
-        _totE.back() > 0.9 * _totE[_totE.size() - 2]) {
-      coeffs = _adiis.CalcCoeff(_dmatHist, _mathist);
-      diis_error = !_adiis.Info();
-      XTP_LOG(Log::warning, *_log)
+    if (diiserror_ > opt_.diis_start ||
+        totE_.back() > 0.9 * totE_[totE_.size() - 2]) {
+      coeffs = adiis_.CalcCoeff(dmatHist_, mathist_);
+      diis_error = !adiis_.Info();
+      XTP_LOG(Log::warning, *log_)
           << TimeStamp() << " Using ADIIS for next guess" << std::flush;
 
     } else {
-      coeffs = _diis.CalcCoeff();
-      diis_error = !_diis.Info();
-      XTP_LOG(Log::warning, *_log)
+      coeffs = diis_.CalcCoeff();
+      diis_error = !diis_.Info();
+      XTP_LOG(Log::warning, *log_)
           << TimeStamp() << " Using DIIS for next guess" << std::flush;
     }
     if (diis_error) {
-      XTP_LOG(Log::warning, *_log)
+      XTP_LOG(Log::warning, *log_)
           << TimeStamp() << " (A)DIIS failed using mixing instead"
           << std::flush;
       H_guess = H;
@@ -106,7 +106,7 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
         if (std::abs(coeffs(i)) < 1e-8) {
           continue;
         }
-        H_guess += coeffs(i) * _mathist[i];
+        H_guess += coeffs(i) * mathist_[i];
       }
     }
 
@@ -117,47 +117,47 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
   MOs = SolveFockmatrix(H_guess);
   Eigen::MatrixXd dmatout = DensityMatrix(MOs);
 
-  if (_diiserror > _opt.adiis_start || !_opt.usediis || diis_error ||
-      _mathist.size() <= 2) {
-    _usedmixing = true;
+  if (diiserror_ > opt_.adiis_start || !opt_.usediis || diis_error ||
+      mathist_.size() <= 2) {
+    usedmixing_ = true;
     dmatout =
-        _opt.mixingparameter * dmat + (1.0 - _opt.mixingparameter) * dmatout;
-    XTP_LOG(Log::warning, *_log)
-        << TimeStamp() << " Using Mixing with alpha=" << _opt.mixingparameter
+        opt_.mixingparameter * dmat + (1.0 - opt_.mixingparameter) * dmatout;
+    XTP_LOG(Log::warning, *log_)
+        << TimeStamp() << " Using Mixing with alpha=" << opt_.mixingparameter
         << std::flush;
   } else {
-    _usedmixing = false;
+    usedmixing_ = false;
   }
   return dmatout;
 }
 
 void ConvergenceAcc::PrintConfigOptions() const {
-  XTP_LOG(Log::error, *_log)
+  XTP_LOG(Log::error, *log_)
       << TimeStamp() << " Convergence Options:" << std::flush;
-  XTP_LOG(Log::error, *_log)
-      << "\t\t Delta E [Ha]: " << _opt.Econverged << std::flush;
-  XTP_LOG(Log::error, *_log)
-      << "\t\t DIIS max error: " << _opt.error_converged << std::flush;
-  if (_opt.usediis) {
-    XTP_LOG(Log::error, *_log)
-        << "\t\t DIIS histlength: " << _opt.histlength << std::flush;
-    XTP_LOG(Log::error, *_log)
-        << "\t\t ADIIS start: " << _opt.adiis_start << std::flush;
-    XTP_LOG(Log::error, *_log)
-        << "\t\t DIIS start: " << _opt.diis_start << std::flush;
+  XTP_LOG(Log::error, *log_)
+      << "\t\t Delta E [Ha]: " << opt_.Econverged << std::flush;
+  XTP_LOG(Log::error, *log_)
+      << "\t\t DIIS max error: " << opt_.error_converged << std::flush;
+  if (opt_.usediis) {
+    XTP_LOG(Log::error, *log_)
+        << "\t\t DIIS histlength: " << opt_.histlength << std::flush;
+    XTP_LOG(Log::error, *log_)
+        << "\t\t ADIIS start: " << opt_.adiis_start << std::flush;
+    XTP_LOG(Log::error, *log_)
+        << "\t\t DIIS start: " << opt_.diis_start << std::flush;
     std::string del = "oldest";
-    if (_opt.maxout) {
+    if (opt_.maxout) {
       del = "largest";
     }
-    XTP_LOG(Log::error, *_log)
+    XTP_LOG(Log::error, *log_)
         << "\t\t Deleting " << del << " element from DIIS hist" << std::flush;
   }
-  XTP_LOG(Log::error, *_log)
-      << "\t\t Levelshift[Ha]: " << _opt.levelshift << std::flush;
-  XTP_LOG(Log::error, *_log)
-      << "\t\t Levelshift end: " << _opt.levelshiftend << std::flush;
-  XTP_LOG(Log::error, *_log)
-      << "\t\t Mixing Parameter alpha: " << _opt.mixingparameter << std::flush;
+  XTP_LOG(Log::error, *log_)
+      << "\t\t Levelshift[Ha]: " << opt_.levelshift << std::flush;
+  XTP_LOG(Log::error, *log_)
+      << "\t\t Levelshift end: " << opt_.levelshiftend << std::flush;
+  XTP_LOG(Log::error, *log_)
+      << "\t\t Mixing Parameter alpha: " << opt_.mixingparameter << std::flush;
 }
 
 tools::EigenSystem ConvergenceAcc::SolveFockmatrix(
@@ -180,19 +180,19 @@ tools::EigenSystem ConvergenceAcc::SolveFockmatrix(
 
 void ConvergenceAcc::Levelshift(Eigen::MatrixXd& H,
                                 const Eigen::MatrixXd& MOs_old) const {
-  if (_opt.levelshift < 1e-9) {
+  if (opt_.levelshift < 1e-9) {
     return;
   }
   Eigen::VectorXd virt = Eigen::VectorXd::Zero(H.rows());
-  for (Index i = _nocclevels; i < H.rows(); i++) {
-    virt(i) = _opt.levelshift;
+  for (Index i = nocclevels_; i < H.rows(); i++) {
+    virt(i) = opt_.levelshift;
   }
 
-  XTP_LOG(Log::error, *_log)
-      << TimeStamp() << " Using levelshift:" << _opt.levelshift << " Hartree"
+  XTP_LOG(Log::error, *log_)
+      << TimeStamp() << " Using levelshift:" << opt_.levelshift << " Hartree"
       << std::flush;
-  Eigen::MatrixXd vir = _S->Matrix() * MOs_old * virt.asDiagonal() *
-                        MOs_old.transpose() * _S->Matrix();
+  Eigen::MatrixXd vir = S_->Matrix() * MOs_old * virt.asDiagonal() *
+                        MOs_old.transpose() * S_->Matrix();
   H += vir;
   return;
 }
@@ -200,11 +200,11 @@ void ConvergenceAcc::Levelshift(Eigen::MatrixXd& H,
 Eigen::MatrixXd ConvergenceAcc::DensityMatrix(
     const tools::EigenSystem& MOs) const {
   Eigen::MatrixXd result;
-  if (_opt.mode == KSmode::closed) {
+  if (opt_.mode == KSmode::closed) {
     result = DensityMatrixGroundState(MOs.eigenvectors());
-  } else if (_opt.mode == KSmode::open) {
+  } else if (opt_.mode == KSmode::open) {
     result = DensityMatrixGroundState_unres(MOs.eigenvectors());
-  } else if (_opt.mode == KSmode::fractional) {
+  } else if (opt_.mode == KSmode::fractional) {
     result = DensityMatrixGroundState_frac(MOs);
   }
   return result;
@@ -212,24 +212,24 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrix(
 
 Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState(
     const Eigen::MatrixXd& MOs) const {
-  const Eigen::MatrixXd occstates = MOs.leftCols(_nocclevels);
+  const Eigen::MatrixXd occstates = MOs.leftCols(nocclevels_);
   Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
   return dmatGS;
 }
 
 Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_unres(
     const Eigen::MatrixXd& MOs) const {
-  if (_nocclevels == 0) {
+  if (nocclevels_ == 0) {
     return Eigen::MatrixXd::Zero(MOs.rows(), MOs.rows());
   }
-  Eigen::MatrixXd occstates = MOs.leftCols(_nocclevels);
+  Eigen::MatrixXd occstates = MOs.leftCols(nocclevels_);
   Eigen::MatrixXd dmatGS = occstates * occstates.transpose();
   return dmatGS;
 }
 
 Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(
     const tools::EigenSystem& MOs) const {
-  if (_opt.numberofelectrons == 0) {
+  if (opt_.numberofelectrons == 0) {
     return Eigen::MatrixXd::Zero(MOs.eigenvectors().rows(),
                                  MOs.eigenvectors().rows());
   }
@@ -246,7 +246,7 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(
       degeneracies.push_back(std::vector<Index>{i});
     }
   }
-  Index numofelec = _opt.numberofelectrons;
+  Index numofelec = opt_.numberofelectrons;
   for (const std::vector<Index>& deglevel : degeneracies) {
     Index numofpossibleelectrons = 2 * Index(deglevel.size());
     if (numofpossibleelectrons <= numofelec) {

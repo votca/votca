@@ -32,9 +32,9 @@ namespace votca {
 namespace xtp {
 template <class Grid>
 Vxc_Potential<Grid>::~Vxc_Potential() {
-  if (_setXC) {
+  if (setXC_) {
     xc_func_end(&xfunc);
-    if (_use_separate) {
+    if (use_separate_) {
       xc_func_end(&cfunc);
     }
   }
@@ -44,8 +44,9 @@ double Vxc_Potential<Grid>::getExactExchange(const std::string& functional) {
 
   double exactexchange = 0.0;
   Vxc_Functionals map;
-  tools::Tokenizer tok(functional, " ");
-  std::vector<std::string> functional_names = tok.ToVector();
+
+  std::vector<std::string> functional_names =
+      tools::Tokenizer(functional, " ").ToVector();
 
   if (functional_names.size() > 2) {
     throw std::runtime_error("Too many functional names");
@@ -79,18 +80,17 @@ template <class Grid>
 void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
 
   Vxc_Functionals map;
-  std::vector<std::string> strs;
-  tools::Tokenizer tok(functional, " ,\n\t");
-  tok.ToVector(strs);
+  std::vector<std::string> strs =
+      tools::Tokenizer(functional, " ,\n\t").ToVector();
   xfunc_id = 0;
-  _use_separate = false;
+  use_separate_ = false;
   cfunc_id = 0;
   if (strs.size() == 1) {
     xfunc_id = map.getID(strs[0]);
   } else if (strs.size() == 2) {
     xfunc_id = map.getID(strs[0]);
     cfunc_id = map.getID(strs[1]);
-    _use_separate = true;
+    use_separate_ = true;
   } else {
     throw std::runtime_error(
         "LIBXC. Please specify one combined or an exchange and a correlation "
@@ -101,12 +101,12 @@ void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
     throw std::runtime_error(
         (boost::format("Functional %s not found\n") % strs[0]).str());
   }
-  if (xfunc.info->kind != 2 && !_use_separate) {
+  if (xfunc.info->kind != 2 && !use_separate_) {
     throw std::runtime_error(
         "Your functional misses either correlation or exchange, please specify "
         "another functional, separated by whitespace");
   }
-  if (_use_separate) {
+  if (use_separate_) {
     if (xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED) != 0) {
       throw std::runtime_error(
           (boost::format("Functional %s not found\n") % strs[1]).str());
@@ -116,7 +116,7 @@ void Vxc_Potential<Grid>::setXCfunctional(const std::string& functional) {
           "Your functionals are not one exchange and one correlation");
     }
   }
-  _setXC = true;
+  setXC_ = true;
   return;
 }
 template <class Grid>
@@ -134,7 +134,7 @@ typename Vxc_Potential<Grid>::XC_entry Vxc_Potential<Grid>::EvaluateXC(
                      &result.df_dsigma);
       break;
   }
-  if (_use_separate) {
+  if (use_separate_) {
     typename Vxc_Potential<Grid>::XC_entry temp;
     // via libxc correlation part only
     switch (cfunc.info->family) {
@@ -159,17 +159,19 @@ template <class Grid>
 Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
     const Eigen::MatrixXd& density_matrix) const {
 
+  assert(density_matrix.isApprox(density_matrix.transpose()) &&
+         "Density matrix has to be symmetric!");
   Mat_p_Energy vxc = Mat_p_Energy(density_matrix.rows(), density_matrix.cols());
 
 #pragma omp parallel for schedule(guided) reduction(+ : vxc)
-  for (Index i = 0; i < _grid.getBoxesSize(); ++i) {
-    const GridBox& box = _grid[i];
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    const GridBox& box = grid_[i];
     if (!box.Matrixsize()) {
       continue;
     }
     double EXC_box = 0.0;
-    const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
-    const Eigen::MatrixXd DMAT_symm = DMAT_here + DMAT_here.transpose();
+    // two because we have to use the density matrix and its transpose
+    const Eigen::MatrixXd DMAT_here = 2 * box.ReadFromBigMatrix(density_matrix);
     double cutoff =
         1.e-40 / double(density_matrix.rows()) / double(density_matrix.rows());
     if (DMAT_here.cwiseAbs2().maxCoeff() < cutoff) {
@@ -182,20 +184,22 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
 
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
-      Eigen::MatrixX3d ao_grad = Eigen::MatrixX3d::Zero(box.Matrixsize(), 3);
-      Eigen::VectorXd ao = box.CalcAOValue_and_Grad(ao_grad, points[p]);
-      const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
+      AOShell::AOValues ao = box.CalcAOValues(points[p]);
+      Eigen::VectorXd temp = ao.values.transpose() * DMAT_here;
+      double rho = 0.5 * temp.dot(ao.values);
       const double weight = weights[p];
       if (rho * weight < 1.e-20) {
         continue;  // skip the rest, if density is very small
       }
-      const Eigen::Vector3d rho_grad = ao.transpose() * DMAT_symm * ao_grad;
-      const double sigma = (rho_grad.transpose() * rho_grad).value();
-      const Eigen::VectorXd grad = ao_grad * rho_grad;
-      typename Vxc_Potential<Grid>::XC_entry xc = EvaluateXC(rho, sigma);
+      const Eigen::Vector3d rho_grad = temp.transpose() * ao.derivatives;
+
+      typename Vxc_Potential<Grid>::XC_entry xc =
+          EvaluateXC(rho, rho_grad.squaredNorm());
       EXC_box += weight * rho * xc.f_xc;
-      auto addXC = weight * (0.5 * xc.df_drho * ao + 2.0 * xc.df_dsigma * grad);
-      Vxc_here.noalias() += addXC * ao.transpose();
+      auto grad = ao.derivatives * rho_grad;
+      temp.noalias() =
+          weight * (0.5 * xc.df_drho * ao.values + 2.0 * xc.df_dsigma * grad);
+      Vxc_here.noalias() += temp * ao.values.transpose();
     }
     box.AddtoBigMatrix(vxc.matrix(), Vxc_here);
     vxc.energy() += EXC_box;
