@@ -46,98 +46,98 @@ namespace xtp {
 /*
  * Custom buffer to store messages
  */
-class LogBuffer : public std::stringbuf {
+class LogBuffer final : public std::stringbuf {
 
  public:
-  LogBuffer() : std::stringbuf() { _LogLevel = Log::current_level; }
+  LogBuffer() : std::stringbuf() { LogLevel_ = Log::current_level; }
 
   // sets the log level (needed for output)
-  void setLogLevel(Log::Level LogLevel) { _LogLevel = LogLevel; }
+  void setLogLevel(Log::Level LogLevel) { LogLevel_ = LogLevel; }
 
   // sets Multithreading (buffering required)
-  void setMultithreading(bool maverick) { _maverick = maverick; }
+  void setMultithreading(bool maverick) { maverick_ = maverick; }
 
   // sets preface strings for Log::error, Log::warning, ...
   void setPreface(Log::Level level, std::string preface) {
     switch (level) {
 
       case Log::Level::error:
-        _errorPreface = preface;
+        errorPreface_ = preface;
         break;
       case Log::Level::warning:
-        _warnPreface = preface;
+        warnPreface_ = preface;
         break;
       case Log::Level::info:
-        _infoPreface = preface;
+        infoPreface_ = preface;
         break;
       case Log::Level::debug:
-        _dbgPreface = preface;
+        dbgPreface_ = preface;
         break;
     }
   }
 
-  void EnablePreface() { _writePreface = true; }
-  void DisablePreface() { _writePreface = false; }
+  void EnablePreface() { writePreface_ = true; }
+  void DisablePreface() { writePreface_ = false; }
 
   // flushes all collected messages
   void FlushBuffer() {
-    std::cout << _stringStream.str();
-    _stringStream.str("");
+    std::cout << stringStream_.str();
+    stringStream_.str("");
   }
 
   // returns the pointer to the collected messages
   std::string Messages() {
-    std::string _messages = _stringStream.str();
-    _stringStream.str("");
-    return _messages;
+    std::string messages_ = stringStream_.str();
+    stringStream_.str("");
+    return messages_;
   }
 
  private:
   // Log Level (WARNING, INFO, etc)
-  Log::Level _LogLevel = Log::Level::error;
+  Log::Level LogLevel_ = Log::Level::error;
 
   // temporary buffer to store messages
-  std::ostringstream _stringStream;
+  std::ostringstream stringStream_;
 
   // Multithreading
-  bool _maverick = true;
+  bool maverick_ = true;
 
-  std::string _errorPreface = "\n ERROR   ";
-  std::string _warnPreface = "\n WARNING ";
-  std::string _infoPreface = "\n         ";
-  std::string _dbgPreface = "\n DEBUG   ";
-  bool _writePreface = true;
+  std::string errorPreface_ = "\n ERROR   ";
+  std::string warnPreface_ = "\n WARNING ";
+  std::string infoPreface_ = "\n         ";
+  std::string dbgPreface_ = "\n DEBUG   ";
+  bool writePreface_ = true;
 
  protected:
-  int sync() override {
+  int sync() {
 
-    std::ostringstream _message;
+    std::ostringstream message_;
 
-    if (_writePreface) {
-      switch (_LogLevel) {
+    if (writePreface_) {
+      switch (LogLevel_) {
         case Log::Level::error:
-          _message << _errorPreface;
+          message_ << errorPreface_;
           break;
         case Log::Level::warning:
-          _message << _warnPreface;
+          message_ << warnPreface_;
           break;
         case Log::Level::info:
-          _message << _infoPreface;
+          message_ << infoPreface_;
           break;
         case Log::Level::debug:
-          _message << _dbgPreface;
+          message_ << dbgPreface_;
           break;
       }
     }
 
-    if (!_maverick) {
+    if (!maverick_) {
       // collect all messages of one thread
-      _stringStream << _message.str() << " " << str();
+      stringStream_ << message_.str() << " " << str();
     } else {
       // if only one thread outputs, flush immediately
-      std::cout << _message.str() << " " << str() << std::flush;
+      std::cout << message_.str() << " " << str() << std::flush;
     }
-    _message.str("");
+    message_.str("");
     str("");
     return 0;
   }
@@ -169,35 +169,30 @@ class Logger final : public std::ostream {
   }
 
  public:
-  Logger() : std::ostream(new LogBuffer()), _ReportLevel(Log::current_level) {
-    setMultithreading(_maverick);
+  Logger() : std::ostream(&buffer_), ReportLevel_(Log::current_level) {
+    setMultithreading(maverick_);
   }
   Logger(Log::Level ReportLevel)
-      : std::ostream(new LogBuffer()), _ReportLevel(ReportLevel) {
-    setMultithreading(_maverick);
-  }
-
-  ~Logger() final {
-    delete rdbuf();
-    rdbuf(nullptr);
+      : std::ostream(&buffer_), ReportLevel_(ReportLevel) {
+    setMultithreading(maverick_);
   }
 
   Logger &operator()(Log::Level LogLevel) {
-    dynamic_cast<LogBuffer *>(rdbuf())->setLogLevel(LogLevel);
+    buffer_.setLogLevel(LogLevel);
     return *this;
   }
 
-  void setReportLevel(Log::Level ReportLevel) { _ReportLevel = ReportLevel; }
+  void setReportLevel(Log::Level ReportLevel) { ReportLevel_ = ReportLevel; }
   void setMultithreading(bool maverick) {
-    _maverick = maverick;
-    dynamic_cast<LogBuffer *>(rdbuf())->setMultithreading(_maverick);
+    maverick_ = maverick;
+    buffer_.setMultithreading(maverick_);
   }
-  bool isMaverick() const { return _maverick; }
+  bool isMaverick() const { return maverick_; }
 
-  Log::Level getReportLevel() const { return _ReportLevel; }
+  Log::Level getReportLevel() const { return ReportLevel_; }
 
   void setPreface(Log::Level level, const std::string &preface) {
-    dynamic_cast<LogBuffer *>(rdbuf())->setPreface(level, preface);
+    buffer_.setPreface(level, preface);
   }
 
   void setCommonPreface(const std::string &preface) {
@@ -207,22 +202,19 @@ class Logger final : public std::ostream {
     setPreface(Log::warning, preface);
   }
 
-  void EnablePreface() { dynamic_cast<LogBuffer *>(rdbuf())->EnablePreface(); }
+  void EnablePreface() { buffer_.EnablePreface(); }
 
-  void DisablePreface() {
-    dynamic_cast<LogBuffer *>(rdbuf())->DisablePreface();
-  }
+  void DisablePreface() { buffer_.DisablePreface(); }
 
  private:
+  LogBuffer buffer_;
   // at what level of detail output messages
-  Log::Level _ReportLevel = Log::error;
+  Log::Level ReportLevel_ = Log::error;
 
   // if true, only a single processor job is executed
-  bool _maverick = false;
+  bool maverick_ = false;
 
-  std::string Messages() {
-    return dynamic_cast<LogBuffer *>(rdbuf())->Messages();
-  }
+  std::string Messages() { return buffer_.Messages(); }
 };
 
 /**

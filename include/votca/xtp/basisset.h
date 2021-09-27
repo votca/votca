@@ -33,75 +33,72 @@
 
 namespace votca {
 namespace xtp {
+
+enum class L { S = 0, P = 1, D = 2, F = 3, G = 4, H = 5, I = 6 };
+
+std::string EnumToString(L l);
+
+L StringToEnum(const std::string& type);
+L StringToEnum(char type);
+
 // shell type (S, P, D))
 
 bool CheckShellType(const std::string& shelltype);
 
-Index FindLmax(const std::string& type);
+Index OffsetFuncShell(L l);
 
-Index FindLmin(const std::string& type);
+Index NumFuncShell(L l);
+Index NumFuncShell_cartesian(L l);
 
-Index OffsetFuncShell(const std::string& shell_type);
-
-Index NumFuncShell(const std::string& shell_type);
-Index NumFuncShell_cartesian(const std::string& shell_type);
-
-Index OffsetFuncShell_cartesian(const std::string& shell_type);
-
-std::vector<Index> NumFuncSubShell(const std::string& shell_type);
+Index OffsetFuncShell_cartesian(L l);
 
 // Gaussian function: contraction*exp(-decay*r^2)
 class GaussianPrimitive {
  public:
-  GaussianPrimitive(double decay, std::vector<double> contraction)
-      : _decay(decay), _contraction(contraction) {}
-  const std::vector<double>& Contractions() const { return _contraction; }
+  GaussianPrimitive(double decay, double contraction)
+      : decay_(decay), contraction_(contraction) {}
+  double contraction() const { return contraction_; }
 
-  double decay() const { return _decay; }
+  double decay() const { return decay_; }
 
  private:
-  double _decay;
-  std::vector<double> _contraction;
+  double decay_;
+  double contraction_;
 };
 
 class Shell {
 
  public:
-  Shell(std::string type, double scale) : _type(type), _scale(scale) { ; }
-  const std::string& getType() const { return _type; }
+  Shell(L l, double scale) : l_(l), scale_(scale) { ; }
 
-  bool isCombined() const { return (_type.length() > 1); }
+  L getL() const { return l_; }
 
-  Index getLmax() const { return FindLmax(_type); }
+  Index getnumofFunc() const { return NumFuncShell(l_); };
 
-  Index getLmin() const { return FindLmin(_type); }
+  Index getOffset() const { return OffsetFuncShell(l_); }
 
-  Index getnumofFunc() const { return NumFuncShell(_type); };
+  double getScale() const { return scale_; }
 
-  Index getOffset() const { return OffsetFuncShell(_type); }
-
-  double getScale() const { return _scale; }
-
-  Index getSize() const { return _gaussians.size(); }
+  Index getSize() const { return gaussians_.size(); }
 
   std::vector<GaussianPrimitive>::const_iterator begin() const {
-    return _gaussians.begin();
+    return gaussians_.begin();
   }
   std::vector<GaussianPrimitive>::const_iterator end() const {
-    return _gaussians.end();
+    return gaussians_.end();
   }
 
   // adds a Gaussian
-  GaussianPrimitive& addGaussian(double decay, std::vector<double> contraction);
+  GaussianPrimitive& addGaussian(double decay, double contraction);
   friend std::ostream& operator<<(std::ostream& out, const Shell& shell);
 
  private:
-  std::string _type;
+  L l_;
   // scaling factor
-  double _scale;
+  double scale_;
 
   // vector of pairs of decay constants and contraction coefficients
-  std::vector<GaussianPrimitive> _gaussians;
+  std::vector<GaussianPrimitive> gaussians_;
 };
 
 /*
@@ -110,25 +107,25 @@ class Shell {
 class Element {
 
  public:
-  Element(std::string type) : _type(type) { ; }
+  Element(std::string type) : type_(type) { ; }
   using ShellIterator = std::vector<Shell>::const_iterator;
-  ShellIterator begin() const { return _shells.begin(); }
-  ShellIterator end() const { return _shells.end(); }
+  ShellIterator begin() const { return shells_.begin(); }
+  ShellIterator end() const { return shells_.end(); }
 
-  const std::string& getType() const { return _type; }
+  const std::string& getType() const { return type_; }
 
-  Shell& addShell(const std::string& shellType, double shellScale) {
-    _shells.push_back(Shell(shellType, shellScale));
-    return _shells.back();
+  Shell& addShell(L l, double shellScale) {
+    shells_.push_back(Shell(l, shellScale));
+    return shells_.back();
   }
 
-  Index NumOfShells() const { return _shells.size(); }
+  Index NumOfShells() const { return shells_.size(); }
 
   friend std::ostream& operator<<(std::ostream& out, const Element& element);
 
  private:
-  std::string _type;
-  std::vector<Shell> _shells;
+  std::string type_;
+  std::vector<Shell> shells_;
 };
 
 /*
@@ -140,22 +137,24 @@ class BasisSet {
 
   const Element& getElement(std::string element_type) const;
 
-  std::map<std::string, Element>::iterator begin() { return _elements.begin(); }
-  std::map<std::string, Element>::iterator end() { return _elements.end(); }
+  std::map<std::string, Element>::iterator begin() { return elements_.begin(); }
+  std::map<std::string, Element>::iterator end() { return elements_.end(); }
 
   std::map<std::string, Element>::const_iterator begin() const {
-    return _elements.begin();
+    return elements_.begin();
   }
   std::map<std::string, Element>::const_iterator end() const {
-    return _elements.end();
+    return elements_.end();
   }
 
   friend std::ostream& operator<<(std::ostream& out, const BasisSet& basis);
 
+  const std::string& Name() const { return name_; }
+
  private:
   Element& addElement(std::string elementType);
-  std::string _name;
-  std::map<std::string, Element> _elements;
+  std::string name_;
+  std::map<std::string, Element> elements_;
 };
 
 }  // namespace xtp

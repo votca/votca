@@ -33,7 +33,7 @@ namespace xtp {
 
  The units are atomic units, e.g. Bohr, Hartree.
 */
-class PolarSite : public StaticSite {
+class PolarSite final : public StaticSite {
 
  public:
   // delete these two functions because we do not want to be able to read
@@ -45,47 +45,46 @@ class PolarSite : public StaticSite {
   PolarSite(Index id, std::string element)
       : PolarSite(id, element, Eigen::Vector3d::Zero()){};
 
-  ~PolarSite() override = default;
+  ~PolarSite() final = default;
 
-  void setpolarization(const Eigen::Matrix3d& pol) override;
+  void setpolarization(const Eigen::Matrix3d& pol) final;
 
-  Eigen::Matrix3d getpolarization() const { return _pinv.inverse(); }
+  Eigen::Matrix3d getpolarization() const { return pinv_.inverse(); }
 
-  const Eigen::Matrix3d& getPInv() const { return _pinv; }
+  const Eigen::Matrix3d& getPInv() const { return pinv_; }
 
   // MULTIPOLES DEFINITION
-  Eigen::Vector3d getDipole() const override;
+  Eigen::Vector3d getDipole() const final;
 
-  double getSqrtInvEigenDamp() const { return _eigendamp_invsqrt; }
+  double getSqrtInvEigenDamp() const { return eigendamp_invsqrt_; }
 
-  void Rotate(const Eigen::Matrix3d& R,
-              const Eigen::Vector3d& ref_pos) override {
+  void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos) final {
     StaticSite::Rotate(R, ref_pos);
-    _pinv = R.transpose() * _pinv * R;
+    pinv_ = R.transpose() * pinv_ * R;
   }
 
-  const Eigen::Vector3d& V() const { return _V; }
+  const Eigen::Vector3d& V() const { return V_; }
 
-  Eigen::Vector3d& V() { return _V; }
+  Eigen::Vector3d& V() { return V_; }
 
-  const Eigen::Vector3d& V_noE() const { return _V_noE; }
+  const Eigen::Vector3d& V_noE() const { return V_noE_; }
 
-  Eigen::Vector3d& V_noE() { return _V_noE; }
+  Eigen::Vector3d& V_noE() { return V_noE_; }
 
   void Reset() {
-    _V.setZero();
-    _V_noE.setZero();
+    V_.setZero();
+    V_noE_.setZero();
   }
 
-  double deltaQ_V_ext() const { return _induced_dipole.dot(_V); }
+  double deltaQ_V_ext() const { return induced_dipole_.dot(V_); }
 
   double InternalEnergy() const {
-    return 0.5 * _induced_dipole.transpose() * _pinv * _induced_dipole;
+    return 0.5 * induced_dipole_.transpose() * pinv_ * induced_dipole_;
   }
 
-  const Eigen::Vector3d& Induced_Dipole() const { return _induced_dipole; }
+  const Eigen::Vector3d& Induced_Dipole() const { return induced_dipole_; }
   void setInduced_Dipole(const Eigen::Vector3d& induced_dipole) {
-    _induced_dipole = induced_dipole;
+    induced_dipole_ = induced_dipole;
   }
 
   struct data {
@@ -131,11 +130,11 @@ class PolarSite : public StaticSite {
 
   double DipoleChange() const;
 
-  void SetupCptTable(CptTable& table) const override;
+  static void SetupCptTable(CptTable& table);
   void WriteData(data& d) const;
   void ReadData(const data& d);
 
-  std::string identify() const override { return "polarsite"; }
+  std::string identify() const final { return "polarsite"; }
 
   friend std::ostream& operator<<(std::ostream& out, const PolarSite& site) {
     out << site.getId() << " " << site.getElement() << " " << site.getRank();
@@ -145,20 +144,20 @@ class PolarSite : public StaticSite {
   }
 
  private:
-  std::string writepolarization() const override;
+  std::string writepolarization() const final;
 
   // PolarSite has two external fields,
   // the first is used for interaction with regions, which are further out, i.e.
   // the interaction energy with it is included in the polar region energy
-  Eigen::Vector3d _V = Eigen::Vector3d::Zero();
+  Eigen::Vector3d V_ = Eigen::Vector3d::Zero();
   // the second is used for interaction with regions, which are further inside,
   // i.e. the interaction energy with it is included in the other region's
   // energy
-  Eigen::Vector3d _V_noE = Eigen::Vector3d::Zero();
+  Eigen::Vector3d V_noE_ = Eigen::Vector3d::Zero();
 
-  Eigen::Vector3d _induced_dipole = Eigen::Vector3d::Zero();
-  Eigen::Matrix3d _pinv = Eigen::Matrix3d::Zero();
-  double _eigendamp_invsqrt = 0.0;
+  Eigen::Vector3d induced_dipole_ = Eigen::Vector3d::Zero();
+  Eigen::Matrix3d pinv_ = Eigen::Matrix3d::Zero();
+  double eigendamp_invsqrt_ = 0.0;
 };
 
 }  // namespace xtp

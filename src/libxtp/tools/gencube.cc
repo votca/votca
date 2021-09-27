@@ -26,6 +26,7 @@
 // VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
+#include <votca/tools/getline.h>
 
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
@@ -38,50 +39,44 @@
 namespace votca {
 namespace xtp {
 
-void GenCube::Initialize(const tools::Property& user_options) {
+void GenCube::ParseOptions(const tools::Property& options) {
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
-
-  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".input", _job_name + ".orb");
-  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".output", _job_name + ".cube");
+  orbfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".input", job_name_ + ".orb");
+  output_file_ = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".output", job_name_ + ".cube");
 
   // padding
-  _padding = options.get(".padding").as<double>();
+  padding_ = options.get(".padding").as<double>();
 
   // steps
-  _steps.y() = options.get(".ysteps").as<Index>();
-  _steps.x() = options.get(".xsteps").as<Index>();
-  _steps.z() = options.get(".zsteps").as<Index>();
+  steps_.y() = options.get(".ysteps").as<Index>();
+  steps_.x() = options.get(".xsteps").as<Index>();
+  steps_.z() = options.get(".zsteps").as<Index>();
 
-  std::string statestring = options.get(".state").as<std::string>();
-  _state.FromString(statestring);
-  _dostateonly = options.get(".diff2gs").as<bool>();
+  state_ = options.get(".state").as<QMState>();
+  dostateonly_ = options.get(".diff2gs").as<bool>();
 
-  _mode = options.get(".mode").as<std::string>();
-  if (_mode == "subtract") {
-    _infile1 = options.get(".infile1").as<std::string>();
-    _infile2 = options.get(".infile2").as<std::string>();
+  mode_ = options.get(".mode").as<std::string>();
+  if (mode_ == "subtract") {
+    infile1_ = options.get(".infile1").as<std::string>();
+    infile2_ = options.get(".infile2").as<std::string>();
   }
 }
 
 void GenCube::calculateCube() {
 
-  XTP_LOG(Log::error, _log)
-      << "Reading serialized QM data from " << _orbfile << std::flush;
+  XTP_LOG(Log::error, log_)
+      << "Reading serialized QM data from " << orbfile_ << std::flush;
 
   Orbitals orbitals;
-  orbitals.ReadFromCpt(_orbfile);
+  orbitals.ReadFromCpt(orbfile_);
 
-  CubeFile_Writer writer(_steps, _padding, _log);
-  XTP_LOG(Log::error, _log) << "Created cube grid" << std::flush;
-  writer.WriteFile(_output_file, orbitals, _state, _dostateonly);
-  XTP_LOG(Log::error, _log)
-      << "Wrote cube data to " << _output_file << std::flush;
+  CubeFile_Writer writer(steps_, padding_, log_);
+  XTP_LOG(Log::error, log_) << "Created cube grid" << std::flush;
+  writer.WriteFile(output_file_, orbitals, state_, dostateonly_);
+  XTP_LOG(Log::error, log_)
+      << "Wrote cube data to " << output_file_ << std::flush;
   return;
 }
 
@@ -89,24 +84,24 @@ void GenCube::subtractCubes() {
 
   // open infiles for reading
   std::ifstream in1;
-  XTP_LOG(Log::error, _log)
-      << " Reading first cube from " << _infile1 << std::flush;
-  in1.open(_infile1, std::ios::in);
+  XTP_LOG(Log::error, log_)
+      << " Reading first cube from " << infile1_ << std::flush;
+  in1.open(infile1_, std::ios::in);
   std::ifstream in2;
-  XTP_LOG(Log::error, _log)
-      << " Reading second cube from " << _infile2 << std::flush;
-  in2.open(_infile2, std::ios::in);
+  XTP_LOG(Log::error, log_)
+      << " Reading second cube from " << infile2_ << std::flush;
+  in2.open(infile2_, std::ios::in);
   std::string s;
 
-  std::ofstream out(_output_file);
+  std::ofstream out(output_file_);
 
   // first two lines of header are garbage
-  getline(in1, s);
+  tools::getline(in1, s);
   out << s << "\n";
-  getline(in1, s);
+  tools::getline(in1, s);
   out << s << " substraction\n";
-  getline(in2, s);
-  getline(in2, s);
+  tools::getline(in2, s);
+  tools::getline(in2, s);
 
   // read rest from header
   Index natoms;
@@ -280,21 +275,21 @@ void GenCube::subtractCubes() {
   }
 
   out.close();
-  XTP_LOG(Log::error, _log)
-      << "Wrote subtracted cube data to " << _output_file << std::flush;
+  XTP_LOG(Log::error, log_)
+      << "Wrote subtracted cube data to " << output_file_ << std::flush;
 }
 
-bool GenCube::Evaluate() {
-  OPENMP::setMaxThreads(_nThreads);
-  _log.setReportLevel(Log::current_level);
-  _log.setMultithreading(true);
+bool GenCube::Run() {
 
-  _log.setCommonPreface("\n... ...");
+  log_.setReportLevel(Log::current_level);
+  log_.setMultithreading(true);
+
+  log_.setCommonPreface("\n... ...");
 
   // calculate new cube
-  if (_mode == "new") {
+  if (mode_ == "new") {
     calculateCube();
-  } else if (_mode == "subtract") {
+  } else if (mode_ == "subtract") {
     subtractCubes();
   }
 

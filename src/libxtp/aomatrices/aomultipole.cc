@@ -31,17 +31,17 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
   const double pi = boost::math::constants::pi<double>();
 
-  Index rank = _site->getRank();
-  if (rank < 1 && _site->getDipole().norm() > 1e-12) {
+  Index rank = site_->getRank();
+  if (rank < 1 && site_->getDipole().norm() > 1e-12) {
     rank = 1;
   }
-  const double charge = _site->getCharge();
-  const Eigen::Vector3d dipole = _site->getDipole();
+  const double charge = site_->getCharge();
+  const Eigen::Vector3d dipole = site_->getDipole();
   // factor 1.5 I am not sure about but then 6 monopoles and this tensor agree
-  const Eigen::Matrix3d quadrupole = 1.5 * _site->CalculateCartesianMultipole();
+  const Eigen::Matrix3d quadrupole = 1.5 * site_->CalculateCartesianMultipole();
   // shell info, only lmax tells how far to go
-  Index lmax_row = shell_row.getLmax();
-  Index lmax_col = shell_col.getLmax();
+  Index lmax_row = Index(shell_row.getL());
+  Index lmax_col = Index(shell_col.getL());
   Index lsum = lmax_row + lmax_col;
   // set size of internal block for recursion
   Index nrows = AOTransform::getBlockSize(lmax_row);
@@ -63,6 +63,9 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
   double distsq = diff.squaredNorm();
 
+  Eigen::MatrixXd cartesian = Eigen::MatrixXd::Zero(
+      shell_row.getCartesianNumFunc(), shell_col.getCartesianNumFunc());
+
   // iterate over Gaussians in this shell_row
   for (const auto& gaussian_row : shell_row) {
     // iterate over Gaussians in this shell_col
@@ -79,10 +82,6 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       const double xi = decay_row * decay_col * fak2;
 
       double exparg = xi * distsq;
-      // check if distance between postions is big, then skip step
-      if (exparg > 30.0) {
-        continue;
-      }
 
       // some helpers
       const Eigen::Vector3d PmA =
@@ -90,7 +89,7 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       const Eigen::Vector3d PmB =
           fak2 * (decay_row * pos_row + decay_col * pos_col) - pos_col;
       const Eigen::Vector3d PmC =
-          fak2 * (decay_row * pos_row + decay_col * pos_col) - _site->getPos();
+          fak2 * (decay_row * pos_row + decay_col * pos_col) - site_->getPos();
 
       const double U = zeta * PmC.squaredNorm();
 
@@ -603,11 +602,11 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         dip4.setZero();
 
         // (s-s element normiert )
-        double _prefactor_dip = 2. * zeta * prefactor;
+        double prefactor_dip_ = 2. * zeta * prefactor;
         for (Index m = 0; m < lsum + 1; m++) {
-          dip4(0, 0, 0, m) = PmC(0) * _prefactor_dip * FmU[m + 1];
-          dip4(0, 0, 1, m) = PmC(1) * _prefactor_dip * FmU[m + 1];
-          dip4(0, 0, 2, m) = PmC(2) * _prefactor_dip * FmU[m + 1];
+          dip4(0, 0, 0, m) = PmC(0) * prefactor_dip_ * FmU[m + 1];
+          dip4(0, 0, 1, m) = PmC(1) * prefactor_dip_ * FmU[m + 1];
+          dip4(0, 0, 2, m) = PmC(2) * prefactor_dip_ * FmU[m + 1];
         }
         //------------------------------------------------------
 
@@ -2073,17 +2072,16 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         }
       }
 
-      Eigen::MatrixXd multipole_sph =
-          AOTransform::getTrafo(gaussian_row).transpose() *
-          multipole.bottomRightCorner(shell_row.getCartesianNumFunc(),
-                                      shell_col.getCartesianNumFunc()) *
-          AOTransform::getTrafo(gaussian_col);
       // save to matrix
-
-      matrix += multipole_sph;
+      cartesian += AOTransform::getNorm(shell_row.getL(), gaussian_row) *
+                   AOTransform::getNorm(shell_col.getL(), gaussian_col) *
+                   multipole.bottomRightCorner(shell_row.getCartesianNumFunc(),
+                                               shell_col.getCartesianNumFunc());
 
     }  // shell_col Gaussians
   }    // shell_row Gaussians
+
+  matrix = AOTransform::tform(shell_row.getL(), shell_col.getL(), cartesian);
 }
 
 void AOMultipole::FillPotential(const AOBasis& aobasis,
@@ -2091,17 +2089,17 @@ void AOMultipole::FillPotential(const AOBasis& aobasis,
   StaticSite s = StaticSite(0, "", r);
   s.setCharge(1.0);
   setSite(&s);
-  _aopotential = Fill(aobasis);
+  aopotential_ = Fill(aobasis);
 }
 
 void AOMultipole::FillPotential(const AOBasis& aobasis,
                                 const QMMolecule& atoms) {
-  _aopotential =
+  aopotential_ =
       Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
   for (const auto& atom : atoms) {
     StaticSite s = StaticSite(atom, double(atom.getNuccharge()));
     setSite(&s);
-    _aopotential -= Fill(aobasis);
+    aopotential_ -= Fill(aobasis);
   }
   return;
 }
@@ -2109,11 +2107,11 @@ void AOMultipole::FillPotential(const AOBasis& aobasis,
 void AOMultipole::FillPotential(
     const AOBasis& aobasis,
     const std::vector<std::unique_ptr<StaticSite> >& externalsites) {
-  _aopotential =
+  aopotential_ =
       Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
   for (const std::unique_ptr<StaticSite>& site : externalsites) {
     setSite(site.get());
-    _aopotential -= Fill(aobasis);
+    aopotential_ -= Fill(aobasis);
   }
 
   return;

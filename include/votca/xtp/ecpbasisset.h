@@ -30,34 +30,32 @@ namespace xtp {
 class ECPGaussianPrimitive {
  public:
   ECPGaussianPrimitive(Index power, double decay, double contraction)
-      : _power(power), _decay(decay), _contraction(contraction) {
+      : power_(power), decay_(decay), contraction_(contraction) {
     ;
   }
 
-  Index _power;
-  double _decay;
-  double _contraction;
+  Index power_;
+  double decay_;
+  double contraction_;
 };
 
 class ECPShell {
 
  public:
-  ECPShell(std::string type) : _type(type) { ; }
-  const std::string& getType() const { return _type; }
+  ECPShell(L l) : l_(l) { ; }
+  L getL() const { return l_; }
 
-  Index getL() const { return FindLmax(_type); }
+  Index getnumofFunc() const { return NumFuncShell(l_); }
 
-  Index getnumofFunc() const { return NumFuncShell(_type); };
+  Index getOffset() const { return OffsetFuncShell(l_); }
 
-  Index getOffset() const { return OffsetFuncShell(_type); }
-
-  Index getSize() const { return _gaussians.size(); }
+  Index getSize() const { return gaussians_.size(); }
 
   std::vector<ECPGaussianPrimitive>::const_iterator begin() const {
-    return _gaussians.begin();
+    return gaussians_.begin();
   }
   std::vector<ECPGaussianPrimitive>::const_iterator end() const {
-    return _gaussians.end();
+    return gaussians_.end();
   }
 
   // adds a Gaussian of a pseudopotential
@@ -67,9 +65,9 @@ class ECPShell {
   friend std::ostream& operator<<(std::ostream& out, const ECPShell& shell);
 
  private:
-  std::string _type;
+  L l_;
   // vector of pairs of decay constants and contraction coefficients
-  std::vector<ECPGaussianPrimitive> _gaussians;
+  std::vector<ECPGaussianPrimitive> gaussians_;
 };
 
 /*
@@ -77,37 +75,37 @@ class ECPShell {
  */
 class ECPElement {
  public:
-  ECPElement(std::string type, Index lmax, Index ncore)
-      : _type(type), _lmax(lmax), _ncore(ncore) {
+  ECPElement(std::string type, L lmax, Index ncore)
+      : type_(type), lmax_(lmax), ncore_(ncore) {
     ;
   }
   using ECPShellIterator = std::vector<ECPShell>::const_iterator;
-  ECPShellIterator begin() const { return _shells.begin(); }
-  ECPShellIterator end() const { return _shells.end(); }
+  ECPShellIterator begin() const { return shells_.begin(); }
+  ECPShellIterator end() const { return shells_.end(); }
 
-  const std::string& getType() const { return _type; }
+  const std::string& getType() const { return type_; }
 
-  Index getLmax() const { return _lmax; }
+  L getLmax() const { return lmax_; }
 
-  Index getNcore() const { return _ncore; }
+  Index getNcore() const { return ncore_; }
 
-  ECPShell& addShell(const std::string& shellType) {
-    _shells.push_back(ECPShell(shellType));
-    return _shells.back();
+  ECPShell& addShell(L l) {
+    shells_.push_back(ECPShell(l));
+    return shells_.back();
   }
 
-  Index NumOfShells() const { return _shells.size(); }
+  Index NumOfShells() const { return shells_.size(); }
 
   friend std::ostream& operator<<(std::ostream& out, const ECPElement& element);
 
  private:
-  std::string _type;
+  std::string type_;
   //  applies to the highest angular momentum lmax
-  Index _lmax;
+  L lmax_;
   // replaces ncore electrons
-  Index _ncore;
+  Index ncore_;
 
-  std::vector<ECPShell> _shells;
+  std::vector<ECPShell> shells_;
 };
 
 /*
@@ -117,31 +115,33 @@ class ECPBasisSet {
  public:
   void Load(const std::string& name);
 
-  ECPElement& addElement(std::string elementType, Index lmax, Index ncore);
+  ECPElement& addElement(std::string elementType, L lmax, Index ncore);
 
   const ECPElement& getElement(std::string element_type) const;
 
   std::map<std::string, std::shared_ptr<ECPElement> >::iterator begin() {
-    return _elements.begin();
+    return elements_.begin();
   }
   std::map<std::string, std::shared_ptr<ECPElement> >::iterator end() {
-    return _elements.end();
+    return elements_.end();
   }
+
+  const std::string& Name() const { return name_; }
 
   std::map<std::string, std::shared_ptr<ECPElement> >::const_iterator begin()
       const {
-    return _elements.begin();
+    return elements_.begin();
   }
   std::map<std::string, std::shared_ptr<ECPElement> >::const_iterator end()
       const {
-    return _elements.end();
+    return elements_.end();
   }
 
   friend std::ostream& operator<<(std::ostream& out, const ECPBasisSet& basis);
 
  private:
-  std::string _name;
-  std::map<std::string, std::shared_ptr<ECPElement> > _elements;
+  std::string name_;
+  std::map<std::string, std::shared_ptr<ECPElement> > elements_;
 };
 
 }  // namespace xtp

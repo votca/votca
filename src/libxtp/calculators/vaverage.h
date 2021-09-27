@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_VAVERAGE_PRIVATE_H
-#define VOTCA_XTP_VAVERAGE_PRIVATE_H
+#ifndef VOTCA_XTP_VAVERAGE_H
+#define VOTCA_XTP_VAVERAGE_H
 
 // Standard includes
 #include <cstdio>
@@ -35,22 +35,24 @@
 namespace votca {
 namespace xtp {
 
-class VAverage : public QMCalculator {
+class VAverage final : public QMCalculator {
  public:
   VAverage() = default;
 
-  ~VAverage() override = default;
+  ~VAverage() = default;
 
-  std::string Identify() override { return "vaverage"; }
-  bool WriteToStateFile() const override { return false; }
-  void Initialize(const tools::Property& user_options) override;
-  bool EvaluateFrame(Topology& top) override;
+  std::string Identify() const { return "vaverage"; }
+  bool WriteToStateFile() const { return false; }
+
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Evaluate(Topology& top);
 
  private:
-  Logger _log;
-  std::string _ratefile;
-  std::string _occfile;
-  std::string _outputfile;
+  Logger log_;
+  std::string ratefile_;
+  std::string occfile_;
+  std::string outputfile_;
 
   std::vector<double> ReadOccfile(std::string filename) const;
   std::vector<Rate_Engine::PairRates> ReadRatefile(std::string filename) const;
@@ -59,4 +61,4 @@ class VAverage : public QMCalculator {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_VAVERAGE_PRIVATE_H
+#endif  // VOTCA_XTP_VAVERAGE_H

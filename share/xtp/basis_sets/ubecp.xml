@@ -1,46 +1,47 @@
 <basis name="ubecp">
-	<element name="C">
+	<element name="B">
 		<shell type="S" scale="1.00">
-			<constant decay="2.263101" >
+			<constant decay="1.690560" >
                    <contractions type="S" factor="1.0"></contractions>
             </constant> 
 		</shell>
 		<shell type="S" scale="1.00">
-			<constant decay="1.773186" >
+			<constant decay="0.983666" >
                  <contractions type="S" factor="1.0"></contractions>
             </constant>
 		</shell>
         <shell type="S" scale="1.00">
-            <constant decay="0.408619" >
+            <constant decay="0.256979" >
                  <contractions type="S" factor="1.0"></contractions>
             </constant>
         </shell>
         <shell type="S" scale="1.00">
-            <constant decay="0.139175" >
+            <constant decay="0.095038" >
                    <contractions type="S" factor="1.0"></contractions>
             </constant>
         </shell>
         <shell type="P" scale="1.00">
-            <constant decay="8.383025" >
+            <constant decay="5.399913" >
                    <contractions type="P" factor="1.0"></contractions>
             </constant>
         </shell>
         <shell type="P" scale="1.00">
-            <constant decay="1.993132" >
+            <constant decay="1.271217" >
                    <contractions type="P" factor="1.0"></contractions>
             </constant>
         </shell>
         <shell type="P" scale="1.00">
-             <constant decay="0.559543" >
+             <constant decay="0.361909" >
                   <contractions type="P" factor="1.0"></contractions>
              </constant>
         </shell>
         <shell type="P" scale="1.00">
-            <constant decay="0.156126" >
+            <constant decay="0.107661" >
                    <contractions type="P" factor="1.0"></contractions>
             </constant>
         </shell>
 	</element>
+
 
     <element name="C">
 		    <shell type="S" scale="1.00">

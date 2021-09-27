@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE orbitals_test
@@ -72,7 +73,7 @@ BOOST_AUTO_TEST_CASE(sortEnergies) {
 }
 
 BOOST_AUTO_TEST_CASE(densmat_test) {
-
+  libint2::initialize();
   Orbitals orb;
   orb.setBasisSetSize(17);
   orb.setNumberOfOccupiedLevels(4);
@@ -137,10 +138,12 @@ BOOST_AUTO_TEST_CASE(densmat_test) {
   }
 
   BOOST_CHECK_EQUAL(check_dmat_n2s1, 1);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(dipole_test) {
-
+  libint2::initialize();
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/orbitals/molecule.xyz");
@@ -193,9 +196,12 @@ BOOST_AUTO_TEST_CASE(dipole_test) {
     std::cout << ref_s1 << std::endl;
   }
   BOOST_CHECK_EQUAL(check_s1, 1);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(osc_strength) {
+  libint2::initialize();
   Orbitals orb;
   orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                              "/orbitals/molecule.xyz");
@@ -251,6 +257,8 @@ BOOST_AUTO_TEST_CASE(osc_strength) {
     std::cout << "ref" << std::endl;
     std::cout << oscs_ref << std::endl;
   }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

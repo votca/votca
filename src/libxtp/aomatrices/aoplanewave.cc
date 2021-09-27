@@ -29,8 +29,8 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
                             const AOShell& shell_col) const {
 
   // shell info, only lmax tells how far to go
-  Index lmax_row = shell_row.getLmax();
-  Index lmax_col = shell_col.getLmax();
+  Index lmax_row = Index(shell_row.getL());
+  Index lmax_col = Index(shell_col.getL());
   // set size of internal block for recursion
   Index nrows = AOTransform::getBlockSize(lmax_row);
   Index ncols = AOTransform::getBlockSize(lmax_col);
@@ -45,7 +45,7 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
   const Eigen::Vector3d diff = pos_row - pos_col;       // get difference r_{ij}
   const double distsq = diff.squaredNorm();             // get |R_{ij}|^2
   // get kvector modulus
-  const double kmodulus = _k.squaredNorm();  // get |k|^2
+  const double kmodulus = k_.squaredNorm();  // get |k|^2
 
   std::array<int, 9> n_orbitals = AOTransform::n_orbitals();
   std::array<int, 165> nx = AOTransform::nx();
@@ -54,6 +54,9 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
   std::array<int, 165> i_less_x = AOTransform::i_less_x();
   std::array<int, 165> i_less_y = AOTransform::i_less_y();
   std::array<int, 165> i_less_z = AOTransform::i_less_z();
+
+  Eigen::MatrixXcd cartesian = Eigen::MatrixXcd::Zero(
+      shell_row.getCartesianNumFunc(), shell_col.getCartesianNumFunc());
 
   // iterate over Gaussians in this shell_row
   for (const auto& gaussian_row : shell_row) {
@@ -71,12 +74,6 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
       const double fak2 = 2.0 * fak;
       double exparg = fak2 * decay_row * decay_col * distsq;
 
-      // check if distance between postions is big, then skip step
-
-      if (exparg > 30.0) {
-        continue;
-      }
-
       // initialize local matrix block for unnormalized cartesians
       Eigen::MatrixXcd olk = Eigen::MatrixXcd::Zero(nrows, ncols);
 
@@ -84,22 +81,22 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
                                              // complex numbers
       Eigen::Vector3cd PmA;
       PmA.real() = fak2 * (decay_row * pos_row + decay_col * pos_col) - pos_row;
-      PmA.imag() = fak * _k;
+      PmA.imag() = fak * k_;
       Eigen::Vector3cd PmB;
       PmB.real() = fak2 * (decay_row * pos_row + decay_col * pos_col) - pos_col;
-      PmB.imag() = fak * _k;
+      PmB.imag() = fak * k_;
 
       const COMPLEX cfak(fak, 0.0);
       const COMPLEX cfak2(fak2, 0.0);
 
       // calculate s-s- overlap matrix element
-      COMPLEX ssol(pow(4.0 * decay_row * decay_col, 0.75) * pow(fak2, 1.5) *
-                       exp(-exparg),
+      COMPLEX ssol(std::pow(4.0 * decay_row * decay_col, 0.75) *
+                       std::pow(fak2, 1.5) * std::exp(-exparg),
                    0.0);  // s-s element
 
       // calculate s-W-s matrix element
-      double kdotr_row = _k.dot(pos_row);
-      double kdotr_col = _k.dot(pos_col);
+      double kdotr_row = k_.dot(pos_row);
+      double kdotr_col = k_.dot(pos_col);
       COMPLEX kexparg(
           fak2 * (-0.25) * (kmodulus),
           fak2 * (decay_row) * (kdotr_row) + fak2 * (decay_col) * (kdotr_col));
@@ -683,31 +680,29 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
 
       }  // end if (lmax_col > 5)
 
-      // cartesian -> spherical
-      Eigen::MatrixXcd olk_sph =
-          AOTransform::getTrafo(gaussian_row).transpose() *
-          olk.bottomRightCorner(shell_row.getCartesianNumFunc(),
-                                shell_col.getCartesianNumFunc()) *
-          AOTransform::getTrafo(gaussian_col);
-
       // save to matrix
-      matrix += olk_sph;
+      cartesian += AOTransform::getNorm(shell_row.getL(), gaussian_row) *
+                   AOTransform::getNorm(shell_col.getL(), gaussian_col) *
+                   olk.bottomRightCorner(shell_row.getCartesianNumFunc(),
+                                         shell_col.getCartesianNumFunc());
 
     }  // close Gaussian shell_col
 
   }  // close Gaussian shell_row
+
+  matrix = AOTransform::tform(shell_row.getL(), shell_col.getL(), cartesian);
 
 }  // End AOPlanewave
 
 void AOPlanewave::FillPotential(const AOBasis& aobasis,
                                 const std::vector<Eigen::Vector3d>& kpoints) {
 
-  _aopotential =
+  aopotential_ =
       Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
   for (const auto& kpoint : kpoints) {
     setkVector(kpoint);
-    _aopotential += Fill(aobasis);
+    aopotential_ += Fill(aobasis);
   }
 
   return;

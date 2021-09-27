@@ -36,26 +36,18 @@ BOOST_AUTO_TEST_SUITE(basisset_test)
 
 BOOST_AUTO_TEST_CASE(FreeFunctions_test) {
 
-  BOOST_CHECK_EQUAL(FindLmax("F"), 3);
-  BOOST_CHECK_EQUAL(FindLmax("PDF"), 3);
-  BOOST_REQUIRE_THROW(FindLmax("a"), std::runtime_error);
+  BOOST_CHECK_EQUAL(EnumToString(L::H), "H");
+  BOOST_CHECK_EQUAL(votca::Index(StringToEnum("F")), votca::Index(L::F));
 
-  BOOST_CHECK_EQUAL(FindLmin("F"), 3);
-  BOOST_CHECK_EQUAL(FindLmin("PDF"), 1);
+  BOOST_CHECK_EQUAL(OffsetFuncShell(L::S), 0);
 
-  BOOST_CHECK_EQUAL(OffsetFuncShell("S"), 0);
+  BOOST_CHECK_EQUAL(OffsetFuncShell(L::D), 4);
 
-  BOOST_CHECK_EQUAL(OffsetFuncShell("D"), 4);
+  BOOST_CHECK_EQUAL(NumFuncShell(L::I), 13);
 
-  BOOST_REQUIRE_THROW(OffsetFuncShell("a"), std::runtime_error);
+  BOOST_CHECK_EQUAL(NumFuncShell_cartesian(L::G), 15);
 
-  BOOST_CHECK_EQUAL(NumFuncShell("SPD"), 9);
-
-  BOOST_REQUIRE_THROW(OffsetFuncShell("sfgid"), std::runtime_error);
-
-  BOOST_CHECK_EQUAL(NumFuncShell_cartesian("SPD"), 10);
-
-  BOOST_CHECK_EQUAL(OffsetFuncShell_cartesian("FG"), 10);
+  BOOST_CHECK_EQUAL(OffsetFuncShell_cartesian(L::P), 1);
 
   BOOST_CHECK_EQUAL(CheckShellType("FG"), true);
   BOOST_CHECK_EQUAL(CheckShellType("S"), true);

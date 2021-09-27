@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_NEIGHBORLIST_PRIVATE_H
-#define VOTCA_XTP_NEIGHBORLIST_PRIVATE_H
+#ifndef VOTCA_XTP_NEIGHBORLIST_H
+#define VOTCA_XTP_NEIGHBORLIST_H
 
 // VOTCA includes
 #include <votca/tools/globals.h>
@@ -33,25 +33,27 @@
 namespace votca {
 namespace xtp {
 
-class Neighborlist : public QMCalculator {
+class Neighborlist final : public QMCalculator {
  public:
-  std::string Identify() override { return "neighborlist"; }
-  bool WriteToStateFile() const override { return true; }
-  void Initialize(const tools::Property& user_options) override;
-  bool EvaluateFrame(Topology& top) override;
+  std::string Identify() const { return "neighborlist"; }
+  bool WriteToStateFile() const { return true; }
+
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Evaluate(Topology& top);
 
  private:
   Index DetClassicalPairs(Topology& top);
 
-  std::vector<std::string> _included_segments;
-  std::map<std::string, std::map<std::string, double> > _cutoffs;
-  bool _useConstantCutoff;
-  double _constantCutoff;
-  bool _useExcitonCutoff;
-  double _excitonqmCutoff;
+  std::vector<std::string> included_segments_;
+  std::map<std::string, std::map<std::string, double> > cutoffs_;
+  bool useConstantCutoff_;
+  double constantCutoff_;
+  bool useExcitonCutoff_;
+  double excitonqmCutoff_;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_NEIGHBORLIST_PRIVATE_H
+#endif  // VOTCA_XTP_NEIGHBORLIST_H

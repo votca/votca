@@ -1,5 +1,12 @@
 <pseudopotential name="ECP_STUTTGART">
 
+	<element name="B" lmax="3" ncore="2">
+		<shell type="F"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+		<shell type="S"><constant power="2" decay="4.50610000" contraction="23.99296000"></constant></shell>
+		<shell type="P"><constant power="2" decay="5.22950000" contraction="-1.76672400"></constant></shell>
+		<shell type="D"><constant power="2" decay="0.01080000" contraction="-0.00175400"></constant></shell>
+	</element>
+
 	<element name="C" lmax="3" ncore="2">
 		<shell type="F"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
 		<shell type="S"><constant power="2" decay="6.40105200" contraction="33.12163800"></constant></shell>

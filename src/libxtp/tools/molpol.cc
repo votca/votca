@@ -28,24 +28,18 @@
 namespace votca {
 namespace xtp {
 
-void MolPol::Initialize(const tools::Property& user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
+void MolPol::ParseOptions(const tools::Property& options) {
 
   std::string mps_input = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".mpsinput", _job_name + ".mps");
+      ".input", job_name_ + ".mps");
 
-  _input.LoadFromFile(mps_input);
-  _mps_output = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".mpsoutput", _job_name + "_polar.mps");
-  _polar_options = options.get(".options_polar");
+  input_.LoadFromFile(mps_input);
+  mps_output_ = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".output", job_name_ + "_polar.mps");
+  polar_options_ = options.get("polar");
 
   // polar targer or qmpackage logfile
-  const std::string& mode = options.get("mode").as<std::string>();
+  std::string mode = options.get("mode").as<std::string>();
 
   if (mode == "file") {
     Eigen::VectorXd target_vec =
@@ -56,15 +50,15 @@ void MolPol::Initialize(const tools::Property& user_options) {
           " should have this format: pxx pxy pxz pyy pyz pzz");
     }
     target_vec *= std::pow(tools::conv::ang2bohr, 3);
-    _polarization_target(0, 0) = target_vec(0);
-    _polarization_target(1, 0) = target_vec(1);
-    _polarization_target(0, 1) = target_vec(1);
-    _polarization_target(2, 0) = target_vec(2);
-    _polarization_target(0, 2) = target_vec(2);
-    _polarization_target(1, 1) = target_vec(3);
-    _polarization_target(2, 1) = target_vec(4);
-    _polarization_target(1, 2) = target_vec(4);
-    _polarization_target(2, 2) = target_vec(5);
+    polarization_target_(0, 0) = target_vec(0);
+    polarization_target_(1, 0) = target_vec(1);
+    polarization_target_(0, 1) = target_vec(1);
+    polarization_target_(2, 0) = target_vec(2);
+    polarization_target_(0, 2) = target_vec(2);
+    polarization_target_(1, 1) = target_vec(3);
+    polarization_target_(2, 1) = target_vec(4);
+    polarization_target_(1, 2) = target_vec(4);
+    polarization_target_(2, 2) = target_vec(5);
   } else {
     std::string qm_package = options.get(".qmpackage").as<std::string>();
     std::string log_file = options.get(".logfile").as<std::string>();
@@ -80,20 +74,20 @@ void MolPol::Initialize(const tools::Property& user_options) {
     XTP_LOG(Log::error, log)
         << "Using package <" << qm_package << ">" << std::flush;
     QMPackageFactory::RegisterAll();
-    std::unique_ptr<QMPackage> qmpack =
-        std::unique_ptr<QMPackage>(QMPackages().Create(qm_package));
+    std::unique_ptr<QMPackage> qmpack = std::unique_ptr<QMPackage>(
+        QMPackageFactory::QMPackages().Create(qm_package));
     qmpack->setLog(&log);
     qmpack->setRunDir(".");
     qmpack->setLogFileName(log_file);
-    _polarization_target = qmpack->GetPolarizability();
+    polarization_target_ = qmpack->GetPolarizability();
   }
 
-  Eigen::VectorXd default_weights = Eigen::VectorXd::Ones(_input.size());
-  _weights = options.ifExistsReturnElseReturnDefault<Eigen::VectorXd>(
+  Eigen::VectorXd default_weights = Eigen::VectorXd::Ones(input_.size());
+  weights_ = options.ifExistsReturnElseReturnDefault<Eigen::VectorXd>(
       ".weights", default_weights);
 
-  _tolerance_pol = options.get(".tolerance").as<double>();
-  _max_iter = options.get(".iterations").as<Index>();
+  tolerance_pol_ = options.get(".tolerance").as<double>();
+  max_iter_ = options.get(".iterations").as<Index>();
 }
 
 Eigen::Vector3d MolPol::CalcInducedDipole(
@@ -105,7 +99,7 @@ Eigen::Vector3d MolPol::CalcInducedDipole(
   log.setReportLevel(Log::current_level);
 
   PolarRegion pol(0, log);
-  pol.Initialize(_polar_options);
+  pol.Initialize(polar_options_);
   pol.push_back(input);
 
   PolarSegment& workmol = pol[0];
@@ -149,7 +143,7 @@ Eigen::Matrix3d MolPol::CalcClassicalPol(const PolarSegment& input) const {
 void MolPol::Printpolarization(const Eigen::Matrix3d& result) const {
   std::cout << std::endl << "First principle polarization [A^3]" << std::flush;
   double conversion = std::pow(tools::conv::bohr2ang, 3);
-  std::cout << std::endl << _polarization_target * conversion << std::flush;
+  std::cout << std::endl << polarization_target_ * conversion << std::flush;
   std::cout << std::endl << "Scaled classical polarization [A^3]" << std::flush;
   std::cout << std::endl << result * conversion << std::flush;
   std::cout << std::endl
@@ -160,13 +154,13 @@ void MolPol::Printpolarization(const Eigen::Matrix3d& result) const {
   std::cout << std::endl << diag * conversion << std::flush;
 }
 
-bool MolPol::Evaluate() {
-  OPENMP::setMaxThreads(_nThreads);
-  PolarSegment polar = _input;
+bool MolPol::Run() {
+
+  PolarSegment polar = input_;
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
-  es.computeDirect(_polarization_target, Eigen::EigenvaluesOnly);
+  es.computeDirect(polarization_target_, Eigen::EigenvaluesOnly);
   const double pol_volume_target = std::pow(es.eigenvalues().prod(), 1.0 / 3.0);
-  for (Index iter = 0; iter < _max_iter; iter++) {
+  for (Index iter = 0; iter < max_iter_; iter++) {
 
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es2;
     Eigen::Matrix3d pol = CalcClassicalPol(polar);
@@ -174,24 +168,24 @@ bool MolPol::Evaluate() {
     const double pol_volume_iter =
         std::pow(es2.eigenvalues().prod(), 1.0 / 3.0);
     double scale = pol_volume_target / pol_volume_iter - 1;
-    std::cout << "\nIteration " << iter + 1 << " of " << _max_iter
+    std::cout << "\nIteration " << iter + 1 << " of " << max_iter_
               << " target:" << pol_volume_target
               << " current:" << pol_volume_iter << std::endl;
 
     for (Index i = 0; i < polar.size(); i++) {
       Eigen::Matrix3d local_pol = polar[i].getpolarization();
-      polar[i].setpolarization(local_pol * (1 + scale * _weights[i]));
+      polar[i].setpolarization(local_pol * (1 + scale * weights_[i]));
     }
 
-    if (std::abs(scale) < _tolerance_pol) {
+    if (std::abs(scale) < tolerance_pol_) {
       std::cout << std::endl
                 << "... ... Iterative refinement : *CONVERGED*" << std::flush;
       std::cout << std::endl
                 << "... ... Scaling coefficient  : " << scale << std::flush;
-      polar.WriteMPS(_mps_output, "MOLPOL (OPTIMIZED)");
+      polar.WriteMPS(mps_output_, "MOLPOL (OPTIMIZED)");
       Printpolarization(pol);
       break;
-    } else if (iter == (_max_iter - 1)) {
+    } else if (iter == (max_iter_ - 1)) {
       std::cout << std::endl
                 << "... ... Iterative refinement : *FAILED*" << std::flush;
       std::cout << std::endl

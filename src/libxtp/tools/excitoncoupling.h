@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_EXCITONCOUPLING_PRIVATE_H
-#define VOTCA_XTP_EXCITONCOUPLING_PRIVATE_H
+#ifndef VOTCA_XTP_EXCITONCOUPLING_H
+#define VOTCA_XTP_EXCITONCOUPLING_H
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -35,81 +35,75 @@
 namespace votca {
 namespace xtp {
 
-class ExcitonCoupling : public QMTool {
+class ExcitonCoupling final : public QMTool {
  public:
-  std::string Identify() override { return "excitoncoupling"; }
+  std::string Identify() const { return "excitoncoupling"; }
 
-  void Initialize(const tools::Property& user_options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
-  std::string _orbA, _orbB, _orbAB;
+  std::string orbA_, orbB_, orbAB_;
 
-  tools::Property _coupling_options;
-  std::string _output_file;
-  bool _classical;
-  std::string _mpsA;
-  std::string _mpsB;
-  Logger _log;
+  tools::Property coupling_options_;
+  std::string output_file_;
+  bool classical_;
+  std::string mpsA_;
+  std::string mpsB_;
+  Logger log_;
 };
 
-void ExcitonCoupling::Initialize(const tools::Property& user_options) {
+void ExcitonCoupling::ParseOptions(const tools::Property& options) {
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  classical_ = options.get(".use_classical").as<bool>();
 
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
+  if (!classical_) {
 
-  _classical = options.get(".use_classical").as<bool>();
+    coupling_options_.get(".bsecoupling_options");
 
-  if (!_classical) {
-
-    _coupling_options.get(".bsecoupling_options");
-
-    _orbA = options.get(".orbitalsA").as<std::string>();
-    _orbB = options.get(".orbitalsB").as<std::string>();
-    _orbAB = options.get(".orbitalsAB").as<std::string>();
+    orbA_ = options.get(".orbitalsA").as<std::string>();
+    orbB_ = options.get(".orbitalsB").as<std::string>();
+    orbAB_ = options.get(".orbitalsAB").as<std::string>();
 
   } else {
-    _mpsA = options.get(".mpsA").as<std::string>();
-    _mpsB = options.get(".mpsB").as<std::string>();
+    mpsA_ = options.get(".mpsA").as<std::string>();
+    mpsB_ = options.get(".mpsB").as<std::string>();
   }
-  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
-      "output", _job_name + "_excitoncoupling.xml");
+  output_file_ = job_name_ + "_excitoncoupling.xml";
 }
 
-bool ExcitonCoupling::Evaluate() {
-  OPENMP::setMaxThreads(_nThreads);
-  _log.setReportLevel(Log::current_level);
-  _log.setMultithreading(true);
+bool ExcitonCoupling::Run() {
 
-  _log.setCommonPreface("\n... ...");
+  log_.setReportLevel(Log::current_level);
+  log_.setMultithreading(true);
+
+  log_.setCommonPreface("\n... ...");
   tools::Property summary;
   tools::Property& job_output = summary.add("output", "");
   // get the corresponding object from the QMPackageFactory
-  if (!_classical) {
+  if (!classical_) {
     Orbitals orbitalsA, orbitalsB, orbitalsAB;
     // load the QM data from serialized orbitals objects
 
-    XTP_LOG(Log::error, _log)
-        << " Loading QM data for molecule A from " << _orbA << std::flush;
-    orbitalsA.ReadFromCpt(_orbA);
+    XTP_LOG(Log::error, log_)
+        << " Loading QM data for molecule A from " << orbA_ << std::flush;
+    orbitalsA.ReadFromCpt(orbA_);
 
-    XTP_LOG(Log::error, _log)
-        << " Loading QM data for molecule B from " << _orbB << std::flush;
-    orbitalsB.ReadFromCpt(_orbB);
+    XTP_LOG(Log::error, log_)
+        << " Loading QM data for molecule B from " << orbB_ << std::flush;
+    orbitalsB.ReadFromCpt(orbB_);
 
-    XTP_LOG(Log::error, _log)
-        << " Loading QM data for dimer AB from " << _orbAB << std::flush;
-    orbitalsAB.ReadFromCpt(_orbAB);
+    XTP_LOG(Log::error, log_)
+        << " Loading QM data for dimer AB from " << orbAB_ << std::flush;
+    orbitalsAB.ReadFromCpt(orbAB_);
 
     BSECoupling bsecoupling;
-    bsecoupling.setLogger(&_log);
-    bsecoupling.Initialize(_coupling_options);
+    bsecoupling.setLogger(&log_);
+    bsecoupling.Initialize(coupling_options_);
 
     bsecoupling.CalculateCouplings(orbitalsA, orbitalsB, orbitalsAB);
-    std::cout << _log;
+    std::cout << log_;
 
     tools::Property& pair_summary = job_output.add("pair", "");
     tools::Property& type_summary = pair_summary.add("type", "");
@@ -117,29 +111,29 @@ bool ExcitonCoupling::Evaluate() {
 
   }
 
-  else if (_classical) {
-    XTP_LOG(Log::error, _log)
+  else if (classical_) {
+    XTP_LOG(Log::error, log_)
         << "Calculating electronic coupling using classical transition charges."
-        << _orbB << std::flush;
+        << orbB_ << std::flush;
     PolarSegment seg1 = PolarSegment("A", 0);
     PolarSegment seg2 = PolarSegment("B", 1);
-    seg1.LoadFromFile(_mpsA);
-    seg2.LoadFromFile(_mpsB);
+    seg1.LoadFromFile(mpsA_);
+    seg2.LoadFromFile(mpsB_);
     eeInteractor ee;
     double J = ee.CalcStaticEnergy(seg1, seg2);
 
     tools::Property& pair_summary = job_output.add("pair", "");
     pair_summary.setAttribute("idA", 1);
     pair_summary.setAttribute("idB", 2);
-    pair_summary.setAttribute("typeA", _mpsA);
-    pair_summary.setAttribute("typeB", _mpsB);
+    pair_summary.setAttribute("typeA", mpsA_);
+    pair_summary.setAttribute("typeB", mpsB_);
     tools::Property& coupling_summary = pair_summary.add("Coupling", "");
     coupling_summary.setAttribute("jABstatic", J);
   }
 
   tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
 
-  std::ofstream ofs(_output_file, std::ofstream::out);
+  std::ofstream ofs(output_file_, std::ofstream::out);
   ofs << job_output;
   ofs.close();
   return true;
@@ -148,4 +142,4 @@ bool ExcitonCoupling::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_EXCITONCOUPLING_PRIVATE_H
+#endif  // VOTCA_XTP_EXCITONCOUPLING_H

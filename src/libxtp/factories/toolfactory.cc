@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -28,9 +28,11 @@
 #include "tools/excitoncoupling.h"
 #include "tools/gencube.h"
 #include "tools/log2mps.h"
+#include "tools/mol2orb.h"
 #include "tools/molpol.h"
+#include "tools/orb2fchk.h"
+#include "tools/orb2mol.h"
 #include "tools/partialcharges.h"
-#include "tools/qmsandbox.h"
 #include "tools/spectrum.h"
 
 namespace votca {
@@ -40,7 +42,6 @@ void QMToolFactory::RegisterAll(void) {
 
   QMTools().Register<Log2Mps>("log2mps");
   QMTools().Register<DftGwBse>("dftgwbse");
-  QMTools().Register<QMSandbox>("qmsandbox");
   QMTools().Register<Spectrum>("spectrum");
   QMTools().Register<ExcitonCoupling>("excitoncoupling");
   QMTools().Register<GenCube>("gencube");
@@ -49,6 +50,9 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<Coupling>("coupling");
   QMTools().Register<MolPol>("molpol");
   QMTools().Register<APDFT>("apdft");
+  QMTools().Register<Mol2Orb>("mol2orb");
+  QMTools().Register<Orb2Mol>("orb2mol");
+  QMTools().Register<Orb2Fchk>("orb2fchk");
 }
 
 }  // namespace xtp

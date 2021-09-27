@@ -28,13 +28,13 @@
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/threecenter.h"
-
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(threecenter_gwbse_test)
 BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
-
+  libint2::initialize();
   QMMolecule mol(" ", 0);
   mol.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                    "/threecenter_gwbse/molecule.xyz");
@@ -47,8 +47,7 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
   Eigen::MatrixXd MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_gwbse/MOs.mm");
 
-  Logger log;
-  TCMatrix_gwbse tc{log};
+  TCMatrix_gwbse tc;
   tc.Initialize(aobasis.AOBasisSize(), 0, 5, 0, 7);
   tc.Fill(aobasis, aobasis, MOs);
 
@@ -122,5 +121,7 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
   }
 
   BOOST_CHECK_EQUAL(check4_after, true);
+
+  libint2::finalize();
 }
 BOOST_AUTO_TEST_SUITE_END()

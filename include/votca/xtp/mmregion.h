@@ -38,9 +38,11 @@ class MMRegion : public Region {
   MMRegion(Index id, Logger& log) : Region(id, log){};
   void WriteToCpt(CheckpointWriter& w) const override;
 
+  using SegmentType = T;
+
   void ReadFromCpt(CheckpointReader& r) override;
 
-  Index size() const override { return Index(_segments.size()); }
+  Index size() const override { return Index(segments_.size()); }
 
   using iterator = typename std::vector<T>::iterator;
 
@@ -52,17 +54,17 @@ class MMRegion : public Region {
 
   std::string identify() const override = 0;
 
-  const T& operator[](Index index) const { return _segments[index]; }
-  T& operator[](Index index) { return _segments[index]; }
+  const T& operator[](Index index) const { return segments_[index]; }
+  T& operator[](Index index) { return segments_[index]; }
 
-  typename std::vector<T>::iterator begin() { return _segments.begin(); }
-  typename std::vector<T>::iterator end() { return _segments.end(); }
+  typename std::vector<T>::iterator begin() { return segments_.begin(); }
+  typename std::vector<T>::iterator end() { return segments_.end(); }
 
   typename std::vector<T>::const_iterator begin() const {
-    return _segments.begin();
+    return segments_.begin();
   }
   typename std::vector<T>::const_iterator end() const {
-    return _segments.end();
+    return segments_.end();
   }
 
   double Etotal() const override = 0;
@@ -73,7 +75,7 @@ class MMRegion : public Region {
 
   void WritePDB(csg::PDBWriter& writer) const override;
 
-  void push_back(const T& seg) { _segments.push_back(seg); }
+  void push_back(const T& seg) { segments_.push_back(seg); }
 
  protected:
   void AppendResult(tools::Property& prop) const override = 0;
@@ -81,7 +83,7 @@ class MMRegion : public Region {
   double InteractwithPolarRegion(const PolarRegion& region) override = 0;
   double InteractwithStaticRegion(const StaticRegion& region) override = 0;
 
-  std::vector<T> _segments;
+  std::vector<T> segments_;
 };
 
 }  // namespace xtp

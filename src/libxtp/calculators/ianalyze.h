@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_IANALYZE_PRIVATE_H
-#define VOTCA_XTP_IANALYZE_PRIVATE_H
+#ifndef VOTCA_XTP_IANALYZE_H
+#define VOTCA_XTP_IANALYZE_H
 
 // Local VOTCA includes
 #include "votca/xtp/qmcalculator.h"
@@ -29,25 +29,28 @@
 namespace votca {
 namespace xtp {
 
-class IAnalyze : public QMCalculator {
+class IAnalyze final : public QMCalculator {
  public:
-  std::string Identify() override { return "ianalyze"; }
-  bool WriteToStateFile() const override { return false; }
-  void Initialize(const tools::Property &user_options) override;
-  bool EvaluateFrame(Topology &top) override;
+  std::string Identify() const { return "ianalyze"; }
+  bool WriteToStateFile() const { return false; }
+
+ protected:
+  void ParseOptions(const tools::Property &user_options);
+  bool Evaluate(Topology &top);
+
+ private:
   void IHist(Topology &top, QMStateType state);
   void IRdependence(Topology &top, QMStateType state);
 
- private:
-  double _resolution_logJ2;
-  std::vector<QMStateType> _states;
-  double _resolution_spatial;
-  std::vector<QMPair::PairType> _pairtype;
-  bool _do_pairtype = false;
-  bool _do_IRdependence = false;
+  double resolution_logJ2_;
+  std::vector<QMStateType> states_;
+  double resolution_spatial_;
+  std::vector<QMPair::PairType> pairtype_;
+  bool do_pairtype_ = false;
+  bool do_IRdependence_ = false;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_IANALYZE_PRIVATE_H
+#endif  // VOTCA_XTP_IANALYZE_H

@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_MAPCHECKER_PRIVATE_H
-#define VOTCA_XTP_MAPCHECKER_PRIVATE_H
+#ifndef VOTCA_XTP_MAPCHECKER_H
+#define VOTCA_XTP_MAPCHECKER_H
 
 // VOTCA includes
 #include <votca/tools/filesystem.h>
@@ -31,16 +31,18 @@
 namespace votca {
 namespace xtp {
 
-class MapChecker : public QMCalculator {
+class MapChecker final : public QMCalculator {
  public:
   MapChecker() = default;
 
-  ~MapChecker() override = default;
+  ~MapChecker() = default;
 
-  std::string Identify() override { return "mapchecker"; }
-  bool WriteToStateFile() const override { return false; }
-  void Initialize(const tools::Property& user_options) override;
-  bool EvaluateFrame(Topology& top) override;
+  std::string Identify() const { return "mapchecker"; }
+  bool WriteToStateFile() const { return false; }
+
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Evaluate(Topology& top);
 
  private:
   std::string AddSteptoFilename(const std::string& filename, Index step) const;
@@ -49,47 +51,29 @@ class MapChecker : public QMCalculator {
 
   std::vector<QMState> StringToStates(const std::string& states_string) const;
 
-  std::string _segmentfile;
-  std::string _qmfile;
-  std::string _mpfile;
-  std::string _mapfile = "";
+  std::string segmentfile_;
+  std::string qmfile_;
+  std::string mpfile_;
+  std::string mapfile_ = "";
 
-  std::vector<QMState> _qmstates;
-  std::vector<QMState> _mdstates;
+  std::vector<QMState> qmstates_;
+  std::vector<QMState> mdstates_;
 };
 
-void MapChecker::Initialize(const tools::Property& user_options) {
+void MapChecker::ParseOptions(const tools::Property& options) {
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  segmentfile_ = options.get(".md_pdbfile").as<std::string>();
 
-  _segmentfile = options.get(".md_pdbfile").as<std::string>();
+  qmfile_ = options.get(".qm_pdbfile").as<std::string>();
 
-  _qmfile = options.get(".qm_pdbfile").as<std::string>();
+  mpfile_ = options.get(".mp_pdbfile").as<std::string>();
 
-  _mpfile = options.get(".mp_pdbfile").as<std::string>();
+  qmstates_ = options.get(".qm_states").as<std::vector<QMState>>();
 
-  std::string output_qm =
-      options.ifExistsReturnElseReturnDefault<std::string>(".qm_states", "");
-
-  _qmstates = StringToStates(output_qm);
-  std::string output_md =
-      options.ifExistsReturnElseReturnDefault<std::string>(".mp_states", "");
-  _mdstates = StringToStates(output_md);
-  if (!(_qmstates.empty() && _mdstates.empty())) {
-    _mapfile = options.get(".map_file").as<std::string>();
+  mdstates_ = options.get(".mp_states").as<std::vector<QMState>>();
+  if (!(qmstates_.empty() && mdstates_.empty())) {
+    mapfile_ = options.get(".map_file").as<std::string>();
   }
-}
-
-std::vector<QMState> MapChecker::StringToStates(
-    const std::string& states_string) const {
-  std::vector<QMState> result;
-  tools::Tokenizer tok_states(states_string, " \t\n");
-  std::vector<std::string> states = tok_states.ToVector();
-  for (const std::string& s : states) {
-    result.push_back(QMState(s));
-  }
-  return result;
 }
 
 std::string MapChecker::AddStatetoFilename(const std::string& filename,
@@ -100,9 +84,9 @@ std::string MapChecker::AddStatetoFilename(const std::string& filename,
   return filename_comp;
 }
 
-bool MapChecker::EvaluateFrame(Topology& top) {
+bool MapChecker::Evaluate(Topology& top) {
   std::cout << std::endl;
-  std::string filename = AddSteptoFilename(_segmentfile, top.getStep());
+  std::string filename = AddSteptoFilename(segmentfile_, top.getStep());
   std::cout << "Writing segments to " << filename << std::endl;
   top.WriteToPdb(filename);
 
@@ -112,9 +96,9 @@ bool MapChecker::EvaluateFrame(Topology& top) {
 
   QMMapper map(log);
 
-  for (QMState state : _qmstates) {
-    map.LoadMappingFile(_mapfile);
-    std::string filename_qm = AddStatetoFilename(_qmfile, state);
+  for (QMState state : qmstates_) {
+    map.LoadMappingFile(mapfile_);
+    std::string filename_qm = AddStatetoFilename(qmfile_, state);
     csg::PDBWriter qmwriter;
     std::string filename_qm_state =
         AddSteptoFilename(filename_qm, top.getStep());
@@ -131,9 +115,9 @@ bool MapChecker::EvaluateFrame(Topology& top) {
   }
 
   PolarMapper mp(log);
-  for (QMState state : _mdstates) {
-    mp.LoadMappingFile(_mapfile);
-    std::string filename_mp = AddStatetoFilename(_mpfile, state);
+  for (QMState state : mdstates_) {
+    mp.LoadMappingFile(mapfile_);
+    std::string filename_mp = AddStatetoFilename(mpfile_, state);
     csg::PDBWriter mpwriter;
     std::string filename_mp_state =
         AddSteptoFilename(filename_mp, top.getStep());
@@ -164,4 +148,4 @@ std::string MapChecker::AddSteptoFilename(const std::string& filename,
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_MAPCHECKER_PRIVATE_H
+#endif  // VOTCA_XTP_MAPCHECKER_H

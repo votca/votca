@@ -55,13 +55,13 @@ class AOBasis;
 
 class GWBSE {
  public:
-  GWBSE(Orbitals& orbitals) : _orbitals(orbitals){};
+  GWBSE(Orbitals& orbitals) : orbitals_(orbitals){};
 
   void Initialize(tools::Property& options);
 
   std::string Identify() { return "gwbse"; }
 
-  void setLogger(Logger* pLog) { _pLog = pLog; }
+  void setLogger(Logger* pLog) { pLog_ = pLog; }
 
   bool Evaluate();
 
@@ -70,32 +70,33 @@ class GWBSE {
  private:
   Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
   Index CountCoreLevels();
-  Logger* _pLog;
-  Orbitals& _orbitals;
+  Logger* pLog_;
+  Orbitals& orbitals_;
 
   // program tasks
 
-  bool _do_gw = false;
-  bool _do_bse_singlets = false;
-  bool _do_bse_triplets = false;
+  bool do_gw_ = false;
+  bool do_bse_singlets_ = false;
+  bool do_bse_triplets_ = false;
+  bool do_dynamical_screening_bse_ = false;
 
   // options for own Vxc calculation
-  std::string _functional;
-  std::string _grid;
+  std::string functional_;
+  std::string grid_;
 
-  GW::options _gwopt;
-  BSE::options _bseopt;
+  GW::options gwopt_;
+  BSE::options bseopt_;
 
-  std::string _sigma_plot_states;
-  Index _sigma_plot_steps;
-  double _sigma_plot_spacing;
-  std::string _sigma_plot_filename;
+  std::string sigma_plot_states_;
+  Index sigma_plot_steps_;
+  double sigma_plot_spacing_;
+  std::string sigma_plot_filename_;
 
   // basis sets
-  std::string _auxbasis_name;
-  std::string _dftbasis_name;
+  std::string auxbasis_name_;
+  std::string dftbasis_name_;
 
-  std::vector<QMFragment<BSE_Population> > _fragments;
+  std::vector<QMFragment<BSE_Population> > fragments_;
 };
 }  // namespace xtp
 }  // namespace votca

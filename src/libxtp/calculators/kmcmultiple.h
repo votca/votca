@@ -16,8 +16,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_KMCMULTIPLE_PRIVATE_H
-#define VOTCA_XTP_KMCMULTIPLE_PRIVATE_H
+#ifndef VOTCA_XTP_KMCMULTIPLE_H
+#define VOTCA_XTP_KMCMULTIPLE_H
 
 // Standard includes
 #include <fstream>
@@ -28,17 +28,19 @@
 namespace votca {
 namespace xtp {
 
-class KMCMultiple : public KMCCalculator {
+class KMCMultiple final : public KMCCalculator {
  public:
   KMCMultiple() = default;
-  ~KMCMultiple() override = default;
-  bool WriteToStateFile() const override { return false; }
-  std::string Identify() override { return "kmcmultiple"; }
-  void Initialize(const tools::Property& user_options) override;
-  bool EvaluateFrame(Topology& top) override;
+  ~KMCMultiple() = default;
+  bool WriteToStateFile() const { return false; }
+  std::string Identify() const { return "kmcmultiple"; }
+
+ protected:
+  void ParseSpecificOptions(const tools::Property& user_options);
+  bool Evaluate(Topology& top);
 
  private:
-  void RunVSSM() override;
+  void RunVSSM();
   void PrintChargeVelocity(double simtime);
 
   void PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
@@ -54,14 +56,14 @@ class KMCMultiple : public KMCCalculator {
   void PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor, double simtime,
                       unsigned long step);
 
-  double _runtime;
-  double _outputtime;
-  std::string _timefile = "";
-  Index _intermediateoutput_frequency = 10000;
-  unsigned long _diffusionresolution = 1000;
+  double runtime_;
+  double outputtime_;
+  std::string timefile_ = "";
+  Index intermediateoutput_frequency_ = 10000;
+  unsigned long diffusionresolution_ = 1000;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_KMCMULTIPLE_PRIVATE_H
+#endif  // VOTCA_XTP_KMCMULTIPLE_H

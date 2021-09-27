@@ -22,6 +22,7 @@
 #define VOTCA_XTP_ORCA_H
 
 // Local VOTCA includes
+#include "votca/xtp/orbreorder.h"
 #include "votca/xtp/qmpackage.h"
 
 namespace votca {
@@ -34,17 +35,15 @@ namespace xtp {
 
 */
 class Orbitals;
-class Orca : public QMPackage {
+class Orca final : public QMPackage {
  public:
   std::string getPackageName() const override { return "orca"; }
-
-  void Initialize(const tools::Property& options) override;
 
   bool WriteInputFile(const Orbitals& orbitals) override;
 
   bool WriteShellScript();
 
-  bool Run() override;
+  bool RunDFT() override;
 
   void CleanUp() override;
 
@@ -59,30 +58,37 @@ class Orca : public QMPackage {
   Eigen::Matrix3d GetPolarizability() const override;
 
  protected:
-  const std::array<Index, 25>& ShellMulitplier() const final {
-    return _multipliers;
+  void ParseSpecificOptions(const tools::Property& options) final;
+  const std::array<Index, 49>& ShellMulitplier() const final {
+    return multipliers_;
   }
-  const std::array<Index, 25>& ShellReorder() const final { return _reorder; }
+  const std::array<Index, 49>& ShellReorder() const final {
+    return reorderList_;
+  }
 
  private:
   // clang-format off
-  std::array<Index,25> _multipliers={
+  std::array<Index,49>  multipliers_={{
             1, //s
             1,1,1, //p
             1,1,1,1,1, //d
-            1,1,1,1,1,-1,-1, //f 
-            1,1,1,1,1,-1,-1,-1,-1 //g
-            };
-  std::array<Index,25> _reorder={
+            -1,1,1,1,1,1,-1, //f 
+            -1,-1,1,1,1,1,1,-1,-1, //g
+            -1,-1,-1,1,1,1,1,1,-1,-1,-1, //h
+            -1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1 //i
+            }};
+  std::array<Index,49>  reorderList_{{
             0, //s
-            0,+1,-1, //p orca order is z,x,y Y1,0,Y1,1,Y1,-1
-            0,+1,-1,+1,-1, //d orca order is d3z2-r2 dxz dyz dx2-y2 dxy e.g. Y2,0 Y2,1 Y2,-1 Y2,2
-            0,+1,-1,+1,-1,+1,-1, //f 
-            0,+1,-1,+1,-1,+1,-1,+1,-1 //g
-            };
+            0, 1,-1, //p
+            0,1,-1,2,-2, //d
+            0,1,-1,2,-2,3,-3, //f 
+            0,1,-1,2,-2,3,-3,4,-4, //g
+            0,1,-1,2,-2,3,-3,4,-4,5,-5, //h
+            0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6 //i
+            }};
+
   // clang-format on
   std::string indent(const double& number);
-  std::string getLName(Index lnum);
 
   void WriteBasisset(const QMMolecule& qmatoms, std::string& bs_name,
                      std::string& el_file_name);
@@ -95,11 +101,11 @@ class Orca : public QMPackage {
   void GetCoordinates(T& mol, std::string& line,
                       std::ifstream& input_file) const;
   std::string WriteMethod() const;
-  std::string CreateInputSection(const std::string& key,
-                                 bool single_line = false) const;
+  std::string CreateInputSection(const std::string& key) const;
+  bool KeywordIsSingleLine(const std::string& key) const;
   std::string GetOrcaFunctionalName() const;
 
-  std::unordered_map<std::string, std::string> _convergence_map{
+  std::map<std::string, std::string> convergence_map_{
       {"low", "LooseSCF"},
       {"normal", "StrongSCF"},
       {"tight", "TightSCF"},

@@ -39,7 +39,7 @@ enum Estatic : bool {
 class eeInteractor {
  public:
   explicit eeInteractor() = default;
-  explicit eeInteractor(double expdamping) : _expdamping(expdamping){};
+  explicit eeInteractor(double expdamping) : expdamping_(expdamping){};
 
   Eigen::Matrix3d FillTholeInteraction(const PolarSite& site1,
                                        const PolarSite& site2) const;
@@ -59,25 +59,25 @@ class eeInteractor {
   class E_terms {
    public:
     E_terms& operator+=(const E_terms& right) {
-      this->_data += right._data;
+      this->data_ += right.data_;
       return *this;
     }
 
     E_terms operator+(E_terms right) const {
-      right._data += this->_data;
+      right.data_ += this->data_;
       return right;
     }
 
-    double sum() { return _data.sum(); }
+    double sum() { return data_.sum(); }
 
-    double& E_indu_indu() { return _data.x(); }
-    double& E_indu_stat() { return _data.y(); }
-    double& E_internal() { return _data.z(); }
+    double& E_indu_indu() { return data_.x(); }
+    double& E_indu_stat() { return data_.y(); }
+    double& E_internal() { return data_.z(); }
 
-    const Eigen::Vector3d& data() const { return _data; }
+    const Eigen::Vector3d& data() const { return data_; }
 
    private:
-    Eigen::Vector3d _data = Eigen::Vector3d::Zero();
+    Eigen::Vector3d data_ = Eigen::Vector3d::Zero();
   };
 
   template <class S1, class S2>
@@ -92,24 +92,6 @@ class eeInteractor {
                                const StaticSite& site2) const;
 
  private:
-  class AxA {
-   public:
-    AxA(const Eigen::Vector3d& a) {
-      _data.segment<3>(0) = a.x() * a;
-      _data.segment<2>(3) = a.y() * a.segment<2>(1);
-      _data[5] = a.z() * a.z();
-    }
-    inline const double& xx() const { return _data[0]; }
-    inline const double& xy() const { return _data[1]; }
-    inline const double& xz() const { return _data[2]; }
-    inline const double& yy() const { return _data[3]; }
-    inline const double& yz() const { return _data[4]; }
-    inline const double& zz() const { return _data[5]; }
-
-   private:
-    Eigen::Matrix<double, 6, 1> _data;
-  };
-
   template <int N>
   Eigen::Matrix<double, N, 1> VSiteA(const StaticSite& site1,
                                      const StaticSite& site2) const;
@@ -127,7 +109,7 @@ class eeInteractor {
   E_terms CalcPolarEnergy_site(const PolarSite& site1,
                                const PolarSite& site2) const;
 
-  double _expdamping = 0.39;  // dimensionless
+  double expdamping_ = 0.39;  // dimensionless
 };
 
 }  // namespace xtp

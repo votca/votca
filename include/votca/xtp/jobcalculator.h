@@ -41,19 +41,23 @@ class JobCalculator : public tools::Calculator {
   JobCalculator() = default;
   ~JobCalculator() override = default;
 
-  std::string Identify() override = 0;
+  std::string Identify() const override = 0;
+  std::string Package() const final { return "xtp"; }
+  bool EvaluateFrame(const Topology &top) { return Evaluate(top); }
 
-  virtual bool EvaluateFrame(const Topology &top) = 0;
-
+  void Initialize(const tools::Property &opt) final { ParseOptions(opt); }
   virtual void WriteJobFile(const Topology &top) = 0;
   virtual void ReadJobFile(Topology &top) = 0;
 
-  void setOpenMPThreads(Index ompthreads) { _openmp_threads = ompthreads; }
-  void setProgObserver(ProgObserver<std::vector<Job> > *obs) { _progObs = obs; }
+  void setOpenMPThreads(Index ompthreads) { openmp_threads_ = ompthreads; }
+  void setProgObserver(ProgObserver<std::vector<Job> > *obs) { progObs_ = obs; }
 
  protected:
-  Index _openmp_threads;
-  ProgObserver<std::vector<Job> > *_progObs;
+  virtual void ParseOptions(const tools::Property &opt) = 0;
+  virtual bool Evaluate(const Topology &top) = 0;
+
+  Index openmp_threads_;
+  ProgObserver<std::vector<Job> > *progObs_;
 };
 
 }  // namespace xtp

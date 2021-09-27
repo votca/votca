@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_LOCALISATION_FILTER_PRIVATE_H
-#define VOTCA_XTP_LOCALISATION_FILTER_PRIVATE_H
+#ifndef VOTCA_XTP_LOCALISATION_FILTER_H
+#define VOTCA_XTP_LOCALISATION_FILTER_H
 
 // Local VOTCA includes
 #include "votca/xtp/qmfragment.h"
@@ -54,10 +54,10 @@ class Localisation_filter : public StateFilter_base {
   void ReadFromCpt(CheckpointReader& r) final;
 
  private:
-  QMFragment<double> _fragment;
+  QMFragment<double> fragment_;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_LOCALISATION_FILTER_PRIVATE_H
+#endif  // VOTCA_XTP_LOCALISATION_FILTER_H

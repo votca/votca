@@ -19,6 +19,8 @@
 
 // Local VOTCA includes
 #include "votca/xtp/cudapipeline.h"
+#include <stdexcept>
+#include <string>
 
 namespace votca {
 namespace xtp {
@@ -26,31 +28,26 @@ namespace xtp {
 CudaPipeline::~CudaPipeline() {
 
   // destroy handle
-  cublasDestroy(_handle);
+  cublasDestroy(handle_);
   // destroy stream
-  cudaStreamDestroy(_stream);
+  cudaStreamDestroy(stream_);
 }
 
-/*
- * Call the gemm function from cublas, resulting in the multiplication of the
- * two matrices
- */
-void CudaPipeline::gemm(const CudaMatrix &A, const CudaMatrix &B,
-                        CudaMatrix &C) const {
+void CudaPipeline::axpy(const CudaMatrix &A, CudaMatrix &B,
+                        double alpha) const {
 
-  // Scalar constanst for calling blas
-  double alpha = 1.;
-  double beta = 0.;
-  const double *palpha = &alpha;
-  const double *pbeta = &beta;
-
-  if ((A.cols() != B.rows())) {
-    throw std::runtime_error("Shape mismatch in Cublas gemm");
+  if (A.rows() != B.rows() || A.cols() != B.cols()) {
+    throw std::runtime_error("Shape mismatch in cuda axpy");
   }
-  cublasSetStream(_handle, _stream);
-  cublasDgemm(_handle, CUBLAS_OP_N, CUBLAS_OP_N, int(A.rows()), int(B.cols()),
-              int(A.cols()), palpha, A.data(), int(A.rows()), B.data(),
-              int(B.rows()), pbeta, C.data(), int(C.rows()));
+
+  cublasSetStream(handle_, stream_);
+  cublasStatus_t status =
+      cublasDaxpy(handle_, int(A.size()), &alpha, A.data(), 1, B.data(), 1);
+
+  if (status != CUBLAS_STATUS_SUCCESS) {
+    throw std::runtime_error("axpy failed on gpu " + std::to_string(deviceID_) +
+                             " with errorcode:" + cudaGetErrorEnum(status));
+  }
 }
 
 }  // namespace xtp

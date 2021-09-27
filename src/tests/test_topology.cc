@@ -18,7 +18,7 @@
 #define BOOST_TEST_MODULE topology_test
 
 // Third party includes
-#include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/tools/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 
 // VOTCA includes

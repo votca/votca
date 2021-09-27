@@ -17,52 +17,44 @@
 
 // Local private VOTCA includes
 #include "eanalyze.h"
+#include "votca/xtp/qmstate.h"
 
 namespace votca {
 namespace xtp {
 
-void EAnalyze::Initialize(const tools::Property &user_options) {
+void EAnalyze::ParseOptions(const tools::Property &options) {
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  resolution_pairs_ = options.get(".resolution_pairs").as<double>();
+  resolution_sites_ = options.get(".resolution_sites").as<double>();
+  resolution_spatial_ = options.get(".resolution_spatial").as<double>();
+  seg_pattern_ = options.get(".match_pattern").as<std::string>();
 
-  _resolution_pairs = options.get(".resolution_pairs").as<double>();
-  _resolution_sites = options.get(".resolution_sites").as<double>();
-  _resolution_spatial = options.get(".resolution_spatial").as<double>();
-  _seg_pattern = options.get(".match_pattern").as<std::string>();
+  states_ = options.get(".states").as<std::vector<QMStateType>>();
 
-  std::string statestrings = options.get(".states").as<std::string>();
-  tools::Tokenizer tok(statestrings, ",\n\t ");
-  std::vector<std::string> string_vec;
-  tok.ToVector(string_vec);
-  for (std::string &state : string_vec) {
-    _states.push_back(QMStateType(state));
-  }
+  doenergy_landscape_ = options.get(".output_energy_landscape").as<bool>();
 
-  _doenergy_landscape = options.get(".do_energy_landscape").as<bool>();
-
-  if (options.get(".do_distance_mode").as<bool>()) {
+  if (options.exists(".distancemode")) {
     std::string distancemode = options.get("distancemode").as<std::string>();
     if (distancemode == "centerofmass") {
-      _atomdistances = false;
+      atomdistances_ = false;
     } else {
-      _atomdistances = true;
+      atomdistances_ = true;
     }
   }
 }
 
-bool EAnalyze::EvaluateFrame(Topology &top) {
+bool EAnalyze::Evaluate(Topology &top) {
 
   // Short-list segments according to pattern
   for (Segment &seg : top.Segments()) {
     std::string seg_name = seg.getType();
-    if (votca::tools::wildcmp(_seg_pattern, seg_name)) {
-      _seg_shortlist.push_back(&seg);
+    if (votca::tools::wildcmp(seg_pattern_, seg_name)) {
+      seg_shortlist_.push_back(&seg);
     }
   }
   std::cout << std::endl
-            << "... ... Short-listed " << _seg_shortlist.size()
-            << " segments (pattern='" << _seg_pattern << "')" << std::flush;
+            << "... ... Short-listed " << seg_shortlist_.size()
+            << " segments (pattern='" << seg_pattern_ << "')" << std::flush;
   std::cout
       << std::endl
       << "... ... ... NOTE Statistics of site energies and spatial"
@@ -80,11 +72,11 @@ bool EAnalyze::EvaluateFrame(Topology &top) {
 
   const QMNBList &nblist = top.NBList();
 
-  for (QMStateType state : _states) {
+  for (QMStateType state : states_) {
     std::cout << std::endl
               << "... ... excited state " << state.ToString() << std::flush;
 
-    if (!_seg_shortlist.size()) {
+    if (!seg_shortlist_.size()) {
       std::cout << std::endl
                 << "... ... ... No segments short-listed. Skip ... "
                 << std::flush;
@@ -100,15 +92,15 @@ bool EAnalyze::EvaluateFrame(Topology &top) {
       PairHist(top, state);
     }
   }
-
+  std::cout << std::endl;
   return true;
 }
 
 void EAnalyze::SiteHist(QMStateType state) const {
 
   std::vector<double> Es;
-  Es.reserve(_seg_shortlist.size());
-  for (Segment *seg : _seg_shortlist) {
+  Es.reserve(seg_shortlist_.size());
+  for (Segment *seg : seg_shortlist_) {
     Es.push_back(seg->getSiteEnergy(state) * tools::conv::hrt2ev);
   }
 
@@ -120,7 +112,7 @@ void EAnalyze::SiteHist(QMStateType state) const {
   double STD = std::sqrt(sq_sum / double(Es.size()) - AVG * AVG);
 
   // Prepare bins
-  Index BIN = Index((MAX - MIN) / _resolution_sites + 0.5) + 1;
+  Index BIN = Index((MAX - MIN) / resolution_sites_ + 0.5) + 1;
 
   tools::HistogramNew hist;
   hist.Initialize(MIN, MAX, BIN);
@@ -137,18 +129,18 @@ void EAnalyze::SiteHist(QMStateType state) const {
   tab.Save(filename);
 
   // Write "seg x y z energy" with atomic {x,y,z}
-  if (_doenergy_landscape) {
+  if (doenergy_landscape_) {
     std::string filename2 = "eanalyze.landscape_" + state.ToString() + ".out";
     std::ofstream out;
     out.open(filename2);
     if (!out) {
       throw std::runtime_error("error, cannot open file " + filename2);
     }
-    for (Segment *seg : _seg_shortlist) {
-      if (seg->getId() < _first_seg) {
+    for (Segment *seg : seg_shortlist_) {
+      if (seg->getId() < first_seg_) {
         continue;
       }
-      if (seg->getId() == _last_seg) {
+      if (seg->getId() == last_seg_) {
         break;
       }
       double E = seg->getSiteEnergy(state);
@@ -191,7 +183,7 @@ void EAnalyze::PairHist(const Topology &top, QMStateType state) const {
   double AVG = sum / double(dE.size());
   double sq_sum = std::inner_product(dE.begin(), dE.end(), dE.begin(), 0.0);
   double STD = std::sqrt(sq_sum / double(dE.size()) - AVG * AVG);
-  Index BIN = Index((MAX - MIN) / _resolution_pairs + 0.5) + 1;
+  Index BIN = Index((MAX - MIN) / resolution_pairs_ + 0.5) + 1;
 
   std::string filename2 = "eanalyze.pairhist_" + state.ToString() + ".out";
   tools::HistogramNew hist;
@@ -211,8 +203,8 @@ void EAnalyze::PairHist(const Topology &top, QMStateType state) const {
 void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
 
   std::vector<double> Es;
-  Es.reserve(_seg_shortlist.size());
-  for (Segment *seg : _seg_shortlist) {
+  Es.reserve(seg_shortlist_.size());
+  for (Segment *seg : seg_shortlist_) {
     Es.push_back(seg->getSiteEnergy(state) * tools::conv::hrt2ev);
   }
 
@@ -225,15 +217,15 @@ void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
   // Collect inter-site distances, correlation product
   tools::Table tabcorr;
   Index length =
-      Index(_seg_shortlist.size()) * Index(_seg_shortlist.size() - 1) / 2;
+      Index(seg_shortlist_.size()) * Index(seg_shortlist_.size() - 1) / 2;
   tabcorr.resize(length);
   Index index = 0;
-  for (Index i = 0; i < Index(_seg_shortlist.size()); i++) {
-    const Segment &segi = *_seg_shortlist[i];
-    for (Index j = i + 1; j < Index(_seg_shortlist.size()); j++) {
-      const Segment &segj = *_seg_shortlist[j];
+  for (Index i = 0; i < Index(seg_shortlist_.size()); i++) {
+    const Segment &segi = *seg_shortlist_[i];
+    for (Index j = i + 1; j < Index(seg_shortlist_.size()); j++) {
+      const Segment &segj = *seg_shortlist_[j];
       double R = 0;
-      if (_atomdistances) {
+      if (atomdistances_) {
         R = top.GetShortestDist(segi, segj);
       } else {
         R = (top.PbShortestConnect(segi.getPos(), segj.getPos())).norm();
@@ -250,12 +242,12 @@ void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
   double MAX = tabcorr.x().maxCoeff();
 
   // Prepare bins
-  Index BIN = Index((MAX - MIN) / _resolution_spatial + 0.5) + 1;
-  std::vector<std::vector<double> > histCs;
+  Index BIN = Index((MAX - MIN) / resolution_spatial_ + 0.5) + 1;
+  std::vector<std::vector<double>> histCs;
   histCs.resize(BIN);
 
   for (Index i = 0; i < tabcorr.size(); ++i) {
-    Index bin = Index((tabcorr.x()[i] - MIN) / _resolution_spatial + 0.5);
+    Index bin = Index((tabcorr.x()[i] - MIN) / resolution_spatial_ + 0.5);
     histCs[bin].push_back(tabcorr.y()[i]);
   }
 
@@ -277,7 +269,7 @@ void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
     // error on mean value
     dcorr2 =
         dcorr2 / double(histCs[bin].size()) / double(histCs[bin].size() - 1);
-    double R = MIN + double(bin) * _resolution_spatial;
+    double R = MIN + double(bin) * resolution_spatial_;
     histC.set(bin, R, corr, ' ', std::sqrt(dcorr2));
   }
 

@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <options>
   <spectrum help="Convolutes singlet spectrum with gaussian or lorentzian function">
+    <input help="orbfile to read from, otherwise use job_name" default="OPTIONAL"/>
+    <output help="ASCII output filename, if not given use job_name" default="OPTIONAL"/>
+    <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
     <fwhm help="peak width in eV" default="0.2" choices="float+"/>
     <lower help="lower bound of spectrum in eV" unit="eV" default="0.0" choices="float+"/>
     <upper help="upper bound of spectrum in eV" unit="eV" default="3.5" choices="float+"/>

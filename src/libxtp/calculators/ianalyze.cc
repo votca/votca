@@ -23,6 +23,7 @@
 #include <votca/tools/histogramnew.h>
 
 // Local VOTCA includes
+#include "votca/xtp/qmstate.h"
 #include "votca/xtp/topology.h"
 
 // Local private VOTCA includes
@@ -31,55 +32,46 @@
 namespace votca {
 namespace xtp {
 
-void IAnalyze::Initialize(const tools::Property &user_options) {
+void IAnalyze::ParseOptions(const tools::Property &options) {
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+  states_ = options.get(".states").as<std::vector<QMStateType>>();
 
-  std::string statestrings = options.get(".states").as<std::string>();
-  tools::Tokenizer tok(statestrings, ",\n\t ");
-  std::vector<std::string> string_vec;
-  tok.ToVector(string_vec);
-  for (std::string &state : string_vec) {
-    _states.push_back(QMStateType(state));
-  }
-
-  _resolution_logJ2 = options.get(".resolution_logJ2").as<double>();
+  resolution_logJ2_ = options.get(".resolution_logJ2").as<double>();
   if (options.get(".do_pairtype").as<bool>()) {
-    _do_pairtype = true;
-    std::string _store_stdstring = options.get(".pairtype").as<std::string>();
-    if (_store_stdstring.find("Hopping") != std::string::npos) {
-      _pairtype.push_back(QMPair::Hopping);
+    do_pairtype_ = true;
+    std::string store_stdstring_ = options.get(".pairtype").as<std::string>();
+    if (store_stdstring_.find("Hopping") != std::string::npos) {
+      pairtype_.push_back(QMPair::Hopping);
     }
-    if (_store_stdstring.find("Excitoncl") != std::string::npos) {
-      _pairtype.push_back(QMPair::Excitoncl);
+    if (store_stdstring_.find("Excitoncl") != std::string::npos) {
+      pairtype_.push_back(QMPair::Excitoncl);
     }
-    if (!_pairtype.size()) {
+    if (!pairtype_.size()) {
       std::cout << "\n... ... No pairtypes recognized will output all pairs. ";
-      _do_pairtype = false;
+      do_pairtype_ = false;
     }
   }
   if (options.get(".do_resolution_spatial").as<bool>()) {
-    _resolution_spatial = options.get(".resolution_spatial").as<double>();
-    if (_resolution_spatial != 0.0) {
-      _do_IRdependence = true;
+    resolution_spatial_ = options.get(".resolution_spatial").as<double>();
+    if (resolution_spatial_ != 0.0) {
+      do_IRdependence_ = true;
     }
   }
 }
 
-bool IAnalyze::EvaluateFrame(Topology &top) {
+bool IAnalyze::Evaluate(Topology &top) {
   std::cout << std::endl;
   QMNBList &nblist = top.NBList();
   if (!nblist.size()) {
     std::cout << std::endl << "... ... No pairs in topology. Skip...";
     return false;
   }
-  if (_do_pairtype) {
+  if (do_pairtype_) {
     bool pairs_exist = false;
     for (QMPair *pair : nblist) {
       QMPair::PairType pairtype = pair->getType();
-      if (std::find(_pairtype.begin(), _pairtype.end(), pairtype) !=
-          _pairtype.end()) {
+      if (std::find(pairtype_.begin(), pairtype_.end(), pairtype) !=
+          pairtype_.end()) {
         pairs_exist = true;
         break;
       }
@@ -90,11 +82,11 @@ bool IAnalyze::EvaluateFrame(Topology &top) {
       return 0;
     }
   }
-  for (QMStateType state : _states) {
+  for (QMStateType state : states_) {
     std::cout << "Calculating for state " << state.ToString() << " now."
               << std::endl;
     this->IHist(top, state);
-    if (_do_IRdependence) {
+    if (do_IRdependence_) {
       IRdependence(top, state);
     }
   }
@@ -107,10 +99,10 @@ void IAnalyze::IHist(Topology &top, QMStateType state) {
   // Collect J2s from pairs
   std::vector<double> J2s;
   for (QMPair *pair : nblist) {
-    if (_do_pairtype) {
+    if (do_pairtype_) {
       QMPair::PairType pairtype = pair->getType();
-      if (!(std::find(_pairtype.begin(), _pairtype.end(), pairtype) !=
-            _pairtype.end())) {
+      if (!(std::find(pairtype_.begin(), pairtype_.end(), pairtype) !=
+            pairtype_.end())) {
         continue;
       }
     }
@@ -137,7 +129,7 @@ void IAnalyze::IHist(Topology &top, QMStateType state) {
   double sq_sum = std::inner_product(J2s.begin(), J2s.end(), J2s.begin(), 0.0);
   double STD = std::sqrt(sq_sum / double(J2s.size()) - AVG * AVG);
   // Prepare bins
-  Index BIN = Index((MAX - MIN) / _resolution_logJ2 + 0.5) + 1;
+  Index BIN = Index((MAX - MIN) / resolution_logJ2_ + 0.5) + 1;
 
   tools::HistogramNew hist;
   hist.Initialize(MIN, MAX, BIN);
@@ -180,14 +172,14 @@ void IAnalyze::IRdependence(Topology &top, QMStateType state) {
   double MINR = *std::min_element(distances.begin(), distances.end());
 
   // Prepare R bins
-  Index pointsR = Index((MAXR - MINR) / _resolution_spatial);
-  std::vector<std::vector<double> > rJ2;
+  Index pointsR = Index((MAXR - MINR) / resolution_spatial_);
+  std::vector<std::vector<double>> rJ2;
   rJ2.resize(pointsR);
 
   // Loop over distance
   for (Index i = 0; i < pointsR; ++i) {
-    double thisMINR = MINR + double(i) * _resolution_spatial;
-    double thisMAXR = MINR + double(i + 1) * _resolution_spatial;
+    double thisMINR = MINR + double(i) * resolution_spatial_;
+    double thisMAXR = MINR + double(i + 1) * resolution_spatial_;
     // now count Js that lie within this R range
     for (Index j = 0; j < Index(J2s.size()); ++j) {
       if (thisMINR < distances[j] && distances[j] < thisMAXR) {
@@ -205,7 +197,7 @@ void IAnalyze::IRdependence(Topology &top, QMStateType state) {
     const std::vector<double> &vec = rJ2[i];
     double sum = std::accumulate(vec.begin(), vec.end(), 0.0);
     double AVG = sum / double(vec.size());
-    double thisR = MINR + (double(i) + 0.5) * _resolution_spatial;
+    double thisR = MINR + (double(i) + 0.5) * resolution_spatial_;
     double sq_sum =
         std::inner_product(vec.begin(), vec.end(), vec.begin(), 0.0);
     double STD = std::sqrt(sq_sum / double(vec.size()) - AVG * AVG);

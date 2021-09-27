@@ -22,6 +22,7 @@
 // Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <libint2/initialize.h>
 
 // Local VOTCA includes
 #include "votca/xtp/parallelxjobcalc.h"
@@ -32,46 +33,46 @@ namespace votca {
 namespace xtp {
 
 template <typename JobContainer>
-bool ParallelXJobCalc<JobContainer>::EvaluateFrame(const Topology &top) {
-
+bool ParallelXJobCalc<JobContainer>::Evaluate(const Topology &top) {
+  libint2::initialize();
   // INITIALIZE PROGRESS OBSERVER
-  std::string progFile = _jobfile;
+  std::string progFile = jobfile_;
   std::unique_ptr<JobOperator> master = std::unique_ptr<JobOperator>(
-      new JobOperator(-1, top, *this, _openmp_threads));
+      new JobOperator(-1, top, *this, openmp_threads_));
   master->getLogger().setReportLevel(Log::current_level);
   master->getLogger().setMultithreading(true);
   master->getLogger().setPreface(Log::info, "\nMST INF");
   master->getLogger().setPreface(Log::error, "\nMST ERR");
   master->getLogger().setPreface(Log::warning, "\nMST WAR");
   master->getLogger().setPreface(Log::debug, "\nMST DBG");
-  _progObs->InitFromProgFile(progFile, *(master.get()));
+  progObs_->InitFromProgFile(progFile, *(master.get()));
 
   // CREATE + EXECUTE THREADS (XJOB HANDLERS)
   std::vector<std::unique_ptr<JobOperator>> jobOps;
 
-  for (Index id = 0; id < _nThreads; id++) {
+  for (Index id = 0; id < nThreads_; id++) {
     jobOps.push_back(std::unique_ptr<JobOperator>(
-        new JobOperator(id, top, *this, _openmp_threads)));
+        new JobOperator(id, top, *this, openmp_threads_)));
   }
 
-  for (Index id = 0; id < _nThreads; ++id) {
+  for (Index id = 0; id < nThreads_; ++id) {
     CustomizeLogger(*jobOps[id]);
   }
 
-  if (!_maverick) {
+  if (!maverick_) {
     std::cout << std::endl;  // REQUIRED FOR PROGRESS BAR IN OBSERVER
   }
 
-  for (Index id = 0; id < _nThreads; id++) {
+  for (Index id = 0; id < nThreads_; id++) {
     jobOps[id]->Start();
   }
 
-  for (Index id = 0; id < _nThreads; id++) {
+  for (Index id = 0; id < nThreads_; id++) {
     jobOps[id]->WaitDone();
   }
 
-  if (!_maverick) {
-    for (Index id = 0; id < _nThreads; id++) {
+  if (!maverick_) {
+    for (Index id = 0; id < nThreads_; id++) {
       std::cout << std::endl << (jobOps[id]->getLogger()) << std::flush;
     }
   }
@@ -79,22 +80,22 @@ bool ParallelXJobCalc<JobContainer>::EvaluateFrame(const Topology &top) {
   jobOps.clear();
 
   // SYNC REMAINING COMPLETE JOBS
-  _progObs->SyncWithProgFile(*(master.get()));
-
+  progObs_->SyncWithProgFile(*(master.get()));
+  libint2::finalize();
   return true;
 }
 
 template <typename JobContainer>
 void ParallelXJobCalc<JobContainer>::JobOperator::Run() {
-  OPENMP::setMaxThreads(_openmp_threads);
+  OPENMP::setMaxThreads(openmp_threads_);
   while (true) {
-    Job *job = _master._progObs->RequestNextJob(*this);
+    Job *job = master_.progObs_->RequestNextJob(*this);
 
     if (job == nullptr) {
       break;
     } else {
-      Result res = this->_master.EvalJob(_top, *job, *this);
-      this->_master._progObs->ReportJobDone(*job, res, *this);
+      Result res = this->master_.EvalJob(top_, *job, *this);
+      this->master_.progObs_->ReportJobDone(*job, res, *this);
     }
   }
 }
@@ -102,16 +103,15 @@ void ParallelXJobCalc<JobContainer>::JobOperator::Run() {
 template <typename JobContainer>
 void ParallelXJobCalc<JobContainer>::ParseCommonOptions(
     const tools::Property &options) {
-  std::cout << "\n... ... Initialized with " << _nThreads << " threads.\n";
+  std::cout << "\n... ... Initialized with " << nThreads_ << " threads.\n";
 
-  _maverick = (_nThreads == 1) ? true : false;
+  maverick_ = (nThreads_ == 1) ? true : false;
 
-  std::cout << "\n... ... Using " << _openmp_threads << " openmp threads for "
-            << _nThreads << "x" << _openmp_threads << "="
-            << _nThreads * _openmp_threads << " total threads." << std::flush;
-  OPENMP::setMaxThreads(_openmp_threads);
-  _jobfile = options.get(".job_file").as<std::string>();
-  _mapfile = options.get(".map_file").as<std::string>();
+  std::cout << "\n... ... Using " << openmp_threads_ << " openmp threads for "
+            << nThreads_ << "x" << openmp_threads_ << "="
+            << nThreads_ * openmp_threads_ << " total threads." << std::flush;
+  jobfile_ = options.get(".job_file").as<std::string>();
+  mapfile_ = options.get(".map_file").as<std::string>();
 }
 
 template <typename JobContainer>
@@ -120,7 +120,7 @@ void ParallelXJobCalc<JobContainer>::CustomizeLogger(QMThread &thread) {
   // CONFIGURE LOGGER
   Logger &log = thread.getLogger();
   log.setReportLevel(Log::current_level);
-  log.setMultithreading(_maverick);
+  log.setMultithreading(maverick_);
 
   log.setPreface(Log::info,
                  (format("\nT%1$02d INF ...") % thread.getId()).str());
@@ -132,33 +132,6 @@ void ParallelXJobCalc<JobContainer>::CustomizeLogger(QMThread &thread) {
                  (format("\nT%1$02d DBG ...") % thread.getId()).str());
 }
 
-template <typename JobContainer>
-tools::Property ParallelXJobCalc<JobContainer>::UpdateGWBSEOptions(
-    const tools::Property &options) {
-  tools::Property gwbse_options = options.get(".gwbse_options");
-  gwbse_options.get(".gwbse").add("basisset",
-                                  options.get("basisset").as<std::string>());
-  gwbse_options.get(".gwbse").add("auxbasisset",
-                                  options.get("auxbasisset").as<std::string>());
-  gwbse_options.get(".gwbse.vxc")
-      .add("functional", options.get("functional").as<std::string>());
-
-  return gwbse_options;
-}
-
-template <typename JobContainer>
-tools::Property ParallelXJobCalc<JobContainer>::UpdateDFTOptions(
-    const tools::Property &options) {
-  tools::Property package_options = options.get(".dftpackage");
-  package_options.get("package").add("basisset",
-                                     options.get("basisset").as<std::string>());
-  package_options.get("package").add(
-      "auxbasisset", options.get("auxbasisset").as<std::string>());
-  package_options.get("package").add(
-      "functional", options.get("functional").as<std::string>());
-
-  return package_options;
-}
 // REGISTER PARALLEL CALCULATORS
 template class ParallelXJobCalc<std::vector<Job>>;
 

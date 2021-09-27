@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_SPECTRUM_PRIVATE_H
-#define VOTCA_XTP_SPECTRUM_PRIVATE_H
+#ifndef VOTCA_XTP_SPECTRUM_H
+#define VOTCA_XTP_SPECTRUM_H
 
 // Standard includes
 #include <cstdio>
@@ -33,24 +33,23 @@ namespace votca {
 namespace xtp {
 class Orbitals;
 
-class Spectrum : public QMTool {
+class Spectrum final : public QMTool {
  public:
   Spectrum() = default;
 
-  ~Spectrum() override = default;
+  ~Spectrum() = default;
 
-  std::string Identify() override { return "spectrum"; }
+  std::string Identify() const { return "spectrum"; }
 
-  void Initialize(const tools::Property& user_options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
-  std::string _orbfile;
-  std::string _output_file = "spectrum.dat";
+  std::string orbfile_;
+  std::string output_file_ = "spectrum.dat";
 
-  Logger _log;
-
-  void CheckContent(const Orbitals& _orbitals);
+  Logger log_;
 
   double evtonm(double eV);
   double evtoinvcm(double eV);
@@ -58,17 +57,17 @@ class Spectrum : public QMTool {
   double invcmtonm(double invcm);
   double nmtoev(double nm);
 
-  double _lower = 0.0;  // in eV
-  double _upper;        // in eV
-  Index _n_pt = 100;
+  double lower_ = 0.0;  // in eV
+  double upper_;        // in eV
+  Index n_pt_ = 100;
 
-  Index _minexc = 0;
-  Index _maxexc = std::numeric_limits<Index>::max();
+  Index minexc_ = 0;
+  Index maxexc_ = std::numeric_limits<Index>::max();
 
-  double _fwhm;  // in eV
-  double _shiftby = 0.0;
+  double fwhm_;  // in eV
+  double shiftby_ = 0.0;
 
-  std::string _spectrum_type = "energy";
+  std::string spectrum_type_ = "energy";
   // lineshape functions
   double Gaussian(double x, double center, double fwhm);
   double Lorentzian(double x, double center, double fwhm);
@@ -77,4 +76,4 @@ class Spectrum : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_SPECTRUM_PRIVATE_H
+#endif  // VOTCA_XTP_SPECTRUM_H

@@ -16,8 +16,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_KMCLIFETIME_PRIVATE_H
-#define VOTCA_XTP_KMCLIFETIME_PRIVATE_H
+#ifndef VOTCA_XTP_KMCLIFETIME_H
+#define VOTCA_XTP_KMCLIFETIME_H
 
 // Local VOTCA includes
 #include "votca/xtp/kmccalculator.h"
@@ -25,33 +25,35 @@
 namespace votca {
 namespace xtp {
 
-class KMCLifetime : public KMCCalculator {
+class KMCLifetime final : public KMCCalculator {
  public:
   KMCLifetime() = default;
-  ~KMCLifetime() override = default;
-  bool WriteToStateFile() const override { return false; }
-  std::string Identify() override { return "kmclifetime"; }
-  void Initialize(const tools::Property& user_options) override;
-  bool EvaluateFrame(Topology& top) override;
+  ~KMCLifetime() = default;
+  bool WriteToStateFile() const { return false; }
+  std::string Identify() const { return "kmclifetime"; }
+
+ protected:
+  void ParseSpecificOptions(const tools::Property& user_options);
+  bool Evaluate(Topology& top);
 
  private:
   void WriteDecayProbability(std::string filename);
 
-  void RunVSSM() override;
+  void RunVSSM();
   void WriteToTraj(std::fstream& traj, unsigned long insertioncount,
                    double simtime, const Chargecarrier& affectedcarrier) const;
 
   void ReadLifetimeFile(std::string filename);
-  std::string _probfile;
-  bool _do_carrierenergy;
-  std::string _energy_outputfile;
-  double _alpha;
-  unsigned long _outputsteps;
-  unsigned long _insertions;
-  std::string _lifetimefile;
+  std::string probfile_;
+  bool do_carrierenergy_;
+  std::string energy_outputfile_;
+  double alpha_;
+  unsigned long outputsteps_;
+  unsigned long insertions_;
+  std::string lifetimefile_;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_KMCLIFETIME_PRIVATE_H
+#endif  // VOTCA_XTP_KMCLIFETIME_H

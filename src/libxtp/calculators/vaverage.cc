@@ -19,6 +19,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/topology.h"
+#include <votca/tools/getline.h>
 
 // Local private VOTCA includes
 #include "vaverage.h"
@@ -26,14 +27,11 @@
 namespace votca {
 namespace xtp {
 
-void VAverage::Initialize(const tools::Property& user_options) {
+void VAverage::ParseOptions(const tools::Property& options) {
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-
-  _ratefile = options.get(".ratefile").as<std::string>();
-  _occfile = options.get(".occfile").as<std::string>();
-  _outputfile = options.get(".outputfile").as<std::string>();
+  ratefile_ = options.get(".ratefile").as<std::string>();
+  occfile_ = options.get(".occfile").as<std::string>();
+  outputfile_ = options.get(".output").as<std::string>();
 }
 
 std::vector<double> VAverage::ReadOccfile(std::string filename) const {
@@ -47,10 +45,8 @@ std::vector<double> VAverage::ReadOccfile(std::string filename) const {
   Index id = 0;
   while (intt.good()) {
 
-    std::getline(intt, line);
-    std::vector<std::string> split;
-    tools::Tokenizer toker(line, " \t");
-    toker.ToVector(split);
+    tools::getline(intt, line);
+    std::vector<std::string> split = tools::Tokenizer(line, " \t").ToVector();
     if (!split.size() || split[0] == "#" || split[0].substr(0, 1) == "#") {
       continue;
     }
@@ -80,10 +76,8 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
   std::string line;
   while (intt.good()) {
 
-    std::getline(intt, line);
-    std::vector<std::string> split;
-    tools::Tokenizer toker(line, " \t");
-    toker.ToVector(split);
+    tools::getline(intt, line);
+    std::vector<std::string> split = tools::Tokenizer(line, " \t").ToVector();
     if (!split.size() || split[0] == "#" || split[0].substr(0, 1) == "#") {
       continue;
     }
@@ -105,18 +99,18 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
   return result;
 }
 
-bool VAverage::EvaluateFrame(Topology& top) {
+bool VAverage::Evaluate(Topology& top) {
   std::cout << std::endl
             << "... ... Computing velocity average for all sites\n";
-  std::cout << "Reading in site occupations from " << _occfile << std::endl;
-  std::vector<double> occ = ReadOccfile(_occfile);
+  std::cout << "Reading in site occupations from " << occfile_ << std::endl;
+  std::vector<double> occ = ReadOccfile(occfile_);
   if (top.Segments().size() != occ.size()) {
     throw std::runtime_error(
         "Number of occupations is" + std::to_string(occ.size()) +
         " Topology has size:" + std::to_string(top.Segments().size()));
   }
-  std::cout << "Reading in rates from " << _ratefile << std::endl;
-  std::vector<Rate_Engine::PairRates> rates = ReadRatefile(_ratefile);
+  std::cout << "Reading in rates from " << ratefile_ << std::endl;
+  std::vector<Rate_Engine::PairRates> rates = ReadRatefile(ratefile_);
   if (top.NBList().size() != Index(rates.size())) {
     throw std::runtime_error(
         "Number of pairs in file is" + std::to_string(rates.size()) +
@@ -141,9 +135,9 @@ bool VAverage::EvaluateFrame(Topology& top) {
   }
 
   std::ofstream ofs;
-  ofs.open(_outputfile, std::ofstream::out);
+  ofs.open(outputfile_, std::ofstream::out);
   if (!ofs.is_open()) {
-    throw std::runtime_error("Bad file handle: " + _outputfile);
+    throw std::runtime_error("Bad file handle: " + outputfile_);
   }
   ofs << "# 1   |   2     |  3 4 5       |   6  7  8         |" << std::endl;
   ofs << "# ----|---------|--------------|-------------------|" << std::endl;
@@ -157,7 +151,7 @@ bool VAverage::EvaluateFrame(Topology& top) {
             v.y() % v.z())
         << std::endl;
   }
-  std::cout << "Writing velocities to " << _outputfile << std::endl;
+  std::cout << "Writing velocities to " << outputfile_ << std::endl;
   return true;
 }
 

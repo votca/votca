@@ -24,20 +24,18 @@
 namespace votca {
 namespace xtp {
 
-void EInternal::Initialize(const tools::Property &user_options) {
+void EInternal::ParseOptions(const tools::Property &options) {
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-
-  _energiesXML = options.get(".energiesXML").as<std::string>();
+  energies_file_ = options.get(".energies_file").as<std::string>();
 }
 
 void EInternal::ParseEnergies() {
 
-  std::cout << "\n... ... Site, reorg. energies from " << _energiesXML << ".\n";
+  std::cout << "\n... ... Site, reorg. energies from " << energies_file_
+            << ".\n";
 
   tools::Property alloc;
-  alloc.LoadFromXML(_energiesXML);
+  alloc.LoadFromXML(energies_file_);
 
   std::string key = "topology.molecules.molecule";
   std::vector<tools::Property *> mols = alloc.Select(key);
@@ -72,17 +70,17 @@ void EInternal::ParseEnergies() {
           has_state.setValue(true, type);
         }
       }
-      _seg_has_state[segName] = has_state;
-      _seg_U_xX_nN[segName] = U_xX_nN;
-      _seg_U_nX_nN[segName] = U_nX_nN;
-      _seg_U_xN_xX[segName] = U_xN_xX;
+      seg_has_state_[segName] = has_state;
+      seg_U_xX_nN_[segName] = U_xX_nN;
+      seg_U_nX_nN_[segName] = U_nX_nN;
+      seg_U_xN_xX_[segName] = U_xN_xX;
 
-      _has_seg[segName] = has_seg;
+      has_seg_[segName] = has_seg;
     }
   }
 }
 
-bool EInternal::EvaluateFrame(Topology &top) {
+bool EInternal::Evaluate(Topology &top) {
 
   ParseEnergies();
 
@@ -91,7 +89,7 @@ bool EInternal::EvaluateFrame(Topology &top) {
 
     std::string segName = seg.getType();
 
-    if (!_has_seg.count(segName)) {
+    if (!has_seg_.count(segName)) {
       std::cout << std::endl
                 << "... ... WARNING: No energy information for seg [" << segName
                 << "]. Skipping... ";
@@ -105,12 +103,12 @@ bool EInternal::EvaluateFrame(Topology &top) {
                                       QMStateType::Triplet};
     for (QMStateType type : types) {
 
-      if (_seg_has_state[segName].getValue(type.Type())) {
-        seg.setU_xX_nN(_seg_U_xX_nN[segName].getValue(type.Type()),
+      if (seg_has_state_[segName].getValue(type.Type())) {
+        seg.setU_xX_nN(seg_U_xX_nN_[segName].getValue(type.Type()),
                        type.Type());
-        seg.setU_nX_nN(_seg_U_nX_nN[segName].getValue(type.Type()),
+        seg.setU_nX_nN(seg_U_nX_nN_[segName].getValue(type.Type()),
                        type.Type());
-        seg.setU_xN_xX(_seg_U_xN_xX[segName].getValue(type.Type()),
+        seg.setU_xN_xX(seg_U_xN_xX_[segName].getValue(type.Type()),
                        type.Type());
       }
     }

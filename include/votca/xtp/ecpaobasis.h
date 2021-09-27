@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2021 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,13 +21,19 @@
 #ifndef VOTCA_XTP_ECPAOBASIS_H
 #define VOTCA_XTP_ECPAOBASIS_H
 // Local VOTCA includes
-#include "ecpaoshell.h"
-#include "eigen.h"
+#include "checkpoint.h"
+#include "ecpbasisset.h"
+#include "qmatom.h"
+#include <libecpint/ecp.hpp>
 
 namespace votca {
 namespace xtp {
 class QMMolecule;
 class ECPBasisSet;
+class CheckpointWriter;
+class CheckpointReader;
+
+std::ostream& operator<<(std::ostream& out, const libecpint::ECP& ecp);
 
 /**
  * \brief Container to hold ECPs for all atoms
@@ -39,28 +45,37 @@ class ECPAOBasis {
   // returns element names for which no ecp was found
   std::vector<std::string> Fill(const ECPBasisSet& bs, QMMolecule& atoms);
 
-  Index ECPAOBasisSize() const { return _AOBasisSize; }
+  using constECPAOShellIterator = std::vector<libecpint::ECP>::const_iterator;
+  constECPAOShellIterator begin() const { return aopotentials_.begin(); }
+  constECPAOShellIterator end() const { return aopotentials_.end(); }
 
-  using ECPAOShellIterator = std::vector<ECPAOShell>::const_iterator;
-  ECPAOShellIterator begin() const { return _aoshells.begin(); }
-  ECPAOShellIterator end() const { return _aoshells.end(); }
+  using ECPAOShellIterator = std::vector<libecpint::ECP>::iterator;
+  ECPAOShellIterator begin() { return aopotentials_.begin(); }
+  ECPAOShellIterator end() { return aopotentials_.end(); }
 
-  const ECPAOShell& getShell(Index idx) const { return _aoshells[idx]; }
+  Index getMaxL() const;
+  void AddECPChargeToMolecule(QMMolecule& mol) const;
 
-  const ECPAOShell& back() const { return _aoshells.back(); }
+  const std::string& Name() const { return name_; }
 
-  const std::vector<std::vector<const ECPAOShell*> >& ShellsPerAtom() const {
-    return _shells_perAtom;
-  }
+  void UpdatePotentialPositions(const QMMolecule& mol);
+
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r);
+
+  void add(const ECPAOBasis& other);
+
+  friend std::ostream& operator<<(std::ostream& out, const ECPAOBasis& ecp);
 
  private:
-  ECPAOShell& addShell(const ECPShell& shell, const QMAtom& atom,
-                       Index startIndex, Index Lmax);
+  void clear();
 
-  std::vector<ECPAOShell> _aoshells;
+  std::vector<Index> ncore_perAtom_;
 
-  std::vector<std::vector<const ECPAOShell*> > _shells_perAtom;
-  Index _AOBasisSize;
+  std::vector<libecpint::ECP> aopotentials_;
+
+  std::string name_ = "";
 };
 
 }  // namespace xtp

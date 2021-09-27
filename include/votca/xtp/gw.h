@@ -35,11 +35,11 @@ class GW {
  public:
   GW(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& vxc,
      const Eigen::VectorXd& dft_energies)
-      : _log(log),
-        _Mmn(Mmn),
-        _vxc(vxc),
-        _dft_energies(dft_energies),
-        _rpa(log, Mmn){};
+      : log_(log),
+        Mmn_(Mmn),
+        vxc_(vxc),
+        dft_energies_(dft_energies),
+        rpa_(log, Mmn){};
 
   struct options {
     Index homo;
@@ -59,10 +59,13 @@ class GW {
                      // rebuilt
     std::string qp_solver;
     double qp_solver_alpha = 0.75;
-    Index qp_grid_steps;     // Number of grid points
-    double qp_grid_spacing;  // Spacing of grid points in Ha
-    Index gw_mixing_order;   // mixing order
-    double gw_mixing_alpha;  //  mixing alpha, also linear mixing
+    Index qp_grid_steps;            // Number of grid points
+    double qp_grid_spacing;         // Spacing of grid points in Ha
+    Index gw_mixing_order;          // mixing order
+    double gw_mixing_alpha;         // mixing alpha, also linear mixing
+    std::string quadrature_scheme;  // Kind of Gaussian-quadrature scheme to use
+    Index order;   // only needed for complex integration sigma CDA
+    double alpha;  // smooth tail in complex integration sigma CDA
   };
 
   void configure(const options& opt);
@@ -84,55 +87,52 @@ class GW {
                  std::string states) const;
 
   Eigen::VectorXd RPAInputEnergies() const {
-    return _rpa.getRPAInputEnergies();
+    return rpa_.getRPAInputEnergies();
   }
 
  private:
-  Index _qptotal;
+  Index qptotal_;
 
-  Eigen::MatrixXd _Sigma_x;
-  Eigen::MatrixXd _Sigma_c;
+  Eigen::MatrixXd Sigma_x_;
+  Eigen::MatrixXd Sigma_c_;
 
-  options _opt;
+  options opt_;
 
-  std::unique_ptr<Sigma_base> _sigma = nullptr;
-  Logger& _log;
-  TCMatrix_gwbse& _Mmn;
-  const Eigen::MatrixXd& _vxc;
-  const Eigen::VectorXd& _dft_energies;
+  std::unique_ptr<Sigma_base> sigma_ = nullptr;
+  Logger& log_;
+  TCMatrix_gwbse& Mmn_;
+  const Eigen::MatrixXd& vxc_;
+  const Eigen::VectorXd& dft_energies_;
 
-  RPA _rpa;
+  RPA rpa_;
   // small class which calculates f(w) with and df/dw(w)
   // f=Sigma_c(w)+offset-w
   // offset= e_dft+Sigma_x-Vxc
   class QPFunc {
    public:
     QPFunc(Index gw_level, const Sigma_base& sigma, double offset)
-        : _gw_level(gw_level), _offset(offset), _sigma_c_func(sigma){};
+        : gw_level_(gw_level), offset_(offset), sigma_c_func_(sigma){};
     std::pair<double, double> operator()(double frequency) const {
-      std::pair<double, double> value;
-      value.first =
-          _sigma_c_func.CalcCorrelationDiagElement(_gw_level, frequency);
-      value.second = _sigma_c_func.CalcCorrelationDiagElementDerivative(
-          _gw_level, frequency);
-      value.first += (_offset - frequency);
-      value.second -= 1.0;
-      return value;
+      std::pair<double, double> result;
+      result.first = value(frequency);
+      result.second = deriv(frequency);
+
+      return result;
     }
     double value(double frequency) const {
-      return _sigma_c_func.CalcCorrelationDiagElement(_gw_level, frequency) +
-             _offset - frequency;
+      return sigma_c_func_.CalcCorrelationDiagElement(gw_level_, frequency) +
+             offset_ - frequency;
     }
     double deriv(double frequency) const {
-      return _sigma_c_func.CalcCorrelationDiagElementDerivative(_gw_level,
-                                                                frequency) +
-             _offset - frequency;
+      return sigma_c_func_.CalcCorrelationDiagElementDerivative(gw_level_,
+                                                                frequency) -
+             1.0;
     }
 
    private:
-    Index _gw_level;
-    double _offset;
-    const Sigma_base& _sigma_c_func;
+    Index gw_level_;
+    double offset_;
+    const Sigma_base& sigma_c_func_;
   };
 
   double SolveQP_Bisection(double lowerbound, double f_lowerbound,

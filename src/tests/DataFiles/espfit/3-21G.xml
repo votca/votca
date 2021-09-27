@@ -1,0 +1,47 @@
+<basis name="3-21G">
+  <!--Basis set created by xtp_basisset from 3-21G.nwchem at Thu Sep 15 15:40:33 2016-->
+  <element name="H">
+    <shell scale="1.0" type="S">
+      <constant decay="5.447178e+00">
+        <contractions factor="1.562850e-01" type="S"/>
+      </constant>
+      <constant decay="8.245470e-01">
+        <contractions factor="9.046910e-01" type="S"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="S">
+      <constant decay="1.831920e-01">
+        <contractions factor="1.000000e+00" type="S"/>
+      </constant>
+    </shell>
+  </element>
+  <element name="O">
+    <shell scale="1.0" type="S">
+      <constant decay="3.220370e+02">
+        <contractions factor="5.923940e-02" type="S"/>
+      </constant>
+      <constant decay="4.843080e+01">
+        <contractions factor="3.515000e-01" type="S"/>
+      </constant>
+      <constant decay="1.042060e+01">
+        <contractions factor="7.076580e-01" type="S"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="7.402940e+00">
+        <contractions factor="-4.044530e-01" type="S"/>
+        <contractions factor="2.445860e-01" type="P"/>
+      </constant>
+      <constant decay="1.576200e+00">
+        <contractions factor="1.221560e+00" type="S"/>
+        <contractions factor="8.539550e-01" type="P"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="3.736840e-01">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
+      </constant>
+    </shell>
+  </element>
+</basis>

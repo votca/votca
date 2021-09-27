@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_EINTERNAL_PRIVATE_H
-#define VOTCA_XTP_EINTERNAL_PRIVATE_H
+#ifndef VOTCA_XTP_EINTERNAL_H
+#define VOTCA_XTP_EINTERNAL_H
 
 // Local VOTCA includes
 #include "votca/xtp/qmcalculator.h"
@@ -28,30 +28,34 @@
 namespace votca {
 namespace xtp {
 
-class EInternal : public QMCalculator {
+class EInternal final : public QMCalculator {
  public:
   EInternal() = default;
-  ~EInternal() override = default;
+  ~EInternal() = default;
 
-  std::string Identify() override { return "einternal"; }
-  bool WriteToStateFile() const override { return true; }
-  void Initialize(const tools::Property &user_options) override;
-  void ParseEnergies();
-  bool EvaluateFrame(Topology &top) override;
+  std::string Identify() const { return "einternal"; }
+
+  bool WriteToStateFile() const { return true; }
+
+ protected:
+  void ParseOptions(const tools::Property &user_options);
+  bool Evaluate(Topology &top);
 
  private:
-  std::map<std::string, QMStateCarrierStorage<double> > _seg_U_xX_nN;
-  std::map<std::string, QMStateCarrierStorage<double> > _seg_U_nX_nN;
-  std::map<std::string, QMStateCarrierStorage<double> > _seg_U_xN_xX;
+  void ParseEnergies();
 
-  std::map<std::string, QMStateCarrierStorage<bool> > _seg_has_state;
+  std::map<std::string, QMStateCarrierStorage<double> > seg_U_xX_nN_;
+  std::map<std::string, QMStateCarrierStorage<double> > seg_U_nX_nN_;
+  std::map<std::string, QMStateCarrierStorage<double> > seg_U_xN_xX_;
 
-  std::map<std::string, bool> _has_seg;
+  std::map<std::string, QMStateCarrierStorage<bool> > seg_has_state_;
 
-  std::string _energiesXML;
+  std::map<std::string, bool> has_seg_;
+
+  std::string energies_file_;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_EINTERNAL_PRIVATE_H
+#endif  // VOTCA_XTP_EINTERNAL_H

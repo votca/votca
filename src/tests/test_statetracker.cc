@@ -13,6 +13,9 @@
  * limitations under the License.
  *
  */
+#include <boost/test/tools/old/interface.hpp>
+#include <ostream>
+#include <sstream>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE statetracker_test
@@ -28,12 +31,12 @@
 
 // Local VOTCA includes
 #include "votca/xtp/statetracker.h"
-
+#include <libint2/initialize.h>
 using namespace votca::xtp;
 using namespace std;
 BOOST_AUTO_TEST_SUITE(statetracker_test)
 BOOST_AUTO_TEST_CASE(osc) {
-
+  libint2::initialize();
   Orbitals orb;
   orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                              "/statetracker/molecule.xyz");
@@ -75,16 +78,25 @@ BOOST_AUTO_TEST_CASE(osc) {
     BOOST_CHECK_EQUAL(newstate.Type().ToString(), "s");
     BOOST_CHECK_EQUAL(newstate.StateIdx(), 1);
   }
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(readwrite_hdf5) {
   votca::tools::Property prop;
   prop.LoadFromXML(std::string(XTP_TEST_DATA_FOLDER) +
                    "/statetracker/statetracker2.xml");
+
+  Logger log;
   StateTracker tracker;
+  tracker.setLogger(&log);
   QMState s("s1");
   tracker.setInitialState(s);
   tracker.Initialize(prop.get("statetracker"));
+  tracker.PrintInfo();
+  std::stringstream ss;
+  ss << log << std::flush;
+
+  std::string output1 = ss.str();
 
   {
     CheckpointFile f("statetracker_test.hdf5");
@@ -95,9 +107,14 @@ BOOST_AUTO_TEST_CASE(readwrite_hdf5) {
   CheckpointFile f("statetracker_test.hdf5");
   CheckpointReader r = f.getReader();
   tracker2.ReadFromCpt(r);
-
+  tracker2.setLogger(&log);
+  tracker2.PrintInfo();
+  std::stringstream ss2;
+  ss2 << log << std::flush;
   BOOST_CHECK_EQUAL(tracker.InitialState().ToString(),
                     tracker2.InitialState().ToString());
+
+  BOOST_CHECK_EQUAL(output1, ss2.str());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

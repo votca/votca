@@ -38,7 +38,7 @@ class Rate_Engine {
   };
 
   Rate_Engine(double temperature, const Eigen::Vector3d& field)
-      : _temperature(temperature), _field(field){};
+      : temperature_(temperature), field_(field){};
 
   PairRates Rate(const QMPair& pair, QMStateType carriertype) const;
 
@@ -47,9 +47,9 @@ class Rate_Engine {
 
  private:
   double Marcusrate(double Jeff2, double deltaG, double reorg) const;
-  std::string _ratetype = "marcus";
-  double _temperature = 0.0;                         // units:Hartree
-  Eigen::Vector3d _field = Eigen::Vector3d::Zero();  // units:Hartree/bohr
+  std::string ratetype_ = "marcus";
+  double temperature_ = 0.0;                         // units:Hartree
+  Eigen::Vector3d field_ = Eigen::Vector3d::Zero();  // units:Hartree/bohr
 };
 
 }  // namespace xtp

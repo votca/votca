@@ -1,3 +1,5 @@
+
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -18,8 +20,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_PARTIALCHARGES_PRIVATE_H
-#define VOTCA_XTP_PARTIALCHARGES_PRIVATE_H
+#ifndef VOTCA_XTP_PARTIALCHARGES_H
+#define VOTCA_XTP_PARTIALCHARGES_H
 
 // Standard includes
 #include <cstdio>
@@ -34,57 +36,51 @@
 namespace votca {
 namespace xtp {
 
-class Partialcharges : public QMTool {
+class Partialcharges final : public QMTool {
  public:
   Partialcharges() = default;
-  ~Partialcharges() override = default;
+  ~Partialcharges() = default;
 
-  std::string Identify() override { return "partialcharges"; }
+  std::string Identify() const { return "partialcharges"; }
 
-  void Initialize(const tools::Property& user_options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property& user_options);
+  bool Run();
 
  private:
-  std::string _orbfile;
-  std::string _output_file;
-  tools::Property _esp_options;
+  std::string orbfile_;
+  std::string output_file_;
+  tools::Property esp_options_;
 
-  Logger _log;
+  Logger log_;
 };
 
-void Partialcharges::Initialize(const tools::Property& user_options) {
+void Partialcharges::ParseOptions(const tools::Property& options) {
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
-
-  _orbfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".input", _job_name + ".orb");
-  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".output", _job_name + ".mps");
-  _esp_options = options.get(".esp_options");
+  orbfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".input", job_name_ + ".orb");
+  output_file_ = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".output", job_name_ + ".mps");
+  esp_options_ = options.get(".esp2multipole");
 }
 
-bool Partialcharges::Evaluate() {
-  OPENMP::setMaxThreads(_nThreads);
-  _log.setReportLevel(Log::current_level);
-  _log.setMultithreading(true);
+bool Partialcharges::Run() {
+  log_.setReportLevel(Log::current_level);
+  log_.setMultithreading(true);
 
-  _log.setCommonPreface("\n... ...");
+  log_.setCommonPreface("\n... ...");
 
   Orbitals orbitals;
-  XTP_LOG(Log::error, _log)
-      << " Loading QM data from " << _orbfile << std::flush;
-  orbitals.ReadFromCpt(_orbfile);
-  Esp2multipole esp2multipole = Esp2multipole(_log);
-  esp2multipole.Initialize(_esp_options);
+  XTP_LOG(Log::error, log_)
+      << " Loading QM data from " << orbfile_ << std::flush;
+  orbitals.ReadFromCpt(orbfile_);
+  Esp2multipole esp2multipole = Esp2multipole(log_);
+  esp2multipole.Initialize(esp_options_);
   StaticSegment seg = esp2multipole.Extractingcharges(orbitals);
-  seg.WriteMPS(_output_file, esp2multipole.GetStateString());
+  seg.WriteMPS(output_file_, esp2multipole.GetStateString());
 
-  XTP_LOG(Log::error, _log)
-      << "Written charges to " << _output_file << std::flush;
+  XTP_LOG(Log::error, log_)
+      << "Written charges to " << output_file_ << std::flush;
 
   return true;
 }
@@ -92,4 +88,4 @@ bool Partialcharges::Evaluate() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_PARTIALCHARGES_PRIVATE_H
+#endif  // VOTCA_XTP_PARTIALCHARGES_H

@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_LOG2MPS_PRIVATE_H
-#define VOTCA_XTP_LOG2MPS_PRIVATE_H
+#ifndef VOTCA_XTP_LOG2MPS_H
+#define VOTCA_XTP_LOG2MPS_H
 
 // Third party includes
 #include <boost/format.hpp>
@@ -32,49 +32,45 @@
 namespace votca {
 namespace xtp {
 
-class Log2Mps : public QMTool {
+class Log2Mps final : public QMTool {
  public:
   Log2Mps() = default;
-  ~Log2Mps() override = default;
+  ~Log2Mps() = default;
 
-  std::string Identify() override { return "log2mps"; }
+  std::string Identify() const { return "log2mps"; }
 
-  void Initialize(const tools::Property &user_options) override;
-  bool Evaluate() override;
+ protected:
+  void ParseOptions(const tools::Property &user_options);
+  bool Run();
 
  private:
-  std::string _package;
-  std::string _logfile;
-  std::string _mpsfile;
+  std::string package_;
+  std::string logfile_;
+  std::string mpsfile_;
 };
 
-void Log2Mps::Initialize(const tools::Property &user_options) {
-
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
-
-  _job_name = options.ifExistsReturnElseReturnDefault<std::string>("job_name",
-                                                                   _job_name);
+void Log2Mps::ParseOptions(const tools::Property &options) {
 
   QMPackageFactory::RegisterAll();
 
-  _package = options.get(".package").as<std::string>();
+  package_ = options.get(".dftpackage").as<std::string>();
 
-  if (_package == "xtp") {
+  if (package_ == "xtp") {
     throw std::runtime_error(
         "XTP has no log file. For xtp package just run the partialcharges tool "
         "on you .orb file");
   }
-  _logfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".logfile", _job_name + ".log");
 
-  _mpsfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".mpsfile", _job_name + ".mps");
+  logfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".input", job_name_ + ".log");
 
-  std::cout << "\n... ... " << _logfile << " => " << _mpsfile << "\n";
+  mpsfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
+      ".output", job_name_ + ".mps");
+
+  std::cout << "\n... ... " << logfile_ << " => " << mpsfile_ << "\n";
 }
 
-bool Log2Mps::Evaluate() {
+bool Log2Mps::Run() {
 
   // Logger (required for QM package, so we can just as well use it)
   Logger log;
@@ -83,14 +79,14 @@ bool Log2Mps::Evaluate() {
   log.setMultithreading(true);
 
   // Set-up QM package
-  XTP_LOG(Log::error, log) << "Using package <" << _package << ">"
+  XTP_LOG(Log::error, log) << "Using package <" << package_ << ">"
                            << std::flush;
 
-  std::unique_ptr<QMPackage> qmpack =
-      std::unique_ptr<QMPackage>(QMPackages().Create(_package));
+  std::unique_ptr<QMPackage> qmpack = std::unique_ptr<QMPackage>(
+      QMPackageFactory::QMPackages().Create(package_));
   qmpack->setLog(&log);
   qmpack->setRunDir(".");
-  qmpack->setLogFileName(_logfile);
+  qmpack->setLogFileName(logfile_);
 
   // Create orbitals, fill with life & extract QM atoms
 
@@ -99,7 +95,7 @@ bool Log2Mps::Evaluate() {
   // Sanity checks, total charge
 
   if (atoms.size() < 1) {
-    throw std::runtime_error("ERROR No charges extracted from " + _logfile);
+    throw std::runtime_error("ERROR No charges extracted from " + logfile_);
   }
 
   double Q = atoms.CalcTotalQ();
@@ -108,13 +104,13 @@ bool Log2Mps::Evaluate() {
 
   std::string tag =
       "::LOG2MPS " + (boost::format("(log-file='%1$s' : %2$d QM atoms)") %
-                      _logfile % atoms.size())
+                      logfile_ % atoms.size())
                          .str();
-  atoms.WriteMPS(_mpsfile, tag);
+  atoms.WriteMPS(mpsfile_, tag);
   return true;
 }
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_LOG2MPS_PRIVATE_H
+#endif  // VOTCA_XTP_LOG2MPS_H

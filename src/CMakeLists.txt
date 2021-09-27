@@ -1,8 +1,5 @@
 add_subdirectory(libxtp)
 add_subdirectory(tools)
-if(Kokkos_FOUND)
-  add_subdirectory(QDMEwald)
-endif()
 if(ENABLE_TESTING)
   add_subdirectory(tests)
 endif()

@@ -25,7 +25,7 @@
 #include <cstdio>
 
 // Local VOTCA includes
-#include "bfgs-trm.h"
+#include "bfgs_trm.h"
 #include "energy_costfunction.h"
 #include "gwbseengine.h"
 #include "logger.h"
@@ -38,14 +38,14 @@ namespace xtp {
 class GeometryOptimization {
  public:
   GeometryOptimization(GWBSEEngine& gwbse_engine, Orbitals& orbitals)
-      : _gwbse_engine(gwbse_engine),
-        _orbitals(orbitals){
+      : gwbse_engine_(gwbse_engine),
+        orbitals_(orbitals){
 
         };
 
   void Initialize(tools::Property& options);
 
-  void setLog(Logger* pLog) { _pLog = pLog; }
+  void setLog(Logger* pLog) { pLog_ = pLog; }
 
   void Evaluate();
 
@@ -55,20 +55,20 @@ class GeometryOptimization {
   static void WriteTrajectory(const std::string& filename, QMMolecule& atoms,
                               const BFGSTRM& bfgstrm);
 
-  QMState _opt_state;
-  std::string _optimizer;
-  std::string _trajfile;
-  GWBSEEngine& _gwbse_engine;
-  Orbitals& _orbitals;
+  QMState opt_state_;
+  std::string optimizer_;
+  std::string trajfile_;
+  GWBSEEngine& gwbse_engine_;
+  Orbitals& orbitals_;
 
-  Energy_costfunction::conv_paras _conv;
-  Index _max_iteration;
-  double _trust_radius;
+  Energy_costfunction::conv_paras conv_;
+  Index max_iteration_;
+  double trust_radius_;
 
-  tools::Property _statetracker_options;
-  tools::Property _force_options;
+  tools::Property statetracker_options_;
+  tools::Property force_options_;
 
-  Logger* _pLog;
+  Logger* pLog_;
 };
 
 }  // namespace xtp

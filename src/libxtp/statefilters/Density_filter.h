@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_DENSITY_FILTER_PRIVATE_H
-#define VOTCA_XTP_DENSITY_FILTER_PRIVATE_H
+#ifndef VOTCA_XTP_DENSITY_FILTER_H
+#define VOTCA_XTP_DENSITY_FILTER_H
 
 // Local VOTCA includes
 #include "votca/xtp/statefilter_base.h"
@@ -54,12 +54,12 @@ class Density_filter : public StateFilter_base {
 
  private:
   Eigen::VectorXd CalculateDNorm(const Orbitals& orb, QMStateType type) const;
-  double _threshold = 0.0;
+  double threshold_ = 0.0;
 
-  Eigen::MatrixXd _laststate_dmat;
+  Eigen::MatrixXd laststate_dmat_;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_OSCILLATORSTRENGTH_FILTER_PRIVATE_H
+#endif  // VOTCA_XTP_DENSITY_FILTER_H

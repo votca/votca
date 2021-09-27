@@ -51,23 +51,27 @@ class ParallelXJobCalc : public JobCalculator {
 
  public:
   class JobOperator;
-  using Job = typename std::iterator_traits<
-      typename JobContainer::iterator>::value_type;
+  using Job = typename JobContainer::value_type;
   using Result = typename Job::JobResult;
 
   ParallelXJobCalc() = default;
-  ~ParallelXJobCalc() override { ; };
+  ~ParallelXJobCalc() override = default;
 
-  std::string Identify() override = 0;
+  std::string Identify() const override = 0;
 
-  bool EvaluateFrame(const Topology &top) override;
+  void ParseOptions(const tools::Property &opt) final {
+    ParseCommonOptions(opt);
+    ParseSpecificOptions(opt);
+  }
+
+  bool Evaluate(const Topology &top) final;
   virtual void CustomizeLogger(QMThread &thread);
   virtual Result EvalJob(const Topology &top, Job &job, QMThread &thread) = 0;
 
-  void LockCout() { _coutMutex.Lock(); }
-  void UnlockCout() { _coutMutex.Unlock(); }
-  void LockLog() { _logMutex.Lock(); }
-  void UnlockLog() { _logMutex.Unlock(); }
+  void LockCout() { coutMutex_.Lock(); }
+  void UnlockCout() { coutMutex_.Unlock(); }
+  void LockLog() { logMutex_.Lock(); }
+  void UnlockLog() { logMutex_.Unlock(); }
 
   // ======================================== //
   // XJOB OPERATOR (THREAD)                   //
@@ -77,7 +81,7 @@ class ParallelXJobCalc : public JobCalculator {
    public:
     JobOperator(Index id, const Topology &top,
                 ParallelXJobCalc<JobContainer> &master, Index openmp_threads)
-        : _top(top), _master(master), _openmp_threads(openmp_threads) {
+        : top_(top), master_(master), openmp_threads_(openmp_threads) {
       setId(id);
     }  // comes from baseclass so Id cannot be in initializer list
     ~JobOperator() override = default;
@@ -85,23 +89,27 @@ class ParallelXJobCalc : public JobCalculator {
     void Run() override;
 
    private:
-    const Topology &_top;
-    ParallelXJobCalc<JobContainer> &_master;
-    Index _openmp_threads = 1;
+    const Topology &top_;
+    ParallelXJobCalc<JobContainer> &master_;
+    Index openmp_threads_ = 1;
   };
 
  protected:
-  void ParseCommonOptions(const tools::Property &options);
+  virtual void ParseSpecificOptions(const tools::Property &options) = 0;
+
   // set the basis sets and functional in DFT package
   tools::Property UpdateDFTOptions(const tools::Property &options);
   // set the basis sets and functional in GWBSE
   tools::Property UpdateGWBSEOptions(const tools::Property &options);
 
-  JobContainer _XJobs;
-  tools::Mutex _coutMutex;
-  tools::Mutex _logMutex;
-  std::string _mapfile = "";
-  std::string _jobfile = "";
+  JobContainer XJobs_;
+  tools::Mutex coutMutex_;
+  tools::Mutex logMutex_;
+  std::string mapfile_ = "";
+  std::string jobfile_ = "";
+
+ private:
+  void ParseCommonOptions(const tools::Property &options);
 };
 
 }  // namespace xtp

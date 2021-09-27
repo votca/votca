@@ -25,52 +25,50 @@
 namespace votca {
 namespace xtp {
 
-void Neighborlist::Initialize(const tools::Property& user_options) {
+bool InVector(const std::vector<std::string>& vec, const std::string& word) {
+  return std::find(vec.begin(), vec.end(), word) != vec.end();
+}
 
-  tools::Property options =
-      LoadDefaultsAndUpdateWithUserOptions("xtp", user_options);
+void Neighborlist::ParseOptions(const tools::Property& options) {
 
-  std::vector<tools::Property*> segs = options.Select(".segments");
+  if (options.exists(".segmentpairs")) {
+    useConstantCutoff_ = false;
+    std::vector<const tools::Property*> segs =
+        options.Select(".segmentpairs.pair");
+    for (const tools::Property* segprop : segs) {
+      useConstantCutoff_ = false;
+      std::vector<std::string> names =
+          segprop->get("type").as<std::vector<std::string>>();
+      double cutoff =
+          segprop->get("cutoff").as<double>() * tools::conv::nm2bohr;
 
-  for (tools::Property* segprop : segs) {
-    std::string types = segprop->get("segmentname").as<std::string>();
-    double cutoff = segprop->get("cutoff").as<double>() * tools::conv::nm2bohr;
-
-    tools::Tokenizer tok(types, " ");
-    std::vector<std::string> names;
-    tok.ToVector(names);
-
-    if (names.size() != 2) {
-      throw std::runtime_error(
-          "ERROR: Faulty pair definition for cut-off's: Need two segment names "
-          "separated by a space");
+      if (names.size() != 2) {
+        throw std::runtime_error(
+            "ERROR: Faulty pair definition for cut-off's: Need two segment "
+            "names "
+            "separated by a space");
+      }
+      cutoffs_[names[0]][names[1]] = cutoff;
+      cutoffs_[names[1]][names[0]] = cutoff;
+      if (!InVector(included_segments_, names[0])) {
+        included_segments_.push_back(names[0]);
+      }
+      if (!InVector(included_segments_, names[1])) {
+        included_segments_.push_back(names[1]);
+      }
     }
-    _cutoffs[names[0]][names[1]] = cutoff;
-    _cutoffs[names[1]][names[0]] = cutoff;
-    if (std::find(_included_segments.begin(), _included_segments.end(),
-                  names[0]) == _included_segments.end()) {
-      _included_segments.push_back(names[0]);
-    }
-    if (std::find(_included_segments.begin(), _included_segments.end(),
-                  names[1]) == _included_segments.end()) {
-      _included_segments.push_back(names[1]);
-    }
-  }
-
-  const std::string& cutoff_type = options.get("cutoff_type").as<std::string>();
-  if (cutoff_type == "constant") {
-    _useConstantCutoff = true;
-    _constantCutoff =
-        options.get(".constant").as<double>() * tools::conv::nm2bohr;
   } else {
-    _useConstantCutoff = false;
+    useConstantCutoff_ = true;
+    constantCutoff_ =
+        options.get(".constant").as<double>() * tools::conv::nm2bohr;
   }
-  if (options.get(".use_exciton_cutoff").as<bool>()) {
-    _useExcitonCutoff = true;
-    _excitonqmCutoff =
+
+  if (options.exists(".exciton_cutoff")) {
+    useExcitonCutoff_ = true;
+    excitonqmCutoff_ =
         options.get(".exciton_cutoff").as<double>() * tools::conv::nm2bohr;
   } else {
-    _useExcitonCutoff = false;
+    useExcitonCutoff_ = false;
   }
 }
 
@@ -80,7 +78,7 @@ Index Neighborlist::DetClassicalPairs(Topology& top) {
   for (Index i = 0; i < top.NBList().size(); i++) {
     const Segment* seg1 = top.NBList()[i]->Seg1();
     const Segment* seg2 = top.NBList()[i]->Seg2();
-    if (top.GetShortestDist(*seg1, *seg2) > _excitonqmCutoff) {
+    if (top.GetShortestDist(*seg1, *seg2) > excitonqmCutoff_) {
       top.NBList()[i]->setType(QMPair::Excitoncl);
 #pragma omp critical
       { classical_pairs++; }
@@ -91,17 +89,13 @@ Index Neighborlist::DetClassicalPairs(Topology& top) {
   return classical_pairs;
 }
 
-bool Neighborlist::EvaluateFrame(Topology& top) {
-  OPENMP::setMaxThreads(_nThreads);
-  std::cout << " Using " << OPENMP::getMaxThreads() << " threads" << std::flush;
+bool Neighborlist::Evaluate(Topology& top) {
 
   double min = top.getBox().diagonal().minCoeff();
 
   std::vector<Segment*> segs;
   for (Segment& seg : top.Segments()) {
-    if (_useConstantCutoff ||
-        std::find(_included_segments.begin(), _included_segments.end(),
-                  seg.getType()) != _included_segments.end()) {
+    if (useConstantCutoff_ || InVector(included_segments_, seg.getType())) {
       segs.push_back(&seg);
       seg.getApproxSize();
     }
@@ -115,12 +109,12 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   } else {
     std::cout << std::endl;
   }
-  if (!_useConstantCutoff) {
+  if (!useConstantCutoff_) {
     std::cout << "The following segments are used in the neigborlist creation"
               << std::endl;
     std::cout << "\t" << std::flush;
-    for (const std::string& st : _included_segments) {
-      std::cout << " " << st << std::flush;
+    for (const std::string& st : included_segments_) {
+      std::cout << " " << st;
     }
     std::cout << std::endl;
   }
@@ -139,19 +133,23 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   }
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < Index(segs.size()); i++) {
-    Segment* seg1 = segs[i];
-    double cutoff = _constantCutoff;
+    const Segment* seg1 = segs[i];
+    double cutoff = constantCutoff_;
     for (Index j = i + 1; j < Index(segs.size()); j++) {
-      Segment* seg2 = segs[j];
-      if (!_useConstantCutoff) {
+      const Segment* seg2 = segs[j];
+      if (!useConstantCutoff_) {
         try {
-          cutoff = _cutoffs.at(seg1->getType()).at(seg2->getType());
+          cutoff = cutoffs_.at(seg1->getType()).at(seg2->getType());
         } catch (const std::exception&) {
           std::string pairstring = seg1->getType() + "/" + seg2->getType();
-          if (std::find(skippedpairs.begin(), skippedpairs.end(), pairstring) ==
-              skippedpairs.end()) {
+          if (!InVector(skippedpairs, pairstring)) {
 #pragma omp critical
-            { skippedpairs.push_back(pairstring); }
+            if (!InVector(skippedpairs, pairstring)) {  // nedded because other
+                                                        // thread may have
+                                                        // pushed back in the
+                                                        // meantime.
+              skippedpairs.push_back(pairstring);
+            }
           }
           continue;
         }
@@ -199,7 +197,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
 
   std::cout << std::endl
             << " ... ... Created " << top.NBList().size() << " direct pairs.";
-  if (_useExcitonCutoff) {
+  if (useExcitonCutoff_) {
     std::cout << std::endl
               << " ... ... Determining classical pairs " << std::endl;
     Index classical_pairs = DetClassicalPairs(top);

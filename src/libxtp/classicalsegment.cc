@@ -22,6 +22,7 @@
 
 // VOTCA includes
 #include <votca/tools/elements.h>
+#include <votca/tools/getline.h>
 #include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
@@ -52,7 +53,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
   }
   while (intt.good()) {
 
-    std::getline(intt, line);
+    tools::getline(intt, line);
     tools::Tokenizer toker(line, " \t");
     std::vector<std::string> split = toker.ToVector();
 
@@ -85,7 +86,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
       // element,  position,  rank limit convert to bohr
       std::string name = split[0];
       Eigen::Vector3d pos;
-      Index id = Index(this->_atomlist.size());
+      Index id = Index(this->atomlist_.size());
       pos[0] = boost::lexical_cast<double>(split[1]);
       pos[1] = boost::lexical_cast<double>(split[2]);
       pos[2] = boost::lexical_cast<double>(split[3]);
@@ -93,7 +94,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
       numberofmultipoles = (rank + 1) * (rank + 1);
       multipoles = Vector9d::Zero();
       pos *= unit_conversion;
-      this->_atomlist.push_back(T(id, name, pos));
+      this->atomlist_.push_back(T(id, name, pos));
     }
     // 'P', dipole polarizability
     else if (split[0] == "P") {
@@ -114,7 +115,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
       }
       double unit_conversion_3 = std::pow(tools::conv::ang2bohr, 3);
       p1 = p1 * unit_conversion_3;
-      this->_atomlist.back().setpolarization(p1);
+      this->atomlist_.back().setpolarization(p1);
     }
     // Multipole lines
     else {
@@ -135,7 +136,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
         multipoles(1) = temp_dipoles(1);
         multipoles(2) = temp_dipoles(2);
         multipoles(3) = temp_dipoles(0);
-        this->_atomlist.back().setMultipole(multipoles, rank);
+        this->atomlist_.back().setMultipole(multipoles, rank);
         readinmultipoles = 0;
       }
     }
@@ -146,7 +147,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
 template <class T>
 double ClassicalSegment<T>::CalcTotalQ() const {
   double Q = 0;
-  for (const T& site : this->_atomlist) {
+  for (const T& site : this->atomlist_) {
     Q += site.getCharge();
   }
   return Q;
@@ -157,7 +158,7 @@ Eigen::Vector3d ClassicalSegment<T>::CalcDipole() const {
   Eigen::Vector3d dipole = Eigen::Vector3d::Zero();
 
   Eigen::Vector3d CoM = this->getPos();
-  for (const T& site : this->_atomlist) {
+  for (const T& site : this->atomlist_) {
     dipole += (site.getPos() - CoM) * site.getCharge();
     dipole += site.getDipole();
   }
@@ -179,7 +180,7 @@ void ClassicalSegment<T>::WriteMPS(std::string filename,
           this->size());
   ofs << boost::format("Units angstrom\n");
 
-  for (const T& site : this->_atomlist) {
+  for (const T& site : this->atomlist_) {
     ofs << site.WriteMpsLine("angstrom");
   }
   ofs.close();

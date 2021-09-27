@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_XTPDFT_PRIVATE_H
-#define VOTCA_XTP_XTPDFT_PRIVATE_H
+#ifndef VOTCA_XTP_XTPDFT_H
+#define VOTCA_XTP_XTPDFT_H
 
 // Standard includes
 #include <string>
@@ -27,6 +27,7 @@
 // Local VOTCA includes
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/orbreorder.h"
 #include "votca/xtp/polarsite.h"
 #include "votca/xtp/qmpackage.h"
 
@@ -39,15 +40,13 @@ namespace xtp {
 
  */
 
-class XTPDFT : public QMPackage {
+class XTPDFT final : public QMPackage {
  public:
   std::string getPackageName() const final { return "xtp"; }
 
-  void Initialize(const tools::Property& options) final;
-
   bool WriteInputFile(const Orbitals& orbitals) final;
 
-  bool Run() final;
+  bool RunDFT() final;
 
   void CleanUp() final;
 
@@ -68,36 +67,43 @@ class XTPDFT : public QMPackage {
   }
 
  protected:
-  const std::array<Index, 25>& ShellMulitplier() const final {
-    return _multipliers;
+  void ParseSpecificOptions(const tools::Property& options) final;
+  const std::array<Index, 49>& ShellMulitplier() const final {
+    return multipliers_;
   }
-  const std::array<Index, 25>& ShellReorder() const final { return _reorder; }
+  const std::array<Index, 49>& ShellReorder() const final {
+    return reorderList_;
+  }
 
  private:
   // clang-format off
-  std::array<Index,25> _multipliers={
+  std::array<Index,49>  multipliers_={{
             1, //s
             1,1,1, //p
             1,1,1,1,1, //d
             1,1,1,1,1,1,1, //f 
-            1,1,1,1,1,1,1,1,1 //g
-            };
-  std::array<Index,25> _reorder={
+            1,1,1,1,1,1,1,1,1, //g
+            1,1,1,1,1,1,1,1,1,1,1, //h
+            1,1,1,1,1,1,1,1,1,1,1,1,1 //i
+  }};
+  std::array<Index,49>  reorderList_={{
             0, //s
-            0,0,0, //p 
-            0,0,0,0,0, //d 
-            0,0,0,0,0,0,0, //f
-            0,0,0,0,0,0,0,0,0 //g
-            };
+            0,0,0, //p
+            0,0,0,0,0, //d
+            0,0,0,0,0,0,0, //f 
+            0,0,0,0,0,0,0,0,0, //g
+            0,0,0,0,0,0,0,0,0,0,0, //h
+            0,0,0,0,0,0,0,0,0,0,0,0,0, //i
+            }};
   // clang-format on
 
   void WriteChargeOption() final { return; }
-  tools::Property _xtpdft_options;
+  tools::Property xtpdft_options_;
 
-  Orbitals _orbitals;
+  Orbitals orbitals_;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_XTPDFT_PRIVATE_H
+#endif  // VOTCA_XTP_XTPDFT_H

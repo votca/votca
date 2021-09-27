@@ -34,12 +34,19 @@ class QMCalculator : public tools::Calculator {
   QMCalculator() = default;
   ~QMCalculator() override = default;
 
-  std::string Identify() override = 0;
+  std::string Identify() const override = 0;
+
+  std::string Package() const final { return "xtp"; }
 
   virtual bool WriteToStateFile() const = 0;
 
-  // void Initialize(tools::Property &options) override = 0;
-  virtual bool EvaluateFrame(Topology &top) = 0;
+  bool EvaluateFrame(Topology& top);
+
+  void Initialize(const tools::Property& opt) final;
+
+ protected:
+  virtual void ParseOptions(const tools::Property& opt) = 0;
+  virtual bool Evaluate(Topology& top) = 0;
 };
 
 }  // namespace xtp
