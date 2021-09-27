@@ -52,6 +52,7 @@ Version 2022-dev
 -  increase performance of numerical integration (#733)
 -  upgrade xtp to cxx17 (#737)
 -  Remove unused variables (#742)
+-  Fix HDF5, switch to C strings (#743)
 
 Version 2021.3 (released XX.09.21)
 ==================================
