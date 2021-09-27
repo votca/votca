@@ -42,9 +42,7 @@ class QMThread;
 template <typename JobContainer>
 class ProgObserver {
 
-  using Job = typename std::iterator_traits<
-      typename JobContainer::iterator>::value_type;
-
+  using Job = typename JobContainer::value_type;
   using Result = typename Job::JobResult;
 
  public:

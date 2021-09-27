@@ -54,9 +54,16 @@ Version 2021-rc.2 (released XX.01.21)
 -  turned sigma choice into a factory (#731)
 -  use middleRows-Cols and refactor numerical integration (#732)
 -  increase performance of numerical integration (#733)
+-  upgrade xtp to cxx17 (#737)
+-  Remove unused variables (#742)
 
-Version 2021.2 (released XX.07.21)
+Version 2021.3 (released XX.09.21)
 ==================================
+
+Version 2021.2 (released 19.09.21)
+==================================
+
+-  no changes since v2021.1
 
 Version 2021.1 (released 18.07.21)
 ==================================
