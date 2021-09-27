@@ -106,7 +106,9 @@ BOOST_AUTO_TEST_CASE(Serializing) {
 
   CheckpointFile ff("aobasis.hdf5");
   CheckpointWriter ww = ff.getWriter();
+  std::cout << "\nstart Writing" << std::endl;
   aobasis.WriteToCpt(ww);
+  std::cout << "\n successful writing" << std::endl;
 
   CheckpointReader rr = ff.getReader();
   AOBasis aobasis2;
