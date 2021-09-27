@@ -1,5 +1,52 @@
 <cg>
-  <!-- example for a non-bonded interaction entry -->
+  <bonded>
+    <name>bond</name>
+    <min>0.</min>
+    <max>0.180</max>
+    <step>0.001</step>
+    <inverse>
+      <target>bond.dist.tgt</target>
+      <do_potential>0</do_potential>
+      <post_update>ibi smooth</post_update>
+      <post_update_options>
+        <smooth>
+          <iterations>2</iterations>
+        </smooth>
+      </post_update_options>
+      <imc>
+        <group>none</group>
+      </imc>
+      <post_add></post_add>
+      <gromacs>
+        <table>table_b1.xvg</table>
+      </gromacs>
+    </inverse>
+  </bonded>
+
+  <bonded>
+    <name>angle</name>
+    <min>0</min>
+    <max>3.14</max>
+    <step>0.01</step>
+    <inverse>
+      <target>angle.dist.tgt</target>
+      <do_potential>0</do_potential>
+      <post_update>ibi smooth</post_update>
+      <post_update_options>
+        <smooth>
+          <iterations>2</iterations>
+        </smooth>
+      </post_update_options>
+      <imc>
+        <group>none</group>
+      </imc>
+      <post_add></post_add>
+      <gromacs>
+        <table>table_a1.xvg</table>
+      </gromacs>
+    </inverse>
+  </bonded>
+
   <non-bonded>
     <!-- name of the interaction -->
     <name>A-A</name>
@@ -125,14 +172,20 @@
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
       <table_end>2.5</table_end>
+      <rdf>
+        <!-- needed for claculating bonded distributions -->
+        <topol>topology.xml</topol>
+      </rdf>
     </gromacs>
     <!-- do not store trajectory -->
     <cleanlist>traj.xtc</cleanlist>
     <!-- these files are copied for each new run -->
-    <filelist>grompp.mdp topol.top table.xvg table_a1.xvg table_b1.xvg index.ndx</filelist>
+    <filelist>grompp.mdp topol.top table.xvg index.ndx topology.xml</filelist>
     <!-- do so many iterations -->
-    <iterations_max>10</iterations_max>
+    <iterations_max>5</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
-    <method>imc</method>
+    <method>ibi</method>
+    <!-- mapping file needed when there are bonded interactions -->
+    <map>map.xml</map>
   </inverse>
 </cg>

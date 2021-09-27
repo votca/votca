@@ -131,8 +131,8 @@
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg table_a1.xvg table_b1.xvg index.ndx</filelist>
     <!-- do so many iterations -->
-    <iterations_max>10</iterations_max>
+    <iterations_max>5</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
-    <method>imc</method>
+    <method>ibi</method>
   </inverse>
 </cg>

@@ -1,6 +1,7 @@
 *~
 .*.swp
 */*/step_*
+*/*/*/step_*
 *.orig
 
 Makefile
@@ -32,3 +33,5 @@ confout.gro
 angle.dist.*
 bond.dist.*
 *.log
+*.ipynb
+sbatch.sh

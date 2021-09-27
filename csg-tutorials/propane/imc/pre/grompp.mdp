@@ -1,5 +1,5 @@
 integrator = sd
-nsteps = 100000
+nsteps = 40000
 dt = 0.002
 
 ; Output
