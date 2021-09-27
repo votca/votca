@@ -15,6 +15,9 @@
  *
  */
 
+// Local private VOTCA includes
+#include "csg_stat_imc.h"
+
 // Standard includes
 #include <fstream>
 #include <iomanip>
@@ -33,9 +36,7 @@
 #include "votca/csg/imcio.h"
 #include "votca/csg/nblistgrid.h"
 #include "votca/csg/nblistgrid_3body.h"
-
-// Local private VOTCA includes
-#include "csg_stat_imc.h"
+#include "votca/csg/nblistintra.h"
 
 namespace votca {
 namespace csg {
@@ -48,8 +49,8 @@ void Imc::Initialize() {
   // do some output
   if (do_imc_) {
     cout << "begin to calculate inverse monte carlo parameters\n";
-    if (include_intra_) {
-      throw runtime_error("error, can not have --do-imc and --include-intra");
+    if (only_intra_nb_) {
+      throw runtime_error("error, can not have --do-imc and --only-intra-nb");
     }
   } else {
     cout << "begin to calculate distribution functions\n";
@@ -68,6 +69,8 @@ void Imc::Initialize() {
     AddInteraction(prop, bonded);
   }
 
+  // TODO: no bonded interactions if only_intra_nb_
+  //       but it is hard to implement
   // initialize bonded structures
   for (tools::Property *prop : bonded_) {
     bool bonded = true;
@@ -204,11 +207,6 @@ Imc::interaction_t *Imc::AddInteraction(tools::Property *p, bool is_bonded) {
   i->step_ = p->get("step").as<double>();
   i->min_ = p->get("min").as<double>();
   i->max_ = p->get("max").as<double>();
-  if (include_intra_ && (!i->is_bonded_)) {
-    i->max_ = p->get("max_intra").as<double>();
-  } else {
-    i->max_ = p->get("max").as<double>();
-  }
 
   i->norm_ = 1.0;
   i->p_ = p;
@@ -397,10 +395,12 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       {
         // generate the neighbour list
         std::unique_ptr<NBList> nb;
-        if (gridsearch) {
+        if (imc_->only_intra_nb_) {
+            nb = std::unique_ptr<NBList>(new NBListIntra());
+        } else if (gridsearch) {
           nb = std::unique_ptr<NBList>(new NBListGrid());
         } else {
-          nb = std::unique_ptr<NBList>(new NBListGrid());
+          nb = std::unique_ptr<NBList>(new NBList());
         }
 
         nb->setCutoff(i.max_ + i.step_);
@@ -411,9 +411,9 @@ void Imc::Worker::DoNonbonded(Topology *top) {
 
         // is it same types or different types?
         if (prop->get("type1").value() == prop->get("type2").value()) {
-          nb->Generate(beads1, !(imc_->include_intra_));
+          nb->Generate(beads1);
         } else {
-          nb->Generate(beads1, beads2, !(imc_->include_intra_));
+          nb->Generate(beads1, beads2);
         }
       }
 

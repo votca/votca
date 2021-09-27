@@ -16,19 +16,37 @@
 #
 
 if [ "$1" = "--help" ]; then
-cat <<EOF
+  cat <<EOF
 ${0##*/}, version %version%
 This script prepares potentials in a generic way
 
 Usage: ${0##*/}
 EOF
-   exit 0
+  exit 0
 fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 method="$(csg_get_property cg.inverse.method)"
+initial_guess_method="$(csg_get_property cg.inverse.initial_guess.method)"
 
-for_all "bonded non-bonded" do_external prepare_single $method
+case "$initial_guess_method" in
+"table")
+  for_all "bonded non-bonded" do_external prepare_single generic --use-table
+  ;;
+"bi")
+  for_all "bonded non-bonded" do_external prepare_single generic --use-bi
+  ;;
+"ie")
+  bonded_interactions=( $(csg_get_property --allow-empty cg.bonded.name) )
+  if [[ -n $bonded_interactions ]]; then
+    for_all "bonded" do_external prepare_single generic --use-bi
+  fi
+  do_external initial_guess ie
+  ;;
+*)
+  die "cg.inverse.${method}.initial_guess has to be either table, bi, or ie"
+  ;;
+esac
 
 if [[ $sim_prog != @(gromacs|lammps) ]] ; then
   msg --color blue "######################################################"

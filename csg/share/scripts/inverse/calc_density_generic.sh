@@ -43,7 +43,7 @@ equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time)"
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame)"
 
 with_errors=$(csg_get_property cg.inverse.$sim_prog.density.with_errors)
-if [[ ${with_errors} = "yes" ]]; then
+if [[ ${with_errors} == "yes" ]]; then
   suffix="_with_errors"
 else
   suffix=""
@@ -54,7 +54,7 @@ if is_done "${name}_density_analysis${suffix}"; then
   exit 0
 fi
 
-if [[ ${with_errors} = "yes" ]]; then
+if [[ ${with_errors} == "yes" ]]; then
   msg "Calculating density for $name with errors"
   block_length=$(csg_get_property cg.inverse.$sim_prog.density.block_length)
   critical csg_density --trj "$traj" --top "$topol" --out "${output}.block" --begin "$equi_time" --first-frame "$first_frame" --block-length $block_length "$@"
@@ -69,4 +69,3 @@ else
 fi
 critical sed -i -e '/nan/d' -e '/inf/d' "$output"
 mark_done "${name}_density_analysis${suffix}"
-

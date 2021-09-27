@@ -384,24 +384,11 @@
       <DESC>Special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
     </map>
     <method>
-      <DESC>method to be performed: ibi/iie/imc/ft/optimizer</DESC>
+      <DESC>method to be performed: ibi/iie/imc/re/optimizer</DESC>
     </method>
 
     <iie>
       <DESC>general options for the IIE schemes (hncgn/ihnc/hncn/pygn/ipy/pyn)</DESC>
-
-      <initial_guess>
-        <DESC>Settings for the initial guess</DESC>
-        <method>ie
-          <DESC>Method for the initial potential guess: table/bi/ie</DESC>
-        </method>
-        <closure>
-          <DESC>OZ equation closure in case of method=ie: hnc/py</DESC>
-        </closure>
-        <ignore_intramolecular_correlation>false
-          <DESC>If true, the initial guess will ignore the presence of intramolecular correlation in the CG molecule.</DESC>
-        </ignore_intramolecular_correlation>
-      </initial_guess>
 
       <method>gauss-newton
         <DESC>Update method to use: gauss-newton/newton/newton-mod.
@@ -409,40 +396,80 @@
           newton_mod is a modified newton scheme that results in an IBI like expression e.g. IHNC.</DESC>
       </method>
       <closure>hnc
-        <DESC>OZ equation closure for the IIE update: hnc/py</DESC>
+        <DESC>Ornstein-Zernike equation closure for the iie update: hnc/py</DESC>
       </closure>
-      <ignore_intramolecular_correlation>false
-        <DESC>If true, the IIE updates (not the initial guess) will ignore the presence of intramolecular correlation in the CG molecule.</DESC>
-      </ignore_intramolecular_correlation>
       <cut_off>
-        <DESC>Cut-off used for non-bonded potenitals in MD.
-          Potential will be set to zero beyond this point.</DESC>
+        <DESC>Cut-off used for non-bonded potenitals. Potential will be set to zero beyond this point.</DESC>
       </cut_off>
       <g_extrap_factor>1.0
         <DESC>Lenght factor by which RDF will be extrapolated</DESC>
       </g_extrap_factor>
+      <g_min>1e-10
+        <DESC>Minimum value of the RDF to be considered valid. Determines range for potential update.
+          If too high, it can lead to too little repulsive potential.
+          If too low, badly sampled RDF region can lead to weird potential spikes.
+          Best is to choose a low number and improve_rdf_near_core.
+        </DESC>
+      </g_min>
       <cut_jacobian>true
         <DESC>Wether to cut the Jacobian before multiplying with Δg. Only for Newton methods</DESC>
       </cut_jacobian>
-      <densities>
-        <DESC>List of densities of the beads, sorted by bead name. TODO: replace by automatic calculation.</DESC>
-      </densities>
-      <n_intra>
-        <DESC>List of n_intra, the number of equal beads, sorted by bead name. TODO: replace by automatic calculation.</DESC>
-      </n_intra>
       <pressure_constraint>none
-      <DESC>Apply pressure constraint. Only for hncgn/pygn</DESC>
+        <DESC>If not none, apply value as pressure constraint. Only for method=gauss-newton</DESC>
       </pressure_constraint>
+      <residual_weighting>rdf
+        <DESC>TODO: implement! Function to use for weighting the residuals. Only for method=gauss-newton. Valid values are: none, rdf (default), rdf_over_r6</DESC>
+      </residual_weighting>
       <extrap_near_core>power
         <DESC>Method for extrapolation in and close to core region. Valid values are: power (default), constant, none</DESC>
       </extrap_near_core>
       <fix_near_cut_off>full-deriv
         <DESC>Method for fixing discontinuity at end of potential. Valid values are: full-deriv (default), none</DESC>
       </fix_near_cut_off>
+      <topol>
+        <DESC>Special topology file to be used for iie update</DESC>
+      </topol>
       <verbose>true
         <DESC>Print some info and dump compressed numpy arrays. Valid values are: true (default), false</DESC>
       </verbose>
     </iie>
+    <initial_guess>
+      <DESC>Settings for the initial guess. Only for method=ibi,iie,imc. Only for non-bonded interactions.</DESC>
+        <!--TODO: can probably be adapted to methods re and optimizer-->
+      <method>bi
+        <DESC>Method for the initial potential guess: table/bi/ie</DESC>
+      </method>
+      <table_overwrite>true
+        <DESC>if method is bi/ie but a .pot.in file is present, overwrite that one interaction</DESC>
+      </table_overwrite>
+      <scale_non_bonded>1.0
+        <DESC>extra scaling factor applied to the non-bonded potentials after the initial guess</DESC>
+      </scale_non_bonded>
+      <scale_bonded>1.0
+        <DESC>extra scaling factor applied to the bonded potentials after the initial guess</DESC>
+      </scale_bonded>
+      <ie>
+        <closure>hnc
+          <DESC>Ornstein-Zernike equation closure in case of method=ie: hnc/py</DESC>
+        </closure>
+        <cut_off>
+          <DESC>Cut-off used for non-bonded potenital. Potential will be set to zero beyond this point.</DESC>
+        </cut_off>
+        <topol>
+          <DESC>Special topology file to be used for ie initial_guess</DESC>
+        </topol>
+        <verbose>true
+          <DESC>Print some info and dump compressed numpy arrays. Valid values are: true (default), false</DESC>
+        </verbose>
+        <g_min>1e-10
+          <DESC>Minimum value of the RDF to be considered valid. Determines range for potential guess.
+            If too high, it can lead to too little repulsive potential.
+            If too low, badly sampled RDF region can lead to weird potential spikes.
+            Best is to choose a low number and improve_rdf_near_core.
+          </DESC>
+        </g_min>
+      </ie>
+    </initial_guess>
 
     <optimizer>
       <cma>
@@ -554,6 +581,9 @@
       <target>
         <DESC>target distribution (e.g. rdf) which is tried to match during iterations to match</DESC>
       </target>
+      <target_intra>
+        <DESC>target intramolecular distribution (e.g. intramolecular rdf) which is used for the ie initial guess</DESC>
+      </target_intra>
       <p_target>
         <DESC>pressure contribution of this interaction</DESC>
       </p_target>
@@ -857,5 +887,22 @@
         </target_weights>
       </optimizer>
     </inverse>
+    <improve_dist_near_core>
+      <target>false
+        <DESC>Weather to modify the target distributions. true or false.</DESC>
+      </target>
+      <new>false
+        <DESC>Weather to modify the new distributions. true or false.</DESC>
+      </new>
+      <function>exponential
+        <DESC>Which functional form to assume for the PMF in the core region. exponential or power.</DESC>
+      </function>
+      <fit_start_g>1e-4
+        <DESC>Lower value of the RDF at which the fit starts.</DESC>
+      </fit_start_g>
+      <fit_end_g>1e-1
+        <DESC>Upper value of the RDF at which the fit starts.</DESC>
+      </fit_end_g>
+    </improve_dist_near_core>
   </non-bonded>
 </cg>

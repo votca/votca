@@ -25,13 +25,13 @@ csg master inverse.sh
 # BEGIN: these scripts have to be defined for each method
 # method initialization
 prepare ibi prepare_generic.sh
-prepare iie prepare_iie.sh
+prepare iie prepare_generic.sh
 prepare imc prepare_imc.sh
 prepare generic prepare_generic.sh
 prepare optimizer prepare_optimizer.sh
 prepare re prepare_re.sh
-prepare_single ibi prepare_generic_single.sh
-prepare_single imc prepare_generic_single.sh
+prepare_single ibi prepare_generic_single.sh  # Is this used anywhere?
+prepare_single imc prepare_generic_single.sh  # Is this used anywhere?
 prepare_single generic prepare_generic_single.sh
 prepare_single optimizer prepare_optimizer_single.sh
 initstep ibi initialize_step_generic.sh
@@ -39,6 +39,11 @@ initstep iie initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
 initstep optimizer initialize_step_optimizer.sh
 initstep re initialize_step_re.sh
+
+# aditional scripts for the initial guess
+initial_guess ie initial_guess_ie.sh
+initial_guess_single bi initial_guess_single_bi.sh
+initial_guess_single table initial_guess_single_table.sh
 
 # the update step
 
@@ -116,7 +121,6 @@ update ibi_pot update_ibi_pot.pl
 update iie update_iie.sh
 update iie_pot iie.py
 dist invert_iie iie.py
-rdf_incl_intra generic calc_rdf_generic.sh
 
 # imc specific stuff
 update imc update_imc.sh
@@ -184,7 +188,7 @@ convert_potential tab table_to_tab.pl
 # generic distribution manipulation
 dist adjust dist_adjust.pl
 dist invert dist_boltzmann_invert.pl
-
+dist improve_near_core dist_improve_near_core.py
 
 # error analysis
 tables jackknife tables_jackknife.pl
