@@ -1,0 +1,32 @@
+<cg>
+  <!--fmatch section -->
+  <fmatch>
+    <!--Number of frames for block averaging -->
+    <frames_per_block>10000</frames_per_block>
+    <constrainedLS>0</constrainedLS>
+  </fmatch>
+  <!-- example for a non-bonded interaction entry -->
+  <bonded>
+    <!-- name of the interaction -->
+    <name>bond</name>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>0.162</min>
+      <max>0.17</max>
+      <step>0.001</step>
+      <out_step>0.0002</out_step>
+    </fmatch>
+  </bonded>
+  <bonded>
+    <!-- name of the interaction -->
+    <name>angle</name>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>1.65</min>
+      <max>2.1</max>
+      <step>0.05</step>
+      <out_step>0.01</out_step>
+    </fmatch>
+  </bonded>
+</cg>
+
