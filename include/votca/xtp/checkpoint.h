@@ -46,10 +46,6 @@ class CheckpointFile {
   CheckpointFile(std::string fN);
   CheckpointFile(std::string fN, CheckpointAccessLevel access);
 
-  ~CheckpointFile(){
-    fileHandle_.close();
-  }
-
   std::string getFileName();
   std::string getVersion();
 
