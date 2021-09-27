@@ -1,0 +1,7 @@
+<cg>
+  <inverse>
+    <gromacs>
+      <DESC>gromacs specific options </DESC>
+    </gromacs>
+  </inverse>
+</cg>

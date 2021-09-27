@@ -1,0 +1,251 @@
+<cg_molecule>   
+  <name>MMA3</name>
+  <ident>3-MMA</ident>
+  <topology>
+    <cg_beads>
+      <cg_bead>
+        <name>H</name>
+        <type>H</type>
+        <symmetry>1</symmetry> <!-- defines the type of cg bead --> 
+        <mapping>H</mapping>
+        <beads>1:HMA:C7 1:HMA:H12 1:HMA:H13 1:HMA:H14 </beads>
+      </cg_bead>
+      <cg_bead>
+        <name>1MB</name>
+        <type>MB</type>
+        <symmetry>1</symmetry> <!-- defines the type of cg bead -->
+        <mapping>MB</mapping>
+        <beads>1:HMA:C3 1:HMA:C2 1:HMA:H4 1:HMA:H5 1:HMA:C4 1:HMA:H6 1:HMA:H7 1:HMA:H8 </beads>
+      </cg_bead>
+      <cg_bead>
+        <name>1E</name>
+        <type>E</type>
+        <symmetry>1</symmetry> <!-- defines the type of cg bead -->
+        <mapping>E</mapping>
+        <beads>1:HMA:C5 1:HMA:O1 1:HMA:O2 </beads>
+      </cg_bead>
+      <cg_bead>
+        <name>1SM</name>
+        <type>SM</type>
+        <symmetry>1</symmetry> <!-- defines the type of cg bead -->
+        <mapping>SM</mapping>
+        <beads>1:HMA:C6 1:HMA:H9 1:HMA:H10 1:HMA:H11 </beads>
+      </cg_bead>
+      <cg_bead>
+        <name>2MB</name>
+        <type>MB</type>
+        <symmetry>1</symmetry> <!-- defines the type of cg bead -->
+        <mapping>MB</mapping>
+        <beads>2:MMA:C3 2:MMA:C2 2:MMA:H4 2:MMA:H5 2:MMA:C4 2:MMA:H6 2:MMA:H7 2:MMA:H8 </beads>
+      </cg_bead>
+      <cg_bead>
+        <name>2E</name>
+        <type>E</type>
+        <symmetry>1</symmetry> <!-- defines the type of cg bead -->
+        <mapping>E</mapping>
+        <beads>2:MMA:C5 2:MMA:O1 2:MMA:O2 </beads>
+      </cg_bead>
+      <cg_bead>
+        <name>2SM</name>
+        <type>SM</type>
+        <symmetry>1</symmetry> <!-- defines the type of cg bead -->
+        <mapping>SM</mapping>
+        <beads>2:MMA:C6 2:MMA:H9 2:MMA:H10 2:MMA:H11 </beads>
+      </cg_bead>
+      <cg_bead>
+        <name>3MB</name>
+        <type>MB</type>
+        <symmetry>1</symmetry> <!-- defines the type of cg bead -->
+        <mapping>MB</mapping>
+        <beads>3:TMA:C3 3:TMA:C2 3:TMA:H4 3:TMA:H5 3:TMA:C4 3:TMA:H6 3:TMA:H7 3:TMA:H8 </beads>
+      </cg_bead>
+      <cg_bead>
+        <name>3E</name>
+        <type>E</type>
+        <symmetry>1</symmetry> <!-- defines the type of cg bead -->
+        <mapping>E</mapping>
+        <beads>3:TMA:C5 3:TMA:O1 3:TMA:O2 </beads>
+      </cg_bead>
+      <cg_bead>
+        <name>3SM</name>
+        <type>SM</type>
+        <symmetry>1</symmetry> <!-- defines the type of cg bead -->
+        <mapping>SM</mapping>
+        <beads>3:TMA:C6 3:TMA:H9 3:TMA:H10 3:TMA:H11 </beads>
+      </cg_bead>
+      <cg_bead>
+        <name>T</name>
+        <type>T</type>
+        <symmetry>1</symmetry> <!-- defines the type of cg bead -->
+        <mapping>T</mapping>
+        <beads>3:TMA:C1 3:TMA:H1 3:TMA:H2 3:TMA:H3 </beads>
+      </cg_bead>
+    </cg_beads>
+    <cg_bonded><!-- bonded interactions -->
+      <bond>
+	<name>HMB</name>
+	<beads>
+	  H  1MB
+	</beads>
+      </bond>
+      <bond>
+	<name>MBE</name>
+	<beads>
+	  1MB  1E
+	  2MB  2E
+	  3MB  3E
+	</beads>
+      </bond>
+      <bond>      
+	<name>MBMB</name>
+	<beads>
+	  1MB  2MB
+	  2MB  3MB
+	</beads>
+      </bond>
+      <bond>
+	<name>ESM</name>
+	<beads>
+	  1E  1SM
+	  2E  2SM
+	  3E  3SM
+	</beads>
+      </bond>
+      <bond>     
+        <name>MBT</name>
+	<beads>
+	  3MB T
+	</beads>	
+      </bond>
+      <angle>
+	<name>HMBE</name>
+	<beads>
+	  H  1MB 1E	  
+	</beads>
+      </angle>
+      <angle>
+	<name>HMBMB</name>
+	<beads>
+	  H  1MB 2MB	  
+	</beads>
+      </angle>
+      <angle>	
+	<name>MBESM</name>
+	<beads>
+	  1MB 1E 1SM
+	  2MB 2E 2SM
+	  3MB 3E 3SM
+	</beads>
+      </angle>
+      <angle>	
+	<name>MBMBMB</name>
+	<beads>
+	  1MB 2MB 3MB
+	</beads>
+      </angle>
+      <angle>	
+	<name>MBMBE</name>
+	<beads>
+	  1MB 2MB 2E
+	  2MB 3MB 3E
+	  2MB 1MB 1E
+	  3MB 2MB 2E
+	</beads>
+      </angle>
+      <angle>	
+	<name>MBMBT</name>
+	<beads>
+	  2MB  3MB T	  
+	</beads>
+      </angle>
+      <angle>	
+	<name>EMBT</name>
+	<beads>
+	  3E 3MB T    
+	</beads>
+      </angle>
+      <dihedral>
+	<name>HMBESM</name>
+	<beads>
+	  H 1MB 1E 1SM
+	</beads>
+      </dihedral>
+      <dihedral>      
+	<name>HMBMBMB</name>
+	<beads>
+	  H 1MB 2MB 3MB
+	</beads>
+      </dihedral>
+      <dihedral>
+	<name>HMBMBE</name>
+	<beads>
+	  H 1MB 2MB 2E
+	</beads>
+      </dihedral>
+      <dihedral>
+	<name>MBMBESM</name>
+	<beads>
+	  1MB 2MB 2E 2SM
+	  2MB 3MB 3E 3SM
+	  3MB 2MB 2E 2SM
+	  2MB 1MB 1E 1SM
+	</beads>
+      </dihedral>
+      <dihedral>
+	<name>EMBMBE</name>
+	<beads>
+	  1E 1MB 2MB 2E
+	  2E 2MB 3MB 3E
+	</beads>
+      </dihedral>
+      <dihedral>
+	<name>MBMBMBE</name>
+	<beads>
+	  1MB 2MB 3MB 3E
+	3MB 2MB 1MB 1E
+	</beads>
+      </dihedral>
+      <dihedral>
+	<name>MBMBMBT</name>
+	<beads>
+	  1MB 2MB 3MB T
+	</beads>
+      </dihedral>
+      <dihedral>
+	<name>EMBMBT</name>
+	<beads>
+	  2E 2MB 3MB T
+	</beads>
+      </dihedral>
+      <dihedral>
+	<name>SMEMBT</name>
+	<beads>
+	  3SM 3E 3MB T
+	</beads>
+      </dihedral>
+    </cg_bonded>
+  </topology>
+  <maps>
+    <map>
+      <name>H</name>
+      <weights> 12.011 1.008 1.008 1.008</weights>
+    </map>
+    <map>
+      <name>MB</name>
+      <weights> 12.011 12.011 1.008 1.008 12.011 1.008 1.008 1.008</weights>
+    </map>
+    <map>
+      <name>E</name>
+      <weights> 12.011 15.999 15.999</weights>
+    </map>
+    <map>
+      <name>SM</name>
+      <weights> 12.011 1.008 1.008 1.008</weights>
+    </map>
+    <map>
+      <name>T</name>
+      <weights> 12.011 1.008 1.008 1.008</weights>
+    </map>
+  </maps>
+ </cg_molecule> 
+

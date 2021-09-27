@@ -1,0 +1,17 @@
+<cg>
+  <non-bonded>
+    <name>CG-CG</name>
+    <type1>CG</type1>
+    <type2>CG</type2>
+    <min>0.25</min>
+    <max>0.9</max>
+    <step>0.05</step>
+
+    <inverse>
+      <imc>
+        <group>CG-CG</group>
+      </imc>
+    </inverse>
+  </non-bonded>
+</cg>
+

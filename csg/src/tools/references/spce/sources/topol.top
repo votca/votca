@@ -1,0 +1,8 @@
+#include "gromos43a1.ff/forcefield.itp"
+#include "gromos43a1.ff/spce.itp"
+
+[ system ]
+Flex water
+
+[ molecules ]
+SOL     216

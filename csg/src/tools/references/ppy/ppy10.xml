@@ -1,0 +1,138 @@
+<cg_molecule>
+  <name>PPY</name>
+	<ident>Protein</ident>
+  <topology>
+    <cg_beads>
+      <cg_bead>
+        <name>A1</name>
+        <type>A</type>
+        <mapping>AE</mapping>
+        <beads>1:PPL:N 1:PPL:C1 1:PPL:C2 1:PPL:C3 1:PPL:C4 1:PPL:HN 1:PPL:H1 1:PPL:H2 1:PPL:H3</beads>
+      </cg_bead>
+
+      <cg_bead>
+        <name>A2</name>
+        <type>A</type>
+        <mapping>A</mapping>
+        <beads>2:PPY:N 2:PPY:C1 2:PPY:C2 2:PPY:C3 2:PPY:C4 2:PPY:HN 2:PPY:H2 2:PPY:H3</beads>
+      </cg_bead>
+
+      <cg_bead>
+        <name>A3</name>
+        <type>A</type>
+        <mapping>A</mapping>
+        <beads>3:PPY:N 3:PPY:C1 3:PPY:C2 3:PPY:C3 3:PPY:C4 3:PPY:HN 3:PPY:H2 3:PPY:H3</beads>
+      </cg_bead>
+
+      <cg_bead>
+        <name>A4</name>
+        <type>A</type>
+        <mapping>A</mapping>
+        <beads>4:PPY:N 4:PPY:C1 4:PPY:C2 4:PPY:C3 4:PPY:C4 4:PPY:HN 4:PPY:H2 4:PPY:H3</beads>
+      </cg_bead>
+
+      <cg_bead>
+        <name>A5</name>
+        <type>A</type>
+        <mapping>A</mapping>
+        <beads>5:PPY:N 5:PPY:C1 5:PPY:C2 5:PPY:C3 5:PPY:C4 5:PPY:HN 5:PPY:H2 5:PPY:H3</beads>
+      </cg_bead>
+
+      <cg_bead>
+        <name>A6</name>
+        <type>A</type>
+        <mapping>A</mapping>
+        <beads>6:PPY:N 6:PPY:C1 6:PPY:C2 6:PPY:C3 6:PPY:C4 6:PPY:HN 6:PPY:H2 6:PPY:H3</beads>
+      </cg_bead>
+
+      <cg_bead>
+        <name>A7</name>
+        <type>A</type>
+        <mapping>A</mapping>
+        <beads>7:PPY:N 7:PPY:C1 7:PPY:C2 7:PPY:C3 7:PPY:C4 7:PPY:HN 7:PPY:H2 7:PPY:H3</beads>
+      </cg_bead>
+
+      <cg_bead>
+        <name>A8</name>
+        <type>A</type>
+        <mapping>A</mapping>
+        <beads>8:PPY:N 8:PPY:C1 8:PPY:C2 8:PPY:C3 8:PPY:C4 8:PPY:HN 8:PPY:H2 8:PPY:H3</beads>
+      </cg_bead>
+
+      <cg_bead>
+        <name>A9</name>
+        <type>A</type>
+        <mapping>A</mapping>
+        <beads>9:PPY:N 9:PPY:C1 9:PPY:C2 9:PPY:C3 9:PPY:C4 9:PPY:HN 9:PPY:H2 9:PPY:H3</beads>
+      </cg_bead>
+
+      <cg_bead>
+        <name>A10</name>
+        <type>A</type>
+        <mapping>AE</mapping>
+        <beads>10:PPR:N 10:PPR:C1 10:PPR:C2 10:PPR:C3 10:PPR:C4 10:PPR:HN 10:PPR:H2 10:PPR:H3 10:PPR:H4</beads>
+      </cg_bead>
+
+    </cg_beads>
+
+    <cg_bonded>
+      <bond>
+        <name>end-end</name>
+        <beads>
+          A1 A10
+        </beads>
+      </bond>
+
+      <bond>
+        <name>AA-bond</name>
+        <beads>
+          A1 A2
+          A2 A3
+          A3 A4
+          A4 A5
+          A5 A6
+          A6 A7
+          A7 A8
+          A8 A9
+          A9 A10
+        </beads>
+      </bond>
+      <angle>
+        <name>AAA-angle</name>
+        <beads>
+          A1 A2 A3
+          A2 A3 A4
+          A3 A4 A5
+          A4 A5 A6
+          A5 A6 A7
+          A6 A7 A8
+          A7 A8 A9
+          A8 A9 A10
+        </beads>
+      </angle>
+      <dihedral>
+          <name>AAAA-dihedral</name>
+          <beads>
+              A1 A2 A3 A4
+              A2 A3 A4 A5
+              A3 A4 A5 A6
+              A4 A5 A6 A7
+              A5 A6 A7 A8
+              A6 A7 A8 A9
+              A7 A8 A9 A10
+          </beads>
+      </dihedral>
+    </cg_bonded>
+  </topology>
+
+  <maps>
+    <map>
+      <name>A</name>
+      <weights>14 12 12 12 12 0 0 0</weights>
+    </map>
+    <map>
+      <name>AE</name>
+      <weights>14 12 12 12 12 0 0 0 0</weights>
+    </map>
+  </maps>
+</cg_molecule>
