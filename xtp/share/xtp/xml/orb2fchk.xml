@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<options>
+  <orb2fchk help="Converts orb files to gaussian fchk files.">
+  <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
+  <qmstate help="QMstate in string format, e.g. n, s4 etc." default="n"/>
+  <diff2gs help="For excited states output difference to groundstate" default="false" choices="bool"/>
+  </orb2fchk>
+</options>

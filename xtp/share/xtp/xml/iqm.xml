@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<options>
+  <iqm help="QM calculator for pairs" section="sec:iqm">
+    <job_file help="name of jobfile to which jobs are written" default="iqm.jobs"/>
+    <tasks help="tasks to perform during calculation" default="input,dft,parse,dftcoupling,gwbse,bsecoupling" choices="[input,dft,parse,dftcoupling,gwbse,bsecoupling]"/>
+    <map_file help="xml file with segment definition" default="votca_map.xml"/>
+    <gwbse link="gwbse.xml"/>
+    <bsecoupling link="bsecoupling.xml"/>
+    <dftcoupling link="dftcoupling.xml"/>
+    <dftpackage link="dftpackage.xml"/>
+    <readjobfile help="Determines which state for which molecule should be written to the statefile from the jobfile">
+      <singlet help="List of molecule names with the corresponding state that should be used, e.g. DCV5T:0" default="OPTIONAL"/>
+      <triplet help="List of molecule names with the corresponding state that should be used, e.g. DCV5T:0" default="OPTIONAL"/>
+      <electron help="List of molecule names with the corresponding state that should be used, e.g. DCV5T:0" default="OPTIONAL"/>
+      <hole help="List of molecule names with the corresponding state that should be used, e.g. DCV5T:0" default="OPTIONAL"/>
+    </readjobfile>
+    <linker_names help="Name of molecules that should serve as a transition between two other molecules with it corresponding geometry. e.g. DCV5T:n" default="OPTIONAL"/>
+    <store help="Which kind of data to keep after each run" choices="[dft,gw]" default=""/>
+  </iqm>
+</options>

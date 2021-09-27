@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<options>
+  <eanalyze help="Histogram and correlation function of site energies and pair energy differences" section="sec:eanalyze">
+    <resolution_sites help="Bin size for site energy histogram" unit="eV" default="0.01" choices="float+"/>
+    <resolution_pairs help="Bin size for pair energy histogram" unit="eV" default="0.01" choices="float+"/>
+    <resolution_spatial help="Bin size for site energy correlation" unit="eV" default="0.01" choices="float+"/>
+    <states help="states to analyze" default="e, h, s, t" choices="[e,h,s,t]"/>
+    <output_energy_landscape help="enable the computation of the energy landscape" default="false" choices="bool"/>
+    <match_pattern help="Regex use to search for the segments" default="*"/>
+    <distancemode help="mode to use if do_distance_mode is set to true" default="OPTIONAL" choices="atoms,centerofmass"/>
+  </eanalyze>
+</options>
