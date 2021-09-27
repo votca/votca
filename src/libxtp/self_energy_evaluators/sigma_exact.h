@@ -21,8 +21,8 @@
 #define VOTCA_XTP_SIGMA_EXACT_H
 
 // Local VOTCA includes
-#include "rpa.h"
-#include "sigma_base.h"
+#include "votca/xtp/rpa.h"
+#include "votca/xtp/sigma_base.h"
 
 namespace votca {
 namespace xtp {
@@ -49,10 +49,11 @@ class Sigma_Exact : public Sigma_base {
                                        double frequency2) const final;
 
  private:
-  RPA::rpa_eigensolution _rpa_solution;    // Eigenvalues, eigenvectors from RPA
-  std::vector<Eigen::MatrixXd> _residues;  // Residues
+  Eigen::VectorXd rpa_omegas_;             // Eigenvalues from RPA
+  std::vector<Eigen::MatrixXd> residues_;  // Residues
 
-  Eigen::MatrixXd CalcResidues(Index gw_level) const;
+  Eigen::MatrixXd CalcResidues(Index gw_level,
+                               const Eigen::MatrixXd& XpY) const;
 };
 }  // namespace xtp
 }  // namespace votca

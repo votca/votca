@@ -26,37 +26,36 @@ namespace votca {
 namespace xtp {
 
 double Energy_costfunction::EvaluateCost(const Eigen::VectorXd& parameters) {
-  Vector2QMAtoms(parameters, _orbitals.QMAtoms());
-  _gwbse_engine.setRedirectLogger(true);
+  Vector2QMAtoms(parameters, orbitals_.QMAtoms());
+  gwbse_engine_.setLoggerFile("");
   std::string logger_file;
-  if (_iteration == 0) {
+  if (iteration_ == 0) {
     logger_file =
-        "gwbse_iteration_" + (boost::format("%1%") % _iteration).str() + ".log";
-    _iteration++;
+        "gwbse_iteration_" + (boost::format("%1%") % iteration_).str() + ".log";
+    iteration_++;
   } else {
     logger_file =
-        "gwbse_iteration_" + (boost::format("%1%") % _iteration).str() + ".log";
+        "gwbse_iteration_" + (boost::format("%1%") % iteration_).str() + ".log";
   }
-  _gwbse_engine.setLoggerFile(logger_file);
-  _gwbse_engine.ExcitationEnergies(_orbitals);
-  _gwbse_engine.setRedirectLogger(false);
-  _energy = _orbitals.getTotalStateEnergy(
-      _tracker.CalcStateAndUpdate(_orbitals));  // in Hartree
-  return _energy;
+  gwbse_engine_.setLoggerFile(logger_file);
+  gwbse_engine_.ExcitationEnergies(orbitals_);
+  energy_ = orbitals_.getTotalStateEnergy(
+      tracker_.CalcStateAndUpdate(orbitals_));  // in Hartree
+  return energy_;
 }
 
 Eigen::VectorXd Energy_costfunction::EvaluateGradient(
     const Eigen::VectorXd& parameters) {
-  Vector2QMAtoms(parameters, _orbitals.QMAtoms());
-  _force_engine.Calculate(_orbitals);
-  Eigen::VectorXd gradient = Write3XMatrixToVector(-_force_engine.GetForces());
+  Vector2QMAtoms(parameters, orbitals_.QMAtoms());
+  force_engine_.Calculate(orbitals_);
+  Eigen::VectorXd gradient = Write3XMatrixToVector(-force_engine_.GetForces());
   return gradient;
 }
 
 bool Energy_costfunction::Converged(const Eigen::VectorXd& delta_parameters,
                                     double delta_cost,
                                     const Eigen::VectorXd& gradient) {
-  _iteration++;
+  iteration_++;
   bool energy_converged = false;
   bool RMSForce_converged = false;
   bool MaxForce_converged = false;
@@ -71,19 +70,19 @@ bool Energy_costfunction::Converged(const Eigen::VectorXd& delta_parameters,
                     double(delta_parameters.size());
   convval.MaxStep = delta_parameters.cwiseAbs().maxCoeff(&convval.maxstepindex);
 
-  if (std::abs(convval.deltaE) < _convpara.deltaE) {
+  if (std::abs(convval.deltaE) < convpara_.deltaE) {
     energy_converged = true;
   }
-  if (convval.RMSForce < _convpara.RMSForce) {
+  if (convval.RMSForce < convpara_.RMSForce) {
     RMSForce_converged = true;
   }
-  if (convval.MaxForce < _convpara.MaxForce) {
+  if (convval.MaxForce < convpara_.MaxForce) {
     MaxForce_converged = true;
   }
-  if (convval.RMSStep < _convpara.RMSStep) {
+  if (convval.RMSStep < convpara_.RMSStep) {
     RMSStep_converged = true;
   }
-  if (convval.MaxStep < _convpara.MaxStep) {
+  if (convval.MaxStep < convpara_.MaxStep) {
     MaxStep_converged = true;
   }
   Report(convval);
@@ -96,37 +95,37 @@ bool Energy_costfunction::Converged(const Eigen::VectorXd& delta_parameters,
 
 void Energy_costfunction::Report(const Energy_costfunction::conv_paras& val) {
   const Energy_costfunction::conv_paras& paras = getConvParas();
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << (boost::format("   energy change:    %1$12.8f Hartree      %2$s") %
           val.deltaE % Converged(val.deltaE, paras.deltaE))
              .str()
       << std::flush;
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << (boost::format("   RMS force:        %1$12.8f Hartree/Bohr %2$s") %
           val.RMSForce % Converged(val.RMSForce, paras.RMSForce))
              .str()
       << std::flush;
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << (boost::format("   Max force:        %1$12.8f Hartree/Bohr %2$s") %
           val.MaxForce % Converged(val.MaxForce, paras.MaxForce))
              .str()
       << std::flush;
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << (boost::format("   RMS step:         %1$12.8f Bohr         %2$s") %
           val.RMSStep % Converged(val.RMSStep, paras.RMSStep))
              .str()
       << std::flush;
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << (boost::format("   Max step:         %1$12.8f Bohr         %2$s") %
           val.MaxStep % Converged(val.MaxStep, paras.MaxStep))
              .str()
       << std::flush;
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << (boost::format(" ++++++++++++++++++++++++++++++++++++++++++"
                         "++++++++++++++++++++++++ "))
              .str()
       << std::flush;
-  XTP_LOG(Log::error, *_pLog) << std::flush;
+  XTP_LOG(Log::error, *pLog_) << std::flush;
 }
 
 std::string Energy_costfunction::Converged(double val, double limit) {

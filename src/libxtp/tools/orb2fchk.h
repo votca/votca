@@ -17,6 +17,7 @@
  *
  */
 #pragma once
+#include "votca/xtp/qmstate.h"
 #ifndef VOTCA_XTP_ORB2FCHK_H
 #define VOTCA_XTP_ORB2FCHK_H
 
@@ -36,18 +37,18 @@ class Orb2Fchk final : public QMTool {
 
   ~Orb2Fchk() = default;
 
-  std::string Identify() { return "orb2fchk"; }
+  std::string Identify() const { return "orb2fchk"; }
 
  protected:
   void ParseOptions(const tools::Property& options);
   bool Run();
 
  private:
-  std::string _basename;
-  std::string _orbfile;
-  std::string _state_string;
-  bool _diff2gs;
-  Logger _log;
+  std::string basename_;
+  std::string orbfile_;
+  QMState state_;
+  bool diff2gs_;
+  Logger log_;
 };
 
 }  // namespace xtp

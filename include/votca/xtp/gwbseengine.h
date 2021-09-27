@@ -47,45 +47,40 @@ class GWBSEEngine {
   void Initialize(tools::Property& options, std::string archive_filename);
   void ExcitationEnergies(Orbitals& orbitals);
 
-  void setLog(Logger* pLog) { _pLog = pLog; }
+  void setLog(Logger* pLog) { pLog_ = pLog; }
 
-  void setQMPackage(QMPackage* qmpackage) { _qmpackage = qmpackage; }
+  void setQMPackage(QMPackage* qmpackage) { qmpackage_ = qmpackage; }
 
-  std::string GetDFTLog() const { return _dftlog_file; };
+  std::string GetDFTLog() const { return dftlog_file_; };
 
-  void setLoggerFile(std::string logger_file) { _logger_file = logger_file; };
+  void setLoggerFile(std::string logger_file) { logger_file_ = logger_file; };
 
-  void setRedirectLogger(bool redirect_logger) {
-    _redirect_logger = redirect_logger;
-  };
-
-  const tools::Property& ReportSummary() const { return _summary; };
+  const tools::Property& ReportSummary() const { return summary_; };
 
  private:
-  QMPackage* _qmpackage;
+  QMPackage* qmpackage_;
 
-  Logger* _pLog;
+  Logger* pLog_;
 
   // task options
-  bool _do_guess = false;
-  bool _do_dft_input = false;
-  bool _do_dft_run = false;
-  bool _do_dft_parse = false;
-  bool _do_gwbse = false;
-  bool _redirect_logger = false;
+  bool do_guess_ = false;
+  bool do_dft_input_ = false;
+  bool do_dft_run_ = false;
+  bool do_dft_parse_ = false;
+  bool do_gwbse_ = false;
 
   // DFT log and MO file names
-  std::string _MO_file;      // file containing the MOs from qmpackage...
-  std::string _dftlog_file;  // file containing the Energies etc... from
+  std::string MO_file_;      // file containing the MOs from qmpackage...
+  std::string dftlog_file_;  // file containing the Energies etc... from
                              // qmpackage...
-  std::string _logger_file;
-  std::string _archive_file;
-  std::string _guess_archiveA;
-  std::string _guess_archiveB;
+  std::string logger_file_;
+  std::string archive_file_;
+  std::string guess_archiveA_;
+  std::string guess_archiveB_;
 
   // Options for GWBSE module
-  tools::Property _gwbse_options;
-  tools::Property _summary;
+  tools::Property gwbse_options_;
+  tools::Property summary_;
 
   void WriteLoggerToFile(Logger* pLog);
 };

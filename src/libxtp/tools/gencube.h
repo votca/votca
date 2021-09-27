@@ -36,7 +36,7 @@ class GenCube final : public QMTool {
 
   ~GenCube() = default;
 
-  std::string Identify() { return "gencube"; }
+  std::string Identify() const { return "gencube"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);
@@ -46,18 +46,18 @@ class GenCube final : public QMTool {
   void calculateCube();
   void subtractCubes();
 
-  std::string _orbfile;
-  std::string _output_file;
-  std::string _infile1;
-  std::string _infile2;
+  std::string orbfile_;
+  std::string output_file_;
+  std::string infile1_;
+  std::string infile2_;
 
-  bool _dostateonly;
+  bool dostateonly_;
 
-  double _padding;
-  Eigen::Array<Index, 3, 1> _steps;
-  QMState _state;
-  std::string _mode;
-  Logger _log;
+  double padding_;
+  Eigen::Array<Index, 3, 1> steps_;
+  QMState state_;
+  std::string mode_;
+  Logger log_;
 };
 
 }  // namespace xtp

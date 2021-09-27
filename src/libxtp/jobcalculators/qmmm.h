@@ -37,7 +37,7 @@ namespace xtp {
 
 class QMMM final : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  std::string Identify() { return "qmmm"; }
+  std::string Identify() const { return "qmmm"; }
   Job::JobResult EvalJob(const Topology& top, Job& job, QMThread& Thread);
   void WriteJobFile(const Topology& top);
   void ReadJobFile(Topology& top);
@@ -47,13 +47,16 @@ class QMMM final : public ParallelXJobCalc<std::vector<Job> > {
 
  private:
   bool hasQMRegion() const;
-  tools::Property _regions_def;
+  Job createJob(const Segment& seg, const QMState& state, Index jobid) const;
+  std::string getFirstRegionName() const;
 
-  Index _max_iterations;
-  bool _print_regions_pdb = false;
+  std::pair<std::string, tools::Property> regions_def_;
 
-  bool _write_parse = true;
-  std::vector<QMState> _states;
+  Index max_iterations_;
+  bool print_regions_pdb_ = false;
+  bool use_gs_for_ex_ = false;
+  std::vector<QMState> states_;
+  std::string which_segments_;
 };
 
 }  // namespace xtp

@@ -52,11 +52,11 @@ class Anderson {
   void Configure(const Index order, const double alpha);
 
  private:
-  std::vector<Eigen::VectorXd> _input;
-  std::vector<Eigen::VectorXd> _output;
+  std::vector<Eigen::VectorXd> input_;
+  std::vector<Eigen::VectorXd> output_;
 
-  double _alpha = 0.7;
-  Index _order = 25;
+  double alpha_ = 0.7;
+  Index order_ = 25;
 };
 
 }  // namespace xtp

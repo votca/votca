@@ -29,50 +29,50 @@ namespace votca {
 namespace xtp {
 
 void BFGSTRM::Optimize(const Eigen::VectorXd& initialparameters) {
-  _parameters = initialparameters;
-  _cost = _costfunction.EvaluateCost(_parameters);
-  double lastcost = _cost;
-  Eigen::VectorXd gradient = _costfunction.EvaluateGradient(_parameters);
-  for (auto& func : _callbacks) {
+  parameters_ = initialparameters;
+  cost_ = costfunction_.EvaluateCost(parameters_);
+  double lastcost = cost_;
+  Eigen::VectorXd gradient = costfunction_.EvaluateGradient(parameters_);
+  for (auto& func : callbacks_) {
     func();
   }
 
-  Eigen::VectorXd delta_p_trial = Eigen::VectorXd::Zero(_parameters.size());
-  Eigen::VectorXd last_gradient = Eigen::VectorXd::Zero(_parameters.size());
+  Eigen::VectorXd delta_p_trial = Eigen::VectorXd::Zero(parameters_.size());
+  Eigen::VectorXd last_gradient = Eigen::VectorXd::Zero(parameters_.size());
   double delta_cost = 0;
-  for (_iteration = 1; _iteration <= _max_iteration; _iteration++) {
+  for (iteration_ = 1; iteration_ <= max_iteration_; iteration_++) {
     for (Index i = 0; i < 100; i++) {
       TrustRegion subproblem;
       delta_p_trial =
-          subproblem.CalculateStep(gradient, _hessian, _trust_radius);
+          subproblem.CalculateStep(gradient, hessian_, trust_radius_);
       double trialcost =
-          _costfunction.EvaluateCost(_parameters + delta_p_trial);
+          costfunction_.EvaluateCost(parameters_ + delta_p_trial);
       delta_cost = trialcost - lastcost;
       bool step_accepted =
           AcceptRejectStep(delta_p_trial, gradient, delta_cost);
       if (step_accepted) {
-        _cost = trialcost;
-        _parameters += delta_p_trial;
+        cost_ = trialcost;
+        parameters_ += delta_p_trial;
         break;
       }
     }
-    gradient = _costfunction.EvaluateGradient(_parameters);
-    if (_iteration > 1) {
+    gradient = costfunction_.EvaluateGradient(parameters_);
+    if (iteration_ > 1) {
       UpdateHessian(delta_p_trial, gradient - last_gradient);
     }
-    lastcost = _cost;
+    lastcost = cost_;
     last_gradient = gradient;
-    for (auto& func : _callbacks) {
+    for (auto& func : callbacks_) {
       func();
     }
-    if (_costfunction.Converged(delta_p_trial, delta_cost, gradient)) {
+    if (costfunction_.Converged(delta_p_trial, delta_cost, gradient)) {
       break;
-    } else if (_iteration == _max_iteration) {
-      _success = false;
-      XTP_LOG(Log::warning, *_pLog)
+    } else if (iteration_ == max_iteration_) {
+      success_ = false;
+      XTP_LOG(Log::warning, *pLog_)
           << (boost::format("BFGS-TRM @iteration %1$d: not converged after "
                             "%2$d iterations ") %
-              _iteration % _max_iteration)
+              iteration_ % max_iteration_)
                  .str()
           << std::flush;
     }
@@ -87,17 +87,17 @@ bool BFGSTRM::AcceptRejectStep(const Eigen::VectorXd& delta_p,
   bool step_accepted = false;
   if (cost_delta > 0.0) {
     // total energy has unexpectedly increased, half the trust radius
-    _trust_radius = 0.25 * _trust_radius;
-    XTP_LOG(Log::warning, *_pLog)
+    trust_radius_ = 0.25 * trust_radius_;
+    XTP_LOG(Log::warning, *pLog_)
         << (boost::format("BFGS-TRM @iteration %1$d: DeltaCost %2$2.4e step "
                           "rejected ") %
-            _iteration % cost_delta)
+            iteration_ % cost_delta)
                .str()
         << std::flush;
-    XTP_LOG(Log::warning, *_pLog)
+    XTP_LOG(Log::warning, *pLog_)
         << (boost::format(
                 "BFGS-TRM @iteration %1$d: new trust radius %2$2.4e") %
-            _iteration % _trust_radius)
+            iteration_ % trust_radius_)
                .str()
         << std::flush;
 
@@ -109,22 +109,22 @@ bool BFGSTRM::AcceptRejectStep(const Eigen::VectorXd& delta_p,
     double tr_check = cost_delta / QuadraticEnergy(gradient, delta_p);
     double norm_delta_p = delta_p.squaredNorm();
     if (tr_check > 0.75 &&
-        1.25 * norm_delta_p > _trust_radius * _trust_radius) {
-      _trust_radius = 2.0 * _trust_radius;
+        1.25 * norm_delta_p > trust_radius_ * trust_radius_) {
+      trust_radius_ = 2.0 * trust_radius_;
     } else if (tr_check < 0.25) {
-      _trust_radius = 0.25 * _trust_radius;
+      trust_radius_ = 0.25 * trust_radius_;
     }
-    XTP_LOG(Log::warning, *_pLog)
+    XTP_LOG(Log::warning, *pLog_)
         << (boost::format(
                 "BFGS-TRM @iteration %1$d: DeltaCost/QuadraticApprox %2$2.4f "
                 "step accepted ") %
-            _iteration % tr_check)
+            iteration_ % tr_check)
                .str()
         << std::flush;
-    XTP_LOG(Log::warning, *_pLog)
+    XTP_LOG(Log::warning, *pLog_)
         << (boost::format(
                 "BFGS-TRM @iteration %1$d: new trust radius %2$2.4e") %
-            _iteration % _trust_radius)
+            iteration_ % trust_radius_)
                .str()
         << std::flush;
   }
@@ -134,14 +134,14 @@ bool BFGSTRM::AcceptRejectStep(const Eigen::VectorXd& delta_p,
 void BFGSTRM::UpdateHessian(const Eigen::VectorXd& delta_pos,
                             const Eigen::VectorXd& delta_gradient) {
   // second term in BFGS update (needs current Hessian)
-  _hessian -= _hessian * delta_pos * delta_pos.transpose() *
-              _hessian.transpose() /
-              (delta_pos.transpose() * _hessian * delta_pos).value();
+  hessian_ -= hessian_ * delta_pos * delta_pos.transpose() *
+              hessian_.transpose() /
+              (delta_pos.transpose() * hessian_ * delta_pos).value();
   // first term in BFGS update
-  _hessian += (delta_gradient * delta_gradient.transpose()) /
+  hessian_ += (delta_gradient * delta_gradient.transpose()) /
               (delta_gradient.transpose() * delta_pos);
   // symmetrize Hessian (since d2E/dxidxj should be symmetric)
-  _hessian = 0.5 * (_hessian + _hessian.transpose());
+  hessian_ = 0.5 * (hessian_ + hessian_.transpose());
   return;
 }
 
@@ -149,7 +149,7 @@ void BFGSTRM::UpdateHessian(const Eigen::VectorXd& delta_pos,
 double BFGSTRM::QuadraticEnergy(const Eigen::VectorXd& gradient,
                                 const Eigen::VectorXd& delta_pos) const {
   return (gradient.transpose() * delta_pos).value() +
-         0.5 * (delta_pos.transpose() * _hessian * delta_pos).value();
+         0.5 * (delta_pos.transpose() * hessian_ * delta_pos).value();
 }
 
 }  // namespace xtp

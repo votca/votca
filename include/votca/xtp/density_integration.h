@@ -39,7 +39,7 @@ struct Gyrationtensor {
 template <class Grid>
 class DensityIntegration {
  public:
-  explicit DensityIntegration(const Grid& grid) : _grid(grid){};
+  explicit DensityIntegration(const Grid& grid) : grid_(grid){};
 
   double IntegrateDensity(const Eigen::MatrixXd& density_matrix);
   double IntegratePotential(const Eigen::Vector3d& rvector) const;
@@ -49,14 +49,14 @@ class DensityIntegration {
   Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& density_matrix);
 
   const std::vector<std::vector<double> >& getDensities() const {
-    return _densities;
+    return densities_;
   }
 
  private:
   void SetupDensityContainer();
-  const Grid _grid;
+  const Grid grid_;
 
-  std::vector<std::vector<double> > _densities;
+  std::vector<std::vector<double> > densities_;
 };
 
 }  // namespace xtp

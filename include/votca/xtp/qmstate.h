@@ -43,11 +43,11 @@ class QMStateType {
     KSstate
   };
 
-  QMStateType(const statetype& type) : _type(type) { ; }
+  QMStateType(const statetype& type) : type_(type) { ; }
   QMStateType() { ; }
   QMStateType(const std::string& s) { FromString(s); }
 
-  statetype Type() const { return _type; }
+  statetype Type() const { return type_; }
 
   void FromString(const std::string& statetypestring);
 
@@ -55,42 +55,42 @@ class QMStateType {
 
   std::string ToLongString() const;
 
-  bool operator==(const QMStateType& rhs) const { return _type == rhs.Type(); }
+  bool operator==(const QMStateType& rhs) const { return type_ == rhs.Type(); }
 
-  bool operator!=(const QMStateType& rhs) const { return _type != rhs.Type(); }
+  bool operator!=(const QMStateType& rhs) const { return type_ != rhs.Type(); }
 
   bool operator==(const QMStateType::statetype& rhs) const {
-    return _type == rhs;
+    return type_ == rhs;
   }
 
   bool operator!=(const QMStateType::statetype& rhs) const {
-    return _type != rhs;
+    return type_ != rhs;
   }
 
   bool isExciton() const {
-    return (_type == statetype::Singlet || _type == statetype::Triplet);
+    return (type_ == statetype::Singlet || type_ == statetype::Triplet);
   }
 
   bool isKMCState() const {
-    return (_type == statetype::Singlet || _type == statetype::Triplet ||
-            _type == statetype::Hole || _type == statetype::Electron);
+    return (type_ == statetype::Singlet || type_ == statetype::Triplet ||
+            type_ == statetype::Hole || type_ == statetype::Electron);
   }
 
   bool isSingleParticleState() const {
-    return (_type == statetype::PQPstate || _type == statetype::DQPstate ||
-            _type == KSstate);
+    return (type_ == statetype::PQPstate || type_ == statetype::DQPstate ||
+            type_ == KSstate);
   }
 
   bool isGWState() const {
-    return (_type == statetype::PQPstate || _type == statetype::DQPstate);
+    return (type_ == statetype::PQPstate || type_ == statetype::DQPstate);
   }
 
-  bool isKSState() const { return (_type == statetype::KSstate); }
+  bool isKSState() const { return (type_ == statetype::KSstate); }
 
-  bool isPQPState() const { return (_type == statetype::PQPstate); }
+  bool isPQPState() const { return (type_ == statetype::PQPstate); }
 
  private:
-  statetype _type;
+  statetype type_;
 };
 
 /**
@@ -103,22 +103,22 @@ class QMStateType {
 template <class T>
 class QMStateCarrierStorage {
  public:
-  QMStateCarrierStorage() { _content = {0, 0, 0, 0}; }
+  QMStateCarrierStorage() { content_ = {0, 0, 0, 0}; }
 
   void setValue(T value, QMStateType t) {
     assert(t.isKMCState() &&
            "QMStateCarrierStorage QMStateType is not for KMC simulations");
-    _content[t.Type()] = value;
+    content_[t.Type()] = value;
   }
 
   T getValue(QMStateType t) const {
     assert(t.isKMCState() &&
            "QMStateCarrierStorage QMStateType is not for KMC simulations");
-    return _content[t.Type()];
+    return content_[t.Type()];
   }
 
  private:
-  std::array<T, 4> _content;
+  std::array<T, 4> content_;
 };
 
 /**
@@ -132,11 +132,11 @@ class QMState {
 
  public:
   QMState(const QMStateType::statetype& type, Index index, bool transition)
-      : _type(QMStateType(type)), _index(index), _transition(transition) {
+      : type_(QMStateType(type)), index_(index), transition_(transition) {
     ;
   }
   QMState(const QMStateType& type, Index index, bool transition)
-      : _type(type), _index(index), _transition(transition) {
+      : type_(type), index_(index), transition_(transition) {
     ;
   }
   QMState() { ; }
@@ -147,27 +147,27 @@ class QMState {
 
   std::string ToLongString() const;
 
-  const QMStateType& Type() const { return _type; }
+  const QMStateType& Type() const { return type_; }
 
-  bool isTransition() const { return _transition; }
-  Index StateIdx() const { return _index; }
+  bool isTransition() const { return transition_; }
+  Index StateIdx() const { return index_; }
 
   bool operator==(const QMState& rhs) const {
-    return (_type == rhs.Type() && _index == rhs.StateIdx());
+    return (type_ == rhs.Type() && index_ == rhs.StateIdx());
   }
 
   bool operator!=(const QMState& rhs) const {
-    return (_type != rhs.Type() || _index != rhs.StateIdx());
+    return (type_ != rhs.Type() || index_ != rhs.StateIdx());
   }
 
  private:
   Index DetermineIndex(const std::string& statestring);
   QMStateType DetermineType(const std::string& statestring);
-  QMStateType _type;
+  QMStateType type_;
 
-  Index _index;
+  Index index_;
 
-  bool _transition;
+  bool transition_;
 };
 
 }  // namespace xtp

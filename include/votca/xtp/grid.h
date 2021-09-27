@@ -42,34 +42,34 @@ namespace xtp {
 class Grid {
  public:
   const std::vector<Eigen::Vector3d> &getGridPositions() const {
-    return _gridpoints;
+    return gridpoints_;
   }
 
-  Eigen::VectorXd &getGridValues() { return _gridvalues; }
-  const Eigen::VectorXd &getGridValues() const { return _gridvalues; }
-  Index size() { return Index(_gridpoints.size()); }
+  Eigen::VectorXd &getGridValues() { return gridvalues_; }
+  const Eigen::VectorXd &getGridValues() const { return gridvalues_; }
+  Index size() { return Index(gridpoints_.size()); }
 
   void printGridtoxyzfile(std::string filename);
 
   void setupCHELPGGrid(const QMMolecule &Atomlist) {
-    _padding = 3 * tools::conv::ang2bohr;  // Additional distance from molecule
+    padding_ = 3 * tools::conv::ang2bohr;  // Additional distance from molecule
                                            // to set up grid according to CHELPG
                                            // paper [Journal of Computational
                                            // Chemistry 11, 361, 1990]
-    _gridspacing =
+    gridspacing_ =
         0.3 * tools::conv::ang2bohr;  // Grid spacing according to same paper
-    _cutoff = 2.8 * tools::conv::ang2bohr;
+    cutoff_ = 2.8 * tools::conv::ang2bohr;
     setupgrid(Atomlist);
   }
 
  private:
   void setupgrid(const QMMolecule &Atomlist);
-  std::vector<Eigen::Vector3d> _gridpoints;
-  Eigen::VectorXd _gridvalues;
+  std::vector<Eigen::Vector3d> gridpoints_;
+  Eigen::VectorXd gridvalues_;
 
-  double _cutoff;
-  double _gridspacing;
-  double _padding;
+  double cutoff_;
+  double gridspacing_;
+  double padding_;
 };
 
 }  // namespace xtp

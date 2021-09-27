@@ -31,43 +31,43 @@ namespace xtp {
 class GNode {
  public:
   GNode(const Segment& seg, QMStateType carriertype, bool injectable)
-      : _id(seg.getId()),
-        _siteenergy(seg.getSiteEnergy(carriertype)),
-        _position(seg.getPos()),
-        _injectable(injectable){};
+      : id_(seg.getId()),
+        siteenergy_(seg.getSiteEnergy(carriertype)),
+        position_(seg.getPos()),
+        injectable_(injectable){};
 
-  bool isOccupied() const { return _occupied; }
-  void setOccupation(bool occupied) { _occupied = occupied; }
-  bool isInjectable() const { return _injectable; }
-  bool canDecay() const { return _hasdecay; }
-  const Eigen::Vector3d& getPos() const { return _position; }
-  Index getId() const { return _id; }
-  void UpdateOccupationTime(double deltat) { _occupationtime += deltat; }
+  bool isOccupied() const { return occupied_; }
+  void setOccupation(bool occupied) { occupied_ = occupied; }
+  bool isInjectable() const { return injectable_; }
+  bool canDecay() const { return hasdecay_; }
+  const Eigen::Vector3d& getPos() const { return position_; }
+  Index getId() const { return id_; }
+  void UpdateOccupationTime(double deltat) { occupationtime_ += deltat; }
 
-  const std::vector<GLink>& Events() const { return _events; }
-  double OccupationTime() const { return _occupationtime; }
+  const std::vector<GLink>& Events() const { return events_; }
+  double OccupationTime() const { return occupationtime_; }
 
-  double getEscapeRate() const { return _escape_rate; }
+  double getEscapeRate() const { return escape_rate_; }
   void InitEscapeRate();
   void AddDecayEvent(double decayrate);
   void AddEventfromQmPair(const QMPair& pair, std::vector<GNode>& nodes,
                           double rate);
-  double getSitenergy() const { return _siteenergy; }
+  double getSitenergy() const { return siteenergy_; }
 
   GLink* findHoppingDestination(double p) const;
   void MakeHuffTree();
   void AddEvent(GNode* seg2, const Eigen::Vector3d& dr, double rate);
 
  private:
-  Index _id = 0;
-  bool _occupied = false;
-  double _occupationtime = 0.0;
-  double _escape_rate = 0.0;
-  bool _hasdecay = false;
-  double _siteenergy;
-  Eigen::Vector3d _position;
-  bool _injectable = true;
-  std::vector<GLink> _events;
+  Index id_ = 0;
+  bool occupied_ = false;
+  double occupationtime_ = 0.0;
+  double escape_rate_ = 0.0;
+  bool hasdecay_ = false;
+  double siteenergy_;
+  Eigen::Vector3d position_;
+  bool injectable_ = true;
+  std::vector<GLink> events_;
 
   huffmanTree<GLink> hTree;
 

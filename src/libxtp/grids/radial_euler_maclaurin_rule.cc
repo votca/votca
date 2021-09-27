@@ -12,7 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "A_ol I_ol" BA_olI_ol,
  * WITHOUT WARRANTIE_ol OR CONDITION_ol OF ANY KIND, either express or implied.
- * _olee the License for the specific language governing permissions and
+ *  olee_ the License for the specific language governing permissions and
  * limitations under the License.
  *
  */
@@ -33,9 +33,9 @@ std::vector<double> EulerMaclaurinGrid::CalculatePruningIntervals(
     const std::string& element) {
   std::vector<double> r;
   // get Bragg-Slater Radius for this element
-  double BSradius = _BraggSlaterRadii.at(element);
+  double BSradius = BraggSlaterRadii_.at(element);
   // row type of element
-  Index RowType = _pruning_set.at(element);
+  Index RowType = pruning_set_.at(element);
 
   if (RowType == 1) {
     r.push_back(0.25 * BSradius);
@@ -67,9 +67,9 @@ void EulerMaclaurinGrid::FillElementRangeMap(const AOBasis& aobasis,
   for (const QMAtom& atom : atoms) {
     std::string name = atom.getElement();
     // is this element already in map?
-    it = _element_ranges.find(name);
+    it = element_ranges_.find(name);
     // only proceed, if element data does not exist yet
-    if (it == _element_ranges.end()) {
+    if (it == element_ranges_.end()) {
       min_exp this_atom;
       double range_max = std::numeric_limits<double>::min();
       double decaymin = std::numeric_limits<double>::max();
@@ -92,7 +92,7 @@ void EulerMaclaurinGrid::FillElementRangeMap(const AOBasis& aobasis,
           range_max = range;
         }
       }  // shells
-      _element_ranges[name] = this_atom;
+      element_ranges_[name] = this_atom;
     }  // new element
   }    // atoms
 }
@@ -118,8 +118,8 @@ void EulerMaclaurinGrid::RefineElementRangeMap(const AOBasis& aobasis,
     Index a_size = idxsize[i];
     double range_max = std::numeric_limits<double>::min();
     // get preset values for this atom type
-    double alpha_a = _element_ranges.at(atom_a.getElement()).alpha;
-    Index l_a = _element_ranges.at(atom_a.getElement()).l;
+    double alpha_a = element_ranges_.at(atom_a.getElement()).alpha;
+    Index l_a = element_ranges_.at(atom_a.getElement()).l;
     const Eigen::Vector3d& pos_a = atom_a.getPos();
     // Cannot iterate only over j<i because it is not symmetric due to shift_2g
     for (Index j = 0; j < atoms.size(); ++j) {
@@ -138,21 +138,21 @@ void EulerMaclaurinGrid::RefineElementRangeMap(const AOBasis& aobasis,
 
       if (s_max > 1e-5) {
         double range = DetermineCutoff(
-            alpha_a + _element_ranges.at(atom_b.getElement()).alpha,
-            l_a + _element_ranges.at(atom_b.getElement()).l + 2, eps);
+            alpha_a + element_ranges_.at(atom_b.getElement()).alpha,
+            l_a + element_ranges_.at(atom_b.getElement()).l + 2, eps);
         // now do some update trickery from Gaussian product formula
         double dist = (pos_b - pos_a).norm();
         double shift_2g =
             dist * alpha_a /
-            (alpha_a + _element_ranges.at(atom_b.getElement()).alpha);
+            (alpha_a + element_ranges_.at(atom_b.getElement()).alpha);
         range += (shift_2g + dist);
         if (range > range_max) {
           range_max = range;
         }
       }
     }
-    if (std::round(range_max) > _element_ranges.at(atom_a.getElement()).range) {
-      _element_ranges.at(atom_a.getElement()).range = std::round(range_max);
+    if (std::round(range_max) > element_ranges_.at(atom_a.getElement()).range) {
+      element_ranges_.at(atom_a.getElement()).range = std::round(range_max);
     }
   }
 }
@@ -174,7 +174,7 @@ std::map<std::string, GridContainers::radial_grid>
 
   CalculateRadialCutoffs(aobasis, atoms, type);
   std::map<std::string, GridContainers::radial_grid> result;
-  for (const auto& element : _element_ranges) {
+  for (const auto& element : element_ranges_) {
     result[element.first] = CalculateRadialGridforAtom(type, element);
   }
   return result;

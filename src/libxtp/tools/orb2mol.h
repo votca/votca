@@ -39,7 +39,7 @@ class Orb2Mol final : public QMTool {
 
   ~Orb2Mol() = default;
 
-  std::string Identify() { return "orb2mol"; }
+  std::string Identify() const { return "orb2mol"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options);
@@ -47,12 +47,12 @@ class Orb2Mol final : public QMTool {
 
  private:
   // clang-format off
-  std::string _moldenfile;
-  std::string _orbfile;
-  std::string _xyzfile;
-  std::string _basisset_name;
-  std::string _aux_basisset_name;
-  Logger _log;
+  std::string  moldenfile_;
+  std::string  orbfile_;
+  std::string  xyzfile_;
+  std::string  basisset_name_;
+  std::string  aux_basisset_name_;
+  Logger  log_;
 };
 
 }  // namespace xtp

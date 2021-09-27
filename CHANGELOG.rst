@@ -25,11 +25,46 @@ Version 2022-dev
 -  changed molecule in csg topology container to actual object instead of pointer (#683)
 -  remove codecov comments from inside code at PR (#686)
 -  count the number of available CPUs for autogen_mapping script (#688)
+-  added a checkpoint reader to jobtopology class (#691)
 -  fixed issue with molden file path and orca executable path (#692)
 -  Fixed bug in mapping (#690)
+-  added support for external fields in DFT (#698)
+-  allocate threecenter matrices in parallel (#701)
+-  use NDimVector instead of std::vector in vxcgrid. (#703)
+-  Fixing the tutorial (#705)
+-  adapted tokenizer api (#707)
+-  move OpenMP detection to tools (#709)
+-  refactored applications (#710)
+-  add command line option for number of gpus (#711)
+-  reworked iqm statefile reading (#712)
+-  made membervariable format consistent (#713)
+-  updated benchmark (#714)
+-  reworked commandline options (#715)
+-  renamed cmd line arguments in xtp_parallel (#718)
+-  added incremental Fock matrix building (#716)
+-  disable codeql check in GitHub Actions (#720)
+-  replace std::vector by Eigen::Array<bool,..> (#719)
+-  overhaul complete option handling (#704)
+-  Fixed exciton options checking (#726)
+-  added basis gpu runner and test to suite (#725)
+-  turned sigma choice into a factory (#731)
+-  use middleRows-Cols and refactor numerical integration (#732)
+-  increase performance of numerical integration (#733)
+-  upgrade xtp to cxx17 (#737)
+-  Remove unused variables (#742)
 
-Version 2021.1 (released XX.03.21)
+Version 2021.3 (released XX.09.21)
 ==================================
+
+Version 2021.2 (released 19.09.21)
+==================================
+
+-  no changes since v2021.1
+
+Version 2021.1 (released 18.07.21)
+==================================
+
+-  no changes since v2021
 
 Version 2021 (released 13.03.21)
 ================================

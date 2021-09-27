@@ -265,17 +265,17 @@ class HermitianBlockOperator : public MatrixFreeOperator {
 
   void attach_matrix(const Eigen::MatrixXd &mat);
   Eigen::MatrixXd matmul(const Eigen::MatrixXd &input) const {
-    return _mat * input;
+    return mat_ * input;
   }
 
-  Eigen::VectorXd diagonal() const { return _mat.diagonal(); }
+  Eigen::VectorXd diagonal() const { return mat_.diagonal(); }
 
  private:
-  Eigen::MatrixXd _mat;
+  Eigen::MatrixXd mat_;
 };
 
 void HermitianBlockOperator::attach_matrix(const Eigen::MatrixXd &mat) {
-  _mat = mat;
+  mat_ = mat;
 }
 
 BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
@@ -321,8 +321,6 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
     std::cout << lambda_ref.head(neigen) << std::endl;
     std::cout << "Davidson eigenvalues" << std::endl;
     std::cout << lambda << std::endl;
-    std::cout << "Residue norms" << std::endl;
-    std::cout << DS.residues() << std::endl;
   }
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);
 
@@ -380,8 +378,6 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free_large) {
     std::cout << lambda_ref.head(neigen) << std::endl;
     std::cout << "Davidson eigenvalues" << std::endl;
     std::cout << lambda << std::endl;
-    std::cout << "Residue norms" << std::endl;
-    std::cout << DS.residues() << std::endl;
   }
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);
 

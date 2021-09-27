@@ -48,10 +48,10 @@ class EulerMaclaurinGrid {
     double range;
   };
 
-  std::map<std::string, min_exp> _element_ranges;
-  std::map<std::string, Index> _pruning_set;
+  std::map<std::string, min_exp> element_ranges_;
+  std::map<std::string, Index> pruning_set_;
 
-  std::map<std::string, double> _BraggSlaterRadii;
+  std::map<std::string, double> BraggSlaterRadii_;
 
   Index getGridParameters(const std::string& element, const std::string& type);
 
@@ -91,54 +91,54 @@ class EulerMaclaurinGrid {
   inline void FillBraggSlaterRadii() {
     const double ang2bohr = votca::tools::conv::ang2bohr;
     //
-    _BraggSlaterRadii["H"] = 0.35 * ang2bohr;
-    _BraggSlaterRadii["He"] = 0.35 * ang2bohr;
+    BraggSlaterRadii_["H"] = 0.35 * ang2bohr;
+    BraggSlaterRadii_["He"] = 0.35 * ang2bohr;
 
     // row of period system  for 1st row elements taken from NWChem
-    _BraggSlaterRadii["Li"] = 1.45 * ang2bohr;
-    _BraggSlaterRadii["Be"] = 1.05 * ang2bohr;
-    _BraggSlaterRadii["B"] = 0.85 * ang2bohr;
-    _BraggSlaterRadii["C"] = 0.70 * ang2bohr;
-    _BraggSlaterRadii["N"] = 0.65 * ang2bohr;
-    _BraggSlaterRadii["O"] = 0.60 * ang2bohr;
-    _BraggSlaterRadii["F"] = 0.50 * ang2bohr;
-    _BraggSlaterRadii["Ne"] = 0.50 * ang2bohr;
+    BraggSlaterRadii_["Li"] = 1.45 * ang2bohr;
+    BraggSlaterRadii_["Be"] = 1.05 * ang2bohr;
+    BraggSlaterRadii_["B"] = 0.85 * ang2bohr;
+    BraggSlaterRadii_["C"] = 0.70 * ang2bohr;
+    BraggSlaterRadii_["N"] = 0.65 * ang2bohr;
+    BraggSlaterRadii_["O"] = 0.60 * ang2bohr;
+    BraggSlaterRadii_["F"] = 0.50 * ang2bohr;
+    BraggSlaterRadii_["Ne"] = 0.50 * ang2bohr;
 
     // row of period system  for 2nd row elements taken from NWChem
-    _BraggSlaterRadii["Na"] = 1.80 * ang2bohr;
-    _BraggSlaterRadii["Mg"] = 1.5 * ang2bohr;
-    _BraggSlaterRadii["Al"] = 1.25 * ang2bohr;
-    _BraggSlaterRadii["Si"] = 1.1 * ang2bohr;
-    _BraggSlaterRadii["P"] = 1.0 * ang2bohr;
-    _BraggSlaterRadii["S"] = 1.0 * ang2bohr;
-    _BraggSlaterRadii["Cl"] = 1.0 * ang2bohr;
-    _BraggSlaterRadii["Ar"] = 1.0 * ang2bohr;
+    BraggSlaterRadii_["Na"] = 1.80 * ang2bohr;
+    BraggSlaterRadii_["Mg"] = 1.5 * ang2bohr;
+    BraggSlaterRadii_["Al"] = 1.25 * ang2bohr;
+    BraggSlaterRadii_["Si"] = 1.1 * ang2bohr;
+    BraggSlaterRadii_["P"] = 1.0 * ang2bohr;
+    BraggSlaterRadii_["S"] = 1.0 * ang2bohr;
+    BraggSlaterRadii_["Cl"] = 1.0 * ang2bohr;
+    BraggSlaterRadii_["Ar"] = 1.0 * ang2bohr;
 
     // row of period system  for 3rd row elements taken from NWChem
-    _BraggSlaterRadii["K"] = 2.2 * ang2bohr;
-    _BraggSlaterRadii["Ca"] = 1.8 * ang2bohr;
-    _BraggSlaterRadii["Sc"] = 1.6 * ang2bohr;
-    _BraggSlaterRadii["Ti"] = 1.4 * ang2bohr;
-    _BraggSlaterRadii["V"] = 1.35 * ang2bohr;
-    _BraggSlaterRadii["Cr"] = 1.4 * ang2bohr;
-    _BraggSlaterRadii["Mn"] = 1.4 * ang2bohr;
-    _BraggSlaterRadii["Fe"] = 1.4 * ang2bohr;
-    _BraggSlaterRadii["Co"] = 1.35 * ang2bohr;
-    _BraggSlaterRadii["Ni"] = 1.35 * ang2bohr;
-    _BraggSlaterRadii["Cu"] = 1.35 * ang2bohr;
-    _BraggSlaterRadii["Zn"] = 1.35 * ang2bohr;
-    _BraggSlaterRadii["Ga"] = 1.30 * ang2bohr;
-    _BraggSlaterRadii["Ge"] = 1.25 * ang2bohr;
-    _BraggSlaterRadii["As"] = 1.15 * ang2bohr;
-    _BraggSlaterRadii["Se"] = 1.15 * ang2bohr;
-    _BraggSlaterRadii["Br"] = 1.15 * ang2bohr;
-    _BraggSlaterRadii["Kr"] = 1.15 * ang2bohr;
+    BraggSlaterRadii_["K"] = 2.2 * ang2bohr;
+    BraggSlaterRadii_["Ca"] = 1.8 * ang2bohr;
+    BraggSlaterRadii_["Sc"] = 1.6 * ang2bohr;
+    BraggSlaterRadii_["Ti"] = 1.4 * ang2bohr;
+    BraggSlaterRadii_["V"] = 1.35 * ang2bohr;
+    BraggSlaterRadii_["Cr"] = 1.4 * ang2bohr;
+    BraggSlaterRadii_["Mn"] = 1.4 * ang2bohr;
+    BraggSlaterRadii_["Fe"] = 1.4 * ang2bohr;
+    BraggSlaterRadii_["Co"] = 1.35 * ang2bohr;
+    BraggSlaterRadii_["Ni"] = 1.35 * ang2bohr;
+    BraggSlaterRadii_["Cu"] = 1.35 * ang2bohr;
+    BraggSlaterRadii_["Zn"] = 1.35 * ang2bohr;
+    BraggSlaterRadii_["Ga"] = 1.30 * ang2bohr;
+    BraggSlaterRadii_["Ge"] = 1.25 * ang2bohr;
+    BraggSlaterRadii_["As"] = 1.15 * ang2bohr;
+    BraggSlaterRadii_["Se"] = 1.15 * ang2bohr;
+    BraggSlaterRadii_["Br"] = 1.15 * ang2bohr;
+    BraggSlaterRadii_["Kr"] = 1.15 * ang2bohr;
 
     // 4th row (selection)
-    _BraggSlaterRadii["Ag"] = 1.60 * ang2bohr;
-    _BraggSlaterRadii["Rb"] = 2.35 * ang2bohr;
-    _BraggSlaterRadii["Xe"] = 1.40 * ang2bohr;
-    _BraggSlaterRadii["I"] = 1.40 * ang2bohr;
+    BraggSlaterRadii_["Ag"] = 1.60 * ang2bohr;
+    BraggSlaterRadii_["Rb"] = 2.35 * ang2bohr;
+    BraggSlaterRadii_["Xe"] = 1.40 * ang2bohr;
+    BraggSlaterRadii_["I"] = 1.40 * ang2bohr;
 
     /* Copied from grid_atom_type_info.F of NWChem
 
@@ -174,54 +174,54 @@ c                  Md   No   Lr  Unq  Unp
 
     // row of period system for H, He (not given in NWChem, assuming same as 1st
     // row)
-    _pruning_set["H"] = 1;
-    _pruning_set["He"] = 1;
+    pruning_set_["H"] = 1;
+    pruning_set_["He"] = 1;
 
     // row of period system  for 1st row elements taken from NWChem
-    _pruning_set["Li"] = 2;
-    _pruning_set["Be"] = 2;
-    _pruning_set["B"] = 2;
-    _pruning_set["C"] = 2;
-    _pruning_set["N"] = 2;
-    _pruning_set["O"] = 2;
-    _pruning_set["F"] = 2;
-    _pruning_set["Ne"] = 2;
+    pruning_set_["Li"] = 2;
+    pruning_set_["Be"] = 2;
+    pruning_set_["B"] = 2;
+    pruning_set_["C"] = 2;
+    pruning_set_["N"] = 2;
+    pruning_set_["O"] = 2;
+    pruning_set_["F"] = 2;
+    pruning_set_["Ne"] = 2;
 
     // row of period system  for 2nd row elements taken from NWChem
-    _pruning_set["Na"] = 3;
-    _pruning_set["Mg"] = 3;
-    _pruning_set["Al"] = 3;
-    _pruning_set["Si"] = 3;
-    _pruning_set["P"] = 3;
-    _pruning_set["S"] = 3;
-    _pruning_set["Cl"] = 3;
-    _pruning_set["Ar"] = 3;
+    pruning_set_["Na"] = 3;
+    pruning_set_["Mg"] = 3;
+    pruning_set_["Al"] = 3;
+    pruning_set_["Si"] = 3;
+    pruning_set_["P"] = 3;
+    pruning_set_["S"] = 3;
+    pruning_set_["Cl"] = 3;
+    pruning_set_["Ar"] = 3;
 
     // row of period system  for 3rd row elements taken from NWChem
-    _pruning_set["K"] = 3;
-    _pruning_set["Ca"] = 3;
-    _pruning_set["Sc"] = 3;
-    _pruning_set["Ti"] = 3;
-    _pruning_set["V"] = 3;
-    _pruning_set["Cr"] = 3;
-    _pruning_set["Mn"] = 3;
-    _pruning_set["Fe"] = 3;
-    _pruning_set["Co"] = 3;
-    _pruning_set["Ni"] = 3;
-    _pruning_set["Cu"] = 3;
-    _pruning_set["Zn"] = 3;
-    _pruning_set["Ga"] = 3;
-    _pruning_set["Ge"] = 3;
-    _pruning_set["As"] = 3;
-    _pruning_set["Se"] = 3;
-    _pruning_set["Br"] = 3;
-    _pruning_set["Kr"] = 3;
+    pruning_set_["K"] = 3;
+    pruning_set_["Ca"] = 3;
+    pruning_set_["Sc"] = 3;
+    pruning_set_["Ti"] = 3;
+    pruning_set_["V"] = 3;
+    pruning_set_["Cr"] = 3;
+    pruning_set_["Mn"] = 3;
+    pruning_set_["Fe"] = 3;
+    pruning_set_["Co"] = 3;
+    pruning_set_["Ni"] = 3;
+    pruning_set_["Cu"] = 3;
+    pruning_set_["Zn"] = 3;
+    pruning_set_["Ga"] = 3;
+    pruning_set_["Ge"] = 3;
+    pruning_set_["As"] = 3;
+    pruning_set_["Se"] = 3;
+    pruning_set_["Br"] = 3;
+    pruning_set_["Kr"] = 3;
 
     // row of period system for 4th row elements taken from NWChem
-    _pruning_set["Ag"] = 3;
-    _pruning_set["Rb"] = 3;
-    _pruning_set["I"] = 3;
-    _pruning_set["Xe"] = 3;
+    pruning_set_["Ag"] = 3;
+    pruning_set_["Rb"] = 3;
+    pruning_set_["I"] = 3;
+    pruning_set_["Xe"] = 3;
   }
 
   inline void FillAccuracy() {

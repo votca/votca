@@ -52,21 +52,21 @@ class QMAtom {
 
   QMAtom(const data& d);
 
-  const Eigen::Vector3d& getPos() const { return _pos; }
+  const Eigen::Vector3d& getPos() const { return pos_; }
 
-  void Translate(const Eigen::Vector3d& shift) { _pos += shift; }
+  void Translate(const Eigen::Vector3d& shift) { pos_ += shift; }
 
   void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos);
 
-  void setPos(const Eigen::Vector3d& position) { _pos = position; }
+  void setPos(const Eigen::Vector3d& position) { pos_ = position; }
 
-  const std::string& getElement() const { return _element; }
+  const std::string& getElement() const { return element_; }
 
-  Index getId() const { return _index; }
+  Index getId() const { return index_; }
 
-  Index getNuccharge() const { return _nuccharge - _ecpcharge; }
+  Index getNuccharge() const { return nuccharge_ - ecpcharge_; }
 
-  Index getElementNumber() const { return _nuccharge; }
+  Index getElementNumber() const { return nuccharge_; }
 
   std::string identify() const { return "qmatom"; }
 
@@ -78,11 +78,11 @@ class QMAtom {
   }
 
  private:
-  Index _index;
-  std::string _element;
-  Eigen::Vector3d _pos;  // Bohr
-  Index _nuccharge = 0;
-  Index _ecpcharge = 0;  // ecp charge is set in ecpaobasis.fill
+  Index index_;
+  std::string element_;
+  Eigen::Vector3d pos_;  // Bohr
+  Index nuccharge_ = 0;
+  Index ecpcharge_ = 0;  // ecp charge is set in ecpaobasis.fill
 
  public:
   static void SetupCptTable(CptTable& table);

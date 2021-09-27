@@ -37,9 +37,7 @@ namespace xtp {
 std::vector<Index> IndexParser::CreateIndexVector(
     const std::string& Ids) const {
   std::vector<Index> result;
-  tools::Tokenizer tok(Ids, " ,\n\t");
-  std::vector<std::string> results;
-  tok.ToVector(results);
+  std::vector<std::string> results = tools::Tokenizer(Ids, " ,\n\t").ToVector();
   const std::string delimiter = ":";
   for (std::string s : results) {
     if (s.find(delimiter) != std::string::npos) {
