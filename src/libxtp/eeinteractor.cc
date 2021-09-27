@@ -41,8 +41,8 @@ Eigen::Matrix<double, N, 1> eeInteractor::VSiteA(
   if (N > 1 || rankB > 0) {
     const double fac2 = std::pow(fac1, 2);
     // Dipole-Charge Interaction
-    if (N > 1) {
-      V.segment(1, 3) =
+    if constexpr (N > 1) {
+      V.template segment<3>(1) =
           fac2 * a * siteB.getCharge();  // T_1alpha,00 (alpha=x,y,z)
     }
     // Charge-Dipole Interaction
@@ -58,7 +58,7 @@ Eigen::Matrix<double, N, 1> eeInteractor::VSiteA(
           -3 * a * (a.transpose() * siteB.Q().segment<3>(1));
       result += siteB.Q().segment<3>(1);
       result *= fac3;
-      V.segment(1, 3) += result;
+      V.template segment<3>(1) += result;
       // T_1alpha,1beta // (alpha,beta=x,y,z)
     }
 
@@ -74,8 +74,8 @@ Eigen::Matrix<double, N, 1> eeInteractor::VSiteA(
         Qq(3) = 0.5 * (r.xx() - r.yy());  // T22c,00
         Qq(4) = r.xy();                   // T22s,00
         Qq.tail<4>() *= sqr3;
-        if (N > 4) {
-          V.segment(4, 5) = fac3 * Qq.transpose() * siteB.getCharge();
+        if constexpr (N > 4) {
+          V.template segment<5>(4) = fac3 * Qq.transpose() * siteB.getCharge();
         }
         if (rankB > 1) {
           V(0) += fac3 * Qq * siteB.Q().segment<5>(4);
@@ -109,11 +109,11 @@ Eigen::Matrix<double, N, 1> eeInteractor::VSiteA(
 
         dQ.rightCols<4>() *= sqr3;
 
-        if (N > 4) {
-          V.segment(4, 5) += dQ.transpose() * siteB.Q().segment<3>(1);
+        if constexpr (N > 4) {
+          V.template segment<5>(4) += dQ.transpose() * siteB.Q().segment<3>(1);
         }
         if (rankB > 1) {
-          V.segment(1, 3) -= dQ * siteB.Q().segment<5>(4);
+          V.template segment<3>(1) -= dQ * siteB.Q().segment<5>(4);
         }
       }
 
@@ -145,7 +145,7 @@ Eigen::Matrix<double, N, 1> eeInteractor::VSiteA(
             5 * (7 * r.xx() * r.yy() - (r.xx() + r.yy())) + 1;  // T22s,22s
 
         const double fac5 = std::pow(fac1, 5);
-        V.segment(4, 5) +=
+        V.template segment<5>(4) +=
             fac5 * QQ.selfadjointView<Eigen::Lower>() * siteB.Q().segment<5>(4);
       }
     }

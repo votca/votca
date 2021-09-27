@@ -33,10 +33,6 @@
  *
  */
 
-namespace libint2 {
-class Engine;
-}
-
 namespace votca {
 namespace xtp {
 
@@ -122,10 +118,6 @@ class TCMatrix_gwbse final : public TCMatrix {
 
   void Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
                 const Eigen::MatrixXd& dft_orbitals);
-
-  std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
-                                                const AOBasis& dftbasis,
-                                                libint2::Engine& engine) const;
 };
 
 }  // namespace xtp
