@@ -180,7 +180,8 @@ class CheckpointWriter {
       attr = loc.openAttribute(name);
     }
 
-    attr.write(*strType, value);
+    const char* c_str_copy = value.c_str();
+    attr.write(*strType, &c_str_copy);
   }
 
   template <typename T>
