@@ -139,9 +139,7 @@ void AOBasis::clear() {
 }
 
 void AOBasis::WriteToCpt(CheckpointWriter& w) const {
-  std::cout << "\nwrite name to hdf" << std::endl;
   w(name_, "name");
-  std::cout << "\n done writing name" << std::endl;
   w(AOBasisSize_, "basissize");
   Index numofprimitives = 0;
   for (const auto& shell : aoshells_) {
@@ -166,7 +164,6 @@ void AOBasis::WriteToCpt(CheckpointWriter& w) const {
 void AOBasis::ReadFromCpt(CheckpointReader& r) {
   clear();
   r(name_, "name");
-  std::cout << "Name that is Read: " << name_ << std::endl;
   r(AOBasisSize_, "basissize");
   if (AOBasisSize_ > 0) {
 

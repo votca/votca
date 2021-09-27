@@ -168,9 +168,6 @@ class CheckpointWriter {
 
   void WriteScalar(const CptLoc& loc, const std::string& value,
                    const std::string& name) const {
-
-    std::cout << "WriteScalar " << std::endl;
-
     hsize_t dims[1] = {1};
     H5::DataSpace dp(1, dims);
     const H5::DataType* strType = InferDataType<std::string>::get();
@@ -183,7 +180,6 @@ class CheckpointWriter {
       attr = loc.openAttribute(name);
     }
 
-    // Actually write the buffer
     attr.write(*strType, value);
   }
 
@@ -248,27 +244,6 @@ class CheckpointWriter {
       dataset = loc.openDataSet(name.c_str());
     }
     dataset.write(v.data(), *dataType);
-  }
-
-  void WriteData(const CptLoc& loc, const std::vector<std::string>& v,
-                 const std::string& name) const {
-
-    hsize_t dims[1] = {(hsize_t)v.size()};
-
-    std::vector<const char*> c_str_copy;
-    c_str_copy.reserve(v.size());
-    for (const std::string& s : v) {
-      c_str_copy.push_back(s.c_str());
-    }
-    const H5::DataType* dataType = InferDataType<std::string>::get();
-    H5::DataSet dataset;
-    H5::DataSpace dp(1, dims);
-    try {
-      dataset = loc.createDataSet(name.c_str(), *dataType, dp);
-    } catch (H5::GroupIException&) {
-      dataset = loc.openDataSet(name.c_str());
-    }
-    dataset.write(c_str_copy.data(), *dataType);
   }
 
   void WriteData(const CptLoc& loc, const std::string& v,
