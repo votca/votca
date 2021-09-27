@@ -1,0 +1,36 @@
+[ defaults ]
+; nbfunc        comb-rule       gen-pairs       fudgeLJ fudgeQQ
+  1             1               no              0.0     0.0
+
+[ atomtypes ]
+;type    mass    charge       ptype          sigma      epsilon
+ B     14.02700   0.000       A        1.000000000  1.000000000
+ A     15.03500   0.000       A        1.000000000  1.000000000
+
+
+[ moleculetype ]
+; Name            nrexcl
+hexane             3
+
+[ atoms ]
+;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
+     1          A      1    hex     A1      1          0     29.061999   ; qtot 0
+     2          B      1    hex     B       2          0     28.053999   ; qtot 0
+     3          A      1    hex     A2      3          0     29.061999   ; qtot 0
+
+[ bonds ]
+;  ai    aj funct            c0            c1            c2            c3
+    1     2     8      1  1.0 
+    2     3     8      1  1.0 
+
+[ angles ]
+;  ai    aj    ak funct            c0            c1            c2            c3
+    1     2     3     8      1  1.0 
+
+
+[ system ]
+cg hexane
+
+[ molecules ]
+; Compound        #mols
+hexane             1000

@@ -1,0 +1,16 @@
+<cg>
+  <bonded>
+    <!-- name of the interaction -->
+    <name>bond</name>
+    <min>0</min>
+    <max>1.0</max>
+    <step>0.001</step>
+  </bonded>
+  <inverse>
+    <gromacs>
+      <pot_max>1e8</pot_max>
+      <table_end>2.0</table_end>
+      <table_bins>0.002</table_bins>
+    </gromacs>
+  </inverse>
+</cg>
