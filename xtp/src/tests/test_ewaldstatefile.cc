@@ -78,38 +78,38 @@ BOOST_AUTO_TEST_CASE(writereadcycle_statefile) {
 }
 
 BOOST_AUTO_TEST_CASE(energy_calc_NaCl){
-  Index cry_l = 16;
-  Index N = cry_l * cry_l * cry_l;
-  Index l = (double)cry_l / 2.0;
-  std::vector<PolarSegment> backgroundSegments;
-  for (Index i = 0; i < N; ++i) {
-    PolarSegment seg("seg", i);
-    // note element type doesn't matter for the calcul
-    seg.push_back(PolarSite(0, "H", ))
+  // Index cry_l = 16;
+  // Index N = cry_l * cry_l * cry_l;
+  // double l = (double)cry_l / 2.0;
+  // std::vector<PolarSegment> backgroundSegments;
+  // for (Index i = 0; i < N; ++i) {
+  //   PolarSegment seg("seg", i);
+  //   // note element type doesn't matter for the calcul
+  //   seg.push_back(PolarSite(0, "H", ));
 
-    Index ix = i % cry_l;
-    Index iy = (i % (cry_l * cry_l)) / cry_l;
-    Index iz = i / (cry_l * cry_l);
+  //   Index ix = i % cry_l;
+  //   Index iy = (i % (cry_l * cry_l)) / cry_l;
+  //   Index iz = i / (cry_l * cry_l);
 
-    xyz[i][0] = (double)(ix)*0.5;
-    xyz[i][1] = (double)(iy)*0.5;
-    xyz[i][2] = (double)(iz)*0.5;
+  //   xyz[i][0] = (double)(ix)*0.5;
+  //   xyz[i][1] = (double)(iy)*0.5;
+  //   xyz[i][2] = (double)(iz)*0.5;
 
-    charges[i] = (((ix + iy + iz) % 2) ? 1.0 : -1.0);
-  }
-  EwaldOptions options;
-  options.alpha = 4;
-  options.r_cutoff = 1.9;
-  options.k_cutoff = 30;
-  options.shape = Shape::cube;
-  options.sharpness = 0.39;
-  Eigen::Matrix3d cellMatrix;
-  cellMatrix << l, 0, 0, 0, l, 0, 0, 0, l;
+  //   charges[i] = (((ix + iy + iz) % 2) ? 1.0 : -1.0);
+  // }
+  // EwaldOptions options;
+  // options.alpha = 4;
+  // options.r_cutoff = 1.9;
+  // options.k_cutoff = 30;
+  // options.shape = Shape::cube;
+  // options.sharpness = 0.39;
+  // Eigen::Matrix3d cellMatrix;
+  // cellMatrix << l, 0, 0, 0, l, 0, 0, 0, l;
 
-  Logger log;
-  Background bg(log, cellMatrix, options, backgroundSegments);
+  // Logger log;
+  // Background bg(log, cellMatrix, options, backgroundSegments);
 
-  double energy = bg.interactionEnergy();
+  // double energy = bg.interactionEnergy();
 
 
 
