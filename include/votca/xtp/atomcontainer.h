@@ -1,4 +1,5 @@
 
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -47,6 +48,8 @@ template <class T>
 class AtomContainer {
  public:
   AtomContainer(std::string type, Index id) : type_(type), id_(id){};
+
+  using Atom_Type = T;
 
   AtomContainer(CheckpointReader& r) { this->ReadFromCpt(r); }
   virtual ~AtomContainer() = default;

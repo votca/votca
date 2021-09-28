@@ -49,10 +49,9 @@ class SegmentMapper {
   AtomContainer map(const Segment& seg, const std::string& coordfilename) const;
 
  private:
-  using mapAtom = typename std::iterator_traits<
-      typename AtomContainer::iterator>::value_type;
+  using mapAtom = typename AtomContainer::Atom_Type;
 
-  typedef std::pair<Index, std::string> atom_id;
+  using atom_id = std::pair<Index, std::string>;
 
   struct FragInfo {
     std::vector<double> weights;

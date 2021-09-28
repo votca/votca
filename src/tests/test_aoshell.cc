@@ -91,23 +91,14 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
   for (const AOShell& shell : aobasis) {
 
     Eigen::Vector3d gridpos = Eigen::Vector3d::Ones();
-    Eigen::VectorXd aoval = Eigen::VectorXd::Zero(shell.getNumFunc());
-    Eigen::MatrixX3d aograd = Eigen::MatrixX3d::Zero(shell.getNumFunc(), 3);
-    Eigen::Block<Eigen::MatrixX3d> grad_block =
-        aograd.block(0, 0, shell.getNumFunc(), 3);
-    Eigen::VectorBlock<Eigen::VectorXd> ao_block =
-        aoval.segment(0, shell.getNumFunc());
 
-    shell.EvalAOspace(ao_block, grad_block, gridpos);
+    AOShell::AOValues ao = shell.EvalAOspace(gridpos);
 
-    Eigen::VectorXd aoval_2 = Eigen::VectorXd::Zero(shell.getNumFunc());
-    Eigen::VectorBlock<Eigen::VectorXd> ao_block_2 =
-        aoval_2.segment(0, shell.getNumFunc());
-    shell.EvalAOspace(ao_block_2, gridpos);
+    ao.derivatives.middleRows(0, 1);
 
     bool ao_check = aoval_ref.col(0)
                         .segment(shell.getStartIndex(), shell.getNumFunc())
-                        .isApprox(aoval, 1e-5);
+                        .isApprox(ao.values, 1e-5);
     if (!ao_check) {
       std::cout << shell << std::endl;
       std::cout << "ref" << std::endl;
@@ -115,12 +106,12 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
                                             shell.getNumFunc())
                 << std::endl;
       std::cout << "result" << std::endl;
-      std::cout << aoval << std::endl;
+      std::cout << ao.values << std::endl;
     }
     BOOST_CHECK_EQUAL(ao_check, 1);
     bool aograd_check =
-        aograd_ref.block(shell.getStartIndex(), 0, shell.getNumFunc(), 3)
-            .isApprox(aograd, 1e-5);
+        aograd_ref.middleRows(shell.getStartIndex(), shell.getNumFunc())
+            .isApprox(ao.derivatives, 1e-5);
     if (!aograd_check) {
       std::cout << shell << std::endl;
       std::cout << "ref" << std::endl;
@@ -128,18 +119,7 @@ BOOST_AUTO_TEST_CASE(EvalAOspace) {
                                     shell.getNumFunc(), 3)
                 << std::endl;
       std::cout << "result" << std::endl;
-      std::cout << aograd << std::endl;
-    }
-
-    BOOST_CHECK_EQUAL(aograd_check, 1);
-
-    bool ao1vsao2_check = aoval_2.isApprox(aoval, 1e-5);
-    if (!ao1vsao2_check) {
-      std::cout << shell << std::endl;
-      std::cout << "ref" << std::endl;
-      std::cout << aoval << std::endl;
-      std::cout << "result" << std::endl;
-      std::cout << aoval_2 << std::endl;
+      std::cout << ao.derivatives << std::endl;
     }
 
     BOOST_CHECK_EQUAL(aograd_check, 1);

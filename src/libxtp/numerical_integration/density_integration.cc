@@ -84,8 +84,8 @@ double DensityIntegration<Grid>::IntegrateDensity(
     const std::vector<double>& weights = box.getGridWeights();
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
-      Eigen::VectorXd ao = box.CalcAOValues(points[p]);
-      double rho = (ao.transpose() * DMAT_here * ao)(0, 0) * weights[p];
+      AOShell::AOValues ao = box.CalcAOValues(points[p]);
+      double rho = ao.values.dot(DMAT_here * ao.values) * weights[p];
       densities_[i][p] = rho;
       N += rho;
     }
@@ -113,8 +113,8 @@ Gyrationtensor DensityIntegration<Grid>::IntegrateGyrationTensor(
     const std::vector<double>& weights = box.getGridWeights();
     // iterate over gridpoints
     for (Index p = 0; p < box.size(); p++) {
-      Eigen::VectorXd ao = box.CalcAOValues(points[p]);
-      double rho = (ao.transpose() * DMAT_here * ao).value() * weights[p];
+      AOShell::AOValues ao = box.CalcAOValues(points[p]);
+      double rho = ao.values.dot(DMAT_here * ao.values) * weights[p];
       densities_[i][p] = rho;
       N += rho;
       centroid += rho * points[p];
