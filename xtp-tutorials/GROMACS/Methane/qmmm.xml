@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<options>
+  <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
+    <print_regions_pdb help="print the geometry of the regions to a pdb file">true</print_regions_pdb>
+    <max_iterations help="max iterations for qmmm scf loop">50</max_iterations>
+    <map_file help="xml file with segment definition">system.xml</map_file>
+    <job_file help="name of jobfile to which jobs are written">qmmm_jobs.xml</job_file>
+    <io_jobfile>
+    <states>n s1 t1</states>
+    </io_jobfile>
+    <regions>
+      <qmregion help="definition of a region">
+        <id help="id of a region has to start from 0">0</id>
+        <gwbse>
+          <gw>
+            <mode>G0W0</mode>
+          </gw>
+          <bse>
+            <exctotal>10</exctotal>
+          </bse>
+          <ranges>full</ranges>
+        </gwbse>
+        <dftpackage>
+          <basisset>3-21G</basisset>
+          <auxbasisset>aux-def2-svp</auxbasisset>
+        </dftpackage>
+        <statetracker>
+          <overlap>0.8</overlap>
+        </statetracker>
+        <state help="qmstate to calculate i.e. n or s1">jobfile</state>
+        <segments help="which segments to include in this region and which geometry they have">jobfile</segments>
+      </qmregion>
+      <polarregion>
+        <id>1</id>
+        <cutoff>
+          <geometry>n</geometry>
+          <radius>1</radius>
+          <region>0</region>
+        </cutoff>
+      </polarregion>
+      <staticregion>
+        <id>2</id>
+        <cutoff>
+          <geometry>n</geometry>
+          <radius>1.4</radius>
+          <region>0</region>
+        </cutoff>
+      </staticregion>
+    </regions>
+  </qmmm>
+</options>

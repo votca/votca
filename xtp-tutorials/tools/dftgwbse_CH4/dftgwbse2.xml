@@ -1,0 +1,9 @@
+<options>
+    <dftgwbse>
+        <job_name>methane</job_name>
+        <dftpackage>
+            <basisset>ubecppol</basisset>
+            <auxbasisset>aux-ubecppol</auxbasisset>
+        </dftpackage>
+    </dftgwbse>
+</options>
