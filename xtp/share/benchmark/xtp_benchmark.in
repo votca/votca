@@ -1,0 +1,203 @@
+#! /usr/bin/env python3
+#
+# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+import sys
+import os
+import time
+import numpy as np
+import argparse
+import h5py
+import shutil
+import json
+VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
+PROGTITLE = 'THE VOTCA::XTP Benchmark'
+PROGDESCR = 'Runs a Thiel set benchmark'
+VOTCAHEADER = '''\
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+{progtitle}
+
+please submit bugs to @PROJECT_CONTACT@
+benchmark, version {version}
+
+'''.format(version=VERSION, progtitle=PROGTITLE)
+
+def xxquit(what=''):
+    if what != '':
+        print("ERROR: {what}".format(what=what))
+    sys.exit(1)
+
+
+def ReadEnergyFromHDF5(filename):
+    orb = h5py.File(filename, 'r')
+    a = orb['QMdata']['BSE_singlet']['eigenvalues'].value
+    a.flatten()
+    return a.flatten()
+
+
+def CheckforXMLFile(filename):
+    print("Checking for '{}' file".format(filename))
+    if not os.path.isfile(filename):
+        xxquit("'{}' file not found".format(filename))
+
+
+class cd:
+    """Context manager for changing the current working directory"""
+
+    def __init__(self, newPath):
+        self.newPath = os.path.expanduser(newPath)
+
+    def __enter__(self):
+        self.savedPath = os.getcwd()
+        os.chdir(self.newPath)
+
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.savedPath)
+
+# =============================================================================
+# PROGRAM OPTIONS
+# =============================================================================
+
+
+class XtpHelpFormatter(argparse.HelpFormatter):
+    def _format_usage(self, usage, action, group, prefix):
+        return VOTCAHEADER
+
+
+progargs = argparse.ArgumentParser(prog='xtp_benchmark',
+                                   formatter_class=lambda prog: XtpHelpFormatter(
+                                       prog, max_help_position=70),
+                                   description=PROGDESCR)
+
+progargs.add_argument('-t', '--threads',
+                      required=False,
+                      type=int,
+                      default=1,
+                      help='Number of OPENMP threads')
+
+progargs.add_argument('-r', '--run',
+                      action='store_const',
+                      const=1,
+                      default=0,
+                      help='Run benchmark')
+
+progargs.add_argument('-a', '--analyze',
+                      action='store_const',
+                      const=1,
+                      default=0,
+                      help='Show results')
+
+progargs.add_argument('--reset',
+                      action='store_const',
+                      const=1,
+                      default=0,
+                      help='Delete all benchmark run data')
+
+progargs.add_argument('--update',
+                      action='store_const',
+                      const=1,
+                      default=0,
+                      help='Update references')
+
+
+OPTIONS = progargs.parse_args()
+
+if OPTIONS.reset:
+    print("Deleting 'RUN' directory")
+    try:
+        shutil.rmtree("RUN")
+    except OSError as e:
+        print("Error: %s - %s." % (e.filename, e.strerror))
+
+if OPTIONS.run:
+    print("Creating run directory")
+    if os.path.isdir('RUN'):
+        xxquit("Folder 'RUN' already exists")
+    os.mkdir("RUN")
+    CheckforXMLFile('dftgwbse.xml')
+    CheckforXMLFile('gwbse.xml')
+    CheckforXMLFile('xtpdft.xml')
+
+    molecules = []
+
+    for folder in os.listdir("Geometries_ThielSet"):
+        print("Reading geometries from folder '{}'".format(folder))
+        for geo in os.listdir("Geometries_ThielSet/"+folder):
+            if os.path.splitext("Geometries_ThielSet/"+folder+"/"+geo)[1] == ".xyz":
+                molname = os.path.splitext(geo)[0]
+                print("Creating subfolder '{}'".format(molname))
+                dest = "RUN/{}".format(molname)
+                molecules.append(molname)
+                os.mkdir(dest)
+                shutil.copyfile("Geometries_ThielSet/"+folder +
+                                "/"+geo, dest+"/system.xyz")
+                shutil.copyfile('dftgwbse.xml', dest+'/dftgwbse.xml')
+                shutil.copyfile('gwbse.xml', dest+'/gwbse.xml')
+                shutil.copyfile('xtpdft.xml', dest+'/xtpdft.xml')
+
+    print("\nStarting benchmark with {} threads".format(OPTIONS.threads))
+    print(30*"-")
+
+    moldata = {}
+    totaltime = time.time()
+    referencedata = {}
+    if os.path.isfile("references.json"):
+        print("Loading reference data from 'references.json'")
+        with open("references.json", 'r') as fp:
+            referencedata = json.load(fp)
+
+    for mol in molecules:
+        print("Running {}".format(mol).ljust(30), end="\r")
+        with cd("RUN/{}".format(mol)):
+            
+            start = time.time()
+
+            cmd = 'xtp_tools -e dftgwbse -o dftgwbse.xml -t {} > dftgwbse.log'.format(OPTIONS.threads)
+            os.system(cmd)
+            dt = time.time() - start
+            molinfo = {}
+            molinfo["duration[s]"] = dt
+            print("{}".format(mol).ljust(30)+" Duration: \t{:8.2f} seconds.".format(dt), end='')
+            if not os.path.isfile("system.orb"):
+                print(" Computation Failed")
+                molinfo["Status"] = "Failed"
+            else:
+                S = ReadEnergyFromHDF5("system.orb")
+                print(" S1 = {:3.6f}[Hrt]".format(S[0]))
+                molinfo["Status"] = "Success"
+                molinfo["S1[Hrt]"] = S[0]
+        if referencedata and referencedata[mol]["Status"] == "Success":
+            print(" S1_ref = {:3.6f}[Hrt]".format(
+                referencedata[mol]["S1[Hrt]"]))
+
+        moldata[mol] = molinfo
+
+    print(30*"-")
+    dttotal = time.time() - totaltime
+    print("Total time: {:8.2f}".format(dttotal))
+    goodruns = 0
+    for _, result in moldata.items():
+        if result["Status"] == "Success":
+            goodruns += 1
+    print("{:1.2f}% of runs completed successfully".format(
+        float(goodruns)/float(len(moldata))*100.0))
+
+    print("Writing benchmark data to 'result.json'")
+    with open('result.json', 'w') as fp:
+        json.dump(moldata, fp, sort_keys=True, indent=4)

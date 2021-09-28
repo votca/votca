@@ -1,0 +1,7 @@
+<statetracker>
+  <filters>localisation</filters>
+  <localisation>
+  <fragment>0 1</fragment>
+  <threshold>0.1</threshold>
+  </localisation>
+</statetracker>
