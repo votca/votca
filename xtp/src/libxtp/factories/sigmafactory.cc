@@ -30,9 +30,9 @@ namespace votca {
 namespace xtp {
 
 void SigmaFactory::RegisterAll(void) {
-  Sigma().Register<Sigma_CDA>("cda");
-  Sigma().Register<Sigma_Exact>("exact");
-  Sigma().Register<Sigma_PPM>("ppm");
+  this->Register<Sigma_CDA>("cda");
+  this->Register<Sigma_Exact>("exact");
+  this->Register<Sigma_PPM>("ppm");
 }
 }  // namespace xtp
 }  // namespace votca

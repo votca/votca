@@ -33,11 +33,10 @@ namespace votca {
 namespace xtp {
 
 void GW::configure(const options& opt) {
-  Sigma().RegisterAll();
   opt_ = opt;
   qptotal_ = opt_.qpmax - opt_.qpmin + 1;
   rpa_.configure(opt_.homo, opt_.rpamin, opt_.rpamax);
-  sigma_ = Sigma().Create(opt_.sigma_integration, Mmn_, rpa_);
+  sigma_ = SigmaFactory().Create(opt_.sigma_integration, Mmn_, rpa_);
   Sigma_base::options sigma_opt;
   sigma_opt.homo = opt_.homo;
   sigma_opt.qpmax = opt_.qpmax;

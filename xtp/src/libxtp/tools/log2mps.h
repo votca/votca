@@ -51,7 +51,7 @@ class Log2Mps final : public QMTool {
 
 void Log2Mps::ParseOptions(const tools::Property &options) {
 
-  QMPackageFactory::RegisterAll();
+  QMPackageFactory{};
 
   package_ = options.get(".dftpackage").as<std::string>();
 
@@ -82,8 +82,7 @@ bool Log2Mps::Run() {
   XTP_LOG(Log::error, log) << "Using package <" << package_ << ">"
                            << std::flush;
 
-  std::unique_ptr<QMPackage> qmpack = std::unique_ptr<QMPackage>(
-      QMPackageFactory::QMPackages().Create(package_));
+  std::unique_ptr<QMPackage> qmpack = QMPackageFactory().Create(package_);
   qmpack->setLog(&log);
   qmpack->setRunDir(".");
   qmpack->setLogFileName(logfile_);

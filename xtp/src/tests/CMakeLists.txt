@@ -96,4 +96,4 @@ if(ENABLE_TESTING)
     # run tests for xtp (for coverage) as well
     set_tests_properties(unit_${PROG} PROPERTIES LABELS "xtp;votca;unit")
   endforeach(PROG)
-endif()
+  endif()
