@@ -23,6 +23,7 @@
 // Local private VOTCA includes
 #include "tools/apdft.h"
 #include "tools/coupling.h"
+#include "tools/decomp.h"
 #include "tools/densityanalysis.h"
 #include "tools/dftgwbse.h"
 #include "tools/excitoncoupling.h"
@@ -34,7 +35,7 @@
 #include "tools/orb2mol.h"
 #include "tools/partialcharges.h"
 #include "tools/spectrum.h"
-
+#include "tools/qminqm.h"
 namespace votca {
 namespace xtp {
 
@@ -53,6 +54,8 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<Mol2Orb>("mol2orb");
   QMTools().Register<Orb2Mol>("orb2mol");
   QMTools().Register<Orb2Fchk>("orb2fchk");
+  QMTools().Register<Decomp>("decomp");
+  QMTools().Register<QMinQM>("qminqm");
 }
 
 }  // namespace xtp

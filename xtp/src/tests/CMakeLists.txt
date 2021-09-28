@@ -85,6 +85,8 @@ if(ENABLE_TESTING)
   endif()
   list(APPEND test_cases test_anderson)
   list(APPEND test_cases test_gaussian_quadratures)
+  list(APPEND test_cases test_pmdecomposition)
+  list(APPEND test_cases test_activedensitymatrix)
 
   foreach(PROG ${test_cases} )
     add_executable(unit_${PROG} ${PROG}.cc)
