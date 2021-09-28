@@ -1,0 +1,99 @@
+/*
+ *            Copyright 2009-2020 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+/// For earlier commit history see ctp commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
+
+#pragma once
+#ifndef VOTCA_XTP_ATOM_H
+#define VOTCA_XTP_ATOM_H
+
+// Standard includes
+#include <exception>
+#include <map>
+#include <string>
+
+// Local VOTCA includes
+#include "checkpointreader.h"
+#include "checkpointwriter.h"
+
+namespace votca {
+namespace xtp {
+class Atom {
+ public:
+  struct data {
+    Index id;
+    char* element;
+    char* name;
+    double x;
+    double y;
+    double z;
+    Index resnr;
+  };
+  Atom(Index resnr, std::string md_atom_name, Index atom_id,
+       Eigen::Vector3d pos, std::string element);
+
+  Atom(Index atom_id, std::string element, Eigen::Vector3d pos);
+
+  Atom(data& d) { ReadData(d); }
+
+  static std::string GetElementFromString(const std::string& MDName);
+
+  Index getId() const { return _id; }
+  const std::string& getName() const { return _name; }
+  std::string getElement() const { return _element; }
+
+  Index getResnr() const { return _resnr; }
+
+  void setResnr(Index resnr) { _resnr = resnr; }
+  void Translate(const Eigen::Vector3d& shift) { _pos = _pos + shift; }
+
+  void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos);
+
+  const Eigen::Vector3d& getPos() const { return _pos; }
+  void setPos(const Eigen::Vector3d& r) { _pos = r; }
+
+  std::string identify() const { return "atom"; }
+
+  friend std::ostream& operator<<(std::ostream& out, const Atom& atom) {
+    out << atom.getId() << " " << atom.getName() << " " << atom.getElement()
+        << " " << atom.getResnr();
+    out << " " << atom.getPos().x() << "," << atom.getPos().y() << ","
+        << atom.getPos().z() << "\n";
+    return out;
+  }
+
+  void SetupCptTable(CptTable& table) const;
+
+  void WriteData(data& d) const;
+
+  void ReadData(const data& d);
+
+ private:
+  Index _id = -1;
+  std::string _name = "";
+
+  std::string _element = "";
+  Index _resnr = -1;
+  Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
+};
+
+}  // namespace xtp
+}  // namespace votca
+
+#endif  // VOTCA_XTP_ATOM_H

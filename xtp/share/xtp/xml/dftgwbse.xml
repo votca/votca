@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<options>
+  <!-- xtp_tools -e dftgwbse options.xml -->
+  <dftgwbse help="Compute electronic excitations using GW-BSE">
+    <optimize help="Perform a molecular geometry optimization" default="false" choices="bool"/>
+    <basisset help="Basis set for MOs" default="def2-tzvp"/>
+    <auxbasisset help="Auxiliary basis set for RI" default="aux-def2-tzvp"/>
+    <functional help="Functional name(s) according to LIBXC" default="XC_HYB_GGA_XC_PBEH"/>
+    <dftpackage>
+      <package>
+        <name help="Name of the DFT package" default="xtp" choices="xtp,orca">xtp</name>
+        <use_auxbasisset help="use an auxiliar basisset" default="true" choices="bool"/>
+      </package>
+    </dftpackage>
+    <use_mpsfile help="check for MPS file with external multipoles for embedding" default="false" choices="bool"/>
+    <mpsfile help="MPS file to read from if use_mpsfile"/>
+    <use_guess help="Use a precomputed wave function" default="false" choices="bool"/>
+    <guess help="File to read the wave function if the use guess flag is set to true"/>
+    <gwbse_engine>
+      <tasks help="task to compute" default="input,dft,parse,gwbse" choices="[input,dft,parse,gwbse]"/>
+      <gwbse_options>
+        <gwbse>
+          <ranges help="default: all levels in RPA, 1:2*HOMO in QP and all in BSE; other options: factor,explicit" default="default" choices="default,factor,explicit,full"/>
+          <rpamax help="only needed, if ranges is factor or explicit, number of levels in rpa" default=""/>
+          <qpmin help="only needed, if ranges is factor or explicit, lowest MO to be used in GW" default=""/>
+          <qpmax help="only needed, if ranges is factor or explicit, highest MO to be used in GW" default=""/>
+          <bsemin help="only needed, if ranges is factor or explicit, lowest MO to be used in BSE" default=""/>
+          <bsemax help="only needed, if ranges is factor or explicit, highest MO to be used in BSE" default=""/>
+          <vxc help="Exchange correlation functional computation for GW">
+            <grid help="grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine"/>
+          </vxc>
+          <scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" default="0.0" unit="hartree" choices="float"/>
+          <mode help="use single short (G0W0) or self-consistent GW (evGW)" default="evGW" choices="evGW,G0W0"/>
+          <tasks help="tasks to do" default="gw,singlets" choices="[gw,singlets,triplets,all]"/>
+          <sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact, cda"/>
+          <eta help="small parameter eta of the Green's function" default="1e-3" unit="Hartree" choices="float+"/>
+          <alpha help="parameter to smooth residue and integral calculation for the contour deformation technique" default="1e-3" choices="float"/>
+          <quadrature_scheme help="If CDA is used for sigma integration this set the quadrature scheme to use" default="legendre" choices="hermite,laguerre,legendre"/>
+          <quadrature_order help="Quadrature order if CDA is used for sigma integration" default="12" choices="8,10,12,14,16,18,20,40,100"/>
+          <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid"/>
+          <qp_grid_steps help="number of QP grid points" default="1001" choices="int+"/>
+          <qp_grid_spacing help="spacing of QP grid points" unit="Hartree" default="0.001" choices="float+"/>
+          <exctotal help="maximum number of BSE states to calculate" default="30" choices="int+"/>
+          <useTDA help="use TDA for BSE" default="false" choices="bool"/>
+          <dynamical_screening_max_iterations help="maximum number of iterations for perturbative dynamical screening in BSE" default="0" choices="int+"/>
+          <dynamical_screening_tolerance help="convergence tolerance for perturbative dynamical screening in BSE" default="1e-5" choices="float+"/>
+          <ignore_corelevels help="exclude core MO level from calculation on RPA,GW or BSE level" default="no" choices="RPA,GW,BSE,no"/>
+          <eigensolver help="options for BSE eigenvalue decompostion">
+            <dodavidson help="use davidson solver" default="true" choices="bool"/>
+            <davidson_correction help="Davidson correction method" default="DPR" choices="DPR,OHLSEN"/>
+            <davidson_tolerance help="Numerical tolerance" default="normal" choices="loose,normal,strict"/>
+            <davidson_ortho help="orthogonalisation routine: GramSchmidt or QR" default="GS" choices="GS,QR"/>
+            <davidson_update help=" how large the search space" default="safe" choices="min,safe,max"/>
+            <davidson_maxiter help="max iterations" default="50" choices="int+"/>
+            <domatrixfree help="solve without explicitly setting up BSE matrix, (slower but a lot less memory required" default="true" choices="bool">false</domatrixfree>
+          </eigensolver>
+          <gw_sc_max_iterations help="Maximum number of iterations in eVGW" default="50" choices="int+"/>
+          <gw_mixing_order help="Mixing of QP energies in evGW - 0: plain, 1: linear, &gt;1: Anderson" default="20" choices="int+"/>
+          <gw_sc_limit help="evGW convergence criteria" unit="Hartree" default="1e-5" choices="float+"/>
+          <gw_mixing_alpha help="mixing alpha, also linear mixing" default="0.7" choices="float+"/>
+          <g_sc_max_iterations help="maximum number of iterations for quasiparticle equation solution" default="100" choices="int+"/>
+          <g_sc_limit help="quasiparticle equation solver convergence" unit="Hartree" default="1e-5" choices="float+"/>
+          <use_Hqp_offdiag help="Using symmetrized off-diagonal elements of QP Hamiltonian in BSE" default="false" choices="bool"/>
+          <sigma_plot_states help="plot sigma(omega) for the following states, e.g 1 3 5"/>
+          <sigma_plot_steps help="points to plot" default="201" choices="int+"/>
+          <sigma_plot_spacing help="spacing of points units" default="1e-2" unit="Hartree" choices="float+"/>
+          <sigma_plot_filename hep="File with the sigma plot data" default="QPenergies_sigma.dat"/>
+          <bse_print_weight help="print exciton WF composition weight larger than minimum" default="0.5" choices="float+"/>
+          <rebuild_threecenter_freq help="how often the 3c integrals in iterate should be rebuilt" default="5" choices="int+"/>
+          <exctotal help="number of eigenvectors to calculate" default="5" choices="int+"/>
+          <ignore_corelevels help="" default="none" choices="none,RPA,BSE,GW"/>
+        </gwbse>
+      </gwbse_options>
+      <redirect_logger help="Redirect Logger" default="false" choices="bool"/>
+    </gwbse_engine>
+    <geometry_optimization help="geometry optimization options">
+      <state help="initial state to optimize for" default="s1"/>
+      <maxiter help="Maximum iteration number" default="50" choices="int+"/>
+      <trajectory_file help="File to write trajectory" default="optimisation.trj"/>
+      <statetracker help="tries to identify state without looking at the energy">
+        <oscillatorstrength default="0.0001" choices="float+"/>
+        <filters help="property to track" default="oscillatorstrength" choices="[chargetransfer,density,localisation,oscillatorstrength,overlap]"/>
+      </statetracker>
+      <convergence help="Convergence criteria for geometry optimization">
+        <energy help="Energy error tolerance" unit="Hartree" default="1.e-6" choices="float+"/>
+        <RMSForce help="Force Root mean square error tolerance" unit="Hartree/Bohr" default="3.e-5" choices="float+"/>
+        <MaxForce help="Maximum force Convergence criteria" unit="Hartree/Bohr" default="1.e-4" choices="float+"/>
+        <RMSStep help="Step Root mean square error tolerance" unit="Bohr" default="6.e-4" choices="float+"/>
+        <MaxStep help="convergence criteria for geometry optimisation" unit="Bohr" default="1.e-3" choices="float+"/>
+      </convergence>
+      <optimizer help="optimiser method">
+        <method default="BFGS-TRM" choices="BFGS-TRM"/>
+        <trust help="initial trustregion" unit="Angstrom" default="0.01" choices="float+"/>
+      </optimizer>
+      <forces>
+        <method help="finite differences method, central or forward" default="central" choices="central forward"/>
+        <CoMforce_removal help="Remove total force on molecule" default="true" choices="bool"/>
+        <displacement help="finite difference displacement" unit="Angstrom" default="0.001" choices="float+"/>
+      </forces>
+    </geometry_optimization>
+  </dftgwbse>
+</options>
