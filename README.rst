@@ -1,7 +1,6 @@
 |Codacy Badge| |CI| |Docker| |DOI|
 
-This is VOTCA's next generation build system for CSG and XTP. It allows
-you to easily install:
+This is VOTCA, whhich provides the two following subpackages:
 
 -  VOTCA-CSG, a library which provides tools to develop coarse-grained
    potentials from atomistic simulation data
