@@ -34,6 +34,7 @@
 #include "tools/orb2mol.h"
 #include "tools/partialcharges.h"
 #include "tools/spectrum.h"
+#include "tools/erdiabatizationframe.h"
 
 namespace votca {
 namespace xtp {
@@ -52,6 +53,7 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<APDFT>("apdft");
   QMTools().Register<Mol2Orb>("mol2orb");
   QMTools().Register<Orb2Mol>("orb2mol");
+  QMTools().Register<ERDiabatizationFrame>("erdiabatization");
   QMTools().Register<Orb2Fchk>("orb2fchk");
 }
 
