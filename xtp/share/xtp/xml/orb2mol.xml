@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<options>
+  <orb2mol help="Converts molden files to orb files.">
+    <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
+  </orb2mol>
+</options>

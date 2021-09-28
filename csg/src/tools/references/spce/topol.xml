@@ -1,0 +1,10 @@
+<topology>
+  <molecules>
+    <molecule name="SOL" nmols="216" nbeads="3">
+      <bead name="OW" type="OW" mass="15.9994" q="-0.8476" />
+      <bead name="HW1" type="H" mass="1.008" q="0.4238" />
+      <bead name="HW2" type="H" mass="1.008" q="0.4238" />
+    </molecule>
+  </molecules>
+</topology>
+

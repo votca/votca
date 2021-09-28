@@ -1,0 +1,30 @@
+name: GPU
+
+on:
+  pull_request:
+    branches:
+      - master
+      - stable
+
+jobs:
+  build:
+    runs-on: [self-hosted, GPU, benchmark]
+
+    steps:
+      - name: cleanup
+        run: rm -rf *
+
+      - name: Checkout xtp
+        uses: actions/checkout@v2
+        with:
+          path: votca
+
+      - name: Configure Cmake
+        run: cmake -B builddir -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DENABLE_TESTING=ON -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON votca
+
+      - name: Build
+        run: cmake --build builddir --parallel $(nproc)
+
+      - name: run Tests
+        run: ctest --output-on-failure -j $(nproc)
+        working-directory: builddir

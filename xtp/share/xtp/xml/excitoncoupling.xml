@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<options>
+  <excitoncoupling help="Exciton couplings from serialized orbital files" section="sec:bsecoupling">
+    <job_name help="Output file name without extension, also used for intermediate files" default="system"/>
+    <use_classical help="Calculate Couplings from classical charges instead of ab-initio" default="false" choices="bool"/>
+    <mpsA help="classical transition charges for segment A" default="A.mps"/>
+    <mpsB help="classical transition charges for segment B" default="B.mps"/>
+    <bsecoupling link="bsecoupling.xml"/>
+    <orbitalsA help="Serialized orbitals file" default="A.orb"/>
+    <orbitalsB help="Serialized orbitals file" default="B.orb"/>
+    <orbitalsAB help="Serialized orbitals file" default="AB.orb"/>
+  </excitoncoupling>
+</options>

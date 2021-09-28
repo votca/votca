@@ -1,0 +1,25 @@
+cutoff=0.9;
+pi=3.14159;
+rc=sig*( 2**(1/6.) );
+
+LJ(x)=4*eps*( (sig/x)**12 - (sig/x)**6 + (1./4) );
+CKD(x)=-eps*( cos(pi*(x-rc)/(2.*wc)) )**2;
+G(x)=h*exp( -(x-p)**2/(2.*s**2) );
+
+# For 0<=x<rc:
+V_rep(x)=LJ(x)-eps+G(x);
+# For x=rc:
+V_cut(x)=LJ(x)+CKD(x)+G(x);
+# For rc<x<=(rc+wc):
+V_att(x)=CKD(x)+G(x);
+# For (rc+wc)<x<=cutoff:
+V_tail(x)=G(x);
+
+eshift=V_tail(cutoff);
+
+V_rep_eshift(x)=V_rep(x)-eshift;
+V_cut_eshift(x)=V_cut(x)-eshift;
+V_att_eshift(x)=V_att(x)-eshift;
+V_tail_eshift(x)=V_tail(x)-eshift;
+
+f(x)= 0<=x && x<rc ? V_rep_eshift(x) : x==rc ? V_cut_eshift(x) :rc<=x && x<=(rc+wc) ? V_att_eshift(x) : (rc+wc)<x && x<=1.4 ? V_tail_eshift(x) : 0

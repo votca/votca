@@ -5,3 +5,5 @@ coverage:
 ignore:
   - /usr/include/
   - tools/src/tests/
+  - csg/src/tests/
+  - xtp/src/tests/

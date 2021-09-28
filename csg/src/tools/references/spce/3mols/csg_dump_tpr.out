@@ -1,0 +1,22 @@
+I have 9 beads in 3 molecules
+Boundary Condition: orthorhombic
+ Box matix: 1.86206 0 0
+            0 1.86206 0
+            0 0 1.86206
+           
+List of residues:
+0 name: SOL id: 0
+
+List of molecules:
+molecule: 1 SOL beads: 3
+0 Name 1:SOL:OW Type opls_116 Mass 15.9994 Resnr 0 Resname SOL Charge -0.8476
+1 Name 1:SOL:HW1 Type opls_117 Mass 1.008 Resnr 0 Resname SOL Charge 0.4238
+2 Name 1:SOL:HW2 Type opls_117 Mass 1.008 Resnr 0 Resname SOL Charge 0.4238
+molecule: 2 SOL beads: 3
+3 Name 1:SOL:OW Type opls_116 Mass 15.9994 Resnr 0 Resname SOL Charge -0.8476
+4 Name 1:SOL:HW1 Type opls_117 Mass 1.008 Resnr 0 Resname SOL Charge 0.4238
+5 Name 1:SOL:HW2 Type opls_117 Mass 1.008 Resnr 0 Resname SOL Charge 0.4238
+molecule: 3 SOL beads: 3
+6 Name 1:SOL:OW Type opls_116 Mass 15.9994 Resnr 0 Resname SOL Charge -0.8476
+7 Name 1:SOL:HW1 Type opls_117 Mass 1.008 Resnr 0 Resname SOL Charge 0.4238
+8 Name 1:SOL:HW2 Type opls_117 Mass 1.008 Resnr 0 Resname SOL Charge 0.4238

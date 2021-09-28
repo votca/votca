@@ -1,0 +1,92 @@
+<cg>
+  <!--fmatch section -->
+  <fmatch>
+    <constrainedLS>0</constrainedLS>
+    <!--Number of frames for block averaging -->
+    <frames_per_block>6</frames_per_block>
+  </fmatch>
+  <!-- example for a non-bonded interaction entry -->
+  <bonded>
+    <!-- name of the interaction -->
+    <name>bond</name>
+    <min>0.</min>
+    <max>0.180</max>
+    <step>0.001</step>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>0.152</min>
+      <max>0.181</max>
+      <step>0.001</step>
+      <res_output_coeff>5</res_output_coeff>
+    </fmatch>
+  </bonded>
+  <bonded>
+    <!-- name of the interaction -->
+    <name>angle</name>
+    <min>0</min>
+    <max>3.144</max>
+    <step>0.001</step>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>1.627</min>
+      <max>2.134</max>
+      <step>0.06</step>
+      <res_output_coeff>5</res_output_coeff>
+    </fmatch>
+  </bonded>
+
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>B-B</name>
+    <min>0.0</min>
+    <max>2.23</max>
+    <step>0.01</step>
+    <type1>CH2</type1>
+    <type2>CH2</type2>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>0.298</min>
+      <max>1.19</max>
+      <step>0.05</step>
+      <res_output_coeff>5</res_output_coeff>
+    </fmatch>
+  </non-bonded>
+
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>A-A</name>
+    <min>0</min>
+    <max>2.23</max>
+    <step>0.01</step>
+    <type1>CH3</type1>
+    <type2>CH3</type2>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>0.283</min>
+      <max>1.19</max>
+      <step>0.05</step>
+      <res_output_coeff>5</res_output_coeff>
+    </fmatch>
+  </non-bonded>
+
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>A-B</name>
+    <min>0</min>
+    <max>2.23</max>
+    <step>0.01</step>
+    <type1>CH2</type1>
+    <type2>CH3</type2>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>0.291</min>
+      <max>1.19</max>
+      <step>0.05</step>
+      <res_output_coeff>5</res_output_coeff>
+    </fmatch>
+  </non-bonded>
+
+</cg>
