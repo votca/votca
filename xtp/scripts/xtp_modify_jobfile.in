@@ -1,0 +1,191 @@
+#! /usr/bin/env python3
+#
+# Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
+import sys
+import argparse
+import re
+import lxml.etree as lxml
+import fnmatch
+
+
+PROGTITLE = 'THE VOTCA::XTP MODIFY JOBFILE'
+PROGDESCR = 'Creates a subset Jobfile from a larger Jobfile using selection criteria'
+VOTCAHEADER = '''\
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+{progtitle}
+
+please submit bugs to @PROJECT_CONTACT@
+xtp_update_mapfile, version {version}
+
+'''.format(version=VERSION, progtitle=PROGTITLE)
+
+
+def okquit(what=''):
+    if what != '':
+        print(what)
+    sys.exit(0)
+# =============================================================================
+# PROGRAM OPTIONS
+# =============================================================================
+
+
+class XtpHelpFormatter(argparse.HelpFormatter):
+    def _format_usage(self, usage, action, group, prefix):
+        return VOTCAHEADER
+
+
+progargs = argparse.ArgumentParser(prog='xtp_modify_jobfile',
+                                   formatter_class=lambda prog: XtpHelpFormatter(
+                                       prog, max_help_position=70),
+                                   description=PROGDESCR)
+
+progargs.add_argument('-i', '--input',
+                      dest='j_input',
+                      action='store',
+                      required=True,
+                      type=argparse.FileType('r'),
+                      default='',
+                      help='Jobfile file to select from.')
+
+progargs.add_argument('-o', '--output',
+                      dest='j_output',
+                      action='store',
+                      required=True,
+                      type=argparse.FileType('w'),
+                      default='',
+                      help='Filename to write new jobfile to.')
+
+progargs.add_argument('-l', '--job_ids',
+                      dest='job_ids',
+                      action='store',
+                      type=str,
+                      nargs="+",
+                      help='Either a list of ids \'1 3 5\' or a range \'1-5\' or a combination thereof')
+
+progargs.add_argument('-s', '--selector',
+                      dest='selector',
+                      action='store',
+                      type=str,
+                      help='A more flexible way to select jobs can be combined with ranges. Specify the xml tag you want inside the job via e.g. \'input/regions/region.id:0\'. The tag must exist and the value behind the colon supports \'?\' and \'*\' wildcards ')
+
+
+OPTIONS = progargs.parse_args()
+
+
+# =============================================================================
+# LXML
+# =============================================================================
+def RepresentsInt(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+
+def parseIds(parseroutput):
+
+    specific_ids = []
+    if parseroutput is not None:
+        if len(parseroutput) == 0:
+            parseroutput = [parseroutput]
+        print("Extracting jobs with ids:{}".format(" ".join(parseroutput)))
+        for element in parseroutput:
+            if "-" not in element:
+                if RepresentsInt(element):
+                    specific_ids.append(int(element))
+                else:
+                    okquit(
+                        "Cannot parse {}, either specify an integer or a range".format(element))
+
+            else:
+                parts = element.split("-")
+                if len(parts) != 2 or not RepresentsInt(parts[0]) or not RepresentsInt(parts[1]):
+                    okquit(
+                        "Cannot parse {}, range should be of the form x-y".format(element))
+
+                startrange = int(parts[0])
+                endrange = int(parts[1])+1
+                if endrange < startrange:
+                    okquit("Range {} should start with smaller element".format(parts))
+                specific_ids.extend(list(range(startrange, endrange)))
+
+    return sorted(set(specific_ids))
+
+
+def parseSelector(parseroutput):
+
+    if parseroutput is not None:
+        parts = parseroutput.split(":")
+        pattern = "".join(parts[1:])
+        path = parts[0]
+        print("Extracting jobs with tag:\'{}\' and valuepattern:\'{}\''".format(
+            path, pattern))
+        return[path, pattern]
+    else:
+        return []
+
+
+def check_id(job, specific_ids):
+    id = int(job.find("id").text)
+    if id in specific_ids:
+        specific_ids.remove(id)
+        return True
+    return False
+
+
+def check_selector(job, selector):
+    path = selector[0]
+    pattern = selector[1]
+    return fnmatch.fnmatch(job.find(path).text, pattern)
+
+
+specific_ids = parseIds(OPTIONS.job_ids)
+selector = parseSelector(OPTIONS.selector)
+
+
+selected_jobs = []
+do_id_check = len(specific_ids) > 0
+print("Reading in {}".format(OPTIONS.j_input.name))
+Tree = lxml.parse(OPTIONS.j_input.name)
+Root = Tree.getroot()
+for job in Root.iter('job'):
+
+    id_check = True
+    selector_check = True
+    if do_id_check:
+        id_check = check_id(job, specific_ids)
+    if selector:
+        selector_check = check_selector(job, selector)
+    if id_check and selector_check:
+        selected_jobs.append(job)
+
+if(selected_jobs):
+    print("Writing to {}".format(OPTIONS.j_output.name))
+    Newroot = lxml.Element("jobs")
+    for job in selected_jobs:
+        Newroot.append(job)
+    Newtree = lxml.ElementTree(Newroot)
+    Newtree.write(OPTIONS.j_output.name, pretty_print=True)
+else:
+    print("No jobs in the jobfile match the criteria.")
+
+sys.exit(0)

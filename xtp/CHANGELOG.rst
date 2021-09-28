@@ -52,6 +52,7 @@ Version 2022-dev
 -  increase performance of numerical integration (#733)
 -  upgrade xtp to cxx17 (#737)
 -  Remove unused variables (#742)
+-  added python script for jobfile manipulation (#535)
 
 Version 2021.3 (released XX.09.21)
 ==================================
