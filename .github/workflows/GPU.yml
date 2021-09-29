@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: [self-hosted, GPU, benchmark]
+    runs-on: [self-hosted, gpu, benchmark]
 
     steps:
       - name: cleanup
