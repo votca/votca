@@ -1,6 +1,6 @@
 |Codacy Badge| |CI| |Docker| |DOI|
 
-This is VOTCA, whhich provides the two following subpackages:
+This is VOTCA, which provides the two following subpackages:
 
 -  VOTCA-CSG, a library which provides tools to develop coarse-grained
    potentials from atomistic simulation data
