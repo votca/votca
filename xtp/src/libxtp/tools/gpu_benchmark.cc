@@ -42,7 +42,7 @@ void GPUBenchmark::ParseOptions(const tools::Property& options) {
 }
 
 std::pair<double, double> CalcStatistics(const std::vector<double>& v) {
-  double mean = std::reduce(v.begin(), v.end()) / v.size();
+  double mean = std::reduce(v.begin(), v.end()) / ((double)v.size());
   double sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
   double stdev = std::sqrt(sq_sum / ((double)v.size()) - mean * mean);
   return {mean, stdev};
