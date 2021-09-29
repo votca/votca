@@ -11,7 +11,7 @@
   <executable help="Path to executable for dftpackage" default="OPTIONAL" />
   <ecp help="Effective Core Potentials for DFT Calculations" default="OPTIONAL" />
   <optimize help="Perform a molecular geometry optimization" default="false" choices="bool" />
-  <functional help="Exchange correlation functional used. You can also specify an exchange and a correlation functional" default="XC_HYB_GGA_XC_PBEH" />
+  <functional help="Exchange correlation functional used. You can also specify an exchange and a correlation functional" default="XC_GGA_X_PBE XC_GGA_C_PBE" />
   <scratch help="path to the scratch folder" default="/tmp/qmpackage" />
   <polarization help="Calculate polarisation" default="false" choices="bool" />
   <dipole_spacing help="Spacing for splitting multipoles into charges" default="0.1" choices="float+" unit="bohr" />

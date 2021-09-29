@@ -360,6 +360,8 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   tools::EigenSystem MOs;
   MOs.eigenvalues() = orb.MOs().eigenvalues();
   MOs.eigenvectors() = orb.MOs().eigenvectors();
+  Eigen::MatrixXd Dmat =
+      orb.DensityMatrixGroundState();  // copy of full density matrix
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Passing localized orbitals as the initial guess"
       << std::endl;
@@ -368,15 +370,16 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   std::vector<Index> activeatoms =
       IndexParser().CreateIndexVector(active_atoms_as_string);
   ActiveDensityMatrix DMAT_A(orb, activeatoms);
-  std::array<Eigen::MatrixXd, 2> TotalDmat = DMAT_A.compute_Dmat_A();
+  std::array<Eigen::MatrixXd, 2> TotalDmat =
+      DMAT_A.compute_Dmat_A();  // totaldamt is a bad name
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Active density formation done" << std::endl;
-  Eigen::MatrixXd Dmat = orb.DensityMatrixGroundState();
+
   Eigen::MatrixXd Dmat_A = TotalDmat[0];
   Eigen::MatrixXd Dmat_B = Dmat - Dmat_A;
 
   // setup initial parameters after DFT
-  Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
+  Mat_p_Energy H0 = SetupH0(orb.QMAtoms());  // 1 e hamiltonian
   AOBasis aobasis = orb.SetupDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
@@ -392,7 +395,6 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   Mat_p_Energy e_vxc = vxcpotential.IntegrateVXC(Dmat);
   Mat_p_Energy e_vxc_A = vxcpotential.IntegrateVXC(Dmat_A);
   Mat_p_Energy e_vxc_B = vxcpotential.IntegrateVXC(Dmat_B);
-
   double DFTEnergy = Dmat.cwiseProduct(H0.matrix()).sum();
   double DFTEnergy_A = Dmat_A.cwiseProduct(H0.matrix()).sum();
   double DFTEnergy_B = Dmat_B.cwiseProduct(H0.matrix()).sum();
@@ -405,42 +407,41 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   double exx = 0;
   double exx_A = 0;
   double exx_B = 0;
-  if (ScaHFX_ > 0) {
-    std::array<Eigen::MatrixXd, 2> both =
-        CalcERIs_EXX(MOs.eigenvectors(), Dmat, 1e-12);
-    std::array<Eigen::MatrixXd, 2> both_A =
-        CalcERIs_EXX(MOs.eigenvectors(), TotalDmat[0], 1e-12);
-    std::array<Eigen::MatrixXd, 2> both_B =
-        CalcERIs_EXX(MOs.eigenvectors(), Dmat_B, 1e-12);
-    K = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
-    K_A = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
-    K_B = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
-    J = both[0];
-    K = 0.5 * ScaHFX_ * both[1];
-    DFTEnergy += 0.5 * Dmat.cwiseProduct(J).sum();
-    exx = 0.5 * Dmat.cwiseProduct(K).sum();
-    J_A = both_A[0];
-    K_A = 0.5 * ScaHFX_ * both_A[1];
-    DFTEnergy_A += 0.5 * TotalDmat[0].cwiseProduct(J_A).sum();
-    exx_A += 0.5 * TotalDmat[0].cwiseProduct(K_A).sum();
-    J_B = both_B[0];
-    K_B = 0.5 * ScaHFX_ * both_B[1];
-    DFTEnergy_B += 0.5 * Dmat_B.cwiseProduct(J_B).sum();
-    exx_B += 0.5 * TotalDmat[0].cwiseProduct(K_B).sum();
-  } else {
-    J = CalcERIs(Dmat, 1e-12);
-    J_A = CalcERIs(TotalDmat[0], 1e-12);
-    J_B = CalcERIs(Dmat_B, 1e-12);
-    DFTEnergy += 0.5 * Dmat.cwiseProduct(J).sum();
-    DFTEnergy_A += 0.5 * TotalDmat[0].cwiseProduct(J_A).sum();
-    DFTEnergy_B += 0.5 * Dmat_B.cwiseProduct(J_B).sum();
-  }
-
-  Eigen::MatrixXd H = H0.matrix() + J + K + e_vxc.matrix();
+  // if (ScaHFX_ > 0) {
+  //   std::array<Eigen::MatrixXd, 2> both =
+  //       CalcERIs_EXX(MOs.eigenvectors(), Dmat, 1e-12);
+  //   std::array<Eigen::MatrixXd, 2> both_A =
+  //       CalcERIs_EXX(MOs.eigenvectors(), TotalDmat[0], 1e-12);
+  //   std::array<Eigen::MatrixXd, 2> both_B =
+  //       CalcERIs_EXX(MOs.eigenvectors(), Dmat_B, 1e-12);
+  //   K = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
+  //   K_A = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
+  //   K_B = Eigen::MatrixXd::Zero(Dmat.rows(), Dmat.cols());
+  //   J = both[0];
+  //   K = 0.5 * ScaHFX_ * both[1];
+  //   DFTEnergy += 0.5 * Dmat.cwiseProduct(J).sum();
+  //   exx = 0.5 * Dmat.cwiseProduct(K).sum();
+  //   J_A = both_A[0];
+  //   K_A = 0.5 * ScaHFX_ * both_A[1];
+  //   DFTEnergy_A += 0.5 * TotalDmat[0].cwiseProduct(J_A).sum();
+  //   exx_A += 0.5 * TotalDmat[0].cwiseProduct(K_A).sum();
+  //   J_B = both_B[0];
+  //   K_B = 0.5 * ScaHFX_ * both_B[1];
+  //   DFTEnergy_B += 0.5 * Dmat_B.cwiseProduct(J_B).sum();
+  //   exx_B += 0.5 * TotalDmat[0].cwiseProduct(K_B).sum();
+  // } else {
+  J = CalcERIs(Dmat, 1e-12);
+  J_A = CalcERIs(TotalDmat[0], 1e-12);
+  J_B = CalcERIs(Dmat_B, 1e-12);
+  DFTEnergy += 0.5 * Dmat.cwiseProduct(J).sum();
+  DFTEnergy_A += 0.5 * TotalDmat[0].cwiseProduct(J_A).sum();
+  DFTEnergy_B += 0.5 * Dmat_B.cwiseProduct(J_B).sum();
+  //}
+  Eigen::MatrixXd H = H0.matrix() + J + e_vxc.matrix();
   DFTEnergy += exx + e_vxc.energy() + H0.energy();
   std::cout << "EDFT = " << DFTEnergy;
 
-  Eigen::MatrixXd H_A = H0.matrix() + J_A + K_A + e_vxc_A.matrix();
+  Eigen::MatrixXd H_A = H0.matrix() + J_A + e_vxc_A.matrix();
   Index mu = 1000;
   Eigen::MatrixXd Projection_matrix =
       mu * overlap.Matrix() * Dmat_B * overlap.Matrix();
@@ -467,26 +468,26 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
     Eigen::MatrixXd H_active = H0.matrix() + vemb + e_vxc_active.matrix();
     double exx_active = 0.0;
-    if (ScaHFX_ > 0) {
-      std::array<Eigen::MatrixXd, 2> both_active =
-          CalcERIs_EXX(MOs.eigenvectors(), Dmat_A, 1e-12);
-      H_active += both_active[0];
-      H_active += 0.5 * ScaHFX_ * both_active[1];
-      E_active += 0.5 * Dmat_A.cwiseProduct(both_active[0]).sum();
-      exx_active = 0.25 * ScaHFX_ * Dmat_A.cwiseProduct(both_active[1]).sum();
-      XTP_LOG(Log::info, *pLog_)
-          << TimeStamp() << " Filled F+K matrix " << std::flush;
-    } else {
-      Eigen::MatrixXd J_active = CalcERIs(Dmat_A, 1e-12);
-      XTP_LOG(Log::info, *pLog_)
-          << TimeStamp() << " Filled F matrix " << std::flush;
-      H_active += J_active;
-      E_active += 0.5 * Dmat_A.cwiseProduct(J_active).sum();
-    }
+    // if (ScaHFX_ > 0) {
+    //   std::array<Eigen::MatrixXd, 2> both_active =
+    //       CalcERIs_EXX(MOs.eigenvectors(), Dmat_A, 1e-12);
+    //   H_active += both_active[0];
+    //   H_active += 0.5 * ScaHFX_ * both_active[1];
+    //   E_active += 0.5 * Dmat_A.cwiseProduct(both_active[0]).sum();
+    //   exx_active = 0.25 * ScaHFX_ *
+    //   Dmat_A.cwiseProduct(both_active[1]).sum(); XTP_LOG(Log::info, *pLog_)
+    //       << TimeStamp() << " Filled F+K matrix " << std::flush;
+    // } else {
+    Eigen::MatrixXd J_active = CalcERIs(Dmat_A, 1e-12);
+    XTP_LOG(Log::info, *pLog_)
+        << TimeStamp() << " Filled F matrix " << std::flush;
+    H_active += J_active;
+    E_active += 0.5 * Dmat_A.cwiseProduct(J_active).sum();
+    //}
     E_active += exx_active;
     double TotalEnergy = E_active + exchangecorrection + DFTEnergy_B;
     Dmat_A = conv_accelerator_.Iterate(Dmat_A, H_active, MOs, TotalEnergy);
-    
+
     PrintMOs(orb.MOs().eigenvalues(), Log::info);
     if (conv_accelerator_.isConverged()) {
       XTP_LOG(Log::error, *pLog_)
@@ -501,6 +502,13 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       XTP_LOG(Log::error, *pLog_)
           << TimeStamp() << " E_active = " << std::setprecision(12) << E_active
           << " Ha" << std::flush;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " EXC correction = " << std::setprecision(12)
+          << exchangecorrection << " Ha" << std::flush;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Projection = " << std::setprecision(12)
+          << Dmat_A.cwiseProduct(Projection_matrix).sum() << " Ha"
+          << std::flush;
 
       PrintMOs(MOs.eigenvalues(), Log::error);
       orb.setQMEnergy(TotalEnergy);  // you are overwriting here
