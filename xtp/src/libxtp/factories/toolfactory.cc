@@ -27,6 +27,7 @@
 #include "tools/dftgwbse.h"
 #include "tools/excitoncoupling.h"
 #include "tools/gencube.h"
+#include "tools/gpu_benchmark.h"
 #include "tools/log2mps.h"
 #include "tools/mol2orb.h"
 #include "tools/molpol.h"
@@ -34,7 +35,6 @@
 #include "tools/orb2mol.h"
 #include "tools/partialcharges.h"
 #include "tools/spectrum.h"
-#include "tools/gpu_benchmark.h"
 
 namespace votca {
 namespace xtp {

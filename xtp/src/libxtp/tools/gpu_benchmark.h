@@ -38,8 +38,7 @@ class GPUBenchmark final : public QMTool {
   bool Run();
 
  private:
-
- Index repetitions_;
+  Index repetitions_;
 };
 
 }  // namespace xtp

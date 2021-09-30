@@ -109,12 +109,12 @@ bool GPUBenchmark::Run() {
 
   output.add("GPUs", std::to_string(OpenMP_CUDA::UsingGPUs()));
   output.add("MKL_overload", std::to_string(XTP_HAS_MKL_OVERLOAD()));
-  output.add("Basisset",basis.Name());
-  output.add("Basissetsize",std::to_string(basis.AOBasisSize()));
-  output.add("AuxBasisset",auxbasis.Name());
-  output.add("AuxBasissetsize",std::to_string(auxbasis.AOBasisSize()));
-  output.add("rpamin",std::to_string(orb.getRPAmin()));
-  output.add("rpamax",std::to_string(orb.getRPAmax()));
+  output.add("Basisset", basis.Name());
+  output.add("Basissetsize", std::to_string(basis.AOBasisSize()));
+  output.add("AuxBasisset", auxbasis.Name());
+  output.add("AuxBasissetsize", std::to_string(auxbasis.AOBasisSize()));
+  output.add("rpamin", std::to_string(orb.getRPAmin()));
+  output.add("rpamax", std::to_string(orb.getRPAmax()));
   output.add(RunPart(
       [&]() {
         Mmn.Fill(auxbasis, basis, orb.MOs().eigenvectors());
@@ -195,7 +195,7 @@ bool GPUBenchmark::Run() {
       },
       "HxOperator", repetitions_));
 
-  std::cout<<output<<std::endl;
+  std::cout << output << std::endl;
   frequency += result_op.sum();
   return true;
 }
