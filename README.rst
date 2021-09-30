@@ -1,7 +1,6 @@
 |Codacy Badge| |CI| |Docker| |DOI|
 
-This is VOTCA's next generation build system for CSG and XTP. It allows
-you to easily install:
+This is VOTCA, which provides the two following subpackages:
 
 -  VOTCA-CSG, a library which provides tools to develop coarse-grained
    potentials from atomistic simulation data
@@ -14,7 +13,7 @@ Usage:
 
     prefix=WHERE/TO/INSTALL/VOTCA
     version=master # or 'stable' or 'v2021.2'
-    git clone -b ${version} --recursive https://github.com/votca/votca.git
+    git clone -b ${version} https://github.com/votca/votca.git
     cmake -B builddir -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} votca
     cmake --build builddir --parallel <number of cores>
     cmake --build builddir --target install
