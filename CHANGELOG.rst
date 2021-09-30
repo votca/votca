@@ -110,6 +110,7 @@ Version 2022-dev
 -  add vscode to gitignore (#853)
 -  re-enable GPU build (#854)
 -  disable test_random test on valgrind (#855)
+-  introduce global changelog (#858)
 
 Version 2021.2 and earlier
 ==========================
