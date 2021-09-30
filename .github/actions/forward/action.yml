@@ -1,9 +1,0 @@
-name: 'Forward'
-description: 'Forward commit to votca/votca'
-inputs:
-  module:
-    description: 'VOTCA module to update'
-    required: true
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
