@@ -112,6 +112,7 @@ Version 2022-dev
 -  disable test_random test on valgrind (#855)
 -  introduce global changelog (#858)
 -  clean up github actions and merge votca/actions (#859)
+-  fix warning on intel compiler (#861)
 
 Version 2021.2 and earlier
 ==========================
