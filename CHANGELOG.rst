@@ -111,6 +111,7 @@ Version 2022-dev
 -  re-enable GPU build (#854)
 -  disable test_random test on valgrind (#855)
 -  introduce global changelog (#858)
+-  clean up github actions and merge votca/actions (#859)
 
 Version 2021.2 and earlier
 ==========================
