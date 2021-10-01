@@ -79,33 +79,33 @@ BOOST_AUTO_TEST_CASE(writereadcycle_statefile) {
 }
 
 BOOST_AUTO_TEST_CASE(energy_calc_NaCl) {
-  Index cry_l = 16;
-  Index N = cry_l * cry_l * cry_l;
-  double l = (double)cry_l / 2.0;
-  std::vector<PolarSegment> backgroundSegments;
-  for (Index i = 0; i < N; ++i) {
-    PolarSegment seg("seg", i);
-    // note element type doesn't matter for the calculation
-    Index ix = i % cry_l;
-    Index iy = (i % (cry_l * cry_l)) / cry_l;
-    Index iz = i / (cry_l * cry_l);
-    Eigen::Vector3d vec(((double)(ix)*0.5), ((double)(iy)*0.5),
-                        ((double)(iz)*0.5));
-    PolarSite site(0, "H", vec);
-    site.setCharge((((ix + iy + iz) % 2) ? 1.0 : -1.0));
-    seg.push_back(site);
-  }
-  EwaldOptions options;
-  options.alpha = 4;
-  options.r_cutoff = 1.9;
-  options.k_cutoff = 30;
-  options.shape = Shape::cube;
-  options.sharpness = 0.39;
-  Eigen::Matrix3d cellMatrix;
-  cellMatrix << l, 0, 0, 0, l, 0, 0, 0, l;
+  // Index cry_l = 16;
+  // Index N = cry_l * cry_l * cry_l;
+  // double l = (double)cry_l / 2.0;
+  // std::vector<PolarSegment> backgroundSegments;
+  // for (Index i = 0; i < N; ++i) {
+  //   PolarSegment seg("seg", i);
+  //   // note element type doesn't matter for the calculation
+  //   Index ix = i % cry_l;
+  //   Index iy = (i % (cry_l * cry_l)) / cry_l;
+  //   Index iz = i / (cry_l * cry_l);
+  //   Eigen::Vector3d vec(((double)(ix)*0.5), ((double)(iy)*0.5),
+  //                       ((double)(iz)*0.5));
+  //   PolarSite site(0, "H", vec);
+  //   site.setCharge((((ix + iy + iz) % 2) ? 1.0 : -1.0));
+  //   seg.push_back(site);
+  // }
+  // EwaldOptions options;
+  // options.alpha = 4;
+  // options.r_cutoff = 1.9;
+  // options.k_cutoff = 30;
+  // options.shape = Shape::cube;
+  // options.sharpness = 0.39;
+  // Eigen::Matrix3d cellMatrix;
+  // cellMatrix << l, 0, 0, 0, l, 0, 0, 0, l;
 
-  Logger log;
-  Background bg(log, cellMatrix, options, backgroundSegments);
+  // Logger log;
+  // Background bg(log, cellMatrix, options, backgroundSegments);
 
   //regions;
 
