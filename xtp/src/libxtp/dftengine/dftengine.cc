@@ -355,7 +355,7 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
 }
 
 bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
-  Prepare(orb.QMAtoms());
+
   // setup orbitals after DFT
   tools::EigenSystem MOs;
   MOs.eigenvalues() = orb.MOs().eigenvalues();
@@ -378,17 +378,24 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   Eigen::MatrixXd Dmat_A = TotalDmat[0];
   Eigen::MatrixXd Dmat_B = Dmat - Dmat_A;
 
-  // setup initial parameters after DFT
-  Mat_p_Energy H0 = SetupH0(orb.QMAtoms());  // 1 e hamiltonian
   AOBasis aobasis = orb.SetupDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
-
-  std::cout << "Total Electrons = " << Dmat.cwiseProduct(overlap.Matrix()).sum()
+  
+std::cout << "Total Electrons = " << Dmat.cwiseProduct(overlap.Matrix()).sum()
             << std::endl;
   std::cout << "Active electrons = "
             << Dmat_A.cwiseProduct(overlap.Matrix()).sum() << std::endl;
-  std::cout << "Inctive electrons = "
+
+  Index active_electrons =
+      static_cast<Index>(Dmat_A.cwiseProduct(overlap.Matrix()).sum());
+
+  Prepare(orb.QMAtoms(), active_electrons);
+// setup initial parameters after DFT
+  Mat_p_Energy H0 = SetupH0(orb.QMAtoms());  // 1 e hamiltonian
+
+  std::cout << "Inactive electrons = "
+
             << Dmat_B.cwiseProduct(overlap.Matrix()).sum() << std::endl;
 
   Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
@@ -486,9 +493,16 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
     //}
     E_active += exx_active;
     double TotalEnergy = E_active + exchangecorrection + DFTEnergy_B;
+    std::cout << "\n"
+              << "Active electrons in = "
+              << Dmat_A.cwiseProduct(overlap.Matrix()).sum() << std::endl;
     Dmat_A = conv_accelerator_.Iterate(Dmat_A, H_active, MOs, TotalEnergy);
+    std::cout << "\n"
+              << "Active electrons out= "
+              << Dmat_A.cwiseProduct(overlap.Matrix()).sum() << std::endl;
 
-    PrintMOs(orb.MOs().eigenvalues(), Log::info);
+    PrintMOs(MOs.eigenvalues(), Log::info);
+
     if (conv_accelerator_.isConverged()) {
       XTP_LOG(Log::error, *pLog_)
           << TimeStamp() << " Total embedding energy has converged to "
@@ -962,7 +976,7 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
   return;
 }
 
-void DFTEngine::Prepare(QMMolecule& mol) {
+void DFTEngine::Prepare(QMMolecule& mol, Index numofelectrons) {
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Using " << OPENMP::getMaxThreads() << " threads"
       << std::flush;
@@ -1023,18 +1037,22 @@ void DFTEngine::Prepare(QMMolecule& mol) {
     }
   }
 
-  for (const QMAtom& atom : mol) {
-    numofelectrons_ += atom.getNuccharge();
+  if (numofelectrons < 0) {
+    for (const QMAtom& atom : mol) {
+      numofelectrons_ += atom.getNuccharge();
+    }
+  } else {
+    numofelectrons_ = numofelectrons;
   }
 
-  // here number of electrons is actually the total number, everywhere else in
-  // votca it is just alpha_electrons
-  XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " Total number of electrons: " << numofelectrons_
-      << std::flush;
+// here number of electrons is actually the total number, everywhere else in
+// votca it is just alpha_electrons
+XTP_LOG(Log::error, *pLog_)
+    << TimeStamp() << " Total number of electrons: " << numofelectrons_
+    << std::flush;
 
-  SetupInvariantMatrices();
-  return;
+SetupInvariantMatrices();
+return;
 }
 
 Vxc_Potential<Vxc_Grid> DFTEngine::SetupVxc(const QMMolecule& mol) {
