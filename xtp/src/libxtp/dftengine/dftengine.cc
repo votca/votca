@@ -369,7 +369,6 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   MOs.eigenvectors().leftCols(orb.getNumberOfAlphaElectrons()) = LMOs;
   std::vector<Index> activeatoms =
       IndexParser().CreateIndexVector(active_atoms_as_string);
-
   ActiveDensityMatrix DMAT_A(orb, activeatoms);
   std::array<Eigen::MatrixXd, 2> TotalDmat =
       DMAT_A.compute_Dmat_A();  // totaldamt is a bad name
@@ -396,6 +395,7 @@ std::cout << "Total Electrons = " << Dmat.cwiseProduct(overlap.Matrix()).sum()
   Mat_p_Energy H0 = SetupH0(orb.QMAtoms());  // 1 e hamiltonian
 
   std::cout << "Inactive electrons = "
+
             << Dmat_B.cwiseProduct(overlap.Matrix()).sum() << std::endl;
 
   Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
@@ -493,7 +493,6 @@ std::cout << "Total Electrons = " << Dmat.cwiseProduct(overlap.Matrix()).sum()
     //}
     E_active += exx_active;
     double TotalEnergy = E_active + exchangecorrection + DFTEnergy_B;
-
     std::cout << "\n"
               << "Active electrons in = "
               << Dmat_A.cwiseProduct(overlap.Matrix()).sum() << std::endl;
@@ -503,6 +502,7 @@ std::cout << "Total Electrons = " << Dmat.cwiseProduct(overlap.Matrix()).sum()
               << Dmat_A.cwiseProduct(overlap.Matrix()).sum() << std::endl;
 
     PrintMOs(MOs.eigenvalues(), Log::info);
+
     if (conv_accelerator_.isConverged()) {
       XTP_LOG(Log::error, *pLog_)
           << TimeStamp() << " Total embedding energy has converged to "
