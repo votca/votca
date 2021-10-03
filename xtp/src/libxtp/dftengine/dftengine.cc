@@ -389,24 +389,23 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
   Index all_electrons = static_cast<Index>(
       FullDensityMatrix.cwiseProduct(overlap.Matrix()).sum());
-
-  Index active_electrons = static_cast<Index>(
-      InitialActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum());
+  double P = InitialActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum();
+  std::cout << P << std::endl;
+  Index active_electrons = static_cast<Index>(P);
 
   Index inactive_electrons = static_cast<Index>(
       InactiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum());
 
   XTP_LOG(Log::error, *pLog_) << std::flush;
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " Total    electrons: " << all_electrons << std::flush;
+      << TimeStamp() << " Total electrons: " << all_electrons << std::flush;
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " Active   electrons: " << active_electrons
-      << std::flush;
+      << TimeStamp() << " Active electrons: " << active_electrons << std::flush;
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Inactive electrons: " << inactive_electrons
       << std::flush;
 
-  // check for consistency
+  //check for consistency
   if ((active_electrons + inactive_electrons) != all_electrons) {
     XTP_LOG(Log::error, *pLog_) << TimeStamp()
                                 << " Sum of active and inactive electrons does "
@@ -429,25 +428,43 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
   // setup the Vxc integrator
   Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
-
+  std::cout << "1" << std::endl;
   // get the constant XC contributions for the embedding
   const Mat_p_Energy xc_full = vxcpotential.IntegrateVXC(FullDensityMatrix);
   const Mat_p_Energy xc_initial_active =
       vxcpotential.IntegrateVXC(InitialActiveDensityMatrix);
 
   // get the constant Coulomb matrices for the embedding
-  const Eigen::MatrixXd J_full = CalcERIs(FullDensityMatrix, 1e-12);
-  const Eigen::MatrixXd J_initial_active =
-      CalcERIs(InitialActiveDensityMatrix, 1e-12);
-
+  Eigen::MatrixXd J_full =
+      Eigen::MatrixXd::Zero(FullDensityMatrix.rows(), FullDensityMatrix.cols());
+  Eigen::MatrixXd J_initial_active =
+      Eigen::MatrixXd::Zero(FullDensityMatrix.rows(), FullDensityMatrix.cols());
+  Eigen::MatrixXd K_full =
+      Eigen::MatrixXd::Zero(FullDensityMatrix.rows(), FullDensityMatrix.cols());
+  Eigen::MatrixXd K_initial_active =
+      Eigen::MatrixXd::Zero(FullDensityMatrix.rows(), FullDensityMatrix.cols());
+  if (ScaHFX_ > 0) {
+    std::array<Eigen::MatrixXd, 2> JandK_full =
+        CalcERIs_EXX(MOs.eigenvectors(), FullDensityMatrix, 1e-12);
+    std::array<Eigen::MatrixXd, 2> JandK_initial_active =
+        CalcERIs_EXX(MOs.eigenvectors(), InitialActiveDensityMatrix, 1e-12);
+    J_full = JandK_full[0];
+    K_full = 0.5 * ScaHFX_ * JandK_full[1];
+    J_initial_active = JandK_initial_active[0];
+    K_initial_active = 0.5 * ScaHFX_ * JandK_initial_active[1];
+    } else {
+    J_full = CalcERIs(FullDensityMatrix, 1e-12);
+    J_initial_active = CalcERIs(InitialActiveDensityMatrix, 1e-12);
+  }
   // get the Hartree energies
   const double E_Hartree_full =
-      0.5 * FullDensityMatrix.cwiseProduct(J_full).sum();
+      0.5 * FullDensityMatrix.cwiseProduct(J_full + K_full).sum();
   const double E_Hartree_initial_active =
-      0.5 * InitialActiveDensityMatrix.cwiseProduct(J_initial_active).sum();
+      0.5 * InitialActiveDensityMatrix
+                .cwiseProduct(J_initial_active + K_initial_active)
+                .sum();
 
-  // Hamiltonian/ Energy of the full reference system
-  Eigen::MatrixXd H = H0.matrix() + J_full + xc_full.matrix();  // needed?
+  // Energy of the full reference system
   const double Total_E_full =
       E0_full + E_Hartree_full + xc_full.energy() + E_nuc;
 
@@ -462,8 +479,9 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       mu * overlap.Matrix() * InactiveDensityMatrix * overlap.Matrix();
 
   // XC and Hartree contribution to the external embedding potential/energy
-  const Eigen::MatrixXd v_embedding =
-      J_full + xc_full.matrix() - J_initial_active - xc_initial_active.matrix();
+  const Eigen::MatrixXd v_embedding = J_full + K_full + xc_full.matrix() -
+                                      J_initial_active - K_initial_active -
+                                      xc_initial_active.matrix();
 
   const double constant_embedding_energy = Total_E_full - E0_initial_active -
                                            E_Hartree_initial_active -
@@ -499,14 +517,26 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
     double E_xc_active = xc_active.energy();
 
     // get the Hartree contribution for the updated active density matrix
-    Eigen::MatrixXd J_active = CalcERIs(ActiveDensityMatrix, 1e-12);
+    Eigen::MatrixXd J_active = Eigen::MatrixXd::Zero(
+        ActiveDensityMatrix.rows(), ActiveDensityMatrix.cols());
+    Eigen::MatrixXd K_active = Eigen::MatrixXd::Zero(
+        ActiveDensityMatrix.rows(), ActiveDensityMatrix.cols());
+    if (ScaHFX_ > 0) {
+      std::array<Eigen::MatrixXd, 2> JandK_active =
+          CalcERIs_EXX(MOs.eigenvectors(), ActiveDensityMatrix, 1e-12);
+      J_active = JandK_active[0];
+      K_active = 0.5 * ScaHFX_ * JandK_active[1];
+
+    } else {
+      J_active = CalcERIs(ActiveDensityMatrix, 1e-12);
+    }
     double E_Hartree_active =
-        0.5 * ActiveDensityMatrix.cwiseProduct(J_active).sum();
+        0.5 * ActiveDensityMatrix.cwiseProduct(J_active + K_active).sum();
 
     // update the active Hamiltonian
     Eigen::MatrixXd H_active = H0.matrix() + v_embedding +
                                Level_Shift_Operator + xc_active.matrix() +
-                               J_active;
+                               J_active + K_active;
 
     const double E0_active =
         ActiveDensityMatrix.cwiseProduct(H0.matrix()).sum();
