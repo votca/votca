@@ -1,0 +1,28 @@
+<pseudopotential name="SBKJC_VDZ">
+
+	<element name="C" lmax="3" ncore="2">
+		<shell type="F"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+		<shell type="S">
+                    <constant power="0" decay="2.8149700" contraction="1.9292600"></constant>
+                    <constant power="2" decay="8.1129600" contraction="14.8819900"></constant>
+                </shell>
+		<shell type="P">
+                    <constant power="1" decay="8.5646800" contraction="-0.8937100"></constant>
+                </shell>
+		<shell type="D"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+	</element>
+
+        <element name="O" lmax="3" ncore="2">
+            <shell type="F"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+            <shell type="S">
+                 <constant power="0" decay="5.0534800" contraction="1.9606900"></constant>
+                 <constant power="2" decay="15.9533300" contraction="29.1344200"></constant>
+            </shell>
+            <shell type="P">
+                 <constant power="1" decay="16.1171800" contraction="-0.9255000"></constant>
+            </shell>
+            <shell type="D"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+       </element>
+
+</pseudopotential>
+

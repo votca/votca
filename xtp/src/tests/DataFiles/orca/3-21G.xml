@@ -1,0 +1,60 @@
+<basis name="3-21G">
+<element name="C">
+<shell scale="1.0" type="S">
+<constant decay="1.722560e+02">
+<contractions factor="6.176690e-02" type="S"/>
+</constant>
+<constant decay="2.591090e+01">
+<contractions factor="3.587940e-01" type="S"/>
+</constant>
+<constant decay="5.533350e+00">
+<contractions factor="7.007130e-01" type="S"/>
+</constant>
+</shell>
+<shell scale="1.0" type="SP">
+<constant decay="3.664980e+00">
+<contractions factor="-3.958970e-01" type="S"/>
+<contractions factor="2.364600e-01" type="P"/>
+</constant>
+<constant decay="7.705450e-01">
+<contractions factor="1.215840e+00" type="S"/>
+<contractions factor="8.606190e-01" type="P"/>
+</constant>
+</shell>
+<shell scale="1.0" type="SP">
+<constant decay="1.958570e-01">
+<contractions factor="1.000000e+00" type="S"/>
+<contractions factor="1.000000e+00" type="P"/>
+</constant>
+</shell>
+</element>
+<element name="O">
+<shell scale="1.0" type="S">
+<constant decay="3.220370e+02">
+<contractions factor="5.923940e-02" type="S"/>
+</constant>
+<constant decay="4.843080e+01">
+<contractions factor="3.515000e-01" type="S"/>
+</constant>
+<constant decay="1.042060e+01">
+<contractions factor="7.076580e-01" type="S"/>
+</constant>
+</shell>
+<shell scale="1.0" type="SP">
+<constant decay="7.402940e+00">
+<contractions factor="-4.044530e-01" type="S"/>
+<contractions factor="2.445860e-01" type="P"/>
+</constant>
+<constant decay="1.576200e+00">
+<contractions factor="1.221560e+00" type="S"/>
+<contractions factor="8.539550e-01" type="P"/>
+</constant>
+</shell>
+<shell scale="1.0" type="SP">
+<constant decay="3.736840e-01">
+<contractions factor="1.000000e+00" type="S"/>
+<contractions factor="1.000000e+00" type="P"/>
+</constant>
+</shell>
+</element>
+</basis>

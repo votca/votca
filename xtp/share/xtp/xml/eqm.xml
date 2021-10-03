@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<options>
+  <eqm help="Executes qm calculations for individual molecules" section="sec:eqm">
+    <tasks help="tasks to perform during calculation" default="input,dft,parse,gwbse,esp" choices="[input,dft,parse,gwbse,esp]"/>
+    <job_file help="name of jobfile to which jobs are written" default="eqm.jobs"/>
+    <map_file help="xml file with segment definition" default="votca_map.xml"/>
+    <gwbse link="gwbse.xml"/>
+    <dftpackage link="dftpackage.xml"/>
+    <esp_options link="esp2multipole.xml"/>
+  </eqm>
+</options>

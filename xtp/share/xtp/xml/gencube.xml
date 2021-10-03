@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<options>
+  <gencube help="Tool to generate cube files from .orb file" section="sec:gencube">
+    <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
+    <input help="orbfile to read from, otherwise use job_name" default="OPTIONAL"/>
+    <output help="Cubefile for visualisation" default="OPTIONAL"/>
+    <padding help="How far the grid should start from the molecule" unit="bohr" default="6.5" choices="float+"/>
+    <xsteps help="Gridpoints in x-direction" default="25" choices="int+"/>
+    <ysteps help="Gridpoints in y-direction" default="25" choices="int+"/>
+    <zsteps help="Gridpoints in z-direction" default="25" choices="int+"/>
+    <state help="State to generate cube file for" default="N"/>
+    <diff2gs help="For excited states output difference to groundstate" default="false" choices="bool"/>
+    <mode help="new: generate new cube file, substract: substract to cube files specified below" choices="new,substract" default="new"/>
+    <infile1 help="In mode substract mode cube file to substract from" default="OPTIONAL"/>
+    <infile2 help="In mode substract mode cube file to substract" default="OPTIONAL"/>
+  </gencube>
+</options>
