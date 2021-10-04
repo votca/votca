@@ -52,8 +52,8 @@ foreach(PROG
   if(VALGRIND_FOUND)
     # https://github.com/votca/tools/issues/268
     # tests seem to trigger a 'Address 0x0 is not stack'd, malloc'd or (recently) free'd' in valgrind
-    set(BROCKEN_MKL_TEST test_crosscorrelate test_cubicspline test_linalg test_linspline test_table)
-    if(MKL_FOUND AND PROG IN_LIST BROCKEN_MKL_TEST)
+    set(BROKEN_MKL_TEST test_crosscorrelate test_cubicspline test_linalg test_linspline test_random)
+    if(MKL_FOUND AND PROG IN_LIST BROKEN_MKL_TEST)
       continue()
     endif()
     add_test(NAME memory_${PROG} COMMAND "${VALGRIND_EXECUTABLE}" --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --error-exitcode=1 $<TARGET_FILE:unit_${PROG}>)
