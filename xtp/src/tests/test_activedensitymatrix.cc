@@ -57,8 +57,8 @@ BOOST_AUTO_TEST_CASE(activematrix_test) {
 
   ActiveDensityMatrix DMAT_A(orbitals_, activeatoms);
 
-  std::array<Eigen::MatrixXd, 2> Dmat = DMAT_A.compute_Dmat_A();
-  Eigen::MatrixXd DmatA = Dmat[0];
+  Eigen::MatrixXd Dmat = DMAT_A.compute_Dmat_A();
+  Eigen::MatrixXd DmatA = Dmat;
 
   Eigen::MatrixXd test_DmatA = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/activedensitymatrix/ch3oh.mm");

@@ -33,7 +33,7 @@ class PMDecomposition {
 
  private:
   Logger &log_;
-  Eigen::MatrixX2d rotateorbitals(Eigen::MatrixX2d &maxorbs, Index s, Index t);
+  Eigen::MatrixX2d rotateorbitals(const Eigen::MatrixX2d &maxorbs, Index s, Index t);
   Eigen::MatrixXd orbitalselections(Eigen::MatrixXd &m,
                                     const Eigen::MatrixXd &S);
   AOBasis aobasis;

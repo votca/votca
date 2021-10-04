@@ -27,91 +27,100 @@
 namespace votca {
 namespace xtp {
 void PMDecomposition::computePMD(Orbitals &orbitals) {
-  Eigen::MatrixXd occ_orbitals = orbitals.MOs().eigenvectors().leftCols(
+  Eigen::MatrixXd occupied_orbitals = orbitals.MOs().eigenvectors().leftCols(
       orbitals.getNumberOfAlphaElectrons());
   aobasis = orbitals.SetupDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
   double convergence_limit = std::numeric_limits<double>::max();
   Index iteration = 1;
-
-  while (convergence_limit > 1e-6 && iteration < 10000) {
+  while (convergence_limit > 1e-6 && iteration < 1000) {
     XTP_LOG(Log::error, log_) << "Iteration: " << iteration << std::flush;
-    Eigen::MatrixXd orbpair_functionalvalue =
-        orbitalselections(occ_orbitals, overlap.Matrix());
+    Eigen::MatrixXd orbital_pair_function_value =
+        orbitalselections(occupied_orbitals, overlap.Matrix());
     Index maxrow, maxcol;
-    convergence_limit = orbpair_functionalvalue.maxCoeff(&maxrow, &maxcol);
+    convergence_limit = orbital_pair_function_value.maxCoeff(&maxrow, &maxcol);
     XTP_LOG(Log::error, log_)
         << "Orbitals to be changed: " << maxrow << " " << maxcol << std::flush;
     XTP_LOG(Log::error, log_)
         << "change in the penalty function: " << convergence_limit
         << std::flush;
-    Eigen::MatrixX2d max_orbs(occ_orbitals.rows(), 2);
-    max_orbs << occ_orbitals.col(maxrow), occ_orbitals.col(maxcol);
-    Eigen::MatrixX2d new_orbs = rotateorbitals(max_orbs, maxrow, maxcol);
-    occ_orbitals.col(maxrow) = new_orbs.col(0);
-    occ_orbitals.col(maxcol) = new_orbs.col(1);
+    Eigen::MatrixX2d max_orbs(occupied_orbitals.rows(), 2);
+    max_orbs << occupied_orbitals.col(maxrow), occupied_orbitals.col(maxcol);
+    Eigen::MatrixX2d rotated_orbs = rotateorbitals(max_orbs, maxrow, maxcol);
+    occupied_orbitals.col(maxrow) = rotated_orbs.col(0);
+    occupied_orbitals.col(maxcol) = rotated_orbs.col(1);
     iteration++;
   }
-  orbitals.setPMLocalizedOrbital(occ_orbitals);
+  orbitals.setPMLocalizedOrbital(occupied_orbitals);
   orbitals.WriteToCpt("PML.orb");
 }
 
-// Function to rotate the 2 maximum orbitals
-Eigen::MatrixX2d PMDecomposition::rotateorbitals(Eigen::MatrixX2d &maxorbs,
-                                                 Index s, Index t) {
-  double gam =
+// Function to rotate the 2 maximum orbitals (s and t)
+Eigen::MatrixX2d PMDecomposition::rotateorbitals(
+    const Eigen::MatrixX2d &maxorbs, const Index s, const Index t) {
+  const double gamma =
       0.25 * asin(B(s, t) / sqrt((A(s, t) * A(s, t)) + (B(s, t) * B(s, t))));
-  Eigen::MatrixX2d neworbitals(maxorbs.rows(), 2);
-  neworbitals.col(0) =
-      (std::cos(gam) * maxorbs.col(0)) + (std::sin(gam) * maxorbs.col(1));
-  neworbitals.col(1) =
-      -1 * (std::sin(gam) * maxorbs.col(0)) + (std::cos(gam) * maxorbs.col(1));
+  Eigen::MatrixX2d rotatedorbitals(maxorbs.rows(), 2);
+  rotatedorbitals.col(0) =
+      (std::cos(gamma) * maxorbs.col(0)) + (std::sin(gamma) * maxorbs.col(1));
+  rotatedorbitals.col(1) = -1 * (std::sin(gamma) * maxorbs.col(0)) +
+                       (std::cos(gamma) * maxorbs.col(1));
   XTP_LOG(Log::error, log_)
-      << "Sine of the rotation angle = " << std::sin(gam) << std::flush;
-  return neworbitals;
+      << "Sine of the rotation angle = " << std::sin(gamma) << std::flush;
+  return rotatedorbitals;
 }
 
-// Function to select n(n-1)/2 orbitals and process Ast and Bst
-Eigen::MatrixXd PMDecomposition::orbitalselections(Eigen::MatrixXd &m,
-                                                   const Eigen::MatrixXd &S) {
-  Eigen::MatrixXd orbital_pairs_functional =
-      Eigen::MatrixXd::Zero(m.cols(), m.cols());
-  A = Eigen::MatrixXd::Zero(m.cols(), m.cols());
-  B = Eigen::MatrixXd::Zero(m.cols(), m.cols());
-  for (Index s = 0; s < m.cols(); s++) {
-    for (Index t = s + 1; t < m.cols(); t++) {
-      Eigen::RowVectorXd sps =
-          (m.col(s).asDiagonal() * S * m.col(s).asDiagonal())
+// Function to select n(n-1)/2 orbitals and process Ast and Bst as described in paper
+Eigen::MatrixXd PMDecomposition::orbitalselections(
+    Eigen::MatrixXd &occupied_orbitals, const Eigen::MatrixXd &overlap) {
+  Eigen::MatrixXd MullikenPop_all_orbitals =
+      Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
+  A = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
+  B = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
+  for (Index s = 0; s < occupied_orbitals.cols(); s++) {
+    for (Index t = s + 1; t < occupied_orbitals.cols(); t++) {
+      Eigen::RowVectorXd MullikenPop_orb_S_per_basis =
+          (occupied_orbitals.col(s).asDiagonal() * overlap *
+           occupied_orbitals.col(s).asDiagonal())
               .colwise()
-              .sum();  // vec1.S.vec1
-      Eigen::MatrixXd spt_split =
-          m.col(s).asDiagonal() * S *
-          m.col(t).asDiagonal();  // terms of eq 31 referenced above
-      Eigen::RowVectorXd tpt =
-          (m.col(t).asDiagonal() * S * m.col(t).asDiagonal())
+              .sum(); 
+      Eigen::MatrixXd splitwiseMullikenPop_orb_SandT =
+          occupied_orbitals.col(s).asDiagonal() * overlap *
+          occupied_orbitals.col(t).asDiagonal(); 
+      Eigen::RowVectorXd MullikenPop_orb_T_per_basis =
+          (occupied_orbitals.col(t).asDiagonal() * overlap *
+           occupied_orbitals.col(t).asDiagonal())
               .colwise()
-              .sum();  // vec2.S.vec2
-      Eigen::RowVectorXd spt = 0.5 * (spt_split.colwise().sum() +
-                                      spt_split.rowwise().sum().transpose());
+              .sum();
+      Eigen::RowVectorXd MullikenPop_orb_SandT_per_basis = 0.5 * (splitwiseMullikenPop_orb_SandT.colwise().sum() +
+                                      splitwiseMullikenPop_orb_SandT.rowwise().sum().transpose());
       std::vector<Index> numfuncpatom = aobasis.getFuncPerAtom();
       Index start = 0;
       double Ast = 0;
       double Bst = 0;
       for (Index atom_id = 0; atom_id < Index(numfuncpatom.size()); atom_id++) {
-        double sps_x = sps.segment(start, numfuncpatom[atom_id]).sum();
-        double spt_x = spt.segment(start, numfuncpatom[atom_id]).sum();
-        double tpt_x = tpt.segment(start, numfuncpatom[atom_id]).sum();
-        Ast += spt_x * spt_x - 0.25 * ((sps_x - tpt_x) * (sps_x - tpt_x));
-        Bst += spt_x * (sps_x - tpt_x);
+        double MullikenPop_orb_S_per_atom =
+            MullikenPop_orb_S_per_basis.segment(start, numfuncpatom[atom_id])
+                .sum();
+        double MullikenPop_orb_SandT_per_atom = MullikenPop_orb_SandT_per_basis.segment(start, numfuncpatom[atom_id]).sum();
+        double MullikenPop_orb_T_per_atom =
+            MullikenPop_orb_T_per_basis.segment(start, numfuncpatom[atom_id])
+                .sum();
+        Ast +=
+            MullikenPop_orb_SandT_per_atom * MullikenPop_orb_SandT_per_atom -
+            0.25 * ((MullikenPop_orb_S_per_atom - MullikenPop_orb_T_per_atom) *
+                    (MullikenPop_orb_S_per_atom - MullikenPop_orb_T_per_atom));
+        Bst +=
+            MullikenPop_orb_SandT_per_atom * (MullikenPop_orb_S_per_atom - MullikenPop_orb_T_per_atom);
         start += numfuncpatom[atom_id];
       }
       A(s, t) = Ast;
       B(s, t) = Bst;
-      orbital_pairs_functional(s, t) = Ast + sqrt((Ast * Ast) + (Bst * Bst));
+      MullikenPop_all_orbitals(s, t) = Ast + sqrt((Ast * Ast) + (Bst * Bst));
     }
   }
-  return orbital_pairs_functional;
+  return MullikenPop_all_orbitals;
 }
 
 }  // namespace xtp
