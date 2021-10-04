@@ -153,15 +153,11 @@ class CheckpointReader {
   const std::string path_;
   void ReadScalar(const CptLoc& loc, std::string& var,
                   const std::string& name) const {
-    const H5::DataType* strType = InferDataType<std::string>::get();
 
     H5::Attribute attr = loc.openAttribute(name);
+    H5::StrType stype = attr.getStrType();
 
-    H5std_string readbuf("");
-
-    attr.read(*strType, readbuf);
-
-    var = readbuf;
+    attr.read(stype, var);
   }
 
   template <typename T>
