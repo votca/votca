@@ -16,6 +16,7 @@
 # limitations under the License.
 
 from collections import defaultdict
+import math
 import sys
 try:
     import numpy as np
@@ -372,3 +373,35 @@ def extrapolate_dU_left_constant(dU, dU_flag):
     # replace out of range dU values with constant first value
     dU_extrap = np.where(dU_flag == 'i', dU, first_dU)
     return dU_extrap
+
+
+def vectorize(A_mat):
+    """Return a column vecorized version of the last two dimensions of A_mat.
+
+    Only works when the two last dimensions are equal.
+    """
+    n_t, n_t2 = A_mat.shape[-2:]
+    assert n_t == n_t2
+    n_i = int(n_t**2)
+    A_vec = np.zeros((*A_mat.shape[:-2], n_i))
+    i = 0
+    for beta in range(n_t):
+        for alpha in range(n_t):
+            A_vec[..., i] = A_mat[..., alpha, beta]
+            i += 1
+    return A_vec
+
+
+def devectorize(A_vec):
+    """Return a matrix version of the last dimension of A_vec.
+
+    A_vec is assumed to be column vectorized.
+    Only works if the last dimension is a square number.
+    """
+    n_i = A_vec.shape[-1]
+    assert math.sqrt(n_i).is_integer()
+    n_t = int(math.sqrt(n_i))
+    A_mat = np.zeros((*A_vec.shape[:-1], n_t, n_t))
+    for i in range(n_i):
+        A_mat[..., i % n_t, i // n_t] = A_vec[..., i]
+    return A_mat
