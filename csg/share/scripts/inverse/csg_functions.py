@@ -18,6 +18,8 @@
 from collections import defaultdict
 import math
 import sys
+from functools import wraps
+import inspect
 try:
     import numpy as np
 except ImportError:
@@ -371,7 +373,9 @@ def extrapolate_dU_left_constant(dU, dU_flag):
     first_dU = dU[first_dU_index]
 
     # replace out of range dU values with constant first value
-    dU_extrap = np.where(dU_flag == 'i', dU, first_dU)
+    left_slice = slice(0, first_dU_index)
+    dU_extrap[left_slice] = np.where(dU_flag[left_slice] == 'i', dU[left_slice],
+                                     first_dU)
     return dU_extrap
 
 
@@ -405,3 +409,54 @@ def devectorize(A_vec):
     for i in range(n_i):
         A_mat[..., i % n_t, i // n_t] = A_vec[..., i]
     return A_mat
+
+
+def kron_2D(a, b):
+    """Calculates the Kronecker product of the last two dimensions of a and b.
+
+    One additional dimensions will be treated as a stack, similar to numpy.matmul."""
+    if a.ndim == b.ndim == 2:
+        return np.kron(a, b)
+    elif a.ndim == 3 and b.ndim == 2:
+        dim_0 = a.shape[0]
+        def a_slice(x): return x
+        def b_slice(x): return slice(None)
+    elif a.ndim == 2 and b.ndim == 3:
+        dim_0 = b.shape[0]
+        def a_slice(x): return slice(None)
+        def b_slice(x): return x
+    elif a.ndim == 3 and b.ndim == 3:
+        assert a.shape[0] == b.shape[0]
+        dim_0 = a.shape[0]
+        def a_slice(x): return x
+        def b_slice(x): return x
+    else:
+        Exception("Can not handle that dimensionality")
+    K = np.zeros((dim_0, a.shape[-2] * b.shape[-2], a.shape[-1] * b.shape[-1]))
+    for i in range(dim_0):
+        K[i] = np.kron(a[a_slice(i)], b[b_slice(i)])
+    return K
+
+
+def if_verbose_dump_io(f):
+    """Decorates a function to dump its input and output if kwarg verbose is True."""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        fullargspec = inspect.getfullargspec(f)
+        dump = {}
+        # positional parameters
+        dump.update({fullargspec.args[i]: value for i, value in enumerate(args)})
+        # keyword parameters
+        dump.update({key: value for key, value in kwargs.items()})
+        # parameters not given, from default
+        dump.update({fullargspec.args[::-1][i]: value for i, value in enumerate(
+            fullargspec.defaults[::-1]) if fullargspec.args[::-1][i] not in dump})
+        return_value = f(*args, **kwargs)
+        # only dump if verbose is an argument and True
+        if 'verbose' in dump and dump['verbose'] is True:
+            # filename includes the calling function and current function name
+            filename = f"{inspect.stack()[1].function}-{f.__name__}.npz"
+            # dump input and return value of function
+            np.savez_compressed(filename, **{**dump, 'return_value': return_value})
+        return return_value
+    return wrapper

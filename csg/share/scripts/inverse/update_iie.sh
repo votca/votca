@@ -42,7 +42,14 @@ if [[ $iie_method == 'gauss-newton' ]]; then
         pressure_constraint_flag=""
     fi
 elif [[ $iie_method == 'newton' || $iie_method == 'newton-mod'  ]]; then
-    [[ $(csg_get_property cg.inverse.iie.cut_jacobian) == 'true' ]] && cut_jacobian_flag="--cut-jacobian" || cut_jacobian_flag=""
+    [[ $(csg_get_property cg.inverse.iie.cut_jacobian) == 'true' ]] && cut_jacobian_flag="--cut-jacobian"
+fi
+# target jacobian
+if [[ $(csg_get_property cg.inverse.iie.tgt_jacobian) == 'true' ]]; then
+    tgt_jacobian_flag="--tgt-jacobian"
+    g_intra_flag="--g-tgt-intra-ext .dist-intra.tgt"
+else
+    g_intra_flag="--g-cur-intra-ext .dist-intra.new"
 fi
 
 # topology for molecular conections and volume
@@ -66,23 +73,24 @@ for_all "non-bonded" do_external rdf "$sim_prog" --only-intra-nb
 
 # resample target distributions
 for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
+for_all "non-bonded" do_external resample target --no-extrap '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
 
 # Some arguments (cut_off, kBT) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
-# Others (closure, g_min, ...) could also be read from the settings file, but this bash script handles the defaults.
+# Others (closure, ...) could also be read from the settings file, but this bash script handles the defaults.
 do_external update iie_pot "$iie_method" \
     "$verbose_flag" \
     --closure "$(csg_get_property cg.inverse.iie.closure)" \
-    --g-min "$(csg_get_property cg.inverse.iie.g_min)" \
     --volume "$volume" \
     --topol "$topol" \
     --options "$CSGXMLFILE" \
     --g-tgt-ext ".dist.tgt" \
     --g-cur-ext ".dist.new" \
-    --g-cur-intra-ext ".dist-intra.new" \
+    ${g_intra_flag} \
     --out-ext ".dpot.new" \
     --g-extrap-factor "$g_extrap_factor" \
     ${pressure_constraint_flag-} \
     ${cut_jacobian_flag-} \
+    ${tgt_jacobian_flag-} \
     ${verbose_flag-}
 
 # TODO: check do_potential -> only apply dpot if it is

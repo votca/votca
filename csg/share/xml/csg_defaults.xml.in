@@ -399,7 +399,7 @@
         <DESC>Ornstein-Zernike equation closure for the iie update: hnc/py</DESC>
       </closure>
       <cut_off>
-        <DESC>Cut-off used for non-bonded potenitals. Potential will be set to zero beyond this point.</DESC>
+        <DESC>Cut-off used for non-bonded potenitals. Potential (update) will be set to zero beyond this point.</DESC>
       </cut_off>
       <g_extrap_factor>1.0
         <DESC>Lenght factor by which RDF will be extrapolated</DESC>
@@ -414,6 +414,9 @@
       <cut_jacobian>true
         <DESC>Wether to cut the Jacobian before multiplying with Δg. Only for Newton methods</DESC>
       </cut_jacobian>
+      <tgt_jacobian>false
+        <DESC>Obtain the Jacobian from the target distributions instead of from the current distributions. Usually in Newton's method, the Jacobian is taken at the current value.</DESC>
+      </tgt_jacobian>
       <pressure_constraint>none
         <DESC>If not none, apply value as pressure constraint. Only for method=gauss-newton</DESC>
       </pressure_constraint>
