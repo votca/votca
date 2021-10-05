@@ -448,6 +448,8 @@ def newton_update(r, input_arrays, settings, verbose=False):
     for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
         jac_inv_mat_2D[n_r * i:n_r * (i+1),
                        n_r * j:n_r * (j+1)] = jac_inv_mat[:, :, i, j]
+    # either do this or cut each interaction. TODO: do the latter
+    jac_inv_mat_2D[jac_inv_mat_2D == -np.inf] = -1e40
     # invert and obtain jacobian as 2D matrix
     jac_mat_2D = np.linalg.inv(jac_inv_mat_2D)
     # Delta g for potential update
@@ -802,7 +804,7 @@ def calc_slices(r, cut_off, verbose=False):
     """
     ndx_co = find_after_cut_off_ndx(r, cut_off)
     cut = slice(0, ndx_co)
-    tail = slice(ndx_co, len(r)+1)
+    tail = slice(ndx_co, None)
     if verbose:
         print("ndx_co: {}, ({})".format(ndx_co, cut_off))
         print("min(r): {}".format(min(r)))
