@@ -45,6 +45,12 @@ class Orca final : public QMPackage {
 
   bool RunDFT() override;
 
+  bool RunActiveDFT() override {
+    throw std::runtime_error(
+        "DFT Embedding cannot be done with Orca.\n Switch qm package to "
+        "xtpdft");
+  }
+
   void CleanUp() override;
 
   bool CheckLogFile();

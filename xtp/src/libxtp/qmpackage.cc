@@ -57,6 +57,18 @@ bool QMPackage::Run() {
                               << elapsed_time.count() << " seconds." << flush;
   return error_value;
 }
+bool QMPackage::RunActiveRegion() {
+  std::chrono::time_point<std::chrono::system_clock> start =
+      std::chrono::system_clock::now();
+
+  bool error_value = RunActiveDFT();
+
+  std::chrono::duration<double> elapsed_time =
+      std::chrono::system_clock::now() - start;
+  XTP_LOG(Log::error, *pLog_) << TimeStamp() << " DFT in DFT embedding took "
+                              << elapsed_time.count() << " seconds." << flush;
+  return error_value;
+}
 
 void QMPackage::ReorderOutput(Orbitals& orbitals) const {
   if (!orbitals.hasQMAtoms()) {

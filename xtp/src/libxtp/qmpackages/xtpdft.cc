@@ -67,6 +67,18 @@ bool XTPDFT::RunDFT() {
   return success;
 }
 
+bool XTPDFT::RunActiveDFT() {
+  DFTEngine xtpdft;
+  xtpdft.Initialize(options_);
+  xtpdft.setLogger(pLog_);
+  bool success = xtpdft.Evaluate(orbitals_);
+  std::string file_name = run_dir_ + "/" + log_file_name_;
+  XTP_LOG(Log::error, *pLog_)
+      << "Writing embedding result to " << log_file_name_ << flush;
+  orbitals_.WriteToCpt(file_name);
+  return success;
+}
+
 void XTPDFT::CleanUp() {
   if (cleanup_.size() != 0) {
     XTP_LOG(Log::info, *pLog_) << "Removing " << cleanup_ << " files" << flush;

@@ -60,10 +60,22 @@ void GWBSEEngine::Initialize(tools::Property& options,
   if (tasks_string.find("gwbse") != std::string::npos) {
     do_gwbse_ = true;
   }
+  if (tasks_string.find("localize") != std::string::npos) {
+    do_localize_ = true;
+  }
+  if (tasks_string.find("dft_in_dft") != std::string::npos) {
+    do_dft_in_dft_ = true;
+  }
 
   // XML option file for GWBSE
   if (do_gwbse_) {
     gwbse_options_ = options.get(".gwbse");
+  }
+  if (do_localize_) {
+    localize_options_ = options.get(".localize");
+  }
+  if (do_localize_) {
+    dft_in_dft_options_ = options.get(".dft_in_dft");
   }
   // DFT log and MO file names
   MO_file_ = qmpackage_->getMOFile();
@@ -120,6 +132,12 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     bool run_success = qmpackage_->Run();
     if (!run_success) {
       throw std::runtime_error("\n DFT-run failed. Stopping!");
+    }
+  }
+  if (do_dft_in_dft_) {
+    bool run_success = qmpackage_->RunActiveRegion();
+    if (!run_success) {
+      throw std::runtime_error("\n DFT in DFT embedding failed. Stopping!");
     }
   }
 

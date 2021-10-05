@@ -50,6 +50,7 @@ class QMPackage {
   virtual bool WriteInputFile(const Orbitals& orbitals) = 0;
 
   bool Run();
+  bool RunActiveRegion();
   virtual bool ParseLogFile(Orbitals& orbitals) = 0;
 
   virtual bool ParseMOsFile(Orbitals& orbitals) = 0;
@@ -109,6 +110,7 @@ class QMPackage {
   };
 
   virtual bool RunDFT() = 0;
+  virtual bool RunActiveDFT() = 0;
   virtual void WriteChargeOption() = 0;
   std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
   void ReorderOutput(Orbitals& orbitals) const;

@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 <options>
   <decomp help="Allows you to compute localised orbitals using the Pipek-Mezey scheme">
- <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
-  <activeatoms help="Indices of atoms in active region" default=""/>
-  <active_DM help="If True then the active density matrix is computed. If False PM decomposition is calculated only" default="true" choices="bool"/>
+    <max_iterations help="Maximum number of iterations for PM Localization" default="1000"/>
   </decomp>
 </options>

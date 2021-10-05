@@ -48,6 +48,8 @@ class XTPDFT final : public QMPackage {
 
   bool RunDFT() final;
 
+  bool RunActiveDFT() final;
+
   void CleanUp() final;
 
   bool CheckLogFile();

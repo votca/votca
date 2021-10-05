@@ -68,6 +68,8 @@ class GWBSEEngine {
   bool do_dft_run_ = false;
   bool do_dft_parse_ = false;
   bool do_gwbse_ = false;
+  bool do_localize_ = false;
+  bool do_dft_in_dft_ = false;
 
   // DFT log and MO file names
   std::string MO_file_;      // file containing the MOs from qmpackage...
@@ -80,6 +82,8 @@ class GWBSEEngine {
 
   // Options for GWBSE module
   tools::Property gwbse_options_;
+  tools::Property localize_options_;
+  tools::Property dft_in_dft_options_;
   tools::Property summary_;
 
   void WriteLoggerToFile(Logger* pLog);

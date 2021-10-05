@@ -40,13 +40,13 @@ BOOST_AUTO_TEST_CASE(activematrix_test) {
   libint2::initialize();
   Orbitals orbitals_;
   orbitals_.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
-                                  "/activedensitymatrix/ch3oh.xyz");
+                                   "/activedensitymatrix/ch3oh.xyz");
   orbitals_.setBasisSetSize(86);
   orbitals_.setNumberOfOccupiedLevels(9);
   orbitals_.setNumberOfAlphaElectrons(9);
 
   orbitals_.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
-                           "/activedensitymatrix/def2-tzvp.xml");
+                            "/activedensitymatrix/def2-tzvp.xml");
   Eigen::MatrixXd LMOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/activedensitymatrix/LMOs.mm");
 
