@@ -30,8 +30,6 @@ prepare imc prepare_imc.sh
 prepare generic prepare_generic.sh
 prepare optimizer prepare_optimizer.sh
 prepare re prepare_re.sh
-prepare_single ibi prepare_generic_single.sh  # Is this used anywhere?
-prepare_single imc prepare_generic_single.sh  # Is this used anywhere?
 prepare_single generic prepare_generic_single.sh
 prepare_single optimizer prepare_optimizer_single.sh
 initstep ibi initialize_step_generic.sh
