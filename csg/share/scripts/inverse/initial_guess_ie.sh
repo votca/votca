@@ -38,7 +38,6 @@ main_dir=$(get_main_dir)
 sim_prog="$(csg_get_property cg.inverse.program)"
 nb_names=( $(for_all "non-bonded" csg_get_interaction_property name) )
 nb_names="${nb_names[@]}"
-g_min="$(csg_get_property cg.inverse.initial_guess.ie.g_min)"
 ie_closure="$(csg_get_property cg.inverse.initial_guess.ie.closure)"
 
 # resample all target distributions
@@ -57,11 +56,10 @@ volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
 
 msg "Using initial guess for non-bonded interactions using integral equations"
 # Some arguments (cut_off, kBT) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
-# Others (closure, g_min, ...) could also be read from the settings file, but this bash script handles the defaults.
+# Others (closure, ...) could also be read from the settings file, but this bash script handles the defaults.
 do_external dist invert_iie potential_guess \
     "$verbose_flag" \
     --closure "$ie_closure" \
-    --g-min "$g_min" \
     --volume "$volume" \
     --topol "$topol" \
     --options "$CSGXMLFILE" \

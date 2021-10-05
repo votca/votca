@@ -256,7 +256,7 @@ def process_input(args):
     n_intra = gen_beadtype_property_array(n_intra_dict, non_bonded_dict)
     # settings
     # copy some directly from args
-    settings_to_copy = ('closure', 'verbose', 'out_ext', 'g_min', 'g_extrap_factor',
+    settings_to_copy = ('closure', 'verbose', 'out_ext', 'g_extrap_factor',
                         'subcommand', 'tgt_jacobian', 'cut_jacobian')
     settings = {key: vars(args)[key] for key in settings_to_copy if key in vars(args)}
     settings['non-bonded-dict'] = non_bonded_dict
