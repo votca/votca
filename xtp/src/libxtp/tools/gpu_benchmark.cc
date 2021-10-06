@@ -37,7 +37,7 @@ namespace votca {
 namespace xtp {
 
 void GPUBenchmark::ParseOptions(const tools::Property& options) {
-
+  outputfile_ = options.get("outputfile").as<std::string>();
   repetitions_ = options.get("repetitions").as<Index>();
 }
 
@@ -199,8 +199,10 @@ bool GPUBenchmark::Run() {
         return 1;
       },
       "HxOperator", repetitions_));
-
-  std::cout << output << std::endl;
+  std::ofstream outputfile;
+  outputfile.open(outputfile_);
+  outputfile << output << std::endl;
+  outputfile.close();
   frequency += result_op.sum();
   return true;
 }

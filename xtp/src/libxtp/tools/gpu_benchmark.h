@@ -39,6 +39,7 @@ class GPUBenchmark final : public QMTool {
 
  private:
   Index repetitions_;
+  std::string outputfile_;
 };
 
 }  // namespace xtp

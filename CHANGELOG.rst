@@ -97,7 +97,7 @@ Version 2022-dev
 -  overhaul complete option handling (votca/xtp#704)
 -  Fixed exciton options checking (votca/xtp#726)
 -  added basis gpu runner and test to suite (votca/xtp#725)
--  turned sigma choice into a factory (votca/xtp#731)
+-  turned sigma choice into a factory (gvotca/xtp#731)
 -  use middleRows-Cols and refactor numerical integration (votca/xtp#732)
 -  increase performance of numerical integration (votca/xtp#733)
 -  upgrade xtp to cxx17 (votca/xtp#737)
