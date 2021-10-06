@@ -65,6 +65,11 @@ tools::Property RunPart(T&& payload, const std::string& name,
         std::chrono::duration_cast<std::chrono::duration<double> >(end - start)
             .count());
   }
+  // this is more to prevent optimisation of the whole loop if the payload is
+  // small
+  if (count != repetitions) {
+    std::cout << "sth went wrong with the count" << std::endl;
+  }
   auto [mean1, std1] = CalcStatistics(individual_timings);
   std::cout << "avg:" << mean1 << " std:" << std1 << std::endl;
   tools::Property output(name, "", "");
@@ -146,7 +151,7 @@ bool GPUBenchmark::Run() {
         return 1;
       },
       "RPA evaluation", repetitions_));
-
+  frequency += result.sum();
   Index hqp_size = orb.getBSEcmax() - orb.getBSEvmin() + 1;
   Eigen::MatrixXd Hqp_fake = Eigen::MatrixXd::Random(hqp_size, hqp_size);
   BSEOperator_Options opt;
