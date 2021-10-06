@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   opt.add("functional", "XC_HYB_GGA_XC_PBEH");
   opt.add("charge", "0");
   opt.add("spin", "0");
-  opt.add("basisset", "3-21G");
+  opt.add("basisset",std::string(XTP_TEST_DATA_FOLDER) + "/orca/3-21G_small.xml");
   opt.add("cleanup", "");
   opt.add("scratch", "");
   opt.add("temporary_file", "temp");
@@ -113,7 +113,8 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }
 
-  orb.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+  orb.QMAtoms() = ref;
+  orb.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
                       "/orca/3-21G_small.xml");
 
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
@@ -151,7 +152,7 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   std::array<votca::Index, 49> multiplier;
   multiplier.fill(1);
   OrbReorder ord(votcaOrder_old, multiplier);
-  AOBasis aobasis = orb.SetupDftBasis();
+  AOBasis aobasis = orb.getDftBasis();
   ord.reorderOrbitals(MOs_coeff_ref, aobasis);
   bool check_coeff = MOs_coeff_ref.isApprox(orb.MOs().eigenvectors(), 1e-5);
   BOOST_CHECK_EQUAL(check_coeff, true);
@@ -220,7 +221,7 @@ BOOST_AUTO_TEST_CASE(opt_test) {
   opt.add("functional", "XC_HYB_GGA_XC_PBEH");
   opt.add("charge", "0");
   opt.add("spin", "0");
-  opt.add("basisset", "3-21G");
+  opt.add("basisset",std::string(XTP_TEST_DATA_FOLDER) + "/orca/3-21G_small.xml");
   opt.add("cleanup", "");
   opt.add("scratch", "");
   opt.add("temporary_file", "temp");

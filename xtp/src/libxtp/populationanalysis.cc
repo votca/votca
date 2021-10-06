@@ -27,7 +27,7 @@ template <bool T>
 StaticSegment Populationanalysis<T>::CalcChargeperAtom(
     const Orbitals& orbitals, const QMState& state) const {
 
-  AOBasis basis = orbitals.SetupDftBasis();
+  AOBasis basis = orbitals.getDftBasis();
   Eigen::MatrixXd dmat = orbitals.DensityMatrixFull(state);
   AOOverlap overlap;
   overlap.Fill(basis);
@@ -52,7 +52,7 @@ void Populationanalysis<T>::CalcChargeperFragment(
     throw std::runtime_error(
         "CalcChargeperFragment: QmStateType must be an exciton");
   }
-  AOBasis basis = orbitals.SetupDftBasis();
+  AOBasis basis = orbitals.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(basis);
   Eigen::VectorXd nuccharges = CalcNucChargeperAtom(orbitals.QMAtoms());

@@ -504,7 +504,6 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
 bool Orca::ParseLogFile(Orbitals& orbitals) {
   bool found_success = false;
   orbitals.setQMpackage(getPackageName());
-  orbitals.setDFTbasisName(basisset_name_);
   if (options_.exists("ecp")) {
     orbitals.setECPName(options_.get("ecp").as<std::string>());
   }
@@ -638,6 +637,8 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     }
   }
 
+  orbitals.SetupDftBasis(basisset_name_);
+
   XTP_LOG(Log::info, *pLog_)
       << "Alpha electrons: " << number_of_electrons << flush;
   Index occupied_levels = number_of_electrons;
@@ -649,8 +650,6 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   /************************************************************/
 
   // copying information to the orbitals object
-
-  orbitals.setBasisSetSize(levels);
   orbitals.setNumberOfAlphaElectrons(number_of_electrons);
   orbitals.setNumberOfOccupiedLevels(occupied_levels);
 

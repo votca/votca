@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(gaussianwriter_test) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/gaussianwriter/methane.xyz");
-  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+  orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
                            "/gaussianwriter/def2-tzvp.xml");
 
   orbitals.MOs().eigenvalues() = votca::tools::EigenIO_MatrixMarket::ReadMatrix(

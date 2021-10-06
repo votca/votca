@@ -75,7 +75,6 @@ BOOST_AUTO_TEST_CASE(sortEnergies) {
 BOOST_AUTO_TEST_CASE(densmat_test) {
   libint2::initialize();
   Orbitals orb;
-  orb.setBasisSetSize(17);
   orb.setNumberOfOccupiedLevels(4);
   orb.setBSEindices(0, 9);
   orb.setNumberOfAlphaElectrons(5);
@@ -150,12 +149,10 @@ BOOST_AUTO_TEST_CASE(dipole_test) {
   BasisSet basis;
   basis.Load(
       std::string(std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/3-21G.xml"));
-  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+  orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
                            "/orbitals/3-21G.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
-
-  orbitals.setBasisSetSize(17);
   orbitals.setNumberOfOccupiedLevels(4);
   Eigen::MatrixXd& MOs = orbitals.MOs().eigenvectors();
   orbitals.MOs().eigenvalues() = Eigen::VectorXd::Ones(17);
@@ -205,11 +202,10 @@ BOOST_AUTO_TEST_CASE(osc_strength) {
   Orbitals orb;
   orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                              "/orbitals/molecule.xyz");
-  orb.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+  orb.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
                       "/orbitals/3-21G.xml");
 
   QMState s("s1");
-  orb.setBasisSetSize(17);
   orb.setNumberOfOccupiedLevels(4);
   orb.setBSEindices(0, 16);
   orb.setTDAApprox(true);

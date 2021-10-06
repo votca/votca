@@ -47,13 +47,11 @@ class Orbitals {
  public:
   Orbitals();
 
-  bool hasBasisSetSize() const { return (basis_set_size_ > 0) ? true : false; }
-
-  Index getBasisSetSize() const { return basis_set_size_; }
-
-  void setBasisSetSize(Index basis_set_size) {
-    basis_set_size_ = basis_set_size;
+  bool hasBasisSetSize() const {
+    return (dftbasis_.AOBasisSize() > 0) ? true : false;
   }
+
+  Index getBasisSetSize() const { return dftbasis_.AOBasisSize(); }
 
   Index getLumo() const { return occupied_levels_; }
 
@@ -150,14 +148,30 @@ class Orbitals {
 
   // access to DFT basis set name
 
-  bool hasDFTbasisName() const { return (!dftbasis_.empty()) ? true : false; }
+  bool hasDFTbasisName() const {
+    return (!dftbasisname_.empty()) ? true : false;
+  }
 
-  void setDFTbasisName(const std::string basis) { dftbasis_ = basis; }
+  const std::string &getDFTbasisName() const { return dftbasisname_; }
 
-  const std::string &getDFTbasisName() const { return dftbasis_; }
+  void SetupDftBasis(std::string basis_name);
+  void SetupAuxBasis() {
+    BasisSet bs;
+    bs.Load(this->getAuxbasisName());
+    auxbasis_.Fill(bs, this->QMAtoms());
+  }
 
-  AOBasis SetupDftBasis() const { return SetupBasis<true>(); }
-  AOBasis SetupAuxBasis() const { return SetupBasis<false>(); }
+  const AOBasis &getDftBasis() const {
+    if (dftbasis_.AOBasisSize() == 0) {
+      throw std::runtime_error(
+          "Requested the DFT basis, but no basis is present. Make sure "
+          "SetupDftBasis is called.");
+    } else {
+      return dftbasis_;
+    }
+  }
+
+  const AOBasis &getAuxBasis() const { return auxbasis_; }
 
   /*
    *  ======= GW-BSE related functions =======
@@ -165,11 +179,13 @@ class Orbitals {
 
   // access to auxiliary basis set name
 
-  bool hasAuxbasisName() const { return (!auxbasis_.empty()) ? true : false; }
+  bool hasAuxbasisName() const {
+    return (!auxbasisname_.empty()) ? true : false;
+  }
 
-  void setAuxbasisName(std::string basis) { auxbasis_ = basis; }
+  void setAuxbasisName(std::string basis) { auxbasisname_ = basis; }
 
-  const std::string &getAuxbasisName() const { return auxbasis_; }
+  const std::string &getAuxbasisName() const { return auxbasisname_; }
 
   // access to list of indices used in GWA
 
@@ -335,7 +351,9 @@ class Orbitals {
   void ReadFromCpt(const std::string &filename);
 
   void WriteToCpt(CheckpointWriter w) const;
+  void WriteBasisSetsToCpt(CheckpointWriter w) const;
   void ReadFromCpt(CheckpointReader r);
+  void ReadBasisSetsFromCpt(CheckpointReader r);
 
   bool GetFlagUseHqpOffdiag() const { return use_Hqp_offdiag_; };
   void SetFlagUseHqpOffdiag(bool flag) { use_Hqp_offdiag_ = flag; };
@@ -345,19 +363,6 @@ class Orbitals {
 
   // returns indeces of a re-sorted vector of energies from lowest to highest
   std::vector<Index> SortEnergies();
-
-  template <bool dftbasis>
-  AOBasis SetupBasis() const {
-    BasisSet bs;
-    if (dftbasis) {
-      bs.Load(this->getDFTbasisName());
-    } else {
-      bs.Load(this->getAuxbasisName());
-    }
-    AOBasis basis;
-    basis.Fill(bs, this->QMAtoms());
-    return basis;
-  }
 
   void WriteToCpt(CheckpointFile f) const;
 
@@ -380,6 +385,9 @@ class Orbitals {
 
   QMMolecule atoms_;
 
+  AOBasis dftbasis_;
+  AOBasis auxbasis_;
+
   double qm_energy_ = 0;
 
   // new variables for GW-BSE storage
@@ -398,8 +406,8 @@ class Orbitals {
 
   double ScaHFX_ = 0;
 
-  std::string dftbasis_ = "";
-  std::string auxbasis_ = "";
+  std::string dftbasisname_ = "";
+  std::string auxbasisname_ = "";
 
   std::string functionalname_ = "";
   std::string grid_quality_ = "";

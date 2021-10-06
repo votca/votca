@@ -48,11 +48,11 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
   osc_f->Initialize(prop.get("oscillatorstrength"));
 
   Orbitals A;
-  A.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
-                    "/oscillatorstrength_filter/3-21G.xml");
-  A.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+    A.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                            "/oscillatorstrength_filter/molecule.xyz");
-  A.setBasisSetSize(17);
+  A.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                    "/oscillatorstrength_filter/3-21G.xml");
+
   A.setNumberOfAlphaElectrons(5);
   A.setNumberOfOccupiedLevels(5);
   A.MOs().eigenvalues() = Eigen::VectorXd::Zero(17);

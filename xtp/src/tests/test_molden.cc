@@ -91,8 +91,7 @@ BOOST_AUTO_TEST_CASE(moldenwriter_test) {
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
           std::string(XTP_TEST_DATA_FOLDER) +
           "/molden/orbitals_eigenvalues.mm");
-  orbitals_ref.setBasisSetSize(orbitals_ref.MOs().eigenvalues().size());
-  orbitals_ref.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+  orbitals_ref.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
                                "/molden/def2-tzvp.xml");
   orbitals_ref.setAuxbasisName("aux-def2-tzvp");
 
