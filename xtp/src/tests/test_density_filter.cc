@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
   Orbitals A;
   A.QMAtoms().LoadFromFile("molecule.xyz");
   A.SetupDftBasis("3-21G.xml");
-  
+
   A.setNumberOfAlphaElectrons(5);
   A.setNumberOfOccupiedLevels(5);
   A.MOs().eigenvalues() = Eigen::VectorXd::Zero(17);

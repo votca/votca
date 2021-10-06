@@ -131,12 +131,11 @@ class Orbitals {
 
   QMMolecule &QMAtoms() { return atoms_; }
 
-  void updateAtomPostion(Index atom_index, Eigen::Vector3d new_position){
+  void updateAtomPostion(Index atom_index, Eigen::Vector3d new_position) {
     this->QMAtoms()[atom_index].setPos(new_position);
     dftbasis_.UpdateShellPositions(this->QMAtoms());
     auxbasis_.UpdateShellPositions(this->QMAtoms());
   }
-   
 
   void setXCFunctionalName(std::string functionalname) {
     functionalname_ = functionalname;

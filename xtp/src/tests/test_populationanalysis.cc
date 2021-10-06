@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(atompop) {
   orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                              "/populationanalysis/molecule.xyz");
   orb.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                      "/populationanalysis/3-21G.xml");
+                    "/populationanalysis/3-21G.xml");
   orb.setNumberOfOccupiedLevels(5);
 
   Eigen::MatrixXd& MOs = orb.MOs().eigenvectors();
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(fragment_pop) {
   orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                              "/populationanalysis/molecule.xyz");
   orb.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                      "/populationanalysis/3-21G.xml");
+                    "/populationanalysis/3-21G.xml");
   orb.setNumberOfOccupiedLevels(5);
   orb.MOs().eigenvalues() = Eigen::VectorXd::Ones(17);
 

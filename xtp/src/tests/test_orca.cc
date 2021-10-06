@@ -113,7 +113,6 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
     BOOST_CHECK_EQUAL(ref[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }
-                    
 
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
   orca->setMOsFileName("orca_ext_mos.gbw");
