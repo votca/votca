@@ -126,7 +126,7 @@ def parseIds(parseroutput):
                 endrange = int(parts[1])+1
                 if endrange < startrange:
                     okquit("Range {} should start with smaller element".format(parts))
-                specific_ids.extend(list(range(startrange, endrange)))
+                specific_ids.extend(range(startrange, endrange))
 
     return sorted(set(specific_ids))
 
@@ -153,8 +153,7 @@ def check_id(job, specific_ids):
 
 
 def check_selector(job, selector):
-    path = selector[0]
-    pattern = selector[1]
+    path, pattern = selector
     return fnmatch.fnmatch(job.find(path).text, pattern)
 
 
