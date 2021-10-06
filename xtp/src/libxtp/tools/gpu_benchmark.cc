@@ -154,19 +154,20 @@ bool GPUBenchmark::Run() {
   frequency += result.sum();
   Index hqp_size = orb.getBSEcmax() - orb.getBSEvmin() + 1;
   Eigen::MatrixXd Hqp_fake = Eigen::MatrixXd::Random(hqp_size, hqp_size);
+  Eigen::VectorXd epsilon_inv_fake=result.diagonal();
   BSEOperator_Options opt;
   opt.cmax = orb.getBSEcmax();
   opt.homo = orb.getHomo();
   opt.qpmin = orb.getGWAmin();
   opt.rpamin = orb.getRPAmin();
   opt.vmin = orb.getBSEvmin();
-  SingletOperator_TDA s_op(result, Mmn, Hqp_fake);
+  SingletOperator_TDA s_op(epsilon_inv_fake, Mmn, Hqp_fake);
   s_op.configure(opt);
-  TripletOperator_TDA t_op(result, Mmn, Hqp_fake);
+  TripletOperator_TDA t_op(epsilon_inv_fake, Mmn, Hqp_fake);
   t_op.configure(opt);
-  SingletOperator_BTDA_B sbtda_op(result, Mmn, Hqp_fake);
+  SingletOperator_BTDA_B sbtda_op(epsilon_inv_fake, Mmn, Hqp_fake);
   sbtda_op.configure(opt);
-  HxOperator hx_op(result, Mmn, Hqp_fake);
+  HxOperator hx_op(epsilon_inv_fake, Mmn, Hqp_fake);
   hx_op.configure(opt);
   Index spacesize = 100;  // A searchspace of 100 is pretty decent
   Eigen::MatrixXd state = Eigen::MatrixXd::Random(s_op.size(), spacesize);
