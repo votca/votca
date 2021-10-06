@@ -102,14 +102,14 @@ Eigen::Vector3d Forces::NumForceForward(Orbitals orbitals, Index atom_index) {
     displacement_vec[i_cart] = displacement_;
     // update the coordinate
     Eigen::Vector3d pos_displaced = current_pos + displacement_vec;
-    orbitals.QMAtoms()[atom_index].setPos(pos_displaced);
+    orbitals.updateAtomPostion(atom_index, pos_displaced);
     gwbse_engine_.ExcitationEnergies(orbitals);
     double energy_displaced =
         orbitals.getTotalStateEnergy(tracker_.CalcState(orbitals));
     force(i_cart) = (energy_center - energy_displaced) / displacement_;
-    orbitals.QMAtoms()[atom_index].setPos(
-        current_pos);  // restore original coordinate into segment
-  }                    // Cartesian directions
+    orbitals.updateAtomPostion(
+        atom_index, current_pos);  // restore original coordinate into segment
+  }                                // Cartesian directions
   return force;
 }
 
@@ -123,20 +123,19 @@ Eigen::Vector3d Forces::NumForceCentral(Orbitals orbitals, Index atom_index) {
     displacement_vec[i_cart] = displacement_;
     // update the coordinate
     Eigen::Vector3d pos_displaced = current_pos + displacement_vec;
-    orbitals.QMAtoms()[atom_index].setPos(pos_displaced);
+    orbitals.updateAtomPostion(atom_index, pos_displaced);
     gwbse_engine_.ExcitationEnergies(orbitals);
     double energy_displaced_plus =
         orbitals.getTotalStateEnergy(tracker_.CalcState(orbitals));
     // update the coordinate
     pos_displaced = current_pos - displacement_vec;
-    orbitals.QMAtoms()[atom_index].setPos(pos_displaced);
+    orbitals.updateAtomPostion(atom_index, pos_displaced);
     gwbse_engine_.ExcitationEnergies(orbitals);
     double energy_displaced_minus =
         orbitals.getTotalStateEnergy(tracker_.CalcState(orbitals));
     force(i_cart) =
         0.5 * (energy_displaced_minus - energy_displaced_plus) / displacement_;
-    orbitals.QMAtoms()[atom_index].setPos(
-        current_pos);  // restore original coordinate into orbital
+    orbitals.updateAtomPostion(atom_index, current_pos);  // restore original coordinate into orbital
   }
   return force;
 }
