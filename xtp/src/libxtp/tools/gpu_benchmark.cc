@@ -125,17 +125,17 @@ bool GPUBenchmark::Run() {
         Mmn.Fill(auxbasis, basis, orb.MOs().eigenvectors());
         return 1;
       },
-      "Filling Three Center", repetitions_));
+      "Filling_ThreeCenter", repetitions_));
 
   Eigen::MatrixXd op =
-      Eigen::MatrixXd::Identity(auxbasis.AOBasisSize(), auxbasis.AOBasisSize());
-  RunPart(
+      Eigen::MatrixXd::Random(auxbasis.AOBasisSize(), auxbasis.AOBasisSize());
+  output.add(RunPart(
       [&]() {
         Mmn.MultiplyRightWithAuxMatrix(op);
         return 1;
       },
-      "Multiplication of tensor with matrix", repetitions_);
-
+      "Multiplication_of_tensor_with_matrix", repetitions_));
+  Mmn.Rebuild();
   Logger log;
   RPA rpa(log, Mmn);
   rpa.configure(orb.getHomo(), orb.getRPAmin(), orb.getRPAmax());
@@ -150,7 +150,7 @@ bool GPUBenchmark::Run() {
         result += rpa.calculate_epsilon_r(-frequency);
         return 1;
       },
-      "RPA evaluation", repetitions_));
+      "RPA_evaluation", repetitions_));
   frequency += result.sum();
   Index hqp_size = orb.getBSEcmax() - orb.getBSEvmin() + 1;
   Eigen::MatrixXd Hqp_fake = Eigen::MatrixXd::Random(hqp_size, hqp_size);
