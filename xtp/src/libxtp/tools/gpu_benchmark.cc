@@ -139,8 +139,8 @@ bool GPUBenchmark::Run() {
   Logger log;
   RPA rpa(log, Mmn);
   rpa.configure(orb.getHomo(), orb.getRPAmin(), orb.getRPAmax());
-  rpa.setRPAInputEnergies(orb.MOs().eigenvalues().segment(
-      orb.getRPAmin(), orb.getRPAmax() - orb.getRPAmax() + 1));
+  Index rpatotal =orb.getRPAmax() - orb.getRPAmin() + 1;
+  rpa.setRPAInputEnergies(orb.MOs().eigenvalues().segment(orb.getRPAmin(), rpatotal));
   double frequency = 0.5;
   Eigen::MatrixXd result =
       Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), auxbasis.AOBasisSize());
