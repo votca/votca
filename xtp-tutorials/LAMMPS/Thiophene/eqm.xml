@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<options>
+  <eqm help="Executes qm calculations for individual molecules" section="sec:eqm">
+    <map_file>system.xml</map_file>
+    <gwbse>
+      <gw>
+        <mode>G0W0</mode>
+      </gw>
+      <ranges>full</ranges>
+    </gwbse>
+    <dftpackage>
+      <basisset>3-21G</basisset>
+      <auxbasisset>aux-def2-svp</auxbasisset>
+    </dftpackage>
+  </eqm>
+</options>
