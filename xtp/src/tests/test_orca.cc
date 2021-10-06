@@ -76,7 +76,8 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   opt.add("functional", "XC_HYB_GGA_XC_PBEH");
   opt.add("charge", "0");
   opt.add("spin", "0");
-  opt.add("basisset",std::string(XTP_TEST_DATA_FOLDER) + "/orca/3-21G_small.xml");
+  opt.add("basisset",
+          std::string(XTP_TEST_DATA_FOLDER) + "/orca/3-21G_small.xml");
   opt.add("cleanup", "");
   opt.add("scratch", "");
   opt.add("temporary_file", "temp");
@@ -112,15 +113,13 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
     BOOST_CHECK_EQUAL(ref[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }
-
-  orb.QMAtoms() = ref;
-  orb.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                      "/orca/3-21G_small.xml");
+                    
 
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
   orca->setMOsFileName("orca_ext_mos.gbw");
 
   orca->ParseMOsFile(orb);
+
   Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(17);
   MOs_energy_ref << -10.1441, -0.712523, -0.405481, -0.403251, -0.392086,
       0.157504, 0.196706, 0.202667, 0.240538, 0.718397, 0.727724, 0.728746,
@@ -221,7 +220,8 @@ BOOST_AUTO_TEST_CASE(opt_test) {
   opt.add("functional", "XC_HYB_GGA_XC_PBEH");
   opt.add("charge", "0");
   opt.add("spin", "0");
-  opt.add("basisset",std::string(XTP_TEST_DATA_FOLDER) + "/orca/3-21G_small.xml");
+  opt.add("basisset",
+          std::string(XTP_TEST_DATA_FOLDER) + "/orca/3-21G_small.xml");
   opt.add("cleanup", "");
   opt.add("scratch", "");
   opt.add("temporary_file", "temp");

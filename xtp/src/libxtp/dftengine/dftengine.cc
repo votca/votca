@@ -746,7 +746,7 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
     orb.setECPName(ecp_name_);
   }
   if (!auxbasis_name_.empty()) {
-    orb.setAuxbasisName(auxbasis_name_);
+    orb.SetupAuxBasis(auxbasis_name_);
   }
 
   if (initial_guess_ == "orbfile") {

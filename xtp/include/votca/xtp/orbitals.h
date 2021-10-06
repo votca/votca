@@ -155,11 +155,8 @@ class Orbitals {
   const std::string &getDFTbasisName() const { return dftbasisname_; }
 
   void SetupDftBasis(std::string basis_name);
-  void SetupAuxBasis() {
-    BasisSet bs;
-    bs.Load(this->getAuxbasisName());
-    auxbasis_.Fill(bs, this->QMAtoms());
-  }
+
+  void SetupAuxBasis(std::string aux_basis_name);
 
   const AOBasis &getDftBasis() const {
     if (dftbasis_.AOBasisSize() == 0) {
@@ -171,7 +168,15 @@ class Orbitals {
     }
   }
 
-  const AOBasis &getAuxBasis() const { return auxbasis_; }
+  const AOBasis &getAuxBasis() const {
+    if (auxbasis_.AOBasisSize() == 0) {
+      throw std::runtime_error(
+          "Requested the DFT basis, but no basis is present. Make sure "
+          "SetupDftBasis is called.");
+    } else {
+      return auxbasis_;
+    }
+  }
 
   /*
    *  ======= GW-BSE related functions =======

@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(moldenreader_test) {
   Molden molden(log);
   molden.setBasissetInfo(
       std::string(XTP_TEST_DATA_FOLDER) + "/molden/def2-tzvp.xml",
-      "aux-def2-tzvp");
+      std::string(XTP_TEST_DATA_FOLDER) + "/molden/aux-def2-tzvp.xml");
   Orbitals orbitals;
   molden.parseMoldenFile(
       std::string(XTP_TEST_DATA_FOLDER) + "/molden/benzene.molden.input",
@@ -92,8 +92,9 @@ BOOST_AUTO_TEST_CASE(moldenwriter_test) {
           std::string(XTP_TEST_DATA_FOLDER) +
           "/molden/orbitals_eigenvalues.mm");
   orbitals_ref.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                               "/molden/def2-tzvp.xml");
-  orbitals_ref.setAuxbasisName("aux-def2-tzvp");
+                             "/molden/def2-tzvp.xml");
+  orbitals_ref.SetupAuxBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                             "/molden/aux-def2-tzvp.xml");
 
   // write orbitals object to molden file
   Logger log;
@@ -103,7 +104,7 @@ BOOST_AUTO_TEST_CASE(moldenwriter_test) {
   // read in written molden file
   molden.setBasissetInfo(
       std::string(XTP_TEST_DATA_FOLDER) + "/molden/def2-tzvp.xml",
-      "aux-def2-tzvp");
+      std::string(XTP_TEST_DATA_FOLDER) + "/molden/aux-def2-tzvp.xml");
   Orbitals orbitals;
   molden.parseMoldenFile("moldenFile.molden", orbitals);
 
@@ -111,13 +112,16 @@ BOOST_AUTO_TEST_CASE(moldenwriter_test) {
       std::string(XTP_TEST_DATA_FOLDER) + "/molden/orbitalsMOs_ref.mm");
 
   // Check if MO's are equal
-  BOOST_CHECK(coeffs_ref.isApprox(orbitals.MOs().eigenvectors(), 1e-5));
+  bool mos_equal = coeffs_ref.isApprox(orbitals.MOs().eigenvectors(), 1e-5);
+  BOOST_CHECK(mos_equal);
 
-  std::cout << "ref" << std::endl;
-  std::cout << coeffs_ref << std::endl;
+  if (!mos_equal) {
+    std::cout << "ref" << std::endl;
+    std::cout << coeffs_ref << std::endl;
 
-  std::cout << "results" << std::endl;
-  std::cout << orbitals.MOs().eigenvectors() << std::endl;
+    std::cout << "results" << std::endl;
+    std::cout << orbitals.MOs().eigenvectors() << std::endl;
+  }
 
   // Check if atoms are equal
   BOOST_CHECK(orbitals.QMAtoms().size() == orbitals_ref.QMAtoms().size());

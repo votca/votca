@@ -85,8 +85,18 @@ void Orbitals::SetupDftBasis(std::string basis_name) {
   }
   dftbasisname_ = basis_name;
   BasisSet bs;
-  bs.Load(this->getDFTbasisName());
+  bs.Load(dftbasisname_);
   dftbasis_.Fill(bs, this->QMAtoms());
+}
+
+void Orbitals::SetupAuxBasis(std::string aux_basis_name) {
+  if (this->QMAtoms().size() == 0) {
+    throw std::runtime_error("Can't setup basisset without atoms");
+  }
+  auxbasisname_ = aux_basis_name;
+  BasisSet bs;
+  bs.Load(auxbasisname_);
+  auxbasis_.Fill(bs, this->QMAtoms());
 }
 
 /*
@@ -556,7 +566,11 @@ void Orbitals::WriteToCpt(CheckpointFile f) const {
 }
 
 void Orbitals::WriteBasisSetsToCpt(CheckpointWriter w) const {
-  dftbasis_.WriteToCpt(w);
+  CheckpointWriter dftWriter = w.openChild("dft");
+  dftbasis_.WriteToCpt(dftWriter);
+  CheckpointWriter auxWriter = w.openChild("aux");
+  auxbasis_.WriteToCpt(auxWriter);
+
 }
 
 void Orbitals::WriteToCpt(CheckpointWriter w) const {
@@ -619,7 +633,10 @@ void Orbitals::ReadFromCpt(CheckpointFile f) {
 }
 
 void Orbitals::ReadBasisSetsFromCpt(CheckpointReader r) {
-  dftbasis_.ReadFromCpt(r);
+  CheckpointReader dftReader = r.openChild("dft");
+  dftbasis_.ReadFromCpt(dftReader);
+  CheckpointReader auxReader = r.openChild("aux");
+  auxbasis_.ReadFromCpt(auxReader);
 }
 
 void Orbitals::ReadFromCpt(CheckpointReader r) {
