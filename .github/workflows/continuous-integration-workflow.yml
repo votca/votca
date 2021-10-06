@@ -128,7 +128,7 @@ jobs:
           submodules: true
       - name: Run Votca Setup
         id: setup #use this id below to use outputs
-        uses: votca/actions/setup@master
+        uses: ./.github/actions/setup
         with:
           distro: ${{ matrix.distro }}
           toolchain: ${{ matrix.toolchain }}

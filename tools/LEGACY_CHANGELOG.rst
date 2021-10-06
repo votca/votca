@@ -1,32 +1,10 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/tools/commits/stable>`__.
 
-Version 2022-dev
-================
+Version 2022 and later
+======================
 
--  create script to convert help to rst (#312, #328)
--  add rst pages to doc (#330, #332)
--  remove tex and man output from app class (#329)
--  fix example rst section (#327, #339)
--  remove author and copyright from rst (#331)
--  fix rst warnings (#334, #346, #348)
--  export PYTHONPATH in VOTCARC (#340)
--  drop csh support in VOTCARC (#342)
--  add missing cmath include (#351)
--  removed eigenvalue algorithm, now done by eigen  (#352)
--  Added N-DimVector (#360)
--  properties can be removed and string conversion much improved (#365)
--  adapted tokenizer api (#367)
--  improve mkl linkage and threading backend selection (#371, #383)
--  removed tex option (#372)
--  made membervariable format consistent (#373)
--  added AddTree to property (#374)
--  added optionshandler (#375)
--  made bool conversion more restrictive (#366)
--  made factory more general (#377)
-
-Version 2021.3 (released XX.09.21)
-==================================
+-  see CHANGELOG.rst in root folder
 
 Version 2021.2 (released 19.09.21)
 ==================================
@@ -164,6 +142,11 @@ Version 1.5\_rc1 (released 28.12.18)
 -  added unit testing
 -  Eigen added as a dependency
 -  removed GSL dependency
+
+Version 1.2.3 - 1.4.1
+=====================
+
+-  see csg CHANGELOG
 
 Version 1.2.2
 =============
