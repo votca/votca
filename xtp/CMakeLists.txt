@@ -33,13 +33,11 @@ set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 ########################################################################
 # User input options                                                   #
 ########################################################################
-
-find_package(PkgConfig REQUIRED)
-set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect libxc and libint package")
-pkg_check_modules(LIBXC REQUIRED IMPORTED_TARGET libxc)
-if(NOT TARGET PkgConfig::LIBINT)
-  pkg_check_modules(LIBINT REQUIRED IMPORTED_TARGET libint2>=2.6)
-endif()
+list(APPEND CMAKE_MODULE_PATH "/usr/share/cmake/libint2")
+find_package(Libxc REQUIRED)
+set_package_properties(Libxc PROPERTIES TYPE REQUIRED PURPOSE "Evaluate exchange correlation functionals")
+find_package(Libint2 2.6.0 REQUIRED)
+set_package_properties(Libint2 PROPERTIES TYPE REQUIRED PURPOSE "Calculate electron integrals")
 find_package(ecpint REQUIRED)
 set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculate pseudo potentials")
 message(STATUS "Found libecpint: ${ecpint_DIR}")
