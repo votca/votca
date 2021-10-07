@@ -210,7 +210,7 @@ BOOST_AUTO_TEST_CASE(charges_test) {
 }
 
 BOOST_AUTO_TEST_CASE(opt_test) {
-
+libint2::initialize();
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> orca =
       QMPackageFactory::QMPackages().Create("orca");
@@ -257,6 +257,7 @@ BOOST_AUTO_TEST_CASE(opt_test) {
     BOOST_CHECK_EQUAL(ref[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }
+    libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
