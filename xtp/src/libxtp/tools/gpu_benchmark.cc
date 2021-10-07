@@ -139,8 +139,9 @@ bool GPUBenchmark::Run() {
   Logger log;
   RPA rpa(log, Mmn);
   rpa.configure(orb.getHomo(), orb.getRPAmin(), orb.getRPAmax());
-  Index rpatotal =orb.getRPAmax() - orb.getRPAmin() + 1;
-  rpa.setRPAInputEnergies(orb.MOs().eigenvalues().segment(orb.getRPAmin(), rpatotal));
+  Index rpatotal = orb.getRPAmax() - orb.getRPAmin() + 1;
+  rpa.setRPAInputEnergies(
+      orb.MOs().eigenvalues().segment(orb.getRPAmin(), rpatotal));
   double frequency = 0.5;
   Eigen::MatrixXd result =
       Eigen::MatrixXd::Zero(auxbasis.AOBasisSize(), auxbasis.AOBasisSize());
@@ -154,7 +155,7 @@ bool GPUBenchmark::Run() {
   frequency += result.sum();
   Index hqp_size = orb.getBSEcmax() - orb.getBSEvmin() + 1;
   Eigen::MatrixXd Hqp_fake = Eigen::MatrixXd::Random(hqp_size, hqp_size);
-  Eigen::VectorXd epsilon_inv_fake=result.diagonal();
+  Eigen::VectorXd epsilon_inv_fake = result.diagonal();
   BSEOperator_Options opt;
   opt.cmax = orb.getBSEcmax();
   opt.homo = orb.getHomo();
