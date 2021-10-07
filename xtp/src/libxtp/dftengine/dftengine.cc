@@ -805,7 +805,7 @@ void DFTEngine::Prepare(Orbitals& orb) {
 
     XTP_LOG(Log::error, *pLog_) << output << std::flush;
   }
-  
+
   std::cout << "Names not set" << std::endl;
   orb.SetupDftBasis(dftbasis_name_);
   std::cout << "Names not set 2" << std::endl;

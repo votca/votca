@@ -54,8 +54,8 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
   A.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                            "/localisation_filter/molecule.xyz");
   A.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                    "/localisation_filter/3-21G.xml");
-  
+                  "/localisation_filter/3-21G.xml");
+
   A.setNumberOfAlphaElectrons(5);
   A.setNumberOfOccupiedLevels(5);
   A.MOs().eigenvalues() = Eigen::VectorXd::Zero(17);

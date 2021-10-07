@@ -570,7 +570,6 @@ void Orbitals::WriteBasisSetsToCpt(CheckpointWriter w) const {
   dftbasis_.WriteToCpt(dftWriter);
   CheckpointWriter auxWriter = w.openChild("aux");
   auxbasis_.WriteToCpt(auxWriter);
-
 }
 
 void Orbitals::WriteToCpt(CheckpointWriter w) const {

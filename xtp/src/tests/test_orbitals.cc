@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(dipole_test) {
   basis.Load(
       std::string(std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/3-21G.xml"));
   orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                           "/orbitals/3-21G.xml");
+                         "/orbitals/3-21G.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
   orbitals.setNumberOfOccupiedLevels(4);
@@ -202,8 +202,7 @@ BOOST_AUTO_TEST_CASE(osc_strength) {
   Orbitals orb;
   orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                              "/orbitals/molecule.xyz");
-  orb.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                      "/orbitals/3-21G.xml");
+  orb.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/3-21G.xml");
 
   QMState s("s1");
   orb.setNumberOfOccupiedLevels(4);

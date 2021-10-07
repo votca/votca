@@ -36,8 +36,7 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
 
   A.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                            "/bsecoupling/molecule.xyz");
-  A.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                    "/bsecoupling/3-21G.xml");
+  A.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/bsecoupling/3-21G.xml");
   A.setNumberOfAlphaElectrons(5);
   A.setNumberOfOccupiedLevels(5);
   A.MOs().eigenvalues() = Eigen::VectorXd::Zero(17);

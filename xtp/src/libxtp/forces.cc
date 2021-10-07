@@ -135,7 +135,8 @@ Eigen::Vector3d Forces::NumForceCentral(Orbitals orbitals, Index atom_index) {
         orbitals.getTotalStateEnergy(tracker_.CalcState(orbitals));
     force(i_cart) =
         0.5 * (energy_displaced_minus - energy_displaced_plus) / displacement_;
-    orbitals.updateAtomPostion(atom_index, current_pos);  // restore original coordinate into orbital
+    orbitals.updateAtomPostion(
+        atom_index, current_pos);  // restore original coordinate into orbital
   }
   return force;
 }
