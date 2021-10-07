@@ -177,8 +177,8 @@ class Orbitals {
   const AOBasis &getAuxBasis() const {
     if (auxbasis_.AOBasisSize() == 0) {
       throw std::runtime_error(
-          "Requested the DFT basis, but no basis is present. Make sure "
-          "SetupDftBasis is called.");
+          "Requested the Aux basis, but no basis is present. Make sure "
+          "SetupAuxBasis is called.");
     } else {
       return auxbasis_;
     }
