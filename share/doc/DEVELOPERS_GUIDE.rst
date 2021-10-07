@@ -11,7 +11,6 @@ implementing code consistent with the VOTCA and cpp style and standard.
 -  `Testing <#testing>`__
 -  `CPP Coding Style Guide <#cpp-coding-style-guide>`__
 -  `CPP Comment Guide <#cpp-comment-guide>`__
--  `Updating Git Submodules <#updating-git-submodules>`__
 -  `Updates from stable <#updates-from-stable>`__
 -  `Failed Release Builds <#failed-release-builds>`__
 -  `
@@ -76,7 +75,7 @@ Making a Release
 Similar to the VOTCA containers, releases are also handled by GitHub actions. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
 To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
 :code:`stable` branch, but testing the creation of a release can be triggered on any branch. To make a release, trigger the action from the
-:code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for the :code:`stable` to :code:`master` branch, see `below <#updates-from-stable>`__).
+:code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag.
 
 Major releases
 ~~~~~~~~~~~~~~
