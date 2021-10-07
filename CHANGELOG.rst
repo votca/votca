@@ -113,6 +113,7 @@ Version 2022-dev
 -  introduce global changelog (#858)
 -  clean up github actions and merge votca/actions (#859)
 -  fix warning on intel compiler (#861)
+-  updated libint to 2.7 (#864)
 
 Version 2021.2 and earlier
 ==========================
