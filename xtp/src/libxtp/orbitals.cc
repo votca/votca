@@ -81,7 +81,7 @@ std::vector<Index> Orbitals::SortEnergies() {
  */
 void Orbitals::SetupDftBasis(std::string basis_name) {
   if (this->QMAtoms().size() == 0) {
-    throw std::runtime_error("Can't setup basisset without atoms");
+    throw std::runtime_error("Can't setup AOBasis without atoms");
   }
   dftbasisname_ = basis_name;
   BasisSet bs;
@@ -91,7 +91,7 @@ void Orbitals::SetupDftBasis(std::string basis_name) {
 
 void Orbitals::SetupAuxBasis(std::string aux_basis_name) {
   if (this->QMAtoms().size() == 0) {
-    throw std::runtime_error("Can't setup basisset without atoms");
+    throw std::runtime_error("Can't setup Aux AOBasis without atoms");
   }
   auxbasisname_ = aux_basis_name;
   BasisSet bs;
