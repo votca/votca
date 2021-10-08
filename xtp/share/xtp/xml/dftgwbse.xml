@@ -11,7 +11,7 @@
       <max_iterations help="Maximum number of iterations for PM Localization" default="1000"/>
     </localize>
     <dft_in_dft help="options for qminqm"> 
-      <activeatoms help="Indices of atoms in active region"  default="1,5"/>
+      <activeatoms help="Indices of atoms in active region"  default=""/>
       <orbital_contribution_threshold help="Mulliken population above which orbital is considered in the active region" default="0.4"/>
     </dft_in_dft>
     <logging_file help="File to send logging data to." default="OPTIONAL"/>
