@@ -114,6 +114,7 @@ Version 2022-dev
 -  clean up github actions and merge votca/actions (#859)
 -  fix warning on intel compiler (#861)
 -  added gpu benchmark for xtp (#857)
+-  Remove submodules from doc and actions (#865)
 
 Version 2021.2 and earlier
 ==========================
