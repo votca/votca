@@ -58,8 +58,6 @@ outputs:
     description: 'CTest args to use'
   jobs:
     description: 'Number of build jobs to use'
-  module:
-    description: 'Name of the votca module'
 runs:
   using: 'docker'
   image: 'Dockerfile'
