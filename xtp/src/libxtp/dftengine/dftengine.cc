@@ -113,8 +113,8 @@ void DFTEngine::Initialize(tools::Property& options) {
       options.get(key_xtpdft + ".convergence.DIIS_start").as<double>();
   conv_opt_.adiis_start =
       options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
-  if (options.exists(".activeatoms")) {
-    active_atoms_as_string = options.get("activeatoms").as<std::string>();
+  if (options.exists(key_xtpdft + "dft_in_dft.activeatoms")) {
+    active_atoms_as_string = options.get(key_xtpdft + "dft_in_dft.activeatoms").as<std::string>();
     std::cout << active_atoms_as_string << std::endl;
   }
 }
