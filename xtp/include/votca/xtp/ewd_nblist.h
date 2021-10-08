@@ -102,6 +102,27 @@ class EwdNbList {
     return nbList_[segId];
   }
 
+  typename std::vector<std::vector<Neighbour>>::iterator begin() { return nbList_.begin(); }
+  typename std::vector<std::vector<Neighbour>>::iterator end() { return nbList_.end(); }
+
+  typename std::vector<std::vector<Neighbour>>::const_iterator begin() const {
+    return nbList_.begin();
+  }
+  typename std::vector<std::vector<Neighbour>>::const_iterator end() const {
+    return nbList_.end();
+  }
+
+  friend std::ostream& operator<<(std::ostream& out, const EwdNbList& nbList) {
+    std::cout << std::endl;
+    for (const std::vector<Neighbour>& siteNeighbours : nbList) {
+      for (const Neighbour& nb : siteNeighbours) {
+        std::cout << nb.getId() << "(" << nb.getDr().norm() << ")  ";
+      }
+      std::cout << "\n" <<  std::endl;
+    }
+    return out;
+  }
+
  private:
   std::vector<std::vector<Neighbour>> nbList_;
   Index size_;

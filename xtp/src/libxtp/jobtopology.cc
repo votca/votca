@@ -129,10 +129,10 @@ void JobTopology::ModifyOptionsByJobFile(tools::Property& regions_def) const {
   }
 }
 
-double JobTopology::computeBackgroundInteractionEnergy(){
+double JobTopology::computeBackgroundInteractionEnergy(tools::Property& results){
   // Sanity check
   assert(bg_.size() > 0);
-  return bg_.interactionEnergy(regions_, region_seg_ids_);
+  return bg_.interactionEnergy(regions_, region_seg_ids_, results);
 }
 
 void JobTopology::BuildRegions(

@@ -44,7 +44,7 @@ class EwdSegment {
   }
 
   EwdSegment(CheckpointReader&r, Index id){
-    CptTable table = r.openTable<EwdSite>("backgroundsites_");
+    CptTable table = r.openTable<EwdSite>("background_sites");
     sites_.clear();
     sites_.reserve(table.numRows());
     std::vector<typename EwdSite::data> dataVec(table.numRows());
@@ -53,7 +53,7 @@ class EwdSegment {
       sites_.push_back(EwdSite(dataVec[i]));
     }
     id_ = id;
-    calcPos();
+    r(position_, "pos");
   };
 
   ~EwdSegment() = default;
@@ -104,7 +104,8 @@ class EwdSegment {
   Index size() const { return sites_.size();}
 
   void WriteToCpt(CheckpointWriter& w) {
-    CptTable table = w.openTable<EwdSite>("backgroundsites_", sites_.size());
+    w(position_, "pos");
+    CptTable table = w.openTable<EwdSite>("background_sites", sites_.size());
     std::vector<EwdSite::data> dataVec(sites_.size());
     for (std::size_t i = 0; i < sites_.size(); ++i) {
       sites_[i].WriteData(dataVec[i]);

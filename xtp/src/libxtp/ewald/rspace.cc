@@ -45,9 +45,9 @@ double RSpace::backgroundInteractionEnergy(std::vector<EwdSegment>& pCloudX,
     for (const Neighbour& nb : nbList_.getNeighboursOf(pSegment.getId())) {
       if (nb.getShift() == Eigen::Vector3d::Zero()) {
         bool neighbourInPCloud =
-            std::find_if(pCloud_indices.begin(), pCloud_indices.end(),
+            (std::find_if(pCloud_indices.begin(), pCloud_indices.end(),
                          [&nb](SegId x) { return x.Id() == nb.getId(); }) <
-            pCloud_indices.end();
+            pCloud_indices.end());
         if (neighbourInPCloud) {
           continue;  // we should not compute any ewald stuff for segments in
                      // the polarization cloud
@@ -233,8 +233,9 @@ void RSpace::setupNeighbourList() {
         }
       }
     }
-    nbList_.sortOnDistance(segId);
+    nbList_.sortOnDistance(segId);  
   }
+  std::cout << nbList_ << std::endl;
 }
 
 Eigen::Vector3d RSpace::staticFieldAtBy(EwdSite& site, const EwdSite& nbSite,
@@ -309,12 +310,6 @@ Eigen::Matrix3d RSpace::inducedDipoleInteractionAtBy(
 
 double RSpace::totalEnergyTwoSites(const EwdSite site, const EwdSite nbSite,
                                    const Eigen::Vector3d shift) {
-  if ((site.getPos() - (nbSite.getPos() + shift)).norm() == 0) {
-    std::cout << site.getPos().transpose() << std::endl;
-    std::cout << nbSite.getPos().transpose() << std::endl;
-    std::cout << shift.transpose() << std::endl;
-    throw std::runtime_error("distance is 0");
-  }
   computeDistanceVariables(site.getPos() - (nbSite.getPos() + shift));
   computeScreenedInteraction();
   computeTholeVariables(site.getPolarizationMatrix(),
@@ -323,8 +318,8 @@ double RSpace::totalEnergyTwoSites(const EwdSite site, const EwdSite nbSite,
   Eigen::Vector3d dr2 = dr.array() * dr.array();
   energy += site.getCharge() * rR1s * nbSite.getCharge();
   energy -= site.getCharge() * rR3s * dr.dot(nbSite.getTotalDipole());
-  energy += nbSite.getCharge() * rR3s * dr.dot(site.getTotalDipole());
-  energy -= site.getTotalDipole().transpose() * ((dr * dr.transpose()) * rR5s) *
+  energy -= nbSite.getCharge() * rR3s * dr.dot(site.getTotalDipole());
+  energy += site.getTotalDipole().transpose() * ((dr * dr.transpose()) * rR5s) *
             nbSite.getTotalDipole();
   energy += site.getTotalDipole().transpose() * (dr2.asDiagonal() * rR5s) *
             nbSite.getTotalDipole();

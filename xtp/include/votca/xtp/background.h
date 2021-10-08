@@ -57,7 +57,7 @@ class Background {
       const std::vector<std::vector<SegId>>& region_seg_ids);
 
   double interactionEnergy(std::vector<std::unique_ptr<Region>>& regions,
-                           std::vector<std::vector<SegId>>& region_seg_ids);
+                           std::vector<std::vector<SegId>>& region_seg_ids, tools::Property& results);
 
   void writeToStateFile(std::string state_file);
 

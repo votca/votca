@@ -46,14 +46,14 @@ Background::Background(Logger& log, const Eigen::Matrix3d& uc_matrix,
       site.updatePos(unit_cell_.placeCoordInBox(site.getPos()));
     }
     // Should be deleted when merged and after compare with ctp is done
-    seg.calcPos();
+    // seg.calcPos();
   }
   rspace.Initialize(options_, unit_cell_, ewald_background_);
   kspace.Initialize(options_, unit_cell_, ewald_background_);
 }
 
 void Background::Polarize() {
-  
+
   Timer timer;
 
   Index systemSize = computeSystemSize(ewald_background_);
@@ -287,32 +287,39 @@ void Background::bgFieldAtSegment(PolarSegment& seg,
 
 double Background::interactionEnergy(
     std::vector<std::unique_ptr<Region>>& regions,
-    std::vector<std::vector<SegId>>& region_seg_ids) {
-
+    std::vector<std::vector<SegId>>& region_seg_ids, tools::Property& results) {
+  double total = 0.0;
   // two cases:
   if (regions.size() == 1) {  // case 1: polar in ewald
+
     // Create the polarization cloud in "ewald representation"
-    PolarRegion* polarregion =
-        dynamic_cast<PolarRegion*>(regions[0].get());
+    PolarRegion* polarregion = dynamic_cast<PolarRegion*>(regions[0].get());
     std::vector<EwdSegment> pCloudX;
     for (const PolarSegment& pseg : *polarregion) {
       EwdSegment eseg(pseg);
       pCloudX.push_back(eseg);
     }
     // compute the interaction energy between the polar cloud and the total bg.
-    double energy = 0.0;
-    energy += rspace.backgroundInteractionEnergy(pCloudX, region_seg_ids[0]);
-    energy += kspace.backgroundInteractionEnergy();
-    energy += kspace.selfInteractionEnergy();
-    energy += kspace.aPeriodicCorrectionEnergy();
-    energy += kspace.shapeCorrectionEnergy();
-    return energy;
+    double rEnergy =
+        rspace.backgroundInteractionEnergy(pCloudX, region_seg_ids[0]);
+    double kEnergy = kspace.backgroundInteractionEnergy();
+    double siEnergy = kspace.selfInteractionEnergy();
+    double coEnergy = kspace.aPeriodicCorrectionEnergy();
+    double shapeEnergy = kspace.shapeCorrectionEnergy();
+    total = rEnergy + kEnergy + siEnergy + coEnergy + shapeEnergy;
+    results.add("rSpaceEnergy", std::to_string(rEnergy * tools::conv::hrt2ev));
+    results.add("kSpaceEnergy", std::to_string(kEnergy * tools::conv::hrt2ev));
+    results.add("selfInteraction", std::to_string(siEnergy * tools::conv::hrt2ev));
+    results.add("aPeriodicCorrection", std::to_string(coEnergy * tools::conv::hrt2ev));
+    results.add("shapeCorrection", std::to_string(shapeEnergy * tools::conv::hrt2ev));
+    results.add("totalEwaldEnergy", std::to_string(total * tools::conv::hrt2ev));
   } else if (regions.size() == 2) {  // case 2: qm in polar in ewald
     throw std::runtime_error("qm in polar in ewald is not yet implemented");
   } else {
     throw std::runtime_error(
         "Impossible region definitions with the ewald background");
   }
+  return total;
 }
 }  // namespace xtp
 }  // namespace votca
