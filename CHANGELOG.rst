@@ -111,7 +111,7 @@ Version 2022-dev
 -  re-enable GPU build (#854)
 -  disable test_random test on valgrind (#855)
 -  introduce global changelog (#858)
--  clean up github actions and merge votca/actions (#859)
+-  clean up github actions and merge votca/actions (#859, #867)
 -  fix warning on intel compiler (#861)
 -  added gpu benchmark for xtp (#857)
 -  Remove submodules from doc and actions (#865)
