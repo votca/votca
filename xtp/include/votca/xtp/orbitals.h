@@ -153,11 +153,12 @@ class Orbitals {
   void setQMEnergy(double qmenergy) { qm_energy_ = qmenergy; }
 
   // access to DFT basis set name
+
   bool hasDFTbasisName() const {
-    return (!dftbasis_.Name().empty()) ? true : false;
+    return (!dftbasisname_.empty()) ? true : false;
   }
 
-  const std::string &getDFTbasisName() const { return dftbasis_.Name(); }
+  const std::string &getDFTbasisName() const { return dftbasisname_; }
 
   void SetupDftBasis(std::string basis_name);
 
@@ -190,10 +191,12 @@ class Orbitals {
   // access to auxiliary basis set name
 
   bool hasAuxbasisName() const {
-    return (!auxbasis_.Name().empty()) ? true : false;
+    return (!auxbasisname_.empty()) ? true : false;
   }
 
-  const std::string &getAuxbasisName() const { return auxbasis_.Name(); }
+  void setAuxbasisName(std::string basis) { auxbasisname_ = basis; }
+
+  const std::string &getAuxbasisName() const { return auxbasisname_; }
 
   // access to list of indices used in GWA
 
@@ -413,6 +416,9 @@ class Orbitals {
   Index bse_ctotal_ = 0;
 
   double ScaHFX_ = 0;
+
+  std::string dftbasisname_ = "";
+  std::string auxbasisname_ = "";
 
   std::string functionalname_ = "";
   std::string grid_quality_ = "";
