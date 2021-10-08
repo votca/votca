@@ -22,12 +22,6 @@ for i in INPUT_DISTRO INPUT_CMAKE_BUILD_TYPE INPUT_TOOLCHAIN INPUT_COVERAGE INPU
   echo "$i='${!i}'"
 done
 
-# Grep module name from CMakeLists.txt and cut votca- suffix
-[[ -f CMakeLists.txt ]] || die "No CMakeLists.txt found"
-module=$(sed -n 's/project(\(votca-\)\?\([^ )]*\).*)/\2/p' CMakeLists.txt)
-[[ ${module} ]] || die "Could not fetch module"
-print_output "module" "${module}"
-
 if [[ ${INPUT_BRANCH} ]]; then # user overwrite
   branch="${INPUT_BRANCH}"
 elif [[ ${GITHUB_REF} = refs/pull/*/merge ]]; then # pull request
@@ -86,8 +80,6 @@ else
 fi
 if [[ ${INPUT_MINIMAL} = true ]]; then
   cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_MANPAGES=OFF -DBUILD_XTP=OFF )
-elif [[ ${module} = csg-tutorials ]]; then
-  cmake_args+=( -DBUILD_XTP=OFF )
 else
   cmake_args+=( -DBUILD_XTP=ON )
 fi
@@ -144,7 +136,7 @@ else
   print_output "check_format" "false"
 fi
 
-ctest_args=( -L ${module} )
+ctest_args=( )
 if [[ ${INPUT_COVERAGE} || ${INPUT_CODE_ANALYZER} = coverage* ]]; then
   # split coverage into 4 group with less than 1hr runtime
   # used votca/votca, csg, tools only
@@ -171,14 +163,3 @@ print_output "ctest_args" "${ctest_args[@]}"
 j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0
 ((j++))
 print_output "jobs" "${j}"
-
-# Checkout votca main repo if we are building a module
-if [[ ${module} != votca ]]; then
-  git clone https://github.com/votca/votca
-  if [[ ${branch} && ${branch} != master ]]; then
-    git -C votca checkout "${branch}" || true # || true as the branch might not exist
-  fi
-  git -C votca submodule update --init
-  git -C "votca/${module}" fetch "$PWD"
-  git -C "votca/${module}" checkout FETCH_HEAD
-fi
