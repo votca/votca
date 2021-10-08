@@ -70,8 +70,8 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
 
   AB.setNumberOfAlphaElectrons(10);
   AB.setNumberOfOccupiedLevels(10);
-  AB.SetupDftBasis(A.getDFTbasisName());
-  AB.SetupAuxBasis(A.getDFTbasisName());
+  AB.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/bsecoupling/3-21G.xml");
+  AB.SetupAuxBasis(std::string(XTP_TEST_DATA_FOLDER) + "/bsecoupling/3-21G.xml");
   AB.setRPAindices(0, 33);
   AB.setBSEindices(0, 33);
   AB.setGWindices(0, 33);
