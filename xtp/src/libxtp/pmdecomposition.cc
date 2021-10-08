@@ -53,7 +53,6 @@ void PMDecomposition::computePMD(Orbitals &orbitals) {
     iteration++;
   }
   orbitals.setPMLocalizedOrbital(occupied_orbitals);
-  orbitals.WriteToCpt("PML.orb");
 }
 
 // Function to rotate the 2 maximum orbitals (s and t)

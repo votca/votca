@@ -1,7 +1,43 @@
-
+<?xml version="1.0"?>
 <options>
 <qminqm help="options for qminqm"> 
-  <activeatoms help="Indices of atoms in active region"  default=""/>
+  <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
+  <activeatoms help="Indices of atoms in active region"  default="1,5"/>
+  <charge help="Molecular charge" default="0" choices="int" />
+  <spin help="Molecular multiplicity" default="1" choices="int+" />
+  <basisset help="Basis set for MOs" default="def2-svp" />
+  <auxbasisset help="Auxiliary basis set for RI" default="OPTIONAL" />
+  <externalfield help="Field given in x y z components" unit="Hartree/bohr" default="OPTIONAL" />
+  <executable help="Path to executable for dftpackage" default="OPTIONAL" />
+  <ecp help="Effective Core Potentials for DFT Calculations" default="OPTIONAL" />
+  <optimize help="Perform a molecular geometry optimization" default="false" choices="bool" />
+  <functional help="Exchange correlation functional used. You can also specify an exchange and a correlation functional" default="XC_HYB_GGA_XC_PBEH" />
+  <scratch help="path to the scratch folder" default="/tmp/qmpackage" />
+  <polarization help="Calculate polarisation" default="false" choices="bool" />
+  <dipole_spacing help="Spacing for splitting multipoles into charges" default="0.1" choices="float+" unit="bohr" />
+  <temporary_file help="Filename for temporary files without extension" default="temp"/>
+  <convergence_tightness help="How accurate the dft self-consistency has to be" default="tight" choices="low,normal,tight,verytight" />
+  <cleanup help="files to remove after the calculation. Specify the fileextensions" default="" />
+  <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities) or previous calculation keyword orbfile" default="atom" choices="independent,atom,orbfile" />
   <orbital_contribution_threshold help="Mulliken population above which orbital is considered in the active region" default="0.4"/>
+  <orca help="orca specific keywords can be added here, where the xml tag corresponds to the option and the value to the option's value" unchecked=""/>
+  <xtpdft help="xtpdft specific keywords can be added here" >
+    <screening_eps help="screening eps" default="1e-9" choices="float+" />
+    <fock_matrix_reset help="how often the fock matrix is reset" default="5" choices="int+" />
+    <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
+    <convergence>
+      <energy help="DeltaE at which calculation is converged" unit="hartree" choices="float+" default="1E-7" />
+      <method help="Main method to use for convergence accelertation" choices="DIIS,mixing" default="DIIS" />
+      <DIIS_start help="DIIS error at which DIIS takes over" default="0.002" choices="float+" />
+      <ADIIS_start help="DIIS error at which ADIIS takes over" default="0.8" choices="float+" />
+      <DIIS_length help="old hamiltonians to keep in history" default="20" choices="int+" />
+      <DIIS_maxout help="if true remove the maximum element in the history if DIIS_length is exceeded.Otherwise, the oldest element is removed." default="false" choices="bool" />
+      <levelshift help="levelshift to apply to hamiltonian " unit="hartree" default="0.0" choices="float+" />
+      <levelshift_end help="DIIS error at levelshifting is disabled" default="0.2" choices="float+" />
+      <max_iterations help="max iterations to use" default="100" choices="int+" />
+      <error help="convergence error" default="1e-7" choices="float+" />
+      <mixing help="mixing parameter for linear mixing of density matrices" default="0.7" choices="float+" />
+    </convergence>
+  </xtpdft>
 </qminqm>
 </options>

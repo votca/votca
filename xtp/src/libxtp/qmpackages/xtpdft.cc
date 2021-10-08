@@ -68,10 +68,11 @@ bool XTPDFT::RunDFT() {
 }
 
 bool XTPDFT::RunActiveDFT() {
+
   DFTEngine xtpdft;
   xtpdft.Initialize(options_);
   xtpdft.setLogger(pLog_);
-  bool success = xtpdft.Evaluate(orbitals_);
+  bool success = xtpdft.EvaluateActiveRegion(orbitals_);
   std::string file_name = run_dir_ + "/" + log_file_name_;
   XTP_LOG(Log::error, *pLog_)
       << "Writing embedding result to " << log_file_name_ << flush;

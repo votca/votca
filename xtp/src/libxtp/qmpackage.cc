@@ -57,6 +57,7 @@ bool QMPackage::Run() {
                               << elapsed_time.count() << " seconds." << flush;
   return error_value;
 }
+
 bool QMPackage::RunActiveRegion() {
   std::chrono::time_point<std::chrono::system_clock> start =
       std::chrono::system_clock::now();

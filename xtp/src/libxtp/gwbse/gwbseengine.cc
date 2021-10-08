@@ -27,6 +27,7 @@
 #include "votca/xtp/gwbseengine.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/qmpackage.h"
+#include "votca/xtp/pmdecomposition.h"
 
 using boost::format;
 using namespace boost::filesystem;
@@ -74,9 +75,9 @@ void GWBSEEngine::Initialize(tools::Property& options,
   if (do_localize_) {
     localize_options_ = options.get(".localize");
   }
-  if (do_localize_) {
+  if (do_dft_in_dft_) {
     dft_in_dft_options_ = options.get(".dft_in_dft");
-  }
+ }
   // DFT log and MO file names
   MO_file_ = qmpackage_->getMOFile();
   dftlog_file_ = qmpackage_->getLogFile();
@@ -134,12 +135,6 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
       throw std::runtime_error("\n DFT-run failed. Stopping!");
     }
   }
-  if (do_dft_in_dft_) {
-    bool run_success = qmpackage_->RunActiveRegion();
-    if (!run_success) {
-      throw std::runtime_error("\n DFT in DFT embedding failed. Stopping!");
-    }
-  }
 
   // parse DFT data, if required
   if (do_dft_parse_) {
@@ -159,6 +154,19 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
                                " failed. Stopping!");
     }
     qmpackage_->CleanUp();
+  }
+
+  if (do_localize_) {
+    PMDecomposition pmd(*logger);
+    pmd.computePMD(orbitals);
+  }
+
+  if (do_dft_in_dft_) {
+    qmpackage_->WriteInputFile(orbitals);
+    bool run_success = qmpackage_->RunActiveRegion();
+    if (!run_success) {
+      throw std::runtime_error("\n DFT in DFT embedding failed. Stopping!");
+    }
   }
 
   // if no parsing of DFT data is requested, reload serialized orbitals object

@@ -364,18 +364,28 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   // constructing the full electron density matrix
   const Eigen::MatrixXd FullDensityMatrix = orb.DensityMatrixGroundState();
 
+
+
   // reading the localized orbitals and update the occupied orbitals in MOs
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Passing localized orbitals as the initial guess"
       << std::endl;
   Eigen::MatrixXd LMOs = orb.getPMLocalizedOrbital();
+
   embeddingMOs.eigenvectors().leftCols(orb.getNumberOfAlphaElectrons()) = LMOs;
 
   // determine the active and inactive electron densities
   std::vector<Index> activeatoms =
       IndexParser().CreateIndexVector(active_atoms_as_string);
+
+    std::cout << activeatoms[0] << std::endl;
+
   ActiveDensityMatrix DMAT_A(orb, activeatoms);
   const Eigen::MatrixXd InitialActiveDensityMatrix = DMAT_A.compute_Dmat_A();
+
+        //    std::cout << InitialActiveDensityMatrix  << std::endl;
+
+
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Active density formation done" << std::endl;
 
@@ -386,6 +396,9 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   AOBasis aobasis = orb.SetupDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
+
+   // std::cout << overlap.Matrix() << std::endl;
+
 
   Index all_electrons = static_cast<Index>(std::round(
       FullDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));

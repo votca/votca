@@ -548,7 +548,7 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(number_alpha_electrons_, "number_alpha_electrons");
 
   w(mos_, "mos");
-  w(pm_localized_orbitals_, "locmos");
+  w(pm_localized_orbitals_, "PML_MOs");
 
   CheckpointWriter molgroup = w.openChild("qmmolecule");
   atoms_.WriteToCpt(molgroup);
@@ -612,7 +612,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(qm_energy_, "qm_energy");
   r(qm_package_, "qm_package");
   try {
-    r(pm_localized_orbitals_, "locmos");
+    r(pm_localized_orbitals_, "PML_MOs");
   } catch (std::runtime_error& e){
     ;
   }

@@ -40,8 +40,6 @@ void QMinQM::ParseOptions(const tools::Property& options) {
 
 bool QMinQM::Run() {
 
-  std::cout << "Setup works" << std::endl;
-
   log_.setReportLevel(Log::current_level);
 
   log_.setMultithreading(true);
@@ -54,7 +52,6 @@ bool QMinQM::Run() {
   xtpdft.Initialize(options_);
   xtpdft.setLogger(&log_);
   bool success = xtpdft.EvaluateActiveRegion(orbitals);
-  orbitals.WriteToCpt("qminqm");
   return success;
 }
 
