@@ -167,6 +167,16 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     if (!run_success) {
       throw std::runtime_error("\n DFT in DFT embedding failed. Stopping!");
     }
+    bool Logfile_parse = qmpackage_->ParseLogFile(orbitals);
+    if (!Logfile_parse) {
+      throw std::runtime_error("\n Parsing DFT logfile " + dftlog_file_ +
+                               " failed. Stopping!");
+    }
+    bool Orbfile_parse = qmpackage_->ParseMOsFile(orbitals);
+    if (!Orbfile_parse) {
+      throw std::runtime_error("\n Parsing DFT orbfile " + MO_file_ +
+                               " failed. Stopping!");
+    }
   }
 
   // if no parsing of DFT data is requested, reload serialized orbitals object
