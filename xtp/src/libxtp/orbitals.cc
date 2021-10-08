@@ -81,21 +81,19 @@ std::vector<Index> Orbitals::SortEnergies() {
  */
 void Orbitals::SetupDftBasis(std::string basis_name) {
   if (this->QMAtoms().size() == 0) {
-    throw std::runtime_error("Can't setup basisset without atoms");
+    throw std::runtime_error("Can't setup AOBasis without atoms");
   }
-  dftbasisname_ = basis_name;
   BasisSet bs;
-  bs.Load(dftbasisname_);
+  bs.Load(basis_name);
   dftbasis_.Fill(bs, this->QMAtoms());
 }
 
 void Orbitals::SetupAuxBasis(std::string aux_basis_name) {
   if (this->QMAtoms().size() == 0) {
-    throw std::runtime_error("Can't setup basisset without atoms");
+    throw std::runtime_error("Can't setup Aux AOBasis without atoms");
   }
-  auxbasisname_ = aux_basis_name;
   BasisSet bs;
-  bs.Load(auxbasisname_);
+  bs.Load(aux_basis_name);
   auxbasis_.Fill(bs, this->QMAtoms());
 }
 
@@ -587,9 +585,6 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(qm_energy_, "qm_energy");
   w(qm_package_, "qm_package");
 
-  w(dftbasisname_, "dftbasis");
-  w(auxbasisname_, "auxbasis");
-
   w(rpamin_, "rpamin");
   w(rpamax_, "rpamax");
   w(qpmin_, "qpmin");
@@ -650,9 +645,6 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
 
   r(qm_energy_, "qm_energy");
   r(qm_package_, "qm_package");
-
-  r(dftbasisname_, "dftbasis");
-  r(auxbasisname_, "auxbasis");
 
   r(version, "version");
   r(mos_, "mos");
