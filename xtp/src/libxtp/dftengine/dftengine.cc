@@ -113,8 +113,9 @@ void DFTEngine::Initialize(tools::Property& options) {
       options.get(key_xtpdft + ".convergence.DIIS_start").as<double>();
   conv_opt_.adiis_start =
       options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
-  if (options.exists(key_xtpdft + "dft_in_dft.activeatoms")) {
-    active_atoms_as_string = options.get(key_xtpdft + "dft_in_dft.activeatoms").as<std::string>();
+
+  if (options.exists(key_xtpdft + ".dft_in_dft.activeatoms")) {
+     active_atoms_as_string = options.get(key_xtpdft + ".dft_in_dft.activeatoms").as<std::string>();
     std::cout << active_atoms_as_string << std::endl;
   }
 }
@@ -378,8 +379,6 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   std::vector<Index> activeatoms =
       IndexParser().CreateIndexVector(active_atoms_as_string);
 
-    std::cout << activeatoms[0] << std::endl;
-
   ActiveDensityMatrix DMAT_A(orb, activeatoms);
   const Eigen::MatrixXd InitialActiveDensityMatrix = DMAT_A.compute_Dmat_A();
 
@@ -607,8 +606,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
           << TimeStamp() << " Final Single Point Energy of embedding "
           << std::setprecision(12) << TotalEnergy << " Ha" << std::flush;
       PrintMOs(embeddingMOs.eigenvalues(), Log::error);
-      orb.setQMEnergy(TotalEnergy);
-      orb.MOs() = embeddingMOs;
+      orb.setEmbeddedMOs(embeddingMOs);
       CalcElDipole(orb);
       break;
     } else if (this_iter == max_iter_ - 1) {

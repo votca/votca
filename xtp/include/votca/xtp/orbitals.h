@@ -55,6 +55,10 @@ class Orbitals {
     basis_set_size_ = basis_set_size;
   }
 
+  void setEmbeddedMOs(tools::EigenSystem system) { mos_embedding_ = system;}
+
+  const tools::EigenSystem& getEmbeddedMOs() { return mos_embedding_;}
+  
   Index getLumo() const { return occupied_levels_; }
 
   Index getHomo() const { return occupied_levels_ - 1; }
@@ -384,6 +388,8 @@ class Orbitals {
   bool useTDA_;
 
   tools::EigenSystem mos_;
+  tools::EigenSystem mos_embedding_;
+
 
   Eigen::MatrixXd pm_localized_orbitals_;
 

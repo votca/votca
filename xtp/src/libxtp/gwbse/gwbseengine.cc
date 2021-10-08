@@ -75,8 +75,8 @@ void GWBSEEngine::Initialize(tools::Property& options,
   if (do_localize_) {
     localize_options_ = options.get(".localize");
   }
-  if (do_dft_in_dft_) {
-    dft_in_dft_options_ = options.get(".dft_in_dft");
+  if (do_dft_in_dft_ && !do_localize_) {
+    throw std::runtime_error("Can't do DFT in DFT embedding without localization");
  }
   // DFT log and MO file names
   MO_file_ = qmpackage_->getMOFile();
