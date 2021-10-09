@@ -115,6 +115,7 @@ Version 2022-dev
 -  fix warning on intel compiler (#861)
 -  added gpu benchmark for xtp (#857)
 -  Remove submodules from doc and actions (#865)
+-  updated libint to 2.7 (#864)
 
 Version 2021.2 and earlier
 ==========================
