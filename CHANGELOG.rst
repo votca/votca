@@ -116,6 +116,7 @@ Version 2022-dev
 -  added gpu benchmark for xtp (#857)
 -  Remove submodules from doc and actions (#865)
 -  updated libint to 2.7 (#864)
+-  added xtp_modify_jobfile to extract jobs from large jobfile (#840)
 
 Version 2021.2 and earlier
 ==========================
