@@ -754,7 +754,7 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
     throw runtime_error(
         "Basisset names should be set before reading the molden file.");
   }
-  molden.setBasissetInfo(orbitals.getDFTbasisName());
+  molden.setBasissetInfo(basisset_name_);
 
   std::string file_name = run_dir_ + "/" +
                           mo_file_name_.substr(0, mo_file_name_.size() - 4) +
