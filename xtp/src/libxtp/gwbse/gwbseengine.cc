@@ -54,9 +54,6 @@ void GWBSEEngine::Initialize(tools::Property& options,
   if (tasks_string.find("dft") != std::string::npos) {
     do_dft_run_ = true;
   }
-  if (tasks_string.find("parse") != std::string::npos) {
-    do_dft_parse_ = true;
-  }
   if (tasks_string.find("gwbse") != std::string::npos) {
     do_gwbse_ = true;
   }
@@ -121,10 +118,7 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     if (!run_success) {
       throw std::runtime_error("\n DFT-run failed. Stopping!");
     }
-  }
 
-  // parse DFT data, if required
-  if (do_dft_parse_) {
     XTP_LOG(Log::error, *logger) << "Parsing DFT data from " << dftlog_file_
                                  << " and " << MO_file_ << flush;
     qmpackage_->setLogFileName(dftlog_file_);
@@ -143,14 +137,11 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     qmpackage_->CleanUp();
   }
 
-  // if no parsing of DFT data is requested, reload serialized orbitals object
-  if (!do_dft_parse_ && do_gwbse_) {
+  tools::Property& output_summary = summary_.add("output", "");
+  if (do_gwbse_) {
     XTP_LOG(Log::error, *logger)
         << "Loading serialized data from " << archive_file_ << flush;
     orbitals.ReadFromCpt(archive_file_);
-  }
-  tools::Property& output_summary = summary_.add("output", "");
-  if (do_gwbse_) {
     GWBSE gwbse = GWBSE(orbitals);
     gwbse.setLogger(logger);
     gwbse.Initialize(gwbse_options_);
