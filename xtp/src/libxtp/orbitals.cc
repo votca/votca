@@ -667,6 +667,16 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
     ord.reorderOrbitals(mos_.eigenvectors(), this->getDftBasis());
   }
 
+  if (version < 5) {  // we need to construct the basissets, NB. can only be
+                      // done after reading the atoms.
+    std::string dft_basis_name;
+    std::string aux_basis_name;
+    r(dft_basis_name, "dftbasis");
+    r(aux_basis_name, "auxbasis");
+    this->SetupDftBasis(dft_basis_name);
+    this->SetupAuxBasis(aux_basis_name);
+  }
+
   r(rpamin_, "rpamin");
   r(rpamax_, "rpamax");
   r(qpmin_, "qpmin");

@@ -436,9 +436,10 @@ class Orbitals {
   bool use_Hqp_offdiag_ = true;
 
   // Version 2: adds BSE energies after perturbative dynamical screening
-  // Version 3 changed shell ordering
-  // Versio 4 added vxc grid quality
-  static constexpr int orbitals_version() { return 4; }
+  // Version 3: changed shell ordering
+  // Version 4: added vxc grid quality
+  // Version 5: added the dft and aux basisset
+  static constexpr int orbitals_version() { return 5; }
 };
 
 }  // namespace xtp
