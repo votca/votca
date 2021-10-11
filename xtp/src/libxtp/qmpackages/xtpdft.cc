@@ -61,25 +61,13 @@ bool XTPDFT::RunDFT() {
   }
   bool success = xtpdft.Evaluate(orbitals_);
   std::string file_name = run_dir_ + "/" + log_file_name_;
-  XTP_LOG(Log::error, *pLog_)
-      << "Writing result to " << log_file_name_ << flush;
   orbitals_.WriteToCpt(file_name);
   return success;
 }
 
-void XTPDFT::CleanUp() {
-  if (cleanup_.size() != 0) {
-    XTP_LOG(Log::info, *pLog_) << "Removing " << cleanup_ << " files" << flush;
-    std::vector<std::string> cleanup_info =
-        tools::Tokenizer(cleanup_, ", ").ToVector();
-    for (const std::string& substring : cleanup_info) {
-      if (substring == "log") {
-        std::string file_name = run_dir_ + "/" + log_file_name_;
-        remove(file_name.c_str());
-      }
-    }
-  }
-
+void XTPDFT::CleanUp() {  // Deletes the temporary orb file
+  std::string file_name = run_dir_ + "/" + log_file_name_;
+  remove(file_name.c_str());
   return;
 }
 
