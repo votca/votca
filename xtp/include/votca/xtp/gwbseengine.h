@@ -66,7 +66,6 @@ class GWBSEEngine {
   bool do_guess_ = false;
   bool do_dft_input_ = false;
   bool do_dft_run_ = false;
-  bool do_dft_parse_ = false;
   bool do_gwbse_ = false;
 
   // DFT log and MO file names
