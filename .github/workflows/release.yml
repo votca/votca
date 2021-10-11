@@ -18,7 +18,6 @@ jobs:
       - name: Checkout votca
         uses: actions/checkout@v2
         with:
-          submodules: true
           fetch-depth: 0
           token: ${{ secrets.VOTCA_BOT_TOKEN }}
       - name: Setup
