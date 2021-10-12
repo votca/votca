@@ -134,14 +134,18 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
       throw std::runtime_error("\n Parsing DFT orbfile " + MO_file_ +
                                " failed. Stopping!");
     }
+    orbitals.WriteToCpt(archive_file_);
     qmpackage_->CleanUp();
+  }
+
+  if (!do_dft_run_ && do_gwbse_) {  // hence the orb object is still empty
+    XTP_LOG(Log::error, *logger)
+        << "Loading serialized data from " << archive_file_ << flush;
+    orbitals.ReadFromCpt(archive_file_);
   }
 
   tools::Property& output_summary = summary_.add("output", "");
   if (do_gwbse_) {
-    XTP_LOG(Log::error, *logger)
-        << "Loading serialized data from " << archive_file_ << flush;
-    orbitals.ReadFromCpt(archive_file_);
     GWBSE gwbse = GWBSE(orbitals);
     gwbse.setLogger(logger);
     gwbse.Initialize(gwbse_options_);
