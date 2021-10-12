@@ -134,7 +134,6 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
       throw std::runtime_error("\n Parsing DFT orbfile " + MO_file_ +
                                " failed. Stopping!");
     }
-    orbitals.WriteToCpt(archive_file_);
     qmpackage_->CleanUp();
   }
 
