@@ -45,11 +45,11 @@ void QMPackage::Initialize(const tools::Property& options) {
   ParseSpecificOptions(options);
 }
 
-bool QMPackage::Run() {
+bool QMPackage::Run(Orbitals& orbitals) {
   std::chrono::time_point<std::chrono::system_clock> start =
       std::chrono::system_clock::now();
 
-  bool error_value = RunDFT();
+  bool error_value = RunDFT(orbitals);
 
   std::chrono::duration<double> elapsed_time =
       std::chrono::system_clock::now() - start;

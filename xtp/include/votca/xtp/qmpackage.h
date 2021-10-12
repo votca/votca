@@ -49,12 +49,7 @@ class QMPackage {
   /// writes a coordinate file WITHOUT taking into account PBCs
   virtual bool WriteInputFile(const Orbitals& orbitals) = 0;
 
-  bool Run();
-  virtual bool ParseLogFile(Orbitals& orbitals) = 0;
-
-  virtual bool ParseMOsFile(Orbitals& orbitals) = 0;
-
-  virtual void CleanUp() = 0;
+  bool Run(Orbitals& orbitals);
 
   template <class MMRegion>
   void AddRegion(const MMRegion& mmregion) {
@@ -75,12 +70,10 @@ class QMPackage {
     input_file_name_ = input_file_name;
   }
 
-  void setLogFileName(const std::string& log_file_name) {
-    log_file_name_ = log_file_name;
+  void setLogFileName(const std::string& base_name) {
+    log_file_name_ = base_name + ".log";
+    mo_file_name_  = base_name + ".gbw";
   }
-
-  void setMOsFileName(const std::string& mo_file) { mo_file_name_ = mo_file; }
-
   void setLog(Logger* pLog) { pLog_ = pLog; }
 
   void setCharge(Index charge) {
@@ -108,7 +101,7 @@ class QMPackage {
     double q_;
   };
 
-  virtual bool RunDFT() = 0;
+  virtual bool RunDFT(Orbitals& orbitals) = 0;
   virtual void WriteChargeOption() = 0;
   std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
   void ReorderOutput(Orbitals& orbitals) const;

@@ -114,27 +114,10 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     qmpackage_->WriteInputFile(orbitals);
   }
   if (do_dft_run_) {
-    bool run_success = qmpackage_->Run();
+    bool run_success = qmpackage_->Run(orbitals);
     if (!run_success) {
       throw std::runtime_error("\n DFT-run failed. Stopping!");
     }
-
-    XTP_LOG(Log::error, *logger) << "Parsing DFT data from " << dftlog_file_
-                                 << " and " << MO_file_ << flush;
-    qmpackage_->setLogFileName(dftlog_file_);
-    qmpackage_->setMOsFileName(MO_file_);
-
-    bool Logfile_parse = qmpackage_->ParseLogFile(orbitals);
-    if (!Logfile_parse) {
-      throw std::runtime_error("\n Parsing DFT logfile " + dftlog_file_ +
-                               " failed. Stopping!");
-    }
-    bool Orbfile_parse = qmpackage_->ParseMOsFile(orbitals);
-    if (!Orbfile_parse) {
-      throw std::runtime_error("\n Parsing DFT orbfile " + MO_file_ +
-                               " failed. Stopping!");
-    }
-    qmpackage_->CleanUp();
   }
 
   if (!do_dft_run_ && do_gwbse_) {  // hence the orb object is still empty

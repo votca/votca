@@ -42,7 +42,7 @@
 #include "votca/xtp/orbitals.h"
 
 // Local private VOTCA includes
-#include "orca.h"
+#include "votca/xtp/orca.h"
 
 namespace votca {
 namespace xtp {
@@ -333,12 +333,9 @@ bool Orca::WriteShellScript() {
 /**
  * Runs the Orca job.
  */
-bool Orca::RunDFT() {
-
+bool Orca::RunDFT(Orbitals& orbitals) {
   XTP_LOG(Log::error, *pLog_) << "Running Orca job\n" << flush;
-
   if (std::system(nullptr)) {
-
     std::string command = "cd " + run_dir_ + "; sh " + shell_file_name_;
     Index check = std::system(command.c_str());
     if (check == -1) {
@@ -357,6 +354,24 @@ bool Orca::RunDFT() {
         << input_file_name_ << " failed to start" << flush;
     return false;
   }
+
+  XTP_LOG(Log::error, *pLog_) << "Parsing DFT data from " << log_file_name_
+                              << " and " << mo_file_name_ << flush;
+
+  bool Logfile_parse = ParseLogFile(orbitals);
+  if (!Logfile_parse) {
+    XTP_LOG(Log::error, *pLog_)
+        << "\n Parsing DFT logfile " + log_file_name_ + " failed.";
+    return false;
+  }
+  bool Orbfile_parse = ParseMOsFile(orbitals);
+  if (!Orbfile_parse) {
+    XTP_LOG(Log::error, *pLog_)
+        << "\n Parsing DFT orbfile " + mo_file_name_ + " failed.";
+    return false;
+  }
+
+  CleanUp();
 
   return true;
 }

@@ -178,25 +178,9 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     }
 
     if (do_dft_run_) {
-      bool run_dft_status = qmpackage->Run();
+      bool run_dft_status = qmpackage->Run(orbitals);
       if (!run_dft_status) {
         std::string output = "DFT run failed";
-        SetJobToFailed(jres, pLog, output);
-        return jres;
-      }
-    }
-
-    // parse the log/orbitals files
-    if (do_dft_parse_) {
-      bool parse_log_status = qmpackage->ParseLogFile(orbitals);
-      if (!parse_log_status) {
-        std::string output = "log incomplete; ";
-        SetJobToFailed(jres, pLog, output);
-        return jres;
-      }
-      bool parse_orbitals_status = qmpackage->ParseMOsFile(orbitals);
-      if (!parse_orbitals_status) {
-        std::string output = "orbfile failed; ";
         SetJobToFailed(jres, pLog, output);
         return jres;
       }
@@ -214,9 +198,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
             GBWFILE_workdir, GBWFILE,
             boost::filesystem::copy_option::overwrite_if_exists);
       }
-
-    }  // end of the parse orbitals/log
-    qmpackage->CleanUp();
+    }
     WriteLoggerToFile(work_dir + "/dft.log", dft_logger);
   }
 

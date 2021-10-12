@@ -382,7 +382,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
 
     if (do_dft_run_) {
       XTP_LOG(Log::error, pLog) << "Running DFT" << std::flush;
-      bool run_dft_status_ = qmpackage->Run();
+      bool run_dft_status_ = qmpackage->Run(orbitalsAB);
       if (!run_dft_status_) {
         SetJobToFailed(jres, pLog, qmpackage->getPackageName() + " run failed");
         WriteLoggerToFile(work_dir + "/dft.log", dft_logger);
@@ -390,22 +390,6 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       }
     }
 
-    if (do_dft_parse_) {
-      bool parse_log_status = qmpackage->ParseLogFile(orbitalsAB);
-      if (!parse_log_status) {
-        SetJobToFailed(jres, pLog, "LOG parsing failed");
-        return jres;
-      }
-
-      bool parse_orbitals_status = qmpackage->ParseMOsFile(orbitalsAB);
-
-      if (!parse_orbitals_status) {
-        SetJobToFailed(jres, pLog, "Orbitals parsing failed");
-        return jres;
-      }
-
-    }  // end of the parse orbitals/log
-    qmpackage->CleanUp();
     WriteLoggerToFile(work_dir + "/dft.log", dft_logger);
   } else {
     try {

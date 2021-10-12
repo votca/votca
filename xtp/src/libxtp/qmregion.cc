@@ -104,25 +104,13 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   qmpackage_->setRunDir(workdir_);
   qmpackage_->WriteInputFile(orb_);
   XTP_LOG(Log::error, log_) << "Running DFT calculation" << std::flush;
-  bool run_success = qmpackage_->Run();
+  bool run_success = qmpackage_->Run(orb_);
   if (!run_success) {
     info_ = false;
     errormsg_ = "DFT-run failed";
     return;
   }
-
-  bool Logfile_parse = qmpackage_->ParseLogFile(orb_);
-  if (!Logfile_parse) {
-    info_ = false;
-    errormsg_ = "Parsing DFT logfile failed.";
-    return;
-  }
-  bool Orbfile_parse = qmpackage_->ParseMOsFile(orb_);
-  if (!Orbfile_parse) {
-    info_ = false;
-    errormsg_ = "Parsing DFT orbfile failed.";
-    return;
-  }
+  
   QMState state = QMState("groundstate");
   double energy = orb_.getDFTTotalEnergy();
   if (do_gwbse_) {

@@ -30,7 +30,7 @@
 #include <votca/tools/constants.h>
 
 // Local private VOTCA includes
-#include "xtpdft.h"
+#include "votca/xtp/xtpdft.h"
 
 namespace votca {
 namespace xtp {
@@ -42,16 +42,15 @@ void XTPDFT::ParseSpecificOptions(const tools::Property& options) {
   mo_file_name_ = log_file_name_;
 }
 
-bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {
-  orbitals_ = orbitals;
-  orbitals_.setQMpackage(getPackageName());
-  return true;
+bool XTPDFT::WriteInputFile(const Orbitals&) {
+  return true; // dummy, no input files to write for xtp dft
 }
 
 /**
  * Run calls DFTENGINE
  */
-bool XTPDFT::RunDFT() {
+bool XTPDFT::RunDFT(Orbitals& orbitals) {
+  orbitals.setQMpackage(getPackageName());
   DFTEngine xtpdft;
   xtpdft.Initialize(options_);
   xtpdft.setLogger(pLog_);
@@ -59,36 +58,15 @@ bool XTPDFT::RunDFT() {
   if (!externalsites_.empty()) {
     xtpdft.setExternalcharges(&externalsites_);
   }
-  bool success = xtpdft.Evaluate(orbitals_);
-  std::string file_name = run_dir_ + "/" + log_file_name_;
-  orbitals_.WriteToCpt(file_name);
-  return success;
-}
-
-void XTPDFT::CleanUp() {  // Deletes the temporary orb file
-  std::string file_name = run_dir_ + "/" + log_file_name_;
-  remove(file_name.c_str());
-  return;
-}
-
-/**
- * Dummy, because XTPDFT adds info to orbitals directly
- */
-bool XTPDFT::ParseMOsFile(Orbitals&) { return true; }
-
-bool XTPDFT::ParseLogFile(Orbitals& orbitals) {
-  try {
-    std::string file_name = run_dir_ + "/" + log_file_name_;
-    orbitals.ReadFromCpt(file_name);
-    XTP_LOG(Log::error, *pLog_) << (boost::format("QM energy[Hrt]: %4.8f ") %
-                                    orbitals.getDFTTotalEnergy())
-                                       .str()
-                                << flush;
-  } catch (std::runtime_error& error) {
-    XTP_LOG(Log::error, *pLog_)
-        << "Reading" << log_file_name_ << " failed" << flush;
-    return false;
+  bool success = xtpdft.Evaluate(orbitals);
+  if (!success) {
+    return success;
   }
+
+  XTP_LOG(Log::error, *pLog_) << (boost::format("QM energy[Hrt]: %4.8f ") %
+                                  orbitals.getDFTTotalEnergy())
+                                     .str()
+                              << flush;
   return true;
 }
 

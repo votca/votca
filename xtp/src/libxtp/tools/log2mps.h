@@ -62,7 +62,7 @@ void Log2Mps::ParseOptions(const tools::Property &options) {
   }
 
   logfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
-      ".input", job_name_ + ".log");
+      ".input", job_name_);
 
   mpsfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
       ".output", job_name_ + ".mps");

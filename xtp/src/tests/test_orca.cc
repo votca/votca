@@ -30,6 +30,7 @@
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/orbreorder.h"
 #include "votca/xtp/qmpackagefactory.h"
+#include "votca/xtp/orca.h"
 
 using namespace votca::xtp;
 using namespace votca;
@@ -49,7 +50,7 @@ BOOST_AUTO_TEST_CASE(polar_test) {
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
-  orca->setLogFileName("polar_orca.log");
+  orca->setLogFileName("polar_orca");
   Eigen::Matrix3d polar_mat = orca->GetPolarizability();
 
   Eigen::Matrix3d polar_ref = Eigen::Matrix3d::Zero();
@@ -68,8 +69,7 @@ BOOST_AUTO_TEST_CASE(polar_test) {
 BOOST_AUTO_TEST_CASE(ext_charges_test) {
   libint2::initialize();
   QMPackageFactory::RegisterAll();
-  std::unique_ptr<QMPackage> orca =
-      QMPackageFactory::QMPackages().Create("orca");
+  Orca orca;
   Logger log;
 
   tools::Property opt;
@@ -79,13 +79,12 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   opt.add("basisset", "3-21G");
   opt.add("cleanup", "");
   opt.add("scratch", "");
-  opt.add("temporary_file", "temp");
-  orca->Initialize(opt);
-  orca->setLog(&log);
-  orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
-  orca->setLogFileName("orca_ext_charges.log");
+  opt.add("temporary_file", "orca_ext");
+  orca.Initialize(opt);
+  orca.setLog(&log);
+  orca.setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
   Orbitals orb;
-  orca->ParseLogFile(orb);
+  orca.ParseLogFile(orb);
   BOOST_CHECK_CLOSE(orb.getScaHFX(), 0.25, 1e-5);
   double ref_tot = -40.244504856356;  // HF - Self energy ext charges
   BOOST_CHECK_CLOSE(ref_tot, orb.getDFTTotalEnergy(), 1e-5);
@@ -116,10 +115,8 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   orb.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
                       "/orca/3-21G_small.xml");
 
-  orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
-  orca->setMOsFileName("orca_ext_mos.gbw");
-
-  orca->ParseMOsFile(orb);
+  orca.setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
+  orca.ParseMOsFile(orb);
   Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(17);
   MOs_energy_ref << -10.1441, -0.712523, -0.405481, -0.403251, -0.392086,
       0.157504, 0.196706, 0.202667, 0.240538, 0.718397, 0.727724, 0.728746,
@@ -168,13 +165,20 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
 BOOST_AUTO_TEST_CASE(charges_test) {
   libint2::initialize();
   QMPackageFactory::RegisterAll();
-  std::unique_ptr<QMPackage> orca =
-      QMPackageFactory::QMPackages().Create("orca");
+  Orca orca;
+  tools::Property opt;
+  opt.add("functional", "XC_HYB_GGA_XC_PBEH");
+  opt.add("charge", "0");
+  opt.add("spin", "0");
+  opt.add("basisset", "3-21G");
+  opt.add("cleanup", "");
+  opt.add("scratch", "");
+  opt.add("temporary_file", "orca_charges");
+  orca.Initialize(opt);
   Logger log;
-  orca->setLog(&log);
-  orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
-  orca->setLogFileName("orca_charges.log");
-  StaticSegment seg = orca->GetCharges();
+  orca.setLog(&log);
+  orca.setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
+  StaticSegment seg = orca.GetCharges();
 
   double ang2bohr = votca::tools::conv::ang2bohr;
   StaticSegment ref("ref", 0);
@@ -212,8 +216,7 @@ BOOST_AUTO_TEST_CASE(charges_test) {
 BOOST_AUTO_TEST_CASE(opt_test) {
 
   QMPackageFactory::RegisterAll();
-  std::unique_ptr<QMPackage> orca =
-      QMPackageFactory::QMPackages().Create("orca");
+  Orca orca;
   Logger log;
 
   tools::Property opt;
@@ -223,13 +226,12 @@ BOOST_AUTO_TEST_CASE(opt_test) {
   opt.add("basisset", "3-21G");
   opt.add("cleanup", "");
   opt.add("scratch", "");
-  opt.add("temporary_file", "temp");
-  orca->Initialize(opt);
-  orca->setLog(&log);
-  orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
-  orca->setLogFileName("orca_opt.log");
+  opt.add("temporary_file", "orca_opt");
+  orca.Initialize(opt);
+  orca.setLog(&log);
+  orca.setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
   Orbitals orb;
-  orca->ParseLogFile(orb);
+  orca.ParseLogFile(orb);
 
   double ref_tot = -40.240899574987;  // HF - Self energy ext charges
   BOOST_CHECK_CLOSE(ref_tot, orb.getDFTTotalEnergy(), 1e-5);

@@ -4,17 +4,8 @@
     <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
     <dftpackage link="dftpackage.xml"/>
     <dftcoupling link="dftcoupling.xml"/>
-    <moleculeA>
-      <log help="Log file of molecule A" default="A.log"/>
-      <orbitals help="Orbitals file" default="A.orb"/>
-    </moleculeA>
-    <moleculeB>
-      <log help="Log file of molecule B" default="B.log"/>
-      <orbitals help="Orbitals file" default="B.orb"/>
-    </moleculeB>
-    <dimerAB>
-      <log help="Log file of dimer AB" default="AB.log"/>
-      <orbitals help="Orbitals file" default="AB.orb"/>
-    </dimerAB>
+    <moleculeA help="orb file of molecule A">A.orb</moleculeA>
+    <moleculeB help="orb file of molecule B">B.orb</moleculeB>
+    <moleculeAB help="orb file of molecule AB">AB.orb</moleculeAB>
   </coupling>
 </options>
