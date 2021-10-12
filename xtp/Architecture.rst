@@ -36,3 +36,8 @@ How the cuda support works
 ##########################
 
 CUDA support is optional and is enabled via :code:`-DUSE_CUDA=ON` in cmake and then enabled via `votca_xtp_config <https://github.com/votca/votca/blob/master/xtp/include/votca/xtp/votca_xtp_config.h.in>`_. CUDA is basically only used for matrix multiplication. The matrix class which wraps the `CUBLAS <https://docs.nvidia.com/cuda/cublas/index.html>`_ class is `CudaMatrix <https://github.com/votca/votca/blob/master/xtp/include/votca/xtp/cudamatrix.h>`_, which has ownwership of gpumemory. Calling the CUDA code inside openmp is handled via `OpenMP_CUDA class <https://github.com/votca/votca/blob/master/xtp/include/votca/xtp/openmp_cuda.h>`_, which also implements the specific commands for CPU and GPU calls. 
+
+How code is executed
+####################
+
+In general you either call **xtp_parallel** **xtp_run** or **xtp_tools** which then call **xtpapplication** or **stateapplication** which creates the specific calculator gives it some options and runs it. 
