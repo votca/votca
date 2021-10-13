@@ -559,8 +559,9 @@ void Orbitals::WriteToCpt(const std::string& filename) const {
 }
 
 void Orbitals::WriteToCpt(CheckpointFile f) const {
-  WriteToCpt(f.getWriter("/QMdata"));
-  WriteBasisSetsToCpt(f.getWriter("/Basissets"));
+  CheckpointWriter writer = f.getWriter("/QMdata");
+  WriteToCpt(writer);
+  WriteBasisSetsToCpt(writer);
 }
 
 void Orbitals::WriteBasisSetsToCpt(CheckpointWriter w) const {
@@ -622,8 +623,9 @@ void Orbitals::ReadFromCpt(const std::string& filename) {
 }
 
 void Orbitals::ReadFromCpt(CheckpointFile f) {
-  ReadFromCpt(f.getReader("/QMdata"));
-  ReadBasisSetsFromCpt(f.getReader("/Basissets"));
+  CheckpointReader reader = f.getReader("/QMdata");
+  ReadFromCpt(reader);
+  ReadBasisSetsFromCpt(reader);
 }
 
 void Orbitals::ReadBasisSetsFromCpt(CheckpointReader r) {
