@@ -1,4 +1,4 @@
-<basis name="aug-cc-pvdz-rifit">
+<basis name="aux-aug-cc-pvdz">
   <!--Basis set created by xtp_basisset from aug-cc-pvdz-rifit.nw at Fri Jan  3 10:44:27 2020-->
   <element name="H">
     <shell type="S" scale="1.0">
