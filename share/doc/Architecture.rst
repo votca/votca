@@ -1,6 +1,6 @@
-********
+*************************
 The architecture of VOTCA
-********
+*************************
 
 VOTCA consists of three main libraries **tools**, **csg** and **xtp**. While the structure has partially historic reasons, in general the following rule of thumb holds. 
 

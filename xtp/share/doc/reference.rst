@@ -23,3 +23,7 @@ xtp_qmmm2qm
 
 .. include:: xtp_qmmm2qm.rst
 
+xtp_modify_jobfile
+^^^^^^^^^^^
+
+.. include:: xtp_modify_jobfile.rst
