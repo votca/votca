@@ -193,7 +193,16 @@ class Orbitals {
     return (!auxbasis_.Name().empty()) ? true : false;
   }
 
-  const std::string &getAuxbasisName() const { return auxbasis_.Name(); }
+  const std::string getAuxbasisName() const {
+    // we convert the internal <basissetname>-rifit to the externally used
+    // aux-<basissetname>
+    std::string name = auxbasis_.Name();
+    if (name.substr(name.length() - 6) == std::string("-rifit")) {
+      return "aux-" + name.substr(0, name.length() - 6);
+    } else {
+      return auxbasis_.Name();
+    }
+  }
 
   // access to list of indices used in GWA
 

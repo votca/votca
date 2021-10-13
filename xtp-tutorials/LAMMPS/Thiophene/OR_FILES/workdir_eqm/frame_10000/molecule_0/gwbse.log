@@ -1,0 +1,395 @@
+
+GWBSE ERR ... 2021-10-13 14:44:7 RPA level range [0:56]
+GWBSE ERR ... 2021-10-13 14:44:7 GW  level range [0:56]
+GWBSE ERR ... 2021-10-13 14:44:7 BSE level range occ[0:21]  virt[22:56]
+GWBSE ERR ...  BSE type: full
+GWBSE ERR ... 2021-10-13 14:44:7 BSE Hamiltonian has size 1540x1540
+GWBSE ERR ...  BSE without Hqp offdiagonal elements
+GWBSE ERR ...  Running GW as: G0W0
+GWBSE ERR ...  qp_sc_limit [Hartree]: 1e-05
+GWBSE ERR ...  Tasks: 
+GWBSE ERR ...  GW 
+GWBSE ERR ...  singlets 
+GWBSE ERR ...  triplets 
+GWBSE ERR ...  Store: 
+GWBSE ERR ...  GW 
+GWBSE ERR ...  Sigma integration: ppm
+GWBSE ERR ...  eta: 0.001
+GWBSE ERR ...  QP solver: grid
+GWBSE ERR ...  QP grid steps: 1001
+GWBSE ERR ...  QP grid spacing: 0.001
+GWBSE ERR ... 2021-10-13 14:44:7 Using 4 threads
+GWBSE ERR ... 2021-10-13 14:44:7 Using MKL overload for Eigen 
+GWBSE ERR ... 2021-10-13 14:44:7 Using CUDA support for tensor multiplication with 1 GPUs.
+GWBSE ERR ... 2021-10-13 14:44:7 Molecule Coordinates [A] 
+GWBSE ERR ...     0    C   7.2498 5.9987 6.9816
+GWBSE ERR ...     1    C   8.3941 5.2905 7.2231
+GWBSE ERR ...     2    S   9.4238 6.1259 8.2255
+GWBSE ERR ...     3    C   8.4019 7.4292 8.3679
+GWBSE ERR ...     4    C   7.2542 7.2442 7.6483
+GWBSE ERR ...     5    H   6.4443 5.6423 6.3555
+GWBSE ERR ...     6    H   8.6517 4.3152 6.8421
+GWBSE ERR ...     7    H   8.6666 8.2851 8.9679
+GWBSE ERR ...     8    H   6.4528 7.9674 7.5999
+GWBSE ERR ... 2021-10-13 14:44:7 DFT data was created by xtp
+GWBSE ERR ... 2021-10-13 14:44:7 Loaded DFT Basis Set 3-21G
+GWBSE ERR ... 2021-10-13 14:44:7 Filled DFT Basis of size 57
+GWBSE ERR ... 2021-10-13 14:44:7 Loaded Auxbasis Set aux-def2-svp
+GWBSE ERR ... 2021-10-13 14:44:7 Filled Auxbasis of size 310
+GWBSE ERR ... 2021-10-13 14:44:7 Calculating Mmn_beta (3-center-repulsion x orbitals)  
+GWBSE INF ... 2021-10-13 14:44:8 Removed 0 functions from Aux Coulomb matrix to avoid near linear dependencies
+GWBSE ERR ... 2021-10-13 14:44:8 Calculated Mmn_beta (3-center-repulsion x orbitals)  
+GWBSE INF ... 2021-10-13 14:44:8 Setup grid for integration with gridsize: medium with 26560 points, divided into 1 boxes
+GWBSE ERR ... 2021-10-13 14:44:8 Integrating Vxc with functional XC_HYB_GGA_XC_PBEH
+GWBSE INF ... 2021-10-13 14:44:8 Calculated Vxc
+GWBSE ERR ... 2021-10-13 14:44:8 Set hybrid exchange factor: 0.25
+GWBSE ERR ... 2021-10-13 14:44:8 Calculated exchange-correlation expectation values 
+GWBSE ERR ... 2021-10-13 14:44:8 Calculated Hartree exchange contribution
+GWBSE ERR ... 2021-10-13 14:44:8 Scissor shifting DFT energies by: 0 Hrt
+GWBSE INF ... 2021-10-13 14:44:8 Calculated screening via RPA
+GWBSE INF ... 2021-10-13 14:44:8 Solving QP equations 
+GWBSE INF ...  No roots found for qplevel:0
+GWBSE INF ...  Roots found for qplevel:3 (qpenergy:qpweight)
+		-10.518:0.50211 Root chosen -10.518
+GWBSE INF ...  Roots found for qplevel:2 (qpenergy:qpweight)
+		-10.522:0.47594 Root chosen -10.522
+GWBSE INF ...  Roots found for qplevel:1 (qpenergy:qpweight)
+		-10.522:0.4759 Root chosen -10.522
+GWBSE INF ...  No roots found for qplevel:5
+GWBSE INF ...  Roots found for qplevel:4 (qpenergy:qpweight)
+		-10.518:0.50212 Root chosen -10.518
+GWBSE INF ...  Roots found for qplevel:6 (qpenergy:qpweight)
+		-6.2166:0.61588 Root chosen -6.2166
+GWBSE INF ...  Roots found for qplevel:7 (qpenergy:qpweight)
+		-6.2134:0.61369 Root chosen -6.2134
+GWBSE INF ...  Roots found for qplevel:8 (qpenergy:qpweight)
+		-6.2046:0.61358 Root chosen -6.2046
+GWBSE INF ...  Roots found for qplevel:11 (qpenergy:qpweight)
+		-1.2417:0.022882 -1.2372:-0.0012524 -1.2071:0.037379 -1.1996:-0.00087016 -1.1358:0.25609 -1.093:-0.0020963 -1.0882:0.040957 -0.99755:-0.00029807 -0.98989:0.0089787 -0.98615:-0.0010105 -0.97237:0.078633 Root chosen -1.1358
+GWBSE INF ...  Roots found for qplevel:10 (qpenergy:qpweight)
+		-1.2667:-0.00058645 -1.2573:0.018759 -1.2453:-0.00029964 -1.235:0.0060392 -1.2321:-0.00074392 -1.1635:0.083774 -1.158:-0.0057386 -1.1543:0.041579 -1.1465:-0.0015577 -1.1291:0.15596 -1.088:-0.00082468 -1.082:0.018669 -1.0765:-0.0017238 -1.0693:0.053061 -1.0142:-0.00029352 -0.99131:0.078588 Root chosen -1.1291
+GWBSE INF ...  Roots found for qplevel:9 (qpenergy:qpweight)
+		-1.4383:-0.0026346 -1.4293:0.019626 -1.4172:-0.00038677 -1.4009:0.013499 -1.3995:-0.0073448 -1.3957:0.011744 -1.3908:-0.0011238 -1.388:0.005564 -1.3871:-0.003073 -1.3505:0.030091 -1.3484:-0.0065295 -1.339:0.0544 -1.3348:-0.0067733 -1.333:0.024555 -1.3322:-0.01763 -1.3266:0.051205 -1.3037:-0.001774 -1.2992:0.030549 -1.2695:-0.0005608 -1.2557:0.063698 -1.2187:-0.0014309 -1.2174:0.0037152 -1.2158:-0.0014397 -1.2074:0.036465 -1.158:-0.00022931 -1.1408:0.056433 -1.0878:-0.0011665 -1.0852:0.0087354 -1.0763:-0.0015831 -1.0735:0.013834 -1.0388:-0.00099515 -1.0356:0.011768 -1.0022:-0.0025594 -1.0007:0.0096886 Root chosen -1.2557
+GWBSE INF ...  Roots found for qplevel:12 (qpenergy:qpweight)
+		-1.0747:0.013685 -1.0717:-0.0013683 -0.93695:0.59392 Root chosen -0.93695
+GWBSE INF ...  Roots found for qplevel:13 (qpenergy:qpweight)
+		-1.0472:0.04264 -1.0392:-0.00071876 -0.92422:0.56548 Root chosen -0.92422
+GWBSE INF ...  Roots found for qplevel:14 (qpenergy:qpweight)
+		-0.89192:0.6827 Root chosen -0.89192
+GWBSE INF ...  Roots found for qplevel:15 (qpenergy:qpweight)
+		-0.8561:0.052416 -0.85416:-0.0098406 -0.80482:0.74528 Root chosen -0.80482
+GWBSE INF ...  Roots found for qplevel:16 (qpenergy:qpweight)
+		-0.73884:0.73399 Root chosen -0.73884
+GWBSE INF ...  Roots found for qplevel:17 (qpenergy:qpweight)
+		-0.78551:0.79934 Root chosen -0.78551
+GWBSE INF ...  Roots found for qplevel:18 (qpenergy:qpweight)
+		-0.79217:0.78305 Root chosen -0.79217
+GWBSE INF ...  Roots found for qplevel:19 (qpenergy:qpweight)
+		-0.73381:0.83464 Root chosen -0.73381
+GWBSE INF ...  Roots found for qplevel:20 (qpenergy:qpweight)
+		-0.62203:0.86308 Root chosen -0.62203
+GWBSE INF ...  Roots found for qplevel:21 (qpenergy:qpweight)
+		-0.61373:0.85023 Root chosen -0.61373
+GWBSE INF ...  Roots found for qplevel:22 (qpenergy:qpweight)
+		-0.1949:0.9086 Root chosen -0.1949
+GWBSE INF ...  Roots found for qplevel:23 (qpenergy:qpweight)
+		-0.08296:0.94209 Root chosen -0.08296
+GWBSE INF ...  Roots found for qplevel:24 (qpenergy:qpweight)
+		-0.11274:0.91243 Root chosen -0.11274
+GWBSE INF ...  Roots found for qplevel:25 (qpenergy:qpweight)
+		0.011781:0.95059 Root chosen 0.011781
+GWBSE INF ...  Roots found for qplevel:26 (qpenergy:qpweight)
+		-0.014536:0.94335 Root chosen -0.014536
+GWBSE INF ...  Roots found for qplevel:27 (qpenergy:qpweight)
+		0.068528:0.94563 Root chosen 0.068528
+GWBSE INF ...  Roots found for qplevel:28 (qpenergy:qpweight)
+		0.087861:0.94297 Root chosen 0.087861
+GWBSE INF ...  Roots found for qplevel:29 (qpenergy:qpweight)
+		0.10264:0.94752 Root chosen 0.10264
+GWBSE INF ...  Roots found for qplevel:31 (qpenergy:qpweight)
+		0.22218:0.94439 Root chosen 0.22218
+GWBSE INF ...  Roots found for qplevel:30 (qpenergy:qpweight)
+		0.14646:0.95124 Root chosen 0.14646
+GWBSE INF ...  Roots found for qplevel:32 (qpenergy:qpweight)
+		0.32346:0.94419 Root chosen 0.32346
+GWBSE INF ...  Roots found for qplevel:33 (qpenergy:qpweight)
+		0.30775:0.92453 0.94117:-0.0010249 0.94268:0.0041171 Root chosen 0.30775
+GWBSE INF ...  Roots found for qplevel:34 (qpenergy:qpweight)
+		0.42366:0.93584 Root chosen 0.42366
+GWBSE INF ...  Roots found for qplevel:35 (qpenergy:qpweight)
+		0.41023:0.9245 0.91891:-0.0012819 0.92054:0.0056449 Root chosen 0.41023
+GWBSE INF ...  Roots found for qplevel:36 (qpenergy:qpweight)
+		0.42267:0.90717 0.98082:-0.0014325 0.98227:0.005366 Root chosen 0.42267
+GWBSE INF ...  Roots found for qplevel:38 (qpenergy:qpweight)
+		0.65071:0.78909 Root chosen 0.65071
+GWBSE INF ...  Roots found for qplevel:37 (qpenergy:qpweight)
+		0.559:0.88592 0.91862:-0.00048298 0.92381:0.013562 Root chosen 0.559
+GWBSE INF ...  Roots found for qplevel:39 (qpenergy:qpweight)
+		0.60329:0.83839 0.86178:-0.00038072 0.8688:0.014088 0.92026:-0.00066396 0.92483:0.013778 1.0333:-0.0016564 1.0346:0.0063406 1.1414:-0.00018817 1.1508:0.015411 Root chosen 0.60329
+GWBSE INF ...  Roots found for qplevel:40 (qpenergy:qpweight)
+		0.616:0.86331 1.226:-0.00022224 1.2319:0.0074063 1.2429:-0.0068865 1.2439:0.009014 Root chosen 0.616
+GWBSE INF ...  Roots found for qplevel:41 (qpenergy:qpweight)
+		0.62246:0.76814 0.83943:-0.00014153 0.86634:0.079908 0.94241:-0.00064373 0.9495:0.028941 1.1138:-0.00090197 1.1166:0.0089985 Root chosen 0.62246
+GWBSE INF ...  Roots found for qplevel:42 (qpenergy:qpweight)
+		0.66058:0.48358 0.66497:-0.092434 0.66695:0.3542 0.7519:-0.0056542 0.7539:0.031923 0.91864:-0.00088299 0.92297:0.017248 1.3137:-0.00099888 1.3152:0.0034767 Root chosen 0.66058
+GWBSE INF ...  Roots found for qplevel:43 (qpenergy:qpweight)
+		0.68376:0.7441 0.92036:-0.0011709 0.92336:0.012277 1.0329:-0.00022822 1.0429:0.010707 1.0467:-0.0041193 1.0487:0.015492 1.1414:-0.00019711 1.1492:0.009681 1.1628:-0.00029758 1.173:0.019113 Root chosen 0.68376
+GWBSE INF ...  Roots found for qplevel:44 (qpenergy:qpweight)
+		0.70037:0.69741 0.83972:-0.0021669 0.84241:0.018995 0.94236:-0.0002074 0.95844:0.028681 1.0607:-0.00034627 1.0689:0.020124 1.1137:-0.0010028 1.1173:0.011718 1.2435:-0.00019173 1.2538:0.019185 Root chosen 0.70037
+GWBSE INF ...  Roots found for qplevel:45 (qpenergy:qpweight)
+		0.83044:0.10732 0.83158:-0.030327 0.86106:0.59124 0.94079:-0.0014592 0.94576:0.030376 0.96683:-0.042789 0.96714:0.052707 0.98049:-0.0017371 0.98503:0.034192 1.0599:-0.0010721 1.0634:0.016963 1.0718:-0.0051714 1.0745:0.019311 1.1119:-0.00071119 1.1175:0.015755 1.2816:-0.0083846 1.2821:0.013265 1.3975:-0.0021459 1.3986:0.0059675 Root chosen 0.86106
+GWBSE INF ...  Roots found for qplevel:46 (qpenergy:qpweight)
+		0.8631:0.69633 0.96622:-0.0028304 0.96879:0.022342 1.0452:-0.00049677 1.0516:0.017596 1.072:-0.00061314 1.079:0.024249 1.1874:-0.00082943 1.1904:0.0055409 1.2018:-0.0010037 1.2073:0.011589 1.2261:-0.0015025 1.2287:0.010891 1.281:-0.00051347 1.2859:0.011028 1.356:-0.00083936 1.3583:0.0087911 Root chosen 0.8631
+GWBSE INF ...  Roots found for qplevel:47 (qpenergy:qpweight)
+		0.8871:0.36948 0.91855:-0.0033109 0.92455:0.096141 0.98846:-0.0018914 0.99068:0.011651 1.0229:-0.00020726 1.0594:0.12783 1.1595:-0.0020043 1.1621:0.014969 1.2532:-0.00066679 1.258:0.012798 1.3835:-0.0017128 1.3851:0.0072233 1.4904:-0.0012687 1.492:0.0058038 Root chosen 0.8871
+GWBSE INF ...  Roots found for qplevel:48 (qpenergy:qpweight)
+		0.89026:0.085817 0.89173:-0.024454 0.90231:0.18071 0.91839:-0.0017011 0.9424:0.3065 0.98819:-0.0008759 0.99606:0.045649 1.0025:-0.0020848 1.0144:0.12028 1.0821:-0.0017047 1.0856:0.022064 1.1741:-0.0025101 1.1757:0.010323 1.2448:-0.0067329 1.2456:0.011465 1.271:-0.00059337 1.2763:0.014754 1.3113:-0.0025063 1.3129:0.024456 1.5551:-0.00050308 1.5586:0.0066235 Root chosen 0.9424
+GWBSE INF ...  Roots found for qplevel:49 (qpenergy:qpweight)
+		0.90155:0.1533 0.90583:-0.010658 0.9168:0.20967 0.94074:-0.0026747 0.94607:0.051993 0.96589:-0.0007819 0.99168:0.17647 1.0599:-0.0018948 1.064:0.027955 1.2163:-0.00046431 1.2206:0.0061444 1.2245:-0.0051095 1.2293:0.01561 1.2813:-0.0019238 1.2828:0.007411 1.3464:-0.00059914 1.3511:0.012357 1.3822:-0.0034401 1.3832:0.0091073 Root chosen 0.9168
+GWBSE INF ...  Roots found for qplevel:50 (qpenergy:qpweight)
+		1.0488:0.055668 1.0556:-0.0024314 1.0585:0.015705 1.059:-0.010416 1.0695:0.018299 1.0715:-0.0035397 1.1097:0.036515 1.1114:-0.0086981 1.1288:0.095653 1.1344:-0.0045845 1.14:0.042336 1.143:-0.0074735 1.1474:0.038367 1.1489:-0.016968 1.1552:0.075444 1.1576:-0.034064 1.1589:0.060759 1.17:-0.0097284 1.1737:0.032227 1.1746:-0.019184 1.1811:0.070794 1.1872:-0.014323 1.1897:0.06752 1.2162:-0.0016543 1.2284:0.078887 1.2421:-0.00959 1.2441:0.046884 1.3298:-0.0076701 1.3307:0.021483 1.578:-0.00022814 1.5865:0.013243 1.6156:-0.0014913 1.6172:0.0064155 1.6372:-0.0024976 1.6383:0.0073671 1.6678:-0.00056725 1.6719:0.0095311 1.7541:-0.0007212 1.7566:0.0092515 Root chosen 1.1288
+GWBSE INF ...  Roots found for qplevel:51 (qpenergy:qpweight)
+		1.0773:0.029827 1.0817:-0.0015679 1.1715:0.027249 1.1733:-0.0060791 1.2014:0.13077 1.2037:-0.061748 1.2052:0.11333 1.2177:-0.0088273 1.2198:0.028868 1.2249:-0.011829 1.2297:0.086335 1.2529:-0.0040805 1.2564:0.025949 1.2708:-0.00065656 1.2853:0.034243 1.2891:-0.0040449 1.2996:0.069617 1.3036:-0.014599 1.3063:0.06116 1.3072:-0.037397 1.311:0.13855 1.3832:-0.0013344 1.3869:0.01853 1.403:-0.0026263 1.4068:0.018099 1.4093:-0.030176 1.4099:0.047457 1.5552:-0.0012593 1.5573:0.0081688 1.6003:-0.0003966 1.6068:0.011583 1.6121:-0.002662 1.6148:0.01581 1.6985:-0.00068256 1.7015:0.0061187 1.7058:-0.0033163 1.7074:0.010644 1.8144:-0.00068866 1.8185:0.0080976 Root chosen 1.311
+GWBSE INF ...  Roots found for qplevel:52 (qpenergy:qpweight)
+		1.1586:0.016743 1.1602:-0.0043137 1.2607:0.039544 1.2618:-0.014725 1.2782:0.038423 1.2805:-0.0063167 1.3187:0.42032 1.3294:-0.01316 1.3325:0.11518 1.3593:-0.014523 1.3603:0.031775 1.3731:-0.0015306 1.3874:0.086983 1.5328:-0.00098395 1.5368:0.01763 1.5783:-0.0019641 1.58:0.0081838 1.6784:-0.0020708 1.6798:0.0093678 1.7135:-0.00064532 1.7164:0.00638 1.7728:-0.00024854 1.7794:0.0069554 1.7864:-0.0018063 1.7893:0.011977 1.7994:-0.0012353 1.8026:0.013311 1.8477:-0.00098433 1.8497:0.005427 Root chosen 1.3187
+GWBSE INF ...  Roots found for qplevel:53 (qpenergy:qpweight)
+		1.0777:0.024721 1.0817:-0.001597 1.1112:0.030973 1.1118:-0.018929 1.1479:0.05315 1.1589:-0.0018823 1.2124:0.06891 1.2143:-0.029576 1.2161:0.054283 1.225:-0.013994 1.2303:0.030319 1.2345:-0.0048245 1.2402:0.055923 1.2708:-0.00056403 1.2831:0.023987 1.2892:-0.0011089 1.3058:0.028218 1.3106:-0.0029806 1.3249:0.056065 1.3277:-0.0101 1.3352:0.1513 1.4042:-0.0038767 1.406:0.01675 1.4251:-0.00282 1.4273:0.017565 1.499:-0.00063813 1.5049:0.015944 1.5734:-0.0010036 1.5775:0.0090716 1.6007:-0.0031103 1.6019:0.0093276 1.6591:-0.002036 1.6605:0.006986 1.7059:-0.001606 1.7081:0.0096269 1.9143:-0.00047206 1.9181:0.0073764 Root chosen 1.3352
+GWBSE INF ...  Roots found for qplevel:54 (qpenergy:qpweight)
+		1.131:0.0092383 1.1342:-0.0008019 1.3792:0.024202 1.3813:-0.0046986 1.4117:0.11923 1.4226:-0.0023914 1.4397:0.18681 1.532:-0.00032639 1.5392:0.0084777 1.5397:-0.0055011 1.5549:0.029761 1.5573:-0.0081137 1.5602:0.026439 1.5634:-0.0089793 1.5655:0.038443 1.5779:-0.0010059 1.5864:0.037296 1.5937:-0.0049988 1.5963:0.029469 1.6264:-0.0006653 1.635:0.02763 1.6388:-0.0069308 1.6414:0.029475 1.6527:-0.0026519 1.6565:0.0309 1.6782:-0.0037528 1.6809:0.0265 Root chosen 1.4397
+GWBSE INF ...  Roots found for qplevel:55 (qpenergy:qpweight)
+		1.4558:0.012516 1.4574:-0.0030432 1.53:0.039941 1.5344:-0.0026835 1.5429:0.036072 1.5444:-0.01449 1.5474:0.039939 1.5552:-0.0075164 1.5564:0.019106 1.5733:-0.00045799 1.5816:0.0046981 1.5846:-0.00056003 1.6197:0.020027 1.6209:-0.0048438 1.6728:0.026169 1.6745:-0.0068122 1.6792:0.019881 1.6828:-0.0023171 1.7208:0.10838 1.7259:-0.0067922 1.7311:0.068035 1.7326:-0.034721 1.7347:0.056802 1.741:-0.014332 1.7425:0.029917 1.7474:-0.0032344 1.7548:0.069922 1.7668:-0.0053432 1.7705:0.040992 1.7769:-0.0047401 1.7802:0.048538 1.8142:-0.00091434 1.8209:0.022539 1.8262:-0.0043972 1.832:0.040403 1.8416:-0.003477 1.844:0.015903 1.8458:-0.0064874 1.8512:0.067113 1.9014:-0.0049076 1.9031:0.0167 1.9337:-0.0012303 1.9376:0.020975 2.1065:-0.00094475 2.1102:0.0097319 2.2921:-0.00010583 2.3072:0.021814 Root chosen 1.7208
+GWBSE INF ...  Roots found for qplevel:56 (qpenergy:qpweight)
+		1.5258:0.02063 1.5264:-0.012547 1.5308:0.0082602 1.5319:-0.0037702 1.5728:0.025231 1.5777:-0.001204 1.588:0.018607 1.5934:-0.0011929 1.5995:0.0088357 1.604:-0.00087363 1.6599:0.017349 1.6637:-0.0014382 1.6736:0.011993 1.6777:-0.00078449 1.7503:0.017163 1.7536:-0.0017557 1.8217:0.093315 1.828:-0.002368 1.8599:0.069523 1.8607:-0.042842 1.8837:0.27938 1.9675:-0.0014319 1.9715:0.019037 1.9774:-0.0037352 1.9802:0.030395 2.1063:-0.0031254 2.1079:0.011315 2.1807:-0.0020286 2.1824:0.010038 2.266:-0.00051225 2.2725:0.011519 2.4184:-0.00022508 2.4251:0.008305 Root chosen 1.8837
+GWBSE ERR ... 2021-10-13 14:44:9 Not converged PQP states are:0 5
+GWBSE ERR ... 2021-10-13 14:44:9 Increase the grid search interval
+GWBSE ERR ...   ====== Perturbative quasiparticle energies (Hartree) ====== 
+GWBSE ERR ...    DeltaHLGap = +0.162666 Hartree
+GWBSE ERR ...   Level =    0 DFT = -88.9736 VXC = -4.8356 S-X = -7.2740 S-C = -9.0524 GWA = -100.4644
+GWBSE ERR ...   Level =    1 DFT = -10.2049 VXC = -1.6894 S-X = -2.6702 S-C = +0.6639 GWA = -10.5218
+GWBSE ERR ...   Level =    2 DFT = -10.2048 VXC = -1.6894 S-X = -2.6702 S-C = +0.6639 GWA = -10.5217
+GWBSE ERR ...   Level =    3 DFT = -10.1828 VXC = -1.6891 S-X = -2.6695 S-C = +0.6453 GWA = -10.5179
+GWBSE ERR ...   Level =    4 DFT = -10.1817 VXC = -1.6897 S-X = -2.6706 S-C = +0.6452 GWA = -10.5175
+GWBSE ERR ...   Level =    5 DFT = -7.9933 VXC = -1.3919 S-X = -2.5124 S-C = +0.3593 GWA = -8.7544
+GWBSE ERR ...   Level =    6 DFT = -5.9030 VXC = -1.4174 S-X = -2.1975 S-C = +0.4665 GWA = -6.2167
+GWBSE ERR ...   Level =    7 DFT = -5.8982 VXC = -1.4186 S-X = -2.2025 S-C = +0.4687 GWA = -6.2134
+GWBSE ERR ...   Level =    8 DFT = -5.8932 VXC = -1.4215 S-X = -2.2056 S-C = +0.4727 GWA = -6.2045
+GWBSE ERR ...   Level =    9 DFT = -0.9483 VXC = -0.0686 S-X = -0.7210 S-C = +0.3450 GWA = -1.2557
+GWBSE ERR ...   Level =   10 DFT = -0.7734 VXC = -0.0748 S-X = -0.6934 S-C = +0.2630 GWA = -1.1291
+GWBSE ERR ...   Level =   11 DFT = -0.7572 VXC = -0.0695 S-X = -0.6888 S-C = +0.2408 GWA = -1.1358
+GWBSE ERR ...   Level =   12 DFT = -0.5828 VXC = -0.0694 S-X = -0.6053 S-C = +0.1817 GWA = -0.9369
+GWBSE ERR ...   Level =   13 DFT = -0.5820 VXC = -0.0716 S-X = -0.6170 S-C = +0.2032 GWA = -0.9242
+GWBSE ERR ...   Level =   14 DFT = -0.5419 VXC = -0.0623 S-X = -0.5767 S-C = +0.1645 GWA = -0.8919
+GWBSE ERR ...   Level =   15 DFT = -0.4353 VXC = -0.0738 S-X = -0.5652 S-C = +0.1219 GWA = -0.8048
+GWBSE ERR ...   Level =   16 DFT = -0.4116 VXC = -0.0382 S-X = -0.5025 S-C = +0.1370 GWA = -0.7388
+GWBSE ERR ...   Level =   17 DFT = -0.4109 VXC = -0.0743 S-X = -0.5521 S-C = +0.1033 GWA = -0.7855
+GWBSE ERR ...   Level =   18 DFT = -0.4101 VXC = -0.0650 S-X = -0.5700 S-C = +0.1230 GWA = -0.7922
+GWBSE ERR ...   Level =   19 DFT = -0.3589 VXC = -0.0704 S-X = -0.5424 S-C = +0.0971 GWA = -0.7338
+GWBSE ERR ...   Level =   20 DFT = -0.2678 VXC = -0.0480 S-X = -0.4669 S-C = +0.0646 GWA = -0.6220
+GWBSE ERR ...   HOMO  =   21 DFT = -0.2511 VXC = -0.0333 S-X = -0.4597 S-C = +0.0638 GWA = -0.6137
+GWBSE ERR ...   LUMO  =   22 DFT = +0.0050 VXC = -0.0441 S-X = -0.2492 S-C = +0.0052 GWA = -0.1949
+GWBSE ERR ...   Level =   23 DFT = +0.0840 VXC = -0.0478 S-X = -0.1950 S-C = -0.0198 GWA = -0.0830
+GWBSE ERR ...   Level =   24 DFT = +0.0857 VXC = -0.0382 S-X = -0.2100 S-C = -0.0266 GWA = -0.1128
+GWBSE ERR ...   Level =   25 DFT = +0.1315 VXC = -0.0318 S-X = -0.1202 S-C = -0.0312 GWA = +0.0118
+GWBSE ERR ...   Level =   26 DFT = +0.1459 VXC = -0.0537 S-X = -0.1843 S-C = -0.0298 GWA = -0.0145
+GWBSE ERR ...   Level =   27 DFT = +0.1884 VXC = -0.0296 S-X = -0.1124 S-C = -0.0371 GWA = +0.0685
+GWBSE ERR ...   Level =   28 DFT = +0.2152 VXC = -0.0365 S-X = -0.1238 S-C = -0.0401 GWA = +0.0879
+GWBSE ERR ...   Level =   29 DFT = +0.2253 VXC = -0.0277 S-X = -0.1138 S-C = -0.0365 GWA = +0.1026
+GWBSE ERR ...   Level =   30 DFT = +0.3001 VXC = -0.0337 S-X = -0.1546 S-C = -0.0327 GWA = +0.1465
+GWBSE ERR ...   Level =   31 DFT = +0.3692 VXC = -0.0381 S-X = -0.1440 S-C = -0.0412 GWA = +0.2222
+GWBSE ERR ...   Level =   32 DFT = +0.4542 VXC = -0.0592 S-X = -0.1414 S-C = -0.0486 GWA = +0.3235
+GWBSE ERR ...   Level =   33 DFT = +0.4789 VXC = -0.0551 S-X = -0.1682 S-C = -0.0580 GWA = +0.3078
+GWBSE ERR ...   Level =   34 DFT = +0.5311 VXC = -0.0848 S-X = -0.1420 S-C = -0.0503 GWA = +0.4237
+GWBSE ERR ...   Level =   35 DFT = +0.5472 VXC = -0.1003 S-X = -0.1782 S-C = -0.0591 GWA = +0.4102
+GWBSE ERR ...   Level =   36 DFT = +0.5659 VXC = -0.1114 S-X = -0.1812 S-C = -0.0734 GWA = +0.4227
+GWBSE ERR ...   Level =   37 DFT = +0.6982 VXC = -0.0834 S-X = -0.1349 S-C = -0.0877 GWA = +0.5590
+GWBSE ERR ...   Level =   38 DFT = +0.7435 VXC = -0.1073 S-X = -0.1262 S-C = -0.0739 GWA = +0.6507
+GWBSE ERR ...   Level =   39 DFT = +0.7524 VXC = -0.0909 S-X = -0.1224 S-C = -0.1176 GWA = +0.6033
+GWBSE ERR ...   Level =   40 DFT = +0.7585 VXC = -0.1233 S-X = -0.1582 S-C = -0.1076 GWA = +0.6160
+GWBSE ERR ...   Level =   41 DFT = +0.7855 VXC = -0.0920 S-X = -0.1214 S-C = -0.1337 GWA = +0.6225
+GWBSE ERR ...   Level =   42 DFT = +0.8182 VXC = -0.1309 S-X = -0.1632 S-C = -0.1254 GWA = +0.6606
+GWBSE ERR ...   Level =   43 DFT = +0.8384 VXC = -0.0930 S-X = -0.1155 S-C = -0.1321 GWA = +0.6838
+GWBSE ERR ...   Level =   44 DFT = +0.8576 VXC = -0.0921 S-X = -0.1131 S-C = -0.1361 GWA = +0.7004
+GWBSE ERR ...   Level =   45 DFT = +1.0060 VXC = -0.1385 S-X = -0.1294 S-C = -0.1540 GWA = +0.8611
+GWBSE ERR ...   Level =   46 DFT = +1.0225 VXC = -0.1607 S-X = -0.1530 S-C = -0.1671 GWA = +0.8631
+GWBSE ERR ...   Level =   47 DFT = +1.0431 VXC = -0.1648 S-X = -0.1364 S-C = -0.1844 GWA = +0.8871
+GWBSE ERR ...   Level =   48 DFT = +1.0769 VXC = -0.1478 S-X = -0.1328 S-C = -0.1495 GWA = +0.9424
+GWBSE ERR ...   Level =   49 DFT = +1.0797 VXC = -0.1479 S-X = -0.1327 S-C = -0.1780 GWA = +0.9168
+GWBSE ERR ...   Level =   50 DFT = +1.2718 VXC = -0.0872 S-X = -0.0875 S-C = -0.1427 GWA = +1.1288
+GWBSE ERR ...   Level =   51 DFT = +1.3626 VXC = -0.0915 S-X = -0.0950 S-C = -0.0481 GWA = +1.3110
+GWBSE ERR ...   Level =   52 DFT = +1.4091 VXC = -0.1099 S-X = -0.0810 S-C = -0.1193 GWA = +1.3187
+GWBSE ERR ...   Level =   53 DFT = +1.4354 VXC = -0.0626 S-X = -0.1223 S-C = -0.0404 GWA = +1.3352
+GWBSE ERR ...   Level =   54 DFT = +1.6255 VXC = -0.0500 S-X = -0.1272 S-C = -0.1085 GWA = +1.4398
+GWBSE ERR ...   Level =   55 DFT = +1.8646 VXC = -0.0440 S-X = -0.1147 S-C = -0.0731 GWA = +1.7208
+GWBSE ERR ...   Level =   56 DFT = +1.9754 VXC = -0.0434 S-X = -0.1060 S-C = -0.0291 GWA = +1.8837
+GWBSE INF ... 2021-10-13 14:44:9 Calculating offdiagonal part of Sigma  
+GWBSE ERR ... 2021-10-13 14:44:9 Calculated offdiagonal part of Sigma  
+GWBSE ERR ... 2021-10-13 14:44:9 Full quasiparticle Hamiltonian  
+GWBSE ERR ...   ====== Diagonalized quasiparticle energies (Hartree) ====== 
+GWBSE ERR ...   Level =    0 PQP = -100.464449 DQP = -100.464492 
+GWBSE ERR ...   Level =    1 PQP = -10.521779 DQP = -10.521967 
+GWBSE ERR ...   Level =    2 PQP = -10.521741 DQP = -10.521900 
+GWBSE ERR ...   Level =    3 PQP = -10.517909 DQP = -10.518015 
+GWBSE ERR ...   Level =    4 PQP = -10.517499 DQP = -10.517725 
+GWBSE ERR ...   Level =    5 PQP = -8.754427 DQP = -8.755553 
+GWBSE ERR ...   Level =    6 PQP = -6.216657 DQP = -6.219502 
+GWBSE ERR ...   Level =    7 PQP = -6.213373 DQP = -6.216143 
+GWBSE ERR ...   Level =    8 PQP = -6.204548 DQP = -6.207127 
+GWBSE ERR ...   Level =    9 PQP = -1.255718 DQP = -1.442194 
+GWBSE ERR ...   Level =   10 PQP = -1.129059 DQP = -1.148026 
+GWBSE ERR ...   Level =   11 PQP = -1.135843 DQP = -1.137343 
+GWBSE ERR ...   Level =   12 PQP = -0.936947 DQP = -0.941240 
+GWBSE ERR ...   Level =   13 PQP = -0.924214 DQP = -0.915132 
+GWBSE ERR ...   Level =   14 PQP = -0.891917 DQP = -0.805439 
+GWBSE ERR ...   Level =   15 PQP = -0.804814 DQP = -0.803444 
+GWBSE ERR ...   Level =   16 PQP = -0.738830 DQP = -0.788236 
+GWBSE ERR ...   Level =   17 PQP = -0.785500 DQP = -0.765583 
+GWBSE ERR ...   Level =   18 PQP = -0.792174 DQP = -0.742227 
+GWBSE ERR ...   Level =   19 PQP = -0.733809 DQP = -0.717530 
+GWBSE ERR ...   Level =   20 PQP = -0.622041 DQP = -0.625906 
+GWBSE ERR ...   HOMO  =   21 PQP = -0.613731 DQP = -0.620392 
+GWBSE ERR ...   LUMO  =   22 PQP = -0.194910 DQP = -0.202709 
+GWBSE ERR ...   Level =   23 PQP = -0.082954 DQP = -0.124209 
+GWBSE ERR ...   Level =   24 PQP = -0.112751 DQP = -0.097424 
+GWBSE ERR ...   Level =   25 PQP = +0.011786 DQP = -0.033034 
+GWBSE ERR ...   Level =   26 PQP = -0.014539 DQP = +0.012647 
+GWBSE ERR ...   Level =   27 PQP = +0.068522 DQP = +0.053421 
+GWBSE ERR ...   Level =   28 PQP = +0.087854 DQP = +0.083406 
+GWBSE ERR ...   Level =   29 PQP = +0.102641 DQP = +0.092343 
+GWBSE ERR ...   Level =   30 PQP = +0.146461 DQP = +0.149764 
+GWBSE ERR ...   Level =   31 PQP = +0.222185 DQP = +0.212705 
+GWBSE ERR ...   Level =   32 PQP = +0.323469 DQP = +0.286457 
+GWBSE ERR ...   Level =   33 PQP = +0.307754 DQP = +0.325583 
+GWBSE ERR ...   Level =   34 PQP = +0.423663 DQP = +0.416581 
+GWBSE ERR ...   Level =   35 PQP = +0.410228 DQP = +0.427923 
+GWBSE ERR ...   Level =   36 PQP = +0.422670 DQP = +0.428073 
+GWBSE ERR ...   Level =   37 PQP = +0.559002 DQP = +0.553374 
+GWBSE ERR ...   Level =   38 PQP = +0.650715 DQP = +0.608475 
+GWBSE ERR ...   Level =   39 PQP = +0.603293 DQP = +0.613619 
+GWBSE ERR ...   Level =   40 PQP = +0.616001 DQP = +0.629020 
+GWBSE ERR ...   Level =   41 PQP = +0.622459 DQP = +0.643312 
+GWBSE ERR ...   Level =   42 PQP = +0.660578 DQP = +0.666280 
+GWBSE ERR ...   Level =   43 PQP = +0.683765 DQP = +0.691846 
+GWBSE ERR ...   Level =   44 PQP = +0.700376 DQP = +0.711924 
+GWBSE ERR ...   Level =   45 PQP = +0.861062 DQP = +0.847187 
+GWBSE ERR ...   Level =   46 PQP = +0.863093 DQP = +0.879668 
+GWBSE ERR ...   Level =   47 PQP = +0.887097 DQP = +0.904442 
+GWBSE ERR ...   Level =   48 PQP = +0.942397 DQP = +0.949059 
+GWBSE ERR ...   Level =   49 PQP = +0.916810 DQP = +0.962626 
+GWBSE ERR ...   Level =   50 PQP = +1.128781 DQP = +1.137479 
+GWBSE ERR ...   Level =   51 PQP = +1.311010 DQP = +1.316827 
+GWBSE ERR ...   Level =   52 PQP = +1.318717 DQP = +1.319826 
+GWBSE ERR ...   Level =   53 PQP = +1.335245 DQP = +1.352421 
+GWBSE ERR ...   Level =   54 PQP = +1.439751 DQP = +1.468458 
+GWBSE ERR ...   Level =   55 PQP = +1.720767 DQP = +1.739437 
+GWBSE ERR ...   Level =   56 PQP = +1.883654 DQP = +1.897987 
+GWBSE ERR ... 2021-10-13 14:44:9 Diagonalized QP Hamiltonian  
+GWBSE ERR ... 2021-10-13 14:44:9 GW calculation took 0.91449 seconds.
+GWBSE ERR ... 2021-10-13 14:44:9 Setup Full triplet hamiltonian 
+GWBSE ERR ... 2021-10-13 14:44:9 Davidson Solver using 4 threads.
+GWBSE ERR ... 2021-10-13 14:44:9 Tolerance : 0.0001
+GWBSE ERR ... 2021-10-13 14:44:9 DPR Correction
+GWBSE ERR ... 2021-10-13 14:44:9 Matrix size : 1540x1540
+GWBSE ERR ... 2021-10-13 14:44:9 iter	Search Space	Norm
+GWBSE ERR ... 2021-10-13 14:44:9    0           20 	 7.21e-02 	  0.00% converged
+GWBSE ERR ... 2021-10-13 14:44:9    1           35 	 1.70e-02 	  0.00% converged
+GWBSE ERR ... 2021-10-13 14:44:9    2           50 	 2.18e-03 	  0.00% converged
+GWBSE ERR ... 2021-10-13 14:44:9    3           65 	 3.01e-04 	 20.00% converged
+GWBSE ERR ... 2021-10-13 14:44:9    4           78 	 3.90e-05 	 100.00% converged
+GWBSE ERR ... 2021-10-13 14:44:9 Davidson converged after 4 iterations.
+GWBSE ERR ... 2021-10-13 14:44:9-----------------------------------
+GWBSE ERR ... 2021-10-13 14:44:9- Davidson ran for 0.18785secs.
+GWBSE ERR ... 2021-10-13 14:44:9-----------------------------------
+GWBSE INF ... 2021-10-13 14:44:9 Diagonalization done in 0.18816 secs
+GWBSE ERR ... 2021-10-13 14:44:9 Solved BSE for triplets 
+GWBSE ERR ...   ====== triplet energies (eV) ====== 
+GWBSE ERR ...   T =    1 Omega = +3.697949317162 eV  lamdba = +335.32 nm <FT> = +12.3537 <K_d> = -8.6558
+GWBSE ERR ...            HOMO-0   -> LUMO+0    : 94.8%
+GWBSE ERR ...    
+GWBSE ERR ...   T =    2 Omega = +4.516770315315 eV  lamdba = +274.53 nm <FT> = +11.8890 <K_d> = -7.3722
+GWBSE ERR ...            HOMO-1   -> LUMO+0    : 96.0%
+GWBSE ERR ...    
+GWBSE ERR ...   T =    3 Omega = +6.003203563110 eV  lamdba = +206.56 nm <FT> = +14.1483 <K_d> = -8.1452
+GWBSE ERR ...            HOMO-0   -> LUMO+2    : 76.8%
+GWBSE ERR ...    
+GWBSE ERR ...   T =    4 Omega = +6.611432460644 eV  lamdba = +187.55 nm <FT> = +14.1292 <K_d> = -7.5178
+GWBSE ERR ...            HOMO-1   -> LUMO+2    : 92.8%
+GWBSE ERR ...    
+GWBSE ERR ...   T =    5 Omega = +7.807422776850 eV  lamdba = +158.82 nm <FT> = +14.7231 <K_d> = -6.9157
+GWBSE ERR ...            HOMO-2   -> LUMO+0    : 66.4%
+GWBSE ERR ...    
+GWBSE ERR ...   T =    6 Omega = +7.893949988659 eV  lamdba = +157.08 nm <FT> = +14.6468 <K_d> = -6.7529
+GWBSE ERR ...            HOMO-5   -> LUMO+0    : 79.5%
+GWBSE ERR ...    
+GWBSE ERR ...   T =    7 Omega = +7.929842906795 eV  lamdba = +156.37 nm <FT> = +14.8702 <K_d> = -6.9403
+GWBSE ERR ...            HOMO-1   -> LUMO+1    : 95.1%
+GWBSE ERR ...    
+GWBSE ERR ...   T =    8 Omega = +7.964174279938 eV  lamdba = +155.70 nm <FT> = +14.6325 <K_d> = -6.6683
+GWBSE ERR ...            HOMO-0   -> LUMO+1    : 66.6%
+GWBSE ERR ...    
+GWBSE ERR ...   T =    9 Omega = +9.215572932863 eV  lamdba = +134.55 nm <FT> = +16.2849 <K_d> = -7.0693
+GWBSE ERR ...            HOMO-4   -> LUMO+0    : 85.0%
+GWBSE ERR ...    
+GWBSE ERR ...   T =   10 Omega = +9.384801119824 eV  lamdba = +132.13 nm <FT> = +16.3794 <K_d> = -6.9946
+GWBSE ERR ...            HOMO-3   -> LUMO+0    : 96.3%
+GWBSE ERR ...    
+GWBSE ERR ... 2021-10-13 14:44:9 Setup Full singlet hamiltonian 
+GWBSE ERR ... 2021-10-13 14:44:9 Davidson Solver using 4 threads.
+GWBSE ERR ... 2021-10-13 14:44:9 Tolerance : 0.0001
+GWBSE ERR ... 2021-10-13 14:44:9 DPR Correction
+GWBSE ERR ... 2021-10-13 14:44:9 Matrix size : 1540x1540
+GWBSE ERR ... 2021-10-13 14:44:9 iter	Search Space	Norm
+GWBSE ERR ... 2021-10-13 14:44:9    0           20 	 3.22e-01 	  0.00% converged
+GWBSE ERR ... 2021-10-13 14:44:9    1           35 	 3.93e-02 	  0.00% converged
+GWBSE ERR ... 2021-10-13 14:44:9    2           50 	 8.65e-03 	  0.00% converged
+GWBSE ERR ... 2021-10-13 14:44:9    3           65 	 1.19e-03 	 40.00% converged
+GWBSE WAR ... 2021-10-13 14:44:9 Found 1 complex pairs in eigenvalue problem
+GWBSE ERR ... 2021-10-13 14:44:9    4           73 	 8.45e-05 	 100.00% converged
+GWBSE ERR ... 2021-10-13 14:44:9 Davidson converged after 4 iterations.
+GWBSE ERR ... 2021-10-13 14:44:9-----------------------------------
+GWBSE ERR ... 2021-10-13 14:44:9- Davidson ran for 0.24862secs.
+GWBSE ERR ... 2021-10-13 14:44:9-----------------------------------
+GWBSE INF ... 2021-10-13 14:44:9 Diagonalization done in 0.24904 secs
+GWBSE ERR ... 2021-10-13 14:44:9 Solved BSE for singlets 
+GWBSE ERR ...   ====== singlet energies (eV) ====== 
+GWBSE ERR ...   S =    1 Omega = +6.118997263775 eV  lamdba = +202.65 nm <FT> = +12.3198 <K_x> = +0.6467 <K_d> = -6.8476
+GWBSE ERR ...            TrDipole length gauge[e*bohr]  dx = -0.7565 dy = +0.1728 dz = -0.3172 |d|^2 = +0.7027 f = +0.1053
+GWBSE ERR ...            HOMO-1   -> LUMO+0    : 87.1%
+GWBSE ERR ... 
+GWBSE ERR ...   S =    2 Omega = +6.390938375738 eV  lamdba = +194.02 nm <FT> = +12.5671 <K_x> = +1.1668 <K_d> = -7.3431
+GWBSE ERR ...            TrDipole length gauge[e*bohr]  dx = -0.0031 dy = -0.7416 dz = -0.3969 |d|^2 = +0.7075 f = +0.1108
+GWBSE ERR ...            HOMO-0   -> LUMO+0    : 95.6%
+GWBSE ERR ... 
+GWBSE ERR ...   S =    3 Omega = +8.310984565188 eV  lamdba = +149.20 nm <FT> = +14.4771 <K_x> = +0.7455 <K_d> = -6.9117
+GWBSE ERR ...            TrDipole length gauge[e*bohr]  dx = +0.9204 dy = -0.2344 dz = +0.4317 |d|^2 = +1.0885 f = +0.2216
+GWBSE ERR ...            HOMO-0   -> LUMO+2    : 57.9%
+GWBSE ERR ... 
+GWBSE ERR ...   S =    4 Omega = +8.335784935790 eV  lamdba = +148.76 nm <FT> = +14.6074 <K_x> = +0.3641 <K_d> = -6.6357
+GWBSE ERR ...            TrDipole length gauge[e*bohr]  dx = -0.4358 dy = +0.0285 dz = -0.0515 |d|^2 = +0.1934 f = +0.0395
+GWBSE ERR ...            HOMO-0   -> LUMO+1    : 54.5%
+GWBSE ERR ... 
+GWBSE ERR ...   S =    5 Omega = +8.373644726560 eV  lamdba = +148.08 nm <FT> = +14.7504 <K_x> = +0.3829 <K_d> = -6.7596
+GWBSE ERR ...            TrDipole length gauge[e*bohr]  dx = -0.0062 dy = +0.0449 dz = +0.0208 |d|^2 = +0.0025 f = +0.0005
+GWBSE ERR ...            HOMO-1   -> LUMO+1    : 98.1%
+GWBSE ERR ... 
+GWBSE ERR ...   S =    6 Omega = +8.509021676868 eV  lamdba = +145.73 nm <FT> = +14.7110 <K_x> = +0.5531 <K_d> = -6.7551
+GWBSE ERR ...            TrDipole length gauge[e*bohr]  dx = +0.0625 dy = +0.0972 dz = -0.1804 |d|^2 = +0.0459 f = +0.0096
+GWBSE ERR ...            HOMO-2   -> LUMO+0    : 63.2%
+GWBSE ERR ... 
+GWBSE ERR ...   S =    7 Omega = +8.590181819747 eV  lamdba = +144.35 nm <FT> = +14.5438 <K_x> = +0.9049 <K_d> = -6.8586
+GWBSE ERR ...            TrDipole length gauge[e*bohr]  dx = +0.0022 dy = +0.7081 dz = +0.3796 |d|^2 = +0.6455 f = +0.1359
+GWBSE ERR ...            HOMO-1   -> LUMO+2    : 93.3%
+GWBSE ERR ... 
+GWBSE ERR ...   S =    8 Omega = +9.390457211852 eV  lamdba = +132.05 nm <FT> = +15.6470 <K_x> = +1.4922 <K_d> = -7.7488
+GWBSE ERR ...            TrDipole length gauge[e*bohr]  dx = -0.5932 dy = +0.1376 dz = -0.2529 |d|^2 = +0.4348 f = +0.1000
+GWBSE ERR ...            HOMO-5   -> LUMO+0    : 75.4%
+GWBSE ERR ... 
+GWBSE ERR ...   S =    9 Omega = +9.620953395105 eV  lamdba = +128.89 nm <FT> = +16.2329 <K_x> = +0.3039 <K_d> = -6.9158
+GWBSE ERR ...            TrDipole length gauge[e*bohr]  dx = +0.0405 dy = -0.0112 dz = +0.0168 |d|^2 = +0.0020 f = +0.0005
+GWBSE ERR ...            HOMO-4   -> LUMO+0    : 91.6%
+GWBSE ERR ... 
+GWBSE ERR ...   S =   10 Omega = +9.747689725784 eV  lamdba = +127.21 nm <FT> = +16.3535 <K_x> = +0.3173 <K_d> = -6.9231
+GWBSE ERR ...            TrDipole length gauge[e*bohr]  dx = -0.0676 dy = -0.0473 dz = +0.0890 |d|^2 = +0.0147 f = +0.0035
+GWBSE ERR ...            HOMO-3   -> LUMO+0    : 98.0%
+GWBSE ERR ... 
+GWBSE ERR ... 2021-10-13 14:44:9 BSE calculation took 0.53067 seconds.
+GWBSE ERR ... 2021-10-13 14:44:9 GWBSE calculation finished 

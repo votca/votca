@@ -1,0 +1,8762 @@
+<jobs>
+	<job>
+		<id>0</id>
+		<tag></tag>
+		<input>
+			<segment id="0" type="thiophene">0</segment>
+		</input>
+		<status>COMPLETE</status>
+		<host>pop-os:148717</host>
+		<time>14:44:10</time>
+		<output>
+			<segment id="0" type="thiophene">
+				<GWBSE DFTEnergy="-14972.989622 " units="eV">
+					<dft HOMO="21" LUMO="22">
+						<level number="0">
+							<dft_energy>-2421.094914 </dft_energy>
+							<gw_energy>-2733.776914 </gw_energy>
+							<qp_energy>-2733.778083 </qp_energy>
+						</level>
+						<level number="1">
+							<dft_energy>-277.689362 </dft_energy>
+							<gw_energy>-286.312192 </gw_energy>
+							<qp_energy>-286.317306 </qp_energy>
+						</level>
+						<level number="2">
+							<dft_energy>-277.686260 </dft_energy>
+							<gw_energy>-286.311153 </gw_energy>
+							<qp_energy>-286.315475 </qp_energy>
+						</level>
+						<level number="3">
+							<dft_energy>-277.088424 </dft_energy>
+							<gw_energy>-286.206880 </gw_energy>
+							<qp_energy>-286.209772 </qp_energy>
+						</level>
+						<level number="4">
+							<dft_energy>-277.057202 </dft_energy>
+							<gw_energy>-286.195730 </gw_energy>
+							<qp_energy>-286.201880 </qp_energy>
+						</level>
+						<level number="5">
+							<dft_energy>-217.508918 </dft_energy>
+							<gw_energy>-238.220079 </gw_energy>
+							<qp_energy>-238.250736 </qp_energy>
+						</level>
+						<level number="6">
+							<dft_energy>-160.629038 </dft_energy>
+							<gw_energy>-169.163845 </gw_energy>
+							<qp_energy>-169.241260 </qp_energy>
+						</level>
+						<level number="7">
+							<dft_energy>-160.497156 </dft_energy>
+							<gw_energy>-169.074479 </gw_energy>
+							<qp_energy>-169.149867 </qp_energy>
+						</level>
+						<level number="8">
+							<dft_energy>-160.361937 </dft_energy>
+							<gw_energy>-168.834357 </gw_energy>
+							<qp_energy>-168.904541 </qp_energy>
+						</level>
+						<level number="9">
+							<dft_energy>-25.803905 </dft_energy>
+							<gw_energy>-34.169825 </gw_energy>
+							<qp_energy>-39.244094 </qp_energy>
+						</level>
+						<level number="10">
+							<dft_energy>-21.045797 </dft_energy>
+							<gw_energy>-30.723250 </gw_energy>
+							<qp_energy>-31.239392 </qp_energy>
+						</level>
+						<level number="11">
+							<dft_energy>-20.605255 </dft_energy>
+							<gw_energy>-30.907857 </gw_energy>
+							<qp_energy>-30.948690 </qp_energy>
+						</level>
+						<level number="12">
+							<dft_energy>-15.857454 </dft_energy>
+							<gw_energy>-25.495629 </gw_energy>
+							<qp_energy>-25.612439 </qp_energy>
+						</level>
+						<level number="13">
+							<dft_energy>-15.836759 </dft_energy>
+							<gw_energy>-25.149155 </gw_energy>
+							<qp_energy>-24.902016 </qp_energy>
+						</level>
+						<level number="14">
+							<dft_energy>-14.745874 </dft_energy>
+							<gw_energy>-24.270294 </gw_energy>
+							<qp_energy>-21.917124 </qp_energy>
+						</level>
+						<level number="15">
+							<dft_energy>-11.846130 </dft_energy>
+							<gw_energy>-21.900106 </gw_energy>
+							<qp_energy>-21.862814 </qp_energy>
+						</level>
+						<level number="16">
+							<dft_energy>-11.199877 </dft_energy>
+							<gw_energy>-20.104599 </gw_energy>
+							<qp_energy>-21.449004 </qp_energy>
+						</level>
+						<level number="17">
+							<dft_energy>-11.182328 </dft_energy>
+							<gw_energy>-21.374540 </gw_energy>
+							<qp_energy>-20.832584 </qp_energy>
+						</level>
+						<level number="18">
+							<dft_energy>-11.160040 </dft_energy>
+							<gw_energy>-21.556152 </gw_energy>
+							<qp_energy>-20.197028 </qp_energy>
+						</level>
+						<level number="19">
+							<dft_energy>-9.766582 </dft_energy>
+							<gw_energy>-19.967966 </gw_energy>
+							<qp_energy>-19.524983 </qp_energy>
+						</level>
+						<level number="20">
+							<dft_energy>-7.286789 </dft_energy>
+							<gw_energy>-16.926594 </gw_energy>
+							<qp_energy>-17.031778 </qp_energy>
+						</level>
+						<level number="21">
+							<dft_energy>-6.833818 </dft_energy>
+							<gw_energy>-16.700481 </gw_energy>
+							<qp_energy>-16.881737 </qp_energy>
+						</level>
+						<level number="22">
+							<dft_energy>+0.136520 </dft_energy>
+							<gw_energy>-5.303784 </gw_energy>
+							<qp_energy>-5.516003 </qp_energy>
+						</level>
+						<level number="23">
+							<dft_energy>+2.287059 </dft_energy>
+							<gw_energy>-2.257284 </gw_energy>
+							<qp_energy>-3.379907 </qp_energy>
+						</level>
+						<level number="24">
+							<dft_energy>+2.331403 </dft_energy>
+							<gw_energy>-3.068123 </gw_energy>
+							<qp_energy>-2.651041 </qp_energy>
+						</level>
+						<level number="25">
+							<dft_energy>+3.577865 </dft_energy>
+							<gw_energy>+0.320724 </gw_energy>
+							<qp_energy>-0.898893 </qp_energy>
+						</level>
+						<level number="26">
+							<dft_energy>+3.970620 </dft_energy>
+							<gw_energy>-0.395613 </gw_energy>
+							<qp_energy>+0.344140 </qp_energy>
+						</level>
+						<level number="27">
+							<dft_energy>+5.127979 </dft_energy>
+							<gw_energy>+1.864590 </gw_energy>
+							<qp_energy>+1.453668 </qp_energy>
+						</level>
+						<level number="28">
+							<dft_energy>+5.856434 </dft_energy>
+							<gw_energy>+2.390642 </gw_energy>
+							<qp_energy>+2.269597 </qp_energy>
+						</level>
+						<level number="29">
+							<dft_energy>+6.129448 </dft_energy>
+							<gw_energy>+2.792996 </gw_energy>
+							<qp_energy>+2.512776 </qp_energy>
+						</level>
+						<level number="30">
+							<dft_energy>+8.165796 </dft_energy>
+							<gw_energy>+3.985400 </gw_energy>
+							<qp_energy>+4.075292 </qp_energy>
+						</level>
+						<level number="31">
+							<dft_energy>+10.046419 </dft_energy>
+							<gw_energy>+6.045967 </gw_energy>
+							<qp_energy>+5.788009 </qp_energy>
+						</level>
+						<level number="32">
+							<dft_energy>+12.359739 </dft_energy>
+							<gw_energy>+8.802053 </gw_energy>
+							<qp_energy>+7.794896 </qp_energy>
+						</level>
+						<level number="33">
+							<dft_energy>+13.031213 </dft_energy>
+							<gw_energy>+8.374407 </gw_energy>
+							<qp_energy>+8.859563 </qp_energy>
+						</level>
+						<level number="34">
+							<dft_energy>+14.453229 </dft_energy>
+							<gw_energy>+11.528461 </gw_energy>
+							<qp_energy>+11.335737 </qp_energy>
+						</level>
+						<level number="35">
+							<dft_energy>+14.890506 </dft_energy>
+							<gw_energy>+11.162878 </gw_energy>
+							<qp_energy>+11.644376 </qp_energy>
+						</level>
+						<level number="36">
+							<dft_energy>+15.397791 </dft_energy>
+							<gw_energy>+11.501441 </gw_energy>
+							<qp_energy>+11.648469 </qp_energy>
+						</level>
+						<level number="37">
+							<dft_energy>+18.998623 </dft_energy>
+							<gw_energy>+15.211219 </gw_energy>
+							<qp_energy>+15.058082 </qp_energy>
+						</level>
+						<level number="38">
+							<dft_energy>+20.232675 </dft_energy>
+							<gw_energy>+17.706857 </gw_energy>
+							<qp_energy>+16.557437 </qp_energy>
+						</level>
+						<level number="39">
+							<dft_energy>+20.473379 </dft_energy>
+							<gw_energy>+16.416441 </gw_energy>
+							<qp_energy>+16.697426 </qp_energy>
+						</level>
+						<level number="40">
+							<dft_energy>+20.639950 </dft_energy>
+							<gw_energy>+16.762240 </gw_energy>
+							<qp_energy>+17.116507 </qp_energy>
+						</level>
+						<level number="41">
+							<dft_energy>+21.373567 </dft_energy>
+							<gw_energy>+16.937985 </gw_energy>
+							<qp_energy>+17.505410 </qp_energy>
+						</level>
+						<level number="42">
+							<dft_energy>+22.264063 </dft_energy>
+							<gw_energy>+17.975239 </gw_energy>
+							<qp_energy>+18.130394 </qp_energy>
+						</level>
+						<level number="43">
+							<dft_energy>+22.812878 </dft_energy>
+							<gw_energy>+18.606196 </gw_energy>
+							<qp_energy>+18.826083 </qp_energy>
+						</level>
+						<level number="44">
+							<dft_energy>+23.336539 </dft_energy>
+							<gw_energy>+19.058196 </gw_energy>
+							<qp_energy>+19.372429 </qp_energy>
+						</level>
+						<level number="45">
+							<dft_energy>+27.373630 </dft_energy>
+							<gw_energy>+23.430697 </gw_energy>
+							<qp_energy>+23.053140 </qp_energy>
+						</level>
+						<level number="46">
+							<dft_energy>+27.822579 </dft_energy>
+							<gw_energy>+23.485953 </gw_energy>
+							<qp_energy>+23.936999 </qp_energy>
+						</level>
+						<level number="47">
+							<dft_energy>+28.383678 </dft_energy>
+							<gw_energy>+24.139143 </gw_energy>
+							<qp_energy>+24.611125 </qp_energy>
+						</level>
+						<level number="48">
+							<dft_energy>+29.302749 </dft_energy>
+							<gw_energy>+25.643930 </gw_energy>
+							<qp_energy>+25.825198 </qp_energy>
+						</level>
+						<level number="49">
+							<dft_energy>+29.379336 </dft_energy>
+							<gw_energy>+24.947665 </gw_energy>
+							<qp_energy>+26.194384 </qp_energy>
+						</level>
+						<level number="50">
+							<dft_energy>+34.607389 </dft_energy>
+							<gw_energy>+30.715708 </gw_energy>
+							<qp_energy>+30.952385 </qp_energy>
+						</level>
+						<level number="51">
+							<dft_energy>+37.078461 </dft_energy>
+							<gw_energy>+35.674389 </gw_energy>
+							<qp_energy>+35.832698 </qp_energy>
+						</level>
+						<level number="52">
+							<dft_energy>+38.344025 </dft_energy>
+							<gw_energy>+35.884129 </gw_energy>
+							<qp_energy>+35.914284 </qp_energy>
+						</level>
+						<level number="53">
+							<dft_energy>+39.058827 </dft_energy>
+							<gw_energy>+36.333865 </gw_energy>
+							<qp_energy>+36.801237 </qp_energy>
+						</level>
+						<level number="54">
+							<dft_energy>+44.233404 </dft_energy>
+							<gw_energy>+39.177622 </gw_energy>
+							<qp_energy>+39.958777 </qp_energy>
+						</level>
+						<level number="55">
+							<dft_energy>+50.737585 </dft_energy>
+							<gw_energy>+46.824446 </gw_energy>
+							<qp_energy>+47.332500 </qp_energy>
+						</level>
+						<level number="56">
+							<dft_energy>+53.752424 </dft_energy>
+							<gw_energy>+51.256843 </gw_energy>
+							<qp_energy>+51.646870 </qp_energy>
+						</level>
+					</dft>
+					<singlets>
+						<level number="1">
+							<omega>+6.118997 </omega>
+							<f>+0.105339 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.7565 +0.1728 -0.3172</Trdipole>
+						</level>
+						<level number="2">
+							<omega>+6.390938 </omega>
+							<f>+0.110784 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.0031 -0.7416 -0.3969</Trdipole>
+						</level>
+						<level number="3">
+							<omega>+8.310985 </omega>
+							<f>+0.221641 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.9204 -0.2344 +0.4317</Trdipole>
+						</level>
+						<level number="4">
+							<omega>+8.335785 </omega>
+							<f>+0.039499 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.4358 +0.0285 -0.0515</Trdipole>
+						</level>
+						<level number="5">
+							<omega>+8.373645 </omega>
+							<f>+0.000511 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.0062 +0.0449 +0.0208</Trdipole>
+						</level>
+						<level number="6">
+							<omega>+8.509022 </omega>
+							<f>+0.009571 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.0625 +0.0972 -0.1804</Trdipole>
+						</level>
+						<level number="7">
+							<omega>+8.590182 </omega>
+							<f>+0.135856 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.0022 +0.7081 +0.3796</Trdipole>
+						</level>
+						<level number="8">
+							<omega>+9.390457 </omega>
+							<f>+0.100022 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.5932 +0.1376 -0.2529</Trdipole>
+						</level>
+						<level number="9">
+							<omega>+9.620953 </omega>
+							<f>+0.000482 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.0405 -0.0112 +0.0168</Trdipole>
+						</level>
+						<level number="10">
+							<omega>+9.747690 </omega>
+							<f>+0.003520 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.0676 -0.0473 +0.0890</Trdipole>
+						</level>
+					</singlets>
+					<triplets>
+						<level number="1">
+							<omega>+3.697949 </omega>
+						</level>
+						<level number="2">
+							<omega>+4.516770 </omega>
+						</level>
+						<level number="3">
+							<omega>+6.003204 </omega>
+						</level>
+						<level number="4">
+							<omega>+6.611432 </omega>
+						</level>
+						<level number="5">
+							<omega>+7.807423 </omega>
+						</level>
+						<level number="6">
+							<omega>+7.893950 </omega>
+						</level>
+						<level number="7">
+							<omega>+7.929843 </omega>
+						</level>
+						<level number="8">
+							<omega>+7.964174 </omega>
+						</level>
+						<level number="9">
+							<omega>+9.215573 </omega>
+						</level>
+						<level number="10">
+							<omega>+9.384801 </omega>
+						</level>
+					</triplets>
+				</GWBSE>
+				<partialcharges>MP_FILES/frame_10000/n2s1/thiophene_0_n2s1.mps</partialcharges>
+			</segment>
+		</output>
+	</job>
+	<job>
+		<id>1</id>
+		<tag></tag>
+		<input>
+			<segment id="1" type="thiophene">1</segment>
+		</input>
+		<status>COMPLETE</status>
+		<host>pop-os:148717</host>
+		<time>14:44:16</time>
+		<output>
+			<segment id="1" type="thiophene">
+				<GWBSE DFTEnergy="-14972.989698 " units="eV">
+					<dft HOMO="21" LUMO="22">
+						<level number="0">
+							<dft_energy>-2421.094924 </dft_energy>
+							<gw_energy>-2733.776358 </gw_energy>
+							<qp_energy>-2733.777528 </qp_energy>
+						</level>
+						<level number="1">
+							<dft_energy>-277.689372 </dft_energy>
+							<gw_energy>-286.312207 </gw_energy>
+							<qp_energy>-286.317318 </qp_energy>
+						</level>
+						<level number="2">
+							<dft_energy>-277.686268 </dft_energy>
+							<gw_energy>-286.311163 </gw_energy>
+							<qp_energy>-286.315482 </qp_energy>
+						</level>
+						<level number="3">
+							<dft_energy>-277.088427 </dft_energy>
+							<gw_energy>-286.206883 </gw_energy>
+							<qp_energy>-286.209776 </qp_energy>
+						</level>
+						<level number="4">
+							<dft_energy>-277.057204 </dft_energy>
+							<gw_energy>-286.195733 </gw_energy>
+							<qp_energy>-286.201885 </qp_energy>
+						</level>
+						<level number="5">
+							<dft_energy>-217.508926 </dft_energy>
+							<gw_energy>-238.219622 </gw_energy>
+							<qp_energy>-238.250273 </qp_energy>
+						</level>
+						<level number="6">
+							<dft_energy>-160.629043 </dft_energy>
+							<gw_energy>-169.163851 </gw_energy>
+							<qp_energy>-169.241267 </qp_energy>
+						</level>
+						<level number="7">
+							<dft_energy>-160.497166 </dft_energy>
+							<gw_energy>-169.074489 </gw_energy>
+							<qp_energy>-169.149885 </qp_energy>
+						</level>
+						<level number="8">
+							<dft_energy>-160.361946 </dft_energy>
+							<gw_energy>-168.834366 </gw_energy>
+							<qp_energy>-168.904550 </qp_energy>
+						</level>
+						<level number="9">
+							<dft_energy>-25.803919 </dft_energy>
+							<gw_energy>-34.168780 </gw_energy>
+							<qp_energy>-39.238877 </qp_energy>
+						</level>
+						<level number="10">
+							<dft_energy>-21.045794 </dft_energy>
+							<gw_energy>-30.722809 </gw_energy>
+							<qp_energy>-31.239516 </qp_energy>
+						</level>
+						<level number="11">
+							<dft_energy>-20.605255 </dft_energy>
+							<gw_energy>-30.907899 </gw_energy>
+							<qp_energy>-30.948745 </qp_energy>
+						</level>
+						<level number="12">
+							<dft_energy>-15.857457 </dft_energy>
+							<gw_energy>-25.495634 </gw_energy>
+							<qp_energy>-25.612452 </qp_energy>
+						</level>
+						<level number="13">
+							<dft_energy>-15.836760 </dft_energy>
+							<gw_energy>-25.149157 </gw_energy>
+							<qp_energy>-24.901565 </qp_energy>
+						</level>
+						<level number="14">
+							<dft_energy>-14.745876 </dft_energy>
+							<gw_energy>-24.270298 </gw_energy>
+							<qp_energy>-21.917149 </qp_energy>
+						</level>
+						<level number="15">
+							<dft_energy>-11.846132 </dft_energy>
+							<gw_energy>-21.900109 </gw_energy>
+							<qp_energy>-21.869629 </qp_energy>
+						</level>
+						<level number="16">
+							<dft_energy>-11.199903 </dft_energy>
+							<gw_energy>-20.104619 </gw_energy>
+							<qp_energy>-21.449059 </qp_energy>
+						</level>
+						<level number="17">
+							<dft_energy>-11.182332 </dft_energy>
+							<gw_energy>-21.374539 </gw_energy>
+							<qp_energy>-20.831912 </qp_energy>
+						</level>
+						<level number="18">
+							<dft_energy>-11.160042 </dft_energy>
+							<gw_energy>-21.556153 </gw_energy>
+							<qp_energy>-20.197042 </qp_energy>
+						</level>
+						<level number="19">
+							<dft_energy>-9.766587 </dft_energy>
+							<gw_energy>-19.967973 </gw_energy>
+							<qp_energy>-19.525896 </qp_energy>
+						</level>
+						<level number="20">
+							<dft_energy>-7.286787 </dft_energy>
+							<gw_energy>-16.926594 </gw_energy>
+							<qp_energy>-17.031778 </qp_energy>
+						</level>
+						<level number="21">
+							<dft_energy>-6.833816 </dft_energy>
+							<gw_energy>-16.700481 </gw_energy>
+							<qp_energy>-16.881737 </qp_energy>
+						</level>
+						<level number="22">
+							<dft_energy>+0.136523 </dft_energy>
+							<gw_energy>-5.303782 </gw_energy>
+							<qp_energy>-5.516002 </qp_energy>
+						</level>
+						<level number="23">
+							<dft_energy>+2.287058 </dft_energy>
+							<gw_energy>-2.257285 </gw_energy>
+							<qp_energy>-3.379908 </qp_energy>
+						</level>
+						<level number="24">
+							<dft_energy>+2.331402 </dft_energy>
+							<gw_energy>-3.068124 </gw_energy>
+							<qp_energy>-2.651068 </qp_energy>
+						</level>
+						<level number="25">
+							<dft_energy>+3.577855 </dft_energy>
+							<gw_energy>+0.320698 </gw_energy>
+							<qp_energy>-0.897013 </qp_energy>
+						</level>
+						<level number="26">
+							<dft_energy>+3.970632 </dft_energy>
+							<gw_energy>-0.395587 </gw_energy>
+							<qp_energy>+0.344238 </qp_energy>
+						</level>
+						<level number="27">
+							<dft_energy>+5.127977 </dft_energy>
+							<gw_energy>+1.864589 </gw_energy>
+							<qp_energy>+1.453655 </qp_energy>
+						</level>
+						<level number="28">
+							<dft_energy>+5.856434 </dft_energy>
+							<gw_energy>+2.390642 </gw_energy>
+							<qp_energy>+2.269584 </qp_energy>
+						</level>
+						<level number="29">
+							<dft_energy>+6.129450 </dft_energy>
+							<gw_energy>+2.792996 </gw_energy>
+							<qp_energy>+2.512230 </qp_energy>
+						</level>
+						<level number="30">
+							<dft_energy>+8.165803 </dft_energy>
+							<gw_energy>+3.985406 </gw_energy>
+							<qp_energy>+4.075350 </qp_energy>
+						</level>
+						<level number="31">
+							<dft_energy>+10.046423 </dft_energy>
+							<gw_energy>+6.045969 </gw_energy>
+							<qp_energy>+5.788009 </qp_energy>
+						</level>
+						<level number="32">
+							<dft_energy>+12.359720 </dft_energy>
+							<gw_energy>+8.802030 </gw_energy>
+							<qp_energy>+7.794420 </qp_energy>
+						</level>
+						<level number="33">
+							<dft_energy>+13.031211 </dft_energy>
+							<gw_energy>+8.374406 </gw_energy>
+							<qp_energy>+8.859446 </qp_energy>
+						</level>
+						<level number="34">
+							<dft_energy>+14.453228 </dft_energy>
+							<gw_energy>+11.528456 </gw_energy>
+							<qp_energy>+11.336132 </qp_energy>
+						</level>
+						<level number="35">
+							<dft_energy>+14.890503 </dft_energy>
+							<gw_energy>+11.162874 </gw_energy>
+							<qp_energy>+11.644317 </qp_energy>
+						</level>
+						<level number="36">
+							<dft_energy>+15.397786 </dft_energy>
+							<gw_energy>+11.501433 </gw_energy>
+							<qp_energy>+11.648462 </qp_energy>
+						</level>
+						<level number="37">
+							<dft_energy>+18.998634 </dft_energy>
+							<gw_energy>+15.211232 </gw_energy>
+							<qp_energy>+15.057960 </qp_energy>
+						</level>
+						<level number="38">
+							<dft_energy>+20.232600 </dft_energy>
+							<gw_energy>+17.706767 </gw_energy>
+							<qp_energy>+16.557390 </qp_energy>
+						</level>
+						<level number="39">
+							<dft_energy>+20.473327 </dft_energy>
+							<gw_energy>+16.416393 </gw_energy>
+							<qp_energy>+16.697366 </qp_energy>
+						</level>
+						<level number="40">
+							<dft_energy>+20.639958 </dft_energy>
+							<gw_energy>+16.762251 </gw_energy>
+							<qp_energy>+17.116509 </qp_energy>
+						</level>
+						<level number="41">
+							<dft_energy>+21.373568 </dft_energy>
+							<gw_energy>+16.937988 </gw_energy>
+							<qp_energy>+17.506815 </qp_energy>
+						</level>
+						<level number="42">
+							<dft_energy>+22.264050 </dft_energy>
+							<gw_energy>+17.975260 </gw_energy>
+							<qp_energy>+18.131289 </qp_energy>
+						</level>
+						<level number="43">
+							<dft_energy>+22.812886 </dft_energy>
+							<gw_energy>+18.606208 </gw_energy>
+							<qp_energy>+18.826092 </qp_energy>
+						</level>
+						<level number="44">
+							<dft_energy>+23.336535 </dft_energy>
+							<gw_energy>+19.058191 </gw_energy>
+							<qp_energy>+19.372424 </qp_energy>
+						</level>
+						<level number="45">
+							<dft_energy>+27.373626 </dft_energy>
+							<gw_energy>+23.430695 </gw_energy>
+							<qp_energy>+23.053100 </qp_energy>
+						</level>
+						<level number="46">
+							<dft_energy>+27.822579 </dft_energy>
+							<gw_energy>+23.485951 </gw_energy>
+							<qp_energy>+23.937021 </qp_energy>
+						</level>
+						<level number="47">
+							<dft_energy>+28.383653 </dft_energy>
+							<gw_energy>+24.139176 </gw_energy>
+							<qp_energy>+24.611120 </qp_energy>
+						</level>
+						<level number="48">
+							<dft_energy>+29.302721 </dft_energy>
+							<gw_energy>+25.643913 </gw_energy>
+							<qp_energy>+25.825323 </qp_energy>
+						</level>
+						<level number="49">
+							<dft_energy>+29.379345 </dft_energy>
+							<gw_energy>+24.947672 </gw_energy>
+							<qp_energy>+26.194799 </qp_energy>
+						</level>
+						<level number="50">
+							<dft_energy>+34.607397 </dft_energy>
+							<gw_energy>+30.715838 </gw_energy>
+							<qp_energy>+30.952705 </qp_energy>
+						</level>
+						<level number="51">
+							<dft_energy>+37.078453 </dft_energy>
+							<gw_energy>+35.674570 </gw_energy>
+							<qp_energy>+35.832711 </qp_energy>
+						</level>
+						<level number="52">
+							<dft_energy>+38.344017 </dft_energy>
+							<gw_energy>+35.884174 </gw_energy>
+							<qp_energy>+35.910610 </qp_energy>
+						</level>
+						<level number="53">
+							<dft_energy>+39.058843 </dft_energy>
+							<gw_energy>+36.333889 </gw_energy>
+							<qp_energy>+36.803806 </qp_energy>
+						</level>
+						<level number="54">
+							<dft_energy>+44.233467 </dft_energy>
+							<gw_energy>+39.177418 </gw_energy>
+							<qp_energy>+39.959170 </qp_energy>
+						</level>
+						<level number="55">
+							<dft_energy>+50.737600 </dft_energy>
+							<gw_energy>+46.824455 </gw_energy>
+							<qp_energy>+47.332199 </qp_energy>
+						</level>
+						<level number="56">
+							<dft_energy>+53.752422 </dft_energy>
+							<gw_energy>+51.256809 </gw_energy>
+							<qp_energy>+51.646913 </qp_energy>
+						</level>
+					</dft>
+					<singlets>
+						<level number="1">
+							<omega>+6.119000 </omega>
+							<f>+0.105339 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.2127 -0.7708 +0.2517</Trdipole>
+						</level>
+						<level number="2">
+							<omega>+6.390938 </omega>
+							<f>+0.110784 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.2896 +0.3162 +0.7237</Trdipole>
+						</level>
+						<level number="3">
+							<omega>+8.310987 </omega>
+							<f>+0.221642 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.2223 -0.9636 +0.3326</Trdipole>
+						</level>
+						<level number="4">
+							<omega>+8.335786 </omega>
+							<f>+0.039500 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.2282 -0.3692 +0.0708</Trdipole>
+						</level>
+						<level number="5">
+							<omega>+8.373642 </omega>
+							<f>+0.000511 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.0151 -0.0250 -0.0405</Trdipole>
+						</level>
+						<level number="6">
+							<omega>+8.509026 </omega>
+							<f>+0.009572 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.1837 -0.0539 +0.0962</Trdipole>
+						</level>
+						<level number="7">
+							<omega>+8.590178 </omega>
+							<f>+0.135856 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.2758 -0.3023 -0.6914</Trdipole>
+						</level>
+						<level number="8">
+							<omega>+9.390463 </omega>
+							<f>+0.100017 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.1635 -0.6067 +0.1999</Trdipole>
+						</level>
+						<level number="9">
+							<omega>+9.620964 </omega>
+							<f>+0.000487 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.0102 -0.0425 +0.0124</Trdipole>
+						</level>
+						<level number="10">
+							<omega>+9.747692 </omega>
+							<f>+0.003520 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.1130 -0.0023 -0.0443</Trdipole>
+						</level>
+					</singlets>
+					<triplets>
+						<level number="1">
+							<omega>+3.697950 </omega>
+						</level>
+						<level number="2">
+							<omega>+4.516771 </omega>
+						</level>
+						<level number="3">
+							<omega>+6.003206 </omega>
+						</level>
+						<level number="4">
+							<omega>+6.611434 </omega>
+						</level>
+						<level number="5">
+							<omega>+7.807428 </omega>
+						</level>
+						<level number="6">
+							<omega>+7.893966 </omega>
+						</level>
+						<level number="7">
+							<omega>+7.929841 </omega>
+						</level>
+						<level number="8">
+							<omega>+7.964176 </omega>
+						</level>
+						<level number="9">
+							<omega>+9.215574 </omega>
+						</level>
+						<level number="10">
+							<omega>+9.384804 </omega>
+						</level>
+					</triplets>
+				</GWBSE>
+				<partialcharges>MP_FILES/frame_10000/n2s1/thiophene_1_n2s1.mps</partialcharges>
+			</segment>
+		</output>
+	</job>
+	<job>
+		<id>2</id>
+		<tag></tag>
+		<input>
+			<segment id="2" type="thiophene">2</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>3</id>
+		<tag></tag>
+		<input>
+			<segment id="3" type="thiophene">3</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>4</id>
+		<tag></tag>
+		<input>
+			<segment id="4" type="thiophene">4</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>5</id>
+		<tag></tag>
+		<input>
+			<segment id="5" type="thiophene">5</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>6</id>
+		<tag></tag>
+		<input>
+			<segment id="6" type="thiophene">6</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>7</id>
+		<tag></tag>
+		<input>
+			<segment id="7" type="thiophene">7</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>8</id>
+		<tag></tag>
+		<input>
+			<segment id="8" type="thiophene">8</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>9</id>
+		<tag></tag>
+		<input>
+			<segment id="9" type="thiophene">9</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>10</id>
+		<tag></tag>
+		<input>
+			<segment id="10" type="thiophene">10</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>11</id>
+		<tag></tag>
+		<input>
+			<segment id="11" type="thiophene">11</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>12</id>
+		<tag></tag>
+		<input>
+			<segment id="12" type="thiophene">12</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>13</id>
+		<tag></tag>
+		<input>
+			<segment id="13" type="thiophene">13</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>14</id>
+		<tag></tag>
+		<input>
+			<segment id="14" type="thiophene">14</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>15</id>
+		<tag></tag>
+		<input>
+			<segment id="15" type="thiophene">15</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>16</id>
+		<tag></tag>
+		<input>
+			<segment id="16" type="thiophene">16</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>17</id>
+		<tag></tag>
+		<input>
+			<segment id="17" type="thiophene">17</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>18</id>
+		<tag></tag>
+		<input>
+			<segment id="18" type="thiophene">18</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>19</id>
+		<tag></tag>
+		<input>
+			<segment id="19" type="thiophene">19</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>20</id>
+		<tag></tag>
+		<input>
+			<segment id="20" type="thiophene">20</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>21</id>
+		<tag></tag>
+		<input>
+			<segment id="21" type="thiophene">21</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>22</id>
+		<tag></tag>
+		<input>
+			<segment id="22" type="thiophene">22</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>23</id>
+		<tag></tag>
+		<input>
+			<segment id="23" type="thiophene">23</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>24</id>
+		<tag></tag>
+		<input>
+			<segment id="24" type="thiophene">24</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>25</id>
+		<tag></tag>
+		<input>
+			<segment id="25" type="thiophene">25</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>26</id>
+		<tag></tag>
+		<input>
+			<segment id="26" type="thiophene">26</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>27</id>
+		<tag></tag>
+		<input>
+			<segment id="27" type="thiophene">27</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>28</id>
+		<tag></tag>
+		<input>
+			<segment id="28" type="thiophene">28</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>29</id>
+		<tag></tag>
+		<input>
+			<segment id="29" type="thiophene">29</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>30</id>
+		<tag></tag>
+		<input>
+			<segment id="30" type="thiophene">30</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>31</id>
+		<tag></tag>
+		<input>
+			<segment id="31" type="thiophene">31</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>32</id>
+		<tag></tag>
+		<input>
+			<segment id="32" type="thiophene">32</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>33</id>
+		<tag></tag>
+		<input>
+			<segment id="33" type="thiophene">33</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>34</id>
+		<tag></tag>
+		<input>
+			<segment id="34" type="thiophene">34</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>35</id>
+		<tag></tag>
+		<input>
+			<segment id="35" type="thiophene">35</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>36</id>
+		<tag></tag>
+		<input>
+			<segment id="36" type="thiophene">36</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>37</id>
+		<tag></tag>
+		<input>
+			<segment id="37" type="thiophene">37</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>38</id>
+		<tag></tag>
+		<input>
+			<segment id="38" type="thiophene">38</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>39</id>
+		<tag></tag>
+		<input>
+			<segment id="39" type="thiophene">39</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>40</id>
+		<tag></tag>
+		<input>
+			<segment id="40" type="thiophene">40</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>41</id>
+		<tag></tag>
+		<input>
+			<segment id="41" type="thiophene">41</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>42</id>
+		<tag></tag>
+		<input>
+			<segment id="42" type="thiophene">42</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>43</id>
+		<tag></tag>
+		<input>
+			<segment id="43" type="thiophene">43</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>44</id>
+		<tag></tag>
+		<input>
+			<segment id="44" type="thiophene">44</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>45</id>
+		<tag></tag>
+		<input>
+			<segment id="45" type="thiophene">45</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>46</id>
+		<tag></tag>
+		<input>
+			<segment id="46" type="thiophene">46</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>47</id>
+		<tag></tag>
+		<input>
+			<segment id="47" type="thiophene">47</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>48</id>
+		<tag></tag>
+		<input>
+			<segment id="48" type="thiophene">48</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>49</id>
+		<tag></tag>
+		<input>
+			<segment id="49" type="thiophene">49</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>50</id>
+		<tag></tag>
+		<input>
+			<segment id="50" type="thiophene">50</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>51</id>
+		<tag></tag>
+		<input>
+			<segment id="51" type="thiophene">51</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>52</id>
+		<tag></tag>
+		<input>
+			<segment id="52" type="thiophene">52</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>53</id>
+		<tag></tag>
+		<input>
+			<segment id="53" type="thiophene">53</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>54</id>
+		<tag></tag>
+		<input>
+			<segment id="54" type="thiophene">54</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>55</id>
+		<tag></tag>
+		<input>
+			<segment id="55" type="thiophene">55</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>56</id>
+		<tag></tag>
+		<input>
+			<segment id="56" type="thiophene">56</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>57</id>
+		<tag></tag>
+		<input>
+			<segment id="57" type="thiophene">57</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>58</id>
+		<tag></tag>
+		<input>
+			<segment id="58" type="thiophene">58</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>59</id>
+		<tag></tag>
+		<input>
+			<segment id="59" type="thiophene">59</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>60</id>
+		<tag></tag>
+		<input>
+			<segment id="60" type="thiophene">60</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>61</id>
+		<tag></tag>
+		<input>
+			<segment id="61" type="thiophene">61</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>62</id>
+		<tag></tag>
+		<input>
+			<segment id="62" type="thiophene">62</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>63</id>
+		<tag></tag>
+		<input>
+			<segment id="63" type="thiophene">63</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>64</id>
+		<tag></tag>
+		<input>
+			<segment id="64" type="thiophene">64</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>65</id>
+		<tag></tag>
+		<input>
+			<segment id="65" type="thiophene">65</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>66</id>
+		<tag></tag>
+		<input>
+			<segment id="66" type="thiophene">66</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>67</id>
+		<tag></tag>
+		<input>
+			<segment id="67" type="thiophene">67</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>68</id>
+		<tag></tag>
+		<input>
+			<segment id="68" type="thiophene">68</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>69</id>
+		<tag></tag>
+		<input>
+			<segment id="69" type="thiophene">69</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>70</id>
+		<tag></tag>
+		<input>
+			<segment id="70" type="thiophene">70</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>71</id>
+		<tag></tag>
+		<input>
+			<segment id="71" type="thiophene">71</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>72</id>
+		<tag></tag>
+		<input>
+			<segment id="72" type="thiophene">72</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>73</id>
+		<tag></tag>
+		<input>
+			<segment id="73" type="thiophene">73</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>74</id>
+		<tag></tag>
+		<input>
+			<segment id="74" type="thiophene">74</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>75</id>
+		<tag></tag>
+		<input>
+			<segment id="75" type="thiophene">75</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>76</id>
+		<tag></tag>
+		<input>
+			<segment id="76" type="thiophene">76</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>77</id>
+		<tag></tag>
+		<input>
+			<segment id="77" type="thiophene">77</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>78</id>
+		<tag></tag>
+		<input>
+			<segment id="78" type="thiophene">78</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>79</id>
+		<tag></tag>
+		<input>
+			<segment id="79" type="thiophene">79</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>80</id>
+		<tag></tag>
+		<input>
+			<segment id="80" type="thiophene">80</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>81</id>
+		<tag></tag>
+		<input>
+			<segment id="81" type="thiophene">81</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>82</id>
+		<tag></tag>
+		<input>
+			<segment id="82" type="thiophene">82</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>83</id>
+		<tag></tag>
+		<input>
+			<segment id="83" type="thiophene">83</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>84</id>
+		<tag></tag>
+		<input>
+			<segment id="84" type="thiophene">84</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>85</id>
+		<tag></tag>
+		<input>
+			<segment id="85" type="thiophene">85</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>86</id>
+		<tag></tag>
+		<input>
+			<segment id="86" type="thiophene">86</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>87</id>
+		<tag></tag>
+		<input>
+			<segment id="87" type="thiophene">87</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>88</id>
+		<tag></tag>
+		<input>
+			<segment id="88" type="thiophene">88</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>89</id>
+		<tag></tag>
+		<input>
+			<segment id="89" type="thiophene">89</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>90</id>
+		<tag></tag>
+		<input>
+			<segment id="90" type="thiophene">90</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>91</id>
+		<tag></tag>
+		<input>
+			<segment id="91" type="thiophene">91</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>92</id>
+		<tag></tag>
+		<input>
+			<segment id="92" type="thiophene">92</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>93</id>
+		<tag></tag>
+		<input>
+			<segment id="93" type="thiophene">93</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>94</id>
+		<tag></tag>
+		<input>
+			<segment id="94" type="thiophene">94</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>95</id>
+		<tag></tag>
+		<input>
+			<segment id="95" type="thiophene">95</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>96</id>
+		<tag></tag>
+		<input>
+			<segment id="96" type="thiophene">96</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>97</id>
+		<tag></tag>
+		<input>
+			<segment id="97" type="thiophene">97</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>98</id>
+		<tag></tag>
+		<input>
+			<segment id="98" type="thiophene">98</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>99</id>
+		<tag></tag>
+		<input>
+			<segment id="99" type="thiophene">99</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>100</id>
+		<tag></tag>
+		<input>
+			<segment id="100" type="thiophene">100</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>101</id>
+		<tag></tag>
+		<input>
+			<segment id="101" type="thiophene">101</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>102</id>
+		<tag></tag>
+		<input>
+			<segment id="102" type="thiophene">102</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>103</id>
+		<tag></tag>
+		<input>
+			<segment id="103" type="thiophene">103</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>104</id>
+		<tag></tag>
+		<input>
+			<segment id="104" type="thiophene">104</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>105</id>
+		<tag></tag>
+		<input>
+			<segment id="105" type="thiophene">105</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>106</id>
+		<tag></tag>
+		<input>
+			<segment id="106" type="thiophene">106</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>107</id>
+		<tag></tag>
+		<input>
+			<segment id="107" type="thiophene">107</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>108</id>
+		<tag></tag>
+		<input>
+			<segment id="108" type="thiophene">108</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>109</id>
+		<tag></tag>
+		<input>
+			<segment id="109" type="thiophene">109</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>110</id>
+		<tag></tag>
+		<input>
+			<segment id="110" type="thiophene">110</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>111</id>
+		<tag></tag>
+		<input>
+			<segment id="111" type="thiophene">111</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>112</id>
+		<tag></tag>
+		<input>
+			<segment id="112" type="thiophene">112</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>113</id>
+		<tag></tag>
+		<input>
+			<segment id="113" type="thiophene">113</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>114</id>
+		<tag></tag>
+		<input>
+			<segment id="114" type="thiophene">114</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>115</id>
+		<tag></tag>
+		<input>
+			<segment id="115" type="thiophene">115</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>116</id>
+		<tag></tag>
+		<input>
+			<segment id="116" type="thiophene">116</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>117</id>
+		<tag></tag>
+		<input>
+			<segment id="117" type="thiophene">117</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>118</id>
+		<tag></tag>
+		<input>
+			<segment id="118" type="thiophene">118</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>119</id>
+		<tag></tag>
+		<input>
+			<segment id="119" type="thiophene">119</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>120</id>
+		<tag></tag>
+		<input>
+			<segment id="120" type="thiophene">120</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>121</id>
+		<tag></tag>
+		<input>
+			<segment id="121" type="thiophene">121</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>122</id>
+		<tag></tag>
+		<input>
+			<segment id="122" type="thiophene">122</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>123</id>
+		<tag></tag>
+		<input>
+			<segment id="123" type="thiophene">123</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>124</id>
+		<tag></tag>
+		<input>
+			<segment id="124" type="thiophene">124</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>125</id>
+		<tag></tag>
+		<input>
+			<segment id="125" type="thiophene">125</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>126</id>
+		<tag></tag>
+		<input>
+			<segment id="126" type="thiophene">126</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>127</id>
+		<tag></tag>
+		<input>
+			<segment id="127" type="thiophene">127</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>128</id>
+		<tag></tag>
+		<input>
+			<segment id="128" type="thiophene">128</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>129</id>
+		<tag></tag>
+		<input>
+			<segment id="129" type="thiophene">129</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>130</id>
+		<tag></tag>
+		<input>
+			<segment id="130" type="thiophene">130</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>131</id>
+		<tag></tag>
+		<input>
+			<segment id="131" type="thiophene">131</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>132</id>
+		<tag></tag>
+		<input>
+			<segment id="132" type="thiophene">132</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>133</id>
+		<tag></tag>
+		<input>
+			<segment id="133" type="thiophene">133</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>134</id>
+		<tag></tag>
+		<input>
+			<segment id="134" type="thiophene">134</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>135</id>
+		<tag></tag>
+		<input>
+			<segment id="135" type="thiophene">135</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>136</id>
+		<tag></tag>
+		<input>
+			<segment id="136" type="thiophene">136</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>137</id>
+		<tag></tag>
+		<input>
+			<segment id="137" type="thiophene">137</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>138</id>
+		<tag></tag>
+		<input>
+			<segment id="138" type="thiophene">138</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>139</id>
+		<tag></tag>
+		<input>
+			<segment id="139" type="thiophene">139</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>140</id>
+		<tag></tag>
+		<input>
+			<segment id="140" type="thiophene">140</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>141</id>
+		<tag></tag>
+		<input>
+			<segment id="141" type="thiophene">141</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>142</id>
+		<tag></tag>
+		<input>
+			<segment id="142" type="thiophene">142</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>143</id>
+		<tag></tag>
+		<input>
+			<segment id="143" type="thiophene">143</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>144</id>
+		<tag></tag>
+		<input>
+			<segment id="144" type="thiophene">144</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>145</id>
+		<tag></tag>
+		<input>
+			<segment id="145" type="thiophene">145</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>146</id>
+		<tag></tag>
+		<input>
+			<segment id="146" type="thiophene">146</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>147</id>
+		<tag></tag>
+		<input>
+			<segment id="147" type="thiophene">147</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>148</id>
+		<tag></tag>
+		<input>
+			<segment id="148" type="thiophene">148</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>149</id>
+		<tag></tag>
+		<input>
+			<segment id="149" type="thiophene">149</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>150</id>
+		<tag></tag>
+		<input>
+			<segment id="150" type="thiophene">150</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>151</id>
+		<tag></tag>
+		<input>
+			<segment id="151" type="thiophene">151</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>152</id>
+		<tag></tag>
+		<input>
+			<segment id="152" type="thiophene">152</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>153</id>
+		<tag></tag>
+		<input>
+			<segment id="153" type="thiophene">153</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>154</id>
+		<tag></tag>
+		<input>
+			<segment id="154" type="thiophene">154</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>155</id>
+		<tag></tag>
+		<input>
+			<segment id="155" type="thiophene">155</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>156</id>
+		<tag></tag>
+		<input>
+			<segment id="156" type="thiophene">156</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>157</id>
+		<tag></tag>
+		<input>
+			<segment id="157" type="thiophene">157</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>158</id>
+		<tag></tag>
+		<input>
+			<segment id="158" type="thiophene">158</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>159</id>
+		<tag></tag>
+		<input>
+			<segment id="159" type="thiophene">159</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>160</id>
+		<tag></tag>
+		<input>
+			<segment id="160" type="thiophene">160</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>161</id>
+		<tag></tag>
+		<input>
+			<segment id="161" type="thiophene">161</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>162</id>
+		<tag></tag>
+		<input>
+			<segment id="162" type="thiophene">162</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>163</id>
+		<tag></tag>
+		<input>
+			<segment id="163" type="thiophene">163</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>164</id>
+		<tag></tag>
+		<input>
+			<segment id="164" type="thiophene">164</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>165</id>
+		<tag></tag>
+		<input>
+			<segment id="165" type="thiophene">165</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>166</id>
+		<tag></tag>
+		<input>
+			<segment id="166" type="thiophene">166</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>167</id>
+		<tag></tag>
+		<input>
+			<segment id="167" type="thiophene">167</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>168</id>
+		<tag></tag>
+		<input>
+			<segment id="168" type="thiophene">168</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>169</id>
+		<tag></tag>
+		<input>
+			<segment id="169" type="thiophene">169</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>170</id>
+		<tag></tag>
+		<input>
+			<segment id="170" type="thiophene">170</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>171</id>
+		<tag></tag>
+		<input>
+			<segment id="171" type="thiophene">171</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>172</id>
+		<tag></tag>
+		<input>
+			<segment id="172" type="thiophene">172</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>173</id>
+		<tag></tag>
+		<input>
+			<segment id="173" type="thiophene">173</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>174</id>
+		<tag></tag>
+		<input>
+			<segment id="174" type="thiophene">174</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>175</id>
+		<tag></tag>
+		<input>
+			<segment id="175" type="thiophene">175</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>176</id>
+		<tag></tag>
+		<input>
+			<segment id="176" type="thiophene">176</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>177</id>
+		<tag></tag>
+		<input>
+			<segment id="177" type="thiophene">177</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>178</id>
+		<tag></tag>
+		<input>
+			<segment id="178" type="thiophene">178</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>179</id>
+		<tag></tag>
+		<input>
+			<segment id="179" type="thiophene">179</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>180</id>
+		<tag></tag>
+		<input>
+			<segment id="180" type="thiophene">180</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>181</id>
+		<tag></tag>
+		<input>
+			<segment id="181" type="thiophene">181</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>182</id>
+		<tag></tag>
+		<input>
+			<segment id="182" type="thiophene">182</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>183</id>
+		<tag></tag>
+		<input>
+			<segment id="183" type="thiophene">183</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>184</id>
+		<tag></tag>
+		<input>
+			<segment id="184" type="thiophene">184</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>185</id>
+		<tag></tag>
+		<input>
+			<segment id="185" type="thiophene">185</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>186</id>
+		<tag></tag>
+		<input>
+			<segment id="186" type="thiophene">186</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>187</id>
+		<tag></tag>
+		<input>
+			<segment id="187" type="thiophene">187</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>188</id>
+		<tag></tag>
+		<input>
+			<segment id="188" type="thiophene">188</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>189</id>
+		<tag></tag>
+		<input>
+			<segment id="189" type="thiophene">189</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>190</id>
+		<tag></tag>
+		<input>
+			<segment id="190" type="thiophene">190</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>191</id>
+		<tag></tag>
+		<input>
+			<segment id="191" type="thiophene">191</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>192</id>
+		<tag></tag>
+		<input>
+			<segment id="192" type="thiophene">192</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>193</id>
+		<tag></tag>
+		<input>
+			<segment id="193" type="thiophene">193</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>194</id>
+		<tag></tag>
+		<input>
+			<segment id="194" type="thiophene">194</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>195</id>
+		<tag></tag>
+		<input>
+			<segment id="195" type="thiophene">195</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>196</id>
+		<tag></tag>
+		<input>
+			<segment id="196" type="thiophene">196</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>197</id>
+		<tag></tag>
+		<input>
+			<segment id="197" type="thiophene">197</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>198</id>
+		<tag></tag>
+		<input>
+			<segment id="198" type="thiophene">198</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>199</id>
+		<tag></tag>
+		<input>
+			<segment id="199" type="thiophene">199</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>200</id>
+		<tag></tag>
+		<input>
+			<segment id="200" type="thiophene">200</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>201</id>
+		<tag></tag>
+		<input>
+			<segment id="201" type="thiophene">201</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>202</id>
+		<tag></tag>
+		<input>
+			<segment id="202" type="thiophene">202</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>203</id>
+		<tag></tag>
+		<input>
+			<segment id="203" type="thiophene">203</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>204</id>
+		<tag></tag>
+		<input>
+			<segment id="204" type="thiophene">204</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>205</id>
+		<tag></tag>
+		<input>
+			<segment id="205" type="thiophene">205</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>206</id>
+		<tag></tag>
+		<input>
+			<segment id="206" type="thiophene">206</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>207</id>
+		<tag></tag>
+		<input>
+			<segment id="207" type="thiophene">207</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>208</id>
+		<tag></tag>
+		<input>
+			<segment id="208" type="thiophene">208</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>209</id>
+		<tag></tag>
+		<input>
+			<segment id="209" type="thiophene">209</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>210</id>
+		<tag></tag>
+		<input>
+			<segment id="210" type="thiophene">210</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>211</id>
+		<tag></tag>
+		<input>
+			<segment id="211" type="thiophene">211</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>212</id>
+		<tag></tag>
+		<input>
+			<segment id="212" type="thiophene">212</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>213</id>
+		<tag></tag>
+		<input>
+			<segment id="213" type="thiophene">213</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>214</id>
+		<tag></tag>
+		<input>
+			<segment id="214" type="thiophene">214</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>215</id>
+		<tag></tag>
+		<input>
+			<segment id="215" type="thiophene">215</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>216</id>
+		<tag></tag>
+		<input>
+			<segment id="216" type="thiophene">216</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>217</id>
+		<tag></tag>
+		<input>
+			<segment id="217" type="thiophene">217</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>218</id>
+		<tag></tag>
+		<input>
+			<segment id="218" type="thiophene">218</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>219</id>
+		<tag></tag>
+		<input>
+			<segment id="219" type="thiophene">219</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>220</id>
+		<tag></tag>
+		<input>
+			<segment id="220" type="thiophene">220</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>221</id>
+		<tag></tag>
+		<input>
+			<segment id="221" type="thiophene">221</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>222</id>
+		<tag></tag>
+		<input>
+			<segment id="222" type="thiophene">222</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>223</id>
+		<tag></tag>
+		<input>
+			<segment id="223" type="thiophene">223</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>224</id>
+		<tag></tag>
+		<input>
+			<segment id="224" type="thiophene">224</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>225</id>
+		<tag></tag>
+		<input>
+			<segment id="225" type="thiophene">225</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>226</id>
+		<tag></tag>
+		<input>
+			<segment id="226" type="thiophene">226</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>227</id>
+		<tag></tag>
+		<input>
+			<segment id="227" type="thiophene">227</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>228</id>
+		<tag></tag>
+		<input>
+			<segment id="228" type="thiophene">228</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>229</id>
+		<tag></tag>
+		<input>
+			<segment id="229" type="thiophene">229</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>230</id>
+		<tag></tag>
+		<input>
+			<segment id="230" type="thiophene">230</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>231</id>
+		<tag></tag>
+		<input>
+			<segment id="231" type="thiophene">231</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>232</id>
+		<tag></tag>
+		<input>
+			<segment id="232" type="thiophene">232</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>233</id>
+		<tag></tag>
+		<input>
+			<segment id="233" type="thiophene">233</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>234</id>
+		<tag></tag>
+		<input>
+			<segment id="234" type="thiophene">234</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>235</id>
+		<tag></tag>
+		<input>
+			<segment id="235" type="thiophene">235</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>236</id>
+		<tag></tag>
+		<input>
+			<segment id="236" type="thiophene">236</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>237</id>
+		<tag></tag>
+		<input>
+			<segment id="237" type="thiophene">237</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>238</id>
+		<tag></tag>
+		<input>
+			<segment id="238" type="thiophene">238</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>239</id>
+		<tag></tag>
+		<input>
+			<segment id="239" type="thiophene">239</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>240</id>
+		<tag></tag>
+		<input>
+			<segment id="240" type="thiophene">240</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>241</id>
+		<tag></tag>
+		<input>
+			<segment id="241" type="thiophene">241</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>242</id>
+		<tag></tag>
+		<input>
+			<segment id="242" type="thiophene">242</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>243</id>
+		<tag></tag>
+		<input>
+			<segment id="243" type="thiophene">243</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>244</id>
+		<tag></tag>
+		<input>
+			<segment id="244" type="thiophene">244</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>245</id>
+		<tag></tag>
+		<input>
+			<segment id="245" type="thiophene">245</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>246</id>
+		<tag></tag>
+		<input>
+			<segment id="246" type="thiophene">246</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>247</id>
+		<tag></tag>
+		<input>
+			<segment id="247" type="thiophene">247</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>248</id>
+		<tag></tag>
+		<input>
+			<segment id="248" type="thiophene">248</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>249</id>
+		<tag></tag>
+		<input>
+			<segment id="249" type="thiophene">249</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>250</id>
+		<tag></tag>
+		<input>
+			<segment id="250" type="thiophene">250</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>251</id>
+		<tag></tag>
+		<input>
+			<segment id="251" type="thiophene">251</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>252</id>
+		<tag></tag>
+		<input>
+			<segment id="252" type="thiophene">252</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>253</id>
+		<tag></tag>
+		<input>
+			<segment id="253" type="thiophene">253</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>254</id>
+		<tag></tag>
+		<input>
+			<segment id="254" type="thiophene">254</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>255</id>
+		<tag></tag>
+		<input>
+			<segment id="255" type="thiophene">255</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>256</id>
+		<tag></tag>
+		<input>
+			<segment id="256" type="thiophene">256</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>257</id>
+		<tag></tag>
+		<input>
+			<segment id="257" type="thiophene">257</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>258</id>
+		<tag></tag>
+		<input>
+			<segment id="258" type="thiophene">258</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>259</id>
+		<tag></tag>
+		<input>
+			<segment id="259" type="thiophene">259</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>260</id>
+		<tag></tag>
+		<input>
+			<segment id="260" type="thiophene">260</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>261</id>
+		<tag></tag>
+		<input>
+			<segment id="261" type="thiophene">261</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>262</id>
+		<tag></tag>
+		<input>
+			<segment id="262" type="thiophene">262</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>263</id>
+		<tag></tag>
+		<input>
+			<segment id="263" type="thiophene">263</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>264</id>
+		<tag></tag>
+		<input>
+			<segment id="264" type="thiophene">264</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>265</id>
+		<tag></tag>
+		<input>
+			<segment id="265" type="thiophene">265</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>266</id>
+		<tag></tag>
+		<input>
+			<segment id="266" type="thiophene">266</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>267</id>
+		<tag></tag>
+		<input>
+			<segment id="267" type="thiophene">267</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>268</id>
+		<tag></tag>
+		<input>
+			<segment id="268" type="thiophene">268</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>269</id>
+		<tag></tag>
+		<input>
+			<segment id="269" type="thiophene">269</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>270</id>
+		<tag></tag>
+		<input>
+			<segment id="270" type="thiophene">270</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>271</id>
+		<tag></tag>
+		<input>
+			<segment id="271" type="thiophene">271</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>272</id>
+		<tag></tag>
+		<input>
+			<segment id="272" type="thiophene">272</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>273</id>
+		<tag></tag>
+		<input>
+			<segment id="273" type="thiophene">273</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>274</id>
+		<tag></tag>
+		<input>
+			<segment id="274" type="thiophene">274</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>275</id>
+		<tag></tag>
+		<input>
+			<segment id="275" type="thiophene">275</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>276</id>
+		<tag></tag>
+		<input>
+			<segment id="276" type="thiophene">276</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>277</id>
+		<tag></tag>
+		<input>
+			<segment id="277" type="thiophene">277</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>278</id>
+		<tag></tag>
+		<input>
+			<segment id="278" type="thiophene">278</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>279</id>
+		<tag></tag>
+		<input>
+			<segment id="279" type="thiophene">279</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>280</id>
+		<tag></tag>
+		<input>
+			<segment id="280" type="thiophene">280</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>281</id>
+		<tag></tag>
+		<input>
+			<segment id="281" type="thiophene">281</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>282</id>
+		<tag></tag>
+		<input>
+			<segment id="282" type="thiophene">282</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>283</id>
+		<tag></tag>
+		<input>
+			<segment id="283" type="thiophene">283</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>284</id>
+		<tag></tag>
+		<input>
+			<segment id="284" type="thiophene">284</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>285</id>
+		<tag></tag>
+		<input>
+			<segment id="285" type="thiophene">285</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>286</id>
+		<tag></tag>
+		<input>
+			<segment id="286" type="thiophene">286</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>287</id>
+		<tag></tag>
+		<input>
+			<segment id="287" type="thiophene">287</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>288</id>
+		<tag></tag>
+		<input>
+			<segment id="288" type="thiophene">288</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>289</id>
+		<tag></tag>
+		<input>
+			<segment id="289" type="thiophene">289</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>290</id>
+		<tag></tag>
+		<input>
+			<segment id="290" type="thiophene">290</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>291</id>
+		<tag></tag>
+		<input>
+			<segment id="291" type="thiophene">291</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>292</id>
+		<tag></tag>
+		<input>
+			<segment id="292" type="thiophene">292</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>293</id>
+		<tag></tag>
+		<input>
+			<segment id="293" type="thiophene">293</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>294</id>
+		<tag></tag>
+		<input>
+			<segment id="294" type="thiophene">294</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>295</id>
+		<tag></tag>
+		<input>
+			<segment id="295" type="thiophene">295</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>296</id>
+		<tag></tag>
+		<input>
+			<segment id="296" type="thiophene">296</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>297</id>
+		<tag></tag>
+		<input>
+			<segment id="297" type="thiophene">297</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>298</id>
+		<tag></tag>
+		<input>
+			<segment id="298" type="thiophene">298</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>299</id>
+		<tag></tag>
+		<input>
+			<segment id="299" type="thiophene">299</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>300</id>
+		<tag></tag>
+		<input>
+			<segment id="300" type="thiophene">300</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>301</id>
+		<tag></tag>
+		<input>
+			<segment id="301" type="thiophene">301</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>302</id>
+		<tag></tag>
+		<input>
+			<segment id="302" type="thiophene">302</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>303</id>
+		<tag></tag>
+		<input>
+			<segment id="303" type="thiophene">303</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>304</id>
+		<tag></tag>
+		<input>
+			<segment id="304" type="thiophene">304</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>305</id>
+		<tag></tag>
+		<input>
+			<segment id="305" type="thiophene">305</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>306</id>
+		<tag></tag>
+		<input>
+			<segment id="306" type="thiophene">306</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>307</id>
+		<tag></tag>
+		<input>
+			<segment id="307" type="thiophene">307</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>308</id>
+		<tag></tag>
+		<input>
+			<segment id="308" type="thiophene">308</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>309</id>
+		<tag></tag>
+		<input>
+			<segment id="309" type="thiophene">309</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>310</id>
+		<tag></tag>
+		<input>
+			<segment id="310" type="thiophene">310</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>311</id>
+		<tag></tag>
+		<input>
+			<segment id="311" type="thiophene">311</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>312</id>
+		<tag></tag>
+		<input>
+			<segment id="312" type="thiophene">312</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>313</id>
+		<tag></tag>
+		<input>
+			<segment id="313" type="thiophene">313</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>314</id>
+		<tag></tag>
+		<input>
+			<segment id="314" type="thiophene">314</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>315</id>
+		<tag></tag>
+		<input>
+			<segment id="315" type="thiophene">315</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>316</id>
+		<tag></tag>
+		<input>
+			<segment id="316" type="thiophene">316</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>317</id>
+		<tag></tag>
+		<input>
+			<segment id="317" type="thiophene">317</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>318</id>
+		<tag></tag>
+		<input>
+			<segment id="318" type="thiophene">318</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>319</id>
+		<tag></tag>
+		<input>
+			<segment id="319" type="thiophene">319</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>320</id>
+		<tag></tag>
+		<input>
+			<segment id="320" type="thiophene">320</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>321</id>
+		<tag></tag>
+		<input>
+			<segment id="321" type="thiophene">321</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>322</id>
+		<tag></tag>
+		<input>
+			<segment id="322" type="thiophene">322</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>323</id>
+		<tag></tag>
+		<input>
+			<segment id="323" type="thiophene">323</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>324</id>
+		<tag></tag>
+		<input>
+			<segment id="324" type="thiophene">324</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>325</id>
+		<tag></tag>
+		<input>
+			<segment id="325" type="thiophene">325</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>326</id>
+		<tag></tag>
+		<input>
+			<segment id="326" type="thiophene">326</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>327</id>
+		<tag></tag>
+		<input>
+			<segment id="327" type="thiophene">327</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>328</id>
+		<tag></tag>
+		<input>
+			<segment id="328" type="thiophene">328</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>329</id>
+		<tag></tag>
+		<input>
+			<segment id="329" type="thiophene">329</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>330</id>
+		<tag></tag>
+		<input>
+			<segment id="330" type="thiophene">330</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>331</id>
+		<tag></tag>
+		<input>
+			<segment id="331" type="thiophene">331</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>332</id>
+		<tag></tag>
+		<input>
+			<segment id="332" type="thiophene">332</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>333</id>
+		<tag></tag>
+		<input>
+			<segment id="333" type="thiophene">333</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>334</id>
+		<tag></tag>
+		<input>
+			<segment id="334" type="thiophene">334</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>335</id>
+		<tag></tag>
+		<input>
+			<segment id="335" type="thiophene">335</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>336</id>
+		<tag></tag>
+		<input>
+			<segment id="336" type="thiophene">336</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>337</id>
+		<tag></tag>
+		<input>
+			<segment id="337" type="thiophene">337</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>338</id>
+		<tag></tag>
+		<input>
+			<segment id="338" type="thiophene">338</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>339</id>
+		<tag></tag>
+		<input>
+			<segment id="339" type="thiophene">339</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>340</id>
+		<tag></tag>
+		<input>
+			<segment id="340" type="thiophene">340</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>341</id>
+		<tag></tag>
+		<input>
+			<segment id="341" type="thiophene">341</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>342</id>
+		<tag></tag>
+		<input>
+			<segment id="342" type="thiophene">342</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>343</id>
+		<tag></tag>
+		<input>
+			<segment id="343" type="thiophene">343</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>344</id>
+		<tag></tag>
+		<input>
+			<segment id="344" type="thiophene">344</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>345</id>
+		<tag></tag>
+		<input>
+			<segment id="345" type="thiophene">345</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>346</id>
+		<tag></tag>
+		<input>
+			<segment id="346" type="thiophene">346</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>347</id>
+		<tag></tag>
+		<input>
+			<segment id="347" type="thiophene">347</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>348</id>
+		<tag></tag>
+		<input>
+			<segment id="348" type="thiophene">348</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>349</id>
+		<tag></tag>
+		<input>
+			<segment id="349" type="thiophene">349</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>350</id>
+		<tag></tag>
+		<input>
+			<segment id="350" type="thiophene">350</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>351</id>
+		<tag></tag>
+		<input>
+			<segment id="351" type="thiophene">351</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>352</id>
+		<tag></tag>
+		<input>
+			<segment id="352" type="thiophene">352</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>353</id>
+		<tag></tag>
+		<input>
+			<segment id="353" type="thiophene">353</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>354</id>
+		<tag></tag>
+		<input>
+			<segment id="354" type="thiophene">354</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>355</id>
+		<tag></tag>
+		<input>
+			<segment id="355" type="thiophene">355</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>356</id>
+		<tag></tag>
+		<input>
+			<segment id="356" type="thiophene">356</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>357</id>
+		<tag></tag>
+		<input>
+			<segment id="357" type="thiophene">357</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>358</id>
+		<tag></tag>
+		<input>
+			<segment id="358" type="thiophene">358</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>359</id>
+		<tag></tag>
+		<input>
+			<segment id="359" type="thiophene">359</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>360</id>
+		<tag></tag>
+		<input>
+			<segment id="360" type="thiophene">360</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>361</id>
+		<tag></tag>
+		<input>
+			<segment id="361" type="thiophene">361</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>362</id>
+		<tag></tag>
+		<input>
+			<segment id="362" type="thiophene">362</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>363</id>
+		<tag></tag>
+		<input>
+			<segment id="363" type="thiophene">363</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>364</id>
+		<tag></tag>
+		<input>
+			<segment id="364" type="thiophene">364</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>365</id>
+		<tag></tag>
+		<input>
+			<segment id="365" type="thiophene">365</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>366</id>
+		<tag></tag>
+		<input>
+			<segment id="366" type="thiophene">366</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>367</id>
+		<tag></tag>
+		<input>
+			<segment id="367" type="thiophene">367</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>368</id>
+		<tag></tag>
+		<input>
+			<segment id="368" type="thiophene">368</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>369</id>
+		<tag></tag>
+		<input>
+			<segment id="369" type="thiophene">369</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>370</id>
+		<tag></tag>
+		<input>
+			<segment id="370" type="thiophene">370</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>371</id>
+		<tag></tag>
+		<input>
+			<segment id="371" type="thiophene">371</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>372</id>
+		<tag></tag>
+		<input>
+			<segment id="372" type="thiophene">372</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>373</id>
+		<tag></tag>
+		<input>
+			<segment id="373" type="thiophene">373</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>374</id>
+		<tag></tag>
+		<input>
+			<segment id="374" type="thiophene">374</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>375</id>
+		<tag></tag>
+		<input>
+			<segment id="375" type="thiophene">375</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>376</id>
+		<tag></tag>
+		<input>
+			<segment id="376" type="thiophene">376</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>377</id>
+		<tag></tag>
+		<input>
+			<segment id="377" type="thiophene">377</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>378</id>
+		<tag></tag>
+		<input>
+			<segment id="378" type="thiophene">378</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>379</id>
+		<tag></tag>
+		<input>
+			<segment id="379" type="thiophene">379</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>380</id>
+		<tag></tag>
+		<input>
+			<segment id="380" type="thiophene">380</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>381</id>
+		<tag></tag>
+		<input>
+			<segment id="381" type="thiophene">381</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>382</id>
+		<tag></tag>
+		<input>
+			<segment id="382" type="thiophene">382</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>383</id>
+		<tag></tag>
+		<input>
+			<segment id="383" type="thiophene">383</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>384</id>
+		<tag></tag>
+		<input>
+			<segment id="384" type="thiophene">384</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>385</id>
+		<tag></tag>
+		<input>
+			<segment id="385" type="thiophene">385</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>386</id>
+		<tag></tag>
+		<input>
+			<segment id="386" type="thiophene">386</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>387</id>
+		<tag></tag>
+		<input>
+			<segment id="387" type="thiophene">387</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>388</id>
+		<tag></tag>
+		<input>
+			<segment id="388" type="thiophene">388</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>389</id>
+		<tag></tag>
+		<input>
+			<segment id="389" type="thiophene">389</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>390</id>
+		<tag></tag>
+		<input>
+			<segment id="390" type="thiophene">390</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>391</id>
+		<tag></tag>
+		<input>
+			<segment id="391" type="thiophene">391</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>392</id>
+		<tag></tag>
+		<input>
+			<segment id="392" type="thiophene">392</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>393</id>
+		<tag></tag>
+		<input>
+			<segment id="393" type="thiophene">393</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>394</id>
+		<tag></tag>
+		<input>
+			<segment id="394" type="thiophene">394</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>395</id>
+		<tag></tag>
+		<input>
+			<segment id="395" type="thiophene">395</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>396</id>
+		<tag></tag>
+		<input>
+			<segment id="396" type="thiophene">396</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>397</id>
+		<tag></tag>
+		<input>
+			<segment id="397" type="thiophene">397</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>398</id>
+		<tag></tag>
+		<input>
+			<segment id="398" type="thiophene">398</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>399</id>
+		<tag></tag>
+		<input>
+			<segment id="399" type="thiophene">399</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>400</id>
+		<tag></tag>
+		<input>
+			<segment id="400" type="thiophene">400</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>401</id>
+		<tag></tag>
+		<input>
+			<segment id="401" type="thiophene">401</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>402</id>
+		<tag></tag>
+		<input>
+			<segment id="402" type="thiophene">402</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>403</id>
+		<tag></tag>
+		<input>
+			<segment id="403" type="thiophene">403</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>404</id>
+		<tag></tag>
+		<input>
+			<segment id="404" type="thiophene">404</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>405</id>
+		<tag></tag>
+		<input>
+			<segment id="405" type="thiophene">405</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>406</id>
+		<tag></tag>
+		<input>
+			<segment id="406" type="thiophene">406</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>407</id>
+		<tag></tag>
+		<input>
+			<segment id="407" type="thiophene">407</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>408</id>
+		<tag></tag>
+		<input>
+			<segment id="408" type="thiophene">408</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>409</id>
+		<tag></tag>
+		<input>
+			<segment id="409" type="thiophene">409</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>410</id>
+		<tag></tag>
+		<input>
+			<segment id="410" type="thiophene">410</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>411</id>
+		<tag></tag>
+		<input>
+			<segment id="411" type="thiophene">411</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>412</id>
+		<tag></tag>
+		<input>
+			<segment id="412" type="thiophene">412</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>413</id>
+		<tag></tag>
+		<input>
+			<segment id="413" type="thiophene">413</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>414</id>
+		<tag></tag>
+		<input>
+			<segment id="414" type="thiophene">414</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>415</id>
+		<tag></tag>
+		<input>
+			<segment id="415" type="thiophene">415</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>416</id>
+		<tag></tag>
+		<input>
+			<segment id="416" type="thiophene">416</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>417</id>
+		<tag></tag>
+		<input>
+			<segment id="417" type="thiophene">417</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>418</id>
+		<tag></tag>
+		<input>
+			<segment id="418" type="thiophene">418</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>419</id>
+		<tag></tag>
+		<input>
+			<segment id="419" type="thiophene">419</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>420</id>
+		<tag></tag>
+		<input>
+			<segment id="420" type="thiophene">420</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>421</id>
+		<tag></tag>
+		<input>
+			<segment id="421" type="thiophene">421</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>422</id>
+		<tag></tag>
+		<input>
+			<segment id="422" type="thiophene">422</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>423</id>
+		<tag></tag>
+		<input>
+			<segment id="423" type="thiophene">423</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>424</id>
+		<tag></tag>
+		<input>
+			<segment id="424" type="thiophene">424</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>425</id>
+		<tag></tag>
+		<input>
+			<segment id="425" type="thiophene">425</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>426</id>
+		<tag></tag>
+		<input>
+			<segment id="426" type="thiophene">426</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>427</id>
+		<tag></tag>
+		<input>
+			<segment id="427" type="thiophene">427</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>428</id>
+		<tag></tag>
+		<input>
+			<segment id="428" type="thiophene">428</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>429</id>
+		<tag></tag>
+		<input>
+			<segment id="429" type="thiophene">429</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>430</id>
+		<tag></tag>
+		<input>
+			<segment id="430" type="thiophene">430</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>431</id>
+		<tag></tag>
+		<input>
+			<segment id="431" type="thiophene">431</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>432</id>
+		<tag></tag>
+		<input>
+			<segment id="432" type="thiophene">432</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>433</id>
+		<tag></tag>
+		<input>
+			<segment id="433" type="thiophene">433</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>434</id>
+		<tag></tag>
+		<input>
+			<segment id="434" type="thiophene">434</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>435</id>
+		<tag></tag>
+		<input>
+			<segment id="435" type="thiophene">435</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>436</id>
+		<tag></tag>
+		<input>
+			<segment id="436" type="thiophene">436</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>437</id>
+		<tag></tag>
+		<input>
+			<segment id="437" type="thiophene">437</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>438</id>
+		<tag></tag>
+		<input>
+			<segment id="438" type="thiophene">438</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>439</id>
+		<tag></tag>
+		<input>
+			<segment id="439" type="thiophene">439</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>440</id>
+		<tag></tag>
+		<input>
+			<segment id="440" type="thiophene">440</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>441</id>
+		<tag></tag>
+		<input>
+			<segment id="441" type="thiophene">441</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>442</id>
+		<tag></tag>
+		<input>
+			<segment id="442" type="thiophene">442</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>443</id>
+		<tag></tag>
+		<input>
+			<segment id="443" type="thiophene">443</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>444</id>
+		<tag></tag>
+		<input>
+			<segment id="444" type="thiophene">444</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>445</id>
+		<tag></tag>
+		<input>
+			<segment id="445" type="thiophene">445</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>446</id>
+		<tag></tag>
+		<input>
+			<segment id="446" type="thiophene">446</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>447</id>
+		<tag></tag>
+		<input>
+			<segment id="447" type="thiophene">447</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>448</id>
+		<tag></tag>
+		<input>
+			<segment id="448" type="thiophene">448</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>449</id>
+		<tag></tag>
+		<input>
+			<segment id="449" type="thiophene">449</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>450</id>
+		<tag></tag>
+		<input>
+			<segment id="450" type="thiophene">450</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>451</id>
+		<tag></tag>
+		<input>
+			<segment id="451" type="thiophene">451</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>452</id>
+		<tag></tag>
+		<input>
+			<segment id="452" type="thiophene">452</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>453</id>
+		<tag></tag>
+		<input>
+			<segment id="453" type="thiophene">453</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>454</id>
+		<tag></tag>
+		<input>
+			<segment id="454" type="thiophene">454</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>455</id>
+		<tag></tag>
+		<input>
+			<segment id="455" type="thiophene">455</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>456</id>
+		<tag></tag>
+		<input>
+			<segment id="456" type="thiophene">456</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>457</id>
+		<tag></tag>
+		<input>
+			<segment id="457" type="thiophene">457</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>458</id>
+		<tag></tag>
+		<input>
+			<segment id="458" type="thiophene">458</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>459</id>
+		<tag></tag>
+		<input>
+			<segment id="459" type="thiophene">459</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>460</id>
+		<tag></tag>
+		<input>
+			<segment id="460" type="thiophene">460</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>461</id>
+		<tag></tag>
+		<input>
+			<segment id="461" type="thiophene">461</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>462</id>
+		<tag></tag>
+		<input>
+			<segment id="462" type="thiophene">462</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>463</id>
+		<tag></tag>
+		<input>
+			<segment id="463" type="thiophene">463</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>464</id>
+		<tag></tag>
+		<input>
+			<segment id="464" type="thiophene">464</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>465</id>
+		<tag></tag>
+		<input>
+			<segment id="465" type="thiophene">465</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>466</id>
+		<tag></tag>
+		<input>
+			<segment id="466" type="thiophene">466</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>467</id>
+		<tag></tag>
+		<input>
+			<segment id="467" type="thiophene">467</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>468</id>
+		<tag></tag>
+		<input>
+			<segment id="468" type="thiophene">468</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>469</id>
+		<tag></tag>
+		<input>
+			<segment id="469" type="thiophene">469</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>470</id>
+		<tag></tag>
+		<input>
+			<segment id="470" type="thiophene">470</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>471</id>
+		<tag></tag>
+		<input>
+			<segment id="471" type="thiophene">471</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>472</id>
+		<tag></tag>
+		<input>
+			<segment id="472" type="thiophene">472</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>473</id>
+		<tag></tag>
+		<input>
+			<segment id="473" type="thiophene">473</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>474</id>
+		<tag></tag>
+		<input>
+			<segment id="474" type="thiophene">474</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>475</id>
+		<tag></tag>
+		<input>
+			<segment id="475" type="thiophene">475</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>476</id>
+		<tag></tag>
+		<input>
+			<segment id="476" type="thiophene">476</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>477</id>
+		<tag></tag>
+		<input>
+			<segment id="477" type="thiophene">477</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>478</id>
+		<tag></tag>
+		<input>
+			<segment id="478" type="thiophene">478</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>479</id>
+		<tag></tag>
+		<input>
+			<segment id="479" type="thiophene">479</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>480</id>
+		<tag></tag>
+		<input>
+			<segment id="480" type="thiophene">480</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>481</id>
+		<tag></tag>
+		<input>
+			<segment id="481" type="thiophene">481</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>482</id>
+		<tag></tag>
+		<input>
+			<segment id="482" type="thiophene">482</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>483</id>
+		<tag></tag>
+		<input>
+			<segment id="483" type="thiophene">483</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>484</id>
+		<tag></tag>
+		<input>
+			<segment id="484" type="thiophene">484</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>485</id>
+		<tag></tag>
+		<input>
+			<segment id="485" type="thiophene">485</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>486</id>
+		<tag></tag>
+		<input>
+			<segment id="486" type="thiophene">486</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>487</id>
+		<tag></tag>
+		<input>
+			<segment id="487" type="thiophene">487</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>488</id>
+		<tag></tag>
+		<input>
+			<segment id="488" type="thiophene">488</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>489</id>
+		<tag></tag>
+		<input>
+			<segment id="489" type="thiophene">489</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>490</id>
+		<tag></tag>
+		<input>
+			<segment id="490" type="thiophene">490</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>491</id>
+		<tag></tag>
+		<input>
+			<segment id="491" type="thiophene">491</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>492</id>
+		<tag></tag>
+		<input>
+			<segment id="492" type="thiophene">492</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>493</id>
+		<tag></tag>
+		<input>
+			<segment id="493" type="thiophene">493</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>494</id>
+		<tag></tag>
+		<input>
+			<segment id="494" type="thiophene">494</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>495</id>
+		<tag></tag>
+		<input>
+			<segment id="495" type="thiophene">495</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>496</id>
+		<tag></tag>
+		<input>
+			<segment id="496" type="thiophene">496</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>497</id>
+		<tag></tag>
+		<input>
+			<segment id="497" type="thiophene">497</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>498</id>
+		<tag></tag>
+		<input>
+			<segment id="498" type="thiophene">498</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>499</id>
+		<tag></tag>
+		<input>
+			<segment id="499" type="thiophene">499</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>500</id>
+		<tag></tag>
+		<input>
+			<segment id="500" type="thiophene">500</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>501</id>
+		<tag></tag>
+		<input>
+			<segment id="501" type="thiophene">501</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>502</id>
+		<tag></tag>
+		<input>
+			<segment id="502" type="thiophene">502</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>503</id>
+		<tag></tag>
+		<input>
+			<segment id="503" type="thiophene">503</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>504</id>
+		<tag></tag>
+		<input>
+			<segment id="504" type="thiophene">504</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>505</id>
+		<tag></tag>
+		<input>
+			<segment id="505" type="thiophene">505</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>506</id>
+		<tag></tag>
+		<input>
+			<segment id="506" type="thiophene">506</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>507</id>
+		<tag></tag>
+		<input>
+			<segment id="507" type="thiophene">507</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>508</id>
+		<tag></tag>
+		<input>
+			<segment id="508" type="thiophene">508</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>509</id>
+		<tag></tag>
+		<input>
+			<segment id="509" type="thiophene">509</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>510</id>
+		<tag></tag>
+		<input>
+			<segment id="510" type="thiophene">510</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>511</id>
+		<tag></tag>
+		<input>
+			<segment id="511" type="thiophene">511</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>512</id>
+		<tag></tag>
+		<input>
+			<segment id="512" type="thiophene">512</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>513</id>
+		<tag></tag>
+		<input>
+			<segment id="513" type="thiophene">513</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>514</id>
+		<tag></tag>
+		<input>
+			<segment id="514" type="thiophene">514</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>515</id>
+		<tag></tag>
+		<input>
+			<segment id="515" type="thiophene">515</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>516</id>
+		<tag></tag>
+		<input>
+			<segment id="516" type="thiophene">516</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>517</id>
+		<tag></tag>
+		<input>
+			<segment id="517" type="thiophene">517</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>518</id>
+		<tag></tag>
+		<input>
+			<segment id="518" type="thiophene">518</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>519</id>
+		<tag></tag>
+		<input>
+			<segment id="519" type="thiophene">519</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>520</id>
+		<tag></tag>
+		<input>
+			<segment id="520" type="thiophene">520</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>521</id>
+		<tag></tag>
+		<input>
+			<segment id="521" type="thiophene">521</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>522</id>
+		<tag></tag>
+		<input>
+			<segment id="522" type="thiophene">522</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>523</id>
+		<tag></tag>
+		<input>
+			<segment id="523" type="thiophene">523</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>524</id>
+		<tag></tag>
+		<input>
+			<segment id="524" type="thiophene">524</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>525</id>
+		<tag></tag>
+		<input>
+			<segment id="525" type="thiophene">525</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>526</id>
+		<tag></tag>
+		<input>
+			<segment id="526" type="thiophene">526</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>527</id>
+		<tag></tag>
+		<input>
+			<segment id="527" type="thiophene">527</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>528</id>
+		<tag></tag>
+		<input>
+			<segment id="528" type="thiophene">528</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>529</id>
+		<tag></tag>
+		<input>
+			<segment id="529" type="thiophene">529</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>530</id>
+		<tag></tag>
+		<input>
+			<segment id="530" type="thiophene">530</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>531</id>
+		<tag></tag>
+		<input>
+			<segment id="531" type="thiophene">531</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>532</id>
+		<tag></tag>
+		<input>
+			<segment id="532" type="thiophene">532</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>533</id>
+		<tag></tag>
+		<input>
+			<segment id="533" type="thiophene">533</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>534</id>
+		<tag></tag>
+		<input>
+			<segment id="534" type="thiophene">534</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>535</id>
+		<tag></tag>
+		<input>
+			<segment id="535" type="thiophene">535</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>536</id>
+		<tag></tag>
+		<input>
+			<segment id="536" type="thiophene">536</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>537</id>
+		<tag></tag>
+		<input>
+			<segment id="537" type="thiophene">537</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>538</id>
+		<tag></tag>
+		<input>
+			<segment id="538" type="thiophene">538</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>539</id>
+		<tag></tag>
+		<input>
+			<segment id="539" type="thiophene">539</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>540</id>
+		<tag></tag>
+		<input>
+			<segment id="540" type="thiophene">540</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>541</id>
+		<tag></tag>
+		<input>
+			<segment id="541" type="thiophene">541</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>542</id>
+		<tag></tag>
+		<input>
+			<segment id="542" type="thiophene">542</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>543</id>
+		<tag></tag>
+		<input>
+			<segment id="543" type="thiophene">543</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>544</id>
+		<tag></tag>
+		<input>
+			<segment id="544" type="thiophene">544</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>545</id>
+		<tag></tag>
+		<input>
+			<segment id="545" type="thiophene">545</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>546</id>
+		<tag></tag>
+		<input>
+			<segment id="546" type="thiophene">546</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>547</id>
+		<tag></tag>
+		<input>
+			<segment id="547" type="thiophene">547</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>548</id>
+		<tag></tag>
+		<input>
+			<segment id="548" type="thiophene">548</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>549</id>
+		<tag></tag>
+		<input>
+			<segment id="549" type="thiophene">549</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>550</id>
+		<tag></tag>
+		<input>
+			<segment id="550" type="thiophene">550</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>551</id>
+		<tag></tag>
+		<input>
+			<segment id="551" type="thiophene">551</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>552</id>
+		<tag></tag>
+		<input>
+			<segment id="552" type="thiophene">552</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>553</id>
+		<tag></tag>
+		<input>
+			<segment id="553" type="thiophene">553</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>554</id>
+		<tag></tag>
+		<input>
+			<segment id="554" type="thiophene">554</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>555</id>
+		<tag></tag>
+		<input>
+			<segment id="555" type="thiophene">555</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>556</id>
+		<tag></tag>
+		<input>
+			<segment id="556" type="thiophene">556</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>557</id>
+		<tag></tag>
+		<input>
+			<segment id="557" type="thiophene">557</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>558</id>
+		<tag></tag>
+		<input>
+			<segment id="558" type="thiophene">558</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>559</id>
+		<tag></tag>
+		<input>
+			<segment id="559" type="thiophene">559</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>560</id>
+		<tag></tag>
+		<input>
+			<segment id="560" type="thiophene">560</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>561</id>
+		<tag></tag>
+		<input>
+			<segment id="561" type="thiophene">561</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>562</id>
+		<tag></tag>
+		<input>
+			<segment id="562" type="thiophene">562</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>563</id>
+		<tag></tag>
+		<input>
+			<segment id="563" type="thiophene">563</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>564</id>
+		<tag></tag>
+		<input>
+			<segment id="564" type="thiophene">564</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>565</id>
+		<tag></tag>
+		<input>
+			<segment id="565" type="thiophene">565</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>566</id>
+		<tag></tag>
+		<input>
+			<segment id="566" type="thiophene">566</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>567</id>
+		<tag></tag>
+		<input>
+			<segment id="567" type="thiophene">567</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>568</id>
+		<tag></tag>
+		<input>
+			<segment id="568" type="thiophene">568</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>569</id>
+		<tag></tag>
+		<input>
+			<segment id="569" type="thiophene">569</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>570</id>
+		<tag></tag>
+		<input>
+			<segment id="570" type="thiophene">570</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>571</id>
+		<tag></tag>
+		<input>
+			<segment id="571" type="thiophene">571</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>572</id>
+		<tag></tag>
+		<input>
+			<segment id="572" type="thiophene">572</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>573</id>
+		<tag></tag>
+		<input>
+			<segment id="573" type="thiophene">573</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>574</id>
+		<tag></tag>
+		<input>
+			<segment id="574" type="thiophene">574</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>575</id>
+		<tag></tag>
+		<input>
+			<segment id="575" type="thiophene">575</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>576</id>
+		<tag></tag>
+		<input>
+			<segment id="576" type="thiophene">576</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>577</id>
+		<tag></tag>
+		<input>
+			<segment id="577" type="thiophene">577</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>578</id>
+		<tag></tag>
+		<input>
+			<segment id="578" type="thiophene">578</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>579</id>
+		<tag></tag>
+		<input>
+			<segment id="579" type="thiophene">579</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>580</id>
+		<tag></tag>
+		<input>
+			<segment id="580" type="thiophene">580</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>581</id>
+		<tag></tag>
+		<input>
+			<segment id="581" type="thiophene">581</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>582</id>
+		<tag></tag>
+		<input>
+			<segment id="582" type="thiophene">582</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>583</id>
+		<tag></tag>
+		<input>
+			<segment id="583" type="thiophene">583</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>584</id>
+		<tag></tag>
+		<input>
+			<segment id="584" type="thiophene">584</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>585</id>
+		<tag></tag>
+		<input>
+			<segment id="585" type="thiophene">585</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>586</id>
+		<tag></tag>
+		<input>
+			<segment id="586" type="thiophene">586</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>587</id>
+		<tag></tag>
+		<input>
+			<segment id="587" type="thiophene">587</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>588</id>
+		<tag></tag>
+		<input>
+			<segment id="588" type="thiophene">588</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>589</id>
+		<tag></tag>
+		<input>
+			<segment id="589" type="thiophene">589</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>590</id>
+		<tag></tag>
+		<input>
+			<segment id="590" type="thiophene">590</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>591</id>
+		<tag></tag>
+		<input>
+			<segment id="591" type="thiophene">591</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>592</id>
+		<tag></tag>
+		<input>
+			<segment id="592" type="thiophene">592</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>593</id>
+		<tag></tag>
+		<input>
+			<segment id="593" type="thiophene">593</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>594</id>
+		<tag></tag>
+		<input>
+			<segment id="594" type="thiophene">594</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>595</id>
+		<tag></tag>
+		<input>
+			<segment id="595" type="thiophene">595</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>596</id>
+		<tag></tag>
+		<input>
+			<segment id="596" type="thiophene">596</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>597</id>
+		<tag></tag>
+		<input>
+			<segment id="597" type="thiophene">597</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>598</id>
+		<tag></tag>
+		<input>
+			<segment id="598" type="thiophene">598</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>599</id>
+		<tag></tag>
+		<input>
+			<segment id="599" type="thiophene">599</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>600</id>
+		<tag></tag>
+		<input>
+			<segment id="600" type="thiophene">600</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>601</id>
+		<tag></tag>
+		<input>
+			<segment id="601" type="thiophene">601</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>602</id>
+		<tag></tag>
+		<input>
+			<segment id="602" type="thiophene">602</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>603</id>
+		<tag></tag>
+		<input>
+			<segment id="603" type="thiophene">603</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>604</id>
+		<tag></tag>
+		<input>
+			<segment id="604" type="thiophene">604</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>605</id>
+		<tag></tag>
+		<input>
+			<segment id="605" type="thiophene">605</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>606</id>
+		<tag></tag>
+		<input>
+			<segment id="606" type="thiophene">606</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>607</id>
+		<tag></tag>
+		<input>
+			<segment id="607" type="thiophene">607</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>608</id>
+		<tag></tag>
+		<input>
+			<segment id="608" type="thiophene">608</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>609</id>
+		<tag></tag>
+		<input>
+			<segment id="609" type="thiophene">609</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>610</id>
+		<tag></tag>
+		<input>
+			<segment id="610" type="thiophene">610</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>611</id>
+		<tag></tag>
+		<input>
+			<segment id="611" type="thiophene">611</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>612</id>
+		<tag></tag>
+		<input>
+			<segment id="612" type="thiophene">612</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>613</id>
+		<tag></tag>
+		<input>
+			<segment id="613" type="thiophene">613</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>614</id>
+		<tag></tag>
+		<input>
+			<segment id="614" type="thiophene">614</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>615</id>
+		<tag></tag>
+		<input>
+			<segment id="615" type="thiophene">615</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>616</id>
+		<tag></tag>
+		<input>
+			<segment id="616" type="thiophene">616</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>617</id>
+		<tag></tag>
+		<input>
+			<segment id="617" type="thiophene">617</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>618</id>
+		<tag></tag>
+		<input>
+			<segment id="618" type="thiophene">618</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>619</id>
+		<tag></tag>
+		<input>
+			<segment id="619" type="thiophene">619</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>620</id>
+		<tag></tag>
+		<input>
+			<segment id="620" type="thiophene">620</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>621</id>
+		<tag></tag>
+		<input>
+			<segment id="621" type="thiophene">621</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>622</id>
+		<tag></tag>
+		<input>
+			<segment id="622" type="thiophene">622</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>623</id>
+		<tag></tag>
+		<input>
+			<segment id="623" type="thiophene">623</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>624</id>
+		<tag></tag>
+		<input>
+			<segment id="624" type="thiophene">624</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>625</id>
+		<tag></tag>
+		<input>
+			<segment id="625" type="thiophene">625</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>626</id>
+		<tag></tag>
+		<input>
+			<segment id="626" type="thiophene">626</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>627</id>
+		<tag></tag>
+		<input>
+			<segment id="627" type="thiophene">627</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>628</id>
+		<tag></tag>
+		<input>
+			<segment id="628" type="thiophene">628</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>629</id>
+		<tag></tag>
+		<input>
+			<segment id="629" type="thiophene">629</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>630</id>
+		<tag></tag>
+		<input>
+			<segment id="630" type="thiophene">630</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>631</id>
+		<tag></tag>
+		<input>
+			<segment id="631" type="thiophene">631</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>632</id>
+		<tag></tag>
+		<input>
+			<segment id="632" type="thiophene">632</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>633</id>
+		<tag></tag>
+		<input>
+			<segment id="633" type="thiophene">633</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>634</id>
+		<tag></tag>
+		<input>
+			<segment id="634" type="thiophene">634</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>635</id>
+		<tag></tag>
+		<input>
+			<segment id="635" type="thiophene">635</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>636</id>
+		<tag></tag>
+		<input>
+			<segment id="636" type="thiophene">636</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>637</id>
+		<tag></tag>
+		<input>
+			<segment id="637" type="thiophene">637</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>638</id>
+		<tag></tag>
+		<input>
+			<segment id="638" type="thiophene">638</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>639</id>
+		<tag></tag>
+		<input>
+			<segment id="639" type="thiophene">639</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>640</id>
+		<tag></tag>
+		<input>
+			<segment id="640" type="thiophene">640</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>641</id>
+		<tag></tag>
+		<input>
+			<segment id="641" type="thiophene">641</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>642</id>
+		<tag></tag>
+		<input>
+			<segment id="642" type="thiophene">642</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>643</id>
+		<tag></tag>
+		<input>
+			<segment id="643" type="thiophene">643</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>644</id>
+		<tag></tag>
+		<input>
+			<segment id="644" type="thiophene">644</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>645</id>
+		<tag></tag>
+		<input>
+			<segment id="645" type="thiophene">645</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>646</id>
+		<tag></tag>
+		<input>
+			<segment id="646" type="thiophene">646</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>647</id>
+		<tag></tag>
+		<input>
+			<segment id="647" type="thiophene">647</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>648</id>
+		<tag></tag>
+		<input>
+			<segment id="648" type="thiophene">648</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>649</id>
+		<tag></tag>
+		<input>
+			<segment id="649" type="thiophene">649</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>650</id>
+		<tag></tag>
+		<input>
+			<segment id="650" type="thiophene">650</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>651</id>
+		<tag></tag>
+		<input>
+			<segment id="651" type="thiophene">651</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>652</id>
+		<tag></tag>
+		<input>
+			<segment id="652" type="thiophene">652</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>653</id>
+		<tag></tag>
+		<input>
+			<segment id="653" type="thiophene">653</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>654</id>
+		<tag></tag>
+		<input>
+			<segment id="654" type="thiophene">654</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>655</id>
+		<tag></tag>
+		<input>
+			<segment id="655" type="thiophene">655</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>656</id>
+		<tag></tag>
+		<input>
+			<segment id="656" type="thiophene">656</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>657</id>
+		<tag></tag>
+		<input>
+			<segment id="657" type="thiophene">657</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>658</id>
+		<tag></tag>
+		<input>
+			<segment id="658" type="thiophene">658</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>659</id>
+		<tag></tag>
+		<input>
+			<segment id="659" type="thiophene">659</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>660</id>
+		<tag></tag>
+		<input>
+			<segment id="660" type="thiophene">660</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>661</id>
+		<tag></tag>
+		<input>
+			<segment id="661" type="thiophene">661</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>662</id>
+		<tag></tag>
+		<input>
+			<segment id="662" type="thiophene">662</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>663</id>
+		<tag></tag>
+		<input>
+			<segment id="663" type="thiophene">663</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>664</id>
+		<tag></tag>
+		<input>
+			<segment id="664" type="thiophene">664</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>665</id>
+		<tag></tag>
+		<input>
+			<segment id="665" type="thiophene">665</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>666</id>
+		<tag></tag>
+		<input>
+			<segment id="666" type="thiophene">666</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>667</id>
+		<tag></tag>
+		<input>
+			<segment id="667" type="thiophene">667</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>668</id>
+		<tag></tag>
+		<input>
+			<segment id="668" type="thiophene">668</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>669</id>
+		<tag></tag>
+		<input>
+			<segment id="669" type="thiophene">669</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>670</id>
+		<tag></tag>
+		<input>
+			<segment id="670" type="thiophene">670</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>671</id>
+		<tag></tag>
+		<input>
+			<segment id="671" type="thiophene">671</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>672</id>
+		<tag></tag>
+		<input>
+			<segment id="672" type="thiophene">672</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>673</id>
+		<tag></tag>
+		<input>
+			<segment id="673" type="thiophene">673</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>674</id>
+		<tag></tag>
+		<input>
+			<segment id="674" type="thiophene">674</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>675</id>
+		<tag></tag>
+		<input>
+			<segment id="675" type="thiophene">675</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>676</id>
+		<tag></tag>
+		<input>
+			<segment id="676" type="thiophene">676</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>677</id>
+		<tag></tag>
+		<input>
+			<segment id="677" type="thiophene">677</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>678</id>
+		<tag></tag>
+		<input>
+			<segment id="678" type="thiophene">678</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>679</id>
+		<tag></tag>
+		<input>
+			<segment id="679" type="thiophene">679</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>680</id>
+		<tag></tag>
+		<input>
+			<segment id="680" type="thiophene">680</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>681</id>
+		<tag></tag>
+		<input>
+			<segment id="681" type="thiophene">681</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>682</id>
+		<tag></tag>
+		<input>
+			<segment id="682" type="thiophene">682</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>683</id>
+		<tag></tag>
+		<input>
+			<segment id="683" type="thiophene">683</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>684</id>
+		<tag></tag>
+		<input>
+			<segment id="684" type="thiophene">684</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>685</id>
+		<tag></tag>
+		<input>
+			<segment id="685" type="thiophene">685</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>686</id>
+		<tag></tag>
+		<input>
+			<segment id="686" type="thiophene">686</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>687</id>
+		<tag></tag>
+		<input>
+			<segment id="687" type="thiophene">687</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>688</id>
+		<tag></tag>
+		<input>
+			<segment id="688" type="thiophene">688</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>689</id>
+		<tag></tag>
+		<input>
+			<segment id="689" type="thiophene">689</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>690</id>
+		<tag></tag>
+		<input>
+			<segment id="690" type="thiophene">690</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>691</id>
+		<tag></tag>
+		<input>
+			<segment id="691" type="thiophene">691</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>692</id>
+		<tag></tag>
+		<input>
+			<segment id="692" type="thiophene">692</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>693</id>
+		<tag></tag>
+		<input>
+			<segment id="693" type="thiophene">693</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>694</id>
+		<tag></tag>
+		<input>
+			<segment id="694" type="thiophene">694</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>695</id>
+		<tag></tag>
+		<input>
+			<segment id="695" type="thiophene">695</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>696</id>
+		<tag></tag>
+		<input>
+			<segment id="696" type="thiophene">696</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>697</id>
+		<tag></tag>
+		<input>
+			<segment id="697" type="thiophene">697</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>698</id>
+		<tag></tag>
+		<input>
+			<segment id="698" type="thiophene">698</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>699</id>
+		<tag></tag>
+		<input>
+			<segment id="699" type="thiophene">699</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>700</id>
+		<tag></tag>
+		<input>
+			<segment id="700" type="thiophene">700</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>701</id>
+		<tag></tag>
+		<input>
+			<segment id="701" type="thiophene">701</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>702</id>
+		<tag></tag>
+		<input>
+			<segment id="702" type="thiophene">702</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>703</id>
+		<tag></tag>
+		<input>
+			<segment id="703" type="thiophene">703</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>704</id>
+		<tag></tag>
+		<input>
+			<segment id="704" type="thiophene">704</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>705</id>
+		<tag></tag>
+		<input>
+			<segment id="705" type="thiophene">705</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>706</id>
+		<tag></tag>
+		<input>
+			<segment id="706" type="thiophene">706</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>707</id>
+		<tag></tag>
+		<input>
+			<segment id="707" type="thiophene">707</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>708</id>
+		<tag></tag>
+		<input>
+			<segment id="708" type="thiophene">708</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>709</id>
+		<tag></tag>
+		<input>
+			<segment id="709" type="thiophene">709</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>710</id>
+		<tag></tag>
+		<input>
+			<segment id="710" type="thiophene">710</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>711</id>
+		<tag></tag>
+		<input>
+			<segment id="711" type="thiophene">711</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>712</id>
+		<tag></tag>
+		<input>
+			<segment id="712" type="thiophene">712</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>713</id>
+		<tag></tag>
+		<input>
+			<segment id="713" type="thiophene">713</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>714</id>
+		<tag></tag>
+		<input>
+			<segment id="714" type="thiophene">714</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>715</id>
+		<tag></tag>
+		<input>
+			<segment id="715" type="thiophene">715</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>716</id>
+		<tag></tag>
+		<input>
+			<segment id="716" type="thiophene">716</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>717</id>
+		<tag></tag>
+		<input>
+			<segment id="717" type="thiophene">717</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>718</id>
+		<tag></tag>
+		<input>
+			<segment id="718" type="thiophene">718</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>719</id>
+		<tag></tag>
+		<input>
+			<segment id="719" type="thiophene">719</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>720</id>
+		<tag></tag>
+		<input>
+			<segment id="720" type="thiophene">720</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>721</id>
+		<tag></tag>
+		<input>
+			<segment id="721" type="thiophene">721</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>722</id>
+		<tag></tag>
+		<input>
+			<segment id="722" type="thiophene">722</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>723</id>
+		<tag></tag>
+		<input>
+			<segment id="723" type="thiophene">723</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>724</id>
+		<tag></tag>
+		<input>
+			<segment id="724" type="thiophene">724</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>725</id>
+		<tag></tag>
+		<input>
+			<segment id="725" type="thiophene">725</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>726</id>
+		<tag></tag>
+		<input>
+			<segment id="726" type="thiophene">726</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>727</id>
+		<tag></tag>
+		<input>
+			<segment id="727" type="thiophene">727</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>728</id>
+		<tag></tag>
+		<input>
+			<segment id="728" type="thiophene">728</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>729</id>
+		<tag></tag>
+		<input>
+			<segment id="729" type="thiophene">729</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>730</id>
+		<tag></tag>
+		<input>
+			<segment id="730" type="thiophene">730</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>731</id>
+		<tag></tag>
+		<input>
+			<segment id="731" type="thiophene">731</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>732</id>
+		<tag></tag>
+		<input>
+			<segment id="732" type="thiophene">732</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>733</id>
+		<tag></tag>
+		<input>
+			<segment id="733" type="thiophene">733</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>734</id>
+		<tag></tag>
+		<input>
+			<segment id="734" type="thiophene">734</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>735</id>
+		<tag></tag>
+		<input>
+			<segment id="735" type="thiophene">735</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>736</id>
+		<tag></tag>
+		<input>
+			<segment id="736" type="thiophene">736</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>737</id>
+		<tag></tag>
+		<input>
+			<segment id="737" type="thiophene">737</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>738</id>
+		<tag></tag>
+		<input>
+			<segment id="738" type="thiophene">738</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>739</id>
+		<tag></tag>
+		<input>
+			<segment id="739" type="thiophene">739</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>740</id>
+		<tag></tag>
+		<input>
+			<segment id="740" type="thiophene">740</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>741</id>
+		<tag></tag>
+		<input>
+			<segment id="741" type="thiophene">741</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>742</id>
+		<tag></tag>
+		<input>
+			<segment id="742" type="thiophene">742</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>743</id>
+		<tag></tag>
+		<input>
+			<segment id="743" type="thiophene">743</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>744</id>
+		<tag></tag>
+		<input>
+			<segment id="744" type="thiophene">744</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>745</id>
+		<tag></tag>
+		<input>
+			<segment id="745" type="thiophene">745</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>746</id>
+		<tag></tag>
+		<input>
+			<segment id="746" type="thiophene">746</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>747</id>
+		<tag></tag>
+		<input>
+			<segment id="747" type="thiophene">747</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>748</id>
+		<tag></tag>
+		<input>
+			<segment id="748" type="thiophene">748</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>749</id>
+		<tag></tag>
+		<input>
+			<segment id="749" type="thiophene">749</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>750</id>
+		<tag></tag>
+		<input>
+			<segment id="750" type="thiophene">750</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>751</id>
+		<tag></tag>
+		<input>
+			<segment id="751" type="thiophene">751</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>752</id>
+		<tag></tag>
+		<input>
+			<segment id="752" type="thiophene">752</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>753</id>
+		<tag></tag>
+		<input>
+			<segment id="753" type="thiophene">753</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>754</id>
+		<tag></tag>
+		<input>
+			<segment id="754" type="thiophene">754</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>755</id>
+		<tag></tag>
+		<input>
+			<segment id="755" type="thiophene">755</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>756</id>
+		<tag></tag>
+		<input>
+			<segment id="756" type="thiophene">756</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>757</id>
+		<tag></tag>
+		<input>
+			<segment id="757" type="thiophene">757</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>758</id>
+		<tag></tag>
+		<input>
+			<segment id="758" type="thiophene">758</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>759</id>
+		<tag></tag>
+		<input>
+			<segment id="759" type="thiophene">759</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>760</id>
+		<tag></tag>
+		<input>
+			<segment id="760" type="thiophene">760</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>761</id>
+		<tag></tag>
+		<input>
+			<segment id="761" type="thiophene">761</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>762</id>
+		<tag></tag>
+		<input>
+			<segment id="762" type="thiophene">762</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>763</id>
+		<tag></tag>
+		<input>
+			<segment id="763" type="thiophene">763</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>764</id>
+		<tag></tag>
+		<input>
+			<segment id="764" type="thiophene">764</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>765</id>
+		<tag></tag>
+		<input>
+			<segment id="765" type="thiophene">765</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>766</id>
+		<tag></tag>
+		<input>
+			<segment id="766" type="thiophene">766</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>767</id>
+		<tag></tag>
+		<input>
+			<segment id="767" type="thiophene">767</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>768</id>
+		<tag></tag>
+		<input>
+			<segment id="768" type="thiophene">768</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>769</id>
+		<tag></tag>
+		<input>
+			<segment id="769" type="thiophene">769</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>770</id>
+		<tag></tag>
+		<input>
+			<segment id="770" type="thiophene">770</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>771</id>
+		<tag></tag>
+		<input>
+			<segment id="771" type="thiophene">771</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>772</id>
+		<tag></tag>
+		<input>
+			<segment id="772" type="thiophene">772</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>773</id>
+		<tag></tag>
+		<input>
+			<segment id="773" type="thiophene">773</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>774</id>
+		<tag></tag>
+		<input>
+			<segment id="774" type="thiophene">774</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>775</id>
+		<tag></tag>
+		<input>
+			<segment id="775" type="thiophene">775</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>776</id>
+		<tag></tag>
+		<input>
+			<segment id="776" type="thiophene">776</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>777</id>
+		<tag></tag>
+		<input>
+			<segment id="777" type="thiophene">777</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>778</id>
+		<tag></tag>
+		<input>
+			<segment id="778" type="thiophene">778</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>779</id>
+		<tag></tag>
+		<input>
+			<segment id="779" type="thiophene">779</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>780</id>
+		<tag></tag>
+		<input>
+			<segment id="780" type="thiophene">780</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>781</id>
+		<tag></tag>
+		<input>
+			<segment id="781" type="thiophene">781</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>782</id>
+		<tag></tag>
+		<input>
+			<segment id="782" type="thiophene">782</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>783</id>
+		<tag></tag>
+		<input>
+			<segment id="783" type="thiophene">783</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>784</id>
+		<tag></tag>
+		<input>
+			<segment id="784" type="thiophene">784</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>785</id>
+		<tag></tag>
+		<input>
+			<segment id="785" type="thiophene">785</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>786</id>
+		<tag></tag>
+		<input>
+			<segment id="786" type="thiophene">786</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>787</id>
+		<tag></tag>
+		<input>
+			<segment id="787" type="thiophene">787</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>788</id>
+		<tag></tag>
+		<input>
+			<segment id="788" type="thiophene">788</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>789</id>
+		<tag></tag>
+		<input>
+			<segment id="789" type="thiophene">789</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>790</id>
+		<tag></tag>
+		<input>
+			<segment id="790" type="thiophene">790</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>791</id>
+		<tag></tag>
+		<input>
+			<segment id="791" type="thiophene">791</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>792</id>
+		<tag></tag>
+		<input>
+			<segment id="792" type="thiophene">792</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>793</id>
+		<tag></tag>
+		<input>
+			<segment id="793" type="thiophene">793</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>794</id>
+		<tag></tag>
+		<input>
+			<segment id="794" type="thiophene">794</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>795</id>
+		<tag></tag>
+		<input>
+			<segment id="795" type="thiophene">795</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>796</id>
+		<tag></tag>
+		<input>
+			<segment id="796" type="thiophene">796</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>797</id>
+		<tag></tag>
+		<input>
+			<segment id="797" type="thiophene">797</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>798</id>
+		<tag></tag>
+		<input>
+			<segment id="798" type="thiophene">798</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>799</id>
+		<tag></tag>
+		<input>
+			<segment id="799" type="thiophene">799</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>800</id>
+		<tag></tag>
+		<input>
+			<segment id="800" type="thiophene">800</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>801</id>
+		<tag></tag>
+		<input>
+			<segment id="801" type="thiophene">801</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>802</id>
+		<tag></tag>
+		<input>
+			<segment id="802" type="thiophene">802</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>803</id>
+		<tag></tag>
+		<input>
+			<segment id="803" type="thiophene">803</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>804</id>
+		<tag></tag>
+		<input>
+			<segment id="804" type="thiophene">804</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>805</id>
+		<tag></tag>
+		<input>
+			<segment id="805" type="thiophene">805</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>806</id>
+		<tag></tag>
+		<input>
+			<segment id="806" type="thiophene">806</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>807</id>
+		<tag></tag>
+		<input>
+			<segment id="807" type="thiophene">807</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>808</id>
+		<tag></tag>
+		<input>
+			<segment id="808" type="thiophene">808</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>809</id>
+		<tag></tag>
+		<input>
+			<segment id="809" type="thiophene">809</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>810</id>
+		<tag></tag>
+		<input>
+			<segment id="810" type="thiophene">810</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>811</id>
+		<tag></tag>
+		<input>
+			<segment id="811" type="thiophene">811</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>812</id>
+		<tag></tag>
+		<input>
+			<segment id="812" type="thiophene">812</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>813</id>
+		<tag></tag>
+		<input>
+			<segment id="813" type="thiophene">813</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>814</id>
+		<tag></tag>
+		<input>
+			<segment id="814" type="thiophene">814</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>815</id>
+		<tag></tag>
+		<input>
+			<segment id="815" type="thiophene">815</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>816</id>
+		<tag></tag>
+		<input>
+			<segment id="816" type="thiophene">816</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>817</id>
+		<tag></tag>
+		<input>
+			<segment id="817" type="thiophene">817</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>818</id>
+		<tag></tag>
+		<input>
+			<segment id="818" type="thiophene">818</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>819</id>
+		<tag></tag>
+		<input>
+			<segment id="819" type="thiophene">819</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>820</id>
+		<tag></tag>
+		<input>
+			<segment id="820" type="thiophene">820</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>821</id>
+		<tag></tag>
+		<input>
+			<segment id="821" type="thiophene">821</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>822</id>
+		<tag></tag>
+		<input>
+			<segment id="822" type="thiophene">822</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>823</id>
+		<tag></tag>
+		<input>
+			<segment id="823" type="thiophene">823</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>824</id>
+		<tag></tag>
+		<input>
+			<segment id="824" type="thiophene">824</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>825</id>
+		<tag></tag>
+		<input>
+			<segment id="825" type="thiophene">825</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>826</id>
+		<tag></tag>
+		<input>
+			<segment id="826" type="thiophene">826</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>827</id>
+		<tag></tag>
+		<input>
+			<segment id="827" type="thiophene">827</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>828</id>
+		<tag></tag>
+		<input>
+			<segment id="828" type="thiophene">828</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>829</id>
+		<tag></tag>
+		<input>
+			<segment id="829" type="thiophene">829</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>830</id>
+		<tag></tag>
+		<input>
+			<segment id="830" type="thiophene">830</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>831</id>
+		<tag></tag>
+		<input>
+			<segment id="831" type="thiophene">831</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>832</id>
+		<tag></tag>
+		<input>
+			<segment id="832" type="thiophene">832</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>833</id>
+		<tag></tag>
+		<input>
+			<segment id="833" type="thiophene">833</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>834</id>
+		<tag></tag>
+		<input>
+			<segment id="834" type="thiophene">834</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>835</id>
+		<tag></tag>
+		<input>
+			<segment id="835" type="thiophene">835</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>836</id>
+		<tag></tag>
+		<input>
+			<segment id="836" type="thiophene">836</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>837</id>
+		<tag></tag>
+		<input>
+			<segment id="837" type="thiophene">837</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>838</id>
+		<tag></tag>
+		<input>
+			<segment id="838" type="thiophene">838</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>839</id>
+		<tag></tag>
+		<input>
+			<segment id="839" type="thiophene">839</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>840</id>
+		<tag></tag>
+		<input>
+			<segment id="840" type="thiophene">840</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>841</id>
+		<tag></tag>
+		<input>
+			<segment id="841" type="thiophene">841</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>842</id>
+		<tag></tag>
+		<input>
+			<segment id="842" type="thiophene">842</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>843</id>
+		<tag></tag>
+		<input>
+			<segment id="843" type="thiophene">843</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>844</id>
+		<tag></tag>
+		<input>
+			<segment id="844" type="thiophene">844</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>845</id>
+		<tag></tag>
+		<input>
+			<segment id="845" type="thiophene">845</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>846</id>
+		<tag></tag>
+		<input>
+			<segment id="846" type="thiophene">846</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>847</id>
+		<tag></tag>
+		<input>
+			<segment id="847" type="thiophene">847</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>848</id>
+		<tag></tag>
+		<input>
+			<segment id="848" type="thiophene">848</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>849</id>
+		<tag></tag>
+		<input>
+			<segment id="849" type="thiophene">849</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>850</id>
+		<tag></tag>
+		<input>
+			<segment id="850" type="thiophene">850</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>851</id>
+		<tag></tag>
+		<input>
+			<segment id="851" type="thiophene">851</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>852</id>
+		<tag></tag>
+		<input>
+			<segment id="852" type="thiophene">852</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>853</id>
+		<tag></tag>
+		<input>
+			<segment id="853" type="thiophene">853</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>854</id>
+		<tag></tag>
+		<input>
+			<segment id="854" type="thiophene">854</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>855</id>
+		<tag></tag>
+		<input>
+			<segment id="855" type="thiophene">855</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>856</id>
+		<tag></tag>
+		<input>
+			<segment id="856" type="thiophene">856</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>857</id>
+		<tag></tag>
+		<input>
+			<segment id="857" type="thiophene">857</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>858</id>
+		<tag></tag>
+		<input>
+			<segment id="858" type="thiophene">858</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>859</id>
+		<tag></tag>
+		<input>
+			<segment id="859" type="thiophene">859</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>860</id>
+		<tag></tag>
+		<input>
+			<segment id="860" type="thiophene">860</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>861</id>
+		<tag></tag>
+		<input>
+			<segment id="861" type="thiophene">861</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>862</id>
+		<tag></tag>
+		<input>
+			<segment id="862" type="thiophene">862</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>863</id>
+		<tag></tag>
+		<input>
+			<segment id="863" type="thiophene">863</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>864</id>
+		<tag></tag>
+		<input>
+			<segment id="864" type="thiophene">864</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>865</id>
+		<tag></tag>
+		<input>
+			<segment id="865" type="thiophene">865</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>866</id>
+		<tag></tag>
+		<input>
+			<segment id="866" type="thiophene">866</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>867</id>
+		<tag></tag>
+		<input>
+			<segment id="867" type="thiophene">867</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>868</id>
+		<tag></tag>
+		<input>
+			<segment id="868" type="thiophene">868</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>869</id>
+		<tag></tag>
+		<input>
+			<segment id="869" type="thiophene">869</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>870</id>
+		<tag></tag>
+		<input>
+			<segment id="870" type="thiophene">870</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>871</id>
+		<tag></tag>
+		<input>
+			<segment id="871" type="thiophene">871</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>872</id>
+		<tag></tag>
+		<input>
+			<segment id="872" type="thiophene">872</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>873</id>
+		<tag></tag>
+		<input>
+			<segment id="873" type="thiophene">873</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>874</id>
+		<tag></tag>
+		<input>
+			<segment id="874" type="thiophene">874</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>875</id>
+		<tag></tag>
+		<input>
+			<segment id="875" type="thiophene">875</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>876</id>
+		<tag></tag>
+		<input>
+			<segment id="876" type="thiophene">876</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>877</id>
+		<tag></tag>
+		<input>
+			<segment id="877" type="thiophene">877</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>878</id>
+		<tag></tag>
+		<input>
+			<segment id="878" type="thiophene">878</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>879</id>
+		<tag></tag>
+		<input>
+			<segment id="879" type="thiophene">879</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>880</id>
+		<tag></tag>
+		<input>
+			<segment id="880" type="thiophene">880</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>881</id>
+		<tag></tag>
+		<input>
+			<segment id="881" type="thiophene">881</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>882</id>
+		<tag></tag>
+		<input>
+			<segment id="882" type="thiophene">882</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>883</id>
+		<tag></tag>
+		<input>
+			<segment id="883" type="thiophene">883</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>884</id>
+		<tag></tag>
+		<input>
+			<segment id="884" type="thiophene">884</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>885</id>
+		<tag></tag>
+		<input>
+			<segment id="885" type="thiophene">885</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>886</id>
+		<tag></tag>
+		<input>
+			<segment id="886" type="thiophene">886</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>887</id>
+		<tag></tag>
+		<input>
+			<segment id="887" type="thiophene">887</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>888</id>
+		<tag></tag>
+		<input>
+			<segment id="888" type="thiophene">888</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>889</id>
+		<tag></tag>
+		<input>
+			<segment id="889" type="thiophene">889</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>890</id>
+		<tag></tag>
+		<input>
+			<segment id="890" type="thiophene">890</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>891</id>
+		<tag></tag>
+		<input>
+			<segment id="891" type="thiophene">891</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>892</id>
+		<tag></tag>
+		<input>
+			<segment id="892" type="thiophene">892</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>893</id>
+		<tag></tag>
+		<input>
+			<segment id="893" type="thiophene">893</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>894</id>
+		<tag></tag>
+		<input>
+			<segment id="894" type="thiophene">894</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>895</id>
+		<tag></tag>
+		<input>
+			<segment id="895" type="thiophene">895</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>896</id>
+		<tag></tag>
+		<input>
+			<segment id="896" type="thiophene">896</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>897</id>
+		<tag></tag>
+		<input>
+			<segment id="897" type="thiophene">897</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>898</id>
+		<tag></tag>
+		<input>
+			<segment id="898" type="thiophene">898</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>899</id>
+		<tag></tag>
+		<input>
+			<segment id="899" type="thiophene">899</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>900</id>
+		<tag></tag>
+		<input>
+			<segment id="900" type="thiophene">900</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>901</id>
+		<tag></tag>
+		<input>
+			<segment id="901" type="thiophene">901</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>902</id>
+		<tag></tag>
+		<input>
+			<segment id="902" type="thiophene">902</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>903</id>
+		<tag></tag>
+		<input>
+			<segment id="903" type="thiophene">903</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>904</id>
+		<tag></tag>
+		<input>
+			<segment id="904" type="thiophene">904</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>905</id>
+		<tag></tag>
+		<input>
+			<segment id="905" type="thiophene">905</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>906</id>
+		<tag></tag>
+		<input>
+			<segment id="906" type="thiophene">906</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>907</id>
+		<tag></tag>
+		<input>
+			<segment id="907" type="thiophene">907</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>908</id>
+		<tag></tag>
+		<input>
+			<segment id="908" type="thiophene">908</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>909</id>
+		<tag></tag>
+		<input>
+			<segment id="909" type="thiophene">909</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>910</id>
+		<tag></tag>
+		<input>
+			<segment id="910" type="thiophene">910</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>911</id>
+		<tag></tag>
+		<input>
+			<segment id="911" type="thiophene">911</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>912</id>
+		<tag></tag>
+		<input>
+			<segment id="912" type="thiophene">912</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>913</id>
+		<tag></tag>
+		<input>
+			<segment id="913" type="thiophene">913</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>914</id>
+		<tag></tag>
+		<input>
+			<segment id="914" type="thiophene">914</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>915</id>
+		<tag></tag>
+		<input>
+			<segment id="915" type="thiophene">915</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>916</id>
+		<tag></tag>
+		<input>
+			<segment id="916" type="thiophene">916</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>917</id>
+		<tag></tag>
+		<input>
+			<segment id="917" type="thiophene">917</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>918</id>
+		<tag></tag>
+		<input>
+			<segment id="918" type="thiophene">918</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>919</id>
+		<tag></tag>
+		<input>
+			<segment id="919" type="thiophene">919</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>920</id>
+		<tag></tag>
+		<input>
+			<segment id="920" type="thiophene">920</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>921</id>
+		<tag></tag>
+		<input>
+			<segment id="921" type="thiophene">921</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>922</id>
+		<tag></tag>
+		<input>
+			<segment id="922" type="thiophene">922</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>923</id>
+		<tag></tag>
+		<input>
+			<segment id="923" type="thiophene">923</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>924</id>
+		<tag></tag>
+		<input>
+			<segment id="924" type="thiophene">924</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>925</id>
+		<tag></tag>
+		<input>
+			<segment id="925" type="thiophene">925</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>926</id>
+		<tag></tag>
+		<input>
+			<segment id="926" type="thiophene">926</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>927</id>
+		<tag></tag>
+		<input>
+			<segment id="927" type="thiophene">927</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>928</id>
+		<tag></tag>
+		<input>
+			<segment id="928" type="thiophene">928</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>929</id>
+		<tag></tag>
+		<input>
+			<segment id="929" type="thiophene">929</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>930</id>
+		<tag></tag>
+		<input>
+			<segment id="930" type="thiophene">930</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>931</id>
+		<tag></tag>
+		<input>
+			<segment id="931" type="thiophene">931</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>932</id>
+		<tag></tag>
+		<input>
+			<segment id="932" type="thiophene">932</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>933</id>
+		<tag></tag>
+		<input>
+			<segment id="933" type="thiophene">933</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>934</id>
+		<tag></tag>
+		<input>
+			<segment id="934" type="thiophene">934</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>935</id>
+		<tag></tag>
+		<input>
+			<segment id="935" type="thiophene">935</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>936</id>
+		<tag></tag>
+		<input>
+			<segment id="936" type="thiophene">936</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>937</id>
+		<tag></tag>
+		<input>
+			<segment id="937" type="thiophene">937</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>938</id>
+		<tag></tag>
+		<input>
+			<segment id="938" type="thiophene">938</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>939</id>
+		<tag></tag>
+		<input>
+			<segment id="939" type="thiophene">939</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>940</id>
+		<tag></tag>
+		<input>
+			<segment id="940" type="thiophene">940</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>941</id>
+		<tag></tag>
+		<input>
+			<segment id="941" type="thiophene">941</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>942</id>
+		<tag></tag>
+		<input>
+			<segment id="942" type="thiophene">942</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>943</id>
+		<tag></tag>
+		<input>
+			<segment id="943" type="thiophene">943</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>944</id>
+		<tag></tag>
+		<input>
+			<segment id="944" type="thiophene">944</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>945</id>
+		<tag></tag>
+		<input>
+			<segment id="945" type="thiophene">945</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>946</id>
+		<tag></tag>
+		<input>
+			<segment id="946" type="thiophene">946</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>947</id>
+		<tag></tag>
+		<input>
+			<segment id="947" type="thiophene">947</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>948</id>
+		<tag></tag>
+		<input>
+			<segment id="948" type="thiophene">948</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>949</id>
+		<tag></tag>
+		<input>
+			<segment id="949" type="thiophene">949</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>950</id>
+		<tag></tag>
+		<input>
+			<segment id="950" type="thiophene">950</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>951</id>
+		<tag></tag>
+		<input>
+			<segment id="951" type="thiophene">951</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>952</id>
+		<tag></tag>
+		<input>
+			<segment id="952" type="thiophene">952</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>953</id>
+		<tag></tag>
+		<input>
+			<segment id="953" type="thiophene">953</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>954</id>
+		<tag></tag>
+		<input>
+			<segment id="954" type="thiophene">954</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>955</id>
+		<tag></tag>
+		<input>
+			<segment id="955" type="thiophene">955</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>956</id>
+		<tag></tag>
+		<input>
+			<segment id="956" type="thiophene">956</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>957</id>
+		<tag></tag>
+		<input>
+			<segment id="957" type="thiophene">957</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>958</id>
+		<tag></tag>
+		<input>
+			<segment id="958" type="thiophene">958</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>959</id>
+		<tag></tag>
+		<input>
+			<segment id="959" type="thiophene">959</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>960</id>
+		<tag></tag>
+		<input>
+			<segment id="960" type="thiophene">960</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>961</id>
+		<tag></tag>
+		<input>
+			<segment id="961" type="thiophene">961</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>962</id>
+		<tag></tag>
+		<input>
+			<segment id="962" type="thiophene">962</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>963</id>
+		<tag></tag>
+		<input>
+			<segment id="963" type="thiophene">963</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>964</id>
+		<tag></tag>
+		<input>
+			<segment id="964" type="thiophene">964</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>965</id>
+		<tag></tag>
+		<input>
+			<segment id="965" type="thiophene">965</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>966</id>
+		<tag></tag>
+		<input>
+			<segment id="966" type="thiophene">966</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>967</id>
+		<tag></tag>
+		<input>
+			<segment id="967" type="thiophene">967</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>968</id>
+		<tag></tag>
+		<input>
+			<segment id="968" type="thiophene">968</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>969</id>
+		<tag></tag>
+		<input>
+			<segment id="969" type="thiophene">969</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>970</id>
+		<tag></tag>
+		<input>
+			<segment id="970" type="thiophene">970</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>971</id>
+		<tag></tag>
+		<input>
+			<segment id="971" type="thiophene">971</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>972</id>
+		<tag></tag>
+		<input>
+			<segment id="972" type="thiophene">972</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>973</id>
+		<tag></tag>
+		<input>
+			<segment id="973" type="thiophene">973</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>974</id>
+		<tag></tag>
+		<input>
+			<segment id="974" type="thiophene">974</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>975</id>
+		<tag></tag>
+		<input>
+			<segment id="975" type="thiophene">975</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>976</id>
+		<tag></tag>
+		<input>
+			<segment id="976" type="thiophene">976</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>977</id>
+		<tag></tag>
+		<input>
+			<segment id="977" type="thiophene">977</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>978</id>
+		<tag></tag>
+		<input>
+			<segment id="978" type="thiophene">978</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>979</id>
+		<tag></tag>
+		<input>
+			<segment id="979" type="thiophene">979</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>980</id>
+		<tag></tag>
+		<input>
+			<segment id="980" type="thiophene">980</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>981</id>
+		<tag></tag>
+		<input>
+			<segment id="981" type="thiophene">981</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>982</id>
+		<tag></tag>
+		<input>
+			<segment id="982" type="thiophene">982</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>983</id>
+		<tag></tag>
+		<input>
+			<segment id="983" type="thiophene">983</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>984</id>
+		<tag></tag>
+		<input>
+			<segment id="984" type="thiophene">984</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>985</id>
+		<tag></tag>
+		<input>
+			<segment id="985" type="thiophene">985</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>986</id>
+		<tag></tag>
+		<input>
+			<segment id="986" type="thiophene">986</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>987</id>
+		<tag></tag>
+		<input>
+			<segment id="987" type="thiophene">987</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>988</id>
+		<tag></tag>
+		<input>
+			<segment id="988" type="thiophene">988</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>989</id>
+		<tag></tag>
+		<input>
+			<segment id="989" type="thiophene">989</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>990</id>
+		<tag></tag>
+		<input>
+			<segment id="990" type="thiophene">990</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>991</id>
+		<tag></tag>
+		<input>
+			<segment id="991" type="thiophene">991</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>992</id>
+		<tag></tag>
+		<input>
+			<segment id="992" type="thiophene">992</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>993</id>
+		<tag></tag>
+		<input>
+			<segment id="993" type="thiophene">993</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>994</id>
+		<tag></tag>
+		<input>
+			<segment id="994" type="thiophene">994</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>995</id>
+		<tag></tag>
+		<input>
+			<segment id="995" type="thiophene">995</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>996</id>
+		<tag></tag>
+		<input>
+			<segment id="996" type="thiophene">996</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>997</id>
+		<tag></tag>
+		<input>
+			<segment id="997" type="thiophene">997</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>998</id>
+		<tag></tag>
+		<input>
+			<segment id="998" type="thiophene">998</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+	<job>
+		<id>999</id>
+		<tag></tag>
+		<input>
+			<segment id="999" type="thiophene">999</segment>
+		</input>
+		<status>COMPLETE</status>
+	</job>
+</jobs>

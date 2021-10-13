@@ -1,0 +1,1316 @@
+
+DFT ERR ... 2021-10-13 14:44:10 Using 4 threads
+DFT ERR ... 2021-10-13 14:44:10 Using MKL overload for Eigen 
+DFT ERR ...  Molecule Coordinates [A] 
+DFT ERR ...   C   +9.6971 +9.2819 +18.1735
+DFT ERR ...   C   +9.8450 +10.6400 +18.2277
+DFT ERR ...   S   +10.5509 +11.2287 +16.8427
+DFT ERR ...   C   +10.6795 +9.7275 +16.1407
+DFT ERR ...   C   +10.1830 +8.7504 +16.9581
+DFT ERR ...   H   +9.2606 +8.6935 +18.9679
+DFT ERR ...   H   +9.5612 +11.2965 +19.0347
+DFT ERR ...   H   +11.1101 +9.6031 +15.1600
+DFT ERR ...   H   +10.1680 +7.7014 +16.6992
+DFT ERR ... 2021-10-13 14:44:10 Loaded DFT Basis Set 3-21G with 57 functions
+DFT ERR ... 2021-10-13 14:44:10 Loaded AUX Basis Set aux-def2-svp with 310 functions
+DFT ERR ... 2021-10-13 14:44:10 Total number of electrons: 44
+DFT INF ... 2021-10-13 14:44:10 Filled DFT Overlap matrix.
+DFT ERR ... 2021-10-13 14:44:10 Smallest value of AOOverlap matrix is 0.00446806
+DFT ERR ... 2021-10-13 14:44:10 Removed 0 basisfunction from inverse overlap matrix
+DFT ERR ... 2021-10-13 14:44:10 Convergence Options:
+DFT ERR ... 		 Delta E [Ha]: 1e-07
+DFT ERR ... 		 DIIS max error: 1e-07
+DFT ERR ... 		 DIIS histlength: 20
+DFT ERR ... 		 ADIIS start: 0.8
+DFT ERR ... 		 DIIS start: 0.002
+DFT ERR ... 		 Deleting oldest element from DIIS hist
+DFT ERR ... 		 Levelshift[Ha]: 0
+DFT ERR ... 		 Levelshift end: 0.2
+DFT ERR ... 		 Mixing Parameter alpha: 0.7
+DFT INF ... 2021-10-13 14:44:10 Inverted AUX Coulomb matrix, removed 0 functions from aux basis
+DFT ERR ... 2021-10-13 14:44:10 Setup invariant parts of Electron Repulsion integrals 
+DFT INF ... 2021-10-13 14:44:10 Filled DFT Kinetic energy matrix .
+DFT INF ... 2021-10-13 14:44:10 Filled DFT nuclear potential matrix.
+DFT ERR ... 2021-10-13 14:44:10 Constructed independent particle hamiltonian 
+DFT ERR ... 2021-10-13 14:44:10 Nuclear Repulsion Energy is 206.268375
+DFT ERR ... 2021-10-13 14:44:10 Using hybrid functional with alpha=0.25
+DFT ERR ... 2021-10-13 14:44:10 Setup numerical integration grid medium for vxc functional XC_HYB_GGA_XC_PBEH
+DFT INF ... 		  with 100063 points divided into 280 boxes
+DFT ERR ... 2021-10-13 14:44:10 Setup Initial Guess using: atom
+DFT INF ... 2021-10-13 14:44:10 Scanning molecule of size 9 for unique elements
+DFT INF ... 2021-10-13 14:44:10 3 unique elements found
+DFT ERR ... 2021-10-13 14:44:10 Calculating atom density for C
+DFT DBG ... 2021-10-13 14:44:10 Iter 0 of 80 Etot -16.9543948 diise_a 0.68080196 diise_b 0.68080196
+		 a_gap 0.0547927075 b_gap 0.0547927075 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 1 of 80 Etot -19.261726 diise_a 0.471038729 diise_b 0.471038729
+		 a_gap 0.135109085 b_gap 0.135109085 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 2 of 80 Etot -20.7233458 diise_a 0.290929682 diise_b 0.290929682
+		 a_gap 0.148729572 b_gap 0.148729572 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 3 of 80 Etot -21.5933374 diise_a 0.178625696 diise_b 0.178625696
+		 a_gap 0.155905545 b_gap 0.155905545 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 4 of 80 Etot -22.1148201 diise_a 0.110588333 diise_b 0.110588333
+		 a_gap 0.159843589 b_gap 0.159843589 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 5 of 80 Etot -22.432454 diise_a 0.0693377391 diise_b 0.0693377391
+		 a_gap 0.162262465 b_gap 0.162262465 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 6 of 80 Etot -22.6289815 diise_a 0.044111432 diise_b 0.044111432
+		 a_gap 0.16387999 b_gap 0.16387999 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 7 of 80 Etot -22.7522836 diise_a 0.0285015151 diise_b 0.0285015151
+		 a_gap 0.16500963 b_gap 0.16500963 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 8 of 80 Etot -22.8306088 diise_a 0.0187091945 diise_b 0.0187091945
+		 a_gap 0.165812439 b_gap 0.165812439 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 9 of 80 Etot -22.880925 diise_a 0.0124737887 diise_b 0.0124737887
+		 a_gap 0.166385952 b_gap 0.166385952 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 10 of 80 Etot -22.9135823 diise_a 0.00844038464 diise_b 0.00844038464
+		 a_gap 0.166795757 b_gap 0.166795757 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 11 of 80 Etot -22.9349793 diise_a 0.00578942587 diise_b 0.00578942587
+		 a_gap 0.167088159 b_gap 0.167088159 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 12 of 80 Etot -22.9491202 diise_a 0.00401966926 diise_b 0.00401966926
+		 a_gap 0.167296413 b_gap 0.167296413 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 13 of 80 Etot -22.9585389 diise_a 0.00282060927 diise_b 0.00282060927
+		 a_gap 0.167444488 b_gap 0.167444488 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 14 of 80 Etot -22.9648566 diise_a 0.00199713093 diise_b 0.00199713093
+		 a_gap 0.167549627 b_gap 0.167549627 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 15 of 80 Etot -22.9691205 diise_a 0.00142472485 diise_b 0.00142472485
+		 a_gap 0.167624197 b_gap 0.167624197 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 16 of 80 Etot -22.972014 diise_a 0.00102265219 diise_b 0.00102265219
+		 a_gap 0.167677042 b_gap 0.167677042 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 17 of 80 Etot -22.9739868 diise_a 0.000737705904 diise_b 0.000737705904
+		 a_gap 0.167714469 b_gap 0.167714469 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 18 of 80 Etot -22.9753374 diise_a 0.000534268732 diise_b 0.000534268732
+		 a_gap 0.167740964 b_gap 0.167740964 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 19 of 80 Etot -22.9762651 diise_a 0.000388144724 diise_b 0.000388144724
+		 a_gap 0.167759716 b_gap 0.167759716 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 20 of 80 Etot -22.9769043 diise_a 0.000282675055 diise_b 0.000282675055
+		 a_gap 0.167772986 b_gap 0.167772986 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 21 of 80 Etot -22.9773458 diise_a 0.000206253361 diise_b 0.000206253361
+		 a_gap 0.167782376 b_gap 0.167782376 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 22 of 80 Etot -22.9776513 diise_a 0.000150710216 diise_b 0.000150710216
+		 a_gap 0.16778902 b_gap 0.16778902 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 23 of 80 Etot -22.977863 diise_a 0.000110245499 diise_b 0.000110245499
+		 a_gap 0.167793722 b_gap 0.167793722 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 24 of 80 Etot -22.97801 diise_a 8.07117116e-05 diise_b 8.07117116e-05
+		 a_gap 0.16779705 b_gap 0.16779705 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 25 of 80 Etot -22.9781122 diise_a 5.91257901e-05 diise_b 5.91257901e-05
+		 a_gap 0.167799407 b_gap 0.167799407 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 26 of 80 Etot -22.9781833 diise_a 4.33321383e-05 diise_b 4.33321383e-05
+		 a_gap 0.167801075 b_gap 0.167801075 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 27 of 80 Etot -22.9782328 diise_a 3.17673216e-05 diise_b 3.17673216e-05
+		 a_gap 0.167802257 b_gap 0.167802257 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 28 of 80 Etot -22.9782672 diise_a 2.32940986e-05 diise_b 2.32940986e-05
+		 a_gap 0.167803095 b_gap 0.167803095 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 29 of 80 Etot -22.9782913 diise_a 1.70833765e-05 diise_b 1.70833765e-05
+		 a_gap 0.167803688 b_gap 0.167803688 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 30 of 80 Etot -22.978308 diise_a 1.25296684e-05 diise_b 1.25296684e-05
+		 a_gap 0.167804109 b_gap 0.167804109 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 31 of 80 Etot -22.9783197 diise_a 9.19020522e-06 diise_b 9.19020522e-06
+		 a_gap 0.167804408 b_gap 0.167804408 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 32 of 80 Etot -22.9783278 diise_a 6.74088718e-06 diise_b 6.74088718e-06
+		 a_gap 0.16780462 b_gap 0.16780462 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 33 of 80 Etot -22.9783335 diise_a 4.94430487e-06 diise_b 4.94430487e-06
+		 a_gap 0.16780477 b_gap 0.16780477 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 34 of 80 Etot -22.9783375 diise_a 3.62645829e-06 diise_b 3.62645829e-06
+		 a_gap 0.167804877 b_gap 0.167804877 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 35 of 80 Etot -22.9783403 diise_a 2.6597724e-06 diise_b 2.6597724e-06
+		 a_gap 0.167804953 b_gap 0.167804953 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 36 of 80 Etot -22.9783422 diise_a 1.95068583e-06 diise_b 1.95068583e-06
+		 a_gap 0.167805007 b_gap 0.167805007 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 37 of 80 Etot -22.9783435 diise_a 1.43057033e-06 diise_b 1.43057033e-06
+		 a_gap 0.167805045 b_gap 0.167805045 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:10 Iter 38 of 80 Etot -22.9783445 diise_a 1.04908101e-06 diise_b 1.04908101e-06
+		 a_gap 0.167805072 b_gap 0.167805072 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:11 Iter 39 of 80 Etot -22.9783451 diise_a 7.69283396e-07 diise_b 7.69283396e-07
+		 a_gap 0.167805092 b_gap 0.167805092 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:11 Iter 40 of 80 Etot -22.9783456 diise_a 5.64080804e-07 diise_b 5.64080804e-07
+		 a_gap 0.167805106 b_gap 0.167805106 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:11 Iter 41 of 80 Etot -22.9783459 diise_a 4.13594148e-07 diise_b 4.13594148e-07
+		 a_gap 0.167805116 b_gap 0.167805116 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:11 Iter 42 of 80 Etot -22.9783461 diise_a 3.03239868e-07 diise_b 3.03239868e-07
+		 a_gap 0.167805123 b_gap 0.167805123 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:11 Iter 43 of 80 Etot -22.9783463 diise_a 2.22319719e-07 diise_b 2.22319719e-07
+		 a_gap 0.167805128 b_gap 0.167805128 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:11 Iter 44 of 80 Etot -22.9783464 diise_a 1.62986068e-07 diise_b 1.62986068e-07
+		 a_gap 0.167805131 b_gap 0.167805131 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:11 Iter 45 of 80 Etot -22.9783465 diise_a 1.19482667e-07 diise_b 1.19482667e-07
+		 a_gap 0.167805134 b_gap 0.167805134 Nalpha=3 Nbeta=3
+DFT DBG ... 2021-10-13 14:44:11 Iter 46 of 80 Etot -22.9783465 diise_a 8.7587554e-08 diise_b 8.7587554e-08
+		 a_gap 0.167805136 b_gap 0.167805136 Nalpha=3 Nbeta=3
+DFT INF ... 2021-10-13 14:44:11 Converged after 47 iterations
+DFT INF ... 2021-10-13 14:44:11 Atomic density Matrix for C gives N=6 electrons.
+DFT ERR ... 2021-10-13 14:44:11 Calculating atom density for S
+DFT DBG ... 2021-10-13 14:44:11 Iter 0 of 80 Etot -214.989272 diise_a 1.01209884 diise_b 1.01209884
+		 a_gap 0.0251725149 b_gap 0.0251725149 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 1 of 80 Etot -223.786467 diise_a 0.705029019 diise_b 0.705029019
+		 a_gap 0.111441741 b_gap 0.111441741 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 2 of 80 Etot -229.130037 diise_a 0.47084422 diise_b 0.47084422
+		 a_gap 0.124269027 b_gap 0.124269027 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 3 of 80 Etot -231.986855 diise_a 0.31489075 diise_b 0.31489075
+		 a_gap 0.131530002 b_gap 0.131530002 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 4 of 80 Etot -233.517473 diise_a 0.212036946 diise_b 0.212036946
+		 a_gap 0.13565976 b_gap 0.13565976 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 5 of 80 Etot -234.363888 diise_a 0.143788253 diise_b 0.143788253
+		 a_gap 0.138262827 b_gap 0.138262827 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 6 of 80 Etot -234.848631 diise_a 0.0981018592 diise_b 0.0981018592
+		 a_gap 0.140011519 b_gap 0.140011519 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 7 of 80 Etot -235.135351 diise_a 0.0672658744 diise_b 0.0672658744
+		 a_gap 0.141217914 b_gap 0.141217914 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 8 of 80 Etot -235.309889 diise_a 0.0463073387 diise_b 0.0463073387
+		 a_gap 0.14205858 b_gap 0.14205858 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 9 of 80 Etot -235.41886 diise_a 0.0319808279 diise_b 0.0319808279
+		 a_gap 0.142646578 b_gap 0.142646578 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 10 of 80 Etot -235.488405 diise_a 0.0221428095 diise_b 0.0221428095
+		 a_gap 0.143058412 b_gap 0.143058412 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 11 of 80 Etot -235.53362 diise_a 0.0153623839 diise_b 0.0153623839
+		 a_gap 0.143347 b_gap 0.143347 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 12 of 80 Etot -235.563472 diise_a 0.0106757309 diise_b 0.0106757309
+		 a_gap 0.143549258 b_gap 0.143549258 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 13 of 80 Etot -235.583428 diise_a 0.00742882673 diise_b 0.00742882673
+		 a_gap 0.143691016 b_gap 0.143691016 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 14 of 80 Etot -235.596899 diise_a 0.00517521314 diise_b 0.00517521314
+		 a_gap 0.143790372 b_gap 0.143790372 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 15 of 80 Etot -235.606064 diise_a 0.00360867227 diise_b 0.00360867227
+		 a_gap 0.143860009 b_gap 0.143860009 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 16 of 80 Etot -235.612336 diise_a 0.00251838297 diise_b 0.00251838297
+		 a_gap 0.143908817 b_gap 0.143908817 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 17 of 80 Etot -235.616647 diise_a 0.00175876894 diise_b 0.00175876894
+		 a_gap 0.143943027 b_gap 0.143943027 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 18 of 80 Etot -235.61962 diise_a 0.00122906877 diise_b 0.00122906877
+		 a_gap 0.143967005 b_gap 0.143967005 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 19 of 80 Etot -235.621677 diise_a 0.000859407561 diise_b 0.000859407561
+		 a_gap 0.143983812 b_gap 0.143983812 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 20 of 80 Etot -235.623102 diise_a 0.00060125473 diise_b 0.00060125473
+		 a_gap 0.143995594 b_gap 0.143995594 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 21 of 80 Etot -235.624091 diise_a 0.000420861324 diise_b 0.000420861324
+		 a_gap 0.144003852 b_gap 0.144003852 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 22 of 80 Etot -235.624778 diise_a 0.000294732832 diise_b 0.000294732832
+		 a_gap 0.144009642 b_gap 0.144009642 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 23 of 80 Etot -235.625255 diise_a 0.000206498544 diise_b 0.000206498544
+		 a_gap 0.144013701 b_gap 0.144013701 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:11 Iter 24 of 80 Etot -235.625587 diise_a 0.000144742485 diise_b 0.000144742485
+		 a_gap 0.144016547 b_gap 0.144016547 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 25 of 80 Etot -235.625819 diise_a 0.000101498199 diise_b 0.000101498199
+		 a_gap 0.144018542 b_gap 0.144018542 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 26 of 80 Etot -235.62598 diise_a 7.1202869e-05 diise_b 7.1202869e-05
+		 a_gap 0.144019941 b_gap 0.144019941 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 27 of 80 Etot -235.626092 diise_a 4.99698061e-05 diise_b 4.99698061e-05
+		 a_gap 0.144020922 b_gap 0.144020922 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 28 of 80 Etot -235.62617 diise_a 3.50819283e-05 diise_b 3.50819283e-05
+		 a_gap 0.14402161 b_gap 0.14402161 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 29 of 80 Etot -235.626225 diise_a 2.46388137e-05 diise_b 2.46388137e-05
+		 a_gap 0.144022093 b_gap 0.144022093 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 30 of 80 Etot -235.626263 diise_a 1.73105885e-05 diise_b 1.73105885e-05
+		 a_gap 0.144022431 b_gap 0.144022431 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 31 of 80 Etot -235.626289 diise_a 1.21661987e-05 diise_b 1.21661987e-05
+		 a_gap 0.144022669 b_gap 0.144022669 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 32 of 80 Etot -235.626307 diise_a 8.55351201e-06 diise_b 8.55351201e-06
+		 a_gap 0.144022835 b_gap 0.144022835 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 33 of 80 Etot -235.62632 diise_a 6.01556034e-06 diise_b 6.01556034e-06
+		 a_gap 0.144022952 b_gap 0.144022952 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 34 of 80 Etot -235.626329 diise_a 4.23199748e-06 diise_b 4.23199749e-06
+		 a_gap 0.144023034 b_gap 0.144023034 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 35 of 80 Etot -235.626336 diise_a 2.97816065e-06 diise_b 2.97816065e-06
+		 a_gap 0.144023091 b_gap 0.144023091 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 36 of 80 Etot -235.62634 diise_a 2.09642833e-06 diise_b 2.09642833e-06
+		 a_gap 0.144023132 b_gap 0.144023132 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 37 of 80 Etot -235.626343 diise_a 1.47617187e-06 diise_b 1.47617187e-06
+		 a_gap 0.14402316 b_gap 0.14402316 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 38 of 80 Etot -235.626345 diise_a 1.03971596e-06 diise_b 1.03971597e-06
+		 a_gap 0.14402318 b_gap 0.14402318 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 39 of 80 Etot -235.626347 diise_a 7.32502826e-07 diise_b 7.32502832e-07
+		 a_gap 0.144023194 b_gap 0.144023194 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 40 of 80 Etot -235.626348 diise_a 5.1619843e-07 diise_b 5.16198441e-07
+		 a_gap 0.144023204 b_gap 0.144023204 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 41 of 80 Etot -235.626348 diise_a 3.63858776e-07 diise_b 3.63858786e-07
+		 a_gap 0.144023211 b_gap 0.144023211 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 42 of 80 Etot -235.626349 diise_a 2.56539277e-07 diise_b 2.56539294e-07
+		 a_gap 0.144023215 b_gap 0.144023215 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 43 of 80 Etot -235.626349 diise_a 1.80915502e-07 diise_b 1.80915525e-07
+		 a_gap 0.144023219 b_gap 0.144023219 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 44 of 80 Etot -235.626349 diise_a 1.27612936e-07 diise_b 1.27612969e-07
+		 a_gap 0.144023221 b_gap 0.144023221 Nalpha=8 Nbeta=8
+DFT DBG ... 2021-10-13 14:44:12 Iter 45 of 80 Etot -235.62635 diise_a 9.00340266e-08 diise_b 9.00340701e-08
+		 a_gap 0.144023223 b_gap 0.144023223 Nalpha=8 Nbeta=8
+DFT INF ... 2021-10-13 14:44:12 Converged after 46 iterations
+DFT INF ... 2021-10-13 14:44:12 Atomic density Matrix for S gives N=16 electrons.
+DFT ERR ... 2021-10-13 14:44:12 Calculating atom density for H
+DFT INF ... 2021-10-13 14:44:12 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:12 Guess Matrix gives N=44 electrons.
+DFT ERR ... 2021-10-13 14:44:12 STARTING SCF cycle
+DFT ERR ...  --------------------------------------------------------------------------
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:12 Iteration 1 of 100
+DFT INF ... 2021-10-13 14:44:12 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:12 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:12 Single particle energy -1168.63159926
+DFT INF ... 2021-10-13 14:44:12 Two particle energy 412.283112425
+DFT INF ... 2021-10-13 14:44:12 Local Exc contribution -37.1318331147
+DFT INF ... 2021-10-13 14:44:12 Non local Ex contribution -11.672670696
+DFT ERR ... 2021-10-13 14:44:12 Total Energy -550.080111973
+DFT ERR ... 2021-10-13 14:44:12 DIIs error 0.200029123539
+DFT ERR ... 2021-10-13 14:44:12 Delta Etot 0
+DFT WAR ... 2021-10-13 14:44:12 Using Mixing with alpha=0.7
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -88.7723802301
+DFT INF ...      1      2   -9.9907985390
+DFT INF ...      2      2   -9.9565156385
+DFT INF ...      3      2   -9.8712108026
+DFT INF ...      4      2   -9.8656400926
+DFT INF ...      5      2   -7.8665371232
+DFT INF ...      6      2   -5.7709971266
+DFT INF ...      7      2   -5.7651751964
+DFT INF ...      8      2   -5.7609056728
+DFT INF ...      9      2   -0.8341609022
+DFT INF ...     10      2   -0.6458748789
+DFT INF ...     11      2   -0.6406465545
+DFT INF ...     12      2   -0.4970409381
+DFT INF ...     13      2   -0.4791029819
+DFT INF ...     14      2   -0.4402349168
+DFT INF ...     15      2   -0.3542283966
+DFT INF ...     16      2   -0.3285392484
+DFT INF ...     17      2   -0.3005626818
+DFT INF ...     18      2   -0.2830252496
+DFT INF ...     19      2   -0.2636097672
+DFT INF ...     20      2   -0.1635124742
+DFT INF ...     21      2   -0.1401317757
+DFT INF ...     22      0   +0.1008425981
+DFT INF ...     23      0   +0.1379417948
+DFT INF ...     24      0   +0.1733036667
+DFT INF ...     25      0   +0.2076243015
+DFT INF ...     26      0   +0.2082720141
+DFT INF ...     27      0   +0.2322742920
+DFT INF ...     28      0   +0.2761357594
+DFT INF ...     29      0   +0.2795066088
+DFT INF ...     30      0   +0.3836865447
+DFT INF ...     31      0   +0.4556237761
+DFT INF ...     32      0   +0.4939528064
+DFT INF ...     33      0   +0.5647655992
+DFT INF ...     34      0   +0.5656480904
+DFT INF ...     35      0   +0.6125585623
+DFT INF ...     36      0   +0.6381776998
+DFT INF ...     37      0   +0.8001648481
+DFT INF ...     38      0   +0.8124695091
+DFT INF ...     39      0   +0.8720991635
+DFT INF ...     40      0   +0.8797738772
+DFT INF ...     41      0   +0.8898999069
+DFT INF ...     42      0   +0.9388840185
+DFT INF ...     43      0   +0.9627385258
+DFT INF ...     44      0   +0.9977753201
+DFT INF ...     45      0   +1.0754886342
+DFT INF ...     46      0   +1.1244171116
+DFT INF ...     47      0   +1.1614895125
+DFT INF ...     48      0   +1.1949216813
+DFT INF ...     49      0   +1.2035414287
+DFT INF ...     50      0   +1.3522879769
+DFT INF ...     51      0   +1.4483459755
+DFT INF ...     52      0   +1.4779463065
+DFT INF ...     53      0   +1.5471371483
+DFT INF ...     54      0   +1.7389095051
+DFT INF ...     55      0   +1.9827953962
+DFT INF ...     56      0   +2.1019343459
+DFT INF ... 		GAP 0.240974373835
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:12 Iteration 2 of 100
+DFT INF ... 2021-10-13 14:44:13 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:13 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:13 Single particle energy -1165.54851397
+DFT INF ... 2021-10-13 14:44:13 Two particle energy 409.13522099
+DFT INF ... 2021-10-13 14:44:13 Local Exc contribution -36.9266297603
+DFT INF ... 2021-10-13 14:44:13 Non local Ex contribution -11.6028511554
+DFT ERR ... 2021-10-13 14:44:13 Total Energy -550.144918116
+DFT ERR ... 2021-10-13 14:44:13 DIIs error 0.126083823669
+DFT ERR ... 2021-10-13 14:44:13 Delta Etot -0.0648061432552
+DFT WAR ... 2021-10-13 14:44:13 Using Mixing with alpha=0.7
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -88.8284377938
+DFT INF ...      1      2   -10.0981294446
+DFT INF ...      2      2   -10.0922430738
+DFT INF ...      3      2   -10.0628307072
+DFT INF ...      4      2   -10.0610201479
+DFT INF ...      5      2   -7.8999924763
+DFT INF ...      6      2   -5.8058654083
+DFT INF ...      7      2   -5.8007551530
+DFT INF ...      8      2   -5.7956416518
+DFT INF ...      9      2   -0.8930998398
+DFT INF ...     10      2   -0.7201328054
+DFT INF ...     11      2   -0.7059979498
+DFT INF ...     12      2   -0.5406510487
+DFT INF ...     13      2   -0.5399444247
+DFT INF ...     14      2   -0.4996354369
+DFT INF ...     15      2   -0.3938322573
+DFT INF ...     16      2   -0.3693793478
+DFT INF ...     17      2   -0.3684857387
+DFT INF ...     18      2   -0.3573231223
+DFT INF ...     19      2   -0.3189722154
+DFT INF ...     20      2   -0.2251155853
+DFT INF ...     21      2   -0.2038340572
+DFT INF ...     22      0   +0.0471869130
+DFT INF ...     23      0   +0.1155758741
+DFT INF ...     24      0   +0.1322602851
+DFT INF ...     25      0   +0.1493667442
+DFT INF ...     26      0   +0.1756212042
+DFT INF ...     27      0   +0.2077673794
+DFT INF ...     28      0   +0.2359664397
+DFT INF ...     29      0   +0.2469589609
+DFT INF ...     30      0   +0.3347239704
+DFT INF ...     31      0   +0.4042098355
+DFT INF ...     32      0   +0.4814331186
+DFT INF ...     33      0   +0.5182153517
+DFT INF ...     34      0   +0.5572317491
+DFT INF ...     35      0   +0.5825039180
+DFT INF ...     36      0   +0.6024764457
+DFT INF ...     37      0   +0.7413262426
+DFT INF ...     38      0   +0.7710460197
+DFT INF ...     39      0   +0.8013273111
+DFT INF ...     40      0   +0.8045027079
+DFT INF ...     41      0   +0.8306967046
+DFT INF ...     42      0   +0.8675142079
+DFT INF ...     43      0   +0.8854743104
+DFT INF ...     44      0   +0.9068081144
+DFT INF ...     45      0   +1.0415561126
+DFT INF ...     46      0   +1.0715835417
+DFT INF ...     47      0   +1.0781252119
+DFT INF ...     48      0   +1.1214841474
+DFT INF ...     49      0   +1.1228732790
+DFT INF ...     50      0   +1.3029545406
+DFT INF ...     51      0   +1.3950239795
+DFT INF ...     52      0   +1.4332177180
+DFT INF ...     53      0   +1.4775111631
+DFT INF ...     54      0   +1.6732868665
+DFT INF ...     55      0   +1.9120887515
+DFT INF ...     56      0   +2.0225719474
+DFT INF ... 		GAP 0.251020970198
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:13 Iteration 3 of 100
+DFT INF ... 2021-10-13 14:44:13 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:13 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:13 Single particle energy -1164.05985317
+DFT INF ... 2021-10-13 14:44:13 Two particle energy 407.613253243
+DFT INF ... 2021-10-13 14:44:13 Local Exc contribution -36.8281842257
+DFT INF ... 2021-10-13 14:44:13 Non local Ex contribution -11.5739350132
+DFT ERR ... 2021-10-13 14:44:13 Total Energy -550.178225068
+DFT ERR ... 2021-10-13 14:44:13 DIIs error 0.0833864151077
+DFT ERR ... 2021-10-13 14:44:13 Delta Etot -0.0333069520449
+DFT WAR ... 2021-10-13 14:44:13 Using ADIIS for next guess
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -88.8840164847
+DFT INF ...      1      2   -10.1535401565
+DFT INF ...      2      2   -10.1524188683
+DFT INF ...      3      2   -10.1301805245
+DFT INF ...      4      2   -10.1289890392
+DFT INF ...      5      2   -7.9371716721
+DFT INF ...      6      2   -5.8443224935
+DFT INF ...      7      2   -5.8394347915
+DFT INF ...      8      2   -5.8341987245
+DFT INF ...      9      2   -0.9238701644
+DFT INF ...     10      2   -0.7501343177
+DFT INF ...     11      2   -0.7346056380
+DFT INF ...     12      2   -0.5634410588
+DFT INF ...     13      2   -0.5626465222
+DFT INF ...     14      2   -0.5233809739
+DFT INF ...     15      2   -0.4163078390
+DFT INF ...     16      2   -0.3923693307
+DFT INF ...     17      2   -0.3919933205
+DFT INF ...     18      2   -0.3880700043
+DFT INF ...     19      2   -0.3380434423
+DFT INF ...     20      2   -0.2484099236
+DFT INF ...     21      2   -0.2307233087
+DFT INF ...     22      0   +0.0240605227
+DFT INF ...     23      0   +0.1001635098
+DFT INF ...     24      0   +0.1049421562
+DFT INF ...     25      0   +0.1390536601
+DFT INF ...     26      0   +0.1601311229
+DFT INF ...     27      0   +0.1971102592
+DFT INF ...     28      0   +0.2233310629
+DFT INF ...     29      0   +0.2347748853
+DFT INF ...     30      0   +0.3150024595
+DFT INF ...     31      0   +0.3841115913
+DFT INF ...     32      0   +0.4685681045
+DFT INF ...     33      0   +0.4968480428
+DFT INF ...     34      0   +0.5457346565
+DFT INF ...     35      0   +0.5655072881
+DFT INF ...     36      0   +0.5843195994
+DFT INF ...     37      0   +0.7169370061
+DFT INF ...     38      0   +0.7554485540
+DFT INF ...     39      0   +0.7726233741
+DFT INF ...     40      0   +0.7778547567
+DFT INF ...     41      0   +0.8053051810
+DFT INF ...     42      0   +0.8396067922
+DFT INF ...     43      0   +0.8583195278
+DFT INF ...     44      0   +0.8774937195
+DFT INF ...     45      0   +1.0229659558
+DFT INF ...     46      0   +1.0425721782
+DFT INF ...     47      0   +1.0587238893
+DFT INF ...     48      0   +1.0949577247
+DFT INF ...     49      0   +1.0980356568
+DFT INF ...     50      0   +1.2852425984
+DFT INF ...     51      0   +1.3763663702
+DFT INF ...     52      0   +1.4191165271
+DFT INF ...     53      0   +1.4527070773
+DFT INF ...     54      0   +1.6457208753
+DFT INF ...     55      0   +1.8845389461
+DFT INF ...     56      0   +1.9946702995
+DFT INF ... 		GAP 0.254783831473
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:13 Iteration 4 of 100
+DFT INF ... 2021-10-13 14:44:13 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:13 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:13 Single particle energy -1161.63878773
+DFT INF ... 2021-10-13 14:44:13 Two particle energy 405.126333983
+DFT INF ... 2021-10-13 14:44:13 Local Exc contribution -36.6613020927
+DFT INF ... 2021-10-13 14:44:13 Non local Ex contribution -11.5294670999
+DFT ERR ... 2021-10-13 14:44:13 Total Energy -550.24407889
+DFT ERR ... 2021-10-13 14:44:13 DIIs error 0.0203086065671
+DFT ERR ... 2021-10-13 14:44:13 Delta Etot -0.0658538216558
+DFT WAR ... 2021-10-13 14:44:13 Using ADIIS for next guess
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -89.0067700890
+DFT INF ...      1      2   -10.2421180829
+DFT INF ...      2      2   -10.2405462802
+DFT INF ...      3      2   -10.2212853804
+DFT INF ...      4      2   -10.2200181855
+DFT INF ...      5      2   -8.0188278776
+DFT INF ...      6      2   -5.9289657407
+DFT INF ...      7      2   -5.9243188000
+DFT INF ...      8      2   -5.9192097784
+DFT INF ...      9      2   -0.9704215921
+DFT INF ...     10      2   -0.7931009212
+DFT INF ...     11      2   -0.7768256975
+DFT INF ...     12      2   -0.5981056335
+DFT INF ...     13      2   -0.5972736589
+DFT INF ...     14      2   -0.5562412776
+DFT INF ...     15      2   -0.4502221826
+DFT INF ...     16      2   -0.4278572811
+DFT INF ...     17      2   -0.4276185244
+DFT INF ...     18      2   -0.4248836421
+DFT INF ...     19      2   -0.3724389628
+DFT INF ...     20      2   -0.2829885315
+DFT INF ...     21      2   -0.2688516382
+DFT INF ...     22      0   -0.0106935353
+DFT INF ...     23      0   +0.0686113548
+DFT INF ...     24      0   +0.0719880858
+DFT INF ...     25      0   +0.1251018282
+DFT INF ...     26      0   +0.1343036298
+DFT INF ...     27      0   +0.1817818079
+DFT INF ...     28      0   +0.2081296221
+DFT INF ...     29      0   +0.2179469486
+DFT INF ...     30      0   +0.2870093662
+DFT INF ...     31      0   +0.3566767907
+DFT INF ...     32      0   +0.4435615615
+DFT INF ...     33      0   +0.4646196397
+DFT INF ...     34      0   +0.5216179663
+DFT INF ...     35      0   +0.5352417034
+DFT INF ...     36      0   +0.5529913771
+DFT INF ...     37      0   +0.6832453589
+DFT INF ...     38      0   +0.7328232679
+DFT INF ...     39      0   +0.7347147550
+DFT INF ...     40      0   +0.7426334836
+DFT INF ...     41      0   +0.7688301817
+DFT INF ...     42      0   +0.8009593097
+DFT INF ...     43      0   +0.8216690600
+DFT INF ...     44      0   +0.8407782732
+DFT INF ...     45      0   +0.9928852655
+DFT INF ...     46      0   +1.0067652739
+DFT INF ...     47      0   +1.0314552000
+DFT INF ...     48      0   +1.0620812147
+DFT INF ...     49      0   +1.0662874441
+DFT INF ...     50      0   +1.2616432397
+DFT INF ...     51      0   +1.3518155462
+DFT INF ...     52      0   +1.4015368257
+DFT INF ...     53      0   +1.4205564469
+DFT INF ...     54      0   +1.6071646254
+DFT INF ...     55      0   +1.8466347342
+DFT INF ...     56      0   +1.9581344144
+DFT INF ... 		GAP 0.25815810288
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:13 Iteration 5 of 100
+DFT INF ... 2021-10-13 14:44:13 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:13 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:13 Single particle energy -1163.29268244
+DFT INF ... 2021-10-13 14:44:13 Two particle energy 406.779388116
+DFT INF ... 2021-10-13 14:44:13 Local Exc contribution -36.7489897573
+DFT INF ... 2021-10-13 14:44:13 Non local Ex contribution -11.5551712797
+DFT ERR ... 2021-10-13 14:44:13 Total Energy -550.244919466
+DFT ERR ... 2021-10-13 14:44:13 DIIs error 0.0177025530391
+DFT ERR ... 2021-10-13 14:44:13 Delta Etot -0.000840576057044
+DFT WAR ... 2021-10-13 14:44:13 Using ADIIS for next guess
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -88.9818365862
+DFT INF ...      1      2   -10.2019159731
+DFT INF ...      2      2   -10.2008618822
+DFT INF ...      3      2   -10.1773164196
+DFT INF ...      4      2   -10.1761466204
+DFT INF ...      5      2   -7.9993427381
+DFT INF ...      6      2   -5.9092005791
+DFT INF ...      7      2   -5.9043495997
+DFT INF ...      8      2   -5.8994375420
+DFT INF ...      9      2   -0.9471429254
+DFT INF ...     10      2   -0.7719773363
+DFT INF ...     11      2   -0.7554060290
+DFT INF ...     12      2   -0.5815560045
+DFT INF ...     13      2   -0.5806396670
+DFT INF ...     14      2   -0.5403392822
+DFT INF ...     15      2   -0.4339621004
+DFT INF ...     16      2   -0.4108333783
+DFT INF ...     17      2   -0.4097604862
+DFT INF ...     18      2   -0.4075655230
+DFT INF ...     19      2   -0.3601306285
+DFT INF ...     20      2   -0.2672314893
+DFT INF ...     21      2   -0.2492051577
+DFT INF ...     22      0   +0.0060371779
+DFT INF ...     23      0   +0.0833612353
+DFT INF ...     24      0   +0.0881027339
+DFT INF ...     25      0   +0.1322140527
+DFT INF ...     26      0   +0.1460055886
+DFT INF ...     27      0   +0.1890787832
+DFT INF ...     28      0   +0.2166976398
+DFT INF ...     29      0   +0.2260365892
+DFT INF ...     30      0   +0.3013574993
+DFT INF ...     31      0   +0.3707186651
+DFT INF ...     32      0   +0.4530056855
+DFT INF ...     33      0   +0.4800727371
+DFT INF ...     34      0   +0.5293359016
+DFT INF ...     35      0   +0.5458680238
+DFT INF ...     36      0   +0.5651420509
+DFT INF ...     37      0   +0.6998200962
+DFT INF ...     38      0   +0.7447833513
+DFT INF ...     39      0   +0.7547181423
+DFT INF ...     40      0   +0.7608971789
+DFT INF ...     41      0   +0.7870573698
+DFT INF ...     42      0   +0.8202920866
+DFT INF ...     43      0   +0.8403770797
+DFT INF ...     44      0   +0.8602342682
+DFT INF ...     45      0   +1.0068733320
+DFT INF ...     46      0   +1.0249694019
+DFT INF ...     47      0   +1.0440862973
+DFT INF ...     48      0   +1.0791409131
+DFT INF ...     49      0   +1.0813258279
+DFT INF ...     50      0   +1.2730553078
+DFT INF ...     51      0   +1.3641986854
+DFT INF ...     52      0   +1.4104522775
+DFT INF ...     53      0   +1.4373056060
+DFT INF ...     54      0   +1.6273764580
+DFT INF ...     55      0   +1.8664394584
+DFT INF ...     56      0   +1.9775867241
+DFT INF ... 		GAP 0.255242335611
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:13 Iteration 6 of 100
+DFT INF ... 2021-10-13 14:44:13 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:13 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:13 Single particle energy -1162.6103136
+DFT INF ... 2021-10-13 14:44:13 Two particle energy 406.09485321
+DFT INF ... 2021-10-13 14:44:13 Local Exc contribution -36.7109363478
+DFT INF ... 2021-10-13 14:44:13 Non local Ex contribution -11.5442881758
+DFT ERR ... 2021-10-13 14:44:13 Total Energy -550.247085531
+DFT ERR ... 2021-10-13 14:44:13 DIIs error 0.0034287652024
+DFT ERR ... 2021-10-13 14:44:13 Delta Etot -0.00216606513527
+DFT WAR ... 2021-10-13 14:44:13 Using ADIIS for next guess
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -88.9631681341
+DFT INF ...      1      2   -10.2093864921
+DFT INF ...      2      2   -10.2075030370
+DFT INF ...      3      2   -10.1913145026
+DFT INF ...      4      2   -10.1901213870
+DFT INF ...      5      2   -7.9849604501
+DFT INF ...      6      2   -5.8945174019
+DFT INF ...      7      2   -5.8896979740
+DFT INF ...      8      2   -5.8846186456
+DFT INF ...      9      2   -0.9493209422
+DFT INF ...     10      2   -0.7753459309
+DFT INF ...     11      2   -0.7595093452
+DFT INF ...     12      2   -0.5843837073
+DFT INF ...     13      2   -0.5838438575
+DFT INF ...     14      2   -0.5442708736
+DFT INF ...     15      2   -0.4370969158
+DFT INF ...     16      2   -0.4138649190
+DFT INF ...     17      2   -0.4124641883
+DFT INF ...     18      2   -0.4123608247
+DFT INF ...     19      2   -0.3568423952
+DFT INF ...     20      2   -0.2683854666
+DFT INF ...     21      2   -0.2534430037
+DFT INF ...     22      0   +0.0039472928
+DFT INF ...     23      0   +0.0821452867
+DFT INF ...     24      0   +0.0853609863
+DFT INF ...     25      0   +0.1303406258
+DFT INF ...     26      0   +0.1461247356
+DFT INF ...     27      0   +0.1876697048
+DFT INF ...     28      0   +0.2126658207
+DFT INF ...     29      0   +0.2240665145
+DFT INF ...     30      0   +0.2983157145
+DFT INF ...     31      0   +0.3668498707
+DFT INF ...     32      0   +0.4563283642
+DFT INF ...     33      0   +0.4772053070
+DFT INF ...     34      0   +0.5340784224
+DFT INF ...     35      0   +0.5494548397
+DFT INF ...     36      0   +0.5672401097
+DFT INF ...     37      0   +0.6958898530
+DFT INF ...     38      0   +0.7417769050
+DFT INF ...     39      0   +0.7491330209
+DFT INF ...     40      0   +0.7548978850
+DFT INF ...     41      0   +0.7837510392
+DFT INF ...     42      0   +0.8153060407
+DFT INF ...     43      0   +0.8357688494
+DFT INF ...     44      0   +0.8536739467
+DFT INF ...     45      0   +1.0048854656
+DFT INF ...     46      0   +1.0185886067
+DFT INF ...     47      0   +1.0419900046
+DFT INF ...     48      0   +1.0733824055
+DFT INF ...     49      0   +1.0774128536
+DFT INF ...     50      0   +1.2700217404
+DFT INF ...     51      0   +1.3601004097
+DFT INF ...     52      0   +1.4069081632
+DFT INF ...     53      0   +1.4327252636
+DFT INF ...     54      0   +1.6235674334
+DFT INF ...     55      0   +1.8623292284
+DFT INF ...     56      0   +1.9722823950
+DFT INF ... 		GAP 0.257390296569
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:13 Iteration 7 of 100
+DFT INF ... 2021-10-13 14:44:13 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:13 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:13 Single particle energy -1162.59227157
+DFT INF ... 2021-10-13 14:44:13 Two particle energy 406.076986641
+DFT INF ... 2021-10-13 14:44:13 Local Exc contribution -36.7140602022
+DFT INF ... 2021-10-13 14:44:13 Non local Ex contribution -11.5449800962
+DFT ERR ... 2021-10-13 14:44:13 Total Energy -550.246910066
+DFT ERR ... 2021-10-13 14:44:13 DIIs error 0.00478713893391
+DFT ERR ... 2021-10-13 14:44:13 Delta Etot 0.000175464495669
+DFT WAR ... 2021-10-13 14:44:13 Using ADIIS for next guess
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -88.9717652226
+DFT INF ...      1      2   -10.2062661097
+DFT INF ...      2      2   -10.2061130985
+DFT INF ...      3      2   -10.1839837885
+DFT INF ...      4      2   -10.1828357483
+DFT INF ...      5      2   -7.9919075203
+DFT INF ...      6      2   -5.9015775685
+DFT INF ...      7      2   -5.8967368471
+DFT INF ...      8      2   -5.8917487672
+DFT INF ...      9      2   -0.9486535249
+DFT INF ...     10      2   -0.7737660137
+DFT INF ...     11      2   -0.7578270566
+DFT INF ...     12      2   -0.5831121157
+DFT INF ...     13      2   -0.5824412364
+DFT INF ...     14      2   -0.5422965999
+DFT INF ...     15      2   -0.4358138584
+DFT INF ...     16      2   -0.4118446149
+DFT INF ...     17      2   -0.4112659943
+DFT INF ...     18      2   -0.4107491570
+DFT INF ...     19      2   -0.3586568146
+DFT INF ...     20      2   -0.2678898602
+DFT INF ...     21      2   -0.2517422379
+DFT INF ...     22      0   +0.0046593568
+DFT INF ...     23      0   +0.0841180702
+DFT INF ...     24      0   +0.0850801625
+DFT INF ...     25      0   +0.1312433950
+DFT INF ...     26      0   +0.1458153592
+DFT INF ...     27      0   +0.1881954624
+DFT INF ...     28      0   +0.2148838886
+DFT INF ...     29      0   +0.2250189299
+DFT INF ...     30      0   +0.2997394129
+DFT INF ...     31      0   +0.3688256251
+DFT INF ...     32      0   +0.4544611310
+DFT INF ...     33      0   +0.4785266029
+DFT INF ...     34      0   +0.5315551704
+DFT INF ...     35      0   +0.5474931553
+DFT INF ...     36      0   +0.5659812126
+DFT INF ...     37      0   +0.6977303221
+DFT INF ...     38      0   +0.7431739104
+DFT INF ...     39      0   +0.7517778091
+DFT INF ...     40      0   +0.7579027807
+DFT INF ...     41      0   +0.7848975970
+DFT INF ...     42      0   +0.8175896093
+DFT INF ...     43      0   +0.8377787723
+DFT INF ...     44      0   +0.8569983420
+DFT INF ...     45      0   +1.0055987672
+DFT INF ...     46      0   +1.0218668958
+DFT INF ...     47      0   +1.0426642457
+DFT INF ...     48      0   +1.0763235804
+DFT INF ...     49      0   +1.0791683223
+DFT INF ...     50      0   +1.2714244627
+DFT INF ...     51      0   +1.3621999260
+DFT INF ...     52      0   +1.4087861453
+DFT INF ...     53      0   +1.4348761857
+DFT INF ...     54      0   +1.6249698989
+DFT INF ...     55      0   +1.8640328249
+DFT INF ...     56      0   +1.9748212266
+DFT INF ... 		GAP 0.256401594647
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:13 Iteration 8 of 100
+DFT INF ... 2021-10-13 14:44:13 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:13 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:13 Single particle energy -1162.61085804
+DFT INF ... 2021-10-13 14:44:13 Two particle energy 406.095264979
+DFT INF ... 2021-10-13 14:44:13 Local Exc contribution -36.7128171804
+DFT INF ... 2021-10-13 14:44:13 Non local Ex contribution -11.5447182213
+DFT ERR ... 2021-10-13 14:44:13 Total Energy -550.2472182
+DFT ERR ... 2021-10-13 14:44:13 DIIs error 0.00104498708043
+DFT ERR ... 2021-10-13 14:44:13 Delta Etot -0.00030813342255
+DFT WAR ... 2021-10-13 14:44:13 Using DIIS for next guess
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -88.9735789183
+DFT INF ...      1      2   -10.2048793671
+DFT INF ...      2      2   -10.2047586201
+DFT INF ...      3      2   -10.1828567363
+DFT INF ...      4      2   -10.1817093532
+DFT INF ...      5      2   -7.9932837357
+DFT INF ...      6      2   -5.9029870427
+DFT INF ...      7      2   -5.8981409281
+DFT INF ...      8      2   -5.8931708517
+DFT INF ...      9      2   -0.9482678067
+DFT INF ...     10      2   -0.7734134677
+DFT INF ...     11      2   -0.7572232551
+DFT INF ...     12      2   -0.5827435830
+DFT INF ...     13      2   -0.5819852761
+DFT INF ...     14      2   -0.5418931855
+DFT INF ...     15      2   -0.4353311147
+DFT INF ...     16      2   -0.4115834154
+DFT INF ...     17      2   -0.4109330795
+DFT INF ...     18      2   -0.4101233412
+DFT INF ...     19      2   -0.3589054694
+DFT INF ...     20      2   -0.2677857477
+DFT INF ...     21      2   -0.2511344066
+DFT INF ...     22      0   +0.0050293569
+DFT INF ...     23      0   +0.0840598967
+DFT INF ...     24      0   +0.0856833900
+DFT INF ...     25      0   +0.1314992348
+DFT INF ...     26      0   +0.1459320410
+DFT INF ...     27      0   +0.1884625138
+DFT INF ...     28      0   +0.2152424913
+DFT INF ...     29      0   +0.2252685855
+DFT INF ...     30      0   +0.3000957648
+DFT INF ...     31      0   +0.3692068889
+DFT INF ...     32      0   +0.4542194968
+DFT INF ...     33      0   +0.4788950503
+DFT INF ...     34      0   +0.5311544190
+DFT INF ...     35      0   +0.5472259571
+DFT INF ...     36      0   +0.5658674261
+DFT INF ...     37      0   +0.6981935530
+DFT INF ...     38      0   +0.7435450872
+DFT INF ...     39      0   +0.7523834794
+DFT INF ...     40      0   +0.7585100525
+DFT INF ...     41      0   +0.7854709276
+DFT INF ...     42      0   +0.8181974727
+DFT INF ...     43      0   +0.8383620417
+DFT INF ...     44      0   +0.8576014277
+DFT INF ...     45      0   +1.0059698146
+DFT INF ...     46      0   +1.0224735493
+DFT INF ...     47      0   +1.0430921407
+DFT INF ...     48      0   +1.0768670351
+DFT INF ...     49      0   +1.0796809761
+DFT INF ...     50      0   +1.2718050775
+DFT INF ...     51      0   +1.3626137853
+DFT INF ...     52      0   +1.4091289179
+DFT INF ...     53      0   +1.4353934796
+DFT INF ...     54      0   +1.6255585028
+DFT INF ...     55      0   +1.8645785814
+DFT INF ...     56      0   +1.9753672382
+DFT INF ... 		GAP 0.256163763591
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:13 Iteration 9 of 100
+DFT INF ... 2021-10-13 14:44:14 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:14 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:14 Single particle energy -1162.60851785
+DFT INF ... 2021-10-13 14:44:14 Two particle energy 406.092916069
+DFT INF ... 2021-10-13 14:44:14 Local Exc contribution -36.7123155652
+DFT INF ... 2021-10-13 14:44:14 Non local Ex contribution -11.5445970279
+DFT ERR ... 2021-10-13 14:44:14 Total Energy -550.247226916
+DFT ERR ... 2021-10-13 14:44:14 DIIs error 2.87823824133e-05
+DFT ERR ... 2021-10-13 14:44:14 Delta Etot -8.71667430147e-06
+DFT WAR ... 2021-10-13 14:44:14 Using DIIS for next guess
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -88.9735923430
+DFT INF ...      1      2   -10.2049022422
+DFT INF ...      2      2   -10.2047784826
+DFT INF ...      3      2   -10.1828185099
+DFT INF ...      4      2   -10.1816710013
+DFT INF ...      5      2   -7.9932976729
+DFT INF ...      6      2   -5.9030009919
+DFT INF ...      7      2   -5.8981544301
+DFT INF ...      8      2   -5.8931848520
+DFT INF ...      9      2   -0.9482712570
+DFT INF ...     10      2   -0.7734150222
+DFT INF ...     11      2   -0.7572274103
+DFT INF ...     12      2   -0.5827498008
+DFT INF ...     13      2   -0.5819889612
+DFT INF ...     14      2   -0.5419001086
+DFT INF ...     15      2   -0.4353361793
+DFT INF ...     16      2   -0.4115849765
+DFT INF ...     17      2   -0.4109425271
+DFT INF ...     18      2   -0.4101240238
+DFT INF ...     19      2   -0.3589098032
+DFT INF ...     20      2   -0.2677819765
+DFT INF ...     21      2   -0.2511366675
+DFT INF ...     22      0   +0.0050215288
+DFT INF ...     23      0   +0.0840536661
+DFT INF ...     24      0   +0.0856796791
+DFT INF ...     25      0   +0.1314869971
+DFT INF ...     26      0   +0.1459224189
+DFT INF ...     27      0   +0.1884531935
+DFT INF ...     28      0   +0.2152226996
+DFT INF ...     29      0   +0.2252562008
+DFT INF ...     30      0   +0.3000902622
+DFT INF ...     31      0   +0.3692012283
+DFT INF ...     32      0   +0.4542176590
+DFT INF ...     33      0   +0.4788898678
+DFT INF ...     34      0   +0.5311529665
+DFT INF ...     35      0   +0.5472218860
+DFT INF ...     36      0   +0.5658635939
+DFT INF ...     37      0   +0.6981882751
+DFT INF ...     38      0   +0.7435358004
+DFT INF ...     39      0   +0.7523827109
+DFT INF ...     40      0   +0.7585045255
+DFT INF ...     41      0   +0.7854656848
+DFT INF ...     42      0   +0.8181894340
+DFT INF ...     43      0   +0.8383592118
+DFT INF ...     44      0   +0.8576024443
+DFT INF ...     45      0   +1.0059644193
+DFT INF ...     46      0   +1.0224622373
+DFT INF ...     47      0   +1.0430830672
+DFT INF ...     48      0   +1.0768566153
+DFT INF ...     49      0   +1.0796725006
+DFT INF ...     50      0   +1.2717991696
+DFT INF ...     51      0   +1.3626079930
+DFT INF ...     52      0   +1.4091160806
+DFT INF ...     53      0   +1.4353880405
+DFT INF ...     54      0   +1.6255531774
+DFT INF ...     55      0   +1.8645753662
+DFT INF ...     56      0   +1.9753669675
+DFT INF ... 		GAP 0.256158196295
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:14 Iteration 10 of 100
+DFT INF ... 2021-10-13 14:44:14 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:14 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:14 Single particle energy -1162.60842118
+DFT INF ... 2021-10-13 14:44:14 Two particle energy 406.092819398
+DFT INF ... 2021-10-13 14:44:14 Local Exc contribution -36.7123124736
+DFT INF ... 2021-10-13 14:44:14 Non local Ex contribution -11.5445962263
+DFT ERR ... 2021-10-13 14:44:14 Total Energy -550.247226917
+DFT ERR ... 2021-10-13 14:44:14 DIIs error 1.97087428323e-05
+DFT ERR ... 2021-10-13 14:44:14 Delta Etot -4.26553015132e-10
+DFT WAR ... 2021-10-13 14:44:14 Using DIIS for next guess
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -88.9735959904
+DFT INF ...      1      2   -10.2048957380
+DFT INF ...      2      2   -10.2047814335
+DFT INF ...      3      2   -10.1828148092
+DFT INF ...      4      2   -10.1816673633
+DFT INF ...      5      2   -7.9933027768
+DFT INF ...      6      2   -5.9030057207
+DFT INF ...      7      2   -5.8981593186
+DFT INF ...      8      2   -5.8931899877
+DFT INF ...      9      2   -0.9482750397
+DFT INF ...     10      2   -0.7734180548
+DFT INF ...     11      2   -0.7572283995
+DFT INF ...     12      2   -0.5827506757
+DFT INF ...     13      2   -0.5819893422
+DFT INF ...     14      2   -0.5419013420
+DFT INF ...     15      2   -0.4353365645
+DFT INF ...     16      2   -0.4115875090
+DFT INF ...     17      2   -0.4109433706
+DFT INF ...     18      2   -0.4101244970
+DFT INF ...     19      2   -0.3589131734
+DFT INF ...     20      2   -0.2677838231
+DFT INF ...     21      2   -0.2511373562
+DFT INF ...     22      0   +0.0050186283
+DFT INF ...     23      0   +0.0840502730
+DFT INF ...     24      0   +0.0856775642
+DFT INF ...     25      0   +0.1314846219
+DFT INF ...     26      0   +0.1459194886
+DFT INF ...     27      0   +0.1884512476
+DFT INF ...     28      0   +0.2152195282
+DFT INF ...     29      0   +0.2252538571
+DFT INF ...     30      0   +0.3000881723
+DFT INF ...     31      0   +0.3691993388
+DFT INF ...     32      0   +0.4542138403
+DFT INF ...     33      0   +0.4788887382
+DFT INF ...     34      0   +0.5311490122
+DFT INF ...     35      0   +0.5472182602
+DFT INF ...     36      0   +0.5658603683
+DFT INF ...     37      0   +0.6981871556
+DFT INF ...     38      0   +0.7435343798
+DFT INF ...     39      0   +0.7523811266
+DFT INF ...     40      0   +0.7585038068
+DFT INF ...     41      0   +0.7854650987
+DFT INF ...     42      0   +0.8181885962
+DFT INF ...     43      0   +0.8383583770
+DFT INF ...     44      0   +0.8576012945
+DFT INF ...     45      0   +1.0059636031
+DFT INF ...     46      0   +1.0224600952
+DFT INF ...     47      0   +1.0430816841
+DFT INF ...     48      0   +1.0768543117
+DFT INF ...     49      0   +1.0796715438
+DFT INF ...     50      0   +1.2717986546
+DFT INF ...     51      0   +1.3626075967
+DFT INF ...     52      0   +1.4091155055
+DFT INF ...     53      0   +1.4353862625
+DFT INF ...     54      0   +1.6255510632
+DFT INF ...     55      0   +1.8645732296
+DFT INF ...     56      0   +1.9753651689
+DFT INF ... 		GAP 0.256155984521
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:14 Iteration 11 of 100
+DFT INF ... 2021-10-13 14:44:14 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:14 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:14 Single particle energy -1162.60846495
+DFT INF ... 2021-10-13 14:44:14 Two particle energy 406.092863172
+DFT INF ... 2021-10-13 14:44:14 Local Exc contribution -36.7123129579
+DFT INF ... 2021-10-13 14:44:14 Non local Ex contribution -11.5445962769
+DFT ERR ... 2021-10-13 14:44:14 Total Energy -550.24722692
+DFT ERR ... 2021-10-13 14:44:14 DIIs error 2.37874877578e-06
+DFT ERR ... 2021-10-13 14:44:14 Delta Etot -3.28657279169e-09
+DFT WAR ... 2021-10-13 14:44:14 Using DIIS for next guess
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -88.9735973758
+DFT INF ...      1      2   -10.2048959851
+DFT INF ...      2      2   -10.2047820317
+DFT INF ...      3      2   -10.1828121675
+DFT INF ...      4      2   -10.1816647695
+DFT INF ...      5      2   -7.9933049518
+DFT INF ...      6      2   -5.9030078119
+DFT INF ...      7      2   -5.8981613918
+DFT INF ...      8      2   -5.8931921326
+DFT INF ...      9      2   -0.9482760830
+DFT INF ...     10      2   -0.7734182222
+DFT INF ...     11      2   -0.7572289526
+DFT INF ...     12      2   -0.5827505515
+DFT INF ...     13      2   -0.5819900783
+DFT INF ...     14      2   -0.5419006112
+DFT INF ...     15      2   -0.4353372085
+DFT INF ...     16      2   -0.4115884795
+DFT INF ...     17      2   -0.4109428154
+DFT INF ...     18      2   -0.4101237500
+DFT INF ...     19      2   -0.3589151027
+DFT INF ...     20      2   -0.2677841755
+DFT INF ...     21      2   -0.2511378323
+DFT INF ...     22      0   +0.0050174496
+DFT INF ...     23      0   +0.0840481675
+DFT INF ...     24      0   +0.0856778484
+DFT INF ...     25      0   +0.1314840011
+DFT INF ...     26      0   +0.1459184048
+DFT INF ...     27      0   +0.1884498195
+DFT INF ...     28      0   +0.2152205057
+DFT INF ...     29      0   +0.2252534146
+DFT INF ...     30      0   +0.3000880817
+DFT INF ...     31      0   +0.3691995626
+DFT INF ...     32      0   +0.4542117044
+DFT INF ...     33      0   +0.4788883815
+DFT INF ...     34      0   +0.5311466846
+DFT INF ...     35      0   +0.5472162476
+DFT INF ...     36      0   +0.5658585230
+DFT INF ...     37      0   +0.6981871709
+DFT INF ...     38      0   +0.7435346174
+DFT INF ...     39      0   +0.7523812273
+DFT INF ...     40      0   +0.7585047323
+DFT INF ...     41      0   +0.7854643322
+DFT INF ...     42      0   +0.8181890339
+DFT INF ...     43      0   +0.8383583344
+DFT INF ...     44      0   +0.8576021675
+DFT INF ...     45      0   +1.0059622921
+DFT INF ...     46      0   +1.0224613291
+DFT INF ...     47      0   +1.0430801198
+DFT INF ...     48      0   +1.0768555506
+DFT INF ...     49      0   +1.0796711950
+DFT INF ...     50      0   +1.2717985498
+DFT INF ...     51      0   +1.3626082182
+DFT INF ...     52      0   +1.4091169447
+DFT INF ...     53      0   +1.4353863576
+DFT INF ...     54      0   +1.6255502990
+DFT INF ...     55      0   +1.8645727806
+DFT INF ...     56      0   +1.9753654293
+DFT INF ... 		GAP 0.256155281892
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:14 Iteration 12 of 100
+DFT INF ... 2021-10-13 14:44:14 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:14 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:14 Single particle energy -1162.60849278
+DFT INF ... 2021-10-13 14:44:14 Two particle energy 406.092890993
+DFT INF ... 2021-10-13 14:44:14 Local Exc contribution -36.7123131422
+DFT INF ... 2021-10-13 14:44:14 Non local Ex contribution -11.5445963276
+DFT ERR ... 2021-10-13 14:44:14 Total Energy -550.24722692
+DFT ERR ... 2021-10-13 14:44:14 DIIs error 9.32653647801e-07
+DFT ERR ... 2021-10-13 14:44:14 Delta Etot -6.01403371547e-11
+DFT WAR ... 2021-10-13 14:44:14 Using DIIS for next guess
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -88.9735978271
+DFT INF ...      1      2   -10.2048961643
+DFT INF ...      2      2   -10.2047821069
+DFT INF ...      3      2   -10.1828120455
+DFT INF ...      4      2   -10.1816646127
+DFT INF ...      5      2   -7.9933054076
+DFT INF ...      6      2   -5.9030082532
+DFT INF ...      7      2   -5.8981618423
+DFT INF ...      8      2   -5.8931925915
+DFT INF ...      9      2   -0.9482763831
+DFT INF ...     10      2   -0.7734185094
+DFT INF ...     11      2   -0.7572290943
+DFT INF ...     12      2   -0.5827507087
+DFT INF ...     13      2   -0.5819901726
+DFT INF ...     14      2   -0.5419008103
+DFT INF ...     15      2   -0.4353372878
+DFT INF ...     16      2   -0.4115887145
+DFT INF ...     17      2   -0.4109430020
+DFT INF ...     18      2   -0.4101238828
+DFT INF ...     19      2   -0.3589153554
+DFT INF ...     20      2   -0.2677843810
+DFT INF ...     21      2   -0.2511379963
+DFT INF ...     22      0   +0.0050172232
+DFT INF ...     23      0   +0.0840479400
+DFT INF ...     24      0   +0.0856775993
+DFT INF ...     25      0   +0.1314838407
+DFT INF ...     26      0   +0.1459181741
+DFT INF ...     27      0   +0.1884497231
+DFT INF ...     28      0   +0.2152202087
+DFT INF ...     29      0   +0.2252532342
+DFT INF ...     30      0   +0.3000878710
+DFT INF ...     31      0   +0.3691993634
+DFT INF ...     32      0   +0.4542114529
+DFT INF ...     33      0   +0.4788882404
+DFT INF ...     34      0   +0.5311464284
+DFT INF ...     35      0   +0.5472159956
+DFT INF ...     36      0   +0.5658583065
+DFT INF ...     37      0   +0.6981870093
+DFT INF ...     38      0   +0.7435344553
+DFT INF ...     39      0   +0.7523810227
+DFT INF ...     40      0   +0.7585045743
+DFT INF ...     41      0   +0.7854642067
+DFT INF ...     42      0   +0.8181888690
+DFT INF ...     43      0   +0.8383581824
+DFT INF ...     44      0   +0.8576019795
+DFT INF ...     45      0   +1.0059622204
+DFT INF ...     46      0   +1.0224610987
+DFT INF ...     47      0   +1.0430800415
+DFT INF ...     48      0   +1.0768553099
+DFT INF ...     49      0   +1.0796710839
+DFT INF ...     50      0   +1.2717984520
+DFT INF ...     51      0   +1.3626081114
+DFT INF ...     52      0   +1.4091167861
+DFT INF ...     53      0   +1.4353861559
+DFT INF ...     54      0   +1.6255500825
+DFT INF ...     55      0   +1.8645725612
+DFT INF ...     56      0   +1.9753652190
+DFT INF ... 		GAP 0.256155219496
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:14 Iteration 13 of 100
+DFT INF ... 2021-10-13 14:44:14 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:14 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:14 Single particle energy -1162.60849758
+DFT INF ... 2021-10-13 14:44:14 Two particle energy 406.092895802
+DFT INF ... 2021-10-13 14:44:14 Local Exc contribution -36.712313312
+DFT INF ... 2021-10-13 14:44:14 Non local Ex contribution -11.5445963748
+DFT ERR ... 2021-10-13 14:44:14 Total Energy -550.24722692
+DFT ERR ... 2021-10-13 14:44:14 DIIs error 2.95681075222e-07
+DFT ERR ... 2021-10-13 14:44:14 Delta Etot -3.29691829393e-12
+DFT WAR ... 2021-10-13 14:44:14 Using DIIS for next guess
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -88.9735981161
+DFT INF ...      1      2   -10.2048962566
+DFT INF ...      2      2   -10.2047822079
+DFT INF ...      3      2   -10.1828119680
+DFT INF ...      4      2   -10.1816645450
+DFT INF ...      5      2   -7.9933056720
+DFT INF ...      6      2   -5.9030085109
+DFT INF ...      7      2   -5.8981621065
+DFT INF ...      8      2   -5.8931928593
+DFT INF ...      9      2   -0.9482765481
+DFT INF ...     10      2   -0.7734186797
+DFT INF ...     11      2   -0.7572291693
+DFT INF ...     12      2   -0.5827508154
+DFT INF ...     13      2   -0.5819902101
+DFT INF ...     14      2   -0.5419009570
+DFT INF ...     15      2   -0.4353373258
+DFT INF ...     16      2   -0.4115888353
+DFT INF ...     17      2   -0.4109431419
+DFT INF ...     18      2   -0.4101239771
+DFT INF ...     19      2   -0.3589154654
+DFT INF ...     20      2   -0.2677844921
+DFT INF ...     21      2   -0.2511380877
+DFT INF ...     22      0   +0.0050171137
+DFT INF ...     23      0   +0.0840478499
+DFT INF ...     24      0   +0.0856774444
+DFT INF ...     25      0   +0.1314837513
+DFT INF ...     26      0   +0.1459180494
+DFT INF ...     27      0   +0.1884496987
+DFT INF ...     28      0   +0.2152199903
+DFT INF ...     29      0   +0.2252531287
+DFT INF ...     30      0   +0.3000877433
+DFT INF ...     31      0   +0.3691992361
+DFT INF ...     32      0   +0.4542113496
+DFT INF ...     33      0   +0.4788881625
+DFT INF ...     34      0   +0.5311463268
+DFT INF ...     35      0   +0.5472158872
+DFT INF ...     36      0   +0.5658582173
+DFT INF ...     37      0   +0.6981869103
+DFT INF ...     38      0   +0.7435343418
+DFT INF ...     39      0   +0.7523809021
+DFT INF ...     40      0   +0.7585044534
+DFT INF ...     41      0   +0.7854641451
+DFT INF ...     42      0   +0.8181887528
+DFT INF ...     43      0   +0.8383580929
+DFT INF ...     44      0   +0.8576018518
+DFT INF ...     45      0   +1.0059622091
+DFT INF ...     46      0   +1.0224609223
+DFT INF ...     47      0   +1.0430800287
+DFT INF ...     48      0   +1.0768551246
+DFT INF ...     49      0   +1.0796710230
+DFT INF ...     50      0   +1.2717983924
+DFT INF ...     51      0   +1.3626080310
+DFT INF ...     52      0   +1.4091166369
+DFT INF ...     53      0   +1.4353860303
+DFT INF ...     54      0   +1.6255499647
+DFT INF ...     55      0   +1.8645724388
+DFT INF ...     56      0   +1.9753650899
+DFT INF ... 		GAP 0.256155201401
+DFT ERR ... 
+DFT ERR ... 2021-10-13 14:44:14 Iteration 14 of 100
+DFT INF ... 2021-10-13 14:44:14 Filled DFT Vxc matrix 
+DFT INF ... 2021-10-13 14:44:14 Filled F+K matrix 
+DFT INF ... 2021-10-13 14:44:14 Single particle energy -1162.60849992
+DFT INF ... 2021-10-13 14:44:14 Two particle energy 406.092898134
+DFT INF ... 2021-10-13 14:44:14 Local Exc contribution -36.7123134129
+DFT INF ... 2021-10-13 14:44:14 Non local Ex contribution -11.5445964036
+DFT ERR ... 2021-10-13 14:44:14 Total Energy -550.24722692
+DFT ERR ... 2021-10-13 14:44:14 DIIs error 1.92816988755e-08
+DFT ERR ... 2021-10-13 14:44:14 Delta Etot -2.38742359215e-12
+DFT WAR ... 2021-10-13 14:44:14 Using DIIS for next guess
+DFT INF ...   Orbital energies: 
+DFT INF ...   index occupation energy(Hartree) 
+DFT INF ...      0      2   -88.9735981160
+DFT INF ...      1      2   -10.2048962671
+DFT INF ...      2      2   -10.2047822179
+DFT INF ...      3      2   -10.1828119608
+DFT INF ...      4      2   -10.1816645376
+DFT INF ...      5      2   -7.9933056788
+DFT INF ...      6      2   -5.9030085168
+DFT INF ...      7      2   -5.8981621130
+DFT INF ...      8      2   -5.8931928656
+DFT INF ...      9      2   -0.9482765540
+DFT INF ...     10      2   -0.7734186778
+DFT INF ...     11      2   -0.7572291754
+DFT INF ...     12      2   -0.5827508181
+DFT INF ...     13      2   -0.5819902176
+DFT INF ...     14      2   -0.5419009560
+DFT INF ...     15      2   -0.4353373371
+DFT INF ...     16      2   -0.4115888370
+DFT INF ...     17      2   -0.4109431422
+DFT INF ...     18      2   -0.4101239764
+DFT INF ...     19      2   -0.3589154677
+DFT INF ...     20      2   -0.2677844872
+DFT INF ...     21      2   -0.2511380924
+DFT INF ...     22      0   +0.0050171121
+DFT INF ...     23      0   +0.0840478435
+DFT INF ...     24      0   +0.0856774474
+DFT INF ...     25      0   +0.1314837432
+DFT INF ...     26      0   +0.1459180431
+DFT INF ...     27      0   +0.1884496858
+DFT INF ...     28      0   +0.2152199933
+DFT INF ...     29      0   +0.2252531249
+DFT INF ...     30      0   +0.3000877448
+DFT INF ...     31      0   +0.3691992371
+DFT INF ...     32      0   +0.4542113445
+DFT INF ...     33      0   +0.4788881596
+DFT INF ...     34      0   +0.5311463230
+DFT INF ...     35      0   +0.5472158836
+DFT INF ...     36      0   +0.5658582111
+DFT INF ...     37      0   +0.6981869102
+DFT INF ...     38      0   +0.7435343377
+DFT INF ...     39      0   +0.7523809052
+DFT INF ...     40      0   +0.7585044550
+DFT INF ...     41      0   +0.7854641402
+DFT INF ...     42      0   +0.8181887530
+DFT INF ...     43      0   +0.8383580938
+DFT INF ...     44      0   +0.8576018575
+DFT INF ...     45      0   +1.0059621979
+DFT INF ...     46      0   +1.0224609238
+DFT INF ...     47      0   +1.0430800118
+DFT INF ...     48      0   +1.0768551273
+DFT INF ...     49      0   +1.0796710151
+DFT INF ...     50      0   +1.2717983879
+DFT INF ...     51      0   +1.3626080301
+DFT INF ...     52      0   +1.4091166387
+DFT INF ...     53      0   +1.4353860307
+DFT INF ...     54      0   +1.6255499603
+DFT INF ...     55      0   +1.8645724383
+DFT INF ...     56      0   +1.9753650932
+DFT INF ... 		GAP 0.256155204411
+DFT ERR ... 2021-10-13 14:44:14 Total Energy has converged to -2.38742359e-12[Ha] after 14 iterations. DIIS error is converged up to 1.92816989e-08
+DFT ERR ... 2021-10-13 14:44:14 Final Single Point Energy -550.24722692 Ha
+DFT ERR ... 2021-10-13 14:44:14 Final Local Exc contribution -36.7123134129 Ha
+DFT ERR ... 2021-10-13 14:44:14 Final Non Local Ex contribution -11.5445964036 Ha
+DFT ERR ...   Orbital energies: 
+DFT ERR ...   index occupation energy(Hartree) 
+DFT ERR ...      0      2   -88.9735981160
+DFT ERR ...      1      2   -10.2048962671
+DFT ERR ...      2      2   -10.2047822179
+DFT ERR ...      3      2   -10.1828119608
+DFT ERR ...      4      2   -10.1816645376
+DFT ERR ...      5      2   -7.9933056788
+DFT ERR ...      6      2   -5.9030085168
+DFT ERR ...      7      2   -5.8981621130
+DFT ERR ...      8      2   -5.8931928656
+DFT ERR ...      9      2   -0.9482765540
+DFT ERR ...     10      2   -0.7734186778
+DFT ERR ...     11      2   -0.7572291754
+DFT ERR ...     12      2   -0.5827508181
+DFT ERR ...     13      2   -0.5819902176
+DFT ERR ...     14      2   -0.5419009560
+DFT ERR ...     15      2   -0.4353373371
+DFT ERR ...     16      2   -0.4115888370
+DFT ERR ...     17      2   -0.4109431422
+DFT ERR ...     18      2   -0.4101239764
+DFT ERR ...     19      2   -0.3589154677
+DFT ERR ...     20      2   -0.2677844872
+DFT ERR ...     21      2   -0.2511380924
+DFT ERR ...     22      0   +0.0050171121
+DFT ERR ...     23      0   +0.0840478435
+DFT ERR ...     24      0   +0.0856774474
+DFT ERR ...     25      0   +0.1314837432
+DFT ERR ...     26      0   +0.1459180431
+DFT ERR ...     27      0   +0.1884496858
+DFT ERR ...     28      0   +0.2152199933
+DFT ERR ...     29      0   +0.2252531249
+DFT ERR ...     30      0   +0.3000877448
+DFT ERR ...     31      0   +0.3691992371
+DFT ERR ...     32      0   +0.4542113445
+DFT ERR ...     33      0   +0.4788881596
+DFT ERR ...     34      0   +0.5311463230
+DFT ERR ...     35      0   +0.5472158836
+DFT ERR ...     36      0   +0.5658582111
+DFT ERR ...     37      0   +0.6981869102
+DFT ERR ...     38      0   +0.7435343377
+DFT ERR ...     39      0   +0.7523809052
+DFT ERR ...     40      0   +0.7585044550
+DFT ERR ...     41      0   +0.7854641402
+DFT ERR ...     42      0   +0.8181887530
+DFT ERR ...     43      0   +0.8383580938
+DFT ERR ...     44      0   +0.8576018575
+DFT ERR ...     45      0   +1.0059621979
+DFT ERR ...     46      0   +1.0224609238
+DFT ERR ...     47      0   +1.0430800118
+DFT ERR ...     48      0   +1.0768551273
+DFT ERR ...     49      0   +1.0796710151
+DFT ERR ...     50      0   +1.2717983879
+DFT ERR ...     51      0   +1.3626080301
+DFT ERR ...     52      0   +1.4091166387
+DFT ERR ...     53      0   +1.4353860307
+DFT ERR ...     54      0   +1.6255499603
+DFT ERR ...     55      0   +1.8645724383
+DFT ERR ...     56      0   +1.9753650932
+DFT ERR ... 2021-10-13 14:44:14 Electric Dipole is[e*bohr]:
+		 dx=-0.0554669837741
+		 dy=-0.201906181971
+		 dz=0.0661116224668
+DFT ERR ... Writing result to temp.orb
+DFT ERR ... 2021-10-13 14:44:14 DFT calculation took 4.666837126 seconds.
+DFT ERR ... QM energy[Hrt]: -550.24722692 
