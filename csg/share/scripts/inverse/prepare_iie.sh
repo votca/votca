@@ -18,80 +18,35 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script prepares potentials in a generic way
+This script calculates dc/dh once for all iie steps
 
 Usage: ${0##*/}
 EOF
    exit 0
 fi
 
-sim_prog="$(csg_get_property cg.inverse.program)"
-method="$(csg_get_property cg.inverse.method)"
-initial_guess_method="$(csg_get_property "cg.inverse.${method}.initial_guess.method")"
-verbose=$(csg_get_property cg.inverse.iie.verbose)
+do_external prepare generic
 
-if [ "${verbose}" == 'true' ]; then
-    verbose_flag="--verbose"
-elif [ "${verbose}" == 'false' ]; then
-    verbose_flag=""
-else
-    die "verbose has to be 'true' or 'false'"
-fi
-
-case "$initial_guess_method" in
-"table")
-    for_all "bonded non-bonded" do_external prepare_single generic --use-table
-    ;;
-"bi")
-    for_all "bonded non-bonded" do_external prepare_single generic --use-bi
-    ;;
-"ie")
-    main_dir=$(get_main_dir)
-    nb_interactions=$(csg_get_property --allow-empty cg.non-bonded.name)
-    kBT="$(csg_get_property cg.inverse.kBT)"
-    densities="$(csg_get_property cg.inverse.iie.densities)"
-    n_intra="$(csg_get_property cg.inverse.iie.n_intra)"
-    cut_off="$(csg_get_property cg.inverse.iie.cut_off)"
-    # only for IE
-    initial_guess_closure=$(csg_get_property "cg.inverse.${method}.initial_guess.closure")
-    initial_guess_ignore_intra=$(csg_get_property "cg.inverse.${method}.initial_guess.ignore_intramolecular_correlation")
-
-    # bonded distributions inversion
-    for_all "bonded" do_external prepare_single generic --use-bi
-    # resample all target distributions
-    for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
-
-    # initial guess from rdf with hnc or py
-    # todo: implement propper extrapolation (use raw, then extrapolate)
-    if [[ "${initial_guess_ignore_intra}" == "false" && $n_intra -gt 1 ]]; then
-        critical cp -t . "${main_dir}/$(printf '%s.dist-incl.tgt' "$nb_interactions")"
-        G_tgt_flag="--G-tgt $(printf '%s.dist-incl.tgt' "$nb_interactions")"
-    else
-        G_tgt_flag=""
-    fi
-
-    # do not put quotes around arguments with values ($G_tgt_flag)!
-    # this will give a codacy warning :/
-    msg "Using initial guess for non-bonded interactions using integral equations"
-    do_external dist invert_iie potential_guess \
-    "$verbose_flag" \
-    --closure "$initial_guess_closure" \
-    --g-tgt $(printf "%s.dist.tgt" "$nb_interactions") \
-    $G_tgt_flag \
-    --U-out $(printf "%s.pot.new" "$nb_interactions") \
-    --kBT "$kBT" --densities "$densities" --cut-off "$cut_off" \
-    --n-intra "$n_intra"
-    ;;
-*)
-    die "cg.inverse.${method}.initial_guess has to be either table, bi, or ie"
-    ;;
-esac
-
-
-if [[ $sim_prog != gromacs ]] ; then
-  msg --color blue "######################################################"
-  msg --color blue "# WARNING using this simulator is still experimental #"
-  msg --color blue "# If you find a problem report it under:             #"
-  msg --color blue "# https://github.com/votca/csg                       #"
-  msg --color blue "######################################################"
+tgt_dcdh="$(csg_get_property cg.inverse.iie.tgt_dcdh)"
+if [[ $tgt_dcdh == 'true' ]]; then
+    msg "Calculating dc/dh for all later iterations"
+    # verbose
+    [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
+    # topology for molecular conections and volume
+    topol=$(csg_get_property --allow-empty cg.inverse.iie.topol)
+    [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.$sim_prog.topol)
+    [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
+    # volume
+    volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
+    ([[ -n "$volume" ]] && is_num "$volume") || die "could not determine the volume from file ${topol}"
+  do_external dist invert_iie potential_guess \
+    ${verbose_flag-} \
+    --closure hnc \
+    --volume "$volume" \
+    --topol "$topol" \
+    --options "$CSGXMLFILE" \
+    --g-tgt-ext ".dist.tgt" \
+    --g-tgt-intra-ext ".dist-intra.tgt" \
+    --out-ext none \
+    --out-tgt-dcdh dcdh.npz
 fi

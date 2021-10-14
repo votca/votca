@@ -25,15 +25,16 @@ csg master inverse.sh
 # BEGIN: these scripts have to be defined for each method
 # method initialization
 prepare ibi prepare_generic.sh
-prepare iie prepare_generic.sh
+prepare iie prepare_iie.sh
 prepare imc prepare_imc.sh
 prepare generic prepare_generic.sh
 prepare optimizer prepare_optimizer.sh
 prepare re prepare_re.sh
 prepare_single generic prepare_generic_single.sh
 prepare_single optimizer prepare_optimizer_single.sh
+initstep generic initialize_step_generic.sh
 initstep ibi initialize_step_generic.sh
-initstep iie initialize_step_generic.sh
+initstep iie initialize_step_iie.sh
 initstep imc initialize_step_generic.sh
 initstep optimizer initialize_step_optimizer.sh
 initstep re initialize_step_re.sh

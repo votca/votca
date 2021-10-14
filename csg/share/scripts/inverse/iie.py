@@ -49,13 +49,11 @@ from csg_functions import (
     r0_removal, get_non_bonded, get_density_dict, get_n_intra_dict,
     gen_interaction_matrix, gen_interaction_dict, gauss_newton_constrained,
     gen_flag_isfinite, kron_2D, extrapolate_dU_left_constant, vectorize, devectorize,
-    if_verbose_dump_io
+    if_verbose_dump_io, make_matrix_2D, make_matrix_4D, cut_matrix_inverse
 )
 
 
 BAR_PER_MD_PRESSURE = 16.6053904
-G_MIN = 1e-10
-G_MIN_EXTRAPOLATE = 1e-1
 np.seterr(all='raise')
 
 
@@ -64,21 +62,23 @@ def main():
     args = get_args()
 
     # process and prepare input
-    r, input_arrays, settings = process_input(args)
+    input_arrays, settings = process_input(args)
 
     # guess potential from distribution
     if settings['subcommand'] == 'potential_guess':
-        output_arrays = potential_guess(r, input_arrays, settings,
+        output_arrays = potential_guess(input_arrays, settings,
                                         verbose=settings['verbose'])
-
+        if settings['out_tgt_dcdh'] is not None:
+            calc_and_save_dcdh(input_arrays, settings,
+                               verbose=settings['verbose'])
     # newton update
     if settings['subcommand'] in ('newton', 'newton-mod'):
-        output_arrays = newton_update(r, input_arrays, settings,
+        output_arrays = newton_update(input_arrays, settings,
                                       verbose=settings['verbose'])
 
     # gauss-newton update
     if settings['subcommand'] == 'gauss-newton':
-        output_arrays = gauss_newton_update(r, input_arrays, settings,
+        output_arrays = gauss_newton_update(input_arrays, settings,
                                             verbose=settings['verbose'])
 
     # save output (U or dU) to table files
@@ -135,11 +135,14 @@ def get_args(iie_args=None):
                           required=True,
                           metavar='U_OUT_EXT',
                           help='extension of U or ΔU output files')
-        pars.add_argument('--g-extrap-factor', type=float, required=False,
-                          help='factor by which to extrapolate RDFs')
         pars.add_argument('--g-tgt-intra-ext', type=str,
                           metavar='RDF_TGT_INTRA_EXT',
                           help='extension of intramol. RDF target files')
+    # potential guess subparser
+    parser_pot_guess.add_argument('--out-tgt-dcdh', type=str, default='none',
+                                  help=("generate .npz file with dc/dh from target "
+                                        "distributions. If 'none' it will not be "
+                                        "generated."))
     # update potential subparsers
     for pars in [parser_newton, parser_newton_mod, parser_gauss_newton]:
         pars.add_argument('--g-cur-ext', type=str,
@@ -149,8 +152,11 @@ def get_args(iie_args=None):
         pars.add_argument('--g-cur-intra-ext', type=str,
                           metavar='RDF_CUR_INTRA_EXT',
                           help='extension of current intramol. RDF files')
-        pars.add_argument('--tgt-jacobian', action='store_true',
-                          help=('Determine the jacobian from the target dist. files.'))
+        pars.add_argument('--tgt-dcdh', type=str, default='none',
+                          help=(".npz file with dc/dh from target distributions. "
+                                "If provided, will be used. "
+                                "If 'none' the jacobian will be calculated from "
+                                "current distributions."))
     # Newton's method only options
     for pars in [parser_newton, parser_newton_mod]:
         pars.add_argument('--cut-jacobian', dest='cut_jacobian', action='store_true',
@@ -193,7 +199,7 @@ def process_input(args):
     }
     # if potential guess or update and tgt_jacobian we need the target intramolecular
     # RDFs
-    if args.subcommand == 'potential_guess' or args.tgt_jacobian:
+    if args.subcommand == 'potential_guess':
         table_infos = {
             **table_infos,
             'G_minus_g_tgt': {'extension': args.g_tgt_intra_ext, 'check-grid': True},
@@ -205,7 +211,7 @@ def process_input(args):
             'g_cur': {'extension': args.g_cur_ext, 'check-grid': True},
         }
         # if not target jacobian we need the current intramolecular RDFs
-        if not args.tgt_jacobian:
+        if args.tgt_dcdh == 'none':
             table_infos = {
                 **table_infos,
                 'G_minus_g_cur': {'extension': args.g_cur_intra_ext,
@@ -251,6 +257,8 @@ def process_input(args):
         r0_removed = False
     else:
         raise Exception('either all or no input tables should start at r=0')
+    # quick access to r
+    input_arrays['r'] = r
     # process input further
     rhos = gen_beadtype_property_array(density_dict, non_bonded_dict)
     n_intra = gen_beadtype_property_array(n_intra_dict, non_bonded_dict)
@@ -265,23 +273,48 @@ def process_input(args):
     settings['r0-removed'] = r0_removed
     # others from options xml
     settings['kBT'] = float(options.find("./inverse/kBT").text)
-    # determine cut-off
+    # determine cut-off and dc/dh buffer
     if args.subcommand == 'potential_guess':
         settings['cut_off'] = float(
             options.find("./inverse/initial_guess/ie/cut_off").text)
+        # dc/dh filename to write to
+        if args.out_tgt_dcdh.lower() == 'none':
+            settings['out_tgt_dcdh'] = None
+        else:
+            settings['out_tgt_dcdh'] = args.out_tgt_dcdh
     else:
         settings['cut_off'] = float(
             options.find("./inverse/iie/cut_off").text)
+        # reuse dc/dh
+        if args.tgt_dcdh.lower() == 'none':
+            settings['tgt_dcdh'] = None
+        else:
+            try:
+                settings['tgt_dcdh'] = np.load(args.tgt_dcdh)['dcdh']
+            except (FileNotFoundError, ValueError):
+                raise Exception("Can not load tgt_dcdh file that was provided")
     # determine slices from cut_off
     cut, tail = calc_slices(r, settings['cut_off'], settings['verbose'])
     settings['cut'] = cut
     settings['tail'] = tail
-    return r, input_arrays, settings
+    return input_arrays, settings
 
 
 @if_verbose_dump_io
-def potential_guess(r, input_arrays, settings, verbose=False):
-    """Do and save a potential guess based on symmetry adapted RISM-OZ and closure."""
+def potential_guess(input_arrays, settings, verbose=False):
+    """Calculate potential guess based on symmetry adapted RISM-OZ and closure.
+
+    Args:
+        input_arrays: nested dict holding the distributions
+        settings: dict holding relevant settings
+        verbose: save parameters and return of this and contained functions as numpy
+                 file
+
+    Returns:
+        dictionary of potentials including flags to be saved
+    """
+    # obtain r
+    r = input_arrays['r']
     # prepare matrices
     g_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
                                    settings['non-bonded-dict'])
@@ -321,6 +354,8 @@ def potential_guess(r, input_arrays, settings, verbose=False):
 def save_tables(output_arrays, settings):
     """Save each entry in output_arrays to a table file."""
     comment = "created by: {}".format(" ".join(sys.argv))
+    if settings['out_ext'].lower() == 'none':
+        return None
     for non_bonded_name, output_dict in output_arrays.items():
         fn = non_bonded_name + settings['out_ext']
         saveto_table(fn, output_dict['x'], output_dict['y'], output_dict['flag'],
@@ -381,111 +416,45 @@ def calc_c_matrix(r, k, h_hat_mat, G_minus_g_hat_mat, rhos, n_intra, verbose=Fal
 
 
 @if_verbose_dump_io
-def newton_update(r, input_arrays, settings, verbose=False):
-    """Do the Newton update."""
-    # further tests on input
-    # if g_extrap_factor != 1.0 then it should hold that cut-off == r[-1]
-    # this is basically HNCN (ex) vs HNCN (ed)
+def newton_update(input_arrays, settings, verbose=False):
+    """Calculate Newton potential update based on symmetry adapted RISM-OZ and closure.
+
+    Args:
+        input_arrays: nested dict holding the distributions
+        settings: dict holding relevant settings
+        verbose: save parameters and return of this and contained functions as numpy
+                 file
+
+    Returns:
+        dictionary of potential updates including flags to be saved
+    """
+    # obtain r
+    r = input_arrays['r']
     # number of atom types
     n_t = len(settings['rhos'])
-    # number of interactions
+    # number of interactions including redundand ones
     n_i = int(n_t**2)
     # number of grid points in r
     n_r = len(r)
-    if not np.isclose(settings['g_extrap_factor'], 1.0):
-        if not np.isclose(settings['cut_off'], r[-1]):
-            raise Exception('if g_extrap_factor is not equal 1.0, the cut-off '
-                            'needs to be the same as the range of all RDFs for '
-                            'Newton method.')
-        # extrapolate RDFs
-        if settings['g_extrap_factor'] < 1:
-            raise Exception('g_extrap_factor needs to be larger than 1.0')
-        # BEGIN TODO: this part is not adapted yet
-        """Delta_r = calc_grid_spacing(r)
-        r_short = np.copy(r)
-        r = np.arange(r[0], r[-1] * args.g_extrap_factor, Delta_r)
-        g_tgt = extrapolate_g(r_short, r, input_arrays['g_tgt'][0]['y'],
-                              input_arrays['G_minus_g'][0]['y'],
-                              args.n_intra[0], args.densities[0],
-                              verbose=args.verbose)
-        g_cur = extrapolate_g(r_short, r, input_arrays['g_cur'][0]['y'],
-                              input_arrays['G_minus_g'][0]['y'],
-                              args.n_intra[0], args.densities[0],
-                              verbose=args.verbose)
-        G_minus_g = np.concatenate((input_arrays['G_minus_g'][0]['y'],
-                                    np.zeros(n_r-len(r_short))))
-        cut_off = r_short[-1]"""
-        raise NotImplementedError
-        # END TODO
+    # slices
+    cut, _ = settings['cut'], settings['tail']
     # generate matrices
     g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
                                        settings['non-bonded-dict'])
     g_cur_mat = gen_interaction_matrix(r, input_arrays['g_cur'],
                                        settings['non-bonded-dict'])
-    # which distributions to use for jacobian calculation
-    # using cur is the original Newton-Raphson root finding method
-    # using tgt is a method similar to Newton's but with slope calculated at the root
-    if settings['tgt_jacobian']:
-        G_minus_g_tgt_mat = gen_interaction_matrix(r, input_arrays['G_minus_g_tgt'],
-                                                   settings['non-bonded-dict'])
-        g_mat_for_jacobian = g_tgt_mat
-        G_minus_g_mat_for_jacobian = G_minus_g_tgt_mat
-    else:
-        G_minus_g_cur_mat = gen_interaction_matrix(r, input_arrays['G_minus_g_cur'],
-                                                   settings['non-bonded-dict'])
-        g_mat_for_jacobian = g_cur_mat
-        G_minus_g_mat_for_jacobian = G_minus_g_cur_mat
-    # wether the jacobian will be modified to imitate the ibi-update in the first term
-    newton_mod = settings['subcommand'] == 'newton-mod'
-    # perform actual math and obtain inverse Jacobian
-    jac_inv_mat = calc_jacobian_inv(r, g_mat_for_jacobian, G_minus_g_mat_for_jacobian,
-                                    settings['rhos'], settings['n_intra'],
-                                    settings['kBT'], settings['closure'],
-                                    newton_mod, verbose=settings['verbose'])
-    # generate inverse jacobian as a 2D matrix
-    # this is the form in which the inverse is taken
-    jac_inv_mat_2D = np.zeros((n_r * n_i, n_r * n_i))
-    for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
-        jac_inv_mat_2D[n_r * i:n_r * (i+1),
-                       n_r * j:n_r * (j+1)] = jac_inv_mat[:, :, i, j]
-    # either do this or cut each interaction. TODO: do the latter
-    jac_inv_mat_2D[jac_inv_mat_2D == -np.inf] = -1e40
-    # invert and obtain jacobian as 2D matrix
-    jac_mat_2D = np.linalg.inv(jac_inv_mat_2D)
+    # calculate the ready-to-use jacobian inverse
+    _, jac_inv_mat = calc_jacobian(input_arrays, settings, verbose)
     # Delta g for potential update
     Delta_g_mat = g_cur_mat - g_tgt_mat
     # vectorize Delta g
     Delta_g_vec = vectorize(Delta_g_mat)
-    # cut jacobian or cut potential update
-    cut, tail = settings['cut'], settings['tail']
-    if settings['cut_jacobian']:
-        n_c = len(r[cut])
-        jac_mat_2D_cut = np.zeros((n_c * n_i, n_c * n_i))
+    # prepare potential update array
+    dU_vec = np.zeros((n_r, n_i))
+    with np.errstate(invalid='ignore'):
         for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
-            cut_r_i = slice(n_r * i + cut.start, n_r * i + cut.stop)
-            cut_r_j = slice(n_r * j + cut.start, n_r * j + cut.stop)
-            full_c_i = slice(n_c * i, n_c * (i+1))
-            full_c_j = slice(n_c * j, n_c * (j+1))
-            jac_mat_2D_cut[full_c_i, full_c_j] = jac_mat_2D[cut_r_i, cut_r_j]
-        jac_mat_2D = jac_mat_2D_cut
-        # invert again to obtain inverse of cut jacobian for potential update
-        jac_cut_inv_mat_2D = np.linalg.pinv(jac_mat_2D_cut)
-        # cut Delta g
-        Delta_g_vec_cut = Delta_g_vec[cut, :]
-        # calculate potential update
-        dU_vec_cut = np.zeros_like(Delta_g_vec_cut)
-        with np.errstate(invalid='ignore'):
-            for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
-                full_c_i = slice(n_c * i, n_c * (i+1))
-                full_c_j = slice(n_c * j, n_c * (j+1))
-                dU_vec_cut[:, i] -= (jac_cut_inv_mat_2D[full_c_i, full_c_j]
-                                     @ Delta_g_vec_cut[:, j])
-        dU_vec = np.append(dU_vec_cut, np.zeros((len(r[tail]), n_i)), axis=0)
-    else:
-        dU_vec = np.zeros_like(Delta_g_vec)
-        with np.errstate(invalid='ignore'):
-            for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
-                dU_vec[:, i] -= jac_inv_mat[:, :, i, j] @ Delta_g_vec[:, j]
+            # Newton update
+            dU_vec[cut, i] -= (jac_inv_mat[cut, cut, i, j] @ Delta_g_vec[cut, j])
     # dU matrix
     dU_mat = devectorize(dU_vec)
     # prepare output
@@ -500,22 +469,81 @@ def newton_update(r, input_arrays, settings, verbose=False):
             dU_flag = np.concatenate((['o'], dU_flag))
         else:
             r_out = r
-        dU[cut] -= dU[tail][0]
-        dU[tail] = 0
-        dU_flag[tail] = 'o'
+        # make last value zero
+        dU -= dU[-1]
         # change NaN in the core region to first valid value
         dU = extrapolate_dU_left_constant(dU, dU_flag)
+        # save for output
         output_arrays[non_bonded_name] = {'x': r_out, 'y': dU, 'flag': dU_flag}
     return output_arrays
 
 
 @if_verbose_dump_io
-def calc_jacobian_inv(r, g_mat, G_minus_g_mat, rhos, n_intra, kBT,
-                      closure, newton_mod, verbose=False):
+def calc_jacobian(input_arrays, settings, verbose=False):
     """
-    Calculate a potential update dU using Newtons method.
+    Calculate dg/du, the Jacobian and its inverse du/dg using RISM-OZ + closure.
 
-    Supports symmetric molecules with n equal beads.
+    Args:
+        input_arrays: nested dict holding the distributions
+        settings: dict holding relevant settings
+        verbose: save parameters and return of this and contained functions as numpy
+                 file
+
+    Returns:
+        The Jacobian™ and its inverse
+    """
+    # obtain r
+    r = input_arrays['r']
+    # number of atom types
+    n_t = len(settings['rhos'])
+    # number of interactions
+    n_i = int(n_t**2)
+    # number of grid points in r
+    n_r = len(r)
+    # slices
+    cut, _ = settings['cut'], settings['tail']
+    n_c = len(r[cut])
+    # generate matrices
+    g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
+                                       settings['non-bonded-dict'])
+    g_cur_mat = gen_interaction_matrix(r, input_arrays['g_cur'],
+                                       settings['non-bonded-dict'])
+    # wether the jacobian will be modified to imitate the ibi-update in the first term
+    newton_mod = settings['subcommand'] == 'newton-mod'
+    # which distributions to use for dc/dh
+    # using cur is the original Newton-Raphson root finding method
+    # using tgt is a method similar to Newton's but with slope calculated at the root
+    # the latter is taken from the input, is calculated at step_000 once
+    if settings['tgt_dcdh'] is not None:
+        dcdh = settings['tgt_dcdh']
+        # the input dc/dh should already be cut to the cut-off
+        assert n_c == dcdh.shape[0]
+    else:
+        # generate dc/dh, invert, cut it, and invert again
+        G_minus_g_cur_mat = gen_interaction_matrix(r, input_arrays['G_minus_g_cur'],
+                                                   settings['non-bonded-dict'])
+        # calculate dc/dh on long range
+        dcdh_long = calc_dcdh(r, g_cur_mat, G_minus_g_cur_mat,
+                              settings['rhos'], settings['n_intra'],
+                              settings['kBT'], verbose)
+        dcdh_long_2D = make_matrix_2D(dcdh_long)
+        # cut invert dc/dh, cut dh/dc, invert again
+        dcdh_2D = cut_matrix_inverse(dcdh_long_2D, n_r, n_i, cut)
+        # make it a 4D array again
+        dcdh = make_matrix_4D(dcdh_2D, n_c, n_i)
+    # add the 1/g term to dc/dh and obtain inverse Jacobian
+    jac_inv_mat = add_jac_inv_diagonal(r[cut], g_tgt_mat[cut], g_cur_mat[cut],
+                                       dcdh, settings['rhos'],
+                                       settings['n_intra'], settings['kBT'],
+                                       settings['closure'], newton_mod, verbose)
+    jac_mat = np.linalg.inv(jac_inv_mat)
+    return jac_mat, jac_inv_mat
+
+
+@if_verbose_dump_io
+def calc_dcdh(r, g_mat, G_minus_g_mat, rhos, n_intra, kBT, verbose=False):
+    """
+    Calculate the derivative dvec(c)/dvec(h) which is part of the Jacobian.
 
     Args:
         r: Distance grid
@@ -523,9 +551,6 @@ def calc_jacobian_inv(r, g_mat, G_minus_g_mat, rhos, n_intra, kBT,
         G_minus_g_cur_mat: matrix of intramolecular RDF (target or current)
         rhos: Number densities of the beads
         n_intra: Number of equal beads per molecule
-        kBT: Boltzmann constant times temperature
-        closure: OZ-equation closure ('hnc' or 'py')
-        newton_mod: Use IBI style update term
 
     Returns:
         The inverse jacobian
@@ -553,17 +578,88 @@ def calc_jacobian_inv(r, g_mat, G_minus_g_mat, rhos, n_intra, kBT,
     B = np.linalg.inv(Omega_hat_mat) @ (identity - H_hat_mat @ np.linalg.inv(
         Omega_hat_mat + rho_mol_map @ H_hat_mat) @ rho_mol_map)
     d_vec_c_hat_by_d_vec_h_hat = kron_2D(A, B)
-    # now it becomes 2D by diag and applying Fourier
+    # now it becomes an operator by diag and applying Fourier
     d_vec_c_by_d_vec_h = np.zeros((len(r), len(r), n_i, n_i))
     for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
         d_vec_c_by_d_vec_h[:, :, i, j] = (F_inv
                                           @ np.diag(d_vec_c_hat_by_d_vec_h_hat[:, i, j])
                                           @ F)
-    # vectorize g matrix
-    g_vec = vectorize(g_mat)
-    # calculate jacobian^-1
-    # in the core where RDF=0, the jacobin will have -np.inf on the diagonal
-    # numpy correctly inverts this to zero <3
+    return d_vec_c_by_d_vec_h
+
+
+@if_verbose_dump_io
+def calc_and_save_dcdh(input_arrays, settings, verbose=False):
+    """
+    Calculate dc/dh in its cut form and save it
+
+    Args:
+        input_arrays: nested dict holding the distributions
+        settings: dict holding relevant settings
+        verbose: save parameters and return of this and contained functions as numpy
+                 file
+
+    Returns:
+        dc/dh on the cut range
+    """
+    # obtain r
+    r = input_arrays['r']
+    # number of atom types
+    n_t = len(settings['rhos'])
+    # number of interactions
+    n_i = int(n_t**2)
+    # number of grid points in r
+    n_r = len(r)
+    # slices
+    cut, _ = settings['cut'], settings['tail']
+    n_c = len(r[cut])
+    # generate matrices
+    g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
+                                       settings['non-bonded-dict'])
+    # generate dc/dh, invert, cut it, and invert again
+    G_minus_g_tgt_mat = gen_interaction_matrix(r, input_arrays['G_minus_g_tgt'],
+                                               settings['non-bonded-dict'])
+    # calculate dc/dh on long range
+    dcdh_long = calc_dcdh(r, g_tgt_mat, G_minus_g_tgt_mat,
+                          settings['rhos'], settings['n_intra'],
+                          settings['kBT'], verbose)
+    dcdh_long_2D = make_matrix_2D(dcdh_long)
+    # cut invert dc/dh, cut dh/dc, invert again
+    dcdh_2D = cut_matrix_inverse(dcdh_long_2D, n_r, n_i, cut)
+    # make it a 4D array again
+    dcdh = make_matrix_4D(dcdh_2D, n_c, n_i)
+    # save to npz file
+    np.savez_compressed(settings['out_tgt_dcdh'], dcdh=dcdh)
+
+
+@if_verbose_dump_io
+def add_jac_inv_diagonal(r, g_tgt_mat, g_cur_mat, dcdh, rhos, n_intra, kBT,
+                         closure, newton_mod, tgt_dcdh=None, verbose=False):
+    """
+    Calculate du/dg, the inverse of the Jacobian.
+
+    Args:
+        r: Distance grid
+        g_tgt_mat: target RDFs
+        g_cur_mat: current RDFs
+        dcdh_2D: derivative dc/dh
+        rhos: Number densities of the beads
+        n_intra: Number of equal beads per molecule
+        kBT: Boltzmann constant times temperature
+        closure: OZ-equation closure ('hnc' or 'py')
+        newton_mod: Use IBI style update term
+
+    Returns:
+        Matrix inverse of the Jacobian
+    """
+    # number of atom types
+    n_t = len(rhos)
+    # number of interactions
+    n_i = int(n_t**2)
+    # vectorize RDF matrices
+    g_tgt_vec = vectorize(g_tgt_mat)
+    g_cur_vec = vectorize(g_cur_mat)
+    # average RDF for better stability
+    g_avg_vec = (g_tgt_vec + g_cur_vec) / 2
     if closure == 'hnc':
         jac_inv_mat = np.zeros((len(r), len(r), n_i, n_i))
         # BEGIN TODO
@@ -585,11 +681,10 @@ def calc_jacobian_inv(r, g_mat, G_minus_g_mat, rhos, n_intra, kBT,
             with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
                 for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
                     if i == j:
-                        diagonal_term = np.diag(1 - 1 / g_vec[:, i])
+                        diagonal_term = np.diag(1 - 1 / g_avg_vec[:, i])
                     else:
                         diagonal_term = 0
-                    jac_inv_mat[:, :, i, j] = kBT * (diagonal_term
-                                                     - d_vec_c_by_d_vec_h[:, :, i, j])
+                    jac_inv_mat[:, :, i, j] = kBT * (diagonal_term - dcdh[:, :, i, j])
     elif closure == 'py':
         raise NotImplementedError
     return jac_inv_mat
@@ -681,116 +776,6 @@ def transpose(mat):
     return np.swapaxes(mat, -1, -2)
 
 
-def calc_g(r, c, G_minus_g, n, rho):
-    """Calculate the radial distribution function g(r) from c(r)."""
-    r0_removed, (r, c, G_minus_g) = r0_removal(r, c, G_minus_g)
-    k, c_hat = fourier(r, c)
-    if n == 1:
-        h_hat = c_hat / (1 - rho * c_hat)
-    else:
-        _, G_minus_g_hat = fourier(r, G_minus_g)
-        h_hat = ((c_hat * (1 + n * rho * G_minus_g_hat)**2)
-                 / (1 - n * rho * (1 + n * rho * G_minus_g_hat) * c_hat))
-    _, h = fourier(k, h_hat)
-    g = h + 1
-    if r0_removed:
-        g = np.concatenate(([np.nan], g))
-    return g
-
-
-def calc_dc_ext(r_short, r_long, c_k_short, g_k_short, g_tgt_short, G_minus_g_short, n,
-                rho):
-    """
-    Calculate Δc_ext with netwon method.
-
-    This term is used in the iterative extrapolation of g(r). Jacobian has an
-    implicit extrapolation of c with zeros on twice its original range.
-
-    """
-    # _k is iteration k
-    # _s is short
-    # _tgt is target
-    r0_removed, (r_short, c_k_short, g_k_short, g_tgt_short,
-                 G_minus_g_short) = r0_removal(r_short, c_k_short, g_k_short,
-                                               g_tgt_short, G_minus_g_short)
-    F = gen_fourier_matrix(r_long, fourier)
-    Finv = np.linalg.inv(F)
-    B = np.concatenate((np.diag(np.ones(len(r_short))),
-                        np.zeros((len(r_long) - len(r_short), len(r_short)))),
-                       axis=0)
-    Binv = np.linalg.pinv(B)
-    J = Binv @ (Finv @ np.diag((1 + n * rho * F @ B @ G_minus_g_short)**2
-                               / (1 - (1 + n * rho * F @ B @ G_minus_g_short)
-                                  * n * rho * F @ B @ c_k_short)**2) @ F) @ B
-    Jinv = np.linalg.pinv(J)
-    Δc = -1 * Jinv @ (g_k_short - g_tgt_short)
-    if r0_removed:
-        Δc = np.concatenate(([0], Δc))
-    return Δc
-
-
-def extrapolate_g(r_short, r_long, g_short, G_minus_g_short, n, rho,
-                  k_max=5, output_c=False, verbose=False):
-    """
-    Extrapolate an RDF to larger r with integral equation theory.
-
-    Assumes c = 0 in the extrapolated region. This is not a good aproximation
-    in systems with bonds.
-
-    Args:
-        r_short: Input grid.
-        r_long: Output grid.
-        g_short: Input RDF.
-        G_minus_g_short: Intramolecular distribution.
-        n: Number of equal beads per molecule.
-        rho: Number density of the molecules.
-        k_max: Number of iterations.
-        output_c: Wether to output the final direct correlation function.
-        verbose: Print convergence, dump direct correlation function.
-
-    Returns:
-        The extrapolated RDF and depending on output_c the c.
-
-    """
-    r0_removed, (r_short, r_long, g_short,
-                 G_minus_g_short) = r0_removal(r_short, r_long, g_short,
-                                               G_minus_g_short)
-    ndx_co = len(r_short)
-    G_minus_g_long = np.concatenate((G_minus_g_short,
-                                     np.zeros(len(r_long) - len(r_short))))
-    # starting guess for c
-    c_short_k = 1  # [calc_c(r_short, g_short, G_minus_g_short, n, rho)]
-    c_long_k = [np.zeros_like(r_long)]
-    c_long_k[0][:ndx_co] = c_short_k[0]
-    # evaluate starting guess
-    g_long_k = [calc_g(r_long, c_long_k[0], G_minus_g_long, n, rho)]
-    g_short_k = [g_long_k[0][:ndx_co]]
-    # Newton iterations
-    for it in range(1, k_max+1):
-        # update c
-        c_short_k.append(c_short_k[-1]
-                         + calc_dc_ext(r_short, r_long, c_short_k[-1], g_short_k[-1],
-                                       g_short, G_minus_g_short, n, rho))
-        c_long_k.append(np.zeros_like(r_long))
-        c_long_k[-1][:ndx_co] = c_short_k[-1]
-        # new g
-        g_long_k.append(calc_g(r_long, c_long_k[-1], G_minus_g_long, n, rho))
-        g_short_k.append(g_long_k[-1][:ndx_co])
-
-    if r0_removed:
-        for it in range(0, k_max+1):
-            c_short_k[it] = np.concatenate(([np.nan], c_short_k[it]))
-            c_long_k[it] = np.concatenate(([np.nan], c_long_k[it]))
-            g_long_k[it] = np.concatenate(([np.nan], g_long_k[it]))
-            g_short_k[it] = np.concatenate(([np.nan], g_short_k[it]))
-    if verbose:
-        np.savez_compressed('g-extrapolation.npz', c_short_k=c_short_k,
-                            c_long_k=c_long_k, g_long_k=g_long_k, g_short_k=g_short_k)
-    if output_c:
-        return g_long_k[-1], c_long_k[-1]
-    return g_long_k[-1]
-
-
 def calc_slices(r, cut_off, verbose=False):
     """
     Generate slices for the regions used in the IIE methods.
@@ -811,7 +796,8 @@ def calc_slices(r, cut_off, verbose=False):
         print("max(r): {}".format(max(r)))
         print("len(r): {}".format(len(r)))
         print("cut:", cut.start, cut.stop, min(r[cut]), max(r[cut]))
-        print("tail:", tail.start, tail.stop, min(r[tail]), max(r[tail]))
+        if len(r[tail]) > 0:
+            print("tail:", tail.start, tail.stop, min(r[tail]), max(r[tail]))
     return cut, tail
 
 

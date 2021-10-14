@@ -16,9 +16,10 @@
 # limitations under the License.
 
 from collections import defaultdict
+from functools import wraps
+import itertools
 import math
 import sys
-from functools import wraps
 import inspect
 try:
     import numpy as np
@@ -444,6 +445,9 @@ def if_verbose_dump_io(f):
     def wrapper(*args, **kwargs):
         fullargspec = inspect.getfullargspec(f)
         dump = {}
+        # basic nr of arguments check
+        if len(args) + len(kwargs) > len(fullargspec.args):
+            raise TypeError(f"to many arguments for call of function {f.__name__}")
         # positional parameters
         dump.update({fullargspec.args[i]: value for i, value in enumerate(args)})
         # keyword parameters
@@ -460,3 +464,76 @@ def if_verbose_dump_io(f):
             np.savez_compressed(filename, **{**dump, 'return_value': return_value})
         return return_value
     return wrapper
+
+
+def make_matrix_2D(matrix):
+    """Make a matrix of matrices into a single 2D matrix.
+
+    Args:
+        matrix: matrix (last two dim) of matrices (first two dim)
+
+    Returns:
+        2D matrix
+    """
+    assert matrix.ndim == 4
+    # number of r grid points
+    assert matrix.shape[0] == matrix.shape[1]
+    n_r = matrix.shape[0]
+    # number of interactions
+    assert matrix.shape[-2] == matrix.shape[-1]
+    n_i = matrix.shape[-1]
+    # generate 2D matrix
+    matrix_2D = np.zeros((n_r * n_i, n_r * n_i))
+    for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
+        matrix_2D[n_r * i:n_r * (i+1),
+                  n_r * j:n_r * (j+1)] = matrix[:, :, i, j]
+    return matrix_2D
+
+
+def make_matrix_4D(matrix, n_r, n_i):
+    """Make a 2D matrix to a matrix of matrices (4D).
+
+    Args:
+        matrix: large matrix
+
+    Returns
+        4D matrix
+    """
+    assert matrix.ndim == 2
+    assert matrix.shape[0] == matrix.shape[1]
+    # generate 2D matrix
+    matrix_4D = np.zeros((n_r, n_r, n_i, n_i))
+    for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
+        matrix_4D[:, :, i, j] = matrix[n_r * i:n_r * (i+1),
+                                       n_r * j:n_r * (j+1)]
+    return matrix_4D
+
+
+def cut_matrix_inverse(matrix_long_2D, n_r, n_i, cut):
+    """Invert a matrix, cut it, then invert again.
+
+    Args:
+        matrix_long_2D: large matrix
+        n_r: grid points of r
+        n_i: number of interactions
+        cut: slice defining the cut
+
+    Returns:
+        matrix_2D
+    """
+    assert matrix_long_2D.ndim == 2
+    assert n_i * n_r == matrix_long_2D.shape[0] == matrix_long_2D.shape[1]
+    n_c = cut.stop - cut.start
+    # invert
+    matrix_long_2D_inv = np.linalg.inv(matrix_long_2D)
+    # prepare cut matrix inverse
+    matrix_2D_inv = np.zeros((n_c * n_i, n_c * n_i))
+    for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
+        cut_r_i = slice(n_r * i + cut.start, n_r * i + cut.stop)
+        cut_r_j = slice(n_r * j + cut.start, n_r * j + cut.stop)
+        full_c_i = slice(n_c * i, n_c * (i+1))
+        full_c_j = slice(n_c * j, n_c * (j+1))
+        matrix_2D_inv[full_c_i, full_c_j] = matrix_long_2D_inv[cut_r_i, cut_r_j]
+    # invert again to obtain matrix
+    matrix_2D = np.linalg.inv(matrix_2D_inv)
+    return matrix_2D
