@@ -1,4 +1,4 @@
-<basis name="def2-sv(p)-rifit">
+<basis name="aux-def2-sv(p)">
   <!--Basis set created by xtp_basisset from def2-sv(p)-rifit.nw at Thu Jan  2 17:19:55 2020-->
   <element name="H">
     <shell type="S" scale="1.0">
