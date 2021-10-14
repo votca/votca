@@ -331,6 +331,21 @@ inline T Property::ifExistsReturnElseReturnDefault(const std::string &key,
   return result;
 }
 
+template <>
+inline std::string Property::ifExistsReturnElseReturnDefault(const std::string &key,
+                                                   std::string defaultvalue) const {
+  std::string result;
+  if (this->exists(key)) {
+    result = this->get(key).as<std::string>();
+    if(result.empty()){
+      throw std::runtime_error("Read empty string from " + key + " either provide a value or, if the option is not used, delete the option from you options file.");
+    }
+  } else {
+    result = defaultvalue;
+  }
+  return result;
+}
+
 template <class cond>
 void Property::deleteChildren(cond condition) {
 
