@@ -60,7 +60,7 @@ volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
 
 verbose=$(csg_get_property cg.inverse.iie.verbose)
 g_extrap_factor=$(csg_get_property --allow-empty cg.inverse.iie.g_extrap_factor) 
-[[ -z $g_extrap_factor ]] && msg --color blue "Deprecated option g_extrap_factor will be ignored!"
+[[ -n $g_extrap_factor ]] && msg --color blue "Deprecated option g_extrap_factor will be ignored!"
 
 [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
 
