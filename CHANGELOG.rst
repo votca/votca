@@ -119,6 +119,7 @@ Version 2022-dev
 -  added xtp_modify_jobfile to extract jobs from large jobfile (#840)
 -  rename auxiliary basissets to aux-<basisset_name> (#871)
 -  added documentation about architecture to votca and votca-xtp (#869)
+-  raise error for empty strings in option file (#873)
 
 Version 2021.2 and earlier
 ==========================
