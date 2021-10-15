@@ -1,7 +1,7 @@
 name: Cancelling
 on:
   workflow_run:
-    workflows: ['CI', 'Docker']
+    workflows: ['CI', 'Docker', 'Coverage']
     types: ['requested']
 
 jobs:
