@@ -14,4 +14,3 @@ build*
 /csg-manual
 
 .vscode*
-/compile_commands.json
