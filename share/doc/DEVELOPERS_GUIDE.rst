@@ -13,7 +13,6 @@ implementing code consistent with the VOTCA and cpp style and standard.
 -  `CPP Comment Guide <#cpp-comment-guide>`__
 -  `Updates from stable <#updates-from-stable>`__
 -  `Failed Release Builds <#failed-release-builds>`__
--  `
 
 Reporting Bugs
 --------------
@@ -27,13 +26,9 @@ Please be sure to provide as much information as possible such as:
 -  What dependencies were installed
 -  The calculation that was being run
 
-Issues can be directly created on the appropriate GitHub repo:
+Issues can be directly created on the GitHub repo:
 
--  `tools <https://github.com/votca/tools/issues>`__
--  `csg <https://github.com/votca/csg/issues>`__
--  `csg-tutorials <https://github.com/votca/csg-tutorials/issues>`__
--  `xtp <https://github.com/votca/xtp/issues>`__
--  `votca <https://github.com/votca/votca/issues>`__
+- `votca <https://github.com/votca/votca/issues>`__
 
 Formatting code
 ---------------
