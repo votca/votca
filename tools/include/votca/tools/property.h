@@ -338,10 +338,7 @@ inline std::string Property::ifExistsReturnElseReturnDefault(
   if (this->exists(key)) {
     result = this->get(key).as<std::string>();
     if (result.empty()) {
-      throw std::runtime_error(
-          "Read empty string from " + key +
-          " either provide a value or, if the option is not used, delete the "
-          "option from you options file.");
+      result = defaultvalue;
     }
   } else {
     result = defaultvalue;
