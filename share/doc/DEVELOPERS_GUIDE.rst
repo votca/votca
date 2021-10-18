@@ -39,8 +39,8 @@ found in each repo. CMake provides a format target which you can run to format y
 The easiest way to format your code is just a ``@votca-bot format`` comment in the PR, which then will automatically format your code.
 
 Doxygen documentation
----------------
-A complete overview of all C++ classes and code can be found `here <https://doc.votca.org/>`_ . 
+---------------------
+A complete overview of all C++ classes and code can be found on https://doc.votca.org/.
 
 VOTCA dev-tools
 ---------------
@@ -68,7 +68,7 @@ Making a Release
 ----------------
 
 Similar to the VOTCA containers, releases are also handled by GitHub actions. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
-To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
+To trigger it go `this GitHub Action <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
 :code:`stable` branch, but testing the creation of a release can be triggered on any branch. To make a release, trigger the action from the
 :code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag.
 
