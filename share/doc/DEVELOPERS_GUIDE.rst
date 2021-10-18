@@ -76,17 +76,17 @@ Major releases
 ~~~~~~~~~~~~~~
 
 In preparation for a major (not minor!) release the following additional steps need to be done:
--  Create a new branch from the master branch of the :code:`votca/votca` repository, e.g. :code:`stable_bump`. 
-   
-   ::
+
+-  Create a new branch from the master branch of the :code:`votca/votca` repository, e.g. :code:`stable_bump`.
+
+   .. code-block:: bash
 
        git checkout -b stable_bump stable
        git merge master
 
-
 -  Update the :code:`CHANGELOG.rst` files accordingly, by changing the top most section from :code:`<major>-dev` to :code:`<major>-rc.1`
-
 -  Commit everything and create a PR ino the :code:`stable` branch. 
+
 Release names
 ~~~~~~~~~~~~~
 
@@ -269,7 +269,7 @@ it has not, take a look at what was done in the votca-tools repo.
    must have the same name as what appears in the foreach in the
    CMakeLists.txt file. And place the following contents:
 
-   ::
+   .. code-block:: c
 
        #define BOOST_TEST_MAIN
 
@@ -306,7 +306,7 @@ which boost test macros to use refer to the boost documentation
 2. To compile and test the code create a folder tools/build and run the
    following commands:
 
-   ::
+   .. code-block:: bash
 
        cmake -DENABLE_TESTING=ON ../
        make
@@ -330,7 +330,7 @@ for details.
 
 To run the clang-format function on file.cc.
 
-::
+.. code-block:: bash
 
     clang-format -i -style=file file.cc
 
@@ -348,7 +348,7 @@ is preferable that spaces be used instead.
 Automatically formats python .py files. We are useing the default format
 rules of autopep8. To run on file.py and update the file run:
 
-::
+.. code-block:: bash
 
     autopep8 -i file.py
 
@@ -360,7 +360,7 @@ found in the `dev-tools <https://github.com/votca/dev-tools>`__
 repository. To use it copy the file ``pre-commit`` to your local .git
 subfolder to the hooks folder. E.g.
 
-::
+.. code-block:: bash
 
     chmod 777 dev-tools/pre-commit  
     cp dev-tools/pre-commit votca/.git/hooks/
@@ -383,7 +383,7 @@ comments to code:
    stencil be used in the header files above each class and function
    description.
 
-   ::
+   .. code-block:: cpp
 
        /**
        * \brief function/class summary
@@ -415,7 +415,7 @@ example, fedora dnf has extended support to the **pcc64le** architecture.
 Assuming you have access to fedora you can run the following commands to
 simulate the build process on the **pcc64le** architecture:
 
-::
+.. code-block:: bash
 
     dnf update
     dnf install qemu-user-static dnf-utils
@@ -431,14 +431,14 @@ commands would setup and run the dnf installation process on the
 **pcc64le** enviroment. If a bug was found and the build crashes one can
 interactively intervene by issuing the following command:
 
-::
+.. code-block:: bash
 
     mock -r epel-7-ppc64le --forcearch ppc64le --shell
 
 You will also need to install a text editor if you want to change the
 source files before running the interactive instance.
 
-::
+.. code-block:: bash
 
     mock -r epel-7-ppc64le --forcearch ppc64le --install vim
 
