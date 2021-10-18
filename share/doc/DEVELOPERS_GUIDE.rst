@@ -26,9 +26,7 @@ Please be sure to provide as much information as possible such as:
 -  What dependencies were installed
 -  The calculation that was being run
 
-Issues can be directly created on the GitHub repo:
-
-- `votca <https://github.com/votca/votca/issues>`__
+Issues can be directly created on the `GitHub repo <https://github.com/votca/votca/issues>`__.
 
 Formatting code
 ---------------
