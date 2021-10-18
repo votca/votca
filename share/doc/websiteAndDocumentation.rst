@@ -34,11 +34,8 @@ install <packagename>``.
 A short list of packages you probably need to install manually:
 
 - cma
-
 - recommonmark
-
 - nbsphinx
-
 - sphinx_rtd_theme 
 
 Once the errors are gone, the documentation is build and a static html website is
