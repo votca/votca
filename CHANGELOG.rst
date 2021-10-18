@@ -120,6 +120,7 @@ Version 2022-dev
 -  rename auxiliary basissets to aux-<basisset_name> (#871)
 -  added documentation about architecture to votca and votca-xtp (#869)
 -  check for gmx-2019 in csg-tutorials (#875)
+-  added the full basissets to the orb checkpoint file (#863)
 
 Version 2021.2 and earlier
 ==========================

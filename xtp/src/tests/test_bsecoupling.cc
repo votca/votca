@@ -33,11 +33,10 @@ BOOST_AUTO_TEST_SUITE(bsecoupling_test)
 BOOST_AUTO_TEST_CASE(coupling_test) {
   libint2::initialize();
   Orbitals A;
-  A.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
-                    "/bsecoupling/3-21G.xml");
+
   A.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                            "/bsecoupling/molecule.xyz");
-  A.setBasisSetSize(17);
+  A.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/bsecoupling/3-21G.xml");
   A.setNumberOfAlphaElectrons(5);
   A.setNumberOfOccupiedLevels(5);
   A.MOs().eigenvalues() = Eigen::VectorXd::Zero(17);
@@ -69,11 +68,12 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
       0.713478, 0.793559, 0.885998, 0.944915, 0.944915, 1.01169, 1.04977,
       1.04977, 1.08863, 1.10318, 1.17822, 1.18094, 1.18094, 1.69037, 1.91046;
 
-  AB.setBasisSetSize(34);
   AB.setNumberOfAlphaElectrons(10);
   AB.setNumberOfOccupiedLevels(10);
-  AB.setDFTbasisName(A.getDFTbasisName());
-  AB.setAuxbasisName(A.getDFTbasisName());
+  AB.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                   "/bsecoupling/3-21G.xml");
+  AB.SetupAuxBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                   "/bsecoupling/3-21G.xml");
   AB.setRPAindices(0, 33);
   AB.setBSEindices(0, 33);
   AB.setGWindices(0, 33);
@@ -116,7 +116,6 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
 
   AB.QPdiag().eigenvectors() = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/bsecoupling/Hqp.mm");
-
   const Eigen::MatrixXd& qpcoeff = AB.QPdiag().eigenvectors();
   Eigen::MatrixXd Hqp =
       qpcoeff * AB.QPdiag().eigenvalues().asDiagonal() * qpcoeff.transpose();
