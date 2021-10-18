@@ -84,10 +84,7 @@ else
   cmake_args+=( -DBUILD_XTP=ON )
 fi
 
-if [[ ${INPUT_MINIMAL} = true || ${INPUT_DISTRO} = ubuntu:@(latest|rolling|devel) || ${INPUT_DISTRO} = opensuse:latest ]];  then
-  # Ubuntu 20.04 and above, openSUSE come with gromacs-2020, which doesn't have tabulated interaciton that are needed for csg regression tests
-  # see https://gitlab.com/gromacs/gromacs/-/issues/1347
-  # hopefully we can reenable this in the future with gromacs-2021
+if [[ ${INPUT_MINIMAL} = true ]];  then
   cmake_args+=( -DENABLE_REGRESSION_TESTING=OFF )
 else
   cmake_args+=( -DENABLE_REGRESSION_TESTING=${INPUT_REGRESSION_TESTING} )
