@@ -263,7 +263,7 @@ Determine if a tests folder has already been created or not in /src. If
 it has not, take a look at what was done in the votca-tools repo.
 
 1. Create a test file in
-   `tools/src/tests/ <https://github.com/votca/tools/tree/master/src/tests>`__\ test\_vec.cc
+   `tools/src/tests/ <https://github.com/votca/votca/tree/master/tools/src/tests>`__\ test\_vec.cc
    must have the same name as what appears in the foreach in the
    CMakeLists.txt file. And place the following contents:
 
