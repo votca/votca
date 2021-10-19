@@ -106,7 +106,7 @@ Version 2022-dev
 -  Updated doxygen intro (votca/csgvotca/xtp#712)
 -  Merge submodules in monorepo (#763, #768, #816, #822, #849)
 -  xtp: Fix HDF5 issue on FreeBSD (#760, #848)
--  update documentation (#852)
+-  update documentation (#852, #877)
 -  add vscode to gitignore (#853)
 -  re-enable GPU build (#854)
 -  disable test_random test on valgrind (#855)
@@ -120,6 +120,7 @@ Version 2022-dev
 -  rename auxiliary basissets to aux-<basisset_name> (#871)
 -  added documentation about architecture to votca and votca-xtp (#869)
 -  check for gmx-2019 in csg-tutorials (#875)
+-  added the full basissets to the orb checkpoint file (#863)
 -  return default for empty strings in option file (#873)
 
 Version 2021.2 and earlier

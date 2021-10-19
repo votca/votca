@@ -88,8 +88,8 @@ bool GPUBenchmark::Run() {
   orb.ReadFromCpt(job_name_ + ".orb");
   std::cout << "\n\nCreating benchmark for " << job_name_ << ".orb"
             << std::endl;
-  AOBasis basis = orb.SetupDftBasis();
-  AOBasis auxbasis = orb.SetupAuxBasis();
+  AOBasis basis = orb.getDftBasis();
+  AOBasis auxbasis = orb.getAuxBasis();
 
   std::cout << "Repetitions:" << repetitions_ << std::endl;
   std::cout << "Number of CPUs:" << OPENMP::getMaxThreads()

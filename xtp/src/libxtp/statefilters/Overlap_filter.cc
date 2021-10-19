@@ -43,7 +43,7 @@ void Overlap_filter::Info(Logger& log) const {
 Eigen::VectorXd Overlap_filter::CalculateOverlap(const Orbitals& orb,
                                                  QMStateType type) const {
   AOOverlap S_ao;
-  S_ao.Fill(orb.SetupDftBasis());
+  S_ao.Fill(orb.getDftBasis());
 
   Eigen::MatrixXd coeffs = CalcAOCoeffs(orb, type);
   if (type.isSingleParticleState()) {
