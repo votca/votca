@@ -13,7 +13,6 @@ implementing code consistent with the VOTCA and cpp style and standard.
 -  `CPP Comment Guide <#cpp-comment-guide>`__
 -  `Updates from stable <#updates-from-stable>`__
 -  `Failed Release Builds <#failed-release-builds>`__
--  `
 
 Reporting Bugs
 --------------
@@ -27,13 +26,7 @@ Please be sure to provide as much information as possible such as:
 -  What dependencies were installed
 -  The calculation that was being run
 
-Issues can be directly created on the appropriate GitHub repo:
-
--  `tools <https://github.com/votca/tools/issues>`__
--  `csg <https://github.com/votca/csg/issues>`__
--  `csg-tutorials <https://github.com/votca/csg-tutorials/issues>`__
--  `xtp <https://github.com/votca/xtp/issues>`__
--  `votca <https://github.com/votca/votca/issues>`__
+Issues can be directly created on the `GitHub repo <https://github.com/votca/votca/issues>`__.
 
 Formatting code
 ---------------
@@ -44,8 +37,8 @@ found in each repo. CMake provides a format target which you can run to format y
 The easiest way to format your code is just a ``@votca-bot format`` comment in the PR, which then will automatically format your code.
 
 Doxygen documentation
----------------
-A complete overview of all C++ classes and code can be found `here <https://doc.votca.org/>`_ . 
+---------------------
+A complete overview of all C++ classes and code can be found on https://doc.votca.org/.
 
 VOTCA dev-tools
 ---------------
@@ -73,7 +66,7 @@ Making a Release
 ----------------
 
 Similar to the VOTCA containers, releases are also handled by GitHub actions. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
-To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
+To trigger it go `this GitHub Action <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
 :code:`stable` branch, but testing the creation of a release can be triggered on any branch. To make a release, trigger the action from the
 :code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag.
 
@@ -81,17 +74,17 @@ Major releases
 ~~~~~~~~~~~~~~
 
 In preparation for a major (not minor!) release the following additional steps need to be done:
--  Create a new branch from the master branch of the :code:`votca/votca` repository, e.g. :code:`stable_bump`. 
-   
-   ::
+
+-  Create a new branch from the master branch of the :code:`votca/votca` repository, e.g. :code:`stable_bump`.
+
+   .. code-block:: bash
 
        git checkout -b stable_bump stable
        git merge master
 
-
 -  Update the :code:`CHANGELOG.rst` files accordingly, by changing the top most section from :code:`<major>-dev` to :code:`<major>-rc.1`
-
 -  Commit everything and create a PR ino the :code:`stable` branch. 
+
 Release names
 ~~~~~~~~~~~~~
 
@@ -270,11 +263,11 @@ Determine if a tests folder has already been created or not in /src. If
 it has not, take a look at what was done in the votca-tools repo.
 
 1. Create a test file in
-   `tools/src/tests/ <https://github.com/votca/tools/tree/master/src/tests>`__\ test\_vec.cc
+   `tools/src/tests/ <https://github.com/votca/votca/tree/master/tools/src/tests>`__\ test\_vec.cc
    must have the same name as what appears in the foreach in the
    CMakeLists.txt file. And place the following contents:
 
-   ::
+   .. code-block:: c
 
        #define BOOST_TEST_MAIN
 
@@ -311,7 +304,7 @@ which boost test macros to use refer to the boost documentation
 2. To compile and test the code create a folder tools/build and run the
    following commands:
 
-   ::
+   .. code-block:: bash
 
        cmake -DENABLE_TESTING=ON ../
        make
@@ -335,7 +328,7 @@ for details.
 
 To run the clang-format function on file.cc.
 
-::
+.. code-block:: bash
 
     clang-format -i -style=file file.cc
 
@@ -353,7 +346,7 @@ is preferable that spaces be used instead.
 Automatically formats python .py files. We are useing the default format
 rules of autopep8. To run on file.py and update the file run:
 
-::
+.. code-block:: bash
 
     autopep8 -i file.py
 
@@ -365,7 +358,7 @@ found in the `dev-tools <https://github.com/votca/dev-tools>`__
 repository. To use it copy the file ``pre-commit`` to your local .git
 subfolder to the hooks folder. E.g.
 
-::
+.. code-block:: bash
 
     chmod 777 dev-tools/pre-commit  
     cp dev-tools/pre-commit votca/.git/hooks/
@@ -388,7 +381,7 @@ comments to code:
    stencil be used in the header files above each class and function
    description.
 
-   ::
+   .. code-block:: cpp
 
        /**
        * \brief function/class summary
@@ -420,7 +413,7 @@ example, fedora dnf has extended support to the **pcc64le** architecture.
 Assuming you have access to fedora you can run the following commands to
 simulate the build process on the **pcc64le** architecture:
 
-::
+.. code-block:: bash
 
     dnf update
     dnf install qemu-user-static dnf-utils
@@ -436,14 +429,14 @@ commands would setup and run the dnf installation process on the
 **pcc64le** enviroment. If a bug was found and the build crashes one can
 interactively intervene by issuing the following command:
 
-::
+.. code-block:: bash
 
     mock -r epel-7-ppc64le --forcearch ppc64le --shell
 
 You will also need to install a text editor if you want to change the
 source files before running the interactive instance.
 
-::
+.. code-block:: bash
 
     mock -r epel-7-ppc64le --forcearch ppc64le --install vim
 
