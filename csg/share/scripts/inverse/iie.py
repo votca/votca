@@ -60,27 +60,26 @@ np.seterr(all='raise')
 def main():
     # get command line arguments
     args = get_args()
-
     # process and prepare input
     input_arrays, settings = process_input(args)
-
     # guess potential from distribution
     if settings['subcommand'] == 'potential_guess':
         output_arrays = potential_guess(input_arrays, settings,
                                         verbose=settings['verbose'])
-        if settings['out_tgt_dcdh'] is not None:
+    # calculate dc/dh
+    if settings['subcommand'] == 'dcdh':
+        if settings['out_ext'] is not None:
             calc_and_save_dcdh(input_arrays, settings,
                                verbose=settings['verbose'])
+            return
     # newton update
     if settings['subcommand'] in ('newton', 'newton-mod'):
         output_arrays = newton_update(input_arrays, settings,
                                       verbose=settings['verbose'])
-
     # gauss-newton update
     if settings['subcommand'] == 'gauss-newton':
         output_arrays = gauss_newton_update(input_arrays, settings,
                                             verbose=settings['verbose'])
-
     # save output (U or dU) to table files
     save_tables(output_arrays, settings)
 
@@ -100,15 +99,14 @@ def get_args(iie_args=None):
     parser_newton = subparsers.add_parser(
         'newton',
         help='potential update using Newton method')
-    parser_newton_mod = subparsers.add_parser(
-        'newton-mod',
-        help='potential update using a modified Newton method')
     parser_gauss_newton = subparsers.add_parser(
         'gauss-newton',
         help='potential update using Gauss-Newton method')
+    parser_dcdh = subparsers.add_parser(
+        'dcdh',
+        help='calculate the dc/dh matrix')
     # all subparsers
-    for pars in [parser_pot_guess, parser_newton, parser_newton_mod,
-                 parser_gauss_newton]:
+    for pars in (parser_pot_guess, parser_newton, parser_gauss_newton, parser_dcdh):
         pars.add_argument('-v', '--verbose', dest='verbose',
                           help='save some intermeditary results',
                           action='store_const', const=True, default=False)
@@ -134,17 +132,13 @@ def get_args(iie_args=None):
         pars.add_argument('--out-ext', type=str,
                           required=True,
                           metavar='U_OUT_EXT',
-                          help='extension of U or ΔU output files')
+                          help="extension of U or ΔU files or full filename of dcdh "
+                          "matrix. If 'none' there will be no output.")
         pars.add_argument('--g-tgt-intra-ext', type=str,
                           metavar='RDF_TGT_INTRA_EXT',
                           help='extension of intramol. RDF target files')
-    # potential guess subparser
-    parser_pot_guess.add_argument('--out-tgt-dcdh', type=str, default='none',
-                                  help=("generate .npz file with dc/dh from target "
-                                        "distributions. If 'none' it will not be "
-                                        "generated."))
     # update potential subparsers
-    for pars in [parser_newton, parser_newton_mod, parser_gauss_newton]:
+    for pars in [parser_newton, parser_gauss_newton]:
         pars.add_argument('--g-cur-ext', type=str,
                           required=True,
                           metavar='RDF_CUR_EXT',
@@ -158,7 +152,7 @@ def get_args(iie_args=None):
                                 "If 'none' the jacobian will be calculated from "
                                 "current distributions."))
     # Newton's method only options
-    for pars in [parser_newton, parser_newton_mod]:
+    for pars in [parser_newton]:
         pars.add_argument('--cut-jacobian', dest='cut_jacobian', action='store_true',
                           help=('Cut and use the top-left part of the Jacobian before'
                                 + ' multiplying with Δg.'))
@@ -199,7 +193,7 @@ def process_input(args):
     }
     # if potential guess or update and tgt_jacobian we need the target intramolecular
     # RDFs
-    if args.subcommand == 'potential_guess':
+    if args.subcommand in ('potential_guess', 'dcdh'):
         table_infos = {
             **table_infos,
             'G_minus_g_tgt': {'extension': args.g_tgt_intra_ext, 'check-grid': True},
@@ -277,22 +271,18 @@ def process_input(args):
     if args.subcommand == 'potential_guess':
         settings['cut_off'] = float(
             options.find("./inverse/initial_guess/ie/cut_off").text)
-        # dc/dh filename to write to
-        if args.out_tgt_dcdh.lower() == 'none':
-            settings['out_tgt_dcdh'] = None
-        else:
-            settings['out_tgt_dcdh'] = args.out_tgt_dcdh
-    else:
+    elif args.subcommand in ('newton', 'gauss-newton', 'dcdh'):
         settings['cut_off'] = float(
             options.find("./inverse/iie/cut_off").text)
         # reuse dc/dh
-        if args.tgt_dcdh.lower() == 'none':
-            settings['tgt_dcdh'] = None
-        else:
-            try:
-                settings['tgt_dcdh'] = np.load(args.tgt_dcdh)['dcdh']
-            except (FileNotFoundError, ValueError):
-                raise Exception("Can not load tgt_dcdh file that was provided")
+        if args.subcommand in ('newton', 'gauss-newton'):
+            if args.tgt_dcdh.lower() == 'none':
+                settings['tgt_dcdh'] = None
+            else:
+                try:
+                    settings['tgt_dcdh'] = np.load(args.tgt_dcdh)['dcdh']
+                except (FileNotFoundError, ValueError):
+                    raise Exception("Can not load tgt_dcdh file that was provided")
     # determine slices from cut_off
     cut, tail = calc_slices(r, settings['cut_off'], settings['verbose'])
     settings['cut'] = cut
@@ -630,7 +620,8 @@ def calc_and_save_dcdh(input_arrays, settings, verbose=False):
     # make it a 4D array again
     dcdh = make_matrix_4D(dcdh_2D, n_c, n_i)
     # save to npz file
-    np.savez_compressed(settings['out_tgt_dcdh'], dcdh=dcdh)
+    if settings['out_ext'].lower() != 'none':
+        np.savez_compressed(settings['out_ext'], dcdh=dcdh)
 
 
 @if_verbose_dump_io

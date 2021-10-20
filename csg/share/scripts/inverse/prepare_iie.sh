@@ -30,6 +30,10 @@ do_external prepare generic
 tgt_dcdh="$(csg_get_property cg.inverse.iie.tgt_dcdh)"
 if [[ $tgt_dcdh == 'true' ]]; then
     msg "Calculating dc/dh for all later iterations"
+    # make sure dist-intra are here
+    if [[ $(csg_get_property cg.inverse.initial_guess.method) != ie ]]; then
+        for_all "non-bonded" do_external resample target --no-extrap '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
+    fi
     # verbose
     [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
     # topology for molecular conections and volume
@@ -39,7 +43,7 @@ if [[ $tgt_dcdh == 'true' ]]; then
     # volume
     volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
     ([[ -n "$volume" ]] && is_num "$volume") || die "could not determine the volume from file ${topol}"
-  do_external dist invert_iie potential_guess \
+  do_external dist invert_iie dcdh \
     ${verbose_flag-} \
     --closure hnc \
     --volume "$volume" \
@@ -47,6 +51,5 @@ if [[ $tgt_dcdh == 'true' ]]; then
     --options "$CSGXMLFILE" \
     --g-tgt-ext ".dist.tgt" \
     --g-tgt-intra-ext ".dist-intra.tgt" \
-    --out-ext none \
-    --out-tgt-dcdh dcdh.npz
+    --out-ext dcdh.npz
 fi
