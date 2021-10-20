@@ -331,6 +331,21 @@ inline T Property::ifExistsReturnElseReturnDefault(const std::string &key,
   return result;
 }
 
+template <>
+inline std::string Property::ifExistsReturnElseReturnDefault(
+    const std::string &key, std::string defaultvalue) const {
+  std::string result;
+  if (this->exists(key)) {
+    result = this->get(key).as<std::string>();
+    if (result.empty()) {
+      result = defaultvalue;
+    }
+  } else {
+    result = defaultvalue;
+  }
+  return result;
+}
+
 template <class cond>
 void Property::deleteChildren(cond condition) {
 
