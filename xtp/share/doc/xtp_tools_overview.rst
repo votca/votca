@@ -22,3 +22,4 @@ The following calculators are available:
    orb2fchk
    orb2mol
    mol2orb
+   gpu_benchmark

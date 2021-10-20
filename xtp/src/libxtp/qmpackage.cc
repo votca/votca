@@ -63,7 +63,7 @@ void QMPackage::ReorderOutput(Orbitals& orbitals) const {
     throw std::runtime_error("Orbitals object has no QMAtoms");
   }
 
-  AOBasis dftbasis = orbitals.SetupDftBasis();
+  AOBasis dftbasis = orbitals.getDftBasis();
   // necessary to update nuclear charges on qmatoms
   if (orbitals.hasECPName()) {
     ECPBasisSet ecps;
@@ -85,7 +85,7 @@ Eigen::MatrixXd QMPackage::ReorderMOsBack(const Orbitals& orbitals) const {
   if (!orbitals.hasQMAtoms()) {
     throw std::runtime_error("Orbitals object has no QMAtoms");
   }
-  AOBasis dftbasis = orbitals.SetupDftBasis();
+  AOBasis dftbasis = orbitals.getDftBasis();
   Eigen::MatrixXd result = orbitals.MOs().eigenvectors();
   bool reverseOrder = true;
   OrbReorder reorder(ShellReorder(), ShellMulitplier(), reverseOrder);

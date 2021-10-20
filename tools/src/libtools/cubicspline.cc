@@ -110,6 +110,8 @@ void CubicSpline::Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
   // now do a constrained qr solve
   Eigen::VectorXd sol = linalg_constrained_qrsolve(A, y, B);
 
+#ifndef __INTEL_LLVM_COMPILER
+  /* isnan/isinf is always false in fast floating point modes on intel */
   // check vector "sol" for nan's
   for (Index i = 0; i < 2 * ngrid; i++) {
     if ((std::isinf(sol(i))) || (std::isnan(sol(i)))) {
@@ -118,6 +120,7 @@ void CubicSpline::Fit(const Eigen::VectorXd &x, const Eigen::VectorXd &y) {
           "boundaries");
     }
   }
+#endif
 
   f_ = sol.segment(0, ngrid);
   f2_ = sol.segment(ngrid, ngrid);

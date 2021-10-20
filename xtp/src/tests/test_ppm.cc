@@ -38,15 +38,11 @@ BOOST_AUTO_TEST_CASE(ppm_full) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/ppm/molecule.xyz");
-  BasisSet basis;
-  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/ppm/3-21G.xml");
 
-  AOBasis aobasis;
-  aobasis.Fill(basis, orbitals.QMAtoms());
+  orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/ppm/3-21G.xml");
+  orbitals.setNumberOfOccupiedLevels(4);
 
-  Orbitals orb;
-  orb.setBasisSetSize(17);
-  orb.setNumberOfOccupiedLevels(4);
+  AOBasis aobasis = orbitals.getDftBasis();
 
   AOKinetic kinetic;
   kinetic.Fill(aobasis);

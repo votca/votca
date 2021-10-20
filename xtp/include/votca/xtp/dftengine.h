@@ -61,7 +61,7 @@ class DFTEngine {
   std::string getDFTBasisName() const { return dftbasis_name_; };
 
  private:
-  void Prepare(QMMolecule& mol);
+  void Prepare(Orbitals& orb);
 
   Vxc_Potential<Vxc_Grid> SetupVxc(const QMMolecule& mol);
 

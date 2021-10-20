@@ -36,9 +36,8 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/espfit/molecule.xyz");
-  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
-                           "/espfit/3-21G.xml");
-  orbitals.setBasisSetSize(13);
+  orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                         "/espfit/3-21G.xml");
   orbitals.setNumberOfOccupiedLevels(5);
 
   Eigen::MatrixXd MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(

@@ -48,11 +48,11 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
   rho_f->Initialize(prop.get("overlap"));
 
   Orbitals A;
-  A.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
-                    "/overlap_filter/3-21G.xml");
   A.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                            "/overlap_filter/molecule.xyz");
-  A.setBasisSetSize(17);
+  A.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                  "/overlap_filter/3-21G.xml");
+
   A.setNumberOfAlphaElectrons(5);
   A.setNumberOfOccupiedLevels(5);
   A.MOs().eigenvalues() = Eigen::VectorXd::Zero(17);
