@@ -8,13 +8,13 @@ on:
 
 jobs:
   build:
-    runs-on: [self-hosted, GPU, benchmark]
+    runs-on: [self-hosted, gpu, benchmark]
 
     steps:
       - name: cleanup
         run: rm -rf *
 
-      - name: Checkout xtp
+      - name: Checkout votca
         uses: actions/checkout@v2
         with:
           path: votca

@@ -26,7 +26,7 @@ namespace xtp {
 
 Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(
     const Orbitals& orbitalsAB) const {
-  AOBasis dftbasis = orbitalsAB.SetupDftBasis();
+  AOBasis dftbasis = orbitalsAB.getDftBasis();
   AOOverlap dftAOoverlap;
   dftAOoverlap.Fill(dftbasis);
   return dftAOoverlap.Matrix();

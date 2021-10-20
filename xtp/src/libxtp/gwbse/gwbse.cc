@@ -590,21 +590,15 @@ bool GWBSE::Evaluate() {
       << TimeStamp() << " Loaded DFT Basis Set " << dftbasis_name_ << flush;
 
   // fill DFT AO basis by going through all atoms
-  AOBasis dftbasis;
-  dftbasis.Fill(dftbs, orbitals_.QMAtoms());
+  AOBasis dftbasis = orbitals_.getDftBasis();
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled DFT Basis of size "
                               << dftbasis.AOBasisSize() << flush;
-
-  // load auxiliary basis set (element-wise information) from xml file
-  BasisSet auxbs;
-  auxbs.Load(auxbasis_name_);
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Loaded Auxbasis Set " << auxbasis_name_ << flush;
 
   // fill auxiliary AO basis by going through all atoms
-  AOBasis auxbasis;
-  auxbasis.Fill(auxbs, orbitals_.QMAtoms());
-  orbitals_.setAuxbasisName(auxbasis_name_);
+  orbitals_.SetupAuxBasis(auxbasis_name_);
+  AOBasis auxbasis = orbitals_.getAuxBasis();
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled Auxbasis of size "
                               << auxbasis.AOBasisSize() << flush;
 

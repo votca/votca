@@ -34,7 +34,7 @@ if [[ $sim_prog != @(gromacs|lammps) ]] ; then
   msg --color blue "######################################################"
   msg --color blue "# WARNING using this simulator is still experimental #"
   msg --color blue "# If you find a problem report it under:             #"
-  msg --color blue "# https://github.com/votca/csg                       #"
+  msg --color blue "# https://github.com/votca/votca/issues              #"
   msg --color blue "######################################################"
 fi
 
@@ -43,6 +43,6 @@ if [[ ${dihedral_names} ]]; then
   msg --color blue "###########################################################"
   msg --color blue "# WARNING using VOTCA for dihedrals is still experimental #"
   msg --color blue "# If you find any issues please report them at:           #"
-  msg --color blue "# https://github.com/votca/csg                            #"
+  msg --color blue "# https://github.com/votca/votca/issues                   #"
   msg --color blue "###########################################################"
 fi

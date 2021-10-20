@@ -40,10 +40,9 @@ BOOST_AUTO_TEST_CASE(osc) {
   Orbitals orb;
   orb.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                              "/statetracker/molecule.xyz");
-  orb.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
-                      "/statetracker/3-21G.xml");
+  orb.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                    "/statetracker/3-21G.xml");
   Logger log;
-  orb.setBasisSetSize(17);
   orb.setNumberOfOccupiedLevels(4);
   orb.setBSEindices(0, 16);
   orb.setTDAApprox(true);

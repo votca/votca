@@ -9,8 +9,6 @@ Actions
 -  :code:`docker-build.yml`: does the build and deploy of the docker container from the `Dockerfile`
 -  :code:`continuous-integration-workflow.yml` and :code:`docker-build.yml` are triggered for pushes to master and pull requests to
    master as well as on a schedule once a week to pull in updates from the votca/buildenv container
--  :code:`create-pr.yml`: will create a pull request when the :code:`update_(master|stable)_submodules` branch gets created (manually by us or automatically by
-   the `forward action <https://github.com/votca/actions/tree/master/forward>`_ running a module)
 -  :code:`create-stable-pr.yml`: will create a pull request from stable into master
 -  :code:`release.yml`: can be triggered manually in the GitHub UI to create a release
 -  :code:`stable_cron.yml`: workflow to run a CI and docker deploy for the :code:`stable` branch (workaround for this `bug <https://github.community/t/scheduled-builds-of-non-default-branch/16306>`_)
