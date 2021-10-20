@@ -100,7 +100,7 @@ Version 2022-dev
 -  turned sigma choice into a factory (votca/xtp#731)
 -  use middleRows-Cols and refactor numerical integration (votca/xtp#732)
 -  increase performance of numerical integration (votca/xtp#733)
--  upgrade xtp to cxx17 (votca/xtp#737)
+-  upgrade xtp to cxx17 (votca/xtp#737, #880)
 -  Remove unused variables (votca/xtp#742)
 -  fix issue with writing strings to hdf5 files (votca/xtp#743)
 -  Updated doxygen intro (votca/csgvotca/xtp#712)
