@@ -334,6 +334,13 @@ def potential_guess(input_arrays, settings, verbose=False):
             r, U_mat, settings['non-bonded-dict']).items():
         U = U_dict['y']
         U_flag = gen_flag_isfinite(U)
+        # make tail zero. It is spoiled on the last half from inverting OZ.
+        # careful: slices refer to arrays before reinserting r=0 values!
+        cut, tail = settings['cut'], settings['tail']
+        U[cut] -= U[cut][-1]
+        U[tail] = 0
+        U_flag[tail] = 'o'
+        # reinsert r=0 values
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r))
             U = np.concatenate(([np.nan], U))
@@ -342,11 +349,6 @@ def potential_guess(input_arrays, settings, verbose=False):
             r_out = r
         # change NaN in the core region to first valid value
         U = extrapolate_dU_left_constant(U, U_flag)
-        # make tail zero. It is spoiled on the last half from inverting OZ.
-        cut, tail = settings['cut'], settings['tail']
-        U[cut] -= U[tail][0]
-        U[tail] = 0
-        U_flag[tail] = 'o'
         output_arrays[non_bonded_name] = {'x': r_out, 'y': U, 'flag': U_flag}
     return output_arrays
 
@@ -469,7 +471,7 @@ def newton_update(input_arrays, settings, verbose=False):
             dU_flag = np.concatenate((['o'], dU_flag))
         else:
             r_out = r
-        # make last value zero
+        # shift potential to make last value zero
         dU -= dU[-1]
         # change NaN in the core region to first valid value
         dU = extrapolate_dU_left_constant(dU, dU_flag)
