@@ -34,6 +34,3 @@ if [[ $tgt_dcdh == 'true' ]]; then
     # TODO: add check if file exists
     critical ln -fs ../step_000/dcdh.npz dcdh.npz
 fi
-
-# resample potentials
-for_all "non-bonded bonded" 'csg_resample --in $(csg_get_interaction_property name).pot.cur --out $(csg_get_interaction_property name).pot.cur --grid $(csg_get_interaction_property min):$(csg_get_interaction_property step):$(csg_get_interaction_property max) --comment "adapted to grid in initialize_step_iie.sh"'
