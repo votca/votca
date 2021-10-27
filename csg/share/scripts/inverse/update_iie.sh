@@ -94,27 +94,13 @@ if [[ $(csg_get_property cg.inverse.iie.tgt_dcdh) != 'true' ]]; then
 fi
 
 # resample target distributions
-for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
+for_all "non-bonded" do_external resample target --clean '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
 if [[ $(csg_get_property cg.inverse.iie.tgt_dcdh) != 'true' ]]; then
     for_all "non-bonded" do_external resample target --no-extrap '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
 fi
 
 # Some arguments (cut_off, kBT) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
 # Others (closure, ...) could also be read from the settings file, but this bash script handles the defaults.
-if [[ $iie_method == 'newton' ]]; then
-do_external update iie_pot "$iie_method" \
-    ${verbose_flag-} \
-    --closure "$(csg_get_property cg.inverse.iie.closure)" \
-    --volume "$volume" \
-    --topol "$topol" \
-    --options "$CSGXMLFILE" \
-    --g-tgt-ext ".dist.tgt" \
-    --g-cur-ext ".dist.new" \
-    ${g_intra_flag-} \
-    --out-ext ".dpot.new" \
-    ${tgt_dcdh_flag-} \
-    --update-potentials "${do_potential_list}"
-elif [[ $iie_method == 'gauss-newton' ]]; then
 do_external update iie_pot "$iie_method" \
     ${verbose_flag-} \
     --closure "$(csg_get_property cg.inverse.iie.closure)" \
@@ -127,9 +113,23 @@ do_external update iie_pot "$iie_method" \
     --out-ext ".dpot.new" \
     ${pressure_constraint_flag-} \
     ${tgt_dcdh_flag-} \
-    --update-potentials "${do_potential_list}"
-else
-    die "unknown iie method: $iie_Method"
-fi
+
+# overwrite with zeros if do_potential=0
+do_potential_zero_overwrite() {
+    step_nr=$(get_current_step_nr)
+    scheme=( $(csg_get_interaction_property inverse.do_potential) )
+    scheme_nr=$(( ( $step_nr - 1 ) % ${#scheme[@]} ))
+    name=$(csg_get_interaction_property name)
+    if [[ ${scheme[$scheme_nr]} == 0 ]]; then
+        echo "Update potential ${name} : no"
+        min=$(csg_get_interaction_property min)
+        max=$(csg_get_interaction_property max)
+        step=$(csg_get_interaction_property step)
+        critical rm "${name}.dpot.new"
+        do_external table dummy "${min}:${step}:${max}" "${name}.dpot.new"
+    fi
+}
+export -f do_potential_zero_overwrite
+for_all "non-bonded" do_potential_zero_overwrite
 
 for_all "bonded" do_external update ibi_single

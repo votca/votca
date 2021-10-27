@@ -24,10 +24,12 @@ Usage: ${0##*/} [options] input output
 Allowed options:
     --help       show this help
     --no-extrap  do no extrapolation, e.g. for intramolecular non-bonded
+    --clean      remove all intermediate temp files
 EOF
 }
 
 do_extrap="yes"
+clean="no"
 
 ### begin parsing options
 shopt -s extglob
@@ -35,6 +37,9 @@ while [[ ${1} = --* ]]; do
   case $1 in
   --no-extrap)
     do_extrap="no"
+    shift ;;
+   --clean)
+    clean="yes"
     shift ;;
   -h | --help)
     show_help
@@ -95,4 +100,9 @@ if [[ $do_extrap == "yes" ]]; then
 else
   extrapolated="${resampled}"
 fi
+
 do_external dist adjust "${extrapolated}" "${output}"
+
+if [[ $clean = "yes" ]]; then
+  rm -f "${extrapolated}" "${extrapolated2}" "${extrapolated3}" "${resampled}"
+fi
