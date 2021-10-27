@@ -49,7 +49,8 @@ from csg_functions import (
     r0_removal, get_non_bonded, get_density_dict, get_n_intra_dict,
     gen_interaction_matrix, gen_interaction_dict, gauss_newton_constrained,
     gen_flag_isfinite, kron_2D, extrapolate_dU_left_constant, vectorize, devectorize,
-    if_verbose_dump_io, make_matrix_2D, make_matrix_4D, cut_matrix_inverse
+    if_verbose_dump_io, make_matrix_2D, make_matrix_4D, cut_matrix_inverse,
+    get_bead_types
 )
 
 
@@ -151,6 +152,11 @@ def get_args(iie_args=None):
                                 "If provided, will be used. "
                                 "If 'none' the jacobian will be calculated from "
                                 "current distributions."))
+        pars.add_argument('--update-potentials', type=str,
+                          required=True,
+                          metavar='UPD_POTS',
+                          help=('Which interactions to update. Pairs of names and '
+                                'numbers all separated by spaces. 1 for updating.'))
     # Newton's method only options
     for pars in [parser_newton]:
         pars.add_argument('--cut-jacobian', dest='cut_jacobian', action='store_true',
@@ -287,6 +293,13 @@ def process_input(args):
     cut, tail = calc_slices(r, settings['cut_off'], settings['verbose'])
     settings['cut'] = cut
     settings['tail'] = tail
+    # which potentials to update
+    if args.subcommand in ('newton', 'gauss-newton'):
+        settings['update_potentials'] = {pair[0]: pair[1] == "1" for pair
+                                         in zip(args.update_potentials.split()[::2],
+                                                args.update_potentials.split()[1::2],)}
+        # check that there is a value
+        assert set(settings['update_potentials'].keys()) == set(non_bonded_dict.keys())
     return input_arrays, settings
 
 
@@ -436,17 +449,55 @@ def newton_update(input_arrays, settings, verbose=False):
     g_cur_mat = gen_interaction_matrix(r, input_arrays['g_cur'],
                                        settings['non-bonded-dict'])
     # calculate the ready-to-use jacobian inverse
-    _, jac_inv_mat = calc_jacobian(input_arrays, settings, verbose)
+    jac_mat, jac_inv_mat = calc_jacobian(input_arrays, settings, verbose)
     # Delta g for potential update
     Delta_g_mat = g_cur_mat - g_tgt_mat
     # vectorize Delta g
     Delta_g_vec = vectorize(Delta_g_mat)
     # prepare potential update array
     dU_vec = np.zeros((n_r, n_i))
-    with np.errstate(invalid='ignore'):
-        for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
-            # Newton update
-            dU_vec[cut, i] -= (jac_inv_mat[cut, cut, i, j] @ Delta_g_vec[cut, j])
+    # depending on which interactions to update
+    # if all
+    if all(settings['update_potentials'].values()):
+        with np.errstate(invalid='ignore'):
+            for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
+                # Newton update
+                dU_vec[cut, i] -= (jac_inv_mat[cut, cut, i, j] @ Delta_g_vec[cut, j])
+    else:
+        # selected Jacobian with rows and columns deleted (_sel as suffix, s for new index)
+        # this will optimize a subset of all RDFs by modifying the respective potentials
+        # does not work
+        index_update = []
+        index_no_update = []
+        bead_types = get_bead_types(settings['non-bonded-dict'])
+        non_bonded_dict_inv = {v: k for k, v in settings['non-bonded-dict'].items()}
+        for i, ((b1, bead1), (b2, bead2)) in enumerate((((b1, bead1), (b2, bead2))
+                                                        for b1, bead1 in enumerate(bead_types)
+                                                        for b2, bead2 in enumerate(bead_types)
+                                                       )):
+            interaction_name = non_bonded_dict_inv[frozenset({bead1, bead2})]
+            if settings['update_potentials'][interaction_name] is True:
+                index_update.append(i)
+            else:
+                index_no_update.append(i)
+        n_sel = len(index_update)
+        #jac_mat_sel = np.delete(jac_mat, index_no_update, axis=-2)  # del rows
+        jac_mat_sel = np.delete(jac_mat, index_no_update, axis=-1)  # del cols
+        # invert
+        # use pinv, because there are often instabilities
+        #jac_inv_mat_sel = make_matrix_4D(np.linalg.pinv(make_matrix_2D(jac_mat_sel)), n_r, n_sel)
+        jac_mat_sel_2D = make_matrix_2D(jac_mat_sel)
+        # Gauss Newton test
+        jac_inv_mat_sel = make_matrix_4D(np.linalg.pinv(jac_mat_sel_2D.T @ jac_mat_sel_2D) @ jac_mat_sel_2D.T, n_r, n_sel, n_i)
+        with np.errstate(invalid='ignore'):
+            # iterate interaction indices to update
+            for (s1, i1), (s2, i2) in (((s1, i1), (s2, i2))
+                                       for s1, i1 in enumerate(index_update)  # pot to update
+                                       for s2, i2 in enumerate(range(n_i))  # rdf to factor in (all)
+                                      ):
+                # Newton update element: change in potential s1 due to rdf s2
+                dU_vec[cut, i1] -= (jac_inv_mat_sel[cut, cut, s1, s2]
+                                    @ Delta_g_vec[cut, s2])
     # dU matrix
     dU_mat = devectorize(dU_vec)
     # prepare output
@@ -522,13 +573,13 @@ def calc_jacobian(input_arrays, settings, verbose=False):
         # cut invert dc/dh, cut dh/dc, invert again
         dcdh_2D = cut_matrix_inverse(dcdh_long_2D, n_r, n_i, cut)
         # make it a 4D array again
-        dcdh = make_matrix_4D(dcdh_2D, n_c, n_i)
+        dcdh = make_matrix_4D(dcdh_2D, n_c, n_i, n_i)
     # add the 1/g term to dc/dh and obtain inverse Jacobian
     jac_inv_mat = add_jac_inv_diagonal(r[cut], g_tgt_mat[cut], g_cur_mat[cut],
                                        dcdh, settings['rhos'],
                                        settings['n_intra'], settings['kBT'],
                                        settings['closure'], newton_mod, verbose)
-    jac_mat = np.linalg.inv(jac_inv_mat)
+    jac_mat = make_matrix_4D(np.linalg.inv(make_matrix_2D(jac_inv_mat)), n_c, n_i, n_i)
     return jac_mat, jac_inv_mat
 
 
@@ -618,7 +669,7 @@ def calc_and_save_dcdh(input_arrays, settings, verbose=False):
     # cut invert dc/dh, cut dh/dc, invert again
     dcdh_2D = cut_matrix_inverse(dcdh_long_2D, n_r, n_i, cut)
     # make it a 4D array again
-    dcdh = make_matrix_4D(dcdh_2D, n_c, n_i)
+    dcdh = make_matrix_4D(dcdh_2D, n_c, n_i, n_i)
     # save to npz file
     if settings['out_ext'].lower() != 'none':
         np.savez_compressed(settings['out_ext'], dcdh=dcdh)
@@ -680,10 +731,80 @@ def add_jac_inv_diagonal(r, g_tgt_mat, g_cur_mat, dcdh, rhos, n_intra, kBT,
                     jac_inv_mat[:, :, i, j] = kBT * (diagonal_term - dcdh[:, :, i, j])
     elif closure == 'py':
         raise NotImplementedError
+    # make negative infinities a large negative number, increasing stability
+    # jac_inv_mat[np.isneginf(jac_inv_mat)] = -1e30
     return jac_inv_mat
 
 
-def gauss_newton_update(r, input_arrays, args):
+@if_verbose_dump_io
+def gauss_newton_update(input_arrays, settings, verbose=False):
+    """Calculate Gauss-Newton potential update based on s.a. RISM-OZ and closure.
+
+    Args:
+        input_arrays: nested dict holding the distributions
+        settings: dict holding relevant settings
+        verbose: save parameters and return of this and contained functions as numpy
+                 file
+
+    Returns:
+        dictionary of potential updates including flags to be saved
+    """
+    # obtain r
+    r = input_arrays['r']
+    # number of atom types
+    n_t = len(settings['rhos'])
+    # number of interactions including redundand ones
+    n_i = int(n_t**2)
+    # number of grid points in r
+    n_r = len(r)
+    # slices
+    cut, _ = settings['cut'], settings['tail']
+    # generate matrices
+    g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
+                                       settings['non-bonded-dict'])
+    g_cur_mat = gen_interaction_matrix(r, input_arrays['g_cur'],
+                                       settings['non-bonded-dict'])
+    # calculate the ready-to-use jacobian inverse
+    jac_mat, jac_inv_mat = calc_jacobian(input_arrays, settings, verbose)
+    # Delta g for potential update
+    Delta_g_mat = g_cur_mat - g_tgt_mat
+    # vectorize Delta g
+    Delta_g_vec = vectorize(Delta_g_mat)
+    # prepare potential update array
+    dU_vec = np.zeros((n_r, n_i))
+    # depending on which interactions to update
+    if all(settings['update_potentials'].values()):
+        with np.errstate(invalid='ignore'):
+            for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
+                # Newton update
+                dU_vec[cut, i] -= (jac_inv_mat[cut, cut, i, j] @ Delta_g_vec[cut, j])
+    else:
+        # TODO: match all RDF with only some potentials
+        pass
+    # dU matrix
+    dU_mat = devectorize(dU_vec)
+    # prepare output
+    output_arrays = {}
+    for non_bonded_name, dU_dict in gen_interaction_dict(
+            r, dU_mat, settings['non-bonded-dict']).items():
+        dU = dU_dict['y']
+        dU_flag = gen_flag_isfinite(dU)
+        if settings['r0-removed']:
+            r_out = np.concatenate(([0.0], r))
+            dU = np.concatenate(([np.nan], dU))
+            dU_flag = np.concatenate((['o'], dU_flag))
+        else:
+            r_out = r
+        # shift potential to make last value zero
+        dU -= dU[-1]
+        # change NaN in the core region to first valid value
+        dU = extrapolate_dU_left_constant(dU, dU_flag)
+        # save for output
+        output_arrays[non_bonded_name] = {'x': r_out, 'y': dU, 'flag': dU_flag}
+    return output_arrays
+
+
+def gauss_newton_update_old(r, input_arrays, args):
     """Do the Gauss-Newton update."""
     # parse constraints
     constraints = []

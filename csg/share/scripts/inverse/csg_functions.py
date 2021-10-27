@@ -480,30 +480,34 @@ def make_matrix_2D(matrix):
     assert matrix.shape[0] == matrix.shape[1]
     n_r = matrix.shape[0]
     # number of interactions
-    assert matrix.shape[-2] == matrix.shape[-1]
-    n_i = matrix.shape[-1]
+    n_rows = matrix.shape[-2]
+    n_cols = matrix.shape[-1]
     # generate 2D matrix
-    matrix_2D = np.zeros((n_r * n_i, n_r * n_i))
-    for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
+    matrix_2D = np.zeros((n_r * n_rows, n_r * n_cols))
+    for h, (i, j) in enumerate(itertools.product(range(n_rows), range(n_cols))):
         matrix_2D[n_r * i:n_r * (i+1),
                   n_r * j:n_r * (j+1)] = matrix[:, :, i, j]
     return matrix_2D
 
 
-def make_matrix_4D(matrix, n_r, n_i):
+def make_matrix_4D(matrix, n_r, n_rows, n_cols):
     """Make a 2D matrix to a matrix of matrices (4D).
 
     Args:
         matrix: large matrix
+        n_r: grid points of r
+        n_rows: number of rows in new matrix
+        n_cols: number of cols in new matrix
 
     Returns
         4D matrix
     """
     assert matrix.ndim == 2
-    assert matrix.shape[0] == matrix.shape[1]
-    # generate 2D matrix
-    matrix_4D = np.zeros((n_r, n_r, n_i, n_i))
-    for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
+    assert matrix.shape[0] == n_r * n_rows
+    assert matrix.shape[1] == n_r * n_cols
+    matrix_4D = np.zeros((n_r, n_r, n_rows, n_cols))
+    # generate 4D matrix
+    for h, (i, j) in enumerate(itertools.product(range(n_rows), range(n_cols))):
         matrix_4D[:, :, i, j] = matrix[n_r * i:n_r * (i+1),
                                        n_r * j:n_r * (j+1)]
     return matrix_4D

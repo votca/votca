@@ -29,6 +29,7 @@ fi
 iie_method="$(csg_get_property cg.inverse.iie.method)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 
+# pressure constraint
 if [[ $iie_method == 'gauss-newton' ]]; then
     pressure_constraint=$(csg_get_property cg.inverse.iie.pressure_constraint)
     if is_num "${pressure_constraint}"; then
@@ -42,6 +43,7 @@ if [[ $iie_method == 'gauss-newton' ]]; then
         pressure_constraint_flag=""
     fi
 fi
+
 # target dc/dh
 if [[ $(csg_get_property cg.inverse.iie.tgt_dcdh) == 'true' ]]; then
     tgt_dcdh_flag="--tgt-dcdh dcdh.npz"
@@ -64,6 +66,26 @@ g_extrap_factor=$(csg_get_property --allow-empty cg.inverse.iie.g_extrap_factor)
 
 [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
 
+# which interactions to update
+if [[ $iie_method == 'newton' || $iie_method == 'gauss-newton' ]]; then
+    step_nr=$(get_current_step_nr)
+    do_potential_list="$(for_all "non-bonded" 'scheme=( $(csg_get_interaction_property inverse.do_potential) ); echo -n $(csg_get_interaction_property name) ${scheme[$(( ($step_nr - 1 ) % ${#scheme[@]} ))]}" "')"
+#else
+    #check_update_potential() {
+        #step_nr=$(get_current_step_nr)
+        #scheme=( $(csg_get_interaction_property inverse.do_potential) )
+        #scheme_nr=$(( ( $step_nr - 1 ) % ${#scheme[@]} ))
+        #name=$(csg_get_interaction_property name)
+#
+        #if [[ ${scheme[$scheme_nr]} == 1 ]]; then
+            #die "for interaction $name do_potential is zero."\
+            #"Only iie.method gauss_newton supports this case."
+        #fi
+    #}
+    #export -f check_update_potential
+    #for_all "non-bonded" check_update_potential
+fi
+
 # for_all not necessary for most sim_prog, but also doesn't hurt.
 for_all "non-bonded bonded" do_external rdf "$sim_prog"
 # calculate distributions intramolecular
@@ -79,6 +101,20 @@ fi
 
 # Some arguments (cut_off, kBT) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
 # Others (closure, ...) could also be read from the settings file, but this bash script handles the defaults.
+if [[ $iie_method == 'newton' ]]; then
+do_external update iie_pot "$iie_method" \
+    ${verbose_flag-} \
+    --closure "$(csg_get_property cg.inverse.iie.closure)" \
+    --volume "$volume" \
+    --topol "$topol" \
+    --options "$CSGXMLFILE" \
+    --g-tgt-ext ".dist.tgt" \
+    --g-cur-ext ".dist.new" \
+    ${g_intra_flag-} \
+    --out-ext ".dpot.new" \
+    ${tgt_dcdh_flag-} \
+    --update-potentials "${do_potential_list}"
+elif [[ $iie_method == 'gauss-newton' ]]; then
 do_external update iie_pot "$iie_method" \
     ${verbose_flag-} \
     --closure "$(csg_get_property cg.inverse.iie.closure)" \
@@ -91,8 +127,9 @@ do_external update iie_pot "$iie_method" \
     --out-ext ".dpot.new" \
     ${pressure_constraint_flag-} \
     ${tgt_dcdh_flag-} \
-    ${verbose_flag-}
+    --update-potentials "${do_potential_list}"
+else
+    die "unknown iie method: $iie_Method"
+fi
 
-# TODO: check do_potential -> only apply dpot if it is
-#       for_all non-bonded '$(csg_get_interaction_property inverse.do_potential)'
 for_all "bonded" do_external update ibi_single

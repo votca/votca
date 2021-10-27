@@ -34,7 +34,7 @@ group=$(csg_get_interaction_property inverse.imc.group)
 
 if [[ $group == "none" ]] && [[ ${scheme[$scheme_nr]} == 1 ]]; then
     die_msg="for interaction $name the imc group is 'none' but\n"\
-"update_potential is non-zero. No imc update was calculated, so no update\n"\
+"do_potential is non-zero. No imc update was calculated, so no update\n"\
 "can be made."
     die "$die_msg"
 elif [[ ${scheme[$scheme_nr]} == 1 ]]; then
