@@ -58,37 +58,37 @@ class JobTopology {
 
   void WriteToPdb(std::string filename) const;
 
-  std::vector<std::unique_ptr<Region> >::iterator begin() {
+  std::vector<std::unique_ptr<Region>>::iterator begin() {
     return regions_.begin();
   }
-  std::vector<std::unique_ptr<Region> >::iterator end() {
+  std::vector<std::unique_ptr<Region>>::iterator end() {
     return regions_.end();
   }
 
-  const std::vector<std::unique_ptr<Region> >& Regions() const {
+  const std::vector<std::unique_ptr<Region>>& Regions() const {
     return regions_;
   }
 
-  std::vector<std::unique_ptr<Region> >& Regions() { return regions_; }
+  std::vector<std::unique_ptr<Region>>& Regions() { return regions_; }
 
   Index size() const { return Index(regions_.size()); }
 
-  std::vector<std::unique_ptr<Region> >::const_iterator begin() const {
+  std::vector<std::unique_ptr<Region>>::const_iterator begin() const {
     return regions_.begin();
   }
-  std::vector<std::unique_ptr<Region> >::const_iterator end() const {
+  std::vector<std::unique_ptr<Region>>::const_iterator end() const {
     return regions_.end();
   }
 
   double computeBackgroundInteractionEnergy(tools::Property& results);
 
  private:
-  std::vector<std::vector<SegId> > PartitionRegions(
+  std::vector<std::vector<SegId>> PartitionRegions(
       const tools::Property& regions_def, const Topology& top) const;
 
   void CreateRegions(const std::pair<std::string, tools::Property>& options,
                      const Topology& top,
-                     const std::vector<std::vector<SegId> >& region_seg_ids);
+                     const std::vector<std::vector<SegId>>& region_seg_ids);
 
   void ModifyOptionsByJobFile(tools::Property& regions_def) const;
 
@@ -102,7 +102,7 @@ class JobTopology {
 
   Job& job_;
   Logger& log_;
-  std::vector<std::unique_ptr<Region> > regions_;
+  std::vector<std::unique_ptr<Region>> regions_;
   std::vector<std::vector<SegId>> region_seg_ids_;
   std::string workdir_ = "";
   Background bg_;

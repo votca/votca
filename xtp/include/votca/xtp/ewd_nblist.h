@@ -99,6 +99,7 @@ class EwdNbList {
   }
 
   const std::vector<Neighbour>& getNeighboursOf(Index segId) const {
+    assert(segId < nbList_.size());
     return nbList_[segId];
   }
 
