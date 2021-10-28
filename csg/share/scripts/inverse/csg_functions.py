@@ -21,6 +21,8 @@ import itertools
 import math
 import sys
 import inspect
+
+
 try:
     import numpy as np
 except ImportError:
@@ -32,8 +34,7 @@ if not sys.version_info >= (3, 5):
 
 def readin_table(filename):
     """Read in votca table."""
-    table_dtype = {'names': ('x', 'y', 'y_flag'),
-                   'formats': ('f', 'f', 'U2')}
+    table_dtype = {'names': ('x', 'y', 'y_flag'), 'formats': ('f', 'f', 'U2')}
     x, y, y_flag = np.loadtxt(filename, dtype=table_dtype, comments=['#', '@'],
                               unpack=True)
     return x, y, y_flag
@@ -276,8 +277,8 @@ def gen_beadtype_property_array(property_dict, non_bonded_dict):
     return property_array
 
 
-def gauss_newton_constrained(A, C, b, d):
-    """Do a gauss-newton update, but eliminate Cx=d first."""
+def solve_linear_with_constraints(A, C, b, d):
+    """Minimize |Ax - b|, respecting constraint Cx=d using elimination."""
     m, n = A.shape
     p, n_ = C.shape
     assert n == n_
@@ -470,32 +471,33 @@ def make_matrix_2D(matrix):
     """Make a matrix of matrices into a single 2D matrix.
 
     Args:
-        matrix: matrix (last two dim) of matrices (first two dim)
+        matrix: 4D object, matrix (last two dim) of matrices (first two dim)
 
     Returns:
         2D matrix
     """
     assert matrix.ndim == 4
     # number of r grid points
-    assert matrix.shape[0] == matrix.shape[1]
-    n_r = matrix.shape[0]
+    n_r_row = matrix.shape[0]
+    n_r_col = matrix.shape[1]
     # number of interactions
     n_rows = matrix.shape[-2]
     n_cols = matrix.shape[-1]
     # generate 2D matrix
-    matrix_2D = np.zeros((n_r * n_rows, n_r * n_cols))
+    matrix_2D = np.zeros((n_r_row * n_rows, n_r_col * n_cols))
     for h, (i, j) in enumerate(itertools.product(range(n_rows), range(n_cols))):
-        matrix_2D[n_r * i:n_r * (i+1),
-                  n_r * j:n_r * (j+1)] = matrix[:, :, i, j]
+        matrix_2D[n_r_row * i:n_r_row * (i+1),
+                  n_r_col * j:n_r_col * (j+1)] = matrix[:, :, i, j]
     return matrix_2D
 
 
-def make_matrix_4D(matrix, n_r, n_rows, n_cols):
+def make_matrix_4D(matrix, n_r_row, n_r_col, n_rows, n_cols):
     """Make a 2D matrix to a matrix of matrices (4D).
 
     Args:
         matrix: large matrix
-        n_r: grid points of r
+        n_r_row: grid points of r in the rows
+        n_r_col: grid points of r in the cols
         n_rows: number of rows in new matrix
         n_cols: number of cols in new matrix
 
@@ -503,13 +505,13 @@ def make_matrix_4D(matrix, n_r, n_rows, n_cols):
         4D matrix
     """
     assert matrix.ndim == 2
-    assert matrix.shape[0] == n_r * n_rows
-    assert matrix.shape[1] == n_r * n_cols
-    matrix_4D = np.zeros((n_r, n_r, n_rows, n_cols))
+    assert matrix.shape[0] == n_r_row * n_rows
+    assert matrix.shape[1] == n_r_col * n_cols
+    matrix_4D = np.zeros((n_r_row, n_r_col, n_rows, n_cols))
     # generate 4D matrix
     for h, (i, j) in enumerate(itertools.product(range(n_rows), range(n_cols))):
-        matrix_4D[:, :, i, j] = matrix[n_r * i:n_r * (i+1),
-                                       n_r * j:n_r * (j+1)]
+        matrix_4D[:, :, i, j] = matrix[n_r_row * i:n_r_row * (i+1),
+                                       n_r_col * j:n_r_col * (j+1)]
     return matrix_4D
 
 

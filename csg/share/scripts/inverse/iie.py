@@ -23,13 +23,13 @@
 # suffixes:
 # _cur: current (of step k if currently doing iteration k)
 # _tgt: target
-# _ce: core_end (where RDF becomes > 0)
-# _co: cut_off
-# _sc: single_component
+# _mat: matrix (bead, bead) in the last two dimensions
+# _vec: _mat matrix with all interactions flattened
+# _2D: 2D matrix (which can be transformed to 4D)
+# _flat: flat version of a vector, corresponds to matrix with _2D
 #
 # prefixes:
 # ndx_: index
-
 
 import argparse
 import itertools
@@ -47,7 +47,7 @@ from csg_functions import (
     readin_table, saveto_table, calc_grid_spacing, fourier, fourier_all,
     gen_beadtype_property_array, gen_fourier_matrix, find_after_cut_off_ndx,
     r0_removal, get_non_bonded, get_density_dict, get_n_intra_dict,
-    gen_interaction_matrix, gen_interaction_dict, gauss_newton_constrained,
+    gen_interaction_matrix, gen_interaction_dict, solve_linear_with_constraints,
     gen_flag_isfinite, kron_2D, extrapolate_dU_left_constant, vectorize, devectorize,
     if_verbose_dump_io, make_matrix_2D, make_matrix_4D, cut_matrix_inverse,
 )
@@ -258,8 +258,7 @@ def process_input(args):
     n_intra = gen_beadtype_property_array(n_intra_dict, non_bonded_dict)
     # settings
     # copy some directly from args
-    settings_to_copy = ('closure', 'verbose', 'out_ext', 'g_extrap_factor',
-                        'subcommand', 'tgt_jacobian', 'cut_jacobian')
+    settings_to_copy = ('closure', 'verbose', 'out_ext', 'subcommand')
     settings = {key: vars(args)[key] for key in settings_to_copy if key in vars(args)}
     settings['non-bonded-dict'] = non_bonded_dict
     settings['rhos'] = rhos
@@ -267,13 +266,16 @@ def process_input(args):
     settings['r0-removed'] = r0_removed
     # others from options xml
     settings['kBT'] = float(options.find("./inverse/kBT").text)
-    # determine cut-off and dc/dh buffer
+    # determine cut-off, cut-jac, and dc/dh buffer
     if args.subcommand == 'potential_guess':
         settings['cut_off'] = float(
             options.find("./inverse/initial_guess/ie/cut_off").text)
     elif args.subcommand in ('newton', 'gauss-newton', 'dcdh'):
-        settings['cut_off'] = float(
-            options.find("./inverse/iie/cut_off").text)
+        settings['cut_off'] = float(options.find("./inverse/iie/cut_off").text)
+        # cut_res only if defined
+        cut_res = options.find("./inverse/iie/cut_residual")
+        if cut_res is not None:
+            settings['cut_res'] = float(cut_res.text)
         # reuse dc/dh
         if args.subcommand in ('newton', 'gauss-newton'):
             if args.tgt_dcdh.lower() == 'none':
@@ -283,10 +285,13 @@ def process_input(args):
                     settings['tgt_dcdh'] = np.load(args.tgt_dcdh)['dcdh']
                 except (FileNotFoundError, ValueError):
                     raise Exception("Can not load tgt_dcdh file that was provided")
-    # determine slices from cut_off
-    cut, tail = calc_slices(r, settings['cut_off'], settings['verbose'])
-    settings['cut'] = cut
-    settings['tail'] = tail
+    # determine slices from cut_off and cut_res
+    settings['cut_pot'], settings['tail_pot'] = calc_slices(r, settings['cut_off'],
+                                                            settings['verbose'])
+    if 'cut_res' in settings.keys():
+        # cut_res changes meaning here, not ideal
+        settings['cut_res'], settings['tail_res'] = calc_slices(r, settings['cut_res'],
+                                                                settings['verbose'])
     return input_arrays, settings
 
 
@@ -326,7 +331,7 @@ def potential_guess(input_arrays, settings, verbose=False):
         U_flag = gen_flag_isfinite(U)
         # make tail zero. It is spoiled on the last half from inverting OZ.
         # careful: slices refer to arrays before reinserting r=0 values!
-        cut, tail = settings['cut'], settings['tail']
+        cut, tail = settings['cut_pot'], settings['tail_pot']
         U[cut] -= U[cut][-1]
         U[tail] = 0
         U_flag[tail] = 'o'
@@ -429,7 +434,7 @@ def newton_update(input_arrays, settings, verbose=False):
     # number of grid points in r
     n_r = len(r)
     # slices
-    cut, _ = settings['cut'], settings['tail']
+    cut, _ = settings['cut_pot'], settings['tail_pot']
     # generate matrices
     g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
                                        settings['non-bonded-dict'])
@@ -493,7 +498,10 @@ def calc_jacobian(input_arrays, settings, verbose=False):
     # number of grid points in r
     n_r = len(r)
     # slices
-    cut, _ = settings['cut'], settings['tail']
+    if 'cut_res' in settings.keys():
+        cut, _ = settings['cut_res'], settings['tail_res']
+    else:
+        cut, _ = settings['cut_pot'], settings['tail_pot']
     n_c = len(r[cut])
     # generate matrices
     g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
@@ -511,6 +519,9 @@ def calc_jacobian(input_arrays, settings, verbose=False):
         # the input dc/dh should already be cut to the cut-off
         assert n_c == dcdh.shape[0]
     else:
+        if n_c * 2 > n_r:
+            print("WARNING: max is smaller than twice of cut_off. This will lead to "
+                  "artifacts in the Jacobian.")
         # generate dc/dh, invert, cut it, and invert again
         G_minus_g_cur_mat = gen_interaction_matrix(r, input_arrays['G_minus_g_cur'],
                                                    settings['non-bonded-dict'])
@@ -522,13 +533,14 @@ def calc_jacobian(input_arrays, settings, verbose=False):
         # cut invert dc/dh, cut dh/dc, invert again
         dcdh_2D = cut_matrix_inverse(dcdh_long_2D, n_r, n_i, cut)
         # make it a 4D array again
-        dcdh = make_matrix_4D(dcdh_2D, n_c, n_i, n_i)
+        dcdh = make_matrix_4D(dcdh_2D, n_c, n_c, n_i, n_i)
     # add the 1/g term to dc/dh and obtain inverse Jacobian
     jac_inv_mat = add_jac_inv_diagonal(r[cut], g_tgt_mat[cut], g_cur_mat[cut],
                                        dcdh, settings['rhos'],
                                        settings['n_intra'], settings['kBT'],
                                        settings['closure'], newton_mod, verbose)
-    jac_mat = make_matrix_4D(np.linalg.inv(make_matrix_2D(jac_inv_mat)), n_c, n_i, n_i)
+    jac_mat = make_matrix_4D(np.linalg.inv(make_matrix_2D(jac_inv_mat)), n_c, n_c, n_i,
+                             n_i)
     return jac_mat, jac_inv_mat
 
 
@@ -602,8 +614,15 @@ def calc_and_save_dcdh(input_arrays, settings, verbose=False):
     # number of grid points in r
     n_r = len(r)
     # slices
-    cut, _ = settings['cut'], settings['tail']
+    if 'cut_res' in settings.keys():
+        cut, _ = settings['cut_res'], settings['tail_res']
+    else:
+        cut, _ = settings['cut_pot'], settings['tail_pot']
     n_c = len(r[cut])
+    # warning if short input data
+    if n_c * 2 > n_r:
+        print("WARNING: max is smaller than twice of cut_off. This will lead to "
+              "artifacts in dc/dh.")
     # generate matrices
     g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
                                        settings['non-bonded-dict'])
@@ -618,7 +637,7 @@ def calc_and_save_dcdh(input_arrays, settings, verbose=False):
     # cut invert dc/dh, cut dh/dc, invert again
     dcdh_2D = cut_matrix_inverse(dcdh_long_2D, n_r, n_i, cut)
     # make it a 4D array again
-    dcdh = make_matrix_4D(dcdh_2D, n_c, n_i, n_i)
+    dcdh = make_matrix_4D(dcdh_2D, n_c, n_c, n_i, n_i)
     # save to npz file
     if settings['out_ext'].lower() != 'none':
         np.savez_compressed(settings['out_ext'], dcdh=dcdh)
@@ -704,10 +723,11 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     n_t = len(settings['rhos'])
     # number of interactions including redundand ones
     n_i = int(n_t**2)
-    # number of grid points in r
-    n_r = len(r)
     # slices
-    cut, _ = settings['cut'], settings['tail']
+    cut_pot, _ = settings['cut_pot'], settings['tail_pot']
+    cut_res, _ = settings['cut_res'], settings['tail_res']
+    n_c_pot = len(r[cut_pot])
+    n_c_res = len(r[cut_res])
     # generate matrices
     g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
                                        settings['non-bonded-dict'])
@@ -715,26 +735,55 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
                                        settings['non-bonded-dict'])
     # calculate the ready-to-use jacobian inverse
     jac_mat, jac_inv_mat = calc_jacobian(input_arrays, settings, verbose)
+    # cut Jacobian, make it non-square
+    jac_cut_mat = jac_mat[cut_res, cut_pot, :, :]
+    # make Jacobian 2D
+    jac_cut_mat_2D = make_matrix_2D(jac_cut_mat)
+    # weighting
+    if settings['weighting'] == 'unity':
+        weights = np.ones((n_c_res, n_i))
+    elif settings['weighting'] == '1/g_tgt':
+        # we have to add a small number here, otherwise the inverse below fails
+        # alternatively one could could each sub block but that would get tedious
+        weights = vectorize(1/(g_tgt_mat+1e-30))
+    elif settings['weighting'] == '1/sqrt(g_tgt)':
+        weights = vectorize(1/(np.sqrt(g_tgt_mat)+1e-30))
+    else:
+        raise Exception('Unknown weighting scheme:', settings['weighting'])
+    # weight Jacobian
+    jac_cut_mat_2D = np.diag(weights.T.flatten()) @ jac_cut_mat_2D
     # Delta g for potential update
     Delta_g_mat = g_cur_mat - g_tgt_mat
     # vectorize Delta g
     Delta_g_vec = vectorize(Delta_g_mat)
-    # prepare potential update array
-    dU_vec = np.zeros((n_r, n_i))
-    with np.errstate(invalid='ignore'):
-        for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
-            # Newton update
-            dU_vec[cut, i] -= (jac_inv_mat[cut, cut, i, j] @ Delta_g_vec[cut, j])
+    # cut and weight Delta_g and obtain residuals
+    residuals_vec = np.zeros((n_c_res, n_i))
+    for i in range(n_i):
+        residuals_vec[:, i] = np.diag(weights[:, i]) @ Delta_g_vec[cut_res, i]
+    # flatten residuals
+    residuals_flat = residuals_vec.T.flatten()
+    # update force rather than potential
+    # antiderivative operator (upper triangular matrix on top of zeros)
+    constraints = {}
+    A = jac_cut_mat_2D
+    b = residuals_flat
+    C = np.zeros((len(constraints), n_i * n_c_pot))
+    d = np.zeros(len(constraints))
+    dU_flat = -solve_linear_with_constraints(A, C, b, d)
+    dU_vec = dU_flat.reshape(n_i, n_c_pot).T
     # dU matrix
     dU_mat = devectorize(dU_vec)
+    # append zeros to match length of rdf
+    dU_mat = np.append(dU_mat, np.zeros((n_c_res - n_c_pot, n_t, n_t)), axis=0)
     # prepare output
     output_arrays = {}
     for non_bonded_name, dU_dict in gen_interaction_dict(
-            r, dU_mat, settings['non-bonded-dict']).items():
+            r[cut_res], dU_mat, settings['non-bonded-dict']).items():
+        r_out = dU_dict['x']
         dU = dU_dict['y']
         dU_flag = gen_flag_isfinite(dU)
         if settings['r0-removed']:
-            r_out = np.concatenate(([0.0], r))
+            r_out = np.concatenate(([0.0], r_out))
             dU = np.concatenate(([np.nan], dU))
             dU_flag = np.concatenate((['o'], dU_flag))
         else:
