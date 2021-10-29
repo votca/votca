@@ -20,11 +20,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          submodules: true
       - name: Run Votca Setup
         id: setup
-        uses: votca/actions/setup@master
+        uses: ./.github/actions/setup
         with:
           distro: ${{ matrix.distro }}
           toolchain: ${{ matrix.toolchain }}

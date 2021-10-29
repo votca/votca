@@ -35,6 +35,6 @@ jobs:
           token: ${{ secrets.VOTCA_BOT_TOKEN }}
       - name: Create and commit copyright updates
         if: ${{ fromJSON(steps.issue_info.outputs.data).pull_request }}
-        uses: votca/actions/copyright@master
+        uses: ./.github/actions/copyright
         with:
           base: ${{ fromJSON(steps.pr_info.outputs.data).base.sha }}

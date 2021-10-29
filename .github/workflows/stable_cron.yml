@@ -121,11 +121,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          submodules: true
           ref: stable
       - name: Run Votca Setup
         id: setup #use this id below to use outputs
-        uses: votca/actions/setup@master
+        uses: ./.github/actions/setup
         with:
           distro: ${{ matrix.distro }}
           toolchain: ${{ matrix.toolchain }}
@@ -166,7 +165,7 @@ jobs:
         run: sudo cmake --build builddir --target install
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
-        run: cmake --build builddir --target format && git diff --submodule=diff --exit-code
+        run: cmake --build builddir --target format && git diff --exit-code
   Build:
     runs-on: ubuntu-latest
     steps:
@@ -174,7 +173,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          submodules: true
           path: votca
           ref: stable
       - name: Build Docker images for Docker Hub

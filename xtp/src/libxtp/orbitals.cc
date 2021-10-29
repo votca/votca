@@ -74,6 +74,29 @@ std::vector<Index> Orbitals::SortEnergies() {
   return index;
 }
 
+/**
+ * SetupDftBasis constructs the dft basis, to do this the overlap integral needs
+ * to be evaluated with libint. Hence libint should be initialized for it to
+ * work.
+ */
+void Orbitals::SetupDftBasis(std::string basis_name) {
+  if (this->QMAtoms().size() == 0) {
+    throw std::runtime_error("Can't setup AOBasis without atoms");
+  }
+  BasisSet bs;
+  bs.Load(basis_name);
+  dftbasis_.Fill(bs, this->QMAtoms());
+}
+
+void Orbitals::SetupAuxBasis(std::string aux_basis_name) {
+  if (this->QMAtoms().size() == 0) {
+    throw std::runtime_error("Can't setup Aux AOBasis without atoms");
+  }
+  BasisSet bs;
+  bs.Load(aux_basis_name);
+  auxbasis_.Fill(bs, this->QMAtoms());
+}
+
 /*
  * Returns the density matrix relative to the ground state, for the full density
  * use DensityMatrixFull
@@ -179,7 +202,7 @@ Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) const {
       nuclei_dip += (atom.getPos() - atoms_.getPos()) * atom.getNuccharge();
     }
   }
-  AOBasis basis = SetupDftBasis();
+  AOBasis basis = getDftBasis();
   AODipole dipole;
   dipole.setCenter(atoms_.getPos());
   dipole.Fill(basis);
@@ -425,7 +448,7 @@ double Orbitals::getExcitedStateEnergy(const QMState& state) const {
 
 std::array<Eigen::MatrixXd, 3> Orbitals::CalcFreeTransition_Dipoles() const {
   const Eigen::MatrixXd& dft_orbitals = mos_.eigenvectors();
-  AOBasis basis = SetupDftBasis();
+  AOBasis basis = getDftBasis();
   // Testing electric dipole AOMatrix
   AODipole dft_dipole;
   dft_dipole.Fill(basis);
@@ -505,14 +528,13 @@ void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
                              orbitalsA.getDFTbasisName() + ":" +
                              orbitalsB.getDFTbasisName());
   }
-  this->setDFTbasisName(orbitalsA.getDFTbasisName());
+  this->SetupDftBasis(orbitalsA.getDFTbasisName());
   if (orbitalsA.getECPName() != orbitalsB.getECPName()) {
     throw std::runtime_error("ECPs of Orbitals A and B differ " +
                              orbitalsA.getECPName() + ":" +
                              orbitalsB.getECPName());
   }
   this->setECPName(orbitalsA.getECPName());
-  this->setBasisSetSize(basisA + basisB);
   this->setNumberOfOccupiedLevels(electronsA + electronsB);
   this->setNumberOfAlphaElectrons(electronsA + electronsB);
 
@@ -537,7 +559,16 @@ void Orbitals::WriteToCpt(const std::string& filename) const {
 }
 
 void Orbitals::WriteToCpt(CheckpointFile f) const {
-  WriteToCpt(f.getWriter("/QMdata"));
+  CheckpointWriter writer = f.getWriter("/QMdata");
+  WriteToCpt(writer);
+  WriteBasisSetsToCpt(writer);
+}
+
+void Orbitals::WriteBasisSetsToCpt(CheckpointWriter w) const {
+  CheckpointWriter dftWriter = w.openChild("dft");
+  dftbasis_.WriteToCpt(dftWriter);
+  CheckpointWriter auxWriter = w.openChild("aux");
+  auxbasis_.WriteToCpt(auxWriter);
 }
 
 void Orbitals::WriteToCpt(CheckpointWriter w) const {
@@ -556,9 +587,6 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
 
   w(qm_energy_, "qm_energy");
   w(qm_package_, "qm_package");
-
-  w(dftbasis_, "dftbasis");
-  w(auxbasis_, "auxbasis");
 
   w(rpamin_, "rpamin");
   w(rpamax_, "rpamax");
@@ -597,7 +625,16 @@ void Orbitals::ReadFromCpt(const std::string& filename) {
 }
 
 void Orbitals::ReadFromCpt(CheckpointFile f) {
-  ReadFromCpt(f.getReader("/QMdata"));
+  CheckpointReader reader = f.getReader("/QMdata");
+  ReadFromCpt(reader);
+  ReadBasisSetsFromCpt(reader);
+}
+
+void Orbitals::ReadBasisSetsFromCpt(CheckpointReader r) {
+  CheckpointReader dftReader = r.openChild("dft");
+  dftbasis_.ReadFromCpt(dftReader);
+  CheckpointReader auxReader = r.openChild("aux");
+  auxbasis_.ReadFromCpt(auxReader);
 }
 
 void Orbitals::ReadFromCpt(CheckpointReader r) {
@@ -617,9 +654,6 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   } catch (std::runtime_error& e){
     ;
   }
-
-  r(dftbasis_, "dftbasis");
-  r(auxbasis_, "auxbasis");
 
   r(version, "version");
   r(mos_, "mos");
@@ -641,7 +675,17 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
     std::array<Index, 49> multiplier;
     multiplier.fill(1);
     OrbReorder ord(votcaOrder_old, multiplier);
-    ord.reorderOrbitals(mos_.eigenvectors(), this->SetupDftBasis());
+    ord.reorderOrbitals(mos_.eigenvectors(), this->getDftBasis());
+  }
+
+  if (version < 5) {  // we need to construct the basissets, NB. can only be
+                      // done after reading the atoms.
+    std::string dft_basis_name;
+    std::string aux_basis_name;
+    r(dft_basis_name, "dftbasis");
+    r(aux_basis_name, "auxbasis");
+    this->SetupDftBasis(dft_basis_name);
+    this->SetupAuxBasis(aux_basis_name);
   }
 
   r(rpamin_, "rpamin");

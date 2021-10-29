@@ -196,7 +196,7 @@ tools::EigenSystem DFTEngine::ModelPotentialGuess(
 }
 
 bool DFTEngine::Evaluate(Orbitals& orb) {
-  Prepare(orb.QMAtoms());
+  Prepare(orb);
   Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
   tools::EigenSystem MOs;
   MOs.eigenvalues() = Eigen::VectorXd::Zero(H0.cols());
@@ -1015,8 +1015,6 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
           << dftbasis_name_ << std::flush;
     }
   }
-  orb.setDFTbasisName(dftbasis_name_);
-  orb.setBasisSetSize(dftbasis_.AOBasisSize());
   orb.setXCFunctionalName(xc_functional_name_);
   orb.setXCGrid(grid_name_);
   orb.setScaHFX(ScaHFX_);
@@ -1024,7 +1022,7 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
     orb.setECPName(ecp_name_);
   }
   if (!auxbasis_name_.empty()) {
-    orb.setAuxbasisName(auxbasis_name_);
+    orb.SetupAuxBasis(auxbasis_name_);
   }
 
   if (initial_guess_ == "orbfile") {
@@ -1057,7 +1055,9 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
   return;
 }
 
-void DFTEngine::Prepare(QMMolecule& mol, Index numofelectrons) {
+void DFTEngine::Prepare(Orbitals& orb, Index numofelectrons) {
+  QMMolecule& mol = orb.QMAtoms();
+
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Using " << OPENMP::getMaxThreads() << " threads"
       << std::flush;
@@ -1082,10 +1082,10 @@ void DFTEngine::Prepare(QMMolecule& mol, Index numofelectrons) {
 
     XTP_LOG(Log::error, *pLog_) << output << std::flush;
   }
-  BasisSet dftbasisset;
-  dftbasisset.Load(dftbasis_name_);
 
-  dftbasis_.Fill(dftbasisset, mol);
+  orb.SetupDftBasis(dftbasis_name_);
+  dftbasis_ = orb.getDftBasis();
+
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Loaded DFT Basis Set " << dftbasis_name_ << " with "
       << dftbasis_.AOBasisSize() << " functions" << std::flush;

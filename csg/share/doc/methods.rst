@@ -913,7 +913,7 @@ potential was added to the coarse-grained potential
 
 with prefactor :math:`A`
 
-.. math:: A = -{\ensuremath{\operatorname{sgn}}}(\Delta P)0.1k_{B}T\min(1,|f\Delta P) \,,
+.. math:: A = -{\operatorname{sgn}}(\Delta P)0.1k_{B}T\min(1,|f\Delta P) \,,
 
 :math:`\Delta p=P_i-P_\text{target}`, and scaling factor :math:`f` and
 :math:`P_\text{target}` can be specified in the settings file as and .

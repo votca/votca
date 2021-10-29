@@ -28,6 +28,7 @@
 #include "tools/dftgwbse.h"
 #include "tools/excitoncoupling.h"
 #include "tools/gencube.h"
+#include "tools/gpu_benchmark.h"
 #include "tools/log2mps.h"
 #include "tools/mol2orb.h"
 #include "tools/molpol.h"
@@ -56,6 +57,7 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<Orb2Fchk>("orb2fchk");
   QMTools().Register<Decomp>("decomp");
   QMTools().Register<QMinQM>("qminqm");
+  QMTools().Register<GPUBenchmark>("gpu_benchmark");
 }
 
 }  // namespace xtp

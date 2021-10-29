@@ -74,7 +74,7 @@ void CubeFile_Writer::WriteFile(const std::string& filename,
 
   Regular_Grid grid;
   Eigen::Array3d padding = Eigen::Array3d::Ones() * padding_;
-  AOBasis basis = orb.SetupDftBasis();
+  AOBasis basis = orb.getDftBasis();
   XTP_LOG(Log::info, log_) << " Loaded DFT Basis Set " << orb.getDFTbasisName()
                            << std::flush;
   grid.GridSetup(steps_, padding, orb.QMAtoms(), basis);
