@@ -47,8 +47,13 @@ namespace xtp {
 class SegId;
 class JobTopology {
  public:
-  JobTopology(Job& job, Logger& log, std::string workdir)
-      : job_(job), log_(log), workdir_(workdir), bg_(log){};
+  JobTopology(Job& job, Logger& log, std::string workdir,
+              std::string ewald_background)
+      : job_(job), log_(log), workdir_(workdir), bg_(log) {
+    if (!ewald_background.empty()) {
+      bg_.readFromStateFile(ewald_background);
+    }
+  };
   void BuildRegions(const Topology& top,
                     std::pair<std::string, tools::Property> options);
 

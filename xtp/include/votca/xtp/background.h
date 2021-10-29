@@ -57,7 +57,8 @@ class Background {
       const std::vector<std::vector<SegId>>& region_seg_ids);
 
   double interactionEnergy(std::vector<std::unique_ptr<Region>>& regions,
-                           std::vector<std::vector<SegId>>& region_seg_ids, tools::Property& results);
+                           std::vector<std::vector<SegId>>& region_seg_ids,
+                           tools::Property& results);
 
   void writeToStateFile(std::string state_file);
 
@@ -79,13 +80,15 @@ class Background {
     } else {
       for (Index i = 0; i < Index(this->ewald_background_.size()); ++i) {
         if (this->ewald_background_[i] != other.ewald_background_[i]) {
-          std::cout << "Site "  << i << " Is wrong!!!" << std::endl;
+          std::cout << "Site " << i << " Is wrong!!!" << std::endl;
           return false;
         }
       }
     }
     return true;
   }
+
+  bool empty() const { return ewald_background_.size() == 0; }
 
  private:
   Index computeSystemSize(std::vector<EwdSegment>& ewaldSegments) const;

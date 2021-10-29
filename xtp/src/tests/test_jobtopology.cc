@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(constructor) {
   std::string workdir = ".";
   Logger log;
   Job job(prop.get("job"));
-  JobTopology top(job, log, workdir);
+  JobTopology top(job, log, workdir, "");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

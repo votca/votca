@@ -84,7 +84,7 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   Job::JobResult jres = Job::JobResult();
   Logger& pLog = Thread.getLogger();
 
-  JobTopology jobtop = JobTopology(job, pLog, workdir);
+  JobTopology jobtop = JobTopology(job, pLog, workdir, ewald_background_);
   if (job.getInput().exists("restart")) {
     std::string checkptfile = job.getInput().get("restart").as<std::string>();
     XTP_LOG(Log::error, pLog)
@@ -217,10 +217,7 @@ bool QMMM::hasQMRegion() const {
 }
 
 bool QMMM::usesEwald() const {
-  Logger log;
-  return std::any_of(
-      regions_def_.second.begin(), regions_def_.second.end(),
-      [&](const tools::Property& reg) { return reg.name() == "ewaldregion"; });
+  return !ewald_background_.empty();
 }
 
 std::string QMMM::getFirstRegionName() const {

@@ -25,6 +25,7 @@
 
 // Local VOTCA includes
 #include "votca/tools/property.h"
+#include "votca/xtp/background.h"
 #include "votca/xtp/checkpoint.h"
 #include "votca/xtp/jobtopology.h"
 #include "votca/xtp/polarregion.h"
@@ -32,7 +33,6 @@
 #include "votca/xtp/segmentmapper.h"
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/version.h"
-#include "votca/xtp/background.h"
 
 namespace votca {
 namespace xtp {
@@ -129,7 +129,8 @@ void JobTopology::ModifyOptionsByJobFile(tools::Property& regions_def) const {
   }
 }
 
-double JobTopology::computeBackgroundInteractionEnergy(tools::Property& results){
+double JobTopology::computeBackgroundInteractionEnergy(
+    tools::Property& results) {
   // Sanity check
   assert(bg_.size() > 0);
   return bg_.interactionEnergy(regions_, region_seg_ids_, results);
@@ -141,8 +142,7 @@ void JobTopology::BuildRegions(
   CheckEnumerationOfRegions(options.second);
   ModifyOptionsByJobFile(options.second);
 
-  region_seg_ids_ =
-      PartitionRegions(options.second, top);
+  region_seg_ids_ = PartitionRegions(options.second, top);
 
   // // around this point the whole jobtopology will be centered
   CreateRegions(options, top, region_seg_ids_);
@@ -354,22 +354,16 @@ void JobTopology::CheckEnumerationOfRegions(
         "then "
         "ascending order. i.e. 0 1 2 3.");
   }
-  // Check if Ewald is used, if so check if the regions are setup in the right
+  // If Ewald is used, if so check if the regions are setup in the right
   // order, since we only have two supported configurations
-  Index ewdPos = 0;
-  for (const auto& name : reg_names) {
-    if (name == "ewaldregion") {
-      break;
-    }
-    ewdPos += 1;
-  }
-  if (ewdPos < Index(reg_names.size())) {
-    if (ewdPos == 1 && reg_names[0] == "polarregion") {
-      return; 
-    } else if (ewdPos == 2 && reg_names[0] == "qmregion" &&
+  if (!bg_.empty()) {
+    if (reg_names.size() == 1 && reg_names[0] == "polarregion") {
+      return;
+    } else if (reg_names.size() == 2 && reg_names[0] == "qmregion" &&
                reg_names[1] == "polarregion") {
-      throw std::runtime_error("The qm in polar in a background is not yet implemented.");     
-    } else { 
+      throw std::runtime_error(
+          "The qm in polar in a background is not yet implemented.");
+    } else {
       throw std::runtime_error(
           "The ewald background can only be used in the following "
           "configurations: \n - A polarregion (region 0) in  the ewald "
