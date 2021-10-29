@@ -67,6 +67,8 @@ class Orbitals {
     return ((occupied_levels_ > 0) ? true : false);
   }
 
+
+
   void setNumberOfOccupiedLevels(Index occupied_levels) {
     occupied_levels_ = occupied_levels;
   }
@@ -378,6 +380,13 @@ class Orbitals {
     pm_localized_orbitals_ = matrix;
   }
 
+  Index getNumOfActiveElectrons() {
+    return active_electrons_;
+  }
+  void setNumofActiveElectrons(const Index active_electrons){
+    active_electrons_ = active_electrons;
+  }
+
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
@@ -406,6 +415,7 @@ class Orbitals {
 
 
   Eigen::MatrixXd pm_localized_orbitals_;
+  Index active_electrons_;
 
   QMMolecule atoms_;
 

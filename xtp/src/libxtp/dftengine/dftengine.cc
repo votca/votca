@@ -607,6 +607,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
           << std::setprecision(12) << TotalEnergy << " Ha" << std::flush;
       PrintMOs(embeddingMOs.eigenvalues(), Log::error);
       orb.setEmbeddedMOs(embeddingMOs);
+      orb.setNumofActiveElectrons(active_electrons);
       CalcElDipole(orb);
       break;
     } else if (this_iter == max_iter_ - 1) {

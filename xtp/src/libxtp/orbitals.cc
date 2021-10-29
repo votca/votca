@@ -579,6 +579,7 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(number_alpha_electrons_, "number_alpha_electrons");
 
   w(mos_, "mos");
+  w(active_electrons_, "active_electrons");
   w(mos_embedding_, "mos_embedding");
   w(pm_localized_orbitals_, "PML_MOs");
 
@@ -658,6 +659,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(version, "version");
   r(mos_, "mos");
   r(mos_embedding_, "mos_embedding");
+  r(active_electrons_, "active_electrons");
   
   if (version < 3) {
     // clang-format off
