@@ -392,7 +392,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       FullDensityMatrix - InitialActiveDensityMatrix;
 
   // AOoverlap to calculate number of active/inactive electrons
-  AOBasis aobasis = orb.SetupDftBasis();
+  AOBasis aobasis = orb.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
 
@@ -425,7 +425,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   }
 
   // setup the DFT engine with the active electrons only
-  Prepare(orb.QMAtoms(), active_electrons);
+  Prepare(orb, active_electrons);
 
   // setup one-electron part of the Hamiltonian
   Mat_p_Energy H0 = SetupH0(orb.QMAtoms());

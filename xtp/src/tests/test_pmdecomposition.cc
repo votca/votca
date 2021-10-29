@@ -41,11 +41,10 @@ BOOST_AUTO_TEST_CASE(decomposedorbitals_test) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/pmdecomposition/ch3oh.xyz");
-  orbitals.setBasisSetSize(86);
   orbitals.setNumberOfOccupiedLevels(9);
   orbitals.setNumberOfAlphaElectrons(9);
 
-  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
+  orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
                            "/pmdecomposition/def2-tzvp.xml");
 
   orbitals.MOs().eigenvectors() =

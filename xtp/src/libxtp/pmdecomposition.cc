@@ -29,7 +29,7 @@ namespace xtp {
 void PMDecomposition::computePMD(Orbitals &orbitals) {
   Eigen::MatrixXd occupied_orbitals = orbitals.MOs().eigenvectors().leftCols(
       orbitals.getNumberOfAlphaElectrons());
-  aobasis = orbitals.SetupDftBasis();
+  aobasis = orbitals.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
   double convergence_limit = std::numeric_limits<double>::max();

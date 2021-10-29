@@ -39,7 +39,7 @@ Eigen::MatrixXd ActiveDensityMatrix::compute_Dmat_A() {
 Eigen::MatrixXd ActiveDensityMatrix::activedensitymatrix(
     const Eigen::MatrixXd &localized_mo_coeff) {
   AOBasis aobasis;
-  aobasis = orbitals_.SetupDftBasis();
+  aobasis = orbitals_.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
   Index numOfActiveOrbs = 0;
