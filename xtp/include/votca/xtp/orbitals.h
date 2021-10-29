@@ -57,7 +57,7 @@ class Orbitals {
 
   void setEmbeddedMOs(tools::EigenSystem& system) { mos_embedding_ = system;}
 
-  const tools::EigenSystem& getEmbeddedMOs() { return mos_embedding_;}
+  const tools::EigenSystem& getEmbeddedMOs() const { return mos_embedding_;}
 
   Index getLumo() const { return occupied_levels_; }
 

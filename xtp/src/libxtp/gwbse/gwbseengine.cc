@@ -186,6 +186,14 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     orbitals.ReadFromCpt(archive_file_);
   }
   tools::Property& output_summary = summary_.add("output", "");
+
+if (do_dft_in_dft_ && do_gwbse_) {
+  Orbitals orb1 = orbitals;
+  orb1.MOs() = orb1.getEmbeddedMOs();
+}
+Orbitals orb1 = orbitals;
+orb1.MOs() = orb1.getEmbeddedMOs();
+
   if (do_gwbse_) {
     GWBSE gwbse = GWBSE(orbitals);
     gwbse.setLogger(logger);
@@ -193,6 +201,8 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     gwbse.Evaluate();
     gwbse.addoutput(output_summary);
   }
+
+  //if do truncatedgwbse
   if (!logger_file_.empty()) {
     WriteLoggerToFile(logger);
   }
