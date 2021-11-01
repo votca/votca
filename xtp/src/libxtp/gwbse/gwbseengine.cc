@@ -193,10 +193,14 @@ if (do_dft_in_dft_ && do_gwbse_) {
   Index active_electrons = orb_embedded.getNumOfActiveElectrons();
   orb_embedded.setNumberOfAlphaElectrons(active_electrons);
   orb_embedded.setNumberOfOccupiedLevels(active_electrons/2);
-  
+  GWBSE gwbse = GWBSE(orb_embedded);
+  gwbse.setLogger(logger);
+  gwbse.Initialize(gwbse_options_);
+  gwbse.Evaluate();
+  gwbse.addoutput(output_summary);
 }
 
-  if (do_gwbse_) {
+  if (do_gwbse_ && !do_dft_in_dft_) {
     GWBSE gwbse = GWBSE(orbitals);
     gwbse.setLogger(logger);
     gwbse.Initialize(gwbse_options_);
