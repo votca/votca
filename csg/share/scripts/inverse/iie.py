@@ -827,7 +827,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
         # shift potential to make last value zero
         dU -= dU[-1]
         # change NaN in the core region to first valid value
-        # dU = extrapolate_dU_left_constant(dU, dU_flag)
+        dU = extrapolate_dU_left_constant(dU, dU_flag)
         # save for output
         output_arrays[non_bonded_name] = {'x': r_out, 'y': dU, 'flag': dU_flag}
     return output_arrays
