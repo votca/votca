@@ -32,7 +32,7 @@ RangeParser::RangeParser() = default;
 void RangeParser::Parse(std::string str) {
   // remove all spaces in string
   std::string::iterator it = std::remove_if(
-      str.begin(), str.end(), std::bind(std::equal_to<char>(), std::placeholders::_2, ,' '));
+      str.begin(), str.end(), [](char a){ return a==' ';});
   str = std::string(str.begin(), it);
 
   Tokenizer tok(str, ",");

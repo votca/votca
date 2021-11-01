@@ -116,7 +116,7 @@ void Histogram::ProcessData(DataCollection<double>::selection* data) {
 void Histogram::Normalize() {
   double norm = 1. / (interval_ * accumulate(pdf_.begin(), pdf_.end(), 0.0));
   std::transform(pdf_.begin(), pdf_.end(), pdf_.begin(),
-                 std::bind(std::multiplies<double>(),std::placeholders::_2, norm));
+                [norm](double a){return a * norm;});
 }
 
 }  // namespace tools
