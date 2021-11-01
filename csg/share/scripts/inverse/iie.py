@@ -158,6 +158,9 @@ def get_args(iie_args=None):
     parser_gauss_newton.add_argument('--pressure-constraint',
                                      dest='pressure_constraint',
                                      type=str, default=None)
+    parser_gauss_newton.add_argument('--residual-weighting',
+                                     dest='residual_weighting',
+                                     type=str, required=True)
     # parse
     if iie_args is None:
         args = parser.parse_args()
@@ -255,7 +258,7 @@ def process_input(args):
     n_intra = gen_beadtype_property_array(n_intra_dict, non_bonded_dict)
     # settings
     # copy some directly from args
-    settings_to_copy = ('closure', 'verbose', 'out', 'subcommand')
+    settings_to_copy = ('closure', 'verbose', 'out', 'subcommand', 'residual_weighting')
     settings = {key: vars(args)[key] for key in settings_to_copy if key in vars(args)}
     settings['non-bonded-dict'] = non_bonded_dict
     settings['rhos'] = rhos
@@ -730,16 +733,16 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     # make Jacobian 2D
     jac_2D = make_matrix_2D(jac_mat)
     # weighting
-    if settings['weighting'] == 'unity':
+    if settings['residual_weighting'] == 'unity':
         weights = np.ones((n_c_res, n_i))
-    elif settings['weighting'] == '1/g_tgt':
+    elif settings['residual_weighting'] == 'one_over_rdf':
         # we have to add a small number here, otherwise the inverse below fails
-        # alternatively one could could each sub block but that would get tedious
+        # alternatively one could could cut each sub block but that would get tedious
         weights = vectorize(1/(g_tgt_mat+1e-30))
-    elif settings['weighting'] == '1/sqrt(g_tgt)':
+    elif settings['residual_weighting'] == 'one_over_sqrt_rdf':
         weights = vectorize(1/(np.sqrt(g_tgt_mat)+1e-30))
     else:
-        raise Exception('Unknown weighting scheme:', settings['weighting'])
+        raise Exception('Unknown weighting scheme:', settings['residual_weighting'])
     # weight Jacobian
     jac_2D = np.diag(weights.T.flatten()) @ jac_2D
     # Delta g for potential update

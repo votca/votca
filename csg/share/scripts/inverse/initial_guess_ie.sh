@@ -28,10 +28,6 @@ fi
 verbose=$(csg_get_property cg.inverse.initial_guess.ie.verbose)
 if [ "${verbose}" == 'true' ]; then
     verbose_flag="--verbose"
-elif [ "${verbose}" == 'false' ]; then
-    verbose_flag=""
-else
-    die "verbose has to be 'true' or 'false'"
 fi
 
 main_dir=$(get_main_dir)
@@ -58,7 +54,7 @@ msg "Using initial guess for non-bonded interactions using integral equations"
 # Some arguments (cut_off, kBT) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
 # Others (closure, ...) could also be read from the settings file, but this bash script handles the defaults.
 do_external dist invert_iie potential_guess \
-    "$verbose_flag" \
+    ${verbose_flag-} \
     --closure "$ie_closure" \
     --volume "$volume" \
     --topol "$topol" \

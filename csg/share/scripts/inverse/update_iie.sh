@@ -49,6 +49,11 @@ if [[ $iie_method == 'gauss-newton' ]]; then
     fi
 fi
 
+# Gauss-Newton residual weighting
+if [[ $iie_method == 'gauss-newton' ]]; then
+    residual_weighting_flag="--residual-weighting $(csg_get_property cg.inverse.iie.residual_weighting)"
+fi
+
 # target dc/dh
 if [[ $(csg_get_property cg.inverse.iie.tgt_dcdh) == 'true' ]]; then
     tgt_dcdh_flag="--tgt-dcdh dcdh.npz"
@@ -97,6 +102,7 @@ do_external update iie_pot "$iie_method" \
     ${g_intra_flag-} \
     --out "dpot.new" \
     ${pressure_constraint_flag-} \
+    ${residual_weighting_flag-} \
     ${tgt_dcdh_flag-} \
 
 # overwrite with zeros if do_potential=0
