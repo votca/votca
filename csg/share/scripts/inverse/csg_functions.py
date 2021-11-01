@@ -189,20 +189,6 @@ def test_find_after_cut_off_ndx():
         assert find_after_cut_off_ndx(grid, val) == ndx
 
 
-def r0_removal(*arrays):
-    """
-    Remove the first element from a list of arrays.
-
-    Only does so if the first array starts with 0.
-
-    """
-    r0_removed = False
-    if np.isclose(arrays[0][0], 0.0):
-        r0_removed = True
-        arrays = tuple(map(lambda a: a[1:], arrays))
-    return r0_removed, arrays
-
-
 def get_non_bonded(options_xml):
     """Yield tuple (name, bead_types) for each non-bonded interaction.
 
@@ -272,13 +258,13 @@ def gen_beadtype_property_array(property_dict, non_bonded_dict):
     try:
         property_array = np.array([property_dict[bt] for bt in bead_types])
     except KeyError:
-        raise Exception("Could not construct density array. Inconsistency between "
+        raise Exception("Could not construct property array. Inconsistency between "
                         "topology and options file?")
     return property_array
 
 
 def solve_linear_with_constraints(A, C, b, d):
-    """Minimize |Ax - b|, respecting constraint Cx=d using elimination."""
+    """Minimize |A @ x - b|, respecting constraint C @ x = d using elimination."""
     m, n = A.shape
     p, n_ = C.shape
     assert n == n_
@@ -286,7 +272,7 @@ def solve_linear_with_constraints(A, C, b, d):
     d.shape = (p)
 
     if p > 1:
-        raise Exception("not implemented for p > 1")
+        raise Exception("not implemented for more than one constraint")
 
     A_elim = A.copy()
     b_elim = b.copy()
@@ -301,7 +287,8 @@ def solve_linear_with_constraints(A, C, b, d):
               "by constraints.")
         x_elim = []
     else:
-        x_elim = np.linalg.solve(A_elim.T @ A_elim, A_elim.T @ b_elim)
+        x_elim, _, _, _ = np.linalg.lstsq(A_elim.T @ A_elim, A_elim.T @ b_elim,
+                                          rcond=None)
     if p == 0:
         # no constraints
         x = x_elim
@@ -311,8 +298,8 @@ def solve_linear_with_constraints(A, C, b, d):
     return x
 
 
-def test_gauss_newton_constrained():
-    """Check Gauss-Newton with some simple cases."""
+def test_solve_linear_with_constraints():
+    """Check linear equation solver with some simple cases."""
     tests = [
         (np.identity(10), np.ones((1, 10)), np.ones(10), np.array(2), [0.2]*10),
         (np.identity(5), np.array([[0, 0, 1, 0, 0]]), np.ones(5), np.array(2),
@@ -323,7 +310,7 @@ def test_gauss_newton_constrained():
          [0.95, 0.1]),
     ]
     for A, C, b, d, x in tests:
-        assert np.allclose(x, gauss_newton_constrained(A, C, b, d))
+        assert np.allclose(x, solve_linear_with_constraints(A, C, b, d))
 
 
 def upd_flag_g_smaller_g_min(flag, g, g_min):
@@ -543,3 +530,8 @@ def cut_matrix_inverse(matrix_long_2D, n_r, n_i, cut):
     # invert again to obtain matrix
     matrix_2D = np.linalg.inv(matrix_2D_inv)
     return matrix_2D
+
+
+def transpose(mat):
+    """First dimension is radius or k. Transpose means swapping the last two axis."""
+    return np.swapaxes(mat, -1, -2)

@@ -43,13 +43,12 @@ if [[ $tgt_dcdh == 'true' ]]; then
     # volume
     volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
     ([[ -n "$volume" ]] && is_num "$volume") || die "could not determine the volume from file ${topol}"
-  do_external dist invert_iie dcdh \
+    do_external dist invert_iie dcdh \
     ${verbose_flag-} \
-    --closure hnc \
     --volume "$volume" \
     --topol "$topol" \
     --options "$CSGXMLFILE" \
-    --g-tgt-ext ".dist.tgt" \
-    --g-tgt-intra-ext ".dist-intra.tgt" \
-    --out-ext dcdh.npz
+    --g-tgt-ext "dist.tgt" \
+    --g-tgt-intra-ext "dist-intra.tgt" \
+    --out dcdh.npz
 fi

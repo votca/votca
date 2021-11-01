@@ -63,9 +63,9 @@ do_external dist invert_iie potential_guess \
     --volume "$volume" \
     --topol "$topol" \
     --options "$CSGXMLFILE" \
-    --g-tgt-ext ".dist.tgt" \
-    --g-tgt-intra-ext ".dist-intra.tgt" \
-    --out-ext ".pot.new"
+    --g-tgt-ext "dist.tgt" \
+    --g-tgt-intra-ext "dist-intra.tgt" \
+    --out "pot.new"
 
 # scale new potentials
 scaling_factor_non_bonded="$(csg_get_property "cg.inverse.initial_guess.scale_non_bonded")"

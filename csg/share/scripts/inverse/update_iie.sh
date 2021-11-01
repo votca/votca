@@ -29,6 +29,11 @@ fi
 iie_method="$(csg_get_property cg.inverse.iie.method)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 
+# newton_mod not supported any more
+if [[ $iie_method == 'newton-mod' ]]; then
+    die "Newton-mod method is not supported any more. Use Newton's method!"
+fi
+
 # pressure constraint
 if [[ $iie_method == 'gauss-newton' ]]; then
     pressure_constraint=$(csg_get_property cg.inverse.iie.pressure_constraint)
@@ -48,7 +53,7 @@ fi
 if [[ $(csg_get_property cg.inverse.iie.tgt_dcdh) == 'true' ]]; then
     tgt_dcdh_flag="--tgt-dcdh dcdh.npz"
 else
-    g_intra_flag="--g-cur-intra-ext .dist-intra.new"
+    g_intra_flag="--g-cur-intra-ext dist-intra.new"
 fi
 
 # topology for molecular conections and volume
@@ -65,26 +70,6 @@ g_extrap_factor=$(csg_get_property --allow-empty cg.inverse.iie.g_extrap_factor)
 [[ -n $g_extrap_factor ]] && msg --color blue "Deprecated option g_extrap_factor will be ignored!"
 
 [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
-
-# which interactions to update
-if [[ $iie_method == 'newton' || $iie_method == 'gauss-newton' ]]; then
-    step_nr=$(get_current_step_nr)
-    do_potential_list="$(for_all "non-bonded" 'scheme=( $(csg_get_interaction_property inverse.do_potential) ); echo -n $(csg_get_interaction_property name) ${scheme[$(( ($step_nr - 1 ) % ${#scheme[@]} ))]}" "')"
-#else
-    #check_update_potential() {
-        #step_nr=$(get_current_step_nr)
-        #scheme=( $(csg_get_interaction_property inverse.do_potential) )
-        #scheme_nr=$(( ( $step_nr - 1 ) % ${#scheme[@]} ))
-        #name=$(csg_get_interaction_property name)
-#
-        #if [[ ${scheme[$scheme_nr]} == 1 ]]; then
-            #die "for interaction $name do_potential is zero."\
-            #"Only iie.method gauss_newton supports this case."
-        #fi
-    #}
-    #export -f check_update_potential
-    #for_all "non-bonded" check_update_potential
-fi
 
 # for_all not necessary for most sim_prog, but also doesn't hurt.
 for_all "non-bonded bonded" do_external rdf "$sim_prog"
@@ -107,10 +92,10 @@ do_external update iie_pot "$iie_method" \
     --volume "$volume" \
     --topol "$topol" \
     --options "$CSGXMLFILE" \
-    --g-tgt-ext ".dist.tgt" \
-    --g-cur-ext ".dist.new" \
+    --g-tgt-ext "dist.tgt" \
+    --g-cur-ext "dist.new" \
     ${g_intra_flag-} \
-    --out-ext ".dpot.new" \
+    --out "dpot.new" \
     ${pressure_constraint_flag-} \
     ${tgt_dcdh_flag-} \
 

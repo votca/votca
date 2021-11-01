@@ -388,32 +388,32 @@
     </method>
 
     <iie>
-      <DESC>general options for the IIE schemes (hncgn/ihnc/hncn/pygn/ipy/pyn)</DESC>
+      <DESC>general options for the IIE schemes (hncgn/hncn/pygn/ipy/pyn)</DESC>
 
       <method>gauss-newton
-        <DESC>Update method to use: gauss-newton/newton/newton-mod.
+        <DESC>Update method to use: gauss-newton/newton
           For example closure=hnc + method=gauss-newton will result in the HNCGN method.
-          newton_mod is a modified newton scheme that results in an IBI like expression e.g. IHNC.</DESC>
+          newton_mod is no longer supported.</DESC>
       </method>
       <closure>hnc
-        <DESC>Ornstein-Zernike equation closure for the iie update: hnc/py</DESC>
+        <DESC>Ornstein-Zernike equation closure for the iie update. Options are: hnc (hypernetted-chain), py (Percus-Yevick)</DESC>
       </closure>
       <cut_off>
         <DESC>Cut-off used for non-bonded potenitals. Potential (update) will be set to zero beyond this point.</DESC>
       </cut_off>
+      <cut_residual>
+        <DESC>Cut-off used for residual (RDF difference) in the Gauss-Newton method.</DESC>
+      </cut_residual>
       <!--DEPRECATED<g_extrap_factor>1.0
         <DESC>Lenght factor by which RDF will be extrapolated</DESC>
       </g_extrap_factor>-->
-      <g_min>1e-10
+      <!--DEPRECATED<g_min>1e-10
         <DESC>Minimum value of the RDF to be considered valid. Determines range for potential update.
           If too high, it can lead to too little repulsive potential.
           If too low, badly sampled RDF region can lead to weird potential spikes.
           Best is to choose a low number and improve_rdf_near_core.
         </DESC>
-      </g_min>
-      <cut_jacobian>true
-        <DESC>Wether to cut the Jacobian before multiplying with Δg. Only for Newton methods</DESC>
-      </cut_jacobian>
+      </g_min>-->
       <tgt_dcdh>false
       <DESC>Obtain dc/dh, which is part of the Jacobian, from the target distributions instead of from the current distributions. Usually in Newton's method, the Jacobian is taken at the current value.</DESC>
       </tgt_dcdh>
@@ -421,24 +421,24 @@
         <DESC>If not none, apply value as pressure constraint. Only for method=gauss-newton</DESC>
       </pressure_constraint>
       <residual_weighting>rdf
-        <DESC>TODO: implement! Function to use for weighting the residuals. Only for method=gauss-newton. Valid values are: none, rdf (default), rdf_over_r6</DESC>
+        <DESC>Function to use for weighting the residuals. Only for method=gauss-newton. Valid values are: none, rdf (default), sqrt(rdf)</DESC>
       </residual_weighting>
-      <extrap_near_core>power
+      <!--DEPRECATED, use residua_weigthing instead<extrap_near_core>power
         <DESC>Method for extrapolation in and close to core region. Valid values are: power (default), constant, none</DESC>
-      </extrap_near_core>
-      <fix_near_cut_off>full-deriv
+      </extrap_near_core>-->
+      <!--DEPRECATED,<fix_near_cut_off>full-deriv
         <DESC>Method for fixing discontinuity at end of potential. Valid values are: full-deriv (default), none</DESC>
-      </fix_near_cut_off>
+      </fix_near_cut_off>-->
       <topol>
         <DESC>Special topology file to be used for iie update</DESC>
       </topol>
-      <verbose>true
-        <DESC>Print some info and dump compressed numpy arrays. Valid values are: true (default), false</DESC>
+      <verbose>false
+        <DESC>Print some info and dump numpy arrays. Valid values are: true, false (default)</DESC>
       </verbose>
     </iie>
     <initial_guess>
       <DESC>Settings for the initial guess. Only for method=ibi,iie,imc. Only for non-bonded interactions.</DESC>
-        <!--TODO: can probably be adapted to methods re and optimizer-->
+        <!--could probably be adapted to methods re and optimizer-->
       <method>bi
         <DESC>Method for the initial potential guess: table/bi/ie</DESC>
       </method>
@@ -453,7 +453,7 @@
       </scale_bonded>
       <ie>
         <closure>hnc
-          <DESC>Ornstein-Zernike equation closure in case of method=ie: hnc/py</DESC>
+          <DESC>Ornstein-Zernike equation closure for the potential guess. Options are: hnc (hypernetted-chain), py (Percus-Yevick)</DESC>
         </closure>
         <cut_off>
           <DESC>Cut-off used for non-bonded potenital. Potential will be set to zero beyond this point.</DESC>
@@ -461,16 +461,16 @@
         <topol>
           <DESC>Special topology file to be used for ie initial_guess</DESC>
         </topol>
-        <verbose>true
-          <DESC>Print some info and dump compressed numpy arrays. Valid values are: true (default), false</DESC>
+        <verbose>false
+          <DESC>Print some info and dump compressed numpy arrays. Valid values are: true, false (default)</DESC>
         </verbose>
-        <g_min>1e-10
+        <!--DEPRECATED<g_min>1e-10
           <DESC>Minimum value of the RDF to be considered valid. Determines range for potential guess.
             If too high, it can lead to too little repulsive potential.
             If too low, badly sampled RDF region can lead to weird potential spikes.
             Best is to choose a low number and improve_rdf_near_core.
           </DESC>
-        </g_min>
+        </g_min>-->
       </ie>
     </initial_guess>
 
