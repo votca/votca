@@ -123,6 +123,7 @@ Version 2022-dev
 -  check for gmx-2019 in csg-tutorials (#875)
 -  added the full basissets to the orb checkpoint file (#863)
 -  return default for empty strings in option file (#873)
+-  replaced removed std::bind2nd by lambda (#881)
 
 Version 2021.2 and earlier
 ==========================
