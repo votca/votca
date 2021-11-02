@@ -43,7 +43,7 @@ class EwdSegment {
     position_ = pol.getPos();
   }
 
-  EwdSegment(CheckpointReader&r, Index id){
+  EwdSegment(CheckpointReader& r, Index id) {
     CptTable table = r.openTable<EwdSite>("background_sites");
     sites_.clear();
     sites_.reserve(table.numRows());
@@ -58,18 +58,18 @@ class EwdSegment {
 
   ~EwdSegment() = default;
 
-  bool operator==(const EwdSegment& other){
-    if (other.id_ != this->id_){
+  bool operator==(const EwdSegment& other) {
+    if (other.id_ != this->id_) {
       return false;
     }
-    if (other.position_ != this->position_){
+    if (other.position_ != this->position_) {
       return false;
     }
-    if (other.size() != this->size()){
+    if (other.size() != this->size()) {
       return false;
     } else {
-      for(Index i = 0; i < other.size(); ++i){
-        if(this->sites_[i] != other.sites_[i]){
+      for (Index i = 0; i < other.size(); ++i) {
+        if (this->sites_[i] != other.sites_[i]) {
           return false;
         }
       }
@@ -77,13 +77,19 @@ class EwdSegment {
     return true;
   }
 
-  bool operator!=(const EwdSegment& other){
-    return !operator==(other);
+  friend std::ostream& operator<<(std::ostream& out,
+                                  const EwdSegment& segment) {
+    for (const auto& site : segment.sites_) {
+      out << site << std::endl;
+    }
+    return out;
   }
+
+  bool operator!=(const EwdSegment& other) { return !operator==(other); }
 
   const Eigen::Vector3d& getPos() const { return position_; }
 
-  Index getId() const {return id_;}
+  Index getId() const { return id_; }
 
   const EwdSite& at(Index index) const { return sites_.at(index); }
   EwdSite& at(Index index) { return sites_.at(index); }
@@ -101,7 +107,7 @@ class EwdSegment {
     return sites_.end();
   }
 
-  Index size() const { return sites_.size();}
+  Index size() const { return sites_.size(); }
 
   void WriteToCpt(CheckpointWriter& w) {
     w(position_, "pos");
@@ -112,7 +118,6 @@ class EwdSegment {
     }
     table.write(dataVec);
   }
-
 
   void calcPos() {
     tools::Elements element;

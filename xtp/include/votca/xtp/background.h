@@ -80,7 +80,9 @@ class Background {
     } else {
       for (Index i = 0; i < Index(this->ewald_background_.size()); ++i) {
         if (this->ewald_background_[i] != other.ewald_background_[i]) {
-          std::cout << "Site " << i << " Is wrong!!!" << std::endl;
+          std::cout << "Site " << i << " is wrong!!!" << std::endl;
+          std::cout << "THIS: " <<  ewald_background_[i] << std::endl;
+          std::cout << "OTHER: " <<  other.ewald_background_[i] << std::endl;
           return false;
         }
       }

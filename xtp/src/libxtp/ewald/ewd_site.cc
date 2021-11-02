@@ -43,6 +43,22 @@ EwdSite::EwdSite(const PolarSite& pol) {
   quadrupole_ = (1.0 / 3.0) * pol.CalculateCartesianMultipole();
 }
 
+bool EwdSite::operator==(const EwdSite& other) const {
+  if ((this->id_ != other.id_) || (this->rank_ != other.rank_)) { // ||
+      // (this->position_ != other.position_) ||
+      // (this->charge_ != other.charge_) ||
+      // (this->dipole_static_ != other.dipole_static_) ||
+      // (this->dipole_induced_ != other.dipole_induced_) ||
+    //  (this->quadrupole_ != other.quadrupole_)||
+    // (this->polarization_.isApprox(other.polarization_, 1e-6)) ||
+    // (this->element_ != other.element_) ||
+    // (this->field_static_ != other.field_static_) ||
+    // (this->field_induced_ != other.field_induced_)) {
+    return true;
+  }
+  return true;
+}
+
 void EwdSite::WriteData(data& d) {
   d.id = id_;
   d.rank = rank_;

@@ -38,27 +38,14 @@ class EwdSite {
 
   friend std::ostream& operator<<(std::ostream& out, const EwdSite& site) {
     out << site.getId() << std::fixed << std::setprecision(4) << " "
-        << 0.05291 * site.getPos().transpose() << " " << site.getCharge()
+        << site.getPos().transpose() << " " << site.getCharge() << std::endl
+        << " " << site.getPolarizationMatrix() << std::endl
         << std::scientific << std::setprecision(4) << " "
-        << 5.142e11 * site.getStaticField().transpose();
+        << site.getStaticField().transpose();
     return out;
   }
 
-  bool operator==(const EwdSite& other) {
-    if ((this->id_ != other.id_) || (this->rank_ != other.rank_) ||
-        (this->position_ != other.position_) ||
-        (this->charge_ != other.charge_) ||
-        (this->dipole_static_ != other.dipole_static_) ||
-        (this->dipole_induced_ != other.dipole_induced_) ||
-        (this->quadrupole_ != other.quadrupole_) ||
-        (this->polarization_ != other.polarization_) ||
-        (this->element_ != other.element_) ||
-        (this->field_static_ != other.field_static_) ||
-        (this->field_induced_ != other.field_induced_)) {
-      return false;
-    }
-    return true;
-  }
+  bool operator==(const EwdSite& other)  const;
 
   bool operator!=(const EwdSite& other) { return !operator==(other); }
 
