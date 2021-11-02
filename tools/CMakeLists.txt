@@ -82,7 +82,7 @@ endif(Python_EXECUTABLE AND NOT PYTHON_INSTDIR)
 # Checks what linear algebra packages are installed                    #
 ########################################################################
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   set(MKL_THREAD_LAYER "Intel OpenMP" CACHE STRING "The thread layer to choose for MKL")
 else()
   set(MKL_THREAD_LAYER "GNU OpenMP" CACHE STRING "The thread layer to choose for MKL")
