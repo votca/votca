@@ -150,9 +150,8 @@ void BasisSet::Load(const std::string& name) {
 
   // if name contains .xml, assume a basisset .xml file is located in the
   // working directory
-  std::size_t found_xml = name.find(".xml");
   std::string xmlFile;
-  if (found_xml != std::string::npos) {
+  if (name.find(".xml") != std::string::npos) {
     xmlFile = name;
   } else {
     xmlFile = tools::GetVotcaShare() + "/xtp/basis_sets/" + name + ".xml";

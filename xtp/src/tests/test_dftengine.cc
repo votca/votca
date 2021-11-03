@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE(dft_full) {
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
           std::string(XTP_TEST_DATA_FOLDER) + "/dftengine/MOs_coeff_ref.mm");
 
-  AOBasis basis = orb.SetupDftBasis();
+  AOBasis basis = orb.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(basis);
   Eigen::MatrixXd proj = MOs_coeff_ref.leftCols(5).transpose() *
@@ -264,7 +264,7 @@ BOOST_AUTO_TEST_CASE(density_guess) {
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
           std::string(XTP_TEST_DATA_FOLDER) + "/dftengine/MOs_coeff_ref2.mm");
 
-  AOBasis basis = orb.SetupDftBasis();
+  AOBasis basis = orb.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(basis);
   Eigen::MatrixXd proj = MOs_coeff_ref.leftCols(5).transpose() *

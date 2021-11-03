@@ -35,7 +35,6 @@ jobs:
             coverage: false
             # make sure there is only one build deploying
             deploy: true
-            no_regression_testing: true
           - distro: 'fedora:nogmx'
             toolchain: gnu
             cmake_build_type: Release
@@ -83,39 +82,31 @@ jobs:
           - distro: 'fedora:gmx2021'
             toolchain: gnu
             cmake_build_type: Release
-            no_regression_testing: true
           - distro: 'fedora:gmx2021'
             toolchain: clang
             cmake_build_type: Release
-            no_regression_testing: true
           - distro: 'fedora:gmx2021_d'
             toolchain: gnu
             cmake_build_type: Release
-            no_regression_testing: true
           - distro: 'fedora:gmx2021_d'
             toolchain: clang
             cmake_build_type: Release
-            no_regression_testing: true
           - distro: 'fedora:gmx9999'
             toolchain: gnu
             cmake_build_type: Release
             continue-on-error: true
-            no_regression_testing: true
           - distro: 'fedora:gmx9999'
             toolchain: clang
             cmake_build_type: Release
             continue-on-error: true
-            no_regression_testing: true
           - distro: 'fedora:gmx9999_d'
             toolchain: gnu
             cmake_build_type: Release
             continue-on-error: true
-            no_regression_testing: true
           - distro: 'fedora:gmx9999_d'
             toolchain: clang
             cmake_build_type: Release
             continue-on-error: true
-            no_regression_testing: true
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/votca/buildenv/${{ matrix.distro }}
@@ -133,7 +124,7 @@ jobs:
           minimal: ${{ matrix.minimal == true }}
           module: ${{ matrix.module_build == true }}
           own_gmx: ${{ matrix.own_gmx == true }}
-          regression_testing: ${{ matrix.no_regression_testing != true }}
+          regression_testing: ${{ matrix.deploy != true }}
           coverage: ${{ matrix.coverage }}
           cmake_build_type: ${{ matrix.cmake_build_type }}
           ctest_args: ${{ matrix.ctest_args }}

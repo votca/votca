@@ -39,13 +39,9 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                   "/bse/molecule.xyz");
-  BasisSet basis;
-  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/bse/3-21G.xml");
-  orbitals.setDFTbasisName("3-21G.xml");
-  AOBasis aobasis;
-  aobasis.Fill(basis, orbitals.QMAtoms());
+  orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/bse/3-21G.xml");
+  AOBasis aobasis = orbitals.getDftBasis();
 
-  orbitals.setBasisSetSize(17);
   orbitals.setNumberOfOccupiedLevels(4);
   Eigen::MatrixXd& MOs = orbitals.MOs().eigenvectors();
   MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(

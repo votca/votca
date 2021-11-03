@@ -1,4 +1,4 @@
-<basis name="cc-pvdz-rifit">
+<basis name="aux-cc-pvdz">
   <!--Basis set created by xtp_basisset from cc-pvdz-rifit.nw at Fri Jan  3 10:44:30 2020-->
   <element name="H">
     <shell type="S" scale="1.0">

@@ -53,10 +53,9 @@ BOOST_AUTO_TEST_CASE(gw_full) {
                                   "/gw/molecule.xyz");
   BasisSet basis;
   basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
-  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
+  orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
-  orbitals.setBasisSetSize(17);
   orbitals.setNumberOfOccupiedLevels(4);
   orbitals.MOs().eigenvectors() = mo_eigenvectors;
   Logger log;
@@ -134,10 +133,9 @@ BOOST_AUTO_TEST_CASE(gw_full_QP_grid) {
                                   "/gw/molecule.xyz");
   BasisSet basis;
   basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
-  orbitals.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
+  orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/gw/3-21G.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
-  orbitals.setBasisSetSize(17);
   orbitals.setNumberOfOccupiedLevels(4);
   orbitals.MOs().eigenvectors() = mo_eigenvectors;
   Logger log;

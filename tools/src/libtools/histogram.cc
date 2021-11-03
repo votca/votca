@@ -17,6 +17,7 @@
 
 // Standard includes
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <numeric>
 
@@ -115,7 +116,7 @@ void Histogram::ProcessData(DataCollection<double>::selection* data) {
 void Histogram::Normalize() {
   double norm = 1. / (interval_ * accumulate(pdf_.begin(), pdf_.end(), 0.0));
   std::transform(pdf_.begin(), pdf_.end(), pdf_.begin(),
-                 std::bind2nd(std::multiplies<double>(), norm));
+                 [norm](double a) { return a * norm; });
 }
 
 }  // namespace tools
