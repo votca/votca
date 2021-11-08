@@ -219,6 +219,20 @@ def get_n_intra_dict(topol_xml):
     return n_intra
 
 
+def get_charge_dict(topol_xml):
+    """Return the charge of all bead types as a dict."""
+    charge_dict = {}
+    for molecule in topol_xml.find('molecules').findall('molecule'):
+        for bead in molecule.findall('bead'):
+            if bead.attrib['type'] in charge_dict:
+                # all beads of one type should have same charge
+                assert np.allclose(charge_dict[bead.attrib['type']],
+                                   float(bead.attrib['q']))
+            else:
+                charge_dict[bead.attrib['type']] = float(bead.attrib['q'])
+    return charge_dict
+
+
 def get_bead_types(non_bonded_dict):
     """Return a sorted list of bead types."""
     bead_types = {bead

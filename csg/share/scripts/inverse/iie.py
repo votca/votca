@@ -46,7 +46,7 @@ if not sys.version_info >= (3, 5):
 from csg_functions import (
     readin_table, saveto_table, calc_grid_spacing, fourier, fourier_all,
     gen_beadtype_property_array, gen_fourier_matrix, find_after_cut_off_ndx,
-    get_non_bonded, get_density_dict, get_n_intra_dict,
+    get_non_bonded, get_density_dict, get_n_intra_dict, get_charge_dict,
     gen_interaction_matrix, gen_interaction_dict, solve_linear_with_constraints,
     gen_flag_isfinite, kron_2D, extrapolate_dU_left_constant, vectorize, devectorize,
     if_verbose_dump_io, make_matrix_2D, make_matrix_4D, cut_matrix_inverse, transpose,
@@ -54,6 +54,7 @@ from csg_functions import (
 
 
 BAR_PER_MD_PRESSURE = 16.6053904
+F_COULOMB = 138.935458  # electric conversion factor: V = f*q_1*q_2/r
 np.seterr(all='raise')
 
 
@@ -178,9 +179,11 @@ def process_input(args):
     # args.options.read() can be called only once
     options = ET.fromstring(args.options.read())
     topology = ET.fromstring(args.topol.read())
-    # get density_dict and n_intra_dict
+    # get density_dict, n_intra_dict, and charge_dict
     density_dict = get_density_dict(topology, args.volume)
     n_intra_dict = get_n_intra_dict(topology)
+    if args.subcommand == 'potential_guess':
+        charge_dict = get_charge_dict(topology)
     # get non_bonded_dict
     non_bonded_dict = {nb_name: nb_ts for nb_name, nb_ts in get_non_bonded(options)}
     non_bonded_dict_inv = {v: k for k, v in non_bonded_dict.items()}
@@ -301,6 +304,11 @@ def process_input(args):
             constraints.append({'type': 'pressure', 'target': p_target,
                                 'current': p_current})
         settings['constraints'] = constraints
+    # stuff for subtracting coulomb potential
+    if args.subcommand == 'potential_guess':
+        settings['charge_dict'] = charge_dict
+        settings['non_bonded_dict'] = non_bonded_dict
+
     return input_arrays, settings
 
 
@@ -332,12 +340,20 @@ def potential_guess(input_arrays, settings, verbose=False):
                           settings['rhos'], settings['n_intra'],
                           settings['kBT'], settings['closure'],
                           verbose=settings['verbose'])
-    # extrapolate and save potentials
+    # subtract Coulomb, extrapolate, and save potentials
     output_arrays = {}
     for non_bonded_name, U_dict in gen_interaction_dict(
             r, U_mat, settings['non-bonded-dict']).items():
         U = U_dict['y']
         U_flag = gen_flag_isfinite(U)
+        # subtract Coulomb
+        if settings['subtract_coulomb']:
+            beads = tuple(settings['non_bonded_dict'][non_bonded_name])
+            bead1, bead2 = (beads[0], beads[0]) if len(beads) == 1 else beads
+            q1 = settings['charge_dict'][bead1]
+            q2 = settings['charge_dict'][bead2]
+            U_Coulomb = F_COULOMB * q1 * q2 / r
+            U -= U_Coulomb
         # make tail zero. It is spoiled on the last half from inverting OZ.
         # careful: slices refer to arrays before reinserting r=0 values!
         cut, tail = settings['cut_pot'], settings['tail_pot']
@@ -692,8 +708,7 @@ def add_jac_inv_diagonal(r, g_tgt_mat, g_cur_mat, dcdh, rhos, n_intra, kBT,
         # if tgt_dcdh the intramolecular interactions are not present
         raise NotImplementedError
     # make negative infinities a large negative number, increasing stability
-    # jac_inv_mat[np.isneginf(jac_inv_mat)] = -1e30
-    # not used, using numpy.linalg.lstsq and pinv anywhere else
+    jac_inv_mat[np.isneginf(jac_inv_mat)] = -1e30
     return jac_inv_mat
 
 
