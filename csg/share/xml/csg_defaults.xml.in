@@ -483,6 +483,9 @@
             Best is to choose a low number and improve_rdf_near_core.
           </DESC>
         </g_min>-->
+        <subtract_coulomb>false
+          <DESC>Subtract the expected Coulomb potential from the potential guess. Valid values are: true, false (default)</DESC>
+        </subtract_coulomb>
       </ie>
     </initial_guess>
 

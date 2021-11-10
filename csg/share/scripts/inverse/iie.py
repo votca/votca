@@ -115,6 +115,10 @@ def get_args(iie_args=None):
                           required=True,
                           metavar='VOL',
                           help='the volume of the box')
+        pars.add_argument('--kBT', type=float,
+                          required=True,
+                          metavar='kBT',
+                          help='Temperature times k_B')
         pars.add_argument('--topol', type=argparse.FileType('r'),
                           required=True,
                           metavar='TOPOL',
@@ -162,6 +166,11 @@ def get_args(iie_args=None):
     parser_gauss_newton.add_argument('--residual-weighting',
                                      dest='residual_weighting',
                                      type=str, required=True)
+    # potential guess only options
+    parser_pot_guess.add_argument('--subtract-coulomb',
+                                  dest='subtract_coulomb',
+                                  help="remove Coulomb term from potential guess",
+                                  action='store_const', const=True, default=False)
     # parse
     if iie_args is None:
         args = parser.parse_args()
@@ -261,14 +270,13 @@ def process_input(args):
     n_intra = gen_beadtype_property_array(n_intra_dict, non_bonded_dict)
     # settings
     # copy some directly from args
-    settings_to_copy = ('closure', 'verbose', 'out', 'subcommand', 'residual_weighting')
-    settings = {key: vars(args)[key] for key in settings_to_copy if key in vars(args)}
+    args_to_copy = ('closure', 'verbose', 'out', 'subcommand', 'residual_weighting',
+                    'kBT', 'subtract_coulomb')
+    settings = {key: vars(args)[key] for key in args_to_copy if key in vars(args)}
     settings['non-bonded-dict'] = non_bonded_dict
     settings['rhos'] = rhos
     settings['n_intra'] = n_intra
     settings['r0-removed'] = r0_removed
-    # others from options xml
-    settings['kBT'] = float(options.find("./inverse/kBT").text)
     # determine dc/dh buffer
     if args.subcommand in ('newton', 'gauss-newton'):
         if args.tgt_dcdh.lower() == 'none':

@@ -33,11 +33,22 @@ case "$initial_guess_method" in
 "table")
   for_all "bonded non-bonded" do_external prepare_single generic --use-table
   ;;
-"bi")
+"bi"|"ie")
+  # do update for each state
   for state in $state_names; do
     pushd $state
     msg "for state ${state}:"
-    for_all "bonded non-bonded" do_external prepare_single generic --use-bi
+    # Boltzmann inverse
+    if [[ $initial_guess_method == bi ]]; then
+      for_all "bonded non-bonded" do_external prepare_single generic --use-bi
+    # integral equation
+    elif [[ $initial_guess_method == ie ]]; then
+      bonded_interactions=( $(csg_get_property --allow-empty cg.bonded.name) )
+      if [[ -n $bonded_interactions ]]; then
+        for_all "bonded" do_external prepare_single generic --use-bi
+      fi
+      do_external initial_guess ie
+    fi
     popd
   done
   # now average all states potential, not using weights, same as in the original MS-IBI Moore 2014
@@ -45,13 +56,6 @@ case "$initial_guess_method" in
   for_all "non-bonded bonded" do_external table average --clean --output '$(csg_get_interaction_property name).pot.with_error' \
     '$(for s in $state_names; do echo $s/$(csg_get_interaction_property name).pot.new; done)'
   for_all "non-bonded bonded" do_external table remove_error '$(csg_get_interaction_property name).pot.with_error' '$(csg_get_interaction_property name).pot.new'
-  ;;
-"ie")
-  bonded_interactions=( $(csg_get_property --allow-empty cg.bonded.name) )
-  if [[ -n $bonded_interactions ]]; then
-    for_all "bonded" do_external prepare_single generic --use-bi
-  fi
-  do_external initial_guess ie
   ;;
 *)
   die "cg.inverse.initial_guess.method has to be either table, bi, or ie"

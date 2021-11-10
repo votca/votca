@@ -35,6 +35,8 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 nb_names=( $(for_all "non-bonded" csg_get_interaction_property name) )
 nb_names="${nb_names[@]}"
 ie_closure="$(csg_get_property cg.inverse.initial_guess.ie.closure)"
+subtract_coulomb="$(csg_get_property cg.inverse.initial_guess.ie.subtract_coulomb)"
+multistate="$(csg_get_property cg.inverse.multistate.enabled)"
 
 # resample all target distributions
 # TODO: one might want longer tgt RDF for initial guess but short for iterative update with extrapolation or vice-versa
@@ -50,13 +52,30 @@ topol=$(csg_get_property --allow-empty cg.inverse.initial_guess.ie.topol)
 volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
 ([[ -n "$volume" ]] && is_num "$volume") || die "could not determine the volume from file ${topol}"
 
+# kBT
+if [[ $multistate == true ]]; then
+  state_nr=get_state_nr
+  kbt=( $(csg_get_property cg.inverse.multistate.state_kBTs) )
+  kbt="${kbt[$state_nr]}"
+else
+  kbt="$(csg_get_property cg.inverse.kBT)"
+fi
+
+# subtract Coulomb term
+if [[ $subtract_coulomb == true ]]; then
+  subtract_coulomb_flag="--subtract_coulomb"
+fi
+
+
 msg "Using initial guess for non-bonded interactions using integral equations"
-# Some arguments (cut_off, kBT) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
+# Some arguments (cut_off, cut_residual) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
 # Others (closure, ...) could also be read from the settings file, but this bash script handles the defaults.
 do_external dist invert_iie potential_guess \
     ${verbose_flag-} \
     --closure "$ie_closure" \
     --volume "$volume" \
+    --kBT "$kbt" \
+    ${subtract_coulomb_flag-} \
     --topol "$topol" \
     --options "$CSGXMLFILE" \
     --g-tgt-ext "dist.tgt" \
