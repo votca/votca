@@ -64,7 +64,13 @@ grompp=( $(csg_get_property cg.inverse.gromacs.grompp.bin) )
 gmx_ver="$(critical ${grompp[@]} -h 2>&1)"
 [[ ${gmx_ver} = *"version 2020"* ]] && die "GROMACS 2020 doesn't support tabulated interactions, that are needed for coarse-graining (see and comment on https://redmine.gromacs.org/issues/1347). Please use GROMACS 2019 for now."
 
-traj=$(csg_get_property cg.inverse.gromacs.traj)
+multistate=$(csg_get_property cg.inverse.multistate.enabled)
+if [[ $multistate == true ]]; then
+  # allow the use of variables, especially state, in the trajectory name when multistate
+  traj=$(csg_get_property_substitute cg.inverse.gromacs.traj)
+else
+  traj=$(csg_get_property cg.inverse.gromacs.traj)
+fi
 # in main simulation we usually do care about traj and temperature
 # in pre-simulation/multisim there might be no traj and a different temp(s) 
 if [[ ! ${multidir} && $1 != "--pre" ]]; then

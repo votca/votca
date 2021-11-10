@@ -66,7 +66,14 @@ check_temp() { #compares k_B T in xml with temp in mpd file
   local kbt kbt2 temp t
   [[ "$(csg_get_property cg.inverse.gromacs.temp_check)" = "no" ]] && return 0
   #kbt in energy unit
-  kbt="$(csg_get_property cg.inverse.kBT)"
+  multistate="$(csg_get_property cg.inverse.multistate.enabled)"
+  if [[ $multistate == true ]]; then
+    state_nr=get_state_nr
+    kbt=( $(csg_get_property cg.inverse.multistate.state_kBTs) )
+    kbt="${kbt[$state_nr]}"
+  else
+    kbt="$(csg_get_property cg.inverse.kBT)"
+  fi
   temp="$(get_simulation_setting "ref[_-]t")"
   for t in $temp; do
     #0.00831451 is k_b in gromacs untis see gmx manual chapter 2
@@ -79,8 +86,15 @@ To disable this check set cg.inverse.gromacs.temp_check to 'no'"
 export -f check_temp
 
 simulation_finish() { #checks if simulation is finished
-  local traj confout
-  traj=$(csg_get_property cg.inverse.gromacs.traj)
+  local traj confout state
+  multistate=$(csg_get_property cg.inverse.multistate.enabled)
+  if [[ $multistate == true ]]; then
+    # allow the use of variables, especially state, in the trajectory name when multistate
+    export state=$(get_state_dir)
+    traj=$(csg_get_property_substitute cg.inverse.gromacs.traj)
+  else
+    traj=$(csg_get_property cg.inverse.gromacs.traj)
+  fi
   confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
   [[ $1 = "--no-traj" ]] && [[ -f $confout ]] && return 0
   [[ -f $traj ]] && [[ -f $confout ]] && return 0

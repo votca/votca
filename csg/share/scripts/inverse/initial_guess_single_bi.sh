@@ -38,7 +38,14 @@ msg "Using initial guess from dist ${target} for ${name}"
 do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
 # initial guess from rdf
 raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
-kbt="$(csg_get_property cg.inverse.kBT)"
+multistate="$(csg_get_property cg.inverse.multistate.enabled)"
+if [[ $multistate == true ]]; then
+  state_nr=$(get_state_nr)
+  kbt_array=("$(csg_get_property cg.inverse.multistate.state_kBTs)")
+  kbt="${kbt_array[state_nr]}"
+else
+  kbt="$(csg_get_property cg.inverse.kBT)"
+fi
 dist_min="$(csg_get_property cg.inverse.dist_min)"
 do_external dist invert --type "${bondtype}" --kbT "${kbt}" --min "${dist_min}" ${name}.dist.tgt ${raw}
 # smooth

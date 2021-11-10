@@ -112,7 +112,14 @@ check_for_obsolete_xml_options
 echo "Sim started $(date)"
 
 method="$(csg_get_property cg.inverse.method)"
-msg "We are doing Method: $method"
+multistate="$(csg_get_property cg.inverse.multistate.enabled)"
+if [[ $multistate == true ]]; then
+  state_names="$(csg_get_property cg.inverse.multistate.state_names)"
+  multistate_prefix='multistate_'
+else
+  multistate_prefix=''
+fi
+msg "We are doing Method: ${multistate_prefix}${method}"
 
 scriptpath="$(csg_get_property --allow-empty cg.inverse.scriptpath)"
 [[ -n $scriptpath ]] && echo "Adding $scriptpath to csgshare" && add_to_csgshare "$scriptpath"
@@ -150,10 +157,18 @@ else
     msg "Prepare of potentials already done"
   else
     filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
-    #get need files (leave the " " unglob happens inside the function)
-    [[ -n ${filelist} ]] && cp_from_main_dir "$filelist"
-
-    do_external prepare $method
+    if [[ $multistate == true ]]; then
+      for state in $state_names; do
+        mkdir -p "$state" || die "mkdir -p $state failed"
+        pushd "$state"
+        [[ -n ${filelist} ]] && cp_from_state_dir "$state" "$filelist"
+        popd
+      done
+    else
+      #get need files (leave the " " unglob happens inside the function)
+      [[ -n ${filelist} ]] && cp_from_main_dir "$filelist"
+    fi
+    do_external prepare ${multistate_prefix}$method
     mark_done "Prepare"
   fi
 
@@ -208,27 +223,47 @@ while true; do
   else
     echo "Step $i started at $(date)"
     mkdir -p $this_dir || die "mkdir -p $this_dir failed"
+    if [[ $multistate == true ]]; then
+      for state in $state_names; do
+        mkdir -p "${this_dir}/$state" || die "mkdir -p ${this_dir}/$state failed"
+      done
+    fi
   fi
 
   cd $this_dir || die "cd $this_dir failed"
   mark_done "stepdir"
 
-  filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
-  if is_done "Filecopy"; then
-    echo "Filecopy already done"
-    for f in $filelist; do
-      [[ -f $f ]] || cp_from_main_dir "$f"
-      echo Comparing "$(get_main_dir)/$f" "$f"
-      [[ -z $(type -p cmp) ]] && echo "program 'cmp' not found, comparision skipped" && continue
-      cmp "$(get_main_dir)/$f" "$f" && echo "Unchanged" || \
-	msg --color blue --to-stderr "WARNING: file '$f' in the main dir was changed since the last execution, this will have no effect on the current iteration, to take effect remove the current iteration ('${this_dir##*/}')"
-    done
-  else
-    #get need files (leave the " " unglob happens inside the function)
-    [[ -n ${filelist} ]] && cp_from_main_dir "$filelist"
-
-    mark_done "Filecopy"
-  fi
+  copy_needed_files() {
+    multistate="$(csg_get_property cg.inverse.multistate.enabled)"
+    filelist="$(csg_get_property --allow-empty cg.inverse.filelist)"
+    if is_done "Filecopy"; then
+      echo "Filecopy already done"
+      for f in $filelist; do
+        if [[ $multistate == true ]]; then
+          state=$(get_state_dir)
+          [[ -f $f ]] || cp_from_state_dir "$state" "$f"
+        else
+          [[ -f $f ]] || cp_from_main_dir "$f"
+        fi
+        echo Comparing "$f" with the version in the main dir
+        [[ -z $(type -p cmp) ]] && echo "program 'cmp' not found, comparision skipped" && continue
+        [[ $multistate == true ]] && main_state=$(get_main_dir)/$state || main_state=$(get_main_dir)
+        cmp "$main_state/$f" "$f" && echo "Unchanged" || \
+        msg --color blue --to-stderr "WARNING: file '$f' in the main/state dir was changed since the last execution, this will have no effect on the current iteration, to take effect remove the current iteration ('${this_dir##*/}/${state}')"
+      done
+    else
+      #get need files (leave the " " unglob happens inside the function)
+      if [[ $multistate == true ]]; then
+          state=$(get_state_dir)
+          [[ -n ${filelist} ]] && cp_from_state_dir "$state" "$filelist"
+      else
+        [[ -n ${filelist} ]] && cp_from_main_dir "$filelist"
+      fi
+      mark_done "Filecopy"
+    fi
+  }
+  export -f copy_needed_files
+  for_all_states -q copy_needed_files
 
   if is_done "Initialize"; then
     echo "Initialization already done"
@@ -239,31 +274,40 @@ while true; do
     mark_done "Initialize"
   fi
 
-  if is_done "Simulation"; then
-    echo "Simulation is already done"
-  else
-    msg "Simulation with $sim_prog"
-    do_external run $sim_prog
-  fi
+  run_simulation_if_not_done() {
+    sim_prog="$(csg_get_property cg.inverse.program)"
+    if is_done "Simulation"; then
+      msg "Simulation is already done"
+    else
+      msg "Simulation with $sim_prog"
+      do_external run $sim_prog
+    fi
+  }
+  export -f run_simulation_if_not_done
+  for_all_states run_simulation_if_not_done
 
-  if simulation_finish; then
-    mark_done "Simulation"
-  elif [[ "$(csg_get_property cg.inverse.simulation.background)" = "yes" ]]; then
-    msg "Simulation is suppose to run in background, which we cannot check."
-    msg "Stopping now, resume csg_inverse whenever the simulation is done."
-    exit 0
-  elif [[ -n ${CSGENDING} ]] && checkpoint_exist; then
-    msg "Simulation is not finished, but a checkpoint was found, so it seems"
-    msg "walltime is nearly up, stopping now, resume csg_inverse whenever you want."
-    exit 0
-  else
-    die "Simulation is in a strange state, it has no checkpoint and is not finished, check ${this_dir##*/} by hand"
-  fi
+  check_simulation_state() {
+    if simulation_finish; then
+      mark_done "Simulation"
+    elif [[ "$(csg_get_property cg.inverse.simulation.background)" = "yes" ]]; then
+      msg "Simulation is suppose to run in background, which we cannot check."
+      msg "Stopping now, resume csg_inverse whenever the simulation is done."
+      exit 0
+    elif [[ -n ${CSGENDING} ]] && checkpoint_exist; then
+      msg "Simulation is not finished, but a checkpoint was found, so it seems"
+      msg "walltime is nearly up, stopping now, resume csg_inverse whenever you want."
+      exit 0
+    else
+      die "Simulation is in a strange state, it has no checkpoint and is not finished, check ${this_dir##*/} by hand"
+    fi
+  }
+  export -f check_simulation_state
+  for_all_states -q check_simulation_state
 
-  do_external pre_update $method
+  for_all_states -q do_external pre_update $method
 
-  msg "Make update for $method"
-  do_external update $method
+  msg "Make update for ${multistate_prefix}${method}"
+  do_external update ${multistate_prefix}${method}
 
   do_external post_update $method
   do_external add_pot $method
@@ -271,7 +315,7 @@ while true; do
   msg "Post add"
   do_external post add
 
-  do_external clean $sim_prog
+  for_all_states -q do_external clean $sim_prog
 
   step_time="$(( $(get_time) - $step_starttime ))"
   msg "\nstep $i done, needed $step_time secs"

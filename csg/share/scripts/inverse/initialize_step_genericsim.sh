@@ -28,6 +28,10 @@ fi
 sim_prog="$(csg_get_property cg.inverse.program)"
 from=$(csg_get_property cg.inverse.initial_configuration)
 conf="$(csg_get_property --allow-empty cg.inverse.$sim_prog.conf)"
+multistate="$(csg_get_property cg.inverse.multistate.enabled)"
+if [[ $multistate == true ]]; then
+  state_names="$(csg_get_property cg.inverse.multistate.state_names)"
+fi
 echo "Using intial configuration from $from"
 if [[ $from = "nowhere" ]]; then
   :
@@ -35,7 +39,15 @@ elif [[ $from = "maindir" || $(get_current_step_nr) -eq 1 ]]; then
   if [[ -n $conf ]]; then
     [[ $from = "laststep" && $(get_current_step_nr) -eq 1 ]] && \
       echo "In Step 1 we always use configuration from maindir, even though 'laststep' was set"
-    cp_from_main_dir "$conf"
+    if [[ $multistate == true ]]; then
+      for state in $state_names; do
+        pushd "$state"
+        cp_from_state_dir "$state" "$conf"
+        popd
+      done
+    else
+      cp_from_main_dir "$conf"
+    fi
   else
     echo "Option cg.inverse.$sim_prog.conf was empty, so I assume $sim_prog needs no conf or you have added it to cg.inverse.filelist."
   fi
@@ -44,7 +56,13 @@ elif [[ $from = "laststep" ]]; then
   conf_out="$(csg_get_property --allow-empty cg.inverse.$sim_prog.conf_out)"
   [[ -z $conf_out ]] && die "${0##*/}: for initial_configuration '$from' option cg.inverse.$sim_prog.conf_out is needed!"
   #avoid overwriting $conf_out
-  cp_from_last_step --rename "${conf_out}" "${conf}"
+  if [[ $multistate == true ]]; then
+    for state in $state_names; do
+      cp_from_last_step --rename "${state}/${conf_out}" "${state}/${conf}"
+    done
+  else
+    cp_from_last_step --rename "${conf_out}" "${conf}"
+  fi
 else
   die "${0##*/}: initial_configuration '$from' not implemented"
 fi

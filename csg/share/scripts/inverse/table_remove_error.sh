@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2014 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,26 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 if [ "$1" = "--help" ]; then
-    cat <<EOF
+cat <<EOF
 ${0##*/}, version %version%
-This script cleans up after a simulation step
+This script removes the errors (col 3) of a table
 
-Usage: ${0##*/}
+Usage: ${0##*/} input outfile
 EOF
-    exit 0
+   exit 0
 fi
 
-multistate=$(csg_get_property cg.inverse.multistate.enabled)
-if [[ $multistate == true ]]; then
-  export state=$(get_state_dir)
-  cleanlist=$(csg_get_property_substitute --allow-empty cg.inverse.cleanlist)
-else
-  cleanlist=$(csg_get_property --allow-empty cg.inverse.cleanlist)
-fi
-if [[ -n ${cleanlist} ]]; then
-  msg "Clean up files: $cleanlist"
-  #no quote to allow globbing
-  rm -f ${cleanlist}
-fi
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
+
+[[ -f $1 ]] || die "${0##*/}: Cannot find input file $1"
+
+critical awk '{print $1,$2,$4}' $1 > $2

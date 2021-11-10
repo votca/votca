@@ -210,8 +210,8 @@ for_all (){ #do something for all interactions (1st argument)
     for name in "${interactions[@]}"; do
       #check if interaction is actually angle, bond or dihedral
       if is_part "$bondtype" "angle bond dihedral"; then
-	rbondtype=$(bondtype="$ibondtype" bondname="$name" csg_get_interaction_property bondtype)
-	[[ $rbondtype = $bondtype ]] || continue
+        rbondtype=$(bondtype="$ibondtype" bondname="$name" csg_get_interaction_property bondtype)
+        [[ $rbondtype = $bondtype ]] || continue
       fi
       #print this message to stderr to avoid problem with $(for_all something)
       [[ $quiet = no ]] && echo "for_all: run '$*' for interaction named '$name'" >&2
@@ -226,6 +226,25 @@ for_all (){ #do something for all interactions (1st argument)
   done
 }
 export -f for_all
+
+for_all_states() {  # do something for all states when multistate, otherwise execute once
+  local quiet="no"
+  [[ $1 = "-q" ]] && quiet="yes" && shift
+  if [[ $multistate == true ]]; then
+    state_names=("$(csg_get_property cg.inverse.multistate.state_names)")
+    for state in $state_names; do
+      [[ $quiet == no ]] && msg "for state ${state}:"
+      pushd "$state"
+      CSG_CALLSTACK="$(show_callstack)" \
+      "${BASH}" -c "$*" || die "${FUNCNAME[0]}: ${BASH} -c '$*' failed for state '$state'"
+      popd
+    done
+  else
+    CSG_CALLSTACK="$(show_callstack)" \
+    "${BASH}" -c "$*" || die "${FUNCNAME[0]}: ${BASH} -c '$*' failed"
+  fi
+}
+export -f for_all_states
 
 csg_get_interaction_property () { #gets an interaction property from the xml file, should only be called from inside a for_all loop or with --all option
   local ret allow_empty="no" for_all="no" xmltype
@@ -360,6 +379,19 @@ csg_get_property () { #get an property from the xml file
   echo "${ret}"
 }
 export -f csg_get_property
+
+csg_get_property_substitute () { #get an property from the xml file and substitute the $state variable if multistate
+  # main use for this is the possibility to save the trajectory of each state with a distinct name on a different file system
+  local value multistate state
+  multistate="$(csg_get_property cg.inverse.multistate.enabled)"
+  if [[ $multistate == true ]]; then
+    export state=$(get_state_dir)
+  fi
+  value="$(csg_get_property "$@")"
+  value=$(bash -c "echo $value")
+  echo "$value"
+}
+export -f csg_get_property_substitute
 
 trim_all() { #make multiple lines into one and strip white space from beginning and the end, reads from stdin
   [[ -n "$(type -p tr)" ]] || die "${FUNCNAME[0]}: Could not find tr"
@@ -499,6 +531,26 @@ get_last_step_dir() { #print the directory of the last step
 }
 export -f get_last_step_dir
 
+get_state_dir() { # print the name of the state, from $PWD
+  local step_dir
+  step_dir=$(get_current_step_dir)
+  [[ ${PWD##${step_dir}/} == ${PWD} ]] && die "get_state_dir failed: not currently in a sub directory of a step dir"
+  echo ${PWD##${step_dir}/}
+}
+export -f get_state_dir
+
+get_state_nr() { # print the nr of the state, from $PWD
+  local state states i
+  state=get_state_dir
+  states=("$(csg_get_property cg.inverse.multistate.state_names)")
+  for i in "${!states[@]}"; do
+    if [[ ${states[$i]} == $state ]]; then
+      echo "${i}";
+    fi
+  done
+}
+export -f get_state_nr
+
 get_main_dir() { #print the main directory
   [[ -z $CSG_MAINDIR ]] && die "${FUNCNAME[0]}: CSG_MAINDIR is defined"
   [[ -d $CSG_MAINDIR ]] || die "${FUNCNAME[0]}: $CSG_MAINDIR is not dir"
@@ -541,6 +593,15 @@ cp_from_main_dir() { #copy something from the main directory
   critical popd
 }
 export -f cp_from_main_dir
+
+cp_from_state_dir() { #copy something from a state folder in the main directory
+  critical pushd "$(get_main_dir)/$1"
+  shift
+  echo "cp_from_state_dir: '$@'"
+  critical cp $@ "$(dirs -l +1)"
+  popd
+}
+export -f cp_from_state_dir
 
 cp_from_last_step() { #copy something from the last step
   if [[ $1 = "--rename" ]]; then
@@ -868,7 +929,7 @@ export -f enable_logging
 get_restart_file() { #print the name of the restart file to use
   local file
   file="$(csg_get_property cg.inverse.restart_file)"
-  [[ -z ${file/*\/*} ]] && die "${FUNCNAME[0]}: cg.inverse.restart_file has to be a local file with slash '/'"
+  [[ -z ${file/*\/*} ]] && die "${FUNCNAME[0]}: cg.inverse.restart_file has to be a local file without slash '/'"
   echo "$file"
 }
 export -f get_restart_file

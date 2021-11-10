@@ -56,7 +56,7 @@ topol=$(csg_get_property --allow-empty "cg.inverse.${sim_prog}.rdf.topol")
 [[ -f $topol ]] || die "${0##*/}: topol file '${topol}' not found, possibly you have to add it to cg.inverse.filelist"
 
 traj=$(csg_get_property --allow-empty "cg.inverse.${sim_prog}.rdf.traj")
-[[ -z $traj ]] && traj=$(csg_get_property "cg.inverse.${sim_prog}.traj")
+[[ -z $traj ]] && traj=$(csg_get_property_substitute "cg.inverse.${sim_prog}.traj")
 [[ -f $traj ]] || die "${0##*/}: traj file '${traj}' not found"
 
 maps=

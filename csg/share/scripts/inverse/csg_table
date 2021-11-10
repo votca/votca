@@ -32,6 +32,8 @@ prepare optimizer prepare_optimizer.sh
 prepare re prepare_re.sh
 prepare_single generic prepare_generic_single.sh
 prepare_single optimizer prepare_optimizer_single.sh
+prepare multistate_ibi prepare_multistate_generic.sh
+prepare multistate_iie prepare_multistate_iie.sh
 initstep generic initialize_step_generic.sh
 initstep ibi initialize_step_generic.sh
 initstep iie initialize_step_iie.sh
@@ -115,6 +117,8 @@ resample target resample_target.sh
 update ibi update_ibi.sh
 update ibi_single update_ibi_single.sh
 update ibi_pot update_ibi_pot.pl
+update multistate_ibi update_multistate_ibi.sh
+update multistate_ibi_single update_multistate_ibi_single.sh
 
 # iie specific stuff
 update iie update_iie.sh
@@ -178,6 +182,7 @@ table average table_average.sh
 table scale table_scale.pl
 table change_flag table_change_flag.sh
 table functional table_functional.sh
+table remove_error table_remove_error.sh
 
 # generic potential manipulation
 potential extrapolate potential_extrapolate.sh

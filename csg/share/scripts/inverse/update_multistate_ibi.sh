@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2014 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,24 +16,22 @@
 #
 
 if [ "$1" = "--help" ]; then
-    cat <<EOF
+cat <<EOF
 ${0##*/}, version %version%
-This script cleans up after a simulation step
+This script implements the function update for the multistate Inverse Boltzmann Method
 
 Usage: ${0##*/}
 EOF
-    exit 0
+   exit 0
 fi
 
-multistate=$(csg_get_property cg.inverse.multistate.enabled)
-if [[ $multistate == true ]]; then
-  export state=$(get_state_dir)
-  cleanlist=$(csg_get_property_substitute --allow-empty cg.inverse.cleanlist)
-else
-  cleanlist=$(csg_get_property --allow-empty cg.inverse.cleanlist)
-fi
-if [[ -n ${cleanlist} ]]; then
-  msg "Clean up files: $cleanlist"
-  #no quote to allow globbing
-  rm -f ${cleanlist}
-fi
+sim_prog="$(csg_get_property cg.inverse.program)"
+state_names="$(csg_get_property cg.inverse.multistate.state_names)"
+#if using csg_stat, like in the case of gromacs 'for_all' is actually not needed
+#but in case of espresso the rdfs are calculated seperately
+for state in $state_names; do
+  pushd "$state"
+  for_all "non-bonded bonded" do_external rdf $sim_prog
+  popd
+done
+for_all "non-bonded bonded" do_external update multistate_ibi_single

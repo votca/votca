@@ -53,7 +53,15 @@ done
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing argument"
 input="$1"
 main_dir=$(get_main_dir)
-[[ -f ${main_dir}/$input ]] || die "${0##*/}: Could not find input file '$input' in maindir ($main_dir)"
+multistate="$(csg_get_property cg.inverse.multistate.enabled)"
+if [[ $multistate == true ]]; then
+  state=$(get_state_dir)
+  [[ -f ${main_dir}/${state}/$input ]] || die "${0##*/}: Could not find input file '$input' in state_dir ($main_dir/$state)"
+  input_path="${main_dir}/${state}/$input"
+else
+  [[ -f ${main_dir}/$input ]] || die "${0##*/}: Could not find input file '$input' in main_dir ($main_dir)"
+  input_path="${main_dir}/$input"
+fi
 output="$2"
 
 min=$(csg_get_interaction_property min )
@@ -65,7 +73,7 @@ tabtype="$(csg_get_interaction_property bondtype)"
 comment="$(get_table_comment)"
 # resample
 resampled="$(critical mktemp ${name}.dist.tgt_resampled.XXXXX)"
-critical csg_resample --in ${main_dir}/${input} --out ${resampled} --grid ${min}:${step}:${max} --comment "${comment}"
+critical csg_resample --in ${input_path} --out ${resampled} --grid ${min}:${step}:${max} --comment "${comment}"
 # extrapolate
 if [[ $do_extrap == "yes" ]]; then
   extrapolated="$(critical mktemp ${name}.dist.tgt_extrapolated.XXXXX)"
