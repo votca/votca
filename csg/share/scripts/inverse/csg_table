@@ -32,6 +32,7 @@ prepare optimizer prepare_optimizer.sh
 prepare re prepare_re.sh
 prepare_single generic prepare_generic_single.sh
 prepare_single optimizer prepare_optimizer_single.sh
+prepare multistate_generic prepare_multistate_generic.sh
 prepare multistate_ibi prepare_multistate_generic.sh
 prepare multistate_iie prepare_multistate_iie.sh
 initstep generic initialize_step_generic.sh
@@ -89,6 +90,7 @@ postupd extrapolate postupd_extrapolate.sh
 postupd kbibi postupd_kbibi_correction.sh
 postupd cibi postupd_cibi_correction.sh
 postupd ibi postupd_ibi.sh
+postupd fix_near_cut_off postupd_fix_near_cut_off.py
 
 # post add
 post add post_add.sh
@@ -119,6 +121,7 @@ update ibi_single update_ibi_single.sh
 update ibi_pot update_ibi_pot.pl
 update multistate_ibi update_multistate_ibi.sh
 update multistate_ibi_single update_multistate_ibi_single.sh
+update multistate_iie update_multistate_iie.sh
 
 # iie specific stuff
 update iie update_iie.sh

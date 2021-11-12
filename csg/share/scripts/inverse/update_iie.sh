@@ -103,7 +103,7 @@ do_external update iie_pot "$iie_method" \
     --out "dpot.new" \
     ${pressure_constraint_flag-} \
     ${residual_weighting_flag-} \
-    ${tgt_dcdh_flag-} \
+    ${tgt_dcdh_flag-}
 
 # overwrite with zeros if do_potential=0
 do_potential_zero_overwrite() {

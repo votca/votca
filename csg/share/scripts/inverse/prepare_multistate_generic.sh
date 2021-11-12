@@ -51,7 +51,7 @@ case "$initial_guess_method" in
     fi
     popd
   done
-  # now average all states potential, not using weights, same as in the original MS-IBI Moore 2014
+  # now average all states potential, not using weights, same as in MS-IBI Moore 2014
   export state_names  # needed for the following command
   for_all "non-bonded bonded" do_external table average --clean --output '$(csg_get_interaction_property name).pot.with_error' \
     '$(for s in $state_names; do echo $s/$(csg_get_interaction_property name).pot.new; done)'

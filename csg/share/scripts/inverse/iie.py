@@ -79,8 +79,12 @@ def main():
                                       verbose=settings['verbose'])
     # gauss-newton update
     if settings['subcommand'] == 'gauss-newton':
-        output_arrays = gauss_newton_update(input_arrays, settings,
-                                            verbose=settings['verbose'])
+        if settings['multistate']:
+            output_arrays = multistate_gauss_newton_update(input_arrays, settings,
+                                                           verbose=settings['verbose'])
+        else:
+            output_arrays = gauss_newton_update(input_arrays, settings,
+                                                verbose=settings['verbose'])
     # save output (U or dU) to table files
     save_tables(output_arrays, settings)
 
@@ -112,20 +116,13 @@ def get_args(iie_args=None):
                           help='save some intermeditary results',
                           action='store_const', const=True, default=False)
         pars.add_argument('--volume', type=float,
-                          required=True,
-                          metavar='VOL',
-                          help='the volume of the box')
-        pars.add_argument('--kBT', type=float,
-                          required=True,
-                          metavar='kBT',
-                          help='Temperature times k_B')
+                          required=True, nargs='+', metavar='VOL',
+                          help='the volume of the box. Multiple if multistate')
         pars.add_argument('--topol', type=argparse.FileType('r'),
-                          required=True,
-                          metavar='TOPOL',
-                          help='XML topology file')
+                          required=True, nargs='+', metavar='TOPOL',
+                          help='XML topology file, Multiple if multistate')
         pars.add_argument('--options', type=argparse.FileType('r'),
-                          required=True,
-                          metavar='SETTINGS',
+                          required=True, metavar='SETTINGS',
                           help='XML settings file')
         pars.add_argument('--g-tgt-ext', type=str,
                           required=True,
@@ -154,14 +151,15 @@ def get_args(iie_args=None):
         pars.add_argument('--g-cur-intra-ext', type=str,
                           metavar='RDF_CUR_INTRA_EXT',
                           help='extension of current intramol. RDF files')
-        pars.add_argument('--tgt-dcdh', type=str, default='none',
+        pars.add_argument('--tgt-dcdh', type=argparse.FileType('r'),
+                          nargs='+', default=None,
                           help=(".npz file with dc/dh from target distributions. "
                                 "If provided, will be used. "
-                                "If 'none' the jacobian will be calculated from "
+                                "Otherwise the jacobian will be calculated from "
                                 "current distributions."))
-    # HNCGN only options
+    # GN only options
     parser_gauss_newton.add_argument('--pressure-constraint',
-                                     dest='pressure_constraint',
+                                     dest='pressure_constraint', nargs='+',
                                      type=str, default=None)
     parser_gauss_newton.add_argument('--residual-weighting',
                                      dest='residual_weighting',
@@ -171,6 +169,14 @@ def get_args(iie_args=None):
                                   dest='subtract_coulomb',
                                   help="remove Coulomb term from potential guess",
                                   action='store_const', const=True, default=False)
+    # only an argument for the potential guess, because it is evaluated per state
+    parser_pot_guess.add_argument('--kBT', type=float, required=True, metavar='kBT',
+                                  dest='kBT', help='Temperature times k_B')
+    # GN and dcdh subparsers
+    for pars in (parser_gauss_newton, parser_dcdh):
+        pars.add_argument('--multistate', dest='multistate',
+                          action='store_const', const=True, default=False,
+                          help="enable multistate method")
     # parse
     if iie_args is None:
         args = parser.parse_args()
@@ -187,10 +193,24 @@ def process_input(args):
     """Process arguments and perform some checks."""
     # args.options.read() can be called only once
     options = ET.fromstring(args.options.read())
-    topology = ET.fromstring(args.topol.read())
-    # get density_dict, n_intra_dict, and charge_dict
-    density_dict = get_density_dict(topology, args.volume)
-    n_intra_dict = get_n_intra_dict(topology)
+    # multistate settings
+    multistate = False
+    if args.subcommand in ('gauss-newton', 'dcdh'):
+        multistate = args.multistate
+    if multistate:
+        state_names = options.find(
+            "./inverse/multistate/state_names").text.split()
+    # get topology, density_dict, and n_intra_dict
+    if multistate:
+        topology = [ET.fromstring(top_file.read()) for top_file in args.topol]
+        density_dict = [get_density_dict(top, vol) for top, vol
+                        in zip(topology, args.volume)]
+        n_intra_dict = [get_n_intra_dict(top) for top in topology]  # prob. indep.
+    else:
+        topology = ET.fromstring(args.topol[0].read())
+        density_dict = get_density_dict(topology, args.volume[0])
+        n_intra_dict = get_n_intra_dict(topology)
+    # get charge_dict
     if args.subcommand == 'potential_guess':
         charge_dict = get_charge_dict(topology)
     # get non_bonded_dict
@@ -217,7 +237,7 @@ def process_input(args):
             'g_cur': {'extension': args.g_cur_ext, 'check-grid': True},
         }
         # if not target jacobian we need the current intramolecular RDFs
-        if args.tgt_dcdh == 'none':
+        if args.tgt_dcdh is None:
             table_infos = {
                 **table_infos,
                 'G_minus_g_cur': {'extension': args.g_cur_intra_ext,
@@ -225,37 +245,50 @@ def process_input(args):
             }
     # load input arrays
     input_arrays = {}  # will hold all input data
-    for table_name, table_info in table_infos.items():
-        input_arrays[table_name] = {}
-        for non_bonded_name in non_bonded_dict.keys():
-            if table_info['extension'] is None:
-                raise Exception(f"No file extension for {table_name} provided!")
-            x, y, flag = readin_table(non_bonded_name + '.' + table_info['extension'])
-            input_arrays[table_name][non_bonded_name] = {'x': x, 'y': y, 'flag': flag}
+    # Structure: [table_name, non_bonded_name, xyflag]
+    # Multistate structure: [state, table_name, non_bonded_name, xyflag]
+    if multistate:
+        state_names_temp = state_names
+    else:
+        state_names_temp = ['.']  # read from current dir, dict will be collapsed later
+    for state in state_names_temp:
+        input_arrays[state] = {}
+        for table_name, table_info in table_infos.items():
+            input_arrays[state][table_name] = {}
+            for non_bonded_name in non_bonded_dict.keys():
+                if table_info['extension'] is None:
+                    raise Exception(f"No file extension for {table_name} provided!")
+                x, y, flag = readin_table(f"{state}/{non_bonded_name}."
+                                          f"{table_info['extension']}")
+                input_arrays[state][table_name][non_bonded_name] = {'x': x, 'y': y,
+                                                                    'flag': flag}
     # check for same grid and define r
     r = None
-    for table_name, table_info in table_infos.items():
-        for non_bonded_name in non_bonded_dict.keys():
-            x = input_arrays[table_name][non_bonded_name]['x']
-            if table_info['check-grid']:
-                if r is None:
-                    # set first r
-                    r = x
-                else:
-                    # compare with first r
-                    if not np.allclose(x, r):
-                        raise RuntimeError("Grids of tables do not match")
+    for state in state_names_temp:
+        for table_name, table_info in table_infos.items():
+            for non_bonded_name in non_bonded_dict.keys():
+                x = input_arrays[state][table_name][non_bonded_name]['x']
+                if table_info['check-grid']:
+                    if r is None:
+                        # set first r
+                        r = x
+                    else:
+                        # compare with first r
+                        if not np.allclose(x, r):
+                            raise RuntimeError("Grids of tables do not match")
     # check if starts at r = 0.0, if so: remove
-    all_first_x = np.array([input_arrays[table_name][non_bonded_name]['x'][0]
+    all_first_x = np.array([input_arrays[state][table_name][non_bonded_name]['x'][0]
+                            for state in state_names_temp
                             for table_name, table_info in table_infos.items()
                             for non_bonded_name in non_bonded_dict.keys()])
     # if all r[0] = 0
     if np.allclose(all_first_x, np.zeros_like(all_first_x)):
-        for table_name, table_info in table_infos.items():
-            for non_bonded_name in non_bonded_dict.keys():
-                for key in ('x', 'y', 'flag'):
-                    input_arrays[table_name][non_bonded_name][key] = (
-                        input_arrays[table_name][non_bonded_name][key][1:])
+        for state in state_names_temp:
+            for table_name, table_info in table_infos.items():
+                for non_bonded_name in non_bonded_dict.keys():
+                    for key in ('x', 'y', 'flag'):
+                        input_arrays[state][table_name][non_bonded_name][key] = (
+                            input_arrays[state][table_name][non_bonded_name][key][1:])
         r = r[1:]
         r0_removed = True
     # if they do not start with 0 but are all the same value
@@ -263,30 +296,44 @@ def process_input(args):
         r0_removed = False
     else:
         raise Exception('either all or no input tables should start at r=0')
+    # input_arrays structure has one level less if not multistate
+    if not multistate:
+        assert len(input_arrays) == 1
+        input_arrays = input_arrays['.']  # collapse
+    del state_names_temp
     # quick access to r
     input_arrays['r'] = r
     # process input further
-    rhos = gen_beadtype_property_array(density_dict, non_bonded_dict)
-    n_intra = gen_beadtype_property_array(n_intra_dict, non_bonded_dict)
+    if multistate:
+        rhos = [gen_beadtype_property_array(dd, non_bonded_dict) for dd in density_dict]
+        n_intra = [gen_beadtype_property_array(nd, non_bonded_dict) for nd
+                   in n_intra_dict]
+    else:
+        rhos = gen_beadtype_property_array(density_dict, non_bonded_dict)
+        n_intra = gen_beadtype_property_array(n_intra_dict, non_bonded_dict)
     # settings
-    # copy some directly from args
+    # copy some settings directly from args
     args_to_copy = ('closure', 'verbose', 'out', 'subcommand', 'residual_weighting',
-                    'kBT', 'subtract_coulomb')
+                    'subtract_coulomb', 'kBT')
     settings = {key: vars(args)[key] for key in args_to_copy if key in vars(args)}
     settings['non-bonded-dict'] = non_bonded_dict
     settings['rhos'] = rhos
     settings['n_intra'] = n_intra
     settings['r0-removed'] = r0_removed
+    if (not multistate) and args.subcommand in ('gauss-newton', 'newton'):
+        settings['kBT'] = float(options.find("./inverse/kBT").text)
     # determine dc/dh buffer
     if args.subcommand in ('newton', 'gauss-newton'):
-        if args.tgt_dcdh.lower() == 'none':
+        if args.tgt_dcdh is None:
             settings['tgt_dcdh'] = None
         else:
             # reuse dc/dh
+            # close file(s), because we use np.load on file name
+            map(lambda x: x.close, args.tgt_dcdh)
             try:
-                settings['tgt_dcdh'] = np.load(args.tgt_dcdh)['dcdh']
+                settings['tgt_dcdh'] = np.load(args.tgt_dcdh[0].name)['dcdh']
             except (FileNotFoundError, ValueError):
-                raise Exception("Can not load tgt_dcdh file that was provided")
+                raise Exception("Can not load tgt_dcdh file(s) that were provided")
     # determine cut-off
     if args.subcommand == 'potential_guess':
         settings['cut_off'] = float(
@@ -296,7 +343,7 @@ def process_input(args):
     # determine slices from cut_off
     settings['cut_pot'], settings['tail_pot'] = calc_slices(r, settings['cut_off'],
                                                             settings['verbose'])
-    # determine slices from cut_residual and cut_off
+    # determine slices from cut_residual
     if args.subcommand in ('gauss-newton', 'dcdh'):
         cut_residual = options.find("./inverse/iie/cut_residual")
         # only if defined, not required for dc/dh, will then just use cut_off
@@ -307,16 +354,30 @@ def process_input(args):
     if args.subcommand == 'gauss-newton':
         constraints = []
         if args.pressure_constraint is not None:
-            p_target = float(args.pressure_constraint.split(',')[0])
-            p_current = float(args.pressure_constraint.split(',')[1])
-            constraints.append({'type': 'pressure', 'target': p_target,
-                                'current': p_current})
+            if multistate:
+                p_target = [float(pc.split(',')[0]) for pc in args.pressure_constraint]
+                p_current = [float(pc.split(',')[1]) for pc in args.pressure_constraint]
+                constraints.append({'type': 'pressure', 'target': p_target,
+                                    'current': p_current})
+            else:
+                p_target = float(args.pressure_constraint.split(',')[0])
+                p_current = float(args.pressure_constraint.split(',')[1])
+                constraints.append({'type': 'pressure', 'target': p_target,
+                                    'current': p_current})
+
         settings['constraints'] = constraints
     # stuff for subtracting coulomb potential
     if args.subcommand == 'potential_guess':
         settings['charge_dict'] = charge_dict
         settings['non_bonded_dict'] = non_bonded_dict
-
+    # other multistate settings
+    settings['multistate'] = multistate
+    if multistate:
+        settings['state_names'] = state_names
+        settings['state_weights'] = list(map(float, options.find(
+            "./inverse/multistate/state_weights").text.split()))
+        settings['state_kBTs'] = list(map(float, options.find(
+            "./inverse/multistate/state_kBTs").text.split()))
     return input_arrays, settings
 
 
@@ -559,7 +620,7 @@ def calc_jacobian(input_arrays, settings, verbose=False):
         # calculate dc/dh on long range
         dcdh_long = calc_dcdh(r, g_cur_mat, G_minus_g_cur_mat,
                               settings['rhos'], settings['n_intra'],
-                              settings['kBT'], verbose)
+                              verbose)
         dcdh_long_2D = make_matrix_2D(dcdh_long)
         # cut invert dc/dh, cut dh/dc, invert again
         dcdh_2D = cut_matrix_inverse(dcdh_long_2D, n_r, n_i, cut)
@@ -576,7 +637,78 @@ def calc_jacobian(input_arrays, settings, verbose=False):
 
 
 @if_verbose_dump_io
-def calc_dcdh(r, g_mat, G_minus_g_mat, rhos, n_intra, kBT, verbose=False):
+def calc_multistate_jacobian(input_arrays, settings, verbose=False):
+    """
+    Calculate dg/du, the Jacobian and its inverse du/dg using RISM-OZ + closure.
+
+    Args:
+        input_arrays: nested dict holding the distributions
+        settings: dict holding relevant settings
+        verbose: save parameters and return of this and contained functions as numpy
+                 file
+
+    Returns:
+        The Jacobian™ and its inverse
+    """
+    # obtain r
+    r = input_arrays['r']
+    # number of atom types
+    n_t = len(settings['rhos'][0])
+    # number of interactions
+    n_i = int(n_t**2)
+    # number of grid points in r
+    n_r = len(r)
+    state_names = settings['state_names']  # shortcut
+    # n_s = len(state_names)
+    # slices
+    if 'cut_res' in settings.keys():
+        cut, _ = settings['cut_res'], settings['tail_res']
+    else:
+        cut, _ = settings['cut_pot'], settings['tail_pot']
+    n_c = len(r[cut])
+    jac_mat_list = []
+    if settings['tgt_dcdh'] is not None:
+        dcdh_allstates = settings['tgt_dcdh']
+        # the input dc/dh should already be cut to the cut-off
+        assert n_c == dcdh_allstates.shape[0]
+    else:
+        if n_c * 2 > n_r:
+            print("WARNING: max is smaller than twice of cut_off. This will lead to "
+                  "artifacts in the Jacobian.")
+    for s, state in enumerate(state_names):
+        g_tgt_mat = gen_interaction_matrix(
+            r, input_arrays[state]['g_tgt'], settings['non-bonded-dict'])
+        g_cur_mat = gen_interaction_matrix(
+            r, input_arrays[state]['g_cur'], settings['non-bonded-dict'])
+        if settings['tgt_dcdh'] is not None:
+            dcdh = dcdh_allstates[:, :, :, s*n_i:(s+1)*n_i]
+        else:
+            # generate dc/dh, invert, cut it, and invert again
+            G_minus_g_cur_mat = gen_interaction_matrix(
+                r, input_arrays[state]['G_minus_g_cur'], settings['non-bonded-dict'])
+            # calculate dc/dh on long range
+            dcdh_long = calc_dcdh(
+                r, g_cur_mat, G_minus_g_cur_mat, settings['rhos'][s],
+                settings['n_intra'][s], verbose)
+            dcdh_long_2D = make_matrix_2D(dcdh_long)
+            # cut invert dc/dh, cut dh/dc, invert again
+            dcdh_2D = cut_matrix_inverse(dcdh_long_2D, n_r, n_i, cut)
+            # make it a 4D array again
+            dcdh = make_matrix_4D(dcdh_2D, n_c, n_c, n_i, n_i)
+        # add the 1/g term to dc/dh and obtain inverse Jacobian
+        jac_inv_mat_state = add_jac_inv_diagonal(
+            r[cut], g_tgt_mat[cut], g_cur_mat[cut], dcdh,
+            settings['rhos'][s], settings['n_intra'][s],
+            settings['state_kBTs'][s], settings['closure'], verbose)
+        jac_mat_state = make_matrix_4D(np.linalg.inv(make_matrix_2D(jac_inv_mat_state)),
+                                       n_c, n_c, n_i, n_i)
+        jac_mat_list.append(jac_mat_state)
+    jac_mat = np.concatenate(jac_mat_list, axis=2)  # along first interaction axis
+    return jac_mat
+
+
+@if_verbose_dump_io
+def calc_dcdh(r, g_mat, G_minus_g_mat, rhos, n_intra, verbose=False):
     """
     Calculate the derivative dvec(c)/dvec(h) which is part of the Jacobian.
 
@@ -639,7 +771,7 @@ def calc_and_save_dcdh(input_arrays, settings, verbose=False):
     # obtain r
     r = input_arrays['r']
     # number of atom types
-    n_t = len(settings['rhos'])
+    n_t = len(settings['rhos'][0 if settings['multistate'] else slice(None)])
     # number of interactions
     n_i = int(n_t**2)
     # number of grid points in r
@@ -654,24 +786,45 @@ def calc_and_save_dcdh(input_arrays, settings, verbose=False):
     if n_c * 2 > n_r:
         print("WARNING: max is smaller than twice of cut_off. This will lead to "
               "artifacts in dc/dh.")
-    # generate matrices
-    g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
-                                       settings['non-bonded-dict'])
-    # generate dc/dh, invert, cut it, and invert again
-    G_minus_g_tgt_mat = gen_interaction_matrix(r, input_arrays['G_minus_g_tgt'],
+    if settings['multistate']:
+        dcdh_list = []
+        for s, state in enumerate(settings['state_names']):
+            # generate matrices
+            g_tgt_mat = gen_interaction_matrix(r, input_arrays[state]['g_tgt'],
                                                settings['non-bonded-dict'])
-    # calculate dc/dh on long range
-    dcdh_long = calc_dcdh(r, g_tgt_mat, G_minus_g_tgt_mat,
-                          settings['rhos'], settings['n_intra'],
-                          settings['kBT'], verbose)
-    dcdh_long_2D = make_matrix_2D(dcdh_long)
-    # cut invert dc/dh, cut dh/dc, invert again
-    dcdh_2D = cut_matrix_inverse(dcdh_long_2D, n_r, n_i, cut)
-    # make it a 4D array again
-    dcdh = make_matrix_4D(dcdh_2D, n_c, n_c, n_i, n_i)
-    # save to npz file
-    if settings['out'] != 'none':
-        np.savez_compressed(settings['out'], dcdh=dcdh)
+            # generate dc/dh, invert, cut it, and invert again
+            G_minus_g_tgt_mat = gen_interaction_matrix(
+                r, input_arrays[state]['G_minus_g_tgt'], settings['non-bonded-dict'])
+            # calculate dc/dh on long range
+            dcdh_long = calc_dcdh(
+                r, g_tgt_mat, G_minus_g_tgt_mat, settings['rhos'][s],
+                settings['n_intra'][s], verbose)
+            dcdh_long_2D = make_matrix_2D(dcdh_long)
+            # cut invert dc/dh, cut dh/dc, invert again
+            dcdh_2D = cut_matrix_inverse(dcdh_long_2D, n_r, n_i, cut)
+            # make it a 4D array again
+            dcdh_list.append(make_matrix_4D(dcdh_2D, n_c, n_c, n_i, n_i))
+        # save to npz file
+        if settings['out'] != 'none':
+            np.savez_compressed(settings['out'], dcdh=np.concatenate(dcdh_list, 3))
+    else:
+        # generate matrices
+        g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
+                                           settings['non-bonded-dict'])
+        # generate dc/dh, invert, cut it, and invert again
+        G_minus_g_tgt_mat = gen_interaction_matrix(r, input_arrays['G_minus_g_tgt'],
+                                                   settings['non-bonded-dict'])
+        # calculate dc/dh on long range
+        dcdh_long = calc_dcdh(r, g_tgt_mat, G_minus_g_tgt_mat,
+                              settings['rhos'], settings['n_intra'], verbose)
+        dcdh_long_2D = make_matrix_2D(dcdh_long)
+        # cut invert dc/dh, cut dh/dc, invert again
+        dcdh_2D = cut_matrix_inverse(dcdh_long_2D, n_r, n_i, cut)
+        # make it a 4D array again
+        dcdh = make_matrix_4D(dcdh_2D, n_c, n_c, n_i, n_i)
+        # save to npz file
+        if settings['out'] != 'none':
+            np.savez_compressed(settings['out'], dcdh=dcdh)
 
 
 @if_verbose_dump_io
@@ -742,7 +895,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     # grid spacing
     Delta_r = calc_grid_spacing(r)
     # slices
-    cut_pot, _ = settings['cut_pot'], settings['tail_pot']
+    cut_pot, tail_pot = settings['cut_pot'], settings['tail_pot']
     cut_res, _ = settings['cut_res'], settings['tail_res']
     n_c_pot = len(r[cut_pot])
     n_c_res = len(r[cut_res])
@@ -752,7 +905,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     g_cur_mat = gen_interaction_matrix(r, input_arrays['g_cur'],
                                        settings['non-bonded-dict'])
     # calculate the ready-to-use jacobian inverse
-    jac_mat, jac_inv_mat = calc_jacobian(input_arrays, settings, verbose)
+    jac_mat, _ = calc_jacobian(input_arrays, settings, verbose)
     # make Jacobian 2D
     jac_2D = make_matrix_2D(jac_mat)
     # weighting
@@ -834,6 +987,8 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     dU_vec = dU_flat.reshape(n_i, n_c_res).T
     # dU matrix
     dU_mat = devectorize(dU_vec)
+    # cut off tail
+    # dU_mat = dU_mat[cut_pot]
     # prepare output
     output_arrays = {}
     for non_bonded_name, dU_dict in gen_interaction_dict(
@@ -841,6 +996,155 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
         r_out = dU_dict['x']
         dU = dU_dict['y']
         dU_flag = gen_flag_isfinite(dU)
+        dU_flag[tail_pot] = 'o'
+        if settings['r0-removed']:
+            r_out = np.concatenate(([0.0], r_out))
+            dU = np.concatenate(([np.nan], dU))
+            dU_flag = np.concatenate((['o'], dU_flag))
+        # shift potential to make last value zero
+        dU -= dU[-1]
+        # change NaN in the core region to first valid value
+        dU = extrapolate_dU_left_constant(dU, dU_flag)
+        # save for output
+        output_arrays[non_bonded_name] = {'x': r_out, 'y': dU, 'flag': dU_flag}
+    return output_arrays
+
+
+@if_verbose_dump_io
+def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
+    """Calculate Gauss-Newton potential update based on s.a. RISM-OZ and closure.
+
+    Args:
+        input_arrays: nested dict holding the distributions
+        settings: dict holding relevant settings
+        verbose: save parameters and return of this and contained functions as numpy
+                 file
+
+    Returns:
+        dictionary of potential updates including flags to be saved
+    """
+    # ######## MULTISTATE ######### #
+    # MULTISTATE ################## #
+    # ################## MULTISTATE #
+    # ######## MULTISTATE ######### #
+
+    # obtain r
+    r = input_arrays['r']
+    # number of atom types
+    n_t = len(settings['rhos'][0])
+    # number of interactions including redundand ones
+    n_i = int(n_t**2)
+    # number of states
+    state_names = settings['state_names']  # shortcut
+    n_s = len(state_names)
+    # grid spacing
+    Delta_r = calc_grid_spacing(r)
+    # slices
+    cut_pot, tail_pot = settings['cut_pot'], settings['tail_pot']
+    cut_res, _ = settings['cut_res'], settings['tail_res']
+    n_c_pot = len(r[cut_pot])
+    n_c_res = len(r[cut_res])
+    # generate matrices
+    # g_tgt and g_cur, [r, state * interaction]
+    g_tgt_vec = np.concatenate([vectorize(gen_interaction_matrix(
+        r, input_arrays[s]['g_tgt'], settings['non-bonded-dict']))
+                                for s in state_names], axis=1)
+    g_cur_vec = np.concatenate([vectorize(gen_interaction_matrix(
+        r, input_arrays[s]['g_cur'], settings['non-bonded-dict']))
+                                for s in state_names], axis=1)
+    # calculate the ready-to-use jacobian inverse
+    jac_mat = calc_multistate_jacobian(input_arrays, settings, verbose)
+    # make Jacobian 2D
+    jac_2D = make_matrix_2D(jac_mat)
+    del jac_mat  # saving memory
+    # weighting
+    if settings['residual_weighting'] == 'unity':
+        weights = np.ones((n_c_res, n_s * n_i))
+    elif settings['residual_weighting'] == 'one_over_rdf':
+        # we have to add a small number here, otherwise the inverse below fails
+        # alternatively one could could cut each sub block but that would get tedious
+        weights = 1 / (g_tgt_vec+1e-30)
+    elif settings['residual_weighting'] == 'one_over_sqrt_rdf':
+        weights = 1 / (np.sqrt(g_tgt_vec)+1e-30)
+    else:
+        raise Exception('Unknown weighting scheme:', settings['residual_weighting'])
+    # weight Jacobian
+    jac_2D = np.diag(weights.T.flatten()) @ jac_2D
+    # Delta g for potential update
+    Delta_g_vec = g_cur_vec - g_tgt_vec
+    # cut and weight Delta_g and obtain residuals
+    residuals_vec = np.zeros((n_c_res, n_s * n_i))
+    for s in range(n_s):
+        for i in range(n_i):
+            residuals_vec[:, s*n_i+i] = (np.diag(weights[:, s*n_i+i])
+                                         @ Delta_g_vec[cut_res, s*n_i+i])
+    # flatten residuals
+    residuals_flat = residuals_vec.T.flatten()
+    if ('pressure' in (c['type'] for c in settings['constraints'])
+            or len(settings['constraints']) == 0):
+        # update force rather than potential
+        # antiderivative operator (upper triangular matrix on top of zeros)
+        A0_2D = kron_2D(np.identity(n_i),
+                        Delta_r * np.triu(np.ones((n_c_res, n_c_pot-1)), k=0))
+        C = np.zeros((len(settings['constraints']), n_i * (n_c_pot-1)))
+    else:
+        # update potential, A0 just cuts of the tail
+        # currently this is never used
+        A0_2D = kron_2D(np.identity(n_i),
+                        np.append(np.identity(n_c_pot),
+                                  np.zeros((n_c_res-n_c_pot, n_c_pot)), axis=0))
+        C = np.zeros((len(settings['constraints']), n_s * n_i * n_c_pot))
+    A = jac_2D @ A0_2D
+    b = residuals_flat
+    d = np.zeros(len(settings['constraints']))
+    for c, constraint in enumerate(settings['constraints']):
+        if constraint['type'] == 'pressure':
+            # current pressure
+            p = constraint['current'] / BAR_PER_MD_PRESSURE
+            # target pressure
+            p_tgt = constraint['target'] / BAR_PER_MD_PRESSURE
+            # g_tgt(r_{i+1})
+            g_tgt_ip1 = g_tgt_vec[cut_pot][1:].T.flatten()
+            # g_tgt(r_{i})
+            g_tgt_i = g_tgt_vec[cut_pot][:-1].T.flatten()
+            # r_{i}
+            r_i = np.tile(r[cut_pot][:-1], n_i)
+            # r_{i+1}
+            r_ip1 = np.tile(r[cut_pot][1:], n_i)
+            # density product ρ_i * ρ_j as vector of same length as r_i
+            rho_i = np.repeat(np.outer(*([settings['rhos']]*2)).flatten(), n_c_pot-1)
+            # l vector
+            ll = (g_tgt_i + g_tgt_ip1) * (r_ip1**4 - r_i**4)
+            ll *= -1/12 * np.pi * rho_i
+            # ll has differt sign than in Delbary, since different definition of b
+            # I think this does not need another factor for mixed interactions
+            # internally we have u_ij and u_ji seperate, but so we have in the virial
+            # expression for mixtures
+            # set C row and d element
+            C[c, :] = ll
+            d[c] = p_tgt - p
+
+        # elif constraint['type'] == 'potential_energy_relation':
+            # idea is to have a relation between integral g_i u_i dr and
+            # integral g_j u_j dr, for example to prohibit phase separation
+            # not compatiple with pressure, because it needs potential, not force
+        else:
+            raise NotImplementedError("not implemented constraint type: "
+                                      + constraint['type'])
+    # solve linear equation
+    dU_flat = -A0_2D @ solve_linear_with_constraints(A, C, b, d)
+    dU_vec = dU_flat.reshape(n_i, n_c_res).T
+    # dU matrix
+    dU_mat = devectorize(dU_vec)
+    # dU_mat = dU_mat[cut_pot]
+    # prepare output
+    output_arrays = {}
+    for non_bonded_name, dU_dict in gen_interaction_dict(
+            r[cut_res], dU_mat, settings['non-bonded-dict']).items():
+        r_out = dU_dict['x']
+        dU = dU_dict['y']
+        dU_flag = gen_flag_isfinite(dU)
+        dU_flag[tail_pot] = 'o'
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r_out))
             dU = np.concatenate(([np.nan], dU))
@@ -895,7 +1199,7 @@ def calc_slices(r, cut_off, verbose=False):
     0---------------------cut_off-----------r[-1]  # distances
     0---------------------ndx_co---------len(r)+1  # indices
     note: in earlier versions, there were slices (nocore, crucial) that
-    excluded the core region
+    excluded the core region (rdv < threshold)
     """
     ndx_co = find_after_cut_off_ndx(r, cut_off)
     cut = slice(0, ndx_co)
