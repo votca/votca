@@ -202,6 +202,24 @@ class Orbitals {
 
   const std::string getAuxbasisName() const { return auxbasis_.Name(); }
 
+  // const AOBasis &getTruncatedBasis() const {
+  //   if (truncatedbasis_.AOBasisSize() == 0) {
+  //     throw std::runtime_error(
+  //         "Requested the truncated basis, but no basis is present.");
+  //   } else {
+  //     return truncatedbasis_;
+  //   }
+  // }
+
+  // const AOBasis &getTruncatedAuxBasis() const {
+  //   if (truncatedauxbasis_.AOBasisSize() == 0) {
+  //     throw std::runtime_error(
+  //         "Requested the Aux basis, but no basis is present.");
+  //   } else {
+  //     return truncatedauxbasis_;
+  //   }
+  // }
+
   // access to list of indices used in GWA
 
   bool hasGWAindices() const { return (qpmax_ > 0) ? true : false; }
@@ -421,6 +439,8 @@ class Orbitals {
 
   AOBasis dftbasis_;
   AOBasis auxbasis_;
+  // AOBasis truncatedbasis_;
+  // AOBasis truncatedauxbasis_;
 
   double qm_energy_ = 0;
 

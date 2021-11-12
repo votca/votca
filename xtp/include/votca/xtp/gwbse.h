@@ -56,6 +56,7 @@ class AOBasis;
 class GWBSE {
  public:
   GWBSE(Orbitals& orbitals) : orbitals_(orbitals){};
+  //GWBSE(Orbitals& orb_embedded) : orb_embedded_(orb_embedded){};
 
   void Initialize(tools::Property& options);
 
@@ -72,6 +73,7 @@ class GWBSE {
   Index CountCoreLevels();
   Logger* pLog_;
   Orbitals& orbitals_;
+  //Orbitals& orb_embedded_;
 
   // program tasks
 

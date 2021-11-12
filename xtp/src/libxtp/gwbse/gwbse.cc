@@ -590,7 +590,14 @@ bool GWBSE::Evaluate() {
       << TimeStamp() << " Loaded DFT Basis Set " << dftbasis_name_ << flush;
 
   // fill DFT AO basis by going through all atoms
-  AOBasis dftbasis = orbitals_.getDftBasis();
+  // bool truncbasis = false;
+  // if (truncbasis){
+  //   AOBasis dftbasis = orb_embedded_.getTruncatedBasis();
+  // }
+  // else
+  // {
+    AOBasis dftbasis = orbitals_.getDftBasis();
+  //}
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled DFT Basis of size "
                               << dftbasis.AOBasisSize() << flush;
   XTP_LOG(Log::error, *pLog_)
