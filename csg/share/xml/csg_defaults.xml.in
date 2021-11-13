@@ -432,8 +432,8 @@
       <pressure_constraint>none
         <DESC>If not none, apply value as pressure constraint. Only for method=gauss-newton</DESC>
       </pressure_constraint>
-      <residual_weighting>one_over_sqrt_rdf
-        <DESC>Function to use for weighting the residuals. Only for method=gauss-newton. Valid values are: unity, one_over_rdf, one_over_sqrt_rdf (default), r_squared_over_sqrt_rdf</DESC>
+      <residual_weighting>r_squared_over_sqrt_rdf
+      <DESC>Function to use for weighting the residuals. Only for method=gauss-newton. Valid values are: [one_plus_]{one,r,r_squared}_over_{one,sqrt_rdf,rdf} and unity. The default is r_squared_over_sqrt_rdf</DESC>
       </residual_weighting>
       <!--DEPRECATED, use residua_weigthing instead<extrap_near_core>power
         <DESC>Method for extrapolation in and close to core region. Valid values are: power (default), constant, none</DESC>
