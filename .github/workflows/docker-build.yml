@@ -13,22 +13,12 @@ on:
   schedule:
     - cron:  '0 5 * * FRI'
 
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
 jobs:
-  cancel-duplicate-workflow-runs:
-    name: "Cancel duplicate workflow runs"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: potiuk/cancel-workflow-runs@master
-        name: "Cancel duplicate workflow runs"
-        with:
-          cancelMode: duplicates
-          cancelFutureDuplicates: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-          sourceRunId: ${{ github.event.workflow_run.id }}
-          notifyPRCancel: true
-          skipEventTypes: '["push", "schedule"]'
   Build:
-    needs: [cancel-duplicate-workflow-runs]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

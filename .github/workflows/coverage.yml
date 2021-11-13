@@ -7,22 +7,12 @@ on:
     branches:
       - master
 
+concurrency:
+  group: ${ {github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
 jobs:
-  cancel-duplicate-workflow-runs:
-    name: "Cancel duplicate workflow runs"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: potiuk/cancel-workflow-runs@master
-        name: "Cancel duplicate workflow runs"
-        with:
-          cancelMode: duplicates
-          cancelFutureDuplicates: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-          sourceRunId: ${{ github.event.workflow_run.id }}
-          notifyPRCancel: true
-          skipEventTypes: '["push", "schedule"]'
   Coverage:
-    needs: [cancel-duplicate-workflow-runs]
     strategy:
       matrix:
         distro: ['fedora:latest']
