@@ -909,18 +909,9 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     # make Jacobian 2D
     jac_2D = make_matrix_2D(jac_mat)
     # weighting
-    if settings['residual_weighting'] == 'unity':
-        weights = np.ones((n_c_res, n_i))
-    elif settings['residual_weighting'] == 'one_over_rdf':
-        # we have to add a small number here, otherwise the inverse below fails
-        # alternatively one could could cut each sub block but that would get tedious
-        weights = vectorize(1/(g_tgt_mat+1e-30))
-    elif settings['residual_weighting'] == 'one_over_sqrt_rdf':
-        weights = vectorize(1/(np.sqrt(g_tgt_mat)+1e-30))
-    elif settings['residual_weighting'] == 'r_squared_over_sqrt_rdf':
-        weights = vectorize(r**2/(np.sqrt(g_tgt_mat)+1e-30))
-    else:
-        raise Exception('Unknown weighting scheme:', settings['residual_weighting'])
+    g_tgt_vec = vectorize(g_tgt_mat)
+    weights = gen_residual_weights(settings['residual_weighting'], r, n_c_res,
+                                   n_i, 1, g_tgt_vec)
     # weight Jacobian
     jac_2D = np.diag(weights.T.flatten()) @ jac_2D
     # Delta g for potential update
@@ -1059,19 +1050,9 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
     # make Jacobian 2D
     jac_2D = make_matrix_2D(jac_mat)
     del jac_mat  # saving memory
-    # weighting
-    if settings['residual_weighting'] == 'unity':
-        weights = np.ones((n_c_res, n_s * n_i))
-    elif settings['residual_weighting'] == 'one_over_rdf':
-        # we have to add a small number here, otherwise the inverse below fails
-        # alternatively one could could cut each sub block but that would get tedious
-        weights = 1 / (g_tgt_vec+1e-30)
-    elif settings['residual_weighting'] == 'one_over_sqrt_rdf':
-        weights = 1 / (np.sqrt(g_tgt_vec)+1e-30)
-    elif settings['residual_weighting'] == 'r_squared_over_sqrt_rdf':
-        weights = r**2 / (np.sqrt(g_tgt_vec)+1e-30)
-    else:
-        raise Exception('Unknown weighting scheme:', settings['residual_weighting'])
+    # weights
+    weights = gen_residual_weights(settings['residual_weighting'], r, n_c_res,
+                                   n_i, n_s, g_tgt_vec)
     # weight Jacobian
     jac_2D = np.diag(weights.T.flatten()) @ jac_2D
     # Delta g for potential update
@@ -1084,57 +1065,15 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
                                          @ Delta_g_vec[cut_res, s*n_i+i])
     # flatten residuals
     residuals_flat = residuals_vec.T.flatten()
-    if ('pressure' in (c['type'] for c in settings['constraints'])
-            or len(settings['constraints']) == 0):
-        # update force rather than potential
-        # antiderivative operator (upper triangular matrix on top of zeros)
-        A0_2D = kron_2D(np.identity(n_i),
-                        Delta_r * np.triu(np.ones((n_c_res, n_c_pot-1)), k=0))
-        C = np.zeros((len(settings['constraints']), n_i * (n_c_pot-1)))
-    else:
-        # update potential, A0 just cuts of the tail
-        # currently this is never used
-        A0_2D = kron_2D(np.identity(n_i),
-                        np.append(np.identity(n_c_pot),
-                                  np.zeros((n_c_res-n_c_pot, n_c_pot)), axis=0))
-        C = np.zeros((len(settings['constraints']), n_s * n_i * n_c_pot))
+    # TODO: pressure constraint for multistate
+    # update force rather than potential
+    # antiderivative operator (upper triangular matrix on top of zeros)
+    A0_2D = kron_2D(np.identity(n_i),
+                    Delta_r * np.triu(np.ones((n_c_res, n_c_pot-1)), k=0))
+    C = np.zeros((0, n_i * (n_c_pot-1)))
     A = jac_2D @ A0_2D
     b = residuals_flat
-    d = np.zeros(len(settings['constraints']))
-    for c, constraint in enumerate(settings['constraints']):
-        if constraint['type'] == 'pressure':
-            # current pressure
-            p = constraint['current'] / BAR_PER_MD_PRESSURE
-            # target pressure
-            p_tgt = constraint['target'] / BAR_PER_MD_PRESSURE
-            # g_tgt(r_{i+1})
-            g_tgt_ip1 = g_tgt_vec[cut_pot][1:].T.flatten()
-            # g_tgt(r_{i})
-            g_tgt_i = g_tgt_vec[cut_pot][:-1].T.flatten()
-            # r_{i}
-            r_i = np.tile(r[cut_pot][:-1], n_i)
-            # r_{i+1}
-            r_ip1 = np.tile(r[cut_pot][1:], n_i)
-            # density product ρ_i * ρ_j as vector of same length as r_i
-            rho_i = np.repeat(np.outer(*([settings['rhos']]*2)).flatten(), n_c_pot-1)
-            # l vector
-            ll = (g_tgt_i + g_tgt_ip1) * (r_ip1**4 - r_i**4)
-            ll *= -1/12 * np.pi * rho_i
-            # ll has differt sign than in Delbary, since different definition of b
-            # I think this does not need another factor for mixed interactions
-            # internally we have u_ij and u_ji seperate, but so we have in the virial
-            # expression for mixtures
-            # set C row and d element
-            C[c, :] = ll
-            d[c] = p_tgt - p
-
-        # elif constraint['type'] == 'potential_energy_relation':
-            # idea is to have a relation between integral g_i u_i dr and
-            # integral g_j u_j dr, for example to prohibit phase separation
-            # not compatiple with pressure, because it needs potential, not force
-        else:
-            raise NotImplementedError("not implemented constraint type: "
-                                      + constraint['type'])
+    d = np.zeros(0)
     # solve linear equation
     dU_flat = -A0_2D @ solve_linear_with_constraints(A, C, b, d)
     dU_vec = dU_flat.reshape(n_i, n_c_res).T
@@ -1162,6 +1101,38 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
         # save for output
         output_arrays[non_bonded_name] = {'x': r_out, 'y': dU, 'flag': dU_flag}
     return output_arrays
+
+
+def gen_residual_weights(res_weight_scheme, r, n_c_res, n_i, n_s, g_tgt_vec):
+    if res_weight_scheme == 'unity':
+        return np.ones((n_c_res, n_s * n_i))
+    if '_over_' not in res_weight_scheme:
+        raise Exception('Unknown weighting scheme:', res_weight_scheme)
+    weights = np.zeros((n_c_res, n_s * n_i))
+    if res_weight_scheme.startswith('one_plus_'):
+        weights += 1
+        res_weight_scheme = res_weight_scheme[len('one_plus_'):]
+    numerator_key, denominator_key = res_weight_scheme.split('_over_')
+    if numerator_key == 'one':
+        numerator = 1
+    elif numerator_key == 'r':
+        numerator = np.repeat(np.transpose([r]), n_s * n_i, 1)
+    elif numerator_key == 'r_squared':
+        numerator = np.repeat(np.transpose([r**2]), n_s * n_i, 1)
+    else:
+        raise Exception('Unknown weighting scheme numerator:', numerator_key)
+    if denominator_key == 'one':
+        denominator = 1
+    elif denominator_key == 'sqrt_rdf':
+        # we have to add a small number here, otherwise the inverse below fails
+        # alternatively one could could cut each sub block but that would get tedious
+        denominator = np.sqrt(g_tgt_vec) + 1e-30
+    elif denominator_key == 'rdf':
+        denominator = g_tgt_vec + 1e-30
+    else:
+        raise Exception('Unknown weighting scheme denominator:', denominator_key)
+    weights = weights + numerator / denominator
+    return weights
 
 
 def gen_Omega_hat_mat(G_minus_g_hat_mat, rhos, n_intra):
