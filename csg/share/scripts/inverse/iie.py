@@ -917,6 +917,8 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
         weights = vectorize(1/(g_tgt_mat+1e-30))
     elif settings['residual_weighting'] == 'one_over_sqrt_rdf':
         weights = vectorize(1/(np.sqrt(g_tgt_mat)+1e-30))
+    elif settings['residual_weighting'] == 'r_squared_over_sqrt_rdf':
+        weights = vectorize(r**2/(np.sqrt(g_tgt_mat)+1e-30))
     else:
         raise Exception('Unknown weighting scheme:', settings['residual_weighting'])
     # weight Jacobian
