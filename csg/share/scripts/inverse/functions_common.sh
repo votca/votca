@@ -536,16 +536,16 @@ get_state_dir() { # print the name of the state, from $PWD
   step_dir=$(get_current_step_dir --no-check)
   [[ ${PWD/${step_dir}} == ${PWD} ]] && die "get_state_dir failed: not currently in a sub directory of a step dir"
   [[ -n ${PWD/*${step_dir}} ]] || die "get_state_dir failed: currently in a step dir, not in a state dir"
-  # remove total path, step_dir and trailing slash
+  # remove absolute path, step_dir and trailing slash
   echo ${PWD/*${step_dir}\/}
 }
 export -f get_state_dir
 
 get_state_nr() { # print the nr of the state, from $PWD
   local state states i
-  state=get_state_dir
-  states=("$(csg_get_property cg.inverse.multistate.state_names)")
-  for i in "${!states[@]}"; do
+  state=$(get_state_dir)
+  states=( $(csg_get_property cg.inverse.multistate.state_names) )
+  for i in ${!states[@]}; do
     if [[ ${states[$i]} == $state ]]; then
       echo "${i}";
     fi
