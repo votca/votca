@@ -533,9 +533,11 @@ export -f get_last_step_dir
 
 get_state_dir() { # print the name of the state, from $PWD
   local step_dir
-  step_dir=$(get_current_step_dir)
-  [[ ${PWD##${step_dir}/} == ${PWD} ]] && die "get_state_dir failed: not currently in a sub directory of a step dir"
-  echo ${PWD##${step_dir}/}
+  step_dir=$(get_current_step_dir --no-check)
+  [[ ${PWD/${step_dir}} == ${PWD} ]] && die "get_state_dir failed: not currently in a sub directory of a step dir"
+  [[ -n ${PWD/*${step_dir}} ]] || die "get_state_dir failed: currently in a step dir, not in a state dir"
+  # remove total path, step_dir and trailing slash
+  echo ${PWD/*${step_dir}\/}
 }
 export -f get_state_dir
 
