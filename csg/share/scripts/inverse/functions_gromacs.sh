@@ -68,7 +68,7 @@ check_temp() { #compares k_B T in xml with temp in mpd file
   #kbt in energy unit
   multistate="$(csg_get_property cg.inverse.multistate.enabled)"
   if [[ $multistate == true ]]; then
-    state_nr=get_state_nr
+    state_nr=$(get_state_nr)
     kbt=( $(csg_get_property cg.inverse.multistate.state_kBTs) )
     kbt="${kbt[$state_nr]}"
   else
