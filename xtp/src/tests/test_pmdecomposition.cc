@@ -53,8 +53,11 @@ BOOST_AUTO_TEST_CASE(decomposedorbitals_test) {
           "/pmdecomposition/orbitalsMOs_ref.mm");
 
   Logger log;
+  tools::Property options;
+  options.add(".max_iterations", "1000");
+  options.add(".convergence_limit", "1e-12");
 
-  PMDecomposition pmd(log);
+  PMDecomposition pmd(log, options);
   pmd.computePMD(orbitals);
 
   Eigen::MatrixXd LMOs = orbitals.getPMLocalizedOrbital();

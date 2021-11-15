@@ -34,7 +34,7 @@ void PMDecomposition::computePMD(Orbitals &orbitals) {
   overlap.Fill(aobasis);
   double convergence_limit = std::numeric_limits<double>::max();
   Index iteration = 1;
-  while (convergence_limit > 1e-5 && iteration < 10000) {
+  while (convergence_limit > convergence_limit_ && iteration < nrOfIterations_) {
     XTP_LOG(Log::error, log_) << "Iteration: " << iteration << std::flush;
     Eigen::MatrixXd orbital_pair_function_value =
         orbitalselections(occupied_orbitals, overlap.Matrix());

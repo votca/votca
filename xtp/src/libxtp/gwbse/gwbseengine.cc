@@ -67,6 +67,9 @@ void GWBSEEngine::Initialize(tools::Property& options,
   if (tasks_string.find("dft_in_dft") != std::string::npos) {
     do_dft_in_dft_ = true;
   }
+  if (tasks_string.find("localize") != std::string::npos) {
+    do_localize_ = true;
+  }
 
   // XML option file for GWBSE
   if (do_gwbse_) {
@@ -157,7 +160,7 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   }
 
   if (do_localize_) {
-    PMDecomposition pmd(*logger);
+    PMDecomposition pmd(*logger, localize_options_);
     pmd.computePMD(orbitals);
   }
 

@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_PMDECOMPOSITION_H
 #define VOTCA_XTP_PMDECOMPOSITION_H
 #include "logger.h"
+#include "votca/tools/property.h"
 #include "votca/xtp/orbitals.h"
 
 namespace votca {
@@ -28,7 +29,10 @@ namespace xtp {
 
 class PMDecomposition {
  public:
-  PMDecomposition(Logger &log) : log_(log){};
+  PMDecomposition(Logger &log, tools::Property& options) : log_(log){
+    nrOfIterations_ = options.get(".max_iterations").as<Index>();
+    convergence_limit_ = options.get(".convergence_limit").as<double>();
+  };
   void computePMD(Orbitals &orbitals_);
 
  private:
@@ -39,6 +43,8 @@ class PMDecomposition {
   AOBasis aobasis;
   Eigen::MatrixXd A;
   Eigen::MatrixXd B;
+  Index nrOfIterations_ = 0;
+  double convergence_limit_ = 0.0;
 };
 
 }  // namespace xtp

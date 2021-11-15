@@ -43,6 +43,7 @@ class Decomp final : public QMTool {
   Orbitals orbitals;
   Logger log;
   std::vector<Index> activeatoms;
+  tools::Property options_;
 
  protected:
   void ParseOptions(const tools::Property& options);

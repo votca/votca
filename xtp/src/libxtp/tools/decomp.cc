@@ -34,6 +34,7 @@ namespace votca {
 namespace xtp {
 
 void Decomp::ParseOptions(const tools::Property& options) {
+  options_ = options;
   orbitals.ReadFromCpt(job_name_ + ".orb");
   std::string temp = options.get("activeatoms").as<std::string>();
   std::stringstream ss(temp);
@@ -53,7 +54,7 @@ bool Decomp::Run() {
   log.setMultithreading(true);
   log.setCommonPreface("\n... ...");
   XTP_LOG(Log::error, log) << "Starting decomp tool" << std::endl;
-  PMDecomposition pmd(log);
+  PMDecomposition pmd(log, options_);
   pmd.computePMD(orbitals);
   XTP_LOG(Log::error, log) << "Computing Dmat_A now" << std::endl;
   ActiveDensityMatrix Dmat_A(orbitals, activeatoms);
