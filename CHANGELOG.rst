@@ -124,6 +124,7 @@ Version 2022-dev
 -  added the full basissets to the orb checkpoint file (#863)
 -  return default for empty strings in option file (#873)
 -  replaced removed std::bind2nd by lambda (#881)
+-  change error to warning in reading lammps bonds (#884)
 
 Version 2021.2 and earlier
 ==========================
