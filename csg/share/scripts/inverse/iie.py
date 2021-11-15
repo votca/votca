@@ -355,13 +355,14 @@ def process_input(args):
         constraints = []
         if args.pressure_constraint is not None:
             if multistate:
+                # Parsing is implemented here, but not tested and algo not implemented
                 p_target = [float(pc.split(',')[0]) for pc in args.pressure_constraint]
                 p_current = [float(pc.split(',')[1]) for pc in args.pressure_constraint]
                 constraints.append({'type': 'pressure', 'target': p_target,
                                     'current': p_current})
             else:
-                p_target = float(args.pressure_constraint.split(',')[0])
-                p_current = float(args.pressure_constraint.split(',')[1])
+                p_target = float(args.pressure_constraint[0].split(',')[0])
+                p_current = float(args.pressure_constraint[0].split(',')[1])
                 constraints.append({'type': 'pressure', 'target': p_target,
                                     'current': p_current})
 
