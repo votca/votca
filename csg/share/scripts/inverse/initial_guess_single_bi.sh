@@ -41,7 +41,7 @@ raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
 multistate="$(csg_get_property cg.inverse.multistate.enabled)"
 if [[ $multistate == true ]]; then
   state_nr=$(get_state_nr)
-  kbt_array=("$(csg_get_property cg.inverse.multistate.state_kBTs)")
+  kbt_array=( $(csg_get_property cg.inverse.multistate.state_kBTs) )
   kbt="${kbt_array[state_nr]}"
 else
   kbt="$(csg_get_property cg.inverse.kBT)"

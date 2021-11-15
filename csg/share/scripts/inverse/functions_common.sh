@@ -231,7 +231,7 @@ for_all_states() {  # do something for all states when multistate, otherwise exe
   local quiet="no"
   [[ $1 = "-q" ]] && quiet="yes" && shift
   if [[ $multistate == true ]]; then
-    state_names=("$(csg_get_property cg.inverse.multistate.state_names)")
+    state_names="$(csg_get_property cg.inverse.multistate.state_names)"
     for state in $state_names; do
       [[ $quiet == no ]] && msg "for state ${state}:"
       pushd "$state"
