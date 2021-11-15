@@ -573,11 +573,11 @@ void LAMMPSDataReader::ReadBonds_(Topology &top) {
       Index atom1Index = atomIdToIndex_[atom1Id];
       Index atom2Index = atomIdToIndex_[atom2Id];
       if (atomIdToMoleculeId_[atom1Index] != atomIdToMoleculeId_[atom2Index]) {
-        throw std::runtime_error(
-            "Lammps Atoms " + std::to_string(atom1Id + 1) + " and " +
+        cout <<
+            "WARNING: Lammps Atoms " + std::to_string(atom1Id + 1) + " and " +
             std::to_string(atom2Id + 1) + " belong to different molecules (" +
             std::to_string(atomIdToMoleculeId_[atom1Index] + 1) + ":" +
-            std::to_string(atomIdToMoleculeId_[atom2Index] + 1) + ")");
+            std::to_string(atomIdToMoleculeId_[atom2Index] + 1) + ")";
       }
 
       Interaction *ic = new IBond(atom1Index, atom2Index);
