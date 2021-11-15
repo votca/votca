@@ -67,6 +67,12 @@ jobs:
           - distro: 'fedora:intel'
             toolchain: intel-oneapi
             cmake_build_type: Debug
+          - distro: 'fedora:intel'
+            toolchain: intel-oneapi-dpc
+            cmake_build_type: Release
+          - distro: 'fedora:intel'
+            toolchain: intel-oneapi-dpc
+            cmake_build_type: Debug
           - distro: 'fedora:gmx2019'
             toolchain: gnu
             cmake_build_type: Release
