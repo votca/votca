@@ -77,6 +77,13 @@ if(ENABLE_WERROR)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 endif()
 
+if(CMAKE_CXX_COMPILER MATCHES "icpx" AND CMAKE_VERSION VERSION_LESS "3.21") 
+  message(WARNING "Using the intel icpx compiler requires cmake 3.21 or higher for OpenMP parallelization to work") 
+endif()
+if(CMAKE_CXX_COMPILER MATCHES "dpcpp")
+  message(WARNING "Using the intel dpcpp compiler is not supported") 
+endif()
+
 set(VOTCA_SPHINX_DIR "${PROJECT_BINARY_DIR}/sphinx" CACHE PATH "Path for Sphinx sources")
 file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR})
 set(VOTCA_SPHINX_OUTPUT_DIR "${PROJECT_BINARY_DIR}/sphinx.html" CACHE PATH "Path for Sphinx output")
