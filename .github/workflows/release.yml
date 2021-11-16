@@ -82,6 +82,11 @@ jobs:
           for p in . tools csg csg-tutorials xtp xtp-tutorials; do
             git -C $p push ${{ steps.setup.outputs.DRY_RUN }} --tags origin ${{ steps.setup.outputs.BRANCH }}:${{ steps.setup.outputs.BRANCH }}
           done
+      - name: Create Changlog
+        uses: ./.github/actions/release_changelog
+        with:
+          version: ${{ steps.setup.outputs.VERSION }}
+          changelog: 'release_changelog.md'
       - name: Create Release
         if: ${{ steps.setup.outputs.DEPLOY == 'true' }}
         uses: actions/create-release@v1
@@ -91,3 +96,4 @@ jobs:
           tag_name: v${{ steps.setup.outputs.VERSION }}
           release_name: v${{ steps.setup.outputs.VERSION }}
           prerelease: ${{ contains(steps.setup.outputs.VERSION, 'rc') }}
+          body_path: 'release_changelog.md'
