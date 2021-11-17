@@ -911,8 +911,8 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     jac_2D = make_matrix_2D(jac_mat)
     # weighting
     g_tgt_vec = vectorize(g_tgt_mat)
-    weights = gen_residual_weights(settings['residual_weighting'], r, n_c_res,
-                                   n_i, 1, g_tgt_vec)
+    weights = gen_residual_weights(settings['residual_weighting'], r[cut_res], n_c_res,
+                                   n_i, 1, g_tgt_vec[cut_res])
     # weight Jacobian
     jac_2D = np.diag(weights.T.flatten()) @ jac_2D
     # Delta g for potential update
@@ -1052,8 +1052,8 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
     jac_2D = make_matrix_2D(jac_mat)
     del jac_mat  # saving memory
     # weights
-    weights = gen_residual_weights(settings['residual_weighting'], r, n_c_res,
-                                   n_i, n_s, g_tgt_vec)
+    weights = gen_residual_weights(settings['residual_weighting'], r[cut_res], n_c_res,
+                                   n_i, n_s, g_tgt_vec[cut_res])
     # weight Jacobian
     jac_2D = np.diag(weights.T.flatten()) @ jac_2D
     # Delta g for potential update
