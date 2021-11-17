@@ -95,8 +95,8 @@ if(REQUIRE_MKL)
 endif()
 
 
-#openmp with clang smaller version 10 and user defined reductions is buggy https://bugs.llvm.org/show_bug.cgi?id=44134
-if (CMAKE_CXX_COMPILER MATCHES "clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)
+#user defined reductions are buggy for <= clang-9 (see https://bugs.llvm.org/show_bug.cgi?id=44134)
+if (CMAKE_CXX_COMPILER MATCHES "clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.0)
   # in case OpenMP was detected somewhere else
   unset(OpenMP_FOUND)
 else()
