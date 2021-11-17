@@ -120,6 +120,8 @@ do_external update iie_pot "$iie_method" \
 
 # resample potentials. This is needed because non-bonded.max is usually larger than iie.cut-off and the former should define the table
 for_all "non-bonded" 'csg_resample --in $(csg_get_interaction_property name).dpot.new --out $(csg_get_interaction_property name).dpot.new --grid $(csg_get_interaction_property min):$(csg_get_interaction_property step):$(csg_get_interaction_property max) --comment "adapted to grid in update_iie.sh"'
+# csg_resample alone will not do the job
+for_all "non-bonded" 'do_external table extrapolate --function constant --region right $(csg_get_interaction_property name).dpot.new $(csg_get_interaction_property name).dpot.new'
 
 # overwrite with zeros if do_potential=0
 do_potential_zero_overwrite() {
