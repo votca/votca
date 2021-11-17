@@ -36,8 +36,6 @@ authors:
     affiliation: Los Alamos National Laboratory
   - given-names: Joshua 
     family-names: Brown
-    orcid: 
-    affiliation: 
   - given-names: Felipe Zapata
     family-names: Ruiz
     orcid: https://orcid.org/0000-0001-8286-677X
@@ -50,6 +48,13 @@ authors:
     family-names: Gerritsen
     affiliation: Eindhoven University of Technology
     orcid: 'https://orcid.org/0000-0003-0738-8952'
+  - given-names: Marvin
+    family-names: Bernhardt
+    affiliation: Eduard-Zintl-Institut für Anorganische und Physikalische Chemie
+    orcid: 'https://orcid.org/0000-0001-6520-5208'
+  - given-names: David
+    family-names: Rosenberger
+    orcid: 'https://orcid.org/0000-0001-6620-6499'
 title: "VOTCA"
 version: v2021.2
 date-released: 2021-09-19
