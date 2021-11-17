@@ -125,7 +125,6 @@ Version 2022-dev
 -  return default for empty strings in option file (#873)
 -  replaced removed std::bind2nd by lambda (#881)
 -  change error to warning in reading lammps bonds (#884)
--  use the intel threading layer for openmp with the clang compiler (#882)
 
 Version 2021.2 and earlier
 ==========================
