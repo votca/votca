@@ -82,7 +82,7 @@ endif(Python_EXECUTABLE AND NOT PYTHON_INSTDIR)
 # Checks what linear algebra packages are installed                    #
 ########################################################################
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Intel" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   set(MKL_THREAD_LAYER "Intel OpenMP" CACHE STRING "The thread layer to choose for MKL")
 else()
   set(MKL_THREAD_LAYER "GNU OpenMP" CACHE STRING "The thread layer to choose for MKL")
@@ -95,8 +95,8 @@ if(REQUIRE_MKL)
 endif()
 
 
-#openmp with clang smaller version 10 and user defined reductions is buggy https://bugs.llvm.org/show_bug.cgi?id=44134
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)
+#user defined reductions are buggy for <= clang-9 (see https://bugs.llvm.org/show_bug.cgi?id=44134)
+if (CMAKE_CXX_COMPILER MATCHES "clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.0)
   # in case OpenMP was detected somewhere else
   unset(OpenMP_FOUND)
 else()
