@@ -78,7 +78,7 @@ if(ENABLE_WERROR)
 endif()
 
 if(CMAKE_CXX_COMPILER MATCHES "dpcpp")
-  message(WARNING "Using the intel dpcpp compiler is not supported") 
+  message(WARNING "Using the intel dpcpp compiler needs a cutting-edge version of eigen hence dpcpp is currently not offically supported, use icpx instead") 
 endif()
 
 set(VOTCA_SPHINX_DIR "${PROJECT_BINARY_DIR}/sphinx" CACHE PATH "Path for Sphinx sources")
