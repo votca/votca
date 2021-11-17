@@ -32,7 +32,7 @@ for_all "non-bonded bonded" 'cp_from_last_step --rename $(csg_get_interaction_pr
 
 # resample potentials. This is needed because the previous step might have used another grid, i.e. hnc init
 # if the grid did not change, this should do nothing
-for_all "non-bonded bonded" 'csg_resample --in $(csg_get_interaction_property name).pot.cur --out $(csg_get_interaction_property name).pot.cur --grid $(csg_get_interaction_property min):$(csg_get_interaction_property step):$(csg_get_interaction_property max) --comment "adapted to grid in initialize_step_iie.sh"'
+for_all "non-bonded bonded" 'csg_resample --in $(csg_get_interaction_property name).pot.cur --out $(csg_get_interaction_property name).pot.cur --grid $(csg_get_interaction_property min):$(csg_get_interaction_property step):$(csg_get_interaction_property max) --comment "adapted to grid in initialize_step_generic.sh"'
 
 #initialize sim_prog
 do_external initstep $sim_prog
