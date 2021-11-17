@@ -100,7 +100,7 @@ Version 2022-dev
 -  turned sigma choice into a factory (votca/xtp#731)
 -  use middleRows-Cols and refactor numerical integration (votca/xtp#732)
 -  increase performance of numerical integration (votca/xtp#733)
--  upgrade xtp to cxx17 (votca/xtp#737)
+-  upgrade xtp to cxx17 (votca/xtp#737, #880)
 -  Remove unused variables (votca/xtp#742)
 -  fix issue with writing strings to hdf5 files (votca/xtp#743)
 -  Updated doxygen intro (votca/csgvotca/xtp#712)
@@ -112,7 +112,7 @@ Version 2022-dev
 -  disable test_random test on valgrind (#855)
 -  introduce global changelog (#858)
 -  clean up github actions and merge votca/actions (#859, #867, #874,
-   #878)
+   #878, #883)
 -  fix warning on intel compiler (#861)
 -  added gpu benchmark for xtp (#857)
 -  Remove submodules from doc and actions (#865)
@@ -122,6 +122,9 @@ Version 2022-dev
 -  added documentation about architecture to votca and votca-xtp (#869)
 -  check for gmx-2019 in csg-tutorials (#875)
 -  added the full basissets to the orb checkpoint file (#863)
+-  return default for empty strings in option file (#873)
+-  replaced removed std::bind2nd by lambda (#881)
+-  change error to warning in reading lammps bonds (#884)
 
 Version 2021.2 and earlier
 ==========================
