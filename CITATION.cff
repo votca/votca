@@ -1,24 +1,100 @@
 # YAML 1.2
 ---
-abstract: "VOTCA-XTP is a library which allows you to calculate the electronic properties of organic materials"
-authors: 
-  -
-    affiliation: "Netherlands eScience Center"
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it as below.
+authors:
+  - given-names: Björn
+    family-names: Baumeier
+    orcid: 'https://orcid.org/0000-0002-6077-0467'
+    affiliation: >
+      Eindhoven University of Technology, 
+      Institute for Complex Molecular Systems
+  - given-names: Nicolas
     family-names: Renaud
-    given-names: Nicolas
-    orcid: "https://orcid.org/0000-0001-9589-2694"
-cff-version: "1.1.0"
-date-released: 2021-05-03
-doi: "10.5281/zenodo.883726"
+    affiliation: Netherlands eScience Center
+    orcid: 'https://orcid.org/0000-0001-9589-2694'
+  - given-names: Wouter
+    family-names: Scharpach
+    orcid: 'https://orcid.org/0000-0002-4035-3703'
+    affiliation: Eindhoven University of Technology
+  - given-names: Vivek
+    family-names: Sundaram
+    orcid: https://orcid.org/0000-0002-9986-8461
+    affiliation: Eindhoven University of Technology
+  - given-names: Onur
+    family-names: Çaylak
+    orcid: https://orcid.org/0000-0003-2410-7411
+    affiliation: Eindhoven University of Technology
+  - given-names: Gianluca
+    family-names: Tirimbò
+    orcid: https://orcid.org/0000-0002-6641-0761
+    affiliation: Eindhoven University of Technology
+  - given-names: Christoph 
+    family-names: Junghans
+    orcid: https://orcid.org/0000-0003-0925-1458
+    affiliation: Los Alamos National Laboratory
+  - given-names: Joshua 
+    family-names: Brown
+    orcid: 
+    affiliation: 
+  - given-names: Felipe Zapata
+    family-names: Ruiz
+    orcid: https://orcid.org/0000-0001-8286-677X
+    affiliation: Netherlands eScience Center
+  - given-names: Jens 
+    family-names: Wehner
+    orcid: https://orcid.org/0000-0003-1203-5000
+    affiliation: Netherlands eScience Center
+  - given-names: Ruben
+    family-names: Gerritsen
+    affiliation: Eindhoven University of Technology
+    orcid: 'https://orcid.org/0000-0003-0738-8952'
+title: "VOTCA"
+version: v2021.2
+date-released: 2021-09-19
+url: "https://github.com/votca/votca"
+abstract: >-
+  VOTCA-XTP is a library which allows you to calculate the electronic properties
+  of organic materials.
 keywords: 
   - "quantum chemistry"
   - "gw bse"
   - "Bethe Salpeter equation"
   - "many-body interaction"
   - "many-body problem"
-license: "Apache-2.0"
-message: "If you use this software, please cite it using these metadata."
-repository-code: "https://github.com/votca/xtp"
-title: "votca-xtp"
-version: v2021
+  - "course graining"
+preferred-citation:
+  type: article
+  authors:
+    - given-names: Gianluca
+      family-names: Tirimbò
+    - given-names: Vivek 
+      family-names: Sundaram
+    - given-names: Onur
+      family-names: Çaylak
+    - given-names: Wouter
+      family-names: Scharpach
+    - given-names: Javier
+      family-names: Sijen
+    - given-names: Christoph
+      family-names: Junghans
+    - given-names: Joshua
+      family-names: Brown
+    - given-names: Felipe Zapata
+      family-names: Ruiz
+    - given-names: Nicolas
+      family-names: Renaud
+    - given-names: Jens
+      family-names: Wehner   
+    - given-names: Björn
+      family-names: Baumeier
+  doi: "10.1063/1.5144277"
+  journal: "The Journal of Chemical Physics"
+  title: >
+    Excited-state electronic structure of molecules using many-body Green’s 
+    functions: Quasiparticles and electron–hole excitations with VOTCA-XTP
+  issue: 11
+  volume: 152
+  year: 2020
 ...
