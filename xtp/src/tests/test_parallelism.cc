@@ -34,18 +34,16 @@ BOOST_AUTO_TEST_CASE(openmp) {
   // Check if number is set correctly
   int inThreads = 2;
   OPENMP::setMaxThreads(inThreads);
-  int outThreads = OPENMP::getMaxThreads();
+  int outThreads = static_cast<int>(OPENMP::getMaxThreads());
   BOOST_CHECK(inThreads == outThreads);
 
   // Check if the number of threads is actually generated
   int sumThreads = 0;
-#pragma omp parallel reduction(+ : sum)
-  {
-    sumThreads += 1;
-  }
-  BOOST_CHECK(inThreads==sumThreads);
-
-  BOOST_AUTO_TEST_SUITE_END()
+#pragma omp parallel reduction(+ : sumThreads)
+  { sumThreads += 1; }
+  BOOST_CHECK(inThreads == sumThreads);
 }
+
+BOOST_AUTO_TEST_SUITE_END()
 
 #endif
