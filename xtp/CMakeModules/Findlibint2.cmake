@@ -30,5 +30,6 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(libint2 REQUIRED_VARS PC_LIBINT2_INCLUDE_DIRS PC_LIBINT2_LIBRARIES VERSION_VAR PC_LIBINT2_VERSION) 
 
 if(TARGET PkgConfig::PC_LIBINT2 AND NOT Libint2::int2) 
-  add_library(Libint2::int2 ALIAS PkgConfig::PC_LIBINT2)
+  set_target_properties(PkgConfig::PC_LIBINT2 PROPERTIES IMPORTED_GLOBAL TRUE)
+  add_library(Libint2::int2 ALIAS PkgConfig::PC_LIBINT2)  
 endif()
