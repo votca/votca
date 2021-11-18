@@ -34,10 +34,11 @@ set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 # User input options                                                   #
 ########################################################################
 
-find_package(PkgConfig REQUIRED)
-set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect libxc package")
-pkg_check_modules(LIBXC REQUIRED IMPORTED_TARGET libxc)
-message(STATUS "Found libxc ${LIBXC_LINK_LIBRARIES}")
+find_package(Libxc QUIET CONFIG)
+set_package_properties(Libxc PROPERTIES TYPE REQUIRED PURPOSE "Calculate Exchange integrals")
+if(NOT Libxc_FOUND)
+  find_package(Libxc MODULE REQUIRED)
+endif()
 if(NOT TARGET Libint2::int2)
   find_package(libint2 QUIET CONFIG)
   set_package_properties(libint2 PROPERTIES TYPE REQUIRED PURPOSE "Calculate Gaussian integrals")
