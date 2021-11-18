@@ -127,6 +127,7 @@ Version 2022-dev
 -  change error to warning in reading lammps bonds (#884)
 -  add a citation.cff file (#845)
 -  improve support for Intel compiler (#882)
+-  cmake: allow libint2 detections through cmake (#888)
 
 
 Version 2021.2 and earlier
