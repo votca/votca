@@ -35,19 +35,19 @@ set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 ########################################################################
 
 find_package(Libxc QUIET CONFIG)
-set_package_properties(Libxc PROPERTIES TYPE REQUIRED PURPOSE "Calculate Exchange integrals")
+set_package_properties(Libxc PROPERTIES TYPE REQUIRED PURPOSE "Provides exchange-correclation functionals")
 if(NOT Libxc_FOUND)
   find_package(Libxc MODULE REQUIRED)
 endif()
 if(NOT TARGET Libint2::int2)
   find_package(libint2 QUIET CONFIG)
-  set_package_properties(libint2 PROPERTIES TYPE REQUIRED PURPOSE "Calculate Gaussian integrals")
+  set_package_properties(libint2 PROPERTIES TYPE REQUIRED PURPOSE "Calculates Gaussian integrals")
   if(NOT libint2_FOUND)
     find_package(libint2 2.6 MODULE REQUIRED)
   endif()
 endif()
 find_package(ecpint REQUIRED)
-set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculate pseudo potentials")
+set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculates Gaussian integrals over pseudo potentials")
 message(STATUS "Found libecpint: ${ecpint_DIR}")
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
