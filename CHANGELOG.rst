@@ -130,6 +130,7 @@ Version 2022-dev
 -  cmake: allow libint2 detections through cmake (#888)
 -  allow libxc detection through cmak (#890)
 -  bump required cmake version to 3.13 (#887)
+-  bump required cmake version to support -B option (#893)
 
 
 Version 2021.2 and earlier
