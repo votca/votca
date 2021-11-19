@@ -128,6 +128,7 @@ Version 2022-dev
 -  add a citation.cff file (#845)
 -  improve support for Intel compilers (#882, #892)
 -  cmake: allow libint2 detections through cmake (#888)
+-  allow libxc detection through cmak (#890)
 
 
 Version 2021.2 and earlier
