@@ -126,7 +126,7 @@ Version 2022-dev
 -  replaced removed std::bind2nd by lambda (#881)
 -  change error to warning in reading lammps bonds (#884)
 -  add a citation.cff file (#845)
--  improve support for Intel compiler (#882)
+-  improve support for Intel compilers (#882, #892)
 -  cmake: allow libint2 detections through cmake (#888)
 -  allow libxc detection through cmak (#890)
 
