@@ -129,6 +129,7 @@ Version 2022-dev
 -  improve support for Intel compilers (#882, #892)
 -  cmake: allow libint2 detections through cmake (#888)
 -  allow libxc detection through cmak (#890)
+-  bump required cmake version (#887)
 
 
 Version 2021.2 and earlier
