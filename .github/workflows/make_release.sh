@@ -173,7 +173,7 @@ else
 fi
 
 new_section="Version ${add_rel} (released $(date +XX.%m.%y))"
-sed -i "/^Version ${rel} /i ${new_section}\n${new_section//?/=}\n" CHANGELOG.rst
+sed -i "/^Version ${rel}\( \|$\)/i ${new_section}\n${new_section//?/=}\n" CHANGELOG.rst
 git add CHANGELOG.rst
 git commit -m "CHANGELOG: add ${add_rel} section"
 
