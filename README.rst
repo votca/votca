@@ -4,11 +4,12 @@ This is VOTCA, which provides the two following subpackages:
 
 -  VOTCA-CSG, a library which provides tools to develop coarse-grained
    potentials from atomistic simulation data
--  VOTCA-XTP, a library designed to determine electronic properties of
-   organic materials from atomistic MD-trajectories.
+-  VOTCA-XTP, a library providing the DFT+GW-BSE method to calculate 
+   electronically excited states in single molecules, in molecular materials with quantum-classical embedding, 
+   as well as electron, hole, and exciton dynamics in atomistic MD-trajectories.
 
-Usage:
-
+Basic installation (see performance advice below)
+#################################################
 ::
 
     prefix=WHERE/TO/INSTALL/VOTCA
@@ -18,14 +19,37 @@ Usage:
     cmake --build builddir --parallel <number of cores>
     cmake --build builddir --target install
 
-Using this code via docker:
-
+Using this code via docker
+##########################
 ::
 
     docker pull votca/votca
     docker run -it votca/votca /bin/bash
 
-For further details see:
+
+
+Performance advice
+##################
+VOTCA-XTP relies in the Eigen library for vector-matrix operations, and a lot of performance can be
+gained by enabling vectorization and/or use of Intel's MKL as backend, which is automatically detected by ``CMake``.
+
+Intel Processors
+****************
+``g++``, ``clang``, and ``ipcx`` from the Intel OneAPI basekit give similar performance 
+when used with the MKL. No special flags have to be supplied to ``CMake``.
+
+If ``g++`` or ``clang`` are used without MKL, add ``-DCMAKE_CXX_FLAGS=-march=native`` to enable vectorization in ``Eigen``.
+
+.. note:: As a rough estimate, runtimes with vectorization and  ``gcc/clang`` are 30% shorter than without vectorization. Use of ``MKL`` reduces it by another 50%. 
+
+AMD Processors
+**************
+
+
+
+
+More detailed information:
+##########################
 
 1. `Installation <share/doc/INSTALL.rst>`__
 2. `Further Information <http://www.votca.org>`__
