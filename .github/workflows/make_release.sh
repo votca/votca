@@ -129,25 +129,20 @@ if [[ $testing = "yes" ]]; then
 elif [[ -f CMakeLists.txt ]]; then
   sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
   git add CMakeLists.txt
-  if [[ -f CHANGELOG.rst ]]; then
-    sed -i "/^Version ${rel} /s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
-    git add CHANGELOG.rst
-  fi
+  sed -i "/^Version ${rel} /s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
+  git add CHANGELOG.rst
 fi
 if [[ $testing = "no" ]]; then
-  [[ -f CHANGELOG.rst && -z $(grep "^Version ${rel} " CHANGELOG.rst) ]] && \
-        die "Go and update CHANGELOG.rst before making a release"
+   [[ -z $(grep "^Version ${rel}( |$)" CHANGELOG.rst) ]] && die "Go and update CHANGELOG.rst before making a release"
 
-  if [[ -f CHANGELOG.rst ]]; then
-    # check if CHANGELOG section has no entry, there should be at least something like "-  no changes"
-    version_section="$(awk -v r="^Version ${rel}( |$)" '($0 ~ "^Version"){go=0} ($0 ~ r){go=1}{if(go==1){print $0}}' CHANGELOG.rst)"
-    line_nr="$(sed -n "/^Version ${rel}\( \|$\)/=" CHANGELOG.rst)"
-    [[ $version_section ]] || die "Could not find section to $rel"
-    echo "Found section for $rel (starting line ${line_nr})"
-    last_line="$(echo "$version_section" | sed '/^[[:space:]]*$/d' | sed -n '$p')"
-    [[ $last_line ]] || die "Could not grep last line"
-    [[ ${last_line} = -* || ${last_line} = '   '[^\ ]* ]] || die "Last line isn't an item (does not start with -), but ${last_line}, fix the CHANGELOG.rst in $p first"
-  fi
+  # check if CHANGELOG section has no entry, there should be at least something like "-  no changes"
+  version_section="$(awk -v r="^Version ${rel}( |$)" '($0 ~ "^Version"){go=0} ($0 ~ r){go=1}{if(go==1){print $0}}' CHANGELOG.rst)"
+  line_nr="$(sed -n "/^Version ${rel}\( \|$\)/=" CHANGELOG.rst)"
+  [[ $version_section ]] || die "Could not find section to $rel"
+  echo "Found section for $rel (starting line ${line_nr})"
+  last_line="$(echo "$version_section" | sed '/^[[:space:]]*$/d' | sed -n '$p')"
+  [[ $last_line ]] || die "Could not grep last line"
+  [[ ${last_line} = -* || ${last_line} = '   '[^\ ]* ]] || die "Last line isn't an item (does not start with -), but ${last_line}, fix the CHANGELOG.rst in $p first"
 
   #|| true because maybe version has not changed
   git commit -m "Version bumped to $rel" || true
