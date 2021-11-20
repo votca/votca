@@ -19,12 +19,6 @@ export GNUTERM=dumb
 j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0
 ((j++))
 
-is_part() { #checks if 1st argument is part of the set given by other arguments
-  [[ -z $1 || -z $2 ]] && die "${FUNCNAME[0]}: Missing argument"
-  [[ " ${@:2} " = *" $1 "* ]]
-}
-export -f is_part
-
 show_help() {
   cat << eof
 This is the script to make release tarballs for VOTCA
@@ -133,7 +127,7 @@ elif [[ -f CMakeLists.txt ]]; then
   git add CHANGELOG.rst
 fi
 if [[ $testing = "no" ]]; then
-   [[ -z $(grep -E "^Version ${rel}( |$)" CHANGELOG.rst) ]] && die "Go and update CHANGELOG.rst before making a release"
+   [[ -n $(grep -E "^Version ${rel}( |$)" CHANGELOG.rst) ]] || die "Go and update CHANGELOG.rst before making a release"
 
   # check if CHANGELOG section has no entry, there should be at least something like "-  no changes"
   version_section="$(awk -v r="^Version ${rel}( |$)" '($0 ~ "^Version"){go=0} ($0 ~ r){go=1}{if(go==1){print $0}}' CHANGELOG.rst)"
@@ -159,14 +153,12 @@ echo "Starting build check from tarball"
 tar -xvf "${topdir}/votca-${rel}.tar.gz"
 cmake -DCMAKE_INSTALL_PREFIX="${instdir}" -DMODULE_BUILD=ON \
       -DENABLE_TESTING=ON \
-      -DENABLE_REGRESSION_TESTING=ON \
+      -DENABLE_REGRESSION_TESTING=OFF \
       -DBUILD_XTP=ON \
       "${cmake_opts[@]}" -S "votca-${rel}/" -B "$build"
 cmake --build "${build}" -j"${j}" ${verbose:+--verbose}
-popd
 
-rm -rf "$build"
-rm -rf "$instdir"
+rm -rf "$instdir" "$build"
 
 if [[ $rel = *-dev ]]; then
   add_rel="${rel%-dev}-rc.1"
