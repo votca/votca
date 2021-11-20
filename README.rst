@@ -31,7 +31,7 @@ Using this code via docker
 
 Performance advice
 ##################
-VOTCA-XTP relies in the Eigen library for vector-matrix operations, and a lot of 
+VOTCA-XTP relies on the Eigen library for vector-matrix operations, and a lot of 
 performance can be gained by enabling vectorization and/or use of Intel's ``MKL`` 
 as backend, which is automatically detected by ``CMake``. Below are some recommendations
 for different architectures:
