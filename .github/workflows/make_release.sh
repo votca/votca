@@ -133,7 +133,7 @@ elif [[ -f CMakeLists.txt ]]; then
   git add CHANGELOG.rst
 fi
 if [[ $testing = "no" ]]; then
-   [[ -z $(grep "^Version ${rel}( |$)" CHANGELOG.rst) ]] && die "Go and update CHANGELOG.rst before making a release"
+   [[ -z $(grep -E "^Version ${rel}( |$)" CHANGELOG.rst) ]] && die "Go and update CHANGELOG.rst before making a release"
 
   # check if CHANGELOG section has no entry, there should be at least something like "-  no changes"
   version_section="$(awk -v r="^Version ${rel}( |$)" '($0 ~ "^Version"){go=0} ($0 ~ r){go=1}{if(go==1){print $0}}' CHANGELOG.rst)"
