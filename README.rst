@@ -40,7 +40,9 @@ when used with the MKL. No special flags have to be supplied to ``CMake``.
 
 If ``g++`` or ``clang`` are used without MKL, add ``-DCMAKE_CXX_FLAGS=-march=native`` to enable vectorization in ``Eigen``.
 
-.. note:: As a rough estimate, runtimes with vectorization and  ``gcc/clang`` are 30% shorter than without vectorization. Use of ``MKL`` reduces it by another 50%. 
+.. note:: 
+   
+   As a rough estimate, runtimes with vectorization and  ``gcc/clang`` are 30% shorter than without vectorization. Use of ``MKL`` reduces it by another 50%. 
 
 AMD Processors
 **************
