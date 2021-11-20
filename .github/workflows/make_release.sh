@@ -153,7 +153,7 @@ echo "Starting build check from tarball"
 tar -xvf "${topdir}/votca-${rel}.tar.gz"
 cmake -DCMAKE_INSTALL_PREFIX="${instdir}" -DMODULE_BUILD=ON \
       -DENABLE_TESTING=ON \
-      -DENABLE_REGRESSION_TESTING=OFF \
+      -DENABLE_REGRESSION_TESTING=ON \
       -DBUILD_XTP=ON \
       "${cmake_opts[@]}" -S "votca-${rel}/" -B "$build"
 cmake --build "${build}" -j"${j}" ${verbose:+--verbose}
