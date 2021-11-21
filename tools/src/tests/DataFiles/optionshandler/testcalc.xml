@@ -1,0 +1,9 @@
+<options>
+  <testcalc>
+    <mpsB default="B.mps" />
+    <output default="votca_excitoncoupling.xml" />
+    <subpackage link="suboptions.xml">
+      <c default="A"/>
+    </subpackage>
+  </testcalc>
+</options>

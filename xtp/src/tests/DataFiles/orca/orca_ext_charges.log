@@ -1,0 +1,249 @@
+
+                                 *****************
+                                 * O   R   C   A *
+                                 *****************
+
+           --- An Ab Initio, DFT and Semiempirical electronic structure package ---
+
+
+                         Program Version 4.0.1 -  RELEASE  -
+================================================================================
+                                       INPUT FILE
+================================================================================
+NAME = system.inp
+|  1> * xyz  0 1
+|  2>   H      0.5288      0.1610      0.9359
+|  3>   C      0.0000      0.0000      0.0000
+|  4>   H      0.2051      0.8240     -0.6786
+|  5>   H      0.3345     -0.9314     -0.4496
+|  6>   H     -1.0685     -0.0537      0.1921
+|  7> * 
+|  8> 
+|  9> ! DFT  PBE0 DIRECT 3-21G
+| 10> %pointcharges "background.crg"
+| 11> 
+| 12>                          ****END OF INPUT****
+================================================================================
+
+                       ****************************
+                       * Single Point Calculation *
+                       ****************************
+
+---------------------------------
+CARTESIAN COORDINATES (ANGSTROEM)
+---------------------------------
+  H      0.528800    0.161000    0.935900
+  C      0.000000    0.000000    0.000000
+  H      0.205100    0.824000   -0.678600
+  H      0.334500   -0.931400   -0.449600
+  H     -1.068500   -0.053700    0.192100
+
+----------------------------
+CARTESIAN COORDINATES (A.U.)
+----------------------------
+  NO LB      ZA    FRAG     MASS         X           Y           Z
+   0 H     1.0000    0     1.008    0.999287    0.304246    1.768595
+   1 C     6.0000    0    12.011    0.000000    0.000000    0.000000
+   2 H     1.0000    0     1.008    0.387583    1.557134   -1.282368
+   3 H     1.0000    0     1.008    0.632113   -1.760091   -0.849621
+   4 H     1.0000    0     1.008   -2.019172   -0.101478    0.363016
+
+--------------------------------
+INTERNAL COORDINATES (ANGSTROEM)
+--------------------------------
+ H      0   0   0     0.000000000000     0.00000000     0.00000000
+ C      1   0   0     1.086949515847     0.00000000     0.00000000
+ H      2   1   0     1.086986646652   109.47881566     0.00000000
+ H      2   1   3     1.086984990697   109.47224096   120.00042779
+ H      2   1   3     1.086958301868   109.47426454   239.99847195
+
+---------------------------
+INTERNAL COORDINATES (A.U.)
+---------------------------
+ H      0   0   0     0.000000000000     0.00000000     0.00000000
+ C      1   0   0     2.054036906349     0.00000000     0.00000000
+ H      2   1   0     2.054107073402   109.47881566     0.00000000
+ H      2   1   3     2.054103944100   109.47224096   120.00042779
+ H      2   1   3     2.054053509523   109.47426454   239.99847195
+
+---------------------
+BASIS SET INFORMATION
+---------------------
+There are 2 groups of distinct atoms
+
+ Group   1 Type H   : 3s contracted to 2s pattern {21}
+ Group   2 Type C   : 6s3p contracted to 3s2p pattern {321/21}
+
+Atom   0H    basis set group =>   1
+Atom   1C    basis set group =>   2
+Atom   2H    basis set group =>   1
+Atom   3H    basis set group =>   1
+Atom   4H    basis set group =>   1
+------------------------------------------------------------------------------
+                           ORCA GTO INTEGRAL CALCULATION
+------------------------------------------------------------------------------
+
+                         BASIS SET STATISTICS AND STARTUP INFO
+
+ # of primitive gaussian shells          ...   21
+ # of primitive gaussian functions       ...   27
+ # of contracted shells                  ...   13
+ # of contracted basis functions         ...   17
+ Highest angular momentum                ...    1
+ Maximum contraction depth               ...    3
+ Integral package used                   ... LIBINT
+ Integral threshhold            Thresh   ...  1.000e-10
+ Primitive cut-off              TCut     ...  1.000e-11
+
+
+------------------------------ INTEGRAL EVALUATION ----------------------------
+
+
+ * One electron integrals 
+ Pre-screening matrix                    ... done
+ Shell pair data                         ... done (   0.000 sec)
+
+ENUC WAS=  0.000000000
+------------------------------------------------------------------------------
+                            ORCA POINT-CHARGE CORRECTION
+------------------------------------------------------------------------------
+
+BaseName                           ... system
+Point charge file                  ... background.crg
+
+Reading the GBW file               ... done
+Reading the one-electron matrix    ... done
+Reading the point charges          ... done
+Number of point charges            ... 2
+Reading the nuclear-repulsion      ... done
+Charge-Nuclei interaction          ... done
+The nuclear repulsion file was updated
+Doing the point charge correction  ... done
+Storing the one-electron matrix    ... done
+
+ENUC IS = 13.468491157
+-------------------------------------------------------------------------------
+                                 ORCA SCF
+-------------------------------------------------------------------------------
+
+------------
+SCF SETTINGS
+------------
+Hamiltonian:
+ Density Functional     Method          .... DFT(GTOs)
+ Exchange Functional    Exchange        .... PBE
+   PBE kappa parameter   XKappa         ....  0.804000
+   PBE mue parameter    XMuePBE         ....  0.219520
+ Correlation Functional Correlation     .... PBE
+   PBE beta parameter  CBetaPBE         ....  0.066725
+ LDA part of GGA corr.  LDAOpt          .... PW91-LDA
+ Gradients option       PostSCFGGA      .... off
+ Hybrid DFT is turned on
+   Fraction HF Exchange ScalHFX         ....  0.250000
+   Scaling of DF-GGA-X  ScalDFX         ....  0.750000
+   Scaling of DF-GGA-C  ScalDFC         ....  1.000000
+   Scaling of DF-LDA-C  ScalLDAC        ....  1.000000
+   Perturbative correction              ....  0.000000
+   NL short-range parameter             ....  6.900000
+ Total Charge           Charge          ....    0
+ Multiplicity           Mult            ....    1
+ Number of Electrons    NEL             ....   10
+ Basis Dimension        Dim             ....   17
+Now organizing SCF variables                       ... done
+                      ------------------
+                      INITIAL GUESS DONE (   0.1 sec)
+                      ------------------
+--------------
+SCF ITERATIONS
+--------------
+ITER       Energy         Delta-E        Max-DP      RMS-DP      [F,P]     Damp
+               ***  Starting incremental Fock matrix formation  ***
+  0    -40.1872004981   0.000000000000 0.05536256  0.00817063  0.1957522 0.7000
+  1    -40.2132289204  -0.026028422342 0.04820965  0.00640591  0.1046817 0.7000
+                               ***Turning on DIIS***
+  2    -40.2245953394  -0.011366418967 0.08694609  0.01142784  0.0433835 0.0000
+  3    -40.2400285485  -0.015433209094 0.02932528  0.00400269  0.0519153 0.0000
+  4    -40.2443514277  -0.004322879173 0.01077603  0.00127690  0.0110322 0.0000
+                      *** Initiating the SOSCF procedure ***
+                           *** Shutting down DIIS ***
+                      *** Re-Reading the Fockian *** 
+                      *** Removing any level shift *** 
+ITER      Energy       Delta-E        Grad      Rot      Max-DP    RMS-DP
+  5    -40.24457772  -0.0002262898  0.000821  0.000821  0.002813  0.000376
+               *** Restarting incremental Fock matrix formation ***
+  6    -40.24458849  -0.0000107750  0.000295  0.000489  0.000969  0.000178
+  7    -40.24458881  -0.0000003205  0.000194  0.000117  0.000285  0.000039
+                 **** Energy Check signals convergence ****
+              ***Rediagonalizing the Fockian in SOSCF/NRSCF***
+
+               *****************************************************
+               *                     SUCCESS                       *
+               *           SCF CONVERGED AFTER   8 CYCLES          *
+               *****************************************************
+----------------
+TOTAL SCF ENERGY
+----------------
+
+Total Energy       :          -40.24450486 Eh           -1095.10865 eV
+
+Components:
+Nuclear Repulsion  :           13.46849116 Eh             366.49628 eV
+Electronic Energy  :          -53.71299601 Eh           -1461.60493 eV
+One Electron Energy:          -79.60713122 Eh           -2166.22017 eV
+Two Electron Energy:           25.89413521 Eh             704.61524 eV
+
+Virial components:
+Potential Energy   :          -80.12302794 Eh           -2180.25843 eV
+Kinetic Energy     :           39.87852308 Eh            1085.14978 eV
+Virial Ratio       :            2.00917742
+
+
+DFT components:
+N(Alpha)           :        4.999998713470 electrons
+N(Beta)            :        4.999998713470 electrons
+N(Total)           :        9.999997426940 electrons
+E(X)               :       -4.882360646132 Eh       
+E(C)               :       -0.304201834413 Eh       
+E(XC)              :       -5.186562480545 Eh       
+
+---------------
+SCF CONVERGENCE
+---------------
+             **** THE GBW FILE WAS UPDATED (system.gbw) ****
+             **** DENSITY FILE WAS UPDATED (system.scfp.tmp) ****
+             **** ENERGY FILE WAS UPDATED (system.en.tmp) ****
+----------------
+ORBITAL ENERGIES
+----------------
+
+  NO   OCC          E(Eh)            E(eV) 
+   0   2.0000     -10.144143      -276.0362 
+   1   2.0000      -0.712523       -19.3887 
+   2   2.0000      -0.405481       -11.0337 
+   3   2.0000      -0.403251       -10.9730 
+   4   2.0000      -0.392086       -10.6692 
+   5   0.0000       0.157504         4.2859 
+   6   0.0000       0.196706         5.3526 
+   7   0.0000       0.202667         5.5149 
+   8   0.0000       0.240538         6.5454 
+   9   0.0000       0.718397        19.5486 
+  10   0.0000       0.727724        19.8024 
+  11   0.0000       0.728746        19.8302 
+  12   0.0000       1.057703        28.7816 
+  13   0.0000       1.081247        29.4222 
+  14   0.0000       1.086069        29.5534 
+  15   0.0000       1.116265        30.3751 
+  16   0.0000       1.715960        46.6936 
+
+
+-------------------------   --------------------
+FINAL SINGLE POINT ENERGY       -40.244504856356
+-------------------------   --------------------
+
+
+                            ***************************************
+                            *     ORCA property calculations      *
+                            ***************************************
+
+                             ****ORCA TERMINATED NORMALLY****
+TOTAL RUN TIME: 0 days 0 hours 0 minutes 1 seconds 470 msec

@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 
 project(votca LANGUAGES CXX)
 
-set(PROJECT_VERSION "2021.2")
+set(PROJECT_VERSION "2022-dev")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules ${PROJECT_SOURCE_DIR}/tools/CMakeModules)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   #release comes with -O3 by default
@@ -14,6 +14,11 @@ endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 
 include(GNUInstallDirs)
 include(FeatureSummary)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
+
 ########################################################################
 # User input options                                                   #
 ########################################################################
@@ -59,10 +64,10 @@ if(ENABLE_WARNING_FLAGS)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_FLAG}")
     endif()
   endforeach()
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-conversion")
   endif()
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel") #only icpc, not icpx
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcheck")
   endif()
 endif()
@@ -70,6 +75,10 @@ endif()
 option(ENABLE_WERROR "Inject -Werror" OFF)
 if(ENABLE_WERROR)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+endif()
+
+if(CMAKE_CXX_COMPILER MATCHES "dpcpp")
+  message(WARNING "Using the intel dpcpp compiler needs a cutting-edge version of eigen hence dpcpp is currently not offically supported, use icpx instead") 
 endif()
 
 set(VOTCA_SPHINX_DIR "${PROJECT_BINARY_DIR}/sphinx" CACHE PATH "Path for Sphinx sources")
@@ -114,18 +123,6 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git)
   set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
-
-set(MKL_THREAD_LAYER "Intel OpenMP" CACHE STRING "The thread layer to choose for MKL")
-find_package(MKL)
-set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with MKL")
-# https://software.intel.com/en-us/articles/symbol-lookup-error-when-linking-intel-mkl-with-gcc-on-ubuntu
-if(MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-as-needed")
-endif()
-option(REQUIRE_MKL "Require MKL" OFF)
-if(REQUIRE_MKL)
-  find_package(MKL REQUIRED)
-endif()
 
 ######################################
 # Include the following subdirectory # 

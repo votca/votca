@@ -1,0 +1,6 @@
+<subpackage>
+  <degeneracy default="0.0" choices="float+" />
+  <levA default="1" choices="int+" />
+  <levB default="1" choices="int+" />
+  <subsubpackage link="subsuboptions.xml"/>
+</subpackage>

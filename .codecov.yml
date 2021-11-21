@@ -4,3 +4,6 @@ coverage:
   range: "70...100"
 ignore:
   - /usr/include/
+  - tools/src/tests/
+  - csg/src/tests/
+  - xtp/src/tests/

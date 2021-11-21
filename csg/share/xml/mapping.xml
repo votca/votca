@@ -1,0 +1,71 @@
+<cg_molecule>
+  <name>
+    <DESC>Name of molecule in coarse-grained representation.</DESC>
+  </name>
+  <ident>
+    <DESC>Molecule name in reference topology.</DESC>
+  </ident>
+  <topology>
+    <DESC>Section defining coarse grained beads of molecule.</DESC>
+    <cg_beads>
+      <DESC>Section defining coarse grained beads of molecule.</DESC>
+      <cg_bead>
+        <DESC>Definition of a coarse grained bead.</DESC>
+	<name>
+          <DESC>Name of coarse grained bead.</DESC>
+	</name>
+	<type>
+          <DESC>Type of coarse grained bead.</DESC>
+	</type>
+	<mapping>
+          <DESC>Mapping scheme to be used for this bead (specified in section mapping) to map from reference system.</DESC>
+	</mapping>
+	<beads>
+          <DESC>The beads section lists all atoms of the reference system that are mapped to this particular coarse grained bead. The syntax is RESID:RESNAME:ATOMNAME, the beads are separated by spaces.</DESC>
+	</beads>
+      </cg_bead>
+  </cg_beads>
+  <cg_bonded>
+    <DESC>The cg_bonded section contains all bonded interaction of the molecule. Those can be bond, angle or dihedral. An entry for each group of bonded interaction can be specified, e.g. several groups (types) of bonds can be specified. A specific bonded interaction can be later on addressed by MOLECULE:NAME:NUMBER, where MOLECULE is the molecule ID in the whole topology, NAME the name of the interaction group and NUMBER addresses the interaction in the group.</DESC>
+    <bond>
+      <DESC>Definition of a group of bonds.</DESC>
+      <name>
+	<DESC>Name of the bond.</DESC>
+      </name>
+      <beads>
+	<DESC>List of pair of beads that define a bond. Names specified in cg_beads</DESC>
+      </beads>
+    </bond>
+    <angle>
+      <DESC>Definition of a group of angles.</DESC>
+      <name>
+	<DESC>Name of the angle</DESC>
+      </name>
+      <beads>
+	<DESC>List of triples of beads that define a bond. Names specified in cg_beads</DESC>
+      </beads>
+    </angle>
+    <dihedral>
+      <DESC>Definition of a group of dihedrals. Since the exact functional form does not matter, this combines proper as well as improper dihedrals.</DESC>
+      <name>
+	<DESC>Name of the dihedral</DESC>
+      </name>
+      <beads>
+	<DESC>List of quadruples of beads that define a bond. Names specified in cg_beads</DESC>
+      </beads>
+    </dihedral>
+  </cg_bonded>
+  </topology>
+  <maps>
+    <DESC>Section containing definitions of mapping schemes.</DESC>
+    <map>
+      <DESC>Section for a mapping for 1 bead.</DESC>
+      <name>
+	<DESC>Name of the mapping</DESC>
+      </name>
+      <weights>
+	<DESC>Weights of the mapping matrix. Entries are normalized to 1, number of entries must match the number of reference beads in a coarse-grained bead.</DESC>
+      </weights>
+    </map>
+  </maps>
+</cg_molecule>

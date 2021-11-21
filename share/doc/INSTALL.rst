@@ -1,3 +1,5 @@
+.. _install:
+
 Installation
 ============
 
@@ -10,7 +12,7 @@ To install the full package:
 
     prefix=WHERE/TO/INSTALL/VOTCA
     version=master # or 'stable' or 'v2021.2'
-    git clone -b ${version} --recursive https://github.com/votca/votca.git
+    git clone -b ${version} https://github.com/votca/votca.git
     cmake -Bbuilddir -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} votca
     cmake --build builddir --parallel <number of cores>
     cmake --build builddir --target install
@@ -23,7 +25,10 @@ Dependency Installation
 
 `Fedora <https://github.com/votca/buildenv/blob/master/fedora#L10-L15>`_
 
-If you have an older version of a distribution, cmake can be run with the ``-DBUILD_OWN_GROMACS=ON`` or ``-DBUILD_OWN_LIBINT=ON`` flags to automatically install the correct Gromacs and libint version. 
+If you have an older version of a distribution, cmake can be run with the ``-DBUILD_OWN_GROMACS=ON`` or ``-DBUILD_OWN_LIBINT=ON`` flags to automatically install the correct GROMACS and libint version.
+
+On Ubuntu 20.10 and older you will not get version 1.0.5 of the libecpint package. So in this case run `this <https://github.com/votca/buildenv/blob/55c88641046dbb6152cf7d9e536e17f29205479f/ubuntu#L30-L33>`_ or
+download the package from `here <http://ftp.us.debian.org/debian/pool/main/libe/libecpint/>`_.
 
 
 Resolving the 'not found' dependency errors
@@ -41,7 +46,7 @@ for resolving dependency issues. In particular, an appropriate extra
 ``-D`` flag is necessary to specify the path to a missed package. You
 will have to rerun the ``cmake`` command with the relevant flag(s)
 added. For example, in the case of a locally installed version of
-Gromacs:
+GROMACS:
 
 ::
 
@@ -100,7 +105,7 @@ Fedora
 
     dnf install votca-csg votca-xtp
 
-CentOs
+CentOS
 ~~~~~~
 
 ::
@@ -109,7 +114,7 @@ CentOs
     yum update
     yum install votca-csg
 
-OpenSuse
+openSUSE
 ~~~~~~~~
 
 ::
@@ -141,12 +146,12 @@ Gentoo
 Spack
 ~~~~~
 
-`Spack <https://spack.io/>`__ is a package manager, which has 
+`Spack <https://spack.io/>`__ is a package manager, which has
 the capability of building VOTCA and all its dependencies:
 
 ::
 
-    git clone clone https://github.com/spack/spack.git spack
+    git clone https://github.com/spack/spack.git spack
     source spack/share/spack/setup-env.sh
     spack install votca-csg
     spack install votca-xtp

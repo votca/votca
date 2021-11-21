@@ -4,7 +4,6 @@ url="https://github.com/votca/votca.git"
 branch=stable
 testing=no
 verbose=
-what=( tools csg csg-tutorials xtp xtp-tutorials )
 cmake_opts=()
 
 die () {
@@ -20,12 +19,6 @@ export GNUTERM=dumb
 j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0
 ((j++))
 
-is_part() { #checks if 1st argument is part of the set given by other arguments
-  [[ -z $1 || -z $2 ]] && die "${FUNCNAME[0]}: Missing argument"
-  [[ " ${@:2} " = *" $1 "* ]]
-}
-export -f is_part
-
 show_help() {
   cat << eof
 This is the script to make release tarballs for VOTCA
@@ -34,11 +27,10 @@ OPTIONS:
     --help          Show this help
     --test          Just test, do not commit stuff
     --branch BRANCH Use BRANCH instead of '$branch'
-    --repos REPOS   Use repos instead of '${what[@]}'
     -j  JOBS        Jobs to use instead of '$j'
     --verbose       Do a verbose build
     --debug         Run in debug more
--D*                 Extra option to give to cmake 
+-D*                 Extra option to give to cmake
 
 Examples:  ${0##*/} --help
            ${0##*/} --test 1.2.3 srcdir
@@ -59,9 +51,6 @@ while [[ $# -gt 0 ]]; do
     fi
  fi
  case $1 in
-   --repos)
-     what=( $2 )
-     shift 2;;
    --branch)
      branch="$2"
      shift 2;;
@@ -92,12 +81,6 @@ while [[ $# -gt 0 ]]; do
  esac
 done
 
-for i in tools csg csg-tutorials; do
-  if ! is_part "$i" "${what[@]}"; then
-    die "$i needs to be part of the repo selection"
-  fi
-done
-
 [[ -z $2 ]] && die "${0##*/}: missing argument - no srcdir!\nTry ${0##*/} --help"
 if [[ ${CI} != "true" && ${testing} = "no" && ${branch} != "stable" ]]; then
   die "branch ${branch} cannot be use without testing"
@@ -124,11 +107,8 @@ cleanup() {
   [[ $testing = "no" ]] || return
   echo "####### ERROR ABOVE #########"
   pushd "${srcdir}"
-  for p in . "${what[@]}"; do
-    echo "$p"
-    git -C "${p}" reset --hard "origin/${branch}" || true
-    git -C "${p}" tag --delete "v${rel}" || true
-  done
+  git reset --hard "origin/${branch}" || true
+  git tag --delete "v${rel}" || true
   popd
 }
 trap cleanup EXIT
@@ -137,76 +117,48 @@ pushd "${srcdir}"
 git remote update --prune
 git checkout "$branch" || die "Could not checkout $branch"
 git pull --ff-only
-for p in "${what[@]}"; do
-  pushd "${p}"
-  [[ -z "$(git ls-files -mo --exclude-standard)" ]] || die "There are modified or unknown files in $p"
-  git remote update --prune
-  git checkout "$branch" || die "Could not checkout $branch"
-  git pull --ff-only
-  [[ -z "$(git ls-files -mo --exclude-standard)" ]] || die "There are modified or unknown files in $p"
-  if [[ $testing = "yes" ]]; then
-    :
-  elif [[ -f CMakeLists.txt ]]; then
-    sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
-    git add CMakeLists.txt
-    if [[ -f CHANGELOG.rst ]]; then
-      sed -i "/^Version ${rel}\>/s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
-      git add CHANGELOG.rst
-    fi
-  fi
-  if [[ $testing = "no" ]]; then
-    [[ -f CHANGELOG.rst && -z $(grep "^Version ${rel}\>" CHANGELOG.rst) ]] && \
-          die "Go and update CHANGELOG.rst in ${p} before making a release"
+[[ -z "$(git ls-files -mo --exclude-standard)" ]] || die "There are modified or unknown files"
+if [[ $testing = "yes" ]]; then
+  :
+elif [[ -f CMakeLists.txt ]]; then
+  sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
+  git add CMakeLists.txt
+  sed -i "/^Version ${rel} /s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
+  git add CHANGELOG.rst
+fi
+if [[ $testing = "no" ]]; then
+   [[ -n $(grep -E "^Version ${rel}( |$)" CHANGELOG.rst) ]] || die "Go and update CHANGELOG.rst before making a release"
 
-    if [ -f CHANGELOG.rst ]]; then
-      # check if CHANGELOG section has no entry, there should be at least something like "-  no changes"
-      version_section="$(awk -v r="^Version ${rel}( |$)" '($0 ~ "^Version"){go=0} ($0 ~ r){go=1}{if(go==1){print $0}}' CHANGELOG.rst)"
-      line_nr="$(sed -n "/^Version ${rel}\( \|$\)/=" CHANGELOG.rst)"
-      [[ $version_section ]] || die "Could not find section to $rel"
-      echo "Found section for $rel (starting line ${line_nr})"
-      last_line="$(echo "$version_section" | sed '/^[[:space:]]*$/d' | sed -n '$p')"
-      [[ $last_line ]] || die "Could not grep last line"
-      [[ ${last_line} = -* || ${last_line} = '   '[^\ ]* ]] || die "Last line isn't an item (does not start with -), but ${last_line}, fix the CHANGELOG.rst in $p first"
-    fi
+  # check if CHANGELOG section has no entry, there should be at least something like "-  no changes"
+  version_section="$(awk -v r="^Version ${rel}( |$)" '($0 ~ "^Version"){go=0} ($0 ~ r){go=1}{if(go==1){print $0}}' CHANGELOG.rst)"
+  line_nr="$(sed -n "/^Version ${rel}\( \|$\)/=" CHANGELOG.rst)"
+  [[ $version_section ]] || die "Could not find section to $rel"
+  echo "Found section for $rel (starting line ${line_nr})"
+  last_line="$(echo "$version_section" | sed '/^[[:space:]]*$/d' | sed -n '$p')"
+  [[ $last_line ]] || die "Could not grep last line"
+  [[ ${last_line} = -* || ${last_line} = '   '[^\ ]* ]] || die "Last line isn't an item (does not start with -), but ${last_line}, fix the CHANGELOG.rst in $p first"
 
-    #|| true because maybe version has not changed
-    git commit -m "Version bumped to $rel" || true
-    git tag "v${rel}"
-  fi
-  git archive --prefix "votca-${p}-${rel}/" -o "${topdir}/votca-${p}-${rel}.tar.gz" HEAD || die "git archive failed"
-  popd
-done
+  #|| true because maybe version has not changed
+  git commit -m "Version bumped to $rel" || true
+  git tag "v${rel}"
+fi
+git archive --prefix "votca-${rel}/" -o "${topdir}/votca-${rel}.tar.gz" HEAD || die "git archive failed"
 popd
 
 rm -rf "$instdir" "$build"
 mkdir "$instdir"
-mkdir "$build"
-pushd "$build"
 
 echo "Starting build check from tarball"
 
+tar -xvf "${topdir}/votca-${rel}.tar.gz"
 cmake -DCMAKE_INSTALL_PREFIX="${instdir}" -DMODULE_BUILD=ON \
-      -DVOTCA_TARBALL_DIR="${topdir}" -DVOTCA_TARBALL_TAG="${rel}" \
       -DENABLE_TESTING=ON \
       -DENABLE_REGRESSION_TESTING=ON \
-      $(is_part xtp "${what[@]}" && echo -DBUILD_XTP=ON) \
-      "${cmake_opts[@]}" "${srcdir}"
-make -j"${j}" ${verbose:+VERBOSE=1}
-popd
+      -DBUILD_XTP=ON \
+      "${cmake_opts[@]}" -S "votca-${rel}/" -B "$build"
+cmake --build "${build}" -j"${j}" ${verbose:+--verbose}
 
-rm -rf "$build"
-rm -rf "$instdir"
-
-pushd "$srcdir"
-if [[ $testing = "no" ]]; then
-  sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
-  if [[ -f README.rst ]]; then
-    sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.rst share/doc/INSTALL.rst || die "sed of README.rst failed"
-  fi
-  git add -u
-  git commit -m "Version bumped to $rel"
-  git tag "v${rel}"
-fi
+rm -rf "$instdir" "$build"
 
 if [[ $rel = *-dev ]]; then
   add_rel="${rel%-dev}-rc.1"
@@ -221,23 +173,18 @@ else
 fi
 
 new_section="Version ${add_rel} (released $(date +XX.%m.%y))"
-for c in */CHANGELOG.rst; do
-  p="${c%/CHANGELOG.rst}"
-  sed -i "/^Version ${rel}\>/i ${new_section}\n${new_section//?/=}\n" "$c"
-  git -C "$p" add CHANGELOG.rst
-  git -C "$p" commit -m "CHANGELOG: add ${add_rel} section"
-  git add "$p"
-done
-git commit -m "update CHANGELOG sections in all submodules"
+sed -i "/^Version ${rel}\( \|$\)/i ${new_section}\n${new_section//?/=}\n" CHANGELOG.rst
+git add CHANGELOG.rst
+git commit -m "CHANGELOG: add ${add_rel} section"
 
 trap - EXIT
 
 if [[ $testing = "no" ]]; then
   echo "####### TODO by you #########"
   echo "cd $srcdir"
-  echo "for p in . ${what[@]}; do git -C \$p log -p --submodule origin/${branch}..${branch}; done"
-  echo "for p in . ${what[@]}; do git -C \$p  push --tags origin ${branch}:${branch}; done"
+  echo "git -C \$p log -p --submodule origin/${branch}..${branch}"
+  echo "git -C \$p  push --tags origin ${branch}:${branch}"
 else
   echo "cd $topdir"
-  echo "Take a look at " ./*"${rel}"*
+  echo "Take a look at votca-${rel}.tar.gz"
 fi
