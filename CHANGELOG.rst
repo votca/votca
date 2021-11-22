@@ -130,6 +130,7 @@ Version 2022-dev
 -  cmake: allow libint2 detections through cmake (#888)
 -  allow libxc detection through cmak (#890)
 -  bump required cmake version to 3.13 to support -B option (#887, #893)
+-  changed hard coded file to option value in eqm.cc (#900)
 
 
 Version 2021.2 and earlier
