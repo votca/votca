@@ -209,7 +209,9 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
         std::string GBWFILE = DIR + "/" + gbw_file;
         XTP_LOG(Log::error, pLog)
             << "Copying MO data to " << gbw_file << std::flush;
-        std::string GBWFILE_workdir = work_dir + std::string("/") + package_options_.get("temporary_file").as<std::string>() + std::string(".gbw");
+        std::string GBWFILE_workdir =
+            work_dir + "/" +
+            package_options_.get("temporary_file").as<std::string>() + ".gbw";
         boost::filesystem::copy_file(
             GBWFILE_workdir, GBWFILE,
             boost::filesystem::copy_option::overwrite_if_exists);
