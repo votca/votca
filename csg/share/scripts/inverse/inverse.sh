@@ -298,7 +298,7 @@ while true; do
       msg "walltime is nearly up, stopping now, resume csg_inverse whenever you want."
       exit 0
     else
-      die "Simulation is in a strange state, it has no checkpoint and is not finished, check ${this_dir##*/} by hand"
+      die "Simulation is in a strange state, it has no checkpoint and is not finished (judging from confout and traj), check ${this_dir##*/} by hand"
     fi
   }
   export -f check_simulation_state

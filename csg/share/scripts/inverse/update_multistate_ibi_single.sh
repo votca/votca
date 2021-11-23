@@ -46,10 +46,10 @@ if [ ${scheme[$scheme_nr]} == 1 ]; then
      state="${state_names_arr[s]}"
      weight="${state_weights_arr[s]}"
      kBT="${state_kBTs_arr[s]}"
+     is_num "${kBT}" || die "${0##*/}: cg.inverse.multistate.state_kBTs should be numbers, but found '$kBT'"
      # update ibi per state
      pushd "$state"
      do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
-     is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
      do_external update ibi_pot ${name}.dist.tgt "${name}.dist.new" "../${name}.pot.cur" "${name}.dpot.pure_ibi" "${kBT}"
      do_external potential shift --type "${bondtype}" "${name}.dpot.pure_ibi" "${name}.dpot.new"
      # weight state update
