@@ -132,6 +132,7 @@ Version 2022-dev
 -  bump required cmake version to 3.13 to support -B option (#887, #893)
 -  changed hard coded file to option value in eqm.cc (#900)
 -  inject march=native by default and add cmake option for valgrind tests (#896)
+-  add performance compilation info (#895)
 
 
 Version 2021.2 and earlier
