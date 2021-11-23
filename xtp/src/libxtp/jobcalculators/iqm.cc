@@ -58,7 +58,7 @@ void IQM::ParseSpecificOptions(const tools::Property& options) {
   do_dft_parse_ = std::find(tasks.begin(), tasks.end(), "parse") != tasks.end();
   do_dftcoupling_ =
       std::find(tasks.begin(), tasks.end(), "dftcoupling") != tasks.end();
-  do_gwbse_ = std::find(tasks.begin(), tasks.end(), "gw") != tasks.end();
+  do_gwbse_ = std::find(tasks.begin(), tasks.end(), "gwbse") != tasks.end();
   do_bsecoupling_ =
       std::find(tasks.begin(), tasks.end(), "bsecoupling") != tasks.end();
 
