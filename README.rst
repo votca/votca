@@ -9,8 +9,10 @@ This is VOTCA, which provides the two following subpackages:
    with quantum-classical embedding, as well as electron, hole, and exciton 
    dynamics in atomistic MD-trajectories.
 
-Basic installation (see performance advice below)
-#################################################
+Basic installation 
+###################
+(see performance advice in `Install Guide <share/doc/INSTALL.rst>`__)
+
 ::
 
     prefix=WHERE/TO/INSTALL/VOTCA
@@ -26,44 +28,6 @@ Using this code via docker
 
     docker pull votca/votca
     docker run -it votca/votca /bin/bash
-
-
-
-Performance advice
-##################
-VOTCA-XTP relies on the Eigen library for vector-matrix operations, and a lot of 
-performance can be gained by enabling vectorization and/or use of Intel's ``MKL`` 
-as backend, which is automatically detected by ``CMake``. Below are some recommendations
-for different architectures:
-
-Intel Processors
-****************
-``g++``, ``clang``, and ``ipcx`` from the Intel OneAPI basekit give similar performance 
-when used with the MKL. No special flags have to be supplied to ``CMake``.
-
-If ``g++`` or ``clang`` are used without MKL, add ``-DCMAKE_CXX_FLAGS=-march=native`` to enable 
-vectorization in ``Eigen``.
-
-As a rough estimate, runtimes with vectorization and  ``gcc/clang`` are 30% shorter than without
-vectorization. Use of ``MKL`` reduces them by another 50%. 
-
-AMD Processors
-**************
-We recommend using ``g++`` or ``clang`` rather than an Intel compiler on AMD. Enable 
-vectorization in ``Eigen`` with ``-DCMAKE_CXX_FLAGS=-march=native``. 
-
-If you have Intel's MKL installed, and it is found by ``CMake`` make sure you 
-use ``-DCMAKE_CXX_FLAGS=-march=core-avx2`` (provided the CPU supports ``AVX2``).
-
-We observed about 50% shorter runtimes with vectorization enabled. Using the MKL 
-can be slightly faster, but the gains (if there are any) are at best a few %.
-
-CUDA support
-************
-If your system has a ``NVIDIA`` GPU, enable offloading of matrix operations 
-by ``-DUSE_CUDA=ON``. 
-
-
 
 More detailed information:
 ##########################
