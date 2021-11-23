@@ -66,5 +66,5 @@ foreach(PROG
     endif()
     add_test(NAME memory_${PROG} COMMAND "${VALGRIND_EXECUTABLE}" --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --error-exitcode=1 $<TARGET_FILE:unit_${PROG}>)
     set_tests_properties(memory_${PROG} PROPERTIES LABELS "tools;votca;memory")
-  endif(VALGRIND_FOUND) 
+  endif(ENABLE_VALGRIND_TESTING) 
 endforeach(PROG)
