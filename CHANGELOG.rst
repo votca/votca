@@ -112,7 +112,7 @@ Version 2022-dev
 -  disable test_random test on valgrind (#855)
 -  introduce global changelog (#858)
 -  clean up github actions and merge votca/actions (#859, #867, #874,
-   #878, #883)
+   #878, #883, #894)
 -  fix warning on intel compiler (#861)
 -  added gpu benchmark for xtp (#857)
 -  Remove submodules from doc and actions (#865)
@@ -130,7 +130,8 @@ Version 2022-dev
 -  cmake: allow libint2 detections through cmake (#888)
 -  allow libxc detection through cmak (#890)
 -  bump required cmake version to 3.13 to support -B option (#887, #893)
--  add performance compilation info  (#895)
+-  changed hard coded file to option value in eqm.cc (#900)
+-  inject march=native by default and add cmake option for valgrind tests (#896)
 
 
 Version 2021.2 and earlier
