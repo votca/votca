@@ -41,16 +41,16 @@ class MultipoleInteractor {
   std::array<Eigen::Vector3d, 3> orientationDependence(
       const Multipole& mp1, const Eigen::Vector3d& dr) const;
 
-  std::array<double, 5> erfDistanceDependence(const Eigen::vector3d& dr) const;
-  std::array<double, 5> erfcDistanceDependence(const Eigen::vector3d& dr) const;
+  std::array<double, 4> erfDistanceDependence(const Eigen::Vector3d& dr) const;
+  std::array<double, 4> erfcDistanceDependence(const Eigen::Vector3d& dr) const;
 
-  std::array<double, 5> tholeDamping(const Eigen::Matrix3d& pol1,
+  std::array<double, 4> tholeDamping(const Eigen::Matrix3d& pol1,
                                      const Eigen::Matrix3d& pol2,
                                      const Eigen::Vector3d& dr) const;
 
  private:
-  constexpr double pi = boost::math::constants::pi<double>();
-  constexpr double rSqrtPi = 1.0 / std::sqrt(pi);
+  static constexpr double pi = boost::math::constants::pi<double>();
+  static constexpr double rSqrtPi = 1.0 / std::sqrt(pi);
 
   double a1, a2, a3, a4, a5;     // alpha (splitting param) and its powers
   double thole, thole2, thole3;  // thole damping params and its powers

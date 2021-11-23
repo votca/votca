@@ -18,51 +18,38 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_BACKGROUND_H
-#define VOTCA_XTP_BACKGROUND_H
+#ifndef VOTCA_XTP_BGSEGMENT_H
+#define VOTCA_XTP_BGSEGMENT_H
+
 #include <vector>
 
 // Local VOTCA includes
 #include "votca/xtp/classicalsegment.h"
-#include "votca/xtp/logger.h"
-#include "votca/xtp/region.h"
-#include "votca/xtp/segid.h"
 
 // Private VOTCA includes
-#include "votca/xtp/ewaldoptions.h"
-#include "votca/xtp/bgsegment.h"
-#include "votca/xtp/unitcell.h"
+#include "votca/xtp/bgsite.h"
 
 namespace votca {
 namespace xtp {
 
-class Background {
+class BGSegment {
  public:
-  Background(Logger& log, const Eigen::Matrix3d& uc_matrix,
-             const EwaldOptions options,
-             std::vector<PolarSegment>& polar_background);
+  BGSegment(const PolarSegment& pol) {
+    for (const PolarSite& psite : pol) {
+      BGSite esite(psite);
+      sites_.push_back(esite);
+    }
+    id_ = pol.getId();
+    position_ = pol.getPos();
+  }
 
-  Background(Logger& log) : log_(log) {}
-
-  ~Background() = default;
-
-  Index size() const { return background_segments_.size(); }
-
-  void Polarize();
-
-  void writeToStateFile(std::string state_file);
-
-  void readFromStateFile(const std::string state_file);
-
-  bool empty() const { return background_segments.size() == 0; }
+  ~BGSegment() = default;
 
  private:
-  Logger& log_;
-  UnitCell unit_cell_;
-  EwaldOptions options_;
-  std::vector<BGSegment> background_segments_;
+  Index id_;
+  std::vector<BGSite> sites_;
+  Eigen::Vector3d position_;
 };
 }  // namespace xtp
 }  // namespace votca
-
 #endif

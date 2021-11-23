@@ -43,24 +43,24 @@ std::array<double, 5> MultipoleInteractor::orientationDependence(
                     dyadic3d(chargeQuad, dr_outer) -
                     2 * dyadic3d(dip2R, mp1.quadrupole) +
                     2 * dyadic3d(dip1R, mp2.quadrupole);
-      results[3] = -(mp1.dipole.dot(dr)) * dyadic(mp2.quadrupole, dr_outer) +
-                   (mp2.dipole.dot(dr)) * dyadic(mp1.quadrupole, dr_outer) -
+      results[3] = -(mp1.dipole.dot(dr)) * dyadic3d(mp2.quadrupole, dr_outer) +
+                   (mp2.dipole.dot(dr)) * dyadic3d(mp1.quadrupole, dr_outer) -
                    4 * dr.transpose() * mp1.quadrupole * mp2.quadrupole * dr;
       results[4] = dyadic3d(mp1.quadrupole, dr_outer) *
                    dyadic3d(mp2.quadrupole, dr_outer);
     }
   }
-  return results
+  return results;
 }
 
 std::array<Eigen::Vector3d, 3> MultipoleInteractor::orientationDependence(
-    const Multipole& mp1, const Eigen::Vector3d& dr) {
-  std::array<double, 3> results;
+    const Multipole& mp1, const Eigen::Vector3d& dr) const {
+  std::array<Eigen::Vector3d, 3> results;
   results[0] = -mp1.charge * dr;
   if (mp1.rank > 0) {
     results[0] += mp1.dipole;
     results[1] = -(mp1.dipole.dot(dr)) * dr;
-    if (maxRank > 1) {
+    if (mp1.rank > 1) {
       results[1] += 2 * mp1.quadrupole * dr;
       Eigen::Matrix3d dr_outer = dr * dr.transpose();
       results[2] = -dyadic3d(mp1.quadrupole, dr_outer) * dr;
@@ -134,5 +134,4 @@ std::array<double, 4> MultipoleInteractor::tholeDamping(
 
 }  // namespace xtp
 
-}  // namespace votca
 }  // namespace votca

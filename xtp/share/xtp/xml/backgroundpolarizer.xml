@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<options>
+  <backgroundpolarizer help="Computes the polarization state of the background using the Ewald summation technique.">
+    <alpha help="ewald splitting param" units="1/nm" default="4"/>
+    <k_cutoff help="reciprocal space cutoff" units="1/nm" default="10"/>
+    <r_cutoff help="real space cutoff" units="nm" default="0.9"/>
+    <thole_sharpness help="ewald splitting param" units="dim less" default="0.390"/>
+    <shape help="shape for the ewald shape correction" choices="xyslab,cube,sphere" default="cube"/>
+    <mapfile help="path to mapping file">xtpmap.xml</mapfile>
+    <output_file>background</output_file>
+  </backgroundpolarizer>
+</options>

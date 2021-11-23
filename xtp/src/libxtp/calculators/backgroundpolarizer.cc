@@ -20,14 +20,13 @@
 #include "votca/xtp/topology.h"
 
 // Local private VOTCA includes
-#include "bgpol.h"
-#include "votca/xtp/ewd_segment.h"
+#include "backgroundpolarizer.h"
 #include "votca/xtp/unitcell.h"
 
 namespace votca {
 namespace xtp {
 
-void BGPol::ParseOptions(const tools::Property& options) {
+void BackgroundPolarizer::ParseOptions(const tools::Property& options) {
   mapfile_ = options.get(".mapfile").as<std::string>();
   ewd_options_.alpha =
       (1.0 / tools::conv::nm2bohr) * options.get(".alpha").as<double>();
@@ -49,7 +48,7 @@ void BGPol::ParseOptions(const tools::Property& options) {
   output_file_name_ = options.get("output_file").as<std::string>() + ".hdf5";
 }
 
-bool BGPol::Evaluate(Topology& top) {
+bool BackgroundPolarizer::Evaluate(Topology& top) {
   log_.setReportLevel(Log::current_level);
   log_.setMultithreading(true);
   log_.setCommonPreface("\n... ...");
@@ -64,10 +63,11 @@ bool BGPol::Evaluate(Topology& top) {
     polar_background.push_back(mol);
   }
 
+  // Create the background
+  Background BG(log_, top.getBox(), ewd_options_, polar_background);
   // Polarize the neutral background
-  Background Bg(log_, top.getBox(), ewd_options_, polar_background);
-  Bg.Polarize();
-  Bg.writeToStateFile(output_file_name_);
+  BG.Polarize();
+  BG.writeToStateFile(output_file_name_);
   return true;
 }
 
