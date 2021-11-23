@@ -21,8 +21,9 @@
 #ifndef VOTCA_XTP_MULTIPOLEINTERACTOR_H
 #define VOTCA_XTP_MULTIPOLEINTERACTOR_H
 
-#include <vector>
 #include <array>
+#include <boost/math/constants/constants.hpp>
+#include <vector>
 
 #include "multipole.h"
 
@@ -31,17 +32,28 @@ namespace xtp {
 
 class MultipoleInteractor {
  public:
+  MultipoleInteractor(double alpha, double thole_damping);
 
-  std::array<double,5> orientationDependence(Multipole mp1, Multipole mp2, Eigen::Vector3d dr);
+  std::array<double, 5> orientationDependence(const Multipole& mp1,
+                                              const Multipole& mp2,
+                                              const Eigen::Vector3d& dr) const;
 
-  std::array<double,5> distanceDependence(Eigen::vector3d dr);
+  std::array<Eigen::Vector3d, 3> orientationDependence(
+      const Multipole& mp1, const Eigen::Vector3d& dr) const;
 
-  std::array<double,5> tholeDamping();
+  std::array<double, 5> erfDistanceDependence(const Eigen::vector3d& dr) const;
+  std::array<double, 5> erfcDistanceDependence(const Eigen::vector3d& dr) const;
 
-  
+  std::array<double, 5> tholeDamping(const Eigen::Matrix3d& pol1,
+                                     const Eigen::Matrix3d& pol2,
+                                     const Eigen::Vector3d& dr) const;
 
  private:
-  double dyadic3d(Eigen::Matrix3d mat1, Eigen::Matrix3d mat2);
+  constexpr double pi = boost::math::constants::pi<double>();
+  constexpr double rSqrtPi = 1.0 / std::sqrt(pi);
+
+  double a1, a2, a3, a4, a5;     // alpha (splitting param) and its powers
+  double thole, thole2, thole3;  // thole damping params and its powers
 };
 
 }  // namespace xtp
