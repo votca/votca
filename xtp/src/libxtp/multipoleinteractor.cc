@@ -128,7 +128,7 @@ std::array<double, 4> MultipoleInteractor::tholeDamping(
                       (9. / 35.) * thole3 * thole_u6 * thole_u3) *
                          thole_exp;
   }  // else: the exponent is close to zero and hence the expression is close to
-     // 1
+     // 1 and we return an array of ones.
   return results;
 }
 
