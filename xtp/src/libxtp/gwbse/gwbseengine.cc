@@ -50,12 +50,11 @@ void GWBSEEngine::Initialize(tools::Property& options,
   std::vector<std::string> tasks = tokenizedTasks.ToVector();
 
   // Check which tasks exist and set them to true
-  do_guess_ =  std::find(tasks.begin(), tasks.end(), "guess") != tasks.end();
+  do_guess_ = std::find(tasks.begin(), tasks.end(), "guess") != tasks.end();
   do_dft_input_ = std::find(tasks.begin(), tasks.end(), "input") != tasks.end();
   do_dft_run_ = std::find(tasks.begin(), tasks.end(), "dft") != tasks.end();
   do_dft_parse_ = std::find(tasks.begin(), tasks.end(), "parse") != tasks.end();
   do_gwbse_ = std::find(tasks.begin(), tasks.end(), "gwbse") != tasks.end();
-
 
   // XML option file for GWBSE
   if (do_gwbse_) {

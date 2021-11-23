@@ -40,7 +40,7 @@ void EQM::ParseSpecificOptions(const tools::Property& options) {
   QMPackageFactory::RegisterAll();
 
   // job tasks
-  std::string tasks_string_ = options.get(".tasks").as<std::string>();
+  std::string tasks_string = options.get(".tasks").as<std::string>();
 
   // We split either on a space or a comma
   tools::Tokenizer tokenizedTasks(tasks_string, " ,");
