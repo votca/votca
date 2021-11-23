@@ -180,9 +180,6 @@ std::string Molden::readMOs(Orbitals& orbitals,
     }
   }
 
-  orbitals.setNumberOfAlphaElectrons(number_of_electrons);
-  orbitals.setNumberOfOccupiedLevels(number_of_electrons / 2);
-
   OrbReorder reorder(reorderList_, multipliers_);
   reorder.reorderOrbitals(orbitals.MOs().eigenvectors(),
                           orbitals.getDftBasis());
