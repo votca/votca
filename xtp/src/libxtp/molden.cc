@@ -159,16 +159,20 @@ std::string Molden::readMOs(Orbitals& orbitals,
     iss.str(line);
     iss.clear();
     iss >> tempStr >> tempStr;
-    if (tempStr == "Beta") {
-      throw std::runtime_error(
-          "Open shell systems are currently not supported");
-    }
     // occupation line
     std::getline(input_file, line);
     iss.str(line);
     iss.clear();
     iss >> tempStr >> tempDouble;
     number_of_electrons += (int)tempDouble;
+    if ((int)tempDouble == 1) {
+      XTP_LOG(Log::error, log_)
+          << "WARNING: you are reading a molden file with an openshell "
+             "system.\n Openshell systems are currently not supported in "
+             "VOTCA! \n    There are, however, use cases for reading an "
+             "openshell system, hence we keep on running."
+          << std::endl;
+    }
 
     // MO coefficients
     for (int j = 0; j < basis_size; j++) {  // loop over ao's
