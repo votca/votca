@@ -131,7 +131,8 @@ Version 2022-dev
 -  allow libxc detection through cmak (#890)
 -  bump required cmake version to 3.13 to support -B option (#887, #893)
 -  changed hard coded file to option value in eqm.cc (#900)
--  inject march=native by default and add cmake option for valgrind tests (#896)
+-  inject march=native by default and add cmake option for valgrind tests (#896, #903)
+-  add performance compilation info (#895)
 -  Refactor parsing of the tasks_string (#902)
 
 

@@ -35,6 +35,8 @@ else
 fi
 
 cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON  -DBUILD_CSGAPPS=ON )
+# do not inject -march=native as the CI runs on different backends and hence will create a conflict with ccache
+cmake_args+=( -DINJECT_MARCH_NATIVE=OFF )
 if [[ ${INPUT_CMAKE_BUILD_TYPE} ]]; then
   cmake_args+=( -DCMAKE_BUILD_TYPE=${INPUT_CMAKE_BUILD_TYPE} )
 fi
