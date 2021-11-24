@@ -163,7 +163,6 @@ std::string Molden::readMOs(Orbitals& orbitals,
     iss.str(line);
     iss.clear();
     iss >> tempStr >> tempDouble;
-    number_of_electrons += (int)tempDouble;
     if ((int)tempDouble == 1) {
       XTP_LOG(Log::error, log_)
           << "WARNING: you are reading a molden file with an openshell "
