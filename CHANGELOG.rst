@@ -133,6 +133,7 @@ Version 2022-dev
 -  changed hard coded file to option value in eqm.cc (#900)
 -  inject march=native by default and add cmake option for valgrind tests (#896, #903)
 -  add performance compilation info (#895)
+-  Read number of alpha electrons from orca log, not from molden (#901)
 -  Refactor parsing of the tasks_string (#902)
 
 
