@@ -72,7 +72,7 @@ if(ENABLE_WARNING_FLAGS)
   endif()
 endif()
 
-option(INJECT_MARCH_NATIVE "Inject -march=native if compiler supports it" ON)
+option(INJECT_MARCH_NATIVE "Inject -march=native if compiler supports it" OFF)
 add_feature_info(INJECT_MARCH_NATIVE INJECT_MARCH_NATIVE "Add -march=native to CXX flags")
 if(INJECT_MARCH_NATIVE)
   include(CheckCXXCompilerFlag)
