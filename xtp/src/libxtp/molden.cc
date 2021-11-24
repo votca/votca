@@ -132,7 +132,6 @@ std::string Molden::readMOs(Orbitals& orbitals,
 
   // setup space to store everything
   Index basis_size = orbitals.getBasisSetSize();
-  Index number_of_electrons = 0;
   if (basis_size == 0) {
     throw std::runtime_error(
         "Basis size not set, atoms were not parsed first.");
