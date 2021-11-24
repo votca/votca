@@ -40,23 +40,17 @@ void EQM::ParseSpecificOptions(const tools::Property& options) {
   QMPackageFactory::RegisterAll();
 
   // job tasks
-  std::string tasks_string_ = options.get(".tasks").as<std::string>();
+  std::string tasks_string = options.get(".tasks").as<std::string>();
 
-  if (tasks_string_.find("input") != std::string::npos) {
-    do_dft_input_ = true;
-  }
-  if (tasks_string_.find("dft") != std::string::npos) {
-    do_dft_run_ = true;
-  }
-  if (tasks_string_.find("parse") != std::string::npos) {
-    do_dft_parse_ = true;
-  }
-  if (tasks_string_.find("gwbse") != std::string::npos) {
-    do_gwbse_ = true;
-  }
-  if (tasks_string_.find("esp") != std::string::npos) {
-    do_esp_ = true;
-  }
+  // We split either on a space or a comma
+  tools::Tokenizer tokenizedTasks(tasks_string, " ,");
+  std::vector<std::string> tasks = tokenizedTasks.ToVector();
+
+  do_dft_input_ = std::find(tasks.begin(), tasks.end(), "input") != tasks.end();
+  do_dft_run_ = std::find(tasks.begin(), tasks.end(), "dft") != tasks.end();
+  do_dft_parse_ = std::find(tasks.begin(), tasks.end(), "parse") != tasks.end();
+  do_gwbse_ = std::find(tasks.begin(), tasks.end(), "gwbse") != tasks.end();
+  do_esp_ = std::find(tasks.begin(), tasks.end(), "esp") != tasks.end();
 
   // set the basis sets and functional for DFT and GWBSE
   gwbse_options_ = options.get("gwbse");

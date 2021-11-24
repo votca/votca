@@ -134,6 +134,7 @@ Version 2022-dev
 -  inject march=native by default and add cmake option for valgrind tests (#896, #903)
 -  add performance compilation info (#895)
 -  Read number of alpha electrons from orca log, not from molden (#901)
+-  Refactor parsing of the tasks_string (#902)
 
 
 Version 2021.2 and earlier
