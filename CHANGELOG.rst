@@ -130,6 +130,12 @@ Version 2022-rc.1 (released XX.11.21)
 -  cmake: allow libint2 detections through cmake (#888)
 -  allow libxc detection through cmak (#890)
 -  bump required cmake version to 3.13 to support -B option (#887, #893)
+-  changed hard coded file to option value in eqm.cc (#900)
+-  inject march=native by default and add cmake option for valgrind tests (#896, #903)
+-  add performance compilation info (#895)
+-  Read number of alpha electrons from orca log, not from molden (#901)
+-  Refactor parsing of the tasks_string (#902)
+-  set correct filename for initial guess from monomer orbitals (#904)
 
 
 Version 2021.2 and earlier

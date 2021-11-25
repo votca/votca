@@ -132,7 +132,6 @@ std::string Molden::readMOs(Orbitals& orbitals,
 
   // setup space to store everything
   Index basis_size = orbitals.getBasisSetSize();
-  Index number_of_electrons = 0;
   if (basis_size == 0) {
     throw std::runtime_error(
         "Basis size not set, atoms were not parsed first.");
@@ -159,16 +158,19 @@ std::string Molden::readMOs(Orbitals& orbitals,
     iss.str(line);
     iss.clear();
     iss >> tempStr >> tempStr;
-    if (tempStr == "Beta") {
-      throw std::runtime_error(
-          "Open shell systems are currently not supported");
-    }
     // occupation line
     std::getline(input_file, line);
     iss.str(line);
     iss.clear();
     iss >> tempStr >> tempDouble;
-    number_of_electrons += (int)tempDouble;
+    if ((int)tempDouble == 1) {
+      XTP_LOG(Log::error, log_)
+          << "WARNING: you are reading a molden file with an openshell "
+             "system.\n Openshell systems are currently not supported in "
+             "VOTCA! \n    There are, however, use cases for reading an "
+             "openshell system, hence we keep on running."
+          << std::endl;
+    }
 
     // MO coefficients
     for (int j = 0; j < basis_size; j++) {  // loop over ao's
@@ -179,9 +181,6 @@ std::string Molden::readMOs(Orbitals& orbitals,
       orbitals.MOs().eigenvectors()(j, i) = tempDouble;
     }
   }
-
-  orbitals.setNumberOfAlphaElectrons(number_of_electrons);
-  orbitals.setNumberOfOccupiedLevels(number_of_electrons / 2);
 
   OrbReorder reorder(reorderList_, multipliers_);
   reorder.reorderOrbitals(orbitals.MOs().eigenvectors(),
