@@ -309,6 +309,7 @@ bool Orca::WriteShellScript() {
   shell_file.open(shell_file_name_full);
   shell_file << "#!/bin/bash" << endl;
   shell_file << "mkdir -p " << scratch_dir_ << endl;
+  std::string base_name = mo_file_name_.substr(0, mo_file_name_.size() - 4);
 
   if (options_.get("initial_guess").as<std::string>() == "orbfile") {
     if (!(boost::filesystem::exists(run_dir_ + "/molA.gbw") &&
@@ -318,12 +319,12 @@ bool Orca::WriteShellScript() {
           "directory.");
     }
     shell_file << options_.get("executable").as<std::string>()
-               << "_mergefrag molA.gbw molB.gbw dimer.gbw > merge.log" << endl;
+               << "_mergefrag molA.gbw molB.gbw " << base_name
+               << ".gbw dimer.gbw > merge.log" << endl;
   }
   shell_file << options_.get("executable").as<std::string>() << " "
-             << input_file_name_ << " > " << log_file_name_
-             << endl;  //" 2> run.error" << endl;
-  std::string base_name = mo_file_name_.substr(0, mo_file_name_.size() - 4);
+             << input_file_name_ << " > " << log_file_name_ << endl;
+
   shell_file << options_.get("executable").as<std::string>() << "_2mkl "
              << base_name << " -molden" << endl;
   shell_file.close();
