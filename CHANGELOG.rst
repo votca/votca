@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/stable>`__.
 
-Version 2022-rc.1 (released XX.11.21)
+Version 2022-rc.1 (released 26.11.21)
 =====================================
 
 -  create script to convert help to rst (votca/tools#312, votca/tools#328)
