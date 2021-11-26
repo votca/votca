@@ -1,6 +1,11 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/stable>`__.
 
+Version 2022-dev
+================
+
+-  fix iqm merge orbitals command  (#907)
+
 Version 2022-rc.2 (released XX.11.21)
 =====================================
 
