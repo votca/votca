@@ -320,7 +320,7 @@ bool Orca::WriteShellScript() {
     }
     shell_file << options_.get("executable").as<std::string>()
                << "_mergefrag molA.gbw molB.gbw " << base_name
-               << ".gbw dimer.gbw > merge.log" << endl;
+               << ".gbw > merge.log" << endl;
   }
   shell_file << options_.get("executable").as<std::string>() << " "
              << input_file_name_ << " > " << log_file_name_ << endl;
