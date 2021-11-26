@@ -529,7 +529,7 @@ def newton_update(input_arrays, settings, verbose=False):
     # number of grid points in r
     n_r = len(r)
     # slices
-    cut, _ = settings['cut_pot'], settings['tail_pot']
+    cut, tail = settings['cut_pot'], settings['tail_pot']
     # generate matrices
     g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
                                        settings['non-bonded-dict'])
@@ -562,7 +562,8 @@ def newton_update(input_arrays, settings, verbose=False):
         else:
             r_out = r
         # shift potential to make last value zero
-        dU -= dU[-1]
+        dU[cut] -= dU[tail][0]
+        dU[tail] = 0
         # change NaN in the core region to first valid value
         dU = extrapolate_dU_left_constant(dU, dU_flag)
         # save for output
@@ -996,7 +997,9 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             dU = np.concatenate(([np.nan], dU))
             dU_flag = np.concatenate((['o'], dU_flag))
         # shift potential to make last value zero
-        dU -= dU[-1]
+        cut, tail = settings['cut_pot'], settings['tail_pot']
+        dU[cut] -= dU[tail][0]
+        dU[tail] = 0
         # change NaN in the core region to first valid value
         dU = extrapolate_dU_left_constant(dU, dU_flag)
         # save for output
@@ -1096,7 +1099,9 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
         else:
             r_out = r
         # shift potential to make last value zero
-        dU -= dU[-1]
+        cut, tail = settings['cut_pot'], settings['tail_pot']
+        dU[cut] -= dU[tail][0]
+        dU[tail] = 0
         # change NaN in the core region to first valid value
         dU = extrapolate_dU_left_constant(dU, dU_flag)
         # save for output
