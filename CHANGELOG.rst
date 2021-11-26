@@ -136,6 +136,7 @@ Version 2022-dev
 -  Read number of alpha electrons from orca log, not from molden (#901)
 -  Refactor parsing of the tasks_string (#902)
 -  set correct filename for initial guess from monomer orbitals (#904)
+-  fix iqm merge orbitals command  (#907)
 
 
 Version 2021.2 and earlier
