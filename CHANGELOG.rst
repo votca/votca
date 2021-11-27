@@ -4,6 +4,14 @@ For more detailed information about the changes see the history of the
 Version 2022-dev
 ================
 
+-  fix iqm merge orbitals command  (#907)
+
+Version 2022-rc.2 (released XX.11.21)
+=====================================
+
+Version 2022-rc.1 (released 26.11.21)
+=====================================
+
 -  create script to convert help to rst (votca/tools#312, votca/tools#328)
 -  add rst pages to doc (votca/tools#330, votca/tools#332)
 -  remove tex and man output from app class (votca/tools#329)
@@ -136,7 +144,6 @@ Version 2022-dev
 -  Read number of alpha electrons from orca log, not from molden (#901)
 -  Refactor parsing of the tasks_string (#902)
 -  set correct filename for initial guess from monomer orbitals (#904)
--  fix iqm merge orbitals command  (#907)
 
 
 Version 2021.2 and earlier
