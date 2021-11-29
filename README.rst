@@ -4,10 +4,14 @@ This is VOTCA, which provides the two following subpackages:
 
 -  VOTCA-CSG, a library which provides tools to develop coarse-grained
    potentials from atomistic simulation data
--  VOTCA-XTP, a library designed to determine electronic properties of
-   organic materials from atomistic MD-trajectories.
+-  VOTCA-XTP, a library providing the DFT+GW-BSE method to calculate 
+   electronically excited states in single molecules, in molecular materials 
+   with quantum-classical embedding, as well as electron, hole, and exciton 
+   dynamics in atomistic MD-trajectories.
 
-Usage:
+Basic installation 
+###################
+(see performance advice in `Install Guide <share/doc/INSTALL.rst>`__)
 
 ::
 
@@ -18,14 +22,15 @@ Usage:
     cmake --build builddir --parallel <number of cores>
     cmake --build builddir --target install
 
-Using this code via docker:
-
+Using this code via docker
+##########################
 ::
 
     docker pull votca/votca
     docker run -it votca/votca /bin/bash
 
-For further details see:
+More detailed information:
+##########################
 
 1. `Installation <share/doc/INSTALL.rst>`__
 2. `Further Information <http://www.votca.org>`__

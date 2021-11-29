@@ -1,9 +1,7 @@
 # This is to workaround the issue in https://github.community/t/scheduled-builds-of-non-default-branch/16306
 name: Stable Cron
 on:
-  push:
-    branches:
-      - stable_cron
+  workflow_dispatch:
   schedule:
     - cron:  '0 5 * * SAT'
 

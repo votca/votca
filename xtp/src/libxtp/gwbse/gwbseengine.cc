@@ -46,30 +46,17 @@ void GWBSEEngine::Initialize(tools::Property& options,
 
   std::string tasks_string = options.get(".tasks").as<std::string>();
 
-  if (tasks_string.find("guess") != std::string::npos) {
-    do_guess_ = true;
-  }
-  if (tasks_string.find("input") != std::string::npos) {
-    do_dft_input_ = true;
-  }
-  if (tasks_string.find("dft") != std::string::npos) {
-    do_dft_run_ = true;
-  }
-  if (tasks_string.find("parse") != std::string::npos) {
-    do_dft_parse_ = true;
-  }
-  if (tasks_string.find("gwbse") != std::string::npos) {
-    do_gwbse_ = true;
-  }
-  if (tasks_string.find("localize") != std::string::npos) {
-    do_localize_ = true;
-  }
-  if (tasks_string.find("dft_in_dft") != std::string::npos) {
-    do_dft_in_dft_ = true;
-  }
-  if (tasks_string.find("localize") != std::string::npos) {
-    do_localize_ = true;
-  }
+  // We split either on a space or a comma
+  tools::Tokenizer tokenizedTasks(tasks_string, " ,");
+  std::vector<std::string> tasks = tokenizedTasks.ToVector();
+  // Check which tasks exist and set them to true
+  do_guess_ = std::find(tasks.begin(), tasks.end(), "guess") != tasks.end();
+  do_dft_input_ = std::find(tasks.begin(), tasks.end(), "input") != tasks.end();
+  do_dft_run_ = std::find(tasks.begin(), tasks.end(), "dft") != tasks.end();
+  do_dft_parse_ = std::find(tasks.begin(), tasks.end(), "parse") != tasks.end();
+  do_gwbse_ = std::find(tasks.begin(), tasks.end(), "gwbse") != tasks.end();
+  do_localize_ = std::find(tasks.begin(), tasks.end(), "localize") != tasks.end();
+  do_dft_in_dft_ = std::find(tasks.begin(), tasks.end(), "dft_in_dft") != tasks.end();
 
   // XML option file for GWBSE
   if (do_gwbse_) {
