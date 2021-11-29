@@ -144,6 +144,7 @@ Version 2022-rc.1 (released 26.11.21)
 -  Read number of alpha electrons from orca log, not from molden (#901)
 -  Refactor parsing of the tasks_string (#902)
 -  set correct filename for initial guess from monomer orbitals (#904)
+-  fix bug in basisset serialization that caused wrong Vxc values in GW (#910)
 
 
 Version 2021.2 and earlier
