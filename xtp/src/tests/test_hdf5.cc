@@ -169,13 +169,13 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   bool basissets_equal = (ssWrite.str() == ssRead.str());
   BOOST_CHECK(basissets_equal);
 
-  if(!basissets_equal){
+  if (!basissets_equal) {
     std::cout << "Thing we wrote:" << std::endl;
     std::cout << ssWrite.str();
     std::cout << "Thing we read:" << std::endl;
     std::cout << ssRead.str();
   }
-  
+
   libint2::finalize();
 }
 

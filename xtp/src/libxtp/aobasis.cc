@@ -181,7 +181,7 @@ void AOBasis::ReadFromCpt(CheckpointReader& r) {
 
     FillFuncperAtom();
   }
-  for (auto& shell : aoshells_){
+  for (auto& shell : aoshells_) {
     shell.CalcMinDecay();
   }
 }
