@@ -4,6 +4,15 @@ For more detailed information about the changes see the history of the
 Version 2022-dev
 ================
 
+Version 2022-rc.2 (released XX.11.21)
+=====================================
+
+-  fix iqm merge orbitals command  (#907)
+-  fix bug in basisset serialization that caused wrong Vxc values in GW (#910)
+
+Version 2022-rc.1 (released 26.11.21)
+=====================================
+
 -  create script to convert help to rst (votca/tools#312, votca/tools#328)
 -  add rst pages to doc (votca/tools#330, votca/tools#332)
 -  remove tex and man output from app class (votca/tools#329)
@@ -112,7 +121,7 @@ Version 2022-dev
 -  disable test_random test on valgrind (#855)
 -  introduce global changelog (#858)
 -  clean up github actions and merge votca/actions (#859, #867, #874,
-   #878)
+   #878, #883, #894)
 -  fix warning on intel compiler (#861)
 -  added gpu benchmark for xtp (#857)
 -  Remove submodules from doc and actions (#865)
@@ -124,6 +133,18 @@ Version 2022-dev
 -  added the full basissets to the orb checkpoint file (#863)
 -  return default for empty strings in option file (#873)
 -  replaced removed std::bind2nd by lambda (#881)
+-  change error to warning in reading lammps bonds (#884)
+-  add a citation.cff file (#845)
+-  improve support for Intel compilers (#882, #892)
+-  cmake: allow libint2 detections through cmake (#888)
+-  allow libxc detection through cmak (#890)
+-  bump required cmake version to 3.13 to support -B option (#887, #893)
+-  changed hard coded file to option value in eqm.cc (#900)
+-  inject march=native by default and add cmake option for valgrind tests (#896, #903)
+-  add performance compilation info (#895)
+-  Read number of alpha electrons from orca log, not from molden (#901)
+-  Refactor parsing of the tasks_string (#902)
+-  set correct filename for initial guess from monomer orbitals (#904)
 
 Version 2021.2 and earlier
 ==========================
