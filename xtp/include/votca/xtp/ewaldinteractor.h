@@ -18,42 +18,33 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_EWALDSITE_H
-#define VOTCA_XTP_EWALDSITE_H
+#ifndef VOTCA_XTP_EWALDINTERACTOR_H
+#define VOTCA_XTP_EWALDINTERACTOR_H
 
-// Local VOTCA includes
-#include "votca/xtp/classicalsegment.h"
-#include "votca/xtp/multipole.h"
+#include <array>
+#include <boost/math/constants/constants.hpp>
+#include <vector>
 
-#include <iomanip>
+#include "bgsite.h"
+#include "multipoleinteractor.h"
 
 namespace votca {
 namespace xtp {
 
-class BGSite {
+class EwaldInteractor {
  public:
-  BGSite(const PolarSite& pol);
+  EwaldInteractor(double alpha, double thole_damping)
+      : mpInteract(alpha, thole_damping) {};
 
-  ~BGSite() = default;
-
-  const Eigen::Vector3d& getPos() const { return position_; }
-
-  void updatePos(Eigen::Vector3d pos) {position_ = pos;}
-
-  const std::string& getElement() const { return element_;}
-
-  void addToStaticField(Eigen::Vector3d field) {static_field_ += field;}
+  // Fields
+  Eigen::Vector3d r_staticFieldAtBy(const BGSite& site, const BGSite& nbSite,
+                    const Eigen::Vector3d& shift);
 
  private:
-  Index id_;
-  Eigen::Vector3d position_;
-  Multipole mp_;
-  Eigen::Vector3d induced_dipole_ = Eigen::Vector3d::Zero();
-  std::string element_;
-  Eigen::Matrix3d polarization_;
-  Eigen::Vector3d static_field_ = Eigen::Vector3d::Zero();
-  Eigen::Vector3d induced_field_ = Eigen::Vector3d::Zero();
+  MultipoleInteractor mpInteract;
 };
+
 }  // namespace xtp
 }  // namespace votca
-#endif
+
+#endif  // VOTCA_XTP_EANALYZE_H

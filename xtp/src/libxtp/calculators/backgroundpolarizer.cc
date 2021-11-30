@@ -51,7 +51,7 @@ void BackgroundPolarizer::ParseOptions(const tools::Property& options) {
 bool BackgroundPolarizer::Evaluate(Topology& top) {
   log_.setReportLevel(Log::current_level);
   log_.setMultithreading(true);
-  log_.setCommonPreface("\n... ...");
+  log_.setCommonPreface("... ...");
   XTP_LOG(Log::error, log_) << std::endl;
 
   // Map multipole and polarization data to segments
@@ -65,7 +65,7 @@ bool BackgroundPolarizer::Evaluate(Topology& top) {
 
   // Create the background
   Background BG(log_, top.getBox(), ewd_options_, polar_background);
-  // Polarize the neutral background
+  // Polarize the neutral background and store teh result
   BG.Polarize();
   BG.writeToStateFile(output_file_name_);
   return true;

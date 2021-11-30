@@ -116,12 +116,12 @@ class UnitCell {
   friend std::ostream& operator<<(std::ostream& out, const UnitCell cell) {
     Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols,
                                  ", ", " ", "[", "]", "", "");
-    out << "************* UNIT CELL PARAMS *************" << std::endl;
     out << std::setprecision(8) << "RSpace Cell (nm)  : "
-        << (0.05291 * cell.getMatrix()).format(CommaInitFmt) << std::endl;
-    out << std::setprecision(5) << "KSpace Cell (nm-1): "
-        << ((1.0 / 0.05291) * cell.getInverseMatrix()).format(CommaInitFmt)
+        << (tools::conv::bohr2nm * cell.getMatrix()).format(CommaInitFmt)
         << std::endl;
+    out << std::setprecision(5) << "KSpace Cell (nm-1): "
+        << ((1.0 / tools::conv::bohr2nm) * cell.getInverseMatrix())
+               .format(CommaInitFmt);
     return out;
   }
 

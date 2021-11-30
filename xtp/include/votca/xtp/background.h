@@ -32,6 +32,7 @@
 #include "votca/xtp/ewaldoptions.h"
 #include "votca/xtp/bgsegment.h"
 #include "votca/xtp/unitcell.h"
+#include "votca/xtp/bgnblist.h"
 
 namespace votca {
 namespace xtp {
@@ -50,17 +51,23 @@ class Background {
 
   void Polarize();
 
-  void writeToStateFile(std::string state_file);
+  void writeToStateFile(std::string state_file){;}
 
-  void readFromStateFile(const std::string state_file);
+  void readFromStateFile(const std::string state_file){;}
 
-  bool empty() const { return background_segments.size() == 0; }
+  bool empty() const { return background_segments_.size() == 0; }
+
+  const BGNbList& getNbList() {return nbList_;}
 
  private:
   Logger& log_;
   UnitCell unit_cell_;
   EwaldOptions options_;
   std::vector<BGSegment> background_segments_;
+  BGNbList nbList_;
+
+  void setupNeighbourList();
+  void computeStaticField();
 };
 }  // namespace xtp
 }  // namespace votca

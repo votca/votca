@@ -29,6 +29,7 @@
 #include "calculators/mapchecker.h"
 #include "calculators/neighborlist.h"
 #include "calculators/vaverage.h"
+#include "calculators/backgroundpolarizer.h"
 
 namespace votca {
 namespace xtp {
@@ -43,6 +44,7 @@ void Calculatorfactory::RegisterAll(void) {
   Calculators().Register<KMCLifetime>("kmclifetime");
   Calculators().Register<KMCMultiple>("kmcmultiple");
   Calculators().Register<VAverage>("vaverage");
+  Calculators().Register<BackgroundPolarizer>("backgroundpolarizer");
 }
 }  // namespace xtp
 }  // namespace votca

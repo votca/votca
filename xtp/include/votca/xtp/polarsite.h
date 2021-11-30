@@ -54,7 +54,18 @@ class PolarSite final : public StaticSite {
   const Eigen::Matrix3d& getPInv() const { return pinv_; }
 
   // MULTIPOLES DEFINITION
-  Eigen::Vector3d getDipole() const final;
+
+  Eigen::Vector3d getDipole() const final {
+    return Q_.segment<3>(1) + induced_dipole_;
+  }
+
+  Eigen::Vector3d getStaticDipole() const{
+    return Q_.segment<3>(1);
+  }
+
+  Eigen::Vector3d getInducedDipole() const {
+    return induced_dipole_;
+  }
 
   double getSqrtInvEigenDamp() const { return eigendamp_invsqrt_; }
 

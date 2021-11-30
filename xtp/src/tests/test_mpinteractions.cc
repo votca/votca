@@ -1,0 +1,48 @@
+/*
+ * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+#include <libint2/initialize.h>
+#define BOOST_TEST_MAIN
+
+#define BOOST_TEST_MODULE multipole_interactions_test
+
+// Third party includes
+#include <boost/test/unit_test.hpp>
+
+// Local VOTCA includes
+#include "votca/xtp/mpinteractions.h"
+
+using namespace votca::xtp;
+
+BOOST_AUTO_TEST_SUITE(multipole_interactions_test)
+
+BOOST_AUTO_TEST_CASE(fieldCalc) {
+
+  Multipole mp;
+  mp.rank = 3;
+  mp.charge = 1;
+  mp.dipole << 1, 2, 3;
+  mp.quadrupole << 0, 1, 2, 0, 0, 3, 0, 3, 0;
+
+  MPInteractions interact(1,1);
+
+  Eigen::Vector3d field = interact.r_fieldAtBy(mp, Eigen::Vector3d(1,2,3));
+
+  std::cout << field << std::endl;
+
+
+}
+
+BOOST_AUTO_TEST_SUITE_END()

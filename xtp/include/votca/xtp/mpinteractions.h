@@ -1,3 +1,4 @@
+
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -18,42 +19,34 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_EWALDSITE_H
-#define VOTCA_XTP_EWALDSITE_H
+#ifndef VOTCA_XTP_MPINTERACTIONS_H
+#define VOTCA_XTP_MPINTERACTIONS_H
 
+#include <algorithm>
+#include <vector>
 // Local VOTCA includes
-#include "votca/xtp/classicalsegment.h"
+#include "votca/xtp/interactiontensor.h"
 #include "votca/xtp/multipole.h"
-
-#include <iomanip>
 
 namespace votca {
 namespace xtp {
 
-class BGSite {
+class MPInteractions {
  public:
-  BGSite(const PolarSite& pol);
+ MPInteractions(double alpha, double thole_damping);
 
-  ~BGSite() = default;
-
-  const Eigen::Vector3d& getPos() const { return position_; }
-
-  void updatePos(Eigen::Vector3d pos) {position_ = pos;}
-
-  const std::string& getElement() const { return element_;}
-
-  void addToStaticField(Eigen::Vector3d field) {static_field_ += field;}
+ Eigen::Vector3d r_fieldAtBy(const Multipole& mp2, const Eigen::Vector3d& dr);
+  
 
  private:
-  Index id_;
-  Eigen::Vector3d position_;
-  Multipole mp_;
-  Eigen::Vector3d induced_dipole_ = Eigen::Vector3d::Zero();
-  std::string element_;
-  Eigen::Matrix3d polarization_;
-  Eigen::Vector3d static_field_ = Eigen::Vector3d::Zero();
-  Eigen::Vector3d induced_field_ = Eigen::Vector3d::Zero();
-};
+ double alpha_;
+ double thole;
+ double thole2;
+ double thole3;
+
+};  
+
 }  // namespace xtp
 }  // namespace votca
+
 #endif
