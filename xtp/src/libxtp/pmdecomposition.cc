@@ -77,6 +77,7 @@ Eigen::MatrixXd PMDecomposition::orbitalselections(
       Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
   A = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
   B = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
+  #pragma omp parallel for
   for (Index s = 0; s < occupied_orbitals.cols(); s++) {
     for (Index t = s + 1; t < occupied_orbitals.cols(); t++) {
       Eigen::RowVectorXd MullikenPop_orb_S_per_basis =
