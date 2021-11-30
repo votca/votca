@@ -4,10 +4,11 @@ For more detailed information about the changes see the history of the
 Version 2022-dev
 ================
 
--  fix iqm merge orbitals command  (#907)
-
 Version 2022-rc.2 (released XX.11.21)
 =====================================
+
+-  fix iqm merge orbitals command  (#907)
+-  fix bug in basisset serialization that caused wrong Vxc values in GW (#910)
 
 Version 2022-rc.1 (released 26.11.21)
 =====================================
@@ -144,7 +145,6 @@ Version 2022-rc.1 (released 26.11.21)
 -  Read number of alpha electrons from orca log, not from molden (#901)
 -  Refactor parsing of the tasks_string (#902)
 -  set correct filename for initial guess from monomer orbitals (#904)
-
 
 Version 2021.2 and earlier
 ==========================

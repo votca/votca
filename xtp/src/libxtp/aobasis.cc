@@ -157,7 +157,6 @@ void AOBasis::WriteToCpt(CheckpointWriter& w) const {
       i++;
     }
   }
-
   table.write(dataVec);
 }
 
@@ -181,6 +180,9 @@ void AOBasis::ReadFromCpt(CheckpointReader& r) {
     }
 
     FillFuncperAtom();
+  }
+  for (auto& shell : aoshells_) {
+    shell.CalcMinDecay();
   }
 }
 
