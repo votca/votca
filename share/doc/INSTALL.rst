@@ -104,7 +104,7 @@ as backend, which is automatically detected by ``CMake``. Below are some recomme
 for different architectures:
 
 Intel Processors
-****************
+^^^^^^^^^^^^^^^^
 ``g++``, ``clang``, and ``ipcx`` from the Intel OneAPI basekit give similar performance 
 when used with the MKL. No special flags have to be supplied to ``CMake``.
 
@@ -118,7 +118,7 @@ As a rough estimate, runtimes with vectorization and  ``gcc/clang`` are 30% shor
 vectorization. Use of ``MKL`` reduces them by another 50%. 
 
 AMD Processors
-**************
+^^^^^^^^^^^^^^
 We recommend using ``g++`` or ``clang`` rather than an Intel compiler on AMD. Vectorization 
 in ``Eigen`` is automatically enabled by injection of ``-march=native``. See above comment
 about heterogeneous envionments. 
@@ -131,7 +131,7 @@ and `in general <https://documentation.sigma2.no/jobs/mkl.html#using-mkl-efficie
 We advise that you test this on your specific architecture.
 
 CUDA support
-************
+^^^^^^^^^^^^
 If your system has a ``NVIDIA`` GPU, enable offloading of matrix operations 
 by ``-DUSE_CUDA=ON``. 
 

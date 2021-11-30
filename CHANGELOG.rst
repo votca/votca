@@ -9,6 +9,7 @@ Version 2022-rc.2 (released XX.11.21)
 
 -  fix iqm merge orbitals command  (#907)
 -  fix bug in basisset serialization that caused wrong Vxc values in GW (#910)
+-  update performance compilation info (#911)
 
 Version 2022-rc.1 (released 26.11.21)
 =====================================
@@ -141,7 +142,7 @@ Version 2022-rc.1 (released 26.11.21)
 -  bump required cmake version to 3.13 to support -B option (#887, #893)
 -  changed hard coded file to option value in eqm.cc (#900)
 -  inject march=native by default and add cmake option for valgrind tests (#896, #903)
--  add performance compilation info (#895)
+-  add performance compilation info (#895, #911)
 -  Read number of alpha electrons from orca log, not from molden (#901)
 -  Refactor parsing of the tasks_string (#902)
 -  set correct filename for initial guess from monomer orbitals (#904)
