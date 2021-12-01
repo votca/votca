@@ -37,8 +37,7 @@ if [[ $tgt_dcdh == 'true' ]]; then
     # verbose
     [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
     # topology for molecular conections and volume
-    topol=$(csg_get_property --allow-empty cg.inverse.iie.topol)
-    [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.$sim_prog.topol)
+    topol=$(csg_get_property cg.inverse.iie.topol)
     [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
     # volume
     volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')

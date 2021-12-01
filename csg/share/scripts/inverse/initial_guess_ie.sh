@@ -39,7 +39,6 @@ subtract_coulomb="$(csg_get_property cg.inverse.initial_guess.ie.subtract_coulom
 multistate="$(csg_get_property cg.inverse.multistate.enabled)"
 
 # resample all target distributions
-# TODO: one might want longer tgt RDF for initial guess but short for iterative update with extrapolation or vice-versa
 for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
 for_all "non-bonded" do_external resample target --no-extrap '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
 
