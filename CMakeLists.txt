@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 
 project(votca LANGUAGES CXX)
 
-set(PROJECT_VERSION "2022-dev")
+set(PROJECT_VERSION "2022-rc.1")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
@@ -14,6 +14,11 @@ endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 
 include(GNUInstallDirs)
 include(FeatureSummary)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
+
 ########################################################################
 # User input options                                                   #
 ########################################################################
@@ -59,17 +64,31 @@ if(ENABLE_WARNING_FLAGS)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_FLAG}")
     endif()
   endforeach()
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-conversion")
   endif()
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel") #only icpc, not icpx
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcheck")
+  endif()
+endif()
+
+option(INJECT_MARCH_NATIVE "Inject -march=native if compiler supports it" ON)
+add_feature_info(INJECT_MARCH_NATIVE INJECT_MARCH_NATIVE "Add -march=native to CXX flags")
+if(INJECT_MARCH_NATIVE)
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag("-march=native" COMPILER_SUPPORTS_march_native)
+  if(COMPILER_SUPPORTS_march_native)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
   endif()
 endif()
 
 option(ENABLE_WERROR "Inject -Werror" OFF)
 if(ENABLE_WERROR)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+endif()
+
+if(CMAKE_CXX_COMPILER MATCHES "dpcpp")
+  message(WARNING "Using the intel dpcpp compiler needs a cutting-edge version of eigen hence dpcpp is currently not offically supported, use icpx instead") 
 endif()
 
 set(VOTCA_SPHINX_DIR "${PROJECT_BINARY_DIR}/sphinx" CACHE PATH "Path for Sphinx sources")

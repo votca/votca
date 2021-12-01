@@ -309,6 +309,7 @@ bool Orca::WriteShellScript() {
   shell_file.open(shell_file_name_full);
   shell_file << "#!/bin/bash" << endl;
   shell_file << "mkdir -p " << scratch_dir_ << endl;
+  std::string base_name = mo_file_name_.substr(0, mo_file_name_.size() - 4);
 
   if (options_.get("initial_guess").as<std::string>() == "orbfile") {
     if (!(boost::filesystem::exists(run_dir_ + "/molA.gbw") &&
@@ -318,12 +319,12 @@ bool Orca::WriteShellScript() {
           "directory.");
     }
     shell_file << options_.get("executable").as<std::string>()
-               << "_mergefrag molA.gbw molB.gbw dimer.gbw > merge.log" << endl;
+               << "_mergefrag molA.gbw molB.gbw " << base_name
+               << ".gbw > merge.log" << endl;
   }
   shell_file << options_.get("executable").as<std::string>() << " "
-             << input_file_name_ << " > " << log_file_name_
-             << endl;  //" 2> run.error" << endl;
-  std::string base_name = mo_file_name_.substr(0, mo_file_name_.size() - 4);
+             << input_file_name_ << " > " << log_file_name_ << endl;
+
   shell_file << options_.get("executable").as<std::string>() << "_2mkl "
              << base_name << " -molden" << endl;
   shell_file.close();
@@ -504,7 +505,6 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
 bool Orca::ParseLogFile(Orbitals& orbitals) {
   bool found_success = false;
   orbitals.setQMpackage(getPackageName());
-  orbitals.setDFTbasisName(basisset_name_);
   if (options_.exists("ecp")) {
     orbitals.setECPName(options_.get("ecp").as<std::string>());
   }
@@ -638,6 +638,8 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     }
   }
 
+  orbitals.SetupDftBasis(basisset_name_);
+
   XTP_LOG(Log::info, *pLog_)
       << "Alpha electrons: " << number_of_electrons << flush;
   Index occupied_levels = number_of_electrons;
@@ -649,8 +651,6 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   /************************************************************/
 
   // copying information to the orbitals object
-
-  orbitals.setBasisSetSize(levels);
   orbitals.setNumberOfAlphaElectrons(number_of_electrons);
   orbitals.setNumberOfOccupiedLevels(occupied_levels);
 
@@ -755,8 +755,8 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
     throw runtime_error(
         "Basisset names should be set before reading the molden file.");
   }
+  molden.setBasissetInfo(basisset_name_);
 
-  molden.setBasissetInfo(orbitals.getDFTbasisName());
   std::string file_name = run_dir_ + "/" +
                           mo_file_name_.substr(0, mo_file_name_.size() - 4) +
                           ".molden.input";
@@ -771,7 +771,6 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
         "the orca_2mkl tool from orca.\nAn example, if you have a benzene.gbw "
         "file run:\n    orca_2mkl benzene -molden\n");
   }
-
   molden.parseMoldenFile(file_name, orbitals);
 
   XTP_LOG(Log::error, *pLog_) << "Done parsing" << flush;

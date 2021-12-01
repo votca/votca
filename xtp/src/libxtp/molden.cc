@@ -22,7 +22,7 @@ void Molden::writeMOs(const Orbitals& orbitals, std::ofstream& outFile) const {
   bool fromVotcaToExternal = true;
   OrbReorder reorder(reorderList_, multipliers_, fromVotcaToExternal);
   Eigen::MatrixXd moCoefficients = orbitals.MOs().eigenvectors();
-  reorder.reorderOrbitals(moCoefficients, orbitals.SetupDftBasis());
+  reorder.reorderOrbitals(moCoefficients, orbitals.getDftBasis());
 
   for (Index i = 0; i < orbitals.getBasisSetSize(); i++) {  // over columns
     outFile << "Sym= \n";
@@ -39,7 +39,7 @@ void Molden::writeMOs(const Orbitals& orbitals, std::ofstream& outFile) const {
 
 void Molden::writeBasisSet(const Orbitals& orbitals,
                            std::ofstream& outFile) const {
-  AOBasis basis = orbitals.SetupDftBasis();
+  AOBasis basis = orbitals.getDftBasis();
   for (const auto& atom : orbitals.QMAtoms()) {
     // The 0 in the format string of the next line is meaningless it
     // is included for backwards compatibility of molden files
@@ -132,7 +132,6 @@ std::string Molden::readMOs(Orbitals& orbitals,
 
   // setup space to store everything
   Index basis_size = orbitals.getBasisSetSize();
-  Index number_of_electrons = 0;
   if (basis_size == 0) {
     throw std::runtime_error(
         "Basis size not set, atoms were not parsed first.");
@@ -159,16 +158,19 @@ std::string Molden::readMOs(Orbitals& orbitals,
     iss.str(line);
     iss.clear();
     iss >> tempStr >> tempStr;
-    if (tempStr == "Beta") {
-      throw std::runtime_error(
-          "Open shell systems are currently not supported");
-    }
     // occupation line
     std::getline(input_file, line);
     iss.str(line);
     iss.clear();
     iss >> tempStr >> tempDouble;
-    number_of_electrons += (int)tempDouble;
+    if ((int)tempDouble == 1) {
+      XTP_LOG(Log::error, log_)
+          << "WARNING: you are reading a molden file with an openshell "
+             "system.\n Openshell systems are currently not supported in "
+             "VOTCA! \n    There are, however, use cases for reading an "
+             "openshell system, hence we keep on running."
+          << std::endl;
+    }
 
     // MO coefficients
     for (int j = 0; j < basis_size; j++) {  // loop over ao's
@@ -180,21 +182,20 @@ std::string Molden::readMOs(Orbitals& orbitals,
     }
   }
 
-  orbitals.setNumberOfAlphaElectrons(number_of_electrons);
-  orbitals.setNumberOfOccupiedLevels(number_of_electrons / 2);
-
   OrbReorder reorder(reorderList_, multipliers_);
   reorder.reorderOrbitals(orbitals.MOs().eigenvectors(),
-                          orbitals.SetupDftBasis());
+                          orbitals.getDftBasis());
 
   getline(input_file, line);
   return line;
 }
 
 void Molden::addBasissetInfo(Orbitals& orbitals) const {
-  orbitals.setDFTbasisName(basisset_name_);
-  orbitals.setBasisSetSize(orbitals.SetupDftBasis().AOBasisSize());
-  orbitals.setAuxbasisName(aux_basisset_name_);
+  std::cout << basisset_name_ << std::endl;
+  orbitals.SetupDftBasis(basisset_name_);
+  if (aux_basisset_name_ != "") {
+    orbitals.SetupAuxBasis(aux_basisset_name_);
+  }
 }
 
 void Molden::parseMoldenFile(const std::string& filename,

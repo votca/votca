@@ -13,7 +13,7 @@
  * limitations under the License.
  *
  */
-
+#include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE test_hdf5
@@ -33,11 +33,12 @@
 #include "votca/xtp/qmatom.h"
 
 BOOST_AUTO_TEST_SUITE(test_hdf5)
+
 using namespace votca::xtp;
 using namespace votca;
 BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
+  libint2::initialize();
 
-  Index basisSetSize = 17;
   Index occupiedLevels = 4;
   Index unoccupiedLevels = 13;
   Index numElectrons = 12;
@@ -46,14 +47,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   Eigen::MatrixXd mocTest = Eigen::MatrixXd::Random(17, 17);
 
   QMMolecule atoms = QMMolecule(" ", 0);
-  for (Index i = 0; i < 10; ++i) {
-    atoms.push_back(QMAtom(0, "O", Eigen::Vector3d::Random()));
-    atoms.push_back(QMAtom(25, "O", Eigen::Vector3d::Random()));
-    atoms.push_back(QMAtom(32, "O", Eigen::Vector3d::Random()));
-    atoms.push_back(QMAtom(100, "O", Eigen::Vector3d::Random()));
-    atoms.push_back(QMAtom(2, "Si", Eigen::Vector3d::Random()));
-    atoms.push_back(QMAtom(3145, "N", Eigen::Vector3d::Random()));
-  }
+  atoms.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/hdf5/molecule.xyz");
 
   double qmEnergy = -2.1025e-3;
 
@@ -84,36 +78,38 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   Eigen::VectorXd BSETripletEnergiesTest = Eigen::VectorXd::Random(33);
   Eigen::MatrixXd BSETripletCoefficientsTest = Eigen::MatrixXd::Random(33, 31);
 
-  {
-    // Write orbitals
-    Orbitals orbWrite;
+  Index basisSetSize = 0;
 
-    orbWrite.setBasisSetSize(basisSetSize);
-    orbWrite.setNumberOfOccupiedLevels(occupiedLevels);
-    orbWrite.setNumberOfAlphaElectrons(numElectrons);
-    orbWrite.MOs().eigenvalues() = moeTest;
-    orbWrite.MOs().eigenvectors() = mocTest;
+  // Write orbitals
+  Orbitals orbWrite;
+  orbWrite.setNumberOfOccupiedLevels(occupiedLevels);
+  orbWrite.setNumberOfAlphaElectrons(numElectrons);
+  orbWrite.MOs().eigenvalues() = moeTest;
+  orbWrite.MOs().eigenvectors() = mocTest;
 
-    orbWrite.QMAtoms() = atoms;
-    orbWrite.setQMEnergy(qmEnergy);
-    orbWrite.setQMpackage(qmPackage);
-    orbWrite.setRPAindices(rpaMin, rpaMax);
-    // no need to write qpmin, qpmax
-    orbWrite.setBSEindices(bseVmin, bseCmax);
-    orbWrite.setScaHFX(scaHfx);
-    orbWrite.setTDAApprox(useTDA);
-    orbWrite.setECPName(someECP);
-    orbWrite.QPpertEnergies() = QPpertEnergiesTest;
-    orbWrite.QPdiag().eigenvalues() = QPdiagEnergiesTest;
-    orbWrite.QPdiag().eigenvectors() = QPdiagCoefficientsTest;
-    orbWrite.BSESinglets().eigenvalues() = BSESingletEnergiesTest;
-    orbWrite.BSESinglets().eigenvectors() = BSESingletCoefficientsTest;
-    orbWrite.BSESinglets().eigenvectors2() = BSESingletCoefficientsARTest;
-    orbWrite.BSETriplets().eigenvalues() = BSETripletEnergiesTest;
-    orbWrite.BSETriplets().eigenvectors() = BSETripletCoefficientsTest;
+  orbWrite.QMAtoms() = atoms;
+  orbWrite.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/hdf5/3-21G.xml");
+  basisSetSize = orbWrite.getBasisSetSize();
 
-    orbWrite.WriteToCpt("xtp_testing.hdf5");
-  }
+  orbWrite.setQMEnergy(qmEnergy);
+  orbWrite.setQMpackage(qmPackage);
+  orbWrite.setRPAindices(rpaMin, rpaMax);
+  // no need to write qpmin, qpmax
+  orbWrite.setBSEindices(bseVmin, bseCmax);
+  orbWrite.setScaHFX(scaHfx);
+  orbWrite.setTDAApprox(useTDA);
+  orbWrite.setECPName(someECP);
+  orbWrite.QPpertEnergies() = QPpertEnergiesTest;
+  orbWrite.QPdiag().eigenvalues() = QPdiagEnergiesTest;
+  orbWrite.QPdiag().eigenvectors() = QPdiagCoefficientsTest;
+  orbWrite.BSESinglets().eigenvalues() = BSESingletEnergiesTest;
+  orbWrite.BSESinglets().eigenvectors() = BSESingletCoefficientsTest;
+  orbWrite.BSESinglets().eigenvectors2() = BSESingletCoefficientsARTest;
+  orbWrite.BSETriplets().eigenvalues() = BSETripletEnergiesTest;
+  orbWrite.BSETriplets().eigenvectors() = BSETripletCoefficientsTest;
+
+  orbWrite.WriteToCpt("xtp_testing.hdf5");
+
   // Read Orbitals
   Orbitals orbRead;
   orbRead.ReadFromCpt("xtp_testing.hdf5");
@@ -163,6 +159,24 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     BOOST_CHECK_EQUAL(atomRead.getNuccharge(), atomTest.getNuccharge());
     BOOST_CHECK_EQUAL(atomRead.getElement(), atomTest.getElement());
   }
+
+  // Check if basissets are equal after a write read cycle
+  std::stringstream ssWrite;
+  ssWrite << orbWrite.getDftBasis();
+  std::stringstream ssRead;
+  ssRead << orbRead.getDftBasis();
+
+  bool basissets_equal = (ssWrite.str() == ssRead.str());
+  BOOST_CHECK(basissets_equal);
+
+  if (!basissets_equal) {
+    std::cout << "Thing we wrote:" << std::endl;
+    std::cout << ssWrite.str();
+    std::cout << "Thing we read:" << std::endl;
+    std::cout << ssRead.str();
+  }
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_CASE(open_file_error) {

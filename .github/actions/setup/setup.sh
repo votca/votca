@@ -35,6 +35,8 @@ else
 fi
 
 cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON  -DBUILD_CSGAPPS=ON )
+# do not inject -march=native as the CI runs on different backends and hence will create a conflict with ccache
+cmake_args+=( -DINJECT_MARCH_NATIVE=OFF )
 if [[ ${INPUT_CMAKE_BUILD_TYPE} ]]; then
   cmake_args+=( -DCMAKE_BUILD_TYPE=${INPUT_CMAKE_BUILD_TYPE} )
 fi
@@ -50,10 +52,10 @@ elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
   fi
 elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=icpc )
-  mkdir ~/Licenses
-  curl https://dynamicinstaller.intel.com/api/v2/license > ~/Licenses/intel.lic
 elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=icpx )
+elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi-dpc" ]]; then
+  cmake_args+=( -DCMAKE_CXX_COMPILER=dpcpp )
 else
   die "Unknown INPUT_TOOLCHAIN; ${INPUT_TOOLCHAIN}"
 fi
@@ -73,7 +75,9 @@ if [[ ${INPUT_OWN_GMX} = true ]]; then
   elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
     cmake_args+=( -DCMAKE_C_COMPILER=icc )
   elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi" ]]; then
-    cmake_args+=( -DCMAKE_CXX_COMPILER=icx )
+    cmake_args+=( -DCMAKE_C_COMPILER=icx )
+  elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi-dpc" ]]; then
+    cmake_args+=( -DCMAKE_CXX_COMPILER=dpc )
   fi
 else
   cmake_args+=( -DENABLE_WERROR=ON )

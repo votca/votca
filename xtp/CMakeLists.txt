@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 project(votca-xtp LANGUAGES CXX)
 
 set(PROJECT_VERSION "2022-dev")
@@ -34,14 +34,20 @@ set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 # User input options                                                   #
 ########################################################################
 
-find_package(PkgConfig REQUIRED)
-set_package_properties(PkgConfig PROPERTIES TYPE RECOMMENDED PURPOSE "Used to detect libxc and libint package")
-pkg_check_modules(LIBXC REQUIRED IMPORTED_TARGET libxc)
-if(NOT TARGET PkgConfig::LIBINT)
-  pkg_check_modules(LIBINT REQUIRED IMPORTED_TARGET libint2>=2.6)
+find_package(Libxc QUIET CONFIG)
+set_package_properties(Libxc PROPERTIES TYPE REQUIRED PURPOSE "Provides exchange-correclation functionals")
+if(NOT Libxc_FOUND)
+  find_package(Libxc MODULE REQUIRED)
+endif()
+if(NOT TARGET Libint2::int2)
+  find_package(libint2 QUIET CONFIG)
+  set_package_properties(libint2 PROPERTIES TYPE REQUIRED PURPOSE "Calculates Gaussian integrals")
+  if(NOT libint2_FOUND)
+    find_package(libint2 2.6 MODULE REQUIRED)
+  endif()
 endif()
 find_package(ecpint REQUIRED)
-set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculate pseudo potentials")
+set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculates Gaussian integrals over pseudo potentials")
 message(STATUS "Found libecpint: ${ecpint_DIR}")
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)

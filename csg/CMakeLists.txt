@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 
 project(votca-csg LANGUAGES CXX)
 
@@ -26,7 +26,7 @@ endif(CMAKE_BUILD_TYPE STREQUAL Debug)
 #####################################################################
 
 include(CheckCXXCompilerFlag)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 
