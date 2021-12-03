@@ -51,6 +51,7 @@ You find the VOTCA-CTP repository
    :target: https://zenodo.org/badge/latestdoi/75022030
 
 License:
+########
 
 Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 
