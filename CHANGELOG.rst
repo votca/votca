@@ -10,6 +10,7 @@ Version 2022-rc.2 (released XX.11.21)
 -  fix iqm merge orbitals command  (#907)
 -  fix bug in basisset serialization that caused wrong Vxc values in GW (#910)
 -  update performance compilation info (#911)
+-  license for monorepo and all license files rst -> plain text (#912, #913)
 
 Version 2022-rc.1 (released 26.11.21)
 =====================================
