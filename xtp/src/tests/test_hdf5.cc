@@ -79,38 +79,36 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   Eigen::MatrixXd BSETripletCoefficientsTest = Eigen::MatrixXd::Random(33, 31);
 
   Index basisSetSize = 0;
-  {
-    // Write orbitals
-    Orbitals orbWrite;
-    orbWrite.setNumberOfOccupiedLevels(occupiedLevels);
-    orbWrite.setNumberOfAlphaElectrons(numElectrons);
-    orbWrite.MOs().eigenvalues() = moeTest;
-    orbWrite.MOs().eigenvectors() = mocTest;
 
-    orbWrite.QMAtoms() = atoms;
-    orbWrite.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                           "/hdf5/3-21G.xml");
-    basisSetSize = orbWrite.getBasisSetSize();
+  // Write orbitals
+  Orbitals orbWrite;
+  orbWrite.setNumberOfOccupiedLevels(occupiedLevels);
+  orbWrite.setNumberOfAlphaElectrons(numElectrons);
+  orbWrite.MOs().eigenvalues() = moeTest;
+  orbWrite.MOs().eigenvectors() = mocTest;
 
-    orbWrite.setQMEnergy(qmEnergy);
-    orbWrite.setQMpackage(qmPackage);
-    orbWrite.setRPAindices(rpaMin, rpaMax);
-    // no need to write qpmin, qpmax
-    orbWrite.setBSEindices(bseVmin, bseCmax);
-    orbWrite.setScaHFX(scaHfx);
-    orbWrite.setTDAApprox(useTDA);
-    orbWrite.setECPName(someECP);
-    orbWrite.QPpertEnergies() = QPpertEnergiesTest;
-    orbWrite.QPdiag().eigenvalues() = QPdiagEnergiesTest;
-    orbWrite.QPdiag().eigenvectors() = QPdiagCoefficientsTest;
-    orbWrite.BSESinglets().eigenvalues() = BSESingletEnergiesTest;
-    orbWrite.BSESinglets().eigenvectors() = BSESingletCoefficientsTest;
-    orbWrite.BSESinglets().eigenvectors2() = BSESingletCoefficientsARTest;
-    orbWrite.BSETriplets().eigenvalues() = BSETripletEnergiesTest;
-    orbWrite.BSETriplets().eigenvectors() = BSETripletCoefficientsTest;
+  orbWrite.QMAtoms() = atoms;
+  orbWrite.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/hdf5/3-21G.xml");
+  basisSetSize = orbWrite.getBasisSetSize();
 
-    orbWrite.WriteToCpt("xtp_testing.hdf5");
-  }
+  orbWrite.setQMEnergy(qmEnergy);
+  orbWrite.setQMpackage(qmPackage);
+  orbWrite.setRPAindices(rpaMin, rpaMax);
+  // no need to write qpmin, qpmax
+  orbWrite.setBSEindices(bseVmin, bseCmax);
+  orbWrite.setScaHFX(scaHfx);
+  orbWrite.setTDAApprox(useTDA);
+  orbWrite.setECPName(someECP);
+  orbWrite.QPpertEnergies() = QPpertEnergiesTest;
+  orbWrite.QPdiag().eigenvalues() = QPdiagEnergiesTest;
+  orbWrite.QPdiag().eigenvectors() = QPdiagCoefficientsTest;
+  orbWrite.BSESinglets().eigenvalues() = BSESingletEnergiesTest;
+  orbWrite.BSESinglets().eigenvectors() = BSESingletCoefficientsTest;
+  orbWrite.BSESinglets().eigenvectors2() = BSESingletCoefficientsARTest;
+  orbWrite.BSETriplets().eigenvalues() = BSETripletEnergiesTest;
+  orbWrite.BSETriplets().eigenvectors() = BSETripletCoefficientsTest;
+
+  orbWrite.WriteToCpt("xtp_testing.hdf5");
 
   // Read Orbitals
   Orbitals orbRead;
@@ -161,6 +159,23 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     BOOST_CHECK_EQUAL(atomRead.getNuccharge(), atomTest.getNuccharge());
     BOOST_CHECK_EQUAL(atomRead.getElement(), atomTest.getElement());
   }
+
+  // Check if basissets are equal after a write read cycle
+  std::stringstream ssWrite;
+  ssWrite << orbWrite.getDftBasis();
+  std::stringstream ssRead;
+  ssRead << orbRead.getDftBasis();
+
+  bool basissets_equal = (ssWrite.str() == ssRead.str());
+  BOOST_CHECK(basissets_equal);
+
+  if (!basissets_equal) {
+    std::cout << "Thing we wrote:" << std::endl;
+    std::cout << ssWrite.str();
+    std::cout << "Thing we read:" << std::endl;
+    std::cout << ssRead.str();
+  }
+
   libint2::finalize();
 }
 

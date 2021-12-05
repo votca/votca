@@ -1,7 +1,7 @@
 include(CMakeFindDependencyMacro)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 find_dependency(Eigen3 REQUIRED NO_MODULE)
-find_dependency(Boost 1.53.0 REQUIRED COMPONENTS program_options)
+find_dependency(Boost 1.71.0 REQUIRED COMPONENTS program_options)
 if(@FFTW3_FOUND@)
   find_dependency(FFTW3 REQUIRED)
 endif()
