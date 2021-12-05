@@ -81,7 +81,7 @@ def improve_dist_near_core(r, g, pmf_function, fit_start_g, fit_end_g):
     fit_end_ndx = max(np.nonzero(g[0:g_max_ndx] < fit_end_g)[0]) + 1
     if fit_end_ndx - fit_start_ndx < 3:
         raise Exception("less then three points found for fitting. This function needs "
-                        "a finer RDF in order to work")
+                        f"a finer RDF in order to work. {fit_start_ndx} {fit_end_ndx}")
     # fitting
     if pmf_function == 'exponential':
         # fit r: ln(-ln(g)) with r: m * r + n
