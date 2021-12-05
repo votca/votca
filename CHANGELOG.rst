@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2022-dev
 ================
 
+-  clean up NOTICE files (#919)
+
 Version 2022-rc.2 (released XX.11.21)
 =====================================
 
