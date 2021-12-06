@@ -4,8 +4,6 @@ For more detailed information about the changes see the history of the
 Version 2022-dev
 ================
 
--  clean up NOTICE files (#919)
-
 Version 2022-rc.2 (released XX.11.21)
 =====================================
 
@@ -13,8 +11,8 @@ Version 2022-rc.2 (released XX.11.21)
 -  fix bug in basisset serialization that caused wrong Vxc values in GW (#910)
 -  update performance compilation info (#911)
 -  license for monorepo and all license files rst -> plain text (#912, #913)
--  bump required boost version to 1.71 (#915, #916)
 -  use python3 in xtp-tutorials (#917)
+-  bump required boost version to 1.71 (#915, #916)
 
 Version 2022-rc.1 (released 26.11.21)
 =====================================
