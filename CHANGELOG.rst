@@ -13,6 +13,7 @@ Version 2022-rc.2 (released XX.11.21)
 -  license for monorepo and all license files rst -> plain text (#912, #913)
 -  use python3 in xtp-tutorials (#917)
 -  bump required boost version to 1.71 (#915, #916)
+-  clean up NOTICE files (#919)
 
 Version 2022-rc.1 (released 26.11.21)
 =====================================
