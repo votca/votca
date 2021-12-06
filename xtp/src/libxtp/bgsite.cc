@@ -31,12 +31,23 @@ BGSite::BGSite(const PolarSite& pol) {
   mp_.rank = pol.getRank();
   mp_.charge = pol.getCharge();
   mp_.dipole = pol.getStaticDipole();
-  // the 1/3 saves factors in further calculations.The quadrupole in the BG site
-  // should by multiplied by 3 to obtain the true quadrupole
-  mp_.quadrupole = (1.0 / 3.0) * pol.CalculateCartesianMultipole();
+  mp_.quadrupole = pol.CalculateCartesianMultipole();
   induced_dipole_ = pol.getInducedDipole();
   polarization_ = pol.getpolarization();
 }
+
+BGSite::BGSite(const StaticSite& pol) {
+  id_ = pol.getId();
+  position_ = pol.getPos();
+  element_ = pol.getElement();
+
+  // Multipole data
+  mp_.rank = pol.getRank();
+  mp_.charge = pol.getCharge();
+  mp_.dipole = pol.getDipole();
+  mp_.quadrupole = pol.CalculateCartesianMultipole();
+}
+
 
 }  // namespace xtp
 }  // namespace votca

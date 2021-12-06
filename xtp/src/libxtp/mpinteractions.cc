@@ -18,23 +18,10 @@
  */
 
 #include <votca/xtp/mpinteractions.h>
+#include <optional>
 
 namespace votca {
 namespace xtp {
-
-MPInteractions::MPInteractions(double alpha, double thole_damping) {
-  alpha_ = alpha;
-  thole = thole_damping;
-  thole2 = thole * thole;
-  thole3 = thole * thole2;
-}
-
-Eigen::Vector3d MPInteractions::r_fieldAtBy(const Multipole& mp,
-                                            const Eigen::Vector3d& dr) {
-  InteractionTensor<Screening::erfc, 3> T(alpha_);
-  T.computeTensors(dr);
-  return -mp.charge * T.rank1() + T.rank2() * mp.dipole; 
-}
 
 }  // namespace xtp
 }  // namespace votca

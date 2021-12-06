@@ -34,6 +34,8 @@ class BGSite {
  public:
   BGSite(const PolarSite& pol);
 
+  BGSite(const StaticSite& stat);
+
   ~BGSite() = default;
 
   const Eigen::Vector3d& getPos() const { return position_; }
@@ -43,6 +45,8 @@ class BGSite {
   const std::string& getElement() const { return element_;}
 
   void addToStaticField(Eigen::Vector3d field) {static_field_ += field;}
+
+  const Multipole& getMP() const {return mp_;}
 
  private:
   Index id_;
