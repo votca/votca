@@ -15,7 +15,7 @@ If you use this package, please cite the VOTCA papers:
    Green’s Functions: Quasiparticles and Electron-Hole Excitations with
    VOTCA-XTP, G. Tirimbo, V. Sundaram, O. Caylak, W. Scharpach, J.
    Sijen, C. Junghans, J. Brown, F. Zapata Ruiz, N. Renaud, J. Wehner,
-   and B. Baumeier, ChemRxiv:11477895 (2020).
+   and B. Baumeier, J. Chem. Phys. 152, 114103 (2020).
 
 -  Electronic Excitations in Complex Molecular Environments: Many-Body
    Green’s Functions Theory in VOTCA-XTP Jens Wehner, Lothar Brombacher,
