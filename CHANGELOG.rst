@@ -15,6 +15,7 @@ Version 2022-rc.2 (released XX.11.21)
 -  bump required boost version to 1.71 (#915, #916)
 -  clean up NOTICE files (#919)
 -  rm PYTHON_INSTDIR from VOTCARC (#924)
+-  update citation in xtp README (#925)
 
 Version 2022-rc.1 (released 26.11.21)
 =====================================
