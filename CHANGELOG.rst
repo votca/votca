@@ -1,6 +1,9 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/stable>`__.
 
+Version 2022-dev
+================
+
 Version 2022-rc.3 (released XX.12.21)
 =====================================
 
