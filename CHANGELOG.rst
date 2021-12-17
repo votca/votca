@@ -7,6 +7,8 @@ Version 2022-dev
 Version 2022-rc.3 (released XX.12.21)
 =====================================
 
+-  only check for pytest if testing is enabled (#930)
+
 Version 2022-rc.2 (released 16.12.21)
 =====================================
 
