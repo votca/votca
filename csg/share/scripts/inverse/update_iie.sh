@@ -76,6 +76,15 @@ g_extrap_factor=$(csg_get_property --allow-empty cg.inverse.iie.g_extrap_factor)
 
 [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
 
+# which interactions to update
+if [[ $iie_method == 'gauss-newton' ]]; then
+    step_nr=$(get_current_step_nr)
+    do_potential_list="$(for_all "non-bonded" 'scheme=( $(csg_get_interaction_property inverse.do_potential) ); echo -n $(csg_get_interaction_property name) ${scheme[$(( ($step_nr - 1 ) % ${#scheme[@]} ))]}" "')"
+    tgt_dist_list="$(for_all "non-bonded" 'tgt_dist=( $(csg_get_interaction_property inverse.is_target_distribution) ); echo -n $(csg_get_interaction_property name) $tgt_dist" "')"
+    upd_pots_flag="--upd-pots $do_potential_list"
+    tgt_dists_flag="--tgt-dists $tgt_dist_list"
+fi
+
 # for_all not necessary for most sim_prog, but also doesn't hurt.
 for_all "non-bonded bonded" do_external rdf "$sim_prog"
 # calculate distributions intramolecular
@@ -103,7 +112,9 @@ do_external update iie_pot "$iie_method" \
     --out "dpot.new" \
     ${pressure_constraint_flag-} \
     ${residual_weighting_flag-} \
-    ${tgt_dcdh_flag-}
+    ${tgt_dcdh_flag-} \
+    ${upd_pots_flag-} \
+    ${tgt_dists_flag-}
 
 # resample potentials. This is needed because non-bonded.max is usually larger than iie.cut-off and the former should define the table
 for_all "non-bonded" 'csg_resample --in $(csg_get_interaction_property name).dpot.new --out $(csg_get_interaction_property name).dpot.new --grid $(csg_get_interaction_property min):$(csg_get_interaction_property step):$(csg_get_interaction_property max) --comment "adapted to grid in update_iie.sh"'

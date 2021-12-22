@@ -24,7 +24,7 @@
 # _cur: current (of step k if currently doing iteration k)
 # _tgt: target
 # _mat: matrix (bead, bead) in the last two dimensions
-# _vec: _mat matrix with all interactions flattened
+# _vec: _mat matrix with all interactions flattened (vectorized)
 # _2D: 2D matrix (which can be transformed to 4D)
 # _flat: flat version of a vector, corresponds to matrix with _2D
 #
@@ -50,6 +50,7 @@ from csg_functions import (
     gen_interaction_matrix, gen_interaction_dict, solve_linear_with_constraints,
     gen_flag_isfinite, kron_2D, extrapolate_dU_left_constant, vectorize, devectorize,
     if_verbose_dump_io, make_matrix_2D, make_matrix_4D, cut_matrix_inverse, transpose,
+    get_bead_types
 )
 
 
@@ -164,6 +165,14 @@ def get_args(iie_args=None):
     parser_gauss_newton.add_argument('--residual-weighting',
                                      dest='residual_weighting',
                                      type=str, required=True)
+    parser_gauss_newton.add_argument(
+        '--tgt-dists', type=str, required=True, metavar='TGT_DISTS',
+        help=('Which distributions are targeted. Pairs of names and '
+              'numbers all separated by spaces. 1 for target.'))
+    parser_gauss_newton.add_argument(
+        '--upd-pots', type=str, required=True, metavar='UPD_POTS',
+        help=('Which potentials are to be modified. Pairs of names and '
+              'numbers all separated by spaces. 1 for update.'))
     # potential guess only options
     parser_pot_guess.add_argument('--subtract-coulomb',
                                   dest='subtract_coulomb',
@@ -379,6 +388,17 @@ def process_input(args):
             "./inverse/multistate/state_weights").text.split()))
         settings['state_kBTs'] = list(map(float, options.find(
             "./inverse/multistate/state_kBTs").text.split()))
+    # which distributions to target and which potentials to update
+    if args.subcommand == 'gauss-newton':
+        settings['tgt_dists'] = {pair[0]: pair[1].lower().strip() == 'true' for pair
+                                 in zip(args.tgt_dists.split()[::2],
+                                        args.tgt_dists.split()[1::2],)}
+        settings['upd_pots'] = {pair[0]: pair[1].strip() == "1" for pair
+                                in zip(args.upd_pots.split()[::2],
+                                       args.upd_pots.split()[1::2],)}
+        # check that there is a value
+        assert set(settings['tgt_dists'].keys()) == set(non_bonded_dict.keys())
+        assert set(settings['upd_pots'].keys()) == set(non_bonded_dict.keys())
     return input_arrays, settings
 
 
@@ -908,21 +928,54 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
                                        settings['non-bonded-dict'])
     # calculate the ready-to-use jacobian inverse
     jac_mat, _ = calc_jacobian(input_arrays, settings, verbose)
-    # make Jacobian 2D
-    jac_2D = make_matrix_2D(jac_mat)
     # weighting
     g_tgt_vec = vectorize(g_tgt_mat)
     weights = gen_residual_weights(settings['residual_weighting'], r[cut_res], n_c_res,
                                    n_i, 1, g_tgt_vec[cut_res])
-    # weight Jacobian
-    jac_2D = np.diag(weights.T.flatten()) @ jac_2D
     # Delta g for potential update
     Delta_g_mat = g_cur_mat - g_tgt_mat
     # vectorize Delta g
     Delta_g_vec = vectorize(Delta_g_mat)
+
+    # one might not want to take all dists in account or update all potentials
+    # determine which rows/cols should be removed
+    index_tgt_dists = []
+    index_not_tgt_dists = []
+    index_upd_pots = []
+    index_not_upd_pots = []
+    bead_types = get_bead_types(settings['non-bonded-dict'])
+    non_bonded_dict_inv = {v: k for k, v in settings['non-bonded-dict'].items()}
+    for i, ((b1, bead1), (b2, bead2)) in enumerate(
+            (((b1, bead1), (b2, bead2))
+             for b1, bead1 in enumerate(bead_types)
+             for b2, bead2 in enumerate(bead_types)
+             )):
+        interaction_name = non_bonded_dict_inv[frozenset({bead1, bead2})]
+        if settings['tgt_dists'][interaction_name] is True:
+            index_tgt_dists.append(i)
+        else:
+            index_not_tgt_dists.append(i)
+        if settings['upd_pots'][interaction_name] is True:
+            index_upd_pots.append(i)
+        else:
+            index_not_upd_pots.append(i)
+    n_tgt_dists = len(index_tgt_dists)
+    n_upd_pots = len(index_upd_pots)
+    # remove rows and columns from jacobian
+    jac_mat = np.delete(jac_mat, index_not_tgt_dists, axis=-2)  # del rows
+    jac_mat = np.delete(jac_mat, index_not_upd_pots, axis=-1)  # del cols
+    # remove cols from weights
+    weights = np.delete(weights, index_not_tgt_dists, axis=1)  # del cols
+    # remove cols from Δg vector
+    Delta_g_vec = np.delete(Delta_g_vec, index_not_tgt_dists, axis=1)  # del cols
+
+    # make Jacobian 2D
+    jac_2D = make_matrix_2D(jac_mat)
+    # weight Jacobian
+    jac_2D = np.diag(weights.T.flatten()) @ jac_2D
     # cut and weight Delta_g and obtain residuals
-    residuals_vec = np.zeros((n_c_res, n_i))
-    for i in range(n_i):
+    residuals_vec = np.zeros((n_c_res, n_tgt_dists))
+    for i in range(n_tgt_dists):
         residuals_vec[:, i] = np.diag(weights[:, i]) @ Delta_g_vec[cut_res, i]
     # flatten residuals
     residuals_flat = residuals_vec.T.flatten()
@@ -930,16 +983,16 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             or len(settings['constraints']) == 0):
         # update force rather than potential
         # antiderivative operator (upper triangular matrix on top of zeros)
-        A0_2D = kron_2D(np.identity(n_i),
+        A0_2D = kron_2D(np.identity(n_upd_pots),
                         Delta_r * np.triu(np.ones((n_c_res, n_c_pot-1)), k=0))
-        C = np.zeros((len(settings['constraints']), n_i * (n_c_pot-1)))
+        C = np.zeros((len(settings['constraints']), n_upd_pots * (n_c_pot-1)))
     else:
         # update potential, A0 just cuts of the tail
         # currently this is never used
-        A0_2D = kron_2D(np.identity(n_i),
+        A0_2D = kron_2D(np.identity(n_upd_pots),
                         np.append(np.identity(n_c_pot),
                                   np.zeros((n_c_res-n_c_pot, n_c_pot)), axis=0))
-        C = np.zeros((len(settings['constraints']), n_i * n_c_pot))
+        C = np.zeros((len(settings['constraints']), n_upd_pots * n_c_pot))
     A = jac_2D @ A0_2D
     b = residuals_flat
     d = np.zeros(len(settings['constraints']))
@@ -954,9 +1007,9 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             # g_tgt(r_{i})
             g_tgt_i = vectorize(g_tgt_mat[cut_pot][:-1]).T.flatten()
             # r_{i}
-            r_i = np.tile(r[cut_pot][:-1], n_i)
+            r_i = np.tile(r[cut_pot][:-1], n_upd_pots)
             # r_{i+1}
-            r_ip1 = np.tile(r[cut_pot][1:], n_i)
+            r_ip1 = np.tile(r[cut_pot][1:], n_upd_pots)
             # density product ρ_i * ρ_j as vector of same length as r_i
             rho_i = np.repeat(np.outer(*([settings['rhos']]*2)).flatten(), n_c_pot-1)
             # l vector
@@ -979,7 +1032,11 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
                                       + constraint['type'])
     # solve linear equation
     dU_flat = -A0_2D @ solve_linear_with_constraints(A, C, b, d)
-    dU_vec = dU_flat.reshape(n_i, n_c_res).T
+    dU_vec = dU_flat.reshape(n_upd_pots, n_c_res).T
+    # insert zeros for ignored potentials
+    for i in index_not_upd_pots:
+        dU_vec = np.insert(dU_vec, i, np.zeros(n_c_res), axis=1)
+        print(i, dU_vec.shape)
     # dU matrix
     dU_mat = devectorize(dU_vec)
     # cut off tail

@@ -611,6 +611,9 @@
       <do_potential>1
         <DESC>Update cycle for the potential update. 1 means update, 0 don't update. 1 1 0 means update 2 iterations, then don't one iteration update, then repeat.</DESC>
       </do_potential>
+      <is_target_distribution>true
+        <DESC>for some methods (currently only iie) one might define which distributions shall be matched. Default: true</DESC>
+      </is_target_distribution>
       <espresso>
         <DESC>Espresso specific options for this interations</DESC>
         <table>
