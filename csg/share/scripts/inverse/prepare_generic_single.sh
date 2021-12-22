@@ -88,10 +88,12 @@ if [[ $use_bi == true ]]; then
     elif [[ $table_present == true && $table_overwrite == false ]]; then
         msg --color blue "###########################################################################################"
         msg --color blue "# WARNING there is a table ${name}.pot.in present, but cg.inverse.initial_guess.method=bi #"
-        msg --color blue "#         and cg.inverse.initial_guess.table_overwrite=false.                             #"
+        msg --color blue "# and cg.inverse.initial_guess.table_overwrite=false. Using BI as initial guess           #"
         msg --color blue "###########################################################################################"
+        do_external initial_guess_single bi
+    else
+        do_external initial_guess_single bi
     fi
-    do_external initial_guess_single bi
 elif [[ $use_table == true ]]; then
     do_external initial_guess_single table
 elif [[ $table_overwrite == true ]]; then
