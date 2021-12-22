@@ -103,6 +103,20 @@ if [[ -f ${main_dir}/${name}.pot.in ]]; then
 fi
 
 if [[ $use_bi == true ]]; then
+    if [[ $table_present == true && $table_overwrite == true ]]; then
+        do_external initial_guess_single table
+    elif [[ $table_present == true && $table_overwrite == false ]]; then
+        msg --color blue "###########################################################################################"
+        msg --color blue "# WARNING there is a table ${name}.pot.in present, but cg.inverse.initial_guess.method=bi #"
+        msg --color blue "# and cg.inverse.initial_guess.table_overwrite=false. Using BI as initial guess           #"
+        msg --color blue "###########################################################################################"
+        do_external initial_guess_single bi
+    else
+        do_external initial_guess_single bi
+    fi
+elif [[ $use_table == true ]]; then
+    do_external initial_guess_single table
+elif [[ $table_overwrite == true ]]; then
     if [[ $table_present == true ]]; then
         msg "there is a table ${name}.pot.in present, but you still choose BI"
     fi
