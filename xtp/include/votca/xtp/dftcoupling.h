@@ -55,7 +55,7 @@ class DFTcoupling : public CouplingBase {
                             const Orbitals& orbitalsB) const;
 
   std::pair<Index, Index> DetermineRangeOfStates(const Orbitals& orbital,
-                                               Index numberofstates) const;
+                                                 Index numberofstates) const;
 
   Eigen::MatrixXd JAB;
 
