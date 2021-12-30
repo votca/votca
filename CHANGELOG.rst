@@ -4,8 +4,10 @@ For more detailed information about the changes see the history of the
 Version 2022-dev
 ================
 
-Version 2022-rc.3 (released XX.12.21)
-=====================================
+Version 2022 (released XX.12.21)
+================================
+
+-  fix some icpc warnings (#934)
 
 Version 2022-rc.2 (released 16.12.21)
 =====================================

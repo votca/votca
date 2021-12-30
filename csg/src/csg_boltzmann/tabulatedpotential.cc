@@ -190,8 +190,8 @@ void TabulatedPotential::Help(const string &cmd, vector<string> &args) {
 
 double TabulatedPotential::getTemperature() const { return Temperature_; }
 
-pair<int, Index> TabulatedPotential::getSmoothIterations() const {
-  return pair<int, Index>(tab_smooth1_, tab_smooth2_);
+pair<Index, Index> TabulatedPotential::getSmoothIterations() const {
+  return pair<Index, Index>(tab_smooth1_, tab_smooth2_);
 }
 
 void TabulatedPotential::WriteHistogram(BondedStatistics &bs,
