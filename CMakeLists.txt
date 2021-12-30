@@ -68,7 +68,7 @@ if(ENABLE_WARNING_FLAGS)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-conversion")
   endif()
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel") #only icpc, not icpx
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcheck")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcheck -Wno-sign-conversion")
   endif()
 endif()
 

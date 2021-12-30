@@ -77,7 +77,7 @@ void DFTcoupling::Addoutput(tools::Property& type_summary,
   return;
 }
 
-std::pair<int, Index> DFTcoupling::DetermineRangeOfStates(
+std::pair<Index, Index> DFTcoupling::DetermineRangeOfStates(
     const Orbitals& orbital, Index numberofstates) const {
   const Eigen::VectorXd& MOEnergies = orbital.MOs().eigenvalues();
   if (std::abs(MOEnergies(orbital.getHomo()) - MOEnergies(orbital.getLumo())) <
