@@ -46,7 +46,7 @@ if not sys.version_info >= (3, 5):
 BAR_PER_MD_PRESSURE = 16.6053904
 G_MIN = 1e-10
 G_MIN_EXTRAPOLATE = 1e-1
-np.seterr(all='raise')
+np.seterr(all='warn')
 
 
 def readin_table(filename):
