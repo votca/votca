@@ -505,6 +505,13 @@ def gauss_newton_constrained(A, C, b, d):
         x_elim = []
     else:
         x_elim = np.linalg.solve(A_elim.T @ A_elim, A_elim.T @ b_elim)
+        # quick hack, because we can not reproduce locally
+        np.show_config()
+        print(A_elim.shape, b_elim.shape, x_elim.shape)
+        print(A_elim.dtype, b_elim.dtype, x_elim.shape)
+        print(A_elim)
+        print(b_elim)
+        print(x_elim)
     if p == 0:
         # no constraints
         x = x_elim
