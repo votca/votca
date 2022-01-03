@@ -615,6 +615,7 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # switching to notation of Gander et al. for solving
     A = J
     b = res[nocore]
+    print(A, C, b, d)
     w = gauss_newton_constrained(A, C, b, d)
     # dU
     dU = A0 @ w
@@ -1112,6 +1113,9 @@ def main():
 
     # process and prepare input
     r, input_arrays = process_input(args)
+    print(vars(args))
+    print(r)
+    print(input_arrays)
 
     # guess potential from distribution
     if args.subcommand in ['potential_guess']:
