@@ -558,14 +558,10 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     nocore, crucial = calc_slices(r, g_tgt, g_cur, cut_off, verbose=verbose)
     Delta_r = calc_grid_spacing(r)
     # pair correlation function 'h'
-    print("g_cur.dtype", g_cur.dtype)
-    print("g_cur", g_cur)
     h = g_cur - 1
-    print("h.dtype", h.dtype)
-    print("h", h)
     # special Fourier of h
     _, h_hat = fourier(r, h)
-    # h_hat is locally different
+    # h_hat is almost the same locally
     print("h_hat.dtype", h_hat.dtype)
     print("h_hat", h_hat)
     # Fourier matrix
@@ -574,7 +570,12 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # dc/dg
     if n == 1:
         # single bead case
+        print("F[0]", F[0])
+        print("np.linalg.inv(F)[0]", np.linalg.inv(F)[0])
+        print("rho", rho)
         dcdg = np.linalg.inv(F) @ np.diag(1 / (1 + rho * h_hat)**2) @ F
+        print("dcdg[0]", dcdg[0])
+        print("dcdg[:, 0]", dcdg[:, 0])
     else:
         _, G_minus_g_hat = fourier(r, G_minus_g)
         dcdg = np.linalg.inv(F) @ np.diag(1 / (1 + n * rho * G_minus_g_hat
