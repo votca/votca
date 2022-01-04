@@ -262,14 +262,15 @@ def calc_dc_ext(r_short, r_long, c_k_short, g_k_short, g_tgt_short, G_minus_g_sh
                  G_minus_g_short) = r0_removal(r_short, c_k_short, g_k_short,
                                                g_tgt_short, G_minus_g_short)
     F = gen_fourier_matrix(r_long, fourier)
-    Finv = np.linalg.inv(F)
+    omega, _ = fourier(r_long, np.zeros_like(r_long))
+    F_inv = gen_fourier_matrix(omega, fourier)
     B = np.concatenate((np.diag(np.ones(len(r_short))),
                         np.zeros((len(r_long) - len(r_short), len(r_short)))),
                        axis=0)
     Binv = np.linalg.pinv(B)
-    J = Binv @ (Finv @ np.diag((1 + n * rho * F @ B @ G_minus_g_short)**2
-                               / (1 - (1 + n * rho * F @ B @ G_minus_g_short)
-                                  * n * rho * F @ B @ c_k_short)**2) @ F) @ B
+    J = Binv @ (F_inv @ np.diag((1 + n * rho * F @ B @ G_minus_g_short)**2
+                                / (1 - (1 + n * rho * F @ B @ G_minus_g_short)
+                                   * n * rho * F @ B @ c_k_short)**2) @ F) @ B
     Jinv = np.linalg.pinv(J)
     Δc = -1 * Jinv @ (g_k_short - g_tgt_short)
     if r0_removed:
@@ -431,16 +432,17 @@ def calc_dU_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho, cut_off,
     # difference of rdf to target
     Delta_g = g_cur - g_tgt
     # FT of total correlation function 'h'
-    _, h_hat = fourier(r, g_cur - 1)
+    omega, h_hat = fourier(r, g_cur - 1)
     F = gen_fourier_matrix(r, fourier)
+    F_inv = gen_fourier_matrix(omega, fourier)
     # dc/dg
     if n == 1:
         # single bead case
-        dcdg = np.linalg.inv(F) @ np.diag(1 / (1 + rho * h_hat)**2) @ F
+        dcdg = F_inv @ np.diag(1 / (1 + rho * h_hat)**2) @ F
     else:
         _, G_minus_g_hat = fourier(r, G_minus_g)
-        dcdg = np.linalg.inv(F) @ np.diag(1 / (1 + n * rho * G_minus_g_hat
-                                               + n * rho * h_hat)**2) @ F
+        dcdg = F_inv @ np.diag(1 / (1 + n * rho * G_minus_g_hat
+                                    + n * rho * h_hat)**2) @ F
     # calculate jacobian^-1
     # in the core where RDF=0, the jacobin will have -np.inf on the diagonal
     # numpy correctly inverts this to zero
@@ -557,17 +559,18 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # pair correlation function 'h'
     h = g_cur - 1
     # special Fourier of h
-    _, h_hat = fourier(r, h)
+    omega, h_hat = fourier(r, h)
     # Fourier matrix
     F = gen_fourier_matrix(r, fourier)
+    F_inv = gen_fourier_matrix(omega, fourier)
     # dc/dg
     if n == 1:
         # single bead case
-        dcdg = np.linalg.inv(F) @ np.diag(1 / (1 + rho * h_hat)**2) @ F
+        dcdg = F_inv @ np.diag(1 / (1 + rho * h_hat)**2) @ F
     else:
         _, G_minus_g_hat = fourier(r, G_minus_g)
-        dcdg = np.linalg.inv(F) @ np.diag(1 / (1 + n * rho * G_minus_g_hat
-                                               + n * rho * h_hat)**2) @ F
+        dcdg = F_inv @ np.diag(1 / (1 + n * rho * G_minus_g_hat
+                                    + n * rho * h_hat)**2) @ F
     # jacobian^-1 (matrix U in Delbary et al., with respect to potential)
     with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
         jac_inv = kBT * (np.diag(1 - 1 / g_cur[nocore]) - dcdg[nocore, nocore])
