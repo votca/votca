@@ -558,16 +558,19 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     nocore, crucial = calc_slices(r, g_tgt, g_cur, cut_off, verbose=verbose)
     Delta_r = calc_grid_spacing(r)
     # pair correlation function 'h'
+    print("g_cur.dtype", g_cur.dtype)
+    print("g_cur", g_cur)
     h = g_cur - 1
+    print("h.dtype", h.dtype)
+    print("h", h)
     # special Fourier of h
     _, h_hat = fourier(r, h)
-    # Fourier matrix
-    F = gen_fourier_matrix(r, fourier)
-    print("F.dtype", F.dtype)
-    print("F[0]", F[0])
-    print("F[:, 0]", F[:, 0])
+    # h_hat is locally different
     print("h_hat.dtype", h_hat.dtype)
     print("h_hat", h_hat)
+    # Fourier matrix
+    F = gen_fourier_matrix(r, fourier)
+    # F is locally the same
     # dc/dg
     if n == 1:
         # single bead case
@@ -576,9 +579,6 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
         _, G_minus_g_hat = fourier(r, G_minus_g)
         dcdg = np.linalg.inv(F) @ np.diag(1 / (1 + n * rho * G_minus_g_hat
                                                + n * rho * h_hat)**2) @ F
-    print("dcdg.dtype", dcdg.dtype)
-    print("dcdg[0]", dcdg[0])
-    print("dcdg[:, 0]", dcdg[:, 0])
     # jacobian^-1 (matrix U in Delbary et al., with respect to potential)
     with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
         jac_inv = kBT * (np.diag(1 - 1 / g_cur[nocore]) - dcdg[nocore, nocore])
