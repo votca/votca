@@ -41,6 +41,7 @@ except ImportError:
     raise
 if not sys.version_info >= (3, 5):
     raise Exception("This script needs Python 3.5+.")
+import time
 
 
 BAR_PER_MD_PRESSURE = 16.6053904
@@ -1115,8 +1116,11 @@ def gauss_newton_update(r, input_arrays, args):
 
 def main():
 
-    for i in range(500):
-        print(i)
+    time.sleep(10)
+    for i in range(5000):
+        print('stdout', i, flush=True)
+        print('stderr', i, file=sys.stderr, flush=True)
+    time.sleep(10)
 
     # get command line arguments
     args = get_args()
