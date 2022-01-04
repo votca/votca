@@ -509,11 +509,11 @@ def gauss_newton_constrained(A, C, b, d):
         x_elim = np.linalg.solve(A_elim.T @ A_elim, A_elim.T @ b_elim)
         # quick hack, because we can not reproduce locally
         np.show_config()
-        print("A_elim.shape, b_elim.shape, x_elim.shape", A_elim.shape, b_elim.shape, x_elim.shape)
-        print("A_elim.dtype, b_elim.dtype, x_elim.dtype", A_elim.dtype, b_elim.dtype, x_elim.dtype)
-        print("A_elim", A_elim)
-        print("b_elim", b_elim)
-        print("x_elim", x_elim)
+        #print("A_elim.shape, b_elim.shape, x_elim.shape", A_elim.shape, b_elim.shape, x_elim.shape)
+        #print("A_elim.dtype, b_elim.dtype, x_elim.dtype", A_elim.dtype, b_elim.dtype, x_elim.dtype)
+        #print("A_elim", A_elim)
+        #print("b_elim", b_elim)
+        #print("x_elim", x_elim)
     if p == 0:
         # no constraints
         x = x_elim
@@ -580,15 +580,15 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # jacobian^-1 (matrix U in Delbary et al., with respect to potential)
     with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
         print("g_cur, g_cur[nocore]", g_cur, g_cur[nocore])
-        print("dcdg, dcdg[nocore, nocore]", dcdg, dcdg[nocore, nocore])
+        #print("dcdg, dcdg[nocore, nocore]", dcdg, dcdg[nocore, nocore])
         jac_inv = kBT * (np.diag(1 - 1 / g_cur[nocore]) - dcdg[nocore, nocore])
-        print("jac_inv", jac_inv)
-        print("jac_inv[:, 0]", jac_inv[:, 0])
+        #print("jac_inv", jac_inv)
+        #print("jac_inv[:, 0]", jac_inv[:, 0])
     # A0 matrix
     A0 = Delta_r * np.triu(np.ones((len(r[nocore]), len(r[crucial])-1)), k=0)
     # Jacobian with respect to force
     J = np.linalg.inv(jac_inv) @ A0
-    print("J[:, 0]", J[:, 0])
+    #print("J[:, 0]", J[:, 0])
     # constraint matrix and vector
     C = np.zeros((len(constraints), len(r[crucial])-1))
     d = np.zeros(len(constraints))
@@ -622,7 +622,7 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # switching to notation of Gander et al. for solving
     A = J
     b = res[nocore]
-    print("A, C, b, d", A, C, b, d)
+    #print("A, C, b, d", A, C, b, d)
     w = gauss_newton_constrained(A, C, b, d)
     # dU
     dU = A0 @ w
@@ -1115,12 +1115,6 @@ def gauss_newton_update(r, input_arrays, args):
 
 
 def main():
-
-    time.sleep(10)
-    for i in range(5000):
-        print('stdout', i, flush=True)
-        print('stderr', i, file=sys.stderr, flush=True)
-    time.sleep(10)
 
     # get command line arguments
     args = get_args()
