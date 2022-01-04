@@ -41,7 +41,6 @@ except ImportError:
     raise
 if not sys.version_info >= (3, 5):
     raise Exception("This script needs Python 3.5+.")
-import time
 
 
 BAR_PER_MD_PRESSURE = 16.6053904
@@ -509,11 +508,6 @@ def gauss_newton_constrained(A, C, b, d):
         x_elim = np.linalg.solve(A_elim.T @ A_elim, A_elim.T @ b_elim)
         # quick hack, because we can not reproduce locally
         np.show_config()
-        #print("A_elim.shape, b_elim.shape, x_elim.shape", A_elim.shape, b_elim.shape, x_elim.shape)
-        #print("A_elim.dtype, b_elim.dtype, x_elim.dtype", A_elim.dtype, b_elim.dtype, x_elim.dtype)
-        #print("A_elim", A_elim)
-        #print("b_elim", b_elim)
-        #print("x_elim", x_elim)
     if p == 0:
         # no constraints
         x = x_elim
@@ -569,6 +563,11 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     _, h_hat = fourier(r, h)
     # Fourier matrix
     F = gen_fourier_matrix(r, fourier)
+    print("F.dtype", F.dtype)
+    print("F[0]", F[0])
+    print("F[:, 0]", F[:, 0])
+    print("h_hat.dtype", h_hat.dtype)
+    print("h_hat", h_hat)
     # dc/dg
     if n == 1:
         # single bead case
@@ -577,18 +576,16 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
         _, G_minus_g_hat = fourier(r, G_minus_g)
         dcdg = np.linalg.inv(F) @ np.diag(1 / (1 + n * rho * G_minus_g_hat
                                                + n * rho * h_hat)**2) @ F
+    print("dcdg.dtype", dcdg.dtype)
+    print("dcdg[0]", dcdg[0])
+    print("dcdg[:, 0]", dcdg[:, 0])
     # jacobian^-1 (matrix U in Delbary et al., with respect to potential)
     with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
-        print("g_cur, g_cur[nocore]", g_cur, g_cur[nocore])
-        #print("dcdg, dcdg[nocore, nocore]", dcdg, dcdg[nocore, nocore])
         jac_inv = kBT * (np.diag(1 - 1 / g_cur[nocore]) - dcdg[nocore, nocore])
-        #print("jac_inv", jac_inv)
-        #print("jac_inv[:, 0]", jac_inv[:, 0])
     # A0 matrix
     A0 = Delta_r * np.triu(np.ones((len(r[nocore]), len(r[crucial])-1)), k=0)
     # Jacobian with respect to force
     J = np.linalg.inv(jac_inv) @ A0
-    #print("J[:, 0]", J[:, 0])
     # constraint matrix and vector
     C = np.zeros((len(constraints), len(r[crucial])-1))
     d = np.zeros(len(constraints))
@@ -622,7 +619,6 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # switching to notation of Gander et al. for solving
     A = J
     b = res[nocore]
-    #print("A, C, b, d", A, C, b, d)
     w = gauss_newton_constrained(A, C, b, d)
     # dU
     dU = A0 @ w
@@ -1121,9 +1117,6 @@ def main():
 
     # process and prepare input
     r, input_arrays = process_input(args)
-    print("vars(args)", vars(args))
-    print("r", r)
-    print("input_arrays", input_arrays)
 
     # guess potential from distribution
     if args.subcommand in ['potential_guess']:
