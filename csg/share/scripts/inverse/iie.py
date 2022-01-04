@@ -47,6 +47,7 @@ BAR_PER_MD_PRESSURE = 16.6053904
 G_MIN = 1e-10
 G_MIN_EXTRAPOLATE = 1e-1
 np.seterr(all='warn')
+np.set_printoptions(threshold=np.inf)
 
 
 def readin_table(filename):
@@ -1113,6 +1114,10 @@ def gauss_newton_update(r, input_arrays, args):
 
 
 def main():
+
+    for i in range(500):
+        print(i)
+
     # get command line arguments
     args = get_args()
 
