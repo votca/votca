@@ -579,8 +579,10 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
         print("F_inv[:, 0]", F_inv[:, 0])
         print("rho", rho)
         dcdg = F_inv @ np.diag(1 / (1 + rho * h_hat)**2) @ F
-        print("dcdg[0]", dcdg[0])
-        print("dcdg[:, 0]", dcdg[:, 0])
+        print("dcdg[0]", repr(dcdg[0]))
+        print("dcdg[:, 0]", repr(dcdg[:, 0]))
+        print("dcdg[1]", repr(dcdg[1]))
+        print("dcdg[:, 1]", repr(dcdg[:, 1]))
     else:
         _, G_minus_g_hat = fourier(r, G_minus_g)
         dcdg = F_inv @ np.diag(1 / (1 + n * rho * G_minus_g_hat
@@ -592,6 +594,10 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     A0 = Delta_r * np.triu(np.ones((len(r[nocore]), len(r[crucial])-1)), k=0)
     # Jacobian with respect to force
     J = np.linalg.inv(jac_inv) @ A0
+    print("J[0]", repr(J[0]))
+    print("J[:, 0]", repr(J[:, 0]))
+    print("J[0]", repr(J[0]))
+    print("J[:, 0]", repr(J[:, 0]))
     # constraint matrix and vector
     C = np.zeros((len(constraints), len(r[crucial])-1))
     d = np.zeros(len(constraints))
@@ -628,6 +634,7 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     w = gauss_newton_constrained(A, C, b, d)
     # dU
     dU = A0 @ w
+    print("dU", repr(dU))
     # fill core with nans
     dU = np.concatenate((np.full(nocore.start, np.nan), dU))
     # dump files
