@@ -599,12 +599,16 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
         print("jac_inv[0]", repr(jac_inv[0]))
         print("jac_inv[:, 0]", repr(jac_inv[:, 0]))
         print("jac_inv", repr(jac_inv))
-        print("np.det(jac_inv)", np.det(jac_inv))
+        print("jac_inv.dtype", jac_inv.dtype)
+        print("np.linalg.det(jac_inv)", np.linalg.det(jac_inv))
     # A0 matrix
     A0 = Delta_r * np.triu(np.ones((len(r[nocore]), len(r[crucial])-1)), k=0)
     print("A0", repr(A0))
     print("A0.dtype", A0.dtype)
     # Jacobian with respect to force
+    for n in range(2, 100):
+        A = np.random.rand(n, n)
+        np.testing.assert_allclose(np.identity(n), np.linalg.inv(A) @ A, atol=1e-7)
     J = np.linalg.inv(jac_inv) @ A0
     print("J[0]", repr(J[0]))
     print("J[:, 0]", repr(J[:, 0]))
