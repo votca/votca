@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 import numpy as np
+import os
+
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+os.environ['NUMEXPR_NUM_THREADS'] = '1'
+os.environ['OMP_NUM_THREADS'] = '1'
 
 
 def main():
