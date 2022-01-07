@@ -563,9 +563,15 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     h = g_cur - 1
     # special Fourier of h
     omega, h_hat = fourier(r, h)
+    print("r.dtype", r.dtype)
+    print("r", repr(r))
+    print("omega.dtype", omega.dtype)
+    print("omega", repr(omega))
     # h_hat is almost the same locally
+    print("g_cur.dtype", g_cur.dtype)
+    print("g_cur", repr(g_cur))
     print("h_hat.dtype", h_hat.dtype)
-    print("h_hat", h_hat)
+    print("h_hat", repr(h_hat))
     # Fourier matrix
     F = gen_fourier_matrix(r, fourier)
     # F is locally the same
@@ -573,10 +579,10 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # dc/dg
     if n == 1:
         # single bead case
-        print("F[0]", F[0])
-        print("F[:, 0]", F[:, 0])
-        print("F_inv[0]", F_inv[0])
-        print("F_inv[:, 0]", F_inv[:, 0])
+        print("F[0]", repr(F[0]))
+        print("F[:, 0]", repr(F[:, 0]))
+        print("F_inv[0]", repr(F_inv[0]))
+        print("F_inv[:, 0]", repr(F_inv[:, 0]))
         print("rho", rho)
         dcdg = F_inv @ np.diag(1 / (1 + rho * h_hat)**2) @ F
         print("dcdg[0]", repr(dcdg[0]))
@@ -590,14 +596,16 @@ def calc_dU_gauss_newton(r, g_tgt, g_cur, G_minus_g, n, kBT, rho,
     # jacobian^-1 (matrix U in Delbary et al., with respect to potential)
     with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
         jac_inv = kBT * (np.diag(1 - 1 / g_cur[nocore]) - dcdg[nocore, nocore])
+        print("jac_inv[0]", repr(jac_inv[0]))
+        print("jac_inv[:, 0]", repr(jac_inv[:, 0]))
     # A0 matrix
     A0 = Delta_r * np.triu(np.ones((len(r[nocore]), len(r[crucial])-1)), k=0)
     # Jacobian with respect to force
     J = np.linalg.inv(jac_inv) @ A0
     print("J[0]", repr(J[0]))
     print("J[:, 0]", repr(J[:, 0]))
-    print("J[0]", repr(J[0]))
-    print("J[:, 0]", repr(J[:, 0]))
+    print("J[1]", repr(J[1]))
+    print("J[:, 1]", repr(J[:, 1]))
     # constraint matrix and vector
     C = np.zeros((len(constraints), len(r[crucial])-1))
     d = np.zeros(len(constraints))
