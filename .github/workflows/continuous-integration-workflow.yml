@@ -146,8 +146,7 @@ jobs:
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -s
       - name: Tests
-        run: ctest -R hncgn --output-on-failure ${{ steps.setup.outputs.ctest_args }}
-        working-directory: builddir
+        run: ./csg/share/scripts/inverse/iie.py
       - name: Doxygen
         if: ${{ ! matrix.module_build }}
         run: cmake --build builddir --target doxygen
