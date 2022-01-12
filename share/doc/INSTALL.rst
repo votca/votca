@@ -143,6 +143,12 @@ Fedora
 
 ::
 
+    dnf install votca
+
+Or in older versions of Fedora:
+
+::
+
     dnf install votca-csg votca-xtp
 
 CentOS
@@ -152,10 +158,22 @@ CentOS
 
     yum install epel-release
     yum update
+    yum install votca
+
+Or in older versions of CentOS:
+
+::
+
     yum install votca-csg
 
 openSUSE
 ~~~~~~~~
+
+::
+
+    zypper install votca
+
+Or in older versions of openSUSE:
 
 ::
 
@@ -181,7 +199,7 @@ Gentoo
 
 ::
 
-    emerge votca-csg votca-xtp
+    emerge votca
 
 Spack
 ~~~~~
@@ -212,6 +230,13 @@ Spack can also install the latest development version from git using:
 
     spack install votca-csg@develop
 
+Conda-forge
+~~~~~~~~~~~
+
+::
+
+    conda install -c conda-forge votca
+
 Docker
 ~~~~~~
 
@@ -230,7 +255,7 @@ Docker can also install the latest released version, e.g.:
 
 ::
 
-    docker run -it votca/votca:v1.6 /bin/bash
+    docker run -it votca/votca:v2021.2 /bin/bash
 
 Stable version
 ^^^^^^^^^^^^^^

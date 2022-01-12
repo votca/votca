@@ -11,6 +11,7 @@ Version 2022 (released XX.12.21)
 -  only check for pytest if testing is enabled (#930)
 -  exclude some builds and tests from CI (#940)
 -  update interface documentation (#939)
+-  update install guide for binary packages (#936)
 
 Version 2022-rc.2 (released 16.12.21)
 =====================================
