@@ -750,10 +750,10 @@ def calc_dcdh(r, g_mat, G_minus_g_mat, rhos, n_intra, verbose=False):
     n_i = int(n_t**2)
     # FT of total correlation function 'h' and G_minus_g
     k, h_hat_mat = fourier_all(r, g_mat - 1)
-    _, G_minus_g_hat_mat = fourier_all(r, G_minus_g_mat)
+    omega, G_minus_g_hat_mat = fourier_all(r, G_minus_g_mat)
     # Fourier matrix
     F = gen_fourier_matrix(r, fourier)
-    F_inv = np.linalg.inv(F)
+    F_inv = gen_fourier_matrix(omega, fourier)
     # Ω
     Omega_hat_mat = gen_Omega_hat_mat(G_minus_g_hat_mat, rhos, n_intra)
     # ρ molecular, entries are mol densities as needed by symmetry adapted rism
