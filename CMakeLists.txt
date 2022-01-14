@@ -70,6 +70,10 @@ if(ENABLE_WARNING_FLAGS)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel") #only icpc, not icpx
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcheck -Wno-sign-conversion")
   endif()
+  # allow adding extra warning flags at the very end
+  if(VOTCA_EXTRA_WARNING_FLAGS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VOTCA_EXTRA_WARNING_FLAGS}")
+  endif()
 endif()
 
 option(INJECT_MARCH_NATIVE "Inject -march=native if compiler supports it" ON)

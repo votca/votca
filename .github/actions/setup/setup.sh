@@ -98,6 +98,11 @@ if [[ ${INPUT_DISTRO} = "fedora:intel" ]]; then
   cmake_args+=( -DREQUIRE_MKL=ON )
 fi
 
+# workaround for votca/votca#891
+if [[ ${INPUT_DISTRO} = "ubuntu:devel" && ${INPUT_TOOLCHAIN} = "gnu" ]]; then
+  cmake_args+=( -DVOTCA_EXTRA_WARNING_FLAGS="-Wno-deprecated-copy")
+fi
+
 if [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then
   # CodeQL does not work with valgrind
   cmake_args+=( -DVALGRIND_EXECUTABLE=FALSE )
