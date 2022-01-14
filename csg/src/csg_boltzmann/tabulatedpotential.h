@@ -134,7 +134,7 @@ class TabulatedPotential : public AnalysisTool {
    * \return pair of integers containing the number of smoothing
    * iteratiosn before and after boltzmann inversion.
    **/
-  std::pair<int, Index> getSmoothIterations() const;
+  std::pair<Index, Index> getSmoothIterations() const;
 
  private:
   bool SetOption_(TOOLS::Histogram::options_t &op,
