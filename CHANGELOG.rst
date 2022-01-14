@@ -26,6 +26,7 @@ Version 2022-rc.2 (released 16.12.21)
 -  rm PYTHON_INSTDIR from VOTCARC (#924)
 -  update citation in xtp README (#925)
 -  fix install permission of tutorials (#926)
+-  fixed sigma plot options passing (#943)
 
 Version 2022-rc.1 (released 26.11.21)
 =====================================
