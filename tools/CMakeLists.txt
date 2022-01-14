@@ -52,7 +52,7 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 find_package(Threads REQUIRED)
 set_package_properties(Threads PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization")
 
-find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
+find_package(Boost 1.71.0 REQUIRED COMPONENTS program_options filesystem system )
 set_package_properties(Boost PROPERTIES TYPE REQUIRED PURPOSE "Extended C++ libraries")
 
 
@@ -66,14 +66,6 @@ if(VOTCA_SPHINX_DIR)
   file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/tools)
   add_custom_target(doc-tools)
 endif()
-
-if(Python_EXECUTABLE AND NOT PYTHON_INSTDIR)
-  execute_process(
-    COMMAND
-      ${Python_EXECUTABLE} -c
-      "import distutils.sysconfig as cg; print(cg.get_python_lib(prefix='${CMAKE_INSTALL_PREFIX}', plat_specific=True, standard_lib=False))"
-    OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-endif(Python_EXECUTABLE AND NOT PYTHON_INSTDIR)
 
 ########################################################################
 # Checks what linear algebra packages are installed                    #
@@ -136,7 +128,7 @@ add_subdirectory(include/votca/tools)
 add_subdirectory(share/man)
 add_subdirectory(share/doc)
 
-configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake @ONLY)
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

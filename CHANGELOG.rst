@@ -4,11 +4,28 @@ For more detailed information about the changes see the history of the
 Version 2022-dev
 ================
 
-Version 2022-rc.2 (released XX.11.21)
+Version 2022 (released XX.12.21)
+================================
+
+-  fix some icpc warnings (#934)
+-  only check for pytest if testing is enabled (#930)
+-  exclude some builds from CI (#940, #942)
+-  update interface documentation (#939)
+-  update install guide for binary packages (#936)
+
+Version 2022-rc.2 (released 16.12.21)
 =====================================
 
 -  fix iqm merge orbitals command  (#907)
 -  fix bug in basisset serialization that caused wrong Vxc values in GW (#910)
+-  update performance compilation info (#911)
+-  license for monorepo and all license files rst -> plain text (#912, #913)
+-  use python3 in xtp-tutorials (#917)
+-  bump required boost version to 1.71 (#915, #916)
+-  clean up NOTICE files (#919)
+-  rm PYTHON_INSTDIR from VOTCARC (#924)
+-  update citation in xtp README (#925)
+-  fix install permission of tutorials (#926)
 
 Version 2022-rc.1 (released 26.11.21)
 =====================================
@@ -63,6 +80,7 @@ Version 2022-rc.1 (released 26.11.21)
 -  add ability to run ibi as a postupd method (votca/csg#696)
 -  removed unused functions (votca/csg#702)
 -  reworked lammps molecule naming (votca/csg#703)
+-  Updated doxygen intro (votca/csg#712)
 -  Updated coordinate precision (votca/xtp#638)
 -  Refactored energy corrections in RPA outside QPs (votca/xtp#577)
 -  Made SetupCptTable static (votca/xtp#650)
@@ -112,7 +130,6 @@ Version 2022-rc.1 (released 26.11.21)
 -  upgrade xtp to cxx17 (votca/xtp#737, #880)
 -  Remove unused variables (votca/xtp#742)
 -  fix issue with writing strings to hdf5 files (votca/xtp#743)
--  Updated doxygen intro (votca/csgvotca/xtp#712)
 -  Merge submodules in monorepo (#763, #768, #816, #822, #849)
 -  xtp: Fix HDF5 issue on FreeBSD (#760, #848)
 -  update documentation (#852, #877)
@@ -141,7 +158,7 @@ Version 2022-rc.1 (released 26.11.21)
 -  bump required cmake version to 3.13 to support -B option (#887, #893)
 -  changed hard coded file to option value in eqm.cc (#900)
 -  inject march=native by default and add cmake option for valgrind tests (#896, #903)
--  add performance compilation info (#895)
+-  add performance compilation info (#895, #911)
 -  Read number of alpha electrons from orca log, not from molden (#901)
 -  Refactor parsing of the tasks_string (#902)
 -  set correct filename for initial guess from monomer orbitals (#904)

@@ -152,13 +152,13 @@ if(VOTCA_SPHINX_DIR)
   add_custom_target(doc-csg-tutorials DEPENDS ${MANUAL_RST_FILES} ${MANUAL_PNG_FILES})
 endif()
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/csg-tutorials
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/csg-tutorials USE_SOURCE_PERMISSIONS
 	PATTERN ".git*" EXCLUDE PATTERN "step_*" EXCLUDE
 	PATTERN "CMake*" EXCLUDE PATTERN "cmake_install.cmake" EXCLUDE
 	PATTERN "install_manifest.txt" EXCLUDE PATTERN "*~" EXCLUDE
 	PATTERN "inverse.log" EXCLUDE)
 
-configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake @ONLY)
 option(ENABLE_TESTING "Test if cmake worked" OFF)
 add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
 if(ENABLE_TESTING)

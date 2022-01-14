@@ -104,7 +104,7 @@ as backend, which is automatically detected by ``CMake``. Below are some recomme
 for different architectures:
 
 Intel Processors
-****************
+^^^^^^^^^^^^^^^^
 ``g++``, ``clang``, and ``ipcx`` from the Intel OneAPI basekit give similar performance 
 when used with the MKL. No special flags have to be supplied to ``CMake``.
 
@@ -118,7 +118,7 @@ As a rough estimate, runtimes with vectorization and  ``gcc/clang`` are 30% shor
 vectorization. Use of ``MKL`` reduces them by another 50%. 
 
 AMD Processors
-**************
+^^^^^^^^^^^^^^
 We recommend using ``g++`` or ``clang`` rather than an Intel compiler on AMD. Vectorization 
 in ``Eigen`` is automatically enabled by injection of ``-march=native``. See above comment
 about heterogeneous envionments. 
@@ -131,7 +131,7 @@ and `in general <https://documentation.sigma2.no/jobs/mkl.html#using-mkl-efficie
 We advise that you test this on your specific architecture.
 
 CUDA support
-************
+^^^^^^^^^^^^
 If your system has a ``NVIDIA`` GPU, enable offloading of matrix operations 
 by ``-DUSE_CUDA=ON``. 
 
@@ -140,6 +140,12 @@ Packages for various Linux Distributions
 
 Fedora
 ~~~~~~
+
+::
+
+    dnf install votca
+
+Or in older versions of Fedora:
 
 ::
 
@@ -152,10 +158,22 @@ CentOS
 
     yum install epel-release
     yum update
+    yum install votca
+
+Or in older versions of CentOS:
+
+::
+
     yum install votca-csg
 
 openSUSE
 ~~~~~~~~
+
+::
+
+    zypper install votca
+
+Or in older versions of openSUSE:
 
 ::
 
@@ -181,7 +199,7 @@ Gentoo
 
 ::
 
-    emerge votca-csg votca-xtp
+    emerge votca
 
 Spack
 ~~~~~
@@ -212,6 +230,13 @@ Spack can also install the latest development version from git using:
 
     spack install votca-csg@develop
 
+Conda-forge
+~~~~~~~~~~~
+
+::
+
+    conda install -c conda-forge votca
+
 Docker
 ~~~~~~
 
@@ -230,7 +255,7 @@ Docker can also install the latest released version, e.g.:
 
 ::
 
-    docker run -it votca/votca:v1.6 /bin/bash
+    docker run -it votca/votca:v2021.2 /bin/bash
 
 Stable version
 ^^^^^^^^^^^^^^
