@@ -9,7 +9,7 @@ Version 2022 (released XX.12.21)
 
 -  fix some icpc warnings (#934)
 -  only check for pytest if testing is enabled (#930)
--  exclude some builds from CI (#940, #942)
+-  exclude some builds from CI (#940, #942, #944)
 -  update interface documentation (#939)
 -  update install guide for binary packages (#936)
 -  fixed sigma plot options passing (#943)
