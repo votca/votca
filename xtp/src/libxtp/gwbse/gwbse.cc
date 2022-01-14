@@ -403,12 +403,12 @@ void GWBSE::Initialize(tools::Property& options) {
     }
   }
 
-  if (options.exists(".sigma_plot")) {
-    sigma_plot_states_ = options.get(".sigma_plot.states").as<std::string>();
-    sigma_plot_steps_ = options.get(".sigma_plot.steps").as<Index>();
-    sigma_plot_spacing_ = options.get(".sigma_plot.spacing").as<double>();
+  if (options.exists("gw.sigma_plot")) {
+    sigma_plot_states_ = options.get("gw.sigma_plot.states").as<std::string>();
+    sigma_plot_steps_ = options.get("gw.sigma_plot.steps").as<Index>();
+    sigma_plot_spacing_ = options.get("gw.sigma_plot.spacing").as<double>();
     sigma_plot_filename_ =
-        options.get(".sigma_plot.filename").as<std::string>();
+        options.get("gw.sigma_plot.filename").as<std::string>();
 
     XTP_LOG(Log::error, *pLog_)
         << " Sigma plot states: " << sigma_plot_states_ << flush;
