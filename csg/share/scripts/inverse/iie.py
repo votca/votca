@@ -157,10 +157,10 @@ def get_args(iie_args=None):
                           help=(".npz file with dc/dh from target distributions. "
                                 "If provided, will be used. "
                                 "Otherwise the jacobian will be calculated from "
-                                "current distributions."))
+                                "current distributions. Multiple for multistate."))
     # GN only options
-    parser_gauss_newton.add_argument('--pressure-constraint',
-                                     dest='pressure_constraint', nargs='+',
+    parser_gauss_newton.add_argument('--pressure-constraint', nargs='+',
+                                     dest='pressure_constraint',
                                      type=str, default=None)
     parser_gauss_newton.add_argument('--residual-weighting',
                                      dest='residual_weighting',
@@ -168,11 +168,13 @@ def get_args(iie_args=None):
     parser_gauss_newton.add_argument(
         '--tgt-dists', type=str, required=True, metavar='TGT_DISTS',
         help=('Which distributions are targeted. Pairs of names and '
-              'numbers all separated by spaces. 1 for target.'))
+              'bool. Pair separated by comma. Pairs separated by semicolon. '
+              'true for target, false for not target.'))
     parser_gauss_newton.add_argument(
         '--upd-pots', type=str, required=True, metavar='UPD_POTS',
         help=('Which potentials are to be modified. Pairs of names and '
-              'numbers all separated by spaces. 1 for update.'))
+              'numbers. Pair separated by comma. Pairs separated by semicolon. '
+              '1 for update, 0 for no update.'))
     # potential guess only options
     parser_pot_guess.add_argument('--subtract-coulomb',
                                   dest='subtract_coulomb',
@@ -391,12 +393,12 @@ def process_input(args):
     # which distributions to target and which potentials to update
     if args.subcommand == 'gauss-newton':
         settings['tgt_dists'] = {pair[0]: pair[1].lower().strip() == 'true' for pair
-                                 in zip(args.tgt_dists.split()[::2],
-                                        args.tgt_dists.split()[1::2],)}
+                                 in [pair.split(',') for pair
+                                     in args.tgt_dists.strip(';').split(';')]}
         settings['upd_pots'] = {pair[0]: pair[1].strip() == "1" for pair
-                                in zip(args.upd_pots.split()[::2],
-                                       args.upd_pots.split()[1::2],)}
-        # check that there is a value
+                                in [pair.split(',') for pair
+                                    in args.upd_pots.strip(';').split(';')]}
+        # check that there is a value for each non-bonded interaction
         assert set(settings['tgt_dists'].keys()) == set(non_bonded_dict.keys())
         assert set(settings['upd_pots'].keys()) == set(non_bonded_dict.keys())
     return input_arrays, settings

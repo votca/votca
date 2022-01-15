@@ -79,8 +79,8 @@ g_extrap_factor=$(csg_get_property --allow-empty cg.inverse.iie.g_extrap_factor)
 # which interactions to update
 if [[ $iie_method == 'gauss-newton' ]]; then
     step_nr=$(get_current_step_nr)
-    do_potential_list="$(for_all "non-bonded" 'scheme=( $(csg_get_interaction_property inverse.do_potential) ); echo -n $(csg_get_interaction_property name) ${scheme[$(( ($step_nr - 1 ) % ${#scheme[@]} ))]}" "')"
-    tgt_dist_list="$(for_all "non-bonded" 'tgt_dist=( $(csg_get_interaction_property inverse.is_target_distribution) ); echo -n $(csg_get_interaction_property name) $tgt_dist" "')"
+    do_potential_list="$(for_all "non-bonded" 'scheme=( $(csg_get_interaction_property inverse.do_potential) ); echo -n $(csg_get_interaction_property name),${scheme[$(( ($step_nr - 1 ) % ${#scheme[@]} ))]}";"')"
+    tgt_dist_list="$(for_all "non-bonded" 'tgt_dist=( $(csg_get_interaction_property inverse.is_target_distribution) ); echo -n $(csg_get_interaction_property name),$tgt_dist";"')"
     upd_pots_flag="--upd-pots $do_potential_list"
     tgt_dists_flag="--tgt-dists $tgt_dist_list"
 fi
