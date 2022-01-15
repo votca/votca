@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 project(votca LANGUAGES CXX)
 
-set(PROJECT_VERSION "2022-rc.2")
+set(PROJECT_VERSION "2022")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
