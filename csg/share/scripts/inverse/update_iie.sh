@@ -88,7 +88,7 @@ if [[ $iie_method == 'gauss-newton' ]]; then
 fi
 
 # weather to make dU = 0 one point before the cut off
-[[ "$(csg_get_property cg.inverse.iie.flatten_at_cut_off)" == 'true' ]] && flatten_at_cut_off_flag="--flatten_at_cut_off"
+[[ "$(csg_get_property cg.inverse.iie.flatten_at_cut_off)" == 'true' ]] && flatten_at_cut_off_flag="--flatten-at-cut-off"
 
 # for_all not necessary for most sim_prog, but also doesn't hurt.
 for_all "non-bonded bonded" do_external rdf "$sim_prog"
