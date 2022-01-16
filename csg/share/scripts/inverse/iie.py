@@ -158,6 +158,10 @@ def get_args(iie_args=None):
                                 "If provided, will be used. "
                                 "Otherwise the jacobian will be calculated from "
                                 "current distributions. Multiple for multistate."))
+        pars.add_argument('--flatten-at-cut-off',
+                          action='store_const', const=True, default=False,
+                          help=("Weather to set the last point of dU to zero. "
+                                "The pressure constraint adapts to one point less."))
     # GN only options
     parser_gauss_newton.add_argument('--pressure-constraint', nargs='+',
                                      dest='pressure_constraint',
@@ -325,7 +329,7 @@ def process_input(args):
     # settings
     # copy some settings directly from args
     args_to_copy = ('closure', 'verbose', 'out', 'subcommand', 'residual_weighting',
-                    'subtract_coulomb', 'kBT')
+                    'subtract_coulomb', 'kBT', 'flatten_at_cut_off')
     settings = {key: vars(args)[key] for key in args_to_copy if key in vars(args)}
     settings['non-bonded-dict'] = non_bonded_dict
     settings['rhos'] = rhos
@@ -584,8 +588,12 @@ def newton_update(input_arrays, settings, verbose=False):
         else:
             r_out = r
         # shift potential to make last value zero
-        dU[cut] -= dU[tail][0]
-        dU[tail] = 0
+        if settings['flatten_at_cut_off']:
+            dU[cut] -= dU[cut][-1]
+            dU[tail] = 0
+        else:
+            dU[cut] -= dU[tail][0]
+            dU[tail] = 0
         # change NaN in the core region to first valid value
         dU = extrapolate_dU_left_constant(dU, dU_flag)
         # save for output
@@ -1022,7 +1030,10 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             # internally we have u_ij and u_ji seperate, but so we have in the virial
             # expression for mixtures
             # set C row and d element
-            C[c, :] = ll
+            if settings['flatten_at_cut_off']:
+                C[c, :-1] = ll[:-1]
+            else:
+                C[c, :] = ll
             d[c] = p_tgt - p
 
         # elif constraint['type'] == 'potential_energy_relation':
@@ -1057,8 +1068,12 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             dU_flag = np.concatenate((['o'], dU_flag))
         # shift potential to make last value zero
         cut, tail = settings['cut_pot'], settings['tail_pot']
-        dU[cut] -= dU[tail][0]
-        dU[tail] = 0
+        if settings['flatten_at_cut_off']:
+            dU[cut] -= dU[cut][-1]
+            dU[tail] = 0
+        else:
+            dU[cut] -= dU[tail][0]
+            dU[tail] = 0
         # change NaN in the core region to first valid value
         dU = extrapolate_dU_left_constant(dU, dU_flag)
         # save for output
@@ -1159,8 +1174,12 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
             r_out = r
         # shift potential to make last value zero
         cut, tail = settings['cut_pot'], settings['tail_pot']
-        dU[cut] -= dU[tail][0]
-        dU[tail] = 0
+        if settings['flatten_at_cut_off']:
+            dU[cut] -= dU[cut][-1]
+            dU[tail] = 0
+        else:
+            dU[cut] -= dU[tail][0]
+            dU[tail] = 0
         # change NaN in the core region to first valid value
         dU = extrapolate_dU_left_constant(dU, dU_flag)
         # save for output

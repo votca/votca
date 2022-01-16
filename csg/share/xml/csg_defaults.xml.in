@@ -438,9 +438,12 @@
       <!--DEPRECATED, use residua_weigthing instead<extrap_near_core>power
         <DESC>Method for extrapolation in and close to core region. Valid values are: power (default), constant, none</DESC>
       </extrap_near_core>-->
-      <fix_near_cut_off>full-deriv
+      <!--DEPRECATED, use residua_weigthing and flatten_at_cut_off instead<fix_near_cut_off>full-deriv
         <DESC>Method for fixing discontinuity at end of potential. Valid values are: full-deriv (default), none</DESC>
-      </fix_near_cut_off>
+      </fix_near_cut_off>-->
+      <flatten_at_cut_off>false
+        <DESC>Despite using proper weighting, there can still be jumps at the cut-off. This will set the last but one value of dU to zero. The pressure constraint is adapted accordingly. Valid values are: false (default), true</DESC>
+      </flatten_at_cut_off>
       <topol>
         <DESC>Special topology file to be used for iie update</DESC>
       </topol>

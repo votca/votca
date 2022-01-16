@@ -70,11 +70,13 @@ topol=$(csg_get_property --allow-empty cg.inverse.iie.topol)
 volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
 ([[ -n "$volume" ]] && is_num "$volume") || die "could not determine the volume from file ${topol}"
 
+# verbose 
 verbose=$(csg_get_property cg.inverse.iie.verbose)
+[[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
+
+# RDF extrapolation
 g_extrap_factor=$(csg_get_property --allow-empty cg.inverse.iie.g_extrap_factor) 
 [[ -n $g_extrap_factor ]] && msg --color blue "Deprecated option g_extrap_factor will be ignored!"
-
-[[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
 
 # which interactions to update
 if [[ $iie_method == 'gauss-newton' ]]; then
@@ -84,6 +86,9 @@ if [[ $iie_method == 'gauss-newton' ]]; then
     upd_pots_flag="--upd-pots $do_potential_list"
     tgt_dists_flag="--tgt-dists $tgt_dist_list"
 fi
+
+# weather to make dU = 0 one point before the cut off
+[[ "$(csg_get_property cg.inverse.iie.flatten_at_cut_off)" == 'true' ]] && flatten_at_cut_off_flag="--flatten_at_cut_off"
 
 # for_all not necessary for most sim_prog, but also doesn't hurt.
 for_all "non-bonded bonded" do_external rdf "$sim_prog"
@@ -114,7 +119,8 @@ do_external update iie_pot "$iie_method" \
     ${residual_weighting_flag-} \
     ${tgt_dcdh_flag-} \
     ${upd_pots_flag-} \
-    ${tgt_dists_flag-}
+    ${tgt_dists_flag-} \
+    ${flatten_at_cut_off_flag-}
 
 # resample potentials. This is needed because non-bonded.max is usually larger than iie.cut-off and the former should define the table
 for_all "non-bonded" 'csg_resample --in $(csg_get_interaction_property name).dpot.new --out $(csg_get_interaction_property name).dpot.new --grid $(csg_get_interaction_property min):$(csg_get_interaction_property step):$(csg_get_interaction_property max) --comment "adapted to grid in update_iie.sh"'
