@@ -978,6 +978,10 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     weights = np.delete(weights, index_not_tgt_dists, axis=1)  # del cols
     # remove cols from Δg vector
     Delta_g_vec = np.delete(Delta_g_vec, index_not_tgt_dists, axis=1)  # del cols
+    # remove rows and columns from target RDF matrix for pressure constraint
+    g_tgt_vec = vectorize(g_tgt_mat)
+    g_tgt_vec = np.delete(g_tgt_vec, index_not_upd_pots, axis=-2)  # del rows
+    g_tgt_vec = np.delete(g_tgt_vec, index_not_upd_pots, axis=-1)  # del cols
 
     # make Jacobian 2D
     jac_2D = make_matrix_2D(jac_mat)
@@ -1013,15 +1017,15 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             # target pressure
             p_tgt = constraint['target'] / BAR_PER_MD_PRESSURE
             # g_tgt(r_{i+1})
-            g_tgt_ip1 = vectorize(g_tgt_mat[cut_pot][1:]).T.flatten()
+            g_tgt_ip1 = g_tgt_vec[cut_pot][1:].T.flatten()
             # g_tgt(r_{i})
-            g_tgt_i = vectorize(g_tgt_mat[cut_pot][:-1]).T.flatten()
+            g_tgt_i = g_tgt_vec[cut_pot][:-1].T.flatten()
             # r_{i}
             r_i = np.tile(r[cut_pot][:-1], n_upd_pots)
             # r_{i+1}
             r_ip1 = np.tile(r[cut_pot][1:], n_upd_pots)
             # density product ρ_i * ρ_j as vector of same length as r_i
-            rho_i = np.repeat(np.outer(*([settings['rhos']]*2)).flatten(), n_c_pot-1)
+            rho_i = np.repeat(vectorize(np.outer(*([settings['rhos']]*2)))[index_upd_pots], n_c_pot-1)
             # l vector
             ll = (g_tgt_i + g_tgt_ip1) * (r_ip1**4 - r_i**4)
             ll *= -1/12 * np.pi * rho_i
@@ -1031,9 +1035,8 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             # expression for mixtures
             # set C row and d element
             if settings['flatten_at_cut_off']:
-                C[c, :-1] = ll[:-1]
-            else:
-                C[c, :] = ll
+                ll[n_c_pot-2::n_c_pot-1] = 0  # no constraint for last point of each dU
+            C[c, :] = ll
             d[c] = p_tgt - p
 
         # elif constraint['type'] == 'potential_energy_relation':
