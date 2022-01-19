@@ -3,19 +3,19 @@ integrator               = md
 ; Start time and timestep in ps
 tinit                    = 0
 dt                       = 0.001
-nsteps                   = 25000000
+nsteps                   = 5000000
 ; number of steps for center of mass motion removal
 nstcomm                  = 1
 
 ; OUTPUT CONTROL OPTIONS
 ; Output frequency for coords (x), velocities (v) and forces (f)
-nstxout                  = 1000
+nstxout                  = 100
 nstvout                  = 0
-nstfout                  = 1000
+nstfout                  = 100
 ; Output frequency for energies to log file and energy file
-nstlog                   = 50
-nstcalcenergy            = -1
-nstenergy                = 50
+nstlog                   = 1000
+nstenergy                = 100
+; Output frequency and precision for xtc file
 nstxout-compressed       = 0
 
 ; NEIGHBORSEARCHING PARAMETERS
@@ -42,8 +42,6 @@ fourierspacing           = 0.12
 ; OPTIONS FOR WEAK COUPLING ALGORITHMS
 ; Temperature coupling
 Tcoupl                   = Nose-Hoover
-nsttcouple               = -1
-nh-chain-length          = 10
 ; Groups to couple separately
 tc-grps                  = System
 ; Time constant (ps) and reference temperature (K)
