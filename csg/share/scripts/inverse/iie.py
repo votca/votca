@@ -1025,7 +1025,11 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             # r_{i+1}
             r_ip1 = np.tile(r[cut_pot][1:], n_upd_pots)
             # density product ρ_i * ρ_j as vector of same length as r_i
-            rho_i = np.repeat(vectorize(np.outer(*([settings['rhos']]*2)))[index_upd_pots], n_c_pot-1)
+            rho_i = np.repeat(
+                vectorize(
+                    np.outer(*([settings['rhos']]*2))
+                )[index_upd_pots], n_c_pot-1
+            )
             # l vector
             ll = (g_tgt_i + g_tgt_ip1) * (r_ip1**4 - r_i**4)
             ll *= -1/12 * np.pi * rho_i
@@ -1052,7 +1056,6 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     # insert zeros for ignored potentials
     for i in index_not_upd_pots:
         dU_vec = np.insert(dU_vec, i, np.zeros(n_c_res), axis=1)
-        print(i, dU_vec.shape)
     # dU matrix
     dU_mat = devectorize(dU_vec)
     # cut off tail
@@ -1070,13 +1073,12 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             dU = np.concatenate(([np.nan], dU))
             dU_flag = np.concatenate((['o'], dU_flag))
         # shift potential to make last value zero
-        cut, tail = settings['cut_pot'], settings['tail_pot']
         if settings['flatten_at_cut_off']:
-            dU[cut] -= dU[cut][-1]
-            dU[tail] = 0
+            dU[cut_pot] -= dU[cut_pot][-1]
+            dU[tail_pot] = 0
         else:
-            dU[cut] -= dU[tail][0]
-            dU[tail] = 0
+            dU[cut_pot] -= dU[tail_pot][0]
+            dU[tail_pot] = 0
         # change NaN in the core region to first valid value
         dU = extrapolate_dU_left_constant(dU, dU_flag)
         # save for output
