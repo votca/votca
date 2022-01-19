@@ -2,7 +2,7 @@
 
 [ moleculetype ]
 ; Name            nrexcl
-Protein             3
+Hexane             3
 
 [ atoms ]
 ;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
@@ -187,8 +187,8 @@ Protein             3
 
 [ system ]
 ; Name
-Protein
+Hexane
 
 [ molecules ]
 ; Compound        #mols
-Protein             1000
+Hexane             1000

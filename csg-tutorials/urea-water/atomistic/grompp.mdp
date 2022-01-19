@@ -1,41 +1,62 @@
-integrator = md
-dt = 0.002 ; ps
-nsteps = 50000000 ; = 100 ns tot
-nstcomm = 1
-nstxout = 0
-nstvout = 0
-nstfout = 0
-nstlog = 10000
-nstenergy = 500
-nstxout-compressed= 500
+; RUN CONTROL PARAMETERS
+integrator               = md
+; Start time and timestep in ps
+tinit                    = 0
+dt                       = 0.002
+nsteps                   = 50000000 ; = 100 ns tot
+; number of steps for center of mass motion removal
+nstcomm                  = 1
 
-nstlist = 10
-ns_type = grid
-coulombtype = PME
-rcoulomb = 1.0
-vdwtype = cutoff
-rvdw = 1.0
-pme_order = 4
+; OUTPUT CONTROL OPTIONS
+; Output frequency for coords (x), velocities (v) and forces (f)
+nstxout                  = 0
+nstvout                  = 0
+nstfout                  = 0
+; Output frequency for energies to log file and energy file
+nstlog                   = 10000
+nstenergy                = 500
+; Output frequency for xtc file
+nstxout-compressed       = 500
 
-;Couplig Temp
-tcoupl = nose-hoover
-tau_t = 0.5
-tc-grps = System
-ref_t = 300
+; NEIGHBORSEARCHING PARAMETERS
+; nblist update frequency
+nstlist                  = 10
 
-;Costrain Bond
-constraints = all-bonds
-constraint_algorithm = SHAKE
+; OPTIONS FOR ELECTROSTATICS AND VDW
+; Method for doing electrostatics
+coulombtype              = PME
+rcoulomb                 = 1.0
+; Method for doing Van der Waals
+vdw-type                 = Cut-off
+; cut-off lengths
+rvdw                     = 1.0
+; Apply long range dispersion corrections for Energy and Pressure
+DispCorr                 = EnerPres
+; Extension of the potential lookup tables beyond the cut-off
+table-extension          = 1
+; Spacing for the PME/PPPM FFT grid
+fourierspacing           = 0.12
 
-;Coupling P
-Pcoupl = Parrinello-Rahman
-Pcoupltype = isotropic
-tau_p = 3
-compressibility = 4.5e-5
-ref_p=1
+; OPTIONS FOR WEAK COUPLING ALGORITHMS
+; Temperature coupling
+Tcoupl                   = nose-hoover
+; Groups to couple separately
+tc-grps                  = System
+; Time constant (ps) and reference temperature (K)
+tau_t                    = 0.5
+ref_t                    = 300
+; Pressure coupling
+Pcoupl                   = Parrinello-Rahman
+Pcoupltype               = isotropic
+tau_p                    = 3
+compressibility          = 4.5e-5
+ref_p                    = 1
 
-;Generate velocity
-gen_vel = yes
-gen_temp = 300.0
-gen_seed = 173529
+; GENERATE VELOCITIES FOR STARTUP RUN
+gen_vel                  = yes
+gen_temp                 = 300.0
+gen_seed                 = 173529
 
+; OPTIONS FOR BONDS
+constraints              = all-bonds
+constraint_algorithm     = SHAKE
