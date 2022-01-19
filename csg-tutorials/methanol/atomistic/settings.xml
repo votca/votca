@@ -8,7 +8,7 @@
     <type2>A</type2>
     <!-- dimension + grid spacing of tables for calculations -->
     <min>0</min>
-    <max>1.54</max>
+    <max>2.0</max>
     <step>0.01</step>
   </non-bonded>
 </cg>

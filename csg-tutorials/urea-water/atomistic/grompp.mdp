@@ -59,4 +59,4 @@ gen_seed                 = 173529
 
 ; OPTIONS FOR BONDS
 constraints              = all-bonds
-constraint_algorithm     = SHAKE
+constraint_algorithm     = LINCS

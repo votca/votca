@@ -8,7 +8,7 @@
     <type2>WT</type2>
     <!-- min, max and step size distance for pot (max=cutoff) -->
     <min>0.0</min>
-    <max>0.9</max>
+    <max>2.5</max>
     <step>0.02</step>
   </non-bonded>
 
@@ -21,7 +21,7 @@
     <type2>ME</type2>
     <!-- min, max and step size distance for pot (max=cutoff) -->
     <min>0.0</min>
-    <max>1.54</max>
+    <max>2.5</max>
     <step>0.02</step>
   </non-bonded>
 
@@ -34,7 +34,7 @@
     <type2>WT</type2>
     <!-- min, max and step size distance for pot (max=cutoff) -->
     <min>0.0</min>
-    <max>1.54</max>
+    <max>2.5</max>
     <step>0.02</step>
   </non-bonded>
 </cg>
