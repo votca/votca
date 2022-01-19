@@ -114,7 +114,7 @@ do_external update iie_pot "$iie_method" \
     --g-tgt-ext "dist.tgt" \
     --g-cur-ext "dist.new" \
     ${g_intra_flag-} \
-    --out "dpot.new" \
+    --out "dpot.pure_iie" \
     ${pressure_constraint_flag-} \
     ${residual_weighting_flag-} \
     ${tgt_dcdh_flag-} \
@@ -122,10 +122,10 @@ do_external update iie_pot "$iie_method" \
     ${tgt_dists_flag-} \
     ${flatten_at_cut_off_flag-}
 
-# resample potentials. This is needed because non-bonded.max is usually larger than iie.cut-off and the former should define the table
-for_all "non-bonded" 'csg_resample --in $(csg_get_interaction_property name).dpot.new --out $(csg_get_interaction_property name).dpot.new --grid $(csg_get_interaction_property min):$(csg_get_interaction_property step):$(csg_get_interaction_property max) --comment "adapted to grid in update_iie.sh"'
-# csg_resample alone will not do the job
-for_all "non-bonded" 'do_external table extrapolate --function constant --region right $(csg_get_interaction_property name).dpot.new $(csg_get_interaction_property name).dpot.new'
+# resample potentials. This is needed because non-bonded.max is sometimes larger than iie.cut-off and the former should define the end of the table
+for_all "non-bonded" 'csg_resample --in $(csg_get_interaction_property name).dpot.pure_iie --out $(csg_get_interaction_property name).dpot.grid_adapted --grid $(csg_get_interaction_property min):$(csg_get_interaction_property step):$(csg_get_interaction_property max) --comment "adapted to grid in update_iie.sh"'
+# csg_resample alone will sometimes lead to non-zero values, table extrapolate will make it zero
+for_all "non-bonded" 'do_external table extrapolate --function constant --region right --no-flagupdate $(csg_get_interaction_property name).dpot.grid_adapted $(csg_get_interaction_property name).dpot.new'
 
 # overwrite with zeros if do_potential=0
 do_potential_zero_overwrite() {
