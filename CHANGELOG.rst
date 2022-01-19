@@ -4,6 +4,11 @@ For more detailed information about the changes see the history of the
 Version 2023-dev
 ================
 
+Version 2022.1 (released XX.01.22)
+==================================
+
+-  fix PROJECT_VERSION in subdirs (#951) 
+
 Version 2022 (released 15.01.22)
 ================================
 

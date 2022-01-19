@@ -121,7 +121,7 @@ git pull --ff-only
 if [[ $testing = "yes" ]]; then
   :
 elif [[ -f CMakeLists.txt ]]; then
-  sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
+  sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt */CMakeLists.txt || die "sed of CMakeLists.txt failed"
   git add CMakeLists.txt
   sed -i "/^Version ${rel} /s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
   git add CHANGELOG.rst
