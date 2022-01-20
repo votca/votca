@@ -26,11 +26,8 @@ rlist                    = 1.2
 
 ; OPTIONS FOR ELECTROSTATICS AND VDW
 ; Method for doing electrostatics
-coulombtype              = Reaction-Field
+coulombtype              = pme
 rcoulomb                 = 1.2
-; Relative dielectric constant for the medium and the reaction field
-epsilon_r                = 1
-epsilon_rf               = 80
 ; Method for doing Van der Waals
 vdw-type                 = Cut-off
 ; cut-off lengths
