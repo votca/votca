@@ -19,6 +19,7 @@ CMakeCache.txt
 topol.tpr
 traj.trr
 traj.xtc
+traj_comp.xtc
 md.log
 mdout.mdp
 state*.cpt
@@ -32,3 +33,7 @@ confout.gro
 angle.dist.*
 bond.dist.*
 *.log
+
+**/atomistic/*.dist*.new
+**/atomistic/conf_cg.gro
+**/atomistic/energies/
