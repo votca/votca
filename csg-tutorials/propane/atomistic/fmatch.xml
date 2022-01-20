@@ -40,7 +40,7 @@
     <!-- name of the interaction -->
     <name>B-B</name>
     <min>0.0</min>
-    <max>2.4</max>
+    <max>2.24</max>
     <step>0.01</step>
     <type1>CH2</type1>
     <type2>CH2</type2>
@@ -58,7 +58,7 @@
     <!-- name of the interaction -->
     <name>A-A</name>
     <min>0</min>
-    <max>2.4</max>
+    <max>2.24</max>
     <step>0.01</step>
     <type1>CH3</type1>
     <type2>CH3</type2>
@@ -76,7 +76,7 @@
     <!-- name of the interaction -->
     <name>A-B</name>
     <min>0</min>
-    <max>2.4</max>
+    <max>2.24</max>
     <step>0.01</step>
     <type1>CH2</type1>
     <type2>CH3</type2>
