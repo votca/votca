@@ -19,4 +19,3 @@ csg_stat --top topol.tpr --trj traj.trr --cg methanol.xml --options settings.xml
 
 echo "Mapping confout.gro to get the starting configuration for coarse-grained runs of ibi/imc"
 csg_map --top topol.tpr --trj confout.gro --cg methanol.xml --out conf_cg.gro 
-

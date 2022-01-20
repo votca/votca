@@ -17,5 +17,8 @@ nt="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || nt=0
 echo Calculating distributions
 csg_stat --top topol.tpr --trj traj.trr --cg propane.xml --nt $nt --options fmatch.xml --begin $equi
 
+echo "Calculating intramolecular distributions for iie methods"
+csg_stat --top topol.tpr --trj traj.trr --cg propane.xml --nt $nt --options fmatch.xml --begin $equi --only-intra-nb --ext dist-intra.new
+
 echo "Mapping confout.gro to get configuration for coarse-grained run"
 csg_map --top topol.tpr --trj confout.gro --cg propane.xml --out conf_cg.gro 

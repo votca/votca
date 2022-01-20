@@ -17,5 +17,8 @@ nt="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || nt=0
 echo Calculating distributions
 csg_stat --top topol.tpr --trj traj.trr --cg hexane.xml --nt $nt --options settings.xml --begin $equi
 
+echo "Calculating intramolecular distributions for iie methods"
+csg_stat --top topol.tpr --trj traj.trr --cg hexane.xml --nt $nt --options settings.xml --begin $equi --only-intra-nb --ext dist-intra.new
+
 echo "Mapping confout.gro to get the starting configurations for the coarse-grained runs of ibi"
 csg_map --top topol.tpr --trj confout.gro --cg hexane.xml --out conf_cg.gro 
