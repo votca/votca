@@ -44,7 +44,7 @@ fi
     #p_now="$(sed -n 's/^Pressure=\(.*\)/\1/p' "$p_file")" || die "${0##*/}: sed of Pressure failed"
     #[[ -z $p_now ]] && die "${0##*/}: Could not get pressure from simulation"
     #echo "New pressure $p_now, target pressure $pressure_constraint"
-    #pressure_constraint_flag="--pressure-constraint $pressure_constraint,$p_now"
+    #pressure_constraint_flag="--pressure-constraint '$pressure_constraint,$p_now'"
 #else
 msg "No pressure matching for multistate implemented"
 pressure_constraint_flag=""
