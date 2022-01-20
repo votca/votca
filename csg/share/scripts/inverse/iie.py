@@ -1072,7 +1072,6 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
         dU = dU_dict['y']
         dU_flag = gen_flag_isfinite(dU)
         dU_flag[tail_pot] = 'o'
-        dU_flag[cut_pot][-1] = 'o'  # protect value at cut of from post-update smoothing
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r_out))
             dU = np.concatenate(([np.nan], dU))
@@ -1176,7 +1175,6 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
         dU = dU_dict['y']
         dU_flag = gen_flag_isfinite(dU)
         dU_flag[tail_pot] = 'o'
-        dU_flag[cut_pot][-1] = 'o'  # protect value at cut of from post-update smoothing
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r_out))
             dU = np.concatenate(([np.nan], dU))
