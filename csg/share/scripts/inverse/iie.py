@@ -163,9 +163,11 @@ def get_args(iie_args=None):
                           help=("Weather to set the last point of dU to zero. "
                                 "The pressure constraint adapts to one point less."))
     # GN only options
-    parser_gauss_newton.add_argument('--pressure-constraint', nargs='+',
-                                     dest='pressure_constraint',
-                                     type=str, default=None)
+    parser_gauss_newton.add_argument('--pressure-constraint', type=str, default=None,
+                                     dest='pressure_constraint', nargs='*',
+                                     help=('String of form ",p_tgt,p_cur". Starting '
+                                           "comma is needed to prevent confusion when "
+                                           "p_tgt is negative"))
     parser_gauss_newton.add_argument('--residual-weighting',
                                      dest='residual_weighting',
                                      type=str, required=True)
@@ -371,13 +373,15 @@ def process_input(args):
         if args.pressure_constraint is not None:
             if multistate:
                 # Parsing is implemented here, but not tested and algo not implemented
-                p_target = [float(pc.split(',')[0]) for pc in args.pressure_constraint]
-                p_current = [float(pc.split(',')[1]) for pc in args.pressure_constraint]
+                p_target = [float(pc.lstrip(',').split(',')[0])
+                            for pc in args.pressure_constraint]
+                p_current = [float(pc.lstrip(',').split(',')[1])
+                             for pc in args.pressure_constraint]
                 constraints.append({'type': 'pressure', 'target': p_target,
                                     'current': p_current})
             else:
-                p_target = float(args.pressure_constraint[0].split(',')[0])
-                p_current = float(args.pressure_constraint[0].split(',')[1])
+                p_target = float(args.pressure_constraint[0].lstrip(',').split(',')[0])
+                p_current = float(args.pressure_constraint[0].lstrip(',').split(',')[1])
                 constraints.append({'type': 'pressure', 'target': p_target,
                                     'current': p_current})
 
