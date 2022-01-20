@@ -8,6 +8,6 @@
     <!-- dimension + grid spacing of tables for calculations -->
     <min>0.0</min>
     <max>2.0</max>
-    <step>0.01</step>
+    <step>0.004</step>
   </non-bonded>
 </cg>
