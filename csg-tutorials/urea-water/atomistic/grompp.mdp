@@ -3,7 +3,7 @@ integrator               = md
 ; Start time and timestep in ps
 tinit                    = 0
 dt                       = 0.002
-nsteps                   = 50000000 ; = 100 ns tot
+nsteps                   = 2000000  ; 4 ns total
 ; number of steps for center of mass motion removal
 nstcomm                  = 1
 
@@ -14,9 +14,9 @@ nstvout                  = 0
 nstfout                  = 0
 ; Output frequency for energies to log file and energy file
 nstlog                   = 10000
-nstenergy                = 500
+nstenergy                = 200
 ; Output frequency for xtc file
-nstxout-compressed       = 500
+nstxout-compressed       = 20
 
 ; NEIGHBORSEARCHING PARAMETERS
 ; nblist update frequency
