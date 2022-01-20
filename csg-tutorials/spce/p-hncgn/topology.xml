@@ -1,0 +1,9 @@
+<topology>
+  <box xx="4.03100" yy="4.03100" zz="4.03100" />
+  <molecules>
+    <molecule name="SOL" nmols="2180" nbeads="1">
+      <bead name="CG" type="CG" mass="18.0154" q="0.0" />
+    </molecule>
+  </molecules>
+  <bonded />
+</topology>

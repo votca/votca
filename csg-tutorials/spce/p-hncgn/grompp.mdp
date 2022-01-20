@@ -1,6 +1,6 @@
 integrator = sd
 nsteps = 20000
-dt = 0.004
+dt = 0.002
 
 ; Output
 nstxout = 0

@@ -4,19 +4,17 @@
     <type1>CG</type1>
     <type2>CG</type2>
     <min>0.0</min>
-    <max>1.0</max>
-    <step>0.01</step>
+    <max>2.0</max>
+    <step>0.004</step>
     <inverse>
       <target>CG-CG.dist.tgt</target>
+      <target_intra>CG-CG.dist-intra.tgt</target_intra>
       <do_potential>1</do_potential>
       <post_update />
       <post_add />
       <gromacs>
         <table>table_CG_CG.xvg</table>
       </gromacs>
-      <imc>
-        <group>1</group>
-      </imc>
       <post_add />
     </inverse>
   </non-bonded>
@@ -30,31 +28,28 @@
       <table_end>1.9</table_end>
       <mdrun>gmx mdrun -table</mdrun>
     </gromacs>
-    <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
+    <filelist>grompp.mdp topol.top table.xvg index.ndx topology.xml</filelist>
     <iterations_max>10</iterations_max>
     <method>iie</method>
     <scriptpath />
     <log_file>inverse.log</log_file>
     <restart_file>restart_points.log</restart_file>
-    <iie>
-      <initial_guess>
-        <method>ie</method>
+    <initial_guess>
+      <method>ie</method>
+      <ie>
         <closure>hnc</closure>
-      </initial_guess>
+        <topol>topology.xml</topol>
+        <cut_off>0.9</cut_off>
+      </ie>
+    </initial_guess>
+    <iie>
       <method>gauss-newton</method>
       <closure>hnc</closure>
-      <pressure_constraint>1.0</pressure_constraint>
-      <g_extrap_factor>2</g_extrap_factor>
-      <densities>33.282665416237094</densities>
-      <n_intra>1</n_intra>
+      <topol>topology.xml</topol>
       <cut_off>0.9</cut_off>
-      <cut_gn>1.0</cut_gn>
-      <!-- Power extrapolation is neccesary to have stable iterations when using
-      pressure constraint and a fine grid. With the coarse grid used here it
-      is not neccesary. If used it will cause the pressure to be off by
-      ~1000 bar. -->
-      <extrap_near_core>constant</extrap_near_core>
-      <fix_near_cut_off>none</fix_near_cut_off>
+      <cut_residual>1.0</cut_residual>
+      <pressure_constraint>-53</pressure_constraint><!-- the pressure being negative can lead to buble formation, but -53 bar should be ok -->
+      <residual_weighting>r_squared_over_rdf</residual_weighting>
     </iie>
   </inverse>
 </cg>
