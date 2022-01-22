@@ -1,5 +1,5 @@
 ---
-title: 'Gala: A Python package for galactic dynamics'
+title: 'VOTCA: Something'
 tags:
   - Python
   - astronomy
@@ -7,20 +7,29 @@ tags:
   - galactic dynamics
   - milky way
 authors:
-  - name: Adrian M. Price-Whelan^[co-first author] # note this makes a footnote saying 'co-first author'
-    orcid: 0000-0000-0000-0000
+  - name: Bjoern Baumeier # note this makes a footnote saying 'co-first author'
+    orcid: 0000-0002-6077-0467
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
-  - name: Author Without ORCID^[co-first author] # note this makes a footnote saying 'co-first author'
-    affiliation: 2
-  - name: Author with no affiliation^[corresponding author]
+  - name: Christoph Junghans^[corresponding author] # note this makes a footnote saying 'co-first author'
     affiliation: 3
+  - name: Jens Wehner
+    affiliation: 4
+  - name: Nicolas Renaud
+    affiliation: 4
+  - name: Gianluca Tirimbo
+    affiliation: "1, 2"
+  - name: Javier Sijen
+    affiliation: "1, 2"
+  - name: To be Continued
 affiliations:
- - name: Lyman Spitzer, Jr. Fellow, Princeton University
+ - name: Department of Mathematics and Computer Science, Eindhoven University of Technology, the Netherlands
    index: 1
- - name: Institution Name
+ - name: Institute for Complex Molecular Systems, Eindhoven University of Technology, the Netherlands
    index: 2
- - name: Independent Researcher
+ - name: Los Alamos National Laboratory
    index: 3
+ - name: eScience Center
+   index: 4
 date: 13 August 2017
 bibliography: paper.bib
 
