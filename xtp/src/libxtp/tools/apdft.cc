@@ -43,7 +43,7 @@ bool APDFT::Run() {
 
   Orbitals orb;
   orb.ReadFromCpt(orbfile_);
-  AOBasis basis = orb.SetupDftBasis();
+  AOBasis basis = orb.getDftBasis();
   Vxc_Grid grid;
   grid.GridSetup(grid_accuracy_, orb.QMAtoms(), basis);
 

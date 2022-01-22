@@ -6,15 +6,19 @@ on:
       - master
       - stable
 
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
 jobs:
   build:
-    runs-on: [self-hosted, GPU, benchmark]
+    runs-on: [self-hosted, gpu, benchmark]
 
     steps:
       - name: cleanup
         run: rm -rf *
 
-      - name: Checkout xtp
+      - name: Checkout votca
         uses: actions/checkout@v2
         with:
           path: votca

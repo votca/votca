@@ -7,6 +7,10 @@ on:
     branches:
       - master
 
+concurrency:
+  group: ${ {github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
 jobs:
   Coverage:
     strategy:
@@ -20,11 +24,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          submodules: true
       - name: Run Votca Setup
         id: setup
-        uses: votca/actions/setup@master
+        uses: ./.github/actions/setup
         with:
           distro: ${{ matrix.distro }}
           toolchain: ${{ matrix.toolchain }}

@@ -1,4 +1,4 @@
-<basis name="def2-qzvp-rifit">
+<basis name="aux-def2-qzvp">
   <!--Basis set created by xtp_basisset from def2-qzvp-rifit.nw at Thu Jan  2 17:19:54 2020-->
   <element name="H">
     <shell type="S" scale="1.0">

@@ -44,7 +44,7 @@ StaticSegment Espfit::Fit2Density(const Orbitals& orbitals,
                            << grid.size() << " points " << flush;
 
   // Calculating nuclear potential at gridpoints
-  AOBasis basis = orbitals.SetupDftBasis();
+  AOBasis basis = orbitals.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(basis);
   double N_comp = dmat.cwiseProduct(overlap.Matrix()).sum();

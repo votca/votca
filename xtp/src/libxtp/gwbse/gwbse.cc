@@ -403,12 +403,12 @@ void GWBSE::Initialize(tools::Property& options) {
     }
   }
 
-  if (options.exists(".sigma_plot")) {
-    sigma_plot_states_ = options.get(".sigma_plot.states").as<std::string>();
-    sigma_plot_steps_ = options.get(".sigma_plot.steps").as<Index>();
-    sigma_plot_spacing_ = options.get(".sigma_plot.spacing").as<double>();
+  if (options.exists("gw.sigma_plot")) {
+    sigma_plot_states_ = options.get("gw.sigma_plot.states").as<std::string>();
+    sigma_plot_steps_ = options.get("gw.sigma_plot.steps").as<Index>();
+    sigma_plot_spacing_ = options.get("gw.sigma_plot.spacing").as<double>();
     sigma_plot_filename_ =
-        options.get(".sigma_plot.filename").as<std::string>();
+        options.get("gw.sigma_plot.filename").as<std::string>();
 
     XTP_LOG(Log::error, *pLog_)
         << " Sigma plot states: " << sigma_plot_states_ << flush;
@@ -590,21 +590,15 @@ bool GWBSE::Evaluate() {
       << TimeStamp() << " Loaded DFT Basis Set " << dftbasis_name_ << flush;
 
   // fill DFT AO basis by going through all atoms
-  AOBasis dftbasis;
-  dftbasis.Fill(dftbs, orbitals_.QMAtoms());
+  AOBasis dftbasis = orbitals_.getDftBasis();
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled DFT Basis of size "
                               << dftbasis.AOBasisSize() << flush;
-
-  // load auxiliary basis set (element-wise information) from xml file
-  BasisSet auxbs;
-  auxbs.Load(auxbasis_name_);
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Loaded Auxbasis Set " << auxbasis_name_ << flush;
 
   // fill auxiliary AO basis by going through all atoms
-  AOBasis auxbasis;
-  auxbasis.Fill(auxbs, orbitals_.QMAtoms());
-  orbitals_.setAuxbasisName(auxbasis_name_);
+  orbitals_.SetupAuxBasis(auxbasis_name_);
+  AOBasis auxbasis = orbitals_.getAuxBasis();
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled Auxbasis of size "
                               << auxbasis.AOBasisSize() << flush;
 

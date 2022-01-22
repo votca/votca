@@ -11,10 +11,8 @@ implementing code consistent with the VOTCA and cpp style and standard.
 -  `Testing <#testing>`__
 -  `CPP Coding Style Guide <#cpp-coding-style-guide>`__
 -  `CPP Comment Guide <#cpp-comment-guide>`__
--  `Updating Git Submodules <#updating-git-submodules>`__
 -  `Updates from stable <#updates-from-stable>`__
 -  `Failed Release Builds <#failed-release-builds>`__
--  `
 
 Reporting Bugs
 --------------
@@ -28,13 +26,7 @@ Please be sure to provide as much information as possible such as:
 -  What dependencies were installed
 -  The calculation that was being run
 
-Issues can be directly created on the appropriate GitHub repo:
-
--  `tools <https://github.com/votca/tools/issues>`__
--  `csg <https://github.com/votca/csg/issues>`__
--  `csg-tutorials <https://github.com/votca/csg-tutorials/issues>`__
--  `xtp <https://github.com/votca/xtp/issues>`__
--  `votca <https://github.com/votca/votca/issues>`__
+Issues can be directly created on the `GitHub repo <https://github.com/votca/votca/issues>`__.
 
 Formatting code
 ---------------
@@ -45,8 +37,8 @@ found in each repo. CMake provides a format target which you can run to format y
 The easiest way to format your code is just a ``@votca-bot format`` comment in the PR, which then will automatically format your code.
 
 Doxygen documentation
----------------
-A complete overview of all C++ classes and code can be found `here <https://doc.votca.org/>`_ . 
+---------------------
+A complete overview of all C++ classes and code can be found on https://doc.votca.org/.
 
 VOTCA dev-tools
 ---------------
@@ -59,7 +51,7 @@ automate this.
 VOTCA Continuous Integration (GitHub Actions)
 ---------------------------------------------
 
-Each pull request to master in the tools, csg, csg-tutorials, xtp, xtp-tutorials or votca repository 
+Each pull request to master in the votca repository 
 is built on a machine in the cloud using `GitHub actions <https://docs.github.com/en/actions>`__ 
 
 VOTCA can be built on various linux distributions, which are not all natively supported by GitHub actions. For non natively supported distributions, 
@@ -74,70 +66,24 @@ Making a Release
 ----------------
 
 Similar to the VOTCA containers, releases are also handled by GitHub actions. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
-To trigger it go `here <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
+To trigger it go `this GitHub Action <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
 :code:`stable` branch, but testing the creation of a release can be triggered on any branch. To make a release, trigger the action from the
-:code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag in all involved submodules (plus pull requests for the :code:`stable` to :code:`master` branch, see `below <#updates-from-stable>`__).
+:code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag.
 
 Major releases
 ~~~~~~~~~~~~~~
 
 In preparation for a major (not minor!) release the following additional steps need to be done:
--  Create a new branch from the master branch of the :code:`votca/votca` repository and also in each of the submodules, e.g. :code:`stable_bump`. 
-   
-   ::
 
-       git checkout master
-       git submodules foreach git checkout master
-       git checkout -b stable_bump
-       git submodules foreach git checkout -b stable_bump
+-  Create a new branch from the master branch of the :code:`votca/votca` repository, e.g. :code:`stable_bump`.
 
--  Bump the version in each of the CMakeLists files in the :code:`votca/votca` repository and each of the submodules. This can be done by 
-   replacing the string :code:`<major>-dev` by :code:`<major>-rc.1` in the main :code:`CMakeLists.txt` of :code:`votca/votca` and all submodules.
+   .. code-block:: bash
+
+       git checkout -b stable_bump stable
+       git merge master
+
 -  Update the :code:`CHANGELOG.rst` files accordingly, by changing the top most section from :code:`<major>-dev` to :code:`<major>-rc.1`
--  Commit changes in all submodules and update the submodules in :code:`votca/votca`
-   ::
-
-       git submodules foreach git commit -m "Version bumped to <major>-rc.1"
-       git add -u
-       git commit -m " Version bumped to <major>-rc.1"
-
--  Push everything, but do NOT make the pull requests yet
-   ::
-
-       git submodules foreach git push origin stable_bump
-       git push origin stable_bump
-
--  Create a branch, e.g. :code:`master_bump`, in :code:`votca/votca` and all submodules from the current master
-   ::
-
-       git checkout master
-       git submodules foreach git checkout master
-       git checkout -b master_bump
-       git submodules foreach git checkout -b master_bump
-
--  Bump the version in each of the CMakeLists files in the :code:`votca/votca` repository and each of the submodules. This can be done by 
-   replacing the string :code:`<major>-dev` by :code:`<major+1>-dev` in the main :code:`CMakeLists.txt` of :code:`votca/votca` and all submodules.   
--  Create a new secion in the :code:`CHANGELOG.rst` files for :code:`<major+1>-dev`
--  Commit changes in all submodules and update the submodules in :code:`votca/votca`
-   ::
-
-       git submodules foreach git commit -m "Version bumped to <major+1>-dev"
-       git add -u
-       git commit -m " Version bumped to <major+1>-dev"
-
--  Push everything, but do NOT make the pull requests yet
-   ::
-
-       git submodules foreach git push origin master_bump
-       git push origin master_bump
-
--  Now, create a PR in :code:`votca/votca` from :code:`master_bump` into :code:`master`
--  Once merged, create PRs in all submodules from :code:`master_bump` into :code:`master`
--  Once all of these are merged and the automatically "Update master submodules" PR is merged, start with :code:`stable_bump` PRs
--  Create a PR in :code:`votca/votca` from the :code:`stable_bump` branch into the :code:`stable` branch
--  Once merged, create PRs in all submodules from each of the :code:`stable_bump` branches into each of their :code:`stable` branches
--  Once all of them are merged and merge the automatically "Update stable submodules" PR
--  Now everything is ready for the automatic release creation by Github Actions
+-  Commit everything and create a PR ino the :code:`stable` branch. 
 
 Release names
 ~~~~~~~~~~~~~
@@ -186,8 +132,8 @@ Includes
 
    #include "molecule.h"
 
--  When including from another repository, for instance you are working
-   in the csg repostory and want to include a file from the tools repo
+-  When including from another module, for instance you are working
+   in the csg module and want to include a file from the tools repo
    use the anglular brackets i.e.
 
    #include <votca/tools/molecule.h>
@@ -297,7 +243,7 @@ Testing
 Unit Testing
 ~~~~~~~~~~~~
 
-Each repository contains a src folder. Within the src folder exists a
+Each module contains a src folder. Within the src folder exists a
 library folder: libtools, libcsg etc... and a tools folder. A tests
 folder should also exist in the src folder. If it does not you should
 create one.
@@ -317,11 +263,11 @@ Determine if a tests folder has already been created or not in /src. If
 it has not, take a look at what was done in the votca-tools repo.
 
 1. Create a test file in
-   `tools/src/tests/ <https://github.com/votca/tools/tree/master/src/tests>`__\ test\_vec.cc
+   `tools/src/tests/ <https://github.com/votca/votca/tree/master/tools/src/tests>`__\ test\_vec.cc
    must have the same name as what appears in the foreach in the
    CMakeLists.txt file. And place the following contents:
 
-   ::
+   .. code-block:: c
 
        #define BOOST_TEST_MAIN
 
@@ -358,90 +304,13 @@ which boost test macros to use refer to the boost documentation
 2. To compile and test the code create a folder tools/build and run the
    following commands:
 
-   ::
+   .. code-block:: bash
 
        cmake -DENABLE_TESTING=ON ../
        make
        make test
 
 Ensure you have an up to date version of cmake or use cmake3.
-
-Testing Across Repos
-~~~~~~~~~~~~~~~~~~~~
-
-There may come a time where changes have to be committed across more
-than one repo at the same time. Attempting to merge one repo at a time
-will cause the continuous integration to fail as changes in the other
-repos will not be pulled in. To do this correctly the following steps
-should be taken.
-
-Assuming you are in the votca/votca repository:
-
-::
-
-    git checkout <base_branch>
-    git submodule update
-    git checkout -b <some_descriptive_branch_name>
-    git submodule foreach git remote update
-    git -C <module1> checkout <sha_or_branch_of_module1_to_test>
-    git -C <module2> checkout <sha_or_branch_of_module2_to_test>
-    git add <module1> <module2>
-    git commit -m "test <module1> with <module2>"
-    git push origin <some_descriptive_branch_name>
-
-1. Here ``base_branch`` will typically be the :code:`master` or :code:`stable` branch.
-
-   ::
-
-       git checkout <base_branch>
-
-2. The submodules are updated to be sure they have incorporated the
-   latest changes in your local repository.
-
-   ::
-
-       git submodule update
-
-3. Create a branch with a descriptive name.
-
-   ::
-
-       git checkout -b <some_descriptive_name>
-
-4. Update each of the submodules, by pulling in any remote changes to
-   the submodules.
-
-   ::
-
-       git submodule foreach git remote update
-
-5. '-C' changes directory to the submodule directory and then checks out
-   the appropriate commit.
-
-   ::
-
-       git -C <module1> checkout <sha_or_branch_of_module1_to_test>  
-       git -C <module2> checkout <sha_or_branch_of_module2_to_test>
-
-6. The changes are then added and commited.
-
-   ::
-
-       git add <module1> <module2>  
-       git commit -m "test <module1> with <module2>"
-
-7. Finally, they are pushed to the remote branch.
-
-   ::
-
-       git push origin <some_descriptive_branch_name>
-
-A pull request is then made for the votca/votca repo using the branch
-name. Once the branch passes all tests, it can be merged. Pull requests
-for each of the repos changed can then be made. They will now compile
-against the updated votca/votca repo. Once they pass their tests, they
-can be merged. If a pull request was already made, the travis tests may
-simply need to be restarted.
 
 CPP Coding Style Guide
 -----------------------
@@ -459,7 +328,7 @@ for details.
 
 To run the clang-format function on file.cc.
 
-::
+.. code-block:: bash
 
     clang-format -i -style=file file.cc
 
@@ -477,7 +346,7 @@ is preferable that spaces be used instead.
 Automatically formats python .py files. We are useing the default format
 rules of autopep8. To run on file.py and update the file run:
 
-::
+.. code-block:: bash
 
     autopep8 -i file.py
 
@@ -489,13 +358,13 @@ found in the `dev-tools <https://github.com/votca/dev-tools>`__
 repository. To use it copy the file ``pre-commit`` to your local .git
 subfolder to the hooks folder. E.g.
 
-::
+.. code-block:: bash
 
     chmod 777 dev-tools/pre-commit  
-    cp dev-tools/pre-commit tools/.git/hooks/
+    cp dev-tools/pre-commit votca/.git/hooks/
 
 The above will make the script executable and then copy it to the local
-.git/hooks directory in the tools repository. The script not only
+.git/hooks directory in the votca repository. The script not only
 updates the file format of every file staged during a commit it will
 also update the license date.
 
@@ -512,7 +381,7 @@ comments to code:
    stencil be used in the header files above each class and function
    description.
 
-   ::
+   .. code-block:: cpp
 
        /**
        * \brief function/class summary
@@ -532,55 +401,6 @@ its fully compiled state. It may be found at: http://doc.votca.org.
 NOTE: Compilation of the doxygen documentation is automated when code is
 merged into the :code:`master` votca branch!
 
-Updating Git Submodules
------------------------
-
-VOTCA with all of its repos can be build by using the parent `votca
-repo <https://github.com/votca/votca>`__. All the other necessary repos
-appear as submodules in the parent repo. It is worth noting, the
-submodules are automatically updated through a pull request whenever changes are made to
-their respective :code:`master` branches. In essence, a submodule refers to a
-specific commit of the repo it represents. 
-
-Normally, it is not necessary, but occassionally a new commit must be manually
-merged into the :code:`master` branch of a child repository. If this occurs, the
-submodule state in the parent repo also has to be updated to reflect the latest
-commit of the child repo. 
-
-To update the state of a submodule the following commands can be used:
-
-::
-
-    git submodule foreach git checkout master
-    git submodule foreach git pull
-    git add -u
-    git commit -m "update all submodules"
-
-
-Updates from :code:`stable`
-
-The :code:`stable` branch contains the latest release with the most uptodate bug fixes since the release.
-Only in very limited circumstances should new features be merged into the :code:`stable` branch.
-Developers can add bug fixes by making a pull request with the :code:`stable` branch as target.
-
-As the :code:`master` branch of each repo is a child of each repo's :code:`stable` branch,  
-any bugfix added to a repos :code:`stable` branch will also need to be pulled into its :code:`master` branch. If the bugfix
-is added in one of the child repositories (not :code:`votca/votca`) then :code:`votca/votca` will also need to
-reflect these changes.
-
-Keeping the repositories synchronised can be difficult. In order to help keep the :code:`master` branches and :code:`votca/votca`
-synchronised with changes in the :code:`stable` branch of a child repository the generation of four pull requests are
-automatically generated anytime a bugfix is made to the :code:`stable` branch of a child repository.
-
-E.g. if :code:`hot-bug-fix` is merged into the :code:`stable` branch of :code:`tools`:
-
-1. A pull request is created to merge :code:`stable` from :code:`tools` (child repo) into :code:`master` of :code:`tools` (child repo).
-2. A pull request is created to merge :code:`stable` from :code:`tools` (child repo) into :code:`stable` of :code:`votca/votca` (parent repo). This shoud consiste of updating the submodules in the :code:`stable` branch of votca/votca.
-3. A pull request is created to merge :code:`master` from :code:`tools` (child repo) into :code:`master` of :code:`votca/votca` (parent repo). Again this should consist of updating the submodules but in the :code:`master` branch of votca/votca.
-4. Finally, a pull request is made from :code:`stable` from :code:`votca/votca` (parent repo) to :code:`master` of :code:`votca/votca` (parent repo).
-
-To minimize manual work, it is usually best to merge the pull requests in the order that hey have been shown in the example. 
-
 Failed Release Builds
 ---------------------
 
@@ -593,7 +413,7 @@ example, fedora dnf has extended support to the **pcc64le** architecture.
 Assuming you have access to fedora you can run the following commands to
 simulate the build process on the **pcc64le** architecture:
 
-::
+.. code-block:: bash
 
     dnf update
     dnf install qemu-user-static dnf-utils
@@ -609,14 +429,14 @@ commands would setup and run the dnf installation process on the
 **pcc64le** enviroment. If a bug was found and the build crashes one can
 interactively intervene by issuing the following command:
 
-::
+.. code-block:: bash
 
     mock -r epel-7-ppc64le --forcearch ppc64le --shell
 
 You will also need to install a text editor if you want to change the
 source files before running the interactive instance.
 
-::
+.. code-block:: bash
 
     mock -r epel-7-ppc64le --forcearch ppc64le --install vim
 

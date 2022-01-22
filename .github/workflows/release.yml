@@ -18,7 +18,6 @@ jobs:
       - name: Checkout votca
         uses: actions/checkout@v2
         with:
-          submodules: true
           fetch-depth: 0
           token: ${{ secrets.VOTCA_BOT_TOKEN }}
       - name: Setup
@@ -72,17 +71,16 @@ jobs:
         run: |
           .github/workflows/make_release.sh --branch ${{ steps.setup.outputs.BRANCH }} ${{ github.event.inputs.cmake_args }} --verbose ${{ steps.setup.outputs.VERSION }} .
       - name: Show diff
-        run: |
-          for p in . tools csg csg-tutorials xtp xtp-tutorials; do
-            echo "Module: $p"
-            git -C $p log -p --submodule origin/${{ steps.setup.outputs.BRANCH }}..${{ steps.setup.outputs.BRANCH }}
-          done
+        run: git log -p origin/${{ steps.setup.outputs.BRANCH }}..${{ steps.setup.outputs.BRANCH }}
       - name: Push tags
         run: |
           set -x
-          for p in . tools csg csg-tutorials xtp xtp-tutorials; do
-            git -C $p push ${{ steps.setup.outputs.DRY_RUN }} --tags origin ${{ steps.setup.outputs.BRANCH }}:${{ steps.setup.outputs.BRANCH }}
-          done
+          git push ${{ steps.setup.outputs.DRY_RUN }} --tags origin ${{ steps.setup.outputs.BRANCH }}:${{ steps.setup.outputs.BRANCH }}
+      - name: Create Changlog
+        uses: ./.github/actions/release_changelog
+        with:
+          version: ${{ steps.setup.outputs.VERSION }}
+          changelog: 'release_changelog.md'
       - name: Create Release
         if: ${{ steps.setup.outputs.DEPLOY == 'true' }}
         uses: actions/create-release@v1
@@ -92,3 +90,4 @@ jobs:
           tag_name: v${{ steps.setup.outputs.VERSION }}
           release_name: v${{ steps.setup.outputs.VERSION }}
           prerelease: ${{ contains(steps.setup.outputs.VERSION, 'rc') }}
+          body_path: 'release_changelog.md'
