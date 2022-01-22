@@ -20,7 +20,10 @@ authors:
     affiliation: "1, 2"
   - name: Javier Sijen
     affiliation: "1, 2"
-  - name: To be Continued
+  - name: David Rosenberger
+  - name: Onur Caylak
+  - name: Zhongquan Chen
+  - name: Marvin Bernhardt
 affiliations:
  - name: Department of Mathematics and Computer Science, Eindhoven University of Technology, the Netherlands
    index: 1
