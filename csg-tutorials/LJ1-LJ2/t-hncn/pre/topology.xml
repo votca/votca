@@ -1,0 +1,12 @@
+<topology>
+  <box xx="4.30484" yy="4.30484" zz="4.30484" />
+  <molecules>
+    <molecule name="LJ1" nmols="1000" nbeads="1">
+      <bead name="LJ1" type="LJ1" mass="39.948002" q="0.0" />
+    </molecule>
+    <molecule name="LJ2" nmols="1000" nbeads="1">
+      <bead name="LJ2" type="LJ2" mass="20.00260" q="0.0" />
+    </molecule>
+  </molecules>
+  <bonded />
+</topology>
