@@ -17,7 +17,15 @@
       </gromacs>
       <post_add />
     </inverse>
+    <improve_dist_near_core> <!-- extrapolating the very small values at the onset of an RDF helps with stability a lot -->
+      <target>true</target>
+      <new>true</new>
+      <function>exponential</function>
+      <fit_start_g>1e-05</fit_start_g>
+      <fit_end_g>0.2</fit_end_g>
+    </improve_dist_near_core>
   </non-bonded>
+
   <inverse>
     <kBT>2.494338785445972</kBT>
     <program>gromacs</program>
@@ -48,8 +56,8 @@
       <topol>topology.xml</topol>
       <cut_off>0.9</cut_off>
       <cut_residual>1.0</cut_residual>
-      <pressure_constraint>-53</pressure_constraint><!-- the pressure being negative can lead to buble formation, but -53 bar should be ok -->
-      <residual_weighting>r_squared_over_rdf</residual_weighting>
+      <pressure_constraint>-53</pressure_constraint> <!-- the pressure being negative can lead to buble formation, but -53 bar should be ok -->
+      <residual_weighting>one_plus_r_squared_over_rdf</residual_weighting> <!-- without any weighting that gives more weight to RDF onset and tail, there might be artifacts in RDF or potential in those regions -->
     </iie>
   </inverse>
 </cg>
