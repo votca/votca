@@ -1,0 +1,125 @@
+<cg>
+  <non-bonded>
+    <name>A-A</name>
+    <type1>A</type1>
+    <type2>A</type2>
+    <min>0</min>
+    <max>2.4</max>
+    <step>0.01</step>
+    <inverse>
+      <target>A-A.dist.tgt</target>
+      <target_intra>A-A.dist-intra.tgt</target_intra>
+      <do_potential>1 0</do_potential>
+      <gromacs>
+        <table>table_A_A.xvg</table>
+      </gromacs>
+    </inverse>
+    <improve_dist_near_core>
+      <target>true</target>
+      <new>true</new>
+      <function>exponential</function>
+      <fit_start_g>1e-05</fit_start_g>
+      <fit_end_g>0.1</fit_end_g>
+    </improve_dist_near_core>
+  </non-bonded>
+
+  <non-bonded>
+    <name>B-B</name>
+    <type1>B</type1>
+    <type2>B</type2>
+    <min>0</min>
+    <max>2.4</max>
+    <step>0.01</step>
+    <inverse>
+      <target>B-B.dist.tgt</target>
+      <target_intra>B-B.dist-intra.tgt</target_intra>
+      <do_potential>1 0</do_potential>
+      <gromacs>
+        <table>table_B_B.xvg</table>
+      </gromacs>
+    </inverse>
+    <improve_dist_near_core>
+      <target>true</target>
+      <new>true</new>
+      <function>exponential</function>
+      <fit_start_g>1e-05</fit_start_g>
+      <fit_end_g>0.1</fit_end_g>
+    </improve_dist_near_core>
+  </non-bonded>
+
+  <non-bonded>
+    <name>A-B</name>
+    <type1>A</type1>
+    <type2>B</type2>
+    <min>0</min>
+    <max>2.4</max>
+    <step>0.01</step>
+    <inverse>
+      <target>A-B.dist.tgt</target>
+      <target_intra>A-B.dist-intra.tgt</target_intra>
+      <do_potential>1 0</do_potential>
+      <gromacs>
+        <table>table_A_B.xvg</table>
+      </gromacs>
+    </inverse>
+    <improve_dist_near_core>
+      <target>true</target>
+      <new>true</new>
+      <function>exponential</function>
+      <fit_start_g>1e-05</fit_start_g>
+      <fit_end_g>0.1</fit_end_g>
+    </improve_dist_near_core>
+  </non-bonded>
+
+  <bonded>
+    <name>bond</name>
+    <min>0.22</min>
+    <max>0.28</max>
+    <step>0.002</step>
+    <inverse>
+      <target>bond.dist.tgt</target>
+      <do_potential>0 1</do_potential>
+      <gromacs>
+        <table>table_b1.xvg</table>
+      </gromacs>
+    </inverse>
+  </bonded>
+
+  <bonded>
+    <name>angle</name>
+    <min>1.13159</min>
+    <max>3.13159</max>
+    <step>0.02</step>
+    <inverse>
+      <target>angle.dist.tgt</target>
+      <do_potential>0 1</do_potential>
+      <gromacs>
+        <table>table_a1.xvg</table>
+      </gromacs>
+    </inverse>
+  </bonded>
+
+  <inverse>
+    <kBT>2.494338785445972</kBT>
+    <program>gromacs</program>
+    <gromacs>
+      <equi_time>20</equi_time>
+      <table_bins>0.004</table_bins>
+      <pot_max>1000000</pot_max>
+      <table_end>2.3</table_end>
+      <mdrun>gmx mdrun -table</mdrun>
+    </gromacs>
+    <filelist>topology.xml</filelist>
+    <iterations_max>-1</iterations_max>
+    <method>ibi</method>
+    <initial_guess>
+      <method>ie</method>
+      <ie>
+        <closure>hnc</closure>
+        <topol>topology.xml</topol>
+        <cut_off>1.2</cut_off>
+      </ie>
+    </initial_guess>
+    <map>hexane_cg.xml</map>
+  </inverse>
+</cg>
