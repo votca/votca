@@ -84,8 +84,12 @@ def main():
             output_arrays = multistate_gauss_newton_update(input_arrays, settings,
                                                            verbose=settings['verbose'])
         else:
-            output_arrays = gauss_newton_update(input_arrays, settings,
-                                                verbose=settings['verbose'])
+            if any(settings['upd_pots'].values()):  # only update if requested
+                output_arrays = gauss_newton_update(input_arrays, settings,
+                                                    verbose=settings['verbose'])
+            else:
+                print("No potentials to update with iie gauss-newton, exiting iie.py")
+                exit(0)
     # save output (U or dU) to table files
     save_tables(output_arrays, settings)
 
@@ -409,11 +413,9 @@ def process_input(args):
         # check that there is a value for each non-bonded interaction
         assert set(settings['tgt_dists'].keys()) == set(non_bonded_dict.keys())
         assert set(settings['upd_pots'].keys()) == set(non_bonded_dict.keys())
-        # check that not all are False
+        # check that not all tgt_dist are False
         if not any(settings['tgt_dists'].values()):
             raise ValueError("No distribution set to be target.")
-        if not any(settings['upd_pots'].values()):
-            raise ValueError("No potential set to be updated.")
 
     return input_arrays, settings
 
