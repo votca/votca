@@ -409,6 +409,12 @@ def process_input(args):
         # check that there is a value for each non-bonded interaction
         assert set(settings['tgt_dists'].keys()) == set(non_bonded_dict.keys())
         assert set(settings['upd_pots'].keys()) == set(non_bonded_dict.keys())
+        # check that not all are False
+        if not any(settings['tgt_dists'].values()):
+            raise ValueError("No distribution set to be target.")
+        if not any(settings['upd_pots'].values()):
+            raise ValueError("No potential set to be updated.")
+
     return input_arrays, settings
 
 
