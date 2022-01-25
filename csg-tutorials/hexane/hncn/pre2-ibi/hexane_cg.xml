@@ -1,0 +1,47 @@
+<cg_molecule>
+  <name>HEX</name>
+  <ident>hexane</ident>
+  <topology>
+    <cg_beads>
+      <cg_bead>
+        <name>A1</name>
+        <type>A</type>
+        <mapping>UNITY</mapping>
+        <beads>1:hex:A1</beads>
+      </cg_bead>
+      <cg_bead>
+        <name>B</name>
+        <type>B</type>
+        <mapping>UNITY</mapping>
+        <beads>1:hex:B</beads>
+      </cg_bead>
+      <cg_bead>
+        <name>A2</name>
+        <type>A</type>
+        <mapping>UNITY</mapping>
+        <beads>1:hex:A2</beads>
+      </cg_bead>
+  </cg_beads>
+  <cg_bonded>
+    <bond>
+      <name>bond</name>
+      <beads>
+        A1 B
+        A2 B
+      </beads>
+    </bond>
+    <angle>
+      <name>angle</name>
+      <beads>
+        A1 B A2
+      </beads>
+    </angle>
+  </cg_bonded>
+  </topology>
+  <maps>
+    <map>
+      <name>UNITY</name>
+      <weights>1</weights>
+    </map>
+  </maps>
+</cg_molecule>
