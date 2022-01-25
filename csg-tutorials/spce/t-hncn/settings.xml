@@ -1,0 +1,61 @@
+<cg>
+  <non-bonded>
+    <name>CG-CG</name>
+    <type1>CG</type1>
+    <type2>CG</type2>
+    <min>0.0</min>
+    <max>0.9</max>
+    <step>0.004</step>
+    <inverse>
+      <target>CG-CG.dist.tgt</target>
+      <target_intra>CG-CG.dist-intra.tgt</target_intra>
+      <do_potential>1</do_potential>
+      <post_update />
+      <post_add />
+      <gromacs>
+        <table>table_CG_CG.xvg</table>
+      </gromacs>
+      <post_add />
+    </inverse>
+    <improve_dist_near_core>
+      <target>true</target>
+      <new>true</new>
+      <function>exponential</function>
+      <fit_start_g>1e-05</fit_start_g>
+      <fit_end_g>0.2</fit_end_g>
+    </improve_dist_near_core>
+  </non-bonded>
+
+  <inverse>
+    <kBT>2.494338785445972</kBT>
+    <program>gromacs</program>
+    <gromacs>
+      <equi_time>20</equi_time>
+      <table_bins>0.002</table_bins>
+      <pot_max>1000000</pot_max>
+      <table_end>1.9</table_end>
+      <mdrun>gmx mdrun -table</mdrun>
+    </gromacs>
+    <filelist>grompp.mdp topol.top table.xvg index.ndx topology.xml</filelist>
+    <iterations_max>10</iterations_max>
+    <method>iie</method>
+    <scriptpath />
+    <log_file>inverse.log</log_file>
+    <restart_file>restart_points.log</restart_file>
+    <initial_guess>
+      <method>ie</method>
+      <ie>
+        <closure>hnc</closure>
+        <topol>topology.xml</topol>
+        <cut_off>0.9</cut_off>
+      </ie>
+    </initial_guess>
+    <iie>
+      <method>newton</method>
+      <closure>hnc</closure>
+      <topol>topology.xml</topol>
+      <cut_off>0.9</cut_off>
+      <tgt_dcdh>true</tgt_dcdh>
+    </iie>
+  </inverse>
+</cg>

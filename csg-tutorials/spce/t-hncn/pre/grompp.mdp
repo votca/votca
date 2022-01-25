@@ -1,0 +1,38 @@
+integrator = sd
+nsteps = 100000
+dt = 0.002
+
+; Output
+nstxout = 0
+nstvout = 0
+nstlog = 100
+nstenergy = 100
+nstxout-compressed = 10
+
+; Neighbour searching
+cutoff-scheme = Group
+rlist = 0.9
+
+; Electrostatic interactions
+coulombtype = User
+rcoulomb = 0.9
+
+; vdW Interactions
+vdwtype = User
+rvdw = 0.9
+
+; Temperature coupling
+tau-t = 0.5
+ref-t = 300
+tc-grps = System
+
+; Pressure coupling
+Pcoupl = no
+
+; initial generation
+gen-vel = no
+
+; tabulated potentials
+energygrps = CG
+energygrp-table = CG CG
+table-extension = 1
