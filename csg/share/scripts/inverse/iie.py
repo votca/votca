@@ -88,8 +88,9 @@ def main():
                 output_arrays = gauss_newton_update(input_arrays, settings,
                                                     verbose=settings['verbose'])
             else:
-                print("No potentials to update with iie gauss-newton, exiting iie.py")
-                exit(0)
+                print("No potentials to update with iie gauss-newton, writing zeros.")
+                output_arrays = zero_update(input_arrays, settings,
+                                            verbose=settings['verbose'])
     # save output (U or dU) to table files
     save_tables(output_arrays, settings)
 
@@ -1199,6 +1200,45 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
             dU[tail] = 0
         # change NaN in the core region to first valid value
         dU = extrapolate_dU_left_constant(dU, dU_flag)
+        # save for output
+        output_arrays[non_bonded_name] = {'x': r_out, 'y': dU, 'flag': dU_flag}
+    return output_arrays
+
+
+@if_verbose_dump_io
+def zero_update(input_arrays, settings, verbose=False):
+    """Calculate Gauss-Newton potential update based on s.a. RISM-OZ and closure.
+
+    Args:
+        input_arrays: nested dict holding the distributions
+        settings: dict holding relevant settings
+        verbose: save parameters and return of this and contained functions as numpy
+                 file
+
+    Returns:
+        dictionary of potential updates including flags to be saved
+    """
+    # obtain r
+    r = input_arrays['r']
+    # number of atom types
+    n_t = len(settings['rhos'])
+    # slices
+    _, tail_pot = settings['cut_pot'], settings['tail_pot']
+    cut_res, _ = settings['cut_res'], settings['tail_res']
+    n_c_res = len(r[cut_res])
+    dU_mat = np.zeros((n_c_res, n_t, n_t))
+    # prepare output
+    output_arrays = {}
+    for non_bonded_name, dU_dict in gen_interaction_dict(
+            r[cut_res], dU_mat, settings['non-bonded-dict']).items():
+        r_out = dU_dict['x']
+        dU = dU_dict['y']
+        dU_flag = gen_flag_isfinite(dU)
+        dU_flag[tail_pot] = 'o'
+        if settings['r0-removed']:
+            r_out = np.concatenate(([0.0], r_out))
+            dU = np.concatenate(([0.0], dU))
+            dU_flag = np.concatenate((['o'], dU_flag))
         # save for output
         output_arrays[non_bonded_name] = {'x': r_out, 'y': dU, 'flag': dU_flag}
     return output_arrays
