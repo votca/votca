@@ -1,15 +1,21 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/stable>`__.
 
-Version 2022-dev
+Version 2023-dev
 ================
 
-Version 2022 (released XX.12.21)
+Version 2022.1 (released XX.01.22)
+==================================
+
+-  fix PROJECT_VERSION in subdirs (#951) 
+-  make csg_resample and csg_stat spacing consistent (#956)
+
+Version 2022 (released 15.01.22)
 ================================
 
 -  fix some icpc warnings (#934)
 -  only check for pytest if testing is enabled (#930)
--  exclude some builds from CI (#940, #942)
+-  exclude some builds from CI (#940, #942, #944, #945)
 -  update interface documentation (#939)
 -  update install guide for binary packages (#936)
 -  fixed sigma plot options passing (#943)

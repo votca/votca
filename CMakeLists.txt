@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 project(votca LANGUAGES CXX)
 
-set(PROJECT_VERSION "2022-rc.2")
+set(PROJECT_VERSION "2023-dev")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
@@ -69,6 +69,10 @@ if(ENABLE_WARNING_FLAGS)
   endif()
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel") #only icpc, not icpx
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcheck -Wno-sign-conversion")
+  endif()
+  # allow adding extra warning flags at the very end
+  if(VOTCA_EXTRA_WARNING_FLAGS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VOTCA_EXTRA_WARNING_FLAGS}")
   endif()
 endif()
 
