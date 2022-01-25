@@ -16,8 +16,8 @@
   <bonded>
     <!-- name of the interaction -->
     <name>angle</name>
-    <min>1.7</min>
-    <max>3.1</max>
+    <min>1.53159</min>
+    <max>3.13159</max>
     <step>0.02</step>
     <inverse>
       <!-- target distribution -->
