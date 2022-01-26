@@ -3,7 +3,7 @@ set -euo pipefail
 
 echo 'running the "pre1-step0" iteration, generating potential guess'
 pushd pre1-step0
-! csg_inverse --options settings.xml  # it will fail after step_000 due to iterations_max=-1; exclamation mark prevents stop
+csg_inverse --options settings.xml
 popd
 
 echo 'copying files from pre1-step0/step_000 to pre2-ibi'

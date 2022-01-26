@@ -200,8 +200,8 @@ while true; do
   if [[ -z ${do_iterations} ]]; then
     iterations_max="$(csg_get_property cg.inverse.iterations_max)"
     is_int "$iterations_max" || die "inverse.sh: cg.inverse.iterations_max needs to be a number, but I got $iterations_max"
-    echo "We are doing $i of $iterations_max iterations (0=inf)."
-    [[ $iterations_max -ne 0 && $i -gt $iterations_max ]] && break
+    [[ $iterations_max -ne -1 && $i -gt $iterations_max ]] && break
+    echo "We are doing $i of $iterations_max iterations (-1=inf, 0=only step_000)."
   fi
   step_starttime="$(get_time)"
   update_stepnames $i

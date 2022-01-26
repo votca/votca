@@ -37,7 +37,7 @@
       <mdrun>gmx mdrun -table</mdrun>
     </gromacs>
     <filelist>grompp.mdp topol.top table.xvg index.ndx topology.xml</filelist>
-    <iterations_max>-1</iterations_max>
+    <iterations_max>0</iterations_max>
     <method>iie</method>
     <scriptpath />
     <log_file>inverse.log</log_file>

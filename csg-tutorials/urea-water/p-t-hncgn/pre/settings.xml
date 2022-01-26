@@ -82,7 +82,7 @@
       <table_end>2.9</table_end>
     </gromacs>
     <filelist>grompp.mdp topol.top index.ndx table.xvg topology.xml</filelist>
-    <iterations_max>-1</iterations_max>
+    <iterations_max>0</iterations_max>
     <cleanlist>traj.xtc</cleanlist>
     <initial_guess>
       <method>ie</method>
