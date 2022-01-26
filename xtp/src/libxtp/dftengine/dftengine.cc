@@ -608,8 +608,9 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
           << Total_E_full - TotalEnergy << " Ha" << std::flush;
 
       if (abs(Total_E_full - TotalEnergy) > 1e-3) {
-        XTP_LOG(Log::error, *pLog_) << "Warning!! The difference is greater than 1e-03 Ha"
-                                    << std::flush;
+        XTP_LOG(Log::error, *pLog_)
+            << "Warning!! The difference is greater than 1e-03 Ha"
+            << std::flush;
       }
 
       PrintMOs(embeddingMOs.eigenvalues(), Log::error);
