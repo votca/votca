@@ -34,7 +34,8 @@ void PMDecomposition::computePMD(Orbitals &orbitals) {
   overlap.Fill(aobasis);
   double convergence_limit = std::numeric_limits<double>::max();
   Index iteration = 1;
-  while (convergence_limit > convergence_limit_ && iteration < nrOfIterations_) {
+  while (convergence_limit > convergence_limit_ &&
+         iteration < nrOfIterations_) {
     XTP_LOG(Log::error, log_) << "Iteration: " << iteration << std::flush;
     Eigen::MatrixXd orbital_pair_function_value =
         orbitalselections(occupied_orbitals, overlap.Matrix());
@@ -64,37 +65,39 @@ Eigen::MatrixX2d PMDecomposition::rotateorbitals(
   rotatedorbitals.col(0) =
       (std::cos(gamma) * maxorbs.col(0)) + (std::sin(gamma) * maxorbs.col(1));
   rotatedorbitals.col(1) = -1 * (std::sin(gamma) * maxorbs.col(0)) +
-                       (std::cos(gamma) * maxorbs.col(1));
+                           (std::cos(gamma) * maxorbs.col(1));
   XTP_LOG(Log::error, log_)
       << "Sine of the rotation angle = " << std::sin(gamma) << std::flush;
   return rotatedorbitals;
 }
 
-// Function to select n(n-1)/2 orbitals and process Ast and Bst as described in paper
+// Function to select n(n-1)/2 orbitals and process Ast and Bst as described in
+// paper
 Eigen::MatrixXd PMDecomposition::orbitalselections(
     Eigen::MatrixXd &occupied_orbitals, const Eigen::MatrixXd &overlap) {
   Eigen::MatrixXd MullikenPop_all_orbitals =
       Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
   A = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
   B = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
-  #pragma omp parallel for
+#pragma omp parallel for
   for (Index s = 0; s < occupied_orbitals.cols(); s++) {
     for (Index t = s + 1; t < occupied_orbitals.cols(); t++) {
       Eigen::RowVectorXd MullikenPop_orb_S_per_basis =
           (occupied_orbitals.col(s).asDiagonal() * overlap *
            occupied_orbitals.col(s).asDiagonal())
               .colwise()
-              .sum(); 
+              .sum();
       Eigen::MatrixXd splitwiseMullikenPop_orb_SandT =
           occupied_orbitals.col(s).asDiagonal() * overlap *
-          occupied_orbitals.col(t).asDiagonal(); 
+          occupied_orbitals.col(t).asDiagonal();
       Eigen::RowVectorXd MullikenPop_orb_T_per_basis =
           (occupied_orbitals.col(t).asDiagonal() * overlap *
            occupied_orbitals.col(t).asDiagonal())
               .colwise()
               .sum();
-      Eigen::RowVectorXd MullikenPop_orb_SandT_per_basis = 0.5 * (splitwiseMullikenPop_orb_SandT.colwise().sum() +
-                                      splitwiseMullikenPop_orb_SandT.rowwise().sum().transpose());
+      Eigen::RowVectorXd MullikenPop_orb_SandT_per_basis =
+          0.5 * (splitwiseMullikenPop_orb_SandT.colwise().sum() +
+                 splitwiseMullikenPop_orb_SandT.rowwise().sum().transpose());
       std::vector<Index> numfuncpatom = aobasis.getFuncPerAtom();
       Index start = 0;
       double Ast = 0;
@@ -103,7 +106,10 @@ Eigen::MatrixXd PMDecomposition::orbitalselections(
         double MullikenPop_orb_S_per_atom =
             MullikenPop_orb_S_per_basis.segment(start, numfuncpatom[atom_id])
                 .sum();
-        double MullikenPop_orb_SandT_per_atom = MullikenPop_orb_SandT_per_basis.segment(start, numfuncpatom[atom_id]).sum();
+        double MullikenPop_orb_SandT_per_atom =
+            MullikenPop_orb_SandT_per_basis
+                .segment(start, numfuncpatom[atom_id])
+                .sum();
         double MullikenPop_orb_T_per_atom =
             MullikenPop_orb_T_per_basis.segment(start, numfuncpatom[atom_id])
                 .sum();
@@ -111,8 +117,8 @@ Eigen::MatrixXd PMDecomposition::orbitalselections(
             MullikenPop_orb_SandT_per_atom * MullikenPop_orb_SandT_per_atom -
             0.25 * ((MullikenPop_orb_S_per_atom - MullikenPop_orb_T_per_atom) *
                     (MullikenPop_orb_S_per_atom - MullikenPop_orb_T_per_atom));
-        Bst +=
-            MullikenPop_orb_SandT_per_atom * (MullikenPop_orb_S_per_atom - MullikenPop_orb_T_per_atom);
+        Bst += MullikenPop_orb_SandT_per_atom *
+               (MullikenPop_orb_S_per_atom - MullikenPop_orb_T_per_atom);
         start += numfuncpatom[atom_id];
       }
       A(s, t) = Ast;

@@ -35,8 +35,8 @@
 #include "tools/orb2fchk.h"
 #include "tools/orb2mol.h"
 #include "tools/partialcharges.h"
-#include "tools/spectrum.h"
 #include "tools/qminqm.h"
+#include "tools/spectrum.h"
 namespace votca {
 namespace xtp {
 

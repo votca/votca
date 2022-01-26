@@ -115,7 +115,8 @@ void DFTEngine::Initialize(tools::Property& options) {
       options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
 
   if (options.exists(key_xtpdft + ".dft_in_dft.activeatoms")) {
-     active_atoms_as_string = options.get(key_xtpdft + ".dft_in_dft.activeatoms").as<std::string>();
+    active_atoms_as_string =
+        options.get(key_xtpdft + ".dft_in_dft.activeatoms").as<std::string>();
     std::cout << active_atoms_as_string << std::endl;
   }
 }
@@ -365,8 +366,6 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   // constructing the full electron density matrix
   const Eigen::MatrixXd FullDensityMatrix = orb.DensityMatrixGroundState();
 
-
-
   // reading the localized orbitals and update the occupied orbitals in MOs
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Passing localized orbitals as the initial guess"
@@ -382,8 +381,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   ActiveDensityMatrix DMAT_A(orb, activeatoms);
   const Eigen::MatrixXd InitialActiveDensityMatrix = DMAT_A.compute_Dmat_A();
 
-        //    std::cout << InitialActiveDensityMatrix  << std::endl;
-
+  //    std::cout << InitialActiveDensityMatrix  << std::endl;
 
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Active density formation done" << std::endl;
@@ -396,15 +394,14 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   AOOverlap overlap;
   overlap.Fill(aobasis);
 
-   // std::cout << overlap.Matrix() << std::endl;
+  // std::cout << overlap.Matrix() << std::endl;
 
-
-  Index all_electrons = static_cast<Index>(std::round(
-      FullDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
+  Index all_electrons = static_cast<Index>(
+      std::round(FullDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
   Index active_electrons = static_cast<Index>(std::round(
       InitialActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
-  Index inactive_electrons = static_cast<Index>(std::round(
-      InactiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
+  Index inactive_electrons = static_cast<Index>(
+      std::round(InactiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
 
   XTP_LOG(Log::error, *pLog_) << std::flush;
   XTP_LOG(Log::error, *pLog_)
@@ -455,8 +452,8 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   if (ScaHFX_ > 0) {
     std::array<Eigen::MatrixXd, 2> JandK_full =
         CalcERIs_EXX(embeddingMOs.eigenvectors(), FullDensityMatrix, 1e-12);
-    std::array<Eigen::MatrixXd, 2> JandK_initial_active =
-        CalcERIs_EXX(embeddingMOs.eigenvectors(), InitialActiveDensityMatrix, 1e-12);
+    std::array<Eigen::MatrixXd, 2> JandK_initial_active = CalcERIs_EXX(
+        embeddingMOs.eigenvectors(), InitialActiveDensityMatrix, 1e-12);
     J_full = JandK_full[0];
     K_full = 0.5 * ScaHFX_ * JandK_full[1];
     J_initial_active = JandK_initial_active[0];
@@ -586,8 +583,8 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
               << "Active electrons in = "
               << ActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
               << std::endl;
-    ActiveDensityMatrix = conv_accelerator_.Iterate(ActiveDensityMatrix,
-                                                    H_active, embeddingMOs, TotalEnergy);
+    ActiveDensityMatrix = conv_accelerator_.Iterate(
+        ActiveDensityMatrix, H_active, embeddingMOs, TotalEnergy);
     std::cout << "\n"
               << "Active electrons out= "
               << ActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
@@ -621,16 +618,17 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       return false;
     }
   }
-  // Eigen::MatrixXd MullikenPopOfActiveRegion = ActiveDensityMatrix * overlap.Matrix();
-  // Eigen::VectorXd MullikenPopOfBasisSets = MullikenPopOfActiveRegion.diagonal();
-  // std::cout << "The Mulliken Pop is : " << std::endl << MullikenPopOfBasisSets;
-  // AOShell aoshell;
-  // for (aoshell=AOShell.begin(); aoshell!=AOShell.end(); aoshell++) {
-  //   for (Index basisfunction=aoshell.begin(); basisfunction!=aoshell.end(); basisfunction++) {
+  // Eigen::MatrixXd MullikenPopOfActiveRegion = ActiveDensityMatrix *
+  // overlap.Matrix(); Eigen::VectorXd MullikenPopOfBasisSets =
+  // MullikenPopOfActiveRegion.diagonal(); std::cout << "The Mulliken Pop is : "
+  // << std::endl << MullikenPopOfBasisSets; AOShell aoshell; for
+  // (aoshell=AOShell.begin(); aoshell!=AOShell.end(); aoshell++) {
+  //   for (Index basisfunction=aoshell.begin(); basisfunction!=aoshell.end();
+  //   basisfunction++) {
   //     if (MullikenPopOfBasisSets(basisfunction) > 1e-4){
   //       TruncatedBasisSet.pushback(AOShell)
-    //   }
-    // }
+  //   }
+  // }
   //}
 
   return true;

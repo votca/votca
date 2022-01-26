@@ -116,14 +116,14 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
 
   MOs = SolveFockmatrix(H_guess);
 
-  //if user selects active{
-  //list_activeatoms = pass the list;
-  //for (i=0, i<len(list_activeatoms), i++){
-  //Eigen::MatrixXd activemos.col(i) = MOs.col(list_activeatoms[i]);
-    //}
-  //Eigen::MatrixXd dmatout = activemos * activemos.transpose();
-  //}
-  //else {
+  // if user selects active{
+  // list_activeatoms = pass the list;
+  // for (i=0, i<len(list_activeatoms), i++){
+  // Eigen::MatrixXd activemos.col(i) = MOs.col(list_activeatoms[i]);
+  // }
+  // Eigen::MatrixXd dmatout = activemos * activemos.transpose();
+  // }
+  // else {
   Eigen::MatrixXd dmatout = DensityMatrix(MOs);
   //}
   if (diiserror_ > opt_.adiis_start || !opt_.usediis || diis_error ||

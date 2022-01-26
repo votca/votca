@@ -51,12 +51,11 @@ class Orbitals {
     return (dftbasis_.AOBasisSize() > 0) ? true : false;
   }
 
-  void setEmbeddedMOs(tools::EigenSystem& system) { mos_embedding_ = system;}
+  void setEmbeddedMOs(tools::EigenSystem &system) { mos_embedding_ = system; }
 
-  const tools::EigenSystem& getEmbeddedMOs() const { return mos_embedding_;}
-  
+  const tools::EigenSystem &getEmbeddedMOs() const { return mos_embedding_; }
+
   Index getBasisSetSize() const { return dftbasis_.AOBasisSize(); }
-
 
   Index getLumo() const { return occupied_levels_; }
 
@@ -66,8 +65,6 @@ class Orbitals {
   bool hasNumberOfLevels() const {
     return ((occupied_levels_ > 0) ? true : false);
   }
-
-
 
   void setNumberOfOccupiedLevels(Index occupied_levels) {
     occupied_levels_ = occupied_levels;
@@ -398,10 +395,8 @@ class Orbitals {
     pm_localized_orbitals_ = matrix;
   }
 
-  Index getNumOfActiveElectrons() {
-    return active_electrons_;
-  }
-  void setNumofActiveElectrons(const Index active_electrons){
+  Index getNumOfActiveElectrons() { return active_electrons_; }
+  void setNumofActiveElectrons(const Index active_electrons) {
     active_electrons_ = active_electrons;
   }
 
@@ -430,7 +425,6 @@ class Orbitals {
 
   tools::EigenSystem mos_;
   tools::EigenSystem mos_embedding_;
-
 
   Eigen::MatrixXd pm_localized_orbitals_;
   Index active_electrons_;

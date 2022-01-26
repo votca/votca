@@ -28,7 +28,6 @@
 // Local private VOTCA includes
 #include "qminqm.h"
 
-
 namespace votca {
 namespace xtp {
 

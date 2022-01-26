@@ -29,7 +29,7 @@ namespace xtp {
 
 class PMDecomposition {
  public:
-  PMDecomposition(Logger &log, tools::Property& options) : log_(log){
+  PMDecomposition(Logger &log, tools::Property &options) : log_(log) {
     nrOfIterations_ = options.get(".max_iterations").as<Index>();
     convergence_limit_ = options.get(".convergence_limit").as<double>();
   };
@@ -37,7 +37,8 @@ class PMDecomposition {
 
  private:
   Logger &log_;
-  Eigen::MatrixX2d rotateorbitals(const Eigen::MatrixX2d &maxorbs, Index s, Index t);
+  Eigen::MatrixX2d rotateorbitals(const Eigen::MatrixX2d &maxorbs, Index s,
+                                  Index t);
   Eigen::MatrixXd orbitalselections(Eigen::MatrixXd &m,
                                     const Eigen::MatrixXd &S);
   AOBasis aobasis;

@@ -26,8 +26,8 @@
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/gwbseengine.h"
 #include "votca/xtp/logger.h"
-#include "votca/xtp/qmpackage.h"
 #include "votca/xtp/pmdecomposition.h"
+#include "votca/xtp/qmpackage.h"
 
 using boost::format;
 using namespace boost::filesystem;
@@ -55,8 +55,10 @@ void GWBSEEngine::Initialize(tools::Property& options,
   do_dft_run_ = std::find(tasks.begin(), tasks.end(), "dft") != tasks.end();
   do_dft_parse_ = std::find(tasks.begin(), tasks.end(), "parse") != tasks.end();
   do_gwbse_ = std::find(tasks.begin(), tasks.end(), "gwbse") != tasks.end();
-  do_localize_ = std::find(tasks.begin(), tasks.end(), "localize") != tasks.end();
-  do_dft_in_dft_ = std::find(tasks.begin(), tasks.end(), "dft_in_dft") != tasks.end();
+  do_localize_ =
+      std::find(tasks.begin(), tasks.end(), "localize") != tasks.end();
+  do_dft_in_dft_ =
+      std::find(tasks.begin(), tasks.end(), "dft_in_dft") != tasks.end();
 
   // XML option file for GWBSE
   if (do_gwbse_) {
@@ -66,8 +68,9 @@ void GWBSEEngine::Initialize(tools::Property& options,
     localize_options_ = options.get(".localize");
   }
   if (do_dft_in_dft_ && !do_localize_) {
-    throw std::runtime_error("Can't do DFT in DFT embedding without localization");
- }
+    throw std::runtime_error(
+        "Can't do DFT in DFT embedding without localization");
+  }
   // DFT log and MO file names
   MO_file_ = qmpackage_->getMOFile();
   dftlog_file_ = qmpackage_->getLogFile();
@@ -177,18 +180,18 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   }
   tools::Property& output_summary = summary_.add("output", "");
 
-if (do_dft_in_dft_ && do_gwbse_) {
-  Orbitals orb_embedded = orbitals;
-  orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
-  Index active_electrons = orb_embedded.getNumOfActiveElectrons();
-  orb_embedded.setNumberOfAlphaElectrons(active_electrons);
-  orb_embedded.setNumberOfOccupiedLevels(active_electrons/2);
-  GWBSE gwbse = GWBSE(orb_embedded);
-  gwbse.setLogger(logger);
-  gwbse.Initialize(gwbse_options_);
-  gwbse.Evaluate();
-  gwbse.addoutput(output_summary);
-}
+  if (do_dft_in_dft_ && do_gwbse_) {
+    Orbitals orb_embedded = orbitals;
+    orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
+    Index active_electrons = orb_embedded.getNumOfActiveElectrons();
+    orb_embedded.setNumberOfAlphaElectrons(active_electrons);
+    orb_embedded.setNumberOfOccupiedLevels(active_electrons / 2);
+    GWBSE gwbse = GWBSE(orb_embedded);
+    gwbse.setLogger(logger);
+    gwbse.Initialize(gwbse_options_);
+    gwbse.Evaluate();
+    gwbse.addoutput(output_summary);
+  }
 
   if (do_gwbse_ && !do_dft_in_dft_) {
     GWBSE gwbse = GWBSE(orbitals);
@@ -198,7 +201,7 @@ if (do_dft_in_dft_ && do_gwbse_) {
     gwbse.addoutput(output_summary);
   }
 
-  //if do truncatedgwbse
+  // if do truncatedgwbse
   if (!logger_file_.empty()) {
     WriteLoggerToFile(logger);
   }

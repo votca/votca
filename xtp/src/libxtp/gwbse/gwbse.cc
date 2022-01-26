@@ -596,7 +596,7 @@ bool GWBSE::Evaluate() {
   // }
   // else
   // {
-    AOBasis dftbasis = orbitals_.getDftBasis();
+  AOBasis dftbasis = orbitals_.getDftBasis();
   //}
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled DFT Basis of size "
                               << dftbasis.AOBasisSize() << flush;
