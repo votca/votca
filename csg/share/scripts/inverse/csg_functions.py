@@ -233,6 +233,21 @@ def get_charge_dict(topol_xml):
     return charge_dict
 
 
+def get_intra_needed(topol_xml):
+    """Return a set of interactions that are intramolecular."""
+    interactions_intra_needed = set({})
+    for molecule in topol_xml.find('molecules').findall('molecule'):
+        bead_type_list = [bead.attrib['type'] for bead in molecule.findall('bead')]
+        # find beads that occur twice in a molecule
+        for bead_type in bead_type_list:
+            if bead_type_list.count(bead_type) > 1:
+                interactions_intra_needed.add(frozenset({bead_type, bead_type}))
+        # find combinations of beads that occur in a molecule
+        for b1, b2 in itertools.combinations(set(bead_type_list), 2):
+            interactions_intra_needed.add(frozenset({b1, b2}))
+    return interactions_intra_needed
+
+
 def get_bead_types(non_bonded_dict):
     """Return a sorted list of bead types."""
     bead_types = {bead

@@ -50,7 +50,7 @@ from csg_functions import (
     gen_interaction_matrix, gen_interaction_dict, solve_linear_with_constraints,
     gen_flag_isfinite, kron_2D, extrapolate_dU_left_constant, vectorize, devectorize,
     if_verbose_dump_io, make_matrix_2D, make_matrix_4D, cut_matrix_inverse, transpose,
-    get_bead_types
+    get_bead_types, get_intra_needed
 )
 
 
@@ -235,6 +235,8 @@ def process_input(args):
     # get charge_dict
     if args.subcommand == 'potential_guess':
         charge_dict = get_charge_dict(topology)
+    # get needed intramolecular interactions
+    intra_needed = get_intra_needed(topology)
     # get non_bonded_dict
     non_bonded_dict = {nb_name: nb_ts for nb_name, nb_ts in get_non_bonded(options)}
     non_bonded_dict_inv = {v: k for k, v in non_bonded_dict.items()}
@@ -243,27 +245,41 @@ def process_input(args):
                         "interactions had the same bead types.")
     # dict of table extensions
     table_infos = {
-        'g_tgt': {'extension': args.g_tgt_ext, 'check-grid': True},
+        'g_tgt': {'extension': args.g_tgt_ext, 'check-grid': True, 'assume-zero': []}
     }
     # if potential guess or update and tgt_jacobian we need the target intramolecular
     # RDFs
     if args.subcommand in ('potential_guess', 'dcdh'):
         table_infos = {
             **table_infos,
-            'G_minus_g_tgt': {'extension': args.g_tgt_intra_ext, 'check-grid': True},
+            'G_minus_g_tgt': {
+                'extension': args.g_tgt_intra_ext, 'check-grid': True,
+                'assume-zero': set([
+                    non_bonded_dict_inv[beadset] for beadset in (
+                        set(non_bonded_dict.values()) - intra_needed
+                    )
+                ]),
+            },
         }
     # if update, we need the current RDFs
     if args.subcommand in ('newton', 'gauss-newton'):
         table_infos = {
             **table_infos,
-            'g_cur': {'extension': args.g_cur_ext, 'check-grid': True},
+            'g_cur': {'extension': args.g_cur_ext, 'check-grid': True,
+                      'assume-zero': []},
         }
         # if not target jacobian we need the current intramolecular RDFs
         if args.tgt_dcdh is None:
             table_infos = {
                 **table_infos,
-                'G_minus_g_cur': {'extension': args.g_cur_intra_ext,
-                                  'check-grid': True},
+                'G_minus_g_cur': {
+                    'extension': args.g_cur_intra_ext, 'check-grid': True,
+                    'assume-zero': set([
+                        non_bonded_dict_inv[beadset] for beadset in (
+                            set(non_bonded_dict.values()) - intra_needed
+                        )
+                    ]),
+                },
             }
     # load input arrays
     input_arrays = {}  # will hold all input data
@@ -273,6 +289,7 @@ def process_input(args):
         state_names_temp = state_names
     else:
         state_names_temp = ['.']  # read from current dir, dict will be collapsed later
+    r_temp = None
     for state in state_names_temp:
         input_arrays[state] = {}
         for table_name, table_info in table_infos.items():
@@ -280,10 +297,21 @@ def process_input(args):
             for non_bonded_name in non_bonded_dict.keys():
                 if table_info['extension'] is None:
                     raise Exception(f"No file extension for {table_name} provided!")
-                x, y, flag = readin_table(f"{state}/{non_bonded_name}."
-                                          f"{table_info['extension']}")
-                input_arrays[state][table_name][non_bonded_name] = {'x': x, 'y': y,
-                                                                    'flag': flag}
+                # if some interactions should not be read
+                if non_bonded_name in table_info['assume-zero']:
+                    assert r_temp is not None  # should never happen
+                    # set all to zero
+                    input_arrays[state][table_name][non_bonded_name] = {
+                        'x': r_temp, 'y': np.zeros_like(r_temp),
+                        'flag': np.array(['i']*len(r_temp)),
+                    }
+                # all others: read from file
+                else:
+                    x, y, flag = readin_table(f"{state}/{non_bonded_name}."
+                                              f"{table_info['extension']}")
+                    r_temp = x
+                    input_arrays[state][table_name][non_bonded_name] = {'x': x, 'y': y,
+                                                                        'flag': flag}
     # check for same grid and define r
     r = None
     for state in state_names_temp:
