@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(decomposedorbitals_test) {
   orbitals.setNumberOfAlphaElectrons(9);
 
   orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                           "/pmdecomposition/def2-tzvp.xml");
+                         "/pmdecomposition/def2-tzvp.xml");
 
   orbitals.MOs().eigenvectors() =
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
@@ -56,18 +56,13 @@ BOOST_AUTO_TEST_CASE(decomposedorbitals_test) {
   tools::Property options;
   options.add("max_iterations", "1000");
   options.add("convergence_limit", "1e-12");
-  
+
   PMDecomposition pmd(log, options);
   pmd.computePMD(orbitals);
 
   Eigen::MatrixXd LMOs = orbitals.getPMLocalizedOrbital();
   Eigen::MatrixXd test_MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/pmdecomposition/ch3oh.mm");
-
-  std::cout << LMOs.col(0) << std::endl;
-  std::cout << "\n" << std::endl;
-  std::cout << test_MOs.col(0) << std::endl;
-
 
   bool checkMOs = LMOs.isApprox(test_MOs, 2e-6);
   BOOST_CHECK_EQUAL(checkMOs, 1);
