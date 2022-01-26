@@ -115,8 +115,8 @@ void DFTEngine::Initialize(tools::Property& options) {
       options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
 
   if (options.exists(key_xtpdft + ".dft_in_dft.activeatoms")) {
-     active_atoms_as_string = options.get(key_xtpdft + ".dft_in_dft.activeatoms").as<std::string>();
-    std::cout << active_atoms_as_string << std::endl;
+    active_atoms_as_string =
+        options.get(key_xtpdft + ".dft_in_dft.activeatoms").as<std::string>();
   }
 }
 
@@ -364,13 +364,15 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
   // constructing the full electron density matrix
   const Eigen::MatrixXd FullDensityMatrix = orb.DensityMatrixGroundState();
-
-
+  XTP_LOG(Log::error, *pLog_) << std::flush;
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Starting Projection based dft-in-dft embedding"
+      << std::flush;
 
   // reading the localized orbitals and update the occupied orbitals in MOs
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Passing localized orbitals as the initial guess"
-      << std::endl;
+      << std::flush;
   Eigen::MatrixXd LMOs = orb.getPMLocalizedOrbital();
 
   embeddingMOs.eigenvectors().leftCols(orb.getNumberOfAlphaElectrons()) = LMOs;
@@ -379,14 +381,14 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   std::vector<Index> activeatoms =
       IndexParser().CreateIndexVector(active_atoms_as_string);
 
+  XTP_LOG(Log::error, *pLog_)
+      << "Indices of active atoms selected are: " << active_atoms_as_string
+      << std::flush;
   ActiveDensityMatrix DMAT_A(orb, activeatoms);
   const Eigen::MatrixXd InitialActiveDensityMatrix = DMAT_A.compute_Dmat_A();
 
-        //    std::cout << InitialActiveDensityMatrix  << std::endl;
-
-
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " Active density formation done" << std::endl;
+      << TimeStamp() << " Active density formation done" << std::flush;
 
   Eigen::MatrixXd InactiveDensityMatrix =
       FullDensityMatrix - InitialActiveDensityMatrix;
@@ -396,17 +398,13 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   AOOverlap overlap;
   overlap.Fill(aobasis);
 
-   // std::cout << overlap.Matrix() << std::endl;
-
-
-  Index all_electrons = static_cast<Index>(std::round(
-      FullDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
+  Index all_electrons = static_cast<Index>(
+      std::round(FullDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
   Index active_electrons = static_cast<Index>(std::round(
       InitialActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
-  Index inactive_electrons = static_cast<Index>(std::round(
-      InactiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
+  Index inactive_electrons = static_cast<Index>(
+      std::round(InactiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
 
-  XTP_LOG(Log::error, *pLog_) << std::flush;
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Total electrons: " << all_electrons << std::flush;
   XTP_LOG(Log::error, *pLog_)
@@ -455,8 +453,8 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   if (ScaHFX_ > 0) {
     std::array<Eigen::MatrixXd, 2> JandK_full =
         CalcERIs_EXX(embeddingMOs.eigenvectors(), FullDensityMatrix, 1e-12);
-    std::array<Eigen::MatrixXd, 2> JandK_initial_active =
-        CalcERIs_EXX(embeddingMOs.eigenvectors(), InitialActiveDensityMatrix, 1e-12);
+    std::array<Eigen::MatrixXd, 2> JandK_initial_active = CalcERIs_EXX(
+        embeddingMOs.eigenvectors(), InitialActiveDensityMatrix, 1e-12);
     J_full = JandK_full[0];
     K_full = 0.5 * ScaHFX_ * JandK_full[1];
     J_initial_active = JandK_initial_active[0];
@@ -495,8 +493,6 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   const double constant_embedding_energy = Total_E_full - E0_initial_active -
                                            E_Hartree_initial_active -
                                            xc_initial_active.energy();
-
-  XTP_LOG(Log::error, *pLog_) << std::flush;
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Constant energy embedding terms: " << std::flush;
   XTP_LOG(Log::info, *pLog_)
@@ -559,7 +555,6 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
     double TotalEnergy = E0_active + E_Hartree_active + E_xc_active +
                          constant_embedding_energy + E_levelshift + E_embedding;
 
-    XTP_LOG(Log::error, *pLog_) << std::flush;
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Total Energy after embedding: " << TotalEnergy
         << std::flush;
@@ -582,16 +577,18 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
         << std::flush;
 
     // get a new density matrix in the active region
-    std::cout << "\n"
-              << "Active electrons in = "
-              << ActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
-              << std::endl;
-    ActiveDensityMatrix = conv_accelerator_.Iterate(ActiveDensityMatrix,
-                                                    H_active, embeddingMOs, TotalEnergy);
-    std::cout << "\n"
-              << "Active electrons out= "
-              << ActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
-              << std::endl;
+    XTP_LOG(Log::info, *pLog_)
+        << std::endl
+        << "Active electrons in = "
+        << ActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
+        << std::flush;
+    ActiveDensityMatrix = conv_accelerator_.Iterate(
+        ActiveDensityMatrix, H_active, embeddingMOs, TotalEnergy);
+    XTP_LOG(Log::info, *pLog_)
+        << std::endl
+        << "Active electrons out= "
+        << ActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
+        << std::flush;
 
     PrintMOs(embeddingMOs.eigenvalues(), Log::info);
 
@@ -605,6 +602,16 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       XTP_LOG(Log::error, *pLog_)
           << TimeStamp() << " Final Single Point Energy of embedding "
           << std::setprecision(12) << TotalEnergy << " Ha" << std::flush;
+      XTP_LOG(Log::error, *pLog_)
+          << "The difference between the reference energy and the embedding "
+             "energy is "
+          << Total_E_full - TotalEnergy << " Ha" << std::flush;
+
+      if (abs(Total_E_full - TotalEnergy) > 1e-3) {
+        XTP_LOG(Log::error, *pLog_) << "Warning!! The difference is greater than 1e-03 Ha"
+                                    << std::flush;
+      }
+
       PrintMOs(embeddingMOs.eigenvalues(), Log::error);
       orb.setEmbeddedMOs(embeddingMOs);
       orb.setNumofActiveElectrons(active_electrons);
@@ -621,16 +628,17 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       return false;
     }
   }
-  // Eigen::MatrixXd MullikenPopOfActiveRegion = ActiveDensityMatrix * overlap.Matrix();
-  // Eigen::VectorXd MullikenPopOfBasisSets = MullikenPopOfActiveRegion.diagonal();
-  // std::cout << "The Mulliken Pop is : " << std::endl << MullikenPopOfBasisSets;
-  // AOShell aoshell;
-  // for (aoshell=AOShell.begin(); aoshell!=AOShell.end(); aoshell++) {
-  //   for (Index basisfunction=aoshell.begin(); basisfunction!=aoshell.end(); basisfunction++) {
+  // Eigen::MatrixXd MullikenPopOfActiveRegion = ActiveDensityMatrix *
+  // overlap.Matrix(); Eigen::VectorXd MullikenPopOfBasisSets =
+  // MullikenPopOfActiveRegion.diagonal(); std::cout << "The Mulliken Pop is : "
+  // << std::endl << MullikenPopOfBasisSets; AOShell aoshell; for
+  // (aoshell=AOShell.begin(); aoshell!=AOShell.end(); aoshell++) {
+  //   for (Index basisfunction=aoshell.begin(); basisfunction!=aoshell.end();
+  //   basisfunction++) {
   //     if (MullikenPopOfBasisSets(basisfunction) > 1e-4){
   //       TruncatedBasisSet.pushback(AOShell)
-    //   }
-    // }
+  //   }
+  // }
   //}
 
   return true;
