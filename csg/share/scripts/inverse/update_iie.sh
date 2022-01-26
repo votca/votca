@@ -72,7 +72,9 @@ volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
 
 # verbose 
 verbose=$(csg_get_property cg.inverse.iie.verbose)
+step_nr=$(get_current_step_nr)
 [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
+[[ "${verbose}" == 'step0+1' ]] && [[ $step_nr == '0' || $step_nr == '1' ]] && verbose_flag="--verbose"
 
 # RDF extrapolation
 g_extrap_factor=$(csg_get_property --allow-empty cg.inverse.iie.g_extrap_factor) 

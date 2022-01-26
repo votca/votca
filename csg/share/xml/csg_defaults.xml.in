@@ -448,7 +448,7 @@
         <DESC>Special topology file to be used for iie update</DESC>
       </topol>
       <verbose>false
-        <DESC>Print some info and dump numpy arrays. Valid values are: true, false (default)</DESC>
+        <DESC>Print some info and dump numpy arrays. Valid values are: true, step0+1, false (default)</DESC>
       </verbose>
     </iie>
     <initial_guess>

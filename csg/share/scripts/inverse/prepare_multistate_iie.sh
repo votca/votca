@@ -40,7 +40,10 @@ if [[ $tgt_dcdh == 'true' ]]; then
     popd
   done
   # verbose
+  verbose=$(csg_get_property cg.inverse.initial_guess.ie.verbose)
+  step_nr=$(get_current_step_nr)
   [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
+  [[ "${verbose}" == 'step0+1' ]] && [[ $step_nr == '0' || $step_nr == '1' ]] && verbose_flag="--verbose"
   # topology for molecular conections and volume
   for state in $state_names; do
     topol_state="${state}/$(csg_get_property --allow-empty cg.inverse.iie.topol)"

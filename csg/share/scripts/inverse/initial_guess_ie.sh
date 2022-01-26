@@ -26,9 +26,9 @@ EOF
 fi
 
 verbose=$(csg_get_property cg.inverse.initial_guess.ie.verbose)
-if [ "${verbose}" == 'true' ]; then
-    verbose_flag="--verbose"
-fi
+step_nr=$(get_current_step_nr)
+[[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
+[[ "${verbose}" == 'step0+1' ]] && [[ $step_nr == '0' || $step_nr == '1' ]] && verbose_flag="--verbose"
 
 main_dir=$(get_main_dir)
 sim_prog="$(csg_get_property cg.inverse.program)"

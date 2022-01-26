@@ -36,7 +36,10 @@ if [[ $tgt_dcdh == 'true' ]]; then
     for_all "non-bonded" resample_intra_if_present
   fi
   # verbose
+  verbose=$(csg_get_property cg.inverse.initial_guess.ie.verbose)
+  step_nr=$(get_current_step_nr)
   [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
+  [[ "${verbose}" == 'step0+1' ]] && [[ $step_nr == '0' || $step_nr == '1' ]] && verbose_flag="--verbose"
   # topology for molecular conections and volume
   topol=$(csg_get_property cg.inverse.iie.topol)
   [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
