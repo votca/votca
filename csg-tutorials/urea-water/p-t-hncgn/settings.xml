@@ -1,0 +1,107 @@
+<cg>
+  <non-bonded>
+    <name>UR-UR</name>
+    <type1>UR</type1>
+    <type2>UR</type2>
+    <min>0</min>
+    <max>1.8</max>
+    <step>0.004</step>
+    <inverse>
+      <target>UR-UR.dist.tgt</target>
+      <target_intra>UR-UR.dist-intra.tgt</target_intra>
+      <do_potential>1</do_potential>
+      <gromacs>
+        <table>table_UR_UR.xvg</table>
+      </gromacs>
+    </inverse>
+    <improve_dist_near_core> <!-- extrapolating the very small values at the onset of an RDF helps with stability a lot -->
+      <target>true</target>
+      <new>true</new>
+      <function>exponential</function>
+      <fit_start_g>1e-05</fit_start_g>
+      <fit_end_g>0.2</fit_end_g>
+    </improve_dist_near_core>
+  </non-bonded>
+
+  <non-bonded>
+    <name>UR-SOL</name>
+    <type1>UR</type1>
+    <type2>SOL</type2>
+    <min>0</min>
+    <max>1.8</max>
+    <step>0.004</step>
+    <inverse>
+      <target>UR-SOL.dist.tgt</target>
+      <target_intra>UR-SOL.dist-intra.tgt</target_intra>
+      <do_potential>1</do_potential>
+      <gromacs>
+        <table>table_UR_SOL.xvg</table>
+      </gromacs>
+    </inverse>
+    <improve_dist_near_core> <!-- extrapolating the very small values at the onset of an RDF helps with stability a lot -->
+      <target>true</target>
+      <new>true</new>
+      <function>exponential</function>
+      <fit_start_g>1e-05</fit_start_g>
+      <fit_end_g>0.2</fit_end_g>
+    </improve_dist_near_core>
+  </non-bonded>
+
+  <non-bonded>
+    <name>SOL-SOL</name>
+    <type1>SOL</type1>
+    <type2>SOL</type2>
+    <min>0</min>
+    <max>1.8</max>
+    <step>0.004</step>
+    <inverse>
+      <target>SOL-SOL.dist.tgt</target>
+      <target_intra>SOL-SOL.dist-intra.tgt</target_intra>
+      <do_potential>1</do_potential>
+      <gromacs>
+        <table>table_SOL_SOL.xvg</table>
+      </gromacs>
+    </inverse>
+    <improve_dist_near_core> <!-- extrapolating the very small values at the onset of an RDF helps with stability a lot -->
+      <target>true</target>
+      <new>true</new>
+      <function>exponential</function>
+      <fit_start_g>1e-05</fit_start_g>
+      <fit_end_g>0.2</fit_end_g>
+    </improve_dist_near_core>
+  </non-bonded>
+
+  <inverse>
+    <!-- 300*0.00831451 gromacs units -->
+    <kBT>2.49435300</kBT>
+    <program>gromacs</program>
+    <gromacs>
+      <equi_time>100</equi_time>
+      <table_bins>0.002</table_bins>
+      <pot_max>1000000</pot_max>
+      <table_end>2.9</table_end>
+    </gromacs>
+    <filelist>grompp.mdp topol.top index.ndx table.xvg topology.xml</filelist>
+    <iterations_max>10</iterations_max>
+    <cleanlist>traj.xtc</cleanlist>
+    <initial_guess>
+      <method>ie</method>
+      <ie>
+        <closure>hnc</closure>
+        <topol>topology.xml</topol>
+        <cut_off>1.4</cut_off>
+      </ie>
+    </initial_guess>
+    <method>iie</method>
+    <iie>
+      <method>gauss-newton</method>
+      <closure>hnc</closure>
+      <topol>topology.xml</topol>
+      <cut_off>1.4</cut_off>
+      <cut_residual>1.8</cut_residual>
+      <tgt_dcdh>true</tgt_dcdh>
+      <pressure_constraint>1</pressure_constraint>
+      <residual_weighting>one_plus_r_squared_over_rdf</residual_weighting> <!-- without any weighting that gives more weight to RDF onset and tail, there might be artifacts in RDF or potential in those regions -->
+    </iie>
+  </inverse>
+</cg>

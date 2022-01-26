@@ -1,0 +1,12 @@
+<topology>
+  <box xx="7.53261" yy="7.53261" zz="7.53261" />
+  <molecules>
+    <molecule name="UR" nmols="1200" nbeads="1">
+      <bead name="UR" type="UR" mass="60.06" q="0.0" />
+    </molecule>
+    <molecule name="SOL" nmols="11111" nbeads="1">
+      <bead name="SOL" type="SOL" mass="18.0154" q="0.0" />
+    </molecule>
+  </molecules>
+  <bonded />
+</topology>
