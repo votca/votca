@@ -994,3 +994,9 @@ for i in simulation_finish checkpoint_exist get_simulation_setting; do
 done
 unset i
 
+resample_intra_if_present() {
+  if [[ -f $(csg_get_interaction_property inverse.target_intra) ]]; then
+    do_external resample target --no-extrap '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
+  fi
+}
+export -f resample_intra_if_present

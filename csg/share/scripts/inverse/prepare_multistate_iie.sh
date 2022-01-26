@@ -34,7 +34,8 @@ if [[ $tgt_dcdh == 'true' ]]; then
   for state in $state_names; do
     pushd $state
     if [[ $(csg_get_property cg.inverse.initial_guess.method) != ie ]]; then
-        for_all "non-bonded" do_external resample target --no-extrap '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
+      # resample intramolecular only if present. Later iie.py will only load the ones that are needed
+      for_all "non-bonded" resample_intra_if_present
     fi
     popd
   done
@@ -42,14 +43,14 @@ if [[ $tgt_dcdh == 'true' ]]; then
   [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
   # topology for molecular conections and volume
   for state in $state_names; do
-      topol_state="${state}/$(csg_get_property --allow-empty cg.inverse.iie.topol)"
-      [[ -z $topol_state ]] && topol_state="${state}/$(csg_get_property cg.inverse.$sim_prog.topol)"
-      [[ -f $topol_state ]] || die "${0##*/}: topol file '$topol_state' not found, possibly you have to add it to cg.inverse.filelist"
-      volume_state=$(critical csg_dump --top "$topol_state" | grep 'Volume' | awk '{print $2}')
-      ([[ -n "$volume_state" ]] && is_num "$volume_state") || die "could not determine the volume from file ${topol_state}"
-      # append
-      topol="$topol $topol_state"
-      volume="$volume $volume_state"
+    topol_state="${state}/$(csg_get_property --allow-empty cg.inverse.iie.topol)"
+    [[ -z $topol_state ]] && topol_state="${state}/$(csg_get_property cg.inverse.$sim_prog.topol)"
+    [[ -f $topol_state ]] || die "${0##*/}: topol file '$topol_state' not found, possibly you have to add it to cg.inverse.filelist"
+    volume_state=$(critical csg_dump --top "$topol_state" | grep 'Volume' | awk '{print $2}')
+    ([[ -n "$volume_state" ]] && is_num "$volume_state") || die "could not determine the volume from file ${topol_state}"
+    # append
+    topol="$topol $topol_state"
+    volume="$volume $volume_state"
   done
   # determine dc/dh for all states, iie.py will notice the option in $CSGXMLFILE
   do_external dist invert_iie dcdh \

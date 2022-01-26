@@ -96,7 +96,8 @@ for state in $state_names; do
   pushd "$state"
   for_all "non-bonded" do_external resample target --clean '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
   if [[ $(csg_get_property cg.inverse.iie.tgt_dcdh) != 'true' ]]; then
-    for_all "non-bonded" do_external resample target --no-extrap '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
+    # resample intramolecular only if present. Later iie.py will only load the ones that are needed
+    for_all "non-bonded" resample_intra_if_present
   fi
   popd
 done
