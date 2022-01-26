@@ -9,7 +9,7 @@
   <!-- dimension + grid spacing of tables for calculations -->
   <min>0</min>
   <max>3.6</max>
-  <step>0.01</step>
+  <step>0.004</step>
  </non-bonded>
    
  <non-bonded>
@@ -21,7 +21,7 @@
   <!-- dimension + grid spacing of tables for calculations -->
   <min>0</min>
   <max>3.6</max>
-  <step>0.01</step>
+  <step>0.004</step>
  </non-bonded>
 
  <non-bonded>
@@ -33,6 +33,6 @@
   <!-- dimension + grid spacing of tables for calculations -->
   <min>0</min>
   <max>3.6</max>
-  <step>0.01</step>
+  <step>0.004</step>
  </non-bonded>
 </cg>
