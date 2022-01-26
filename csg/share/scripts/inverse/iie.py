@@ -179,12 +179,12 @@ def get_args(iie_args=None):
     parser_gauss_newton.add_argument(
         '--tgt-dists', type=str, required=True, metavar='TGT_DISTS',
         help=('Which distributions are targeted. Pairs of names and '
-              'bool. Pair separated by comma. Pairs separated by semicolon. '
+              'bool. Pair separated by comma. Pairs separated by colon. '
               'true for target, false for not target.'))
     parser_gauss_newton.add_argument(
         '--upd-pots', type=str, required=True, metavar='UPD_POTS',
         help=('Which potentials are to be modified. Pairs of names and '
-              'numbers. Pair separated by comma. Pairs separated by semicolon. '
+              'numbers. Pair separated by comma. Pairs separated by colon. '
               '1 for update, 0 for no update.'))
     # potential guess only options
     parser_pot_guess.add_argument('--subtract-coulomb',
@@ -435,10 +435,10 @@ def process_input(args):
     if args.subcommand == 'gauss-newton':
         settings['tgt_dists'] = {pair[0]: pair[1].lower().strip() == 'true' for pair
                                  in [pair.split(',') for pair
-                                     in args.tgt_dists.strip(';').split(';')]}
+                                     in args.tgt_dists.strip(':').split(':')]}
         settings['upd_pots'] = {pair[0]: pair[1].strip() == "1" for pair
                                 in [pair.split(',') for pair
-                                    in args.upd_pots.strip(';').split(';')]}
+                                    in args.upd_pots.strip(':').split(':')]}
         # check that there is a value for each non-bonded interaction
         assert set(settings['tgt_dists'].keys()) == set(non_bonded_dict.keys())
         assert set(settings['upd_pots'].keys()) == set(non_bonded_dict.keys())
