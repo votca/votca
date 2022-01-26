@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(activematrix_test) {
   orbitals_.setNumberOfAlphaElectrons(9);
 
   orbitals_.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                            "/activedensitymatrix/def2-tzvp.xml");
+                          "/activedensitymatrix/def2-tzvp.xml");
   Eigen::MatrixXd LMOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/activedensitymatrix/LMOs.mm");
 

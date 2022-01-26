@@ -18,7 +18,7 @@
  * References- (1) A fast intrinsic localization procedure applicable for ab
  *initio and semiempirical linear combination of atomic orbital wave functions.
  *Janos Pipek and Paul G. Mezey. J. Chem. Phys. 90, 4916 (1989);
- *https://doi.org/10.1063/1.456588 
+ *https://doi.org/10.1063/1.456588
  *(2) A Simple, Exact Density-Functional-Theory
  *Embedding Scheme. Frederick R. Manby, Martina Stella, Jason D. Goodpaster, and
  *Thomas F. Miller Journal of Chemical Theory and Computation 2012 8 (8),
@@ -72,7 +72,8 @@ Eigen::MatrixXd ActiveDensityMatrix::activedensitymatrix(
       start += numfuncpatom[atom_id];
     }
   }
-  const Eigen::MatrixXd dmat_active = 2 * active_mo_coeff * active_mo_coeff.transpose();
+  const Eigen::MatrixXd dmat_active =
+      2 * active_mo_coeff * active_mo_coeff.transpose();
   return dmat_active;
 }
 }  // namespace xtp

@@ -652,7 +652,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(qm_package_, "qm_package");
   try {
     r(pm_localized_orbitals_, "PML_MOs");
-  } catch (std::runtime_error& e){
+  } catch (std::runtime_error& e) {
     ;
   }
 
@@ -660,7 +660,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(mos_, "mos");
   r(mos_embedding_, "mos_embedding");
   r(active_electrons_, "active_electrons");
-  
+
   if (version < 3) {
     // clang-format off
     std::array<Index, 49> votcaOrder_old = {
