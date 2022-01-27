@@ -22,14 +22,16 @@ This script resamples distribution to grid spacing of the setting xml file and e
 Usage: ${0##*/} [options] input output
 
 Allowed options:
-    --help       show this help
-    --no-extrap  do no extrapolation, e.g. for intramolecular non-bonded
-    --clean      remove all intermediate temp files
+    --help             show this help
+    --no-extrap        do no extrapolation, e.g. for intramolecular non-bonded
+    --clean            remove all intermediate temp files
+    --skip-if-missing  do not stop if input is non-existent
 EOF
 }
 
 do_extrap="yes"
 clean="no"
+skip_if_missing="no"
 
 ### begin parsing options
 shopt -s extglob
@@ -40,6 +42,9 @@ while [[ ${1} = --* ]]; do
     shift ;;
    --clean)
     clean="yes"
+    shift ;;
+   --skip-if-missing)
+    skip_if_missing="yes"
     shift ;;
   -h | --help)
     show_help
@@ -56,10 +61,18 @@ main_dir=$(get_main_dir)
 multistate="$(csg_get_property cg.inverse.multistate.enabled)"
 if [[ $multistate == true ]]; then
   state=$(get_state_dir)
-  [[ -f ${main_dir}/${state}/$input ]] || die "${0##*/}: Could not find input file '$input' in state_dir ($main_dir/$state)"
+  if [[ $skip_if_missing == no ]]; then
+    [[ -f ${main_dir}/${state}/$input ]] || die "${0##*/}: Could not find input file '$input' in state_dir ($main_dir/$state)"
+  else
+    [[ -f ${main_dir}/${state}/$input ]] || msg "${0##*/}: Could not find input file '$input' in state_dir ($main_dir/$state), skipping" && exit 0
+  fi
   input_path="${main_dir}/${state}/$input"
 else
-  [[ -f ${main_dir}/$input ]] || die "${0##*/}: Could not find input file '$input' in main_dir ($main_dir)"
+  if [[ $skip_if_missing == no ]]; then
+    [[ -f ${main_dir}/$input ]] || die "${0##*/}: Could not find input file '$input' in main_dir ($main_dir)"
+  else
+    [[ -f ${main_dir}/$input ]] || msg "${0##*/}: Could not find input file '$input' in main_dir ($main_dir), skipping" && exit 0
+  fi
   input_path="${main_dir}/$input"
 fi
 output="$2"
