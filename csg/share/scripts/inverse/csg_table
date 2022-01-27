@@ -90,7 +90,6 @@ postupd extrapolate postupd_extrapolate.sh
 postupd kbibi postupd_kbibi_correction.sh
 postupd cibi postupd_cibi_correction.sh
 postupd ibi postupd_ibi.sh
-postupd fix_near_cut_off postupd_fix_near_cut_off.py
 
 # post add
 post add post_add.sh
@@ -173,7 +172,6 @@ table integrate table_integrate.pl
 table extrapolate table_extrapolate.pl
 table merge merge_tables.pl
 table smooth table_smooth.pl
-table smooth_at_cut_off table_smooth_at_cut_off.py
 table linearop table_linearop.pl
 #do not use table functional here as it needs gnuplot
 table dummy table_dummy.sh
@@ -195,7 +193,6 @@ convert_potential tab table_to_tab.pl
 # generic distribution manipulation
 dist adjust dist_adjust.pl
 dist invert dist_boltzmann_invert.pl
-dist improve_near_core dist_improve_near_core.py
 
 # error analysis
 tables jackknife tables_jackknife.pl
