@@ -64,14 +64,14 @@ if [[ $multistate == true ]]; then
   if [[ $skip_if_missing == no ]]; then
     [[ -f ${main_dir}/${state}/$input ]] || die "${0##*/}: Could not find input file '$input' in state_dir ($main_dir/$state)"
   else
-    [[ -f ${main_dir}/${state}/$input ]] || msg "${0##*/}: Could not find input file '$input' in state_dir ($main_dir/$state), skipping" && exit 0
+    [[ -f ${main_dir}/${state}/$input ]] || (msg "${0##*/}: Could not find input file '$input' in state_dir ($main_dir/$state), skipping"; exit 0)
   fi
   input_path="${main_dir}/${state}/$input"
 else
   if [[ $skip_if_missing == no ]]; then
     [[ -f ${main_dir}/$input ]] || die "${0##*/}: Could not find input file '$input' in main_dir ($main_dir)"
   else
-    [[ -f ${main_dir}/$input ]] || msg "${0##*/}: Could not find input file '$input' in main_dir ($main_dir), skipping" && exit 0
+    [[ -f ${main_dir}/$input ]] || (msg "${0##*/}: Could not find input file '$input' in main_dir ($main_dir), skipping"; exit 0)
   fi
   input_path="${main_dir}/$input"
 fi
