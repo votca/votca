@@ -66,8 +66,10 @@
       <target>true</target>
       <new>true</new>
       <function>exponential</function>
-      <fit_start_g>1e-08</fit_start_g>  <!-- Ideally use something around 1e-6. It was chosen small here to keep dcdh.npz small in the repo -->
-      <fit_end_g>0.5</fit_end_g>
+      <!-- Ideally use something around 1e-6. It was chosen small here because of the coarse grid, to keep dcdh.npz small in the repo -->
+      <fit_start_g>1e-08</fit_start_g>
+      <!-- Ideally use something smaller 0.5. It was chosen large here because of the coarse grid, to keep dcdh.npz small in the repo -->
+      <fit_end_g>0.8</fit_end_g>
     </improve_dist_near_core>
   </non-bonded>
 
