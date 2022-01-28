@@ -29,7 +29,7 @@ do_external prepare generic
 
 tgt_dcdh="$(csg_get_property cg.inverse.iie.tgt_dcdh)"
 if [[ $tgt_dcdh == 'true' ]]; then
-  if [[ -f ${get_main_dir}/dcdh.npz ]]; then
+  if [[ -f $(get_main_dir)/dcdh.npz ]]; then
     msg "dcdh.npz is already present in main dir, using it."
     exit 0
   fi
@@ -58,5 +58,5 @@ if [[ $tgt_dcdh == 'true' ]]; then
   --options "$CSGXMLFILE" \
   --g-tgt-ext "dist.tgt" \
   --g-tgt-intra-ext "dist-intra.tgt" \
-  --out ${get_main_dir}/dcdh.npz
+  --out $(get_main_dir)/dcdh.npz
 fi

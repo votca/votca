@@ -55,7 +55,7 @@ residual_weighting_flag="--residual-weighting $(csg_get_property cg.inverse.iie.
 
 # target dc/dh
 if [[ $(csg_get_property cg.inverse.iie.tgt_dcdh) == true ]]; then
-  tgt_dcdh_flag="--tgt-dcdh ${get_main_dir}/dcdh.npz"
+  tgt_dcdh_flag="--tgt-dcdh $(get_main_dir)/dcdh.npz"
 else
   g_intra_flag="--g-cur-intra-ext dist-intra.new"
 fi
