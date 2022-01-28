@@ -5,7 +5,7 @@
     <type2>LJ1</type2>
     <min>0.0</min>
     <max>1.7</max>
-    <step>0.002</step>
+    <step>0.006</step>
     <inverse>
       <target>LJ1-LJ1.dist.tgt</target>
       <target_intra>LJ1-LJ1.dist-intra.tgt</target_intra>
@@ -32,7 +32,7 @@
     <type2>LJ2</type2>
     <min>0.0</min>
     <max>1.7</max>
-    <step>0.002</step>
+    <step>0.006</step>
     <inverse>
       <target>LJ1-LJ2.dist.tgt</target>
       <target_intra>LJ1-LJ2.dist-intra.tgt</target_intra>
@@ -59,7 +59,7 @@
     <type2>LJ2</type2>
     <min>0.0</min>
     <max>1.7</max>
-    <step>0.002</step>
+    <step>0.006</step>
     <inverse>
       <target>LJ2-LJ2.dist.tgt</target>
       <target_intra>LJ2-LJ2.dist-intra.tgt</target_intra>
