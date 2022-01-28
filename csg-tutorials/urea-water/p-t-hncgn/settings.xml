@@ -5,7 +5,7 @@
     <type2>UR</type2>
     <min>0</min>
     <max>1.8</max>
-    <step>0.004</step>
+    <step>0.008</step>
     <inverse>
       <target>UR-UR.dist.tgt</target>
       <target_intra>UR-UR.dist-intra.tgt</target_intra>
@@ -29,7 +29,7 @@
     <type2>SOL</type2>
     <min>0</min>
     <max>1.8</max>
-    <step>0.004</step>
+    <step>0.008</step>
     <inverse>
       <target>UR-SOL.dist.tgt</target>
       <target_intra>UR-SOL.dist-intra.tgt</target_intra>
@@ -53,7 +53,7 @@
     <type2>SOL</type2>
     <min>0</min>
     <max>1.8</max>
-    <step>0.004</step>
+    <step>0.008</step>
     <inverse>
       <target>SOL-SOL.dist.tgt</target>
       <target_intra>SOL-SOL.dist-intra.tgt</target_intra>
@@ -66,8 +66,8 @@
       <target>true</target>
       <new>true</new>
       <function>exponential</function>
-      <fit_start_g>1e-05</fit_start_g>
-      <fit_end_g>0.2</fit_end_g>
+      <fit_start_g>1e-08</fit_start_g>  <!-- Ideally use something around 1e-6. It was chosen small here to keep dcdh.npz small in the repo -->
+      <fit_end_g>0.5</fit_end_g>
     </improve_dist_near_core>
   </non-bonded>
 
