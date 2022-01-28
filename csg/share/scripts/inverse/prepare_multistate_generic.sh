@@ -34,7 +34,7 @@ case "$initial_guess_method" in
   for_all "bonded non-bonded" do_external prepare_single generic --use-table
   ;;
 "bi"|"ie")
-  # do update for each state
+  # do potential guess for each state
   for state in $state_names; do
     pushd $state
     msg "for state ${state}:"

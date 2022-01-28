@@ -38,6 +38,7 @@ case "$initial_guess_method" in
   ;;
 "ie")
   bonded_interactions=( $(csg_get_property --allow-empty cg.bonded.name) )
+  # if there are any bonded interactions, use bi (or .pot.in files)
   if [[ -n $bonded_interactions ]]; then
     for_all "bonded" do_external prepare_single generic --use-bi
   fi

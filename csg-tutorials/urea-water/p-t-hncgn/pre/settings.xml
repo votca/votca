@@ -86,10 +86,10 @@
     <cleanlist>traj.xtc</cleanlist>
     <initial_guess>
       <method>ie</method>
+      <cut_off>1.4</cut_off>
       <ie>
         <closure>hnc</closure>
         <topol>topology.xml</topol>
-        <cut_off>1.4</cut_off>
       </ie>
     </initial_guess>
     <method>iie</method>

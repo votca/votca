@@ -75,7 +75,7 @@ def main():
                                verbose=settings['verbose'])
             return
     # newton update
-    if settings['subcommand'] in ('newton',):
+    if settings['subcommand'] == 'newton':
         output_arrays = newton_update(input_arrays, settings,
                                       verbose=settings['verbose'])
     # gauss-newton update
@@ -384,12 +384,19 @@ def process_input(args):
                 settings['tgt_dcdh'] = np.load(args.tgt_dcdh[0].name)['dcdh']
             except (FileNotFoundError, ValueError):
                 raise Exception("Can not load tgt_dcdh file(s) that were provided")
-    # determine cut-off
+    # determine cut-off xml path
     if args.subcommand == 'potential_guess':
-        settings['cut_off'] = float(
-            options.find("./inverse/initial_guess/ie/cut_off").text)
+        cut_off_path = "./inverse/initial_guess/cut_off"
     elif args.subcommand in ('newton', 'gauss-newton', 'dcdh'):
-        settings['cut_off'] = float(options.find("./inverse/iie/cut_off").text)
+        cut_off_path = "./inverse/iie/cut_off"
+    else:
+        raise Exception('all methods need a cut-off')
+    # try to read it from xml ET
+    try:
+        settings['cut_off'] = float(options.find(cut_off_path).text)
+    except (AttributeError, ValueError):
+        raise Exception(cut_off_path + " must be a float in settings.xml for integral "
+                        "equation methods")
     # determine slices from cut_off
     settings['cut_pot'], settings['tail_pot'] = calc_slices(r, settings['cut_off'],
                                                             settings['verbose'])

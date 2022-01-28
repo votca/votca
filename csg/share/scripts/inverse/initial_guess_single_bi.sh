@@ -70,5 +70,15 @@ if $(awk "BEGIN {exit (${scaling_factor} != 1.0 ? 0 : 1)}"); then
 else
   scaled="${shifted}"
 fi
+
+# zero potential behind cut-off if cut-off not empty
+cut_off="$(csg_get_property cg.inverse.initial_guess.cut_off)"
+if [[ ${cut_off} != none ]]; then
+  pot_cut_off="$(critical mktemp ${name}.pot.new.cut_off.XXX)"
+  do_external table zero_behind_cut_off "${cut_off}" "${scaled}" "${pot_cut_off}"
+else
+  pot_cut_off="${scaled}"
+fi
+
 # set all flags to 'i'
-do_external table change_flag "${scaled}" "${output}"
+do_external table change_flag "${pot_cut_off}" "${output}"

@@ -36,35 +36,35 @@ use_bi=false
 table_overwrite=false
 while [[ $# -gt 0 ]]
 do
-    key="$1"
+  key="$1"
 
-    case $key in
-    --use-table)
-        use_table=true
-        shift  # past argument
-        ;;
-    --use-bi)
-        use_bi=true
-        shift  # past argument
-        ;;
-    --table-overwrite)
-        table_overwrite=true
-        shift  # past argument
-        ;;
-    --help)
-        show_help
-        exit 0
-        ;;
-    *)
-        die "unknown argument $key"
-        ;;
-    esac
+  case $key in
+  --use-table)
+    use_table=true
+    shift  # past argument
+    ;;
+  --use-bi)
+    use_bi=true
+    shift  # past argument
+    ;;
+  --table-overwrite)
+    table_overwrite=true
+    shift  # past argument
+    ;;
+  --help)
+    show_help
+    exit 0
+    ;;
+  *)
+    die "unknown argument $key"
+    ;;
+  esac
 done
 
 if [[ (${use_table} == true && ${use_bi} == true)
-    || (${use_table} == true && ${table_overwrite} == true)
-    || (${use_bi} == true && ${table_overwrite} == true) ]]; then
-    die "use either --use-table or --use-bi or --table-overwrite"
+  || (${use_table} == true && ${table_overwrite} == true)
+  || (${use_bi} == true && ${table_overwrite} == true) ]]; then
+  die "use either --use-table or --use-bi or --table-overwrite"
 fi
 
 name=$(csg_get_interaction_property name)
@@ -79,35 +79,41 @@ table_overwrite="$(csg_get_property cg.inverse.initial_guess.table_overwrite)"
 
 table_present=false
 if [[ -f ${main_dir}/${name}.pot.in ]]; then
-    table_present=true
+  table_present=true
 fi
 
+# if --use-bi was used
 if [[ $use_bi == true ]]; then
-    if [[ $table_present == true && $table_overwrite == true ]]; then
-        do_external initial_guess_single table
-    elif [[ $table_present == true && $table_overwrite == false ]]; then
-        msg --color blue "###########################################################################################"
-        msg --color blue "# WARNING there is a table ${name}.pot.in present, but cg.inverse.initial_guess.method=bi #"
-        msg --color blue "# and cg.inverse.initial_guess.table_overwrite=false. Using BI as initial guess           #"
-        msg --color blue "###########################################################################################"
-        do_external initial_guess_single bi
-    else
-        do_external initial_guess_single bi
-    fi
-elif [[ $use_table == true ]]; then
+  if [[ $table_present == true && $table_overwrite == true ]]; then
     do_external initial_guess_single table
+  elif [[ $table_present == true && $table_overwrite == false ]]; then
+    msg --color blue "###########################################################################################"
+    msg --color blue "# WARNING there is a table ${name}.pot.in present, but cg.inverse.initial_guess.method=bi #"
+    msg --color blue "# and cg.inverse.initial_guess.table_overwrite=false. Using BI as initial guess           #"
+    msg --color blue "###########################################################################################"
+    do_external initial_guess_single bi
+  else
+    do_external initial_guess_single bi
+  fi
+  # if --use-table was used
+elif [[ $use_table == true ]]; then
+  do_external initial_guess_single table
+  # if --table-overwrite was used
 elif [[ $table_overwrite == true ]]; then
-    if [[ $table_present == true ]]; then
-        msg "there is a table ${name}.pot.in present, gonna use it"
-        do_external initial_guess_single table
-    fi
-    # if no table present ignore with --table-overwrite
+  # use table if table exists
+  if [[ $table_present == true ]]; then
+    msg "there is a table ${name}.pot.in present, gonna use it"
+    do_external initial_guess_single table
+  fi
+  # if no table present will do nothing
 else
-    # this is the old default behaviour
-    if [[ $table_present == true ]]; then
-        msg "there is a table ${name}.pot.in present, gonna use it"
-        do_external initial_guess_single table
-    else
-        do_external initial_guess_single bi
-    fi
+  # this is the old default behaviour
+  # use table if table exists
+  if [[ $table_present == true ]]; then
+    msg "there is a table ${name}.pot.in present, gonna use it"
+    do_external initial_guess_single table
+  # use Boltzmann inversion otherwise
+  else
+    do_external initial_guess_single bi
+  fi
 fi

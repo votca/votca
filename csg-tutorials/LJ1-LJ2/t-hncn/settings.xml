@@ -99,11 +99,13 @@
     <restart_file>restart_points.log</restart_file>
     <initial_guess>
       <method>bi</method>
-      <!--<ie>
+      <!--
+        <cut_off>0.9</cut_off>
+        <ie>
         <closure>hnc</closure>
         <topol>topology.xml</topol>
-        <cut_off>0.9</cut_off>
-      </ie>-->
+        </ie>
+      -->
     </initial_guess>
     <iie>
       <method>newton</method>

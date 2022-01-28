@@ -184,6 +184,7 @@ table scale table_scale.pl
 table change_flag table_change_flag.sh
 table functional table_functional.sh
 table remove_error table_remove_error.sh
+table zero_behind_cut_off table_zero_behind_cut_off.py
 
 # generic potential manipulation
 potential extrapolate potential_extrapolate.sh
@@ -193,6 +194,7 @@ convert_potential tab table_to_tab.pl
 # generic distribution manipulation
 dist adjust dist_adjust.pl
 dist invert dist_boltzmann_invert.pl
+dist improve_near_core dist_improve_near_core.py
 
 # error analysis
 tables jackknife tables_jackknife.pl

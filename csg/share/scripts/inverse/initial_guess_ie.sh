@@ -94,5 +94,5 @@ for_all "non-bonded" 'csg_resample --in $(csg_get_interaction_property name).pot
 # csg_resample alone will not do the job
 for_all "non-bonded" 'do_external table extrapolate --function constant --region right $(csg_get_interaction_property name).pot.new $(csg_get_interaction_property name).pot.new'
 
-# overwrite with .pot.in if table_overwrite and present
+# overwrite those potentials where .pot.in is present in main dir
 for_all "non-bonded" do_external prepare_single generic --table-overwrite
