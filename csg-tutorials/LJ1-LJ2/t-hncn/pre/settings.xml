@@ -22,7 +22,7 @@
       <new>true</new>
       <function>exponential</function>
       <fit_start_g>1e-05</fit_start_g>
-      <fit_end_g>0.2</fit_end_g>
+      <fit_end_g>0.5</fit_end_g>
     </improve_dist_near_core>
   </non-bonded>
 
@@ -49,7 +49,7 @@
       <new>true</new>
       <function>exponential</function>
       <fit_start_g>1e-05</fit_start_g>
-      <fit_end_g>0.2</fit_end_g>
+      <fit_end_g>0.5</fit_end_g>
     </improve_dist_near_core>
   </non-bonded>
 
@@ -76,7 +76,7 @@
       <new>true</new>
       <function>exponential</function>
       <fit_start_g>1e-05</fit_start_g>
-      <fit_end_g>0.2</fit_end_g>
+      <fit_end_g>0.5</fit_end_g>
     </improve_dist_near_core>
   </non-bonded>
 
