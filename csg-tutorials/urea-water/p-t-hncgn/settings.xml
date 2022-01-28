@@ -85,12 +85,8 @@
     <iterations_max>10</iterations_max>
     <cleanlist>traj.xtc</cleanlist>
     <initial_guess>
-      <method>ie</method>
+      <method>table</method>
       <cut_off>1.4</cut_off>
-      <ie>
-        <closure>hnc</closure>
-        <topol>topology.xml</topol>
-      </ie>
     </initial_guess>
     <method>iie</method>
     <iie>

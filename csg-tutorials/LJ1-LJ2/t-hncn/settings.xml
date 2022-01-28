@@ -98,14 +98,8 @@
     <log_file>inverse.log</log_file>
     <restart_file>restart_points.log</restart_file>
     <initial_guess>
-      <method>bi</method>
-      <!--
-        <cut_off>0.9</cut_off>
-        <ie>
-        <closure>hnc</closure>
-        <topol>topology.xml</topol>
-        </ie>
-      -->
+      <method>table</method>
+      <cut_off>0.85</cut_off>
     </initial_guess>
     <iie>
       <method>newton</method>

@@ -29,6 +29,10 @@ do_external prepare multistate_generic
 
 tgt_dcdh="$(csg_get_property cg.inverse.iie.tgt_dcdh)"
 if [[ $tgt_dcdh == 'true' ]]; then
+  if [[ -f ${get_main_dir}/dcdh.npz ]]; then
+    msg "dcdh.npz is already present in main dir, using it."
+    exit 0
+  fi
   state_names="$(csg_get_property cg.inverse.multistate.state_names)"
   # make sure dist and dist-intra are here
   for state in $state_names; do
@@ -65,5 +69,5 @@ if [[ $tgt_dcdh == 'true' ]]; then
   --options "$CSGXMLFILE" \
   --g-tgt-ext "dist.tgt" \
   --g-tgt-intra-ext "dist-intra.tgt" \
-  --out dcdh.npz
+  --out ${get_main_dir}/dcdh.npz
 fi
