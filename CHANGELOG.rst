@@ -5,7 +5,6 @@ Version 2023-dev
 ================
 
 -  implemented projection-based DFT embedding (#964)
--  implemented projection-based DFT embedding (#964)
 
 Version 2022.1 (released XX.01.22)
 ==================================
