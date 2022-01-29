@@ -23,12 +23,12 @@
 // Local private VOTCA includes
 #include "tools/apdft.h"
 #include "tools/coupling.h"
-#include "tools/decomp.h"
 #include "tools/densityanalysis.h"
 #include "tools/dftgwbse.h"
 #include "tools/excitoncoupling.h"
 #include "tools/gencube.h"
 #include "tools/gpu_benchmark.h"
+#include "tools/localize.h"
 #include "tools/log2mps.h"
 #include "tools/mol2orb.h"
 #include "tools/molpol.h"
@@ -55,7 +55,7 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<Mol2Orb>("mol2orb");
   QMTools().Register<Orb2Mol>("orb2mol");
   QMTools().Register<Orb2Fchk>("orb2fchk");
-  QMTools().Register<Decomp>("decomp");
+  QMTools().Register<Localize>("localize");
   QMTools().Register<QMinQM>("qminqm");
   QMTools().Register<GPUBenchmark>("gpu_benchmark");
 }

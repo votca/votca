@@ -17,8 +17,8 @@
  *
  */
 #pragma once
-#ifndef VOTCA_XTP_DECOMP_H
-#define VOTCA_XTP_DECOMP_H
+#ifndef VOTCA_XTP_LOCALIZE_H
+#define VOTCA_XTP_LOCALIZE_H
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -31,13 +31,13 @@
 namespace votca {
 namespace xtp {
 
-class Decomp final : public QMTool {
+class Localize final : public QMTool {
  public:
-  Decomp() = default;
+  Localize() = default;
 
-  ~Decomp() = default;
+  ~Localize() = default;
 
-  std::string Identify() const { return "decomp"; }
+  std::string Identify() const { return "localize"; }
 
  private:
   Orbitals orbitals;

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <options>
-  <decomp help="Allows you to compute localised orbitals using the Pipek-Mezey scheme">
+  <localize help="Allows you to compute localised orbitals using the Pipek-Mezey scheme">
     <max_iterations help="Maximum number of iterations for PM Localization" default="1000"/>
-  </decomp>
+  </localize>
 </options>

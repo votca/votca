@@ -38,7 +38,7 @@
 #include "votca/xtp/logger.h"
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"
-#include "votca/xtp/pmdecomposition.h"
+#include "votca/xtp/pmlocalization.h"
 
 namespace votca {
 namespace xtp {

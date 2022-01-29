@@ -20,13 +20,13 @@
  * Paul G. Mezey
  */
 
-#include "votca/xtp/pmdecomposition.h"
+#include "votca/xtp/pmlocalization.h"
 #include "votca/xtp/aomatrix.h"
 #include <limits>
 
 namespace votca {
 namespace xtp {
-void PMDecomposition::computePMD(Orbitals &orbitals) {
+void PMLocalization::computePML(Orbitals &orbitals) {
   Eigen::MatrixXd occupied_orbitals = orbitals.MOs().eigenvectors().leftCols(
       orbitals.getNumberOfAlphaElectrons());
   aobasis = orbitals.getDftBasis();
@@ -64,8 +64,8 @@ void PMDecomposition::computePMD(Orbitals &orbitals) {
 }
 
 // Function to rotate the 2 maximum orbitals (s and t)
-Eigen::MatrixX2d PMDecomposition::rotateorbitals(
-    const Eigen::MatrixX2d &maxorbs, const Index s, const Index t) {
+Eigen::MatrixX2d PMLocalization::rotateorbitals(const Eigen::MatrixX2d &maxorbs,
+                                                const Index s, const Index t) {
   const double gamma =
       0.25 * asin(B(s, t) / sqrt((A(s, t) * A(s, t)) + (B(s, t) * B(s, t))));
   Eigen::MatrixX2d rotatedorbitals(maxorbs.rows(), 2);
@@ -80,7 +80,7 @@ Eigen::MatrixX2d PMDecomposition::rotateorbitals(
 
 // Function to select n(n-1)/2 orbitals and process Ast and Bst as described in
 // paper
-Eigen::MatrixXd PMDecomposition::orbitalselections(
+Eigen::MatrixXd PMLocalization::orbitalselections(
     Eigen::MatrixXd &occupied_orbitals, const Eigen::MatrixXd &overlap) {
   Eigen::MatrixXd MullikenPop_all_orbitals =
       Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());

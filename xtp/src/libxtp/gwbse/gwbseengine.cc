@@ -26,7 +26,7 @@
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/gwbseengine.h"
 #include "votca/xtp/logger.h"
-#include "votca/xtp/pmdecomposition.h"
+#include "votca/xtp/pmlocalization.h"
 #include "votca/xtp/qmpackage.h"
 
 using boost::format;
@@ -150,8 +150,8 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   }
 
   if (do_localize_) {
-    PMDecomposition pmd(*logger, localize_options_);
-    pmd.computePMD(orbitals);
+    PMLocalization pml(*logger, localize_options_);
+    pml.computePML(orbitals);
   }
 
   if (do_dft_in_dft_) {

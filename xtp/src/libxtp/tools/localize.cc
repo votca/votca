@@ -17,7 +17,7 @@
  *
  */
 
-#include "decomp.h"
+#include "localize.h"
 #include <sstream>
 
 // Third party includes
@@ -27,13 +27,13 @@
 #include "votca/xtp/activedensitymatrix.h"
 #include "votca/xtp/gaussianwriter.h"
 #include "votca/xtp/orbitals.h"
-#include "votca/xtp/pmdecomposition.h"
+#include "votca/xtp/pmlocalization.h"
 #include <votca/tools/constants.h>
 
 namespace votca {
 namespace xtp {
 
-void Decomp::ParseOptions(const tools::Property& options) {
+void Localize::ParseOptions(const tools::Property& options) {
   options_ = options;
   orbitals.ReadFromCpt(job_name_ + ".orb");
   std::string temp = options.get("activeatoms").as<std::string>();
@@ -49,13 +49,13 @@ void Decomp::ParseOptions(const tools::Property& options) {
   std::cout << std::endl;
 }
 
-bool Decomp::Run() {
+bool Localize::Run() {
   log.setReportLevel(Log::current_level);
   log.setMultithreading(true);
   log.setCommonPreface("\n... ...");
-  XTP_LOG(Log::error, log) << "Starting decomp tool" << std::endl;
-  PMDecomposition pmd(log, options_);
-  pmd.computePMD(orbitals);
+  XTP_LOG(Log::error, log) << "Starting localization tool" << std::endl;
+  PMLocalization pml(log, options_);
+  pml.computePML(orbitals);
   XTP_LOG(Log::error, log) << "Computing Dmat_A now" << std::endl;
   ActiveDensityMatrix Dmat_A(orbitals, activeatoms);
   Dmat_A.compute_Dmat_A();

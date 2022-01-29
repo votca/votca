@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_PMDECOMPOSITION_H
-#define VOTCA_XTP_PMDECOMPOSITION_H
+#ifndef VOTCA_XTP_PMLOCALIZATION_H
+#define VOTCA_XTP_PMLOCALIZATION_H
 #include "logger.h"
 #include "votca/tools/property.h"
 #include "votca/xtp/orbitals.h"
@@ -27,13 +27,13 @@
 namespace votca {
 namespace xtp {
 
-class PMDecomposition {
+class PMLocalization {
  public:
-  PMDecomposition(Logger &log, tools::Property &options) : log_(log) {
+  PMLocalization(Logger &log, tools::Property &options) : log_(log) {
     nrOfIterations_ = options.get(".max_iterations").as<Index>();
     convergence_limit_ = options.get(".convergence_limit").as<double>();
   };
-  void computePMD(Orbitals &orbitals_);
+  void computePML(Orbitals &orbitals_);
 
  private:
   Logger &log_;
