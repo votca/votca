@@ -32,25 +32,23 @@ void PMLocalization::computePML(Orbitals &orbitals) {
   aobasis = orbitals.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
-  double convergence_limit = std::numeric_limits<double>::max();
+  double max_cost = std::numeric_limits<double>::max();
 
   XTP_LOG(Log::error, log_) << std::flush;
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Starting localization of orbitals" << std::flush;
 
   Index iteration = 1;
-  while (convergence_limit > convergence_limit_ &&
-         iteration < nrOfIterations_) {
+  while (max_cost > convergence_limit_ && iteration < nrOfIterations_) {
     XTP_LOG(Log::info, log_) << "Iteration: " << iteration << std::flush;
-    Eigen::MatrixXd orbital_pair_function_value =
-        orbitalselections(occupied_orbitals, overlap.Matrix());
+    Eigen::MatrixXd PM_cost_function =
+        cost_function(occupied_orbitals, overlap.Matrix());
     Index maxrow, maxcol;
-    convergence_limit = orbital_pair_function_value.maxCoeff(&maxrow, &maxcol);
+    max_cost = PM_cost_function.maxCoeff(&maxrow, &maxcol);
     XTP_LOG(Log::info, log_)
         << "Orbitals to be changed: " << maxrow << " " << maxcol << std::flush;
     XTP_LOG(Log::info, log_)
-        << "change in the penalty function: " << convergence_limit
-        << std::flush;
+        << "change in the penalty function: " << max_cost << std::flush;
     Eigen::MatrixX2d max_orbs(occupied_orbitals.rows(), 2);
     max_orbs << occupied_orbitals.col(maxrow), occupied_orbitals.col(maxcol);
     Eigen::MatrixX2d rotated_orbs = rotateorbitals(max_orbs, maxrow, maxcol);
@@ -80,63 +78,97 @@ Eigen::MatrixX2d PMLocalization::rotateorbitals(const Eigen::MatrixX2d &maxorbs,
 
 // Function to select n(n-1)/2 orbitals and process Ast and Bst as described in
 // paper
-Eigen::MatrixXd PMLocalization::orbitalselections(
+Eigen::MatrixXd PMLocalization::cost_function(
     Eigen::MatrixXd &occupied_orbitals, const Eigen::MatrixXd &overlap) {
-  Eigen::MatrixXd MullikenPop_all_orbitals =
+  Eigen::MatrixXd cost_function =
       Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
   // Variable names A and B are used directly as described in the paper above
   A = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
   B = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
+
+  std::vector<Index> numfuncpatom = aobasis.getFuncPerAtom();
+
+  // get the s-s elements first ("diagonal in orbital")
+  Eigen::MatrixXd MullikenPop_orb_per_atom = Eigen::MatrixXd::Zero(
+      occupied_orbitals.cols(), Index(numfuncpatom.size()));
+#pragma omp parallel for
+  for (Index s = 0; s < occupied_orbitals.cols(); s++) {
+    Eigen::RowVectorXd MullikenPop_orb_per_basis =
+        (occupied_orbitals.col(s).asDiagonal() * overlap *
+         occupied_orbitals.col(s).asDiagonal())
+            .colwise()
+            .sum();
+    Index start = 0;
+    for (Index atom_id = 0; atom_id < Index(numfuncpatom.size()); atom_id++) {
+      MullikenPop_orb_per_atom(s, atom_id) =
+          MullikenPop_orb_per_basis.segment(start, numfuncpatom[atom_id]).sum();
+      start += numfuncpatom[atom_id];
+    }
+  }
+
+// now we only need to calculate the off-diagonals explicitly
 #pragma omp parallel for
   for (Index s = 0; s < occupied_orbitals.cols(); s++) {
     for (Index t = s + 1; t < occupied_orbitals.cols(); t++) {
-      Eigen::RowVectorXd MullikenPop_orb_S_per_basis =
-          (occupied_orbitals.col(s).asDiagonal() * overlap *
-           occupied_orbitals.col(s).asDiagonal())
-              .colwise()
-              .sum();
+      /*       Eigen::RowVectorXd MullikenPop_orb_S_per_basis =
+                (occupied_orbitals.col(s).asDiagonal() * overlap *
+                 occupied_orbitals.col(s).asDiagonal())
+                    .colwise()
+                    .sum(); */
       Eigen::MatrixXd splitwiseMullikenPop_orb_SandT =
           occupied_orbitals.col(s).asDiagonal() * overlap *
           occupied_orbitals.col(t).asDiagonal();
-      Eigen::RowVectorXd MullikenPop_orb_T_per_basis =
-          (occupied_orbitals.col(t).asDiagonal() * overlap *
-           occupied_orbitals.col(t).asDiagonal())
-              .colwise()
-              .sum();
+      /*       Eigen::RowVectorXd MullikenPop_orb_T_per_basis =
+                (occupied_orbitals.col(t).asDiagonal() * overlap *
+                 occupied_orbitals.col(t).asDiagonal())
+                    .colwise()
+                    .sum(); */
       Eigen::RowVectorXd MullikenPop_orb_SandT_per_basis =
           0.5 * (splitwiseMullikenPop_orb_SandT.colwise().sum() +
                  splitwiseMullikenPop_orb_SandT.rowwise().sum().transpose());
-      std::vector<Index> numfuncpatom = aobasis.getFuncPerAtom();
 
       Index start =
           0;  // This helps to sum only over the basis functions on an atom
       double Ast = 0;
       double Bst = 0;
       for (Index atom_id = 0; atom_id < Index(numfuncpatom.size()); atom_id++) {
-        double MullikenPop_orb_S_per_atom =
-            MullikenPop_orb_S_per_basis.segment(start, numfuncpatom[atom_id])
-                .sum();
+        /*         double MullikenPop_orb_S_per_atom =
+                    MullikenPop_orb_S_per_basis.segment(start,
+           numfuncpatom[atom_id]) .sum(); */
         double MullikenPop_orb_SandT_per_atom =
             MullikenPop_orb_SandT_per_basis
                 .segment(start, numfuncpatom[atom_id])
                 .sum();
-        double MullikenPop_orb_T_per_atom =
-            MullikenPop_orb_T_per_basis.segment(start, numfuncpatom[atom_id])
-                .sum();
-        Ast +=
-            MullikenPop_orb_SandT_per_atom * MullikenPop_orb_SandT_per_atom -
-            0.25 * ((MullikenPop_orb_S_per_atom - MullikenPop_orb_T_per_atom) *
-                    (MullikenPop_orb_S_per_atom - MullikenPop_orb_T_per_atom));
+        /*         double MullikenPop_orb_T_per_atom =
+                    MullikenPop_orb_T_per_basis.segment(start,
+           numfuncpatom[atom_id]) .sum(); */
+        /*         Ast +=
+                    MullikenPop_orb_SandT_per_atom *
+           MullikenPop_orb_SandT_per_atom - 0.25 * ((MullikenPop_orb_S_per_atom
+           - MullikenPop_orb_T_per_atom) * (MullikenPop_orb_S_per_atom -
+           MullikenPop_orb_T_per_atom)); */
+
+        Ast += MullikenPop_orb_SandT_per_atom * MullikenPop_orb_SandT_per_atom -
+               0.25 * ((MullikenPop_orb_per_atom(s, atom_id) -
+                        MullikenPop_orb_per_atom(t, atom_id)) *
+                       (MullikenPop_orb_per_atom(s, atom_id) -
+                        MullikenPop_orb_per_atom(t, atom_id)));
+
+        /*         Bst += MullikenPop_orb_SandT_per_atom *
+                       (MullikenPop_orb_S_per_atom -
+           MullikenPop_orb_T_per_atom); */
+
         Bst += MullikenPop_orb_SandT_per_atom *
-               (MullikenPop_orb_S_per_atom - MullikenPop_orb_T_per_atom);
+               (MullikenPop_orb_per_atom(s, atom_id) -
+                MullikenPop_orb_per_atom(t, atom_id));
         start += numfuncpatom[atom_id];
       }
       A(s, t) = Ast;
       B(s, t) = Bst;
-      MullikenPop_all_orbitals(s, t) = Ast + sqrt((Ast * Ast) + (Bst * Bst));
+      cost_function(s, t) = Ast + sqrt((Ast * Ast) + (Bst * Bst));
     }
   }
-  return MullikenPop_all_orbitals;
+  return cost_function;
 }
 
 }  // namespace xtp
