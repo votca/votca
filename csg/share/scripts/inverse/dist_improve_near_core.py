@@ -74,11 +74,13 @@ def process_input(args):
 def improve_dist_near_core(r, g, pmf_function, fit_start_g, fit_end_g):
     g_extrap = g.copy()
     # find first peak
+    # in some cases the second peak might be higher, then fit_start_g needs to
+    # be smaller than valley
     g_max_ndx = np.argmax(g)
-    # fit start behind last point where g is smaller than fit_start_g
+    # fit start: behind last point where g is smaller than fit_start_g
     fit_start_ndx = max(np.nonzero(g < fit_start_g)[0]) + 1
-    # fit end from fit_end_g and before first peak
-    fit_end_ndx = max(np.nonzero(g[0:g_max_ndx] < fit_end_g)[0]) + 1
+    # fit end: smallest index larger than fit_start_g, before first peak
+    fit_end_ndx = min(np.nonzero(g[0:g_max_ndx] > fit_end_g)[0])
     if fit_end_ndx - fit_start_ndx < 3:
         raise Exception("less then three points found for fitting. This function needs "
                         f"a finer RDF in order to work. {fit_start_ndx} {fit_end_ndx}")
