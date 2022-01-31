@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2023-dev
 ================
 
+-  Fix gw quadrature scheme (#966)
+
 Version 2022.1 (released XX.01.22)
 ==================================
 
