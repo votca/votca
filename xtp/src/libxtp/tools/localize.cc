@@ -45,7 +45,7 @@ bool Localize::Run() {
   log.setCommonPreface("\n... ...");
   XTP_LOG(Log::error, log) << "Starting localization tool" << std::flush;
 
-  XTP_LOG(Log::error, log) <<  "Atoms in active region: ";
+  XTP_LOG(Log::error, log) << "Atoms in active region: ";
   for (const auto& atom : activeatoms) {
     XTP_LOG(Log::error, log) << atom << std::flush;
   }

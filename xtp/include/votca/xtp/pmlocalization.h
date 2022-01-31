@@ -43,9 +43,9 @@ class PMLocalization {
   void initial_penalty();
   void update_penalty(Index s, Index t);
 
-  Eigen::VectorXd pop_per_atom(const Eigen::VectorXd& orbital);
+  Eigen::VectorXd pop_per_atom(const Eigen::VectorXd &orbital);
   Eigen::Vector2d offdiag_penalty_elements(const Eigen::MatrixXd &s_overlap,
-                                        Index s, Index t);
+                                           Index s, Index t);
 
   Eigen::MatrixXd occupied_orbitals;
 

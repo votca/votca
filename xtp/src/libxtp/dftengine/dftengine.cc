@@ -115,8 +115,12 @@ void DFTEngine::Initialize(tools::Property& options) {
       options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
 
   if (options.exists(key_xtpdft + ".dft_in_dft.activeatoms")) {
-    active_atoms_as_string =
+    active_atoms_as_string_ =
         options.get(key_xtpdft + ".dft_in_dft.activeatoms").as<std::string>();
+    active_threshold_ =
+        options.get(key_xtpdft + ".dft_in_dft.threshold").as<double>();
+    levelshift_ =
+        options.get(key_xtpdft + ".dft_in_dft.levelshift").as<double>();
   }
 }
 
@@ -379,12 +383,12 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
   // determine the active and inactive electron densities
   std::vector<Index> activeatoms =
-      IndexParser().CreateIndexVector(active_atoms_as_string);
+      IndexParser().CreateIndexVector(active_atoms_as_string_);
 
   XTP_LOG(Log::error, *pLog_)
-      << "Indices of active atoms selected are: " << active_atoms_as_string
+      << "Indices of active atoms selected are: " << active_atoms_as_string_
       << std::flush;
-  ActiveDensityMatrix DMAT_A(orb, activeatoms);
+  ActiveDensityMatrix DMAT_A(orb, activeatoms, active_threshold_);
   const Eigen::MatrixXd InitialActiveDensityMatrix = DMAT_A.compute_Dmat_A();
 
   XTP_LOG(Log::error, *pLog_)
@@ -481,9 +485,8 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       << " Ha" << std::flush;
 
   // projection parameter, to be made an option
-  double mu = 10000;
   const Eigen::MatrixXd Level_Shift_Operator =
-      mu * overlap.Matrix() * InactiveDensityMatrix * overlap.Matrix();
+      levelshift_ * overlap.Matrix() * InactiveDensityMatrix * overlap.Matrix();
 
   // XC and Hartree contribution to the external embedding potential/energy
   const Eigen::MatrixXd v_embedding = J_full + K_full + xc_full.matrix() -

@@ -151,7 +151,9 @@ class DFTEngine {
   Eigen::Vector3d extfield_ = Eigen::Vector3d::Zero();
   bool integrate_ext_field_ = false;
 
-  std::string active_atoms_as_string;
+  std::string active_atoms_as_string_;
+  double active_threshold_;
+  double levelshift_;
 };
 
 }  // namespace xtp

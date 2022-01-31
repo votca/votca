@@ -53,4 +53,4 @@ class Localize final : public QMTool {
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_ORB2FCHK_H
+#endif  // VOTCA_XTP_LOCALIZE_H

@@ -80,7 +80,8 @@ void PMLocalization::computePML(Orbitals &orbitals) {
 Eigen::MatrixX2d PMLocalization::rotateorbitals(const Eigen::MatrixX2d &maxorbs,
                                                 const Index s, const Index t) {
   const double gamma =
-      0.25 * asin(B_(s, t) / sqrt((A_(s, t) * A_(s, t)) + (B_(s, t) * B_(s, t))));
+      0.25 *
+      asin(B_(s, t) / sqrt((A_(s, t) * A_(s, t)) + (B_(s, t) * B_(s, t))));
   Eigen::MatrixX2d rotatedorbitals(maxorbs.rows(), 2);
   rotatedorbitals.col(0) =
       (std::cos(gamma) * maxorbs.col(0)) + (std::sin(gamma) * maxorbs.col(1));
@@ -91,7 +92,7 @@ Eigen::MatrixX2d PMLocalization::rotateorbitals(const Eigen::MatrixX2d &maxorbs,
   return rotatedorbitals;
 }
 
-Eigen::VectorXd PMLocalization::pop_per_atom(const Eigen::VectorXd& orbital) {
+Eigen::VectorXd PMLocalization::pop_per_atom(const Eigen::VectorXd &orbital) {
 
   Eigen::RowVectorXd MullikenPop_orb_per_basis =
       (orbital.asDiagonal() * overlap_ * orbital.asDiagonal()).colwise().sum();
@@ -113,8 +114,10 @@ void PMLocalization::initial_penalty() {
   PM_penalty_ =
       Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
   // Variable names A and B are used directly as described in the paper above
-  A_ = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
-  B_ = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
+  A_ =
+      Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
+  B_ =
+      Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
 
   numfuncpatom_ = aobasis_.getFuncPerAtom();
 
@@ -136,8 +139,8 @@ void PMLocalization::initial_penalty() {
 
       Eigen::Vector2d temp = offdiag_penalty_elements(s_overlap, s, t);
 
-      A_(s, t) = temp(0); 
-      B_(s, t) = temp(1); 
+      A_(s, t) = temp(0);
+      B_(s, t) = temp(1);
       PM_penalty_(s, t) =
           A_(s, t) + sqrt((A_(s, t) * A_(s, t)) + (B_(s, t) * B_(s, t)));
     }

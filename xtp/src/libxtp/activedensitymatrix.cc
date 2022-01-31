@@ -17,7 +17,6 @@
  *
  */
 
-
 /*
  * References- (1) A fast intrinsic localization procedure applicable for ab
  *initio and semiempirical linear combination of atomic orbital wave functions.
@@ -27,7 +26,7 @@
  *Embedding Scheme. Frederick R. Manby, Martina Stella, Jason D. Goodpaster, and
  *Thomas F. Miller Journal of Chemical Theory and Computation 2012 8 (8),
  *2564-2568 DOI: 10.1021/ct300544e
-*/
+ */
 #include "votca/xtp/activedensitymatrix.h"
 #include "votca/xtp/aomatrix.h"
 namespace votca {
@@ -62,7 +61,7 @@ Eigen::MatrixXd ActiveDensityMatrix::activedensitymatrix(
           MullikenPop_per_basisset.segment(start, numfuncpatom[atom_id]).sum();
       if ((std::find(activeatoms_.begin(), activeatoms_.end(), atom_id) !=
            activeatoms_.end()) &&
-          MullikenPop_per_atom > 0.40) {
+          MullikenPop_per_atom > threshold_) {
         active_mo_coeff.conservativeResize(localized_mo_coeff.rows(),
                                            numOfActiveOrbs + 1);
         active_mo_coeff.col(numOfActiveOrbs) =

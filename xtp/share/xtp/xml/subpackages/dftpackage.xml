@@ -20,7 +20,8 @@
   <xtpdft help="xtpdft specific keywords can be added here">
     <dft_in_dft help="options for qminqm">
       <activeatoms help="Indices of atoms in active region" default=""/>
-      <orbital_contribution_threshold help="Mulliken population above which orbital is considered in the active region" default="0.4"/>
+      <threshold help="Mulliken population above which orbital is considered in the active region" default="0.4"/>
+      <levelshift help="Levelshift energy for the projection operator" default="10000.0"/>
     </dft_in_dft>
     <screening_eps help="screening eps" default="1e-9" choices="float+" />
     <fock_matrix_reset help="how often the fock matrix is reset" default="5" choices="int+" />
