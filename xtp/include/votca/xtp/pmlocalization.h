@@ -39,14 +39,12 @@ class PMLocalization {
   Logger &log_;
   Eigen::MatrixX2d rotateorbitals(const Eigen::MatrixX2d &maxorbs, Index s,
                                   Index t);
-  // Eigen::MatrixXd cost_function(Eigen::MatrixXd &m, const Eigen::MatrixXd
-  // &S);
 
-  void initial_cost_function();
-  void update_cost_function(Index s, Index t);
+  void initial_penalty();
+  void update_penalty(Index s, Index t);
 
   Eigen::VectorXd pop_per_atom(Eigen::VectorXd orbital);
-  Eigen::Vector2d offdiag_cost_elements(const Eigen::MatrixXd &s_overlap,
+  Eigen::Vector2d offdiag_penalty_elements(const Eigen::MatrixXd &s_overlap,
                                         Index s, Index t);
 
   Eigen::MatrixXd occupied_orbitals;
@@ -56,7 +54,7 @@ class PMLocalization {
   Eigen::MatrixXd A;
   Eigen::MatrixXd B;
 
-  Eigen::MatrixXd PM_cost_function_;
+  Eigen::MatrixXd PM_penalty_;
 
   Eigen::MatrixXd MullikenPop_orb_per_atom_;
 

@@ -38,12 +38,12 @@ void PMLocalization::computePML(Orbitals &orbitals) {
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Starting localization of orbitals" << std::flush;
 
-  // determine initial cost_function
-  initial_cost_function();
+  // determine initial penalty_function
+  initial_penalty();
 
   Index iteration = 1;
   Index maxrow, maxcol;
-  double max_cost = PM_cost_function_.maxCoeff(&maxrow, &maxcol);
+  double max_penalty = PM_penalty_.maxCoeff(&maxrow, &maxcol);
 
   bool not_converged = true;
   while (not_converged && iteration < nrOfIterations_) {
@@ -59,15 +59,15 @@ void PMLocalization::computePML(Orbitals &orbitals) {
     occupied_orbitals.col(maxrow) = rotated_orbs.col(0);
     occupied_orbitals.col(maxcol) = rotated_orbs.col(1);
 
-    update_cost_function(maxrow, maxcol);
+    update_penalty(maxrow, maxcol);
 
     // check for convergence
-    max_cost = PM_cost_function_.maxCoeff(&maxrow, &maxcol);
+    max_penalty = PM_penalty_.maxCoeff(&maxrow, &maxcol);
 
-    if (max_cost < convergence_limit_) not_converged = false;
+    if (max_penalty < convergence_limit_) not_converged = false;
 
     XTP_LOG(Log::info, log_)
-        << "maximum of penalty function: " << max_cost << std::flush;
+        << "maximum of penalty function: " << max_penalty << std::flush;
 
     iteration++;
   }
@@ -108,9 +108,9 @@ Eigen::VectorXd PMLocalization::pop_per_atom(Eigen::VectorXd orbital) {
 }
 
 // Determine PM cost function based on Mulliken populations
-void PMLocalization::initial_cost_function() {
+void PMLocalization::initial_penalty() {
 
-  PM_cost_function_ =
+  PM_penalty_ =
       Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
   // Variable names A and B are used directly as described in the paper above
   A = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
@@ -134,47 +134,18 @@ void PMLocalization::initial_cost_function() {
 
     for (Index t = s + 1; t < occupied_orbitals.cols(); t++) {
 
-      Eigen::Vector2d temp = offdiag_cost_elements(s_overlap, s, t);
+      Eigen::Vector2d temp = offdiag_penalty_elements(s_overlap, s, t);
 
-      /*
-        Eigen::MatrixXd splitwiseMullikenPop_orb_SandT =
-            s_overlap * occupied_orbitals.col(t).asDiagonal();
-        Eigen::RowVectorXd MullikenPop_orb_SandT_per_basis =
-            0.5 * (splitwiseMullikenPop_orb_SandT.colwise().sum() +
-                   splitwiseMullikenPop_orb_SandT.rowwise().sum().transpose());
-
-        Index start =
-            0;  // This helps to sum only over the basis functions on an atom
-        double Ast = 0;
-        double Bst = 0;
-        for (Index atom_id = 0; atom_id < Index(numfuncpatom_.size());
-             atom_id++) {
-          double MullikenPop_orb_SandT_per_atom =
-              MullikenPop_orb_SandT_per_basis
-                  .segment(start, numfuncpatom_[atom_id])
-                  .sum();
-
-          Ast += MullikenPop_orb_SandT_per_atom * MullikenPop_orb_SandT_per_atom
-        - 0.25 * ((MullikenPop_orb_per_atom_(s, atom_id) -
-                          MullikenPop_orb_per_atom_(t, atom_id)) *
-                         (MullikenPop_orb_per_atom_(s, atom_id) -
-                          MullikenPop_orb_per_atom_(t, atom_id)));
-
-          Bst += MullikenPop_orb_SandT_per_atom *
-                 (MullikenPop_orb_per_atom_(s, atom_id) -
-                  MullikenPop_orb_per_atom_(t, atom_id));
-          start += numfuncpatom_[atom_id];
-        }*/
-      A(s, t) = temp(0);  // Ast;
-      B(s, t) = temp(1);  // Bst;
-      PM_cost_function_(s, t) =
+      A(s, t) = temp(0); 
+      B(s, t) = temp(1); 
+      PM_penalty_(s, t) =
           A(s, t) + sqrt((A(s, t) * A(s, t)) + (B(s, t) * B(s, t)));
     }
   }
   return;
 }
 
-Eigen::Vector2d PMLocalization::offdiag_cost_elements(
+Eigen::Vector2d PMLocalization::offdiag_penalty_elements(
     const Eigen::MatrixXd &s_overlap, Index s, Index t) {
 
   Eigen::MatrixXd splitwiseMullikenPop_orb_SandT =
@@ -211,7 +182,7 @@ Eigen::Vector2d PMLocalization::offdiag_cost_elements(
 }
 
 // Update PM cost function based on Mulliken populations after rotations
-void PMLocalization::update_cost_function(Index orb1, Index orb2) {
+void PMLocalization::update_penalty(Index orb1, Index orb2) {
 
   // update the get the s-s elements for orb1 and orb2
 #pragma omp parallel for
@@ -234,10 +205,10 @@ void PMLocalization::update_cost_function(Index orb1, Index orb2) {
       // we do this only if any of s or t matches orb1 or orb2
       if (s == orb1 || s == orb2 || t == orb1 || t == orb2) {
 
-        Eigen::Vector2d temp = offdiag_cost_elements(s_overlap, s, t);
+        Eigen::Vector2d temp = offdiag_penalty_elements(s_overlap, s, t);
         A(s, t) = temp(0);
         B(s, t) = temp(1);
-        PM_cost_function_(s, t) =
+        PM_penalty_(s, t) =
             A(s, t) + sqrt((A(s, t) * A(s, t)) + (B(s, t) * B(s, t)));
       }
     }
