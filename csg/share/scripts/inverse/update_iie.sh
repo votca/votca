@@ -70,17 +70,13 @@ topol=$(csg_get_property --allow-empty cg.inverse.iie.topol)
 volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
 ([[ -n "$volume" ]] && is_num "$volume") || die "could not determine the volume from file ${topol}"
 
-# verbose 
+# verbose
 verbose=$(csg_get_property cg.inverse.iie.verbose)
 step_nr=$(get_current_step_nr)
 [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
 [[ "${verbose}" == 'step0+1' ]] && [[ $step_nr == '0' || $step_nr == '1' ]] && verbose_flag="--verbose"
 
-# RDF extrapolation
-g_extrap_factor=$(csg_get_property --allow-empty cg.inverse.iie.g_extrap_factor) 
-[[ -n $g_extrap_factor ]] && msg --color blue "Deprecated option g_extrap_factor will be ignored!"
-
-# which interactions to update
+# which interactions to update and target
 if [[ $iie_method == 'gauss-newton' ]]; then
   export step_nr=$(get_current_step_nr)  # needs to be exported to work in for_all
   do_potential_list="$(for_all "non-bonded" 'scheme=( $(csg_get_interaction_property inverse.do_potential) ); echo -n $(csg_get_interaction_property name),${scheme[$(( ($step_nr - 1 ) % ${#scheme[@]} ))]}:')"
@@ -92,12 +88,17 @@ fi
 # weather to make dU = 0 one point before the cut off
 [[ "$(csg_get_property cg.inverse.iie.flatten_at_cut_off)" == 'true' ]] && flatten_at_cut_off_flag="--flatten-at-cut-off"
 
+# RDF calculation
 # for_all not necessary for most sim_prog, but also doesn't hurt.
 for_all "non-bonded bonded" do_external rdf "$sim_prog"
 # calculate distributions intramolecular
 if [[ $(csg_get_property cg.inverse.iie.tgt_dcdh) != 'true' ]]; then
   for_all "non-bonded" do_external rdf "$sim_prog" --only-intra-nb
 fi
+
+# RDF extrapolation
+g_extrap_factor=$(csg_get_property --allow-empty cg.inverse.iie.g_extrap_factor)
+[[ -n $g_extrap_factor ]] && msg --color blue "Deprecated option g_extrap_factor will be ignored!"
 
 # resample target distributions
 for_all "non-bonded" do_external resample target --clean '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'

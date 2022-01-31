@@ -236,7 +236,8 @@ def process_input(args):
     if args.subcommand == 'potential_guess':
         charge_dict = get_charge_dict(topology)
     # get needed intramolecular interactions
-    intra_needed = get_intra_needed(topology)
+    # all topologies should contain all molecules
+    intra_needed = get_intra_needed(topology[0] if multistate else topology)
     # get non_bonded_dict
     non_bonded_dict = {nb_name: nb_ts for nb_name, nb_ts in get_non_bonded(options)}
     non_bonded_dict_inv = {v: k for k, v in non_bonded_dict.items()}
