@@ -29,9 +29,9 @@ namespace xtp {
 void PMLocalization::computePML(Orbitals &orbitals) {
   occupied_orbitals = orbitals.MOs().eigenvectors().leftCols(
       orbitals.getNumberOfAlphaElectrons());
-  aobasis = orbitals.getDftBasis();
+  aobasis_ = orbitals.getDftBasis();
   AOOverlap overlap;
-  overlap.Fill(aobasis);
+  overlap.Fill(aobasis_);
   overlap_ = overlap.Matrix();
 
   XTP_LOG(Log::error, log_) << std::flush;
@@ -80,7 +80,7 @@ void PMLocalization::computePML(Orbitals &orbitals) {
 Eigen::MatrixX2d PMLocalization::rotateorbitals(const Eigen::MatrixX2d &maxorbs,
                                                 const Index s, const Index t) {
   const double gamma =
-      0.25 * asin(B(s, t) / sqrt((A(s, t) * A(s, t)) + (B(s, t) * B(s, t))));
+      0.25 * asin(B_(s, t) / sqrt((A_(s, t) * A_(s, t)) + (B_(s, t) * B_(s, t))));
   Eigen::MatrixX2d rotatedorbitals(maxorbs.rows(), 2);
   rotatedorbitals.col(0) =
       (std::cos(gamma) * maxorbs.col(0)) + (std::sin(gamma) * maxorbs.col(1));
@@ -91,7 +91,7 @@ Eigen::MatrixX2d PMLocalization::rotateorbitals(const Eigen::MatrixX2d &maxorbs,
   return rotatedorbitals;
 }
 
-Eigen::VectorXd PMLocalization::pop_per_atom(Eigen::VectorXd orbital) {
+Eigen::VectorXd PMLocalization::pop_per_atom(const Eigen::VectorXd& orbital) {
 
   Eigen::RowVectorXd MullikenPop_orb_per_basis =
       (orbital.asDiagonal() * overlap_ * orbital.asDiagonal()).colwise().sum();
@@ -113,10 +113,10 @@ void PMLocalization::initial_penalty() {
   PM_penalty_ =
       Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
   // Variable names A and B are used directly as described in the paper above
-  A = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
-  B = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
+  A_ = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
+  B_ = Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
 
-  numfuncpatom_ = aobasis.getFuncPerAtom();
+  numfuncpatom_ = aobasis_.getFuncPerAtom();
 
   // get the s-s elements first ("diagonal in orbital")
   MullikenPop_orb_per_atom_ = Eigen::MatrixXd::Zero(
@@ -136,10 +136,10 @@ void PMLocalization::initial_penalty() {
 
       Eigen::Vector2d temp = offdiag_penalty_elements(s_overlap, s, t);
 
-      A(s, t) = temp(0); 
-      B(s, t) = temp(1); 
+      A_(s, t) = temp(0); 
+      B_(s, t) = temp(1); 
       PM_penalty_(s, t) =
-          A(s, t) + sqrt((A(s, t) * A(s, t)) + (B(s, t) * B(s, t)));
+          A_(s, t) + sqrt((A_(s, t) * A_(s, t)) + (B_(s, t) * B_(s, t)));
     }
   }
   return;
@@ -206,10 +206,10 @@ void PMLocalization::update_penalty(Index orb1, Index orb2) {
       if (s == orb1 || s == orb2 || t == orb1 || t == orb2) {
 
         Eigen::Vector2d temp = offdiag_penalty_elements(s_overlap, s, t);
-        A(s, t) = temp(0);
-        B(s, t) = temp(1);
+        A_(s, t) = temp(0);
+        B_(s, t) = temp(1);
         PM_penalty_(s, t) =
-            A(s, t) + sqrt((A(s, t) * A(s, t)) + (B(s, t) * B(s, t)));
+            A_(s, t) + sqrt((A_(s, t) * A_(s, t)) + (B_(s, t) * B_(s, t)));
       }
     }
   }

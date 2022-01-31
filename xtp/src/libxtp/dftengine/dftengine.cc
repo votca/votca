@@ -629,18 +629,6 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       return false;
     }
   }
-  // Eigen::MatrixXd MullikenPopOfActiveRegion = ActiveDensityMatrix *
-  // overlap.Matrix(); Eigen::VectorXd MullikenPopOfBasisSets =
-  // MullikenPopOfActiveRegion.diagonal(); std::cout << "The Mulliken Pop is : "
-  // << std::endl << MullikenPopOfBasisSets; AOShell aoshell; for
-  // (aoshell=AOShell.begin(); aoshell!=AOShell.end(); aoshell++) {
-  //   for (Index basisfunction=aoshell.begin(); basisfunction!=aoshell.end();
-  //   basisfunction++) {
-  //     if (MullikenPopOfBasisSets(basisfunction) > 1e-4){
-  //       TruncatedBasisSet.pushback(AOShell)
-  //   }
-  // }
-  //}
 
   return true;
 }  // namespace xtp

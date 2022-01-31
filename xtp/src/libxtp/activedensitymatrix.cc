@@ -15,6 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ */
+
+
+/*
  * References- (1) A fast intrinsic localization procedure applicable for ab
  *initio and semiempirical linear combination of atomic orbital wave functions.
  *Janos Pipek and Paul G. Mezey. J. Chem. Phys. 90, 4916 (1989);
@@ -23,8 +27,7 @@
  *Embedding Scheme. Frederick R. Manby, Martina Stella, Jason D. Goodpaster, and
  *Thomas F. Miller Journal of Chemical Theory and Computation 2012 8 (8),
  *2564-2568 DOI: 10.1021/ct300544e
- */
-
+*/
 #include "votca/xtp/activedensitymatrix.h"
 #include "votca/xtp/aomatrix.h"
 namespace votca {
@@ -32,14 +35,12 @@ namespace xtp {
 
 Eigen::MatrixXd ActiveDensityMatrix::compute_Dmat_A() {
   Eigen::MatrixXd localized_mo_coeff = orbitals_.getPMLocalizedOrbital();
-  const Eigen::MatrixXd ActiveDmat = activedensitymatrix(localized_mo_coeff);
-  return ActiveDmat;
+  return activedensitymatrix(localized_mo_coeff);
 }
 
 Eigen::MatrixXd ActiveDensityMatrix::activedensitymatrix(
     const Eigen::MatrixXd &localized_mo_coeff) {
-  AOBasis aobasis;
-  aobasis = orbitals_.getDftBasis();
+  AOBasis aobasis = orbitals_.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
   Index numOfActiveOrbs = 0;

@@ -36,27 +36,22 @@ namespace xtp {
 void Localize::ParseOptions(const tools::Property& options) {
   options_ = options;
   orbitals.ReadFromCpt(job_name_ + ".orb");
-  std::string temp = options.get("activeatoms").as<std::string>();
-  std::stringstream ss(temp);
-  Index tmp;
-  while (ss >> tmp) {
-    activeatoms.push_back(tmp);
-  }
-  std::cout << "Atoms in active region: ";
-  for (const auto& atom : activeatoms) {
-    std::cout << atom << " ";
-  }
-  std::cout << std::endl;
+  activeatoms = options.get("activeatoms").as<std::vector<Index>>();
 }
 
 bool Localize::Run() {
   log.setReportLevel(Log::current_level);
   log.setMultithreading(true);
   log.setCommonPreface("\n... ...");
-  XTP_LOG(Log::error, log) << "Starting localization tool" << std::endl;
+  XTP_LOG(Log::error, log) << "Starting localization tool" << std::flush;
+
+  XTP_LOG(Log::error, log) <<  "Atoms in active region: ";
+  for (const auto& atom : activeatoms) {
+    XTP_LOG(Log::error, log) << atom << std::flush;
+  }
   PMLocalization pml(log, options_);
   pml.computePML(orbitals);
-  XTP_LOG(Log::error, log) << "Computing Dmat_A now" << std::endl;
+  XTP_LOG(Log::error, log) << "Computing Dmat_A now" << std::flush;
   ActiveDensityMatrix Dmat_A(orbitals, activeatoms);
   Dmat_A.compute_Dmat_A();
   return true;

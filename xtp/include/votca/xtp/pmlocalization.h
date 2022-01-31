@@ -29,11 +29,11 @@ namespace xtp {
 
 class PMLocalization {
  public:
-  PMLocalization(Logger &log, tools::Property &options) : log_(log) {
+  PMLocalization(Logger &log, const tools::Property &options) : log_(log) {
     nrOfIterations_ = options.get(".max_iterations").as<Index>();
     convergence_limit_ = options.get(".convergence_limit").as<double>();
   };
-  void computePML(Orbitals &orbitals_);
+  void computePML(Orbitals &orbitals);
 
  private:
   Logger &log_;
@@ -43,16 +43,16 @@ class PMLocalization {
   void initial_penalty();
   void update_penalty(Index s, Index t);
 
-  Eigen::VectorXd pop_per_atom(Eigen::VectorXd orbital);
+  Eigen::VectorXd pop_per_atom(const Eigen::VectorXd& orbital);
   Eigen::Vector2d offdiag_penalty_elements(const Eigen::MatrixXd &s_overlap,
                                         Index s, Index t);
 
   Eigen::MatrixXd occupied_orbitals;
 
-  AOBasis aobasis;
+  AOBasis aobasis_;
   Eigen::MatrixXd overlap_;
-  Eigen::MatrixXd A;
-  Eigen::MatrixXd B;
+  Eigen::MatrixXd A_;
+  Eigen::MatrixXd B_;
 
   Eigen::MatrixXd PM_penalty_;
 
