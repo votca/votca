@@ -28,7 +28,6 @@
 #include "tools/excitoncoupling.h"
 #include "tools/gencube.h"
 #include "tools/gpu_benchmark.h"
-#include "tools/localize.h"
 #include "tools/log2mps.h"
 #include "tools/mol2orb.h"
 #include "tools/molpol.h"
@@ -54,7 +53,6 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<Mol2Orb>("mol2orb");
   QMTools().Register<Orb2Mol>("orb2mol");
   QMTools().Register<Orb2Fchk>("orb2fchk");
-  QMTools().Register<Localize>("localize");
   QMTools().Register<GPUBenchmark>("gpu_benchmark");
 }
 

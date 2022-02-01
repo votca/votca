@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<options>
-  <localize help="Allows you to compute localised orbitals using the Pipek-Mezey scheme">
-      <max_iterations help="Maximum number of iterations for PM Localization" default="10000"/>
-      <convergence_limit help="Convergence criteria for PM localization" default="1e-5"/>
-  </localize>
-</options>
