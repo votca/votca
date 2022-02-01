@@ -11,6 +11,7 @@ Version 2022.1 (released XX.01.22)
 -  make csg_resample and csg_stat spacing consistent (#956)
 -  fix build on FreeBSD (#959)
 -  update CI container names (#961)
+-  Fix gw quadrature scheme (#967)
 
 Version 2022 (released 15.01.22)
 ================================
