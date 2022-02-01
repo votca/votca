@@ -42,13 +42,18 @@ void PMLocalization::computePML(Orbitals &orbitals) {
   initial_penalty();
 
   Index iteration = 1;
-  Index maxrow, maxcol;
-  double max_penalty = PM_penalty_.maxCoeff(&maxrow, &maxcol);
 
-  bool not_converged = true;
-  while (not_converged && iteration < nrOfIterations_) {
+  while (iteration < nrOfIterations_) {
 
     XTP_LOG(Log::info, log_) << "Iteration: " << iteration << std::flush;
+
+    Index maxrow, maxcol;
+    double max_penalty = PM_penalty_.maxCoeff(&maxrow, &maxcol);
+
+    XTP_LOG(Log::info, log_)
+        << "maximum of penalty function: " << max_penalty << std::flush;
+
+    if (max_penalty < convergence_limit_) break;
 
     XTP_LOG(Log::info, log_)
         << "Orbitals to be changed: " << maxrow << " " << maxcol << std::flush;
@@ -61,15 +66,11 @@ void PMLocalization::computePML(Orbitals &orbitals) {
 
     update_penalty(maxrow, maxcol);
 
-    // check for convergence
-    max_penalty = PM_penalty_.maxCoeff(&maxrow, &maxcol);
-
-    if (max_penalty < convergence_limit_) not_converged = false;
-
-    XTP_LOG(Log::info, log_)
-        << "maximum of penalty function: " << max_penalty << std::flush;
-
     iteration++;
+  }
+  if (iteration == nrOfIterations_) {
+    throw std::runtime_error(
+        "Localization with Jacobi-Sweeps did not converge");
   }
   XTP_LOG(Log::error, log_) << TimeStamp() << " Orbitals localized after "
                             << iteration + 1 << " iterations" << std::flush;
