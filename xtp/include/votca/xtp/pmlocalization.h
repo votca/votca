@@ -44,6 +44,12 @@ class PMLocalization {
   std::string method_;
 
   // functions for unitary optimizer
+  double cost(const Eigen::MatrixXd &W,
+                                  const std::vector<Eigen::MatrixXd> &Sat_all,
+                                  const Index nat);
+  double cost_derivative(const Eigen::MatrixXd &W,
+                                  const std::vector<Eigen::MatrixXd> &Sat_all,
+                                  const Index nat, Eigen::MatrixXd &Jderiv);
 
   //
 

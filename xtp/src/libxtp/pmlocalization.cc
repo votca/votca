@@ -40,6 +40,51 @@ void PMLocalization::computePML(Orbitals &orbitals) {
   }
 }
 
+
+double PMLocalization::cost(const Eigen::MatrixXd &W,
+                                  const std::vector<Eigen::MatrixXd> &Sat_all,
+                                  const Index nat){
+
+double Dinv = 0.0;
+  double p = 2.0;  // standard PM
+  for (Index iat = 0; iat < nat; iat++) {
+    Eigen::MatrixXd qw = Sat_all[iat] * W;
+    for (Index i = 0; i < W.cols(); i++) {
+      double Qa = W.col(i).transpose() * qw.col(i);
+      Dinv += std::pow(Qa, p);
+    }
+  }
+
+return Dinv;
+
+}
+
+double PMLocalization::cost_derivative(const Eigen::MatrixXd &W,
+                                  const std::vector<Eigen::MatrixXd> &Sat_all,
+                                  const Index nat, Eigen::MatrixXd &Jderiv){ 
+
+
+  double Dinv = 0.0;
+  double p = 2.0;  // standard PM
+  for (Index iat = 0; iat < nat; iat++) {
+    Eigen::MatrixXd qw = Sat_all[iat] * W;
+    for (Index i = 0; i < W.cols(); i++) {
+      double qwp = W.col(i).transpose() * qw.col(i);
+      Dinv += std::pow(qwp, p);
+      double t = p * std::pow(qwp, p - 1);
+      for (Index j = 0; j < W.cols(); j++) {
+
+        Jderiv(j, i) += t * qw(j, i);
+      }
+    }
+  }
+  return Dinv;
+
+}
+
+
+
+
 void PMLocalization::computePML_UT(Orbitals &orbitals) {
 
   occupied_orbitals = orbitals.MOs().eigenvectors().leftCols(
@@ -80,35 +125,18 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
   }
 
   // calculate value of cost function
-  double Dinv = 0.0;
-  double p = 2.0; //standard PM
-  for (Index iat = 0; iat < numatoms; iat++) {
-    Eigen::MatrixXd qw = Sat_all[iat] * W;
-    for (Index i = 0; i < W.cols(); i++) {
-      double Qa = W.col(i).transpose() * qw.col(i);
-      Dinv += std::pow(Qa, p);
-    }
-  }
+  //double Dinv = cost(W,Sat_all,numatoms);
 
-XTP_LOG(Log::error, log_)
-        << TimeStamp() << " Calculated cost function" << std::flush;
+  //XTP_LOG(Log::error, log_)
+    //  << TimeStamp() << " Calculated cost function" << std::flush;
 
-  // calculate derivative of cost function wrt unitary matrix
+  // calculate cost and its derivative  wrt unitary matrix
   Eigen::MatrixXd Jderiv = Eigen::MatrixXd::Zero(n_occs, n_occs);
-  for (Index iat = 0; iat < numatoms; iat++) {
-    Eigen::MatrixXd qw = Sat_all[iat] * W;
-    for (Index i = 0; i < W.cols(); i++) {
-      double qwp = W.col(i).transpose() * qw.col(i);
-      double t = p * std::pow(qwp, p - 1);
-      for (Index j = 0; j < W.cols(); j++) {
+  double Dinv = cost_derivative(W,Sat_all,numatoms,Jderiv);
 
-        Jderiv(j, i) += t * qw(j, i);
-      }
-    }
-  }
 
   XTP_LOG(Log::error, log_)
-        << TimeStamp() << " Calculated derivative" << std::flush;
+      << TimeStamp() << " Calculated derivative" << std::flush;
 
   // calculate Riemannian derivative
   Eigen::MatrixXd G = Jderiv * W.transpose() - W * Jderiv.transpose();
@@ -116,21 +144,175 @@ XTP_LOG(Log::error, log_)
   // calculate search direction using SDSA for now
   Eigen::MatrixXd H = G;
 
-  Index orderW = 4; // for PM
-  std::complex<double> ima(0.0,1.0);
-  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> es(-ima*H);
-XTP_LOG(Log::error, log_)
-        << TimeStamp() << " Eigensystem" << std::flush;
+  Index orderW = 4;  // for PM
+  std::complex<double> ima(0.0, 1.0);
+  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> es(-ima * H);
+  XTP_LOG(Log::error, log_) << TimeStamp() << " Eigensystem" << std::flush;
 
   Eigen::VectorXcd Hval = es.eigenvalues();
+  Eigen::MatrixXcd Hvec = es.eigenvectors();
   double wmax = Hval.cwiseAbs().maxCoeff();
-  double Tmu = 2.0*tools::conv::Pi/(orderW*wmax);
-XTP_LOG(Log::error, log_)
-        << TimeStamp() << " Max step" << Tmu << std::flush;
+  double Tmu = 2.0 * tools::conv::Pi / (orderW * wmax);
+  XTP_LOG(Log::error, log_) << TimeStamp() << " Max step" << Tmu << std::flush;
+
+  // line optimization via polynomial fit
+  Index npoints = 4; // to be adapted/adaptable
+  double deltaTmu=Tmu/(npoints-1);
+  int halved=0;
+
+  // finding optimal step
+  while(true){
+
+    Eigen::VectorXd mu(npoints);
+    Eigen::VectorXd fd(npoints); // cost function derivative
+    Eigen::VectorXd fv(npoints); // cost function value 
+
+    for (Index i=0; i< npoints; i++){
+      mu(i) = i*deltaTmu;
+      // what is the matrix we should test?
+      Eigen::VectorXcd temp = (mu(i)*ima*Hval).array().exp();
+      Eigen::MatrixXcd W_rotated = Hvec * temp.asDiagonal() * Hvec.transpose() * W;
+      
+      // if(real)
+      // Zero out possible imaginary part
+      // rot=arma::real(rot)*COMPLEX1;
+
+      // calculate cost and derivative for this rotated W matrix
+
+
+      //arma::cx_mat der;
+      //der=fline[i]->cost_der(Wtr);
+      //fline[i]->cost_func_der(Wtr,fv(i),der);
+      //fv(i) = cost
+      // and the derivative is
+      //fd(i)=2.0*std::real(der*W_rotated.transpose()*H.transpose() ).trace());
+
+
+    }
+
+
+  }
+/*
+void UnitaryOptimizer::polynomial_step_df(UnitaryFunction* & fp) {
+  // Matrix
+  arma::cx_mat W=fp->getW();
+  // Amount of points to use is
+  int npoints=polynomial_degree;
+  // Spacing
+  double deltaTmu=Tmu/(npoints-1);
+  int halved=0;
+
+  UnitaryFunction* fline[npoints];
+  for(int i=0;i<npoints;i++)
+    fline[i]=fp->copy();
+
+  while(true) {
+    // Evaluate the cost function at the expansion points
+    arma::vec mu(npoints);
+    arma::vec fd(npoints);
+    arma::vec fv(npoints);
+
+    for(int i=0;i<npoints;i++) {
+      // Mu in the point is
+      mu(i)=i*deltaTmu;
+
+      // Trial matrix is
+      arma::cx_mat Wtr=get_rotation(mu(i)*fp->getsign())*W;
+      // and the function is
+      arma::cx_mat der;
+      //der=fline[i]->cost_der(Wtr);
+      fline[i]->cost_func_der(Wtr,fv(i),der);
+      // and the derivative is
+      fd(i)=step_der(Wtr,der);
+    }
+
+    // Sanity check - is derivative of the right sign?
+    if(fd(0)<0.0) {
+      printf("Derivative is of the wrong sign!\n");
+      arma::trans(mu).print("mu");
+      arma::trans(fd).print("J'(mu)");
+      //      throw std::runtime_error("Derivative consistency error.\n");
+      fprintf(stderr,"Warning - inconsistent sign of derivative.\n");
+    }
+
+    // Fit to polynomial of order p
+    arma::vec coeff=fit_polynomial(mu,fd);
+
+    // Find out zeros of the polynomial
+    arma::vec roots=solve_roots(coeff);
+    // get the smallest positive one
+    double step=smallest_positive(roots);
+
+    /*
+    printf("Trial step size is %e.\n",step);
+    mu.t().print("mu");
+    fd.t().print("f'");
+    fv.t().print("f");
+    */
+
+    // Is the step length in the allowed region?
+ //   if(step>0.0 && step <=Tmu) {
+      // Yes. Calculate the new value
+   //   arma::cx_mat Wtr=get_rotation(step*fp->getsign())*W;
+  //    UnitaryFunction *newf=fp->copy();
+
+  //    double J=fp->getf();
+  //    double Jtr=newf->cost_func(Wtr);
+
+      // Accept the step?
+  //    if( fp->getsign()*(Jtr-J) > 0.0) {
+	// Yes.
+	//	printf("Function value changed by %e, accept.\n",Jtr-J);
+//	delete fp;
+	//fp=newf;
+//	break;
+  //    } else {
+//	fprintf(stderr,"Line search interpolation failed.\n");
+//	fflush(stderr);
+//	if(halved<1) {
+	//  delete newf;
+//	  halved++;
+//	  deltaTmu/=2.0;
+//	  continue;
+//	} else {
+	  // Try an Armijo step
+	//  return armijo_step(fp);
+
+	  /*
+	  ERROR_INFO();
+	  throw std::runtime_error("Problem in polynomial line search - could not find suitable extremum!\n");
+	  */
+//	}
+  //    }
+
+   //   delete newf;
+ //   } else {
+  //    fprintf(stderr,"Line search interpolation failed.\n");
+ //     fflush(stderr);
+ //     if(halved<4) {
+//	halved++;
+//	deltaTmu/=2.0;
+//	continue;
+ //     } else {
+//	ERROR_INFO();
+	//  throw std::runtime_error("Problem in polynomial line search - could not find suitable extremum!\n");
+ //     }
+ //   }
+ // }
+
+ // for(int i=0;i<npoints;i++)
+  ////  delete fline[i];
+//}
 
 
 
-  // line optimization
+
+
+
+
+
+
+
   // update unitary matrix
 }
 
