@@ -363,7 +363,7 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *pLog_)
         << " Quadrature integration order : " << gwopt_.order << flush;
     gwopt_.quadrature_scheme =
-        options.get(".quadrature_scheme").as<std::string>();
+        options.get("gw.quadrature_scheme").as<std::string>();
     XTP_LOG(Log::error, *pLog_)
         << " Quadrature integration scheme : " << gwopt_.quadrature_scheme
         << flush;
