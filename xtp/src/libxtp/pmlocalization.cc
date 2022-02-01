@@ -26,7 +26,115 @@
 
 namespace votca {
 namespace xtp {
+
 void PMLocalization::computePML(Orbitals &orbitals) {
+
+  if (method_ == "jacobi-sweeps") {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Using Jacobi-Sweeps" << std::flush;
+    computePML_JS(orbitals);
+  } else if (method_ == "unitary-optimizer") {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Using Unitary Optimizer" << std::flush;
+    computePML_UT(orbitals);
+  }
+}
+
+void PMLocalization::computePML_UT(Orbitals &orbitals) {
+
+  occupied_orbitals = orbitals.MOs().eigenvectors().leftCols(
+      orbitals.getNumberOfAlphaElectrons());
+
+  // initialize a unitary matrix (as Idenity matrix for now)
+  const Index n_occs = orbitals.getNumberOfAlphaElectrons();
+  Eigen::MatrixXd W = Eigen::MatrixXd::Identity(n_occs, n_occs);
+
+  // prepare Mulliken charges
+  // get overlap matrix
+  aobasis_ = orbitals.getDftBasis();
+  AOOverlap overlap;
+  overlap.Fill(aobasis_);
+  overlap_ = overlap.Matrix();
+  numfuncpatom_ = aobasis_.getFuncPerAtom();
+  Index numatoms = Index(numfuncpatom_.size());
+  Index numfunctions = overlap_.cols();
+  Index start = 0;
+
+  // could be a bit memory expensive
+  std::vector<Eigen::MatrixXd> Sat_all;
+
+  for (Index iat = 0; iat < numatoms; iat++) {
+
+    Eigen::MatrixXd Sat = Eigen::MatrixXd::Zero(numfunctions, numfunctions);
+
+    // copy all columns of overlap belingin to this atom to local Sat
+    Sat.middleCols(start, numfuncpatom_[iat]) =
+        overlap_.middleCols(start, numfuncpatom_[iat]);
+    // symmetrize
+    Sat = (Sat + Sat.transpose()) / 2.0;
+    // multiply with orbitals
+    Sat = occupied_orbitals.transpose() * Sat * occupied_orbitals;
+
+    Sat_all.push_back(Sat);
+    start += numfuncpatom_[iat];
+  }
+
+  // calculate value of cost function
+  double Dinv = 0.0;
+  double p = 2.0; //standard PM
+  for (Index iat = 0; iat < numatoms; iat++) {
+    Eigen::MatrixXd qw = Sat_all[iat] * W;
+    for (Index i = 0; i < W.cols(); i++) {
+      double Qa = W.col(i).transpose() * qw.col(i);
+      Dinv += std::pow(Qa, p);
+    }
+  }
+
+XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Calculated cost function" << std::flush;
+
+  // calculate derivative of cost function wrt unitary matrix
+  Eigen::MatrixXd Jderiv = Eigen::MatrixXd::Zero(n_occs, n_occs);
+  for (Index iat = 0; iat < numatoms; iat++) {
+    Eigen::MatrixXd qw = Sat_all[iat] * W;
+    for (Index i = 0; i < W.cols(); i++) {
+      double qwp = W.col(i).transpose() * qw.col(i);
+      double t = p * std::pow(qwp, p - 1);
+      for (Index j = 0; j < W.cols(); j++) {
+
+        Jderiv(j, i) += t * qw(j, i);
+      }
+    }
+  }
+
+  XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Calculated derivative" << std::flush;
+
+  // calculate Riemannian derivative
+  Eigen::MatrixXd G = Jderiv * W.transpose() - W * Jderiv.transpose();
+
+  // calculate search direction using SDSA for now
+  Eigen::MatrixXd H = G;
+
+  Index orderW = 4; // for PM
+  std::complex<double> ima(0.0,1.0);
+  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> es(-ima*H);
+XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Eigensystem" << std::flush;
+
+  Eigen::VectorXcd Hval = es.eigenvalues();
+  double wmax = Hval.cwiseAbs().maxCoeff();
+  double Tmu = 2.0*tools::conv::Pi/(orderW*wmax);
+XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Max step" << Tmu << std::flush;
+
+
+
+  // line optimization
+  // update unitary matrix
+}
+
+void PMLocalization::computePML_JS(Orbitals &orbitals) {
   occupied_orbitals = orbitals.MOs().eigenvectors().leftCols(
       orbitals.getNumberOfAlphaElectrons());
   aobasis_ = orbitals.getDftBasis();

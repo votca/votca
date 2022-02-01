@@ -32,30 +32,39 @@ class PMLocalization {
   PMLocalization(Logger &log, const tools::Property &options) : log_(log) {
     nrOfIterations_ = options.get(".max_iterations").as<Index>();
     convergence_limit_ = options.get(".convergence_limit").as<double>();
+    method_ = options.get(".method").as<std::string>();
   };
   void computePML(Orbitals &orbitals);
+  void computePML_UT(Orbitals &orbitals);
+  void computePML_JS(Orbitals &orbitals);
 
  private:
   Logger &log_;
+
+  std::string method_;
+
+  // functions for unitary optimizer
+
+  //
+
+  // functions for Jacobi sweeps
   Eigen::MatrixX2d rotateorbitals(const Eigen::MatrixX2d &maxorbs, Index s,
                                   Index t);
 
   void initial_penalty();
   void update_penalty(Index s, Index t);
-
   Eigen::VectorXd pop_per_atom(const Eigen::VectorXd &orbital);
   Eigen::Vector2d offdiag_penalty_elements(const Eigen::MatrixXd &s_overlap,
                                            Index s, Index t);
 
   Eigen::MatrixXd occupied_orbitals;
-
   AOBasis aobasis_;
   Eigen::MatrixXd overlap_;
+
+  // variables for Jacobi sweeps
   Eigen::MatrixXd A_;
   Eigen::MatrixXd B_;
-
   Eigen::MatrixXd PM_penalty_;
-
   Eigen::MatrixXd MullikenPop_orb_per_atom_;
 
   std::vector<Index> numfuncpatom_;

@@ -56,6 +56,7 @@ BOOST_AUTO_TEST_CASE(localizedorbitals_test) {
   tools::Property options;
   options.add("max_iterations", "1000");
   options.add("convergence_limit", "1e-12");
+  options.add("method", "jacobi-sweeps");
 
   PMLocalization pml(log, options);
   pml.computePML(orbitals);
