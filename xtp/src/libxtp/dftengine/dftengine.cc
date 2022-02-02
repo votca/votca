@@ -362,9 +362,7 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
 bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
   // reading in the orbitals of the full DFT calculation
-  tools::EigenSystem embeddingMOs;
-  embeddingMOs.eigenvalues() = orb.MOs().eigenvalues();
-  embeddingMOs.eigenvectors() = orb.MOs().eigenvectors();
+  tools::EigenSystem embeddingMOs = orb.MOs();
 
   // constructing the full electron density matrix
   const Eigen::MatrixXd FullDensityMatrix = orb.DensityMatrixGroundState();
