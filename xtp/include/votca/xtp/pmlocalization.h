@@ -45,13 +45,20 @@ class PMLocalization {
 
   // functions for unitary optimizer
   double cost(const Eigen::MatrixXd &W,
-                                  const std::vector<Eigen::MatrixXd> &Sat_all,
-                                  const Index nat);
-  double cost_derivative(const Eigen::MatrixXd &W,
-                                  const std::vector<Eigen::MatrixXd> &Sat_all,
-                                  const Index nat, Eigen::MatrixXd &Jderiv);
+              const std::vector<Eigen::MatrixXd> &Sat_all, const Index nat);
+  std::pair<double, Eigen::MatrixXd> cost_derivative(
+      const Eigen::MatrixXd &W, const std::vector<Eigen::MatrixXd> &Sat_all,
+      const Index nat);
 
-  //
+  Eigen::VectorXd fit_polynomial(const Eigen::VectorXd &x,
+                                 const Eigen::VectorXd &y);
+  Eigen::VectorXcd find_complex_roots(const Eigen::VectorXd &coeff);
+  Eigen::VectorXcd find_complex_croots(const Eigen::VectorXcd &coeff);
+  double find_smallest_step(const Eigen::VectorXd &coeff);
+  Eigen::MatrixXcd companion_matrix(const Eigen::VectorXcd &coeff);
+  Eigen::MatrixXd rotate_W(const double step, const Eigen::MatrixXd &W,
+                           const Eigen::VectorXcd &eval,
+                           const Eigen::MatrixXcd &evec);
 
   // functions for Jacobi sweeps
   Eigen::MatrixX2d rotateorbitals(const Eigen::MatrixX2d &maxorbs, Index s,
@@ -66,6 +73,7 @@ class PMLocalization {
   Eigen::MatrixXd occupied_orbitals;
   AOBasis aobasis_;
   Eigen::MatrixXd overlap_;
+  Index n_occs_;
 
   // variables for Jacobi sweeps
   Eigen::MatrixXd A_;

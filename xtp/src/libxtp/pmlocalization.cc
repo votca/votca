@@ -40,12 +40,11 @@ void PMLocalization::computePML(Orbitals &orbitals) {
   }
 }
 
-
 double PMLocalization::cost(const Eigen::MatrixXd &W,
-                                  const std::vector<Eigen::MatrixXd> &Sat_all,
-                                  const Index nat){
+                            const std::vector<Eigen::MatrixXd> &Sat_all,
+                            const Index nat) {
 
-double Dinv = 0.0;
+  double Dinv = 0.0;
   double p = 2.0;  // standard PM
   for (Index iat = 0; iat < nat; iat++) {
     Eigen::MatrixXd qw = Sat_all[iat] * W;
@@ -55,21 +54,21 @@ double Dinv = 0.0;
     }
   }
 
-return Dinv;
-
+  return Dinv;
 }
 
-double PMLocalization::cost_derivative(const Eigen::MatrixXd &W,
-                                  const std::vector<Eigen::MatrixXd> &Sat_all,
-                                  const Index nat, Eigen::MatrixXd &Jderiv){ 
-
-
+std::pair<double, Eigen::MatrixXd> PMLocalization::cost_derivative(
+    const Eigen::MatrixXd &W, const std::vector<Eigen::MatrixXd> &Sat_all,
+    const Index nat) {
+  Eigen::MatrixXd Jderiv = Eigen::MatrixXd::Zero(n_occs_, n_occs_);
   double Dinv = 0.0;
+  double totalC=0.0;
   double p = 2.0;  // standard PM
   for (Index iat = 0; iat < nat; iat++) {
     Eigen::MatrixXd qw = Sat_all[iat] * W;
     for (Index i = 0; i < W.cols(); i++) {
       double qwp = W.col(i).transpose() * qw.col(i);
+      totalC += qwp;
       Dinv += std::pow(qwp, p);
       double t = p * std::pow(qwp, p - 1);
       for (Index j = 0; j < W.cols(); j++) {
@@ -78,12 +77,153 @@ double PMLocalization::cost_derivative(const Eigen::MatrixXd &W,
       }
     }
   }
-  return Dinv;
 
+  XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Total charge: " << totalC 
+        << std::flush;
+
+  return {Dinv, Jderiv};
 }
 
+Eigen::VectorXd PMLocalization::fit_polynomial(const Eigen::VectorXd &x,
+                                               const Eigen::VectorXd &y) {
+
+  // Fit function to polynomial of order p: y(x) = a_0 + a_1*x + ... +
+  // a_(p-1)*x^(p-1)
+
+  if (x.size() != y.size()) {
+    throw std::runtime_error("x and y have different dimensions!\n");
+  }
+  Index N = x.size();
+  Index deg = N;  // ? is there a difference between .size and .n_elem???
+
+  // Form matrix
+  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(N, deg);
+
+  for (Index i = 0; i < N; i++) {
+    for (Index j = 0; j < deg; j++) {
+      A(i, j) = std::pow(x(i), j);
+    }
+  }
+  // Solve for coefficients: A * c = y
+  Eigen::VectorXd c = A.colPivHouseholderQr().solve(y);
+
+  return c;
+}
+
+double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
+
+  // get the complex roots of the polynomial
+  Eigen::VectorXcd complex_roots = find_complex_roots(coeff);
+
+  // Real roots
+  std::vector<double> real_roots;
+  for (Index i = 0; i < complex_roots.size(); i++) {
+    if (fabs(std::imag(complex_roots(i))) < 10 * DBL_EPSILON) {
+      real_roots.push_back(std::real(complex_roots(i)));
+    }
+  }
+
+  // Sort roots
+  std::sort(real_roots.begin(), real_roots.end());
+  //XTP_LOG(Log::error, log_)
+  //      << TimeStamp() << " Found real roots of the polynomial: "
+  //      << std::flush;
+  //for (Index i =0 ; i < real_roots.size(); i++){
+
+  //  std::cout << real_roots[i]  << "\n" << std::endl;
+  //}
 
 
+
+
+  double step = 0.0;
+  for (Index i = 0; i < Index(real_roots.size()); i++) {
+    // Omit extremely small steps because they might get you stuck.
+    if (real_roots[i] > sqrt(DBL_EPSILON)) {
+      step = real_roots[i];
+      break;
+    }
+  }
+
+  return step;
+}
+
+Eigen::VectorXcd PMLocalization::find_complex_roots(
+    const Eigen::VectorXd &coeff) {
+  std::complex<double> one(1.0, 0.0);
+  return find_complex_croots(one * coeff);
+}
+
+Eigen::VectorXcd PMLocalization::find_complex_croots(
+    const Eigen::VectorXcd &coeff) {
+
+  // Find roots of a_0 + a_1*mu + ... + a_(p-1)*mu^(p-1) = 0.
+
+  // Coefficient of highest order term must be nonzero.
+  Index order = coeff.size();
+  while (coeff(order - 1) == 0.0 && order >= 1) order--;
+
+  if (order == 1) {
+    // Zeroth degree - no zeros!
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Polynomial is constant - no zero can be found."
+        << std::flush;
+  }
+
+  // Form companion matrix
+  Eigen::MatrixXcd cmat = companion_matrix(coeff.head(order));
+  // arma::cx_mat comp=companion_matrix(a.subvec(0,r-1));
+
+  // and diagonalize it
+  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> es(cmat);
+  //XTP_LOG(Log::error, log_) << TimeStamp() << " Eigensystem" << std::flush;
+
+  // Return the roots (unsorted)
+  return es.eigenvalues();
+}
+
+Eigen::MatrixXcd PMLocalization::companion_matrix(const Eigen::VectorXcd &c) {
+  if (c.size() <= 1) {
+    // Dummy return
+    Eigen::MatrixXcd dum;
+    return dum;
+  }
+
+  // Form companion matrix
+  Index N = c.size() - 1;
+  if (c(N) == 0.0) {
+    throw std::runtime_error("Coefficient of highest term vanishes!\n");
+  }
+
+  Eigen::MatrixXcd companion = Eigen::MatrixXcd::Zero(N, N);
+
+  // First row - coefficients normalized to that of highest term.
+  for (Index j = 0; j < N; j++) {
+    companion(0, j) = -c(N - (j + 1)) / c(N);
+  }
+  // Fill out the unit matrix part
+  for (Index j = 1; j < N; j++) {
+    companion(j, j - 1) = 1.0;
+  }
+
+  return companion;
+}
+
+Eigen::MatrixXd PMLocalization::rotate_W(const double step,
+                                         const Eigen::MatrixXd &W,
+                                         const Eigen::VectorXcd &eval,
+                                         const Eigen::MatrixXcd &evec) {
+
+  std::complex<double> ima(0.0, 1.0);
+  Eigen::VectorXcd temp = (step * eval).array().exp();
+  Eigen::MatrixXd W_rotated =
+      (evec * temp.asDiagonal() * evec.adjoint()).real() * W;  //.real because
+                                                                 // we assume
+                                                                 // only real W
+
+  return W_rotated;
+}
 
 void PMLocalization::computePML_UT(Orbitals &orbitals) {
 
@@ -91,8 +231,8 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
       orbitals.getNumberOfAlphaElectrons());
 
   // initialize a unitary matrix (as Idenity matrix for now)
-  const Index n_occs = orbitals.getNumberOfAlphaElectrons();
-  Eigen::MatrixXd W = Eigen::MatrixXd::Identity(n_occs, n_occs);
+  n_occs_ = orbitals.getNumberOfAlphaElectrons();
+  Eigen::MatrixXd W = Eigen::MatrixXd::Identity(n_occs_, n_occs_);
 
   // prepare Mulliken charges
   // get overlap matrix
@@ -124,19 +264,12 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
     start += numfuncpatom_[iat];
   }
 
-  // calculate value of cost function
-  //double Dinv = cost(W,Sat_all,numatoms);
-
-  //XTP_LOG(Log::error, log_)
-    //  << TimeStamp() << " Calculated cost function" << std::flush;
-
   // calculate cost and its derivative  wrt unitary matrix
-  Eigen::MatrixXd Jderiv = Eigen::MatrixXd::Zero(n_occs, n_occs);
-  double Dinv = cost_derivative(W,Sat_all,numatoms,Jderiv);
-
+  auto [Dinv, Jderiv] = cost_derivative(W, Sat_all, numatoms);
 
   XTP_LOG(Log::error, log_)
-      << TimeStamp() << " Calculated derivative" << std::flush;
+      << TimeStamp() << " Calculated cost function and its W-derivative"
+      << std::flush;
 
   // calculate Riemannian derivative
   Eigen::MatrixXd G = Jderiv * W.transpose() - W * Jderiv.transpose();
@@ -144,174 +277,116 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
   // calculate search direction using SDSA for now
   Eigen::MatrixXd H = G;
 
+  //XTP_LOG(Log::error, log_)
+  //    << TimeStamp() << " Calculated H" << H 
+  //    << std::flush;
+
   Index orderW = 4;  // for PM
   std::complex<double> ima(0.0, 1.0);
-  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> es(-ima * H);
-  XTP_LOG(Log::error, log_) << TimeStamp() << " Eigensystem" << std::flush;
 
+  // H is skew symmetric, real  so should have purely imaginary eigenvalues
+  // in pairs +-eval, and 0, if dim is odd.
+  Eigen::EigenSolver<Eigen::MatrixXd> es(H);
+  XTP_LOG(Log::error, log_) << TimeStamp() << " Eigensystem" << std::flush;
   Eigen::VectorXcd Hval = es.eigenvalues();
   Eigen::MatrixXcd Hvec = es.eigenvectors();
+  // what does .transpose() do for complex matrices? not complex conjugation! in ARMADILLO IT DOES !!!!
   double wmax = Hval.cwiseAbs().maxCoeff();
   double Tmu = 2.0 * tools::conv::Pi / (orderW * wmax);
-  XTP_LOG(Log::error, log_) << TimeStamp() << " Max step" << Tmu << std::flush;
 
   // line optimization via polynomial fit
-  Index npoints = 4; // to be adapted/adaptable
-  double deltaTmu=Tmu/(npoints-1);
-  int halved=0;
+  Index npoints = 4;  // to be adapted/adaptable
+  double deltaTmu = Tmu / (npoints - 1);
+  int halved = 0;
 
   // finding optimal step
-  while(true){
+  while (true) {
 
     Eigen::VectorXd mu(npoints);
-    Eigen::VectorXd fd(npoints); // cost function derivative
-    Eigen::VectorXd fv(npoints); // cost function value 
+    Eigen::VectorXd fd(npoints);  // cost function derivative
+    Eigen::VectorXd fv(npoints);  // cost function value
 
-    for (Index i=0; i< npoints; i++){
-      mu(i) = i*deltaTmu;
+    for (Index i = 0; i < npoints; i++) {
+      mu(i) = i * deltaTmu;
       // what is the matrix we should test?
-      Eigen::VectorXcd temp = (mu(i)*ima*Hval).array().exp();
-      Eigen::MatrixXcd W_rotated = Hvec * temp.asDiagonal() * Hvec.transpose() * W;
-      
-      // if(real)
-      // Zero out possible imaginary part
-      // rot=arma::real(rot)*COMPLEX1;
+      Eigen::MatrixXd W_rotated = rotate_W(mu(i), W, Hval, Hvec);
+
+      // check for unitarity?
+      // XTP_LOG(Log::error, log_) << TimeStamp() << W_rotated * W_rotated.transpose()  << std::flush;
 
       // calculate cost and derivative for this rotated W matrix
-
-
-      //arma::cx_mat der;
-      //der=fline[i]->cost_der(Wtr);
-      //fline[i]->cost_func_der(Wtr,fv(i),der);
-      //fv(i) = cost
-      // and the derivative is
-      //fd(i)=2.0*std::real(der*W_rotated.transpose()*H.transpose() ).trace());
-
-
+      auto [cost, der] = cost_derivative(W_rotated, Sat_all, numatoms);
+      fv(i) = cost;
+      fd(i) = 2.0 *
+              std::real((der * W_rotated.transpose() * H.transpose()).trace());
     }
 
-
-  }
-/*
-void UnitaryOptimizer::polynomial_step_df(UnitaryFunction* & fp) {
-  // Matrix
-  arma::cx_mat W=fp->getW();
-  // Amount of points to use is
-  int npoints=polynomial_degree;
-  // Spacing
-  double deltaTmu=Tmu/(npoints-1);
-  int halved=0;
-
-  UnitaryFunction* fline[npoints];
-  for(int i=0;i<npoints;i++)
-    fline[i]=fp->copy();
-
-  while(true) {
-    // Evaluate the cost function at the expansion points
-    arma::vec mu(npoints);
-    arma::vec fd(npoints);
-    arma::vec fv(npoints);
-
-    for(int i=0;i<npoints;i++) {
-      // Mu in the point is
-      mu(i)=i*deltaTmu;
-
-      // Trial matrix is
-      arma::cx_mat Wtr=get_rotation(mu(i)*fp->getsign())*W;
-      // and the function is
-      arma::cx_mat der;
-      //der=fline[i]->cost_der(Wtr);
-      fline[i]->cost_func_der(Wtr,fv(i),der);
-      // and the derivative is
-      fd(i)=step_der(Wtr,der);
-    }
-
-    // Sanity check - is derivative of the right sign?
-    if(fd(0)<0.0) {
-      printf("Derivative is of the wrong sign!\n");
-      arma::trans(mu).print("mu");
-      arma::trans(fd).print("J'(mu)");
-      //      throw std::runtime_error("Derivative consistency error.\n");
-      fprintf(stderr,"Warning - inconsistent sign of derivative.\n");
+    // Check sign of the derivative
+    if (fd(0) < 0.0) {
+      XTP_LOG(Log::error, log_)
+          << TimeStamp() << "Derivative is of the wrong sign!" <<  mu << "  " << fd << std::flush;
+          //exit(0);
     }
 
     // Fit to polynomial of order p
-    arma::vec coeff=fit_polynomial(mu,fd);
+    Eigen::VectorXd polyfit_coeff = fit_polynomial(mu, fd);
 
-    // Find out zeros of the polynomial
-    arma::vec roots=solve_roots(coeff);
-    // get the smallest positive one
-    double step=smallest_positive(roots);
+    // Find step as smallest real zero of the polynomial
+    double step = find_smallest_step(polyfit_coeff);
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << "Found step of size " << step << std::flush;
 
-    /*
-    printf("Trial step size is %e.\n",step);
-    mu.t().print("mu");
-    fd.t().print("f'");
-    fv.t().print("f");
-    */
+    // is step too far?
+    if (step > 0.0 && step <= Tmu) {
+      // is in range, let's continue
+      Eigen::MatrixXd W_new = rotate_W(step, W, Hval, Hvec);
 
-    // Is the step length in the allowed region?
- //   if(step>0.0 && step <=Tmu) {
-      // Yes. Calculate the new value
-   //   arma::cx_mat Wtr=get_rotation(step*fp->getsign())*W;
-  //    UnitaryFunction *newf=fp->copy();
+      // has objective function value changed in the right direction?
+      double delta_J =
+          cost(W_new, Sat_all, numatoms) - cost(W, Sat_all, numatoms);
+      XTP_LOG(Log::error, log_)
+          << TimeStamp() << "Objective function chnage is " << delta_J
+          << std::flush;
 
-  //    double J=fp->getf();
-  //    double Jtr=newf->cost_func(Wtr);
+      if (delta_J > 0.0) {
+        // we accept?
+        break;
+      } else {
+        XTP_LOG(Log::error, log_) << TimeStamp()
+                                  << "Step was accepted but objective function "
+                                     "changed in the wrong direction "
+                                  << std::flush;
 
-      // Accept the step?
-  //    if( fp->getsign()*(Jtr-J) > 0.0) {
-	// Yes.
-	//	printf("Function value changed by %e, accept.\n",Jtr-J);
-//	delete fp;
-	//fp=newf;
-//	break;
-  //    } else {
-//	fprintf(stderr,"Line search interpolation failed.\n");
-//	fflush(stderr);
-//	if(halved<1) {
-	//  delete newf;
-//	  halved++;
-//	  deltaTmu/=2.0;
-//	  continue;
-//	} else {
-	  // Try an Armijo step
-	//  return armijo_step(fp);
-
-	  /*
-	  ERROR_INFO();
-	  throw std::runtime_error("Problem in polynomial line search - could not find suitable extremum!\n");
-	  */
-//	}
-  //    }
-
-   //   delete newf;
- //   } else {
-  //    fprintf(stderr,"Line search interpolation failed.\n");
- //     fflush(stderr);
- //     if(halved<4) {
-//	halved++;
-//	deltaTmu/=2.0;
-//	continue;
- //     } else {
-//	ERROR_INFO();
-	//  throw std::runtime_error("Problem in polynomial line search - could not find suitable extremum!\n");
- //     }
- //   }
- // }
-
- // for(int i=0;i<npoints;i++)
-  ////  delete fline[i];
-//}
-
-
-
-
-
-
-
-
-
+        if (halved < 1) {
+          XTP_LOG(Log::error, log_)
+              << TimeStamp() << "Trying halved maximum step size "
+              << std::flush;
+          halved++;
+          deltaTmu /= 2.0;
+          continue;
+        } else {
+          throw std::runtime_error(
+              "Problem in polynomial line search - could not find suitable "
+              "extremum!\n");
+        }
+      }
+    } else {
+      // now do something if step is too far
+      XTP_LOG(Log::error, log_)
+          << TimeStamp()
+          << "Step went beyond max step, trying reduced max step..."
+          << std::flush;
+      if (halved < 4) {
+        halved++;
+        deltaTmu /= 2.0;
+        continue;
+      } else {
+        throw std::runtime_error(
+            "Problem in polynomial line search - could not find suitable "
+            "extremum!\n");
+      }
+    }
+  }
 
   // update unitary matrix
 }
