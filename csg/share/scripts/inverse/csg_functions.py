@@ -292,42 +292,22 @@ def gen_beadtype_property_array(property_dict, non_bonded_dict):
     return property_array
 
 
-def solve_linear_with_constraints(A, C, b, d):
-    """Minimize |A @ x - b|, respecting constraint C @ x = d using elimination."""
-    m, n = A.shape
-    p, n_ = C.shape
-    assert n == n_
-    b.shape = (m)
-    d.shape = (p)
+def solve_lsq_with_linear_constraints(A, C, b, d):
+    """Minimize |A @ x - b|, respecting constraint C @ x = d using elimination.
 
-    if p > 1:
-        raise Exception("not implemented for more than one constraint")
-
-    A_elim = A.copy()
-    b_elim = b.copy()
-    for i in range(p):
-        pivot = np.argmax(abs(C[i]))  # find max value of C
-        A_elim = A - (np.ones_like(A) * A[:, pivot][:, np.newaxis]
-                      * C[i] / C[i, pivot])
-        b_elim = b - A[:, pivot] * d[i] / C[i, pivot]
-        A_elim = np.delete(A_elim, pivot, 1)
-    if p == n:
-        print("WARNING: solution of Gauss-Newton update determined fully "
-              "by constraints.")
-        x_elim = []
-    else:
-        x_elim, _, _, _ = np.linalg.lstsq(A_elim.T @ A_elim, A_elim.T @ b_elim,
-                                          rcond=None)
-    if p == 0:
-        # no constraints
-        x = x_elim
-    else:
-        x_pivot = (d[i] - np.delete(C, pivot, 1) @ x_elim) / C[i, pivot]
-        x = np.insert(x_elim, pivot, x_pivot)
+    There are many methods to achive this, this one is probably not the most stable one,
+    but so far it works well.
+    """
+    x_unconstrained, _, _, _ = np.linalg.lstsq(A, b, rcond=None)
+    AT_A_inv = np.linalg.inv(A.T @ A)
+    x = (
+        x_unconstrained - AT_A_inv @ C.T @ np.linalg.inv(C @ AT_A_inv @ C.T)
+        @ (C @ x_unconstrained - d)
+    ).flatten()
     return x
 
 
-def test_solve_linear_with_constraints():
+def test_solve_lsq_with_linear_constraints():
     """Check linear equation solver with some simple cases."""
     tests = [
         (np.identity(10), np.ones((1, 10)), np.ones(10), np.array(2), [0.2]*10),
@@ -337,9 +317,12 @@ def test_solve_linear_with_constraints():
          [1.0, 0.0]),
         (np.array([[1, 0], [1, 1]]), np.array([[0, 1]]), np.ones(2), np.array(0.1),
          [0.95, 0.1]),
+        # test with two constraints
+        (np.identity(10), np.array([1]*15+[-1]*5).reshape((2, 10)), np.ones(10),
+         np.array([2, 1]), [0.3]*5 + [0.1]*5),
     ]
     for A, C, b, d, x in tests:
-        assert np.allclose(x, solve_linear_with_constraints(A, C, b, d))
+        assert np.allclose(x, solve_lsq_with_linear_constraints(A, C, b, d))
 
 
 def upd_flag_g_smaller_g_min(flag, g, g_min):

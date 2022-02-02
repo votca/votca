@@ -47,7 +47,7 @@ from csg_functions import (
     readin_table, saveto_table, calc_grid_spacing, fourier, fourier_all,
     gen_beadtype_property_array, gen_fourier_matrix, find_after_cut_off_ndx,
     get_non_bonded, get_density_dict, get_n_intra_dict, get_charge_dict,
-    gen_interaction_matrix, gen_interaction_dict, solve_linear_with_constraints,
+    gen_interaction_matrix, gen_interaction_dict, solve_lsq_with_linear_constraints,
     gen_flag_isfinite, kron_2D, extrapolate_dU_left_constant, vectorize, devectorize,
     if_verbose_dump_io, make_matrix_2D, make_matrix_4D, cut_matrix_inverse, transpose,
     get_bead_types, get_intra_needed
@@ -1100,7 +1100,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             raise NotImplementedError("not implemented constraint type: "
                                       + constraint['type'])
     # solve linear equation
-    dU_flat = -A0_2D @ solve_linear_with_constraints(A, C, b, d)
+    dU_flat = -A0_2D @ solve_lsq_with_linear_constraints(A, C, b, d)
     dU_vec = dU_flat.reshape(n_upd_pots, n_c_res).T
     # insert zeros for ignored potentials
     for i in index_not_upd_pots:
@@ -1207,7 +1207,7 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
     b = residuals_flat
     d = np.zeros(0)
     # solve linear equation
-    dU_flat = -A0_2D @ solve_linear_with_constraints(A, C, b, d)
+    dU_flat = -A0_2D @ solve_lsq_with_linear_constraints(A, C, b, d)
     dU_vec = dU_flat.reshape(n_i, n_c_res).T
     # dU matrix
     dU_mat = devectorize(dU_vec)
