@@ -1,6 +1,6 @@
 
 /*
- * Copyright 2009-2020 The VOTCA Development Team
+ * Copyright 2009-2022 The VOTCA Development Team
  * (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -50,6 +50,10 @@ class Orbitals {
   bool hasBasisSetSize() const {
     return (dftbasis_.AOBasisSize() > 0) ? true : false;
   }
+
+  void setEmbeddedMOs(tools::EigenSystem &system) { mos_embedding_ = system; }
+
+  const tools::EigenSystem &getEmbeddedMOs() const { return mos_embedding_; }
 
   Index getBasisSetSize() const { return dftbasis_.AOBasisSize(); }
 
@@ -366,6 +370,18 @@ class Orbitals {
   bool GetFlagUseHqpOffdiag() const { return use_Hqp_offdiag_; };
   void SetFlagUseHqpOffdiag(bool flag) { use_Hqp_offdiag_ = flag; };
 
+  const Eigen::MatrixXd &getPMLocalizedOrbital() const {
+    return pm_localized_orbitals_;
+  };
+  void setPMLocalizedOrbital(const Eigen::MatrixXd &matrix) {
+    pm_localized_orbitals_ = matrix;
+  }
+
+  Index getNumOfActiveElectrons() { return active_electrons_; }
+  void setNumofActiveElectrons(const Index active_electrons) {
+    active_electrons_ = active_electrons;
+  }
+
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
@@ -390,6 +406,10 @@ class Orbitals {
   bool useTDA_;
 
   tools::EigenSystem mos_;
+  tools::EigenSystem mos_embedding_;
+
+  Eigen::MatrixXd pm_localized_orbitals_;
+  Index active_electrons_;
 
   QMMolecule atoms_;
 

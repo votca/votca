@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2022 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -579,6 +579,9 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(number_alpha_electrons_, "number_alpha_electrons");
 
   w(mos_, "mos");
+  w(active_electrons_, "active_electrons");
+  w(mos_embedding_, "mos_embedding");
+  w(pm_localized_orbitals_, "PML_MOs");
 
   CheckpointWriter molgroup = w.openChild("qmmolecule");
   atoms_.WriteToCpt(molgroup);
@@ -647,9 +650,17 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
 
   r(qm_energy_, "qm_energy");
   r(qm_package_, "qm_package");
+  try {
+    r(pm_localized_orbitals_, "PML_MOs");
+  } catch (std::runtime_error& e) {
+    ;
+  }
 
   r(version, "version");
   r(mos_, "mos");
+  r(mos_embedding_, "mos_embedding");
+  r(active_electrons_, "active_electrons");
+
   if (version < 3) {
     // clang-format off
     std::array<Index, 49> votcaOrder_old = {
