@@ -60,6 +60,10 @@ class PMLocalization {
                            const Eigen::VectorXcd &eval,
                            const Eigen::MatrixXcd &evec);
 
+  double inner_prod(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) {
+    return (0.5 * A.transpose() * B).trace();
+  }
+
   // functions for Jacobi sweeps
   Eigen::MatrixX2d rotateorbitals(const Eigen::MatrixX2d &maxorbs, Index s,
                                   Index t);
@@ -80,6 +84,18 @@ class PMLocalization {
   Eigen::MatrixXd B_;
   Eigen::MatrixXd PM_penalty_;
   Eigen::MatrixXd MullikenPop_orb_per_atom_;
+
+  // variables for unitary optimization
+  Eigen::MatrixXd W_;
+  Eigen::MatrixXd W_old_;
+  Eigen::MatrixXd H_;
+  Eigen::MatrixXd H_old_;
+  Eigen::MatrixXd G_;
+  Eigen::MatrixXd G_old_;
+  double J_;
+  double J_old_;
+  double J_threshold_ = 1e-8;
+  double G_threshold_ = 1e-5;
 
   std::vector<Index> numfuncpatom_;
 

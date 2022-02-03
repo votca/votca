@@ -62,13 +62,13 @@ std::pair<double, Eigen::MatrixXd> PMLocalization::cost_derivative(
     const Index nat) {
   Eigen::MatrixXd Jderiv = Eigen::MatrixXd::Zero(n_occs_, n_occs_);
   double Dinv = 0.0;
-  double totalC=0.0;
+  // double totalC = 0.0;
   double p = 2.0;  // standard PM
   for (Index iat = 0; iat < nat; iat++) {
     Eigen::MatrixXd qw = Sat_all[iat] * W;
     for (Index i = 0; i < W.cols(); i++) {
       double qwp = W.col(i).transpose() * qw.col(i);
-      totalC += qwp;
+      // totalC += qwp;
       Dinv += std::pow(qwp, p);
       double t = p * std::pow(qwp, p - 1);
       for (Index j = 0; j < W.cols(); j++) {
@@ -78,9 +78,8 @@ std::pair<double, Eigen::MatrixXd> PMLocalization::cost_derivative(
     }
   }
 
-  XTP_LOG(Log::error, log_)
-        << TimeStamp() << " Total charge: " << totalC 
-        << std::flush;
+  // XTP_LOG(Log::error, log_)
+  //     << TimeStamp() << " Total charge: " << totalC << std::flush;
 
   return {Dinv, Jderiv};
 }
@@ -126,16 +125,13 @@ double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
 
   // Sort roots
   std::sort(real_roots.begin(), real_roots.end());
-  //XTP_LOG(Log::error, log_)
-  //      << TimeStamp() << " Found real roots of the polynomial: "
-  //      << std::flush;
-  //for (Index i =0 ; i < real_roots.size(); i++){
+  // XTP_LOG(Log::error, log_)
+  //        << TimeStamp() << " Found real roots of the polynomial: "
+  //        << std::flush;
+  /* for (Index i =0 ; i < real_roots.size(); i++){
 
-  //  std::cout << real_roots[i]  << "\n" << std::endl;
-  //}
-
-
-
+    std::cout << real_roots[i]  << "\n" << std::endl;
+  }*/
 
   double step = 0.0;
   for (Index i = 0; i < Index(real_roots.size()); i++) {
@@ -177,7 +173,7 @@ Eigen::VectorXcd PMLocalization::find_complex_croots(
 
   // and diagonalize it
   Eigen::ComplexEigenSolver<Eigen::MatrixXcd> es(cmat);
-  //XTP_LOG(Log::error, log_) << TimeStamp() << " Eigensystem" << std::flush;
+  // XTP_LOG(Log::error, log_) << TimeStamp() << " Eigensystem" << std::flush;
 
   // Return the roots (unsorted)
   return es.eigenvalues();
@@ -215,12 +211,11 @@ Eigen::MatrixXd PMLocalization::rotate_W(const double step,
                                          const Eigen::VectorXcd &eval,
                                          const Eigen::MatrixXcd &evec) {
 
-  std::complex<double> ima(0.0, 1.0);
   Eigen::VectorXcd temp = (step * eval).array().exp();
   Eigen::MatrixXd W_rotated =
       (evec * temp.asDiagonal() * evec.adjoint()).real() * W;  //.real because
-                                                                 // we assume
-                                                                 // only real W
+                                                               // we assume
+                                                               // only real W
 
   return W_rotated;
 }
@@ -232,7 +227,7 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
 
   // initialize a unitary matrix (as Idenity matrix for now)
   n_occs_ = orbitals.getNumberOfAlphaElectrons();
-  Eigen::MatrixXd W = Eigen::MatrixXd::Identity(n_occs_, n_occs_);
+  W_ = Eigen::MatrixXd::Identity(n_occs_, n_occs_);
 
   // prepare Mulliken charges
   // get overlap matrix
@@ -264,131 +259,189 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
     start += numfuncpatom_[iat];
   }
 
-  // calculate cost and its derivative  wrt unitary matrix
-  auto [Dinv, Jderiv] = cost_derivative(W, Sat_all, numatoms);
+  // initialize Riemannian gradient and serach direction matrices
+  G_ = Eigen::MatrixXd::Zero(n_occs_, n_occs_);
+  H_ = Eigen::MatrixXd::Zero(n_occs_, n_occs_);
 
-  XTP_LOG(Log::error, log_)
-      << TimeStamp() << " Calculated cost function and its W-derivative"
-      << std::flush;
+  bool converged = false;
+  Index iteration = 0;
+  std::string update_type;
+  while (!converged) {
+    // Store old gradient and search direction
+    G_old_ = G_;
+    H_old_ = H_;
 
-  // calculate Riemannian derivative
-  Eigen::MatrixXd G = Jderiv * W.transpose() - W * Jderiv.transpose();
+    // calculate cost and its derivative wrt unitary matrix for current W
+    auto [J, Jderiv] = cost_derivative(W_, Sat_all, numatoms);
+    J_ = J;
+    XTP_LOG(Log::info, log_)
+        << TimeStamp() << " Calculated cost function and its W-derivative"
+        << std::flush;
 
-  // calculate search direction using SDSA for now
-  Eigen::MatrixXd H = G;
+    // calculate Riemannian derivative
+    G_ = Jderiv * W_.transpose() - W_ * Jderiv.transpose();
 
-  //XTP_LOG(Log::error, log_)
-  //    << TimeStamp() << " Calculated H" << H 
-  //    << std::flush;
-
-  Index orderW = 4;  // for PM
-  std::complex<double> ima(0.0, 1.0);
-
-  // H is skew symmetric, real  so should have purely imaginary eigenvalues
-  // in pairs +-eval, and 0, if dim is odd.
-  Eigen::EigenSolver<Eigen::MatrixXd> es(H);
-  XTP_LOG(Log::error, log_) << TimeStamp() << " Eigensystem" << std::flush;
-  Eigen::VectorXcd Hval = es.eigenvalues();
-  Eigen::MatrixXcd Hvec = es.eigenvectors();
-  // what does .transpose() do for complex matrices? not complex conjugation! in ARMADILLO IT DOES !!!!
-  double wmax = Hval.cwiseAbs().maxCoeff();
-  double Tmu = 2.0 * tools::conv::Pi / (orderW * wmax);
-
-  // line optimization via polynomial fit
-  Index npoints = 4;  // to be adapted/adaptable
-  double deltaTmu = Tmu / (npoints - 1);
-  int halved = 0;
-
-  // finding optimal step
-  while (true) {
-
-    Eigen::VectorXd mu(npoints);
-    Eigen::VectorXd fd(npoints);  // cost function derivative
-    Eigen::VectorXd fv(npoints);  // cost function value
-
-    for (Index i = 0; i < npoints; i++) {
-      mu(i) = i * deltaTmu;
-      // what is the matrix we should test?
-      Eigen::MatrixXd W_rotated = rotate_W(mu(i), W, Hval, Hvec);
-
-      // check for unitarity?
-      // XTP_LOG(Log::error, log_) << TimeStamp() << W_rotated * W_rotated.transpose()  << std::flush;
-
-      // calculate cost and derivative for this rotated W matrix
-      auto [cost, der] = cost_derivative(W_rotated, Sat_all, numatoms);
-      fv(i) = cost;
-      fd(i) = 2.0 *
-              std::real((der * W_rotated.transpose() * H.transpose()).trace());
-    }
-
-    // Check sign of the derivative
-    if (fd(0) < 0.0) {
-      XTP_LOG(Log::error, log_)
-          << TimeStamp() << "Derivative is of the wrong sign!" <<  mu << "  " << fd << std::flush;
-          //exit(0);
-    }
-
-    // Fit to polynomial of order p
-    Eigen::VectorXd polyfit_coeff = fit_polynomial(mu, fd);
-
-    // Find step as smallest real zero of the polynomial
-    double step = find_smallest_step(polyfit_coeff);
-    XTP_LOG(Log::error, log_)
-        << TimeStamp() << "Found step of size " << step << std::flush;
-
-    // is step too far?
-    if (step > 0.0 && step <= Tmu) {
-      // is in range, let's continue
-      Eigen::MatrixXd W_new = rotate_W(step, W, Hval, Hvec);
-
-      // has objective function value changed in the right direction?
-      double delta_J =
-          cost(W_new, Sat_all, numatoms) - cost(W, Sat_all, numatoms);
-      XTP_LOG(Log::error, log_)
-          << TimeStamp() << "Objective function chnage is " << delta_J
-          << std::flush;
-
-      if (delta_J > 0.0) {
-        // we accept?
-        break;
-      } else {
-        XTP_LOG(Log::error, log_) << TimeStamp()
-                                  << "Step was accepted but objective function "
-                                     "changed in the wrong direction "
-                                  << std::flush;
-
-        if (halved < 1) {
-          XTP_LOG(Log::error, log_)
-              << TimeStamp() << "Trying halved maximum step size "
-              << std::flush;
-          halved++;
-          deltaTmu /= 2.0;
-          continue;
-        } else {
-          throw std::runtime_error(
-              "Problem in polynomial line search - could not find suitable "
-              "extremum!\n");
-        }
-      }
+    if (iteration == 0 || (iteration - 1) % W_.cols() == 0) {
+      // calculate search direction using SDSA for now
+      /*XTP_LOG(Log::error, log_)
+          << TimeStamp() << " Using SDSA update " << std::flush;*/
+      update_type = "SDSA";
+      H_ = G_;
     } else {
-      // now do something if step is too far
-      XTP_LOG(Log::error, log_)
-          << TimeStamp()
-          << "Step went beyond max step, trying reduced max step..."
-          << std::flush;
-      if (halved < 4) {
-        halved++;
-        deltaTmu /= 2.0;
-        continue;
-      } else {
-        throw std::runtime_error(
-            "Problem in polynomial line search - could not find suitable "
-            "extremum!\n");
+      // calculate search direction from CGPR update
+      update_type = "CGPR";
+      double gamma = inner_prod(G_ - G_old_, G_) / inner_prod(G_old_, G_old_);
+      H_ = G_ + gamma * H_old_;
+      // careful with skew symmetry
+      H_ = 0.5 * (H_ - H_.transpose());
+
+      // Check that update is OK
+      if (inner_prod(G_, H_) < 0.0) {
+        H_ = G_;
+        XTP_LOG(Log::error, log_)
+            << TimeStamp() << "CG search direction reset." << std::flush;
       }
     }
-  }
+    // XTP_LOG(Log::error, log_)
+    //     << TimeStamp() << " Calculated H" << H
+    //     << std::flush;
 
-  // update unitary matrix
+    Index orderW = 4;  // for PM
+    // H is skew symmetric, real  so should have purely imaginary eigenvalues
+    // in pairs +-eval, and 0, if dim is odd.
+    Eigen::EigenSolver<Eigen::MatrixXd> es(H_);
+    // XTP_LOG(Log::error, log_) << TimeStamp() << " Eigensystem" << std::flush;
+    Eigen::VectorXcd Hval = es.eigenvalues();
+    Eigen::MatrixXcd Hvec = es.eigenvectors();
+    // what does .transpose() do for complex matrices? not complex conjugation!
+    // in ARMADILLO IT DOES !!!!
+    double wmax = Hval.cwiseAbs().maxCoeff();
+    double Tmu = 2.0 * tools::conv::Pi / (orderW * wmax);
+    double step;
+    // line optimization via polynomial fit
+    Index npoints = 4;  // to be adapted/adaptable
+    double deltaTmu = Tmu / (npoints - 1);
+    int halved = 0;
+
+    // finding optimal step
+    while (true) {
+
+      Eigen::VectorXd mu(npoints);
+      Eigen::VectorXd fd(npoints);  // cost function derivative
+      Eigen::VectorXd fv(npoints);  // cost function value
+
+      for (Index i = 0; i < npoints; i++) {
+        mu(i) = i * deltaTmu;
+        // what is the matrix we should test?
+        Eigen::MatrixXd W_rotated = rotate_W(mu(i), W_, Hval, Hvec);
+
+        // check for unitarity?
+        // XTP_LOG(Log::error, log_) << TimeStamp() << W_rotated *
+        // W_rotated.transpose()  << std::flush;
+
+        // calculate cost and derivative for this rotated W matrix
+        auto [cost, der] = cost_derivative(W_rotated, Sat_all, numatoms);
+        fv(i) = cost;
+        fd(i) =
+            2.0 *
+            std::real((der * W_rotated.transpose() * H_.transpose()).trace());
+
+        // std::cout << mu(i) <<  " " << fv(i) << " " << fd(i) << "\n" <<
+        // std::endl;
+      }
+
+      // exit(0);
+
+      // Check sign of the derivative
+      if (fd(0) < 0.0) {
+        XTP_LOG(Log::error, log_)
+            << TimeStamp() << "Derivative is of the wrong sign!" << mu << "  "
+            << fd << std::flush;
+        // exit(0);
+      }
+
+      // Fit to polynomial of order p
+      Eigen::VectorXd polyfit_coeff = fit_polynomial(mu, fd);
+
+      // Find step as smallest real zero of the polynomial
+      step = find_smallest_step(polyfit_coeff);
+      /*XTP_LOG(Log::error, log_)
+          << TimeStamp() << " Iteration: " << iteration << " Tmu= " << Tmu
+          << ", taking step of size " << step << std::flush;*/
+
+      // is step too far?
+      if (step > 0.0 && step <= Tmu) {
+        // is in range, let's continue
+        Eigen::MatrixXd W_new = rotate_W(step, W_, Hval, Hvec);
+
+        // has objective function value changed in the right direction?
+        double J_new = cost(W_new, Sat_all, numatoms);
+        double delta_J = J_new - J_;
+
+        /*XTP_LOG(Log::error, log_)
+            << TimeStamp() << " Objective function change is " << delta_J
+            << std::flush;*/
+
+        // if (delta_J > 0.0) {
+        //  we accept and update
+        W_old_ = W_;
+        W_ = W_new;
+        J_old_ = J_;
+        J_ = J_new;
+        break;
+        /*} else {
+          XTP_LOG(Log::error, log_)
+              << TimeStamp()
+              << "Step was accepted but objective function "
+                 "changed in the wrong direction "
+              << std::flush;
+
+          if (halved < 10) {
+            XTP_LOG(Log::error, log_)
+                << TimeStamp() << "Trying halved maximum step size "
+                << std::flush;
+            halved++;
+            deltaTmu /= 2.0;
+            continue;
+          } else {
+            throw std::runtime_error(
+                "Problem in polynomial line search - could not find suitable "
+                "extremum!\n");
+          }
+        }*/
+        /*} else {
+          // now do something if step is too far
+          XTP_LOG(Log::error, log_)
+              << TimeStamp()
+              << "Step went beyond max step, trying reduced max step..."
+              << std::flush;
+          if (halved < 4) {
+            halved++;
+            deltaTmu /= 2.0;
+            continue;
+          } else {
+            throw std::runtime_error(
+                "Problem in polynomial line search - could not find suitable "
+                "extremum!\n");
+          }
+        }*/
+      }
+    }
+
+    double G_norm = inner_prod(G_, G_);
+
+    XTP_LOG(Log::error, log_)
+        << (boost::format(" UT iteration = %1$6i (%6$4.s) Tmu = %4$4.2e mu_opt = %5$1.4f |deltaJ| = %2$4.2e |G| = %3$4.2e ") %
+            (iteration) % std::abs(J_ - J_old_) % G_norm % Tmu % step % update_type)
+               .str()
+        << std::flush;
+
+    if (iteration > 0 &&
+        (G_norm < G_threshold_ && std::abs(J_ - J_old_) < J_threshold_)) {
+      converged = true;
+    }
+    iteration++;
+  }
 }
 
 void PMLocalization::computePML_JS(Orbitals &orbitals) {
