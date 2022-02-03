@@ -52,8 +52,7 @@ class PMLocalization {
 
   Eigen::VectorXd fit_polynomial(const Eigen::VectorXd &x,
                                  const Eigen::VectorXd &y);
-  Eigen::VectorXcd find_complex_roots(const Eigen::VectorXd &coeff);
-  Eigen::VectorXcd find_complex_croots(const Eigen::VectorXcd &coeff);
+  Eigen::VectorXcd find_complex_roots(const Eigen::VectorXcd &coeff);
   double find_smallest_step(const Eigen::VectorXd &coeff);
   Eigen::MatrixXcd companion_matrix(const Eigen::VectorXcd &coeff);
   Eigen::MatrixXd rotate_W(const double step, const Eigen::MatrixXd &W,

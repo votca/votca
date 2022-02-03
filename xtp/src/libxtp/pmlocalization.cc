@@ -113,7 +113,8 @@ Eigen::VectorXd PMLocalization::fit_polynomial(const Eigen::VectorXd &x,
 double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
 
   // get the complex roots of the polynomial
-  Eigen::VectorXcd complex_roots = find_complex_roots(coeff);
+  std::complex<double> one(1.0, 0.0);
+  Eigen::VectorXcd complex_roots = find_complex_roots(one * coeff);
 
   // Real roots
   std::vector<double> real_roots;
@@ -125,13 +126,6 @@ double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
 
   // Sort roots
   std::sort(real_roots.begin(), real_roots.end());
-  // XTP_LOG(Log::error, log_)
-  //        << TimeStamp() << " Found real roots of the polynomial: "
-  //        << std::flush;
-  /* for (Index i =0 ; i < real_roots.size(); i++){
-
-    std::cout << real_roots[i]  << "\n" << std::endl;
-  }*/
 
   double step = 0.0;
   for (Index i = 0; i < Index(real_roots.size()); i++) {
@@ -141,17 +135,10 @@ double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
       break;
     }
   }
-
   return step;
 }
 
 Eigen::VectorXcd PMLocalization::find_complex_roots(
-    const Eigen::VectorXd &coeff) {
-  std::complex<double> one(1.0, 0.0);
-  return find_complex_croots(one * coeff);
-}
-
-Eigen::VectorXcd PMLocalization::find_complex_croots(
     const Eigen::VectorXcd &coeff) {
 
   // Find roots of a_0 + a_1*mu + ... + a_(p-1)*mu^(p-1) = 0.
@@ -169,7 +156,6 @@ Eigen::VectorXcd PMLocalization::find_complex_croots(
 
   // Form companion matrix
   Eigen::MatrixXcd cmat = companion_matrix(coeff.head(order));
-  // arma::cx_mat comp=companion_matrix(a.subvec(0,r-1));
 
   // and diagonalize it
   Eigen::ComplexEigenSolver<Eigen::MatrixXcd> es(cmat);
@@ -382,6 +368,13 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
             << TimeStamp() << " Objective function change is " << delta_J
             << std::flush;*/
 
+        if (delta_J < 0.0) {
+          XTP_LOG(Log::error, log_)
+              << TimeStamp()
+              << "    WARNING: Cost function is decreasing. deltaJ = "
+              << delta_J << std::flush;
+        }
+
         // if (delta_J > 0.0) {
         //  we accept and update
         W_old_ = W_;
@@ -431,8 +424,10 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
     double G_norm = inner_prod(G_, G_);
 
     XTP_LOG(Log::error, log_)
-        << (boost::format(" UT iteration = %1$6i (%6$4.s) Tmu = %4$4.2e mu_opt = %5$1.4f |deltaJ| = %2$4.2e |G| = %3$4.2e ") %
-            (iteration) % std::abs(J_ - J_old_) % G_norm % Tmu % step % update_type)
+        << (boost::format(" UT iteration = %1$6i (%6$4.s) Tmu = %4$4.2e mu_opt "
+                          "= %5$1.4f |deltaJ| = %2$4.2e |G| = %3$4.2e ") %
+            (iteration) % std::abs(J_ - J_old_) % G_norm % Tmu % step %
+            update_type)
                .str()
         << std::flush;
 
