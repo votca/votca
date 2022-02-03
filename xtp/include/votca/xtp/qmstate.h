@@ -40,7 +40,8 @@ class QMStateType {
     Gstate = 4,
     PQPstate,
     DQPstate,
-    KSstate
+    KSstate,
+    LMOstate
   };
 
   QMStateType(const statetype& type) : type_(type) { ; }
@@ -78,7 +79,7 @@ class QMStateType {
 
   bool isSingleParticleState() const {
     return (type_ == statetype::PQPstate || type_ == statetype::DQPstate ||
-            type_ == KSstate);
+            type_ == statetype::KSstate || type_ == statetype::LMOstate);
   }
 
   bool isGWState() const {

@@ -439,9 +439,18 @@ double Orbitals::getExcitedStateEnergy(const QMState& state) const {
                                " which has not been calculated");
     }
     return QPpert_energies_(state.StateIdx() - getGWAmin(), 3);
-  } else {
+  } else if (state.Type() == QMStateType::LMOstate) {
+    return 0.0;
+    //if (this->QPpert_energies_.rows() < state.StateIdx() + 1 - getGWAmin()) {
+    //  throw std::runtime_error("Orbitals::getTotalEnergy You want " +
+    //                           state.ToString() +
+    //                          " which has not been calculated");
+    //}
+    //return QPpert_energies_(state.StateIdx() - getGWAmin(), 3);
+  }
+  else {
     throw std::runtime_error(
-        "GetTotalEnergy only knows states:singlet,triplet,KS,DQP,PQP");
+        "GetTotalEnergy only knows states:singlet,triplet,KS,DQP,PQP,LMOs");
   }
   return omega;  //  e.g. hartree
 }
