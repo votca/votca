@@ -36,8 +36,8 @@ std::vector<std::vector<double>> CubeFile_Writer::CalculateValues(
     if (state.Type() == QMStateType::DQPstate) {
       Index amplitudeindex = state.StateIdx() - orb.getGWAmin();
       amplitude = orb.CalculateQParticleAORepresentation().col(amplitudeindex);
-    } else if (state.Type() == QMStateType::LMOstate){ 
-      amplitude = orb.getPMLocalizedOrbital().col(state.StateIdx()) ;
+    } else if (state.Type() == QMStateType::LMOstate) {
+      amplitude = orb.getLMOs().col(state.StateIdx());
     } else {
       amplitude = orb.MOs().eigenvectors().col(state.StateIdx());
     }

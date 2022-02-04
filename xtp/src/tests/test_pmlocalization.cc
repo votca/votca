@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(localizedorbitals_test) {
   PMLocalization pml(log, options);
   pml.computePML(orbitals);
 
-  Eigen::MatrixXd LMOs = orbitals.getPMLocalizedOrbital();
+  Eigen::MatrixXd LMOs = orbitals.getLMOs();
   Eigen::MatrixXd test_MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/pmlocalization/ch3oh.mm");
 

@@ -74,7 +74,45 @@ void PMLocalization::computePML(Orbitals &orbitals) {
   }
   XTP_LOG(Log::error, log_) << TimeStamp() << " Orbitals localized after "
                             << iteration + 1 << " iterations" << std::flush;
-  orbitals.setPMLocalizedOrbital(occupied_orbitals);
+
+  // are the localized orbtials orthogonal?
+  Eigen::MatrixXd norm =
+      occupied_orbitals.transpose() * overlap_ * occupied_orbitals;
+
+  // determine the energies of the localized orbitals
+  Eigen::MatrixXd h = overlap_ * orbitals.MOs().eigenvectors() *
+                      orbitals.MOs().eigenvalues().asDiagonal() *
+                      orbitals.MOs().eigenvectors().transpose() * overlap_;
+  Eigen::VectorXd energies =
+      (occupied_orbitals.transpose() * h * occupied_orbitals).diagonal();
+
+  // sort the LMOs according to energy
+  std::vector<std::pair<double, int> > vp;
+
+  // Inserting element in pair vector
+  // to keep track of previous indexes
+  for (int i = 0; i < energies.size(); ++i) {
+    vp.push_back(std::make_pair(energies(i), i));
+  }
+  // Sorting pair vector
+  sort(vp.begin(), vp.end());
+
+  Eigen::VectorXd LMOS_energies(energies.size());
+  Eigen::MatrixXd LMOS(occupied_orbitals.rows(), occupied_orbitals.cols());
+
+  for (Index i = 0; i < energies.size(); i++) {
+    XTP_LOG(Log::error, log_)
+        << (boost::format(" LMO index = %1$4i Energy = %2$10.5f Hartree ") %
+            (i) % vp[i].first)
+               .str()
+        << std::flush;
+
+    LMOS_energies(i) = vp[i].first;
+    LMOS.col(i) = occupied_orbitals.col(vp[i].second);
+  }
+
+  orbitals.setLMOs(LMOS);
+  orbitals.setLMOs_energies(LMOS_energies);
 }
 
 // Function to rotate the 2 maximum orbitals (s and t)
