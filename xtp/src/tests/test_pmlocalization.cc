@@ -81,4 +81,5 @@ BOOST_AUTO_TEST_CASE(localizedorbitals_test) {
 
   libint2::finalize();
 }
+
 BOOST_AUTO_TEST_SUITE_END()
