@@ -117,7 +117,7 @@ void PMLocalization::computePML(Orbitals &orbitals) {
     vp.push_back(std::make_pair(energies(i), i));
   }
   // Sorting pair vector
-  sort(vp.begin(), vp.end());
+  std::sort(vp.begin(), vp.end());
 
   Eigen::VectorXd LMOS_energies(energies.size());
   Eigen::MatrixXd LMOS(occupied_orbitals.rows(), occupied_orbitals.cols());
