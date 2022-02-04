@@ -75,8 +75,8 @@ void PMLocalization::computePML(Orbitals &orbitals) {
   XTP_LOG(Log::error, log_) << TimeStamp() << " Orbitals localized after "
                             << iteration + 1 << " iterations" << std::flush;
 
-  // are the localized orbtials orthonormal?
-  Eigen::MatrixXd norm =
+  // are the localized orbitals orthonormal?
+  /*Eigen::MatrixXd norm =
       occupied_orbitals.transpose() * overlap_ * occupied_orbitals;
   Eigen::MatrixXd check_norm =
       norm - Eigen::MatrixXd::Identity(norm.rows(), norm.cols());
@@ -99,7 +99,7 @@ void PMLocalization::computePML(Orbitals &orbitals) {
         }
       }
     }
-  }
+  }*/
 
   // determine the energies of the localized orbitals
   Eigen::MatrixXd h = overlap_ * orbitals.MOs().eigenvectors() *
