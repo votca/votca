@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(activematrix_test) {
   Eigen::MatrixXd LMOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/activedensitymatrix/LMOs.mm");
 
-  orbitals_.setPMLocalizedOrbital(LMOs);
+  orbitals_.setLMOs(LMOs);
 
   Logger log;
   std::vector<Index> activeatoms = {{1, 5}};

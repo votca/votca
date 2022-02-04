@@ -51,6 +51,9 @@ BOOST_AUTO_TEST_CASE(localizedorbitals_test) {
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
           std::string(XTP_TEST_DATA_FOLDER) +
           "/pmlocalization/orbitalsMOs_ref.mm");
+  orbitals.MOs().eigenvalues() = votca::tools::EigenIO_MatrixMarket::ReadVector(
+      std::string(XTP_TEST_DATA_FOLDER) +
+      "/pmlocalization/ch3oh_energies_ref.mm");
 
   Logger log;
   tools::Property options;
@@ -61,12 +64,21 @@ BOOST_AUTO_TEST_CASE(localizedorbitals_test) {
   PMLocalization pml(log, options);
   pml.computePML(orbitals);
 
-  Eigen::MatrixXd LMOs = orbitals.getPMLocalizedOrbital();
-  Eigen::MatrixXd test_MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+  Eigen::MatrixXd LMOs = orbitals.getLMOs();
+  Eigen::VectorXd LMOs_energies = orbitals.getLMOs_energies();
+  Eigen::VectorXd test_LMOs_energies =
+      votca::tools::EigenIO_MatrixMarket::ReadVector(
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/pmlocalization/ch3oh_energies.mm");
+
+  Eigen::MatrixXd test_LMOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/pmlocalization/ch3oh.mm");
 
-  bool checkMOs = LMOs.isApprox(test_MOs, 2e-6);
-  BOOST_CHECK_EQUAL(checkMOs, 1);
+  bool checkLMOs = LMOs.isApprox(test_LMOs, 2e-6);
+  bool checkLMOs_energies = LMOs_energies.isApprox(test_LMOs_energies, 2e-6);
+
+  BOOST_CHECK_EQUAL(checkLMOs, 1);
+  BOOST_CHECK_EQUAL(checkLMOs_energies, 1);
 
   libint2::finalize();
 }

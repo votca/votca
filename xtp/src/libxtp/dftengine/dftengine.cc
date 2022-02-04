@@ -362,9 +362,7 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
 bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
   // reading in the orbitals of the full DFT calculation
-  tools::EigenSystem embeddingMOs;
-  embeddingMOs.eigenvalues() = orb.MOs().eigenvalues();
-  embeddingMOs.eigenvectors() = orb.MOs().eigenvectors();
+  tools::EigenSystem embeddingMOs = orb.MOs();
 
   // constructing the full electron density matrix
   const Eigen::MatrixXd FullDensityMatrix = orb.DensityMatrixGroundState();
@@ -377,7 +375,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Passing localized orbitals as the initial guess"
       << std::flush;
-  Eigen::MatrixXd LMOs = orb.getPMLocalizedOrbital();
+  Eigen::MatrixXd LMOs = orb.getLMOs();
 
   embeddingMOs.eigenvectors().leftCols(orb.getNumberOfAlphaElectrons()) = LMOs;
 
