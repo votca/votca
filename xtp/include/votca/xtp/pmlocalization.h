@@ -59,6 +59,9 @@ class PMLocalization {
                            const Eigen::VectorXcd &eval,
                            const Eigen::MatrixXcd &evec);
 
+  std::vector<Eigen::MatrixXd> setup_pop_matrices(
+      const Eigen::MatrixXd &occ_orbitals);
+
   double inner_prod(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) {
     return (0.5 * A.transpose() * B).trace();
   }
@@ -69,11 +72,17 @@ class PMLocalization {
 
   void initial_penalty();
   void update_penalty(Index s, Index t);
+  void check_orthonormality();
+  Eigen::VectorXd calculate_lmo_energies(Orbitals &orbitals);
+  std::pair<Eigen::MatrixXd, Eigen::VectorXd> sort_lmos(
+      const Eigen::VectorXd &energies);
+
   Eigen::VectorXd pop_per_atom(const Eigen::VectorXd &orbital);
   Eigen::Vector2d offdiag_penalty_elements(const Eigen::MatrixXd &s_overlap,
                                            Index s, Index t);
 
-  Eigen::MatrixXd occupied_orbitals;
+  Eigen::MatrixXd localized_orbitals_;
+
   AOBasis aobasis_;
   Eigen::MatrixXd overlap_;
   Index n_occs_;

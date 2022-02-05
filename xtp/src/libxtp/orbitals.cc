@@ -660,11 +660,11 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(qm_package_, "qm_package");
   try {
     r(lmos_, "LMOs");
+    r(lmos_energies_, "LMOs_energies");
   } catch (std::runtime_error& e) {
     ;
   }
 
-  r(lmos_energies_, "LMOs_energies");
   r(version, "version");
   r(mos_, "mos");
   r(mos_embedding_, "mos_embedding");
