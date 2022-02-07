@@ -110,6 +110,7 @@
       <mdrun>gmx mdrun -table</mdrun>
     </gromacs>
     <filelist>grompp.mdp topol.top table.xvg index.ndx topology.xml</filelist>
+    <cleanlist>traj.xtc</cleanlist>
     <iterations_max>4</iterations_max>
     <initial_guess>
       <method>table</method>

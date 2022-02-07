@@ -85,7 +85,6 @@
     </gromacs>
     <filelist>grompp.mdp topol.top index.ndx table.xvg topology.xml</filelist>
     <iterations_max>10</iterations_max>
-    <cleanlist>traj.xtc</cleanlist>
     <initial_guess>
       <method>table</method>
       <cut_off>1.4</cut_off>

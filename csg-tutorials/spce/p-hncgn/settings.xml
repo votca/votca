@@ -37,6 +37,7 @@
       <mdrun>gmx mdrun -table</mdrun>
     </gromacs>
     <filelist>grompp.mdp topol.top table.xvg index.ndx topology.xml</filelist>
+    <cleanlist>traj.xtc</cleanlist>
     <iterations_max>10</iterations_max>
     <method>iie</method>
     <scriptpath />
@@ -57,7 +58,7 @@
       <cut_off>0.9</cut_off>
       <cut_residual>1.0</cut_residual>
       <pressure_constraint>-53</pressure_constraint> <!-- the pressure being negative can lead to buble formation, but -53 bar should be ok -->
-      <residual_weighting>one_plus_r_squared_over_rdf</residual_weighting> <!-- without any weighting that gives more weight to RDF onset and tail, there might be artifacts in RDF or potential in those regions -->
+      <residual_weighting>r_squared_over_rdf</residual_weighting> <!-- without any weighting that gives more weight to RDF onset and tail, there might be artifacts in RDF or potential in those regions -->
     </iie>
   </inverse>
 </cg>

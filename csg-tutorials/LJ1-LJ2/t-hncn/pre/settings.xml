@@ -92,6 +92,7 @@
       <mdrun>gmx mdrun -table</mdrun>
     </gromacs>
     <filelist>topology.xml</filelist>
+    <cleanlist>traj.xtc</cleanlist>
     <iterations_max>0</iterations_max>
     <method>iie</method>
     <scriptpath />
