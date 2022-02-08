@@ -375,7 +375,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Passing localized orbitals as the initial guess"
       << std::flush;
-  Eigen::MatrixXd LMOs = orb.getPMLocalizedOrbital();
+  Eigen::MatrixXd LMOs = orb.getLMOs();
 
   embeddingMOs.eigenvectors().leftCols(orb.getNumberOfAlphaElectrons()) = LMOs;
 

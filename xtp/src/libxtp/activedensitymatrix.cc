@@ -33,7 +33,7 @@ namespace votca {
 namespace xtp {
 
 Eigen::MatrixXd ActiveDensityMatrix::compute_Dmat_A() {
-  Eigen::MatrixXd localized_mo_coeff = orbitals_.getPMLocalizedOrbital();
+  Eigen::MatrixXd localized_mo_coeff = orbitals_.getLMOs();
   return activedensitymatrix(localized_mo_coeff);
 }
 

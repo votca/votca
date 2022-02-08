@@ -24,10 +24,13 @@
 #include "votca/xtp/aomatrix.h"
 #include <limits>
 
+#include <votca/tools/eigenio_matrixmarket.h>
+
 namespace votca {
 namespace xtp {
 void PMLocalization::computePML(Orbitals &orbitals) {
-  occupied_orbitals = orbitals.MOs().eigenvectors().leftCols(
+  // initialize with occupied CMOs
+  localized_orbitals_ = orbitals.MOs().eigenvectors().leftCols(
       orbitals.getNumberOfAlphaElectrons());
   aobasis_ = orbitals.getDftBasis();
   AOOverlap overlap;
@@ -58,11 +61,12 @@ void PMLocalization::computePML(Orbitals &orbitals) {
     XTP_LOG(Log::info, log_)
         << "Orbitals to be changed: " << maxrow << " " << maxcol << std::flush;
 
-    Eigen::MatrixX2d max_orbs(occupied_orbitals.rows(), 2);
-    max_orbs << occupied_orbitals.col(maxrow), occupied_orbitals.col(maxcol);
+    Eigen::MatrixX2d max_orbs(localized_orbitals_.rows(), 2);
+    max_orbs << localized_orbitals_.col(maxrow),
+        localized_orbitals_.col(maxcol);
     Eigen::MatrixX2d rotated_orbs = rotateorbitals(max_orbs, maxrow, maxcol);
-    occupied_orbitals.col(maxrow) = rotated_orbs.col(0);
-    occupied_orbitals.col(maxcol) = rotated_orbs.col(1);
+    localized_orbitals_.col(maxrow) = rotated_orbs.col(0);
+    localized_orbitals_.col(maxcol) = rotated_orbs.col(1);
 
     update_penalty(maxrow, maxcol);
 
@@ -74,7 +78,90 @@ void PMLocalization::computePML(Orbitals &orbitals) {
   }
   XTP_LOG(Log::error, log_) << TimeStamp() << " Orbitals localized after "
                             << iteration + 1 << " iterations" << std::flush;
-  orbitals.setPMLocalizedOrbital(occupied_orbitals);
+
+  // check if localized orbitals orthonormal, if nor warn
+  check_orthonormality();
+
+  // determine the energies of the localized orbitals
+  Eigen::VectorXd energies = calculate_lmo_energies(orbitals);
+
+  // sort the LMOS according to energies
+  auto [LMOS, LMOS_energies] = sort_lmos(energies);
+  // print info
+  for (Index i = 0; i < LMOS_energies.size(); i++) {
+    XTP_LOG(Log::error, log_)
+        << (boost::format(" LMO index = %1$4i Energy = %2$10.5f Hartree ") %
+            (i) % LMOS_energies(i))
+               .str()
+        << std::flush;
+  }
+  orbitals.setLMOs(LMOS);
+  orbitals.setLMOs_energies(LMOS_energies);
+}
+
+// sort the LMOs according to their energy
+std::pair<Eigen::MatrixXd, Eigen::VectorXd> PMLocalization::sort_lmos(
+    const Eigen::VectorXd &energies) {
+  Eigen::VectorXd LMOS_energies(energies.size());
+  Eigen::MatrixXd LMOS(localized_orbitals_.rows(), localized_orbitals_.cols());
+
+  // sort the LMOs according to energy
+  std::vector<std::pair<double, int> > vp;
+
+  // Inserting element in pair vector
+  // to keep track of previous indexes
+  for (int i = 0; i < energies.size(); ++i) {
+    vp.push_back(std::make_pair(energies(i), i));
+  }
+  // Sorting pair vector
+  std::sort(vp.begin(), vp.end());
+
+  for (Index i = 0; i < energies.size(); i++) {
+    LMOS_energies(i) = vp[i].first;
+    LMOS.col(i) = localized_orbitals_.col(vp[i].second);
+  }
+
+  return {LMOS, LMOS_energies};
+}
+
+// calculate energies of LMOs
+Eigen::VectorXd PMLocalization::calculate_lmo_energies(Orbitals &orbitals) {
+  Eigen::MatrixXd h = overlap_ * orbitals.MOs().eigenvectors() *
+                      orbitals.MOs().eigenvalues().asDiagonal() *
+                      orbitals.MOs().eigenvectors().transpose() * overlap_;
+  // Eigen::VectorXd energies =
+  return (localized_orbitals_.transpose() * h * localized_orbitals_).diagonal();
+}
+
+// check orthonormality of LMOs
+void PMLocalization::check_orthonormality() {
+
+  Eigen::MatrixXd norm =
+      localized_orbitals_.transpose() * overlap_ * localized_orbitals_;
+  Eigen::MatrixXd check_norm =
+      norm - Eigen::MatrixXd::Identity(norm.rows(), norm.cols());
+  bool not_orthonormal = (check_norm.cwiseAbs().array() > 1e-5).any();
+  if (not_orthonormal) {
+    XTP_LOG(Log::error, log_) << TimeStamp()
+                              << " WARNING: Localized orbtials are not "
+                                 "orthonormal. Proceed with caution! "
+                              << std::flush;
+    XTP_LOG(Log::info, log_) << TimeStamp() << " LMOs * S * LMOs" << std::flush;
+    for (Index i = 0; i < norm.rows(); i++) {
+      for (Index j = 0; j < norm.cols(); j++) {
+        if (std::abs(check_norm(i, j)) > 1e-5) {
+          XTP_LOG(Log::info, log_)
+              << TimeStamp()
+              << (boost::format("  Element (%1$4i,%2$4i) = %3$8.2e") % (i) % j %
+                  norm(i, j))
+                     .str()
+              << std::flush;
+        }
+      }
+    }
+  }
+
+  return;
 }
 
 // Function to rotate the 2 maximum orbitals (s and t)
@@ -112,31 +199,31 @@ Eigen::VectorXd PMLocalization::pop_per_atom(const Eigen::VectorXd &orbital) {
 // Determine PM cost function based on Mulliken populations
 void PMLocalization::initial_penalty() {
 
-  PM_penalty_ =
-      Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
+  PM_penalty_ = Eigen::MatrixXd::Zero(localized_orbitals_.cols(),
+                                      localized_orbitals_.cols());
   // Variable names A and B are used directly as described in the paper above
-  A_ =
-      Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
-  B_ =
-      Eigen::MatrixXd::Zero(occupied_orbitals.cols(), occupied_orbitals.cols());
+  A_ = Eigen::MatrixXd::Zero(localized_orbitals_.cols(),
+                             localized_orbitals_.cols());
+  B_ = Eigen::MatrixXd::Zero(localized_orbitals_.cols(),
+                             localized_orbitals_.cols());
 
   numfuncpatom_ = aobasis_.getFuncPerAtom();
 
   // get the s-s elements first ("diagonal in orbital")
   MullikenPop_orb_per_atom_ = Eigen::MatrixXd::Zero(
-      occupied_orbitals.cols(), Index(numfuncpatom_.size()));
+      localized_orbitals_.cols(), Index(numfuncpatom_.size()));
 #pragma omp parallel for
-  for (Index s = 0; s < occupied_orbitals.cols(); s++) {
-    MullikenPop_orb_per_atom_.row(s) = pop_per_atom(occupied_orbitals.col(s));
+  for (Index s = 0; s < localized_orbitals_.cols(); s++) {
+    MullikenPop_orb_per_atom_.row(s) = pop_per_atom(localized_orbitals_.col(s));
   }
 
 // now we only need to calculate the off-diagonals explicitly
 #pragma omp parallel for
-  for (Index s = 0; s < occupied_orbitals.cols(); s++) {
+  for (Index s = 0; s < localized_orbitals_.cols(); s++) {
     Eigen::MatrixXd s_overlap =
-        occupied_orbitals.col(s).asDiagonal() * overlap_;
+        localized_orbitals_.col(s).asDiagonal() * overlap_;
 
-    for (Index t = s + 1; t < occupied_orbitals.cols(); t++) {
+    for (Index t = s + 1; t < localized_orbitals_.cols(); t++) {
 
       Eigen::Vector2d temp = offdiag_penalty_elements(s_overlap, s, t);
 
@@ -153,7 +240,7 @@ Eigen::Vector2d PMLocalization::offdiag_penalty_elements(
     const Eigen::MatrixXd &s_overlap, Index s, Index t) {
 
   Eigen::MatrixXd splitwiseMullikenPop_orb_SandT =
-      s_overlap * occupied_orbitals.col(t).asDiagonal();
+      s_overlap * localized_orbitals_.col(t).asDiagonal();
   Eigen::RowVectorXd MullikenPop_orb_SandT_per_basis =
       0.5 * (splitwiseMullikenPop_orb_SandT.colwise().sum() +
              splitwiseMullikenPop_orb_SandT.rowwise().sum().transpose());
@@ -190,21 +277,22 @@ void PMLocalization::update_penalty(Index orb1, Index orb2) {
 
   // update the get the s-s elements for orb1 and orb2
 #pragma omp parallel for
-  for (Index s = 0; s < occupied_orbitals.cols(); s++) {
+  for (Index s = 0; s < localized_orbitals_.cols(); s++) {
     if (s == orb1 || s == orb2) {
 
-      MullikenPop_orb_per_atom_.row(s) = pop_per_atom(occupied_orbitals.col(s));
+      MullikenPop_orb_per_atom_.row(s) =
+          pop_per_atom(localized_orbitals_.col(s));
     }
   }
 
 // now we only need to calculate the off-diagonals explicitly for all
 // pairs involving orb1 or orb2
 #pragma omp parallel for
-  for (Index s = 0; s < occupied_orbitals.cols(); s++) {
+  for (Index s = 0; s < localized_orbitals_.cols(); s++) {
     Eigen::MatrixXd s_overlap =
-        occupied_orbitals.col(s).asDiagonal() * overlap_;
+        localized_orbitals_.col(s).asDiagonal() * overlap_;
 
-    for (Index t = s + 1; t < occupied_orbitals.cols(); t++) {
+    for (Index t = s + 1; t < localized_orbitals_.cols(); t++) {
 
       // we do this only if any of s or t matches orb1 or orb2
       if (s == orb1 || s == orb2 || t == orb1 || t == orb2) {

@@ -370,11 +370,12 @@ class Orbitals {
   bool GetFlagUseHqpOffdiag() const { return use_Hqp_offdiag_; };
   void SetFlagUseHqpOffdiag(bool flag) { use_Hqp_offdiag_ = flag; };
 
-  const Eigen::MatrixXd &getPMLocalizedOrbital() const {
-    return pm_localized_orbitals_;
-  };
-  void setPMLocalizedOrbital(const Eigen::MatrixXd &matrix) {
-    pm_localized_orbitals_ = matrix;
+  const Eigen::MatrixXd &getLMOs() const { return lmos_; };
+  void setLMOs(const Eigen::MatrixXd &matrix) { lmos_ = matrix; }
+
+  const Eigen::VectorXd &getLMOs_energies() const { return lmos_energies_; };
+  void setLMOs_energies(const Eigen::VectorXd &energies) {
+    lmos_energies_ = energies;
   }
 
   Index getNumOfActiveElectrons() { return active_electrons_; }
@@ -408,7 +409,8 @@ class Orbitals {
   tools::EigenSystem mos_;
   tools::EigenSystem mos_embedding_;
 
-  Eigen::MatrixXd pm_localized_orbitals_;
+  Eigen::MatrixXd lmos_;
+  Eigen::VectorXd lmos_energies_;
   Index active_electrons_;
 
   QMMolecule atoms_;
