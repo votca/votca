@@ -173,6 +173,10 @@ def get_args(iie_args=None):
                                      help=('String of form ",p_tgt,p_cur". Starting '
                                            "comma is needed to prevent confusion when "
                                            "p_tgt is negative"))
+    parser_gauss_newton.add_argument('--kirkwood-buff-constraint',
+                                     action='store_const', const=True,
+                                     default=False,
+                                     help="Whether to match the KBI of the target RDF")
     parser_gauss_newton.add_argument('--residual-weighting',
                                      dest='residual_weighting',
                                      type=str, required=True)
@@ -391,23 +395,23 @@ def process_input(args):
     elif args.subcommand in ('newton', 'gauss-newton', 'dcdh'):
         cut_off_path = "./inverse/iie/cut_off"
     else:
-        raise Exception('all methods need a cut-off')
+        raise Exception('all iie methods need a cut-off')
     # try to read it from xml ET
     try:
-        settings['cut_off'] = float(options.find(cut_off_path).text)
+        settings['cut_off_pot'] = float(options.find(cut_off_path).text)
     except (AttributeError, ValueError):
         raise Exception(cut_off_path + " must be a float in settings.xml for integral "
                         "equation methods")
-    # determine slices from cut_off
-    settings['cut_pot'], settings['tail_pot'] = calc_slices(r, settings['cut_off'],
-                                                            settings['verbose'])
-    # determine slices from cut_residual
+    # determine cut-off for residuals
     if args.subcommand in ('gauss-newton', 'dcdh'):
         cut_residual = options.find("./inverse/iie/cut_residual")
         # only if defined, not required for dc/dh, will then just use cut_off
         if cut_residual is not None:
-            settings['cut_res'], settings['tail_res'] = calc_slices(
-                r, float(cut_residual.text), settings['verbose'])
+            settings['cut_off_res'] = float(cut_residual.text)
+        else:  # None if not given
+            settings['cut_off_res'] = None
+    else:  # None for Newton and potential_guess
+        settings['cut_off_res'] = None
     # constraints
     if args.subcommand == 'gauss-newton':
         constraints = []
@@ -426,6 +430,8 @@ def process_input(args):
                 constraints.append({'type': 'pressure', 'target': p_target,
                                     'current': p_current})
 
+        if args.kirkwood_buff_constraint:
+            constraints.append({'type': 'kirkwood-buff-integral'})
         settings['constraints'] = constraints
     # stuff for subtracting coulomb potential
     if args.subcommand == 'potential_guess':
@@ -501,7 +507,7 @@ def potential_guess(input_arrays, settings, verbose=False):
             U -= U_Coulomb
         # make tail zero. It is spoiled on the last half from inverting OZ.
         # careful: slices refer to arrays before reinserting r=0 values!
-        cut, tail = settings['cut_pot'], settings['tail_pot']
+        cut, tail = calc_slices(r, settings['cut_off_pot'], verbose=False)
         U[cut] -= U[cut][-1]
         U[tail] = 0
         U_flag[tail] = 'o'
@@ -604,7 +610,8 @@ def newton_update(input_arrays, settings, verbose=False):
     # number of grid points in r
     n_r = len(r)
     # slices
-    cut, tail = settings['cut_pot'], settings['tail_pot']
+    cut, tail = calc_slices(r, settings['cut_off_pot'], verbose=False,
+                            offset=-1)
     # generate matrices
     g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
                                        settings['non-bonded-dict'])
@@ -630,19 +637,13 @@ def newton_update(input_arrays, settings, verbose=False):
             r, dU_mat, settings['non-bonded-dict']).items():
         dU = dU_dict['y']
         dU_flag = gen_flag_isfinite(dU)
+        # add 0 in front if it was removed
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r))
             dU = np.concatenate(([np.nan], dU))
             dU_flag = np.concatenate((['o'], dU_flag))
         else:
             r_out = r
-        # shift potential to make last value zero
-        if settings['flatten_at_cut_off']:
-            dU[cut] -= dU[cut][-1]
-            dU[tail] = 0
-        else:
-            dU[cut] -= dU[tail][0]
-            dU[tail] = 0
         # change NaN in the core region to first valid value
         dU = extrapolate_dU_left_constant(dU, dU_flag)
         # save for output
@@ -673,10 +674,10 @@ def calc_jacobian(input_arrays, settings, verbose=False):
     # number of grid points in r
     n_r = len(r)
     # slices
-    if 'cut_res' in settings.keys():
-        cut, _ = settings['cut_res'], settings['tail_res']
+    if settings['cut_off_res'] is None:
+        cut, _ = calc_slices(r, settings['cut_off_pot'], verbose=False)
     else:
-        cut, _ = settings['cut_pot'], settings['tail_pot']
+        cut, _ = calc_slices(r, settings['cut_off_res'], verbose=False)
     n_c = len(r[cut])
     # generate matrices
     g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
@@ -742,10 +743,10 @@ def calc_multistate_jacobian(input_arrays, settings, verbose=False):
     state_names = settings['state_names']  # shortcut
     # n_s = len(state_names)
     # slices
-    if 'cut_res' in settings.keys():
-        cut, _ = settings['cut_res'], settings['tail_res']
+    if settings['cut_off_res'] is None:
+        cut, _ = calc_slices(r, settings['cut_off_pot'], verbose=False)
     else:
-        cut, _ = settings['cut_pot'], settings['tail_pot']
+        cut, _ = calc_slices(r, settings['cut_off_res'], verbose=False)
     n_c = len(r[cut])
     jac_mat_list = []
     if settings['tgt_dcdh'] is not None:
@@ -858,10 +859,10 @@ def calc_and_save_dcdh(input_arrays, settings, verbose=False):
     # number of grid points in r
     n_r = len(r)
     # slices
-    if 'cut_res' in settings.keys():
-        cut, _ = settings['cut_res'], settings['tail_res']
+    if settings['cut_off_res'] is None:
+        cut, _ = calc_slices(r, settings['cut_off_pot'], verbose=False)
     else:
-        cut, _ = settings['cut_pot'], settings['tail_pot']
+        cut, _ = calc_slices(r, settings['cut_off_res'], verbose=False)
     n_c = len(r[cut])
     # warning if short input data
     if n_c * 2 > n_r:
@@ -954,6 +955,53 @@ def add_jac_inv_diagonal(r, g_tgt_mat, g_cur_mat, dcdh, rhos, n_intra, kBT,
     return jac_inv_mat
 
 
+def gen_indices_upd_pots_tgt_dists(settings):
+    index_tgt_dists = []
+    index_not_tgt_dists = []
+    index_upd_pots = []
+    index_not_upd_pots = []
+    bead_types = get_bead_types(settings['non-bonded-dict'])
+    non_bonded_dict_inv = {v: k for k, v in settings['non-bonded-dict'].items()}
+    for i, ((b1, bead1), (b2, bead2)) in enumerate(
+            (((b1, bead1), (b2, bead2))
+             for b1, bead1 in enumerate(bead_types)
+             for b2, bead2 in enumerate(bead_types)
+             )):
+        interaction_name = non_bonded_dict_inv[frozenset({bead1, bead2})]
+        if settings['tgt_dists'][interaction_name] is True:
+            index_tgt_dists.append(i)
+        else:
+            index_not_tgt_dists.append(i)
+        if settings['upd_pots'][interaction_name] is True:
+            index_upd_pots.append(i)
+        else:
+            index_not_upd_pots.append(i)
+    return (
+        index_tgt_dists, index_not_tgt_dists,
+        index_upd_pots, index_not_upd_pots,
+    )
+
+
+def gen_dfdu_matrix(n_c_pot, n_c_res, Delta_r):
+    """Generate with df/du partial derivatives.
+
+    There are as many grid points for forces as there are for the potential (w/o
+    cut-off). The grid of the forces is shifted relative to the potential/RDF grid:
+    r + Δr/2.
+    """
+    dfdu = np.zeros((n_c_pot, n_c_res))
+    # create indices for changing the main- and super-diagonal
+    main_diag = np.diag_indices(n_c_pot, ndim=2)
+    # copy needed, because diag_indices generates twice the same object
+    super_diag = list(np.diag_indices(n_c_pot-1, ndim=2)[i].copy() for i in (0, 1))
+    # shift to geth the super diagonal
+    super_diag[1] += 1
+    super_diag = tuple(super_diag)  # tuple needed for indexing
+    dfdu[main_diag] = -1 / Delta_r
+    dfdu[super_diag] = +1 / Delta_r
+    return dfdu
+
+
 @if_verbose_dump_io
 def gauss_newton_update(input_arrays, settings, verbose=False):
     """Calculate Gauss-Newton potential update based on s.a. RISM-OZ and closure.
@@ -975,12 +1023,17 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     n_i = int(n_t**2)
     # grid spacing
     Delta_r = calc_grid_spacing(r)
-    # slices
-    cut_pot, tail_pot = settings['cut_pot'], settings['tail_pot']
-    cut_res, _ = settings['cut_res'], settings['tail_res']
+    # slices and indices
+    # we don't want to update at cut-off, therefore offset=-1
+    cut_pot, tail_pot = calc_slices(r, settings['cut_off_pot'], verbose=False,
+                                    offset=-1)
+    # sometimes we need to refer to values including the value of the cut-off
+    cut_pot_p1, tail_pot_p1 = calc_slices(r, settings['cut_off_pot'], verbose=False,
+                                          offset=0)
+    cut_res, tail_res = calc_slices(r, settings['cut_off_res'], verbose=False)
     n_c_pot = len(r[cut_pot])
     n_c_res = len(r[cut_res])
-    # generate matrices
+    # generate matrices from dicts
     g_tgt_mat = gen_interaction_matrix(r, input_arrays['g_tgt'],
                                        settings['non-bonded-dict'])
     g_cur_mat = gen_interaction_matrix(r, input_arrays['g_cur'],
@@ -995,29 +1048,10 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     Delta_g_mat = g_cur_mat - g_tgt_mat
     # vectorize Delta g
     Delta_g_vec = vectorize(Delta_g_mat)
-
     # one might not want to take all dists in account or update all potentials
     # determine which rows/cols should be removed
-    index_tgt_dists = []
-    index_not_tgt_dists = []
-    index_upd_pots = []
-    index_not_upd_pots = []
-    bead_types = get_bead_types(settings['non-bonded-dict'])
-    non_bonded_dict_inv = {v: k for k, v in settings['non-bonded-dict'].items()}
-    for i, ((b1, bead1), (b2, bead2)) in enumerate(
-            (((b1, bead1), (b2, bead2))
-             for b1, bead1 in enumerate(bead_types)
-             for b2, bead2 in enumerate(bead_types)
-             )):
-        interaction_name = non_bonded_dict_inv[frozenset({bead1, bead2})]
-        if settings['tgt_dists'][interaction_name] is True:
-            index_tgt_dists.append(i)
-        else:
-            index_not_tgt_dists.append(i)
-        if settings['upd_pots'][interaction_name] is True:
-            index_upd_pots.append(i)
-        else:
-            index_not_upd_pots.append(i)
+    (index_tgt_dists, index_not_tgt_dists,
+     index_upd_pots, index_not_upd_pots) = gen_indices_upd_pots_tgt_dists(settings)
     n_tgt_dists = len(index_tgt_dists)
     n_upd_pots = len(index_upd_pots)
     # remove rows and columns from jacobian
@@ -1031,19 +1065,10 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     g_tgt_vec = vectorize(g_tgt_mat)
     g_tgt_vec = np.delete(g_tgt_vec, index_not_upd_pots, axis=-2)  # del rows
     g_tgt_vec = np.delete(g_tgt_vec, index_not_upd_pots, axis=-1)  # del cols
-
     # make Jacobian 2D
     jac_2D = make_matrix_2D(jac_mat)
-    # weight Jacobian
-    jac_2D = np.diag(weights.T.flatten()) @ jac_2D
-    # cut and weight Delta_g and obtain residuals
-    residuals_vec = np.zeros((n_c_res, n_tgt_dists))
-    for i in range(n_tgt_dists):
-        residuals_vec[:, i] = np.diag(weights[:, i]) @ Delta_g_vec[cut_res, i]
-    # flatten residuals
-    residuals_flat = residuals_vec.T.flatten()
-    if ('pressure' in (c['type'] for c in settings['constraints'])
-            or len(settings['constraints']) == 0):
+    # prepare A0 and C matrix
+    if 'pressure-old' in (c['type'] for c in settings['constraints']):
         # update force rather than potential
         # antiderivative operator (upper triangular matrix on top of zeros)
         A0_2D = kron_2D(np.identity(n_upd_pots),
@@ -1051,20 +1076,33 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
         C = np.zeros((len(settings['constraints']), n_upd_pots * (n_c_pot-1)))
     else:
         # update potential, A0 just cuts of the tail
-        # currently this is never used
         A0_2D = kron_2D(np.identity(n_upd_pots),
                         np.append(np.identity(n_c_pot),
                                   np.zeros((n_c_res-n_c_pot, n_c_pot)), axis=0))
         C = np.zeros((len(settings['constraints']), n_upd_pots * n_c_pot))
-    A = jac_2D @ A0_2D
+    # weight Jacobian
+    jac_2D_weighted = np.diag(weights.T.flatten()) @ jac_2D
+    # cut and weight Delta_g and obtain residuals
+    residuals_vec = np.zeros((n_c_res, n_tgt_dists))
+    for i in range(n_tgt_dists):
+        residuals_vec[:, i] = np.diag(weights[:, i]) @ Delta_g_vec[cut_res, i]
+    # flatten residuals
+    residuals_flat = residuals_vec.T.flatten()
+    # we will solve the least squares problem |A @ x - b| with constraints C @ x - d
+    A = jac_2D_weighted @ A0_2D
     b = residuals_flat
     d = np.zeros(len(settings['constraints']))
+    # prepare all constraints
     for c, constraint in enumerate(settings['constraints']):
-        if constraint['type'] == 'pressure':
+        if constraint['type'] == 'pressure-old':
             # current pressure
             p = constraint['current'] / BAR_PER_MD_PRESSURE
             # target pressure
             p_tgt = constraint['target'] / BAR_PER_MD_PRESSURE
+            # print if verbose
+            if settings['verbose']:
+                print(f"Constraining pressure: target is {constraint['target']} bar, "
+                      f"current value is {constraint['current']} bar")
             # g_tgt(r_{i+1})
             g_tgt_ip1 = g_tgt_vec[cut_pot][1:].T.flatten()
             # g_tgt(r_{i})
@@ -1091,16 +1129,66 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
                 ll[n_c_pot-2::n_c_pot-1] = 0  # no constraint for last point of each dU
             C[c, :] = ll
             d[c] = p_tgt - p
-
+        elif constraint['type'] == 'pressure':
+            if n_t > 1:
+                raise NotImplementedError("pressure constraint not implemented for "
+                                          "more than one bead")
+            # current pressure
+            p = constraint['current'] / BAR_PER_MD_PRESSURE
+            # target pressure
+            p_tgt = constraint['target'] / BAR_PER_MD_PRESSURE
+            # print if verbose
+            if settings['verbose']:
+                print(f"Constraining pressure: target is {constraint['target']} bar, "
+                      f"current value is {constraint['current']} bar")
+            # define df/du matrix
+            # use short range for both f and u
+            dfdu = gen_dfdu_matrix(n_c_pot, n_c_pot, Delta_r)
+            # volume of sphere shell element
+            r3_dr = ((r[cut_pot] + Delta_r)**4 - r[cut_pot]**4) / 4
+            # average RDF in the shell
+            g_tgt_avg = (g_tgt_vec[cut_pot_p1][:-1].T.flatten()
+                         + g_tgt_vec[cut_pot_p1][1:].T.flatten()) / 2
+            dpdf = -2/3 * np.pi * settings['rhos'][0]**2 * g_tgt_avg * r3_dr
+            C[c, :] = dpdf @ dfdu
+            if settings['flatten_at_cut_off']:
+                C[c, n_c_pot-1::n_c_pot] = 0  # no constraint for last point of each dU
+            d[c] = p - p_tgt
+        elif constraint['type'] == 'kirkwood-buff-integral':
+            if n_t > 1:
+                raise NotImplementedError("KBI constraint not implemented for more "
+                                          "than one bead")
+            # we leave out pre factors (rho should come back for multiple beads)
+            # current KBI
+            G = 4 * np.pi * np.sum(r[cut_res]**2
+                                   * (g_cur_mat[cut_res, 0, 0] - 1)) * Delta_r
+            # target KBI
+            G_tgt = 4 * np.pi * np.sum(r[cut_res]**2
+                                       * (g_tgt_mat[cut_res, 0, 0] - 1)) * Delta_r
+            # print if verbose
+            if settings['verbose']:
+                print(f"Constraining Kirkwood-Buff integral from 0 to "
+                      f"r={r[cut_res][-1]:.4f} nm: target is {G_tgt:.5} nm³, current "
+                      f"value is {G:.5} nm³")
+            # define C row
+            C[c, :] = 4 * np.pi * Delta_r * r[cut_res]**2 @ jac_2D @ A0_2D
+            d[c] = G - G_tgt
         # elif constraint['type'] == 'potential_energy_relation':
             # idea is to have a relation between integral g_i u_i dr and
             # integral g_j u_j dr, for example to prohibit phase separation
-            # not compatiple with pressure, because it needs potential, not force
         else:
             raise NotImplementedError("not implemented constraint type: "
                                       + constraint['type'])
-    # solve linear equation
-    dU_flat = -A0_2D @ solve_lsq_with_linear_constraints(A, C, b, d)
+    # solve least squares problem with linear constraints
+    dx_flat = solve_lsq_with_linear_constraints(A, C, b, d)
+    # obtain potential update (dx_flat can be potential or force)
+    dU_flat = -A0_2D @ dx_flat
+    # test KBI
+    Delta_g_predicted = jac_2D @ dU_flat
+    if settings['verbose']:
+        np.savez_compressed('Delta_g_predicted.npz',
+                            Delta_g_predicted=Delta_g_predicted)
+    # end test KBI
     dU_vec = dU_flat.reshape(n_upd_pots, n_c_res).T
     # insert zeros for ignored potentials
     for i in index_not_upd_pots:
@@ -1116,18 +1204,15 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
         r_out = dU_dict['x']
         dU = dU_dict['y']
         dU_flag = gen_flag_isfinite(dU)
-        dU_flag[tail_pot] = 'o'
+        dU_flag[tail_pot_p1] = 'o'
+        # shift potential to make value before cut-off zero
+        if settings['flatten_at_cut_off']:
+            dU[cut_pot] -= dU[cut_pot][-1]
+        # add 0 in front if it was removed
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r_out))
             dU = np.concatenate(([np.nan], dU))
             dU_flag = np.concatenate((['o'], dU_flag))
-        # shift potential to make last value zero
-        if settings['flatten_at_cut_off']:
-            dU[cut_pot] -= dU[cut_pot][-1]
-            dU[tail_pot] = 0
-        else:
-            dU[cut_pot] -= dU[tail_pot][0]
-            dU[tail_pot] = 0
         # change NaN in the core region to first valid value
         dU = extrapolate_dU_left_constant(dU, dU_flag)
         # save for output
@@ -1165,8 +1250,13 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
     # grid spacing
     Delta_r = calc_grid_spacing(r)
     # slices
-    cut_pot, tail_pot = settings['cut_pot'], settings['tail_pot']
-    cut_res, _ = settings['cut_res'], settings['tail_res']
+    # we don't want to update at cut-off, therefore offset=-1
+    cut_pot, tail_pot = calc_slices(r, settings['cut_off_pot'], verbose=False,
+                                    offset=-1)
+    # sometimes we need to refer to values including the value of the cut-off
+    cut_pot_p1, tail_pot_p1 = calc_slices(r, settings['cut_off_pot'], verbose=False,
+                                          offset=0)
+    cut_res, tail_res = calc_slices(r, settings['cut_off_res'], verbose=False)
     n_c_pot = len(r[cut_pot])
     n_c_res = len(r[cut_res])
     # generate matrices
@@ -1219,21 +1309,17 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
         r_out = dU_dict['x']
         dU = dU_dict['y']
         dU_flag = gen_flag_isfinite(dU)
-        dU_flag[tail_pot] = 'o'
+        dU_flag[tail_pot_p1] = 'o'
+        # shift potential to make value before cut-off zero
+        if settings['flatten_at_cut_off']:
+            dU[cut_pot] -= dU[cut_pot][-1]
+        # add 0 in front if it was removed
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r_out))
             dU = np.concatenate(([np.nan], dU))
             dU_flag = np.concatenate((['o'], dU_flag))
         else:
             r_out = r
-        # shift potential to make last value zero
-        cut, tail = settings['cut_pot'], settings['tail_pot']
-        if settings['flatten_at_cut_off']:
-            dU[cut] -= dU[cut][-1]
-            dU[tail] = 0
-        else:
-            dU[cut] -= dU[tail][0]
-            dU[tail] = 0
         # change NaN in the core region to first valid value
         dU = extrapolate_dU_left_constant(dU, dU_flag)
         # save for output
@@ -1259,8 +1345,13 @@ def zero_update(input_arrays, settings, verbose=False):
     # number of atom types
     n_t = len(settings['rhos'])
     # slices
-    _, tail_pot = settings['cut_pot'], settings['tail_pot']
-    cut_res, _ = settings['cut_res'], settings['tail_res']
+    # we don't want to update at cut-off, therefore offset=-1
+    cut_pot, tail_pot = calc_slices(r, settings['cut_off_pot'], verbose=False,
+                                    offset=-1)
+    # sometimes we need to refer to values including the value of the cut-off
+    _, tail_pot_p1 = calc_slices(r, settings['cut_off_pot'], verbose=False,
+                                 offset=0)
+    cut_res, tail_res = calc_slices(r, settings['cut_off_res'], verbose=False)
     n_c_res = len(r[cut_res])
     dU_mat = np.zeros((n_c_res, n_t, n_t))
     # prepare output
@@ -1270,7 +1361,7 @@ def zero_update(input_arrays, settings, verbose=False):
         r_out = dU_dict['x']
         dU = dU_dict['y']
         dU_flag = gen_flag_isfinite(dU)
-        dU_flag[tail_pot] = 'o'
+        dU_flag[tail_pot_p1] = 'o'
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r_out))
             dU = np.concatenate(([0.0], dU))
@@ -1294,7 +1385,7 @@ def gen_residual_weights(res_weight_scheme, r, n_c_res, n_i, n_s, g_tgt_vec):
         numerator = 1
     elif numerator_key == 'r':
         numerator = np.repeat(np.transpose([r]), n_s * n_i, 1)
-    elif numerator_key == 'r_squared':
+    elif numerator_key == 'r_square':
         numerator = np.repeat(np.transpose([r**2]), n_s * n_i, 1)
     else:
         raise Exception('Unknown weighting scheme numerator:', numerator_key)
@@ -1340,7 +1431,7 @@ def unadapt_reduced_matrix(Mat, n_intra):
     return mat
 
 
-def calc_slices(r, cut_off, verbose=False):
+def calc_slices(r, cut_off, verbose=False, offset=0):
     """
     Generate slices for the regions used in the IIE methods.
     For Gauss-Newton this function is called twice, once for the cut_off of the
@@ -1353,7 +1444,7 @@ def calc_slices(r, cut_off, verbose=False):
     note: in earlier versions, there were slices (nocore, crucial) that
     excluded the core region (rdv < threshold)
     """
-    ndx_co = find_after_cut_off_ndx(r, cut_off)
+    ndx_co = find_after_cut_off_ndx(r, cut_off) + offset
     cut = slice(0, ndx_co)
     tail = slice(ndx_co, None)
     if verbose:

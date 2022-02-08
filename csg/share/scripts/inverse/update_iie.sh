@@ -49,6 +49,11 @@ if [[ $iie_method == 'gauss-newton' ]]; then
   fi
 fi
 
+# Kirkwood-Buff integral constraint
+if [[ $iie_method == 'gauss-newton' && $(csg_get_property cg.inverse.iie.kirkwood_buff_constraint) == 'true' ]]; then
+    kirkwood_buff_constraint_flag="--kirkwood-buff-constraint"
+fi
+
 # Gauss-Newton residual weighting
 if [[ $iie_method == 'gauss-newton' ]]; then
   residual_weighting_flag="--residual-weighting $(csg_get_property cg.inverse.iie.residual_weighting)"
@@ -120,6 +125,7 @@ do_external update iie_pot "$iie_method" \
   ${g_intra_flag-} \
   --out "dpot.pure_iie" \
   ${pressure_constraint_flag-} \
+  ${kirkwood_buff_constraint_flag-} \
   ${residual_weighting_flag-} \
   ${tgt_dcdh_flag-} \
   ${upd_pots_flag-} \

@@ -295,15 +295,43 @@ def gen_beadtype_property_array(property_dict, non_bonded_dict):
 def solve_lsq_with_linear_constraints(A, C, b, d):
     """Minimize |A @ x - b|, respecting constraint C @ x = d using elimination.
 
-    There are many methods to achive this, this one is probably not the most stable one,
-    but so far it works well.
+    There are many methods to achive this, this one is probably one of the more stable
+    ones, but it is not so easy to read.
+    Code similar to example 6.18 from *Scientific Computing* by Gander et al.
     """
-    x_unconstrained, _, _, _ = np.linalg.lstsq(A, b, rcond=None)
-    AT_A_inv = np.linalg.inv(A.T @ A)
-    x = (
-        x_unconstrained - AT_A_inv @ C.T @ np.linalg.inv(C @ AT_A_inv @ C.T)
-        @ (C @ x_unconstrained - d)
-    ).flatten()
+    m, n = A.shape
+    p, n = C.shape
+    b.shape = (m, 1)
+    d.shape = (p, 1)
+    CA = np.block([[C, d], [A, b]])  # augmented matrix
+    pp = np.array(range(n))  # permutation vector
+    for i in range(p):  # eliminate p unknowns with Gaussian elimination
+        h = np.max(abs(CA[i, i:n]))
+        jmax = np.argmax(abs(CA[i, i:n]))  # find max value to substitute in
+        jmax = jmax + i
+        if h == 0:
+            raise Exception("Matrix C is rank deficient")
+        if jmax != i:  # exchange columns to bring max column front
+            # print(f"exchanging columns {i} and {jmax}")
+            CA[:, [i, jmax]] = CA[:, [jmax, i]]
+            pp[[i, jmax], ] = pp[[jmax, i]]
+        CA[i+1:, i] = CA[i+1:, i] / CA[i, i]
+        CA[i+1:, i+1:n+1] = CA[i+1:, i+1:n+1] - np.outer(CA[i+1:, i], CA[i, i+1:n+1])
+    if p == n:
+        print("Warning: solution determined fully by constraints")
+        y2 = []
+    else:
+        # solve lsq.-problem
+        y2 = np.linalg.lstsq(CA[p:m+p, p:n],  CA[p:m+p, n], rcond=None)[0]
+    if p == 0:
+        # no constraints
+        y1 = []
+    else:
+        y1 = np.linalg.lstsq(np.triu(CA[0:p, 0:p]), CA[0:p, n] - CA[0:p, p:n] @ y2,
+                             rcond=None)[0]
+    pp_inv = np.empty(pp.size, pp.dtype)
+    pp_inv[pp] = np.arange(pp.size)
+    x = np.concatenate([y1, y2])[pp_inv]
     return x
 
 

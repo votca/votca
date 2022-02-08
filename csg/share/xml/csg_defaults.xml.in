@@ -408,7 +408,7 @@
           newton_mod is no longer supported.</DESC>
       </method>
       <closure>hnc
-        <DESC>Ornstein-Zernike equation closure for the iie update. Options are: hnc (hypernetted-chain), py (Percus-Yevick)</DESC>
+        <DESC>Ornstein-Zernike equation closure for the iie update. Options are: hnc (hypernetted-chain, default), py (Percus-Yevick)</DESC>
       </closure>
       <cut_off>
         <DESC>Cut-off used for non-bonded potenitals. Potential (update) will be set to zero beyond this point.</DESC>
@@ -432,8 +432,11 @@
       <pressure_constraint>none
         <DESC>If not none, apply value as pressure constraint. Only for method=gauss-newton</DESC>
       </pressure_constraint>
-      <residual_weighting>r_squared_over_sqrt_rdf
-      <DESC>Function to use for weighting the residuals. Only for method=gauss-newton. Valid values are: [one_plus_]{one,r,r_squared}_over_{one,sqrt_rdf,rdf} and unity. The default is r_squared_over_sqrt_rdf</DESC>
+      <kirkwood_buff_constraint>false
+        <DESC>Whether to match the Kirkwood-Buff integral of the target distribution up to the cut-off. Options are true, false (default)</DESC>
+      </kirkwood_buff_constraint>
+      <residual_weighting>r_square_over_sqrt_rdf
+      <DESC>Function to use for weighting the residuals. Only for method=gauss-newton. Valid values are: [one_plus_]{one,r,r_square}_over_{one,sqrt_rdf,rdf} and unity. The default is r_square_over_sqrt_rdf</DESC>
       </residual_weighting>
       <!--DEPRECATED, use residua_weigthing instead<extrap_near_core>power
         <DESC>Method for extrapolation in and close to core region. Valid values are: power (default), constant, none</DESC>
