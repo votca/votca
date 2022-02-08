@@ -1172,6 +1172,8 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
                       f"value is {G:.5} nm³")
             # define C row
             C[c, :] = 4 * np.pi * Delta_r * r[cut_res]**2 @ jac_2D @ A0_2D
+            if settings['flatten_at_cut_off']:
+                C[c, n_c_pot-1::n_c_pot] = 0  # no constraint for last point of each dU
             d[c] = G - G_tgt
         # elif constraint['type'] == 'potential_energy_relation':
             # idea is to have a relation between integral g_i u_i dr and
