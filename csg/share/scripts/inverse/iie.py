@@ -511,7 +511,7 @@ def potential_guess(input_arrays, settings, verbose=False):
         U[cut] -= U[cut][-1]
         U[tail] = 0
         U_flag[tail] = 'o'
-        # reinsert r=0 values
+        # add value at r=0 if it was removed
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r))
             U = np.concatenate(([np.nan], U))
@@ -637,7 +637,7 @@ def newton_update(input_arrays, settings, verbose=False):
             r, dU_mat, settings['non-bonded-dict']).items():
         dU = dU_dict['y']
         dU_flag = gen_flag_isfinite(dU)
-        # add 0 in front if it was removed
+        # add value at r=0 if it was removed
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r))
             dU = np.concatenate(([np.nan], dU))
@@ -1152,7 +1152,9 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             dpdf = -2/3 * np.pi * settings['rhos'][0]**2 * g_tgt_avg * r3_dr
             C[c, :] = dpdf @ dfdu
             if settings['flatten_at_cut_off']:
+                print(C[c, n_c_pot-3:])
                 C[c, n_c_pot-1::n_c_pot] = 0  # no constraint for last point of each dU
+                print(C[c, n_c_pot-3:])
             d[c] = p - p_tgt
         elif constraint['type'] == 'kirkwood-buff-integral':
             if n_t > 1:
@@ -1173,7 +1175,9 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             # define C row
             C[c, :] = 4 * np.pi * Delta_r * r[cut_res]**2 @ jac_2D @ A0_2D
             if settings['flatten_at_cut_off']:
+                print(C[c, n_c_pot-3:])
                 C[c, n_c_pot-1::n_c_pot] = 0  # no constraint for last point of each dU
+                print(C[c, n_c_pot-3:])
             d[c] = G - G_tgt
         # elif constraint['type'] == 'potential_energy_relation':
             # idea is to have a relation between integral g_i u_i dr and
@@ -1209,8 +1213,10 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
         dU_flag[tail_pot_p1] = 'o'
         # shift potential to make value before cut-off zero
         if settings['flatten_at_cut_off']:
-            dU[cut_pot] -= dU[cut_pot][-1]
-        # add 0 in front if it was removed
+            # hmmmmmm
+            dU[cut_pot] -= dU[cut_pot][-1]  # this one invalidates constraints
+            # dU[cut_pot][-1] = 0  # this one does not really make it flat
+        # add value at r=0 if it was removed
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r_out))
             dU = np.concatenate(([np.nan], dU))
@@ -1315,7 +1321,7 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
         # shift potential to make value before cut-off zero
         if settings['flatten_at_cut_off']:
             dU[cut_pot] -= dU[cut_pot][-1]
-        # add 0 in front if it was removed
+        # add value at r=0 if it was removed
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r_out))
             dU = np.concatenate(([np.nan], dU))
@@ -1364,6 +1370,7 @@ def zero_update(input_arrays, settings, verbose=False):
         dU = dU_dict['y']
         dU_flag = gen_flag_isfinite(dU)
         dU_flag[tail_pot_p1] = 'o'
+        # add value at r=0 if it was removed
         if settings['r0-removed']:
             r_out = np.concatenate(([0.0], r_out))
             dU = np.concatenate(([0.0], dU))
