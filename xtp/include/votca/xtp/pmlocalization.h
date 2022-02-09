@@ -73,7 +73,7 @@ class PMLocalization {
   void initial_penalty();
   void update_penalty(Index s, Index t);
   void check_orthonormality();
-  Eigen::VectorXd calculate_lmo_energies(Orbitals &orbitals);
+  Eigen::VectorXd calculate_lmo_energies(const Orbitals &orbitals);
   std::pair<Eigen::MatrixXd, Eigen::VectorXd> sort_lmos(
       const Eigen::VectorXd &energies);
 

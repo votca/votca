@@ -24,8 +24,6 @@
 #include "votca/xtp/aomatrix.h"
 #include <limits>
 
-#include <votca/tools/eigenio_matrixmarket.h>
-
 namespace votca {
 namespace xtp {
 
@@ -298,8 +296,8 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
     while (true) {
 
       Eigen::VectorXd mu(npoints);
-      Eigen::VectorXd fd(npoints);  // cost function derivative
-      Eigen::VectorXd fv(npoints);  // cost function value
+      Eigen::VectorXd derivative_points(npoints);  // cost function derivative
+      Eigen::VectorXd cost_points(npoints);  // cost function value
 
       for (Index i = 0; i < npoints; i++) {
         mu(i) = i * deltaTmu;
@@ -312,8 +310,8 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
 
         // calculate cost and derivative for this rotated W matrix
         auto [cost, der] = cost_derivative(W_rotated, Sat_all, numatoms);
-        fv(i) = cost;
-        fd(i) =
+        cost_points(i) = cost;
+        derivative_points(i) =
             2.0 *
             std::real((der * W_rotated.transpose() * H_.transpose()).trace());
 
@@ -324,15 +322,15 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
       // exit(0);
 
       // Check sign of the derivative
-      if (fd(0) < 0.0) {
+      if (derivative_points(0) < 0.0) {
         XTP_LOG(Log::error, log_)
-            << TimeStamp() << "Derivative is of the wrong sign!" << mu << "  "
-            << fd << std::flush;
+            << TimeStamp() << "Derivative is negative!" << mu << "  "
+            << derivative_points << std::flush;
         // exit(0);
       }
 
       // Fit to polynomial of order p
-      Eigen::VectorXd polyfit_coeff = fit_polynomial(mu, fd);
+      Eigen::VectorXd polyfit_coeff = fit_polynomial(mu, derivative_points);
 
       // Find step as smallest real zero of the polynomial
       step = find_smallest_step(polyfit_coeff);
@@ -544,11 +542,11 @@ std::pair<Eigen::MatrixXd, Eigen::VectorXd> PMLocalization::sort_lmos(
 }
 
 // calculate energies of LMOs
-Eigen::VectorXd PMLocalization::calculate_lmo_energies(Orbitals &orbitals) {
+Eigen::VectorXd PMLocalization::calculate_lmo_energies(const Orbitals &orbitals) {
   Eigen::MatrixXd h = overlap_ * orbitals.MOs().eigenvectors() *
                       orbitals.MOs().eigenvalues().asDiagonal() *
                       orbitals.MOs().eigenvectors().transpose() * overlap_;
-  // Eigen::VectorXd energies =
+
   return (localized_orbitals_.transpose() * h * localized_orbitals_).diagonal();
 }
 
@@ -623,8 +621,7 @@ void PMLocalization::initial_penalty() {
   // Variable names A and B are used directly as described in the paper above
   A_ = Eigen::MatrixXd::Zero(localized_orbitals_.cols(),
                              localized_orbitals_.cols());
-  B_ = Eigen::MatrixXd::Zero(localized_orbitals_.cols(),
-                             localized_orbitals_.cols());
+  B_ = A_;
 
   numfuncpatom_ = aobasis_.getFuncPerAtom();
 
