@@ -123,7 +123,7 @@
       <cut_off>1.1</cut_off>
       <cut_residual>1.2</cut_residual>
       <pressure_constraint>-3</pressure_constraint><!-- the pressure being negative can lead to buble formation, but -3 bar should be ok -->
-      <residual_weighting>r_squared_over_rdf</residual_weighting>
+      <residual_weighting>r_square_over_rdf</residual_weighting>
     </iie>
     <map>hexane_cg.xml</map>
   </inverse>

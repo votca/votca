@@ -1130,9 +1130,6 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             C[c, :] = ll
             d[c] = p_tgt - p
         elif constraint['type'] == 'pressure':
-            if n_t > 1:
-                raise NotImplementedError("pressure constraint not implemented for "
-                                          "more than one bead")
             # current pressure
             p = constraint['current'] / BAR_PER_MD_PRESSURE
             # target pressure
@@ -1144,13 +1141,21 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             # define df/du matrix
             # use short range for both f and u
             dfdu = gen_dfdu_matrix(n_c_pot, n_c_pot, Delta_r)
+            dfdu_all = np.kron(np.eye(n_upd_pots), dfdu)
             # volume of sphere shell element
-            r3_dr = ((r[cut_pot] + Delta_r)**4 - r[cut_pot]**4) / 4
+            r3_dr = np.tile(((r[cut_pot] + Delta_r)**4 - r[cut_pot]**4) / 4, n_upd_pots)
             # average RDF in the shell
             g_tgt_avg = (g_tgt_vec[cut_pot_p1][:-1].T.flatten()
                          + g_tgt_vec[cut_pot_p1][1:].T.flatten()) / 2
-            dpdf = -2/3 * np.pi * settings['rhos'][0]**2 * g_tgt_avg * r3_dr
-            C[c, :] = dpdf @ dfdu
+            # density product ρ_i * ρ_j as vector of same length as r_i
+            rho_i = np.repeat(
+                vectorize(
+                    np.outer(*([settings['rhos']]*2))
+                )[index_upd_pots], n_c_pot
+            )
+            # dp/df
+            dpdf = -2/3 * np.pi * rho_i * g_tgt_avg * r3_dr
+            C[c, :] = dpdf @ dfdu_all
             if settings['flatten_at_cut_off']:
                 print(C[c, n_c_pot-3:])
                 C[c, n_c_pot-1::n_c_pot] = 0  # no constraint for last point of each dU
@@ -1160,6 +1165,8 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             if n_t > 1:
                 raise NotImplementedError("KBI constraint not implemented for more "
                                           "than one bead")
+                # to implement this, one would have to create n_i constraints
+                # one per KBI
             # we leave out pre factors (rho should come back for multiple beads)
             # current KBI
             G = 4 * np.pi * np.sum(r[cut_res]**2
@@ -1175,13 +1182,33 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             # define C row
             C[c, :] = 4 * np.pi * Delta_r * r[cut_res]**2 @ jac_2D @ A0_2D
             if settings['flatten_at_cut_off']:
-                print(C[c, n_c_pot-3:])
                 C[c, n_c_pot-1::n_c_pot] = 0  # no constraint for last point of each dU
-                print(C[c, n_c_pot-3:])
             d[c] = G - G_tgt
-        # elif constraint['type'] == 'potential_energy_relation':
-            # idea is to have a relation between integral g_i u_i dr and
-            # integral g_j u_j dr, for example to prohibit phase separation
+        elif constraint['type'] == 'potential-energy':
+            # not yet in use
+            if n_t > 1:
+                raise NotImplementedError("potential energy constraint not implemented "
+                                          "for more than one bead")
+            # we leave out pre factors (rho should come back for multiple beads)
+            # current PE
+            PE = constraint['current']
+            # target PE
+            PE_tgt = constraint['target']
+            # print if verbose
+            if settings['verbose']:
+                print(f"Constraining potential energy: target is "
+                      f"{constraint['target']} kJ/mol, "
+                      f"current value is {constraint['current']} kJ/mol")
+            rho_i = np.repeat(
+                vectorize(
+                    np.outer(*([settings['rhos']]*2))
+                )[index_upd_pots], n_c_pot
+            )
+            # define C row
+            C[c, :] = 2 * np.pi * rho_i * r[cut_pot]**2 * g_tgt_vec[cut_pot].T.flatten()
+            if settings['flatten_at_cut_off']:
+                C[c, n_c_pot-1::n_c_pot] = 0  # no constraint for last point of each dU
+            d[c] = PE - PE_tgt
         else:
             raise NotImplementedError("not implemented constraint type: "
                                       + constraint['type'])

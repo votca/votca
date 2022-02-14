@@ -58,7 +58,7 @@
       <cut_off>0.9</cut_off>
       <cut_residual>1.0</cut_residual>
       <pressure_constraint>-53</pressure_constraint> <!-- the pressure being negative can lead to buble formation, but -53 bar should be ok -->
-      <residual_weighting>r_squared_over_rdf</residual_weighting> <!-- without any weighting that gives more weight to RDF onset and tail, there might be artifacts in RDF or potential in those regions -->
+      <residual_weighting>r_square_over_rdf</residual_weighting> <!-- without any weighting that gives more weight to RDF onset and tail, there might be artifacts in RDF or potential in those regions -->
     </iie>
   </inverse>
 </cg>
