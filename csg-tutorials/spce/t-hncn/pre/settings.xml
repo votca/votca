@@ -36,8 +36,7 @@
       <table_end>1.9</table_end>
       <mdrun>gmx mdrun -table</mdrun>
     </gromacs>
-    <filelist>grompp.mdp topol.top table.xvg index.ndx topology.xml</filelist>
-    <cleanlist>traj.xtc</cleanlist>
+    <filelist>topology.xml</filelist>
     <iterations_max>0</iterations_max>
     <method>iie</method>
     <scriptpath />
