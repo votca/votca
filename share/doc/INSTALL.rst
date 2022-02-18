@@ -211,15 +211,16 @@ the capability of building VOTCA and all its dependencies:
 
     git clone https://github.com/spack/spack.git spack
     source spack/share/spack/setup-env.sh
-    spack install votca-csg
-    spack install votca-xtp
+    spack install votca
 
 Stable version
 ^^^^^^^^^^^^^^
 
 Spack can also install the latest stable version from git using:
 
-    spack install votca-csg@stable
+::
+
+    spack install votca@stable
 
 Development version
 ^^^^^^^^^^^^^^^^^^^
@@ -228,7 +229,7 @@ Spack can also install the latest development version from git using:
 
 ::
 
-    spack install votca-csg@develop
+    spack install votca@master
 
 Conda-forge
 ~~~~~~~~~~~
