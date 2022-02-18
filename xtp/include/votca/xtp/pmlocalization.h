@@ -62,7 +62,7 @@ class PMLocalization {
   std::vector<Eigen::MatrixXd> setup_pop_matrices(
       const Eigen::MatrixXd &occ_orbitals);
 
-  double inner_prod(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) {
+  double inner_prod(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) const {
     return (0.5 * A.transpose() * B).trace();
   }
 

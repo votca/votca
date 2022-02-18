@@ -100,9 +100,7 @@ Eigen::VectorXd PMLocalization::fit_polynomial(const Eigen::VectorXd &x,
     }
   }
   // Solve for coefficients: A * c = y
-  Eigen::VectorXd c = A.colPivHouseholderQr().solve(y);
-
-  return c;
+  return A.colPivHouseholderQr().solve(y);
 }
 
 double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
@@ -114,7 +112,7 @@ double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
   // Real roots
   std::vector<double> real_roots;
   for (Index i = 0; i < complex_roots.size(); i++) {
-    if (fabs(std::imag(complex_roots(i))) < 10 * DBL_EPSILON) {
+    if (std::abs(std::imag(complex_roots(i))) < 10 * std::numeric_limits<double>::epsilon()) {
       real_roots.push_back(std::real(complex_roots(i)));
     }
   }
@@ -125,7 +123,7 @@ double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
   double step = 0.0;
   for (Index i = 0; i < Index(real_roots.size()); i++) {
     // Omit extremely small steps because they might get you stuck.
-    if (real_roots[i] > sqrt(DBL_EPSILON)) {
+    if (real_roots[i] > std::sqrt(std::numeric_limits<double>::epsilon())) {
       step = real_roots[i];
       break;
     }
@@ -173,16 +171,13 @@ Eigen::MatrixXcd PMLocalization::companion_matrix(const Eigen::VectorXcd &c) {
     throw std::runtime_error("Coefficient of highest term vanishes!\n");
   }
 
-  Eigen::MatrixXcd companion = Eigen::MatrixXcd::Zero(N, N);
+  Eigen::MatrixXcd companion = Eigen::MatrixXcd::Identity(N, N);
 
   // First row - coefficients normalized to that of highest term.
   for (Index j = 0; j < N; j++) {
     companion(0, j) = -c(N - (j + 1)) / c(N);
   }
-  // Fill out the unit matrix part
-  for (Index j = 1; j < N; j++) {
-    companion(j, j - 1) = 1.0;
-  }
+
 
   return companion;
 }
@@ -224,7 +219,7 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
   XTP_LOG(Log::info, log_) << TimeStamp() << " Calculated charge matrices"
                            << std::flush;
 
-  // initialize Riemannian gradient and serach direction matrices
+  // initialize Riemannian gradient and search direction matrices
   G_ = Eigen::MatrixXd::Zero(n_occs_, n_occs_);
   H_ = Eigen::MatrixXd::Zero(n_occs_, n_occs_);
 
