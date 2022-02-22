@@ -103,7 +103,7 @@
       <cut_residual>1.8</cut_residual>
       <tgt_dcdh>true</tgt_dcdh>
       <pressure_constraint>1</pressure_constraint>
-      <residual_weighting>one_plus_r_squared_over_rdf</residual_weighting> <!-- without any weighting that gives more weight to RDF onset and tail, there might be artifacts in RDF or potential in those regions -->
+      <residual_weighting>one_plus_r_squared_over_rdf</residual_weighting> <!-- without any weighting, which gives more weight to RDF onset and tail, there might be artifacts in RDF or potential in those regions -->
     </iie>
   </inverse>
 </cg>
