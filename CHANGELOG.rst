@@ -1,6 +1,12 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/stable>`__.
 
+Version 2023-dev
+================
+
+-  implemented projection-based DFT embedding (#964)
+-  Added LMO energy output and cube file generation (#970)
+
 Version 2022.1 (released XX.01.22)
 ==================================
 

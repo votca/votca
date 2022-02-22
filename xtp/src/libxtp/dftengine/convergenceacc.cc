@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2022 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -115,8 +115,8 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
   }
 
   MOs = SolveFockmatrix(H_guess);
-  Eigen::MatrixXd dmatout = DensityMatrix(MOs);
 
+  Eigen::MatrixXd dmatout = DensityMatrix(MOs);
   if (diiserror_ > opt_.adiis_start || !opt_.usediis || diis_error ||
       mathist_.size() <= 2) {
     usedmixing_ = true;
