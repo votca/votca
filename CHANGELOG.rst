@@ -9,7 +9,7 @@ Version 2022.1 (released XX.01.22)
 -  fix build on FreeBSD (#959)
 -  update CI container names (#961)
 -  Fix gw quadrature scheme (#967)
--  update install guide for spack (#972)
+-  update install guide for spack (#972, #974)
 
 Version 2022 (released 15.01.22)
 ================================
