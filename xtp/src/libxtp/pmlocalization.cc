@@ -112,7 +112,8 @@ double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
   // Real roots
   std::vector<double> real_roots;
   for (Index i = 0; i < complex_roots.size(); i++) {
-    if (std::abs(std::imag(complex_roots(i))) < 10 * std::numeric_limits<double>::epsilon()) {
+    if (std::abs(std::imag(complex_roots(i))) <
+        10 * std::numeric_limits<double>::epsilon()) {
       real_roots.push_back(std::real(complex_roots(i)));
     }
   }
@@ -120,16 +121,6 @@ double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
   // Sort roots
   std::sort(real_roots.begin(), real_roots.end());
 
-
-        XTP_LOG(Log::info, log_)
-          << TimeStamp() << " Real roots " << std::flush;
-
-	for (int i = 0; i<real_roots.size(); i++){
-	XTP_LOG(Log::info, log_)
-          << TimeStamp() << " No " << i << " : " << real_roots[i] << std::flush;
-	}
-
-  
   double step = 0.0;
   for (Index i = 0; i < Index(real_roots.size()); i++) {
     // Omit extremely small steps because they might get you stuck.
@@ -188,11 +179,10 @@ Eigen::MatrixXcd PMLocalization::companion_matrix(const Eigen::VectorXcd &c) {
     companion(0, j) = -c(N - (j + 1)) / c(N);
   }
 
-   // Fill out the unit matrix part
-   for (Index j = 1; j < N; j++) {
-     companion(j, j - 1) = 1.0;
-   }
-
+  // Fill out the unit matrix part
+  for (Index j = 1; j < N; j++) {
+    companion(j, j - 1) = 1.0;
+  }
 
   return companion;
 }
@@ -307,7 +297,7 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
 
       Eigen::VectorXd mu(npoints);
       Eigen::VectorXd derivative_points(npoints);  // cost function derivative
-      Eigen::VectorXd cost_points(npoints);  // cost function value
+      Eigen::VectorXd cost_points(npoints);        // cost function value
 
       for (Index i = 0; i < npoints; i++) {
         mu(i) = i * deltaTmu;
@@ -344,9 +334,9 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
 
       // Find step as smallest real zero of the polynomial
       step = find_smallest_step(polyfit_coeff);
-      XTP_LOG(Log::info, log_)
+      /*XTP_LOG(Log::info, log_)
           << TimeStamp() << " Iteration: " << iteration << " Tmu= " << Tmu
-          << ", taking step of size " << step << std::flush;
+          << ", taking step of size " << step << std::flush;*/
 
       // is step too far?
       if (step > 0.0 && step <= Tmu) {
@@ -395,21 +385,21 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
                 "extremum!\n");
           }
         }*/
+      } else {
+        // now do something if step is too far
+        XTP_LOG(Log::error, log_)
+            << TimeStamp()
+            << "Step went beyond max step, trying reduced max step..."
+            << std::flush;
+        if (halved < 4) {
+          halved++;
+          deltaTmu /= 2.0;
+          continue;
         } else {
-          // now do something if step is too far
-          XTP_LOG(Log::error, log_)
-              << TimeStamp()
-              << "Step went beyond max step, trying reduced max step..."
-              << std::flush;
-          if (halved < 4) {
-            halved++;
-            deltaTmu /= 2.0;
-            continue;
-          } else {
-            throw std::runtime_error(
-                "Problem in polynomial line search - could not find suitable "
-                "extremum!\n");
-          }
+          throw std::runtime_error(
+              "Problem in polynomial line search - could not find suitable "
+              "extremum!\n");
+        }
         //}
       }
     }
@@ -552,7 +542,8 @@ std::pair<Eigen::MatrixXd, Eigen::VectorXd> PMLocalization::sort_lmos(
 }
 
 // calculate energies of LMOs
-Eigen::VectorXd PMLocalization::calculate_lmo_energies(const Orbitals &orbitals) {
+Eigen::VectorXd PMLocalization::calculate_lmo_energies(
+    const Orbitals &orbitals) {
   Eigen::MatrixXd h = overlap_ * orbitals.MOs().eigenvectors() *
                       orbitals.MOs().eigenvalues().asDiagonal() *
                       orbitals.MOs().eigenvectors().transpose() * overlap_;
