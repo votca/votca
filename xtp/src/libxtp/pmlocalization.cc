@@ -120,6 +120,16 @@ double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
   // Sort roots
   std::sort(real_roots.begin(), real_roots.end());
 
+
+        XTP_LOG(Log::info, log_)
+          << TimeStamp() << " Real roots " << std::flush;
+
+	for (int i = 0; i<real_roots.size(); i++){
+	XTP_LOG(Log::info, log_)
+          << TimeStamp() << " No " << i << " : " << real_roots[i] << std::flush;
+	}
+
+  
   double step = 0.0;
   for (Index i = 0; i < Index(real_roots.size()); i++) {
     // Omit extremely small steps because they might get you stuck.
@@ -171,12 +181,17 @@ Eigen::MatrixXcd PMLocalization::companion_matrix(const Eigen::VectorXcd &c) {
     throw std::runtime_error("Coefficient of highest term vanishes!\n");
   }
 
-  Eigen::MatrixXcd companion = Eigen::MatrixXcd::Identity(N, N);
+  Eigen::MatrixXcd companion = Eigen::MatrixXcd::Zero(N, N);
 
   // First row - coefficients normalized to that of highest term.
   for (Index j = 0; j < N; j++) {
     companion(0, j) = -c(N - (j + 1)) / c(N);
   }
+
+   // Fill out the unit matrix part
+   for (Index j = 1; j < N; j++) {
+     companion(j, j - 1) = 1.0;
+   }
 
 
   return companion;
