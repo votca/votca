@@ -380,7 +380,7 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
                 "extremum!\n");
           }
         }*/
-        /*} else {
+        } else {
           // now do something if step is too far
           XTP_LOG(Log::error, log_)
               << TimeStamp()
@@ -395,7 +395,7 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
                 "Problem in polynomial line search - could not find suitable "
                 "extremum!\n");
           }
-        }*/
+        //}
       }
     }
 
