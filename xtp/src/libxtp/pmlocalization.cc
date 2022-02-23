@@ -329,9 +329,9 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
 
       // Find step as smallest real zero of the polynomial
       step = find_smallest_step(polyfit_coeff);
-      /*XTP_LOG(Log::error, log_)
+      XTP_LOG(Log::info, log_)
           << TimeStamp() << " Iteration: " << iteration << " Tmu= " << Tmu
-          << ", taking step of size " << step << std::flush;*/
+          << ", taking step of size " << step << std::flush;
 
       // is step too far?
       if (step > 0.0 && step <= Tmu) {
