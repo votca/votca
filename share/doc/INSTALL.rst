@@ -231,6 +231,21 @@ Spack can also install the latest development version from git using:
 
     spack install votca@master
 
+Other build options
+^^^^^^^^^^^^^^^^^^^
+
+Spack has other options:
+
+::
+
+    spack info votca
+    
+One useful option is to build votca without xtp:
+
+::
+
+    spack install votca~xtp
+
 Conda-forge
 ~~~~~~~~~~~
 
