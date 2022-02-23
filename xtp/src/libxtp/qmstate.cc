@@ -59,6 +59,9 @@ std::string QMStateType::ToString() const {
     case QMStateType::Electron:
       identifier = "e";
       break;
+    case QMStateType::LMOstate:
+      identifier = "l";
+      break;
   }
   return identifier;
 }
@@ -90,6 +93,9 @@ std::string QMStateType::ToLongString() const {
     case QMStateType::Electron:
       identifier = "electron";
       break;
+    case QMStateType::LMOstate:
+      identifier = "localized-orbital";
+      break;
   }
   return identifier;
 }
@@ -113,6 +119,8 @@ void QMStateType::FromString(const std::string& statetypestring) {
     type_ = QMStateType::Hole;
   } else if (lower == "e" || lower == "electron") {
     type_ = QMStateType::Electron;
+  } else if (lower == "l" || lower == "localized-orbital") {
+    type_ = QMStateType::LMOstate;
   } else {
     throw std::runtime_error("Statetype:" + statetypestring +
                              " not recognized");
