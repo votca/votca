@@ -141,7 +141,7 @@ jobs:
           key: ${{ steps.setup.outputs.cache_key }}
           restore-keys: ${{ steps.setup.outputs.cache_restore_key }}
       - name: CMake
-        run: cmake -B builddir ${{ steps.setup.outputs.cmake_args }} .
+        run: cmake -B builddir -S . ${{ steps.setup.outputs.cmake_args }}
       - name: Build
         run: |
           ccache -z
