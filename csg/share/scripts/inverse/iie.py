@@ -50,7 +50,7 @@ from csg_functions import (
     gen_interaction_matrix, gen_interaction_dict, solve_lsq_with_linear_constraints,
     gen_flag_isfinite, kron_2D, extrapolate_dU_left_constant, vectorize, devectorize,
     if_verbose_dump_io, make_matrix_2D, make_matrix_4D, cut_matrix_inverse, transpose,
-    get_bead_types, get_intra_needed
+    get_bead_types, get_intra_needed, eval_expr
 )
 
 
@@ -1172,8 +1172,12 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             G = 4 * np.pi * np.sum(r[cut_res]**2
                                    * (g_cur_mat[cut_res, 0, 0] - 1)) * Delta_r
             # target KBI
-            G_tgt = 4 * np.pi * np.sum(r[cut_res]**2
-                                       * (g_tgt_mat[cut_res, 0, 0] - 1)) * Delta_r
+            # TODO: target not implemented in iie.py arguments
+            if 'target' in constraint:
+                G_tgt = constraint['target']
+            else:
+                G_tgt = 4 * np.pi * np.sum(r[cut_res]**2
+                                           * (g_tgt_mat[cut_res, 0, 0] - 1)) * Delta_r
             # print if verbose
             if settings['verbose']:
                 print(f"Constraining Kirkwood-Buff integral from 0 to "
@@ -1408,35 +1412,20 @@ def zero_update(input_arrays, settings, verbose=False):
 
 
 def gen_residual_weights(res_weight_scheme, r, n_c_res, n_i, n_s, g_tgt_vec):
-    if res_weight_scheme == 'unity':
-        return np.ones((n_c_res, n_s * n_i))
-    if '_over_' not in res_weight_scheme:
-        raise Exception('Unknown weighting scheme:', res_weight_scheme)
-    weights = np.zeros((n_c_res, n_s * n_i))
-    if res_weight_scheme.startswith('one_plus_'):
-        weights += 1
-        res_weight_scheme = res_weight_scheme[len('one_plus_'):]
-    numerator_key, denominator_key = res_weight_scheme.split('_over_')
-    if numerator_key == 'one':
-        numerator = 1
-    elif numerator_key == 'r':
-        numerator = np.repeat(np.transpose([r]), n_s * n_i, 1)
-    elif numerator_key == 'r_square':
-        numerator = np.repeat(np.transpose([r**2]), n_s * n_i, 1)
+    """Generate weights with one column along r for each interaction."""
+    weights = eval_expr(res_weight_scheme.strip("'"), variables={
+        'r': np.repeat(np.transpose([r]), n_s * n_i, 1),
+        'g_tgt': g_tgt_vec,
+        'max_r': max(r),
+    })
+    if isinstance(weights, float):
+        # if weights is a float, all weights will be the same
+        return np.ones((n_c_res, n_s * n_i)) * weights
+    elif weights.shape == (n_c_res, n_s * n_i):
+        return weights
     else:
-        raise Exception('Unknown weighting scheme numerator:', numerator_key)
-    if denominator_key == 'one':
-        denominator = 1
-    elif denominator_key == 'sqrt_rdf':
-        # we have to add a small number here, otherwise the inverse below fails
-        # alternatively one could could cut each sub block but that would get tedious
-        denominator = np.sqrt(g_tgt_vec) + 1e-30
-    elif denominator_key == 'rdf':
-        denominator = g_tgt_vec + 1e-30
-    else:
-        raise Exception('Unknown weighting scheme denominator:', denominator_key)
-    weights = weights + numerator / denominator
-    return weights
+        raise Exception("Something went wrong: weights should be float or a np.array "
+                        f"of shape ({n_c_res}, {n_s * n_i}). Instead it is {weights}")
 
 
 def gen_Omega_hat_mat(G_minus_g_hat_mat, rhos, n_intra):

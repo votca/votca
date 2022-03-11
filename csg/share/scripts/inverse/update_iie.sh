@@ -44,8 +44,6 @@ if [[ $iie_method == 'gauss-newton' ]]; then
     [[ -z $p_now ]] && die "${0##*/}: Could not get pressure from simulation"
     echo "New pressure $p_now, target pressure $pressure_constraint"
     pressure_constraint_flag="--pressure-constraint ,$pressure_constraint,$p_now"
-  else
-    pressure_constraint_flag=""
   fi
 fi
 
@@ -56,7 +54,7 @@ fi
 
 # Gauss-Newton residual weighting
 if [[ $iie_method == 'gauss-newton' ]]; then
-  residual_weighting_flag="--residual-weighting $(csg_get_property cg.inverse.iie.residual_weighting)"
+  residual_weighting_flag="--residual-weighting '$(csg_get_property cg.inverse.iie.residual_weighting)'"
 fi
 
 # target dc/dh

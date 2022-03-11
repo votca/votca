@@ -51,7 +51,7 @@ pressure_constraint_flag=""
 #fi
 
 # Gauss-Newton residual weighting
-residual_weighting_flag="--residual-weighting $(csg_get_property cg.inverse.iie.residual_weighting)"
+residual_weighting_flag="--residual-weighting '$(csg_get_property cg.inverse.iie.residual_weighting)'"
 
 # target dc/dh
 if [[ $(csg_get_property cg.inverse.iie.tgt_dcdh) == true ]]; then

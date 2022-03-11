@@ -15,10 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ast
 from collections import defaultdict
 from functools import wraps
 import itertools
 import math
+import operator as op
 import sys
 import inspect
 
@@ -301,6 +303,8 @@ def solve_lsq_with_linear_constraints(A, C, b, d):
     """
     m, n = A.shape
     p, n = C.shape
+    b = b.copy()
+    d = d.copy()
     b.shape = (m, 1)
     d.shape = (p, 1)
     CA = np.block([[C, d], [A, b]])  # augmented matrix
@@ -575,3 +579,51 @@ def cut_matrix_inverse(matrix_long_2D, n_r, n_i, cut):
 def transpose(mat):
     """First dimension is radius or k. Transpose means swapping the last two axis."""
     return np.swapaxes(mat, -1, -2)
+
+
+def eval_expr(expr, variables={}, operators=None):
+    """Parse an expression with given operators and variables.
+
+    If operators is not given, a small set for basic math will be used.
+    >>> eval_expr('2+6')
+    8
+    >>> eval_expr('2**(4+2)')
+    64
+    >>> eval_expr('a + b', variables={'a': 10, 'b': 12})
+    22
+    """
+    # supported operators: + - * / ** -number
+    if operators is None:
+        _operators = {ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul,
+                      ast.Div: op.truediv, ast.Pow: op.pow, ast.USub: op.neg}
+    else:
+        _operators = operators
+    return eval_ast(ast.parse(expr, mode='eval').body, _operators, variables)
+
+
+def test_eval_expr():
+    assert eval_expr('2+6') == 8
+    assert eval_expr('2**(4+2)') == 64
+    assert eval_expr('a + b', variables={'a': 10, 'b': 12}) == 22
+
+
+def eval_ast(node, operators, variables):
+    """Sub function of eval_expr() that parses the ast."""
+    if isinstance(node, ast.Num):  # <number>
+        return node.n
+    elif isinstance(node, ast.Name):  # <variable>
+        if node.id in variables:
+            return variables[node.id]
+        else:
+            raise KeyError(node.id)
+    elif isinstance(node, ast.BinOp):  # <left> <operator> <right>
+        return operators[type(node.op)](
+            eval_ast(node.left, operators, variables),
+            eval_ast(node.right, operators, variables)
+        )
+    elif isinstance(node, ast.UnaryOp):  # <operator> <operand> e.g., -1
+        return operators[type(node.op)](
+            eval_ast(node.operand, operators, variables)
+        )
+    else:
+        raise TypeError(node)
