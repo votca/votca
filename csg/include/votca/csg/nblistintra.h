@@ -33,12 +33,9 @@ namespace csg {
 
 class NBListIntra : public NBList {
  public:
-  virtual void Generate(BeadList &list1, BeadList &list2);
-  virtual void Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
-    Generate(list1, list2);
-  }
-  virtual void Generate(BeadList &list, bool do_exclusions) {
-    Generate(list, list);
+  virtual void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true) override;
+  virtual void Generate(BeadList &list, bool do_exclusions = true) override {
+    Generate(list, list, do_exclusions);
   }
 
  protected:

@@ -218,6 +218,23 @@ def get_n_intra_dict(topol_xml):
         for bead in molecule.findall('bead'):
             n_intra_dict[bead.attrib['type']] += 1
     n_intra = dict(n_intra_dict)
+    has_angles = len(topol_xml.find('bonded').findall('angle')) > 1
+    has_dihedrals = len(topol_xml.find('bonded').findall('dihedral')) > 1
+    max_n_intra = max(n_intra_dict.values())
+    if max_n_intra >= 3 and (not has_angles):
+        print("Warning: at least one molecule has 3 or more identical beads and there "
+              "seem to be no angles. This means, that the separation for intra- and "
+              "intermolecular interactions could depend on exclusions (especially in "
+              "polymers). If it does, the nuber of intramolecular identical beads for "
+              "the iie methods will not be calculated correctly. However, if your "
+              "molecule is triangle you are fine.")
+    if max_n_intra >= 4 and (not has_dihedrals):
+        print("Warning: at least one molecule has 4 or more identical beads and there "
+              "seem to be no dihedral. This means, that the separation for intra- and "
+              "intermolecular interactions could depend on exclusions (especially in "
+              "polymers). If it does, the nuber of intramolecular identical beads for "
+              "the iie methods will not be calculated correctly. However, if your "
+              "molecule is a square or rectangle you are fine.")
     return n_intra
 
 
