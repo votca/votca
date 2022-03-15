@@ -129,6 +129,7 @@ dist invert_iie iie.py
 
 # imc specific stuff
 update imc update_imc.sh
+update imc_gn_pot imc_gn_pot.py
 update imc_single update_imc_single.sh
 
 # optimzer(generic) stuff
@@ -205,6 +206,7 @@ initstep gromacs initialize_step_genericsim.sh
 run gromacs run_gromacs.sh
 clean gromacs clean_generic.sh
 presimulation gromacs run_gromacs.sh --pre
+potential_energy gromacs calc_potential_energy_gromacs.sh
 pressure gromacs calc_pressure_gromacs.sh
 pressure lammps calc_pressure_lammps.sh
 rdf gromacs calc_rdf_generic.sh

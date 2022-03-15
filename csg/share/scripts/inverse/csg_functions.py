@@ -295,9 +295,13 @@ def gen_interaction_dict(r, interaction_matrix, non_bonded_dict):
     interaction_dict = {}
     for b1, bead1 in enumerate(bead_types):
         for b2, bead2 in enumerate(bead_types):
+            if b2 > b1:
+                continue
             interaction_name = non_bonded_dict_inv[frozenset({bead1, bead2})]
             interaction_dict[interaction_name] = {'x': r,
                                                   'y': interaction_matrix[:, b1, b2]}
+            if b1 != b2:  # we need to add bot the off-diagonal elements
+                interaction_dict[interaction_name]['y'] += interaction_matrix[:, b2, b1]
     return interaction_dict
 
 

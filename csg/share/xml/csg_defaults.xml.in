@@ -260,6 +260,10 @@
     </hoomd-blue>
     <imc>
       <DESC> general imc specific options </DESC>
+      <algorithm>gauss-newton
+        <DESC>Update algoritm to use: gauss-newton/newton (default)
+          Further options for Gauss-Newton are available at cg.inverse.gauss_newton.</DESC>
+      </algorithm>
       <default_reg>0
         <DESC> default magnitude for regularization parameter if not given for the group explicitly, default =0</DESC>
       </default_reg>
@@ -314,6 +318,9 @@
         <traj>
           <DESC>Special trajectory file to be used for csg_stat used in imc</DESC>
         </traj>
+        <algorithm>newton
+          <DESC>Update algoritm to use: gauss-newton/newton(default)</DESC>
+        </algorithm>
       </imc>
       <re>
         <topol>
@@ -401,62 +408,52 @@
       </state_kBTs>
     </multistate>
     <iie>
-      <DESC>general options for the IIE schemes (hncgn/hncn/pygn/ipy/pyn)</DESC>
-      <method>gauss-newton
-        <DESC>Update method to use: gauss-newton/newton
-          For example closure=hnc + method=gauss-newton will result in the HNCGN method.
+      <DESC>general options for the IIE schemes (hncgn/hncn/pygn/pyn)</DESC>
+      <algorithm>gauss-newton
+        <DESC>Update algoritm to use: gauss-newton/newton
+          Further options for Gauss-Newton are available at cg.inverse.gauss_newton.
           newton_mod is no longer supported.</DESC>
-      </method>
+      </algorithm>
       <closure>hnc
-        <DESC>Ornstein-Zernike equation closure for the iie update. Options are: hnc (hypernetted-chain, default), py (Percus-Yevick)</DESC>
+        <DESC>Ornstein-Zernike equation closure for the iie update. Options are: hnc (hypernetted-chain, default), py (Percus-Yevick, not fully supported)</DESC>
       </closure>
+      <tgt_dcdh>false
+      <DESC>Obtain dc/dh, which is part of the Jacobian, from the target distributions instead of from the current distributions. Usually in Newton's method, the Jacobian is taken at the current value.</DESC>
+      </tgt_dcdh>
+    </iie>
+    <verbose>false
+      <DESC>Log more info in the scripts and even dump some arrays. Valid values are: true, step0+1, false (default)</DESC>
+    </verbose>
+    <gauss_newton>
+      <DESC>Settings for the Gauss-Newton method, which can be used with the iie or imc Jacobian.</DESC>
+      <topol>
+        <DESC>XML topology file to be used for gauss-newton methods</DESC>
+      </topol>
       <cut_off>
         <DESC>Cut-off used for non-bonded potenitals. Potential (update) will be set to zero beyond this point.</DESC>
       </cut_off>
       <cut_residual>
         <DESC>Cut-off used for residual (RDF difference) in the Gauss-Newton method.</DESC>
       </cut_residual>
-      <!--DEPRECATED<g_extrap_factor>1.0
-        <DESC>Lenght factor by which RDF will be extrapolated</DESC>
-      </g_extrap_factor>-->
-      <!--DEPRECATED<g_min>1e-10
-        <DESC>Minimum value of the RDF to be considered valid. Determines range for potential update.
-          If too high, it can lead to too little repulsive potential.
-          If too low, badly sampled RDF region can lead to weird potential spikes.
-          Best is to choose a low number and improve_rdf_near_core.
-        </DESC>
-      </g_min>-->
-      <tgt_dcdh>false
-      <DESC>Obtain dc/dh, which is part of the Jacobian, from the target distributions instead of from the current distributions. Usually in Newton's method, the Jacobian is taken at the current value.</DESC>
-      </tgt_dcdh>
       <pressure_constraint>none
-        <DESC>If not none, apply value as pressure constraint. Only for method=gauss-newton</DESC>
+        <DESC>If not none, apply value (in bar) as pressure constraint. Default: none</DESC>
       </pressure_constraint>
       <kirkwood_buff_constraint>false
-        <DESC>Whether to match the Kirkwood-Buff integral of the target distribution up to the cut-off. Options are true, false (default)</DESC>
+        <DESC>Whether to match the Kirkwood-Buff integral of the target distribution(s) up to the cut-off. Options are true, false (default)</DESC>
       </kirkwood_buff_constraint>
+      <potential_energy_constraint>none
+        <DESC>If not none, apply value (in kJ/mol) as potential energy constraint. Default: none</DESC>
+      </potential_energy_constraint>
       <residual_weighting>r**2/g_tgt
-      <DESC>Function to use for weighting the residuals. Only for method=gauss-newton. Use python syntax without spaces with operators +-*/()** and variables r, g_tgt, max_r. The default is r**2/g_tgt</DESC>
+        <DESC>Function to use for weighting the residuals. Use python syntax without spaces. Allowed operators +-*/()**. Available variables: r, g_tgt, max_r. Default: r**2/g_tgt</DESC>
       </residual_weighting>
-      <!--DEPRECATED, use residua_weigthing instead<extrap_near_core>power
-        <DESC>Method for extrapolation in and close to core region. Valid values are: power (default), constant, none</DESC>
-      </extrap_near_core>-->
-      <!--DEPRECATED, use residua_weigthing and flatten_at_cut_off instead<fix_near_cut_off>full-deriv
-        <DESC>Method for fixing discontinuity at end of potential. Valid values are: full-deriv (default), none</DESC>
-      </fix_near_cut_off>-->
       <flatten_at_cut_off>false
-        <DESC>Despite using proper weighting, there can still be jumps at the cut-off. This will set the last but one value of dU to zero. The pressure constraint is adapted accordingly. Valid values are: false (default), true</DESC>
+        <DESC>Despite using proper weighting, there can still be jumps at the cut-off. This will set the last but one value of dU to zero. The pressure constraint is adapted accordingly. Valid values: false (default), true</DESC>
       </flatten_at_cut_off>
-      <topol>
-        <DESC>Special topology file to be used for iie update</DESC>
-      </topol>
-      <verbose>false
-        <DESC>Print some info and dump numpy arrays. Valid values are: true, step0+1, false (default)</DESC>
-      </verbose>
-    </iie>
+    </gauss_newton>
     <initial_guess>
       <DESC>Settings for the initial guess. Only for method=ibi,iie,imc. Only for non-bonded interactions.</DESC>
-        <!--could probably be adapted to methods re and optimizer-->
+        <!-- could probably be adapted to methods re and optimizer? -->
       <method>bi
         <DESC>Method for the initial potential guess: table/bi/ie</DESC>
       </method>
@@ -477,18 +474,8 @@
           <DESC>Ornstein-Zernike equation closure for the potential guess. Options are: hnc (hypernetted-chain), py (Percus-Yevick)</DESC>
         </closure>
         <topol>
-          <DESC>Special topology file to be used for ie initial_guess</DESC>
+          <DESC>XML topology file to be used for ie initial_guess</DESC>
         </topol>
-        <verbose>false
-          <DESC>Print some info and dump compressed numpy arrays. Valid values are: true, false (default)</DESC>
-        </verbose>
-        <!--DEPRECATED<g_min>1e-10
-          <DESC>Minimum value of the RDF to be considered valid. Determines range for potential guess.
-            If too high, it can lead to too little repulsive potential.
-            If too low, badly sampled RDF region can lead to weird potential spikes.
-            Best is to choose a low number and improve_rdf_near_core.
-          </DESC>
-        </g_min>-->
         <subtract_coulomb>false
           <DESC>Subtract the expected Coulomb potential from the potential guess. Valid values are: true, false (default)</DESC>
         </subtract_coulomb>
@@ -658,6 +645,9 @@
         <group>
           <DESC>Group of interaction. Cross-correlations of all members of a group are taken into account for calculating the update. If no cross correlations should be calculated, interactions have to be put into different groups. Group 'none' is completely ignored and update_potential needs to be zero for the respective interactions.</DESC>
         </group>
+        <reg>
+          <DESC>magnitude for regularization parameter per group</DESC>
+        </reg>
       </imc>
       <lammps>
         <DESC>lammps specific options for this interations</DESC>
