@@ -18,19 +18,28 @@ bad."""
 
 import argparse
 from csg_functions import (
-    readin_table, saveto_table,
+    readin_table,
+    saveto_table,
 )
+import numpy as np
 import sys
-try:
-    import numpy as np
-except ImportError:
-    print("Numpy is not installed, but needed for this script")
-    raise
-from numpy.polynomial import Polynomial
+
 if not sys.version_info >= (3, 5):
     raise Exception("This script needs Python 3.5+.")
 
-np.seterr(all='raise')
+np.seterr(all="raise")
+
+
+def main():
+    # get command line arguments
+    args = get_args()
+    # process and prepare input
+    r, g, g_flag = process_input(args)
+    # extrapolate
+    g_improved = improve_dist_near_core(r, g, args.gmin, args.gmax)
+    # modify flag?
+    # save
+    saveto_table(args.out_file, r, g_improved, g_flag, "improved RDF")
 
 
 def get_args(iie_args=None):
@@ -38,25 +47,45 @@ def get_args(iie_args=None):
     description = """
     Extrapolate an RDF close to the cores where its values are very small.
 
-    It works by assuming a exponential or power form for the repulsive region of the PMF
+    It works by assuming a exponential + constant form for the repulsive region of the
+    PMF.
     """
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('-v', '--verbose', dest='verbose',
-                        help='save some intermeditary results',
-                        action='store_const', const=True, default=False)
-    parser.add_argument('--function', type=str, choices=['power', 'exponential'],
-                        required=True,
-                        help='Function used for PMF extrapolation.')
-    parser.add_argument('--gmin', type=float, required=True,
-                        help='lowest value to consider valid')
-    parser.add_argument('--gmax', type=float, required=True,
-                        help='highest value to consider valid')
-    parser.add_argument('--in', type=argparse.FileType('r'),
-                        required=True, dest='in_file',
-                        help='RDF in file')
-    parser.add_argument('--out', type=argparse.FileType('w'),
-                        required=True, dest='out_file',
-                        help='RDF out file')
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="verbose",
+        help="save some intermeditary results",
+        action="store_const",
+        const=True,
+        default=False,
+    )
+    parser.add_argument(
+        "--gmin",
+        type=float,
+        required=True,
+        help="lowest value to consider valid",
+    )
+    parser.add_argument(
+        "--gmax",
+        type=float,
+        required=True,
+        help="highest value to consider valid",
+    )
+    parser.add_argument(
+        "--in",
+        type=argparse.FileType("r"),
+        required=True,
+        dest="in_file",
+        help="RDF in file",
+    )
+    parser.add_argument(
+        "--out",
+        type=argparse.FileType("w"),
+        required=True,
+        dest="out_file",
+        help="RDF out file",
+    )
     # parse
     args = parser.parse_args()
     return args
@@ -83,52 +112,62 @@ def gen_start_end_ndx(g, fit_start_g, fit_end_g):
     return fit_start_ndx, fit_end_ndx
 
 
-def improve_dist_near_core(r, g, pmf_function, fit_start_g, fit_end_g):
+def f_exp_plus_const(x, a, b, c):
+    return a * np.exp(-b * x) + c
+
+
+def fit_exp_plus_const(x, y):
+    """Fiting x, y with y = a * exp(-b * x) + c.
+
+    To do this without scipy, we first fit the derivative and then find c
+    in a second step.
+    """
+    Delta_x = x[1] - x[0]
+    # derivative only depends on a and b
+    # dy/dx = -ab exp(-b x)
+    dydx = np.diff(y) / np.diff(x)
+    # grid for derivative
+    x_offset = x[:-1] + Delta_x / 2
+    # log(-dy/dx) = log(ab) - bx
+    log_m_dydx = np.log(-dydx)
+    # fit
+    m_b, log_ab = np.polyfit(x=x_offset, y=log_m_dydx, deg=1)
+    # unravel
+    b = -m_b
+    if b < 0:
+        raise Exception(
+            """
+The fitting of the PMF with a * exp(-b*x) + c lead to a negative b.
+This is non-physical. Likely your data in the fitting region is too noisy.
+Try better sampled RDFs or change the fitting range.
+        """
+        )
+    a = np.exp(log_ab) / b
+    c = np.mean(y - f_exp_plus_const(x, a, b, 0))
+    return a, b, c
+
+
+def improve_dist_near_core(r, g, fit_start_g, fit_end_g):
     g_extrap = g.copy()
     fit_start_ndx, fit_end_ndx = gen_start_end_ndx(g, fit_start_g, fit_end_g)
     if fit_end_ndx - fit_start_ndx < 3:
-        raise Exception("less then three points found for fitting. This function needs "
-                        f"a finer RDF in order to work. {fit_start_ndx} {fit_end_ndx}")
-    # fitting
-    if pmf_function == 'exponential':
-        # fit r: ln(-ln(g)) with r: m * r + n
-        # linearize
-        def transform_x(x): return x
-        def transform_y(y): return np.log(-np.log(y))
-        def transform_y_inv(y): return np.exp(-np.exp(y))
-    elif pmf_function == 'power':
-        # fit ln(r): ln(-ln(g)) with m * r + n
-        # linearize
-        def transform_x(x): return np.log(x)
-        def transform_y(y): return np.log(-np.log(y))
-        def transform_y_inv(y): return np.exp(-np.exp(y))
-    else:
-        raise NotImplementedError("The value '{}' for pmf_function is not supported."
-                                  "".format(pmf_function))
+        raise Exception(
+            "less then three points found for fitting. This function needs "
+            "a finer RDF or different fit limits in order to work. Current "
+            f"fit indices: {fit_start_ndx} {fit_end_ndx}"
+        )
     # prepare data
-    data_x = transform_x(r[fit_start_ndx:fit_end_ndx])
-    data_y = transform_y(g[fit_start_ndx:fit_end_ndx])
+    print(fit_start_ndx, fit_end_ndx)
+    data_x = r[fit_start_ndx:fit_end_ndx]
+    data_y = -np.log(g[fit_start_ndx:fit_end_ndx])
     # fit
-    fit = Polynomial.fit(data_x, data_y, 1)
+    abc = fit_exp_plus_const(data_x, data_y)
+    print(abc)
     # use fit to extrap
-    with np.errstate(divide='ignore', invalid='ignore', under='ignore'):
-        g_extrap[0:fit_start_ndx] = transform_y_inv(
-            fit(transform_x(r[0:fit_start_ndx])))
+    with np.errstate(divide="ignore", invalid="ignore", under="ignore"):
+        g_extrap[0:fit_start_ndx] = np.exp(-f_exp_plus_const(r[0:fit_start_ndx], *abc))
     return g_extrap
 
 
-def main():
-    # get command line arguments
-    args = get_args()
-    # process and prepare input
-    r, g, g_flag = process_input(args)
-    # extrapolate
-    g_improved = improve_dist_near_core(r, g, args.function, args.gmin,
-                                        args.gmax)
-    # modify flag?
-    # save
-    saveto_table(args.out_file, r, g_improved, g_flag, 'improved RDF')
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
