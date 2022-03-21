@@ -29,16 +29,16 @@ fi
 imc_algorithm="$(csg_get_property cg.inverse.imc.algorithm)"
 sim_prog="$(csg_get_property cg.inverse.program)"
 
+# IMC groups
+imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
+imc_groups=$(remove_duplicate $imc_groups)
+[[ -z ${imc_groups} ]] && die "${0##*/}: No imc groups defined"
+
 # old IMC Newton algorithm, using C++ for solving
 # no constraints, but regularization is implemented
 if [[ $imc_algorithm == 'newton' ]]; then
   default_reg=$(csg_get_property cg.inverse.imc.default_reg)
   is_num "${default_reg}" || die "${0##*/}: value of cg.inverse.imc.default_reg should be a number"
-
-  # IMC groups
-  imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
-  imc_groups=$(remove_duplicate $imc_groups)
-  [[ -z ${imc_groups} ]] && die "${0##*/}: No imc groups defined"
 
   # calculate IMC matrix
   do_external imc_stat $sim_prog
@@ -60,44 +60,21 @@ if [[ $imc_algorithm == 'newton' ]]; then
 # constraints and weighting, but no regularization implemented
 elif [[ $imc_algorithm == 'gauss-newton' ]]; then
 
-  # pressure constraint
-  pressure_constraint=$(csg_get_property cg.inverse.gauss_newton.pressure_constraint)
-  if is_num "${pressure_constraint}"; then
-    p_file="${name}.pressure"
-    do_external pressure "$sim_prog" "$p_file"
-    p_now="$(sed -n 's/^Pressure=\(.*\)/\1/p' "$p_file")" || die "${0##*/}: sed of Pressure failed"
-    [[ -z $p_now ]] && die "${0##*/}: Could not get pressure from simulation"
-    echo "New pressure $p_now, target pressure $pressure_constraint"
-    pressure_constraint_flag="--pressure-constraint ,$pressure_constraint,$p_now"
-  fi
-
-  # Kirkwood-Buff integral constraint
-  if [[ $(csg_get_property cg.inverse.gauss_newton.kirkwood_buff_constraint) == 'true' ]]; then
-      kirkwood_buff_constraint_flag="--kirkwood-buff-constraint"
-  fi
-
-  # potential energy constraint
-  potential_energy_constraint=$(csg_get_property cg.inverse.gauss_newton.potential_energy_constraint)
-  if is_num "${potential_energy_constraint}"; then
-    PE_file="${name}.potential_energy"
-    do_external potential_energy "$sim_prog" "$PE_file"
-    PE_now="$(sed -n 's/^Potential=\(.*\)/\1/p' "$p_file")" || die "${0##*/}: sed of Potential failed"
-    [[ -z $PE_now ]] && die "${0##*/}: Could not get potential energy from simulation"
-    echo "New potential energy $PE_now, target potential energy $potential_energy_constraint"
-    pressure_constraint_flag="--potential-energy-constraint ,$potential_energy_constraint,$PE_now"
-  fi
-
-  # Gauss-Newton residual weighting
-  residual_weighting_flag="--residual-weighting $(csg_get_property cg.inverse.gauss_newton.residual_weighting)"
+  # no imc groups implemented for Gauss-Newton
+  imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
+  imc_groups=$(remove_duplicate $imc_groups)
+  imc_groups_array=( $imc_groups )
+  [[ ${#imc_groups_array[@]} != 1 ]] && die "${0##*/}: for Gauss Newton IMC, there can only be one IMC group"
+  [[ ${imc_groups_array[0]} == none ]] && die "${0##*/}: only IMC group is none, needs to be something else"
+  imc_group=${imc_groups[0]}
 
   # topology for molecular conections and volume
-  topol=$(csg_get_property --allow-empty cg.inverse.gauss_newton.topol)
-  [[ -z $topol ]] && topol=$(csg_get_property cg.inverse.$sim_prog.topol)
+  topol=$(csg_get_property cg.inverse.gauss_newton.topol)
   [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
 
   # volume
   volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
-  ([[ -n "$volume" ]] && is_num "$volume") || die "could not determine the volume from file ${topol}"
+  ([[ -n "$volume" ]] && is_num "$volume") || die "${0##*/}: could not determine the volume from file ${topol}"
 
   # verbose
   verbose=$(csg_get_property cg.inverse.verbose)
@@ -105,47 +82,77 @@ elif [[ $imc_algorithm == 'gauss-newton' ]]; then
   [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
   [[ "${verbose}" == 'step0+1' ]] && [[ $step_nr == '0' || $step_nr == '1' ]] && verbose_flag="--verbose"
 
+  # check improve dist
+  improve_dist_new_all=$(csg_get_interaction_property --all improve_dist_near_core.new)
+  improve_dist_target_all=$(csg_get_interaction_property --all improve_dist_near_core.target)
+  improve_dist_new_all=$(remove_duplicate $improve_dist_new_all)
+  improve_dist_target_all=$(remove_duplicate $improve_dist_target_all)
+  if [[ $(wc -w <<< "$improve_dist_new_all") > 1 || $(wc -w <<< "$improve_dist_target_all") > 1 ]]; then
+    die "${0##*/}: If using IMC Gauss-Newton either all or no RDFs have to use improve_dist_near_core.{new,target}"
+  fi
 
-  # which interactions to update and target
-  export step_nr=$(get_current_step_nr)  # needs to be exported to work in for_all
-  do_potential_list="$(for_all "non-bonded" 'scheme=( $(csg_get_interaction_property inverse.do_potential) ); echo -n $(csg_get_interaction_property name),${scheme[$(( ($step_nr - 1 ) % ${#scheme[@]} ))]}:')"
-  tgt_dist_list="$(for_all "non-bonded" 'tgt_dist=( $(csg_get_interaction_property inverse.is_target_distribution) ); echo -n $(csg_get_interaction_property name),${tgt_dist}:')"
-  upd_pots_flag="--upd-pots $do_potential_list"
-  tgt_dists_flag="--tgt-dists $tgt_dist_list"
+  # improve Jacobian in RDF onset region
+  if [[ $(csg_get_property cg.inverse.imc.improve_jacobian_onset) == "true" ]]; then
+    improve_jacobian_onset_flag="--improve-jacobian-onset"
+  fi
 
-  # no imc groups implemented for Gauss-Newton
-  imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
-  imc_groups=$(remove_duplicate $imc_groups)
-  imc_groups_array=( $imc_groups )
-  imc_groups_array=( "${imc_groups_array[@]/none}" )  # remove none
-  [[ ${#imc_groups_array[@]} != 1 ]] && die "${0##*/}: For Gauss-Newton IMC there must be exactly one imc group except none"
-  imc_group="${imc_groups_array[0]}"
+  # check that all nb interactions have same min/max/step
+  check_same_grid() {
+    for prop in min max step; do
+      value=$(csg_get_interaction_property ${prop})
+      prev_var="prev_${prop}"
+      if [[ -n ${!prev_var} && ${!prev_var} != $value ]]; then
+        die "${0##*/}: If using IMC Gauss-Newton all RDFs min, max, step have to be the same."
+      fi
+      declare prev_$prop=$value
+    done
+  }
+  export -f check_same_grid
+  for_all "non-bonded" check_same_grid
 
-  # TODO:
-  # check that all upd_pots and tgt_dists have an imc group
+  # IMC matrix, RDF, target RDF
+  use_target_matrix=$(csg_get_property cg.inverse.imc.use_target_matrix)
+  if [[ "${use_target_matrix}" == 'true' ]]; then
+    imc_group="$(get_main_dir)/$imc_group"
+    [[ ( ! -f "${imc_group}.gmc" ) || ( ! -f "${imc_group}.idx" ) ]] && die "${0##*/}: if inverse.imc.use_target_matrix is true, .gmc and .idx file need to be in main dir."
+    # calculate distributions only
+    for_all "non-bonded bonded" do_external rdf "$sim_prog"
+    # resample target distributions
+    for_all "non-bonded" do_external resample target --clean '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
+    if [[ $improve_dist_target_all == "true" ]]; then
+      # raw target rdf needed for IMC onset fix
+      for_all "non-bonded" do_external resample target --clean --no-extrap '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt.raw'
+      g_raw_ext_flag="--g-tgt-raw-ext=dist.tgt.raw"
+    fi
+  else
+    # calculate IMC matrix, RDF, and resample target
+    do_external imc_stat $sim_prog
+    if [[ $improve_dist_new_all == "true" ]]; then
+      # raw current rdf needed for IMC onset fix
+      g_raw_ext_flag="--g-cur-raw-ext=dist.new.raw"
+    fi
+  fi
 
-  # calculate IMC matrix
-  do_external imc_stat $sim_prog
-
-  msg "solving linear equations for imc group '$group' (regularization ${reg})"
-  do_external update imc_gn_pot \
+  # convert IMC matrix to dg/du Jacobian
+  msg "Converting imc matrix into dg/du Jacobian"
+  do_external convert imc_matrix \
     ${verbose_flag-} \
-    --volume "$volume" \
-    --topol "$topol" \
     --options "$CSGXMLFILE" \
+    --imc-matrix "${imc_group}.gmc" \
+    --imc-index "${imc_group}.idx" \
+    --volume "$volume" \
+    --topol "${topol}" \
     --g-tgt-ext "dist.tgt" \
     --g-cur-ext "dist.new" \
-    ${g_intra_flag-} \
-    --out "dpot.pure_iie" \
-    ${pressure_constraint_flag-} \
-    ${kirkwood_buff_constraint_flag-} \
-    ${potential_energy_constraint_flag-} \
-    ${residual_weighting_flag-} \
-    ${upd_pots_flag-} \
-    ${tgt_dists_flag-}
+    ${g_raw_ext_flag-} \
+    ${improve_jacobian_onset_flag-} \
+    --out "jacobian.npz"
+
+  # update nb with Gauss-Newton
+  do_external update gauss_newton
 
   # do bonded (will in most cases do IBI)
   for_all "bonded" do_external update imc_single
 else
-  die "${0##*/}: value of cg.inverse.gauss_newton.algorithm must be newton or gauss-newton"
+  die "${0##*/}: value of cg.inverse.imc.algorithm must be newton or gauss-newton"
 fi

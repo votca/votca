@@ -64,14 +64,14 @@ if [[ $multistate == true ]]; then
   if [[ $skip_if_missing == no ]]; then
     [[ -f ${main_dir}/${state}/$input ]] || die "${0##*/}: Could not find input file '$input' in state_dir ($main_dir/$state)"
   else
-    [[ -f ${main_dir}/${state}/$input ]] || { msg "${0##*/}: Could not find input file '$input' in state_dir ($main_dir/$state), skipping"; exit 0; }
+    [[ -f ${main_dir}/${state}/$input ]] || exit 0  # { msg "${0##*/}: Could not find input file '$input' in state_dir ($main_dir/$state), skipping"; exit 0; }
   fi
   input_path="${main_dir}/${state}/$input"
 else
   if [[ $skip_if_missing == no ]]; then
     [[ -f ${main_dir}/$input ]] || die "${0##*/}: Could not find input file '$input' in main_dir ($main_dir)"
   else
-    [[ -f ${main_dir}/$input ]] || { msg "${0##*/}: Could not find input file '$input' in main_dir ($main_dir), skipping"; exit 0; }
+    [[ -f ${main_dir}/$input ]] || exit 0  #{ msg "${0##*/}: Could not find input file '$input' in main_dir ($main_dir), skipping"; exit 0; }
   fi
   input_path="${main_dir}/$input"
 fi
@@ -98,13 +98,11 @@ if [[ $do_extrap == "yes" ]]; then
     # an extrapolation scheme from the better sampled onset of the RDF
     improve_dist_near_core_target="$(csg_get_interaction_property improve_dist_near_core.target)"
     if [[ $improve_dist_near_core_target == "true" ]]; then
-      improve_dist_near_core_function="$(csg_get_interaction_property improve_dist_near_core.function)"
       extrapolated3="$(critical mktemp ${name}.dist.tgt_improved.XXXXX)"
       fit_start_g="$(csg_get_interaction_property improve_dist_near_core.fit_start_g)"
       fit_end_g="$(csg_get_interaction_property improve_dist_near_core.fit_end_g)"
       do_external dist improve_near_core --in="${extrapolated2}" --out="${extrapolated3}" \
-      --function="$improve_dist_near_core_function" \
-      --gmin="$fit_start_g" --gmax="$fit_end_g" 
+      --gmin="$fit_start_g" --gmax="$fit_end_g"
     elif [[ $improve_dist_near_core_target == "false" ]]; then
       extrapolated3="$extrapolated2"
     else

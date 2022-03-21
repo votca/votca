@@ -25,7 +25,7 @@ EOF
    exit 0
 fi
 
-verbose=$(csg_get_property cg.inverse.initial_guess.ie.verbose)
+verbose=$(csg_get_property cg.inverse.verbose)
 step_nr=$(get_current_step_nr)
 [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
 [[ "${verbose}" == 'step0+1' ]] && [[ $step_nr == '0' || $step_nr == '1' ]] && verbose_flag="--verbose"
@@ -44,13 +44,12 @@ for_all "non-bonded" do_external resample target '$(csg_get_interaction_property
 for_all "non-bonded" do_external resample target --no-extrap --skip-if-missing '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
 
 # topology for molecular conections and volume
-topol=$(csg_get_property --allow-empty cg.inverse.initial_guess.ie.topol)
-[[ -z $topol ]] && topol=$(csg_get_property cg.inverse.$sim_prog.topol)
+topol=$(csg_get_property cg.inverse.initial_guess.ie.topol)
 [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
 
 # volume
 volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
-([[ -n "$volume" ]] && is_num "$volume") || die "could not determine the volume from file ${topol}"
+([[ -n "$volume" ]] && is_num "$volume") || die "could not determine the volume from file ${topol}."
 
 # kBT
 if [[ $multistate == true ]]; then
@@ -68,7 +67,7 @@ fi
 
 
 msg "Using initial guess for non-bonded interactions using integral equations"
-# Some arguments (cut_off, cut_residual) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
+# Some arguments (...?) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
 # Others (closure, ...) could also be read from the settings file, but this bash script handles the defaults.
 do_external dist invert_iie potential_guess \
     ${verbose_flag-} \

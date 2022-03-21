@@ -58,13 +58,26 @@ else
 
   critical csg_stat --do-imc --options "$CSGXMLFILE" --top "$topol" --trj "$traj" \
       --begin $equi_time --first-frame $first_frame --nt $tasks
-      
+
   mark_done "imc_analysis"
 fi
 
-improve_dist_near_core_new_all=( $(csg_get_interaction_property --all improve_dist_near_core.new) )
-# if any interaction has this setting
-if [[ " ${improve_dist_near_core_new_all[@]} " =~ "true" ]]; then
-  die "${0##*/}: improve_dist_near_core.new is not yet supported by IMC"
-  # IMC uses custom distribution (or rather ΔS) in .imc files, not .dist.new files
-fi
+# improve new RDF at low values
+improve_dist_near_core_fun() {
+  improve_dist_near_core_new="$(csg_get_interaction_property improve_dist_near_core.new)"
+  if [[ $improve_dist_near_core_new == "true" ]]; then  # do not do this for dist_intra
+    if ! is_done "${name}_dist_rdf_improve"; then
+      name="$(csg_get_interaction_property name)"
+      fit_start_g="$(csg_get_interaction_property improve_dist_near_core.fit_start_g)"
+      fit_end_g="$(csg_get_interaction_property improve_dist_near_core.fit_end_g)"
+      # improve the one file
+      file_to_do=${name}.dist.new
+      do_external dist improve_near_core --in="${file_to_do}" --out="${file_to_do}.improved" --gmin="$fit_start_g" --gmax="$fit_end_g"
+      critical mv "${file_to_do}" "${file_to_do}.raw"
+      critical mv "${file_to_do}.improved" "${file_to_do}"
+      mark_done "${name}_dist_rdf_improve"
+    fi
+  fi
+}
+export -f improve_dist_near_core_fun
+for_all "non-bonded" improve_dist_near_core_fun

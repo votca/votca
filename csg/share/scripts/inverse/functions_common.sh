@@ -24,6 +24,7 @@ ${0##*/}, version %version%
 This file defines some commonly used functions:
 
 EOF
+# what is this?
 sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1  -- \2/p' ${0}
 echo
 exit 0
@@ -161,7 +162,7 @@ do_external() { #takes two tags, find the according script and excute it
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
   tags="$1 $2"
   [[ $1 != "function" && ! -x ${script/ *} ]] && die "${FUNCNAME[0]}: subscript '${script/ *}' (from tags $tags), is not executable! (Run chmod +x ${script/ *})"
-  #print this message to stderr to allow $(do_external ) and do_external XX > 
+  #print this message to stderr to allow $(do_external ) and do_external XX >
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/}${3:+ }${@:3}' (from tags $tags) dir ${script%/*}" >&2
   # in debugmode we don't need to do anything special for $1 = function as set -x is already done
   if [[ -n $CSGDEBUG ]] && [[ -n "$(sed -n '1s@bash@XXX@p' "${script/ *}")" ]]; then
@@ -659,14 +660,14 @@ get_table_comment() { #get comment lines from a table and add common information
   echo "called from $version" | sed "s/csg_call/${0##*/}/"
   [[ -n "${CSGXMLFILE}" ]] && echo "settings file: '$(globalize_file "${CSGXMLFILE}")'"
   echo "working directory: $PWD"
-  if [[ -f $1 ]]; then 
+  if [[ -f $1 ]]; then
     co=$(sed -n 's/^[#@][[:space:]]*//p' "$1") || die "${FUNCNAME[0]}: sed failed"
     [[ -n $co ]] && echo "Comments from $(globalize_file $1):\n$co"
   fi
 }
 export -f get_table_comment
 
-csg_inverse_clean() { #clean out the main directory 
+csg_inverse_clean() { #clean out the main directory
   local i files log t
   [[ -n $1 ]] && t="$1" || t="30"
   log="$(csg_get_property cg.inverse.log_file 2>/dev/null)"
@@ -813,7 +814,7 @@ csg_calc() { #simple calculator, a + b, ...
        res=""
        true;;
     *)
-       die "${FUNCNAME[0]}: unknow operation" 
+       die "${FUNCNAME[0]}: unknow operation"
        true;;
   esac
   [[ -n $res ]] && echo "$res"
@@ -990,6 +991,6 @@ export -f command_not_found_handle
 #in bash4 this is not needed, but for older bash we add add a failback from most important simulation functions
 for i in simulation_finish checkpoint_exist get_simulation_setting; do
   eval $i\(\) { command_not_found_handle $i\; }
-  eval export -f $i 
+  eval export -f $i
 done
 unset i

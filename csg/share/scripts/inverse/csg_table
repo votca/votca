@@ -14,13 +14,16 @@
 # limitations under the License.
 #
 
-#general scripts
+# general scripts
 tag file tag_file.sh
 dummy dummy dummy.sh
 
-#only here for building the manual (not actually used)
+# only here for building the manual (not actually used)
 functions common functions_common.sh
 csg master inverse.sh
+
+# check XML options file
+check csg_xml check_csg_xml.py
 
 # BEGIN: these scripts have to be defined for each method
 # method initialization
@@ -120,17 +123,23 @@ update ibi_single update_ibi_single.sh
 update ibi_pot update_ibi_pot.pl
 update multistate_ibi update_multistate_ibi.sh
 update multistate_ibi_single update_multistate_ibi_single.sh
-update multistate_iie update_multistate_iie.sh
 
 # iie specific stuff
-update iie update_iie.sh
-update iie_pot iie.py
 dist invert_iie iie.py
+update iie update_iie.sh
+update multistate_iie update_multistate_iie.sh
+generate iie_jacobian iie.py
 
 # imc specific stuff
 update imc update_imc.sh
-update imc_gn_pot imc_gn_pot.py
 update imc_single update_imc_single.sh
+convert imc_matrix imc_matrix_to_jacobian.py
+
+# common iie, imc
+update gauss_newton update_gauss_newton.sh
+update newton update_newton.sh
+update gauss_newton_py gauss_newton.py
+update newton_py gauss_newton.py
 
 # optimzer(generic) stuff
 optimizer prepare_state optimizer_prepare_state.sh

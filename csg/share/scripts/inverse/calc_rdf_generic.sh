@@ -129,7 +129,6 @@ fi
 improve_dist_near_core_new="$(csg_get_interaction_property improve_dist_near_core.new)"
 if [[ $improve_dist_near_core_new == "true" && $dist_type == "dist" ]]; then  # do not do this for dist_intra
   if ! is_done "${name}_${dist_type}_rdf_improve"; then
-    improve_dist_near_core_function="$(csg_get_interaction_property improve_dist_near_core.function)"
     fit_start_g="$(csg_get_interaction_property improve_dist_near_core.fit_start_g)"
     fit_end_g="$(csg_get_interaction_property improve_dist_near_core.fit_end_g)"
     if [[ ${with_errors} = "yes" ]]; then
@@ -141,10 +140,9 @@ if [[ $improve_dist_near_core_new == "true" && $dist_type == "dist" ]]; then  # 
     fi
     for i in ${files_to_do}; do
       [[ -f $i ]] || die "${0##*/}: Could not find ${i} after running csg_stat, that usually means the blocksize (cg.inverse.${sim_prog}.rdf.block_length) is too big."
+      do_external dist improve_near_core --in="${i}" --out="${i}.improved" --gmin="$fit_start_g" --gmax="$fit_end_g"
       critical mv "${i}" "${i}.raw"
-      do_external dist improve_near_core --in="${i}.raw" --out="${i}" \
-        --function="$improve_dist_near_core_function" \
-        --gmin="$fit_start_g" --gmax="$fit_end_g" 
+      critical mv "${i}.improved" "${i}"
     done
     mark_done "${name}_${dist_type}_rdf_improve"
   fi

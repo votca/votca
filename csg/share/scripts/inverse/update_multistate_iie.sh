@@ -62,8 +62,7 @@ fi
 
 # topology for molecular conections and volume
 for state in $state_names; do
-  topol_state="${state}/$(csg_get_property --allow-empty cg.inverse.iie.topol)"
-  [[ -z $topol_state ]] && topol_state="${state}/$(csg_get_property cg.inverse.$sim_prog.topol)"
+  topol_state="${state}/$(csg_get_property cg.inverse.iie.topol)"
   [[ -f $topol_state ]] || die "${0##*/}: topol file '$topol_state' not found, possibly you have to add it to cg.inverse.filelist"
   volume_state=$(critical csg_dump --top "$topol_state" | grep 'Volume' | awk '{print $2}')
   ([[ -n "$volume_state" ]] && is_num "$volume_state") || die "could not determine the volume from file ${topol_state}"
@@ -78,7 +77,7 @@ step_nr=$(get_current_step_nr)
 [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
 [[ "${verbose}" == 'step0+1' ]] && [[ $step_nr == '0' || $step_nr == '1' ]] && verbose_flag="--verbose"
 
-g_extrap_factor=$(csg_get_property --allow-empty cg.inverse.iie.g_extrap_factor) 
+g_extrap_factor=$(csg_get_property --allow-empty cg.inverse.iie.g_extrap_factor)
 [[ -n $g_extrap_factor ]] && msg --color blue "Deprecated option g_extrap_factor will be ignored!"
 
 # which interactions to update and target
