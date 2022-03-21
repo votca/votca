@@ -11,7 +11,7 @@
     <max>1.4</max>
     <step>0.002</step>
     <inverse>
-      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <!-- target distribution (rdf), just give gromacs rdf.xvg -->
       <target>rdf_CG_CG_aim.xvg</target>
       <!-- update cycles -->
       <do_potential>1</do_potential>

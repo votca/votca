@@ -111,7 +111,7 @@
     <filelist>grompp.prep.mdp grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
     <iterations_max>900</iterations_max>
-    <!-- ibi: inverse biltzmann imc: inverse monte carlo re: relative entropy-->
+    <!-- ibi: inverse boltzmann imc: inverse monte carlo re: relative entropy-->
     <method>optimizer</method>
     <optimizer>
       <!-- put simplex or cma here -->

@@ -24,7 +24,7 @@ jobs:
           path: votca
 
       - name: Configure Cmake
-        run: cmake -B builddir -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DENABLE_TESTING=ON -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON votca
+        run: cmake -B builddir -S votca -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DENABLE_TESTING=ON -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON
 
       - name: Build
         run: cmake --build builddir --parallel $(nproc)

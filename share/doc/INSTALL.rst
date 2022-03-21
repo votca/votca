@@ -13,7 +13,7 @@ To install the full package:
     prefix=WHERE/TO/INSTALL/VOTCA
     version=master # or 'stable' or 'v2021.2'
     git clone -b ${version} https://github.com/votca/votca.git
-    cmake -B builddir -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} votca
+    cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix}
     cmake --build builddir --parallel <number of cores>
     cmake --build builddir --target install
 
@@ -50,7 +50,7 @@ GROMACS:
 
 ::
 
-    cmake -DCMAKE_INSTALL_PREFIX=${prefix} -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so ..
+    cmake -DCMAKE_INSTALL_PREFIX=${prefix} -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so -S ..
 
 Be careful to use exactly the option suggested in the error message! You
 can also add ``-LH`` or ``-LAH`` options to the ``cmake`` command in
