@@ -89,7 +89,7 @@ Eigen::VectorXd PMLocalization::fit_polynomial(const Eigen::VectorXd &x,
     throw std::runtime_error("x and y have different dimensions!\n");
   }
   Index N = x.size();
-  Index deg = N;  
+  Index deg = N;
 
   // Form matrix
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(N, deg);
@@ -275,7 +275,7 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
     Eigen::EigenSolver<Eigen::MatrixXd> es(H_);
     Eigen::VectorXcd Hval = es.eigenvalues();
     Eigen::MatrixXcd Hvec = es.eigenvectors();
-        double wmax = Hval.cwiseAbs().maxCoeff();
+    double wmax = Hval.cwiseAbs().maxCoeff();
     double Tmu = 2.0 * tools::conv::Pi / (static_cast<double>(orderW) * wmax);
     double step;
     // line optimization via polynomial fit
