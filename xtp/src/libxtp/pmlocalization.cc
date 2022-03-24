@@ -89,7 +89,7 @@ Eigen::VectorXd PMLocalization::fit_polynomial(const Eigen::VectorXd &x,
     throw std::runtime_error("x and y have different dimensions!\n");
   }
   Index N = x.size();
-  Index deg = N;  // ? is there a difference between .size and .n_elem???
+  Index deg = N;  
 
   // Form matrix
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(N, deg);
@@ -135,8 +135,6 @@ double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
 Eigen::VectorXcd PMLocalization::find_complex_roots(
     const Eigen::VectorXcd &coeff) {
 
-  // Find roots of a_0 + a_1*mu + ... + a_(p-1)*mu^(p-1) = 0.
-
   // Coefficient of highest order term must be nonzero.
   Index order = coeff.size();
   while (coeff(order - 1) == 0.0 && order >= 1) order--;
@@ -153,7 +151,6 @@ Eigen::VectorXcd PMLocalization::find_complex_roots(
 
   // and diagonalize it
   Eigen::ComplexEigenSolver<Eigen::MatrixXcd> es(cmat);
-  // XTP_LOG(Log::error, log_) << TimeStamp() << " Eigensystem" << std::flush;
 
   // Return the roots (unsorted)
   return es.eigenvalues();
@@ -271,25 +268,19 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
             << TimeStamp() << "CG search direction reset." << std::flush;
       }
     }
-    // XTP_LOG(Log::error, log_)
-    //     << TimeStamp() << " Calculated H" << H
-    //     << std::flush;
 
     Index orderW = 4;  // for PM
     // H is skew symmetric, real  so should have purely imaginary eigenvalues
     // in pairs +-eval, and 0, if dim is odd.
     Eigen::EigenSolver<Eigen::MatrixXd> es(H_);
-    // XTP_LOG(Log::error, log_) << TimeStamp() << " Eigensystem" << std::flush;
     Eigen::VectorXcd Hval = es.eigenvalues();
     Eigen::MatrixXcd Hvec = es.eigenvectors();
-    // what does .transpose() do for complex matrices? not complex conjugation!
-    // in ARMADILLO IT DOES !!!!
-    double wmax = Hval.cwiseAbs().maxCoeff();
-    double Tmu = 2.0 * tools::conv::Pi / (orderW * wmax);
+        double wmax = Hval.cwiseAbs().maxCoeff();
+    double Tmu = 2.0 * tools::conv::Pi / (static_cast<double>(orderW) * wmax);
     double step;
     // line optimization via polynomial fit
     Index npoints = 4;  // to be adapted/adaptable
-    double deltaTmu = Tmu / (npoints - 1);
+    double deltaTmu = Tmu / static_cast<double>(npoints - 1);
     int halved = 0;
 
     // finding optimal step
@@ -300,13 +291,9 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
       Eigen::VectorXd cost_points(npoints);        // cost function value
 
       for (Index i = 0; i < npoints; i++) {
-        mu(i) = i * deltaTmu;
+        mu(i) = static_cast<double>(i) * deltaTmu;
         // what is the matrix we should test?
         Eigen::MatrixXd W_rotated = rotate_W(mu(i), W_, Hval, Hvec);
-
-        // check for unitarity?
-        // XTP_LOG(Log::error, log_) << TimeStamp() << W_rotated *
-        // W_rotated.transpose()  << std::flush;
 
         // calculate cost and derivative for this rotated W matrix
         auto [cost, der] = cost_derivative(W_rotated, Sat_all, numatoms);
@@ -314,12 +301,7 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
         derivative_points(i) =
             2.0 *
             std::real((der * W_rotated.transpose() * H_.transpose()).trace());
-
-        // std::cout << mu(i) <<  " " << fv(i) << " " << fd(i) << "\n" <<
-        // std::endl;
       }
-
-      // exit(0);
 
       // Check sign of the derivative
       if (derivative_points(0) < 0.0) {
@@ -334,9 +316,6 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
 
       // Find step as smallest real zero of the polynomial
       step = find_smallest_step(polyfit_coeff);
-      /*XTP_LOG(Log::info, log_)
-          << TimeStamp() << " Iteration: " << iteration << " Tmu= " << Tmu
-          << ", taking step of size " << step << std::flush;*/
 
       // is step too far?
       if (step > 0.0 && step <= Tmu) {
@@ -346,10 +325,6 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
         // has objective function value changed in the right direction?
         double J_new = cost(W_new, Sat_all, numatoms);
         double delta_J = J_new - J_;
-
-        /*XTP_LOG(Log::error, log_)
-            << TimeStamp() << " Objective function change is " << delta_J
-            << std::flush;*/
 
         if (delta_J < 0.0) {
           XTP_LOG(Log::error, log_)
