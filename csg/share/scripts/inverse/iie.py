@@ -17,14 +17,14 @@
 #
 # Symbols:
 # g: RDF
-# U: potential
-# dU: potential update (U_{k+1} - U_k)
+# u: potential
 #
 # suffixes:
 # _cur: current (of step k if currently doing iteration k)
 # _tgt: target
 # _mat: matrix (bead, bead) in the last two dimensions
-# _vec: _mat matrix with all interactions flattened (vectorized)
+# _vec: _mat matrix with all interactions flattened (vectorized), corresponds to matrix
+#        with _mat
 # _2D: 2D matrix (which can be transformed to 4D)
 # _flat: flat version of a vector, corresponds to matrix with _2D
 #
@@ -37,13 +37,10 @@ import sys
 import xml.etree.ElementTree as ET
 import numpy as np
 
-if not sys.version_info >= (3, 5):
-    raise Exception("This script needs Python 3.5+.")
-
 from csg_functions import (
     calc_slices,
     cut_matrix_inverse,
-    extrapolate_dU_left_constant,
+    extrapolate_Delta_u_left_constant,
     fourier,
     fourier_all,
     gen_beadtype_property_array,
@@ -63,12 +60,15 @@ from csg_functions import (
     read_all_tables,
     saveto_table,
     transpose,
-    vectorize,
+    vectorize_full,
 )
 
+if not sys.version_info >= (3, 5):
+    raise Exception("This script needs Python 3.5+.")
 
-BAR_PER_MD_PRESSURE = 16.6053904
+# constants
 F_COULOMB = 138.935458  # electric conversion factor: V = f*q_1*q_2/r
+# raise all numpy errors. If errors are expected, use np.errstate()
 np.seterr(all="raise")
 
 
@@ -82,7 +82,7 @@ def main():
         output_arrays = potential_guess(
             input_arrays, settings, verbose=settings["verbose"]
         )
-        # save output (U or dU) to table files
+        # save all potentials to table files
         save_tables(output_arrays, settings)
     # calculate dc/dh
     elif settings["subcommand"] == "dcdh":
@@ -449,7 +449,7 @@ def potential_guess(input_arrays, settings, verbose=False):
         else:
             r_out = r
         # change NaN in the core region to first valid value
-        U = extrapolate_dU_left_constant(U, U_flag)
+        U = extrapolate_Delta_u_left_constant(U, U_flag)
         output_arrays[non_bonded_name] = {"x": r_out, "y": U, "flag": U_flag}
     return output_arrays
 
@@ -588,6 +588,11 @@ def calc_jacobian(input_arrays, settings, verbose=False):
         dcdh_2D = cut_matrix_inverse(dcdh_long_2D, n_r, n_i, cut)
         # make it a 4D array again
         dcdh = make_matrix_4D(dcdh_2D, n_c, n_c, n_i, n_i)
+
+    # Note: not 100% sure the order of the next three steps is correct.
+    # But this is how I describe it in the paper and I tested it in for
+    # neon-argon mixture and it does not make a difference
+
     # add the 1/g term to dc/dh and obtain inverse Jacobian
     jac_inv_mat = add_jac_inv_diagonal(
         r[cut],
@@ -600,11 +605,52 @@ def calc_jacobian(input_arrays, settings, verbose=False):
         settings["closure"],
         verbose,
     )
+    # invert the jacobian in its 2D form
     jac_mat = make_matrix_4D(
         np.linalg.inv(make_matrix_2D(jac_inv_mat)), n_c, n_c, n_i, n_i
     )
-    print(r[cut][-1])
+    # remove exlicit x_ab x_ba
+    jac_mat = remove_equivalent_rows_from_jacobain(jac_mat)
     return jac_mat
+
+
+def remove_equivalent_rows_from_jacobain(jac_mat):
+    """Averages rows and adds coluns that belong to the same interaction: x_ab, x_ba.
+
+    Uses half-vectorization, and go row-wise through the upper triangular matrix.
+    """
+    n_id = jac_mat.shape[-1]
+    n_t = int(n_id**0.5)
+    jac_mat_reduced = jac_mat.copy()
+
+    # add columns u_ab = u_ab + u_ba and remove u_ba
+    cols_to_delete = []
+    for alpha in range(n_t):
+        for beta in range(n_t):
+            if beta < alpha:
+                index_keep = alpha * n_t + beta
+                index_delete = beta * n_t + alpha
+                cols_to_delete.append(index_delete)
+                jac_mat_reduced[:, :, :, index_keep] += jac_mat_reduced[
+                    :, :, :, index_delete
+                ]
+    jac_mat_reduced = np.delete(jac_mat_reduced, cols_to_delete, axis=-1)
+
+    # average rows g_ab = (g_ab + g_ba) / 2 and remove u_ba
+    rows_to_delete = []
+    for alpha in range(n_t):
+        for beta in range(n_t):
+            if beta < alpha:
+                index_keep = alpha * n_t + beta
+                index_delete = beta * n_t + alpha
+                rows_to_delete.append(index_delete)
+                jac_mat_reduced[:, :, index_keep, :] += jac_mat_reduced[
+                    :, :, index_delete, :
+                ]
+                jac_mat_reduced[:, :, index_keep, :] /= 2
+    jac_mat_reduced = np.delete(jac_mat_reduced, rows_to_delete, axis=-2)
+
+    return jac_mat_reduced
 
 
 @if_verbose_dump_io
@@ -658,7 +704,7 @@ def calc_dcdh(r, g_mat, G_minus_g_mat, rhos, n_intra, verbose=False):
     identity = np.identity(n_t)
     # symmetry adapt h -> H
     H_hat_mat = adapt_reduced_matrix(h_hat_mat, n_intra)
-    # version derived from vectorizing Martin Hankes result
+    # derived from vectorizing Martin Hankes result for the derivative
     A = np.swapaxes(np.linalg.inv(Omega_hat_mat + rho_mol_map @ H_hat_mat), -1, -2)
     B = np.linalg.inv(Omega_hat_mat) @ (
         identity
@@ -771,14 +817,14 @@ def add_jac_inv_diagonal(
     # number of interactions
     n_i = int(n_t**2)
     # vectorize RDF matrices
-    g_tgt_vec = vectorize(g_tgt_mat)
-    g_cur_vec = vectorize(g_cur_mat)
+    g_tgt_vec = vectorize_full(g_tgt_mat)
+    g_cur_vec = vectorize_full(g_cur_mat)
     # average RDF for better stability
     g_avg_vec = (g_tgt_vec + g_cur_vec) / 2
     jac_inv_mat = np.zeros((len(r), len(r), n_i, n_i))
     if closure == "hnc":
         with np.errstate(divide="ignore", invalid="ignore", under="ignore"):
-            for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
+            for i, j in itertools.product(range(n_i), range(n_i)):
                 if i == j:
                     diagonal_term = np.diag(1 - 1 / g_avg_vec[:, i])
                 else:

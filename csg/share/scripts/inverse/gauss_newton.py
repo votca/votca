@@ -17,8 +17,8 @@
 #
 # Symbols:
 # g: RDF
-# U: potential
-# dU: potential update (U_{k+1} - U_k)
+# u: potential
+# Delta_U: potential update (u_{k+1} - u_k) = Δu
 #
 # suffixes:
 # _cur: current (of step k if currently doing iteration k)
@@ -33,6 +33,7 @@
 # ndx_: index
 
 import argparse
+import numbers
 import numpy as np
 import sys
 import xml.etree.ElementTree as ET
@@ -42,7 +43,7 @@ from csg_functions import (
     calc_slices,
     devectorize,
     eval_expr,
-    extrapolate_dU_left_constant,
+    extrapolate_Delta_u_left_constant,
     gen_beadtype_property_array,
     gen_flag_isfinite,
     gen_interaction_dict,
@@ -57,6 +58,7 @@ from csg_functions import (
     read_all_tables,
     save_tables,
     solve_lsq_with_linear_constraints,
+    triangular_number,
     vectorize,
 )
 
@@ -65,7 +67,6 @@ if not sys.version_info >= (3, 5):
 
 # constants
 BAR_PER_MD_PRESSURE = 16.6053904  # md pressure is kJ/mol/nm³ as in Gromacs
-F_COULOMB = 138.935458  # electric conversion factor: V = f*q_1*q_2/r
 
 # raise all numpy errors. If errors are expected, use np.errstate()
 np.seterr(all="raise")
@@ -98,7 +99,7 @@ def main():
                 output_arrays = zero_update(
                     input_arrays, settings, verbose=settings["verbose"]
                 )
-    # save output (U or dU) to table files
+    # save all potential updates to table files
     save_tables(output_arrays, settings)
 
 
@@ -186,7 +187,7 @@ def get_args(iie_args=None):
             const=True,
             default=False,
             help=(
-                "Weather to set the last point of dU to zero. "
+                "Weather to set the last point of Δu to zero. "
                 "The pressure constraint adapts to one point less."
             ),
         )
@@ -453,7 +454,7 @@ def newton_update(input_arrays, settings, verbose=False):
     # number of atom types
     n_t = len(settings["rhos"])
     # number of interactions including redundand ones
-    n_i = int(n_t**2)
+    n_i = triangular_number(n_t)
     # slices
     cut, tail = calc_slices(r, settings["cut_off_pot"], verbose=False, offset=-1)
     n_c = len(r[cut])
@@ -478,30 +479,34 @@ def newton_update(input_arrays, settings, verbose=False):
 
     # Newton update in the flat/2D representation
     with np.errstate(invalid="ignore"):
-        Delta_u_flat = -np.linalg.solve(jac_mat_2D, Delta_g_flat)
+        Delta_u_flat = -1 * np.linalg.lstsq(jac_mat_2D, Delta_g_flat, rcond=None)[0]
 
     # make interactions an own dimension again
     Delta_u_vec = Delta_u_flat.reshape((n_i, n_c)).T
-    # dU matrix
+    # Δu matrix
     Delta_u_mat = devectorize(Delta_u_vec)
     # prepare output
     output_arrays = {}
-    for non_bonded_name, dU_dict in gen_interaction_dict(
+    for non_bonded_name, Delta_u_dict in gen_interaction_dict(
         r[cut], Delta_u_mat, settings["non-bonded-dict"]
     ).items():
-        dU = dU_dict["y"]
-        dU_flag = gen_flag_isfinite(dU)
+        Delta_u = Delta_u_dict["y"]
+        Delta_u_flag = gen_flag_isfinite(Delta_u)
         # add value at r=0 if it was removed
         if settings["r0-removed"]:
             r_out = np.concatenate(([0.0], r[cut]))
-            dU = np.concatenate(([np.nan], dU))
-            dU_flag = np.concatenate((["o"], dU_flag))
+            Delta_u = np.concatenate(([np.nan], Delta_u))
+            Delta_u_flag = np.concatenate((["o"], Delta_u_flag))
         else:
             r_out = r[cut]
         # change NaN in the core region to first valid value
-        dU = extrapolate_dU_left_constant(dU, dU_flag)
+        Delta_u = extrapolate_Delta_u_left_constant(Delta_u, Delta_u_flag)
         # save for output
-        output_arrays[non_bonded_name] = {"x": r_out, "y": dU, "flag": dU_flag}
+        output_arrays[non_bonded_name] = {
+            "x": r_out,
+            "y": Delta_u,
+            "flag": Delta_u_flag,
+        }
     return output_arrays
 
 
@@ -516,7 +521,10 @@ def gen_indices_upd_pots_tgt_dists(settings):
         (
             ((b1, bead1), (b2, bead2))
             for b1, bead1 in enumerate(bead_types)
-            for b2, bead2 in enumerate(bead_types)
+            # due to row-wise half-vectorization
+            for b2, bead2 in [
+                (b2, bead2) for (b2, bead2) in enumerate(bead_types) if b2 >= b1
+            ]
         )
     ):
         interaction_name = non_bonded_dict_inv[frozenset({bead1, bead2})]
@@ -574,7 +582,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     # number of atom types
     n_t = len(settings["rhos"])
     # number of interactions including redundand ones
-    n_i = int(n_t**2)
+    n_i = triangular_number(n_t)
     # grid spacing
     Delta_r = calc_grid_spacing(r)
     # slices and indices
@@ -589,6 +597,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     cut_res, tail_res = calc_slices(r, settings["cut_off_res"], verbose=False)
     n_c_pot = len(r[cut_pot])
     n_c_res = len(r[cut_res])
+
     # generate matrices from dicts
     g_tgt_mat = gen_interaction_matrix(
         r, input_arrays["g_tgt"], settings["non-bonded-dict"]
@@ -607,6 +616,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     Delta_g_mat = g_cur_mat - g_tgt_mat
     # vectorize Delta g
     Delta_g_vec = vectorize(Delta_g_mat)
+
     # one might not want to take all dists in account or update all potentials
     # determine which rows/cols should be removed
     (
@@ -628,26 +638,16 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     g_tgt_vec = vectorize(g_tgt_mat)
     g_tgt_vec = np.delete(g_tgt_vec, index_not_upd_pots, axis=-2)  # del rows
     g_tgt_vec = np.delete(g_tgt_vec, index_not_upd_pots, axis=-1)  # del cols
+
     # make Jacobian 2D
     jac_2D = make_matrix_2D(jac_mat)
     # prepare A0 and C matrix
-    if "pressure-old" in (c["type"] for c in settings["constraints"]):
-        # update force rather than potential
-        # antiderivative operator (upper triangular matrix on top of zeros)
-        A0_2D = kron_2D(
-            np.identity(n_upd_pots),
-            Delta_r * np.triu(np.ones((n_c_res, n_c_pot - 1)), k=0),
-        )
-        C = np.zeros((len(settings["constraints"]), n_upd_pots * (n_c_pot - 1)))
-    else:
-        # update potential, A0 just cuts of the tail
-        A0_2D = kron_2D(
-            np.identity(n_upd_pots),
-            np.append(
-                np.identity(n_c_pot), np.zeros((n_c_res - n_c_pot, n_c_pot)), axis=0
-            ),
-        )
-        C = np.zeros((len(settings["constraints"]), n_upd_pots * n_c_pot))
+    # update potential, A0 just cuts of the tail
+    A0_2D = kron_2D(
+        np.identity(n_upd_pots),
+        np.append(np.identity(n_c_pot), np.zeros((n_c_res - n_c_pot, n_c_pot)), axis=0),
+    )
+    C = np.zeros((len(settings["constraints"]), n_upd_pots * n_c_pot))
     # weight Jacobian
     jac_2D_weighted = np.diag(weights.T.flatten()) @ jac_2D
     # cut and weight Delta_g and obtain residuals
@@ -662,45 +662,8 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     d = np.zeros(len(settings["constraints"]))
     # prepare all constraints
     for c, constraint in enumerate(settings["constraints"]):
-        if constraint["type"] == "pressure-old":
-            # current pressure
-            p = constraint["current"] / BAR_PER_MD_PRESSURE
-            # target pressure
-            p_tgt = constraint["target"] / BAR_PER_MD_PRESSURE
-            # print if verbose
-            if settings["verbose"]:
-                print(
-                    f"Constraining pressure: target is {constraint['target']} bar, "
-                    f"current value is {constraint['current']} bar"
-                )
-            # g_tgt(r_{i+1})
-            g_tgt_ip1 = g_tgt_vec[cut_pot][1:].T.flatten()
-            # g_tgt(r_{i})
-            g_tgt_i = g_tgt_vec[cut_pot][:-1].T.flatten()
-            # r_{i}
-            r_i = np.tile(r[cut_pot][:-1], n_upd_pots)
-            # r_{i+1}
-            r_ip1 = np.tile(r[cut_pot][1:], n_upd_pots)
-            # density product ρ_i * ρ_j as vector of same length as r_i
-            rho_i = np.repeat(
-                vectorize(np.outer(*([settings["rhos"]] * 2)))[index_upd_pots],
-                n_c_pot - 1,
-            )
-            # l vector
-            ll = (g_tgt_i + g_tgt_ip1) * (r_ip1**4 - r_i**4)
-            ll *= -1 / 12 * np.pi * rho_i
-            # ll has differt sign than in Delbary, since different definition of b
-            # I think this does not need another factor for mixed interactions
-            # internally we have u_ij and u_ji seperate, but so we have in the virial
-            # expression for mixtures
-            # set C row and d element
-            if settings["flatten_at_cut_off"]:
-                ll[
-                    n_c_pot - 2 :: n_c_pot - 1
-                ] = 0  # no constraint for last point of each dU
-            C[c, :] = ll
-            d[c] = p_tgt - p
-        elif constraint["type"] == "pressure":
+
+        if constraint["type"] == "pressure":
             # current pressure
             p = constraint["current"] / BAR_PER_MD_PRESSURE
             # target pressure
@@ -728,20 +691,26 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             rho_i = np.repeat(
                 vectorize(np.outer(*([settings["rhos"]] * 2)))[index_upd_pots], n_c_pot
             )
+            # extra factor of 2 for the off-diagonal interactions
+            # this factor arises from the double sum over bead types α and β
+            extra_mat = np.ones((n_t, n_t)) * 2
+            np.fill_diagonal(extra_mat, 1)
+            extra_factor = np.repeat(vectorize(extra_mat)[index_upd_pots], n_c_pot)
             # dp/df
-            dpdf = -2 / 3 * np.pi * rho_i * g_tgt_avg * r3_dr
+            dpdf = -2 / 3 * np.pi * rho_i * g_tgt_avg * r3_dr * extra_factor
             C[c, :] = dpdf @ dfdu_all
             if settings["flatten_at_cut_off"]:
                 print(C[c, n_c_pot - 3 :])
                 C[
                     c, n_c_pot - 1 :: n_c_pot
-                ] = 0  # no constraint for last point of each dU
+                ] = 0  # no constraint for last point of each Δu
                 print(C[c, n_c_pot - 3 :])
             d[c] = p - p_tgt
+
         elif constraint["type"] == "kirkwood-buff-integral":
             if n_t > 1:
                 raise NotImplementedError(
-                    "KBI constraint not implemented for more " "than one bead"
+                    "KBI constraint not implemented for more than one bead"
                 )
                 # to implement this, one would have to create n_i constraints
                 # one per KBI
@@ -776,7 +745,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             if settings["flatten_at_cut_off"]:
                 C[
                     c, n_c_pot - 1 :: n_c_pot
-                ] = 0  # no constraint for last point of each dU
+                ] = 0  # no constraint for last point of each Δu
             d[c] = G - G_tgt
         elif constraint["type"] == "potential-energy":
             # not yet in use
@@ -807,7 +776,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             if settings["flatten_at_cut_off"]:
                 C[
                     c, n_c_pot - 1 :: n_c_pot
-                ] = 0  # no constraint for last point of each dU
+                ] = 0  # no constraint for last point of each Δu
             d[c] = PE - PE_tgt
         else:
             raise NotImplementedError(
@@ -815,46 +784,43 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             )
     # solve least squares problem with linear constraints
     dx_flat = solve_lsq_with_linear_constraints(A, C, b, d)
-    # obtain potential update (dx_flat can be potential or force)
-    dU_flat = -A0_2D @ dx_flat
-    # test KBI
-    Delta_g_predicted = jac_2D @ dU_flat
-    if settings["verbose"]:
-        np.savez_compressed(
-            "Delta_g_predicted.npz", Delta_g_predicted=Delta_g_predicted
-        )
-    # end test KBI
-    dU_vec = dU_flat.reshape(n_upd_pots, n_c_res).T
+    # obtain potential update
+    Delta_u_flat = -A0_2D @ dx_flat
+    Delta_u_vec = Delta_u_flat.reshape(n_upd_pots, n_c_res).T
     # insert zeros for ignored potentials
     for i in index_not_upd_pots:
-        dU_vec = np.insert(dU_vec, i, np.zeros(n_c_res), axis=1)
-    # dU matrix
-    dU_mat = devectorize(dU_vec)
+        Delta_u_vec = np.insert(Delta_u_vec, i, np.zeros(n_c_res), axis=1)
+    # Delta_u matrix
+    Delta_u_mat = devectorize(Delta_u_vec)
     # cut off tail
-    # dU_mat = dU_mat[cut_pot]
+    # Delta_u_mat = Delta_u_mat[cut_pot]
     # prepare output
     output_arrays = {}
-    for non_bonded_name, dU_dict in gen_interaction_dict(
-        r[cut_res], dU_mat, settings["non-bonded-dict"]
+    for non_bonded_name, Delta_u_dict in gen_interaction_dict(
+        r[cut_res], Delta_u_mat, settings["non-bonded-dict"]
     ).items():
-        r_out = dU_dict["x"]
-        dU = dU_dict["y"]
-        dU_flag = gen_flag_isfinite(dU)
-        dU_flag[tail_pot_p1] = "o"
+        r_out = Delta_u_dict["x"]
+        Delta_u = Delta_u_dict["y"]
+        Delta_u_flag = gen_flag_isfinite(Delta_u)
+        Delta_u_flag[tail_pot_p1] = "o"
         # shift potential to make value before cut-off zero
         if settings["flatten_at_cut_off"]:
             # hmmmmmm
-            dU[cut_pot] -= dU[cut_pot][-1]  # this one invalidates constraints
-            # dU[cut_pot][-1] = 0  # this one does not really make it flat
+            Delta_u[cut_pot] -= Delta_u[cut_pot][-1]  # this one invalidates constraints
+            # Delta_u[cut_pot][-1] = 0  # this one does not really make it flat
         # add value at r=0 if it was removed
         if settings["r0-removed"]:
             r_out = np.concatenate(([0.0], r_out))
-            dU = np.concatenate(([np.nan], dU))
-            dU_flag = np.concatenate((["o"], dU_flag))
+            Delta_u = np.concatenate(([np.nan], Delta_u))
+            Delta_u_flag = np.concatenate((["o"], Delta_u_flag))
         # change NaN in the core region to first valid value
-        dU = extrapolate_dU_left_constant(dU, dU_flag)
+        Delta_u = extrapolate_Delta_u_left_constant(Delta_u, Delta_u_flag)
         # save for output
-        output_arrays[non_bonded_name] = {"x": r_out, "y": dU, "flag": dU_flag}
+        output_arrays[non_bonded_name] = {
+            "x": r_out,
+            "y": Delta_u,
+            "flag": Delta_u_flag,
+        }
     return output_arrays
 
 
@@ -881,7 +847,7 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
     # number of atom types
     n_t = len(settings["rhos"][0])
     # number of interactions including redundand ones
-    n_i = int(n_t**2)
+    n_i = triangular_number(n_t)
     # number of states
     state_names = settings["state_names"]  # shortcut
     n_s = len(state_names)
@@ -961,34 +927,38 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
     b = residuals_flat
     d = np.zeros(0)
     # solve linear equation
-    dU_flat = -A0_2D @ solve_lsq_with_linear_constraints(A, C, b, d)
-    dU_vec = dU_flat.reshape(n_i, n_c_res).T
-    # dU matrix
-    dU_mat = devectorize(dU_vec)
-    # dU_mat = dU_mat[cut_pot]
+    Delta_u_flat = -A0_2D @ solve_lsq_with_linear_constraints(A, C, b, d)
+    Delta_u_vec = Delta_u_flat.reshape(n_i, n_c_res).T
+    # Delta_u matrix
+    Delta_u_mat = devectorize(Delta_u_vec)
+    # Delta_u_mat = Delta_u_mat[cut_pot]
     # prepare output
     output_arrays = {}
-    for non_bonded_name, dU_dict in gen_interaction_dict(
-        r[cut_res], dU_mat, settings["non-bonded-dict"]
+    for non_bonded_name, Delta_u_dict in gen_interaction_dict(
+        r[cut_res], Delta_u_mat, settings["non-bonded-dict"]
     ).items():
-        r_out = dU_dict["x"]
-        dU = dU_dict["y"]
-        dU_flag = gen_flag_isfinite(dU)
-        dU_flag[tail_pot_p1] = "o"
+        r_out = Delta_u_dict["x"]
+        Delta_u = Delta_u_dict["y"]
+        Delta_u_flag = gen_flag_isfinite(Delta_u)
+        Delta_u_flag[tail_pot_p1] = "o"
         # shift potential to make value before cut-off zero
         if settings["flatten_at_cut_off"]:
-            dU[cut_pot] -= dU[cut_pot][-1]
+            Delta_u[cut_pot] -= Delta_u[cut_pot][-1]
         # add value at r=0 if it was removed
         if settings["r0-removed"]:
             r_out = np.concatenate(([0.0], r_out))
-            dU = np.concatenate(([np.nan], dU))
-            dU_flag = np.concatenate((["o"], dU_flag))
+            Delta_u = np.concatenate(([np.nan], Delta_u))
+            Delta_u_flag = np.concatenate((["o"], Delta_u_flag))
         else:
             r_out = r
         # change NaN in the core region to first valid value
-        dU = extrapolate_dU_left_constant(dU, dU_flag)
+        Delta_u = extrapolate_Delta_u_left_constant(Delta_u, Delta_u_flag)
         # save for output
-        output_arrays[non_bonded_name] = {"x": r_out, "y": dU, "flag": dU_flag}
+        output_arrays[non_bonded_name] = {
+            "x": r_out,
+            "y": Delta_u,
+            "flag": Delta_u_flag,
+        }
     return output_arrays
 
 
@@ -1018,23 +988,27 @@ def zero_update(input_arrays, settings, verbose=False):
     _, tail_pot_p1 = calc_slices(r, settings["cut_off_pot"], verbose=False, offset=0)
     cut_res, tail_res = calc_slices(r, settings["cut_off_res"], verbose=False)
     n_c_res = len(r[cut_res])
-    dU_mat = np.zeros((n_c_res, n_t, n_t))
+    Delta_u_mat = np.zeros((n_c_res, n_t, n_t))
     # prepare output
     output_arrays = {}
-    for non_bonded_name, dU_dict in gen_interaction_dict(
-        r[cut_res], dU_mat, settings["non-bonded-dict"]
+    for non_bonded_name, Delta_u_dict in gen_interaction_dict(
+        r[cut_res], Delta_u_mat, settings["non-bonded-dict"]
     ).items():
-        r_out = dU_dict["x"]
-        dU = dU_dict["y"]
-        dU_flag = gen_flag_isfinite(dU)
-        dU_flag[tail_pot_p1] = "o"
+        r_out = Delta_u_dict["x"]
+        Delta_u = Delta_u_dict["y"]
+        Delta_u_flag = gen_flag_isfinite(Delta_u)
+        Delta_u_flag[tail_pot_p1] = "o"
         # add value at r=0 if it was removed
         if settings["r0-removed"]:
             r_out = np.concatenate(([0.0], r_out))
-            dU = np.concatenate(([0.0], dU))
-            dU_flag = np.concatenate((["o"], dU_flag))
+            Delta_u = np.concatenate(([0.0], Delta_u))
+            Delta_u_flag = np.concatenate((["o"], Delta_u_flag))
         # save for output
-        output_arrays[non_bonded_name] = {"x": r_out, "y": dU, "flag": dU_flag}
+        output_arrays[non_bonded_name] = {
+            "x": r_out,
+            "y": Delta_u,
+            "flag": Delta_u_flag,
+        }
     return output_arrays
 
 
@@ -1049,7 +1023,7 @@ def gen_residual_weights(res_weight_scheme, r, n_c_res, n_i, n_s, g_tgt_vec):
                 "max_r": max(r),
             },
         )
-    if isinstance(weights, float):
+    if isinstance(weights, numbers.Number):
         # if weights is a float, all weights will be the same
         return np.ones((n_c_res, n_s * n_i)) * weights
     elif weights.shape == (n_c_res, n_s * n_i):

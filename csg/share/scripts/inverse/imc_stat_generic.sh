@@ -62,7 +62,7 @@ else
   mark_done "imc_analysis"
 fi
 
-# improve new RDF at low values
+# improve new RDF at low values (in the "core"/onset region)
 improve_dist_near_core_fun() {
   improve_dist_near_core_new="$(csg_get_interaction_property improve_dist_near_core.new)"
   if [[ $improve_dist_near_core_new == "true" ]]; then  # do not do this for dist_intra

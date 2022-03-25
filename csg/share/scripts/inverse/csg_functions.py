@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Multi purpose script for Iterative Integral Equation methods."""
+"""Some common functions to integral equation methods and Gauss-Newton algorithm"""
 #
 # Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
 #
@@ -20,16 +20,11 @@ from collections import defaultdict
 from functools import wraps
 import itertools
 import math
+import numpy as np
 import operator as op
 import sys
 import inspect
 
-
-try:
-    import numpy as np
-except ImportError:
-    print("Numpy is not installed, but needed for the the CSG python functions")
-    raise
 if not sys.version_info >= (3, 5):
     raise Exception("This script needs Python 3.5+.")
 
@@ -325,8 +320,9 @@ def gen_interaction_dict(r, interaction_matrix, non_bonded_dict):
                 "x": r,
                 "y": interaction_matrix[:, b1, b2],
             }
-            if b1 != b2:  # we need to add bot the off-diagonal elements
+            if b1 != b2:  # we need to average both the off-diagonal elements
                 interaction_dict[interaction_name]["y"] += interaction_matrix[:, b2, b1]
+                interaction_dict[interaction_name]["y"] /= 2
     return interaction_dict
 
 
@@ -467,27 +463,79 @@ def gen_flag_isfinite(U):
     return np.where(np.isfinite(U), ["i"] * len(U), ["o"] * len(U))
 
 
-def extrapolate_dU_left_constant(dU, dU_flag):
+def extrapolate_Delta_u_left_constant(Delta_u, Delta_u_flag):
     """
     Extrapolate the potential update in the core region by a constant value.
 
     The first valid value, determined by the flag, is used
     """
-    dU_extrap = dU.copy()
-    # find first valid dU value
-    first_dU_index = np.where(dU_flag == "i")[0][0]
-    first_dU = dU[first_dU_index]
+    Delta_u_extrap = Delta_u.copy()
+    # find first valid Delta_u value
+    first_Delta_u_index = np.where(Delta_u_flag == "i")[0][0]
+    first_Delta_u = Delta_u[first_Delta_u_index]
 
-    # replace out of range dU values with constant first value
-    left_slice = slice(0, first_dU_index)
-    dU_extrap[left_slice] = np.where(
-        dU_flag[left_slice] == "i", dU[left_slice], first_dU
+    # replace out of range Delta_u values with constant first value
+    left_slice = slice(0, first_Delta_u_index)
+    Delta_u_extrap[left_slice] = np.where(
+        Delta_u_flag[left_slice] == "i", Delta_u[left_slice], first_Delta_u
     )
-    return dU_extrap
+    return Delta_u_extrap
 
 
 def vectorize(A_mat):
-    """Return a column vecorized version of the last two dimensions of A_mat.
+    """Return a row-wise half-vecorized version of the last two dimensions of A_mat.
+
+    I.e. X_mat -> (X_aa, X_ab, X_ac, X_bb, X_bc, X_cc).
+    Only works when the two last dimensions of A_mat are equal.
+    A_mat has to be symmetric
+    """
+    n_t, n_t2 = A_mat.shape[-2:]
+    assert n_t == n_t2, "A_mat not square"
+    n_i = triangular_number(n_t)
+    # new array with last two dimensions as one of len n_i
+    A_vec = np.zeros((*A_mat.shape[:-2], n_i))
+    i = 0
+    for alpha in range(n_t):
+        for beta in (b for b in range(n_t) if b >= alpha):
+            assert np.allclose(
+                A_mat[..., alpha, beta], A_mat[..., beta, alpha]
+            ), "A_mat not symmetric"
+
+            A_vec[..., i] = A_mat[..., alpha, beta]
+            i += 1
+    return A_vec
+
+
+def devectorize(A_vec):
+    """Return a matrix version of the last dimension of A_vec.
+
+    A_vec is assumed to be row-wise half-vectorized.
+    Only works if the last dimension is a triangular number.
+    The resulting matrix will be symmetric.
+    """
+    n_i = A_vec.shape[-1]
+    # n_i is triangular if 8*n_i + 1 is square
+    assert math.sqrt(
+        8 * n_i + 1
+    ).is_integer(), "A_vec last dimension is not a triangular number"
+    n_t = (int(math.sqrt(8 * n_i + 1)) - 1) // 2
+    A_mat = np.zeros((*A_vec.shape[:-1], n_t, n_t))
+    # for i in range(n_i):
+    # A_mat[..., i % n_t, i // n_t] = A_vec[..., i]
+    i = 0
+    for alpha in range(n_t):
+        for beta in range(n_t):
+            if beta >= alpha:
+                A_mat[..., alpha, beta] = A_vec[..., i]
+                # fill lower triangular matrix too
+                if beta > alpha:
+                    A_mat[..., beta, alpha] = A_vec[..., i]
+                i += 1
+    return A_mat
+
+
+def vectorize_full(A_mat):
+    """Return a column-wise vecorized version of the last two dimensions of A_mat.
 
     Only works when the two last dimensions are equal.
     """
@@ -503,10 +551,10 @@ def vectorize(A_mat):
     return A_vec
 
 
-def devectorize(A_vec):
+def devectorize_full(A_vec):
     """Return a matrix version of the last dimension of A_vec.
 
-    A_vec is assumed to be column vectorized.
+    A_vec is assumed to be column-wise vectorized.
     Only works if the last dimension is a square number.
     """
     n_i = A_vec.shape[-1]
@@ -515,7 +563,6 @@ def devectorize(A_vec):
     A_mat = np.zeros((*A_vec.shape[:-1], n_t, n_t))
     for i in range(n_i):
         A_mat[..., i % n_t, i // n_t] = A_vec[..., i]
-    return A_mat
 
 
 def kron_2D(a, b):
@@ -829,3 +876,8 @@ def save_tables(output_arrays, settings):
         saveto_table(
             fn, output_dict["x"], output_dict["y"], output_dict["flag"], comment
         )
+
+
+def triangular_number(n_bead_types):
+    """Return number of indistinguishable interactions for nr or bead types"""
+    return n_bead_types * (n_bead_types + 1) // 2

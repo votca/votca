@@ -26,11 +26,6 @@ EOF
 fi
 
 names=( $(csg_get_interaction_property --all name) )
-if [[ ${#names[@]} -gt 1 ]]; then
-  msg --color blue "####################################################"
-  msg --color blue "# WARNING multicomponent imc is still experimental #"
-  msg --color blue "####################################################"
-fi
 
 check_bonded_update() {
   local name=$(csg_get_interaction_property name)

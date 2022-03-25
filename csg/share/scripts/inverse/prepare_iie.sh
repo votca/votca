@@ -49,7 +49,7 @@ if [[ $use_target_dcdh == 'true' ]]; then
   [[ "${verbose}" == 'step0+1' ]] && [[ $step_nr == '0' || $step_nr == '1' ]] && verbose_flag="--verbose"
 
   # topology for molecular conections and volume
-  topol=$(csg_get_property cg.inverse.iie.topol)
+  topol=$(csg_get_property cg.inverse.topol_xml)
   [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
 
   # volume and k_B*T

@@ -346,7 +346,7 @@ while true; do
   for_all_states -q do_external clean $sim_prog
 
   step_time="$(( $(get_time) - $step_starttime ))"
-  msg "\nstep $i done, needed $step_time secs"
+  msg "step $i done, needed $step_time secs\n"
   ((steps_done++))
 
   touch "done"

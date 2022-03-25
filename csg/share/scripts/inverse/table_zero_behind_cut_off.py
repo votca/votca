@@ -16,15 +16,14 @@
 # limitations under the License.
 
 import argparse
-from csg_functions import (
-    readin_table, saveto_table, find_after_cut_off_ndx
-)
+from csg_functions import readin_table, saveto_table, find_after_cut_off_ndx
 import sys
 import numpy as np
+
 if not sys.version_info >= (3, 5):
     raise Exception("This script needs Python 3.5+.")
 
-np.seterr(all='raise')
+np.seterr(all="raise")
 
 
 def get_args(iie_args=None):
@@ -35,10 +34,11 @@ def get_args(iie_args=None):
     The rest of the values are shifted, such that the value at the cut-off is zero.
     """
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('cut_off', type=float,
-                        help='cut-off after which will be leveled')
-    parser.add_argument('in_file', type=argparse.FileType('r'), help='dpot in file')
-    parser.add_argument('out_file', type=argparse.FileType('w'), help='dpot out file')
+    parser.add_argument(
+        "cut_off", type=float, help="cut-off after which will be leveled"
+    )
+    parser.add_argument("in_file", type=argparse.FileType("r"), help="dpot in file")
+    parser.add_argument("out_file", type=argparse.FileType("w"), help="dpot out file")
     # parse
     args = parser.parse_args()
     return args
@@ -67,7 +67,7 @@ def level_table_after_cut_off(r, u, cut_off):
     # level after cut_off
     u_leveled[ndx_aco:] = 0.0
     # shift up to cut_off
-    u_leveled[:ndx_aco] -= u[ndx_aco-1]
+    u_leveled[:ndx_aco] -= u[ndx_aco - 1]
     return u_leveled
 
 
@@ -79,8 +79,8 @@ def main():
     # extrapolate
     u_leveled = level_table_after_cut_off(r, u, cut_off)
     # save
-    saveto_table(args.out_file, r, u_leveled, flag, 'fixed at cut-off')
+    saveto_table(args.out_file, r, u_leveled, flag, "fixed at cut-off")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

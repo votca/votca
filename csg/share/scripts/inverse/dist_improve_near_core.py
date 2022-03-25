@@ -129,7 +129,16 @@ def fit_exp_plus_const(x, y):
     # grid for derivative
     x_offset = x[:-1] + Delta_x / 2
     # log(-dy/dx) = log(ab) - bx
-    log_m_dydx = np.log(-dydx)
+    try:
+        log_m_dydx = np.log(-dydx)
+    except FloatingPointError:
+        raise Exception(
+            """
+The fitting of the PMF with a * exp(-b*x) + c is not possible, because it
+is not monotonically decreasing.
+Try better sampled RDFs or change the fitting range.
+        """
+        )
     # fit
     m_b, log_ab = np.polyfit(x=x_offset, y=log_m_dydx, deg=1)
     # unravel
@@ -157,12 +166,10 @@ def improve_dist_near_core(r, g, fit_start_g, fit_end_g):
             f"fit indices: {fit_start_ndx} {fit_end_ndx}"
         )
     # prepare data
-    print(fit_start_ndx, fit_end_ndx)
     data_x = r[fit_start_ndx:fit_end_ndx]
     data_y = -np.log(g[fit_start_ndx:fit_end_ndx])
     # fit
     abc = fit_exp_plus_const(data_x, data_y)
-    print(abc)
     # use fit to extrap
     with np.errstate(divide="ignore", invalid="ignore", under="ignore"):
         g_extrap[0:fit_start_ndx] = np.exp(-f_exp_plus_const(r[0:fit_start_ndx], *abc))

@@ -44,7 +44,7 @@ for_all "non-bonded" do_external resample target '$(csg_get_interaction_property
 for_all "non-bonded" do_external resample target --no-extrap --skip-if-missing '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
 
 # topology for molecular conections and volume
-topol=$(csg_get_property cg.inverse.initial_guess.ie.topol)
+topol=$(csg_get_property cg.inverse.topol_xml)
 [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
 
 # volume

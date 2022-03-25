@@ -62,7 +62,7 @@ fi
 
 # topology for molecular conections and volume
 for state in $state_names; do
-  topol_state="${state}/$(csg_get_property cg.inverse.iie.topol)"
+  topol_state="${state}/$(csg_get_property cg.inverse.topol_xml)"
   [[ -f $topol_state ]] || die "${0##*/}: topol file '$topol_state' not found, possibly you have to add it to cg.inverse.filelist"
   volume_state=$(critical csg_dump --top "$topol_state" | grep 'Volume' | awk '{print $2}')
   ([[ -n "$volume_state" ]] && is_num "$volume_state") || die "could not determine the volume from file ${topol_state}"

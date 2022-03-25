@@ -34,11 +34,20 @@ imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
 imc_groups=$(remove_duplicate $imc_groups)
 [[ -z ${imc_groups} ]] && die "${0##*/}: No imc groups defined"
 
+# Regularization
+default_reg=$(csg_get_property cg.inverse.imc.default_reg)
+is_num "${default_reg}" || die "${0##*/}: value of cg.inverse.imc.default_reg should be a number"
+
+# improve Jacobian in RDF onset region
+if [[ $(csg_get_property cg.inverse.imc.improve_jacobian_onset) == "true" ]]; then
+  improve_jacobian_onset_flag="--improve-jacobian-onset"
+fi
+
 # old IMC Newton algorithm, using C++ for solving
 # no constraints, but regularization is implemented
 if [[ $imc_algorithm == 'newton' ]]; then
-  default_reg=$(csg_get_property cg.inverse.imc.default_reg)
-  is_num "${default_reg}" || die "${0##*/}: value of cg.inverse.imc.default_reg should be a number"
+
+  [[ -n $improve_jacobian_onset_flag ]] && die "${0##*/}: for Newton IMC, the Jacobian improvement is not implemented."
 
   # calculate IMC matrix
   do_external imc_stat $sim_prog
@@ -64,12 +73,15 @@ elif [[ $imc_algorithm == 'gauss-newton' ]]; then
   imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
   imc_groups=$(remove_duplicate $imc_groups)
   imc_groups_array=( $imc_groups )
-  [[ ${#imc_groups_array[@]} != 1 ]] && die "${0##*/}: for Gauss Newton IMC, there can only be one IMC group"
+  [[ ${#imc_groups_array[@]} != 1 ]] && die "${0##*/}: for Gauss-Newton IMC, there can only be one IMC group"
   [[ ${imc_groups_array[0]} == none ]] && die "${0##*/}: only IMC group is none, needs to be something else"
   imc_group=${imc_groups[0]}
 
+  # neither regularization
+  [[ $default_reg != "0" ]] && die "${0##*/}: for Gauss-Newton IMC, regularization is not implemented."
+
   # topology for molecular conections and volume
-  topol=$(csg_get_property cg.inverse.gauss_newton.topol)
+  topol=$(csg_get_property cg.inverse.topol_xml)
   [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
 
   # volume
@@ -89,11 +101,6 @@ elif [[ $imc_algorithm == 'gauss-newton' ]]; then
   improve_dist_target_all=$(remove_duplicate $improve_dist_target_all)
   if [[ $(wc -w <<< "$improve_dist_new_all") > 1 || $(wc -w <<< "$improve_dist_target_all") > 1 ]]; then
     die "${0##*/}: If using IMC Gauss-Newton either all or no RDFs have to use improve_dist_near_core.{new,target}"
-  fi
-
-  # improve Jacobian in RDF onset region
-  if [[ $(csg_get_property cg.inverse.imc.improve_jacobian_onset) == "true" ]]; then
-    improve_jacobian_onset_flag="--improve-jacobian-onset"
   fi
 
   # check that all nb interactions have same min/max/step

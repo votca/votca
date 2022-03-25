@@ -39,8 +39,10 @@ import xml.etree.ElementTree as ET
 
 from csg_functions import (
     calc_grid_spacing,
+    calc_slices,
     gen_beadtype_property_array,
     gen_interaction_matrix,
+    get_bead_types,
     get_density_dict,
     get_n_intra_dict,
     get_non_bonded,
@@ -48,15 +50,12 @@ from csg_functions import (
     make_matrix_2D,
     make_matrix_4D,
     read_all_tables,
+    triangular_number,
     vectorize,
 )
 
 if not sys.version_info >= (3, 5):
     raise Exception("This script needs Python 3.5+.")
-
-# constants
-BAR_PER_MD_PRESSURE = 16.6053904  # md pressure is kJ/mol/nm³ as in Gromacs
-F_COULOMB = 138.935458  # electric conversion factor: V = f*q_1*q_2/r
 
 # raise all numpy errors. If errors are expected, use np.errstate()
 np.seterr(all="raise")
@@ -90,32 +89,28 @@ def get_args(local_args=None):
     parser.add_argument(
         "--imc-matrix",
         type=argparse.FileType("r"),
-        nargs="+",
-        default=None,
-        help="Text file with the IMC matrix. Multiple files for multistate.",
+        required=True,
+        help="Text file with the IMC matrix",
     ),
     parser.add_argument(
         "--imc-index",
         type=argparse.FileType("r"),
-        nargs="+",
-        default=None,
-        help="Text file with the IMC indices. Multiple files for multistate.",
+        required=True,
+        help="Text file with the IMC indices",
     ),
     parser.add_argument(
         "--volume",
         type=float,
         required=True,
-        nargs="+",
         metavar="VOL",
-        help="the volume of the box. Multiple if multistate",
+        help="the volume of the box",
     )
     parser.add_argument(
         "--topol",
         type=argparse.FileType("r"),
         required=True,
-        nargs="+",
         metavar="TOPOL",
-        help="XML topology file. Multiple if multistate",
+        help="XML topology file",
     )
     parser.add_argument(
         "--options",
@@ -127,8 +122,8 @@ def get_args(local_args=None):
     parser.add_argument(
         "--out",
         type=argparse.FileType("w"),
-        nargs="+",
-        help="Output .npz file with the Jacobian. Multiple files for multistate.",
+        required=True,
+        help="Output .npz file with the Jacobian",
     )
     parser.add_argument(
         "--g-tgt-ext",
@@ -166,12 +161,10 @@ def get_args(local_args=None):
         default=False,
     )
     parser.add_argument(
-        "--multistate",
-        dest="multistate",
-        action="store_const",
-        const=True,
-        default=False,
-        help="enable multistate method",
+        "--cut-res",
+        type=float,
+        default=None,
+        help="cut-off radius for each block",
     )
     # parse
     if local_args is None:
@@ -185,22 +178,9 @@ def process_input(args):
     """Process arguments and perform some checks."""
     # args.options.read() can be called only once
     options = ET.fromstring(args.options.read())
-    # multistate settings
-    multistate = args.multistate
-    if multistate:
-        state_names = options.find("./inverse/multistate/state_names").text.split()
-
-    # get topology, density_dict, and n_intra_dict
-    if multistate:
-        topology = [ET.fromstring(top_file.read()) for top_file in args.topol]
-        density_dict = [
-            get_density_dict(top, vol) for top, vol in zip(topology, args.volume)
-        ]
-        n_intra_dict = [get_n_intra_dict(top) for top in topology]  # prob. indep.
-    else:
-        topology = ET.fromstring(args.topol[0].read())
-        density_dict = get_density_dict(topology, args.volume[0])
-        n_intra_dict = get_n_intra_dict(topology)
+    topology = ET.fromstring(args.topol.read())
+    density_dict = get_density_dict(topology, args.volume)
+    n_intra_dict = get_n_intra_dict(topology)
 
     # get non_bonded_dict
     non_bonded_dict = {nb_name: nb_ts for nb_name, nb_ts in get_non_bonded(options)}
@@ -242,10 +222,7 @@ def process_input(args):
                 "assume-zero": [],
             },
         }
-    if multistate:
-        state_names_temp = state_names
-    else:
-        state_names_temp = ["."]  # read from current dir, dict will be collapsed later
+    state_names_temp = ["."]  # read from current dir, dict will be collapsed later
     # read in all tables based on table_infos
     input_arrays, r0_removed, r = read_all_tables(
         state_names_temp,
@@ -253,21 +230,13 @@ def process_input(args):
         non_bonded_dict,
     )
     # input_arrays structure has one level less if not multistate
-    if not multistate:
-        assert len(input_arrays) == 1
-        input_arrays = input_arrays["."]  # collapse
+    input_arrays = input_arrays["."]  # collapse
     del state_names_temp
     # quick access to r
     input_arrays["r"] = r
     # density and n_intra
-    if multistate:
-        rhos = [gen_beadtype_property_array(dd, non_bonded_dict) for dd in density_dict]
-        n_intra = [
-            gen_beadtype_property_array(nd, non_bonded_dict) for nd in n_intra_dict
-        ]
-    else:
-        rhos = gen_beadtype_property_array(density_dict, non_bonded_dict)
-        n_intra = gen_beadtype_property_array(n_intra_dict, non_bonded_dict)
+    rhos = gen_beadtype_property_array(density_dict, non_bonded_dict)
+    n_intra = gen_beadtype_property_array(n_intra_dict, non_bonded_dict)
     # settings
     # copy some settings directly from args
     args_to_copy = (
@@ -275,6 +244,7 @@ def process_input(args):
         "volume",
         "verbose",
         "improve_jacobian_onset",
+        "cut_res",
     )
     settings = {key: vars(args)[key] for key in args_to_copy}  # all mandatory
     settings["kBT"] = float(options.find("./inverse/kBT").text)
@@ -283,40 +253,22 @@ def process_input(args):
     settings["n_intra"] = n_intra
     settings["r0-removed"] = r0_removed
 
-    # load Joacbian and index
-    imc_matrices = []  # one per state
-    imc_indices = []
-    for imc_matrix, imc_index in zip(args.imc_matrix, args.imc_index):
-        try:
-            # close file(s), because we use np.load on file name
-            imc_matrix.close()
-            imc_index.close()
-            imc_matrices.append(np.loadtxt(imc_matrix.name))
-            imc_indices.append(np.loadtxt(imc_index.name, dtype=str, ndmin=2))
-        except (FileNotFoundError, ValueError):
-            raise Exception("Can not load imc matrix file(s) that were provided")
-    if multistate:
-        assert len(imc_matrices) == len(state_names)
-    else:
-        assert len(imc_matrices) == 1
+    # load IMC matrix and index
+    try:
+        # close file(s), because we use np.load on file name
+        args.imc_matrix.close()
+        args.imc_index.close()
+        imc_matrix = np.loadtxt(args.imc_matrix.name)
+        imc_index = np.loadtxt(args.imc_index.name, dtype=str, ndmin=2)
+    except (FileNotFoundError, ValueError):
+        raise Exception("Can not load imc matrix/index file that was provided")
 
-    # multistate settings
-    settings["multistate"] = multistate
-    if multistate:
-        settings["state_names"] = state_names
-        settings["state_weights"] = list(
-            map(float, options.find("./inverse/multistate/state_weights").text.split())
-        )
-        settings["state_kBTs"] = list(
-            map(float, options.find("./inverse/multistate/state_kBTs").text.split())
-        )
-
-    return input_arrays, settings, imc_matrices, imc_indices
+    return input_arrays, settings, imc_matrix, imc_index
 
 
 @if_verbose_dump_io
 def convert_and_save_imc_matrix(
-    input_arrays, settings, imc_matrices, imc_indices, verbose=False
+    input_arrays, settings, imc_matrix, imc_index, verbose=False
 ):
     """Convert and save imc matrix to dg/du matrix and save as .npz.
 
@@ -332,51 +284,83 @@ def convert_and_save_imc_matrix(
     Delta_r = calc_grid_spacing(r)
     # number of atom types
     n_t = len(settings["rhos"])
-    # number of interactions including redundand ones
-    n_i = int(n_t**2)
+    # number of interactions excluding redundand ones (in(distinguishable))
+    n_in = triangular_number(n_t)
     # number of grid points in r
     n_r = len(r)
+    # connection non-bonded name <-> bead types
+    non_bonded_dict = settings["non-bonded-dict"]
+    # non_bonded_dict_inv = {v: k for k, v in settings["non-bonded-dict"].items()}
     # for each state calculate new matrix
-    for imc_matrix, imc_index, outfile in zip(
-        imc_matrices, imc_indices, settings["out"]
-    ):
-        indices = {}
-        for i, (interaction, start_end) in enumerate(imc_index):
-            start, end = map(int, start_end.split(":"))
-            start -= 1  # votca counts from 1, I count from 0
-            end += 1  # using end for slicing
-            indices[interaction] = (start, end, i)
+    # index magic
+    indices_imc = {}
+    indices_new = {}
+    # IMC matrix might contain r=0 values, remove them
+    r0offset = 1 if settings["r0-removed"] else 0
+    for i, (interaction, start_end) in enumerate(imc_index):
+        start, end = map(int, start_end.split(":"))
+        start_imc = start - 1  # votca counts from 1, Python counts from 0
+        start_imc += r0offset  # remove leading r=0
+        end_imc = end
+        start_new = start - 1  # votca counts from 1, Python counts from 0
+        start_new -= r0offset * i  # less values due to removed r=0
+        end_new = end - r0offset * (i + 1)  # less values due to removed r=0
+        indices_imc[interaction] = (start_imc, end_imc)
+        indices_new[interaction] = (start_new, end_new)
 
-        # IMC matrix might contain 0, remove it
-        r0offset = 1 if settings["r0-removed"] else 0
-        dudg_2D = np.zeros([n_r * n_i] * 2)
-        with np.errstate(divide="ignore", invalid="ignore"):
-            for (nb1, index1), (nb2, index2) in itertools.product(
-                indices.items(), indices.items()
-            ):
-                N1 = (settings["rhos"] * settings["volume"])[index1[2]]
-                N2 = (settings["rhos"] * settings["volume"])[index2[2]]
-                # dS/du -> dg/du
-                # indices make sure that r=0 is excluded
-                dudg_2D[index1[0] : index1[1], index2[0] : index2[1]] = (
-                    1
-                    / settings["kBT"]
-                    / (N1 * N2 / settings["volume"] / 2 * 4 * np.pi * Delta_r)
-                    * np.diag(1 / r**2)
-                    @ imc_matrix[
-                        index1[0] + r0offset * (index1[2] + 1) : index1[1],
-                        index2[0] + r0offset * (index1[2] + 1) : index2[1],
-                    ]
-                )
-        # make jacobian 4D
-        dudg = make_matrix_4D(dudg_2D, n_r, n_r, n_i, n_i)
+    dudg_2D = np.zeros([n_r * n_in] * 2)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        for (nb1, index_imc1), (nb2, index_imc2) in itertools.product(
+            indices_imc.items(), indices_imc.items()
+        ):
+            # Some lines to get the number of beads for interaction nb1
+            # which relates to S in dS/du, because thate is wherere N1*N2
+            # is the prefactor needed to obtain g from S
+            beadtypes = tuple(non_bonded_dict[nb1])
+            if len(beadtypes) == 1:
+                bead_type1 = bead_type2 = beadtypes[0]
+            else:
+                bead_type1, bead_type2 = beadtypes
+            all_beadtypes = get_bead_types(non_bonded_dict)
+            bead_index1 = all_beadtypes.index(bead_type1)
+            bead_index2 = all_beadtypes.index(bead_type2)
+            N1 = (settings["rhos"] * settings["volume"])[bead_index1]
+            N2 = (settings["rhos"] * settings["volume"])[bead_index2]
 
-        # improve jacobian
-        if settings["improve_jacobian_onset"]:
-            dudg = improve_jacobian_onset(dudg, input_arrays, settings, verbose=verbose)
+            # new indices
+            index_new1 = indices_new[nb1]
+            index_new2 = indices_new[nb2]
 
-        # save jacobian
-        np.savez_compressed(outfile.name, jacobian=dudg)
+            # Kronecker delta for interactions with equal beads
+            delta_alpha_beta = 1 if bead_index1 == bead_index2 else 0
+
+            # dS/du -> dg/du
+            dudg_2D[index_new1[0] : index_new1[1], index_new2[0] : index_new2[1]] = (
+                1
+                / settings["kBT"]
+                * (delta_alpha_beta + 1)
+                * settings["volume"]
+                / (N1 * N2 * 4 * np.pi * Delta_r)
+                * np.diag(1 / r**2)
+                @ imc_matrix[
+                    index_imc1[0] : index_imc1[1],
+                    index_imc2[0] : index_imc2[1],
+                ]
+            )
+    # make jacobian 4D
+    dudg = make_matrix_4D(dudg_2D, n_r, n_r, n_in, n_in)
+
+    # improve jacobian
+    if settings["improve_jacobian_onset"]:
+        dudg = improve_jacobian_onset(dudg, input_arrays, settings, verbose=verbose)
+
+    # optionally cut Jacobian
+    if settings["cut_res"]:
+        cut, _ = calc_slices(r, settings["cut_res"])
+        dudg = dudg[cut, cut, :, :]
+
+    # save jacobian
+    np.savez_compressed(settings["out"].name, jacobian=dudg)
 
 
 @if_verbose_dump_io
@@ -401,7 +385,7 @@ def improve_jacobian_onset(J, input_arrays, settings, verbose=False):
     # number of atom types
     n_t = len(settings["rhos"])
     # number of interactions including redundand ones
-    n_i = int(n_t**2)
+    n_i = triangular_number(n_t)
     # generate matrices and vectorize
     g_tgt_mat = gen_interaction_matrix(
         r, input_arrays["g_tgt"], settings["non-bonded-dict"]
@@ -427,13 +411,17 @@ def improve_jacobian_onset(J, input_arrays, settings, verbose=False):
     else:
         vec_to_subract = g_cur_vec.T.flatten()
     J_improved_2D = make_matrix_2D(J.copy())
-    # TODO: IMC does not distinguish u_ab, u_ba, _vec does. Implement and use hvec?
     J_diag = np.diag(J_improved_2D)
     # subtract -g_cur then add average of (-g_cur, -g_tgt) for better stability
     # TODO: This would need another version, when use_target_matrix is used
     J_diag_improved = J_diag + 1 / settings["kBT"] * (
-        +vec_to_subract - (g_cur_vec.T.flatten() + g_tgt_vec.T.flatten()) / 2
+        # +vec_to_subract - (g_cur_vec.T.flatten() + g_tgt_vec.T.flatten()) / 2
+        +vec_to_subract
+        - g_cur_vec.T.flatten()
     )
+    # improve stability
+    J_diag_improved[J_diag_improved == 0] = -1e-37
+    # new diagonal
     np.fill_diagonal(J_improved_2D, J_diag_improved)
     J_improved = make_matrix_4D(J_improved_2D, n_r, n_r, n_i, n_i)
     return J_improved

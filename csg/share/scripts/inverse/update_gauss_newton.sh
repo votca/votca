@@ -60,7 +60,7 @@ fi
 residual_weighting_flag="--residual-weighting '$(csg_get_property cg.inverse.gauss_newton.residual_weighting)'"
 
 # topology for molecular conections and volume
-topol=$(csg_get_property cg.inverse.gauss_newton.topol)
+topol=$(csg_get_property cg.inverse.topol_xml)
 [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
 
 # volume

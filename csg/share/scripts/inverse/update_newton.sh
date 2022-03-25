@@ -30,7 +30,7 @@ fi
 sim_prog="$(csg_get_property cg.inverse.program)"
 
 # topology for molecular conections and volume
-topol=$(csg_get_property cg.inverse.newton.topol)
+topol=$(csg_get_property cg.inverse.topol_xml)
 [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
 
 # volume
