@@ -53,7 +53,6 @@ double PMLocalization::cost(const Eigen::MatrixXd &W,
       Dinv += std::pow(Qa, p);
     }
   }
-
   return Dinv;
 }
 
@@ -67,11 +66,9 @@ std::pair<double, Eigen::MatrixXd> PMLocalization::cost_derivative(
     Eigen::MatrixXd qw = Sat_all[iat] * W;
     for (Index i = 0; i < W.cols(); i++) {
       double qwp = W.col(i).transpose() * qw.col(i);
-      // totalC += qwp;
       Dinv += std::pow(qwp, p);
       double t = p * std::pow(qwp, p - 1);
       for (Index j = 0; j < W.cols(); j++) {
-
         Jderiv(j, i) += t * qw(j, i);
       }
     }
@@ -82,8 +79,7 @@ std::pair<double, Eigen::MatrixXd> PMLocalization::cost_derivative(
 Eigen::VectorXd PMLocalization::fit_polynomial(const Eigen::VectorXd &x,
                                                const Eigen::VectorXd &y) {
 
-  // Fit function to polynomial of order p: y(x) = a_0 + a_1*x + ... +
-  // a_(p-1)*x^(p-1)
+  // Fit function to polynomial
 
   if (x.size() != y.size()) {
     throw std::runtime_error("x and y have different dimensions!\n");
@@ -93,7 +89,6 @@ Eigen::VectorXd PMLocalization::fit_polynomial(const Eigen::VectorXd &x,
 
   // Form matrix
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(N, deg);
-
   for (Index i = 0; i < N; i++) {
     for (Index j = 0; j < deg; j++) {
       A(i, j) = std::pow(x(i), j);
@@ -240,17 +235,11 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
         << TimeStamp() << " Calculated cost function and its W-derivative"
         << std::flush;
 
-    if (iteration == 0) {
-      std::cout << " INITIAL COST " << J_ << "\n" << std::endl;
-    }
-
     // calculate Riemannian derivative
     G_ = Jderiv * W_.transpose() - W_ * Jderiv.transpose();
 
     if (iteration == 0 || (iteration - 1) % W_.cols() == 0) {
       // calculate search direction using SDSA for now
-      /*XTP_LOG(Log::error, log_)
-          << TimeStamp() << " Using SDSA update " << std::flush;*/
       update_type = "SDSA";
       H_ = G_;
     } else {
@@ -308,7 +297,6 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
         XTP_LOG(Log::error, log_)
             << TimeStamp() << "Derivative is negative!" << mu << "  "
             << derivative_points << std::flush;
-        // exit(0);
       }
 
       // Fit to polynomial of order p
@@ -326,26 +314,18 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
         double J_new = cost(W_new, Sat_all, numatoms);
         double delta_J = J_new - J_;
 
-        if (delta_J < 0.0) {
+        if (delta_J > 0.0) {
+          //  we accept and update
+          W_old_ = W_;
+          W_ = W_new;
+          J_old_ = J_;
+          J_ = J_new;
+          break;
+        } else {
           XTP_LOG(Log::error, log_)
               << TimeStamp()
               << "    WARNING: Cost function is decreasing. deltaJ = "
               << delta_J << std::flush;
-        }
-
-        // if (delta_J > 0.0) {
-        //  we accept and update
-        W_old_ = W_;
-        W_ = W_new;
-        J_old_ = J_;
-        J_ = J_new;
-        break;
-        /*} else {
-          XTP_LOG(Log::error, log_)
-              << TimeStamp()
-              << "Step was accepted but objective function "
-                 "changed in the wrong direction "
-              << std::flush;
 
           if (halved < 10) {
             XTP_LOG(Log::error, log_)
@@ -359,7 +339,7 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
                 "Problem in polynomial line search - could not find suitable "
                 "extremum!\n");
           }
-        }*/
+        }
       } else {
         // now do something if step is too far
         XTP_LOG(Log::error, log_)
@@ -375,7 +355,6 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
               "Problem in polynomial line search - could not find suitable "
               "extremum!\n");
         }
-        //}
       }
     }
 
@@ -397,9 +376,6 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
   }
 
   // all done, what are the actual LMOS?
-
-  std::cout << "  FINAL COST: " << J_ << "\n" << std::endl;
-
   localized_orbitals_ =
       (W_.transpose() * occupied_orbitals.transpose()).transpose();  //?
   check_orthonormality();
@@ -733,11 +709,6 @@ void PMLocalization::update_penalty(Index orb1, Index orb2) {
           pop_per_atom(localized_orbitals_.col(s));
     }
   }
-
-  double cost = MullikenPop_orb_per_atom_.array().square().sum();
-  double charge = MullikenPop_orb_per_atom_.array().sum();
-  std::cout << "  COST " << cost << "\n" << std::endl;
-  std::cout << "  Charge " << charge << "\n" << std::endl;
 
 // now we only need to calculate the off-diagonals explicitly for all
 // pairs involving orb1 or orb2
