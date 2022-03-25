@@ -64,7 +64,7 @@ def check_votca_settings_xml(root, root_defaults):
             for child, child_path in iter_xml(child, path=child_path):
                 yield child, child_path
 
-    found_bad_tags = []
+    found_bad_paths = []
     for child, child_path in iter_xml(root):
         # options for cg.bonded are partially listed in cg.non-bonded
         child_path_non_bonded = child_path.replace("/bonded/", "/non-bonded/")
@@ -74,11 +74,32 @@ def check_votca_settings_xml(root, root_defaults):
             # per group settings can have any name
             and not child_path.startswith("./cg/inverse/imc/")
         ):
-            found_bad_tags.append(child_path)
-    if len(found_bad_tags) > 0:
-        found_bad_tags_lines = "\n".join(found_bad_tags)
+            found_bad_paths.append(child_path)
+
+    # find what the user maybe meant
+    suggestions = []
+    for found_bad_path in found_bad_paths:
+        found_bad_tag = found_bad_path.split("/")[-1]
+        try:
+            suggestion = next(
+                default_path
+                for default_element, default_path in iter_xml(root_defaults)
+                if default_element.tag == found_bad_tag
+            )
+        except StopIteration:
+            suggestion = None
+        suggestions.append(suggestion)
+
+    # output bad tags and suggestions
+    if len(found_bad_paths) > 0:
+        found_bad_lines = ""
+        for found_bad_tag, suggestion in zip(found_bad_paths, suggestions):
+            found_bad_lines += found_bad_tag
+            if suggestion is not None:
+                found_bad_lines += f"  ( did you mean {suggestion} )"
+            found_bad_lines += "\n"
         print(
-            f"The settings XML file contains the tags\n\n{found_bad_tags_lines}\n\nbut "
+            f"The settings XML file contains the tags\n\n{found_bad_lines}\nbut "
             "those paths does not exist in the XML defaults file and are therefore "
             "not supported."
         )
