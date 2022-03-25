@@ -280,7 +280,7 @@ def convert_and_save_imc_matrix(
         start, end = map(int, start_end.split(":"))
         start_imc = start - 1  # votca counts from 1, Python counts from 0
         start_imc += r0offset  # remove leading r=0
-        end_imc = end
+        end_imc = start_imc + len(r)  # allow imc_matrix provided to be larger
         start_new = start - 1  # votca counts from 1, Python counts from 0
         start_new -= r0offset * i  # less values due to removed r=0
         end_new = end - r0offset * (i + 1)  # less values due to removed r=0
