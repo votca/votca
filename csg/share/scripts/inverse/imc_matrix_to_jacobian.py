@@ -140,25 +140,16 @@ def get_args(local_args=None):
         help="extension of current RDF files",
     )
     parser.add_argument(
-        "--g-cur-raw-ext",
-        type=str,
-        default=None,
-        metavar="RDF_CUR_RAW_EXT",
-        help="extension of current raw RDF files",
-    )
-    parser.add_argument(
-        "--g-tgt-raw-ext",
-        type=str,
-        default=None,
-        metavar="RDF_CUR_RAW_EXT",
-        help="extension of current raw RDF files",
-    )
-    parser.add_argument(
         "--improve-jacobian-onset",
         help="Change Jacobian slightly for better results in the RDF onset region",
         action="store_const",
         const=True,
         default=False,
+    )
+    parser.add_argument(
+        "--onset-threshold",
+        type=float,
+        help="minimum value of g_tgt or g_cur up to which the IMC jacobian is improved",
     )
     parser.add_argument(
         "--cut-res",
@@ -204,24 +195,6 @@ def process_input(args):
             "assume-zero": [],
         },
     }
-    if args.g_cur_raw_ext is not None:
-        table_infos = {
-            **table_infos,
-            "g_cur_raw": {
-                "extension": args.g_cur_raw_ext,
-                "check-grid": True,
-                "assume-zero": [],
-            },
-        }
-    if args.g_tgt_raw_ext is not None:
-        table_infos = {
-            **table_infos,
-            "g_tgt_raw": {
-                "extension": args.g_tgt_raw_ext,
-                "check-grid": True,
-                "assume-zero": [],
-            },
-        }
     state_names_temp = ["."]  # read from current dir, dict will be collapsed later
     # read in all tables based on table_infos
     input_arrays, r0_removed, r = read_all_tables(
@@ -245,6 +218,7 @@ def process_input(args):
         "verbose",
         "improve_jacobian_onset",
         "cut_res",
+        "onset_threshold",
     )
     settings = {key: vars(args)[key] for key in args_to_copy}  # all mandatory
     settings["kBT"] = float(options.find("./inverse/kBT").text)
@@ -252,6 +226,11 @@ def process_input(args):
     settings["rhos"] = rhos
     settings["n_intra"] = n_intra
     settings["r0-removed"] = r0_removed
+
+    if settings["improve_jacobian_onset"] and settings["onset_threshold"] is None:
+        raise Exception(
+            "If --improve-jacobian-onset is used, --onset-threshold has to be provided"
+        )
 
     # load IMC matrix and index
     try:
@@ -364,28 +343,29 @@ def convert_and_save_imc_matrix(
 
 
 @if_verbose_dump_io
-def improve_jacobian_onset(J, input_arrays, settings, verbose=False):
+def improve_jacobian_onset(jac_mat, input_arrays, settings, verbose=False):
     """Change Jacobian diagonal such that update becomes more stable.
     In the onset region the diagonal is approx. -k_B T g(r).
     This functions subtracts -k_B T g(r) (target or current) and adds
     -k_B T (g_cur + g_tgt)/2.
 
     Args:
-        dudg: Jacobian to be improved
+        jac_mat: Jacobian to be improved (4D)
         input_arrays: nested dict holding the distributions
         settings: dict holding relevant settings
         verbose: save parameters and return of this and contained functions as numpy
                  file
 
     Returns:
-        The improved Jacobian
+        The improved Jacobian (4D)
     """
     r = input_arrays["r"]
-    n_r = len(r)
+    # n_r = len(r)
     # number of atom types
     n_t = len(settings["rhos"])
     # number of interactions including redundand ones
     n_i = triangular_number(n_t)
+
     # generate matrices and vectorize
     g_tgt_mat = gen_interaction_matrix(
         r, input_arrays["g_tgt"], settings["non-bonded-dict"]
@@ -395,36 +375,41 @@ def improve_jacobian_onset(J, input_arrays, settings, verbose=False):
         r, input_arrays["g_cur"], settings["non-bonded-dict"]
     )
     g_cur_vec = vectorize(g_cur_mat)
-    # when dist_improve was used, subtract raw
-    if "g_cur_raw" in input_arrays.keys():
-        vec_to_subract = vectorize(
-            gen_interaction_matrix(
-                r, input_arrays["g_cur_raw"], settings["non-bonded-dict"]
-            )
-        ).T.flatten()
-    elif "g_tgt_raw" in input_arrays.keys():
-        vec_to_subract = vectorize(
-            gen_interaction_matrix(
-                r, input_arrays["g_tgt_raw"], settings["non-bonded-dict"]
-            )
-        ).T.flatten()
-    else:
-        vec_to_subract = g_cur_vec.T.flatten()
-    J_improved_2D = make_matrix_2D(J.copy())
-    J_diag = np.diag(J_improved_2D)
-    # subtract -g_cur then add average of (-g_cur, -g_tgt) for better stability
-    # TODO: This would need another version, when use_target_matrix is used
-    J_diag_improved = J_diag + 1 / settings["kBT"] * (
-        # +vec_to_subract - (g_cur_vec.T.flatten() + g_tgt_vec.T.flatten()) / 2
-        +vec_to_subract
-        - g_cur_vec.T.flatten()
-    )
-    # improve stability
-    J_diag_improved[J_diag_improved == 0] = -1e-37
+
+    # copy jacobian
+    jac_mat_improved = jac_mat.copy()
+
+    # improve jacobian
+    # loop over interactions
+    for i in range(n_i):
+        # onset region is up to where g_cur or g_tgt are larger then onset threshold
+        onset_end = max(
+            (g_cur_vec[:, i] > settings["onset_threshold"]).nonzero()[0][0],
+            (g_tgt_vec[:, i] > settings["onset_threshold"]).nonzero()[0][0],
+        )
+        onset_region = slice(0, onset_end)
+
+        # make all elements in the onset region zero
+        jac_mat_improved[:, onset_region, :, i] = 0
+        jac_mat_improved[onset_region, :, i, :] = 0
+
+        # improve diagonal in onset retgion
+        onset_diagonal = np.zeros(len(r[onset_region]))
+        onset_diagonal = (
+            -1
+            / settings["kBT"]
+            * ((g_cur_vec[onset_region, i] + g_tgt_vec[onset_region, i]) / 2)
+        )
+
+        # improve stability by converting zeros to small float
+        onset_diagonal[onset_diagonal == 0.0] = -1e-37
+
+        # change diagonal
+        np.fill_diagonal(
+            jac_mat_improved[onset_region, onset_region, i, i], onset_diagonal
+        )
     # new diagonal
-    np.fill_diagonal(J_improved_2D, J_diag_improved)
-    J_improved = make_matrix_4D(J_improved_2D, n_r, n_r, n_i, n_i)
-    return J_improved
+    return jac_mat_improved
 
 
 if __name__ == "__main__":

@@ -41,6 +41,7 @@ is_num "${default_reg}" || die "${0##*/}: value of cg.inverse.imc.default_reg sh
 # improve Jacobian in RDF onset region
 if [[ $(csg_get_property cg.inverse.imc.improve_jacobian_onset) == "true" ]]; then
   improve_jacobian_onset_flag="--improve-jacobian-onset"
+  onset_threshold_flag="--onset-threshold $(csg_get_property cg.inverse.imc.onset_threshold)"
 fi
 
 # old IMC Newton algorithm, using C++ for solving
@@ -126,11 +127,6 @@ elif [[ $imc_algorithm == 'gauss-newton' ]]; then
     for_all "non-bonded bonded" do_external rdf "$sim_prog"
     # resample target distributions
     for_all "non-bonded" do_external resample target --clean '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
-    if [[ $improve_dist_target_all == "true" ]]; then
-      # raw target rdf needed for IMC onset fix
-      for_all "non-bonded" do_external resample target --clean --no-extrap '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt.raw'
-      g_raw_ext_flag="--g-tgt-raw-ext=dist.tgt.raw"
-    fi
   else
     # calculate IMC matrix, RDF, and resample target
     do_external imc_stat $sim_prog
@@ -151,8 +147,8 @@ elif [[ $imc_algorithm == 'gauss-newton' ]]; then
     --topol "${topol}" \
     --g-tgt-ext "dist.tgt" \
     --g-cur-ext "dist.new" \
-    ${g_raw_ext_flag-} \
     ${improve_jacobian_onset_flag-} \
+    ${onset_threshold_flag-} \
     --out "jacobian.npz"
 
   # update nb with Gauss-Newton

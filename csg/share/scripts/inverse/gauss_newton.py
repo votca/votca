@@ -594,7 +594,10 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     cut_pot_p1, tail_pot_p1 = calc_slices(
         r, settings["cut_off_pot"], verbose=False, offset=0
     )
-    cut_res, tail_res = calc_slices(r, settings["cut_off_res"], verbose=False)
+    # residuum cut also -= 1 for consistency when cut-residuum = cut-off
+    cut_res, tail_res = calc_slices(
+        r, settings["cut_off_res"], verbose=False, offset=-1
+    )
     n_c_pot = len(r[cut_pot])
     n_c_res = len(r[cut_res])
 
@@ -606,7 +609,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
         r, input_arrays["g_cur"], settings["non-bonded-dict"]
     )
     # get Jacobian
-    jac_mat = settings["jacobians"][0]
+    jac_mat = settings["jacobians"][0][cut_res, cut_res, :, :]
     # weighting
     g_tgt_vec = vectorize(g_tgt_mat)
     weights = gen_residual_weights(
@@ -700,11 +703,9 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             dpdf = -2 / 3 * np.pi * rho_i * g_tgt_avg * r3_dr * extra_factor
             C[c, :] = dpdf @ dfdu_all
             if settings["flatten_at_cut_off"]:
-                print(C[c, n_c_pot - 3 :])
                 C[
                     c, n_c_pot - 1 :: n_c_pot
                 ] = 0  # no constraint for last point of each Δu
-                print(C[c, n_c_pot - 3 :])
             d[c] = p - p_tgt
 
         elif constraint["type"] == "kirkwood-buff-integral":
@@ -783,6 +784,8 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
                 "not implemented constraint type: " + constraint["type"]
             )
     # solve least squares problem with linear constraints
+    # if C.shape[0] == 0 and A.shape[0] == A.shape[1]:
+    # dx_flat = np.linalg.solve(A, b)
     dx_flat = solve_lsq_with_linear_constraints(A, C, b, d)
     # obtain potential update
     Delta_u_flat = -A0_2D @ dx_flat
@@ -805,8 +808,8 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
         Delta_u_flag[tail_pot_p1] = "o"
         # shift potential to make value before cut-off zero
         if settings["flatten_at_cut_off"]:
-            # hmmmmmm
-            Delta_u[cut_pot] -= Delta_u[cut_pot][-1]  # this one invalidates constraints
+            # hmmmmmm will probably throw this out
+            Delta_u[cut_pot] -= Delta_u[cut_pot][-1]
             # Delta_u[cut_pot][-1] = 0  # this one does not really make it flat
         # add value at r=0 if it was removed
         if settings["r0-removed"]:
