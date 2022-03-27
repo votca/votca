@@ -108,7 +108,7 @@ def get_args(iie_args=None):
 
     If iie_args is given, parse them instead of cmdlineargs.
     """
-    description = "Calculate U or ΔU with Integral Equations."
+    description = "Calculate u or Δu with Integral Equations."
     parser = argparse.ArgumentParser(description=description)
     # subparsers
     subparsers = parser.add_subparsers(dest="subcommand")
@@ -171,7 +171,7 @@ def get_args(iie_args=None):
             type=str,
             required=True,
             metavar="U_OUT_EXT",
-            help="extension of U or ΔU files or full filename of dcdh "
+            help="extension of u or Δu files or full filename of dcdh "
             "matrix. If 'none' there will be no output.",
         )
         pars.add_argument(

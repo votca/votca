@@ -157,7 +157,7 @@ def get_args(iie_args=None):
             type=str,
             required=True,
             metavar="U_OUT_EXT",
-            help="extension of U or ΔU files or full filename of dcdh "
+            help="extension of u or Δu files or full filename of dcdh "
             "matrix. If 'none' there will be no output.",
         )
         pars.add_argument(
@@ -409,7 +409,7 @@ def potential_guess(input_arrays, settings, verbose=False):
     )
     _, G_minus_g_hat_mat = fourier_all(r, G_minus_g_mat)
     # perform actual math
-    U_mat = calc_U_matrix(
+    u_mat = calc_u_matrix(
         r,
         k,
         g_mat,
@@ -423,34 +423,34 @@ def potential_guess(input_arrays, settings, verbose=False):
     )
     # subtract Coulomb, extrapolate, and save potentials
     output_arrays = {}
-    for non_bonded_name, U_dict in gen_interaction_dict(
-        r, U_mat, settings["non-bonded-dict"]
+    for non_bonded_name, u_dict in gen_interaction_dict(
+        r, u_mat, settings["non-bonded-dict"]
     ).items():
-        U = U_dict["y"]
-        U_flag = gen_flag_isfinite(U)
+        u = u_dict["y"]
+        u_flag = gen_flag_isfinite(u)
         # subtract Coulomb
         if settings["subtract_coulomb"]:
             beads = tuple(settings["non_bonded_dict"][non_bonded_name])
             bead1, bead2 = (beads[0], beads[0]) if len(beads) == 1 else beads
             q1 = settings["charge_dict"][bead1]
             q2 = settings["charge_dict"][bead2]
-            U_Coulomb = F_COULOMB * q1 * q2 / r
-            U -= U_Coulomb
+            u_Coulomb = F_COULOMB * q1 * q2 / r
+            u -= u_Coulomb
         # make tail zero. It is spoiled on the last half from inverting OZ.
         # careful: slices refer to arrays before reinserting r=0 values!
-        U[cut] -= U[cut][-1]
-        U[tail] = 0
-        U_flag[tail] = "o"
+        u[cut] -= u[cut][-1]
+        u[tail] = 0
+        u_flag[tail] = "o"
         # add value at r=0 if it was removed
         if settings["r0-removed"]:
             r_out = np.concatenate(([0.0], r))
-            U = np.concatenate(([np.nan], U))
-            U_flag = np.concatenate((["o"], U_flag))
+            u = np.concatenate(([np.nan], u))
+            u_flag = np.concatenate((["o"], u_flag))
         else:
             r_out = r
         # change NaN in the core region to first valid value
-        U = extrapolate_Delta_u_left_constant(U, U_flag)
-        output_arrays[non_bonded_name] = {"x": r_out, "y": U, "flag": U_flag}
+        u = extrapolate_Delta_u_left_constant(u, u_flag)
+        output_arrays[non_bonded_name] = {"x": r_out, "y": u, "flag": u_flag}
     return output_arrays
 
 
@@ -467,7 +467,7 @@ def save_tables(output_arrays, settings):
 
 
 @if_verbose_dump_io
-def calc_U_matrix(
+def calc_u_matrix(
     r,
     k,
     g_mat,
@@ -480,7 +480,7 @@ def calc_U_matrix(
     verbose=False,
 ):
     """
-    Calculate a potential U using integral equation theory.
+    Calculate a potential u using integral equation theory.
 
     Args:
         r: Distance grid.
@@ -491,7 +491,7 @@ def calc_U_matrix(
         n_intra: array with number of bead per molecule
         kBT: Boltzmann constant times temperature.
         closure: OZ-equation closure ('hnc' or 'py').
-        verbose: output calc_U_matrix.npz
+        verbose: output calc_u_matrix.npz
 
     Returns:
         matrix of the calculated potentias.
@@ -500,10 +500,10 @@ def calc_U_matrix(
     c_mat = calc_c_matrix(r, k, h_hat_mat, G_minus_g_hat_mat, rhos, n_intra, verbose)
     with np.errstate(divide="ignore", invalid="ignore"):
         if closure == "hnc":
-            U_mat = kBT * (-np.log(g_mat) + (g_mat - 1) - c_mat)
+            u_mat = kBT * (-np.log(g_mat) + (g_mat - 1) - c_mat)
         elif closure == "py":
-            U_mat = kBT * np.log(1 - c_mat / g_mat)
-    return U_mat
+            u_mat = kBT * np.log(1 - c_mat / g_mat)
+    return u_mat
 
 
 @if_verbose_dump_io
