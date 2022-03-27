@@ -64,13 +64,21 @@ def check_votca_settings_xml(root, root_defaults):
             for child, child_path in iter_xml(child, path=child_path):
                 yield child, child_path
 
+    sim_progs = ["gromacs", "lammps", "hoomd", "espresso"]
     found_bad_paths = []
     for child, child_path in iter_xml(root):
         # options for cg.bonded are partially listed in cg.non-bonded
         child_path_non_bonded = child_path.replace("/bonded/", "/non-bonded/")
+        # options for cg.$program are listed in cg.sim_prog, similar per interaction
+        child_path_sim_prog = child_path
+        for sim_prog in sim_progs:
+            child_path_sim_prog = child_path_sim_prog.replace(
+                f"inverse/{sim_prog}/", "inverse/sim_prog/"
+            )
         if (
             root_defaults.find(child_path) is None
             and root_defaults.find(child_path_non_bonded) is None
+            and root_defaults.find(child_path_sim_prog) is None
             # per group settings can have any name
             and not child_path.startswith("./cg/inverse/imc/")
         ):
@@ -86,6 +94,7 @@ def check_votca_settings_xml(root, root_defaults):
                 for default_element, default_path in iter_xml(root_defaults)
                 if default_element.tag == found_bad_tag
             )
+            suggestion = suggestion.replace("/non-bonded", "/{bonded,non-bonded}")
         except StopIteration:
             suggestion = None
         suggestions.append(suggestion)
