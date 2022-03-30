@@ -55,7 +55,7 @@ from csg_functions import (
 )
 
 if not sys.version_info >= (3, 5):
-    raise Exception("This script needs Python 3.5+.")
+    raise Exception("This script needs Python 3.6+.")
 
 # raise all numpy errors. If errors are expected, use np.errstate()
 np.seterr(all="raise")

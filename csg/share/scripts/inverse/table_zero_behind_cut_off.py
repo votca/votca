@@ -20,8 +20,8 @@ from csg_functions import readin_table, saveto_table, find_after_cut_off_ndx
 import sys
 import numpy as np
 
-if not sys.version_info >= (3, 5):
-    raise Exception("This script needs Python 3.5+.")
+if not sys.version_info >= (3, 2):
+    raise Exception("This script needs Python 3.2+.")
 
 np.seterr(all="raise")
 

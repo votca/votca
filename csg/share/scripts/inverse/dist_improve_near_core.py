@@ -25,7 +25,7 @@ import numpy as np
 import sys
 
 if not sys.version_info >= (3, 5):
-    raise Exception("This script needs Python 3.5+.")
+    raise Exception("This script needs Python 3.6+.")
 
 np.seterr(all="raise")
 

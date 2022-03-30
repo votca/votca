@@ -19,8 +19,8 @@ import argparse
 import sys
 import xml.etree.ElementTree as ET
 
-if not sys.version_info >= (3, 5):
-    raise Exception("This script needs Python 3.5+.")
+if not sys.version_info >= (3, 6):
+    raise Exception("This script needs Python 3.6+.")
 
 
 def main():

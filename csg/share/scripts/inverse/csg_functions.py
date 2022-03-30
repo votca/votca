@@ -26,7 +26,7 @@ import sys
 import inspect
 
 if not sys.version_info >= (3, 5):
-    raise Exception("This script needs Python 3.5+.")
+    raise Exception("This script needs Python 3.6+.")
 
 
 def saveto_table(filename, x, y, y_flag, comment=""):
@@ -233,8 +233,8 @@ def get_n_intra_dict(topol_xml):
         for bead in molecule.findall("bead"):
             n_intra_dict[bead.attrib["type"]] += 1
     n_intra = dict(n_intra_dict)
-    has_angles = len(topol_xml.find("bonded").findall("angle")) > 1
-    has_dihedrals = len(topol_xml.find("bonded").findall("dihedral")) > 1
+    has_angles = len(topol_xml.find("bonded").findall("angle")) >= 1
+    has_dihedrals = len(topol_xml.find("bonded").findall("dihedral")) >= 1
     max_n_intra = max(n_intra_dict.values())
     if max_n_intra >= 3 and (not has_angles):
         print(

@@ -63,7 +63,7 @@ from csg_functions import (
 )
 
 if not sys.version_info >= (3, 5):
-    raise Exception("This script needs Python 3.5+.")
+    raise Exception("This script needs Python 3.6+.")
 
 # constants
 BAR_PER_MD_PRESSURE = 16.6053904  # md pressure is kJ/mol/nm³ as in Gromacs
