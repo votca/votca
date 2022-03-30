@@ -593,22 +593,44 @@ def calc_jacobian(input_arrays, settings, verbose=False):
     # But this is how I describe it in the paper and I tested it in for
     # neon-argon mixture and it does not make a difference
 
+    # c matrix needed for Percus-Yevick
+    if settings["closure"] == "py":
+        if settings["tgt_dcdh"] is not None:
+            raise NotImplementedError("PY does not work with tgt_dcdh")
+        k, h_hat_mat = fourier_all(r, g_cur_mat - 1)
+        G_minus_g_mat = gen_interaction_matrix(
+            r, input_arrays["G_minus_g_cur"], settings["non-bonded-dict"]
+        )
+        _, G_minus_g_hat_mat = fourier_all(r, G_minus_g_mat)
+        c_mat = calc_c_matrix(
+            r,
+            k,
+            h_hat_mat,
+            G_minus_g_hat_mat,
+            settings["rhos"],
+            settings["n_intra"],
+            verbose,
+        )
+
     # add the 1/g term to dc/dh and obtain inverse Jacobian
     jac_inv_mat = add_jac_inv_diagonal(
         r[cut],
         g_tgt_mat[cut],
         g_cur_mat[cut],
-        dcdh,
+        dcdh[cut, cut],
         settings["rhos"],
         settings["n_intra"],
         settings["kBT"],
         settings["closure"],
-        verbose,
+        c_mat[cut] if settings["closure"] == "py" else None,
+        verbose=verbose,
     )
+
     # invert the jacobian in its 2D form
     jac_mat = make_matrix_4D(
         np.linalg.inv(make_matrix_2D(jac_inv_mat)), n_c, n_c, n_i, n_i
     )
+
     # remove exlicit x_ab x_ba
     jac_mat = remove_equivalent_rows_from_jacobain(jac_mat)
     return jac_mat
@@ -692,10 +714,10 @@ def calc_dcdh(r, g_mat, G_minus_g_mat, rhos, n_intra, verbose=False):
     n_i = int(n_t**2)
     # FT of total correlation function 'h' and G_minus_g
     k, h_hat_mat = fourier_all(r, g_mat - 1)
-    omega, G_minus_g_hat_mat = fourier_all(r, G_minus_g_mat)
+    _, G_minus_g_hat_mat = fourier_all(r, G_minus_g_mat)
     # Fourier matrix
     F = gen_fourier_matrix(r, fourier)
-    F_inv = gen_fourier_matrix(omega, fourier)
+    F_inv = gen_fourier_matrix(k, fourier)
     # Ω
     Omega_hat_mat = gen_Omega_hat_mat(G_minus_g_hat_mat, rhos, n_intra)
     # ρ molecular, entries are mol densities as needed by symmetry adapted rism
@@ -793,7 +815,7 @@ def add_jac_inv_diagonal(
     n_intra,
     kBT,
     closure,
-    tgt_dcdh=None,
+    c_mat,
     verbose=False,
 ):
     """
@@ -833,7 +855,16 @@ def add_jac_inv_diagonal(
     elif closure == "py":
         # implementation is a bit tricky because one needs c_mat again, but
         # if tgt_dcdh the intramolecular interactions are not present
-        raise NotImplementedError
+        c_vec = vectorize_full(c_mat)
+        with np.errstate(divide="ignore", invalid="ignore", under="ignore"):
+            for i, j in itertools.product(range(n_i), range(n_i)):
+                if i == j:
+                    same_nb_term = np.diag(c_vec[:, i] / g_avg_vec[:, i])
+                else:
+                    same_nb_term = 0
+                jac_inv_mat[:, :, i, j] = kBT * (
+                    (same_nb_term - dcdh[:, :, i, j]) / (g_avg_vec[:, i] - c_vec[:, i])
+                )
     # make negative infinities a large negative number, increasing stability
     jac_inv_mat[np.isneginf(jac_inv_mat)] = -1e37
     return jac_inv_mat
