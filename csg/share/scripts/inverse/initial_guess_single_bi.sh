@@ -35,7 +35,7 @@ output="${name}.pot.new"
 target=$(csg_get_interaction_property inverse.target)
 msg "Using initial guess from dist ${target} for ${name}"
 # resample target dist
-do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
+do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
 # initial guess from rdf
 raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
 multistate="$(csg_get_property cg.inverse.multistate.enabled)"
@@ -73,7 +73,7 @@ fi
 
 # zero potential behind cut-off if cut-off not empty
 cut_off="$(csg_get_property cg.inverse.initial_guess.cut_off)"
-if [[ ${cut_off} != none ]]; then
+if [[ ${cut_off} != none && $bondtype == "non-bonded" ]]; then
   pot_cut_off="$(critical mktemp ${name}.pot.new.cut_off.XXX)"
   do_external table zero_behind_cut_off "${cut_off}" "${scaled}" "${pot_cut_off}"
 else
