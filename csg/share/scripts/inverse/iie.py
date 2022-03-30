@@ -589,10 +589,6 @@ def calc_jacobian(input_arrays, settings, verbose=False):
         # make it a 4D array again
         dcdh = make_matrix_4D(dcdh_2D, n_c, n_c, n_i, n_i)
 
-    # Note: not 100% sure the order of the next three steps is correct.
-    # But this is how I describe it in the paper and I tested it in for
-    # neon-argon mixture and it does not make a difference
-
     # c matrix needed for Percus-Yevick
     if settings["closure"] == "py":
         if settings["tgt_dcdh"] is not None:
@@ -611,6 +607,10 @@ def calc_jacobian(input_arrays, settings, verbose=False):
             settings["n_intra"],
             verbose,
         )
+
+    # Note: not 100% sure the order of the next three steps is correct.
+    # But this is how I describe it in the paper and I tested it in for
+    # neon-argon mixture and it does not make a difference
 
     # add the 1/g term to dc/dh and obtain inverse Jacobian
     jac_inv_mat = add_jac_inv_diagonal(
@@ -730,11 +730,20 @@ def calc_dcdh(r, g_mat, G_minus_g_mat, rhos, n_intra, verbose=False):
     A = np.swapaxes(np.linalg.inv(Omega_hat_mat + rho_mol_map @ H_hat_mat), -1, -2)
     B = np.linalg.inv(Omega_hat_mat) @ (
         identity
-        - H_hat_mat
-        @ np.linalg.inv(Omega_hat_mat + rho_mol_map @ H_hat_mat)
-        @ rho_mol_map
+        - (
+            H_hat_mat
+            @ np.linalg.inv(Omega_hat_mat + rho_mol_map @ H_hat_mat)
+            @ rho_mol_map
+        )
     )
-    d_vec_c_hat_by_d_vec_h_hat = kron_2D(A, B)
+    d_vec_C_hat_by_d_vec_H_hat = kron_2D(A, B)
+    # unadapt
+    d_vec_c_hat_by_d_vec_h_hat = np.zeros_like(d_vec_C_hat_by_d_vec_H_hat)
+    for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
+        adapt_factor = np.sqrt(np.outer(n_intra, n_intra)).flatten()
+        d_vec_c_hat_by_d_vec_h_hat[:, i, j] = (
+            adapt_factor[j] / adapt_factor[i] * d_vec_C_hat_by_d_vec_H_hat[:, i, j]
+        )
     # now it becomes an operator by diag and applying Fourier
     d_vec_c_by_d_vec_h = np.zeros((len(r), len(r), n_i, n_i))
     for h, (i, j) in enumerate(itertools.product(range(n_i), range(n_i))):
