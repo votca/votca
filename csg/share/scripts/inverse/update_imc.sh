@@ -71,12 +71,13 @@ if [[ $imc_algorithm == 'newton' ]]; then
 elif [[ $imc_algorithm == 'gauss-newton' ]]; then
 
   # no imc groups implemented for Gauss-Newton
-  imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
-  imc_groups=$(remove_duplicate $imc_groups)
-  imc_groups_array=( $imc_groups )
-  [[ ${#imc_groups_array[@]} != 1 ]] && die "${0##*/}: for Gauss-Newton IMC, there can only be one IMC group"
-  [[ ${imc_groups_array[0]} == none ]] && die "${0##*/}: only IMC group is none, needs to be something else"
-  imc_group=${imc_groups[0]}
+  #imc_groups_nb=$(csg_get_interaction_property --all inverse.imc.group)
+  imc_groups_nb=$(for_all -q "non-bonded" 'printf "$(csg_get_interaction_property inverse.imc.group) "')
+  imc_groups_nb=$(remove_duplicate $imc_groups_nb)
+  imc_groups_nb_array=( $imc_groups_nb )
+  [[ ${#imc_groups_nb_array[@]} != 1 ]] && die "${0##*/}: for Gauss-Newton IMC, there can only be one IMC group for non-bonded interactions"
+  [[ ${imc_groups_nb_array[0]} == none ]] && die "${0##*/}: only non-bonded IMC group is none, needs to be something else"
+  imc_group_nb=${imc_groups_nb[0]}
 
   # neither regularization
   [[ $default_reg != "0" ]] && die "${0##*/}: for Gauss-Newton IMC, regularization is not implemented."
@@ -121,8 +122,8 @@ elif [[ $imc_algorithm == 'gauss-newton' ]]; then
   # IMC matrix, RDF, target RDF
   use_target_matrix=$(csg_get_property cg.inverse.imc.use_target_matrix)
   if [[ "${use_target_matrix}" == 'true' ]]; then
-    imc_group="$(get_main_dir)/$imc_group"
-    [[ ( ! -f "${imc_group}.gmc" ) || ( ! -f "${imc_group}.idx" ) ]] && die "${0##*/}: if inverse.imc.use_target_matrix is true, .gmc and .idx file need to be in main dir."
+    imc_group_nb="$(get_main_dir)/$imc_group_nb"
+    [[ ( ! -f "${imc_group_nb}.gmc" ) || ( ! -f "${imc_group_nb}.idx" ) ]] && die "${0##*/}: if inverse.imc.use_target_matrix is true, .gmc and .idx file need to be in main dir."
     # calculate distributions only
     for_all "non-bonded bonded" do_external rdf "$sim_prog"
     # resample target distributions
@@ -141,8 +142,8 @@ elif [[ $imc_algorithm == 'gauss-newton' ]]; then
   do_external convert imc_matrix \
     ${verbose_flag-} \
     --options "$CSGXMLFILE" \
-    --imc-matrix "${imc_group}.gmc" \
-    --imc-index "${imc_group}.idx" \
+    --imc-matrix "${imc_group_nb}.gmc" \
+    --imc-index "${imc_group_nb}.idx" \
     --volume "$volume" \
     --topol "${topol}" \
     --g-tgt-ext "dist.tgt" \
