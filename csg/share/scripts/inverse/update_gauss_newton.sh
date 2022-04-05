@@ -93,13 +93,13 @@ do_external update gauss_newton_py gauss-newton \
   --options "$CSGXMLFILE" \
   --g-tgt-ext "dist.tgt" \
   --g-cur-ext "dist.new" \
-  --out "dpot.pure_gn" \
   ${pressure_constraint_flag-} \
   ${kirkwood_buff_constraint_flag-} \
   ${residual_weighting_flag-} \
   ${upd_pots_flag-} \
   ${tgt_dists_flag-} \
-  ${flatten_at_cut_off_flag-}
+  ${flatten_at_cut_off_flag-} \
+  --out "dpot.pure_gn"
 
 # resample potentials. This is needed because non-bonded.max is sometimes larger than iie.cut-off and the former should define the end of the table
 for_all "non-bonded" 'csg_resample --in $(csg_get_interaction_property name).dpot.pure_gn --out $(csg_get_interaction_property name).dpot.grid_adapted --grid $(csg_get_interaction_property min):$(csg_get_interaction_property step):$(csg_get_interaction_property max) --comment "adapted to grid in update_iie.sh"'

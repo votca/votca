@@ -149,6 +149,7 @@ def get_args(local_args=None):
     parser.add_argument(
         "--onset-threshold",
         type=float,
+        default=None,
         help="minimum value of g_tgt or g_cur up to which the IMC jacobian is improved",
     )
     parser.add_argument(
@@ -216,8 +217,8 @@ def process_input(args):
         "out",
         "volume",
         "verbose",
-        "improve_jacobian_onset",
         "cut_res",
+        "improve_jacobian_onset",
         "onset_threshold",
     )
     settings = {key: vars(args)[key] for key in args_to_copy}  # all mandatory

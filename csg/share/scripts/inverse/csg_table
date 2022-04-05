@@ -140,6 +140,7 @@ update gauss_newton update_gauss_newton.sh
 update newton update_newton.sh
 update gauss_newton_py gauss_newton.py
 update newton_py gauss_newton.py
+update multistate_gauss_newton update_multistate_gauss_newton.sh
 
 # optimzer(generic) stuff
 optimizer prepare_state optimizer_prepare_state.sh

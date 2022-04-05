@@ -132,7 +132,7 @@ def get_args(iie_args=None):
         pars.add_argument(
             "--jacobian",
             type=argparse.FileType("r"),
-            nargs="*",
+            nargs="+",
             default=None,
             help=".npz file with the Jacobian. Multiple files for multistate.",
         ),
@@ -378,25 +378,13 @@ def process_input(args):
         constraints = []
         if args.pressure_constraint is not None:
             if multistate:
-                # Parsing is implemented here, but not tested and algo not implemented
-                p_target = [
-                    float(pc.lstrip(",").split(",")[0])
-                    for pc in args.pressure_constraint
-                ]
-                p_current = [
-                    float(pc.lstrip(",").split(",")[1])
-                    for pc in args.pressure_constraint
-                ]
-                constraints.append(
-                    {"type": "pressure", "target": p_target, "current": p_current}
-                )
+                raise NotImplementedError("multistate + constraints not implemented")
             else:
                 p_target = float(args.pressure_constraint[0].lstrip(",").split(",")[0])
                 p_current = float(args.pressure_constraint[0].lstrip(",").split(",")[1])
                 constraints.append(
                     {"type": "pressure", "target": p_target, "current": p_current}
                 )
-
         if args.kirkwood_buff_constraint:
             constraints.append({"type": "kirkwood-buff-integral"})
         settings["constraints"] = constraints
@@ -613,7 +601,13 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     # weighting
     g_tgt_vec = vectorize(g_tgt_mat)
     weights = gen_residual_weights(
-        settings["residual_weighting"], r[cut_res], n_c_res, n_i, 1, g_tgt_vec[cut_res]
+        settings["residual_weighting"],
+        r[cut_res],
+        n_c_res,
+        n_i,
+        1,
+        g_tgt_vec[cut_res],
+        [1],
     )
     # Delta g for potential update
     Delta_g_mat = g_cur_mat - g_tgt_mat
@@ -854,8 +848,6 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
     # number of states
     state_names = settings["state_names"]  # shortcut
     n_s = len(state_names)
-    # grid spacing
-    Delta_r = calc_grid_spacing(r)
     # slices
     # we don't want to update at cut-off, therefore offset=-1
     cut_pot, tail_pot = calc_slices(
@@ -865,7 +857,9 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
     cut_pot_p1, tail_pot_p1 = calc_slices(
         r, settings["cut_off_pot"], verbose=False, offset=0
     )
-    cut_res, tail_res = calc_slices(r, settings["cut_off_res"], verbose=False)
+    cut_res, tail_res = calc_slices(
+        r, settings["cut_off_res"], verbose=False, offset=-1
+    )
     n_c_pot = len(r[cut_pot])
     n_c_res = len(r[cut_res])
     # generate matrices
@@ -892,11 +886,10 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
         ],
         axis=1,
     )
-    # calculate the ready-to-use jacobian inverse
-    jac_mat = calc_multistate_jacobian(input_arrays, settings, verbose)
+    # create the jacobian
+    jac_mat = np.concatenate(settings["jacobians"], axis=2)[cut_res, cut_res, :, :]
     # make Jacobian 2D
     jac_2D = make_matrix_2D(jac_mat)
-    del jac_mat  # saving memory
     # weights
     weights = gen_residual_weights(
         settings["residual_weighting"],
@@ -905,6 +898,7 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
         n_i,
         n_s,
         g_tgt_vec[cut_res],
+        settings["state_weights"],
     )
     # weight Jacobian
     jac_2D = np.diag(weights.T.flatten()) @ jac_2D
@@ -919,18 +913,19 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
             )
     # flatten residuals
     residuals_flat = residuals_vec.T.flatten()
-    # TODO: pressure constraint for multistate
-    # update force rather than potential
-    # antiderivative operator (upper triangular matrix on top of zeros)
+    # update potential, A0 just cuts of the tail
     A0_2D = kron_2D(
-        np.identity(n_i), Delta_r * np.triu(np.ones((n_c_res, n_c_pot - 1)), k=0)
+        np.identity(n_i),
+        np.append(np.identity(n_c_pot), np.zeros((n_c_res - n_c_pot, n_c_pot)), axis=0),
     )
-    C = np.zeros((0, n_i * (n_c_pot - 1)))
     A = jac_2D @ A0_2D
     b = residuals_flat
-    d = np.zeros(0)
+    # no constraints
+    # C = np.zeros((0, n_i * n_c_pot))
+    # d = np.zeros(0)
     # solve linear equation
-    Delta_u_flat = -A0_2D @ solve_lsq_with_linear_constraints(A, C, b, d)
+    # Delta_u_flat = -A0_2D @ solve_lsq_with_linear_constraints(A, C, b, d)
+    Delta_u_flat = -A0_2D @ np.linalg.lstsq(A, b, rcond=None)[0]
     Delta_u_vec = Delta_u_flat.reshape(n_i, n_c_res).T
     # Delta_u matrix
     Delta_u_mat = devectorize(Delta_u_vec)
@@ -1015,7 +1010,9 @@ def zero_update(input_arrays, settings, verbose=False):
     return output_arrays
 
 
-def gen_residual_weights(res_weight_scheme, r, n_c_res, n_i, n_s, g_tgt_vec):
+def gen_residual_weights(
+    res_weight_scheme, r, n_c_res, n_i, n_s, g_tgt_vec, state_weights
+):
     """Generate weights with one column along r for each interaction."""
     with np.errstate(all="ignore"):
         weights = eval_expr(
@@ -1026,16 +1023,22 @@ def gen_residual_weights(res_weight_scheme, r, n_c_res, n_i, n_s, g_tgt_vec):
                 "max_r": max(r),
             },
         )
+    # if weights is a float, all weights will be the same
     if isinstance(weights, numbers.Number):
-        # if weights is a float, all weights will be the same
-        return np.ones((n_c_res, n_s * n_i)) * weights
+        weights = np.ones((n_c_res, n_s * n_i)) * weights
     elif weights.shape == (n_c_res, n_s * n_i):
-        return weights
+        pass
     else:
         raise Exception(
             "Something went wrong: weights should be float or a np.array "
             f"of shape ({n_c_res}, {n_s * n_i}). Instead it is {weights}"
         )
+
+    # weight each state by state_weigths
+    for s in range(n_s):
+        weights[:, n_i * s : n_i * (s + 1)] *= state_weights[s]
+
+    return weights
 
 
 if __name__ == "__main__":

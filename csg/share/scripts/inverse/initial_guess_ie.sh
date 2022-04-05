@@ -41,7 +41,7 @@ multistate="$(csg_get_property cg.inverse.multistate.enabled)"
 # resample all target distributions
 for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
 # resample intramolecular only if present. Later iie.py will only load the ones that are needed
-for_all "non-bonded" do_external resample target --no-extrap --skip-if-missing '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
+for_all "non-bonded" resample_intra_if_present
 
 # topology for molecular conections and volume
 topol=$(csg_get_property cg.inverse.topol_xml)

@@ -27,14 +27,14 @@ fi
 
 do_external prepare multistate_generic
 
-tgt_dcdh="$(csg_get_property cg.inverse.iie.tgt_dcdh)"
+tgt_dcdh="$(csg_get_property cg.inverse.iie.use_target_dcdh)"
 if [[ $tgt_dcdh == 'true' ]]; then
   if [[ -f $(get_main_dir)/dcdh.npz ]]; then
     msg "dcdh.npz is already present in main dir, using it."
     exit 0
   fi
   # verbose
-  verbose=$(csg_get_property cg.inverse.initial_guess.ie.verbose)
+  verbose=$(csg_get_property cg.inverse.verbose)
   step_nr=$(get_current_step_nr)
   [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
   [[ "${verbose}" == 'step0+1' ]] && [[ $step_nr == '0' || $step_nr == '1' ]] && verbose_flag="--verbose"
@@ -48,7 +48,7 @@ if [[ $tgt_dcdh == 'true' ]]; then
     for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
     if [[ $(csg_get_property cg.inverse.initial_guess.method) != ie ]]; then
       # resample intramolecular only if present. Later iie.py will only load the ones that are needed
-      for_all "non-bonded" do_external resample target --no-extrap --skip-if-missing '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
+      for_all "non-bonded" resample_intra_if_present
     fi
 
     # topology for molecular conections and volume

@@ -983,6 +983,15 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
 }
 export -f check_for_obsolete_xml_options
 
+resample_intra_if_present() {  # resample target_intra if the file exists and specified in the settings
+  name=$(csg_get_interaction_property name)
+  target_intra="$(csg_get_interaction_property --allow-empty inverse.target_intra)"
+  if [[ -n $target_intra ]]; then
+    do_external resample target --no-extrap --skip-if-missing "$target_intra" "${name}.dist-intra.tgt"
+  fi
+}
+export -f resample_intra_if_present
+
 command_not_found_handle() { #print and error message if a command or a function was not found
   die "Command/function $1 not found (when calling from csg_call you might need to add --simprog option or set cg.inverse.program in the xml file)"
 }
