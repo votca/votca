@@ -37,6 +37,7 @@ import sys
 import xml.etree.ElementTree as ET
 import numpy as np
 
+from imc_matrix_to_jacobian import improve_jacobian_onset
 from csg_functions import (
     calc_slices,
     cut_matrix_inverse,
@@ -216,6 +217,19 @@ def get_args(iie_args=None):
             "current distributions."
         ),
     )
+    parser_jacobian.add_argument(
+        "--improve-jacobian-onset",
+        help="Change Jacobian slightly for better results in the RDF onset region",
+        action="store_const",
+        const=True,
+        default=False,
+    )
+    parser_jacobian.add_argument(
+        "--onset-threshold",
+        type=float,
+        default=None,
+        help="minimum value of g_tgt or g_cur up to which the IIE jacobian is improved",
+    )
     # potential guess can remove Coulomb term
     parser_pot_guess.add_argument(
         "--subtract-coulomb",
@@ -336,12 +350,22 @@ def process_input(args):
         "subtract_coulomb",
         "out",
         "kBT",
+        "improve_jacobian_onset",
+        "onset_threshold",
     )
     settings = {key: vars(args)[key] for key in args_to_copy if key in vars(args)}
     settings["non-bonded-dict"] = non_bonded_dict
     settings["rhos"] = rhos
     settings["n_intra"] = n_intra
     settings["r0-removed"] = r0_removed
+
+    if args.subcommand == "jacobian":
+        if settings["improve_jacobian_onset"] and settings["onset_threshold"] is None:
+            raise Exception(
+                "If --improve-jacobian-onset is used, "
+                "--onset-threshold has to be provided."
+            )
+
     # determine dc/dh buffer
     if args.subcommand == "jacobian":
         if args.tgt_dcdh is None:
@@ -630,6 +654,11 @@ def calc_jacobian(input_arrays, settings, verbose=False):
     jac_mat = make_matrix_4D(
         np.linalg.inv(make_matrix_2D(jac_inv_mat)), n_c, n_c, n_i, n_i
     )
+    # improve jacobian
+    if settings["improve_jacobian_onset"]:
+        jac_mat = improve_jacobian_onset(
+            jac_mat, input_arrays, settings, verbose=verbose
+        )
 
     # remove exlicit x_ab x_ba
     jac_mat = remove_equivalent_rows_from_jacobain(jac_mat)

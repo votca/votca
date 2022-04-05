@@ -79,10 +79,16 @@ g_extrap_factor=$(csg_get_property --allow-empty cg.inverse.iie.g_extrap_factor)
 for_all "non-bonded" do_external resample target --clean '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
 # resample intramolecular only if needed and present. Later iie.py will only load the ones that are needed
 if [[ $(csg_get_property cg.inverse.iie.use_target_dcdh) != 'true' ]]; then
-  for_all "non-bonded" do_external resample target --no-extrap --skip-if-missing '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
+  for_all "non-bonded" resample_intra_if_present
 fi
 
-# Some arguments (cut_off, kBT) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
+# improve Jacobian in RDF onset region
+if [[ $(csg_get_property cg.inverse.iie.improve_jacobian_onset) == "true" ]]; then
+  improve_jacobian_onset_flag="--improve-jacobian-onset"
+  onset_threshold_flag="--onset-threshold $(csg_get_property cg.inverse.iie.onset_threshold)"
+fi
+
+# Some arguments (cut_off, ...) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
 # Others (closure, ...) could also be read from the settings file, but this bash script handles the defaults.
 msg "Generating Jacobian with integral equation theory"
 do_external generate iie_jacobian jacobian \
@@ -97,6 +103,8 @@ do_external generate iie_jacobian jacobian \
   --cut-residual "$cut_residual" \
   ${tgt_dcdh_flag-} \
   ${g_intra_flag-} \
+  ${improve_jacobian_onset_flag-} \
+  ${onset_threshold_flag-} \
   --out "jacobian.npz"
 
 if [[ $iie_algorithm == 'newton' ]]; then

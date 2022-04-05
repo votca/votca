@@ -433,6 +433,14 @@
         <DESC>Ornstein-Zernike equation closure for the iie update.
         Options are: hnc (hypernetted-chain, default), py (Percus-Yevick, not fully supported)</DESC>
       </closure>
+      <improve_jacobian_onset>false
+      <DESC>Modify the Jacobian for better stability in the RDF onset region.
+        Possible values: false (default), true.</DESC>
+      </improve_jacobian_onset>
+      <onset_threshold>0.02
+      <DESC>Where g_new or g_tgt both larger then threshold, the onset region ends.
+        Default: 0.02.</DESC>
+      </onset_threshold>
       <use_target_dcdh>false
       <DESC>Obtain dc/dh, which is part of the Jacobian, from the target distributions instead of from the current distributions.
         Usually in Newton's method, the Jacobian is taken at the current value.
@@ -467,8 +475,10 @@
       <potential_energy_constraint>none
         <DESC>If not none, apply value (in kJ/mol) as potential energy constraint. Default: none</DESC>
       </potential_energy_constraint>
-      <residual_weighting>r**2/(g_tgt+1e-30)
-        <DESC>Function to use for weighting the residuals. Use python syntax without spaces. Allowed operators +-*/()**. Available variables: r, g_tgt, max_r. Default: r**2/(g_tgt+1e-30)</DESC>
+      <residual_weighting>1
+      <DESC>Function to use for weighting the residuals. Use python syntax without spaces.
+        The weights from multistate.state_weights will be multiplied additionally.
+        Allowed operators +-*/()**. Available variables: r, g_tgt, max_r. Example: r**2/(g_tgt+1e-30). Default: 1.</DESC>
       </residual_weighting>
       <flatten_at_cut_off>false
         <DESC>Despite using proper weighting, there can still be jumps at the cut-off. This will set the last but one value of dU to zero. The pressure constraint is adapted accordingly. Valid values: false (default), true</DESC>
