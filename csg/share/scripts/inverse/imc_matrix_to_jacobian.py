@@ -47,7 +47,6 @@ from csg_functions import (
     get_n_intra_dict,
     get_non_bonded,
     if_verbose_dump_io,
-    make_matrix_2D,
     make_matrix_4D,
     read_all_tables,
     triangular_number,
@@ -270,8 +269,31 @@ def convert_and_save_imc_matrix(
     n_r = len(r)
     # connection non-bonded name <-> bead types
     non_bonded_dict = settings["non-bonded-dict"]
-    # non_bonded_dict_inv = {v: k for k, v in settings["non-bonded-dict"].items()}
-    # for each state calculate new matrix
+    bead_types = get_bead_types(non_bonded_dict)
+    non_bonded_dict_inv = {v: k for k, v in settings["non-bonded-dict"].items()}
+
+    # normalized order of interactions in Jacobain. E.g. A-A, A-B, B-B
+    i_norm_dict = {}
+    i = 0
+    for b1, bead1 in enumerate(bead_types):
+        for b2, bead2 in enumerate(bead_types):
+            interaction_name = non_bonded_dict_inv[frozenset({bead1, bead2})]
+            if interaction_name not in i_norm_dict.keys():
+                i_norm_dict[interaction_name] = i
+                i += 1
+
+    # check that all interactions have same length
+    old_length = None
+    for length in (
+        int(np.diff(list(map(int, start_end.split(":"))))) for _, start_end in imc_index
+    ):
+        if old_length is not None and old_length != length:
+            raise Exception(
+                "For converting the IMC matrix in Jacobian form, all interactions need "
+                "the same number of points."
+            )
+        old_length = length
+
     # index magic
     indices_imc = {}
     indices_new = {}
@@ -279,13 +301,14 @@ def convert_and_save_imc_matrix(
     r0offset = 1 if settings["r0-removed"] else 0
     for i, (interaction, start_end) in enumerate(imc_index):
         start, end = map(int, start_end.split(":"))
+        # imc matrix indices
         start_imc = start - 1  # votca counts from 1, Python counts from 0
         start_imc += r0offset  # remove leading r=0
-        end_imc = start_imc + len(r)  # allow imc_matrix provided to be larger
-        start_new = start - 1  # votca counts from 1, Python counts from 0
-        start_new -= r0offset * i  # less values due to removed r=0
-        end_new = end - r0offset * (i + 1)  # less values due to removed r=0
+        end_imc = start_imc + n_r  # allow imc_matrix provided to be larger
         indices_imc[interaction] = (start_imc, end_imc)
+        # Jacobian indices
+        start_new = i_norm_dict[interaction] * n_r  # use normalized order
+        end_new = start_new + n_r  # less values due to removed r=0
         indices_new[interaction] = (start_new, end_new)
 
     dudg_2D = np.zeros([n_r * n_in] * 2)
