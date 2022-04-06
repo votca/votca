@@ -45,19 +45,20 @@ class PMLocalization {
 
   // functions for unitary optimizer
   double cost(const Eigen::MatrixXd &W,
-              const std::vector<Eigen::MatrixXd> &Sat_all, const Index nat);
+              const std::vector<Eigen::MatrixXd> &Sat_all,
+              const Index nat) const;
   std::pair<double, Eigen::MatrixXd> cost_derivative(
       const Eigen::MatrixXd &W, const std::vector<Eigen::MatrixXd> &Sat_all,
-      const Index nat);
+      const Index nat) const;
 
   Eigen::VectorXd fit_polynomial(const Eigen::VectorXd &x,
-                                 const Eigen::VectorXd &y);
-  Eigen::VectorXcd find_complex_roots(const Eigen::VectorXcd &coeff);
-  double find_smallest_step(const Eigen::VectorXd &coeff);
-  Eigen::MatrixXcd companion_matrix(const Eigen::VectorXcd &coeff);
+                                 const Eigen::VectorXd &y) const;
+  Eigen::VectorXcd find_complex_roots(const Eigen::VectorXcd &coeff) const;
+  double find_smallest_step(const Eigen::VectorXd &coeff) const;
+  Eigen::MatrixXcd companion_matrix(const Eigen::VectorXcd &coeff) const;
   Eigen::MatrixXd rotate_W(const double step, const Eigen::MatrixXd &W,
                            const Eigen::VectorXcd &eval,
-                           const Eigen::MatrixXcd &evec);
+                           const Eigen::MatrixXcd &evec) const;
 
   std::vector<Eigen::MatrixXd> setup_pop_matrices(
       const Eigen::MatrixXd &occ_orbitals);

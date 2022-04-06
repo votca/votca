@@ -42,7 +42,7 @@ void PMLocalization::computePML(Orbitals &orbitals) {
 
 double PMLocalization::cost(const Eigen::MatrixXd &W,
                             const std::vector<Eigen::MatrixXd> &Sat_all,
-                            const Index nat) {
+                            const Index nat) const {
 
   double Dinv = 0.0;
   double p = 2.0;  // standard PM
@@ -58,7 +58,7 @@ double PMLocalization::cost(const Eigen::MatrixXd &W,
 
 std::pair<double, Eigen::MatrixXd> PMLocalization::cost_derivative(
     const Eigen::MatrixXd &W, const std::vector<Eigen::MatrixXd> &Sat_all,
-    const Index nat) {
+    const Index nat) const {
   Eigen::MatrixXd Jderiv = Eigen::MatrixXd::Zero(n_occs_, n_occs_);
   double Dinv = 0.0;
   double p = 2.0;  // standard PM
@@ -77,7 +77,7 @@ std::pair<double, Eigen::MatrixXd> PMLocalization::cost_derivative(
 }
 
 Eigen::VectorXd PMLocalization::fit_polynomial(const Eigen::VectorXd &x,
-                                               const Eigen::VectorXd &y) {
+                                               const Eigen::VectorXd &y) const {
 
   // Fit function to polynomial
 
@@ -98,11 +98,11 @@ Eigen::VectorXd PMLocalization::fit_polynomial(const Eigen::VectorXd &x,
   return A.colPivHouseholderQr().solve(y);
 }
 
-double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
+double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) const {
 
   // get the complex roots of the polynomial
-  std::complex<double> one(1.0, 0.0);
-  Eigen::VectorXcd complex_roots = find_complex_roots(one * coeff);
+  Eigen::VectorXcd complex_roots =
+      find_complex_roots(coeff.cast<std::complex<double>>());
 
   // Real roots
   std::vector<double> real_roots;
@@ -117,10 +117,11 @@ double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
   std::sort(real_roots.begin(), real_roots.end());
 
   double step = 0.0;
-  for (Index i = 0; i < Index(real_roots.size()); i++) {
+  // for (Index i = 0; i < Index(real_roots.size()); i++) {
+  for (auto root : real_roots) {
     // Omit extremely small steps because they might get you stuck.
-    if (real_roots[i] > std::sqrt(std::numeric_limits<double>::epsilon())) {
-      step = real_roots[i];
+    if (root > std::sqrt(std::numeric_limits<double>::epsilon())) {
+      step = root;
       break;
     }
   }
@@ -128,7 +129,7 @@ double PMLocalization::find_smallest_step(const Eigen::VectorXd &coeff) {
 }
 
 Eigen::VectorXcd PMLocalization::find_complex_roots(
-    const Eigen::VectorXcd &coeff) {
+    const Eigen::VectorXcd &coeff) const {
 
   // Coefficient of highest order term must be nonzero.
   Index order = coeff.size();
@@ -151,7 +152,8 @@ Eigen::VectorXcd PMLocalization::find_complex_roots(
   return es.eigenvalues();
 }
 
-Eigen::MatrixXcd PMLocalization::companion_matrix(const Eigen::VectorXcd &c) {
+Eigen::MatrixXcd PMLocalization::companion_matrix(
+    const Eigen::VectorXcd &c) const {
   if (c.size() <= 1) {
     // Dummy return
     Eigen::MatrixXcd dum;
@@ -182,7 +184,7 @@ Eigen::MatrixXcd PMLocalization::companion_matrix(const Eigen::VectorXcd &c) {
 Eigen::MatrixXd PMLocalization::rotate_W(const double step,
                                          const Eigen::MatrixXd &W,
                                          const Eigen::VectorXcd &eval,
-                                         const Eigen::MatrixXcd &evec) {
+                                         const Eigen::MatrixXcd &evec) const {
 
   Eigen::VectorXcd temp = (step * eval).array().exp();
   Eigen::MatrixXd W_rotated =
@@ -247,7 +249,7 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
       update_type = "CGPR";
       double gamma = inner_prod(G_ - G_old_, G_) / inner_prod(G_old_, G_old_);
       H_ = G_ + gamma * H_old_;
-      // careful with skew symmetry
+      // make sure H_ is exactly skew symmetric
       H_ = 0.5 * (H_ - H_.transpose());
 
       // Check that update is OK
@@ -259,7 +261,7 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
     }
 
     Index orderW = 4;  // for PM
-    // H is skew symmetric, real  so should have purely imaginary eigenvalues
+    // H is skew symmetric, real so should have purely imaginary eigenvalues
     // in pairs +-eval, and 0, if dim is odd.
     Eigen::EigenSolver<Eigen::MatrixXd> es(H_);
     Eigen::VectorXcd Hval = es.eigenvalues();
@@ -281,7 +283,6 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
 
       for (Index i = 0; i < npoints; i++) {
         mu(i) = static_cast<double>(i) * deltaTmu;
-        // what is the matrix we should test?
         Eigen::MatrixXd W_rotated = rotate_W(mu(i), W_, Hval, Hvec);
 
         // calculate cost and derivative for this rotated W matrix
@@ -341,7 +342,7 @@ void PMLocalization::computePML_UT(Orbitals &orbitals) {
           }
         }
       } else {
-        // now do something if step is too far
+        // now adjust step search, if original step went too far
         XTP_LOG(Log::error, log_)
             << TimeStamp()
             << "Step went beyond max step, trying reduced max step..."
@@ -474,7 +475,7 @@ std::pair<Eigen::MatrixXd, Eigen::VectorXd> PMLocalization::sort_lmos(
   Eigen::MatrixXd LMOS(localized_orbitals_.rows(), localized_orbitals_.cols());
 
   // sort the LMOs according to energy
-  std::vector<std::pair<double, int> > vp;
+  std::vector<std::pair<double, int>> vp;
 
   // Inserting element in pair vector
   // to keep track of previous indexes
@@ -626,12 +627,12 @@ std::vector<Eigen::MatrixXd> PMLocalization::setup_pop_matrices(
     MullikenPop_orb_per_atom_.row(s) = pop_per_atom(occ_orbitals.col(s));
   }
 
-  // put this on the diagonals...
+  // put this on the diagonals
   for (Index iat = 0; iat < numatoms; iat++) {
     Qat[iat].diagonal() = MullikenPop_orb_per_atom_.col(iat);
   }
 
-  // now do something about the offdiagonals
+  // now fill the offdiagonals
   for (Index s = 0; s < noccs; s++) {
 
     Eigen::MatrixXd s_overlap = occ_orbitals.col(s).asDiagonal() * overlap_;
