@@ -32,18 +32,49 @@ class PMLocalization {
   PMLocalization(Logger &log, const tools::Property &options) : log_(log) {
     nrOfIterations_ = options.get(".max_iterations").as<Index>();
     convergence_limit_ = options.get(".convergence_limit").as<double>();
+    method_ = options.get(".method").as<std::string>();
   };
   void computePML(Orbitals &orbitals);
+  void computePML_UT(Orbitals &orbitals);
+  void computePML_JS(Orbitals &orbitals);
 
  private:
   Logger &log_;
+
+  std::string method_;
+
+  // functions for unitary optimizer
+  double cost(const Eigen::MatrixXd &W,
+              const std::vector<Eigen::MatrixXd> &Sat_all,
+              const Index nat) const;
+  std::pair<double, Eigen::MatrixXd> cost_derivative(
+      const Eigen::MatrixXd &W, const std::vector<Eigen::MatrixXd> &Sat_all,
+      const Index nat) const;
+
+  Eigen::VectorXd fit_polynomial(const Eigen::VectorXd &x,
+                                 const Eigen::VectorXd &y) const;
+  Eigen::VectorXcd find_complex_roots(const Eigen::VectorXcd &coeff) const;
+  double find_smallest_step(const Eigen::VectorXd &coeff) const;
+  Eigen::MatrixXcd companion_matrix(const Eigen::VectorXcd &coeff) const;
+  Eigen::MatrixXd rotate_W(const double step, const Eigen::MatrixXd &W,
+                           const Eigen::VectorXcd &eval,
+                           const Eigen::MatrixXcd &evec) const;
+
+  std::vector<Eigen::MatrixXd> setup_pop_matrices(
+      const Eigen::MatrixXd &occ_orbitals);
+
+  double inner_prod(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) const {
+    return (0.5 * A.transpose() * B).trace();
+  }
+
+  // functions for Jacobi sweeps
   Eigen::MatrixX2d rotateorbitals(const Eigen::MatrixX2d &maxorbs, Index s,
                                   Index t);
 
   void initial_penalty();
   void update_penalty(Index s, Index t);
   void check_orthonormality();
-  Eigen::VectorXd calculate_lmo_energies(Orbitals &orbitals);
+  Eigen::VectorXd calculate_lmo_energies(const Orbitals &orbitals);
   std::pair<Eigen::MatrixXd, Eigen::VectorXd> sort_lmos(
       const Eigen::VectorXd &energies);
 
@@ -55,12 +86,25 @@ class PMLocalization {
 
   AOBasis aobasis_;
   Eigen::MatrixXd overlap_;
+  Index n_occs_;
+
+  // variables for Jacobi sweeps
   Eigen::MatrixXd A_;
   Eigen::MatrixXd B_;
-
   Eigen::MatrixXd PM_penalty_;
-
   Eigen::MatrixXd MullikenPop_orb_per_atom_;
+
+  // variables for unitary optimization
+  Eigen::MatrixXd W_;
+  Eigen::MatrixXd W_old_;
+  Eigen::MatrixXd H_;
+  Eigen::MatrixXd H_old_;
+  Eigen::MatrixXd G_;
+  Eigen::MatrixXd G_old_;
+  double J_;
+  double J_old_;
+  double J_threshold_ = 1e-8;
+  double G_threshold_ = 1e-5;
 
   std::vector<Index> numfuncpatom_;
 
