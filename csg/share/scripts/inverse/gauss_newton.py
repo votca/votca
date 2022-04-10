@@ -600,6 +600,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     jac_mat = settings["jacobians"][0][cut_res, cut_res, :, :]
     # weighting
     g_tgt_vec = vectorize(g_tgt_mat)
+    g_cur_vec = vectorize(g_cur_mat)
     weights = gen_residual_weights(
         settings["residual_weighting"],
         r[cut_res],
@@ -644,7 +645,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
         np.identity(n_upd_pots),
         np.append(np.identity(n_c_pot), np.zeros((n_c_res - n_c_pot, n_c_pot)), axis=0),
     )
-    C = np.zeros((len(settings["constraints"]), n_upd_pots * n_c_pot))
+
     # weight Jacobian
     jac_2D_weighted = np.diag(weights.T.flatten()) @ jac_2D
     # cut and weight Delta_g and obtain residuals
@@ -656,8 +657,19 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
     # we will solve the least squares problem |A @ x - b| with constraints C @ x - d
     A = jac_2D_weighted @ A0_2D
     b = residuals_flat
-    d = np.zeros(len(settings["constraints"]))
+    # nr of constraints
+    n_constraints_rows = {
+        "pressure": 1,
+        "kirkwood-buff-integral": n_tgt_dists,
+        "potential-energy": 1,
+    }
+    n_constraints = sum(
+        n_constraints_rows[constr["type"]] for constr in settings["constraints"]
+    )
+    d = np.zeros(n_constraints)
+    C = np.zeros((n_constraints, n_upd_pots * n_c_pot))
     # prepare all constraints
+    c_run = 0  #
     for c, constraint in enumerate(settings["constraints"]):
 
         if constraint["type"] == "pressure":
@@ -671,6 +683,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
                     f"Constraining pressure: target is {constraint['target']} bar, "
                     f"current value is {constraint['current']} bar"
                 )
+            # Written in matrix form but equivalent to paper
             # define df/du matrix
             # use short range for both f and u
             dfdu = gen_dfdu_matrix(n_c_pot, n_c_pot, Delta_r)
@@ -680,12 +693,12 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
                 ((r[cut_pot] + Delta_r) ** 4 - r[cut_pot] ** 4) / 4, n_upd_pots
             )
             # average RDF in the shell
-            g_tgt_avg = (
-                g_tgt_vec[cut_pot_p1][:-1].T.flatten()
-                + g_tgt_vec[cut_pot_p1][1:].T.flatten()
+            g_cur_avg = (
+                g_cur_vec[cut_pot_p1][:-1].T.flatten()
+                + g_cur_vec[cut_pot_p1][1:].T.flatten()
             ) / 2
             # density product ρ_i * ρ_j as vector of same length as r_i
-            rho_i = np.repeat(
+            rho_ab = np.repeat(
                 vectorize(np.outer(*([settings["rhos"]] * 2)))[index_upd_pots], n_c_pot
             )
             # extra factor of 2 for the off-diagonal interactions
@@ -694,7 +707,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             np.fill_diagonal(extra_mat, 1)
             extra_factor = np.repeat(vectorize(extra_mat)[index_upd_pots], n_c_pot)
             # dp/df
-            dpdf = -2 / 3 * np.pi * rho_i * g_tgt_avg * r3_dr * extra_factor
+            dpdf = -2 / 3 * np.pi * rho_ab * g_cur_avg * r3_dr * extra_factor
             C[c, :] = dpdf @ dfdu_all
             if settings["flatten_at_cut_off"]:
                 C[
@@ -703,45 +716,43 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             d[c] = p - p_tgt
 
         elif constraint["type"] == "kirkwood-buff-integral":
-            if n_t > 1:
-                raise NotImplementedError(
-                    "KBI constraint not implemented for more than one bead"
+            for i in range(n_tgt_dists):
+                # we leave out pre factors
+                # current KBI
+                G = (
+                    4
+                    * np.pi
+                    * np.sum(r[cut_res] ** 2 * (g_cur_vec[cut_res, i] - 1))
+                    * Delta_r
                 )
-                # to implement this, one would have to create n_i constraints
-                # one per KBI
-            # we leave out pre factors (rho should come back for multiple beads)
-            # current KBI
-            G = (
-                4
-                * np.pi
-                * np.sum(r[cut_res] ** 2 * (g_cur_mat[cut_res, 0, 0] - 1))
-                * Delta_r
-            )
-            # target KBI
-            # TODO: target not implemented in iie.py arguments
-            if "target" in constraint:
-                G_tgt = constraint["target"]
-            else:
+                # target KBI
+                # TODO: custom target not implemented
+                # if "target" in constraint:
+                # G_tgt = constraint["target"]
                 G_tgt = (
                     4
                     * np.pi
-                    * np.sum(r[cut_res] ** 2 * (g_tgt_mat[cut_res, 0, 0] - 1))
+                    * np.sum(r[cut_res] ** 2 * (g_tgt_vec[cut_res, i] - 1))
                     * Delta_r
                 )
-            # print if verbose
-            if settings["verbose"]:
-                print(
-                    f"Constraining Kirkwood-Buff integral from 0 to "
-                    f"r={r[cut_res][-1]:.4f} nm: target is {G_tgt:.5} nm³, current "
-                    f"value is {G:.5} nm³"
+                # print if verbose
+                if settings["verbose"]:
+                    print(
+                        f"Constraining Kirkwood-Buff integral of interaction {i} from "
+                        f"0 to r={r[cut_res][-1]:.4f} nm: target is {G_tgt:.5f} nm³, "
+                        f"current value is {G:.5f} nm³"
+                    )
+                # define C row
+                dGdg = 4 * np.pi * Delta_r * r[cut_res] ** 2
+                C[c_run + i, :] = dGdg @ make_matrix_2D(
+                    jac_mat[cut_res, cut_pot, i : i + 1, :]
                 )
-            # define C row
-            C[c, :] = 4 * np.pi * Delta_r * r[cut_res] ** 2 @ jac_2D @ A0_2D
-            if settings["flatten_at_cut_off"]:
-                C[
-                    c, n_c_pot - 1 :: n_c_pot
-                ] = 0  # no constraint for last point of each Δu
-            d[c] = G - G_tgt
+                if settings["flatten_at_cut_off"]:
+                    C[
+                        c_run + i, n_c_pot - 1 :: n_c_pot
+                    ] = 0  # no constraint for last point of each Δu
+                d[c_run + i] = G - G_tgt
+
         elif constraint["type"] == "potential-energy":
             # not yet in use
             if n_t > 1:
@@ -777,6 +788,8 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             raise NotImplementedError(
                 "not implemented constraint type: " + constraint["type"]
             )
+        # increal running index
+        c_run += n_constraints_rows[constraint["type"]]
     # solve least squares problem with linear constraints
     # if C.shape[0] == 0 and A.shape[0] == A.shape[1]:
     # dx_flat = np.linalg.solve(A, b)
