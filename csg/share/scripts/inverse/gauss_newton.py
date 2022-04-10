@@ -368,10 +368,16 @@ def process_input(args):
         settings["cut_off_pot"] = float(options.find(cut_off_path).text)
     except (AttributeError, ValueError):
         raise Exception(cut_off_path + " must be a float in settings.xml")
+    # error if input data is shorter than cut_off_pot
+    if max(r) < settings["cut_off_pot"]:
+        raise Exception("Input data is shorter than potential cut-off")
     # determine cut-off for residuals
     if args.subcommand == "gauss-newton":
         cut_residual = options.find("./inverse/gauss_newton/cut_residual")
         settings["cut_off_res"] = float(cut_residual.text)
+        # error if input data is shorter than cut_off_res
+        if max(r) < settings["cut_off_res"]:
+            raise Exception("Input data is shorter than residual cut-off")
 
     # constraints
     if args.subcommand == "gauss-newton":
