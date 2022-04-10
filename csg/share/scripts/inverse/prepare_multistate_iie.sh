@@ -39,9 +39,16 @@ if [[ $tgt_dcdh == 'true' ]]; then
   [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
   [[ "${verbose}" == 'step0+1' ]] && [[ $step_nr == '0' || $step_nr == '1' ]] && verbose_flag="--verbose"
 
+  # cut residual
+  cut_residual="$(csg_get_property cg.inverse.gauss_newton.cut_residual)"
+  ([[ -n "$cut_residual" ]] && is_num "$cut_residual") || die "could not get cut-residual (./inverse/gauss_newton/cut_residual) from options file."
+
   # iterate states
-  state_names="$(csg_get_property cg.inverse.multistate.state_names)"
-  for state in $state_names; do
+  state_names_arr=( $(csg_get_property cg.inverse.multistate.state_names) )
+  state_kBTs_arr=( $(csg_get_property cg.inverse.multistate.state_kBTs) )
+  for s in "${!state_names_arr[@]}"; do
+    state="${state_names_arr[s]}"
+    kBT="${state_kBTs_arr[s]}"
 
     # make sure dist and dist-intra are here
     pushd $state
@@ -52,20 +59,22 @@ if [[ $tgt_dcdh == 'true' ]]; then
     fi
 
     # topology for molecular conections and volume
-    topol_state="${state}/$(csg_get_property cg.inverse.topol_xml)"
+    topol_state="$(csg_get_property cg.inverse.topol_xml)"
     [[ -f $topol_state ]] || die "${0##*/}: topol file '$topol_state' not found, possibly you have to add it to cg.inverse.filelist"
     volume_state=$(critical csg_dump --top "$topol_state" | grep 'Volume' | awk '{print $2}')
     ([[ -n "$volume_state" ]] && is_num "$volume_state") || die "could not determine the volume from file ${topol_state}"
 
-    # determine dc/dh for all states, iie.py will notice the option in $CSGXMLFILE
+    # determine dc/dh per state
     do_external dist invert_iie dcdh \
     ${verbose_flag-} \
     --volume $volume_state \
+    --kBT "$kBT" \
     --topol $topol_state \
     --options "$CSGXMLFILE" \
     --g-tgt-ext "dist.tgt" \
     --g-tgt-intra-ext "dist-intra.tgt" \
-    --out $(get_main_dir)/dcdh.npz
+    --cut-residual "$cut_residual" \
+    --out $(get_main_dir)/${state}/dcdh.npz
     popd
   done
 fi

@@ -88,7 +88,6 @@ do_external update gauss_newton_py gauss-newton \
   --g-tgt-ext "dist.tgt" \
   --g-cur-ext "dist.new" \
   ${residual_weighting_flag-} \
-  ${tgt_dcdh_flag-} \
   ${upd_pots_flag-} \
   ${tgt_dists_flag-} \
   ${flatten_at_cut_off_flag-} \

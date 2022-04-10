@@ -97,7 +97,7 @@ for s in "${!state_names_arr[@]}"; do
 
   # target dc/dh
   if [[ $(csg_get_property cg.inverse.iie.use_target_dcdh) == true ]]; then
-    tgt_dcdh_flag="--tgt-dcdh dcdh.npz"
+    tgt_dcdh_flag="--tgt-dcdh $(get_main_dir)/${state}/dcdh.npz"
   else
     g_intra_flag="--g-cur-intra-ext dist-intra.new"
   fi
