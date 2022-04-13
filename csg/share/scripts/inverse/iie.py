@@ -601,7 +601,7 @@ def calc_jacobian(input_arrays, settings, verbose=False):
         # calculate dc/dh on long range
         dcdh_long = calc_dcdh(
             r,
-            g_cur_mat,
+            (g_cur_mat + g_tgt_mat) / 2,
             G_minus_g_cur_mat,
             settings["rhos"],
             settings["n_intra"],
