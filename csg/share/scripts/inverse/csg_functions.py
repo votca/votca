@@ -563,6 +563,7 @@ def devectorize_full(A_vec):
     A_mat = np.zeros((*A_vec.shape[:-1], n_t, n_t))
     for i in range(n_i):
         A_mat[..., i % n_t, i // n_t] = A_vec[..., i]
+    return A_mat
 
 
 def kron_2D(a, b):
