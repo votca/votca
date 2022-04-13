@@ -370,8 +370,8 @@ def convert_and_save_imc_matrix(
 def improve_jacobian_onset(jac_mat, input_arrays, settings, verbose=False):
     """Change Jacobian diagonal such that update becomes more stable.
     In the onset region the diagonal is approx. -k_B T g(r).
-    This functions subtracts -k_B T g(r) (target or current) and adds
-    -k_B T (g_cur + g_tgt)/2.
+    This functions sets -k_B T (g_cur + g_tgt)/2 and removes off-diagonal
+    elements.
 
     Args:
         jac_mat: Jacobian to be improved (4D)
