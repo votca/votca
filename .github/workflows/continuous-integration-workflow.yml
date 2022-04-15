@@ -77,22 +77,22 @@ jobs:
           - distro: 'fedora:gmx2019'
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2019_d'
+          - distro: 'fedora:gmxpkg'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2019_d'
+          - distro: 'fedora:gmxpkg'
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2021'
+          - distro: 'fedora:gmx2022'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2021'
+          - distro: 'fedora:gmx2022'
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2021_d'
+          - distro: 'fedora:gmx2022_d'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2021_d'
+          - distro: 'fedora:gmx2022_d'
             toolchain: clang
             cmake_build_type: Release
           - distro: 'fedora:gmx9999'
@@ -139,7 +139,7 @@ jobs:
           key: ${{ steps.setup.outputs.cache_key }}
           restore-keys: ${{ steps.setup.outputs.cache_restore_key }}
       - name: CMake
-        run: cmake -B builddir ${{ steps.setup.outputs.cmake_args }} .
+        run: cmake -B builddir -S . ${{ steps.setup.outputs.cmake_args }}
       - name: Build
         run: |
           ccache -z

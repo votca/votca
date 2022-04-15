@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2022 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -44,6 +44,12 @@ class Orca final : public QMPackage {
   bool WriteShellScript();
 
   bool RunDFT() override;
+
+  bool RunActiveDFT() override {
+    throw std::runtime_error(
+        "DFT Embedding cannot be done with Orca.\n Switch qm package to "
+        "xtpdft");
+  }
 
   void CleanUp() override;
 

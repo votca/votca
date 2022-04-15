@@ -35,6 +35,8 @@ else
 fi
 
 cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON  -DBUILD_CSGAPPS=ON )
+# do not inject -march=native as the CI runs on different backends and hence will create a conflict with ccache
+cmake_args+=( -DINJECT_MARCH_NATIVE=OFF )
 if [[ ${INPUT_CMAKE_BUILD_TYPE} ]]; then
   cmake_args+=( -DCMAKE_BUILD_TYPE=${INPUT_CMAKE_BUILD_TYPE} )
 fi
@@ -94,6 +96,11 @@ fi
 
 if [[ ${INPUT_DISTRO} = "fedora:intel" ]]; then
   cmake_args+=( -DREQUIRE_MKL=ON )
+fi
+
+# workaround for votca/votca#891
+if [[ ${INPUT_DISTRO} = "ubuntu:devel" && ${INPUT_TOOLCHAIN} = "gnu" ]]; then
+  cmake_args+=( -DVOTCA_EXTRA_WARNING_FLAGS="-Wno-deprecated-copy")
 fi
 
 if [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then

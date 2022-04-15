@@ -54,8 +54,8 @@ class DFTcoupling : public CouplingBase {
                             const Orbitals& orbitalsA,
                             const Orbitals& orbitalsB) const;
 
-  std::pair<int, Index> DetermineRangeOfStates(const Orbitals& orbital,
-                                               Index numberofstates) const;
+  std::pair<Index, Index> DetermineRangeOfStates(const Orbitals& orbital,
+                                                 Index numberofstates) const;
 
   Eigen::MatrixXd JAB;
 
@@ -63,8 +63,8 @@ class DFTcoupling : public CouplingBase {
   Index numberofstatesA_ = 1;
   Index numberofstatesB_ = 1;
 
-  std::pair<int, Index> Range_orbA;
-  std::pair<int, Index> Range_orbB;
+  std::pair<Index, Index> Range_orbA;
+  std::pair<Index, Index> Range_orbB;
 };
 
 }  // namespace xtp

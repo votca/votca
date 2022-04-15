@@ -1,6 +1,6 @@
 if(ENABLE_TESTING)
   # Please place additional tests in alphabetical order
-  find_package(Boost 1.57.0 REQUIRED COMPONENTS unit_test_framework)
+  find_package(Boost 1.71.0 REQUIRED COMPONENTS unit_test_framework)
   list(APPEND test_cases test_adiis)
   list(APPEND test_cases test_aobasis)
   list(APPEND test_cases test_aomatrix)
@@ -89,6 +89,8 @@ if(ENABLE_TESTING)
   endif()
   list(APPEND test_cases test_anderson)
   list(APPEND test_cases test_gaussian_quadratures)
+  list(APPEND test_cases test_pmlocalization)
+  list(APPEND test_cases test_activedensitymatrix)
 
   foreach(PROG ${test_cases} )
     add_executable(unit_${PROG} ${PROG}.cc)
