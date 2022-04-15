@@ -66,7 +66,9 @@ def main():
     # process and prepare input
     input_arrays, settings, imc_matrices, imc_indices = process_input(args)
     # convert and save
-    convert_and_save_imc_matrix(input_arrays, settings, imc_matrices, imc_indices)
+    convert_and_save_imc_matrix(
+        input_arrays, settings, imc_matrices, imc_indices, verbose=settings["verbose"]
+    )
 
 
 def get_args(local_args=None):
@@ -146,10 +148,12 @@ def get_args(local_args=None):
         default=False,
     )
     parser.add_argument(
-        "--onset-threshold",
+        "--onset-thresholds",
+        nargs=2,
         type=float,
         default=None,
-        help="minimum value of g_tgt or g_cur up to which the IMC jacobian is improved",
+        help="two RDF values that determine the range in the onset region where the "
+        "jacobian is changed from the original to the approximation.",
     )
     parser.add_argument(
         "--cut-res",
@@ -213,12 +217,11 @@ def process_input(args):
     # settings
     # copy some settings directly from args
     args_to_copy = (
-        "out",
         "volume",
         "verbose",
         "cut_res",
         "improve_jacobian_onset",
-        "onset_threshold",
+        "onset_thresholds",
     )
     settings = {key: vars(args)[key] for key in args_to_copy}  # all mandatory
     settings["kBT"] = float(options.find("./inverse/kBT").text)
@@ -227,10 +230,14 @@ def process_input(args):
     settings["n_intra"] = n_intra
     settings["r0-removed"] = r0_removed
 
-    if settings["improve_jacobian_onset"] and settings["onset_threshold"] is None:
+    if settings["improve_jacobian_onset"] and settings["onset_thresholds"] is None:
         raise Exception(
-            "If --improve-jacobian-onset is used, --onset-threshold has to be provided"
+            "If --improve-jacobian-onset is used, --onset-thresholds has to be provided"
         )
+
+    # out filename
+    args.out.close()
+    settings["out"] = args.out.name
 
     # load IMC matrix and index
     try:
@@ -363,7 +370,7 @@ def convert_and_save_imc_matrix(
         dudg = dudg[cut, cut, :, :]
 
     # save jacobian
-    np.savez_compressed(settings["out"].name, jacobian=dudg)
+    np.savez_compressed(settings["out"], jacobian=dudg)
 
 
 @if_verbose_dump_io
@@ -384,7 +391,7 @@ def improve_jacobian_onset(jac_mat, input_arrays, settings, verbose=False):
         The improved Jacobian (4D)
     """
     r = input_arrays["r"]
-    # n_r = len(r)
+    n_r = len(r)
     # number of atom types
     n_t = len(settings["rhos"])
     # number of interactions including redundand ones
@@ -407,11 +414,16 @@ def improve_jacobian_onset(jac_mat, input_arrays, settings, verbose=False):
     # loop over interactions
     for i in range(n_i):
         # onset region is up to where g_cur or g_tgt are larger then onset threshold
-        onset_end = max(
-            (g_cur_vec[:, i] > settings["onset_threshold"]).nonzero()[0][0],
-            (g_tgt_vec[:, i] > settings["onset_threshold"]).nonzero()[0][0],
-        )
+        g = g_cur_vec[:, 1]
+        g_avg = (g_cur_vec[:, i] + g_tgt_vec[:, i]) / 2
+
+        onset_end = (g > settings["onset_thresholds"][0]).nonzero()[0][0]
         onset_region = slice(0, onset_end)
+        merge_end = (g > settings["merge_thresholds"][1]).nonzero()[0][0]
+        merge_region = slice(onset_end, merge_end)
+        if verbose:
+            print(f"Modifying Jacobian for interaction {i} below r = {r[onset_end]}")
+            print(f"Merging for interaction {i} up to r = {r[merge_end]}")
 
         # make all elements in the onset region zero
         jac_mat_improved[:, onset_region, :, i] = 0
@@ -419,11 +431,7 @@ def improve_jacobian_onset(jac_mat, input_arrays, settings, verbose=False):
 
         # improve diagonal in onset retgion
         onset_diagonal = np.zeros(len(r[onset_region]))
-        onset_diagonal = (
-            -1
-            / settings["kBT"]
-            * ((g_cur_vec[onset_region, i] + g_tgt_vec[onset_region, i]) / 2)
-        )
+        onset_diagonal = -1 / settings["kBT"] * g_avg[onset_region]
 
         # improve stability by converting zeros to small float
         onset_diagonal[onset_diagonal == 0.0] = -1e-37
@@ -431,6 +439,33 @@ def improve_jacobian_onset(jac_mat, input_arrays, settings, verbose=False):
         # change diagonal
         np.fill_diagonal(
             jac_mat_improved[onset_region, onset_region, i, i], onset_diagonal
+        )
+
+        # merge region scale factor for multiplying with imc matrix
+        ot = settings["onset_threshold"]
+        mt = settings["merge_threshold"]
+        merge_scaling_vector = np.sqrt(g[merge_region] - ot) / np.sqrt(mt - ot)
+
+        # scale off-diagonal matrix elements
+        n_m = len(r[merge_region])
+        for j in range(n_i):
+            jac_mat_improved[:, merge_region, j, i] *= np.tril(
+                np.repeat([merge_scaling_vector], n_r, axis=0), k=-onset_end
+            ) + np.triu(np.ones((n_r, n_m)), k=-onset_end)
+            jac_mat_improved[merge_region, :, i, j] *= np.triu(
+                np.repeat(np.array([merge_scaling_vector]).T, n_r, axis=1),
+                k=onset_end,
+            ) + np.tril(np.ones((n_m, n_r)), k=onset_end)
+
+        # improve diagonal in merge region
+        merge_diagonal = np.zeros(len(r[onset_region]))
+        merge_diagonal = (1 - merge_scaling_vector) * (
+            -1 / settings["kBT"] * g_avg[merge_region]
+        ) + merge_scaling_vector * (np.diag(jac_mat[merge_region, merge_region, i, i]))
+
+        # change diagonal
+        np.fill_diagonal(
+            jac_mat_improved[merge_region, merge_region, i, i], merge_diagonal
         )
     # new diagonal
     return jac_mat_improved
