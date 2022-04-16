@@ -128,6 +128,8 @@ elif [[ $imc_algorithm == 'gauss-newton' ]]; then
     for_all "non-bonded bonded" do_external rdf "$sim_prog"
     # resample target distributions
     for_all "non-bonded" do_external resample target --clean '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
+    # flag
+    is_target_matrix_flag="--is-target-matrix"
   else
     # calculate IMC matrix, RDF, and resample target
     do_external imc_stat $sim_prog
@@ -148,6 +150,7 @@ elif [[ $imc_algorithm == 'gauss-newton' ]]; then
     --topol "${topol}" \
     --g-tgt-ext "dist.tgt" \
     --g-cur-ext "dist.new" \
+    ${is_target_matrix_flag-} \
     ${improve_jacobian_onset_flag-} \
     ${onset_thresholds_flag-} \
     --out "jacobian.npz"

@@ -156,6 +156,14 @@ def get_args(local_args=None):
         "jacobian is changed from the original to the approximation.",
     )
     parser.add_argument(
+        "--is-target-matrix",
+        help="indicates that the IMC matrix passed is calculated from the mapped fg "
+        "system",
+        action="store_const",
+        const=True,
+        default=False,
+    )
+    parser.add_argument(
         "--cut-res",
         type=float,
         default=None,
@@ -222,6 +230,7 @@ def process_input(args):
         "cut_res",
         "improve_jacobian_onset",
         "onset_thresholds",
+        "is_target_matrix",
     )
     settings = {key: vars(args)[key] for key in args_to_copy}  # all mandatory
     settings["kBT"] = float(options.find("./inverse/kBT").text)
@@ -414,7 +423,10 @@ def improve_jacobian_onset(jac_mat, input_arrays, settings, verbose=False):
     # loop over interactions
     for i in range(n_i):
         # onset region is up to where g_cur or g_tgt are larger then onset threshold
-        g = g_cur_vec[:, 1]
+        if settings["is_target_matrix"]:
+            g = g_cur_vec[:, 1]
+        else:
+            g = g_tgt_vec[:, 1]
         g_avg = (g_cur_vec[:, i] + g_tgt_vec[:, i]) / 2
 
         ot, mt = settings["onset_thresholds"]

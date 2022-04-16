@@ -658,6 +658,7 @@ def calc_jacobian(input_arrays, settings, verbose=False):
     )
     # improve jacobian
     if settings["improve_jacobian_onset"]:
+        settings["is_target_matrix"] = False
         jac_mat = improve_jacobian_onset(
             jac_mat, input_arrays, settings, verbose=verbose
         )
