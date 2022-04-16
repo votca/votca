@@ -424,9 +424,9 @@ def improve_jacobian_onset(jac_mat, input_arrays, settings, verbose=False):
     for i in range(n_i):
         # onset region is up to where g_cur or g_tgt are larger then onset threshold
         if settings["is_target_matrix"]:
-            g = g_cur_vec[:, 1]
+            g = g_cur_vec[:, i]
         else:
-            g = g_tgt_vec[:, 1]
+            g = g_tgt_vec[:, i]
         g_avg = (g_cur_vec[:, i] + g_tgt_vec[:, i]) / 2
 
         ot, mt = settings["onset_thresholds"]
@@ -435,8 +435,13 @@ def improve_jacobian_onset(jac_mat, input_arrays, settings, verbose=False):
         merge_end = (g > mt).nonzero()[0][0]
         merge_region = slice(onset_end, merge_end)
         if verbose:
-            print(f"Modifying Jacobian for interaction {i} below r = {r[onset_end]}")
-            print(f"Merging for interaction {i} up to r = {r[merge_end]}")
+            print(
+                f"""
+Modifying Jacobian for interaction {i}:
+Below r = {r[onset_end]:.4f} the approximation is used.
+Between r = {r[onset_end]:.4f} and r = {r[merge_end]:.4f} interpolation is used.
+"""
+            )
 
         # make all elements in the onset region zero
         jac_mat_improved[:, onset_region, :, i] = 0
