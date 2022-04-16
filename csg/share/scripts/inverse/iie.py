@@ -225,10 +225,12 @@ def get_args(iie_args=None):
         default=False,
     )
     parser_jacobian.add_argument(
-        "--onset-threshold",
+        "--onset-thresholds",
+        nargs=2,
         type=float,
         default=None,
-        help="minimum value of g_tgt or g_cur up to which the IIE jacobian is improved",
+        help="two RDF values that determine the range in the onset region where the "
+        "jacobian is changed from the original to the approximation.",
     )
     # potential guess can remove Coulomb term
     parser_pot_guess.add_argument(
@@ -351,7 +353,7 @@ def process_input(args):
         "out",
         "kBT",
         "improve_jacobian_onset",
-        "onset_threshold",
+        "onset_thresholds",
     )
     settings = {key: vars(args)[key] for key in args_to_copy if key in vars(args)}
     settings["non-bonded-dict"] = non_bonded_dict
@@ -360,10 +362,10 @@ def process_input(args):
     settings["r0-removed"] = r0_removed
 
     if args.subcommand == "jacobian":
-        if settings["improve_jacobian_onset"] and settings["onset_threshold"] is None:
+        if settings["improve_jacobian_onset"] and settings["onset_thresholds"] is None:
             raise Exception(
                 "If --improve-jacobian-onset is used, "
-                "--onset-threshold has to be provided."
+                "--onset-thresholds has to be provided."
             )
 
     # determine dc/dh buffer

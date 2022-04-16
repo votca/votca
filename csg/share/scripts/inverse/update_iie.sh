@@ -85,7 +85,7 @@ fi
 # improve Jacobian in RDF onset region
 if [[ $(csg_get_property cg.inverse.iie.improve_jacobian_onset) == "true" ]]; then
   improve_jacobian_onset_flag="--improve-jacobian-onset"
-  onset_threshold_flag="--onset-threshold $(csg_get_property cg.inverse.iie.onset_threshold)"
+  onset_thresholds_flag="--onset-thresholds $(csg_get_property cg.inverse.iie.onset_thresholds)"
 fi
 
 # Some arguments (cut_off, ...) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.
@@ -104,7 +104,7 @@ do_external generate iie_jacobian jacobian \
   ${tgt_dcdh_flag-} \
   ${g_intra_flag-} \
   ${improve_jacobian_onset_flag-} \
-  ${onset_threshold_flag-} \
+  ${onset_thresholds_flag-} \
   --out "jacobian.npz"
 
 if [[ $iie_algorithm == 'newton' ]]; then

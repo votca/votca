@@ -273,11 +273,12 @@
         Possible values: false (default), true.
         Only for algorithm=gauss-newton</DESC>
       </improve_jacobian_onset>
-      <onset_threshold>0.02
-      <DESC>Where g_new or g_tgt both larger then threshold, the onset region ends.
-        Default: 0.02
+      <onset_thresholds>0.0001 0.01
+      <DESC>Below the distance where the RDF is larger then first threshold, the Jacobian is made diagonal only.
+        Up to the distance where the RDF is larger then second threshold, the Jacobian is made diagonal only.
+        Default: 0.0001, 0.01
         Only for algorithm=gauss-newton</DESC>
-      </onset_threshold>
+      </onset_thresholds>
       <use_target_matrix>false
       <DESC>Use IMC matrix that was sampled from the mapped atomistic trajectory.
         Usually in Newton's method, the Jacobian is taken at the current value.

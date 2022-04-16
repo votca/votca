@@ -50,7 +50,7 @@ cut_residual="$(csg_get_property cg.inverse.gauss_newton.cut_residual)"
 # improve Jacobian in RDF onset region
 if [[ $(csg_get_property cg.inverse.iie.improve_jacobian_onset) == "true" ]]; then
   improve_jacobian_onset_flag="--improve-jacobian-onset"
-  onset_threshold_flag="--onset-threshold $(csg_get_property cg.inverse.iie.onset_threshold)"
+  onset_thresholds_flag="--onset-thresholds $(csg_get_property cg.inverse.iie.onset_thresholds)"
 fi
 
 # calc RDFs per state
@@ -123,7 +123,7 @@ for s in "${!state_names_arr[@]}"; do
     ${tgt_dcdh_flag-} \
     ${g_intra_flag-} \
     ${improve_jacobian_onset_flag-} \
-    ${onset_threshold_flag-} \
+    ${onset_thresholds_flag-} \
     --out "jacobian.npz"
   popd
   mark_done "jacobian_$state";

@@ -41,7 +41,7 @@ is_num "${default_reg}" || die "${0##*/}: value of cg.inverse.imc.default_reg sh
 # improve Jacobian in RDF onset region
 if [[ $(csg_get_property cg.inverse.imc.improve_jacobian_onset) == "true" ]]; then
   improve_jacobian_onset_flag="--improve-jacobian-onset"
-  onset_threshold_flag="--onset-threshold $(csg_get_property cg.inverse.imc.onset_threshold)"
+  onset_thresholds_flag="--onset-thresholds $(csg_get_property cg.inverse.imc.onset_thresholds)"
 fi
 
 # old IMC Newton algorithm, using C++ for solving
@@ -149,7 +149,7 @@ elif [[ $imc_algorithm == 'gauss-newton' ]]; then
     --g-tgt-ext "dist.tgt" \
     --g-cur-ext "dist.new" \
     ${improve_jacobian_onset_flag-} \
-    ${onset_threshold_flag-} \
+    ${onset_thresholds_flag-} \
     --out "jacobian.npz"
 
   # update nb with Gauss-Newton

@@ -417,9 +417,10 @@ def improve_jacobian_onset(jac_mat, input_arrays, settings, verbose=False):
         g = g_cur_vec[:, 1]
         g_avg = (g_cur_vec[:, i] + g_tgt_vec[:, i]) / 2
 
-        onset_end = (g > settings["onset_thresholds"][0]).nonzero()[0][0]
+        ot, mt = settings["onset_thresholds"]
+        onset_end = (g > ot).nonzero()[0][0]
         onset_region = slice(0, onset_end)
-        merge_end = (g > settings["merge_thresholds"][1]).nonzero()[0][0]
+        merge_end = (g > mt).nonzero()[0][0]
         merge_region = slice(onset_end, merge_end)
         if verbose:
             print(f"Modifying Jacobian for interaction {i} below r = {r[onset_end]}")
@@ -442,8 +443,6 @@ def improve_jacobian_onset(jac_mat, input_arrays, settings, verbose=False):
         )
 
         # merge region scale factor for multiplying with imc matrix
-        ot = settings["onset_threshold"]
-        mt = settings["merge_threshold"]
         merge_scaling_vector = np.sqrt(g[merge_region] - ot) / np.sqrt(mt - ot)
 
         # scale off-diagonal matrix elements
