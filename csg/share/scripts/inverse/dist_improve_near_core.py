@@ -129,25 +129,19 @@ def fit_exp_plus_const(x, y):
     # grid for derivative
     x_offset = x[:-1] + Delta_x / 2
     # log(-dy/dx) = log(ab) - bx
-    try:
+    with np.errstate(invalid="ignore"):
         log_m_dydx = np.log(-dydx)
-    except FloatingPointError:
-        raise Exception(
-            """
-The fitting of the PMF with a * exp(-b*x) + c is not possible, because it
-is not monotonically decreasing.
-Try better sampled RDFs or change the fitting range.
-        """
-        )
-    # fit
-    m_b, log_ab = np.polyfit(x=x_offset, y=log_m_dydx, deg=1)
+    # fit ignoring nans, this is risky but fails less often
+    idx = np.isfinite(log_m_dydx)
+    m_b, log_ab = np.polyfit(x=x_offset[idx], y=log_m_dydx[idx], deg=1)
     # unravel
     b = -m_b
     if b < 0:
         raise Exception(
             """
 The fitting of the PMF with a * exp(-b*x) + c lead to a negative b.
-This is non-physical. Likely your data in the fitting region is too noisy.
+This is non-physical. Likely your data in the fitting region is too noisy
+or the potential is not smooth in the repulsive region.
 Try better sampled RDFs or change the fitting range.
         """
         )
