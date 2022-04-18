@@ -53,7 +53,7 @@ do_external update newton_py newton \
   --options "$CSGXMLFILE" \
   --g-tgt-ext "dist.tgt" \
   --g-cur-ext "dist.new" \
-  --out "dpot.pure_n"
+  --out "dpot.new"
 
 # overwrite with zeros if do_potential=0
 do_potential_zero_overwrite() {

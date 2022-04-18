@@ -99,7 +99,7 @@ do_external update gauss_newton_py gauss-newton \
   ${upd_pots_flag-} \
   ${tgt_dists_flag-} \
   ${flatten_at_cut_off_flag-} \
-  --out "dpot.pure_gn"
+  --out "dpot.new"
 
 # overwrite with zeros if do_potential=0
 do_potential_zero_overwrite() {
