@@ -17,8 +17,7 @@
     <improve_dist_near_core>
       <target>true</target>
       <new>true</new>
-      <function>exponential</function>
-      <fit_start_g>1e-05</fit_start_g>
+      <fit_start_g>0.001</fit_start_g>
       <fit_end_g>0.1</fit_end_g>
     </improve_dist_near_core>
   </non-bonded>
@@ -41,8 +40,7 @@
     <improve_dist_near_core>
       <target>true</target>
       <new>true</new>
-      <function>exponential</function>
-      <fit_start_g>1e-05</fit_start_g>
+      <fit_start_g>0.001</fit_start_g>
       <fit_end_g>0.1</fit_end_g>
     </improve_dist_near_core>
   </non-bonded>
@@ -65,8 +63,7 @@
     <improve_dist_near_core>
       <target>true</target>
       <new>true</new>
-      <function>exponential</function>
-      <fit_start_g>1e-05</fit_start_g>
+      <fit_start_g>0.001</fit_start_g>
       <fit_end_g>0.1</fit_end_g>
     </improve_dist_near_core>
   </non-bonded>
@@ -78,10 +75,16 @@
     <step>0.002</step>
     <inverse>
       <target>bond.dist.tgt</target>
-      <do_potential>0 1</do_potential>
+      <do_potential>0</do_potential>
       <gromacs>
         <table>table_b1.xvg</table>
       </gromacs>
+      <post_update>ibi</post_update>
+      <post_update_options>
+        <ibi>
+          <do>0 1</do>
+        </ibi>
+      </post_update_options>
     </inverse>
   </bonded>
 
@@ -92,10 +95,16 @@
     <step>0.02</step>
     <inverse>
       <target>angle.dist.tgt</target>
-      <do_potential>0 1</do_potential>
+      <do_potential>0</do_potential>
       <gromacs>
         <table>table_a1.xvg</table>
       </gromacs>
+      <post_update>ibi</post_update>
+      <post_update_options>
+        <ibi>
+          <do>0 1</do>
+        </ibi>
+      </post_update_options>
     </inverse>
   </bonded>
 
@@ -112,16 +121,20 @@
     <filelist>grompp.mdp topol.top table.xvg index.ndx topology.xml</filelist>
     <cleanlist>traj.xtc</cleanlist>
     <iterations_max>10</iterations_max>
+    <topol_xml>topology.xml</topol_xml>
     <initial_guess>
-      <method>table</method>
+      <method>bi</method>
+      <cut_off>1.2</cut_off>
     </initial_guess>
     <method>iie</method>
     <iie>
-      <method>newton</method>
+      <algorithm>newton</algorithm>
       <closure>hnc</closure>
-      <topol>topology.xml</topol>
-      <cut_off>1.2</cut_off>
     </iie>
+    <newton>
+      <cut_off>1.2</cut_off>
+    </newton>
     <map>hexane_cg.xml</map>
+    <verbose>step0+1</verbose>
   </inverse>
 </cg>

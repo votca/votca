@@ -21,8 +21,8 @@
       <target>true</target>
       <new>true</new>
       <function>exponential</function>
-      <fit_start_g>1e-05</fit_start_g>
-      <fit_end_g>0.2</fit_end_g>
+      <fit_start_g>0.001</fit_start_g>
+      <fit_end_g>0.5</fit_end_g>
     </improve_dist_near_core>
   </non-bonded>
 
@@ -51,11 +51,14 @@
       </ie>
     </initial_guess>
     <iie>
-      <method>newton</method>
+      <algorithm>newton</algorithm>
       <closure>hnc</closure>
       <topol>topology.xml</topol>
-      <cut_off>0.9</cut_off>
-      <tgt_dcdh>true</tgt_dcdh>
+      <use_target_dcdh>true</use_target_dcdh>
     </iie>
+    <newton>
+      <cut_off>0.9</cut_off>
+      <topol>topology.xml</topol>
+    </newton>
   </inverse>
 </cg>

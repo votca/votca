@@ -21,8 +21,8 @@
       <target>true</target>
       <new>true</new>
       <function>exponential</function>
-      <fit_start_g>1e-05</fit_start_g>
-      <fit_end_g>0.2</fit_end_g>
+      <fit_start_g>0.001</fit_start_g>
+      <fit_end_g>0.5</fit_end_g>
     </improve_dist_near_core>
   </non-bonded>
 
@@ -52,13 +52,16 @@
       </ie>
     </initial_guess>
     <iie>
-      <method>gauss-newton</method>
+      <algorithm>gauss-newton</algorithm>
       <closure>hnc</closure>
       <topol>topology.xml</topol>
+    </iie>
+    <gauss_newton>
       <cut_off>0.9</cut_off>
       <cut_residual>1.0</cut_residual>
       <pressure_constraint>-53</pressure_constraint> <!-- the pressure being negative can lead to buble formation, but -53 bar should be ok -->
-      <residual_weighting>r_square_over_rdf</residual_weighting> <!-- without any weighting, which gives more weight to RDF onset and tail, there might be artifacts in RDF or potential in those regions -->
-    </iie>
+      <residual_weighting>r**2/(g_tgt+1e-30)</residual_weighting> <!-- without any weighting, which gives more weight to RDF onset and tail, there might be artifacts in RDF or potential in those regions -->
+      <topol>topology.xml</topol>
+    </gauss_newton>
   </inverse>
 </cg>

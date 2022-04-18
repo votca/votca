@@ -100,20 +100,17 @@
     <restart_file>restart_points.log</restart_file>
     <initial_guess>
       <method>bi</method>
-      <!--
-        <cut_off>0.9</cut_off>
-        <ie>
-          <closure>hnc</closure>
-          <topol>topology.xml</topol>
-        </ie>
-      -->
+      <cut_off>0.85</cut_off>
     </initial_guess>
     <iie>
-      <method>newton</method>
+      <algorithm>newton</algorithm>
       <closure>hnc</closure>
       <topol>topology.xml</topol>
-      <cut_off>0.85</cut_off>
-      <tgt_dcdh>true</tgt_dcdh>
+      <use_target_dcdh>true</use_target_dcdh>
     </iie>
+    <newton>
+      <topol>topology.xml</topol>
+      <cut_off>0.85</cut_off>
+    </newton>
   </inverse>
 </cg>
