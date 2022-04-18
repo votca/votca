@@ -867,6 +867,47 @@ def read_all_tables(
     return input_arrays, r0_removed, r
 
 
+def gen_output_arrays(r, y_mat, settings, cut_y, tail_y):
+    """Generate ready to write output dictionary from (shorter) matrix.
+
+    r is full range as the input. y_mat is as long as r[cut_y].
+    Also prepends 0 if r0_removed. cut_y does not include point at cut-off.
+    """
+    output_arrays = {}
+    for non_bonded_name, y_dict in gen_interaction_dict(
+        r[cut_y], y_mat, settings["non-bonded-dict"]
+    ).items():
+        y = y_dict["y"]
+        flag = gen_flag_isfinite(y)
+
+        # shift potential to make value before cut-off zero
+        # Hhmmmmmm will probably throw this out
+        if "flatten_at_cut_off" in settings.keys() and settings["flatten_at_cut_off"]:
+            y[cut_y] -= y[cut_y][-1]
+
+        # append zero and 'o' up to max(r)
+        y = np.concatenate((y, np.zeros_like(r[tail_y])))
+        flag = np.concatenate(
+            (flag, ["i"] + ["o"] * (len(r[tail_y]) - 1))
+        )  # last potential point y=0 is 'i'
+        # add value at r=0 if it was removed
+        if settings["r0-removed"]:
+            r_out = np.concatenate(([0.0], r))  # r is as long as input
+            y = np.concatenate(([np.nan], y))
+            flag = np.concatenate((["o"], flag))
+        else:
+            r_out = r
+        # change NaN in the core region to first valid value
+        y = extrapolate_Delta_u_left_constant(y, flag)
+        # save for output
+        output_arrays[non_bonded_name] = {
+            "x": r_out,
+            "y": y,
+            "flag": flag,
+        }
+    return output_arrays
+
+
 def save_tables(output_arrays, settings):
     """Save each entry in output_arrays to a table file."""
     comment = "created by: {}".format(" ".join(sys.argv))

@@ -43,15 +43,13 @@ from csg_functions import (
     calc_slices,
     devectorize,
     eval_expr,
-    extrapolate_Delta_u_left_constant,
     gen_beadtype_property_array,
-    gen_flag_isfinite,
-    gen_interaction_dict,
     gen_interaction_matrix,
     get_bead_types,
     get_density_dict,
     get_n_intra_dict,
     get_non_bonded,
+    gen_output_arrays,
     if_verbose_dump_io,
     kron_2D,
     make_matrix_2D,
@@ -481,27 +479,8 @@ def newton_update(input_arrays, settings, verbose=False):
     # Δu matrix
     Delta_u_mat = devectorize(Delta_u_vec)
     # prepare output
-    output_arrays = {}
-    for non_bonded_name, Delta_u_dict in gen_interaction_dict(
-        r[cut], Delta_u_mat, settings["non-bonded-dict"]
-    ).items():
-        Delta_u = Delta_u_dict["y"]
-        Delta_u_flag = gen_flag_isfinite(Delta_u)
-        # add value at r=0 if it was removed
-        if settings["r0-removed"]:
-            r_out = np.concatenate(([0.0], r[cut]))
-            Delta_u = np.concatenate(([np.nan], Delta_u))
-            Delta_u_flag = np.concatenate((["o"], Delta_u_flag))
-        else:
-            r_out = r[cut]
-        # change NaN in the core region to first valid value
-        Delta_u = extrapolate_Delta_u_left_constant(Delta_u, Delta_u_flag)
-        # save for output
-        output_arrays[non_bonded_name] = {
-            "x": r_out,
-            "y": Delta_u,
-            "flag": Delta_u_flag,
-        }
+    output_arrays = gen_output_arrays(r, Delta_u_mat, settings, cut, tail)
+    # return output
     return output_arrays
 
 
@@ -809,35 +788,11 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
         Delta_u_vec = np.insert(Delta_u_vec, i, np.zeros(n_c_res), axis=1)
     # Delta_u matrix
     Delta_u_mat = devectorize(Delta_u_vec)
-    # cut off tail
-    # Delta_u_mat = Delta_u_mat[cut_pot]
     # prepare output
-    output_arrays = {}
-    for non_bonded_name, Delta_u_dict in gen_interaction_dict(
-        r[cut_res], Delta_u_mat, settings["non-bonded-dict"]
-    ).items():
-        r_out = Delta_u_dict["x"]
-        Delta_u = Delta_u_dict["y"]
-        Delta_u_flag = gen_flag_isfinite(Delta_u)
-        Delta_u_flag[tail_pot_p1] = "o"
-        # shift potential to make value before cut-off zero
-        if settings["flatten_at_cut_off"]:
-            # hmmmmmm will probably throw this out
-            Delta_u[cut_pot] -= Delta_u[cut_pot][-1]
-            # Delta_u[cut_pot][-1] = 0  # this one does not really make it flat
-        # add value at r=0 if it was removed
-        if settings["r0-removed"]:
-            r_out = np.concatenate(([0.0], r_out))
-            Delta_u = np.concatenate(([np.nan], Delta_u))
-            Delta_u_flag = np.concatenate((["o"], Delta_u_flag))
-        # change NaN in the core region to first valid value
-        Delta_u = extrapolate_Delta_u_left_constant(Delta_u, Delta_u_flag)
-        # save for output
-        output_arrays[non_bonded_name] = {
-            "x": r_out,
-            "y": Delta_u,
-            "flag": Delta_u_flag,
-        }
+    output_arrays = gen_output_arrays(
+        r, Delta_u_mat[cut_pot], settings, cut_pot, tail_pot
+    )
+    # return output
     return output_arrays
 
 
@@ -949,40 +904,17 @@ def multistate_gauss_newton_update(input_arrays, settings, verbose=False):
     Delta_u_vec = Delta_u_flat.reshape(n_i, n_c_res).T
     # Delta_u matrix
     Delta_u_mat = devectorize(Delta_u_vec)
-    # Delta_u_mat = Delta_u_mat[cut_pot]
     # prepare output
-    output_arrays = {}
-    for non_bonded_name, Delta_u_dict in gen_interaction_dict(
-        r[cut_res], Delta_u_mat, settings["non-bonded-dict"]
-    ).items():
-        r_out = Delta_u_dict["x"]
-        Delta_u = Delta_u_dict["y"]
-        Delta_u_flag = gen_flag_isfinite(Delta_u)
-        Delta_u_flag[tail_pot_p1] = "o"
-        # shift potential to make value before cut-off zero
-        if settings["flatten_at_cut_off"]:
-            Delta_u[cut_pot] -= Delta_u[cut_pot][-1]
-        # add value at r=0 if it was removed
-        if settings["r0-removed"]:
-            r_out = np.concatenate(([0.0], r_out))
-            Delta_u = np.concatenate(([np.nan], Delta_u))
-            Delta_u_flag = np.concatenate((["o"], Delta_u_flag))
-        else:
-            r_out = r
-        # change NaN in the core region to first valid value
-        Delta_u = extrapolate_Delta_u_left_constant(Delta_u, Delta_u_flag)
-        # save for output
-        output_arrays[non_bonded_name] = {
-            "x": r_out,
-            "y": Delta_u,
-            "flag": Delta_u_flag,
-        }
+    output_arrays = gen_output_arrays(
+        r, Delta_u_mat[cut_pot], settings, cut_pot, tail_pot
+    )
+    # return output
     return output_arrays
 
 
 @if_verbose_dump_io
 def zero_update(input_arrays, settings, verbose=False):
-    """Calculate Gauss-Newton potential update based on s.a. RISM-OZ and closure.
+    """Output all zero dummy update.
 
     Args:
         input_arrays: nested dict holding the distributions
@@ -998,35 +930,14 @@ def zero_update(input_arrays, settings, verbose=False):
     # number of atom types
     n_t = len(settings["rhos"])
     # slices
-    # we don't want to update at cut-off, therefore offset=-1
     cut_pot, tail_pot = calc_slices(
         r, settings["cut_off_pot"], verbose=False, offset=-1
     )
-    # sometimes we need to refer to values including the value of the cut-off
-    _, tail_pot_p1 = calc_slices(r, settings["cut_off_pot"], verbose=False, offset=0)
-    cut_res, tail_res = calc_slices(r, settings["cut_off_res"], verbose=False)
-    n_c_res = len(r[cut_res])
-    Delta_u_mat = np.zeros((n_c_res, n_t, n_t))
+    n_c_pot = len(r[cut_pot])
+    Delta_u_mat = np.zeros((n_c_pot, n_t, n_t))
     # prepare output
-    output_arrays = {}
-    for non_bonded_name, Delta_u_dict in gen_interaction_dict(
-        r[cut_res], Delta_u_mat, settings["non-bonded-dict"]
-    ).items():
-        r_out = Delta_u_dict["x"]
-        Delta_u = Delta_u_dict["y"]
-        Delta_u_flag = gen_flag_isfinite(Delta_u)
-        Delta_u_flag[tail_pot_p1] = "o"
-        # add value at r=0 if it was removed
-        if settings["r0-removed"]:
-            r_out = np.concatenate(([0.0], r_out))
-            Delta_u = np.concatenate(([0.0], Delta_u))
-            Delta_u_flag = np.concatenate((["o"], Delta_u_flag))
-        # save for output
-        output_arrays[non_bonded_name] = {
-            "x": r_out,
-            "y": Delta_u,
-            "flag": Delta_u_flag,
-        }
+    output_arrays = gen_output_arrays(r, Delta_u_mat, settings, cut_pot, tail_pot)
+    # return output
     return output_arrays
 
 
