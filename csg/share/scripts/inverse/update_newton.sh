@@ -55,11 +55,6 @@ do_external update newton_py newton \
   --g-cur-ext "dist.new" \
   --out "dpot.pure_n"
 
-# resample potentials. This is needed because non-bonded.max is sometimes larger than iie.cut-off and the former should define the end of the table
-for_all "non-bonded" 'csg_resample --in $(csg_get_interaction_property name).dpot.pure_n --out $(csg_get_interaction_property name).dpot.grid_adapted --grid $(csg_get_interaction_property min):$(csg_get_interaction_property step):$(csg_get_interaction_property max) --comment "adapted to grid in update_iie.sh"'
-# csg_resample alone will sometimes lead to non-zero values in the tail, table extrapolate will make it zero
-for_all "non-bonded" 'do_external table extrapolate --function constant --region right --no-flagupdate $(csg_get_interaction_property name).dpot.grid_adapted $(csg_get_interaction_property name).dpot.new'
-
 # overwrite with zeros if do_potential=0
 do_potential_zero_overwrite() {
   step_nr=$(get_current_step_nr)
