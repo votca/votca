@@ -793,7 +793,8 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             rho = sum(settings["rhos"])
             # r² Δr
             r2_dr = np.tile(
-                ((r[cut_pot] + Delta_r/2) ** 3 - (r[cut_pot] - Delta_r/2) ** 3) / 3, n_upd_pots
+                ((r[cut_pot] + Delta_r / 2) ** 3 - (r[cut_pot] - Delta_r / 2) ** 3) / 3,
+                n_upd_pots,
             )
             # dPE/du
             dPEdu = (
@@ -809,9 +810,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             d[c] = PE - PE_tgt
             # no constraint for last point of each Δu
             if settings["flatten_at_cut_off"]:
-                C[
-                    c, n_c_pot - 1 :: n_c_pot
-                ] = 0
+                C[c, n_c_pot - 1 :: n_c_pot] = 0
         else:
             raise NotImplementedError(
                 "not implemented constraint type: " + constraint["type"]
