@@ -769,12 +769,6 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
                 d[c_run + i] = G - G_tgt
 
         elif constraint["type"] == "potential-energy":
-            # not yet in use
-            if n_t > 1:
-                raise NotImplementedError(
-                    "potential energy constraint not implemented "
-                    "for more than one bead"
-                )
             # we leave out pre factors (rho should come back for multiple beads)
             # current PE
             PE = constraint["current"]
@@ -784,8 +778,8 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             if settings["verbose"]:
                 print(
                     f"Constraining potential energy: target is "
-                    f"{constraint['target']} kJ/mol, "
-                    f"current value is {constraint['current']} kJ/mol"
+                    f"{PE_tgt} kJ/mol, "
+                    f"current value is {PE} kJ/mol"
                 )
             # density product ρ_i * ρ_j as vector of same length as r_i
             rho_ab = np.repeat(
@@ -797,6 +791,10 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             np.fill_diagonal(extra_mat, 1)
             extra_factor = np.repeat(vectorize(extra_mat)[index_upd_pots], n_c_pot)
             rho = sum(settings["rhos"])
+            # r² Δr
+            r2_dr = np.tile(
+                ((r[cut_pot] + Delta_r/2) ** 3 - (r[cut_pot] - Delta_r/2) ** 3) / 3, n_upd_pots
+            )
             # dPE/du
             dPEdu = (
                 2
@@ -805,16 +803,15 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
                 * extra_factor
                 * rho_ab
                 * g_cur_vec[cut_pot].T.flatten()
-                * r[cut_pot] ** 2
-                * Delta_r
+                * r2_dr
             )
             C[c, :] = dPEdu
-
+            d[c] = PE - PE_tgt
+            # no constraint for last point of each Δu
             if settings["flatten_at_cut_off"]:
                 C[
                     c, n_c_pot - 1 :: n_c_pot
-                ] = 0  # no constraint for last point of each Δu
-            d[c] = PE - PE_tgt
+                ] = 0
         else:
             raise NotImplementedError(
                 "not implemented constraint type: " + constraint["type"]
