@@ -210,6 +210,18 @@ def get_args(iie_args=None):
         help="Whether to match the KBI of the target RDF",
     )
     parser_gauss_newton.add_argument(
+        "--potential-energy-constraint",
+        type=str,
+        default=None,
+        dest="potential_energy_constraint",
+        nargs="*",
+        help=(
+            'String of form ",p_tgt,p_cur". Starting '
+            "comma is needed to prevent confusion when "
+            "p_tgt is negative"
+        ),
+    )
+    parser_gauss_newton.add_argument(
         "--residual-weighting",
         dest="residual_weighting",
         type=str,
@@ -392,6 +404,23 @@ def process_input(args):
                 )
         if args.kirkwood_buff_constraint:
             constraints.append({"type": "kirkwood-buff-integral"})
+        if args.potential_energy_constraint is not None:
+            if multistate:
+                raise NotImplementedError("multistate + constraints not implemented")
+            else:
+                PE_target = float(
+                    args.potential_energy_constraint[0].lstrip(",").split(",")[0]
+                )
+                PE_current = float(
+                    args.potential_energy_constraint[0].lstrip(",").split(",")[1]
+                )
+                constraints.append(
+                    {
+                        "type": "potential-energy",
+                        "target": PE_target,
+                        "current": PE_current,
+                    }
+                )
         settings["constraints"] = constraints
 
     # multistate settings
@@ -758,13 +787,29 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
                     f"{constraint['target']} kJ/mol, "
                     f"current value is {constraint['current']} kJ/mol"
                 )
-            rho_i = np.repeat(
+            # density product ρ_i * ρ_j as vector of same length as r_i
+            rho_ab = np.repeat(
                 vectorize(np.outer(*([settings["rhos"]] * 2)))[index_upd_pots], n_c_pot
             )
-            # define C row
-            C[c, :] = (
-                2 * np.pi * rho_i * r[cut_pot] ** 2 * g_tgt_vec[cut_pot].T.flatten()
+            # extra factor of 2 for the off-diagonal interactions
+            # this factor arises from the double sum over bead types α and β
+            extra_mat = np.ones((n_t, n_t)) * 2
+            np.fill_diagonal(extra_mat, 1)
+            extra_factor = np.repeat(vectorize(extra_mat)[index_upd_pots], n_c_pot)
+            rho = sum(settings["rhos"])
+            # dPE/du
+            dPEdu = (
+                2
+                * np.pi
+                / rho
+                * extra_factor
+                * rho_ab
+                * g_cur_vec[cut_pot].T.flatten()
+                * r[cut_pot] ** 2
+                * Delta_r
             )
+            C[c, :] = dPEdu
+
             if settings["flatten_at_cut_off"]:
                 C[
                     c, n_c_pot - 1 :: n_c_pot
@@ -774,7 +819,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             raise NotImplementedError(
                 "not implemented constraint type: " + constraint["type"]
             )
-        # increal running index
+        # increas running index
         c_run += n_constraints_rows[constraint["type"]]
     # solve least squares problem with linear constraints
     # if C.shape[0] == 0 and A.shape[0] == A.shape[1]:

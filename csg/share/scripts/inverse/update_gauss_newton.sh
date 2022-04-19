@@ -32,7 +32,7 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 # pressure constraint
 pressure_constraint=$(csg_get_property cg.inverse.gauss_newton.pressure_constraint)
 if is_num "${pressure_constraint}"; then
-  p_file="${name}.pressure"
+  p_file="pressure_file"
   do_external pressure "$sim_prog" "$p_file"
   p_now="$(sed -n 's/^Pressure=\(.*\)/\1/p' "$p_file")" || die "${0##*/}: sed of Pressure failed"
   [[ -z $p_now ]] && die "${0##*/}: Could not get pressure from simulation"
@@ -48,9 +48,9 @@ fi
 # potential energy constraint
 potential_energy_constraint=$(csg_get_property cg.inverse.gauss_newton.potential_energy_constraint)
 if is_num "${potential_energy_constraint}"; then
-  PE_file="${name}.potential_energy"
+  PE_file="potential_energy_file"
   do_external potential_energy "$sim_prog" "$PE_file"
-  PE_now="$(sed -n 's/^Potential=\(.*\)/\1/p' "$p_file")" || die "${0##*/}: sed of Potential failed"
+  PE_now="$(sed -n 's/^Potential=\(.*\)/\1/p' "$PE_file")" || die "${0##*/}: sed of Potential failed"
   [[ -z $PE_now ]] && die "${0##*/}: Could not get potential energy from simulation"
   echo "New potential energy $PE_now, target potential energy $potential_energy_constraint"
   pressure_constraint_flag="--potential-energy-constraint ,$potential_energy_constraint,$PE_now"

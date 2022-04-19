@@ -18,7 +18,7 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script calcs the potential energy for gromacs and writes it to outfile
+This script calcs the potential energy normalized by number of molecules for gromacs and writes it to outfile
 
 Usage: ${0##*/} outfile
 
@@ -54,11 +54,26 @@ echo "$output" | gromacs_log "${g_energy[@]} -b "${begin}" -s "${topol}" ${opts}
 #the number pattern '-\?[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
 #awk 'print $2' does not work for older version of g_energy as the format varies between
 #^Potential XXX (kJ/mol) and ^Potential (kJ/mol) XXX
-PE_now=$(echo "$output" | sed -n 's/^Pressure[^-0-9]*\(\(-\?[0-9][^[:space:]]*[0-9]\|nan\)\)[[:space:]].*$/\1/p' ) || \
+PE_now=$(echo "$output" | sed -n 's/^Potential[^-0-9]*\(\(-\?[0-9][^[:space:]]*[0-9]\|nan\)\)[[:space:]].*$/\1/p' ) || \
   die "${0##*/}: sed grep of Potential failed"
 [[ -z $PE_now ]] && die "${0##*/}: Could not get potential energy from simulation"
 
 [[ $PE_now == nan ]] && \
   die "${0##*/}: Potential energy was nan, check your simulation (this usually means system has blow up -> use pre simulation)"
+# divide potential by number of molecules
+topol_xml="$(csg_get_property cg.inverse.topol_xml)"
+PE_now=$(python3 -c "
+import xml.etree.ElementTree as ET
+
+def get_n_mols(topol_xml):
+    n_mols = 0
+    for molecule in topol_xml.find(\"molecules\").findall(\"molecule\"):
+        n_mols += int(molecule.attrib[\"nmols\"])
+    return n_mols
+
+topol = ET.parse(\"${topol_xml}\")
+n_mols = get_n_mols(topol)
+print(${PE_now} / n_mols)
+")
 
 echo "Potential=${PE_now}" > "$1"
