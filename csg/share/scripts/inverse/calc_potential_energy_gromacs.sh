@@ -18,7 +18,7 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script calcs the potential energy normalized by number of molecules for gromacs and writes it to outfile
+This script calcs the intermolecular potential energy normalized by number of molecules for gromacs and writes it to outfile
 
 Usage: ${0##*/} outfile
 
@@ -26,6 +26,8 @@ Used external packages: gromacs
 EOF
    exit 0
 fi
+
+msg --color blue "WARNING: this script should calculate the intermolecular potential energy, but is not well-tested and does not handle intramolecular non-bonded interactions or Coulomb interactions"
 
 [[ -z $1 ]] && die "${0##*/}: Missing argument"
 
@@ -47,16 +49,16 @@ fi
 
 echo "Running ${g_energy[@]}"
 #no critical here so that we can print the error
-output=$(echo Potential | ${g_energy[@]} -b "${begin}" -s "${topol}" ${opts} 2>&1)
+output=$(echo 'LJ-(SR)' | ${g_energy[@]} -b "${begin}" -s "${topol}" ${opts} 2>&1)
 ret="$?"
 echo "$output" | gromacs_log "${g_energy[@]} -b "${begin}" -s "${topol}" ${opts}"
 [[ $ret -eq 0 ]] || die "${0##*/}: '${g_energy[@]} -b "${begin}" -s "${topol}" ${opts}' failed"
 #the number pattern '-\?[0-9][^[:space:]]*[0-9]' is ugly, but it supports X X.X X.Xe+X Xe-X and so on
 #awk 'print $2' does not work for older version of g_energy as the format varies between
 #^Potential XXX (kJ/mol) and ^Potential (kJ/mol) XXX
-PE_now=$(echo "$output" | sed -n 's/^Potential[^-0-9]*\(\(-\?[0-9][^[:space:]]*[0-9]\|nan\)\)[[:space:]].*$/\1/p' ) || \
-  die "${0##*/}: sed grep of Potential failed"
-[[ -z $PE_now ]] && die "${0##*/}: Could not get potential energy from simulation"
+PE_now=$(echo "$output" | sed -n 's/^LJ (SR)[^-0-9]*\(\(-\?[0-9][^[:space:]]*[0-9]\|nan\)\)[[:space:]].*$/\1/p' ) || \
+  die "${0##*/}: sed grep of LJ (SR) failed"
+[[ -z $PE_now ]] && die "${0##*/}: Could not get intramolecular potential energy from simulation"
 
 [[ $PE_now == nan ]] && \
   die "${0##*/}: Potential energy was nan, check your simulation (this usually means system has blow up -> use pre simulation)"
