@@ -226,6 +226,14 @@ def get_density_dict(topol_xml, volume):
     return density_dict
 
 
+def get_nmols(topol_xml):
+    """Return the total number of molecules."""
+    n_mols = 0
+    for molecule in topol_xml.find("molecules").findall("molecule"):
+        n_mols += int(molecule.attrib["nmols"])
+    return n_mols
+
+
 def get_n_intra_dict(topol_xml):
     """Return the number bead types per molecules."""
     n_intra_dict = defaultdict(lambda: 0)

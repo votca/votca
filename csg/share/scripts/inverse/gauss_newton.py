@@ -48,6 +48,7 @@ from csg_functions import (
     get_bead_types,
     get_density_dict,
     get_n_intra_dict,
+    get_nmols,
     get_non_bonded,
     gen_output_arrays,
     if_verbose_dump_io,
@@ -287,10 +288,12 @@ def process_input(args):
             get_density_dict(top, vol) for top, vol in zip(topology, args.volume)
         ]
         n_intra_dict = [get_n_intra_dict(top) for top in topology]  # prob. indep.
+        n_mols = [get_nmols(top) for top in topology]
     else:
         topology = ET.fromstring(args.topol[0].read())
         density_dict = get_density_dict(topology, args.volume[0])
         n_intra_dict = get_n_intra_dict(topology)
+        n_mols = get_nmols(topology)
     # get non_bonded_dict
     non_bonded_dict = {nb_name: nb_ts for nb_name, nb_ts in get_non_bonded(options)}
     non_bonded_dict_inv = {v: k for k, v in non_bonded_dict.items()}
@@ -347,12 +350,14 @@ def process_input(args):
         "residual_weighting",
         "subcommand",
         "verbose",
+        "volume",
     )
     settings = {key: vars(args)[key] for key in args_to_copy if key in vars(args)}
     settings["non-bonded-dict"] = non_bonded_dict
     settings["rhos"] = rhos
     settings["n_intra"] = n_intra
     settings["r0-removed"] = r0_removed
+    settings["n_mols"] = n_mols
 
     # load Joacbian
     settings["jacobians"] = []  # one per state
@@ -741,7 +746,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
                     * Delta_r
                 )
                 # target KBI
-                # TODO: custom target not implemented
+                # Note: custom target not implemented
                 # if "target" in constraint:
                 # G_tgt = constraint["target"]
                 G_tgt = (
@@ -790,7 +795,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             extra_mat = np.ones((n_t, n_t)) * 2
             np.fill_diagonal(extra_mat, 1)
             extra_factor = np.repeat(vectorize(extra_mat)[index_upd_pots], n_c_pot)
-            rho = sum(settings["rhos"])
+            rho_mol_total = settings["n_mols"] / settings["volume"][0]
             # r² Δr
             r2_dr = np.tile(
                 ((r[cut_pot] + Delta_r / 2) ** 3 - (r[cut_pot] - Delta_r / 2) ** 3) / 3,
@@ -800,7 +805,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             dPEdu = (
                 2
                 * np.pi
-                / rho
+                / rho_mol_total
                 * extra_factor
                 * rho_ab
                 * g_cur_vec[cut_pot].T.flatten()
