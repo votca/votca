@@ -99,7 +99,7 @@ if [[ ${INPUT_DISTRO} = "fedora:intel" ]]; then
 fi
 
 # workaround for votca/votca#891
-if [[ ${INPUT_DISTRO} = "ubuntu:latest" && ${INPUT_TOOLCHAIN} = "gnu" ]]; then
+if [[ ${INPUT_DISTRO} = ubuntu:* && ${INPUT_TOOLCHAIN} = "gnu" ]]; then
   cmake_args+=( -DVOTCA_EXTRA_WARNING_FLAGS="-Wno-deprecated-copy")
 fi
 
