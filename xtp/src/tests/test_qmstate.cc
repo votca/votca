@@ -51,6 +51,9 @@ BOOST_AUTO_TEST_CASE(QMStatetype_test) {
 
   QMStateType type4 = QMStateType(QMStateType::KSstate);
   BOOST_CHECK_EQUAL(type4 == QMStateType::KSstate, true);
+
+  QMStateType type5 = QMStateType(QMStateType::LMOstate);
+  BOOST_CHECK_EQUAL(type5 == QMStateType::LMOstate, true);
 }
 
 BOOST_AUTO_TEST_CASE(QMState_test) {
@@ -94,6 +97,9 @@ BOOST_AUTO_TEST_CASE(QMState_test) {
   QMState electron2;
   electron2.FromString("e");
   BOOST_CHECK_EQUAL(electron2.StateIdx(), 0);
+  QMState lmo;
+  lmo.FromString("l1");
+  BOOST_CHECK_EQUAL(lmo.StateIdx(), 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
