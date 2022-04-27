@@ -37,6 +37,9 @@ topol=$(csg_get_property cg.inverse.topol_xml)
 volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
 ([[ -n "$volume" ]] && is_num "$volume") || die "could not determine the volume from file ${topol}"
 
+# whether to make dU = 0 one point before the cut off
+[[ "$(csg_get_property cg.inverse.newton.flatten_at_cut_off)" == 'true' ]] && flatten_at_cut_off_flag="--flatten-at-cut-off"
+
 # verbose
 verbose=$(csg_get_property cg.inverse.verbose)
 step_nr=$(get_current_step_nr)
@@ -53,6 +56,7 @@ do_external update newton_py newton \
   --options "$CSGXMLFILE" \
   --g-tgt-ext "dist.tgt" \
   --g-cur-ext "dist.new" \
+  ${flatten_at_cut_off_flag-} \
   --out "dpot.new"
 
 # overwrite with zeros if do_potential=0

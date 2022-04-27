@@ -80,7 +80,7 @@ tgt_dist_list="$(for_all "non-bonded" 'tgt_dist=( $(csg_get_interaction_property
 upd_pots_flag="--upd-pots $do_potential_list"
 tgt_dists_flag="--tgt-dists $tgt_dist_list"
 
-# weather to make dU = 0 one point before the cut off
+# whether to make dU = 0 one point before the cut off
 [[ "$(csg_get_property cg.inverse.gauss_newton.flatten_at_cut_off)" == 'true' ]] && flatten_at_cut_off_flag="--flatten-at-cut-off"
 
 # Some arguments (cut_off, kBT) will be read directly from the settings.xml. They do not have a default in csg_defaults.xml.

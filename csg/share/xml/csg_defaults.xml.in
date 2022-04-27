@@ -460,6 +460,9 @@
       <cut_off>
         <DESC>Cut-off used for non-bonded potenitals. Potential (update) will be zero beyond this point.</DESC>
       </cut_off>
+      <flatten_at_cut_off>false
+        <DESC>There can be jumps at the cut-off. This will set the last but one value of dU to zero. Valid values: false (default), true</DESC>
+      </flatten_at_cut_off>
     </newton>
     <gauss_newton>
       <DESC>Settings for the Gauss-Newton method, which can be used with the iie or imc Jacobian.</DESC>
