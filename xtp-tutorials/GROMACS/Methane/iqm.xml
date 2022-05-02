@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<options>
+  <iqm help="Executes qm calculations for individual molecules" section="sec:eqm">
+    <map_file>system.xml</map_file>
+    <gwbse>
+      <tasks>gw</tasks>
+      <gw>
+        <mode>G0W0</mode>
+      </gw>
+      <ranges>full</ranges>
+    </gwbse>
+    <dftpackage>
+      <basisset>3-21G</basisset>
+      <auxbasisset>aux-def2-svp</auxbasisset>
+    </dftpackage>
+    <bsecoupling>
+      <spin>singlet</spin>
+    </bsecoupling>
+    <readjobfile help="which states to read into the jobfile for each segment type">
+      <singlet>Methane:s1</singlet>
+      <triplet>Methane:t1</triplet>
+      <electron>Methane:e1</electron>
+      <hole>Methane:h1</hole>
+    </readjobfile>
+  </iqm>
+</options>

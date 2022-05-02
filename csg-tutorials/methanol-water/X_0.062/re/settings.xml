@@ -1,0 +1,166 @@
+<!-- options to perform relative entropy iterations -->
+<cg>
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>WT-WT</name>
+    <!-- specify type of CG pair -->
+    <type1>WT</type1>
+    <type2>WT</type2>
+    <!-- min, max and step size distance for pot (max=cutoff) -->
+    <min>0.24</min>
+    <max>1.0</max>
+    <step>0.002</step>
+    <re>
+    	<!-- function form for the potential (LJ126 or LJG or CBSPL-->
+    	<function>cbspl</function>
+    	<!-- no. of knots for CBSPL function -->
+    	<cbspl>
+		    <nknots>103</nknots>
+    	</cbspl>
+    </re>
+    <inverse>
+      <!-- reference AA rdf data file -->
+      <target>WT-WT.aa.rdf</target>
+      <gromacs>
+        <!-- name of the table for gromacs run -->
+        <table>table_WT_WT.xvg</table>
+      </gromacs>
+      <!-- do convergence -->
+      <post_add>acc_convergence average</post_add>
+      <post_add_options>
+        <!-- convergence check options -->
+        <convergence>
+          <!-- for RE we check change in potentials/parameters (new-cur) -->
+          <what>pot</what>
+          <weight>1.0</weight>
+          <base>cur</base>
+          <norm>2</norm>
+        </convergence>
+        <average>
+          <what>param pot</what>
+        </average>
+      </post_add_options>
+    </inverse>
+  </non-bonded>
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>ME-ME</name>
+    <!-- specify type of CG pair -->
+    <type1>ME</type1>
+    <type2>ME</type2>
+    <!-- min, max and step size distance for pot (max=cutoff) -->
+    <min>0.3</min>
+    <max>1.32</max>
+    <step>0.002</step>
+    <re>
+    	<!-- function form for the potential (LJ126 or LJG or CBSPL-->
+    	<function>cbspl</function>
+    	<cbspl>
+    		<!-- no. of knots for CBSPL function -->
+    		<nknots>69</nknots>
+    	</cbspl>
+    </re>
+    <inverse>
+      <!-- reference AA rdf data file -->
+      <target>ME-ME.aa.rdf</target>
+      <gromacs>
+        <!-- name of the table for gromacs run -->
+        <table>table_ME_ME.xvg</table>
+      </gromacs>
+      <!-- do convergence -->
+      <post_add>acc_convergence average</post_add>
+      <post_add_options>
+        <!-- convergence check options -->
+        <convergence>
+          <!-- for RE we check change in potentials/parameters (new-cur) -->
+          <what>pot</what>
+          <weight>1.0</weight>
+          <base>cur</base>
+          <norm>2</norm>
+        </convergence>
+        <average>
+          <what>param pot</what>
+        </average>
+      </post_add_options>
+    </inverse>
+  </non-bonded>
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>ME-WT</name>
+    <!-- specify type of CG pair -->
+    <type1>ME</type1>
+    <type2>WT</type2>
+    <!-- min, max and step size distance for pot (max=cutoff) -->
+    <min>0.27</min>
+    <max>1.32</max>
+    <step>0.002</step>
+    <re>
+    	<!-- function form for the potential (LJ126 or LJG or CBSPL-->
+    	<function>cbspl</function>
+    	<cbspl>
+    		<!-- no. of knots for CBSPL function -->
+    		<nknots>69</nknots>
+    	</cbspl>
+    </re>
+    <inverse>
+      <!-- reference AA rdf data file -->
+      <target>ME-WT.aa.rdf</target>
+      <gromacs>
+        <!-- name of the table for gromacs run -->
+        <table>table_ME_WT.xvg</table>
+      </gromacs>
+      <!-- do convergence -->
+      <post_add>acc_convergence average</post_add>
+      <post_add_options>
+        <!-- convergence check options -->
+        <convergence>
+          <!-- for RE we check change in potentials/parameters (new-cur) -->
+          <what>pot</what>
+          <weight>1.0</weight>
+          <base>cur</base>
+          <norm>2</norm>
+        </convergence>
+        <average>
+          <what>param pot</what>
+        </average>
+      </post_add_options>
+    </inverse>
+  </non-bonded>
+  <inverse>
+    <!-- System T = 300*0.00831451 kBT units -->
+    <kBT>2.4942</kBT>
+    <!-- use gromacs as simulation program -->
+    <program>gromacs</program>
+    <!-- gromacs specific options -->
+    <gromacs>
+      <!-- trash so many frames at the beginning -->
+      <equi_time>100</equi_time>
+      <!-- grid for table*.xvg !-->
+      <table_bins>0.002</table_bins>
+      <!-- cut the potential at this value (gromacs bug) -->
+      <pot_max>1000000</pot_max>
+      <!-- extend the tables to this value -->
+      <table_end>3.7</table_end>
+    </gromacs>
+    <!-- these files are copied for each new run -->
+    <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
+    <!-- do so many iterations -->
+    <iterations_max>200</iterations_max>
+    <!-- ibi: inverse boltzmann imc: inverse monte carlo re: relative entropy-->
+    <method>re</method>
+    <!-- scaling parameter for the update-->
+    <scale>0.5</scale>
+    <!-- convergence check options -->
+    <convergence_check>
+      <type>default</type>
+      <limit>0.0001</limit>
+    </convergence_check>
+    <average>
+      <steps>10</steps>
+    </average>
+  </inverse>
+</cg>
+

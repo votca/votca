@@ -1,0 +1,23 @@
+file(GLOB VOTCA_SCRIPTS *.sh *.pl *.py)
+file(GLOB VOTCA_FILES csg_table *.pm *.m *.octave)
+
+install(FILES ${VOTCA_FILES} DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/scripts/inverse)
+install(PROGRAMS ${VOTCA_SCRIPTS} DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/scripts/inverse)
+
+if(ENABLE_TESTING)
+  if(NOT Pytest_FOUND)
+    execute_process(COMMAND ${Python_EXECUTABLE} -c "import pytest" RESULT_VARIABLE IMPORT_pytest)
+    if(IMPORT_pytest EQUAL 0)
+      set(Pytest_FOUND TRUE CACHE INTERNAL "")
+      message(STATUS "Found python module pytest")
+    endif()
+  endif()
+  if(Pytest_FOUND)
+    if(ENABLE_COVERAGE_BUILD)
+      set(PY_COV_OPTS --cov-report=xml --cov=${CMAKE_CURRENT_SOURCE_DIR})
+    endif()
+
+    add_test(unit_iie.py ${Python_EXECUTABLE} -m pytest -q ${PY_COV_OPTS} ${CMAKE_CURRENT_SOURCE_DIR}/iie.py)
+    set_tests_properties(unit_iie.py PROPERTIES LABELS "csg;votca;unit")
+  endif()
+endif()

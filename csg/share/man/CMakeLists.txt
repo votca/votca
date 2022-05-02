@@ -1,0 +1,7 @@
+if (BUILD_MANPAGES)
+  string(TIMESTAMP VOTCA_DATE "%Y/%m/%d" UTC)
+  configure_file(votca-csg.man.in ${CMAKE_CURRENT_BINARY_DIR}/votca-csg.man)
+  add_custom_target(votca_csg_manpages DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/votca-csg.man)
+  add_dependencies(manpages votca_csg_manpages)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/votca-csg.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man7 RENAME votca-csg.7)
+endif (BUILD_MANPAGES)

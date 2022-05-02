@@ -112,6 +112,9 @@ BOOST_AUTO_TEST_CASE(Serializing) {
   AOBasis aobasis2;
   aobasis2.ReadFromCpt(rr);
 
+  bool check_equal_basisset_names = aobasis.Name() == aobasis2.Name();
+  BOOST_CHECK_EQUAL(check_equal_basisset_names, true);
+
   // no real way to test if two aobasis are equal so we check if the matrices
   // are the same
   AOOverlap overlap1;

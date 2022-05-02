@@ -1,0 +1,93 @@
+name: release
+on:
+  workflow_dispatch:
+    inputs:
+      cmake_args:
+        description: 'Extra CMake args'
+      deploy:
+        description: 'Deploy the release'
+      tag:
+        description: 'The release tag'
+
+jobs:
+  release:
+    if: github.repository_owner == 'votca'
+    runs-on: ubuntu-latest
+    container: ghcr.io/votca/buildenv/fedora:latest
+    steps:
+      - name: Checkout votca
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.VOTCA_BOT_TOKEN }}
+      - name: Setup
+        id: setup
+        run: |
+          git config --global user.name "Votca Bot"
+          git config --global user.email "github@votca.org"
+          if [[ -z "${{ github.event.inputs.tag }}" ]]; then
+            version="$(sed -n 's/set(PROJECT_VERSION *"\([^"]*\)").*/\1/p' CMakeLists.txt)"
+            echo "::set-output name=VERSION::${version}"
+          else
+            version="${{ github.event.inputs.tag }}"
+            echo "::set-output name=VERSION::${version#v}"
+          fi
+          if [[ ${GITHUB_REF} = refs/heads/* ]]; then
+            branch="${GITHUB_REF#refs/heads/}"
+            [[ ${branch} != release_testing ]] || branch="master"
+            echo "::set-output name=BRANCH::${branch}"
+          else
+            echo "Unsupported GITHUB_REF: ${GITHUB_REF}" >&2
+            exit 1
+          fi
+          echo "::set-output name=DATE::$(date +%s)"
+          if ${{ github.event.inputs.deploy == 'yesyesyes' }}; then
+            if [[ -z "${{ github.event.inputs.tag }}" ]]; then
+              echo "You cannot deploy a release without explicitly setting the tag" >&2
+              exit 1
+            fi
+            if [[ ${branch} != stable ]]; then
+              echo "You cannot deploy from a branch that is not 'stable'" >&2
+              exit 1
+            fi
+            if [[ ${version} = *-dev ]]; then
+              echo "You cannot deploy from a dev tag" >&2
+              exit 1
+            fi
+            if [[ -n "${{ github.event.inputs.cmake_args }}" ]]; then
+              echo "You cannot deploy with extra CMake args" >&2
+              exit 1
+            fi
+            echo "::set-output name=DEPLOY::true"
+          else
+            echo "::set-output name=DRY_RUN::--dry-run"
+          fi
+      - uses: actions/cache@v2
+        with:
+          path: ~/.ccache
+          key: ccache-release-${{ steps.setup.outputs.BRANCH }}-${{ steps.setup.outputs.DATE }}
+          restore-keys: ccache-release-${{ steps.setup.outputs.BRANCH }}
+      - name: Make Release
+        run: |
+          .github/workflows/make_release.sh --branch ${{ steps.setup.outputs.BRANCH }} ${{ github.event.inputs.cmake_args }} --verbose ${{ steps.setup.outputs.VERSION }} .
+      - name: Show diff
+        run: git log -p origin/${{ steps.setup.outputs.BRANCH }}..${{ steps.setup.outputs.BRANCH }}
+      - name: Push tags
+        run: |
+          set -x
+          git push ${{ steps.setup.outputs.DRY_RUN }} --tags origin ${{ steps.setup.outputs.BRANCH }}:${{ steps.setup.outputs.BRANCH }}
+      - name: Create Changlog
+        uses: ./.github/actions/release_changelog
+        with:
+          version: ${{ steps.setup.outputs.VERSION }}
+          changelog: 'release_changelog.md'
+      - name: Create Release
+        if: ${{ steps.setup.outputs.DEPLOY == 'true' }}
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
+        with:
+          tag_name: v${{ steps.setup.outputs.VERSION }}
+          release_name: v${{ steps.setup.outputs.VERSION }}
+          prerelease: ${{ contains(steps.setup.outputs.VERSION, 'rc') }}
+          body_path: 'release_changelog.md'

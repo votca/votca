@@ -45,24 +45,20 @@ void IQM::ParseSpecificOptions(const tools::Property& options) {
 
   // job tasks
   std::string tasks_string = options.get(".tasks").as<std::string>();
-  if (tasks_string.find("input") != std::string::npos) {
-    do_dft_input_ = true;
-  }
-  if (tasks_string.find("dft") != std::string::npos) {
-    do_dft_run_ = true;
-  }
-  if (tasks_string.find("parse") != std::string::npos) {
-    do_dft_parse_ = true;
-  }
-  if (tasks_string.find("dftcoupling") != std::string::npos) {
-    do_dftcoupling_ = true;
-  }
-  if (tasks_string.find("gw") != std::string::npos) {
-    do_gwbse_ = true;
-  }
-  if (tasks_string.find("bsecoupling") != std::string::npos) {
-    do_bsecoupling_ = true;
-  }
+
+  // We split either on a space or a comma
+  tools::Tokenizer tokenizedTasks(tasks_string, " ,");
+  std::vector<std::string> tasks = tokenizedTasks.ToVector();
+
+  // Check which tasks exist and set them to true
+  do_dft_input_ = std::find(tasks.begin(), tasks.end(), "input") != tasks.end();
+  do_dft_run_ = std::find(tasks.begin(), tasks.end(), "dft") != tasks.end();
+  do_dft_parse_ = std::find(tasks.begin(), tasks.end(), "parse") != tasks.end();
+  do_dftcoupling_ =
+      std::find(tasks.begin(), tasks.end(), "dftcoupling") != tasks.end();
+  do_gwbse_ = std::find(tasks.begin(), tasks.end(), "gwbse") != tasks.end();
+  do_bsecoupling_ =
+      std::find(tasks.begin(), tasks.end(), "bsecoupling") != tasks.end();
 
   // storage options
   std::string store_string = options.get(".store").as<std::string>();

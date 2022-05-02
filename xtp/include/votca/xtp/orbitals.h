@@ -1,14 +1,14 @@
 
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
- *                       (http://www.votca.org)
+ * Copyright 2009-2022 The VOTCA Development Team
+ * (http://www.votca.org)
  *
- *      Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License")
  *
  * You may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *              http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,13 +47,15 @@ class Orbitals {
  public:
   Orbitals();
 
-  bool hasBasisSetSize() const { return (basis_set_size_ > 0) ? true : false; }
-
-  Index getBasisSetSize() const { return basis_set_size_; }
-
-  void setBasisSetSize(Index basis_set_size) {
-    basis_set_size_ = basis_set_size;
+  bool hasBasisSetSize() const {
+    return (dftbasis_.AOBasisSize() > 0) ? true : false;
   }
+
+  void setEmbeddedMOs(tools::EigenSystem &system) { mos_embedding_ = system; }
+
+  const tools::EigenSystem &getEmbeddedMOs() const { return mos_embedding_; }
+
+  Index getBasisSetSize() const { return dftbasis_.AOBasisSize(); }
 
   Index getLumo() const { return occupied_levels_; }
 
@@ -133,6 +135,12 @@ class Orbitals {
 
   QMMolecule &QMAtoms() { return atoms_; }
 
+  void updateAtomPostion(Index atom_index, Eigen::Vector3d new_position) {
+    this->QMAtoms()[atom_index].setPos(new_position);
+    dftbasis_.UpdateShellPositions(this->QMAtoms());
+    auxbasis_.UpdateShellPositions(this->QMAtoms());
+  }
+
   void setXCFunctionalName(std::string functionalname) {
     functionalname_ = functionalname;
   }
@@ -149,27 +157,47 @@ class Orbitals {
   void setQMEnergy(double qmenergy) { qm_energy_ = qmenergy; }
 
   // access to DFT basis set name
+  bool hasDFTbasisName() const {
+    return (!dftbasis_.Name().empty()) ? true : false;
+  }
 
-  bool hasDFTbasisName() const { return (!dftbasis_.empty()) ? true : false; }
+  const std::string &getDFTbasisName() const { return dftbasis_.Name(); }
 
-  void setDFTbasisName(const std::string basis) { dftbasis_ = basis; }
+  void SetupDftBasis(std::string basis_name);
 
-  const std::string &getDFTbasisName() const { return dftbasis_; }
+  void SetupAuxBasis(std::string aux_basis_name);
 
-  AOBasis SetupDftBasis() const { return SetupBasis<true>(); }
-  AOBasis SetupAuxBasis() const { return SetupBasis<false>(); }
+  const AOBasis &getDftBasis() const {
+    if (dftbasis_.AOBasisSize() == 0) {
+      throw std::runtime_error(
+          "Requested the DFT basis, but no basis is present. Make sure "
+          "SetupDftBasis is called.");
+    } else {
+      return dftbasis_;
+    }
+  }
+
+  const AOBasis &getAuxBasis() const {
+    if (auxbasis_.AOBasisSize() == 0) {
+      throw std::runtime_error(
+          "Requested the Aux basis, but no basis is present. Make sure "
+          "SetupAuxBasis is called.");
+    } else {
+      return auxbasis_;
+    }
+  }
 
   /*
-   *  ======= GW-BSE related functions =======
+   * ======= GW-BSE related functions =======
    */
 
   // access to auxiliary basis set name
 
-  bool hasAuxbasisName() const { return (!auxbasis_.empty()) ? true : false; }
+  bool hasAuxbasisName() const {
+    return (!auxbasis_.Name().empty()) ? true : false;
+  }
 
-  void setAuxbasisName(std::string basis) { auxbasis_ = basis; }
-
-  const std::string &getAuxbasisName() const { return auxbasis_; }
+  const std::string getAuxbasisName() const { return auxbasis_.Name(); }
 
   // access to list of indices used in GWA
 
@@ -335,29 +363,31 @@ class Orbitals {
   void ReadFromCpt(const std::string &filename);
 
   void WriteToCpt(CheckpointWriter w) const;
+  void WriteBasisSetsToCpt(CheckpointWriter w) const;
   void ReadFromCpt(CheckpointReader r);
+  void ReadBasisSetsFromCpt(CheckpointReader r);
 
   bool GetFlagUseHqpOffdiag() const { return use_Hqp_offdiag_; };
   void SetFlagUseHqpOffdiag(bool flag) { use_Hqp_offdiag_ = flag; };
+
+  const Eigen::MatrixXd &getLMOs() const { return lmos_; };
+  void setLMOs(const Eigen::MatrixXd &matrix) { lmos_ = matrix; }
+
+  const Eigen::VectorXd &getLMOs_energies() const { return lmos_energies_; };
+  void setLMOs_energies(const Eigen::VectorXd &energies) {
+    lmos_energies_ = energies;
+  }
+
+  Index getNumOfActiveElectrons() { return active_electrons_; }
+  void setNumofActiveElectrons(const Index active_electrons) {
+    active_electrons_ = active_electrons;
+  }
 
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
   // returns indeces of a re-sorted vector of energies from lowest to highest
   std::vector<Index> SortEnergies();
-
-  template <bool dftbasis>
-  AOBasis SetupBasis() const {
-    BasisSet bs;
-    if (dftbasis) {
-      bs.Load(this->getDFTbasisName());
-    } else {
-      bs.Load(this->getAuxbasisName());
-    }
-    AOBasis basis;
-    basis.Fill(bs, this->QMAtoms());
-    return basis;
-  }
 
   void WriteToCpt(CheckpointFile f) const;
 
@@ -377,8 +407,16 @@ class Orbitals {
   bool useTDA_;
 
   tools::EigenSystem mos_;
+  tools::EigenSystem mos_embedding_;
+
+  Eigen::MatrixXd lmos_;
+  Eigen::VectorXd lmos_energies_;
+  Index active_electrons_;
 
   QMMolecule atoms_;
+
+  AOBasis dftbasis_;
+  AOBasis auxbasis_;
 
   double qm_energy_ = 0;
 
@@ -397,9 +435,6 @@ class Orbitals {
   Index bse_ctotal_ = 0;
 
   double ScaHFX_ = 0;
-
-  std::string dftbasis_ = "";
-  std::string auxbasis_ = "";
 
   std::string functionalname_ = "";
   std::string grid_quality_ = "";
@@ -423,9 +458,10 @@ class Orbitals {
   bool use_Hqp_offdiag_ = true;
 
   // Version 2: adds BSE energies after perturbative dynamical screening
-  // Version 3 changed shell ordering
-  // Versio 4 added vxc grid quality
-  static constexpr int orbitals_version() { return 4; }
+  // Version 3: changed shell ordering
+  // Version 4: added vxc grid quality
+  // Version 5: added the dft and aux basisset
+  static constexpr int orbitals_version() { return 5; }
 };
 
 }  // namespace xtp

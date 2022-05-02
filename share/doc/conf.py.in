@@ -1,0 +1,31 @@
+project = 'VOTCA'
+copyright = '2020, VOTCA Development Team'
+author = 'VOTCA Development Team'
+release = '@PROJECT_VERSION@'
+
+from recommonmark.parser import CommonMarkParser
+source_suffix = {
+    '.rst': 'restructuredtext',
+}
+
+html_logo = 'customLogo.png'
+html_theme = "sphinx_rtd_theme"
+html_theme_path = ["_themes", ]
+html_theme_options= { 'logo_only' : True }
+
+# Add any paths that contain custom static files (such as style sheets) here,
+# relative to this directory. They are copied after the builtin static files and
+# hence will overwrite the builtin files.
+# The file named "default.css" will overwrite the builtin "default.css".
+# The css/theme.css file is a direct copy of the RTD theme with minor 
+# modifications, modifications to the theme can be made in this file.
+# html_static_path = ['_static']
+
+master_doc = 'index'
+nbsphinx_allow_errors = True
+
+extensions = [
+    'nbsphinx', # Generate sphinx documentation directly from the jupyter notebooks
+    'sphinx.ext.mathjax', # Write equations
+    'sphinx.ext.githubpages' # Create content to publish in githubpages
+]

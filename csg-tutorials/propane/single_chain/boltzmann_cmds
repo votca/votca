@@ -1,0 +1,10 @@
+hist angle.dist.ib *angle*
+hist bond.dist.ib *bond*
+
+tab set T 200
+tab set scale bond
+tab bond.pot.ib *bond*
+tab set scale angle
+tab angle.pot.ib *angle*
+
+q

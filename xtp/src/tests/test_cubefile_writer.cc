@@ -55,11 +55,10 @@ Eigen::VectorXd Readcubefile(const std::string& filename) {
 BOOST_AUTO_TEST_CASE(constructors_test) {
   libint2::initialize();
   Orbitals A;
-  A.setDFTbasisName(std::string(XTP_TEST_DATA_FOLDER) +
-                    "/cubefile_writer/3-21G.xml");
   A.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                            "/cubefile_writer/molecule.xyz");
-  A.setBasisSetSize(17);
+  A.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                  "/cubefile_writer/3-21G.xml");
   A.setNumberOfAlphaElectrons(5);
   A.setNumberOfOccupiedLevels(5);
   A.MOs().eigenvalues() = Eigen::VectorXd::Zero(17);
