@@ -53,7 +53,7 @@ if is_num "${potential_energy_constraint}"; then
   PE_now="$(sed -n 's/^Potential=\(.*\)/\1/p' "$PE_file")" || die "${0##*/}: sed of Potential failed"
   [[ -z $PE_now ]] && die "${0##*/}: Could not get potential energy from simulation"
   echo "New potential energy $PE_now, target potential energy $potential_energy_constraint"
-  pressure_constraint_flag="--potential-energy-constraint ,$potential_energy_constraint,$PE_now"
+  potential_constraint_flag="--potential-energy-constraint ,$potential_energy_constraint,$PE_now"
 fi
 
 # Gauss-Newton residual weighting
@@ -95,6 +95,7 @@ do_external update gauss_newton_py gauss-newton \
   --g-cur-ext "dist.new" \
   ${pressure_constraint_flag-} \
   ${kirkwood_buff_constraint_flag-} \
+  ${potential_constraint_flag-} \
   ${residual_weighting_flag-} \
   ${upd_pots_flag-} \
   ${tgt_dists_flag-} \
