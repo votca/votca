@@ -552,26 +552,6 @@ def gen_indices_upd_pots_tgt_dists(settings):
     )
 
 
-def gen_dfdu_matrix(n_c_pot, n_c_res, Delta_r):
-    """Generate with df/du partial derivatives.
-
-    There are as many grid points for forces as there are for the potential (w/o
-    cut-off). The grid of the forces is shifted relative to the potential/RDF grid:
-    r + Δr/2.
-    """
-    dfdu = np.zeros((n_c_pot, n_c_res))
-    # create indices for changing the main- and super-diagonal
-    main_diag = np.diag_indices(n_c_pot, ndim=2)
-    # copy needed, because diag_indices generates twice the same object
-    super_diag = list(np.diag_indices(n_c_pot - 1, ndim=2)[i].copy() for i in (0, 1))
-    # shift to geth the super diagonal
-    super_diag[1] += 1
-    super_diag = tuple(super_diag)  # tuple needed for indexing
-    dfdu[main_diag] = -1 / Delta_r
-    dfdu[super_diag] = +1 / Delta_r
-    return dfdu
-
-
 @if_verbose_dump_io
 def gauss_newton_update(input_arrays, settings, verbose=False):
     """Calculate Gauss-Newton potential update based on s.a. RISM-OZ and closure.
@@ -703,20 +683,14 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
                     f"Constraining pressure: target is {constraint['target']} bar, "
                     f"current value is {constraint['current']} bar"
                 )
-            # Written in matrix form but equivalent to paper
-            # define df/du matrix
-            # use short range for both f and u
-            dfdu = gen_dfdu_matrix(n_c_pot, n_c_pot, Delta_r)
-            dfdu_all = np.kron(np.eye(n_upd_pots), dfdu)
-            # volume of sphere shell element
-            r3_dr = np.tile(
-                ((r[cut_pot] + Delta_r) ** 4 - r[cut_pot] ** 4) / 4, n_upd_pots
+            # RDF times r^3 difference between grid points
+            g_r3_diff = (
+                np.tile(r[cut_pot_p1][:-1] ** 3, n_upd_pots)
+                * g_cur_vec[cut_pot_p1][:-1].T.flatten()
+            ) - (
+                np.tile(r[cut_pot_p1][1:] ** 3, n_upd_pots)
+                * g_cur_vec[cut_pot_p1][1:].T.flatten()
             )
-            # average RDF in the shell
-            g_cur_avg = (
-                g_cur_vec[cut_pot_p1][:-1].T.flatten()
-                + g_cur_vec[cut_pot_p1][1:].T.flatten()
-            ) / 2
             # density product ρ_i * ρ_j as vector of same length as r_i
             rho_ab = np.repeat(
                 vectorize(np.outer(*([settings["rhos"]] * 2)))[index_upd_pots], n_c_pot
@@ -726,9 +700,8 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             extra_mat = np.ones((n_t, n_t)) * 2
             np.fill_diagonal(extra_mat, 1)
             extra_factor = np.repeat(vectorize(extra_mat)[index_upd_pots], n_c_pot)
-            # dp/df
-            dpdf = -2 / 3 * np.pi * rho_ab * g_cur_avg * r3_dr * extra_factor
-            C[c, :] = dpdf @ dfdu_all
+            dpdu = -2 / 3 * np.pi * extra_factor * rho_ab * g_r3_diff
+            C[c, :] = dpdu
             if settings["flatten_at_cut_off"]:
                 C[
                     c, n_c_pot - 1 :: n_c_pot
