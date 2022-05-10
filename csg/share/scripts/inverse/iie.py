@@ -906,6 +906,11 @@ def add_jac_inv_diagonal(
                 jac_inv_mat[:, :, i, j] = kBT * (
                     (same_nb_term - dcdh[:, :, i, j]) / (g_avg_vec[:, i] - c_vec[:, i])
                 )
+                # times g version (does not work)
+                # jac_inv_mat[:, :, i, j] = kBT * (
+                # (same_nb_term - g_avg_vec[:, i] * dcdh[:, :, i, j])
+                # / (g_avg_vec[:, i] ** 2 - g_avg_vec[:, i] * c_vec[:, i])
+                # )
     # make negative infinities a large negative number, increasing stability
     jac_inv_mat[np.isneginf(jac_inv_mat)] = -1e37
     return jac_inv_mat
