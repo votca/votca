@@ -769,7 +769,7 @@ def gauss_newton_update(input_arrays, settings, verbose=False):
             np.fill_diagonal(extra_mat, 1)
             extra_factor = np.repeat(vectorize(extra_mat)[index_upd_pots], n_c_pot)
             rho_mol_total = settings["n_mols"] / settings["volume"][0]
-            # r² Δr
+            # r² Δr (slightly different than in paper, but more exact
             r2_dr = np.tile(
                 ((r[cut_pot] + Delta_r / 2) ** 3 - (r[cut_pot] - Delta_r / 2) ** 3) / 3,
                 n_upd_pots,
