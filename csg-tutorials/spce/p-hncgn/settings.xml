@@ -20,7 +20,6 @@
     <improve_dist_near_core> <!-- extrapolating the very small values at the onset of an RDF helps with stability a lot -->
       <target>true</target>
       <new>true</new>
-      <function>exponential</function>
       <fit_start_g>0.001</fit_start_g>
       <fit_end_g>0.5</fit_end_g>
     </improve_dist_near_core>
@@ -43,25 +42,23 @@
     <scriptpath />
     <log_file>inverse.log</log_file>
     <restart_file>restart_points.log</restart_file>
+    <topol_xml>topology.xml</topol_xml>
     <initial_guess>
       <method>ie</method>
       <cut_off>0.9</cut_off>
       <ie>
         <closure>hnc</closure>
-        <topol>topology.xml</topol>
       </ie>
     </initial_guess>
     <iie>
       <algorithm>gauss-newton</algorithm>
       <closure>hnc</closure>
-      <topol>topology.xml</topol>
     </iie>
     <gauss_newton>
       <cut_off>0.9</cut_off>
       <cut_residual>1.0</cut_residual>
       <pressure_constraint>-53</pressure_constraint> <!-- the pressure being negative can lead to buble formation, but -53 bar should be ok -->
       <residual_weighting>r**2/(g_tgt+1e-30)</residual_weighting> <!-- without any weighting, which gives more weight to RDF onset and tail, there might be artifacts in RDF or potential in those regions -->
-      <topol>topology.xml</topol>
     </gauss_newton>
   </inverse>
 </cg>
