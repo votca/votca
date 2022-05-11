@@ -20,6 +20,7 @@ Version 2022.1 (released XX.01.22)
 -  update install guide for spack (#972, #974)
 -  drop gmx-2021 builds from CI (#976)
 -  update syntax for cmake 3.23 (#978)
+-  fix CI build on Ubuntu (#981)
 
 Version 2022 (released 15.01.22)
 ================================
