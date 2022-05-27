@@ -62,9 +62,11 @@ jobs:
           - distro: 'fedora:intel'
             toolchain: intel
             cmake_build_type: Release
+            continue-on-error: true
           - distro: 'fedora:intel'
             toolchain: intel
             cmake_build_type: Debug
+            continue-on-error: true
           - distro: 'fedora:intel'
             toolchain: intel-oneapi
             cmake_build_type: Release
