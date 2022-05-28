@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2022 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,6 +26,7 @@
 #include "votca/xtp/gwbse.h"
 #include "votca/xtp/gwbseengine.h"
 #include "votca/xtp/logger.h"
+#include "votca/xtp/pmlocalization.h"
 #include "votca/xtp/qmpackage.h"
 
 using boost::format;
@@ -48,17 +49,27 @@ void GWBSEEngine::Initialize(tools::Property& options,
   // We split either on a space or a comma
   tools::Tokenizer tokenizedTasks(tasks_string, " ,");
   std::vector<std::string> tasks = tokenizedTasks.ToVector();
-
   // Check which tasks exist and set them to true
   do_guess_ = std::find(tasks.begin(), tasks.end(), "guess") != tasks.end();
   do_dft_input_ = std::find(tasks.begin(), tasks.end(), "input") != tasks.end();
   do_dft_run_ = std::find(tasks.begin(), tasks.end(), "dft") != tasks.end();
   do_dft_parse_ = std::find(tasks.begin(), tasks.end(), "parse") != tasks.end();
   do_gwbse_ = std::find(tasks.begin(), tasks.end(), "gwbse") != tasks.end();
+  do_localize_ =
+      std::find(tasks.begin(), tasks.end(), "localize") != tasks.end();
+  do_dft_in_dft_ =
+      std::find(tasks.begin(), tasks.end(), "dft_in_dft") != tasks.end();
 
   // XML option file for GWBSE
   if (do_gwbse_) {
     gwbse_options_ = options.get(".gwbse");
+  }
+  if (do_localize_) {
+    localize_options_ = options.get(".localize");
+  }
+  if (do_dft_in_dft_ && !do_localize_) {
+    throw std::runtime_error(
+        "Can't do DFT in DFT embedding without localization");
   }
   // DFT log and MO file names
   MO_file_ = qmpackage_->getMOFile();
@@ -138,6 +149,29 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     qmpackage_->CleanUp();
   }
 
+  if (do_localize_) {
+    PMLocalization pml(*logger, localize_options_);
+    pml.computePML(orbitals);
+  }
+
+  if (do_dft_in_dft_) {
+    qmpackage_->WriteInputFile(orbitals);
+    bool run_success = qmpackage_->RunActiveRegion();
+    if (!run_success) {
+      throw std::runtime_error("\n DFT in DFT embedding failed. Stopping!");
+    }
+    bool Logfile_parse = qmpackage_->ParseLogFile(orbitals);
+    if (!Logfile_parse) {
+      throw std::runtime_error("\n Parsing DFT logfile " + dftlog_file_ +
+                               " failed. Stopping!");
+    }
+    bool Orbfile_parse = qmpackage_->ParseMOsFile(orbitals);
+    if (!Orbfile_parse) {
+      throw std::runtime_error("\n Parsing DFT orbfile " + MO_file_ +
+                               " failed. Stopping!");
+    }
+  }
+
   // if no parsing of DFT data is requested, reload serialized orbitals object
   if (!do_dft_parse_ && do_gwbse_) {
     XTP_LOG(Log::error, *logger)
@@ -145,13 +179,29 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     orbitals.ReadFromCpt(archive_file_);
   }
   tools::Property& output_summary = summary_.add("output", "");
-  if (do_gwbse_) {
+
+  if (do_dft_in_dft_ && do_gwbse_) {
+    Orbitals orb_embedded = orbitals;
+    orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
+    Index active_electrons = orb_embedded.getNumOfActiveElectrons();
+    orb_embedded.setNumberOfAlphaElectrons(active_electrons);
+    orb_embedded.setNumberOfOccupiedLevels(active_electrons / 2);
+    GWBSE gwbse = GWBSE(orb_embedded);
+    gwbse.setLogger(logger);
+    gwbse.Initialize(gwbse_options_);
+    gwbse.Evaluate();
+    gwbse.addoutput(output_summary);
+  }
+
+  if (do_gwbse_ && !do_dft_in_dft_) {
     GWBSE gwbse = GWBSE(orbitals);
     gwbse.setLogger(logger);
     gwbse.Initialize(gwbse_options_);
     gwbse.Evaluate();
     gwbse.addoutput(output_summary);
   }
+
+  // if do truncatedgwbse
   if (!logger_file_.empty()) {
     WriteLoggerToFile(logger);
   }

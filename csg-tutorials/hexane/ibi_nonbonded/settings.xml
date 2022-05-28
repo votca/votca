@@ -11,7 +11,7 @@
     <max>1.5</max>
     <step>0.01</step>
     <inverse>
-      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <!-- target distribution (rdf), just give gromacs rdf.xvg -->
       <target>A-A.dist.tgt</target>
       <!-- update cycles -->
       <do_potential>1 0 0</do_potential>
@@ -38,7 +38,7 @@
     <step>0.01</step>
     
     <inverse>
-      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <!-- target distribution (rdf), just give gromacs rdf.xvg -->
       <target>B-B.dist.tgt</target>
       <!-- update cycles -->
       <do_potential>0 1 0</do_potential>
@@ -46,7 +46,6 @@
       <post_update></post_update>
       <!-- additional post processing of U after dU added to potential -->
       <post_add>convergence</post_add>
-      <!-- inverse monte carlo specific stuff -->
       <!-- name of the table for gromacs run -->
       <gromacs>
         <table>table_B_B.xvg</table>
@@ -65,7 +64,7 @@
     <max>1.35</max>
     <step>0.01</step>
     <inverse>
-      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <!-- target distribution (rdf), just give gromacs rdf.xvg -->
       <target>A-B.dist.tgt</target>
       <!-- update cycles -->
       <do_potential>0 0 1</do_potential>
@@ -73,7 +72,6 @@
       <post_update></post_update>
       <!-- additional post processing of U after dU added to potential -->
       <post_add>convergence</post_add>
-      <!-- inverse monte carlo specific stuff -->
       <!-- name of the table for gromacs run -->
       <gromacs>
         <table>table_A_B.xvg</table>
@@ -106,7 +104,7 @@
       <type>default</type>
       <limit>0.001</limit>
     </convergence_check>
-    <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
+    <!-- ibm: inverse boltzmann imc: inverse monte carlo -->
     <method>ibi</method>
     <!-- write log to this file -->
     <log_file>inverse.log</log_file>
