@@ -12,7 +12,7 @@ Version 2023-dev
 Version 2022.1 (released XX.01.22)
 ==================================
 
--  fix PROJECT_VERSION in subdirs (#951) 
+-  fix PROJECT_VERSION in subdirs (#951)
 -  make csg_resample and csg_stat spacing consistent (#956)
 -  fix build on FreeBSD (#959)
 -  update CI container names (#961)
@@ -21,6 +21,7 @@ Version 2022.1 (released XX.01.22)
 -  drop gmx-2021 builds from CI (#976)
 -  update syntax for cmake 3.23 (#978)
 -  fix CI build on Ubuntu (#981)
+-  fix CI builds with icpx (#984)
 
 Version 2022 (released 15.01.22)
 ================================
