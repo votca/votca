@@ -4,10 +4,24 @@ For more detailed information about the changes see the history of the
 Version 2023-dev
 ================
 
+-  implemented projection-based DFT embedding (#964)
+-  Added LMO energy output and cube file generation (#970)
+-  fix typos in csg-tutorials xml files (#980)
+-  unitary optimization for localization of orbitals (#971)
+
 Version 2022.1 (released XX.01.22)
 ==================================
 
--  fix PROJECT_VERSION in subdirs (#951) 
+-  fix PROJECT_VERSION in subdirs (#951)
+-  make csg_resample and csg_stat spacing consistent (#956)
+-  fix build on FreeBSD (#959)
+-  update CI container names (#961)
+-  Fix gw quadrature scheme (#967)
+-  update install guide for spack (#972, #974)
+-  drop gmx-2021 builds from CI (#976)
+-  update syntax for cmake 3.23 (#978)
+-  fix CI build on Ubuntu (#981)
+-  fix CI builds with icpx (#984)
 
 Version 2022 (released 15.01.22)
 ================================

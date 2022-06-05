@@ -1,7 +1,7 @@
 
 
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2022 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -363,7 +363,7 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *pLog_)
         << " Quadrature integration order : " << gwopt_.order << flush;
     gwopt_.quadrature_scheme =
-        options.get(".quadrature_scheme").as<std::string>();
+        options.get("gw.quadrature_scheme").as<std::string>();
     XTP_LOG(Log::error, *pLog_)
         << " Quadrature integration scheme : " << gwopt_.quadrature_scheme
         << flush;
@@ -589,7 +589,6 @@ bool GWBSE::Evaluate() {
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Loaded DFT Basis Set " << dftbasis_name_ << flush;
 
-  // fill DFT AO basis by going through all atoms
   AOBasis dftbasis = orbitals_.getDftBasis();
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled DFT Basis of size "
                               << dftbasis.AOBasisSize() << flush;
