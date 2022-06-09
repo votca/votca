@@ -78,20 +78,29 @@ bool ERDiabatizationFrame::Run() {
   orbitals1.ReadFromCpt(_orbfile1);
   orbitals2.ReadFromCpt(_orbfile2);
 
+  XTP_LOG(Log::error, _log) << TimeStamp() << "DONE" << flush;
+
   ERDiabatization ERDiabatization(orbitals1, orbitals2, &_log);
 
   if (orbitals1.getTDAApprox()) {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << _orbfile1
-        << "  was done with TDA only. Results might be off. We warned you!" << flush;
+        << "  was done with TDA only. Results might be off. We warned you!"
+        << flush;
   }
   if (orbitals2.getTDAApprox()) {
     XTP_LOG(Log::error, _log)
         << TimeStamp() << _orbfile2
-        << "  was done with TDA only. Results might be off. We warned you!" << flush;
+        << "  was done with TDA only. Results might be off. We warned you!"
+        << flush;
   }
 
+  XTP_LOG(Log::error, _log) << TimeStamp() << " Configuring" << flush;
   ERDiabatization.configure(_options);
+
+  XTP_LOG(Log::error, _log) << TimeStamp() << "DONE" << flush;
+
+  XTP_LOG(Log::error, _log) << TimeStamp() << "Matrix setup" << flush;
 
   ERDiabatization.setUpMatrices();
 

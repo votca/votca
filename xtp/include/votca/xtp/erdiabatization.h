@@ -67,12 +67,12 @@ class ERDiabatization {
                                        const double angle) const;
 
  private:
-  Logger* _pLog;
-
   Orbitals& _orbitals1;
   Orbitals& _orbitals2;
+
+  Logger* _pLog;
+
   ERIs _eris;
-  // AOOverlap _overlap;
   AOBasis _dftbasis1;
   AOBasis _auxbasis1;
 
@@ -87,10 +87,10 @@ class ERDiabatization {
   Index _bse_vmin1;
   Index _bse_vtotal1;
   Index _bse_ctotal1;
-  Index _basis1;
+  Index _basissize1;
   Index _bse_size_ao1;
-  Eigen::VectorXd _occlevels1;
-  Eigen::VectorXd _virtlevels1;
+  Eigen::MatrixXd _occlevels1;
+  Eigen::MatrixXd _virtlevels1;
 
   Index _bse_cmax2;
   Index _bse_cmin2;
@@ -98,10 +98,10 @@ class ERDiabatization {
   Index _bse_vmin2;
   Index _bse_vtotal2;
   Index _bse_ctotal2;
-  Index _basis2;
+  Index _basissize2;
   Index _bse_size_ao2;
-  Eigen::VectorXd _occlevels2;
-  Eigen::VectorXd _virtlevels2;
+  Eigen::MatrixXd _occlevels2;
+  Eigen::MatrixXd _virtlevels2;
 
   bool _useRI;
   options_erdiabatization _opt;

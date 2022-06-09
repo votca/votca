@@ -25,6 +25,7 @@
 #include "tools/coupling.h"
 #include "tools/densityanalysis.h"
 #include "tools/dftgwbse.h"
+#include "tools/erdiabatizationframe.h"
 #include "tools/excitoncoupling.h"
 #include "tools/gencube.h"
 #include "tools/gpu_benchmark.h"
@@ -35,7 +36,6 @@
 #include "tools/orb2mol.h"
 #include "tools/partialcharges.h"
 #include "tools/spectrum.h"
-#include "tools/erdiabatizationframe.h"
 
 namespace votca {
 namespace xtp {

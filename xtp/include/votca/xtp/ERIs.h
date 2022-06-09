@@ -40,7 +40,6 @@ class ERIs {
 
   Eigen::MatrixXd CalculateERIs_3c(const Eigen::MatrixXd& DMAT) const;
 
- 
   std::array<Eigen::MatrixXd, 2> CalculateERIs_EXX_3c(
       const Eigen::MatrixXd& occMos, const Eigen::MatrixXd& DMAT) const {
     std::array<Eigen::MatrixXd, 2> result;

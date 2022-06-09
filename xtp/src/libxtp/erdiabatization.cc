@@ -27,65 +27,74 @@ namespace xtp {
 
 void ERDiabatization::setUpMatrices() {
 
-  // Do some checks:
-
   // Check on dftbasis
   if (_orbitals1.getDFTbasisName() != _orbitals2.getDFTbasisName()) {
     throw std::runtime_error("Different DFT basis for the two input file.");
+  } else {
+
+    XTP_LOG(Log::error, *_pLog) << "Data was created with basis set "
+                                << _orbitals1.getDFTbasisName() << flush;
   }
 
   // Check on auxbasis
   if (_orbitals1.hasAuxbasisName()) {
-    this->_auxbasis1 = _orbitals1.SetupAuxBasis();
-    this->_useRI = true;
+    // this->_auxbasis1 = _orbitals1.SetupAuxBasis();
+    _auxbasis1 = _orbitals1.getAuxBasis();
+    _useRI = true;
   } else {
     XTP_LOG(Log::error, *_pLog)
         << "No auxbasis for file1: This will affect perfomances " << flush;
-    this->_useRI = false;
+    _useRI = false;
   }
 
   if (_orbitals2.hasAuxbasisName()) {
-    this->_auxbasis2 = _orbitals2.SetupAuxBasis();
-    this->_useRI = true;
+    _auxbasis2 = _orbitals2.getAuxBasis();
+    _useRI = true;
   } else {
     XTP_LOG(Log::error, *_pLog)
         << "No auxbasis for file2: This will affect perfomances " << flush;
-    this->_useRI = false;
+    _useRI = false;
   }
 
   if (_orbitals1.getAuxbasisName() != _orbitals2.getAuxbasisName()) {
     throw std::runtime_error("Different DFT aux-basis for the two input file.");
+  } else {
+    if (_useRI) {
+      XTP_LOG(Log::error, *_pLog) << "RI was used with Auxbasis set "
+                                  << _orbitals1.getAuxbasisName() << flush;
+    }
   }
 
   XTP_LOG(Log::debug, *_pLog) << "Setting up basis" << flush;
 
-  this->_dftbasis1 = _orbitals1.SetupDftBasis();
-  this->_bse_cmax1 = _orbitals1.getBSEcmax();
-  this->_bse_cmin1 = _orbitals1.getBSEcmin();
-  this->_bse_vmax1 = _orbitals1.getBSEvmax();
-  this->_bse_vmin1 = _orbitals1.getBSEvmin();
-  this->_bse_vtotal1 = _bse_vmax1 - _bse_vmin1 + 1;
-  this->_bse_ctotal1 = _bse_cmax1 - _bse_cmin1 + 1;
-  this->_basis1 = _orbitals1.getBasisSetSize();
-  this->_bse_size_ao1 = _basis1 * _basis1;
-  this->_occlevels1 = _orbitals1.MOs().eigenvectors().block(
-      0, _bse_vmin1, _orbitals1.MOs().eigenvectors().rows(), _bse_vtotal1);
-  this->_virtlevels1 = _orbitals1.MOs().eigenvectors().block(
-      0, _bse_cmin1, _orbitals1.MOs().eigenvectors().rows(), _bse_ctotal1);
-  this->_dftbasis2 = _orbitals2.SetupDftBasis();
+  _dftbasis1 = _orbitals1.getDftBasis();
+  _bse_cmax1 = _orbitals1.getBSEcmax();
+  _bse_cmin1 = _orbitals1.getBSEcmin();
+  _bse_vmax1 = _orbitals1.getBSEvmax();
+  _bse_vmin1 = _orbitals1.getBSEvmin();
+  _bse_vtotal1 = _bse_vmax1 - _bse_vmin1 + 1;
+  _bse_ctotal1 = _bse_cmax1 - _bse_cmin1 + 1;
+  _basissize1 = _orbitals1.getBasisSetSize();
+  //_bse_size_ao1 = _basis1 * _basis1;
 
-  this->_bse_cmax2 = _orbitals2.getBSEcmax();
-  this->_bse_cmin2 = _orbitals2.getBSEcmin();
-  this->_bse_vmax2 = _orbitals2.getBSEvmax();
-  this->_bse_vmin2 = _orbitals2.getBSEvmin();
-  this->_bse_vtotal2 = _bse_vmax2 - _bse_vmin2 + 1;
-  this->_bse_ctotal2 = _bse_cmax2 - _bse_cmin2 + 1;
-  this->_basis2 = _orbitals2.getBasisSetSize();
-  this->_bse_size_ao2 = _basis2 * _basis2;
-  this->_occlevels2 = _orbitals2.MOs().eigenvectors().block(
-      0, _bse_vmin2, _orbitals2.MOs().eigenvectors().rows(), _bse_vtotal2);
-  this->_virtlevels2 = _orbitals2.MOs().eigenvectors().block(
-      0, _bse_cmin2, _orbitals2.MOs().eigenvectors().rows(), _bse_ctotal2);
+  _occlevels1 = _orbitals1.MOs().eigenvectors().block(
+      0, _bse_vmin1, _basissize1, _bse_vtotal1);
+  _virtlevels1 = _orbitals1.MOs().eigenvectors().block(
+      0, _bse_cmin1, _basissize1, _bse_ctotal1);
+
+  // does this make any sense? Should be completely the same as in mol1
+  _dftbasis2 = _orbitals2.getDftBasis();
+  _bse_cmax2 = _orbitals2.getBSEcmax();
+  _bse_cmin2 = _orbitals2.getBSEcmin();
+  _bse_vmax2 = _orbitals2.getBSEvmax();
+  _bse_vmin2 = _orbitals2.getBSEvmin();
+  _bse_vtotal2 = _bse_vmax2 - _bse_vmin2 + 1;
+  _bse_ctotal2 = _bse_cmax2 - _bse_cmin2 + 1;
+  _basissize2 = _orbitals2.getBasisSetSize();
+  _occlevels2 = _orbitals2.MOs().eigenvectors().block(
+      0, _bse_vmin2, _basissize2, _bse_vtotal2);
+  _virtlevels2 = _orbitals2.MOs().eigenvectors().block(
+      0, _bse_cmin2, _basissize2, _bse_ctotal2);
 
   // Use different RI initialization according to what is in the orb files.
   if (_useRI) {
@@ -193,10 +202,13 @@ void ERDiabatization::Print_ERfunction(Eigen::VectorXd results) const {
   Index pos_min;
   Index pos_max;
 
-  XTP_LOG(Log::error, *_pLog) << "Maximum EF is: " << results.maxCoeff(&pos_max)
-                              << " at position " << pos_max << flush;
-  XTP_LOG(Log::error, *_pLog) << "Minimum EF is: " << results.minCoeff(&pos_min)
-                              << " at position " << pos_min << flush;
+  double maxval = results.maxCoeff(&pos_max);
+  double minval = results.minCoeff(&pos_min);
+
+  XTP_LOG(Log::error, *_pLog)
+      << "Maximum EF is: " << maxval << " at position " << pos_max << flush;
+  XTP_LOG(Log::error, *_pLog)
+      << "Minimum EF is: " << minval << " at position " << pos_min << flush;
 
   double angle = phi_in + (pos_max + 1) * step;
   double angle_min = phi_in + (pos_min + 1) * step;
