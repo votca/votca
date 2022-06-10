@@ -190,8 +190,8 @@ void ERDiabatization::Print_ERfunction(Eigen::VectorXd results) const {
   double step = (phi_fin - phi_in) / double(results.size());
 
   for (Index n = 0; n < results.size(); n++) {
-    std::cout << (57.2958) * (phi_in + double(n + 1) * step) << " " << results(n)
-              << std::endl;
+    std::cout << (57.2958) * (phi_in + double(n + 1) * step) << " "
+              << results(n) << std::endl;
   }
 
   XTP_LOG(Log::error, *_pLog)
@@ -304,10 +304,9 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb1,
     index2 = _opt.state_idx_1;
   } else if (stateindex2 == 1) {
     index2 = _opt.state_idx_2;
-  } else{
+  } else {
     throw std::runtime_error("Invalid state index specified.");
   }
-
 
   Eigen::VectorXd exciton1;
   Eigen::VectorXd exciton2;
