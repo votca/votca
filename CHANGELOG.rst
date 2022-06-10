@@ -8,6 +8,7 @@ Version 2023-dev
 -  Added LMO energy output and cube file generation (#970)
 -  fix typos in csg-tutorials xml files (#980)
 -  unitary optimization for localization of orbitals (#971)
+-  separate option for density max convergence tolerance in qmmm (#987)
 
 Version 2022.1 (released XX.01.22)
 ==================================
