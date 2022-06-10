@@ -187,10 +187,10 @@ void ERDiabatization::Print_ERfunction(Eigen::VectorXd results) const {
   // Final mixing angle
   double phi_fin = .5 * Pi;
   // We divide the interval into equal bits
-  double step = (phi_fin - phi_in) / results.size();
+  double step = (phi_fin - phi_in) / double(results.size());
 
   for (Index n = 0; n < results.size(); n++) {
-    std::cout << (57.2958) * (phi_in + (n + 1) * step) << " " << results(n)
+    std::cout << (57.2958) * (phi_in + double(n + 1) * step) << " " << results(n)
               << std::endl;
   }
 
@@ -210,8 +210,8 @@ void ERDiabatization::Print_ERfunction(Eigen::VectorXd results) const {
   XTP_LOG(Log::error, *_pLog)
       << "Minimum EF is: " << minval << " at position " << pos_min << flush;
 
-  double angle = phi_in + (pos_max + 1) * step;
-  double angle_min = phi_in + (pos_min + 1) * step;
+  double angle = phi_in + double(pos_max + 1) * step;
+  double angle_min = phi_in + double(pos_min + 1) * step;
   XTP_LOG(Log::error, *_pLog)
       << "From plot: "
       << "MAX " << angle * 57.2958 << " MIN " << angle_min * 57.2958 << flush;
@@ -254,12 +254,12 @@ Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb1,
   // Final mixing angle
   double phi_fin = 0.5 * pi;
   // We divide the interval into equal bits
-  double step = (phi_fin - phi_in) / results.size();
+  double step = (phi_fin - phi_in) / double(results.size());
   // Define angle we are iterating
   double phi;
   for (Index n = 0; n < results.size(); n++) {
     // Update angle
-    phi = phi_in + (n + 1) * step;
+    phi = phi_in + double(n + 1) * step;
     Eigen::MatrixXd U = CalculateU(phi);
     // Complicated loop to handle. Can we make it a bit better?
     double result = 0.;
@@ -295,16 +295,19 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb1,
 
   if (stateindex1 == 0) {
     index1 = _opt.state_idx_1;
-  }
-  if (stateindex1 == 1) {
+  } else if (stateindex1 == 1) {
     index1 = _opt.state_idx_2;
+  } else {
+    throw std::runtime_error("Invalid state index specified.");
   }
   if (stateindex2 == 0) {
     index2 = _opt.state_idx_1;
-  }
-  if (stateindex2 == 1) {
+  } else if (stateindex2 == 1) {
     index2 = _opt.state_idx_2;
+  } else{
+    throw std::runtime_error("Invalid state index specified.");
   }
+
 
   Eigen::VectorXd exciton1;
   Eigen::VectorXd exciton2;

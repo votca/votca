@@ -55,7 +55,7 @@ void ERDiabatizationFrame::ParseOptions(const tools::Property& user_options) {
   }
 
   XTP_LOG(Log::error, _log) << flush;
-};
+}
 
 bool ERDiabatizationFrame::Run() {
 
