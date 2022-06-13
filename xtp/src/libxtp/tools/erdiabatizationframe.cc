@@ -62,7 +62,6 @@ bool ERDiabatizationFrame::Run() {
   OPENMP::setMaxThreads(nThreads_);
 
   // set logger
-
   _log.setReportLevel(Log::error);
   _log.setMultithreading(true);
   _log.setCommonPreface("\n... ...");
@@ -71,14 +70,12 @@ bool ERDiabatizationFrame::Run() {
       << TimeStamp() << " Reading from orbitals from files: " << _orbfile1
       << " and " << _orbfile2 << flush;
 
-  // Get orbitals object
+  // Get orbitals objects
   Orbitals orbitals1;
   Orbitals orbitals2;
 
   orbitals1.ReadFromCpt(_orbfile1);
   orbitals2.ReadFromCpt(_orbfile2);
-
-  XTP_LOG(Log::error, _log) << TimeStamp() << "DONE" << flush;
 
   ERDiabatization ERDiabatization(orbitals1, orbitals2, &_log);
 
@@ -95,36 +92,17 @@ bool ERDiabatizationFrame::Run() {
         << flush;
   }
 
-  XTP_LOG(Log::error, _log) << TimeStamp() << " Configuring" << flush;
   ERDiabatization.configure(_options);
-
-  XTP_LOG(Log::error, _log) << TimeStamp() << "DONE" << flush;
-
-  XTP_LOG(Log::error, _log) << TimeStamp() << "Matrix setup" << flush;
-
   ERDiabatization.setUpMatrices();
 
   XTP_LOG(Log::error, _log)
       << TimeStamp() << " Started ER Diabatization " << flush;
 
   // Calculate angle
-  double angle = ERDiabatization.Calculate_angle(orbitals1, orbitals2, _qmtype);
-
-  // Evaluating the Diabatic Hamiltonian
-  // We need the adiabatic energies of the two states selected in the option
-  double ad_E1;
-  double ad_E2;
-  if (_qmtype == QMStateType::Singlet) {
-    ad_E1 = orbitals1.BSESinglets().eigenvalues()[_options.state_idx_1 - 1];
-    ad_E2 = orbitals2.BSESinglets().eigenvalues()[_options.state_idx_2 - 1];
-  } else {
-    ad_E1 = orbitals1.BSETriplets().eigenvalues()[_options.state_idx_1 - 1];
-    ad_E2 = orbitals2.BSETriplets().eigenvalues()[_options.state_idx_2 - 1];
-  }
+  double angle = ERDiabatization.Calculate_angle();
 
   // We can now calculate the diabatic Hamiltonian
-  Eigen::MatrixXd diabatic_H =
-      ERDiabatization.Calculate_diabatic_H(ad_E1, ad_E2, angle);
+  Eigen::MatrixXd diabatic_H = ERDiabatization.Calculate_diabatic_H(angle);
   // This is just a print
   std::cout << "\n Diabatic Hamiltonian for state " << _options.state_idx_1
             << " and " << _options.state_idx_2 << "\n"

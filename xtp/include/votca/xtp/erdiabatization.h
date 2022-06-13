@@ -40,7 +40,7 @@ class ERDiabatization {
   ERDiabatization();
 
   ERDiabatization(Orbitals& orbitals1, Orbitals& orbitals2, Logger* log)
-      : _orbitals1(orbitals1), _orbitals2(orbitals2), _pLog(log){};
+      : orbitals1_(orbitals1), orbitals2_(orbitals2), pLog_(log){};
 
   // Write a function to set up all the matrices we need
   void setUpMatrices();
@@ -56,73 +56,53 @@ class ERDiabatization {
 
   void configure(const options_erdiabatization& opt);
 
-  double Calculate_angle(const Orbitals& orb1, const Orbitals& orb2,
-                         QMStateType type) const;
-  Eigen::MatrixXd Calculate_diabatic_H(const double E1, const double E2,
-                                       const double angle) const;
+  double Calculate_angle() const;
+  Eigen::MatrixXd Calculate_diabatic_H(const double angle) const;
 
  private:
-  Orbitals& _orbitals1;
-  Orbitals& _orbitals2;
+  Orbitals& orbitals1_;
+  Orbitals& orbitals2_;
+  QMStateType qmtype_;
+  Logger* pLog_;
 
-  Logger* _pLog;
+  ERIs eris_;
+  AOBasis dftbasis_;
+  AOBasis auxbasis_;
 
-  ERIs _eris;
-  AOBasis _dftbasis1;
-  AOBasis _auxbasis1;
+  Index bse_cmax_;
+  Index bse_cmin_;
+  Index bse_vmax_;
+  Index bse_vmin_;
+  Index bse_vtotal_;
+  Index bse_ctotal_;
+  Index basissize_;
 
-  AOBasis _dftbasis2;
-  AOBasis _auxbasis2;
+  Eigen::MatrixXd occlevels1_;
+  Eigen::MatrixXd virtlevels1_;
 
-  std::string _type;
-  Index _nostates;
-  Index _bse_cmax1;
-  Index _bse_cmin1;
-  Index _bse_vmax1;
-  Index _bse_vmin1;
-  Index _bse_vtotal1;
-  Index _bse_ctotal1;
-  Index _basissize1;
-  Index _bse_size_ao1;
-  Eigen::MatrixXd _occlevels1;
-  Eigen::MatrixXd _virtlevels1;
+  Eigen::MatrixXd occlevels2_;
+  Eigen::MatrixXd virtlevels2_;
 
-  Index _bse_cmax2;
-  Index _bse_cmin2;
-  Index _bse_vmax2;
-  Index _bse_vmin2;
-  Index _bse_vtotal2;
-  Index _bse_ctotal2;
-  Index _basissize2;
-  Index _bse_size_ao2;
-  Eigen::MatrixXd _occlevels2;
-  Eigen::MatrixXd _virtlevels2;
+  bool useRI_;
+  options_erdiabatization opt_;
 
-  bool _useRI;
-  options_erdiabatization _opt;
+  double E1_;
+  double E2_;
 
   template <bool AR>
-  Eigen::MatrixXd CalculateD(const Orbitals& orb1, const Orbitals& orb2,
-                             QMStateType type, Index stateindex1,
-                             Index stateindex2) const;
+  Eigen::MatrixXd CalculateD(Index stateindex1, Index stateindex2) const;
 
-  Eigen::MatrixXd CalculateD_R(const Orbitals& orb1, const Orbitals& orb2,
-                               QMStateType type, Index stateindex1,
-                               Index stateindex2) const {
-    return CalculateD<false>(orb1, orb2, type, stateindex1, stateindex2);
+  Eigen::MatrixXd CalculateD_R(Index stateindex1, Index stateindex2) const {
+    return CalculateD<false>(stateindex1, stateindex2);
   }
-  Eigen::MatrixXd CalculateD_AR(const Orbitals& orb1, const Orbitals& orb2,
-                                QMStateType type, Index stateindex1,
-                                Index stateindex2) const {
-    return CalculateD<true>(orb1, orb2, type, stateindex1, stateindex2);
+  Eigen::MatrixXd CalculateD_AR(Index stateindex1, Index stateindex2) const {
+    return CalculateD<true>(stateindex1, stateindex2);
   }
 
   double CalculateR(const Eigen::MatrixXd& D_JK,
                     const Eigen::MatrixXd& D_LM) const;
   Eigen::MatrixXd CalculateU(const double phi) const;
-  Eigen::Tensor<double, 4> CalculateRtensor(const Orbitals& orb1,
-                                            const Orbitals& orb2,
-                                            QMStateType type) const;
+  Eigen::Tensor<double, 4> CalculateRtensor() const;
 };
 
 }  // namespace xtp

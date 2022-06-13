@@ -28,86 +28,89 @@ namespace xtp {
 void ERDiabatization::setUpMatrices() {
 
   // Check on dftbasis
-  if (_orbitals1.getDFTbasisName() != _orbitals2.getDFTbasisName()) {
+  if (orbitals1_.getDFTbasisName() != orbitals2_.getDFTbasisName()) {
     throw std::runtime_error("Different DFT basis for the two input file.");
   } else {
-
-    XTP_LOG(Log::error, *_pLog) << "Data was created with basis set "
-                                << _orbitals1.getDFTbasisName() << flush;
+    dftbasis_ = orbitals1_.getDftBasis();
+    basissize_ = orbitals1_.getBasisSetSize();
+    XTP_LOG(Log::error, *pLog_) << "Data was created with basis set "
+                                << orbitals1_.getDFTbasisName() << flush;
   }
 
   // Check on auxbasis
-  if (_orbitals1.hasAuxbasisName()) {
-    // this->_auxbasis1 = _orbitals1.SetupAuxBasis();
-    _auxbasis1 = _orbitals1.getAuxBasis();
-    _useRI = true;
-  } else {
-    XTP_LOG(Log::error, *_pLog)
-        << "No auxbasis for file1: This will affect perfomances " << flush;
-    _useRI = false;
-  }
-
-  if (_orbitals2.hasAuxbasisName()) {
-    _auxbasis2 = _orbitals2.getAuxBasis();
-    _useRI = true;
-  } else {
-    XTP_LOG(Log::error, *_pLog)
-        << "No auxbasis for file2: This will affect perfomances " << flush;
-    _useRI = false;
-  }
-
-  if (_orbitals1.getAuxbasisName() != _orbitals2.getAuxbasisName()) {
-    throw std::runtime_error("Different DFT aux-basis for the two input file.");
-  } else {
-    if (_useRI) {
-      XTP_LOG(Log::error, *_pLog) << "RI was used with Auxbasis set "
-                                  << _orbitals1.getAuxbasisName() << flush;
+  if (orbitals1_.hasAuxbasisName() && orbitals2_.hasAuxbasisName()) {
+    if (orbitals1_.getAuxbasisName() == orbitals2_.getAuxbasisName()) {
+      auxbasis_ = orbitals1_.getAuxBasis();
+      useRI_ = true;
+    } else {
+      throw std::runtime_error(
+          "Different DFT aux-basis for the two input file.");
     }
+  } else {
+    XTP_LOG(Log::error, *pLog_)
+        << "No auxbasis for file1: This will affect perfomances " << flush;
+    useRI_ = false;
   }
 
-  XTP_LOG(Log::debug, *_pLog) << "Setting up basis" << flush;
+  // check BSE indices
+  if (orbitals1_.getBSEvmin() != orbitals2_.getBSEvmin()) {
+    throw std::runtime_error("Different BSE vmin for the two input file.");
+  } else {
+    bse_vmin_ = orbitals1_.getBSEvmin();
+  }
 
-  _dftbasis1 = _orbitals1.getDftBasis();
-  _bse_cmax1 = _orbitals1.getBSEcmax();
-  _bse_cmin1 = _orbitals1.getBSEcmin();
-  _bse_vmax1 = _orbitals1.getBSEvmax();
-  _bse_vmin1 = _orbitals1.getBSEvmin();
-  _bse_vtotal1 = _bse_vmax1 - _bse_vmin1 + 1;
-  _bse_ctotal1 = _bse_cmax1 - _bse_cmin1 + 1;
-  _basissize1 = _orbitals1.getBasisSetSize();
-  //_bse_size_ao1 = _basis1 * _basis1;
+  if (orbitals1_.getBSEvmax() != orbitals2_.getBSEvmax()) {
+    throw std::runtime_error("Different BSE vmax for the two input file.");
+  } else {
+    bse_vmax_ = orbitals1_.getBSEvmax();
+  }
 
-  _occlevels1 = _orbitals1.MOs().eigenvectors().block(
-      0, _bse_vmin1, _basissize1, _bse_vtotal1);
-  _virtlevels1 = _orbitals1.MOs().eigenvectors().block(
-      0, _bse_cmin1, _basissize1, _bse_ctotal1);
+  if (orbitals1_.getBSEcmin() != orbitals2_.getBSEcmin()) {
+    throw std::runtime_error("Different BSE cmin for the two input file.");
+  } else {
+    bse_cmin_ = orbitals1_.getBSEcmin();
+  }
 
-  // does this make any sense? Should be completely the same as in mol1
-  _dftbasis2 = _orbitals2.getDftBasis();
-  _bse_cmax2 = _orbitals2.getBSEcmax();
-  _bse_cmin2 = _orbitals2.getBSEcmin();
-  _bse_vmax2 = _orbitals2.getBSEvmax();
-  _bse_vmin2 = _orbitals2.getBSEvmin();
-  _bse_vtotal2 = _bse_vmax2 - _bse_vmin2 + 1;
-  _bse_ctotal2 = _bse_cmax2 - _bse_cmin2 + 1;
-  _basissize2 = _orbitals2.getBasisSetSize();
-  _occlevels2 = _orbitals2.MOs().eigenvectors().block(
-      0, _bse_vmin2, _basissize2, _bse_vtotal2);
-  _virtlevels2 = _orbitals2.MOs().eigenvectors().block(
-      0, _bse_cmin2, _basissize2, _bse_ctotal2);
+  if (orbitals1_.getBSEcmax() != orbitals2_.getBSEcmax()) {
+    throw std::runtime_error("Different BSE cmax for the two input file.");
+  } else {
+    bse_cmax_ = orbitals1_.getBSEcmax();
+  }
+
+  bse_vtotal_ = bse_vmax_ - bse_vmin_ + 1;
+  bse_ctotal_ = bse_cmax_ - bse_cmin_ + 1;
+
+  occlevels1_ = orbitals1_.MOs().eigenvectors().block(0, bse_vmin_, basissize_,
+                                                      bse_vtotal_);
+  virtlevels1_ = orbitals1_.MOs().eigenvectors().block(0, bse_cmin_, basissize_,
+                                                       bse_ctotal_);
+
+  occlevels2_ = orbitals2_.MOs().eigenvectors().block(0, bse_vmin_, basissize_,
+                                                      bse_vtotal_);
+  virtlevels2_ = orbitals2_.MOs().eigenvectors().block(0, bse_cmin_, basissize_,
+                                                       bse_ctotal_);
 
   // Use different RI initialization according to what is in the orb files.
-  if (_useRI) {
-    XTP_LOG(Log::error, *_pLog) << "Using RI " << flush;
-    _eris.Initialize(_dftbasis1, _auxbasis1);
+  if (useRI_) {
+    XTP_LOG(Log::error, *pLog_) << "Using RI " << flush;
+    eris_.Initialize(dftbasis_, auxbasis_);
   } else {
-    XTP_LOG(Log::error, *_pLog) << "Not using RI. It can be slow. " << flush;
-    _eris.Initialize_4c(_dftbasis1);
+    XTP_LOG(Log::error, *pLog_) << "Not using RI. It can be slow. " << flush;
+    eris_.Initialize_4c(dftbasis_);
   }
 }
 
 void ERDiabatization::configure(const options_erdiabatization& opt) {
-  _opt = opt;
+  opt_ = opt;
+  qmtype_.FromString(opt.qmtype);
+
+  if (qmtype_ == QMStateType::Singlet) {
+    E1_ = orbitals1_.BSESinglets().eigenvalues()[opt_.state_idx_1 - 1];
+    E2_ = orbitals2_.BSESinglets().eigenvalues()[opt_.state_idx_2 - 1];
+  } else {
+    E1_ = orbitals1_.BSETriplets().eigenvalues()[opt_.state_idx_1 - 1];
+    E2_ = orbitals2_.BSETriplets().eigenvalues()[opt_.state_idx_2 - 1];
+  }
 }
 
 double ERDiabatization::CalculateR(const Eigen::MatrixXd& D_JK,
@@ -116,10 +119,10 @@ double ERDiabatization::CalculateR(const Eigen::MatrixXd& D_JK,
   // Here I want to do \sum_{kl} (ij|kl) D^{LM}_{jk}. Is it right?
   Eigen::MatrixXd contracted;
   // I still have to figure how to try 3c and if it fails go to 4c
-  if (_useRI) {
-    contracted = _eris.CalculateERIs_3c(D_LM);
+  if (useRI_) {
+    contracted = eris_.CalculateERIs_3c(D_LM);
   } else {
-    contracted = _eris.CalculateERIs_4c(D_LM, 1e-12);
+    contracted = eris_.CalculateERIs_4c(D_LM, 1e-12);
   }
 
   return D_JK.cwiseProduct(contracted).sum();
@@ -135,26 +138,24 @@ Eigen::MatrixXd ERDiabatization::CalculateU(const double phi) const {
 }
 
 Eigen::MatrixXd ERDiabatization::Calculate_diabatic_H(
-    const double E1, const double E2, const double angle) const {
+    const double angle) const {
   Eigen::VectorXd ad_energies(2);
-  ad_energies << E1, E2;
+  ad_energies << E1_, E2_;
 
   // To uncomment
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::error, *pLog_)
       << "Adiabatic energies in eV "
-      << "E1: " << E1 * votca::tools::conv::hrt2ev
-      << " E2: " << E2 * votca::tools::conv::hrt2ev << flush;
-  XTP_LOG(Log::error, *_pLog)
+      << "E1: " << E1_ * votca::tools::conv::hrt2ev
+      << " E2: " << E2_ * votca::tools::conv::hrt2ev << flush;
+  XTP_LOG(Log::error, *pLog_)
       << "Rotation angle (degrees) " << angle * 57.2958 << flush;
 
   Eigen::MatrixXd U = CalculateU(angle);
   return U.transpose() * ad_energies.asDiagonal() * U;
 }
 
-double ERDiabatization::Calculate_angle(const Orbitals& orb1,
-                                        const Orbitals& orb2,
-                                        QMStateType type) const {
-  Eigen::Tensor<double, 4> rtensor = CalculateRtensor(orb1, orb2, type);
+double ERDiabatization::Calculate_angle() const {
+  Eigen::Tensor<double, 4> rtensor = CalculateRtensor();
 
   double A_12 =
       rtensor(0, 1, 0, 1) - 0.25 * (rtensor(0, 0, 0, 0) + rtensor(1, 1, 1, 1) -
@@ -169,30 +170,29 @@ double ERDiabatization::Calculate_angle(const Orbitals& orb1,
 
   double angle = 0.25 * std::acos(cos4alpha);
 
-  XTP_LOG(Log::error, *_pLog) << "B12 " << B_12 << flush;
-  XTP_LOG(Log::error, *_pLog) << "A12 " << A_12 << flush;
+  XTP_LOG(Log::debug, *pLog_) << "B12 " << B_12 << flush;
+  XTP_LOG(Log::debug, *pLog_) << "A12 " << A_12 << flush;
 
-  XTP_LOG(Log::error, *_pLog)
+  XTP_LOG(Log::debug, *pLog_)
       << "angle MAX (degrees) " << angle * 57.2958 << flush;
 
   return angle;
 }
 
-Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor(
-    const Orbitals& orb1, const Orbitals& orb2, QMStateType type) const {
-  XTP_LOG(Log::error, *_pLog) << "Computing R tensor" << flush;
+Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor() const {
+  XTP_LOG(Log::error, *pLog_) << "Computing R tensor" << flush;
   Eigen::Tensor<double, 4> r_tensor(2, 2, 2, 2);
   for (Index J = 0; J < 2; J++) {
     for (Index K = 0; K < 2; K++) {
-      Eigen::MatrixXd D_JK = CalculateD_R(orb1, orb2, type, J, K);
-      if (!orb1.getTDAApprox() and !orb2.getTDAApprox()) {
-        D_JK -= CalculateD_AR(orb1, orb2, type, J, K);
+      Eigen::MatrixXd D_JK = CalculateD_R(J, K);
+      if (!orbitals1_.getTDAApprox() and !orbitals2_.getTDAApprox()) {
+        D_JK -= CalculateD_AR(J, K);
       }
       for (Index L = 0; L < 2; L++) {
         for (Index M = 0; M < 2; M++) {
-          Eigen::MatrixXd D_LM = CalculateD_R(orb1, orb2, type, L, M);
-          if (!orb1.getTDAApprox() and !orb2.getTDAApprox()) {
-            D_LM -= CalculateD_AR(orb1, orb2, type, L, M);
+          Eigen::MatrixXd D_LM = CalculateD_R(L, M);
+          if (!orbitals1_.getTDAApprox() and !orbitals2_.getTDAApprox()) {
+            D_LM -= CalculateD_AR(L, M);
           }
           r_tensor(J, K, L, M) = CalculateR(D_JK, D_LM);
         }
@@ -203,9 +203,7 @@ Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor(
 }
 
 template <bool AR>
-Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb1,
-                                            const Orbitals& orb2,
-                                            QMStateType type, Index stateindex1,
+Eigen::MatrixXd ERDiabatization::CalculateD(Index stateindex1,
                                             Index stateindex2) const {
 
   // D matrix depends on 2 indeces. These can be either 0 or 1.
@@ -216,16 +214,16 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb1,
   Index index2;
 
   if (stateindex1 == 0) {
-    index1 = _opt.state_idx_1;
+    index1 = opt_.state_idx_1;
   } else if (stateindex1 == 1) {
-    index1 = _opt.state_idx_2;
+    index1 = opt_.state_idx_2;
   } else {
     throw std::runtime_error("Invalid state index specified.");
   }
   if (stateindex2 == 0) {
-    index2 = _opt.state_idx_1;
+    index2 = opt_.state_idx_1;
   } else if (stateindex2 == 1) {
-    index2 = _opt.state_idx_2;
+    index2 = opt_.state_idx_2;
   } else {
     throw std::runtime_error("Invalid state index specified.");
   }
@@ -235,43 +233,43 @@ Eigen::MatrixXd ERDiabatization::CalculateD(const Orbitals& orb1,
 
   // If AR==True we want Bs from BSE. If AR==False we want As from BSE.
   if (AR) {
-    if (type == QMStateType::Singlet) {
-      exciton1 = orb1.BSESinglets().eigenvectors2().col(index1 - 1);
-      exciton2 = orb2.BSESinglets().eigenvectors2().col(index2 - 1);
+    if (qmtype_ == QMStateType::Singlet) {
+      exciton1 = orbitals1_.BSESinglets().eigenvectors2().col(index1 - 1);
+      exciton2 = orbitals2_.BSESinglets().eigenvectors2().col(index2 - 1);
     } else {
-      exciton1 = orb1.BSETriplets().eigenvectors2().col(index1 - 1);
-      exciton2 = orb2.BSETriplets().eigenvectors2().col(index2 - 1);
+      exciton1 = orbitals1_.BSETriplets().eigenvectors2().col(index1 - 1);
+      exciton2 = orbitals2_.BSETriplets().eigenvectors2().col(index2 - 1);
     }
   } else {
-    if (type == QMStateType::Singlet) {
-      exciton1 = orb1.BSESinglets().eigenvectors().col(index1 - 1);
-      exciton2 = orb2.BSESinglets().eigenvectors().col(index2 - 1);
+    if (qmtype_ == QMStateType::Singlet) {
+      exciton1 = orbitals1_.BSESinglets().eigenvectors().col(index1 - 1);
+      exciton2 = orbitals2_.BSESinglets().eigenvectors().col(index2 - 1);
     } else {
-      exciton1 = orb1.BSETriplets().eigenvectors().col(index1 - 1);
-      exciton2 = orb2.BSETriplets().eigenvectors().col(index2 - 1);
+      exciton1 = orbitals1_.BSETriplets().eigenvectors().col(index1 - 1);
+      exciton2 = orbitals2_.BSETriplets().eigenvectors().col(index2 - 1);
     }
   }
 
-  Eigen::Map<const Eigen::MatrixXd> mat1(exciton1.data(), _bse_ctotal1,
-                                         _bse_vtotal1);
-  Eigen::Map<const Eigen::MatrixXd> mat2(exciton2.data(), _bse_ctotal2,
-                                         _bse_vtotal2);
+  Eigen::Map<const Eigen::MatrixXd> mat1(exciton1.data(), bse_ctotal_,
+                                         bse_vtotal_);
+  Eigen::Map<const Eigen::MatrixXd> mat2(exciton2.data(), bse_ctotal_,
+                                         bse_vtotal_);
 
   Eigen::MatrixXd AuxMat_vv = mat1.transpose() * mat2;
 
   Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();
 
   Eigen::MatrixXd results =
-      _virtlevels1 * AuxMat_cc * _virtlevels2.transpose() -
-      _occlevels1 * AuxMat_vv * _occlevels2.transpose();
+      virtlevels1_ * AuxMat_cc * virtlevels2_.transpose() -
+      occlevels1_ * AuxMat_vv * occlevels2_.transpose();
 
   // This adds the GS density
   if (stateindex1 == stateindex2) {
     if (stateindex1 == 0) {
-      results += orb1.DensityMatrixGroundState();
+      results += orbitals1_.DensityMatrixGroundState();
     }
     if (stateindex1 == 1) {
-      results += orb2.DensityMatrixGroundState();
+      results += orbitals2_.DensityMatrixGroundState();
     }
   }
 

@@ -91,26 +91,12 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
   ERDiabatization.setUpMatrices();
 
   // Calculate angle
-  double angle = ERDiabatization.Calculate_angle(dimer, dimer, options.qmtype);
+  double angle = ERDiabatization.Calculate_angle();
   double angle_ref = 0.71542472271498847;
   BOOST_CHECK_CLOSE(angle_ref, angle, 1e-4);
 
-  // call calculate H
-  double ad_E1;
-  double ad_E2;
-  QMStateType qmtype;
-  qmtype.FromString(options.qmtype);
-  if (qmtype == QMStateType::Singlet) {
-    ad_E1 = dimer.BSESinglets().eigenvalues()[options.state_idx_1 - 1];
-    ad_E2 = dimer.BSESinglets().eigenvalues()[options.state_idx_2 - 1];
-  } else {
-    ad_E1 = dimer.BSETriplets().eigenvalues()[options.state_idx_1 - 1];
-    ad_E2 = dimer.BSETriplets().eigenvalues()[options.state_idx_2 - 1];
-  }
-
-  // We can now calculate the diabatic Hamiltonian
-  Eigen::MatrixXd diabatic_H =
-      ERDiabatization.Calculate_diabatic_H(ad_E1, ad_E2, angle);
+  // diabatic Hamiltonian
+  Eigen::MatrixXd diabatic_H = ERDiabatization.Calculate_diabatic_H(angle);
 
   Eigen::MatrixXd diabatic_H_ref =
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
