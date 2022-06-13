@@ -56,11 +56,6 @@ class ERDiabatization {
 
   void configure(const options_erdiabatization& opt);
 
-  Eigen::VectorXd CalculateER(const Orbitals& orb1, const Orbitals& orb2,
-                              QMStateType type) const;
-
-  void Print_ERfunction(Eigen::VectorXd results) const;
-
   double Calculate_angle(const Orbitals& orb1, const Orbitals& orb2,
                          QMStateType type) const;
   Eigen::MatrixXd Calculate_diabatic_H(const double E1, const double E2,

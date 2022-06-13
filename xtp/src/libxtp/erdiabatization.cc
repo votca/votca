@@ -178,45 +178,6 @@ double ERDiabatization::Calculate_angle(const Orbitals& orb1,
   return angle;
 }
 
-void ERDiabatization::Print_ERfunction(Eigen::VectorXd results) const {
-  // // TO DO: This loop should be printed on a file
-  std::cout << "\n" << std::endl;
-  double Pi = votca::tools::conv::Pi;
-  // Initial mixing angle
-  double phi_in = 0.;
-  // Final mixing angle
-  double phi_fin = .5 * Pi;
-  // We divide the interval into equal bits
-  double step = (phi_fin - phi_in) / double(results.size());
-
-  for (Index n = 0; n < results.size(); n++) {
-    std::cout << (57.2958) * (phi_in + double(n + 1) * step) << " "
-              << results(n) << std::endl;
-  }
-
-  XTP_LOG(Log::error, *_pLog)
-      << TimeStamp() << " Calculation done. Selecting maximum " << flush;
-
-  // Get all the ingredients we need for evaluating the diabatic Hamiltonian
-  // We need the angle that maximise the ER functional
-  Index pos_min;
-  Index pos_max;
-
-  double maxval = results.maxCoeff(&pos_max);
-  double minval = results.minCoeff(&pos_min);
-
-  XTP_LOG(Log::error, *_pLog)
-      << "Maximum EF is: " << maxval << " at position " << pos_max << flush;
-  XTP_LOG(Log::error, *_pLog)
-      << "Minimum EF is: " << minval << " at position " << pos_min << flush;
-
-  double angle = phi_in + double(pos_max + 1) * step;
-  double angle_min = phi_in + double(pos_min + 1) * step;
-  XTP_LOG(Log::error, *_pLog)
-      << "From plot: "
-      << "MAX " << angle * 57.2958 << " MIN " << angle_min * 57.2958 << flush;
-}
-
 Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor(
     const Orbitals& orb1, const Orbitals& orb2, QMStateType type) const {
   XTP_LOG(Log::error, *_pLog) << "Computing R tensor" << flush;
@@ -239,45 +200,6 @@ Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor(
     }
   }
   return r_tensor;
-}
-
-Eigen::VectorXd ERDiabatization::CalculateER(const Orbitals& orb1,
-                                             const Orbitals& orb2,
-                                             QMStateType type) const {
-
-  Eigen::Tensor<double, 4> R_JKLM = CalculateRtensor(orb1, orb2, type);
-  const double pi = votca::tools::conv::Pi;
-  // Scanning through angles
-  Eigen::VectorXd results = Eigen::VectorXd::Zero(360);
-  // Initial mixing angle
-  double phi_in = 0.;
-  // Final mixing angle
-  double phi_fin = 0.5 * pi;
-  // We divide the interval into equal bits
-  double step = (phi_fin - phi_in) / double(results.size());
-  // Define angle we are iterating
-  double phi;
-  for (Index n = 0; n < results.size(); n++) {
-    // Update angle
-    phi = phi_in + double(n + 1) * step;
-    Eigen::MatrixXd U = CalculateU(phi);
-    // Complicated loop to handle. Can we make it a bit better?
-    double result = 0.;
-    for (Index I = 0; I < 2; I++) {
-      for (Index J = 0; J < 2; J++) {
-        for (Index K = 0; K < 2; K++) {
-          for (Index L = 0; L < 2; L++) {
-            for (Index M = 0; M < 2; M++) {
-              result +=
-                  U(I, J) * U(I, K) * U(I, L) * U(I, M) * R_JKLM(J, K, L, M);
-            }
-          }
-        }
-      }
-    }
-    results(n) = result;
-  }
-  return results;
 }
 
 template <bool AR>
