@@ -23,8 +23,8 @@
 
 // Local VOTCA includes
 #include "votca/tools/eigenio_matrixmarket.h"
-#include "votca/xtp/logger.h"
 #include "votca/xtp/erdiabatization.h"
+#include "votca/xtp/logger.h"
 
 using namespace votca::xtp;
 using namespace votca;
@@ -34,36 +34,29 @@ BOOST_AUTO_TEST_SUITE(erdiabatization_test)
 BOOST_AUTO_TEST_CASE(coupling_test) {
   libint2::initialize();
 
-  //populate orbitals object
+  // populate orbitals object
   Orbitals dimer;
   dimer.ReadFromCpt(std::string(XTP_TEST_DATA_FOLDER) +
-                           "/erdiabatization/T-T_6.orb");
-
-
-
-
-
+                    "/erdiabatization/T-T_6.orb");
 
   /*dimer.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                            "/erdiabatization/dimer.xyz");
-  dimer.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/erdiabatization/def2-svp.xml");
-  dimer.setNumberOfAlphaElectrons(44);
+  dimer.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
+  "/erdiabatization/def2-svp.xml"); dimer.setNumberOfAlphaElectrons(44);
   dimer.setNumberOfOccupiedLevels(44);*/
-  
 
-    // set logger
-    Logger log;
+  // set logger
+  Logger log;
   log.setReportLevel(Log::error);
   log.setMultithreading(true);
   log.setCommonPreface("\n... ...");
   ERDiabatization ERDiabatization(dimer, dimer, &log);
 
-// Option for ERdiabatization
-ERDiabatization::options_erdiabatization options;
-options.qmtype="singlet";
-options.state_idx_1 = 1;
-options.state_idx_2 = 2;
-
+  // Option for ERdiabatization
+  ERDiabatization::options_erdiabatization options;
+  options.qmtype = "singlet";
+  options.state_idx_1 = 1;
+  options.state_idx_2 = 2;
 
   ERDiabatization.configure(options);
 
@@ -91,13 +84,14 @@ options.state_idx_2 = 2;
   Eigen::MatrixXd diabatic_H =
       ERDiabatization.Calculate_diabatic_H(ad_E1, ad_E2, angle);
 
-  Eigen::MatrixXd  diabatic_H_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/erdiabatization/Hdiab_ref.mm");
+  Eigen::MatrixXd diabatic_H_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/erdiabatization/Hdiab_ref.mm");
 
-    BOOST_CHECK_CLOSE(diabatic_H_ref(0,0),diabatic_H(0,0),1e-6);
-    BOOST_CHECK_CLOSE(diabatic_H_ref(0,1),diabatic_H(0,1),1e-6);
-    BOOST_CHECK_CLOSE(diabatic_H_ref(1,0),diabatic_H(1,0),1e-6);
-    BOOST_CHECK_CLOSE(diabatic_H_ref(1,1),diabatic_H(1,1),1e-6);
+  BOOST_CHECK_CLOSE(diabatic_H_ref(0, 0), diabatic_H(0, 0), 1e-6);
+  BOOST_CHECK_CLOSE(diabatic_H_ref(0, 1), diabatic_H(0, 1), 1e-6);
+  BOOST_CHECK_CLOSE(diabatic_H_ref(1, 0), diabatic_H(1, 0), 1e-6);
+  BOOST_CHECK_CLOSE(diabatic_H_ref(1, 1), diabatic_H(1, 1), 1e-6);
 
   /*A.MOs().eigenvalues() = Eigen::VectorXd::Zero(17);
   A.MOs().eigenvalues() << -19.8117, -6.22408, -6.14094, -6.14094, -6.14094,
