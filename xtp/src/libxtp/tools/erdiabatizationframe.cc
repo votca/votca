@@ -110,9 +110,6 @@ bool ERDiabatizationFrame::Run() {
   // Calculate angle
   double angle = ERDiabatization.Calculate_angle(orbitals1, orbitals2, _qmtype);
 
-  // Eigen::VectorXd results = ERDiabatization.CalculateER(orbitals, _qmtype);
-  // ERDiabatization.Print_ERfunction(results);
-
   // Evaluating the Diabatic Hamiltonian
   // We need the adiabatic energies of the two states selected in the option
   double ad_E1;

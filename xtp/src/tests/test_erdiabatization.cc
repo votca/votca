@@ -36,14 +36,42 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
 
   // populate orbitals object
   Orbitals dimer;
-  dimer.ReadFromCpt(std::string(XTP_TEST_DATA_FOLDER) +
-                    "/erdiabatization/T-T_6.orb");
-
-  /*dimer.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
-                           "/erdiabatization/dimer.xyz");
+  dimer.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                               "/erdiabatization/dimer.xyz");
   dimer.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-  "/erdiabatization/def2-svp.xml"); dimer.setNumberOfAlphaElectrons(44);
-  dimer.setNumberOfOccupiedLevels(44);*/
+                      "/erdiabatization/def2-svp.xml");
+  dimer.SetupAuxBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                      "/erdiabatization/aux-def2-svp.xml");
+  dimer.setNumberOfAlphaElectrons(44);
+  dimer.setNumberOfOccupiedLevels(44);
+
+  Eigen::VectorXd ref_MOvals = votca::tools::EigenIO_MatrixMarket::ReadVector(
+      std::string(XTP_TEST_DATA_FOLDER) + "/erdiabatization/dimer_MOvals.mm");
+  Eigen::MatrixXd ref_MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/erdiabatization/dimer_MOs.mm");
+  dimer.MOs().eigenvalues() = ref_MOvals;
+  dimer.MOs().eigenvectors() = ref_MOs;
+
+  dimer.setGWindices(0, 130);
+  dimer.setBSEindices(0, 130);
+  dimer.setTDAApprox(false);
+
+  Eigen::VectorXd ref_singletvals =
+      votca::tools::EigenIO_MatrixMarket::ReadVector(
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/erdiabatization/dimer_singletE.mm");
+
+  Eigen::MatrixXd ref_spsi = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) +
+      "/erdiabatization/dimer_singlet_spsi.mm");
+
+  Eigen::MatrixXd ref_spsi2 = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) +
+      "/erdiabatization/dimer_singlet_spsi2.mm");
+
+  dimer.BSESinglets().eigenvalues() = ref_singletvals;
+  dimer.BSESinglets().eigenvectors() = ref_spsi;
+  dimer.BSESinglets().eigenvectors2() = ref_spsi2;
 
   // set logger
   Logger log;
@@ -64,7 +92,7 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
 
   // Calculate angle
   double angle = ERDiabatization.Calculate_angle(dimer, dimer, options.qmtype);
-  double angle_ref = 0.715423;
+  double angle_ref = 0.71542472271498847;
   BOOST_CHECK_CLOSE(angle_ref, angle, 1e-4);
 
   // call calculate H
@@ -93,102 +121,6 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
   BOOST_CHECK_CLOSE(diabatic_H_ref(1, 0), diabatic_H(1, 0), 1e-6);
   BOOST_CHECK_CLOSE(diabatic_H_ref(1, 1), diabatic_H(1, 1), 1e-6);
 
-  /*A.MOs().eigenvalues() = Eigen::VectorXd::Zero(17);
-  A.MOs().eigenvalues() << -19.8117, -6.22408, -6.14094, -6.14094, -6.14094,
-      -3.72889, -3.72889, -3.72889, -3.64731, -3.09048, -3.09048, -3.09048,
-      -2.63214, -2.08206, -2.08206, -2.08206, -2.03268;
-
-  A.MOs().eigenvectors() = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/bsecoupling/A_MOs.mm");
-
-  A.setBSEindices(0, 16);
-  A.setTDAApprox(true);
-  A.setGWindices(0, 16);
-  Eigen::MatrixXd spsi_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/bsecoupling/spsi_ref.mm");
-
-  A.BSESinglets().eigenvectors() = spsi_ref;
-
-  Orbitals B = A;
-  B.QMAtoms().Translate(4 * Eigen::Vector3d::UnitX());
-
-  Orbitals AB;
-  AB.QMAtoms() = A.QMAtoms();
-  AB.QMAtoms().AddContainer(B.QMAtoms());
-  AB.MOs().eigenvalues().resize(34);
-  AB.MOs().eigenvalues() << -10.1341, -10.1337, -0.808607, -0.665103, -0.474928,
-      -0.455857, -0.455857, -0.365971, -0.365971, -0.263259, 0.140444, 0.154745,
-      0.168775, 0.168775, 0.223948, 0.231217, 0.26323, 0.26323, 0.713478,
-      0.713478, 0.793559, 0.885998, 0.944915, 0.944915, 1.01169, 1.04977,
-      1.04977, 1.08863, 1.10318, 1.17822, 1.18094, 1.18094, 1.69037, 1.91046;
-
-  AB.setNumberOfAlphaElectrons(10);
-  AB.setNumberOfOccupiedLevels(10);
-  AB.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                   "/bsecoupling/3-21G.xml");
-  AB.SetupAuxBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                   "/bsecoupling/3-21G.xml");
-  AB.setRPAindices(0, 33);
-  AB.setBSEindices(0, 33);
-  AB.setGWindices(0, 33);
-  AB.MOs().eigenvectors() = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/bsecoupling/AB_MOs.mm");
-
-  AB.setNumberOfAlphaElectrons(10);
-  AB.setNumberOfOccupiedLevels(10);
-
-  std::ofstream opt("bsecoupling.xml");
-  opt << "<bsecoupling>" << std::endl;
-  opt << "        <use_perturbation>true</use_perturbation>" << std::endl;
-  opt << "        <spin>singlet</spin>" << std::endl;
-  opt << "       <moleculeA>" << std::endl;
-  opt << "                <states>1</states>" << std::endl;
-  opt << "                <occLevels>3</occLevels>" << std::endl;
-  opt << "                <unoccLevels>3</unoccLevels>" << std::endl;
-  opt << "        </moleculeA>" << std::endl;
-  opt << "        <moleculeB>" << std::endl;
-  opt << "                <states>1</states>" << std::endl;
-  opt << "                <occLevels>3</occLevels>" << std::endl;
-  opt << "                <unoccLevels>3</unoccLevels>" << std::endl;
-  opt << "         </moleculeB>" << std::endl;
-  opt << "</bsecoupling>" << std::endl;
-  opt.close();
-  votca::tools::Property prop;
-  prop.LoadFromXML("bsecoupling.xml");
-  BSECoupling coup;
-  Logger log;
-  log.setCommonPreface("\n... ...");
-  coup.setLogger(&log);
-
-  AB.QPdiag().eigenvalues().resize(34);
-  AB.QPdiag().eigenvalues() << -10.504, -10.5038, -0.923616, -0.775673,
-      -0.549084, -0.530193, -0.530193, -0.430293, -0.430293, -0.322766,
-      0.267681, 0.307809, 0.326961, 0.326961, 0.36078, 0.381947, 0.414845,
-      0.414845, 0.906609, 0.906609, 0.993798, 1.09114, 1.14639, 1.14639, 1.1966,
-      1.25629, 1.25629, 1.27991, 1.29122, 1.35945, 1.36705, 1.36705, 1.93286,
-      2.11739;
-
-  AB.QPdiag().eigenvectors() = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/bsecoupling/Hqp.mm");
-  const Eigen::MatrixXd& qpcoeff = AB.QPdiag().eigenvectors();
-  Eigen::MatrixXd Hqp =
-      qpcoeff * AB.QPdiag().eigenvalues().asDiagonal() * qpcoeff.transpose();
-  AB.RPAInputEnergies() = Hqp.diagonal();
-  coup.Initialize(prop.get("bsecoupling"));
-  log.setReportLevel(Log::error);
-  coup.CalculateCouplings(A, B, AB);
-  votca::tools::Property output;
-  coup.Addoutput(output, A, B);
-  double diag_J_ref = 32.67651;
-  double pert_J_ref = 4.434018;
-
-  double diag_j =
-      output.get("bsecoupling.singlet.coupling").getAttribute<double>("j_diag");
-  double pert_j =
-      output.get("bsecoupling.singlet.coupling").getAttribute<double>("j_pert");
-
-  BOOST_CHECK_CLOSE(diag_J_ref, diag_j, 1e-4);
-  BOOST_CHECK_CLOSE(pert_J_ref, pert_j, 1e-4);*/
   libint2::finalize();
 }
 BOOST_AUTO_TEST_SUITE_END()
