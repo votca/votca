@@ -10,6 +10,7 @@ Version 2023-dev
 -  unitary optimization for localization of orbitals (#971)
 -  separate option for density max convergence tolerance in qmmm (#987)
 -  Correct ECP charges added in Orca Molden reader (#990)
+-  Implemented ER diabatization for BSE (#988)
 
 Version 2022.1 (released XX.01.22)
 ==================================
