@@ -24,37 +24,34 @@ namespace xtp {
 
 void ERDiabatizationFrame::ParseOptions(const tools::Property& user_options) {
 
-  std::string key = "erdiabatization";
+  log_.setReportLevel(Log::current_level);
 
-  _log.setReportLevel(Log::current_level);
-
-  _log.setMultithreading(true);
-  _log.setCommonPreface("\n... ...");
+  log_.setMultithreading(true);
+  log_.setCommonPreface("\n...");
 
   tools::Property options = user_options;
 
-  _orbfile1 = options.get(".orb_file1").as<std::string>();
-  _orbfile2 = options.get(".orb_file2").as<std::string>();
+  orbfile1_ = options.get(".orb_file1").as<std::string>();
+  orbfile2_ = options.get(".orb_file2").as<std::string>();
 
-  _options.state_idx_1 = options.get(".state_idx_1").as<Index>();
-  _options.state_idx_2 = options.get(".state_idx_2").as<Index>();
-  std::string qmtype = options.get(".qmtype").as<std::string>();
-  _qmtype.FromString(qmtype);
-  XTP_LOG(Log::error, _log) << "Type : " << qmtype << flush;
+  options_.state_idx_1 = options.get(".state_idx_1").as<Index>();
+  options_.state_idx_2 = options.get(".state_idx_2").as<Index>();
+  options_.qmtype = options.get(".qmtype").as<std::string>();
+  XTP_LOG(Log::error, log_) << "Type : " << options_.qmtype << flush;
 
-  if (_options.state_idx_1 < 1) {
+  if (options_.state_idx_1 < 1) {
     throw std::runtime_error("State idx 1 must start from 1.");
   } else {
-    XTP_LOG(Log::error, _log) << "State 1 : " << _options.state_idx_1 << flush;
+    XTP_LOG(Log::error, log_) << "State 1 : " << options_.state_idx_1 << flush;
   }
 
-  if (_options.state_idx_2 < 1) {
+  if (options_.state_idx_2 < 1) {
     throw std::runtime_error("State idx 2 must start from 1.");
   } else {
-    XTP_LOG(Log::error, _log) << "State 2 : " << _options.state_idx_2 << flush;
+    XTP_LOG(Log::error, log_) << "State 2 : " << options_.state_idx_2 << flush;
   }
 
-  XTP_LOG(Log::error, _log) << flush;
+  XTP_LOG(Log::error, log_) << flush;
 }
 
 bool ERDiabatizationFrame::Run() {
@@ -62,52 +59,57 @@ bool ERDiabatizationFrame::Run() {
   OPENMP::setMaxThreads(nThreads_);
 
   // set logger
-  _log.setReportLevel(Log::error);
-  _log.setMultithreading(true);
-  _log.setCommonPreface("\n... ...");
+  log_.setReportLevel(Log::error);
+  log_.setMultithreading(true);
+  log_.setCommonPreface("\n...");
 
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Reading from orbitals from files: " << _orbfile1
-      << " and " << _orbfile2 << flush;
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Reading from orbitals from files: " << orbfile1_
+      << " and " << orbfile2_ << flush;
 
   // Get orbitals objects
   Orbitals orbitals1;
   Orbitals orbitals2;
 
-  orbitals1.ReadFromCpt(_orbfile1);
-  orbitals2.ReadFromCpt(_orbfile2);
+  orbitals1.ReadFromCpt(orbfile1_);
+  orbitals2.ReadFromCpt(orbfile2_);
 
-  ERDiabatization ERDiabatization(orbitals1, orbitals2, &_log);
+  ERDiabatization ERDiabatization(orbitals1, orbitals2, &log_);
 
   if (orbitals1.getTDAApprox()) {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << _orbfile1
-        << "  was done with TDA only. Results might be off. We warned you!"
-        << flush;
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " " << orbfile1_ << "  was done with TDA." << flush;
   }
   if (orbitals2.getTDAApprox()) {
-    XTP_LOG(Log::error, _log)
-        << TimeStamp() << _orbfile2
-        << "  was done with TDA only. Results might be off. We warned you!"
-        << flush;
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " " << orbfile2_ << "  was done with TDA. " << flush;
   }
 
-  ERDiabatization.configure(_options);
+  ERDiabatization.configure(options_);
   ERDiabatization.setUpMatrices();
-
-  XTP_LOG(Log::error, _log)
-      << TimeStamp() << " Started ER Diabatization " << flush;
 
   // Calculate angle
   double angle = ERDiabatization.Calculate_angle();
 
-  // We can now calculate the diabatic Hamiltonian
+  // Calculate the diabatic Hamiltonian
   Eigen::MatrixXd diabatic_H = ERDiabatization.Calculate_diabatic_H(angle);
-  // This is just a print
-  std::cout << "\n Diabatic Hamiltonian for state " << _options.state_idx_1
-            << " and " << _options.state_idx_2 << "\n"
-            << diabatic_H * votca::tools::conv::hrt2ev << std::endl;
 
+  // Printing Output
+  XTP_LOG(Log::error, log_)
+      << "Diabatic Energy 1: " << diabatic_H(0, 0) * votca::tools::conv::hrt2ev
+      << flush;
+  XTP_LOG(Log::error, log_)
+      << "Diabatic Energy 2: " << diabatic_H(1, 1) * votca::tools::conv::hrt2ev
+      << flush;
+  XTP_LOG(Log::error, log_)
+      << "Diabatic Coupling: " << diabatic_H(1, 0) * votca::tools::conv::hrt2ev
+      << flush;
+  if (std::abs(diabatic_H(1, 0) - diabatic_H(0, 1)) >
+      1e-4 * std::abs(diabatic_H(1, 0))) {
+    XTP_LOG(Log::error, log_) << "Different offdiagonal "
+                              << diabatic_H(0, 1) * votca::tools::conv::hrt2ev
+                              << " --- Check carefully!" << flush;
+  }
   return true;
 }
 }  // namespace xtp

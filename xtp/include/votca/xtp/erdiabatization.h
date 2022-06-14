@@ -21,16 +21,14 @@
 #ifndef VOTCA_XTP_ERDIABATIZATION_H
 #define VOTCA_XTP_ERDIABATIZATION_H
 
-#include "votca/xtp/ERIs.h"
-//#include "votca/xtp/logger.h"
 #include "logger.h"
+#include "votca/xtp/ERIs.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/qmtool.h"
 #include <cstdio>
 #include <votca/tools/property.h>
 #include <votca/tools/types.h>
 #include <votca/xtp/aobasis.h>
-//#include <votca/xtp/aomatrix.h>
 
 namespace votca {
 namespace xtp {
@@ -42,16 +40,14 @@ class ERDiabatization {
   ERDiabatization(Orbitals& orbitals1, Orbitals& orbitals2, Logger* log)
       : orbitals1_(orbitals1), orbitals2_(orbitals2), pLog_(log){};
 
-  // Write a function to set up all the matrices we need
+  // Function to set up the ERI matrices
   void setUpMatrices();
 
   // Option for ERdiabatization
   struct options_erdiabatization {
-
     Index state_idx_1;
     Index state_idx_2;
     std::string qmtype;
-    std::string outfile;
   };
 
   void configure(const options_erdiabatization& opt);

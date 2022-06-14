@@ -33,8 +33,9 @@ void ERDiabatization::setUpMatrices() {
   } else {
     dftbasis_ = orbitals1_.getDftBasis();
     basissize_ = orbitals1_.getBasisSetSize();
-    XTP_LOG(Log::error, *pLog_) << "Data was created with basis set "
-                                << orbitals1_.getDFTbasisName() << flush;
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Data was created with basis set "
+        << orbitals1_.getDFTbasisName() << flush;
   }
 
   // Check on auxbasis
@@ -92,10 +93,9 @@ void ERDiabatization::setUpMatrices() {
 
   // Use different RI initialization according to what is in the orb files.
   if (useRI_) {
-    XTP_LOG(Log::error, *pLog_) << "Using RI " << flush;
+    XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Using RI " << flush;
     eris_.Initialize(dftbasis_, auxbasis_);
   } else {
-    XTP_LOG(Log::error, *pLog_) << "Not using RI. It can be slow. " << flush;
     eris_.Initialize_4c(dftbasis_);
   }
 }
@@ -116,9 +116,7 @@ void ERDiabatization::configure(const options_erdiabatization& opt) {
 double ERDiabatization::CalculateR(const Eigen::MatrixXd& D_JK,
                                    const Eigen::MatrixXd& D_LM) const {
 
-  // Here I want to do \sum_{kl} (ij|kl) D^{LM}_{jk}. Is it right?
   Eigen::MatrixXd contracted;
-  // I still have to figure how to try 3c and if it fails go to 4c
   if (useRI_) {
     contracted = eris_.CalculateERIs_3c(D_LM);
   } else {
@@ -142,13 +140,12 @@ Eigen::MatrixXd ERDiabatization::Calculate_diabatic_H(
   Eigen::VectorXd ad_energies(2);
   ad_energies << E1_, E2_;
 
-  // To uncomment
-  XTP_LOG(Log::error, *pLog_)
-      << "Adiabatic energies in eV "
+  XTP_LOG(Log::debug, *pLog_)
+      << TimeStamp() << "Adiabatic energies in eV "
       << "E1: " << E1_ * votca::tools::conv::hrt2ev
       << " E2: " << E2_ * votca::tools::conv::hrt2ev << flush;
-  XTP_LOG(Log::error, *pLog_)
-      << "Rotation angle (degrees) " << angle * 57.2958 << flush;
+  XTP_LOG(Log::debug, *pLog_)
+      << TimeStamp() << "Rotation angle (degrees) " << angle * 57.2958 << flush;
 
   Eigen::MatrixXd U = CalculateU(angle);
   return U.transpose() * ad_energies.asDiagonal() * U;
@@ -162,12 +159,7 @@ double ERDiabatization::Calculate_angle() const {
                                     2. * rtensor(0, 0, 1, 1));
   double B_12 = rtensor(0, 0, 0, 1) - rtensor(1, 1, 0, 1);
 
-  // I keep these definitions here for the sake of debugging
-  // double tan4alpha = -1.0*(B_12/A_12);
-  // double sin4alpha = B_12 /(std::sqrt(A_12*A_12 + B_12*B_12));
-
   double cos4alpha = -A_12 / (std::sqrt(A_12 * A_12 + B_12 * B_12));
-
   double angle = 0.25 * std::acos(cos4alpha);
 
   XTP_LOG(Log::debug, *pLog_) << "B12 " << B_12 << flush;
@@ -180,7 +172,6 @@ double ERDiabatization::Calculate_angle() const {
 }
 
 Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor() const {
-  XTP_LOG(Log::error, *pLog_) << "Computing R tensor" << flush;
   Eigen::Tensor<double, 4> r_tensor(2, 2, 2, 2);
   for (Index J = 0; J < 2; J++) {
     for (Index K = 0; K < 2; K++) {
