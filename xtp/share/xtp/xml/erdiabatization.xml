@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
 <options>
-<!-- xtp_tools -e erdiabatization  options.xml -->
-<erdiabatization help="Perform ER diabatization" >
+<erdiabatization help="Perform ER diabatization on adiabatic BSE states">
     <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
-	<orb_file1 help="Input orb file to start computation from"/>
-	<orb_file2 help="Input orb file to start computation from"/>
-	<state_idx_1 help="State index 1"/>
-    <state_idx_2 help="State index 2"/>
-	<qmtype help="which type"/>
+	<orb_file1 help="Input orb file with first adiabatic state" default="system.orb"/>
+	<orb_file2 help="Input orb file with second adiabatic state" default="system.orb"/>
+	<state_idx_1 help="State index 1" choices="int+"/>
+    <state_idx_2 help="State index 2" choices="int+"/>
+	<qmtype help="Spin type of the BSE excitation" default="singlet" choices="singlet triplet"/>
 </erdiabatization>
 </options>
