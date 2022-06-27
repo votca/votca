@@ -85,6 +85,7 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
   options.qmtype = "singlet";
   options.state_idx_1 = 1;
   options.state_idx_2 = 2;
+  options.use_RI = true;
 
   ERDiabatization.configure(options);
 
