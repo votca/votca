@@ -7,5 +7,6 @@
 	<state_idx_1 help="State index 1" choices="int+"/>
     <state_idx_2 help="State index 2" choices="int+"/>
 	<qmtype help="Spin type of the BSE excitation" default="singlet" choices="singlet triplet"/>
+	<use_RI help="Use RI for electron repulsion integrals" default="true" choices="bool"/>
 </erdiabatization>
 </options>

@@ -51,6 +51,8 @@ void ERDiabatizationFrame::ParseOptions(const tools::Property& user_options) {
     XTP_LOG(Log::error, log_) << "State 2 : " << options_.state_idx_2 << flush;
   }
 
+  options_.use_RI = options.get(".use_RI").as<bool>();
+
   XTP_LOG(Log::error, log_) << flush;
 }
 
@@ -59,7 +61,8 @@ bool ERDiabatizationFrame::Run() {
   OPENMP::setMaxThreads(nThreads_);
 
   // set logger
-  log_.setReportLevel(Log::error);
+  log_.setReportLevel(Log::current_level);
+  // log_.setReportLevel(Log::error);
   log_.setMultithreading(true);
   log_.setCommonPreface("\n...");
 

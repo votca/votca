@@ -42,7 +42,7 @@ void ERDiabatization::setUpMatrices() {
   if (orbitals1_.hasAuxbasisName() && orbitals2_.hasAuxbasisName()) {
     if (orbitals1_.getAuxbasisName() == orbitals2_.getAuxbasisName()) {
       auxbasis_ = orbitals1_.getAuxBasis();
-      useRI_ = true;
+      hasRI_ = true;
     } else {
       throw std::runtime_error(
           "Different DFT aux-basis for the two input file.");
@@ -50,7 +50,7 @@ void ERDiabatization::setUpMatrices() {
   } else {
     XTP_LOG(Log::error, *pLog_)
         << "No auxbasis for file1: This will affect perfomances " << flush;
-    useRI_ = false;
+    hasRI_ = false;
   }
 
   // check BSE indices
@@ -92,7 +92,7 @@ void ERDiabatization::setUpMatrices() {
                                                        bse_ctotal_);
 
   // Use different RI initialization according to what is in the orb files.
-  if (useRI_) {
+  if (hasRI_ && opt_.use_RI) {
     XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Using RI " << flush;
     eris_.Initialize(dftbasis_, auxbasis_);
   } else {
@@ -117,7 +117,7 @@ double ERDiabatization::CalculateR(const Eigen::MatrixXd& D_JK,
                                    const Eigen::MatrixXd& D_LM) const {
 
   Eigen::MatrixXd contracted;
-  if (useRI_) {
+  if (hasRI_ && opt_.use_RI) {
     contracted = eris_.CalculateERIs_3c(D_LM);
   } else {
     contracted = eris_.CalculateERIs_4c(D_LM, 1e-12);
@@ -167,6 +167,11 @@ double ERDiabatization::Calculate_angle() const {
 
   XTP_LOG(Log::debug, *pLog_)
       << "angle MAX (degrees) " << angle * 57.2958 << flush;
+
+  XTP_LOG(Log::debug, *pLog_) << "Coupling element directly: "
+                              << 0.5 * std::sqrt(0.5 - 0.5 * cos4alpha) *
+                                     (E2_ - E1_) * votca::tools::conv::hrt2ev
+                              << flush;
 
   return angle;
 }

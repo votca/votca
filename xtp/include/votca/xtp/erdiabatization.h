@@ -48,6 +48,7 @@ class ERDiabatization {
     Index state_idx_1;
     Index state_idx_2;
     std::string qmtype;
+    bool use_RI;
   };
 
   void configure(const options_erdiabatization& opt);
@@ -79,7 +80,7 @@ class ERDiabatization {
   Eigen::MatrixXd occlevels2_;
   Eigen::MatrixXd virtlevels2_;
 
-  bool useRI_;
+  bool hasRI_;
   options_erdiabatization opt_;
 
   double E1_;
