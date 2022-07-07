@@ -400,6 +400,53 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   AOOverlap overlap;
   overlap.Fill(aobasis);
 
+  Eigen::VectorXd DiagonalofDmatA = InitialActiveDensityMatrix.diagonal();
+  Eigen::VectorXd DiagonalofOverlap = overlap.Matrix().diagonal();
+  Eigen::VectorXd MnP = DiagonalofDmatA.cwiseProduct(DiagonalofOverlap);
+
+  for (Index allatoms = 0; allatoms < orb.QMAtoms().size(); allatoms++) {
+    bool partofactive =
+        (std::find(activeatoms.begin(), activeatoms.end(),
+                   orb.QMAtoms()[allatoms].getId()) != activeatoms.end());
+    if (partofactive == false) {
+      std::vector<const AOShell*> inactiveshell =
+          aobasis.getShellsofAtom(orb.QMAtoms()[allatoms].getId());
+      for (const AOShell* shell : inactiveshell) {
+        for (Index shell_fn_no = shell->getStartIndex();
+             shell_fn_no < shell->getStartIndex() + shell->getNumFunc();
+             shell_fn_no++) {
+          if (MnP[shell_fn_no] > 0.02)
+          {
+            std::cout << MnP[shell_fn_no] << std::endl << *shell << std::endl;
+            break;
+          }
+        } 
+      }
+    }
+    else
+    {
+      std::vector<const AOShell*> activeshell = aobasis.getShellsofAtom(orb.QMAtoms()[allatoms].getId());
+      for (const AOShell* shell_a : activeshell)
+      {
+        std::cout << "This is active shell" << std::endl << *shell_a << std::endl;
+      }
+    }
+  }
+// std::cout << std::endl
+        //           << shell->getNumFunc() << " " << shell->getStartIndex()
+        //           << std::endl;
+  //std::cout << std::endl << orb.QMAtoms()[0].getId() << std::endl;
+
+  // for (Index i = 0; i < activeatoms.size(); i++) {
+  //   std::vector<const AOShell*> activeshell =
+  //       aobasis.getShellsofAtom(activeatoms[i]);
+  //   for (const AOShell* shell : activeshell) {
+  //     std::cout << std::endl
+  //               << shell->getNumFunc() << " " << shell->getStartIndex()
+  //               << std::endl;
+  //   }
+  // }
+
   Index all_electrons = static_cast<Index>(
       std::round(FullDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
   Index active_electrons = static_cast<Index>(std::round(
@@ -430,7 +477,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   // setup one-electron part of the Hamiltonian
   Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
 
-  // energy of the one-lectron part of the Hamiltonian
+  // energy of the one-electron part of the Hamiltonian
   const double E0_full = FullDensityMatrix.cwiseProduct(H0.matrix()).sum();
   const double E0_initial_active =
       InitialActiveDensityMatrix.cwiseProduct(H0.matrix()).sum();
