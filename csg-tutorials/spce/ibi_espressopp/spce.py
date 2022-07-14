@@ -1,13 +1,17 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # DON'T RUN THIS MANUALLY
 # RUN "csg_inverse --options settings.xml" instead
 
 import sys
-import espresso
+import time
+import espressopp
 import mpi4py.MPI as MPI
-
-from espresso.tools import decomp
+import logging
+from espressopp import Real3D, Int3D
+from espressopp.tools import gromacs
+from espressopp.tools import decomp
+#from espressopp.tools import timers
 
 '''
 2180 Particles
@@ -21,7 +25,13 @@ rc   = 0.9
 skin = 0.3
 timestep = 0.002
 
-x, y, z, Lx, Ly, Lz = espresso.tools.convert.gromacs.read('conf.gro')
+grofile = "conf.gro"
+topfile = "" #"topol.top"
+
+# this calls the gromacs parser for processing the top file (and included files) and the conf file
+# The variables at the beginning defaults, types, etc... can be found by calling
+# gromacs.read(grofile,topfile) without return values. It then prints out the variables to be unpacked
+defaults, types, atomtypes, masses, charges, atomtypeparameters, bondtypes, bondtypeparams, angletypes, angletypeparams, exclusions, x, y, z, vx, vy, vz, resname, resid, Lx, Ly, Lz =gromacs.read(grofile,topfile)
 num_particles = len(x)
 
 print 'number of particles: ', num_particles
@@ -32,50 +42,50 @@ print 'number of particles: ', num_particles
 sys.stdout.write('Setting up simulation ...\n')
 density = num_particles / (Lx * Ly * Lz)
 box = (Lx, Ly, Lz)
-system = espresso.System()
-system.rng = espresso.esutil.RNG()
-system.bc = espresso.bc.OrthorhombicBC(system.rng, box)
+system = espressopp.System()
+system.rng = espressopp.esutil.RNG()
+system.bc = espressopp.bc.OrthorhombicBC(system.rng, box)
 system.skin = skin
 
 comm = MPI.COMM_WORLD
-nodeGrid = decomp.nodeGrid(comm.size)
+nodeGrid = decomp.nodeGrid(comm.size,box, rc, skin)
 cellGrid = decomp.cellGrid(box, nodeGrid, rc, skin)
 
-system.storage = espresso.storage.DomainDecomposition(system, nodeGrid, cellGrid)
+system.storage = espressopp.storage.DomainDecomposition(system, nodeGrid, cellGrid)
 
 ######################################################################
 
 # adding particles
-props = ['id', 'type', 'pos', 'v', 'mass']
+props = ['id', 'pos', 'v', 'type', 'mass']#, 'q']
 new_particles = []
 mass = 1.0
 type = 0
 for pid in range(num_particles):
-  pos  = espresso.Real3D(x[pid],y[pid],z[pid])
-  vel  = espresso.Real3D(0,0,0)
-  part = [pid, type, pos, vel, mass]
-  new_particles.append(part)
-  
+    part = [pid + 1, Real3D(x[pid], y[pid], z[pid]),
+           Real3D(.0,.0,.0), type, mass]
+           #Real3D(vx[pid], vy[pid], vz[pid]), types[pid], masses[pid], charges[pid]]
+    new_particles.append(part)
+
 system.storage.addParticles(new_particles, *props)
 system.storage.decompose()
 
 ##########################################################################################
 
 # interaction
-vl = espresso.VerletList(system, cutoff=rc)
-tabP = espresso.interaction.Tabulated(itype=1, filename='CG_CG.tab', cutoff=rc)
-tabI = espresso.interaction.VerletListTabulated(vl)
+vl = espressopp.VerletList(system, cutoff=rc)
+tabP = espressopp.interaction.Tabulated(itype=1, filename='CG_CG.tab', cutoff=rc)
+tabI = espressopp.interaction.VerletListTabulated(vl)
 tabI.setPotential(type1=0, type2=0, potential=tabP)
 system.addInteraction(tabI)
 
 ##########################################################################################
 
 # integrator
-integrator = espresso.integrator.VelocityVerlet(system)
+integrator = espressopp.integrator.VelocityVerlet(system)
 integrator.dt = timestep
 
 # thermostat
-lT = espresso.integrator.LangevinThermostat(system)
+lT = espressopp.integrator.LangevinThermostat(system)
 lT.gamma = 5.0
 lT.temperature = 2.5
 integrator.addExtension(lT)
@@ -83,18 +93,19 @@ integrator.addExtension(lT)
 ##########################################################################################
 
 print "equilibrating ..."
+espressopp.tools.analyse.info(system, integrator)
 for step in range(100):
   integrator.run(100)
-  espresso.tools.info(system, integrator)
+  espressopp.tools.analyse.info(system, integrator)
 
 print "runing ..."
 
-espresso.tools.info(system, integrator)
+espressopp.tools.analyse.info(system, integrator)
 for step in range(900):
   integrator.run(100)
-  espresso.tools.info(system, integrator)
+  espressopp.tools.analyse.info(system, integrator)
   print 'writing .xyz trajectory...'
   # we are simulating in nm, but xyz files are in angstroms! -> scale= 10.0
-  espresso.tools.DumpConfigurations.fastwritexyz('traj.xyz', system, unfolded = False, append = True, velocities = False, scale = 10.0)
-  
+  espressopp.tools.fastwritexyz('traj.xyz', system, velocities = False, unfolded = False, append = True, scale = 10.0)
+
 print "finished"
