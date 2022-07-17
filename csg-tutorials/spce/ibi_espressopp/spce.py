@@ -90,19 +90,24 @@ lT.gamma = 5.0
 lT.temperature = 2.5
 integrator.addExtension(lT)
 
+# set system properties
+int_steps = 900
+eq_steps = 100
+steps_per_int = 100
+
 ##########################################################################################
 
 print "equilibrating ..."
 espressopp.tools.analyse.info(system, integrator)
-for step in range(100):
-  integrator.run(100)
+for step in range(eq_steps):
+  integrator.run(steps_per_int)
   espressopp.tools.analyse.info(system, integrator)
 
 print "runing ..."
 
 espressopp.tools.analyse.info(system, integrator)
-for step in range(900):
-  integrator.run(100)
+for step in range(int_steps):
+  integrator.run(steps_per_int)
   espressopp.tools.analyse.info(system, integrator)
   print 'writing .xyz trajectory...'
   # we are simulating in nm, but xyz files are in angstroms! -> scale= 10.0
