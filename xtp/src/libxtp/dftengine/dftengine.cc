@@ -359,6 +359,16 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
   return true;
 }
 
+// bool DFTEngine::horizontal_combine(Eigen::MatrixXd M1, Eigen::MatrixXd M2){
+//   Eigen::MatrixXd M3(M1.rows(), M1.cols()+M2.cols());
+//   M3 << M1, M2;
+// }
+// bool DFTEngine::vertical_combine(Eigen::MatrixXd M1, Eigen::MatrixXd M2){
+//   Eigen::MatrixXd M3(M1.rows()+M2.rows(), M1.cols());
+//   M3 << M1,
+//         M2;
+// }
+
 bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
   // reading in the orbitals of the full DFT calculation
@@ -399,53 +409,6 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   AOBasis aobasis = orb.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
-
-  Eigen::VectorXd DiagonalofDmatA = InitialActiveDensityMatrix.diagonal();
-  Eigen::VectorXd DiagonalofOverlap = overlap.Matrix().diagonal();
-  Eigen::VectorXd MnP = DiagonalofDmatA.cwiseProduct(DiagonalofOverlap);
-
-  for (Index allatoms = 0; allatoms < orb.QMAtoms().size(); allatoms++) {
-    bool partofactive =
-        (std::find(activeatoms.begin(), activeatoms.end(),
-                   orb.QMAtoms()[allatoms].getId()) != activeatoms.end());
-    if (partofactive == false) {
-      std::vector<const AOShell*> inactiveshell =
-          aobasis.getShellsofAtom(orb.QMAtoms()[allatoms].getId());
-      for (const AOShell* shell : inactiveshell) {
-        for (Index shell_fn_no = shell->getStartIndex();
-             shell_fn_no < shell->getStartIndex() + shell->getNumFunc();
-             shell_fn_no++) {
-          if (MnP[shell_fn_no] > 0.02)
-          {
-            std::cout << MnP[shell_fn_no] << std::endl << *shell << std::endl;
-            break;
-          }
-        } 
-      }
-    }
-    else
-    {
-      std::vector<const AOShell*> activeshell = aobasis.getShellsofAtom(orb.QMAtoms()[allatoms].getId());
-      for (const AOShell* shell_a : activeshell)
-      {
-        std::cout << "This is active shell" << std::endl << *shell_a << std::endl;
-      }
-    }
-  }
-// std::cout << std::endl
-        //           << shell->getNumFunc() << " " << shell->getStartIndex()
-        //           << std::endl;
-  //std::cout << std::endl << orb.QMAtoms()[0].getId() << std::endl;
-
-  // for (Index i = 0; i < activeatoms.size(); i++) {
-  //   std::vector<const AOShell*> activeshell =
-  //       aobasis.getShellsofAtom(activeatoms[i]);
-  //   for (const AOShell* shell : activeshell) {
-  //     std::cout << std::endl
-  //               << shell->getNumFunc() << " " << shell->getStartIndex()
-  //               << std::endl;
-  //   }
-  // }
 
   Index all_electrons = static_cast<Index>(
       std::round(FullDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
@@ -541,6 +504,86 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   const double constant_embedding_energy = Total_E_full - E0_initial_active -
                                            E_Hartree_initial_active -
                                            xc_initial_active.energy();
+
+  const Eigen::MatrixXd H_embedding = H0.matrix() + v_embedding;
+
+  Eigen::VectorXd DiagonalofDmatA = InitialActiveDensityMatrix.diagonal();
+  Eigen::VectorXd DiagonalofOverlap = overlap.Matrix().diagonal();
+  Eigen::VectorXd MnP = DiagonalofDmatA.cwiseProduct(DiagonalofOverlap);
+  for (int i = 0; i < MnP.size(); ++i) {
+    std::cout << std::endl << MnP[i];
+  }
+  const std::vector<Index>& numfuncpatom = aobasis.getFuncPerAtom();
+
+  std::vector<Index> start_indices;
+  Index start_idx = 0;
+  for (Index atom_num = 0; atom_num < orb.QMAtoms().size(); atom_num++) {
+    start_indices.push_back(start_idx);
+    bool partOfActive =
+        (std::find(activeatoms.begin(), activeatoms.end(),
+                   orb.QMAtoms()[atom_num].getId()) != activeatoms.end());
+    if (partOfActive == false) {
+      std::vector<const AOShell*> inactiveshell =
+          aobasis.getShellsofAtom(orb.QMAtoms()[atom_num].getId());
+      bool loop_break = false;
+      for (const AOShell* shell : inactiveshell) {
+        for (Index shell_fn_no = shell->getStartIndex();
+             shell_fn_no < shell->getStartIndex() + shell->getNumFunc();
+             shell_fn_no++) {
+          if (MnP[shell_fn_no] > 0.2) {
+            activeatoms.push_back(atom_num);
+            loop_break = true;
+            break;
+          }
+        }
+        if (loop_break) break;
+      }
+    }
+    start_idx += numfuncpatom[atom_num];
+  }
+  std::cout << std::endl
+            << "Size of HamiltonianOperator = " << H_embedding.size()
+            << std::endl;
+  sort(activeatoms.begin(), activeatoms.end());
+  std::cout << std::endl
+                << "ActiveAtomsSize = " << activeatoms.size() << std::endl;
+  for (Index i = 0; i < activeatoms.size(); i++) {
+    std::cout << std::endl
+              << "Participating atoms index: " << activeatoms[i] << std::endl;
+  }
+  // from here it is time to eliminate terms
+  Eigen::MatrixXd Hrowblock, Hcolumnblock;
+  for (Index activeatom1_idx = 0; activeatom1_idx < activeatoms.size();
+       activeatom1_idx++) {
+    Index activeatom1 = activeatoms[activeatom1_idx];
+    for (Index activeatom2_idx = 0; activeatom2_idx < activeatoms.size();
+         activeatom2_idx++) {
+      Index activeatom2 = activeatoms[activeatom2_idx];
+      Eigen::MatrixXd H12block = H_embedding.block(
+          start_indices[activeatom1], start_indices[activeatom2],
+          numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
+      std::cout << "Overlap between " << activeatom1 << " and " << activeatom2
+                << "has a size of : " << H12block.size() << std::endl;
+      if (Hrowblock.size() == 0) {
+        Hrowblock = H12block;
+      } else {
+        Hrowblock.conservativeResize(
+            Hrowblock.rows(), Hrowblock.cols() + numfuncpatom[activeatom2]);
+        Hrowblock.rightCols(numfuncpatom[activeatom2]) = H12block;
+      }
+    }
+    if (Hcolumnblock.size() == 0) {
+      Hcolumnblock = Hrowblock;
+    } else {
+      Hcolumnblock.conservativeResize(
+          Hcolumnblock.rows() + numfuncpatom[activeatom1], Hcolumnblock.cols());
+      Hcolumnblock.bottomRows(numfuncpatom[activeatom1]) = Hrowblock;
+    }
+  }
+  std::cout << std::endl
+            << "Size of ReducedHamiltonian = " << Hcolumnblock.size()
+            << std::endl;
+
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Constant energy embedding terms: " << std::flush;
   XTP_LOG(Log::info, *pLog_)
