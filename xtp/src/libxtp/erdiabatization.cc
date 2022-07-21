@@ -20,6 +20,7 @@
 #include "votca/xtp/ERIs.h"
 #include <votca/tools/constants.h>
 
+using boost::format;
 using std::flush;
 
 namespace votca {
@@ -141,9 +142,11 @@ Eigen::MatrixXd ERDiabatization::Calculate_diabatic_H(
   ad_energies << E1_, E2_;
 
   XTP_LOG(Log::debug, *pLog_)
-      << TimeStamp() << "Adiabatic energies in eV "
-      << "E1: " << E1_ * votca::tools::conv::hrt2ev
-      << " E2: " << E2_ * votca::tools::conv::hrt2ev << flush;
+      << format("Adiabatic energies: %1$+1.12f eV and %2$+1.12f eV") %
+             (E1_ * votca::tools::conv::hrt2ev) %
+             (E2_ * votca::tools::conv::hrt2ev)
+      << flush;
+
   XTP_LOG(Log::debug, *pLog_)
       << TimeStamp() << "Rotation angle (degrees) " << angle * 57.2958 << flush;
 
