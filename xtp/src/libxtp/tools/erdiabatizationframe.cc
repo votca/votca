@@ -17,6 +17,7 @@
 
 #include "erdiabatizationframe.h"
 
+using boost::format;
 using std::flush;
 
 namespace votca {
@@ -99,13 +100,16 @@ bool ERDiabatizationFrame::Run() {
 
   // Printing Output
   XTP_LOG(Log::error, log_)
-      << "Diabatic Energy 1: " << diabatic_H(0, 0) * votca::tools::conv::hrt2ev
+      << format("Diabatic Energy 1: %1$+1.12f eV") %
+             (diabatic_H(0, 0) * votca::tools::conv::hrt2ev)
       << flush;
   XTP_LOG(Log::error, log_)
-      << "Diabatic Energy 2: " << diabatic_H(1, 1) * votca::tools::conv::hrt2ev
+      << format("Diabatic Energy 2: %1$+1.12f eV") %
+             (diabatic_H(1, 1) * votca::tools::conv::hrt2ev)
       << flush;
   XTP_LOG(Log::error, log_)
-      << "Diabatic Coupling: " << diabatic_H(1, 0) * votca::tools::conv::hrt2ev
+      << format("Diabatic Coupling: %1$+1.12f eV") %
+             (diabatic_H(1, 0) * votca::tools::conv::hrt2ev)
       << flush;
   if (std::abs(diabatic_H(1, 0) - diabatic_H(0, 1)) >
       1e-4 * std::abs(diabatic_H(1, 0))) {

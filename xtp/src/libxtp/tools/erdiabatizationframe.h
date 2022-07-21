@@ -50,7 +50,6 @@ class ERDiabatizationFrame final : public QMTool {
   std::string orbfile2_;
   Logger log_;
   ERDiabatization::options_erdiabatization options_;
-  bool use_RI_;
 };
 
 }  // namespace xtp
