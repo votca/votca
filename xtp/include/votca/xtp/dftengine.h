@@ -78,7 +78,7 @@ class DFTEngine {
   Eigen::MatrixXd CalcERIs(const Eigen::MatrixXd& Dmat, double error) const;
 
   void ConfigOrbfile(Orbitals& orb);
-  void SetupInvariantMatrices(AOBasis dftbasis_);
+  void SetupInvariantMatrices();
 
   Mat_p_Energy SetupH0(const QMMolecule& mol) const;
   Mat_p_Energy IntegrateExternalMultipoles(

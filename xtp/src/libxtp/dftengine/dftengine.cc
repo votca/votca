@@ -561,15 +561,15 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb, Orbitals& trunc_orb) {
   sort(activeatoms.begin(), activeatoms.end());
   std::cout << std::endl
             << "Active Molecule Size = " << activeatoms.size() << std::endl;
-  for (Index i = 0; i < activeatoms.size(); i++) {
+  for (Index i = 0; i < Index(activeatoms.size()); i++) {
     std::cout << "Participating atom index: " << activeatoms[i] << std::endl;
   }
   // from here it is time to eliminate terms
   Eigen::MatrixXd Hrowblock, H_trunc;
-  for (Index activeatom1_idx = 0; activeatom1_idx < activeatoms.size();
+  for (Index activeatom1_idx = 0; activeatom1_idx < Index(activeatoms.size());
        activeatom1_idx++) {
     Index activeatom1 = activeatoms[activeatom1_idx];
-    for (Index activeatom2_idx = 0; activeatom2_idx < activeatoms.size();
+    for (Index activeatom2_idx = 0; activeatom2_idx < Index(activeatoms.size());
          activeatom2_idx++) {
       Index activeatom2 = activeatoms[activeatom2_idx];
       Eigen::MatrixXd H12block = H_embedding.block(
