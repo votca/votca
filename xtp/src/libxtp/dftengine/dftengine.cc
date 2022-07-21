@@ -722,6 +722,12 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb, Orbitals& trunc_orb) {
     }
   }
   Vxc_Potential<Vxc_Grid> vxcpotential_trunc = SetupVxc(trunc_orb.QMAtoms());
+  dftAOoverlap_.Reset(38);
+
+  std::cout << dftAOoverlap_.Matrix().rows() << " and " <<  dftAOoverlap_.Matrix().cols() << "\n" << std::endl;
+
+  
+  std::cout << "Entering Prepare... \n" << std::endl; 
   Prepare(trunc_orb, numelec);
   return true;
 }  // namespace xtp
@@ -835,7 +841,17 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
 
 void DFTEngine::SetupInvariantMatrices() {
 
+
+std::cout << " Trying to fill the TEST overlap matrix with " << dftbasis_.AOBasisSize() << "\n" << std::endl;
+  AOOverlap testOL;
+  testOL.Fill(dftbasis_);
+  std::cout << " Done? With size " << testOL.Matrix().rows() << " and " << testOL.Matrix().cols() << "\n" << std::endl;
+
+
+
+  std::cout << " Trying to fill the overlap matrix with " << dftbasis_.AOBasisSize() << "\n" << std::endl;
   dftAOoverlap_.Fill(dftbasis_);
+  std::cout << " Done? With size " << dftAOoverlap_.Matrix().rows() << " and " << dftAOoverlap_.Matrix().cols() << "\n" << std::endl;
 
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Filled DFT Overlap matrix." << std::flush;
@@ -845,6 +861,10 @@ void DFTEngine::SetupInvariantMatrices() {
   conv_accelerator_.setLogger(pLog_);
   conv_accelerator_.setOverlap(dftAOoverlap_, 1e-8);
   conv_accelerator_.PrintConfigOptions();
+
+
+    std::cout << " Convergence accelerator? \n" << std::endl;
+
 
   if (!auxbasis_name_.empty()) {
     // prepare invariant part of electron repulsion integrals

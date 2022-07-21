@@ -31,6 +31,7 @@ class AOMatrix {
  public:
   virtual void Fill(const AOBasis& aobasis) = 0;
   virtual Index Dimension() = 0;
+  //virtual void Reset() = 0;
 };
 
 // derived class for kinetic energy
@@ -50,6 +51,9 @@ class AOOverlap : public AOMatrix {
   void Fill(const AOBasis& aobasis) final;
   Index Dimension() final { return aomatrix_.rows(); }
   const Eigen::MatrixXd& Matrix() const { return aomatrix_; }
+
+  // hackaroo
+  void Reset(Index size) { aomatrix_ = Eigen::MatrixXd::Zero(size,size); }
 
   Eigen::MatrixXd singleShellOverlap(const AOShell& shell) const;
   Index Removedfunctions() const { return removedfunctions; }

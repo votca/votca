@@ -330,8 +330,8 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
     double osc = oscs[i];
     XTP_LOG(Log::error, log_)
         << format(
-               "  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> "
-               "= %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f") %
+               "  S = %1$4d Omega = %2$+12.8e eV  lamdba = %3$+3.2f nm <FT> "
+               "= %4$+12.8ef <K_x> = %5$+12.8e <K_d> = %6$+12.8e") %
                (i + 1) % (hrt2ev * energies(i)) %
                (1240.0 / (hrt2ev * energies(i))) %
                (hrt2ev * act.qp_contrib(i)) %
@@ -380,8 +380,8 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
 
     XTP_LOG(Log::error, log_)
         << format(
-               "  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> "
-               "= %4$+1.4f <K_d> = %5$+1.4f") %
+               "  T = %1$4d Omega = %2$+12.8e eV  lamdba = %3$+3.2f nm <FT> "
+               "= %4$+12.8e <K_d> = %5$+12.8e") %
                (i + 1) % (tools::conv::hrt2ev * energies(i)) %
                (1240.0 / (tools::conv::hrt2ev * energies(i))) %
                (tools::conv::hrt2ev * act.qp_contrib(i)) %
