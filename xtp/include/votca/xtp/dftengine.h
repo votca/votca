@@ -58,7 +58,7 @@ class DFTEngine {
 
   bool Evaluate(Orbitals& orb);
 
-  bool EvaluateActiveRegion(Orbitals& orb);
+  bool EvaluateActiveRegion(Orbitals& orb, Orbitals& trunc_orb);
 
   std::string getDFTBasisName() const { return dftbasis_name_; };
 
@@ -78,7 +78,7 @@ class DFTEngine {
   Eigen::MatrixXd CalcERIs(const Eigen::MatrixXd& Dmat, double error) const;
 
   void ConfigOrbfile(Orbitals& orb);
-  void SetupInvariantMatrices();
+  void SetupInvariantMatrices(AOBasis dftbasis_);
 
   Mat_p_Energy SetupH0(const QMMolecule& mol) const;
   Mat_p_Energy IntegrateExternalMultipoles(

@@ -359,17 +359,7 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
   return true;
 }
 
-// bool DFTEngine::horizontal_combine(Eigen::MatrixXd M1, Eigen::MatrixXd M2){
-//   Eigen::MatrixXd M3(M1.rows(), M1.cols()+M2.cols());
-//   M3 << M1, M2;
-// }
-// bool DFTEngine::vertical_combine(Eigen::MatrixXd M1, Eigen::MatrixXd M2){
-//   Eigen::MatrixXd M3(M1.rows()+M2.rows(), M1.cols());
-//   M3 << M1,
-//         M2;
-// }
-
-bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
+bool DFTEngine::EvaluateActiveRegion(Orbitals& orb, Orbitals& trunc_orb) {
 
   // reading in the orbitals of the full DFT calculation
   tools::EigenSystem embeddingMOs = orb.MOs();
@@ -505,7 +495,26 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
                                            E_Hartree_initial_active -
                                            xc_initial_active.energy();
 
+  XTP_LOG(Log::info, *pLog_)
+      << TimeStamp() << " Constant energy embedding terms: " << std::flush;
+  XTP_LOG(Log::info, *pLog_)
+      << TimeStamp() << " 1) E_DFT[full]: " << Total_E_full << std::flush;
+  XTP_LOG(Log::info, *pLog_)
+      << TimeStamp() << " 2) E_0[initial active]: " << E0_initial_active
+      << std::flush;
+  XTP_LOG(Log::info, *pLog_)
+      << TimeStamp() << " 3) E_H[initial active]: " << E_Hartree_initial_active
+      << std::flush;
+  XTP_LOG(Log::info, *pLog_) << TimeStamp() << " 4) E_XC[initial active]: "
+                             << xc_initial_active.energy() << std::flush;
+  XTP_LOG(Log::info, *pLog_)
+      << TimeStamp() << " Total 1 -2 -3 -4: " << constant_embedding_energy
+      << std::flush;
+
   const Eigen::MatrixXd H_embedding = H0.matrix() + v_embedding;
+
+  QMMolecule activemol =
+      QMMolecule("molecule made of atoms participating in Active region", 1);
 
   Eigen::VectorXd DiagonalofDmatA = InitialActiveDensityMatrix.diagonal();
   Eigen::VectorXd DiagonalofOverlap = overlap.Matrix().diagonal();
@@ -522,7 +531,9 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
     bool partOfActive =
         (std::find(activeatoms.begin(), activeatoms.end(),
                    orb.QMAtoms()[atom_num].getId()) != activeatoms.end());
-    if (partOfActive == false) {
+    if (partOfActive == true) {
+      activemol.push_back(orb.QMAtoms()[atom_num]);
+    } else if (partOfActive == false) {
       std::vector<const AOShell*> inactiveshell =
           aobasis.getShellsofAtom(orb.QMAtoms()[atom_num].getId());
       bool loop_break = false;
@@ -532,6 +543,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
              shell_fn_no++) {
           if (MnP[shell_fn_no] > 0.2) {
             activeatoms.push_back(atom_num);
+            activemol.push_back(orb.QMAtoms()[atom_num]);
             loop_break = true;
             break;
           }
@@ -541,18 +553,19 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
     }
     start_idx += numfuncpatom[atom_num];
   }
+  trunc_orb.QMAtoms() = activemol;
+  std::cout << std::endl << trunc_orb.QMAtoms() << std::endl;
   std::cout << std::endl
-            << "Size of HamiltonianOperator = " << H_embedding.size()
+            << "Size of Hamiltonian Operator = " << H_embedding.size()
             << std::endl;
   sort(activeatoms.begin(), activeatoms.end());
   std::cout << std::endl
-                << "ActiveAtomsSize = " << activeatoms.size() << std::endl;
+            << "Active Molecule Size = " << activeatoms.size() << std::endl;
   for (Index i = 0; i < activeatoms.size(); i++) {
-    std::cout << std::endl
-              << "Participating atoms index: " << activeatoms[i] << std::endl;
+    std::cout << "Participating atom index: " << activeatoms[i] << std::endl;
   }
   // from here it is time to eliminate terms
-  Eigen::MatrixXd Hrowblock, Hcolumnblock;
+  Eigen::MatrixXd Hrowblock, H_trunc;
   for (Index activeatom1_idx = 0; activeatom1_idx < activeatoms.size();
        activeatom1_idx++) {
     Index activeatom1 = activeatoms[activeatom1_idx];
@@ -572,33 +585,21 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
         Hrowblock.rightCols(numfuncpatom[activeatom2]) = H12block;
       }
     }
-    if (Hcolumnblock.size() == 0) {
-      Hcolumnblock = Hrowblock;
+    if (H_trunc.size() == 0) {
+      H_trunc = Hrowblock;
     } else {
-      Hcolumnblock.conservativeResize(
-          Hcolumnblock.rows() + numfuncpatom[activeatom1], Hcolumnblock.cols());
-      Hcolumnblock.bottomRows(numfuncpatom[activeatom1]) = Hrowblock;
+      H_trunc.conservativeResize(H_trunc.rows() + numfuncpatom[activeatom1],
+                                 H_trunc.cols());
+      H_trunc.bottomRows(numfuncpatom[activeatom1]) = Hrowblock;
     }
   }
   std::cout << std::endl
-            << "Size of ReducedHamiltonian = " << Hcolumnblock.size()
-            << std::endl;
-
-  XTP_LOG(Log::info, *pLog_)
-      << TimeStamp() << " Constant energy embedding terms: " << std::flush;
-  XTP_LOG(Log::info, *pLog_)
-      << TimeStamp() << " 1) E_DFT[full]: " << Total_E_full << std::flush;
-  XTP_LOG(Log::info, *pLog_)
-      << TimeStamp() << " 2) E_0[initial active]: " << E0_initial_active
-      << std::flush;
-  XTP_LOG(Log::info, *pLog_)
-      << TimeStamp() << " 3) E_H[initial active]: " << E_Hartree_initial_active
-      << std::flush;
-  XTP_LOG(Log::info, *pLog_) << TimeStamp() << " 4) E_XC[initial active]: "
-                             << xc_initial_active.energy() << std::flush;
-  XTP_LOG(Log::info, *pLog_)
-      << TimeStamp() << " Total 1 -2 -3 -4: " << constant_embedding_energy
-      << std::flush;
+            << "Size of ReducedHamiltonian = " << H_trunc.size() << std::endl;
+  Index numelec = 0;
+  for (const QMAtom& atom : activemol) {
+      numelec += atom.getNuccharge();
+    }
+  std::cout << std::endl << "Total num of electrons: " << numelec << std::endl;
 
   // Self-consistent calculation for the active electrons in the embedding
   // potential
@@ -720,7 +721,8 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       return false;
     }
   }
-
+  Vxc_Potential<Vxc_Grid> vxcpotential_trunc = SetupVxc(trunc_orb.QMAtoms());
+  Prepare(trunc_orb, numelec);
   return true;
 }  // namespace xtp
 
