@@ -248,13 +248,13 @@ Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor() const {
     for (Index K = 0; K < 2; K++) {
       Eigen::MatrixXd D_JK = CalculateD_R(J, K);
       if (!orbitals1_.getTDAApprox() and !orbitals2_.getTDAApprox()) {
-        D_JK -= CalculateD_AR(J, K);
+        D_JK += CalculateD_AR(J, K);
       }
       for (Index L = 0; L < 2; L++) {
         for (Index M = 0; M < 2; M++) {
           Eigen::MatrixXd D_LM = CalculateD_R(L, M);
           if (!orbitals1_.getTDAApprox() and !orbitals2_.getTDAApprox()) {
-            D_LM -= CalculateD_AR(L, M);
+            D_LM += CalculateD_AR(L, M);
           }
           r_tensor(J, K, L, M) = CalculateR(D_JK, D_LM);
           std::cout << J << " " << K << " " << L << " " << M << " " << r_tensor(J, K, L, M) << "\n" << std::endl;
