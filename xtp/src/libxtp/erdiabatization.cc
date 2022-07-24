@@ -166,63 +166,42 @@ double ERDiabatization::Calculate_angle() const {
 
   // also calculate sin4alpha
   double sin4alpha = B_12 / (std::sqrt(A_12 * A_12 + B_12 * B_12));
-  
 
-  double angle = 0.25 * std::acos(cos4alpha);
-  double sin_angle = 0.25 * std::asin(sin4alpha);
+  // In some cases acos may give the wrong solution, that das not maych
+  // sin4alphe Instead, follow procedure in original ER paper
+  double sqroot = std::sqrt(1.0 - 0.5 * (1.0 - cos4alpha));
+  double x_squared_plus = 0.5 * (1.0 + sqroot);
+  double x_squared_minus = 0.5 * (1.0 - sqroot);
 
- XTP_LOG(Log::debug, *pLog_) << "cos angle " << angle *  57.2958 << flush;
- XTP_LOG(Log::debug, *pLog_) << "sin angle " <<   sin_angle  *  57.2958 << flush;
+  double x1 = sqrt(x_squared_plus);
+  double y1 = sqrt(1.0 - x_squared_plus);
 
+  double x2 = sqrt(x_squared_minus);
+  double y2 = sqrt(1.0 - x_squared_minus);
 
- XTP_LOG(Log::debug, *pLog_) << "cos(4 alpha) " <<  cos4alpha   << flush;
- XTP_LOG(Log::debug, *pLog_) << "cos(4*sin angle) " <<   std::cos(4. * sin_angle)   << flush;
+  double test1 = 4.0 * x1 * y1 * (x1 * x1 - y1 * y1);
+  double test2 = 4.0 * x2 * y2 * (x2 * x2 - y2 * y2);
 
-// testing strange procedure according to original ER paper
-double sqroot = std::sqrt( 1.0 - 0.5 * ( 1.0 - cos4alpha ) );
-double x_squared_plus =  0.5 * ( 1.0 + sqroot );
-double x_squared_minus =  0.5 * ( 1.0 - sqroot );
+  double cos_alpha0 = 0;
+  double sin_alpha0 = 0;
 
-double x1 = sqrt(x_squared_plus);
-double y1 = sqrt(1.0 - x_squared_plus);
+  // check which (x,y) pair matches sin(4alpha)
+  if (std::abs(test1 - sin4alpha) < 1e-4) {
+    cos_alpha0 = x1;
+    sin_alpha0 = y1;
+  } else if (std::abs(test2 - sin4alpha) < 1e-4) {
+    cos_alpha0 = x2;
+    sin_alpha0 = y2;
+  } else {
+    XTP_LOG(Log::debug, *pLog_) << "Can't find correct angle " << flush;
+  }
 
-double x2 = sqrt(x_squared_minus);
-double y2 = sqrt(1.0 - x_squared_minus);
+  XTP_LOG(Log::debug, *pLog_)
+      << "Coupling element directly: "
+      << cos_alpha0 * sin_alpha0 * (E2_ - E1_) * votca::tools::conv::hrt2ev
+      << flush;
 
-double test1 = 4.0 * x1*y1*(x1*x1-y1*y1);
-double test2 = 4.0 * x2*y2*(x2*x2-y2*y2);
-
-double cos_alpha0 = 0;
-double sin_alpha0 = 0;
-
-// check which (x,y) pair matches sin(4alpha)
-if ( std::abs( test1 - sin4alpha ) < 1e-4 ) {
-
-  cos_alpha0 = x1;
-  sin_alpha0 = y1; 
-
-} else if ( std::abs( test2 - sin4alpha ) < 1e-4 ) {
-
-  cos_alpha0 = x2;
-  sin_alpha0 = y2; 
-
-} else{
-
-  XTP_LOG(Log::debug, *pLog_) << "Can't find correct angle " << flush;
-}
-
-
-XTP_LOG(Log::debug, *pLog_) << "Coupling element directly with cos_alpha0: "
-                              << cos_alpha0 * sin_alpha0 *
-                                     (E2_ - E1_) * votca::tools::conv::hrt2ev
-                              << flush;
-
-
-
-
-XTP_LOG(Log::debug, *pLog_) << "test1 " << test1 << " test2 " << test2 << " " << " sin(4a) " << sin4alpha  << flush;
-
-
+  double angle = std::acos(cos_alpha0);
 
   XTP_LOG(Log::debug, *pLog_) << "B12 " << B_12 << flush;
   XTP_LOG(Log::debug, *pLog_) << "A12 " << A_12 << flush;
@@ -230,16 +209,7 @@ XTP_LOG(Log::debug, *pLog_) << "test1 " << test1 << " test2 " << test2 << " " <<
   XTP_LOG(Log::debug, *pLog_)
       << "angle MAX (degrees) " << angle * 57.2958 << flush;
 
-  XTP_LOG(Log::debug, *pLog_) << "Coupling element directly: "
-                              << 0.5 * std::sqrt(0.5 - 0.5 * cos4alpha) *
-                                     (E2_ - E1_) * votca::tools::conv::hrt2ev
-                              << flush;
-
-
-
-
-
-  return angle;
+  return std::acos(angle);
 }
 
 Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor() const {
@@ -257,7 +227,6 @@ Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor() const {
             D_LM += CalculateD_AR(L, M);
           }
           r_tensor(J, K, L, M) = CalculateR(D_JK, D_LM);
-          std::cout << J << " " << K << " " << L << " " << M << " " << r_tensor(J, K, L, M) << "\n" << std::endl;
         }
       }
     }
@@ -291,6 +260,8 @@ Eigen::MatrixXd ERDiabatization::CalculateD(Index stateindex1,
     throw std::runtime_error("Invalid state index specified.");
   }
 
+  std::cout << index1 << " " << index2 << "\n" << std::endl;
+
   Eigen::VectorXd exciton1;
   Eigen::VectorXd exciton2;
 
@@ -317,21 +288,12 @@ Eigen::MatrixXd ERDiabatization::CalculateD(Index stateindex1,
   Eigen::Map<const Eigen::MatrixXd> mat1(exciton1.data(), bse_ctotal_,
                                          bse_vtotal_);
 
-  //std::cout << "mat1 has " << mat1.rows() << " rows and " << mat1.cols() << " columns " << std::endl;  
-
-
   Eigen::Map<const Eigen::MatrixXd> mat2(exciton2.data(), bse_ctotal_,
                                          bse_vtotal_);
 
   Eigen::MatrixXd AuxMat_vv = mat1.transpose() * mat2;
 
-  //std::cout << "AuxMax_vv has " << AuxMat_vv.rows() << " rows and " << AuxMat_vv.cols() << " columns " << std::endl;  
-
-
   Eigen::MatrixXd AuxMat_cc = mat1 * mat2.transpose();
-
-  //std::cout << "AuxMax_cc has " << AuxMat_cc.rows() << " rows and " << AuxMat_cc.cols() << " columns " << std::endl;  
-
 
   Eigen::MatrixXd results =
       virtlevels1_ * AuxMat_cc * virtlevels2_.transpose() -
@@ -346,9 +308,6 @@ Eigen::MatrixXd ERDiabatization::CalculateD(Index stateindex1,
       results += orbitals2_.DensityMatrixGroundState();
     }
   }*/
-
-  //std::cout << "result has " << results.rows() << " rows and " << results.cols() << " columns " << std::endl;  
-
 
   return results;
 }
