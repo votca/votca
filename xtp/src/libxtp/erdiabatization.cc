@@ -209,7 +209,7 @@ double ERDiabatization::Calculate_angle() const {
   XTP_LOG(Log::debug, *pLog_)
       << "angle MAX (degrees) " << angle * 57.2958 << flush;
 
-  return std::acos(angle);
+  return angle;
 }
 
 Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor() const {
@@ -259,8 +259,6 @@ Eigen::MatrixXd ERDiabatization::CalculateD(Index stateindex1,
   } else {
     throw std::runtime_error("Invalid state index specified.");
   }
-
-  std::cout << index1 << " " << index2 << "\n" << std::endl;
 
   Eigen::VectorXd exciton1;
   Eigen::VectorXd exciton2;
