@@ -88,9 +88,7 @@ void GMHDiabatization::configure() {
   }
 }
 
-double GMHDiabatization::calculate_coupling() {
-
-  double coupling = 0.0;
+std::pair<double, double> GMHDiabatization::calculate_coupling() {
 
   // calculate electric dipole moment in state 1
   QMState state1 = QMState(qmtype_, state_idx_1_ - 1, false);
@@ -115,11 +113,19 @@ double GMHDiabatization::calculate_coupling() {
   // Generalized Mulliken-Hush coupling
   double abs_transition_dip = transition_dip.norm();
   double dipole_diff_norm = (state1_dipole - state2_dipole).norm();
-  coupling = (abs_transition_dip * (E2_ - E1_)) /
-             std::sqrt(std::pow(dipole_diff_norm, 2) +
-                       4.0 * std::pow(abs_transition_dip, 2));
+  double coupling = (abs_transition_dip * (E2_ - E1_)) /
+                    std::sqrt(std::pow(dipole_diff_norm, 2) +
+                              4.0 * std::pow(abs_transition_dip, 2));
 
-  return coupling;
+  // with the "projection" from Stanford people
+  Eigen::Vector3d CT_direction =
+      (state1_dipole - state2_dipole) / (state1_dipole - state2_dipole).norm();
+  double proj_transition_dip = transition_dip.dot(CT_direction);
+  double coupling_proj = (proj_transition_dip * (E2_ - E1_)) /
+                         std::sqrt(std::pow(dipole_diff_norm, 2) +
+                                   4.0 * std::pow(proj_transition_dip, 2));
+
+  return std::pair<double, double>(coupling, coupling_proj);
 }
 
 Eigen::Vector3d GMHDiabatization::transition_dipole(QMState state1,
@@ -171,13 +177,7 @@ Eigen::Vector3d GMHDiabatization::transition_dipole(QMState state1,
 
   AOOverlap overlap;
   overlap.Fill(basis);
-  double nelec = transition_dmat.cwiseProduct(overlap.Matrix())
-                          .sum();
-
-  XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " Transition Charge " << nelec << flush;
-
-
+  double nelec = transition_dmat.cwiseProduct(overlap.Matrix()).sum();
 
   Eigen::Vector3d electronic_dip;
   for (Index i = 0; i < 3; ++i) {

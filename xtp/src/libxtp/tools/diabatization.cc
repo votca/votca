@@ -136,10 +136,15 @@ bool Diabatization::Run() {
 
     GMHDiabatization.configure();
 
-    double coupling = GMHDiabatization.calculate_coupling();
-    XTP_LOG(Log::error, log_) << format("Diabatic Coupling: %1$+1.12f eV") %
-                                     (coupling * votca::tools::conv::hrt2ev)
-                              << flush;
+    std::pair<double, double> coupling = GMHDiabatization.calculate_coupling();
+    XTP_LOG(Log::error, log_)
+        << format("Diabatic Coupling: %1$+1.12f eV") %
+               (coupling.first * votca::tools::conv::hrt2ev)
+        << flush;
+    XTP_LOG(Log::error, log_)
+        << format("Diabatic Coupling with CT axis projection: %1$+1.12f eV") %
+               (coupling.second * votca::tools::conv::hrt2ev)
+        << flush;
   }
   return true;
 }

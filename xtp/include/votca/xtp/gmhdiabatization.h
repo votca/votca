@@ -47,7 +47,7 @@ class GMHDiabatization {
 
   void configure();
 
-  double calculate_coupling();
+  std::pair<double, double> calculate_coupling();
 
  private:
   Orbitals& orbitals1_;
