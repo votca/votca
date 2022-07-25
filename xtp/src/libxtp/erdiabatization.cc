@@ -93,7 +93,7 @@ void ERDiabatization::setUpMatrices() {
                                                        bse_ctotal_);
 
   // Use different RI initialization according to what is in the orb files.
-  if (hasRI_ && opt_.use_RI) {
+  if (hasRI_ && useRI_) {
     XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Using RI " << flush;
     eris_.Initialize(dftbasis_, auxbasis_);
   } else {
@@ -101,16 +101,15 @@ void ERDiabatization::setUpMatrices() {
   }
 }
 
-void ERDiabatization::configure(const options_erdiabatization& opt) {
-  opt_ = opt;
-  qmtype_.FromString(opt.qmtype);
+void ERDiabatization::configure() {
+  qmtype_.FromString(qmtype_str_);
 
   if (qmtype_ == QMStateType::Singlet) {
-    E1_ = orbitals1_.BSESinglets().eigenvalues()[opt_.state_idx_1 - 1];
-    E2_ = orbitals2_.BSESinglets().eigenvalues()[opt_.state_idx_2 - 1];
+    E1_ = orbitals1_.BSESinglets().eigenvalues()[state_idx_1_ - 1];
+    E2_ = orbitals2_.BSESinglets().eigenvalues()[state_idx_2_ - 1];
   } else {
-    E1_ = orbitals1_.BSETriplets().eigenvalues()[opt_.state_idx_1 - 1];
-    E2_ = orbitals2_.BSETriplets().eigenvalues()[opt_.state_idx_2 - 1];
+    E1_ = orbitals1_.BSETriplets().eigenvalues()[state_idx_1_ - 1];
+    E2_ = orbitals2_.BSETriplets().eigenvalues()[state_idx_2_ - 1];
   }
 }
 
@@ -118,7 +117,7 @@ double ERDiabatization::CalculateR(const Eigen::MatrixXd& D_JK,
                                    const Eigen::MatrixXd& D_LM) const {
 
   Eigen::MatrixXd contracted;
-  if (hasRI_ && opt_.use_RI) {
+  if (hasRI_ && useRI_) {
     contracted = eris_.CalculateERIs_3c(D_LM);
   } else {
     contracted = eris_.CalculateERIs_4c(D_LM, 1e-12);
@@ -246,16 +245,16 @@ Eigen::MatrixXd ERDiabatization::CalculateD(Index stateindex1,
   Index index2;
 
   if (stateindex1 == 0) {
-    index1 = opt_.state_idx_1;
+    index1 = state_idx_1_;
   } else if (stateindex1 == 1) {
-    index1 = opt_.state_idx_2;
+    index1 = state_idx_2_;
   } else {
     throw std::runtime_error("Invalid state index specified.");
   }
   if (stateindex2 == 0) {
-    index2 = opt_.state_idx_1;
+    index2 = state_idx_1_;
   } else if (stateindex2 == 1) {
-    index2 = opt_.state_idx_2;
+    index2 = state_idx_2_;
   } else {
     throw std::runtime_error("Invalid state index specified.");
   }

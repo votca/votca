@@ -25,7 +25,7 @@
 #include "tools/coupling.h"
 #include "tools/densityanalysis.h"
 #include "tools/dftgwbse.h"
-#include "tools/erdiabatizationframe.h"
+#include "tools/diabatization.h"
 #include "tools/excitoncoupling.h"
 #include "tools/gencube.h"
 #include "tools/gpu_benchmark.h"
@@ -54,7 +54,7 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<APDFT>("apdft");
   QMTools().Register<Mol2Orb>("mol2orb");
   QMTools().Register<Orb2Mol>("orb2mol");
-  QMTools().Register<ERDiabatizationFrame>("erdiabatization");
+  QMTools().Register<Diabatization>("diabatization");
   QMTools().Register<Orb2Fchk>("orb2fchk");
   QMTools().Register<GPUBenchmark>("gpu_benchmark");
 }

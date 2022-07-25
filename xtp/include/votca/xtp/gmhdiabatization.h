@@ -18,11 +18,10 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_ERDIABATIZATION_H
-#define VOTCA_XTP_ERDIABATIZATION_H
+#ifndef VOTCA_XTP_GMHDIABATIZATION_H
+#define VOTCA_XTP_GMHDIABATIZATION_H
 
 #include "logger.h"
-#include "votca/xtp/ERIs.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/qmtool.h"
 #include <cstdio>
@@ -33,28 +32,22 @@
 namespace votca {
 namespace xtp {
 
-class ERDiabatization {
+class GMHDiabatization {
  public:
-  ERDiabatization();
+  GMHDiabatization();
 
-  ERDiabatization(Orbitals& orbitals1, Orbitals& orbitals2, Logger* log,
-                  Index state_idx_1, Index state_idx_2, std::string qmtype,
-                  bool useRI = true)
+  GMHDiabatization(Orbitals& orbitals1, Orbitals& orbitals2, Logger* log,
+                   Index state_idx_1, Index state_idx_2, std::string qmstate)
       : orbitals1_(orbitals1),
         orbitals2_(orbitals2),
         pLog_(log),
-        state_idx_1_{state_idx_1},
-        state_idx_2_{state_idx_2},
-        qmtype_str_(qmtype),
-        useRI_(useRI){};
-
-  // Function to set up the ERI matrices
-  void setUpMatrices();
+        state_idx_1_(state_idx_1),
+        state_idx_2_(state_idx_2),
+        qmstate_str_(qmstate){};
 
   void configure();
 
-  double Calculate_angle() const;
-  Eigen::MatrixXd Calculate_diabatic_H(const double angle) const;
+  double calculate_coupling();
 
  private:
   Orbitals& orbitals1_;
@@ -62,7 +55,6 @@ class ERDiabatization {
   QMStateType qmtype_;
   Logger* pLog_;
 
-  ERIs eris_;
   AOBasis dftbasis_;
   AOBasis auxbasis_;
 
@@ -73,10 +65,10 @@ class ERDiabatization {
   Index bse_vtotal_;
   Index bse_ctotal_;
   Index basissize_;
+
   Index state_idx_1_;
   Index state_idx_2_;
-
-  std::string qmtype_str_;
+  std::string qmstate_str_;
 
   Eigen::MatrixXd occlevels1_;
   Eigen::MatrixXd virtlevels1_;
@@ -84,29 +76,12 @@ class ERDiabatization {
   Eigen::MatrixXd occlevels2_;
   Eigen::MatrixXd virtlevels2_;
 
-  bool hasRI_;
-  bool useRI_;
-
   double E1_;
   double E2_;
 
-  template <bool AR>
-  Eigen::MatrixXd CalculateD(Index stateindex1, Index stateindex2) const;
-
-  Eigen::MatrixXd CalculateD_R(Index stateindex1, Index stateindex2) const {
-    return CalculateD<false>(stateindex1, stateindex2);
-  }
-  Eigen::MatrixXd CalculateD_AR(Index stateindex1, Index stateindex2) const {
-    return CalculateD<true>(stateindex1, stateindex2);
-  }
-
-  double CalculateR(const Eigen::MatrixXd& D_JK,
-                    const Eigen::MatrixXd& D_LM) const;
-  Eigen::MatrixXd CalculateU(const double phi) const;
-  Eigen::Tensor<double, 4> CalculateRtensor() const;
+  Eigen::Vector3d transition_dipole(QMState state1, QMState state2);
 };
-
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_ERDIABATIZATION_H
+#endif  // VOTCA_XTP_GMHDIABATIZATION_H

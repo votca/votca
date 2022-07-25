@@ -16,7 +16,7 @@
 #include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE erdiabatization_test
+#define BOOST_TEST_MODULE diabatization_test
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
@@ -78,17 +78,8 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
   log.setReportLevel(Log::error);
   log.setMultithreading(true);
   log.setCommonPreface("\n... ...");
-  ERDiabatization ERDiabatization(dimer, dimer, &log);
-
-  // Option for ERdiabatization
-  ERDiabatization::options_erdiabatization options;
-  options.qmtype = "singlet";
-  options.state_idx_1 = 1;
-  options.state_idx_2 = 2;
-  options.use_RI = true;
-
-  ERDiabatization.configure(options);
-
+  ERDiabatization ERDiabatization(dimer, dimer, &log, 1, 2, "singlet", true);
+  ERDiabatization.configure();
   ERDiabatization.setUpMatrices();
 
   // Calculate angle

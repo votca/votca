@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_ERDIABATIZATIONFRAME_H
-#define VOTCA_XTP_ERDIABATIZATIONFRAME_H
+#ifndef VOTCA_XTP_DIABATIZATION_H
+#define VOTCA_XTP_DIABATIZATION_H
 
 // Standard includes
 #include <cstdio>
@@ -30,16 +30,17 @@
 #include "votca/xtp/qmtool.h"
 #include <votca/tools/types.h>
 #include <votca/xtp/erdiabatization.h>
+#include <votca/xtp/gmhdiabatization.h>
 namespace votca {
 namespace xtp {
 
-class ERDiabatizationFrame final : public QMTool {
+class Diabatization final : public QMTool {
  public:
-  ERDiabatizationFrame() = default;
+  Diabatization() = default;
 
-  ~ERDiabatizationFrame() = default;
+  ~Diabatization() = default;
 
-  std::string Identify() const { return "erdiabatization"; }
+  std::string Identify() const { return "diabatization"; }
 
  protected:
   void ParseOptions(const tools::Property& user_options) final;
@@ -49,10 +50,16 @@ class ERDiabatizationFrame final : public QMTool {
   std::string orbfile1_;
   std::string orbfile2_;
   Logger log_;
-  ERDiabatization::options_erdiabatization options_;
+  std::string method_;
+  std::string qmtype_;
+
+  Index state_idx_1_;
+  Index state_idx_2_;
+
+  bool useRI_;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_ERDIABATIZATIONFRAME_H
+#endif  // VOTCA_XTP_DIABATIZATION_H
