@@ -56,25 +56,10 @@ class GMHDiabatization {
   Logger* pLog_;
 
   AOBasis dftbasis_;
-  AOBasis auxbasis_;
-
-  Index bse_cmax_;
-  Index bse_cmin_;
-  Index bse_vmax_;
-  Index bse_vmin_;
-  Index bse_vtotal_;
-  Index bse_ctotal_;
-  Index basissize_;
 
   Index state_idx_1_;
   Index state_idx_2_;
   std::string qmstate_str_;
-
-  Eigen::MatrixXd occlevels1_;
-  Eigen::MatrixXd virtlevels1_;
-
-  Eigen::MatrixXd occlevels2_;
-  Eigen::MatrixXd virtlevels2_;
 
   double E1_;
   double E2_;
