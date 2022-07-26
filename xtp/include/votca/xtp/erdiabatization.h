@@ -66,39 +66,16 @@ class ERDiabatization {
   AOBasis dftbasis_;
   AOBasis auxbasis_;
 
-  Index bse_cmax_;
-  Index bse_cmin_;
-  Index bse_vmax_;
-  Index bse_vmin_;
-  Index bse_vtotal_;
-  Index bse_ctotal_;
-  Index basissize_;
   Index state_idx_1_;
   Index state_idx_2_;
 
   std::string qmtype_str_;
-
-  Eigen::MatrixXd occlevels1_;
-  Eigen::MatrixXd virtlevels1_;
-
-  Eigen::MatrixXd occlevels2_;
-  Eigen::MatrixXd virtlevels2_;
 
   bool hasRI_;
   bool useRI_;
 
   double E1_;
   double E2_;
-
-  template <bool AR>
-  Eigen::MatrixXd CalculateD(Index stateindex1, Index stateindex2) const;
-
-  Eigen::MatrixXd CalculateD_R(Index stateindex1, Index stateindex2) const {
-    return CalculateD<false>(stateindex1, stateindex2);
-  }
-  Eigen::MatrixXd CalculateD_AR(Index stateindex1, Index stateindex2) const {
-    return CalculateD<true>(stateindex1, stateindex2);
-  }
 
   double CalculateR(const Eigen::MatrixXd& D_JK,
                     const Eigen::MatrixXd& D_LM) const;
