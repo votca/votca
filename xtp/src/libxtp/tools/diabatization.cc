@@ -37,6 +37,8 @@ void Diabatization::ParseOptions(const tools::Property& user_options) {
     XTP_LOG(Log::error, log_) << "Method : Edminston-Rudenberg" << flush;
   } else if (method_ == "gmh") {
     XTP_LOG(Log::error, log_) << "Method : Generalized Mulliken-Hush" << flush;
+  } else if (method_ == "fcd") {
+    XTP_LOG(Log::error, log_) << "Method : Fragment Charge Difference" << flush;
   } else {
     throw std::runtime_error("Diabatization method unknown!");
   }
@@ -64,6 +66,17 @@ void Diabatization::ParseOptions(const tools::Property& user_options) {
   }
 
   useRI_ = options.get(".use_RI").as<bool>();
+
+  if (options.exists(".fragments")) {
+    std::vector<tools::Property*> prop_region =
+        options.Select("fragments.fragment");
+    Index index = 0;
+    for (tools::Property* prop : prop_region) {
+      std::string indices = prop->get("indices").as<std::string>();
+      fragments_.push_back(QMFragment<BSE_Population>(index, indices));
+      index++;
+    }
+  }
 
   XTP_LOG(Log::error, log_) << flush;
 }
@@ -145,6 +158,22 @@ bool Diabatization::Run() {
         << format("Diabatic Coupling with CT axis projection: %1$+1.12f eV") %
                (coupling.second * votca::tools::conv::hrt2ev)
         << flush;
+  } else if (method_ == "fcd") {
+
+    // check if fragments are empty
+    if (fragments_.size() == 0) {
+      throw std::runtime_error("Fragments are undefined in FCD!");
+    }
+
+    FCDDiabatization FCDDiabatization(orbitals1, orbitals2, &log_, state_idx_1_,
+                                      state_idx_2_, qmtype_, fragments_);
+
+    FCDDiabatization.configure();
+
+    double coupling = FCDDiabatization.calculate_coupling();
+    XTP_LOG(Log::error, log_) << format("Diabatic Coupling: %1$+1.12f eV") %
+                                     (coupling * votca::tools::conv::hrt2ev)
+                              << flush;
   }
   return true;
 }

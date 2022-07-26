@@ -61,15 +61,15 @@ void ERDiabatization::setUpMatrices() {
 
   if (orbitals1_.getBSEvmax() != orbitals2_.getBSEvmax()) {
     throw std::runtime_error("Different BSE vmax for the two input file.");
-  } 
+  }
 
   if (orbitals1_.getBSEcmin() != orbitals2_.getBSEcmin()) {
     throw std::runtime_error("Different BSE cmin for the two input file.");
-  } 
+  }
 
   if (orbitals1_.getBSEcmax() != orbitals2_.getBSEcmax()) {
     throw std::runtime_error("Different BSE cmax for the two input file.");
-  } 
+  }
 
   // Use different RI initialization according to what is in the orb files.
   if (hasRI_ && useRI_) {
@@ -208,19 +208,19 @@ Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor() const {
   for (Index J = 0; J < 2; J++) {
     for (Index K = 0; K < 2; K++) {
       Eigen::MatrixXd D_JK = tdmat.Matrix(states[J], states[K]);
-      if ( J == 0 && K == 0){
+      if (J == 0 && K == 0) {
         D_JK += orbitals1_.DensityMatrixGroundState();
       }
-      if ( J == 1 && K == 1){
+      if (J == 1 && K == 1) {
         D_JK += orbitals2_.DensityMatrixGroundState();
       }
       for (Index L = 0; L < 2; L++) {
         for (Index M = 0; M < 2; M++) {
           Eigen::MatrixXd D_LM = tdmat.Matrix(states[L], states[M]);
-          if ( L == 0 && M == 0){
+          if (L == 0 && M == 0) {
             D_LM += orbitals1_.DensityMatrixGroundState();
           }
-          if ( L == 1 && M == 1){
+          if (L == 1 && M == 1) {
             D_LM += orbitals2_.DensityMatrixGroundState();
           }
           r_tensor(J, K, L, M) = CalculateR(D_JK, D_LM);
@@ -230,7 +230,6 @@ Eigen::Tensor<double, 4> ERDiabatization::CalculateRtensor() const {
   }
   return r_tensor;
 }
-
 
 }  // namespace xtp
 }  // namespace votca

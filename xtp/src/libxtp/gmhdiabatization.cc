@@ -95,7 +95,7 @@ std::pair<double, double> GMHDiabatization::calculate_coupling() {
   Eigen::Vector3d CT_direction =
       (state1_dipole - state2_dipole) / (state1_dipole - state2_dipole).norm();
   double proj_transition_dip = transition_dip.dot(CT_direction);
-  double coupling_proj = (proj_transition_dip * (E2_ - E1_)) /
+  double coupling_proj = (std::abs(proj_transition_dip) * (E2_ - E1_)) /
                          std::sqrt(std::pow(dipole_diff_norm, 2) +
                                    4.0 * std::pow(proj_transition_dip, 2));
 

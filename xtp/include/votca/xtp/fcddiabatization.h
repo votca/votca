@@ -18,54 +18,58 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_DIABATIZATION_H
-#define VOTCA_XTP_DIABATIZATION_H
+#ifndef VOTCA_XTP_FCDDIABATIZATION_H
+#define VOTCA_XTP_FCDDIABATIZATION_H
 
-// Standard includes
-#include <cstdio>
-
-// Local VOTCA includes
-#include "votca/xtp/logger.h"
+#include "logger.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/qmfragment.h"
 #include "votca/xtp/qmtool.h"
+#include <cstdio>
+#include <votca/tools/property.h>
 #include <votca/tools/types.h>
-#include <votca/xtp/erdiabatization.h>
-#include <votca/xtp/fcddiabatization.h>
-#include <votca/xtp/gmhdiabatization.h>
+#include <votca/xtp/aobasis.h>
 
 namespace votca {
 namespace xtp {
 
-class Diabatization final : public QMTool {
+class FCDDiabatization {
  public:
-  Diabatization() = default;
+  FCDDiabatization();
 
-  ~Diabatization() = default;
+  FCDDiabatization(Orbitals& orbitals1, Orbitals& orbitals2, Logger* log,
+                   Index state_idx_1, Index state_idx_2, std::string qmstate,
+                   std::vector<QMFragment<BSE_Population> > fragments)
+      : orbitals1_(orbitals1),
+        orbitals2_(orbitals2),
+        pLog_(log),
+        state_idx_1_(state_idx_1),
+        state_idx_2_(state_idx_2),
+        qmstate_str_(qmstate),
+        fragments_(fragments){};
 
-  std::string Identify() const { return "diabatization"; }
+  void configure();
 
- protected:
-  void ParseOptions(const tools::Property& user_options) final;
-  bool Run() final;
+  double calculate_coupling();
 
  private:
-  std::string orbfile1_;
-  std::string orbfile2_;
-  Logger log_;
-  std::string method_;
-  std::string qmtype_;
+  Orbitals& orbitals1_;
+  Orbitals& orbitals2_;
+  QMStateType qmtype_;
+  Logger* pLog_;
+
+  AOBasis dftbasis_;
 
   Index state_idx_1_;
   Index state_idx_2_;
+  std::string qmstate_str_;
 
-  // for use in ER
-  bool useRI_;
-  // for use in FCD
+  double E1_;
+  double E2_;
+
   std::vector<QMFragment<BSE_Population> > fragments_;
 };
-
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_DIABATIZATION_H
+#endif  // VOTCA_XTP_FCDDIABATIZATION_H
