@@ -25,6 +25,7 @@ Version 2022.1 (released XX.01.22)
 -  update syntax for cmake 3.23 (#978)
 -  fix CI build on Ubuntu (#981)
 -  fix CI builds with icpx (#984)
+-  fix CI builds with ESPResSo 4.2.0 (#993)
 
 Version 2022 (released 15.01.22)
 ================================
