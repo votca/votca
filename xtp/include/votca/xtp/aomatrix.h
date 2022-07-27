@@ -53,7 +53,8 @@ class AOOverlap : public AOMatrix {
   const Eigen::MatrixXd& Matrix() const { return aomatrix_; }
 
   // hackaroo
-  void Reset(Index size) { aomatrix_ = Eigen::MatrixXd::Zero(size,size); }
+  void resize(Index rows, Index cols);
+  std::string name_ = "";
 
   Eigen::MatrixXd singleShellOverlap(const AOShell& shell) const;
   Index Removedfunctions() const { return removedfunctions; }

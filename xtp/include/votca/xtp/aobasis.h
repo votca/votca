@@ -88,13 +88,15 @@ class AOBasis {
 
   void add(const AOBasis& other);
 
+  void clear();
+  std::string name_ = "";
+
   friend std::ostream& operator<<(std::ostream& out, const AOBasis& aobasis);
 
  private:
   void FillFuncperAtom();
 
-  void clear();
-  std::string name_ = "";
+  
 
   std::vector<AOShell> aoshells_;
 

@@ -555,7 +555,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb, Orbitals& trunc_orb) {
         for (Index shell_fn_no = shell->getStartIndex();
              shell_fn_no < shell->getStartIndex() + shell->getNumFunc();
              shell_fn_no++) {
-          if (MnP[shell_fn_no] > 0.2) {
+          if (MnP[shell_fn_no] > 0.02) {
             activeatoms.push_back(atom_num);
             activemol.push_back(orb.QMAtoms()[atom_num]);
             loop_break = true;  // if any function in the whole atom satisfies
@@ -588,9 +588,11 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb, Orbitals& trunc_orb) {
               << std::endl;
   }
   // from here it is time to make a new Hamiltonian H0
-  Eigen::MatrixXd H_trunc = Eigen::MatrixXd::Zero(
+  Eigen::MatrixXd H0_trunc = Eigen::MatrixXd::Zero(
       numofbasisfunction, numofbasisfunction);  // Zero H0 defined with
                                                 // basisset_size * basisset_size
+  Eigen::MatrixXd InitialActiveDmat_trunc = Eigen::MatrixXd::Zero(
+      numofbasisfunction, numofbasisfunction); 
   for (Index activeatom1_idx = 0; activeatom1_idx < Index(activeatoms.size());
        activeatom1_idx++) {
     Index activeatom1 = activeatoms[activeatom1_idx];
@@ -598,21 +600,29 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb, Orbitals& trunc_orb) {
          activeatom2_idx++) {
       Index activeatom2 = activeatoms[activeatom2_idx];
       // Fill the Hamiltonian at the right indices
-      H_trunc.block(start_indices_activemolecule[activeatom1_idx],
+      H0_trunc.block(start_indices_activemolecule[activeatom1_idx],
                     start_indices_activemolecule[activeatom2_idx],
                     numfuncpatom[activeatom1], numfuncpatom[activeatom2]) =
           H_embedding.block(
               start_indices[activeatom1], start_indices[activeatom2],
               numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
+      InitialActiveDmat_trunc.block(start_indices_activemolecule[activeatom1_idx],
+                    start_indices_activemolecule[activeatom2_idx],
+                    numfuncpatom[activeatom1], numfuncpatom[activeatom2]) =
+          InitialActiveDensityMatrix.block(
+              start_indices[activeatom1], start_indices[activeatom2],
+              numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
          }
   }
   std::cout << std::endl
-            << "Size of ReducedHamiltonian = " << H_trunc.size() << std::endl;
+            << "Size of ReducedHamiltonian = " << H0_trunc.size() << std::endl;
+  std::cout << std::endl
+            << "Size of ReducedDMATRIX = " << InitialActiveDmat_trunc.rows() << " * " << InitialActiveDmat_trunc.rows() << std::endl;
+  
   Index numelec = 0;
   for (const QMAtom& atom : activemol) {
     numelec += atom.getNuccharge();
   }
-  std::cout << std::endl << "Total num of electrons: " << numelec << std::endl;
 
   // Self-consistent calculation for the active electrons in the embedding
   // potential
@@ -734,15 +744,25 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb, Orbitals& trunc_orb) {
       return false;
     }
   }
-  Vxc_Potential<Vxc_Grid> vxcpotential_trunc = SetupVxc(trunc_orb.QMAtoms());
-  dftAOoverlap_.Reset(numofbasisfunction);
-
-  std::cout << dftAOoverlap_.Matrix().rows() << " and "
-            << dftAOoverlap_.Matrix().cols() << "\n"
-            << std::endl;
-
-  std::cout << "Entering Prepare... \n" << std::endl;
-  Prepare(trunc_orb, numelec);
+  dftbasis_.clear();
+  std::cout << "Before: " << dftAOoverlap_.Matrix().rows() << std::endl;
+  dftAOoverlap_.resize(52,52);
+  trunc_orb.SetupDftBasis(dftbasis_name_);
+  AOBasis dftbasis1_ = trunc_orb.getDftBasis();
+  dftAOoverlap_.Fill(dftbasis1_);
+  std::cout << "After: " << dftAOoverlap_.Matrix().rows() << std::endl;
+  //Prepare(trunc_orb, active_electrons);
+  //Vxc_Potential<Vxc_Grid> vxcpotential_trunc = SetupVxc(trunc_orb.QMAtoms());
+  // 
+  // //
+  // AOBasis dftbasis1_ = trunc_orb.getDftBasis();
+  // //
+  
+  // AOOverlap overlap_trunc;
+  // overlap_trunc.Fill(dftbasis1_);
+  // Index truncatedelectrons = static_cast<Index>(
+  //     std::round(InitialActiveDmat_trunc.cwiseProduct(overlap_trunc.Matrix()).sum()));
+  // std::cout << std::endl << "Pred no. of electron: " << truncatedelectrons << std::endl;
   return true;
 }
 
@@ -854,24 +874,9 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
 }
 
 void DFTEngine::SetupInvariantMatrices() {
-
-  std::cout << " Trying to fill the TEST overlap matrix with "
-            << dftbasis_.AOBasisSize() << "\n"
-            << std::endl;
-  AOOverlap testOL;
-  testOL.Fill(dftbasis_);
-  std::cout << " Done? With size " << testOL.Matrix().rows() << " and "
-            << testOL.Matrix().cols() << "\n"
-            << std::endl;
-
-  std::cout << " Trying to fill the overlap matrix with "
-            << dftbasis_.AOBasisSize() << "\n"
-            << std::endl;
   dftAOoverlap_.Fill(dftbasis_);
-  std::cout << " Done? With size " << dftAOoverlap_.Matrix().rows() << " and "
-            << dftAOoverlap_.Matrix().cols() << "\n"
-            << std::endl;
 
+  std::cout << std::endl << "---L----A----L----A----L----" << std::endl;
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Filled DFT Overlap matrix." << std::flush;
 
@@ -880,8 +885,6 @@ void DFTEngine::SetupInvariantMatrices() {
   conv_accelerator_.setLogger(pLog_);
   conv_accelerator_.setOverlap(dftAOoverlap_, 1e-8);
   conv_accelerator_.PrintConfigOptions();
-
-  std::cout << " Convergence accelerator? \n" << std::endl;
 
   if (!auxbasis_name_.empty()) {
     // prepare invariant part of electron repulsion integrals
@@ -1222,6 +1225,7 @@ void DFTEngine::Prepare(Orbitals& orb, Index numofelectrons) {
     XTP_LOG(Log::error, *pLog_) << output << std::flush;
   }
 
+  std::cout <<"DFT Basis size: " << dftbasis_.AOBasisSize() << std::endl;
   orb.SetupDftBasis(dftbasis_name_);
   dftbasis_ = orb.getDftBasis();
 
@@ -1256,7 +1260,6 @@ void DFTEngine::Prepare(Orbitals& orb, Index numofelectrons) {
           << std::flush;
     }
   }
-
   if (numofelectrons < 0) {
     for (const QMAtom& atom : mol) {
       numofelectrons_ += atom.getNuccharge();
