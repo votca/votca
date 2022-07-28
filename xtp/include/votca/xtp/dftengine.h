@@ -58,7 +58,8 @@ class DFTEngine {
 
   bool Evaluate(Orbitals& orb);
 
-  bool EvaluateActiveRegion(Orbitals& orb, Orbitals& trunc_orb);
+  bool EvaluateActiveRegion(Orbitals& orb);
+  bool EvaluateTruncatedActiveRegion(Orbitals& trunc_orb);
 
   std::string getDFTBasisName() const { return dftbasis_name_; };
 
@@ -148,12 +149,22 @@ class DFTEngine {
   std::string gridquality_;
   std::string state_;
 
+  QMMolecule activemol_ =
+      QMMolecule("molecule made of atoms participating in Active region", 1);
+  ;
+
   Eigen::Vector3d extfield_ = Eigen::Vector3d::Zero();
   bool integrate_ext_field_ = false;
 
   std::string active_atoms_as_string_;
   double active_threshold_;
   double levelshift_;
+
+  // truncation
+  Eigen::MatrixXd H0_trunc_;
+  Eigen::MatrixXd InitialActiveDmat_trunc_;
+  bool truncate_;
+  Index active_electrons_;
 };
 
 }  // namespace xtp
