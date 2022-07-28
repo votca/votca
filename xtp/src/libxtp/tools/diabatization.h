@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2022 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -58,6 +58,11 @@ class Diabatization final : public QMTool {
 
   Index state_idx_1_;
   Index state_idx_2_;
+
+  bool isQMMM_;
+
+  double E1_;
+  double E2_;
 
   // for use in ER
   bool useRI_;

@@ -29,7 +29,7 @@
 using namespace votca::xtp;
 using namespace votca;
 
-BOOST_AUTO_TEST_SUITE(erdiabatization_test)
+BOOST_AUTO_TEST_SUITE(diabatization_test)
 
 BOOST_AUTO_TEST_CASE(coupling_test) {
   libint2::initialize();
@@ -37,18 +37,18 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
   // populate orbitals object
   Orbitals dimer;
   dimer.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
-                               "/erdiabatization/dimer.xyz");
+                               "/diabatization/dimer.xyz");
   dimer.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                      "/erdiabatization/def2-svp.xml");
+                      "/diabatization/def2-svp.xml");
   dimer.SetupAuxBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                      "/erdiabatization/aux-def2-svp.xml");
+                      "/diabatization/aux-def2-svp.xml");
   dimer.setNumberOfAlphaElectrons(44);
   dimer.setNumberOfOccupiedLevels(44);
 
   Eigen::VectorXd ref_MOvals = votca::tools::EigenIO_MatrixMarket::ReadVector(
-      std::string(XTP_TEST_DATA_FOLDER) + "/erdiabatization/dimer_MOvals.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + "/diabatization/dimer_MOvals.mm");
   Eigen::MatrixXd ref_MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-      std::string(XTP_TEST_DATA_FOLDER) + "/erdiabatization/dimer_MOs.mm");
+      std::string(XTP_TEST_DATA_FOLDER) + "/diabatization/dimer_MOs.mm");
   dimer.MOs().eigenvalues() = ref_MOvals;
   dimer.MOs().eigenvectors() = ref_MOs;
 
@@ -59,15 +59,15 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
   Eigen::VectorXd ref_singletvals =
       votca::tools::EigenIO_MatrixMarket::ReadVector(
           std::string(XTP_TEST_DATA_FOLDER) +
-          "/erdiabatization/dimer_singletE.mm");
+          "/diabatization/dimer_singletE.mm");
 
   Eigen::MatrixXd ref_spsi = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) +
-      "/erdiabatization/dimer_singlet_spsi.mm");
+      "/diabatization/dimer_singlet_spsi.mm");
 
   Eigen::MatrixXd ref_spsi2 = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) +
-      "/erdiabatization/dimer_singlet_spsi2.mm");
+      "/diabatization/dimer_singlet_spsi2.mm");
 
   dimer.BSESinglets().eigenvalues() = ref_singletvals;
   dimer.BSESinglets().eigenvectors() = ref_spsi;
@@ -84,15 +84,23 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
 
   // Calculate angle
   double angle = ERDiabatization.Calculate_angle();
-  double angle_ref = 0.71542472271498847;
+  double angle_ref = 0.7063121313715891;
   BOOST_CHECK_CLOSE(angle_ref, angle, 1e-4);
 
   // diabatic Hamiltonian
-  Eigen::MatrixXd diabatic_H = ERDiabatization.Calculate_diabatic_H(angle);
+  std::pair<Eigen::VectorXd, Eigen::MatrixXd> rotated_H =
+      ERDiabatization.Calculate_diabatic_H(angle);
+
+  double E1_ref = 0.21995615824390968;
+  double E2_ref = 0.22090555616542826;
+  BOOST_CHECK_CLOSE(E1_ref, rotated_H.first(0), 1e-4);
+  BOOST_CHECK_CLOSE(E2_ref, rotated_H.first(1), 1e-4);
+
+  Eigen::MatrixXd& diabatic_H = rotated_H.second;
 
   Eigen::MatrixXd diabatic_H_ref =
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) + "/erdiabatization/Hdiab_ref.mm");
+          std::string(XTP_TEST_DATA_FOLDER) + "/diabatization/Hdiab_ref.mm");
 
   BOOST_CHECK_CLOSE(diabatic_H_ref(0, 0), diabatic_H(0, 0), 1e-6);
   BOOST_CHECK_CLOSE(diabatic_H_ref(0, 1), diabatic_H(0, 1), 1e-6);

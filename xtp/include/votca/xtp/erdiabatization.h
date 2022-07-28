@@ -54,7 +54,8 @@ class ERDiabatization {
   void configure();
 
   double Calculate_angle() const;
-  Eigen::MatrixXd Calculate_diabatic_H(const double angle) const;
+  std::pair<Eigen::VectorXd, Eigen::MatrixXd> Calculate_diabatic_H(
+      const double angle) const;
 
  private:
   Orbitals& orbitals1_;

@@ -114,8 +114,8 @@ Eigen::MatrixXd ERDiabatization::CalculateU(const double phi) const {
   return U;
 }
 
-Eigen::MatrixXd ERDiabatization::Calculate_diabatic_H(
-    const double angle) const {
+std::pair<Eigen::VectorXd, Eigen::MatrixXd>
+    ERDiabatization::Calculate_diabatic_H(const double angle) const {
   Eigen::VectorXd ad_energies(2);
   ad_energies << E1_, E2_;
 
@@ -129,7 +129,8 @@ Eigen::MatrixXd ERDiabatization::Calculate_diabatic_H(
       << TimeStamp() << "Rotation angle (degrees) " << angle * 57.2958 << flush;
 
   Eigen::MatrixXd U = CalculateU(angle);
-  return U.transpose() * ad_energies.asDiagonal() * U;
+  return std::pair<Eigen::VectorXd, Eigen::MatrixXd>(
+      ad_energies, U.transpose() * ad_energies.asDiagonal() * U);
 }
 
 double ERDiabatization::Calculate_angle() const {

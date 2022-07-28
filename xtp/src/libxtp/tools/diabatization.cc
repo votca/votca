@@ -44,8 +44,17 @@ void Diabatization::ParseOptions(const tools::Property& user_options) {
   }
 
   // getting orbfiles
-  orbfile1_ = options.get(".orb_file1").as<std::string>();
-  orbfile2_ = options.get(".orb_file2").as<std::string>();
+  orbfile1_ = options.get(".orb_file").as<std::string>();
+  // checking if this is QMMM
+  if (options.exists(".orb_file2")) {
+    orbfile2_ = options.get(".orb_file2").as<std::string>();
+    E1_ = options.get(".E1").as<double>();
+    E2_ = options.get(".E2").as<double>();
+    isQMMM_ = true;
+  } else {
+    orbfile2_ = orbfile1_;
+    isQMMM_ = false;
+  }
 
   // getting state options and checking validity
   state_idx_1_ = options.get(".state_idx_1").as<Index>();
@@ -121,21 +130,38 @@ bool Diabatization::Run() {
     double angle = ERDiabatization.Calculate_angle();
 
     // Calculate the diabatic Hamiltonian
-    Eigen::MatrixXd diabatic_H = ERDiabatization.Calculate_diabatic_H(angle);
+    std::pair<Eigen::VectorXd, Eigen::MatrixXd> rotate_H =
+        ERDiabatization.Calculate_diabatic_H(angle);
+    double E1ad = rotate_H.first(0);
+    double E2ad = rotate_H.first(1);
+    Eigen::MatrixXd& diabatic_H = rotate_H.second;
 
     // Printing Output
+    if (!isQMMM_) {
+      XTP_LOG(Log::error, log_)
+          << format("Diabatic Energy 1: %1$+1.12f eV") %
+                 (diabatic_H(0, 0) * votca::tools::conv::hrt2ev)
+          << flush;
+      XTP_LOG(Log::error, log_)
+          << format("Diabatic Energy 2: %1$+1.12f eV") %
+                 (diabatic_H(1, 1) * votca::tools::conv::hrt2ev)
+          << flush;
+      E1_ = E1ad;
+      E2_ = E2ad;
+    }
+
+    double QMMM_correction = (E2_ - E1_) / (E2ad - E1ad);
+    double J = diabatic_H(1, 0) * votca::tools::conv::hrt2ev;
+    double J_QMMM = J * QMMM_correction;
+
     XTP_LOG(Log::error, log_)
-        << format("Diabatic Energy 1: %1$+1.12f eV") %
-               (diabatic_H(0, 0) * votca::tools::conv::hrt2ev)
-        << flush;
-    XTP_LOG(Log::error, log_)
-        << format("Diabatic Energy 2: %1$+1.12f eV") %
-               (diabatic_H(1, 1) * votca::tools::conv::hrt2ev)
-        << flush;
-    XTP_LOG(Log::error, log_)
-        << format("Diabatic Coupling: %1$+1.12f eV") %
-               (diabatic_H(1, 0) * votca::tools::conv::hrt2ev)
-        << flush;
+        << format("Diabatic Coupling: %1$+1.12f eV ") % (J) << flush;
+    if (isQMMM_) {
+      XTP_LOG(Log::error, log_)
+          << format("Diabatic Coupling with QMMM: %1$+1.12f eV ") % (J_QMMM)
+          << flush;
+    }
+
     if (std::abs(diabatic_H(1, 0) - diabatic_H(0, 1)) >
         1e-4 * std::abs(diabatic_H(1, 0))) {
       XTP_LOG(Log::error, log_) << "Different offdiagonal "
