@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(FCD_coupling_test) {
 
   double J_ref = 0.00071879817182406039;
   double J = coupling * votca::tools::conv::hrt2ev;
-  BOOST_CHECK_CLOSE(J_ref, J, 1e-6);
+  BOOST_CHECK_CLOSE(J_ref, J, 1e-4);
 
   libint2::finalize();
 }
