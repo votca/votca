@@ -216,7 +216,17 @@ bool Diabatization::Run() {
     XTP_LOG(Log::error, log_) << format("Diabatic Coupling: %1$+1.12f eV") %
                                      (coupling * votca::tools::conv::hrt2ev)
                               << flush;
+
+    if (isQMMM_) {
+      std::pair<double, double> Ead = FCDDiabatization.adiabatic_energies();
+      double QMMM_correction = (E2_ - E1_) / (Ead.second - Ead.first);
+      XTP_LOG(Log::error, log_)
+          << format("Diabatic Coupling with QMMM: %1$+1.12f eV ") %
+                 (coupling * QMMM_correction)
+          << flush;
+    }
   }
+
   return true;
 }
 }  // namespace xtp

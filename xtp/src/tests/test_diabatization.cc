@@ -24,8 +24,10 @@
 // Local VOTCA includes
 #include "votca/tools/eigenio_matrixmarket.h"
 #include "votca/xtp/erdiabatization.h"
+#include "votca/xtp/fcddiabatization.h"
 #include "votca/xtp/gmhdiabatization.h"
 #include "votca/xtp/logger.h"
+#include "votca/xtp/qmfragment.h"
 
 using namespace votca::xtp;
 using namespace votca;
@@ -171,6 +173,71 @@ BOOST_AUTO_TEST_CASE(GMH_coupling_test) {
 
   BOOST_CHECK_CLOSE(J_ref, J, 1e-6);
   BOOST_CHECK_CLOSE(J_proj_ref, J_proj, 1e-6);
+
+  libint2::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(FCD_coupling_test) {
+  libint2::initialize();
+
+  // populate orbitals object
+  Orbitals dimer;
+  dimer.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                               "/diabatization/dimer.xyz");
+  dimer.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                      "/diabatization/def2-svp.xml");
+  dimer.SetupAuxBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                      "/diabatization/aux-def2-svp.xml");
+  dimer.setNumberOfAlphaElectrons(44);
+  dimer.setNumberOfOccupiedLevels(44);
+
+  Eigen::VectorXd ref_MOvals = votca::tools::EigenIO_MatrixMarket::ReadVector(
+      std::string(XTP_TEST_DATA_FOLDER) + "/diabatization/dimer_MOvals.mm");
+  Eigen::MatrixXd ref_MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/diabatization/dimer_MOs.mm");
+  dimer.MOs().eigenvalues() = ref_MOvals;
+  dimer.MOs().eigenvectors() = ref_MOs;
+
+  dimer.setGWindices(0, 130);
+  dimer.setBSEindices(0, 130);
+  dimer.setTDAApprox(false);
+
+  Eigen::VectorXd ref_singletvals =
+      votca::tools::EigenIO_MatrixMarket::ReadVector(
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/diabatization/dimer_singletE.mm");
+
+  Eigen::MatrixXd ref_spsi = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) +
+      "/diabatization/dimer_singlet_spsi.mm");
+
+  Eigen::MatrixXd ref_spsi2 = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) +
+      "/diabatization/dimer_singlet_spsi2.mm");
+
+  dimer.BSESinglets().eigenvalues() = ref_singletvals;
+  dimer.BSESinglets().eigenvectors() = ref_spsi;
+  dimer.BSESinglets().eigenvectors2() = ref_spsi2;
+
+  // set logger
+  Logger log;
+  log.setReportLevel(Log::error);
+  log.setMultithreading(true);
+  log.setCommonPreface("\n... ...");
+
+  std::vector<QMFragment<BSE_Population> > fragments(2);
+
+  fragments[0] = QMFragment<BSE_Population>(0, "0:8");
+  fragments[1] = QMFragment<BSE_Population>(1, "9:17");
+
+  FCDDiabatization FCDDiabatization(dimer, dimer, &log, 1, 2, "singlet",
+                                    fragments);
+  FCDDiabatization.configure();
+  double coupling = FCDDiabatization.calculate_coupling();
+
+  double J_ref = 0.00071879817182406039;
+  double J = coupling * votca::tools::conv::hrt2ev;
+  BOOST_CHECK_CLOSE(J_ref, J, 1e-6);
 
   libint2::finalize();
 }
