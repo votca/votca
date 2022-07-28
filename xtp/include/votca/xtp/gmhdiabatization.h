@@ -48,6 +48,9 @@ class GMHDiabatization {
   void configure();
 
   std::pair<double, double> calculate_coupling();
+  const std::pair<double, double> adiabatic_energies() {
+    return std::pair<double, double>(E1_, E2_);
+  };
 
  private:
   Orbitals& orbitals1_;

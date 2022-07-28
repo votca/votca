@@ -174,16 +174,32 @@ bool Diabatization::Run() {
                                       state_idx_2_, qmtype_);
 
     GMHDiabatization.configure();
-
     std::pair<double, double> coupling = GMHDiabatization.calculate_coupling();
+
+    double J = coupling.first * votca::tools::conv::hrt2ev;
+    double J_proj = coupling.second * votca::tools::conv::hrt2ev;
+
     XTP_LOG(Log::error, log_)
-        << format("Diabatic Coupling: %1$+1.12f eV") %
-               (coupling.first * votca::tools::conv::hrt2ev)
-        << flush;
+        << format("Diabatic Coupling: %1$+1.12f eV") % (J) << flush;
     XTP_LOG(Log::error, log_)
         << format("Diabatic Coupling with CT axis projection: %1$+1.12f eV") %
-               (coupling.second * votca::tools::conv::hrt2ev)
+               (J_proj)
         << flush;
+
+    if (isQMMM_) {
+      std::pair<double, double> Ead = GMHDiabatization.adiabatic_energies();
+      double QMMM_correction = (E2_ - E1_) / (Ead.second - Ead.first);
+      XTP_LOG(Log::error, log_)
+          << format("Diabatic Coupling with QMMM: %1$+1.12f eV ") %
+                 (J * QMMM_correction)
+          << flush;
+      XTP_LOG(Log::error, log_) << format(
+                                       "Diabatic Coupling with QMMM with CT "
+                                       "axis projection: %1$+1.12f eV") %
+                                       (J_proj * QMMM_correction)
+                                << flush;
+    }
+
   } else if (method_ == "fcd") {
 
     // check if fragments are empty
