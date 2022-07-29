@@ -404,7 +404,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
   Index all_electrons = static_cast<Index>(
       std::round(FullDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
-  Index active_electrons_ = static_cast<Index>(std::round(
+  active_electrons_ = static_cast<Index>(std::round(
       InitialActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
   Index inactive_electrons = static_cast<Index>(
       std::round(InactiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
@@ -590,7 +590,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   Eigen::MatrixXd H0_trunc_ = Eigen::MatrixXd::Zero(
       numofbasisfunction, numofbasisfunction);  // Zero H0 defined with
                                                 // basisset_size * basisset_size
-  Eigen::MatrixXd InitialActiveDmat_trunc_ =
+  InitialActiveDmat_trunc_ =
       Eigen::MatrixXd::Zero(numofbasisfunction, numofbasisfunction);
   for (Index activeatom1_idx = 0; activeatom1_idx < Index(activeatoms.size());
        activeatom1_idx++) {
@@ -622,7 +622,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
   // Self-consistent calculation for the active electrons in the embedding
   // potential
-  if (!truncate_) {
+  if (truncate_) {
     Eigen::MatrixXd ActiveDensityMatrix = InitialActiveDensityMatrix;
     for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
       XTP_LOG(Log::error, *pLog_) << std::flush;
@@ -751,11 +751,15 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
   if (truncate_) {
     trunc_orb.QMAtoms() = activemol_;
-    std::cout <<"Active Electrons = = = = " << active_electrons_;
     Prepare(trunc_orb, active_electrons_);
-    std::cout <<"Active Electrons = = = = " << active_electrons_;
+    std::cout << "Active Electrons = " << active_electrons_ << std::endl;
     Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(trunc_orb.QMAtoms());
     ConfigOrbfile(trunc_orb);
+    AOBasis aobasis = trunc_orb.getDftBasis();
+    AOOverlap overlap;
+    overlap.Fill(aobasis);
+    Index electrons = static_cast<Index>(std::round(InitialActiveDmat_trunc_.cwiseProduct(overlap.Matrix()).sum()));
+    std::cout << "No.of Electrons now = " << electrons << std::endl;
   }
   return true;
 }
@@ -1219,9 +1223,9 @@ void DFTEngine::Prepare(Orbitals& orb, Index numofelectrons) {
     XTP_LOG(Log::error, *pLog_) << output << std::flush;
   }
 
-  std::cout << "DFT Basis size: " << dftbasis_.AOBasisSize() << std::endl;
   orb.SetupDftBasis(dftbasis_name_);
   dftbasis_ = orb.getDftBasis();
+  std::cout << "DFT Basis size: " << dftbasis_.AOBasisSize() << std::endl;
 
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Loaded DFT Basis Set " << dftbasis_name_ << " with "
