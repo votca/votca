@@ -165,6 +165,7 @@ class DFTEngine {
   Eigen::MatrixXd InitialActiveDmat_trunc_;
   bool truncate_;
   Index active_electrons_;
+  double E_nuc_;
 };
 
 }  // namespace xtp

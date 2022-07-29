@@ -437,7 +437,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   const double E0_full = FullDensityMatrix.cwiseProduct(H0.matrix()).sum();
   const double E0_initial_active =
       InitialActiveDensityMatrix.cwiseProduct(H0.matrix()).sum();
-  const double E_nuc = H0.energy();
+  E_nuc_ = H0.energy();
 
   // setup the Vxc integrator
   Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
@@ -478,7 +478,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
   // Energy of the full reference system
   const double Total_E_full =
-      E0_full + E_Hartree_full + xc_full.energy() + E_nuc;
+      E0_full + E_Hartree_full + xc_full.energy() + E_nuc_;
 
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp()
@@ -488,6 +488,10 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   // projection parameter, to be made an option
   const Eigen::MatrixXd Level_Shift_Operator =
       levelshift_ * overlap.Matrix() * InactiveDensityMatrix * overlap.Matrix();
+
+  std::cout << std::endl
+            << "Size of Level_Shift_Operator: " << Level_Shift_Operator.rows()
+            << std::endl;
 
   // XC and Hartree contribution to the external embedding potential/energy
   const Eigen::MatrixXd v_embedding = J_full + K_full + xc_full.matrix() -
@@ -514,115 +518,112 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       << TimeStamp() << " Total 1 -2 -3 -4: " << constant_embedding_energy
       << std::flush;
 
-  // Basis truncation starts here
-  const Eigen::MatrixXd H_embedding =
-      H0.matrix() + v_embedding;  // This will be your new H0
+  if (truncate_) {
+    const Eigen::MatrixXd H_embedding =
+        H0.matrix() + v_embedding;  // This will be your new H0
 
-  // Mulliken population per basis function on every atom
-  Eigen::VectorXd DiagonalofDmatA = InitialActiveDensityMatrix.diagonal();
-  Eigen::VectorXd DiagonalofOverlap = overlap.Matrix().diagonal();
-  Eigen::VectorXd MnP = DiagonalofDmatA.cwiseProduct(DiagonalofOverlap);
-  for (int i = 0; i < MnP.size(); ++i) {
-    std::cout << std::endl << MnP[i];
-  }
-  // Get a vector containing the number of basis functions per atom
-  const std::vector<Index>& numfuncpatom = aobasis.getFuncPerAtom();
-  Index numofbasisfunction = 0;
-  std::vector<Index> start_indices,
-      start_indices_activemolecule;  // A vector containing start indices of the
-                                     // basis functions per atom and also per
-                                     // active atom
-  Index start_idx = 0, start_idx_activemolecule = 0;
-  for (Index atom_num = 0; atom_num < orb.QMAtoms().size(); atom_num++) {
-    start_indices.push_back(start_idx);
-    // Condition for atom to be counted: either in active region or MnP of any
-    // function > threshold
-    bool partOfActive =
-        (std::find(activeatoms.begin(), activeatoms.end(),
-                   orb.QMAtoms()[atom_num].getId()) != activeatoms.end());
-    if (partOfActive == true) {
-      activemol_.push_back(orb.QMAtoms()[atom_num]);
-      // if active append the atom to the new molecule. Also increment active
-      // basis function size and start indices
-      start_indices_activemolecule.push_back(start_idx_activemolecule);
-      start_idx_activemolecule += numfuncpatom[atom_num];
-      numofbasisfunction += numfuncpatom[atom_num];
-    } else {
-      std::vector<const AOShell*> inactiveshell =
-          aobasis.getShellsofAtom(orb.QMAtoms()[atom_num].getId());
-      bool loop_break = false;
-      for (const AOShell* shell : inactiveshell) {
-        for (Index shell_fn_no = shell->getStartIndex();
-             shell_fn_no < shell->getStartIndex() + shell->getNumFunc();
-             shell_fn_no++) {
-          if (MnP[shell_fn_no] > 0.02) {
-            activeatoms.push_back(atom_num);
-            activemol_.push_back(orb.QMAtoms()[atom_num]);
-            loop_break = true;  // if any function in the whole atom satisfies
-                                // we break loop to check next atom
-            start_indices_activemolecule.push_back(start_idx_activemolecule);
-            start_idx_activemolecule += numfuncpatom[atom_num];
-            numofbasisfunction += numfuncpatom[atom_num];
-            break;
+    std::cout << std::endl
+              << "Size of H_embedding: " << H_embedding.rows() << std::endl;
+
+    // Mulliken population per basis function on every atom
+    Eigen::VectorXd DiagonalofDmatA = InitialActiveDensityMatrix.diagonal();
+    Eigen::VectorXd DiagonalofOverlap = overlap.Matrix().diagonal();
+    Eigen::VectorXd MnP = DiagonalofDmatA.cwiseProduct(DiagonalofOverlap);
+    for (int i = 0; i < MnP.size(); ++i) {
+      std::cout << std::endl << MnP[i];
+    }
+    // Get a vector containing the number of basis functions per atom
+    const std::vector<Index>& numfuncpatom = aobasis.getFuncPerAtom();
+    Index numofbasisfunction = 0;
+    std::vector<Index> start_indices,
+        start_indices_activemolecule;  // A vector containing start indices of
+                                       // the basis functions per atom and also
+                                       // per active atom
+    Index start_idx = 0, start_idx_activemolecule = 0;
+    for (Index atom_num = 0; atom_num < orb.QMAtoms().size(); atom_num++) {
+      start_indices.push_back(start_idx);
+      // Condition for atom to be counted: either in active region or MnP of any
+      // function > threshold
+      bool partOfActive =
+          (std::find(activeatoms.begin(), activeatoms.end(),
+                     orb.QMAtoms()[atom_num].getId()) != activeatoms.end());
+      if (partOfActive == true) {
+        activemol_.push_back(orb.QMAtoms()[atom_num]);
+        // if active append the atom to the new molecule. Also increment active
+        // basis function size and start indices
+        start_indices_activemolecule.push_back(start_idx_activemolecule);
+        start_idx_activemolecule += numfuncpatom[atom_num];
+        numofbasisfunction += numfuncpatom[atom_num];
+      } else {
+        std::vector<const AOShell*> inactiveshell =
+            aobasis.getShellsofAtom(orb.QMAtoms()[atom_num].getId());
+        bool loop_break = false;
+        for (const AOShell* shell : inactiveshell) {
+          for (Index shell_fn_no = shell->getStartIndex();
+               shell_fn_no < shell->getStartIndex() + shell->getNumFunc();
+               shell_fn_no++) {
+            if (MnP[shell_fn_no] > 0.02) {
+              activeatoms.push_back(atom_num);
+              activemol_.push_back(orb.QMAtoms()[atom_num]);
+              loop_break = true;  // if any function in the whole atom satisfies
+                                  // we break loop to check next atom
+              start_indices_activemolecule.push_back(start_idx_activemolecule);
+              start_idx_activemolecule += numfuncpatom[atom_num];
+              numofbasisfunction += numfuncpatom[atom_num];
+              break;
+            }
           }
+          if (loop_break) break;
         }
-        if (loop_break) break;
+      }
+      start_idx += numfuncpatom[atom_num];
+    }
+
+    std::cout << std::endl
+              << "Size of Hamiltonian Operator = " << H_embedding.size()
+              << std::endl;
+    sort(activeatoms.begin(),
+         activeatoms.end());  // sorting needed to maintain consistency when we
+                              // cut out hamiltonian
+    std::cout << std::endl
+              << "Active Molecule Size = " << activeatoms.size() << std::endl;
+    for (Index activeatom = 0; activeatom < Index(activeatoms.size());
+         activeatom++) {
+      std::cout << "Participating atom index: " << activeatoms[activeatom]
+                << std::endl;
+    }
+    // from here it is time to make a new Hamiltonian H0
+    H0_trunc_ = Eigen::MatrixXd::Zero(
+        numofbasisfunction,
+        numofbasisfunction);  // Zero H0 defined with
+                              // basisset_size * basisset_size
+    InitialActiveDmat_trunc_ =
+        Eigen::MatrixXd::Zero(numofbasisfunction, numofbasisfunction);
+    for (Index activeatom1_idx = 0; activeatom1_idx < Index(activeatoms.size());
+         activeatom1_idx++) {
+      Index activeatom1 = activeatoms[activeatom1_idx];
+      for (Index activeatom2_idx = 0;
+           activeatom2_idx < Index(activeatoms.size()); activeatom2_idx++) {
+        Index activeatom2 = activeatoms[activeatom2_idx];
+        // Fill the Hamiltonian at the right indices
+        H0_trunc_.block(start_indices_activemolecule[activeatom1_idx],
+                        start_indices_activemolecule[activeatom2_idx],
+                        numfuncpatom[activeatom1], numfuncpatom[activeatom2]) =
+            H_embedding.block(
+                start_indices[activeatom1], start_indices[activeatom2],
+                numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
+        InitialActiveDmat_trunc_.block(
+            start_indices_activemolecule[activeatom1_idx],
+            start_indices_activemolecule[activeatom2_idx],
+            numfuncpatom[activeatom1], numfuncpatom[activeatom2]) =
+            InitialActiveDensityMatrix.block(
+                start_indices[activeatom1], start_indices[activeatom2],
+                numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
       }
     }
-    start_idx += numfuncpatom[atom_num];
   }
-  // New molecule is passed to the orbitals object
-
-  std::cout << std::endl
-            << "Size of Hamiltonian Operator = " << H_embedding.size()
-            << std::endl;
-  sort(activeatoms.begin(),
-       activeatoms.end());  // sorting needed to maintain consistency when we
-                            // cut out hamiltonian
-  std::cout << std::endl
-            << "Active Molecule Size = " << activeatoms.size() << std::endl;
-  for (Index activeatom = 0; activeatom < Index(activeatoms.size());
-       activeatom++) {
-    std::cout << "Participating atom index: " << activeatoms[activeatom]
-              << std::endl;
-  }
-  // from here it is time to make a new Hamiltonian H0
-  Eigen::MatrixXd H0_trunc_ = Eigen::MatrixXd::Zero(
-      numofbasisfunction, numofbasisfunction);  // Zero H0 defined with
-                                                // basisset_size * basisset_size
-  InitialActiveDmat_trunc_ =
-      Eigen::MatrixXd::Zero(numofbasisfunction, numofbasisfunction);
-  for (Index activeatom1_idx = 0; activeatom1_idx < Index(activeatoms.size());
-       activeatom1_idx++) {
-    Index activeatom1 = activeatoms[activeatom1_idx];
-    for (Index activeatom2_idx = 0; activeatom2_idx < Index(activeatoms.size());
-         activeatom2_idx++) {
-      Index activeatom2 = activeatoms[activeatom2_idx];
-      // Fill the Hamiltonian at the right indices
-      H0_trunc_.block(start_indices_activemolecule[activeatom1_idx],
-                      start_indices_activemolecule[activeatom2_idx],
-                      numfuncpatom[activeatom1], numfuncpatom[activeatom2]) =
-          H_embedding.block(
-              start_indices[activeatom1], start_indices[activeatom2],
-              numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
-      InitialActiveDmat_trunc_.block(
-          start_indices_activemolecule[activeatom1_idx],
-          start_indices_activemolecule[activeatom2_idx],
-          numfuncpatom[activeatom1], numfuncpatom[activeatom2]) =
-          InitialActiveDensityMatrix.block(
-              start_indices[activeatom1], start_indices[activeatom2],
-              numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
-    }
-  }
-  std::cout << std::endl
-            << "Size of ReducedHamiltonian = " << H0_trunc_.size() << std::endl;
-  std::cout << std::endl
-            << "Size of ReducedDMAT = " << InitialActiveDmat_trunc_.rows()
-            << " * " << InitialActiveDmat_trunc_.rows() << std::endl;
-
-  // Self-consistent calculation for the active electrons in the embedding
-  // potential
-  if (truncate_) {
+  // SCF loop if you don't truncate active region
+  else if (!truncate_) {
     Eigen::MatrixXd ActiveDensityMatrix = InitialActiveDensityMatrix;
     for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
       XTP_LOG(Log::error, *pLog_) << std::flush;
@@ -752,14 +753,51 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
   if (truncate_) {
     trunc_orb.QMAtoms() = activemol_;
     Prepare(trunc_orb, active_electrons_);
-    std::cout << "Active Electrons = " << active_electrons_ << std::endl;
+    std::cout << std::endl
+              << "Active Electrons = " << active_electrons_ << std::endl;
     Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(trunc_orb.QMAtoms());
     ConfigOrbfile(trunc_orb);
     AOBasis aobasis = trunc_orb.getDftBasis();
     AOOverlap overlap;
     overlap.Fill(aobasis);
-    Index electrons = static_cast<Index>(std::round(InitialActiveDmat_trunc_.cwiseProduct(overlap.Matrix()).sum()));
-    std::cout << "No.of Electrons now = " << electrons << std::endl;
+    Index electrons_after_trunc = static_cast<Index>(std::round(
+        InitialActiveDmat_trunc_.cwiseProduct(overlap.Matrix()).sum()));
+    std::cout << std::endl
+              << "No.of Electrons after truncation = " << electrons_after_trunc
+              << std::endl;
+    const double E0_initial_active =
+        InitialActiveDmat_trunc_.cwiseProduct(H0_trunc_).sum();
+    const Mat_p_Energy xc_initial_active =
+        vxcpotential.IntegrateVXC(InitialActiveDmat_trunc_);
+    Eigen::MatrixXd J_initial_active = Eigen::MatrixXd::Zero(
+        InitialActiveDmat_trunc_.rows(), InitialActiveDmat_trunc_.cols());
+    Eigen::MatrixXd K_initial_active = Eigen::MatrixXd::Zero(
+        InitialActiveDmat_trunc_.rows(), InitialActiveDmat_trunc_.cols());
+    tools::EigenSystem MOs_trunc;
+    if (ScaHFX_ > 0) {
+      std::array<Eigen::MatrixXd, 2> JandK_initial_active = CalcERIs_EXX(
+          MOs_trunc.eigenvectors(), InitialActiveDmat_trunc_, 1e-12);
+      J_initial_active = JandK_initial_active[0];
+      K_initial_active = 0.5 * ScaHFX_ * JandK_initial_active[1];
+    } else {
+      J_initial_active = CalcERIs(InitialActiveDmat_trunc_, 1e-12);
+    }
+    // get the Hartree energies
+    const double E_Hartree_initial_active =
+        0.5 * InitialActiveDmat_trunc_
+                  .cwiseProduct(J_initial_active + K_initial_active)
+                  .sum();
+    std::cout << std::endl
+              << "Hartree energy after truncation = "
+              << E_Hartree_initial_active << std::endl;
+    std::cout << std::endl
+              << "XC energy after truncation = " << xc_initial_active.energy()
+              << std::endl;
+    std::cout << std::endl
+              << "E0 energy after truncation = " << E0_initial_active
+              << std::endl;
+    std::cout << std::endl
+              << "Size of H0 after truncation = " << E_nuc_ << std::endl;
   }
   return true;
 }
@@ -873,8 +911,6 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
 
 void DFTEngine::SetupInvariantMatrices() {
   dftAOoverlap_.Fill(dftbasis_);
-
-  std::cout << std::endl << "---L----A----L----A----L----" << std::endl;
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Filled DFT Overlap matrix." << std::flush;
 
