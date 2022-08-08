@@ -4,11 +4,9 @@
 # RUN "csg_inverse --options settings.xml" instead
 
 import sys
-import time
 import espressopp
 import mpi4py.MPI as MPI
-import logging
-from espressopp import Real3D, Int3D
+from espressopp import Real3D
 from espressopp.tools import gromacs
 from espressopp.tools import decomp
 #from espressopp.tools import timers
@@ -34,7 +32,7 @@ topfile = "" #"topol.top"
 defaults, types, atomtypes, masses, charges, atomtypeparameters, bondtypes, bondtypeparams, angletypes, angletypeparams, exclusions, x, y, z, vx, vy, vz, resname, resid, Lx, Ly, Lz =gromacs.read(grofile,topfile)
 num_particles = len(x)
 
-print 'number of particles: ', num_particles
+print('number of particles: ', num_particles)
 
 ######################################################################
 
@@ -97,20 +95,20 @@ steps_per_int = 100
 
 ##########################################################################################
 
-print "equilibrating ..."
+print("equilibrating ...")
 espressopp.tools.analyse.info(system, integrator)
 for step in range(eq_steps):
   integrator.run(steps_per_int)
   espressopp.tools.analyse.info(system, integrator)
 
-print "runing ..."
+print("runing ...")
 
 espressopp.tools.analyse.info(system, integrator)
 for step in range(int_steps):
   integrator.run(steps_per_int)
   espressopp.tools.analyse.info(system, integrator)
-  print 'writing .xyz trajectory...'
+  print('writing .xyz trajectory...')
   # we are simulating in nm, but xyz files are in angstroms! -> scale= 10.0
   espressopp.tools.fastwritexyz('traj.xyz', system, velocities = False, unfolded = False, append = True, scale = 10.0)
 
-print "finished"
+print("finished")
