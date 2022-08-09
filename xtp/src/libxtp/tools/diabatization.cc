@@ -222,7 +222,7 @@ bool Diabatization::Run() {
       double QMMM_correction = (E2_ - E1_) / (Ead.second - Ead.first);
       XTP_LOG(Log::error, log_)
           << format("Diabatic Coupling with QMMM: %1$+1.12f eV ") %
-                 (coupling * QMMM_correction)
+                 (coupling * QMMM_correction * votca::tools::conv::hrt2ev)
           << flush;
     }
   }
