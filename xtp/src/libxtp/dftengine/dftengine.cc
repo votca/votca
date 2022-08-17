@@ -525,7 +525,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
     std::cout << std::endl
               << "Size of H_embedding: " << H_embedding.rows() << std::endl;
 
-    // Mulliken population per basis function on every atom
+    // Mulliken population per basis function on every active atom
     Eigen::VectorXd DiagonalofDmatA = InitialActiveDensityMatrix.diagonal();
     Eigen::VectorXd DiagonalofOverlap = overlap.Matrix().diagonal();
     Eigen::VectorXd MnP = DiagonalofDmatA.cwiseProduct(DiagonalofOverlap);
@@ -540,10 +540,11 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
                                        // the basis functions per atom and also
                                        // per active atom
     Index start_idx = 0, start_idx_activemolecule = 0;
+    std::vector<Index> borderatoms;
     for (Index atom_num = 0; atom_num < orb.QMAtoms().size(); atom_num++) {
       start_indices.push_back(start_idx);
       // Condition for atom to be counted: either in active region or MnP of any
-      // function > threshold
+      // function > threshold (border atoms)
       bool partOfActive =
           (std::find(activeatoms.begin(), activeatoms.end(),
                      orb.QMAtoms()[atom_num].getId()) != activeatoms.end());
@@ -564,6 +565,8 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
                shell_fn_no++) {
             if (MnP[shell_fn_no] > 0.02) {
               activeatoms.push_back(atom_num);
+              borderatoms.push_back(atom_num);  // push this index to border
+                                                // atoms
               activemol_.push_back(orb.QMAtoms()[atom_num]);
               loop_break = true;  // if any function in the whole atom satisfies
                                   // we break loop to check next atom
@@ -582,11 +585,14 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
     std::cout << std::endl
               << "Size of Hamiltonian Operator = " << H_embedding.size()
               << std::endl;
-    sort(activeatoms.begin(),
-         activeatoms.end());  // sorting needed to maintain consistency when we
-                              // cut out hamiltonian
+    // Sort atoms before you cut the Hamiltonian
+    sort(activeatoms.begin(), activeatoms.end());
+    sort(borderatoms.begin(), borderatoms.end());
     std::cout << std::endl
               << "Active Molecule Size = " << activeatoms.size() << std::endl;
+    std::cout << std::endl
+              << "Border Molecule Size = " << borderatoms.size() << std::endl;
+
     for (Index activeatom = 0; activeatom < Index(activeatoms.size());
          activeatom++) {
       std::cout << "Participating atom index: " << activeatoms[activeatom]
@@ -796,8 +802,6 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
     std::cout << std::endl
               << "E0 energy after truncation = " << E0_initial_active
               << std::endl;
-    std::cout << std::endl
-              << "Size of H0 after truncation = " << E_nuc_ << std::endl;
   }
   return true;
 }
@@ -1406,6 +1410,18 @@ double DFTEngine::ExternalRepulsion(
   return E_ext;
 }
 
+bool DFTEngine::OrbitalWise_MullikenPop_per_atom() {
+  //  Eigen::MatrixXd MOcoeffs = orbitals.getLMOs().eigenvectors();
+  //  for (mo = 0; mo < MOcoeffs.cols(); mo++) {
+  //
+  //    Dmat_per_MO = MOcoeffs.col(mo) * MOcoeffs.col(mo).transpose();
+  //    charge_on_atom = (Dmat_per_MO *
+  //    overlapmatrix).diagonal().segment(start,end).sum();
+  //  }
+  return true;
+}
+
+
 Eigen::MatrixXd DFTEngine::IntegrateExternalField(const QMMolecule& mol) const {
 
   AODipole dipole;
@@ -1482,6 +1498,7 @@ Eigen::MatrixXd DFTEngine::OrthogonalizeGuess(
   Eigen::MatrixXd result = GuessMOs * es.operatorInverseSqrt();
   return result;
 }
+
 
 }  // namespace xtp
 }  // namespace votca
