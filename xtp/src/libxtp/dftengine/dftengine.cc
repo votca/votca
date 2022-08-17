@@ -389,7 +389,9 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       << "Indices of active atoms selected are: " << active_atoms_as_string_
       << std::flush;
   ActiveDensityMatrix DMAT_A(orb, activeatoms, active_threshold_);
-  const Eigen::MatrixXd InitialActiveDensityMatrix = DMAT_A.compute_Dmat_A();
+  const Eigen::MatrixXd InitialActiveDensityMatrix = DMAT_A.compute_Dmat_A()[0];
+  Eigen::MatrixXd InitialActiveMOs = DMAT_A.compute_Dmat_A()[1];
+  Eigen::MatrixXd InitialInactiveMOs = DMAT_A.compute_Dmat_A()[2];
 
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Active density formation done" << std::flush;
@@ -518,12 +520,9 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       << TimeStamp() << " Total 1 -2 -3 -4: " << constant_embedding_energy
       << std::flush;
 
-  if (truncate_) {
+  if (truncate_) {  // Truncation starts here
     const Eigen::MatrixXd H_embedding =
         H0.matrix() + v_embedding;  // This will be your new H0
-
-    std::cout << std::endl
-              << "Size of H_embedding: " << H_embedding.rows() << std::endl;
 
     // Mulliken population per basis function on every active atom
     Eigen::VectorXd DiagonalofDmatA = InitialActiveDensityMatrix.diagonal();
@@ -582,9 +581,6 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       start_idx += numfuncpatom[atom_num];
     }
 
-    std::cout << std::endl
-              << "Size of Hamiltonian Operator = " << H_embedding.size()
-              << std::endl;
     // Sort atoms before you cut the Hamiltonian
     sort(activeatoms.begin(), activeatoms.end());
     sort(borderatoms.begin(), borderatoms.end());
@@ -598,6 +594,22 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       std::cout << "Participating atom index: " << activeatoms[activeatom]
                 << std::endl;
     }
+    std::cout << "check bla" << start_indices[1] << std::endl;
+    for (Index borderatom : borderatoms) {
+      Index start = borderatom;
+      Index end = borderatom + 1;
+      for (Index lmo_index = 0; lmo_index < InitialInactiveMOs.cols(); lmo_index++) {
+        double mullikenpop_lmo_borderatom =
+            (LMOs.col(lmo_index) * LMOs.col(lmo_index).transpose() *
+             overlap.Matrix())
+                .diagonal()
+                .segment(start_indices[borderatom],
+                         start_indices[borderatom + 1])
+                .sum();
+        std::cout << std::endl << "Mulliken " << mullikenpop_lmo_borderatom;
+      }
+    }
+
     // from here it is time to make a new Hamiltonian H0
     H0_trunc_ = Eigen::MatrixXd::Zero(
         numofbasisfunction,
@@ -1486,7 +1498,6 @@ Eigen::MatrixXd DFTEngine::OrthogonalizeGuess(
   Eigen::MatrixXd result = GuessMOs * es.operatorInverseSqrt();
   return result;
 }
-
 
 }  // namespace xtp
 }  // namespace votca
