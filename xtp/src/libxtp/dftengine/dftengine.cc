@@ -1410,18 +1410,6 @@ double DFTEngine::ExternalRepulsion(
   return E_ext;
 }
 
-bool DFTEngine::OrbitalWise_MullikenPop_per_atom() {
-  //  Eigen::MatrixXd MOcoeffs = orbitals.getLMOs().eigenvectors();
-  //  for (mo = 0; mo < MOcoeffs.cols(); mo++) {
-  //
-  //    Dmat_per_MO = MOcoeffs.col(mo) * MOcoeffs.col(mo).transpose();
-  //    charge_on_atom = (Dmat_per_MO *
-  //    overlapmatrix).diagonal().segment(start,end).sum();
-  //  }
-  return true;
-}
-
-
 Eigen::MatrixXd DFTEngine::IntegrateExternalField(const QMMolecule& mol) const {
 
   AODipole dipole;
