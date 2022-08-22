@@ -34,6 +34,7 @@ namespace xtp {
 
 std::array<Eigen::MatrixXd ,3>ActiveDensityMatrix::compute_Dmat_A() {
   Eigen::MatrixXd localized_mo_coeff = orbitals_.getLMOs();
+  std::cout << "Localized MOs coeff rows = " << localized_mo_coeff.rows();
   return activedensitymatrix(localized_mo_coeff);
 }
 
@@ -42,7 +43,7 @@ std::array<Eigen::MatrixXd, 3> ActiveDensityMatrix::activedensitymatrix(
   AOBasis aobasis = orbitals_.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
-  Index numOfActiveOrbs = 0;
+  Index numOfActiveOrbs = 0, numOfInactiveOrbs = 0;
   std::vector<Index> numfuncpatom = aobasis.getFuncPerAtom();
   Eigen::MatrixXd active_mo_coeff, inactive_mo_coeff;
 
@@ -56,6 +57,7 @@ std::array<Eigen::MatrixXd, 3> ActiveDensityMatrix::activedensitymatrix(
     const Eigen::RowVectorXd MullikenPop_per_basisset =
         orbital_wise_population.colwise().sum();
     Index start = 0;
+    bool inactive = true;
     for (Index atom_id = 0; atom_id < Index(numfuncpatom.size()); atom_id++) {
       const double MullikenPop_per_atom =
           MullikenPop_per_basisset.segment(start, numfuncpatom[atom_id]).sum();
@@ -67,16 +69,17 @@ std::array<Eigen::MatrixXd, 3> ActiveDensityMatrix::activedensitymatrix(
         active_mo_coeff.col(numOfActiveOrbs) =
             localized_mo_coeff.col(LocMoCoeff_col_i);
         numOfActiveOrbs++;
+        inactive = false;
         break;
       }
-      else
-      {
-        inactive_mo_coeff.conservativeResize(localized_mo_coeff.rows(), inactive_mo_coeff.cols()+1);
-        inactive_mo_coeff.col(inactive_mo_coeff.cols()) = localized_mo_coeff.col(LocMoCoeff_col_i);
-      }
-      
       start += numfuncpatom[atom_id];
     }
+    if (inactive){
+      std::cout << "Inactive cols = " << inactive_mo_coeff.cols();
+      inactive_mo_coeff.conservativeResize(localized_mo_coeff.rows(), numOfInactiveOrbs + 1);
+      inactive_mo_coeff.col(numOfInactiveOrbs) = localized_mo_coeff.col(LocMoCoeff_col_i);
+      numOfInactiveOrbs++;
+    }      
   }
   const Eigen::MatrixXd dmat_active =
       2 * active_mo_coeff * active_mo_coeff.transpose();

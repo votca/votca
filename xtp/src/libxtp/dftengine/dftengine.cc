@@ -389,6 +389,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       << "Indices of active atoms selected are: " << active_atoms_as_string_
       << std::flush;
   ActiveDensityMatrix DMAT_A(orb, activeatoms, active_threshold_);
+  // std::array<Eigen::MatrixXd, 3> activeinactive = DMAT_A.compute_Dmat_A();
   const Eigen::MatrixXd InitialActiveDensityMatrix = DMAT_A.compute_Dmat_A()[0];
   Eigen::MatrixXd InitialActiveMOs = DMAT_A.compute_Dmat_A()[1];
   Eigen::MatrixXd InitialInactiveMOs = DMAT_A.compute_Dmat_A()[2];
@@ -528,9 +529,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
     Eigen::VectorXd DiagonalofDmatA = InitialActiveDensityMatrix.diagonal();
     Eigen::VectorXd DiagonalofOverlap = overlap.Matrix().diagonal();
     Eigen::VectorXd MnP = DiagonalofDmatA.cwiseProduct(DiagonalofOverlap);
-    for (int i = 0; i < MnP.size(); ++i) {
-      std::cout << std::endl << MnP[i];
-    }
+
     // Get a vector containing the number of basis functions per atom
     const std::vector<Index>& numfuncpatom = aobasis.getFuncPerAtom();
     Index numofbasisfunction = 0;
@@ -581,6 +580,9 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       start_idx += numfuncpatom[atom_num];
     }
 
+    for (Index nums: start_indices)
+    std::cout << nums << std::endl;
+
     // Sort atoms before you cut the Hamiltonian
     sort(activeatoms.begin(), activeatoms.end());
     sort(borderatoms.begin(), borderatoms.end());
@@ -594,19 +596,22 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       std::cout << "Participating atom index: " << activeatoms[activeatom]
                 << std::endl;
     }
-    std::cout << "check bla" << start_indices[1] << std::endl;
     for (Index borderatom : borderatoms) {
       Index start = borderatom;
       Index end = borderatom + 1;
-      for (Index lmo_index = 0; lmo_index < InitialInactiveMOs.cols(); lmo_index++) {
+      for (Index lmo_index = 0; lmo_index < InitialInactiveMOs.cols();
+           lmo_index++) {
         double mullikenpop_lmo_borderatom =
-            (LMOs.col(lmo_index) * LMOs.col(lmo_index).transpose() *
-             overlap.Matrix())
+            (InitialInactiveMOs.col(lmo_index) *
+             InitialInactiveMOs.col(lmo_index).transpose() * overlap.Matrix())
                 .diagonal()
                 .segment(start_indices[borderatom],
                          start_indices[borderatom + 1])
                 .sum();
-        std::cout << std::endl << "Mulliken " << mullikenpop_lmo_borderatom;
+        if (mullikenpop_lmo_borderatom > 0.25)
+          std::cout << std::endl
+                    << "Mulliken of " << lmo_index << "on atom " << borderatom
+                    << ": " << mullikenpop_lmo_borderatom;
       }
     }
 
