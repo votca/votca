@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2022 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,6 +120,12 @@ bool Diabatization::Run() {
         << TimeStamp() << " " << orbfile2_ << "  was done with TDA. " << flush;
   }
 
+  double QMMM_correction;
+  double J;
+  double J_QMMM;
+  double E1ad;
+  double E2ad;
+
   if (method_ == "er") {
     ERDiabatization ERDiabatization(orbitals1, orbitals2, &log_, state_idx_1_,
                                     state_idx_2_, qmtype_, useRI_);
@@ -132,8 +138,8 @@ bool Diabatization::Run() {
     // Calculate the diabatic Hamiltonian
     std::pair<Eigen::VectorXd, Eigen::MatrixXd> rotate_H =
         ERDiabatization.Calculate_diabatic_H(angle);
-    double E1ad = rotate_H.first(0);
-    double E2ad = rotate_H.first(1);
+    E1ad = rotate_H.first(0);
+    E2ad = rotate_H.first(1);
     Eigen::MatrixXd& diabatic_H = rotate_H.second;
 
     // Printing Output
@@ -150,17 +156,9 @@ bool Diabatization::Run() {
       E2_ = E2ad;
     }
 
-    double QMMM_correction = (E2_ - E1_) / (E2ad - E1ad);
-    double J = diabatic_H(1, 0) * votca::tools::conv::hrt2ev;
-    double J_QMMM = J * QMMM_correction;
-
-    XTP_LOG(Log::error, log_)
-        << format("Diabatic Coupling: %1$+1.12f eV ") % (J) << flush;
-    if (isQMMM_) {
-      XTP_LOG(Log::error, log_)
-          << format("Diabatic Coupling with QMMM: %1$+1.12f eV ") % (J_QMMM)
-          << flush;
-    }
+    QMMM_correction = (E2_ - E1_) / (E2ad - E1ad);
+    J = diabatic_H(1, 0) * votca::tools::conv::hrt2ev;
+    J_QMMM = J * QMMM_correction;
 
     if (std::abs(diabatic_H(1, 0) - diabatic_H(0, 1)) >
         1e-4 * std::abs(diabatic_H(1, 0))) {
@@ -176,28 +174,19 @@ bool Diabatization::Run() {
     GMHDiabatization.configure();
     std::pair<double, double> coupling = GMHDiabatization.calculate_coupling();
 
-    double J = coupling.first * votca::tools::conv::hrt2ev;
-    double J_proj = coupling.second * votca::tools::conv::hrt2ev;
+    double J_unproj = coupling.first * votca::tools::conv::hrt2ev;
+    J = coupling.second * votca::tools::conv::hrt2ev;
 
     XTP_LOG(Log::error, log_)
-        << format("Diabatic Coupling: %1$+1.12f eV") % (J) << flush;
-    XTP_LOG(Log::error, log_)
-        << format("Diabatic Coupling with CT axis projection: %1$+1.12f eV") %
-               (J_proj)
-        << flush;
+        << format("Unprojected diabatic Coupling: %1$+1.12f eV") % (J_unproj) << flush;
+    std::pair<double, double> Ead = GMHDiabatization.adiabatic_energies();
+
+    E1ad = Ead.first;
+    E2ad = Ead.second;
 
     if (isQMMM_) {
-      std::pair<double, double> Ead = GMHDiabatization.adiabatic_energies();
-      double QMMM_correction = (E2_ - E1_) / (Ead.second - Ead.first);
-      XTP_LOG(Log::error, log_)
-          << format("Diabatic Coupling with QMMM: %1$+1.12f eV ") %
-                 (J * QMMM_correction)
-          << flush;
-      XTP_LOG(Log::error, log_) << format(
-                                       "Diabatic Coupling with QMMM with CT "
-                                       "axis projection: %1$+1.12f eV") %
-                                       (J_proj * QMMM_correction)
-                                << flush;
+      QMMM_correction = (E2_ - E1_) / (Ead.second - Ead.first);
+      J_QMMM = J * QMMM_correction;
     }
 
   } else if (method_ == "fcd") {
@@ -212,19 +201,39 @@ bool Diabatization::Run() {
 
     FCDDiabatization.configure();
 
-    double coupling = FCDDiabatization.calculate_coupling();
-    XTP_LOG(Log::error, log_) << format("Diabatic Coupling: %1$+1.12f eV") %
-                                     (coupling * votca::tools::conv::hrt2ev)
-                              << flush;
-
+    J = FCDDiabatization.calculate_coupling() * votca::tools::conv::hrt2ev;
+    std::pair<double, double> Ead = FCDDiabatization.adiabatic_energies();
+    E1ad = Ead.first;
+    E2ad = Ead.second;
     if (isQMMM_) {
-      std::pair<double, double> Ead = FCDDiabatization.adiabatic_energies();
-      double QMMM_correction = (E2_ - E1_) / (Ead.second - Ead.first);
-      XTP_LOG(Log::error, log_)
-          << format("Diabatic Coupling with QMMM: %1$+1.12f eV ") %
-                 (coupling * QMMM_correction * votca::tools::conv::hrt2ev)
-          << flush;
+      QMMM_correction = (E2_ - E1_) / (Ead.second - Ead.first);
+      J_QMMM = J * QMMM_correction;
     }
+  }
+
+  // print output
+  XTP_LOG(Log::error, log_)
+      << format("Internal adiabatic energies: %1$+1.12f eV and %2$+1.12f eV") %
+             (E1ad * votca::tools::conv::hrt2ev) %
+             (E2ad * votca::tools::conv::hrt2ev)
+      << flush;
+
+  XTP_LOG(Log::error, log_)
+      << format("Diabatic Coupling: %1$+1.12f eV ") % (J) << flush;
+  if (isQMMM_) {
+
+    XTP_LOG(Log::error, log_)
+        << format("QMMM adiabatic energies: %1$+1.12f eV and %2$+1.12f eV") %
+               (E1_ * votca::tools::conv::hrt2ev) %
+               (E2_ * votca::tools::conv::hrt2ev)
+        << flush;
+
+    XTP_LOG(Log::error, log_)
+        << format("QMMM correction factor: %1$+1.12f ") % (QMMM_correction)
+        << flush;
+    XTP_LOG(Log::error, log_)
+        << format("Diabatic Coupling with QMMM: %1$+1.12f eV ") % (J_QMMM)
+        << flush;
   }
 
   return true;

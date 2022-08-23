@@ -120,12 +120,6 @@ std::pair<Eigen::VectorXd, Eigen::MatrixXd>
   ad_energies << E1_, E2_;
 
   XTP_LOG(Log::debug, *pLog_)
-      << format("Adiabatic energies: %1$+1.12f eV and %2$+1.12f eV") %
-             (E1_ * votca::tools::conv::hrt2ev) %
-             (E2_ * votca::tools::conv::hrt2ev)
-      << flush;
-
-  XTP_LOG(Log::debug, *pLog_)
       << TimeStamp() << "Rotation angle (degrees) " << angle * 57.2958 << flush;
 
   Eigen::MatrixXd U = CalculateU(angle);
