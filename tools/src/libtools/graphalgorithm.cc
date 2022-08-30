@@ -40,7 +40,7 @@ namespace tools {
  * Public Functions *
  ********************/
 bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor) {
-  exploreGraph(graph, graph_visitor);
+  exploreGraph(&graph, graph_visitor);
   return graph_visitor.getExploredVertices().size() ==
              graph.getVertices().size() &&
          graph.getIsolatedNodes().size() == 0;
@@ -73,15 +73,15 @@ std::set<Edge> exploreBranch(Graph g, Index starting_vertex, const Edge& edge) {
   Graph_BF_Visitor gv_breadth_first;
   GraphNode gn;
   pair<Index, GraphNode> pr_gn(starting_vertex, gn);
-  gv_breadth_first.exploreNode(pr_gn, g);
+  gv_breadth_first.explore(pr_gn, &g);
   gv_breadth_first.setStartingVertex(edge.getOtherEndPoint(starting_vertex));
-  gv_breadth_first.initialize(g);
+  gv_breadth_first.initialize(&g);
 
   branch_edges.insert(edge);
   while (!gv_breadth_first.queEmpty()) {
-    Edge ed = gv_breadth_first.nextEdge(g);
+    Edge ed = gv_breadth_first.nextEdge(&g);
     branch_edges.insert(ed);
-    gv_breadth_first.exec(g, ed);
+    gv_breadth_first.exec(&g, ed);
   }
 
   vector<Edge> neigh_edges = g.getNeighEdges(starting_vertex);
@@ -96,6 +96,14 @@ std::set<Edge> exploreBranch(Graph g, Index starting_vertex, const Edge& edge) {
 
   return branch_edges;
 }
+
+/******************************************************************************
+ * Canonize Algorithm & Classes
+ ******************************************************************************/
+/*std::string findCanonizedSequence(Graph& graph, std::vector<Index>& sequence)
+{
+
+}*/
 
 ReducedGraph reduceGraph(Graph graph) {
 
@@ -180,13 +188,13 @@ ReducedGraph reduceGraph(Graph graph) {
     Index starting_vertex = exploration_record.getUnexploredVertex();
     exploration_record.explore(starting_vertex);
     graph_visitor.setStartingVertex(starting_vertex);
-    graph_visitor.initialize(graph);
+    graph_visitor.initialize(&graph);
 
     vector<Index> chain{starting_vertex};
     Index old_vertex = starting_vertex;
     bool new_chain = false;
     while (!graph_visitor.queEmpty()) {
-      Edge edge = graph_visitor.nextEdge(graph);
+      Edge edge = graph_visitor.nextEdge(&graph);
       vector<Index> unexplored_vertex = graph_visitor.getUnexploredVertex(edge);
 
       if (new_chain) {
@@ -224,7 +232,7 @@ ReducedGraph reduceGraph(Graph graph) {
         exploration_record.explore(new_vertex);
       }
 
-      graph_visitor.exec(graph, edge);
+      graph_visitor.exec(&graph, edge);
     }
   }
   vector<ReducedEdge> reduced_edges;
@@ -256,7 +264,7 @@ vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
     }
     Graph_BF_Visitor graph_visitor_breadth_first;
     graph_visitor_breadth_first.setStartingVertex(vertices[i]);
-    exploreGraph(graph, graph_visitor_breadth_first);
+    exploreGraph(&graph, graph_visitor_breadth_first);
     set<Index> sub_graph_explored_vertices =
         graph_visitor_breadth_first.getExploredVertices();
 
@@ -288,9 +296,9 @@ vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
   return subGraphs;
 }
 
-void exploreGraph(Graph& graph, GraphVisitor& graph_visitor) {
+void exploreGraph(Graph* graph, GraphVisitor& graph_visitor) {
 
-  if (!graph.vertexExist(graph_visitor.getStartingVertex())) {
+  if (!graph->vertexExist(graph_visitor.getStartingVertex())) {
     string err = "Cannot explore graph starting at vertex " +
                  to_string(graph_visitor.getStartingVertex()) +
                  " because it does not exist in the "

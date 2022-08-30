@@ -40,8 +40,8 @@ Edge Graph_DF_Visitor::getEdge_() {
 }
 
 // Add edges to be explored
-void Graph_DF_Visitor::addEdges_(const Graph& g, Index vertex) {
-  auto eds = g.getNeighEdges(vertex);
+void Graph_DF_Visitor::addEdges_(const Graph* g, Index vertex) {
+  auto eds = g->getNeighEdges(vertex);
   if (edge_list_.empty()) {
     // If first edges to be added
     for (auto ed : eds) {

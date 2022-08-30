@@ -41,7 +41,8 @@ namespace tools {
 class EdgeContainer {
  protected:
   /// The vertex, the neighboring vertices and the number of edges
-  std::unordered_map<Index, std::unordered_map<Index, Index>> adj_list_;
+  //  std::unordered_map<Index, std::unordered_map<Index, Index>> adj_list_;
+  std::map<Index, std::map<Index, Index>> adj_list_;
 
  public:
   /// Constructors can take no arguments a single Edge or a vector of edges

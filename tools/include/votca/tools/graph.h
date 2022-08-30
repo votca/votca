@@ -19,6 +19,7 @@
 
 #ifndef VOTCA_TOOLS_GRAPH_H
 #define VOTCA_TOOLS_GRAPH_H
+#pragma once
 
 // Standard includes
 #include <string>
@@ -52,14 +53,16 @@ class Graph {
 
   /// This is the id of the graph to graphs that contain the same content
   /// are considered equal
-  std::string id_;
+  // std::string id_;
+  ContentLabel label_;
+  bool content_label_uptodate_ = false;
 
  protected:
   /// Calculate the id of the graph
-  void calcId_();
+  void buildContentLabel_();
 
  public:
-  Graph() : id_(""){};
+  Graph() = default;
   virtual ~Graph() = default;
   /// Constructor
   /// @param edgs - vector of edges where each edge is composed of two
@@ -101,7 +104,11 @@ class Graph {
   }
 
   /// Returns the id of graph
-  std::string getId() const { return id_; }
+  // std::string getId() const { return id_; }
+  ContentLabel getContentLabel() const {
+    assert(content_label_uptodate_ && "Cannot get content label out of date.");
+    return label_;
+  }
 
   /// Returns all the edges in the graph
   virtual std::vector<Edge> getEdges() { return edge_container_.getEdges(); }

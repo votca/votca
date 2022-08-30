@@ -60,20 +60,20 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   GraphDistVisitor gdv;
   BOOST_CHECK(gdv.queEmpty());
 
-  BOOST_CHECK_THROW(gdv.exec(g, ed), runtime_error);
+  BOOST_CHECK_THROW(gdv.exec(&g, ed), runtime_error);
   // Default starts with node index 0
-  gdv.initialize(g);
+  gdv.initialize(&g);
   BOOST_CHECK_EQUAL(gdv.queEmpty(), false);
-  // No exception should be thrown at this point
-  Edge ed1 = gdv.nextEdge(g);
+  // No exception should be thrown at this poIndex
+  Edge ed1 = gdv.nextEdge(&g);
   BOOST_CHECK_EQUAL(ed, ed1);
-  gdv.exec(g, ed1);
+  gdv.exec(&g, ed1);
   BOOST_CHECK(gdv.queEmpty());
   GraphNode gn3 = g.getNode(0);
-  votca::Index dist = gn3.getInt("Dist");
+  votca::Index dist = gn3.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 0);
   GraphNode gn4 = g.getNode(1);
-  dist = gn4.getInt("Dist");
+  dist = gn4.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 1);
 }
 
@@ -126,19 +126,19 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   GraphDistVisitor gdv;
   BOOST_CHECK(gdv.queEmpty());
 
-  BOOST_CHECK_THROW(gdv.exec(g, ed), runtime_error);
+  BOOST_CHECK_THROW(gdv.exec(&g, ed), runtime_error);
   // Default starts with node index 0
-  gdv.initialize(g);
+  gdv.initialize(&g);
   BOOST_CHECK_EQUAL(gdv.queEmpty(), false);
-  // No exception should be thrown at this point
+  // No exception should be thrown at this poIndex
 
   // First two edges that should be explored are edges ed and ed6
   vector<Edge> temp;
-  Edge ed7 = gdv.nextEdge(g);
+  Edge ed7 = gdv.nextEdge(&g);
   temp.push_back(ed7);
-  gdv.exec(g, ed7);
-  ed7 = gdv.nextEdge(g);
-  gdv.exec(g, ed7);
+  gdv.exec(&g, ed7);
+  ed7 = gdv.nextEdge(&g);
+  gdv.exec(&g, ed7);
   temp.push_back(ed7);
 
   bool found_ed = false;
@@ -156,8 +156,8 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
 
   // Explore the whole graph
   while (!gdv.queEmpty()) {
-    ed7 = gdv.nextEdge(g);
-    gdv.exec(g, ed7);
+    ed7 = gdv.nextEdge(&g);
+    gdv.exec(&g, ed7);
   }
 
   // Now let's check that the distances for each node
@@ -165,31 +165,31 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   // node which by default is node 0.
 
   GraphNode gn8 = g.getNode(0);
-  votca::Index dist = gn8.getInt("Dist");
+  int dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 0);
 
   gn8 = g.getNode(1);
-  dist = gn8.getInt("Dist");
+  dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 1);
 
   gn8 = g.getNode(2);
-  dist = gn8.getInt("Dist");
+  dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 2);
 
   gn8 = g.getNode(3);
-  dist = gn8.getInt("Dist");
+  dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 3);
 
   gn8 = g.getNode(4);
-  dist = gn8.getInt("Dist");
+  dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 2);
 
   gn8 = g.getNode(5);
-  dist = gn8.getInt("Dist");
+  dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 3);
 
   gn8 = g.getNode(6);
-  dist = gn8.getInt("Dist");
+  dist = gn8.get<int>("Dist");
   BOOST_CHECK_EQUAL(dist, 1);
 }
 

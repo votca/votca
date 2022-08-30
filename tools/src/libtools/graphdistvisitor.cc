@@ -30,28 +30,35 @@ using namespace std;
 namespace votca {
 namespace tools {
 
+static const string dist = "Dist";
 // Add the distance to the node that has not yet been explored
-void GraphDistVisitor::exploreNode(pair<Index, GraphNode>& p_gn, Graph& g,
-                                   Edge ed) {
+void GraphDistVisitor::explore(pair<Index, GraphNode>& p_gn, Graph* g,
+                               const Edge& ed) {
   // Determine if the node has already been explored
   Index vertex = p_gn.first;
   if (vertex == startingVertex_) {
-    p_gn.second.int_vals_["Dist"] = 0;
-    p_gn.second.initStringId_();
+    if (p_gn.second.exists(dist)) {
+      p_gn.second.reset(dist, int(0));
+    } else {
+      p_gn.second.add(dist, int(0));
+    }
     // Update the graph with new graph node
-    g.setNode(p_gn);
+    g->setNode(p_gn);
   } else {
     // Node has not been explored
     if (explored_.count(vertex) == 0) {
       Index prev_vertex = ed.getOtherEndPoint(vertex);
-      GraphNode gn_prev = g.getNode(prev_vertex);
-      p_gn.second.int_vals_["Dist"] = gn_prev.int_vals_["Dist"] + 1;
-      p_gn.second.initStringId_();
-      g.setNode(p_gn);
+      GraphNode gn_prev = g->getNode(prev_vertex);
+      if (p_gn.second.exists(dist)) {
+        p_gn.second.reset(dist, gn_prev.get<int>(dist) + 1);
+      } else {
+        p_gn.second.add(dist, gn_prev.get<int>(dist) + 1);
+      }
+      g->setNode(p_gn);
     }
   }
   // Ensure the graph node is set to explored
-  GraphVisitor::exploreNode(p_gn, g);
+  GraphVisitor::explore(p_gn, g);
 }
 }  // namespace tools
 }  // namespace votca

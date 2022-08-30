@@ -109,6 +109,8 @@ class ReducedGraph : public Graph {
    **/
   std::vector<std::vector<Edge>> expandEdge(const Edge& edge) const;
 
+  std::vector<std::vector<Index>> expandEdgeAsVertices(const Edge& edge) const;
+
   /// This method will return a copy of the full graph
   Graph expandGraph() const;
 

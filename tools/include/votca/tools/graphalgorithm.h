@@ -162,7 +162,53 @@ std::vector<Graph> decoupleIsolatedSubGraphs(Graph graph);
  * @param[in,out] - Graph reference instance
  * @param[in,out] - graph visitor
  */
-void exploreGraph(Graph& graph, GraphVisitor& graph_visitor);
+void exploreGraph(Graph* graph, GraphVisitor& graph_visitor);
+
+/**
+ * @brief Determines how the graph nodes of a particular graph must be arranged
+ * so that no matter what the sequence of nodes is if they are from a
+ * particular graph they are always returned in the same sequence
+ *
+ * This method allows one to find how a graph should be arranged in a canonical
+ * form.
+ *
+ * E.g. Given two of the same graphs but with different ordering of nodes
+ *
+ * Graph A       Graph B
+ * 1a - 2a - 3a      4a - 3a - 2a
+ *       |   |             |   |
+ *      5b - 4b           1b - 5b
+ *
+ * If each graph was passed in, assuming graph A reprsented the canonized form
+ * the sequence would show some thing like this.
+ *
+ * Graph A                     Graph B
+ * 1a(3) - 2a(1) - 3a(4)      4a(3) - 3a(1) - 2a(4)
+ *            |     |                   |       |
+ *         5b(2) - 4b(5)              1b(2) - 5b(5)
+ *
+ * Such that Graph A and B would be returned as vectors, parenthesis indicate
+ * cannonized order.
+ *
+ * Graph A      Graph B
+ * [0] = 2      [0] = 3
+ * [1] = 5      [1] = 1
+ * [2] = 1      [2] = 4
+ * [3] = 3      [3] = 2
+ * [4] = 4      [4] = 5
+ *
+ * These sequences will allow the graph to be reordered such graph A and Graph
+ * B can be mapped onto each other. The algorithm will also return the string
+ * id of the graph in the return value.
+ *
+ * WARNING This algorithm requires that the nodes have been assigned ids.
+ *
+ * @param graph - graph to be examined
+ * @param sequence - vector of ints that contain the ids of the nodes
+ *
+ * @return
+ */
+std::string findCanonizedSequence(Graph& graph, std::vector<Index>& sequence);
 
 /**
  * \brief Find a unique identifier that describes graph structure.
@@ -176,7 +222,7 @@ void exploreGraph(Graph& graph, GraphVisitor& graph_visitor);
  * @return - string identifier
  */
 template <typename GV>
-std::string findStructureId(Graph& graph) {
+ContentLabel findStructureId(Graph& graph) {
 
   // Determine the highest degree in the graph
   Index maxD = graph.getMaxDegree();
@@ -185,36 +231,35 @@ std::string findStructureId(Graph& graph) {
 
   // Get the nodes and determine which node has the greatest stringID
   // When compared using compare function
-  std::string str_id = "";
+  ContentLabel label;
   std::vector<Index> graph_node_ids;
   for (const Index& vertex : vertices) {
     GraphNode graph_node = graph.getNode(vertex);
-    Index comp_int = str_id.compare(graph_node.getStringId());
-    if (comp_int > 0) {
-      str_id = graph_node.getStringId();
+    if (graph_node.getContentLabel() > label) {
+      label = graph_node.getContentLabel();
       graph_node_ids.clear();
       graph_node_ids.push_back(vertex);
-    } else if (comp_int == 0) {
+    } else if (graph_node.getContentLabel() == label) {
       graph_node_ids.push_back(vertex);
     }
   }
   // If the str_id is empty it means the nodes are empty and we will
   // simply have to rely on the degree to choose the vertices to explore from
-  if (str_id.compare("") == 0) {
+  if (label.isEmpty()) {
     graph_node_ids = vertices;
   }
   // If two or more graph nodes are found to be equal then
   // they must all be explored
-  std::string chosenId = "";
+  ContentLabel chosenId;
   Graph graph_chosen = graph;
 
   for (const Index& vertex : graph_node_ids) {
     GV graph_visitor;
     graph_visitor.setStartingVertex(vertex);
     Graph graph_temp = graph;
-    exploreGraph(graph_temp, graph_visitor);
-    std::string temp_struct_id = graph_temp.getId();
-    if (chosenId.compare(temp_struct_id) < 0) {
+    exploreGraph(&graph_temp, graph_visitor);
+    ContentLabel temp_struct_id = graph_temp.getContentLabel();
+    if (temp_struct_id < chosenId) {
       chosenId = temp_struct_id;
       graph_chosen = graph_temp;
     }

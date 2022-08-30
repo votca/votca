@@ -2,8 +2,13 @@ find_package(Boost 1.71.0 REQUIRED COMPONENTS unit_test_framework)
 
 # Each test listed in Alphabetical order
 foreach(PROG
+    test_attributes
+    test_branch
+    test_branchtree
+    test_branchsequenceleaf
     test_calculator
     test_constants
+    test_contentlabel
     test_correlate
     test_crosscorrelate
     test_cubicspline
@@ -40,7 +45,7 @@ foreach(PROG
     test_NDimVector
     test_eigenio_matrixmarket)
 
-  file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
+  file(GLOB ${PROG}_SOURCES ${PROG}.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})
   target_compile_definitions(unit_${PROG} PRIVATE TOOLS_TEST_DATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/DataFiles")
   target_link_libraries(unit_${PROG} votca_tools Boost::unit_test_framework Boost::filesystem)

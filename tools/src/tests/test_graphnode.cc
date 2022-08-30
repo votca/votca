@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   GraphNode gn;
 
   BOOST_CHECK_EQUAL(gn == gn, true);
-  BOOST_CHECK_EQUAL(gn.getStringId(), "");
+  BOOST_CHECK_EQUAL(gn.getContentLabel().get(), "");
 
   unordered_map<string, votca::Index> int_vals = {{"Num", 134}};
   unordered_map<string, double> double_vals = {{"Height", 159.32}};
@@ -53,31 +53,35 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   BOOST_CHECK_EQUAL(gn3 == gn2, true);
 }
 
-BOOST_AUTO_TEST_CASE(setters_test) {
+BOOST_AUTO_TEST_CASE(add_test) {
   unordered_map<string, votca::Index> int_vals = {{"Num", 134}};
   unordered_map<string, double> double_vals = {{"Height", 159.32}};
   unordered_map<string, string> str_vals = {{"Name", "George"}};
   GraphNode gn2(int_vals, double_vals, str_vals);
 
-  string str{"Num134Height159.32NameGeorge"};
-  BOOST_CHECK_EQUAL(gn2.getStringId(), str);
+  string str{"Height=159.32,Name=George,Num=134;"};
+  BOOST_CHECK_EQUAL(gn2.getContentLabel().get(), str);
 
   unordered_map<string, votca::Index> int_vals2 = {{"Second", 2}, {"First", 1}};
-  gn2.setInt(int_vals2);
-  str = "First1Second2Height159.32NameGeorge";
-  BOOST_CHECK_EQUAL(gn2.getStringId(), str);
+  /// Remove all the indices from the graphnode
+  gn2.removeAll<votca::Index>();
+  gn2.add(int_vals2);
+  str = "First=1,Height=159.32,Name=George,Second=2;";
+  BOOST_CHECK_EQUAL(gn2.getContentLabel().get(), str);
 
   unordered_map<string, double> double_vals2 = {{"Height", 159.32},
                                                 {"Weight", 101.43}};
-  gn2.setDouble(double_vals2);
-  str = "First1Second2Height159.32Weight101.43NameGeorge";
-  BOOST_CHECK_EQUAL(gn2.getStringId(), str);
+  gn2.remove(string("Height"));
+  gn2.add(double_vals2);
+  str = "First=1,Height=159.32,Name=George,Second=2,Weight=101.43;";
+  BOOST_CHECK_EQUAL(gn2.getContentLabel().get(), str);
 
-  unordered_map<string, string> str_vals2 = {{"Name", "George"},
-                                             {"Address", "Koogler St"}};
-  gn2.setStr(str_vals2);
-  str = "First1Second2Height159.32Weight101.43AddressKoogler StNameGeorge";
-  BOOST_CHECK_EQUAL(gn2.getStringId(), str);
+  gn2.reset(string("Name"), string("George"));
+  gn2.add(string("Address"), string("Koogler St"));
+  str =
+      "Address=Koogler "
+      "St,First=1,Height=159.32,Name=George,Second=2,Weight=101.43;";
+  BOOST_CHECK_EQUAL(gn2.getContentLabel().get(), str);
 }
 
 BOOST_AUTO_TEST_CASE(comparisontest) {
@@ -96,17 +100,17 @@ BOOST_AUTO_TEST_CASE(comparisontest) {
   vector<GraphNode> vec_gn = {gn1, gn2};
   sort(vec_gn.begin(), vec_gn.end(), cmpNode);
 
-  string str1{"a134"};
-  string str2{"b134"};
+  string str1{"a=134;"};
+  string str2{"b=134;"};
 
-  BOOST_CHECK_EQUAL(vec_gn.at(0).getStringId(), str1);
-  BOOST_CHECK_EQUAL(vec_gn.at(1).getStringId(), str2);
+  BOOST_CHECK_EQUAL(vec_gn.at(0).getContentLabel().get(), str1);
+  BOOST_CHECK_EQUAL(vec_gn.at(1).getContentLabel().get(), str2);
 
   vector<GraphNode> vec_gn2 = {gn2, gn1};
   sort(vec_gn2.begin(), vec_gn2.end(), cmpNode);
 
-  BOOST_CHECK_EQUAL(vec_gn2.at(0).getStringId(), str1);
-  BOOST_CHECK_EQUAL(vec_gn2.at(1).getStringId(), str2);
+  BOOST_CHECK_EQUAL(vec_gn2.at(0).getContentLabel().get(), str1);
+  BOOST_CHECK_EQUAL(vec_gn2.at(1).getContentLabel().get(), str2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

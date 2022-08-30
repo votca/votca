@@ -133,14 +133,16 @@ void EdgeContainer::addEdge(Edge edge) {
 
 void EdgeContainer::addVertex(Index vertex) {
   assert(adj_list_.count(vertex) == 0 && "Cannot add vertex already exists");
-  unordered_map<Index, Index> empty_temp;
+  // unordered_map<Index, Index> empty_temp;
+  map<Index, Index> empty_temp;
   adj_list_[vertex] = empty_temp;
 }
 
 vector<Index> EdgeContainer::getVertices() const {
   vector<Index> vertices;
-  for (const pair<const Index, unordered_map<Index, Index>>&
-           vertex_and_neigh_and_count : adj_list_) {
+  // for (const pair<const Index, unordered_map<Index, Index>>&
+  for (const pair<const Index, map<Index, Index>>& vertex_and_neigh_and_count :
+       adj_list_) {
     vertices.push_back(vertex_and_neigh_and_count.first);
   }
   return vertices;
