@@ -33,5 +33,5 @@ p_file="$(csg_get_property cg.inverse.lammps.pressure_file)"
 
 [[ -f ${p_file} ]] || die "${0##*/}: pressure file '${p_file}' doesn't exist" 
 
-p_now=$(awk 'NR > 1 {avg += $1} END {printf "%.16f\n", avg/(NR-1)}' ${p_file}) || die "${0##*/}: pressure averaging failed" 
+p_now=$(LC_ALL=C awk 'NR > 1 {avg += $1} END {printf "%.16f\n", avg/(NR-1)}' ${p_file}) || die "${0##*/}: pressure averaging failed" 
 echo "Pressure=${p_now}" > "$1"

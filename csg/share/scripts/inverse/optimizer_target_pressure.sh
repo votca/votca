@@ -42,5 +42,5 @@ fi
 
 p_target="$(csg_get_interaction_property inverse.p_target)"
 
-critical awk -v x="$p_now" -v y="$p_target" 'BEGIN{print sqrt((x-y)^2)}' > "${name}.pressure.conv"
+critical LC_ALL=C awk -v x="$p_now" -v y="$p_target" 'BEGIN{print sqrt((x-y)^2)}' > "${name}.pressure.conv"
 
