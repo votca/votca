@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2022 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -29,10 +29,10 @@
 #include "convergenceacc.h"
 #include "ecpaobasis.h"
 #include "logger.h"
+#include "qmmolecule.h"
 #include "staticsite.h"
 #include "vxc_grid.h"
 #include "vxc_potential.h"
-
 namespace votca {
 namespace xtp {
 class Orbitals;
@@ -58,10 +58,12 @@ class DFTEngine {
 
   bool Evaluate(Orbitals& orb);
 
+  bool EvaluateActiveRegion(Orbitals& orb);
+
   std::string getDFTBasisName() const { return dftbasis_name_; };
 
  private:
-  void Prepare(Orbitals& orb);
+  void Prepare(Orbitals& orb, Index numofelectrons = -1);
 
   Vxc_Potential<Vxc_Grid> SetupVxc(const QMMolecule& mol);
 
@@ -148,6 +150,10 @@ class DFTEngine {
 
   Eigen::Vector3d extfield_ = Eigen::Vector3d::Zero();
   bool integrate_ext_field_ = false;
+
+  std::string active_atoms_as_string_;
+  double active_threshold_;
+  double levelshift_;
 };
 
 }  // namespace xtp
