@@ -29,7 +29,7 @@ grofile = "conf.gro"
 # this calls the gromacs parser for processing the top file (and included files) and the conf file
 # The variables at the beginning defaults, types, etc... can be found by calling
 # gromacs.read(grofile,topfile) without return values. It then prints out the variables to be unpacked
-x, y, z, vx, vy, vz, resname, resid, Lx, Ly, Lz =gromacs.read(grofile)
+x, y, z, resname, resid, Lx, Ly, Lz =gromacs.read(grofile)
 num_particles = len(x)
 
 print('number of particles: ', num_particles)
