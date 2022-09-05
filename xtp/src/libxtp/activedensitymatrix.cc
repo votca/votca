@@ -34,7 +34,6 @@ namespace xtp {
 
 std::array<Eigen::MatrixXd ,3>ActiveDensityMatrix::compute_Dmat_A() {
   Eigen::MatrixXd localized_mo_coeff = orbitals_.getLMOs();
-  std::cout << "Localized MOs coeff rows = " << localized_mo_coeff.rows();
   return activedensitymatrix(localized_mo_coeff);
 }
 
@@ -75,7 +74,6 @@ std::array<Eigen::MatrixXd, 3> ActiveDensityMatrix::activedensitymatrix(
       start += numfuncpatom[atom_id];
     }
     if (inactive){
-      std::cout << "Inactive cols = " << inactive_mo_coeff.cols();
       inactive_mo_coeff.conservativeResize(localized_mo_coeff.rows(), numOfInactiveOrbs + 1);
       inactive_mo_coeff.col(numOfInactiveOrbs) = localized_mo_coeff.col(LocMoCoeff_col_i);
       numOfInactiveOrbs++;
