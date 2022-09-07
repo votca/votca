@@ -789,7 +789,6 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
     AOBasis aobasis = trunc_orb.getDftBasis();
     AOOverlap overlap;
     overlap.Fill(aobasis);
-    std::cout << "BLA BLA BLA ....." << Total_E_full;
     Index electrons_after_trunc = static_cast<Index>(std::round(
         InitialActiveDmat_trunc_.cwiseProduct(overlap.Matrix()).sum()));
 
