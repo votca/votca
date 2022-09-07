@@ -80,7 +80,8 @@ class DFTEngine {
 
   void ConfigOrbfile(Orbitals& orb);
   void SetupInvariantMatrices();
-  Eigen::MatrixXd WeenyPurification(Eigen::MatrixXd& Dmat_in, AOOverlap& overlap);
+  Eigen::MatrixXd WeenyPurification(Eigen::MatrixXd& Dmat_in,
+                                    AOOverlap& overlap);
 
   Mat_p_Energy SetupH0(const QMMolecule& mol) const;
   Mat_p_Energy IntegrateExternalMultipoles(
@@ -164,6 +165,7 @@ class DFTEngine {
   // truncation
   Eigen::MatrixXd H0_trunc_;
   Eigen::MatrixXd InitialActiveDmat_trunc_;
+  Eigen::MatrixXd v_embedding_trunc_;
   bool truncate_;
   Index active_electrons_;
   double E_nuc_;
