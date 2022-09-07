@@ -153,7 +153,6 @@ class DFTEngine {
 
   QMMolecule activemol_ =
       QMMolecule("molecule made of atoms participating in Active region", 1);
-  ;
 
   Eigen::Vector3d extfield_ = Eigen::Vector3d::Zero();
   bool integrate_ext_field_ = false;

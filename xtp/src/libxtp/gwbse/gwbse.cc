@@ -594,7 +594,7 @@ bool GWBSE::Evaluate() {
                               << dftbasis.AOBasisSize() << flush;
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Loaded Auxbasis Set " << auxbasis_name_ << flush;
-  std::cout << std::endl << "GRABBED MOS SIZE: " << orbitals_.MOs().eigenvectors().cols() << std::endl;
+  //std::cout << std::endl << "GRABBED MOS SIZE: " << orbitals_.MOs().eigenvectors().cols() << std::endl;
   // fill auxiliary AO basis by going through all atoms
   orbitals_.SetupAuxBasis(auxbasis_name_);
   AOBasis auxbasis = orbitals_.getAuxBasis();
