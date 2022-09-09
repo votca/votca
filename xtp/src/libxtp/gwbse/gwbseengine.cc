@@ -182,7 +182,13 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
 
   if (do_dft_in_dft_ && do_gwbse_) {
     Orbitals orb_embedded = orbitals;
-    orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
+
+    votca::tools::EigenSystem mos_embedded = orb_embedded.getEmbeddedMOs();
+    orb_embedded.MOs() = mos_embedded;
+    //orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
+    
+    
+    
     Index active_electrons = orb_embedded.getNumOfActiveElectrons();
     orb_embedded.setNumberOfAlphaElectrons(active_electrons);
     orb_embedded.setNumberOfOccupiedLevels(active_electrons / 2);
