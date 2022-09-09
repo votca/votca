@@ -190,6 +190,8 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     gwbse.setLogger(logger);
     gwbse.Initialize(gwbse_options_);
     gwbse.Evaluate();
+    std::string archive_file_trunc =  "truncated.orb";
+    orb_embedded.WriteToCpt(archive_file_trunc);
     gwbse.addoutput(output_summary);
   }
 
