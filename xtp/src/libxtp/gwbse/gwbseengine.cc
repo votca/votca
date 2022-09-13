@@ -182,13 +182,7 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
 
   if (do_dft_in_dft_ && do_gwbse_) {
     Orbitals orb_embedded = orbitals;
-
-    votca::tools::EigenSystem mos_embedded = orb_embedded.getEmbeddedMOs();
-    orb_embedded.MOs() = mos_embedded;
-    //orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
-    
-    
-    
+    orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
     Index active_electrons = orb_embedded.getNumOfActiveElectrons();
     orb_embedded.setNumberOfAlphaElectrons(active_electrons);
     orb_embedded.setNumberOfOccupiedLevels(active_electrons / 2);
@@ -196,9 +190,8 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     gwbse.setLogger(logger);
     gwbse.Initialize(gwbse_options_);
     gwbse.Evaluate();
-    std::string archive_file_trunc =  "truncated.orb";
-    orb_embedded.WriteToCpt(archive_file_trunc);
     gwbse.addoutput(output_summary);
+    orbitals = orb_embedded;
   }
 
   if (do_gwbse_ && !do_dft_in_dft_) {

@@ -32,7 +32,7 @@
 namespace votca {
 namespace xtp {
 
-std::array<Eigen::MatrixXd ,3>ActiveDensityMatrix::compute_Dmat_A() {
+std::array<Eigen::MatrixXd, 3> ActiveDensityMatrix::compute_Dmat_A() {
   Eigen::MatrixXd localized_mo_coeff = orbitals_.getLMOs();
   return activedensitymatrix(localized_mo_coeff);
 }
@@ -73,11 +73,13 @@ std::array<Eigen::MatrixXd, 3> ActiveDensityMatrix::activedensitymatrix(
       }
       start += numfuncpatom[atom_id];
     }
-    if (inactive){
-      inactive_mo_coeff.conservativeResize(localized_mo_coeff.rows(), numOfInactiveOrbs + 1);
-      inactive_mo_coeff.col(numOfInactiveOrbs) = localized_mo_coeff.col(LocMoCoeff_col_i);
+    if (inactive) {
+      inactive_mo_coeff.conservativeResize(localized_mo_coeff.rows(),
+                                           numOfInactiveOrbs + 1);
+      inactive_mo_coeff.col(numOfInactiveOrbs) =
+          localized_mo_coeff.col(LocMoCoeff_col_i);
       numOfInactiveOrbs++;
-    }      
+    }
   }
   const Eigen::MatrixXd dmat_active =
       2 * active_mo_coeff * active_mo_coeff.transpose();

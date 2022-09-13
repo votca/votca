@@ -96,8 +96,6 @@ class AOBasis {
  private:
   void FillFuncperAtom();
 
-  
-
   std::vector<AOShell> aoshells_;
 
   std::vector<Index> FuncperAtom_;

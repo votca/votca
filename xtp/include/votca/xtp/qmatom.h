@@ -64,6 +64,8 @@ class QMAtom {
 
   Index getId() const { return index_; }
 
+  void setID(const Index index) { index_ = index; }
+
   Index getNuccharge() const { return nuccharge_ - ecpcharge_; }
 
   Index getElementNumber() const { return nuccharge_; }

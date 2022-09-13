@@ -48,6 +48,14 @@ class QMMolecule : public AtomContainer<QMAtom> {
     calcPos();
   }
 
+  void ReorderAtomIDs() {
+    Index id = 0;
+    for (auto& at : atomlist_) {
+      at.setID(id);
+      id++;
+    }
+  }
+
   friend std::ostream& operator<<(std::ostream& out,
                                   const QMMolecule& container) {
     out << container.getId() << " " << container.getType() << "\n";

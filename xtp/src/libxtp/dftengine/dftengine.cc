@@ -782,6 +782,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
 bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
   if (truncate_) {
+    activemol_.ReorderAtomIDs();
     trunc_orb.QMAtoms() = activemol_;
     Prepare(trunc_orb, active_electrons_);
     Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(trunc_orb.QMAtoms());
@@ -789,8 +790,8 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
     AOBasis aobasis = trunc_orb.getDftBasis();
     AOOverlap overlap;
     overlap.Fill(aobasis);
-    //Index electrons_after_trunc = static_cast<Index>(std::round(
-    //    InitialActiveDmat_trunc_.cwiseProduct(overlap.Matrix()).sum()));
+    // Index electrons_after_trunc = static_cast<Index>(std::round(
+    //     InitialActiveDmat_trunc_.cwiseProduct(overlap.Matrix()).sum()));
 
     const double E0_initial_truncated =
         InitialActiveDmat_trunc_.cwiseProduct(H0_trunc_).sum();
@@ -896,7 +897,7 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
         PrintMOs(MOs_trunc.eigenvalues(), Log::error);
         trunc_orb.setEmbeddedMOs(MOs_trunc);
         trunc_orb.setNumofActiveElectrons(active_electrons_);
-        //CalcElDipole(trunc_orb);
+        // CalcElDipole(trunc_orb);
         break;
       }
     }
