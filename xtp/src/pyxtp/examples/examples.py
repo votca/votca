@@ -1,22 +1,11 @@
 #!/usr/bin/env python
 """Examples to show xtp_binds usage."""
 from pyxtp import xtp_binds
+from pyxtp.capture_standard_output import capture_standard_output
 from pathlib import Path
 from multiprocessing import cpu_count
 import io
 from contextlib import redirect_stdout
-
-
-def capture_standard_output(function, *args, **kwargs):
-    """Capture standard output of a given function."""
-    handler = io.StringIO()
-    try:
-        with redirect_stdout(handler):
-            function(*args, **kwargs)
-    finally:
-        output = handler.getvalue()
-    return output
-
 
 def run_mapchecker(nThreads: int, path_examples: Path) -> None:
     """Run the mapchecker calculator."""
