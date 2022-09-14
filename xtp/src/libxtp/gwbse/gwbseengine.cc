@@ -146,6 +146,8 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   }
 
   if (do_localize_) {
+    if (!do_dft_parse_){
+      orbitals.ReadFromCpt(archive_file_);}
     PMLocalization pml(*logger, localize_options_);
     pml.computePML(orbitals);
   }
