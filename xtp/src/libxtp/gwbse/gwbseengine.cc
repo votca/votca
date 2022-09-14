@@ -146,8 +146,9 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   }
 
   if (do_localize_) {
-    if (!do_dft_parse_){
-      orbitals.ReadFromCpt(archive_file_);}
+    if (!do_dft_parse_) {
+      orbitals.ReadFromCpt(archive_file_);
+    }
     PMLocalization pml(*logger, localize_options_);
     pml.computePML(orbitals);
   }
@@ -187,26 +188,26 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
 
   tools::Property& output_summary = summary_.add("output", "");
 
-  if (do_dft_in_dft_ && do_gwbse_) {
-    Orbitals orb_embedded = orbitals;
-    orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
-    Index active_electrons = orb_embedded.getNumOfActiveElectrons();
-    orb_embedded.setNumberOfAlphaElectrons(active_electrons);
-    orb_embedded.setNumberOfOccupiedLevels(active_electrons / 2);
-    GWBSE gwbse = GWBSE(orb_embedded);
-    gwbse.setLogger(logger);
-    gwbse.Initialize(gwbse_options_);
-    gwbse.Evaluate();
-    gwbse.addoutput(output_summary);
-    orbitals = orb_embedded;
-  }
-
-  if (do_gwbse_ && !do_dft_in_dft_) {
-    GWBSE gwbse = GWBSE(orbitals);
-    gwbse.setLogger(logger);
-    gwbse.Initialize(gwbse_options_);
-    gwbse.Evaluate();
-    gwbse.addoutput(output_summary);
+  if (do_gwbse_) {
+    if (do_dft_in_dft_ || orbitals.getEmbeddedMOs().eigenvectors().size() > 0) {
+      Orbitals orb_embedded = orbitals;
+      orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
+      Index active_electrons = orb_embedded.getNumOfActiveElectrons();
+      orb_embedded.setNumberOfAlphaElectrons(active_electrons);
+      orb_embedded.setNumberOfOccupiedLevels(active_electrons / 2);
+      GWBSE gwbse = GWBSE(orb_embedded);
+      gwbse.setLogger(logger);
+      gwbse.Initialize(gwbse_options_);
+      gwbse.Evaluate();
+      gwbse.addoutput(output_summary);
+      orbitals = orb_embedded;
+    } else {
+      GWBSE gwbse = GWBSE(orbitals);
+      gwbse.setLogger(logger);
+      gwbse.Initialize(gwbse_options_);
+      gwbse.Evaluate();
+      gwbse.addoutput(output_summary);
+    }
   }
 
   if (!logger_file_.empty()) {
