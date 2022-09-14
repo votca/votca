@@ -32,18 +32,22 @@ class DFTGWBSE:
         """Merge user options with the defaults."""
         # parsing defaults
         votcashare = os.environ.get('VOTCASHARE')
+        if votcashare is None:
+            raise ValueError('Please set VOTCASHARE environement variable')
         default_options_file = f'{votcashare}/xtp/xml/dftgwbse.xml'
         default_options = ET.parse(default_options_file)
         default_root = default_options.getroot()
 
         # prepare user options as ET
         user_options = ET.Element("options")
+
         user_options.append(create_xml_tree(ET.Element("dftgwbse"), self.options.to_dict()))
+        ET.dump(user_options)
         ET.ElementTree(user_options).write("test.xml")
         ET.ElementTree(user_options).write('dftgwbse.xml')
   
 
-    def run(self, nThreads: int, path_examples: Path):
+    def run(self, nThreads: int = 1):
         """Just runs xtp_tools with command line call."""
         # update and write the options
         self.update_options()
@@ -57,8 +61,10 @@ class DFTGWBSE:
         if not Path(self.jobdir).exists():
             os.makedirs(self.jobdir)
 
-        path_dftgwbse = (path_examples / "dftgwbse.xml").absolute().as_posix()
-        
+        # path_dftgwbse = (path_examples / "dftgwbse.xml").absolute().as_posix()
+        # path_dftgwbse = (Path("./") / "dftgwbse.xml").absolute().as_posix()
+        path_dftgwbse = (Path("files_examples") / "dftgwbse.xml").absolute().as_posix()
+
         # Call the tool and capture the standard output
         output = capture_standard_output(
             xtp_binds.call_tool, "dftgwbse", nThreads, path_dftgwbse)

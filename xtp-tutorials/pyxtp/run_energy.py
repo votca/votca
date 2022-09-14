@@ -16,12 +16,13 @@ def run_energy(save_figure: bool = False):
 
     # get a DFTGWBSE object
     dft = DFTGWBSE(mol)
+
     # change basis sets to a smaller one
-    dft.options.basisset = 'def2-svp'
-    dft.options.auxbasisset = 'aux-def2-svp'
+    # dft.options.basisset = 'def2-svp'
+    # dft.options.auxbasisset = 'aux-def2-svp'
 
     # run for the molecule
-    # dft.run(mol)
+    dft.run()
 
     # only needed, if no run was performed but an existing HDF5 is read
     dft.mol.read_orb('pyvotca/examples/example.orb')
@@ -34,5 +35,5 @@ def run_energy(save_figure: bool = False):
     viz.plot_absorption_gaussian()
 
 
-if __name__ == "__main":
+if __name__ == "__main__":
     run_energy()

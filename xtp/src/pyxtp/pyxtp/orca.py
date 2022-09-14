@@ -2,9 +2,9 @@
 from pathlib import Path
 from typing import Union
 
-from ..molecule import Molecule
-from ..parsers.orca_parsers import parse_gradient, parse_hessian
-from ..utils import BOHR2ANG
+from .molecule import Molecule
+from .orca_parsers import parse_gradient, parse_hessian
+from .utils import BOHR2ANG
 
 PathLike = Union[str, Path]
 

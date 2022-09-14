@@ -50,7 +50,7 @@ def run_examples():
     nThreads = cpu_count()
     path_examples = Path("files_examples")
 
-    run_mapchecker(nThreads, path_examples)
+    # run_mapchecker(nThreads, path_examples)
     run_dftgwbse(nThreads, path_examples)
 
 
