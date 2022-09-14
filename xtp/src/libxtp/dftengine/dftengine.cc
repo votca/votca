@@ -553,7 +553,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
           for (Index shell_fn_no = shell->getStartIndex();
                shell_fn_no < shell->getStartIndex() + shell->getNumFunc();
                shell_fn_no++) {
-            if (MnP[shell_fn_no] > 0.01) {
+            if (MnP[shell_fn_no] > 0.0001) {
               activeatoms.push_back(atom_num);
               borderatoms.push_back(atom_num);  // push this index to border
                                                 // atoms
