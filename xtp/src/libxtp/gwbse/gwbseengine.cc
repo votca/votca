@@ -67,10 +67,6 @@ void GWBSEEngine::Initialize(tools::Property& options,
   if (do_localize_) {
     localize_options_ = options.get(".localize");
   }
-  if (do_dft_in_dft_ && !do_localize_) {
-    throw std::runtime_error(
-        "Can't do DFT in DFT embedding without localization");
-  }
   // DFT log and MO file names
   MO_file_ = qmpackage_->getMOFile();
   dftlog_file_ = qmpackage_->getLogFile();
@@ -154,6 +150,19 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     pml.computePML(orbitals);
   }
 
+  if (!do_dft_parse_ && do_gwbse_ || !do_dft_parse_ && do_dft_in_dft_) {
+    XTP_LOG(Log::error, *logger)
+        << "Loading serialized data from " << archive_file_ << flush;
+    orbitals.ReadFromCpt(archive_file_);
+  }
+
+  if (do_dft_in_dft_ && !do_localize_) {
+    if (orbitals.getLMOs().size() == 0) {
+      throw std::runtime_error(
+          "Can't do DFT in DFT embedding without localization");
+    }
+  }
+
   if (do_dft_in_dft_) {
     qmpackage_->WriteInputFile(orbitals);
     bool run_success = qmpackage_->RunActiveRegion();
@@ -173,11 +182,7 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   }
 
   // if no parsing of DFT data is requested, reload serialized orbitals object
-  if (!do_dft_parse_ && do_gwbse_) {
-    XTP_LOG(Log::error, *logger)
-        << "Loading serialized data from " << archive_file_ << flush;
-    orbitals.ReadFromCpt(archive_file_);
-  }
+
   tools::Property& output_summary = summary_.add("output", "");
 
   if (do_dft_in_dft_ && do_gwbse_) {
@@ -202,7 +207,6 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     gwbse.addoutput(output_summary);
   }
 
-  // if do truncatedgwbse
   if (!logger_file_.empty()) {
     WriteLoggerToFile(logger);
   }

@@ -647,7 +647,6 @@ void Orbitals::ReadBasisSetsFromCpt(CheckpointReader r) {
 }
 
 void Orbitals::ReadFromCpt(CheckpointReader r) {
-  // r(basis_set_size_, "basis_set_size");
   r(occupied_levels_, "occupied_levels");
   r(number_alpha_electrons_, "number_alpha_electrons");
   int version;
