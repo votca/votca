@@ -123,8 +123,8 @@ bool Diabatization::Run() {
   double QMMM_correction;
   double J;
   double J_QMMM;
-  double E1ad;
-  double E2ad;
+  double E1ad=0.0;
+  double E2ad=0.0;
 
   if (method_ == "er") {
     ERDiabatization ERDiabatization(orbitals1, orbitals2, &log_, state_idx_1_,
