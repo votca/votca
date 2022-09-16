@@ -18,8 +18,8 @@ def run_energy(save_figure: bool = False):
     dft = DFTGWBSE(mol)
 
     # change basis sets to a smaller one
-    # dft.options.basisset = 'def2-svp'
-    # dft.options.auxbasisset = 'aux-def2-svp'
+    dft.options.dftpackage.basisset = 'def2-svp'
+    dft.options.dftpackage.auxbasisset = 'aux-def2-svp'
 
     # run for the molecule
     dft.run()
