@@ -123,8 +123,8 @@ bool Diabatization::Run() {
   double QMMM_correction;
   double J;
   double J_QMMM;
-  double E1ad=0.0;
-  double E2ad=0.0;
+  double E1ad = 0.0;
+  double E2ad = 0.0;
 
   if (method_ == "er") {
     ERDiabatization ERDiabatization(orbitals1, orbitals2, &log_, state_idx_1_,
@@ -178,7 +178,8 @@ bool Diabatization::Run() {
     J = coupling.second * votca::tools::conv::hrt2ev;
 
     XTP_LOG(Log::error, log_)
-        << format("Unprojected diabatic Coupling: %1$+1.12f eV") % (J_unproj) << flush;
+        << format("Unprojected diabatic Coupling: %1$+1.12f eV") % (J_unproj)
+        << flush;
     std::pair<double, double> Ead = GMHDiabatization.adiabatic_energies();
 
     E1ad = Ead.first;
