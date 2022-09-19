@@ -2,6 +2,8 @@
 from typing import Any, Dict
 import os
 import xml.etree.ElementTree as ET
+from lxml import etree
+from lxml.etree import Element
 from pyxtp.xml_editor import NestedNamespace, xml2namespace, namespace2dict
 
 class Options(dict):
@@ -89,6 +91,11 @@ class XTPOptions(NestedNamespace):
         xml_dftgwbse.write('dftgwbse.xml')
         xml_dft.write('dftpackage.xml')
         xml_gwbse.write('gwbse.xml')
+        
+        # clean/write the data
+        self._clean('dftgwbse.xml')
+        self._clean('dftpackage.xml')
+        self._clean('gwbse.xml')
 
     @staticmethod
     def _update(xml_filename: str, dict_options: dict) -> ET.ElementTree:
@@ -111,3 +118,71 @@ class XTPOptions(NestedNamespace):
             except:
                 print(key, ' not in ', xml_filename)
         return xml 
+    
+    @staticmethod
+    def _clean(xml_filename: str, remove_attributes=[]):
+        """Recursively remove all empty nodes and elements containing only empty nodes
+
+        Args:
+            xml_filename (str): name of the xml file
+            remove_attributes (list): list of xml attributes to remove
+        """
+        
+        def is_empty(elem: Element) -> bool:
+            """returns true if e does not have text
+
+            Args:
+                elem (Element): xml element
+
+            Returns:
+                bool true if e is empty
+            """
+            return (elem.text is None) or (elem.text.strip() == '')
+        
+        def recursively_remove_empty(elem: Element):
+            """_summary_
+
+            Args:
+                e (Element): xml element
+
+            Returns:
+                bool: True if we need to remove the element False otherwise
+            """
+                   
+            # recursive call that gets a list of :
+            # [] if e doens't have children
+            # [True, False, False, True ] where each bool indicate if e children are empty or not
+            child_bool = list(recursively_remove_empty(c) for c in elem.iterchildren())   
+            nchildren = len(child_bool)
+            
+            # there is an issue with the last element
+            # so we need to catch the exception
+            try:
+                
+                # if e doesn't have kids, i.e. it's a leaf
+                # remove e if it doesn't have text and returns True
+                # keep e if it has text and return False
+                if nchildren == 0:
+                    if is_empty(elem):
+                        elem.getparent().remove(elem)
+                        return True
+                    else:
+                        return False
+                # remove e if all its children have no text
+                # and returns True
+                elif all(child_bool):
+                    elem.getparent().remove(elem)
+                    return True
+                
+            # excpetion for root ...
+            except:        
+                return False
+            
+        # parse the file
+        tree = etree.parse(xml_filename)
+        # remove attributes if any are passed
+        etree.strip_attributes(tree, remove_attributes)
+        # remove the empties
+        recursively_remove_empty(tree.getroot())
+        # write to file
+        tree.write(xml_filename)

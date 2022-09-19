@@ -38,7 +38,7 @@ class DFTGWBSE:
 
         # update and write the options
         self.options.data.job_name = xyzname
-        # self.options.write_xml()
+        self.options.write_xml()
         # self.update_options()
 
         """ Runs VOTCA and moves results a job folder, if requested """
