@@ -69,7 +69,7 @@ class XTPOptions(NestedNamespace):
         self.data.dftpackage = xml2namespace(self.dftpackage_options_file).dftpackage
         self.data.gwbse = xml2namespace(self.gwbse_options_file).gwbse
       
-        
+
     def write_xml(self):
         """Writes the XML files containing the user defined options
         """
@@ -96,6 +96,41 @@ class XTPOptions(NestedNamespace):
         self._clean('dftgwbse.xml')
         self._clean('dftpackage.xml')
         self._clean('gwbse.xml')
+        
+        # smoosh the xml
+        self.smoosh('dftgwbse.xml', 'dftpackage.xml', 'gwbse.xml')
+
+    def smoosh(self, dftgwbse: str, dftpackage: str, gwbse: str) -> None:
+        """
+
+        Args:
+            dftgwbse (str): _description_
+            dftpackage (str): _description_
+            gwbse (str): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        
+        dftgwbse_xml = etree.parse(dftgwbse)
+        dftpackage_xml = etree.parse(dftpackage)
+        gwbse_xml = etree.parse(gwbse)
+        
+        
+        dftgwbse_root = dftgwbse_xml.getroot()
+        dftgwbse_dftgwbse = dftgwbse_root.getchildren()[0]
+        dftgwbse_job = dftgwbse_dftgwbse.getchildren()[0]   
+        
+        dftpackage_root = dftpackage_xml.getroot()
+        if len(dftpackage_root.getchildren()) != 0 :
+            dftgwbse_job.addnext(dftpackage_root)
+        
+        gwbse_root = gwbse_xml.getroot()
+        if len(gwbse_root.getchildren()) != 0 :
+            dftgwbse_job.addnext(gwbse_root)
+            
+        dftgwbse_xml.write('dftgwbse.xml')
+        
 
     @staticmethod
     def _update(xml_filename: str, dict_options: dict) -> ET.ElementTree:
@@ -129,7 +164,7 @@ class XTPOptions(NestedNamespace):
         """
         
         def is_empty(elem: Element) -> bool:
-            """returns true if e does not have text
+            """returns true if elem does not have text
 
             Args:
                 elem (Element): xml element
@@ -140,7 +175,7 @@ class XTPOptions(NestedNamespace):
             return (elem.text is None) or (elem.text.strip() == '')
         
         def recursively_remove_empty(elem: Element):
-            """_summary_
+            """reccursive function that remove empty elements
 
             Args:
                 e (Element): xml element
@@ -180,9 +215,12 @@ class XTPOptions(NestedNamespace):
             
         # parse the file
         tree = etree.parse(xml_filename)
+        
         # remove attributes if any are passed
         etree.strip_attributes(tree, remove_attributes)
+        
         # remove the empties
         recursively_remove_empty(tree.getroot())
+        
         # write to file
         tree.write(xml_filename)

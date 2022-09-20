@@ -46,7 +46,7 @@ def create_xml_tree(root: ET.Element, dict_tree: Dict[str, Any] ):
     # Leaf : just set the value of the current node
     else:
         root.text = str(dict_tree)
-
+        
 class NestedNamespace(SimpleNamespace):
     """Extend SimpleNamespace to nested structure
 
@@ -76,7 +76,6 @@ class NestedNamespace(SimpleNamespace):
                 if key.startswith('@'):
                     key = '_'+key[1:]
                 self.__setattr__(key, value)
-
 
 def xml2namespace(xml_filename: str, xml_attribs=True) -> NestedNamespace:
     """Load an xml file into an (nested) namesapce using xml2dict
