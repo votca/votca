@@ -793,6 +793,9 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
     // Index electrons_after_trunc = static_cast<Index>(std::round(
     //     InitialActiveDmat_trunc_.cwiseProduct(overlap.Matrix()).sum()));
 
+    Index maxRow, maxCol;
+    std::cout << std::endl << "Max difference before purify = " << InitialActiveDmat_trunc_.maxCoeff(&maxRow, &maxCol) << std::endl;
+
     const double E0_initial_truncated =
         InitialActiveDmat_trunc_.cwiseProduct(H0_trunc_).sum();
     const Mat_p_Energy xc_initial_truncated =
@@ -830,10 +833,9 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
     Eigen::MatrixXd TruncatedDensityMatrix = PurifiedActiveDmat_trunc;
 
 
-    Index maxRow, maxCol;
-    std::cout << std::endl << "Max difference = " << TruncatedDensityMatrix.maxCoeff(&maxRow, &maxCol) << std::endl;
+    std::cout << std::endl << "Max difference after purify = " << TruncatedDensityMatrix.maxCoeff(&maxRow, &maxCol) << std::endl;
 
-    
+
     for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
       XTP_LOG(Log::error, *pLog_) << std::flush;
       XTP_LOG(Log::error, *pLog_)
