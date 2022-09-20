@@ -793,8 +793,10 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
     // Index electrons_after_trunc = static_cast<Index>(std::round(
     //     InitialActiveDmat_trunc_.cwiseProduct(overlap.Matrix()).sum()));
 
+    Eigen::MatrixXd difference_before = InitialActiveDmat_trunc_ - InitialActiveDmat_trunc_.transpose();
+
     Index maxRow, maxCol;
-    std::cout << std::endl << "Max difference before purify = " << InitialActiveDmat_trunc_.maxCoeff(&maxRow, &maxCol) << std::endl;
+    std::cout << std::endl << "Max difference before purify = " << difference_before.maxCoeff(&maxRow, &maxCol) << std::endl;
 
     const double E0_initial_truncated =
         InitialActiveDmat_trunc_.cwiseProduct(H0_trunc_).sum();
@@ -832,8 +834,8 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
         WeenyPurification(InitialActiveDmat_trunc_, overlap);
     Eigen::MatrixXd TruncatedDensityMatrix = PurifiedActiveDmat_trunc;
 
-
-    std::cout << std::endl << "Max difference after purify = " << TruncatedDensityMatrix.maxCoeff(&maxRow, &maxCol) << std::endl;
+    Eigen::MatrixXd difference_after = TruncatedDensityMatrix - TruncatedDensityMatrix.transpose();
+    std::cout << std::endl << "Max difference after purify = " << difference_after.maxCoeff(&maxRow, &maxCol) << std::endl;
 
 
     for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
