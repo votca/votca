@@ -1617,7 +1617,7 @@ Eigen::MatrixXd DFTEngine::WeenyPurification(Eigen::MatrixXd& Dmat_in,
     if (IdempotencyError < 1e-20) break;
   }
   Eigen::MatrixXd Dmat_out = 2 * InvSsqrt * ModifiedDmat * InvSsqrt;
-  return Dmat_out;
+  return 0.5 * (Dmat_out + Dmat_out.transpose());
 }
 
 }  // namespace xtp
