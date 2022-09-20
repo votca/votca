@@ -796,7 +796,7 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
     Eigen::MatrixXd difference_before = InitialActiveDmat_trunc_ - InitialActiveDmat_trunc_.transpose();
 
     Index maxRow, maxCol;
-    std::cout << std::endl << "Max difference before purify = " << difference_before.maxCoeff(&maxRow, &maxCol) << std::endl;
+    std::cout << std::endl << "Min difference before purify = " << difference_before.minCoeff(&maxRow, &maxCol) << std::endl;
 
     const double E0_initial_truncated =
         InitialActiveDmat_trunc_.cwiseProduct(H0_trunc_).sum();
@@ -835,7 +835,7 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
     Eigen::MatrixXd TruncatedDensityMatrix = PurifiedActiveDmat_trunc;
 
     Eigen::MatrixXd difference_after = TruncatedDensityMatrix - TruncatedDensityMatrix.transpose();
-    std::cout << std::endl << "Max difference after purify = " << difference_after.maxCoeff(&maxRow, &maxCol) << std::endl;
+    std::cout << std::endl << "Min difference after purify = " << difference_after.minCoeff(&maxRow, &maxCol) << std::endl;
 
 
     for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
