@@ -25,7 +25,7 @@ def run_energy(save_figure: bool = False):
     dft.run()
 
     # only needed, if no run was performed but an existing HDF5 is read
-    dft.mol.read_orb('pyvotca/examples/example.orb')
+    # dft.mol.read_orb('pyvotca/examples/example.orb')
 
     # Getting the plotting functions
     viz = Visualization(dft.mol, save_figure=save_figure)
