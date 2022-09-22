@@ -16,10 +16,11 @@ def run_gradient() -> np.ndarray:
 
     # get a DFTGWBSE object
     votca = DFTGWBSE(mol)
+    
     # this allows to change all options
-    # votca.options['functional'] = 'PBE'
-    votca.options.basisset = 'def2-svp'
-    votca.options.auxbasisset = 'aux-def2-svp'
+    votca.options.dftpackage.functional = 'PBE'
+    votca.options.dftpackage.basisset = 'def2-svp'
+    votca.options.dftpackage.auxbasisset = 'aux-def2-svp'
 
     # run for the molecule in its geometry
     votca.run()
