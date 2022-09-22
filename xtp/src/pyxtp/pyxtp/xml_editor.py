@@ -1,127 +1,128 @@
 """Module to edit the options in the XML file."""
 
 import xml.etree.ElementTree as ET
-from typing import Any, Dict
-from types import SimpleNamespace
-import xmltodict 
 import os
-
-def edit_xml(root: ET.Element, sections: Dict[str, Any], path: str = ".dftgwbse"):
-    """Edit a XML object using sections."""
-    sec = root.find(path)
-    if sec is None:
-        raise RuntimeError(f"Unknown Section: {path}")
-    else:
-        for key, val in sections.items():
-            update_node(sec, key, val)
+from lxml import etree
+from lxml.etree import Element, ElementTree
 
 
-def update_node(root: ET.Element, key: str, value: Any):
-    """Update nodes recursively."""
-    sec = root.find(key)
-
-    # insert new empty node
-    if sec is None:
-        #elem = ET.Element(key)
-        #root.insert(0, elem)
-        #update_node(root, key, value)
-        raise RuntimeError(f"Unknown option: {key}")
-
-    else:
-        for node in root.findall(key):
-            if not isinstance(value, dict):
-                node.text = str(value)
-            else:
-                for k, v in value.items():
-                    update_node(node, k, v)
-
-
-
-def create_xml_tree(root: ET.Element, dict_tree: Dict[str, Any] ):
-    # Node : recursively create tree nodes
-    if type(dict_tree) == dict:
-        for k, v in dict_tree.items():
-            create_xml_tree(ET.SubElement(root, k), v)
-        return root
-    # Leaf : just set the value of the current node
-    else:
-        root.text = str(dict_tree)
-        
-class NestedNamespace(SimpleNamespace):
-    """Extend SimpleNamespace to nested structure
-
-    example:
-    .. code-block:: python
-       d = NestedNamespace({'a': 1, 'b':{'x':2, 'y':3}})
-       d.a    # 1
-       d.b.x  # 2
-
-    In case of elements starting with a @ they are replaced
-    by underscore, e.g. :
-
-    .. code-block:: python
-       d = NestedNamespace({'a': 1, 'b':{'@x':2, 'y':3}})
-       d.a    # 1
-       d.b._x  # 2
-    """
-
-    def __init__(self, dictionary, **kwargs):
-
-        super().__init__(**kwargs)
-
-        for key, value in dictionary.items():
-            if isinstance(value, dict):
-                self.__setattr__(key, NestedNamespace(value))
-            else:
-                if key.startswith('@'):
-                    key = '_'+key[1:]
-                self.__setattr__(key, value)
-
-def xmlfile2namespace(xml_filename: str, xml_attribs=True) -> NestedNamespace:
-    """Load an xml file into an (nested) namesapce using xml2dict
+def update_xml_text(xml: ElementTree, dict_options: dict) -> ElementTree:
+    """update default option files with the user define options
 
     Args:
-        xml_filename (str): name of the XML file
-        xml_attribs (bool): load the xml attirubtes
+        xml_tree (ElementTree): tree of the xml file
+        dict_options (dict): dictionary of user defined options
 
     Returns:
-        NestedNamespace: namespace
-    """
-    with open(xml_filename) as fd:
-        dict_data = xmltodict.parse(fd.read(), xml_attribs=xml_attribs)
-    return NestedNamespace(dict_data)   
-
-def xmlstr2namespace(xml_str: str, xml_attribs=True) -> NestedNamespace:
-    """Load an xml string into an (nested) namesapce using xml2dict
-
-    Args:
-        xml_filename (str): name of the XML file
-        xml_attribs (bool): load the xml attirubtes
-
-    Returns:
-        NestedNamespace: namespace
+        ET.ElementTree: xml structure containing the update options.
     """
 
-    dict_data = xmltodict.parse(xml_str, xml_attribs=xml_attribs)
-    return NestedNamespace(dict_data)   
+    # replace text value of the dict elements
+    for key, value in dict_options.items():
+        try:
+            xml.find('.//'+key).text = value
+        except:
+            print(key, ' not found ')
+    return xml 
 
-def namespace2dict(namespace_data: NestedNamespace, 
-                   path: str='') -> dict:
-    """Transform a nested namespace into a dictionary.
+
+def insert_linked_xmlfiles(tree: ElementTree, base_path: str) -> None:
+    """insert the tree of linked xml files in the original tree
 
     Args:
-        namespace_data (NestedNamespace): data in namespace form
-        path (str, optional): basepath in the structure. Defaults to ''.
-        remove_optional(bool, optional): remove the attr starting with '_' Default to True
+        tree (ElementTree): original xml tree containing linked files
+        base_path (str): base path for the linked files
+    """
     
-    Returns:
-        dict: dictionary maps the namespace
+    def _recursive_insert_links(el: Element):
+        """recursively add links files to the main tree
+
+        Args:
+            el (Element): lxml element
+
+        Raises:
+            ValueError: If one of the link is not found
+        """
+
+        for child in el.getchildren():
+            _recursive_insert_links(child)
+            
+        if 'link' in el.attrib:
+            link_name = os.path.join(base_path, el.attrib['link'])
+            if not os.path.isfile(link_name):
+                raise ValueError('File %s not found' %link_name)
+            xml_link = etree.parse(link_name)
+            el.getparent().replace(el, xml_link.getroot())
+      
+    # recursively insert the links
+    _recursive_insert_links(tree.getroot())
+    
+    return tree
+
+
+def remove_empty_text_elements(tree: ET.ElementTree, remove_attributes=[]) -> ElementTree:
+    """Recursively remove all empty nodes and elements containing only empty nodes
+
+    Args:
+        xml_tree (ElementTree): tree of the xml file
+        remove_attributes (list): list of xml attributes to remove
     """
-    output = dict()
-    for key, value in namespace_data.__dict__.items():
-        if isinstance(value, NestedNamespace):
-            output.update(namespace2dict(value, path=os.path.join(path,key)))
-        else:
-            if not key.startswith('_'):
-                output[os.path.join(path,key)] = value
-    return output
+    
+    def is_empty(elem: Element) -> bool:
+        """returns true if elem does not have text
+
+        Args:
+            elem (Element): xml element
+
+        Returns:
+            bool true if e is empty
+        """
+        return (elem.text is None) or (elem.text.strip() == '')
+    
+    def recursively_remove_empty_elements(elem: Element):
+        """reccursive function that remove empty elements
+
+        Args:
+            e (Element): xml element
+
+        Returns:
+            bool: True if we need to remove the element False otherwise
+        """
+                
+        # recursive call that gets a list of :
+        # [] if e doens't have children
+        # [True, False, False, True ] where each bool indicate if e children are empty or not
+        child_bool = list(recursively_remove_empty_elements(c) for c in elem.iterchildren())   
+        nchildren = len(child_bool)
+        
+        # there is an issue with the last element
+        # so we need to catch the exception
+        try:
+            
+            # if e doesn't have kids, i.e. it's a leaf
+            # remove e if it doesn't have text and returns True
+            # keep e if it has text and return False
+            if nchildren == 0:
+                if is_empty(elem):
+                    elem.getparent().remove(elem)
+                    return True
+                else:
+                    return False
+            # remove e if all its children have no text
+            # and returns True
+            elif all(child_bool):
+                elem.getparent().remove(elem)
+                return True
+            
+        # excpetion for root ...
+        except:        
+            return False
+        
+    
+    # remove attributes if any are passed
+    etree.strip_attributes(tree, remove_attributes)
+    
+    # remove the empties
+    recursively_remove_empty_elements(tree.getroot())
+    
+    return tree

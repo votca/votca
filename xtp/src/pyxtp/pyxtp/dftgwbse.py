@@ -10,8 +10,7 @@ from .capture_standard_output import capture_standard_output
 from pyxtp import xtp_binds
 
 from .molecule import Molecule
-from .options import Options, XTPOptions
-from .xml_editor import create_xml_tree
+from .options import XTPOptions
 
 __all__ = ["DFTGWBSE"]
 
@@ -37,8 +36,8 @@ class DFTGWBSE:
         self.mol.write_xyz_file(xyzfile)
 
         # update and write the options
-        self.options.data.job_name = xyzname
-        self.options.write_xml(input_filename)
+        self.options.job_name = xyzname
+        self.options._write_xml(input_filename)
 
 
         """ Runs VOTCA and moves results a job folder, if requested """
@@ -52,7 +51,7 @@ class DFTGWBSE:
         output = capture_standard_output(
             xtp_binds.call_tool, "dftgwbse", nThreads, path_dftgwbse)
 
-        with open("example.out", "w") as handler:
+        with open(xyzname + ".out", "w") as handler:
             handler.write(output)
 
         # copy orbfile, if jobdir is not default
