@@ -77,7 +77,7 @@ class NestedNamespace(SimpleNamespace):
                     key = '_'+key[1:]
                 self.__setattr__(key, value)
 
-def xml2namespace(xml_filename: str, xml_attribs=True) -> NestedNamespace:
+def xmlfile2namespace(xml_filename: str, xml_attribs=True) -> NestedNamespace:
     """Load an xml file into an (nested) namesapce using xml2dict
 
     Args:
@@ -89,6 +89,20 @@ def xml2namespace(xml_filename: str, xml_attribs=True) -> NestedNamespace:
     """
     with open(xml_filename) as fd:
         dict_data = xmltodict.parse(fd.read(), xml_attribs=xml_attribs)
+    return NestedNamespace(dict_data)   
+
+def xmlstr2namespace(xml_str: str, xml_attribs=True) -> NestedNamespace:
+    """Load an xml string into an (nested) namesapce using xml2dict
+
+    Args:
+        xml_filename (str): name of the XML file
+        xml_attribs (bool): load the xml attirubtes
+
+    Returns:
+        NestedNamespace: namespace
+    """
+
+    dict_data = xmltodict.parse(xml_str, xml_attribs=xml_attribs)
     return NestedNamespace(dict_data)   
 
 def namespace2dict(namespace_data: NestedNamespace, 

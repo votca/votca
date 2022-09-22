@@ -28,7 +28,7 @@ class DFTGWBSE:
         self.options = XTPOptions()
 
   
-    def run(self, nThreads: int = 1):
+    def run(self, nThreads: int = 1, input_filename='dftgwbse.xml'):
         """Just runs xtp_tools with command line call."""
 
         # write the XYZfile
@@ -38,17 +38,15 @@ class DFTGWBSE:
 
         # update and write the options
         self.options.data.job_name = xyzname
-        self.options.write_xml()
-        # self.update_options()
+        self.options.write_xml(input_filename)
+
 
         """ Runs VOTCA and moves results a job folder, if requested """
         if not Path(self.jobdir).exists():
             os.makedirs(self.jobdir)
 
-        # path_dftgwbse = (path_examples / "dftgwbse.xml").absolute().as_posix()
-        # path_dftgwbse = (Path("./") / "dftgwbse.xml").absolute().as_posix()
-        #path_dftgwbse = (Path("files_examples") / "dftgwbse.xml").absolute().as_posix()
-        path_dftgwbse = (Path("dftgwbse.xml")).absolute().as_posix()
+        # current dftgwbse file
+        path_dftgwbse = (Path(input_filename)).absolute().as_posix()
         
         # Call the tool and capture the standard output
         output = capture_standard_output(
