@@ -1,10 +1,6 @@
 """Module defining the Option class."""
-from typing import Any, Dict
 import os
-import xml.etree.ElementTree as ET
 from lxml import etree
-from lxml.etree import Element, ElementTree
-
 from pyxtp.nestednamespace import NestedNamespace
 from pyxtp.xml_editor import remove_empty_text_elements, insert_linked_xmlfiles, update_xml_text
 
@@ -29,8 +25,8 @@ class XTPOptions(NestedNamespace):
         # parse xmlfile and replace links to the embedded xml files
         self._xml_tree = insert_linked_xmlfiles(etree.parse(dftgwbse_options_file), base_path=f'{votcashare}/xtp/xml/')
         
-        # create a namespace from the xml tree
-        self.__dict__.update(NestedNamespace._fromxml(etree.tostring(self._xml_tree)).options.dftgwbse.__dict__)
+        # insert the namesapce data into the instance
+        self.__dict__.update(NestedNamespace.__fromxml__(etree.tostring(self._xml_tree)).options.dftgwbse.__dict__)
     
 
     
@@ -42,7 +38,7 @@ class XTPOptions(NestedNamespace):
         """
         
         # create a dict of the user providedoptions
-        dftgwbse_options = self._todict()
+        dftgwbse_options = self.__todict__()
         
         # update the options from the user provided input
         self._xml_tree = update_xml_text(self._xml_tree, dftgwbse_options)

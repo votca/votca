@@ -1,8 +1,5 @@
 """DFTGWSE wrapper."""
 import os
-import platform
-import subprocess
-import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -17,17 +14,13 @@ __all__ = ["DFTGWBSE"]
 
 class DFTGWBSE:
 
-    def __init__(self, mol: Molecule, threads: int = 1, jobname: str = 'dftgwbse',
-                 options: Optional[Dict[str, Any]] = {}, jobdir: str = './'):
+    def __init__(self, mol: Molecule):
         self.mol = mol
-        self.threads = threads
-        self.jobname = jobname
-        self.jobdir = jobdir
         self.orbfile = ''
         self.options = XTPOptions()
 
   
-    def run(self, nThreads: int = 1, input_filename='dftgwbse.xml'):
+    def run(self, nThreads: int = 1):
         """Just runs xtp_tools with command line call."""
 
         # write the XYZfile
@@ -37,6 +30,7 @@ class DFTGWBSE:
 
         # update and write the options
         self.options.job_name = xyzname
+        input_filename='dftgwbse.xml'
         self.options._write_xml(input_filename)
 
 

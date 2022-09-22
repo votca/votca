@@ -38,19 +38,26 @@ class NestedNamespace(SimpleNamespace):
                 self.__setattr__(key, value)
                 
     @classmethod
-    def _fromxml(cls, xml_str: str, xml_attribs=True):
-        """_summary_
+    def __fromxml__(cls, xml_str: str, xml_attribs=True):
+        """Creates a class instance from an xml file stored in a string
 
         Args:
-            xml_str (str): _description_
+            xml_str (str): content of an xml file represented as string
 
         Returns:
-            NestedNamespace: _description_
+            NestedNamespace: namesapce mapping the xml file
+            
+        examle:
+        .. code-block:: python
+            from lxml import etree
+            tree = etree.parse('test.xml')
+            xml_str = etree.tostring(tree)
+            data = NestedNamespace._fromxml(xml_str)
         """
         dict_data = xmltodict.parse(xml_str, xml_attribs=xml_attribs)
         return cls(dict_data)   
     
-    def _todict(self) -> dict:
+    def __todict__(self) -> dict:
         """Transform the nested namespace into a dictionary.
         
         Returns:
