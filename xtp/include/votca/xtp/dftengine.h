@@ -168,6 +168,7 @@ class DFTEngine {
   bool truncate_;
   Index active_electrons_;
   double E_nuc_;
+  double truncation_threshold_;
 };
 
 }  // namespace xtp
