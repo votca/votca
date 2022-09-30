@@ -13,7 +13,7 @@ Version 2022.1 (released XX.01.22)
 -  drop gmx-2021 builds from CI (#976)
 -  update syntax for cmake 3.23 (#978)
 -  fix CI build on Ubuntu (#981)
--  fix CI builds with icpx (#984)
+-  fix CI builds with icpx (#984, #1004)
 -  fix CI builds with ESPResSo 4.2.0 (#993)
 -  fix localization issue (#998, #1000)
 
