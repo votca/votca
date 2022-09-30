@@ -18,7 +18,7 @@
 #include <libint2/initialize.h>
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE dftengine_test
+#define BOOST_TEST_MODULE activedftengine_test
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
@@ -30,22 +30,24 @@
 
 using namespace votca::xtp;
 
-BOOST_AUTO_TEST_SUITE(dftengine_test)
+BOOST_AUTO_TEST_SUITE(activedftengine_test)
 
-archive_file =
+std::string archive_file =
     std::string(XTP_TEST_DATA_FOLDER) + "/activedftengine/molecule.orb";
 
 BOOST_AUTO_TEST_CASE(dft_active) {
   libint2::initialize();
   DFTEngine activedft;
   Orbitals orb;
-  orb.ReadFromCpt(archive_file) orb.QMAtoms().LoadFromFile(
-      std::string(XTP_TEST_DATA_FOLDER) + "/activedftengine/molecule.xyz");
+  orb.ReadFromCpt(archive_file);
+
   std::ofstream xml("dftengine.xml");
   xml << "<dftpackage>" << std::endl;
   xml << "<spin>1</spin>" << std::endl;
   xml << "<name>xtp</name>" << std::endl;
   xml << "<charge>0</charge>" << std::endl;
+  xml << "<basisset>3-21G.xml</basisset>" << std::endl;
+  xml << "<initial_guess>atom</initial_guess>" << std::endl;
   xml << "<functional>XC_HYB_GGA_XC_PBEH</functional>" << std::endl;
   xml << "<xtpdft>" << std::endl;
   xml << "<screening_eps>1e-9</screening_eps>\n";
@@ -67,7 +69,11 @@ BOOST_AUTO_TEST_CASE(dft_active) {
   xml << "<max_iterations>100</max_iterations>" << std::endl;
   xml << "<dft_in_dft>" << std::endl;
   xml << "    <activeatoms>0</activeatoms>" << std::endl;
+  xml << "    <threshold>0.4</threshold>" << std::endl;
+  xml << "    <levelshift>10000</levelshift>" << std::endl;
   xml << "    <truncate_basis>False</truncate_basis>" << std::endl;
+  xml << "    <truncation_threshold>1e-4</truncation_threshold>" << std::endl;
+  xml << "</dft_in_dft>" << std::endl;
   xml << "</xtpdft>" << std::endl;
   xml << "</dftpackage>" << std::endl;
   xml.close();
@@ -80,13 +86,15 @@ BOOST_AUTO_TEST_CASE(dft_active) {
   activedft.EvaluateActiveRegion(orb);
 
   Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(13);
-  mo_eigenvalues << -19.0797217317, -1.0193288277, -0.5207045448, -0.3421671503,
+  MOs_energy_ref << -19.0797217317, -1.0193288277, -0.5207045448, -0.3421671503,
       -0.2737294649, 0.1190570943, 0.2108430632, 0.9536993123, 1.0433048316,
       1.4681715152, 1.5465977240, 1.6726054535, 2.7743814447;
   // Eigen::MatrixXd MOs_coeff_ref =
   //     votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-  //         std::string(XTP_TEST_DATA_FOLDER) + "/activedftengine/mo_eigenvectors.mm");
-  bool check_eng = MOs_energy_ref.isApprox(orb.getEmbeddedMOs().eigenvalues(), 1e-5);
+  //         std::string(XTP_TEST_DATA_FOLDER) +
+  //         "/activedftengine/mo_eigenvectors.mm");
+  bool check_eng =
+      MOs_energy_ref.isApprox(orb.getEmbeddedMOs().eigenvalues(), 1e-4);
   BOOST_CHECK_EQUAL(check_eng, true);
   if (!check_eng) {
     std::cout << "result energy" << std::endl;
@@ -97,3 +105,5 @@ BOOST_AUTO_TEST_CASE(dft_active) {
 
   libint2::finalize();
 }
+
+BOOST_AUTO_TEST_SUITE_END()
