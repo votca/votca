@@ -191,7 +191,6 @@ std::string Molden::readMOs(Orbitals& orbitals,
 }
 
 void Molden::addBasissetInfo(Orbitals& orbitals) const {
-  std::cout << basisset_name_ << std::endl;
   orbitals.SetupDftBasis(basisset_name_);
   if (aux_basisset_name_ != "") {
     orbitals.SetupAuxBasis(aux_basisset_name_);

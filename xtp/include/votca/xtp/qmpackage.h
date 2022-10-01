@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2022 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -50,6 +50,7 @@ class QMPackage {
   virtual bool WriteInputFile(const Orbitals& orbitals) = 0;
 
   bool Run();
+  bool RunActiveRegion();
   virtual bool ParseLogFile(Orbitals& orbitals) = 0;
 
   virtual bool ParseMOsFile(Orbitals& orbitals) = 0;
@@ -109,6 +110,7 @@ class QMPackage {
   };
 
   virtual bool RunDFT() = 0;
+  virtual bool RunActiveDFT() = 0;
   virtual void WriteChargeOption() = 0;
   std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
   void ReorderOutput(Orbitals& orbitals) const;
