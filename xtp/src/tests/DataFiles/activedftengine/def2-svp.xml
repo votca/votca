@@ -1,0 +1,76 @@
+<basis name="def2-svp">
+  <!--Basis set created by xtp_basisset from def2-svp.nw at Thu Jan  2 17:19:55 2020-->
+  <element name="H">
+    <shell type="S" scale="1.0">
+      <constant decay="1.301070e+01">
+        <contractions type="S" factor="1.968216e-02"/>
+      </constant>
+      <constant decay="1.962257e+00">
+        <contractions type="S" factor="1.379652e-01"/>
+      </constant>
+      <constant decay="4.445380e-01">
+        <contractions type="S" factor="4.783193e-01"/>
+      </constant>
+    </shell>
+    <shell type="S" scale="1.0">
+      <constant decay="1.219496e-01">
+        <contractions type="S" factor="1.000000e+00"/>
+      </constant>
+    </shell>
+    <shell type="P" scale="1.0">
+      <constant decay="8.000000e-01">
+        <contractions type="P" factor="1.000000e+00"/>
+      </constant>
+    </shell>
+  </element>
+  <element name="O">
+    <shell type="S" scale="1.0">
+      <constant decay="2.266177e+03">
+        <contractions type="S" factor="-5.343181e-03"/>
+      </constant>
+      <constant decay="3.408701e+02">
+        <contractions type="S" factor="-3.989004e-02"/>
+      </constant>
+      <constant decay="7.736314e+01">
+        <contractions type="S" factor="-1.785391e-01"/>
+      </constant>
+      <constant decay="2.147964e+01">
+        <contractions type="S" factor="-4.642768e-01"/>
+      </constant>
+      <constant decay="6.658943e+00">
+        <contractions type="S" factor="-4.430975e-01"/>
+      </constant>
+    </shell>
+    <shell type="S" scale="1.0">
+      <constant decay="8.097598e-01">
+        <contractions type="S" factor="1.000000e+00"/>
+      </constant>
+    </shell>
+    <shell type="S" scale="1.0">
+      <constant decay="2.553077e-01">
+        <contractions type="S" factor="1.000000e+00"/>
+      </constant>
+    </shell>
+    <shell type="P" scale="1.0">
+      <constant decay="1.772150e+01">
+        <contractions type="P" factor="4.339457e-02"/>
+      </constant>
+      <constant decay="3.863551e+00">
+        <contractions type="P" factor="2.309412e-01"/>
+      </constant>
+      <constant decay="1.048092e+00">
+        <contractions type="P" factor="5.137531e-01"/>
+      </constant>
+    </shell>
+    <shell type="P" scale="1.0">
+      <constant decay="2.764154e-01">
+        <contractions type="P" factor="1.000000e+00"/>
+      </constant>
+    </shell>
+    <shell type="D" scale="1.0">
+      <constant decay="1.200000e+00">
+        <contractions type="D" factor="1.000000e+00"/>
+      </constant>
+    </shell>
+  </element>
+</basis>
