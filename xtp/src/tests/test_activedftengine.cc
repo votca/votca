@@ -32,21 +32,122 @@ using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(activedftengine_test)
 
-std::string archive_file =
-    std::string(XTP_TEST_DATA_FOLDER) + "/activedftengine/molecule.orb";
+void WriteBasisSVP() {
+  std::ofstream basisfile("def2-svp.xml");
+  basisfile << "<basis name=\"def2-svp\">" << std::endl;
+  basisfile << "  <!--Basis set created by xtp_basisset from def2-svp.nw at "
+               "Thu Jan  2 17:19:55 2020-->"
+            << std::endl;
+  basisfile << "  <element name=\"H\">" << std::endl;
+  basisfile << "    <shell type=\"S\" scale=\"1.0\">" << std::endl;
+  basisfile << "      <constant decay=\"1.301070e+01\">" << std::endl;
+  basisfile << "        <contractions type=\"S\" factor=\"1.968216e-02\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"1.962257e+00\">" << std::endl;
+  basisfile << "        <contractions type=\"S\" factor=\"1.379652e-01\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"4.445380e-01\">" << std::endl;
+  basisfile << "        <contractions type=\"S\" factor=\"4.783193e-01\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell type=\"S\" scale=\"1.0\">" << std::endl;
+  basisfile << "      <constant decay=\"1.219496e-01\">" << std::endl;
+  basisfile << "        <contractions type=\"S\" factor=\"1.000000e+00\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell type=\"P\" scale=\"1.0\">" << std::endl;
+  basisfile << "      <constant decay=\"8.000000e-01\">" << std::endl;
+  basisfile << "        <contractions type=\"P\" factor=\"1.000000e+00\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "  </element>" << std::endl;
+  basisfile << "  <element name=\"O\">" << std::endl;
+  basisfile << "    <shell type=\"S\" scale=\"1.0\">" << std::endl;
+  basisfile << "      <constant decay=\"2.266177e+03\">" << std::endl;
+  basisfile << "        <contractions type=\"S\" factor=\"-5.343181e-03\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"3.408701e+02\">" << std::endl;
+  basisfile << "        <contractions type=\"S\" factor=\"-3.989004e-02\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"7.736314e+01\">" << std::endl;
+  basisfile << "        <contractions type=\"S\" factor=\"-1.785391e-01\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"2.147964e+01\">" << std::endl;
+  basisfile << "        <contractions type=\"S\" factor=\"-4.642768e-01\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"6.658943e+00\">" << std::endl;
+  basisfile << "        <contractions type=\"S\" factor=\"-4.430975e-01\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell type=\"S\" scale=\"1.0\">" << std::endl;
+  basisfile << "      <constant decay=\"8.097598e-01\">" << std::endl;
+  basisfile << "        <contractions type=\"S\" factor=\"1.000000e+00\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell type=\"S\" scale=\"1.0\">" << std::endl;
+  basisfile << "      <constant decay=\"2.553077e-01\">" << std::endl;
+  basisfile << "        <contractions type=\"S\" factor=\"1.000000e+00\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell type=\"P\" scale=\"1.0\">" << std::endl;
+  basisfile << "      <constant decay=\"1.772150e+01\">" << std::endl;
+  basisfile << "        <contractions type=\"P\" factor=\"4.339457e-02\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"3.863551e+00\">" << std::endl;
+  basisfile << "        <contractions type=\"P\" factor=\"2.309412e-01\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "      <constant decay=\"1.048092e+00\">" << std::endl;
+  basisfile << "        <contractions type=\"P\" factor=\"5.137531e-01\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell type=\"P\" scale=\"1.0\">" << std::endl;
+  basisfile << "      <constant decay=\"2.764154e-01\">" << std::endl;
+  basisfile << "        <contractions type=\"P\" factor=\"1.000000e+00\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "    <shell type=\"D\" scale=\"1.0\">" << std::endl;
+  basisfile << "      <constant decay=\"1.200000e+00\">" << std::endl;
+  basisfile << "        <contractions type=\"D\" factor=\"1.000000e+00\"/>"
+            << std::endl;
+  basisfile << "      </constant>" << std::endl;
+  basisfile << "    </shell>" << std::endl;
+  basisfile << "  </element>" << std::endl;
+  basisfile << "</basis>" << std::endl;
+  basisfile.close();
+}
 
 BOOST_AUTO_TEST_CASE(dft_active) {
   libint2::initialize();
   DFTEngine activedft;
   Orbitals orb;
+
+  std::string archive_file =
+    std::string(XTP_TEST_DATA_FOLDER) + "/activedftengine/molecule.orb";
   orb.ReadFromCpt(archive_file);
+  WriteBasisSVP();
 
   std::ofstream xml("dftengine.xml");
   xml << "<dftpackage>" << std::endl;
   xml << "<spin>1</spin>" << std::endl;
   xml << "<name>xtp</name>" << std::endl;
   xml << "<charge>0</charge>" << std::endl;
-  xml << "<basisset>3-21G.xml</basisset>" << std::endl;
+  xml << "<basisset>def2-svp.xml</basisset>" << std::endl;
   xml << "<initial_guess>atom</initial_guess>" << std::endl;
   xml << "<functional>XC_HYB_GGA_XC_PBEH</functional>" << std::endl;
   xml << "<xtpdft>" << std::endl;
@@ -85,16 +186,18 @@ BOOST_AUTO_TEST_CASE(dft_active) {
   activedft.Initialize(prop.get("dftpackage"));
   activedft.EvaluateActiveRegion(orb);
 
-  Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(13);
-  MOs_energy_ref << -19.0797217317, -1.0193288277, -0.5207045448, -0.3421671503,
-      -0.2737294649, 0.1190570943, 0.2108430632, 0.9536993123, 1.0433048316,
-      1.4681715152, 1.5465977240, 1.6726054535, 2.7743814447;
+  Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(24);
+  MOs_energy_ref << -19.1917465898, -1.0084007091, -0.5299564597, -0.3810580695,
+      -0.3055008462, +0.0651355423, +0.1440439129, +0.5819588305, +0.6447842945,
+      +0.9409823516, +0.9480989301, +1.0305647041, +1.1103754723, +1.3556488907,
+      +1.4199032914, +1.5599691331, +1.8032414495, +2.2424546637, +2.2842143458,
+      +2.9776983297, +3.0241165231, +3.2095189653, +3.5223655857, +3.8476573831;
   // Eigen::MatrixXd MOs_coeff_ref =
   //     votca::tools::EigenIO_MatrixMarket::ReadMatrix(
   //         std::string(XTP_TEST_DATA_FOLDER) +
   //         "/activedftengine/mo_eigenvectors.mm");
   bool check_eng =
-      MOs_energy_ref.isApprox(orb.getEmbeddedMOs().eigenvalues(), 1e-4);
+      MOs_energy_ref.isApprox(orb.getEmbeddedMOs().eigenvalues(), 1e-5);
   BOOST_CHECK_EQUAL(check_eng, true);
   if (!check_eng) {
     std::cout << "result energy" << std::endl;
