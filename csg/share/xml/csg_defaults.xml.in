@@ -85,7 +85,7 @@
       </traj>
     </espresso>
     <espressopp>
-      <command>python2
+      <command>python3
         <DESC>Command to run espresso (name or absolute path or mpirun espresso..)</DESC>
       </command>
       <opts>${script}
