@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE(dft_trunc) {
   Orbitals orb;
 
   std::string archive_file =
-      std::string(XTP_TEST_DATA_FOLDER) + "/truncdftengine/molecule.orb";
+      std::string(XTP_TEST_DATA_FOLDER) + "/activedftengine/molecule.orb";
   orb.ReadFromCpt(archive_file);
   WriteBasisSVP();
 
