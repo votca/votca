@@ -11,6 +11,7 @@ Version 2023-dev
 -  separate option for density max convergence tolerance in qmmm (#987)
 -  Correct ECP charges added in Orca Molden reader (#990)
 -  Implemented ER diabatization for BSE (#988)
+-  update esp++ spce tutorial to py3 (#997)
 
 Version 2022.1 (released XX.01.22)
 ==================================
@@ -24,7 +25,7 @@ Version 2022.1 (released XX.01.22)
 -  drop gmx-2021 builds from CI (#976)
 -  update syntax for cmake 3.23 (#978)
 -  fix CI build on Ubuntu (#981)
--  fix CI builds with icpx (#984)
+-  fix CI builds with icpx (#984, #1004)
 -  fix CI builds with ESPResSo 4.2.0 (#993)
 -  fix localization issue (#998, #1000)
 
