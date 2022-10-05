@@ -632,12 +632,12 @@ std::vector<Eigen::MatrixXd> PMLocalization::setup_pop_matrices(
     Qat[iat].diagonal() = MullikenPop_orb_per_atom_.col(iat);
   }
 
-  // now fill the offdiagonals
-  #pragma omp parallel for
+// now fill the offdiagonals
+#pragma omp parallel for
   for (Index s = 0; s < noccs; s++) {
 
     Eigen::MatrixXd s_overlap = occ_orbitals.col(s).asDiagonal() * overlap_;
-    
+
     for (Index t = s + 1; t < noccs; t++) {
 
       Eigen::MatrixXd splitwiseMullikenPop_orb_SandT =

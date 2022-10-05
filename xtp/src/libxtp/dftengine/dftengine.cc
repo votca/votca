@@ -906,7 +906,7 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
         PrintMOs(MOs_trunc.eigenvalues(), Log::error);
         trunc_orb.setEmbeddedMOs(MOs_trunc);
         trunc_orb.setNumofActiveElectrons(active_electrons_);
-        //CalcElDipole(trunc_orb);
+        // CalcElDipole(trunc_orb);
         break;
       }
     }

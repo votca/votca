@@ -193,10 +193,10 @@ BOOST_AUTO_TEST_CASE(dft_trunc) {
       +2.2418399796, +2.5705699649, +2.6221960832, +2.9546486753, +3.0041439742,
       +3.7034385642, +180.8444508998, +189.9707763443, +199.2346367722,
       +199.5465961353;
-    Eigen::MatrixXd MOs_coeff_ref =
-        votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-            std::string(XTP_TEST_DATA_FOLDER) +
-            "/truncdftengine/mo_eigenvectors.mm");
+  Eigen::MatrixXd MOs_coeff_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/truncdftengine/mo_eigenvectors.mm");
   bool check_eng =
       MOs_energy_ref.isApprox(orb.getEmbeddedMOs().eigenvalues(), 1e-5);
   BOOST_CHECK_EQUAL(check_eng, true);

@@ -191,10 +191,7 @@ BOOST_AUTO_TEST_CASE(dft_active) {
       0.0651889, 0.144076, 0.581983, 0.644849, 0.940892, 0.947913, 1.0306,
       1.11042, 1.35566, 1.41993, 1.55998, 1.80324, 2.2424, 2.28424, 2.97774,
       3.02425, 3.20965, 3.5225, 3.84776;
-  Eigen::MatrixXd MOs_coeff_ref =
-      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) +
-          "/activedftengine/mo_eigenvectors.mm");
+
   bool check_eng =
       MOs_energy_ref.isApprox(orb.getEmbeddedMOs().eigenvalues(), 1e-5);
   BOOST_CHECK_EQUAL(check_eng, true);
@@ -205,22 +202,43 @@ BOOST_AUTO_TEST_CASE(dft_active) {
     std::cout << MOs_energy_ref << std::endl;
   }
 
-  bool check_MoCoeff =
-      MOs_coeff_ref.isApprox(orb.getEmbeddedMOs().eigenvectors(), 1e-5);
-  BOOST_CHECK_EQUAL(check_MoCoeff, true);
-  if (!check_MoCoeff) {
-    std::cout << "COL 1" << orb.getEmbeddedMOs().eigenvectors().col(1)
-              << std::endl;
-    std::cout << "REF COL 1" << MOs_energy_ref.col(1) << std::endl;
-    std::cout
-        << "Max difference is: "
-        << (orb.getEmbeddedMOs().eigenvectors() - MOs_coeff_ref).minCoeff()
-        << std::endl;
-    std::cout << "Max difference is: "
-              << (orb.MOs().eigenvectors() - MOs_coeff_ref).minCoeff()
-              << std::endl;
+  Eigen::MatrixXd MOs_coeff_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/activedftengine/mo_eigenvectors.mm");
+  AOBasis basis = orb.getDftBasis();
+  AOOverlap overlap;
+  overlap.Fill(basis);
+  Eigen::MatrixXd proj = MOs_coeff_ref.transpose() * overlap.Matrix() *
+                         orb.getEmbeddedMOs().eigenvectors();
+  Eigen::VectorXd norms = proj.colwise().norm();
+  bool check_coeff = norms.isApproxToConstant(1, 1e-5);
+  BOOST_CHECK_EQUAL(check_coeff, true);
+  if (!check_coeff) {
+    std::cout << "result coeff" << std::endl;
+    std::cout << orb.getEmbeddedMOs().eigenvectors() << std::endl;
+    std::cout << "ref coeff" << std::endl;
+    std::cout << MOs_coeff_ref << std::endl;
   }
 
+  /*
+    bool check_MoCoeff =
+        MOs_coeff_ref.isApprox(orb.getEmbeddedMOs().eigenvectors(), 1e-5);
+    BOOST_CHECK_EQUAL(check_MoCoeff, true);
+    if (!check_MoCoeff) {
+      std::cout << "COL 1" << orb.getEmbeddedMOs().eigenvectors().col(1)
+                << std::endl;
+      std::cout << "REF COL 1" << MOs_coeff_ref.col(1) << std::endl;
+      std::cout
+          << "Min difference is: "
+          << (orb.getEmbeddedMOs().eigenvectors() - MOs_coeff_ref).minCoeff()
+          << std::endl;
+      std::cout << "Max difference is: "
+                << (orb.getEmbeddedMOs().eigenvectors() -
+    MOs_coeff_ref).maxCoeff()
+                << std::endl;
+    }
+  */
   libint2::finalize();
 }
 
