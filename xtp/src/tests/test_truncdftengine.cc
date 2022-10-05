@@ -193,10 +193,6 @@ BOOST_AUTO_TEST_CASE(dft_trunc) {
       +2.2418399796, +2.5705699649, +2.6221960832, +2.9546486753, +3.0041439742,
       +3.7034385642, +180.8444508998, +189.9707763443, +199.2346367722,
       +199.5465961353;
-  Eigen::MatrixXd MOs_coeff_ref =
-      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) +
-          "/truncdftengine/mo_eigenvectors.mm");
   bool check_eng =
       MOs_energy_ref.isApprox(orb.getEmbeddedMOs().eigenvalues(), 1e-5);
   BOOST_CHECK_EQUAL(check_eng, true);
@@ -207,20 +203,23 @@ BOOST_AUTO_TEST_CASE(dft_trunc) {
     std::cout << MOs_energy_ref << std::endl;
   }
 
-  bool check_MoCoeff =
-      MOs_coeff_ref.isApprox(orb.getEmbeddedMOs().eigenvectors(), 1e-5);
-  BOOST_CHECK_EQUAL(check_MoCoeff, true);
-  if (!check_MoCoeff) {
-    std::cout << "COL 1" << orb.getEmbeddedMOs().eigenvectors().col(1)
-              << std::endl;
-    std::cout << "REF COL 1" << MOs_energy_ref.col(1) << std::endl;
-    std::cout
-        << "Max difference is: "
-        << (orb.getEmbeddedMOs().eigenvectors() - MOs_coeff_ref).minCoeff()
-        << std::endl;
-    std::cout << "Max difference is: "
-              << (orb.MOs().eigenvectors() - MOs_coeff_ref).minCoeff()
-              << std::endl;
+  Eigen::MatrixXd MOs_coeff_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/truncdftengine/mo_eigenvectors.mm");
+  AOBasis basis = orb.getDftBasis();
+  AOOverlap overlap;
+  overlap.Fill(basis);
+  Eigen::MatrixXd proj = MOs_coeff_ref.transpose() * overlap.Matrix() *
+                         orb.getEmbeddedMOs().eigenvectors();
+  Eigen::VectorXd norms = proj.colwise().norm();
+  bool check_coeff = norms.isApproxToConstant(1, 1e-5);
+  BOOST_CHECK_EQUAL(check_coeff, true);
+  if (!check_coeff) {
+    std::cout << "result coeff" << std::endl;
+    std::cout << orb.getEmbeddedMOs().eigenvectors() << std::endl;
+    std::cout << "ref coeff" << std::endl;
+    std::cout << MOs_coeff_ref << std::endl;
   }
 
   libint2::finalize();
