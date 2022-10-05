@@ -221,24 +221,6 @@ BOOST_AUTO_TEST_CASE(dft_active) {
     std::cout << MOs_coeff_ref << std::endl;
   }
 
-  /*
-    bool check_MoCoeff =
-        MOs_coeff_ref.isApprox(orb.getEmbeddedMOs().eigenvectors(), 1e-5);
-    BOOST_CHECK_EQUAL(check_MoCoeff, true);
-    if (!check_MoCoeff) {
-      std::cout << "COL 1" << orb.getEmbeddedMOs().eigenvectors().col(1)
-                << std::endl;
-      std::cout << "REF COL 1" << MOs_coeff_ref.col(1) << std::endl;
-      std::cout
-          << "Min difference is: "
-          << (orb.getEmbeddedMOs().eigenvectors() - MOs_coeff_ref).minCoeff()
-          << std::endl;
-      std::cout << "Max difference is: "
-                << (orb.getEmbeddedMOs().eigenvectors() -
-    MOs_coeff_ref).maxCoeff()
-                << std::endl;
-    }
-  */
   libint2::finalize();
 }
 
