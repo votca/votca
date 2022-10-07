@@ -123,6 +123,11 @@ void DFTEngine::Initialize(tools::Property& options) {
         options.get(key_xtpdft + ".dft_in_dft.levelshift").as<double>();
     truncate_ =
         options.get(key_xtpdft + ".dft_in_dft.truncate_basis").as<bool>();
+    if (truncate_) {
+      truncation_threshold_ =
+          options.get(key_xtpdft + ".dft_in_dft.truncation_threshold")
+              .as<double>();
+    }
   }
 }
 
@@ -389,7 +394,6 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       << "Indices of active atoms selected are: " << active_atoms_as_string_
       << std::flush;
   ActiveDensityMatrix DMAT_A(orb, activeatoms, active_threshold_);
-  // std::array<Eigen::MatrixXd, 3> activeinactive = DMAT_A.compute_Dmat_A();
   const Eigen::MatrixXd InitialActiveDensityMatrix = DMAT_A.compute_Dmat_A()[0];
   Eigen::MatrixXd InitialActiveMOs = DMAT_A.compute_Dmat_A()[1];
   Eigen::MatrixXd InitialInactiveMOs = DMAT_A.compute_Dmat_A()[2];
@@ -553,7 +557,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
           for (Index shell_fn_no = shell->getStartIndex();
                shell_fn_no < shell->getStartIndex() + shell->getNumFunc();
                shell_fn_no++) {
-            if (MnP[shell_fn_no] > 0.0001) {
+            if (MnP[shell_fn_no] > truncation_threshold_) {
               activeatoms.push_back(atom_num);
               borderatoms.push_back(atom_num);  // push this index to border
                                                 // atoms
@@ -790,13 +794,9 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
     AOBasis aobasis = trunc_orb.getDftBasis();
     AOOverlap overlap;
     overlap.Fill(aobasis);
-    // Index electrons_after_trunc = static_cast<Index>(std::round(
-    //     InitialActiveDmat_trunc_.cwiseProduct(overlap.Matrix()).sum()));
 
-    Eigen::MatrixXd difference_before = InitialActiveDmat_trunc_ - InitialActiveDmat_trunc_.transpose();
-
-    Index minRow, minCol;
-    std::cout << std::endl << "Min difference before purify = " << difference_before.minCoeff(&minRow, &minCol) << std::endl;
+    Eigen::MatrixXd difference_before =
+        InitialActiveDmat_trunc_ - InitialActiveDmat_trunc_.transpose();
 
     const double E0_initial_truncated =
         InitialActiveDmat_trunc_.cwiseProduct(H0_trunc_).sum();
@@ -834,9 +834,8 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
         WeenyPurification(InitialActiveDmat_trunc_, overlap);
     Eigen::MatrixXd TruncatedDensityMatrix = PurifiedActiveDmat_trunc;
 
-    Eigen::MatrixXd difference_after = TruncatedDensityMatrix - TruncatedDensityMatrix.transpose();
-    std::cout << std::endl << "Min difference after purify = " << difference_after.minCoeff(&minRow, &minCol) << std::endl;
-
+    Eigen::MatrixXd difference_after =
+        TruncatedDensityMatrix - TruncatedDensityMatrix.transpose();
 
     for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
       XTP_LOG(Log::error, *pLog_) << std::flush;

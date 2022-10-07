@@ -153,13 +153,6 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     pml.computePML(orbitals);
   }
 
-  // if (!do_localize_ && do_dft_in_dft_) {
-  //   if (orbitals.getLMOs().size() == 0) {
-  //     throw std::runtime_error(
-  //         "Can't do DFT in DFT embedding without localization");
-  //   }
-  // }
-
   if (!do_dft_parse_ && (do_dft_in_dft_ || do_gwbse_)) {
     if (!do_localize_) {
       XTP_LOG(Log::error, *logger)

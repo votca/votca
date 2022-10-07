@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(activematrix_test) {
 
   ActiveDensityMatrix DMAT_A(orbitals_, activeatoms);
 
-  Eigen::MatrixXd Dmat = DMAT_A.compute_Dmat_A();
+  Eigen::MatrixXd Dmat = DMAT_A.compute_Dmat_A()[0];
   Eigen::MatrixXd DmatA = Dmat;
 
   Eigen::MatrixXd test_DmatA = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
