@@ -585,36 +585,40 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
     std::cout << std::endl
               << "Border Molecule Size = " << borderatoms.size() << std::endl;
 
-    Eigen::MatrixXd BorderMOs;
-    for (Index lmo_index = 0; lmo_index < InitialInactiveMOs.cols();
-         lmo_index++) {
-      double mullikenpop_lmo_borderatoms = 0;
-      for (Index borderatom : borderatoms) {
-        Index start = start_indices[borderatom];
-        Index size = numfuncpatom[borderatom];
-        mullikenpop_lmo_borderatoms +=
-            (InitialInactiveMOs.col(lmo_index) *
-             InitialInactiveMOs.col(lmo_index).transpose() * overlap.Matrix())
-                .diagonal()
-                .segment(start, size)
-                .sum();
+    Eigen::MatrixXd H_embedding =
+        H0.matrix() + v_embedding + levelshift_ * ProjectionOperator;
+
+    if (borderatoms.size() != 0) {
+      Eigen::MatrixXd BorderMOs;
+      for (Index lmo_index = 0; lmo_index < InitialInactiveMOs.cols();
+           lmo_index++) {
+        double mullikenpop_lmo_borderatoms = 0;
+        for (Index borderatom : borderatoms) {
+          Index start = start_indices[borderatom];
+          Index size = numfuncpatom[borderatom];
+          mullikenpop_lmo_borderatoms +=
+              (InitialInactiveMOs.col(lmo_index) *
+               InitialInactiveMOs.col(lmo_index).transpose() * overlap.Matrix())
+                  .diagonal()
+                  .segment(start, size)
+                  .sum();
+        }
+        if (mullikenpop_lmo_borderatoms > 0.25) {
+          BorderMOs.conservativeResize(InitialInactiveMOs.rows(),
+                                       BorderMOs.cols() + 1);
+          BorderMOs.col(BorderMOs.cols() - 1) =
+              InitialInactiveMOs.col(lmo_index);
+        }
       }
-      if (mullikenpop_lmo_borderatoms > 0.25) {
-        BorderMOs.conservativeResize(InitialInactiveMOs.rows(),
-                                     BorderMOs.cols() + 1);
-        BorderMOs.col(BorderMOs.cols() - 1) = InitialInactiveMOs.col(lmo_index);
-      }
+
+      Eigen::MatrixXd BorderDmat = 2 * BorderMOs * BorderMOs.transpose();
+      Eigen::MatrixXd BorderProjectionOperator =
+          overlap.Matrix() * BorderDmat * overlap.Matrix();
+      Eigen::MatrixXd DistantProjectionOperator =
+          ProjectionOperator - BorderProjectionOperator;
+
+      H_embedding += 1e+2 * BorderProjectionOperator + levelshift_ * (DistantProjectionOperator-  ProjectionOperator);
     }
-
-    Eigen::MatrixXd BorderDmat = 2 * BorderMOs * BorderMOs.transpose();
-    Eigen::MatrixXd BorderProjectionOperator =
-        overlap.Matrix() * BorderDmat * overlap.Matrix();
-    Eigen::MatrixXd DistantProjectionOperator =
-        ProjectionOperator - BorderProjectionOperator;
-
-    const Eigen::MatrixXd H_embedding = H0.matrix() + v_embedding +
-                                        1e+2 * BorderProjectionOperator +
-                                        levelshift_ * DistantProjectionOperator;
 
     // from here it is time to truncate Hamiltonian H0
     H0_trunc_ = Eigen::MatrixXd::Zero(numofactivebasisfunction,
