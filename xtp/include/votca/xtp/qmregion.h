@@ -27,7 +27,6 @@
 #include "qmpackagefactory.h"
 #include "region.h"
 #include "statetracker.h"
-#include "logger.h"
 
 /**
  * \brief defines a qm region and runs dft and gwbse calculations
