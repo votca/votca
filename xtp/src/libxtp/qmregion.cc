@@ -28,6 +28,7 @@
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/vxc_grid.h"
+#include "votca/xtp/pmlocalization.h"
 
 namespace votca {
 namespace xtp {
@@ -68,6 +69,12 @@ void QMRegion::Initialize(const tools::Property& prop) {
   DeltaDmax_ = prop.get("tolerance_density_max").as<double>();
 
   dftoptions_ = prop.get("dftpackage");
+  localize_options_ = prop.get("localize");
+
+  if (prop.exists("dftpackage.xtpdft.dft_in_dft.activeatoms")) {
+    do_localize_ = true;
+    do_dft_in_dft_ = true;
+  }
 }
 
 bool QMRegion::Converged() const {
@@ -124,6 +131,16 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     errormsg_ = "Parsing DFT orbfile failed.";
     return;
   }
+  if (do_localize_){
+    PMLocalization pml(log_, localize_options_);
+    pml.computePML(orb_);
+  }
+
+  if (do_dft_in_dft_){
+    qmpackage_->WriteInputFile(orb_);
+    bool active_run = qmpackage_->RunActiveRegion();
+  }
+
   QMState state = QMState("groundstate");
   double energy = orb_.getDFTTotalEnergy();
   if (do_gwbse_) {

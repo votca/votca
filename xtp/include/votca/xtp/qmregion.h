@@ -27,6 +27,7 @@
 #include "qmpackagefactory.h"
 #include "region.h"
 #include "statetracker.h"
+#include "logger.h"
 
 /**
  * \brief defines a qm region and runs dft and gwbse calculations
@@ -102,11 +103,16 @@ class QMRegion : public Region {
   double DeltaDmax_ = 5e-5;
 
   bool do_gwbse_ = false;
+  bool do_localize_ = false;
+  bool do_dft_in_dft_ = false;
 
   tools::Property dftoptions_;
   tools::Property gwbseoptions_;
+  tools::Property localize_options_;
 
   StateTracker statetracker_;
+
+  //Logger* logger_;
 };
 
 }  // namespace xtp
