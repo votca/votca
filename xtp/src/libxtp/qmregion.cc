@@ -24,11 +24,11 @@
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/gwbse.h"
+#include "votca/xtp/pmlocalization.h"
 #include "votca/xtp/polarregion.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/vxc_grid.h"
-#include "votca/xtp/pmlocalization.h"
 
 namespace votca {
 namespace xtp {
@@ -131,19 +131,38 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     errormsg_ = "Parsing DFT orbfile failed.";
     return;
   }
-  if (do_localize_){
+  if (do_localize_) {
     PMLocalization pml(log_, localize_options_);
     pml.computePML(orb_);
   }
 
-  if (do_dft_in_dft_){
+  if (do_dft_in_dft_) {
     qmpackage_->WriteInputFile(orb_);
     bool active_run = qmpackage_->RunActiveRegion();
+    if (!active_run) {
+      throw std::runtime_error("\n DFT in DFT embedding failed. Stopping!");
+    }
+    bool Logfile_parse = qmpackage_->ParseLogFile(orb_);
+    if (!Logfile_parse) {
+      throw std::runtime_error("\n Parsing DFT logfile failed. Stopping!");
+    }
+    bool Orbfile_parse = qmpackage_->ParseMOsFile(orb_);
+    if (!Orbfile_parse) {
+      throw std::runtime_error("\n Parsing DFT orbfile failed. Stopping!");
+    }
   }
 
   QMState state = QMState("groundstate");
   double energy = orb_.getDFTTotalEnergy();
+
   if (do_gwbse_) {
+    if (do_dft_in_dft_) {
+      Index active_electrons = orb_.getNumOfActiveElectrons();
+      orb_.setNumberOfAlphaElectrons(active_electrons);
+      orb_.MOs() = orb_.getEmbeddedMOs();
+      orb_.setNumberOfAlphaElectrons(active_electrons);
+      orb_.setNumberOfOccupiedLevels(active_electrons / 2);
+    }
     GWBSE gwbse(orb_);
     gwbse.setLogger(&log_);
     gwbse.Initialize(gwbseoptions_);

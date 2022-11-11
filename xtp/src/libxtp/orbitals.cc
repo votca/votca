@@ -159,6 +159,12 @@ Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
   return dmatGS;
 }
 
+Eigen::MatrixXd Orbitals::EmbDensityMatrixGroundState() const {
+  Eigen::MatrixXd occstates = mos_embedding_.eigenvectors().leftCols(active_electrons_/2);
+  Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
+  return dmatGS;
+}
+
 // Density matrix for a single KS orbital
 Eigen::MatrixXd Orbitals::DensityMatrixKSstate(const QMState& state) const {
   if (!hasMOs()) {
