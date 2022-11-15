@@ -524,144 +524,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       << std::flush;
 
   if (truncate_) {  // Truncation starts here
-
-    // Mulliken population per basis function on every active atom
-    Eigen::VectorXd DiagonalofDmatA = InitialActiveDensityMatrix.diagonal();
-    Eigen::VectorXd DiagonalofOverlap = overlap.Matrix().diagonal();
-    Eigen::VectorXd MnP = DiagonalofDmatA.cwiseProduct(DiagonalofOverlap);
-
-    // Get a vector containing the number of basis functions per atom
-    const std::vector<Index>& numfuncpatom = aobasis.getFuncPerAtom();
-    Index numofactivebasisfunction = 0;
-    // Store start indices. Will be used later
-    std::vector<Index> start_indices, start_indices_activemolecule;
-    Index start_idx = 0, start_idx_activemolecule = 0;
-    std::vector<Index> borderatoms;
-    for (Index atom_num = 0; atom_num < orb.QMAtoms().size(); atom_num++) {
-      start_indices.push_back(start_idx);
-      // Condition for basis fn on an atom to be counted: either in active
-      // region or MnP of any function > threshold (border atoms)
-      bool partOfActive =
-          (std::find(activeatoms.begin(), activeatoms.end(),
-                     orb.QMAtoms()[atom_num].getId()) != activeatoms.end());
-      if (partOfActive == true) {
-        activemol_.push_back(orb.QMAtoms()[atom_num]);
-        // if active append the atom to the new molecule. Also increment active
-        // basis function size and start indices
-        start_indices_activemolecule.push_back(start_idx_activemolecule);
-        start_idx_activemolecule += numfuncpatom[atom_num];
-        numofactivebasisfunction += numfuncpatom[atom_num];
-      } else {
-        std::vector<const AOShell*> inactiveshell =
-            aobasis.getShellsofAtom(orb.QMAtoms()[atom_num].getId());
-        bool loop_break = false;
-        for (const AOShell* shell : inactiveshell) {
-          for (Index shell_fn_no = shell->getStartIndex();
-               shell_fn_no < shell->getStartIndex() + shell->getNumFunc();
-               shell_fn_no++) {
-            if (MnP[shell_fn_no] > truncation_threshold_) {
-              activeatoms.push_back(atom_num);
-              borderatoms.push_back(atom_num);  // push this index to border
-                                                // atoms
-              activemol_.push_back(orb.QMAtoms()[atom_num]);
-              loop_break = true;  // if any function in the whole atom satisfies
-                                  // we break loop to check next atom
-              start_indices_activemolecule.push_back(start_idx_activemolecule);
-              start_idx_activemolecule += numfuncpatom[atom_num];
-              numofactivebasisfunction += numfuncpatom[atom_num];
-              break;
-            }
-          }
-          if (loop_break) break;
-        }
-      }
-      start_idx += numfuncpatom[atom_num];
-    }
-
-    // Sort atoms before you cut the Hamiltonian
-    sort(activeatoms.begin(), activeatoms.end());
-    sort(borderatoms.begin(), borderatoms.end());
-    std::cout << std::endl
-              << "Active + Border Molecule Size = " << activeatoms.size()
-              << std::endl;
-    std::cout << std::endl
-              << "Border Molecule Size = " << borderatoms.size() << std::endl;
-
-    Eigen::MatrixXd H_embedding =
-        H0.matrix() + v_embedding + levelshift_ * ProjectionOperator;
-
-    if (borderatoms.size() != 0) {
-      Eigen::MatrixXd BorderMOs;
-      for (Index lmo_index = 0; lmo_index < InitialInactiveMOs.cols();
-           lmo_index++) {
-        double mullikenpop_lmo_borderatoms = 0;
-        for (Index borderatom : borderatoms) {
-          Index start = start_indices[borderatom];
-          Index size = numfuncpatom[borderatom];
-          mullikenpop_lmo_borderatoms +=
-              (InitialInactiveMOs.col(lmo_index) *
-               InitialInactiveMOs.col(lmo_index).transpose() * overlap.Matrix())
-                  .diagonal()
-                  .segment(start, size)
-                  .sum();
-        }
-        if (mullikenpop_lmo_borderatoms > 0.25) {
-          BorderMOs.conservativeResize(InitialInactiveMOs.rows(),
-                                       BorderMOs.cols() + 1);
-          BorderMOs.col(BorderMOs.cols() - 1) =
-              InitialInactiveMOs.col(lmo_index);
-        }
-      }
-
-      Eigen::MatrixXd BorderDmat = 2 * BorderMOs * BorderMOs.transpose();
-      Eigen::MatrixXd BorderProjectionOperator =
-          overlap.Matrix() * BorderDmat * overlap.Matrix();
-      Eigen::MatrixXd DistantProjectionOperator =
-          ProjectionOperator - BorderProjectionOperator;
-
-      H_embedding +=
-          1e+2 * BorderProjectionOperator +
-          levelshift_ * (DistantProjectionOperator - ProjectionOperator);
-    }
-
-    // from here it is time to truncate Hamiltonian H0
-    H0_trunc_ = Eigen::MatrixXd::Zero(numofactivebasisfunction,
-                                      numofactivebasisfunction);
-    InitialActiveDmat_trunc_ = Eigen::MatrixXd::Zero(numofactivebasisfunction,
-                                                     numofactivebasisfunction);
-    v_embedding_trunc_ = Eigen::MatrixXd::Zero(numofactivebasisfunction,
-                                               numofactivebasisfunction);
-    // Defined needed matrices with basisset_size * basisset_size
-
-    for (Index activeatom1_idx = 0; activeatom1_idx < Index(activeatoms.size());
-         activeatom1_idx++) {
-      Index activeatom1 = activeatoms[activeatom1_idx];
-      for (Index activeatom2_idx = 0;
-           activeatom2_idx < Index(activeatoms.size()); activeatom2_idx++) {
-        Index activeatom2 = activeatoms[activeatom2_idx];
-        // Fill the H0, Dmat and v_embedding at the right indices
-        H0_trunc_.block(start_indices_activemolecule[activeatom1_idx],
-                        start_indices_activemolecule[activeatom2_idx],
-                        numfuncpatom[activeatom1], numfuncpatom[activeatom2]) =
-            H_embedding.block(
-                start_indices[activeatom1], start_indices[activeatom2],
-                numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
-        InitialActiveDmat_trunc_.block(
-            start_indices_activemolecule[activeatom1_idx],
-            start_indices_activemolecule[activeatom2_idx],
-            numfuncpatom[activeatom1], numfuncpatom[activeatom2]) =
-            InitialActiveDensityMatrix.block(
-                start_indices[activeatom1], start_indices[activeatom2],
-                numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
-        v_embedding_trunc_.block(start_indices_activemolecule[activeatom1_idx],
-                                 start_indices_activemolecule[activeatom2_idx],
-                                 numfuncpatom[activeatom1],
-                                 numfuncpatom[activeatom2]) =
-            v_embedding.block(
-                start_indices[activeatom1], start_indices[activeatom2],
-                numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
-      }
-    }
+    TruncateBasis(orb, activeatoms, H0, InitialActiveDensityMatrix, v_embedding, InitialInactiveMOs);
   }
   // SCF loop if you don't truncate active region
   else {
@@ -839,7 +702,7 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
         << std::flush;
 
     Eigen::MatrixXd PurifiedActiveDmat_trunc =
-        WeenyPurification(InitialActiveDmat_trunc_, overlap);
+        McWeenyPurification(InitialActiveDmat_trunc_, overlap);
     Eigen::MatrixXd TruncatedDensityMatrix = PurifiedActiveDmat_trunc;
 
     Eigen::MatrixXd difference_after =
@@ -1602,8 +1465,8 @@ Eigen::MatrixXd DFTEngine::OrthogonalizeGuess(
   return result;
 }
 
-Eigen::MatrixXd DFTEngine::WeenyPurification(Eigen::MatrixXd& Dmat_in,
-                                             AOOverlap& overlap) {
+Eigen::MatrixXd DFTEngine::McWeenyPurification(Eigen::MatrixXd& Dmat_in,
+                                               AOOverlap& overlap) {
   Eigen::MatrixXd Ssqrt = overlap.Sqrt();
   Eigen::MatrixXd InvSsqrt = overlap.Pseudo_InvSqrt(1e-8);
   Eigen::MatrixXd ModifiedDmat = 0.5 * Ssqrt * Dmat_in * Ssqrt;
@@ -1625,6 +1488,156 @@ Eigen::MatrixXd DFTEngine::WeenyPurification(Eigen::MatrixXd& Dmat_in,
   }
   Eigen::MatrixXd Dmat_out = 2 * InvSsqrt * ModifiedDmat * InvSsqrt;
   return 0.5 * (Dmat_out + Dmat_out.transpose());
+}
+
+void DFTEngine::TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
+                              Mat_p_Energy& H0,
+                              Eigen::MatrixXd InitialActiveDensityMatrix,
+                              Eigen::MatrixXd v_embedding,
+                              Eigen::MatrixXd InitialInactiveMOs) {
+  AOBasis aobasis;
+  aobasis = orb.getDftBasis();
+  AOOverlap overlap;
+  overlap.Fill(aobasis);
+  // Mulliken population per basis function on every active atom
+  Eigen::VectorXd DiagonalofDmatA = InitialActiveDensityMatrix.diagonal();
+  Eigen::VectorXd DiagonalofOverlap = overlap.Matrix().diagonal();
+  Eigen::VectorXd MnP = DiagonalofDmatA.cwiseProduct(DiagonalofOverlap);
+
+  // Get a vector containing the number of basis functions per atom
+  const std::vector<Index>& numfuncpatom = aobasis.getFuncPerAtom();
+  Index numofactivebasisfunction = 0;
+  // Store start indices. Will be used later
+  std::vector<Index> start_indices, start_indices_activemolecule;
+  Index start_idx = 0, start_idx_activemolecule = 0;
+  std::vector<Index> borderatoms;
+  for (Index atom_num = 0; atom_num < orb.QMAtoms().size(); atom_num++) {
+    start_indices.push_back(start_idx);
+    // Condition for basis fn on an atom to be counted: either in active
+    // region or MnP of any function > threshold (border atoms)
+    bool partOfActive =
+        (std::find(activeatoms.begin(), activeatoms.end(),
+                   orb.QMAtoms()[atom_num].getId()) != activeatoms.end());
+    if (partOfActive == true) {
+      activemol_.push_back(orb.QMAtoms()[atom_num]);
+      // if active append the atom to the new molecule. Also increment active
+      // basis function size and start indices
+      start_indices_activemolecule.push_back(start_idx_activemolecule);
+      start_idx_activemolecule += numfuncpatom[atom_num];
+      numofactivebasisfunction += numfuncpatom[atom_num];
+    } else {
+      std::vector<const AOShell*> inactiveshell =
+          aobasis.getShellsofAtom(orb.QMAtoms()[atom_num].getId());
+      bool loop_break = false;
+      for (const AOShell* shell : inactiveshell) {
+        for (Index shell_fn_no = shell->getStartIndex();
+             shell_fn_no < shell->getStartIndex() + shell->getNumFunc();
+             shell_fn_no++) {
+          if (MnP[shell_fn_no] > truncation_threshold_) {
+            activeatoms.push_back(atom_num);
+            borderatoms.push_back(atom_num);  // push this index to border
+                                              // atoms
+            activemol_.push_back(orb.QMAtoms()[atom_num]);
+            loop_break = true;  // if any function in the whole atom satisfies
+                                // we break loop to check next atom
+            start_indices_activemolecule.push_back(start_idx_activemolecule);
+            start_idx_activemolecule += numfuncpatom[atom_num];
+            numofactivebasisfunction += numfuncpatom[atom_num];
+            break;
+          }
+        }
+        if (loop_break) break;
+      }
+    }
+    start_idx += numfuncpatom[atom_num];
+  }
+
+  // Sort atoms before you cut the Hamiltonian
+  sort(activeatoms.begin(), activeatoms.end());
+  sort(borderatoms.begin(), borderatoms.end());
+  Eigen::MatrixXd InactiveDensityMatrix = orb.getInactiveDensity();
+  std::cout << std::endl
+            << "Active + Border Molecule Size = " << activeatoms.size()
+            << std::endl;
+  std::cout << std::endl
+            << "Border Molecule Size = " << borderatoms.size() << std::endl;
+  Eigen::MatrixXd ProjectionOperator =
+      overlap.Matrix() * InactiveDensityMatrix * overlap.Matrix();
+
+  Eigen::MatrixXd H_embedding =
+      H0.matrix() + v_embedding + levelshift_ * ProjectionOperator;
+
+  if (borderatoms.size() != 0) {
+    Eigen::MatrixXd BorderMOs;
+    for (Index lmo_index = 0; lmo_index < InitialInactiveMOs.cols();
+         lmo_index++) {
+      double mullikenpop_lmo_borderatoms = 0;
+      for (Index borderatom : borderatoms) {
+        Index start = start_indices[borderatom];
+        Index size = numfuncpatom[borderatom];
+        mullikenpop_lmo_borderatoms +=
+            (InitialInactiveMOs.col(lmo_index) *
+             InitialInactiveMOs.col(lmo_index).transpose() * overlap.Matrix())
+                .diagonal()
+                .segment(start, size)
+                .sum();
+      }
+      if (mullikenpop_lmo_borderatoms > 0.25) {
+        BorderMOs.conservativeResize(InitialInactiveMOs.rows(),
+                                     BorderMOs.cols() + 1);
+        BorderMOs.col(BorderMOs.cols() - 1) = InitialInactiveMOs.col(lmo_index);
+      }
+    }
+
+    Eigen::MatrixXd BorderDmat = 2 * BorderMOs * BorderMOs.transpose();
+    Eigen::MatrixXd BorderProjectionOperator =
+        overlap.Matrix() * BorderDmat * overlap.Matrix();
+    Eigen::MatrixXd DistantProjectionOperator =
+        ProjectionOperator - BorderProjectionOperator;
+
+    H_embedding +=
+        1e+2 * BorderProjectionOperator +
+        levelshift_ * (DistantProjectionOperator - ProjectionOperator);
+  }
+
+  // from here it is time to truncate Hamiltonian H0
+  H0_trunc_ =
+      Eigen::MatrixXd::Zero(numofactivebasisfunction, numofactivebasisfunction);
+  InitialActiveDmat_trunc_ =
+      Eigen::MatrixXd::Zero(numofactivebasisfunction, numofactivebasisfunction);
+  v_embedding_trunc_ =
+      Eigen::MatrixXd::Zero(numofactivebasisfunction, numofactivebasisfunction);
+  // Defined needed matrices with basisset_size * basisset_size
+
+  for (Index activeatom1_idx = 0; activeatom1_idx < Index(activeatoms.size());
+       activeatom1_idx++) {
+    Index activeatom1 = activeatoms[activeatom1_idx];
+    for (Index activeatom2_idx = 0; activeatom2_idx < Index(activeatoms.size());
+         activeatom2_idx++) {
+      Index activeatom2 = activeatoms[activeatom2_idx];
+      // Fill the H0, Dmat and v_embedding at the right indices
+      H0_trunc_.block(start_indices_activemolecule[activeatom1_idx],
+                      start_indices_activemolecule[activeatom2_idx],
+                      numfuncpatom[activeatom1], numfuncpatom[activeatom2]) =
+          H_embedding.block(
+              start_indices[activeatom1], start_indices[activeatom2],
+              numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
+      InitialActiveDmat_trunc_.block(
+          start_indices_activemolecule[activeatom1_idx],
+          start_indices_activemolecule[activeatom2_idx],
+          numfuncpatom[activeatom1], numfuncpatom[activeatom2]) =
+          InitialActiveDensityMatrix.block(
+              start_indices[activeatom1], start_indices[activeatom2],
+              numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
+      v_embedding_trunc_.block(start_indices_activemolecule[activeatom1_idx],
+                               start_indices_activemolecule[activeatom2_idx],
+                               numfuncpatom[activeatom1],
+                               numfuncpatom[activeatom2]) =
+          v_embedding.block(
+              start_indices[activeatom1], start_indices[activeatom2],
+              numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
+    }
+  }
 }
 
 }  // namespace xtp

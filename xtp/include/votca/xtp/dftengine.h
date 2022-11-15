@@ -80,8 +80,8 @@ class DFTEngine {
 
   void ConfigOrbfile(Orbitals& orb);
   void SetupInvariantMatrices();
-  Eigen::MatrixXd WeenyPurification(Eigen::MatrixXd& Dmat_in,
-                                    AOOverlap& overlap);
+  Eigen::MatrixXd McWeenyPurification(Eigen::MatrixXd& Dmat_in,
+                                      AOOverlap& overlap);
 
   Mat_p_Energy SetupH0(const QMMolecule& mol) const;
   Mat_p_Energy IntegrateExternalMultipoles(
@@ -107,6 +107,12 @@ class DFTEngine {
       const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
   Eigen::MatrixXd SphericalAverageShells(const Eigen::MatrixXd& dmat,
                                          const AOBasis& dftbasis) const;
+
+  void TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
+                     Mat_p_Energy& H0,
+                     Eigen::MatrixXd InitialActiveDensityMatrix,
+                     Eigen::MatrixXd v_embedding,
+                     Eigen::MatrixXd InitialInactiveMOs);
   Logger* pLog_;
 
   // basis sets
