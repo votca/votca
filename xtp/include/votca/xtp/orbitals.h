@@ -384,6 +384,11 @@ class Orbitals {
     active_electrons_ = active_electrons;
   }
 
+  const Eigen::MatrixXd &getInactiveDensity() const { return inactivedensity_; }
+  void setInactiveDensity (Eigen::MatrixXd inactivedensity) {
+    inactivedensity_ = inactivedensity;
+  }
+
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
@@ -413,6 +418,7 @@ class Orbitals {
   Eigen::MatrixXd lmos_;
   Eigen::VectorXd lmos_energies_;
   Index active_electrons_;
+  Eigen::MatrixXd inactivedensity_;
 
   QMMolecule atoms_;
 

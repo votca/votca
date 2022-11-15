@@ -404,6 +404,8 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   Eigen::MatrixXd InactiveDensityMatrix =
       FullDensityMatrix - InitialActiveDensityMatrix;
 
+  orb.setInactiveDensity(InactiveDensityMatrix);
+
   // AOoverlap to calculate number of active/inactive electrons
   AOBasis aobasis = orb.getDftBasis();
   AOOverlap overlap;
@@ -617,7 +619,9 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       Eigen::MatrixXd DistantProjectionOperator =
           ProjectionOperator - BorderProjectionOperator;
 
-      H_embedding += 1e+2 * BorderProjectionOperator + levelshift_ * (DistantProjectionOperator-  ProjectionOperator);
+      H_embedding +=
+          1e+2 * BorderProjectionOperator +
+          levelshift_ * (DistantProjectionOperator - ProjectionOperator);
     }
 
     // from here it is time to truncate Hamiltonian H0

@@ -158,7 +158,6 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   if (do_gwbse_) {
     if (do_dft_in_dft_) {
       Index active_electrons = orb_.getNumOfActiveElectrons();
-      orb_.setNumberOfAlphaElectrons(active_electrons);
       orb_.MOs() = orb_.getEmbeddedMOs();
       orb_.setNumberOfAlphaElectrons(active_electrons);
       orb_.setNumberOfOccupiedLevels(active_electrons / 2);

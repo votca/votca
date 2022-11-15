@@ -129,7 +129,14 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   if (state.isTransition()) {
     return this->TransitionDensityMatrix(state);
   }
-  Eigen::MatrixXd result = this->DensityMatrixGroundState();
+  Eigen::MatrixXd result;
+  if (mos_embedding_.eigenvectors().cols() != 0) {
+    result = EmbDensityMatrixGroundState();
+    const Eigen::MatrixXd& inactive = getInactiveDensity();
+    result += inactive;
+  } else {
+    result = DensityMatrixGroundState();
+  }
   if (state.Type().isExciton()) {
     std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
     result = result - DMAT[0] + DMAT[1];  // Ground state + hole_contribution +
@@ -160,7 +167,8 @@ Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
 }
 
 Eigen::MatrixXd Orbitals::EmbDensityMatrixGroundState() const {
-  Eigen::MatrixXd occstates = mos_embedding_.eigenvectors().leftCols(active_electrons_/2);
+  Eigen::MatrixXd occstates =
+      mos_embedding_.eigenvectors().leftCols(active_electrons_ / 2);
   Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
   return dmatGS;
 }
@@ -596,6 +604,7 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(mos_embedding_, "mos_embedding");
   w(lmos_, "LMOs");
   w(lmos_energies_, "LMOs_energies");
+  w(inactivedensity_, "inactivedensity");
 
   CheckpointWriter molgroup = w.openChild("qmmolecule");
   atoms_.WriteToCpt(molgroup);
@@ -674,6 +683,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(mos_, "mos");
   r(mos_embedding_, "mos_embedding");
   r(active_electrons_, "active_electrons");
+  r(inactivedensity_, "inactivedensity");
 
   if (version < 3) {
     // clang-format off
