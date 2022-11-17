@@ -9,8 +9,8 @@ die () {
 
 print_output() {
   [[ -n $1 ]] || die "${FUNCNAME[0]}: missing argument"
-  echo "name=$1::${@:2}"
-  echo "::set-output name=$1::${@:2}"
+  echo "Setting $1=${@:2}"
+  echo "$1=${@:2}" >> $GITHUB_OUTPUT
 }
 
 for i in INPUT_MINIMAL INPUT_OWN_GMX INPUT_REGRESSION_TESTING; do
