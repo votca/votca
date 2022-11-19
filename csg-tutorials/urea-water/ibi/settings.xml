@@ -11,7 +11,7 @@
   <max>1.4</max>
   <step>0.01</step>
   <inverse>
-   <!-- target distribution (rdf), just give gromas rdf.xvg -->
+   <!-- target distribution (rdf), just give gromacs rdf.xvg -->
    <target>UR-UR.dist.tgt</target>
    <!-- update cycles -->
    <do_potential>1</do_potential>
@@ -44,7 +44,7 @@
   <step>0.01</step>
       
   <inverse>
-   <!-- target distribution (rdf), just give gromas rdf.xvg -->
+   <!-- target distribution (rdf), just give gromacs rdf.xvg -->
    <target>SOL-SOL.dist.tgt</target>
    <!-- update cycles -->
    <do_potential>1</do_potential>
@@ -58,7 +58,6 @@
    </post_update_options>
    <!-- additional post processing of U after dU added to potential -->
    <post_add></post_add>
-   <!-- inverse monte carlo specific stuff -->
    <!-- name of the table for gromacs run -->
    <gromacs>
     <table>table_SOL_SOL.xvg</table>
@@ -77,7 +76,7 @@
   <max>1.4</max>
   <step>0.01</step>
   <inverse>
-   <!-- target distribution (rdf), just give gromas rdf.xvg -->
+   <!-- target distribution (rdf), just give gromacs rdf.xvg -->
    <target>UR-SOL.dist.tgt</target>
    <!-- update cycles -->
    <do_potential>1</do_potential>
@@ -91,7 +90,6 @@
    </post_update_options>
    <!-- additional post processing of U after dU added to potential -->
    <post_add></post_add>
-   <!-- inverse monte carlo specific stuff -->
    <!-- name of the table for gromacs run -->
    <gromacs>
     <table>table_UR_SOL.xvg</table>
@@ -123,7 +121,7 @@
   <iterations_max>15</iterations_max>
   <!-- Try to clean a bit -->
   <cleanlist>traj.xtc</cleanlist>
-  <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
+  <!-- ibm: inverse boltzmann imc: inverse monte carlo -->
   <method>ibi</method>
   <!-- write log to this file -->
   <log_file>inverse.log</log_file>

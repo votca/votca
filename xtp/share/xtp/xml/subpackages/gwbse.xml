@@ -17,7 +17,7 @@
     <alpha help="parameter to smooth residue and integral calculation for the contour deformation technique" default="1e-3" choices="float" />
     <quadrature_scheme help="If CDA is used for sigma integration this set the quadrature scheme to use" default="legendre" choices="hermite,laguerre,legendre" />
     <quadrature_order help="Quadrature order if CDA is used for sigma integration" default="12" choices="8,10,12,14,16,18,20,40,100" />
-    <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid,cda" />
+    <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid" />
     <qp_grid_steps help="number of QP grid points" default="1001" choices="int+" />
     <qp_grid_spacing help="spacing of QP grid points" unit="Hartree" default="0.001" choices="float+" />
     <qp_sc_max_iter help="maximum number of iterations for quasiparticle equation solution" default="100" choices="int+" />
