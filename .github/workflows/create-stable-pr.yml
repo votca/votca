@@ -27,7 +27,7 @@ jobs:
         with:
           github-token: ${{ secrets.VOTCA_BOT_TOKEN }}
           script: |
-            github.pulls.create({
+            github.rest.pulls.create({
               owner: 'votca',
               repo: 'votca',
               title: 'Fixes from stable',
