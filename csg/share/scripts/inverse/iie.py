@@ -663,7 +663,7 @@ def calc_jacobian(input_arrays, settings, verbose=False):
             jac_mat, input_arrays, settings, verbose=verbose
         )
 
-    # remove exlicit x_ab x_ba
+    # remove explicit x_ba becaue it is equal to x_ab
     jac_mat = remove_equivalent_rows_from_jacobain(jac_mat)
     return jac_mat
 
