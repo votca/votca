@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2022 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -72,6 +72,29 @@ std::vector<Index> Orbitals::SortEnergies() {
     return this->MOs().eigenvalues()[i1] < this->MOs().eigenvalues()[i2];
   });
   return index;
+}
+
+/**
+ * SetupDftBasis constructs the dft basis, to do this the overlap integral needs
+ * to be evaluated with libint. Hence libint should be initialized for it to
+ * work.
+ */
+void Orbitals::SetupDftBasis(std::string basis_name) {
+  if (this->QMAtoms().size() == 0) {
+    throw std::runtime_error("Can't setup AOBasis without atoms");
+  }
+  BasisSet bs;
+  bs.Load(basis_name);
+  dftbasis_.Fill(bs, this->QMAtoms());
+}
+
+void Orbitals::SetupAuxBasis(std::string aux_basis_name) {
+  if (this->QMAtoms().size() == 0) {
+    throw std::runtime_error("Can't setup Aux AOBasis without atoms");
+  }
+  BasisSet bs;
+  bs.Load(aux_basis_name);
+  auxbasis_.Fill(bs, this->QMAtoms());
 }
 
 /*
@@ -179,7 +202,7 @@ Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) const {
       nuclei_dip += (atom.getPos() - atoms_.getPos()) * atom.getNuccharge();
     }
   }
-  AOBasis basis = SetupDftBasis();
+  AOBasis basis = getDftBasis();
   AODipole dipole;
   dipole.setCenter(atoms_.getPos());
   dipole.Fill(basis);
@@ -416,16 +439,23 @@ double Orbitals::getExcitedStateEnergy(const QMState& state) const {
                                " which has not been calculated");
     }
     return QPpert_energies_(state.StateIdx() - getGWAmin(), 3);
+  } else if (state.Type() == QMStateType::LMOstate) {
+    if (lmos_energies_.size() < state.StateIdx() + 1) {
+      throw std::runtime_error(
+          "Orbitals::getTotalEnergy You want " + state.ToString() +
+          " which is a LMO for virtual orbitals. Not implemented.");
+    }
+    return lmos_energies_(state.StateIdx());
   } else {
     throw std::runtime_error(
-        "GetTotalEnergy only knows states:singlet,triplet,KS,DQP,PQP");
+        "GetTotalEnergy only knows states:singlet,triplet,KS,DQP,PQP,LMOs");
   }
   return omega;  //  e.g. hartree
 }
 
 std::array<Eigen::MatrixXd, 3> Orbitals::CalcFreeTransition_Dipoles() const {
   const Eigen::MatrixXd& dft_orbitals = mos_.eigenvectors();
-  AOBasis basis = SetupDftBasis();
+  AOBasis basis = getDftBasis();
   // Testing electric dipole AOMatrix
   AODipole dft_dipole;
   dft_dipole.Fill(basis);
@@ -505,14 +535,13 @@ void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
                              orbitalsA.getDFTbasisName() + ":" +
                              orbitalsB.getDFTbasisName());
   }
-  this->setDFTbasisName(orbitalsA.getDFTbasisName());
+  this->SetupDftBasis(orbitalsA.getDFTbasisName());
   if (orbitalsA.getECPName() != orbitalsB.getECPName()) {
     throw std::runtime_error("ECPs of Orbitals A and B differ " +
                              orbitalsA.getECPName() + ":" +
                              orbitalsB.getECPName());
   }
   this->setECPName(orbitalsA.getECPName());
-  this->setBasisSetSize(basisA + basisB);
   this->setNumberOfOccupiedLevels(electronsA + electronsB);
   this->setNumberOfAlphaElectrons(electronsA + electronsB);
 
@@ -537,7 +566,16 @@ void Orbitals::WriteToCpt(const std::string& filename) const {
 }
 
 void Orbitals::WriteToCpt(CheckpointFile f) const {
-  WriteToCpt(f.getWriter("/QMdata"));
+  CheckpointWriter writer = f.getWriter("/QMdata");
+  WriteToCpt(writer);
+  WriteBasisSetsToCpt(writer);
+}
+
+void Orbitals::WriteBasisSetsToCpt(CheckpointWriter w) const {
+  CheckpointWriter dftWriter = w.openChild("dft");
+  dftbasis_.WriteToCpt(dftWriter);
+  CheckpointWriter auxWriter = w.openChild("aux");
+  auxbasis_.WriteToCpt(auxWriter);
 }
 
 void Orbitals::WriteToCpt(CheckpointWriter w) const {
@@ -548,15 +586,16 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(number_alpha_electrons_, "number_alpha_electrons");
 
   w(mos_, "mos");
+  w(active_electrons_, "active_electrons");
+  w(mos_embedding_, "mos_embedding");
+  w(lmos_, "LMOs");
+  w(lmos_energies_, "LMOs_energies");
 
   CheckpointWriter molgroup = w.openChild("qmmolecule");
   atoms_.WriteToCpt(molgroup);
 
   w(qm_energy_, "qm_energy");
   w(qm_package_, "qm_package");
-
-  w(dftbasis_, "dftbasis");
-  w(auxbasis_, "auxbasis");
 
   w(rpamin_, "rpamin");
   w(rpamax_, "rpamax");
@@ -595,7 +634,16 @@ void Orbitals::ReadFromCpt(const std::string& filename) {
 }
 
 void Orbitals::ReadFromCpt(CheckpointFile f) {
-  ReadFromCpt(f.getReader("/QMdata"));
+  CheckpointReader reader = f.getReader("/QMdata");
+  ReadFromCpt(reader);
+  ReadBasisSetsFromCpt(reader);
+}
+
+void Orbitals::ReadBasisSetsFromCpt(CheckpointReader r) {
+  CheckpointReader dftReader = r.openChild("dft");
+  dftbasis_.ReadFromCpt(dftReader);
+  CheckpointReader auxReader = r.openChild("aux");
+  auxbasis_.ReadFromCpt(auxReader);
 }
 
 void Orbitals::ReadFromCpt(CheckpointReader r) {
@@ -610,12 +658,18 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
 
   r(qm_energy_, "qm_energy");
   r(qm_package_, "qm_package");
-
-  r(dftbasis_, "dftbasis");
-  r(auxbasis_, "auxbasis");
+  try {
+    r(lmos_, "LMOs");
+    r(lmos_energies_, "LMOs_energies");
+  } catch (std::runtime_error& e) {
+    ;
+  }
 
   r(version, "version");
   r(mos_, "mos");
+  r(mos_embedding_, "mos_embedding");
+  r(active_electrons_, "active_electrons");
+
   if (version < 3) {
     // clang-format off
     std::array<Index, 49> votcaOrder_old = {
@@ -632,7 +686,17 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
     std::array<Index, 49> multiplier;
     multiplier.fill(1);
     OrbReorder ord(votcaOrder_old, multiplier);
-    ord.reorderOrbitals(mos_.eigenvectors(), this->SetupDftBasis());
+    ord.reorderOrbitals(mos_.eigenvectors(), this->getDftBasis());
+  }
+
+  if (version < 5) {  // we need to construct the basissets, NB. can only be
+                      // done after reading the atoms.
+    std::string dft_basis_name;
+    std::string aux_basis_name;
+    r(dft_basis_name, "dftbasis");
+    r(aux_basis_name, "auxbasis");
+    this->SetupDftBasis(dft_basis_name);
+    this->SetupAuxBasis(aux_basis_name);
   }
 
   r(rpamin_, "rpamin");

@@ -1,8 +1,60 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/stable>`__.
 
-Version 2022-dev
+Version 2023-dev
 ================
+
+-  implemented projection-based DFT embedding (#964)
+-  Added LMO energy output and cube file generation (#970)
+-  fix typos in csg-tutorials xml files (#980)
+-  unitary optimization for localization of orbitals (#971)
+-  separate option for density max convergence tolerance in qmmm (#987)
+-  Correct ECP charges added in Orca Molden reader (#990)
+-  update esp++ spce tutorial to py3 (#997)
+
+Version 2022.1 (released XX.01.22)
+==================================
+
+-  fix PROJECT_VERSION in subdirs (#951)
+-  make csg_resample and csg_stat spacing consistent (#956)
+-  fix build on FreeBSD (#959)
+-  update CI container names (#961)
+-  Fix gw quadrature scheme (#967)
+-  update install guide for spack (#972, #974)
+-  drop gmx-2021 builds from CI (#976)
+-  update syntax for cmake 3.23 (#978)
+-  fix CI build on Ubuntu (#981)
+-  fix CI builds with icpx (#984, #1004)
+-  fix CI builds with ESPResSo 4.2.0 (#993)
+-  fix localization issue (#998, #1000)
+-  update github actions to new versions (#1007)
+
+Version 2022 (released 15.01.22)
+================================
+
+-  fix some icpc warnings (#934)
+-  only check for pytest if testing is enabled (#930)
+-  exclude some builds from CI (#940, #942, #944, #945)
+-  update interface documentation (#939)
+-  update install guide for binary packages (#936)
+-  fixed sigma plot options passing (#943)
+
+Version 2022-rc.2 (released 16.12.21)
+=====================================
+
+-  fix iqm merge orbitals command  (#907)
+-  fix bug in basisset serialization that caused wrong Vxc values in GW (#910)
+-  update performance compilation info (#911)
+-  license for monorepo and all license files rst -> plain text (#912, #913)
+-  use python3 in xtp-tutorials (#917)
+-  bump required boost version to 1.71 (#915, #916)
+-  clean up NOTICE files (#919)
+-  rm PYTHON_INSTDIR from VOTCARC (#924)
+-  update citation in xtp README (#925)
+-  fix install permission of tutorials (#926)
+
+Version 2022-rc.1 (released 26.11.21)
+=====================================
 
 -  create script to convert help to rst (votca/tools#312, votca/tools#328)
 -  add rst pages to doc (votca/tools#330, votca/tools#332)
@@ -54,6 +106,7 @@ Version 2022-dev
 -  add ability to run ibi as a postupd method (votca/csg#696)
 -  removed unused functions (votca/csg#702)
 -  reworked lammps molecule naming (votca/csg#703)
+-  Updated doxygen intro (votca/csg#712)
 -  Updated coordinate precision (votca/xtp#638)
 -  Refactored energy corrections in RPA outside QPs (votca/xtp#577)
 -  Made SetupCptTable static (votca/xtp#650)
@@ -100,18 +153,41 @@ Version 2022-dev
 -  turned sigma choice into a factory (votca/xtp#731)
 -  use middleRows-Cols and refactor numerical integration (votca/xtp#732)
 -  increase performance of numerical integration (votca/xtp#733)
--  upgrade xtp to cxx17 (votca/xtp#737)
+-  upgrade xtp to cxx17 (votca/xtp#737, #880)
 -  Remove unused variables (votca/xtp#742)
 -  fix issue with writing strings to hdf5 files (votca/xtp#743)
--  Updated doxygen intro (votca/csgvotca/xtp#712)
 -  Merge submodules in monorepo (#763, #768, #816, #822, #849)
 -  xtp: Fix HDF5 issue on FreeBSD (#760, #848)
--  update documentation (#852)
+-  update documentation (#852, #877)
 -  add vscode to gitignore (#853)
 -  re-enable GPU build (#854)
 -  disable test_random test on valgrind (#855)
 -  introduce global changelog (#858)
--  clean up github actions and merge votca/actions (#859)
+-  clean up github actions and merge votca/actions (#859, #867, #874,
+   #878, #883, #894)
+-  fix warning on intel compiler (#861)
+-  added gpu benchmark for xtp (#857)
+-  Remove submodules from doc and actions (#865)
+-  updated libint to 2.7 (#864)
+-  added xtp_modify_jobfile to extract jobs from large jobfile (#840)
+-  rename auxiliary basissets to aux-<basisset_name> (#871)
+-  added documentation about architecture to votca and votca-xtp (#869)
+-  check for gmx-2019 in csg-tutorials (#875)
+-  added the full basissets to the orb checkpoint file (#863)
+-  return default for empty strings in option file (#873)
+-  replaced removed std::bind2nd by lambda (#881)
+-  change error to warning in reading lammps bonds (#884)
+-  add a citation.cff file (#845)
+-  improve support for Intel compilers (#882, #892)
+-  cmake: allow libint2 detections through cmake (#888)
+-  allow libxc detection through cmak (#890)
+-  bump required cmake version to 3.13 to support -B option (#887, #893)
+-  changed hard coded file to option value in eqm.cc (#900)
+-  inject march=native by default and add cmake option for valgrind tests (#896, #903)
+-  add performance compilation info (#895, #911)
+-  Read number of alpha electrons from orca log, not from molden (#901)
+-  Refactor parsing of the tasks_string (#902)
+-  set correct filename for initial guess from monomer orbitals (#904)
 
 Version 2021.2 and earlier
 ==========================

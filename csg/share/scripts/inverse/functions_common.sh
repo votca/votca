@@ -30,6 +30,10 @@ echo
 exit 0
 fi
 
+# avoid localization of numbers, i.e. 1,0 instead 1.0 e.g. by awk in csg_calc
+# see votca/votca#998
+export LC_ALL=C
+
 export BASH #need in CsgFunctions.pm
 
 shopt -s extglob

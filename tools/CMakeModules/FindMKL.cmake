@@ -227,6 +227,9 @@ function(find_mkl_library)
         /opt/intel/oneapi/mkl/latest/lib
         /opt/intel/oneapi/compiler/latest/linux/compiler/lib
         /opt/intel/oneapi/lib
+        $ENV{ONEAPI_ROOT}/mkl/latest/lib
+        $ENV{ONEAPI_ROOT}/compiler/latest/linux/compiler/lib
+        $ENV{CMPLR_ROOT}/linux/compiler/lib
         $ENV{MKLROOT}/lib
         ${ENV_LIBRARY_PATHS}
         /opt/intel/compilers_and_libraries/linux/mkl/lib
@@ -258,6 +261,9 @@ function(find_mkl_library)
         /opt/intel/oneapi/mkl/latest/lib
         /opt/intel/oneapi/compiler/latest/linux/compiler/lib
         /opt/intel/oneapi/lib
+        $ENV{ONEAPI_ROOT}/mkl/latest/lib
+        $ENV{ONEAPI_ROOT}/compiler/latest/linux/compiler/lib
+        $ENV{CMPLR_ROOT}/linux/compiler/lib
         $ENV{MKLROOT}/lib
         ${ENV_LIBRARY_PATHS}
         /opt/intel/compilers_and_libraries/linux/mkl/lib

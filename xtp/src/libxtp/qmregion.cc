@@ -65,6 +65,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
       prop.get("grid_for_potential").as<std::string>();
   DeltaE_ = prop.get("tolerance_energy").as<double>();
   DeltaD_ = prop.get("tolerance_density").as<double>();
+  DeltaDmax_ = prop.get("tolerance_density_max").as<double>();
 
   dftoptions_ = prop.get("dftpackage");
 }
@@ -80,7 +81,7 @@ bool QMRegion::Converged() const {
   double Dmax = Dmat_hist_.getDiff().cwiseAbs().maxCoeff();
   std::string info = "not converged";
   bool converged = false;
-  if (Dchange < DeltaD_ && Dmax < DeltaD_ && std::abs(Echange) < DeltaE_) {
+  if (Dchange < DeltaD_ && Dmax < DeltaDmax_ && std::abs(Echange) < DeltaE_) {
     info = "converged";
     converged = true;
   }
@@ -238,7 +239,7 @@ void QMRegion::ApplyQMFieldToPolarSegments(
 
   Vxc_Grid grid;
   AOBasis basis =
-      orb_.SetupDftBasis();  // grid needs a basis in scope all the time
+      orb_.getDftBasis();  // grid needs a basis in scope all the time
   grid.GridSetup(grid_accuracy_for_ext_interaction_, orb_.QMAtoms(), basis);
   DensityIntegration<Vxc_Grid> numint(grid);
 

@@ -9,8 +9,8 @@ die () {
 
 print_output() {
   [[ -n $1 ]] || die "${FUNCNAME[0]}: missing argument"
-  echo "name=$1::${@:2}"
-  echo "::set-output name=$1::${@:2}"
+  echo "Setting $1=${@:2}"
+  echo "$1=${@:2}" >> $GITHUB_OUTPUT
 }
 
 for i in INPUT_MINIMAL INPUT_OWN_GMX INPUT_REGRESSION_TESTING; do
@@ -21,12 +21,6 @@ done
 for i in INPUT_DISTRO INPUT_CMAKE_BUILD_TYPE INPUT_TOOLCHAIN INPUT_COVERAGE INPUT_CTEST_ARGS INPUT_CMAKE_ARGS INPUT_MODULE INPUT_CODE_ANALYZER; do
   echo "$i='${!i}'"
 done
-
-# Grep module name from CMakeLists.txt and cut votca- suffix
-[[ -f CMakeLists.txt ]] || die "No CMakeLists.txt found"
-module=$(sed -n 's/project(\(votca-\)\?\([^ )]*\).*)/\2/p' CMakeLists.txt)
-[[ ${module} ]] || die "Could not fetch module"
-print_output "module" "${module}"
 
 if [[ ${INPUT_BRANCH} ]]; then # user overwrite
   branch="${INPUT_BRANCH}"
@@ -41,6 +35,8 @@ else
 fi
 
 cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON  -DBUILD_CSGAPPS=ON )
+# do not inject -march=native as the CI runs on different backends and hence will create a conflict with ccache
+cmake_args+=( -DINJECT_MARCH_NATIVE=OFF )
 if [[ ${INPUT_CMAKE_BUILD_TYPE} ]]; then
   cmake_args+=( -DCMAKE_BUILD_TYPE=${INPUT_CMAKE_BUILD_TYPE} )
 fi
@@ -56,10 +52,10 @@ elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
   fi
 elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=icpc )
-  mkdir ~/Licenses
-  curl https://dynamicinstaller.intel.com/api/v2/license > ~/Licenses/intel.lic
 elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=icpx )
+elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi-dpc" ]]; then
+  cmake_args+=( -DCMAKE_CXX_COMPILER=dpcpp )
 else
   die "Unknown INPUT_TOOLCHAIN; ${INPUT_TOOLCHAIN}"
 fi
@@ -79,23 +75,20 @@ if [[ ${INPUT_OWN_GMX} = true ]]; then
   elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
     cmake_args+=( -DCMAKE_C_COMPILER=icc )
   elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi" ]]; then
-    cmake_args+=( -DCMAKE_CXX_COMPILER=icx )
+    cmake_args+=( -DCMAKE_C_COMPILER=icx )
+  elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi-dpc" ]]; then
+    cmake_args+=( -DCMAKE_CXX_COMPILER=dpc )
   fi
 else
   cmake_args+=( -DENABLE_WERROR=ON )
 fi
 if [[ ${INPUT_MINIMAL} = true ]]; then
   cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_MANPAGES=OFF -DBUILD_XTP=OFF )
-elif [[ ${module} = csg-tutorials ]]; then
-  cmake_args+=( -DBUILD_XTP=OFF )
 else
   cmake_args+=( -DBUILD_XTP=ON )
 fi
 
-if [[ ${INPUT_MINIMAL} = true || ${INPUT_DISTRO} = ubuntu:@(latest|rolling|devel) || ${INPUT_DISTRO} = opensuse:latest ]];  then
-  # Ubuntu 20.04 and above, openSUSE come with gromacs-2020, which doesn't have tabulated interaciton that are needed for csg regression tests
-  # see https://gitlab.com/gromacs/gromacs/-/issues/1347
-  # hopefully we can reenable this in the future with gromacs-2021
+if [[ ${INPUT_MINIMAL} = true ]];  then
   cmake_args+=( -DENABLE_REGRESSION_TESTING=OFF )
 else
   cmake_args+=( -DENABLE_REGRESSION_TESTING=${INPUT_REGRESSION_TESTING} )
@@ -103,6 +96,17 @@ fi
 
 if [[ ${INPUT_DISTRO} = "fedora:intel" ]]; then
   cmake_args+=( -DREQUIRE_MKL=ON )
+fi
+
+# workaround for votca/votca#891
+if [[ ${INPUT_DISTRO} = ubuntu:* && ${INPUT_TOOLCHAIN} = "gnu" ]]; then
+  cmake_args+=( -DVOTCA_EXTRA_WARNING_FLAGS="-Wno-deprecated-copy")
+fi
+
+# don't warn about -O0 in Debug build on icpx
+# we want to do this for the CI only, as user might still find this warning useful
+if [[ ${INPUT_CMAKE_BUILD_TYPE} = "Debug" && ${INPUT_TOOLCHAIN} = "intel-oneapi" ]]; then
+  cmake_args+=( -DVOTCA_EXTRA_WARNING_FLAGS="-Wno-debug-disables-optimization")
 fi
 
 if [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then
@@ -144,7 +148,7 @@ else
   print_output "check_format" "false"
 fi
 
-ctest_args=( -L ${module} )
+ctest_args=( )
 if [[ ${INPUT_COVERAGE} || ${INPUT_CODE_ANALYZER} = coverage* ]]; then
   # split coverage into 4 group with less than 1hr runtime
   # used votca/votca, csg, tools only
@@ -171,14 +175,3 @@ print_output "ctest_args" "${ctest_args[@]}"
 j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0
 ((j++))
 print_output "jobs" "${j}"
-
-# Checkout votca main repo if we are building a module
-if [[ ${module} != votca ]]; then
-  git clone https://github.com/votca/votca
-  if [[ ${branch} && ${branch} != master ]]; then
-    git -C votca checkout "${branch}" || true # || true as the branch might not exist
-  fi
-  git -C votca submodule update --init
-  git -C "votca/${module}" fetch "$PWD"
-  git -C "votca/${module}" checkout FETCH_HEAD
-fi

@@ -46,7 +46,7 @@ std::string GaussianWriter::reorderedMOCoefficients(
     const Orbitals& orbitals) const {
   OrbReorder reorder(gaussianOrder, gaussianMultipliers, true);
   Eigen::MatrixXd moCoefficients = orbitals.MOs().eigenvectors();
-  reorder.reorderOrbitals(moCoefficients, orbitals.SetupDftBasis());
+  reorder.reorderOrbitals(moCoefficients, orbitals.getDftBasis());
 
   // put the reordered mos in a string
   std::stringstream mos_string;
@@ -78,7 +78,7 @@ std::string GaussianWriter::densityMatrixToString(const Orbitals& orbitals,
     density = orbitals.DensityMatrixFull(state);
   }
 
-  reorder.reorderOperator(density, orbitals.SetupDftBasis());
+  reorder.reorderOperator(density, orbitals.getDftBasis());
 
   // put the reordered mos in a string
   std::stringstream density_string;
@@ -106,7 +106,7 @@ void GaussianWriter::WriteFile(const std::string& basename,
     throw std::runtime_error(".orb file does not contain a basisset name");
   }
 
-  AOBasis basis = orbitals.SetupDftBasis();
+  AOBasis basis = orbitals.getDftBasis();
 
   std::ofstream outFile(basename + ".fchk");
 

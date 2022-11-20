@@ -42,7 +42,7 @@
     <filelist>spce.py spce.gro topol.xml</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
-    <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
+    <!-- ibi: inverse boltzmann imc: inverse monte carlo -->
     <method>ibi</method>
   </inverse>
 </cg>
