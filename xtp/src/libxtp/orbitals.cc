@@ -133,6 +133,8 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   if (mos_embedding_.eigenvectors().cols() != 0) {
     result = EmbDensityMatrixGroundState();
     const Eigen::MatrixXd& inactive = getInactiveDensity();
+    std::cout << std::endl << "DmatGS size = " << result.size() << std::endl;
+    std::cout << std::endl << "Inactive size = " << inactive.size() << std::endl;
     result += inactive;
   } else {
     result = DensityMatrixGroundState();

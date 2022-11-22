@@ -524,7 +524,8 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       << std::flush;
 
   if (truncate_) {  // Truncation starts here
-    TruncateBasis(orb, activeatoms, H0, InitialActiveDensityMatrix, v_embedding, InitialInactiveMOs);
+    TruncateBasis(orb, activeatoms, H0, InitialActiveDensityMatrix, v_embedding,
+                  InitialInactiveMOs);
   }
   // SCF loop if you don't truncate active region
   else {
@@ -1480,8 +1481,6 @@ Eigen::MatrixXd DFTEngine::McWeenyPurification(Eigen::MatrixXd& Dmat_in,
     IdempotencyError =
         ((Dmat_new * Dmat_new - Dmat_new) * (Dmat_new * Dmat_new - Dmat_new))
             .trace();
-    std::cout << std::endl
-              << "Idempotency Error: " << IdempotencyError << std::endl;
 
     ModifiedDmat = Dmat_new;
     if (IdempotencyError < 1e-20) break;
@@ -1520,8 +1519,8 @@ void DFTEngine::TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
                    orb.QMAtoms()[atom_num].getId()) != activeatoms.end());
     if (partOfActive == true) {
       activemol_.push_back(orb.QMAtoms()[atom_num]);
-      // if active append the atom to the new molecule. Also increment active
-      // basis function size and start indices
+      /* if active append the atom to the new molecule. Also increment active
+       basis function size and start indices */
       start_indices_activemolecule.push_back(start_idx_activemolecule);
       start_idx_activemolecule += numfuncpatom[atom_num];
       numofactivebasisfunction += numfuncpatom[atom_num];

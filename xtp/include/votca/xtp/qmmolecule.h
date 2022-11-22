@@ -56,6 +56,10 @@ class QMMolecule : public AtomContainer<QMAtom> {
     }
   }
 
+  // void DeleteMolecule() {
+
+  // }
+
   friend std::ostream& operator<<(std::ostream& out,
                                   const QMMolecule& container) {
     out << container.getId() << " " << container.getType() << "\n";
