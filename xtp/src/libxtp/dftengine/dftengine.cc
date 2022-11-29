@@ -617,7 +617,9 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       Eigen::MatrixXd DistantProjectionOperator =
           ProjectionOperator - BorderProjectionOperator;
 
-      H_embedding += 1e+2 * BorderProjectionOperator + levelshift_ * (DistantProjectionOperator-  ProjectionOperator);
+      H_embedding +=
+          1e+2 * BorderProjectionOperator +
+          levelshift_ * (DistantProjectionOperator - ProjectionOperator);
     }
 
     // from here it is time to truncate Hamiltonian H0
