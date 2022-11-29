@@ -135,9 +135,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
     prv_mol_number = 1;
     prv_mol_name = mol.getName();
 
-    //#ifdef DEBUG
     cout << "'" << mol.getName() << "' added to CG molecular types" << endl;
-    //#endif
 
     MolecularTypes.push_back(&mol);
 
