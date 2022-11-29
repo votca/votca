@@ -90,6 +90,8 @@ if(ENABLE_TESTING)
   list(APPEND test_cases test_activedensitymatrix)
   list(APPEND test_cases test_activedftengine)
   list(APPEND test_cases test_truncdftengine)
+  list(APPEND test_cases test_diabatization)
+  list(APPEND test_cases test_transition_densities)	
 
   foreach(PROG ${test_cases} )
     add_executable(unit_${PROG} ${PROG}.cc)
