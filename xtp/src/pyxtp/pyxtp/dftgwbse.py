@@ -17,6 +17,7 @@ class DFTGWBSE:
     def __init__(self, mol: Molecule):
         self.mol = mol
         self.orbfile = ''
+        self.jobdir = "./"
         self.options = XTPOptions()
 
   
