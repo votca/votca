@@ -135,7 +135,7 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     PMLocalization pml(log_, localize_options_);
     pml.computePML(orb_);
   }
-
+  
   if (do_dft_in_dft_) {
     qmpackage_->WriteInputFile(orb_);
     bool active_run = qmpackage_->RunActiveRegion();
@@ -181,6 +181,8 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   }
   E_hist_.push_back(energy);
   Dmat_hist_.push_back(orb_.DensityMatrixFull(state));
+  orb_.QMAtoms().clearAtoms();
+  orb_.QMAtoms() = originalmol;
   return;
 }
 
