@@ -71,10 +71,10 @@ void QMRegion::Initialize(const tools::Property& prop) {
   dftoptions_ = prop.get("dftpackage");
   localize_options_ = prop.get("localize");
 
-  if (prop.exists("dftpackage.xtpdft.dft_in_dft.activeatoms")) {
-    do_localize_ = true;
+    if (prop.get("dftpackage.xtpdft.dft_in_dft.activeatoms").as<std::string>().size() != 0) {
+      do_localize_ = true;
     do_dft_in_dft_ = true;
-  }
+    }
 }
 
 bool QMRegion::Converged() const {
@@ -135,7 +135,7 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     PMLocalization pml(log_, localize_options_);
     pml.computePML(orb_);
   }
-  
+  QMMolecule originalmol = orb_.QMAtoms();
   if (do_dft_in_dft_) {
     qmpackage_->WriteInputFile(orb_);
     bool active_run = qmpackage_->RunActiveRegion();

@@ -1512,8 +1512,8 @@ void DFTEngine::TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
   std::vector<Index> borderatoms;
   for (Index atom_num = 0; atom_num < orb.QMAtoms().size(); atom_num++) {
     start_indices.push_back(start_idx);
-    // Condition for basis fn on an atom to be counted: either in active
-    // region or MnP of any function > threshold (border atoms)
+    /* Condition for basis fn on an atom to be counted: either in active
+     region or MnP of any function > threshold (border atoms) */
     bool partOfActive =
         (std::find(activeatoms.begin(), activeatoms.end(),
                    orb.QMAtoms()[atom_num].getId()) != activeatoms.end());
@@ -1638,6 +1638,10 @@ void DFTEngine::TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
     }
   }
 }
+
+// void DFTEngine::TruncMOsFullBasis(Orbitals & orb) {
+  
+// }
 
 }  // namespace xtp
 }  // namespace votca
