@@ -142,11 +142,11 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     if (!active_run) {
       throw std::runtime_error("\n DFT in DFT embedding failed. Stopping!");
     }
-    bool Logfile_parse = qmpackage_->ParseLogFile(orb_);
+    Logfile_parse = qmpackage_->ParseLogFile(orb_);
     if (!Logfile_parse) {
       throw std::runtime_error("\n Parsing DFT logfile failed. Stopping!");
     }
-    bool Orbfile_parse = qmpackage_->ParseMOsFile(orb_);
+    Orbfile_parse = qmpackage_->ParseMOsFile(orb_);
     if (!Orbfile_parse) {
       throw std::runtime_error("\n Parsing DFT orbfile failed. Stopping!");
     }

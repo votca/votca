@@ -130,7 +130,7 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
     return this->TransitionDensityMatrix(state);
   }
   Eigen::MatrixXd result;
-  if (mos_embedding_.eigenvectors().cols() != 0) {
+  if (mos_embedding_.eigenvectors().size() != 0) {
     result = EmbDensityMatrixGroundState();
     const Eigen::MatrixXd& inactive = getInactiveDensity();
     result += inactive;
