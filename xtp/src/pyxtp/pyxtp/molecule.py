@@ -211,6 +211,33 @@ class Molecule:
                 [td[dset][()] for dset in td.keys()])
             self.has_data = True
 
+    def read_forces(self, logfile: Pathlike) -> None:
+        """Read Forces from VOTCA logfile."""
+        fil = open(logfile, 'r', encoding='utf-8')
+        lines = fil.readlines()
+        fil.close()
+        getgrad = "no"
+        for i, line in enumerate(lines):
+            if line.find('ENGRAD') >= 0:
+                getgrad = "yes"
+                gradients = []
+                tempgrad = []
+                continue
+            if getgrad == "yes" and "Saving" not in line:
+                if "Total" not in line:
+                    grad = line.split()
+                    tempgrad.append(float(grad[3]))
+                    tempgrad.append(float(grad[4]))
+                    tempgrad.append(float(grad[5]))
+                    gradients.append(tempgrad)
+                    tempgrad = []
+                else:
+                    energy = float(line.split()[-2])
+            if 'Saving' in line:
+                getgrad = "no"
+        self.atomic_forces = -np.array(gradients) #* Hartree / Bohr
+
+
     def check_molecule_integrity(self, other_elements: List[str], other_coordinates: List[np.ndarray]):
         """Compare the atoms from self with the one stored in the HDF5."""
         for k, (elem, coord, other_elem, other_coord) in enumerate(

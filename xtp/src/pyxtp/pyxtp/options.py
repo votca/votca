@@ -28,7 +28,6 @@ class XTPOptions(NestedNamespace):
         # insert the namesapce data into the instance
         self.__dict__.update(NestedNamespace.__fromxml__(etree.tostring(self._xml_tree)).options.dftgwbse.__dict__)
     
-
     
     def _write_xml(self, filename: str) -> None:
         """update and clean the xml and then write the input file
@@ -48,6 +47,37 @@ class XTPOptions(NestedNamespace):
         
         # write the file
         self._xml_tree.write(filename)
+        
+    def _fill_default_values(self) -> None:
+        
+        """Fill the default values of the nested namespace.
+        
+        Returns:
+            dict: dictionary maps the namespace
+        """
+        
+        def _recursive_filldefault(namespace_data: NestedNamespace) -> dict:
+            """Fill the default values of the nested namespace.
+
+            Args:
+                namespace_data (NestedNamespace): data in namespace form
+                path (str, optional): basepath in the structure. Defaults to ''.
+            
+            Returns:
+                dict: dictionary maps the namespace
+            """
+
+            default_dict = dict()
+            for key, value in namespace_data.__dict__.items():
+                
+                if isinstance(value, NestedNamespace):
+                    if '_default' in value.__dict__.keys():
+                        namespace_data.__dict__[key] = value.__dict__['_default']
+                        
+                    else:
+                        _recursive_filldefault(value)
+            
+        _recursive_filldefault(self)
     
 
         

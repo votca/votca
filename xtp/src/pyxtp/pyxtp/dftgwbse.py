@@ -14,11 +14,14 @@ __all__ = ["DFTGWBSE"]
 
 class DFTGWBSE:
 
-    def __init__(self, mol: Molecule):
+    def __init__(self, mol: Molecule,
+                            jobdir: str = './',
+                            options: XTPOptions = XTPOptions()):
         self.mol = mol
+        self.jobdir = jobdir
+        self.options = options
         self.orbfile = ''
-        self.jobdir = "./"
-        self.options = XTPOptions()
+        self.logfile = ''
 
   
     def run(self, nThreads: int = 1):
@@ -45,7 +48,7 @@ class DFTGWBSE:
         # Call the tool and capture the standard output
         output = capture_standard_output(
             xtp_binds.call_tool, "dftgwbse", nThreads, path_dftgwbse)
-
+        
         with open(xyzname + ".out", "w") as handler:
             handler.write(output)
 
@@ -55,7 +58,11 @@ class DFTGWBSE:
             os.replace(f'{xyzname}.orb', self.orbfile)
         else:
             self.orbfile = f'{xyzname}.orb'
-
+            self.logfile = 'dftgwbse.log'
+            
         # Reads energies from an existing HDF5 orb file
         self.mol.read_orb(self.orbfile)
+        
+        # reads the forces from the logfile
+        # self.mol.read_forces(self.logfile)
 
