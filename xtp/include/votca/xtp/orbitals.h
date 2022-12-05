@@ -385,7 +385,7 @@ class Orbitals {
   }
 
   const Eigen::MatrixXd &getInactiveDensity() const { return inactivedensity_; }
-  void setInactiveDensity (Eigen::MatrixXd inactivedensity) {
+  void setInactiveDensity(Eigen::MatrixXd inactivedensity) {
     inactivedensity_ = inactivedensity;
   }
 

@@ -185,7 +185,6 @@ BOOST_AUTO_TEST_CASE(dft_trunc) {
   truncdft.setLogger(&log);
   truncdft.Initialize(prop.get("dftpackage"));
 
-
   truncdft.EvaluateActiveRegion(orb) &&
       truncdft.EvaluateTruncatedActiveRegion(orb);
 

@@ -1640,7 +1640,7 @@ void DFTEngine::TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
 }
 
 // void DFTEngine::TruncMOsFullBasis(Orbitals & orb) {
-  
+
 // }
 
 }  // namespace xtp

@@ -71,10 +71,12 @@ void QMRegion::Initialize(const tools::Property& prop) {
   dftoptions_ = prop.get("dftpackage");
   localize_options_ = prop.get("localize");
 
-    if (prop.get("dftpackage.xtpdft.dft_in_dft.activeatoms").as<std::string>().size() != 0) {
-      do_localize_ = true;
+  if (prop.get("dftpackage.xtpdft.dft_in_dft.activeatoms")
+          .as<std::string>()
+          .size() != 0) {
+    do_localize_ = true;
     do_dft_in_dft_ = true;
-    }
+  }
 }
 
 bool QMRegion::Converged() const {
