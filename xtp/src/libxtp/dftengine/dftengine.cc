@@ -1640,16 +1640,31 @@ void DFTEngine::TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
 }
 
 void DFTEngine::TruncMOsFullBasis(Orbitals & orb, std::vector<Index> activeatoms, std::vector<Index> numfuncpatom) {
+  Eigen::MatrixXd expandtruncorb = orb.getEmbeddedMOs().eigenvectors();
   for (Index atomindex = 0; atomindex < numfuncpatom.size(); atomindex++) {
     bool partOfActive =
         (std::find(activeatoms.begin(), activeatoms.end(),
-                   orb.QMAtoms()[atom_num].getId()) != activeatoms.end());
-    if (partOfActive == true) {
-      Eigen::MatrixXd expandtruncorb = 
+                   orb.QMAtoms()[atomindex].getId()) != activeatoms.end());
+    if (partOfActive == false) {
+      expandtruncorb = InsertZeroCols(expandtruncorb, 0, 10);
+      expandtruncorb = InsertZeroRows(expandtruncorb, 0, 10);
+    }
   }
-  
-  
+  orb.setTruncMOsFullBasis(expandtruncorb);
 }
 
+Eigen::MatrixXd DFTEngine::InsertZeroCols(Eigen::MatrixXd MOsMatrix, Index startidx, Index numofzerocols) {
+  Eigen::MatrixXd FinalMatrix = Eigen::MatrixXd::Zero(MOsMatrix.rows(), MOsMatrix.cols() + numofzerocols);
+  FinalMatrix.leftCols(startidx) = MOsMatrix.leftCols(startidx);
+  FinalMatrix.rightCols(MOsMatrix.cols() - startidx) = MOsMatrix.rightCols(MOsMatrix.cols() - startidx);
+  return FinalMatrix;
+}
+
+Eigen::MatrixXd DFTEngine::InsertZeroRows(Eigen::MatrixXd MOsMatrix, Index startidx, Index numofzerorows) {
+  Eigen::MatrixXd FinalMatrix = Eigen::MatrixXd::Zero(MOsMatrix.rows() + numofzerorows, MOsMatrix.cols());
+  FinalMatrix.topRows(startidx) = MOsMatrix.topRows(startidx);
+  FinalMatrix.bottomRows(MOsMatrix.rows() - startidx) = MOsMatrix.bottomRows(MOsMatrix.rows() - startidx);
+  return FinalMatrix;
+}
 }  // namespace xtp
 }  // namespace votca

@@ -113,6 +113,13 @@ class DFTEngine {
                      Eigen::MatrixXd InitialActiveDensityMatrix,
                      Eigen::MatrixXd v_embedding,
                      Eigen::MatrixXd InitialInactiveMOs);
+
+  void TruncMOsFullBasis(Orbitals& orb, std::vector<Index> activeatoms,
+                         std::vector<Index> numfuncpatom);
+  Eigen::MatrixXd InsertZeroCols(Eigen::MatrixXd MOsMatrix, Index startidx,
+                                 Index numofzerocols);
+  Eigen::MatrixXd InsertZeroRows(Eigen::MatrixXd MOsMatrix, Index startidx,
+                                 Index numofzerorows);
   Logger* pLog_;
 
   // basis sets

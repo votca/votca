@@ -55,6 +55,10 @@ class Orbitals {
 
   const tools::EigenSystem &getEmbeddedMOs() const { return mos_embedding_; }
 
+  void setTruncMOsFullBasis(const Eigen::MatrixXd &exapndedMOs) { expandedMOs_ = exapndedMOs; }
+
+  const Eigen::MatrixXd getTruncMOsFullBasis() const { return expandedMOs_; }
+
   Index getBasisSetSize() const { return dftbasis_.AOBasisSize(); }
 
   Index getLumo() const { return occupied_levels_; }
@@ -419,6 +423,7 @@ class Orbitals {
   Eigen::VectorXd lmos_energies_;
   Index active_electrons_;
   Eigen::MatrixXd inactivedensity_;
+  Eigen::MatrixXd  expandedMOs_;
 
   QMMolecule atoms_;
 
