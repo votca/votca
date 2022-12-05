@@ -3,16 +3,12 @@ import numpy as np
 from typing import Any, Dict, Union, List , Optional, Tuple
 import h5py
 from pathlib import Path
-import copy as cp 
 
-from ase.units import Hartree, Bohr
 from ase import Atoms
-from ase.calculators.calculator import Calculator, FileIOCalculator, Parameters, ReadError, equal
+from ase.calculators.calculator import Calculator, equal
 from ..capture_standard_output import capture_standard_output
 from pyxtp import xtp_binds
 from ..options import XTPOptions
-from ..molecule import Molecule
-from ..dftgwbse import DFTGWBSE 
 from ..utils import BOHR2ANG
 
 Pathlike = Union[Path, str]
@@ -49,18 +45,12 @@ class xtp(Calculator):
         self.jobdir = './'
         self.hdf5_filename = ''
         self.logfile = ''
-        # self.set_from_options(options)
     
-    def set(self, **kwargs):
+    def set(self, **kwargs) -> Dict:
         """Set parameters like set(key1=value1, key2=value2, ...).
 
         A dictionary containing the parameters that have been changed
         is returned.
-
-        Subclasses must implement a set() method that will look at the
-        chaneged parameters and decide if a call to reset() is needed.
-        If the changed parameters are harmless, like a change in
-        verbosity, then there is no need to call reset().
         """
 
         translation_dic = {'xc': 'dftpackage/functional',
@@ -89,8 +79,12 @@ class xtp(Calculator):
             
         return changed_parameters    
 
-    def set_from_options(self, options: XTPOptions):
-        """Set the options from an XTPOptions instance"""
+    def set_from_options(self, options: XTPOptions) -> None:
+        """Set the options from an instance of XTPOptions
+
+        Args:
+            options (XTPOptions): user defined options
+        """
         self.options = options
         if options is not None:
             opt_dict = options.__todict__()
@@ -98,12 +92,21 @@ class xtp(Calculator):
             if changed_parameters:
                 self.reset()
                 
-    def set_atoms(self, atoms):
-        """set atomic positions"""
+    def set_atoms(self, atoms: Atoms):
+        """Set atomic positions
+
+        Args:
+            atoms (Atoms): atoms in ASE format
+        """
         self.atoms = atoms
                 
-    def calculate(self, atoms=None, name=None):
-        """Calculate things."""
+    def calculate(self, atoms: Atoms = None, name: str = None) -> None:
+        """Calculate things
+
+        Args:
+            atoms (Atoms, optional): atoms in ase format. Defaults to None.
+            name (str, optional): basename for the files. Defaults to None.
+        """
         
         Calculator.calculate(self, atoms)
         atoms = self.atoms
@@ -120,7 +123,7 @@ class xtp(Calculator):
         self.options.job_name = xyzname
         self.options._write_xml(input_filename)
 
-        """ Runs VOTCA and moves results a job folder, if requested """
+        # Runs VOTCA and moves results a job folder, if requested
         if not Path(self.jobdir).exists():
             os.makedirs(self.jobdir)
 
@@ -158,7 +161,11 @@ class xtp(Calculator):
         }
         
     def read_hdf5_data(self, hdf5_filename: Pathlike) -> None:
-        """Read data from the orb (HDF5) file."""
+        """Read data from the orb (HDF5) file
+
+        Args:
+            hdf5_filename (Pathlike): name for the hdf5 file containing the data
+        """
         with h5py.File(hdf5_filename, 'r') as handler:
             orb = handler['QMdata']
             # get coordinates
@@ -192,7 +199,11 @@ class xtp(Calculator):
             self.has_data = True
 
     def read_forces_from_logfile(self, logfile: Pathlike) -> None:
-        """Read Forces from VOTCA logfile."""
+        """Read Forces from VOTCA logfile
+
+        Args:
+            logfile (Pathlike): name of the logfile
+        """
         fil = open(logfile, 'r', encoding='utf-8')
         lines = fil.readlines()
         fil.close()
@@ -218,7 +229,19 @@ class xtp(Calculator):
         self.atomic_forces = -np.array(gradients) #* Hartree / Bohr
 
     def get_total_energy(self, kind: str, level: int, dynamic: bool = False) -> float:
-        """Wrap call to individual total energy functions."""
+        """Wrap call to individual total energy functions.
+
+        Args:
+            kind (str): name of the energy required
+            level (int): if multiple level in the energy required, specify which one
+            dynamic (bool, optional): dynamic propoerty. Defaults to False.
+
+        Raises:
+            Exception: if kind not recognized
+
+        Returns:
+            float: value of the energy (level) required
+        """
         if kind == 'dft_tot':
             return self.get_dft_energy()
         elif kind == 'ks':
@@ -239,21 +262,37 @@ class xtp(Calculator):
             raise Exception(
                 f'Energy of kind {kind} is not available!')
 
-    def get_gradient(self):
-        """Return the stored nuclear gradient in Hartree/Bohr."""
+    def get_gradient(self) -> np.ndarray:
+        """Return the stored nuclear gradient in Hartree/Bohr.
+
+        Returns:
+            np.ndarray: nuclrea gradients
+            
+        """
         if self.has_gradient:
-            return self.gradient
+            return self.gradients
         else:
             raise Exception(
                 'Nuclear gradient not available!')
 
-    def get_dft_energy(self):
-        """Return the DFT total energy."""
+    def get_dft_energy(self) -> float:
+        """Return the DFT total energy.
+
+        Returns:
+            float: dft total energy
+        """
         self.check_data()
         return self.DFTenergy
 
-    def get_ks_total_energy(self, level=''):
-        """Return the excited state KS total energy."""
+    def get_ks_total_energy(self, level='') -> float:
+        """Return the excited state KS total energy.
+
+        Args:
+            level (str, optional): _description_. Defaults to ''.
+
+        Returns:
+            float: Kohn Sham total energy
+        """
         self.check_data()
 
         lumo = self.homo + 1
@@ -267,8 +306,16 @@ class xtp(Calculator):
             print("Requested KS level {} does not exist.")
             return 0.0
 
-    def get_qp_total_energy(self, level=''):
-        """Return the excited state QP total energy."""
+    def get_qp_total_energy(self, level='') -> float:
+        """Return the excited state QP total energy.
+
+        Args:
+            level (str, optional): _description_. Defaults to ''.
+
+        Returns:
+            float: Quasi Particle total energy
+        """
+        
         self.check_data()
 
         lumo = self.homo + 1
@@ -282,8 +329,15 @@ class xtp(Calculator):
             print("Requested QP level {} does not exist.")
             return 0.0
 
-    def get_qp_diag_total_energy(self, level=''):
-        """Return the excited state diag QP total energy."""
+    def get_qp_diag_total_energy(self, level='') -> float:
+        """Return the excited state diag QP total energy.
+        
+        Args:
+            level (str, optional): _description_. Defaults to ''.
+
+        Returns:
+            float: Quasi Particle total energy
+        """
         self.check_data()
 
         lumo = self.homo + 1
@@ -298,26 +352,60 @@ class xtp(Calculator):
             return 0.0
 
     def get_bse_singlet_total_energy(self, level: int) -> float:
-        """Return the excited state BSE Singlet total energy."""
+        """Return the excited state BSE Singlet total energy.
+
+        Args:
+            level (int): singlet level required. 
+
+        Returns:
+            float: Singlet Energy required
+        """
         msg = f"Requested BSE singlet {level} does not exist."
         return self.check_and_read(level, "bse_singlet_energies", msg)
 
     def get_bse_triplet_total_energy(self, level: int) -> float:
-        """Return the excited state BSE Singlet total energy."""
+        """Return the excited state BSE Triplet total energy.
+        
+        Args:
+            level (int): triplet level required. 
+
+        Returns:
+            float: Triplet Energy required
+        """
         msg = f"Requested BSE triplet {level} does not exist."
         return self.check_and_read(level, "bse_triplet_energies", msg)
 
     def get_bse_singlet_dynamic_total_energy(self, level: int) -> float:
-        """Return the excited state BSE Singlet total energy."""
+        """Return the excited state BSE Singlet dynamic energy.
+
+        Args:
+            level (int): singlet level required. 
+
+        Returns:
+            float: Singlet Energy required
+        """
         msg = f"Requested dynamic BSE singlet {level} does not exist."
         return self.check_and_read(level, "bse_singlet_energies_dynamic", msg)
 
     def get_bse_triplet_dynamic_total_energy(self, level: int) -> float:
-        """Return the excited state BSE Singlet total energy."""
+        """Return the excited state BSE Triplet dynamic energy.
+        
+        Args:
+            level (int): triplet level required. 
+
+        Returns:
+            float: Triplet Energy required
+        """
         msg = f"Requested dynamic BSE triplet level {level} does not exist."
         return self.check_and_read(level, "bse_triplet_energies_dynamic", msg)
 
-    def get_qp_corrections(self):
+    def get_qp_corrections(self) -> np.ndarray:
+        """Return the quasi particle correction energies
+
+        Returns:
+            np.ndarray: correction energies
+        """
+        
         self.check_data()
 
         qp_corrections = self.qp_energies -\
@@ -326,7 +414,14 @@ class xtp(Calculator):
         return qp_corrections.flatten()
 
     def get_oscillator_strengths(self, dynamic: bool = False) -> Tuple[np.ndarray, np.ndarray]:
-        """Retrieve oscillator strenghts' values."""
+        """Retrieve oscillator strenghts' values.
+
+        Args:
+            dynamic (bool, optional): Return dynamic values. Defaults to False.
+
+        Returns:
+            Tuple[np.ndarray, np.ndarray]: energy, oscillator strength
+        """
         self.check_data()
 
         # get energies/oscillator strengths
@@ -339,8 +434,12 @@ class xtp(Calculator):
 
         return energy, np.array(osc)
 
-    def calculate_displaced_geometries(self, eps = 0.001):
-        """Run a VOTCA simulation for every displacement of the atomic positions."""
+    def calculate_displaced_geometries(self, eps = 0.001) -> None:
+        """Run a VOTCA simulation for every displacement of the atomic positions.
+
+        Args:
+            eps (float, optional): atomic displacement. Defaults to 0.001.
+        """
           
         def copy_and_displace_atoms(atoms: Atoms, idx_atom: int,  
                                     idx_coordinate: int, eps: float):
@@ -387,18 +486,22 @@ class xtp(Calculator):
                     
                     # run this
                     self.atoms_displaced[name].calc.calculate(name=name)
-                    
-    def calculate_numerical_gradient(self, kind: str, energy_level: int) -> np.ndarray:
+        self.has_gradient_data = True
+                 
+    def calculate_numerical_gradient(self, kind: str, energy_level: int) -> None:
         """Computes the gradient for a particle/excitation kind expecting
         all displaced calculation to be available.
 
-        Parameters
-        ----------
-        kind of particle/excitation (choices: BSE_singlet, BSE_triplet, QPdiag, QPpert and dft_tot)
-          and optionally the energy level if not provided all energy levels will be returned
 
+        Args:
+            kind (str): kind of particle/excitation (choices: BSE_singlet, BSE_triplet, QPdiag, QPpert and dft_tot)
+                        and optionally the energy level if not provided all energy levels will be returned
+            energy_level (int): level of the required energy
         """
 
+        if not self.has_gradient_data:
+            self.calculate_displaced_geometries()
+        
         # how many atoms
         natoms = len(self.atoms)
         
@@ -427,13 +530,24 @@ class xtp(Calculator):
 
                 self.results['forces'][atom, coordinate] = (
                     energy_plus - energy_minus) / (2.0 * self.atoms_eps)
-
         self.has_gradient = True
 
     def get_gradient(self, kind: str, energy_level: int) -> np.ndarray:
-        """Retrieve the gradient."""
-        return self.calculate_numerical_gradient(kind, energy_level)
+        """Retreive the gradients
 
+        Args:
+            kind (str): kind of particle/excitation (choices: BSE_singlet, BSE_triplet, QPdiag, QPpert and dft_tot)
+                        and optionally the energy level if not provided all energy levels will be returned
+            energy_level (int): level of the required energy
+
+        Returns:
+            np.ndarray: atomic gradients
+        """
+        if self.has_gradient:
+            return self.results['forces']
+        else:
+            raise Exception('Nuclear gradient not available!')
+        
     @staticmethod
     def _generate_gradient_name(self, name: str, atom: int, dir: float, coord: int) -> str:
         """Generate a name for the gradient calculation."""
