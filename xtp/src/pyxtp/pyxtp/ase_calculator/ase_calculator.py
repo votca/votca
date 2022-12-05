@@ -3,10 +3,11 @@ import numpy as np
 from typing import Any, Dict, Union, List , Optional, Tuple
 import h5py
 from pathlib import Path
+import copy as cp 
 
 from ase.units import Hartree, Bohr
 from ase import Atoms
-from ase.calculators.calculator import Calculator, FileIOCalculator, Parameters, ReadError
+from ase.calculators.calculator import Calculator, FileIOCalculator, Parameters, ReadError, equal
 from ..capture_standard_output import capture_standard_output
 from pyxtp import xtp_binds
 from ..options import XTPOptions
@@ -43,18 +44,54 @@ class xtp(Calculator):
         self.options = XTPOptions()
         self.nthreads = nthreads
         
-        self.hdf5_data = None
-        self.has_data = False
         self.has_data = False
         self.has_gradient = False
         self.jobdir = './'
-        self.hdf5_data = ''
+        self.hdf5_filename = ''
         self.logfile = ''
         # self.set_from_options(options)
+    
+    def set(self, **kwargs):
+        """Set parameters like set(key1=value1, key2=value2, ...).
+
+        A dictionary containing the parameters that have been changed
+        is returned.
+
+        Subclasses must implement a set() method that will look at the
+        chaneged parameters and decide if a call to reset() is needed.
+        If the changed parameters are harmless, like a change in
+        verbosity, then there is no need to call reset().
+        """
+
+        translation_dic = {'xc': 'dftpackage/functional',
+                           'basis': 'dftpackage/basisset'}
+
+        changed_parameters = {}
+
+        for key, value in kwargs.items():
             
+            if key in translation_dic:
+                key = translation_dic[key]
+                
+            oldvalue = self.parameters.get(key)
+            if key not in self.parameters or not equal(value, oldvalue):
+                changed_parameters[key] = value
+                self.parameters[key] = value
+                
+                split_key = key.split('/')
+                element = self.options
+                for k in split_key[:-1]:
+                    element = element.__getattribute__(k)
+                element.__setattr__(split_key[-1], value)
+                
+        if self.discard_results_on_any_change and changed_parameters:
+            self.reset()
+            
+        return changed_parameters    
 
     def set_from_options(self, options: XTPOptions):
         """Set the options from an XTPOptions instance"""
+        self.options = options
         if options is not None:
             opt_dict = options.__todict__()
             changed_parameters = self.set(opt_dict)
@@ -65,14 +102,18 @@ class xtp(Calculator):
         """set atomic positions"""
         self.atoms = atoms
                 
-    def calculate(self, atoms=None):
+    def calculate(self, atoms=None, name=None):
         """Calculate things."""
         
         Calculator.calculate(self, atoms)
         atoms = self.atoms
 
         # write input files
-        xyzname = 'molecule'
+        if name is None:
+            xyzname = self.atoms.get_chemical_formula()
+        else:
+            xyzname = name
+            
         xyz_filename = xyzname + '.xyz'
         input_filename = 'dftgwbse.xml'
         self.atoms.write(xyz_filename)
@@ -95,14 +136,14 @@ class xtp(Calculator):
 
         # copy orbfile, if jobdir is not default
         if (self.jobdir != "./"):
-            self.hdf5_data = f'{self.jobdir}{self.jobname}.orb'
-            os.replace(f'{xyzname}.orb', self.hdf5_data)
+            self.hdf5_filename = f'{self.jobdir}{self.jobname}.orb'
+            os.replace(f'{xyzname}.orb', self.hdf5_filename)
         else:
-            self.hdf5_data = f'{xyzname}.orb'
+            self.hdf5_filename = f'{xyzname}.orb'
             self.logfile = 'dftgwbse.log'
             
         # Reads energies from an existing HDF5 orb file
-        self.read_hdf5_data(self.hdf5_data)
+        self.read_hdf5_data(self.hdf5_filename)
    
         # create the results        
         self.results = {
@@ -116,9 +157,9 @@ class xtp(Calculator):
             # 'forces': self.atomic_forces * Hartree / Bohr   
         }
         
-    def read_hdf5_data(self, orbfile: Pathlike) -> None:
+    def read_hdf5_data(self, hdf5_filename: Pathlike) -> None:
         """Read data from the orb (HDF5) file."""
-        with h5py.File(orbfile, 'r') as handler:
+        with h5py.File(hdf5_filename, 'r') as handler:
             orb = handler['QMdata']
             # get coordinates
             atoms = orb['qmmolecule']['qmatoms']
@@ -150,7 +191,7 @@ class xtp(Calculator):
             
             self.has_data = True
 
-    def read_forces(self, logfile: Pathlike) -> None:
+    def read_forces_from_logfile(self, logfile: Pathlike) -> None:
         """Read Forces from VOTCA logfile."""
         fil = open(logfile, 'r', encoding='utf-8')
         lines = fil.readlines()
@@ -297,6 +338,106 @@ class xtp(Calculator):
                for e, t in zip(energy, self.transition_dipoles)]
 
         return energy, np.array(osc)
+
+    def calculate_displaced_geometries(self, eps = 0.001):
+        """Run a VOTCA simulation for every displacement of the atomic positions."""
+          
+        def copy_and_displace_atoms(atoms: Atoms, idx_atom: int,  
+                                    idx_coordinate: int, eps: float):
+            """Make a copy of the atoms and dispace atoim idx_atom in direction idx_coordinate by eps
+
+            Args:
+                atoms (Atoms): atoms object
+                idx_atom (int): index of thew atom to  move
+                idx_coordinate (int): index of the coordinate to move
+                eps (float): displacement
+            """
+            atoms_displaced = atoms.copy()
+            positions = atoms_displaced.get_positions()
+            positions[idx_atom][idx_coordinate] += eps
+            atoms_displaced.set_positions(positions)
+            return atoms_displaced           
+            
+        # how many atoms
+        natoms = len(self.atoms)
+        directions = [-1.0, 1.0]
+        self.atoms_displaced = dict()
+        self.atoms_eps = eps 
+        
+        for atom in range(natoms):
+            for coordinate in range(3):
+                for direction in directions:
+                    
+                    # get a unique name
+                    name = self._generate_gradient_name(self.atoms.get_chemical_formula(),
+                                                        atom,
+                                                        direction,
+                                                        coordinate)
+                    
+                    # get displaced molecule
+                    self.atoms_displaced[name] = copy_and_displace_atoms(self.atoms,
+                                                              atom,
+                                                              coordinate,
+                                                              float(direction)* eps * BOHR2ANG)
+                    
+                    # make a new xtp wrapper for this one
+                    calc = xtp()
+                    calc.set_from_options(self.options)
+                    self.atoms_displaced[name].calc = calc
+                    
+                    # run this
+                    self.atoms_displaced[name].calc.calculate(name=name)
+                    
+    def calculate_numerical_gradient(self, kind: str, energy_level: int) -> np.ndarray:
+        """Computes the gradient for a particle/excitation kind expecting
+        all displaced calculation to be available.
+
+        Parameters
+        ----------
+        kind of particle/excitation (choices: BSE_singlet, BSE_triplet, QPdiag, QPpert and dft_tot)
+          and optionally the energy level if not provided all energy levels will be returned
+
+        """
+
+        # how many atoms
+        natoms = len(self.atoms)
+        
+        # store gradient in xtp.mol object
+        self.results['forces'] = np.zeros((natoms, 3))
+
+        directions = [-1.0, 1.0]
+        for atom in range(natoms):
+            for coordinate in range(3):
+                energy_plus = 0.0
+                energy_minus = 0.0
+                for direction in directions:
+                    # get energy for displaced molecules
+                    name = self._generate_gradient_name(self.atoms.get_chemical_formula(),
+                                                        atom,
+                                                        direction,
+                                                        coordinate)
+                    atoms_displaced = self.atoms_displaced[name]
+                    
+                    if direction > 0:
+                        energy_plus = atoms_displaced.calc.get_total_energy(
+                            kind, energy_level)
+                    else:
+                        energy_minus = atoms_displaced.calc.get_total_energy(
+                            kind, energy_level)
+
+                self.results['forces'][atom, coordinate] = (
+                    energy_plus - energy_minus) / (2.0 * self.atoms_eps)
+
+        self.has_gradient = True
+
+    def get_gradient(self, kind: str, energy_level: int) -> np.ndarray:
+        """Retrieve the gradient."""
+        return self.calculate_numerical_gradient(kind, energy_level)
+
+    @staticmethod
+    def _generate_gradient_name(self, name: str, atom: int, dir: float, coord: int) -> str:
+        """Generate a name for the gradient calculation."""
+        return f"{name}_{atom}_{dir}_{coord}"
 
     def check_data(self):
         """Check that there is data in the molecule."""
