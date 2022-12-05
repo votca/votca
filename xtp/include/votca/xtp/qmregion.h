@@ -111,7 +111,7 @@ class QMRegion : public Region {
 
   StateTracker statetracker_;
 
-  //Logger* logger_;
+  // Logger* logger_;
 };
 
 }  // namespace xtp
