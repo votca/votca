@@ -1639,9 +1639,17 @@ void DFTEngine::TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
   }
 }
 
-// void DFTEngine::TruncMOsFullBasis(Orbitals & orb) {
+void DFTEngine::TruncMOsFullBasis(Orbitals & orb, std::vector<Index> activeatoms, std::vector<Index> numfuncpatom) {
+  for (Index atomindex = 0; atomindex < numfuncpatom.size(); atomindex++) {
+    bool partOfActive =
+        (std::find(activeatoms.begin(), activeatoms.end(),
+                   orb.QMAtoms()[atom_num].getId()) != activeatoms.end());
+    if (partOfActive == true) {
+      Eigen::MatrixXd expandtruncorb = 
+  }
   
-// }
+  
+}
 
 }  // namespace xtp
 }  // namespace votca
