@@ -4,6 +4,7 @@ from typing import Any, Dict, Union, List , Optional, Tuple
 import h5py
 from pathlib import Path
 
+from ase.units import Hartree, Bohr
 from ase import Atoms
 from ase.calculators.calculator import Calculator, equal
 from ..capture_standard_output import capture_standard_output
@@ -41,6 +42,7 @@ class xtp(Calculator):
         self.nthreads = nthreads
         
         self.has_data = False
+        self.has_gradient_data = False
         self.has_gradient = False
         self.jobdir = './'
         self.hdf5_filename = ''
@@ -99,7 +101,17 @@ class xtp(Calculator):
             atoms (Atoms): atoms in ASE format
         """
         self.atoms = atoms
-                
+ 
+    def reset(self):
+        """Clear all information from old calculation."""
+
+        self.atoms = None
+        self.atoms_displaced = None
+        self.results = {}
+        self.has_gradient = False
+        self.has_data = False
+        self.has_gradient_data = False
+                        
     def calculate(self, atoms: Atoms = None, name: str = None) -> None:
         """Calculate things
 
@@ -261,19 +273,6 @@ class xtp(Calculator):
         else:
             raise Exception(
                 f'Energy of kind {kind} is not available!')
-
-    def get_gradient(self) -> np.ndarray:
-        """Return the stored nuclear gradient in Hartree/Bohr.
-
-        Returns:
-            np.ndarray: nuclrea gradients
-            
-        """
-        if self.has_gradient:
-            return self.gradients
-        else:
-            raise Exception(
-                'Nuclear gradient not available!')
 
     def get_dft_energy(self) -> float:
         """Return the DFT total energy.
@@ -486,6 +485,7 @@ class xtp(Calculator):
                     
                     # run this
                     self.atoms_displaced[name].calc.calculate(name=name)
+                    
         self.has_gradient_data = True
                  
     def calculate_numerical_gradient(self, kind: str, energy_level: int) -> None:
@@ -506,7 +506,7 @@ class xtp(Calculator):
         natoms = len(self.atoms)
         
         # store gradient in xtp.mol object
-        self.results['forces'] = np.zeros((natoms, 3))
+        self.results['gradients'] = np.zeros((natoms, 3))
 
         directions = [-1.0, 1.0]
         for atom in range(natoms):
@@ -528,11 +528,12 @@ class xtp(Calculator):
                         energy_minus = atoms_displaced.calc.get_total_energy(
                             kind, energy_level)
 
-                self.results['forces'][atom, coordinate] = (
+                self.results['gradients'][atom, coordinate] = (
                     energy_plus - energy_minus) / (2.0 * self.atoms_eps)
         self.has_gradient = True
+        
 
-    def get_gradient(self, kind: str, energy_level: int) -> np.ndarray:
+    def get_gradients(self, kind: str, energy_level: int) -> np.ndarray:
         """Retreive the gradients
 
         Args:
@@ -543,10 +544,35 @@ class xtp(Calculator):
         Returns:
             np.ndarray: atomic gradients
         """
-        if self.has_gradient:
-            return self.results['forces']
+        if self.has_gradient_data:
+            self.calculate_numerical_gradient(kind, energy_level)
+            return self.results['gradients']
         else:
-            raise Exception('Nuclear gradient not available!')
+            raise Exception('Nuclear gradient data not available!')
+    
+    def calculate_forces(self, kind: str, energy_level: int) -> None:
+        """Calculate the atomic forces
+
+        Args:
+            kind (str): kind of particle/excitation (choices: BSE_singlet, BSE_triplet, QPdiag, QPpert and dft_tot)
+                        and optionally the energy level if not provided all energy levels will be returned
+            energy_level (int): level of the required energy
+        """
+        self.results['forces'] = self.get_gradients(kind, energy_level) * Hartree / Bohr
+        
+    def get_forces(self, kind: str, energy_level: int) -> np.ndarray:
+        """Retreive the atomic forces
+
+        Args:
+            kind (str): kind of particle/excitation (choices: BSE_singlet, BSE_triplet, QPdiag, QPpert and dft_tot)
+                        and optionally the energy level if not provided all energy levels will be returned
+            energy_level (int): level of the required energy
+
+        Returns:
+            np.ndarray: atomic gradients
+        """
+        self.calculate_forces(kind, energy_level)
+        return self.results['forces']
         
     @staticmethod
     def _generate_gradient_name(self, name: str, atom: int, dir: float, coord: int) -> str:
