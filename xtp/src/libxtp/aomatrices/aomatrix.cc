@@ -100,10 +100,6 @@ Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt(double etol) {
   return es.eigenvectors() * diagonal.asDiagonal() *
          es.eigenvectors().transpose();
 }
-// void AOOverlap::resize(Index rows, Index cols) {
-//   std::string name_ = "";
-//   aomatrix_.resize(rows, cols);
-//   }
 
 }  // namespace xtp
 }  // namespace votca

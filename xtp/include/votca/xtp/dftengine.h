@@ -80,7 +80,7 @@ class DFTEngine {
 
   void ConfigOrbfile(Orbitals& orb);
   void SetupInvariantMatrices();
-  Eigen::MatrixXd WeenyPurification(Eigen::MatrixXd& Dmat_in,
+  Eigen::MatrixXd McWeenyPurification(Eigen::MatrixXd& Dmat_in,
                                     AOOverlap& overlap);
 
   Mat_p_Energy SetupH0(const QMMolecule& mol) const;

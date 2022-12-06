@@ -39,7 +39,6 @@ BOOST_AUTO_TEST_CASE(activematrix_test) {
 
   libint2::initialize();
   Orbitals orbitals_;
-  Orbitals orb2;
   orbitals_.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
                                    "/activedensitymatrix/ch3oh.xyz");
   orbitals_.setNumberOfOccupiedLevels(9);
@@ -51,7 +50,6 @@ BOOST_AUTO_TEST_CASE(activematrix_test) {
       std::string(XTP_TEST_DATA_FOLDER) + "/activedensitymatrix/LMOs.mm");
 
   orbitals_.setLMOs(LMOs);
-  orb2.setLMOs(LMOs);
 
   Logger log;
   std::vector<Index> activeatoms = {{1, 5}};

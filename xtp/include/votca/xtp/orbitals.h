@@ -400,7 +400,6 @@ class Orbitals {
   Eigen::MatrixXd CalcAuxMat_cc(const Eigen::VectorXd &coeffs) const;
   Eigen::MatrixXd CalcAuxMat_vv(const Eigen::VectorXd &coeffs) const;
 
-  // Index basis_set_size_;
   Index occupied_levels_;
   Index number_alpha_electrons_;
   std::string ECP_ = "";

@@ -837,7 +837,7 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
         << std::flush;
 
     Eigen::MatrixXd PurifiedActiveDmat_trunc =
-        WeenyPurification(InitialActiveDmat_trunc_, overlap);
+        McWeenyPurification(InitialActiveDmat_trunc_, overlap);
     Eigen::MatrixXd TruncatedDensityMatrix = PurifiedActiveDmat_trunc;
 
     Eigen::MatrixXd difference_after =
@@ -1600,7 +1600,7 @@ Eigen::MatrixXd DFTEngine::OrthogonalizeGuess(
   return result;
 }
 
-Eigen::MatrixXd DFTEngine::WeenyPurification(Eigen::MatrixXd& Dmat_in,
+Eigen::MatrixXd DFTEngine::McWeenyPurification(Eigen::MatrixXd& Dmat_in,
                                              AOOverlap& overlap) {
   Eigen::MatrixXd Ssqrt = overlap.Sqrt();
   Eigen::MatrixXd InvSsqrt = overlap.Pseudo_InvSqrt(1e-8);

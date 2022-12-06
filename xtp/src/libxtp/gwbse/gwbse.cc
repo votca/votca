@@ -594,9 +594,7 @@ bool GWBSE::Evaluate() {
                               << dftbasis.AOBasisSize() << flush;
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Loaded Auxbasis Set " << auxbasis_name_ << flush;
-  // std::cout << std::endl << "GRABBED MOS SIZE: " <<
-  // orbitals_.MOs().eigenvectors().cols() << std::endl;
-  //  fill auxiliary AO basis by going through all atoms
+ 
   orbitals_.SetupAuxBasis(auxbasis_name_);
   AOBasis auxbasis = orbitals_.getAuxBasis();
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled Auxbasis of size "
@@ -623,7 +621,6 @@ bool GWBSE::Evaluate() {
       << TimeStamp()
       << " Calculating Mmn_beta (3-center-repulsion x orbitals)  " << flush;
   Mmn.Fill(auxbasis, dftbasis, orbitals_.MOs().eigenvectors());
-  //
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Removed " << Mmn.Removedfunctions()
       << " functions from Aux Coulomb matrix to avoid near linear dependencies"
