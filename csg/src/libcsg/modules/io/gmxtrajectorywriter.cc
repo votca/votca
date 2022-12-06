@@ -39,7 +39,6 @@ void GMXTrajectoryWriter::Open(std::string file, bool) {
 void GMXTrajectoryWriter::Close() { close_trx(file_); }
 
 void GMXTrajectoryWriter::Write(Topology *conf) {
-  static Index step = 0;
   Index N = conf->BeadCount();
   t_trxframe frame;
   rvec *x = new rvec[N];
@@ -51,7 +50,6 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
   frame.bTime = true;
   frame.time = real(conf->getTime());
   frame.bStep = true;
-  frame.step = conf->getStep();
   frame.x = x;
   frame.bLambda = false;
   frame.bAtoms = false;
@@ -97,7 +95,6 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
 
   write_trxframe(file_, &frame, nullptr);
 
-  step++;
   delete[] x;
   if (frame.bV) {
     delete[] v;

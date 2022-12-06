@@ -7,6 +7,7 @@ import time
 import numpy as np
 
 import espressomd
+import espressomd.version
 from espressomd.io.writer import h5md
 
 def readgrofile(filename):
@@ -41,6 +42,7 @@ required_features = ["MASS", "TABULATED"]
 espressomd.assert_features(required_features)
 
 print("Program Information:\n{}\n".format(espressomd.features()))
+espresso_release = (espressomd.version.major(), espressomd.version.minor())
 
 # set system properties:
 skin = 0.5
@@ -60,7 +62,8 @@ masses=mass*np.ones(atomnumber)
 # Setup Espresso with particle from spce.gro
 system = espressomd.System(box_l=box_length, time_step=time_step)
 system.cell_system.skin = skin
-system.set_random_state_PRNG()
+if espresso_release <= (4, 1):
+    system.set_random_state_PRNG()
 system.thermostat.set_langevin(kT=1., gamma=1., seed=123)
 system.part.add(pos=positions, mass=masses)
 
@@ -88,8 +91,12 @@ for i in range(eq_steps):
 
 print("Running at temperature T={:.2f}".format(calc_temperature(system)))
 
-h5_file = h5md.H5md(filename="traj.h5", write_pos=True, write_vel=True,
-                    write_force=True, write_species=False, write_mass=True, write_ordered=False)
+if espresso_release >= (4, 2):
+    h5_opts = {"file_path": "traj.h5"}
+else:
+    h5_opts = {"filename": "traj.h5"}
+h5_file = h5md.H5md(write_pos=True, write_vel=True,write_force=True,
+                    write_species=False, write_mass=True, write_ordered=False, **h5_opts)
 
 starttime = time.time()
 

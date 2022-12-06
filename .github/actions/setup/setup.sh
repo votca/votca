@@ -9,8 +9,8 @@ die () {
 
 print_output() {
   [[ -n $1 ]] || die "${FUNCNAME[0]}: missing argument"
-  echo "name=$1::${@:2}"
-  echo "::set-output name=$1::${@:2}"
+  echo "Setting $1=${@:2}"
+  echo "$1=${@:2}" >> $GITHUB_OUTPUT
 }
 
 for i in INPUT_MINIMAL INPUT_OWN_GMX INPUT_REGRESSION_TESTING; do
@@ -101,6 +101,12 @@ fi
 # workaround for votca/votca#891
 if [[ ${INPUT_DISTRO} = ubuntu:* && ${INPUT_TOOLCHAIN} = "gnu" ]]; then
   cmake_args+=( -DVOTCA_EXTRA_WARNING_FLAGS="-Wno-deprecated-copy")
+fi
+
+# don't warn about -O0 in Debug build on icpx
+# we want to do this for the CI only, as user might still find this warning useful
+if [[ ${INPUT_CMAKE_BUILD_TYPE} = "Debug" && ${INPUT_TOOLCHAIN} = "intel-oneapi" ]]; then
+  cmake_args+=( -DVOTCA_EXTRA_WARNING_FLAGS="-Wno-debug-disables-optimization")
 fi
 
 if [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then
