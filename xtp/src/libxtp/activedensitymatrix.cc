@@ -42,9 +42,11 @@ std::array<Eigen::MatrixXd, 3> ActiveDensityMatrix::activedensitymatrix(
   AOBasis aobasis = orbitals_.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
-  Index numOfActiveOrbs = 0, numOfInactiveOrbs = 0;
+  Index numOfActiveOrbs = 0;
+  Index numOfInactiveOrbs = 0;
   std::vector<Index> numfuncpatom = aobasis.getFuncPerAtom();
-  Eigen::MatrixXd active_mo_coeff, inactive_mo_coeff;
+  Eigen::MatrixXd active_mo_coeff;
+  Eigen::MatrixXd inactive_mo_coeff;
 
   for (Index LocMoCoeff_col_i = 0; LocMoCoeff_col_i < localized_mo_coeff.cols();
        LocMoCoeff_col_i++) {

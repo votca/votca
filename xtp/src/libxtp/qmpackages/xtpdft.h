@@ -103,7 +103,6 @@ class XTPDFT final : public QMPackage {
   tools::Property xtpdft_options_;
 
   Orbitals orbitals_;
-  // Orbitals trunc_orbitals_;
 };
 
 }  // namespace xtp
