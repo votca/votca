@@ -4,8 +4,10 @@ from typing import Any, Dict, Union, List , Optional, Tuple
 import h5py
 from pathlib import Path
 
+import copy as cp
 from ase.units import Hartree, Bohr
 from ase import Atoms
+from ase.calculators.test import numeric_force
 from ase.calculators.calculator import Calculator, equal
 from ..capture_standard_output import capture_standard_output
 from pyxtp import xtp_binds
@@ -19,6 +21,21 @@ def load_default_parameters():
     options = XTPOptions()
     options._fill_default_values()
     return options.__todict__()
+
+def numeric_force_property(atoms, a, i, d=0.001, name: str = 'energy', level: int = 0 ):
+    """Compute numeric force on atom with index a, Cartesian component i,
+    with finite step of size d, and property name (with level level when applicable)
+    """
+    p0 = atoms.get_positions()
+    p = p0.copy()
+    p[a, i] += d
+    atoms.set_positions(p, apply_constraint=False)
+    eplus = atoms._calc.get_total_energy(name, level)
+    p[a, i] -= 2 * d
+    atoms.set_positions(p, apply_constraint=False)
+    eminus = atoms._calc.get_total_energy(name, level)
+    atoms.set_positions(p0, apply_constraint=False)
+    return (eminus - eplus) / (2 * d)
 
 class xtp(Calculator):
     """This the ASE-calculator for doing XTP calculation."""
@@ -35,15 +52,17 @@ class xtp(Calculator):
                  label=None, 
                  atoms=None,
                  nthreads=1,
+                 options=None,
                  **kwargs):
         
         Calculator.__init__(self, restart=restart, label=label, atoms=atoms, **kwargs)
-        self.options = XTPOptions()
+        if options is None:
+            self.options = XTPOptions()
+        else:
+            self.set_from_options(options)
         self.nthreads = nthreads
-        
         self.has_data = False
-        self.has_gradient_data = False
-        self.has_gradient = False
+        self.has_forces = False
         self.jobdir = './'
         self.hdf5_filename = ''
         self.logfile = ''
@@ -90,7 +109,7 @@ class xtp(Calculator):
         self.options = options
         if options is not None:
             opt_dict = options.__todict__()
-            changed_parameters = self.set(opt_dict)
+            changed_parameters = self.set(**opt_dict)
             if changed_parameters:
                 self.reset()
                 
@@ -106,20 +125,37 @@ class xtp(Calculator):
         """Clear all information from old calculation."""
 
         self.atoms = None
-        self.atoms_displaced = None
         self.results = {}
-        self.has_gradient = False
+        self.has_forces = False
         self.has_data = False
-        self.has_gradient_data = False
+        
                         
-    def calculate(self, atoms: Atoms = None, name: str = None) -> None:
+    def calculate(self, atoms: Atoms = None, 
+                  properties: List[str] = ['energy'], 
+                  system_change : List[str] = None) -> None:
         """Calculate things
 
         Args:
             atoms (Atoms, optional): atoms in ase format. Defaults to None.
             name (str, optional): basename for the files. Defaults to None.
+        """                 
+        if any([p in properties for p in ['energy',
+                                          'singlets', 'triplets',
+                                          'ks', 'qp', 'qp_pert',
+                                          'transition_dipoles']]):
+            self.calculate_energies(atoms=atoms)
+            
+        if 'forces' in properties:
+            self.calculate_numerical_forces('energy')
+            
+    def calculate_energies(self, atoms: Atoms = None, name: str = None) -> None:
+        """Compute all the energies of the dft+gw+bse pipeline
+
+        Args:
+            atoms (Atoms, optional): _description_. Defaults to None.
+            name (str, optional): _description_. Defaults to None.
         """
-        
+
         Calculator.calculate(self, atoms)
         atoms = self.atoms
 
@@ -169,7 +205,6 @@ class xtp(Calculator):
             'qp': self.qp_energies_diag,
             'transition_dipoles': self.transition_dipoles,
             'qp_pert': self.qp_energies,
-            # 'forces': self.atomic_forces * Hartree / Bohr   
         }
         
     def read_hdf5_data(self, hdf5_filename: Pathlike) -> None:
@@ -210,37 +245,9 @@ class xtp(Calculator):
             
             self.has_data = True
 
-    def read_forces_from_logfile(self, logfile: Pathlike) -> None:
-        """Read Forces from VOTCA logfile
 
-        Args:
-            logfile (Pathlike): name of the logfile
-        """
-        fil = open(logfile, 'r', encoding='utf-8')
-        lines = fil.readlines()
-        fil.close()
-        getgrad = "no"
-        for i, line in enumerate(lines):
-            if line.find('ENGRAD') >= 0:
-                getgrad = "yes"
-                gradients = []
-                tempgrad = []
-                continue
-            if getgrad == "yes" and "Saving" not in line:
-                if "Total" not in line:
-                    grad = line.split()
-                    tempgrad.append(float(grad[3]))
-                    tempgrad.append(float(grad[4]))
-                    tempgrad.append(float(grad[5]))
-                    gradients.append(tempgrad)
-                    tempgrad = []
-                else:
-                    energy = float(line.split()[-2])
-            if 'Saving' in line:
-                getgrad = "no"
-        self.atomic_forces = -np.array(gradients) #* Hartree / Bohr
 
-    def get_total_energy(self, kind: str, level: int, dynamic: bool = False) -> float:
+    def get_total_energy(self, kind: str = 'dft_tot', level: int = 0, dynamic: bool = False) -> float:
         """Wrap call to individual total energy functions.
 
         Args:
@@ -254,7 +261,7 @@ class xtp(Calculator):
         Returns:
             float: value of the energy (level) required
         """
-        if kind == 'dft_tot':
+        if kind in ['dft_tot','energy']:
             return self.get_dft_energy()
         elif kind == 'ks':
             return self.get_ks_total_energy(level)
@@ -433,134 +440,7 @@ class xtp(Calculator):
 
         return energy, np.array(osc)
 
-    def calculate_displaced_geometries(self, eps = 0.001) -> None:
-        """Run a VOTCA simulation for every displacement of the atomic positions.
-
-        Args:
-            eps (float, optional): atomic displacement. Defaults to 0.001.
-        """
-          
-        def copy_and_displace_atoms(atoms: Atoms, idx_atom: int,  
-                                    idx_coordinate: int, eps: float):
-            """Make a copy of the atoms and dispace atoim idx_atom in direction idx_coordinate by eps
-
-            Args:
-                atoms (Atoms): atoms object
-                idx_atom (int): index of thew atom to  move
-                idx_coordinate (int): index of the coordinate to move
-                eps (float): displacement
-            """
-            atoms_displaced = atoms.copy()
-            positions = atoms_displaced.get_positions()
-            positions[idx_atom][idx_coordinate] += eps
-            atoms_displaced.set_positions(positions)
-            return atoms_displaced           
-            
-        # how many atoms
-        natoms = len(self.atoms)
-        directions = [-1.0, 1.0]
-        self.atoms_displaced = dict()
-        self.atoms_eps = eps 
-        
-        for atom in range(natoms):
-            for coordinate in range(3):
-                for direction in directions:
-                    
-                    # get a unique name
-                    name = self._generate_gradient_name(self.atoms.get_chemical_formula(),
-                                                        atom,
-                                                        direction,
-                                                        coordinate)
-                    
-                    # get displaced molecule
-                    self.atoms_displaced[name] = copy_and_displace_atoms(self.atoms,
-                                                              atom,
-                                                              coordinate,
-                                                              float(direction)* eps * BOHR2ANG)
-                    
-                    # make a new xtp wrapper for this one
-                    calc = xtp()
-                    calc.set_from_options(self.options)
-                    self.atoms_displaced[name].calc = calc
-                    
-                    # run this
-                    self.atoms_displaced[name].calc.calculate(name=name)
-                    
-        self.has_gradient_data = True
-                 
-    def calculate_numerical_gradient(self, kind: str, energy_level: int) -> None:
-        """Computes the gradient for a particle/excitation kind expecting
-        all displaced calculation to be available.
-
-
-        Args:
-            kind (str): kind of particle/excitation (choices: BSE_singlet, BSE_triplet, QPdiag, QPpert and dft_tot)
-                        and optionally the energy level if not provided all energy levels will be returned
-            energy_level (int): level of the required energy
-        """
-
-        if not self.has_gradient_data:
-            self.calculate_displaced_geometries()
-        
-        # how many atoms
-        natoms = len(self.atoms)
-        
-        # store gradient in xtp.mol object
-        self.results['gradients'] = np.zeros((natoms, 3))
-
-        directions = [-1.0, 1.0]
-        for atom in range(natoms):
-            for coordinate in range(3):
-                energy_plus = 0.0
-                energy_minus = 0.0
-                for direction in directions:
-                    # get energy for displaced molecules
-                    name = self._generate_gradient_name(self.atoms.get_chemical_formula(),
-                                                        atom,
-                                                        direction,
-                                                        coordinate)
-                    atoms_displaced = self.atoms_displaced[name]
-                    
-                    if direction > 0:
-                        energy_plus = atoms_displaced.calc.get_total_energy(
-                            kind, energy_level)
-                    else:
-                        energy_minus = atoms_displaced.calc.get_total_energy(
-                            kind, energy_level)
-
-                self.results['gradients'][atom, coordinate] = (
-                    energy_plus - energy_minus) / (2.0 * self.atoms_eps)
-        self.has_gradient = True
-        
-
-    def get_gradients(self, kind: str, energy_level: int) -> np.ndarray:
-        """Retreive the gradients
-
-        Args:
-            kind (str): kind of particle/excitation (choices: BSE_singlet, BSE_triplet, QPdiag, QPpert and dft_tot)
-                        and optionally the energy level if not provided all energy levels will be returned
-            energy_level (int): level of the required energy
-
-        Returns:
-            np.ndarray: atomic gradients
-        """
-        if self.has_gradient_data:
-            self.calculate_numerical_gradient(kind, energy_level)
-            return self.results['gradients']
-        else:
-            raise Exception('Nuclear gradient data not available!')
-    
-    def calculate_forces(self, kind: str, energy_level: int) -> None:
-        """Calculate the atomic forces
-
-        Args:
-            kind (str): kind of particle/excitation (choices: BSE_singlet, BSE_triplet, QPdiag, QPpert and dft_tot)
-                        and optionally the energy level if not provided all energy levels will be returned
-            energy_level (int): level of the required energy
-        """
-        self.results['forces'] = self.get_gradients(kind, energy_level) * Hartree / Bohr
-        
-    def get_forces(self, kind: str, energy_level: int) -> np.ndarray:
+    def calculate_numerical_forces(self, kind: str = 'energy', energy_level: int = 0, eps = 0.001) -> np.ndarray:
         """Retreive the atomic forces
 
         Args:
@@ -571,14 +451,64 @@ class xtp(Calculator):
         Returns:
             np.ndarray: atomic gradients
         """
-        self.calculate_forces(kind, energy_level)
+        # self.results['forces'] = np.array([[numeric_force(cp.deepcopy(self.atoms), a, i, eps)
+        #                   for i in range(3)] for a in range(len(self.atoms))]) #* Hartree / Bohr ?
+        forces = []
+        for a in range(len(self.atoms)):
+            for i in range(3):
+                new_atoms = Atoms(self.atoms.get_chemical_symbols(), positions=self.atoms.get_positions())
+                new_atoms.calc = xtp(options=self.options, nthreads=self.nthreads)
+                forces.append(numeric_force(new_atoms, a, i, eps))
+        self.results['forces'] = np.array(forces)
+        self.has_forces = True
         return self.results['forces']
-        
-    @staticmethod
-    def _generate_gradient_name(self, name: str, atom: int, dir: float, coord: int) -> str:
-        """Generate a name for the gradient calculation."""
-        return f"{name}_{atom}_{dir}_{coord}"
 
+    # def get_forces(self, kind: str = 'energy', energy_level: int = 0, eps = 0.001) -> np.ndarray:
+    #     """_summary_
+
+    #     Args:
+    #         kind (str, optional): _description_. Defaults to 'energy'.
+    #         energy_level (int, optional): _description_. Defaults to 0.
+    #         eps (float, optional): _description_. Defaults to 0.001.
+
+    #     Returns:
+    #         np.ndarray: _description_
+    #     """
+    #     if self.has_forces:
+    #         return self.results['forces']
+    #     else:
+    #         return self.calculate_numerical_forces(kind, energy_level)
+
+    def read_forces_from_logfile(self, logfile: Pathlike) -> None:
+        """Read Forces from VOTCA logfile
+
+        Args:
+            logfile (Pathlike): name of the logfile
+        """
+        fil = open(logfile, 'r', encoding='utf-8')
+        lines = fil.readlines()
+        fil.close()
+        getgrad = "no"
+        for i, line in enumerate(lines):
+            if line.find('ENGRAD') >= 0:
+                getgrad = "yes"
+                gradients = []
+                tempgrad = []
+                continue
+            if getgrad == "yes" and "Saving" not in line:
+                if "Total" not in line:
+                    grad = line.split()
+                    tempgrad.append(float(grad[3]))
+                    tempgrad.append(float(grad[4]))
+                    tempgrad.append(float(grad[5]))
+                    gradients.append(tempgrad)
+                    tempgrad = []
+                else:
+                    energy = float(line.split()[-2])
+            if 'Saving' in line:
+                getgrad = "no"
+        self.atomic_forces = -np.array(gradients) #* Hartree / Bohr
+             
     def check_data(self):
         """Check that there is data in the molecule."""
         if not self.has_data:
@@ -587,7 +517,6 @@ class xtp(Calculator):
     def check_and_read(self, level: int, prop: str, msg: str) -> float:
         """Check that there is data available and retrieve it."""
         self.check_data()
-
         if level < len(getattr(self, prop)):
             return(self.DFTenergy + getattr(self, prop)[level])
         else:
@@ -607,6 +536,135 @@ class xtp(Calculator):
                     f'Molecular coordinates of element {k} {coord} differ from coordinates in orb file {other_coord}')
 
 
+    # @staticmethod
+    # def _generate_gradient_name(name: str, atom: int, dir: float, coord: int) -> str:
+    #     """Generate a name for the gradient calculation."""
+    #     return f"{name}_{atom}_{dir}_{coord}"
+
+#    def calculate_displaced_geometries(self, eps = 0.001) -> None:
+#         """Run a VOTCA simulation for every displacement of the atomic positions.
+
+#         Args:
+#             eps (float, optional): atomic displacement. Defaults to 0.001.
+#         """
+          
+#         def copy_and_displace_atoms(atoms: Atoms, idx_atom: int,  
+#                                     idx_coordinate: int, eps: float):
+#             """Make a copy of the atoms and dispace atoim idx_atom in direction idx_coordinate by eps
+
+#             Args:
+#                 atoms (Atoms): atoms object
+#                 idx_atom (int): index of thew atom to  move
+#                 idx_coordinate (int): index of the coordinate to move
+#                 eps (float): displacement
+#             """
+#             atoms_displaced = atoms.copy()
+#             positions = atoms_displaced.get_positions()
+#             positions[idx_atom][idx_coordinate] += eps
+#             atoms_displaced.set_positions(positions)
+#             return atoms_displaced           
+            
+#         # how many atoms
+#         natoms = len(self.atoms)
+#         directions = [-1.0, 1.0]
+#         self.atoms_displaced = dict()
+#         self.atoms_eps = eps 
+        
+#         for atom in range(natoms):
+#             for coordinate in range(3):
+#                 for direction in directions:
+                    
+#                     # get a unique name
+#                     name = self._generate_gradient_name(self.atoms.get_chemical_formula(),
+#                                                         atom,
+#                                                         direction,
+#                                                         coordinate)
+                    
+#                     # get displaced molecule
+#                     self.atoms_displaced[name] = copy_and_displace_atoms(self.atoms,
+#                                                               atom,
+#                                                               coordinate,
+#                                                               float(direction)* eps * BOHR2ANG)
+                    
+#                     # make a new xtp wrapper for this one
+#                     calc = xtp()
+#                     calc.set_from_options(self.options)
+#                     self.atoms_displaced[name].calc = calc
+                    
+#                     # run this
+#                     self.atoms_displaced[name].calc.calculate_energies()
+                    
+#         self.has_gradient_data = True
+                 
+    # def calculate_numerical_gradient(self, kind: str, energy_level: int) -> None:
+    #     """Computes the gradient for a particle/excitation kind expecting
+    #     all displaced calculation to be available.
+
+
+    #     Args:
+    #         kind (str): kind of particle/excitation (choices: BSE_singlet, BSE_triplet, QPdiag, QPpert and dft_tot)
+    #                     and optionally the energy level if not provided all energy levels will be returned
+    #         energy_level (int): level of the required energy
+    #     """
+
+    #     if not self.has_gradient_data:
+    #         self.calculate_displaced_geometries()
+        
+    #     # how many atoms
+    #     natoms = len(self.atoms)
+        
+    #     # store gradient in xtp.mol object
+    #     self.results['gradients'] = np.zeros((natoms, 3))
+
+    #     directions = [-1.0, 1.0]
+    #     for atom in range(natoms):
+    #         for coordinate in range(3):
+    #             energy_plus = 0.0
+    #             energy_minus = 0.0
+    #             for direction in directions:
+    #                 # get energy for displaced molecules
+    #                 name = self._generate_gradient_name(self.atoms.get_chemical_formula(),
+    #                                                     atom,
+    #                                                     direction,
+    #                                                     coordinate)
+    #                 atoms_displaced = self.atoms_displaced[name]
+                    
+    #                 if direction > 0:
+    #                     energy_plus = atoms_displaced.calc.get_total_energy(
+    #                         kind, energy_level)
+    #                 else:
+    #                     energy_minus = atoms_displaced.calc.get_total_energy(
+    #                         kind, energy_level)
+
+    #             self.results['gradients'][atom, coordinate] = (
+    #                 energy_plus - energy_minus) / (2.0 * self.atoms_eps)
+    #     self.has_gradient = True
+        
+
+    # def get_gradients(self, kind: str, energy_level: int) -> np.ndarray:
+    #     """Retreive the gradients
+
+    #     Args:
+    #         kind (str): kind of particle/excitation (choices: BSE_singlet, BSE_triplet, QPdiag, QPpert and dft_tot)
+    #                     and optionally the energy level if not provided all energy levels will be returned
+    #         energy_level (int): level of the required energy
+
+    #     Returns:
+    #         np.ndarray: atomic gradients
+    #     """
+    #     self.calculate_numerical_gradient(kind, energy_level)
+    #     return self.results['gradients']
+    
+    # def calculate_forces(self, kind: str, energy_level: int) -> None:
+    #     """Calculate the atomic forces
+
+    #     Args:
+    #         kind (str): kind of particle/excitation (choices: BSE_singlet, BSE_triplet, QPdiag, QPpert and dft_tot)
+    #                     and optionally the energy level if not provided all energy levels will be returned
+    #         energy_level (int): level of the required energy
+    #     """
+    #     self.results['forces'] = self.get_gradients(kind, energy_level) * Hartree / Bohr
+
 def read_flatten_array(group: h5py.Group, key1: str, key2: Optional[str] = None):
     """Read an array from h5py handler and flatten it."""
     if key2 is None:
@@ -615,5 +673,7 @@ def read_flatten_array(group: h5py.Group, key1: str, key2: Optional[str] = None)
         arr = group[key1][key2][()]
 
     return arr.flatten()
+
+
 
 
