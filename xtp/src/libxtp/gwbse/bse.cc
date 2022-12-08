@@ -380,8 +380,8 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
 
     XTP_LOG(Log::error, log_)
         << format(
-               "  T = %1$4d Omega = %2$+12.8e eV  lamdba = %3$+3.2f nm <FT> "
-               "= %4$+12.8e <K_d> = %5$+12.8e") %
+               "  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> "
+               "= %4$+1.4f <K_d> = %5$+1.4f") %
                (i + 1) % (tools::conv::hrt2ev * energies(i)) %
                (1240.0 / (tools::conv::hrt2ev * energies(i))) %
                (tools::conv::hrt2ev * act.qp_contrib(i)) %
