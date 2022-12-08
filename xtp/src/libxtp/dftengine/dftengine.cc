@@ -524,6 +524,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   if (truncate_) {  // Truncation starts here
     TruncateBasis(orb, activeatoms, H0, InitialActiveDensityMatrix, v_embedding,
                   InitialInactiveMOs);
+    active_and_border_atoms_ = activeatoms;
   }
   // SCF loop if you don't truncate active region
   else {
@@ -796,6 +797,9 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
       }
     }
   }
+  TruncMOsFullBasis(trunc_orb, active_and_border_atoms_, numfuncpatom_);
+  Eigen::MatrixXd lalala = trunc_orb.getTruncMOsFullBasis();
+  std::cout << std::endl << "SIZE = " << lalala.size() << std::endl;
   return true;
 }
 
@@ -1520,6 +1524,7 @@ void DFTEngine::TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
 
   // Get a vector containing the number of basis functions per atom
   const std::vector<Index>& numfuncpatom = aobasis.getFuncPerAtom();
+  numfuncpatom_ = numfuncpatom;
   Index numofactivebasisfunction = 0;
   // Store start indices. Will be used later
   std::vector<Index> start_indices, start_indices_activemolecule;
@@ -1570,11 +1575,10 @@ void DFTEngine::TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
   sort(activeatoms.begin(), activeatoms.end());
   sort(borderatoms.begin(), borderatoms.end());
   Eigen::MatrixXd InactiveDensityMatrix = orb.getInactiveDensity();
-XTP_LOG(Log::error, *pLog_) << std::flush;
-    XTP_LOG(Log::error, *pLog_)
-        << "Active + Border Molecule Size = " << activeatoms.size()
-        << "\n \t \t "
-        << "Border Molecule Size = " << borderatoms.size() << std::flush;
+  XTP_LOG(Log::error, *pLog_) << std::flush;
+  XTP_LOG(Log::error, *pLog_)
+      << "Active + Border Molecule Size = " << activeatoms.size() << "\n \t \t "
+      << "Border Molecule Size = " << borderatoms.size() << std::flush;
   Eigen::MatrixXd ProjectionOperator =
       overlap.Matrix() * InactiveDensityMatrix * overlap.Matrix();
 
@@ -1597,7 +1601,7 @@ XTP_LOG(Log::error, *pLog_) << std::flush;
                 .sum();
       }
       /*If more than half of a MO contributes on a border atom include that in
-         * the Border MOs list*/
+       * the Border MOs list*/
       if (mullikenpop_lmo_borderatoms > 0.25) {
         BorderMOs.conservativeResize(InitialInactiveMOs.rows(),
                                      BorderMOs.cols() + 1);
@@ -1656,31 +1660,41 @@ XTP_LOG(Log::error, *pLog_) << std::flush;
   }
 }
 
-void DFTEngine::TruncMOsFullBasis(Orbitals & orb, std::vector<Index> activeatoms, std::vector<Index> numfuncpatom) {
+void DFTEngine::TruncMOsFullBasis(Orbitals& orb, std::vector<Index> activeatoms,
+                                  std::vector<Index> numfuncpatom) {
   Eigen::MatrixXd expandtruncorb = orb.getEmbeddedMOs().eigenvectors();
+  Index start_index = 0;
   for (Index atomindex = 0; atomindex < numfuncpatom.size(); atomindex++) {
-    bool partOfActive =
-        (std::find(activeatoms.begin(), activeatoms.end(),
-                   orb.QMAtoms()[atomindex].getId()) != activeatoms.end());
+    bool partOfActive = (std::find(activeatoms.begin(), activeatoms.end(),
+                                   atomindex) != activeatoms.end());
     if (partOfActive == false) {
-      expandtruncorb = InsertZeroCols(expandtruncorb, 0, 10);
-      expandtruncorb = InsertZeroRows(expandtruncorb, 0, 10);
+      expandtruncorb =
+          InsertZeroCols(expandtruncorb, start_index, numfuncpatom[atomindex]);
+      expandtruncorb =
+          InsertZeroRows(expandtruncorb, start_index, numfuncpatom[atomindex]);
     }
+    start_index += numfuncpatom[atomindex];
   }
   orb.setTruncMOsFullBasis(expandtruncorb);
 }
 
-Eigen::MatrixXd DFTEngine::InsertZeroCols(Eigen::MatrixXd MOsMatrix, Index startidx, Index numofzerocols) {
-  Eigen::MatrixXd FinalMatrix = Eigen::MatrixXd::Zero(MOsMatrix.rows(), MOsMatrix.cols() + numofzerocols);
+Eigen::MatrixXd DFTEngine::InsertZeroCols(Eigen::MatrixXd MOsMatrix,
+                                          Index startidx, Index numofzerocols) {
+  Eigen::MatrixXd FinalMatrix =
+      Eigen::MatrixXd::Zero(MOsMatrix.rows(), MOsMatrix.cols() + numofzerocols);
   FinalMatrix.leftCols(startidx) = MOsMatrix.leftCols(startidx);
-  FinalMatrix.rightCols(MOsMatrix.cols() - startidx) = MOsMatrix.rightCols(MOsMatrix.cols() - startidx);
+  FinalMatrix.rightCols(MOsMatrix.cols() - startidx) =
+      MOsMatrix.rightCols(MOsMatrix.cols() - startidx);
   return FinalMatrix;
 }
 
-Eigen::MatrixXd DFTEngine::InsertZeroRows(Eigen::MatrixXd MOsMatrix, Index startidx, Index numofzerorows) {
-  Eigen::MatrixXd FinalMatrix = Eigen::MatrixXd::Zero(MOsMatrix.rows() + numofzerorows, MOsMatrix.cols());
+Eigen::MatrixXd DFTEngine::InsertZeroRows(Eigen::MatrixXd MOsMatrix,
+                                          Index startidx, Index numofzerorows) {
+  Eigen::MatrixXd FinalMatrix =
+      Eigen::MatrixXd::Zero(MOsMatrix.rows() + numofzerorows, MOsMatrix.cols());
   FinalMatrix.topRows(startidx) = MOsMatrix.topRows(startidx);
-  FinalMatrix.bottomRows(MOsMatrix.rows() - startidx) = MOsMatrix.bottomRows(MOsMatrix.rows() - startidx);
+  FinalMatrix.bottomRows(MOsMatrix.rows() - startidx) =
+      MOsMatrix.bottomRows(MOsMatrix.rows() - startidx);
   return FinalMatrix;
 }
 }  // namespace xtp

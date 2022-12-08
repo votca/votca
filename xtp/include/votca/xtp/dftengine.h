@@ -183,6 +183,8 @@ class DFTEngine {
   double Total_E_full_;
   double E_nuc_;
   double truncation_threshold_;
+  std::vector<Index> active_and_border_atoms_;
+  std::vector<Index> numfuncpatom_;
 };
 
 }  // namespace xtp
