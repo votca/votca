@@ -427,10 +427,9 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
   // check for consistency
   if ((active_electrons_ + inactive_electrons) != all_electrons) {
-    XTP_LOG(Log::error, *pLog_) << TimeStamp()
-                                << " Sum of active and inactive electrons does "
-                                   "not match full number of electrons!"
-                                << std::flush;
+    throw std::runtime_error(
+        " Sum of active and inactive electrons does "
+        "not match full number of electrons!");
     return false;
   }
 
@@ -578,11 +577,11 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
     // Sort atoms before you cut the Hamiltonian
     sort(activeatoms.begin(), activeatoms.end());
     sort(borderatoms.begin(), borderatoms.end());
-    std::cout << std::endl
-              << "Active + Border Molecule Size = " << activeatoms.size()
-              << std::endl;
-    std::cout << std::endl
-              << "Border Molecule Size = " << borderatoms.size() << std::endl;
+    XTP_LOG(Log::error, *pLog_) << std::flush;
+    XTP_LOG(Log::error, *pLog_)
+        << "Active + Border Molecule Size = " << activeatoms.size()
+        << "\n \t \t "
+        << "Border Molecule Size = " << borderatoms.size() << std::flush;
 
     Eigen::MatrixXd H_embedding =
         H0.matrix() + v_embedding + levelshift_ * ProjectionOperator;
@@ -602,6 +601,8 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
                   .segment(start, size)
                   .sum();
         }
+        /*If more than half of a MO contributes on a border atom include that in
+         * the Border MOs list*/
         if (mullikenpop_lmo_borderatoms > 0.25) {
           BorderMOs.conservativeResize(InitialInactiveMOs.rows(),
                                        BorderMOs.cols() + 1);
@@ -880,36 +881,34 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
                .sum());
       // get the new truncated density matrix
       XTP_LOG(Log::info, *pLog_)
-          << std::endl
           << "Electrons in = "
           << TruncatedDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
           << std::flush;
       TruncatedDensityMatrix = conv_accelerator_.Iterate(
           TruncatedDensityMatrix, H_truncated, MOs_trunc, TruncatedTotalEnergy);
       XTP_LOG(Log::info, *pLog_)
-          << std::endl
           << "Electrons out = "
           << TruncatedDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
           << std::flush;
 
       XTP_LOG(Log::info, *pLog_)
-          << std::endl
-          << "E_trunc (Ha) = "
+          << TimeStamp() << " E_trunc (Ha) = "
           << TruncatedDensityMatrix.cwiseProduct(H0_trunc_).sum() +
                  E_Hartree_truncated + E_xc_truncated
-          << std::endl
-          << "E_fullDFT (Ha) = " << Total_E_full_ << std::endl
-          << "E_initial_trunc(Ha) = " << Initial_truncated_energy << std::endl
-          << "E_embedding_correction(Ha) = "
+          << "\n \t \t \t"
+          << " E_fullDFT (Ha) = " << Total_E_full_ << "\n \t \t \t"
+          << " E_initial_trunc(Ha) = " << Initial_truncated_energy
+          << "\n \t \t \t"
+          << " E_embedding_correction(Ha) = "
           << ((TruncatedDensityMatrix - InitialActiveDmat_trunc_)
                   .cwiseProduct(v_embedding_trunc_)
                   .sum())
           << std::flush;
 
       XTP_LOG(Log::error, *pLog_)
-          << std::endl
-          << "Truncated Energy of the system = E_trunc + E_fullDFT - "
-             "E_initial_trunc + E_embedding_correction"
+          << " Truncated Energy of the system: E_trunc + E_fullDFT - "
+          << "\n \t \t"
+          << " E_initial_trunc + E_embedding_correction = "
           << TruncatedTotalEnergy << std::flush;
 
       PrintMOs(MOs_trunc.eigenvalues(), Log::info);
@@ -1631,8 +1630,8 @@ Eigen::MatrixXd DFTEngine::McWeenyPurification(Eigen::MatrixXd& Dmat_in,
     IdempotencyError =
         ((Dmat_new * Dmat_new - Dmat_new) * (Dmat_new * Dmat_new - Dmat_new))
             .trace();
-    std::cout << std::endl
-              << "Idempotency Error: " << IdempotencyError << std::endl;
+    XTP_LOG(Log::info, *pLog_)
+        << "Idempotency Error: " << IdempotencyError << std::flush;
 
     ModifiedDmat = Dmat_new;
     if (IdempotencyError < 1e-20) break;
