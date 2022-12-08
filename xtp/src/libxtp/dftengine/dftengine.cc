@@ -429,10 +429,9 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
   // check for consistency
   if ((active_electrons_ + inactive_electrons) != all_electrons) {
-    XTP_LOG(Log::error, *pLog_) << TimeStamp()
-                                << " Sum of active and inactive electrons does "
-                                   "not match full number of electrons!"
-                                << std::flush;
+    throw std::runtime_error(
+        " Sum of active and inactive electrons does "
+        "not match full number of electrons!");
     return false;
   }
 
@@ -486,12 +485,11 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
                 .sum();
 
   // Energy of the full reference system
-  const double Total_E_full =
-      E0_full + E_Hartree_full + xc_full.energy() + E_nuc_;
+  Total_E_full_ = E0_full + E_Hartree_full + xc_full.energy() + E_nuc_;
 
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp()
-      << " Reference total energy full electron system: " << Total_E_full
+      << " Reference total energy full electron system: " << Total_E_full_
       << " Ha" << std::flush;
 
   // projection parameter, to be made an option
@@ -503,14 +501,14 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
                                       J_initial_active - K_initial_active -
                                       xc_initial_active.matrix();
 
-  const double constant_embedding_energy = Total_E_full - E0_initial_active -
+  const double constant_embedding_energy = Total_E_full_ - E0_initial_active -
                                            E_Hartree_initial_active -
                                            xc_initial_active.energy();
 
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Constant energy embedding terms: " << std::flush;
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " 1) E_DFT[full]: " << Total_E_full << std::flush;
+      << TimeStamp() << " 1) E_DFT[full]: " << Total_E_full_ << std::flush;
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " 2) E_0[initial active]: " << E0_initial_active
       << std::flush;
@@ -628,9 +626,9 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
         XTP_LOG(Log::error, *pLog_)
             << "The difference between the reference energy and the embedding "
                "energy is "
-            << Total_E_full - TotalEnergy << " Ha" << std::flush;
+            << Total_E_full_ - TotalEnergy << " Ha" << std::flush;
 
-        if (abs(Total_E_full - TotalEnergy) > 1e-3) {
+        if (abs(Total_E_full_ - TotalEnergy) > 1e-3) {
           XTP_LOG(Log::error, *pLog_)
               << "Warning!! The difference is greater than 1e-03 Ha"
               << std::flush;
@@ -666,9 +664,6 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
     AOBasis aobasis = trunc_orb.getDftBasis();
     AOOverlap overlap;
     overlap.Fill(aobasis);
-
-    Eigen::MatrixXd difference_before =
-        InitialActiveDmat_trunc_ - InitialActiveDmat_trunc_.transpose();
 
     const double E0_initial_truncated =
         InitialActiveDmat_trunc_.cwiseProduct(H0_trunc_).sum();
@@ -743,23 +738,42 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
 
       double TruncatedTotalEnergy =
           TruncatedDensityMatrix.cwiseProduct(H0_trunc_).sum() +
-          E_Hartree_truncated + E_xc_truncated - Initial_truncated_energy;
-      // ((TruncatedDensityMatrix - InitialActiveDmat_trunc_)
-      //      .cwiseProduct(v_embedding_trunc_)
-      //      .sum())
+          E_Hartree_truncated + E_xc_truncated + Total_E_full_ -
+          Initial_truncated_energy +
+          ((TruncatedDensityMatrix - InitialActiveDmat_trunc_)
+               .cwiseProduct(v_embedding_trunc_)
+               .sum());
       // get the new truncated density matrix
       XTP_LOG(Log::info, *pLog_)
-          << std::endl
           << "Electrons in = "
           << TruncatedDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
           << std::flush;
       TruncatedDensityMatrix = conv_accelerator_.Iterate(
           TruncatedDensityMatrix, H_truncated, MOs_trunc, TruncatedTotalEnergy);
       XTP_LOG(Log::info, *pLog_)
-          << std::endl
           << "Electrons out = "
           << TruncatedDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
           << std::flush;
+
+      XTP_LOG(Log::info, *pLog_)
+          << TimeStamp() << " E_trunc (Ha) = "
+          << TruncatedDensityMatrix.cwiseProduct(H0_trunc_).sum() +
+                 E_Hartree_truncated + E_xc_truncated
+          << "\n \t \t \t"
+          << " E_fullDFT (Ha) = " << Total_E_full_ << "\n \t \t \t"
+          << " E_initial_trunc(Ha) = " << Initial_truncated_energy
+          << "\n \t \t \t"
+          << " E_embedding_correction(Ha) = "
+          << ((TruncatedDensityMatrix - InitialActiveDmat_trunc_)
+                  .cwiseProduct(v_embedding_trunc_)
+                  .sum())
+          << std::flush;
+
+      XTP_LOG(Log::error, *pLog_)
+          << " Truncated Energy of the system: E_trunc + E_fullDFT - "
+          << "\n \t \t"
+          << " E_initial_trunc + E_embedding_correction = "
+          << TruncatedTotalEnergy << std::flush;
 
       PrintMOs(MOs_trunc.eigenvalues(), Log::info);
 
@@ -778,7 +792,6 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
         PrintMOs(MOs_trunc.eigenvalues(), Log::error);
         trunc_orb.setEmbeddedMOs(MOs_trunc);
         trunc_orb.setNumofActiveElectrons(active_electrons_);
-        // CalcElDipole(trunc_orb);
         break;
       }
     }
@@ -1481,6 +1494,8 @@ Eigen::MatrixXd DFTEngine::McWeenyPurification(Eigen::MatrixXd& Dmat_in,
     IdempotencyError =
         ((Dmat_new * Dmat_new - Dmat_new) * (Dmat_new * Dmat_new - Dmat_new))
             .trace();
+    XTP_LOG(Log::info, *pLog_)
+        << "Idempotency Error: " << IdempotencyError << std::flush;
 
     ModifiedDmat = Dmat_new;
     if (IdempotencyError < 1e-20) break;
@@ -1555,11 +1570,11 @@ void DFTEngine::TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
   sort(activeatoms.begin(), activeatoms.end());
   sort(borderatoms.begin(), borderatoms.end());
   Eigen::MatrixXd InactiveDensityMatrix = orb.getInactiveDensity();
-  std::cout << std::endl
-            << "Active + Border Molecule Size = " << activeatoms.size()
-            << std::endl;
-  std::cout << std::endl
-            << "Border Molecule Size = " << borderatoms.size() << std::endl;
+XTP_LOG(Log::error, *pLog_) << std::flush;
+    XTP_LOG(Log::error, *pLog_)
+        << "Active + Border Molecule Size = " << activeatoms.size()
+        << "\n \t \t "
+        << "Border Molecule Size = " << borderatoms.size() << std::flush;
   Eigen::MatrixXd ProjectionOperator =
       overlap.Matrix() * InactiveDensityMatrix * overlap.Matrix();
 
@@ -1581,6 +1596,8 @@ void DFTEngine::TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
                 .segment(start, size)
                 .sum();
       }
+      /*If more than half of a MO contributes on a border atom include that in
+         * the Border MOs list*/
       if (mullikenpop_lmo_borderatoms > 0.25) {
         BorderMOs.conservativeResize(InitialInactiveMOs.rows(),
                                      BorderMOs.cols() + 1);

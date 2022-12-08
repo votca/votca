@@ -180,6 +180,7 @@ class DFTEngine {
   Eigen::MatrixXd v_embedding_trunc_;
   bool truncate_;
   Index active_electrons_;
+  double Total_E_full_;
   double E_nuc_;
   double truncation_threshold_;
 };
