@@ -877,7 +877,7 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
           Initial_truncated_energy +
           ((TruncatedDensityMatrix - InitialActiveDmat_trunc_)
                .cwiseProduct(v_embedding_trunc_)
-              .sum());
+               .sum());
       // get the new truncated density matrix
       XTP_LOG(Log::info, *pLog_)
           << std::endl
