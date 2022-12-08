@@ -1,11 +1,7 @@
 
-import xml.etree.ElementTree as ET
-from typing import Any, Dict
 from types import SimpleNamespace
 import xmltodict 
 import os
-from lxml import etree
-from lxml.etree import Element, ElementTree
 
 class NestedNamespace(SimpleNamespace):
     """Extend SimpleNamespace to nested structure
