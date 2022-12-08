@@ -1,5 +1,4 @@
-
-from types import SimpleNamespace
+from types import new_class, SimpleNamespace
 import xmltodict 
 import os
 
@@ -82,3 +81,51 @@ class NestedNamespace(SimpleNamespace):
             return output
 
         return _recursive_namespace2dict(self)
+
+
+def make_options(name: str, xml_dict: dict, set_default: bool=True):
+    """Create a config object out of an XML dictionary
+
+    Parameters
+    ----------
+    name : str
+      Name for options type
+
+    xml_dict : dict
+      Dictionary generated from the XML configuration files
+
+    set_default : bool (default: True)
+      Whether to set default values in the config object
+
+    Returns
+    -------
+    name_t
+
+    """
+    attrs, slots = {}, {}
+    for key, value in xml_dict.items():
+        if isinstance(value, dict):
+            attrs[key] = make_options(key, value, set_default)
+            doc = [v for k, v in value.items() if k.startswith("@")]
+            slots[key] = "\n".join(doc)
+        else:  # always a @key
+            _key = key.replace("@", "_")
+            attrs[_key] = value
+            slots[_key] = ""
+    cls = new_class(
+        f"{name}_t", exec_body=lambda ns: ns.update({"__slots__": slots})
+    )
+    obj = cls()
+    for k, v in attrs.items():
+        setattr(obj, k, v)
+        if not set_default:
+            continue
+        if k.startswith("_"):
+            continue
+        default = getattr(v, "_default", None)
+        if default == "OPTIONAL":
+            default = None
+        children = [a for a in dir(v) if not a.startswith("_")]
+        if len(children) == 0:
+            setattr(obj, k, default)
+    return obj
