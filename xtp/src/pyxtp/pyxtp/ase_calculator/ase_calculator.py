@@ -8,7 +8,7 @@ import copy as cp
 from ase.units import Hartree, Bohr
 from ase import Atoms
 from ase.calculators.test import numeric_force
-from ase.calculators.calculator import Calculator, equal
+from ase.calculators.calculator import Calculator, equal, PropertyNotImplementedError
 from ..capture_standard_output import capture_standard_output
 from pyxtp import xtp_binds
 from ..options import XTPOptions
@@ -270,13 +270,16 @@ class xtp(Calculator):
         }
 
 
-    def get_total_energy(self, kind: str = 'dft_tot', level: int = 0, dynamic: bool = False) -> float:
+    def get_total_energy(self, name: str = 'energy', level: int = 0, dynamic: bool = False,
+                         atoms = None, allow_calculation=True) -> float:
         """Wrap call to individual total energy functions.
 
         Args:
-            kind (str): name of the energy required
+            name (str): name of the energy required
             level (int): if multiple level in the energy required, specify which one
             dynamic (bool, optional): dynamic propoerty. Defaults to False.
+            atoms (Atoms, optional): atoms to compute the properties over (None)
+            allow_calculation(bool, optional): allow calculation if True (True)
 
         Raises:
             Exception: if kind not recognized
@@ -284,25 +287,43 @@ class xtp(Calculator):
         Returns:
             float: value of the energy (level) required
         """
-        if kind in ['dft_tot','energy']:
+        
+        if name not in self.implemented_properties:
+            raise PropertyNotImplementedError('{} property not implemented'
+                                              .format(name))
+        
+        if atoms is None:
+            atoms = self.atoms
+            system_changes = []
+        else:
+            system_changes = self.check_state(atoms)
+            if system_changes:
+                self.reset()
+                
+        if name not in self.results:
+            if not allow_calculation:
+                return None
+            self.calculate(properties=[name])
+        
+        if name  == 'energy':
             return self.get_dft_energy()
-        elif kind == 'ks':
+        elif name == 'ks':
             return self.get_ks_total_energy(level)
-        elif kind == 'qp_pert':
+        elif name == 'qp_pert':
             return self.get_qp_total_energy(level)
-        elif kind == 'qp_diag':
+        elif name == 'qp':
             return self.get_qp_total_energy(level)
-        elif kind == 'bse_singlet' and not dynamic:
+        elif name == 'singlet' and not dynamic:
             return self.get_bse_singlet_total_energy(level)
-        elif kind == 'bse_singlet' and dynamic:
+        elif name == 'singlet' and dynamic:
             return self.get_bse_singlet_dynamic_total_energy(level)
-        elif kind == 'bse_triplet' and not dynamic:
+        elif name == 'triplet' and not dynamic:
             return self.get_bse_triplet_total_energy(level)
-        elif kind == 'bse_triplet' and dynamic:
+        elif name == 'triplet' and dynamic:
             return self.get_bse_triplet_dynamic_total_energy(level)
         else:
             raise Exception(
-                f'Energy of kind {kind} is not available!')
+                f'Energy of kind {name} is not available!')
 
     def get_dft_energy(self) -> float:
         """Return the DFT total energy.
@@ -474,15 +495,14 @@ class xtp(Calculator):
         Returns:
             np.ndarray: atomic gradients
         """
-        # self.results['forces'] = np.array([[numeric_force(cp.deepcopy(self.atoms), a, i, eps)
-        #                   for i in range(3)] for a in range(len(self.atoms))]) #* Hartree / Bohr ?
+
         forces = []
         for a in range(len(self.atoms)):
             for i in range(3):
                 new_atoms = Atoms(self.atoms.get_chemical_symbols(), positions=self.atoms.get_positions())
                 new_atoms.calc = xtp(options=self.options, nthreads=self.nthreads)
-                forces.append(numeric_force(new_atoms, a, i, eps))
-        self.results['forces'] = np.array(forces)
+                forces.append(numeric_force_property(new_atoms, a, i, eps, kind, energy_level))
+        self.results['forces'] = np.array(forces) #* Hartree / Bohr ?
         self.has_forces = True
         return self.results['forces']
 
