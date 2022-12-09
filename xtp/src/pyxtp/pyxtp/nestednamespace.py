@@ -120,12 +120,12 @@ def make_options(name: str, xml_dict: dict, set_default: bool=True):
         setattr(obj, k, v)
         if not set_default:
             continue
-        if k.startswith("_"):
+        if k.startswith("_"):  # internal keys: _help, _default, etc
             continue
         default = getattr(v, "_default", None)
         if default == "OPTIONAL":
             default = None
         children = [a for a in dir(v) if not a.startswith("_")]
-        if len(children) == 0:
+        if len(children) == 0:  # leaf node
             setattr(obj, k, default)
     return obj
