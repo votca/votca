@@ -1664,7 +1664,8 @@ void DFTEngine::TruncMOsFullBasis(Orbitals& orb, std::vector<Index> activeatoms,
                                   std::vector<Index> numfuncpatom) {
   Eigen::MatrixXd expandtruncorb = orb.getEmbeddedMOs().eigenvectors();
   Index start_index = 0;
-  for (Index atomindex = 0; atomindex < numfuncpatom.size(); atomindex++) {
+  Index numofactualactoms = numfuncpatom.size();
+  for (Index atomindex = 0; atomindex < numofactualactoms; atomindex++) {
     bool partOfActive = (std::find(activeatoms.begin(), activeatoms.end(),
                                    atomindex) != activeatoms.end());
     if (partOfActive == false) {
