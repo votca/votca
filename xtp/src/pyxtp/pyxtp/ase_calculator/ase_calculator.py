@@ -61,8 +61,10 @@ class xtp(Calculator):
             self.options = XTPOptions()
         else:
             self.set_from_options(options)
+            
         self.nthreads = nthreads
-        self.has_data = False
+        self.has_data = False 
+        self.setup_force_calculation()
         self.has_forces = False
         self.jobdir = './'
         self.hdf5_filename = ''
@@ -126,6 +128,7 @@ class xtp(Calculator):
         """Clear all information from old calculation."""
 
         self.atoms = None
+        self.setup_force_calculation()
         self.results = {}
         self.has_forces = False
         self.has_data = False
@@ -321,13 +324,13 @@ class xtp(Calculator):
             return self.get_qp_total_energy(level)
         elif name == 'qp':
             return self.get_qp_total_energy(level)
-        elif name == 'singlet' and not dynamic:
+        elif name == 'singlets' and not dynamic:
             return self.get_bse_singlet_total_energy(level)
-        elif name == 'singlet' and dynamic:
+        elif name == 'singlets' and dynamic:
             return self.get_bse_singlet_dynamic_total_energy(level)
-        elif name == 'triplet' and not dynamic:
+        elif name == 'triplets' and not dynamic:
             return self.get_bse_triplet_total_energy(level)
-        elif name == 'triplet' and dynamic:
+        elif name == 'triplets' and dynamic:
             return self.get_bse_triplet_dynamic_total_energy(level)
         else:
             raise Exception(
@@ -492,8 +495,16 @@ class xtp(Calculator):
 
         return energy, np.array(osc)
 
-    def calculate_numerical_forces(self, kind: str = 'energy', energy_level: int = 0, 
-                                   eps = 0.001, atoms: Atoms = None) -> np.ndarray:
+    def setup_force_calculation(self, energy: str = 'energy', energy_level: int = 0):
+        """Set up which energy term and energy level we want to compute the forces on
+
+        Args:
+            energy (str, optional): _description_. Defaults to 'energy'.
+            energy_level (int, optional): _description_. Defaults to 0.
+        """
+        self.energy_for_forces = {'kind': energy, 'level': energy_level}
+
+    def calculate_numerical_forces(self, eps = 0.001, atoms: Atoms = None) -> np.ndarray:
         """Retreive the atomic forces
 
         Args:
@@ -507,19 +518,22 @@ class xtp(Calculator):
         if atoms is None: 
             atoms = self.atoms
             
+            
         forces = []
         for a in range(len(atoms)):
             _force = []
             for i in range(3):
                 new_atoms = Atoms(atoms.get_chemical_symbols(), positions=atoms.get_positions())
                 new_atoms.calc = xtp(options=self.options, nthreads=self.nthreads)
-                _force.append(numeric_force_property(new_atoms, a, i, eps, kind, energy_level))
+                _force.append(numeric_force_property(new_atoms, a, i, eps, 
+                                                     self.energy_for_forces['kind'] , 
+                                                     self.energy_for_forces['level']))
             forces.append(_force)
         self.results['forces'] = np.array(forces) #* Hartree / Bohr ?
         self.has_forces = True
         return self.results['forces']
 
-    def get_forces(self, atoms: Atoms = None, kind: str = 'energy', energy_level: int = 0, eps = 0.001) -> np.ndarray:
+    def get_forces(self, atoms: Atoms = None, eps = 0.001) -> np.ndarray:
         """_summary_
 
         Args:
@@ -533,9 +547,7 @@ class xtp(Calculator):
         if self.has_forces:
             return self.results['forces']
         else:
-            return self.calculate_numerical_forces(kind=kind, 
-                                                   energy_level=energy_level, 
-                                                   atoms=atoms)
+            return self.calculate_numerical_forces(atoms=atoms)
 
     def read_forces_from_logfile(self, logfile: Pathlike) -> None:
         """Read Forces from VOTCA logfile
