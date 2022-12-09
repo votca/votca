@@ -129,3 +129,24 @@ def make_options(name: str, xml_dict: dict, set_default: bool=True):
         if len(children) == 0:  # leaf node
             setattr(obj, k, default)
     return obj
+
+
+def options2dict(options) -> dict:
+    """Convert a config object to a dictionary, skip keys that are not set
+
+    """
+    res = {}
+    for attr in dir(options):
+        if attr.startswith("_"):
+            continue
+        value = getattr(options, attr)
+        if value is None:
+            continue
+        if value.__class__.__module__ == "builtins":
+            res[attr] = value
+            continue  # leaf node, don't recurse
+        subattrs = [k for k in dir(value) if not k.startswith("_")]
+        if len(subattrs) == 0:
+            continue  # leaf node w/o a value, don't recurse
+        res[attr] = options2dict(value)
+    return res
