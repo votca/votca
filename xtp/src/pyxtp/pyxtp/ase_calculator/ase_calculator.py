@@ -31,6 +31,7 @@ def numeric_force_property(atoms, a, i, d=0.001, name: str = 'energy', level: in
     p[a, i] += d
     atoms.set_positions(p, apply_constraint=False)
     eplus = atoms._calc.get_total_energy(name, level)
+    atoms._calc.reset_results()
     p[a, i] -= 2 * d
     atoms.set_positions(p, apply_constraint=False)
     eminus = atoms._calc.get_total_energy(name, level)
@@ -125,6 +126,13 @@ class xtp(Calculator):
         """Clear all information from old calculation."""
 
         self.atoms = None
+        self.results = {}
+        self.has_forces = False
+        self.has_data = False
+        
+    def reset_results(self):
+        """Clear all the results of previous calculations but keep atoms data
+        """
         self.results = {}
         self.has_forces = False
         self.has_data = False
@@ -501,10 +509,12 @@ class xtp(Calculator):
             
         forces = []
         for a in range(len(atoms)):
+            _force = []
             for i in range(3):
                 new_atoms = Atoms(atoms.get_chemical_symbols(), positions=atoms.get_positions())
                 new_atoms.calc = xtp(options=self.options, nthreads=self.nthreads)
-                forces.append(numeric_force_property(new_atoms, a, i, eps, kind, energy_level))
+                _force.append(numeric_force_property(new_atoms, a, i, eps, kind, energy_level))
+            forces.append(_force)
         self.results['forces'] = np.array(forces) #* Hartree / Bohr ?
         self.has_forces = True
         return self.results['forces']
@@ -523,7 +533,9 @@ class xtp(Calculator):
         if self.has_forces:
             return self.results['forces']
         else:
-            return self.calculate_numerical_forces(kind=kind, energy_level=energy_level)
+            return self.calculate_numerical_forces(kind=kind, 
+                                                   energy_level=energy_level, 
+                                                   atoms=atoms)
 
     def read_forces_from_logfile(self, logfile: Pathlike) -> None:
         """Read Forces from VOTCA logfile
