@@ -55,6 +55,10 @@ class ClassicalSegment : public AtomContainer<T> {
     out << std::endl;
     return out;
   }
+
+  // additional access functions and tools for Ewald compatibility
+  bool IsCharged() const;
+  bool IsPolarizable() const;
 };
 
 using PolarSegment = ClassicalSegment<PolarSite>;

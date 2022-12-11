@@ -200,6 +200,39 @@ std::string ClassicalSegment<StaticSite>::identify() const {
   return "StaticSegment";
 }
 
+// additional access functions and methods for Ewald
+template <class T>
+bool ClassicalSegment<T>::IsCharged() const {
+  for (const T& site : this->atomlist_) {
+    if (std::abs(site.getCharge()) > 1e-4) {
+      return true;
+    }
+  }
+  return false;
+}
+
+template <class T>
+bool ClassicalSegment<T>::IsPolarizable() const {
+  return false;
+}
+
+template <>
+bool ClassicalSegment<PolarSite>::IsPolarizable() const {
+  for (const PolarSite& site : this->atomlist_) {
+
+    (site.getpolarization().array().abs() > 1e-4).any();
+    if ((site.getpolarization().array().abs() > 1e-4).any()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+template <>
+bool ClassicalSegment<StaticSite>::IsPolarizable() const {
+  return false;
+}
+
 template class ClassicalSegment<PolarSite>;
 template class ClassicalSegment<StaticSite>;
 

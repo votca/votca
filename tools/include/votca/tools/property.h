@@ -306,6 +306,17 @@ inline T Property::getAttribute(
   }
 }
 
+bool load_property_from_xml(Property &p, std::string file);
+
+// TO DO: write a better function for this!!!!
+template <>
+inline bool Property::as<bool>() const {
+  if (value_ == "true" || value_ == "TRUE" || value_ == "1")
+    return true;
+  else
+    return false;
+}
+
 template <typename T>
 inline T Property::getAttribute(const std::string &attribute) const {
   std::map<std::string, std::string>::const_iterator it =

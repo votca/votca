@@ -5,7 +5,11 @@
 #include <votca/tools/tokenizer.h>
 #include <votca/xtp/ewald/polarbackground.h>
 #include <votca/xtp/ewald/qmthread.h>
-#include <votca/xtp/ewald/xmapper.h>
+// #include <votca/xtp/ewald/xmapper.h>
+#include "votca/xtp/backgroundregion.h"
+#include "votca/xtp/segmentmapper.h"
+#include <votca/xtp/job.h>
+#include <votca/xtp/jobtopology.h>
 #include <votca/xtp/qmcalculator.h>
 
 namespace votca {
@@ -24,7 +28,7 @@ class EwaldBgPolarizer final : public QMCalculator {
   tools::Property _options;
   std::string _mps_table;
   std::string _xml_file;
-  XMpsMap _mps_mapper;
+  // XMpsMap _mps_mapper;
   bool _pdb_check;
 
   std::string _ptop_file;
@@ -91,25 +95,63 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
 
   // GENERATE BACKGROUND (= periodic bg, with empty foreground)
   std::cout << std::endl << "... ... Initialize MPS-mapper: " << std::flush;
-  PolarTop ptop(&top);
+
+  // * THIS NEEDS TO BE ADAPTED TO NEW JOBTOPOLOGY instead of polartopology
+  // first define a job
+  // tools::Property jobproperty;
+  // jobproperty.add("id",0);
+  // jobproperty.add("tag", "background");
+  // jobproperty.add("input","background");
+  // jobproperty.add("status","AVAILABLE");
+  // Job job(jobproperty);
+  // JobTopology jobtop = JobTopology(job, log, "EWDBACKGROUND");
+  BackgroundRegion BGN(0, log);
+
+  PolarMapper polmap(log);
+  polmap.LoadMappingFile(_xml_file);
+  Index seg_index = 0;
+  for (auto segment : top.Segments()) {
+
+    PolarSegment mol = polmap.map(segment, SegId(seg_index, "n"));
+    BGN.push_back(mol);
+    seg_index++;
+  }
+  // for (const SegId& seg_index : seg_ids) {
+  //  const Segment& segment = top.getSegment(seg_index.Id());
+
+  // PolarSegment mol = polmap.map(segment, seg_index);
+
+  // ShiftPBC(top, center, mol);
+  // mol.setType("mm" + std::to_string(id));
+  // polarregion->push_back(mol);
+
+  /*PolarTop ptop(&top);
   if (_do_restart) {
     ptop.LoadFromDrive(_ptop_file);
   } else {
     _mps_mapper.GenerateMap(_xml_file, _mps_table, &top);
     _mps_mapper.Gen_BGN(&top, &ptop, &master);
   }
-  if (_pdb_check) ptop.PrintPDB("ewdbgpol.ptop.pdb");
+*/
+
+  if (_pdb_check) {
+    csg::PDBWriter mpwriter;
+    mpwriter.Open("ewdbgpol.pdb", false);
+    mpwriter.WriteHeader("Background");
+    mpwriter.WriteBox(top.getBox() * tools::conv::bohr2ang);
+    BGN.WritePDB(mpwriter);
+  }
 
   // POLARIZE SYSTEM
-  EWD::PolarBackground pbg(&top, &ptop, _options, &log);
-  pbg.Polarize(nThreads_);
+  EWD::PolarBackground pbg(&top, &BGN, &_options, &log);
+  // pbg.Polarize(nThreads_);
 
   // SAVE POLARIZATION STATE
-  if (pbg.HasConverged()) {
-    XTP_LOG(Log::info, log) << "Save polarization state" << std::flush;
-    ptop.SaveToDrive("bgp_main.ptop");
-    ptop.PrintPDB("bgp_main.pdb");
-  }
+  // if (pbg.HasConverged()) {
+  //  XTP_LOG(Log::info, log) << "Save polarization state" << std::flush;
+  //  ptop.SaveToDrive("bgp_main.ptop");
+  //  ptop.PrintPDB("bgp_main.pdb");
+  //}
 
   //    // LOAD POLARIZATION STATE
   //    CTP_LOG(logINFO,log) << "Load polarization state" << flush;
