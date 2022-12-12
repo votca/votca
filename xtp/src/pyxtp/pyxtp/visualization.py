@@ -1,20 +1,20 @@
 """Visualization module."""
-from .molecule import Molecule
+from ase import Atoms
 import numpy as np
 import matplotlib.pyplot as plt
 from .utils import H2EV
 
 
 class Visualization:
-    def __init__(self, mol: Molecule, save_figure: bool = False):
-        self.mol = mol
+    def __init__(self, atoms: Atoms, save_figure: bool = False):
+        self.atoms = atoms
         self.save_figure = save_figure
 
     def plot_qp_corrections(self):
-        qp_corrections = self.mol.get_qp_corrections()
-        qpmin = self.mol.qpmin
-        qpmax = self.mol.qpmax + 1
-        corrected_ks = self.mol.ks_energies[qpmin:qpmax]
+        qp_corrections = self.atoms._calc.get_qp_corrections()
+        qpmin = self.atoms._calc.qpmin
+        qpmax = self.atoms._calc.qpmax + 1
+        corrected_ks = self.atoms._calc.ks_energies[qpmin:qpmax]
         plt.plot(corrected_ks, qp_corrections, 'ro')
         plt.xlabel('KS Energy (eV)')
         plt.ylabel('QP correction (eV)')
@@ -27,7 +27,7 @@ class Visualization:
             self, dynamic: bool = False, min: float = 0.0, max: float = 10.0, points: int = 1000,
             sigma: float = 0.2):
 
-        energy, osc = self.mol.get_oscillator_strengths(dynamic)
+        energy, osc = self.atoms._calc.get_oscillator_strengths(dynamic)
 
         # convert energies from Hartree to eV
         energy *= H2EV  # to eV
@@ -63,15 +63,15 @@ class Visualization:
         e = np.linspace(min, max, points)
         dos_ks = 0
         if ks:
-            ks_energies = self.mol.ks_energies * H2EV  # to eV
-            qpmin = self.mol.qpmin
-            qpmax = self.mol.qpmax + 1
+            ks_energies = self.atoms._calc.ks_energies * H2EV  # to eV
+            qpmin = self.atoms._calc.qpmin
+            qpmax = self.atoms._calc.qpmax + 1
             for ks_energy in ks_energies[qpmin:qpmax]:
                 dos_ks += self.gaussian(e, ks_energy, sigma)
             plt.plot(e, dos_ks, 'k', linewidth=2, label='KS')
         dos_qp = 0
         if qp:
-            qp_energies = self.mol.qp_energies * H2EV 
+            qp_energies = self.atoms._calc.qp_energies * H2EV 
             for qp_energy in qp_energies:
                 dos_qp += self.gaussian(e, qp_energy, sigma)
             plt.plot(e, dos_qp, 'r', linewidth=2, label='QP')

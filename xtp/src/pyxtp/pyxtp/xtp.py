@@ -4,15 +4,13 @@ from typing import Any, Dict, Union, List , Optional, Tuple
 import h5py
 from pathlib import Path
 
-import copy as cp
 from ase.units import Hartree, Bohr
 from ase import Atoms
-from ase.calculators.test import numeric_force
 from ase.calculators.calculator import Calculator, equal, PropertyNotImplementedError
-from ..capture_standard_output import capture_standard_output
+from .capture_standard_output import capture_standard_output
 from pyxtp import xtp_binds
-from ..options import XTPOptions
-from ..utils import BOHR2ANG
+from .options import XTPOptions
+from .utils import BOHR2ANG
 
 Pathlike = Union[Path, str]
 
@@ -22,19 +20,25 @@ def load_default_parameters():
     options._fill_default_values()
     return options.__todict__()
 
-def numeric_force_property(atoms, a, i, d=0.001, name: str = 'energy', level: int = 0 ):
+def numeric_force_xtp(atoms, a, i, d=0.001, opt_forces: dict = None):
     """Compute numeric force on atom with index a, Cartesian component i,
     with finite step of size d, and property name (with level level when applicable)
     """
+    if opt_forces is None:
+        name, level, dynamic = 'energy', 0, False
+    else:
+        name, level, dynamic = opt_forces['energy'], opt_forces['level'], opt_forces['dynamic']     
     p0 = atoms.get_positions()
     p = p0.copy()
     p[a, i] += d
     atoms.set_positions(p, apply_constraint=False)
-    eplus = atoms._calc.get_total_energy(name, level)
+    eplus = atoms._calc.get_total_energy(name=name, level=level, dynamic=dynamic)
+    
     atoms._calc.reset_results()
+    
     p[a, i] -= 2 * d
     atoms.set_positions(p, apply_constraint=False)
-    eminus = atoms._calc.get_total_energy(name, level)
+    eminus = atoms._calc.get_total_energy(name=name, level=level, dynamic=dynamic)
     atoms.set_positions(p0, apply_constraint=False)
     return (eminus - eplus) / (2 * d)
 
@@ -64,7 +68,7 @@ class xtp(Calculator):
             
         self.nthreads = nthreads
         self.has_data = False 
-        self.setup_force_calculation()
+        self.setup_option_forces()
         self.has_forces = False
         self.jobdir = './'
         self.hdf5_filename = ''
@@ -128,7 +132,7 @@ class xtp(Calculator):
         """Clear all information from old calculation."""
 
         self.atoms = None
-        self.setup_force_calculation()
+        self.setup_option_forces()
         self.results = {}
         self.has_forces = False
         self.has_data = False
@@ -495,14 +499,14 @@ class xtp(Calculator):
 
         return energy, np.array(osc)
 
-    def setup_force_calculation(self, energy: str = 'energy', energy_level: int = 0):
+    def setup_option_forces(self, energy: str = 'energy', level: int = 0, dynamic: bool = False):
         """Set up which energy term and energy level we want to compute the forces on
 
         Args:
             energy (str, optional): _description_. Defaults to 'energy'.
             energy_level (int, optional): _description_. Defaults to 0.
         """
-        self.energy_for_forces = {'kind': energy, 'level': energy_level}
+        self.option_forces = {'energy': energy, 'level': level, 'dynamic': dynamic}
 
     def calculate_numerical_forces(self, eps = 0.001, atoms: Atoms = None) -> np.ndarray:
         """Retreive the atomic forces
@@ -525,9 +529,7 @@ class xtp(Calculator):
             for i in range(3):
                 new_atoms = Atoms(atoms.get_chemical_symbols(), positions=atoms.get_positions())
                 new_atoms.calc = xtp(options=self.options, nthreads=self.nthreads)
-                _force.append(numeric_force_property(new_atoms, a, i, eps, 
-                                                     self.energy_for_forces['kind'] , 
-                                                     self.energy_for_forces['level']))
+                _force.append(numeric_force_xtp(new_atoms, a, i, eps, self.option_forces))
             forces.append(_force)
         self.results['forces'] = np.array(forces) #* Hartree / Bohr ?
         self.has_forces = True
