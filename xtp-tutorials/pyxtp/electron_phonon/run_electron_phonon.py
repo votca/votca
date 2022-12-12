@@ -5,9 +5,9 @@ from typing import Tuple
 
 import numpy as np
 
-from pyvotca import Electronphonon, Molecule, Orca
+from pyxtp import Electronphonon, Molecule, Orca
 
-PATH_EXAMPLES = Path("pyvotca/examples/electron_phonon")
+PATH_EXAMPLES = Path("./")
 
 
 def run_electron_phonon(show: bool = True) -> Tuple[np.ndarray, np.ndarray]:

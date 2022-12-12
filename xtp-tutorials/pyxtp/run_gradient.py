@@ -1,38 +1,27 @@
 #!/usr/bin/env python
 """Example to perform a gradient calculation."""
+from pyxtp import xtp, Visualization
+from ase import Atoms
 import numpy as np
-
-from pyxtp import DFTGWBSE, Molecule, NumericalGradient
-
 
 def run_gradient() -> np.ndarray:
     """Compute gradient."""
     # define a molecule
-    mol = Molecule()
+    atoms = Atoms('CO', positions=([0,0,0],[1.4,0,0]))
 
-    # make it by hand
-    mol.add_atom("C", 0, 0, 0)
-    mol.add_atom("O", 1.3, 0.0, 0.0)
-
-    # get a DFTGWBSE object
-    votca = DFTGWBSE(mol)
+    # define the calculator
+    calc = xtp(nthreads=2)
     
     # this allows to change all options
-    votca.options.dftpackage.functional = 'PBE'
-    votca.options.dftpackage.basisset = 'def2-svp'
-    votca.options.dftpackage.auxbasisset = 'aux-def2-svp'
+    calc.options.dftpackage.functional = 'PBE'
+    calc.options.dftpackage.basisset = 'def2-svp'
+    calc.options.dftpackage.auxbasisset = 'aux-def2-svp'
 
+    # attach the calculator
+    atoms.calc = calc
+    
     # run for the molecule in its geometry
-    votca.run()
-
-    # calculate a DFT-GWBSE gradient at the geometry
-    grad = NumericalGradient(votca, dr=0.001)
-    grad.run_permut()
-    grad.get_gradient('BSE_singlet', 0)
-
-    print(mol.get_gradient())
-    return mol.get_gradient()
-
+    return atoms.get_forces()
 
 if __name__ == "__main":
     run_gradient()
