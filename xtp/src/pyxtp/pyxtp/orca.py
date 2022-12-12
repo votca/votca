@@ -1,8 +1,7 @@
 """Orca reader/writer module."""
 from pathlib import Path
 from typing import Union
-
-from .molecule import Molecule
+from ase import Atoms
 from .orca_parsers import parse_gradient, parse_hessian
 from .utils import BOHR2ANG
 
@@ -12,7 +11,7 @@ __all__ = ["Orca"]
 
 
 class Orca:
-    def __init__(self, mol: Molecule):
+    def __init__(self, mol: Atoms):
         self.mol = mol
 
     def read_gradient(self, gradient_file: PathLike):

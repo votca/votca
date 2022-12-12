@@ -28,6 +28,7 @@ def numeric_force_xtp(atoms, a, i, d=0.001, opt_forces: dict = None):
         name, level, dynamic = 'energy', 0, False
     else:
         name, level, dynamic = opt_forces['energy'], opt_forces['level'], opt_forces['dynamic']     
+    
     p0 = atoms.get_positions()
     p = p0.copy()
     p[a, i] += d
@@ -58,21 +59,27 @@ class xtp(Calculator):
                  atoms=None,
                  nthreads=1,
                  options=None,
+                 directory='./',
                  **kwargs):
         
-        Calculator.__init__(self, restart=restart, label=label, atoms=atoms, **kwargs)
+        Calculator.__init__(self, restart=restart, label=label, atoms=atoms, 
+                            directory=directory, **kwargs)
+        
         if options is None:
             self.options = XTPOptions()
         else:
             self.set_from_options(options)
             
+        self.set(**kwargs)
+        self.select_force()
+        
         self.nthreads = nthreads
+        
         self.has_data = False 
-        self.setup_option_forces()
         self.has_forces = False
-        self.jobdir = './'
-        self.hdf5_filename = ''
-        self.logfile = ''
+        
+        self.hdf5_filename = None
+        self.logfile = 'dftgwbse.log'
     
     def set(self, **kwargs) -> Dict:
         """Set parameters like set(key1=value1, key2=value2, ...).
@@ -82,7 +89,8 @@ class xtp(Calculator):
         """
 
         translation_dic = {'xc': 'dftpackage/functional',
-                           'basis': 'dftpackage/basisset'}
+                           'basis': 'dftpackage/basisset',
+                           'charge': 'dftpackage/charge'}
 
         changed_parameters = {}
 
@@ -90,17 +98,20 @@ class xtp(Calculator):
             
             if key in translation_dic:
                 key = translation_dic[key]
-                
-            oldvalue = self.parameters.get(key)
-            if key not in self.parameters or not equal(value, oldvalue):
-                changed_parameters[key] = value
-                self.parameters[key] = value
-                
-                split_key = key.split('/')
-                element = self.options
-                for k in split_key[:-1]:
-                    element = element.__getattribute__(k)
-                element.__setattr__(split_key[-1], value)
+            
+            if key in self.parameters:    
+                oldvalue = self.parameters.get(key)
+                if key not in self.parameters or not equal(value, oldvalue):
+                    changed_parameters[key] = value
+                    self.parameters[key] = value
+                    
+                    split_key = key.split('/')
+                    element = self.options
+                    for k in split_key[:-1]:
+                        element = element.__getattribute__(k)
+                    element.__setattr__(split_key[-1], value)
+            else:
+                print('Option % not available in xtp' %key)
                 
         if self.discard_results_on_any_change and changed_parameters:
             self.reset()
@@ -132,7 +143,7 @@ class xtp(Calculator):
         """Clear all information from old calculation."""
 
         self.atoms = None
-        self.setup_option_forces()
+        self.select_force()
         self.results = {}
         self.has_forces = False
         self.has_data = False
@@ -187,8 +198,8 @@ class xtp(Calculator):
         self.options._write_xml(input_filename)
 
         # Runs VOTCA and moves results a job folder, if requested
-        if not Path(self.jobdir).exists():
-            os.makedirs(self.jobdir)
+        if not Path(self.directory).exists():
+            os.makedirs(self.directory)
 
         # current dftgwbse file
         path_dftgwbse = (Path(input_filename)).absolute().as_posix()
@@ -200,13 +211,10 @@ class xtp(Calculator):
         with open(xyzname + ".out", "w") as handler:
             handler.write(output)
 
-        # copy orbfile, if jobdir is not default
-        if (self.jobdir != "./"):
-            self.hdf5_filename = f'{self.jobdir}{self.jobname}.orb'
-            os.replace(f'{xyzname}.orb', self.hdf5_filename)
-        else:
-            self.hdf5_filename = f'{xyzname}.orb'
-            self.logfile = 'dftgwbse.log'
+        # copy orbfile, in directory
+        orbname = f'{xyzname}.orb'
+        self.hdf5_filename = os.path.join(self.directory, orbname)
+        os.replace(f'{xyzname}.orb', self.hdf5_filename)
             
         # Reads energies from an existing HDF5 orb file
         self.read_hdf5_data(self.hdf5_filename)
@@ -499,7 +507,7 @@ class xtp(Calculator):
 
         return energy, np.array(osc)
 
-    def setup_option_forces(self, energy: str = 'energy', level: int = 0, dynamic: bool = False):
+    def select_force(self, energy: str = 'energy', level: int = 0, dynamic: bool = False):
         """Set up which energy term and energy level we want to compute the forces on
 
         Args:
