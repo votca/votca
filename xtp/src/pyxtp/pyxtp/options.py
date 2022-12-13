@@ -71,11 +71,14 @@ class XTPOptions(NestedNamespace):
             for key, value in namespace_data.__dict__.items():
                 
                 if isinstance(value, NestedNamespace):
-                    if '_default' in value.__dict__.keys():
+
+                    if value._haschildren():
+                        _recursive_filldefault(value)
+                        
+                    elif '_default' in value.__dict__.keys():
                         namespace_data.__dict__[key] = value.__dict__['_default']
                         
-                    else:
-                        _recursive_filldefault(value)
+
             
         _recursive_filldefault(self)
     

@@ -143,15 +143,13 @@ class xtp(Calculator):
         """Clear all information from old calculation."""
 
         self.atoms = None
-        self.select_force()
-        self.results = {}
-        self.has_forces = False
-        self.has_data = False
+        self.reset_results()
         
     def reset_results(self):
         """Clear all the results of previous calculations but keep atoms data
         """
         self.results = {}
+        self.select_force()
         self.has_forces = False
         self.has_data = False
         
@@ -612,7 +610,7 @@ class xtp(Calculator):
                     f'Element {elem} with index {k} in molecule differs from element {other_elem} in orb file!')
 
             if not np.allclose(coord, other_coord):
-                raise Exception(
+                raise Warning(
                     f'Molecular coordinates of element {k} {coord} differ from coordinates in orb file {other_coord}')
 
 def read_flatten_array(group: h5py.Group, key1: str, key2: Optional[str] = None):

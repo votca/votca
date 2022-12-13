@@ -86,3 +86,14 @@ class NestedNamespace(SimpleNamespace):
             return output
 
         return _recursive_namespace2dict(self)
+    
+    def _haschildren(self) -> bool:
+        """Returns true if self contains other nestednamespaces
+
+        Returns:
+            bool: _description_
+        """
+        for k,v in self.__dict__.items():
+            if isinstance(v, NestedNamespace):
+                return True
+        return False
