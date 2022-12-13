@@ -123,7 +123,8 @@ void APolarSite::ConvertFromPolarSite(PolarSite psite) {
   Q_groundstate.push_back(multipoles[6]);  // Q21s
   Q_groundstate.push_back(multipoles[7]);  // Q22c
   Q_groundstate.push_back(multipoles[8]);  // Q22s
-  _Qs.push_back(Q_groundstate);  // what states? Take only neutral for now!
+  this->setQs(Q_groundstate,-1);
+  //_Qs.push_back(Q_groundstate);  // what states? Take only neutral for now!
 
   // polarizability tensor/matrix for each state (assume it is rotated in NEW)
   matrix P_groundstate = psite.getpolarization();

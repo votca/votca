@@ -45,7 +45,8 @@ void EwaldBgPolarizer::ParseOptions(const tools::Property &opt) {
             << "... ... Initialized with " << nThreads_ << " threads. "
             << std::flush;
 
-  std::string key = "options.ewdbgpol";
+  //std::string key = "options.ewdbgpol";
+  std::string key = "";
   if (opt.exists(key + ".multipoles")) {
     _xml_file = opt.get(key + ".multipoles").as<std::string>();
   } else {
@@ -53,7 +54,7 @@ void EwaldBgPolarizer::ParseOptions(const tools::Property &opt) {
     throw std::runtime_error("No multipole mapping file provided");
   }
 
-  key = "options.ewdbgpol.control";
+  key = ".control";
   // CONTROL
   if (opt.exists(key + ".mps_table")) {
     _mps_table = opt.get(key + ".mps_table").as<std::string>();
@@ -130,12 +131,15 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
     for (auto site : segment) {
       APolarSite *psite = new APolarSite();
       psite->ConvertFromPolarSite(site);
+      psite->Charge(-1); // set state of this sites -1: ground state
       psites.push_back(psite);
     }
+
     // now make an OLD PolarSeg from the new PolarSegment
     PolarSeg *new_pseg = new PolarSeg(segment.getId(), psites);
     bgN.push_back(new_pseg);
   }
+
 
   // PROPAGATE SHELLS TO POLAR TOPOLOGY
   ptop.setBGN(bgN);

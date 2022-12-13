@@ -14,7 +14,7 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop,
     : _top(top), _ptop(ptop), _log(log), _n_threads(1) {
 
   // EVALUATE OPTIONS
-  std::string pfx = "options.ewdbgpol";
+  std::string pfx = "";
   // Coulomb method
   std::string method = opt.get(pfx + ".coulombmethod.method").as<std::string>();
   if (method == "ewald")
