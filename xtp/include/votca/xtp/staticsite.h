@@ -89,6 +89,12 @@ class StaticSite {
     rank_ = 0;
   }
 
+  // reset dipole and rank if necessary
+  void setStaticDipole(const Eigen::Vector3d& dipole) {
+    Q_.segment<3>(1) = dipole;
+    if (rank_ == 0) rank_ = 1;
+  }
+
   void setPos(const Eigen::Vector3d& position) { pos_ = position; }
 
   // COORDINATES TRANSFORMATION
@@ -103,6 +109,10 @@ class StaticSite {
      // order for dipoles]
 
   virtual Eigen::Vector3d getDipole() const { return Q_.segment<3>(1); }
+  virtual Eigen::Vector3d getStaticDipole() const { return Q_.segment<3>(1); };
+  virtual Eigen::Vector3d getInducedDipole() const {
+    return Eigen::Vector3d::Zero();
+  };
 
   Eigen::Matrix3d CalculateCartesianMultipole() const;
 

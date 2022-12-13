@@ -52,7 +52,7 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 find_package(Threads REQUIRED)
 set_package_properties(Threads PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization")
 
-find_package(Boost 1.71.0 REQUIRED COMPONENTS program_options filesystem system )
+find_package(Boost 1.71.0 REQUIRED COMPONENTS program_options filesystem system serialization)
 set_package_properties(Boost PROPERTIES TYPE REQUIRED PURPOSE "Extended C++ libraries")
 
 

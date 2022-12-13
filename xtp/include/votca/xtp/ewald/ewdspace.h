@@ -16,8 +16,8 @@
  * limitations under the License.
  *
  */
-#ifndef VOTCA_CTP_EWDSPACE_H
-#define VOTCA_CTP_EWDSPACE_H
+#ifndef VOTCA_XTP_EWDSPACE_H
+#define VOTCA_XTP_EWDSPACE_H
 
 #include <cmath>
 // #include <votca/tools/vec.h>
@@ -26,11 +26,12 @@
 
 namespace votca {
 namespace xtp {
+typedef Eigen::Vector3d vec;
+typedef Eigen::Matrix3d matrix;
+
 namespace EWD {
 
 using namespace votca::tools::conv;
-typedef Eigen::Vector3d vec;
-typedef Eigen::Matrix3d matrix;
 // DEFINES THE FOLLOWING
 // o *cmplx* structure
 // o *triple* (templated on contained type)

@@ -7,6 +7,8 @@
 #include <votca/xtp/ewald/qmthread.h>
 // #include <votca/xtp/ewald/xmapper.h>
 #include "votca/xtp/backgroundregion.h"
+#include "votca/xtp/ewald/polarseg.h"
+#include "votca/xtp/ewald/polartop.h"
 #include "votca/xtp/segmentmapper.h"
 #include <votca/xtp/job.h>
 #include <votca/xtp/jobtopology.h>
@@ -96,34 +98,48 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
   // GENERATE BACKGROUND (= periodic bg, with empty foreground)
   std::cout << std::endl << "... ... Initialize MPS-mapper: " << std::flush;
 
-  // * THIS NEEDS TO BE ADAPTED TO NEW JOBTOPOLOGY instead of polartopology
-  // first define a job
-  // tools::Property jobproperty;
-  // jobproperty.add("id",0);
-  // jobproperty.add("tag", "background");
-  // jobproperty.add("input","background");
-  // jobproperty.add("status","AVAILABLE");
-  // Job job(jobproperty);
-  // JobTopology jobtop = JobTopology(job, log, "EWDBACKGROUND");
+  // use new MAPPER to get a list of mapped PolarSegments (neutral only for now)
   BackgroundRegion BGN(0, log);
-
   PolarMapper polmap(log);
   polmap.LoadMappingFile(_xml_file);
   Index seg_index = 0;
   for (auto segment : top.Segments()) {
-
     PolarSegment mol = polmap.map(segment, SegId(seg_index, "n"));
     BGN.push_back(mol);
     seg_index++;
   }
-  // for (const SegId& seg_index : seg_ids) {
-  //  const Segment& segment = top.getSegment(seg_index.Id());
 
-  // PolarSegment mol = polmap.map(segment, seg_index);
+  // Convert this to old PolarTop
+  PolarTop ptop(&top);
 
-  // ShiftPBC(top, center, mol);
-  // mol.setType("mm" + std::to_string(id));
-  // polarregion->push_back(mol);
+  // DECLARE TARGET CONTAINERS
+  std::vector<PolarSeg *> bgN;
+  std::vector<Segment *> segs_bgN;
+  bgN.reserve(BGN.size());
+  // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
+  segs_bgN.reserve(BGN.size());
+  for (auto segment : top.Segments()) {
+    segs_bgN.push_back(&segment);
+  }
+
+  // segments in BGN are NEW POLARSEGMENTS
+  for (auto segment : BGN) {
+    // get all NEW PolarSites of this segment and convert them to OLD PolarSites
+    std::vector<APolarSite *> psites;
+    psites.reserve(segment.size());
+    for (auto site : segment) {
+      APolarSite *psite = new APolarSite();
+      psite->ConvertFromPolarSite(site);
+      psites.push_back(psite);
+    }
+    // now make an OLD PolarSeg from the new PolarSegment
+    PolarSeg *new_pseg = new PolarSeg(segment.getId(), psites);
+    bgN.push_back(new_pseg);
+  }
+
+  // PROPAGATE SHELLS TO POLAR TOPOLOGY
+  ptop.setBGN(bgN);
+  ptop.setSegsBGN(segs_bgN);
 
   /*PolarTop ptop(&top);
   if (_do_restart) {
@@ -143,15 +159,15 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
   }
 
   // POLARIZE SYSTEM
-  EWD::PolarBackground pbg(&top, &BGN, &_options, &log);
-  // pbg.Polarize(nThreads_);
+  EWD::PolarBackground pbg(&top, &ptop, _options, &log);
+  pbg.Polarize(nThreads_);
 
   // SAVE POLARIZATION STATE
-  // if (pbg.HasConverged()) {
-  //  XTP_LOG(Log::info, log) << "Save polarization state" << std::flush;
-  //  ptop.SaveToDrive("bgp_main.ptop");
-  //  ptop.PrintPDB("bgp_main.pdb");
-  //}
+  if (pbg.HasConverged()) {
+    XTP_LOG(Log::info, log) << "Save polarization state" << std::flush;
+    ptop.SaveToDrive("bgp_main.ptop");
+    ptop.PrintPDB("bgp_main.pdb");
+  }
 
   //    // LOAD POLARIZATION STATE
   //    CTP_LOG(logINFO,log) << "Load polarization state" << flush;

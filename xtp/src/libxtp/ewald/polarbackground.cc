@@ -1,7 +1,7 @@
+#include "votca/xtp/ewald/polarbackground.h"
 #include "votca/tools/property.h"
 #include <boost/format.hpp>
 #include <votca/tools/globals.h>
-#include <votca/xtp/ewald/polarbackground.h>
 
 namespace votca {
 namespace xtp {
@@ -9,9 +9,9 @@ namespace EWD {
 
 using boost::format;
 
-PolarBackground::PolarBackground(Topology *top, BackgroundRegion *BGN,
+PolarBackground::PolarBackground(Topology *top, PolarTop *ptop,
                                  tools::Property opt, Logger *log)
-    : _top(top), _BGN(BGN), _log(log), _n_threads(1) {
+    : _top(top), _ptop(ptop), _log(log), _n_threads(1) {
 
   // EVALUATE OPTIONS
   std::string pfx = "options.ewdbgpol";
@@ -104,12 +104,13 @@ PolarBackground::PolarBackground(Topology *top, BackgroundRegion *BGN,
 
   // SET-UP POLAR GROUNDS (FORE-, MID-, BACK-)
   _bg_P.clear();
-  // _bg_P = ptop->BGN();
+  _bg_P = ptop->BGN();
+
   //_bg_P = BGN->segments_;
   // RESTART / CONVERGENCE OPTIONS
   _converged = false;
   _do_restart = false;
-  //_restart_from_iter = ptop->getPolarizationIter();
+  _restart_from_iter = ptop->getPolarizationIter();
   if (_restart_from_iter > -1) {
     XTP_LOG(Log::info, *_log) << "Restarting from iteration "
                               << _restart_from_iter << std::flush << std::flush;
@@ -117,33 +118,28 @@ PolarBackground::PolarBackground(Topology *top, BackgroundRegion *BGN,
   }
 
   // CALCULATE COG POSITIONS, NET CHARGE
-  std::vector<PolarSegment>::iterator sit;
-  std::vector<PolarSite>::iterator pit;
+  // std::vector<PolarSegment>::iterator sit;
+  // std::vector<PolarSite>::iterator pit;
   double Q_bg_P = 0.0;
   int estat_count = 0;
   int polar_count = 0;
-  for (sit = BGN->begin(); sit < BGN->end(); ++sit) {
-    Q_bg_P += sit->CalcTotalQ();
-    if (sit->IsCharged()) estat_count += 1;
-    if (sit->IsPolarizable()) polar_count += 1;
+  // for (sit = BGN->begin(); sit < BGN->end(); ++sit) {
+  for (auto &pseg : _bg_P) {
+    pseg->CalcPos();
+    pseg->CalcIsCharged();
+    pseg->CalcIsPolarizable();
+    Q_bg_P += pseg->CalcTotQ();
+    if (pseg->IsCharged()) estat_count += 1;
+    if (pseg->IsPolarizable()) polar_count += 1;
   }
-
-  /*  for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
-      (*sit)->CalcPos();
-      (*sit)->CalcIsCharged();
-      (*sit)->CalcIsPolarizable();
-      Q_bg_P += (*sit)->CalcTotQ();
-      if ((*sit)->IsCharged()) estat_count += 1;
-      if ((*sit)->IsPolarizable()) polar_count += 1;
-    }*/
 
   XTP_LOG(Log::info, *_log)
       << (format("Net ground charge and size:")).str() << std::flush
       << (format("  o Q(BGP) = %1$+1.3fe |BGP| = %2$+5d") % Q_bg_P %
-          _BGN->size())
+          _bg_P.size())
       << std::flush
       << (format("  o Activity <qdQ %1$d/%3$d> <P %2$d/%3$d>") % estat_count %
-          polar_count % _BGN->size())
+          polar_count % _bg_P.size())
       << std::flush;
 
   if (std::abs(Q_bg_P) > 1e-2) {
@@ -167,9 +163,6 @@ PolarBackground::PolarBackground(Topology *top, BackgroundRegion *BGN,
     std::cout << std::endl;
   }
 
-// +++++++++ HERE ++++++++++++ //
-
-
   // APPLY SYSTEM DIPOLE COMPENSATION
   if (_do_compensate_net_dipole) {
     XTP_LOG(Log::info, *_log)
@@ -179,12 +172,17 @@ PolarBackground::PolarBackground(Topology *top, BackgroundRegion *BGN,
         << std::flush;
     vec system_dpl(0, 0, 0);
     int charged_count = 0;
-    for (sit = _BGN->begin(); sit < _BGN->end(); ++sit) {
-      PolarSegment pseg = *sit;
-      for (pit = pseg.begin(); pit < pseg.end(); ++pit) {
+    // for (sit = _BGN->begin(); sit < _BGN->end(); ++sit) {
+    for (auto &pseg : _bg_P) {
+      // PolarSegment pseg = *sit;
+      // for (pit = pseg.begin(); pit < pseg.end(); ++pit) {
+      if (!pseg->IsCharged()) continue;
+      for (auto &psite : *pseg) {
         charged_count += 1;
-        system_dpl +=
-            (*pit).getDipole();  // Pos() * (*pit).StaticSite::data.Q00;
+        system_dpl += psite->getPos() * psite->getQ00();
+        if (psite->getRank() > 0) {
+          system_dpl += psite->getQ1();
+        }
       }
     }
     XTP_LOG(Log::info, *_log)
@@ -192,8 +190,7 @@ PolarBackground::PolarBackground(Topology *top, BackgroundRegion *BGN,
         << " polar sites)" << std::flush;
     vec atomic_compensation_dpl_system = -system_dpl / charged_count;
     int compensation_count = 0;
-    for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
-      PolarSeg *pseg = *sit;
+    for (auto &pseg : _bg_P) {
       if (!pseg->IsCharged()) continue;
       // Dipole compensation type
       vec atomic_compensation_dpl = vec(0, 0, 0);
@@ -211,15 +208,14 @@ PolarBackground::PolarBackground(Topology *top, BackgroundRegion *BGN,
         atomic_compensation_dpl = vec(0., 0., atomic_compensation_dpl(2));
       } else
         assert(false);  // Compensation direction not implemented
-      // Apply dipolar compensation
-      for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+                        // Apply dipolar compensation
+      for (auto &psite : *pseg) {
         compensation_count += 1;
-        if ((*pit)->getRank() < 1) {
-          (*pit)->setQ1(atomic_compensation_dpl);
-          (*pit)->setRank(1);
+        if (psite->getRank() < 1) {
+          psite->setQ1(atomic_compensation_dpl);
+          psite->setRank(1);
         } else {
-          vec new_dpl = (*pit)->getQ1() + atomic_compensation_dpl;
-          (*pit)->setQ1(new_dpl);
+          psite->setQ1(psite->getQ1() + atomic_compensation_dpl);
         }
       }
     }
@@ -231,10 +227,9 @@ PolarBackground::PolarBackground(Topology *top, BackgroundRegion *BGN,
     // Restarting from previous iteration, hence no depolarization
     ;
   } else {
-    for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
-      PolarSeg *pseg = *sit;
-      for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-        (*pit)->Depolarize();
+    for (auto &pseg : _bg_P) {
+      for (auto &psite : *pseg) {
+        psite->Depolarize();
       }
     }
   }
@@ -242,12 +237,14 @@ PolarBackground::PolarBackground(Topology *top, BackgroundRegion *BGN,
   // CALCULATE NET DIPOLE OF BGP & FGC
   vec netdpl_bgP = vec(0, 0, 0);
   double qzz_bgP = 0.0;
-  for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
-    PolarSeg *pseg = *sit;
-    for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-      netdpl_bgP += (*pit)->getPos() * (*pit)->getQ00();
-      if ((*pit)->getRank() > 0) netdpl_bgP += (*pit)->getQ1();
-      qzz_bgP += (*pit)->getQ00() * ((*pit)->getPos()(2) * (*pit)->getPos()(2));
+  for (auto &pseg : _bg_P) {
+    for (auto &psite : *pseg) {
+
+      netdpl_bgP += psite->getPos() * psite->getQ00();
+      if (psite->getRank() > 0) {
+        netdpl_bgP += psite->getQ1();
+      }
+      qzz_bgP += psite->getQ00() * psite->getPos()(2) * psite->getPos()(2);
     }
   }
 
@@ -1033,11 +1030,6 @@ void PolarBackground::FX_RealSpace(std::string mode, bool do_setup_nbs) {
   XTP_LOG(Log::debug, *_log)
       << "    - Real-space nb-list set: <nbs/seg> = "
       << (double)total_nbs_count / _bg_P.size() << std::flush;
-  if (_bg_P.size() > 288 + 1)
-    _bg_P[288]->PrintPolarNbPDB("seg289.pdb");
-  else {
-    _bg_P[0]->PrintPolarNbPDB("seg1.pdb");
-  }
 
   return;
 }

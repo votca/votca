@@ -9,9 +9,6 @@
 namespace votca {
 namespace xtp {
 
-typedef Eigen::Vector3d vec;
-typedef Eigen::Matrix3d matrix;
-
 class PolarTop {
 
  public:
@@ -84,7 +81,7 @@ class PolarTop {
 
   template <class Archive>
   void serialize(Archive &arch, const unsigned int version) {
-    arch &_center;
+    /*arch &_center;
     arch &_qm0;
     arch &_mm1;
     arch &_mm2;
@@ -94,7 +91,7 @@ class PolarTop {
     if (version > 0) {
       arch &_polarization_iter;
       arch &_polarization_converged;
-    }
+    }*/
     return;
   }
 

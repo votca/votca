@@ -59,6 +59,7 @@ class ClassicalSegment : public AtomContainer<T> {
   // additional access functions and tools for Ewald compatibility
   bool IsCharged() const;
   bool IsPolarizable() const;
+  Eigen::Vector3d CalcStaticDipole() const;
 };
 
 using PolarSegment = ClassicalSegment<PolarSite>;

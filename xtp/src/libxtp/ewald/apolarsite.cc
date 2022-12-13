@@ -91,6 +91,49 @@ APolarSite::APolarSite(APolarSite *templ, bool do_depolarize)
   if (do_depolarize) this->Depolarize();
 }
 
+void APolarSite::ConvertFromPolarSite(PolarSite psite) {
+  typedef Eigen::Matrix<double, 9, 1> Vector9d;
+
+  // positions
+  _pos = psite.getPos();  // units!!!
+  _resolution = atomistic;
+
+  // elements of the localframe definitions, should have been taken care of
+  // already
+  _locX = vec(1.0, 0.0, 0.0);  // hopefully never used!
+  _locY = vec(0.0, 1.0, 0.0);  // hopefully never used!
+  _locZ = vec(0.0, 0.0, 1.0);  // hopefully never used!
+
+  // some bookkeeping excercises which are hopefully irrelevant
+  _top = NULL;
+  _seg = NULL;
+  _frag = NULL;
+
+  // multipole definitions
+  _rank = psite.getRank();
+  Vector9d multipoles = psite.Q();
+  std::vector<double> Q_groundstate;
+  Q_groundstate.push_back(multipoles[0]);  // Q00
+  // Apolarsite has diffrent order of dipole entries
+  Q_groundstate.push_back(multipoles[3]);  // Q10
+  Q_groundstate.push_back(multipoles[1]);  // Q11c
+  Q_groundstate.push_back(multipoles[2]);  // Q11s
+  Q_groundstate.push_back(multipoles[4]);  // Q20
+  Q_groundstate.push_back(multipoles[5]);  // Q21c
+  Q_groundstate.push_back(multipoles[6]);  // Q21s
+  Q_groundstate.push_back(multipoles[7]);  // Q22c
+  Q_groundstate.push_back(multipoles[8]);  // Q22s
+  _Qs.push_back(Q_groundstate);  // what states? Take only neutral for now!
+
+  // polarizability tensor/matrix for each state (assume it is rotated in NEW)
+  matrix P_groundstate = psite.getpolarization();
+  _Ps.push_back(P_groundstate);
+
+  // ID, not sure if needed
+  _id = psite.getId();
+  _name = psite.getElement();
+}
+
 void APolarSite::ImportFrom(APolarSite *templ, std::string tag) {
 
   _pos = templ->getPos();

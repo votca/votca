@@ -26,6 +26,7 @@
 #include <map>
 #include <votca/tools/eigensystem.h>
 #include <votca/tools/types.h>
+#include <votca/xtp/polarsite.h>
 
 namespace votca {
 namespace xtp {
@@ -111,6 +112,8 @@ class APolarSite {
   bool getIsActive(bool estatics_only);
 
   void ImportFrom(APolarSite *templ, std::string tag = "basic");
+  void ConvertFromPolarSite(PolarSite psite);
+
   void setIsVirtual(bool isVirtual) { _isVirtual = isVirtual; }
   void setPos(vec &pos) { _pos = pos; }
   void setRank(int rank) { _rank = rank; }  // rank; } // OVERRIDE

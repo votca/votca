@@ -166,6 +166,18 @@ Eigen::Vector3d ClassicalSegment<T>::CalcDipole() const {
 }
 
 template <class T>
+Eigen::Vector3d ClassicalSegment<T>::CalcStaticDipole() const {
+  Eigen::Vector3d dipole = Eigen::Vector3d::Zero();
+
+  Eigen::Vector3d CoM = this->getPos();
+  for (const T& site : this->atomlist_) {
+    dipole += (site.getPos() - CoM) * site.getCharge();
+    dipole += site.getStaticDipole();
+  }
+  return dipole;
+}
+
+template <class T>
 void ClassicalSegment<T>::WriteMPS(std::string filename,
                                    std::string header) const {
 

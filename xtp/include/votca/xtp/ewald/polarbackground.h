@@ -16,13 +16,18 @@ namespace EWD {
 class PolarBackground {
  public:
   // PolarBackground() : /*_top(NULL), _ptop(NULL),*/ _log(NULL),
-  // _n_threads(1){}; PolarBackground(Topology *top, PolarTop *ptop,
+  //_n_threads(1){};
+  // PolarBackground(Topology *top, PolarTop *ptop,
   //                                tools::Property opt, Logger *log)
   //   : _top(top), _ptop(ptop), _log(log), _n_threads(1){};
-  PolarBackground(Topology *, BackgroundRegion *, tools::Property, Logger *);
-  //: _top(top), _BGN(BGN), _log(log), _n_threads(1){};
+  // PolarBackground(Topology *, BackgroundRegion &, tools::Property, Logger *);
+  //: _top(top), _BGN(BGN), _log(log), _n_threads(1){};*/
 
+  PolarBackground() : /*_top(NULL), _ptop(NULL),*/ _log(NULL), _n_threads(1){};
+  PolarBackground(Topology *, PolarTop *, tools::Property, Logger *);
   ~PolarBackground();
+
+  //~PolarBackground();
 
   // void Initialize();
   void Threaded(int n_threads) { _n_threads = n_threads; }
@@ -192,10 +197,10 @@ class PolarBackground {
   // POLAR SEGMENTS
   // Part I - Ewald
   PolarTop *_ptop;
-  BackgroundRegion *_BGN;
+  // BackgroundRegion &_BGN;
 
-  // std::vector<PolarSeg *> _bg_P;  // Period. density = _bg_N v _fg_N
-  std::vector<PolarSegment> _bg_P;  // Period. density = _bg_N v _fg_N
+  std::vector<PolarSeg *> _bg_P;  // Period. density = _bg_N v _fg_N
+  // std::vector<PolarSegment> _bg_P;  // Period. density = _bg_N v _fg_N
 
   bool _do_compensate_net_dipole;
   std::string _dipole_compensation_type;       // "system" or "segment"
