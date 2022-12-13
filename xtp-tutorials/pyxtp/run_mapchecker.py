@@ -32,27 +32,12 @@ def run_mapchecker(nThreads: int, path_examples: Path) -> None:
     assert all(x in expected for x in pdb_files)
 
 
-def run_dftgwbse(nThreads: int, path_examples: Path) -> None:
-    """Run the DFTGWBSE qmtool."""
-    print("calling dftgwbse")
-    # Look for the xml input
-    path_dftgwbse = (path_examples / "dftgwbse.xml").absolute().as_posix()
-    # Call the tool and capture the standard output
-    output = capture_standard_output(
-        xtp_binds.call_tool, "dftgwbse", nThreads, path_dftgwbse)
-
-    with open("example.out", "w") as handler:
-        handler.write(output)
-
-
 def run_examples():
     """Call the xtp_binds interface."""
     nThreads = cpu_count()
     path_examples = Path("files_examples")
 
-    # run_mapchecker(nThreads, path_examples)
-    run_dftgwbse(nThreads, path_examples)
-
+    run_mapchecker(nThreads, path_examples)
 
 if __name__ == "__main__":
     run_examples()

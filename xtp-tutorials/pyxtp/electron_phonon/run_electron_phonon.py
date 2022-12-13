@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import Tuple
 
 import numpy as np
-
-from pyxtp import Electronphonon, Molecule, Orca
+from ase import Atoms
+from pyxtp.orca import Electronphonon, Orca
 
 PATH_EXAMPLES = Path("./")
 
