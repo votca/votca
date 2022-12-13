@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Union
 from ase import Atoms
 from .orca_parsers import parse_gradient, parse_hessian
-from .utils import BOHR2ANG
+from ..utils import BOHR2ANG
 
 PathLike = Union[str, Path]
 

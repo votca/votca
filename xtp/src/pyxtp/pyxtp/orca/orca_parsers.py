@@ -8,7 +8,7 @@ from typing import Sequence, Tuple, Union
 import numpy as np
 from more_itertools import chunked
 
-from .parser import parse_file, parse_section, try_search_pattern
+from ..parser import parse_file, parse_section, try_search_pattern
 
 PathLike = Union[Path, str]
 
