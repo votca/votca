@@ -95,7 +95,7 @@ void APolarSite::ConvertFromPolarSite(PolarSite psite) {
   typedef Eigen::Matrix<double, 9, 1> Vector9d;
 
   // positions
-  _pos = psite.getPos();  // units!!!
+  _pos = votca::tools::conv::bohr2nm * psite.getPos();  // PolarSite: a_0, APolarSite nm  
   _resolution = atomistic;
 
   // elements of the localframe definitions, should have been taken care of
@@ -113,23 +113,23 @@ void APolarSite::ConvertFromPolarSite(PolarSite psite) {
   _rank = psite.getRank();
   Vector9d multipoles = psite.Q();
   std::vector<double> Q_groundstate;
-  Q_groundstate.push_back(multipoles[0]);  // Q00
+  Q_groundstate.push_back(multipoles[0]);  // Q00 PolarSite: e, APolarSite e
   // Apolarsite has diffrent order of dipole entries
-  Q_groundstate.push_back(multipoles[3]);  // Q10
-  Q_groundstate.push_back(multipoles[1]);  // Q11c
-  Q_groundstate.push_back(multipoles[2]);  // Q11s
-  Q_groundstate.push_back(multipoles[4]);  // Q20
-  Q_groundstate.push_back(multipoles[5]);  // Q21c
-  Q_groundstate.push_back(multipoles[6]);  // Q21s
-  Q_groundstate.push_back(multipoles[7]);  // Q22c
-  Q_groundstate.push_back(multipoles[8]);  // Q22s
-  this->setQs(Q_groundstate,-1);
-  //_Qs.push_back(Q_groundstate);  // what states? Take only neutral for now!
+  Q_groundstate.push_back(votca::tools::conv::bohr2nm*multipoles[3]);  // Q10 PolarSite e*a_0, APolarSite e*nm
+  Q_groundstate.push_back(votca::tools::conv::bohr2nm*multipoles[1]);  // Q11c 
+  Q_groundstate.push_back(votca::tools::conv::bohr2nm*multipoles[2]);  // Q11s
+  double unit_conv = std::pow(votca::tools::conv::bohr2nm,2);
+  Q_groundstate.push_back(unit_conv*multipoles[4]);  // Q20 PolarSite e*(a_0)^2, APolarSite e*(nm)^3
+  Q_groundstate.push_back(unit_conv*multipoles[5]);  // Q21c
+  Q_groundstate.push_back(unit_conv*multipoles[6]);  // Q21s
+  Q_groundstate.push_back(unit_conv*multipoles[7]);  // Q22c
+  Q_groundstate.push_back(unit_conv*multipoles[8]);  // Q22s
+  this->setQs(Q_groundstate,-1); // -1: neutral ground state only for now
 
   // polarizability tensor/matrix for each state (assume it is rotated in NEW)
-  matrix P_groundstate = psite.getpolarization();
-  _Ps.push_back(P_groundstate);
-
+  unit_conv = std::pow(votca::tools::conv::bohr2nm,3);
+  matrix P_groundstate = unit_conv*psite.getpolarization(); // PolarSite: (a_0)^3, APolarSite (nm)^3
+  this->setPs(P_groundstate,-1); // -1: neutral ground state only for now
   // ID, not sure if needed
   _id = psite.getId();
   _name = psite.getElement();

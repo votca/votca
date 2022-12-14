@@ -84,9 +84,9 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop,
   _actor = XInteractor(NULL, _polar_aDamp);
 
   // SET-UP REAL & RECIPROCAL SPACE
-  _a = _top->getBox().col(0);
-  _b = _top->getBox().col(1);
-  _c = _top->getBox().col(2);
+  _a = votca::tools::conv::bohr2nm*_top->getBox().col(0); // NEW: in a_0, needed here: nm
+  _b = votca::tools::conv::bohr2nm*_top->getBox().col(1);
+  _c = votca::tools::conv::bohr2nm*_top->getBox().col(2);
   _LxLyLz = _a.dot(_b.cross(_c));
   _LxLy = (_a.cross(_b)).norm();
 
@@ -274,8 +274,8 @@ PolarBackground::~PolarBackground() {
 void PolarBackground::Checkpoint(int iter, bool converged) {
   XTP_LOG(Log::debug, *_log)
       << "  o Checkpointing (iteration " << iter << ") ... ";
-  //_ptop->setPolarizationIter(iter, converged);
-  //_ptop->SaveToDrive("bgp_check.ptop");
+  _ptop->setPolarizationIter(iter, converged);
+  _ptop->SaveToDrive("bgp_check.ptop");
   XTP_LOG(Log::debug, *_log) << "done." << std::flush;
   return;
 }
