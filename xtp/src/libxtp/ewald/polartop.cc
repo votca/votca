@@ -243,7 +243,7 @@ void PolarTop::PrintInduState(FILE* out, std::string format, bool split_dpl,
   for (sit = _qm0.begin(); sit < _qm0.end(); ++sit) {
     vec pb_shift = vec(0, 0, 0);
     for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
-      (*pit)->WriteXyzLine(out, pb_shift, format);
+      (*pit)->WriteXyzLine(out, pb_shift);
     }
   }
 

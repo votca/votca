@@ -110,7 +110,7 @@ void APolarSite::ConvertFromPolarSite(PolarSite psite) {
   _frag = NULL;
 
   // multipole definitions
-  _rank = psite.getRank();
+  _rank = int(psite.getRank());
   Vector9d multipoles = psite.Q();
   std::vector<double> Q_groundstate;
   Q_groundstate.push_back(multipoles[0]);  // Q00 PolarSite: e, APolarSite e
@@ -131,7 +131,7 @@ void APolarSite::ConvertFromPolarSite(PolarSite psite) {
   matrix P_groundstate = unit_conv*psite.getpolarization(); // PolarSite: (a_0)^3, APolarSite (nm)^3
   this->setPs(P_groundstate,-1); // -1: neutral ground state only for now
   // ID, not sure if needed
-  _id = psite.getId();
+  _id = int(psite.getId());
   _name = psite.getElement();
 }
 
@@ -209,39 +209,20 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
     // Transform quadrupole moment into global frame
     if (_Qs[state + 1].size() > 4) {
 
-      double Qzz = _Qs[state + 1][4];
-      double Qxx = -0.5 * _Qs[state + 1][4] + 0.5 * sqrt(3) * _Qs[state + 1][7];
-      double Qyy = -0.5 * _Qs[state + 1][4] - 0.5 * sqrt(3) * _Qs[state + 1][7];
+      double Qzz1 = _Qs[state + 1][4];
+      double Qxx1 = -0.5 * _Qs[state + 1][4] + 0.5 * sqrt(3) * _Qs[state + 1][7];
+      double Qyy1 = -0.5 * _Qs[state + 1][4] - 0.5 * sqrt(3) * _Qs[state + 1][7];
 
-      double Qxy = 0.5 * sqrt(3) * _Qs[state + 1][8];
-      double Qxz = 0.5 * sqrt(3) * _Qs[state + 1][5];
-      double Qyz = 0.5 * sqrt(3) * _Qs[state + 1][6];
+      double Qxy1 = 0.5 * sqrt(3) * _Qs[state + 1][8];
+      double Qxz1 = 0.5 * sqrt(3) * _Qs[state + 1][5];
+      double Qyz1 = 0.5 * sqrt(3) * _Qs[state + 1][6];
 
       matrix Q;
-      Q.row(0) = vec(Qxx, Qxy, Qxz);
-      Q.row(1) = vec(Qxy, Qyy, Qyz);
-      Q.row(2) = vec(Qxz, Qyz, Qzz);
-      /*matrix(vec(Qxx,Qxy,Qxz),
-                        vec(Qxy,Qyy,Qyz),
-                        vec(Qxz,Qyz,Qzz));*/
+      Q.row(0) = vec(Qxx1, Qxy1, Qxz1);
+      Q.row(1) = vec(Qxy1, Qyy1, Qyz1);
+      Q.row(2) = vec(Qxz1, Qyz1, Qzz1);
 
       matrix Q_Global = R * Q * R_T;
-
-      /* if (this->getId() == 1) {
-          std::cout << std::endl;;
-          std::cout << "  " << Q_Global.get(0,0);
-          std::cout << "  " << Q_Global.get(0,1);
-          std::cout << "  " << Q_Global.get(0,2);
-          std::cout << std::endl;;
-          std::cout << "  " << Q_Global.get(1,0);
-          std::cout << "  " << Q_Global.get(1,1);
-          std::cout << "  " << Q_Global.get(1,2);
-          std::cout << std::endl;;
-          std::cout << "  " << Q_Global.get(2,0);
-          std::cout << "  " << Q_Global.get(2,1);
-          std::cout << "  " << Q_Global.get(2,2);
-          std::cout << std::endl;;
-      }                                   */
 
       _Qs[state + 1][4] = Q_Global(2, 2);                // Q20
       _Qs[state + 1][5] = 2 / sqrt(3) * Q_Global(0, 2);  // Q21c
@@ -507,7 +488,7 @@ void APolarSite::Depolarize() {
   return;
 }
 
-void APolarSite::PrintInfo(std::ostream &out) {
+void APolarSite::PrintInfo() {
 
   printf(
       "\n%2s %2d POS %+2.3f %+2.3f %+2.3f "
@@ -564,19 +545,7 @@ void APolarSite::WritePdbLine(FILE *out, const std::string &tag) {
           Q00);
 }
 
-void APolarSite::WriteXyzLine(FILE *out, vec &shift, std::string format) {
-  /*
-      double int2ext = 1.0;
-
-
-
-      if (format == "gaussian") {
-          int2ext = 10.;
-      }
-      else {
-          int2ext = 10.;
-      }
-  */
+void APolarSite::WriteXyzLine(FILE *out, vec &shift) {
   vec pos = _pos + shift;
   fprintf(out, "%-2s %+4.9f %+4.9f %+4.9f \n", _name.c_str(), pos(0) * 10,
           pos(1) * 10, pos(2) * 10);
@@ -632,22 +601,18 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
 
       int state = 0;
 
-      double Qzz = _Qs[state + 1][4];
-      double Qxx = -0.5 * _Qs[state + 1][4] + 0.5 * sqrt(3) * _Qs[state + 1][7];
-      double Qyy = -0.5 * _Qs[state + 1][4] - 0.5 * sqrt(3) * _Qs[state + 1][7];
+      double Qzz1 = _Qs[state + 1][4];
+      double Qxx1 = -0.5 * _Qs[state + 1][4] + 0.5 * sqrt(3) * _Qs[state + 1][7];
+      double Qyy1 = -0.5 * _Qs[state + 1][4] - 0.5 * sqrt(3) * _Qs[state + 1][7];
 
-      double Qxy = 0.5 * sqrt(3) * _Qs[state + 1][8];
-      double Qxz = 0.5 * sqrt(3) * _Qs[state + 1][5];
-      double Qyz = 0.5 * sqrt(3) * _Qs[state + 1][6];
+      double Qxy1 = 0.5 * sqrt(3) * _Qs[state + 1][8];
+      double Qxz1 = 0.5 * sqrt(3) * _Qs[state + 1][5];
+      double Qyz1 = 0.5 * sqrt(3) * _Qs[state + 1][6];
 
       matrix Q;
-      Q.row(0) = vec(Qxx, Qxy, Qxz);
-      Q.row(1) = vec(Qxy, Qyy, Qyz);
-      Q.row(2) = vec(Qxz, Qyz, Qzz);
-
-      /* matrix(vec(Qxx,Qxy,Qxz),
-                        vec(Qxy,Qyy,Qyz),
-                        vec(Qxz,Qyz,Qzz));*/
+      Q.row(0) = vec(Qxx1, Qxy1, Qxz1);
+      Q.row(1) = vec(Qxy1, Qyy1, Qyz1);
+      Q.row(2) = vec(Qxz1, Qyz1, Qzz1);
 
       Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es(Q);
 
@@ -973,7 +938,7 @@ std::vector<APolarSite *> APS_FROM_MPS(std::string filename, int state,
           pyz = 1e-3 * boost::lexical_cast<double>(split[5]);
           pzz = 1e-3 * boost::lexical_cast<double>(split[6]);
 
-          matrix P1;
+          //matrix P;
           P1.row(0) = vec(pxx, pxy, pxz);
           P1.row(1) = vec(pxy, pyy, pyz);
           P1.row(2) = vec(pxz, pyz, pzz);
@@ -988,7 +953,7 @@ std::vector<APolarSite *> APS_FROM_MPS(std::string filename, int state,
           pyy = pxx;
           pyz = 0.0;
           pzz = pxx;
-          matrix P1;
+          //matrix P1;
           P1.row(0) = vec(pxx, pxy, pxz);
           P1.row(1) = vec(pxy, pyy, pyz);
           P1.row(2) = vec(pxz, pyz, pzz);
@@ -1026,7 +991,7 @@ std::vector<APolarSite *> APS_FROM_MPS(std::string filename, int state,
 
   // Apply charge correction: Sum to closest integer
   int Q_integer = boost::math::iround(Q0_total);
-  double dQ = (double(Q_integer) - Q0_total) / poles.size();
+  double dQ = (double(Q_integer) - Q0_total) / double(poles.size());
 
   double Q0_total_corr = 0.0;
   std::vector<APolarSite *>::iterator pit;

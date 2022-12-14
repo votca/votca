@@ -230,10 +230,10 @@ class APolarSite {
   double HistdU2();
 
   // PRINT FUNCTS & OUTPUT TO FORMAT
-  void PrintInfo(std::ostream &out);
+  void PrintInfo();
   void PrintTensorPDB(FILE *out, int state);
   void WriteChkLine(FILE *, vec &, bool, std::string, double);
-  void WriteXyzLine(FILE *, vec &, std::string);
+  void WriteXyzLine(FILE *, vec &);
   void WritePdbLine(FILE *out, const std::string &tag = "");
   void WriteMpsLine(std::ostream &out, std::string unit);
   void WriteXmlLine(std::ostream &out);
@@ -298,6 +298,8 @@ class APolarSite {
 
     arch &PhiP;
     arch &PhiU;
+
+    if (version > 5) {return;} // to avoid warning at compile time
 
     // NOT ARCHIVED
     // Topology *_top;
