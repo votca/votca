@@ -29,6 +29,7 @@ namespace xtp {
 class QMRegion;
 class PolarRegion;
 class StaticRegion;
+class BackgroundRegion;
 
 class StaticRegion : public MMRegion<StaticSegment> {
  public:

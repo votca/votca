@@ -118,7 +118,7 @@ matrix MolPolEngine::CalculateMolPol(std::vector<APolarSite*>& poles,
   double SUM_alpha_x = 0.0;
   double SUM_alpha_y = 0.0;
   double SUM_alpha_z = 0.0;
-  double SUM_alpha_iso = 0.0;
+  //double SUM_alpha_iso = 0.0;
 
   vec xdir = vec(1, 0, 0);
   vec ydir = vec(0, 1, 0);
@@ -127,17 +127,17 @@ matrix MolPolEngine::CalculateMolPol(std::vector<APolarSite*>& poles,
     SUM_alpha_x += (*pit)->getProjP(xdir);
     SUM_alpha_y += (*pit)->getProjP(ydir);
     SUM_alpha_z += (*pit)->getProjP(zdir);
-    SUM_alpha_iso += (*pit)->getIsoP();
+    //SUM_alpha_iso += (*pit)->getIsoP();
   }
 
   double NM3_2_A3 = 1000.;
   SUM_alpha_x *= NM3_2_A3;
   SUM_alpha_y *= NM3_2_A3;
   SUM_alpha_z *= NM3_2_A3;
-  SUM_alpha_iso *= NM3_2_A3;
+  //SUM_alpha_iso *= NM3_2_A3;
 
-  double ISO_alpha = (axx + ayy + azz) / 3.;
-  ISO_alpha *= NM3_2_A3;
+  //double ISO_alpha = (axx + ayy + azz) / 3.;
+  //ISO_alpha *= NM3_2_A3;
 
   // Eigenvalues of polarizability tensor
   matrix alpha;

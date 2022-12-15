@@ -31,6 +31,7 @@ namespace xtp {
 class QMRegion;
 class PolarRegion;
 class StaticRegion;
+class BackgroundRegion;
 
 template <class T>
 class MMRegion : public Region {

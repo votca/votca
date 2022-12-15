@@ -40,6 +40,7 @@ namespace xtp {
 class QMRegion;
 class PolarRegion;
 class StaticRegion;
+class BackgroundRegion;
 
 class PolarRegion : public MMRegion<PolarSegment> {
  public:

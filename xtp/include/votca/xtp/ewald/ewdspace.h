@@ -45,7 +45,7 @@ using namespace votca::tools::conv;
 struct cmplx {
   cmplx() { ; }
   cmplx(double re, double im) : _re(re), _im(im) { ; }
-  cmplx(const cmplx &c) : _re(c._re), _im(c._im) { ; }
+  //cmplx(const cmplx &c) : _re(c._re), _im(c._im) { ; }
   const double &Re() const { return _re; }
   const double &Im() const { return _im; }
   cmplx &operator*=(const double &d);

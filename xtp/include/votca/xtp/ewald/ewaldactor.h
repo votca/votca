@@ -500,7 +500,7 @@ inline void EwdInteractor::UpdateAllBls() {
 
 inline void EwdInteractor::UpdateAllCls() {
 
-  double rSqrtPiExp = rSqrtPi * exp(-a2 * R2);
+  rSqrtPiExp = rSqrtPi * exp(-a2 * R2);
 
   C0 = erf(a1 * R1) * rR1;
   C1 = rR2 * (C0 - 2 * a1 * rSqrtPiExp);

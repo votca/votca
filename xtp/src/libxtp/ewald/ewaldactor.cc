@@ -201,7 +201,7 @@ void EwdInteractor::PhiPU12_ShapeField_At_By(std::vector<PolarSeg *> &s1,
 
   // Charge, dipole, quadrupole for <s2>:
   // Q... <> permanent, U... <> induced
-  double Q0_S2 = 0.0;
+  //double Q0_S2 = 0.0;
   vec Q1_S2 = vec(0, 0, 0);
   vec U1_S2 = vec(0, 0, 0);
   matrix Q2_S2 = Eigen::Matrix3d::Zero();
@@ -224,7 +224,7 @@ void EwdInteractor::PhiPU12_ShapeField_At_By(std::vector<PolarSeg *> &s1,
           vec((*pit)->Qxy, (*pit)->Qyy, (*pit)->Qyz),
           vec((*pit)->Qxz, (*pit)->Qyz, (*pit)->Qzz));*/
       // Charge
-      Q0_S2 += q0;
+      //Q0_S2 += q0;
       // Dipole
       Q1_S2 += q0 * r;
       if ((*pit)->getRank() > 0) Q1_S2 += q1;
@@ -283,7 +283,7 @@ void EwdInteractor::PhiP12_ShapeField_At_By(std::vector<PolarSeg *> &s1,
 
   // Charge, dipole, quadrupole for <s2>:
   // Q... <> permanent, U... <> induced
-  double Q0_S2 = 0.0;
+  //double Q0_S2 = 0.0;
   vec Q1_S2 = vec(0, 0, 0);
   matrix Q2_S2 = Eigen::Matrix3d::Zero();
 
@@ -302,7 +302,7 @@ void EwdInteractor::PhiP12_ShapeField_At_By(std::vector<PolarSeg *> &s1,
           vec((*pit)->Qxy, (*pit)->Qyy, (*pit)->Qyz),
           vec((*pit)->Qxz, (*pit)->Qyz, (*pit)->Qzz));*/
       // Charge
-      Q0_S2 += q0;
+      //Q0_S2 += q0;
       // Dipole
       Q1_S2 += q0 * r;
       if ((*pit)->getRank() > 0) Q1_S2 += q1;

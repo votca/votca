@@ -94,13 +94,13 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop,
   _B = 2 * M_PI / _LxLyLz * _c.cross(_a);
   _C = 2 * M_PI / _LxLyLz * _a.cross(_b);
 
-  _na_max = ceil(_R_co / _a.cwiseAbs().maxCoeff() - 0.5) + 1;
-  _nb_max = ceil(_R_co / _b.cwiseAbs().maxCoeff() - 0.5) + 1;
-  _nc_max = ceil(_R_co / _c.cwiseAbs().maxCoeff() - 0.5) + 1;
+  _na_max = int(ceil(_R_co / _a.cwiseAbs().maxCoeff() - 0.5)) + 1;
+  _nb_max = int(ceil(_R_co / _b.cwiseAbs().maxCoeff() - 0.5)) + 1;
+  _nc_max = int(ceil(_R_co / _c.cwiseAbs().maxCoeff() - 0.5)) + 1;
 
-  _NA_max = ceil(_K_co / _A.cwiseAbs().maxCoeff());
-  _NB_max = ceil(_K_co / _B.cwiseAbs().maxCoeff());
-  _NC_max = ceil(_K_co / _C.cwiseAbs().maxCoeff());
+  _NA_max = int(ceil(_K_co / _A.cwiseAbs().maxCoeff()));
+  _NB_max = int(ceil(_K_co / _B.cwiseAbs().maxCoeff()));
+  _NC_max = int(ceil(_K_co / _C.cwiseAbs().maxCoeff()));
 
   // SET-UP POLAR GROUNDS (FORE-, MID-, BACK-)
   _bg_P.clear();
@@ -558,14 +558,14 @@ void PolarBackground::Polarize(int n_threads = 1) {
   if (Log::verbose()) {
     std::ofstream ofs;
     ofs.open("ewdbgpol.indu_state.tab", std::ofstream::out);
-    for (std::vector<PolarSeg *>::iterator sit1 = _bg_P.begin();
+    for ( sit1 = _bg_P.begin();
          sit1 < _bg_P.end(); ++sit1) {
       PolarSeg *pseg = *sit1;
 
       //[-Wunused-variable]
       // Segment *seg = _top->getSegment(pseg->getId());
 
-      for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end();
+      for ( pit1 = pseg->begin(); pit1 < pseg->end();
            ++pit1) {
         vec fp = (*pit1)->getFieldP();
         vec fu = (*pit1)->getFieldU();

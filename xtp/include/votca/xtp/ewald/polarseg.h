@@ -77,6 +77,7 @@ class PolarSeg : public std::vector<APolarSite *> {
     arch &_pos;
     arch &_is_charged;
     arch &_is_polarizable;
+    if (version > 5) return;
     return;
   }
 

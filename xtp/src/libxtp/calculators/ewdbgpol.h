@@ -136,7 +136,7 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
     }
 
     // now make an OLD PolarSeg from the new PolarSegment
-    PolarSeg *new_pseg = new PolarSeg(segment.getId(), psites);
+    PolarSeg *new_pseg = new PolarSeg(int(segment.getId()), psites);
     bgN.push_back(new_pseg);
   }
 
@@ -164,7 +164,7 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
 
   // POLARIZE SYSTEM
   EWD::PolarBackground pbg(&top, &ptop, _options, &log);
-  pbg.Polarize(nThreads_);
+  pbg.Polarize(int(nThreads_));
 
   // SAVE POLARIZATION STATE
   if (pbg.HasConverged()) {
