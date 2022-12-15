@@ -189,7 +189,7 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop,
         << "    - System Q1: " << -system_dpl << "  (apply to " << charged_count
         << " polar sites)" << std::flush;
     vec atomic_compensation_dpl_system = -system_dpl / charged_count;
-    int compensation_count = 0;
+    [[maybe_unused]] int compensation_count = 0; //otherwise trigger unused warning as only in assert
     for (auto &pseg : _bg_P) {
       if (!pseg->IsCharged()) continue;
       // Dipole compensation type
@@ -634,8 +634,8 @@ void PolarBackground::RThread::FP_FieldCalc() {
     int N_shells = int(R_co_max / dR_shell) + 1;
     std::vector<std::vector<PolarNb *> > shelled_nbs;
     shelled_nbs.resize(N_shells);
-    unsigned int allocated_count = 0;
-    unsigned int deleted_count = 0;
+     [[maybe_unused]]  unsigned int allocated_count = 0;
+     [[maybe_unused]]  unsigned int deleted_count = 0;
 
     for (sit2 = _full_bg_P.begin(); sit2 < _full_bg_P.end(); ++sit2) {
       PolarSeg *pseg2 = *sit2;
@@ -801,8 +801,8 @@ void PolarBackground::RThread::FU_FieldCalc() {
       int N_shells = int(R_co_max / dR_shell) + 1;
       std::vector<std::vector<PolarNb *> > shelled_nbs;
       shelled_nbs.resize(N_shells);
-      unsigned int allocated_count = 0;
-      unsigned int deleted_count = 0;
+      [[maybe_unused]]  unsigned int allocated_count = 0;
+      [[maybe_unused]] unsigned int deleted_count = 0;
 
       for (sit2 = _full_bg_P.begin(); sit2 < _full_bg_P.end(); ++sit2) {
         PolarSeg *pseg2 = *sit2;
@@ -1029,7 +1029,7 @@ void PolarBackground::FX_RealSpace(std::string mode, bool do_setup_nbs) {
     total_nbs_count += (*sit1)->PolarNbs().size();
   XTP_LOG(Log::debug, *_log)
       << "    - Real-space nb-list set: <nbs/seg> = "
-      << (double)total_nbs_count / _bg_P.size() << std::flush;
+      << (double)total_nbs_count / double(_bg_P.size()) << std::flush;
 
   return;
 }
@@ -1187,8 +1187,8 @@ void PolarBackground::FX_ReciprocalSpace(std::string mode1, std::string mode2,
     rms_sum_re += (*tfit)->Workload(mode2) * (*tfit)->_rms_sum_re;
     sum_im += (*tfit)->_sum_im;
   }
-  double shell_rms = sqrt(rms_sum_re / _kvecs_2_0.size()) * int2V_m;
-  double e_measure = shell_rms * 1e-10 * _kvecs_2_0.size();
+  double shell_rms = sqrt(rms_sum_re / double(_kvecs_2_0.size())) * int2V_m;
+  double e_measure = shell_rms * 1e-10 * double(_kvecs_2_0.size());
   if (_kvecs_2_0.size() > 0) {
     XTP_LOG(Log::debug, *_log)
         << (format("    - M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   "
@@ -1238,8 +1238,8 @@ void PolarBackground::FX_ReciprocalSpace(std::string mode1, std::string mode2,
         rms_sum_re += (*tfit)->Workload(mode2) * (*tfit)->_rms_sum_re;
         sum_im += (*tfit)->_sum_im;
       }
-      shell_rms = sqrt(rms_sum_re / shell_kvecs.size()) * int2V_m;
-      e_measure = shell_rms * 1e-10 * shell_kvecs.size();
+      shell_rms = sqrt(rms_sum_re / double(shell_kvecs.size())) * int2V_m;
+      e_measure = shell_rms * 1e-10 * double(shell_kvecs.size());
       // Log & assert convergence
       XTP_LOG(Log::debug, *_log)
           << (format("    - M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m "
@@ -1299,8 +1299,8 @@ void PolarBackground::FX_ReciprocalSpace(std::string mode1, std::string mode2,
         rms_sum_re += (*tfit)->Workload(mode2) * (*tfit)->_rms_sum_re;
         sum_im += (*tfit)->_sum_im;
       }
-      shell_rms = sqrt(rms_sum_re / shell_kvecs.size()) * int2V_m;
-      e_measure = shell_rms * 1e-10 * shell_kvecs.size();
+      shell_rms = sqrt(rms_sum_re / double(shell_kvecs.size())) * int2V_m;
+      e_measure = shell_rms * 1e-10 * double(shell_kvecs.size());
       // Log & assert convergence
       XTP_LOG(Log::debug, *_log)
           << (format("    - M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m "

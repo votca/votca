@@ -178,7 +178,7 @@ void PolarSeg::WriteMPS(std::string mpsfile, std::string tag) {
   ofs.close();
 }
 
-void PolarSeg::GeneratePermInduCgSite(bool do_cg_polarizabilities) {
+void PolarSeg::GeneratePermInduCgSite([[maybe_unused]] bool do_cg_polarizabilities) {
   // ATTENTION The same method appears in <PolarFrag>
   assert(!do_cg_polarizabilities && "NOT IMPLEMENTED, NOT NEEDED?");
   // Collapse multipole moments : position, rank L

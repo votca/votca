@@ -83,7 +83,7 @@ class PolarBackground {
       _part_bg_P.clear();
     }
     double FX_FieldWload() {
-      return 100. * _part_bg_P.size() / _full_bg_P.size();
+      return 100. * double(_part_bg_P.size()) / double(_full_bg_P.size());
     }
     // Convergence & output related
     const int &NotConverged() { return _not_converged_count; }
@@ -152,7 +152,7 @@ class PolarBackground {
     }
     void AddAtomicInput(EWD::KVector *k) { _part_kvecs.push_back(k); }
     double SFactorWload() {
-      return 1. * _part_kvecs.size() / _full_kvecs.size();
+      return 1. * double(_part_kvecs.size()) / double(_full_kvecs.size());
     }
 
     // MODE 2 : Increment fields of _part_bg_P using _full_kvecs
@@ -160,7 +160,7 @@ class PolarBackground {
     void FU_KFieldCalc();
     void KFieldReset() { ; }
     void AddAtomicInput(PolarSeg *pseg) { _part_bg_P.push_back(pseg); }
-    double KFieldWload() { return 1. * _part_bg_P.size() / _full_bg_P.size(); }
+    double KFieldWload() { return 1. * double(_part_bg_P.size()) / double(_full_bg_P.size()); }
 
    private:
     PolarBackground *_master;
