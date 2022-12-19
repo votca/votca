@@ -40,13 +40,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Login to Docker Container Registry
-        if: ${{ secrets.DOCKER_PASSWORD }}
+        if: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Login to Github Container Registry
-        if: ${{ secrets.VOTCA_BOT_TOKEN }}
+        if: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
@@ -54,7 +54,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.VOTCA_BOT_TOKEN }}
       - name: Login to Gitlab Container Registry
-        if: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
+        if: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
         uses: docker/login-action@v2
         with:
           registry: registry.gitlab.com
