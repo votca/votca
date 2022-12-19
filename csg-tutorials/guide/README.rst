@@ -91,8 +91,8 @@ simulations of the Iterative Boltzmann inversion procedure:
 - ``spce.py`` - is the simulation script which will be called by csg_inverse. It stores the whole simulation procedure.
 - ``topol.xml`` - topology of the molecule, defined in the initial condition. This is needed as most gro/pdb/xyz files have no molecule definition in them.
 
-Running ESPResSo++
-^^^^^^^^^^^^^^^^^^
+Running LAMMPS
+^^^^^^^^^^^^^^
 
 Now, let's have a look at ``csg-tutorials/spce/ibi_lammps/``
 containing an example of LAMMPS input files to run the CG
