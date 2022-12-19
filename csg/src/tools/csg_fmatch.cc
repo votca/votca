@@ -726,14 +726,16 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
     if (sinfo->type1 == sinfo->type2) {
       nb->Generate(beads1, true);
     }
-    // else use the Generate function for type2 being equal to type3 (and type1 being different)
+    // else use the Generate function for type2 being equal to type3 (and type1
+    // being different)
     if (sinfo->type1 != sinfo->type2) {
       nb->Generate(beads1, beads2, true);
     }
   }
-  // If type2 and type3 are not the same, use the Generate function for three different bead types
-  // (Even if type1 and type2 or type1 and type3 are the same, the Generate function for two different beadtypes
-  // is only applicable for the case that type2 is equal to type3
+  // If type2 and type3 are not the same, use the Generate function for three
+  // different bead types (Even if type1 and type2 or type1 and type3 are the
+  // same, the Generate function for two different beadtypes is only applicable
+  // for the case that type2 is equal to type3
   if (sinfo->type2 != sinfo->type3) {
     nb->Generate(beads1, beads2, beads3, true);
   }

@@ -352,14 +352,16 @@ void Imc::Worker::DoNonbonded(Topology *top) {
         if (prop->get("type1").value() == prop->get("type2").value()) {
           nb->Generate(beads1, true);
         }
-        // else use the Generate function for type2 being equal to type3 (and type1 being different)
+        // else use the Generate function for type2 being equal to type3 (and
+        // type1 being different)
         if (prop->get("type1").value() != prop->get("type2").value()) {
           nb->Generate(beads1, beads2, true);
         }
       }
-      // If type2 and type3 are not the same, use the Generate function for three different bead types
-      // (Even if type1 and type2 or type1 and type3 are the same, the Generate function for two different beadtypes
-      // is only applicable for the case that type2 is equal to type3
+      // If type2 and type3 are not the same, use the Generate function for
+      // three different bead types (Even if type1 and type2 or type1 and type3
+      // are the same, the Generate function for two different beadtypes is only
+      // applicable for the case that type2 is equal to type3
       if (prop->get("type2").value() != prop->get("type3").value()) {
         nb->Generate(beads1, beads2, beads3, true);
       }
