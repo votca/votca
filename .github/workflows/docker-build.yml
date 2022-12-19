@@ -70,4 +70,4 @@ jobs:
           file: votca/.github/workflows/Dockerfile
           context: .
           pull: true
-          push: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
+          push: ${{ github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' ) }}
