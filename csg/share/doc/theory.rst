@@ -193,7 +193,7 @@ so that the non-bonded interactions in the reference system do not
 contribute to the bonded interactions of the coarse-grained model.
 
 This can be done by employing exclusion lists using with the option
-``—excl``. This is described in detail in :ref:`methods_exclusions`.
+``--excl``. This is described in detail in :ref:`methods_exclusions`.
 
 .. figure:: fig/excl.png
    :align: center
@@ -315,6 +315,8 @@ of particle pairs with interparticle distances
 :math:`r_{ij} = r_{\alpha}` which correspond to the tabulated value of
 the potential :math:`U_{\alpha}`.
 
+.. _theory_inverse_monte_carlo_regularization:
+
 Regularization of Inverse Monte Carlo
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -340,7 +342,7 @@ case. To get a good initial guess on the magnitude of the regularization
 parameter a singular value decomposition of the matrix
 :math:`A_{\alpha \gamma}` might help. A good :math:`\lambda` parameter
 should dominate the smallest singular values (squared) but is itself
-small compared to the larger ones.[Rosenberger:2016]_
+small compared to the larger ones. [Rosenberger:2016]_
 
 Iterative Integral Equation methods
 -----------------------------------
@@ -391,7 +393,7 @@ Element :math:`\alpha` of vector :math:`\vec{l}` is defined as
 where :math:`\rho` is the particle density and :math:`r` is the radius.
 
 The exact formulas and their derivation can be found in ref. [Delbary:2020]_
-and [Bernhardt:2021]_. 
+and [Bernhardt:2021]_.
 
 Force Matching
 --------------
@@ -441,7 +443,7 @@ the bead :math:`I` and :math:`{{{{\mathbf F}}}}_{Il}^\text{cg} `
 is the coarse-grained representation of this force. The index :math:`l`
 enumerates snapshots picked for coarse-graining. By running the
 simulations long enough one can always ensure that
-:math:`M < N times L`. In this case the set of equations
+:math:`M < N \times L`. In this case the set of equations
 is overdetermined and can be solved in a least-squares manner.
 
 :math:`{\mathbf F}_{il}^\text{cg}` is, in principle, a non-linear function
@@ -457,6 +459,37 @@ snapshots :math:`L`. Hence, the applicability of the method is often
 constrained by the amount of memory available. To remedy the situation,
 one can split the trajectory into blocks, find the coarse-grained
 potential for each block and then perform averaging over all blocks.
+
+.. _theory_fm_threebody:
+
+Three-body Stillinger-Weber interactions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to non-bonded pair interactions, it is also possible to parametrize non-bonded 
+three-body interactions of the Stillinger Weber type [stillinger_computer_1985]_:
+
+.. _theory_eq_SW1:
+
+.. math::
+
+   U = \sum_{I,J\neq I,K>J}f^{\left(3b\right)}\left(\theta_{IJK}\right)\,\exp{\left(\frac{\gamma_{IJ}\sigma_{IJ}}{r_{IJ}-a_{IJ}\sigma_{IJ}} + \frac{\gamma_{IK}\sigma_{IK}}{r_{IK}-a_{IK}\sigma_{IK}}\right)},
+  
+where :math:`I` is the index of the central bead of a triplet of a CG sites, and :math:`J` 
+and :math:`K` are the other two bead indices of a triplet of beads with an angular interaction 
+term :math:`f^{\left(3b\right)}\left(\theta_{IJK}\right)` and two exponential terms, 
+:math:`\exp\left(\frac{\gamma\sigma}{r-a\sigma}\right)`, which guarantee a smooth switching on of the 
+three-body forces at the cutoff distance. We do not limit ourselves to an analytic expression of 
+:math:`f^{\left(3b\right)}\left(\theta_{IJK}\right)` as in the original SW potential, but allow for a flexible 
+angular dependence of :math:`f^{\left(3b\right)}\left(\theta_{IJK}\right)`. This is done by using a cubic spline 
+representation of :math:`f^{\left(3b\right)}\left(\theta\right)`. Treating the two exponential terms as 
+prefactors yields a linear dependence of the potential and thus the CG force :math:`{\mathbf F}_{Il}^\text{cg}` on 
+the :math:`M` spline coefficients. Therefore, the remaining parameters :math:`a_{IJ}`, :math:`a_{IK}` 
+(three-body short-range cutoff), :math:`\sigma_{IJ}`, :math:`\sigma_{IK}` 
+(additional parameter, can be set to 1), :math:`\gamma_{IJ}`, and :math:`\gamma_{IK}` (steepness of switching), 
+have to be set before solving the set of
+:ref:`linear equations <theory_eq_fmatch1>`. For a more detailed description, 
+we refer to ref. [scherer_understanding_2018]_.
+
 
 Relative Entropy
 ----------------
@@ -488,8 +521,7 @@ operation to generate a corresponding CG configuration, :math:`R_I`,
 from a AA configuration, :math:`r_i`, i.e., :math:`R_I = M(r_i)`,
 :math:`p_\text{AA}` and :math:`p_\text{CG}` are the configurational
 probabilities based on the AA and CG potentials, respectively, and
-:math:` \langle
-S_{\text{map}}\rangle_{\text{AA}}` is the mapping entropy due to the
+:math:`\langle S_{\text{map}}\rangle_{\text{AA}}` is the mapping entropy due to the
 average degeneracy of AA configurations mapping to the same CG
 configuration, given by
 
@@ -627,5 +659,4 @@ ref. [lu_coarse-graining_2014]_) and N-body CG
 potentials can be optimized. In addition to the CG potential
 optimization, the relative entropy metric can also be used to optimize
 an AA to CG mapping operator.
-
 
