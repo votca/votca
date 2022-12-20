@@ -99,6 +99,7 @@ class QMRegion : public Region {
   // convergence options
   double DeltaD_ = 5e-5;
   double DeltaE_ = 5e-5;
+  double DeltaDmax_ = 5e-5;
 
   bool do_gwbse_ = false;
 
