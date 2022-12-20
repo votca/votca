@@ -12,6 +12,7 @@ Version 2023-dev
 -  Correct ECP charges added in Orca Molden reader (#990)
 -  Implemented ER diabatization for BSE (#988)
 -  update esp++ spce tutorial to py3 (#997)
+-  Extend csg_fmatch to 3body Stillinger-Weber forces (#1012)
 
 Version 2022.1 (released XX.01.22)
 ==================================
