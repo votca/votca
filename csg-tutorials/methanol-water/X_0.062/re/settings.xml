@@ -149,7 +149,7 @@
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
     <iterations_max>200</iterations_max>
-    <!-- ibi: inverse biltzmann imc: inverse monte carlo re: relative entropy-->
+    <!-- ibi: inverse boltzmann imc: inverse monte carlo re: relative entropy-->
     <method>re</method>
     <!-- scaling parameter for the update-->
     <scale>0.5</scale>

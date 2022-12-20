@@ -11,7 +11,7 @@
     <max>0.9</max>
     <step>0.01</step>
     <inverse>
-      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <!-- target distribution (rdf), just give gromacs rdf.xvg -->
       <target>CG-CG.dist.tgt</target>
       <!-- update cycles -->
       <do_potential>1</do_potential>
@@ -47,7 +47,7 @@
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
-    <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
+    <!-- ibi: inverse boltzmann imc: inverse monte carlo -->
     <method>ibi</method>
     <!-- directory for user scripts -->
     <scriptpath></scriptpath>
