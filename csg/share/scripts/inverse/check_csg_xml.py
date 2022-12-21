@@ -80,7 +80,7 @@ def check_votca_settings_xml(root, root_defaults):
             and root_defaults.find(child_path_non_bonded) is None
             and root_defaults.find(child_path_sim_prog) is None
             # per group settings can have any name
-            and not child_path.startswith("./cg/inverse/imc/")
+            and not child_path.startswith("./inverse/imc/")
         ):
             found_bad_paths.append(child_path)
 
