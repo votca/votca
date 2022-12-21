@@ -13,7 +13,10 @@ Version 2023-dev
 -  Implemented ER diabatization for BSE (#988)
 -  update esp++ spce tutorial to py3 (#997)
 
-Version 2022.1 (released XX.01.22)
+Version 2022.2 (released XX.12.22)
+==================================
+
+Version 2022.1 (released 21.12.22)
 ==================================
 
 -  fix PROJECT_VERSION in subdirs (#951)
