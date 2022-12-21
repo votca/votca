@@ -260,7 +260,7 @@
     </hoomd-blue>
     <imc>
       <DESC> general imc specific options </DESC>
-      <algorithm>gauss-newton
+      <algorithm>newton
         <DESC>Update algoritm to use: gauss-newton/newton (default)
           Further options for Gauss-Newton are available at cg.inverse.gauss_newton.</DESC>
       </algorithm>
