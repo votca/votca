@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2022 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -47,6 +47,8 @@ class XTPDFT final : public QMPackage {
   bool WriteInputFile(const Orbitals& orbitals) final;
 
   bool RunDFT() final;
+
+  bool RunActiveDFT() final;
 
   void CleanUp() final;
 

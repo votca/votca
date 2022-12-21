@@ -32,7 +32,7 @@ jobs:
             TAG=${GITHUB_REF#refs/tags/}
           elif [[ $GITHUB_REF == refs/heads/* ]]; then
             TAG=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
-            [[ $TAG = master ]] && TAG="latest"
+            [[ ${TAG} = master ]] && TAG="latest"
           elif [[ $GITHUB_REF == refs/pull/* ]]; then
             TAG=pr-${{ github.event.number }}
           fi
