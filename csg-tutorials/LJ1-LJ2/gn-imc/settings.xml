@@ -1,0 +1,145 @@
+<cg>
+   <non-bonded>
+    <name>LJ1-LJ1</name>
+    <type1>LJ1</type1>
+    <type2>LJ1</type2>
+    <min>0.0</min>
+    <max>0.85</max>
+    <step>0.01</step>
+    <inverse>
+      <target>LJ1-LJ1.dist.tgt</target>
+      <do_potential>1</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update>smooth</post_update>
+      <post_update_options>
+      <smooth>
+      <iterations>2</iterations>
+      </smooth>
+      </post_update_options>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- inverse monte carlo specific stuff -->
+      <imc>
+        <group>group_1</group>
+      </imc>
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_LJ1_LJ1.xvg</table>
+      </gromacs>
+    </inverse>
+    <improve_dist_near_core>
+      <target>true</target>
+      <new>true</new>
+      <fit_start_g>1e-05</fit_start_g>
+      <fit_end_g>0.8</fit_end_g>
+    </improve_dist_near_core>
+  </non-bonded>
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>LJ2-LJ2</name>
+    <!-- types involved in this interaction -->
+    <type1>LJ2</type1>
+    <type2>LJ2</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0.0</min>
+    <max>0.85</max>
+    <step>0.01</step>
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>LJ2-LJ2.dist.tgt</target>
+     <do_potential>1</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update>smooth</post_update>
+      <!-- some options for the post update scripts -->
+      <post_update_options>
+      <smooth>
+      <iterations>2</iterations>
+      </smooth>
+      </post_update_options>
+
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- inverse monte carlo specific stuff -->
+      <imc>
+        <group>group_1</group>
+       </imc>
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_LJ2_LJ2.xvg</table>
+      </gromacs>
+    </inverse>
+    <improve_dist_near_core>
+      <target>true</target>
+      <new>true</new>
+      <fit_start_g>1e-05</fit_start_g>
+      <fit_end_g>0.8</fit_end_g>
+    </improve_dist_near_core>
+  </non-bonded>
+
+   <non-bonded>
+    <!-- name of the interaction -->
+    <name>LJ1-LJ2</name>
+    <!-- types involved in this interaction -->
+    <type1>LJ1</type1>
+    <type2>LJ2</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0.0</min>
+    <max>0.85</max>
+    <step>0.01</step>
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>LJ1-LJ2.dist.tgt</target>
+      <!-- update cycles -->
+      <do_potential>1</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update>smooth</post_update>
+      <!-- some options for the post update scripts -->
+      <post_update_options>
+      <smooth>
+      <iterations>2</iterations>
+      </smooth>
+      </post_update_options>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- inverse monte carlo specific stuff -->
+      <imc>
+        <group>group_1</group>
+       </imc>
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_LJ1_LJ2.xvg</table>
+      </gromacs>
+    </inverse>
+    <improve_dist_near_core>
+      <target>true</target>
+      <new>true</new>
+      <fit_start_g>1e-05</fit_start_g>
+      <fit_end_g>0.8</fit_end_g>
+    </improve_dist_near_core>
+  </non-bonded>
+  <!-- general options for inverse script -->
+  <inverse>
+    <kBT>0.70673335</kBT>
+    <program>gromacs</program>
+    <gromacs>
+     <equi_time>10</equi_time>
+      <table_bins>0.002</table_bins>
+      <pot_max>1000000</pot_max>
+      <table_end>3.0</table_end>
+    </gromacs>
+    <filelist>grompp.mdp topol.top index.ndx table.xvg topology.xml</filelist>
+    <iterations_max>5</iterations_max>
+    <method>imc</method>
+    <imc>
+      <algorithm>gauss-newton</algorithm>
+      <improve_jacobian_onset>true</improve_jacobian_onset>
+      <onset_thresholds>0.0001 0.01</onset_thresholds>
+    </imc>
+    <gauss_newton>
+      <cut_residual>0.85</cut_residual>
+      <cut_off>0.85</cut_off>
+      <residual_weighting>1/(g_tgt+1e-30)</residual_weighting>
+    </gauss_newton>
+    <topol_xml>topology.xml</topol_xml>
+  </inverse>
+</cg>
