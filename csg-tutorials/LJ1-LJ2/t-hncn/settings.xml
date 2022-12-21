@@ -20,9 +20,8 @@
     <improve_dist_near_core>
       <target>true</target>
       <new>true</new>
-      <function>exponential</function>
       <fit_start_g>1e-05</fit_start_g>
-      <fit_end_g>0.5</fit_end_g>
+      <fit_end_g>0.5</fit_end_g> <!-- one can choose a smaller range with sufficient sampling -->
     </improve_dist_near_core>
   </non-bonded>
 
@@ -47,9 +46,8 @@
     <improve_dist_near_core>
       <target>true</target>
       <new>true</new>
-      <function>exponential</function>
       <fit_start_g>1e-05</fit_start_g>
-      <fit_end_g>0.5</fit_end_g>
+      <fit_end_g>0.5</fit_end_g> <!-- one can choose a smaller range with sufficient sampling -->
     </improve_dist_near_core>
   </non-bonded>
 
@@ -74,9 +72,8 @@
     <improve_dist_near_core>
       <target>true</target>
       <new>true</new>
-      <function>exponential</function>
       <fit_start_g>1e-05</fit_start_g>
-      <fit_end_g>0.5</fit_end_g>
+      <fit_end_g>0.9</fit_end_g> <!-- one can choose a smaller range with sufficient sampling -->
     </improve_dist_near_core>
   </non-bonded>
 
@@ -102,14 +99,13 @@
       <method>table</method>
       <cut_off>0.85</cut_off>
     </initial_guess>
+    <topol_xml>topology.xml</topol_xml>
     <iie>
       <algorithm>newton</algorithm>
       <closure>hnc</closure>
-      <topol>topology.xml</topol>
       <use_target_dcdh>true</use_target_dcdh>
     </iie>
     <newton>
-      <topol>topology.xml</topol>
       <cut_off>0.85</cut_off>
     </newton>
   </inverse>
