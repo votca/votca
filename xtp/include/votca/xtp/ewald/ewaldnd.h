@@ -59,7 +59,7 @@ public:
     // OUTPUT & ERROR COMMUNICATION
     bool Converged() { return _converged_R && _converged_K && _polar_converged; }
     tools::Property GenerateOutputstring();
-    std::string GenerateErrorstring();
+    std::string GenerateErrors tring();
     void ShowAgenda(Logger *log);
     void ShowFieldsTeaser(std::vector<PolarSeg*> &target, Logger *log);
     void ShowEnergySplitting(Logger *log);

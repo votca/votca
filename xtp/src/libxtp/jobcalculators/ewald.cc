@@ -171,7 +171,7 @@ XJob Ewald<EwaldMethod>::ProcessInputString(Job &job, Topology &top,
 
 
 template<class EwaldMethod>
-Job::JobResult Ewald<EwaldMethod>::EvalJob(const Topology& top, Job& job,
+Job::JobResult Ewald<EwaldMethod>::EvalJob(const xtp/include/votca/xtp/ewald/ewaldnd.hTopology& top, Job& job,
     QMThread& thread) {
     
     boost::timer::cpu_timer cpu_t;
