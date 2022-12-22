@@ -25,6 +25,7 @@
 #include "jobcalculators/iexcitoncl.h"
 #include "jobcalculators/iqm.h"
 #include "jobcalculators/qmmm.h"
+#include "jobcalculators/ewald.h"
 
 namespace votca {
 namespace xtp {
@@ -34,6 +35,8 @@ void JobCalculatorfactory::RegisterAll(void) {
   JobCalculators().Register<EQM>("eqm");
   JobCalculators().Register<IEXCITON>("iexcitoncl");
   JobCalculators().Register<QMMM>("qmmm");
+  JobCalculators().Register< Ewald<PEwald3D3D> > ("pewald3d");
+
 }
 
 }  // namespace xtp
