@@ -14,7 +14,10 @@ Version 2023-dev
 -  update esp++ spce tutorial to py3 (#997)
 -  Extend csg_fmatch to 3body Stillinger-Weber forces (#1012)
 
-Version 2022.1 (released XX.01.22)
+Version 2022.2 (released XX.12.22)
+==================================
+
+Version 2022.1 (released 21.12.22)
 ==================================
 
 -  fix PROJECT_VERSION in subdirs (#951)
