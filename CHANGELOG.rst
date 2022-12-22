@@ -13,7 +13,10 @@ Version 2023-dev
 -  Implemented ER diabatization for BSE (#988)
 -  update esp++ spce tutorial to py3 (#997)
 
-Version 2022.1 (released XX.01.22)
+Version 2022.2 (released XX.12.22)
+==================================
+
+Version 2022.1 (released 21.12.22)
 ==================================
 
 -  fix PROJECT_VERSION in subdirs (#951)
@@ -28,7 +31,7 @@ Version 2022.1 (released XX.01.22)
 -  fix CI builds with icpx (#984, #1004)
 -  fix CI builds with ESPResSo 4.2.0 (#993)
 -  fix localization issue (#998, #1000)
--  update github actions to new versions (#1007)
+-  update github actions to new versions (#1007, #1013)
 
 Version 2022 (released 15.01.22)
 ================================

@@ -32,6 +32,7 @@ jobs:
             TAG=${GITHUB_REF#refs/tags/}
           elif [[ $GITHUB_REF == refs/heads/* ]]; then
             TAG=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
+            [[ ${TAG} = master ]] && TAG="latest"
           elif [[ $GITHUB_REF == refs/pull/* ]]; then
             TAG=pr-${{ github.event.number }}
           fi
@@ -40,11 +41,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Login to Docker Container Registry
+        if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Login to Github Container Registry
+        if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
@@ -52,6 +55,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.VOTCA_BOT_TOKEN }}
       - name: Login to Gitlab Container Registry
+        if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
         uses: docker/login-action@v2
         with:
           registry: registry.gitlab.com
@@ -67,4 +71,4 @@ jobs:
           file: votca/.github/workflows/Dockerfile
           context: .
           pull: true
-          push: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
+          push: ${{ github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' ) }}
