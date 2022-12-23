@@ -328,7 +328,8 @@ void LAMMPSDataReader::ReadBox_(std::vector<std::string> fields,
 
     m(i, i) = std::stod(fields.at(1)) - std::stod(fields.at(0));
   }
-  top.setBox(m * tools::conv::ang2nm);
+//  top.setBox(m * tools::conv::ang2nm);
+  top.setBox(m);
 }
 
 void LAMMPSDataReader::SortIntoDataGroup_(std::string tag) {
@@ -531,7 +532,8 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     }
 
     Eigen::Vector3d xyz_pos(x, y, z);
-    b->setPos(xyz_pos * tools::conv::ang2nm);
+//    b->setPos(xyz_pos * tools::conv::ang2nm);
+    b->setPos(xyz_pos);
   }
 
   if (top.BeadCount() != numberOf_["atoms"]) {
