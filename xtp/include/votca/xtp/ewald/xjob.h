@@ -31,7 +31,7 @@ typedef Eigen::Matrix3d matrix;
 class XJob {
  public:
   XJob(int id, std::string tag, std::vector<Segment *> &qmSegs,
-       std::vector<std::string> &qmSegMps, Topology *top);
+       std::vector<std::string> &qmSegMps, const Topology *top);
 
   XJob(PolarTop *ptop, bool start_from_cpt);
 
@@ -41,7 +41,7 @@ class XJob {
   std::string getTag() { return _tag; }
   std::vector<Segment *> &getSegments() { return _qmSegs; }
   std::vector<std::string> &getSegMps() { return _qmSegMps; }
-  Topology *getTop() { return _top; }
+  const Topology *getTop() { return _top; }
   PolarTop *getPolarTop() { return _ptop; }
   int getIter() { return _iter; }
   int getUserId() { return _userId; }
@@ -134,7 +134,7 @@ class XJob {
   int _id;
   int _userId;
   std::string _tag;
-  Topology *_top;
+  const Topology *_top;
 
   bool _start_from_cpt;
   std::vector<Segment *> _qmSegs;

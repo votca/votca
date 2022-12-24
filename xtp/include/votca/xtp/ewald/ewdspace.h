@@ -203,6 +203,14 @@ class KVector {
     _has_sfactor = true;
   }
   const EWD::cmplx &getStructureFactor() { return _sfactor; }
+  double operator()(int a){
+    return _k(a);
+  }
+
+  
+  double operator()(int a)const{
+    return _k(a);
+  }
 
  private:
   vec _k;
@@ -225,16 +233,16 @@ inline bool VectorSort<Norm, V>::operator()(const V &v1, const V &v2) {
   double V2 = _norm(v2);
   if (MatchDouble(V1, V2)) {
     // LEVEL 2: X
-    double X1 = v1.getX();
-    double X2 = v2.getX();
+    double X1 = v1(0);
+    double X2 = v2(0);
     if (MatchDouble(X1, X2)) {
       // LEVEL 3: Y
-      double Y1 = v1.getY();
-      double Y2 = v2.getY();
+      double Y1 = v1(1);
+      double Y2 = v2(1);
       if (MatchDouble(Y1, Y2)) {
         // LEVEL 4: Z
-        double Z1 = v1.getZ();
-        double Z2 = v2.getZ();
+        double Z1 = v1(2);
+        double Z2 = v2(2);
         if (MatchDouble(Z1, Z2))
           smaller = true;
         else

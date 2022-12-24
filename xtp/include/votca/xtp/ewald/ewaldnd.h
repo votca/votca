@@ -1,5 +1,5 @@
-#ifndef VOTCA_CTP_EWALDND_H
-#define VOTCA_CTP_EWALDND_H
+#ifndef VOTCA_XTP_EWALDND_H
+#define VOTCA_XTP_EWALDND_H
 
 
 #include <votca/xtp/ewald/polartop.h>
@@ -30,7 +30,7 @@ class Ewald3DnD
 
 public:
 
-    Ewald3DnD(Topology *top, PolarTop *ptop, tools::Property *opt, Logger *log);
+    Ewald3DnD(const Topology *top, PolarTop *ptop, tools::Property *opt, Logger *log);
     virtual ~Ewald3DnD();
     virtual std::string IdentifyMethod() = 0;
     
@@ -59,7 +59,7 @@ public:
     // OUTPUT & ERROR COMMUNICATION
     bool Converged() { return _converged_R && _converged_K && _polar_converged; }
     tools::Property GenerateOutputstring();
-    std::string GenerateErrors tring();
+    std::string GenerateErrorstring();
     void ShowAgenda(Logger *log);
     void ShowFieldsTeaser(std::vector<PolarSeg*> &target, Logger *log);
     void ShowEnergySplitting(Logger *log);
@@ -154,7 +154,7 @@ protected:
     XInteractor _actor;
    
     // PERIODIC BOUNDARY
-    Topology *_top;
+    const Topology *_top;
     vec _center;
     
     // POLAR SEGMENTS
@@ -274,6 +274,10 @@ protected:
     double _t_induction;
     double _t_energy;
     double _t_radial;
+
+         const double int2eV =
+      1 / (4 * EWD::Pi * 8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+    const double int2V_m = 1/(4*EWD::Pi*8.854187817e-12) * 1.602176487e-19 / 1.000e-18;
     
 
 };

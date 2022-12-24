@@ -1,5 +1,5 @@
-#ifndef VOTCA_CTP_PEWALD3D_H
-#define VOTCA_CTP_PEWALD3D_H
+#ifndef VOTCA_XTP_PEWALD3D_H
+#define VOTCA_XTP_PEWALD3D_H
 
 #include <votca/csg/boundarycondition.h>
 #include <votca/xtp/ewald/polartop.h>
@@ -27,7 +27,7 @@ namespace votca { namespace xtp {
         
     public:
         
-        PEwald3D3D(Topology *top, PolarTop *ptop, tools::Property *opt, Logger *log);
+        PEwald3D3D(const Topology *top, PolarTop *ptop, tools::Property *opt, Logger *log);
        ~PEwald3D3D();
         
         std::string IdentifyMethod() { return "Polar 3D x 3D"; }
@@ -53,6 +53,10 @@ namespace votca { namespace xtp {
         void ScanCutoff();
         
     private:
+     const double int2eV =
+      1 / (4 * EWD::Pi * 8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+    const double int2V_m = 1/(4*EWD::Pi*8.854187817e-12) * 1.602176487e-19 / 1.000e-18;
+
         
     };
     

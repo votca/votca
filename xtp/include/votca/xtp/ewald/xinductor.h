@@ -53,7 +53,7 @@ public:
     XInductor(bool induce,   bool induce_intra_pair, int subthreads,
               float wSOR_N,  float wSOR_C,           double epsTol,
               int maxIter,   double aDamp,           bool maverick,
-              Topology *top)
+              const Topology *top)
             : _induce(induce),         _induce_intra_pair(induce_intra_pair),
               _subthreads(subthreads), _wSOR_N(wSOR_N),     _wSOR_C(wSOR_C),   
               _epsTol(epsTol),         _maxIter(maxIter),
@@ -494,7 +494,7 @@ private:
     double                        _epsTol;
     int                           _maxIter;
     bool                          _maverick;
-    Topology                     *_top;
+    const Topology                     *_top;
     bool                          _isConverged;
     std::string                        _error;
     

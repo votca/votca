@@ -35,7 +35,7 @@ namespace xtp {
 
 class XInteractor {
  public:
-  XInteractor(Topology *top, double aDamp) : _top(top), a(aDamp){};
+  XInteractor(const Topology *top, double aDamp) : _top(top), a(aDamp){};
   XInteractor() : _top(NULL), a(0.390) { _top = NULL; };
   ~XInteractor(){};
 
@@ -122,7 +122,7 @@ class XInteractor {
 
  private:
   //[-Wunused-private-field]
-  Topology *_top;
+  const Topology *_top;
 
   double EP = 0.0;        //   <- Interaction permanent multipoles (inter-site)
   double EU_INTRA = 0.0;  //   <- Interaction induction multipoles (intra-site)
