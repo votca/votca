@@ -13,6 +13,7 @@ Version 2023-dev
 -  Implemented ER diabatization for BSE (#988)
 -  update esp++ spce tutorial to py3 (#997)
 -  reducing XTP tutorial size (#1020)
+-  Clean up 3body Stillinger-Weber implement, docs and tutorial (#1012)
 
 Version 2022.2 (released XX.12.22)
 ==================================

@@ -25,11 +25,11 @@ Generating a topology file for a coarse-grained run
 **WARNING: This section describes experimental features. The exact names and options of the program might change in the near future. The section is specific to GROMACS support though a generalization for other MD packages is planned.**
 
 The mapping definition is close to a topology needed for a coarse
-grained run. To avoid redundant work, can be used to automatically
+grained run. To avoid redundant work, ``csg_gmxtopol`` can be used to automatically
 generate a gromacs topology based on an atomistic reference system and a
 mapping file.
 
-At the current state, can only generate the topology for the first
+At the current state, ``csg_gmxtopol`` can only generate the topology for the first
 molecule in the system. If more molecule types are present, a special
 tpr file has to be prepared. The program can be executed by
 
@@ -51,7 +51,7 @@ Post-processing of the potential
 The VOTCA package provides a collection of scripts to handle potentials.
 They can be modified, refined, integrated or inter- and extrapolated.
 These scripts are the same ones as those used for iterative methods in
-:ref:`methods_iterative_methods`. Scripts are called by . A complete
+:ref:`methods_iterative_methods`. Scripts are called by ``csg_call``. A complete
 list of available scripts can be found in :ref:`reference_scripts`.
 
 The post-processing roughly consists of the following steps (see further
@@ -90,7 +90,7 @@ Use the command
 
 to resample the potential given in file –``table.pot`` from ``min`` to
 ``max`` with a grid spacing of ``step`` steps. The result is written to
-the file specified by ``out``. Additionally, allows the specification of
+the file specified by ``out``. Additionally, ``csg_resample`` allows the specification of
 spline interpolation (``spfit``), the calculation of derivatives
 (``derivative``) and comments (``comment``). Check the help (``help``)
 for further information.
@@ -116,7 +116,7 @@ The following line
                table_extrapolate.pot
 
 calls the extrapolation procedure, which processes the range of values
-marked by . The input file is ``table_resample.pot`` created in the last
+marked by ``csg_resample``. The input file is ``table_resample.pot`` created in the last
 step.
 
 After resampling, all values in the potential file that should be used
@@ -172,7 +172,7 @@ to convert the extrapolated values in ``table_extrapolate.pot`` to
 ``table.xvg`` (The file will contain the GROMACS C12 parts only which are
 stored in the sixth und seventh column, this can be changed by adding
 the ``–ia-type C6`` option (for the fourth and fiveth column) or
-``–ia-type CB`` option (for the second and third column) after . Ensure
+``–ia-type CB`` option (for the second and third column) after ``csg_call``. Ensure
 compatibility with the GROMACS topology. See the GROMACS manual for
 further information).
 
