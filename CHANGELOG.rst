@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2022.2 (released XX.12.22)
 ==================================
 
+-  fix CI build with icpx (#1018)
+
 Version 2022.1 (released 21.12.22)
 ==================================
 
