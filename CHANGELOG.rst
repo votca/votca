@@ -1,6 +1,18 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/stable>`__.
 
+Version 2023-dev
+================
+
+-  implemented projection-based DFT embedding (#964)
+-  Added LMO energy output and cube file generation (#970)
+-  fix typos in csg-tutorials xml files (#980)
+-  unitary optimization for localization of orbitals (#971)
+-  separate option for density max convergence tolerance in qmmm (#987)
+-  Correct ECP charges added in Orca Molden reader (#990)
+-  Implemented ER diabatization for BSE (#988)
+-  update esp++ spce tutorial to py3 (#997)
+
 Version 2022.2 (released XX.12.22)
 ==================================
 

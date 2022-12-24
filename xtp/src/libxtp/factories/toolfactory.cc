@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2021 The VOTCA Development Team
+ *            Copyright 2009-2022 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -25,6 +25,7 @@
 #include "tools/coupling.h"
 #include "tools/densityanalysis.h"
 #include "tools/dftgwbse.h"
+#include "tools/diabatization.h"
 #include "tools/excitoncoupling.h"
 #include "tools/gencube.h"
 #include "tools/gpu_benchmark.h"
@@ -53,6 +54,7 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<APDFT>("apdft");
   QMTools().Register<Mol2Orb>("mol2orb");
   QMTools().Register<Orb2Mol>("orb2mol");
+  QMTools().Register<Diabatization>("diabatization");
   QMTools().Register<Orb2Fchk>("orb2fchk");
   QMTools().Register<GPUBenchmark>("gpu_benchmark");
 }
