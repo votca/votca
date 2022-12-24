@@ -12,6 +12,7 @@ Version 2023-dev
 -  Correct ECP charges added in Orca Molden reader (#990)
 -  Implemented ER diabatization for BSE (#988)
 -  update esp++ spce tutorial to py3 (#997)
+-  reducing XTP tutorial size (#1020)
 
 Version 2022.2 (released XX.12.22)
 ==================================
