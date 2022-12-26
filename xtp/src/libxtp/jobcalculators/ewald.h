@@ -61,6 +61,27 @@ private:
     bool                           _ptop_check;
 };
 
+
+template<class EwaldMethod>
+void Ewald<EwaldMethod>::ParseSpecificOptions(const tools::Property& options) {
+
+  /* print_regions_pdb_ = options.get(".print_regions_pdb").as<bool>();
+  max_iterations_ = options.get(".max_iterations").as<Index>();
+  regions_def_.second = options.get(".regions");
+  regions_def_.first = mapfile_;
+  use_gs_for_ex_ = options.get("io_jobfile.use_gs_for_ex").as<bool>();
+
+  states_ = options.get("io_jobfile.states").as<std::vector<QMState>>();
+  which_segments_ = options.get("io_jobfile.segments").as<std::string>();
+
+  bool groundstate_found = std::any_of(
+      states_.begin(), states_.end(),
+      [](const QMState& state) { return state.Type() == QMStateType::Gstate; });
+  if (!groundstate_found) {
+    states_.push_back(QMState("n"));
+  }*/
+}
+
 template<class EwaldMethod>
 void Ewald<EwaldMethod>::Initialize(tools::Property *opt) {
 

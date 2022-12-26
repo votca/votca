@@ -74,7 +74,7 @@ public:
     {
     public:
 
-        InduWorker(int id, Topology *top, XInductor *forker)
+        InduWorker(int id, const Topology *top, XInductor *forker)
                     : _id(id), /*_top(top),*/ _forker(forker),
                       _qmm(NULL), _mm2(NULL)
                     { _actor = XInteractor(top, forker->_aDamp); };
