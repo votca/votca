@@ -103,12 +103,6 @@ if [[ ${INPUT_DISTRO} = ubuntu:* && ${INPUT_TOOLCHAIN} = "gnu" ]]; then
   cmake_args+=( -DVOTCA_EXTRA_WARNING_FLAGS="-Wno-deprecated-copy")
 fi
 
-# don't warn about -O0 in Debug build on icpx
-# we want to do this for the CI only, as user might still find this warning useful
-if [[ ${INPUT_CMAKE_BUILD_TYPE} = "Debug" && ${INPUT_TOOLCHAIN} = "intel-oneapi" ]]; then
-  cmake_args+=( -DVOTCA_EXTRA_WARNING_FLAGS="-Wno-debug-disables-optimization")
-fi
-
 if [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then
   # CodeQL does not work with valgrind
   cmake_args+=( -DVALGRIND_EXECUTABLE=FALSE )
