@@ -12,7 +12,7 @@ Mapping relates atomistic and coarse-grained representations of the
 system. It is organized as follows: for each molecule *type* a mapping
 file is created. When used as a command option, these files are combined
 in a list separated by a semicolon, e. g.
-``—cg`` ``protein.xml;solvent.xml``.
+``--cg`` ``protein.xml;solvent.xml``.
 
 .. _input_files_fig_mapping:
 
@@ -41,39 +41,8 @@ defined, as shown in :ref:`the figure above<input_files_fig_mapping>`. We will
 use the centers of mass of the beads as coarse-grained coordinates.
 
 Extracts from the ``propane.xml`` file of the tutorial are shown below.
-The ``name`` tag indicates the molecule name in the coarse-grained topology. The
-``ident`` tag must match the name of the molecule in the atomistic representation.
-In the ``topology`` section all beads are defined by specifying bead name (A1, B1,
-A2), type, and atoms belonging to this bead in the form
-``residue id:residue name:atom name``. For each bead a map has to be
-specified, which is defined later in the ``maps`` section. Note that bead ``type`` and bead ``map`` can be
-different, which might be useful in a situation when chemically
-different beads (A1, B1) are assigned to the same bead type. After
-defining all beads, the bonded interactions of the coarse-grained
-molecule must be specified in the ``cg_bonded`` section. This is done by using the
-identifiers of the beads in the coarse-grained model. Finally, in the
-``mapping`` section, the mapping coefficients are defined. This includes a weighting
-of the atoms in the topology section. In particular, the number of
-weights given should match the number of beads.
 
-Verification of a mapping
--------------------------
-
-Note that the ``ident`` tag should match the molecule name in the reference
-system. A common mistake occurs when beads have wrong names. In this case,
-the tool ``csg_dump`` can be used in order to identify the atoms which are read in
-from a topology file ``.tpr``. This tool displays the atoms in the
-format ``residue id:residue name:atom name``. For multicomponent
-systems, it might happen that molecules are not identified correctly.
-The workaround for this case is described in :ref:`input_files_advanced_topology_handling`.
-
-To compare coarse-grained and atomistic configurations one can use a
-standard visualization program, e. g. ``vmd``. When comparing
-trajectories, one has to be careful, since ``vmd`` opens both a ``.gro``
-and ``.trr`` file. The first frame is then the ``.gro`` file and the
-rest is taken from the ``.trr`` file. The coarse-grained trajectory
-contains only the frames of the trajectory. Hence, the first frame of
-the atomistic run has to be removed using the ``vmd`` menu.
+.. _propane_mapping_file:
 
 .. code:: xml
 
@@ -119,6 +88,43 @@ the atomistic run has to be removed using the ``vmd`` menu.
       <!-- more mapping definitions -->
     </maps>
   </cg_molecule> <!-- end of the molecule -->
+  
+  An extract from the mapping file propane.xml of a propane molecule. The complete
+  file can be found in the csg-tutorials/propane/single_molecule tutorial
+
+The ``name`` tag indicates the molecule name in the coarse-grained topology. The
+``ident`` tag must match the name of the molecule in the atomistic representation.
+In the ``topology`` section all beads are defined by specifying bead name (A1, B1,
+A2), type, and atoms belonging to this bead in the form
+``residue id:residue name:atom name``. For each bead a map has to be
+specified, which is defined later in the ``maps`` section. Note that bead ``type`` and bead ``map`` can be
+different, which might be useful in a situation when chemically
+different beads (A1, B1) are assigned to the same bead type. After
+defining all beads, the bonded interactions of the coarse-grained
+molecule must be specified in the ``cg_bonded`` section. This is done by using the
+identifiers of the beads in the coarse-grained model. Finally, in the
+``mapping`` section, the mapping coefficients are defined. This includes a weighting
+of the atoms in the topology section. In particular, the number of
+weights given should match the number of beads.
+
+Verification of a mapping
+-------------------------
+
+Note that the ``ident`` tag should match the molecule name in the reference
+system. A common mistake occurs when beads have wrong names. In this case,
+the tool ``csg_dump`` can be used in order to identify the atoms which are read in
+from a topology file ``.tpr``. This tool displays the atoms in the
+format ``residue id:residue name:atom name``. For multicomponent
+systems, it might happen that molecules are not identified correctly.
+The workaround for this case is described in :ref:`input_files_advanced_topology_handling`.
+
+To compare coarse-grained and atomistic configurations one can use a
+standard visualization program, e. g. ``vmd``. When comparing
+trajectories, one has to be careful, since ``vmd`` opens both a ``.gro``
+and ``.trr`` file. The first frame is then the ``.gro`` file and the
+rest is taken from the ``.trr`` file. The coarse-grained trajectory
+contains only the frames of the trajectory. Hence, the first frame of
+the atomistic run has to be removed using the ``vmd`` menu.
 
 .. _input_files_advanced_topology_handling:
 
@@ -145,7 +151,7 @@ be a problem for simulations with several molecules with multiple types.
 During coarse-graining, the molecule type is identified by a name tag as
 names must be clearly identified. To do this, it is possible to read a
 topology and then modify parts of it. The new XML topology can be used
-with the ``—tpr`` option, as any other topology file.
+with the ``--tpr`` option, as any other topology file.
 
 For example, if information about a molecule is not present at all, a
 XML topology file can be created from a ``.pdb`` file as follows
@@ -159,12 +165,12 @@ XML topology file can be created from a ``.pdb`` file as follows
     </molecules>
   </topology>
 
-where :math:`<`\ clear/\ :math:`>` clears all information that was
+where ``<clear>`` clears all information that was
 present before.
 
 Old versions of GROMACS did not store molecule names. In order to use
 this feature, a recent ``.tpr`` file containing molecule names should
-always be provided. For old topologies, rerun GROMACS to update the old
+always be provided. For old topologies, rerun GROMACS *grompp* to update the old
 topology file.
 
 If molecule information is already present in the parent topology but
@@ -266,7 +272,7 @@ a coarse-grained trajectory using ``csg_map``.
 
   csg_map --top topol.tpr --trj traj.trr --cg propane.xml --out cg.gro
 
-The program ``csg_map`` also provides the option ``—no-map``. In this case, no
+The program ``csg_map`` also provides the option ``--no-map``. In this case, no
 mapping is done and ``csg_map`` instead works as a trajectory converter. In general, mapping
 can be enabled and disabled in most analysis tools, e.g. in ``csg_stat`` or ``csg_fmatch``. 
 
@@ -276,8 +282,8 @@ files can be used to define and relabel bonds.
 
 Also note, the default settings concerning mapping varies
 individually between the programs. Some have a default setting that does
-mapping (such as , use ``—no-map`` to disable mapping) and some have
-mapping disabled by default (e.g. , use ``—cg`` to enable mapping).
+mapping (such as ``csg_map``, use ``--no-map`` to disable mapping) and some have
+mapping disabled by default (e.g. ``csg_stat``, use ``--cg`` to enable mapping).
 
 .. _input_files_setting_files:
 
@@ -301,6 +307,9 @@ Setting files
       ... specific section for inverse boltzmann, force matching etc.
     </non-bonded>
   </cg>
+  
+Abstract of a ``settings.xml`` file. See secs. :ref:`methods_fm_program_input`, 
+:ref:`methods_fm_threebody` or :ref:`methods_preparing_the_run` for full versions.
 
 A setting file is written in the format ``.xml``. It consists of a
 general section displayed above, and a specific section depending on the
@@ -317,7 +326,57 @@ distribution functions and analysing them. As an example, the command
 
 computes the distributions of all interactions specified in
 ``settings.xml`` and writes all tabulated distributions as files
-``interaction name.dist.new``.
+``interaction name.dist.new``. A mapping file can be provided with
+the option ``--cg``.
+
+When calculating the angular distribution, an additional option 
+``<threebody>`` has to be added to the settings file. For example, 
+the ``settings.xml`` file for calculating the angular distribution between
+three beads of type A which are all within a cutoff distance of 0.37 (nm) might look like:
+
+.. code:: xml
+
+  <cg>
+    <non-bonded> <!-- non-bonded interactions -->
+      <name>A-A-A</name> <!-- name of the interaction -->
+      <threebody>true</threebody> <!-- is a three-body interaction -->
+      <type1>A</type1> <!-- types involved in this interaction -->
+      <type2>A</type2>
+      <type2>A</type2>
+      <!-- dimension + grid spacing of tables-->
+      <min>0</min> <!--minimum angle in radians -->
+      <max>3.14</max> <!-- maximum angle in radians -->
+      <step>0.02</step>
+      <cut>0.37</cut>
+    </non-bonded>
+  </cg>
+  
+In addition to distribution functions, ``csg_stat`` can also calculate the
+pair potential of mean force (PMF) for non-bonded pairs:
+
+.. _input_files_eq_pair_pmf:
+
+.. math::
+
+   U_{\text{PMF}}\left(r\right)= - \int_0^r \, F_{\text{rad}}\left(r^\prime\right)\,\text{d}r^\prime.
+   
+The output file name is then ``interaction name.force.new``. Here, :math:`F_{\text{rad}}\left(r\right)`
+is the total force acting on a bead projected onto the unit distance vector connecting this pair of beads.
+The settings file has to contain the additional option:
+
+.. code:: xml
+
+  <cg>
+    <non-bonded> <!-- non-bonded interactions -->
+      <name>A-A</name> <!-- name of the interaction -->
+      <type1>A</type1> <!-- types involved in this interaction -->
+      <type2>A</type2>
+      <min>0</min>  <!-- dimension + grid spacing of tables-->
+      <max>1.36</max>
+      <step>0.01</step>
+      <force>true</force>  <!-- calculate pair PMF for this interaction -->
+    </non-bonded>
+  </cg>
 
 .. _input_files_table_formats:
 
