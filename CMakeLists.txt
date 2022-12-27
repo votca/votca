@@ -22,11 +22,6 @@ set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 ########################################################################
 # User input options                                                   #
 ########################################################################
-option(MODULE_BUILD "Build VOTCA modules one-by-one" OFF)
-if(NOT MODULE_BUILD AND NOT EXISTS "${PROJECT_SOURCE_DIR}/tools/CMakeLists.txt")
-  message(FATAL_ERROR "No CMake files found in tools/ ! Did you forgot to clone with '--recursive'? Run 'git submodule update --init' to fix that.")
-endif()
-
 option(BUILD_XTP "Build xtp" OFF)
 add_feature_info(BUILD_XTP BUILD_XTP "Build xtp module")
 set(VOTCA_SKIP_FIND_PACKAGE VOTCA_TOOLS VOTCA_CSG VOTCA_XTP)
@@ -103,12 +98,6 @@ set(VOTCA_XML_PARSER "${PROJECT_SOURCE_DIR}//share/doc/extract_xml_metadata.py")
 ########################################################################
 #Find external packages
 ########################################################################
-if(MODULE_BUILD)
-  message(STATUS "Doing Module build")
-  include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/BuildModules.cmake)
-  return()
-endif()
-
 option(BUILD_OWN_GROMACS "Build our own gromacs" OFF)
 add_feature_info( BUILD_OWN_GROMACS BUILD_OWN_GROMACS "Build an internal version of gromacs")
 if(BUILD_OWN_GROMACS)
