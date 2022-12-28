@@ -23,7 +23,7 @@ from pathlib import Path
 
 import lxml.etree as lxml
 
-VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
+VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
 
 PROGTITLE = 'THE VOTCA::XTP converter basissetfiles'
 PROGDESCR = 'Creates votca xml basissetfiles from NWCHEM basissetfiles'

@@ -28,7 +28,7 @@ import time
 
 import h5py
 
-VERSION = '@PROJECT_VERSION@ #CSG_GIT_ID#'
+VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
 PROGTITLE = 'THE VOTCA::XTP Benchmark'
 PROGDESCR = 'Runs a benchmark on a set of geometries'
 VOTCAHEADER = '''\

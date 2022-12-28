@@ -41,7 +41,7 @@ except ModuleNotFoundError:
 from rdkit import Chem
 
 
-VERSION = '@PROJECT_VERSION@ #XTP_GIT_ID#'
+VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
 PROGTITLE = 'THE VOTCA::XTP auto mapping generator'
 VOTCAHEADER = f"""
 ==================================================
