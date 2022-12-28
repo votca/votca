@@ -1,6 +1,6 @@
-set(VOTCASHARE "${PROJECT_SOURCE_DIR}/share")
-set(VOTCA_PATH "${CMAKE_CURRENT_BINARY_DIR}:${PROJECT_BINARY_DIR}/src/tools")
-set(VOTCA_CSG_DEFAULTS "${PROJECT_BINARY_DIR}/share/xml/csg_defaults.xml")
+set(VOTCASHARE "${CMAKE_SOURCE_DIR}/csg/share")
+set(VOTCA_PATH "${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_BINARY_DIR}/csg/src/tools")
+set(VOTCA_CSG_DEFAULTS "${CMAKE_BINARY_DIR}/csg/share/xml/csg_defaults.xml")
 
 set(CSG_RST_FILES)
 foreach(SCRIPT csg_call csg_inverse)
@@ -9,8 +9,8 @@ foreach(SCRIPT csg_call csg_inverse)
   add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}
     -DINPUT="${SCRIPT}.in2" -DOUTPUT="${SCRIPT}"
     -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-    -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitscript.cmake
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.in2 ${PROJECT_SOURCE_DIR}/CMakeModules/gitscript.cmake)
+    -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_SOURCE_DIR}/CMakeModules/gitscript.cmake
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.in2 ${CMAKE_SOURCE_DIR}/CMakeModules/gitscript.cmake)
   set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${SCRIPT} ${SCRIPT}.tmp ${SCRIPT}.tmp.x)
   set_property(TARGET votca_csg APPEND PROPERTY BINARIES "${SCRIPT}")
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} DESTINATION ${CMAKE_INSTALL_BINDIR})
