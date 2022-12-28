@@ -14,7 +14,7 @@ Version 2023-dev
 -  update esp++ spce tutorial to py3 (#997)
 -  reducing XTP tutorial size (#1020)
 -  Clean up 3body Stillinger-Weber implement, docs and tutorial (#1012)
--  Major CMake refactor (#1022)
+-  Major CMake refactor (#950, #1022)
 
 Version 2022.2 (released XX.12.22)
 ==================================
