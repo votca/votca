@@ -3,10 +3,6 @@ project(votca-xtp LANGUAGES CXX)
 
 set(PROJECT_VERSION "2023-dev")
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-  add_definitions(-DDEBUG)
-endif()
-
 ######################################################################
 # compiler tests
 # these need ot be done early (before further tests).
