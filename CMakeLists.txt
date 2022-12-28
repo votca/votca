@@ -23,6 +23,7 @@ endif()
 
 include(GNUInstallDirs)
 include(FeatureSummary)
+include(CheckCXXCompilerFlag)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -61,7 +62,6 @@ endif(ENABLE_RPATH_INJECT)
 
 option(ENABLE_WARNING_FLAGS "Inject more warning flags" ON)
 if(ENABLE_WARNING_FLAGS)
-  include(CheckCXXCompilerFlag)
   foreach(_FLAG -Wall -Wextra -Wpedantic -Wshadow -Wconversion) 
     check_cxx_compiler_flag("${_FLAG}" COMPILER_SUPPORTS${_FLAG})
     if(COMPILER_SUPPORTS${_FLAG})

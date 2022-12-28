@@ -3,26 +3,6 @@ cmake_minimum_required(VERSION 3.13)
 project(votca-csg LANGUAGES CXX)
 
 set(PROJECT_VERSION "2023-dev")
-
-######################################################################
-# compiler tests
-# these need ot be done early (before further tests).
-#####################################################################
-
-include(CheckCXXCompilerFlag)
-
-########################################################################
-# User input options                                                   #
-########################################################################
-option(BUILD_SHARED_LIBS "Build shared libs" ON)
-include(GNUInstallDirs)
-
-option(ENABLE_TESTING "Build and enable testing stuff" OFF)
-add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
-if(ENABLE_TESTING)
-  enable_testing()
-endif(ENABLE_TESTING)
-
 ########################################################################
 #Find external packages
 ########################################################################

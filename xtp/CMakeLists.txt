@@ -3,17 +3,9 @@ project(votca-xtp LANGUAGES CXX)
 
 set(PROJECT_VERSION "2023-dev")
 
-######################################################################
-# compiler tests
-# these need ot be done early (before further tests).
-#####################################################################
-
-include(CheckCXXCompilerFlag)
-
 ########################################################################
 # User input options                                                   #
 ########################################################################
-
 find_package(Libxc QUIET CONFIG)
 set_package_properties(Libxc PROPERTIES TYPE REQUIRED PURPOSE "Provides exchange-correclation functionals")
 if(NOT Libxc_FOUND)
@@ -46,18 +38,8 @@ if(HDF5_VERSION VERSION_GREATER_EQUAL 1.10.4 AND HDF5_VERSION VERSION_LESS_EQUAL
   endif()
 endif()
 
-option(BUILD_SHARED_LIBS "Build shared libs" ON)
-include(GNUInstallDirs)
-
 option(USE_CUDA "Use a Nvidia GPU to speed up computations" OFF)
 add_feature_info(USE_CUDA USE_CUDA "Use CUDA for GPU acceleration")
-
-option(ENABLE_TESTING "Build and enable testing stuff" OFF)
-add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
-if(ENABLE_TESTING)
-  enable_testing()
-endif(ENABLE_TESTING)
-
 ########################################################################
 #Find external packages
 ########################################################################

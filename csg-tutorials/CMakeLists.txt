@@ -4,16 +4,11 @@ project(csg-tutorials LANGUAGES NONE)
 
 set(PROJECT_VERSION "2023-dev")
 
-# not used, but stops GNUInstallDirs.cmake from warning
-set(CMAKE_INSTALL_LIBDIR "lib64")
-include(GNUInstallDirs)
-
 option(ENABLE_REGRESSION_TESTING "Build and copy regression testing stuff" OFF)
 add_feature_info(ENABLE_REGRESSION_TESTING ENABLE_REGRESSION_TESTING "Enable regression tests")
 if(ENABLE_REGRESSION_TESTING)
   option(ENABLE_EXPERIMENTAL_TESTS "Run more unstable regression tests as well" OFF)
   add_feature_info(ENABLE_EXPERIMENTAL_TESTS ENABLE_EXPERIMENTAL_TESTS "Enable experimental regression tests")
-  enable_language(CXX) # needed by mpi for VOTCA_CSG
   enable_testing()
   find_package(LMP)
   set_package_properties(LMP PROPERTIES TYPE OPTIONAL PURPOSE "Lammps binary needed to run lammps regression tests")
