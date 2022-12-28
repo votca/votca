@@ -134,7 +134,6 @@ endif()
 #Find external packages
 ########################################################################
 
-
 if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git)
   set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")

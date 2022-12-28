@@ -26,11 +26,6 @@ endif(ENABLE_TESTING)
 ########################################################################
 #Find external packages
 ########################################################################
-if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
-  find_package(Git)
-  set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")
-endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
-
 # iie methods needs python 3.5
 find_package(Python 3.5 REQUIRED COMPONENTS Interpreter)
 set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used for csg scripts")
@@ -40,11 +35,6 @@ add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cros
 find_package(Boost 1.71.0 REQUIRED COMPONENTS program_options filesystem system regex)
 find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
 find_package(Threads REQUIRED)
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  set_package_properties(Threads PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization")
-  set_package_properties(Boost PROPERTIES TYPE REQUIRED PURPOSE "Extended C++ libraries")
-  set_package_properties(Eigen3 PROPERTIES TYPE REQUIRED PURPOSE "C++ vector data structures")
-endif()
 message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
 find_program(GMX_EXECUTABLE NAMES gmx_d gmx)
