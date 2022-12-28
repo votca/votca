@@ -4,11 +4,6 @@ project(votca-tools LANGUAGES CXX)
 
 set(PROJECT_VERSION "2023-dev")
 
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
-  #release comes with -O3 by default
-  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
-endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
-
 ######################################################################
 # compiler tests
 # these need ot be done early (before further tests).
