@@ -36,6 +36,11 @@ if(ENABLE_REGRESSION_TESTING)
   set_package_properties(CMA PROPERTIES TYPE OPTIONAL PURPOSE "CMA python module needed to run CMA regression tests")
   find_package(Gnuplot)
   set_package_properties(Gnuplot PROPERTIES TYPE OPTIONAL PURPOSE "gnuplot needed to run CMA/simplex regression tests")
+  # all gmx test use tabulated interactions, which is only supported in
+  # gmx-2019
+  if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_GREATER_EQUAL "2020")
+    unset(GROMACS_FOUND)
+  endif()
   get_target_property(VOTCA_PATH VOTCA::csg_call VOTCA_PATH)
   # GROMACS_PATH is used with BUILD_OWN_GROMACS, to have binaries during
   # compile time
