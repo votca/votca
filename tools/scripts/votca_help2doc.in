@@ -21,7 +21,7 @@ import subprocess
 from pathlib import Path
 from typing import Iterator, List, NamedTuple, Tuple
 
-VERSION = '@PROJECT_VERSION@ #TOOLS_GIT_ID#'
+VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
 PROGTITLE = 'THE VOTCA::TOOLS help to doc converter'
 VOTCAHEADER = f"""
 ==================================================
