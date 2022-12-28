@@ -26,11 +26,6 @@ endif(ENABLE_TESTING)
 ########################################################################
 #Find external packages
 ########################################################################
-if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
-  find_package(Git)
-  set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generates version for development version")
-endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
-
 find_package(Threads REQUIRED)
 set_package_properties(Threads PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization")
 
