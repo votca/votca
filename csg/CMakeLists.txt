@@ -26,12 +26,6 @@ endif(ENABLE_TESTING)
 ########################################################################
 #Find external packages
 ########################################################################
-# iie methods needs python 3.5
-find_package(Python 3.5 REQUIRED COMPONENTS Interpreter)
-set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used for csg scripts")
-option(BUILD_MANPAGES "Build manpages" ${Python_FOUND})
-add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
-
 find_program(GMX_EXECUTABLE NAMES gmx_d gmx)
 find_package_handle_standard_args(GMX REQUIRED_VARS GMX_EXECUTABLE)
 
@@ -59,9 +53,6 @@ mark_as_advanced( MATH_LIBRARIES )
 ######################################
 # Include the following subdirectory # 
 ######################################
-if(NOT TARGET manpages)
-  add_custom_target(manpages ALL)
-endif()
 if(VOTCA_SPHINX_DIR)
   add_custom_target(doc-csg)
   file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/csg)

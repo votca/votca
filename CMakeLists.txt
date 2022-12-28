@@ -124,6 +124,17 @@ if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_GREATER
   message(WARNING "Gromacs-2020 and above have no support for tabulated interactions, that are needed for coarse-graining (see and comment on https://gitlab.com/gromacs/gromacs/-/issues/1347)")
 endif()
 
+# iie methods needs python 3.5+
+find_package(Python 3.5 REQUIRED COMPONENTS Interpreter)
+set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used in csg scripts and docu")
+option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ${Python_FOUND})
+add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
+
+if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+  find_package(Git)
+  set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")
+endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+
 option(BUILD_OWN_GROMACS "Build our own gromacs" OFF)
 add_feature_info( BUILD_OWN_GROMACS BUILD_OWN_GROMACS "Build an internal version of gromacs")
 if(BUILD_OWN_GROMACS)
@@ -141,21 +152,16 @@ add_feature_info(BUILD_OWN_LIBINT BUILD_OWN_LIBINT "Build an internal version of
 if(BUILD_OWN_LIBINT)
   include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/BuildLibint.cmake)
 endif()
-
-########################################################################
-#Find external packages
-########################################################################
-
-if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
-  find_package(Git)
-  set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")
-endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
-
 ######################################
 # Include the following subdirectory # 
 ######################################
 configure_file(${CMAKE_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake @ONLY)
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+
+if(BUILD_MANPAGES)
+  #define this target here, so that individual man pages can append to it.
+  add_custom_target(manpages ALL)
+endif()
 
 add_subdirectory(tools)
 set(ENABLED_VOTCA_PACKAGES tools)

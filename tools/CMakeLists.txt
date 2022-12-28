@@ -26,12 +26,6 @@ endif(ENABLE_TESTING)
 ########################################################################
 #Find external packages
 ########################################################################
-find_package(Python 3 COMPONENTS Interpreter)
-set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
-option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ${Python_FOUND})
-add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
-#define this target here, so that individual man pages can append to it.
-add_custom_target(manpages ALL)
 if(VOTCA_SPHINX_DIR)
   file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/tools)
   add_custom_target(doc-tools)

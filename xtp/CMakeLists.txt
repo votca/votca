@@ -61,15 +61,6 @@ endif(ENABLE_TESTING)
 ########################################################################
 #Find external packages
 ########################################################################
-find_package(Python 3 COMPONENTS Interpreter)
-set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
-option(BUILD_MANPAGES "Build manpages" ${Python_FOUND})
-add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
-#define this target here, so that individual man pages can append to it.
-if(NOT TARGET manpages)
-  add_custom_target(manpages ALL)
-endif()
-
 if(USE_CUDA)
   find_package(CUDA REQUIRED)
   set_package_properties(CUDA PROPERTIES TYPE REQUIRED PURPOSE "Used for GPU acceleration")
