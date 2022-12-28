@@ -26,9 +26,6 @@ endif(ENABLE_TESTING)
 ########################################################################
 #Find external packages
 ########################################################################
-find_package(Threads REQUIRED)
-set_package_properties(Threads PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization")
-
 find_package(Python 3 COMPONENTS Interpreter)
 set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ${Python_FOUND})

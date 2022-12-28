@@ -32,8 +32,6 @@ set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used for csg scr
 option(BUILD_MANPAGES "Build manpages" ${Python_FOUND})
 add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
 
-find_package(Threads REQUIRED)
-
 find_program(GMX_EXECUTABLE NAMES gmx_d gmx)
 find_package_handle_standard_args(GMX REQUIRED_VARS GMX_EXECUTABLE)
 
