@@ -4,9 +4,6 @@ project(votca-tools LANGUAGES CXX)
 
 set(PROJECT_VERSION "2023-dev")
 
-# Cmake modules/macros are in a subdirectory to keep this file cleaner
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
-
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   #release comes with -O3 by default
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
@@ -122,9 +119,6 @@ add_subdirectory(src)
 add_subdirectory(include/votca/tools)
 add_subdirectory(share/man)
 add_subdirectory(share/doc)
-
-configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake @ONLY)
-add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)

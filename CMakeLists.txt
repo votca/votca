@@ -133,6 +133,9 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 ######################################
 # Include the following subdirectory # 
 ######################################
+configure_file(${CMAKE_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake @ONLY)
+add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+
 add_subdirectory(tools)
 set(ENABLED_VOTCA_PACKAGES tools)
 add_subdirectory(csg)
