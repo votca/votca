@@ -7,9 +7,12 @@ add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_LINALG_SOURCES})
 
 # CMAKE_CURRENT_BINARY_DIR for gitversion.h
 # and ${CMAKE_BINARY_DIR}/include/votca/tools for votca_tools_config.h
+# and ${CMAKE_BINARY_DIR}/include for votca_tools_config.h when used by
+# csg/xtp
 target_include_directories(votca_tools PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/tools/include>
   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/tools/include/votca/tools>
+  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/tools/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
