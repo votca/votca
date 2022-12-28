@@ -8,7 +8,6 @@ set(PROJECT_VERSION "2023-dev")
 # these need ot be done early (before further tests).
 #####################################################################
 
-include(FeatureSummary)
 include(CheckCXXCompilerFlag)
 
 ########################################################################
@@ -120,7 +119,3 @@ add_subdirectory(include/votca/xtp)
 add_subdirectory(scripts)
 add_subdirectory(src)
 add_subdirectory(share)
-
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
-endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

@@ -16,7 +16,6 @@ include(CheckCXXCompilerFlag)
 ########################################################################
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 include(GNUInstallDirs)
-include(FeatureSummary)
 
 option(ENABLE_TESTING "Build and enable testing stuff" OFF)
 add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
@@ -110,7 +109,3 @@ add_subdirectory(src)
 add_subdirectory(include/votca/tools)
 add_subdirectory(share/man)
 add_subdirectory(share/doc)
-
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
-endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

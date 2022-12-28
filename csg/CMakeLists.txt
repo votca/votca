@@ -16,7 +16,6 @@ include(CheckCXXCompilerFlag)
 ########################################################################
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 include(GNUInstallDirs)
-include(FeatureSummary)
 
 option(ENABLE_TESTING "Build and enable testing stuff" OFF)
 add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
@@ -102,7 +101,3 @@ list(SORT VOTCA_BINARIES)
 configure_file(src/libcsg/VOTCA_CSGConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/src/libcsg/VOTCA_CSGConfig.cmake" @ONLY)
 list(JOIN VOTCA_BINARIES " " VOTCA_BINARIES)
 configure_file(scripts/csg-completion.bash.in "${CMAKE_CURRENT_BINARY_DIR}/scripts/csg-completion.bash" @ONLY)
-
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
-endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

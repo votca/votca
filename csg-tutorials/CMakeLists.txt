@@ -7,7 +7,6 @@ set(PROJECT_VERSION "2023-dev")
 # not used, but stops GNUInstallDirs.cmake from warning
 set(CMAKE_INSTALL_LIBDIR "lib64")
 include(GNUInstallDirs)
-include(FeatureSummary)
 
 option(ENABLE_REGRESSION_TESTING "Build and copy regression testing stuff" OFF)
 add_feature_info(ENABLE_REGRESSION_TESTING ENABLE_REGRESSION_TESTING "Enable regression tests")
@@ -154,7 +153,3 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_DATAD
 	PATTERN "CMake*" EXCLUDE PATTERN "cmake_install.cmake" EXCLUDE
 	PATTERN "install_manifest.txt" EXCLUDE PATTERN "*~" EXCLUDE
 	PATTERN "inverse.log" EXCLUDE)
-
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
-endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
