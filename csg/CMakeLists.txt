@@ -10,9 +10,6 @@ set(PROJECT_VERSION "2023-dev")
 #####################################################################
 
 include(CheckCXXCompilerFlag)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 
 ########################################################################
 # User input options                                                   #
