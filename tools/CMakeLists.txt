@@ -52,7 +52,6 @@ endif()
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################
-
 find_package(MKL CONFIG)
 set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with MKL")
 # Replace the below with CMAKE_REQUIRE_FIND_PACKAGE_MKL, when we switch to
@@ -70,10 +69,6 @@ else()
   find_package(OpenMP 4.5)
   set_package_properties(OpenMP PROPERTIES TYPE RECOMMENDED PURPOSE "Used for thread parallelization in tools")
 endif()
-
-find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
-set_package_properties(Eigen3 PROPERTIES TYPE REQUIRED PURPOSE "C++ vector data structures")
-message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
 if(MKL_FOUND)
   # MKL has its internal fftw3 implementation

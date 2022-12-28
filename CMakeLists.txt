@@ -106,6 +106,10 @@ set(VOTCA_XML_PARSER "${PROJECT_SOURCE_DIR}//share/doc/extract_xml_metadata.py")
 ########################################################################
 #Find external packages
 ########################################################################
+find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
+set_package_properties(Eigen3 PROPERTIES TYPE REQUIRED PURPOSE "C++ vector data structures")
+message(STATUS "Found Eigen3: ${Eigen3_DIR}")
+
 find_package(GROMACS 2019.6 CONFIG NAMES gromacs gromacs_d)
 set_package_properties(GROMACS PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read/write gromacs data files")
 if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_GREATER_EQUAL "2020")

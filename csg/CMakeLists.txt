@@ -33,9 +33,7 @@ option(BUILD_MANPAGES "Build manpages" ${Python_FOUND})
 add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
 
 find_package(Boost 1.71.0 REQUIRED COMPONENTS program_options filesystem system regex)
-find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
 find_package(Threads REQUIRED)
-message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
 find_program(GMX_EXECUTABLE NAMES gmx_d gmx)
 find_package_handle_standard_args(GMX REQUIRED_VARS GMX_EXECUTABLE)
