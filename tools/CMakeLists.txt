@@ -55,9 +55,6 @@ foreach(HEADER cassert cmath fstream functional iostream limits list map ostream
   endif(NOT FOUND_${HEADER})
 endforeach(HEADER)
 
-set(MATH_LIBRARIES "m" CACHE STRING "math library")
-mark_as_advanced( MATH_LIBRARIES )
-
 ######################################
 # Include the following subdirectory #
 ######################################

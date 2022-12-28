@@ -130,6 +130,9 @@ set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used in csg scri
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ${Python_FOUND})
 add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
 
+set(MATH_LIBRARIES "m" CACHE STRING "math library")
+mark_as_advanced( MATH_LIBRARIES )
+
 if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git)
   set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")

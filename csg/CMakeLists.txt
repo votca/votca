@@ -27,9 +27,6 @@ foreach(HEADER algorithm cassert fstream iomanip iostream list map numeric sstre
   endif(NOT FOUND_${HEADER})
 endforeach(HEADER)
 
-set(MATH_LIBRARIES "m" CACHE STRING "math library")
-mark_as_advanced( MATH_LIBRARIES )
-
 ######################################
 # Include the following subdirectory # 
 ######################################
