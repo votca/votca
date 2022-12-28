@@ -53,18 +53,14 @@ endif()
 # Checks what linear algebra packages are installed                    #
 ########################################################################
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Intel" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set(MKL_THREAD_LAYER "Intel OpenMP" CACHE STRING "The thread layer to choose for MKL")
-else()
-  set(MKL_THREAD_LAYER "GNU OpenMP" CACHE STRING "The thread layer to choose for MKL")
-endif()
-find_package(MKL)
+find_package(MKL CONFIG)
 set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with MKL")
+# Replace the below with CMAKE_REQUIRE_FIND_PACKAGE_MKL, when we switch to
+# CMake-3.22+
 option(REQUIRE_MKL "Require MKL" OFF)
 if(REQUIRE_MKL)
   find_package(MKL REQUIRED)
 endif()
-
 
 #user defined reductions are buggy for <= clang-9 (see https://bugs.llvm.org/show_bug.cgi?id=44134)
 if (CMAKE_CXX_COMPILER MATCHES "clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.0)
