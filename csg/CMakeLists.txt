@@ -32,7 +32,6 @@ set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used for csg scr
 option(BUILD_MANPAGES "Build manpages" ${Python_FOUND})
 add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
 
-find_package(Boost 1.71.0 REQUIRED COMPONENTS program_options filesystem system regex)
 find_package(Threads REQUIRED)
 
 find_program(GMX_EXECUTABLE NAMES gmx_d gmx)

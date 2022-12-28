@@ -34,10 +34,6 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 find_package(Threads REQUIRED)
 set_package_properties(Threads PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization")
 
-find_package(Boost 1.71.0 REQUIRED COMPONENTS program_options filesystem system )
-set_package_properties(Boost PROPERTIES TYPE REQUIRED PURPOSE "Extended C++ libraries")
-
-
 find_package(Python 3 COMPONENTS Interpreter)
 set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ${Python_FOUND})

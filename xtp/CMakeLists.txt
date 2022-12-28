@@ -61,8 +61,6 @@ endif(ENABLE_TESTING)
 ########################################################################
 #Find external packages
 ########################################################################
-find_package(Boost 1.71.0 REQUIRED COMPONENTS program_options filesystem system timer)
-
 find_package(Python 3 COMPONENTS Interpreter)
 set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
 option(BUILD_MANPAGES "Build manpages" ${Python_FOUND})

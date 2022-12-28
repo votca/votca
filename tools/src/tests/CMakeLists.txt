@@ -1,5 +1,3 @@
-find_package(Boost 1.71.0 REQUIRED COMPONENTS unit_test_framework)
-
 # Each test listed in Alphabetical order
 foreach(PROG
     test_calculator

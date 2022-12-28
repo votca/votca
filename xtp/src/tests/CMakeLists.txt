@@ -1,6 +1,5 @@
 if(ENABLE_TESTING)
   # Please place additional tests in alphabetical order
-  find_package(Boost 1.71.0 REQUIRED COMPONENTS unit_test_framework)
   list(APPEND test_cases test_adiis)
   list(APPEND test_cases test_aobasis)
   list(APPEND test_cases test_aomatrix)

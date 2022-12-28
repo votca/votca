@@ -37,6 +37,7 @@ add_feature_info(BUILD_XTP BUILD_XTP "Build xtp module")
 option(ENABLE_TESTING "Build and copy testing stuff" OFF)
 add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
 if(ENABLE_TESTING OR ENABLE_REGRESSION_TESTING)
+  find_package(Boost 1.71.0 REQUIRED COMPONENTS unit_test_framework)
   enable_testing()
 endif()
 
@@ -106,6 +107,10 @@ set(VOTCA_XML_PARSER "${PROJECT_SOURCE_DIR}//share/doc/extract_xml_metadata.py")
 ########################################################################
 #Find external packages
 ########################################################################
+find_package(Boost 1.71.0 REQUIRED
+  COMPONENTS program_options filesystem system regex timer)
+set_package_properties(Boost PROPERTIES TYPE REQUIRED PURPOSE "Extended C++ libraries")
+
 find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
 set_package_properties(Eigen3 PROPERTIES TYPE REQUIRED PURPOSE "C++ vector data structures")
 message(STATUS "Found Eigen3: ${Eigen3_DIR}")
