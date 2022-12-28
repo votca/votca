@@ -4,9 +4,6 @@ project(csg-tutorials LANGUAGES NONE)
 
 set(PROJECT_VERSION "2023-dev")
 
-# Cmake modules/macros are in a subdirectory to keep this file cleaner
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
-
 # not used, but stops GNUInstallDirs.cmake from warning
 set(CMAKE_INSTALL_LIBDIR "lib64")
 include(GNUInstallDirs)
