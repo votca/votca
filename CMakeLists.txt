@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 3.13)
 project(votca LANGUAGES CXX)
 
 set(PROJECT_VERSION "2023-dev")
+string(REGEX REPLACE "[-.].*$" "" SOVERSION "${PROJECT_VERSION}")
+if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
+  message(FATAL_ERROR "Could not determine SOVERSION (${SOVERSION}) from ${PROJECT_VERSION}")
+endif (NOT ${SOVERSION} MATCHES "^[0-9]+$")
+set(PROJECT_CONTACT "https://github.com/votca/votca/issues")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
@@ -24,7 +29,6 @@ set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 ########################################################################
 option(BUILD_XTP "Build xtp" OFF)
 add_feature_info(BUILD_XTP BUILD_XTP "Build xtp module")
-set(VOTCA_SKIP_FIND_PACKAGE VOTCA_TOOLS VOTCA_CSG VOTCA_XTP)
 
 option(ENABLE_TESTING "Build and copy testing stuff" OFF)
 add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
@@ -102,7 +106,12 @@ option(BUILD_OWN_GROMACS "Build our own gromacs" OFF)
 add_feature_info( BUILD_OWN_GROMACS BUILD_OWN_GROMACS "Build an internal version of gromacs")
 if(BUILD_OWN_GROMACS)
   include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/BuildGromacs.cmake)
-  list(APPEND VOTCA_SKIP_FIND_PACKAGE GROMACS)
+  #neat trick to not call find_package(GROMACS)
+  macro(find_package)
+    if(NOT "${ARGV0}" STREQUAL GROMACS)
+      _find_package(${ARGV})
+    endif()
+  endmacro()
 endif()
 
 option(BUILD_OWN_LIBINT "Build our own lib" OFF)
@@ -115,12 +124,6 @@ endif()
 #Find external packages
 ########################################################################
 
-#neat trick to not call find_package(VOTCA_*)
-macro(find_package)
-  if(NOT "${ARGV0}" IN_LIST VOTCA_SKIP_FIND_PACKAGE)
-    _find_package(${ARGV})
-  endif()
-endmacro()
 
 if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git)

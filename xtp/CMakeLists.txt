@@ -2,11 +2,6 @@ cmake_minimum_required(VERSION 3.13)
 project(votca-xtp LANGUAGES CXX)
 
 set(PROJECT_VERSION "2023-dev")
-string(REGEX REPLACE "[-.].*$" "" SOVERSION "${PROJECT_VERSION}")
-if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
-  message(FATAL_ERROR "Could not determine SOVERSION (${SOVERSION}) from ${PROJECT_VERSION}")
-endif (NOT ${SOVERSION} MATCHES "^[0-9]+$")
-set(PROJECT_CONTACT "https://github.com/votca/xtp/issues")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
@@ -102,19 +97,6 @@ add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cros
 if(NOT TARGET manpages)
   add_custom_target(manpages ALL)
 endif()
-
-find_package(VOTCA_TOOLS REQUIRED NO_MODULE)
-set_package_properties(VOTCA_TOOLS PROPERTIES TYPE REQUIRED PURPOSE "Votca base library")
-if(DEFINED VOTCA_TOOLS_VERSION AND NOT VOTCA_TOOLS_VERSION STREQUAL PROJECT_VERSION)
-  message(FATAL_ERROR "Incompatible VOTCA Tools version found (needed ${PROJECT_VERSION}, found ${VOTCA_TOOLS_VERSION})")
-endif()
-message(STATUS "Found VOTCA_TOOLS: ${VOTCA_TOOLS_DIR}")
-find_package(VOTCA_CSG REQUIRED NO_MODULE)
-set_package_properties(VOTCA_TOOLS PROPERTIES TYPE REQUIRED PURPOSE "Votca csg library")
-if(DEFINED VOTCA_CSG_VERSION AND NOT VOTCA_CSG_VERSION STREQUAL PROJECT_VERSION)
-  message(FATAL_ERROR "Incompatible VOTCA CSG version found (needed ${PROJECT_VERSION}, found ${VOTCA_CSG_VERSION})")
-endif()
-message(STATUS "Found VOTCA_CSG: ${VOTCA_CSG_DIR}")
 
 if(USE_CUDA)
   find_package(CUDA REQUIRED)

@@ -40,12 +40,6 @@ if(ENABLE_REGRESSION_TESTING)
   set_package_properties(CMA PROPERTIES TYPE OPTIONAL PURPOSE "CMA python module needed to run CMA regression tests")
   find_package(Gnuplot)
   set_package_properties(Gnuplot PROPERTIES TYPE OPTIONAL PURPOSE "gnuplot needed to run CMA/simplex regression tests")
-  find_package(VOTCA_CSG NO_MODULE REQUIRED)
-  set_package_properties(VOTCA_CSG PROPERTIES TYPE REQUIRED PURPOSE "VOTCA csg binaries used in testing")
-  if(DEFINED VOTCA_CSG_VERSION AND NOT VOTCA_CSG_VERSION STREQUAL PROJECT_VERSION)
-    message(FATAL_ERROR "Incompatible VOTCA CSG version found (needed ${PROJECT_VERSION}, found ${VOTCA_CSG_VERSION})")
-  endif()
-  message(STATUS "Found VOTCA_CSG: ${VOTCA_CSG_DIR}")
   get_target_property(VOTCA_PATH VOTCA::csg_call VOTCA_PATH)
   # same logic as in csg, first try to find a modern gromacs with CONFIG and
   # then an older version using our find MODULE
