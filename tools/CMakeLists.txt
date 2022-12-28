@@ -15,6 +15,9 @@ endif()
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################
+
+# eigen needs 32-bit int interface (LP64) and not 64-bit (ILP64)
+set(MKL_INTERFACE lp64)
 find_package(MKL CONFIG)
 set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with MKL")
 # Replace the below with CMAKE_REQUIRE_FIND_PACKAGE_MKL, when we switch to
