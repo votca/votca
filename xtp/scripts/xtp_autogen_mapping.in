@@ -42,7 +42,7 @@ from rdkit import Chem
 
 
 VERSION = '@PROJECT_VERSION@ #XTP_GIT_ID#'
-PROGTITLE = 'THE VOTCA::TOOLS help to doc converter'
+PROGTITLE = 'THE VOTCA::XTP auto mapping generator'
 VOTCAHEADER = f"""
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========
@@ -51,7 +51,7 @@ VOTCAHEADER = f"""
 {PROGTITLE}
 
 please submit bugs to bugs@votca.org 
-votca_help2doc, version {VERSION}
+votca_autogen_mapping, version {VERSION}
 """
 DESCRIPTION = f"""{VOTCAHEADER}
 Automatically generate a mapping file"""
