@@ -37,17 +37,8 @@ if(ENABLE_REGRESSION_TESTING)
   find_package(Gnuplot)
   set_package_properties(Gnuplot PROPERTIES TYPE OPTIONAL PURPOSE "gnuplot needed to run CMA/simplex regression tests")
   get_target_property(VOTCA_PATH VOTCA::csg_call VOTCA_PATH)
-  # same logic as in csg, first try to find a modern gromacs with CONFIG and
-  # then an older version using our find MODULE
-  find_package(GROMACS 2021 QUIET CONFIG NAMES gromacs gromacs_d)
-  set_package_properties(GROMACS PROPERTIES TYPE RECOMMENDED PURPOSE "Used to run gromacs tests")
-  if(NOT GROMACS_FOUND)
-    find_package(GROMACS 2018 MODULE)
-  endif()
-  if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_GREATER_EQUAL "2020")
-    message(WARNING "Gromacs-2020 and above have no support for tabulated interactions, that are needed for coarse-graining and the tutorials (see and comment on https://gitlab.com/gromacs/gromacs/-/issues/1347) - disabling all regression tests using gromacs.")
-    unset(GROMACS_FOUND)
-  endif()
+  # GROMACS_PATH is used with BUILD_OWN_GROMACS, to have binaries during
+  # compile time
   if(TARGET Gromacs::libgromacs)
     get_target_property(GROMACS_PATH Gromacs::libgromacs GROMACS_PATH)
     if(GROMACS_PATH)

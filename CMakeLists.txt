@@ -106,6 +106,15 @@ set(VOTCA_XML_PARSER "${PROJECT_SOURCE_DIR}//share/doc/extract_xml_metadata.py")
 ########################################################################
 #Find external packages
 ########################################################################
+find_package(GROMACS 2021 QUIET CONFIG NAMES gromacs gromacs_d)
+set_package_properties(GROMACS PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read/write gromacs data files")
+if(NOT GROMACS_FOUND)
+  find_package(GROMACS 2018 MODULE)
+endif()
+if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_GREATER_EQUAL "2020")
+  message(WARNING "Gromacs-2020 and above have no support for tabulated interactions, that are needed for coarse-graining (see and comment on https://gitlab.com/gromacs/gromacs/-/issues/1347)")
+endif()
+
 option(BUILD_OWN_GROMACS "Build our own gromacs" OFF)
 add_feature_info( BUILD_OWN_GROMACS BUILD_OWN_GROMACS "Build an internal version of gromacs")
 if(BUILD_OWN_GROMACS)
