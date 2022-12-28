@@ -158,22 +158,6 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_DATAD
 	PATTERN "install_manifest.txt" EXCLUDE PATTERN "*~" EXCLUDE
 	PATTERN "inverse.log" EXCLUDE)
 
-configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake @ONLY)
-option(ENABLE_TESTING "Test if cmake worked" OFF)
-add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
-if(ENABLE_TESTING)
-  enable_testing()
-  add_test(regression_UninstallExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
-           -P ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/FileExists.cmake)
-
-  set_tests_properties(regression_UninstallExists PROPERTIES LABELS "csg-tutorials;votca")
-endif(ENABLE_TESTING)
-add_custom_target(uninstall-csg-tutorials COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
-if(NOT TARGET uninstall)
-  add_custom_target(uninstall)
-endif()
-add_dependencies(uninstall uninstall-csg-tutorials)
-
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
 endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
