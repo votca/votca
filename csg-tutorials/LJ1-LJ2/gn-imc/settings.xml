@@ -138,6 +138,7 @@
     <gauss_newton>
       <cut_residual>0.85</cut_residual>
       <cut_off>0.85</cut_off>
+      <!-- adds weight to the onset region leading to better stability -->
       <residual_weighting>1/(g_tgt+1e-30)</residual_weighting>
     </gauss_newton>
     <topol_xml>topology.xml</topol_xml>
