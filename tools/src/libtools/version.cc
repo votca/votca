@@ -17,7 +17,9 @@
 
 // Local VOTCA includes
 #include "votca/tools/version.h"
-#include "votca/tools/votca_tools_config.h"
+
+// Local private VOTCA includes
+#include "votca_tools_config.h"
 
 namespace votca {
 namespace tools {
