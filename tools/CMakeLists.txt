@@ -18,7 +18,7 @@ endif()
 
 # eigen needs 32-bit int interface (LP64) and not 64-bit (ILP64)
 # on some compilers
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
   set(MKL_INTERFACE lp64)
 endif()
 find_package(MKL CONFIG)
