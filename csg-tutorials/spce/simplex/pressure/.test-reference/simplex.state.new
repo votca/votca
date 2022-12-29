@@ -1,0 +1,15 @@
+#Created on Tue 19 May 2020 07:30:10 AM MDT by junghans@pn1806404-fedora
+#called from optimizer_prepare_state.sh, version 1.7-dev gitid: 3926882 (dirty)
+#settings file: '/home/junghans/votca/build/csg-tutorials/spce/simplex/pressure/settings.xml'
+#working directory: /home/junghans/votca/build/csg-tutorials/spce/simplex/pressure/step_000
+#Interactions: CG-CG
+#Method: simplex
+#State = Initialization
+#Format sig eps wc h p s conv flag
+0.26180768147809 3.62535517321626 0.26818579770627 5.46460496844825 0.339028161339493 0.0273644542553578  132.689 complete
+0.259122448050526 5.23734918587684 0.351038543063032 5.45411201140358 0.306106741672713 0.0619789000017322 0 active
+0.263 3.6 0.28 5.2 0.32 0.055 0 pending
+0.263 3.4 0.28 5.2 0.32 0.055 0 pending
+0.263 3.4 0.30 5.2 0.32 0.055 0 pending
+0.263 3.4 0.28 5.2 0.33 0.045 0 pending
+0.263 3.4 0.28 5.4 0.33 0.050 0 pending

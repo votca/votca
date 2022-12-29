@@ -1,0 +1,114 @@
+#Created on Tue 19 May 2020 07:14:17 AM MDT by junghans@pn1806404-fedora
+#called from tag_file.sh, version 1.7-dev gitid: 3926882 (dirty)
+#settings file: '/home/junghans/votca/build/csg-tutorials/methanol-water/X_0.5/simplex/settings.xml'
+#working directory: /home/junghans/votca/build/csg-tutorials/methanol-water/X_0.5/simplex/step_001
+#Created on Tue 19 May 2020 07:14:15 AM MDT by junghans@pn1806404-fedora
+#called from table_functional.sh, version 1.7-dev gitid: 3926882 (dirty)
+#settings file: '/home/junghans/votca/build/csg-tutorials/methanol-water/X_0.5/simplex/settings.xml'
+#working directory: /home/junghans/votca/build/csg-tutorials/methanol-water/X_0.5/simplex/step_001
+#
+#Plot script:
+#sig1=0.255635
+#eps1=7.6869
+#wc1=0.139026
+#h1=8.15113
+#p1=0.318558
+#s1=0.0443132
+#sig2=0.29174
+#eps2=11.9634
+#wc2=0.303362
+#h2=20.2737
+#p2=0.295815
+#s2=0.123095
+#sig3=0.364963
+#eps3=0.0776826
+#wc3=-0.000135783
+#h3=3.06428
+#p3=0.358733
+#s3=0.0306229
+#load '/home/junghans/votca/build/csg-tutorials/methanol-water/X_0.5/simplex/function_CKDg_WT_WT.in'
+#set samples 77
+#set table 'table.plot.Yhw'
+#plot [0.24:1.0] f(x)
+#
+# Gnuplot output:
+# Curve 0 of 1, 77 points
+# Curve title: "f(x)"
+# x y type
+0.24 22.3637 i
+0.25 7.49232 i
+0.26 0.721068 i
+0.27 -1.72233 i
+0.28 -1.9121 i
+0.29 -1.05508 i
+0.3 -0.0539773 i
+0.31 0.823719 i
+0.32 1.48343 i
+0.33 1.87732 i
+0.34 2.01087 i
+0.35 1.9352 i
+0.36 1.72801 i
+0.37 1.46991 i
+0.38 1.22356 i
+0.39 1.02127 i
+0.4 0.86283 i
+0.41 0.72207 i
+0.42 0.558407 i
+0.43 0.345027 i
+0.44 0.190688 i
+0.45 0.100156 i
+0.46 0.0499935 i
+0.47 0.0237156 i
+0.48 0.0106915 i
+0.49 0.00458062 i
+0.5 0.00186507 i
+0.51 0.000721687 i
+0.52 0.000265391 i
+0.53 9.27486e-05 i
+0.54 3.08043e-05 i
+0.55 9.72297e-06 i
+0.56 2.91655e-06 i
+0.57 8.31428e-07 i
+0.58 2.25249e-07 i
+0.59 5.79941e-08 i
+0.6 1.41902e-08 i
+0.61 3.29971e-09 i
+0.62 7.29202e-10 i
+0.63 1.53145e-10 i
+0.64 3.05662e-11 i
+0.65 5.7978e-12 i
+0.66 1.04512e-12 i
+0.67 1.79043e-13 i
+0.68 2.91493e-14 i
+0.69 4.51008e-15 i
+0.7 6.63167e-16 i
+0.71 9.26713e-17 i
+0.72 1.2307e-17 i
+0.73 1.55324e-18 i
+0.74 1.863e-19 i
+0.75 2.12358e-20 i
+0.76 2.30042e-21 i
+0.77 2.36826e-22 i
+0.78 2.31705e-23 i
+0.79 2.1544e-24 i
+0.8 1.9037e-25 i
+0.81 1.59866e-26 i
+0.82 1.27584e-27 i
+0.83 9.6765e-29 i
+0.84 6.97469e-30 i
+0.85 4.77766e-31 i
+0.86 3.1102e-32 i
+0.87 1.92418e-33 i
+0.88 1.13132e-34 i
+0.89 6.32134e-36 i
+0.9 3.35673e-37 i
+0.91 1.69397e-38 i
+0.92 8.1242e-40 i
+0.93 3.70287e-41 i
+0.94 1.60391e-42 i
+0.95 6.60242e-44 i
+0.96 2.58291e-45 i
+0.97 9.60252e-47 i
+0.98 3.3893e-48 i
+0.99 1.10293e-49 i
+1 0 i

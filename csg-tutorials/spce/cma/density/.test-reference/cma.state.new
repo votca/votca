@@ -1,0 +1,14 @@
+#State = Running
+#Created on Tue 19 May 2020 07:21:56 AM MDT by junghans@pn1806404-fedora
+#called from optimizer_prepare_state.sh, version 1.7-dev gitid: 3926882 (dirty)
+#settings file: '/home/junghans/votca/build/csg-tutorials/spce/cma/density/settings.xml'
+#working directory: /home/junghans/votca/build/csg-tutorials/spce/cma/density/step_000
+#Interactions: CG-CG
+#Method: cma
+#Format eps sig conv flag
+6.473098e-01 2.410709e-01  166.698 complete
+7.396138e-01 2.435641e-01 0 active
+7.521387e-01 2.194174e-01 0 pending
+7.225232e-01 2.166976e-01 0 pending
+6.493393e-01 2.439190e-01 0 pending
+7.707768e-01 3.888705e-01 0 pending
