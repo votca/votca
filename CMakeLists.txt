@@ -119,6 +119,13 @@ set_package_properties(GROMACS PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read
 if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_GREATER_EQUAL "2020")
   message(WARNING "Gromacs-2020 and above have no support for tabulated interactions, that are needed for coarse-graining (see and comment on https://gitlab.com/gromacs/gromacs/-/issues/1347)")
 endif()
+# prior gmx-2021, their exported target had some bugs, that we fix below
+# - missing GMX_DOUBLE define - only gets exported as GROMACS_DEFINITIONS
+# - missing namespace
+if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_LESS "2021")
+  set_target_properties(libgromacs PROPERTIES INTERFACE_COMPILE_OPTIONS ${GROMACS_DEFINITIONS})
+  add_library(Gromacs::libgromacs ALIAS libgromacs)
+endif()
 
 # iie methods needs python 3.5+
 find_package(Python 3.5 REQUIRED COMPONENTS Interpreter)
