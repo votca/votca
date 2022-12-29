@@ -92,11 +92,7 @@ else
 fi
 
 if [[ ${INPUT_DISTRO} = "fedora:intel" ]]; then
-  if [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
-    cmake_args+=( -DREQUIRE_MKL=ON )
-  elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi" ]]; then
-    cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON )
-  fi
+  cmake_args+=( -DREQUIRE_MKL=ON )
 fi
 
 # workaround for votca/votca#891
