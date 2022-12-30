@@ -4,6 +4,7 @@ set_package_properties(EXPAT PROPERTIES TYPE REQUIRED PURPOSE "Used for XML pars
 file(GLOB VOTCA_SOURCES *.cc)
 
 add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_LINALG_SOURCES})
+target_compile_features(votca_tools PUBLIC cxx_std_17)
 
 # CMAKE_CURRENT_BINARY_DIR for gitversion.h
 # and ${CMAKE_BINARY_DIR}/include/votca/tools for votca_tools_config.h
