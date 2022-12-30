@@ -30,13 +30,7 @@ if(VOTCA_SPHINX_DIR)
   file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/csg)
 endif()
 add_subdirectory(src)
+# scripts/ used votca_csg PROPERTY BINARIES so do after src/
 add_subdirectory(scripts)
 add_subdirectory(include/votca/csg)
 add_subdirectory(share)
-
-# needs to happen after src and scripts subdir
-get_property(VOTCA_BINARIES TARGET votca_csg PROPERTY BINARIES)
-list(SORT VOTCA_BINARIES)
-configure_file(src/libcsg/VOTCA_CSGConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/src/libcsg/VOTCA_CSGConfig.cmake" @ONLY)
-list(JOIN VOTCA_BINARIES " " VOTCA_BINARIES)
-configure_file(scripts/csg-completion.bash.in "${CMAKE_CURRENT_BINARY_DIR}/scripts/csg-completion.bash" @ONLY)

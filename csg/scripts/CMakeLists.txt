@@ -40,6 +40,11 @@ set_target_properties(VOTCA::csg_call PROPERTIES VOTCASHARE "${VOTCASHARE}")
 set_target_properties(VOTCA::csg_call PROPERTIES VOTCA_PATH "${VOTCA_PATH}")
 set_target_properties(VOTCA::csg_inverse PROPERTIES VOTCA_CSG_DEFAULTS "${VOTCA_CSG_DEFAULTS}")
 
+get_property(VOTCA_BINARIES TARGET votca_csg PROPERTY BINARIES)
+list(SORT VOTCA_BINARIES)
+# for .bash we need a space separated list
+list(JOIN VOTCA_BINARIES " " VOTCA_BINARIES)
+configure_file(scripts/csg-completion.bash.in "${CMAKE_CURRENT_BINARY_DIR}/scripts/csg-completion.bash" @ONLY)
 if(INSTALL_RC_FILES)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/csg-completion.bash DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/rc)
 endif()
