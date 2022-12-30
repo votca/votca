@@ -24,8 +24,6 @@ foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel)
   endif(VOTCA_SPHINX_DIR)
 
   add_test(integration_${PROG}Help ${PROG} --help)
-  # run tests for tools, csg as well for coverage
-  set_tests_properties(integration_${PROG}Help PROPERTIES LABELS "xtp;tools;csg;votca;integration")
 endforeach(PROG)
 
 if(VOTCA_SPHINX_DIR)

@@ -18,6 +18,5 @@ if(BUILD_TESTING)
     endif()
 
     add_test(unit_iie.py ${Python_EXECUTABLE} -m pytest -q ${PY_COV_OPTS} ${CMAKE_CURRENT_SOURCE_DIR}/iie.py)
-    set_tests_properties(unit_iie.py PROPERTIES LABELS "csg;votca;unit")
   endif()
 endif()

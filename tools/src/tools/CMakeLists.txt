@@ -17,7 +17,6 @@ foreach(PROG votca_property)
   endif (BUILD_MANPAGES)
 
   add_test(integration_${PROG}Help ${PROG} --help)
-  set_tests_properties(integration_${PROG}Help PROPERTIES LABELS "tools;votca;integration")
 
   if(VOTCA_SPHINX_DIR)
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/tools/${PROG}.rst

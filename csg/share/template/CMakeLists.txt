@@ -5,8 +5,6 @@ foreach(PROG template_serial template_threaded)
   install(FILES ${${PROG}_SOURCES} DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/template)
  
   add_test(${PROG}Help ${PROG} --help)
-  # run tests for tools (for coverage) as well
-  set_tests_properties(${PROG}Help PROPERTIES LABELS "csg;tools;votca")
 endforeach(PROG)
 
 install(FILES CMakeLists.txt.template DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/template RENAME CMakeLists.txt)

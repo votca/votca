@@ -97,8 +97,6 @@ if(ENABLE_REGRESSION_TESTING)
     string(REGEX REPLACE "/$" "" DIR "${DIR}")
     string(REPLACE / _ TESTNAME "regression_${DIR}")
     add_test(NAME ${TESTNAME} COMMAND $<TARGET_FILE:VOTCA::csg_inverse> --options settings.xml --do-iterations 1 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${DIR})
-    # run tests for csg (to test csg) and tools (coverage) as well
-    set_tests_properties(${TESTNAME} PROPERTIES LABELS "csg-tutorials;csg;tools;votca;regression")
     set(CSG_MDRUN_STEPS 500)
     if(DIR MATCHES "/imc($|_)")
       set(CSG_MDRUN_STEPS 5000)
