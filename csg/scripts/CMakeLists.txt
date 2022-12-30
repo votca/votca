@@ -40,7 +40,9 @@ set_target_properties(VOTCA::csg_call PROPERTIES VOTCASHARE "${VOTCASHARE}")
 set_target_properties(VOTCA::csg_call PROPERTIES VOTCA_PATH "${VOTCA_PATH}")
 set_target_properties(VOTCA::csg_inverse PROPERTIES VOTCA_CSG_DEFAULTS "${VOTCA_CSG_DEFAULTS}")
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/csg-completion.bash DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/rc)
+if(INSTALL_RC_FILES)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/csg-completion.bash DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/rc)
+endif()
 
 if(VOTCA_SPHINX_DIR)
   #don't call "csg_call -l" as csg_call isn't ready at cmake time

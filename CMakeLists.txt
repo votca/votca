@@ -91,6 +91,9 @@ if(CMAKE_CXX_COMPILER MATCHES "dpcpp")
   message(WARNING "Using the intel dpcpp compiler needs a cutting-edge version of eigen hence dpcpp is currently not offically supported, use icpx instead") 
 endif()
 
+option(INSTALL_RC_FILES "Install votca rc files, no need when installing under /usr" ON)
+add_feature_info(INSTALL_RC_FILES INSTALL_RC_FILES "Install votca rc files (VOTCARC.bash etc.)")
+
 set(VOTCA_SPHINX_DIR "${PROJECT_BINARY_DIR}/sphinx" CACHE PATH "Path for Sphinx sources")
 file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR})
 set(VOTCA_SPHINX_OUTPUT_DIR "${PROJECT_BINARY_DIR}/sphinx.html" CACHE PATH "Path for Sphinx output")
