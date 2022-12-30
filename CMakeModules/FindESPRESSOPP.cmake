@@ -19,7 +19,7 @@
 # limitations under the License.
 #
 
-find_package(Python COMPONENTS Interpreter)
+find_package(Python 3 COMPONENTS Interpreter)
 
 set(IMPORT_ESPRESSOPP_SUCCESS FALSE)
 if(Python_EXECUTABLE)

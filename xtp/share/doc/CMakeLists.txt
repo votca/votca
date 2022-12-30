@@ -9,8 +9,6 @@ if(VOTCA_SPHINX_DIR)
     list(APPEND MANUAL_RST_FILES ${VOTCA_SPHINX_DIR}/xtp/${_FILE})
   endforeach()
 
-  find_package(Python 3 COMPONENTS Interpreter)
-  set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
   if(Python_EXECUTABLE AND VOTCA_XML_PARSER)
     file(GLOB XMLS ${CMAKE_CURRENT_SOURCE_DIR}/../xtp/xml/*.xml)
     file(GLOB XMLS_PACKAGES ${CMAKE_CURRENT_SOURCE_DIR}/../xtp/xml/subpackages/*.xml)

@@ -19,14 +19,7 @@
 # limitations under the License.
 #
 
-if(CMAKE_VERSION VERSION_LESS 3.12)
-  find_package(PythonInterp 3)
-  if(PYTHONINTERP_FOUND)
-    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
-  endif()
-else()
-  find_package(Python COMPONENTS Interpreter)
-endif()
+find_package(Python COMPONENTS Interpreter)
 
 set(IMPORT_ESPRESSO_SUCCESS FALSE)
 if(Python_EXECUTABLE)

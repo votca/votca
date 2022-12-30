@@ -19,10 +19,11 @@
 # limitations under the License.
 #
 
-find_package(PythonInterp 3)
+find_package(Python 3 COMPONENTS Interpreter)
+
 set(IMPORT_CMA_SUCCESS FALSE)
-if(PythonInterp_FOUND)
-  execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import cma"
+if(Python_EXECUTABLE)
+  execute_process(COMMAND ${Python_EXECUTABLE} -c "import cma"
     RESULT_VARIABLE IMPORT_CMA)
   if(IMPORT_CMA EQUAL 0)
     set(IMPORT_CMA_SUCCESS TRUE)

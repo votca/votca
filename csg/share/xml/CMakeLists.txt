@@ -24,8 +24,6 @@ configure_file(${CSG_DEFAULTS}.in ${CMAKE_CURRENT_BINARY_DIR}/${CSG_DEFAULTS} @O
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${CSG_DEFAULTS} DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/xml)
 
 if(VOTCA_SPHINX_DIR)
-  find_package(Python 3 COMPONENTS Interpreter)
-  set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used to build documentation files")
   if(Python_EXECUTABLE AND VOTCA_XML_PARSER)
     set(XML_RST_FILES)
     file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/csg)
