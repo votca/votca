@@ -79,7 +79,7 @@ related tweaks when setting ``ENABLE_RPATH_INJECT`` to ``ON``.
 Common CMake Flags
 ~~~~~~~~~~~~~~~~~~
 
--  ``BUILD_CSGAPPS`` - Install the extra csg applications repo (ON/OFF,
+-  ``INSTALL_CSGAPPS`` - Install the extra csg applications repo (ON/OFF,
    Default OFF)
 -  ``BUILD_XTP`` - Build the xtp repo (ON/OFF, Default OFF)
 -  ``CMAKE_INSTALL_PREFIX`` - where to install the votca executables

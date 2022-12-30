@@ -119,7 +119,7 @@ List of the default scripts:
 csgapps
 -------
 
-Extra user-contibuted applications based on the csg application class, that aren't needed for the normal workflows. Installable with ``-DBUILD_CSGAPPS=ON``.
+Extra user-contibuted applications based on the csg application class, that aren't needed for the normal workflows. Installable with ``-DINSTALL_CSGAPPS=ON``.
 
 csg_fluctuations
 ^^^^^^^^^^^^^^^^

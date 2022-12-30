@@ -34,7 +34,7 @@ else
   die "Handling on GITHUB_REF=${GITHUB_REF} not implemented"
 fi
 
-cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DBUILD_CSGAPPS=ON )
+cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DINSTALL_CSGAPPS=ON )
 # do not inject -march=native as the CI runs on different backends and hence will create a conflict with ccache
 cmake_args+=( -DINJECT_MARCH_NATIVE=OFF )
 if [[ ${INPUT_CMAKE_BUILD_TYPE} ]]; then
