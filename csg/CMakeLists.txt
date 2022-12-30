@@ -1,8 +1,3 @@
-cmake_minimum_required(VERSION 3.13)
-
-project(votca-csg LANGUAGES CXX)
-
-set(PROJECT_VERSION "2023-dev")
 ########################################################################
 #Find external packages
 ########################################################################

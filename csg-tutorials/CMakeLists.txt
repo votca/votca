@@ -1,9 +1,3 @@
-cmake_minimum_required(VERSION 3.13)
-
-project(csg-tutorials LANGUAGES NONE)
-
-set(PROJECT_VERSION "2023-dev")
-
 option(ENABLE_REGRESSION_TESTING "Build and copy regression testing stuff" OFF)
 add_feature_info(ENABLE_REGRESSION_TESTING ENABLE_REGRESSION_TESTING "Enable regression tests")
 if(ENABLE_REGRESSION_TESTING)
