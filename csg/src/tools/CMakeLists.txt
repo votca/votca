@@ -23,11 +23,9 @@ foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat cs
     list(APPEND CSG_RST_FILES ${VOTCA_SPHINX_DIR}/csg/${PROG}.rst)
   endif(VOTCA_SPHINX_DIR)
 
-  if(ENABLE_TESTING)
-    add_test(integration_${PROG}Help ${PROG} --help)
-    # run tests for tools (for coverage) as well
-    set_tests_properties(integration_${PROG}Help PROPERTIES LABELS "csg;tools;votca;integration")
-  endif(ENABLE_TESTING)
+  add_test(integration_${PROG}Help ${PROG} --help)
+  # run tests for tools (for coverage) as well
+  set_tests_properties(integration_${PROG}Help PROPERTIES LABELS "csg;tools;votca;integration")
 endforeach(PROG)
 
 if(VOTCA_SPHINX_DIR)
@@ -35,7 +33,7 @@ if(VOTCA_SPHINX_DIR)
   add_dependencies(doc-csg doc-csg-rst-progs)
 endif()
 
-if(ENABLE_TESTING)
+if(BUILD_TESTING)
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_reupdate)
   set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/spce)
   file(MAKE_DIRECTORY ${RUNPATH})

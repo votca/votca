@@ -1,3 +1,6 @@
+if(NOT BUILD_TESTING)
+  return()
+endif()
 # Each test listed in Alphabetical order
 foreach(PROG
     test_calculator

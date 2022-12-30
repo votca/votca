@@ -84,7 +84,7 @@ Common CMake Flags
 -  ``BUILD_XTP`` - Build the xtp repo (ON/OFF, Default OFF)
 -  ``CMAKE_INSTALL_PREFIX`` - where to install the votca executables
    (Default is /usr/local/bin)
--  ``ENABLE_TESTING`` - compile tests (ON/OFF, Default OFF)
+-  ``BUILD_TESTING`` - compile tests (ON/OFF, Default ON)
 
 Other CMake Flags
 ~~~~~~~~~~~~~~~~~

@@ -34,11 +34,9 @@ foreach(DIR ${DIRS})
     endif()
   endif()
   set_target_properties(${DIR} PROPERTIES OUTPUT_NAME csg_${DIR} RUNTIME_OUTPUT_DIRECTORY ${DIR})
-  if(ENABLE_TESTING)
-    add_test(${DIR}Help ${DIR}/csg_${DIR} --help)
-    # run tests for tools and csg as well for coverage
-    set_tests_properties(${DIR}Help PROPERTIES LABELS "csgapps;csg;tools;votca")
-  endif(ENABLE_TESTING)
+  add_test(${DIR}Help ${DIR}/csg_${DIR} --help)
+  # run tests for tools and csg as well for coverage
+  set_tests_properties(${DIR}Help PROPERTIES LABELS "csgapps;csg;tools;votca")
 endforeach(DIR)
 
 if(VOTCA_SPHINX_DIR)

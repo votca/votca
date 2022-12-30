@@ -1,3 +1,6 @@
+if(NOT BUILD_TESTING)
+  return()
+endif()
 foreach(PROG
   test_bead
   test_beadtriple

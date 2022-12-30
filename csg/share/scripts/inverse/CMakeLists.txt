@@ -4,7 +4,7 @@ file(GLOB VOTCA_FILES csg_table *.pm *.m *.octave)
 install(FILES ${VOTCA_FILES} DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/scripts/inverse)
 install(PROGRAMS ${VOTCA_SCRIPTS} DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/scripts/inverse)
 
-if(ENABLE_TESTING)
+if(BUILD_TESTING)
   if(NOT Pytest_FOUND)
     execute_process(COMMAND ${Python_EXECUTABLE} -c "import pytest" RESULT_VARIABLE IMPORT_pytest)
     if(IMPORT_pytest EQUAL 0)

@@ -31,11 +31,11 @@ set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 option(BUILD_XTP "Build xtp" OFF)
 add_feature_info(BUILD_XTP BUILD_XTP "Build xtp module")
 
-option(ENABLE_TESTING "Build and copy testing stuff" OFF)
-add_feature_info(ENABLE_TESTING ENABLE_TESTING "Enable unit tests")
-if(ENABLE_TESTING OR ENABLE_REGRESSION_TESTING)
+include(CTest)
+option(BUILD_TESTING "Build and copy testing stuff" OFF)
+add_feature_info(BUILD_TESTING BUILD_TESTING "Enable unit tests")
+if(BUILD_TESTING)
   find_package(Boost 1.71.0 REQUIRED COMPONENTS unit_test_framework)
-  enable_testing()
 endif()
 
 option(BUILD_SHARED_LIBS "Build shared libs" ON)

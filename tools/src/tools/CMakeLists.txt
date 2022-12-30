@@ -16,10 +16,8 @@ foreach(PROG votca_property)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${PROG}.1)
   endif (BUILD_MANPAGES)
 
-  if(ENABLE_TESTING)
-    add_test(integration_${PROG}Help ${PROG} --help)
-    set_tests_properties(integration_${PROG}Help PROPERTIES LABELS "tools;votca;integration")
-  endif(ENABLE_TESTING)
+  add_test(integration_${PROG}Help ${PROG} --help)
+  set_tests_properties(integration_${PROG}Help PROPERTIES LABELS "tools;votca;integration")
 
   if(VOTCA_SPHINX_DIR)
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/tools/${PROG}.rst

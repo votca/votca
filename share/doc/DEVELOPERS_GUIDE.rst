@@ -301,13 +301,10 @@ it has not, take a look at what was done in the votca-tools repo.
 Replace the '...' and ':' with the appropriate syntax. For more info on
 which boost test macros to use refer to the boost documentation
 
-2. To compile and test the code create a folder tools/build and run the
-   following commands:
+2. To run the test involve following command:
 
    .. code-block:: bash
 
-       cmake -DENABLE_TESTING=ON ../
-       make
        make test
 
 Ensure you have an up to date version of cmake or use cmake3.
