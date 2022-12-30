@@ -19,8 +19,8 @@
 #define BOOST_TEST_MODULE eigenio_matrixmarket
 
 // Third party includes
-#include <iostream>
 #include <boost/test/unit_test.hpp>
+#include <iostream>
 
 // Local VOTCA includes
 #include "votca/tools/eigenio_matrixmarket.h"
