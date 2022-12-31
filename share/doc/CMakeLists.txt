@@ -8,7 +8,7 @@ if (DOXYGEN_FOUND)
   set(DOXYGEN_EXCLUDE_PATTERNS "*.py")
   set(DOXYGEN_SOURCE_BROWSER YES)
   # when using cmake-3.16 add USE_STAMP_FILE below
-  doxygen_add_docs(doxygen ${ENABLED_VOTCA_PACKAGES}
+  doxygen_add_docs(doxygen tools csg xtp 
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Build doxygen documentation")
 endif()
@@ -30,7 +30,7 @@ if(SPHINX_FOUND)
   file(COPY _themes DESTINATION ${VOTCA_SPHINX_DIR})
   add_custom_target(doc COMMAND ${SPHINX_EXECUTABLE} ${VOTCA_SPHINX_DIR} ${VOTCA_SPHINX_OUTPUT_DIR}
     DEPENDS ${SPHINX_DEPS})
-  foreach(_MODULE ${ENABLED_VOTCA_PACKAGES})
+  foreach(_MODULE tools csg xtp xtp-tutorials)
     if(TARGET doc-${_MODULE})
       add_dependencies(doc doc-${_MODULE})
     endif()
