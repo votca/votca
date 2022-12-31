@@ -55,15 +55,22 @@ PolarSeg::~PolarSeg() {
   std::vector<APolarSite *>::iterator pit;
   for (pit = begin(); pit < end(); ++pit) {
     delete *pit;
+    *pit = NULL;
   }
   clear();
 
   std::vector<PolarFrag *>::iterator fit;
-  for (fit = _pfrags.begin(); fit < _pfrags.end(); ++fit) delete *fit;
+  for (fit = _pfrags.begin(); fit < _pfrags.end(); ++fit) {
+    delete *fit;
+    *fit = NULL;
+  }
   _pfrags.clear();
 
   std::vector<PolarNb *>::iterator nit;
-  for (nit = _nbs.begin(); nit < _nbs.end(); ++nit) delete *nit;
+  for (nit = _nbs.begin(); nit < _nbs.end(); ++nit) {
+    delete *nit;
+    *nit = NULL;
+  }
   _nbs.clear();
 
   if (_perm_cg_site != NULL) delete _perm_cg_site;
@@ -178,7 +185,8 @@ void PolarSeg::WriteMPS(std::string mpsfile, std::string tag) {
   ofs.close();
 }
 
-void PolarSeg::GeneratePermInduCgSite([[maybe_unused]] bool do_cg_polarizabilities) {
+void PolarSeg::GeneratePermInduCgSite(
+    [[maybe_unused]] bool do_cg_polarizabilities) {
   // ATTENTION The same method appears in <PolarFrag>
   assert(!do_cg_polarizabilities && "NOT IMPLEMENTED, NOT NEEDED?");
   // Collapse multipole moments : position, rank L
@@ -217,6 +225,7 @@ void PolarSeg::GeneratePermInduCgSite([[maybe_unused]] bool do_cg_polarizabiliti
     DMA::RealSphericalMoments uQlm_shifted(uXlm_shifted);
     uQlm_shifted.AddToVector(uQCG);
   }
+  std::cout << "Converting" << std::flush;
 
   // Collapse polarizabilities
   matrix PCG = Eigen::Matrix3d::Zero();

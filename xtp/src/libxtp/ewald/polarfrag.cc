@@ -56,7 +56,8 @@ const vec &PolarFrag::CalcPosPolarWeights() {
   return _pos;
 }
 
-void PolarFrag::GeneratePermInduCgSite([[maybe_unused]] bool do_cg_polarizabilities) {
+void PolarFrag::GeneratePermInduCgSite(
+    [[maybe_unused]] bool do_cg_polarizabilities) {
   // ATTENTION The same method appears in <PolarSeg>
   assert(!do_cg_polarizabilities && "NOT IMPLEMENTED, NOT NEEDED?");
   // Collapse multipole moments : position, rank L

@@ -112,8 +112,8 @@ class APolarSite {
   bool getIsActive(bool estatics_only);
 
   void ImportFrom(APolarSite *templ, std::string tag = "basic");
-  void ConvertFromPolarSite(PolarSite psite);
-
+  void ConvertFromPolarSite(PolarSite psite, int state);
+  void addNeutral(PolarSite psite);
   void setIsVirtual(bool isVirtual) { _isVirtual = isVirtual; }
   void setPos(vec &pos) { _pos = pos; }
   void setRank(int rank) { _rank = rank; }  // rank; } // OVERRIDE
@@ -299,7 +299,9 @@ class APolarSite {
     arch &PhiP;
     arch &PhiU;
 
-    if (version > 5) {return;} // to avoid warning at compile time
+    if (version > 5) {
+      return;
+    }  // to avoid warning at compile time
 
     // NOT ARCHIVED
     // Topology *_top;

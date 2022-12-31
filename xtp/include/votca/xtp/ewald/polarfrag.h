@@ -35,7 +35,9 @@ class PolarFrag : public std::vector<APolarSite *> {
     arch &_name;
     arch &_pseg;
     arch &_pos;
-    if (version > 5) {return;} // to avoid warning at compile time
+    if (version > 5) {
+      return;
+    }  // to avoid warning at compile time
 
     return;
   }

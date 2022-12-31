@@ -45,7 +45,7 @@ void EwaldBgPolarizer::ParseOptions(const tools::Property &opt) {
             << "... ... Initialized with " << nThreads_ << " threads. "
             << std::flush;
 
-  //std::string key = "options.ewdbgpol";
+  // std::string key = "options.ewdbgpol";
   std::string key = "";
   if (opt.exists(key + ".multipoles")) {
     _xml_file = opt.get(key + ".multipoles").as<std::string>();
@@ -116,6 +116,10 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
   // DECLARE TARGET CONTAINERS
   std::vector<PolarSeg *> bgN;
   std::vector<Segment *> segs_bgN;
+
+  // why not smart pointer?
+  //std::vector<std::shared_ptr<PolarSeg>> bgN;
+
   bgN.reserve(BGN.size());
   // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
   segs_bgN.reserve(BGN.size());
@@ -124,22 +128,24 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
   }
 
   // segments in BGN are NEW POLARSEGMENTS
+  int state = 0;  // only neutral background segments
   for (auto segment : BGN) {
     // get all NEW PolarSites of this segment and convert them to OLD PolarSites
     std::vector<APolarSite *> psites;
     psites.reserve(segment.size());
     for (auto site : segment) {
       APolarSite *psite = new APolarSite();
-      psite->ConvertFromPolarSite(site);
-      psite->Charge(-1); // set state of this sites -1: ground state
+      psite->ConvertFromPolarSite(site, state);
+      psite->Charge(state);  // set state of this sites 0: ground state
       psites.push_back(psite);
     }
 
     // now make an OLD PolarSeg from the new PolarSegment
     PolarSeg *new_pseg = new PolarSeg(int(segment.getId()), psites);
+   // std::shared_ptr<PolarSeg> new_pseg( new  PolarSeg(int(segment.getId()), psites));
+
     bgN.push_back(new_pseg);
   }
-
 
   // PROPAGATE SHELLS TO POLAR TOPOLOGY
   ptop.setBGN(bgN);

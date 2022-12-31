@@ -91,11 +91,14 @@ APolarSite::APolarSite(APolarSite *templ, bool do_depolarize)
   if (do_depolarize) this->Depolarize();
 }
 
-void APolarSite::ConvertFromPolarSite(PolarSite psite) {
+void APolarSite::ConvertFromPolarSite(PolarSite psite, int state) {
+
+  // state: -1: electron, 0: neutral ground state, +1: hole
   typedef Eigen::Matrix<double, 9, 1> Vector9d;
 
   // positions
-  _pos = votca::tools::conv::bohr2nm * psite.getPos();  // PolarSite: a_0, APolarSite nm  
+  _pos = votca::tools::conv::bohr2nm *
+         psite.getPos();  // PolarSite: a_0, APolarSite nm
   _resolution = atomistic;
 
   // elements of the localframe definitions, should have been taken care of
@@ -112,27 +115,56 @@ void APolarSite::ConvertFromPolarSite(PolarSite psite) {
   // multipole definitions
   _rank = int(psite.getRank());
   Vector9d multipoles = psite.Q();
-  std::vector<double> Q_groundstate;
-  Q_groundstate.push_back(multipoles[0]);  // Q00 PolarSite: e, APolarSite e
+  std::vector<double> Q_conv;
+  Q_conv.push_back(multipoles[0]);  // Q00 PolarSite: e, APolarSite e
   // Apolarsite has diffrent order of dipole entries
-  Q_groundstate.push_back(votca::tools::conv::bohr2nm*multipoles[3]);  // Q10 PolarSite e*a_0, APolarSite e*nm
-  Q_groundstate.push_back(votca::tools::conv::bohr2nm*multipoles[1]);  // Q11c 
-  Q_groundstate.push_back(votca::tools::conv::bohr2nm*multipoles[2]);  // Q11s
-  double unit_conv = std::pow(votca::tools::conv::bohr2nm,2);
-  Q_groundstate.push_back(unit_conv*multipoles[4]);  // Q20 PolarSite e*(a_0)^2, APolarSite e*(nm)^3
-  Q_groundstate.push_back(unit_conv*multipoles[5]);  // Q21c
-  Q_groundstate.push_back(unit_conv*multipoles[6]);  // Q21s
-  Q_groundstate.push_back(unit_conv*multipoles[7]);  // Q22c
-  Q_groundstate.push_back(unit_conv*multipoles[8]);  // Q22s
-  this->setQs(Q_groundstate,-1); // -1: neutral ground state only for now
+  Q_conv.push_back(votca::tools::conv::bohr2nm *
+                   multipoles[3]);  // Q10 PolarSite e*a_0, APolarSite e*nm
+  Q_conv.push_back(votca::tools::conv::bohr2nm * multipoles[1]);  // Q11c
+  Q_conv.push_back(votca::tools::conv::bohr2nm * multipoles[2]);  // Q11s
+  double unit_conv = std::pow(votca::tools::conv::bohr2nm, 2);
+  Q_conv.push_back(unit_conv * multipoles[4]);  // Q20 PolarSite e*(a_0)^2,
+                                                // APolarSite e*(nm)^3
+  Q_conv.push_back(unit_conv * multipoles[5]);  // Q21c
+  Q_conv.push_back(unit_conv * multipoles[6]);  // Q21s
+  Q_conv.push_back(unit_conv * multipoles[7]);  // Q22c
+  Q_conv.push_back(unit_conv * multipoles[8]);  // Q22s
+  this->setQs(Q_conv, state);  // 0: neutral ground state only for now
 
   // polarizability tensor/matrix for each state (assume it is rotated in NEW)
-  unit_conv = std::pow(votca::tools::conv::bohr2nm,3);
-  matrix P_groundstate = unit_conv*psite.getpolarization(); // PolarSite: (a_0)^3, APolarSite (nm)^3
-  this->setPs(P_groundstate,-1); // -1: neutral ground state only for now
+  unit_conv = std::pow(votca::tools::conv::bohr2nm, 3);
+  matrix P_conv = unit_conv * psite.getpolarization();  // PolarSite: (a_0)^3,
+                                                        // APolarSite (nm)^3
+  this->setPs(P_conv, state);  // -1: neutral ground state only for now
   // ID, not sure if needed
   _id = int(psite.getId());
   _name = psite.getElement();
+}
+
+void APolarSite::addNeutral(PolarSite psite) {
+  Vector9d multipoles = psite.Q();
+
+  std::vector<double> Q_conv;
+  Q_conv.push_back(multipoles[0]);  // Q00 PolarSite: e, APolarSite e
+  // Apolarsite has diffrent order of dipole entries
+  Q_conv.push_back(votca::tools::conv::bohr2nm *
+                   multipoles[3]);  // Q10 PolarSite e*a_0, APolarSite e*nm
+  Q_conv.push_back(votca::tools::conv::bohr2nm * multipoles[1]);  // Q11c
+  Q_conv.push_back(votca::tools::conv::bohr2nm * multipoles[2]);  // Q11s
+  double unit_conv = std::pow(votca::tools::conv::bohr2nm, 2);
+  Q_conv.push_back(unit_conv * multipoles[4]);  // Q20 PolarSite e*(a_0)^2,
+                                                // APolarSite e*(nm)^3
+  Q_conv.push_back(unit_conv * multipoles[5]);  // Q21c
+  Q_conv.push_back(unit_conv * multipoles[6]);  // Q21s
+  Q_conv.push_back(unit_conv * multipoles[7]);  // Q22c
+  Q_conv.push_back(unit_conv * multipoles[8]);  // Q22s
+  this->setQs(Q_conv, 0);  // 0: neutral ground state only for now
+
+  // polarizability tensor/matrix for each state (assume it is rotated in NEW)
+  unit_conv = std::pow(votca::tools::conv::bohr2nm, 3);
+  matrix P_conv = unit_conv * psite.getpolarization();  // PolarSite: (a_0)^3,
+                                                        // APolarSite (nm)^3
+  this->setPs(P_conv, 0);
 }
 
 void APolarSite::ImportFrom(APolarSite *templ, std::string tag) {
@@ -210,8 +242,10 @@ void APolarSite::Rotate(const matrix &rot, const vec &refPos) {
     if (_Qs[state + 1].size() > 4) {
 
       double Qzz1 = _Qs[state + 1][4];
-      double Qxx1 = -0.5 * _Qs[state + 1][4] + 0.5 * sqrt(3) * _Qs[state + 1][7];
-      double Qyy1 = -0.5 * _Qs[state + 1][4] - 0.5 * sqrt(3) * _Qs[state + 1][7];
+      double Qxx1 =
+          -0.5 * _Qs[state + 1][4] + 0.5 * sqrt(3) * _Qs[state + 1][7];
+      double Qyy1 =
+          -0.5 * _Qs[state + 1][4] - 0.5 * sqrt(3) * _Qs[state + 1][7];
 
       double Qxy1 = 0.5 * sqrt(3) * _Qs[state + 1][8];
       double Qxz1 = 0.5 * sqrt(3) * _Qs[state + 1][5];
@@ -281,6 +315,8 @@ void APolarSite::Translate(const vec &shift) {
 }
 
 void APolarSite::Charge(int state) {
+
+  // state indexin: -1: electron, 0: neutral ground state , +1 hole
   int idx = state + 1;
   // Adjust polarizability to charge state
   Pxx = _Ps[idx](0, 0);
@@ -602,8 +638,10 @@ void APolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
       int state = 0;
 
       double Qzz1 = _Qs[state + 1][4];
-      double Qxx1 = -0.5 * _Qs[state + 1][4] + 0.5 * sqrt(3) * _Qs[state + 1][7];
-      double Qyy1 = -0.5 * _Qs[state + 1][4] - 0.5 * sqrt(3) * _Qs[state + 1][7];
+      double Qxx1 =
+          -0.5 * _Qs[state + 1][4] + 0.5 * sqrt(3) * _Qs[state + 1][7];
+      double Qyy1 =
+          -0.5 * _Qs[state + 1][4] - 0.5 * sqrt(3) * _Qs[state + 1][7];
 
       double Qxy1 = 0.5 * sqrt(3) * _Qs[state + 1][8];
       double Qxz1 = 0.5 * sqrt(3) * _Qs[state + 1][5];
@@ -938,7 +976,7 @@ std::vector<APolarSite *> APS_FROM_MPS(std::string filename, int state,
           pyz = 1e-3 * boost::lexical_cast<double>(split[5]);
           pzz = 1e-3 * boost::lexical_cast<double>(split[6]);
 
-          //matrix P;
+          // matrix P;
           P1.row(0) = vec(pxx, pxy, pxz);
           P1.row(1) = vec(pxy, pyy, pyz);
           P1.row(2) = vec(pxz, pyz, pzz);
@@ -953,7 +991,7 @@ std::vector<APolarSite *> APS_FROM_MPS(std::string filename, int state,
           pyy = pxx;
           pyz = 0.0;
           pzz = pxx;
-          //matrix P1;
+          // matrix P1;
           P1.row(0) = vec(pxx, pxy, pxz);
           P1.row(1) = vec(pxy, pyy, pyz);
           P1.row(2) = vec(pxz, pyz, pzz);

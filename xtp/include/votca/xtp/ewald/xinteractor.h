@@ -71,7 +71,7 @@ class XInteractor {
   inline void FieldPermAsPerm_At_By(APolarSite &pol1, APolarSite &pol2);
   inline void FieldPermAsIndu_At_By_AddTo(APolarSite &pol1, APolarSite &pol2,
                                           std::vector<APolarSite *> &add_to);
-  inline void FieldPermAsIndu_At_By_AddTo( APolarSite &pol2,
+  inline void FieldPermAsIndu_At_By_AddTo(APolarSite &pol2,
                                           std::vector<APolarSite *> &add_to);
   inline vec FieldPermESF(vec r, APolarSite &pol);
   inline void FieldIndu(APolarSite &pol1, APolarSite &pol2);
@@ -1559,8 +1559,8 @@ inline void XInteractor::FieldPermAsIndu_At_By(APolarSite &pol1,
 }
 
 inline void XInteractor::FieldPermAsIndu_At_By_AddTo(
-       APolarSite &pol2, std::vector<APolarSite *> &add_to) {
-//    APolarSite &pol1, APolarSite &pol2, std::vector<APolarSite *> &add_to) {
+    APolarSite &pol2, std::vector<APolarSite *> &add_to) {
+  //    APolarSite &pol1, APolarSite &pol2, std::vector<APolarSite *> &add_to) {
 
   double fx = 0.0;
   double fy = 0.0;

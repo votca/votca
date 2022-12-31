@@ -160,7 +160,9 @@ class PolarBackground {
     void FU_KFieldCalc();
     void KFieldReset() { ; }
     void AddAtomicInput(PolarSeg *pseg) { _part_bg_P.push_back(pseg); }
-    double KFieldWload() { return 1. * double(_part_bg_P.size()) / double(_full_bg_P.size()); }
+    double KFieldWload() {
+      return 1. * double(_part_bg_P.size()) / double(_full_bg_P.size());
+    }
 
    private:
     PolarBackground *_master;

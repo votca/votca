@@ -22,7 +22,9 @@
 #include <votca/xtp/topology.h>
 #include <votca/xtp/ewald/xjob.h>
 #include <votca/xtp/ewald/apolarsite.h>
-#include <votca/xtp/ewald/qmthread.h>
+#include "votca/xtp/segmentmapper.h"
+#include "votca/xtp/backgroundregion.h"
+
 
 // TODO Change maps to _alloc_xmlfile_fragsegmol_***
 // TODO Confirm thread safety
@@ -30,39 +32,30 @@
 
 namespace votca { namespace xtp {
     
-class XMpsMap
+class XMapper
 {
 
 public:        
 
-    XMpsMap() : _alloc_table("no_alloc"), _estatics_only(false) {};
-   ~XMpsMap() {};
 
-    // User interface:
-    void GenerateMap(std::string xml_file, std::string alloc_table, Topology *top);
-    void EquipWithPolSites(Topology *top);
-    
+   
     // Adapt to XJob
-    PolarSeg *MapPolSitesToSeg(const std::vector<APolarSite*> &pols_n, Segment *seg, bool only_active_sites = true);
-    std::vector<APolarSite*> GetOrCreateRawSites(const std::string &mpsfile, QMThread *thread = NULL);
-    void Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, QMThread *thread = NULL);
-    void Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread = NULL);
-    void Gen_BGN(Topology *top, PolarTop *ptop, QMThread *thread = NULL);
-    void Gen_FGC_Load_FGN_BGN(Topology *top, XJob *job, std::string archfile, QMThread *thread = NULL);
+    void setLogger( Logger* log ) {log_ = log;};
+    //void Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, QMThread *thread = NULL);
+    void Gen_FGC_FGN_BGN(std::string mapfile, const Topology &top, XJob *xjob);
+    //void Gen_BGN(Topology *top, PolarTop *ptop, QMThread *thread = NULL);
+    //void Gen_FGC_Load_FGN_BGN(Topology *top, XJob *job, std::string archfile, QMThread *thread = NULL);
     
-    void setEstaticsOnly(bool estatics_only) { _estatics_only = estatics_only; }
-    
-    // Called by GenerateMap(...)
-    void CollectMapFromXML(std::string xml_file);
-    void CollectSegMpsAlloc(std::string alloc_table, Topology *top);
-    void CollectSitesFromMps();
     
     
 private:
 
+    // logger
+    Logger* log_;
+
+
     std::string _alloc_table;
     votca::tools::Mutex  _lockThread;
-    bool _estatics_only;
     
     // Maps retrieved from XML mapping files
     std::map<std::string, bool>                   _map2md;

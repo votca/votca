@@ -84,9 +84,10 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop,
   _actor = XInteractor(NULL, _polar_aDamp);
 
   // SET-UP REAL & RECIPROCAL SPACE
-  _a = votca::tools::conv::bohr2nm*_top->getBox().col(0); // NEW: in a_0, needed here: nm
-  _b = votca::tools::conv::bohr2nm*_top->getBox().col(1);
-  _c = votca::tools::conv::bohr2nm*_top->getBox().col(2);
+  _a = votca::tools::conv::bohr2nm *
+       _top->getBox().col(0);  // NEW: in a_0, needed here: nm
+  _b = votca::tools::conv::bohr2nm * _top->getBox().col(1);
+  _c = votca::tools::conv::bohr2nm * _top->getBox().col(2);
   _LxLyLz = _a.dot(_b.cross(_c));
   _LxLy = (_a.cross(_b)).norm();
 
@@ -189,7 +190,8 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop,
         << "    - System Q1: " << -system_dpl << "  (apply to " << charged_count
         << " polar sites)" << std::flush;
     vec atomic_compensation_dpl_system = -system_dpl / charged_count;
-    [[maybe_unused]] int compensation_count = 0; //otherwise trigger unused warning as only in assert
+    [[maybe_unused]] int compensation_count =
+        0;  // otherwise trigger unused warning as only in assert
     for (auto &pseg : _bg_P) {
       if (!pseg->IsCharged()) continue;
       // Dipole compensation type
@@ -558,15 +560,13 @@ void PolarBackground::Polarize(int n_threads = 1) {
   if (Log::verbose()) {
     std::ofstream ofs;
     ofs.open("ewdbgpol.indu_state.tab", std::ofstream::out);
-    for ( sit1 = _bg_P.begin();
-         sit1 < _bg_P.end(); ++sit1) {
+    for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
       PolarSeg *pseg = *sit1;
 
       //[-Wunused-variable]
       // Segment *seg = _top->getSegment(pseg->getId());
 
-      for ( pit1 = pseg->begin(); pit1 < pseg->end();
-           ++pit1) {
+      for (pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
         vec fp = (*pit1)->getFieldP();
         vec fu = (*pit1)->getFieldU();
         vec u1 = (*pit1)->getU1();
@@ -634,8 +634,8 @@ void PolarBackground::RThread::FP_FieldCalc() {
     int N_shells = int(R_co_max / dR_shell) + 1;
     std::vector<std::vector<PolarNb *> > shelled_nbs;
     shelled_nbs.resize(N_shells);
-     [[maybe_unused]]  unsigned int allocated_count = 0;
-     [[maybe_unused]]  unsigned int deleted_count = 0;
+    [[maybe_unused]] unsigned int allocated_count = 0;
+    [[maybe_unused]] unsigned int deleted_count = 0;
 
     for (sit2 = _full_bg_P.begin(); sit2 < _full_bg_P.end(); ++sit2) {
       PolarSeg *pseg2 = *sit2;
@@ -801,7 +801,7 @@ void PolarBackground::RThread::FU_FieldCalc() {
       int N_shells = int(R_co_max / dR_shell) + 1;
       std::vector<std::vector<PolarNb *> > shelled_nbs;
       shelled_nbs.resize(N_shells);
-      [[maybe_unused]]  unsigned int allocated_count = 0;
+      [[maybe_unused]] unsigned int allocated_count = 0;
       [[maybe_unused]] unsigned int deleted_count = 0;
 
       for (sit2 = _full_bg_P.begin(); sit2 < _full_bg_P.end(); ++sit2) {

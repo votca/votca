@@ -25,9 +25,9 @@
 #include "votca/xtp/backgroundregion.h"
 #include "votca/xtp/dipoledipoleinteraction.h"
 #include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/polarregion.h"
 #include "votca/xtp/qmregion.h"
 #include "votca/xtp/staticregion.h"
-#include "votca/xtp/polarregion.h"
 
 namespace votca {
 namespace xtp {
@@ -220,12 +220,10 @@ Eigen::VectorXd PolarRegion::CalcInducedDipolesViaPCG(
 
 */
 void BackgroundRegion::Evaluate(std::vector<std::unique_ptr<Region>>& regions) {
-  if (regions.size() < 0 ){ 
-XTP_LOG(Log::info, log_) << TimeStamp()
-                           << " Background region is empty! "
-                           << std::flush;
-
-   }
+  if (regions.size() < 0) {
+    XTP_LOG(Log::info, log_)
+        << TimeStamp() << " Background region is empty! " << std::flush;
+  }
   /* std::vector<double> energies = ApplyInfluenceOfOtherRegions(regions);
   Energy_terms e_contrib;
   e_contrib.E_static_ext() =
@@ -311,23 +309,20 @@ XTP_LOG(Log::info, log_) << TimeStamp()
 }
 
 double BackgroundRegion::InteractwithQMRegion(const QMRegion& region) {
-    if (region.size() < 0 ){ 
-XTP_LOG(Log::info, log_) << TimeStamp()
-                           << " Background region is empty! "
-                           << std::flush;
-
-   }
+  if (region.size() < 0) {
+    XTP_LOG(Log::info, log_)
+        << TimeStamp() << " Background region is empty! " << std::flush;
+  }
   // QMregions always have lower ids than other regions
   // region.ApplyQMFieldToPolarSegments(segments_);
   return 0.0;
 }
 double BackgroundRegion::InteractwithPolarRegion(const PolarRegion& region) {
-    if (region.identify() != "polarregion" ){ 
-XTP_LOG(Log::info, log_) << TimeStamp()
-                           << " Region supplied is not a PolarRegion! "
-                           << std::flush;
-
-   }
+  if (region.identify() != "polarregion") {
+    XTP_LOG(Log::info, log_)
+        << TimeStamp() << " Region supplied is not a PolarRegion! "
+        << std::flush;
+  }
   /*bool noE_V = true;
   if (this->getId() < region.getId()) {
     noE_V = false;
@@ -354,12 +349,10 @@ XTP_LOG(Log::info, log_) << TimeStamp()
 }
 
 double BackgroundRegion::InteractwithStaticRegion(const StaticRegion& region) {
-    if (region.size() < 0 ){ 
-XTP_LOG(Log::info, log_) << TimeStamp()
-                           << " Background region is empty! "
-                           << std::flush;
-
-   }
+  if (region.size() < 0) {
+    XTP_LOG(Log::info, log_)
+        << TimeStamp() << " Background region is empty! " << std::flush;
+  }
   // Static regions always have higher ids than other regions
 
   /*double e = 0.0;

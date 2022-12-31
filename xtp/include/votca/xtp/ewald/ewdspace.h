@@ -45,7 +45,7 @@ using namespace votca::tools::conv;
 struct cmplx {
   cmplx() { ; }
   cmplx(double re, double im) : _re(re), _im(im) { ; }
-  //cmplx(const cmplx &c) : _re(c._re), _im(c._im) { ; }
+  // cmplx(const cmplx &c) : _re(c._re), _im(c._im) { ; }
   const double &Re() const { return _re; }
   const double &Im() const { return _im; }
   cmplx &operator*=(const double &d);
@@ -203,14 +203,9 @@ class KVector {
     _has_sfactor = true;
   }
   const EWD::cmplx &getStructureFactor() { return _sfactor; }
-  double operator()(int a){
-    return _k(a);
-  }
+  double operator()(int a) { return _k(a); }
 
-  
-  double operator()(int a)const{
-    return _k(a);
-  }
+  double operator()(int a) const { return _k(a); }
 
  private:
   vec _k;
