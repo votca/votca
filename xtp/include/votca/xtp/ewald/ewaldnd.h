@@ -134,7 +134,7 @@ class Ewald3DnD {
     }
 
     void AddToForeground(int segid, int na, int nb, int nc) {
-      idx_t i = segid ;
+      idx_t i = segid;
       idx_t a = na + _na_max;
       idx_t b = nb + _nb_max;
       idx_t c = nc + _nc_max;
@@ -148,7 +148,7 @@ class Ewald3DnD {
           std::abs(nc) > _nc_max) {
         is_in_fg = false;
       } else {
-        idx_t i = segid ;
+        idx_t i = segid;
         idx_t a = na + _na_max;
         idx_t b = nb + _nb_max;
         idx_t c = nc + _nc_max;

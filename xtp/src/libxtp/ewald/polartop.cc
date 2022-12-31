@@ -35,31 +35,31 @@ PolarTop::~PolarTop() {
   if (_clean_mm1) {
     for (psit = _mm1.begin(); psit < _mm1.end(); ++psit) {
       delete *psit;
-            *psit = NULL;
+      *psit = NULL;
     }
   }
   if (_clean_mm2) {
     for (psit = _mm2.begin(); psit < _mm2.end(); ++psit) {
       delete *psit;
-            *psit = NULL;
+      *psit = NULL;
     }
   }
   if (_clean_bgN) {
     for (psit = _bgN.begin(); psit < _bgN.end(); ++psit) {
       delete *psit;
-            *psit = NULL;
+      *psit = NULL;
     }
   }
   if (_clean_fgN) {
     for (psit = _fgN.begin(); psit < _fgN.end(); ++psit) {
       delete *psit;
-            *psit = NULL;
+      *psit = NULL;
     }
   }
   if (_clean_fgC) {
     for (psit = _fgC.begin(); psit < _fgC.end(); ++psit) {
       delete *psit;
-            *psit = NULL;
+      *psit = NULL;
     }
   }
 

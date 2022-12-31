@@ -118,7 +118,7 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
   std::vector<Segment *> segs_bgN;
 
   // why not smart pointer?
-  //std::vector<std::shared_ptr<PolarSeg>> bgN;
+  // std::vector<std::shared_ptr<PolarSeg>> bgN;
 
   bgN.reserve(BGN.size());
   // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
@@ -142,7 +142,8 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
 
     // now make an OLD PolarSeg from the new PolarSegment
     PolarSeg *new_pseg = new PolarSeg(int(segment.getId()), psites);
-   // std::shared_ptr<PolarSeg> new_pseg( new  PolarSeg(int(segment.getId()), psites));
+    // std::shared_ptr<PolarSeg> new_pseg( new  PolarSeg(int(segment.getId()),
+    // psites));
 
     bgN.push_back(new_pseg);
   }

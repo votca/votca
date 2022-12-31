@@ -20,10 +20,10 @@ using boost::format;
 
 Ewald3DnD::~Ewald3DnD() {
   std::vector<PolarSeg *>::iterator sit;
-  for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit){
+  for (sit = _mg_N.begin(); sit < _mg_N.end(); ++sit) {
 
-   delete (*sit);
-  (*sit) = NULL;
+    delete (*sit);
+    (*sit) = NULL;
   }
   _fg_C.clear();
   _fg_N.clear();
@@ -200,7 +200,6 @@ Ewald3DnD::Ewald3DnD(const Topology *top, PolarTop *ptop, tools::Property *opt,
   // SET-UP POLAR GROUNDS (FORE-, MID-, BACK-)
   _center = ptop->getCenter();
   std::cout << "Center: " << _center << std::flush;
- 
 
   _fg_C.clear();
   _fg_N.clear();

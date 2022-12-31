@@ -1,18 +1,18 @@
 #ifndef VOTCA_XTP_EWALD_H
 #define VOTCA_XTP_EWALD_H
 
-#include <votca/xtp/parallelxjobcalc.h>
-#include <votca/xtp/ewald/xinductor.h>
-#include <votca/xtp/ewald/xinteractor.h>
-#include <votca/xtp/ewald/xjob.h>
+#include "votca/xtp/ewald/polarseg.h"
+#include "votca/xtp/ewald/polartop.h"
 #include <boost/format.hpp>
 #include <boost/timer/timer.hpp>
 #include <votca/xtp/ewald/ewald3d.h>
 #include <votca/xtp/ewald/pewald3d.h>
-#include <votca/xtp/logger.h>
+#include <votca/xtp/ewald/xinductor.h>
+#include <votca/xtp/ewald/xinteractor.h>
+#include <votca/xtp/ewald/xjob.h>
 #include <votca/xtp/ewald/xmapper.h>
-#include "votca/xtp/ewald/polarseg.h"
-#include "votca/xtp/ewald/polartop.h"
+#include <votca/xtp/logger.h>
+#include <votca/xtp/parallelxjobcalc.h>
 
 #include <votca/xtp/ewald/polarbackground.h>
 
@@ -47,7 +47,7 @@ class Ewald : public ParallelXJobCalc<std::vector<Job>> {
   std::string _xml_file;
   std::string _mps_table;
   std::string _polar_bg_arch;
-  XMapper                        xmapper_;
+  XMapper xmapper_;
   bool _pdb_check;
   bool _ptop_check;
 };
@@ -245,11 +245,11 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(const Topology &top, Job &job,
   // use new MAPPER to get a list of mapped PolarSegments (neutral only for now)
 
   // Convert this to old PolarTop
-  //Topology new_top = top;
-  //PolarTop ptop(&new_top);
+  // Topology new_top = top;
+  // PolarTop ptop(&new_top);
   if (_polar_bg_arch == "") {
-        xmapper_.setLogger(&log);
-        xmapper_.Gen_FGC_FGN_BGN(mapfile_, top, &xjob);
+    xmapper_.setLogger(&log);
+    xmapper_.Gen_FGC_FGN_BGN(mapfile_, top, &xjob);
   } else {
     XTP_LOG(Log::info, log) << "LOADING FROM ARCHIVE TODO!!!!! '"
                             << _polar_bg_arch << "'" << std::flush;
@@ -261,9 +261,9 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(const Topology &top, Job &job,
   // CALL THOLEWALD MAGIC
   XTP_LOG(Log::info, log) << "Trying to construct ewald object" << std::flush;
 
-  //std::cout << ptop.FGN().size() << "\n" << std::endl;
-  //std::cout << ptop.FGC().size() << "\n" << std::endl;
-  //std::cout << ptop.BGN().size() << "\n" << std::endl;
+  // std::cout << ptop.FGN().size() << "\n" << std::endl;
+  // std::cout << ptop.FGC().size() << "\n" << std::endl;
+  // std::cout << ptop.BGN().size() << "\n" << std::endl;
 
   EwaldMethod ewaldnd =
       EwaldMethod(&top, xjob.getPolarTop(), &_options, &thread.getLogger());
