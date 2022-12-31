@@ -8,17 +8,7 @@ if(INSTALL_RC_FILES)
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/VOTCARC.bash DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif(INSTALL_RC_FILES)
 
-set(TOOLS_RST_FILES)
-foreach(SCRIPT votca_compare votca_help2doc)
-  configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.tmp.out @ONLY)
-  add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT})
-  add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}
-    -DINPUT="${SCRIPT}.tmp.out" -DOUTPUT="${SCRIPT}"
-    -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-    -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_SOURCE_DIR}/CMakeModules/gitscript.cmake
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.tmp.out ${CMAKE_SOURCE_DIR}/CMakeModules/gitscript.cmake)
-  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${SCRIPT})
-  add_executable(VOTCA::${SCRIPT} IMPORTED GLOBAL)
-  set_property(TARGET VOTCA::${SCRIPT} PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}")
-  add_dependencies(VOTCA::${SCRIPT} ${SCRIPT}_build)
-endforeach(SCRIPT)
+add_executable(VOTCA::votca_compare IMPORTED GLOBAL)
+set_property(TARGET VOTCA::votca_compare PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/votca_compare")
+add_executable(VOTCA::votca_help2doc IMPORTED GLOBAL)
+set_property(TARGET VOTCA::votca_help2doc PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/votca_help2doc")

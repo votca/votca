@@ -17,7 +17,6 @@
 import sys
 import os
 import argparse
-VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
 
 PROGTITLE = 'THE VOTCA::TOOLS FILE COMPARISON'
 PROGDESCR = 'COMPARES TWO FILES TO EACH OTHER'
@@ -29,9 +28,9 @@ VOTCAHEADER = '''
 {progtitle}
 
 please submit bugs to bugs@votca.org 
-votca_compare, version {version}
+votca_compare
 
-'''.format(version=VERSION, progtitle=PROGTITLE)
+'''.format(progtitle=PROGTITLE)
 
 def xxquit(what=''):
     if what != '':

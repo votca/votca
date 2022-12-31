@@ -21,7 +21,6 @@ import subprocess
 from pathlib import Path
 from typing import Iterator, List, NamedTuple, Tuple
 
-VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
 PROGTITLE = 'THE VOTCA::TOOLS help to doc converter'
 VOTCAHEADER = f"""
 ==================================================
@@ -31,7 +30,7 @@ VOTCAHEADER = f"""
 {PROGTITLE}
 
 please submit bugs to bugs@votca.org
-votca_help2doc, version {VERSION}
+votca_help2doc
 """
 
 AUTHORS = "Written and maintained by the VOTCA Development Team <devs@votca.org>"
@@ -72,8 +71,6 @@ def parse_user_arguments() -> argparse.Namespace:
     parser.add_argument("-o", "--out", help="Output file", default=None)
     parser.add_argument("-f", "--format", help="Output format",
                         choices=["rst", "groff"], default="rst")
-    parser.add_argument('--version', action='version',
-                        version=f"%(prog)s {VERSION}")
     return parser.parse_args()
 
 
