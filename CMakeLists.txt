@@ -28,7 +28,7 @@ option(BUILD_XTP "Build xtp" OFF)
 add_feature_info(BUILD_XTP BUILD_XTP "Build xtp module")
 
 include(CTest)
-option(BUILD_TESTING "Build and copy testing stuff" OFF)
+option(BUILD_TESTING "Build and copy testing stuff" ON)
 add_feature_info(BUILD_TESTING BUILD_TESTING "Enable unit tests")
 if(BUILD_TESTING)
   find_package(Boost 1.71.0 REQUIRED COMPONENTS unit_test_framework)
