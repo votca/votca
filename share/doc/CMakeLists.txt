@@ -7,9 +7,9 @@ if (DOXYGEN_FOUND)
   set(DOXYGEN_EXTRACT_STATIC YES)
   set(DOXYGEN_EXCLUDE_PATTERNS "*.py")
   set(DOXYGEN_SOURCE_BROWSER YES)
-  # when using cmake-3.16 add USE_STAMP_FILE below
-  doxygen_add_docs(doxygen tools csg xtp 
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  file(GLOB_RECURSE DOXYGEN_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/*.cc ${CMAKE_SOURCE_DIR}/*.h)
+  doxygen_add_docs(doxygen ${DOXYGEN_SOURCES}
+    USE_STAMP_FILE WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Build doxygen documentation")
 endif()
 
