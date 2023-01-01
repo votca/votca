@@ -1,6 +1,6 @@
 # env for manpage generation
 set(VOTCASHARE "${PROJECT_SOURCE_DIR}/csg/share")
-set(VOTCA_PATH "${CMAKE_CURRENT_BINARY_DIR}:${PROJECT_BINARY_DIR}/csg/src/tools")
+set(VOTCA_PATH "${CMAKE_CURRENT_SOURCE_DIR}:${PROJECT_BINARY_DIR}/csg/src/tools")
 set(VOTCA_CSG_DEFAULTS "${PROJECT_BINARY_DIR}/csg/share/xml/csg_defaults.xml")
 
 set(CSG_RST_FILES)
