@@ -100,7 +100,3 @@ foreach(PROG ${test_cases} )
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
   add_test(NAME unit_${PROG} COMMAND $<TARGET_FILE:unit_${PROG}> WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
 endforeach(PROG)
-
-if(ENABLE_COVERAGE_BUILD)
-  set_property(TEST unit_test_diabatization PROPERTY TIMEOUT 3000)
-endif()
