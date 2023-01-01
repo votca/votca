@@ -35,7 +35,7 @@ foreach(SCRIPT ${XTP_SCRIPTS})
       COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT} --format groff --out ${SCRIPT}.man
       COMMENT "Building ${SCRIPT} manpage"
       DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc>)
-    add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man)
+    add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT})
     add_dependencies(manpages ${SCRIPT}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${SCRIPT}.1)
   endif()
@@ -43,7 +43,7 @@ foreach(SCRIPT ${XTP_SCRIPTS})
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/xtp/${SCRIPT}.rst
       COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT} --format rst --out ${VOTCA_SPHINX_DIR}/xtp/${SCRIPT}.rst
       COMMENT "Building ${SCRIPT} rst doc"
-      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc>)
+      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT})
     list(APPEND TOOLS_RST_FILES ${VOTCA_SPHINX_DIR}/xtp/${SCRIPT}.rst)
   endif(VOTCA_SPHINX_DIR)
 endforeach(SCRIPT)

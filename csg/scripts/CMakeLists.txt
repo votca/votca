@@ -24,7 +24,7 @@ foreach(SCRIPT csg_call csg_inverse)
       COMMAND ${CMAKE_COMMAND} -E env VOTCASHARE="${VOTCASHARE}" PATH="${VOTCA_PATH}:$ENV{PATH}" VOTCA_CSG_DEFAULTS="${VOTCA_CSG_DEFAULTS}"
         $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format groff --out ${SCRIPT}.man
       COMMENT "Building ${SCRIPT} manpage"
-      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc>)
+      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT})
     add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man)
     add_dependencies(manpages ${SCRIPT}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${SCRIPT}.1)
@@ -34,7 +34,7 @@ foreach(SCRIPT csg_call csg_inverse)
       COMMAND ${CMAKE_COMMAND} -E env VOTCASHARE="${VOTCASHARE}" PATH="${VOTCA_PATH}:$ENV{PATH}" VOTCA_CSG_DEFAULTS="${VOTCA_CSG_DEFAULTS}"
 	$<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format rst --out ${VOTCA_SPHINX_DIR}/csg/${SCRIPT}.rst
       COMMENT "Building ${SCRIPT} rst doc"
-      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${SCRIPT})
+      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT})
     list(APPEND CSG_RST_FILES ${VOTCA_SPHINX_DIR}/csg/${SCRIPT}.rst)
   endif(VOTCA_SPHINX_DIR)
 endforeach(SCRIPT)
