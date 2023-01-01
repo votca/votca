@@ -1,25 +1,30 @@
+# env for manpage generation
 set(VOTCASHARE "${PROJECT_SOURCE_DIR}/csg/share")
 set(VOTCA_PATH "${CMAKE_CURRENT_BINARY_DIR}:${PROJECT_BINARY_DIR}/csg/src/tools")
 set(VOTCA_CSG_DEFAULTS "${PROJECT_BINARY_DIR}/csg/share/xml/csg_defaults.xml")
 
 set(CSG_RST_FILES)
 foreach(SCRIPT csg_call csg_inverse)
-  configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.in2 @ONLY)
-  add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT})
-  add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}
-    -DINPUT="${SCRIPT}.in2" -DOUTPUT="${SCRIPT}"
+  configure_file(${SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.in2 @ONLY)
+  add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.install)
+  add_custom_command(OUTPUT ${SCRIPT}.install COMMAND ${CMAKE_COMMAND}
+    -DINPUT="${SCRIPT}.in2" -DOUTPUT="${SCRIPT}.install"
     -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
     -DTOP_SOURCE_DIR="${PROJECT_SOURCE_DIR}" -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitscript.cmake
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.in2 ${PROJECT_SOURCE_DIR}/CMakeModules/gitscript.cmake)
-  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${SCRIPT} ${SCRIPT}.tmp ${SCRIPT}.tmp.x)
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.in2 ${PROJECT_SOURCE_DIR}/CMakeModules/gitscript.cmake
+    COMMENT "Generating ${SCRIPT}")
+  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${SCRIPT}.install)
   set_property(TARGET votca_csg APPEND PROPERTY BINARIES "${SCRIPT}")
-  install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.install RENAME ${SCRIPT} DESTINATION ${CMAKE_INSTALL_BINDIR})
+  add_executable(VOTCA::${SCRIPT} IMPORTED GLOBAL)
+  # version string gets removed from man & rst, so we can use the source version
+  set_property(TARGET VOTCA::${SCRIPT} PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT}")
   if (BUILD_MANPAGES)
     add_custom_command(OUTPUT ${SCRIPT}.man
       COMMAND ${CMAKE_COMMAND} -E env VOTCASHARE="${VOTCASHARE}" PATH="${VOTCA_PATH}:$ENV{PATH}" VOTCA_CSG_DEFAULTS="${VOTCA_CSG_DEFAULTS}"
         $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format groff --out ${SCRIPT}.man
       COMMENT "Building ${SCRIPT} manpage"
-      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${SCRIPT})
+      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc>)
     add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man)
     add_dependencies(manpages ${SCRIPT}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${SCRIPT}.1)
@@ -32,8 +37,6 @@ foreach(SCRIPT csg_call csg_inverse)
       DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${SCRIPT})
     list(APPEND CSG_RST_FILES ${VOTCA_SPHINX_DIR}/csg/${SCRIPT}.rst)
   endif(VOTCA_SPHINX_DIR)
-  add_executable(VOTCA::${SCRIPT} IMPORTED GLOBAL)
-  set_property(TARGET VOTCA::${SCRIPT} PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}")
 endforeach(SCRIPT)
 
 set_target_properties(VOTCA::csg_call PROPERTIES VOTCASHARE "${VOTCASHARE}")
