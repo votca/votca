@@ -118,6 +118,11 @@ if(ENABLE_REGRESSION_TESTING)
         set_property(TEST ${TESTNAME} PROPERTY TIMEOUT 3000)
       endif()
     endif()
+    if(DIR MATCHES "cibi")
+      if(ENABLE_COVERAGE_BUILD)
+        set_property(TEST ${TESTNAME} PROPERTY TIMEOUT 3000)
+      endif()
+    endif()	    
     if(DIR MATCHES "gromacs-(multi|remd)")
       set_property(TEST ${TESTNAME} PROPERTY ENVIRONMENT
         "CSG_RUNTEST=yes;VOTCASHARE=${VOTCA_SHARE};CSG_MDRUN_STEPS=${CSG_MDRUN_STEPS};PATH=${VOTCA_PATH}:$ENV{PATH};VOTCA_CSG_DEFAULTS=${VOTCA_CSG_DEFAULTS}"
