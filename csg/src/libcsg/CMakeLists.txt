@@ -32,13 +32,13 @@ configure_file(votca_csg_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_csg_confi
 
 #CMAKE_CURRENT_BINARY_DIR for gitversion.h /votca_csg_config.h
 target_include_directories(votca_csg PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/csg/include>
+  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/csg/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 add_custom_target(gitversion-csg COMMAND ${CMAKE_COMMAND}
-  -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+  -DTOP_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -P ${CMAKE_SOURCE_DIR}/CMakeModules/gitversion.cmake)
+  -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 add_dependencies(votca_csg gitversion-csg)

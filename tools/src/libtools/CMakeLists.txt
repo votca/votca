@@ -7,19 +7,19 @@ add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_LINALG_SOURCES})
 target_compile_features(votca_tools PUBLIC cxx_std_17)
 
 # CMAKE_CURRENT_BINARY_DIR for gitversion.h
-# and ${CMAKE_BINARY_DIR}/include/votca/tools for votca_tools_config.h
-# and ${CMAKE_BINARY_DIR}/include for votca_tools_config.h when used by
+# and ${PROJECT_BINARY_DIR}/include/votca/tools for votca_tools_config.h
+# and ${PROJECT_BINARY_DIR}/include for votca_tools_config.h when used by
 # csg/xtp
 target_include_directories(votca_tools PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/tools/include>
-  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/tools/include/votca/tools>
-  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/tools/include>
+  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/tools/include>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/tools/include/votca/tools>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/tools/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
-  -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+  -DTOP_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -P ${CMAKE_SOURCE_DIR}/CMakeModules/gitversion.cmake)
+  -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 add_dependencies(votca_tools gitversion)
@@ -33,7 +33,7 @@ if(MKL_FOUND)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_link_options(votca_tools PUBLIC "-Wl,--no-as-needed")
   endif()
-  install(FILES "${CMAKE_SOURCE_DIR}/CMakeModules/FindMKL.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
+  install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindMKL.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 endif()
 
 if(OpenMP_FOUND)
@@ -43,7 +43,7 @@ endif()
 if(FFTW3_FOUND)
   # fftw3.h gets included in our public eigen.h through Eigen/FFT
   target_link_libraries(votca_tools PUBLIC FFTW3::fftw3)
-  install(FILES "${CMAKE_SOURCE_DIR}/CMakeModules/FindFFTW3.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
+  install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindFFTW3.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 endif()
 install(TARGETS votca_tools EXPORT VOTCA_TOOLS_Targets
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

@@ -1,6 +1,6 @@
-add_custom_target(gitversion-xtp COMMAND ${CMAKE_COMMAND} -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+add_custom_target(gitversion-xtp COMMAND ${CMAKE_COMMAND} -DTOP_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -P ${CMAKE_SOURCE_DIR}/CMakeModules/gitversion.cmake)
+  -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 file(GLOB_RECURSE VOTCA_SOURCES *.cc *.cpp)
@@ -13,7 +13,7 @@ add_library(votca_xtp  ${VOTCA_SOURCES})
 target_compile_features(votca_xtp PUBLIC cxx_std_17)
 
 set_target_properties(votca_xtp PROPERTIES SOVERSION ${SOVERSION})
-set_target_properties(votca_xtp PROPERTIES VOTCA_SHARE ${CMAKE_SOURCE_DIR}/xtp/share)
+set_target_properties(votca_xtp PROPERTIES VOTCA_SHARE ${PROJECT_SOURCE_DIR}/xtp/share)
 set_target_properties(votca_xtp PROPERTIES XTP_PATH ${_PARENT_PATH}/tools)
 add_dependencies(votca_xtp gitversion-xtp)
 target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE Libxc::xc Libint2::int2 ECPINT::ecpint Boost::program_options Boost::filesystem Boost::system Boost::timer)
@@ -25,12 +25,12 @@ if(USE_CUDA)
 endif()
 
 # CMAKE_CURRENT_BINARY_DIR for gitversion.h
-# CMAKE_BINARY_DIR/xtp/include/votca/xtp for votca_xtp_config.h
+# PROJECT_BINARY_DIR/xtp/include/votca/xtp for votca_xtp_config.h
 target_include_directories(votca_xtp PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/xtp/include> ${HDF5_INCLUDE_DIRS}
-  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/xtp/include>
-  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/xtp/include/votca/xtp>
+  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/xtp/include> ${HDF5_INCLUDE_DIRS}
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/xtp/include>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/xtp/include/votca/xtp>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 install(TARGETS votca_xtp EXPORT VOTCA_XTP_Targets
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
