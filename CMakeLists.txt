@@ -35,7 +35,7 @@ if(ENABLE_COVERAGE_BUILD)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
     # in coverage mode, so tests will take very long
-    set(CTEST_TEST_TIMEOUT 7200)
+    set(DART_TESTING_TIMEOUT 7200 CACHE STRING "Maximum time allowed before CTest will kill the test.")
 endif()
 
 include(CTest)
