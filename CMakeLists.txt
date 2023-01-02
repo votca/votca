@@ -96,9 +96,6 @@ endif()
 option(INSTALL_RC_FILES "Install votca rc files, no need when installing under /usr" ON)
 add_feature_info(INSTALL_RC_FILES INSTALL_RC_FILES "Install votca rc files (VOTCARC.bash etc.)")
 
-set(VOTCA_SPHINX_DIR "${PROJECT_BINARY_DIR}/sphinx" CACHE PATH "Path for Sphinx sources")
-file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR})
-set(VOTCA_SPHINX_OUTPUT_DIR "${PROJECT_BINARY_DIR}/sphinx.html" CACHE PATH "Path for Sphinx output")
 set(VOTCA_XML_PARSER "${PROJECT_SOURCE_DIR}//share/doc/extract_xml_metadata.py")
 
 ########################################################################
@@ -144,6 +141,11 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_program(SPHINX_EXECUTABLE NAMES sphinx-build DOC "Sphinx documentation generation tool (http://www.sphinx-doc.org/)")
 find_package_handle_standard_args(SPHINX REQUIRED_VARS SPHINX_EXECUTABLE)
+if(SPHINX_FOUND)
+  set(VOTCA_SPHINX_DIR "${PROJECT_BINARY_DIR}/sphinx" CACHE PATH "Path for Sphinx sources")
+  file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR})
+  set(VOTCA_SPHINX_OUTPUT_DIR "${PROJECT_BINARY_DIR}/sphinx.html" CACHE PATH "Path for Sphinx output")
+endif()
 
 option(BUILD_OWN_GROMACS "Build our own gromacs" OFF)
 add_feature_info( BUILD_OWN_GROMACS BUILD_OWN_GROMACS "Build an internal version of gromacs")
