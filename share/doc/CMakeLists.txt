@@ -16,7 +16,7 @@ endforeach()
 file(COPY _themes DESTINATION ${VOTCA_SPHINX_DIR})
 foreach(_MODULE tools csg xtp xtp-tutorials)
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_MODULE})
-    message("CJ: ${_MODULE}")
+    # missing dep checking
     file(COPY ${_MODULE} DESTINATION ${VOTCA_SPHINX_DIR})
   endif()
 endforeach()
