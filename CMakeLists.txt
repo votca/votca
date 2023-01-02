@@ -142,6 +142,9 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
+find_program(SPHINX_EXECUTABLE NAMES sphinx-build DOC "Sphinx documentation generation tool (http://www.sphinx-doc.org/)")
+find_package_handle_standard_args(SPHINX REQUIRED_VARS SPHINX_EXECUTABLE)
+
 option(BUILD_OWN_GROMACS "Build our own gromacs" OFF)
 add_feature_info( BUILD_OWN_GROMACS BUILD_OWN_GROMACS "Build an internal version of gromacs")
 if(BUILD_OWN_GROMACS)
