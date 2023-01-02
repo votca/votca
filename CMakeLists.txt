@@ -182,6 +182,7 @@ if(BUILD_XTP)
 endif()
 
 add_subdirectory(share/doc)
+add_subdirectory(share/doxygen)
 add_subdirectory(share/format)
 
 feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
