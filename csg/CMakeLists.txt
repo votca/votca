@@ -25,10 +25,6 @@ endforeach(HEADER)
 ######################################
 # Include the following subdirectory # 
 ######################################
-if(VOTCA_SPHINX_DIR)
-  add_custom_target(doc-csg)
-  file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/csg)
-endif()
 add_subdirectory(src)
 # scripts/ used votca_csg PROPERTY BINARIES so do after src/
 add_subdirectory(scripts)

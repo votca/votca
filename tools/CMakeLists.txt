@@ -1,12 +1,4 @@
 ########################################################################
-#Find external packages
-########################################################################
-if(VOTCA_SPHINX_DIR)
-  file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/tools)
-  add_custom_target(doc-tools)
-endif()
-
-########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################
 

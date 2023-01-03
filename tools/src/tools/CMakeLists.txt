@@ -3,7 +3,6 @@ foreach(PROG votca_property)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
   target_link_libraries(${PROG} votca_tools)
-  #not realy useful, re-enable whenever it is ready to replace csg_property
   install(TARGETS ${PROG} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
   if (BUILD_MANPAGES)
@@ -18,7 +17,7 @@ foreach(PROG votca_property)
 
   add_test(integration_${PROG}Help ${PROG} --help)
 
-  if(VOTCA_SPHINX_DIR)
+  if(SPHINX_FOUND)
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/tools/${PROG}.rst
       COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name ${CMAKE_CURRENT_BINARY_DIR}/${PROG} --format rst --out ${VOTCA_SPHINX_DIR}/tools/${PROG}.rst
       COMMENT "Building ${PROG} rst doc"
@@ -27,7 +26,7 @@ foreach(PROG votca_property)
   endif(VOTCA_SPHINX_DIR)
 endforeach(PROG)
 
-if(VOTCA_SPHINX_DIR)
-  add_custom_target(doc-tools-prog DEPENDS ${TOOLS_RST_FILES})
-  add_dependencies(doc-tools doc-tools-prog)
+if(SPHINX_FOUND)
+  add_custom_target(tools-tools-rst DEPENDS ${TOOLS_RST_FILES})
+  add_dependencies(sphinx-deps tools-tools-rst)
 endif()

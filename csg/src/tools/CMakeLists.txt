@@ -15,20 +15,20 @@ foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat cs
     add_dependencies(manpages ${PROG}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${PROG}.1)
   endif()
-  if(VOTCA_SPHINX_DIR)
+  if(SPINX_FOUND)
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg/${PROG}.rst
       COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${PROG}> --format rst --out ${VOTCA_SPHINX_DIR}/csg/${PROG}.rst
       COMMENT "Building ${PROG} rst doc"
       DEPENDS VOTCA::votca_help2doc ${PROG})
     list(APPEND CSG_RST_FILES ${VOTCA_SPHINX_DIR}/csg/${PROG}.rst)
-  endif(VOTCA_SPHINX_DIR)
+  endif()
 
   add_test(integration_${PROG}Help ${PROG} --help)
 endforeach(PROG)
 
-if(VOTCA_SPHINX_DIR)
-  add_custom_target(doc-csg-rst-progs DEPENDS ${CSG_RST_FILES})
-  add_dependencies(doc-csg doc-csg-rst-progs)
+if(SPHINX_FOUND)
+  add_custom_target(csg-tools-rst DEPENDS ${CSG_RST_FILES})
+  add_dependencies(sphinx-deps csg-tools-rst)
 endif()
 
 if(BUILD_TESTING)
