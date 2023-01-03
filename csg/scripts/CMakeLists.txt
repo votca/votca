@@ -29,14 +29,14 @@ foreach(SCRIPT csg_call csg_inverse)
     add_dependencies(manpages ${SCRIPT}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${SCRIPT}.1)
   endif()
-  if(VOTCA_SPHINX_DIR)
+  if(SPHINX_FOUND)
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg/${SCRIPT}.rst
       COMMAND ${CMAKE_COMMAND} -E env VOTCASHARE="${VOTCASHARE}" PATH="${VOTCA_PATH}:$ENV{PATH}" VOTCA_CSG_DEFAULTS="${VOTCA_CSG_DEFAULTS}"
 	$<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format rst --out ${VOTCA_SPHINX_DIR}/csg/${SCRIPT}.rst
       COMMENT "Building ${SCRIPT} rst doc"
       DEPENDS VOTCA::votca_help2doc ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT})
     list(APPEND CSG_RST_FILES ${VOTCA_SPHINX_DIR}/csg/${SCRIPT}.rst)
-  endif(VOTCA_SPHINX_DIR)
+  endif()
 endforeach(SCRIPT)
 
 set_target_properties(VOTCA::csg_call PROPERTIES VOTCASHARE "${VOTCASHARE}")
@@ -52,7 +52,7 @@ if(INSTALL_RC_FILES)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/csg-completion.bash DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/rc)
 endif()
 
-if(VOTCA_SPHINX_DIR)
+if(SPHINX_FOUND)
   #don't call "csg_call -l" as csg_call isn't ready at cmake time
   file(READ ${VOTCASHARE}/scripts/inverse/csg_table CSG_SCRIPTS)
   string(REGEX REPLACE "#[^\n]*\n" "" CSG_SCRIPTS "${CSG_SCRIPTS}") # remove comments
@@ -96,6 +96,6 @@ if(VOTCA_SPHINX_DIR)
     file(APPEND ${CSG_SCRIPTS_RST} ${_LINE})
   endforeach()
 
-  add_custom_target(doc-csg-rst-scripts DEPENDS ${CSG_RST_FILES})
-  add_dependencies(doc-csg doc-csg-rst-scripts)
+  add_custom_target(csg-scripts-rst DEPENDS ${CSG_RST_FILES})
+  add_dependencies(sphinx-deps csg-scripts-rst)
 endif()
