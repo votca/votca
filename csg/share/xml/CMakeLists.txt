@@ -24,13 +24,13 @@ configure_file(${CSG_DEFAULTS}.in ${CMAKE_CURRENT_BINARY_DIR}/${CSG_DEFAULTS} @O
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${CSG_DEFAULTS} DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/xml)
 
 if(VOTCA_SPHINX_DIR)
-  if(Python_EXECUTABLE AND VOTCA_XML_PARSER)
+  if(Python_EXECUTABLE)
     set(XML_RST_FILES)
     file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/csg)
     foreach(_XML ${VOTCA_XML} ${CMAKE_CURRENT_BINARY_DIR}/${CSG_DEFAULTS})
       get_filename_component(_FILE "${_XML}" NAME_WE)
-      add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg/${_FILE}.rst COMMAND ${Python_EXECUTABLE} ${VOTCA_XML_PARSER} -i ${_XML} -m csg -o ${VOTCA_SPHINX_DIR}/csg/${_FILE}.rst
-        DEPENDS ${VOTCA_XML_PARSER} ${_XML})
+      add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg/${_FILE}.rst COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::extract_xml_metadata> -i ${_XML} -m csg -o ${VOTCA_SPHINX_DIR}/csg/${_FILE}.rst
+        DEPENDS VOTCA::extract_xml_metadata ${_XML})
       list(APPEND XML_RST_FILES ${VOTCA_SPHINX_DIR}/csg/${_FILE}.rst)
     endforeach()
     add_custom_target(doc-csg-xml DEPENDS ${XML_RST_FILES})

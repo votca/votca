@@ -96,8 +96,6 @@ endif()
 option(INSTALL_RC_FILES "Install votca rc files, no need when installing under /usr" ON)
 add_feature_info(INSTALL_RC_FILES INSTALL_RC_FILES "Install votca rc files (VOTCARC.bash etc.)")
 
-set(VOTCA_XML_PARSER "${PROJECT_SOURCE_DIR}//share/doc/extract_xml_metadata.py")
-
 ########################################################################
 #Find external packages
 ########################################################################

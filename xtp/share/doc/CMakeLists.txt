@@ -9,14 +9,14 @@ if(VOTCA_SPHINX_DIR)
     list(APPEND MANUAL_RST_FILES ${VOTCA_SPHINX_DIR}/xtp/${_FILE})
   endforeach()
 
-  if(Python_EXECUTABLE AND VOTCA_XML_PARSER)
+  if(Python_EXECUTABLE)
     file(GLOB XMLS ${CMAKE_CURRENT_SOURCE_DIR}/../xtp/xml/*.xml)
     file(GLOB XMLS_PACKAGES ${CMAKE_CURRENT_SOURCE_DIR}/../xtp/xml/subpackages/*.xml)
     set(XML_RST_FILES)
     foreach(_XML ${XMLS})
       get_filename_component(_FILE "${_XML}" NAME_WE)
-      add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/xtp/${_FILE}.rst COMMAND ${Python_EXECUTABLE} ${VOTCA_XML_PARSER} -i ${_XML} -o ${VOTCA_SPHINX_DIR}/xtp/${_FILE}.rst
-        DEPENDS ${VOTCA_XML_PARSER} ${_XML} ${XMLS_PACKAGES})
+      add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/xtp/${_FILE}.rst COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::extract_xml_metadata> -i ${_XML} -o ${VOTCA_SPHINX_DIR}/xtp/${_FILE}.rst
+        DEPENDS VOTCA::extract_xml_metadata ${_XML} ${XMLS_PACKAGES})
       list(APPEND XML_RST_FILES ${VOTCA_SPHINX_DIR}/xtp/${_FILE}.rst)
     endforeach()
   endif()
