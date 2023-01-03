@@ -7,7 +7,7 @@ namespace votca {
 namespace xtp {
 
 XJob::XJob(int id, std::string tag, std::vector<Segment *> &qmSegs,
-           std::vector<std::string> &qmSegMps, const Topology *top)
+           std::vector<std::string> &qmSegsState, const Topology *top)
     :
 
       _id(id),
@@ -15,12 +15,12 @@ XJob::XJob(int id, std::string tag, std::vector<Segment *> &qmSegs,
       _top(top),
       _start_from_cpt(false),
       _qmSegs(qmSegs),
-      _qmSegMps(qmSegMps),
+      _qmSegsState(qmSegsState),
       _ptop(NULL),
       _clean_ptop(true) {
 
   // Sanity checks
-  assert(qmSegs.size() == qmSegMps.size());
+  assert(qmSegs.size() == qmSegsState.size());
 
   // Calc. center
   this->CalcCenterPos();

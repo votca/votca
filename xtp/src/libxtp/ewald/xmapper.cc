@@ -43,6 +43,161 @@ void XMpsMap::Gen_BGN(Topology *top, PolarTop *new_ptop, QMThread *thread) {
 }
 */
 
+void XMapper::Gen_FGC_Load_FGN_BGN(std::string mapfile, const Topology &top,
+                                   XJob *xjob, std::string archfile) {
+
+  // LOAD BACKGROUND POLARIZATION STATE
+  Topology new_top = top;
+  PolarTop bgp_ptop = PolarTop(&new_top);
+  bgp_ptop.LoadFromDrive(archfile);
+
+  // SANITY CHECKS I
+  if (bgp_ptop.QM0().size() || bgp_ptop.MM1().size() || bgp_ptop.MM2().size() ||
+      bgp_ptop.FGC().size() || bgp_ptop.FGN().size()) {
+    std::cout << std::endl;
+    std::cout << "ERROR The polar topology from '" << archfile
+              << "' contains more than just background. ";
+    std::cout << std::endl;
+    throw std::runtime_error(
+        "Sanity checks I in XMpsMap::Gen_FGC_Load_FGN_BGN failed.");
+  }
+
+  BackgroundRegion BGN(0, *log_);
+  BackgroundRegion FGN(1, *log_);
+  BackgroundRegion FGC(2, *log_);
+
+  PolarMapper polmap(*log_);
+
+  std::string state_string;
+  std::vector<std::string> seg_states = xjob->getSegsState();
+  polmap.LoadMappingFile(mapfile);
+  // Index seg_index = 0;
+  for (auto segment : top.Segments()) {
+    Index seg_index = segment.getId();
+    PolarSegment mol = polmap.map(segment, SegId(seg_index, "n"));
+    // segments in the foreground
+    if (xjob->isInCenter(seg_index)) {
+
+      // check for state of this segment
+      for (auto seg_state : seg_states) {
+        std::vector<std::string> toks =
+            tools::Tokenizer(seg_state, ":").ToVector();
+        Index segid = std::stoi(toks[0]);
+        if (segid == seg_index) {
+          state_string = toks[1];
+          break;
+        }
+      }
+
+      FGN.push_back(mol);
+      PolarSegment mol_x = polmap.map(segment, SegId(seg_index, state_string));
+      FGC.push_back(mol_x);
+    } else {
+      BGN.push_back(mol);
+    }
+  }
+
+  // DECLARE TARGET CONTAINERS
+  PolarTop *new_ptop = new PolarTop(&new_top);
+  std::vector<PolarSeg *> fgC;
+  std::vector<PolarSeg *> fgN;
+  std::vector<PolarSeg *> bgN;
+  std::vector<PolarSeg *>::iterator psit;
+  std::vector<Segment *> segs_fgC;
+  std::vector<Segment *> segs_fgN;
+  std::vector<Segment *> segs_bgN;
+  std::vector<Segment *>::iterator sit;
+
+  // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
+  segs_fgC.reserve(xjob->getSegments().size());
+  segs_fgN.reserve(xjob->getSegments().size());
+  segs_bgN.reserve(top.Segments().size() - xjob->getSegments().size());
+
+  for (auto segment : top.Segments()) {
+    // Foreground
+    if (xjob->isInCenter(segment.getId())) {
+      segs_fgN.push_back(&segment);
+      segs_fgC.push_back(&segment);
+    }
+    // Background
+    else {
+      segs_bgN.push_back(&segment);
+    }
+  }
+
+  // CREATE POLAR SITES FOR FGC
+  bool only_active_sites = false;
+  fgC.reserve(segs_fgC.size());
+  int state = 0;  // neutral ground state
+  if (state_string == "n") state = 0;
+  if (state_string == "e") state = -1;
+  if (state_string == "h") state = 1;
+  for (auto &segment : FGC) {
+    std::vector<APolarSite *> psites;
+    psites.reserve(segment.size());
+    for (auto site : segment) {
+      APolarSite *psite = new APolarSite();
+      psite->ConvertFromPolarSite(site, state);
+      psite->Charge(state);
+      psites.push_back(psite);
+    }
+
+    if (state != 0) {
+      //// FGC segments need APolarSites for neutral variant as well
+      int segid = segment.getId();
+      PolarSegment mol_n = polmap.map(top.Segments()[segid], SegId(segid, "n"));
+      int pidx = 0;
+      for (auto site_n : mol_n) {
+        psites[pidx]->addNeutral(site_n);
+        pidx++;
+      }
+    }
+    // now make an OLD PolarSeg from the new PolarSegment
+    PolarSeg *new_pseg = new PolarSeg(int(segment.getId()), psites);
+    fgC.push_back(new_pseg);
+  }
+
+  // DIVIDE POLAR SEGMENTS FROM RESURRECTED BACKGROUND ONTO FGN, BGN
+  // no mapping required?
+  for (auto &bsegment : bgp_ptop.BGN()) {
+    // Move to (neutral) foreground?
+    if (xjob->isInCenter(bsegment->getId())) {
+      fgN.push_back(bsegment);
+    }
+    // Move to (neutral) background?
+    else {
+      bgN.push_back(bsegment);
+    }
+  }
+
+  // SANITY CHECKS II
+  if ((fgN.size() != fgC.size()) ||
+      (fgN.size() + bgN.size() != top.Segments().size()) ||
+      (bgp_ptop.BGN().size() != top.Segments().size())) {
+    std::cout << std::endl;
+    std::cout << "ERROR Is the background binary compatible with this system? ";
+    std::cout << "(archive = '" << archfile << "')";
+    std::cout << std::endl;
+    throw std::runtime_error(
+        "Sanity checks II in XMpsMap::Gen_FGC_Load_FGN_BGN failed.");
+  }
+
+  // PROPAGATE SHELLS TO POLAR TOPOLOGY
+  new_ptop->setFGC(fgC);
+  new_ptop->setFGN(fgN);
+  new_ptop->setBGN(bgN);
+  new_ptop->setSegsFGC(segs_fgC);
+  new_ptop->setSegsFGN(segs_fgN);
+  new_ptop->setSegsBGN(segs_bgN);
+  // Remember to remove ownership from temporary bgp_ptop
+  bgp_ptop.RemoveAllOwnership();
+  // Center polar topology
+  vec center = xjob->Center();
+  new_ptop->CenterAround(votca::tools::conv::bohr2nm * center);
+  xjob->setPolarTop(new_ptop);
+  return;
+}
+
 void XMapper::Gen_FGC_FGN_BGN(std::string mapfile, const Topology &top,
                               XJob *xjob) {
   // Generates foreground/background charge distribution for Ewald summations
@@ -56,28 +211,40 @@ void XMapper::Gen_FGC_FGN_BGN(std::string mapfile, const Topology &top,
 
   PolarMapper polmap(*log_);
 
-  std::vector<std::string> xjobmps =
+  /*std::vector<std::string> xjobmps =
       xjob->getSegMps();  // this is a nasty hack to get the state of the
                           // foreground
   std::cout << "MPS FILE OF THIS JOB: " << xjobmps[0] << std::endl;
   tools::Tokenizer toker(xjobmps[0], "_.");
   std::vector<std::string> split = toker.ToVector();
-
-  std::string state_string = *(split.rbegin() + 1);
-
+*/
+  std::string state_string;
+  std::vector<std::string> seg_states = xjob->getSegsState();
   polmap.LoadMappingFile(mapfile);
-  Index seg_index = 0;
+  // Index seg_index = 0;
   for (auto segment : top.Segments()) {
+    Index seg_index = segment.getId();
     PolarSegment mol = polmap.map(segment, SegId(seg_index, "n"));
     // segments in the foreground
-    if (xjob->isInCenter(segment.getId())) {
+    if (xjob->isInCenter(seg_index)) {
+
+      // check for state of this segment
+      for (auto seg_state : seg_states) {
+        std::vector<std::string> toks =
+            tools::Tokenizer(seg_state, ":").ToVector();
+        Index segid = std::stoi(toks[0]);
+        if (segid == seg_index) {
+          state_string = toks[1];
+          break;
+        }
+      }
+
       FGN.push_back(mol);
       PolarSegment mol_x = polmap.map(segment, SegId(seg_index, state_string));
       FGC.push_back(mol_x);
     } else {
       BGN.push_back(mol);
     }
-    seg_index++;
   }
 
   // DECLARE TARGET CONTAINERS

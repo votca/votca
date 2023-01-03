@@ -1,5 +1,9 @@
 <options>
-	<ewald help="Evaluates site energies in a periodic setting" section="sec:ewald"> 
+	<ewald help="Evaluates site energies in a periodic setting" section="sec:ewald">
+	<io_jobfile help="options to write a jobfile">
+      <states help="states to write jobs for and which to parse from jobfile" default="n e h" />
+      <segments help="segments to write jobs for and which to parse from jobfile" default="all"/>
+    </io_jobfile>
 		<job_file>job.xml</job_file>
 		<map_file>system.xml</map_file>
 		<multipoles>

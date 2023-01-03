@@ -41,7 +41,8 @@ class XMapper {
   // QMThread *thread = NULL);
   void Gen_FGC_FGN_BGN(std::string mapfile, const Topology& top, XJob* xjob);
   // void Gen_BGN(Topology *top, PolarTop *ptop, QMThread *thread = NULL);
-  // void Gen_FGC_Load_FGN_BGN(Topology *top, XJob *job, std::string archfile,
+  void Gen_FGC_Load_FGN_BGN(std::string mapfile, const Topology& top, XJob* job,
+                            std::string archfile);
   // QMThread *thread = NULL);
 
  private:
