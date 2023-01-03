@@ -110,17 +110,23 @@ message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 find_package(Threads REQUIRED)
 set_package_properties(Threads PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization")
 
-find_package(GROMACS 2019.6 CONFIG NAMES gromacs gromacs_d)
-set_package_properties(GROMACS PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read/write gromacs data files")
-if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_GREATER_EQUAL "2020")
-  message(WARNING "Gromacs-2020 and above have no support for tabulated interactions, that are needed for coarse-graining (see and comment on https://gitlab.com/gromacs/gromacs/-/issues/1347)")
-endif()
-# prior gmx-2021, their exported target had some bugs, that we fix below
-# - missing GMX_DOUBLE define - only gets exported as GROMACS_DEFINITIONS
-# - missing namespace
-if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_LESS "2021")
-  set_target_properties(libgromacs PROPERTIES INTERFACE_COMPILE_OPTIONS ${GROMACS_DEFINITIONS})
-  add_library(Gromacs::libgromacs ALIAS libgromacs)
+option(BUILD_OWN_GROMACS "Build our own gromacs" OFF)
+add_feature_info( BUILD_OWN_GROMACS BUILD_OWN_GROMACS "Build an internal version of gromacs")
+if(BUILD_OWN_GROMACS)
+  include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/BuildGromacs.cmake)
+else()
+  find_package(GROMACS 2019.6 CONFIG NAMES gromacs gromacs_d)
+  set_package_properties(GROMACS PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read/write gromacs data files")
+  if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_GREATER_EQUAL "2020")
+    message(WARNING "Gromacs-2020 and above have no support for tabulated interactions, that are needed for coarse-graining (see and comment on https://gitlab.com/gromacs/gromacs/-/issues/1347)")
+  endif()
+  # prior gmx-2021, their exported target had some bugs, that we fix below
+  # - missing GMX_DOUBLE define - only gets exported as GROMACS_DEFINITIONS
+  # - missing namespace
+  if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_LESS "2021")
+    set_target_properties(libgromacs PROPERTIES INTERFACE_COMPILE_OPTIONS ${GROMACS_DEFINITIONS})
+    add_library(Gromacs::libgromacs ALIAS libgromacs)
+  endif()
 endif()
 
 # iie methods needs python 3.5+
@@ -149,18 +155,6 @@ if(SPHINX_FOUND)
   set(VOTCA_SPHINX_DIR "${PROJECT_BINARY_DIR}/sphinx" CACHE INTERNAL "Path for Sphinx sources")
   file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR})
   set(VOTCA_SPHINX_OUTPUT_DIR "${PROJECT_BINARY_DIR}/sphinx.html" CACHE PATH "Path for Sphinx output")
-endif()
-
-option(BUILD_OWN_GROMACS "Build our own gromacs" OFF)
-add_feature_info( BUILD_OWN_GROMACS BUILD_OWN_GROMACS "Build an internal version of gromacs")
-if(BUILD_OWN_GROMACS)
-  include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/BuildGromacs.cmake)
-  #neat trick to not call find_package(GROMACS)
-  macro(find_package)
-    if(NOT "${ARGV0}" STREQUAL GROMACS)
-      _find_package(${ARGV})
-    endif()
-  endmacro()
 endif()
 
 option(BUILD_OWN_LIBINT "Build our own lib" OFF)
