@@ -16,7 +16,7 @@ foreach(DIR ${DIRS})
     add_custom_command(OUTPUT ${DIR}.man
       COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name ${DIR}/csg_${DIR} --format groff --out ${DIR}.man
       COMMENT "Building csg_${DIR} manpage"
-      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${DIR})
+      DEPENDS VOTCA::votca_help2doc ${DIR})
     add_custom_target(${DIR}_manpage DEPENDS ${DIR}.man)
     add_dependencies(manpages ${DIR}_manpage)
   endif()
@@ -24,7 +24,7 @@ foreach(DIR ${DIRS})
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg/csg_${DIR}.rst
       COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name ${DIR}/csg_${DIR} --format rst --out ${VOTCA_SPHINX_DIR}/csg/csg_${DIR}.rst
       COMMENT "Building csg_${DIR} rst doc"
-      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${DIR})
+      DEPENDS VOTCA::votca_help2doc ${DIR})
     list(APPEND CSG_RST_FILES ${VOTCA_SPHINX_DIR}/csg/csg_${DIR}.rst)
   endif(VOTCA_SPHINX_DIR)
   if(INSTALL_CSGAPPS)

@@ -9,7 +9,7 @@ foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel)
     add_custom_command(OUTPUT ${PROG}.man
       COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name ${PROG} --format groff --out ${PROG}.man
       COMMENT "Building ${PROG} manpage"
-      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${PROG})
+      DEPENDS VOTCA::votca_help2doc ${PROG})
     add_custom_target(${PROG}_manpage DEPENDS ${PROG}.man)
     add_dependencies(manpages ${PROG}_manpage)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${PROG}.1)
@@ -19,7 +19,7 @@ foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel)
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/xtp/${PROG}.rst
       COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name ${PROG} --format rst --out ${VOTCA_SPHINX_DIR}/xtp/${PROG}.rst
       COMMENT "Building ${PROG} rst doc"
-      DEPENDS $<TARGET_FILE:VOTCA::votca_help2doc> ${PROG})
+      DEPENDS VOTCA::votca_help2doc ${PROG})
     list(APPEND XTP_RST_FILES ${VOTCA_SPHINX_DIR}/xtp/${PROG}.rst)
   endif(VOTCA_SPHINX_DIR)
 
