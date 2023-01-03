@@ -63,10 +63,6 @@ endforeach(HEADER)
 ######################################
 # Include the following subdirectory #
 ######################################
-if(VOTCA_SPHINX_DIR)
-  add_custom_target(doc-xtp)
-  file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/xtp)
-endif()
 add_subdirectory(include/votca/xtp)
 add_subdirectory(scripts)
 add_subdirectory(src)

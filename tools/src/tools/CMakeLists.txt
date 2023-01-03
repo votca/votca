@@ -23,7 +23,7 @@ foreach(PROG votca_property)
       COMMENT "Building ${PROG} rst doc"
       DEPENDS VOTCA::votca_help2doc ${PROG})
     list(APPEND TOOLS_RST_FILES ${VOTCA_SPHINX_DIR}/tools/${PROG}.rst)
-  endif(VOTCA_SPHINX_DIR)
+  endif()
 endforeach(PROG)
 
 if(SPHINX_FOUND)

@@ -24,7 +24,7 @@ instructions, it will be called ``builddir``). In the build folder, run
 
 .. code-block:: bash
 
-  make doc
+  make sphinx
 
 This will probably output errors on the first few tries, read them carefully
 since they will almost always be missing python packages. Find which
@@ -48,14 +48,14 @@ Rebuilding the website after changes
 
 After you updated files you will need to rebuild the website to see your changes.
 
-If you simply changed the contents of a .rst file you can rerun ``make doc`` to propagate the changes. If you refresh the browser, the changes will have taken
+If you simply changed the contents of a .rst file you can rerun ``make sphinx`` to propagate the changes. If you refresh the browser, the changes will have taken
 effect.
 
 If you, however, changed the theme or added (deleted) a file to the website you
 will need to reconfigure the website build. To make sure you start with a clean
 slate, remove the two sphinx folders in the build folder (i.e. ``sphinx`` and
 ``sphinx.html``), next rerun the cmake configuration of votca and rerun ``make
-doc``. 
+sphinx``. 
 
 Editing existing pages
 ----------------------
@@ -95,7 +95,7 @@ something like this
    test.rst
 
 After you have added content to the ``test.rst`` file, rebuild VOTCA and run
-``make doc`` to rebuild the website.
+``make sphinx`` to rebuild the website.
 
 
 Changing the theme

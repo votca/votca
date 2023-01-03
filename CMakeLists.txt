@@ -147,8 +147,7 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   set_package_properties(Git PROPERTIES TYPE OPTIONAL PURPOSE "Generated version for development version")
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
-find_program(SPHINX_EXECUTABLE NAMES sphinx-build DOC "Sphinx documentation generation tool (http://www.sphinx-doc.org/)")
-find_package_handle_standard_args(SPHINX REQUIRED_VARS SPHINX_EXECUTABLE)
+find_package(SPHINX)
 if(SPHINX_FOUND)
   #define this target here, so that individual rst generation target can append to it.
   add_custom_target(sphinx-deps)

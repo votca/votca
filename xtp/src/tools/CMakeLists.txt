@@ -15,18 +15,18 @@ foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${PROG}.1)
   endif (BUILD_MANPAGES)
 
-  if(VOTCA_SPHINX_DIR)
+  if(SPHINX_FOUND)
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/xtp/${PROG}.rst
       COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name ${PROG} --format rst --out ${VOTCA_SPHINX_DIR}/xtp/${PROG}.rst
       COMMENT "Building ${PROG} rst doc"
       DEPENDS VOTCA::votca_help2doc ${PROG})
     list(APPEND XTP_RST_FILES ${VOTCA_SPHINX_DIR}/xtp/${PROG}.rst)
-  endif(VOTCA_SPHINX_DIR)
+  endif()
 
   add_test(integration_${PROG}Help ${PROG} --help)
 endforeach(PROG)
 
-if(VOTCA_SPHINX_DIR)
-  add_custom_target(doc-xtp-rst-progs DEPENDS ${XTP_RST_FILES})
-  add_dependencies(doc-xtp doc-xtp-rst-progs)
+if(SPHINX_FOUND)
+  add_custom_target(xtp-tools-rst DEPENDS ${XTP_RST_FILES})
+  add_dependencies(sphinx-deps xtp-tools-rst)
 endif()
