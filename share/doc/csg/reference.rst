@@ -78,7 +78,7 @@ Mapping file
 The root node always has to be cg\_molecule. It can contain the
 following keywords:
 
-.. include:: ../csg/mapping.rst
+.. include:: mapping.rst
 
 .. _reference_topology_file:
 
@@ -87,7 +87,7 @@ Topology file
 
 The XMLtopology file
 
-.. include:: ../csg/topol.rst
+.. include:: topol.rst
 
 .. _reference_settings_file:
 
@@ -96,7 +96,7 @@ Settings file
 
 All options for the iterative script are stored in an xml file.
 
-.. include:: ../csg/csg_defaults.rst
+.. include:: csg_defaults.rst
 
 .. _reference_scripts:
 

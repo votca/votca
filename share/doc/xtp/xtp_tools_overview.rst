@@ -4,7 +4,7 @@ xtp_tools
 help
 ^^^^
 
-.. include:: ../xtp/xtp_tools.rst
+.. include:: xtp_tools.rst
 
 The following calculators are available:
 
@@ -13,6 +13,7 @@ The following calculators are available:
    coupling
    densityanalysis
    dftgwbse
+   diabatization
    excitoncoupling
    gencube
    log2mps
