@@ -122,9 +122,11 @@ else()
   endif()
   # prior gmx-2021, their exported target had some bugs, that we fix below
   # - missing GMX_DOUBLE define - only gets exported as GROMACS_DEFINITIONS
+  # - missing include directory
   # - missing namespace
   if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_LESS "2021")
-    set_target_properties(libgromacs PROPERTIES INTERFACE_COMPILE_OPTIONS ${GROMACS_DEFINITIONS})
+    set_target_properties(libgromacs PROPERTIES
+      INTERFACE_COMPILE_OPTIONS ${GROMACS_DEFINITIONS} INTERFACE_INCLUDE_DIRECTORIES ${GROMACS_INCLUDE_DIRS})
     add_library(Gromacs::libgromacs ALIAS libgromacs)
   endif()
 endif()
