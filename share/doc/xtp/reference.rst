@@ -4,6 +4,11 @@ Reference
 Programs
 --------
 
+xtp_autogen_mapping
+^^^^^^^^^^^^^^^^^^^
+
+.. include:: xtp_autogen_mapping.rst
+
 xtp_basisset
 ^^^^^^^^^^^^
 .. include:: xtp_basisset.rst
