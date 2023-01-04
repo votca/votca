@@ -17,8 +17,9 @@
     <improve_dist_near_core>
       <target>true</target>
       <new>true</new>
-      <fit_start_g>0.001</fit_start_g>
-      <fit_end_g>0.1</fit_end_g>
+      <!-- choose more conservative values (e.g. 1e-4, 0.1). Values here are chosen for stable CI -->
+      <fit_start_g>1e-5</fit_start_g>
+      <fit_end_g>0.9</fit_end_g>
     </improve_dist_near_core>
   </non-bonded>
 
@@ -40,8 +41,9 @@
     <improve_dist_near_core>
       <target>true</target>
       <new>true</new>
-      <fit_start_g>0.001</fit_start_g>
-      <fit_end_g>0.1</fit_end_g>
+      <!-- choose more conservative values (e.g. 1e-4, 0.1). Values here are chosen for stable CI -->
+      <fit_start_g>1e-5</fit_start_g>
+      <fit_end_g>0.9</fit_end_g>
     </improve_dist_near_core>
   </non-bonded>
 
@@ -63,8 +65,9 @@
     <improve_dist_near_core>
       <target>true</target>
       <new>true</new>
-      <fit_start_g>0.001</fit_start_g>
-      <fit_end_g>0.1</fit_end_g>
+      <!-- choose more conservative values (e.g. 1e-4, 0.1). Values here are chosen for stable CI -->
+      <fit_start_g>1e-5</fit_start_g>
+      <fit_end_g>0.9</fit_end_g>
     </improve_dist_near_core>
   </non-bonded>
 
