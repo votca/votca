@@ -18,6 +18,7 @@ class DFTGWBSE:
         self.mol = mol
         self.orbfile = ''
         self.options = XTPOptions()
+        self.jobdir = "./"
 
   
     def run(self, nThreads: int = 1):
@@ -50,7 +51,7 @@ class DFTGWBSE:
 
         # copy orbfile, if jobdir is not default
         if (self.jobdir != "./"):
-            self.orbfile = f'{self.jobdir}{self.jobname}.orb'
+            self.orbfile = f'{self.jobdir}{self.options.job_name}.orb'
             os.replace(f'{xyzname}.orb', self.orbfile)
         else:
             self.orbfile = f'{xyzname}.orb'
