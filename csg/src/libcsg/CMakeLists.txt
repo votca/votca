@@ -30,18 +30,11 @@ endif(HDF5_FOUND)
 
 configure_file(votca_csg_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_csg_config.h)
 
-#CMAKE_CURRENT_BINARY_DIR for gitversion.h /votca_csg_config.h
+#CMAKE_CURRENT_BINARY_DIR for votca_csg_config.h
 target_include_directories(votca_csg PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/csg/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-add_custom_target(gitversion-csg COMMAND ${CMAKE_COMMAND}
-  -DTOP_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
-  -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -P ${PROJECT_SOURCE_DIR}/CMakeModules/gitversion.cmake)
-set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
-
-add_dependencies(votca_csg gitversion-csg)
 set_target_properties(votca_csg PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_csg PUBLIC VOTCA::votca_tools Boost::boost PRIVATE Boost::program_options Boost::filesystem Boost::system Boost::regex Threads::Threads Eigen3::Eigen)
 

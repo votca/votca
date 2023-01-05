@@ -25,13 +25,13 @@
 
 // Local VOTCA includes
 #include "votca/tools/property.h"
+#include "votca/tools/version.h"
 #include "votca/xtp/checkpoint.h"
 #include "votca/xtp/jobtopology.h"
 #include "votca/xtp/polarregion.h"
 #include "votca/xtp/qmregion.h"
 #include "votca/xtp/segmentmapper.h"
 #include "votca/xtp/staticregion.h"
-#include "votca/xtp/version.h"
 
 namespace votca {
 namespace xtp {
@@ -347,7 +347,7 @@ void JobTopology::WriteToHdf5(std::string filename) const {
   CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
   CheckpointWriter a = cpf.getWriter();
   a(job_.getId(), "jobid");
-  a(XtpVersionStr(), "XTPVersion");
+  a(votca::tools::ToolsVersionStr(), "XTPVersion");
   a(jobtopology_version(), "version");
   for (const auto& region : regions_) {
     CheckpointWriter w =

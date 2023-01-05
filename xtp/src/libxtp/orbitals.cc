@@ -24,12 +24,12 @@
 #include <numeric>
 
 // Local VOTCA includes
+#include "votca/tools/version.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/orbreorder.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/vc2index.h"
-#include "votca/xtp/version.h"
 
 namespace votca {
 namespace xtp {
@@ -579,7 +579,7 @@ void Orbitals::WriteBasisSetsToCpt(CheckpointWriter w) const {
 }
 
 void Orbitals::WriteToCpt(CheckpointWriter w) const {
-  w(XtpVersionStr(), "XTPVersion");
+  w(votca::tools::ToolsVersionStr(), "XTPVersion");
   w(orbitals_version(), "version");
   w(basis_set_size_, "basis_set_size");
   w(occupied_levels_, "occupied_levels");

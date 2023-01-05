@@ -30,7 +30,6 @@
  */
 namespace votca {
 namespace xtp {
-const std::string &XtpVersionStr();
 void HelpTextHeader(const std::string &tool_name);
 }  // namespace xtp
 }  // namespace votca
