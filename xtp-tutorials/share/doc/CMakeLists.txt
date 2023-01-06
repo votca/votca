@@ -21,7 +21,6 @@ foreach(_notebook ${NOTEBOOKS})
   get_filename_component(_FILE "${_notebook}" NAME)
   get_filename_component(_DIR "${_notebook}" DIRECTORY)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_DIR})
-  file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/xtp-tutorials)
   file(GLOB FILES ${PROJECT_SOURCE_DIR}/xtp-tutorials/${_DIR}/*)
   add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/xtp-tutorials/${_FILE}
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/xtp-tutorials/${_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${_DIR}
