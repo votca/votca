@@ -67,6 +67,7 @@ class JobMetadata(NamedTuple):
     functional: str
     basis: str
     RI: bool
+    threads: int
 
 
 def search_cores() -> int:
@@ -85,7 +86,7 @@ def search_cores() -> int:
     flags = next(filter(lambda x: "flags" in x, lines), None)
     # ht is the flag for hyperthreading
     if flags is not None and 'ht' in flags:
-        ncpus = ncpus // 2
+        ncpus = ncpus / 2
 
     return ncpus
 
@@ -103,7 +104,11 @@ def write_input(
         input_file_name: str, crg_spin_coord: str, meta: JobMetadata, optimize: bool = True):
     """Write Orca input file."""
     # number of cores to use
-    ncores = search_cores()
+    if meta.threads == "":
+        ncores = search_cores()
+    else:
+        ncores = meta.threads
+    
     # geometry optimization starts from MD structure for n, and n structure of e/h
     ri_string = ' RIJCOSX' if meta.RI else ""
     opt = "opt" if optimize else ""
@@ -186,7 +191,7 @@ def process_charges_and_polarization(root: str) -> None:
     # parse CHELPG charges
     logfile_name = f"{root}_log2mps.log"
     errfile_name = f"{root}_log2mps.err"
-    log2mps_command = f"xtp_tools -e log2mps -n {root} > {logfile_name} 2> {errfile_name}"
+    log2mps_command = f"xtp_tools -e log2mps -c job_name=\"{root}\" > {logfile_name} 2> {errfile_name}"
     run_cmd(log2mps_command)
 
     # prep molpol.xml
@@ -203,9 +208,9 @@ def process_charges_and_polarization(root: str) -> None:
     # run molpol
     logfile_name = f"{root}_molpol.log"
     errfile_name = f"{root}_molpol.err"
-    molpol_command = f"xtp_tools -e molpol -o molpol.xml -n {root} > {logfile_name} 2> {errfile_name}"
+    molpol_command = f"xtp_tools -e molpol -o molpol.xml -c job_name=\"{root}\" > {logfile_name} 2> {errfile_name}"
     os.system(molpol_command)
-    # copy oprimized MPS_FILE
+    # copy optimized MPS_FILE
     os.makedirs('../MP_FILES', exist_ok=True)
     mpsfile = f"{root}_polar.mps"
     mpsfile_store = f"../MP_FILES/{mpsfile}"
@@ -285,7 +290,7 @@ topol.top (or similar).
         segment_name = Path(args.pdbfile).stem
         meta = JobMetadata(
             name=segment_name, path_orca=args.orca, functional=args.functional,
-            basis=args.basis, RI=args.nori)
+            basis=args.basis, RI=args.nori,threads=args.threads)
         energies = optimize_geometry_in_state(mol, args.states, meta)
     else:
         # The default energy for any key is 0
@@ -519,8 +524,8 @@ def main():
                         help="optimization of XYZ and MPS files")
     parser.add_argument("-s", "--states", default="n", nargs="+",
                         help="which states to optimize", choices=["n", "e", "h"])
-    parser.add_argument("-orca", "--orca", default="/opt/orca-4.2.1/orca",
-                        help="full path to orca executable")
+    parser.add_argument("-orca", "--orca", default="/opt/orca-5.0.3/orca",
+                        help="full path to ORCA executable")
     parser.add_argument("-f", "--functional", default="PBE0",
                         help="DFT functional")
     parser.add_argument(
@@ -529,6 +534,8 @@ def main():
                         help="Do not to use the Resolution of Identity approximation")
     parser.add_argument("-m", "--mdname", default="",
                         help="Name of the molecule in the MD topology")
+    parser.add_argument("-t", "--threads", default="",
+                        help="Number of threads to use in ORCA")
     parser.add_argument('--version', action='version',
                         version=f"%(prog)s {VERSION}")
     args = parser.parse_args()
