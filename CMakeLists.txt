@@ -177,7 +177,7 @@ if(BUILD_XTP)
   add_subdirectory(xtp-tutorials)
 endif()
 
-add_subdirectory(share/doc)
+add_subdirectory(share/sphinx)
 add_subdirectory(share/doxygen)
 add_subdirectory(share/format)
 
