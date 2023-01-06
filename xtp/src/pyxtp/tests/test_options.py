@@ -65,7 +65,7 @@ class TestOptions:
     def test_attr_nodefault(self, dftgwbse_xml, attr):
         opts = Options(dftgwbse_xml, set_default=False)
         if isinstance(attr, str):
-            with pytest.raises(AttributeError, match=r"dftgwbse.+job_name"):
+            with pytest.raises(AttributeError, match=fr"dftgwbse.+{attr}"):
                 getattr(opts, attr)
         else:
             with pytest.raises(AttributeError, match=r".+".join(attr)):
