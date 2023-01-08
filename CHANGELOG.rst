@@ -15,6 +15,7 @@ Version 2023-dev
 -  reducing XTP tutorial size (#1020, #1025)
 -  Clean up 3body Stillinger-Weber implement, docs and tutorial (#1012)
 -  fixed options handling in xtp_autogen_mapping (#1024)
+-  Major CMake refactor (#950, #1022)
 
 Version 2022.2 (released XX.12.22)
 ==================================

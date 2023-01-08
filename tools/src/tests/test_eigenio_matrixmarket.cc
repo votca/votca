@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
+#include <iostream>
 
 // Local VOTCA includes
 #include "votca/tools/eigenio_matrixmarket.h"
-#include "votca/tools/votca_tools_config.h"
-#include <iostream>
+
+// Local private VOTCA includes
+#include "votca_tools_config.h"
 
 using namespace votca::tools;
 
