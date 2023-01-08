@@ -129,6 +129,12 @@ else()
       INTERFACE_COMPILE_OPTIONS ${GROMACS_DEFINITIONS} INTERFACE_INCLUDE_DIRECTORIES ${GROMACS_INCLUDE_DIRS})
     add_library(Gromacs::libgromacs ALIAS libgromacs)
   endif()
+  if(GROMACS_FOUND AND DEFINED GROMACS_VERSION)
+    find_path(_GROMACS_VERSION_PATH gromacs/version.h HINTS ${GROMACS_INCLUDE_DIRS})
+    if(NOT _GROMACS_VERSION_PATH)
+      message(FATAL_ERROR "Gromacs library was found, but its headers were not. Make sure you have installed the gromacs-devel package or built gromacs with -DGMX_INSTALL_LEGACY_API=ON")
+    endif()
+  endif()
 endif()
 
 # iie methods needs python 3.5+
