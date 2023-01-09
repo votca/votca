@@ -29,14 +29,12 @@ class Ewald : public ParallelXJobCalc<std::vector<Job>> {
   ~Ewald(){};
 
   std::string Identify() const { return "ewald"; }
-  // void Initialize(tools::Property *);
   void WriteJobFile(const Topology &top);
   void ReadJobFile(Topology &top);
 
   Job::JobResult EvalJob(const Topology &top, Job &job, QMThread &Thread);
-  void PostProcess(Topology *top) { ; }
-
-  XJob ProcessInputString(Job &, const Topology &, QMThread &);
+  
+  XJob ProcessInputString(Job &, const Topology &);
 
  protected:
   void ParseSpecificOptions(const tools::Property &user_options);
@@ -107,7 +105,7 @@ void Ewald<EwaldMethod>::ReadJobFile(Topology &top) {
 
   tools::Property xml;
   xml.LoadFromXML(jobfile_);
-  for (tools::Property* job : xml.Select("jobs.job")) {
+  for (tools::Property *job : xml.Select("jobs.job")) {
 
     Index jobid = job->get("id").as<Index>();
     if (!job->exists("status")) {
@@ -134,12 +132,13 @@ void Ewald<EwaldMethod>::ReadJobFile(Topology &top) {
     QMState state;
     try {
       state.FromString(split[1]);
-    } catch (std::runtime_error& e) {
+    } catch (std::runtime_error &e) {
       std::stringstream message;
       message << e.what() << " for job " << jobid;
       throw std::runtime_error(message.str());
     }
-    double energy = job->get("output.summary.total").as<double>() * tools::conv::ev2hrt;
+    double energy =
+        job->get("output.summary.total").as<double>() * tools::conv::ev2hrt;
     if (found(segid, state.Type().Type()) != 0) {
       throw std::runtime_error("There are two entries in jobfile for segment " +
                                std::to_string(segid) +
@@ -163,7 +162,7 @@ void Ewald<EwaldMethod>::ReadJobFile(Topology &top) {
     std::cout << incomplete_jobs << " incomplete jobs found." << std::endl;
   }
 
-  for (Segment& seg : top.Segments()) {
+  for (Segment &seg : top.Segments()) {
     Index segid = seg.getId();
     for (Index i = 0; i < 4; i++) {
       QMStateType type(static_cast<QMStateType::statetype>(i));
@@ -173,7 +172,6 @@ void Ewald<EwaldMethod>::ReadJobFile(Topology &top) {
       }
     }
   }
-
 
   return;
 }
@@ -217,8 +215,7 @@ void Ewald<EwaldMethod>::WriteJobFile(const Topology &top) {
 }
 
 template <class EwaldMethod>
-XJob Ewald<EwaldMethod>::ProcessInputString(Job &job, const Topology &top,
-                                            QMThread &thread) {
+XJob Ewald<EwaldMethod>::ProcessInputString(Job &job, const Topology &top) {
 
   std::vector<Segment *> qmSegs;
   std::vector<std::string> qmSegsState;
@@ -238,7 +235,7 @@ XJob Ewald<EwaldMethod>::ProcessInputString(Job &job, const Topology &top,
     qmSegsState.push_back(segment);
   }
 
-  return XJob(job.getId(), job.getTag(), qmSegs, qmSegsState, &top);
+  return XJob(int(job.getId()), job.getTag(), qmSegs, qmSegsState, &top);
 }
 
 template <class EwaldMethod>
@@ -252,7 +249,7 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(const Topology &top, Job &job,
   Logger &log = thread.getLogger();
 
   // CREATE XJOB FROM JOB INPUT std::string
-  XJob xjob = this->ProcessInputString(job, top, thread);
+  XJob xjob = this->ProcessInputString(job, top);
   XTP_LOG(Log::info, log) << "Created XJOB " << std::flush;
 
   // GENERATE POLAR TOPOLOGY (GENERATE VS LOAD IF PREPOLARIZED)
@@ -294,7 +291,7 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(const Topology &top, Job &job,
   }
 
   boost::timer::cpu_times t_out = cpu_t.elapsed();
-  double t_run = (t_out.wall - t_in.wall) / 1e9 / 60.;
+  double t_run = (double(t_out.wall - t_in.wall)) / 1e9 / 60.;
   XTP_LOG(Log::info, log) << "Job runtime was " << t_run << " min"
                           << std::flush;
 
