@@ -97,7 +97,84 @@ Job Ewald<EwaldMethod>::createJob(const Segment &seg, const QMState &state,
 
 template <class EwaldMethod>
 void Ewald<EwaldMethod>::ReadJobFile(Topology &top) {
-  assert(false && "<::ReadJobFile> NOT IMPLEMENTED");
+
+  Index incomplete_jobs = 0;
+
+  Eigen::Matrix<double, Eigen::Dynamic, 5> energies =
+      Eigen::Matrix<double, Eigen::Dynamic, 5>::Zero(top.Segments().size(), 5);
+  Eigen::Matrix<bool, Eigen::Dynamic, 5> found =
+      Eigen::Matrix<bool, Eigen::Dynamic, 5>::Zero(top.Segments().size(), 5);
+
+  tools::Property xml;
+  xml.LoadFromXML(jobfile_);
+  for (tools::Property* job : xml.Select("jobs.job")) {
+
+    Index jobid = job->get("id").as<Index>();
+    if (!job->exists("status")) {
+      throw std::runtime_error(
+          "Jobfile is malformed. <status> tag missing for job " +
+          std::to_string(jobid));
+    }
+    if (job->get("status").as<std::string>() != "COMPLETE" ||
+        !job->exists("output")) {
+      incomplete_jobs++;
+      continue;
+    }
+
+    std::vector<std::string> split =
+        tools::Tokenizer(job->get("input.site_energies").as<std::string>(), ":")
+            .ToVector();
+
+    Index segid = std::stoi(split[0]);
+    if (segid < 0 || segid >= Index(top.Segments().size())) {
+      throw std::runtime_error("JobSegment id" + std::to_string(segid) +
+                               " is not in topology for job " +
+                               std::to_string(jobid));
+    }
+    QMState state;
+    try {
+      state.FromString(split[1]);
+    } catch (std::runtime_error& e) {
+      std::stringstream message;
+      message << e.what() << " for job " << jobid;
+      throw std::runtime_error(message.str());
+    }
+    double energy = job->get("output.summary.total").as<double>() * tools::conv::ev2hrt;
+    if (found(segid, state.Type().Type()) != 0) {
+      throw std::runtime_error("There are two entries in jobfile for segment " +
+                               std::to_string(segid) +
+                               " state:" + state.ToString());
+    }
+
+    energies(segid, state.Type().Type()) = energy;
+    found(segid, state.Type().Type()) = true;
+  }
+
+  Eigen::Matrix<Index, 1, 5> found_states = found.colwise().count();
+  std::cout << std::endl;
+  for (Index i = 0; i < 5; i++) {
+    if (found_states(i) > 0) {
+      QMStateType type(static_cast<QMStateType::statetype>(i));
+      std::cout << "Found " << found_states(i) << " states of type "
+                << type.ToString() << std::endl;
+    }
+  }
+  if (incomplete_jobs > 0) {
+    std::cout << incomplete_jobs << " incomplete jobs found." << std::endl;
+  }
+
+  for (Segment& seg : top.Segments()) {
+    Index segid = seg.getId();
+    for (Index i = 0; i < 4; i++) {
+      QMStateType type(static_cast<QMStateType::statetype>(i));
+      if (found(segid, i) && found(segid, 4)) {
+        double energy = energies(segid, i) - energies(segid, 4);
+        seg.setEMpoles(type, energy);
+      }
+    }
+  }
+
+
   return;
 }
 
