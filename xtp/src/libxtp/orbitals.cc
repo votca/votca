@@ -38,7 +38,8 @@ Orbitals::Orbitals() : atoms_("", 0) { ; }
 
 /**
  *
- * @param  energy_difference_ [ev] Two levels are degenerate if their energy is
+ * @param  level Index of the level that is to be checked for degeneracy
+ * @param  energy_difference [ev] Two levels are degenerate if their energy is
  * smaller than this value
  * @return vector with indices off all orbitals degenerate to this including
  * itself

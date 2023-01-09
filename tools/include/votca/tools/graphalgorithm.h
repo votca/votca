@@ -49,8 +49,8 @@ class GraphVisitor;
  * large network or not. If it is it means every vertex is connected to every
  * other one by 1 or more series of edges.
  *
- * @param[in] - Graph instance
- * @param[in,out] - Graph visitor reference instance used to explore the graph
+ * @param[in] graph - Graph instance
+ * @param[in,out] graph_visitor - Graph visitor reference instance used to explore the graph
  * @return - Boolean value (true - if single network)
  */
 bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor);
@@ -86,9 +86,9 @@ bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor);
  *
  * 1 - 2 - 3
  *
- * @param[in] - Graph instance
- * @param[in] - Index starting vertex, where the exploration begins
- * @param[in] - the edge indicating which branch is to be explored
+ * @param[in] g - Graph instance
+ * @param[in] starting_vertex - Index starting vertex, where the exploration begins
+ * @param[in] edge - the edge indicating which branch is to be explored
  * @return - set of edges in the branch that were explored
  **/
 std::set<Edge> exploreBranch(Graph g, Index starting_vertex, const Edge& edge);
@@ -115,7 +115,7 @@ std::set<Edge> exploreBranch(Graph g, Index starting_vertex, const Edge& edge);
  *
  * A total of 4 vertices with 4 edges as opposed to 9 vertices and 9 edges.
  *
- * @param[in] - graph instance
+ * @param[in] graph - graph instance
  * @return - a reduced graph
  **/
 ReducedGraph reduceGraph(Graph graph);
@@ -145,7 +145,7 @@ ReducedGraph reduceGraph(Graph graph);
  *      4 - 5 - 6 -7
  *
  *
- * @param[in] - Graph instance
+ * @param[in] graph - Graph instance
  * @return - vector containing shared pointers to all the sub graphs if there
  *           are no subgraphs than the input graph is returned.
  */
@@ -159,8 +159,8 @@ std::vector<Graph> decoupleIsolatedSubGraphs(Graph graph);
  * visitor is the base class which will not work on its own. The purpose of
  * doing this is to make use of polymorphism.
  *
- * @param[in,out] - Graph reference instance
- * @param[in,out] - graph visitor
+ * @param[in,out] graph - Graph reference instance
+ * @param[in,out] graph_visitor - graph visitor
  */
 void exploreGraph(Graph& graph, GraphVisitor& graph_visitor);
 
@@ -172,7 +172,7 @@ void exploreGraph(Graph& graph, GraphVisitor& graph_visitor);
  * this by taking into account the contents of the graphnodes. How it does this
  * is specific to the graph visitor specified.
  *
- * @param[in,out] - Graph reference instance
+ * @param[in,out] graph - Graph reference instance
  * @return - string identifier
  */
 template <typename GV>

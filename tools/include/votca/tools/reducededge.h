@@ -71,7 +71,7 @@ class ReducedEdge : public Edge {
    * Calling the method with vertex 3 will return true as the vertex exists
    * within the chain stored by the reduced edge.
    *
-   * \param[in] Index potential vertex stored in the reduced edge
+   * \param[in] vertex Index potential vertex stored in the reduced edge
    * \return bool true if it is in the chain false otherwise
    **/
   bool vertexExistInChain(const int& vertex) const;
