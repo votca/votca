@@ -71,6 +71,11 @@ bool XTPDFT::RunActiveDFT() {
   DFTEngine xtpdft;
   xtpdft.Initialize(options_);
   xtpdft.setLogger(pLog_);
+
+  if (!externalsites_.empty()) {
+    xtpdft.setExternalcharges(&externalsites_);
+  }
+  
   bool success = xtpdft.EvaluateActiveRegion(orbitals_) &&
                  xtpdft.EvaluateTruncatedActiveRegion(orbitals_);
   std::string file_name = run_dir_ + "/" + log_file_name_;
