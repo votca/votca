@@ -16,6 +16,7 @@ Version 2023-dev
 -  Clean up 3body Stillinger-Weber implement, docs and tutorial (#1012)
 -  fixed options handling in xtp_autogen_mapping (#1024)
 -  Major CMake refactor (#950, #1022)
+-  Fix all doxygen warnings (#1026)
 
 Version 2022.2 (released XX.12.22)
 ==================================
