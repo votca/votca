@@ -67,8 +67,8 @@ class BeadStructure {
    *
    * @return BeadStructure which is a substructure of BeadStructure
    */
-  BeadStructure getSubStructure(const std::vector<Index> & idx,
-                                const std::vector<tools::Edge> & edges) const;
+  BeadStructure getSubStructure(const std::vector<Index> &idx,
+                                const std::vector<tools::Edge> &edges) const;
 
   /**
    * \brief Determine if the bead structure consists of a single connected

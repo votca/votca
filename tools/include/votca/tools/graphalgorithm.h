@@ -50,7 +50,8 @@ class GraphVisitor;
  * other one by 1 or more series of edges.
  *
  * @param[in] graph - Graph instance
- * @param[in,out] graph_visitor - Graph visitor reference instance used to explore the graph
+ * @param[in,out] graph_visitor - Graph visitor reference instance used to
+ * explore the graph
  * @return - Boolean value (true - if single network)
  */
 bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor);
@@ -87,7 +88,8 @@ bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor);
  * 1 - 2 - 3
  *
  * @param[in] g - Graph instance
- * @param[in] starting_vertex - Index starting vertex, where the exploration begins
+ * @param[in] starting_vertex - Index starting vertex, where the exploration
+ *begins
  * @param[in] edge - the edge indicating which branch is to be explored
  * @return - set of edges in the branch that were explored
  **/

@@ -109,15 +109,15 @@ class Spline {
 
   /**
    * \brief Calculate spline function values for given x values on the spline
-   * created by Interpolate() or Fit() 
-   * \param x vector of data values 
+   * created by Interpolate() or Fit()
+   * \param x vector of data values
    * \return vector of y value
    */
   Eigen::VectorXd Calculate(const Eigen::VectorXd &x);
 
   /**
    * \brief Calculate y values for given x values on the derivative of the
-   * spline created by function Interpolate or Fit 
+   * spline created by function Interpolate or Fit
    * \param x vector of data values
    * \return vector of y value
    */
@@ -125,8 +125,8 @@ class Spline {
 
   /**
    * \brief Print spline values (using Calculate()) on output "out" on the
-   * entire grid in steps of "interval" 
-   * \param out output 
+   * entire grid in steps of "interval"
+   * \param out output
    * \param interval size of "interval"
    */
   void Print(std::ostream &out, double interval);
@@ -140,9 +140,9 @@ class Spline {
 
   /**
    * \brief Generate the grid for fitting from "min" to "max" in steps of "h"
-   * \param min left interval border 
+   * \param min left interval border
    * \param max right interval border
-   * \param h step 
+   * \param h step
    * \return number of grid values in the interval
    */
   Index GenerateGrid(double min, double max, double h);
