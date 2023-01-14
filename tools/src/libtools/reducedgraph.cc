@@ -91,7 +91,7 @@ bool compareChainWithChains_(const vector<Index>& chain,
  *
  * Here vertex 5 would be found to be a junction
  *
- * @param[in,out] - vector of reduced edges
+ * @param[in,out] reduced_edges - vector of reduced edges
  * @return - set of integers containing junctions
  **/
 set<Index> getVertexJunctions_(const vector<ReducedEdge>& reduced_edges) {
@@ -124,7 +124,7 @@ set<Index> getVertexJunctions_(const vector<ReducedEdge>& reduced_edges) {
 }
 
 /**
- * \breif function adds an edge to an unordered_map and a vector if it is found
+ * \brief function adds an edge to an unordered_map and a vector if it is found
  * to not be a loop
  *
  * A loop is an edge that essentially makes a circle. In an edge that is a loop
@@ -145,10 +145,10 @@ set<Index> getVertexJunctions_(const vector<ReducedEdge>& reduced_edges) {
  *  - 2
  *  |_|
  *
- * @param[in,out] - vector of edges, an edge is added to the vector if it is not
+ * @param[in,out] edges - vector of edges, an edge is added to the vector if it is not
  * a loop
- * @param[in] - a reduced edge, the edge to be added
- * @param[in,out] - an unordered_map that stores the edge and its chain if it
+ * @param[in] reduced_edge - a reduced edge, the edge to be added
+ * @param[in,out] expanded_edges - an unordered_map that stores the edge and its chain if it
  * is found to not be a loop
  **/
 void addEdgeIfNotLoop_(
@@ -190,7 +190,7 @@ void addEdgeIfNotLoop_(
  *
  * 1 - 2 - 6 - 5 - 3 - 4 - 1
  *
- * @param[in,out] - vector of integers containing the chain
+ * @param[in,out] chain - vector of integers containing the chain
  **/
 void orderChainAfterInitialVertex_(vector<Index>& chain) {
   size_t ignore_first_and_last_vertex = 2;

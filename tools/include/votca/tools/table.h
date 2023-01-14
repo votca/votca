@@ -32,9 +32,6 @@ namespace tools {
 /**
     \brief class to store tables like rdfs, tabulated potentials, etc
 
-    \think about weather to make this a template, can be used in histogram
-    as well, of for counting with integers...
-
  */
 class Table {
  public:
