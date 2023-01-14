@@ -34,7 +34,7 @@ jobs:
           fi
           if [[ ${GITHUB_REF} = refs/heads/* ]]; then
             branch="${GITHUB_REF#refs/heads/}"
-            echo "BRANCH::${branch}" >> $GITHUB_OUTPUT
+            echo "BRANCH=${branch}" >> $GITHUB_OUTPUT
           else
             echo "Unsupported GITHUB_REF: ${GITHUB_REF}" >&2
             exit 1

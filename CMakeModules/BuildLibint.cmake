@@ -1,5 +1,4 @@
 include(ExternalProject)
-include(GNUInstallDirs)
 ExternalProject_Add(Libint_build
   URL https://github.com/evaleev/libint/archive/v2.7.1.tar.gz
   URL_MD5 78507c1d3de77bcd519dfd8d6afc8468
