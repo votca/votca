@@ -46,6 +46,10 @@ class Populationanalysis {
   void CalcChargeperFragment(std::vector<QMFragment<BSE_Population> >& frags,
                              const Orbitals& orbitals, QMStateType type) const;
 
+  void CalcChargeperFragmentTransition(
+      std::vector<QMFragment<BSE_Population> >& frags, const Orbitals& orbitals,
+      const Eigen::MatrixXd& dmat) const;
+
  private:
   Eigen::VectorXd CalcNucChargeperAtom(const QMMolecule& mol) const;
 

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2022 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -56,7 +56,6 @@ class AOBasis;
 class GWBSE {
  public:
   GWBSE(Orbitals& orbitals) : orbitals_(orbitals){};
-
   void Initialize(tools::Property& options);
 
   std::string Identify() { return "gwbse"; }
@@ -72,7 +71,6 @@ class GWBSE {
   Index CountCoreLevels();
   Logger* pLog_;
   Orbitals& orbitals_;
-
   // program tasks
 
   bool do_gw_ = false;

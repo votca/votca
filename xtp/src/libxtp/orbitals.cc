@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,12 +24,12 @@
 #include <numeric>
 
 // Local VOTCA includes
+#include "votca/tools/version.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/orbreorder.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/vc2index.h"
-#include "votca/xtp/version.h"
 
 namespace votca {
 namespace xtp {
@@ -38,7 +38,8 @@ Orbitals::Orbitals() : atoms_("", 0) { ; }
 
 /**
  *
- * @param  energy_difference_ [ev] Two levels are degenerate if their energy is
+ * @param  level Index of the level that is to be checked for degeneracy
+ * @param  energy_difference [ev] Two levels are degenerate if their energy is
  * smaller than this value
  * @return vector with indices off all orbitals degenerate to this including
  * itself
@@ -439,9 +440,16 @@ double Orbitals::getExcitedStateEnergy(const QMState& state) const {
                                " which has not been calculated");
     }
     return QPpert_energies_(state.StateIdx() - getGWAmin(), 3);
+  } else if (state.Type() == QMStateType::LMOstate) {
+    if (lmos_energies_.size() < state.StateIdx() + 1) {
+      throw std::runtime_error(
+          "Orbitals::getTotalEnergy You want " + state.ToString() +
+          " which is a LMO for virtual orbitals. Not implemented.");
+    }
+    return lmos_energies_(state.StateIdx());
   } else {
     throw std::runtime_error(
-        "GetTotalEnergy only knows states:singlet,triplet,KS,DQP,PQP");
+        "GetTotalEnergy only knows states:singlet,triplet,KS,DQP,PQP,LMOs");
   }
   return omega;  //  e.g. hartree
 }
@@ -572,13 +580,17 @@ void Orbitals::WriteBasisSetsToCpt(CheckpointWriter w) const {
 }
 
 void Orbitals::WriteToCpt(CheckpointWriter w) const {
-  w(XtpVersionStr(), "XTPVersion");
+  w(votca::tools::ToolsVersionStr(), "XTPVersion");
   w(orbitals_version(), "version");
   w(basis_set_size_, "basis_set_size");
   w(occupied_levels_, "occupied_levels");
   w(number_alpha_electrons_, "number_alpha_electrons");
 
   w(mos_, "mos");
+  w(active_electrons_, "active_electrons");
+  w(mos_embedding_, "mos_embedding");
+  w(lmos_, "LMOs");
+  w(lmos_energies_, "LMOs_energies");
 
   CheckpointWriter molgroup = w.openChild("qmmolecule");
   atoms_.WriteToCpt(molgroup);
@@ -647,9 +659,18 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
 
   r(qm_energy_, "qm_energy");
   r(qm_package_, "qm_package");
+  try {
+    r(lmos_, "LMOs");
+    r(lmos_energies_, "LMOs_energies");
+  } catch (std::runtime_error& e) {
+    ;
+  }
 
   r(version, "version");
   r(mos_, "mos");
+  r(mos_embedding_, "mos_embedding");
+  r(active_electrons_, "active_electrons");
+
   if (version < 3) {
     // clang-format off
     std::array<Index, 49> votcaOrder_old = {

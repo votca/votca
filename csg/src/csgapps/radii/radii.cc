@@ -28,7 +28,7 @@
 using namespace std;
 using namespace votca::csg;
 
-class CsgTestApp : public CsgApplication {
+class CsgRadiiApp : public CsgApplication {
   string ProgramName() override { return "radii"; }
   void HelpText(ostream &out) override {
     out << "calculate gyration- and hydrodynamic radius for a specific "
@@ -56,12 +56,12 @@ class CsgTestApp : public CsgApplication {
 };
 
 int main(int argc, char **argv) {
-  CsgTestApp app;
+  CsgRadiiApp app;
 
   return app.Exec(argc, argv);
 }
 
-void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
+void CsgRadiiApp::EvalConfiguration(Topology *top, Topology *) {
   // loop over all molecules
   for (const auto &mol : top->Molecules()) {
     // does the id match if given?
@@ -124,7 +124,7 @@ void CsgTestApp::EvalConfiguration(Topology *top, Topology *) {
 }
 
 // output everything when processing frames is done
-void CsgTestApp::EndEvaluate() {
+void CsgRadiiApp::EndEvaluate() {
   cout << "\n\n------------------------------\n";
   cout << "radius of gyration:                  " << sqrt(r_gyr_sq_.getAvg())
        << endl;
@@ -136,7 +136,7 @@ void CsgTestApp::EndEvaluate() {
 }
 
 // add our user program options
-void CsgTestApp::Initialize() {
+void CsgRadiiApp::Initialize() {
   CsgApplication::Initialize();
   // add program option to pick molecule
   AddProgramOptions("Molecule filter options")(

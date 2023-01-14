@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2022 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -54,6 +54,19 @@ bool QMPackage::Run() {
   std::chrono::duration<double> elapsed_time =
       std::chrono::system_clock::now() - start;
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " DFT calculation took "
+                              << elapsed_time.count() << " seconds." << flush;
+  return error_value;
+}
+
+bool QMPackage::RunActiveRegion() {
+  std::chrono::time_point<std::chrono::system_clock> start =
+      std::chrono::system_clock::now();
+
+  bool error_value = RunActiveDFT();
+
+  std::chrono::duration<double> elapsed_time =
+      std::chrono::system_clock::now() - start;
+  XTP_LOG(Log::error, *pLog_) << TimeStamp() << " DFT in DFT embedding took "
                               << elapsed_time.count() << " seconds." << flush;
   return error_value;
 }
