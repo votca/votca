@@ -21,7 +21,7 @@ Version 2022.1 (released 21.12.22)
 -  fix CI builds with icpx (#984, #1004)
 -  fix CI builds with ESPResSo 4.2.0 (#993)
 -  fix localization issue (#998, #1000)
--  update github actions to new versions (#1007, #1013)
+-  update github actions to new versions (#1007, #1013, #1028)
 
 Version 2022 (released 15.01.22)
 ================================
