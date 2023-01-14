@@ -23,7 +23,7 @@
 // VOTCA includes
 #include <votca/csg/pdbwriter.h>
 #include <votca/tools/globals.h>
-#include "votca/tools/version.h"
+#include <votca/tools/version.h>
 
 // Local VOTCA includes
 #include "votca/xtp/atom.h"

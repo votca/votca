@@ -37,7 +37,7 @@ using namespace votca::csg;
 // the main part of the program, EvalConfiguration, is shifted to the Worker
 // class but other than that stays untouched compared to a non-threaded version
 
-class CsgTestApp : public CsgApplication {
+class CsgParallelTestApp : public CsgApplication {
 
   string ProgramName() override { return "template_threaded_rdf"; }
 
@@ -76,7 +76,7 @@ class CsgTestApp : public CsgApplication {
   void MergeWorker(Worker *worker) override;
 
  protected:
-  // data belonging to the main class CsgTestApp
+  // data belonging to the main class CsgParallelTestApp
   votca::tools::HistogramNew rdf_;
   double cut_off_;
 };
@@ -93,19 +93,19 @@ class RDFWorker : public CsgApplication::Worker {
 };
 
 int main(int argc, char **argv) {
-  CsgTestApp app;
+  CsgParallelTestApp app;
 
   return app.Exec(argc, argv);
 }
 
-void CsgTestApp::Initialize() {
+void CsgParallelTestApp::Initialize() {
   CsgApplication::Initialize();
   AddProgramOptions("RDF options")(
       "c", boost::program_options::value<double>()->default_value(1.0),
       "the cutoff");
 }
 
-void CsgTestApp::BeginEvaluate(Topology *, Topology *) {
+void CsgParallelTestApp::BeginEvaluate(Topology *, Topology *) {
   cut_off_ = OptionsMap()["c"].as<double>();
   rdf_.Initialize(0, cut_off_, 50);
 }
@@ -114,7 +114,7 @@ void CsgTestApp::BeginEvaluate(Topology *, Topology *) {
 // ForkWorker() will be called as often as the parameter '--nt NTHREADS'
 // it creates a new worker and the user is required to initialize variables etc.
 // (if needed)
-std::unique_ptr<CsgApplication::Worker> CsgTestApp::ForkWorker() {
+std::unique_ptr<CsgApplication::Worker> CsgParallelTestApp::ForkWorker() {
   auto worker = std::make_unique<RDFWorker>();
   // initialize
   worker->cut_off_ = OptionsMap()["c"].as<double>();
@@ -136,8 +136,8 @@ void RDFWorker::EvalConfiguration(Topology *top, Topology *) {
 }
 
 // the user is required to define how to merge the single data
-// belonging to each thread into the main data belonging to CsgTestApp
-void CsgTestApp::MergeWorker(Worker *worker) {
+// belonging to each thread into the main data belonging to CsgParallelTestApp
+void CsgParallelTestApp::MergeWorker(Worker *worker) {
   RDFWorker *myRDFWorker;
   // cast generel Worker into your derived worker class(here RDFWorker)
   myRDFWorker = dynamic_cast<RDFWorker *>(worker);
@@ -164,7 +164,7 @@ void CsgTestApp::MergeWorker(Worker *worker) {
   rdf_.data().y() = rdf_.data().y() + myRDFWorker->rdf_.data().y();
 }
 
-void CsgTestApp::EndEvaluate() {
+void CsgParallelTestApp::EndEvaluate() {
   rdf_.data().y() = rdf_.data().y().cwiseQuotient(rdf_.data().x().cwiseAbs2());
   rdf_.data().Save("rdf.dat");
 }

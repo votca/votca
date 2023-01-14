@@ -245,7 +245,7 @@ class MotifDeconstructor_ {
    * In scenario IV vertex 6 will be assigned to the branch that has two
    * connecting edges.
    *
-   * @param[in,out] - BeadMotifConnector this keeps track of all the
+   * @param[in,out] connector - BeadMotifConnector this keeps track of all the
    * connections between motifs. Both the bead ids and the motif ids are
    * tracked and stored
    **/

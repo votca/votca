@@ -137,9 +137,9 @@ double DFTcoupling::getCouplingElement(Index levelA, Index levelB,
 
 /**
  * \brief evaluates electronic couplings
- * @param  orbitalsA_ molecular orbitals of molecule A
- * @param  orbitalsB_ molecular orbitals of molecule B
- * @param  orbitalsAB_ molecular orbitals of the dimer AB
+ * @param  orbitalsA molecular orbitals of molecule A
+ * @param  orbitalsB molecular orbitals of molecule B
+ * @param  orbitalsAB molecular orbitals of the dimer AB
  */
 void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
                                      const Orbitals& orbitalsB,

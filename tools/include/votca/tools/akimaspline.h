@@ -52,9 +52,17 @@ class AkimaSpline : public Spline {
   /**
    * \brief Calculate the slope according to the original Akima paper ("A New
    * Method of Interpolation and Smooth Curve Fitting Based on Local
-   * Procedures") \param slopes m1 to m4 of line segments connecting the five
-   * data points \return slope handles all special cases to determine the slope
-   * t based on slopes m1,m2,m3,m4
+   * Procedures")
+   * \param m1 slope of the first line segment connecting the five
+   * data points
+   * \param m2 slope of the second line segment connecting the five
+   * data points
+   * \param m3 slope of the third line segment connecting the five
+   * data points
+   * \param m4 slope of the fourth line segment connecting the five
+   * data points
+   * \return slope handles all special cases to determine the slope
+   *  based on slopes m1,m2,m3,m4
    */
   double getSlope(double m1, double m2, double m3, double m4);
 

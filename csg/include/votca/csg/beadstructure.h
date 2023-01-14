@@ -60,15 +60,15 @@ class BeadStructure {
    * BeadStructure a runtime exception is thrown, as the the sub structure is
    * not actually a sub structure of the current BeadStructure.
    *
-   * @param Indices of the substructure, must exist within the current
+   * @param idx Indices of the substructure, must exist within the current
    * BeadStructure
-   * @param Edges of the substructure, must exist within the current
+   * @param edges Edges of the substructure, must exist within the current
    * BeadStructure
    *
    * @return BeadStructure which is a substructure of BeadStructure
    */
-  BeadStructure getSubStructure(const std::vector<Index> &,
-                                const std::vector<tools::Edge> &) const;
+  BeadStructure getSubStructure(const std::vector<Index> &idx,
+                                const std::vector<tools::Edge> &edges) const;
 
   /**
    * \brief Determine if the bead structure consists of a single connected
@@ -115,7 +115,7 @@ class BeadStructure {
    * This function looks at how the beads are arranged within the bead structure
    * and determines if the topology is the same.
    *
-   * @param[in] - beadstructure to compare with
+   * @param[in] beadstructure - beadstructure to compare with
    * @return - if the same returns true else false
    *
    **/

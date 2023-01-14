@@ -47,9 +47,7 @@ namespace tools {
  * This class stores tags and content in a hierarchical (tree) structure similar
  * to the one used in the XML format. The structure can be either filled
  * manually or read in from an XML file using load_property_from_xml. The
- * supported XML constructs are TAGS, ATTRIBUTES, and CONTENT: <tag
- * attribute_name="attribute_value"> content
- * </tag>
+ * supported XML constructs are TAGS, ATTRIBUTES, and CONTENT.
  * The property object can be output to an ostream using format modifiers:
  * cout << XML << property;
  * Supported formats are XML, TXT, HLP

@@ -33,7 +33,7 @@ namespace csg {
  * Will essentially take structures that are indenpendent of each other and
  * break them into separate beadmotifs.
  *
- * @param[in] - reference to beadstructure
+ * @param[in] beadstructure - reference to beadstructure
  * @return - a container of beadmotifs
  **/
 template <class T>
