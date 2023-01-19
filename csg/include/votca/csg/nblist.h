@@ -27,7 +27,6 @@
 namespace votca {
 namespace csg {
 
-namespace TOOLS = votca::tools;
 /**
  * \brief Neighbour list class
  *
@@ -76,7 +75,7 @@ class NBList : public PairList<Bead *, BeadPair> {
 
   /// \brief match function for static member functions or plain functions
   void SetMatchFunction(bool (*fkt)(Bead *, Bead *, const Eigen::Vector3d &,
-                                    double dist));
+                                    double));
 
   /// standard match function
   static bool match_always(Bead *, Bead *, const Eigen::Vector3d &, double) {

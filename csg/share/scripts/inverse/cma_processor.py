@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,12 +21,6 @@ import sys
 import re
 import pickle
 import os
-
-try:
-    import numpy
-except:
-    sys.exit("Could not import numpy modules used by cma")
-
 
 class state:
     """state class"""
@@ -81,19 +75,25 @@ class state:
         statefile.close()
 
 
-try:
-    import cma
-except:
-    sys.exit(
-        "cma module could not be imported, please make sure to cma.py in your PYTHONPATH.")
-
-
 usage = "usage: %prog [options] statefile-in statefile-out"
 parser = argparse.ArgumentParser(description=usage)
 
 parser.add_argument("--eps", dest="eps", metavar="EPS", type=float,
                   help="tolerance for initialization", default=0.1)
 (options, args) = parser.parse_known_args()
+
+
+try:
+    import cma
+except:
+    sys.exit(
+        "cma module could not be imported, please make sure to cma.py in your PYTHONPATH.")
+
+try:
+    import numpy
+except:
+    sys.exit("Could not import numpy modules used by cma")
+
 
 if len(args) != 2:
     sys.exit("two statefile required as parameters")

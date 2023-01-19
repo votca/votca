@@ -31,7 +31,6 @@ jobs:
           distro: ${{ matrix.distro }}
           toolchain: ${{ matrix.toolchain }}
           minimal: ${{ matrix.minimal == true }}
-          module: ${{ matrix.module_build == true }}
           own_gmx: ${{ matrix.own_gmx == true }}
           regression_testing: ${{ matrix.no_regression_testing != true }}
           coverage: ${{ matrix.coverage }}

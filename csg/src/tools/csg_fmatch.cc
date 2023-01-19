@@ -718,36 +718,26 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
   beads2.Generate(*conf, sinfo->type2);
   beads3.Generate(*conf, sinfo->type3);
 
-  // check if type1 and type2 are the same
-  if (sinfo->type1 == sinfo->type2) {
-    // if all three types are the same
-    if (sinfo->type2 == sinfo->type3) {
+  // Generate the 3body neighbour lists
+  // check if type2 and type3 are the same
+  if (sinfo->type2 == sinfo->type3) {
+    // if then type2 and type1 are the same, all three types are the same
+    // use the Generate function for this case
+    if (sinfo->type1 == sinfo->type2) {
       nb->Generate(beads1, true);
     }
-    // if type2 and type3 are different, use the Generate function for 2 bead
-    // types
-    if (sinfo->type2 != sinfo->type3) {
-      nb->Generate(beads1, beads3, true);
-    }
-  }
-  // if type1 != type2
-  if (sinfo->type1 != sinfo->type2) {
-    // if the last two types are the same, use Generate function with them as
-    // the first two bead types Neighborlist_3body is constructed in a way that
-    // the two equal bead types have two be the first 2 types
-    if (sinfo->type2 == sinfo->type3) {
+    // else use the Generate function for type2 being equal to type3 (and type1
+    // being different)
+    if (sinfo->type1 != sinfo->type2) {
       nb->Generate(beads1, beads2, true);
     }
-    if (sinfo->type2 != sinfo->type3) {
-      // type1 = type3 !=type2
-      if (sinfo->type1 == sinfo->type3) {
-        nb->Generate(beads2, beads1, true);
-      }
-      // type1 != type2 != type3
-      if (sinfo->type1 != sinfo->type3) {
-        nb->Generate(beads1, beads2, beads3, true);
-      }
-    }
+  }
+  // If type2 and type3 are not the same, use the Generate function for three
+  // different bead types (Even if type1 and type2 or type1 and type3 are the
+  // same, the Generate function for two different beadtypes is only applicable
+  // for the case that type2 is equal to type3
+  if (sinfo->type2 != sinfo->type3) {
+    nb->Generate(beads1, beads2, beads3, true);
   }
 
   for (BeadTriple *triple : *nb) {

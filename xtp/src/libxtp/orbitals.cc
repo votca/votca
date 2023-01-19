@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2022 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,12 +24,12 @@
 #include <numeric>
 
 // Local VOTCA includes
+#include "votca/tools/version.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/orbreorder.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/vc2index.h"
-#include "votca/xtp/version.h"
 
 namespace votca {
 namespace xtp {
@@ -38,7 +38,8 @@ Orbitals::Orbitals() : atoms_("", 0) { ; }
 
 /**
  *
- * @param  energy_difference_ [ev] Two levels are degenerate if their energy is
+ * @param  level Index of the level that is to be checked for degeneracy
+ * @param  energy_difference [ev] Two levels are degenerate if their energy is
  * smaller than this value
  * @return vector with indices off all orbitals degenerate to this including
  * itself
@@ -579,7 +580,7 @@ void Orbitals::WriteBasisSetsToCpt(CheckpointWriter w) const {
 }
 
 void Orbitals::WriteToCpt(CheckpointWriter w) const {
-  w(XtpVersionStr(), "XTPVersion");
+  w(votca::tools::ToolsVersionStr(), "XTPVersion");
   w(orbitals_version(), "version");
   w(occupied_levels_, "occupied_levels");
   w(number_alpha_electrons_, "number_alpha_electrons");

@@ -13,8 +13,18 @@ Version 2023-dev
 -  Implemented ER diabatization for BSE (#988)
 -  update esp++ spce tutorial to py3 (#997)
 -  Implemented truncated basis for embedded DFT (#991)
+-  reducing XTP tutorial size (#1020, #1025)
+-  Clean up 3body Stillinger-Weber implement, docs and tutorial (#1012)
+-  fixed options handling in xtp_autogen_mapping (#1024)
+-  Major CMake refactor (#950, #1022)
+-  Fix all doxygen warnings (#1026)
 
-Version 2022.1 (released XX.01.22)
+Version 2022.2 (released XX.12.22)
+==================================
+
+-  fix CI build with icpx (#1018)
+
+Version 2022.1 (released 21.12.22)
 ==================================
 
 -  fix PROJECT_VERSION in subdirs (#951)
@@ -29,7 +39,7 @@ Version 2022.1 (released XX.01.22)
 -  fix CI builds with icpx (#984, #1004)
 -  fix CI builds with ESPResSo 4.2.0 (#993)
 -  fix localization issue (#998, #1000)
--  update github actions to new versions (#1007)
+-  update github actions to new versions (#1007, #1013, #1028)
 
 Version 2022 (released 15.01.22)
 ================================
