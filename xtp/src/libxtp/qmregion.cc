@@ -139,16 +139,31 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   }
   QMMolecule originalmol = orb_.QMAtoms();
   if (do_dft_in_dft_) {
-    qmpackage_->WriteInputFile(orb_);
-    bool active_run = qmpackage_->RunActiveRegion();
+
+    // this only works with XTPDFT, so locally override global qmpackage_
+    std::unique_ptr<QMPackage> xtpdft = std::unique_ptr<QMPackage>(
+      QMPackageFactory::QMPackages().Create("xtpdft"));
+  xtpdft->setLog(&log_);
+  xtpdft->Initialize(dftoptions_);
+  Index charge = 0;
+  if (initstate_.Type() == QMStateType::Electron) {
+    charge = -1;
+  } else if (initstate_.Type() == QMStateType::Hole) {
+    charge = +1;
+  }
+  xtpdft->setCharge(charge);;
+
+
+    xtpdft->WriteInputFile(orb_);
+    bool active_run = xtpdft->RunActiveRegion();
     if (!active_run) {
       throw std::runtime_error("\n DFT in DFT embedding failed. Stopping!");
     }
-    Logfile_parse = qmpackage_->ParseLogFile(orb_);
+    Logfile_parse = xtpdft->ParseLogFile(orb_);
     if (!Logfile_parse) {
       throw std::runtime_error("\n Parsing DFT logfile failed. Stopping!");
     }
-    Orbfile_parse = qmpackage_->ParseMOsFile(orb_);
+    Orbfile_parse =xtpdft->ParseMOsFile(orb_);
     if (!Orbfile_parse) {
       throw std::runtime_error("\n Parsing DFT orbfile failed. Stopping!");
     }
