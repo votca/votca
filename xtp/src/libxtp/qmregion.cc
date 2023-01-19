@@ -142,53 +142,51 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
 
     // this only works with XTPDFT, so locally override global qmpackage_
     std::unique_ptr<QMPackage> xtpdft = std::unique_ptr<QMPackage>(
-      QMPackageFactory::QMPackages().Create("xtp"));
-  xtpdft->setLog(&log_);
-  xtpdft->Initialize(dftoptions_);
-  xtpdft->setRunDir(workdir_);
-  Index charge = 0;
-  if (initstate_.Type() == QMStateType::Electron) {
-    charge = -1;
-  } else if (initstate_.Type() == QMStateType::Hole) {
-    charge = +1;
-  }
-  xtpdft->setCharge(charge);
+        QMPackageFactory::QMPackages().Create("xtp"));
+    xtpdft->setLog(&log_);
+    xtpdft->Initialize(dftoptions_);
+    xtpdft->setRunDir(workdir_);
+    Index charge = 0;
+    if (initstate_.Type() == QMStateType::Electron) {
+      charge = -1;
+    } else if (initstate_.Type() == QMStateType::Hole) {
+      charge = +1;
+    }
+    xtpdft->setCharge(charge);
 
-std::vector<double> energies = std::vector<double>(regions.size(), 0.0);
-  for (std::unique_ptr<Region>& reg : regions) {
-    Index id = reg->getId();
-    if (id == this->getId()) {
-      continue;
+    std::vector<double> energies = std::vector<double>(regions.size(), 0.0);
+    for (std::unique_ptr<Region>& reg : regions) {
+      Index id = reg->getId();
+      if (id == this->getId()) {
+        continue;
+      }
+
+      StaticRegion Staticdummy(0, log_);
+      PolarRegion Polardummy(0, log_);
+      XTP_LOG(Log::error, log_)
+          << TimeStamp() << " Evaluating interaction between "
+          << this->identify() << " " << this->getId() << " and "
+          << reg->identify() << " " << reg->getId() << std::flush;
+      if (reg->identify() == Staticdummy.identify()) {
+        StaticRegion* staticregion = dynamic_cast<StaticRegion*>(reg.get());
+        xtpdft->AddRegion(*staticregion);
+      } else if (reg->identify() == Polardummy.identify()) {
+        PolarRegion* polarregion = dynamic_cast<PolarRegion*>(reg.get());
+        xtpdft->AddRegion(*polarregion);
+      } else {
+        throw std::runtime_error(
+            "Interaction of regions with types:" + this->identify() + " and " +
+            reg->identify() + " not implemented");
+      }
     }
 
-    StaticRegion Staticdummy(0, log_);
-    PolarRegion Polardummy(0, log_);
-    XTP_LOG(Log::error, log_)
-        << TimeStamp() << " Evaluating interaction between " << this->identify()
-        << " " << this->getId() << " and " << reg->identify() << " "
-        << reg->getId() << std::flush;
-   if (reg->identify() == Staticdummy.identify()) {
-      StaticRegion* staticregion = dynamic_cast<StaticRegion*>(reg.get());
-      xtpdft->AddRegion(*staticregion);
-    } else if (reg->identify() == Polardummy.identify()) {
-      PolarRegion* polarregion = dynamic_cast<PolarRegion*>(reg.get());
-      xtpdft->AddRegion(*polarregion);
-    } else {
-      throw std::runtime_error(
-          "Interaction of regions with types:" + this->identify() + " and " +
-          reg->identify() + " not implemented");
-    }
-  }
-
-
-
-  e_ext =
-      std::accumulate(interact_energies.begin(), interact_energies.end(), 0.0);
-  XTP_LOG(Log::info, log_)
-      << TimeStamp()
-      << " Calculated interaction potentials with other regions. E[hrt]= "
-      << e_ext << std::flush;
-  XTP_LOG(Log::info, log_) << "Writing inputs" << std::flush;
+    e_ext = std::accumulate(interact_energies.begin(), interact_energies.end(),
+                            0.0);
+    XTP_LOG(Log::info, log_)
+        << TimeStamp()
+        << " Calculated interaction potentials with other regions. E[hrt]= "
+        << e_ext << std::flush;
+    XTP_LOG(Log::info, log_) << "Writing inputs" << std::flush;
     xtpdft->WriteInputFile(orb_);
     bool active_run = xtpdft->RunActiveRegion();
     if (!active_run) {
@@ -198,7 +196,7 @@ std::vector<double> energies = std::vector<double>(regions.size(), 0.0);
     if (!Logfile_parse) {
       throw std::runtime_error("\n Parsing DFT logfile failed. Stopping!");
     }
-    Orbfile_parse =xtpdft->ParseMOsFile(orb_);
+    Orbfile_parse = xtpdft->ParseMOsFile(orb_);
     if (!Orbfile_parse) {
       throw std::runtime_error("\n Parsing DFT orbfile failed. Stopping!");
     }
