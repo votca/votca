@@ -152,7 +152,7 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   } else if (initstate_.Type() == QMStateType::Hole) {
     charge = +1;
   }
-  xtpdft->setCharge(charge);;
+  xtpdft->setCharge(charge);
 
 std::vector<double> energies = std::vector<double>(regions.size(), 0.0);
   for (std::unique_ptr<Region>& reg : regions) {
@@ -182,7 +182,7 @@ std::vector<double> energies = std::vector<double>(regions.size(), 0.0);
 
 
 
-  double e_ext =
+  e_ext =
       std::accumulate(interact_energies.begin(), interact_energies.end(), 0.0);
   XTP_LOG(Log::info, log_)
       << TimeStamp()
