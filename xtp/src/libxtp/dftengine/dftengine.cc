@@ -1618,7 +1618,7 @@ Eigen::MatrixXd DFTEngine::McWeenyPurification(Eigen::MatrixXd& Dmat_in,
   Eigen::MatrixXd ModifiedDmat = 0.5 * Ssqrt * Dmat_in * Ssqrt;
   for (Index iter = 0; iter < 100; iter++) {
     Eigen::MatrixXd Dmat_new = (3 * ModifiedDmat * ModifiedDmat) -
-               (2 * ModifiedDmat * ModifiedDmat * ModifiedDmat);
+                               (2 * ModifiedDmat * ModifiedDmat * ModifiedDmat);
     double IdempotencyError =
         ((Dmat_new * Dmat_new - Dmat_new) * (Dmat_new * Dmat_new - Dmat_new))
             .trace();

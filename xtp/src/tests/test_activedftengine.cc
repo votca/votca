@@ -185,8 +185,10 @@ BOOST_AUTO_TEST_CASE(dft_active) {
   activedft.setLogger(&log);
   activedft.Initialize(prop.get("dftpackage"));
   activedft.EvaluateActiveRegion(orb);
- 
-  Eigen::VectorXd MOs_energy_ref  = votca::tools::EigenIO_MatrixMarket::ReadVector(std::string(XTP_TEST_DATA_FOLDER) +
+
+  Eigen::VectorXd MOs_energy_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadVector(
+          std::string(XTP_TEST_DATA_FOLDER) +
           "/activedftengine/mo_energies.mm");
 
   bool check_eng =

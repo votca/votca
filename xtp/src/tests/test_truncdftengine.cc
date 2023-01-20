@@ -187,8 +187,9 @@ BOOST_AUTO_TEST_CASE(dft_trunc) {
   truncdft.EvaluateActiveRegion(orb) &&
       truncdft.EvaluateTruncatedActiveRegion(orb);
 
-  Eigen::VectorXd MOs_energy_ref =  votca::tools::EigenIO_MatrixMarket::ReadVector(std::string(XTP_TEST_DATA_FOLDER) +
-          "/truncdftengine/mo_energies.mm");
+  Eigen::VectorXd MOs_energy_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadVector(
+          std::string(XTP_TEST_DATA_FOLDER) + "/truncdftengine/mo_energies.mm");
 
   bool check_eng =
       MOs_energy_ref.isApprox(orb.getEmbeddedMOs().eigenvalues(), 1e-5);
