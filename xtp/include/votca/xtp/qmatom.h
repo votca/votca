@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -63,6 +63,8 @@ class QMAtom {
   const std::string& getElement() const { return element_; }
 
   Index getId() const { return index_; }
+
+  void setID(const Index index) { index_ = index; }
 
   Index getNuccharge() const { return nuccharge_ - ecpcharge_; }
 

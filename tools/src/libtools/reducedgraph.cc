@@ -145,11 +145,11 @@ set<Index> getVertexJunctions_(const vector<ReducedEdge>& reduced_edges) {
  *  - 2
  *  |_|
  *
- * @param[in,out] edges - vector of edges, an edge is added to the vector if it is not
- * a loop
+ * @param[in,out] edges - vector of edges, an edge is added to the vector if it
+ *is not a loop
  * @param[in] reduced_edge - a reduced edge, the edge to be added
- * @param[in,out] expanded_edges - an unordered_map that stores the edge and its chain if it
- * is found to not be a loop
+ * @param[in,out] expanded_edges - an unordered_map that stores the edge and its
+ *chain if it is found to not be a loop
  **/
 void addEdgeIfNotLoop_(
     vector<Edge>& edges, const ReducedEdge reduced_edge,
