@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -186,11 +186,10 @@ BOOST_AUTO_TEST_CASE(dft_active) {
   activedft.Initialize(prop.get("dftpackage"));
   activedft.EvaluateActiveRegion(orb);
 
-  Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(24);
-  MOs_energy_ref << -19.1916, -1.00827, -0.52987, -0.381083, -0.305608,
-      0.0651889, 0.144076, 0.581983, 0.644849, 0.940892, 0.947913, 1.0306,
-      1.11042, 1.35566, 1.41993, 1.55998, 1.80324, 2.2424, 2.28424, 2.97774,
-      3.02425, 3.20965, 3.5225, 3.84776;
+  Eigen::VectorXd MOs_energy_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadVector(
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/activedftengine/mo_energies.mm");
 
   bool check_eng =
       MOs_energy_ref.isApprox(orb.getEmbeddedMOs().eigenvalues(), 1e-5);

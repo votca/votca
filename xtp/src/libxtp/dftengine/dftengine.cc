@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2022 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -395,7 +395,6 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       << std::flush;
   ActiveDensityMatrix DMAT_A(orb, activeatoms, active_threshold_);
   const Eigen::MatrixXd InitialActiveDensityMatrix = DMAT_A.compute_Dmat_A()[0];
-  Eigen::MatrixXd InitialActiveMOs = DMAT_A.compute_Dmat_A()[1];
   Eigen::MatrixXd InitialInactiveMOs = DMAT_A.compute_Dmat_A()[2];
 
   XTP_LOG(Log::error, *pLog_)
@@ -701,9 +700,6 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
     Eigen::MatrixXd PurifiedActiveDmat_trunc =
         McWeenyPurification(InitialActiveDmat_trunc_, overlap);
     Eigen::MatrixXd TruncatedDensityMatrix = PurifiedActiveDmat_trunc;
-
-    Eigen::MatrixXd difference_after =
-        TruncatedDensityMatrix - TruncatedDensityMatrix.transpose();
 
     for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
       XTP_LOG(Log::error, *pLog_) << std::flush;
@@ -1488,14 +1484,10 @@ Eigen::MatrixXd DFTEngine::McWeenyPurification(Eigen::MatrixXd& Dmat_in,
   Eigen::MatrixXd Ssqrt = overlap.Sqrt();
   Eigen::MatrixXd InvSsqrt = overlap.Pseudo_InvSqrt(1e-8);
   Eigen::MatrixXd ModifiedDmat = 0.5 * Ssqrt * Dmat_in * Ssqrt;
-  double IdempotencyError = ((ModifiedDmat * ModifiedDmat - ModifiedDmat) *
-                             (ModifiedDmat * ModifiedDmat - ModifiedDmat))
-                                .trace();
-  Eigen::MatrixXd Dmat_new;
   for (Index iter = 0; iter < 100; iter++) {
-    Dmat_new = (3 * ModifiedDmat * ModifiedDmat) -
-               (2 * ModifiedDmat * ModifiedDmat * ModifiedDmat);
-    IdempotencyError =
+    Eigen::MatrixXd Dmat_new = (3 * ModifiedDmat * ModifiedDmat) -
+                               (2 * ModifiedDmat * ModifiedDmat * ModifiedDmat);
+    double IdempotencyError =
         ((Dmat_new * Dmat_new - Dmat_new) * (Dmat_new * Dmat_new - Dmat_new))
             .trace();
     XTP_LOG(Log::info, *pLog_)
