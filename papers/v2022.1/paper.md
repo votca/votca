@@ -30,7 +30,7 @@ authors:
     affiliation: 4
   - name: Joshua S. Brown
     affiliation: 2
-  - name: Christoph Scherer
+  - name: Vivek Sundaram
   - name: Jakub Kraijniak
   - name: Marvin Bernhardt
 affiliations:
