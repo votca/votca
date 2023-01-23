@@ -283,8 +283,9 @@ void QMRegion::WriteToCpt(CheckpointWriter& w) const {
   w(do_gwbse_, "GWBSE");
   w(initstate_.ToString(), "initial_state");
   w(grid_accuracy_for_ext_interaction_, "ext_grid");
-  CheckpointWriter v = w.openChild("orbitals");
+  CheckpointWriter v = w.openChild("QMdata");
   orb_.WriteToCpt(v);
+  orb_.WriteBasisSetsToCpt(v);
 
   CheckpointWriter v2 = w.openChild("E-hist");
   E_hist_.WriteToCpt(v2);
@@ -305,8 +306,9 @@ void QMRegion::ReadFromCpt(CheckpointReader& r) {
   r(state, "initial_state");
   initstate_.FromString(state);
   r(grid_accuracy_for_ext_interaction_, "ext_grid");
-  CheckpointReader rr = r.openChild("orbitals");
+  CheckpointReader rr = r.openChild("QMdata");
   orb_.ReadFromCpt(rr);
+  orb_.ReadBasisSetsFromCpt(rr);
 
   CheckpointReader rr2 = r.openChild("E-hist");
   E_hist_.ReadFromCpt(rr2);
