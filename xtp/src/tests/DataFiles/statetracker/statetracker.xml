@@ -1,0 +1,7 @@
+<statetracker>
+  <oscillatorstrength>0.0019</oscillatorstrength>
+  <localisation>
+    <fragment>0 1</fragment>
+    <threshold>0.1</threshold>
+  </localisation>
+</statetracker>

@@ -72,7 +72,7 @@
     <filelist>spce.data spce.in</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
-    <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
+    <!-- ibm: inverse boltzmann imc: inverse monte carlo -->
     <method>ibi</method>
   </inverse>
 </cg>

@@ -1,5 +1,6 @@
-find_package(Boost 1.53.0 REQUIRED COMPONENTS unit_test_framework)
-
+if(NOT BUILD_TESTING)
+  return()
+endif()
 foreach(PROG
   test_bead
   test_beadtriple
@@ -30,6 +31,4 @@ foreach(PROG
   target_link_libraries(unit_${PROG} votca_csg Boost::unit_test_framework)
   target_compile_definitions(unit_${PROG} PRIVATE BOOST_TEST_DYN_LINK)
   add_test(unit_${PROG} unit_${PROG})
-  # run tests for csg (for coverage) as well
-  set_tests_properties(unit_${PROG} PROPERTIES LABELS "csg;votca;unit")
 endforeach(PROG)

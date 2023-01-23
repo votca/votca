@@ -1,32 +1,36 @@
 |Codacy Badge| |CI| |Docker| |DOI|
 
-This is VOTCA's next generation build system for CSG and XTP. It allows
-you to easily install:
+This is VOTCA, which provides the two following subpackages:
 
 -  VOTCA-CSG, a library which provides tools to develop coarse-grained
    potentials from atomistic simulation data
--  VOTCA-XTP, a library designed to determine electronic properties of
-   organic materials from atomistic MD-trajectories.
+-  VOTCA-XTP, a library providing the DFT+GW-BSE method to calculate 
+   electronically excited states in single molecules, in molecular materials 
+   with quantum-classical embedding, as well as electron, hole, and exciton 
+   dynamics in atomistic MD-trajectories.
 
-Usage:
+Basic installation 
+###################
+(see performance advice in `Install Guide <share/doc/INSTALL.rst>`__)
 
 ::
 
     prefix=WHERE/TO/INSTALL/VOTCA
     version=master # or 'stable' or 'v2021.2'
-    git clone -b ${version} --recursive https://github.com/votca/votca.git
-    cmake -B builddir -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} votca
+    git clone -b ${version} https://github.com/votca/votca.git
+    cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix}
     cmake --build builddir --parallel <number of cores>
     cmake --build builddir --target install
 
-Using this code via docker:
-
+Using this code via docker
+##########################
 ::
 
     docker pull votca/votca
     docker run -it votca/votca /bin/bash
 
-For further details see:
+More detailed information:
+##########################
 
 1. `Installation <share/doc/INSTALL.rst>`__
 2. `Further Information <http://www.votca.org>`__
@@ -45,3 +49,23 @@ You find the VOTCA-CTP repository
    :target: https://github.com/votca/votca/actions?query=workflow%3ADocker+branch%3Amaster
 .. |DOI| image:: https://zenodo.org/badge/75022030.svg
    :target: https://zenodo.org/badge/latestdoi/75022030
+
+License:
+########
+
+Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may
+not use this file except in compliance with the License. You may obtain
+a copy of the License at
+
+::
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

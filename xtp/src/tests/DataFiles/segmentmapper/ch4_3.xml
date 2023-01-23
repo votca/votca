@@ -1,0 +1,38 @@
+<topology>
+	<molecules>
+		<molecule>
+			<name>Methane</name>
+			<mdname>Methane</mdname>
+			<segments>
+				<segment>
+					<name>Methane</name>
+					<qmcoords>molecule.xyz</qmcoords>
+					<map2md>0</map2md>
+					<fragments>
+						<fragment>
+							<name>ALAB_1</name>
+							<mdatoms>  1:CB:0    1:HB1:1   1:HB2:2     </mdatoms>
+							<qmatoms>     0:C          1:H          2:H              </qmatoms>
+							<mpoles>      0:C          1:H          2:H             </mpoles>
+							<localframe>0 1 2</localframe>
+						</fragment>
+<fragment>
+							<name>ALAB_2</name>
+							<mdatoms>  1:HB3:3   </mdatoms>
+							<qmatoms>     3:H          </qmatoms>
+							<mpoles>      3:H          </mpoles>
+							<localframe>3</localframe>
+						</fragment>
+<fragment>
+							<name>ALAB_3</name>
+							<mdatoms>   1:HB4:4 </mdatoms>
+							<qmatoms>           4:H     </qmatoms>
+							<mpoles>           4:H     </mpoles>
+							<localframe>4</localframe>
+						</fragment>
+					</fragments>
+				</segment>
+			</segments>
+		</molecule>
+	</molecules>
+</topology>

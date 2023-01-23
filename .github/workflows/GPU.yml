@@ -1,0 +1,34 @@
+name: GPU
+
+on:
+  pull_request:
+    branches:
+      - master
+      - stable
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
+jobs:
+  build:
+    runs-on: [self-hosted, gpu, benchmark]
+
+    steps:
+      - name: cleanup
+        run: rm -rf *
+
+      - name: Checkout votca
+        uses: actions/checkout@v3
+        with:
+          path: votca
+
+      - name: Configure Cmake
+        run: cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON
+
+      - name: Build
+        run: cmake --build builddir --parallel $(nproc)
+
+      - name: run Tests
+        run: ctest --output-on-failure -j $(nproc)
+        working-directory: builddir

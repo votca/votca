@@ -42,10 +42,10 @@ class Bead;
 
 class BeadList {
  public:
-  /// \brief Select all beads of type <select>
+  /// \brief Select all beads of type "select"
   Index Generate(Topology &top, const std::string &select);
-  /// \brief Select all beads of type <select> withn a radius <radius> of
-  /// reference vector <ref>
+  /// \brief Select all beads of type "select" withn a radius "radius" of
+  /// reference vector "ref"
   Index GenerateInSphericalSubvolume(Topology &top, const std::string &select,
                                      Eigen::Vector3d ref, double radius);
 

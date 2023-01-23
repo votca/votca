@@ -1,0 +1,44 @@
+log none
+
+#SPC/E water
+
+units		real	
+atom_style	atomic
+
+read_data	spce.data
+
+#pair_style table to read in CG potential from Larini paper
+#real space cutoff for lj and Coulomb interaction
+pair_style      hybrid/overlay table linear 1200 sw/angle/table
+
+#pair coefficients for tabulated cg interactions
+pair_coeff	1 1 table table_CG_CG.txt VOTCA
+pair_coeff      * * sw/angle/table spce.sw type
+
+#nvt run with nose-hoover thermostat
+#time coupling of 100 ts for thermostat
+#target T is 300 K
+fix		1 all nvt temp 300.0 300.0 200.0
+
+#create initial velocities
+velocity	all create 300 432567 dist uniform
+#remove center of mass linear momentum
+velocity	all zero linear
+
+#remove center of mass linear momentum every 1000 time steps in each cartesian direction
+fix remove all momentum 1000 linear 1 1 1
+
+#timestep of 2 fs
+timestep	2.0
+
+#print out thermodynamic info every 100 ts
+thermo		100
+
+#run 10000 ts
+run		10000
+
+#write out dump file every 100 ts for 90000 ts
+dump 		2 all atom 100 traj.dump
+run		90000
+
+undump 2

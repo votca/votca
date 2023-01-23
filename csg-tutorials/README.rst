@@ -7,6 +7,11 @@ http://www.votca.org
 The development of VOTCA is mainly funded by academic research grants.
 If you use this package, please cite the VOTCA papers:
 
+-  | *Force-matching with three-body interactions in VOTCA*,
+   | C. Scherer, and D. Andrienko,
+   | `Phys. Chem. Chem. Phys, 20, 22387–22394
+     (2018) <http://xlink.rsc.org/?DOI=C8CP00746B>`__.
+
 -  | *Relative entropy and optimization-driven coarse-graining methods
      in VOTCA*,
    | S.Y. Mashayak, M. Jochum, K. Koschke, N.R. Aluru, V. Ruehle, and C.
@@ -32,7 +37,8 @@ for votca at http://groups.google.com/group/votca
 You can contact the VOTCA Development Team at devs@votca.org.
 
 The following tutorials (compare with paper above) are included. They
-all rely on Gromacs unless specified otherwise:
+all rely on Gromacs unless specified otherwise. A detailed guide can be found in:
+`Tutorial <https://www.votca.org/csg-tutorials/Tutorial.html>`__.
 
 -  ``spce/atomistic``: atomistic reference simulations for SPC/E water
 -  ``spce/force_matching``: force matching for SPC/E water
@@ -72,6 +78,8 @@ all rely on Gromacs unless specified otherwise:
    -  ``spce/cma/simple``: optimizing the rdf
    -  ``spce/cma/density``: optimizing the rdf and the density
 
+-  ``spce/3body_sw``: force matching for SPC/E water with 3body SW interactions
+
 -  ``methanol/atomistic``: atomistic simulations for methanol
 -  ``methanol/force_matching``: force matching for methanol
 -  ``methanol/ibi``: iterative boltzmann inversion for methanol
@@ -101,7 +109,7 @@ all rely on Gromacs unless specified otherwise:
 -  ``methanol-water``: methanol-water mixture for 3 different
    concentrations
 
-   -  \`methanol-water/\*/atomistic atomistic simulations
+   -  ``methanol-water/*/atomistic``: atomistic simulations
    -  ``methanol-water/*/re``: relative entropy method
    -  ``methanol-water/*/simplex``: simplex optimizing
 

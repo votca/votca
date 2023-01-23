@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,9 @@
 
   \section started_sec Getting started
   To start developing custom analysis tools, a good place to start is the
-  csgapps repository:
+  csgapps folder:
 
-  https://github.com/votca/csg/tree/master/src/csgapps
+  https://github.com/votca/votca/tree/master/csg/src/csgapps
 
   It contains several small analysis tools which were implemented based upon the
   VOTCA-CSG framework. We highly recomment to use an IDE such as Visual Studio
@@ -66,7 +66,6 @@
 
 namespace votca {
 namespace csg {
-const std::string &CsgVersionStr();
 void HelpTextHeader(const std::string &tool_name);
 }  // namespace csg
 }  // namespace votca
