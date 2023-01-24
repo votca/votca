@@ -196,10 +196,10 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     if (!Logfile_parse) {
       throw std::runtime_error("\n Parsing DFT logfile failed. Stopping!");
     }
-    Orbfile_parse = xtpdft->ParseMOsFile(orb_);
+    /*Orbfile_parse = xtpdft->ParseMOsFile(orb_);
     if (!Orbfile_parse) {
       throw std::runtime_error("\n Parsing DFT orbfile failed. Stopping!");
-    }
+    }*/
   }
 
   QMState state = QMState("groundstate");
@@ -229,8 +229,10 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
       }
     }
   }
+
   E_hist_.push_back(energy);
-  Dmat_hist_.push_back(orb_.DensityMatrixFull(state));
+  // for QMMM convergence and interaction, rewrite everything back to full basis 
+  Dmat_hist_.push_back(orb_.DensityMatrixFull(state)); // TOCHECK wich basis this is
   orb_.QMAtoms().clearAtoms();
   orb_.QMAtoms() = originalmol;
   return;
@@ -327,6 +329,9 @@ void QMRegion::ApplyQMFieldToPolarSegments(
   Vxc_Grid grid;
   AOBasis basis =
       orb_.getDftBasis();  // grid needs a basis in scope all the time
+
+  std::cout << " Basis size is " << basis.AOBasisSize() << "\n" << std::endl;
+  std::cout << " QMAtoms size is " << orb_.QMAtoms().size() << "\n" << std::endl;
   grid.GridSetup(grid_accuracy_for_ext_interaction_, orb_.QMAtoms(), basis);
   DensityIntegration<Vxc_Grid> numint(grid);
 
@@ -334,7 +339,13 @@ void QMRegion::ApplyQMFieldToPolarSegments(
   if (do_gwbse_) {
     state = statetracker_.CalcState(orb_);
   }
+
   Eigen::MatrixXd dmat = orb_.DensityMatrixFull(state);
+  std::cout << "Size of density matrix is "
+           << dmat.rows() << " x " << dmat.cols() << "\n" << 
+          std::endl;
+
+
   double Ngrid = numint.IntegrateDensity(dmat);
   AOOverlap overlap;
   overlap.Fill(basis);

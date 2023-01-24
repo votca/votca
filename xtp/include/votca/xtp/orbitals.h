@@ -55,8 +55,8 @@ class Orbitals {
 
   const tools::EigenSystem &getEmbeddedMOs() const { return mos_embedding_; }
 
-  void setTruncMOsFullBasis(const Eigen::MatrixXd &exapndedMOs) {
-    expandedMOs_ = exapndedMOs;
+  void setTruncMOsFullBasis(const Eigen::MatrixXd &expandedMOs) {
+    expandedMOs_ = expandedMOs;
   }
 
   const Eigen::MatrixXd getTruncMOsFullBasis() const { return expandedMOs_; }
