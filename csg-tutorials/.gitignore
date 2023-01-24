@@ -34,4 +34,3 @@ angle.dist.*
 bond.dist.*
 *.log
 *.ipynb
-sbatch.sh
