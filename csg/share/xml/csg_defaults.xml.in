@@ -476,6 +476,9 @@
         <DESC>number of threads to use for csg_stat</DESC>
       </tasks>
     </simulation>
+    <scale>
+        <DESC>update scaling factor for the relative entropy update</DESC>
+    </scale>
   </inverse>
   <nbsearch>grid
     <DESC>Grid search algorithm, simple (N square search) or grid</DESC>
