@@ -38,7 +38,7 @@ You can contact the VOTCA Development Team at devs@votca.org.
 
 The following tutorials (compare with paper above) are included. They
 all rely on Gromacs unless specified otherwise. A detailed guide can be found in:
-`Tutorial Guide <guide/README.rst>`__.
+`Tutorial <https://www.votca.org/csg-tutorials/Tutorial.html>`__.
 
 -  ``spce/atomistic``: atomistic reference simulations for SPC/E water
 -  ``spce/force_matching``: force matching for SPC/E water

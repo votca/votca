@@ -87,7 +87,7 @@ class HistogramNew {
   /**
    * \brief process a data point
    * \param v value of this point
-   * \scale scale weighting of this point, bin of v is increased by scale
+   * \param scale weighting of this point, bin of v is increased by scale
    * instead of 1
    */
   void Process(const double &v, double scale = 1.0);

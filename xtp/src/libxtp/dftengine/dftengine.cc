@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2022 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -121,6 +121,13 @@ void DFTEngine::Initialize(tools::Property& options) {
         options.get(key_xtpdft + ".dft_in_dft.threshold").as<double>();
     levelshift_ =
         options.get(key_xtpdft + ".dft_in_dft.levelshift").as<double>();
+    truncate_ =
+        options.get(key_xtpdft + ".dft_in_dft.truncate_basis").as<bool>();
+    if (truncate_) {
+      truncation_threshold_ =
+          options.get(key_xtpdft + ".dft_in_dft.truncation_threshold")
+              .as<double>();
+    }
   }
 }
 
@@ -387,7 +394,8 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       << "Indices of active atoms selected are: " << active_atoms_as_string_
       << std::flush;
   ActiveDensityMatrix DMAT_A(orb, activeatoms, active_threshold_);
-  const Eigen::MatrixXd InitialActiveDensityMatrix = DMAT_A.compute_Dmat_A();
+  const Eigen::MatrixXd InitialActiveDensityMatrix = DMAT_A.compute_Dmat_A()[0];
+  Eigen::MatrixXd InitialInactiveMOs = DMAT_A.compute_Dmat_A()[2];
 
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Active density formation done" << std::flush;
@@ -402,7 +410,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
 
   Index all_electrons = static_cast<Index>(
       std::round(FullDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
-  Index active_electrons = static_cast<Index>(std::round(
+  active_electrons_ = static_cast<Index>(std::round(
       InitialActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
   Index inactive_electrons = static_cast<Index>(
       std::round(InactiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()));
@@ -410,31 +418,31 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Total electrons: " << all_electrons << std::flush;
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " Active electrons: " << active_electrons << std::flush;
+      << TimeStamp() << " Active electrons: " << active_electrons_
+      << std::flush;
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Inactive electrons: " << inactive_electrons
       << std::flush;
 
   // check for consistency
-  if ((active_electrons + inactive_electrons) != all_electrons) {
-    XTP_LOG(Log::error, *pLog_) << TimeStamp()
-                                << " Sum of active and inactive electrons does "
-                                   "not match full number of electrons!"
-                                << std::flush;
+  if ((active_electrons_ + inactive_electrons) != all_electrons) {
+    throw std::runtime_error(
+        " Sum of active and inactive electrons does "
+        "not match full number of electrons!");
     return false;
   }
 
   // setup the DFT engine with the active electrons only
-  Prepare(orb, active_electrons);
+  Prepare(orb, active_electrons_);
 
   // setup one-electron part of the Hamiltonian
   Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
 
-  // energy of the one-lectron part of the Hamiltonian
+  // energy of the one-electron part of the Hamiltonian
   const double E0_full = FullDensityMatrix.cwiseProduct(H0.matrix()).sum();
   const double E0_initial_active =
       InitialActiveDensityMatrix.cwiseProduct(H0.matrix()).sum();
-  const double E_nuc = H0.energy();
+  E_nuc_ = H0.energy();
 
   // setup the Vxc integrator
   Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
@@ -474,30 +482,30 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
                 .sum();
 
   // Energy of the full reference system
-  const double Total_E_full =
-      E0_full + E_Hartree_full + xc_full.energy() + E_nuc;
+  Total_E_full_ = E0_full + E_Hartree_full + xc_full.energy() + E_nuc_;
 
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp()
-      << " Reference total energy full electron system: " << Total_E_full
+      << " Reference total energy full electron system: " << Total_E_full_
       << " Ha" << std::flush;
 
   // projection parameter, to be made an option
-  const Eigen::MatrixXd Level_Shift_Operator =
-      levelshift_ * overlap.Matrix() * InactiveDensityMatrix * overlap.Matrix();
+  Eigen::MatrixXd ProjectionOperator =
+      overlap.Matrix() * InactiveDensityMatrix * overlap.Matrix();
 
   // XC and Hartree contribution to the external embedding potential/energy
   const Eigen::MatrixXd v_embedding = J_full + K_full + xc_full.matrix() -
                                       J_initial_active - K_initial_active -
                                       xc_initial_active.matrix();
 
-  const double constant_embedding_energy = Total_E_full - E0_initial_active -
+  const double constant_embedding_energy = Total_E_full_ - E0_initial_active -
                                            E_Hartree_initial_active -
                                            xc_initial_active.energy();
+
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Constant energy embedding terms: " << std::flush;
-  XTP_LOG(Log::info, *pLog_)
-      << TimeStamp() << " 1) E_DFT[full]: " << Total_E_full << std::flush;
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " 1) E_DFT[full]: " << Total_E_full_ << std::flush;
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " 2) E_0[initial active]: " << E0_initial_active
       << std::flush;
@@ -510,129 +518,418 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       << TimeStamp() << " Total 1 -2 -3 -4: " << constant_embedding_energy
       << std::flush;
 
-  // Self-consistent calculation for the active electrons in the embedding
-  // potential
-  Eigen::MatrixXd ActiveDensityMatrix = InitialActiveDensityMatrix;
-  for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
-    XTP_LOG(Log::error, *pLog_) << std::flush;
-    XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Iteration " << this_iter + 1
-                                << " of " << max_iter_ << std::flush;
+  if (truncate_) {  // Truncation starts here
 
-    // get the XC contribution for the updated active density matrix
-    Mat_p_Energy xc_active = vxcpotential.IntegrateVXC(ActiveDensityMatrix);
-    double E_xc_active = xc_active.energy();
+    // Mulliken population per basis function on every active atom
+    Eigen::VectorXd DiagonalofDmatA = InitialActiveDensityMatrix.diagonal();
+    Eigen::VectorXd DiagonalofOverlap = overlap.Matrix().diagonal();
+    Eigen::VectorXd MnP = DiagonalofDmatA.cwiseProduct(DiagonalofOverlap);
 
-    // get the Hartree contribution for the updated active density matrix
-    Eigen::MatrixXd J_active = Eigen::MatrixXd::Zero(
-        ActiveDensityMatrix.rows(), ActiveDensityMatrix.cols());
-    Eigen::MatrixXd K_active = Eigen::MatrixXd::Zero(
-        ActiveDensityMatrix.rows(), ActiveDensityMatrix.cols());
-    if (ScaHFX_ > 0) {
-      std::array<Eigen::MatrixXd, 2> JandK_active =
-          CalcERIs_EXX(embeddingMOs.eigenvectors(), ActiveDensityMatrix, 1e-12);
-      J_active = JandK_active[0];
-      K_active = 0.5 * ScaHFX_ * JandK_active[1];
-
-    } else {
-      J_active = CalcERIs(ActiveDensityMatrix, 1e-12);
+    // Get a vector containing the number of basis functions per atom
+    const std::vector<Index>& numfuncpatom = aobasis.getFuncPerAtom();
+    Index numofactivebasisfunction = 0;
+    // Store start indices. Will be used later
+    std::vector<Index> start_indices, start_indices_activemolecule;
+    Index start_idx = 0, start_idx_activemolecule = 0;
+    std::vector<Index> borderatoms;
+    for (Index atom_num = 0; atom_num < orb.QMAtoms().size(); atom_num++) {
+      start_indices.push_back(start_idx);
+      // Condition for basis fn on an atom to be counted: either in active
+      // region or MnP of any function > threshold (border atoms)
+      bool partOfActive =
+          (std::find(activeatoms.begin(), activeatoms.end(),
+                     orb.QMAtoms()[atom_num].getId()) != activeatoms.end());
+      if (partOfActive == true) {
+        activemol_.push_back(orb.QMAtoms()[atom_num]);
+        // if active append the atom to the new molecule. Also increment active
+        // basis function size and start indices
+        start_indices_activemolecule.push_back(start_idx_activemolecule);
+        start_idx_activemolecule += numfuncpatom[atom_num];
+        numofactivebasisfunction += numfuncpatom[atom_num];
+      } else {
+        std::vector<const AOShell*> inactiveshell =
+            aobasis.getShellsofAtom(orb.QMAtoms()[atom_num].getId());
+        bool loop_break = false;
+        for (const AOShell* shell : inactiveshell) {
+          for (Index shell_fn_no = shell->getStartIndex();
+               shell_fn_no < shell->getStartIndex() + shell->getNumFunc();
+               shell_fn_no++) {
+            if (MnP[shell_fn_no] > truncation_threshold_) {
+              activeatoms.push_back(atom_num);
+              borderatoms.push_back(atom_num);  // push this index to border
+                                                // atoms
+              activemol_.push_back(orb.QMAtoms()[atom_num]);
+              loop_break = true;  // if any function in the whole atom satisfies
+                                  // we break loop to check next atom
+              start_indices_activemolecule.push_back(start_idx_activemolecule);
+              start_idx_activemolecule += numfuncpatom[atom_num];
+              numofactivebasisfunction += numfuncpatom[atom_num];
+              break;
+            }
+          }
+          if (loop_break) break;
+        }
+      }
+      start_idx += numfuncpatom[atom_num];
     }
-    double E_Hartree_active =
-        0.5 * ActiveDensityMatrix.cwiseProduct(J_active + K_active).sum();
 
-    // update the active Hamiltonian
-    Eigen::MatrixXd H_active = H0.matrix() + v_embedding +
-                               Level_Shift_Operator + xc_active.matrix() +
-                               J_active + K_active;
-
-    const double E0_active =
-        ActiveDensityMatrix.cwiseProduct(H0.matrix()).sum();
-    const double E_embedding =
-        (ActiveDensityMatrix - InitialActiveDensityMatrix)
-            .cwiseProduct(v_embedding)
-            .sum();
-    const double E_levelshift =
-        ActiveDensityMatrix.cwiseProduct(Level_Shift_Operator).sum();
-
-    double TotalEnergy = E0_active + E_Hartree_active + E_xc_active +
-                         constant_embedding_energy + E_levelshift + E_embedding;
-
+    // Sort atoms before you cut the Hamiltonian
+    sort(activeatoms.begin(), activeatoms.end());
+    sort(borderatoms.begin(), borderatoms.end());
+    XTP_LOG(Log::error, *pLog_) << std::flush;
     XTP_LOG(Log::error, *pLog_)
-        << TimeStamp() << " Total Energy after embedding: " << TotalEnergy
-        << std::flush;
-    XTP_LOG(Log::info, *pLog_)
-        << TimeStamp() << "   I) E_0[active]: " << E0_active << std::flush;
-    XTP_LOG(Log::info, *pLog_)
-        << TimeStamp() << "  II) E_H[active]: " << E_Hartree_active
-        << std::flush;
-    XTP_LOG(Log::info, *pLog_)
-        << TimeStamp() << " III) E_xc[active]: " << E_xc_active << std::flush;
-    XTP_LOG(Log::info, *pLog_)
-        << TimeStamp() << "  IV) E_ext_emb :" << constant_embedding_energy
-        << std::flush;
-    XTP_LOG(Log::info, *pLog_)
-        << TimeStamp() << "   V) E_corr_emb :" << E_embedding << std::flush;
-    XTP_LOG(Log::info, *pLog_)
-        << TimeStamp() << "  VI) E_levelshift :" << E_levelshift << std::flush;
-    XTP_LOG(Log::info, *pLog_)
-        << TimeStamp() << "  Total I + II + III + IV + V +VI :" << TotalEnergy
-        << std::flush;
+        << "Active + Border Molecule Size = " << activeatoms.size()
+        << "\n \t \t "
+        << "Border Molecule Size = " << borderatoms.size() << std::flush;
 
-    // get a new density matrix in the active region
-    XTP_LOG(Log::info, *pLog_)
-        << std::endl
-        << "Active electrons in = "
-        << ActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
-        << std::flush;
-    ActiveDensityMatrix = conv_accelerator_.Iterate(
-        ActiveDensityMatrix, H_active, embeddingMOs, TotalEnergy);
-    XTP_LOG(Log::info, *pLog_)
-        << std::endl
-        << "Active electrons out= "
-        << ActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
-        << std::flush;
+    Eigen::MatrixXd H_embedding =
+        H0.matrix() + v_embedding + levelshift_ * ProjectionOperator;
 
-    PrintMOs(embeddingMOs.eigenvalues(), Log::info);
-
-    if (conv_accelerator_.isConverged()) {
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " Total embedding energy has converged to "
-          << std::setprecision(9) << conv_accelerator_.getDeltaE()
-          << "[Ha] after " << this_iter + 1
-          << " iterations. DIIS error is converged up to "
-          << conv_accelerator_.getDIIsError() << std::flush;
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " Final Single Point Energy of embedding "
-          << std::setprecision(12) << TotalEnergy << " Ha" << std::flush;
-      XTP_LOG(Log::error, *pLog_)
-          << "The difference between the reference energy and the embedding "
-             "energy is "
-          << Total_E_full - TotalEnergy << " Ha" << std::flush;
-
-      if (abs(Total_E_full - TotalEnergy) > 1e-3) {
-        XTP_LOG(Log::error, *pLog_)
-            << "Warning!! The difference is greater than 1e-03 Ha"
-            << std::flush;
+    if (borderatoms.size() != 0) {
+      Eigen::MatrixXd BorderMOs;
+      for (Index lmo_index = 0; lmo_index < InitialInactiveMOs.cols();
+           lmo_index++) {
+        double mullikenpop_lmo_borderatoms = 0;
+        for (Index borderatom : borderatoms) {
+          Index start = start_indices[borderatom];
+          Index size = numfuncpatom[borderatom];
+          mullikenpop_lmo_borderatoms +=
+              (InitialInactiveMOs.col(lmo_index) *
+               InitialInactiveMOs.col(lmo_index).transpose() * overlap.Matrix())
+                  .diagonal()
+                  .segment(start, size)
+                  .sum();
+        }
+        /*If more than half of a MO contributes on a border atom include that in
+         * the Border MOs list*/
+        if (mullikenpop_lmo_borderatoms > 0.25) {
+          BorderMOs.conservativeResize(InitialInactiveMOs.rows(),
+                                       BorderMOs.cols() + 1);
+          BorderMOs.col(BorderMOs.cols() - 1) =
+              InitialInactiveMOs.col(lmo_index);
+        }
       }
 
-      PrintMOs(embeddingMOs.eigenvalues(), Log::error);
-      orb.setEmbeddedMOs(embeddingMOs);
-      orb.setNumofActiveElectrons(active_electrons);
-      CalcElDipole(orb);
-      break;
-    } else if (this_iter == max_iter_ - 1) {
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp()
-          << " DFT calculation for active region has not converged after "
-          << max_iter_
-          << " iterations. Use more iterations or another convergence "
-             "acceleration scheme."
-          << std::flush;
-      return false;
+      Eigen::MatrixXd BorderDmat = 2 * BorderMOs * BorderMOs.transpose();
+      Eigen::MatrixXd BorderProjectionOperator =
+          overlap.Matrix() * BorderDmat * overlap.Matrix();
+      Eigen::MatrixXd DistantProjectionOperator =
+          ProjectionOperator - BorderProjectionOperator;
+
+      H_embedding +=
+          1e+2 * BorderProjectionOperator +
+          levelshift_ * (DistantProjectionOperator - ProjectionOperator);
+    }
+
+    // from here it is time to truncate Hamiltonian H0
+    H0_trunc_ = Eigen::MatrixXd::Zero(numofactivebasisfunction,
+                                      numofactivebasisfunction);
+    InitialActiveDmat_trunc_ = Eigen::MatrixXd::Zero(numofactivebasisfunction,
+                                                     numofactivebasisfunction);
+    v_embedding_trunc_ = Eigen::MatrixXd::Zero(numofactivebasisfunction,
+                                               numofactivebasisfunction);
+    // Defined needed matrices with basisset_size * basisset_size
+
+    for (Index activeatom1_idx = 0; activeatom1_idx < Index(activeatoms.size());
+         activeatom1_idx++) {
+      Index activeatom1 = activeatoms[activeatom1_idx];
+      for (Index activeatom2_idx = 0;
+           activeatom2_idx < Index(activeatoms.size()); activeatom2_idx++) {
+        Index activeatom2 = activeatoms[activeatom2_idx];
+        // Fill the H0, Dmat and v_embedding at the right indices
+        H0_trunc_.block(start_indices_activemolecule[activeatom1_idx],
+                        start_indices_activemolecule[activeatom2_idx],
+                        numfuncpatom[activeatom1], numfuncpatom[activeatom2]) =
+            H_embedding.block(
+                start_indices[activeatom1], start_indices[activeatom2],
+                numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
+        InitialActiveDmat_trunc_.block(
+            start_indices_activemolecule[activeatom1_idx],
+            start_indices_activemolecule[activeatom2_idx],
+            numfuncpatom[activeatom1], numfuncpatom[activeatom2]) =
+            InitialActiveDensityMatrix.block(
+                start_indices[activeatom1], start_indices[activeatom2],
+                numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
+        v_embedding_trunc_.block(start_indices_activemolecule[activeatom1_idx],
+                                 start_indices_activemolecule[activeatom2_idx],
+                                 numfuncpatom[activeatom1],
+                                 numfuncpatom[activeatom2]) =
+            v_embedding.block(
+                start_indices[activeatom1], start_indices[activeatom2],
+                numfuncpatom[activeatom1], numfuncpatom[activeatom2]);
+      }
     }
   }
+  // SCF loop if you don't truncate active region
+  else {
+    Eigen::MatrixXd ActiveDensityMatrix = InitialActiveDensityMatrix;
+    for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
+      XTP_LOG(Log::error, *pLog_) << std::flush;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Iteration " << this_iter + 1 << " of "
+          << max_iter_ << std::flush;
 
+      // get the XC contribution for the updated active density matrix
+      Mat_p_Energy xc_active = vxcpotential.IntegrateVXC(ActiveDensityMatrix);
+      double E_xc_active = xc_active.energy();
+
+      // get the Hartree contribution for the updated active density matrix
+      Eigen::MatrixXd J_active = Eigen::MatrixXd::Zero(
+          ActiveDensityMatrix.rows(), ActiveDensityMatrix.cols());
+      Eigen::MatrixXd K_active = Eigen::MatrixXd::Zero(
+          ActiveDensityMatrix.rows(), ActiveDensityMatrix.cols());
+      if (ScaHFX_ > 0) {
+        std::array<Eigen::MatrixXd, 2> JandK_active = CalcERIs_EXX(
+            embeddingMOs.eigenvectors(), ActiveDensityMatrix, 1e-12);
+        J_active = JandK_active[0];
+        K_active = 0.5 * ScaHFX_ * JandK_active[1];
+
+      } else {
+        J_active = CalcERIs(ActiveDensityMatrix, 1e-12);
+      }
+      double E_Hartree_active =
+          0.5 * ActiveDensityMatrix.cwiseProduct(J_active + K_active).sum();
+
+      // update the active Hamiltonian
+      const Eigen::MatrixXd Level_Shift_Operator =
+          levelshift_ * ProjectionOperator;
+      Eigen::MatrixXd H_active = H0.matrix() + v_embedding +
+                                 Level_Shift_Operator + xc_active.matrix() +
+                                 J_active + K_active;
+
+      const double E0_active =
+          ActiveDensityMatrix.cwiseProduct(H0.matrix()).sum();
+      const double E_embedding =
+          (ActiveDensityMatrix - InitialActiveDensityMatrix)
+              .cwiseProduct(v_embedding)
+              .sum();
+      const double E_levelshift =
+          ActiveDensityMatrix.cwiseProduct(Level_Shift_Operator).sum();
+
+      double TotalEnergy = E0_active + E_Hartree_active + E_xc_active +
+                           constant_embedding_energy + E_levelshift +
+                           E_embedding;
+
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Total Energy after embedding: " << TotalEnergy
+          << std::flush;
+      XTP_LOG(Log::info, *pLog_)
+          << TimeStamp() << "   I) E_0[active]: " << E0_active << std::flush;
+      XTP_LOG(Log::info, *pLog_)
+          << TimeStamp() << "  II) E_H[active]: " << E_Hartree_active
+          << std::flush;
+      XTP_LOG(Log::info, *pLog_)
+          << TimeStamp() << " III) E_xc[active]: " << E_xc_active << std::flush;
+      XTP_LOG(Log::info, *pLog_)
+          << TimeStamp() << "  IV) E_ext_emb :" << constant_embedding_energy
+          << std::flush;
+      XTP_LOG(Log::info, *pLog_)
+          << TimeStamp() << "   V) E_corr_emb :" << E_embedding << std::flush;
+      XTP_LOG(Log::info, *pLog_)
+          << TimeStamp() << "  VI) E_levelshift :" << E_levelshift
+          << std::flush;
+      XTP_LOG(Log::info, *pLog_)
+          << TimeStamp() << "  Total I + II + III + IV + V +VI :" << TotalEnergy
+          << std::flush;
+
+      // get a new density matrix in the active region
+      XTP_LOG(Log::info, *pLog_)
+          << std::endl
+          << "Active electrons in = "
+          << ActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
+          << std::flush;
+      ActiveDensityMatrix = conv_accelerator_.Iterate(
+          ActiveDensityMatrix, H_active, embeddingMOs, TotalEnergy);
+      XTP_LOG(Log::info, *pLog_)
+          << std::endl
+          << "Active electrons out= "
+          << ActiveDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
+          << std::flush;
+
+      PrintMOs(embeddingMOs.eigenvalues(), Log::info);
+
+      if (conv_accelerator_.isConverged()) {
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Total embedding energy has converged to "
+            << std::setprecision(9) << conv_accelerator_.getDeltaE()
+            << "[Ha] after " << this_iter + 1
+            << " iterations. DIIS error is converged up to "
+            << conv_accelerator_.getDIIsError() << std::flush;
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Final Single Point Energy of embedding "
+            << std::setprecision(12) << TotalEnergy << " Ha" << std::flush;
+        XTP_LOG(Log::error, *pLog_)
+            << "The difference between the reference energy and the embedding "
+               "energy is "
+            << Total_E_full_ - TotalEnergy << " Ha" << std::flush;
+
+        if (abs(Total_E_full_ - TotalEnergy) > 1e-3) {
+          XTP_LOG(Log::error, *pLog_)
+              << "Warning!! The difference is greater than 1e-03 Ha"
+              << std::flush;
+        }
+
+        PrintMOs(embeddingMOs.eigenvalues(), Log::error);
+        orb.setEmbeddedMOs(embeddingMOs);
+        orb.setNumofActiveElectrons(active_electrons_);
+        CalcElDipole(orb);
+        break;
+      } else if (this_iter == max_iter_ - 1) {
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp()
+            << " DFT calculation for active region has not converged after "
+            << max_iter_
+            << " iterations. Use more iterations or another convergence "
+               "acceleration scheme."
+            << std::flush;
+        return false;
+      }
+    }
+  }
   return true;
-}  // namespace xtp
+}
+
+bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
+  if (truncate_) {
+    activemol_.ReorderAtomIDs();
+    trunc_orb.QMAtoms() = activemol_;
+    Prepare(trunc_orb, active_electrons_);
+    Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(trunc_orb.QMAtoms());
+    ConfigOrbfile(trunc_orb);
+    AOBasis aobasis = trunc_orb.getDftBasis();
+    AOOverlap overlap;
+    overlap.Fill(aobasis);
+
+    const double E0_initial_truncated =
+        InitialActiveDmat_trunc_.cwiseProduct(H0_trunc_).sum();
+    const Mat_p_Energy xc_initial_truncated =
+        vxcpotential.IntegrateVXC(InitialActiveDmat_trunc_);
+    Eigen::MatrixXd J_initial_truncated = Eigen::MatrixXd::Zero(
+        InitialActiveDmat_trunc_.rows(), InitialActiveDmat_trunc_.cols());
+    Eigen::MatrixXd K_initial_truncated = Eigen::MatrixXd::Zero(
+        InitialActiveDmat_trunc_.rows(), InitialActiveDmat_trunc_.cols());
+    tools::EigenSystem MOs_trunc;
+    MOs_trunc.eigenvalues() = Eigen::VectorXd::Zero(H0_trunc_.cols());
+    MOs_trunc.eigenvectors() =
+        Eigen::MatrixXd::Zero(H0_trunc_.rows(), H0_trunc_.cols());
+    if (ScaHFX_ > 0) {
+      std::array<Eigen::MatrixXd, 2> JandK_initial_truncated = CalcERIs_EXX(
+          MOs_trunc.eigenvectors(), InitialActiveDmat_trunc_, 1e-12);
+      J_initial_truncated = JandK_initial_truncated[0];
+      K_initial_truncated = 0.5 * ScaHFX_ * JandK_initial_truncated[1];
+    } else {
+      J_initial_truncated = CalcERIs(InitialActiveDmat_trunc_, 1e-12);
+    }
+    // get the Hartree energies
+    const double E_Hartree_initial_truncated =
+        0.5 * InitialActiveDmat_trunc_
+                  .cwiseProduct(J_initial_truncated + K_initial_truncated)
+                  .sum();
+    const double Initial_truncated_energy = E0_initial_truncated +
+                                            E_Hartree_initial_truncated +
+                                            xc_initial_truncated.energy();
+    XTP_LOG(Log::error, *pLog_)
+        << "Initial truncated energy = " << Initial_truncated_energy
+        << std::flush;
+
+    Eigen::MatrixXd PurifiedActiveDmat_trunc =
+        McWeenyPurification(InitialActiveDmat_trunc_, overlap);
+    Eigen::MatrixXd TruncatedDensityMatrix = PurifiedActiveDmat_trunc;
+
+    for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
+      XTP_LOG(Log::error, *pLog_) << std::flush;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Iteration " << this_iter + 1 << " of "
+          << max_iter_ << std::flush;
+
+      // get the XC contribution for the updated truncated density matrix
+      Mat_p_Energy xc_truncated =
+          vxcpotential.IntegrateVXC(TruncatedDensityMatrix);
+      double E_xc_truncated = xc_truncated.energy();
+
+      // get the Hartree contribution for the updated truncated density matrix
+      Eigen::MatrixXd J_truncated = Eigen::MatrixXd::Zero(
+          TruncatedDensityMatrix.rows(), TruncatedDensityMatrix.cols());
+      Eigen::MatrixXd K_truncated = Eigen::MatrixXd::Zero(
+          TruncatedDensityMatrix.rows(), TruncatedDensityMatrix.cols());
+      if (ScaHFX_ > 0) {
+        std::array<Eigen::MatrixXd, 2> JandK_truncated = CalcERIs_EXX(
+            MOs_trunc.eigenvectors(), TruncatedDensityMatrix, 1e-12);
+        J_truncated = JandK_truncated[0];
+        K_truncated = 0.5 * ScaHFX_ * JandK_truncated[1];
+
+      } else {
+        J_truncated = CalcERIs(TruncatedDensityMatrix, 1e-12);
+      }
+      double E_Hartree_truncated =
+          0.5 *
+          TruncatedDensityMatrix.cwiseProduct(J_truncated + K_truncated).sum();
+      // update the truncated Hamiltonian
+      Eigen::MatrixXd H_truncated =
+          H0_trunc_ + xc_truncated.matrix() + J_truncated + K_truncated;
+
+      double TruncatedTotalEnergy =
+          TruncatedDensityMatrix.cwiseProduct(H0_trunc_).sum() +
+          E_Hartree_truncated + E_xc_truncated + Total_E_full_ -
+          Initial_truncated_energy +
+          ((TruncatedDensityMatrix - InitialActiveDmat_trunc_)
+               .cwiseProduct(v_embedding_trunc_)
+               .sum());
+      // get the new truncated density matrix
+      XTP_LOG(Log::info, *pLog_)
+          << "Electrons in = "
+          << TruncatedDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
+          << std::flush;
+      TruncatedDensityMatrix = conv_accelerator_.Iterate(
+          TruncatedDensityMatrix, H_truncated, MOs_trunc, TruncatedTotalEnergy);
+      XTP_LOG(Log::info, *pLog_)
+          << "Electrons out = "
+          << TruncatedDensityMatrix.cwiseProduct(overlap.Matrix()).sum()
+          << std::flush;
+
+      XTP_LOG(Log::info, *pLog_)
+          << TimeStamp() << " E_trunc (Ha) = "
+          << TruncatedDensityMatrix.cwiseProduct(H0_trunc_).sum() +
+                 E_Hartree_truncated + E_xc_truncated
+          << "\n \t \t \t"
+          << " E_fullDFT (Ha) = " << Total_E_full_ << "\n \t \t \t"
+          << " E_initial_trunc(Ha) = " << Initial_truncated_energy
+          << "\n \t \t \t"
+          << " E_embedding_correction(Ha) = "
+          << ((TruncatedDensityMatrix - InitialActiveDmat_trunc_)
+                  .cwiseProduct(v_embedding_trunc_)
+                  .sum())
+          << std::flush;
+
+      XTP_LOG(Log::error, *pLog_)
+          << " Truncated Energy of the system: E_trunc + E_fullDFT - "
+          << "\n \t \t"
+          << " E_initial_trunc + E_embedding_correction = "
+          << TruncatedTotalEnergy << std::flush;
+
+      PrintMOs(MOs_trunc.eigenvalues(), Log::info);
+
+      if (conv_accelerator_.isConverged()) {
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Total embedding energy has converged to "
+            << std::setprecision(9) << conv_accelerator_.getDeltaE()
+            << "[Ha] after " << this_iter + 1
+            << " iterations. DIIS error is converged up to "
+            << conv_accelerator_.getDIIsError() << std::flush;
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Final Single Point Energy of embedding "
+            << std::setprecision(12) << TruncatedTotalEnergy << " Ha"
+            << std::flush;
+
+        PrintMOs(MOs_trunc.eigenvalues(), Log::error);
+        trunc_orb.setEmbeddedMOs(MOs_trunc);
+        trunc_orb.setNumofActiveElectrons(active_electrons_);
+        break;
+      }
+    }
+  }
+  return true;
+}
 
 Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
 
@@ -742,9 +1039,7 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
 }
 
 void DFTEngine::SetupInvariantMatrices() {
-
   dftAOoverlap_.Fill(dftbasis_);
-
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Filled DFT Overlap matrix." << std::flush;
 
@@ -1127,7 +1422,6 @@ void DFTEngine::Prepare(Orbitals& orb, Index numofelectrons) {
           << std::flush;
     }
   }
-
   if (numofelectrons < 0) {
     for (const QMAtom& atom : mol) {
       numofelectrons_ += atom.getNuccharge();
@@ -1315,6 +1609,27 @@ Eigen::MatrixXd DFTEngine::OrthogonalizeGuess(
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(nonortho);
   Eigen::MatrixXd result = GuessMOs * es.operatorInverseSqrt();
   return result;
+}
+
+Eigen::MatrixXd DFTEngine::McWeenyPurification(Eigen::MatrixXd& Dmat_in,
+                                               AOOverlap& overlap) {
+  Eigen::MatrixXd Ssqrt = overlap.Sqrt();
+  Eigen::MatrixXd InvSsqrt = overlap.Pseudo_InvSqrt(1e-8);
+  Eigen::MatrixXd ModifiedDmat = 0.5 * Ssqrt * Dmat_in * Ssqrt;
+  for (Index iter = 0; iter < 100; iter++) {
+    Eigen::MatrixXd Dmat_new = (3 * ModifiedDmat * ModifiedDmat) -
+                               (2 * ModifiedDmat * ModifiedDmat * ModifiedDmat);
+    double IdempotencyError =
+        ((Dmat_new * Dmat_new - Dmat_new) * (Dmat_new * Dmat_new - Dmat_new))
+            .trace();
+    XTP_LOG(Log::info, *pLog_)
+        << "Idempotency Error: " << IdempotencyError << std::flush;
+
+    ModifiedDmat = Dmat_new;
+    if (IdempotencyError < 1e-20) break;
+  }
+  Eigen::MatrixXd Dmat_out = 2 * InvSsqrt * ModifiedDmat * InvSsqrt;
+  return 0.5 * (Dmat_out + Dmat_out.transpose());
 }
 
 }  // namespace xtp

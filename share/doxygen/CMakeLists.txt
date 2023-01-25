@@ -1,0 +1,27 @@
+find_package(Doxygen)
+set_package_properties(Doxygen PROPERTIES TYPE OPTIONAL PURPOSE "Needed to build API documentation")
+if (NOT DOXYGEN_FOUND)
+  return()
+endif()
+
+set(DOXYGEN_EXTRACT_ALL YES)
+set(DOXYGEN_EXTRACT_PRIVATE YES)
+set(DOXYGEN_EXTRACT_PRIV_VIRTUAL YES)
+set(DOXYGEN_EXTRACT_STATIC YES)
+set(DOXYGEN_BUILTIN_STL_SUPPORT YES)
+set(DOXYGEN_DOT_GRAPH_MAX_NODES 100)
+set(DOXYGEN_USE_MATHJAX YES)
+if(ENABLE_WERROR)
+  set(DOXYGEN_WARN_AS_ERROR "FAIL_ON_WARNINGS")
+endif()
+set(DOXYGEN_EXCLUDE_PATTERNS "*.py")
+set(DOXYGEN_SOURCE_BROWSER YES)
+# for gitversion.h
+set(DOXYGEN_INCLUDE_PATH ${PROJECT_BINARY_DIR}/tools/src/libtools)
+file(GLOB_RECURSE DOXYGEN_SOURCES ${PROJECT_SOURCE_DIR}/*.cc ${PROJECT_SOURCE_DIR}/*.h)
+file(GLOB_RECURSE NOT_DOXYGEN_SOURCES ${PROJECT_SOURCE_DIR}/*/src/tests/*.cc ${PROJECT_SOURCE_DIR}/*/src/tests/*.h)
+list(REMOVE_ITEM DOXYGEN_SOURCES ${NOT_DOXYGEN_SOURCES})
+doxygen_add_docs(doxygen ${DOXYGEN_SOURCES} ${PROJECT_BINARY_DIR}/tools/src/libtools/gitversion.h
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  COMMENT "Build doxygen documentation")
+add_dependencies(doxygen gitversion)

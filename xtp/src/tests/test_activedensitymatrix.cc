@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2022 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(activematrix_test) {
 
   ActiveDensityMatrix DMAT_A(orbitals_, activeatoms);
 
-  Eigen::MatrixXd Dmat = DMAT_A.compute_Dmat_A();
+  Eigen::MatrixXd Dmat = DMAT_A.compute_Dmat_A()[0];
   Eigen::MatrixXd DmatA = Dmat;
 
   Eigen::MatrixXd test_DmatA = votca::tools::EigenIO_MatrixMarket::ReadMatrix(

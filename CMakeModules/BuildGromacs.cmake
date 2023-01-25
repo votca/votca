@@ -3,7 +3,6 @@ if(NOT BUILD_SHARED_LIBS)
 endif()
 
 include(ExternalProject)
-include(GNUInstallDirs)
 enable_language(C)
 file(DOWNLOAD https://gitlab.com/gromacs/gromacs/-/merge_requests/1524.patch ${CMAKE_CURRENT_BINARY_DIR}/1524.patch)
 # ftp://ftp.gromacs.org/pub/gromacs/gromacs-XXX.tar.gz is too unstable for CI, so use Gentoo Mirror

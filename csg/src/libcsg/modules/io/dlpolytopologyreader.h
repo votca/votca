@@ -57,12 +57,12 @@ class DLPOLYTopologyReader : public TopologyReader {
   /// read a topology file
   bool ReadTopology(std::string file, Topology &top) override;
 
-  /// set the topology file name: <name>.dlpf (convention: ".dlpf"="FIELD")
+  /// set the topology file name: name.dlpf (convention: ".dlpf"="FIELD")
   void setFname(std::string name) {
     fname_ = name;
     return;
   }
-  /// get the topology file name: <name>.dlpf (convention: ".dlpf"="FIELD")
+  /// get the topology file name: name.dlpf (convention: ".dlpf"="FIELD")
   std::string getFname() { return fname_; }
 
  private:

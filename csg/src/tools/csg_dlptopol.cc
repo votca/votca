@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
 
   fname = OptionsMap()["out"].as<string>();
 
-#ifdef DEBUG
+#ifndef NDEBUG
   cout << "output file-name given: " << fname << endl;
 #endif
 
@@ -102,7 +102,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
     fname = "FIELD_CGV";
   }
 
-#ifdef DEBUG
+#ifndef NDEBUG
   cout << "output file-name actual: " << fname << endl;
 #else
   cout << "output file-name: " << fname << endl;
@@ -171,7 +171,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
           }
           if (is_new_pair) {
             vdw_pairs.push_back(ss_bp1.str());
-#ifdef DEBUG
+#ifndef NDEBUG
             cout << "'" << ss_bp1.str() << "' added to CG vdw pairs" << endl;
 #endif
           }

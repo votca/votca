@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2022 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -632,7 +632,8 @@ std::vector<Eigen::MatrixXd> PMLocalization::setup_pop_matrices(
     Qat[iat].diagonal() = MullikenPop_orb_per_atom_.col(iat);
   }
 
-  // now fill the offdiagonals
+// now fill the offdiagonals
+#pragma omp parallel for
   for (Index s = 0; s < noccs; s++) {
 
     Eigen::MatrixXd s_overlap = occ_orbitals.col(s).asDiagonal() * overlap_;
