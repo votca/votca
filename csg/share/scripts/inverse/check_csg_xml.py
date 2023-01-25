@@ -66,7 +66,7 @@ def check_votca_settings_xml(root, root_defaults):
 
     sim_progs = ["gromacs", "lammps", "hoomd", "espresso"]
     found_bad_paths = []
-    for child, child_path in iter_xml(root):
+    for _, child_path in iter_xml(root):
         # options for cg.bonded are partially listed in cg.non-bonded
         child_path_non_bonded = child_path.replace("/bonded/", "/non-bonded/")
         # options for cg.$program are listed in cg.sim_prog, similar per interaction
