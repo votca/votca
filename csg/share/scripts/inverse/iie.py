@@ -266,6 +266,8 @@ def process_input(args):
     # get charge_dict
     if args.subcommand == "potential_guess":
         charge_dict = get_charge_dict(topology)
+    else:
+        charge_dict = None
     # get needed intramolecular interactions
     # all topologies should contain all molecules
     intra_needed = get_intra_needed(topology)
@@ -529,6 +531,8 @@ def calc_u_matrix(
             u_mat = kBT * (-np.log(g_mat) + (g_mat - 1) - c_mat)
         elif closure == "py":
             u_mat = kBT * np.log(1 - c_mat / g_mat)
+        else:
+            raise Exception("closure has to be hnc or py")
     return u_mat
 
 
@@ -632,7 +636,9 @@ def calc_jacobian(input_arrays, settings, verbose=False):
             settings["rhos"],
             settings["n_intra"],
             verbose,
-        )
+        )[cut]
+    else:
+        c_mat = None
 
     # Note: not 100% sure the order of the next three steps is correct.
     # But this is how I describe it in the paper and I tested it in for
@@ -648,7 +654,7 @@ def calc_jacobian(input_arrays, settings, verbose=False):
         settings["n_intra"],
         settings["kBT"],
         settings["closure"],
-        c_mat[cut] if settings["closure"] == "py" else None,
+        c_mat,
         verbose=verbose,
     )
 
