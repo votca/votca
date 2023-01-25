@@ -19,6 +19,7 @@ Version 2023-dev
 -  Major CMake refactor (#950, #1022)
 -  Fix all doxygen warnings (#1026)
 -  basis and auxbasis are written to QMMM checkpoint file (#1030)
+-  add an XML check to csg_inverse (#1031)
 
 Version 2022.2 (released XX.12.22)
 ==================================
