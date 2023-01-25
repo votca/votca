@@ -4,7 +4,7 @@ Methods
 Boltzmann Inversion
 ===================
 
-provides a potential of mean force for a given degree of freedom.
+``Boltzmann inversion`` provides a potential of mean force for a given degree of freedom.
 
 .. figure:: fig/pre-iterative-method.png
     :align: center
@@ -20,18 +20,18 @@ matching.
 
 The main tool which can be used to calculate histograms, cross-correlate
 coarse-grained variables, create exclusion lists, as well as prepare
-tabulated potentials for coarse-grained simulations is . It parses the
+tabulated potentials for coarse-grained simulations is ``csg_boltzmann``. It parses the
 whole trajectory and stores all information on bonded interactions in
 memory, which is useful for interactive analysis. For big systems,
-however, one can run out of memory. In this case can be used which,
+however, one can run out of memory. In this case ``csg_stat`` can be used which,
 however, has a limited number of tasks it can perform (see 
 :ref:`input_files_setting_files` for an example on its usage).
 
-Another useful tool is . It can be used to convert an atomistic
+Another useful tool is ``csg_map``. It can be used to convert an atomistic
 trajectory to a coarse-grained one, as it is discussed in
 :ref:`input_files_trajectories`.
 
-To use one has to first define a mapping scheme. This is outlined
+To use ``csg_boltzmann`` one has to first define a mapping scheme. This is outlined
 in :ref:`input_files_mapping_files`. Once the mapping scheme is specified, it
 is possible to generate an exclusion list for the proper sampling of the
 atomistic resolution system.
@@ -56,10 +56,10 @@ and .xml mapping files are ready, simply run
 This will create a list of exclusions for all interactions that are not
 within a bonded interaction of the coarse-grained sub-bead. As an
 example, consider coarse-graining of a linear chain of three beads which
-are only connected by bonds. In this case, will create exclusions for
+are only connected by bonds. In this case, ``csg_boltzmann`` will create exclusions for
 all non-bonded interactions of atoms in the first bead with atoms of the
 3rd bead as these would contribute only to the non-bonded interaction
-potential. Note that will only create the exclusion list for the fist
+potential. Note that ``csg_boltzmann`` will only create the exclusion list for the fist
 molecule in the topology.
 
 To add the exclusions to the GROMACS topology of the molecule, either
@@ -77,7 +77,7 @@ the GROMACS topology file.
 Statistical analysis
 --------------------
 
-For statistical analysis provides an interactive mode. To enter the
+For statistical analysis ``csg_boltzmann`` provides an interactive mode. To enter the
 interactive mode, use the ``–trj`` option followed by the file name of
 the reference trajectory
 
@@ -104,10 +104,10 @@ Additionally, use the
 
       list
 
-command for a list of available interactions. Note again that loads the
+command for a list of available interactions. Note again that ``csg_boltzmann`` loads the
 whole trajectory and all information on bonded interactions into the
 memory. Hence, its main application should be single molecules. See the
-introduction of this chapter for the command.
+introduction of this chapter for ``csg_stat`` the command.
 
 If a specific interaction shall be used, it can be referred to by
 
@@ -184,7 +184,7 @@ Correlation analysis
 ~~~~~~~~~~~~~~~~~~~~
 
 The factorization of :math:`P`, :ref:`as shown in the theory
-section<theory_eq_boltzmann_pmf>`, assumed uncorrelated quantities. VOTCA
+section<theory_eq_boltzmann_pmf>`, assumed uncorrelated quantities. ``csg_boltzmann``
 offers two ways to evaluate correlations of interactions. One option is to use
 the linear correlation coefficient (command ``cor``).
 
@@ -215,10 +215,12 @@ Two examples for 2D histograms are shown below: one for the propane
 molecule and one for hexane.
 
 .. figure:: fig/propane_hist2d.png
-
-   hexane histograms: before and after the coarse-grained run
+   :width: 300
+   
+   propane histogram
 
 .. figure:: fig/hexane2.png
+   :width: 600
 
    hexane histograms: before and after the coarse-grained run
 
@@ -235,8 +237,12 @@ smooth functional form, extrapolation and clipping of poorly sampled
 regions. Further processing of the potential is decribed in 
 :ref:`preparing`.
 
+.. _methods_fm:
+
 Force matching
 ==============
+
+.. _methods_fig_fm_flowchart:
 
 .. figure:: fig/force-matching.png
    :alt: Flowchart to perform force matching.
@@ -247,12 +253,14 @@ The force matching algorithm with cubic spline basis is implemented in
 the utility. A list of available options can be found in the reference
 section of (command ``–h``).
 
+.. _methods_fm_program_input:
+
 Program input
 -------------
 
-needs an atomistic reference run to perform coarse-graining. Therefore,
+``csg_fmatch`` needs an atomistic reference run to perform coarse-graining. Therefore,
 the trajectory file *must contain forces* (note that there is a suitable
-option in the GROMACS ``.mdp`` file), otherwise will not be able to
+option in the GROMACS ``.mdp`` file), otherwise ``csg_fmatch`` will not be able to
 run.
 
 In addition, a mapping scheme has to be created, which defines the
@@ -289,16 +297,18 @@ example might look like the following
   </cg>
 
 Similarly to the case of spline fitting (see :ref:`reference_programs` on
-), the parameters ``min`` and ``max`` have to be chosen in such a way as
+``csg_resample``), the parameters ``min`` and ``max`` have to be chosen in such a way as
 to avoid empty bins within the grid. Determining ``min`` and ``max`` by
-using is recommended (see :ref:`input_files_setting_files`). A full description
+using ``csg_stat`` is recommended (see :ref:`input_files_setting_files`). A full description
 of all available options can be found in :ref:`reference_settings_file`.
+
+.. _methods_fm_program_output:
 
 Program output
 --------------
 
-produces a separate ``.force`` file for each interaction, specified in
-the CG-options file (option ``options``). These files have 4 columns
+``csg_fmatch`` produces a separate ``.force`` file for each interaction, specified in
+the CG-options file (``--options``). These files have 4 columns
 containing distance, corresponding force, a table flag and the force
 error, which is estimated via a block-averaging procedure. If you are
 working with an angle, then the first column will contain the
@@ -309,8 +319,10 @@ potentials and do extrapolation and potentially smoothing afterwards.
 
 Output files are not only produced at the end of the program execution,
 but also after every successful processing of each block. The user is
-free to have a look at the output files and decide to stop , provided
+free to have a look at the output files and decide to stop ``csg_fmatch``, provided
 the force error is small enough.
+
+.. _methods_fm_integration:
 
 Integration and extrapolation of .force files
 ----------------------------------------------
@@ -324,13 +336,117 @@ scripting framework, execute
      csg_call table integrate CG-CG.force minus_CG-CG.pot
      csg_call table linearop minus_CG-CG.d CG-CG.d -1 0
 
-This command calls the script, which integrates the force and writes the
+This command calls the ``table_integrate.pl`` script, which integrates the force and writes the
 potential to the ``.pot`` file.
 
 In general, each potential contains regions which are not sampled. In
 this case or in the case of further post-processing, the potential can
 be refined by employing resampling or extrapolating methods. See 
 :ref:`preparing_post-processing_of_the_potential` for further details.
+
+.. _methods_fm_threebody:
+
+Three-body Stillinger-Weber interactions
+----------------------------------------
+
+As described in the theory section, ``csg_fmatch`` is also able to parametrize
+the angular part of three-body interactions of the Stillinger-Weber type (see subsec. :ref:`theory_fm_threebody`).
+The general procedure is the same, as shown in the two-body case
+(See flowchart in Fig. :ref:`methods_fig_fm_flowchart`).
+It has to be specified in the control file that one wants to parametrize a three-body interaction. An example might look like this:
+
+.. code:: xml
+
+   <cg>
+     <!-- fmatch section -->
+     <fmatch>
+       <!-- Number of frames for block averaging -->
+       <frames_per_block>10</frames_per_block>
+       <!-- Constrained least squares?-->
+       <constrainedLS>true</constrainedLS>
+     </fmatch>
+     <!-- example for a non-bonded interaction entry with three-body SW interactions -->
+     <non-bonded>
+       <!-- name of the interaction -->
+       <name>CG-CG-CG</name>
+       <!-- flag for three-body interactions -->
+       <threebody>true</threebody>
+       <!-- CG bead types (according to mapping file) -->
+       <type1>A</type1>
+       <type2>A</type2>
+       <type3>A</type3>
+       <!-- fmatch section of interaction -->
+       <fmatch>
+         <!-- short-range cutoff (in nm) -->
+         <a>0.37</a>
+         <sigma>1.0</sigma>
+         <!-- switching range (steepness of exponential switching function) (in nm) -->
+         <gamma>0.08</gamma>
+         <!-- min for angular interaction (in rad) -->
+         <min>0.7194247283</min>
+         <!-- max for angular interaction (in rad) -->
+         <max>3.1415927</max>
+         <!-- step size for internal spline representation (in rad) -->
+         <step>0.1</step>
+         <!-- output step size for angular interaction (in rad) -->
+         <out_step>0.0031415927</out_step>
+       </fmatch>
+     </non-bonded>
+   </cg>
+
+As in the case of pair interactions, the parameters ``min`` and ``max`` have to be chosen in such a
+way as to avoid empty bins within the grid. Determining ``min`` and ``max`` by using 
+``csg_stat`` is recommended (see sec. :ref:`input_files_setting_files`).
+
+For each three-body interaction as specified in the CG-options file 
+``--options``, ``csg_fmatch`` produces a separate ``.force`` file, as well as a
+``.pot`` file. Due to the functional form of the Stillinger-Weber potential,
+``csg_fmatch`` outputs the three-body force in angular direction, as well as the angular potential.
+Therefore, in contrast to the two-body force (see section :ref:`methods_fm_integration`), the angular
+three-body force does not have to be numerically integrated. The ``.force``, as well as
+the ``.pot`` file have 4 columns containing the angle in radians, the force or potential,
+the error (which is estimated via a block-averaging procedure) and a table flag.
+
+Coarse-grained simulations with three-body Stillinger-Weber interactions can be done with
+LAMMPS with the MANYBODY *pair_style sw/angle/table* (https://docs.lammps.org/pair_sw_angle_table.html). For this, the ``.pot`` file has to be
+converted into a table format according to the LAMMPS *angle_style table* (https://docs.lammps.org/angle_table.html). This can be done with:
+
+.. code:: bash
+
+   csg_call --options table.xml --ia-name XXX --ia-type angle convert_potential lammps --clean --no-shift XXX.pot table_XXX.txt
+
+in line with the conversion of angular tables for bonded interactions. Therefore, the 
+CG-options file (``--options``) now has to contain a ``<bonded>``
+section with the appropriate interaction name:
+
+.. code:: xml
+
+   <cg>
+     <bonded>
+       <!-- name of the interaction -->
+       <name>CG-CG-CG</name>
+       <!-- CG bead types (according to mapping file) -->
+       <type1>A</type1>
+       <type2>A</type2>
+       <type3>A</type3>
+       <min>0.7194247283</min>
+       <max>3.1415927</max>
+       <step>0.0031415927</step>
+       <!-- settings for converting table to lammps angular format -->
+       <inverse>
+         <lammps>
+           <table_begin>0</table_begin>
+           <table_end>180</table_end>
+           <table_bins>0.18</table_bins>
+           <y_scale>0.239006</y_scale>
+           <avg_points>1</avg_points>
+         </lammps>
+       </inverse>
+     </bonded>
+   </cg>
+
+For a further description of posprocessing, we refer again to sec. :ref:`preparing_post-processing_of_the_potential`.
+For a more detailed example, we refer to the tutorial in csg-tutorials/spce/3body_sw/.
 
 .. _methods_iterative_methods:
 
@@ -398,17 +514,17 @@ distributions should be of good quality (little noise, etc).
 VOTCA can create initial guesses for the coarse-grained potentials by
 Boltzmann inverting the distribution function. If a custom initial guess
 for an interaction shall be used instead, the table can be provided in
-*:math:`<`\ interaction\ :math:`>`.pot.in*. As already mentioned,
+``<interaction>.pot.in``. As already mentioned,
 VOTCA automatically creates potential tables to run a simulation.
 However, it does not know how to run a coarse-grained simulation.
 Therefore, all files needed to run a coarse-grained simulation, except
 for the potentials that are iteratively refined, must be provided and
-added to the in the settings XML-file. If an atomistic topology and a
+added to the ``<filelist>`` in the settings XML-file. If an atomistic topology and a
 mapping definition are present, VOTCA offers tools to assist the setup of
 a coarse-grained topology (see :ref:`preparing`).
 
 To get an overview of how input files look like, it is suggested to take
-a look at one of the tutorials provided on .
+a look at one of the tutorials provided in csg_tutorials.
 
 In what follows we describe how to set up the iterative coarse-graining,
 run the main script, continue the run, and add customized scripts.
@@ -442,8 +558,7 @@ you plan to run the iterative procedure.
 
 A list of interactions to be iteratively refined has to be given in the
 options file. As an example, the ``setting.xml`` file for a propane is
-shown in below. For more details, see the full
-description of all options in :ref:`reference_settings_file`.
+shown in below:
 
 .. code:: xml
 
@@ -487,6 +602,9 @@ description of all options in :ref:`reference_settings_file`.
     <restart_file>restart_points.log</restart_file> <!-- restart -->
   </inverse>
   </cg>
+
+For more details, see the full
+description of all options in :ref:`reference_settings_file`.
 
 Starting the iterative process
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -554,22 +672,22 @@ Restarting and continuing
 
 The interrupted or finished iterative process can be restarted either by
 extending a finished run or by restarting the interrupted run. When the
-script is called, it automatically checks for a file called ``done`` in
+script ``csg_inverse`` is called, it automatically checks for a file called ``done`` in
 the current directory. If this file is found, the program assumes that
-the run is finished. To extend the run, simply increase in the settings
+the run is finished. To extend the run, simply increase ``inverse.iterations_max`` in the settings
 file and remove the file called ``done``. After that, can be restarted,
 which will automatically recognize existing steps and continue after the
 last one.
 
-If the iteration was interrupted, the script might not be able to
+If the iteration was interrupted, the script ``csg_inverse`` might not be able to
 restart on its own. In this case, the easiest solution is to delete the
 last step and start again. The script will then repeat the last step and
 continue. However, this method is not always practical since sampling
 and analysis might be time-consuming and the run might have only crashed
 due to some inadequate post processing option. To avoid repeating the
-entire run, the script creates a file with restart points and labels
+entire run, the script ``csg_inverse`` creates a file with restart points and labels
 already completed steps such as simulation, analysis, etc. The file name
-is specified in the option . If specific actions should be redone, one
+is specified in the option ``inverse.restart_file``. If specific actions should be redone, one
 can simply remove the corresponding lines from this file. Note that a
 file ``done`` is also created in each folder for those steps which have
 been successfully finished.
@@ -611,12 +729,12 @@ General considerations
 ~~~~~~~~~~~~~~~~~~~~~~
 
 In comparison to IBI, IMC needs significantly more statistics to
-calculate the potential update[Ruehle:2009.a]_. It is
+calculate the potential update [Ruehle:2009.a]_. It is
 advisable to perform smoothing on the potential update. Smoothing can be
 performed as described in :ref:`methods_runtime_optimizations`. In addition, IMC can
 lead to problems related to finite size: for methanol, an undersized
 system proved to lead to a linear shift in the
-potential[Ruehle:2009.a]_. It is therefore always
+potential [Ruehle:2009.a]_. It is therefore always
 necessary to check that the system size is sufficiently large and that
 runlength csg smoothing iterations are well balanced.
 
@@ -626,9 +744,9 @@ Correlation groups
 Unlike IBI, IMC also takes cross-correlations of interactions into account in
 order to calculate the update. However, it might not always be beneficial to
 evaluate cross-correlations of all pairs of interactions. By specifying
-``group`` for each interaction, as shown in the xml snippet below, one can
+``<group>`` for each interaction, as shown in the xml snippet below, one can
 define groups of interactions, amongst which cross-correlations are taken into
-account. ``group`` can be any name.
+account. ``<group>`` can be any name.
 
 .. code:: xml
 
@@ -854,8 +972,8 @@ Statistical averaging of parameters
 Due to stochastic nature of the CG simulations, near convergence, the CG
 potential paramters may fluctuate around the mean converged values.
 Therefore, the optimal CG parameters can be estimated by averaging over
-the last few iterations. To specify averaging, the ``average``, keyword
-should be specified in the ``post_update`` options in the XMLsettings
+the last few iterations. To specify averaging, the ``<average>``, keyword
+should be specified in the ``<post_update>`` options in the XMLsettings
 file.
 
 General considerations
@@ -898,15 +1016,15 @@ The pressure of the coarse-grained system usually does not match the
 pressure of the full atomistic system. This is because iterative
 Boltzmann inversion only targets structural properties but not
 thermodynamic properties. In order correct the pressure in such a way
-that it matches the target pressure ()., different strategies have been
+that it matches the target pressure (``inverse.p_target``)., different strategies have been
 used based on small modifications of the potential. The correction can
-be enable by adding pressure to the list of scripts. The type of
-pressure correction is selected by setting .
+be enable by adding pressure to the list of ``inverse.post_update`` scripts. The type of
+pressure correction is selected by setting ``inverse.post_update_options.pressure.type``.
 
 Simple pressure correction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In ref.[Reith:2003]_ a simple linear attractive
+In ref. [Reith:2003]_ a simple linear attractive
 potential was added to the coarse-grained potential
 
 .. math:: \Delta V(r)=A \left( 1-\frac{r}{r_{cutoff}} \right) \,,
@@ -916,7 +1034,9 @@ with prefactor :math:`A`
 .. math:: A = -{\operatorname{sgn}}(\Delta P)0.1k_{B}T\min(1,|f\Delta P) \,,
 
 :math:`\Delta p=P_i-P_\text{target}`, and scaling factor :math:`f` and
-:math:`P_\text{target}` can be specified in the settings file as and .
+:math:`P_\text{target}` can be specified in the settings file as 
+``inverse.post_update_options.pressure.simple.scale`` and
+``inverse.p_target``.
 
 As an example for a block doing simple pressure correction, every third
 interaction is
@@ -934,7 +1054,8 @@ interaction is
     </pressure>
   </post_update_options>
 
-Here, is the scaling factor :math:`f`. In order to get the correct
+Here, ``inverse.post_update_options.pressure.simple.scale``
+is the scaling factor :math:`f`. In order to get the correct
 pressure it can become necessary to tune the scaling factor :math:`f`
 during the iterative process.
 
@@ -948,8 +1069,8 @@ remains as in the simple form while a different sturcture of the
 
 .. math:: A = \left[\frac{-2\pi\rho^{2}}{3r_{cut}}\int_{0}^{r_{cut}}r^{3}g_{i}(r)dr\right]A_{i}=\Delta P.
 
-This factor requires the particle density :math:` \rho ` as additional
-input parameter, which is added as in the input file.
+This factor requires the particle density :math:`\rho` as additional
+input parameter, which is added as ``inverse.particle_dens`` in the input file.
 
 Kirkwood-Buff correction
 ------------------------
@@ -999,7 +1120,9 @@ iteraction without doing potential update
     </kbibi>
   </post_update_options>
 
-Here, is the scaling factor :math:`A`. is :math:`r_1` and is :math:`r_2`
+Here, ``inverse.post_update_options.kbibi.factor`` is the scaling factor :math:`A`.
+``inverse.post_update_options.kbibi.start`` is :math:`r_1`
+and ``inverse.post_update_options.kbibi.stop`` is :math:`r_2`
 used to calculate the average of :math:`G_{ij}(R)`.
 
 .. _methods_runtime_optimizations:
@@ -1022,7 +1145,7 @@ smoothed, sharp features like the first peak in SPC/Ewater might get
 lost. Smoothing on the delta potential works quite well, since the sharp
 features are already present from the initial guess. By applying
 iterations of a simple triangular smoothing
-(:math:`\Delta U_i = 0.25 \Delta U_{i-1} + 0.5\Delta U_i + 0.25\Delta U_{i+1}`),
+:math:`\left(\Delta U_i = 0.25 \Delta U_{i-1} + 0.5\Delta U_i + 0.25\Delta U_{i+1}\right)`,
 a reasonable coarse-grained potential for SPC/Ewater could be produced
 in less than 10 minutes. Smoothing is implemented as a post\_update
 script and can be enabled by adding

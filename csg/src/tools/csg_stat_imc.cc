@@ -343,36 +343,25 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       // Here, a is the distance between two beads of a triple, where the 3-body
       // interaction is zero
 
-      // check if type1 and type2 are the same
-      if (prop->get("type1").value() == prop->get("type2").value()) {
-        // if all three types are the same
-        if (prop->get("type2").value() == prop->get("type3").value()) {
+      // check if type2 and type3 are the same
+      if (prop->get("type2").value() == prop->get("type3").value()) {
+        // if then type2 and type1 are the same, all three types are the same
+        // use the Generate function for this case
+        if (prop->get("type1").value() == prop->get("type2").value()) {
           nb->Generate(beads1, true);
         }
-        // if type2 and type3 are different, use the Generate function for 2
-        // bead types
-        if (prop->get("type2").value() != prop->get("type3").value()) {
-          nb->Generate(beads1, beads3, true);
-        }
-      }
-      // if type1 != type2
-      if (prop->get("type1").value() != prop->get("type2").value()) {
-        // if the last two types are the same, use Generate function with them
-        // as the first two bead types Neighborlist_3body is constructed in a
-        // way that the two equal bead types have two be the first 2 types
-        if (prop->get("type2").value() == prop->get("type3").value()) {
+        // else use the Generate function for type2 being equal to type3 (and
+        // type1 being different)
+        if (prop->get("type1").value() != prop->get("type2").value()) {
           nb->Generate(beads1, beads2, true);
         }
-        if (prop->get("type2").value() != prop->get("type3").value()) {
-          // type1 = type3 !=type2
-          if (prop->get("type1").value() == prop->get("type3").value()) {
-            nb->Generate(beads2, beads1, true);
-          }
-          // type1 != type2 != type3
-          if (prop->get("type1").value() != prop->get("type3").value()) {
-            nb->Generate(beads1, beads2, beads3, true);
-          }
-        }
+      }
+      // If type2 and type3 are not the same, use the Generate function for
+      // three different bead types (Even if type1 and type2 or type1 and type3
+      // are the same, the Generate function for two different beadtypes is only
+      // applicable for the case that type2 is equal to type3
+      if (prop->get("type2").value() != prop->get("type3").value()) {
+        nb->Generate(beads1, beads2, beads3, true);
       }
 
       for (auto &triple : *nb) {

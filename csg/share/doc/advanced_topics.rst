@@ -21,7 +21,7 @@ inverse Monte Carlo procedure. The corresponding keywords are listed in
       csg_call --list
 
 It is advised not to change already implemented scripts. To customize a
-script or add a new one, copy the script to your own directory (set by )
+script or add a new one, copy the script to your own directory (set by ``inverse.scriptpath``)
 and redirect its call by creating your own ``csg_table`` file in this
 directory which looks like this
 
@@ -34,11 +34,11 @@ If the local keys are already in use, the existing call will be
 overloaded.
 
 As an example, we will illustrate how to overload the script which calls
-the sampling package. The script runs from the GROMACS package only on
+the sampling package. The ``csg_inverse`` script runs ``mdrun`` from the GROMACS package only on
 one cpu. Our task will be to change the script so that GROMACS uses 8
-cpus, which is basically the same as adding mpirun options in .
+cpus, which is basically the same as adding mpirun options in ``inverse.gromacs.mdrun.command``.
 
-First we find out which script calls :
+First we find out which script calls ``mdrun``:
 
 .. code:: bash
 
@@ -56,7 +56,7 @@ The output should look as follows
       imc_stat gromacs imc_stat_generic.sh
       convert_potential gromacs potential_to_gromacs.sh
 
-the third line indicates the script we need. If the output of is not
+the third line indicates the script we need. If the output of ``csg_call`` is not
 clear, one can try to find the right script in :ref:`reference_scripts`.
 Alternatively, check the folder
 
@@ -98,7 +98,7 @@ local path. Now we change the last line of ``my_run_gromacs.sh`` to:
       critical mpirun -np 8 mdrun
 
 This completes the customization. Do not forget to add ``SCRIPTDIR`` to
-in the setting XMLfile (see :ref:`reference_settings_file`).
+``inverse.scriptpath`` in the setting XML file (see :ref:`reference_settings_file`).
 
 You can check the new script by running:
 
@@ -183,7 +183,7 @@ DL\_POLY convention, in which case the user has to use the corresponding
 dot-preceded extension(s); for example: FA-FIELD.dlpf instead of FIELD
 or CG-HISTORY.dlph instead of HISTORY\_CGV (see
 :ref:`reference_programs`, as well as the man pages or output of
-VOTCA commands, with option ``—help``).
+VOTCA commands, with option ``--help``).
 
 VOTCA follows the DL\_POLY conventions for file names and formats. Thus,
 ``csg_dlptopol`` and ``csg_map`` produce the CG topology (FIELD\_CGV by

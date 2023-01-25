@@ -1,8 +1,6 @@
 CSG Tutorial
 ============
 
-(Based on the 2011-2017 CECAM meetings)
-
 Please pick topics you are most interested in, since finishing the
 tutorial might take longer than one afternoon.
 
@@ -26,7 +24,6 @@ The manual
 
 The CSG manual can be found :ref:`here<csg>`
 
-
 Running GROMACS
 ---------------
 
@@ -40,21 +37,22 @@ atomistic water see ``csg-tutorials/spce/atomistic/``.
 Input files
 ^^^^^^^^^^^
 
-You will need four files to run MD simulations \* ``conf.gro`` - stores
-the coordinates of the molecule(s). It can be viewed with vmd. The
-default file name is ``conf.gro``. \* ``grompp.mdp`` - stores all
-simulation options, such as time step, number of simulation steps, etc.
-\* ``topol.top`` - topology of the molecule \* ``forcefield.itp`` -
-description of the atomistic force-field (not always needed)
+You will need four files to run MD simulations
 
-During this tutorial, you will need to modify \* ``nsteps`` - number of
-MD steps \* ``nstxout`` - output frequency of coordinates to the
-trajectory file traj.trr \* ``nstfout`` - output frequency of forces to
-traj.trr \* ``nstxout-compressed`` - output frequency to the traj.xtc
-file, often used by the iterative Boltzmann inversion method \*
-``nstlog`` - output frequency of the md.log file \* ``nstenergy`` -
-output frequency to the ener.edr file containing all thermodynamic
-information
+- ``conf.gro`` - stores the coordinates of the molecule(s). It can be viewed with vmd. The default file name is ``conf.gro``.
+- ``grompp.mdp`` - stores all simulation options, such as time step, number of simulation steps, etc.
+- ``topol.top`` - topology of the molecule
+- ``forcefield.itp`` - description of the atomistic force-field (not always needed)
+
+During this tutorial, you will need to modify
+
+- ``nsteps`` - number of MD steps
+- ``nstxout`` - output frequency of coordinates to the trajectory file traj.trr
+- ``nstfout`` - output frequency of forces to traj.trr
+- ``nstxout-compressed`` - output frequency to the traj.xtc file, often used by the iterative Boltzmann inversion method
+- ``nstlog`` - output frequency of the md.log file
+- ``nstenergy`` - output frequency to the ener.edr file containing all thermodynamic information
+
 
 MD simulations
 ^^^^^^^^^^^^^^
@@ -70,6 +68,7 @@ contains ``conf.gro``, ``grompp.mdp``, ``topol.top``, and
     gmx grompp -c conf.gro # -c is needed if other than conf.gro file is used
     gmx mdrun -v # -v (verbose) gives the estimate of the run time
 
+
 Running other MD programs
 -------------------------
 
@@ -77,22 +76,30 @@ In addition to GROMACS, VOTCA supports ``ESPResSo``, ``Lammps``,
 ``dl_poly``, ``HOOMD-blue``, and ``ESPResSo++``. The interface to these
 is a bit more advanced, meaning VOTCA will allow you to do more crazy
 things and warn you less about settings, which might not make sense at
-all. Let's have a look at ``csg-tutorials/spce/espressopp/``.
+all. Let's have a look at ``csg-tutorials/spce/ibi_espressopp/``.
 (``ibi_lammps``, ``ibi_espresso``, ``ibi_dlpoly``, and
 ``ibi_hoomd-blue`` are pretty similar)
 
-Input files
+Running ESPResSo++
+^^^^^^^^^^^^^^^^^^
 
+Let's have a look at ``csg-tutorials/spce/ibi_espressopp/``.
 Here is an example of the ESPResSo++ input files to run the CG MD
-simulations of the Iterative Boltzmann inversion procedure.
+simulations of the Iterative Boltzmann inversion procedure:
 
--  ``conf.gro`` - stores the coordinates of the molecule(s). It can be
-   viewed with vmd. A pdb or xyz file would be okay, too.
--  ``spce.py`` is the simulation script which will be called by
-   csg\_inverse. It stores the whole simulation procedure.
--  ``topol.xml`` -topology of the molecule, defined in the initial
-   condition. This is needed as most gro/pdb/xyz files have no molecule
-   definition in them.
+- ``conf.gro`` - stores the coordinates of the molecule(s). It can be viewed with vmd. A pdb or xyz file would be okay, too.
+- ``spce.py`` - is the simulation script which will be called by csg_inverse. It stores the whole simulation procedure.
+- ``topol.xml`` - topology of the molecule, defined in the initial condition. This is needed as most gro/pdb/xyz files have no molecule definition in them.
+
+Running LAMMPS
+^^^^^^^^^^^^^^
+
+Now, let's have a look at ``csg-tutorials/spce/ibi_lammps/``
+containing an example of LAMMPS input files to run the CG
+MD simulations of the Iterative Boltzmann inversion procedure:
+
+- ``spce.data`` - stores the coordinates of the molecule(s).
+- ``spce.in`` - is the simulation script which will be called by csg_inverse. It stores the whole simulation procedure.
 
 Mapping an atomistic trajectory onto a coarse-grained trajectory
 ----------------------------------------------------------------
@@ -142,7 +149,7 @@ from the CG bead coordinates obtained by mapping the reference atomistic
 trajectory. In the last step, a coarse-grained potential is obtained by
 matching the RDFs of the atomisitc and CG systems using the IBI method.
 For a more detailed description, look at the following
-`publication <http://pubs.acs.org/doi/abs/10.1021/ct900369w>`__.
+publication: [Ruehle:2009.a]_
 
 Atomistic simulation
 ^^^^^^^^^^^^^^^^^^^^
@@ -271,8 +278,7 @@ compare it with the IBI tutorial. Again, you can do this by copying the
 ``Extract_Energies.sh`` script from the main folder
 (``csg-tutorials/spce/ibi/``) to the appropriate step folder
 (``step_xxx``) and executing it. For a more detailed description of the
-RE method, look at the following
-`publication <http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0131754>`__.
+RE method, look at the following publication: [mashayakrelative]_
 
 Force matching for SPC/E water
 ------------------------------
@@ -322,7 +328,7 @@ appropriate lines in the ``run.sh`` script):
     csg_call table linearop CG-CG.pot CG-CG.pot -1 0 # multiplication of all table values by -1 (potential)
 
 Change the spline grid (``step``), blocksize, and parameter
-constrainedLS. his should provide an overview of the whole procedure.
+constrainedLS. This should provide an overview of the whole procedure.
 
 Running of CG simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -342,7 +348,7 @@ run the simulation. Afterwards, you can calculate the RDF and
 thermodynamic data as explained in the IBI tutorial. You can also use
 the ``Extract_Energies.sh`` script of the IBI tutorial. When calculating
 the RDF from the CG simulation, you don't need a mapping file and the
---cg option can be omitted.
+``--cg`` option can be omitted.
 
 Compare the CG potential, the RDF and thermodynamics with the ones of
 the IBI, IMC or RE method (or any other method) and with the atomistic
@@ -350,10 +356,145 @@ simulation. You will see that different methods lead to significantly
 different interaction potentials and a single site water model with a
 pair interaction potential is not capable of reproducing the RDF and
 thermodynamics at the same time. (Reason: three-body contributions are
-important but cannot be projected on a 2-body coarse-grained
-force-field. The incorporation of non-bonded 3-body interactions is work
-in progress. An extension to analytic non-bonded 3-body interactions
-will be released soon).
+important but cannot be projected onto a two-body coarse-grained force-field.
+To see how to calculate analytic non-bonded three-body interactions with VOTCA,
+look at the tutorial below).
+
+.. _csg_tutorials_fm_3body_sw:
+
+Force matching for SPC/E water with 3body SW interactions
+---------------------------------------------------------
+
+Force matching (FM)
+^^^^^^^^^^^^^^^^^^^
+
+All files for running the actual force matching calculation can be found in
+``csg-tutorials/spce/3body_sw/``. Have a look at the settings file (``fmatch.xml``).
+As for the force matching of two-body forces, in the general force matching section
+(``cg.fmatch``), the number of frames to read in simultaneously (``frames_per_block``)
+and the type of LS solver (constrainedLS) are fixed (it is preferred to use constrained LS).
+There are now two non-bonded interaction sections in ``fmatch.xml``, one for the
+two-body and one for the three-body force indicated with the additional option ``threebody``.
+
+The fmatch block of each interaction (``cg.non-bonded.fmatch``) contains
+the interaction range (``min`` and ``max``), the step size for the internal
+spline representation (``step``) and the output step (``out_step``). Again, the
+``min`` and ``max`` of the two-body force have to be adjusted to be within
+the range of the RDF (see the calculation of RDF section of the IBI tutorial). 
+
+The three-body force is of the Stillinger-Weber type consisting of a tabulated
+angular potential between three water molecules multiplied by two analytical
+exponential decay terms as prefactors (see equation (4) of
+publication [scherer_understanding_2018]_) The interaction range of the angular
+potential has to be adjusted with (``min`` and ``max``) in units of radians in the fmatch
+block (`cg.non-bonded.fmatch`). The parameters ``fmatch.a`` determine the cutoff and
+``fmatch.gamma`` the steepness of the two exponential terms. They have to be
+adjusted empirically. The values of a=0.37 nm and gamma=0.08 mean that the
+three-body potential gets fully switched on in the first interaction shell of
+the RDF over a range of 0.08 nm.
+
+Run the FM calculation (see also the corresponding line of the ``run.sh`` script):
+
+.. code:: bash
+
+   csg_fmatch --top ../atomistic/topol.tpr --trj ../atomistic/traj.trr --options fmatch.xml --cg water.xml (--begin $equi ) # ( ) denotes additional option: , --begin # time frame in GROMACS units (ps) to start analysis (e.g. 1 to 5)
+
+To obtain the two-body CG potential, the CG force has to be integrated.
+Before, it is multiplied by a switching function to guarantee a smooth decay to
+zero at the pair cutoff. (see the appropriate lines in the ``run.sh`` script):
+
+.. code:: bash
+
+   csg_call table switch_border CG-CG.force CG-CG.force_switched 1.0 # multiplication of all table values at distance > 1.0 with switching function
+   csg_call table integrate CG-CG.force_switched CG-CG.pot # integrates the table
+   csg_call table linearop CG-CG.pot CG-CG.pot -1 0 # multiplication of all table values by -1 (potential)
+
+Due to the functional form ot the SW potential, VOTCA outputs the three-body force
+in angular direction, CG-CG-CG.force, as well as the angular potential, CG-CG-CG.pot.
+Therefore, the three-body force does not have to be numerically integrated.
+
+Have a look at the two-body potential and compare it to the FM result from above
+without three-body interactions. You will see that the resulting two-body force
+is significantly more attractive. The reason is that part of the short-range attraction
+is compensated by the three-body term as it also has a non-negligible radial force
+component.
+
+Running of CG simulation with LAMMPS
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To run a CG simulation with LAMMPS, the potential files have to be converted to
+potential tables, LAMMPS can read. For pair forces this is a table format according
+to the LAMMPS pair\_style table. Have a look at the settings file (``convert_tables.xml``).
+The entry (``cg.non-bonded.step``) should be set to the size of the output step of the
+pair force table (in this case 0.001 nm). The block (``cg.non-bonded.inverse.lammps``)
+contains the table settings of the LAMMPS potential table. The distance units have to be changed
+from nm to Ang (``scale``) and the energy units from kJ/mol to kcal/mol (``y_scale``). The setting
+of ``avg_points`` to 1 allows for a smoother extrapolation of the potential to unsampled
+regions. Now convert the two-body potential:
+
+.. code:: bash
+
+   csg_call --options convert_tables.xml --ia-name CG-CG-CG --ia-type angle convert_potential lammps --clean --no-shift input_angular.pot table_CG_CG_CG.txt # calls convert_potential lammps. Unsampled regions for distances smaller than the min value are extrapolated. The --ia-type angle implies a unit conversion from radiants to degrees and the option --no-shift prevents a shifting of the potential.
+
+To run a CG simulation, one needs a LAMMPS data file (``spce.data``) with the CG starting
+configuration, an input file (``spce.in``) and a Stillinger-Weber file (``spce.sw``).
+You can use the data file of the LAMMPS IBI tutorial (``csg-tutorials/spce/atomistic/ibi_lammps``)
+or the one in this folder containing 1000 CG water molecules. (You can check how the converted
+2-body and 3-body tables should look like in: ``csg-tutorials/ml/3body_reference``).
+The LAMMPS input file has to be adjusted to include the tabulated two-body (*pair_style table*),
+as well as, three-body SW (*pair_style sw/angle/table*) interactions. Therefore it contains the
+additional lines:
+
+- ``pair_style      hybrid/overlay table linear 1200 sw/angle/table`` - use a combination of *pair_style table* with 1200 linear table entries and the *pair_style sw/angle/table*
+- ``pair_coeff      1 1 table table_CG_CG.txt VOTCA`` - set the table name and keyword for the *pair_style table*
+- ``pair_coeff      * * sw/angle/table spce.sw type`` - set the name of the Stillinger-Weber file for the *pair_style sw/angle/table*
+
+The Stillinger-Weber file is a file containing the parameters of the SW potential.
+For a detailed description, have a look at the LAMMPS documentation. Additional lines
+link to the tabulated angular potential:
+
+- ``table_CG_CG_CG.txt`` - file name of tabulated angular potential
+- ``VOTCA`` - keyword for tabulated angular potential
+- ``linear`` - angular table is of linear style
+- ``1001`` - 1001 table entries
+
+The *pair_style sw/angle/table* is included in the MANYBODY package of the LAMMPS
+stable release from the 23rd of June 2022. Therefore, you have to compile a recent LAMMPS
+version <https://github.com/lammps/lammps> with the MANYBODY package to run the simulation. The additional source
+files (``pair_sw_angle_table.cpp``) and header (``pair_sw_angle_table.h``)
+are also available at <https://gitlab.mpcdf.mpg.de/votca/lammps>.
+
+Once compiled LAMMPS, you can run the simulation with the following command:
+
+.. code:: bash
+
+   lmp < spce.in > spce.out # runs LAMMPS and store log file with thermodynamic output in spce.out.
+
+If you have installed and want to run LAMMPS with MPI parallelization, use the
+command ``mpirun -np n_proc lmp_mpi`` where ``n_proc`` stands for the number of processors.
+Adjust the appropriate line in the ``run.sh`` script. You can calculate the RDF and the angular
+distribution with:
+
+.. code:: bash
+
+   csg_stat --options calculate_distributions.xml --top traj.dump --trj traj.dump # call csg_stat with different settings.xml file
+
+Now have a look at ``calculate_distributions.xml``. It has two ``cg.non-bonded`` blocks for
+the calculating the RDF and the angular distribution function between three CG sites.
+Have in mind that the distance units of the LAMMPS simulation are Ang and the beadtype in
+the LAMMPS trajectory file is now ``1`` instead of ``CG`` in the mapped atomistic GROMACS
+trajectory. The option ``cg.non-bonded.threebody`` has to be set to ``true`` to calculate
+an angular distribution function between all beads within a cutoff of ``cg.non-bonded.cut``.
+Change the value of ``cg.non-bonded.cut`` and see, how the angular distribution function changes.
+Now, calculate the angular distribution also for the atomistic and the coarse-grained two-body
+FM and IBI, IMC or RE models. To do so adjust the ``calculate_distributions.xml`` file
+(``min``, ``max``, and ``step`` to either nm or Ang) and bead types
+(``type1``, ``type2``, and ``type3``). Now, compare the RDF, the angular distribution and
+thermodynamics with the ones of the two-body FM, IBI, IMC or RE method (or any other method)
+and with the atomistic simulation. You will see that the RDF, angular distribution and
+thermodynamics (e.g. pressure in spce.out) are in much better agreement with the atomistic
+simulation than e.g. for two-body FM.
+
 
 Visualization of IBI updates
 ----------------------------
@@ -380,7 +521,7 @@ Coarse-graining of liquid hexane
 Go to the folder ``csg-tutorials/hexane/``. So far, we only considered
 single bead mappings. Hexane is a small alkane molecule. In this
 tutorial, a 3 bead CG mapping with one bond type and one angle type is
-chosen
+chosen.
 
 Atomistic simulation
 ^^^^^^^^^^^^^^^^^^^^
@@ -462,7 +603,7 @@ problems with bonded interactions, especially if the functional form of
 the coarse-grained force field lacks essential interactions such as
 bond-angle or 3-body correlations. In such cases it can help to perform
 force matching only on the non-bonded contributions as was shown
-`here <http://dx.doi.org/10.1002/mats.201100011>`__.
+here: [ruhle2011hybrid]_.
 
 FM for non-bonded interactions only
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -470,7 +611,7 @@ FM for non-bonded interactions only
 The files for the tutorial can be found in
 ``csg-tutorials/hexane/hybrid_force_matching/``. The folder should
 contain all necessary files to reproduce the plots from the
-`publication <http://dx.doi.org/10.1002/mats.201100011>`__. To be able
+publication [ruhle2011hybrid]_. To be able
 to parametrize only the non-bonded interactions via force matching, an
 atomistic trajectory has to be generated containing only forces
 contributing to the non-bonded interactions, meaning all other
@@ -507,14 +648,15 @@ deficiency and to stabilize the algorithm one could apply the so called
 Tikhonov regularization, which is a common technique to regularize
 ill-posed inverse problems. For further information on the Tikhonov
 regularization and/or ill-posed inverse problems in general don't
-hesitate to have a look at the manual of VOTCA-1.4 to get a short
-overview or for a more detailed description at this
-`publication <http://epjst.epj.org/articles/epjst/abs/2016/07/epjst160120/epjst160120.html>`__
+hesitate to have a look at the manual at section
+:ref:`Regularization of Inverse Monte Carlo<theory_inverse_monte_carlo_regularization>`
+to get a short overview or for a more detailed description at this
+publication [Rosenberger:2016]_
 or consult any book of choice on regularization of inverse problems.
 
 This tutorial can be considered to be a proof of concept. It is based on
 the above mentioned
-`publication <http://epjst.epj.org/articles/epjst/abs/2016/07/epjst160120/epjst160120.html>`__.
+publication: [Rosenberger:2016]_.
 Here the user should get familiar with the application of the Tikhonov
 regularization and should see its benefit. The file ``run.sh`` will
 execute a preliminary run of 10 steps of iterative Boltzmann inverson
@@ -559,3 +701,4 @@ Writing an analysis tool
 VOTCA allows to write your own analysis code. There are many examples
 and two templates for serial and threaded analysis. If you are willing
 to learn how to write your own analysis in C++, ask for assistance.
+
