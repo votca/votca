@@ -27,7 +27,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout head branch from PR
         if: ${{ fromJSON(steps.issue_info.outputs.data).pull_request }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: ${{ fromJSON(steps.pr_info.outputs.data).head.repo.full_name }}
           ref: ${{ fromJSON(steps.pr_info.outputs.data).head.ref }}
@@ -35,6 +35,6 @@ jobs:
           token: ${{ secrets.VOTCA_BOT_TOKEN }}
       - name: Create and commit copyright updates
         if: ${{ fromJSON(steps.issue_info.outputs.data).pull_request }}
-        uses: votca/actions/copyright@master
+        uses: ./.github/actions/copyright
         with:
           base: ${{ fromJSON(steps.pr_info.outputs.data).base.sha }}

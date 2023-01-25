@@ -1,5 +1,6 @@
-find_package(Boost 1.53.0 REQUIRED COMPONENTS unit_test_framework)
-
+if(NOT BUILD_TESTING)
+  return()
+endif()
 # Each test listed in Alphabetical order
 foreach(PROG
     test_calculator
@@ -46,17 +47,22 @@ foreach(PROG
   target_link_libraries(unit_${PROG} votca_tools Boost::unit_test_framework Boost::filesystem)
   target_compile_definitions(unit_${PROG} PRIVATE BOOST_TEST_DYN_LINK)
   add_test(unit_${PROG} unit_${PROG})
-  # run tests for tools (for coverage) as well
-  set_tests_properties(unit_${PROG} PROPERTIES LABELS "tools;votca;unit")
 
-  if(VALGRIND_FOUND)
+  option(ENABLE_VALGRIND_TESTING "Build and enable testing stuff" OFF)
+  add_feature_info(ENABLE_VALGRIND_TESTING ENABLE_VALGRIND_TESTING "Run unit tests through valgrind, too")
+  if(ENABLE_VALGRIND_TESTING)
+    include(FindPackageHandleStandardArgs)
+    find_program(VALGRIND_EXECUTABLE "valgrind")
+    find_package_handle_standard_args(VALGRIND REQUIRED_VARS VALGRIND_EXECUTABLE)
+    if(NOT VALGRIND_FOUND)
+      message(FATAL_ERROR "valgrind not found, but ENABLE_VALGRIND_TESTING enabled")
+    endif()
     # https://github.com/votca/tools/issues/268
     # tests seem to trigger a 'Address 0x0 is not stack'd, malloc'd or (recently) free'd' in valgrind
-    set(BROCKEN_MKL_TEST test_crosscorrelate test_cubicspline test_linalg test_linspline)
-    if(MKL_FOUND AND PROG IN_LIST BROCKEN_MKL_TEST)
+    set(BROKEN_MKL_TEST test_crosscorrelate test_cubicspline test_linalg test_linspline test_random)
+    if(MKL_FOUND AND PROG IN_LIST BROKEN_MKL_TEST)
       continue()
     endif()
     add_test(NAME memory_${PROG} COMMAND "${VALGRIND_EXECUTABLE}" --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --error-exitcode=1 $<TARGET_FILE:unit_${PROG}>)
-    set_tests_properties(memory_${PROG} PROPERTIES LABELS "tools;votca;memory")
-  endif(VALGRIND_FOUND) 
+  endif(ENABLE_VALGRIND_TESTING) 
 endforeach(PROG)

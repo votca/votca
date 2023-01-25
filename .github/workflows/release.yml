@@ -16,9 +16,8 @@ jobs:
     container: ghcr.io/votca/buildenv/fedora:latest
     steps:
       - name: Checkout votca
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
-          submodules: true
           fetch-depth: 0
           token: ${{ secrets.VOTCA_BOT_TOKEN }}
       - name: Setup
@@ -28,20 +27,19 @@ jobs:
           git config --global user.email "github@votca.org"
           if [[ -z "${{ github.event.inputs.tag }}" ]]; then
             version="$(sed -n 's/set(PROJECT_VERSION *"\([^"]*\)").*/\1/p' CMakeLists.txt)"
-            echo "::set-output name=VERSION::${version}"
+            echo "VERSION=${version}" >> $GITHUB_OUTPUT
           else
             version="${{ github.event.inputs.tag }}"
-            echo "::set-output name=VERSION::${version#v}"
+            echo "VERSION=${version#v}" >> $GITHUB_OUTPUT
           fi
           if [[ ${GITHUB_REF} = refs/heads/* ]]; then
             branch="${GITHUB_REF#refs/heads/}"
-            [[ ${branch} != release_testing ]] || branch="master"
-            echo "::set-output name=BRANCH::${branch}"
+            echo "BRANCH=${branch}" >> $GITHUB_OUTPUT
           else
             echo "Unsupported GITHUB_REF: ${GITHUB_REF}" >&2
             exit 1
           fi
-          echo "::set-output name=DATE::$(date +%s)"
+          echo "DATE=$(date +%s)" >> $GITHUB_OUTPUT
           if ${{ github.event.inputs.deploy == 'yesyesyes' }}; then
             if [[ -z "${{ github.event.inputs.tag }}" ]]; then
               echo "You cannot deploy a release without explicitly setting the tag" >&2
@@ -59,11 +57,11 @@ jobs:
               echo "You cannot deploy with extra CMake args" >&2
               exit 1
             fi
-            echo "::set-output name=DEPLOY::true"
+            echo "DEPLOY=true" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=DRY_RUN::--dry-run"
+            echo "DRY_RUN=--dry-run" >> $GITHUB_OUTPUT
           fi
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/.ccache
           key: ccache-release-${{ steps.setup.outputs.BRANCH }}-${{ steps.setup.outputs.DATE }}
@@ -72,17 +70,16 @@ jobs:
         run: |
           .github/workflows/make_release.sh --branch ${{ steps.setup.outputs.BRANCH }} ${{ github.event.inputs.cmake_args }} --verbose ${{ steps.setup.outputs.VERSION }} .
       - name: Show diff
-        run: |
-          for p in . tools csg csg-tutorials xtp xtp-tutorials; do
-            echo "Module: $p"
-            git -C $p log -p --submodule origin/${{ steps.setup.outputs.BRANCH }}..${{ steps.setup.outputs.BRANCH }}
-          done
+        run: git log -p origin/${{ steps.setup.outputs.BRANCH }}..${{ steps.setup.outputs.BRANCH }}
       - name: Push tags
         run: |
           set -x
-          for p in . tools csg csg-tutorials xtp xtp-tutorials; do
-            git -C $p push ${{ steps.setup.outputs.DRY_RUN }} --tags origin ${{ steps.setup.outputs.BRANCH }}:${{ steps.setup.outputs.BRANCH }}
-          done
+          git push ${{ steps.setup.outputs.DRY_RUN }} --tags origin ${{ steps.setup.outputs.BRANCH }}:${{ steps.setup.outputs.BRANCH }}
+      - name: Create Changlog
+        uses: ./.github/actions/release_changelog
+        with:
+          version: ${{ steps.setup.outputs.VERSION }}
+          changelog: 'release_changelog.md'
       - name: Create Release
         if: ${{ steps.setup.outputs.DEPLOY == 'true' }}
         uses: actions/create-release@v1
@@ -92,3 +89,4 @@ jobs:
           tag_name: v${{ steps.setup.outputs.VERSION }}
           release_name: v${{ steps.setup.outputs.VERSION }}
           prerelease: ${{ contains(steps.setup.outputs.VERSION, 'rc') }}
+          body_path: 'release_changelog.md'

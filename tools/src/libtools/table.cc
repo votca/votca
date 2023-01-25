@@ -180,11 +180,12 @@ istream &operator>>(istream &in, Table &t) {
 void Table::GenerateGridSpacing(double min, double max, double spacing) {
   Index vec_size = (Index)((max - min) / spacing + 1.00000001);
   resize(vec_size);
-  int i;
+  // adjust spacing to generate evenly distributed bins till max
+  double spacing_scaled = (max - min) / (double(vec_size) - 1.0);
 
   double r_init;
-
-  for (r_init = min, i = 0; i < vec_size - 1; r_init += spacing) {
+  int i;
+  for (r_init = min, i = 0; i < vec_size - 1; r_init += spacing_scaled) {
     x_[i++] = r_init;
   }
   x_[i] = max;

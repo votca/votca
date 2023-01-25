@@ -47,9 +47,7 @@ namespace tools {
  * This class stores tags and content in a hierarchical (tree) structure similar
  * to the one used in the XML format. The structure can be either filled
  * manually or read in from an XML file using load_property_from_xml. The
- * supported XML constructs are TAGS, ATTRIBUTES, and CONTENT: <tag
- * attribute_name="attribute_value"> content
- * </tag>
+ * supported XML constructs are TAGS, ATTRIBUTES, and CONTENT.
  * The property object can be output to an ostream using format modifiers:
  * cout << XML << property;
  * Supported formats are XML, TXT, HLP
@@ -325,6 +323,21 @@ inline T Property::ifExistsReturnElseReturnDefault(const std::string &key,
   T result;
   if (this->exists(key)) {
     result = this->get(key).as<T>();
+  } else {
+    result = defaultvalue;
+  }
+  return result;
+}
+
+template <>
+inline std::string Property::ifExistsReturnElseReturnDefault(
+    const std::string &key, std::string defaultvalue) const {
+  std::string result;
+  if (this->exists(key)) {
+    result = this->get(key).as<std::string>();
+    if (result.empty()) {
+      result = defaultvalue;
+    }
   } else {
     result = defaultvalue;
   }

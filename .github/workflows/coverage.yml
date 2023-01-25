@@ -7,6 +7,10 @@ on:
     branches:
       - master
 
+concurrency:
+  group: ${ {github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
 jobs:
   Coverage:
     strategy:
@@ -19,30 +23,27 @@ jobs:
     container: ghcr.io/votca/buildenv/${{ matrix.distro }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          submodules: true
+        uses: actions/checkout@v3
       - name: Run Votca Setup
         id: setup
-        uses: votca/actions/setup@master
+        uses: ./.github/actions/setup
         with:
           distro: ${{ matrix.distro }}
           toolchain: ${{ matrix.toolchain }}
           minimal: ${{ matrix.minimal == true }}
-          module: ${{ matrix.module_build == true }}
           own_gmx: ${{ matrix.own_gmx == true }}
           regression_testing: ${{ matrix.no_regression_testing != true }}
           coverage: ${{ matrix.coverage }}
           cmake_build_type: ${{ matrix.cmake_build_type }}
           ctest_args: ${{ matrix.ctest_args }}
           cmake_args: ${{ matrix.cmake_args }}
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/.ccache
           key: ${{ steps.setup.outputs.cache_key }}
           restore-keys: ${{ steps.setup.outputs.cache_restore_key }}
       - name: CMake
-        run: cmake -B builddir ${{ steps.setup.outputs.cmake_args }} .
+        run: cmake -B builddir -S . ${{ steps.setup.outputs.cmake_args }}
       - name: Build
         run: |
           ccache -z
@@ -53,4 +54,4 @@ jobs:
         working-directory: builddir
       - name: Upload Report to codecov.io
         if: ${{ matrix.coverage }}
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3

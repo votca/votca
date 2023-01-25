@@ -144,7 +144,8 @@ class BeadMotif : public BeadStructure {
    * Also switches an internal attribute to indicate the beadtype is no longer
    * up to date.
    *
-   * \param[in] - id of the first and second beads that are connected
+   * \param[in] bead1_id - id of the first bead that are connected
+   * \param[in] bead2_id - id of the second bead that are connected
    **/
   void ConnectBeads(const Index &bead1_id, const Index &bead2_id) final;
 
