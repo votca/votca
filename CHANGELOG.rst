@@ -19,6 +19,7 @@ Version 2023-dev
 -  Major CMake refactor (#950, #1022)
 -  Fix all doxygen warnings (#1026)
 -  basis and auxbasis are written to QMMM checkpoint file (#1030)
+-  iterations_max can now be zero (#1033)
 
 Version 2022.2 (released XX.12.22)
 ==================================
