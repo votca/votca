@@ -71,7 +71,7 @@
     <!-- ibi: inverse boltzmann imc: inverse monte carlo re: relative entropy-->
     <method>re</method>
     <!-- scaling parameter for the update-->
-    <!--<scale>0.5</scale>-->
+    <scale>0.5</scale>
     <!-- convergence check options -->
     <convergence_check>
       <type>default</type>
@@ -80,5 +80,8 @@
     <average>
       <steps>50</steps>
     </average>
+    <!-- directory for user scripts -->
+    <scriptpath></scriptpath>
   </inverse>
 </cg>
+
