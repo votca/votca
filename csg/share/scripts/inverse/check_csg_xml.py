@@ -64,7 +64,7 @@ def check_votca_settings_xml(root, root_defaults):
             for child, child_path in iter_xml(child, path=child_path):
                 yield child, child_path
 
-    sim_progs = ["gromacs", "lammps", "hoomd", "espresso", "dlpoly"]
+    sim_progs = ["gromacs", "lammps", "hoomd", "espresso", "dlpoly", "espressopp"]
     bad_paths = []
     for _, child_path in iter_xml(root):
         # options for cg.bonded are partially listed in cg.non-bonded
