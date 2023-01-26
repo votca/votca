@@ -641,6 +641,8 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(BSE_singlet_energies_dynamic_, "BSE_singlet_dynamic");
 
   w(BSE_triplet_energies_dynamic_, "BSE_triplet_dynamic");
+
+  w(CalcType_, "CalcType");
 }
 
 void Orbitals::ReadFromCpt(const std::string& filename) {
@@ -684,6 +686,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(mos_embedding_, "mos_embedding");
   r(active_electrons_, "active_electrons");
   r(inactivedensity_, "inactivedensity");
+  r(CalcType_, "CalcType");
 
   if (version < 3) {
     // clang-format off

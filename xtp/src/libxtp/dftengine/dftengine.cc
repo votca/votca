@@ -521,12 +521,16 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       << std::flush;
 
   if (truncate_) {  // Truncation starts here
+    std::string Truncated = "Truncated";
+    orb.setCalculationType(Truncated);
     TruncateBasis(orb, activeatoms, H0, InitialActiveDensityMatrix, v_embedding,
                   InitialInactiveMOs);
     active_and_border_atoms_ = activeatoms;
   }
   // SCF loop if you don't truncate active region
   else {
+    std::string NotTruncated = "NotTruncated";
+    orb.setCalculationType(NotTruncated);
     Eigen::MatrixXd ActiveDensityMatrix = InitialActiveDensityMatrix;
     for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
       XTP_LOG(Log::error, *pLog_) << std::flush;
@@ -794,8 +798,6 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
     }
   }
   TruncMOsFullBasis(trunc_orb, active_and_border_atoms_, numfuncpatom_);
-  Eigen::MatrixXd lalala = trunc_orb.getTruncMOsFullBasis();
-  std::cout << std::endl << "SIZE = " << lalala.size() << std::endl;
   return true;
 }
 

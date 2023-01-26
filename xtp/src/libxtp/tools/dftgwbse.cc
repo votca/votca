@@ -113,7 +113,10 @@ bool DftGwBse::Run() {
     geoopt.Initialize(geoopt_options_);
     geoopt.Evaluate();
   } else {
+    QMMolecule fullMol = orbitals.QMAtoms();
     gwbse_engine.ExcitationEnergies(orbitals);
+    orbitals.QMAtoms() = fullMol;
+    std::cout << "F***** " << orbitals.getCalculationType();
   }
 
   XTP_LOG(Log::error, log_) << "Saving data to " << archive_file_ << std::flush;
