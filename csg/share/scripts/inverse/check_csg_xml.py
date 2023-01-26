@@ -65,7 +65,7 @@ def check_votca_settings_xml(root, root_defaults):
                 yield child, child_path
 
     sim_progs = ["gromacs", "lammps", "hoomd", "espresso"]
-    found_bad_paths = []
+    bad_paths = []
     for _, child_path in iter_xml(root):
         # options for cg.bonded are partially listed in cg.non-bonded
         child_path_non_bonded = child_path.replace("/bonded/", "/non-bonded/")
@@ -82,35 +82,30 @@ def check_votca_settings_xml(root, root_defaults):
             # per group settings can have any name
             and not child_path.startswith("./inverse/imc/")
         ):
-            found_bad_paths.append(child_path)
+            bad_paths.append(child_path)
 
     # find what the user maybe meant
     suggestions = []
-    for found_bad_path in found_bad_paths:
-        found_bad_tag = found_bad_path.split("/")[-1]
-        try:
-            suggestion = next(
-                default_path
-                for default_element, default_path in iter_xml(root_defaults)
-                if default_element.tag == found_bad_tag
-            )
-            suggestion = suggestion.replace("/non-bonded", "/{bonded,non-bonded}")
-        except StopIteration:
-            suggestion = None
-        suggestions.append(suggestion)
+    for found_bad_path in bad_paths:
+        last_tag = found_bad_path.split("/")[-1]
+        tag_suggestions = [
+            default_path.replace("/non-bonded", "/{bonded,non-bonded}")
+            for default_element, default_path in iter_xml(root_defaults)
+            if default_element.tag == last_tag
+        ]
+        suggestions.append(tag_suggestions)
 
     # output bad tags and suggestions
-    if len(found_bad_paths) > 0:
-        found_bad_lines = ""
-        for found_bad_tag, suggestion in zip(found_bad_paths, suggestions):
-            found_bad_lines += found_bad_tag
-            if suggestion is not None:
-                found_bad_lines += f"  ( did you mean {suggestion} )"
+    if len(bad_paths) > 0:
+        found_bad_lines = ""  # lines in output about bad paths
+        for bad_path, tag_suggestions in zip(bad_paths, suggestions):
+            found_bad_lines += bad_path
+            if len(tag_suggestions) > 0:
+                found_bad_lines += f"  ( did you mean {' or '.join(tag_suggestions)} )"
             found_bad_lines += "\n"
         print(
-            f"The settings XML file contains the tags\n\n{found_bad_lines}\nbut "
-            "those paths does not exist in the XML defaults file and are therefore "
-            "not supported."
+            "The settings XML file contains the tags which do not exist in the XML "
+            f"defaults file:\n{found_bad_lines}\n"
         )
 
 

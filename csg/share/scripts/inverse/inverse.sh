@@ -110,7 +110,7 @@ enable_logging
 check_for_obsolete_xml_options
 check_xml_output=$(do_external check csg_xml "$CSGXMLFILE" "$VOTCA_CSG_DEFAULTS")
 if [[ -n $check_xml_output ]]; then
-  die "$check_xml_output"
+  msg --color blue --to-stderr "WARNING: $check_xml_output"
 fi
 
 echo "Sim started $(date)"
