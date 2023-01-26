@@ -575,6 +575,9 @@
       <espressopp>
         <DESC>Espresso++ specific options for this interations</DESC>
       </espressopp>
+      <hoomd-blue>
+        <DESC>HOOMD-blue specific options for this interations</DESC>
+      </hoomd-blue>
       <gromacs>
         <DESC>Gromacs specific options for this interations</DESC>
         <table>
