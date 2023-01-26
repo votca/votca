@@ -24,7 +24,7 @@
     <program>dlpoly</program>
     <!-- dlpoly specific options -->
     <dlpoly>
-      <table_bins>0.0002</table_bins>
+      <!--<table_grid>900</table_grid>-->
       <table_end>0.9</table_end>
     </dlpoly>
     <initial_configuration>maindir</initial_configuration>
