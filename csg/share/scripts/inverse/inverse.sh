@@ -187,12 +187,35 @@ steps_done=0
 i="$(( $begin - 1 ))"
 while true; do
   ((i++))
-  if [[ -z ${do_iterations} ]]; then
-    iterations_max="$(csg_get_property cg.inverse.iterations_max)"
+  # decide if to do step
+  iterations_max="$(csg_get_property --allow-empty cg.inverse.iterations_max)"
+  # first check if iterations_max and do_iterations are int
+  if [[ -n $iterations_max ]]; then
     is_int "$iterations_max" || die "inverse.sh: cg.inverse.iterations_max needs to be a number, but I got $iterations_max"
-    echo "We are doing $i of $iterations_max iterations (0=inf)."
-    [[ $iterations_max -ne 0 && $i -gt $iterations_max ]] && break
   fi
+  if [[ -n $do_iterations ]]; then
+    is_int "$do_iterations" || die "inverse.sh: option --do-iterations needs to be a number, but I got $do_iterations"
+  fi
+  # if --do-iterations was provided, decide by it
+  if [[ -n $do_iterations ]]; then
+    # exception: if iterations_max is zero, ignore do_iterations. Needed for some tests in csg_tutorial (i.e. spce/t-hncn/pre)
+    if [[ $iterations_max == 0 && $do_iterations -gt 0 ]]; then
+      msg "Stopping at step $i, user requested to do more, but iterations_max=0 indicates this should only run step000"
+      break
+    fi
+    # stop according to --do-iterations
+    if [[ $do_iterations -eq $steps_done ]] ; then
+      msg "Stopping at step $i, user requested to take some rest after this amount of iterations"
+      exit 0  # not creating done file
+    else
+      msg "Going on for another $(( $do_iterations - $steps_done )) steps"
+    fi
+   # stop according to iterations_max
+  else
+    [[ $iterations_max -ne -1 && $i -gt $iterations_max ]] && break
+    echo "We are doing $i of $iterations_max iterations (-1=inf, 0=only step_000)."
+  fi
+  # do step
   step_starttime="$(get_time)"
   update_stepnames $i
   last_dir=$(get_last_step_dir)
@@ -279,7 +302,7 @@ while true; do
   do_external clean $sim_prog
 
   step_time="$(( $(get_time) - $step_starttime ))"
-  msg "\nstep $i done, needed $step_time secs"
+  msg "step $i done, needed $step_time secs\n"
   ((steps_done++))
 
   touch "done"
@@ -307,15 +330,6 @@ while true; do
       exit 0
     else
       msg "We can go for another $(( ( ${CSGENDING} - $(get_time) ) / $avg_steptime - 1 )) steps until walltime is up."
-    fi
-  fi
-
-  if [[ -n $do_iterations ]]; then
-    if [[ $do_iterations -eq $steps_done ]] ; then
-      msg "Stopping at step $i, user requested to take some rest after this amount of iterations"
-      exit 0
-    else
-      msg "Going on for another $(( $do_iterations - $steps_done )) steps"
     fi
   fi
   cd $(get_main_dir) || die "cd $(get_main_dir) failed"
