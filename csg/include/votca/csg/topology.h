@@ -213,7 +213,7 @@ class Topology {
    * \brief Given a bead type this method returns the id associated with the
    * type
    *
-   * @param[in] string name of the type
+   * @param[in] type string name of the type
    * @return Index the id of the type
    **/
   Index getBeadTypeId(std::string type) const;
@@ -221,7 +221,7 @@ class Topology {
   /**
    * \brief Returns a pointer to the bead with index i
    *
-   * @param[in] Index i is the id of the bead
+   * @param[in] i the id of the bead
    * @return Bead * is a pointer to the bead
    **/
   Bead *getBead(const Index i) { return &beads_[i]; }
@@ -267,6 +267,7 @@ class Topology {
   /**
    * set the simulation box
    * \param box triclinic box matrix
+   * \param boxtype type of the box (triclinic, orthorhombic, open)
    */
   void setBox(const Eigen::Matrix3d &box, BoundaryCondition::eBoxtype boxtype =
                                               BoundaryCondition::typeAuto) {
@@ -354,8 +355,8 @@ class Topology {
 
   /**
    * \brief calculate shortest vector connecting two points
-   * \param r1 first point
-   * \param r2 second point
+   * \param r_i first point
+   * \param r_j second point
    * \return distance vector
    *
    * calculates the smallest distance between two points with correct treatment

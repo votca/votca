@@ -68,7 +68,8 @@ class Calculator {
    * Options are passed to a calculator by the Application
    * These option overwrite defaults
    *
-   * @param options Property object passed by the application to a calculator
+   * @param user_options Property object passed by the application to a
+   * calculator
    */
   virtual void Initialize(const Property &user_options) = 0;
   /**

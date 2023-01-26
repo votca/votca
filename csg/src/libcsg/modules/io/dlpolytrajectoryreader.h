@@ -63,7 +63,7 @@ class DLPOLYTrajectoryReader : public TrajectoryReader {
   void Close() override;
 
   /// set/get the original configuration or trajectory file name:
-  /// <name>.dlpc/<name>.dlph (convention: ".dlpc"="CONFIG", ".dlph"="HISTORY")
+  /// name.dlpc/name.dlph (convention: ".dlpc"="CONFIG", ".dlph"="HISTORY")
   void setFname(std::string name) {
     fname_ = name;
     return;

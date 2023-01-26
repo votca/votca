@@ -68,7 +68,7 @@ class Bead : public BaseBead {
 
   /**
    * set the charge of the base bead
-   * \param[in] - base bead position
+   * \param[in] q - base bead position
    */
   virtual void setQ(const double &q) { charge_ = q; }
 

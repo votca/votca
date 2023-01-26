@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,14 +113,14 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
     tools::getline(fl_, line);  // title
 
-#ifdef DEBUG
+#ifndef NDEBUG
     cout << "Read from dlpoly file '" << fname_ << "' : '" << line
          << "' - header" << endl;
 #endif
 
     tools::getline(fl_, line);  // 2nd header line
 
-#ifdef DEBUG
+#ifndef NDEBUG
     cout << "Read from dlpoly file '" << fname_ << "' : '" << line
          << "' - directives line" << endl;
 #endif
@@ -142,7 +142,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     hasFs = (mavecs > 1);  // 2      => in DL_POLY frame force vector follows
                            // velocities for each atom/bead
 
-#ifdef DEBUG
+#ifndef NDEBUG
     if (hasVs != conf.HasVel() || hasFs != conf.HasForce()) {
       cout << "WARNING: N of atom vectors (keytrj) in '" << fname_
            << "' header differs from that read with topology" << endl;
@@ -152,7 +152,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     conf.SetHasVel(hasVs);
     conf.SetHasForce(hasFs);
 
-#ifdef DEBUG
+#ifndef NDEBUG
     cout << "Read from dlpoly file '" << fname_ << "' : keytrj - " << mavecs
          << ", hasV - " << conf.HasVel() << ", hasF - " << conf.HasForce()
          << endl;
@@ -171,7 +171,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       pbc_type = BoundaryCondition::typeTriclinic;
     }
 
-#ifdef DEBUG
+#ifndef NDEBUG
     cout << "Read from dlpoly file '" << fname_ << "' : pbc_type (imcon) - '"
          << pbc_type << "'" << endl;
 
@@ -190,7 +190,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
   if (!isConfig_) {
     tools::getline(fl_, line);  // timestep line - only present in HISTORY, and
                                 // not in CONFIG
-#ifdef DEBUG
+#ifndef NDEBUG
     cout << "Read from dlpoly file '" << fname_ << "' : '" << line << "'"
          << endl;
 #endif
@@ -211,7 +211,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       conf.SetHasVel(hasVs);
       conf.SetHasForce(hasFs);
 
-#ifdef DEBUG
+#ifndef NDEBUG
       cout << "Read from CONFIG: traj_key - " << navecs << ", hasV - "
            << conf.HasVel() << ", hasF - " << conf.HasForce() << endl;
 #endif
@@ -236,7 +236,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
           stod(fields[fields.size() - 1]);  // normally it is the last
                                             // column in 'timestep' line
 
-#ifdef DEBUG
+#ifndef NDEBUG
       cout << "Read from dlpoly file '" << fname_ << "' : natoms = " << natoms
            << ", levcfg = " << fields[3];
       cout << ", dt = " << fields[5] << ", time = " << stime << endl;
@@ -294,7 +294,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
       tools::getline(fl_, line);
 
-#ifdef DEBUG
+#ifndef NDEBUG
       cout << "Read from dlpoly file '" << fname_ << "' : '" << line
            << "' - box vector # " << i + 1 << endl;
 #endif
@@ -318,7 +318,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       {
         tools::getline(fl_, line);  // atom header line
 
-#ifdef DEBUG
+#ifndef NDEBUG
         cout << "Read from dlpoly file '" << fname_ << "' : '" << line << "'"
              << endl;
 #endif
@@ -346,7 +346,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
         tools::getline(fl_, line);  // read atom positions
 
-#ifdef DEBUG
+#ifndef NDEBUG
         cout << "Read from dlpoly file '" << fname_ << "' : '" << line << "'"
              << endl;
 #endif
@@ -367,19 +367,19 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       }
 
       b->setPos(atom_vecs.col(0));
-#ifdef DEBUG
+#ifndef NDEBUG
       cout << "Crds from dlpoly file '" << fname_ << "' : " << atom_vecs.col(0)
            << endl;
 #endif
       if (navecs > 0) {
         b->setVel(atom_vecs.col(1));
-#ifdef DEBUG
+#ifndef NDEBUG
         cout << "Vels from dlpoly file '" << fname_
              << "' : " << atom_vecs.col(1) << endl;
 #endif
         if (navecs > 1) {
           b->setF(atom_vecs.col(2));
-#ifdef DEBUG
+#ifndef NDEBUG
           cout << "Frcs from dlpoly file '" << fname_
                << "' : " << atom_vecs.col(2) << endl;
 #endif

@@ -85,9 +85,10 @@ class CubicSpline : public Spline {
 
   /**
    * \brief Add a point (one entry) to fitting matrix
-   * \param pointer to matrix
-   * \param value x
-   * \param offsets relative to getInterval(x)
+   * \param M pointer to matrix
+   * \param x value
+   * \param offset1 relative to getInterval(x)
+   * \param offset2 relative to getInterval(x)
    * \param scale parameters for terms "A,B,C,D"
    * When creating a matrix to fit data with a spline, this function creates
    * one entry in that fitting matrix.
@@ -98,9 +99,10 @@ class CubicSpline : public Spline {
 
   /**
    * \brief Add a point (one entry) to fitting matrix
-   * \param pointer to matrix [in] [out]
-   * \param value x [in]
-   * \param offsets relative to getInterval(x) [in]
+   * \param M pointer to matrix [in] [out]
+   * \param x value  [in]
+   * \param offset1 relative to getInterval(x) [in]
+   * \param offset2 relative to getInterval(x) [in]
    * \param scale1 parameters for terms "A,B,C,D" [in]
    * \param scale2 parameters for terms "AA,BB,CC,DD" [in]
    * When creating a matrix to fit data with a spline, this function creates
@@ -112,9 +114,10 @@ class CubicSpline : public Spline {
 
   /**
    * \brief Add a vector of points to fitting matrix
-   * \param pointer to matrix
-   * \param vector of x values
-   * \param offsets relative to getInterval(x)
+   * \param M pointer to matrix
+   * \param x vector of x values
+   * \param offset1 relative to getInterval(x)
+   * \param offset2 relative to getInterval(x)
    * Same as previous function, but vector-valued and with scale=1.0
    */
   template <typename matrix_type, typename vector_type>
@@ -123,8 +126,9 @@ class CubicSpline : public Spline {
 
   /**
    * \brief Add boundary condition of sum_i f_i =0 to fitting matrix
-   * \param pointer to matrix
-   * \param offsets
+   * \param M pointer to matrix
+   * \param offset1 relative to getInterval(x)
+   * \param offset2 relative to getInterval(x)
    */
   template <typename matrix_type>
   void AddBCSumZeroToFitMatrix(matrix_type &M, Index offset1,
@@ -132,8 +136,9 @@ class CubicSpline : public Spline {
 
   /**
    * \brief Add boundary conditions to fitting matrix
-   * \param pointer to matrix
-   * \param offsets
+   * \param M pointer to matrix
+   * \param offset1 relative to getInterval(x)
+   * \param offset2 relative to getInterval(x)
    */
   template <typename matrix_type>
   void AddBCToFitMatrix(matrix_type &M, Index offset1, Index offset2 = 0);

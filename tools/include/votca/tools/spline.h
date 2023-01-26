@@ -78,13 +78,13 @@ class Spline {
 
   /**
    * \brief Set the boundary type of the spline
-   * \param boundary of type eBoundary
+   * \param bc of type eBoundary
    */
   void setBC(eBoundary bc) { boundaries_ = bc; }
 
   /**
    * \brief Set the boundary type of the spline
-   * \param boundary of type int
+   * \param bc of type Index
    */
   void setBCInt(Index bc) {
     switch (bc) {
@@ -102,44 +102,47 @@ class Spline {
 
   /**
    * \brief Get the grid point of certain index
-   * \param index of grid point
+   * \param i index of grid point
    * \return grid value
    */
   double getGridPoint(int i);
 
   /**
    * \brief Calculate spline function values for given x values on the spline
-   * created by Interpolate() or Fit() \param vector of x data values \return
-   * vector of y value
+   * created by Interpolate() or Fit()
+   * \param x vector of data values
+   * \return vector of y value
    */
   Eigen::VectorXd Calculate(const Eigen::VectorXd &x);
 
   /**
    * \brief Calculate y values for given x values on the derivative of the
-   * spline created by function Interpolate or Fit \param vector of x data
-   * values \return vector of y value
+   * spline created by function Interpolate or Fit
+   * \param x vector of data values
+   * \return vector of y value
    */
   Eigen::VectorXd CalculateDerivative(const Eigen::VectorXd &x);
 
   /**
    * \brief Print spline values (using Calculate()) on output "out" on the
-   * entire grid in steps of "interval" \param reference "out" to output \param
-   * steps of size "interval"
+   * entire grid in steps of "interval"
+   * \param out output
+   * \param interval size of "interval"
    */
   void Print(std::ostream &out, double interval);
 
   /**
    * \brief Determine the index of the interval containing value r
-   * \param value r
+   * \param r
    * \return interval index
    */
   Index getInterval(double r);
 
   /**
    * \brief Generate the grid for fitting from "min" to "max" in steps of "h"
-   * \param left interval border "min"
-   * \param right interval border "max"
-   * \param step "h"
+   * \param min left interval border
+   * \param max right interval border
+   * \param h step
    * \return number of grid values in the interval
    */
   Index GenerateGrid(double min, double max, double h);
