@@ -111,6 +111,7 @@ check_for_obsolete_xml_options
 check_xml_output=$(do_external check csg_xml "$CSGXMLFILE" "$VOTCA_CSG_DEFAULTS")
 if [[ -n $check_xml_output ]]; then
   msg --color blue --to-stderr "WARNING: $check_xml_output"
+  [[ ${CI} = true ]] && die "Clean-up with xml option above"
 fi
 
 echo "Sim started $(date)"
