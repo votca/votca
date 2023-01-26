@@ -64,7 +64,7 @@ def check_votca_settings_xml(root, root_defaults):
             for child, child_path in iter_xml(child, path=child_path):
                 yield child, child_path
 
-    sim_progs = ["gromacs", "lammps", "hoomd", "espresso"]
+    sim_progs = ["gromacs", "lammps", "hoomd", "espresso", "dlpoly"]
     bad_paths = []
     for _, child_path in iter_xml(root):
         # options for cg.bonded are partially listed in cg.non-bonded
@@ -81,6 +81,11 @@ def check_votca_settings_xml(root, root_defaults):
             and root_defaults.find(child_path_sim_prog) is None
             # per group settings can have any name
             and not child_path.startswith("./inverse/imc/")
+            # multidir gromacs allows multiple index, mdp, topol_in, or conf
+            and not any(
+                child_path.startswith(f"./inverse/gromacs/{tag}/")
+                for tag in ["index", "mdp", "topol_in", "conf"]
+            )
         ):
             bad_paths.append(child_path)
 
