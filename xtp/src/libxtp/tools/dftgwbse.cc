@@ -116,6 +116,7 @@ bool DftGwBse::Run() {
     QMMolecule fullMol = orbitals.QMAtoms();
     gwbse_engine.ExcitationEnergies(orbitals);
     if (orbitals.getCalculationType() == "Truncated") {
+      orbitals.QMAtoms().clearAtoms();
       orbitals.QMAtoms() = fullMol;
       orbitals.MOs().eigenvectors() = orbitals.getTruncMOsFullBasis();
     }

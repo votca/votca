@@ -1661,8 +1661,6 @@ void DFTEngine::TruncMOsFullBasis(Orbitals& orb, std::vector<Index> activeatoms,
     bool partOfActive = (std::find(activeatoms.begin(), activeatoms.end(),
                                    atomindex) != activeatoms.end());
     if (partOfActive == false) {
-      // expandtruncorb =
-      //     InsertZeroCols(expandtruncorb, start_index, numfuncpatom[atomindex]);
       expandtruncorb =
           InsertZeroRows(expandtruncorb, start_index, numfuncpatom[atomindex]);
     }
