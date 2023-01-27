@@ -131,11 +131,12 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
     return this->TransitionDensityMatrix(state);
   }
   Eigen::MatrixXd result;
-  if (mos_embedding_.eigenvectors().size() != 0) {
-    result = EmbDensityMatrixGroundState();
-    const Eigen::MatrixXd& inactive = getInactiveDensity();
-    result += inactive;
-  } else {
+  if (getCalculationType() =="Embedded_noTrunc") {
+    result = EmbDensityMatrixGroundState() + getInactiveDensity();
+  } 
+  else if (getCalculationType() =="Truncated"){
+    result = DensityMatrixGroundState() + getInactiveDensity();
+  }else {
     result = DensityMatrixGroundState();
   }
   if (state.Type().isExciton()) {

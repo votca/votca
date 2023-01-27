@@ -528,7 +528,7 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
   }
   // SCF loop if you don't truncate active region
   else {
-    orb.setCalculationType("notTruncated");
+    orb.setCalculationType("Embedded_noTrunc");
     Eigen::MatrixXd ActiveDensityMatrix = InitialActiveDensityMatrix;
     for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
       XTP_LOG(Log::error, *pLog_) << std::flush;
