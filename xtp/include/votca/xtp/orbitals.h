@@ -136,7 +136,7 @@ class Orbitals {
   }
 
   void setCalculationType(std::string CalcType) { CalcType_ = CalcType; }
-  std::string getCalculationType() const { CalcType_; }
+  std::string getCalculationType() const { return CalcType_; }
 
 
   bool hasQMAtoms() const { return (atoms_.size() > 0) ? true : false; }

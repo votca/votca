@@ -521,16 +521,14 @@ bool DFTEngine::EvaluateActiveRegion(Orbitals& orb) {
       << std::flush;
 
   if (truncate_) {  // Truncation starts here
-    std::string Truncated = "Truncated";
-    orb.setCalculationType(Truncated);
+    orb.setCalculationType("Truncated");
     TruncateBasis(orb, activeatoms, H0, InitialActiveDensityMatrix, v_embedding,
                   InitialInactiveMOs);
     active_and_border_atoms_ = activeatoms;
   }
   // SCF loop if you don't truncate active region
   else {
-    std::string NotTruncated = "NotTruncated";
-    orb.setCalculationType(NotTruncated);
+    orb.setCalculationType("notTruncated");
     Eigen::MatrixXd ActiveDensityMatrix = InitialActiveDensityMatrix;
     for (Index this_iter = 0; this_iter < max_iter_; this_iter++) {
       XTP_LOG(Log::error, *pLog_) << std::flush;
@@ -796,8 +794,8 @@ bool DFTEngine::EvaluateTruncatedActiveRegion(Orbitals& trunc_orb) {
         break;
       }
     }
+    TruncMOsFullBasis(trunc_orb, active_and_border_atoms_, numfuncpatom_);
   }
-  TruncMOsFullBasis(trunc_orb, active_and_border_atoms_, numfuncpatom_);
   return true;
 }
 
@@ -1663,8 +1661,8 @@ void DFTEngine::TruncMOsFullBasis(Orbitals& orb, std::vector<Index> activeatoms,
     bool partOfActive = (std::find(activeatoms.begin(), activeatoms.end(),
                                    atomindex) != activeatoms.end());
     if (partOfActive == false) {
-      expandtruncorb =
-          InsertZeroCols(expandtruncorb, start_index, numfuncpatom[atomindex]);
+      // expandtruncorb =
+      //     InsertZeroCols(expandtruncorb, start_index, numfuncpatom[atomindex]);
       expandtruncorb =
           InsertZeroRows(expandtruncorb, start_index, numfuncpatom[atomindex]);
     }

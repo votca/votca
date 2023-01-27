@@ -115,8 +115,10 @@ bool DftGwBse::Run() {
   } else {
     QMMolecule fullMol = orbitals.QMAtoms();
     gwbse_engine.ExcitationEnergies(orbitals);
-    orbitals.QMAtoms() = fullMol;
-    std::cout << "F***** " << orbitals.getCalculationType();
+    if (orbitals.getCalculationType() == "Truncated") {
+      orbitals.QMAtoms() = fullMol;
+      orbitals.MOs().eigenvectors() = orbitals.getTruncMOsFullBasis();
+    }
   }
 
   XTP_LOG(Log::error, log_) << "Saving data to " << archive_file_ << std::flush;

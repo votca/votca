@@ -202,12 +202,6 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
       gwbse.Evaluate();
       gwbse.addoutput(output_summary);
       orbitals = orb_embedded;
-      
-      // if (orbitals.getCalculationType() == "Truncated") {
-      //   orbitals.MOs().eigenvectors() = orbitals.getTruncMOsFullBasis();
-      //   orbitals.QMAtoms() = full_molecule;
-      //   std::cout << "orbitals atoms = : " << orbitals.QMAtoms().size();
-      // }
     } else {
       GWBSE gwbse = GWBSE(orbitals);
       gwbse.setLogger(logger);
