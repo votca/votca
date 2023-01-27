@@ -22,15 +22,21 @@ import xml.etree.ElementTree as ET
 if not sys.version_info >= (3, 6):
     raise Exception("This script needs Python 3.6+.")
 
+REPORT_HEADER = (
+    "The settings XML file contains the tags which do not exist in the XML defaults "
+    "file:"
+)
+
 
 def main():
     # get command line arguments
     args = get_args()
     # check XML for invalid tags
-    check_votca_settings_xml(
-        ET.fromstring(args.csg_xml_file.read()),
-        ET.fromstring(args.csg_xml_defaults_file.read()),
+    report = check_votca_settings_xml(
+        args.csg_xml_file.read(),
+        args.csg_xml_defaults_file.read(),
     )
+    print(report)
 
 
 def get_args(iie_args=None):
@@ -56,8 +62,15 @@ def get_args(iie_args=None):
     return args
 
 
-def check_votca_settings_xml(root, root_defaults):
+def check_votca_settings_xml(root_xml, root_defaults_xml):
+    """Check xml tags in root against root_defaults"""
+
+    # converte to ElementTree
+    root = ET.fromstring(root_xml)
+    root_defaults = ET.fromstring(root_defaults_xml)
+
     def iter_xml(node, path="."):
+        """Recurse an ElementTree"""
         yield node, path
         for child in node:
             child_path = f"{path}/{child.tag}"
@@ -116,10 +129,20 @@ def check_votca_settings_xml(root, root_defaults):
             if len(tag_suggestions) > 0:
                 found_bad_lines += f"  ( did you mean {' or '.join(tag_suggestions)} )"
             found_bad_lines += "\n"
-        print(
-            "The settings XML file contains the tags which do not exist in the XML "
-            f"defaults file:\n{found_bad_lines}\n"
-        )
+        return f"{REPORT_HEADER}\n{found_bad_lines}"
+    else:
+        return ""
+
+
+def test_check_votca_settings_xml():
+    report = check_votca_settings_xml("<cg></cg>", "<cg></cg>")
+    assert report == ""
+    report = check_votca_settings_xml("<cg><foo></foo></cg>", "<cg></cg>")
+    assert report == f"{REPORT_HEADER}\n./foo\n"
+    report = check_votca_settings_xml(
+        "<cg><foo></foo></cg>", "<cg><bar><foo></foo></bar></cg>"
+    )
+    assert report == f"{REPORT_HEADER}\n./foo  ( did you mean ./bar/foo )\n"
 
 
 if __name__ == "__main__":
