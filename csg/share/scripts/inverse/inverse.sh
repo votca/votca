@@ -84,13 +84,13 @@ while [[ ${1#-} != $1 ]]; do
     shift 2;;
    --nocolor)
     export CSGNOCOLOR="yes"
-    shift;; 
+    shift;;
    --nowait)
     waittime=0
     shift;;
    --debug)
     export CSGDEBUG="yes"
-    shift;; 
+    shift;;
    -h | --help)
     show_help
     exit 0;;
@@ -100,7 +100,7 @@ while [[ ${1#-} != $1 ]]; do
 done
 ### end parsing options
 
-#old style, inform user
+# old style, inform user
 [[ -z ${CSGXMLFILE} ]] && die "Please add your setting xml file behind the --options option (like for all other votca programs) !"
 
 [[ $1 = "clean" ]] && { csg_inverse_clean "$waittime"; exit $?; }
@@ -108,6 +108,11 @@ done
 enable_logging
 [[ -n $CSGDEBUG ]] && set -x
 check_for_obsolete_xml_options
+check_xml_output=$(do_external check csg_xml "$CSGXMLFILE" "$VOTCA_CSG_DEFAULTS")
+if [[ -n $check_xml_output ]]; then
+  msg --color blue --to-stderr "WARNING: $check_xml_output"
+  [[ ${CI} = true ]] && die "Clean-up with xml option above"
+fi
 
 echo "Sim started $(date)"
 
@@ -225,8 +230,8 @@ while true; do
     else
       msg "Incomplete step $i"
       [[ -f ${this_dir}/${restart_file} ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose one iteration)"
-      [[ ${CSGXMLFILE} -nt "${this_dir}/${restart_file}" ]] && 
-        msg --color blue --to-stderr "WARNING: options file ('${CSGXMLFILE}') was changed since the last execution, these changes will have no effect already finished parts of the iteraction, to take effect remove the current iteration ('${this_dir##*/}')"
+      [[ ${CSGXMLFILE} -nt "${this_dir}/${restart_file}" ]] &&
+        msg --color blue --to-stderr "WARNING: options file ('${CSGXMLFILE}') was changed since the last execution, these changes will have no effect already finished parts of the iteration, to take effect remove the current iteration ('${this_dir##*/}')"
     fi
   else
     echo "Step $i started at $(date)"
@@ -333,4 +338,3 @@ done
 touch "done"
 echo "All done at $(date)"
 exit 0
-
