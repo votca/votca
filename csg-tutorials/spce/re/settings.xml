@@ -76,7 +76,7 @@
       <steps>50</steps>
     </average>
     <!-- directory for user scripts -->
-    <scriptdir></scriptdir>
+    <scriptpath></scriptpath>
   </inverse>
 </cg>
 
