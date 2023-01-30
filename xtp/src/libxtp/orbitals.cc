@@ -131,14 +131,15 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
     return this->TransitionDensityMatrix(state);
   }
   Eigen::MatrixXd result;
+  std::cout << "Calculation Type is " << this->getCalculationType() << std::endl;
   if (getCalculationType() =="Embedded_noTrunc") {
-    result = EmbDensityMatrixGroundState() + getInactiveDensity();
-  } 
-  else if (getCalculationType() =="Truncated"){
-    result = DensityMatrixGroundState() + getInactiveDensity();
+    result = this->EmbDensityMatrixGroundState() + getInactiveDensity();
+  } else if (getCalculationType() =="Truncated"){
+    result = this->TruncDensityMatrixGroundState() + getInactiveDensity();
   }else {
-    result = DensityMatrixGroundState(); //else
+    result = this->DensityMatrixGroundState();
   }
+
   if (state.Type().isExciton()) {
     std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
     result = result - DMAT[0] + DMAT[1];  // Ground state + hole_contribution +
@@ -171,6 +172,13 @@ Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
 Eigen::MatrixXd Orbitals::EmbDensityMatrixGroundState() const {
   Eigen::MatrixXd occstates =
       mos_embedding_.eigenvectors().leftCols(active_electrons_ / 2);
+  Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
+  return dmatGS;
+}
+
+Eigen::MatrixXd Orbitals::TruncDensityMatrixGroundState() const {
+  Eigen::MatrixXd occstates =
+      expandedMOs_.leftCols(active_electrons_ / 2);
   Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
   return dmatGS;
 }
@@ -606,6 +614,7 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(lmos_, "LMOs");
   w(lmos_energies_, "LMOs_energies");
   w(inactivedensity_, "inactivedensity");
+  w(expandedMOs_, "TruncMOsFullBasis");
 
   CheckpointWriter molgroup = w.openChild("qmmolecule");
   atoms_.WriteToCpt(molgroup);
@@ -688,6 +697,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(active_electrons_, "active_electrons");
   r(inactivedensity_, "inactivedensity");
   r(CalcType_, "CalcType");
+  r(expandedMOs_, "TruncMOsFullBasis");
 
   if (version < 3) {
     // clang-format off

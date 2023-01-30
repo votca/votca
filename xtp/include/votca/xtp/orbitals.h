@@ -355,6 +355,7 @@ class Orbitals {
   // functions for calculating density matrices
   Eigen::MatrixXd DensityMatrixGroundState() const;
   Eigen::MatrixXd EmbDensityMatrixGroundState() const;
+  Eigen::MatrixXd TruncDensityMatrixGroundState() const;
   std::array<Eigen::MatrixXd, 2> DensityMatrixExcitedState(
       const QMState &state) const;
   Eigen::MatrixXd DensityMatrixQuasiParticle(const QMState &state) const;
