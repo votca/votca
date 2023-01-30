@@ -137,7 +137,7 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   else if (getCalculationType() =="Truncated"){
     result = DensityMatrixGroundState() + getInactiveDensity();
   }else {
-    result = DensityMatrixGroundState();
+    result = DensityMatrixGroundState(); //else
   }
   if (state.Type().isExciton()) {
     std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
@@ -600,8 +600,6 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(occupied_levels_, "occupied_levels");
   w(number_alpha_electrons_, "number_alpha_electrons");
 
-  w(CalcType_, "CalcType");
-
   w(mos_, "mos");
   w(active_electrons_, "active_electrons");
   w(mos_embedding_, "mos_embedding");
@@ -614,8 +612,6 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
 
   w(qm_energy_, "qm_energy");
   w(qm_package_, "qm_package");
-
-  w(expandedMOs_, "TruncOrbFullBasis");
 
   w(rpamin_, "rpamin");
   w(rpamax_, "rpamax");
@@ -647,6 +643,7 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
 
   w(BSE_triplet_energies_dynamic_, "BSE_triplet_dynamic");
 
+  w(CalcType_, "CalcType");
 }
 
 void Orbitals::ReadFromCpt(const std::string& filename) {
@@ -676,7 +673,6 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   CheckpointReader molgroup = r.openChild("qmmolecule");
   atoms_.ReadFromCpt(molgroup);
 
-  r(CalcType_, "CalcType");
   r(qm_energy_, "qm_energy");
   r(qm_package_, "qm_package");
   try {
@@ -691,7 +687,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(mos_embedding_, "mos_embedding");
   r(active_electrons_, "active_electrons");
   r(inactivedensity_, "inactivedensity");
-  r(expandedMOs_, "TruncOrbFullBasis");
+  r(CalcType_, "CalcType");
 
   if (version < 3) {
     // clang-format off
