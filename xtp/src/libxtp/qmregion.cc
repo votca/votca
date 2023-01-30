@@ -235,6 +235,8 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   Dmat_hist_.push_back(orb_.DensityMatrixFull(state)); // TOCHECK wich basis this is
   orb_.QMAtoms().clearAtoms();
   orb_.QMAtoms() = originalmol;
+  orb_.SetupDftBasis(orb_.getDftBasis().Name());
+  orb_.SetupAuxBasis(orb_.getAuxBasis().Name());
   return;
 }
 
@@ -339,13 +341,7 @@ void QMRegion::ApplyQMFieldToPolarSegments(
   if (do_gwbse_) {
     state = statetracker_.CalcState(orb_);
   }
-
   Eigen::MatrixXd dmat = orb_.DensityMatrixFull(state);
-  std::cout << "Size of density matrix is "
-           << dmat.rows() << " x " << dmat.cols() << "\n" << 
-          std::endl;
-
-
   double Ngrid = numint.IntegrateDensity(dmat);
   AOOverlap overlap;
   overlap.Fill(basis);

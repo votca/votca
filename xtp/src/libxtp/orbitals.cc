@@ -134,11 +134,6 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   if (getCalculationType() != "") {
     result += getInactiveDensity();
   }
-  std::cout << "DID YOU GET HERE? " << std::endl;
-  for (Index atom = 0; atom < QMAtoms().size(); atom++) {
-    std::cout << atom << ": " << QMAtoms()[atom] << std::endl;
-  }
-
   AOBasis aobasis = getDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
