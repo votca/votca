@@ -130,15 +130,27 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   if (state.isTransition()) {
     return this->TransitionDensityMatrix(state);
   }
-  Eigen::MatrixXd result;
-  std::cout << "Calculation Type is " << this->getCalculationType() << std::endl;
-  if (getCalculationType() =="Embedded_noTrunc") {
-    result = this->EmbDensityMatrixGroundState() + getInactiveDensity();
-  } else if (getCalculationType() =="Truncated"){
-    result = this->TruncDensityMatrixGroundState() + getInactiveDensity();
-  }else {
-    result = this->DensityMatrixGroundState();
+  Eigen::MatrixXd result = this->DensityMatrixGroundState();;
+  if (getCalculationType() != "") {
+    result += getInactiveDensity();
   }
+  std::cout << "DID YOU GET HERE? " << std::endl;
+  for (Index atom = 0; atom < QMAtoms().size(); atom++) {
+    std::cout << atom << ": " << QMAtoms()[atom] << std::endl;
+  }
+
+  AOBasis aobasis = getDftBasis();
+  AOOverlap overlap;
+  overlap.Fill(aobasis);
+  double elec = result.cwiseProduct(overlap.Matrix()).sum();
+  if (getCalculationType() == "Truncated") {
+    double inact = getInactiveDensity().cwiseProduct(overlap.Matrix()).sum();
+    std::cout << "Electrons after this point are: " << elec << " & " << inact;
+  }
+  else{
+    std::cout << "Electrons after this point are: " << elec;
+  }
+  
 
   if (state.Type().isExciton()) {
     std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
@@ -169,19 +181,18 @@ Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
   return dmatGS;
 }
 
-Eigen::MatrixXd Orbitals::EmbDensityMatrixGroundState() const {
-  Eigen::MatrixXd occstates =
-      mos_embedding_.eigenvectors().leftCols(active_electrons_ / 2);
-  Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
-  return dmatGS;
-}
+// Eigen::MatrixXd Orbitals::EmbDensityMatrixGroundState() const {
+//   Eigen::MatrixXd occstates =
+//       mos_embedding_.eigenvectors().leftCols(active_electrons_ / 2);
+//   Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
+//   return dmatGS;
+// }
 
-Eigen::MatrixXd Orbitals::TruncDensityMatrixGroundState() const {
-  Eigen::MatrixXd occstates =
-      expandedMOs_.leftCols(active_electrons_ / 2);
-  Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
-  return dmatGS;
-}
+// Eigen::MatrixXd Orbitals::TruncDensityMatrixGroundState() const {
+//   Eigen::MatrixXd occstates = expandedMOs_.leftCols(active_electrons_ / 2);
+//   Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
+//   return dmatGS;
+// }
 
 // Density matrix for a single KS orbital
 Eigen::MatrixXd Orbitals::DensityMatrixKSstate(const QMState& state) const {
