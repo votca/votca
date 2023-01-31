@@ -237,8 +237,9 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     orb_.SetupAuxBasis(orb_.getAuxBasis().Name());
   }
   E_hist_.push_back(energy);
-  // for QMMM convergence and interaction, rewrite everything back to full basis 
-  Dmat_hist_.push_back(orb_.DensityMatrixFull(state)); // TOCHECK wich basis this is
+  // for QMMM convergence and interaction, rewrite everything back to full basis
+  Dmat_hist_.push_back(orb_.DensityMatrixFull(state));  // TOCHECK wich basis
+                                                        // this is
   return;
 }
 

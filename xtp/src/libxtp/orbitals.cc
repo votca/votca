@@ -130,7 +130,8 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   if (state.isTransition()) {
     return this->TransitionDensityMatrix(state);
   }
-  Eigen::MatrixXd result = this->DensityMatrixGroundState();;
+  Eigen::MatrixXd result = this->DensityMatrixGroundState();
+  ;
   if (getCalculationType() != "") {
     result += getInactiveDensity();
   }
@@ -141,8 +142,7 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   if (getCalculationType() == "Truncated") {
     double inact = getInactiveDensity().cwiseProduct(overlap.Matrix()).sum();
     std::cout << "Electrons after this point are: " << elec << " & " << inact;
-  }
-  else{
+  } else {
     std::cout << "Electrons after this point are: " << elec;
   }
   if (state.Type().isExciton()) {

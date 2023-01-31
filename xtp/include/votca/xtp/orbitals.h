@@ -138,7 +138,6 @@ class Orbitals {
   void setCalculationType(std::string CalcType) { CalcType_ = CalcType; }
   std::string getCalculationType() const { return CalcType_; }
 
-
   bool hasQMAtoms() const { return (atoms_.size() > 0) ? true : false; }
 
   const QMMolecule &QMAtoms() const { return atoms_; }
@@ -420,7 +419,7 @@ class Orbitals {
   std::string ECP_ = "";
   bool useTDA_;
 
-  std::string CalcType_="";
+  std::string CalcType_ = "";
 
   tools::EigenSystem mos_;
   tools::EigenSystem mos_embedding_;
