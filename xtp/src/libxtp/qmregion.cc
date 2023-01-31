@@ -229,14 +229,16 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
       }
     }
   }
-
+  if (orb_.getCalculationType() == "Truncated") {
+    orb_.MOs().eigenvectors() = orb_.getTruncMOsFullBasis();
+    orb_.QMAtoms().clearAtoms();
+    orb_.QMAtoms() = originalmol;
+    orb_.SetupDftBasis(orb_.getDftBasis().Name());
+    orb_.SetupAuxBasis(orb_.getAuxBasis().Name());
+  }
   E_hist_.push_back(energy);
   // for QMMM convergence and interaction, rewrite everything back to full basis 
   Dmat_hist_.push_back(orb_.DensityMatrixFull(state)); // TOCHECK wich basis this is
-  orb_.QMAtoms().clearAtoms();
-  orb_.QMAtoms() = originalmol;
-  orb_.SetupDftBasis(orb_.getDftBasis().Name());
-  orb_.SetupAuxBasis(orb_.getAuxBasis().Name());
   return;
 }
 
