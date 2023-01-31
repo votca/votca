@@ -84,13 +84,13 @@ while [[ ${1#-} != $1 ]]; do
     shift 2;;
    --nocolor)
     export CSGNOCOLOR="yes"
-    shift;; 
+    shift;;
    --nowait)
     waittime=0
     shift;;
    --debug)
     export CSGDEBUG="yes"
-    shift;; 
+    shift;;
    -h | --help)
     show_help
     exit 0;;
@@ -100,7 +100,7 @@ while [[ ${1#-} != $1 ]]; do
 done
 ### end parsing options
 
-#old style, inform user
+# old style, inform user
 [[ -z ${CSGXMLFILE} ]] && die "Please add your setting xml file behind the --options option (like for all other votca programs) !"
 
 [[ $1 = "clean" ]] && { csg_inverse_clean "$waittime"; exit $?; }
@@ -108,6 +108,11 @@ done
 enable_logging
 [[ -n $CSGDEBUG ]] && set -x
 check_for_obsolete_xml_options
+check_xml_output=$(do_external check csg_xml "$CSGXMLFILE" "$VOTCA_CSG_DEFAULTS")
+if [[ -n $check_xml_output ]]; then
+  msg --color blue --to-stderr "WARNING: $check_xml_output"
+  [[ ${CI} = true ]] && die "Clean-up with xml option above"
+fi
 
 echo "Sim started $(date)"
 
@@ -182,12 +187,35 @@ steps_done=0
 i="$(( $begin - 1 ))"
 while true; do
   ((i++))
-  if [[ -z ${do_iterations} ]]; then
-    iterations_max="$(csg_get_property cg.inverse.iterations_max)"
+  # decide if to do step
+  iterations_max="$(csg_get_property --allow-empty cg.inverse.iterations_max)"
+  # first check if iterations_max and do_iterations are int
+  if [[ -n $iterations_max ]]; then
     is_int "$iterations_max" || die "inverse.sh: cg.inverse.iterations_max needs to be a number, but I got $iterations_max"
-    echo "We are doing $i of $iterations_max iterations (0=inf)."
-    [[ $iterations_max -ne 0 && $i -gt $iterations_max ]] && break
   fi
+  if [[ -n $do_iterations ]]; then
+    is_int "$do_iterations" || die "inverse.sh: option --do-iterations needs to be a number, but I got $do_iterations"
+  fi
+  # if --do-iterations was provided, decide by it
+  if [[ -n $do_iterations ]]; then
+    # exception: if iterations_max is zero, ignore do_iterations. Needed for some tests in csg_tutorial (i.e. spce/t-hncn/pre)
+    if [[ $iterations_max == 0 && $do_iterations -gt 0 ]]; then
+      msg "Stopping at step $i, user requested to do more, but iterations_max=0 indicates this should only run step000"
+      break
+    fi
+    # stop according to --do-iterations
+    if [[ $do_iterations -eq $steps_done ]] ; then
+      msg "Stopping at step $i, user requested to take some rest after this amount of iterations"
+      exit 0  # not creating done file
+    else
+      msg "Going on for another $(( $do_iterations - $steps_done )) steps"
+    fi
+   # stop according to iterations_max
+  else
+    [[ $iterations_max -ne -1 && $i -gt $iterations_max ]] && break
+    echo "We are doing $i of $iterations_max iterations (-1=inf, 0=only step_000)."
+  fi
+  # do step
   step_starttime="$(get_time)"
   update_stepnames $i
   last_dir=$(get_last_step_dir)
@@ -202,8 +230,8 @@ while true; do
     else
       msg "Incomplete step $i"
       [[ -f ${this_dir}/${restart_file} ]] || die "No restart file found (remove stepdir '${this_dir##*/}' if you don't know what to do - you will lose one iteration)"
-      [[ ${CSGXMLFILE} -nt "${this_dir}/${restart_file}" ]] && 
-        msg --color blue --to-stderr "WARNING: options file ('${CSGXMLFILE}') was changed since the last execution, these changes will have no effect already finished parts of the iteraction, to take effect remove the current iteration ('${this_dir##*/}')"
+      [[ ${CSGXMLFILE} -nt "${this_dir}/${restart_file}" ]] &&
+        msg --color blue --to-stderr "WARNING: options file ('${CSGXMLFILE}') was changed since the last execution, these changes will have no effect already finished parts of the iteration, to take effect remove the current iteration ('${this_dir##*/}')"
     fi
   else
     echo "Step $i started at $(date)"
@@ -274,7 +302,7 @@ while true; do
   do_external clean $sim_prog
 
   step_time="$(( $(get_time) - $step_starttime ))"
-  msg "\nstep $i done, needed $step_time secs"
+  msg "step $i done, needed $step_time secs\n"
   ((steps_done++))
 
   touch "done"
@@ -304,19 +332,9 @@ while true; do
       msg "We can go for another $(( ( ${CSGENDING} - $(get_time) ) / $avg_steptime - 1 )) steps until walltime is up."
     fi
   fi
-
-  if [[ -n $do_iterations ]]; then
-    if [[ $do_iterations -eq $steps_done ]] ; then
-      msg "Stopping at step $i, user requested to take some rest after this amount of iterations"
-      exit 0
-    else
-      msg "Going on for another $(( $do_iterations - $steps_done )) steps"
-    fi
-  fi
   cd $(get_main_dir) || die "cd $(get_main_dir) failed"
 done
 
 touch "done"
 echo "All done at $(date)"
 exit 0
-

@@ -911,7 +911,7 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
       cg.inverse.gromacs.traj_type)
         new="";;
       cg.inverse.convergence_check)
-	new="${i}.type";;
+        new="${i}.type";;
       cg.inverse.convergence_check_options.limit)
         new="cg.inverse.convergence_check.limit";;
       cg.non-bonded.inverse.imc.reg)
