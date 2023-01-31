@@ -145,8 +145,6 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   else{
     std::cout << "Electrons after this point are: " << elec;
   }
-  
-
   if (state.Type().isExciton()) {
     std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
     result = result - DMAT[0] + DMAT[1];  // Ground state + hole_contribution +
@@ -175,20 +173,6 @@ Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
   Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
   return dmatGS;
 }
-
-// Eigen::MatrixXd Orbitals::EmbDensityMatrixGroundState() const {
-//   Eigen::MatrixXd occstates =
-//       mos_embedding_.eigenvectors().leftCols(active_electrons_ / 2);
-//   Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
-//   return dmatGS;
-// }
-
-// Eigen::MatrixXd Orbitals::TruncDensityMatrixGroundState() const {
-//   Eigen::MatrixXd occstates = expandedMOs_.leftCols(active_electrons_ / 2);
-//   Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
-//   return dmatGS;
-// }
-
 // Density matrix for a single KS orbital
 Eigen::MatrixXd Orbitals::DensityMatrixKSstate(const QMState& state) const {
   if (!hasMOs()) {

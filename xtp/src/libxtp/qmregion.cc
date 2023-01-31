@@ -333,9 +333,6 @@ void QMRegion::ApplyQMFieldToPolarSegments(
   Vxc_Grid grid;
   AOBasis basis =
       orb_.getDftBasis();  // grid needs a basis in scope all the time
-
-  std::cout << " Basis size is " << basis.AOBasisSize() << "\n" << std::endl;
-  std::cout << " QMAtoms size is " << orb_.QMAtoms().size() << "\n" << std::endl;
   grid.GridSetup(grid_accuracy_for_ext_interaction_, orb_.QMAtoms(), basis);
   DensityIntegration<Vxc_Grid> numint(grid);
 

@@ -1669,16 +1669,6 @@ void DFTEngine::TruncMOsFullBasis(Orbitals& orb, std::vector<Index> activeatoms,
   orb.setTruncMOsFullBasis(expandtruncorb);
 }
 
-Eigen::MatrixXd DFTEngine::InsertZeroCols(Eigen::MatrixXd MOsMatrix,
-                                          Index startidx, Index numofzerocols) {
-  Eigen::MatrixXd FinalMatrix =
-      Eigen::MatrixXd::Zero(MOsMatrix.rows(), MOsMatrix.cols() + numofzerocols);
-  FinalMatrix.leftCols(startidx) = MOsMatrix.leftCols(startidx);
-  FinalMatrix.rightCols(MOsMatrix.cols() - startidx) =
-      MOsMatrix.rightCols(MOsMatrix.cols() - startidx);
-  return FinalMatrix;
-}
-
 Eigen::MatrixXd DFTEngine::InsertZeroRows(Eigen::MatrixXd MOsMatrix,
                                           Index startidx, Index numofzerorows) {
   Eigen::MatrixXd FinalMatrix =
