@@ -1,0 +1,8 @@
+IMC does not converge from the Boltzmann inversion initial guess for this system.
+
+1) run few steps of IBI (pre folder).
+2) copy potentials from last IBI step: A-A.pot.new, B-B.pot.new and A-B.pot.new.
+3) rename *.pot.new to *.pot.in.
+4) run IMC (this folder).
+
+The *.pot.in files are provided, so you can also directly start with 4.

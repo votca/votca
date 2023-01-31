@@ -21,6 +21,7 @@ Version 2023-dev
 -  basis and auxbasis are written to QMMM checkpoint file (#1030)
 -  iterations_max can now be zero (#1033)
 -  add an XML check to csg_inverse (#1031)
+-  fix propane/imc and add propane/imc-ibiintra to csg-tutorials (#821)
 
 Version 2022.2 (released XX.12.22)
 ==================================
