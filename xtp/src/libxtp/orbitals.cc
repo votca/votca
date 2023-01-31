@@ -135,16 +135,6 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   if (getCalculationType() != "") {
     result += getInactiveDensity();
   }
-  AOBasis aobasis = getDftBasis();
-  AOOverlap overlap;
-  overlap.Fill(aobasis);
-  double elec = result.cwiseProduct(overlap.Matrix()).sum();
-  if (getCalculationType() == "Truncated") {
-    double inact = getInactiveDensity().cwiseProduct(overlap.Matrix()).sum();
-    std::cout << "Electrons after this point are: " << elec << " & " << inact;
-  } else {
-    std::cout << "Electrons after this point are: " << elec;
-  }
   if (state.Type().isExciton()) {
     std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
     result = result - DMAT[0] + DMAT[1];  // Ground state + hole_contribution +
