@@ -110,8 +110,6 @@ class QMRegion : public Region {
   tools::Property localize_options_;
 
   StateTracker statetracker_;
-
-  // Logger* logger_;
 };
 
 }  // namespace xtp

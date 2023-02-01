@@ -419,7 +419,7 @@ class Orbitals {
   std::string ECP_ = "";
   bool useTDA_;
 
-  std::string CalcType_ = "";
+  std::string CalcType_ = "NoEmbedding";
 
   tools::EigenSystem mos_;
   tools::EigenSystem mos_embedding_;

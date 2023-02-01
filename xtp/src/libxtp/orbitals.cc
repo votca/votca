@@ -132,7 +132,7 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   }
   Eigen::MatrixXd result = this->DensityMatrixGroundState();
   ;
-  if (getCalculationType() != "") {
+  if (getCalculationType() != "NoEmbedding") {
     result += getInactiveDensity();
   }
   if (state.Type().isExciton()) {

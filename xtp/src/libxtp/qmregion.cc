@@ -196,10 +196,6 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     if (!Logfile_parse) {
       throw std::runtime_error("\n Parsing DFT logfile failed. Stopping!");
     }
-    /*Orbfile_parse = xtpdft->ParseMOsFile(orb_);
-    if (!Orbfile_parse) {
-      throw std::runtime_error("\n Parsing DFT orbfile failed. Stopping!");
-    }*/
   }
 
   QMState state = QMState("groundstate");
@@ -229,6 +225,8 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
       }
     }
   }
+  // If truncation was enabled then rewrite full basis/aux-basis, MOs in full
+  // basis and full QMAtoms
   if (orb_.getCalculationType() == "Truncated") {
     orb_.MOs().eigenvectors() = orb_.getTruncMOsFullBasis();
     orb_.QMAtoms().clearAtoms();
@@ -237,9 +235,8 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     orb_.SetupAuxBasis(orb_.getAuxBasis().Name());
   }
   E_hist_.push_back(energy);
-  // for QMMM convergence and interaction, rewrite everything back to full basis
-  Dmat_hist_.push_back(orb_.DensityMatrixFull(state));  // TOCHECK wich basis
-                                                        // this is
+
+  Dmat_hist_.push_back(orb_.DensityMatrixFull(state));
   return;
 }
 

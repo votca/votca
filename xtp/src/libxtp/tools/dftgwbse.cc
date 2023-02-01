@@ -115,6 +115,8 @@ bool DftGwBse::Run() {
   } else {
     QMMolecule fullMol = orbitals.QMAtoms();
     gwbse_engine.ExcitationEnergies(orbitals);
+    // If truncation was enabled then rewrite full basis/aux-basis, MOs in full
+    // basis and full QMAtoms
     if (orbitals.getCalculationType() == "Truncated") {
       orbitals.QMAtoms().clearAtoms();
       orbitals.QMAtoms() = fullMol;
