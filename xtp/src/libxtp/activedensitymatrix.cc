@@ -26,6 +26,10 @@
  *Embedding Scheme. Frederick R. Manby, Martina Stella, Jason D. Goodpaster, and
  *Thomas F. Miller Journal of Chemical Theory and Computation 2012 8 (8),
  *2564-2568 DOI: 10.1021/ct300544e
+ *(3) Projection-Based Wavefunction-in-DFT Embedding
+ *Sebastian J. R. Lee, Matthew Welborn, Frederick R. Manby, and Thomas F. Miller
+ *III Accounts of Chemical Research 2019 52 (5), 1359-1368
+ *DOI: 10.1021/acs.accounts.8b00672
  */
 #include "votca/xtp/activedensitymatrix.h"
 #include "votca/xtp/aomatrix.h"

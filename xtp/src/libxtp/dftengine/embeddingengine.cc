@@ -16,6 +16,23 @@
  * limitations under the License.
  *
  */
+/*
+ *References- (1) A Simple, Exact Density-Functional-Theory
+ *Embedding Scheme. Frederick R. Manby, Martina Stella, Jason D. Goodpaster, and
+ *Thomas F. Miller Journal of Chemical Theory and Computation 2012 8 (8),
+ *2564-2568 DOI: 10.1021/ct300544e
+ *(2) Taylor A. Barnes, Jason D. Goodpaster, Frederick R. Manby, and Thomas F.
+ *Miller III , "Accurate basis set truncation for wavefunction embedding", J.
+ *Chem. Phys. 139, 024103 (2013) https://doi.org/10.1063/1.4811112
+ *(3) Simon J. Bennie, Martina Stella, Thomas F. Miller III, and Frederick R.
+ *Manby , "Accelerating wavefunction in density-functional-theory embedding by
+ *truncating the active basis set", J. Chem. Phys. 143, 024105 (2015)
+ *https://doi.org/10.1063/1.4923367
+ *(3) Projection-Based Wavefunction-in-DFT Embedding
+ *Sebastian J. R. Lee, Matthew Welborn, Frederick R. Manby, and Thomas F. Miller
+ *III Accounts of Chemical Research 2019 52 (5), 1359-1368
+ *DOI: 10.1021/acs.accounts.8b00672
+ */
 
 // Third party includes
 #include <algorithm>
@@ -569,7 +586,8 @@ void DFTEngine::TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
                 .sum();
       }
       /*If more than half of a MO contributes on a border atom include that in
-       * the Border MOs list*/
+       * the Border MOs list. Not made an user option. If you want to fix
+       * further for density leak you can reduce this number*/
       if (mullikenpop_lmo_borderatoms > 0.25) {
         BorderMOs.conservativeResize(InitialInactiveMOs.rows(),
                                      BorderMOs.cols() + 1);
@@ -582,7 +600,7 @@ void DFTEngine::TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
         overlap.Matrix() * BorderDmat * overlap.Matrix();
     Eigen::MatrixXd DistantProjectionOperator =
         ProjectionOperator - BorderProjectionOperator;
-
+    // 1e+2 is the suitable projection value for border MOs: see citations
     H_embedding +=
         1e+2 * BorderProjectionOperator +
         levelshift_ * (DistantProjectionOperator - ProjectionOperator);
