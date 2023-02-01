@@ -55,13 +55,13 @@ std::array<Eigen::MatrixXd, 3> ActiveDensityMatrix::activedensitymatrix(
         localized_mo_coeff.col(LocMoCoeff_col_i).transpose() *
         overlap.Matrix() *
         localized_mo_coeff.col(LocMoCoeff_col_i).asDiagonal();
-    const Eigen::RowVectorXd MullikenPop_per_basisset =
+    const Eigen::RowVectorXd MullikenPop_per_basisfunc =
         orbital_wise_population.colwise().sum();
     Index start = 0;
     bool inactive = true;
     for (Index atom_id = 0; atom_id < Index(numfuncpatom.size()); atom_id++) {
       const double MullikenPop_per_atom =
-          MullikenPop_per_basisset.segment(start, numfuncpatom[atom_id]).sum();
+          MullikenPop_per_basisfunc.segment(start, numfuncpatom[atom_id]).sum();
       if ((std::find(activeatoms_.begin(), activeatoms_.end(), atom_id) !=
            activeatoms_.end()) &&
           MullikenPop_per_atom > threshold_) {

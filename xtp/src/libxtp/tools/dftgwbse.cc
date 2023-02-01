@@ -120,7 +120,7 @@ bool DftGwBse::Run() {
       orbitals.QMAtoms() = fullMol;
       orbitals.MOs().eigenvectors() = orbitals.getTruncMOsFullBasis();
       orbitals.SetupDftBasis(orbitals.getDftBasis().Name());
-      while (orbitals.hasAuxbasisName()) {
+      if (orbitals.hasAuxbasisName()) {
         orbitals.SetupAuxBasis(orbitals.getAuxBasis().Name());
       }
     }
