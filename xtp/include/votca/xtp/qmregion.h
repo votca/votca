@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -102,9 +102,12 @@ class QMRegion : public Region {
   double DeltaDmax_ = 5e-5;
 
   bool do_gwbse_ = false;
+  bool do_localize_ = false;
+  bool do_dft_in_dft_ = false;
 
   tools::Property dftoptions_;
   tools::Property gwbseoptions_;
+  tools::Property localize_options_;
 
   StateTracker statetracker_;
 };
