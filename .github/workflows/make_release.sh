@@ -123,8 +123,13 @@ if [[ $testing = "yes" ]]; then
 elif [[ -f CMakeLists.txt ]]; then
   sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
   git add CMakeLists.txt
+  # no || die as dev version have no release date
   sed -i "/^Version ${rel} /s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
   git add CHANGELOG.rst
+  sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.rst || die "sed of README.rst failed"
+  git add README.rst
+  sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" share/sphinx/INSTALL.rst || die "sed of INSTALL.rst failed"
+  git add share/sphinx/INSTALL.rst
 fi
 if [[ $testing = "no" ]]; then
    [[ -n $(grep -E "^Version ${rel}( |$)" CHANGELOG.rst) ]] || die "Go and update CHANGELOG.rst before making a release"
