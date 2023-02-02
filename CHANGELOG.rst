@@ -1,6 +1,9 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/stable>`__.
 
+Version 2023-rc.2 (released XX.02.23)
+=====================================
+
 Version 2023-rc.1 (released 02.02.23)
 =====================================
 
