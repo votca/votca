@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -46,6 +46,14 @@ class QMMolecule : public AtomContainer<QMAtom> {
       atomlist_.push_back(atom);
     }
     calcPos();
+  }
+
+  void ReorderAtomIDs() {
+    Index id = 0;
+    for (auto& at : atomlist_) {
+      at.setID(id);
+      id++;
+    }
   }
 
   friend std::ostream& operator<<(std::ostream& out,

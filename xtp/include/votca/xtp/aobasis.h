@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2021 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -88,13 +88,13 @@ class AOBasis {
 
   void add(const AOBasis& other);
 
+  void clear();
+  std::string name_ = "";
+
   friend std::ostream& operator<<(std::ostream& out, const AOBasis& aobasis);
 
  private:
   void FillFuncperAtom();
-
-  void clear();
-  std::string name_ = "";
 
   std::vector<AOShell> aoshells_;
 

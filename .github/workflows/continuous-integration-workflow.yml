@@ -26,7 +26,6 @@ jobs:
         cmake_build_type: [Release, Debug]
         minimal: [false]
         own_gmx: [false]
-        module_build: [false]
         coverage: [false]
         deploy: [false]
         include:
@@ -35,7 +34,6 @@ jobs:
             cmake_build_type: Release
             minimal: false
             own_gmx: false
-            module_build: false
             coverage: false
             # make sure there is only one build deploying
             deploy: true
@@ -56,7 +54,6 @@ jobs:
             cmake_build_type: Release
             minimal: false
             own_gmx: false
-            module_build: true
             coverage: false
             deploy: false
           - distro: 'fedora:intel'
@@ -128,7 +125,6 @@ jobs:
           distro: ${{ matrix.distro }}
           toolchain: ${{ matrix.toolchain }}
           minimal: ${{ matrix.minimal == true }}
-          module: ${{ matrix.module_build == true }}
           own_gmx: ${{ matrix.own_gmx == true }}
           regression_testing: ${{ matrix.deploy != true }}
           coverage: ${{ matrix.coverage }}
@@ -151,16 +147,14 @@ jobs:
         run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
         working-directory: builddir
       - name: Doxygen
-        if: ${{ ! matrix.module_build }}
         run: cmake --build builddir --target doxygen
       - name: Build Sphinx
         if: ${{ steps.setup.outputs.build_sphinx == 'true' }}
-        run: cmake --build builddir --target doc
+        run: cmake --build builddir --target sphinx
       - name: Test DESTDIR Install
-        if: ${{ ! matrix.module_build }}
         run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
       - name: Install
-        run: sudo  LD_LIBRARY_PATH=$LD_LIBRARY_PATH cmake --build builddir --target install
+        run: sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH cmake --build builddir --target install
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
         run: cmake --build builddir --target format && git diff --exit-code

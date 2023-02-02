@@ -44,7 +44,7 @@ if [[ ${CSG_MDRUN_STEPS} && ! ${CSG_DONT_OVERWRITE_MDRUN_STEPS} ]]; then
   if [[ ${sim_prog} = "lammps" ]]; then
     critical sed -i "/^run/s/[0-9][0-9]*/${CSG_MDRUN_STEPS}/" "$script"
     msg --color blue --to-stderr "Replace run STEPS in '$script' to be ${CSG_MDRUN_STEPS}"
-  elif [[ ${sim_prog} = "espresso" ]]; then
+  elif [[ ${sim_prog} = "espresso" || ${sim_prog} = "espressopp" ]]; then
     critical sed -i -e "/^steps_per_int/s/[0-9][0-9]*/${CSG_MDRUN_STEPS}/" \
                     -e '/^\(int\|eq\)_steps/s/[0-9][0-9]*/1/' "$script"
     msg --color blue --to-stderr "Replace steps_per_int in '$script' to be ${CSG_MDRUN_STEPS} and int_steps to be 1"

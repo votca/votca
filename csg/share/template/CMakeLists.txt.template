@@ -1,7 +1,7 @@
 #change the name here or run cmake -DNAME="XXX"
 set(NAME "template_serial" CACHE STRING "Name of the csg app")
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 project(${NAME})
 

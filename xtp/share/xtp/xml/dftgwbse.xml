@@ -5,8 +5,9 @@
     <dftpackage link="dftpackage.xml"/>
     <mpsfile help="MPS file to read from with external multipoles for embedding" default="OPTIONAL"/>
     <guess help="File to read the wave function if the use guess flag is set to true" default="OPTIONAL"/>
-    <tasks help="task to compute" default="input,dft,parse,gwbse" choices="[guess,input,dft,parse,gwbse]"/>
+    <tasks help="task to compute" default="input,dft,parse,gwbse" choices="[guess,input,dft,parse,gwbse,localize,dft_in_dft]"/>
     <gwbse link="gwbse.xml"/>
+    <localize link="localize.xml"/>
     <logging_file help="File to send logging data to." default="OPTIONAL"/>
     <archiveA help="orbfile for moleculeA of guess" default="OPTIONAL"/>
     <archiveB help="orbfile for moleculeA of guess" default="OPTIONAL"/>

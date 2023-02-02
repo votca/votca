@@ -1,6 +1,29 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/stable>`__.
 
+Version 2023-rc.1 (released XX.XX.23)
+=====================================
+
+-  implemented projection-based DFT embedding (#964)
+-  Added LMO energy output and cube file generation (#970)
+-  fix typos in csg-tutorials xml files (#980)
+-  unitary optimization for localization of orbitals (#971)
+-  separate option for density max convergence tolerance in qmmm (#987)
+-  Correct ECP charges added in Orca Molden reader (#990)
+-  Implemented truncated basis for embedded DFT (#991)
+-  Implemented ER diabatization for BSE (#988)
+-  update esp++ spce tutorial to py3 (#997)
+-  Truncated GW-in-DFT embedded in static/polar MM implemeted (#1003)
+-  reducing XTP tutorial size (#1020, #1025)
+-  Clean up 3body Stillinger-Weber implement, docs and tutorial (#1012)
+-  fixed options handling in xtp_autogen_mapping (#1024)
+-  Major CMake refactor (#950, #1022)
+-  Fix all doxygen warnings (#1026)
+-  basis and auxbasis are written to QMMM checkpoint file (#1030)
+-  iterations_max can now be zero (#1033)
+-  add an XML check to csg_inverse (#1031)
+-  fix propane/imc and add propane/imc-ibiintra to csg-tutorials (#821)
+
 Version 2022.2 (released XX.12.22)
 ==================================
 

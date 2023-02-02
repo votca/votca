@@ -1,5 +1,4 @@
-
-<dftpackage help="options for dftpackages"> 
+<dftpackage help="options for dftpackages">
   <name help="Name of the DFT package" default="xtp" choices="xtp,orca" />
   <charge help="Molecular charge" default="0" choices="int" />
   <spin help="Molecular multiplicity" default="1" choices="int+" />
@@ -18,7 +17,14 @@
   <cleanup help="files to remove after the calculation. Specify the fileextensions" default="" />
   <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities) or previous calculation keyword orbfile" default="atom" choices="independent,atom,orbfile" />
   <orca help="orca specific keywords can be added here, where the xml tag corresponds to the option and the value to the option's value" unchecked=""/>
-  <xtpdft help="xtpdft specific keywords can be added here" >
+  <xtpdft help="xtpdft specific keywords can be added here">
+    <dft_in_dft help="options for qminqm">
+      <activeatoms help="Indices of atoms in active region" default=""/>
+      <threshold help="Mulliken population above which orbital is considered in the active region" default="0.4"/>
+      <levelshift help="Levelshift energy for the projection operator" default="10000.0"/>
+      <truncate_basis help="Truncate the basis-set to active atoms only" default="false" choices="bool" />
+      <truncation_threshold help="Threshold to convert an inactive atom to a border atom" default="1e-4" choices="float+"/>
+    </dft_in_dft>
     <screening_eps help="screening eps" default="1e-9" choices="float+" />
     <fock_matrix_reset help="how often the fock matrix is reset" default="5" choices="int+" />
     <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />

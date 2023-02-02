@@ -1,7 +1,7 @@
 
 
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -589,14 +589,12 @@ bool GWBSE::Evaluate() {
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Loaded DFT Basis Set " << dftbasis_name_ << flush;
 
-  // fill DFT AO basis by going through all atoms
   AOBasis dftbasis = orbitals_.getDftBasis();
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled DFT Basis of size "
                               << dftbasis.AOBasisSize() << flush;
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Loaded Auxbasis Set " << auxbasis_name_ << flush;
 
-  // fill auxiliary AO basis by going through all atoms
   orbitals_.SetupAuxBasis(auxbasis_name_);
   AOBasis auxbasis = orbitals_.getAuxBasis();
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled Auxbasis of size "

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,37 +21,21 @@
 #include <iostream>
 
 // VOTCA includes
-#include <votca/csg/version.h>
 #include <votca/tools/version.h>
 
 // Local VOTCA includes
 #include "votca/xtp/version.h"
 #include "votca/xtp/votca_xtp_config.h"
 
-extern "C" {
-void VotcaMd2QmFromC() {
-  // do nothing - this is just that we have a c function for autotools
-}
-}
-
 namespace votca {
 namespace xtp {
-
-// defines gitversion
-#include "gitversion.h"
-static const std::string version_str = std::string(VERSION) + " " + gitversion +
-                                       " (compiled " __DATE__ ", " __TIME__ ")";
-
-const std::string &XtpVersionStr() { return version_str; }
 
 void HelpTextHeader(const std::string &tool_name) {
   std::cout << "==================================================\n"
             << "========   VOTCA (http://www.votca.org)   ========\n"
             << "==================================================\n\n"
             << "please submit bugs to " PACKAGE_BUGREPORT "\n\n"
-            << tool_name << ", version " << XtpVersionStr()
-            << "\nvotca_csg, version " << votca::csg::CsgVersionStr()
-            << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
+            << tool_name << ", version " << votca::tools::ToolsVersionStr()
             << "\n\n";
 }
 

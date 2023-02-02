@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -67,6 +67,24 @@ bool XTPDFT::RunDFT() {
   return success;
 }
 
+bool XTPDFT::RunActiveDFT() {
+  DFTEngine xtpdft;
+  xtpdft.Initialize(options_);
+  xtpdft.setLogger(pLog_);
+
+  if (!externalsites_.empty()) {
+    xtpdft.setExternalcharges(&externalsites_);
+  }
+
+  bool success = xtpdft.EvaluateActiveRegion(orbitals_) &&
+                 xtpdft.EvaluateTruncatedActiveRegion(orbitals_);
+  std::string file_name = run_dir_ + "/" + log_file_name_;
+  XTP_LOG(Log::error, *pLog_)
+      << "Writing embedding result to " << log_file_name_ << flush;
+  orbitals_.WriteToCpt(file_name);
+  return success;
+}
+
 void XTPDFT::CleanUp() {
   if (cleanup_.size() != 0) {
     XTP_LOG(Log::info, *pLog_) << "Removing " << cleanup_ << " files" << flush;
@@ -92,10 +110,10 @@ bool XTPDFT::ParseLogFile(Orbitals& orbitals) {
   try {
     std::string file_name = run_dir_ + "/" + log_file_name_;
     orbitals.ReadFromCpt(file_name);
-    XTP_LOG(Log::error, *pLog_) << (boost::format("QM energy[Hrt]: %4.8f ") %
-                                    orbitals.getDFTTotalEnergy())
-                                       .str()
-                                << flush;
+    XTP_LOG(Log::info, *pLog_) << (boost::format("QM energy[Hrt]: %4.8f ") %
+                                   orbitals.getDFTTotalEnergy())
+                                      .str()
+                               << flush;
   } catch (std::runtime_error& error) {
     XTP_LOG(Log::error, *pLog_)
         << "Reading" << log_file_name_ << " failed" << flush;

@@ -11,7 +11,7 @@
     <max>0.85</max>
     <step>0.01</step>
     <inverse>
-      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <!-- target distribution (rdf), just give gromacs rdf.xvg -->
       <target>LJ1-LJ1.dist.tgt</target>
       <!-- update cycles -->
       <do_potential>1 0 0</do_potential>
@@ -45,7 +45,7 @@
     <max>0.85</max>
     <step>0.01</step>
     <inverse>
-      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <!-- target distribution (rdf), just give gromacs rdf.xvg -->
       <target>LJ2-LJ2.dist.tgt</target>
      <do_potential>0 1 0</do_potential>
       <!-- additional post processing of dU before added to potential -->
@@ -81,7 +81,7 @@
     <max>0.85</max>
     <step>0.01</step>
     <inverse>
-      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <!-- target distribution (rdf), just give gromacs rdf.xvg -->
       <target>LJ1-LJ2.dist.tgt</target>
       <!-- update cycles -->
       <do_potential>0 0 1</do_potential>
@@ -127,7 +127,7 @@
     <filelist>grompp.mdp topol.top index.ndx table.xvg</filelist>
     <!-- do so many iterations -->
     <iterations_max>20</iterations_max>
-    <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
+    <!-- ibi: inverse boltzmann imc: inverse monte carlo -->
     <method>imc</method>
     <imc>
      <group_1>

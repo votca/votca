@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2021 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -28,6 +28,8 @@
 
 // Local VOTCA includes
 #include "votca/xtp/IncrementalFockBuilder.h"
+#include "votca/xtp/IndexParser.h"
+#include "votca/xtp/activedensitymatrix.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/density_integration.h"
@@ -36,6 +38,7 @@
 #include "votca/xtp/logger.h"
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/pmlocalization.h"
 
 namespace votca {
 namespace xtp {
@@ -110,6 +113,22 @@ void DFTEngine::Initialize(tools::Property& options) {
       options.get(key_xtpdft + ".convergence.DIIS_start").as<double>();
   conv_opt_.adiis_start =
       options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
+
+  if (options.exists(key_xtpdft + ".dft_in_dft.activeatoms")) {
+    active_atoms_as_string_ =
+        options.get(key_xtpdft + ".dft_in_dft.activeatoms").as<std::string>();
+    active_threshold_ =
+        options.get(key_xtpdft + ".dft_in_dft.threshold").as<double>();
+    levelshift_ =
+        options.get(key_xtpdft + ".dft_in_dft.levelshift").as<double>();
+    truncate_ =
+        options.get(key_xtpdft + ".dft_in_dft.truncate_basis").as<bool>();
+    if (truncate_) {
+      truncation_threshold_ =
+          options.get(key_xtpdft + ".dft_in_dft.truncation_threshold")
+              .as<double>();
+    }
+  }
 }
 
 void DFTEngine::PrintMOs(const Eigen::VectorXd& MOEnergies, Log::Level level) {
@@ -246,7 +265,6 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     XTP_LOG(Log::error, *pLog_) << std::flush;
     XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Iteration " << this_iter + 1
                                 << " of " << max_iter_ << std::flush;
-
     Mat_p_Energy e_vxc = vxcpotential.IntegrateVXC(Dmat);
     XTP_LOG(Log::info, *pLog_)
         << TimeStamp() << " Filled DFT Vxc matrix " << std::flush;
@@ -456,9 +474,7 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
 }
 
 void DFTEngine::SetupInvariantMatrices() {
-
   dftAOoverlap_.Fill(dftbasis_);
-
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Filled DFT Overlap matrix." << std::flush;
 
@@ -779,8 +795,9 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
   return;
 }
 
-void DFTEngine::Prepare(Orbitals& orb) {
+void DFTEngine::Prepare(Orbitals& orb, Index numofelectrons) {
   QMMolecule& mol = orb.QMAtoms();
+
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Using " << OPENMP::getMaxThreads() << " threads"
       << std::flush;
@@ -840,9 +857,12 @@ void DFTEngine::Prepare(Orbitals& orb) {
           << std::flush;
     }
   }
-
-  for (const QMAtom& atom : mol) {
-    numofelectrons_ += atom.getNuccharge();
+  if (numofelectrons < 0) {
+    for (const QMAtom& atom : mol) {
+      numofelectrons_ += atom.getNuccharge();
+    }
+  } else {
+    numofelectrons_ = numofelectrons;
   }
 
   // here number of electrons is actually the total number, everywhere else in
@@ -1025,6 +1045,5 @@ Eigen::MatrixXd DFTEngine::OrthogonalizeGuess(
   Eigen::MatrixXd result = GuessMOs * es.operatorInverseSqrt();
   return result;
 }
-
 }  // namespace xtp
 }  // namespace votca

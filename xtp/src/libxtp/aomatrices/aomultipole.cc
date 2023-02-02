@@ -2106,7 +2106,7 @@ void AOMultipole::FillPotential(const AOBasis& aobasis,
 
 void AOMultipole::FillPotential(
     const AOBasis& aobasis,
-    const std::vector<std::unique_ptr<StaticSite> >& externalsites) {
+    const std::vector<std::unique_ptr<StaticSite>>& externalsites) {
   aopotential_ =
       Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
   for (const std::unique_ptr<StaticSite>& site : externalsites) {

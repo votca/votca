@@ -1,5 +1,6 @@
-find_package(Boost 1.71.0 REQUIRED COMPONENTS unit_test_framework)
-
+if(NOT BUILD_TESTING)
+  return()
+endif()
 # Each test listed in Alphabetical order
 foreach(PROG
     test_calculator
@@ -46,8 +47,6 @@ foreach(PROG
   target_link_libraries(unit_${PROG} votca_tools Boost::unit_test_framework Boost::filesystem)
   target_compile_definitions(unit_${PROG} PRIVATE BOOST_TEST_DYN_LINK)
   add_test(unit_${PROG} unit_${PROG})
-  # run tests for tools (for coverage) as well
-  set_tests_properties(unit_${PROG} PROPERTIES LABELS "tools;votca;unit")
 
   option(ENABLE_VALGRIND_TESTING "Build and enable testing stuff" OFF)
   add_feature_info(ENABLE_VALGRIND_TESTING ENABLE_VALGRIND_TESTING "Run unit tests through valgrind, too")
@@ -65,6 +64,5 @@ foreach(PROG
       continue()
     endif()
     add_test(NAME memory_${PROG} COMMAND "${VALGRIND_EXECUTABLE}" --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --error-exitcode=1 $<TARGET_FILE:unit_${PROG}>)
-    set_tests_properties(memory_${PROG} PROPERTIES LABELS "tools;votca;memory")
   endif(ENABLE_VALGRIND_TESTING) 
 endforeach(PROG)
