@@ -5,6 +5,7 @@ Version 2023-rc.2 (released XX.02.23)
 =====================================
 
 -  increase tolerance for diabatization test (#1039, #1043)
+-  removed boost::filesystem  (#1041)
 
 Version 2023-rc.1 (released 02.02.23)
 =====================================

@@ -18,7 +18,6 @@
  */
 
 // Third party includes
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
 // VOTCA includes
@@ -33,7 +32,6 @@
 // Local private VOTCA includes
 #include "iexcitoncl.h"
 
-using namespace boost::filesystem;
 using namespace votca::tools;
 
 namespace votca {
