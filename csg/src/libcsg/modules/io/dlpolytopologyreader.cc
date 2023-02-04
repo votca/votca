@@ -23,7 +23,6 @@
 
 // Third party includes
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem/convenience.hpp>
 #include <boost/lexical_cast.hpp>
 
 // VOTCA includes

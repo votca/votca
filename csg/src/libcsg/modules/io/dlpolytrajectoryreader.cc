@@ -21,9 +21,6 @@
 #include <iostream>
 #include <filesystem>
 
-// Third party includes
-#include <boost/filesystem/convenience.hpp>
-
 // VOTCA includes
 #include <votca/tools/constants.h>
 #include <votca/tools/getline.h>

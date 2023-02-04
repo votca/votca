@@ -18,9 +18,7 @@
 // Standard includes
 #include <iomanip>
 #include <string>
-
-// Third party includes
-#include <boost/filesystem/convenience.hpp>
+#include <filesystem>
 
 // Local private VOTCA includes
 #include "dlpolytrajectorywriter.h"
@@ -40,20 +38,20 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
         "Error: appending to dlpoly files not implemented");
   }
 
-  boost::filesystem::path filepath(file.c_str());
+  std::filesystem::path filepath(file.c_str());
   string out_name = "HISTORY_CGV";
 
-  if (boost::filesystem::extension(filepath).size() == 0) {
+  if (!filepath.has_extension()) {
 
     throw std::ios_base::failure("Error on creating dlpoly file '" + file +
                                  "' - extension is expected, .dlph or .dlpc");
 
-  } else if (boost::filesystem::extension(filepath) == ".dlpc") {
+  } else if (filepath.extension() == ".dlpc") {
 
     isConfig_ = true;
     out_name = "CONFIG_CGV";
 
-  } else if (boost::filesystem::extension(filepath) == ".dlph") {
+  } else if (filepath.extension() == ".dlph") {
 
     isConfig_ = false;
 
@@ -62,7 +60,7 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
                                  "' - wrong extension, use .dlph or .dlpc");
   }
 
-  if (boost::filesystem::basename(filepath).size() == 0) {
+  if (!filepath.has_stem()) {
     if (filepath.parent_path().string().size() == 0) {
       fname_ = out_name;
     } else {
