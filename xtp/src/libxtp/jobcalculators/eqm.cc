@@ -17,8 +17,9 @@
  *
  */
 
+#include <filesystem>
+
 // Third party includes
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/math/constants/constants.hpp>
 
@@ -197,7 +198,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       // additionally copy *.gbw files for orca (-> iqm guess)
       if (qmpackage->getPackageName() == "orca") {
         std::string DIR = eqm_work_dir + "/molecules/" + frame_dir;
-        boost::filesystem::create_directories(DIR);
+        std::filesystem::create_directories(DIR);
         std::string gbw_file =
             (format("%1%_%2%%3%") % "molecule" % segId % ".gbw").str();
         std::string GBWFILE = DIR + "/" + gbw_file;
@@ -206,9 +207,9 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
         std::string GBWFILE_workdir =
             work_dir + "/" +
             package_options_.get("temporary_file").as<std::string>() + ".gbw";
-        boost::filesystem::copy_file(
+        std::filesystem::copy_file(
             GBWFILE_workdir, GBWFILE,
-            boost::filesystem::copy_option::overwrite_if_exists);
+            std::filesystem::copy_options::overwrite_existing);
       }
 
     }  // end of the parse orbitals/log
