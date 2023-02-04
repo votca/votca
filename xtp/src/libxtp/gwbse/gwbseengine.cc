@@ -18,7 +18,6 @@
  */
 
 // Third party includes
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <string>
 
@@ -30,7 +29,6 @@
 #include "votca/xtp/qmpackage.h"
 
 using boost::format;
-using namespace boost::filesystem;
 using std::flush;
 namespace votca {
 namespace xtp {
