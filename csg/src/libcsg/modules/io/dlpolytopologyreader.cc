@@ -19,6 +19,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <filesystem>
 
 // Third party includes
 #include <boost/algorithm/string.hpp>
@@ -148,7 +149,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 
   Index natoms = 0;
 
-  boost::filesystem::path filepath(file.c_str());
+  std::filesystem::path filepath(file.c_str());
 
   string line;
 
@@ -156,7 +157,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
   // residues!
   const Residue &res = top.CreateResidue("no");
 
-  if (boost::filesystem::basename(filepath).size() == 0) {
+  if (!filepath.has_stem()) {
     if (filepath.parent_path().string().size() == 0) {
       fname_ = "FIELD";  // DL_POLY uses fixed file names in current/working
                          // directory
