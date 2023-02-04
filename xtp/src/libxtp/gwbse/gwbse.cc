@@ -21,7 +21,6 @@
 
 // Third party includes
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
 // VOTCA includes
@@ -40,7 +39,6 @@
 #include "votca/xtp/vxc_potential.h"
 
 using boost::format;
-using namespace boost::filesystem;
 using std::flush;
 namespace votca {
 namespace xtp {
