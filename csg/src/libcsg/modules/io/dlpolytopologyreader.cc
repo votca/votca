@@ -16,10 +16,10 @@
  */
 
 // Standard includes
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <filesystem>
 
 // Third party includes
 #include <boost/algorithm/string.hpp>

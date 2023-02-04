@@ -16,9 +16,9 @@
  */
 
 // Standard includes
+#include <filesystem>
 #include <iomanip>
 #include <string>
-#include <filesystem>
 
 // Local private VOTCA includes
 #include "dlpolytrajectorywriter.h"
