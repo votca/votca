@@ -26,7 +26,7 @@ add_dependencies(votca_tools gitversion)
 
 set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options Eigen3::Eigen PRIVATE
-	Boost::filesystem Boost::system EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
+	Boost::system EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
 if(MKL_FOUND)
   target_link_libraries(votca_tools PUBLIC MKL::Shared)
   # https://software.intel.com/en-us/articles/symbol-lookup-error-when-linking-intel-mkl-with-gcc-on-ubuntu
