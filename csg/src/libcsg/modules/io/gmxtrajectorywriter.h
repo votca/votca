@@ -18,10 +18,6 @@
 #ifndef VOTCA_CSG_GMXTRAJECTORYWRITER_PRIVATE_H
 #define VOTCA_CSG_GMXTRAJECTORYWRITER_PRIVATE_H
 
-#ifndef HAVE_NO_CONFIG
-#include <votca_csg_config.h>
-#endif
-
 // VOTCA includes
 #include <votca/tools/unitconverter.h>
 

@@ -18,10 +18,6 @@
 #ifndef VOTCA_CSG_GMXTRAJECTORYREADER_PRIVATE_H
 #define VOTCA_CSG_GMXTRAJECTORYREADER_PRIVATE_H
 
-#ifndef HAVE_NO_CONFIG
-#include <votca_csg_config.h>
-#endif
-
 // Standard includes
 #include <string>
 
