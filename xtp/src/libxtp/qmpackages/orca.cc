@@ -21,10 +21,10 @@
 // Standard includes
 #include <cstdio>
 #include <iomanip>
+#include <filesystem>
 
 // Third party includes
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
 // VOTCA includes
@@ -312,8 +312,8 @@ bool Orca::WriteShellScript() {
   std::string base_name = mo_file_name_.substr(0, mo_file_name_.size() - 4);
 
   if (options_.get("initial_guess").as<std::string>() == "orbfile") {
-    if (!(boost::filesystem::exists(run_dir_ + "/molA.gbw") &&
-          boost::filesystem::exists(run_dir_ + "/molB.gbw"))) {
+    if (!(std::filesystem::exists(run_dir_ + "/molA.gbw") &&
+          std::filesystem::exists(run_dir_ + "/molB.gbw"))) {
       throw runtime_error(
           "Using guess relies on a molA.gbw and a molB.gbw file being in the "
           "directory.");

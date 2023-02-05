@@ -22,7 +22,6 @@
 #define VOTCA_XTP_IEXCITONCL_H
 
 // Third party includes
-#include <boost/filesystem.hpp>
 #include <sys/stat.h>
 
 // VOTCA includes

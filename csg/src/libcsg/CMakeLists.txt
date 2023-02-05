@@ -36,7 +36,7 @@ target_include_directories(votca_csg PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 set_target_properties(votca_csg PROPERTIES SOVERSION ${SOVERSION})
-target_link_libraries(votca_csg PUBLIC VOTCA::votca_tools Boost::boost PRIVATE Boost::program_options Boost::filesystem Boost::system Boost::regex Threads::Threads Eigen3::Eigen)
+target_link_libraries(votca_csg PUBLIC VOTCA::votca_tools Boost::boost PRIVATE Boost::program_options Boost::system Boost::regex Threads::Threads Eigen3::Eigen)
 
 install(TARGETS votca_csg EXPORT VOTCA_CSG_Targets
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
