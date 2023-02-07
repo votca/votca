@@ -131,6 +131,10 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
     return this->TransitionDensityMatrix(state);
   }
   Eigen::MatrixXd result = this->DensityMatrixGroundState();
+  ;
+  if (getCalculationType() != "NoEmbedding") {
+    result += getInactiveDensity();
+  }
   if (state.Type().isExciton()) {
     std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
     result = result - DMAT[0] + DMAT[1];  // Ground state + hole_contribution +
@@ -159,7 +163,6 @@ Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
   Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
   return dmatGS;
 }
-
 // Density matrix for a single KS orbital
 Eigen::MatrixXd Orbitals::DensityMatrixKSstate(const QMState& state) const {
   if (!hasMOs()) {
@@ -590,6 +593,8 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(mos_embedding_, "mos_embedding");
   w(lmos_, "LMOs");
   w(lmos_energies_, "LMOs_energies");
+  w(inactivedensity_, "inactivedensity");
+  w(expandedMOs_, "TruncMOsFullBasis");
 
   CheckpointWriter molgroup = w.openChild("qmmolecule");
   atoms_.WriteToCpt(molgroup);
@@ -626,6 +631,8 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(BSE_singlet_energies_dynamic_, "BSE_singlet_dynamic");
 
   w(BSE_triplet_energies_dynamic_, "BSE_triplet_dynamic");
+
+  w(CalcType_, "CalcType");
 }
 
 void Orbitals::ReadFromCpt(const std::string& filename) {
@@ -668,6 +675,9 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(mos_, "mos");
   r(mos_embedding_, "mos_embedding");
   r(active_electrons_, "active_electrons");
+  r(inactivedensity_, "inactivedensity");
+  r(CalcType_, "CalcType");
+  r(expandedMOs_, "TruncMOsFullBasis");
 
   if (version < 3) {
     // clang-format off

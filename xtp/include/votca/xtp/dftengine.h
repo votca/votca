@@ -107,6 +107,19 @@ class DFTEngine {
       const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
   Eigen::MatrixXd SphericalAverageShells(const Eigen::MatrixXd& dmat,
                                          const AOBasis& dftbasis) const;
+
+  void TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
+                     Mat_p_Energy& H0,
+                     Eigen::MatrixXd InitialActiveDensityMatrix,
+                     Eigen::MatrixXd v_embedding,
+                     Eigen::MatrixXd InitialInactiveMOs);
+
+  void TruncMOsFullBasis(Orbitals& orb, std::vector<Index> activeatoms,
+                         std::vector<Index> numfuncpatom);
+  Eigen::MatrixXd InsertZeroCols(Eigen::MatrixXd MOsMatrix, Index startidx,
+                                 Index numofzerocols);
+  Eigen::MatrixXd InsertZeroRows(Eigen::MatrixXd MOsMatrix, Index startidx,
+                                 Index numofzerorows);
   Logger* pLog_;
 
   // basis sets
@@ -170,6 +183,8 @@ class DFTEngine {
   double Total_E_full_;
   double E_nuc_;
   double truncation_threshold_;
+  std::vector<Index> active_and_border_atoms_;
+  std::vector<Index> numfuncpatom_;
 };
 
 }  // namespace xtp

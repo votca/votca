@@ -18,5 +18,6 @@ if(BUILD_TESTING)
     endif()
 
     add_test(unit_csg_functions.py ${Python_EXECUTABLE} -m pytest -q ${PY_COV_OPTS} ${CMAKE_CURRENT_SOURCE_DIR}/csg_functions.py)
+    add_test(unit_check_csg_xml.py ${Python_EXECUTABLE} -m pytest -q ${PY_COV_OPTS} ${CMAKE_CURRENT_SOURCE_DIR}/check_csg_xml.py)
   endif()
 endif()

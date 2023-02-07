@@ -10,7 +10,7 @@
     <!-- name of the interaction -->
     <name>bond</name>
     <min>0.</min>
-    <max>0.180</max>
+    <max>0.2</max>
     <step>0.001</step>
     <!-- fmatch specific stuff -->
     <fmatch>
@@ -25,7 +25,7 @@
     <name>angle</name>
     <min>0</min>
     <max>3.144</max>
-    <step>0.001</step>
+    <step>0.01</step>
     <!-- fmatch specific stuff -->
     <fmatch>
       <min>1.627</min>

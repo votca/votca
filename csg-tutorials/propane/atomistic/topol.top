@@ -2,7 +2,7 @@
 
 [ moleculetype ]
 ; Name            nrexcl
-Propane             3
+propane             3
 
 [ atoms ]
 ;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
@@ -96,8 +96,8 @@ Propane             3
 
 [ system ]
 ; Name
-Propane
+propane
 
 [ molecules ]
 ; Compound        #mols
-Propane            1000 
+propane            1000 

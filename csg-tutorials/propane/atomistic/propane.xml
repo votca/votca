@@ -1,6 +1,6 @@
 <cg_molecule>
   <name>ppn</name>
-	<ident>Propane</ident>
+  <ident>propane</ident>
   <topology>
     <cg_beads>
       <cg_bead>
@@ -34,15 +34,15 @@
       <bond>
         <name>bond</name>
         <beads>
-        b1 b2
-        b3 b2
+            b1 b2
+            b3 b2
         </beads>
       </bond>
 
       <angle>
         <name>angle</name>
         <beads>
-        b1 b2 b3
+            b1 b2 b3
         </beads>
       </angle>
 
@@ -54,8 +54,8 @@
       <name>A</name>
       <weights> 12 1 1 1 </weights>
     </map>
-    
-        <map>
+
+    <map>
       <name>B</name>
       <weights> 12 1 1 </weights>
     </map>

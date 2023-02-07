@@ -1,7 +1,11 @@
 #! /bin/bash -e
 
-gmx grompp -v
+if [[ -f done ]]; then
+    echo "File 'done' exists. Remove if you want to run again"
+    exit 0
+fi
 
+gmx grompp -v
 gmx mdrun -v
 
 echo Running Extract_Energies.sh to extract all thermodynamic quantities from ener.edr
@@ -22,3 +26,5 @@ csg_stat --top topol.tpr --trj traj.trr --cg propane.xml --nt $nt --options fmat
 
 echo "Mapping confout.gro to get configuration for coarse-grained run"
 csg_map --top topol.tpr --trj confout.gro --cg propane.xml --out conf_cg.gro 
+
+touch done

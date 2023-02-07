@@ -652,6 +652,12 @@
           <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original espresso script needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</DESC>
         </table>
       </espresso>
+      <espressopp>
+        <DESC>Espresso++ specific options for this interations</DESC>
+      </espressopp>
+      <hoomd-blue>
+        <DESC>HOOMD-blue specific options for this interations</DESC>
+      </hoomd-blue>
       <gromacs>
         <DESC>Gromacs specific options for this interations</DESC>
         <table>

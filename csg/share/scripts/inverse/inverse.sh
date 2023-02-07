@@ -111,6 +111,7 @@ check_for_obsolete_xml_options
 check_xml_output=$(do_external check csg_xml "$CSGXMLFILE" "$VOTCA_CSG_DEFAULTS")
 if [[ -n $check_xml_output ]]; then
   msg --color blue --to-stderr "WARNING: $check_xml_output"
+  [[ ${CI} = true ]] && die "Clean-up with xml option above"
 fi
 
 echo "Sim started $(date)"
@@ -214,7 +215,7 @@ while true; do
   if [[ -n $do_iterations ]]; then
     # exception: if iterations_max is zero, ignore do_iterations. Needed for some tests in csg_tutorial (i.e. spce/t-hncn/pre)
     if [[ $iterations_max == 0 && $do_iterations -gt 0 ]]; then
-      msg "Stopping at step $i, user requested to do more, but iterations_max=0 indicates this should only run step0"
+      msg "Stopping at step $i, user requested to do more, but iterations_max=0 indicates this should only run step_000"
       break
     fi
     # stop according to --do-iterations
