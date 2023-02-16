@@ -159,6 +159,7 @@ tar -xvf "${topdir}/votca-${rel}.tar.gz"
 cmake -DCMAKE_INSTALL_PREFIX="${instdir}" \
       -DENABLE_REGRESSION_TESTING=ON \
       -DBUILD_XTP=ON \
+      -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
       "${cmake_opts[@]}" -S "votca-${rel}/" -B "$build"
 cmake --build "${build}" -j"${j}" ${verbose:+--verbose}
 
