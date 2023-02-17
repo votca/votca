@@ -63,7 +63,7 @@ jobs:
           fi
       - uses: actions/cache@v3
         with:
-          path: ~/.ccache
+          path: ~/.cache/ccache
           key: ccache-release-${{ steps.setup.outputs.BRANCH }}-${{ steps.setup.outputs.DATE }}
           restore-keys: ccache-release-${{ steps.setup.outputs.BRANCH }}
       - name: Make Release
