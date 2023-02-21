@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2024-dev
 ================
 
+-  add note on gmx build for install (#1052)
+
 Version 2023-rc.2 (released XX.02.23)
 =====================================
 
