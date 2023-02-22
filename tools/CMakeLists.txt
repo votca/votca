@@ -2,12 +2,9 @@
 # Checks what linear algebra packages are installed                    #
 ########################################################################
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Intel" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set(MKL_THREAD_LAYER "Intel OpenMP" CACHE STRING "The thread layer to choose for MKL")
-else()
-  set(MKL_THREAD_LAYER "GNU OpenMP" CACHE STRING "The thread layer to choose for MKL")
-endif()
-find_package(MKL)
+# Eigen does not support the ilp64 interface right now, see https://gitlab.com/libeigen/eigen/-/issues/2586
+set(MKL_INTERFACE "lp64")
+find_package(MKL CONFIG)
 set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with MKL")
 # Replace the below with CMAKE_REQUIRE_FIND_PACKAGE_MKL, when we switch to
 # CMake-3.22+
