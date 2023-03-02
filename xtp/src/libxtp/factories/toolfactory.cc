@@ -36,6 +36,7 @@
 #include "tools/orb2mol.h"
 #include "tools/partialcharges.h"
 #include "tools/spectrum.h"
+#include "tools/envcorr.h"
 
 namespace votca {
 namespace xtp {
@@ -57,6 +58,7 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<Diabatization>("diabatization");
   QMTools().Register<Orb2Fchk>("orb2fchk");
   QMTools().Register<GPUBenchmark>("gpu_benchmark");
+  QMTools().Register<ENVCORR>("envcorr");
 }
 
 }  // namespace xtp
