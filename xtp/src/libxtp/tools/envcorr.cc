@@ -62,8 +62,12 @@ bool ENVCORR::Run() {
   Index count = 0;
   for ( auto segment : mmregion ){
     for (auto site : segment){
-      count++;
       externalsites.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+      // copy the induced dipoles to static dipoles, not sure how this works in qmmm though
+      Vector9d multipole = Vector9d::Zero();  
+      multipole.segment<3>(1) = site.getDipole();
+      externalsites[count]->setMultipole(multipole, 1);
+      count++;
     }
   }
   XTP_LOG(Log::error, log_)
@@ -81,7 +85,7 @@ bool ENVCORR::Run() {
 
   // calculate expectaction value
   // get density matrix of state of interest
-  QMState state = QMState("ks0");
+  QMState state = QMState("s1");
   Eigen::MatrixXd dmat = orb.DensityMatrixKSstate(state) ;
   double env_en = dmat.cwiseProduct(dftAOESP.Matrix()).sum();
 

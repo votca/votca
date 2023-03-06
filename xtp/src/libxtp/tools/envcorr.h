@@ -35,7 +35,7 @@ class ENVCORR final : public QMTool {
   ENVCORR() = default;
 
   ~ENVCORR() = default;
-  std::string Identify() const { return "apdft"; }
+  std::string Identify() const { return "envcorr"; }
 
  protected:
   void ParseOptions(const tools::Property &user_options);
