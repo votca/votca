@@ -74,8 +74,6 @@ bool ENVCORR::Run() {
       << TimeStamp() << " Number of moments " << count
       << std::flush;
 
-  // ATTENTION: this MM region also includes the fake active density replacement!!!!!
-
   // setup AOmatrix for dipoles
   AOMultipole dftAOESP;
   dftAOESP.FillPotential(basis, externalsites);
@@ -85,12 +83,29 @@ bool ENVCORR::Run() {
 
   // calculate expectaction value
   // get density matrix of state of interest
-  QMState state = QMState("s1");
+  QMState state = QMState("ks60");
   Eigen::MatrixXd dmat = orb.DensityMatrixKSstate(state) ;
   double env_en = dmat.cwiseProduct(dftAOESP.Matrix()).sum();
 
+  // try second order corrections
+  Eigen::VectorXd  MO = orb.MOs().eigenvectors().col(state.StateIdx());
+  double env_en_second = 0.0;
+  Eigen::MatrixXd precalc = dftAOESP.Matrix() * MO;
+  double QPen = orb.QPpertEnergies()[60];
+  for ( Index i = 0; i < orb.getGWAmax() ; i++ ) {
+    if ( i != 60 ){
+      std::cout << "col " << (orb.MOs().eigenvectors().col(i).transpose() * precalc).cols() << std::endl;
+      double expval = (orb.MOs().eigenvectors().col(i).transpose() * precalc)(0,0);
+      env_en_second += std::pow(expval,2) / ( QPen - orb.QPpertEnergies()(i)) ;
+
+
+    }
+  }
+
+
+
   XTP_LOG(Log::error, log_)
-      << TimeStamp() << " Energy correction " << env_en
+      << TimeStamp() << " Energy correction " << env_en << " or " << env_en_second
       << std::flush;
 
 
