@@ -46,6 +46,8 @@ class ENVCORR final : public QMTool {
   std::string orbfile_;
   QMState state_;
   std::string outputfile_;
+  std::string statetype_;
+  std::string statenumbers_as_string_;
   Logger log_;
 };
 

@@ -27,6 +27,7 @@
 
 // Local private VOTCA includes
 #include "envcorr.h"
+#include "votca/xtp/IndexParser.h"
 
 namespace votca {
 namespace xtp {
@@ -39,9 +40,19 @@ void ENVCORR::ParseOptions(const tools::Property &options) {
   outputfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
       ".output", job_name_ + "_state.dat");
   state_ = options.get(".state").as<QMState>();
+  statetype_ = options.get(".statetype").as<std::string>();
+  statenumbers_as_string_ =
+        options.get(".statenumber").as<std::string>();
 }
 
 bool ENVCORR::Run() {
+
+  std::vector<Index> stateindices =
+      IndexParser().CreateIndexVector(statenumbers_as_string_);
+
+  // for(auto it = stateindices.cbegin() ; it != stateindices.cend(); ++it){
+  //   std::cout << statetype_ + std::to_string(*it) << std::endl;
+  //}
 
   log_.setReportLevel(Log::current_level);
   log_.setMultithreading(true);
@@ -54,7 +65,8 @@ bool ENVCORR::Run() {
   AOBasis basis = orb.getDftBasis();
  
   // get the induced dipoles in the inactive region from MMMM checkpoint file
-  CheckpointFile cpf("MMMM.hdf5", CheckpointAccessLevel::READ);
+  for (auto it = stateindices.cbegin() ; it != stateindices.cend(); ++it){
+  CheckpointFile cpf(statetype_ + std::to_string(*it) + ".hdf5", CheckpointAccessLevel::READ);
   CheckpointReader r = cpf.getReader("region_1");
   PolarRegion mmregion(0,log_);
   mmregion.ReadFromCpt(r);
@@ -88,28 +100,29 @@ bool ENVCORR::Run() {
   double env_en = dmat.cwiseProduct(dftAOESP.Matrix()).sum();
 
   // try second order corrections
-  Eigen::VectorXd  MO = orb.MOs().eigenvectors().col(state.StateIdx());
-  double env_en_second = 0.0;
-  Eigen::MatrixXd precalc = dftAOESP.Matrix() * MO;
-  double QPen = orb.QPpertEnergies()[60];
-  for ( Index i = 0; i < orb.getGWAmax() ; i++ ) {
-    if ( i != 60 ){
-      std::cout << "col " << (orb.MOs().eigenvectors().col(i).transpose() * precalc).cols() << std::endl;
-      double expval = (orb.MOs().eigenvectors().col(i).transpose() * precalc)(0,0);
-      env_en_second += std::pow(expval,2) / ( QPen - orb.QPpertEnergies()(i)) ;
+  // Eigen::VectorXd  MO = orb.MOs().eigenvectors().col(state.StateIdx());
+  // double env_en_second = 0.0;
+  // Eigen::MatrixXd precalc = dftAOESP.Matrix() * MO;
+  // double QPen = orb.QPpertEnergies()[60];
+  // for ( Index i = 0; i < orb.getGWAmax() ; i++ ) {
+  //   if ( i != 60 ){
+  //     std::cout << "col " << (orb.MOs().eigenvectors().col(i).transpose() * precalc).cols() << std::endl;
+  //     double expval = (orb.MOs().eigenvectors().col(i).transpose() * precalc)(0,0);
+  //     env_en_second += std::pow(expval,2) / ( QPen - orb.QPpertEnergies()(i)) ;
 
 
-    }
-  }
+  //   }
+  //}
 
 
 
   XTP_LOG(Log::error, log_)
-      << TimeStamp() << " Energy correction " << env_en << " or " << env_en_second
+      << TimeStamp() << " Energy correction " << env_en 
       << std::flush;
-
+  }
 
   return true;
+
 }
 
 }  // namespace xtp

@@ -6,5 +6,7 @@
     <state help="QM state to generate potential" default="n"/>
     <input help="orbfile to read from, otherwise use job_name" default="OPTIONAL"/>
     <output help="File to write atoms atomids and potentials at those positions from" default="OPTIONAL"/>
+    <statetype help="QM state to generate MM potential" default="ks"/>
+    <statenumber help="State numbers to be used for calculations" defualt="OPTIONAL"/>
   </envcorr>
 </options>
