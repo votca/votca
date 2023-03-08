@@ -95,7 +95,7 @@ bool ENVCORR::Run() {
 
   // calculate expectaction value
   // get density matrix of state of interest
-  QMState state = QMState("ks60");
+  QMState state = QMState(statetype_ + std::to_string(*it));
   Eigen::MatrixXd dmat = orb.DensityMatrixKSstate(state) ;
   double env_en = dmat.cwiseProduct(dftAOESP.Matrix()).sum();
 
