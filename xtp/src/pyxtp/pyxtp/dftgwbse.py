@@ -1,13 +1,12 @@
 """DFTGWSE wrapper."""
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
 
 from .capture_standard_output import capture_standard_output
 from pyxtp import xtp_binds
 
 from .molecule import Molecule
-from .options import XTPOptions
+from .options import Options
 
 __all__ = ["DFTGWBSE"]
 
@@ -15,9 +14,26 @@ __all__ = ["DFTGWBSE"]
 class DFTGWBSE:
 
     def __init__(self, mol: Molecule):
+        """
+
+        Raises
+        ------
+          ValueError:
+            if $VOTCASHARE is not declared as an environment variable
+
+        """
         self.mol = mol
         self.orbfile = ''
-        self.options = XTPOptions()
+        self.jobdir = "./"
+
+        votcashare = os.environ.get('VOTCASHARE')
+        if votcashare is None:
+            msg = "pyxtp: cannot find Votca installation, "\
+                "please set the VOTCASHARE environment variable"
+            raise RuntimeError(msg)
+        # main filename
+        options_file = f'{votcashare}/xtp/xml/dftgwbse.xml'
+        self.options = Options(options_file)
 
   
     def run(self, nThreads: int = 1):
@@ -50,7 +66,7 @@ class DFTGWBSE:
 
         # copy orbfile, if jobdir is not default
         if (self.jobdir != "./"):
-            self.orbfile = f'{self.jobdir}{self.jobname}.orb'
+            self.orbfile = f'{self.jobdir}{self.options.job_name}.orb'
             os.replace(f'{xyzname}.orb', self.orbfile)
         else:
             self.orbfile = f'{xyzname}.orb'
