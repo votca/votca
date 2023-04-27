@@ -20,8 +20,8 @@
 // Standard includes
 #include <algorithm>
 #include <chrono>
-#include <sstream>
 #include <filesystem>
+#include <sstream>
 
 // Third party includes
 #include <numeric>

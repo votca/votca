@@ -55,8 +55,8 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
   char *path = (char *)filename_.c_str();
 #endif
   output_env_init(&oenv, gmx::getProgramContext(), timeunit, FALSE, xvg, 0);
-  if (!read_first_frame(oenv, &gmx_status_, path,
-                        &gmx_frame_, TRX_READ_X | TRX_READ_V | TRX_READ_F)) {
+  if (!read_first_frame(oenv, &gmx_status_, path, &gmx_frame_,
+                        TRX_READ_X | TRX_READ_V | TRX_READ_F)) {
     throw std::runtime_error(std::string("cannot open ") + filename_);
   }
   output_env_done(oenv);
