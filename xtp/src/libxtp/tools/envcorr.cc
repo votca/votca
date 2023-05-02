@@ -23,6 +23,7 @@
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/polarregion.h"
+#include "votca/xtp/staticregion.h"
 #include "votca/xtp/aopotential.h"
 
 // Local private VOTCA includes
@@ -40,6 +41,8 @@ void ENVCORR::ParseOptions(const tools::Property &options) {
   outputfile_ = options.ifExistsReturnElseReturnDefault<std::string>(
       ".output", job_name_ + "_state.dat");
   state_ = options.get(".state").as<QMState>();
+  envmode_ = options.get(".envmode").as<std::string>();
+
   statetype_ = options.get(".statetype").as<std::string>();
   statenumbers_as_string_ =
         options.get(".statenumber").as<std::string>();
@@ -63,63 +66,102 @@ bool ENVCORR::Run() {
   Orbitals orb;
   orb.ReadFromCpt(orbfile_);
   AOBasis basis = orb.getDftBasis();
- 
+
+  // get the ground state reference dipoles for Thole
+  std::vector<std::unique_ptr<StaticSite>> externalsites_groundstate;
+  if (envmode_ == "thole"){
+      CheckpointFile cpf("groundstateQMMM.hdf5", CheckpointAccessLevel::READ);
+      CheckpointReader r = cpf.getReader("region_1");
+      PolarRegion mmregion(0,log_);
+      mmregion.ReadFromCpt(r);
+      Index count = 0;
+      for ( auto segment : mmregion ){
+        for (auto site : segment){
+          externalsites_groundstate.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+          // copy the induced dipoles to static dipoles, not sure how this works in qmmm though
+          Vector9d multipole = Vector9d::Zero();  
+          multipole.segment<3>(1) = site.getDipole();
+          externalsites_groundstate[count]->setMultipole(multipole, 1);
+          count++;
+        }
+      }
+  }
+
   // get the induced dipoles in the inactive region from MMMM checkpoint file
   for (auto it = stateindices.cbegin() ; it != stateindices.cend(); ++it){
-  CheckpointFile cpf(statetype_ + std::to_string(*it) + ".hdf5", CheckpointAccessLevel::READ);
-  CheckpointReader r = cpf.getReader("region_1");
-  PolarRegion mmregion(0,log_);
-  mmregion.ReadFromCpt(r);
-  std::vector<std::unique_ptr<StaticSite>> externalsites;
-  Index count = 0;
-  for ( auto segment : mmregion ){
-    for (auto site : segment){
-      externalsites.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
-      // copy the induced dipoles to static dipoles, not sure how this works in qmmm though
-      Vector9d multipole = Vector9d::Zero();  
-      multipole.segment<3>(1) = site.getDipole();
-      externalsites[count]->setMultipole(multipole, 1);
-      count++;
-    }
-  }
-  XTP_LOG(Log::error, log_)
+    std::vector<std::unique_ptr<StaticSite>> externalsites;
+
+    if (envmode_ == "thole"){
+
+      CheckpointFile cpf(statetype_ + std::to_string(*it) + ".hdf5", CheckpointAccessLevel::READ);
+      CheckpointReader r = cpf.getReader("region_1");
+      PolarRegion mmregion(0,log_);
+      mmregion.ReadFromCpt(r);
+      Index count = 0;
+      for ( auto segment : mmregion ){
+        for (auto site : segment){
+          externalsites.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+          // copy the induced dipoles to static dipoles, not sure how this works in qmmm though
+          Vector9d multipole = Vector9d::Zero();  
+          multipole.segment<3>(1) = site.getDipole(); // - externalsites_groundstate[count]->getDipole();
+          externalsites[count]->setMultipole(multipole, 1);
+          std::cout << "X" << externalsites[count]->getPos()[0] << " " << externalsites[count]->getPos()[1] << " " << externalsites[count]->getPos()[2] << std::endl;
+          count++;
+        }
+      }
+
+
+
+      XTP_LOG(Log::error, log_)
       << TimeStamp() << " Number of moments " << count
       << std::flush;
+    } else if (envmode_ == "dftb"){
+      // get the response charges from an mps file
+      StaticRegion region(0, log_);
+      StaticSegment seg = StaticSegment("", 0);
+      std::string mpsfile = statetype_ + "_" + std::to_string(*it) + ".mps";
+      seg.LoadFromFile(mpsfile);
+      region.push_back(seg);
+      for (auto segment : region) {
+        for (auto site : segment) {
+          externalsites.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+        }
+      }
+    }
+  
+    // setup AOmatrix for dipoles
+    AOMultipole dftAOESP;
+    dftAOESP.FillPotential(basis, externalsites);
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Filled DFT external multipole potential matrix"
+        << std::flush;
 
-  // setup AOmatrix for dipoles
-  AOMultipole dftAOESP;
-  dftAOESP.FillPotential(basis, externalsites);
-  XTP_LOG(Log::error, log_)
-      << TimeStamp() << " Filled DFT external multipole potential matrix"
-      << std::flush;
+    // calculate expectaction value
+    // get density matrix of state of interest
+    QMState state = QMState(statetype_ + std::to_string(*it));
+    Eigen::MatrixXd dmat = orb.DensityMatrixKSstate(state) ;
+    double env_en = dmat.cwiseProduct(dftAOESP.Matrix()).sum();
 
-  // calculate expectaction value
-  // get density matrix of state of interest
-  QMState state = QMState(statetype_ + std::to_string(*it));
-  Eigen::MatrixXd dmat = orb.DensityMatrixKSstate(state) ;
-  double env_en = dmat.cwiseProduct(dftAOESP.Matrix()).sum();
+    // try second order corrections
+    Eigen::VectorXd  MO = orb.MOs().eigenvectors().col(state.StateIdx());
+    double env_en_second = 0.0;
+    Eigen::MatrixXd precalc = dftAOESP.Matrix() * MO;
 
-  // try second order corrections
-  // Eigen::VectorXd  MO = orb.MOs().eigenvectors().col(state.StateIdx());
-  // double env_en_second = 0.0;
-  // Eigen::MatrixXd precalc = dftAOESP.Matrix() * MO;
-  // double QPen = orb.QPpertEnergies()[60];
-  // for ( Index i = 0; i < orb.getGWAmax() ; i++ ) {
-  //   if ( i != 60 ){
-  //     std::cout << "col " << (orb.MOs().eigenvectors().col(i).transpose() * precalc).cols() << std::endl;
-  //     double expval = (orb.MOs().eigenvectors().col(i).transpose() * precalc)(0,0);
-  //     env_en_second += std::pow(expval,2) / ( QPen - orb.QPpertEnergies()(i)) ;
-
-
-  //   }
-  //}
+    Index this_state = (*it);
+    double QPen = orb.QPpertEnergies()[this_state];
+    for ( Index i = 0; i < orb.getGWAmax() ; i++ ) {
+      if ( i != this_state ){
+        double expval = (orb.MOs().eigenvectors().col(i).transpose() * precalc)(0,0);
+        env_en_second += std::pow(expval,2) / ( QPen - orb.QPpertEnergies()(i)) ;
+       }
+    }
 
 
 
-  XTP_LOG(Log::error, log_)
-      << TimeStamp() << " Energy correction " << env_en 
-      << std::flush;
-  }
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " State " << (*it) << " energy correction " << env_en << " second order  " << env_en_second
+       << std::flush;
+    }
 
   return true;
 

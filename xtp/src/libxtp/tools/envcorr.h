@@ -22,9 +22,9 @@
 #define VOTCA_XTP_ENVCORR_H
 
 // Local VOTCA includes
+#include "votca/xtp/logger.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/qmtool.h"
-#include "votca/xtp/logger.h"
 #include "votca/xtp/region.h"
 
 namespace votca {
@@ -47,6 +47,7 @@ class ENVCORR final : public QMTool {
   QMState state_;
   std::string outputfile_;
   std::string statetype_;
+  std::string envmode_;
   std::string statenumbers_as_string_;
   Logger log_;
 };

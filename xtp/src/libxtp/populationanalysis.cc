@@ -33,6 +33,8 @@ StaticSegment Populationanalysis<T>::CalcChargeperAtom(
   overlap.Fill(basis);
   Eigen::VectorXd charges = -CalcElecChargeperAtom(dmat, overlap, basis);
   if (!state.isTransition() && state.Type() != QMStateType::KSstate) {
+  //if (!state.isTransition() ) {
+    std::cout << "why" << std::endl;
     charges += CalcNucChargeperAtom(orbitals.QMAtoms());
   }
 
