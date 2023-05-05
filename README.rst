@@ -53,7 +53,7 @@ You find the VOTCA-CTP repository
 License:
 ########
 
-Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
 
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may

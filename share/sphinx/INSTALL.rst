@@ -52,6 +52,8 @@ GROMACS:
 
     cmake -DCMAKE_INSTALL_PREFIX=${prefix} -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so -S ..
 
+Please also ensure GROMACS was build with ``-DGMX_INSTALL_LEGACY_API=ON``.
+
 Be careful to use exactly the option suggested in the error message! You
 can also add ``-LH`` or ``-LAH`` options to the ``cmake`` command in
 order to see the available options with brief explanations (note that
