@@ -9,6 +9,7 @@ Version 2023-rc.2 (released XX.02.23)
 -  clean up C++ defines (#1044)
 -  drop gmx-2022 builds from CI (#1046)
 -  update ccaching in CI (#1048, #1050)
+-  add support for gmx-2023 api (#1059)
 
 Version 2023-rc.1 (released 02.02.23)
 =====================================
