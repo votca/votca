@@ -103,7 +103,9 @@ class Interaction {
 inline void Interaction::RebuildName() {
   std::stringstream s;
   if (mol_ != -1) {
-    { s << "molecule " << mol_; }
+    {
+      s << "molecule " << mol_;
+    }
   }
   if (!group_.empty()) {
     s << ":" << group_;
@@ -112,7 +114,9 @@ inline void Interaction::RebuildName() {
     }
   }
   if (index_ != -1) {
-    { s << ":index " << index_; }
+    {
+      s << ":index " << index_;
+    }
   }
   name_ = s.str();
 }
