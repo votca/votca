@@ -18,7 +18,7 @@ class Options:
     # NOTE: if you add a class/instance attribute, please update __slots__
     __slots__ = ("_xml_tree", "_opts")
 
-    def __init__(self, xml_file: str | Path, xml_attribs=True, set_default=True):
+    def __init__(self, xml_file: str | Path, xml_attribs=True, set_default=False):
         """Create options object from the input xml files"""
 
         # parse xmlfile and replace links to the embedded xml files
@@ -138,7 +138,9 @@ def make_options(name: str, xml_dict: dict, set_default: bool = True):
     if len(children) == 0:  # leaf node
         default = xml_dict.get("@default", None)
         if default == "OPTIONAL":
-            default = None
+            return None
+        if not set_default:
+            return '' 
         return default
 
     # create type
@@ -159,4 +161,8 @@ def make_options(name: str, xml_dict: dict, set_default: bool = True):
     for k, v in attrs.items():  # no @keys here
         if isinstance(v, _Opts_t) or set_default:
             setattr(obj, k, v)
+        elif not set_default:
+            setattr(obj, k, '')
+        else:
+            raise ValueError('Something went wrong')
     return obj
