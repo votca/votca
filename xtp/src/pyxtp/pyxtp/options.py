@@ -55,7 +55,7 @@ class Options:
         """
 
         # create a dict of the user providedoptions
-        options = self._opts.to_dict()
+        options = self._opts.to_flat_dict()
 
         # update the options from the user provided input
         self._xml_tree = update_xml_text(self._xml_tree, options)
