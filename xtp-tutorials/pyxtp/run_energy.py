@@ -1,34 +1,31 @@
 #!/usr/bin/env python
 """Example to compute energies using XTP."""
-from pyxtp import DFTGWBSE, Molecule, Visualization
+from pyxtp import xtp, Visualization
+from ase import Atoms
 
 def run_energy(save_figure: bool = False):
     """Run energy workflow."""
     # define a molecule
-    mol = Molecule()
+    atoms = Atoms('CO', positions=([0,0,0],[1.4,0,0]))
 
-    # make it by hand
-    mol.add_atom("C", 0, 0, 0)
-    mol.add_atom("O", 1.2, 0, 0)
-
-    # or read it from existing file
-    # mol.readXYZfile('CO.xyz')
-
-    # get a DFTGWBSE object
-    dft = DFTGWBSE(mol)
-
+    # define the calculator
+    calc = xtp(nthreads=2)
+    
     # change basis sets to a smaller one
-    dft.options.dftpackage.basisset = 'def2-svp'
-    dft.options.dftpackage.auxbasisset = 'aux-def2-svp'
+    calc.options.dftpackage.basisset = 'def2-svp'
+    calc.options.dftpackage.auxbasisset = 'aux-def2-svp'
 
-    # run for the molecule
-    dft.run()
+    # attach the calculator
+    atoms.calc = calc 
+    
+    # run the calculations
+    atoms.get_potential_energy()
 
     # only needed, if no run was performed but an existing HDF5 is read
-    # dft.mol.read_orb('pyvotca/examples/example.orb')
+    # atoms.read('pyvotca/examples/example.orb')
 
     # Getting the plotting functions
-    viz = Visualization(dft.mol, save_figure=save_figure)
+    viz = Visualization(atoms, save_figure=save_figure)
     # plotting QP corrections
     # viz.plot_qp_corrections()
     # plotting absorption spectrum
@@ -37,3 +34,4 @@ def run_energy(save_figure: bool = False):
 
 if __name__ == "__main__":
     run_energy()
+    

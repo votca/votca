@@ -20,8 +20,9 @@ def update_xml_text(xml: ElementTree, dict_options: dict) -> ElementTree:
     # replace text value of the dict elements
     for key, value in dict_options.items():
         try:
-            xml.find('.//'+key).text = value
-        except:
+            xml.find('.//'+key).text = str(value)
+        except Exception as e:
+            print(e)
             print(key, ' not found ')
     return xml 
 

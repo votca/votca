@@ -7,7 +7,7 @@ import numpy as np
 import periodictable
 import scipy.linalg as la
 
-from .utils import AFU2EV, H2EV
+from ..utils import AFU2EV, H2EV
 
 
 class Electronphonon:

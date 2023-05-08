@@ -1,4 +1,4 @@
-"""General utilities to parse both input/out files."""
+#"""General utilities to parse both input/out files."""
 
 __all__ = ['any_char', 'integer', 'natural', 'parse_file', 'parse_section',
            'skipany_char', 'skip_line', 'skip_supress', 'try_search_pattern']
