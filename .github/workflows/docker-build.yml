@@ -22,37 +22,53 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
-          fetch-depth: 0
           path: votca
-      - name: Build Docker images for Docker Hub
-        uses: docker/build-push-action@v1.1.0
+      - name: Determine tag
+        id: tag
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+          elif [[ $GITHUB_REF == refs/heads/* ]]; then
+            TAG=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
+            [[ ${TAG} = master ]] && TAG="latest"
+          elif [[ $GITHUB_REF == refs/pull/* ]]; then
+            TAG=pr-${{ github.event.number }}
+          fi
+          echo "Docker tag is ${TAG}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to Docker Container Registry
+        if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
+        uses: docker/login-action@v2
         with:
-          repository: votca/votca
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          dockerfile: votca/.github/workflows/Dockerfile
-          tag_with_ref: true
-          push: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
-      - name: Build Docker images for Github Container Registry
-        uses: docker/build-push-action@v1.1.0
+      - name: Login to Github Container Registry
+        if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
+        uses: docker/login-action@v2
         with:
-          repository: votca/votca
           registry: ghcr.io
           # username do not matter, but needs to be a secret, so it gets nulled out on PR from forks
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.VOTCA_BOT_TOKEN }}
-          dockerfile: votca/.github/workflows/Dockerfile
-          tag_with_ref: true
-          push: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
-      - name: Build Docker images for Gitlab
-        uses: docker/build-push-action@v1.1.0
+      - name: Login to Gitlab Container Registry
+        if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
+        uses: docker/login-action@v2
         with:
-          repository: votca/votca
           registry: registry.gitlab.com
           username: ${{ secrets.GITLAB_REGISTRY_USERNAME }}
           password: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
-          dockerfile: votca/.github/workflows/Dockerfile
-          tag_with_ref: true
-          push: ${{ github.event_name == 'push' ||  github.event_name == 'schedule' }}
+      - name: Build and Push Docker images for all Container Registries
+        uses: docker/build-push-action@v3
+        with:
+          tags: |
+            votca/votca:${{ steps.tag.outputs.tag }}
+            ghcr.io/votca/votca:${{ steps.tag.outputs.tag }}
+            registry.gitlab.com/votca/votca:${{ steps.tag.outputs.tag }}
+          file: votca/.github/workflows/Dockerfile
+          context: .
+          pull: true
+          push: ${{ github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' ) }}

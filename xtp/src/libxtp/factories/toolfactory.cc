@@ -25,6 +25,7 @@
 #include "tools/coupling.h"
 #include "tools/densityanalysis.h"
 #include "tools/dftgwbse.h"
+#include "tools/diabatization.h"
 #include "tools/excitoncoupling.h"
 #include "tools/gencube.h"
 #include "tools/gpu_benchmark.h"
@@ -35,25 +36,27 @@
 #include "tools/orb2mol.h"
 #include "tools/partialcharges.h"
 #include "tools/spectrum.h"
+
 namespace votca {
 namespace xtp {
 
 void QMToolFactory::RegisterAll(void) {
 
-  this->Register<Log2Mps>("log2mps");
-  this->Register<DftGwBse>("dftgwbse");
-  this->Register<Spectrum>("spectrum");
-  this->Register<ExcitonCoupling>("excitoncoupling");
-  this->Register<GenCube>("gencube");
-  this->Register<Partialcharges>("partialcharges");
-  this->Register<DensityAnalysis>("densityanalysis");
-  this->Register<Coupling>("coupling");
-  this->Register<MolPol>("molpol");
-  this->Register<APDFT>("apdft");
-  this->Register<Mol2Orb>("mol2orb");
-  this->Register<Orb2Mol>("orb2mol");
-  this->Register<Orb2Fchk>("orb2fchk");
-  this->Register<GPUBenchmark>("gpu_benchmark");
+  QMTools().Register<Log2Mps>("log2mps");
+  QMTools().Register<DftGwBse>("dftgwbse");
+  QMTools().Register<Spectrum>("spectrum");
+  QMTools().Register<ExcitonCoupling>("excitoncoupling");
+  QMTools().Register<GenCube>("gencube");
+  QMTools().Register<Partialcharges>("partialcharges");
+  QMTools().Register<DensityAnalysis>("densityanalysis");
+  QMTools().Register<Coupling>("coupling");
+  QMTools().Register<MolPol>("molpol");
+  QMTools().Register<APDFT>("apdft");
+  QMTools().Register<Mol2Orb>("mol2orb");
+  QMTools().Register<Orb2Mol>("orb2mol");
+  QMTools().Register<Diabatization>("diabatization");
+  QMTools().Register<Orb2Fchk>("orb2fchk");
+  QMTools().Register<GPUBenchmark>("gpu_benchmark");
 }
 
 }  // namespace xtp

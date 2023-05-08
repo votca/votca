@@ -121,10 +121,15 @@ git pull --ff-only
 if [[ $testing = "yes" ]]; then
   :
 elif [[ -f CMakeLists.txt ]]; then
-  sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt */CMakeLists.txt || die "sed of CMakeLists.txt failed"
+  sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
   git add CMakeLists.txt
+  # no || die as dev version have no release date
   sed -i "/^Version ${rel} /s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
   git add CHANGELOG.rst
+  sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.rst || die "sed of README.rst failed"
+  git add README.rst
+  sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" share/sphinx/INSTALL.rst || die "sed of INSTALL.rst failed"
+  git add share/sphinx/INSTALL.rst
 fi
 if [[ $testing = "no" ]]; then
    [[ -n $(grep -E "^Version ${rel}( |$)" CHANGELOG.rst) ]] || die "Go and update CHANGELOG.rst before making a release"
@@ -151,10 +156,10 @@ mkdir "$instdir"
 echo "Starting build check from tarball"
 
 tar -xvf "${topdir}/votca-${rel}.tar.gz"
-cmake -DCMAKE_INSTALL_PREFIX="${instdir}" -DMODULE_BUILD=ON \
-      -DENABLE_TESTING=ON \
+cmake -DCMAKE_INSTALL_PREFIX="${instdir}" \
       -DENABLE_REGRESSION_TESTING=ON \
       -DBUILD_XTP=ON \
+      -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
       "${cmake_opts[@]}" -S "votca-${rel}/" -B "$build"
 cmake --build "${build}" -j"${j}" ${verbose:+--verbose}
 

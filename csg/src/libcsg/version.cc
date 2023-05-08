@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,21 +38,12 @@
 namespace votca {
 namespace csg {
 
-// defines gitversion
-#include "gitversion.h"
-static const std::string version_str = std::string(CSG_VERSION) + " " +
-                                       gitversion +
-                                       " (compiled " __DATE__ ", " __TIME__ ")";
-
-const std::string &CsgVersionStr() { return version_str; }
-
 void HelpTextHeader(const std::string &tool_name) {
   std::cout << "==================================================\n"
             << "========   VOTCA (http://www.votca.org)   ========\n"
             << "==================================================\n\n"
-            << "please submit bugs to " CSG_BUGREPORT "\n\n"
-            << tool_name << ", version " << votca::csg::CsgVersionStr()
-            << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
+            << "please submit bugs to " PACKAGE_BUGREPORT "\n\n"
+            << tool_name << ", version " << votca::tools::ToolsVersionStr()
 #ifdef GMX_DOUBLE
             << "\ngromacs, " << gmx_version()
 #if (GMX_DOUBLE == 1)

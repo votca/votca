@@ -9,8 +9,8 @@ die () {
 
 print_output() {
   [[ -n $1 ]] || die "${FUNCNAME[0]}: missing argument"
-  echo "name=$1::${@:2}"
-  echo "::set-output name=$1::${@:2}"
+  echo "Setting $1=${@:2}"
+  echo "$1=${@:2}" >> $GITHUB_OUTPUT
 }
 
 for i in INPUT_MINIMAL INPUT_OWN_GMX INPUT_REGRESSION_TESTING; do
@@ -18,7 +18,7 @@ for i in INPUT_MINIMAL INPUT_OWN_GMX INPUT_REGRESSION_TESTING; do
   echo "$i='${!i}'"
 done
 [[ -n ${INPUT_DISTRO} ]] || die "value of INPUT_DISTRO was empty"
-for i in INPUT_DISTRO INPUT_CMAKE_BUILD_TYPE INPUT_TOOLCHAIN INPUT_COVERAGE INPUT_CTEST_ARGS INPUT_CMAKE_ARGS INPUT_MODULE INPUT_CODE_ANALYZER; do
+for i in INPUT_DISTRO INPUT_CMAKE_BUILD_TYPE INPUT_TOOLCHAIN INPUT_COVERAGE INPUT_CTEST_ARGS INPUT_CMAKE_ARGS INPUT_CODE_ANALYZER; do
   echo "$i='${!i}'"
 done
 
@@ -34,7 +34,7 @@ else
   die "Handling on GITHUB_REF=${GITHUB_REF} not implemented"
 fi
 
-cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DENABLE_TESTING=ON  -DBUILD_CSGAPPS=ON )
+cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DINSTALL_CSGAPPS=ON )
 # do not inject -march=native as the CI runs on different backends and hence will create a conflict with ccache
 cmake_args+=( -DINJECT_MARCH_NATIVE=OFF )
 if [[ ${INPUT_CMAKE_BUILD_TYPE} ]]; then
@@ -60,11 +60,11 @@ else
   die "Unknown INPUT_TOOLCHAIN; ${INPUT_TOOLCHAIN}"
 fi
 
-if [[ ${INPUT_MODULE} = true ]]; then
-  cmake_args+=( -DMODULE_BUILD=ON -DCMAKE_INSTALL_PREFIX=$HOME/votca.install )
-else
-  cmake_args+=( -DCMAKE_INSTALL_PREFIX=/usr )
-fi	
+cmake_args+=( -DCMAKE_INSTALL_PREFIX=/usr )
+
+# use ccache
+cmake_args+=( -DCMAKE_CXX_COMPILER_LAUNCHER=ccache )
+
 if [[ ${INPUT_OWN_GMX} = true ]]; then
   cmake_args+=( -DBUILD_OWN_GROMACS=ON -DENABLE_WARNING_FLAGS=OFF -DENABLE_WERROR=OFF -DGMX_EXTRA_CMAKE_ARGS="-DGMX_SIMD=SSE2" )
   # remove this block when gromacs uses cxx only, i.e. gmx2021
@@ -83,7 +83,7 @@ else
   cmake_args+=( -DENABLE_WERROR=ON )
 fi
 if [[ ${INPUT_MINIMAL} = true ]]; then
-  cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_MANPAGES=OFF -DBUILD_XTP=OFF )
+  cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_MANPAGES=OFF -DBUILD_XTP=OFF -DBUILD_TESTING=OFF )
 else
   cmake_args+=( -DBUILD_XTP=ON )
 fi
@@ -117,11 +117,11 @@ fi
 cmake_args+=( ${INPUT_CMAKE_ARGS} )
 print_output "cmake_args" "${cmake_args[@]}"
 
-cache_key="ccache-${INPUT_DISTRO/:/_}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYPE}-minimal-${INPUT_MINIMAL}-owngmx-${owngmx}-module-${INPUT_MODULE}-analysis-${INPUT_CODE_ANALYZER%%:*}"
+cache_key="ccache-${INPUT_DISTRO/:/_}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYPE}-minimal-${INPUT_MINIMAL}-owngmx-${owngmx}-analysis-${INPUT_CODE_ANALYZER%%:*}"
 print_output "cache_restore_key" "${cache_key}"
 print_output "cache_key" "${cache_key}-$(date +%s)"
 
-if [[ ${branch} = stable || ${INPUT_DISTRO} != fedora:@(latest|rawhide)  || ${INPUT_CMAKE_BUILD_TYPE} = Debug || ${INPUT_MODULE} = true ]]; then
+if [[ ${branch} = stable || ${INPUT_DISTRO} != fedora:@(latest|rawhide)  || ${INPUT_CMAKE_BUILD_TYPE} = Debug ]]; then
   # Only build doc sphinx on Fedora, as there many issues on other, e.g.:
   # 1.) Don't build sphinx on stable, not useful, only master is useful
   # 2.) On Ubuntu 18.04 sphinx is too old for nbsphinx
@@ -130,13 +130,12 @@ if [[ ${branch} = stable || ${INPUT_DISTRO} != fedora:@(latest|rawhide)  || ${IN
   #     AttributeError: 'dict' object has no attribute 'append'
   #     nbsphinx that requires that sphinx>1.8 but in Ubuntu 18.04 sphinx==1.6.7
   # 3.) Debug builds are too slow to run notebooks in xtp-tutorials
-  # 4.) Module build doesn't support sphinx
   print_output "build_sphinx" "false"
 else
   print_output "build_sphinx" "true"
 fi
 
-if [[ ${INPUT_DISTRO} = "fedora:latest" ]] && [[ ${INPUT_MODULE} = false ]]; then
+if [[ ${INPUT_DISTRO} = "fedora:latest" ]]; then
   print_output "check_format" "true"
 else
   print_output "check_format" "false"

@@ -29,6 +29,10 @@ echo
 exit 0
 fi
 
+# avoid localization of numbers, i.e. 1,0 instead 1.0 e.g. by awk in csg_calc
+# see votca/votca#998
+export LC_ALL=C
+
 export BASH #need in CsgFunctions.pm
 
 shopt -s extglob
@@ -907,7 +911,7 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
       cg.inverse.gromacs.traj_type)
         new="";;
       cg.inverse.convergence_check)
-	new="${i}.type";;
+        new="${i}.type";;
       cg.inverse.convergence_check_options.limit)
         new="cg.inverse.convergence_check.limit";;
       cg.non-bonded.inverse.imc.reg)

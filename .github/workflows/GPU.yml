@@ -19,12 +19,12 @@ jobs:
         run: rm -rf *
 
       - name: Checkout votca
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: votca
 
       - name: Configure Cmake
-        run: cmake -B builddir -S votca -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DENABLE_TESTING=ON -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON
+        run: cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_BUILD_TYPE=Release -DUSE_CUDA=ON
 
       - name: Build
         run: cmake --build builddir --parallel $(nproc)

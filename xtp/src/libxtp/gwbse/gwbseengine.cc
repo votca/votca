@@ -18,7 +18,6 @@
  */
 
 // Third party includes
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <string>
 
@@ -30,7 +29,6 @@
 #include "votca/xtp/qmpackage.h"
 
 using boost::format;
-using namespace boost::filesystem;
 using std::flush;
 namespace votca {
 namespace xtp {
@@ -66,10 +64,6 @@ void GWBSEEngine::Initialize(tools::Property& options,
   }
   if (do_localize_) {
     localize_options_ = options.get(".localize");
-  }
-  if (do_dft_in_dft_ && !do_localize_) {
-    throw std::runtime_error(
-        "Can't do DFT in DFT embedding without localization");
   }
   // DFT log and MO file names
   MO_file_ = qmpackage_->getMOFile();
@@ -150,8 +144,25 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   }
 
   if (do_localize_) {
+    if (!do_dft_parse_) {
+      orbitals.ReadFromCpt(archive_file_);
+    }
     PMLocalization pml(*logger, localize_options_);
     pml.computePML(orbitals);
+  }
+
+  if (!do_dft_parse_ && (do_dft_in_dft_ || do_gwbse_)) {
+    if (!do_localize_) {
+      XTP_LOG(Log::error, *logger)
+          << "Loading serialized data from " << archive_file_ << flush;
+      orbitals.ReadFromCpt(archive_file_);
+      if (do_dft_in_dft_) {
+        if (orbitals.getLMOs().size() == 0) {
+          throw std::runtime_error(
+              "Can't do DFT in DFT embedding without localization");
+        }
+      }
+    }
   }
 
   if (do_dft_in_dft_) {
@@ -173,35 +184,31 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   }
 
   // if no parsing of DFT data is requested, reload serialized orbitals object
-  if (!do_dft_parse_ && do_gwbse_) {
-    XTP_LOG(Log::error, *logger)
-        << "Loading serialized data from " << archive_file_ << flush;
-    orbitals.ReadFromCpt(archive_file_);
-  }
+
   tools::Property& output_summary = summary_.add("output", "");
 
-  if (do_dft_in_dft_ && do_gwbse_) {
-    Orbitals orb_embedded = orbitals;
-    orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
-    Index active_electrons = orb_embedded.getNumOfActiveElectrons();
-    orb_embedded.setNumberOfAlphaElectrons(active_electrons);
-    orb_embedded.setNumberOfOccupiedLevels(active_electrons / 2);
-    GWBSE gwbse = GWBSE(orb_embedded);
-    gwbse.setLogger(logger);
-    gwbse.Initialize(gwbse_options_);
-    gwbse.Evaluate();
-    gwbse.addoutput(output_summary);
+  if (do_gwbse_) {
+    if (do_dft_in_dft_ || orbitals.getEmbeddedMOs().eigenvectors().size() > 0) {
+      Orbitals orb_embedded = orbitals;
+      orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
+      Index active_electrons = orb_embedded.getNumOfActiveElectrons();
+      orb_embedded.setNumberOfAlphaElectrons(active_electrons);
+      orb_embedded.setNumberOfOccupiedLevels(active_electrons / 2);
+      GWBSE gwbse = GWBSE(orb_embedded);
+      gwbse.setLogger(logger);
+      gwbse.Initialize(gwbse_options_);
+      gwbse.Evaluate();
+      gwbse.addoutput(output_summary);
+      orbitals = orb_embedded;
+    } else {
+      GWBSE gwbse = GWBSE(orbitals);
+      gwbse.setLogger(logger);
+      gwbse.Initialize(gwbse_options_);
+      gwbse.Evaluate();
+      gwbse.addoutput(output_summary);
+    }
   }
 
-  if (do_gwbse_ && !do_dft_in_dft_) {
-    GWBSE gwbse = GWBSE(orbitals);
-    gwbse.setLogger(logger);
-    gwbse.Initialize(gwbse_options_);
-    gwbse.Evaluate();
-    gwbse.addoutput(output_summary);
-  }
-
-  // if do truncatedgwbse
   if (!logger_file_.empty()) {
     WriteLoggerToFile(logger);
   }

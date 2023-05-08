@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
  */
 
 // Standard includes
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 
 // Third party includes
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem/convenience.hpp>
 #include <boost/lexical_cast.hpp>
 
 // VOTCA includes
@@ -31,10 +31,6 @@
 
 // Local VOTCA includes
 #include "votca/csg/topology.h"
-
-#ifndef HAVE_NO_CONFIG
-#include <votca_csg_config.h>
-#endif
 
 // Local private VOTCA includes
 #include "dlpolytopologyreader.h"
@@ -148,7 +144,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 
   Index natoms = 0;
 
-  boost::filesystem::path filepath(file.c_str());
+  std::filesystem::path filepath(file.c_str());
 
   string line;
 
@@ -156,7 +152,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
   // residues!
   const Residue &res = top.CreateResidue("no");
 
-  if (boost::filesystem::basename(filepath).size() == 0) {
+  if (!filepath.has_stem()) {
     if (filepath.parent_path().string().size() == 0) {
       fname_ = "FIELD";  // DL_POLY uses fixed file names in current/working
                          // directory
@@ -195,7 +191,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
                                line + "' in topology file '" + fname_ + "'");
     }
 
-#ifdef DEBUG
+#ifndef NDEBUG
     cout << "Read from dlpoly file '" << fname_ << "' : '" << line << "' - "
          << nmol_types << endl;
 #endif
@@ -210,14 +206,14 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
       Index nreplica = 1;
       line = NextKeyInt_(fl, WhiteSpace, "NUMMOL", nreplica);
 
-#ifdef DEBUG
+#ifndef NDEBUG
       cout << "Read from dlpoly file '" << fname_ << "' : '" << mol_name
            << "' - '" << line << "' - " << nreplica << endl;
 #endif
 
       line = NextKeyInt_(fl, WhiteSpace, "ATOMS", natoms);
 
-#ifdef DEBUG
+#ifndef NDEBUG
       cout << "Read from dlpoly file '" << fname_ << "' : '" << line << "' - "
            << natoms << endl;
 #endif
@@ -225,7 +221,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
       for (Index i = 0; i < natoms;) {  // i is altered in repeater loop
         stringstream sl(NextKeyline_(fl, WhiteSpace));
 
-#ifdef DEBUG
+#ifndef NDEBUG
         cout << "Read atom specs from dlpoly topology : '" << sl.str() << "'"
              << endl;
 #endif
@@ -244,7 +240,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 
         vector<string> fields = Tokenizer(line, WhiteSpace).ToVector();
 
-#ifdef DEBUG
+#ifndef NDEBUG
         cout << "Rest atom specs from dlpoly topology : '" << line << "'"
              << endl;
 #endif
@@ -267,7 +263,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
           mi->AddBead(bead, nm.str());
           id_map[i] = bead->getId();
           i++;
-#ifdef DEBUG
+#ifndef NDEBUG
           cout << "Atom identification in maps '" << nm.str() << "'" << endl;
 #endif
         }
@@ -278,7 +274,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         stringstream nl(NextKeyline_(fl, WhiteSpace));
         nl >> line;
 
-#ifdef DEBUG
+#ifndef NDEBUG
         cout << "Read unit type# from dlpoly topology : '" << nl.str() << "'"
              << endl;
 #endif
@@ -292,7 +288,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
           for (Index i = 0; i < count; i++) {
 
             stringstream sl(NextKeyline_(fl, WhiteSpace));
-#ifdef DEBUG
+#ifndef NDEBUG
             cout << "Read unit specs from dlpoly topology : '" << sl.str()
                  << "'" << endl;
 #endif
@@ -332,7 +328,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         }
       }
 
-#ifdef DEBUG
+#ifndef NDEBUG
       cout << "Read from dlpoly file '" << fname_ << "' : '" << line
            << "' - done with '" << mol_name << "'" << endl;
 #endif
@@ -378,7 +374,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
     top.RebuildExclusions();
   }
 
-#ifdef DEBUG
+#ifndef NDEBUG
   tools::getline(fl, line);  // is "close" found?
   if (line == "close") {
     cout << "Read from dlpoly file '" << fname_ << "' : '" << line

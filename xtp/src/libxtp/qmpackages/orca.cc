@@ -20,11 +20,11 @@
 
 // Standard includes
 #include <cstdio>
+#include <filesystem>
 #include <iomanip>
 
 // Third party includes
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
 // VOTCA includes
@@ -312,8 +312,8 @@ bool Orca::WriteShellScript() {
   std::string base_name = mo_file_name_.substr(0, mo_file_name_.size() - 4);
 
   if (options_.get("initial_guess").as<std::string>() == "orbfile") {
-    if (!(boost::filesystem::exists(run_dir_ + "/molA.gbw") &&
-          boost::filesystem::exists(run_dir_ + "/molB.gbw"))) {
+    if (!(std::filesystem::exists(run_dir_ + "/molA.gbw") &&
+          std::filesystem::exists(run_dir_ + "/molB.gbw"))) {
       throw runtime_error(
           "Using guess relies on a molA.gbw and a molB.gbw file being in the "
           "directory.");
@@ -505,9 +505,6 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
 bool Orca::ParseLogFile(Orbitals& orbitals) {
   bool found_success = false;
   orbitals.setQMpackage(getPackageName());
-  if (options_.exists("ecp")) {
-    orbitals.setECPName(options_.get("ecp").as<std::string>());
-  }
 
   orbitals.setXCGrid("xfine");  // TODO find a better approximation for the
                                 // orca grid.
@@ -639,6 +636,9 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   }
 
   orbitals.SetupDftBasis(basisset_name_);
+  if (options_.exists("ecp")) {
+    orbitals.setECPName(options_.get("ecp").as<std::string>());
+  }
 
   XTP_LOG(Log::info, *pLog_)
       << "Alpha electrons: " << number_of_electrons << flush;
@@ -774,6 +774,15 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
   molden.parseMoldenFile(file_name, orbitals);
 
   XTP_LOG(Log::error, *pLog_) << "Done parsing" << flush;
+
+  // ECP charge correction is only applied in Fill() of ECPAOBasis
+  if (orbitals.getECPName() != "") {
+    ECPBasisSet ecpbasisset;
+    ecpbasisset.Load(orbitals.getECPName());
+    ECPAOBasis ecp;
+    ecp.Fill(ecpbasisset, orbitals.QMAtoms());
+  }
+
   return true;
 }
 

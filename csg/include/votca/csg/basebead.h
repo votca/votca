@@ -85,7 +85,7 @@ class BaseBead {
 
   /**
    * set the bead type
-   * \param bead type object
+   * \param type bead type object
    */
   virtual void setType(const std::string &type) noexcept { type_ = type; }
 
@@ -105,13 +105,13 @@ class BaseBead {
 
   /**
    * set the mass of the base bead
-   * \param - base bead mass
+   * \param m - base bead mass
    */
   virtual void setMass(const double &m) noexcept { mass_ = m; }
 
   /**
    * set the position of the base bead
-   * \param - base bead position
+   * \param bead_position - base bead position
    */
   virtual void setPos(const Eigen::Vector3d &bead_position);
 

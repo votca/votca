@@ -47,7 +47,7 @@ void StateSaver::WriteFrame(const Topology& top) {
     CheckpointFile cpf(hdf5file_, CheckpointAccessLevel::CREATE);
   }
   boost::interprocess::file_lock flock(hdf5file_.c_str());
-  flock.lock();
+  flock.lock_sharable();
   if (!TopStepisinFrames(top.getStep())) {
     std::vector<Index> frames = this->getFrames();
     frames.push_back(top.getStep());
@@ -62,7 +62,7 @@ void StateSaver::WriteFrame(const Topology& top) {
   CheckpointWriter w = cpf.getWriter("/frame_" + std::to_string(top.getStep()));
   top.WriteToCpt(w);
 
-  flock.unlock();
+  flock.unlock_sharable();
 
   std::cout << "Wrote MD topology (step = " << top.getStep()
             << ", time = " << top.getTime() << ") to " << hdf5file_
@@ -81,7 +81,7 @@ Topology StateSaver::ReadFrame(Index frameid) const {
             << " from " << hdf5file_ << std::endl;
   std::cout << "...";
   boost::interprocess::file_lock flock(hdf5file_.c_str());
-  flock.lock();
+  flock.lock_sharable();
   if (!TopStepisinFrames(frameid)) {
     throw std::runtime_error("Frame with id " + std::to_string(frameid) +
                              " is not in statefile.");
@@ -91,7 +91,7 @@ Topology StateSaver::ReadFrame(Index frameid) const {
   CheckpointReader r = cpf.getReader("/frame_" + std::to_string(frameid));
   Topology top;
   top.ReadFromCpt(r);
-  flock.unlock();
+  flock.unlock_sharable();
   std::cout << ". " << std::endl;
   return top;
 }

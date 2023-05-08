@@ -329,7 +329,8 @@ std::array<Eigen::MatrixXd, 2> ERIs::Compute4c(const Eigen::MatrixXd& dmat,
   }
   Index nshells = basis_.size();
 
-#pragma omp parallel for schedule(dynamic)reduction(+ : hartree)reduction(+: exchange)
+#pragma omp parallel for schedule(dynamic) reduction(+ : hartree) \
+    reduction(+ : exchange)
   for (Index s1 = 0; s1 < nshells; ++s1) {
     Index thread_id = OPENMP::getThreadId();
     libint2::Engine& engine = engines[thread_id];
@@ -568,8 +569,8 @@ std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
         }    // COL copy
       }      // AUX copy
 
-    }  // gamma-loop
-  }    // alpha-loop
+    }        // gamma-loop
+  }          // alpha-loop
 
   for (Eigen::MatrixXd& mat : ao3c) {
     mat.triangularView<Eigen::Upper>() =

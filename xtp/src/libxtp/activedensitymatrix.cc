@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2022 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,25 +26,31 @@
  *Embedding Scheme. Frederick R. Manby, Martina Stella, Jason D. Goodpaster, and
  *Thomas F. Miller Journal of Chemical Theory and Computation 2012 8 (8),
  *2564-2568 DOI: 10.1021/ct300544e
+ *(3) Projection-Based Wavefunction-in-DFT Embedding
+ *Sebastian J. R. Lee, Matthew Welborn, Frederick R. Manby, and Thomas F. Miller
+ *III Accounts of Chemical Research 2019 52 (5), 1359-1368
+ *DOI: 10.1021/acs.accounts.8b00672
  */
 #include "votca/xtp/activedensitymatrix.h"
 #include "votca/xtp/aomatrix.h"
 namespace votca {
 namespace xtp {
 
-Eigen::MatrixXd ActiveDensityMatrix::compute_Dmat_A() {
+std::array<Eigen::MatrixXd, 3> ActiveDensityMatrix::compute_Dmat_A() {
   Eigen::MatrixXd localized_mo_coeff = orbitals_.getLMOs();
   return activedensitymatrix(localized_mo_coeff);
 }
 
-Eigen::MatrixXd ActiveDensityMatrix::activedensitymatrix(
+std::array<Eigen::MatrixXd, 3> ActiveDensityMatrix::activedensitymatrix(
     const Eigen::MatrixXd &localized_mo_coeff) {
   AOBasis aobasis = orbitals_.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(aobasis);
   Index numOfActiveOrbs = 0;
+  Index numOfInactiveOrbs = 0;
   std::vector<Index> numfuncpatom = aobasis.getFuncPerAtom();
   Eigen::MatrixXd active_mo_coeff;
+  Eigen::MatrixXd inactive_mo_coeff;
 
   for (Index LocMoCoeff_col_i = 0; LocMoCoeff_col_i < localized_mo_coeff.cols();
        LocMoCoeff_col_i++) {
@@ -53,12 +59,13 @@ Eigen::MatrixXd ActiveDensityMatrix::activedensitymatrix(
         localized_mo_coeff.col(LocMoCoeff_col_i).transpose() *
         overlap.Matrix() *
         localized_mo_coeff.col(LocMoCoeff_col_i).asDiagonal();
-    const Eigen::RowVectorXd MullikenPop_per_basisset =
+    const Eigen::RowVectorXd MullikenPop_per_basisfunc =
         orbital_wise_population.colwise().sum();
     Index start = 0;
+    bool inactive = true;
     for (Index atom_id = 0; atom_id < Index(numfuncpatom.size()); atom_id++) {
       const double MullikenPop_per_atom =
-          MullikenPop_per_basisset.segment(start, numfuncpatom[atom_id]).sum();
+          MullikenPop_per_basisfunc.segment(start, numfuncpatom[atom_id]).sum();
       if ((std::find(activeatoms_.begin(), activeatoms_.end(), atom_id) !=
            activeatoms_.end()) &&
           MullikenPop_per_atom > threshold_) {
@@ -67,14 +74,26 @@ Eigen::MatrixXd ActiveDensityMatrix::activedensitymatrix(
         active_mo_coeff.col(numOfActiveOrbs) =
             localized_mo_coeff.col(LocMoCoeff_col_i);
         numOfActiveOrbs++;
+        inactive = false;
         break;
       }
       start += numfuncpatom[atom_id];
     }
+    if (inactive) {
+      inactive_mo_coeff.conservativeResize(localized_mo_coeff.rows(),
+                                           numOfInactiveOrbs + 1);
+      inactive_mo_coeff.col(numOfInactiveOrbs) =
+          localized_mo_coeff.col(LocMoCoeff_col_i);
+      numOfInactiveOrbs++;
+    }
   }
   const Eigen::MatrixXd dmat_active =
       2 * active_mo_coeff * active_mo_coeff.transpose();
-  return dmat_active;
+  std::array<Eigen::MatrixXd, 3> result;
+  result[0] = dmat_active;
+  result[1] = active_mo_coeff;
+  result[2] = inactive_mo_coeff;
+  return result;
 }
 }  // namespace xtp
 }  // namespace votca

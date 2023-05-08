@@ -23,10 +23,7 @@
 /* Whether h5md is compiled in */
 #cmakedefine H5MD
 
-/* Version number of package */
-#define CSG_VERSION "@PROJECT_VERSION@"
-
 /* Contact address of package */
-#define CSG_BUGREPORT "@PROJECT_CONTACT@"
+#define PACKAGE_BUGREPORT "@PROJECT_CONTACT@"
 // clang-format on
 #endif  // __VOTCA_CSG_VOTCA_CONFIG_H

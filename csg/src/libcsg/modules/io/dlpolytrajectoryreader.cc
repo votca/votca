@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,8 @@
 // Standard includes
 #include <cmath>
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
-
-// Third party includes
-#include <boost/filesystem/convenience.hpp>
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -44,21 +42,21 @@ bool DLPOLYTrajectoryReader::Open(const string &file)
 // NOTE: allowed file naming - <name>.dlpc or <name>.dlph (convention:
 // ".dlpc"="CONFIG", ".dlph"="HISTORY")
 {
-  boost::filesystem::path filepath(file.c_str());
+  std::filesystem::path filepath(file.c_str());
   string inp_name = "HISTORY";
 
-  if (boost::filesystem::extension(filepath).size() == 0) {
+  if (!filepath.has_extension()) {
 
     throw std::ios_base::failure(
         "Error on opening dlpoly file '" + file +
         "' - extension is expected, use .dlph or .dlpc");
 
-  } else if (boost::filesystem::extension(filepath) == ".dlpc") {
+  } else if (filepath.extension() == ".dlpc") {
 
     isConfig_ = true;
     inp_name = "CONFIG";
 
-  } else if (boost::filesystem::extension(filepath) == ".dlph") {
+  } else if (filepath.extension() == ".dlph") {
 
     isConfig_ = false;
 
@@ -67,7 +65,7 @@ bool DLPOLYTrajectoryReader::Open(const string &file)
                                  "' - wrong extension, use .dlph or .dlpc");
   }
 
-  if (boost::filesystem::basename(filepath).size() == 0) {
+  if (!filepath.has_stem()) {
     if (filepath.parent_path().string().size() == 0) {
       fname_ = inp_name;
     } else {
@@ -113,14 +111,14 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
     tools::getline(fl_, line);  // title
 
-#ifdef DEBUG
+#ifndef NDEBUG
     cout << "Read from dlpoly file '" << fname_ << "' : '" << line
          << "' - header" << endl;
 #endif
 
     tools::getline(fl_, line);  // 2nd header line
 
-#ifdef DEBUG
+#ifndef NDEBUG
     cout << "Read from dlpoly file '" << fname_ << "' : '" << line
          << "' - directives line" << endl;
 #endif
@@ -142,7 +140,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     hasFs = (mavecs > 1);  // 2      => in DL_POLY frame force vector follows
                            // velocities for each atom/bead
 
-#ifdef DEBUG
+#ifndef NDEBUG
     if (hasVs != conf.HasVel() || hasFs != conf.HasForce()) {
       cout << "WARNING: N of atom vectors (keytrj) in '" << fname_
            << "' header differs from that read with topology" << endl;
@@ -152,7 +150,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     conf.SetHasVel(hasVs);
     conf.SetHasForce(hasFs);
 
-#ifdef DEBUG
+#ifndef NDEBUG
     cout << "Read from dlpoly file '" << fname_ << "' : keytrj - " << mavecs
          << ", hasV - " << conf.HasVel() << ", hasF - " << conf.HasForce()
          << endl;
@@ -171,7 +169,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       pbc_type = BoundaryCondition::typeTriclinic;
     }
 
-#ifdef DEBUG
+#ifndef NDEBUG
     cout << "Read from dlpoly file '" << fname_ << "' : pbc_type (imcon) - '"
          << pbc_type << "'" << endl;
 
@@ -190,7 +188,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
   if (!isConfig_) {
     tools::getline(fl_, line);  // timestep line - only present in HISTORY, and
                                 // not in CONFIG
-#ifdef DEBUG
+#ifndef NDEBUG
     cout << "Read from dlpoly file '" << fname_ << "' : '" << line << "'"
          << endl;
 #endif
@@ -211,7 +209,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       conf.SetHasVel(hasVs);
       conf.SetHasForce(hasFs);
 
-#ifdef DEBUG
+#ifndef NDEBUG
       cout << "Read from CONFIG: traj_key - " << navecs << ", hasV - "
            << conf.HasVel() << ", hasF - " << conf.HasForce() << endl;
 #endif
@@ -236,7 +234,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
           stod(fields[fields.size() - 1]);  // normally it is the last
                                             // column in 'timestep' line
 
-#ifdef DEBUG
+#ifndef NDEBUG
       cout << "Read from dlpoly file '" << fname_ << "' : natoms = " << natoms
            << ", levcfg = " << fields[3];
       cout << ", dt = " << fields[5] << ", time = " << stime << endl;
@@ -294,7 +292,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
       tools::getline(fl_, line);
 
-#ifdef DEBUG
+#ifndef NDEBUG
       cout << "Read from dlpoly file '" << fname_ << "' : '" << line
            << "' - box vector # " << i + 1 << endl;
 #endif
@@ -318,7 +316,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       {
         tools::getline(fl_, line);  // atom header line
 
-#ifdef DEBUG
+#ifndef NDEBUG
         cout << "Read from dlpoly file '" << fname_ << "' : '" << line << "'"
              << endl;
 #endif
@@ -346,7 +344,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
         tools::getline(fl_, line);  // read atom positions
 
-#ifdef DEBUG
+#ifndef NDEBUG
         cout << "Read from dlpoly file '" << fname_ << "' : '" << line << "'"
              << endl;
 #endif
@@ -367,19 +365,19 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       }
 
       b->setPos(atom_vecs.col(0));
-#ifdef DEBUG
+#ifndef NDEBUG
       cout << "Crds from dlpoly file '" << fname_ << "' : " << atom_vecs.col(0)
            << endl;
 #endif
       if (navecs > 0) {
         b->setVel(atom_vecs.col(1));
-#ifdef DEBUG
+#ifndef NDEBUG
         cout << "Vels from dlpoly file '" << fname_
              << "' : " << atom_vecs.col(1) << endl;
 #endif
         if (navecs > 1) {
           b->setF(atom_vecs.col(2));
-#ifdef DEBUG
+#ifndef NDEBUG
           cout << "Frcs from dlpoly file '" << fname_
                << "' : " << atom_vecs.col(2) << endl;
 #endif

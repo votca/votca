@@ -26,7 +26,6 @@ jobs:
         cmake_build_type: [Release, Debug]
         minimal: [false]
         own_gmx: [false]
-        module_build: [false]
         coverage: [false]
         deploy: [false]
         include:
@@ -35,7 +34,6 @@ jobs:
             cmake_build_type: Release
             minimal: false
             own_gmx: false
-            module_build: false
             coverage: false
             # make sure there is only one build deploying
             deploy: true
@@ -56,15 +54,16 @@ jobs:
             cmake_build_type: Release
             minimal: false
             own_gmx: false
-            module_build: true
             coverage: false
             deploy: false
           - distro: 'fedora:intel'
             toolchain: intel
             cmake_build_type: Release
+            continue-on-error: true
           - distro: 'fedora:intel'
             toolchain: intel
             cmake_build_type: Debug
+            continue-on-error: true
           - distro: 'fedora:intel'
             toolchain: intel-oneapi
             cmake_build_type: Release
@@ -83,16 +82,16 @@ jobs:
           - distro: 'fedora:gmxpkg'
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2022'
+          - distro: 'fedora:gmx2023'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2022'
+          - distro: 'fedora:gmx2023'
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2022_d'
+          - distro: 'fedora:gmx2023_d'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2022_d'
+          - distro: 'fedora:gmx2023_d'
             toolchain: clang
             cmake_build_type: Release
           - distro: 'fedora:gmx9999'
@@ -118,7 +117,7 @@ jobs:
       options: --security-opt seccomp=unconfined
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Run Votca Setup
         id: setup #use this id below to use outputs
         uses: ./.github/actions/setup
@@ -126,16 +125,15 @@ jobs:
           distro: ${{ matrix.distro }}
           toolchain: ${{ matrix.toolchain }}
           minimal: ${{ matrix.minimal == true }}
-          module: ${{ matrix.module_build == true }}
           own_gmx: ${{ matrix.own_gmx == true }}
           regression_testing: ${{ matrix.deploy != true }}
           coverage: ${{ matrix.coverage }}
           cmake_build_type: ${{ matrix.cmake_build_type }}
           ctest_args: ${{ matrix.ctest_args }}
           cmake_args: ${{ matrix.cmake_args }}
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
-          path: ~/.ccache
+          path: ~/.cache/ccache
           key: ${{ steps.setup.outputs.cache_key }}
           restore-keys: ${{ steps.setup.outputs.cache_restore_key }}
       - name: CMake
@@ -144,34 +142,32 @@ jobs:
         run: |
           ccache -z
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
-          ccache -s
+          ccache -v -s
       - name: Tests
         run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
         working-directory: builddir
       - name: Doxygen
-        if: ${{ ! matrix.module_build }}
         run: cmake --build builddir --target doxygen
       - name: Build Sphinx
         if: ${{ steps.setup.outputs.build_sphinx == 'true' }}
-        run: cmake --build builddir --target doc
+        run: cmake --build builddir --target sphinx
       - name: Test DESTDIR Install
-        if: ${{ ! matrix.module_build }}
         run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
       - name: Install
-        run: sudo cmake --build builddir --target install
+        run: sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH cmake --build builddir --target install
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
         run: cmake --build builddir --target format && git diff --exit-code
       - name: Checkout Doxygen repo
         if: ${{ matrix.deploy }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: votca/doxygen
           path: builddir/devdoc
           token: ${{ secrets.VOTCA_BOT_TOKEN || github.token }}
       - name: Checkout Website repo
         if: ${{ matrix.deploy }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: votca/votca.github.io
           path: builddir/userdoc

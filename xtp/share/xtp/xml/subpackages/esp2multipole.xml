@@ -1,6 +1,6 @@
 <esp2multipole help="ways to map electron densities ">
   <state help="ground-,excited or transitionstate" default="n2s1" />
-  <method help="Method to use derive partial charges" default="CHELPG" choices="CHELPG,Mulliken,Lowdin" />
+  <method help="Method to use derive partial charges" default="CHELPG" choices="CHELPG,mulliken,loewdin" />
   <gridsize help="Grid accuracy for numerical integration within CHELPG and GDMA" default="fine" choices="coarse,medium,fine,xfine,xcoarse" />
   <constraints help="You can constrain the fit for certain charges to have certain values" default="OPTIONAL" list="">
       <region help="Constrains where a number of atoms is restricted to have a certain charge in sum">

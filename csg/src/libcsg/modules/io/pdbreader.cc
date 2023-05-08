@@ -147,8 +147,6 @@ bool PDBReader::NextFrame(Topology &top) {
     if (topology_ && tools::wildcmp("CONECT*", line)) {
       vector<string> bonded_atms;
       string atm1;
-      // Keep track of the number of bonds
-      Index num_bonds = 0;
       try {
         // If the CONECT keyword is found then there must be at least
         // two atom identifiers, more than that is optional.
@@ -161,14 +159,12 @@ bool PDBReader::NextFrame(Topology &top) {
         string temp_atm;
         ss >> temp_atm;
         bonded_atms.push_back(temp_atm);
-        num_bonds = 1;
         ss >> temp_atm;
         // Here we have taken a less rigorous approach to the .pdb files
         // we do not care at this point how large the ids of the atoms are
         // they can be greater than 99,999 with this approach.
         while (ss) {
           bonded_atms.push_back(temp_atm);
-          num_bonds++;
           ss >> temp_atm;
         }
       } catch (std::out_of_range &) {

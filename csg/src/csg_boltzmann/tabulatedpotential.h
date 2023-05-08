@@ -23,8 +23,6 @@
 #include <vector>
 #include <votca/tools/histogram.h>
 
-namespace TOOLS = votca::tools;
-
 namespace votca {
 namespace csg {
 /**
@@ -137,7 +135,7 @@ class TabulatedPotential : public AnalysisTool {
   std::pair<Index, Index> getSmoothIterations() const;
 
  private:
-  bool SetOption_(TOOLS::Histogram::options_t &op,
+  bool SetOption_(votca::tools::Histogram::options_t &op,
                   const std::vector<std::string> &args);
 
   bool SetOption_(const std::vector<std::string> &args);
@@ -150,7 +148,7 @@ class TabulatedPotential : public AnalysisTool {
    * becomes the average of these weighted values.
    *
    * \param[in,out] data vector of doubles that is smoothed
-   * \param[in] periodic boolean determining if the smoothing will use
+   * \param[in] bPeriodic boolean determining if the smoothing will use
    * periodic boundary conditions
    **/
   void Smooth_(std::vector<double> &data, bool bPeriodic);
@@ -158,8 +156,8 @@ class TabulatedPotential : public AnalysisTool {
   void CalcForce_(std::vector<double> &U, std::vector<double> &F, double dx,
                   bool bPeriodic);
 
-  TOOLS::Histogram::options_t tab_options_;
-  TOOLS::Histogram::options_t hist_options_;
+  votca::tools::Histogram::options_t tab_options_;
+  votca::tools::Histogram::options_t hist_options_;
 
   /// How many times the data is smoothed before the histogram is
   /// boltzmann inverted.
