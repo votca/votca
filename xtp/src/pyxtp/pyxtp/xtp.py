@@ -9,16 +9,11 @@ from ase import Atoms
 from ase.calculators.calculator import Calculator, equal, PropertyNotImplementedError
 from .capture_standard_output import capture_standard_output
 from pyxtp import xtp_binds
-from .options import XTPOptions
+from .options import Options
 from .utils import BOHR2ANG
 
 Pathlike = Union[Path, str]
 
-def load_default_parameters():
-    """Create a dictionary of default parameters"""
-    options = XTPOptions()
-    options._fill_default_values()
-    return options.__todict__()
 
 def numeric_force_xtp(atoms, a, i, d=0.001, opt_forces: dict = None):
     """Compute numeric force on atom with index a, Cartesian component i,
@@ -50,8 +45,6 @@ class xtp(Calculator):
                               'triplets', 'qp', 'ks', 
                               'qp_pert', 'transition_dipoles']
 
-    default_parameters: Dict[str, Any] = load_default_parameters()
-
     def __init__(self, 
                  restart=None, 
                  *,
@@ -66,7 +59,7 @@ class xtp(Calculator):
                             directory=directory, **kwargs)
         
         if options is None:
-            self.options = XTPOptions()
+            self.options = self.set_default_options()
         else:
             self.set_from_options(options)
             
@@ -80,6 +73,25 @@ class xtp(Calculator):
         
         self.hdf5_filename = None
         self.logfile = 'dftgwbse.log'
+    
+    def set_default_options(self) -> Options:
+        """Creates a default option object
+
+        Raises:
+            RuntimeError: if VOTCASHARE is not defined
+
+        Returns:
+            Options: _description_
+        """
+        votcashare = os.environ.get("VOTCASHARE")
+        if votcashare is None:
+            msg = (
+                "pyxtp: cannot find Votca installation, "
+                "please set the VOTCASHARE environment variable"
+            )
+            raise RuntimeError(msg)
+        file_name = f"{votcashare}/xtp/xml/dftgwbse.xml"
+        return Options(file_name)
     
     def set(self, **kwargs) -> Dict:
         """Set parameters like set(key1=value1, key2=value2, ...).
@@ -118,7 +130,7 @@ class xtp(Calculator):
             
         return changed_parameters    
 
-    def set_from_options(self, options: XTPOptions) -> None:
+    def set_from_options(self, options: Options) -> None:
         """Set the options from an instance of XTPOptions
 
         Args:
