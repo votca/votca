@@ -1,86 +1,162 @@
 """Module defining the Option class."""
 import os
+from pathlib import Path
+from types import new_class
+from typing import Callable
+
 from lxml import etree
-from pyxtp.nestednamespace import NestedNamespace
-from pyxtp.xml_editor import remove_empty_text_elements, insert_linked_xmlfiles, update_xml_text
+import xmltodict
+
+from pyxtp.xml_editor import (
+    remove_empty_text_elements,
+    insert_linked_xmlfiles,
+    update_xml_text,
+)
 
 
-class XTPOptions(NestedNamespace):
+class Options:
+    # NOTE: if you add a class/instance attribute, please update __slots__
+    __slots__ = ("_xml_tree", "_opts")
 
-    def __init__(self):
-        """Creates a nested namespace data structure from the default input xml files 
-        stored in the VOTCASHARE
+    def __init__(self, xml_file: str | Path, xml_attribs=True, set_default=True):
+        """Create options object from the input xml files"""
 
-        Raises:
-            ValueError: if VOTCASHARE is not declared as an environement variable
-        """
-
-        votcashare = os.environ.get('VOTCASHARE')
-        if votcashare is None:
-            raise ValueError('Please set VOTCASHARE environement variable')
-
-        # main filename
-        dftgwbse_options_file = f'{votcashare}/xtp/xml/dftgwbse.xml'      
-        
         # parse xmlfile and replace links to the embedded xml files
-        self._xml_tree = insert_linked_xmlfiles(etree.parse(dftgwbse_options_file), base_path=f'{votcashare}/xtp/xml/')
-        
-        # insert the namesapce data into the instance
-        self.__dict__.update(NestedNamespace.__fromxml__(etree.tostring(self._xml_tree)).options.dftgwbse.__dict__)
-    
-    
+        xml_file = Path(xml_file)
+        self._xml_tree = insert_linked_xmlfiles(
+            etree.parse(xml_file), base_path=f"{xml_file.parent}"
+        )
+        dict_data = xmltodict.parse(
+            etree.tostring(self._xml_tree), xml_attribs=xml_attribs
+        )
+        name = xml_file.stem
+        self._opts = getattr(make_options(name, dict_data, set_default).options, name)
+
+    def __getattr__(self, name: str):
+        if name in self.__slots__:
+            return getattr(self, name)
+        return getattr(self._opts, name)
+
+    def __setattr__(self, name: str, value):
+        if name in self.__slots__:
+            super().__setattr__(name, value)
+        else:
+            setattr(self._opts, name, value)
+
+    def __dir__(self):
+        from_opts = [attr for attr in dir(self._opts) if not attr.startswith("_")]
+        return [*self.__slots__, *from_opts]
+
     def _write_xml(self, filename: str) -> None:
         """update and clean the xml and then write the input file
 
         Args:
-            filename (str): filename in the 
+            filename (str): filename in the
         """
-        
+
         # create a dict of the user providedoptions
-        dftgwbse_options = self.__todict__()
-        
+        options = self._opts.to_dict()
+
         # update the options from the user provided input
-        self._xml_tree = update_xml_text(self._xml_tree, dftgwbse_options)
+        self._xml_tree = update_xml_text(self._xml_tree, options)
 
         # remove the empty elements
         self._xml_tree = remove_empty_text_elements(self._xml_tree)
-        
+
         # write the file
         self._xml_tree.write(filename)
-        
-    def _fill_default_values(self) -> None:
-        
-        """Fill the default values of the nested namespace.
-        
+
+
+class _Opts_t:
+    __slots__ = ()
+    def to_dict(self) -> dict:
+        """Convert a config object to a dictionary, skip keys that are not set"""
+        res = {}
+        for attr in dir(self):
+            if attr.startswith("_"):
+                continue
+            value = getattr(self, attr)
+            if value is None or isinstance(value, Callable):
+                continue
+            if isinstance(value, _Opts_t):  # recurse
+                if _val := value.to_dict():  # drop empty
+                    res[attr] = _val
+            else:  # leaf node
+                res[attr] = value
+        return res
+
+    def to_flat_dict(self) -> dict:
+        """Transform options object into a flat dictionary.
+
         Returns:
             dict: dictionary maps the namespace
         """
-        
-        def _recursive_filldefault(namespace_data: NestedNamespace) -> dict:
-            """Fill the default values of the nested namespace.
+
+        def _flatten_dict(data: dict, path: str = "") -> dict:
+            """Flatten a nested dictionary.
 
             Args:
                 namespace_data (NestedNamespace): data in namespace form
                 path (str, optional): basepath in the structure. Defaults to ''.
-            
+
             Returns:
                 dict: dictionary maps the namespace
             """
+            output = dict()
+            for key, value in data.items():
+                if isinstance(value, dict):
+                    output.update(_flatten_dict(value, path=os.path.join(path, key)))
+                else:
+                    if not key.startswith("_"):
+                        output[os.path.join(path, key)] = value
+            return output
 
-            default_dict = dict()
-            for key, value in namespace_data.__dict__.items():
-                
-                if isinstance(value, NestedNamespace):
+        return _flatten_dict(self.to_dict())
 
-                    if value._haschildren():
-                        _recursive_filldefault(value)
-                        
-                    elif '_default' in value.__dict__.keys():
-                        namespace_data.__dict__[key] = value.__dict__['_default']
-                        
 
-            
-        _recursive_filldefault(self)
-    
+def make_options(name: str, xml_dict: dict, set_default: bool = True):
+    """Create a config object out of an XML dictionary
 
-        
+    Parameters
+    ----------
+    name : str
+      Name for options type
+
+    xml_dict : dict
+      Dictionary generated from the XML configuration files
+
+    set_default : bool (default: True)
+      Whether to set default values in the config object
+
+    Returns
+    -------
+    name_t
+
+    """
+    # detect leaf, return early w/ default
+    children = [k for k in xml_dict if not k.startswith("@")]
+    if len(children) == 0:  # leaf node
+        default = xml_dict.get("@default", None)
+        if default == "OPTIONAL":
+            default = None
+        return default
+
+    # create type
+    attrs, slots = {}, {}
+    for key, value in xml_dict.items():
+        if isinstance(value, dict):
+            doc = [v for k, v in value.items() if k.startswith("@")]
+            slots[key] = "\n".join(doc)
+            attrs[key] = make_options(key, value, set_default)
+    cls = new_class(
+        f"{name}_t",
+        bases=(_Opts_t,),
+        exec_body=lambda ns: ns.update({"__slots__": slots}),
+    )
+    obj = cls()
+
+    # assign slots & defaults
+    for k, v in attrs.items():  # no @keys here
+        if isinstance(v, _Opts_t) or set_default:
+            setattr(obj, k, v)
+    return obj
