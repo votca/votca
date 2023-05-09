@@ -27,9 +27,16 @@
 namespace votca {
 namespace xtp {
 
+// void QMPackageFactory::RegisterAll(void) {
+//   this->Register<Orca>("orca");
+//   this->Register<XTPDFT>("xtp");
+// }
+
 void QMPackageFactory::RegisterAll(void) {
-  this->Register<Orca>("orca");
-  this->Register<XTPDFT>("xtp");
+  QMPackages().Register<Orca>("orca");
+  QMPackages().Register<XTPDFT>("xtp");
 }
+
+
 }  // namespace xtp
 }  // namespace votca
