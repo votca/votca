@@ -30,7 +30,7 @@ using namespace votca;
 
 class XtpTools final : public xtp::XtpApplication {
  public:
-  XtpTools() = default;
+  XtpTools() { xtp::QMToolFactory::RegisterAll(); }
 
   ~XtpTools() = default;
 
@@ -47,7 +47,7 @@ class XtpTools final : public xtp::XtpApplication {
   std::string CalculatorType() const final { return "Tool"; }
   void EvaluateSpecificOptions() final;
   std::vector<std::string> CalculatorNames() const final {
-    return xtp::QMToolFactory().getKeys();
+    return xtp::QMTools().getKeys();
   }
 
   void AddCommandLineOptions() final;
@@ -57,7 +57,7 @@ class XtpTools final : public xtp::XtpApplication {
 };
 
 void XtpTools::CreateCalculator(const std::string& name) {
-  tool_ = xtp::QMToolFactory().Create(name);
+  tool_ = xtp::QMTools().Create(name);
 }
 void XtpTools::AddCommandLineOptions() {}
 
