@@ -60,6 +60,7 @@ class xtp(Calculator):
         
         if options is None:
             self.options = self.set_default_options()
+            self.parameters = self.options.to_flat_dict()
         else:
             self.set_from_options(options)
             
@@ -120,7 +121,7 @@ class xtp(Calculator):
                     split_key = key.split('/')
                     element = self.options
                     for k in split_key[:-1]:
-                        element = element.__getattribute__(k)
+                        element = element.__getattr__(k)
                     element.__setattr__(split_key[-1], value)
             else:
                 print(f'Option {key} not available in xtp')
