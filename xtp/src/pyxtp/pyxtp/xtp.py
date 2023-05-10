@@ -139,11 +139,13 @@ class xtp(Calculator):
             options (XTPOptions): user defined options
         """
         self.options = options
-        if options is not None:
-            opt_dict = options.to_flat_dict()
-            changed_parameters = self.set(**opt_dict)
-            if changed_parameters:
-                self.reset()
+        opt_dict = options.to_flat_dict()
+        
+        if not self.parameters:
+            self.parameters = opt_dict
+
+        self.set(**opt_dict)
+
                 
     def set_atoms(self, atoms: Atoms):
         """Set atomic positions
@@ -332,7 +334,8 @@ class xtp(Calculator):
             
         if name == "transition_dipoles":
             raise PropertyNotImplementedError('{} property must be calculated with \
-                .get_oscillator_strength()'.format(name))            
+                .get_oscillator_strength()'.format(name))    
+                    
         if atoms is None:
             atoms = self.atoms
             system_changes = []
