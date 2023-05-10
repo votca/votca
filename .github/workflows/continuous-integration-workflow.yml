@@ -156,6 +156,7 @@ jobs:
       - name: Install
         run: sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH cmake --build builddir --target install
       - name: Test pyxtp
+        run: apt-get install -y python3-xml2dict ase
         run: pytest .
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
