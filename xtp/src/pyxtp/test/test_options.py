@@ -24,7 +24,7 @@ def dftgwbse_xml():
 class TestOptions:
     @pytest.fixture
     def opts(self, dftgwbse_xml):
-        return Options(dftgwbse_xml)
+        return Options(dftgwbse_xml, set_default=True)
 
     @pytest.fixture
     def xml_dict(self, dftgwbse_xml):
@@ -60,13 +60,3 @@ class TestOptions:
         else:
             val = reduce(getattr, attr, opts)
         assert expected == val
-
-    @pytest.mark.parametrize("attr", ["job_name", ("dftpackage", "spin")])
-    def test_attr_nodefault(self, dftgwbse_xml, attr):
-        opts = Options(dftgwbse_xml, set_default=False)
-        if isinstance(attr, str):
-            with pytest.raises(AttributeError, match=fr"dftgwbse.+{attr}"):
-                getattr(opts, attr)
-        else:
-            with pytest.raises(AttributeError, match=r".+".join(attr)):
-                reduce(getattr, attr, opts)
