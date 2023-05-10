@@ -123,7 +123,7 @@ class xtp(Calculator):
                         element = element.__getattribute__(k)
                     element.__setattr__(split_key[-1], value)
             else:
-                print('Option % not available in xtp' %key)
+                print(f'Option {key} not available in xtp')
                 
         if self.discard_results_on_any_change and changed_parameters:
             self.reset()
@@ -554,7 +554,7 @@ class xtp(Calculator):
         return self.results['forces']
 
     def get_forces(self, atoms: Atoms = None, eps = 0.001) -> np.ndarray:
-        """_summary_
+        """get the forces or calculate them if they are not present
 
         Args:
             kind (str, optional): _description_. Defaults to 'energy'.
@@ -562,7 +562,7 @@ class xtp(Calculator):
             eps (float, optional): _description_. Defaults to 0.001.
 
         Returns:
-            np.ndarray: _description_
+            np.ndarray: atomic forces
         """
         if self.has_forces:
             return self.results['forces']

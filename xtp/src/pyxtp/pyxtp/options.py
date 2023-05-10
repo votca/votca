@@ -96,7 +96,7 @@ class _Opts_t:
             """Flatten a nested dictionary.
 
             Args:
-                namespace_data (NestedNamespace): data in namespace form
+                data (dict): input dictionary
                 path (str, optional): basepath in the structure. Defaults to ''.
 
             Returns:
