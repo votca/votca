@@ -59,8 +59,7 @@ class xtp(Calculator):
                             directory=directory, **kwargs)
         
         if options is None:
-            self.options = self.set_default_options()
-            self.parameters = self.options.to_flat_dict()
+            self.set_default_options()
         else:
             self.set_from_options(options)
             
@@ -92,7 +91,9 @@ class xtp(Calculator):
             )
             raise RuntimeError(msg)
         file_name = f"{votcashare}/xtp/xml/dftgwbse.xml"
-        return Options(file_name)
+        
+        self.options = Options(file_name)
+        self.parameters = self.options.to_flat_dict()
     
     def set(self, **kwargs) -> Dict:
         """Set parameters like set(key1=value1, key2=value2, ...).
@@ -325,7 +326,13 @@ class xtp(Calculator):
         if name not in self.implemented_properties:
             raise PropertyNotImplementedError('{} property not implemented'
                                               .format(name))
-        
+        if name == "forces":
+            raise PropertyNotImplementedError('{} property must be calculated with \
+                .get_forces()'.format(name))
+            
+        if name == "transition_dipoles":
+            raise PropertyNotImplementedError('{} property must be calculated with \
+                .get_oscillator_strength()'.format(name))            
         if atoms is None:
             atoms = self.atoms
             system_changes = []
