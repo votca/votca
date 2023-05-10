@@ -32,6 +32,14 @@ namespace xtp {
 
 class QMToolFactory : public tools::ObjectFactory<std::string, QMTool> {
 
+//  pybind bramch
+//  private:
+//   void RegisterAll();
+
+//  public:
+//   QMToolFactory() { this->RegisterAll(); };
+
+ // master branch
  private:
   QMToolFactory() = default;
 
@@ -39,6 +47,7 @@ class QMToolFactory : public tools::ObjectFactory<std::string, QMTool> {
   static void RegisterAll(void);
 
   friend QMToolFactory &QMTools();
+
 };
 
 inline QMToolFactory &QMTools() {
@@ -50,3 +59,9 @@ inline QMToolFactory &QMTools() {
 }  // namespace votca
 
 #endif  // VOTCA_XTP_TOOLFACTORY_H
+
+
+
+
+
+

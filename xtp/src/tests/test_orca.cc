@@ -39,10 +39,9 @@ BOOST_AUTO_TEST_SUITE(orca_test)
 
 BOOST_AUTO_TEST_CASE(polar_test) {
 
-  QMPackageFactory::RegisterAll();
-  std::unique_ptr<QMPackage> orca =
-      QMPackageFactory::QMPackages().Create("orca");
-  auto keys = QMPackageFactory::QMPackages().getKeys();
+  QMPackageFactory factory;
+  std::unique_ptr<QMPackage> orca = factory.Create("orca");
+  auto keys = factory.getKeys();
   for (auto key : keys) {
     std::cout << key << std::endl;
   }
@@ -67,9 +66,8 @@ BOOST_AUTO_TEST_CASE(polar_test) {
 
 BOOST_AUTO_TEST_CASE(ext_charges_test) {
   libint2::initialize();
-  QMPackageFactory::RegisterAll();
-  std::unique_ptr<QMPackage> orca =
-      QMPackageFactory::QMPackages().Create("orca");
+  QMPackageFactory factory;
+  std::unique_ptr<QMPackage> orca = factory.Create("orca");
   Logger log;
 
   tools::Property opt;
@@ -166,9 +164,8 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
 
 BOOST_AUTO_TEST_CASE(charges_test) {
   libint2::initialize();
-  QMPackageFactory::RegisterAll();
-  std::unique_ptr<QMPackage> orca =
-      QMPackageFactory::QMPackages().Create("orca");
+  QMPackageFactory factory;
+  std::unique_ptr<QMPackage> orca = factory.Create("orca");
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
@@ -209,10 +206,10 @@ BOOST_AUTO_TEST_CASE(charges_test) {
 }
 
 BOOST_AUTO_TEST_CASE(opt_test) {
+
   libint2::initialize();
-  QMPackageFactory::RegisterAll();
-  std::unique_ptr<QMPackage> orca =
-      QMPackageFactory::QMPackages().Create("orca");
+  QMPackageFactory factory;
+  std::unique_ptr<QMPackage> orca = factory.Create("orca");
   Logger log;
 
   tools::Property opt;
@@ -289,9 +286,8 @@ BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
   votca::tools::Property prop;
   prop.LoadFromXML("user_input.xml");
 
-  QMPackageFactory::RegisterAll();
-  std::unique_ptr<QMPackage> orca =
-      QMPackageFactory::QMPackages().Create("orca");
+  QMPackageFactory factory;
+  std::unique_ptr<QMPackage> orca = factory.Create("orca");
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(".");

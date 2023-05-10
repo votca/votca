@@ -36,18 +36,11 @@ namespace xtp {
 class JobCalculatorfactory
     : public tools::ObjectFactory<std::string, JobCalculator> {
  private:
-  JobCalculatorfactory() = default;
+  void RegisterAll();
 
  public:
-  static void RegisterAll(void);
-
-  friend JobCalculatorfactory &JobCalculators();
+  JobCalculatorfactory() { this->RegisterAll(); };
 };
-
-inline JobCalculatorfactory &JobCalculators() {
-  static JobCalculatorfactory instance_;
-  return instance_;
-}
 
 }  // namespace xtp
 }  // namespace votca

@@ -66,8 +66,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   rpa.setRPAInputEnergies(mo_energy);
   rpa.configure(4, 0, 16);
 
-  Sigma().RegisterAll();
-  std::unique_ptr<Sigma_base> sigma = Sigma().Create("cda", Mmn, rpa);
+  std::unique_ptr<Sigma_base> sigma = SigmaFactory().Create("cda", Mmn, rpa);
   Sigma_base::options opt;
   opt.homo = 4;
   opt.qpmin = 0;

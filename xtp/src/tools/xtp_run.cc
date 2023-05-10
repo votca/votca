@@ -27,7 +27,7 @@ using namespace votca;
 
 class XtpRun final : public xtp::StateApplication {
  public:
-  XtpRun() { xtp::Calculatorfactory::RegisterAll(); }
+  XtpRun() = default;
 
   ~XtpRun() = default;
   std::string ProgramName() final { return "xtp_run"; }
@@ -45,7 +45,7 @@ class XtpRun final : public xtp::StateApplication {
   std::string CalculatorType() const { return "Calculator"; }
   void CheckOptions() final{};
   std::vector<std::string> CalculatorNames() const {
-    return xtp::Calculators().getKeys();
+    return xtp::Calculatorfactory().getKeys();
   }
 
   void AddCommandLineOpt() final{};
@@ -55,7 +55,7 @@ class XtpRun final : public xtp::StateApplication {
 };
 
 void XtpRun::CreateCalculator(const std::string& name) {
-  calc_ = xtp::Calculators().Create(name);
+  calc_ = xtp::Calculatorfactory().Create(name);
 }
 
 void XtpRun::ConfigCalculator() {

@@ -31,7 +31,14 @@ namespace votca {
 namespace xtp {
 
 class QMPackageFactory : public tools::ObjectFactory<std::string, QMPackage> {
- private:
+//  private:
+//   void RegisterAll();
+
+//  public:
+//   QMPackageFactory() { this->RegisterAll(); };
+
+
+private:
   QMPackageFactory() = default;
 
  public:
@@ -45,6 +52,7 @@ class QMPackageFactory : public tools::ObjectFactory<std::string, QMPackage> {
     static QMPackageFactory instance_;
     return instance_;
   }
+
 };
 
 }  // namespace xtp
