@@ -68,9 +68,11 @@ class TestXTP:
 
     def test_get_and_read_forces(self, CO):
         CO.calc.select_force(energy='singlets', level=1, dynamic=False)
-        forces = CO.get_forces()
+        assert CO.get_forces().any() != None
              
     def test_get_oscillator_strength(self, CO):
         energy, osc = CO.calc.get_oscillator_strengths(dynamic=False)
+        assert energy.any() != None
+        assert osc.any() != None
         
         
