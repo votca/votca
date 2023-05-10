@@ -138,7 +138,7 @@ class xtp(Calculator):
         """
         self.options = options
         if options is not None:
-            opt_dict = options.__todict__()
+            opt_dict = options.to_flat_dict()
             changed_parameters = self.set(**opt_dict)
             if changed_parameters:
                 self.reset()
