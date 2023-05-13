@@ -69,7 +69,7 @@ class Energy_terms {
   }  // all external contributions
   double Eintern() const {
     return Etotal() - Eextern();
-  }                                           // all internal contributions
+  }  // all internal contributions
 
   double& E_indu_indu() { return data_[0]; }  // dQ-dQ inside region
   double& E_indu_stat() { return data_[1]; }  // dQ-Q inside region

@@ -115,11 +115,11 @@ Eigen::MatrixXd Sigma_Exact::CalcResidues(Index gw_level,
   vc2index vc = vc2index(0, 0, n_unocc);
   const Eigen::MatrixXd& Mmn_i = Mmn_[gw_level + qpoffset];
   Eigen::MatrixXd res = Eigen::MatrixXd::Zero(rpatotal_, rpasize);
-  for (Index v = 0; v < n_occ; v++) {     // Sum over v
+  for (Index v = 0; v < n_occ; v++) {  // Sum over v
     auto Mmn_v = Mmn_[v].middleRows(n_occ, n_unocc);
     auto fc = Mmn_v * Mmn_i.transpose();  // Sum over chi
     auto XpY_v = XpY.middleRows(vc.I(v, 0), n_unocc);
-    res += fc.transpose() * XpY_v;        // Sum over c
+    res += fc.transpose() * XpY_v;  // Sum over c
   }
   return res;
 }
