@@ -123,12 +123,12 @@ Eigen::Matrix<double, N, 1> eeInteractor::VSiteA(
         Eigen::Matrix<double, 5, 5> QQ;
         QQ(0, 0) = 0.75 * ((35 * r.zz() - 30) * r.zz() + 3);  // T20,20
         double temp = 0.5 * sqr3 * (35 * r.zz() - 15);
-        QQ(1, 0) = temp * r.xz();                             // T20,21c
-        QQ(2, 0) = temp * r.yz();                             // T20,21s
+        QQ(1, 0) = temp * r.xz();  // T20,21c
+        QQ(2, 0) = temp * r.yz();  // T20,21s
 
         temp = 5 * (7 * r.zz() - 1);
-        QQ(3, 0) = sqr3 * 0.25 * temp * (r.xx() - r.yy());        // T20,22c
-        QQ(4, 0) = sqr3 * 0.5 * temp * r.xy();                    // T20,22s
+        QQ(3, 0) = sqr3 * 0.25 * temp * (r.xx() - r.yy());  // T20,22c
+        QQ(4, 0) = sqr3 * 0.5 * temp * r.xy();              // T20,22s
         QQ(1, 1) =
             35 * r.zz() * r.xx() - 5 * (r.xx() + r.zz()) + 1;     // T21c,21c
         QQ(2, 1) = r.xy() * temp;                                 // T21c,21s
@@ -139,10 +139,10 @@ Eigen::Matrix<double, N, 1> eeInteractor::VSiteA(
         QQ(3, 2) = 0.5 * r.yz() * (35 * (r.xx() - r.yy()) + 10);  // T21s,22c
         QQ(4, 2) = r.xz() * 5 * (7 * r.yy() - 1);                 // T21s,22s
         QQ(3, 3) = 8.75 * std::pow(r.xx() - r.yy(), 2) - 5 * (r.xx() + r.yy()) +
-                   1;                                             // T22c,22c
-        QQ(4, 3) = 17.5 * r.xy() * (r.xx() - r.yy());             // T22c,22s
+                   1;                                  // T22c,22c
+        QQ(4, 3) = 17.5 * r.xy() * (r.xx() - r.yy());  // T22c,22s
         QQ(4, 4) =
-            5 * (7 * r.xx() * r.yy() - (r.xx() + r.yy())) + 1;    // T22s,22s
+            5 * (7 * r.xx() * r.yy() - (r.xx() + r.yy())) + 1;  // T22s,22s
 
         const double fac5 = std::pow(fac1, 5);
         V.template segment<5>(4) +=
@@ -162,7 +162,7 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction(
       posB - posA;            // Vector of the distance between polar sites
   const double R = a.norm();  // Norm of distance vector
   const double fac1 = 1 / R;
-  a *= fac1;                  // unit vector pointing from A to B
+  a *= fac1;  // unit vector pointing from A to B
 
   double lambda3 = std::pow(fac1, 3);
   double lambda5 = lambda3;

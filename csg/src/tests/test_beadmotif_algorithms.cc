@@ -30,7 +30,7 @@
 #include "votca/csg/beadmotif.h"            // IWYU pragma: keep
 #include "votca/csg/beadmotifalgorithms.h"  // IWYU pragma: keep
 #include "votca/csg/beadmotifconnector.h"
-#include "votca/csg/beadstructure.h"        // IWYU pragma: keep
+#include "votca/csg/beadstructure.h"  // IWYU pragma: keep
 
 using namespace std;
 using namespace votca::tools;

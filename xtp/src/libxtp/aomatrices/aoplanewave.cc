@@ -688,7 +688,7 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
 
     }  // close Gaussian shell_col
 
-  }    // close Gaussian shell_row
+  }  // close Gaussian shell_row
 
   matrix = AOTransform::tform(shell_row.getL(), shell_col.getL(), cartesian);
 
