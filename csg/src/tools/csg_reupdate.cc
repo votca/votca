@@ -177,7 +177,7 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *) {
 
     }  // end row loop
 
-  }    // end potiter loop
+  }  // end potiter loop
 
   DS_ = Eigen::VectorXd::Zero(nlamda_);
   HS_ = Eigen::MatrixXd::Zero(nlamda_, nlamda_);
@@ -364,7 +364,7 @@ void CsgREupdate::REUpdateLamda() {
 
     }  // end row loop
 
-  }    // end potiter loop
+  }  // end potiter loop
 }
 
 // do non bonded potential AA ensemble avg energy computations
@@ -453,7 +453,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
       }
     }  // end loop col
 
-  }    // end loop row
+  }  // end loop row
 }
 
 // do bonded potential AA ensemble avg energy computations
@@ -493,7 +493,7 @@ std::unique_ptr<CsgApplication::Worker> CsgREupdate::ForkWorker() {
 
     }  // end row loop
 
-  }    // end potiter loop
+  }  // end potiter loop
 
   worker->DS_ = Eigen::VectorXd::Zero(worker->nlamda_);
   worker->HS_ = Eigen::MatrixXd::Zero(worker->nlamda_, worker->nlamda_);
@@ -594,7 +594,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
 
   if (potinfo->type1 == potinfo->type2) {  // same beads
     nb->Generate(beads1, true);
-  } else {                                 // different beads
+  } else {  // different beads
     nb->Generate(beads1, beads2, true);
   }
 
@@ -637,7 +637,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
       }
     }  // end loop col
 
-  }    // end loop row
+  }  // end loop row
 }
 
 // do bonded potential related update stuff for the current frame in evalconfig

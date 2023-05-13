@@ -569,8 +569,8 @@ std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
         }    // COL copy
       }      // AUX copy
 
-    }        // gamma-loop
-  }          // alpha-loop
+    }  // gamma-loop
+  }    // alpha-loop
 
   for (Eigen::MatrixXd& mat : ao3c) {
     mat.triangularView<Eigen::Upper>() =

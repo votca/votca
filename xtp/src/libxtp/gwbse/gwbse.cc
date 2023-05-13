@@ -276,9 +276,9 @@ void GWBSE::Initialize(tools::Property& options) {
 
   gwopt_.shift = options.get("gw.scissor_shift").as<double>();
   gwopt_.g_sc_limit =
-      options.get("gw.qp_sc_limit").as<double>();    // convergence criteria
-                                                     // for qp iteration
-                                                     // [Hartree]]
+      options.get("gw.qp_sc_limit").as<double>();  // convergence criteria
+                                                   // for qp iteration
+                                                   // [Hartree]]
   gwopt_.g_sc_max_iterations =
       options.get("gw.qp_sc_max_iter").as<Index>();  // convergence
                                                      // criteria for qp
