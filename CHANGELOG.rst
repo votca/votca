@@ -1,6 +1,13 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/stable>`__.
 
+Version 2024-dev
+================
+
+-  add note on gmx build for install (#1052)
+-  fix typos in esp2multipole options (#1054)
+-  Used sharedable lock in xtp (#1057)
+
 Version 2023-rc.2 (released XX.02.23)
 =====================================
 
