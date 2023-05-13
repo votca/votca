@@ -64,7 +64,7 @@ Matrix AOTransform::tform(L l_row, L l_col, const Matrix& cartesian) {
   // loop over row shg
   for (auto s1 = 0; s1 != npure_row; ++s1) {
     const auto nc1 =
-        coefs_row.nnz(s1);      // # of cartesians contributing to shg s1
+        coefs_row.nnz(s1);  // # of cartesians contributing to shg s1
     const auto* c1_idxs =
         coefs_row.row_idx(s1);  // indices of cartesians contributing to shg s1
     const auto* c1_vals = coefs_row.row_values(
@@ -76,7 +76,7 @@ Matrix AOTransform::tform(L l_row, L l_col, const Matrix& cartesian) {
       const auto* c2_idxs = coefs_col.row_idx(s2);  // indices of cartesians
                                                     // contributing to shg s2
       const auto* c2_vals = coefs_col.row_values(
-          s2);       // coefficients of cartesians contributing to shg s2
+          s2);  // coefficients of cartesians contributing to shg s2
       for (size_t ic1 = 0; ic1 != nc1;
            ++ic1) {  // loop over contributing cartesians
         auto c1 = c1_idxs[ic1];
@@ -88,9 +88,9 @@ Matrix AOTransform::tform(L l_row, L l_col, const Matrix& cartesian) {
           spherical(s1, s2) += cartesian(c1, c2) * s1_c1_coeff * s2_c2_coeff;
         }  // cart2
 
-      }    // cart1
+      }  // cart1
 
-    }      // shg2
+    }  // shg2
   }
   return spherical;
 }

@@ -470,7 +470,7 @@ void CGForceMatching::FmatchAccumulateData() {
   if (constr_least_sq_) {  // Constrained Least Squares
                            // Solving linear equations system
     x_ = votca::tools::linalg_constrained_qrsolve(A_, b_, B_constr_);
-  } else {                 // Simple Least Squares
+  } else {  // Simple Least Squares
 
     Eigen::HouseholderQR<Eigen::MatrixXd> dec(A_);
     x_ = dec.solve(b_);
