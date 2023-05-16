@@ -138,7 +138,7 @@ else()
 endif()
 
 # iie methods needs python 3.5+
-find_package(Python 3.5 REQUIRED COMPONENTS Interpreter)
+find_package(Python 3.5 REQUIRED COMPONENTS Interpreter Development)
 set_package_properties(Python PROPERTIES TYPE OPTIONAL PURPOSE "Used in csg scripts and docu")
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ${Python_FOUND})
 add_feature_info(BUILD_MANPAGES BUILD_MANPAGES "Build manpages (disable for cross-compile)")
