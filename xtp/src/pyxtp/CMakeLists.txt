@@ -1,6 +1,3 @@
-# find_package(Python 3 REQUIRED COMPONENTS Interpreter Development)
-# find_package(pybind11 REQUIRED)
-
 file(GLOB_RECURSE BIND_SOURCES binds/*.cc)
 
 pybind11_add_module(xtp_binds ${BIND_SOURCES})
