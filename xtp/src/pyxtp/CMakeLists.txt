@@ -1,5 +1,5 @@
-find_package(Python 3 REQUIRED COMPONENTS Interpreter Development)
-find_package(pybind11 REQUIRED)
+# find_package(Python 3 REQUIRED COMPONENTS Interpreter Development)
+# find_package(pybind11 REQUIRED)
 
 file(GLOB_RECURSE BIND_SOURCES binds/*.cc)
 
