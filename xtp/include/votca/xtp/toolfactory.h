@@ -32,14 +32,6 @@ namespace xtp {
 
 class QMToolFactory : public tools::ObjectFactory<std::string, QMTool> {
 
-//  pybind bramch
-//  private:
-//   void RegisterAll();
-
-//  public:
-//   QMToolFactory() { this->RegisterAll(); };
-
- // master branch
  private:
   QMToolFactory() = default;
 
