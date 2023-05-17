@@ -37,6 +37,7 @@ void call_tool(const std::string& name, Index nThreads, std::string xmlfile) {
 
 void XTPTools::Initialize(const std::string& name, Index nThreads,
                           votca::tools::Property prop) {
+  xtp::QMToolFactory::RegisterAll();
   tool_ = xtp::QMTools().Create(name);
   tool_->setnThreads(nThreads);
   tool_->Initialize(prop);
