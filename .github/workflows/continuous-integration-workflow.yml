@@ -157,7 +157,7 @@ jobs:
         run: sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH cmake --build builddir --target install
       - name: Test pyxtp
         run: |
-          export VOTCASHARE=./xtp/share/
+          export VOTCASHARE=/usr/share/votca/
           pytest .
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
