@@ -49,7 +49,8 @@ def insert_linked_xmlfiles(tree: ElementTree, base_path: str) -> None:
             _recursive_insert_links(child)
             
         if 'link' in el.attrib:
-            link_name = os.path.join(base_path, el.attrib['link'])
+            link_name = os.path.join('subpackages', el.attrib['link'])
+            link_name = os.path.join(base_path, link_name)
             if not os.path.isfile(link_name):
                 raise ValueError('File %s not found' %link_name)
             xml_link = etree.parse(link_name)

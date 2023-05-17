@@ -220,7 +220,7 @@ class xtp(Calculator):
         
         # Call the tool and capture the standard output
         output = capture_standard_output(
-            xtp_binds.call_tool, "dftgwbse", self.nthreads, path_dftgwbse)
+            xtp_binds.call_tool, "dftgwbse", self.nthreads,  path_dftgwbse)
         
         with open(xyzname + ".out", "w") as handler:
             handler.write(output)
