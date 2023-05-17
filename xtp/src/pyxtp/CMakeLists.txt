@@ -1,7 +1,6 @@
 file(GLOB_RECURSE BIND_SOURCES binds/*.cc)
 
 pybind11_add_module(xtp_binds ${BIND_SOURCES})
-# target_include_directories(xtp_binds PUBLIC binds/include)
 target_include_directories(xtp_binds PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/binds/include>)
 
 target_link_libraries(xtp_binds PUBLIC VOTCA::votca_xtp)
