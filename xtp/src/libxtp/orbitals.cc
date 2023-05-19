@@ -146,15 +146,15 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
     } else {
       result -= DMATQP;
     }
-  } else if (state.Type() == QMStateType::KSstate) {
+  } else if (state.Type() == QMStateType::KSstate || state.Type() == QMStateType::PQPstate) {
     Eigen::MatrixXd DMATKS = DensityMatrixKSstate(state);
     if (state.StateIdx() <= getHomo()) {
-      //result -= DMATKS;
-      result = -1.0*DMATKS;
+      result -= DMATKS;
+      //result = -1.0*DMATKS;
     } 
     else {
-      //result += DMATKS;
-      result = DMATKS;
+      result += DMATKS;
+      //result = DMATKS;
     }
   } else if (state.Type() != QMStateType::Gstate) {
     throw std::runtime_error(

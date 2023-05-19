@@ -28,7 +28,10 @@
 
 // Local private VOTCA includes
 #include "envcorr.h"
+#include "votca/xtp/aomatrix.h"
 #include "votca/xtp/IndexParser.h"
+#include "votca/xtp/eeinteractor.h"
+
 
 namespace votca {
 namespace xtp {
@@ -53,9 +56,6 @@ bool ENVCORR::Run() {
   std::vector<Index> stateindices =
       IndexParser().CreateIndexVector(statenumbers_as_string_);
 
-  // for(auto it = stateindices.cbegin() ; it != stateindices.cend(); ++it){
-  //   std::cout << statetype_ + std::to_string(*it) << std::endl;
-  //}
 
   log_.setReportLevel(Log::current_level);
   log_.setMultithreading(true);
@@ -66,15 +66,20 @@ bool ENVCORR::Run() {
   Orbitals orb;
   orb.ReadFromCpt(orbfile_);
   AOBasis basis = orb.getDftBasis();
+  QMMolecule mol = orb.QMAtoms();
 
-  // get the ground state reference dipoles for Thole
-  std::vector<std::unique_ptr<StaticSite>> externalsites_groundstate;
+
+
+  double env_en_GS = 0.0;
   if (envmode_ == "thole"){
-      CheckpointFile cpf("groundstateQMMM.hdf5", CheckpointAccessLevel::READ);
+      CheckpointFile cpf("groundstate.hdf5", CheckpointAccessLevel::READ);
       CheckpointReader r = cpf.getReader("region_1");
       PolarRegion mmregion(0,log_);
       mmregion.ReadFromCpt(r);
       Index count = 0;
+
+      // get the ground state reference dipoles for Thole
+      std::vector<std::unique_ptr<StaticSite>> externalsites_groundstate;
       for ( auto segment : mmregion ){
         for (auto site : segment){
           externalsites_groundstate.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
@@ -85,6 +90,64 @@ bool ENVCORR::Run() {
           count++;
         }
       }
+
+
+
+      // contributions from the nuclear charges
+      double E_ext = 0;
+      eeInteractor interactor;
+      for (const QMAtom& atom : mol) {
+        StaticSite nucleus = StaticSite(atom, double(atom.getNuccharge()));
+        for (const std::unique_ptr<StaticSite>& site : externalsites_groundstate) {
+          if ((site->getPos() - nucleus.getPos()).norm() < 1e-7) {
+            XTP_LOG(Log::error, log_) << TimeStamp()
+                                    << " External site sits on nucleus, "
+                                       "interaction between them is ignored."
+                                    << std::flush;
+            continue;
+          }
+          E_ext += interactor.CalcStaticEnergy_site(*site, nucleus);
+        }
+      }
+
+      //XTP_LOG(Log::error, log_)
+      //  << TimeStamp() << " Contribution from nuclear-GSpol " << E_ext
+      //  << std::flush;
+
+      // setup the corresponding AOPotential matrix
+      AOMultipole dftAOESP_GS;
+      dftAOESP_GS.FillPotential(basis, externalsites_groundstate);
+      XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Filled DFT external multipole potential matrix for the ground state"
+        << std::flush;
+
+      // calculate int(rho(r) DeltaV_n(r) d3r)
+      QMState state = QMState("n");
+      Eigen::MatrixXd dmat = orb.DensityMatrixFull(state) ;
+
+      env_en_GS = dmat.cwiseProduct(dftAOESP_GS.Matrix()).sum();
+      XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Contribution from DFT (el density      ) in GS env " << env_en_GS  
+        << std::flush;
+
+      XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Contribution from DFT (             nuc) in GS env " << E_ext  
+        << std::flush;
+
+      env_en_GS +=  E_ext;
+
+      XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Contribution from DFT (el density + nuc) in GS env " << env_en_GS  
+        << std::flush;
+
+for (auto it = stateindices.cbegin() ; it != stateindices.cend(); ++it){
+        state = QMState(statetype_ + std::to_string(*it));
+    Eigen::MatrixXd dmat_ks = orb.DensityMatrixKSstate(state) ;
+    double env_en = dmat_ks.cwiseProduct(dftAOESP_GS.Matrix()).sum();
+XTP_LOG(Log::error, log_)
+        << TimeStamp() << " State " << (*it) << " Single particle energy correction in GS env " << env_en << std::flush;
+
+}
   }
 
   // get the induced dipoles in the inactive region from MMMM checkpoint file
@@ -105,7 +168,7 @@ bool ENVCORR::Run() {
           Vector9d multipole = Vector9d::Zero();  
           multipole.segment<3>(1) = site.getDipole(); // - externalsites_groundstate[count]->getDipole();
           externalsites[count]->setMultipole(multipole, 1);
-          std::cout << "X" << externalsites[count]->getPos()[0] << " " << externalsites[count]->getPos()[1] << " " << externalsites[count]->getPos()[2] << std::endl;
+          //std::cout << "X" << externalsites[count]->getPos()[0] << " " << externalsites[count]->getPos()[1] << " " << externalsites[count]->getPos()[2] << std::endl;
           count++;
         }
       }
@@ -128,20 +191,63 @@ bool ENVCORR::Run() {
         }
       }
     }
-  
+
+
+    // contributions from the nuclear charges
+    double E_ext = 0;
+    eeInteractor interactor;
+    for (const QMAtom& atom : mol) {
+      StaticSite nucleus = StaticSite(atom, double(atom.getNuccharge()));
+      for (const std::unique_ptr<StaticSite>& site : externalsites) {
+        if ((site->getPos() - nucleus.getPos()).norm() < 1e-7) {
+          XTP_LOG(Log::error, log_) << TimeStamp()
+                                    << " External site sits on nucleus, "
+                                       "interaction between them is ignored."
+                                    << std::flush;
+           continue;
+        }
+        E_ext += interactor.CalcStaticEnergy_site(*site, nucleus);
+      }
+    }
+
     // setup AOmatrix for dipoles
     AOMultipole dftAOESP;
     dftAOESP.FillPotential(basis, externalsites);
-    XTP_LOG(Log::error, log_)
-        << TimeStamp() << " Filled DFT external multipole potential matrix"
-        << std::flush;
 
+    AOOverlap dftOL;
+    dftOL.Fill(basis);
+    
     // calculate expectaction value
     // get density matrix of state of interest
-    QMState state = QMState(statetype_ + std::to_string(*it));
-    Eigen::MatrixXd dmat = orb.DensityMatrixKSstate(state) ;
-    double env_en = dmat.cwiseProduct(dftAOESP.Matrix()).sum();
+   // calculate int(rho(r) DeltaV_n(r) d3r)
+      QMState state = QMState("n");
+      Eigen::MatrixXd dmat = orb.DensityMatrixFull(state) ;
 
+      env_en_GS = dmat.cwiseProduct(dftAOESP.Matrix()).sum();
+      XTP_LOG(Log::error, log_)
+        << TimeStamp() <<  " State " << (*it) << " Contribution from DFT (el density      ) in KS env " << env_en_GS  
+        << std::flush;
+
+      XTP_LOG(Log::error, log_)
+        << TimeStamp() <<  " State " << (*it) << " Contribution from DFT (             nuc) in KS env " << E_ext  
+        << std::flush;
+
+      env_en_GS +=  E_ext;
+
+      XTP_LOG(Log::error, log_)
+        << TimeStamp() <<  " State " << (*it) << " Contribution from DFT (el density + nuc) in KS env " << env_en_GS  
+        << std::flush;
+
+
+
+
+    state = QMState(statetype_ + std::to_string(*it));
+    Eigen::MatrixXd dmat_ks = orb.DensityMatrixKSstate(state) ;
+    double nel = dmat_ks.cwiseProduct(dftOL.Matrix()).sum();
+XTP_LOG(Log::error, log_) << " number of electrons " << nel << std::flush;
+    double env_en = dmat_ks.cwiseProduct(dftAOESP.Matrix()).sum();
+
+  
     // try second order corrections
     Eigen::VectorXd  MO = orb.MOs().eigenvectors().col(state.StateIdx());
     double env_en_second = 0.0;
@@ -159,8 +265,7 @@ bool ENVCORR::Run() {
 
 
     XTP_LOG(Log::error, log_)
-        << TimeStamp() << " State " << (*it) << " energy correction " << env_en << " second order  " << env_en_second
-       << std::flush;
+        << TimeStamp() << " State " << (*it) << " Single particle energy correction in state env " << env_en << " and 2nd order " << env_en_second << std::flush;
     }
 
   return true;

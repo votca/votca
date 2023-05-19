@@ -87,7 +87,8 @@ StaticSegment Espfit::Fit2Density(const Orbitals& orbitals,
   XTP_LOG(Log::info, log_) << TimeStamp() << " Electron contribution calculated"
                            << flush;
   double netcharge = -N;
-  if (!state.isTransition() && state.Type() != QMStateType::KSstate) {
+  //if (!state.isTransition() && state.Type() != QMStateType::KSstate) {
+    if (!state.isTransition()) {
     EvalNuclearPotential(orbitals.QMAtoms(), grid);
     Index Znuc = 0;
     for (const QMAtom& atom : orbitals.QMAtoms()) {
