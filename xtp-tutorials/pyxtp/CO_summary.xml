@@ -106,52 +106,52 @@
 			<level number="1">
 				<omega>+5.101619 </omega>
 				<f>+0.000000 </f>
-				<Trdipole gauge="length" unit="e*bohr">+0.0000 +0.0000 -0.0000</Trdipole>
+				<Trdipole gauge="length" unit="e*bohr">-0.0000 -0.0000 +0.0000</Trdipole>
 			</level>
 			<level number="2">
 				<omega>+5.729524 </omega>
 				<f>+0.000000 </f>
-				<Trdipole gauge="length" unit="e*bohr">-0.0000 -0.0000 +0.0000</Trdipole>
+				<Trdipole gauge="length" unit="e*bohr">+0.0000 +0.0000 -0.0000</Trdipole>
 			</level>
 			<level number="3">
-				<omega>+5.729518 </omega>
+				<omega>+5.729517 </omega>
 				<f>+0.000000 </f>
 				<Trdipole gauge="length" unit="e*bohr">-0.0000 -0.0000 +0.0000</Trdipole>
 			</level>
 			<level number="4">
 				<omega>+5.817934 </omega>
 				<f>+0.014461 </f>
-				<Trdipole gauge="length" unit="e*bohr">+0.0000 +0.2124 +0.2374</Trdipole>
+				<Trdipole gauge="length" unit="e*bohr">-0.0000 -0.2123 -0.2374</Trdipole>
 			</level>
 			<level number="5">
 				<omega>+5.817950 </omega>
 				<f>+0.014459 </f>
-				<Trdipole gauge="length" unit="e*bohr">+0.0000 +0.2374 -0.2124</Trdipole>
+				<Trdipole gauge="length" unit="e*bohr">+0.0000 +0.2374 -0.2123</Trdipole>
 			</level>
 			<level number="6">
-				<omega>+9.097026 </omega>
+				<omega>+9.097025 </omega>
 				<f>+0.139931 </f>
-				<Trdipole gauge="length" unit="e*bohr">-0.7924 +0.0000 +0.0000</Trdipole>
+				<Trdipole gauge="length" unit="e*bohr">+0.7924 -0.0000 -0.0000</Trdipole>
 			</level>
 			<level number="7">
 				<omega>+12.190896 </omega>
 				<f>+0.169776 </f>
-				<Trdipole gauge="length" unit="e*bohr">-0.0000 -0.5619 +0.5027</Trdipole>
+				<Trdipole gauge="length" unit="e*bohr">+0.0000 +0.5620 -0.5026</Trdipole>
 			</level>
 			<level number="8">
 				<omega>+12.190825 </omega>
 				<f>+0.169757 </f>
-				<Trdipole gauge="length" unit="e*bohr">-0.0000 -0.5027 -0.5618</Trdipole>
+				<Trdipole gauge="length" unit="e*bohr">-0.0000 -0.5026 -0.5620</Trdipole>
 			</level>
 			<level number="9">
 				<omega>+13.266483 </omega>
 				<f>+0.106244 </f>
-				<Trdipole gauge="length" unit="e*bohr">-0.0000 +0.4261 -0.3812</Trdipole>
+				<Trdipole gauge="length" unit="e*bohr">-0.0000 +0.4262 -0.3811</Trdipole>
 			</level>
 			<level number="10">
 				<omega>+13.266472 </omega>
 				<f>+0.106245 </f>
-				<Trdipole gauge="length" unit="e*bohr">+0.0000 -0.3812 -0.4261</Trdipole>
+				<Trdipole gauge="length" unit="e*bohr">+0.0000 -0.3811 -0.4262</Trdipole>
 			</level>
 		</singlets>
 		<triplets>

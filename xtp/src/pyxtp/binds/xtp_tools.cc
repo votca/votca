@@ -37,12 +37,12 @@ void call_tool(const std::string& name, Index nThreads, std::string xmlfile) {
 
 void XTPTools::Initialize(const std::string& name, Index nThreads,
                           votca::tools::Property prop) {
-  xtp::QMToolFactory().RegisterAll();
-  auto keys = xtp::QMToolFactory().getKeys();
-  std::cout << "KEYS" << std::endl;
-  for (auto key : keys) {
-    std::cout << key << std::endl;
-  }
+  // xtp::QMToolFactory();
+  // auto keys = xtp::QMToolFactory().getKeys();
+  // std::cout << "KEYS" << std::endl;
+  // for (auto key : keys) {
+  //   std::cout << key << std::endl;
+  // }
   tool_ = xtp::QMToolFactory().Create(name);
   tool_->setnThreads(nThreads);
   tool_->Initialize(prop);
