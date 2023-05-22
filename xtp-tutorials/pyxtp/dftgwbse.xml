@@ -1,0 +1,8 @@
+<options>
+  <dftgwbse help="Compute electronic excitations using GW-BSE">
+    <job_name help="Input file name without extension, also used for intermediate files" default="system">CO</job_name>
+    <dftpackage help="options for dftpackages">
+  <basisset help="Basis set for MOs" default="def2-tzvp">def2-svp</basisset>
+  <auxbasisset help="Auxiliary basis set for RI" default="OPTIONAL">aux-def2-svp</auxbasisset>
+  </dftpackage></dftgwbse>
+</options>
