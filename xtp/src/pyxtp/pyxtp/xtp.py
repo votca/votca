@@ -43,7 +43,7 @@ class xtp(Calculator):
 
     implemented_properties = ['energy', 'forces', 'singlets',
                               'triplets', 'qp', 'ks', 
-                              'qp_pert', 'transition_dipoles']
+                              'qp_pert', 'oscillator_strength']
 
     def __init__(self, 
                  restart=None, 
@@ -192,8 +192,7 @@ class xtp(Calculator):
         """Compute all the energies of the dft+gw+bse pipeline
 
         Args:
-            atoms (Atoms, optional): _description_. Defaults to None.
-            name (str, optional): _description_. Defaults to None.
+            atoms (Atoms, optional): atoms in ase format. Defaults to None.
         """
 
         Calculator.calculate(self, atoms)
@@ -332,7 +331,7 @@ class xtp(Calculator):
             raise PropertyNotImplementedError('{} property must be calculated with \
                 .get_forces()'.format(name))
             
-        if name == "transition_dipoles":
+        if name == "oscillator_strength":
             raise PropertyNotImplementedError('{} property must be calculated with \
                 .get_oscillator_strength()'.format(name))    
                     
