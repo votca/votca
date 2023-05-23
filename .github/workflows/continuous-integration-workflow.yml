@@ -155,11 +155,11 @@ jobs:
         run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
       - name: Install
         run: sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH cmake --build builddir --target install
-      - name: Test pyxtp
-        if: ${{ steps.setup.inputs.minimal == 'false' }}
-        run: |
-          export VOTCASHARE=/usr/share/votca/
-          pytest .
+      # - name: Test pyxtp
+      #   if: ${{ steps.setup.inputs.minimal == 'false' }}
+      #   run: |
+      #     export VOTCASHARE=/usr/share/votca/
+      #     pytest .
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
         run: cmake --build builddir --target format && git diff --exit-code

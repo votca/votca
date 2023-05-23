@@ -18,4 +18,8 @@ file(GLOB_RECURSE PYXTP_FILES pyxtp/*.py)
 message(STATUS "PYTHON INSTALL: ${PYTHON_INSTDIR}")
 install(FILES ${PYXTP_FILES} DESTINATION ${PYTHON_INSTDIR}/pyxtp)
 
-
+if(ENABLE_TESTING)
+  add_test(NAME integration_test_xtp_binds COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+  set_property(TEST integration_test_xtp_binds PROPERTY ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/..:$ENV{PYTHONPATH};VOTCASHARE=${CMAKE_CURRENT_SOURCE_DIR}/../../share")
+  set_tests_properties(integration_test_xtp_binds PROPERTIES LABELS "csg;tools;votca;xtp;integration")
+endif()
