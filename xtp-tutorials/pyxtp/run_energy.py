@@ -14,7 +14,7 @@ def run_energy(save_figure: bool = False):
     # change basis sets to a smaller one
     calc.options.dftpackage.basisset = 'def2-svp'
     calc.options.dftpackage.auxbasisset = 'aux-def2-svp'
-    # calc.options.logging_file = 'CO_energy.log'
+    calc.options.logging_file = 'CO_energy.log'
 
     # attach the calculator
     atoms.calc = calc 
