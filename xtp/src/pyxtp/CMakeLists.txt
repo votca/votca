@@ -20,7 +20,7 @@ install(FILES ${PYXTP_FILES} DESTINATION ${PYTHON_INSTDIR}/pyxtp)
 
 if(BUILD_TESTING)
   add_test(NAME integration_test_xtp_binds COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR}) # WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-  set_property(TEST integration_test_xtp_binds PROPERTY ENVIRONMENT "PYTHONPATH=${PYTHON_INSTDIR};VOTCASHARE=${CMAKE_CURRENT_SOURCE_DIR}/../../share")
+  set_property(TEST integration_test_xtp_binds PROPERTY ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/..:$ENV{PYTHONPATH};VOTCASHARE=${CMAKE_CURRENT_SOURCE_DIR}/../../share")
   # set_property(TEST integration_test_xtp_binds PROPERTY ENVIRONMENT "VOTCASHARE=${CMAKE_CURRENT_SOURCE_DIR}/../../share")
   set_tests_properties(integration_test_xtp_binds PROPERTIES LABELS "csg;tools;votca;xtp;integration")
 endif()
