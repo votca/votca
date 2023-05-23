@@ -35,7 +35,7 @@ class QMToolFactory : public tools::ObjectFactory<std::string, QMTool> {
  public:
   QMToolFactory() { this->RegisterAll(); };
 
- public:
+ private:
   void RegisterAll();
 
 };

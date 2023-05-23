@@ -156,6 +156,7 @@ jobs:
       - name: Install
         run: sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH cmake --build builddir --target install
       - name: Test pyxtp
+        if: ${{ steps.setup.inputs.minimal == 'false' }}
         run: |
           export VOTCASHARE=/usr/share/votca/
           pytest .
