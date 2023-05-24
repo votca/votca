@@ -143,6 +143,10 @@ jobs:
           ccache -z
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -v -s
+      - name: Test DESTDIR Install
+        run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
+      - name: Install
+        run: sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH cmake --build builddir --target install
       - name: Tests
         run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
         working-directory: builddir
@@ -151,10 +155,10 @@ jobs:
       - name: Build Sphinx
         if: ${{ steps.setup.outputs.build_sphinx == 'true' }}
         run: cmake --build builddir --target sphinx
-      - name: Test DESTDIR Install
-        run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
-      - name: Install
-        run: sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH cmake --build builddir --target install
+      # - name: Test DESTDIR Install
+      #   run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
+      # - name: Install
+      #   run: sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH cmake --build builddir --target install
       # - name: Test pyxtp
       #   if: ${{ steps.setup.inputs.minimal == 'false' }}
       #   run: |
