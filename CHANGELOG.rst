@@ -7,6 +7,7 @@ Version 2024-dev
 -  add note on gmx build for install (#1052)
 -  fix typos in esp2multipole options (#1054)
 -  Used sharedable lock in xtp (#1057)
+-  Make votca tests compile without OpenMP (#1065)
 
 Version 2023-rc.2 (released XX.02.23)
 =====================================
