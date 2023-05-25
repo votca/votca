@@ -146,11 +146,6 @@ jobs:
       - name: Tests
         run: ctest -E xtp_binds --output-on-failure ${{ steps.setup.outputs.ctest_args }}
         working-directory: builddir
-      - name: Doxygen
-        run: cmake --build builddir --target doxygen
-      - name: Build Sphinx
-        if: ${{ steps.setup.outputs.build_sphinx == 'true' }}
-        run: cmake --build builddir --target sphinx
       - name: Test DESTDIR Install
         run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
       - name: Install
@@ -158,6 +153,11 @@ jobs:
       - name: Tests
         if: ${{ matrix.distro != 'fedora:intel' }}
         run: ctest -R xtp_binds --output-on-failure ${{ steps.setup.outputs.ctest_args }}
+      - name: Doxygen
+        run: cmake --build builddir --target doxygen
+      - name: Build Sphinx
+        if: ${{ steps.setup.outputs.build_sphinx == 'true' }}
+        run: cmake --build builddir --target sphinx
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
         run: cmake --build builddir --target format && git diff --exit-code
