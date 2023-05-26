@@ -1,3 +1,22 @@
+find_package(Python 3.5 COMPONENTS Development)
+set_package_properties(Python PROPERTIES TYPE RECOMMENDED PURPOSE "Used to build xtp python bindings")
+find_package(pybind11)
+set_package_properties(pybind11 PROPERTIES TYPE RECOMMENDED PURPOSE "Used to build xtp python bindings")
+
+foreach(_pkg ase xmltodict)
+  if(NOT PY${_pkg}_FOUND)
+    execute_process(COMMAND ${Python_EXECUTABLE} -c "import ${_pkg}" RESULT_VARIABLE IMPORT_py${_pkg})
+    if(IMPORT_py${_pkg} EQUAL 0)
+      set(PY${_pkg}_FOUND SUCCESS TRUE CACHE INTERNAL "")
+      message(STATUS "Found python module ${_pkg}")
+    endif()
+  endif()
+endforeach()
+
+if(NOT pybind11_FOUND OR NOT Python_Development_FOUND OR NOT PYase_FOUND OR NOT PYxml2dict_FOUND)
+  return()
+endif()
+
 file(GLOB_RECURSE BIND_SOURCES binds/*.cc)
 
 pybind11_add_module(xtp_binds ${BIND_SOURCES})
