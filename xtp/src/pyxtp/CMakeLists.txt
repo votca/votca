@@ -30,6 +30,6 @@ add_custom_target(xtp_binary_scripts DEPENDS ${BINARY_SCRIPTS})
 add_dependencies(xtp_binds xtp_binary_scripts)
 
 if(BUILD_TESTING)
-  add_test(NAME integration_test_xtp_binds COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_CURRENT_BINARY_DIR}/.. )#/test/ WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/)
-  set_property(TEST integration_test_xtp_binds PROPERTY ENVIRONMENT "PYTHONPATH=${PYTHON_INSTDIR}:$ENV{PYTHONPATH};VOTCASHARE=${CMAKE_CURRENT_SOURCE_DIR}/../../share")
+  add_test(NAME integration_test_xtp_binds COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR} )
+  set_property(TEST integration_test_xtp_binds PROPERTY ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/../:$ENV{PYTHONPATH};VOTCASHARE=${CMAKE_CURRENT_SOURCE_DIR}/../../share")
 endif()
