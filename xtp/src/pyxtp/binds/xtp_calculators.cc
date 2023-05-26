@@ -35,8 +35,8 @@ void call_calculator(const std::string& calculatorName,
   Index nThreads = std::stol(dict.at("nThreads"));
   Index firstFrame = std::stol(dict.at("firstFrame"));
   Index nFrames = std::stol(dict.at("nFrames"));
-  // bool save = boost::lexical_cast<bool>("0");
-  bool save = boost::lexical_cast<bool>(std::stol(dict.at("save")));
+  bool save = boost::lexical_cast<bool>("0");
+  // bool save = boost::lexical_cast<bool>(std::stol(dict.at("save")));
 
   // Load properties
   votca::tools::Property prop;
