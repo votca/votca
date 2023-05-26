@@ -12,7 +12,22 @@
 				</staticregion>
 			</regions>
 		</input>
-		<status>AVAILABLE</status>
+		<status>COMPLETE</status>
+		<host>nico-VirtualBox:7328</host>
+		<time>09:18:45</time>
+		<output>
+			<regions>
+				<region Tot_charge="0.000000e+00" id="0" size="1" type="qmregion">
+					<E_total>-14966.726199</E_total>
+					<Initial_State>s1</Initial_State>
+					<Final_State>s1</Final_State>
+				</region>
+				<region Tot_charge="0.000000e+00" id="1" size="0" type="staticregion"/>
+			</regions>
+			<E_tot>-14966.726199</E_tot>
+			<Compute_Time>25</Compute_Time>
+			<Total_Charge>0.000000</Total_Charge>
+		</output>
 	</job>
 	<job>
 		<id>1</id>
@@ -27,6 +42,21 @@
 				</staticregion>
 			</regions>
 		</input>
-		<status>AVAILABLE</status>
+		<status>COMPLETE</status>
+		<host>nico-VirtualBox:7328</host>
+		<time>09:19:07</time>
+		<output>
+			<regions>
+				<region Tot_charge="0.000000e+00" id="0" size="1" type="qmregion">
+					<E_total>-14966.832734</E_total>
+					<Initial_State>s1</Initial_State>
+					<Final_State>s1</Final_State>
+				</region>
+				<region Tot_charge="-7.266410e-14" id="1" size="328" type="staticregion"/>
+			</regions>
+			<E_tot>-14966.832734</E_tot>
+			<Compute_Time>22</Compute_Time>
+			<Total_Charge>-0.000000</Total_Charge>
+		</output>
 	</job>
 </jobs>
