@@ -37,17 +37,9 @@ class QMToolFactory : public tools::ObjectFactory<std::string, QMTool> {
 
  private:
   void RegisterAll();
-
 };
-
 
 }  // namespace xtp
 }  // namespace votca
 
 #endif  // VOTCA_XTP_TOOLFACTORY_H
-
-
-
-
-
-

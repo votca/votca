@@ -82,8 +82,8 @@ bool Log2Mps::Run() {
   XTP_LOG(Log::error, log) << "Using package <" << package_ << ">"
                            << std::flush;
 
-  std::unique_ptr<QMPackage> qmpack = std::unique_ptr<QMPackage>(
-      QMPackageFactory().Create(package_));
+  std::unique_ptr<QMPackage> qmpack =
+      std::unique_ptr<QMPackage>(QMPackageFactory().Create(package_));
   qmpack->setLog(&log);
   qmpack->setRunDir(".");
   qmpack->setLogFileName(logfile_);
