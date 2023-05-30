@@ -43,7 +43,7 @@ namespace xtp {
 
 void IQM::ParseSpecificOptions(const tools::Property& options) {
 
-  QMPackageFactory::RegisterAll();
+  QMPackageFactory{};
 
   // job tasks
   std::string tasks_string = options.get(".tasks").as<std::string>();
@@ -293,7 +293,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     dft_logger.setPreface(Log::debug, (format("\nDFT DBG ...")).str());
     std::string package = dftpackage_options_.get("name").as<std::string>();
     std::unique_ptr<QMPackage> qmpackage =
-        QMPackageFactory::QMPackages().Create(package);
+        QMPackageFactory().Create(package);
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(qmpackage_work_dir);
     qmpackage->Initialize(dftpackage_options_);
