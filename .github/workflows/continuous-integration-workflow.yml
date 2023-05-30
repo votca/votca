@@ -36,7 +36,7 @@ jobs:
             own_gmx: false
             coverage: false
             # make sure there is only one build deploying
-            deploy: true
+            deploy: false # true I don't have permission
           - distro: 'fedora:nogmx'
             toolchain: gnu
             cmake_build_type: Release
