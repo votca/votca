@@ -51,7 +51,7 @@ class Log2Mps final : public QMTool {
 
 void Log2Mps::ParseOptions(const tools::Property &options) {
 
-  QMPackageFactory();
+  QMPackageFactory{};
 
   package_ = options.get(".dftpackage").as<std::string>();
 

@@ -37,7 +37,7 @@ namespace xtp {
 
 void EQM::ParseSpecificOptions(const tools::Property& options) {
 
-  QMPackageFactory();
+  QMPackageFactory{};
 
   // job tasks
   std::string tasks_string = options.get(".tasks").as<std::string>();

@@ -33,12 +33,12 @@ namespace xtp {
 class QMPackageFactory : public tools::ObjectFactory<std::string, QMPackage> {
 
 public:
-  QMPackageFactory() {this->RegisterAll(); };
+  QMPackageFactory() { this->RegisterAll(); };
 
   // QMPackageFactory(QMPackageFactory const &) = delete;
-  void operator=(QMPackageFactory const &) = delete;
+  // void operator=(QMPackageFactory const &) = delete;
   // QMPackageFactory(QMPackageFactory &&) = delete;
-  void operator=(QMPackageFactory &&) = delete;
+  // void operator=(QMPackageFactory &&) = delete;
 
   private:
     void RegisterAll();
@@ -48,3 +48,4 @@ public:
 }  // namespace votca
 
 #endif  // VOTCA_XTP_QMPACKAGEFACTORY_H
+ 

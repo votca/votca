@@ -64,7 +64,7 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
   }
 
   // register all QM packages
-  QMPackageFactory();
+  QMPackageFactory{};
 }
 
 bool DftGwBse::Run() {

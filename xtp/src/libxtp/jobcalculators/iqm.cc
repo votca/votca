@@ -43,7 +43,7 @@ namespace xtp {
 
 void IQM::ParseSpecificOptions(const tools::Property& options) {
 
-  QMPackageFactory();
+  QMPackageFactory{};
 
   // job tasks
   std::string tasks_string = options.get(".tasks").as<std::string>();

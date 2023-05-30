@@ -68,7 +68,7 @@ void Coupling::ParseOptions(const tools::Property &options) {
   package_options_ = options.get(".dftpackage");
   dftcoupling_options_ = options.get(".dftcoupling_options");
 
-  QMPackageFactory();
+  QMPackageFactory{};
 }
 
 bool Coupling::Run() {
