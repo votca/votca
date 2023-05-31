@@ -1,7 +1,7 @@
 #! /bin/bash -e
 
 url="https://github.com/votca/votca.git"
-branch=stable
+branch=master
 testing=no
 verbose=
 cmake_opts=()
@@ -82,7 +82,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -z $2 ]] && die "${0##*/}: missing argument - no srcdir!\nTry ${0##*/} --help"
-if [[ ${CI} != "true" && ${testing} = "no" && ${branch} != "stable" ]]; then
+if [[ ${CI} != "true" && ${testing} = "no" && ${branch} != "master" ]]; then
   die "branch ${branch} cannot be use without testing"
 fi
 
@@ -121,14 +121,16 @@ git pull --ff-only
 if [[ $testing = "yes" ]]; then
   :
 elif [[ -f CMakeLists.txt ]]; then
+  cur_rel="$(sed -n 's/set(PROJECT_VERSION *"\([^"]*\)").*/\1/p' CMakeLists.txt)"
+  [[ -n ${cur_rel} ]] || die "Could not grep current release from CMakeLists.txt)"
   sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
   git add CMakeLists.txt
   # no || die as dev version have no release date
-  sed -i "/^Version ${rel} /s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
+  sed -i "/^Version ${cur_rel} /s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
   git add CHANGELOG.rst
-  sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" README.rst || die "sed of README.rst failed"
+  sed -i "/version=/s/master # or '[^']*'/master # or 'v$rel'/" README.rst || die "sed of README.rst failed"
   git add README.rst
-  sed -i "/stable/s/or 'stable' or '[^']*'/or 'stable' or 'v$rel'/" share/sphinx/INSTALL.rst || die "sed of INSTALL.rst failed"
+  sed -i "/version=/s/master # or '[^']*'/master # or 'v$rel'/" share/sphinx/INSTALL.rst || die "sed of INSTALL.rst failed"
   git add share/sphinx/INSTALL.rst
 fi
 if [[ $testing = "no" ]]; then
