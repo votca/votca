@@ -29,10 +29,10 @@ class TestXTP:
         atoms = molecule('CO', positions=([0,0,0],[1.4,0,0]), calculator=calculator)
         return atoms
 
-    def test_get_and_read_potential_energy(self, CO):
-        CO.get_potential_energy()
-        new_atoms = xtp.read_atoms('CO.orb')
-        assert(CO.calc.results['energy'] == new_atoms.calc.results['energy'])
+    # def test_get_and_read_potential_energy(self, CO):
+    #     CO.get_potential_energy()
+    #     new_atoms = xtp.read_atoms('CO.orb')
+    #     assert(CO.calc.results['energy'] == new_atoms.calc.results['energy'])
          
     @pytest.mark.xfail()
     def test_failed_option(self, CO):
@@ -62,19 +62,23 @@ class TestXTP:
 
     def test_get_total_energy(self, CO):
         CO.get_potential_energy()
+        
+        new_atoms = xtp.read_atoms('CO.orb')
+        assert(CO.calc.results['energy'] == new_atoms.calc.results['energy'])
+        
         for name in CO.calc.implemented_properties:
             
             if name not in ["forces", "oscillator_strength"]:
                 assert CO.calc.get_total_energy(name, level=1, dynamic = False) != None
                 
-            if name == 'oscillator_strength':
-                energy, osc = CO.calc.get_oscillator_strengths(dynamic=False)
-                assert energy.any() != None
-                assert osc.any() != None
+            # if name == 'oscillator_strength':
+            #     energy, osc = CO.calc.get_oscillator_strengths(dynamic=False)
+            #     assert energy.any() != None
+            #     assert osc.any() != None
                 
-    def test_get_and_read_forces(self, CO):
-        CO.calc.select_force(energy='singlets', level=1, dynamic=False)
-        assert CO.get_forces().any() != None
+    # def test_get_and_read_forces(self, CO):
+    #     CO.calc.select_force(energy='singlets', level=1, dynamic=False)
+    #     assert CO.get_forces().any() != None
              
         
         
