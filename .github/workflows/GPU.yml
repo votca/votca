@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - master
-      - stable
 
 concurrency:
   group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
