@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2024-dev
+Version 2023-dev
 ================
 
 -  add note on gmx build for install (#1052)
