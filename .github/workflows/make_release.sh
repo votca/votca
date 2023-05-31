@@ -31,7 +31,7 @@ OPTIONS:
 -D*                 Extra option to give to cmake
 
 Examples:  ${0##*/} --help
-           ${0##*/} --test 1.2.3 srcdir
+           ${0##*/} 1.2.3 srcdir
 
 Report bugs and comments at https://github.com/votca/admin/issues
 eof
@@ -147,12 +147,14 @@ cmake --build "${build}" -j"${j}" ${verbose:+--verbose}
 
 rm -rf "$instdir" "$build"
 
+pushd "${srcdir}"
 add_rel="${rel}-dev"
 
 new_section="Version ${add_rel}"
 sed -i "/^Version ${rel}\( \|$\)/i ${new_section}\n${new_section//?/=}\n" CHANGELOG.rst
 git add CHANGELOG.rst
 git commit -m "CHANGELOG: add ${add_rel} section"
+popd
 
 echo "####### TODO by you #########"
 echo "cd $srcdir"
