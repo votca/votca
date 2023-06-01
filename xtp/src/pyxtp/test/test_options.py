@@ -39,7 +39,8 @@ class TestOptions:
         from_xml = list(
             k for k in xml_dict["options"]["dftgwbse"] if not k.startswith("@")
         )
-        assert expected == {*opts.__slots__, *from_xml}
+        if expected != {*opts.__slots__, *from_xml}:
+            raise AssertionError("Error in test_completion")
 
     @pytest.mark.parametrize(
         "attr, val", [("job_name", "options_test"), ("mpsfile", "somefile")]
@@ -59,4 +60,5 @@ class TestOptions:
             val = getattr(opts, attr)
         else:
             val = reduce(getattr, attr, opts)
-        assert expected == val
+        if expected != val:
+            raise AssertionError("Error in test_attr_default")

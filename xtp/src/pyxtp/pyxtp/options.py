@@ -140,7 +140,7 @@ def make_options(name: str, xml_dict: dict, set_default: bool = True):
         if default == "OPTIONAL":
             return None
         if not set_default:
-            return '' 
+            return ''
         return default
 
     # create type

@@ -24,7 +24,7 @@ class Visualization:
             plt.show()
 
     def plot_absorption_gaussian(
-            self, dynamic: bool = False, min: float = 0.0, max: float = 10.0, points: int = 1000,
+            self, dynamic: bool = False, energy_min: float = 0.0, energy_max: float = 10.0, points: int = 1000,
             sigma: float = 0.2):
 
         energy, osc = self.atoms._calc.get_oscillator_strengths(dynamic)
@@ -34,11 +34,11 @@ class Visualization:
         # make a stick plot with oscillator strength
         plt.stem(energy, osc, basefmt=" ")
         # apply unormalized Gaussian lineshape
-        e = np.linspace(min, max, points)
+        e = np.linspace(energy_min, energy_max, points)
         spectrum = 0
 
-        for i in range(len(energy)):
-            spectrum += osc[i] * self.gaussian(e, energy[i], sigma)
+        for i, eval in enumerate(energy):
+            spectrum += osc[i] * self.gaussian(e, eval, sigma)
 
         plt.plot(e, spectrum, 'k', linewidth=2)
         plt.ylim(bottom=0)
@@ -55,12 +55,12 @@ class Visualization:
         """Non-normalized Gaussian distribution."""
         return np.exp(-0.5 * ((x - mu) / sig) ** 2)
 
-    def plot_dos_gaussian(self, ks=True, qp=True, min: float = -25.0, max: float = 10.0, points: int = 1000,
+    def plot_dos_gaussian(self, ks=True, qp=True, energy_min: float = -25.0, energy_max: float = 10.0, points: int = 1000,
                           sigma: float = 0.2):
 
         plt.xlabel('Energy (eV)')
         plt.ylabel('DOS (arb. units)')
-        e = np.linspace(min, max, points)
+        e = np.linspace(energy_min, energy_max, points)
         dos_ks = 0
         if ks:
             ks_energies = self.atoms._calc.ks_energies * H2EV  # to eV
@@ -71,7 +71,7 @@ class Visualization:
             plt.plot(e, dos_ks, 'k', linewidth=2, label='KS')
         dos_qp = 0
         if qp:
-            qp_energies = self.atoms._calc.qp_energies * H2EV 
+            qp_energies = self.atoms._calc.qp_energies * H2EV
             for qp_energy in qp_energies:
                 dos_qp += self.gaussian(e, qp_energy, sigma)
             plt.plot(e, dos_qp, 'r', linewidth=2, label='QP')

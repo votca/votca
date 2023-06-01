@@ -1,10 +1,9 @@
 import os
 import numpy as np
-from typing import Any, Dict, Union, List , Optional, Tuple
+from typing import Dict, Union, List , Optional, Tuple
 import h5py
 from pathlib import Path
 
-from ase.units import Hartree, Bohr
 from ase import Atoms
 from ase.calculators.calculator import Calculator, equal, PropertyNotImplementedError
 from .capture_standard_output import capture_standard_output
@@ -22,16 +21,16 @@ def numeric_force_xtp(atoms, a, i, d=0.001, opt_forces: dict = None):
     if opt_forces is None:
         name, level, dynamic = 'energy', 0, False
     else:
-        name, level, dynamic = opt_forces['energy'], opt_forces['level'], opt_forces['dynamic']     
-    
+        name, level, dynamic = opt_forces['energy'], opt_forces['level'], opt_forces['dynamic']
+
     p0 = atoms.get_positions()
     p = p0.copy()
     p[a, i] += d
     atoms.set_positions(p, apply_constraint=False)
     eplus = atoms._calc.get_total_energy(name=name, level=level, dynamic=dynamic)
-    
+
     atoms._calc.reset_results()
-    
+
     p[a, i] -= 2 * d
     atoms.set_positions(p, apply_constraint=False)
     eminus = atoms._calc.get_total_energy(name=name, level=level, dynamic=dynamic)
@@ -42,38 +41,38 @@ class xtp(Calculator):
     """This the ASE-calculator for doing XTP calculation."""
 
     implemented_properties = ['energy', 'forces', 'singlets',
-                              'triplets', 'qp', 'ks', 
+                              'triplets', 'qp', 'ks',
                               'qp_pert', 'oscillator_strength']
 
-    def __init__(self, 
-                 restart=None, 
+    def __init__(self,
+                 restart=None,
                  *,
-                 label=None, 
+                 label=None,
                  atoms=None,
                  nthreads=1,
                  options=None,
                  directory='./',
                  **kwargs):
-        
-        Calculator.__init__(self, restart=restart, label=label, atoms=atoms, 
+
+        Calculator.__init__(self, restart=restart, label=label, atoms=atoms,
                             directory=directory, **kwargs)
-        
+
         if options is None:
             self.set_default_options()
         else:
             self.set_from_options(options)
-            
+
         self.set(**kwargs)
         self.select_force()
-        
+
         self.nthreads = nthreads
-        
-        self.has_data = False 
+
+        self.has_data = False
         self.has_forces = False
-        
+
         self.hdf5_filename = None
         self.logfile = 'dftgwbse.log'
-    
+
     def set_default_options(self) -> Options:
         """Creates a default option object
 
@@ -91,10 +90,10 @@ class xtp(Calculator):
             )
             raise RuntimeError(msg)
         file_name = f"{votcashare}/xtp/xml/dftgwbse.xml"
-        
+
         self.options = Options(file_name)
         self.parameters = self.options.to_flat_dict()
-    
+
     def set(self, **kwargs) -> Dict:
         """Set parameters like set(key1=value1, key2=value2, ...).
 
@@ -109,16 +108,16 @@ class xtp(Calculator):
         changed_parameters = {}
 
         for key, value in kwargs.items():
-            
+
             if key in translation_dic:
                 key = translation_dic[key]
-            
-            if key in self.parameters:    
+
+            if key in self.parameters:
                 oldvalue = self.parameters.get(key)
                 if key not in self.parameters or not equal(value, oldvalue):
                     changed_parameters[key] = value
                     self.parameters[key] = value
-                    
+
                     split_key = key.split('/')
                     element = self.options
                     for k in split_key[:-1]:
@@ -126,11 +125,11 @@ class xtp(Calculator):
                     element.__setattr__(split_key[-1], value)
             else:
                 print(f'Option {key} not available in xtp')
-                
+
         if self.discard_results_on_any_change and changed_parameters:
             self.reset()
-            
-        return changed_parameters    
+
+        return changed_parameters
 
     def set_from_options(self, options: Options) -> None:
         """Set the options from an instance of XTPOptions
@@ -140,13 +139,13 @@ class xtp(Calculator):
         """
         self.options = options
         opt_dict = options.to_flat_dict()
-        
+
         if not self.parameters:
             self.parameters = opt_dict
 
         self.set(**opt_dict)
 
-                
+
     def set_atoms(self, atoms: Atoms):
         """Set atomic positions
 
@@ -154,13 +153,13 @@ class xtp(Calculator):
             atoms (Atoms): atoms in ASE format
         """
         self.atoms = atoms
- 
+
     def reset(self):
         """Clear all information from old calculation."""
 
         self.atoms = None
         self.reset_results()
-        
+
     def reset_results(self):
         """Clear all the results of previous calculations but keep atoms data
         """
@@ -168,26 +167,26 @@ class xtp(Calculator):
         self.select_force()
         self.has_forces = False
         self.has_data = False
-        
-                        
-    def calculate(self, atoms: Atoms = None, 
-                  properties: List[str] = ['energy'], 
+
+
+    def calculate(self, atoms: Atoms = None,
+                  properties: List[str] = ['energy'],
                   system_change : List[str] = None) -> None:
         """Calculate things
 
         Args:
             atoms (Atoms, optional): atoms in ase format. Defaults to None.
             name (str, optional): basename for the files. Defaults to None.
-        """                 
+        """
         if any([p in properties for p in ['energy',
                                           'singlets', 'triplets',
                                           'ks', 'qp', 'qp_pert',
                                           'transition_dipoles']]):
             self.calculate_energies(atoms=atoms)
-            
+
         if 'forces' in properties:
             self.calculate_numerical_forces('energy')
-            
+
     def calculate_energies(self, atoms: Atoms = None) -> None:
         """Compute all the energies of the dft+gw+bse pipeline
 
@@ -203,7 +202,7 @@ class xtp(Calculator):
             xyzname = self.atoms.get_chemical_formula()
         else:
             xyzname = self.label
-            
+
         xyz_filename = xyzname + '.xyz'
         input_filename = 'dftgwbse.xml'
         self.atoms.write(xyz_filename)
@@ -216,11 +215,11 @@ class xtp(Calculator):
 
         # current dftgwbse file
         path_dftgwbse = (Path(input_filename)).absolute().as_posix()
-        
+
         # Call the tool and capture the standard output
         output = capture_standard_output(
             xtp_binds.call_tool, "dftgwbse", self.nthreads,  path_dftgwbse)
-        
+
         with open(xyzname + ".out", "w") as handler:
             handler.write(output)
 
@@ -228,10 +227,10 @@ class xtp(Calculator):
         orbname = f'{xyzname}.orb'
         self.hdf5_filename = os.path.join(self.directory, orbname)
         os.replace(f'{xyzname}.orb', self.hdf5_filename)
-            
+
         # Reads energies from an existing HDF5 orb file
         self.read_hdf5_data(self.hdf5_filename)
-    
+
     @classmethod
     def read_atoms(cls, filename: Pathlike, label = None, **kwargs) -> Atoms:
         """Read an exisiting hdf5 file containing results from a previous run
@@ -240,8 +239,8 @@ class xtp(Calculator):
         """
         if os.path.splitext(filename)[-1] != '.orb':
             raise ValueError('The file should be a .orb file generated by VOTCA-XTP')
-        return cls(label=label, **kwargs).load_atoms(filename) 
-    
+        return cls(label=label, **kwargs).load_atoms(filename)
+
     def load_atoms(self, filename: Pathlike) -> Atoms:
         """Load the atoms data from a hdf5 file
 
@@ -253,9 +252,9 @@ class xtp(Calculator):
         """
         self.read_hdf5_data(filename)
         atoms = self.atoms.copy()
-        atoms.calc = self 
+        atoms.calc = self
         return atoms
-        
+
     def read_hdf5_data(self, hdf5_filename: Pathlike) -> None:
         """Read data from the orb (HDF5) file
 
@@ -291,10 +290,10 @@ class xtp(Calculator):
             td = orb['transition_dipoles']
             self.transition_dipoles = np.array(
                 [td[dset][()] for dset in td.keys()])
-            
+
             self.has_data = True
-            
-        # create the results        
+
+        # create the results
         self.results = {
             'energy': self.DFTenergy,
             'singlets': self.bse_singlet_energies,
@@ -323,18 +322,18 @@ class xtp(Calculator):
         Returns:
             float: value of the energy (level) required
         """
-        
+
         if name not in self.implemented_properties:
             raise PropertyNotImplementedError('{} property not implemented'
                                               .format(name))
         if name == "forces":
             raise PropertyNotImplementedError('{} property must be calculated with \
                 .get_forces()'.format(name))
-            
+
         if name == "oscillator_strength":
             raise PropertyNotImplementedError('{} property must be calculated with \
-                .get_oscillator_strength()'.format(name))    
-                    
+                .get_oscillator_strength()'.format(name))
+
         if atoms is None:
             atoms = self.atoms
             system_changes = []
@@ -342,12 +341,12 @@ class xtp(Calculator):
             system_changes = self.check_state(atoms)
             if system_changes:
                 self.reset()
-                
+
         if name not in self.results:
             if not allow_calculation:
                 return None
             self.calculate(properties=[name])
-        
+
         if name  == 'energy':
             return self.get_dft_energy()
         elif name == 'ks':
@@ -408,7 +407,7 @@ class xtp(Calculator):
         Returns:
             float: Quasi Particle total energy
         """
-        
+
         self.check_data()
 
         lumo = self.homo + 1
@@ -424,7 +423,7 @@ class xtp(Calculator):
 
     def get_qp_diag_total_energy(self, level='') -> float:
         """Return the excited state diag QP total energy.
-        
+
         Args:
             level (str, optional): _description_. Defaults to ''.
 
@@ -448,7 +447,7 @@ class xtp(Calculator):
         """Return the excited state BSE Singlet total energy.
 
         Args:
-            level (int): singlet level required. 
+            level (int): singlet level required.
 
         Returns:
             float: Singlet Energy required
@@ -458,9 +457,9 @@ class xtp(Calculator):
 
     def get_bse_triplet_total_energy(self, level: int) -> float:
         """Return the excited state BSE Triplet total energy.
-        
+
         Args:
-            level (int): triplet level required. 
+            level (int): triplet level required.
 
         Returns:
             float: Triplet Energy required
@@ -472,7 +471,7 @@ class xtp(Calculator):
         """Return the excited state BSE Singlet dynamic energy.
 
         Args:
-            level (int): singlet level required. 
+            level (int): singlet level required.
 
         Returns:
             float: Singlet Energy required
@@ -482,9 +481,9 @@ class xtp(Calculator):
 
     def get_bse_triplet_dynamic_total_energy(self, level: int) -> float:
         """Return the excited state BSE Triplet dynamic energy.
-        
+
         Args:
-            level (int): triplet level required. 
+            level (int): triplet level required.
 
         Returns:
             float: Triplet Energy required
@@ -498,7 +497,7 @@ class xtp(Calculator):
         Returns:
             np.ndarray: correction energies
         """
-        
+
         self.check_data()
 
         qp_corrections = self.qp_energies -\
@@ -547,10 +546,10 @@ class xtp(Calculator):
         Returns:
             np.ndarray: atomic gradients
         """
-        if atoms is None: 
+        if atoms is None:
             atoms = self.atoms
-            
-            
+
+
         forces = []
         for a in range(len(atoms)):
             _force = []
@@ -589,7 +588,7 @@ class xtp(Calculator):
         lines = fil.readlines()
         fil.close()
         getgrad = "no"
-        for i, line in enumerate(lines):
+        for line in lines:
             if line.find('ENGRAD') >= 0:
                 getgrad = "yes"
                 gradients = []
@@ -603,12 +602,10 @@ class xtp(Calculator):
                     tempgrad.append(float(grad[5]))
                     gradients.append(tempgrad)
                     tempgrad = []
-                else:
-                    energy = float(line.split()[-2])
             if 'Saving' in line:
                 getgrad = "no"
         self.atomic_forces = -np.array(gradients) #* Hartree / Bohr
-             
+
     def check_data(self):
         """Check that there is data in the molecule."""
         if not self.has_data:
@@ -625,7 +622,7 @@ class xtp(Calculator):
     def check_molecule_integrity(self, other_elements: List[str], other_coordinates: List[np.ndarray]):
         """Compare the atoms from self with the one stored in the HDF5."""
         for k, (elem, coord, other_elem, other_coord) in enumerate(
-                zip(self.atoms.get_chemical_symbols(), self.atoms.get_positions(), 
+                zip(self.atoms.get_chemical_symbols(), self.atoms.get_positions(),
                     other_elements, other_coordinates)):
             if elem != other_elem:
                 raise Exception(

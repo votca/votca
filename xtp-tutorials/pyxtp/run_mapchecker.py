@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 """Examples to show xtp_binds usage."""
 from pyxtp import xtp_binds
-from pyxtp.capture_standard_output import capture_standard_output
 from pathlib import Path
 from multiprocessing import cpu_count
-import io
-from contextlib import redirect_stdout
 
 def run_mapchecker(nThreads: int, path_examples: Path) -> None:
     """Run the mapchecker calculator."""
@@ -29,7 +26,8 @@ def run_mapchecker(nThreads: int, path_examples: Path) -> None:
     expected = {"md_segments_step_0.pdb", "mp_segments_e_step_0.pdb",
                 "mp_segments_h_step_0.pdb", "qm_segments_n_step_0.pdb"}
     pdb_files = set(p.as_posix() for p in Path(".").glob("*_step_0.pdb"))
-    assert all(x in expected for x in pdb_files)
+    if not all(x in expected for x in pdb_files):
+        raise AssertionError("map checker failed")
 
 
 def run_examples():

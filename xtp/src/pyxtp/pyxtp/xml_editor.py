@@ -24,7 +24,7 @@ def update_xml_text(xml: ElementTree, dict_options: dict) -> ElementTree:
         except Exception as e:
             print(e)
             print(key, ' not found ')
-    return xml 
+    return xml
 
 
 def insert_linked_xmlfiles(tree: ElementTree, base_path: str) -> None:
@@ -34,7 +34,7 @@ def insert_linked_xmlfiles(tree: ElementTree, base_path: str) -> None:
         tree (ElementTree): original xml tree containing linked files
         base_path (str): base path for the linked files
     """
-    
+
     def _recursive_insert_links(el: Element):
         """recursively add links files to the main tree
 
@@ -47,7 +47,7 @@ def insert_linked_xmlfiles(tree: ElementTree, base_path: str) -> None:
 
         for child in el.getchildren():
             _recursive_insert_links(child)
-            
+
         if 'link' in el.attrib:
             link_name = os.path.join('subpackages', el.attrib['link'])
             link_name = os.path.join(base_path, link_name)
@@ -55,10 +55,10 @@ def insert_linked_xmlfiles(tree: ElementTree, base_path: str) -> None:
                 raise ValueError('File %s not found' %link_name)
             xml_link = etree.parse(link_name)
             el.getparent().replace(el, xml_link.getroot())
-      
+
     # recursively insert the links
     _recursive_insert_links(tree.getroot())
-    
+
     return tree
 
 
@@ -69,7 +69,7 @@ def remove_empty_text_elements(tree: ET.ElementTree, remove_attributes=[]) -> El
         xml_tree (ElementTree): tree of the xml file
         remove_attributes (list): list of xml attributes to remove
     """
-    
+
     def is_empty(elem: Element) -> bool:
         """returns true if elem does not have text
 
@@ -80,7 +80,7 @@ def remove_empty_text_elements(tree: ET.ElementTree, remove_attributes=[]) -> El
             bool true if e is empty
         """
         return (elem.text is None) or (elem.text.strip() == '')
-    
+
     def recursively_remove_empty_elements(elem: Element):
         """reccursive function that remove empty elements
 
@@ -90,17 +90,17 @@ def remove_empty_text_elements(tree: ET.ElementTree, remove_attributes=[]) -> El
         Returns:
             bool: True if we need to remove the element False otherwise
         """
-                
+
         # recursive call that gets a list of :
         # [] if e doens't have children
         # [True, False, False, True ] where each bool indicate if e children are empty or not
-        child_bool = list(recursively_remove_empty_elements(c) for c in elem.iterchildren())   
+        child_bool = list(recursively_remove_empty_elements(c) for c in elem.iterchildren())
         nchildren = len(child_bool)
-        
+
         # there is an issue with the last element
         # so we need to catch the exception
         try:
-            
+
             # if e doesn't have kids, i.e. it's a leaf
             # remove e if it doesn't have text and returns True
             # keep e if it has text and return False
@@ -115,16 +115,16 @@ def remove_empty_text_elements(tree: ET.ElementTree, remove_attributes=[]) -> El
             elif all(child_bool):
                 elem.getparent().remove(elem)
                 return True
-            
+
         # excpetion for root ...
-        except:        
+        except:
             return False
-        
-    
+
+
     # remove attributes if any are passed
     etree.strip_attributes(tree, remove_attributes)
-    
+
     # remove the empties
     recursively_remove_empty_elements(tree.getroot())
-    
+
     return tree
