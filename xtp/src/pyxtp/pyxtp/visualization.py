@@ -37,8 +37,8 @@ class Visualization:
         e = np.linspace(energy_min, energy_max, points)
         spectrum = 0
 
-        for i, eval in enumerate(energy):
-            spectrum += osc[i] * self.gaussian(e, eval, sigma)
+        for i, energy_val in enumerate(energy):
+            spectrum += osc[i] * self.gaussian(e, energy_val, sigma)
 
         plt.plot(e, spectrum, 'k', linewidth=2)
         plt.ylim(bottom=0)
