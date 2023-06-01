@@ -83,7 +83,7 @@ shopt -s extglob
 topdir="${PWD}"
 
 rel="$1"
-[[ ${rel} != 20???(.[1-9]|-rc.[1-9]) ]] && die "release has the wrong form"
+[[ ${CI} != "true" && ${rel} != 20???(.[1-9]|-rc.[1-9]) ]] && die "release has the wrong form"
 srcdir="$2"
 [[ -d $srcdir ]] || git clone --recursive "$url" "$srcdir"
 pushd "${srcdir}"

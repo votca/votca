@@ -8,6 +8,7 @@ on:
         description: 'Deploy the release'
       tag:
         description: 'The release tag'
+        required: true
 
 jobs:
   release:
