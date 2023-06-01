@@ -117,7 +117,7 @@ last_line="$(echo "$version_section" | sed '/^[[:space:]]*$/d' | sed -n '$p')"
 sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
 git add CMakeLists.txt
 new_section="Version ${rel} (released $(date +XX.%m.%y))"
-sed -i "$((${line_nr} +1))d" CHANGELOG.rst || die "sed to delete === line failed"
+sed -i "$((line_nr+1))d" CHANGELOG.rst || die "sed to delete === line failed"
 sed -i "/^Version ${cur_rel}/s/.*/${new_section}\n${new_section//?/=}/" CHANGELOG.rst || die "sed of CHANGELOG.rst failed"
 git add CHANGELOG.rst
 sed -i "/version=/s/master # or '[^']*'/master # or 'v$rel'/" README.rst || die "sed of README.rst failed"
