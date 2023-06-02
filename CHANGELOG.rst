@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2023-rc.2-dev
 =====================
 
+-  add python bindings for xtp (#1061)
+
 Version 2023-rc.2 (released XX.06.23)
 =====================================
 
@@ -19,7 +21,6 @@ Version 2023-rc.2 (released XX.06.23)
 -  add support for gmx-2023 api (#1059)
 -  updated formatting (#1062)
 -  Refactor changelog actions (#1068)
--  add python bindings for xtp (#1061)
 
 Version 2023-rc.1 (released 02.02.23)
 =====================================
