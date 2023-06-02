@@ -3,7 +3,6 @@ on:
   pull_request:
     branches:
       - master
-      - stable
 
 concurrency:
   group: ${ {github.event_name }}-${{ github.workflow }}-${{ github.ref }}
@@ -21,5 +20,9 @@ jobs:
         run: |
           if git diff --exit-code ${{ github.event.pull_request.base.sha }} -- CHANGELOG.rst; then
             echo "::error ::Please update CHANGELOG.rst"
+            exit 1
+          fi
+          if ! grep '#${{ github.event.issue.number }}' CHANGELOG.rst; then
+            echo "::error ::PR number (#${{ github.event.issue.number }}) not mentioned in CHANGELOG.rst"
             exit 1
           fi

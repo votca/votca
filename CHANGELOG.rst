@@ -1,17 +1,13 @@
 For more detailed information about the changes see the history of the
-`repository <https://github.com/votca/votca/commits/stable>`__.
+`repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2024-dev
+Version 2023-dev
 ================
 
 -  add note on gmx build for install (#1052)
 -  fix typos in esp2multipole options (#1054)
 -  Used sharedable lock in xtp (#1057)
 -  Make votca tests compile without OpenMP (#1065)
-
-Version 2023-rc.2 (released XX.02.23)
-=====================================
-
 -  increase tolerance for diabatization test (#1039, #1043)
 -  removed boost::filesystem  (#1041)
 -  clean up C++ defines (#1044)
@@ -19,6 +15,7 @@ Version 2023-rc.2 (released XX.02.23)
 -  update ccaching in CI (#1048, #1050)
 -  add support for gmx-2023 api (#1059)
 -  updated formatting (#1062)
+-  Refactor changelog actions (#1068)
 
 Version 2023-rc.1 (released 02.02.23)
 =====================================
@@ -41,6 +38,7 @@ Version 2023-rc.1 (released 02.02.23)
 -  basis and auxbasis are written to QMMM checkpoint file (#1030)
 -  iterations_max can now be zero (#1033)
 -  add an XML check to csg_inverse (#1031)
+mc and add propane/imc-ibiintra to csg-tutorials (#821)/a -  remove stable branch workflow (#1066)
 -  fix propane/imc and add propane/imc-ibiintra to csg-tutorials (#821)
 
 Version 2022.2 (released XX.12.22)
