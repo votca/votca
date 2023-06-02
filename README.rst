@@ -16,7 +16,7 @@ Basic installation
 ::
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'v2023-rc.1'
+    version=master # or 'v2023-rc.2'
     git clone -b ${version} https://github.com/votca/votca.git
     cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix}
     cmake --build builddir --parallel <number of cores>

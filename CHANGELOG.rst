@@ -1,8 +1,11 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2023-dev
-================
+Version 2023-rc.2-dev
+=====================
+
+Version 2023-rc.2 (released XX.06.23)
+=====================================
 
 -  add note on gmx build for install (#1052)
 -  fix typos in esp2multipole options (#1054)
