@@ -171,6 +171,6 @@ jobs:
           path: builddir/userdoc
           token: ${{ secrets.VOTCA_BOT_TOKEN || github.token }}
       - name: Deploy Doxygen and Website
-        if: ${{ matrix.deploy && steps.setup.outputs.build_sphinx == 'true' }}
+        if: ${{ matrix.deploy && github.repository_owner == 'votca' && steps.setup.outputs.build_sphinx == 'true' }}
         run: ${GITHUB_WORKSPACE}/.github/workflows/deploy.sh
         working-directory: builddir
