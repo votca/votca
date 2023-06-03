@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -32,19 +32,12 @@ namespace xtp {
 
 class QMToolFactory : public tools::ObjectFactory<std::string, QMTool> {
 
- private:
-  QMToolFactory() = default;
-
  public:
-  static void RegisterAll(void);
+  QMToolFactory() { this->RegisterAll(); };
 
-  friend QMToolFactory &QMTools();
+ private:
+  void RegisterAll();
 };
-
-inline QMToolFactory &QMTools() {
-  static QMToolFactory instance_;
-  return instance_;
-}
 
 }  // namespace xtp
 }  // namespace votca

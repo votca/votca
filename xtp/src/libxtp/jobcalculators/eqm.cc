@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -37,7 +37,7 @@ namespace xtp {
 
 void EQM::ParseSpecificOptions(const tools::Property& options) {
 
-  QMPackageFactory::RegisterAll();
+  QMPackageFactory{};
 
   // job tasks
   std::string tasks_string = options.get(".tasks").as<std::string>();
@@ -160,7 +160,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     dft_logger.setPreface(Log::debug, (format("\nDFT DBG ...")).str());
     std::string package = package_options_.get(".name").as<std::string>();
     std::unique_ptr<QMPackage> qmpackage =
-        QMPackageFactory::QMPackages().Create(package);
+        QMPackageFactory().Create(package);
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(work_dir);
     qmpackage->Initialize(package_options_);

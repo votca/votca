@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,8 @@ BOOST_AUTO_TEST_SUITE(density_filter_test)
 BOOST_AUTO_TEST_CASE(coeffs_test) {
 
   libint2::initialize();
-  FilterFactory::RegisterAll();
-  std::unique_ptr<StateFilter_base> rho_f =
-      std::unique_ptr<StateFilter_base>(Filter().Create("density"));
+  FilterFactory factory;
+  std::unique_ptr<StateFilter_base> rho_f = factory.Create("density");
 
   std::ofstream opt("density_filter.xml");
   opt << "<density>0.0045</density>" << std::endl;
