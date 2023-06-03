@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2023-rc.2-dev
 =====================
 
+-  fix Changelog check (#1070)
+
 Version 2023-rc.2 (released 02.06.23)
 =====================================
 

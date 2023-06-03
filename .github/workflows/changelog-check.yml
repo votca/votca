@@ -22,7 +22,7 @@ jobs:
             echo "::error ::Please update CHANGELOG.rst"
             exit 1
           fi
-          if ! grep '#${{ github.event.issue.number }}' CHANGELOG.rst; then
-            echo "::error ::PR number (#${{ github.event.issue.number }}) not mentioned in CHANGELOG.rst"
+          if ! grep '#${{ github.event.pull_request.number }}' CHANGELOG.rst; then
+            echo "::error ::PR number (#${{ github.event.pull_request.number }}) not mentioned in CHANGELOG.rst"
             exit 1
           fi
