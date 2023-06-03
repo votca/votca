@@ -34,6 +34,7 @@ file(GLOB_RECURSE PYXTP_FILES pyxtp/*.py)
 message(STATUS "PYTHON INSTALL: ${CMAKE_INSTALL_PYTHON_LIBDIR}")
 install(FILES ${PYXTP_FILES} DESTINATION ${CMAKE_INSTALL_PYTHON_LIBDIR}/pyxtp)
 
+# copy py files to build dir, so CMAKE_CURRENT_BINARY_DIR is a complete py module with script and xtp_binds
 foreach(_PYFILE ${PYXTP_FILES})
   get_filename_component(_FILE "${_PYFILE}" NAME)
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_FILE}
