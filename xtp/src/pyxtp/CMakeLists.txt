@@ -25,18 +25,14 @@ target_include_directories(xtp_binds PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_S
 
 target_link_libraries(xtp_binds PUBLIC VOTCA::votca_xtp)
 
-if(NOT PYTHON_INSTDIR)
-  execute_process(
-    COMMAND
-      ${Python_EXECUTABLE} -c
-      "import distutils.sysconfig as cg; print(cg.get_python_lib(plat_specific=True, standard_lib=False))"
-    OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-endif(NOT PYTHON_INSTDIR)
-install(TARGETS xtp_binds LIBRARY DESTINATION ${PYTHON_INSTDIR}/pyxtp)
+if(NOT CMAKE_INSTALL_PYTHON_LIBDIR)
+  set(CMAKE_INSTALL_PYTHON_LIBDIR "${CMAKE_INSTALL_LIBDIR}/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages")
+endif()
+install(TARGETS xtp_binds LIBRARY DESTINATION ${CMAKE_INSTALL_PYTHON_LIBDIR}/pyxtp)
 
 file(GLOB_RECURSE PYXTP_FILES pyxtp/*.py)
-message(STATUS "PYTHON INSTALL: ${PYTHON_INSTDIR}")
-install(FILES ${PYXTP_FILES} DESTINATION ${PYTHON_INSTDIR}/pyxtp)
+message(STATUS "PYTHON INSTALL: ${CMAKE_INSTALL_PYTHON_LIBDIR}")
+install(FILES ${PYXTP_FILES} DESTINATION ${CMAKE_INSTALL_PYTHON_LIBDIR}/pyxtp)
 
 foreach(_PYFILE ${PYXTP_FILES})
   get_filename_component(_FILE "${_PYFILE}" NAME)
