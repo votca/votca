@@ -4,9 +4,10 @@ For more detailed information about the changes see the history of the
 Version 2023-rc.2-dev
 =====================
 
+-  fix Changelog check (#1070)
 -  add python bindings for xtp (#1061)
 
-Version 2023-rc.2 (released XX.06.23)
+Version 2023-rc.2 (released 02.06.23)
 =====================================
 
 -  add note on gmx build for install (#1052)
@@ -20,7 +21,9 @@ Version 2023-rc.2 (released XX.06.23)
 -  update ccaching in CI (#1048, #1050)
 -  add support for gmx-2023 api (#1059)
 -  updated formatting (#1062)
+-  remove stable branch workflow (#1066)
 -  Refactor changelog actions (#1068)
+-  fix CI build with icpx (#1018)
 
 Version 2023-rc.1 (released 02.02.23)
 =====================================
@@ -43,13 +46,7 @@ Version 2023-rc.1 (released 02.02.23)
 -  basis and auxbasis are written to QMMM checkpoint file (#1030)
 -  iterations_max can now be zero (#1033)
 -  add an XML check to csg_inverse (#1031)
-mc and add propane/imc-ibiintra to csg-tutorials (#821)/a -  remove stable branch workflow (#1066)
 -  fix propane/imc and add propane/imc-ibiintra to csg-tutorials (#821)
-
-Version 2022.2 (released XX.12.22)
-==================================
-
--  fix CI build with icpx (#1018)
 
 Version 2022.1 (released 21.12.22)
 ==================================
