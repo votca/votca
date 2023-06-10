@@ -24,6 +24,7 @@ ${0##*/}, version %version%
 This file defines some commonly used functions:
 
 EOF
+# what is this?
 sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1  -- \2/p' ${0}
 echo
 exit 0
@@ -165,7 +166,7 @@ do_external() { #takes two tags, find the according script and excute it
   script="$(source_wrapper $1 $2)" || die "${FUNCNAME[0]}: source_wrapper $1 $2 failed"
   tags="$1 $2"
   [[ $1 != "function" && ! -x ${script/ *} ]] && die "${FUNCNAME[0]}: subscript '${script/ *}' (from tags $tags), is not executable! (Run chmod +x ${script/ *})"
-  #print this message to stderr to allow $(do_external ) and do_external XX > 
+  #print this message to stderr to allow $(do_external ) and do_external XX >
   [[ $quiet = "no" ]] && echo "Running subscript '${script##*/}${3:+ }${@:3}' (from tags $tags) dir ${script%/*}" >&2
   # in debugmode we don't need to do anything special for $1 = function as set -x is already done
   if [[ -n $CSGDEBUG ]] && [[ -n "$(sed -n '1s@bash@XXX@p' "${script/ *}")" ]]; then
@@ -214,8 +215,8 @@ for_all (){ #do something for all interactions (1st argument)
     for name in "${interactions[@]}"; do
       #check if interaction is actually angle, bond or dihedral
       if is_part "$bondtype" "angle bond dihedral"; then
-	rbondtype=$(bondtype="$ibondtype" bondname="$name" csg_get_interaction_property bondtype)
-	[[ $rbondtype = $bondtype ]] || continue
+        rbondtype=$(bondtype="$ibondtype" bondname="$name" csg_get_interaction_property bondtype)
+        [[ $rbondtype = $bondtype ]] || continue
       fi
       #print this message to stderr to avoid problem with $(for_all something)
       [[ $quiet = no ]] && echo "for_all: run '$*' for interaction named '$name'" >&2
@@ -230,6 +231,25 @@ for_all (){ #do something for all interactions (1st argument)
   done
 }
 export -f for_all
+
+for_all_states() {  # do something for all states when multistate, otherwise execute once
+  local quiet="no"
+  [[ $1 = "-q" ]] && quiet="yes" && shift
+  if [[ $multistate == true ]]; then
+    state_names="$(csg_get_property cg.inverse.multistate.state_names)"
+    for state in $state_names; do
+      [[ $quiet == no ]] && msg "for state ${state}:"
+      pushd "$state"
+      CSG_CALLSTACK="$(show_callstack)" \
+      "${BASH}" -c "$*" || die "${FUNCNAME[0]}: ${BASH} -c '$*' failed for state '$state'"
+      popd
+    done
+  else
+    CSG_CALLSTACK="$(show_callstack)" \
+    "${BASH}" -c "$*" || die "${FUNCNAME[0]}: ${BASH} -c '$*' failed"
+  fi
+}
+export -f for_all_states
 
 csg_get_interaction_property () { #gets an interaction property from the xml file, should only be called from inside a for_all loop or with --all option
   local ret allow_empty="no" for_all="no" xmltype
@@ -364,6 +384,19 @@ csg_get_property () { #get an property from the xml file
   echo "${ret}"
 }
 export -f csg_get_property
+
+csg_get_property_substitute () { #get an property from the xml file and substitute the $state variable if multistate
+  # main use for this is the possibility to save the trajectory of each state with a distinct name on a different file system
+  local value multistate state
+  multistate="$(csg_get_property cg.inverse.multistate.enabled)"
+  if [[ $multistate == true ]]; then
+    export state=$(get_state_dir)
+  fi
+  value="$(csg_get_property "$@")"
+  value=$(bash -c "echo $value")
+  echo "$value"
+}
+export -f csg_get_property_substitute
 
 trim_all() { #make multiple lines into one and strip white space from beginning and the end, reads from stdin
   [[ -n "$(type -p tr)" ]] || die "${FUNCNAME[0]}: Could not find tr"
@@ -503,6 +536,28 @@ get_last_step_dir() { #print the directory of the last step
 }
 export -f get_last_step_dir
 
+get_state_dir() { # print the name of the state, from $PWD
+  local step_dir
+  step_dir=$(get_current_step_dir --no-check)
+  [[ ${PWD/${step_dir}} == ${PWD} ]] && die "get_state_dir failed: not currently in a sub directory of a step dir"
+  [[ -n ${PWD/*${step_dir}} ]] || die "get_state_dir failed: currently in a step dir, not in a state dir"
+  # remove absolute path, step_dir and trailing slash
+  echo ${PWD/*${step_dir}\/}
+}
+export -f get_state_dir
+
+get_state_nr() { # print the nr of the state, from $PWD
+  local state states i
+  state=$(get_state_dir)
+  states=( $(csg_get_property cg.inverse.multistate.state_names) )
+  for i in ${!states[@]}; do
+    if [[ ${states[$i]} == $state ]]; then
+      echo "${i}";
+    fi
+  done
+}
+export -f get_state_nr
+
 get_main_dir() { #print the main directory
   [[ -z $CSG_MAINDIR ]] && die "${FUNCNAME[0]}: CSG_MAINDIR is defined"
   [[ -d $CSG_MAINDIR ]] || die "${FUNCNAME[0]}: $CSG_MAINDIR is not dir"
@@ -545,6 +600,15 @@ cp_from_main_dir() { #copy something from the main directory
   critical popd
 }
 export -f cp_from_main_dir
+
+cp_from_state_dir() { #copy something from a state folder in the main directory
+  critical pushd "$(get_main_dir)/$1"
+  shift
+  echo "cp_from_state_dir: '$@'"
+  critical cp $@ "$(dirs -l +1)"
+  popd
+}
+export -f cp_from_state_dir
 
 cp_from_last_step() { #copy something from the last step
   if [[ $1 = "--rename" ]]; then
@@ -600,14 +664,14 @@ get_table_comment() { #get comment lines from a table and add common information
   echo "called from $version" | sed "s/csg_call/${0##*/}/"
   [[ -n "${CSGXMLFILE}" ]] && echo "settings file: '$(globalize_file "${CSGXMLFILE}")'"
   echo "working directory: $PWD"
-  if [[ -f $1 ]]; then 
+  if [[ -f $1 ]]; then
     co=$(sed -n 's/^[#@][[:space:]]*//p' "$1") || die "${FUNCNAME[0]}: sed failed"
     [[ -n $co ]] && echo "Comments from $(globalize_file $1):\n$co"
   fi
 }
 export -f get_table_comment
 
-csg_inverse_clean() { #clean out the main directory 
+csg_inverse_clean() { #clean out the main directory
   local i files log t
   [[ -n $1 ]] && t="$1" || t="30"
   log="$(csg_get_property cg.inverse.log_file 2>/dev/null)"
@@ -754,7 +818,7 @@ csg_calc() { #simple calculator, a + b, ...
        res=""
        true;;
     *)
-       die "${FUNCNAME[0]}: unknow operation" 
+       die "${FUNCNAME[0]}: unknow operation"
        true;;
   esac
   [[ -n $res ]] && echo "$res"
@@ -872,7 +936,7 @@ export -f enable_logging
 get_restart_file() { #print the name of the restart file to use
   local file
   file="$(csg_get_property cg.inverse.restart_file)"
-  [[ -z ${file/*\/*} ]] && die "${FUNCNAME[0]}: cg.inverse.restart_file has to be a local file with slash '/'"
+  [[ -z ${file/*\/*} ]] && die "${FUNCNAME[0]}: cg.inverse.restart_file has to be a local file without slash '/'"
   echo "$file"
 }
 export -f get_restart_file
@@ -923,6 +987,15 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
 }
 export -f check_for_obsolete_xml_options
 
+resample_intra_if_present() {  # resample target_intra if the file exists and specified in the settings
+  name=$(csg_get_interaction_property name)
+  target_intra="$(csg_get_interaction_property --allow-empty inverse.target_intra)"
+  if [[ -n $target_intra ]]; then
+    do_external resample target --no-extrap --skip-if-missing "$target_intra" "${name}.dist-intra.tgt"
+  fi
+}
+export -f resample_intra_if_present
+
 command_not_found_handle() { #print and error message if a command or a function was not found
   die "Command/function $1 not found (when calling from csg_call you might need to add --simprog option or set cg.inverse.program in the xml file)"
 }
@@ -931,7 +1004,6 @@ export -f command_not_found_handle
 #in bash4 this is not needed, but for older bash we add add a failback from most important simulation functions
 for i in simulation_finish checkpoint_exist get_simulation_setting; do
   eval $i\(\) { command_not_found_handle $i\; }
-  eval export -f $i 
+  eval export -f $i
 done
 unset i
-

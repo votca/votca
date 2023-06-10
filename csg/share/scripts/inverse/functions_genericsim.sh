@@ -26,8 +26,16 @@ sed -n 's/^\(.*\)([)] {[^#]*#\(.*\)$/* \1   -- \2/p' ${0}
 fi
 
 simulation_finish() { #checks if simulation is finished
-  local traj sim_prog
+  local traj sim_prog multistate state
   sim_prog="$(csg_get_property cg.inverse.program)"
+  multistate="$(csg_get_property cg.inverse.multistate.enabled)"
+  if [[ $multistate == true ]]; then
+    # allow the use of variables, especially state, in the trajectory name when multistate
+    export state=$(get_state_dir)
+    traj=$(csg_get_property_substitute cg.inverse.$sim_prog.traj)
+  else
+    traj=$(csg_get_property cg.inverse.gromacs.traj)
+  fi
   traj="$(csg_get_property cg.inverse.$sim_prog.traj)"
   [[ -f $traj ]] && return 0 
   return 1

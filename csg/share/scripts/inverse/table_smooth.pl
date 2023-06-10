@@ -62,4 +62,3 @@ if($flag_cur[$#pot_cur] eq "i") {
 }
 
 saveto_table($outfile,@r_cur,@pot,@flag_cur) || die "$progname: error at save table\n";
-

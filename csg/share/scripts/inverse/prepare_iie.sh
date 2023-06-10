@@ -18,80 +18,67 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script prepares potentials in a generic way
+This script calculates dc/dh once for all iie steps
 
 Usage: ${0##*/}
 EOF
    exit 0
 fi
 
-sim_prog="$(csg_get_property cg.inverse.program)"
-method="$(csg_get_property cg.inverse.method)"
-initial_guess_method="$(csg_get_property "cg.inverse.${method}.initial_guess.method")"
-verbose=$(csg_get_property cg.inverse.iie.verbose)
+do_external prepare generic
 
-if [ "${verbose}" == 'true' ]; then
-    verbose_flag="--verbose"
-elif [ "${verbose}" == 'false' ]; then
-    verbose_flag=""
-else
-    die "verbose has to be 'true' or 'false'"
-fi
+use_target_dcdh="$(csg_get_property cg.inverse.iie.use_target_dcdh)"
+if [[ $use_target_dcdh == 'true' ]]; then
+  if [[ -f $(get_main_dir)/dcdh.npz ]]; then
+    msg "dcdh.npz is already present in main dir, using it."
+    exit 0
+  fi
+  msg "Calculating dc/dh for all later iterations"
 
-case "$initial_guess_method" in
-"table")
-    for_all "bonded non-bonded" do_external prepare_single generic --use-table
-    ;;
-"bi")
-    for_all "bonded non-bonded" do_external prepare_single generic --use-bi
-    ;;
-"ie")
-    main_dir=$(get_main_dir)
-    nb_interactions=$(csg_get_property --allow-empty cg.non-bonded.name)
-    kBT="$(csg_get_property cg.inverse.kBT)"
-    densities="$(csg_get_property cg.inverse.iie.densities)"
-    n_intra="$(csg_get_property cg.inverse.iie.n_intra)"
-    cut_off="$(csg_get_property cg.inverse.iie.cut_off)"
-    # only for IE
-    initial_guess_closure=$(csg_get_property "cg.inverse.${method}.initial_guess.closure")
-    initial_guess_ignore_intra=$(csg_get_property "cg.inverse.${method}.initial_guess.ignore_intramolecular_correlation")
+  # make sure dist and dist-intra are here
+  for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
+  if [[ $(csg_get_property cg.inverse.initial_guess.method) != ie ]]; then
+    # resample intramolecular only if present. Later iie.py will only load the ones that are needed
+    for_all "non-bonded" do_external resample target --no-extrap --skip-if-missing '$(csg_get_interaction_property inverse.target_intra)' '$(csg_get_interaction_property name).dist-intra.tgt'
+  fi
 
-    # bonded distributions inversion
-    for_all "bonded" do_external prepare_single generic --use-bi
-    # resample all target distributions
-    for_all "non-bonded" do_external resample target '$(csg_get_interaction_property inverse.target)' '$(csg_get_interaction_property name).dist.tgt'
+  # verbose
+  verbose=$(csg_get_property cg.inverse.verbose)
+  step_nr=$(get_current_step_nr)
+  [[ "${verbose}" == 'true' ]] && verbose_flag="--verbose"
+  [[ "${verbose}" == 'step0+1' ]] && [[ $step_nr == '0' || $step_nr == '1' ]] && verbose_flag="--verbose"
 
-    # initial guess from rdf with hnc or py
-    # todo: implement propper extrapolation (use raw, then extrapolate)
-    if [[ "${initial_guess_ignore_intra}" == "false" && $n_intra -gt 1 ]]; then
-        critical cp -t . "${main_dir}/$(printf '%s.dist-incl.tgt' "$nb_interactions")"
-        G_tgt_flag="--G-tgt $(printf '%s.dist-incl.tgt' "$nb_interactions")"
-    else
-        G_tgt_flag=""
-    fi
+  # topology for molecular conections and volume
+  topol=$(csg_get_property cg.inverse.topol_xml)
+  [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
 
-    # do not put quotes around arguments with values ($G_tgt_flag)!
-    # this will give a codacy warning :/
-    msg "Using initial guess for non-bonded interactions using integral equations"
-    do_external dist invert_iie potential_guess \
-    "$verbose_flag" \
-    --closure "$initial_guess_closure" \
-    --g-tgt $(printf "%s.dist.tgt" "$nb_interactions") \
-    $G_tgt_flag \
-    --U-out $(printf "%s.pot.new" "$nb_interactions") \
-    --kBT "$kBT" --densities "$densities" --cut-off "$cut_off" \
-    --n-intra "$n_intra"
-    ;;
-*)
-    die "cg.inverse.${method}.initial_guess has to be either table, bi, or ie"
-    ;;
-esac
+  # volume and k_B*T
+  volume=$(critical csg_dump --top "$topol" | grep 'Volume' | awk '{print $2}')
+  ([[ -n "$volume" ]] && is_num "$volume") || die "could not determine the volume from file ${topol}."
+  kbt="$(csg_get_property cg.inverse.kBT)"
+  ([[ -n "$kbt" ]] && is_num "$kbt") || die "could not determine kBT from options file."
 
+  # cut residual
+  iie_algorithm="$(csg_get_property cg.inverse.iie.algorithm)"
+  if [[ $iie_algorithm == 'newton' ]]; then
+    cut_residual="$(csg_get_property cg.inverse.newton.cut_off)"
+    ([[ -n "$cut_residual" ]] && is_num "$cut_residual") || die "could not get cut-off (./inverse/newton/cut_off) from options file."
+  elif [[ $iie_algorithm == 'gauss-newton' ]]; then
+    cut_residual="$(csg_get_property cg.inverse.gauss_newton.cut_residual)"
+    ([[ -n "$cut_residual" ]] && is_num "$cut_residual") || die "could not get cut-residual (./inverse/gauss_newton/cut_residual) from options file."
+  else
+    die "${0##*/}: value of cg.inverse.iie.algorithm must be newton or gauss-newton"
+  fi
 
-if [[ $sim_prog != gromacs ]] ; then
-  msg --color blue "######################################################"
-  msg --color blue "# WARNING using this simulator is still experimental #"
-  msg --color blue "# If you find a problem report it under:             #"
-  msg --color blue "# https://github.com/votca/csg                       #"
-  msg --color blue "######################################################"
+  # calculate dcdh
+  do_external dist invert_iie dcdh \
+  ${verbose_flag-} \
+  --volume "$volume" \
+  --kBT "$kbt" \
+  --topol "$topol" \
+  --options "$CSGXMLFILE" \
+  --g-tgt-ext "dist.tgt" \
+  --g-tgt-intra-ext "dist-intra.tgt" \
+  --cut-residual "$cut_residual" \
+  --out $(get_main_dir)/dcdh.npz
 fi

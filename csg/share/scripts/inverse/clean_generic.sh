@@ -25,7 +25,13 @@ EOF
     exit 0
 fi
 
-cleanlist="$(csg_get_property --allow-empty cg.inverse.cleanlist)"
+multistate=$(csg_get_property cg.inverse.multistate.enabled)
+if [[ $multistate == true ]]; then
+  export state=$(get_state_dir)
+  cleanlist=$(csg_get_property_substitute --allow-empty cg.inverse.cleanlist)
+else
+  cleanlist=$(csg_get_property --allow-empty cg.inverse.cleanlist)
+fi
 if [[ -n ${cleanlist} ]]; then
   msg "Clean up files: $cleanlist"
   #no quote to allow globbing

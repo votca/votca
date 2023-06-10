@@ -37,7 +37,7 @@ source "${VOTCASHARE}/scripts/inverse/functions_common.sh" || exit 1
 #this is needed by die later
 export CSG_MASTER_PID="$$"
 
-export CSG_MAINDIR="$PWD"
+[[ -n $CSG_MAINDIR ]] || export CSG_MAINDIR="$PWD"
 
 [[ -n $(type -p csg_property) ]] || die "csg_property not found"
 csg_property --help > /dev/null || die "Could not run 'csg_property --help'\nRun it by hand to debug the problem!"

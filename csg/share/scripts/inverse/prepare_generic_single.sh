@@ -24,37 +24,47 @@ inverting the target distribution
 Use --use-table or --use-bi to enforce the method. Otherwise it will use
 .pot.in if present and BI if not.
 
+If using --table-overwrite it will overwrite the initial guess with a table
+if one is present.
+
 Usage: ${0##*/} [--help] [--use-table|--use-bi]"
 EOF
 }
 
 use_table=false
 use_bi=false
+table_overwrite=false
 while [[ $# -gt 0 ]]
 do
-    key="$1"
+  key="$1"
 
-    case $key in
-    --use-table)
-        use_table=true
-        shift  # past argument
-        ;;
-    --use-bi)
-        use_bi=true
-        shift  # past argument
-        ;;
-    --help)
-        show_help
-        exit 0
-        ;;
-    *)
-        die "unknown argument $key"
-        ;;
-    esac
+  case $key in
+  --use-table)
+    use_table=true
+    shift  # past argument
+    ;;
+  --use-bi)
+    use_bi=true
+    shift  # past argument
+    ;;
+  --table-overwrite)
+    table_overwrite=true
+    shift  # past argument
+    ;;
+  --help)
+    show_help
+    exit 0
+    ;;
+  *)
+    die "unknown argument $key"
+    ;;
+  esac
 done
 
-if [[ ${use_table} == true && ${use_bi} == true ]]; then
-    die "use either --use-table or --use-bi"
+if [[ (${use_table} == true && ${use_bi} == true)
+  || (${use_table} == true && ${table_overwrite} == true)
+  || (${use_bi} == true && ${table_overwrite} == true) ]]; then
+  die "use either --use-table or --use-bi or --table-overwrite"
 fi
 
 name=$(csg_get_interaction_property name)
@@ -65,59 +75,45 @@ comment="$(get_table_comment)"
 main_dir=$(get_main_dir)
 bondtype="$(csg_get_interaction_property bondtype)"
 output="${name}.pot.new"
-
-function table_init() {
-    msg "Using given table ${name}.pot.in for ${name}"
-    smooth="$(critical mktemp ${name}.pot.in.smooth.XXX)"
-    echo "Converting ${main_dir}/${name}.pot.in to ${output}"
-    critical csg_resample --in "${main_dir}/${name}.pot.in" --out ${smooth} --grid ${min}:${step}:${max} --comment "$comment"
-    extrapolate="$(critical mktemp ${name}.pot.in.extrapolate.XXX)"
-    do_external potential extrapolate --type "$bondtype" "${smooth}" "${extrapolate}"
-    shifted="$(critical mktemp ${name}.pot.in.shifted.XXX)"
-    do_external potential shift --type "${bondtype}" ${extrapolate} ${shifted}
-    do_external table change_flag "${shifted}" "${output}"
-}
-
-function bi_init() {
-    target=$(csg_get_interaction_property inverse.target)
-    msg "Using initial guess from dist ${target} for ${name}"
-    #resample target dist
-    do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt" 
-    # initial guess from rdf
-    raw="$(critical mktemp ${name}.pot.new.raw.XXX)"
-    kbt="$(csg_get_property cg.inverse.kBT)"
-    dist_min="$(csg_get_property cg.inverse.dist_min)"
-    do_external dist invert --type "${bondtype}" --kbT "${kbt}" --min "${dist_min}" ${name}.dist.tgt ${raw}
-    smooth="$(critical mktemp ${name}.pot.new.smooth.XXX)"
-    critical csg_resample --in ${raw} --out ${smooth} --grid ${min}:${step}:${max} --comment "${comment}"
-    extrapolate="$(critical mktemp ${name}.pot.new.extrapolate.XXX)"
-    do_external potential extrapolate --type "$bondtype" "${smooth}" "${extrapolate}"
-    shifted="$(critical mktemp ${name}.pot.new.shifted.XXX)"
-    do_external potential shift --type "${bondtype}" ${extrapolate} ${shifted}
-    do_external table change_flag "${shifted}" "${output}"
-}
+table_overwrite="$(csg_get_property cg.inverse.initial_guess.table_overwrite)"
 
 table_present=false
 if [[ -f ${main_dir}/${name}.pot.in ]]; then
-    table_present=true
+  table_present=true
 fi
 
+# if --use-bi was used
 if [[ $use_bi == true ]]; then
-    if [[ $table_present == true ]]; then
-        msg "there is a table ${name}.pot.in present, but you still choose BI"
-    fi
-    bi_init
+  if [[ $table_present == true && $table_overwrite == true ]]; then
+    do_external initial_guess_single table
+  elif [[ $table_present == true && $table_overwrite == false ]]; then
+    msg --color blue "###########################################################################################"
+    msg --color blue "# WARNING there is a table ${name}.pot.in present, but cg.inverse.initial_guess.method=bi #"
+    msg --color blue "# and cg.inverse.initial_guess.table_overwrite=false. Using BI as initial guess           #"
+    msg --color blue "###########################################################################################"
+    do_external initial_guess_single bi
+  else
+    do_external initial_guess_single bi
+  fi
+  # if --use-table was used
 elif [[ $use_table == true ]]; then
-    if [[ $table_present != true ]]; then
-        die "missing table ${main_dir}/${name}.pot.in"
-    fi
-    table_init
+  do_external initial_guess_single table
+  # if --table-overwrite was used
+elif [[ $table_overwrite == true ]]; then
+  # use table if table exists
+  if [[ $table_present == true ]]; then
+    msg "there is a table ${name}.pot.in present, gonna use it"
+    do_external initial_guess_single table
+  fi
+  # if no table present will do nothing
 else
-    # this is the old default behaviour
-    if [[ $table_present == true ]]; then
-        msg "there is a table ${name}.pot.in present, gonna use it"
-        table_init
-    else
-        bi_init
-    fi
+  # this is the old default behaviour
+  # use table if table exists
+  if [[ $table_present == true ]]; then
+    msg "there is a table ${name}.pot.in present, gonna use it"
+    do_external initial_guess_single table
+  # use Boltzmann inversion otherwise
+  else
+    do_external initial_guess_single bi
+  fi
 fi

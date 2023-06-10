@@ -28,3 +28,13 @@ fi
 sim_prog="$(csg_get_property cg.inverse.program)"
 #convert potential in format for sim_prog
 for_all "non-bonded bonded" do_external convert_potential ${sim_prog} '$(csg_get_interaction_property name).pot.cur' '$'"(csg_get_interaction_property inverse.$sim_prog.table)"
+
+multistate="$(csg_get_property cg.inverse.multistate.enabled)"
+if [[ $multistate == true ]]; then
+  state_names="$(csg_get_property cg.inverse.multistate.state_names)"
+  for state in $state_names; do
+    pushd $state
+    for_all "non-bonded bonded" ln -s '../$(csg_get_interaction_property '"inverse.$sim_prog.table)"
+    popd
+  done
+fi

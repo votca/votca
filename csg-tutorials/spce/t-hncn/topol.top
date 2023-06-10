@@ -1,0 +1,21 @@
+[ defaults ]
+;nbfunc  comb-rule  gen-pairs  fudgeLJ  fudgeQQ
+1        1          no         1.0      1.0
+
+[ atomtypes ]
+;atomname  mass     charge  type  C6   C12
+CG         18.0154  0.0     A     0.0  1.0
+
+[ moleculetype ]
+;molname  nrexcl
+SOL       1
+
+[ atoms ]
+;id  at-type  res-nr  res-name  at-name  cg-nr  charge
+1    CG       1       SOL       CG       1      0
+
+[ system ]
+coarse grained SPCE water
+
+[ molecules ]
+SOL  2180

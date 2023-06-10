@@ -1,0 +1,11 @@
+<topology>
+  <box xx="6.04233" yy="6.04233" zz="6.04233" />
+  <molecules>
+    <molecule name="hexane" nmols="1000" nbeads="3">
+      <bead name="A1" type="A" mass="29.061999" q="0.0" />
+      <bead name="B" type="B" mass="28.053999" q="0.0" />
+      <bead name="A2" type="A" mass="29.061999" q="0.0" />
+    </molecule>
+  </molecules>
+  <bonded />
+</topology>

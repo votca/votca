@@ -35,4 +35,3 @@ scale=$(csg_get_interaction_property inverse.post_update_options.scale)
 echo "scaling potential for $name update by factor $scale"
 
 do_external table linearop "$1" "$2" $scale 0
-

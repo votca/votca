@@ -14,11 +14,11 @@
 # limitations under the License.
 #
 
-#general scripts
+# general scripts
 tag file tag_file.sh
 dummy dummy dummy.sh
 
-#only here for building the manual (not actually used)
+# only here for building the manual (not actually used)
 functions common functions_common.sh
 csg master inverse.sh
 
@@ -33,15 +33,22 @@ prepare imc prepare_imc.sh
 prepare generic prepare_generic.sh
 prepare optimizer prepare_optimizer.sh
 prepare re prepare_re.sh
-prepare_single ibi prepare_generic_single.sh
-prepare_single imc prepare_generic_single.sh
 prepare_single generic prepare_generic_single.sh
 prepare_single optimizer prepare_optimizer_single.sh
+prepare multistate_generic prepare_multistate_generic.sh
+prepare multistate_ibi prepare_multistate_generic.sh
+prepare multistate_iie prepare_multistate_iie.sh
+initstep generic initialize_step_generic.sh
 initstep ibi initialize_step_generic.sh
 initstep iie initialize_step_generic.sh
 initstep imc initialize_step_generic.sh
 initstep optimizer initialize_step_optimizer.sh
 initstep re initialize_step_re.sh
+
+# aditional scripts for the initial guess
+initial_guess ie initial_guess_ie.sh
+initial_guess_single bi initial_guess_single_bi.sh
+initial_guess_single table initial_guess_single_table.sh
 
 # the update step
 
@@ -102,7 +109,6 @@ postadd shift postadd_shift.sh
 postadd overwrite postadd_overwrite.sh
 postadd plot postadd_plot.sh
 postadd average postadd_average.sh
-postadd smooth_at_cut_off postadd_smooth_at_cut_off.sh
 
 #convergence checks
 convergence_check default convergence_check_default.sh
@@ -114,16 +120,26 @@ resample target resample_target.sh
 update ibi update_ibi.sh
 update ibi_single update_ibi_single.sh
 update ibi_pot update_ibi_pot.pl
+update multistate_ibi update_multistate_ibi.sh
+update multistate_ibi_single update_multistate_ibi_single.sh
 
 # iie specific stuff
-update iie update_iie.sh
-update iie_pot iie.py
 dist invert_iie iie.py
-rdf_incl_intra generic calc_rdf_generic.sh
+update iie update_iie.sh
+update multistate_iie update_multistate_iie.sh
+generate iie_jacobian iie.py
 
 # imc specific stuff
 update imc update_imc.sh
 update imc_single update_imc_single.sh
+convert imc_matrix imc_matrix_to_jacobian.py
+
+# common iie, imc
+update gauss_newton update_gauss_newton.sh
+update newton update_newton.sh
+update gauss_newton_py gauss_newton.py
+update newton_py gauss_newton.py
+update multistate_gauss_newton update_multistate_gauss_newton.sh
 
 # optimzer(generic) stuff
 optimizer prepare_state optimizer_prepare_state.sh
@@ -166,7 +182,6 @@ table integrate table_integrate.pl
 table extrapolate table_extrapolate.pl
 table merge merge_tables.pl
 table smooth table_smooth.pl
-table smooth_at_cut_off table_smooth_at_cut_off.py
 table linearop table_linearop.pl
 #do not use table functional here as it needs gnuplot
 table dummy table_dummy.sh
@@ -178,6 +193,8 @@ table average table_average.sh
 table scale table_scale.pl
 table change_flag table_change_flag.sh
 table functional table_functional.sh
+table remove_error table_remove_error.sh
+table zero_behind_cut_off table_zero_behind_cut_off.py
 
 # generic potential manipulation
 potential extrapolate potential_extrapolate.sh
@@ -187,7 +204,7 @@ convert_potential tab table_to_tab.pl
 # generic distribution manipulation
 dist adjust dist_adjust.pl
 dist invert dist_boltzmann_invert.pl
-
+dist improve_near_core dist_improve_near_core.py
 
 # error analysis
 tables jackknife tables_jackknife.pl
@@ -198,6 +215,7 @@ initstep gromacs initialize_step_genericsim.sh
 run gromacs run_gromacs.sh
 clean gromacs clean_generic.sh
 presimulation gromacs run_gromacs.sh --pre
+potential_energy gromacs calc_potential_energy_gromacs.sh
 pressure gromacs calc_pressure_gromacs.sh
 pressure lammps calc_pressure_lammps.sh
 rdf gromacs calc_rdf_generic.sh

@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,23 +18,20 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implements smoothing of the potential (.pot) at the cut off
+This script implements the function update for the multistate Inverse Boltzmann Method
 
-Usage: ${0##*/} infile outfile
+Usage: ${0##*/}
 EOF
    exit 0
 fi
 
-[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
-
-[ -f "$2" ] && die "${0##*/}: $2 is already there"
-
-name=$(csg_get_interaction_property name)
-tmpfile=$(critical mktemp "${name}.XXX")
-cut_off=$(csg_get_interaction_property max)
-
-critical cp "$1" "${tmpfile}"
-echo "smoothing near cut-off for interaction ${name}"
-
-critical do_external table smooth_at_cut_off "${tmpfile}" "$2" --cut-off="${cut_off}"
-critical rm -f "${tmpfile}"
+sim_prog="$(csg_get_property cg.inverse.program)"
+state_names="$(csg_get_property cg.inverse.multistate.state_names)"
+#if using csg_stat, like in the case of gromacs 'for_all' is actually not needed
+#but in case of espresso the rdfs are calculated seperately
+for state in $state_names; do
+  pushd "$state"
+  for_all "non-bonded bonded" do_external rdf $sim_prog
+  popd
+done
+for_all "non-bonded bonded" do_external update multistate_ibi_single

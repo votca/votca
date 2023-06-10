@@ -6,23 +6,23 @@ dt = 0.004
 nstxout = 0
 nstvout = 0
 nstlog = 100
-nstenergy = 100
-nstxout-compressed = 10
+nstenergy = 1000
+nstxout-compressed = 50
 
 ; Neighbour searching
 cutoff-scheme = Group
-rlist = 0.9
+rlist = 1.4
 
 ; Electrostatic interactions
 coulombtype = User
-rcoulomb = 0.9
+rcoulomb = 1.4
 
 ; vdW Interactions
 vdwtype = User
-rvdw = 0.9
+rvdw = 1.4
 
 ; Temperature coupling
-tau-t = 0.5
+tau-t = 0.2
 ref-t = 300
 tc-grps = System
 
@@ -33,6 +33,6 @@ Pcoupl = no
 gen-vel = no
 
 ; tabulated potentials
-energygrps = CG
-energygrp-table = CG CG
+energygrps = UR SOL
+energygrp-table = UR UR  SOL SOL  UR SOL
 table-extension = 1

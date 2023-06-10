@@ -8,8 +8,8 @@
   <type2>UR</type2>
   <!-- dimension + grid spacing of tables for calculations -->
   <min>0</min>
-  <max>1.4</max>
-  <step>0.01</step>
+  <max>3.6</max>
+  <step>0.004</step>
  </non-bonded>
    
  <non-bonded>
@@ -20,8 +20,8 @@
   <type2>SOL</type2>
   <!-- dimension + grid spacing of tables for calculations -->
   <min>0</min>
-  <max>1.4</max>
-  <step>0.01</step>
+  <max>3.6</max>
+  <step>0.004</step>
  </non-bonded>
 
  <non-bonded>
@@ -32,7 +32,7 @@
   <type2>SOL</type2>
   <!-- dimension + grid spacing of tables for calculations -->
   <min>0</min>
-  <max>1.4</max>
-  <step>0.01</step>
+  <max>3.6</max>
+  <step>0.004</step>
  </non-bonded>
 </cg>
