@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import os
 from lxml import etree
 from lxml.etree import Element, ElementTree
-
+from copy import deepcopy 
 
 def update_xml_text(xml: ElementTree, dict_options: dict) -> ElementTree:
     """update default option files with the user define options
@@ -17,14 +17,17 @@ def update_xml_text(xml: ElementTree, dict_options: dict) -> ElementTree:
         ET.ElementTree: xml structure containing the update options.
     """
 
+    # copy the xml tree
+    xml_cpy = deepcopy(xml)
+
     # replace text value of the dict elements
     for key, value in dict_options.items():
         try:
-            xml.find('.//'+key).text = str(value)
+            xml_cpy.find('.//'+key).text = str(value)
         except Exception as e:
             print(e)
             print(key, ' not found ')
-    return xml
+    return xml_cpy
 
 
 def insert_linked_xmlfiles(tree: ElementTree, base_path: str) -> None:

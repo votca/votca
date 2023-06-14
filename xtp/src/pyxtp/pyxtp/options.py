@@ -58,13 +58,13 @@ class Options:
         options = self._opts.to_flat_dict()
 
         # update the options from the user provided input
-        self._xml_tree = update_xml_text(self._xml_tree, options)
+        xml_tree_cpy = update_xml_text(self._xml_tree, options)
 
         # remove the empty elements
-        self._xml_tree = remove_empty_text_elements(self._xml_tree)
+        xml_tree_cpy = remove_empty_text_elements(xml_tree_cpy)
 
         # write the file
-        self._xml_tree.write(filename)
+        xml_tree_cpy.write(filename)
 
 
 class _Opts_t:
