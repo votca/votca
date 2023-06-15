@@ -4,6 +4,7 @@ For more detailed information about the changes see the history of the
 Version 2023-rc.2-dev
 =====================
 
+-  fix pyxtp option restart (#1074)
 -  fix Changelog check (#1070)
 -  add python bindings for xtp (#1061)
 

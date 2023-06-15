@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import os
 from lxml import etree
 from lxml.etree import Element, ElementTree
-from copy import deepcopy 
+from copy import deepcopy
 
 def update_xml_text(xml: ElementTree, dict_options: dict) -> ElementTree:
     """update default option files with the user define options
