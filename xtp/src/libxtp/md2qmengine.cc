@@ -143,20 +143,31 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
   std::string molkey = "topology.molecules.molecule";
   std::vector<tools::Property*> molecules = topology_map.Select(molkey);
   std::string segkey = "segments.segment";
+
+  // now go through all molecules defined in the mapping 
   for (tools::Property* mol : molecules) {
+    // get the name of this molecule
     std::string molname = mol->get("mdname").as<std::string>();
+    // get all segment-mapping info 
     std::vector<tools::Property*> segments = mol->Select(segkey);
     std::vector<std::string> segnames;
     std::vector<Index> atomids;
+    // now go through all the defined segments
     for (tools::Property* seg : segments) {
+      // get the name of this segment and add to segnames vector
       std::string segname = seg->get("name").as<std::string>();
       segnames.push_back(segname);
       std::string fragkey = "fragments.fragment";
+      // get all fragement mapping info
       std::vector<tools::Property*> fragments = seg->Select(fragkey);
+      // go over all fragments in this segement
       for (tools::Property* frag : fragments) {
+        // get all mdatom names from this fragment
         std::vector<std::string> atomnames =
             frag->get("mdatoms").as<std::vector<std::string>>();
+        // go over all atoms
         for (const std::string& atomname : atomnames) {
+          // split atom entry at :
           tools::Tokenizer tok_atom_name(atomname, ":");
           std::vector<std::string> entries = tok_atom_name.ToVector();
           if (entries.size() != 3) {
@@ -181,26 +192,56 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
     MolToAtomIds[molname] = atomids;
     SegsinMol[molname] = segnames;
   }
-
+  // reading of all mapping file entries is done
+  std::cout << "\n Done with reading all mapping entries \n" << std::endl;
+  
+  // go through all molecules in MD topology 
   for (const csg::Molecule& mol : top.Molecules()) {
-    const std::vector<std::string> segnames = SegsinMol[mol.getName()];
 
+    std::cout << " working on molecule " << mol.getName() << "\n" << std::endl;
+
+    // lookup all segment *names* in this molecule
+    const std::vector<std::string> segnames = SegsinMol[mol.getName()];
+    std::cout << "....   number of segments " << segnames.size() << "\n" << std::endl;
+
+    
     std::map<std::string, Segment*> segments;  // we first add them to topology
                                                // and then modify them via
                                                // pointers;
     for (const std::string& segname : segnames) {
+      // trying to add segments into prepared containers 
+      std::cout << "....    adding segment " << segname << std::endl; 
       segments[segname] = &xtptop.AddSegment(segname);
+      std::cout << "         done \n" << std::endl; 
+      // trying to set molecule id to the segment
+      std::cout << "....   adding mol id " << mol.getId() << std::endl;
       segments[segname]->AddMoleculeId(mol.getId());
+            std::cout << "         done \n" << std::endl; 
+
     }
 
     Index IdOffset = DetermineAtomNumOffset(&mol, MolToAtomIds[mol.getName()]);
+    std::cout << " index offset " << IdOffset << std::endl;
+    // now go through all "beads" of the MD molecule == every atom!!! of the molecule
+    std::cout << " number of beads " << mol.BeadCount() << std::endl;
     for (const csg::Bead* bead : mol.Beads()) {
+      // get pointer to the segment informaton of the molecule name with this atom 
+      std::cout << "  looking up segment containing atom number " << bead->getId() << std::endl; 
       Segment* seg =
           segments[MolToSegMap[mol.getName()][bead->getId() - IdOffset]];
-
+    
+        std::cout << " found seg" << seg->getType() <<  std::endl;
+    
+      // trying to define the atom info to add to this segment
+      std::cout << bead->getResnr() << " " << bead->getName() << " " << bead->getId() << " " <<
+                bead->getPos() * tools::conv::nm2bohr << " " << bead->getType() << std::endl;
       Atom atom(bead->getResnr(), bead->getName(), bead->getId(),
                 bead->getPos() * tools::conv::nm2bohr, bead->getType());
-      seg->push_back(atom);
+std::cout << " made a new atom" << std::endl;
+      // trying to add an atom to the segment pointer
+      
+    seg->push_back(atom);
+      std::cout << " added atom to segemnt (pointer)" << std::endl;
     }
   }
 
