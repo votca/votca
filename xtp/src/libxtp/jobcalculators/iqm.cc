@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,9 +17,10 @@
  *
  */
 
+#include <filesystem>
+
 // Third party includes
 #include <boost/algorithm/string/split.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
 // VOTCA includes
@@ -36,14 +37,13 @@
 #include "iqm.h"
 
 using boost::format;
-using namespace boost::filesystem;
 
 namespace votca {
 namespace xtp {
 
 void IQM::ParseSpecificOptions(const tools::Property& options) {
 
-  QMPackageFactory::RegisterAll();
+  QMPackageFactory{};
 
   // job tasks
   std::string tasks_string = options.get(".tasks").as<std::string>();
@@ -213,7 +213,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   std::string pair_dir =
       (format("%1%%2%%3%%4%%5%") % "pair" % "_" % ID_A % "_" % ID_B).str();
 
-  boost::filesystem::path arg_path, arg_pathA, arg_pathB, arg_pathAB;
+  std::filesystem::path arg_path, arg_pathA, arg_pathB, arg_pathAB;
 
   std::string orbFileA =
       (arg_pathA / eqm_work_dir / "molecules" / frame_dir /
@@ -293,14 +293,14 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     dft_logger.setPreface(Log::debug, (format("\nDFT DBG ...")).str());
     std::string package = dftpackage_options_.get("name").as<std::string>();
     std::unique_ptr<QMPackage> qmpackage =
-        QMPackageFactory::QMPackages().Create(package);
+        QMPackageFactory().Create(package);
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(qmpackage_work_dir);
     qmpackage->Initialize(dftpackage_options_);
 
     // if asked, prepare the input files
     if (do_dft_input_) {
-      boost::filesystem::create_directories(qmpackage_work_dir);
+      std::filesystem::create_directories(qmpackage_work_dir);
       if (qmpackage->GuessRequested()) {
         if (linkers_.size() > 0) {
           throw std::runtime_error(
@@ -326,19 +326,19 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
                   .generic_string();
           ;
           std::string gbwFileA_workdir =
-              (boost::filesystem::path(qmpackage_work_dir) / "molA.gbw")
+              (std::filesystem::path(qmpackage_work_dir) / "molA.gbw")
                   .generic_string();
           ;
           std::string gbwFileB_workdir =
-              (boost::filesystem::path(qmpackage_work_dir) / "molB.gbw")
+              (std::filesystem::path(qmpackage_work_dir) / "molB.gbw")
                   .generic_string();
           ;
-          boost::filesystem::copy_file(
+          std::filesystem::copy_file(
               gbwFileA, gbwFileA_workdir,
-              boost::filesystem::copy_option::overwrite_if_exists);
-          boost::filesystem::copy_file(
+              std::filesystem::copy_options::overwrite_existing);
+          std::filesystem::copy_file(
               gbwFileB, gbwFileB_workdir,
-              boost::filesystem::copy_option::overwrite_if_exists);
+              std::filesystem::copy_options::overwrite_existing);
         } else {
           Orbitals orbitalsB;
           Orbitals orbitalsA;
@@ -533,7 +533,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   XTP_LOG(Log::error, pLog) << TimeStamp() << " Finished evaluating pair "
                             << ID_A << ":" << ID_B << std::flush;
   if (store_dft_ || store_gw_) {
-    boost::filesystem::create_directories(orb_dir);
+    std::filesystem::create_directories(orb_dir);
     XTP_LOG(Log::error, pLog)
         << "Saving orbitals to " << orbFileAB << std::flush;
     if (!store_dft_) {

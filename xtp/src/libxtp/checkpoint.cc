@@ -26,8 +26,7 @@
 #include <typeinfo>
 #include <vector>
 
-// Third party includes
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 // Local VOTCA includes
 #include "votca/xtp/checkpoint.h"
@@ -39,7 +38,7 @@ namespace votca {
 namespace xtp {
 
 using namespace checkpoint_utils;
-namespace bfs = boost::filesystem;
+namespace fs = std::filesystem;
 
 std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l) {
 
@@ -58,7 +57,7 @@ std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l) {
   return s;
 }
 
-bool FileExists(const std::string& fileName) { return bfs::exists(fileName); }
+bool FileExists(const std::string& fileName) { return fs::exists(fileName); }
 
 CheckpointFile::CheckpointFile(std::string fN)
     : CheckpointFile(fN, CheckpointAccessLevel::MODIFY) {}

@@ -1,6 +1,6 @@
 
 /*
- *            Copyright 2009-2021 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -30,9 +30,9 @@ namespace votca {
 namespace xtp {
 
 void SigmaFactory::RegisterAll(void) {
-  Sigma().Register<Sigma_CDA>("cda");
-  Sigma().Register<Sigma_Exact>("exact");
-  Sigma().Register<Sigma_PPM>("ppm");
+  this->Register<Sigma_CDA>("cda");
+  this->Register<Sigma_Exact>("exact");
+  this->Register<Sigma_PPM>("ppm");
 }
 }  // namespace xtp
 }  // namespace votca

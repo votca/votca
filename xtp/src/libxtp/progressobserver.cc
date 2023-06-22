@@ -192,7 +192,7 @@ template <typename JobContainer>
 void ProgObserver<JobContainer>::LockProgFile(QMThread &thread) {
   flock_ = std::unique_ptr<boost::interprocess::file_lock>(
       new boost::interprocess::file_lock(lockFile_.c_str()));
-  flock_->lock();
+  flock_->lock_sharable();
   XTP_LOG(Log::warning, thread.getLogger())
       << "Imposed lock on " << lockFile_ << std::flush;
   XTP_LOG(Log::warning, thread.getLogger())
@@ -203,7 +203,7 @@ void ProgObserver<JobContainer>::LockProgFile(QMThread &thread) {
 
 template <typename JobContainer>
 void ProgObserver<JobContainer>::ReleaseProgFile(QMThread &thread) {
-  flock_->unlock();
+  flock_->unlock_sharable();
   XTP_LOG(Log::warning, thread.getLogger())
       << "Releasing " << lockFile_ << ". " << std::flush;
 }

@@ -8,6 +8,7 @@ on:
         description: 'Deploy the release'
       tag:
         description: 'The release tag'
+        required: true
 
 jobs:
   release:
@@ -45,12 +46,12 @@ jobs:
               echo "You cannot deploy a release without explicitly setting the tag" >&2
               exit 1
             fi
-            if [[ ${branch} != stable ]]; then
-              echo "You cannot deploy from a branch that is not 'stable'" >&2
+            if [[ ${branch} != master ]]; then
+              echo "You cannot deploy from a branch that is not 'master'" >&2
               exit 1
             fi
             if [[ ${version} = *-dev ]]; then
-              echo "You cannot deploy from a dev tag" >&2
+              echo "You cannot deploy a dev tag" >&2
               exit 1
             fi
             if [[ -n "${{ github.event.inputs.cmake_args }}" ]]; then
@@ -63,7 +64,7 @@ jobs:
           fi
       - uses: actions/cache@v3
         with:
-          path: ~/.ccache
+          path: ~/.cache/ccache
           key: ccache-release-${{ steps.setup.outputs.BRANCH }}-${{ steps.setup.outputs.DATE }}
           restore-keys: ccache-release-${{ steps.setup.outputs.BRANCH }}
       - name: Make Release

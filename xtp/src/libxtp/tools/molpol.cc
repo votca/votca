@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -73,9 +73,9 @@ void MolPol::ParseOptions(const tools::Property& options) {
     // Set-up QM package
     XTP_LOG(Log::error, log)
         << "Using package <" << qm_package << ">" << std::flush;
-    QMPackageFactory::RegisterAll();
+    QMPackageFactory{};
     std::unique_ptr<QMPackage> qmpack = std::unique_ptr<QMPackage>(
-        QMPackageFactory::QMPackages().Create(qm_package));
+        QMPackageFactory().Create(qm_package));
     qmpack->setLog(&log);
     qmpack->setRunDir(".");
     qmpack->setLogFileName(log_file);

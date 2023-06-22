@@ -3,11 +3,9 @@ on:
   push:
     branches:
       - master
-      - stable
   pull_request:
     branches:
       - master
-      - stable
   schedule:
     - cron:  '0 5 * * FRI'
 
@@ -82,16 +80,16 @@ jobs:
           - distro: 'fedora:gmxpkg'
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2022'
+          - distro: 'fedora:gmx2023'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2022'
+          - distro: 'fedora:gmx2023'
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2022_d'
+          - distro: 'fedora:gmx2023_d'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2022_d'
+          - distro: 'fedora:gmx2023_d'
             toolchain: clang
             cmake_build_type: Release
           - distro: 'fedora:gmx9999'
@@ -133,7 +131,7 @@ jobs:
           cmake_args: ${{ matrix.cmake_args }}
       - uses: actions/cache@v3
         with:
-          path: ~/.ccache
+          path: ~/.cache/ccache
           key: ${{ steps.setup.outputs.cache_key }}
           restore-keys: ${{ steps.setup.outputs.cache_restore_key }}
       - name: CMake
@@ -142,7 +140,7 @@ jobs:
         run: |
           ccache -z
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
-          ccache -s
+          ccache -v -s
       - name: Tests
         run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
         working-directory: builddir
@@ -173,6 +171,6 @@ jobs:
           path: builddir/userdoc
           token: ${{ secrets.VOTCA_BOT_TOKEN || github.token }}
       - name: Deploy Doxygen and Website
-        if: ${{ matrix.deploy && steps.setup.outputs.build_sphinx == 'true' }}
+        if: ${{ matrix.deploy && github.repository_owner == 'votca' && steps.setup.outputs.build_sphinx == 'true' }}
         run: ${GITHUB_WORKSPACE}/.github/workflows/deploy.sh
         working-directory: builddir

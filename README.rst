@@ -16,7 +16,7 @@ Basic installation
 ::
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'stable' or 'v2023-rc.1'
+    version=master # or 'v2023-rc.2'
     git clone -b ${version} https://github.com/votca/votca.git
     cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix}
     cmake --build builddir --parallel <number of cores>
@@ -53,7 +53,7 @@ You find the VOTCA-CTP repository
 License:
 ########
 
-Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
 
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may

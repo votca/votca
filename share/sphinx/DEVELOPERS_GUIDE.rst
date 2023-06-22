@@ -11,7 +11,6 @@ implementing code consistent with the VOTCA and cpp style and standard.
 -  `Testing <#testing>`__
 -  `CPP Coding Style Guide <#cpp-coding-style-guide>`__
 -  `CPP Comment Guide <#cpp-comment-guide>`__
--  `Updates from stable <#updates-from-stable>`__
 -  `Failed Release Builds <#failed-release-builds>`__
 
 Reporting Bugs
@@ -67,23 +66,8 @@ Making a Release
 
 Similar to the VOTCA containers, releases are also handled by GitHub actions. :code:`votca/votca` has a :code:`release` workflow that can only be triggered manually.
 To trigger it go `this GitHub Action <https://github.com/votca/votca/actions?query=workflow%3Arelease>`_. The release can only be made from the 
-:code:`stable` branch, but testing the creation of a release can be triggered on any branch. To make a release, trigger the action from the
-:code:`stable` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag.
-
-Major releases
-~~~~~~~~~~~~~~
-
-In preparation for a major (not minor!) release the following additional steps need to be done:
-
--  Create a new branch from the master branch of the :code:`votca/votca` repository, e.g. :code:`stable_bump`.
-
-   .. code-block:: bash
-
-       git checkout -b stable_bump stable
-       git merge master
-
--  Update the :code:`CHANGELOG.rst` files accordingly, by changing the top most section from :code:`<major>-dev` to :code:`<major>-rc.1`
--  Commit everything and create a PR ino the :code:`stable` branch. 
+:code:`master` branch, but testing the creation of a release can be triggered on any branch. To make a release, trigger the action from the
+:code:`master` branch, pick a new release tag in the :code:`release tag` box (all CHANGELOG files should already contain a section with the tag, but the date will be updated) and type :code:`yesyesyes` into the deploy box. A new release will trigger the creation of the release tag.
 
 Release names
 ~~~~~~~~~~~~~

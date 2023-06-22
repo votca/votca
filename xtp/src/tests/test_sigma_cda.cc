@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,8 +66,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   rpa.setRPAInputEnergies(mo_energy);
   rpa.configure(4, 0, 16);
 
-  Sigma().RegisterAll();
-  std::unique_ptr<Sigma_base> sigma = Sigma().Create("cda", Mmn, rpa);
+  std::unique_ptr<Sigma_base> sigma = SigmaFactory().Create("cda", Mmn, rpa);
   Sigma_base::options opt;
   opt.homo = 4;
   opt.qpmin = 0;

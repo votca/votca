@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2021 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -27,8 +27,7 @@ using namespace votca;
 
 class XtpParallel final : public xtp::StateApplication {
  public:
-  XtpParallel() { xtp::JobCalculatorfactory::RegisterAll(); }
-
+  XtpParallel() = default;
   ~XtpParallel() = default;
   std::string ProgramName() final { return "xtp_parallel"; }
 
@@ -45,7 +44,7 @@ class XtpParallel final : public xtp::StateApplication {
   std::string CalculatorType() const { return "Calculator"; }
   void CheckOptions() final;
   std::vector<std::string> CalculatorNames() const {
-    return xtp::JobCalculators().getKeys();
+    return xtp::JobCalculatorfactory().getKeys();
   }
 
   void AddCommandLineOpt() final;
@@ -82,7 +81,7 @@ void XtpParallel::CheckOptions() {
 }
 
 void XtpParallel::CreateCalculator(const std::string& name) {
-  calc_ = xtp::JobCalculators().Create(name);
+  calc_ = xtp::JobCalculatorfactory().Create(name);
 }
 
 void XtpParallel::ConfigCalculator() {

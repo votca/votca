@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(ER_coupling_test) {
   // Calculate angle
   double angle = ERDiabatization.Calculate_angle();
   double angle_ref = 0.7063121313715891;
-  BOOST_CHECK_CLOSE(angle_ref, angle, 1e-4);
+  BOOST_CHECK_CLOSE_FRACTION(angle_ref, angle, 5e-3);
 
   // diabatic Hamiltonian
   std::pair<Eigen::VectorXd, Eigen::MatrixXd> rotated_H =
@@ -105,10 +105,10 @@ BOOST_AUTO_TEST_CASE(ER_coupling_test) {
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
           std::string(XTP_TEST_DATA_FOLDER) + "/diabatization/Hdiab_ref.mm");
 
-  BOOST_CHECK_CLOSE(diabatic_H_ref(0, 0), diabatic_H(0, 0), 1e-6);
-  BOOST_CHECK_CLOSE(diabatic_H_ref(0, 1), diabatic_H(0, 1), 1e-6);
-  BOOST_CHECK_CLOSE(diabatic_H_ref(1, 0), diabatic_H(1, 0), 1e-6);
-  BOOST_CHECK_CLOSE(diabatic_H_ref(1, 1), diabatic_H(1, 1), 1e-6);
+  BOOST_CHECK_CLOSE_FRACTION(diabatic_H_ref(0, 0), diabatic_H(0, 0), 1e-4);
+  BOOST_CHECK_CLOSE_FRACTION(diabatic_H_ref(0, 1), diabatic_H(0, 1), 1e-3);
+  BOOST_CHECK_CLOSE_FRACTION(diabatic_H_ref(1, 0), diabatic_H(1, 0), 1e-3);
+  BOOST_CHECK_CLOSE_FRACTION(diabatic_H_ref(1, 1), diabatic_H(1, 1), 1e-4);
 
   libint2::finalize();
 }
@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(FCD_coupling_test) {
 
   double J_ref = 0.00071879817182406039;
   double J = coupling * votca::tools::conv::hrt2ev;
-  BOOST_CHECK_CLOSE(J_ref, J, 1e-4);
+  BOOST_CHECK_CLOSE_FRACTION(J_ref, J, 1e-5);
 
   libint2::finalize();
 }

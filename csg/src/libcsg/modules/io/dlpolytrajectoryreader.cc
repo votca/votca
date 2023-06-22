@@ -18,10 +18,8 @@
 // Standard includes
 #include <cmath>
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
-
-// Third party includes
-#include <boost/filesystem/convenience.hpp>
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -44,21 +42,21 @@ bool DLPOLYTrajectoryReader::Open(const string &file)
 // NOTE: allowed file naming - <name>.dlpc or <name>.dlph (convention:
 // ".dlpc"="CONFIG", ".dlph"="HISTORY")
 {
-  boost::filesystem::path filepath(file.c_str());
+  std::filesystem::path filepath(file.c_str());
   string inp_name = "HISTORY";
 
-  if (boost::filesystem::extension(filepath).size() == 0) {
+  if (!filepath.has_extension()) {
 
     throw std::ios_base::failure(
         "Error on opening dlpoly file '" + file +
         "' - extension is expected, use .dlph or .dlpc");
 
-  } else if (boost::filesystem::extension(filepath) == ".dlpc") {
+  } else if (filepath.extension() == ".dlpc") {
 
     isConfig_ = true;
     inp_name = "CONFIG";
 
-  } else if (boost::filesystem::extension(filepath) == ".dlph") {
+  } else if (filepath.extension() == ".dlph") {
 
     isConfig_ = false;
 
@@ -67,7 +65,7 @@ bool DLPOLYTrajectoryReader::Open(const string &file)
                                  "' - wrong extension, use .dlph or .dlpc");
   }
 
-  if (boost::filesystem::basename(filepath).size() == 0) {
+  if (!filepath.has_stem()) {
     if (filepath.parent_path().string().size() == 0) {
       fname_ = inp_name;
     } else {

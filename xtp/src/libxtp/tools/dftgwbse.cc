@@ -64,7 +64,7 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
   }
 
   // register all QM packages
-  QMPackageFactory::RegisterAll();
+  QMPackageFactory{};
 }
 
 bool DftGwBse::Run() {
@@ -88,7 +88,7 @@ bool DftGwBse::Run() {
   }
 
   std::unique_ptr<QMPackage> qmpackage =
-      std::unique_ptr<QMPackage>(QMPackageFactory::QMPackages().Create(
+      std::unique_ptr<QMPackage>(QMPackageFactory().Create(
           package_options_.get("name").as<std::string>()));
   qmpackage->setLog(&log_);
   qmpackage->Initialize(package_options_);

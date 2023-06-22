@@ -15,9 +15,7 @@
  *
  */
 
-#ifndef HAVE_NO_CONFIG
 #include <votca_csg_config.h>
-#endif
 
 // Local VOTCA includes
 #include "votca/csg/trajectoryreader.h"

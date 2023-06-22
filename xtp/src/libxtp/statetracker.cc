@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -27,9 +27,9 @@ using std::flush;
 
 void StateTracker::Initialize(const tools::Property& options) {
 
-  FilterFactory::RegisterAll();
+  FilterFactory factory;
   for (const tools::Property& filter : options) {
-    filters_.push_back(Filter().Create(filter.name()));
+    filters_.push_back(factory.Create(filter.name()));
   }
 
   for (auto& filter : filters_) {
@@ -136,7 +136,6 @@ void StateTracker::WriteToCpt(CheckpointWriter& w) const {
 }
 
 void StateTracker::ReadFromCpt(CheckpointReader& r) {
-  FilterFactory::RegisterAll();
   std::vector<std::string> statehiststring;
   r(statehiststring, "statehist");
   statehist_.clear();
@@ -145,9 +144,10 @@ void StateTracker::ReadFromCpt(CheckpointReader& r) {
     statehist_.push_back(QMState(s));
   }
   filters_.clear();
+  FilterFactory filter;
   for (const std::string& filtername : r.getChildGroupNames()) {
     CheckpointReader rr = r.openChild(filtername);
-    filters_.push_back(Filter().Create(filtername));
+    filters_.push_back(filter.Create(filtername));
     filters_.back()->ReadFromCpt(rr);
   }
 }

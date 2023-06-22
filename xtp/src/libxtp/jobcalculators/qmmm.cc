@@ -20,10 +20,10 @@
 // Standard includes
 #include <algorithm>
 #include <chrono>
+#include <filesystem>
 #include <sstream>
 
 // Third party includes
-#include <boost/filesystem.hpp>
 #include <numeric>
 #include <stdexcept>
 
@@ -72,10 +72,10 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
       "frame_" + boost::lexical_cast<std::string>(top.getStep());
   std::string job_dir =
       "job_" + std::to_string(job.getId()) + "_" + job.getTag();
-  boost::filesystem::path arg_path;
+  std::filesystem::path arg_path;
   std::string workdir =
       (arg_path / qmmm_work_dir / frame_dir / job_dir).generic_string();
-  boost::filesystem::create_directories(workdir);
+  std::filesystem::create_directories(workdir);
   Job::JobResult jres = Job::JobResult();
   Logger& pLog = Thread.getLogger();
 
