@@ -72,6 +72,7 @@ void Md2QmEngine::CheckMappingFile(tools::Property& topology_map) const {
 Index Md2QmEngine::DetermineAtomNumOffset(
     const csg::Molecule* mol, const std::vector<Index>& atom_ids_map) const {
   std::vector<Index> IDs;
+  std::cout << "   atoms in MD molecule " << mol->BeadCount() << std::endl;
   IDs.reserve(mol->BeadCount());
   for (const csg::Bead* bead : mol->Beads()) {
     IDs.push_back(bead->getId());
@@ -183,6 +184,7 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
             throw std::runtime_error("Atom entry " + atomname +
                                      " is not well formatted");
           }
+          std::cout << " atom id " << atomid << std::endl;
           atomids.push_back(atomid);
           MolToSegMap[molname][atomid] = segname;
         }
@@ -196,6 +198,7 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
   std::cout << "\n Done with reading all mapping entries \n" << std::endl;
   
   // go through all molecules in MD topology 
+  std::cout << "in MD number of mol" << top.Molecules().size() << std::endl;
   for (const csg::Molecule& mol : top.Molecules()) {
 
     std::cout << " working on molecule " << mol.getName() << "\n" << std::endl;
@@ -212,11 +215,11 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
       // trying to add segments into prepared containers 
       std::cout << "....    adding segment " << segname << std::endl; 
       segments[segname] = &xtptop.AddSegment(segname);
-      std::cout << "         done \n" << std::endl; 
+      //std::cout << "         done \n" << std::endl; 
       // trying to set molecule id to the segment
-      std::cout << "....   adding mol id " << mol.getId() << std::endl;
+      //std::cout << "....   adding mol id " << mol.getId() << std::endl;
       segments[segname]->AddMoleculeId(mol.getId());
-            std::cout << "         done \n" << std::endl; 
+            std::cout << segments[segname]->getType() << "with ID " <<  segments[segname]->getId() << "       done \n" << std::endl; 
 
     }
 
@@ -226,12 +229,17 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
     std::cout << " number of beads " << mol.BeadCount() << std::endl;
     for (const csg::Bead* bead : mol.Beads()) {
       // get pointer to the segment informaton of the molecule name with this atom 
-      std::cout << "  looking up segment containing atom number " << bead->getId() << std::endl; 
+      std::cout << "  looking up segment containing atom number " << bead->getId() << " as atom iD " << bead->getId() - IdOffset << std::endl; 
+      std::cout << MolToSegMap[mol.getName()][bead->getId() - IdOffset] << std::endl;
+      std::string segname_match =  MolToSegMap[mol.getName()][bead->getId() - IdOffset] ;
+      //Segment* seg =
+      //    segments[MolToSegMap[mol.getName()][bead->getId() - IdOffset]];
       Segment* seg =
-          segments[MolToSegMap[mol.getName()][bead->getId() - IdOffset]];
+          segments[segname_match];
     
-        std::cout << " found seg" << seg->getType() <<  std::endl;
-    
+        std::cout << " found seg " << seg->getId() << " type " << seg->getType() << " current size " << seg->size() <<  std::endl;
+            //std::cout << " found seg" << segments["7_1"]->size() <<  std::endl;
+
       // trying to define the atom info to add to this segment
       std::cout << bead->getResnr() << " " << bead->getName() << " " << bead->getId() << " " <<
                 bead->getPos() * tools::conv::nm2bohr << " " << bead->getType() << std::endl;
