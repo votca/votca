@@ -97,9 +97,9 @@ void GW::PrintGWA_Energies() const {
     XTP_LOG(Log::error, log_)
         << level
         << (boost::format(" = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
-                          "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
+                          "%4$+1.4f S-C = %5$+1.4f S-E = %6$+1.4f GWA = %7$+1.4f") %
             (i + opt_.qpmin) % dft_energies_(i + opt_.qpmin) % vxc_(i, i) %
-            Sigma_x_(i, i) % Sigma_c_(i, i) % gwa_energies(i))
+            Sigma_x_(i, i) % Sigma_c_(i, i) % env_corrections_(i) % gwa_energies(i))
                .str()
         << std::flush;
   }
@@ -237,13 +237,26 @@ void GW::CalculateGWPerturbation() {
 
 Eigen::VectorXd GW::getGWAResults() const {
   return Sigma_x_.diagonal() + Sigma_c_.diagonal() - vxc_.diagonal() +
-         dft_energies_.segment(opt_.qpmin, qptotal_);
+         dft_energies_.segment(opt_.qpmin, qptotal_)+ env_corrections_;
 }
 
 Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
+
+  Eigen::VectorXd env = Eigen::VectorXd::Zero( qptotal_ );
+  std::cout << " Size of env " << env_corrections_.size() << "\n" << std::endl; 
+  std::cout << " Size of sigma_x " << Sigma_x_.diagonal().size() << "\n" << std::endl;
+  std::cout << "QPtotal " << qptotal_  << "\n" << std::endl;
+  //if (env_corrections_.size() != qptotal_ ){
+  // env_corrections_ = env; //Eigen::VectorXd::Zero( qptotal_ );
+  //  std::cout << " Zeroing env corrections \n" << std::endl;  
+  //}
+
   const Eigen::VectorXd intercepts =
       dft_energies_.segment(opt_.qpmin, qptotal_) + Sigma_x_.diagonal() -
-      vxc_.diagonal();
+      vxc_.diagonal() + env_corrections_;
+
+
+
   Eigen::VectorXd frequencies_new = frequencies;
   Eigen::Array<bool, Eigen::Dynamic, 1> converged =
       Eigen::Array<bool, Eigen::Dynamic, 1>::Zero(qptotal_);

@@ -64,11 +64,42 @@ bool ENVCORR::Run() {
 
   // get the embedded QM results
   Orbitals orb;
-  orb.ReadFromCpt(orbfile_);
+  orb.ReadFromCpt("prodan.orb");
   AOBasis basis = orb.getDftBasis();
   QMMolecule mol = orb.QMAtoms();
+/*
+  AOOverlap dftOL;
+  dftOL.Fill(basis);
+  Eigen::MatrixXd OLsqrt = dftOL.Sqrt();
+  Eigen::MatrixXd MOs = orb.MOs().eigenvectors();
+  Eigen::MatrixXd eps = orb.MOs().eigenvalues().asDiagonal();
 
 
+  // reconstructing static Hamiltonian
+  Eigen::MatrixXd ham_static = OLsqrt.transpose() * OLsqrt *  MOs * eps  * MOs.inverse();
+  double eps_homo = (MOs.col(60).transpose() * ham_static * MOs.col(60))(0,0);
+  XTP_LOG(Log::error, log_) << TimeStamp()
+                                    << " reconstructed static " << eps_homo << std::flush;
+
+  // get MOs from polar KS60
+  Orbitals orb_polar;
+  orb_polar.ReadFromCpt("prodan_gs.orb");
+
+  Eigen::MatrixXd MOs_polar = orb_polar.MOs().eigenvectors();
+
+  double eps_polar = (MOs_polar.col(60).transpose() * ham_static * MOs_polar.col(60))(0,0);
+
+
+XTP_LOG(Log::error, log_) << TimeStamp()
+                                    << " exp <polar|H_static|polar>  " << eps_polar
+<< std::flush;
+
+*/
+
+
+
+
+  bool split_dipoles = true;
 
   double env_en_GS = 0.0;
   if (envmode_ == "thole"){
@@ -82,12 +113,39 @@ bool ENVCORR::Run() {
       std::vector<std::unique_ptr<StaticSite>> externalsites_groundstate;
       for ( auto segment : mmregion ){
         for (auto site : segment){
-          externalsites_groundstate.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
-          // copy the induced dipoles to static dipoles, not sure how this works in qmmm though
-          Vector9d multipole = Vector9d::Zero();  
-          multipole.segment<3>(1) = site.getDipole();
-          externalsites_groundstate[count]->setMultipole(multipole, 1);
-          count++;
+          
+
+          // splitting the dipoles
+          if (split_dipoles){
+            // Calculate virtual charge positions
+            double a = 0.1;  // this is in a0
+            double mag_d = site.getDipole().norm();                   // this is in e * a0
+            const Eigen::Vector3d dir_d = site.getDipole().normalized();
+            const Eigen::Vector3d A = site.getPos() + 0.5 * a * dir_d;
+            const Eigen::Vector3d B = site.getPos() - 0.5 * a * dir_d;
+            double qA = mag_d / a;
+            double qB = -qA;
+            if (std::abs(qA) > 1e-12) {
+              externalsites_groundstate.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+              externalsites_groundstate[count]->setPos(A);
+              Vector9d multipole = Vector9d::Zero();  
+              multipole(0) = qA;
+              externalsites_groundstate[count]->setMultipole(multipole, 0);
+              count++;
+              externalsites_groundstate.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+              externalsites_groundstate[count]->setPos(B);
+              multipole(0) = qB;
+              externalsites_groundstate[count]->setMultipole(multipole, 0);
+              count++;
+            }
+          } else {
+              externalsites_groundstate.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+              // copy the induced dipoles to static dipoles, not sure how this works in qmmm though
+              Vector9d multipole = Vector9d::Zero();  
+              multipole.segment<3>(1) = site.getDipole();
+              externalsites_groundstate[count]->setMultipole(multipole, 1);
+              count++;
+          }          
         }
       }
 
@@ -141,12 +199,10 @@ bool ENVCORR::Run() {
         << std::flush;
 
 for (auto it = stateindices.cbegin() ; it != stateindices.cend(); ++it){
-        state = QMState(statetype_ + std::to_string(*it));
-    Eigen::MatrixXd dmat_ks = orb.DensityMatrixKSstate(state) ;
-    double env_en = dmat_ks.cwiseProduct(dftAOESP_GS.Matrix()).sum();
-XTP_LOG(Log::error, log_)
-        << TimeStamp() << " State " << (*it) << " Single particle energy correction in GS env " << env_en << std::flush;
-
+  state = QMState(statetype_ + std::to_string(*it));
+  Eigen::MatrixXd dmat_ks = orb.DensityMatrixKSstate(state) ;
+  double env_en = dmat_ks.cwiseProduct(dftAOESP_GS.Matrix()).sum();
+  XTP_LOG(Log::error, log_) << TimeStamp() << " State " << (*it) << " Single particle energy correction in GS env " << env_en << std::flush;
 }
   }
 
@@ -163,13 +219,37 @@ XTP_LOG(Log::error, log_)
       Index count = 0;
       for ( auto segment : mmregion ){
         for (auto site : segment){
-          externalsites.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
-          // copy the induced dipoles to static dipoles, not sure how this works in qmmm though
-          Vector9d multipole = Vector9d::Zero();  
-          multipole.segment<3>(1) = site.getDipole(); // - externalsites_groundstate[count]->getDipole();
-          externalsites[count]->setMultipole(multipole, 1);
-          //std::cout << "X" << externalsites[count]->getPos()[0] << " " << externalsites[count]->getPos()[1] << " " << externalsites[count]->getPos()[2] << std::endl;
-          count++;
+          // splitting the dipoles
+          if (split_dipoles){
+            // Calculate virtual charge positions
+            double a = 0.1;  // this is in a0
+            double mag_d = site.getDipole().norm();                   // this is in e * a0
+            const Eigen::Vector3d dir_d = site.getDipole().normalized();
+            const Eigen::Vector3d A = site.getPos() + 0.5 * a * dir_d;
+            const Eigen::Vector3d B = site.getPos() - 0.5 * a * dir_d;
+            double qA = mag_d / a;
+            double qB = -qA;
+            if (std::abs(qA) > 1e-12) {
+              externalsites.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+              externalsites[count]->setPos(A);
+              Vector9d multipole = Vector9d::Zero();  
+              multipole(0) = qA;
+              externalsites[count]->setMultipole(multipole, 0);
+              count++;
+              externalsites.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+              externalsites[count]->setPos(B);
+              multipole(0) = qB;
+              externalsites[count]->setMultipole(multipole, 0);
+              count++;
+            }
+          } else {
+              externalsites.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+              // copy the induced dipoles to static dipoles, not sure how this works in qmmm though
+              Vector9d multipole = Vector9d::Zero();  
+              multipole.segment<3>(1) = site.getDipole();
+              externalsites[count]->setMultipole(multipole, 1);
+              count++;
+          }
         }
       }
 
@@ -238,15 +318,9 @@ XTP_LOG(Log::error, log_)
         << TimeStamp() <<  " State " << (*it) << " Contribution from DFT (el density + nuc) in KS env " << env_en_GS  
         << std::flush;
 
-
-
-
     state = QMState(statetype_ + std::to_string(*it));
     Eigen::MatrixXd dmat_ks = orb.DensityMatrixKSstate(state) ;
-    double nel = dmat_ks.cwiseProduct(dftOL.Matrix()).sum();
-XTP_LOG(Log::error, log_) << " number of electrons " << nel << std::flush;
     double env_en = dmat_ks.cwiseProduct(dftAOESP.Matrix()).sum();
-
   
     // try second order corrections
     Eigen::VectorXd  MO = orb.MOs().eigenvectors().col(state.StateIdx());

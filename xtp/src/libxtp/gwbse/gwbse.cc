@@ -635,6 +635,15 @@ bool GWBSE::Evaluate() {
     Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
     GW gw = GW(*pLog_, Mmn, vxc, orbitals_.MOs().eigenvalues());
     gw.configure(gwopt_);
+
+    // tell GW object about env_corrections
+    // needs more checks -< array size compatibility etc
+    if (orbitals_.hasEnvCorrections()){
+      gw.EnvCorrections() = orbitals_.EnvCorrections();
+    } else {
+      gw.EnvCorrections() = Eigen::VectorXd::Zero(gwopt_.qpmax - gwopt_.qpmin + 1);
+    }
+
     gw.CalculateGWPerturbation();
 
     if (!sigma_plot_states_.empty()) {
