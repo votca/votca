@@ -174,7 +174,8 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
                                      " is not well formatted");
           }
           if (votca::Log::verbose()) {
-            std::cout << "... ... processing mapping information for atom " << atomname << " with ID " << atomid << std::endl;
+            std::cout << "... ... processing mapping information for atom "
+                      << atomname << " with ID " << atomid << std::endl;
           }
           atomids.push_back(atomid);
           MolToSegMap[molname][atomid] = segname;
@@ -187,30 +188,32 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
   }
 
   std::cout << "... Parsing all mapping entries completed." << std::endl;
-  
-  // go through all molecules in MD topology 
+
+  // go through all molecules in MD topology
   for (const csg::Molecule& mol : top.Molecules()) {
     const std::vector<std::string> segnames = SegsinMol[mol.getName()];
-    std::vector<Segment>& topology_segments = xtptop.Segments(); 
+    std::vector<Segment>& topology_segments = xtptop.Segments();
     Index IdOffset = DetermineAtomNumOffset(&mol, MolToAtomIds[mol.getName()]);
 
     if (votca::Log::verbose()) {
-      std::cout << "... Mapping molecule " << mol.getId() << ", name " << mol.getName() << ", # of segments " <<  segnames.size() << ", atomID offset " << IdOffset << std::endl;
+      std::cout << "... Mapping molecule " << mol.getId() << ", name "
+                << mol.getName() << ", # of segments " << segnames.size()
+                << ", atomID offset " << IdOffset << std::endl;
     }
 
     for (const std::string& segname : segnames) {
 
       Index segid = topology_segments.size();
-      // construct a segment 
+      // construct a segment
       Segment this_segment = Segment(segname, segid);
       this_segment.AddMoleculeId(mol.getId());
 
       // create atomlist
       for (const csg::Bead* bead : mol.Beads()) {
         // check if it belongs to this segment, and add it
-        if ( segname == MolToSegMap[mol.getName()][bead->getId() - IdOffset]  ){
+        if (segname == MolToSegMap[mol.getName()][bead->getId() - IdOffset]) {
           Atom atom(bead->getResnr(), bead->getName(), bead->getId(),
-                bead->getPos() * tools::conv::nm2bohr, bead->getType());
+                    bead->getPos() * tools::conv::nm2bohr, bead->getType());
           this_segment.push_back(atom);
         }
       }
