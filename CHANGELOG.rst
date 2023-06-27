@@ -25,6 +25,7 @@ Version 2023-rc.2 (released 02.06.23)
 -  remove stable branch workflow (#1066)
 -  Refactor changelog actions (#1068)
 -  fix CI build with icpx (#1018)
+-  replaced pointers in MD2QM mapping (#1075)
 
 Version 2023-rc.1 (released 02.02.23)
 =====================================
