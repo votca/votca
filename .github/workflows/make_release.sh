@@ -150,6 +150,10 @@ rm -rf "$instdir" "$build"
 pushd "${srcdir}"
 add_rel="${rel}-dev"
 
+sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"${add_rel}\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
+git add CMakeLists.txt
+git commit -m "Version bumped to ${add_rel}" || true
+
 new_section="Version ${add_rel}"
 sed -i "/^Version ${rel}\( \|$\)/i ${new_section}\n${new_section//?/=}\n" CHANGELOG.rst
 git add CHANGELOG.rst
