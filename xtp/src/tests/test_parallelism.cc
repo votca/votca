@@ -44,5 +44,3 @@ BOOST_AUTO_TEST_CASE(openmp) {
 }
 #endif
 BOOST_AUTO_TEST_SUITE_END()
-
-

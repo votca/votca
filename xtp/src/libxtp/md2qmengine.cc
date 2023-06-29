@@ -144,7 +144,6 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
   std::vector<tools::Property*> molecules = topology_map.Select(molkey);
   std::string segkey = "segments.segment";
 
-  // now go through all molecules defined in the mapping 
   for (tools::Property* mol : molecules) {
     // get the name of this molecule
     std::string molname = mol->get("mdname").as<std::string>();
@@ -183,6 +182,10 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
             throw std::runtime_error("Atom entry " + atomname +
                                      " is not well formatted");
           }
+          if (votca::Log::verbose()) {
+            std::cout << "... ... processing mapping information for atom "
+                      << atomname << " with ID " << atomid << std::endl;
+          }
           atomids.push_back(atomid);
           MolToSegMap[molname][atomid] = segname;
         }
@@ -192,38 +195,38 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
     MolToAtomIds[molname] = atomids;
     SegsinMol[molname] = segnames;
   }
-  // reading of all mapping file entries is done
-  //std::cout << "\n Done with reading all mapping entries \n" << std::endl;
-  
-  // go through all molecules in MD topology 
+
+  std::cout << "... Parsing all mapping entries completed." << std::endl;
+
+  // go through all molecules in MD topology
   for (const csg::Molecule& mol : top.Molecules()) {
 
     //std::cout << " working on molecule " << mol.getName() << "\n" << std::endl;
 
     // lookup all segment *names* in this molecule
     const std::vector<std::string> segnames = SegsinMol[mol.getName()];
-    //std::cout << "....   number of segments " << segnames.size() << "\n" << std::endl;
-
-    std::vector<Segment>& topology_segments = xtptop.Segments(); 
+    std::vector<Segment>& topology_segments = xtptop.Segments();
     Index IdOffset = DetermineAtomNumOffset(&mol, MolToAtomIds[mol.getName()]);
-    //std::cout << " index offset " << IdOffset << std::endl;
+
+    if (votca::Log::verbose()) {
+      std::cout << "... Mapping molecule " << mol.getId() << ", name "
+                << mol.getName() << ", # of segments " << segnames.size()
+                << ", atomID offset " << IdOffset << std::endl;
+    }
 
     for (const std::string& segname : segnames) {
 
       Index segid = topology_segments.size();
-      //std::cout << "segid " << segid << std::endl; 
-      // construct a segment 
+      // construct a segment
       Segment this_segment = Segment(segname, segid);
       this_segment.AddMoleculeId(mol.getId());
 
       // create atomlist
-      //std::cout << " number of beads " << mol.BeadCount() << std::endl;
-      //go through each atom in the molecule 
       for (const csg::Bead* bead : mol.Beads()) {
         // check if it belongs to this segment, and add it
-        if ( segname == MolToSegMap[mol.getName()][bead->getId() - IdOffset]  ){
+        if (segname == MolToSegMap[mol.getName()][bead->getId() - IdOffset]) {
           Atom atom(bead->getResnr(), bead->getName(), bead->getId(),
-                bead->getPos() * tools::conv::nm2bohr, bead->getType());
+                    bead->getPos() * tools::conv::nm2bohr, bead->getType());
           this_segment.push_back(atom);
         }
       }
