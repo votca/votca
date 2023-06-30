@@ -101,7 +101,8 @@ Gyrationtensor DensityIntegration<Grid>::IntegrateGyrationTensor(
   Eigen::Matrix3d gyration = Eigen::Matrix3d::Zero();
 
   SetupDensityContainer();
-#pragma omp parallel for schedule(guided)reduction(+:N)reduction(+:centroid)reduction(+:gyration)
+#pragma omp parallel for schedule(guided) reduction(+ : N) \
+    reduction(+ : centroid) reduction(+ : gyration)
   for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
     const GridBox& box = grid_[i];
     if (!box.Matrixsize()) {

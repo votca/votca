@@ -22,6 +22,8 @@
       <activeatoms help="Indices of atoms in active region" default=""/>
       <threshold help="Mulliken population above which orbital is considered in the active region" default="0.4"/>
       <levelshift help="Levelshift energy for the projection operator" default="10000.0"/>
+      <truncate_basis help="Truncate the basis-set to active atoms only" default="false" choices="bool" />
+      <truncation_threshold help="Threshold to convert an inactive atom to a border atom" default="1e-4" choices="float+"/>
     </dft_in_dft>
     <screening_eps help="screening eps" default="1e-9" choices="float+" />
     <fock_matrix_reset help="how often the fock matrix is reset" default="5" choices="int+" />

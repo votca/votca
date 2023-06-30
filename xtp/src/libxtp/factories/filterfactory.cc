@@ -1,6 +1,6 @@
 
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -31,12 +31,12 @@
 namespace votca {
 namespace xtp {
 
-void FilterFactory::RegisterAll(void) {
-  Filter().Register<DeltaQ_filter>("chargetransfer");
-  Filter().Register<Density_filter>("density");
-  Filter().Register<Localisation_filter>("localisation");
-  Filter().Register<OscillatorStrength_filter>("oscillatorstrength");
-  Filter().Register<Overlap_filter>("overlap");
+void FilterFactory::RegisterAll() {
+  this->Register<DeltaQ_filter>("chargetransfer");
+  this->Register<Density_filter>("density");
+  this->Register<Localisation_filter>("localisation");
+  this->Register<OscillatorStrength_filter>("oscillatorstrength");
+  this->Register<Overlap_filter>("overlap");
 }
 }  // namespace xtp
 }  // namespace votca

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -35,19 +35,13 @@ namespace xtp {
 
 class Calculatorfactory
     : public tools::ObjectFactory<std::string, QMCalculator> {
- private:
-  Calculatorfactory() = default;
 
  public:
-  static void RegisterAll(void);
+  Calculatorfactory() { this->RegisterAll(); };
 
-  friend Calculatorfactory &Calculators();
+ private:
+  void RegisterAll();
 };
-
-inline Calculatorfactory &Calculators() {
-  static Calculatorfactory instance;
-  return instance;
-}
 
 }  // namespace xtp
 }  // namespace votca

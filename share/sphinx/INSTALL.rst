@@ -11,7 +11,7 @@ To install the full package:
 ::
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'stable' or 'v2021.2'
+    version=master # or 'v2023-rc.2'
     git clone -b ${version} https://github.com/votca/votca.git
     cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix}
     cmake --build builddir --parallel <number of cores>
@@ -51,6 +51,8 @@ GROMACS:
 ::
 
     cmake -DCMAKE_INSTALL_PREFIX=${prefix} -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so -S ..
+
+Please also ensure GROMACS was build with ``-DGMX_INSTALL_LEGACY_API=ON``.
 
 Be careful to use exactly the option suggested in the error message! You
 can also add ``-LH`` or ``-LAH`` options to the ``cmake`` command in
@@ -213,15 +215,6 @@ the capability of building VOTCA and all its dependencies:
     source spack/share/spack/setup-env.sh
     spack install votca
 
-Stable version
-^^^^^^^^^^^^^^
-
-Spack can also install the latest stable version from git using:
-
-::
-
-    spack install votca@stable
-
 Development version
 ^^^^^^^^^^^^^^^^^^^
 
@@ -272,15 +265,6 @@ Docker can also install the latest released version, e.g.:
 ::
 
     docker run -it votca/votca:v2021.2 /bin/bash
-
-Stable version
-^^^^^^^^^^^^^^
-
-Docker can also install the latest stable version from git using:
-
-::
-
-    docker run -it votca/votca:stable /bin/bash
 
 FreeBSD
 ~~~~~~~

@@ -1,8 +1,7 @@
 #! /bin/bash -e
 
 url="https://github.com/votca/votca.git"
-branch=stable
-testing=no
+branch=master
 verbose=
 cmake_opts=()
 
@@ -25,7 +24,6 @@ This is the script to make release tarballs for VOTCA
 Usage: ${0##*/} [OPTIONS] rel_version path/to/votca/checkout"
 OPTIONS:
     --help          Show this help
-    --test          Just test, do not commit stuff
     --branch BRANCH Use BRANCH instead of '$branch'
     -j  JOBS        Jobs to use instead of '$j'
     --verbose       Do a verbose build
@@ -33,7 +31,7 @@ OPTIONS:
 -D*                 Extra option to give to cmake
 
 Examples:  ${0##*/} --help
-           ${0##*/} --test 1.2.3 srcdir
+           ${0##*/} 1.2.3 srcdir
 
 Report bugs and comments at https://github.com/votca/admin/issues
 eof
@@ -54,9 +52,6 @@ while [[ $# -gt 0 ]]; do
    --branch)
      branch="$2"
      shift 2;;
-   --test)
-     testing=yes
-     shift 1;;
    --verbose)
      verbose=yes
      shift 1;;
@@ -82,16 +77,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -z $2 ]] && die "${0##*/}: missing argument - no srcdir!\nTry ${0##*/} --help"
-if [[ ${CI} != "true" && ${testing} = "no" && ${branch} != "stable" ]]; then
-  die "branch ${branch} cannot be use without testing"
-fi
 
 shopt -s extglob
 
 topdir="${PWD}"
 
 rel="$1"
-[[ ${CI} != "true" && $testing = "no" && ${rel} != 20???(.[1-9]|-rc.[1-9]) ]] && die "release has the wrong form"
+[[ ${CI} != "true" && ${rel} != 20???(.[1-9]|-rc.[1-9]) ]] && die "release has the wrong form"
 srcdir="$2"
 [[ -d $srcdir ]] || git clone --recursive "$url" "$srcdir"
 pushd "${srcdir}"
@@ -103,45 +95,40 @@ instdir="${topdir}/install"
 build="${topdir}/build"
 
 set -e
-cleanup() {
-  [[ $testing = "no" ]] || return
-  echo "####### ERROR ABOVE #########"
-  pushd "${srcdir}"
-  git reset --hard "origin/${branch}" || true
-  git tag --delete "v${rel}" || true
-  popd
-}
-trap cleanup EXIT
 
 pushd "${srcdir}"
 git remote update --prune
 git checkout "$branch" || die "Could not checkout $branch"
 git pull --ff-only
 [[ -z "$(git ls-files -mo --exclude-standard)" ]] || die "There are modified or unknown files"
-if [[ $testing = "yes" ]]; then
-  :
-elif [[ -f CMakeLists.txt ]]; then
-  sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
-  git add CMakeLists.txt
-  sed -i "/^Version ${rel} /s/released ..\...\.../released $(date +%d.%m.%y)/" CHANGELOG.rst
-  git add CHANGELOG.rst
-fi
-if [[ $testing = "no" ]]; then
-   [[ -n $(grep -E "^Version ${rel}( |$)" CHANGELOG.rst) ]] || die "Go and update CHANGELOG.rst before making a release"
 
-  # check if CHANGELOG section has no entry, there should be at least something like "-  no changes"
-  version_section="$(awk -v r="^Version ${rel}( |$)" '($0 ~ "^Version"){go=0} ($0 ~ r){go=1}{if(go==1){print $0}}' CHANGELOG.rst)"
-  line_nr="$(sed -n "/^Version ${rel}\( \|$\)/=" CHANGELOG.rst)"
-  [[ $version_section ]] || die "Could not find section to $rel"
-  echo "Found section for $rel (starting line ${line_nr})"
-  last_line="$(echo "$version_section" | sed '/^[[:space:]]*$/d' | sed -n '$p')"
-  [[ $last_line ]] || die "Could not grep last line"
-  [[ ${last_line} = -* || ${last_line} = '   '[^\ ]* ]] || die "Last line isn't an item (does not start with -), but ${last_line}, fix the CHANGELOG.rst in $p first"
+cur_rel="$(sed -n 's/set(PROJECT_VERSION *"\([^"]*\)").*/\1/p' CMakeLists.txt)"
+[[ -n ${cur_rel} ]] || die "Could not grep current release from CMakeLists.txt)"
 
-  #|| true because maybe version has not changed
-  git commit -m "Version bumped to $rel" || true
-  git tag "v${rel}"
-fi
+# check if CHANGELOG section has no entry, there should be at least something like "-  no changes"
+version_section="$(awk -v r="^Version ${cur_rel}( |$)" '($0 ~ "^Version"){go=0} ($0 ~ r){go=1}{if(go==1){print $0}}' CHANGELOG.rst)"
+line_nr="$(sed -n "/^Version ${cur_rel}\( \|$\)/=" CHANGELOG.rst)"
+[[ $version_section ]] || die "Could not find section to $cur_rel"
+echo "Found section for $cur_rel (starting line ${line_nr})"
+last_line="$(echo "$version_section" | sed '/^[[:space:]]*$/d' | sed -n '$p')"
+[[ $last_line ]] || die "Could not grep last line"
+[[ ${last_line} = -* || ${last_line} = '   '[^\ ]* ]] || die "Last line isn't an item (does not start with -), but ${last_line}, fix the CHANGELOG.rst in $p first"
+
+sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"$rel\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
+git add CMakeLists.txt
+new_section="Version ${rel} (released $(date +%d.%m.%y))"
+sed -i "$((line_nr+1))d" CHANGELOG.rst || die "sed to delete === line failed"
+sed -i "/^Version ${cur_rel}/s/.*/${new_section}\n${new_section//?/=}/" CHANGELOG.rst || die "sed of CHANGELOG.rst failed"
+git add CHANGELOG.rst
+sed -i "/version=/s/master # or '[^']*'/master # or 'v$rel'/" README.rst || die "sed of README.rst failed"
+git add README.rst
+sed -i "/version=/s/master # or '[^']*'/master # or 'v$rel'/" share/sphinx/INSTALL.rst || die "sed of INSTALL.rst failed"
+git add share/sphinx/INSTALL.rst
+
+#|| true because maybe version has not changed
+git commit -m "Version bumped to $rel" || true
+git tag "v${rel}"
+
 git archive --prefix "votca-${rel}/" -o "${topdir}/votca-${rel}.tar.gz" HEAD || die "git archive failed"
 popd
 
@@ -154,36 +141,26 @@ tar -xvf "${topdir}/votca-${rel}.tar.gz"
 cmake -DCMAKE_INSTALL_PREFIX="${instdir}" \
       -DENABLE_REGRESSION_TESTING=ON \
       -DBUILD_XTP=ON \
+      -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
       "${cmake_opts[@]}" -S "votca-${rel}/" -B "$build"
 cmake --build "${build}" -j"${j}" ${verbose:+--verbose}
 
 rm -rf "$instdir" "$build"
 
-if [[ $rel = *-dev ]]; then
-  add_rel="${rel%-dev}-rc.1"
-elif [[ $rel = 20??.* ]]; then
-  add_rel="${rel%.*}.$((${rel##*.}+1))"
-elif [[ $rel = 20?? ]]; then
-  add_rel="${rel}.1"
-elif [[ $rel = *-rc.* ]]; then
-  add_rel="${rel%-rc*}-rc.$((${rel#*-rc.}+1))"
-else
-  die "Unknown rel scheme, found $rel"
-fi
+pushd "${srcdir}"
+add_rel="${rel}-dev"
 
-new_section="Version ${add_rel} (released $(date +XX.%m.%y))"
+sed -i "/set(PROJECT_VERSION/s/\"[^\"]*\"/\"${add_rel}\"/" CMakeLists.txt || die "sed of CMakeLists.txt failed"
+git add CMakeLists.txt
+git commit -m "Version bumped to ${add_rel}" || true
+
+new_section="Version ${add_rel}"
 sed -i "/^Version ${rel}\( \|$\)/i ${new_section}\n${new_section//?/=}\n" CHANGELOG.rst
 git add CHANGELOG.rst
 git commit -m "CHANGELOG: add ${add_rel} section"
+popd
 
-trap - EXIT
-
-if [[ $testing = "no" ]]; then
-  echo "####### TODO by you #########"
-  echo "cd $srcdir"
-  echo "git -C \$p log -p --submodule origin/${branch}..${branch}"
-  echo "git -C \$p  push --tags origin ${branch}:${branch}"
-else
-  echo "cd $topdir"
-  echo "Take a look at votca-${rel}.tar.gz"
-fi
+echo "####### TODO by you #########"
+echo "cd $srcdir"
+echo "git -C \$p log -p --submodule origin/${branch}..${branch}"
+echo "git -C \$p  push --tags origin ${branch}:${branch}"

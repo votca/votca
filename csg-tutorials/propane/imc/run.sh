@@ -1,5 +1,7 @@
-#!/bin/bash -e
+#!/bin/bash
+set -e
 
-echo 'running csg_inverse --options "settings.xml"'
-csg_inverse --options settings.xml
-
+# IMC iterations
+cmd='csg_inverse --options settings.xml'
+echo "now running: ${cmd}"
+$cmd

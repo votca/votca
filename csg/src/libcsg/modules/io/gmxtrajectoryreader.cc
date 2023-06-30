@@ -17,6 +17,7 @@
 
 // Standard includes
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 
 // Third party includes
@@ -48,9 +49,14 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
   time_unit_t timeunit = time_ps;
   xvg_format_t xvg = exvgNONE;
 #endif
+#if GMX_VERSION >= 20230000
+  const std::filesystem::path path = filename_;
+#else
+  char *path = (char *)filename_.c_str();
+#endif
   output_env_init(&oenv, gmx::getProgramContext(), timeunit, FALSE, xvg, 0);
-  if (!read_first_frame(oenv, &gmx_status_, (char *)filename_.c_str(),
-                        &gmx_frame_, TRX_READ_X | TRX_READ_V | TRX_READ_F)) {
+  if (!read_first_frame(oenv, &gmx_status_, path, &gmx_frame_,
+                        TRX_READ_X | TRX_READ_V | TRX_READ_F)) {
     throw std::runtime_error(std::string("cannot open ") + filename_);
   }
   output_env_done(oenv);

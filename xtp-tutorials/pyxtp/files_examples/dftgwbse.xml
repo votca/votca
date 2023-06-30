@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<options>
+  <!-- xtp_tools -e dftgwbse options.xml -->
+  <dftgwbse help="Compute electronic excitations using GW-BSE">
+    <job_name>files_examples/methane</job_name>
+  </dftgwbse>
+</options>

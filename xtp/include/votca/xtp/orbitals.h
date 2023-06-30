@@ -1,6 +1,6 @@
 
 /*
- * Copyright 2009-2022 The VOTCA Development Team
+ * Copyright 2009-2023 The VOTCA Development Team
  * (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -54,6 +54,12 @@ class Orbitals {
   void setEmbeddedMOs(tools::EigenSystem &system) { mos_embedding_ = system; }
 
   const tools::EigenSystem &getEmbeddedMOs() const { return mos_embedding_; }
+
+  void setTruncMOsFullBasis(const Eigen::MatrixXd &expandedMOs) {
+    expandedMOs_ = expandedMOs;
+  }
+
+  const Eigen::MatrixXd getTruncMOsFullBasis() const { return expandedMOs_; }
 
   Index getBasisSetSize() const { return dftbasis_.AOBasisSize(); }
 
@@ -128,6 +134,9 @@ class Orbitals {
         break;
     }
   }
+
+  void setCalculationType(std::string CalcType) { CalcType_ = CalcType; }
+  std::string getCalculationType() const { return CalcType_; }
 
   bool hasQMAtoms() const { return (atoms_.size() > 0) ? true : false; }
 
@@ -383,6 +392,11 @@ class Orbitals {
     active_electrons_ = active_electrons;
   }
 
+  const Eigen::MatrixXd &getInactiveDensity() const { return inactivedensity_; }
+  void setInactiveDensity(Eigen::MatrixXd inactivedensity) {
+    inactivedensity_ = inactivedensity;
+  }
+
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
@@ -400,11 +414,12 @@ class Orbitals {
   Eigen::MatrixXd CalcAuxMat_cc(const Eigen::VectorXd &coeffs) const;
   Eigen::MatrixXd CalcAuxMat_vv(const Eigen::VectorXd &coeffs) const;
 
-  Index basis_set_size_;
   Index occupied_levels_;
   Index number_alpha_electrons_;
   std::string ECP_ = "";
   bool useTDA_;
+
+  std::string CalcType_ = "NoEmbedding";
 
   tools::EigenSystem mos_;
   tools::EigenSystem mos_embedding_;
@@ -412,6 +427,8 @@ class Orbitals {
   Eigen::MatrixXd lmos_;
   Eigen::VectorXd lmos_energies_;
   Index active_electrons_;
+  Eigen::MatrixXd inactivedensity_;
+  Eigen::MatrixXd expandedMOs_;
 
   QMMolecule atoms_;
 

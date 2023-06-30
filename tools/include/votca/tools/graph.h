@@ -44,10 +44,6 @@ class Graph {
  protected:
   EdgeContainer edge_container_;
 
-  /// Parameter description
-  /// @param Index - is the index of the graph nodes / vertex ids
-  /// @param GraphNode - this is the node object at each vertex and contains
-  /// all the informatino that is relevant to that object
   std::unordered_map<Index, GraphNode> nodes_;
 
   /// This is the id of the graph to graphs that contain the same content
@@ -62,7 +58,7 @@ class Graph {
   Graph() : id_(""){};
   virtual ~Graph() = default;
   /// Constructor
-  /// @param edgs - vector of edges where each edge is composed of two
+  /// @param edges - vector of edges where each edge is composed of two
   /// s (vertex ids) describing a link between the vertices
   /// @param nodes - unordered_map where the key is the vertex id and the
   /// target is the graph node

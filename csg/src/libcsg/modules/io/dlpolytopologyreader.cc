@@ -16,13 +16,13 @@
  */
 
 // Standard includes
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 
 // Third party includes
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem/convenience.hpp>
 #include <boost/lexical_cast.hpp>
 
 // VOTCA includes
@@ -31,10 +31,6 @@
 
 // Local VOTCA includes
 #include "votca/csg/topology.h"
-
-#ifndef HAVE_NO_CONFIG
-#include <votca_csg_config.h>
-#endif
 
 // Local private VOTCA includes
 #include "dlpolytopologyreader.h"
@@ -148,7 +144,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 
   Index natoms = 0;
 
-  boost::filesystem::path filepath(file.c_str());
+  std::filesystem::path filepath(file.c_str());
 
   string line;
 
@@ -156,7 +152,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
   // residues!
   const Residue &res = top.CreateResidue("no");
 
-  if (boost::filesystem::basename(filepath).size() == 0) {
+  if (!filepath.has_stem()) {
     if (filepath.parent_path().string().size() == 0) {
       fname_ = "FIELD";  // DL_POLY uses fixed file names in current/working
                          // directory

@@ -89,6 +89,8 @@ list(APPEND test_cases test_anderson)
 list(APPEND test_cases test_gaussian_quadratures)
 list(APPEND test_cases test_pmlocalization)
 list(APPEND test_cases test_activedensitymatrix)
+list(APPEND test_cases test_activedftengine)
+list(APPEND test_cases test_truncdftengine)
 list(APPEND test_cases test_diabatization)
 list(APPEND test_cases test_transition_densities)	
 

@@ -372,7 +372,7 @@
       <DESC>what initial configuration to use in every step: maindir/laststep/nowhere.</DESC>
     </initial_configuration>
     <iterations_max>
-      <DESC>do the given number of iterations (0=inf)</DESC>
+      <DESC>do the given number of iterations (-1=inf, 0=only step_000)</DESC>
     </iterations_max>
     <kBT>
       <DESC> kBT in KJ/mol (i.e. XXX K * 0.00831451)</DESC>
@@ -476,6 +476,9 @@
         <DESC>number of threads to use for csg_stat</DESC>
       </tasks>
     </simulation>
+    <scale>
+        <DESC>update scaling factor for the relative entropy update</DESC>
+    </scale>
   </inverse>
   <nbsearch>grid
     <DESC>Grid search algorithm, simple (N square search) or grid</DESC>
@@ -569,6 +572,12 @@
           <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original espresso script needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</DESC>
         </table>
       </espresso>
+      <espressopp>
+        <DESC>Espresso++ specific options for this interations</DESC>
+      </espressopp>
+      <hoomd-blue>
+        <DESC>HOOMD-blue specific options for this interations</DESC>
+      </hoomd-blue>
       <gromacs>
         <DESC>Gromacs specific options for this interations</DESC>
         <table>

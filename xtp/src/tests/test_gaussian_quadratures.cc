@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,9 +57,8 @@ BOOST_AUTO_TEST_SUITE(gaussian_quadratures_test)
 
 BOOST_AUTO_TEST_CASE(gauss_legendre) {
 
-  QuadratureFactory::RegisterAll();
   std::unique_ptr<GaussianQuadratureBase> gq_ =
-      Quadratures().Create("legendre");
+      QuadratureFactory().Create("legendre");
 
   std::vector<int> orders{8, 10, 12, 14, 16, 18, 20, 40, 100};
   FunctionEvaluation f = FunctionEvaluation();
@@ -87,10 +86,8 @@ BOOST_AUTO_TEST_CASE(gauss_legendre) {
 
 BOOST_AUTO_TEST_CASE(modified_gauss_legendre) {
 
-  QuadratureFactory::RegisterAll();
   std::unique_ptr<GaussianQuadratureBase> gq_ =
-      std::unique_ptr<GaussianQuadratureBase>(
-          Quadratures().Create("modified_legendre"));
+      QuadratureFactory().Create("modified_legendre");
 
   std::vector<int> orders{8, 10, 12, 14, 16, 18, 20, 40, 100};
   FunctionEvaluation f = FunctionEvaluation();
@@ -118,9 +115,8 @@ BOOST_AUTO_TEST_CASE(modified_gauss_legendre) {
 
 BOOST_AUTO_TEST_CASE(gauss_laguerre) {
 
-  QuadratureFactory::RegisterAll();
   std::unique_ptr<GaussianQuadratureBase> gq_ =
-      std::unique_ptr<GaussianQuadratureBase>(Quadratures().Create("laguerre"));
+      QuadratureFactory().Create("laguerre");
   std::vector<int> orders{8, 10, 12, 14, 16, 18, 20, 40, 100};
   FunctionEvaluation f = FunctionEvaluation();
 
@@ -147,9 +143,8 @@ BOOST_AUTO_TEST_CASE(gauss_laguerre) {
 
 BOOST_AUTO_TEST_CASE(gauss_hermite) {
 
-  QuadratureFactory::RegisterAll();
   std::unique_ptr<GaussianQuadratureBase> gq_ =
-      std::unique_ptr<GaussianQuadratureBase>(Quadratures().Create("hermite"));
+      QuadratureFactory().Create("hermite");
   std::vector<int> orders{8, 10, 12, 14, 16, 18, 20, 40, 100};
   FunctionEvaluation f = FunctionEvaluation();
 

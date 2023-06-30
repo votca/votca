@@ -57,7 +57,7 @@ class DLPOLYTrajectoryWriter : public TrajectoryWriter {
   void Write(Topology *conf) override;
 
   /// set/get the created configuration or trajectory file name:
-  /// <name>.dlpc or <name>.dlph (convention: ".dlpc"="CONFIG_CGV",
+  /// name.dlpc or name.dlph (convention: ".dlpc"="CONFIG_CGV",
   /// ".dlph"="HISTORY_CGV")
   void setFname(std::string name) {
     fname_ = name;

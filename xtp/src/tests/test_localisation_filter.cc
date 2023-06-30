@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,8 @@ BOOST_AUTO_TEST_SUITE(deltaQ_filter_test)
 BOOST_AUTO_TEST_CASE(coeffs_test) {
 
   libint2::initialize();
-  FilterFactory::RegisterAll();
-  std::unique_ptr<StateFilter_base> local_f =
-      std::unique_ptr<StateFilter_base>(Filter().Create("localisation"));
+  FilterFactory factory;
+  std::unique_ptr<StateFilter_base> local_f = factory.Create("localisation");
 
   std::ofstream opt("localisation.xml");
   opt << "<root>" << std::endl;

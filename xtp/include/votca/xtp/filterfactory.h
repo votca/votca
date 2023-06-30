@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -33,17 +33,11 @@ namespace xtp {
 class FilterFactory
     : public tools::ObjectFactory<std::string, StateFilter_base> {
  private:
-  FilterFactory() = default;
+  void RegisterAll();
 
  public:
-  static void RegisterAll(void);
-  friend FilterFactory &Filter();
+  FilterFactory() { this->RegisterAll(); };
 };
-
-inline FilterFactory &Filter() {
-  static FilterFactory instance_;
-  return instance_;
-}
 
 }  // namespace xtp
 }  // namespace votca

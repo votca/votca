@@ -40,9 +40,9 @@ using namespace votca::tools;
 using namespace std;
 using namespace votca::csg;
 
-class CsgStatApp : public CsgApplication {
+class CsgPartialRdfApp : public CsgApplication {
  public:
-  CsgStatApp() : write_every_(0) {}
+  CsgPartialRdfApp() : write_every_(0) {}
 
   string ProgramName() override { return "csg_partial_rdf"; }
   void HelpText(ostream &out) override;
@@ -71,11 +71,11 @@ class CsgStatApp : public CsgApplication {
   votca::Index write_every_;
 };
 
-void CsgStatApp::HelpText(ostream &out) {
+void CsgPartialRdfApp::HelpText(ostream &out) {
   out << "Calculate spatially confined rdfs";
 }
 
-void CsgStatApp::Initialize() {
+void CsgPartialRdfApp::Initialize() {
   CsgApplication::Initialize();
   AddProgramOptions("Specific options")("options",
                                         boost::program_options::value<string>(),
@@ -89,7 +89,7 @@ void CsgStatApp::Initialize() {
       "do-blocks", "  write output for blocking analysis");
 }
 
-bool CsgStatApp::EvaluateOptions() {
+bool CsgPartialRdfApp::EvaluateOptions() {
   CsgApplication::EvaluateOptions();
   CheckRequired("options");
   CheckRequired("subvolume_radius");
@@ -113,13 +113,13 @@ bool CsgStatApp::EvaluateOptions() {
   return true;
 }
 
-void CsgStatApp::BeginEvaluate(Topology *top, Topology *top_ref) {
+void CsgPartialRdfApp::BeginEvaluate(Topology *top, Topology *top_ref) {
   rdf_calculator_.BeginEvaluate(top, top_ref);
 }
 
-void CsgStatApp::EndEvaluate() { rdf_calculator_.EndEvaluate(); }
+void CsgPartialRdfApp::EndEvaluate() { rdf_calculator_.EndEvaluate(); }
 
 int main(int argc, char **argv) {
-  CsgStatApp app;
+  CsgPartialRdfApp app;
   app.Exec(argc, argv);
 }

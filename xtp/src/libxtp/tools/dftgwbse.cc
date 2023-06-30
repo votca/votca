@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
   }
 
   // register all QM packages
-  QMPackageFactory::RegisterAll();
+  QMPackageFactory{};
 }
 
 bool DftGwBse::Run() {
@@ -88,7 +88,7 @@ bool DftGwBse::Run() {
   }
 
   std::unique_ptr<QMPackage> qmpackage =
-      std::unique_ptr<QMPackage>(QMPackageFactory::QMPackages().Create(
+      std::unique_ptr<QMPackage>(QMPackageFactory().Create(
           package_options_.get("name").as<std::string>()));
   qmpackage->setLog(&log_);
   qmpackage->Initialize(package_options_);
@@ -113,7 +113,19 @@ bool DftGwBse::Run() {
     geoopt.Initialize(geoopt_options_);
     geoopt.Evaluate();
   } else {
+    QMMolecule fullMol = orbitals.QMAtoms();
     gwbse_engine.ExcitationEnergies(orbitals);
+    // If truncation was enabled then rewrite full basis/aux-basis, MOs in full
+    // basis and full QMAtoms
+    if (orbitals.getCalculationType() == "Truncated") {
+      orbitals.QMAtoms().clearAtoms();
+      orbitals.QMAtoms() = fullMol;
+      orbitals.MOs().eigenvectors() = orbitals.getTruncMOsFullBasis();
+      orbitals.SetupDftBasis(orbitals.getDftBasis().Name());
+      if (orbitals.hasAuxbasisName()) {
+        orbitals.SetupAuxBasis(orbitals.getAuxBasis().Name());
+      }
+    }
   }
 
   XTP_LOG(Log::error, log_) << "Saving data to " << archive_file_ << std::flush;

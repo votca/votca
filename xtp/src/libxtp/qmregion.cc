@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,6 +24,7 @@
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/gwbse.h"
+#include "votca/xtp/pmlocalization.h"
 #include "votca/xtp/polarregion.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/staticregion.h"
@@ -68,6 +69,14 @@ void QMRegion::Initialize(const tools::Property& prop) {
   DeltaDmax_ = prop.get("tolerance_density_max").as<double>();
 
   dftoptions_ = prop.get("dftpackage");
+  localize_options_ = prop.get("localize");
+
+  if (prop.get("dftpackage.xtpdft.dft_in_dft.activeatoms")
+          .as<std::string>()
+          .size() != 0) {
+    do_localize_ = true;
+    do_dft_in_dft_ = true;
+  }
 }
 
 bool QMRegion::Converged() const {
@@ -124,9 +133,81 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     errormsg_ = "Parsing DFT orbfile failed.";
     return;
   }
+  if (do_localize_) {
+    PMLocalization pml(log_, localize_options_);
+    pml.computePML(orb_);
+  }
+  QMMolecule originalmol = orb_.QMAtoms();
+  if (do_dft_in_dft_) {
+
+    // this only works with XTPDFT, so locally override global qmpackage_
+    std::unique_ptr<QMPackage> xtpdft =
+        std::unique_ptr<QMPackage>(QMPackageFactory().Create("xtp"));
+    xtpdft->setLog(&log_);
+    xtpdft->Initialize(dftoptions_);
+    xtpdft->setRunDir(workdir_);
+    Index charge = 0;
+    if (initstate_.Type() == QMStateType::Electron) {
+      charge = -1;
+    } else if (initstate_.Type() == QMStateType::Hole) {
+      charge = +1;
+    }
+    xtpdft->setCharge(charge);
+
+    std::vector<double> energies = std::vector<double>(regions.size(), 0.0);
+    for (std::unique_ptr<Region>& reg : regions) {
+      Index id = reg->getId();
+      if (id == this->getId()) {
+        continue;
+      }
+
+      StaticRegion Staticdummy(0, log_);
+      PolarRegion Polardummy(0, log_);
+      XTP_LOG(Log::error, log_)
+          << TimeStamp() << " Evaluating interaction between "
+          << this->identify() << " " << this->getId() << " and "
+          << reg->identify() << " " << reg->getId() << std::flush;
+      if (reg->identify() == Staticdummy.identify()) {
+        StaticRegion* staticregion = dynamic_cast<StaticRegion*>(reg.get());
+        xtpdft->AddRegion(*staticregion);
+      } else if (reg->identify() == Polardummy.identify()) {
+        PolarRegion* polarregion = dynamic_cast<PolarRegion*>(reg.get());
+        xtpdft->AddRegion(*polarregion);
+      } else {
+        throw std::runtime_error(
+            "Interaction of regions with types:" + this->identify() + " and " +
+            reg->identify() + " not implemented");
+      }
+    }
+
+    e_ext = std::accumulate(interact_energies.begin(), interact_energies.end(),
+                            0.0);
+    XTP_LOG(Log::info, log_)
+        << TimeStamp()
+        << " Calculated interaction potentials with other regions. E[hrt]= "
+        << e_ext << std::flush;
+    XTP_LOG(Log::info, log_) << "Writing inputs" << std::flush;
+    xtpdft->WriteInputFile(orb_);
+    bool active_run = xtpdft->RunActiveRegion();
+    if (!active_run) {
+      throw std::runtime_error("\n DFT in DFT embedding failed. Stopping!");
+    }
+    Logfile_parse = xtpdft->ParseLogFile(orb_);
+    if (!Logfile_parse) {
+      throw std::runtime_error("\n Parsing DFT logfile failed. Stopping!");
+    }
+  }
+
   QMState state = QMState("groundstate");
   double energy = orb_.getDFTTotalEnergy();
+
   if (do_gwbse_) {
+    if (do_dft_in_dft_) {
+      Index active_electrons = orb_.getNumOfActiveElectrons();
+      orb_.MOs() = orb_.getEmbeddedMOs();
+      orb_.setNumberOfAlphaElectrons(active_electrons);
+      orb_.setNumberOfOccupiedLevels(active_electrons / 2);
+    }
     GWBSE gwbse(orb_);
     gwbse.setLogger(&log_);
     gwbse.Initialize(gwbseoptions_);
@@ -144,7 +225,17 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
       }
     }
   }
+  // If truncation was enabled then rewrite full basis/aux-basis, MOs in full
+  // basis and full QMAtoms
+  if (orb_.getCalculationType() == "Truncated") {
+    orb_.MOs().eigenvectors() = orb_.getTruncMOsFullBasis();
+    orb_.QMAtoms().clearAtoms();
+    orb_.QMAtoms() = originalmol;
+    orb_.SetupDftBasis(orb_.getDftBasis().Name());
+    orb_.SetupAuxBasis(orb_.getAuxBasis().Name());
+  }
   E_hist_.push_back(energy);
+
   Dmat_hist_.push_back(orb_.DensityMatrixFull(state));
   return;
 }
@@ -194,8 +285,8 @@ void QMRegion::AppendResult(tools::Property& prop) const {
 void QMRegion::Reset() {
 
   std::string dft_package_name = dftoptions_.get("name").as<std::string>();
-  qmpackage_ = std::unique_ptr<QMPackage>(
-      QMPackageFactory::QMPackages().Create(dft_package_name));
+  qmpackage_ =
+      std::unique_ptr<QMPackage>(QMPackageFactory().Create(dft_package_name));
   qmpackage_->setLog(&log_);
   qmpackage_->Initialize(dftoptions_);
   Index charge = 0;
@@ -283,8 +374,9 @@ void QMRegion::WriteToCpt(CheckpointWriter& w) const {
   w(do_gwbse_, "GWBSE");
   w(initstate_.ToString(), "initial_state");
   w(grid_accuracy_for_ext_interaction_, "ext_grid");
-  CheckpointWriter v = w.openChild("orbitals");
+  CheckpointWriter v = w.openChild("QMdata");
   orb_.WriteToCpt(v);
+  orb_.WriteBasisSetsToCpt(v);
 
   CheckpointWriter v2 = w.openChild("E-hist");
   E_hist_.WriteToCpt(v2);
@@ -305,8 +397,9 @@ void QMRegion::ReadFromCpt(CheckpointReader& r) {
   r(state, "initial_state");
   initstate_.FromString(state);
   r(grid_accuracy_for_ext_interaction_, "ext_grid");
-  CheckpointReader rr = r.openChild("orbitals");
+  CheckpointReader rr = r.openChild("QMdata");
   orb_.ReadFromCpt(rr);
+  orb_.ReadBasisSetsFromCpt(rr);
 
   CheckpointReader rr2 = r.openChild("E-hist");
   E_hist_.ReadFromCpt(rr2);

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -36,18 +36,11 @@ namespace xtp {
 class JobCalculatorfactory
     : public tools::ObjectFactory<std::string, JobCalculator> {
  private:
-  JobCalculatorfactory() = default;
+  void RegisterAll();
 
  public:
-  static void RegisterAll(void);
-
-  friend JobCalculatorfactory &JobCalculators();
+  JobCalculatorfactory() { this->RegisterAll(); };
 };
-
-inline JobCalculatorfactory &JobCalculators() {
-  static JobCalculatorfactory instance_;
-  return instance_;
-}
 
 }  // namespace xtp
 }  // namespace votca
