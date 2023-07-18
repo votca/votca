@@ -458,7 +458,7 @@ AtomContainer SegmentMapper<AtomContainer>::map(
       if (id.second != Result[id.first].getElement()) {
         throw std::runtime_error("Element of mapping atom " +
                                  std::to_string(id.first) + ":" + id.second +
-                                 " does not agree with Element of parsed Atom" +
+                                 " does not agree with Element of parsed Atom " +
                                  Result[id.first].getElement());
       }
       fragment_mapatoms.push_back(&Result[id.first]);

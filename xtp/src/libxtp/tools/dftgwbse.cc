@@ -19,7 +19,6 @@
 #include <votca/tools/constants.h>
 
 // Local VOTCA includes
-#include "votca/xtp/geometry_optimization.h"
 #include "votca/xtp/gwbseengine.h"
 #include "votca/xtp/qmpackagefactory.h"
 #include "votca/xtp/segment.h"
@@ -55,12 +54,6 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
   // check if guess is requested
   if (options.exists(".guess")) {
     guess_file_ = options.get(".guess").as<std::string>();
-  }
-
-  // if optimization is chosen, get options for geometry_optimizer
-  if (options.exists(".geometry_optimization")) {
-    do_optimize_ = true;
-    geoopt_options_ = options.get(".geometry_optimization");
   }
 
   // register all QM packages
@@ -107,12 +100,7 @@ bool DftGwBse::Run() {
   gwbse_engine.setQMPackage(qmpackage.get());
   gwbse_engine.Initialize(gwbseengine_options_, archive_file_);
 
-  if (do_optimize_) {
-    GeometryOptimization geoopt(gwbse_engine, orbitals);
-    geoopt.setLog(&log_);
-    geoopt.Initialize(geoopt_options_);
-    geoopt.Evaluate();
-  } else {
+
     QMMolecule fullMol = orbitals.QMAtoms();
     gwbse_engine.ExcitationEnergies(orbitals);
     // If truncation was enabled then rewrite full basis/aux-basis, MOs in full
@@ -126,7 +114,6 @@ bool DftGwBse::Run() {
         orbitals.SetupAuxBasis(orbitals.getAuxBasis().Name());
       }
     }
-  }
 
   XTP_LOG(Log::error, log_) << "Saving data to " << archive_file_ << std::flush;
   orbitals.WriteToCpt(archive_file_);

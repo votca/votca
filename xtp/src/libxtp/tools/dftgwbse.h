@@ -56,8 +56,6 @@ class DftGwBse final : public QMTool {
   tools::Property geoopt_options_;
 
   Logger log_;
-
-  bool do_optimize_;
 };
 
 }  // namespace xtp
