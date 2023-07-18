@@ -8,6 +8,7 @@ Version 2023-rc.2-dev
 -  fix Changelog check (#1070)
 -  add python bindings for xtp (#1061)
 -  replaced pointers in MD2QM mapping (#1075)
+-  fixed typo in esp2multipole option (#1076)
 
 Version 2023-rc.2 (released 02.06.23)
 =====================================
