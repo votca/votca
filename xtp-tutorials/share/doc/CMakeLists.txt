@@ -9,8 +9,6 @@ endif()
 set(NOTEBOOKS "GROMACS/Methane/QMMM_GROMACS.ipynb")
 list(APPEND NOTEBOOKS "LAMMPS/Thiophene/QMMM_LAMMPS.ipynb")
 list(APPEND NOTEBOOKS "tools/dftgwbse_CH4/DFTGWBSE_ENERGY.ipynb")
-list(APPEND NOTEBOOKS "tools/dftgwbse_CO_geoopt/DFTGWBSE_OPTIMIZATION.ipynb")
-# list(APPEND NOTEBOOKS "GROMACS/KMC_Methane/GROMACS_KMC.ipynb")
 list(APPEND NOTEBOOKS "LAMMPS/KMC_Thiophene/LAMMPS_KMC.ipynb")
 
 set(NEW_NOTEBOOKS)
