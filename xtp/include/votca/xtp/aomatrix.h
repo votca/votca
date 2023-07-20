@@ -23,6 +23,8 @@
 
 // Local VOTCA includes
 #include "aobasis.h"
+#include "qmmolecule.h"
+
 
 namespace votca {
 namespace xtp {
@@ -42,6 +44,17 @@ class AOKinetic : public AOMatrix {
 
  private:
   Eigen::MatrixXd aomatrix_;
+};
+
+// derived class for AO reaction field
+class AOReactionField : public AOMatrix {
+  public:
+  void Fill(const AOBasis& aobasis) final;
+  void SetAtoms( const QMMolecule& atoms ) { atoms_ = atoms;}
+  Index Dimension() final {return aomatrix_.rows();}
+  private:
+   Eigen::MatrixXd aomatrix_;
+   QMMolecule atoms_;
 };
 
 // derived class for atomic orbital overlap
