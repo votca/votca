@@ -36,7 +36,6 @@
 #include "tools/orb2mol.h"
 #include "tools/partialcharges.h"
 #include "tools/spectrum.h"
-#include "tools/envcorr.h"
 
 namespace votca {
 namespace xtp {
