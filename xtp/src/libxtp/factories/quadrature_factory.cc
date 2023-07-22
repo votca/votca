@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -28,12 +28,11 @@
 namespace votca {
 namespace xtp {
 
-void QuadratureFactory::RegisterAll(void) {
-  Quadratures().Register<Gauss_Laguerre_Quadrature>("laguerre");
-  Quadratures().Register<Gauss_Legendre_Quadrature>("legendre");
-  Quadratures().Register<Gauss_modified_Legendre_Quadrature>(
-      "modified_legendre");
-  Quadratures().Register<Gauss_Hermite_Quadrature>("hermite");
+void QuadratureFactory::RegisterAll() {
+  this->Register<Gauss_Laguerre_Quadrature>("laguerre");
+  this->Register<Gauss_Legendre_Quadrature>("legendre");
+  this->Register<Gauss_modified_Legendre_Quadrature>("modified_legendre");
+  this->Register<Gauss_Hermite_Quadrature>("hermite");
 }
 }  // namespace xtp
 }  // namespace votca

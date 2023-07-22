@@ -16,8 +16,8 @@
  */
 
 // Local VOTCA includes
-#include "votca/csg/pdbwriter.h"
 #include "votca/csg/trajectorywriter.h"
+#include "votca/csg/pdbwriter.h"
 #include "votca/csg/xyzwriter.h"
 
 // Local private VOTCA includes

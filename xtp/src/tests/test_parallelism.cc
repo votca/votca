@@ -14,7 +14,6 @@
  *
  */
 
-#if defined(_OPENMP)
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE parallelism_test
@@ -28,7 +27,7 @@ using namespace votca::xtp;
 using namespace std;
 
 BOOST_AUTO_TEST_SUITE(parallelism_test)
-
+#if defined(_OPENMP)
 BOOST_AUTO_TEST_CASE(openmp) {
 
   // Check if number is set correctly
@@ -43,7 +42,5 @@ BOOST_AUTO_TEST_CASE(openmp) {
   { sumThreads += 1; }
   BOOST_CHECK(inThreads == sumThreads);
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-
 #endif
+BOOST_AUTO_TEST_SUITE_END()

@@ -23,6 +23,7 @@
 #include <votca/csg/topology.h>
 
 // Local VOTCA includes
+#include "logger.h"
 #include "topology.h"
 
 namespace votca {

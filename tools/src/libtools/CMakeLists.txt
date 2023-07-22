@@ -28,12 +28,7 @@ set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options Eigen3::Eigen PRIVATE
 	Boost::system EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
 if(MKL_FOUND)
-  target_link_libraries(votca_tools PUBLIC MKL::Shared)
-  # https://software.intel.com/en-us/articles/symbol-lookup-error-when-linking-intel-mkl-with-gcc-on-ubuntu
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_link_options(votca_tools PUBLIC "-Wl,--no-as-needed")
-  endif()
-  install(FILES "${PROJECT_SOURCE_DIR}/CMakeModules/FindMKL.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
+  target_link_libraries(votca_tools PUBLIC MKL::MKL)
 endif()
 
 if(OpenMP_FOUND)

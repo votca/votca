@@ -77,9 +77,8 @@ double PolarRegion::StaticInteraction() {
 }
 
 eeInteractor::E_terms PolarRegion::PolarEnergy() const {
-#pragma omp declare reduction(CustomPlus              \
-                              : eeInteractor::E_terms \
-                              : omp_out += omp_in)
+#pragma omp declare reduction(CustomPlus : eeInteractor::E_terms : omp_out += \
+                                  omp_in)
 
   eeInteractor eeinteractor(exp_damp_);
 

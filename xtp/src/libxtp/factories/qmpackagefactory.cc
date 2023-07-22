@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -28,8 +28,9 @@ namespace votca {
 namespace xtp {
 
 void QMPackageFactory::RegisterAll(void) {
-  QMPackages().Register<Orca>("orca");
-  QMPackages().Register<XTPDFT>("xtp");
+  this->Register<Orca>("orca");
+  this->Register<XTPDFT>("xtp");
 }
+
 }  // namespace xtp
 }  // namespace votca
