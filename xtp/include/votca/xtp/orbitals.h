@@ -271,12 +271,6 @@ class Orbitals {
 
   Eigen::VectorXd &RPAInputEnergies() { return rpa_inputenergies_; }
 
-  // access env corrections
-  bool hasEnvCorrections() const { return (env_corr_energies_.size() > 0); }
-
-  const Eigen::VectorXd &EnvCorrections() const { return env_corr_energies_; }
-
-
 
   // access to RPA input energies energies
   bool hasQPpert() const {
@@ -467,7 +461,6 @@ class Orbitals {
   Eigen::VectorXd rpa_inputenergies_;
   // perturbative quasiparticle energies
   Eigen::VectorXd QPpert_energies_;
-  Eigen::VectorXd env_corr_energies_;
 
   // quasiparticle energies and coefficients after diagonalization
   tools::EigenSystem QPdiag_;

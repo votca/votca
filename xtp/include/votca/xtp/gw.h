@@ -70,8 +70,6 @@ class GW {
 
   void configure(const options& opt);
 
-  Eigen::VectorXd &EnvCorrections() { return env_corrections_; };
-
   Eigen::VectorXd getGWAResults() const;
   // Calculates the diagonal elements up to self consistency
   void CalculateGWPerturbation();
@@ -105,7 +103,6 @@ class GW {
   TCMatrix_gwbse& Mmn_;
   const Eigen::MatrixXd& vxc_;
   const Eigen::VectorXd& dft_energies_;
-  Eigen::VectorXd env_corrections_;
 
   RPA rpa_;
   // small class which calculates f(w) with and df/dw(w)

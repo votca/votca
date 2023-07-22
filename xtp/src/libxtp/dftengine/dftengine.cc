@@ -318,35 +318,6 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
         << TimeStamp() << " Total Energy " << std::setprecision(12) << totenergy
         << std::flush;
 
-
-
-    // read polar orbfile
-    Orbitals orb_polar;
-    orb_polar.ReadFromCpt("prodan_static.orb");
-    tools::EigenSystem MOs_polar = orb_polar.MOs();
-
-    // test - get expectation value of MO and stop
-    double expval = (MOs.eigenvectors().col(60).transpose() * H * MOs.eigenvectors().col(60))(0,0);
-    double expval2 = (MOs_polar.eigenvectors().col(60).transpose() * H * MOs_polar.eigenvectors().col(60))(0,0);
-
-
-  XTP_LOG(Log::error, *pLog_)
-        << TimeStamp() << " HOMO expval " << std::setprecision(12) << expval << " cross " << expval2 
-        << std::flush;
-
-  exit(0);
-
-
-
-
-
-
-
-
-
-
-
-
     Dmat = conv_accelerator_.Iterate(Dmat, H, MOs, totenergy);
     incremental_fock.UpdateDmats(Dmat, conv_accelerator_.getDIIsError(),
                                  this_iter);
