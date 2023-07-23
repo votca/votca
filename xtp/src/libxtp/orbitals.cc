@@ -586,9 +586,15 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(votca::tools::ToolsVersionStr(), "XTPVersion");
   w(orbitals_version(), "version");
   w(occupied_levels_, "occupied_levels");
+  w(occupied_levels_beta_, "occupied_levels_beta");
   w(number_alpha_electrons_, "number_alpha_electrons");
+  w(number_beta_electrons_, "number_beta_electrons");
+  w(total_charge_, "charge");
+  w(total_spin_, "spin");
 
   w(mos_, "mos");
+  w(mos_beta_, "mos_beta");
+  w(occupations_,"occupations");
   w(active_electrons_, "active_electrons");
   w(mos_embedding_, "mos_embedding");
   w(lmos_, "LMOs");
@@ -655,7 +661,11 @@ void Orbitals::ReadBasisSetsFromCpt(CheckpointReader r) {
 
 void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(occupied_levels_, "occupied_levels");
+  r(occupied_levels_beta_, "occupied_levels_beta");
   r(number_alpha_electrons_, "number_alpha_electrons");
+  r(number_beta_electrons_, "number_beta_electrons");
+  r(total_charge_, "charge");
+  r(total_spin_, "spin");
   int version;
   r(version, "version");
   // Read qmatoms
@@ -673,6 +683,8 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
 
   r(version, "version");
   r(mos_, "mos");
+  r(mos_beta_, "mos_beta");
+  r(occupations_, "occupations");
   r(mos_embedding_, "mos_embedding");
   r(active_electrons_, "active_electrons");
   r(inactivedensity_, "inactivedensity");

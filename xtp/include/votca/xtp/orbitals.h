@@ -66,28 +66,39 @@ class Orbitals {
   Index getLumo() const { return occupied_levels_; }
 
   Index getHomo() const { return occupied_levels_ - 1; }
+  
   // access to DFT number of levels, new, tested
-
   bool hasNumberOfLevels() const {
     return ((occupied_levels_ > 0) ? true : false);
+  }
+  bool hasNumberOfLevelsBeta() const {
+    return ((occupied_levels_beta_ > 0) ? true : false);
   }
 
   void setNumberOfOccupiedLevels(Index occupied_levels) {
     occupied_levels_ = occupied_levels;
   }
+ void setNumberOfOccupiedLevelsBeta(Index occupied_levels_beta) {
+    occupied_levels_beta_ = occupied_levels_beta;
+  }
 
   // access to DFT number of electrons, new, tested
-
   bool hasNumberOfAlphaElectrons() const {
     return (number_alpha_electrons_ > 0) ? true : false;
   }
+  bool hasNumberOfBetaElectrons() const {
+    return (number_beta_electrons_ > 0) ? true : false;
+  }
 
   Index getNumberOfAlphaElectrons() const { return number_alpha_electrons_; };
+  Index getNumberOfBetaElectrons() const { return number_beta_electrons_; };
 
   void setNumberOfAlphaElectrons(Index electrons) {
     number_alpha_electrons_ = electrons;
   }
-
+  void setNumberOfBetaElectrons(Index electrons) {
+    number_beta_electrons_ = electrons;
+  }
   bool hasECPName() const { return (ECP_ != "") ? true : false; }
 
   const std::string &getECPName() const { return ECP_; };
@@ -104,9 +115,13 @@ class Orbitals {
 
   // access to DFT molecular orbital energies, new, tested
   bool hasMOs() const { return (mos_.eigenvalues().size() > 0) ? true : false; }
+  bool hasBetaMOs() const { return (mos_beta_.eigenvalues().size() > 0) ? true : false; }
 
   const tools::EigenSystem &MOs() const { return mos_; }
   tools::EigenSystem &MOs() { return mos_; }
+
+  const tools::EigenSystem &MOs_beta() const { return mos_beta_; }
+  tools::EigenSystem &MOs_beta() { return mos_beta_; }
 
   // determine (pseudo-)degeneracy of a DFT molecular orbital
   std::vector<Index> CheckDegeneracy(Index level,
@@ -415,13 +430,18 @@ class Orbitals {
   Eigen::MatrixXd CalcAuxMat_vv(const Eigen::VectorXd &coeffs) const;
 
   Index occupied_levels_;
+  Index occupied_levels_beta_;
   Index number_alpha_electrons_;
+  Index number_beta_electrons_;
   std::string ECP_ = "";
   bool useTDA_;
 
   std::string CalcType_ = "NoEmbedding";
 
   tools::EigenSystem mos_;
+  tools::EigenSystem mos_beta_;
+  Eigen::MatrixXd occupations_;
+  
   tools::EigenSystem mos_embedding_;
 
   Eigen::MatrixXd lmos_;
@@ -436,6 +456,9 @@ class Orbitals {
   AOBasis auxbasis_;
 
   double qm_energy_ = 0;
+
+  Index total_charge_;
+  Index total_spin_;
 
   // new variables for GW-BSE storage
   Index rpamin_ = 0;
