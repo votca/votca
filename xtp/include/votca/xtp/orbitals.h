@@ -66,7 +66,7 @@ class Orbitals {
   Index getLumo() const { return occupied_levels_; }
 
   Index getHomo() const { return occupied_levels_ - 1; }
-  
+
   // access to DFT number of levels, new, tested
   bool hasNumberOfLevels() const {
     return ((occupied_levels_ > 0) ? true : false);
@@ -78,7 +78,7 @@ class Orbitals {
   void setNumberOfOccupiedLevels(Index occupied_levels) {
     occupied_levels_ = occupied_levels;
   }
- void setNumberOfOccupiedLevelsBeta(Index occupied_levels_beta) {
+  void setNumberOfOccupiedLevelsBeta(Index occupied_levels_beta) {
     occupied_levels_beta_ = occupied_levels_beta;
   }
 
@@ -115,7 +115,9 @@ class Orbitals {
 
   // access to DFT molecular orbital energies, new, tested
   bool hasMOs() const { return (mos_.eigenvalues().size() > 0) ? true : false; }
-  bool hasBetaMOs() const { return (mos_beta_.eigenvalues().size() > 0) ? true : false; }
+  bool hasBetaMOs() const {
+    return (mos_beta_.eigenvalues().size() > 0) ? true : false;
+  }
 
   const tools::EigenSystem &MOs() const { return mos_; }
   tools::EigenSystem &MOs() { return mos_; }
@@ -152,6 +154,15 @@ class Orbitals {
 
   void setCalculationType(std::string CalcType) { CalcType_ = CalcType; }
   std::string getCalculationType() const { return CalcType_; }
+
+  void setChargeAndSpin(Index charge, Index spin) {
+    total_charge_ = charge;
+    total_spin_ = spin;
+  }
+
+  Index getSpin() const { return total_spin_; }
+  Index getCharge() const { return total_charge_; }
+  bool isOpenShell() const { return (total_spin_ > 1) ? true : false; }
 
   bool hasQMAtoms() const { return (atoms_.size() > 0) ? true : false; }
 
@@ -441,7 +452,7 @@ class Orbitals {
   tools::EigenSystem mos_;
   tools::EigenSystem mos_beta_;
   Eigen::MatrixXd occupations_;
-  
+
   tools::EigenSystem mos_embedding_;
 
   Eigen::MatrixXd lmos_;

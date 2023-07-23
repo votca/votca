@@ -517,11 +517,16 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     return false;
   }
   std::map<Index, double> energies;
+  std::map<Index, double> energies_beta;
+
   std::map<Index, double> occupancy;
+  std::map<Index, double> occupancy_beta;
 
   std::string line;
   Index levels = 0;
   Index number_of_electrons = 0;
+  Index number_of_electrons_beta = 0;
+
   std::vector<std::string> results;
 
   std::ifstream input_file(log_file_name_full);
@@ -539,6 +544,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   // optimization or not
 
   QMMolecule& mol = orbitals.QMAtoms();
+  orbitals.setChargeAndSpin(charge_, spin_);
   while (input_file) {
     tools::getline(input_file, line);
     boost::trim(line);
@@ -584,7 +590,13 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
 
       number_of_electrons = 0;
       tools::getline(input_file, line);
-      tools::getline(input_file, line);
+      tools::getline(input_file, line);  // for open shell systems, this line
+                                         // will have "SPIN UP ORBITALS"
+      if (orbitals.isOpenShell() &&
+          line.find("SPIN UP ORBITALS") == std::string::npos) {
+        throw runtime_error(
+            "Expected to read an open-shell system but found no spin orbitals");
+      }
       tools::getline(input_file, line);
       if (line.find("E(Eh)") == std::string::npos) {
         XTP_LOG(Log::error, *pLog_)
@@ -608,23 +620,55 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
         if (occ == 2 || occ == 1) {
           number_of_electrons++;
           occupancy[i] = occ;
-          if (occ == 1) {
+          /*if (occ == 1 ) {
             XTP_LOG(Log::error, *pLog_)
                 << "Watch out! No distinction between alpha and beta "
                    "electrons. Check if occ = 1 is suitable for your "
                    "calculation "
                 << flush;
-          }
+          }*/
         } else if (occ == 0) {
           occupancy[i] = occ;
-        } else {
-          throw runtime_error(
-              "Only empty or doubly occupied orbitals are allowed not "
-              "running the right kind of DFT calculation");
         }
         std::string e = results[2];
         boost::trim(e);
         energies[i] = boost::lexical_cast<double>(e);
+      }
+
+      // now read spin down energies, if needed
+      if (orbitals.isOpenShell()) {
+        number_of_electrons_beta = 0;
+        tools::getline(input_file, line);
+        tools::getline(input_file, line);
+        tools::getline(input_file, line);
+        for (Index i = 0; i < levels; i++) {
+          results = GetLineAndSplit(input_file, " ");
+          std::string no = results[0];
+          boost::trim(no);
+          Index levelnumber = boost::lexical_cast<Index>(no);
+          if (levelnumber != i) {
+            XTP_LOG(Log::error, *pLog_)
+                << "Have a look at the orbital energies "
+                   "something weird is going on"
+                << flush;
+          }
+          std::string oc = results[1];
+          boost::trim(oc);
+          double occ = boost::lexical_cast<double>(oc);
+          // These occupations can only be 1 or 0
+          if (occ == 1) {
+            number_of_electrons_beta++;
+            occupancy_beta[i] = occ;
+          } else if (occ == 0) {
+            occupancy_beta[i] = occ;
+          } else {
+            throw runtime_error(
+                "Encountered spin down orbital with occupancy != 0 or 1");
+          }
+          std::string e = results[2];
+          boost::trim(e);
+          energies_beta[i] = boost::lexical_cast<double>(e);
+        }
       }
     }
 
@@ -644,7 +688,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
       << "Alpha electrons: " << number_of_electrons << flush;
   Index occupied_levels = number_of_electrons;
   Index unoccupied_levels = levels - occupied_levels;
-  XTP_LOG(Log::info, *pLog_) << "Occupied levels: " << occupied_levels << flush;
+  XTP_LOG(Log::info, *pLog_) << "Occupied Alpha levels: " << occupied_levels << flush;
   XTP_LOG(Log::info, *pLog_)
       << "Unoccupied levels: " << unoccupied_levels << flush;
 
@@ -659,6 +703,21 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   // level_ = 1;
   for (Index i = 0; i < levels; i++) {
     orbitals.MOs().eigenvalues()[i] = energies[i];
+  }
+
+  if (orbitals.isOpenShell()) {
+    XTP_LOG(Log::info, *pLog_)
+      << "Beta electrons: " << number_of_electrons_beta << flush;
+    XTP_LOG(Log::info, *pLog_) << "Occupied Beta levels: " << number_of_electrons_beta << flush;
+    XTP_LOG(Log::info, *pLog_)
+      << "Unoccupied Beta levels: " << levels -  number_of_electrons_beta << flush;
+
+    orbitals.setNumberOfBetaElectrons(number_of_electrons_beta);
+    orbitals.setNumberOfOccupiedLevelsBeta(number_of_electrons_beta);
+    orbitals.MOs_beta().eigenvalues().resize(levels);
+    for (Index i = 0; i < levels; i++) {
+      orbitals.MOs_beta().eigenvalues()[i] = energies_beta[i];
+    }
   }
 
   XTP_LOG(Log::error, *pLog_) << "Done reading Log file" << flush;
