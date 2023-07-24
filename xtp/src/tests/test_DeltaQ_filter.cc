@@ -122,6 +122,7 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
   A.SetupDftBasis("3-21G.xml");
   A.setNumberOfAlphaElectrons(5);
   A.setNumberOfOccupiedLevels(5);
+  A.setChargeAndSpin(0,1);
   A.MOs().eigenvalues() = Eigen::VectorXd::Zero(17);
   A.MOs().eigenvalues() << -19.8117, -6.22408, -6.14094, -6.14094, -6.14094,
       -3.72889, -3.72889, -3.72889, -3.64731, -3.09048, -3.09048, -3.09048,

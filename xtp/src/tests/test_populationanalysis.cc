@@ -44,6 +44,7 @@ BOOST_AUTO_TEST_CASE(atompop) {
   orb.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
                     "/populationanalysis/3-21G.xml");
   orb.setNumberOfOccupiedLevels(5);
+  orb.setChargeAndSpin(0,1);
 
   Eigen::MatrixXd& MOs = orb.MOs().eigenvectors();
   orb.MOs().eigenvalues() = Eigen::VectorXd::Ones(17);

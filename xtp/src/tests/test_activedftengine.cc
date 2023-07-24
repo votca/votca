@@ -182,6 +182,7 @@ BOOST_AUTO_TEST_CASE(dft_active) {
   Logger log;
   activedft.setLogger(&log);
   activedft.Initialize(prop.get("dftpackage"));
+  orb.setChargeAndSpin(0,1);
   activedft.EvaluateActiveRegion(orb);
 
   Eigen::VectorXd MOs_energy_ref =

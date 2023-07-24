@@ -61,6 +61,7 @@ BOOST_AUTO_TEST_CASE(sortEnergies) {
   switched(5) = Energies(3);
   orb.MOs().eigenvalues() = switched;
   orb.MOs().eigenvectors() = Eigen::MatrixXd::Zero(10, 10);
+  orb.setChargeAndSpin(0,1);
   orb.OrderMOsbyEnergy();
   bool issorted = Energies.isApprox(orb.MOs().eigenvalues(), 0.001);
   if (!issorted) {
@@ -78,6 +79,7 @@ BOOST_AUTO_TEST_CASE(densmat_test) {
   orb.setNumberOfOccupiedLevels(4);
   orb.setBSEindices(0, 9);
   orb.setNumberOfAlphaElectrons(5);
+  orb.setChargeAndSpin(0,1);
   orb.MOs().eigenvalues() = Eigen::VectorXd::Ones(17);
   orb.MOs().eigenvectors() = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/MOs.mm");
@@ -161,6 +163,7 @@ BOOST_AUTO_TEST_CASE(dipole_test) {
 
   orbitals.setBSEindices(0, 16);
   orbitals.setTDAApprox(true);
+  orbitals.setChargeAndSpin(0,1);
 
   Eigen::MatrixXd spsi_ref = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/orbitals/spsi_ref.mm");
@@ -208,6 +211,7 @@ BOOST_AUTO_TEST_CASE(osc_strength) {
   orb.setNumberOfOccupiedLevels(4);
   orb.setBSEindices(0, 16);
   orb.setTDAApprox(true);
+  orb.setChargeAndSpin(0,1);
 
   Eigen::MatrixXd& MOs = orb.MOs().eigenvectors();
   orb.MOs().eigenvalues() = Eigen::VectorXd::Ones(17);

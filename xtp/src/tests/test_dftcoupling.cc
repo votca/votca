@@ -136,6 +136,7 @@ BOOST_AUTO_TEST_CASE(coupling) {
   A.SetupDftBasis("3-21G.xml");
   A.setNumberOfAlphaElectrons(5);
   A.setNumberOfOccupiedLevels(5);
+  A.setChargeAndSpin(0,1);
   A.MOs().eigenvalues() = Eigen::VectorXd::Zero(17);
   A.MOs().eigenvalues() << -19.8117, -6.22408, -6.14094, -6.14094, -6.14094,
       -3.72889, -3.72889, -3.72889, -3.64731, -3.09048, -3.09048, -3.09048,
@@ -197,6 +198,8 @@ BOOST_AUTO_TEST_CASE(coupling) {
   Orbitals AB;
   AB.QMAtoms() = A.QMAtoms();
   AB.QMAtoms().AddContainer(B.QMAtoms());
+  AB.setChargeAndSpin(0,1);
+
   AB.MOs().eigenvalues().resize(34);
   AB.MOs().eigenvalues() << -10.1341, -10.1337, -0.808607, -0.665103, -0.474928,
       -0.455857, -0.455857, -0.365971, -0.365971, -0.263259, 0.140444, 0.154745,

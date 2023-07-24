@@ -122,8 +122,8 @@ class Orbitals {
   const tools::EigenSystem &MOs() const { return mos_; }
   tools::EigenSystem &MOs() { return mos_; }
 
-  const Eigen::MatrixXd &Occupations() const {return occupations_;}
-  Eigen::MatrixXd &Occupations() {return occupations_;}
+  const Eigen::MatrixXd &Occupations() const { return occupations_; }
+  Eigen::MatrixXd &Occupations() { return occupations_; }
 
   const tools::EigenSystem &MOs_beta() const { return mos_beta_; }
   tools::EigenSystem &MOs_beta() { return mos_beta_; }
@@ -515,7 +515,8 @@ class Orbitals {
   // Version 3: changed shell ordering
   // Version 4: added vxc grid quality
   // Version 5: added the dft and aux basisset
-  static constexpr int orbitals_version() { return 5; }
+  // Version 6: added spin in dft
+  static constexpr int orbitals_version() { return 6; }
 };
 
 }  // namespace xtp
