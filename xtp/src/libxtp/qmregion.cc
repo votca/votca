@@ -41,11 +41,11 @@ void QMRegion::Initialize(const tools::Property& prop) {
   }
 
   initstate_ = prop.get("state").as<QMState>();
-  if (initstate_.Type() == QMStateType::Hole ||
+  /*if (initstate_.Type() == QMStateType::Hole ||
       initstate_.Type() == QMStateType::Electron) {
     throw std::runtime_error(
         "Charged QM Regions are not implemented currently");
-  }
+  }*/
   if (initstate_.Type().isExciton() || initstate_.Type().isGWState()) {
 
     do_gwbse_ = true;
@@ -111,8 +111,16 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
       << " Calculated interaction potentials with other regions. E[hrt]= "
       << e_ext << std::flush;
   XTP_LOG(Log::info, log_) << "Writing inputs" << std::flush;
+  Index crg = 0;
+  if (initstate_.Type() == QMStateType::Electron) {
+      crg = -1;
+    } else if (initstate_.Type() == QMStateType::Hole) {
+      crg = +1;
+    }
+  qmpackage_->setCharge(crg);
   qmpackage_->setRunDir(workdir_);
   qmpackage_->WriteInputFile(orb_);
+
   XTP_LOG(Log::error, log_) << "Running DFT calculation" << std::flush;
   bool run_success = qmpackage_->Run();
   if (!run_success) {
@@ -266,6 +274,12 @@ double QMRegion::charge() const {
     }
 
     Index electrons = orb_.getNumberOfAlphaElectrons() * 2;
+    if (orb_.isOpenShell()){
+      electrons += orb_.getNumberOfBetaElectrons();
+    } else {
+      electrons *= 2;
+    }
+
     charge = double(nuccharge - electrons);
   } else {
     QMState state = statetracker_.InitialState();
