@@ -122,6 +122,9 @@ class Orbitals {
   const tools::EigenSystem &MOs() const { return mos_; }
   tools::EigenSystem &MOs() { return mos_; }
 
+  const Eigen::MatrixXd &Occupations() const {return occupations_;}
+  Eigen::MatrixXd &Occupations() {return occupations_;}
+
   const tools::EigenSystem &MOs_beta() const { return mos_beta_; }
   tools::EigenSystem &MOs_beta() { return mos_beta_; }
 
