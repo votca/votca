@@ -273,7 +273,7 @@ double QMRegion::charge() const {
       nuccharge += a.getNuccharge();
     }
 
-    Index electrons = orb_.getNumberOfAlphaElectrons() * 2;
+    Index electrons = orb_.getNumberOfAlphaElectrons();
     if (orb_.isOpenShell()){
       electrons += orb_.getNumberOfBetaElectrons();
     } else {
