@@ -155,6 +155,10 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
     } else {
       result -= DMATQP;
     }
+  } else if (state.Type() == QMStateType::Hole || state.Type() == QMStateType::Electron){
+    if (!this->isOpenShell()){
+      throw std::runtime_error("QMStateType:" +state.Type().ToLongString() + " requires an openshell calculation" );
+    }
   } else if (state.Type() != QMStateType::Gstate) {
     throw std::runtime_error(
         "DensityMatrixFull does not yet implement QMStateType:" +
