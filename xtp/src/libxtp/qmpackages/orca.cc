@@ -228,10 +228,18 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   std::ofstream inp_file;
   std::string inp_file_name_full = run_dir_ + "/" + input_file_name_;
   inp_file.open(inp_file_name_full);
-  // header
-  inp_file << "* xyz  " << charge_ << " " << spin_ << endl;
+
   Index threads = OPENMP::getMaxThreads();
   const QMMolecule& qmatoms = orbitals.QMAtoms();
+  Index Znuc = 0;
+  for (const QMAtom& atom : orbitals.QMAtoms()) {
+    Znuc += atom.getNuccharge();
+  }
+  if ((charge_ == 0 ) && (Znuc%2 != 0)) {
+    spin_ = 2;
+  } 
+  // header
+  inp_file << "* xyz  " << charge_ << " " << spin_ << endl;
   // put coordinates
   WriteCoordinates(inp_file, qmatoms);
   // add parallelization info
