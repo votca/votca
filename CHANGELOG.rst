@@ -11,6 +11,7 @@ Version 2023-rc.2-dev
 -  fixed typo in esp2multipole option (#1076)
 -  update MKL detection to MKL config (#1053)
 -  remove geometry optimization (#1077)
+-  remove all references to old pdf manual (#1081)
 
 Version 2023-rc.2 (released 02.06.23)
 =====================================
