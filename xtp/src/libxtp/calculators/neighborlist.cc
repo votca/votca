@@ -17,7 +17,7 @@
 
 // Third party includes
 #include <boost/format.hpp>
-#include <boost/progress.hpp>
+#include <boost/timer/progress_display.hpp>
 
 // Local private VOTCA includes
 #include "neighborlist.h"
@@ -124,7 +124,7 @@ bool Neighborlist::Evaluate(Topology& top) {
 
   top.NBList().Cleanup();
 
-  boost::progress_display progress(segs.size());
+  boost::timer::progress_display progress(segs.size());
   // cache approx sizes
   std::vector<double> approxsize = std::vector<double>(segs.size(), 0.0);
 #pragma omp parallel for
