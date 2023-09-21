@@ -24,11 +24,32 @@
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/threecenter.h"
 
+//! Macro to detect strictly gcc.
+//! \details __GNUC__ and __GNUG__ were intended to indicate the GNU compilers.
+//! However, they're also defined by Clang/LLVM and Intel compilers to indicate
+//! compatibility. This macro can be used to detect strictly gcc and not clang
+//! or icc.
+#if (defined(__GNUC__) || defined(__GNUG__)) && \
+    !(defined(__clang__) || defined(__INTEL_COMPILER))
+#define STRICT_GNUC
+#define GCC_VERSION \
+  (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#endif
+
 // include libint last otherwise it overrides eigen
 #include "votca/xtp/make_libint_work.h"
 #define LIBINT2_CONSTEXPR_STATICS 0
+
+#if (defined STRICT_GNUC) && GCC_VERSION > 130000
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#pragma GCC diagnostic ignored "-Wmisleading-indentation"
+#endif
 #include <libint2.hpp>
 #include <libint2/statics_definition.h>
+#if (defined STRICT_GNUC) && GCC_VERSION > 130000
+#pragma GCC diagnostic pop
+#endif
 
 namespace votca {
 namespace xtp {
