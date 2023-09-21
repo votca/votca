@@ -13,6 +13,7 @@ Version 2023-rc.2-dev
 -  remove geometry optimization (#1077)
 -  remove all references to old pdf manual (#1081)
 -  replaced deprecated boost::progress headers (#1083)
+-  drop intel classic builds from CI (#1085)
 
 Version 2023-rc.2 (released 02.06.23)
 =====================================
