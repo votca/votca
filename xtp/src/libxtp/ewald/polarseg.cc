@@ -225,8 +225,7 @@ void PolarSeg::GeneratePermInduCgSite(
     DMA::RealSphericalMoments uQlm_shifted(uXlm_shifted);
     uQlm_shifted.AddToVector(uQCG);
   }
-  std::cout << "Converting" << std::flush;
-
+  
   // Collapse polarizabilities
   matrix PCG = Eigen::Matrix3d::Zero();
 

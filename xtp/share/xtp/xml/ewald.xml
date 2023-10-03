@@ -14,18 +14,28 @@
 		</multipoles>
 		<coulombmethod>
 			<method>ewald</method>
-			<cutoff>8.0</cutoff>
+			<cutoff>6.0</cutoff>
 			<shape>xyslab</shape>
+			<save_nblist>false</save_nblist>
+			<dipole_corr>false</dipole_corr>
 		</coulombmethod>
 		<polarmethod>
 			<method>thole</method>
 			<induce>1</induce>
 			<cutoff>3.0</cutoff>
+			<wSOR_N>0.35</wSOR_N>
+			<wSOR_C>0.30</wSOR_C>
+			<aDamp>0.39</aDamp>
+			<tolerance>0.001</tolerance>
+			<radial_dielectric>4.0</radial_dielectric>
 		</polarmethod>
 		<tasks>
 			<calculate_fields>true</calculate_fields>
 			<polarize_fg>true</polarize_fg>
 			<evaluate_energy>true</evaluate_energy>
+			<apply_radial>false</apply_radial>
+			<solve_poisson>false</solve_poisson>
+			<scan_cutoff>false</scan_cutoff>
 		</tasks>
 		<coarsegrain>
 			<cg_background>true</cg_background>
