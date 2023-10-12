@@ -10,11 +10,16 @@
                         <method>ewald</method>
                         <cutoff>3.0</cutoff>
                         <shape>xyslab</shape>
+                        <dipole_corr>false</dipole_corr>
+                        <dipole_corr_type>system</dipole_corr_type>
+                        <dipole_corr_direction>xyz</dipole_corr_direction>
                 </coulombmethod>
                 <polarmethod>
                         <method>thole</method>
                         <induce>1</induce>
                         <cutoff>0.0</cutoff>
+                        <wSOR_N>0.35</wSOR_N>
+                        <aDamp>0.390</aDamp>
                 </polarmethod>
                 <convergence>
                         <energy>1e-5</energy>
