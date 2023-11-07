@@ -98,9 +98,10 @@ if [[ ${INPUT_DISTRO} = "fedora:intel" ]]; then
   cmake_args+=( -DREQUIRE_MKL=ON )
 fi
 
-# workaround for votca/votca#891
 if [[ ${INPUT_DISTRO} = ubuntu:* && ${INPUT_TOOLCHAIN} = "gnu" ]]; then
-  cmake_args+=( -DVOTCA_EXTRA_WARNING_FLAGS="-Wno-deprecated-copy")
+  # workaround for votca/votca#891, hdf5 warning, no-deprecated-cop  
+  # workaround for votca/votca#1080, libint2 warning, misleading-indentation
+  cmake_args+=( -DVOTCA_EXTRA_WARNING_FLAGS="-Wno-deprecated-copy -Wno-misleading-indentation")
 fi
 
 if [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then
