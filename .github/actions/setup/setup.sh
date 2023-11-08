@@ -101,7 +101,7 @@ fi
 if [[ ${INPUT_DISTRO} = ubuntu:* && ${INPUT_TOOLCHAIN} = "gnu" ]]; then
   # workaround for votca/votca#891, hdf5 warning, no-deprecated-copy  
   # workaround for votca/votca#1080, libint2 warning, misleading-indentation
-  cmake_args+=( "-DVOTCA_EXTRA_WARNING_FLAGS=\"-Wno-deprecated-copy -Wno-misleading-indentation -Wno-maybe-uninitialized\"" )
+  cmake_args+=( "-DVOTCA_EXTRA_WARNING_FLAGS=\"-Wno-deprecated-copy -Wno-misleading-indentation -Wno-maybe-uninitialized -Wno-array-bounds\"" )
 fi
 
 if [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then
