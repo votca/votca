@@ -118,7 +118,7 @@ fi
 cmake_args+=( ${INPUT_CMAKE_ARGS} )
 print_output "cmake_args" "${cmake_args[@]}"
 
-cache_key="ccache-${INPUT_DISTRO/:/_}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYPE}-minimal-${INPUT_MINIMAL}-owngmx-${owngmx}-analysis-${INPUT_CODE_ANALYZER%%:*}"
+cache_key="ccache-${INPUT_DISTRO/:/_}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYPE}-minimal-${INPUT_MINIMAL}-owngmx-${INPUT_OWN_GMX}-analysis-${INPUT_CODE_ANALYZER%%:*}"
 print_output "cache_restore_key" "${cache_key}"
 print_output "cache_key" "${cache_key}-$(date +%s)"
 
