@@ -18,6 +18,12 @@ endif()
 if(PYh5py_FOUND)
   list(APPEND XTP_SCRIPTS xtp_qmmm2qm)
 endif()
+
+if(SPHINX_FOUND)
+  set(XTP_REFERENCE "${VOTCA_SPHINX_DIR}/xtp/reference.rst")
+  file(WRITE ${XTP_REFERENCE} "Reference\n=========\n\nPrograms\n--------\n\n")
+endif()
+
 foreach(SCRIPT ${XTP_SCRIPTS}) 
   configure_file(${SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.in2 @ONLY)
   add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.install)
@@ -45,6 +51,8 @@ foreach(SCRIPT ${XTP_SCRIPTS})
       COMMENT "Building ${SCRIPT} rst doc"
       DEPENDS VOTCA::votca_help2doc ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT})
     list(APPEND TOOLS_RST_FILES ${VOTCA_SPHINX_DIR}/xtp/${SCRIPT}.rst)
+    string(REGEX REPLACE "." "^" _SCRIPT_UNDERLINE "${SCRIPT}")
+    file(APPEND ${XTP_REFERENCE} "${SCRIPT}\n${_SCRIPT_UNDERLINE}\n\n.. include:: ${SCRIPT}.rst\n\n")
   endif()
 endforeach(SCRIPT)
 
