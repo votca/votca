@@ -98,9 +98,10 @@ if [[ ${INPUT_DISTRO} = "fedora:intel" ]]; then
   cmake_args+=( -DREQUIRE_MKL=ON )
 fi
 
-# workaround for votca/votca#891
 if [[ ${INPUT_DISTRO} = ubuntu:* && ${INPUT_TOOLCHAIN} = "gnu" ]]; then
-  cmake_args+=( -DVOTCA_EXTRA_WARNING_FLAGS="-Wno-deprecated-copy")
+  # workaround for votca/votca#891, hdf5 warning, no-deprecated-copy  
+  # workaround for votca/votca#1080, libint2 warning, misleading-indentation
+  cmake_args+=( "-DVOTCA_EXTRA_WARNING_FLAGS=\"-Wno-deprecated-copy -Wno-misleading-indentation -Wno-maybe-uninitialized -Wno-array-bounds -Wno-stringop-overflow\"" )
 fi
 
 if [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then
@@ -117,7 +118,7 @@ fi
 cmake_args+=( ${INPUT_CMAKE_ARGS} )
 print_output "cmake_args" "${cmake_args[@]}"
 
-cache_key="ccache-${INPUT_DISTRO/:/_}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYPE}-minimal-${INPUT_MINIMAL}-owngmx-${owngmx}-analysis-${INPUT_CODE_ANALYZER%%:*}"
+cache_key="ccache-${INPUT_DISTRO/:/_}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYPE}-minimal-${INPUT_MINIMAL}-owngmx-${INPUT_OWN_GMX}-analysis-${INPUT_CODE_ANALYZER%%:*}"
 print_output "cache_restore_key" "${cache_key}"
 print_output "cache_key" "${cache_key}-$(date +%s)"
 
