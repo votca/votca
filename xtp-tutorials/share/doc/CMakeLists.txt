@@ -10,6 +10,8 @@ set(NOTEBOOKS "GROMACS/Methane/QMMM_GROMACS.ipynb")
 list(APPEND NOTEBOOKS "LAMMPS/Thiophene/QMMM_LAMMPS.ipynb")
 list(APPEND NOTEBOOKS "tools/dftgwbse_CH4/DFTGWBSE_ENERGY.ipynb")
 list(APPEND NOTEBOOKS "LAMMPS/KMC_Thiophene/LAMMPS_KMC.ipynb")
+list(APPEND NOTEBOOKS "pyxtp/geometry_optimization.ipynb")
+list(APPEND NOTEBOOKS "pyxtp/single_point.ipynb")
 
 set(NEW_NOTEBOOKS)
 
