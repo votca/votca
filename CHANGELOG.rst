@@ -15,6 +15,7 @@ Version 2023-rc.2-dev
 -  replaced deprecated boost::progress headers (#1083)
 -  drop intel classic builds from CI (#1085)
 -  disable some libint2 warning and CI clean up (#1088)
+-  fix population analysis for embedded DFT (#1089)
 
 Version 2023-rc.2 (released 02.06.23)
 =====================================
