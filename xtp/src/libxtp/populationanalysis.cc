@@ -57,6 +57,9 @@ void Populationanalysis<T>::CalcChargeperFragment(
   overlap.Fill(basis);
   Eigen::VectorXd nuccharges = CalcNucChargeperAtom(orbitals.QMAtoms());
   Eigen::MatrixXd dmatgs = orbitals.DensityMatrixGroundState();
+  if (orbitals.getCalculationType() != "NoEmbedding") {
+    dmatgs += orbitals.getInactiveDensity();
+  }
   Eigen::VectorXd gscharges =
       nuccharges - CalcElecChargeperAtom(dmatgs, overlap, basis);
   Index numofstates = orbitals.NumberofStates(type);
