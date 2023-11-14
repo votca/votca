@@ -10,11 +10,14 @@ set(NOTEBOOKS "GROMACS/Methane/QMMM_GROMACS.ipynb")
 list(APPEND NOTEBOOKS "LAMMPS/Thiophene/QMMM_LAMMPS.ipynb")
 list(APPEND NOTEBOOKS "tools/dftgwbse_CH4/DFTGWBSE_ENERGY.ipynb")
 list(APPEND NOTEBOOKS "LAMMPS/KMC_Thiophene/LAMMPS_KMC.ipynb")
+list(APPEND NOTEBOOKS "pyxtp/geometry_optimization.ipynb")
+list(APPEND NOTEBOOKS "pyxtp/single_point.ipynb")
 
 set(NEW_NOTEBOOKS)
 
 get_target_property(XTP_PATH VOTCA::votca_xtp XTP_PATH)
 get_target_property(VOTCASHARE VOTCA::votca_xtp VOTCA_SHARE)
+get_target_property(XTP_PYPATH VOTCA::xtp_binds XTP_PYPATH)
 foreach(_notebook ${NOTEBOOKS})
   get_filename_component(_FILE "${_notebook}" NAME)
   get_filename_component(_DIR "${_notebook}" DIRECTORY)
@@ -22,7 +25,7 @@ foreach(_notebook ${NOTEBOOKS})
   file(GLOB FILES ${PROJECT_SOURCE_DIR}/xtp-tutorials/${_DIR}/*)
   add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/xtp-tutorials/${_FILE}
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/xtp-tutorials/${_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${_DIR}
-    COMMAND ${CMAKE_COMMAND} -E env PATH=${XTP_PATH}:$ENV{PATH} VOTCASHARE=${VOTCASHARE} ${JUPYTER_EXECUTABLE} nbconvert --Application.log_level=0 --to notebook --ExecutePreprocessor.timeout=5000 --execute ${_FILE} --output ${VOTCA_SPHINX_DIR}/xtp-tutorials/${_FILE}
+    COMMAND ${CMAKE_COMMAND} -E env PATH=${XTP_PATH}:$ENV{PATH} VOTCASHARE=${VOTCASHARE} PYTHONPATH=${XTP_PYPATH}:$ENV{PYTHONPATH}  ${JUPYTER_EXECUTABLE} nbconvert --Application.log_level=0 --to notebook --ExecutePreprocessor.timeout=5000 --execute ${_FILE} --output ${VOTCA_SPHINX_DIR}/xtp-tutorials/${_FILE}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_DIR}
     DEPENDS ${FILES}
   )
