@@ -4,7 +4,6 @@ For more detailed information about the changes see the history of the
 Version 2023-rc.2-dev
 =====================
 
--  fix pyxtp xtp-tutorials (#1090)
 -  fix pyxtp option restart (#1074)
 -  fix Changelog check (#1070)
 -  add python bindings for xtp (#1061)
@@ -17,6 +16,7 @@ Version 2023-rc.2-dev
 -  drop intel classic builds from CI (#1085)
 -  disable some libint2 warning and CI clean up (#1088)
 -  fix population analysis for embedded DFT (#1089)
+-  fix pyxtp xtp-tutorials (#1090)
 
 Version 2023-rc.2 (released 02.06.23)
 =====================================
