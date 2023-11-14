@@ -607,7 +607,7 @@ class xtp(Calculator):
         self.atomic_forces = -np.array(gradients) #* Hartree / Bohr
 
     def check_forces(self):
-        """Check if forces are really present. 
+        """Check if forces are really present.
            The MD and optimization of ASE sometimes remove results but do not
            reset has_forces
         """
@@ -615,7 +615,7 @@ class xtp(Calculator):
             return True
         self.has_forces = False
         return False
-            
+
 
     def check_data(self):
         """Check that there is data in the molecule."""
