@@ -16,6 +16,7 @@ Version 2023-rc.2-dev
 -  drop intel classic builds from CI (#1085)
 -  disable some libint2 warning and CI clean up (#1088)
 -  fix population analysis for embedded DFT (#1089)
+-  fix pyxtp xtp-tutorials (#1090)
 
 Version 2023-rc.2 (released 02.06.23)
 =====================================
