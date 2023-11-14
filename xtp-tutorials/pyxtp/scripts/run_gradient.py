@@ -11,7 +11,8 @@ def run_gradient() -> np.ndarray:
 
     # define the calculator
     calc = xtp(nthreads=2)
-
+    calc.select_force(energy='singlets', level=0, dynamic=False)
+    
     # this allows to change all options
     # calc.options.dftpackage.functional = 'PBE'
     calc.options.dftpackage.basisset = 'def2-svp'
