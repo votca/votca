@@ -11,7 +11,7 @@ This is VOTCA, which provides the two following subpackages:
 
 Basic installation 
 ###################
-(see performance advice in `Install Guide <share/doc/INSTALL.rst>`__)
+(see performance advice in `Install Guide <share/sphinx/INSTALL.rst>`__)
 
 ::
 
@@ -32,11 +32,11 @@ Using this code via docker
 More detailed information:
 ##########################
 
-1. `Installation <share/doc/INSTALL.rst>`__
+1. `Installation <share/sphinx/INSTALL.rst>`__
 2. `Further Information <http://www.votca.org>`__
-3. `Developers Guide <share/doc/DEVELOPERS_GUIDE.rst>`__
-4. `VOTCA\_LANGUAGE\_GUIDE <share/doc/VOTCA_LANGUAGE_GUIDE.rst>`__
-5. `Code of Conduct <share/doc/CODE_OF_CONDUCT.rst>`__
+3. `Developers Guide <share/sphinx/DEVELOPERS_GUIDE.rst>`__
+4. `VOTCA\_LANGUAGE\_GUIDE <share/sphinx/VOTCA_LANGUAGE_GUIDE.rst>`__
+5. `Code of Conduct <share/sphinx/CODE_OF_CONDUCT.rst>`__
 
 You find the VOTCA-CTP repository
 `here <https://gitlab.mpcdf.mpg.de/votca/votca>`__
