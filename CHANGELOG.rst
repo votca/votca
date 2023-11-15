@@ -1,8 +1,8 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2023-rc.2-dev
-=====================
+Version 2023 (released 15.11.23)
+================================
 
 -  fix pyxtp option restart (#1074)
 -  fix Changelog check (#1070)
