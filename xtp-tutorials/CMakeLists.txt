@@ -27,9 +27,9 @@ foreach(_notebook ${NOTEBOOKS})
   get_filename_component(_FILE "${_notebook}" NAME)
   get_filename_component(_DIR "${_notebook}" DIRECTORY)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_DIR})
-  file(GLOB FILES ${CMAKE_CURRENT_BINARY_DIR}/${_DIR}/*)
+  file(GLOB FILES ${CMAKE_CURRENT_SOURCE_DIR}/${_DIR}/*)
   add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/xtp-tutorials/${_FILE}
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/${_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${_DIR}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/${_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${_DIR}
     COMMAND ${CMAKE_COMMAND} -E env PATH=${XTP_PATH}:$ENV{PATH} VOTCASHARE=${VOTCASHARE} PYTHONPATH=${XTP_PYPATH}:$ENV{PYTHONPATH}  ${JUPYTER_EXECUTABLE} nbconvert --Application.log_level=0 --to notebook --ExecutePreprocessor.timeout=5000 --execute ${_FILE} --output ${VOTCA_SPHINX_DIR}/xtp-tutorials/${_FILE}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_DIR}
     DEPENDS ${FILES}
