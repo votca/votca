@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2023-dev
 ================
 
+-  fix links in README and doc (#1091)
+
 Version 2023 (released 15.11.23)
 ================================
 
