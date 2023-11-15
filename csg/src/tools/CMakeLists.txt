@@ -1,8 +1,8 @@
 set(CSG_RST_FILES)
-foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_gmxtopol csg_dlptopol csg_density csg_imc_solve)
+foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_gmxtopol csg_dlptopol csg_density csg_imc_solve csg_ml)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
-  target_link_libraries(${PROG} votca_csg)
+  target_link_libraries(${PROG} PUBLIC votca_csg)
   install(TARGETS ${PROG} EXPORT VOTCA_CSG_Targets RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   add_executable(VOTCA::${PROG} ALIAS ${PROG})
   set_property(TARGET votca_csg APPEND PROPERTY BINARIES "${PROG}")
@@ -25,6 +25,8 @@ foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat cs
 
   add_test(integration_${PROG}Help ${PROG} --help)
 endforeach(PROG)
+# only for csg_ml
+target_link_libraries(csg_ml PUBLIC Boost::serialization Boost::filesystem)
 
 if(SPHINX_FOUND)
   add_custom_target(csg-tools-rst DEPENDS ${CSG_RST_FILES})
