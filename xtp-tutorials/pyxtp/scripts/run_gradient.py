@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Example to perform a gradient calculation."""
 from pyxtp import xtp
 from ase import Atoms

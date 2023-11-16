@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Example to compute energies using XTP."""
 from pyxtp import xtp, Visualization
 from ase import Atoms
