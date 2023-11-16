@@ -100,6 +100,22 @@ jobs:
             toolchain: clang
             cmake_build_type: Release
             continue-on-error: true
+          - distro: 'fedora:latest'
+            toolchain: gnu
+            cmake_build_type: Debug
+            coverage: 'Group1'
+          - distro: 'fedora:latest'
+            toolchain: gnu
+            cmake_build_type: Debug
+            coverage: 'Group2'
+          - distro: 'fedora:latest'
+            toolchain: gnu
+            cmake_build_type: Debug
+            coverage: 'Group3'
+          - distro: 'fedora:latest'
+            toolchain: gnu
+            cmake_build_type: Debug
+            coverage: 'RestGroup'
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/votca/buildenv/${{ matrix.distro }}
@@ -136,6 +152,9 @@ jobs:
       - name: Tests
         run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
         working-directory: builddir
+      - name: Upload Report to codecov.io
+        if: ${{ matrix.coverage }}
+        uses: codecov/codecov-action@v3
       - name: Doxygen
         run: cmake --build builddir --target doxygen
       - name: Build Sphinx
