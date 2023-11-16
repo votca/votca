@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Example to optimize the geometry of CO"""
 from pyxtp import xtp
 from ase.io import write
