@@ -11,8 +11,6 @@ build
 scripts/csg_call
 scripts/csg_inverse
 scripts/*.out
-share/doc/Doxyfile
-share/doc/html/*
 share/man/*.man
 share/template/template_serial
 share/template/template_threaded
