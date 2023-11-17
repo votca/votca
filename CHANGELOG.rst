@@ -6,7 +6,7 @@ Version 2023-dev
 
 -  fix links in README and doc (#1091)
 -  fix python shebang to python3 (#1093)
--  Clean-up CI (#1092)
+-  Clean-up CI (#1092, #1095)
 -  remove reference to old webpage (#1094)
 
 Version 2023 (released 15.11.23)
