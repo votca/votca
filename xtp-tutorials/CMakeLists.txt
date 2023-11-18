@@ -15,14 +15,18 @@ set(NOTEBOOKS "GROMACS/Methane/QMMM_GROMACS.ipynb")
 list(APPEND NOTEBOOKS "LAMMPS/Thiophene/QMMM_LAMMPS.ipynb")
 list(APPEND NOTEBOOKS "tools/dftgwbse_CH4/DFTGWBSE_ENERGY.ipynb")
 list(APPEND NOTEBOOKS "LAMMPS/KMC_Thiophene/LAMMPS_KMC.ipynb")
-list(APPEND NOTEBOOKS "pyxtp/geometry_optimization.ipynb")
-list(APPEND NOTEBOOKS "pyxtp/single_point.ipynb")
 
 set(NEW_NOTEBOOKS)
 
 get_target_property(XTP_PATH VOTCA::votca_xtp XTP_PATH)
 get_target_property(VOTCASHARE VOTCA::votca_xtp VOTCA_SHARE)
-get_target_property(XTP_PYPATH VOTCA::xtp_binds XTP_PYPATH)
+
+if(TARGET VOTCA::xtp_binds)
+  get_target_property(XTP_PYPATH VOTCA::xtp_binds XTP_PYPATH)
+  list(APPEND NOTEBOOKS "pyxtp/geometry_optimization.ipynb")
+  list(APPEND NOTEBOOKS "pyxtp/single_point.ipynb")
+endif()
+
 foreach(_notebook ${NOTEBOOKS})
   get_filename_component(_FILE "${_notebook}" NAME)
   get_filename_component(_DIR "${_notebook}" DIRECTORY)
