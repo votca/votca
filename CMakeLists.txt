@@ -70,6 +70,7 @@ if(ENABLE_WARNING_FLAGS)
   endif()
   # allow adding extra warning flags at the very end
   if(VOTCA_EXTRA_WARNING_FLAGS)
+    message(STATUS "Adding extra flags: ${VOTCA_EXTRA_WARNING_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VOTCA_EXTRA_WARNING_FLAGS}")
   endif()
 endif()
