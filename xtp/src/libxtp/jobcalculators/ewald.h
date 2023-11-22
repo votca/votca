@@ -45,6 +45,8 @@ class Ewald : public ParallelXJobCalc<std::vector<Job>> {
   std::string _xml_file;
   std::string _mps_table;
   std::string _polar_bg_arch;
+  std::string _mps_lisy_file;
+  
   XMapper xmapper_;
   bool _pdb_check;
   bool _ptop_check;
@@ -73,6 +75,14 @@ void Ewald<EwaldMethod>::ParseSpecificOptions(const tools::Property &options) {
   } else {
     _ptop_check = false;
   }
+
+  // for reading an optional list of segment specific MPS files
+  if (options.exists(key + ".mps_list")) {
+    _mps_list_file = options.get(key + ".mps_list").as<std::string>();
+  } else {
+    _mps_list_file = "";
+  }
+  
 
   states_ = options.get("io_jobfile.states").as<std::vector<QMState>>();
   which_segments_ = options.get("io_jobfile.segments").as<std::string>();

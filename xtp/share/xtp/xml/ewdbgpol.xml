@@ -2,7 +2,7 @@
         <ewdbgpol help="Calculates background polarisation needed for ewald calc" section="sec:ewdbgpol">
                 <multipoles>system.xml</multipoles>
                 <control>
-                        <mps_table>mps.tab</mps_table>
+                        <mps_table/>
                         <pdb_check>1</pdb_check>
                         <ptop_check>1</ptop_check>
                 </control>

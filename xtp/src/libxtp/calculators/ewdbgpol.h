@@ -30,6 +30,7 @@ class EwaldBgPolarizer final : public QMCalculator {
   tools::Property _options;
   std::string _mps_table;
   std::string _xml_file;
+  bool _use_mps_table;
   // XMpsMap _mps_mapper;
   bool _pdb_check;
 
@@ -58,9 +59,11 @@ void EwaldBgPolarizer::ParseOptions(const tools::Property &opt) {
   // CONTROL
   if (opt.exists(key + ".mps_table")) {
     _mps_table = opt.get(key + ".mps_table").as<std::string>();
+    _use_mps_table = true;
   } else {
-    _mps_table = opt.get(key + ".emp_file").as<std::string>();
+    _use_mps_table = false;
   }
+
   if (opt.exists(key + ".pdb_check")) {
     _pdb_check = opt.get(key + ".pdb_check").as<bool>();
   } else {
@@ -104,10 +107,31 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
   PolarMapper polmap(log);
   polmap.LoadMappingFile(_xml_file);
   Index seg_index = 0;
-  for (auto segment : top.Segments()) {
-    PolarSegment mol = polmap.map(segment, SegId(seg_index, "n"));
-    BGN.push_back(mol);
-    seg_index++;
+
+  // if mps_table file is given:
+  // - read it
+  // use the filenames in polmap.map
+
+
+  std::map<Index,std::pair<std::string,std::string>> mps_map;
+  if (_use_mps_table) {
+    // parse the mps_table file
+    XTP_LOG(Log::error, log) << "Using MPS table" << std::flush;
+    std::ifstream input_file(_mps_table);
+    while (input_file) {
+      tools::getline(input_file, line);
+      boost::trim(line);
+      std::vector:std::string> data = tools::Tokenizer(line, "\t ").ToVector();
+      mps_map[Index(std::stoi( data[0] ))] = std::make_pair(data[1], data[2]);
+    }
+
+
+  } else {
+    for (auto segment : top.Segments()) {
+      PolarSegment mol = polmap.map(segment, SegId(seg_index, "n"));
+      BGN.push_back(mol);
+      seg_index++;
+    }
   }
 
   // Convert this to old PolarTop
@@ -116,9 +140,6 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
   // DECLARE TARGET CONTAINERS
   std::vector<PolarSeg *> bgN;
   std::vector<Segment *> segs_bgN;
-
-  // why not smart pointer?
-  // std::vector<std::shared_ptr<PolarSeg>> bgN;
 
   bgN.reserve(BGN.size());
   // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
