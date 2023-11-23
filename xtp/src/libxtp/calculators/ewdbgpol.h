@@ -13,6 +13,7 @@
 #include <votca/xtp/job.h>
 #include <votca/xtp/jobtopology.h>
 #include <votca/xtp/qmcalculator.h>
+#include <votca/tools/getline.h>
 
 namespace votca {
 namespace xtp {
@@ -28,10 +29,8 @@ class EwaldBgPolarizer final : public QMCalculator {
 
  private:
   tools::Property _options;
-  std::string _mps_table;
   std::string _xml_file;
   bool _use_mps_table;
-  // XMpsMap _mps_mapper;
   bool _pdb_check;
 
   std::string _ptop_file;
@@ -58,8 +57,7 @@ void EwaldBgPolarizer::ParseOptions(const tools::Property &opt) {
   key = ".control";
   // CONTROL
   if (opt.exists(key + ".mps_table")) {
-    _mps_table = opt.get(key + ".mps_table").as<std::string>();
-    _use_mps_table = true;
+    _use_mps_table = opt.get(key + ".mps_table").as<bool>();
   } else {
     _use_mps_table = false;
   }
@@ -111,20 +109,19 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
   // if mps_table file is given:
   // - read it
   // use the filenames in polmap.map
-
-
-  std::map<Index,std::pair<std::string,std::string>> mps_map;
   if (_use_mps_table) {
-    // parse the mps_table file
-    XTP_LOG(Log::error, log) << "Using MPS table" << std::flush;
-    std::ifstream input_file(_mps_table);
-    while (input_file) {
-      tools::getline(input_file, line);
-      boost::trim(line);
-      std::vector:std::string> data = tools::Tokenizer(line, "\t ").ToVector();
-      mps_map[Index(std::stoi( data[0] ))] = std::make_pair(data[1], data[2]);
+    // MPS mapping is performed with a unique MPS file for each segment.
+    // filenames are expected to be "MP_FILES/segmentname_segmentid_state.mps"
+    // e.g., MP_FILES/edot_1_n.mps
+    for (auto segment : top.Segments()) {    
+      std::string mpsfile_n = "MP_FILES/" + segment.getType() + "_" + std::to_string(segment.getId()) + "_n.mps";
+      std::cout << mpsfile_n << std::endl;
+      PolarSegment mol = polmap.map(segment, mpsfile_n);
+      BGN.push_back(mol);
+      seg_index++;
     }
 
+      exit(0);
 
   } else {
     for (auto segment : top.Segments()) {

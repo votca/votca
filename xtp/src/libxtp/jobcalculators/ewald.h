@@ -45,7 +45,7 @@ class Ewald : public ParallelXJobCalc<std::vector<Job>> {
   std::string _xml_file;
   std::string _mps_table;
   std::string _polar_bg_arch;
-  std::string _mps_lisy_file;
+  std::string _mps_list_file;
   
   XMapper xmapper_;
   bool _pdb_check;
