@@ -7,8 +7,7 @@
 		<job_file>job.xml</job_file>
 		<map_file>system.xml</map_file>
 		<multipoles>
-
-			<mps_table>mps.tab</mps_table>
+			<mps_table>0</mps_table>
 			<polar_bg></polar_bg>
 			<pdb_check>true</pdb_check>
 		</multipoles>

@@ -39,10 +39,10 @@ class XMapper {
   void setLogger(Logger* log) { log_ = log; };
   // void Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2,
   // QMThread *thread = NULL);
-  void Gen_FGC_FGN_BGN(std::string mapfile, const Topology& top, XJob* xjob);
+  void Gen_FGC_FGN_BGN(std::string mapfile, const Topology& top, XJob* xjob, bool use_mps_table = false);
   // void Gen_BGN(Topology *top, PolarTop *ptop, QMThread *thread = NULL);
   void Gen_FGC_Load_FGN_BGN(std::string mapfile, const Topology& top, XJob* job,
-                            std::string archfile);
+                            std::string archfile, bool use_mps_table = false);
   // QMThread *thread = NULL);
 
  private:

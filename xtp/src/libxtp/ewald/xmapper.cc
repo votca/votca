@@ -44,12 +44,15 @@ void XMpsMap::Gen_BGN(Topology *top, PolarTop *new_ptop, QMThread *thread) {
 */
 
 void XMapper::Gen_FGC_Load_FGN_BGN(std::string mapfile, const Topology &top,
-                                   XJob *xjob, std::string archfile) {
+                                   XJob *xjob, std::string archfile, bool use_mps_table) {
 
   // LOAD BACKGROUND POLARIZATION STATE
   Topology new_top = top;
   PolarTop bgp_ptop = PolarTop(&new_top);
+
+  //std::cout << "Loading topology from '" << archfile << std::endl;
   bgp_ptop.LoadFromDrive(archfile);
+  //std::cout << "...finished '" << archfile << std::endl;
 
   // SANITY CHECKS I
   if (bgp_ptop.QM0().size() || bgp_ptop.MM1().size() || bgp_ptop.MM2().size() ||
@@ -59,7 +62,9 @@ void XMapper::Gen_FGC_Load_FGN_BGN(std::string mapfile, const Topology &top,
               << "' contains more than just background. ";
     std::cout << std::endl;
     throw std::runtime_error(
-        "Sanity checks I in XMpsMap::Gen_FGC_Load_FGN_BGN failed.");
+        "Sanity checks in XMpsMap::Gen_FGC_Load_FGN_BGN failed.");
+  } else {
+      std::cout << "PTOP Sanity checks passed. "  << std::endl;
   }
 
   BackgroundRegion BGN(0, *log_);
@@ -71,31 +76,72 @@ void XMapper::Gen_FGC_Load_FGN_BGN(std::string mapfile, const Topology &top,
   std::string state_string;
   std::vector<std::string> seg_states = xjob->getSegsState();
   polmap.LoadMappingFile(mapfile);
+  //  std::cout << "Loaded '" << mapfile << std::endl;
+  //std::cout << "Trying to use MPS table " << use_mps_table << std::endl;
+
   // Index seg_index = 0;
-  for (auto segment : top.Segments()) {
-    Index seg_index = segment.getId();
-    PolarSegment mol = polmap.map(segment, SegId(seg_index, "n"));
-    // segments in the foreground
-    if (xjob->isInCenter(seg_index)) {
+  if (use_mps_table){
+   //   std::cout << "USING MPS table " << std::endl;
 
-      // check for state of this segment
-      for (auto seg_state : seg_states) {
-        std::vector<std::string> toks =
+    for (auto segment : top.Segments()) {
+      Index seg_index = segment.getId();
+     //   std::cout << "Seg Index " << seg_index << std::endl;
+
+      // expected name for n state
+      std::string mpsfile_n = "MP_FILES/" + segment.getType() + "_" + std::to_string(segment.getId()) + "_n.mps";
+      XTP_LOG(Log::debug, *log_) << "Reading MPS information from " << mpsfile_n << std::flush;
+      PolarSegment mol = polmap.map(segment, mpsfile_n);
+      // segments in the foreground
+      if (xjob->isInCenter(seg_index)) {
+        // check for state of this segment
+        for (auto seg_state : seg_states) {
+          std::vector<std::string> toks =
             tools::Tokenizer(seg_state, ":").ToVector();
-        Index segid = std::stoi(toks[0]);
-        if (segid == seg_index) {
-          state_string = toks[1];
-          break;
+          Index segid = std::stoi(toks[0]);
+          if (segid == seg_index) {
+            state_string = toks[1];
+            break;
+          }
         }
+        FGN.push_back(mol);
+        std::string mpsfile_x = "MP_FILES/" + segment.getType() + "_" + std::to_string(segment.getId()) + "_" + state_string +".mps";
+        XTP_LOG(Log::debug, *log_) << "Reading MPS information from " << mpsfile_x << std::flush;
+        PolarSegment mol_x = polmap.map(segment, mpsfile_x);
+        FGC.push_back(mol_x);
+        } else {
+        BGN.push_back(mol);
       }
+    }
 
-      FGN.push_back(mol);
-      PolarSegment mol_x = polmap.map(segment, SegId(seg_index, state_string));
-      FGC.push_back(mol_x);
-    } else {
-      BGN.push_back(mol);
+  } else {
+    for (auto segment : top.Segments()) {
+      Index seg_index = segment.getId();
+      PolarSegment mol = polmap.map(segment, SegId(seg_index, "n"));
+      // segments in the foreground
+      if (xjob->isInCenter(seg_index)) {
+
+        // check for state of this segment
+        for (auto seg_state : seg_states) {
+          std::vector<std::string> toks =
+            tools::Tokenizer(seg_state, ":").ToVector();
+          Index segid = std::stoi(toks[0]);
+          if (segid == seg_index) {
+            state_string = toks[1];
+            break;
+          }
+        }
+
+        FGN.push_back(mol);
+        PolarSegment mol_x = polmap.map(segment, SegId(seg_index, state_string));
+        FGC.push_back(mol_x);
+      } else {
+        BGN.push_back(mol);
+      }
     }
   }
+  
+
+  
 
   // DECLARE TARGET CONTAINERS
   PolarTop *new_ptop = new PolarTop(&new_top);
@@ -145,11 +191,23 @@ void XMapper::Gen_FGC_Load_FGN_BGN(std::string mapfile, const Topology &top,
     if (state != 0) {
       //// FGC segments need APolarSites for neutral variant as well
       int segid = segment.getId();
-      PolarSegment mol_n = polmap.map(top.Segments()[segid], SegId(segid, "n"));
+      if (use_mps_table){
+        std::string mpsfile_n = "MP_FILES/" + top.Segments()[segid].getType() + "_" + std::to_string(top.Segments()[segid].getId()) + "_n.mps";
+      XTP_LOG(Log::debug, *log_) << "Reading MPS information from " << mpsfile_n << std::flush;
+       PolarSegment mol_n =  polmap.map(top.Segments()[segid], mpsfile_n);
       int pidx = 0;
       for (auto site_n : mol_n) {
         psites[pidx]->addNeutral(site_n);
         pidx++;
+      }
+
+      } else {
+        PolarSegment mol_n = polmap.map(top.Segments()[segid], SegId(segid, "n"));
+      int pidx = 0;
+      for (auto site_n : mol_n) {
+        psites[pidx]->addNeutral(site_n);
+        pidx++;
+      }
       }
     }
     // now make an OLD PolarSeg from the new PolarSegment
@@ -199,7 +257,7 @@ void XMapper::Gen_FGC_Load_FGN_BGN(std::string mapfile, const Topology &top,
 }
 
 void XMapper::Gen_FGC_FGN_BGN(std::string mapfile, const Topology &top,
-                              XJob *xjob) {
+                              XJob *xjob, bool use_mps_table) {
   // Generates foreground/background charge distribution for Ewald summations
   // 'NEW' instances of polar sites are not registered in the topology.
   // Stores the resulting 'polar topology' with the XJob class.
@@ -222,30 +280,62 @@ void XMapper::Gen_FGC_FGN_BGN(std::string mapfile, const Topology &top,
   std::vector<std::string> seg_states = xjob->getSegsState();
   polmap.LoadMappingFile(mapfile);
   // Index seg_index = 0;
-  for (auto segment : top.Segments()) {
-    Index seg_index = segment.getId();
-    PolarSegment mol = polmap.map(segment, SegId(seg_index, "n"));
-    // segments in the foreground
-    if (xjob->isInCenter(seg_index)) {
-
-      // check for state of this segment
-      for (auto seg_state : seg_states) {
-        std::vector<std::string> toks =
+   if (use_mps_table){
+    for (auto segment : top.Segments()) {
+      Index seg_index = segment.getId();
+      // expected name for n state
+      std::string mpsfile_n = "MP_FILES/" + segment.getType() + "_" + std::to_string(segment.getId()) + "_n.mps";
+      XTP_LOG(Log::debug, *log_) << "Reading MPS information from " << mpsfile_n << std::flush;
+      PolarSegment mol = polmap.map(segment, mpsfile_n);
+      // segments in the foreground
+      if (xjob->isInCenter(seg_index)) {
+        // check for state of this segment
+        for (auto seg_state : seg_states) {
+          std::vector<std::string> toks =
             tools::Tokenizer(seg_state, ":").ToVector();
-        Index segid = std::stoi(toks[0]);
-        if (segid == seg_index) {
-          state_string = toks[1];
-          break;
+          Index segid = std::stoi(toks[0]);
+          if (segid == seg_index) {
+            state_string = toks[1];
+            break;
+          }
         }
+        FGN.push_back(mol);
+        std::string mpsfile_x = "MP_FILES/" + segment.getType() + "_" + std::to_string(segment.getId()) + "_" + state_string +".mps";
+        XTP_LOG(Log::debug, *log_) << "Reading MPS information from " << mpsfile_x << std::flush;
+        PolarSegment mol_x = polmap.map(segment, mpsfile_x);
+        FGC.push_back(mol_x);
+        } else {
+        BGN.push_back(mol);
       }
+    }
 
-      FGN.push_back(mol);
-      PolarSegment mol_x = polmap.map(segment, SegId(seg_index, state_string));
-      FGC.push_back(mol_x);
-    } else {
-      BGN.push_back(mol);
+  } else {
+    for (auto segment : top.Segments()) {
+      Index seg_index = segment.getId();
+      PolarSegment mol = polmap.map(segment, SegId(seg_index, "n"));
+      // segments in the foreground
+      if (xjob->isInCenter(seg_index)) {
+
+        // check for state of this segment
+        for (auto seg_state : seg_states) {
+          std::vector<std::string> toks =
+            tools::Tokenizer(seg_state, ":").ToVector();
+          Index segid = std::stoi(toks[0]);
+          if (segid == seg_index) {
+            state_string = toks[1];
+            break;
+          }
+        }
+
+        FGN.push_back(mol);
+        PolarSegment mol_x = polmap.map(segment, SegId(seg_index, state_string));
+        FGC.push_back(mol_x);
+      } else {
+        BGN.push_back(mol);
+      }
     }
   }
+  
 
   // DECLARE TARGET CONTAINERS
   // Convert this to old PolarTop

@@ -106,22 +106,19 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
   polmap.LoadMappingFile(_xml_file);
   Index seg_index = 0;
 
-  // if mps_table file is given:
-  // - read it
-  // use the filenames in polmap.map
   if (_use_mps_table) {
     // MPS mapping is performed with a unique MPS file for each segment.
     // filenames are expected to be "MP_FILES/segmentname_segmentid_state.mps"
     // e.g., MP_FILES/edot_1_n.mps
+    XTP_LOG(Log::debug, log) << "Using segment specific MPS files!" << std::flush;
     for (auto segment : top.Segments()) {    
       std::string mpsfile_n = "MP_FILES/" + segment.getType() + "_" + std::to_string(segment.getId()) + "_n.mps";
-      std::cout << mpsfile_n << std::endl;
+      XTP_LOG(Log::debug, log) << "Reading MPS information from " << mpsfile_n << std::flush;
       PolarSegment mol = polmap.map(segment, mpsfile_n);
       BGN.push_back(mol);
       seg_index++;
     }
-
-      exit(0);
+    //exit(0);
 
   } else {
     for (auto segment : top.Segments()) {
@@ -160,9 +157,6 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
 
     // now make an OLD PolarSeg from the new PolarSegment
     PolarSeg *new_pseg = new PolarSeg(int(segment.getId()), psites);
-    // std::shared_ptr<PolarSeg> new_pseg( new  PolarSeg(int(segment.getId()),
-    // psites));
-
     bgN.push_back(new_pseg);
   }
 

@@ -50,6 +50,7 @@ class Ewald : public ParallelXJobCalc<std::vector<Job>> {
   XMapper xmapper_;
   bool _pdb_check;
   bool _ptop_check;
+  bool _use_mps_list;
 
   std::vector<QMState> states_;
   std::string which_segments_;
@@ -77,10 +78,10 @@ void Ewald<EwaldMethod>::ParseSpecificOptions(const tools::Property &options) {
   }
 
   // for reading an optional list of segment specific MPS files
-  if (options.exists(key + ".mps_list")) {
-    _mps_list_file = options.get(key + ".mps_list").as<std::string>();
+  if (options.exists(key + ".mps_table")) {
+    _use_mps_list = options.get(key + ".mps_table").as<bool>();
   } else {
-    _mps_list_file = "";
+   _use_mps_list = false;
   }
   
 
@@ -265,11 +266,12 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(const Topology &top, Job &job,
   // GENERATE POLAR TOPOLOGY (GENERATE VS LOAD IF PREPOLARIZED)
   if (_polar_bg_arch == "") {
     xmapper_.setLogger(&log);
-    xmapper_.Gen_FGC_FGN_BGN(mapfile_, top, &xjob);
+    xmapper_.Gen_FGC_FGN_BGN(mapfile_, top, &xjob, _use_mps_list);
   } else {
     XTP_LOG(Log::info, log) << "Mps-Mapper: Generate FGC, load FGN BGN from '"
                             << _polar_bg_arch << "'" << std::flush;
-    xmapper_.Gen_FGC_Load_FGN_BGN(mapfile_, top, &xjob, _polar_bg_arch);
+    xmapper_.setLogger(&log);
+    xmapper_.Gen_FGC_Load_FGN_BGN(mapfile_, top, &xjob, _polar_bg_arch, _use_mps_list);
   }
 
   // CALL THOLEWALD MAGIC
