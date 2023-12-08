@@ -9,6 +9,7 @@ Version 2023-dev
 -  Clean-up CI (#1092, #1095)
 -  remove reference to old webpage (#1094)
 -  fix doc generation without pyxtp (#1097)
+-  Do not run gmx tests without libgromacs (#1099)
 
 Version 2023 (released 15.11.23)
 ================================
