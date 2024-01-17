@@ -12,5 +12,6 @@ build.ninja
 build*
 /csgapps
 /csg-manual
+__pycache__/
 
 .vscode*

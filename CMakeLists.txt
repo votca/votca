@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(votca LANGUAGES CXX)
 
-set(PROJECT_VERSION "2023-rc.2-dev")
+set(PROJECT_VERSION "2023-dev")
 string(REGEX REPLACE "[-.].*$" "" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
   message(FATAL_ERROR "Could not determine SOVERSION (${SOVERSION}) from ${PROJECT_VERSION}")
@@ -70,6 +70,7 @@ if(ENABLE_WARNING_FLAGS)
   endif()
   # allow adding extra warning flags at the very end
   if(VOTCA_EXTRA_WARNING_FLAGS)
+    message(STATUS "Adding extra flags: ${VOTCA_EXTRA_WARNING_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VOTCA_EXTRA_WARNING_FLAGS}")
   endif()
 endif()

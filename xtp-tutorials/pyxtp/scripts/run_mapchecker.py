@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Examples to show xtp_binds usage."""
 from pyxtp import xtp_binds
 from pathlib import Path

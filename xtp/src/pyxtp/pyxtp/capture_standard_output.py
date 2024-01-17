@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Examples to show xtp_binds usage."""
 import io
 from contextlib import redirect_stdout
