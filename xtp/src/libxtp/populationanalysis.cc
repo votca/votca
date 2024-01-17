@@ -32,8 +32,8 @@ StaticSegment Populationanalysis<T>::CalcChargeperAtom(
   AOOverlap overlap;
   overlap.Fill(basis);
   Eigen::VectorXd charges = -CalcElecChargeperAtom(dmat, overlap, basis);
-  if (!state.isTransition() ) {
-        charges += CalcNucChargeperAtom(orbitals.QMAtoms());
+  if (!state.isTransition()) {
+    charges += CalcNucChargeperAtom(orbitals.QMAtoms());
   }
 
   StaticSegment seg =

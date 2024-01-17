@@ -71,8 +71,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
       statetracker_.setInitialState(initstate_);
       statetracker_.PrintInfo();
     } else {
-      throw std::runtime_error(
-          "No statetracker options for KS states found");
+      throw std::runtime_error("No statetracker options for KS states found");
     }
   }
 
@@ -217,13 +216,13 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
 
   if (initstate_.Type().isKSState()) {
     state = statetracker_.CalcStateAndUpdate(orb_);
-      // if unoccupied, add QP level energy
-      if (state.StateIdx() > orb_.getHomo()) {
-        energy += orb_.getExcitedStateEnergy(state);
-      } else {
-        // if unoccupied, subtract QP level energy
-        energy -= orb_.getExcitedStateEnergy(state);
-      }
+    // if unoccupied, add QP level energy
+    if (state.StateIdx() > orb_.getHomo()) {
+      energy += orb_.getExcitedStateEnergy(state);
+    } else {
+      // if unoccupied, subtract QP level energy
+      energy -= orb_.getExcitedStateEnergy(state);
+    }
   }
 
   if (do_gwbse_) {
@@ -288,7 +287,8 @@ double QMRegion::charge() const {
     QMState state = statetracker_.InitialState();
     if (state.Type().isExciton()) {
       charge = 0.0;
-    } else if (state.Type().isSingleParticleState() || state.Type().isKSState() ) {
+    } else if (state.Type().isSingleParticleState() ||
+               state.Type().isKSState()) {
       if (state.StateIdx() <= orb_.getHomo()) {
         charge = +1.0;
       } else {
@@ -360,7 +360,7 @@ void QMRegion::ApplyQMFieldToPolarSegments(
   DensityIntegration<Vxc_Grid> numint(grid);
 
   QMState state = QMState("groundstate");
-  if (do_gwbse_ || initstate_.Type().isKSState() ) {
+  if (do_gwbse_ || initstate_.Type().isKSState()) {
     state = statetracker_.CalcState(orb_);
   }
   Eigen::MatrixXd dmat = orb_.DensityMatrixFull(state);

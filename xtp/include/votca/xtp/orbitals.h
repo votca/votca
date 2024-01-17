@@ -271,7 +271,6 @@ class Orbitals {
 
   Eigen::VectorXd &RPAInputEnergies() { return rpa_inputenergies_; }
 
-
   // access to RPA input energies energies
   bool hasQPpert() const {
     return (QPpert_energies_.size() > 0) ? true : false;
