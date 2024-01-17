@@ -635,6 +635,7 @@ bool GWBSE::Evaluate() {
     Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
     GW gw = GW(*pLog_, Mmn, vxc, orbitals_.MOs().eigenvalues());
     gw.configure(gwopt_);
+
     gw.CalculateGWPerturbation();
 
     if (!sigma_plot_states_.empty()) {

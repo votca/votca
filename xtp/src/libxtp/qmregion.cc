@@ -62,6 +62,19 @@ void QMRegion::Initialize(const tools::Property& prop) {
     }
   }
 
+  if (initstate_.Type().isKSState()) {
+
+    if (prop.exists("statetracker")) {
+      tools::Property filter = prop.get("statetracker");
+      statetracker_.setLogger(&log_);
+      statetracker_.Initialize(filter);
+      statetracker_.setInitialState(initstate_);
+      statetracker_.PrintInfo();
+    } else {
+      throw std::runtime_error("No statetracker options for KS states found");
+    }
+  }
+
   grid_accuracy_for_ext_interaction_ =
       prop.get("grid_for_potential").as<std::string>();
   DeltaE_ = prop.get("tolerance_energy").as<double>();
@@ -201,6 +214,17 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   QMState state = QMState("groundstate");
   double energy = orb_.getDFTTotalEnergy();
 
+  if (initstate_.Type().isKSState()) {
+    state = statetracker_.CalcStateAndUpdate(orb_);
+    // if unoccupied, add QP level energy
+    if (state.StateIdx() > orb_.getHomo()) {
+      energy += orb_.getExcitedStateEnergy(state);
+    } else {
+      // if unoccupied, subtract QP level energy
+      energy -= orb_.getExcitedStateEnergy(state);
+    }
+  }
+
   if (do_gwbse_) {
     if (do_dft_in_dft_) {
       Index active_electrons = orb_.getNumOfActiveElectrons();
@@ -263,7 +287,8 @@ double QMRegion::charge() const {
     QMState state = statetracker_.InitialState();
     if (state.Type().isExciton()) {
       charge = 0.0;
-    } else if (state.Type().isSingleParticleState()) {
+    } else if (state.Type().isSingleParticleState() ||
+               state.Type().isKSState()) {
       if (state.StateIdx() <= orb_.getHomo()) {
         charge = +1.0;
       } else {
@@ -335,7 +360,7 @@ void QMRegion::ApplyQMFieldToPolarSegments(
   DensityIntegration<Vxc_Grid> numint(grid);
 
   QMState state = QMState("groundstate");
-  if (do_gwbse_) {
+  if (do_gwbse_ || initstate_.Type().isKSState()) {
     state = statetracker_.CalcState(orb_);
   }
   Eigen::MatrixXd dmat = orb_.DensityMatrixFull(state);

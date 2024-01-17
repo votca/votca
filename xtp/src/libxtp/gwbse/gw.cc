@@ -240,9 +240,13 @@ Eigen::VectorXd GW::getGWAResults() const {
 }
 
 Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
+
+  Eigen::VectorXd env = Eigen::VectorXd::Zero(qptotal_);
+
   const Eigen::VectorXd intercepts =
       dft_energies_.segment(opt_.qpmin, qptotal_) + Sigma_x_.diagonal() -
       vxc_.diagonal();
+
   Eigen::VectorXd frequencies_new = frequencies;
   Eigen::Array<bool, Eigen::Dynamic, 1> converged =
       Eigen::Array<bool, Eigen::Dynamic, 1>::Zero(qptotal_);
