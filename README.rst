@@ -11,12 +11,12 @@ This is VOTCA, which provides the two following subpackages:
 
 Basic installation 
 ###################
-(see performance advice in `Install Guide <share/doc/INSTALL.rst>`__)
+(see performance advice in `Install Guide <share/sphinx/INSTALL.rst>`__)
 
 ::
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'v2023-rc.2'
+    version=master # or 'v2023'
     git clone -b ${version} https://github.com/votca/votca.git
     cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix}
     cmake --build builddir --parallel <number of cores>
@@ -32,11 +32,11 @@ Using this code via docker
 More detailed information:
 ##########################
 
-1. `Installation <share/doc/INSTALL.rst>`__
+1. `Installation <share/sphinx/INSTALL.rst>`__
 2. `Further Information <http://www.votca.org>`__
-3. `Developers Guide <share/doc/DEVELOPERS_GUIDE.rst>`__
-4. `VOTCA\_LANGUAGE\_GUIDE <share/doc/VOTCA_LANGUAGE_GUIDE.rst>`__
-5. `Code of Conduct <share/doc/CODE_OF_CONDUCT.rst>`__
+3. `Developers Guide <share/sphinx/DEVELOPERS_GUIDE.rst>`__
+4. `VOTCA\_LANGUAGE\_GUIDE <share/sphinx/VOTCA_LANGUAGE_GUIDE.rst>`__
+5. `Code of Conduct <share/sphinx/CODE_OF_CONDUCT.rst>`__
 
 You find the VOTCA-CTP repository
 `here <https://gitlab.mpcdf.mpg.de/votca/votca>`__

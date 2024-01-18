@@ -9,8 +9,6 @@ to look at the provided tutorials. The reference section is generated
 automatically from the source code of the master version, so please make sure that your
 software and manual versions match.
 
-The last, no longer updated version, of the old pdf manual can be found `here <http://doc.votca.org/manual.pdf>`_.
-
 
 .. toctree::
    :maxdepth: 1

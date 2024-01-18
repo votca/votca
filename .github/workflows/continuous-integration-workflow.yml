@@ -16,7 +16,7 @@ concurrency:
 jobs:
   CI:
     # Ubuntu devel, Fedora Rawhide and some other in the matrix are allowed to fail, so continue with other builds
-    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'opensuse:latest' || matrix.distro == 'fedora:rawhide' || matrix.continue-on-error == true }}
+    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'opensuse:latest' || matrix.distro == 'fedora:rawhide' || matrix.distro == 'fedora:intel' || matrix.continue-on-error == true }}
     strategy:
       matrix:
         distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling', 'fedora:intel']
@@ -47,67 +47,68 @@ jobs:
             toolchain: gnu
             cmake_build_type: Release
             own_gmx: true
+          - distro: 'fedora:intel'
+            toolchain: intel-oneapi
+            cmake_build_type: Release
+          - distro: 'fedora:intel'
+            toolchain: intel-oneapi
+            cmake_build_type: Debug
+          - distro: 'fedora:gmx2019'
+            toolchain: gnu
+            cmake_build_type: Release
+          - distro: 'fedora:gmx2019'
+            toolchain: clang
+            cmake_build_type: Release
+          - distro: 'fedora:gmxpkg'
+            toolchain: gnu
+            cmake_build_type: Release
+          - distro: 'fedora:gmxpkg'
+            toolchain: clang
+            cmake_build_type: Release
+          - distro: 'fedora:gmx2023'
+            toolchain: gnu
+            cmake_build_type: Release
+          - distro: 'fedora:gmx2023'
+            toolchain: clang
+            cmake_build_type: Release
+          - distro: 'fedora:gmx2023_d'
+            toolchain: gnu
+            cmake_build_type: Release
+          - distro: 'fedora:gmx2023_d'
+            toolchain: clang
+            cmake_build_type: Release
+          - distro: 'fedora:gmx9999'
+            toolchain: gnu
+            cmake_build_type: Release
+            continue-on-error: true
+          - distro: 'fedora:gmx9999'
+            toolchain: clang
+            cmake_build_type: Release
+            continue-on-error: true
+          - distro: 'fedora:gmx9999_d'
+            toolchain: gnu
+            cmake_build_type: Release
+            continue-on-error: true
+          - distro: 'fedora:gmx9999_d'
+            toolchain: clang
+            cmake_build_type: Release
+            continue-on-error: true
           - distro: 'fedora:latest'
             toolchain: gnu
-            cmake_build_type: Release
-            minimal: false
-            own_gmx: false
-            coverage: false
-            deploy: false
-          - distro: 'fedora:intel'
-            toolchain: intel
-            cmake_build_type: Release
-            continue-on-error: true
-          - distro: 'fedora:intel'
-            toolchain: intel
             cmake_build_type: Debug
-            continue-on-error: true
-          - distro: 'fedora:intel'
-            toolchain: intel-oneapi
-            cmake_build_type: Release
-          - distro: 'fedora:intel'
-            toolchain: intel-oneapi
+            coverage: 'Group1'
+          - distro: 'fedora:latest'
+            toolchain: gnu
             cmake_build_type: Debug
-          - distro: 'fedora:gmx2019'
+            coverage: 'Group2'
+          - distro: 'fedora:latest'
             toolchain: gnu
-            cmake_build_type: Release
-          - distro: 'fedora:gmx2019'
-            toolchain: clang
-            cmake_build_type: Release
-          - distro: 'fedora:gmxpkg'
+            cmake_build_type: Debug
+            coverage: 'Group3'
+          - distro: 'fedora:latest'
             toolchain: gnu
-            cmake_build_type: Release
-          - distro: 'fedora:gmxpkg'
-            toolchain: clang
-            cmake_build_type: Release
-          - distro: 'fedora:gmx2023'
-            toolchain: gnu
-            cmake_build_type: Release
-          - distro: 'fedora:gmx2023'
-            toolchain: clang
-            cmake_build_type: Release
-          - distro: 'fedora:gmx2023_d'
-            toolchain: gnu
-            cmake_build_type: Release
-          - distro: 'fedora:gmx2023_d'
-            toolchain: clang
-            cmake_build_type: Release
-          - distro: 'fedora:gmx9999'
-            toolchain: gnu
-            cmake_build_type: Release
-            continue-on-error: true
-          - distro: 'fedora:gmx9999'
-            toolchain: clang
-            cmake_build_type: Release
-            continue-on-error: true
-          - distro: 'fedora:gmx9999_d'
-            toolchain: gnu
-            cmake_build_type: Release
-            continue-on-error: true
-          - distro: 'fedora:gmx9999_d'
-            toolchain: clang
-            cmake_build_type: Release
-            continue-on-error: true
+            cmake_build_type: Debug
+            coverage: 'RestGroup'
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/votca/buildenv/${{ matrix.distro }}
@@ -144,6 +145,9 @@ jobs:
       - name: Tests
         run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
         working-directory: builddir
+      - name: Upload Report to codecov.io
+        if: ${{ matrix.coverage }}
+        uses: codecov/codecov-action@v3
       - name: Doxygen
         run: cmake --build builddir --target doxygen
       - name: Build Sphinx
@@ -153,6 +157,8 @@ jobs:
         run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
       - name: Install
         run: sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH cmake --build builddir --target install
+      - name: Check for untracked files
+        run: git status --porcelain && git status --porcelain | sed Q1
       - name: Check Formatting
         if: ${{ steps.setup.outputs.check_format == 'true' }}
         run: cmake --build builddir --target format && git diff --exit-code

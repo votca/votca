@@ -22,6 +22,8 @@ file(GLOB_RECURSE BIND_SOURCES binds/*.cc)
 
 pybind11_add_module(xtp_binds ${BIND_SOURCES})
 target_include_directories(xtp_binds PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/binds/include>)
+set(XTP_PYPATH "${CMAKE_CURRENT_BINARY_DIR}/../")
+set_target_properties(xtp_binds PROPERTIES XTP_PYPATH "${XTP_PYPATH}")
 
 target_link_libraries(xtp_binds PUBLIC VOTCA::votca_xtp)
 
@@ -29,6 +31,7 @@ if(NOT CMAKE_INSTALL_PYTHON_LIBDIR)
   set(CMAKE_INSTALL_PYTHON_LIBDIR "${CMAKE_INSTALL_LIBDIR}/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages")
 endif()
 install(TARGETS xtp_binds LIBRARY DESTINATION ${CMAKE_INSTALL_PYTHON_LIBDIR}/pyxtp)
+add_library(VOTCA::xtp_binds ALIAS xtp_binds)
 
 file(GLOB_RECURSE PYXTP_FILES pyxtp/*.py)
 message(STATUS "PYTHON INSTALL: ${CMAKE_INSTALL_PYTHON_LIBDIR}")
@@ -48,5 +51,5 @@ add_dependencies(xtp_binds xtp_binary_scripts)
 
 if(BUILD_TESTING AND PYpytest_FOUND)
   add_test(NAME integration_test_xtp_binds COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR} )
-  set_property(TEST integration_test_xtp_binds PROPERTY ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/../:$ENV{PYTHONPATH};VOTCASHARE=${CMAKE_CURRENT_SOURCE_DIR}/../../share")
+  set_property(TEST integration_test_xtp_binds PROPERTY ENVIRONMENT "PYTHONPATH=${XTP_PYPATH}:$ENV{PYTHONPATH};VOTCASHARE=${CMAKE_CURRENT_SOURCE_DIR}/../../share")
 endif()

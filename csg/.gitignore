@@ -11,8 +11,6 @@ build
 scripts/csg_call
 scripts/csg_inverse
 scripts/*.out
-share/doc/Doxyfile
-share/doc/html/*
 share/man/*.man
 share/template/template_serial
 share/template/template_threaded
@@ -31,7 +29,6 @@ src/tools/csg_density
 src/tools/csg_reupdate
 src/tools/csg_dlptopol
 share/scripts/inverse/*.pyc
-__pycache__/
 netbeans
 src/libcsg/gitversion.h
 src/libcsg/votca_csg_config.h

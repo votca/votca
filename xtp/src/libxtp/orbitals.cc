@@ -155,6 +155,14 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
     } else {
       result -= DMATQP;
     }
+  } else if (state.Type() == QMStateType::KSstate ||
+             state.Type() == QMStateType::PQPstate) {
+    Eigen::MatrixXd DMATKS = DensityMatrixKSstate(state);
+    if (state.StateIdx() <= getHomo()) {
+      result -= DMATKS;
+    } else {
+      result += DMATKS;
+    }
   } else if (state.Type() == QMStateType::Hole || state.Type() == QMStateType::Electron){
     if (!this->isOpenShell()){
       throw std::runtime_error("QMStateType:" +state.Type().ToLongString() + " requires an openshell calculation" );
@@ -777,6 +785,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(ECP_, "ECP");
 
   r(rpa_inputenergies_, "RPA_inputenergies");
+
   r(QPpert_energies_, "QPpert_energies");
   r(QPdiag_, "QPdiag");
 

@@ -21,7 +21,7 @@
 
 // Third party includes
 #include <boost/format.hpp>
-#include <boost/progress.hpp>
+#include <boost/timer/progress_display.hpp>
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -290,7 +290,7 @@ void KMCLifetime::RunVSSM() {
 
       // determine where it will jump to
       ResetForbiddenlist(forbiddendests);
-      boost::progress_display progress(insertions_);
+      boost::timer::progress_display progress(insertions_);
 
       while (true) {
         // LEVEL 2
