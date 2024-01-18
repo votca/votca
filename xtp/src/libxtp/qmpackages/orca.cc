@@ -620,13 +620,6 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
         if (occ == 2 || occ == 1) {
           number_of_electrons++;
           occupancy[i] = occ;
-          /*if (occ == 1 ) {
-            XTP_LOG(Log::error, *pLog_)
-                << "Watch out! No distinction between alpha and beta "
-                   "electrons. Check if occ = 1 is suitable for your "
-                   "calculation "
-                << flush;
-          }*/
         } else if (occ == 0) {
           occupancy[i] = occ;
         }
@@ -672,6 +665,16 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
       }
     }
 
+    double total_occ = 0;
+    for (auto const& [i,occ] : occupancy ) {
+      total_occ+=occ;
+    }
+    for (auto const& [i,occ] : occupancy_beta ) {
+      total_occ+=occ;
+    }
+     XTP_LOG(Log::info, *pLog_)
+      << "Total number electrons (with spin factor): " << total_occ << flush;
+
     std::string::size_type success =
         line.find("*                     SUCCESS                       *");
     if (success != std::string::npos) {
@@ -683,6 +686,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   if (options_.exists("ecp")) {
     orbitals.setECPName(options_.get("ecp").as<std::string>());
   }
+
 
   XTP_LOG(Log::info, *pLog_)
       << "Alpha electrons: " << number_of_electrons << flush;
