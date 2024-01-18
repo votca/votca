@@ -692,7 +692,8 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
       << "Alpha electrons: " << number_of_electrons << flush;
   Index occupied_levels = number_of_electrons;
   Index unoccupied_levels = levels - occupied_levels;
-  XTP_LOG(Log::info, *pLog_) << "Occupied Alpha levels: " << occupied_levels << flush;
+  XTP_LOG(Log::info, *pLog_)
+      << "Occupied Alpha levels: " << occupied_levels << flush;
   XTP_LOG(Log::info, *pLog_)
       << "Unoccupied levels: " << unoccupied_levels << flush;
 
@@ -711,10 +712,12 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
 
   if (orbitals.isOpenShell()) {
     XTP_LOG(Log::info, *pLog_)
-      << "Beta electrons: " << number_of_electrons_beta << flush;
-    XTP_LOG(Log::info, *pLog_) << "Occupied Beta levels: " << number_of_electrons_beta << flush;
+        << "Beta electrons: " << number_of_electrons_beta << flush;
     XTP_LOG(Log::info, *pLog_)
-      << "Unoccupied Beta levels: " << levels -  number_of_electrons_beta << flush;
+        << "Occupied Beta levels: " << number_of_electrons_beta << flush;
+    XTP_LOG(Log::info, *pLog_)
+        << "Unoccupied Beta levels: " << levels - number_of_electrons_beta
+        << flush;
 
     orbitals.setNumberOfBetaElectrons(number_of_electrons_beta);
     orbitals.setNumberOfOccupiedLevelsBeta(number_of_electrons_beta);

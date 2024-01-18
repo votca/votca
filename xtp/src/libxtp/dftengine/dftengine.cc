@@ -756,7 +756,7 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
     }
   }
   // XTPDFT only with neutral, closed-shell systems
-  orb.setChargeAndSpin(0,1);
+  orb.setChargeAndSpin(0, 1);
 
   orb.setXCFunctionalName(xc_functional_name_);
   orb.setXCGrid(grid_name_);
