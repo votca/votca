@@ -104,6 +104,7 @@ BOOST_AUTO_TEST_CASE(fragment_pop) {
                     "/populationanalysis/3-21G.xml");
   orb.setNumberOfOccupiedLevels(5);
   orb.MOs().eigenvalues() = Eigen::VectorXd::Ones(17);
+  orb.setChargeAndSpin(0,1);
 
   Eigen::MatrixXd MOs2 = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/populationanalysis/MOs2.mm");
