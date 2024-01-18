@@ -126,10 +126,10 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   XTP_LOG(Log::info, log_) << "Writing inputs" << std::flush;
   Index crg = 0;
   if (initstate_.Type() == QMStateType::Electron) {
-      crg = -1;
-    } else if (initstate_.Type() == QMStateType::Hole) {
-      crg = +1;
-    }
+    crg = -1;
+  } else if (initstate_.Type() == QMStateType::Hole) {
+    crg = +1;
+  }
   qmpackage_->setCharge(crg);
   qmpackage_->setRunDir(workdir_);
   qmpackage_->WriteInputFile(orb_);
@@ -155,16 +155,18 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     return;
   }
   if (do_localize_) {
-    if (orb_.isOpenShell()){
-      throw std::runtime_error("MO localization not implemented for open-shell systems");
+    if (orb_.isOpenShell()) {
+      throw std::runtime_error(
+          "MO localization not implemented for open-shell systems");
     }
     PMLocalization pml(log_, localize_options_);
     pml.computePML(orb_);
   }
   QMMolecule originalmol = orb_.QMAtoms();
   if (do_dft_in_dft_) {
-    if (orb_.isOpenShell()){
-      throw std::runtime_error("DFT-in-DFT not implemented for open-shell systems");
+    if (orb_.isOpenShell()) {
+      throw std::runtime_error(
+          "DFT-in-DFT not implemented for open-shell systems");
     }
     // this only works with XTPDFT, so locally override global qmpackage_
     std::unique_ptr<QMPackage> xtpdft =
@@ -239,7 +241,7 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   }
 
   if (do_gwbse_) {
-    if (orb_.isOpenShell()){
+    if (orb_.isOpenShell()) {
       throw std::runtime_error("GWBSE not implemented for open-shell systems");
     }
     if (do_dft_in_dft_) {
@@ -298,7 +300,7 @@ double QMRegion::charge() const {
     }
 
     Index electrons = orb_.getNumberOfAlphaElectrons();
-    if (orb_.isOpenShell()){
+    if (orb_.isOpenShell()) {
       electrons += orb_.getNumberOfBetaElectrons();
     } else {
       electrons *= 2;

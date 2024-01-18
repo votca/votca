@@ -46,8 +46,9 @@ Orbitals::Orbitals() : atoms_("", 0) { ; }
  */
 std::vector<Index> Orbitals::CheckDegeneracy(Index level,
                                              double energy_difference) const {
-  if (this->isOpenShell()){
-    throw std::runtime_error("Checking degeneracy not implemented for open-shell systems.");
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "Checking degeneracy not implemented for open-shell systems.");
   }
   std::vector<Index> result;
   if (level > mos_.eigenvalues().size()) {
@@ -68,10 +69,10 @@ std::vector<Index> Orbitals::CheckDegeneracy(Index level,
   return result;
 }
 
-
 std::vector<Index> Orbitals::SortEnergies() {
-  if (this->isOpenShell()){
-    throw std::runtime_error("MO sorting not implemented for open-shell systems.");
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "MO sorting not implemented for open-shell systems.");
   }
   std::vector<Index> index = std::vector<Index>(mos_.eigenvalues().size());
   std::iota(index.begin(), index.end(), 0);
@@ -109,8 +110,9 @@ void Orbitals::SetupAuxBasis(std::string aux_basis_name) {
  * use DensityMatrixFull
  */
 Eigen::MatrixXd Orbitals::DensityMatrixWithoutGS(const QMState& state) const {
-  if (this->isOpenShell()){
-    throw std::runtime_error("DensityMatrixWithoutGS not implemented for open-shell systems.");
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "DensityMatrixWithoutGS not implemented for open-shell systems.");
   }
   if (state.Type().isExciton()) {
     std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
@@ -140,7 +142,7 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
     return this->TransitionDensityMatrix(state);
   }
   Eigen::MatrixXd result = this->DensityMatrixGroundState();
-  
+
   if (getCalculationType() != "NoEmbedding") {
     result += getInactiveDensity();
   }
@@ -163,9 +165,11 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
     } else {
       result += DMATKS;
     }
-  } else if (state.Type() == QMStateType::Hole || state.Type() == QMStateType::Electron){
-    if (!this->isOpenShell()){
-      throw std::runtime_error("QMStateType:" +state.Type().ToLongString() + " requires an openshell calculation" );
+  } else if (state.Type() == QMStateType::Hole ||
+             state.Type() == QMStateType::Electron) {
+    if (!this->isOpenShell()) {
+      throw std::runtime_error("QMStateType:" + state.Type().ToLongString() +
+                               " requires an openshell calculation");
     }
   } else if (state.Type() != QMStateType::Gstate) {
     throw std::runtime_error(
@@ -182,18 +186,20 @@ Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
   }
   Eigen::MatrixXd occstates = mos_.eigenvectors().leftCols(occupied_levels_);
   Eigen::MatrixXd dmatGS = occstates * occstates.transpose();
-  if (this->isOpenShell()){
-    Eigen::MatrixXd occstates_beta = mos_beta_.eigenvectors().leftCols(occupied_levels_beta_);
+  if (this->isOpenShell()) {
+    Eigen::MatrixXd occstates_beta =
+        mos_beta_.eigenvectors().leftCols(occupied_levels_beta_);
     dmatGS += occstates_beta * occstates_beta.transpose();
-  } else{
-    dmatGS *=2.0;
+  } else {
+    dmatGS *= 2.0;
   }
   return dmatGS;
 }
 // Density matrix for a single KS orbital
 Eigen::MatrixXd Orbitals::DensityMatrixKSstate(const QMState& state) const {
-  if (this->isOpenShell()){
-    throw std::runtime_error("DensityMatrixKSstate not implemented for open-shell systems.");
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "DensityMatrixKSstate not implemented for open-shell systems.");
   }
   if (!hasMOs()) {
     throw std::runtime_error("Orbitals file does not contain MO coefficients");
@@ -219,8 +225,9 @@ Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const {
 // Determine QuasiParticle Density Matrix
 Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(
     const QMState& state) const {
-  if (this->isOpenShell()){
-    throw std::runtime_error("DensityMatrixQuasiParticle not implemented for open-shell systems.");
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "DensityMatrixQuasiParticle not implemented for open-shell systems.");
   }
   if (state.Type() != QMStateType::DQPstate) {
     throw std::runtime_error("State:" + state.ToString() +
@@ -253,8 +260,9 @@ Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) const {
 }
 
 Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
-    if (this->isOpenShell()){
-    throw std::runtime_error("TransitionDensityMatrix not implemented for open-shell systems.");
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "TransitionDensityMatrix not implemented for open-shell systems.");
   }
   if (state.Type() != QMStateType::Singlet) {
     throw std::runtime_error(
@@ -293,8 +301,9 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
 
 std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState(
     const QMState& state) const {
-          if (this->isOpenShell()){
-    throw std::runtime_error("DensityMatrixExcitedState not implemented for open-shell systems.");
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "DensityMatrixExcitedState not implemented for open-shell systems.");
   }
   std::array<Eigen::MatrixXd, 2> dmat = DensityMatrixExcitedState_R(state);
   if (!useTDA_) {
@@ -633,7 +642,7 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
 
   w(mos_, "mos");
   w(mos_beta_, "mos_beta");
-  w(occupations_,"occupations");
+  w(occupations_, "occupations");
   w(active_electrons_, "active_electrons");
   w(mos_embedding_, "mos_embedding");
   w(lmos_, "LMOs");
@@ -717,9 +726,6 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
     ;
   }
 
- 
-
-
   r(version, "version");
   r(mos_, "mos");
   r(mos_embedding_, "mos_embedding");
@@ -729,7 +735,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(expandedMOs_, "TruncMOsFullBasis");
 
   // spin info available from version 6 or higher
-  if (version > 5){
+  if (version > 5) {
     r(occupied_levels_beta_, "occupied_levels_beta");
     r(number_beta_electrons_, "number_beta_electrons");
     r(total_charge_, "charge");
