@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(dft_trunc) {
   xml << "    <activeatoms>1</activeatoms>" << std::endl;
   xml << "    <threshold>0.4</threshold>" << std::endl;
   xml << "    <levelshift>10000</levelshift>" << std::endl;
-  xml << "    <truncate_basis>True</truncate_basis>" << std::endl;
+  xml << "    <truncate_basis>true</truncate_basis>" << std::endl;
   xml << "    <truncation_threshold>1e-2</truncation_threshold>" << std::endl;
   xml << "</dft_in_dft>" << std::endl;
   xml << "</xtpdft>" << std::endl;
