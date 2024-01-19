@@ -147,6 +147,10 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     if (!do_dft_parse_) {
       orbitals.ReadFromCpt(archive_file_);
     }
+    if (orbitals.isOpenShell()) {
+      throw std::runtime_error(
+          "MO localization not implemented for open-shell systems");
+    }
     PMLocalization pml(*logger, localize_options_);
     pml.computePML(orbitals);
   }
@@ -166,6 +170,10 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   }
 
   if (do_dft_in_dft_) {
+    if (orbitals.isOpenShell()) {
+      throw std::runtime_error(
+          "DFT-in-DFT not implemented for open-shell systems");
+    }
     qmpackage_->WriteInputFile(orbitals);
     bool run_success = qmpackage_->RunActiveRegion();
     if (!run_success) {
@@ -188,6 +196,9 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   tools::Property& output_summary = summary_.add("output", "");
 
   if (do_gwbse_) {
+    if (orbitals.isOpenShell()) {
+      throw std::runtime_error("GWBSE not implemented for open-shell systems");
+    }
     if (do_dft_in_dft_ || orbitals.getEmbeddedMOs().eigenvectors().size() > 0) {
       Orbitals orb_embedded = orbitals;
       orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
