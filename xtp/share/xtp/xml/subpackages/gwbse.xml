@@ -42,7 +42,7 @@
     <dyn_screen_max_iter help="maximum number of iterations for perturbative dynamical screening in BSE" default="0" choices="int+" />
     <dyn_screen_tol help="convergence tolerance for perturbative dynamical screening in BSE" default="1e-5" choices="float+" />
     <davidson help="options for Davidson eigenvalue BSE solver">
-      <correction help="Davidson correction method" default="DPR" choices="DPR,OHLSEN" />
+      <correction help="Davidson correction method" default="DPR" choices="DPR,OLSEN" />
       <tolerance help="Numerical tolerance" default="normal" choices="loose,normal,strict,lapack" />
       <update help=" how large the search space" default="safe" choices="min,safe,max" />
       <maxiter help="max iterations" default="50" choices="int+" />

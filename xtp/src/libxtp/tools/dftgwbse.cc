@@ -100,20 +100,19 @@ bool DftGwBse::Run() {
   gwbse_engine.setQMPackage(qmpackage.get());
   gwbse_engine.Initialize(gwbseengine_options_, archive_file_);
 
-
-    QMMolecule fullMol = orbitals.QMAtoms();
-    gwbse_engine.ExcitationEnergies(orbitals);
-    // If truncation was enabled then rewrite full basis/aux-basis, MOs in full
-    // basis and full QMAtoms
-    if (orbitals.getCalculationType() == "Truncated") {
-      orbitals.QMAtoms().clearAtoms();
-      orbitals.QMAtoms() = fullMol;
-      orbitals.MOs().eigenvectors() = orbitals.getTruncMOsFullBasis();
-      orbitals.SetupDftBasis(orbitals.getDftBasis().Name());
-      if (orbitals.hasAuxbasisName()) {
-        orbitals.SetupAuxBasis(orbitals.getAuxBasis().Name());
-      }
+  QMMolecule fullMol = orbitals.QMAtoms();
+  gwbse_engine.ExcitationEnergies(orbitals);
+  // If truncation was enabled then rewrite full basis/aux-basis, MOs in full
+  // basis and full QMAtoms
+  if (orbitals.getCalculationType() == "Truncated") {
+    orbitals.QMAtoms().clearAtoms();
+    orbitals.QMAtoms() = fullMol;
+    orbitals.MOs().eigenvectors() = orbitals.getTruncMOsFullBasis();
+    orbitals.SetupDftBasis(orbitals.getDftBasis().Name());
+    if (orbitals.hasAuxbasisName()) {
+      orbitals.SetupAuxBasis(orbitals.getAuxBasis().Name());
     }
+  }
 
   XTP_LOG(Log::error, log_) << "Saving data to " << archive_file_ << std::flush;
   orbitals.WriteToCpt(archive_file_);

@@ -146,6 +146,14 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
     } else {
       result -= DMATQP;
     }
+  } else if (state.Type() == QMStateType::KSstate ||
+             state.Type() == QMStateType::PQPstate) {
+    Eigen::MatrixXd DMATKS = DensityMatrixKSstate(state);
+    if (state.StateIdx() <= getHomo()) {
+      result -= DMATKS;
+    } else {
+      result += DMATKS;
+    }
   } else if (state.Type() != QMStateType::Gstate) {
     throw std::runtime_error(
         "DensityMatrixFull does not yet implement QMStateType:" +
@@ -726,6 +734,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(ECP_, "ECP");
 
   r(rpa_inputenergies_, "RPA_inputenergies");
+
   r(QPpert_energies_, "QPpert_energies");
   r(QPdiag_, "QPdiag");
 

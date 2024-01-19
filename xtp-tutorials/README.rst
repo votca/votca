@@ -1,10 +1,10 @@
 This is a tutorial for the VOTCA-XTP package
 
 How to approach the tutorial? `Click
-here <https://github.com/votca/xtp-tutorials/blob/master/guide/TUTORIAL.rst>`__.
+here <https://www.votca.org/xtp-tutorials/XTP-TUTORIAL.html>`__.
 
 Installation instructions and developer information can be found
-`here <https://github.com/votca/votca/blob/master/share/doc/INSTALL.rst>`__
+`here <https://github.com/votca/votca/blob/master/share/sphinx/INSTALL.rst>`__
 
 Further information on VOTCA can be found at http://www.votca.org
 

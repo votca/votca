@@ -1,8 +1,19 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2023-rc.2-dev
-=====================
+Version 2023-dev
+================
+
+-  fix links in README and doc (#1091)
+-  fix python shebang to python3 (#1093)
+-  Clean-up CI (#1092, #1095)
+-  remove reference to old webpage (#1094)
+-  fix doc generation without pyxtp (#1097)
+-  Do not run gmx tests without libgromacs (#1099)
+-  KS-QMMM for single-particle states (#1100)
+
+Version 2023 (released 15.11.23)
+================================
 
 -  fix pyxtp option restart (#1074)
 -  fix Changelog check (#1070)
@@ -15,6 +26,8 @@ Version 2023-rc.2-dev
 -  replaced deprecated boost::progress headers (#1083)
 -  drop intel classic builds from CI (#1085)
 -  disable some libint2 warning and CI clean up (#1088)
+-  fix population analysis for embedded DFT (#1089)
+-  fix pyxtp xtp-tutorials (#1090)
 
 Version 2023-rc.2 (released 02.06.23)
 =====================================

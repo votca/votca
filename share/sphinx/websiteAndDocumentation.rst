@@ -62,21 +62,21 @@ Editing existing pages
 
 To edit existing pages, you only need limited knowledge of the reStructuredText
 markup. You can find quick introductions `here <https://docutils.sourceforge.io/docs/user/rst/quickstart.html>`__ and `here <https://docutils.sourceforge.io/docs/user/rst/quickref.html>`__. All pages are stored as
-.rst files in the ``share/doc`` folder of the corresponding repo.
+.rst files in the ``share/sphinx`` folder.
 
 Writing a new page
 ------------------
 
 To add a new page to the website, you will first need to decide where it belongs,
-in the xtp, csg or votca repo. Once you have decided that, navigate to the
-``share/doc`` folder within that repo. There will be either an ``index.rst``
+in the xtp, csg or votca repo. Once you have decided that, navigate to the corresponding folder in
+``share/sphinx``. There will be either an ``index.rst``
 file or something like ``XTP-MANUAL.rst``. This file is the main page of that repo on the website. If you look at the ``index.rst`` file in the ``votca`` repo you will
 find all the subpages listed here, you need to make sure that your new page
 can be found starting from this file. 
 
 As an example, suppose we want to add a test page, called ``text.rst`` to the
-developers section of the website. In ``votca/share/doc``, we would create the
-new file. Next, we would update the file ``votca/share/doc/index.rst``, we need
+developers section of the website. In ``votca/share/sphinx``, we would create the
+new file. Next, we would update the file ``votca/share/sphinx/index.rst``, we need
 to add our file to the table of contents of the site. Look for the table of
 contents of the development section and add the test page. It will look
 something like this
@@ -101,7 +101,7 @@ After you have added content to the ``test.rst`` file, rebuild VOTCA and run
 Changing the theme
 ------------------
 
-To change the theme, navigate to ``votca/share/doc/_static/css``, there you will
+To change the theme, navigate to ``votca/share/sphinx/_themes``, there you will
 find the ``theme.css`` file which you can modify to change the look and feel of
 the website.
 

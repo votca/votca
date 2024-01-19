@@ -63,9 +63,14 @@ void MMRegion<T>::ReadFromCpt(CheckpointReader& r) {
   segments_.reserve(size);
   T dummy("dummy", 0);
   CheckpointReader rr = r.openChild("segments");
-  for (Index i = 0; i < size; i++) {
-    CheckpointReader rrr =
-        rr.openChild(dummy.identify() + "_" + std::to_string(i));
+  std::vector<std::string> names = rr.getChildGroupNames();
+  if (Index(names.size()) != size) {
+    std::stringstream message;
+    message << "Size inconsistency in region " << std::endl;
+    throw std::runtime_error(message.str());
+  }
+  for (auto name : names) {
+    CheckpointReader rrr = rr.openChild(name);
     segments_.push_back(T(rrr));
   }
 }

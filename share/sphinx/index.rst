@@ -5,7 +5,7 @@ VOTCA is a software package which focuses on the analysis of molecular dynamics 
 
 `VOTCA on Wikipedia <https://en.wikipedia.org/wiki/VOTCA>`__.
 
-The old (now unmaintained) website can be found `here <https://sites.google.com/a/votca.org/main/>`__. Information about CTP can be found `here <https://gitlab.mpcdf.mpg.de/votca/votca>`__.
+Information about CTP can be found `here <https://gitlab.mpcdf.mpg.de/votca/votca>`__.
 
 For an installation guide see `here <INSTALL.html>`__.
 

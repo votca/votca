@@ -155,11 +155,7 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
   for (tools::Property* mol : molecules) {
     // get the name of this molecule
     std::string molname = mol->get("mdname").as<std::string>();
-    if (votca::Log::verbose()) {
-            std::cout << "... ... processing mapping information for molecule "
-                      << molname << std::endl;
-          }
-    // get all segment-mapping info 
+    // get all segment-mapping info
     std::vector<tools::Property*> segments = mol->Select(segkey);
     std::vector<std::string> segnames;
     std::vector<Index> atomids;
@@ -216,11 +212,6 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
 
 //std::cout << SegsinMol["C144H141O54S18"][0] << std::endl;
 //std::cout << SegsinMol["C144H182O54S18"][0] << std::endl;
-
-  for (const csg::Molecule& mol : top.Molecules()) {
-
-    std::cout << " working on molecule " << mol.getName() << "\n" << std::endl;
-  }
 
   std::cout << "... Parsing all mapping entries completed." << std::endl;
 

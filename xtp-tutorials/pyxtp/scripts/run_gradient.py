@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Example to perform a gradient calculation."""
 from pyxtp import xtp
 from ase import Atoms
@@ -11,6 +11,7 @@ def run_gradient() -> np.ndarray:
 
     # define the calculator
     calc = xtp(nthreads=2)
+    calc.select_force(energy='singlets', level=0, dynamic=False)
 
     # this allows to change all options
     # calc.options.dftpackage.functional = 'PBE'
