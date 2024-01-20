@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2024 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE(dft_trunc) {
   Logger log;
   truncdft.setLogger(&log);
   truncdft.Initialize(prop.get("dftpackage"));
-
+  orb.setChargeAndSpin(0, 1);
   truncdft.EvaluateActiveRegion(orb) &&
       truncdft.EvaluateTruncatedActiveRegion(orb);
 

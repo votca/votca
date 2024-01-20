@@ -138,6 +138,13 @@ std::string Molden::readMOs(Orbitals& orbitals,
   }
   orbitals.MOs().eigenvalues().resize(basis_size);
   orbitals.MOs().eigenvectors().resize(basis_size, basis_size);
+  orbitals.Occupations() = Eigen::MatrixXd::Zero(basis_size, 2);
+
+  // only if open-shell
+  if (orbitals.isOpenShell()) {
+    orbitals.MOs_beta().eigenvalues().resize(basis_size);
+    orbitals.MOs_beta().eigenvectors().resize(basis_size, basis_size);
+  }
 
   // actual parsing
   std::string line;
@@ -163,14 +170,11 @@ std::string Molden::readMOs(Orbitals& orbitals,
     iss.str(line);
     iss.clear();
     iss >> tempStr >> tempDouble;
-    if ((int)tempDouble == 1) {
-      XTP_LOG(Log::error, log_)
-          << "WARNING: you are reading a molden file with an openshell "
-             "system.\n Openshell systems are currently not supported in "
-             "VOTCA! \n    There are, however, use cases for reading an "
-             "openshell system, hence we keep on running."
-          << std::endl;
+    if ((int)tempDouble == 1 && !orbitals.isOpenShell()) {
+      throw std::runtime_error(
+          "Encountered occupation 1 for a closed-shell calculation.");
     }
+    orbitals.Occupations()(i, 0) = tempDouble;
 
     // MO coefficients
     for (int j = 0; j < basis_size; j++) {  // loop over ao's
@@ -182,9 +186,50 @@ std::string Molden::readMOs(Orbitals& orbitals,
     }
   }
 
+  if (orbitals.isOpenShell()) {
+    // read Spin Beta, if OpenShell
+    for (Index i = 0; i < basis_size; i++) {  // loop over mo's
+      std::getline(input_file, line);         // skip symmetry label
+      // energy line
+      std::getline(input_file, line);
+      iss.str(line);
+      iss.clear();
+      iss >> tempStr >> tempDouble;
+      orbitals.MOs_beta().eigenvalues()[i] = tempDouble;
+      // spin channel line
+      std::getline(input_file, line);
+      iss.str(line);
+      iss.clear();
+      iss >> tempStr >> tempStr;
+      // occupation line
+      std::getline(input_file, line);
+      iss.str(line);
+      iss.clear();
+      iss >> tempStr >> tempDouble;
+      if ((int)tempDouble == 2) {
+        throw std::runtime_error(
+            "Encountered occupation 2 in an open-shell calculation.");
+      }
+      orbitals.Occupations()(i, 1) = tempDouble;
+      // MO coefficients
+      for (int j = 0; j < basis_size; j++) {  // loop over ao's
+        std::getline(input_file, line);
+        iss.str(line);
+        iss.clear();
+        iss >> tempIndex >> tempDouble;
+        orbitals.MOs_beta().eigenvectors()(j, i) = tempDouble;
+      }
+    }
+  }
+
   OrbReorder reorder(reorderList_, multipliers_);
   reorder.reorderOrbitals(orbitals.MOs().eigenvectors(),
                           orbitals.getDftBasis());
+
+  if (orbitals.isOpenShell()) {
+    reorder.reorderOrbitals(orbitals.MOs_beta().eigenvectors(),
+                            orbitals.getDftBasis());
+  }
 
   getline(input_file, line);
   return line;

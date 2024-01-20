@@ -47,6 +47,7 @@ BOOST_AUTO_TEST_CASE(ER_coupling_test) {
                       "/diabatization/aux-def2-svp.xml");
   dimer.setNumberOfAlphaElectrons(44);
   dimer.setNumberOfOccupiedLevels(44);
+  dimer.setChargeAndSpin(0, 1);
 
   Eigen::VectorXd ref_MOvals = votca::tools::EigenIO_MatrixMarket::ReadVector(
       std::string(XTP_TEST_DATA_FOLDER) + "/diabatization/dimer_MOvals.mm");
@@ -126,6 +127,7 @@ BOOST_AUTO_TEST_CASE(GMH_coupling_test) {
                       "/diabatization/aux-def2-svp.xml");
   dimer.setNumberOfAlphaElectrons(44);
   dimer.setNumberOfOccupiedLevels(44);
+  dimer.setChargeAndSpin(0, 1);
 
   Eigen::VectorXd ref_MOvals = votca::tools::EigenIO_MatrixMarket::ReadVector(
       std::string(XTP_TEST_DATA_FOLDER) + "/diabatization/dimer_MOvals.mm");
@@ -190,6 +192,7 @@ BOOST_AUTO_TEST_CASE(FCD_coupling_test) {
                       "/diabatization/aux-def2-svp.xml");
   dimer.setNumberOfAlphaElectrons(44);
   dimer.setNumberOfOccupiedLevels(44);
+  dimer.setChargeAndSpin(0, 1);
 
   Eigen::VectorXd ref_MOvals = votca::tools::EigenIO_MatrixMarket::ReadVector(
       std::string(XTP_TEST_DATA_FOLDER) + "/diabatization/dimer_MOvals.mm");
