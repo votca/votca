@@ -12,6 +12,7 @@ Version 2023-dev
 -  Do not run gmx tests without libgromacs (#1099)
 -  KS-QMMM for single-particle states (#1100)
 -  Spin-orbitals from ORCA in QMMM (#1101)
+-  better unit test for DFT embedding (#1102)
 
 Version 2023 (released 15.11.23)
 ================================

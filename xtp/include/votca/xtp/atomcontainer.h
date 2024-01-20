@@ -1,7 +1,7 @@
 
 
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2024 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -67,9 +67,7 @@ class AtomContainer {
   Index size() const { return atomlist_.size(); }
 
   void push_back(const T& atom) {
-    std::cout << "adding at " << std::endl;
     atomlist_.push_back(atom);
-    std::cout << " position" << std::endl;
     calcPos();
   }
   void push_back(T&& atom) {

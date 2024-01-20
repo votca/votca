@@ -1,6 +1,6 @@
 
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2024 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -666,14 +666,14 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     }
 
     double total_occ = 0;
-    for (auto const& [i,occ] : occupancy ) {
-      total_occ+=occ;
+    for (auto const& [i, occ] : occupancy) {
+      total_occ += occ;
     }
-    for (auto const& [i,occ] : occupancy_beta ) {
-      total_occ+=occ;
+    for (auto const& [i, occ] : occupancy_beta) {
+      total_occ += occ;
     }
-     XTP_LOG(Log::info, *pLog_)
-      << "Total number electrons (with spin factor): " << total_occ << flush;
+    XTP_LOG(Log::info, *pLog_)
+        << "Total number electrons (with spin factor): " << total_occ << flush;
 
     std::string::size_type success =
         line.find("*                     SUCCESS                       *");
@@ -686,7 +686,6 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   if (options_.exists("ecp")) {
     orbitals.setECPName(options_.get("ecp").as<std::string>());
   }
-
 
   XTP_LOG(Log::info, *pLog_)
       << "Alpha electrons: " << number_of_electrons << flush;
