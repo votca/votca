@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(votca LANGUAGES CXX)
 
-set(PROJECT_VERSION "2023-dev")
+set(PROJECT_VERSION "2024")
 string(REGEX REPLACE "[-.].*$" "" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
   message(FATAL_ERROR "Could not determine SOVERSION (${SOVERSION}) from ${PROJECT_VERSION}")

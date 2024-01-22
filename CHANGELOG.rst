@@ -1,8 +1,8 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2023-dev
-================
+Version 2024 (released 22.01.24)
+================================
 
 -  fix links in README and doc (#1091)
 -  fix python shebang to python3 (#1093)
