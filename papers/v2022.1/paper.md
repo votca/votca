@@ -1,11 +1,9 @@
 ---
 title: 'VOTCA'
 tags:
-  - Python
-  - astronomy
-  - dynamics
-  - galactic dynamics
-  - milky way
+  - coarse-graining
+  - DFT
+  - Quantum calculatons
 authors:
   - name: Bjoern Baumeier # note this makes a footnote saying 'co-first author'
     orcid: 0000-0002-6077-0467
@@ -40,48 +38,39 @@ affiliations:
     index: 2
   - name: Los Alamos National Laboratory
     index: 3
-date: 13 August 2017
+date: 23 March 2023
 bibliography: paper.bib
 
-# Optional fields if submitting to a AAS journal too, see this blog post:
-# https://blog.joss.theoj.org/2018/12/a-new-collaboration-with-aas-publishing
-aas-doi: 10.3847/xxxxx <- update this with the DOI from AAS once you know it.
-aas-journal: Astrophysical Journal <- The name of the AAS journal.
 ---
 
 # Summary
 
-The forces on stars, galaxies, and dark matter under external gravitational
-fields lead to the dynamical evolution of structures in the universe. The orbits
-of these bodies are therefore key to understanding the formation, history, and
-future state of galaxies. The field of "galactic dynamics," which aims to model
-the gravitating components of galaxies to study their structure and evolution,
-is now well-established, commonly taught, and frequently used in astronomy.
-Aside from toy problems and demonstrations, the majority of problems require
-efficient numerical tools, many of which require the same base code (e.g., for
-performing numerical orbit integration).
+
+Many physics problems are multi-scale in nature. And the versatile object-oriented
+Toolkit for Coarse-grained Applications (`VOTCA`) provides a multi-scale framework for 
+liquids and soft-matter system. For instance to understand the exciton dynamics one
+needs a whole hierarchy of models reaching from quantum over atomistic and coarse-grained
+to reach scales relevant for applications.
+For coarse-graining part, VOTCA-CSG, he have added a couple of new methods to derive 
+coarse-grained potentials that will be discussed in more details below
+For the quantum part, VOTCA-XTP.
+Additionally in last two releases we have done major code clean-up and update of the
+build systems, but most notable we went to a mono-repository workflow to the user's
+and developers' life easier.
+
 
 # Statement of need
 
-`Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
-enables wrapping low-level languages (e.g., C) for speed without losing
-flexibility or ease-of-use in the user-interface. The API for `Gala` was
-designed to provide a class-based and user-friendly interface to fast (C or
-Cython-optimized) implementations of common operations such as gravitational
-potential and force evaluation, orbit integration, dynamical transformations,
-and chaos indicators for nonlinear dynamics. `Gala` also relies heavily on and
-interfaces well with the implementations of physical units and astronomical
-coordinate systems in the `Astropy` package [@astropy] (`astropy.units` and
-`astropy.coordinates`).
+`VOTCA` was originally developed as a platform for method development and comparison.
+Since the last software publication in 2015 this stance was strengthened by adding more
+methods, more examples and involving more developers.
+Many users have used VOTCA to compare different coarse-graining strategies on a neutral
+ground and used those insights to use a more specialized package if needed.
 
-`Gala` was designed to be used by both astronomical researchers and by
-students in courses on gravitational dynamics or astronomy. It has already been
-used in a number of scientific publications [@Pearson:2017] and has also been
-used in graduate courses on Galactic dynamics to, e.g., provide interactive
-visualizations of textbook material [@Binney:2008]. The combination of speed,
-design, and support for Astropy functionality in `Gala` will enable exciting
-scientific explorations of forthcoming data releases from the *Gaia* mission
-[@gaia] by students and experts alike.
+(e.g., see
+the BOCS10, VOTCA11, DeePCG12, IBIsCO13, MagiC14
+,
+MSCGFM15 packages).
 
 # Mathematics
 
