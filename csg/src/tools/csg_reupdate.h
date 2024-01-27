@@ -108,7 +108,6 @@ class CsgREupdate : public CsgApplication {
   votca::Index nframes_;
 
   bool gentable_;
-  bool dosteep_;
 
   std::vector<Table *> aardfs_;
   std::vector<double *> aardfnorms_;
