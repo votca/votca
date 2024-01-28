@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2024-dev
 ================
 
+-  csg_reupdate: remove commented out dosteep (#1103)
+
 Version 2024 (released 22.01.24)
 ================================
 
