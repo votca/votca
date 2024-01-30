@@ -14,5 +14,6 @@
     <carriertype help="Specifies the carrier type of the transport under consideration." default="electron" choices="electron,hole,singlet,triplet"/>
     <temperature help="Temperature in Kelvin." unit="Kelvin" default="300" choices="float+"/>
     <maxrealtime help="Maximum clocktime allow to the calculation(Seconds)" default="1E10" unit="second" choices="float+"/>
+    <ignoresegments help="Segment types to be ignored in KMC" default=""/>
   </kmcmultiple>
 </options>

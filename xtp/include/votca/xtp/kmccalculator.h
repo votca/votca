@@ -81,6 +81,7 @@ class KMCCalculator : public QMCalculator {
   std::string trajectoryfile_;
   std::string ratefile_;
   std::string occfile_;
+  std::string ignoresegments_;
 
   Logger log_;
 
