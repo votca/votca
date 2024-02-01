@@ -5,6 +5,7 @@ Version 2024-dev
 ================
 
 -  csg_reupdate: remove commented out dosteep (#1103)
+-  CI: drop gmx2023, add gmx2024 (#1106)
 -  new option to ignore segment types in KMC (#1105)
 
 Version 2024 (released 22.01.24)

@@ -65,16 +65,16 @@ jobs:
           - distro: 'fedora:gmxpkg'
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2023'
+          - distro: 'fedora:gmx2024'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2023'
+          - distro: 'fedora:gmx2024'
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2023_d'
+          - distro: 'fedora:gmx2024_d'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2023_d'
+          - distro: 'fedora:gmx2024_d'
             toolchain: clang
             cmake_build_type: Release
           - distro: 'fedora:gmx9999'
