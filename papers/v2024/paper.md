@@ -72,6 +72,7 @@ MSCGFM15 packages).
 
 ## Coarse-Graining
 **Christoph**
+
 ## Electronic Excitations
 **Bjoern**
 
