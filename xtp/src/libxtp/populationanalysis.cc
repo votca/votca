@@ -57,6 +57,9 @@ void Populationanalysis<T>::CalcChargeperFragment(
   overlap.Fill(basis);
   Eigen::VectorXd nuccharges = CalcNucChargeperAtom(orbitals.QMAtoms());
   Eigen::MatrixXd dmatgs = orbitals.DensityMatrixGroundState();
+  if (orbitals.getCalculationType() != "NoEmbedding") {
+    dmatgs += orbitals.getInactiveDensity();
+  }
   Eigen::VectorXd gscharges =
       nuccharges - CalcElecChargeperAtom(dmatgs, overlap, basis);
   Index numofstates = orbitals.NumberofStates(type);
@@ -75,6 +78,36 @@ void Populationanalysis<T>::CalcChargeperFragment(
       frag.value().H(i_state) = frag.ExtractFromVector(atom_h);
     }
   }
+}
+
+template <bool T>
+void Populationanalysis<T>::CalcChargeperFragmentTransition(
+    std::vector<QMFragment<BSE_Population> >& frags, const Orbitals& orbitals,
+    const Eigen::MatrixXd& dmat) const {
+
+  AOBasis basis = orbitals.getDftBasis();
+  AOOverlap overlap;
+  overlap.Fill(basis);
+  // Eigen::VectorXd nuccharges = CalcNucChargeperAtom(orbitals.QMAtoms());
+  // Eigen::MatrixXd dmatgs = orbitals.DensityMatrixGroundState();
+  Eigen::VectorXd charges = CalcElecChargeperAtom(dmat, overlap, basis);
+
+  // Index numofstates = orbitals.NumberofStates(type);
+  for (auto& frag : frags) {
+    frag.value().Initialize(1);
+    frag.value().Gs = frag.ExtractFromVector(charges);
+  }
+  // for (Index i_state = 0; i_state < numofstates; i_state++) {
+  //   QMState state(type, i_state, false);
+  //   std::array<Eigen::MatrixXd, 2> dmat_ex =
+  //       orbitals.DensityMatrixExcitedState(state);
+  //   Eigen::VectorXd atom_h = CalcElecChargeperAtom(dmat_ex[0], overlap,
+  //   basis); Eigen::VectorXd atom_e = -CalcElecChargeperAtom(dmat_ex[1],
+  //   overlap, basis);
+  //  for (auto& frag : frags) {
+  //    frag.value().E(i_state) = frag.ExtractFromVector(atom_e);
+  //    frag.value().H(i_state) = frag.ExtractFromVector(atom_h);
+  //  }
 }
 
 template <bool T>

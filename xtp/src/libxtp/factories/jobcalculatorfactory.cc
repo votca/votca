@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -29,11 +29,11 @@
 namespace votca {
 namespace xtp {
 
-void JobCalculatorfactory::RegisterAll(void) {
-  JobCalculators().Register<IQM>("iqm");
-  JobCalculators().Register<EQM>("eqm");
-  JobCalculators().Register<IEXCITON>("iexcitoncl");
-  JobCalculators().Register<QMMM>("qmmm");
+void JobCalculatorfactory::RegisterAll() {
+  this->Register<IQM>("iqm");
+  this->Register<EQM>("eqm");
+  this->Register<IEXCITON>("iexcitoncl");
+  this->Register<QMMM>("qmmm");
 }
 
 }  // namespace xtp

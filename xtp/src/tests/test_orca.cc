@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,10 +39,8 @@ BOOST_AUTO_TEST_SUITE(orca_test)
 
 BOOST_AUTO_TEST_CASE(polar_test) {
 
-  QMPackageFactory::RegisterAll();
-  std::unique_ptr<QMPackage> orca =
-      QMPackageFactory::QMPackages().Create("orca");
-  auto keys = QMPackageFactory::QMPackages().getKeys();
+  std::unique_ptr<QMPackage> orca = QMPackageFactory().Create("orca");
+  auto keys = QMPackageFactory().getKeys();
   for (auto key : keys) {
     std::cout << key << std::endl;
   }
@@ -67,9 +65,7 @@ BOOST_AUTO_TEST_CASE(polar_test) {
 
 BOOST_AUTO_TEST_CASE(ext_charges_test) {
   libint2::initialize();
-  QMPackageFactory::RegisterAll();
-  std::unique_ptr<QMPackage> orca =
-      QMPackageFactory::QMPackages().Create("orca");
+  std::unique_ptr<QMPackage> orca = QMPackageFactory().Create("orca");
   Logger log;
 
   tools::Property opt;
@@ -166,9 +162,7 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
 
 BOOST_AUTO_TEST_CASE(charges_test) {
   libint2::initialize();
-  QMPackageFactory::RegisterAll();
-  std::unique_ptr<QMPackage> orca =
-      QMPackageFactory::QMPackages().Create("orca");
+  std::unique_ptr<QMPackage> orca = QMPackageFactory().Create("orca");
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(std::string(XTP_TEST_DATA_FOLDER) + "/orca");
@@ -209,10 +203,9 @@ BOOST_AUTO_TEST_CASE(charges_test) {
 }
 
 BOOST_AUTO_TEST_CASE(opt_test) {
+
   libint2::initialize();
-  QMPackageFactory::RegisterAll();
-  std::unique_ptr<QMPackage> orca =
-      QMPackageFactory::QMPackages().Create("orca");
+  std::unique_ptr<QMPackage> orca = QMPackageFactory().Create("orca");
   Logger log;
 
   tools::Property opt;
@@ -289,9 +282,7 @@ BOOST_AUTO_TEST_CASE(input_generation_version_4_0_1) {
   votca::tools::Property prop;
   prop.LoadFromXML("user_input.xml");
 
-  QMPackageFactory::RegisterAll();
-  std::unique_ptr<QMPackage> orca =
-      QMPackageFactory::QMPackages().Create("orca");
+  std::unique_ptr<QMPackage> orca = QMPackageFactory().Create("orca");
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(".");

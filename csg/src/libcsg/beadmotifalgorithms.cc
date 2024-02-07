@@ -245,7 +245,7 @@ class MotifDeconstructor_ {
    * In scenario IV vertex 6 will be assigned to the branch that has two
    * connecting edges.
    *
-   * @param[in,out] - BeadMotifConnector this keeps track of all the
+   * @param[in,out] connector - BeadMotifConnector this keeps track of all the
    * connections between motifs. Both the bead ids and the motif ids are
    * tracked and stored
    **/
@@ -389,7 +389,8 @@ void MotifDeconstructor_::sortMotifsAndAssignIdsToSimpleMotifs_(
       new_motif_id = motif_index;
       ++motif_index;
     }
-    pair<Index, BeadMotif> id_and_motif(new_motif_id, move(*bead_motif_iter));
+    pair<Index, BeadMotif> id_and_motif(new_motif_id,
+                                        std::move(*bead_motif_iter));
     AddMotif(id_and_motif);
     bead_motif_iter = bead_motifs.erase(bead_motif_iter);
   }

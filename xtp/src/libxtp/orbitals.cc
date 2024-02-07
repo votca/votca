@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,12 +24,12 @@
 #include <numeric>
 
 // Local VOTCA includes
+#include "votca/tools/version.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/orbreorder.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/vc2index.h"
-#include "votca/xtp/version.h"
 
 namespace votca {
 namespace xtp {
@@ -38,14 +38,18 @@ Orbitals::Orbitals() : atoms_("", 0) { ; }
 
 /**
  *
- * @param  energy_difference_ [ev] Two levels are degenerate if their energy is
+ * @param  level Index of the level that is to be checked for degeneracy
+ * @param  energy_difference [ev] Two levels are degenerate if their energy is
  * smaller than this value
  * @return vector with indices off all orbitals degenerate to this including
  * itself
  */
 std::vector<Index> Orbitals::CheckDegeneracy(Index level,
                                              double energy_difference) const {
-
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "Checking degeneracy not implemented for open-shell systems.");
+  }
   std::vector<Index> result;
   if (level > mos_.eigenvalues().size()) {
     throw std::runtime_error(
@@ -66,6 +70,10 @@ std::vector<Index> Orbitals::CheckDegeneracy(Index level,
 }
 
 std::vector<Index> Orbitals::SortEnergies() {
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "MO sorting not implemented for open-shell systems.");
+  }
   std::vector<Index> index = std::vector<Index>(mos_.eigenvalues().size());
   std::iota(index.begin(), index.end(), 0);
   std::stable_sort(index.begin(), index.end(), [this](Index i1, Index i2) {
@@ -102,6 +110,10 @@ void Orbitals::SetupAuxBasis(std::string aux_basis_name) {
  * use DensityMatrixFull
  */
 Eigen::MatrixXd Orbitals::DensityMatrixWithoutGS(const QMState& state) const {
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "DensityMatrixWithoutGS not implemented for open-shell systems.");
+  }
   if (state.Type().isExciton()) {
     std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
     return DMAT[1] - DMAT[0];
@@ -130,6 +142,10 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
     return this->TransitionDensityMatrix(state);
   }
   Eigen::MatrixXd result = this->DensityMatrixGroundState();
+
+  if (getCalculationType() != "NoEmbedding") {
+    result += getInactiveDensity();
+  }
   if (state.Type().isExciton()) {
     std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
     result = result - DMAT[0] + DMAT[1];  // Ground state + hole_contribution +
@@ -140,6 +156,20 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
       result += DMATQP;
     } else {
       result -= DMATQP;
+    }
+  } else if (state.Type() == QMStateType::KSstate ||
+             state.Type() == QMStateType::PQPstate) {
+    Eigen::MatrixXd DMATKS = DensityMatrixKSstate(state);
+    if (state.StateIdx() <= getHomo()) {
+      result -= DMATKS;
+    } else {
+      result += DMATKS;
+    }
+  } else if (state.Type() == QMStateType::Hole ||
+             state.Type() == QMStateType::Electron) {
+    if (!this->isOpenShell()) {
+      throw std::runtime_error("QMStateType:" + state.Type().ToLongString() +
+                               " requires an openshell calculation");
     }
   } else if (state.Type() != QMStateType::Gstate) {
     throw std::runtime_error(
@@ -155,12 +185,22 @@ Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
     throw std::runtime_error("Orbitals file does not contain MO coefficients");
   }
   Eigen::MatrixXd occstates = mos_.eigenvectors().leftCols(occupied_levels_);
-  Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
+  Eigen::MatrixXd dmatGS = occstates * occstates.transpose();
+  if (this->isOpenShell()) {
+    Eigen::MatrixXd occstates_beta =
+        mos_beta_.eigenvectors().leftCols(occupied_levels_beta_);
+    dmatGS += occstates_beta * occstates_beta.transpose();
+  } else {
+    dmatGS *= 2.0;
+  }
   return dmatGS;
 }
-
 // Density matrix for a single KS orbital
 Eigen::MatrixXd Orbitals::DensityMatrixKSstate(const QMState& state) const {
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "DensityMatrixKSstate not implemented for open-shell systems.");
+  }
   if (!hasMOs()) {
     throw std::runtime_error("Orbitals file does not contain MO coefficients");
   }
@@ -185,6 +225,10 @@ Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const {
 // Determine QuasiParticle Density Matrix
 Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(
     const QMState& state) const {
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "DensityMatrixQuasiParticle not implemented for open-shell systems.");
+  }
   if (state.Type() != QMStateType::DQPstate) {
     throw std::runtime_error("State:" + state.ToString() +
                              " is not a quasiparticle state");
@@ -216,6 +260,10 @@ Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) const {
 }
 
 Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "TransitionDensityMatrix not implemented for open-shell systems.");
+  }
   if (state.Type() != QMStateType::Singlet) {
     throw std::runtime_error(
         "Spin type not known for transition density matrix. Available only for "
@@ -253,6 +301,10 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
 
 std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState(
     const QMState& state) const {
+  if (this->isOpenShell()) {
+    throw std::runtime_error(
+        "DensityMatrixExcitedState not implemented for open-shell systems.");
+  }
   std::array<Eigen::MatrixXd, 2> dmat = DensityMatrixExcitedState_R(state);
   if (!useTDA_) {
     std::array<Eigen::MatrixXd, 2> dmat_AR =
@@ -439,9 +491,16 @@ double Orbitals::getExcitedStateEnergy(const QMState& state) const {
                                " which has not been calculated");
     }
     return QPpert_energies_(state.StateIdx() - getGWAmin(), 3);
+  } else if (state.Type() == QMStateType::LMOstate) {
+    if (lmos_energies_.size() < state.StateIdx() + 1) {
+      throw std::runtime_error(
+          "Orbitals::getTotalEnergy You want " + state.ToString() +
+          " which is a LMO for virtual orbitals. Not implemented.");
+    }
+    return lmos_energies_(state.StateIdx());
   } else {
     throw std::runtime_error(
-        "GetTotalEnergy only knows states:singlet,triplet,KS,DQP,PQP");
+        "GetTotalEnergy only knows states:singlet,triplet,KS,DQP,PQP,LMOs");
   }
   return omega;  //  e.g. hartree
 }
@@ -572,13 +631,24 @@ void Orbitals::WriteBasisSetsToCpt(CheckpointWriter w) const {
 }
 
 void Orbitals::WriteToCpt(CheckpointWriter w) const {
-  w(XtpVersionStr(), "XTPVersion");
+  w(votca::tools::ToolsVersionStr(), "XTPVersion");
   w(orbitals_version(), "version");
-  w(basis_set_size_, "basis_set_size");
   w(occupied_levels_, "occupied_levels");
+  w(occupied_levels_beta_, "occupied_levels_beta");
   w(number_alpha_electrons_, "number_alpha_electrons");
+  w(number_beta_electrons_, "number_beta_electrons");
+  w(total_charge_, "charge");
+  w(total_spin_, "spin");
 
   w(mos_, "mos");
+  w(mos_beta_, "mos_beta");
+  w(occupations_, "occupations");
+  w(active_electrons_, "active_electrons");
+  w(mos_embedding_, "mos_embedding");
+  w(lmos_, "LMOs");
+  w(lmos_energies_, "LMOs_energies");
+  w(inactivedensity_, "inactivedensity");
+  w(expandedMOs_, "TruncMOsFullBasis");
 
   CheckpointWriter molgroup = w.openChild("qmmolecule");
   atoms_.WriteToCpt(molgroup);
@@ -615,6 +685,8 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(BSE_singlet_energies_dynamic_, "BSE_singlet_dynamic");
 
   w(BSE_triplet_energies_dynamic_, "BSE_triplet_dynamic");
+
+  w(CalcType_, "CalcType");
 }
 
 void Orbitals::ReadFromCpt(const std::string& filename) {
@@ -636,9 +708,9 @@ void Orbitals::ReadBasisSetsFromCpt(CheckpointReader r) {
 }
 
 void Orbitals::ReadFromCpt(CheckpointReader r) {
-  r(basis_set_size_, "basis_set_size");
   r(occupied_levels_, "occupied_levels");
   r(number_alpha_electrons_, "number_alpha_electrons");
+
   int version;
   r(version, "version");
   // Read qmatoms
@@ -647,9 +719,31 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
 
   r(qm_energy_, "qm_energy");
   r(qm_package_, "qm_package");
+  try {
+    r(lmos_, "LMOs");
+    r(lmos_energies_, "LMOs_energies");
+  } catch (std::runtime_error& e) {
+    ;
+  }
 
   r(version, "version");
   r(mos_, "mos");
+  r(mos_embedding_, "mos_embedding");
+  r(active_electrons_, "active_electrons");
+  r(inactivedensity_, "inactivedensity");
+  r(CalcType_, "CalcType");
+  r(expandedMOs_, "TruncMOsFullBasis");
+
+  // spin info available from version 6 or higher
+  if (version > 5) {
+    r(occupied_levels_beta_, "occupied_levels_beta");
+    r(number_beta_electrons_, "number_beta_electrons");
+    r(total_charge_, "charge");
+    r(total_spin_, "spin");
+    r(mos_beta_, "mos_beta");
+    r(occupations_, "occupations");
+  }
+
   if (version < 3) {
     // clang-format off
     std::array<Index, 49> votcaOrder_old = {
@@ -697,6 +791,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(ECP_, "ECP");
 
   r(rpa_inputenergies_, "RPA_inputenergies");
+
   r(QPpert_energies_, "QPpert_energies");
   r(QPdiag_, "QPdiag");
 

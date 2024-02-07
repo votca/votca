@@ -20,7 +20,7 @@
       </cbspl>
     </re>
     <inverse>
-      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <!-- target distribution (rdf), just give gromacs rdf.xvg -->
       <target>CG-CG.dist.tgt</target>
       <gromacs>
         <!-- name of the table for gromacs run -->
@@ -63,7 +63,7 @@
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
-    <!-- ibi: inverse biltzmann imc: inverse monte carlo re: relative entropy-->
+    <!-- ibi: inverse boltzmann imc: inverse monte carlo re: relative entropy-->
     <method>re</method>
     <!-- scaling parameter for the update-->
     <scale>0.5</scale>
@@ -76,7 +76,7 @@
       <steps>50</steps>
     </average>
     <!-- directory for user scripts -->
-    <scriptdir></scriptdir>
+    <scriptpath></scriptpath>
   </inverse>
 </cg>
 

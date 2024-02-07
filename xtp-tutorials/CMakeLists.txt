@@ -1,35 +1,45 @@
-cmake_minimum_required(VERSION 3.13)
-
-project(xtp-tutorials LANGUAGES NONE)
-
-set(PROJECT_VERSION "2023-dev")
-
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
-# not used, but stops GNUInstallDirs.cmake from warning
-set(CMAKE_INSTALL_LIBDIR "lib64")
-include(GNUInstallDirs)
-include(FeatureSummary)
-
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/xtp-tutorials USE_SOURCE_PERMISSIONS
 	PATTERN ".git*" EXCLUDE
 	PATTERN "CMake*" EXCLUDE PATTERN "cmake_install.cmake" EXCLUDE
 	PATTERN "install_manifest.txt" EXCLUDE PATTERN "*~" EXCLUDE)
 
-configure_file(${PROJECT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake @ONLY)
-
-option(ENABLE_TESTING "Test if cmake worked" OFF)
-
-if(ENABLE_TESTING)
-  enable_testing()
-  add_test(regression_xtp-tutorial_UninstallExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
-           -P ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/FileExists.cmake)
-
-  set_tests_properties(regression_xtp-tutorial_UninstallExists PROPERTIES LABELS "xtp-tutorials")
-endif(ENABLE_TESTING)
-add_custom_target(uninstall-xtp-tutorials COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
-if(NOT TARGET uninstall)
-  add_custom_target(uninstall)
+if(NOT SPHINX_FOUND)
+  return()
 endif()
-add_dependencies(uninstall uninstall-xtp-tutorials)
+find_package(JUPYTER_NBCONVERT 5.4.1)
+if(NOT JUPYTER_NBCONVERT_FOUND)
+  return()
+endif()
 
-add_subdirectory(share/doc)
+set(NOTEBOOKS "GROMACS/Methane/QMMM_GROMACS.ipynb")
+list(APPEND NOTEBOOKS "LAMMPS/Thiophene/QMMM_LAMMPS.ipynb")
+list(APPEND NOTEBOOKS "tools/dftgwbse_CH4/DFTGWBSE_ENERGY.ipynb")
+list(APPEND NOTEBOOKS "LAMMPS/KMC_Thiophene/LAMMPS_KMC.ipynb")
+
+set(NEW_NOTEBOOKS)
+
+get_target_property(XTP_PATH VOTCA::votca_xtp XTP_PATH)
+get_target_property(VOTCASHARE VOTCA::votca_xtp VOTCA_SHARE)
+
+if(TARGET VOTCA::xtp_binds)
+  get_target_property(XTP_PYPATH VOTCA::xtp_binds XTP_PYPATH)
+  list(APPEND NOTEBOOKS "pyxtp/geometry_optimization.ipynb")
+  list(APPEND NOTEBOOKS "pyxtp/single_point.ipynb")
+endif()
+
+foreach(_notebook ${NOTEBOOKS})
+  get_filename_component(_FILE "${_notebook}" NAME)
+  get_filename_component(_DIR "${_notebook}" DIRECTORY)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_DIR})
+  file(GLOB FILES ${CMAKE_CURRENT_SOURCE_DIR}/${_DIR}/*)
+  add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/xtp-tutorials/${_FILE}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/${_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${_DIR}
+    COMMAND ${CMAKE_COMMAND} -E env PATH=${XTP_PATH}:$ENV{PATH} VOTCASHARE=${VOTCASHARE} PYTHONPATH=${XTP_PYPATH}:$ENV{PYTHONPATH}  ${JUPYTER_EXECUTABLE} nbconvert --Application.log_level=0 --to notebook --ExecutePreprocessor.timeout=5000 --execute ${_FILE} --output ${VOTCA_SPHINX_DIR}/xtp-tutorials/${_FILE}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_DIR}
+    DEPENDS ${FILES}
+  )
+  list(APPEND NEW_NOTEBOOKS ${VOTCA_SPHINX_DIR}/xtp-tutorials/${_FILE})
+endforeach()
+
+add_custom_target(xtp-tutorials-rst DEPENDS ${NEW_NOTEBOOKS})
+add_dependencies(sphinx-deps xtp-tutorials-rst)

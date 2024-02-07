@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2021 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -30,7 +30,7 @@ using namespace votca;
 
 class XtpTools final : public xtp::XtpApplication {
  public:
-  XtpTools() { xtp::QMToolFactory::RegisterAll(); }
+  XtpTools() { xtp::QMToolFactory(); }
 
   ~XtpTools() = default;
 
@@ -47,7 +47,7 @@ class XtpTools final : public xtp::XtpApplication {
   std::string CalculatorType() const final { return "Tool"; }
   void EvaluateSpecificOptions() final;
   std::vector<std::string> CalculatorNames() const final {
-    return xtp::QMTools().getKeys();
+    return xtp::QMToolFactory().getKeys();
   }
 
   void AddCommandLineOptions() final;
@@ -57,7 +57,7 @@ class XtpTools final : public xtp::XtpApplication {
 };
 
 void XtpTools::CreateCalculator(const std::string& name) {
-  tool_ = xtp::QMTools().Create(name);
+  tool_ = xtp::QMToolFactory().Create(name);
 }
 void XtpTools::AddCommandLineOptions() {}
 

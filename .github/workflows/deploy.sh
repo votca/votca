@@ -4,8 +4,8 @@ builddir="$PWD"
 
 pushd "devdoc"
 rm -rf -- *
-git checkout -- CNAME manual.pdf
-cp -r "${builddir}/share/doc/html" .
+git checkout -- CNAME
+cp -r "${builddir}/share/doxygen/html" .
 mv html/* .
 rmdir html
 git add --all .

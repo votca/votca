@@ -12,7 +12,7 @@ kinetic Monte-Carlo.
 Documentation can be found on our `website <https://www.votca.org/>`__
 
 Installation instructions and developer information can be found
-`here <https://github.com/votca/votca/blob/master/share/doc/INSTALL.rst>`__
+`here <https://github.com/votca/votca/blob/master/share/sphinx/INSTALL.rst>`__
 
 For other questions, we provide an email list:
 

@@ -5,32 +5,11 @@
     <dftpackage link="dftpackage.xml"/>
     <mpsfile help="MPS file to read from with external multipoles for embedding" default="OPTIONAL"/>
     <guess help="File to read the wave function if the use guess flag is set to true" default="OPTIONAL"/>
-    <tasks help="task to compute" default="input,dft,parse,gwbse" choices="[guess,input,dft,parse,gwbse]"/>
+    <tasks help="task to compute" default="input,dft,parse,gwbse" choices="[guess,input,dft,parse,gwbse,localize,dft_in_dft]"/>
     <gwbse link="gwbse.xml"/>
+    <localize link="localize.xml"/>
     <logging_file help="File to send logging data to." default="OPTIONAL"/>
     <archiveA help="orbfile for moleculeA of guess" default="OPTIONAL"/>
     <archiveB help="orbfile for moleculeA of guess" default="OPTIONAL"/>
-    <geometry_optimization help="geometry optimization options" default="OPTIONAL">
-      <state help="initial state to optimize for" default="s1"/>
-      <maxiter help="Maximum iteration number" default="50" choices="int+"/>
-      <trajectory_file help="File to write trajectory" default="optimisation.trj"/>
-      <statetracker link="statetracker.xml"/>
-      <convergence help="Convergence criteria for geometry optimization">
-        <energy help="Energy error tolerance" unit="Hartree" default="1.e-6" choices="float+"/>
-        <RMSForce help="Force Root mean square error tolerance" unit="Hartree/Bohr" default="3.e-5" choices="float+"/>
-        <MaxForce help="Maximum force Convergence criteria" unit="Hartree/Bohr" default="1.e-4" choices="float+"/>
-        <RMSStep help="Step Root mean square error tolerance" unit="Bohr" default="6.e-4" choices="float+"/>
-        <MaxStep help="convergence criteria for geometry optimisation" unit="Bohr" default="1.e-3" choices="float+"/>
-      </convergence>
-      <optimizer help="optimiser method">
-        <method default="BFGS-TRM" choices="BFGS-TRM"/>
-        <trust help="initial trustregion" unit="Angstrom" default="0.01" choices="float+"/>
-      </optimizer>
-      <forces>
-        <method help="finite differences method, central or forward" default="central" choices="central forward"/>
-        <CoMforce_removal help="Remove total force on molecule" default="true" choices="bool"/>
-        <displacement help="finite difference displacement" unit="Angstrom" default="0.001" choices="float+"/>
-      </forces>
-    </geometry_optimization>
   </dftgwbse>
 </options>

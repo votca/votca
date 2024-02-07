@@ -46,6 +46,7 @@ BOOST_AUTO_TEST_CASE(osc) {
   orb.setNumberOfOccupiedLevels(4);
   orb.setBSEindices(0, 16);
   orb.setTDAApprox(true);
+  orb.setChargeAndSpin(0, 1);
 
   Eigen::MatrixXd& MOs = orb.MOs().eigenvectors();
 

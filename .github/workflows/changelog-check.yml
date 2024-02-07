@@ -1,0 +1,28 @@
+name: ChangelogCheck
+on:
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: ${ {github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
+jobs:
+  ChangelogCheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Check Changelog
+        run: |
+          if git diff --exit-code ${{ github.event.pull_request.base.sha }} -- CHANGELOG.rst; then
+            echo "::error ::Please update CHANGELOG.rst"
+            exit 1
+          fi
+          if ! grep '#${{ github.event.pull_request.number }}' CHANGELOG.rst; then
+            echo "::error ::PR number (#${{ github.event.pull_request.number }}) not mentioned in CHANGELOG.rst"
+            exit 1
+          fi

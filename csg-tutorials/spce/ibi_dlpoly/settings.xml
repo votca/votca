@@ -24,7 +24,7 @@
     <program>dlpoly</program>
     <!-- dlpoly specific options -->
     <dlpoly>
-      <table_bins>0.0002</table_bins>
+      <!--<table_grid>900</table_grid>-->
       <table_end>0.9</table_end>
     </dlpoly>
     <initial_configuration>maindir</initial_configuration>
@@ -32,7 +32,7 @@
     <filelist>CONFIG CONTROL FIELD</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
-    <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
+    <!-- ibi: inverse boltzmann imc: inverse monte carlo -->
     <method>ibi</method>
   </inverse>
 </cg>

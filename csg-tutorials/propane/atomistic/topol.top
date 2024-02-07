@@ -2,7 +2,7 @@
 
 [ moleculetype ]
 ; Name            nrexcl
-Protein             3
+propane             3
 
 [ atoms ]
 ;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
@@ -96,8 +96,8 @@ Protein             3
 
 [ system ]
 ; Name
-Protein
+propane
 
 [ molecules ]
 ; Compound        #mols
-Protein            1000 
+propane            1000 

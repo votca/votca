@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2021 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -33,11 +33,10 @@ namespace votca {
 namespace xtp {
 
 void GW::configure(const options& opt) {
-  Sigma().RegisterAll();
   opt_ = opt;
   qptotal_ = opt_.qpmax - opt_.qpmin + 1;
   rpa_.configure(opt_.homo, opt_.rpamin, opt_.rpamax);
-  sigma_ = Sigma().Create(opt_.sigma_integration, Mmn_, rpa_);
+  sigma_ = SigmaFactory().Create(opt_.sigma_integration, Mmn_, rpa_);
   Sigma_base::options sigma_opt;
   sigma_opt.homo = opt_.homo;
   sigma_opt.qpmax = opt_.qpmax;
@@ -241,9 +240,13 @@ Eigen::VectorXd GW::getGWAResults() const {
 }
 
 Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
+
+  Eigen::VectorXd env = Eigen::VectorXd::Zero(qptotal_);
+
   const Eigen::VectorXd intercepts =
       dft_energies_.segment(opt_.qpmin, qptotal_) + Sigma_x_.diagonal() -
       vxc_.diagonal();
+
   Eigen::VectorXd frequencies_new = frequencies;
   Eigen::Array<bool, Eigen::Dynamic, 1> converged =
       Eigen::Array<bool, Eigen::Dynamic, 1>::Zero(qptotal_);

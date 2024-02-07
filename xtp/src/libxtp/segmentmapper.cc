@@ -456,10 +456,10 @@ AtomContainer SegmentMapper<AtomContainer>::map(
     std::vector<mapAtom*> fragment_mapatoms;
     for (const atom_id& id : frag.mapatom_ids) {
       if (id.second != Result[id.first].getElement()) {
-        throw std::runtime_error("Element of mapping atom " +
-                                 std::to_string(id.first) + ":" + id.second +
-                                 " does not agree with Element of parsed Atom" +
-                                 Result[id.first].getElement());
+        throw std::runtime_error(
+            "Element of mapping atom " + std::to_string(id.first) + ":" +
+            id.second + " does not agree with Element of parsed Atom " +
+            Result[id.first].getElement());
       }
       fragment_mapatoms.push_back(&Result[id.first]);
     }

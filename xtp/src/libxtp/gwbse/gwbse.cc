@@ -1,7 +1,7 @@
 
 
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,7 +21,6 @@
 
 // Third party includes
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
 // VOTCA includes
@@ -40,7 +39,6 @@
 #include "votca/xtp/vxc_potential.h"
 
 using boost::format;
-using namespace boost::filesystem;
 using std::flush;
 namespace votca {
 namespace xtp {
@@ -363,7 +361,7 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *pLog_)
         << " Quadrature integration order : " << gwopt_.order << flush;
     gwopt_.quadrature_scheme =
-        options.get(".quadrature_scheme").as<std::string>();
+        options.get("gw.quadrature_scheme").as<std::string>();
     XTP_LOG(Log::error, *pLog_)
         << " Quadrature integration scheme : " << gwopt_.quadrature_scheme
         << flush;
@@ -589,14 +587,12 @@ bool GWBSE::Evaluate() {
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Loaded DFT Basis Set " << dftbasis_name_ << flush;
 
-  // fill DFT AO basis by going through all atoms
   AOBasis dftbasis = orbitals_.getDftBasis();
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled DFT Basis of size "
                               << dftbasis.AOBasisSize() << flush;
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Loaded Auxbasis Set " << auxbasis_name_ << flush;
 
-  // fill auxiliary AO basis by going through all atoms
   orbitals_.SetupAuxBasis(auxbasis_name_);
   AOBasis auxbasis = orbitals_.getAuxBasis();
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled Auxbasis of size "
@@ -639,6 +635,7 @@ bool GWBSE::Evaluate() {
     Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
     GW gw = GW(*pLog_, Mmn, vxc, orbitals_.MOs().eigenvalues());
     gw.configure(gwopt_);
+
     gw.CalculateGWPerturbation();
 
     if (!sigma_plot_states_.empty()) {

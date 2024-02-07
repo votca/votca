@@ -23,6 +23,7 @@
 
 // VOTCA includes
 #include <votca/tools/constants.h>
+#include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
 #include "votca/xtp/gnode.h"
@@ -51,6 +52,7 @@ void KMCCalculator::ParseCommonOptions(const tools::Property& options) {
   ratefile_ = options.get(".ratefile").as<std::string>();
 
   injectionmethod_ = options.get(".injectionmethod").as<std::string>();
+  ignoresegments_ = options.get(".ignoresegments").as<std::string>();
 }
 
 void KMCCalculator::LoadGraph(Topology& top) {
@@ -149,9 +151,16 @@ void KMCCalculator::LoadGraph(Topology& top) {
       << double(numberofcarriers_) / (top.BoxVolume() * conv) << " nm^-3"
       << std::flush;
 
+  tools::Tokenizer toignore(ignoresegments_, ", \t\n");
+  std::vector<std::string> ignored_segtypes = toignore.ToVector();
+
   for (auto& node : nodes_) {
-    node.InitEscapeRate();
-    node.MakeHuffTree();
+    std::string this_segtype = segs[node.getId()].getType();
+    if (std::find(ignored_segtypes.begin(), ignored_segtypes.end(),
+                  this_segtype) == ignored_segtypes.end()) {
+      node.InitEscapeRate();
+      node.MakeHuffTree();
+    }
   }
   return;
 }

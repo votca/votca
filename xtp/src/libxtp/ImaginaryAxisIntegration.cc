@@ -1,6 +1,6 @@
 
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -34,9 +34,7 @@ ImaginaryAxisIntegration::ImaginaryAxisIntegration(
 void ImaginaryAxisIntegration::configure(
     options opt, const RPA& rpa, const Eigen::MatrixXd& kDielMxInv_zero) {
   opt_ = opt;
-  QuadratureFactory::RegisterAll();
-  gq_ = std::unique_ptr<GaussianQuadratureBase>(
-      Quadratures().Create(opt_.quadrature_scheme));
+  gq_ = QuadratureFactory().Create(opt_.quadrature_scheme);
   gq_->configure(opt_.order);
 
   CalcDielInvVector(rpa, kDielMxInv_zero);

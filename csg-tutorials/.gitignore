@@ -1,6 +1,7 @@
 *~
 .*.swp
 */*/step_*
+*/*/*/step_*
 *.orig
 
 Makefile
@@ -29,6 +30,4 @@ confout.gro
 *.pot.*
 !*.pot.in
 *.force
-angle.dist.*
-bond.dist.*
 *.log

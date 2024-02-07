@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2021 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -36,17 +36,11 @@ namespace xtp {
 class SigmaFactory : public tools::ObjectFactory<std::string, Sigma_base,
                                                  TCMatrix_gwbse &, RPA &> {
  private:
-  SigmaFactory() = default;
+  void RegisterAll(void);
 
  public:
-  static void RegisterAll(void);
-  friend SigmaFactory &Sigma();
+  SigmaFactory() { RegisterAll(); }
 };
-
-inline SigmaFactory &Sigma() {
-  static SigmaFactory instance_;
-  return instance_;
-}
 
 }  // namespace xtp
 }  // namespace votca

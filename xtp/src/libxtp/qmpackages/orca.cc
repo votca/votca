@@ -1,6 +1,6 @@
 
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2024 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,11 +20,11 @@
 
 // Standard includes
 #include <cstdio>
+#include <filesystem>
 #include <iomanip>
 
 // Third party includes
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
 // VOTCA includes
@@ -312,8 +312,8 @@ bool Orca::WriteShellScript() {
   std::string base_name = mo_file_name_.substr(0, mo_file_name_.size() - 4);
 
   if (options_.get("initial_guess").as<std::string>() == "orbfile") {
-    if (!(boost::filesystem::exists(run_dir_ + "/molA.gbw") &&
-          boost::filesystem::exists(run_dir_ + "/molB.gbw"))) {
+    if (!(std::filesystem::exists(run_dir_ + "/molA.gbw") &&
+          std::filesystem::exists(run_dir_ + "/molB.gbw"))) {
       throw runtime_error(
           "Using guess relies on a molA.gbw and a molB.gbw file being in the "
           "directory.");
@@ -505,9 +505,6 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
 bool Orca::ParseLogFile(Orbitals& orbitals) {
   bool found_success = false;
   orbitals.setQMpackage(getPackageName());
-  if (options_.exists("ecp")) {
-    orbitals.setECPName(options_.get("ecp").as<std::string>());
-  }
 
   orbitals.setXCGrid("xfine");  // TODO find a better approximation for the
                                 // orca grid.
@@ -520,11 +517,16 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     return false;
   }
   std::map<Index, double> energies;
+  std::map<Index, double> energies_beta;
+
   std::map<Index, double> occupancy;
+  std::map<Index, double> occupancy_beta;
 
   std::string line;
   Index levels = 0;
   Index number_of_electrons = 0;
+  Index number_of_electrons_beta = 0;
+
   std::vector<std::string> results;
 
   std::ifstream input_file(log_file_name_full);
@@ -542,6 +544,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   // optimization or not
 
   QMMolecule& mol = orbitals.QMAtoms();
+  orbitals.setChargeAndSpin(charge_, spin_);
   while (input_file) {
     tools::getline(input_file, line);
     boost::trim(line);
@@ -587,7 +590,13 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
 
       number_of_electrons = 0;
       tools::getline(input_file, line);
-      tools::getline(input_file, line);
+      tools::getline(input_file, line);  // for open shell systems, this line
+                                         // will have "SPIN UP ORBITALS"
+      if (orbitals.isOpenShell() &&
+          line.find("SPIN UP ORBITALS") == std::string::npos) {
+        throw runtime_error(
+            "Expected to read an open-shell system but found no spin orbitals");
+      }
       tools::getline(input_file, line);
       if (line.find("E(Eh)") == std::string::npos) {
         XTP_LOG(Log::error, *pLog_)
@@ -611,25 +620,60 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
         if (occ == 2 || occ == 1) {
           number_of_electrons++;
           occupancy[i] = occ;
-          if (occ == 1) {
-            XTP_LOG(Log::error, *pLog_)
-                << "Watch out! No distinction between alpha and beta "
-                   "electrons. Check if occ = 1 is suitable for your "
-                   "calculation "
-                << flush;
-          }
         } else if (occ == 0) {
           occupancy[i] = occ;
-        } else {
-          throw runtime_error(
-              "Only empty or doubly occupied orbitals are allowed not "
-              "running the right kind of DFT calculation");
         }
         std::string e = results[2];
         boost::trim(e);
         energies[i] = boost::lexical_cast<double>(e);
       }
+
+      // now read spin down energies, if needed
+      if (orbitals.isOpenShell()) {
+        number_of_electrons_beta = 0;
+        tools::getline(input_file, line);
+        tools::getline(input_file, line);
+        tools::getline(input_file, line);
+        for (Index i = 0; i < levels; i++) {
+          results = GetLineAndSplit(input_file, " ");
+          std::string no = results[0];
+          boost::trim(no);
+          Index levelnumber = boost::lexical_cast<Index>(no);
+          if (levelnumber != i) {
+            XTP_LOG(Log::error, *pLog_)
+                << "Have a look at the orbital energies "
+                   "something weird is going on"
+                << flush;
+          }
+          std::string oc = results[1];
+          boost::trim(oc);
+          double occ = boost::lexical_cast<double>(oc);
+          // These occupations can only be 1 or 0
+          if (occ == 1) {
+            number_of_electrons_beta++;
+            occupancy_beta[i] = occ;
+          } else if (occ == 0) {
+            occupancy_beta[i] = occ;
+          } else {
+            throw runtime_error(
+                "Encountered spin down orbital with occupancy != 0 or 1");
+          }
+          std::string e = results[2];
+          boost::trim(e);
+          energies_beta[i] = boost::lexical_cast<double>(e);
+        }
+      }
     }
+
+    double total_occ = 0;
+    for (auto const& [i, occ] : occupancy) {
+      total_occ += occ;
+    }
+    for (auto const& [i, occ] : occupancy_beta) {
+      total_occ += occ;
+    }
+    XTP_LOG(Log::info, *pLog_)
+        << "Total number electrons (with spin factor): " << total_occ << flush;
 
     std::string::size_type success =
         line.find("*                     SUCCESS                       *");
@@ -639,12 +683,16 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   }
 
   orbitals.SetupDftBasis(basisset_name_);
+  if (options_.exists("ecp")) {
+    orbitals.setECPName(options_.get("ecp").as<std::string>());
+  }
 
   XTP_LOG(Log::info, *pLog_)
       << "Alpha electrons: " << number_of_electrons << flush;
   Index occupied_levels = number_of_electrons;
   Index unoccupied_levels = levels - occupied_levels;
-  XTP_LOG(Log::info, *pLog_) << "Occupied levels: " << occupied_levels << flush;
+  XTP_LOG(Log::info, *pLog_)
+      << "Occupied Alpha levels: " << occupied_levels << flush;
   XTP_LOG(Log::info, *pLog_)
       << "Unoccupied levels: " << unoccupied_levels << flush;
 
@@ -659,6 +707,23 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   // level_ = 1;
   for (Index i = 0; i < levels; i++) {
     orbitals.MOs().eigenvalues()[i] = energies[i];
+  }
+
+  if (orbitals.isOpenShell()) {
+    XTP_LOG(Log::info, *pLog_)
+        << "Beta electrons: " << number_of_electrons_beta << flush;
+    XTP_LOG(Log::info, *pLog_)
+        << "Occupied Beta levels: " << number_of_electrons_beta << flush;
+    XTP_LOG(Log::info, *pLog_)
+        << "Unoccupied Beta levels: " << levels - number_of_electrons_beta
+        << flush;
+
+    orbitals.setNumberOfBetaElectrons(number_of_electrons_beta);
+    orbitals.setNumberOfOccupiedLevelsBeta(number_of_electrons_beta);
+    orbitals.MOs_beta().eigenvalues().resize(levels);
+    for (Index i = 0; i < levels; i++) {
+      orbitals.MOs_beta().eigenvalues()[i] = energies_beta[i];
+    }
   }
 
   XTP_LOG(Log::error, *pLog_) << "Done reading Log file" << flush;
@@ -774,6 +839,15 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
   molden.parseMoldenFile(file_name, orbitals);
 
   XTP_LOG(Log::error, *pLog_) << "Done parsing" << flush;
+
+  // ECP charge correction is only applied in Fill() of ECPAOBasis
+  if (orbitals.getECPName() != "") {
+    ECPBasisSet ecpbasisset;
+    ecpbasisset.Load(orbitals.getECPName());
+    ECPAOBasis ecp;
+    ecp.Fill(ecpbasisset, orbitals.QMAtoms());
+  }
+
   return true;
 }
 

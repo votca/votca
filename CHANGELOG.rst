@@ -1,13 +1,101 @@
 For more detailed information about the changes see the history of the
-`repository <https://github.com/votca/votca/commits/stable>`__.
+`repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2023-dev
+Version 2024-dev
 ================
 
-Version 2022.1 (released XX.01.22)
+-  csg_reupdate: remove commented out dosteep (#1103)
+-  CI: drop gmx2023, add gmx2024 (#1106)
+-  new option to ignore segment types in KMC (#1105)
+-  fixed dftcoupling option path (#1107)
+
+Version 2024 (released 22.01.24)
+================================
+
+-  fix links in README and doc (#1091)
+-  fix python shebang to python3 (#1093)
+-  Clean-up CI (#1092, #1095)
+-  remove reference to old webpage (#1094)
+-  fix doc generation without pyxtp (#1097)
+-  Do not run gmx tests without libgromacs (#1099)
+-  KS-QMMM for single-particle states (#1100)
+-  Spin-orbitals from ORCA in QMMM (#1101)
+-  better unit test for DFT embedding (#1102)
+
+Version 2023 (released 15.11.23)
+================================
+
+-  fix pyxtp option restart (#1074)
+-  fix Changelog check (#1070)
+-  add python bindings for xtp (#1061)
+-  replaced pointers in MD2QM mapping (#1075)
+-  fixed typo in esp2multipole option (#1076)
+-  update MKL detection to MKL config (#1053)
+-  remove geometry optimization (#1077)
+-  remove all references to old pdf manual (#1081)
+-  replaced deprecated boost::progress headers (#1083)
+-  drop intel classic builds from CI (#1085)
+-  disable some libint2 warning and CI clean up (#1088)
+-  fix population analysis for embedded DFT (#1089)
+-  fix pyxtp xtp-tutorials (#1090)
+
+Version 2023-rc.2 (released 02.06.23)
+=====================================
+
+-  add note on gmx build for install (#1052)
+-  fix typos in esp2multipole options (#1054)
+-  Used sharedable lock in xtp (#1057)
+-  Make votca tests compile without OpenMP (#1065)
+-  increase tolerance for diabatization test (#1039, #1043)
+-  removed boost::filesystem  (#1041)
+-  clean up C++ defines (#1044)
+-  drop gmx-2022 builds from CI (#1046)
+-  update ccaching in CI (#1048, #1050)
+-  add support for gmx-2023 api (#1059)
+-  updated formatting (#1062)
+-  remove stable branch workflow (#1066)
+-  Refactor changelog actions (#1068)
+-  fix CI build with icpx (#1018)
+
+Version 2023-rc.1 (released 02.02.23)
+=====================================
+
+-  implemented projection-based DFT embedding (#964)
+-  Added LMO energy output and cube file generation (#970)
+-  fix typos in csg-tutorials xml files (#980)
+-  unitary optimization for localization of orbitals (#971)
+-  separate option for density max convergence tolerance in qmmm (#987)
+-  Correct ECP charges added in Orca Molden reader (#990)
+-  Implemented truncated basis for embedded DFT (#991)
+-  Implemented ER diabatization for BSE (#988)
+-  update esp++ spce tutorial to py3 (#997)
+-  Truncated GW-in-DFT embedded in static/polar MM implemeted (#1003)
+-  reducing XTP tutorial size (#1020, #1025)
+-  Clean up 3body Stillinger-Weber implement, docs and tutorial (#1012)
+-  fixed options handling in xtp_autogen_mapping (#1024)
+-  Major CMake refactor (#950, #1022)
+-  Fix all doxygen warnings (#1026)
+-  basis and auxbasis are written to QMMM checkpoint file (#1030)
+-  iterations_max can now be zero (#1033)
+-  add an XML check to csg_inverse (#1031)
+-  fix propane/imc and add propane/imc-ibiintra to csg-tutorials (#821)
+
+Version 2022.1 (released 21.12.22)
 ==================================
 
--  fix PROJECT_VERSION in subdirs (#951) 
+-  fix PROJECT_VERSION in subdirs (#951)
+-  make csg_resample and csg_stat spacing consistent (#956)
+-  fix build on FreeBSD (#959)
+-  update CI container names (#961)
+-  Fix gw quadrature scheme (#967)
+-  update install guide for spack (#972, #974)
+-  drop gmx-2021 builds from CI (#976)
+-  update syntax for cmake 3.23 (#978)
+-  fix CI build on Ubuntu (#981)
+-  fix CI builds with icpx (#984, #1004)
+-  fix CI builds with ESPResSo 4.2.0 (#993)
+-  fix localization issue (#998, #1000)
+-  update github actions to new versions (#1007, #1013, #1028)
 
 Version 2022 (released 15.01.22)
 ================================

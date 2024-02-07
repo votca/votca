@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -36,18 +36,11 @@ namespace xtp {
 class QuadratureFactory
     : public tools::ObjectFactory<std::string, GaussianQuadratureBase> {
  private:
-  QuadratureFactory() = default;
+  void RegisterAll();
 
  public:
-  static void RegisterAll(void);
-
-  friend QuadratureFactory &Quadratures();
+  QuadratureFactory() { this->RegisterAll(); };
 };
-
-inline QuadratureFactory &Quadratures() {
-  static QuadratureFactory instance_;
-  return instance_;
-}
 
 }  // namespace xtp
 }  // namespace votca

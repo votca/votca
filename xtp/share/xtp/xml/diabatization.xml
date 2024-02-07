@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<options>
+<diabatization help="Perform 2 state diabatization on adiabatic BSE states">
+    <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
+	<orb_file help="Input orb file with adiabatic states" default="system.orb"/>
+	<orb_file2 help="Input orb file with second adiabatic state for QMMM" default="OPTIONAL"/>
+	<method help="Method for diabatization" default="er" choices="[er,gmh,fcd]"/>
+	<state_idx_1 help="State index 1" choices="int+"/>
+    <state_idx_2 help="State index 2" choices="int+"/>
+	<qmtype help="Spin type of the BSE excitation" default="singlet" choices="singlet triplet"/>
+	<use_RI help="Use RI for electron repulsion integrals" default="true" choices="bool"/>
+	<fragments default="OPTIONAL" help="fragment definitions for FCD" list="">
+        <fragment>
+            <indices default="REQUIRED" help="indices of atoms in this fragment, e.g. 1 3 13:17"/>
+        </fragment>
+    </fragments>
+	<E1 default="1.0" help="Adiabatic energy of stare 1 in case of QMMM"/>
+	<E2 default="1.0" help="Adiabatic energy of stare 3 in case of QMMM"/>
+</diabatization>
+</options>

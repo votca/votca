@@ -1,6 +1,6 @@
 
 /*
- * Copyright 2009-2020 The VOTCA Development Team
+ * Copyright 2009-2023 The VOTCA Development Team
  * (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -51,33 +51,54 @@ class Orbitals {
     return (dftbasis_.AOBasisSize() > 0) ? true : false;
   }
 
+  void setEmbeddedMOs(tools::EigenSystem &system) { mos_embedding_ = system; }
+
+  const tools::EigenSystem &getEmbeddedMOs() const { return mos_embedding_; }
+
+  void setTruncMOsFullBasis(const Eigen::MatrixXd &expandedMOs) {
+    expandedMOs_ = expandedMOs;
+  }
+
+  const Eigen::MatrixXd getTruncMOsFullBasis() const { return expandedMOs_; }
+
   Index getBasisSetSize() const { return dftbasis_.AOBasisSize(); }
 
   Index getLumo() const { return occupied_levels_; }
 
   Index getHomo() const { return occupied_levels_ - 1; }
-  // access to DFT number of levels, new, tested
 
+  // access to DFT number of levels, new, tested
   bool hasNumberOfLevels() const {
     return ((occupied_levels_ > 0) ? true : false);
+  }
+  bool hasNumberOfLevelsBeta() const {
+    return ((occupied_levels_beta_ > 0) ? true : false);
   }
 
   void setNumberOfOccupiedLevels(Index occupied_levels) {
     occupied_levels_ = occupied_levels;
   }
+  void setNumberOfOccupiedLevelsBeta(Index occupied_levels_beta) {
+    occupied_levels_beta_ = occupied_levels_beta;
+  }
 
   // access to DFT number of electrons, new, tested
-
   bool hasNumberOfAlphaElectrons() const {
     return (number_alpha_electrons_ > 0) ? true : false;
   }
+  bool hasNumberOfBetaElectrons() const {
+    return (number_beta_electrons_ > 0) ? true : false;
+  }
 
   Index getNumberOfAlphaElectrons() const { return number_alpha_electrons_; };
+  Index getNumberOfBetaElectrons() const { return number_beta_electrons_; };
 
   void setNumberOfAlphaElectrons(Index electrons) {
     number_alpha_electrons_ = electrons;
   }
-
+  void setNumberOfBetaElectrons(Index electrons) {
+    number_beta_electrons_ = electrons;
+  }
   bool hasECPName() const { return (ECP_ != "") ? true : false; }
 
   const std::string &getECPName() const { return ECP_; };
@@ -94,9 +115,18 @@ class Orbitals {
 
   // access to DFT molecular orbital energies, new, tested
   bool hasMOs() const { return (mos_.eigenvalues().size() > 0) ? true : false; }
+  bool hasBetaMOs() const {
+    return (mos_beta_.eigenvalues().size() > 0) ? true : false;
+  }
 
   const tools::EigenSystem &MOs() const { return mos_; }
   tools::EigenSystem &MOs() { return mos_; }
+
+  const Eigen::MatrixXd &Occupations() const { return occupations_; }
+  Eigen::MatrixXd &Occupations() { return occupations_; }
+
+  const tools::EigenSystem &MOs_beta() const { return mos_beta_; }
+  tools::EigenSystem &MOs_beta() { return mos_beta_; }
 
   // determine (pseudo-)degeneracy of a DFT molecular orbital
   std::vector<Index> CheckDegeneracy(Index level,
@@ -124,6 +154,18 @@ class Orbitals {
         break;
     }
   }
+
+  void setCalculationType(std::string CalcType) { CalcType_ = CalcType; }
+  std::string getCalculationType() const { return CalcType_; }
+
+  void setChargeAndSpin(Index charge, Index spin) {
+    total_charge_ = charge;
+    total_spin_ = spin;
+  }
+
+  Index getSpin() const { return total_spin_; }
+  Index getCharge() const { return total_charge_; }
+  bool isOpenShell() const { return (total_spin_ > 1) ? true : false; }
 
   bool hasQMAtoms() const { return (atoms_.size() > 0) ? true : false; }
 
@@ -366,6 +408,24 @@ class Orbitals {
   bool GetFlagUseHqpOffdiag() const { return use_Hqp_offdiag_; };
   void SetFlagUseHqpOffdiag(bool flag) { use_Hqp_offdiag_ = flag; };
 
+  const Eigen::MatrixXd &getLMOs() const { return lmos_; };
+  void setLMOs(const Eigen::MatrixXd &matrix) { lmos_ = matrix; }
+
+  const Eigen::VectorXd &getLMOs_energies() const { return lmos_energies_; };
+  void setLMOs_energies(const Eigen::VectorXd &energies) {
+    lmos_energies_ = energies;
+  }
+
+  Index getNumOfActiveElectrons() { return active_electrons_; }
+  void setNumofActiveElectrons(const Index active_electrons) {
+    active_electrons_ = active_electrons;
+  }
+
+  const Eigen::MatrixXd &getInactiveDensity() const { return inactivedensity_; }
+  void setInactiveDensity(Eigen::MatrixXd inactivedensity) {
+    inactivedensity_ = inactivedensity;
+  }
+
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
@@ -383,13 +443,26 @@ class Orbitals {
   Eigen::MatrixXd CalcAuxMat_cc(const Eigen::VectorXd &coeffs) const;
   Eigen::MatrixXd CalcAuxMat_vv(const Eigen::VectorXd &coeffs) const;
 
-  Index basis_set_size_;
   Index occupied_levels_;
+  Index occupied_levels_beta_;
   Index number_alpha_electrons_;
+  Index number_beta_electrons_;
   std::string ECP_ = "";
   bool useTDA_;
 
+  std::string CalcType_ = "NoEmbedding";
+
   tools::EigenSystem mos_;
+  tools::EigenSystem mos_beta_;
+  Eigen::MatrixXd occupations_;
+
+  tools::EigenSystem mos_embedding_;
+
+  Eigen::MatrixXd lmos_;
+  Eigen::VectorXd lmos_energies_;
+  Index active_electrons_;
+  Eigen::MatrixXd inactivedensity_;
+  Eigen::MatrixXd expandedMOs_;
 
   QMMolecule atoms_;
 
@@ -397,6 +470,9 @@ class Orbitals {
   AOBasis auxbasis_;
 
   double qm_energy_ = 0;
+
+  Index total_charge_;
+  Index total_spin_;
 
   // new variables for GW-BSE storage
   Index rpamin_ = 0;
@@ -439,7 +515,8 @@ class Orbitals {
   // Version 3: changed shell ordering
   // Version 4: added vxc grid quality
   // Version 5: added the dft and aux basisset
-  static constexpr int orbitals_version() { return 5; }
+  // Version 6: added spin in dft
+  static constexpr int orbitals_version() { return 6; }
 };
 
 }  // namespace xtp

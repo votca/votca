@@ -86,14 +86,14 @@ StaticSegment Espfit::Fit2Density(const Orbitals& orbitals,
 
   XTP_LOG(Log::info, log_) << TimeStamp() << " Electron contribution calculated"
                            << flush;
-  double netcharge = 0.0;
+  double netcharge = -N;
   if (!state.isTransition()) {
     EvalNuclearPotential(orbitals.QMAtoms(), grid);
     Index Znuc = 0;
     for (const QMAtom& atom : orbitals.QMAtoms()) {
       Znuc += atom.getNuccharge();
     }
-    netcharge = double(Znuc) - N;
+    netcharge += double(Znuc);
   }
   netcharge = std::round(netcharge);
   XTP_LOG(Log::error, log_)

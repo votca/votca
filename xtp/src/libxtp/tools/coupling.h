@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2023 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -63,12 +63,12 @@ void Coupling::ParseOptions(const tools::Property &options) {
   logAB_ = options.get(".dimerAB.log").as<std::string>();
 
   output_file_ = options.ifExistsReturnElseReturnDefault<std::string>(
-      "output", job_name_ + " coupling_.xml");
+      "output", job_name_ + "_coupling.xml");
 
   package_options_ = options.get(".dftpackage");
-  dftcoupling_options_ = options.get(".dftcoupling_options");
+  dftcoupling_options_ = options.get(".dftcoupling");
 
-  QMPackageFactory::RegisterAll();
+  QMPackageFactory{};
 }
 
 bool Coupling::Run() {
@@ -80,7 +80,7 @@ bool Coupling::Run() {
 
   // get the corresponding object from the QMPackageFactory
   std::unique_ptr<QMPackage> qmpackage =
-      std::unique_ptr<QMPackage>(QMPackageFactory::QMPackages().Create(
+      std::unique_ptr<QMPackage>(QMPackageFactory().Create(
           package_options_.get("name").as<std::string>()));
   qmpackage->setLog(&log_);
   qmpackage->Initialize(package_options_);

@@ -12,6 +12,7 @@
     <temperature help="Temperature in Kelvin." unit="kelvin" default="300" choices="int+"/>
     <occfile help="File with the occupations" default="occupation.dat"/>
     <maxrealtime help="Maximum clocktime allow to the calculation" unit="second" default="1E10" choices="float+"/>
+    <ignoresegments help="Segment types to be ignored in KMC" default=""/>
     <carrierenergy help="Run a single carrier at the same time and records its energy">
       <run help="Switch on/off" default="false" choices="bool"/>
       <outputfile help="File to write energies to" default="energies.csv"/>
