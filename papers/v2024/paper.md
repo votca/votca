@@ -57,7 +57,7 @@ VOTCA–XTP is designed as a library, which is linked to very thin executables, 
 - Additionally in last two releases we have done major code clean-up and update of the build systems, but most notable we went to a mono-repository workflow to the user's and developers' life easier.
 
 
-# Statement of need
+# Statement of need (incl. Capabilities)
 
 `VOTCA` was originally developed as a platform for method development and comparison.
 Since the last software publication in 2015 this stance was strengthened by adding more
@@ -75,13 +75,6 @@ MSCGFM15 packages).
 
 ## Electronic Excitations
 **Bjoern**
-
-# Capabilities 
-- **Should these be part of the Statement of Need?**
-- **Maybe just 'new' features summarized by two sentences each?**
-## CSG
-
-## XTP
 
 
 # Code Structure
