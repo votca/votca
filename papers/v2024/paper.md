@@ -73,6 +73,10 @@ MSCGFM15 packages).
 ## Coarse-Graining
 **Christoph**
 
+### IIE method - Marvin
+### IMC updates - David
+
+
 ## Electronic Excitations
 **Bjoern**
 
@@ -80,6 +84,10 @@ MSCGFM15 packages).
 # Code Structure
 **Some general statements**
 ## CSG
+
+### Code Refactor - Josh
+### H5MD support - Jakub
+
 ## XTP
 - builds on CSG
 - calculator concept
