@@ -190,9 +190,6 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *) {
   // relaxation parameter for update
   relax_ = options_.get("cg.inverse.scale").as<double>();
 
-  // whether to take steepest descent in case of non-symmetric positive H
-  // dosteep_ =  options_.get("cg.inverse.re.do_steep").as<bool>();
-
   UavgAA_ = 0.0;
   UavgCG_ = 0.0;
 }
@@ -319,7 +316,6 @@ void CsgREupdate::REUpdateLamda() {
      * steepest descent with line-search may be helpful
      * not implemented yet!
      */
-    // if(! dosteep_){
     if (hessian_check_) {
       throw runtime_error(
           "Hessian NOT a positive definite!\n"

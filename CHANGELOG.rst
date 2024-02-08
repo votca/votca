@@ -1,8 +1,16 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2023-dev
+Version 2024-dev
 ================
+
+-  csg_reupdate: remove commented out dosteep (#1103)
+-  CI: drop gmx2023, add gmx2024 (#1106)
+-  new option to ignore segment types in KMC (#1105)
+-  fixed dftcoupling option path (#1107)
+
+Version 2024 (released 22.01.24)
+================================
 
 -  fix links in README and doc (#1091)
 -  fix python shebang to python3 (#1093)

@@ -63,10 +63,10 @@ void Coupling::ParseOptions(const tools::Property &options) {
   logAB_ = options.get(".dimerAB.log").as<std::string>();
 
   output_file_ = options.ifExistsReturnElseReturnDefault<std::string>(
-      "output", job_name_ + " coupling_.xml");
+      "output", job_name_ + "_coupling.xml");
 
   package_options_ = options.get(".dftpackage");
-  dftcoupling_options_ = options.get(".dftcoupling_options");
+  dftcoupling_options_ = options.get(".dftcoupling");
 
   QMPackageFactory{};
 }
