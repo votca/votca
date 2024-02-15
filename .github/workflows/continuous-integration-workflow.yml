@@ -59,6 +59,9 @@ jobs:
           - distro: 'fedora:gmx2019'
             toolchain: clang
             cmake_build_type: Release
+          - distro: 'fedora:gmx2019.6'
+            toolchain: gnu
+            cmake_build_type: Release
           - distro: 'fedora:gmxpkg'
             toolchain: gnu
             cmake_build_type: Release
