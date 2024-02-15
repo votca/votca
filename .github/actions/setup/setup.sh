@@ -66,7 +66,7 @@ cmake_args+=( -DCMAKE_INSTALL_PREFIX=/usr )
 cmake_args+=( -DCMAKE_CXX_COMPILER_LAUNCHER=ccache )
 
 if [[ ${INPUT_OWN_GMX} = true ]]; then
-  cmake_args+=( -DBUILD_OWN_GROMACS=ON -DENABLE_WARNING_FLAGS=OFF -DENABLE_WERROR=OFF -DGMX_EXTRA_CMAKE_ARGS="-DGMX_SIMD=SSE2" )
+  cmake_args+=( -DBUILD_OWN_GROMACS=ON -DENABLE_WARNING_FLAGS=OFF -DENABLE_WERROR=OFF -DGMX_SIMD="SSE2" )
   # remove this block when gromacs uses cxx only, i.e. gmx2021
   if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
     cmake_args+=( -DCMAKE_C_COMPILER=gcc )
