@@ -4,14 +4,15 @@
 
 # Eigen does not support the ilp64 interface right now, see https://gitlab.com/libeigen/eigen/-/issues/2586
 set(MKL_INTERFACE "lp64")
-find_package(MKL CONFIG)
-set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with MKL")
 # Replace the below with CMAKE_REQUIRE_FIND_PACKAGE_MKL, when we switch to
 # CMake-3.22+
 option(REQUIRE_MKL "Require MKL" OFF)
 if(REQUIRE_MKL)
-  find_package(MKL REQUIRED)
+  find_package(MKL CONFIG REQUIRED)
+else()
+  find_package(MKL CONFIG)
 endif()
+set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with MKL")
 
 #user defined reductions are buggy for <= clang-9 (see https://bugs.llvm.org/show_bug.cgi?id=44134)
 if (CMAKE_CXX_COMPILER MATCHES "clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.0)
