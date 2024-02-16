@@ -8,6 +8,7 @@ Version 2024-dev
 -  CI: drop gmx2023, add gmx2024 (#1106)
 -  new option to ignore segment types in KMC (#1105)
 -  fixed dftcoupling option path (#1107)
+-  cmake: fix MKL detection (#1110)
 
 Version 2024 (released 22.01.24)
 ================================
