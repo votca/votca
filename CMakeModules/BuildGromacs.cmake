@@ -2,6 +2,18 @@ if(NOT BUILD_SHARED_LIBS)
   message(FATAL_ERROR "The BUILD_OWN_GROMACS option only works with BUILD_SHARED_LIBS=ON")
 endif()
 
+get_cmake_property(_allvars VARIABLES)
+set(GMX_ENV_OPTS)
+set(_GMX_IGNORE "GMX_ENV_OPTS" "GMX_EXTRA_CMAKE_ARGS" "GMX_EXECUTABLE")
+foreach(_var ${_allvars})
+  if(_var IN_LIST _GMX_IGNORE)
+     continue()
+  endif()
+  if(_var MATCHES ^GMX_)
+    list(APPEND GMX_ENV_OPTS "${_var}=${${_var}}")
+  endif()
+endforeach()
+
 include(ExternalProject)
 enable_language(C)
 file(DOWNLOAD https://gitlab.com/gromacs/gromacs/-/merge_requests/1524.patch ${CMAKE_CURRENT_BINARY_DIR}/1524.patch)
@@ -20,6 +32,7 @@ ExternalProject_Add(Gromacs_build
     -DGMX_MPI:BOOL=OFF
     -DGMX_THREAD_MPI:BOOL=ON 
     -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
+    ${GMX_ENV_OPTS}
     ${GMX_EXTRA_CMAKE_ARGS}
     -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
   BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libgromacs.so

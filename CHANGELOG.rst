@@ -9,6 +9,7 @@ Version 2024-dev
 -  new option to ignore segment types in KMC (#1105)
 -  fixed dftcoupling option path (#1107)
 -  cmake: fix MKL detection (#1110)
+-  cmake: handover GMX options transparently (#1108)
 
 Version 2024 (released 22.01.24)
 ================================
