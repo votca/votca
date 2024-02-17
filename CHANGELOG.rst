@@ -11,6 +11,7 @@ Version 2024-dev
 -  cmake: fix MKL detection (#1110)
 -  cmake: handover GMX options transparently (#1108)
 -  CI: Switch Intel build to Ubuntu (#1111)
+-  CI: update GitHub actions (#1112)
 
 Version 2024 (released 22.01.24)
 ================================

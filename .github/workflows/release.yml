@@ -17,7 +17,7 @@ jobs:
     container: ghcr.io/votca/buildenv/fedora:latest
     steps:
       - name: Checkout votca
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.VOTCA_BOT_TOKEN }}
@@ -62,7 +62,7 @@ jobs:
           else
             echo "DRY_RUN=--dry-run" >> $GITHUB_OUTPUT
           fi
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/ccache
           key: ccache-release-${{ steps.setup.outputs.BRANCH }}-${{ steps.setup.outputs.DATE }}
