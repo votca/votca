@@ -75,6 +75,26 @@ MSCGFM15 packages).
 
 ### IIE method - Marvin
 ### IMC updates - David
+The inverse Monte-Carlo Method (IMC) introduced by Lyubartsev and Laaksonen in 1995\cite{lyubartsev_calculation_1995} is a structure-based coarse graining method, whose goal it is to find  an effective pair potential between particles, which reproduces the radial distribution function (RDF) of a reference system (ref) at the coarse grained (CG) resolution. IMC has been part of VOTCA since its first release. In the original implementation the pair potential was determined by iteratively solving a set of linear equations:
+\begin{equation}
+\label{solve_imc_orig}
+(A^TA)\Delta U_{ij} = A^T(g_{ij}^{n-1} - g_{ij}^{ref}),
+\end{equation}
+where $g_{ij}$ is the RDF between particles $i$ and $j$, $n$ indicates the iteration counter, $\Delta U_{ij}$ is the potential update term, and $A$ and $A^T$ are the Jacobian and its corresponding transpose. The Jacobian $A$ is defined as:
+\begin{equation}
+\label{eqn_A}
+A = \frac{\partial g_{ij}}{\partial U_{ij}},
+\end{equation}
+where $U_{ij}$ is the pair potential between particles i and j.
+
+Rosenberger et al.\cite{rosenberger_comparison_2016}, among others\cite{toth_iterative_2003,murtola_coarse-grained_2007,lyubartsev_systematic_2010}, demonstrated that the standard IMC method can suffer from numerical instabilities and/or slow convergence. Therefore, a Tikhonov regularization for IMC has been implemented in VOTCA. This regularization changes the linear equations according to\cite{rosenberger_comparison_2016}:
+\begin{equation}
+\label{solve_imc}
+(A^TA + \lambda I)\Delta U_{ij} = A^T(g_{ij}^{n-1} - g_{ij}^{ref}),
+\end{equation}
+where $\lambda$ determines the strength of the regularization and $I$ is the identity matrix.
+One can perform a singular value decomposition of the Jacobian $A$ to determine an initial value for $\lambda$\cite{rosenberger_comparison_2016}.
+As a rule of thumb $\lambda$ should at least be at the order of the smallest singular values squared.
 
 
 ## Electronic Excitations
