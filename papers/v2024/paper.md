@@ -73,7 +73,6 @@ MSCGFM15 packages).
 ## Coarse-Graining
 **Christoph**
 
-### IIE method - Marvin
 ### IMC updates - David
 The inverse Monte-Carlo Method (IMC) introduced by Lyubartsev and Laaksonen in 1995\cite{lyubartsev_calculation_1995} is a structure-based coarse graining method, whose goal it is to find  an effective pair potential between particles, which reproduces the radial distribution function (RDF) of a reference system (ref) at the coarse grained (CG) resolution. IMC has been part of VOTCA since its first release. In the original implementation the pair potential was determined by iteratively solving a set of linear equations:
 \begin{equation}
@@ -95,6 +94,34 @@ Rosenberger et al.\cite{rosenberger_comparison_2016}, among others\cite{toth_ite
 where $\lambda$ determines the strength of the regularization and $I$ is the identity matrix.
 One can perform a singular value decomposition of the Jacobian $A$ to determine an initial value for $\lambda$\cite{rosenberger_comparison_2016}.
 As a rule of thumb $\lambda$ should at least be at the order of the smallest singular values squared.
+
+### IIE method
+
+The iterative integral equation (IIE) methods are similar to IMC in that they also aim at reconstructing the RDF of a fine-grained reference system with an effective pair potential.
+The main difference is in the construction of the Jacobian, which is approximated in IIE methods from integral equation theory.\cite{delbaryGeneralizedNewtonIteration2020}
+For a molecular fluid, where each molecule is mapped to a single bead, using the Ornstein-Zernicke equation and the hypernetted-chain closure, one arrives at the Jacobian inverse with the form of
+\begin{equation}\label{eq:dudg}
+A^{-1} = \frac{dU}{dg} = \frac{1}{\beta} \left( 1 - \frac{1}{g} - \mathcal{F}^{-1} \left( \frac{1}{(1 + \rho \hat{h})^2}\right) \mathcal{F} \right) .
+\end{equation}
+Here, $\hat{h}$ is the Fourier transform of $h = g - 1$ and $\mathcal{F}$ is the Fourier operator.
+This approximate Jacobian works well for systems with single-bead molecule representations with convergence as fast as IMC, whereas in the general case, convergence is half as fast as IMC.\cite{bernhardt_stability_2023}
+The costly sampling of the IMC Matrix is not needed, only an RDF which is calculated on twice the range as the potential.\cite{bernhardt_iterative_2021}
+
+### Constraints
+
+When using the IMC or IIE methods described above to find pair potentials, that best reproduce a reference RDF, one can use the Gauss-Newton algorithm and formulate the problem of finding a potential update $\Delta U$ as a minimization
+\begin{equation}\label{eq:GN}
+\underset{\Delta U}{\text{arg\,min}} \lvert\lvert \Delta g + A \Delta U \lvert\lvert_2
+\end{equation}
+where $\Delta g = g - g_\mathrm{target}$.
+In that case, additional constraints can be introduced.
+For example, it is possible to describe the pressure of a system in terms of the RDF $g$ and the pair potential $U$.
+From a target pressure and the current pressure at each iteration, a constraint of the form $B \Delta U = d$ can be described and the constraint is enforced by elimination.\cite{bernhardt_iterative_2021}
+
+
+
+
+
 
 
 ## Electronic Excitations
