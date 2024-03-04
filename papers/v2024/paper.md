@@ -29,7 +29,8 @@ authors:
   - name: Joshua S. Brown
     affiliation: 2
   - name: Vivek Sundaram
-  - name: Jakub Kraijniak
+  - name: Jakub Krajniak
+    orcid: 0000-0001-9372-6975
   - name: Marvin Bernhardt
 affiliations:
   - name: Department of Mathematics and Computer Science, Eindhoven University of Technology, the Netherlands
@@ -133,7 +134,11 @@ From a target pressure and the current pressure at each iteration, a constraint 
 ## CSG
 
 ### Code Refactor - Josh
-### H5MD support - Jakub
+### H5MD support
+
+The recent version of VOTCA supports H5MD\cite{debuyl2014h5md} file format, that internaly uses HDF5 storage.
+
+
 
 ## XTP
 - builds on CSG
