@@ -141,8 +141,46 @@ From a target pressure and the current pressure at each iteration, a constraint 
 - tools
 - parallelism
 - GPU (**ask eScience? Jens?**)
-## PyXTP & ASE
-**ask Nico to write a bit**
+  
+### PyXTP
+
+The PyXTP pyhon package distributed with VOTCA, contains python bindings to the main functionalities of `VOTCA-XTP`. These python bindings were created using pybind11 [@pybind11] and provide users with a dedicated Atomisic Simulation Environment (ASE) [@ase] calculator. The use of this calculator not only facilitates the adoption of `VOTCA-XTP` by non-experts users but they also allow to integrate `VOTCA-XTP` in the broader ASE ecosystem. 
+
+The following snippet of code illustrate the use of PyXTP. This small code optimize the geometry of a CO molecule in the first excited singlet states. As seen in the code, the XTP calculator is used to compute the forces on the nuclei while the geometry optimization itself is driven by ASE functionalities. 
+
+```python
+from pyxtp import xtp
+from ase.io import write
+from ase.build import molecule
+from ase.optimize import QuasiNewton
+
+# create a distorted CO molecule
+atoms = molecule('CO')
+atoms.rattle()
+
+# instantiate the calculator
+calc = xtp(nthreads=2)
+
+# select the state for which to compute the forces 
+calc.select_force(energy='singlets', level=0, dynamic=False)
+
+# this allows to change all options
+calc.options.dftpackage.functional = 'PBE'
+calc.options.dftpackage.basisset = 'def2-svp'
+calc.options.dftpackage.auxbasisset = 'aux-def2-svp'
+
+# set up the logger
+calc.options.logging_file = 'CO_forces.log'
+
+# set the calculator
+atoms.calc = calc
+
+# optimize the geometry
+dyn = QuasiNewton(atoms, trajectory='test.traj')
+dyn.run(fmax=0.01)
+write('final.xyz', atoms)
+```
+
 # Citations
 
 Citations to entries in paper.bib should be in
