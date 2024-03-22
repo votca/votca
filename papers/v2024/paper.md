@@ -133,7 +133,12 @@ From a target pressure and the current pressure at each iteration, a constraint 
 ## CSG
 
 ### Code Refactor - Josh
-### H5MD support - Jakub
+### H5MD support
+
+The recent version of VOTCA supports the H5MD\cite{debuyl2014h5md} file format, which internally uses HDF5\cite{hdf5} storage. This is a very fast and scalable method for storing molecular trajectories, already implemented in simulation packages such as LAMMPS, ESPResSo++, and ESPResSo.
+VOTCA recognizes the trajectory file format by the extension. In the case of H5MD, it expects a `.h5` extension. Following the H5MD concepts, the particle trajectories are organized in the `particles` container.
+This container can handle multiple subsets of the studied system. Therefore, we must define `h5md_particle_group` in the XML topology file to declare which subset of particles to use.
+The reader handles both coordinates (if present), forces, and velocities.
 
 ## XTP
 - builds on CSG
