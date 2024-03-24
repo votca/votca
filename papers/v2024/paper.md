@@ -29,7 +29,7 @@ authors:
   - name: Joshua S. Brown
     affiliation: 2
   - name: Vivek Sundaram
-  - name: Jakub Kraijniak
+  - name: Jakub Krajniak
   - name: Marvin Bernhardt
 affiliations:
   - name: Department of Mathematics and Computer Science, Eindhoven University of Technology, the Netherlands
