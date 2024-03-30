@@ -14,6 +14,7 @@ Version 2024-dev
 -  CI: update GitHub actions (#1112)
 -  Fix Python print in hoomd tutorial (#1118)
 -  CI: fix rawhide and opensuse warnings (#1119)
+-  votca_help2doc: fix python warnings (#1121)
 
 Version 2024 (released 22.01.24)
 ================================
