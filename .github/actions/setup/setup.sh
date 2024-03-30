@@ -105,7 +105,7 @@ if [[ ${INPUT_DISTRO} = ubuntu:* && ${INPUT_TOOLCHAIN} = "gnu" ]]; then
 fi
 if [[ ( ${INPUT_DISTRO} = "opensuse:latest" || ${INPUT_DISTRO} = "fedora:rawhide" ) && ${INPUT_TOOLCHAIN} = "clang" ]]; then
   # workaround for votca/votca#1119, libint2 warning on clang, deprecated-declarations
-  cmake_args+=( "-DVOTCA_EXTRA_WARNING_FLAGS=\"-Wno-deprecated-declarations" )
+  cmake_args+=( "-DVOTCA_EXTRA_WARNING_FLAGS=\"-Wno-deprecated-declarations\"" )
 fi
 
 if [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then
