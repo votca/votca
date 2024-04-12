@@ -103,7 +103,7 @@ if [[ ${INPUT_DISTRO} = ubuntu:* && ${INPUT_TOOLCHAIN} = "gnu" ]]; then
   # workaround for votca/votca#1080, libint2 warning, misleading-indentation
   cmake_args+=( "-DVOTCA_EXTRA_WARNING_FLAGS=\"-Wno-deprecated-copy -Wno-misleading-indentation -Wno-maybe-uninitialized -Wno-array-bounds -Wno-stringop-overflow\"" )
 fi
-if [[ ( ${INPUT_DISTRO} = "opensuse:latest" || ${INPUT_DISTRO} = "fedora:rawhide" ) && ${INPUT_TOOLCHAIN} = "clang" ]]; then
+if [[ ( ${INPUT_DISTRO} = "opensuse:latest" || ${INPUT_DISTRO} = "ubuntu:devel" || ${INPUT_DISTRO} = "fedora:rawhide" ) && ${INPUT_TOOLCHAIN} = "clang" ]]; then
   # workaround for votca/votca#1119, libint2 warning on clang, deprecated-declarations
   cmake_args+=( "-DVOTCA_EXTRA_WARNING_FLAGS=\"-Wno-deprecated-declarations\"" )
 fi
