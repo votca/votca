@@ -15,6 +15,7 @@ Version 2024-dev
 -  Fix Python print in hoomd tutorial (#1118)
 -  CI: fix rawhide, ubuntu and opensuse warnings (#1119, #1122)
 -  votca_help2doc: fix python warnings (#1121)
+-  Fix build with boost-1.85.0 (#1123)
 
 Version 2024 (released 22.01.24)
 ================================
