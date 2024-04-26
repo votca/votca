@@ -22,7 +22,7 @@ foreach(SCRIPT csg_call csg_inverse)
   if (BUILD_MANPAGES)
     add_custom_command(OUTPUT ${SCRIPT}.man
       COMMAND ${CMAKE_COMMAND} -E env VOTCASHARE="${VOTCASHARE}" PATH="${VOTCA_PATH}:$ENV{PATH}" VOTCA_CSG_DEFAULTS="${VOTCA_CSG_DEFAULTS}"
-        $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format groff --out ${SCRIPT}.man
+        ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format groff --out ${SCRIPT}.man
       COMMENT "Building ${SCRIPT} manpage"
       DEPENDS VOTCA::votca_help2doc ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT})
     add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man)
@@ -32,7 +32,7 @@ foreach(SCRIPT csg_call csg_inverse)
   if(SPHINX_FOUND)
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg/${SCRIPT}.rst
       COMMAND ${CMAKE_COMMAND} -E env VOTCASHARE="${VOTCASHARE}" PATH="${VOTCA_PATH}:$ENV{PATH}" VOTCA_CSG_DEFAULTS="${VOTCA_CSG_DEFAULTS}"
-	$<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format rst --out ${VOTCA_SPHINX_DIR}/csg/${SCRIPT}.rst
+	${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${SCRIPT}> --format rst --out ${VOTCA_SPHINX_DIR}/csg/${SCRIPT}.rst
       COMMENT "Building ${SCRIPT} rst doc"
       DEPENDS VOTCA::votca_help2doc ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT})
     list(APPEND CSG_RST_FILES ${VOTCA_SPHINX_DIR}/csg/${SCRIPT}.rst)
@@ -85,7 +85,7 @@ if(SPHINX_FOUND)
     list(APPEND CSG_SCRIPTS_LIST "${SCRIPT}\n${UNDERLINE}\n\n.. include:: scripts/${SCRIPT}.rst\n\n")
     add_custom_command(OUTPUT ${FULL_SCRIPT}
       COMMAND ${CMAKE_COMMAND} -E env VOTCASHARE="${VOTCASHARE}" PATH="${VOTCA_PATH}:$ENV{PATH}" VOTCA_CSG_DEFAULTS="${VOTCA_CSG_DEFAULTS}"
-      $<TARGET_FILE:VOTCA::votca_help2doc> --name "$<TARGET_FILE:VOTCA::csg_call> ${TAG1} ${TAG2}" --format rst --out ${FULL_SCRIPT}
+        ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_help2doc> --name "$<TARGET_FILE:VOTCA::csg_call> ${TAG1} ${TAG2}" --format rst --out ${FULL_SCRIPT}
       COMMENT "Building ${SCRIPT} rst doc (from ${TAG1} ${TAG2})"
       DEPENDS VOTCA::votca_help2doc ${VOTCASHARE}/scripts/inverse/${SCRIPT})
   endforeach(_LINE)
