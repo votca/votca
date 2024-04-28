@@ -17,12 +17,8 @@ find_package(ecpint REQUIRED)
 set_package_properties(ecpint PROPERTIES TYPE REQUIRED PURPOSE "Calculates Gaussian integrals over pseudo potentials")
 message(STATUS "Found libecpint: ${ecpint_DIR}")
 
-find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
+find_package(HDF5 1.8 COMPONENTS CXX)
 set_package_properties(HDF5 PROPERTIES TYPE REQUIRED PURPOSE "Used to read/write HDF5 data files")
-
-if(HDF5_VERSION VERSION_GREATER 1.8)
-  message(WARNING "HDF5 will be used such that it is compatible with version 1.8.")
-endif()
 
 # https://github.com/votca/xtp/issues/436, hdf5-1.10.4 generates a implicitly-declared operator warning
 if(HDF5_VERSION VERSION_GREATER_EQUAL 1.10.4 AND HDF5_VERSION VERSION_LESS_EQUAL 1.10.6)
