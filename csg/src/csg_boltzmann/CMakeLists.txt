@@ -13,7 +13,7 @@ add_executable(VOTCA::csg_boltzmann ALIAS csg_boltzmann)
 
 if (BUILD_MANPAGES)
   add_custom_command(OUTPUT csg_boltzmann.man
-    COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::csg_boltzmann> --format groff --out csg_boltzmann.man
+    COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::csg_boltzmann> --format groff --out csg_boltzmann.man
     COMMENT "Building csg_boltzmann manpage"
     DEPENDS VOTCA::votca_help2doc csg_boltzmann)
   add_custom_target(csg_boltzmann_manpage DEPENDS csg_boltzmann.man)
@@ -23,7 +23,7 @@ endif()
 
 if(SPHINX_FOUND)
   add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg/csg_boltzmann.rst
-    COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::csg_boltzmann> --format rst --out ${VOTCA_SPHINX_DIR}/csg/csg_boltzmann.rst
+    COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::csg_boltzmann> --format rst --out ${VOTCA_SPHINX_DIR}/csg/csg_boltzmann.rst
     COMMENT "Building csg_boltzmann rst doc"
     DEPENDS VOTCA::votca_help2doc csg_boltzmann)
   add_custom_target(csg-boltzmann-rst DEPENDS ${VOTCA_SPHINX_DIR}/csg/csg_boltzmann.rst)

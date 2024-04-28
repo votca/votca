@@ -7,7 +7,7 @@ foreach(PROG votca_property)
 
   if (BUILD_MANPAGES)
     add_custom_command(OUTPUT ${PROG}.man
-      COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name ${PROG} --format groff --out ${PROG}.man
+      COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_help2doc> --name ${PROG} --format groff --out ${PROG}.man
       COMMENT "Building ${PROG} manpage"
       DEPENDS VOTCA::votca_help2doc ${PROG})
     add_custom_target(${PROG}_manpage DEPENDS ${PROG}.man)
@@ -19,7 +19,7 @@ foreach(PROG votca_property)
 
   if(SPHINX_FOUND)
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/tools/${PROG}.rst
-      COMMAND $<TARGET_FILE:VOTCA::votca_help2doc> --name ${CMAKE_CURRENT_BINARY_DIR}/${PROG} --format rst --out ${VOTCA_SPHINX_DIR}/tools/${PROG}.rst
+      COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_help2doc> --name ${CMAKE_CURRENT_BINARY_DIR}/${PROG} --format rst --out ${VOTCA_SPHINX_DIR}/tools/${PROG}.rst
       COMMENT "Building ${PROG} rst doc"
       DEPENDS VOTCA::votca_help2doc ${PROG})
     list(APPEND TOOLS_RST_FILES ${VOTCA_SPHINX_DIR}/tools/${PROG}.rst)
