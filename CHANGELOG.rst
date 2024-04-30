@@ -17,7 +17,7 @@ Version 2024-dev
 -  votca_help2doc: fix python warnings (#1121)
 -  Fix build with boost-1.85.0 (#1123)
 -  make some interpreters explicit  (#1125)
--  cmake: update hdf5 detection for cmake hdf5 (#1126)
+-  cmake: update hdf5 detection for cmake hdf5 (#1126, #1127)
 
 Version 2024 (released 22.01.24)
 ================================
