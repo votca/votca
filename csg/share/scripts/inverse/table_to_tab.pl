@@ -1,4 +1,4 @@
-#! /usr/bin/perl -w
+#! /usr/bin/env perl -w
 #
 # Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
