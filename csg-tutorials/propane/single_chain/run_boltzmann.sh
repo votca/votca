@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash -e
 
 if [ ! -f confout.gro ]; then
   echo "confout.gro not found, please start run.sh first to run the simulation"

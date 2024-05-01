@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash -e
 
 if [[ -d energies ]]; then
   echo "Removing energies directory"
