@@ -67,6 +67,6 @@ else
   msg "Calculating density for $name"
   critical csg_density --trj "$traj" --top "$topol" --out "$output" --begin "$equi_time" --first-frame "$first_frame" "$@"
 fi
-critical sed -i -e '/nan/d' -e '/inf/d' "$output"
+critical sed -i.nan -e '/nan/d' -e '/inf/d' "$output"
 mark_done "${name}_density_analysis${suffix}"
 

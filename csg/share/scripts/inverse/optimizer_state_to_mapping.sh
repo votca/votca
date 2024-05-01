@@ -51,5 +51,5 @@ cp_from_main_dir --rename "${template}" "${output}"
 
 for ((i=0;i<${#parameters[@]};i++)); do
   echo "Replacing @${parameters[$i]}@ with ${values[$i]} in $output"
-  critical sed -i -e "s/@${parameters[$i]}@/${values[$i]}/g" "${output}"
+  critical sed -i.para -e "s/@${parameters[$i]}@/${values[$i]}/g" "${output}"
 done

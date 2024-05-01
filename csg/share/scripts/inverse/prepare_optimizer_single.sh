@@ -45,7 +45,7 @@ input="$name.${otype}.in"
 if [[ -f $main_dir/$input ]]; then
   msg "Using ${otype} parameter input ${input} for interaction ${name}"
   cp_from_main_dir $input
-  critical sed -i '/^[#@]/d' "$input"
+  critical sed -i.comments -e '/^[#@]/d' "$input"
   n=( $(critical awk '{print NF}' "$input") )
   if [[ ${otype} = simplex ]]; then
     [[ ${#n[@]} -eq $total_parameter ]] || die "${0##*/}: Simplex needs exactly $total_parameter parameter sets (lines) in $input, but got ${#n[@]} lines"
