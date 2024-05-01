@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env -S bash -e
 
 #calculate bonded potentials with csg_boltzmann
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env -S bash -e
 
 #calculate bond and angle distributions with csg_boltzmann
 

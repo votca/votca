@@ -1,4 +1,4 @@
-#! /usr/bin/env bash -e
+#! /usr/bin/env -S bash -e
 
 #equilibration time in Gromacs units (ps)
 equi=200
