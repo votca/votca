@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #

@@ -1,4 +1,4 @@
-#! /bin/bash -e
+#! /usr/bin/env -S bash -e
 
 if [[ ! -f ../atomistic/topol.tpr || ! -f ../atomistic/traj.trr ]]; then
   echo "Run atomistic simulation in ../atomistic first"

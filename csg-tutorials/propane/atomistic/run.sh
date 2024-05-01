@@ -1,4 +1,4 @@
-#! /bin/bash -e
+#! /usr/bin/env -S bash -e
 
 if [[ -f done ]]; then
     echo "File 'done' exists. Remove if you want to run again"

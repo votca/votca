@@ -307,7 +307,7 @@ bool Orca::WriteShellScript() {
   ofstream shell_file;
   std::string shell_file_name_full = run_dir_ + "/" + shell_file_name_;
   shell_file.open(shell_file_name_full);
-  shell_file << "#!/bin/bash" << endl;
+  shell_file << "#!/usr/bin/env bash" << endl;
   shell_file << "mkdir -p " << scratch_dir_ << endl;
   std::string base_name = mo_file_name_.substr(0, mo_file_name_.size() - 4);
 
