@@ -74,7 +74,7 @@ MSCGFM15 packages).
 **Christoph**
 
 ### IMC updates - David
-The inverse Monte-Carlo Method (IMC) introduced by Lyubartsev and Laaksonen in 1995\cite{lyubartsev_calculation_1995} is a structure-based coarse graining method, whose goal it is to find  an effective pair potential between particles, which reproduces the radial distribution function (RDF) of a reference system (ref) at the coarse grained (CG) resolution. IMC has been part of VOTCA since its first release. In the original implementation the pair potential was determined by iteratively solving a set of linear equations:
+The inverse Monte-Carlo Method (IMC) introduced by Lyubartsev and Laaksonen in 1995 [@lyubartsev_calculation_1995] is a structure-based coarse graining method, whose goal it is to find an effective pair potential between particles, which reproduces the radial distribution function (RDF) of a reference system (ref) at the coarse grained (CG) resolution. IMC has been part of VOTCA since its first release. In the original implementation the pair potential was determined by iteratively solving a set of linear equations:
 \begin{equation}
 \label{solve_imc_orig}
 (A^TA)\Delta U_{ij} = A^T(g_{ij}^{n-1} - g_{ij}^{ref}),
@@ -86,26 +86,26 @@ A = \frac{\partial g_{ij}}{\partial U_{ij}},
 \end{equation}
 where $U_{ij}$ is the pair potential between particles i and j.
 
-Rosenberger et al.\cite{rosenberger_comparison_2016}, among others\cite{toth_iterative_2003,murtola_coarse-grained_2007,lyubartsev_systematic_2010}, demonstrated that the standard IMC method can suffer from numerical instabilities and/or slow convergence. Therefore, a Tikhonov regularization for IMC has been implemented in VOTCA. This regularization changes the linear equations according to\cite{rosenberger_comparison_2016}:
+Rosenberger et al. [@rosenberger_comparison_2016], among others [@toth_iterative_2003; @murtola_coarse-grained_2007; @lyubartsev_systematic_2010], demonstrated that the standard IMC method can suffer from numerical instabilities and/or slow convergence. Therefore, a Tikhonov regularization for IMC has been implemented in VOTCA. This regularization changes the linear equations according to [@rosenberger_comparison_2016]:
 \begin{equation}
 \label{solve_imc}
 (A^TA + \lambda I)\Delta U_{ij} = A^T(g_{ij}^{n-1} - g_{ij}^{ref}),
 \end{equation}
 where $\lambda$ determines the strength of the regularization and $I$ is the identity matrix.
-One can perform a singular value decomposition of the Jacobian $A$ to determine an initial value for $\lambda$\cite{rosenberger_comparison_2016}.
+One can perform a singular value decomposition of the Jacobian $A$ to determine an initial value for $\lambda$[@rosenberger_comparison_2016].
 As a rule of thumb $\lambda$ should at least be at the order of the smallest singular values squared.
 
 ### IIE method
 
 The iterative integral equation (IIE) methods are similar to IMC in that they also aim at reconstructing the RDF of a fine-grained reference system with an effective pair potential.
-The main difference is in the construction of the Jacobian, which is approximated in IIE methods from integral equation theory.\cite{delbaryGeneralizedNewtonIteration2020}
+The main difference is in the construction of the Jacobian, which is approximated in IIE methods from integral equation theory.[@delbaryGeneralizedNewtonIteration2020]
 For a molecular fluid, where each molecule is mapped to a single bead, using the Ornstein-Zernicke equation and the hypernetted-chain closure, one arrives at the Jacobian inverse with the form of
 \begin{equation}\label{eq:dudg}
 A^{-1} = \frac{dU}{dg} = \frac{1}{\beta} \left( 1 - \frac{1}{g} - \mathcal{F}^{-1} \left( \frac{1}{(1 + \rho \hat{h})^2}\right) \mathcal{F} \right) .
 \end{equation}
 Here, $\hat{h}$ is the Fourier transform of $h = g - 1$ and $\mathcal{F}$ is the Fourier operator.
-This approximate Jacobian works well for systems with single-bead molecule representations with convergence as fast as IMC, whereas in the general case, convergence is half as fast as IMC.\cite{bernhardt_stability_2023}
-The costly sampling of the IMC Matrix is not needed, only an RDF which is calculated on twice the range as the potential.\cite{bernhardt_iterative_2021}
+This approximate Jacobian works well for systems with single-bead molecule representations with convergence as fast as IMC, whereas in the general case, convergence is half as fast as IMC.[@bernhardt_stability_2023]
+The costly sampling of the IMC Matrix is not needed, only an RDF which is calculated on twice the range as the potential.[@bernhardt_iterative_2021]
 
 ### Constraints
 
@@ -116,7 +116,7 @@ When using the IMC or IIE methods described above to find pair potentials, that 
 where $\Delta g = g - g_\mathrm{target}$.
 In that case, additional constraints can be introduced.
 For example, it is possible to describe the pressure of a system in terms of the RDF $g$ and the pair potential $U$.
-From a target pressure and the current pressure at each iteration, a constraint of the form $B \Delta U = d$ can be described and the constraint is enforced by elimination.\cite{bernhardt_iterative_2021}
+From a target pressure and the current pressure at each iteration, a constraint of the form $B \Delta U = d$ can be described and the constraint is enforced by elimination.[@bernhardt_iterative_2021]
 
 
 
@@ -135,7 +135,7 @@ From a target pressure and the current pressure at each iteration, a constraint 
 ### Code Refactor - Josh
 ### H5MD support
 
-The recent version of VOTCA supports the H5MD\cite{debuyl2014h5md} file format, which internally uses HDF5\cite{hdf5} storage. This is a very fast and scalable method for storing molecular trajectories, already implemented in simulation packages such as LAMMPS, ESPResSo++, and ESPResSo.
+The recent version of VOTCA supports the H5MD[@debuyl2014h5md] file format, which internally uses HDF5[@hdf5] storage. This is a very fast and scalable method for storing molecular trajectories, already implemented in simulation packages such as LAMMPS, ESPResSo++, and ESPResSo.
 VOTCA recognizes the trajectory file format by the extension. In the case of H5MD, it expects a `.h5` extension. Following the H5MD concepts, the particle trajectories are organized in the `particles` container.
 This container can handle multiple subsets of the studied system. Therefore, we must define `h5md_particle_group` in the XML topology file to declare which subset of particles to use.
 The reader handles both coordinates (if present), forces, and velocities.
@@ -185,23 +185,6 @@ dyn = QuasiNewton(atoms, trajectory='test.traj')
 dyn.run(fmax=0.01)
 write('final.xyz', atoms)
 ```
-
-# Citations
-
-Citations to entries in paper.bib should be in
-[rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
-format.
-
-If you want to cite a software repository URL (e.g. something on GitHub without a preferred
-citation) then you can do it with the example BibTeX entry below for @fidgit.
-
-For a quick reference, the following citation commands can be used:
-- `@author:2001`  ->  "Author et al. (2001)"
-- `[@author:2001]` -> "(Author et al., 2001)"
-- `[@author1:2001; @author2:2001]` -> "(Author1 et al., 2001; Author2 et al., 2002)"
-
-# Figures
-
 
 # Acknowledgements
 
