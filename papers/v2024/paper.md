@@ -120,13 +120,96 @@ From a target pressure and the current pressure at each iteration, a constraint 
 
 
 
-
-
-
-
 ## Electronic Excitations
-**Bjoern**
 
+The most substantial new feature in the `VOTCA` package is the addition of explicit quantum-mechanical functionalities in the `XTP`part. The added methods aim at a first-principles-based multiscale modeling of electronically excited states and their dynamics in complex molecular systems. We very briefly describe the three main modules of `XTP` in the following.
+
+### Density-Functional Theory 
+Excited state calculations require a reference ground state calculation within density-functional theory. `XTP` provides both an automated interface to the `ORCA` package [@neeseORCAProgramSystem2012] and a lightweight internal DFT engine based on atom-centered Gaussian-type orbitals for method developing and testing. It solves the Kohn-Sham Equations for the molecular orbitals $\phi_n^\textrm{KS}(\mathbf{r})$ with orbital energies $\varepsilon_n^\textrm{KS}$
+\begin{equation}
+\left\{ -\frac{\hbar^2}{2m}\nabla^2 + V_\mathrm{ext}(\mathbf{r}) + V_\textrm{H}(\mathbf{r}) +V_\textrm{xc}(\mathbf{r})\right\}\phi_n^\textrm{KS}(\mathbf{r})  =\varepsilon_n^\textrm{KS} \phi_n^\textrm{KS}(\mathbf{r}) ,
+\label{equ:KS}
+\end{equation}
+where $V_\textrm{ext}$ is the external potential, $V_\textrm{H}$ the Hartree potential, and $V_\textrm{xc}$ the exchange-correlation potential.`XTP` also contains functionality for projector-based-embedding DFT-in-DFT ground state calculations [@manby2012simple], in which a chosen _active_ subregion of a molecular system is embedded into an inactive one, reproducing the total energy of the full system ground state exactly.  
+
+### Many-Body Green's Functions and the Bethe-Salpeter Equation
+Using the ground-state reference, many-body Green's functions theory with the $GW$ approximation first calculayes _single-particle excitations_ (electron addition or removal) as solutions to the _quasiparticle equations_
+\begin{equation}
+  \left\{ -\frac{\hbar^2}{2m}\nabla^2 + V_\textrm{ext}(\mathbf{r}) +
+    V_\textrm{H}(\mathbf{r})\right\}\phi_n^\textrm{QP}(\mathbf{r}) +
+  \int{\Sigma(\mathbf{r},\mathbf{r}',\varepsilon_n^\textrm{QP})\phi_n^\textrm{QP}(\mathbf{r}')d\mathbf{r}'}
+  = \varepsilon_n^\textrm{QP} \phi_n^\textrm{QP}(\mathbf{r}) .
+\label{equ:QP}
+\end{equation}
+In place of the exchange-correlation potential in Eq.\ref{equ:KS}, the energy-dependent self-energy operator $\Sigma(\mathbf{r},\mathbf{r}',E)$ occurs in the QP equations. This operator is evaluated using the one-body Green's function in quasi-particle approximation
+\begin{equation}
+  G(\mathbf{r},\mathbf{r}',\omega) = \sum_n{\frac{\phi_n(\mathbf{r})\phi_n^*(\mathbf{r}')}{\omega-\varepsilon_n+i0^+\textrm{sgn}(\varepsilon_n -\mu)}}
+\label{equ:Green}
+\end{equation}
+as
+\begin{equation}
+  \Sigma(\mathbf{r},\mathbf{r}',E) = \frac{i}{2\pi} \int{e^{-i\omega 0^+}G(\mathbf{r},\mathbf{r}',E-\omega)W(\mathbf{r},\mathbf{r}',\omega)\,d\omega},
+  \label{equ:sigma}
+\end{equation}
+where $W$ denotes the dynamically screened Coulomb interaction. Assuming that $\phi^\textrm{QP}_n\approx \phi^\textrm{KS}_n$, the quasiparticle energies can be evaluated perturbatively according to
+\begin{equation}
+  \varepsilon_n^\textrm{QP}= \varepsilon_n^\textrm{KS} + \Delta \varepsilon_n^{GW} =
+  \varepsilon_n^\textrm{KS} + \left\langle\phi^\textrm{KS}_n\left\vert
+  \Sigma(\varepsilon_n^\textrm{QP})-V_\text{xc} \right\vert\phi^\textrm{KS}_n\right\rangle .
+  \label{equ:theory:gw_sc}
+\end{equation}
+As the correction $\Delta \varepsilon_n^{GW}$ itself depends on $\varepsilon_n^\textrm{QP}$, Eq.\ref{equ:theory:gw_sc} needs to be solved self-consistently.
+
+Neutral excitations with a conserved number of electrons can be obtained from the Bethe-Salpeter Equation (BSE) by expressing coupled electron-hole amplitudes of excitation $S$ in a product basis of single-particle orbitals, i.e., 
+\begin{equation}
+  \chi_S(\mathbf{r}_\textrm{e},\mathbf{r}_\textrm{h})=\sum_{v}^{\mathrm{occ}}\sum_c^{\mathrm{unocc}}A_{vc}^S\phi_{c}(\mathbf{r}_\textrm{e})\phi^*_{v}(\mathbf{r}_\textrm{h})
+  +B_{vc}^S\phi_{v}(\mathbf{r}_\textrm{e})\phi^{*}_{c}(\mathbf{r}_\textrm{h}),
+  \label{equ:bsewf}
+\end{equation}
+where $\mathbf{r}_\textrm{e}$ ($\mathbf{r}_\textrm{h}$) is for the electron (hole) coordinate and $A_{vc}$ ($B_{vc})$ are the expansion coefficients of the excited state wave function in terms of resonant (anti-resonant) transitions between occupied $v$ and unoccupied $c$ states, respectively. In this basis, the BSE turns into an effective two-particle Hamiltonian problem of the form
+\begin{equation}
+\begin{pmatrix}
+                                    \underline{\mathbf{H}}^{\text{res}}&\underline{\mathbf{K}} \\
+                                    -\underline{\mathbf{K}} & -\underline{\mathbf{H}}^{\text{res}}
+                                   \end{pmatrix}
+ \begin{pmatrix}
+ \mathbf{A}^S\\ \mathbf{B}^S\
+ \end{pmatrix}
+=\Omega_S
+\begin{pmatrix}
+ \mathbf{A}^S\\ \mathbf{B}^S\
+ \end{pmatrix}.
+ \label{equ:theory:bseeigenvalue}
+\end{equation}
+Specifiaclly, the matrix elements of the blocks $\underline{\mathbf{H}}^{\text{res}}$ and $\underline{\mathbf{K}}$ are calculated as
+\begin{align}
+ H^{\text{res}}_{vc,v'c'}&=D_{vc,v'c'}+\eta K^\mathrm{x}_{vc,v'c'}+K^\mathrm{d}_{vc,v'c'}\label{equ:theory:bseblockH}\\
+ K_{cv,v'c'}&=\eta K^\mathrm{x}_{cv,v'c'}+K^\mathrm{d}_{cv,v'c'}\, ,\label{equ:theory:bseblockK}
+\end{align}
+with 
+\begin{align}
+D_{vc,v'c'}&=(\varepsilon_c-\varepsilon_v)\delta_{vv'}\delta_{cc'}\label{equ:theory:D},\\
+K^\text{x}_{vc,v'c'}&=\iint  \phi_c^*(\mathbf{r}_\textrm{e})\phi_v(\mathbf{r}_\textrm{e})v_{\mathrm{C}}(\mathbf{r}_\textrm{e},\mathbf{r}_\textrm{h}) \phi_{c'}(\mathbf{r}_\textrm{h})\phi_{v'}^*(\mathbf{r}_\textrm{h}) d^3\mathbf{r}_\textrm{e} d^3\mathbf{r}_\textrm{h}\\
+K^\text{d}_{vc,v'c'}&=-\iint
+               \phi_c^*(\mathbf{r}_\textrm{e})\phi_{c'}(\mathbf{r}_\textrm{e})W(\mathbf{r}_\textrm{e},\mathbf{r}_\textrm{h},\omega=0) \phi_v(\mathbf{r}_\textrm{h})\phi_{v'}^*(\mathbf{r}_\textrm{h})d^3\mathbf{r}_\textrm{e} d^3\mathbf{r}_\textrm{h}
+               \, .\label{equ:theory:Kd}
+\end{align}
+and $\eta=2$ ($\eta=0$) for singlet (triplet) excitations.
+Here, $K^\text{x}$ is the repulsive exchange interaction originating from the bare Coulomb term $v_\mathrm{C}$, while the direct interaction $K^\text{d}$ contains the attractive, but screened, interaction $W$ between electron and hole, causing the binding of the electron-hole pair. In Eq.\ref{equ:theory:Kd} it is assumed that the dynamic properties of $W(\omega)$ are negligible, and the computationally less demanding static approximation $\omega=0$ is employed. 
+
+
+### Quantum-Classical Embedding schemes
+Polarization effects of an environment can have significant impact on electronic excitations. As polarization effects are long-ranged accounting for them requires the treatment of large systems which is infeasible with explicit quantum methods such as DFT-$GW$-BSE. Instead, the system is split into a small part with to electronically active subsystem to be treated at quantum (QM) level and a large environment part in which electrostatic and polarization effects are accounted for in classical models (MM). In `XTP` the QM/MM scheme employs distributed atomic multipole representations for molecules in the MM region, which allows treatment of both the effects of static electric fields and the polarization response as a self-consistent reaction field. Specifically, this classical MM energy for the system is evaluated as 
+\begin{equation}
+  E_\text{MM} = \frac{1}{2}\sum_{\substack{A,B\\A\neq B}}\sum_{a\in A}\sum_{b\in B}\sum_{tu}{(Q_t^{a} + \Delta Q_t^{a}) T_{tu}^{ab} Q_u^{b}}, 
+  \label{equ:EMM}
+  \end{equation}
+where $A$ and $B$ indicate individual molecules in the system, $a$ and $b$ atoms in the respective molecules, $Q^a_t$ are the static atomic multipole moments of rank $t$ associated to atom $a$, and $T_{tu}^{ab}$ is the tensor describing the interactions between the multipoles moments $Q^{a}_{t}$ and $Q^b_u$ [@stone_distributed_2005]. The induced moments $\Delta Q_t^a$ are generated by the electric field created by moments $t'$ of atom $a' \neq a$ in molecule $A$ and the one generated by the moment $u$ of atom $b$ in molecule $B$:
+\begin{equation}
+\Delta Q_{t}^{a} = - \sum_{\substack{A,B \in \mathcal{S}\\A\neq B}} \sum_{b \, \in B}\sum_{\substack{a' \in A\\a'\neq a}} \sum_{tt'u}\alpha_{tt'}^{aa'}  T_{t'u}^{a'b} (Q_u^{b} + \Delta Q_u^{b}),
+\label{equ:induced}
+\end{equation} 
+with $\alpha_{tt'}^{aa'}$ the isotropic atomic polarizability on each site. To avoid effects of spurious overpolarization, a damped version of the interaction tensor (Thole damping [@stone_distributed_2005]) is used. Then, the static and induced multipoles in the MM region also interact with the electron density in QM region via an additional external potential to Eq.\ref{equ:KS}. At the same time, the explicit electrostatic field from the QM density is included in polarizing the MM region.
 
 # Code Structure
 **Some general statements**
@@ -135,8 +218,8 @@ From a target pressure and the current pressure at each iteration, a constraint 
 ### Code Refactor - Josh
 ### H5MD support
 
-The recent version of VOTCA supports the H5MD[@debuyl2014h5md] file format, which internally uses HDF5[@hdf5] storage. This is a very fast and scalable method for storing molecular trajectories, already implemented in simulation packages such as LAMMPS, ESPResSo++, and ESPResSo.
-VOTCA recognizes the trajectory file format by the extension. In the case of H5MD, it expects a `.h5` extension. Following the H5MD concepts, the particle trajectories are organized in the `particles` container.
+The recent version of `VOTCA` supports the `H5MD`[@debuyl2014h5md] file format, which internally uses `HDF5`[@hdf5] storage. This is a very fast and scalable method for storing molecular trajectories, already implemented in simulation packages such as `LAMMPS`, `ESPResSo++`, and `ESPResSo`.
+`VOTCA` recognizes the trajectory file format by the extension. In the case of H5MD, it expects a `.h5` extension. Following the H5MD concepts, the particle trajectories are organized in the `particles` container.
 This container can handle multiple subsets of the studied system. Therefore, we must define `h5md_particle_group` in the XML topology file to declare which subset of particles to use.
 The reader handles both coordinates (if present), forces, and velocities.
 
