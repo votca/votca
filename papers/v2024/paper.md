@@ -50,7 +50,7 @@ The Versatile Object-Oriented Toolkit for Coarse-grained Applications (`VOTCA`) 
 
 ### summarize some (technical) details here
 - initial release...
-- **C+P from JCP, probably too detailed and can go to Code Structure?** VOTCA–XTP is written in C++ and mostly adheres to the C++14 standard.78 It can be obtained on www.github.com/votca/xtp. We use the Git feature branch workflow combined with code review and continuous integration, which executes code formatting, static analyzers, debug and release builds, and the test-suite. We use CMake as the build system, which also resolves the inclusion of external dependencies. The linear algebra is handled by Eigen,79 which can be accelerated by internally calling the Intel Math Kernel Library.80 For serialization, the HDF5 format is used via the canonical libraries.81 Exchange-correlation functionals are provided by the Library of eXchange-Correlation (LIBXC) functionals.82 Various boost packages83 are used for file system string operations. Doxygen is used to document the APIs of VOTCA–XTP and automatically deploys to http://doc.votca.org.
+- **C+P from JCP, probably too detailed and can go to Code Structure?** VOTCA–XTP is written in C++ and mostly adheres to the C++14 standard.78 It can be obtained on www.github.com/votca/xtp. We use the Git feature branch workflow combined with code review and continuous integration, which executes code formatting, static analyzers, debug and release builds, and the test-suite. We use CMake as the build system, which also resolves the inclusion of external dependencies. 82 Various boost packages83 are used for file system string operations. Doxygen is used to document the APIs of VOTCA–XTP and automatically deploys to http://doc.votca.org.
 VOTCA–XTP is designed as a library, which is linked to very thin executables, which can execute a variety of calculators by adding keywords on the command line. Virtual interfaces and factory patterns make the addition of new calculators simple. The same architecture is used for external DFT and MD codes, making VOTCA–XTP easily extensible. Lower-level data structures make use of template metaprogramming to support a variety of data types.
 - summary of recent CSG developments (added methods in CSG)
 - summary of features for XTP part (all new? GTO implementation of GW-BSE, QMMM modes, kinetic MC with finite lifetime, subsystem-embedding)
@@ -213,22 +213,26 @@ with $\alpha_{tt'}^{aa'}$ the isotropic atomic polarizability on each site. To a
 
 # Code Structure
 **Some general statements**
+
 ## CSG
 
 ### Code Refactor - Josh
 ### H5MD support
 
-The recent version of `VOTCA` supports the `H5MD`[@debuyl2014h5md] file format, which internally uses `HDF5`[@hdf5] storage. This is a very fast and scalable method for storing molecular trajectories, already implemented in simulation packages such as `LAMMPS`, `ESPResSo++`, and `ESPResSo`.
+The recent version of `VOTCA` supports the `H5MD` [@debuyl2014h5md] file format, which internally uses `HDF5` [@hdf5] storage. This is a very fast and scalable method for storing molecular trajectories, already implemented in simulation packages such as `LAMMPS`, `ESPResSo++`, and `ESPResSo`.
 `VOTCA` recognizes the trajectory file format by the extension. In the case of H5MD, it expects a `.h5` extension. Following the H5MD concepts, the particle trajectories are organized in the `particles` container.
 This container can handle multiple subsets of the studied system. Therefore, we must define `h5md_particle_group` in the XML topology file to declare which subset of particles to use.
 The reader handles both coordinates (if present), forces, and velocities.
 
 ## XTP
-- builds on CSG
-- calculator concept
-- tools
-- parallelism
-- GPU (**ask eScience? Jens?**)
+Data structures related to atomistic properties (topology, molecules, segments, fragments, atoms) in `XTP` are reused or build upon those of `CSG`. Linear algebra related structures and functionalities are handled by Eigen [@eigenweb] which can be accelerated by internally calling the Intel Math Kernel Library [@intelMKL]. Exchange-correlation functionals are provided by the Library of eXchange-Correlation (`LIBXC`) functionals [@Lehtola2018], while `libint` [@Libint2] and `libecpint` [@Shaw2017] are used for the evaluation of molecular integrals of many-body operators over Gaussian functions.
+`VOTCA-XTP` provides different functionalities in three types of _calculator_ classes: 
+
+- a collection of tools that do not require information of a mapped MD trajectory, including a specific DFT-$GW$-BSE calculator in `tools` callable by `xtp_tools` 
+- analysis and not-high-throughput applications that require a mapped MD trajectory in `calculators` callable by `xtp_run`
+- high-throughput, high-performance applications that require a mapped MD trajectory in `jobcalculators` callable by `xtp_parallel`
+
+In general, `XTP` uses shared-memory parallelization in the heavy calculations involving the quantum methods, with the possibility to seamlessly offload matrix-matrix and matrix-vector operations to GPU via `CUDA`. 
   
 ### PyXTP
 
