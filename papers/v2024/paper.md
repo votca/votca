@@ -8,37 +8,66 @@ authors:
   - name: Bjoern Baumeier # note this makes a footnote saying 'co-first author'
     orcid: 0000-0002-6077-0467
     affiliation: "1, 2"
-  - name: Christoph Junghans^[corresponding author] # note this makes a footnote saying 'co-first author'
-    affiliation: 3
   - name: Nicolas Renaud
+    orcid: 0000-0001-9589-2694
     affiliation: 4
   - name: Felipe Zapata Ruiz
+    orcid: 0000-0001-8286-677X
     affiliation: 4
   - name: Rene Halver
+    orcid: 0000-0002-4895-3762
+    affiliation: 5
   - name: Pranav Madhikar
+    orcid: 0000-0003-3658-3685
     affiliation: "1,2"
   - name: Ruben Gerritsen
+    orcid: 0000-0003-0738-8952
     affiliation: "1,2"
   - name: Gianluca Tirimbo
+    orcid: 0000-0002-6641-0761
     affiliation: "1, 2"
   - name: Javier Sijen
     affiliation: "1, 2"
   - name: David Rosenberger
+    orcid: 0000-0001-6620-6499
+    affiliation: 6
   - name: Inti Pelupessy
     affiliation: 4
   - name: Joshua S. Brown
-    affiliation: 2
+    orcid: 0000-0003-1227-6429
+    affiliation: 7
   - name: Vivek Sundaram
+    orcid: 0000-0002-9986-8461
+    affiliation: "1, 2"
   - name: Jakub Krajniak
+    orcid: 0000-0001-9372-6975
+    affiliation: 8
   - name: Marvin Bernhardt
+    orcid: 0000-0001-6520-5208
+    affiliation: 9
+  - name: Christoph Junghans^[corresponding author] # note this makes a footnote saying 'co-first author'
+    orcid: 0000-0003-0925-1458
+    affiliation: 3
 affiliations:
   - name: Department of Mathematics and Computer Science, Eindhoven University of Technology, the Netherlands
     index: 1
   - name: Institute for Complex Molecular Systems, Eindhoven University of Technology, the Netherlands
     index: 2
-  - name: Los Alamos National Laboratory
+  - name: Los Alamos National Laboratory, Los Alamos, New Mexico, USA
     index: 3
-date: 23 March 2023
+  - name: Netherlands eScience Center, the Netherlands
+    index: 4
+  - name: Forschungszentrum Jülich, Jülich, Germany
+    index: 5
+  - name: Freie Universität Berlin, Berlin, Germany 
+    index: 6
+  - name: Oak Ridge National Laboratory, Oak Ridge, TN, USA 
+    index: 7
+  - name: Katholieke Universiteit Leuven, Leuven, Belgium 
+    index: 8
+  - name: Technische Universität Darmstadt, Darmstadt, Germany 
+    index: 9
+date: 10 May 2024
 bibliography: paper.bib
 
 ---
@@ -57,23 +86,22 @@ VOTCA–XTP is designed as a library, which is linked to very thin executables, 
 - Additionally in last two releases we have done major code clean-up and update of the build systems, but most notable we went to a mono-repository workflow to the user's and developers' life easier.
 
 
-# Statement of need (incl. Capabilities)
+# Statement of need
 
 `VOTCA` was originally developed as a platform for method development and comparison.
 Since the last software publication in 2015 this stance was strengthened by adding more
 methods, more examples and involving more developers.
 Many users have used VOTCA to compare different coarse-graining strategies on a neutral
 ground and used those insights to use a more specialized package if needed.
-
-(e.g., see
-the BOCS10, VOTCA11, DeePCG12, IBIsCO13, MagiC14
-,
-MSCGFM15 packages).
+There are many other coarse-graining packages around including, but not limited to BOCS [@bocs], DeePCG [@deepcg], IBIsCO[@ibisco], MagiC [@magic] and OpenMSCG [@openmscg].
+Some of which are not open-source or specilized in one method. Others have stopped being developed or lack contributions from the greater community.
+We aknowledge that we have also failed to build all inclusive community package for coarse-graining as it is sometimes hard to consolidate different development styles and constantly changing priorities from sponsors that leave little time for good software engineering pratices.
+In this context we would like to point out that there is a fork of the VOTCA packagei [@mpip-votca] that contains some feature e.g. Kernel-based machine learning methods [@mlpot], that has not been merged.
 
 ## Coarse-Graining
-**Christoph**
+In the coarse-graining part of VOTCA, VOTCA-CSG, we made a lot of improvements to the IMC method and have added a new iterative approach the so-called iterative integral equation (IIE) method, which are both described in detail below and in reference therein.
 
-### IMC updates - David
+### IMC updates
 The inverse Monte-Carlo Method (IMC) introduced by Lyubartsev and Laaksonen in 1995 [@lyubartsev_calculation_1995] is a structure-based coarse graining method, whose goal it is to find an effective pair potential between particles, which reproduces the radial distribution function (RDF) of a reference system (ref) at the coarse grained (CG) resolution. IMC has been part of VOTCA since its first release. In the original implementation the pair potential was determined by iteratively solving a set of linear equations:
 \begin{equation}
 \label{solve_imc_orig}
@@ -212,11 +240,23 @@ where $A$ and $B$ indicate individual molecules in the system, $a$ and $b$ atoms
 with $\alpha_{tt'}^{aa'}$ the isotropic atomic polarizability on each site. To avoid effects of spurious overpolarization, a damped version of the interaction tensor (Thole damping [@stone_distributed_2005]) is used. Then, the static and induced multipoles in the MM region also interact with the electron density in QM region via an additional external potential to Eq.\ref{equ:KS}. At the same time, the explicit electrostatic field from the QM density is included in polarizing the MM region.
 
 # Code Structure
-**Some general statements**
 
-## CSG
+For the last couple of years, we have also focused on code harding nad the introduction of better software engineering practises.
+Original VOTCA was design as module in separte repositories, but as many other project, this turned out to be quite cumbersome hence we switched to a mono-repo.
+With recent performance improvements in the git tools, the benefits of a single repository by far out-weigh the downside of the very complex workflow of mulitple repositories.
+The module structure still exists in the source code.
 
-### Code Refactor - Josh
+Additionally we have added continous integration testing through GitHub action for 50+ different compiler and operating system combinations. The also perform continous deployment to the GitHub Docker registry.
+And releases get rolled into all major linux distributions, HomeBrew and FreeBSD.
+
+## Code Modernization
+
+We did a lot of code refactoring and bumped the C++ standard to 17. We also modernized our usage of CMake and switched to a mostly target-base scheme.
+
+## Updates in VOTCA-CSG
+
+TThe particle and molecule data structure were refactored and we add support of the H5MD format, which is described below in details.
+ 
 ### H5MD support
 
 The recent version of `VOTCA` supports the `H5MD` [@debuyl2014h5md] file format, which internally uses `HDF5` [@hdf5] storage. This is a very fast and scalable method for storing molecular trajectories, already implemented in simulation packages such as `LAMMPS`, `ESPResSo++`, and `ESPResSo`.
