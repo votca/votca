@@ -95,7 +95,7 @@ Many users have used VOTCA to compare different coarse-graining strategies on a 
 ground and used those insights to use a more specialized package if needed.
 There are many other coarse-graining packages around including, but not limited to BOCS [@bocs], DeePCG [@deepcg], IBIsCO[@ibisco], MagiC [@magic] and OpenMSCG [@openmscg].
 Some of which are not open-source or specilized in one method. Others have stopped being developed or lack contributions from the greater community.
-We aknowledge that we have also failed to build all inclusive community package for coarse-graining as it is sometimes hard to consolidate different development styles and constantly changing priorities from sponsors that leave little time for good software engineering pratices.
+It is difficult to build  all inclusive community package for coarse-graining as it is sometimes hard to consolidate different development styles and constantly changing priorities from sponsors that leave little time for good software engineering pratices.
 In this context we would like to point out that there is a fork of the VOTCA packagei [@mpip-votca] that contains some feature e.g. Kernel-based machine learning methods [@mlpot], that has not been merged.
 
 ## Coarse-Graining
@@ -247,11 +247,12 @@ With recent performance improvements in the git tools, the benefits of a single 
 The module structure still exists in the source code.
 
 Additionally we have added continous integration testing through GitHub action for 50+ different compiler and operating system combinations. The also perform continous deployment to the GitHub Docker registry.
-And releases get rolled into all major linux distributions, HomeBrew and FreeBSD.
+And releases get rolled into all major linux distributions, HomeBrew, Spack and FreeBSD.
 
 ## Code Modernization
 
 We did a lot of code refactoring and bumped the C++ standard to 17. We also modernized our usage of CMake and switched to a mostly target-base scheme.
+An attempt to port our particle structure on top of Cabana [@cabana] was made, due to incompatibilties between Kokkos [@kokkos] and Eigen, we will delay this effort.
 
 ## Updates in VOTCA-CSG
 
