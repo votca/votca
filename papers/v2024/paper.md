@@ -75,7 +75,7 @@ bibliography: paper.bib
 # Summary
 Many physical phenomena in liquids and soft matter are multiscale by nature and can involve processes with quantum and classical degrees of freedom occurring over a vast range of length- and timescales. Examples range from structure formation processes of complex polymers or even polymer blends **(better example linked to classical coarse-graining?)** on the classical side to charge and energy transport and conversion processes involving explicit electronic and therefore quantum information. 
 
-The Versatile Object-Oriented Toolkit for Coarse-grained Applications (`VOTCA`) provides multiscale frameworks built on a comprehensive set of methods for the development of classical coarse-grained potentials (`VOTCA-CSG`) as well as state-of-the art excited state electronic structure methods based on density-functional and many-body Green's function theories, coupled in mixed quantum-classical models and used in kinetic network models (`VOTCA-XTP`). 
+The Versatile Object-Oriented Toolkit for Coarse-grained Applications (VOTCA) provides multiscale frameworks built on a comprehensive set of methods for the development of classical coarse-grained potentials (VOTCA-CSG) as well as state-of-the art excited state electronic structure methods based on density-functional and many-body Green's function theories, coupled in mixed quantum-classical models and used in kinetic network models (VOTCA-XTP). 
 
 ### summarize some (technical) details here
 - initial release...
@@ -88,15 +88,10 @@ VOTCA–XTP is designed as a library, which is linked to very thin executables, 
 
 # Statement of need
 
-`VOTCA` was originally developed as a platform for method development and comparison.
-Since the last software publication in 2015 this stance was strengthened by adding more
-methods, more examples and involving more developers.
-Many users have used VOTCA to compare different coarse-graining strategies on a neutral
-ground and used those insights to use a more specialized package if needed.
-There are many other coarse-graining packages around including, but not limited to BOCS [@bocs], DeePCG [@deepcg], IBIsCO[@ibisco], MagiC [@magic] and OpenMSCG [@openmscg].
-Some of which are not open-source or specilized in one method. Others have stopped being developed or lack contributions from the greater community.
-It is difficult to build  all inclusive community package for coarse-graining as it is sometimes hard to consolidate different development styles and constantly changing priorities from sponsors that leave little time for good software engineering pratices.
-In this context we would like to point out that there is a fork of the VOTCA packagei [@mpip-votca] that contains some feature e.g. Kernel-based machine learning methods [@mlpot], that has not been merged.
+VOTCA was originally developed as a platform for development and comparison of coarse-graining (CSG) methods.
+Since the last software publication in 2015 VOTCA-CSG was strengthened by adding more methods, more examples and involving more developers. Many users have used VOTCA to compare different coarse-graining strategies on a neutral ground and, if needed, proceeded with a more specialized package based on the gained insight. Such other coarse-graining packages include, among others, BOCS [@bocs], DeePCG [@deepcg], IBIsCO [@ibisco], MagiC [@magic] and OpenMSCG [@openmscg], some of which are not open-source or specialized in one method. Others have stopped being developed or lack contributions from the greater community. It is difficult to build all-inclusive community package for coarse-graining as it is sometimes hard to consolidate different development styles and constantly changing priorities from sponsors that leave little time for good software engineering practices. In this context we would like to point out that there is a fork of the VOTCA package [@mpip-votca] that contains some feature e.g. Kernel-based machine learning methods [@mlpot], that has not been merged.
+
+Next to strengthening the coarse-graining functionality of VOTCA, another major development direction taken since 2015 is the addition of explicit quantum-mechanical modules aiming at the simulation of static and dynamic properties of electronically excited states in complex molecular environments using multiscale frameworks. Specifically, the VOTCA-XTP part provides an open-source implementation of many-body Green's functions methods (known as $GW$-BSE) with the capability of linking this quantum-mechanical description of a molecular system to a classical (microelectrostatic) environment model and to perform rate-based dynamic simulations with kinetic Monte-Carlo. Basic $GW$-BSE functionality in molecular settings has also more recently been supported in other packages, such as Turbomole [@turbomole], ADF [@ADF2001], PySCF [@pyscf], or MOLGW [@molgw], but these are either commercial or do not provide links to a multiscale framework for complex environments and dynamics.
 
 ## Coarse-Graining
 In the coarse-graining part of VOTCA, VOTCA-CSG, we made a lot of improvements to the IMC method and have added a new iterative approach the so-called iterative integral equation (IIE) method, which are both described in detail below and in reference therein.
@@ -150,15 +145,15 @@ From a target pressure and the current pressure at each iteration, a constraint 
 
 ## Electronic Excitations
 
-The most substantial new feature in the `VOTCA` package is the addition of explicit quantum-mechanical functionalities in the `XTP`part. The added methods aim at a first-principles-based multiscale modeling of electronically excited states and their dynamics in complex molecular systems. We very briefly describe the three main modules of `XTP` in the following.
+The most substantial new feature in the VOTCA package is the addition of explicit quantum-mechanical functionalities in the VOTCA-XTP part. The added methods aim at a first-principles-based multiscale modeling of electronically excited states and their dynamics in complex molecular systems. We very briefly describe the three main modules of XTP in the following.
 
 ### Density-Functional Theory 
-Excited state calculations require a reference ground state calculation within density-functional theory. `XTP` provides both an automated interface to the `ORCA` package [@neeseORCAProgramSystem2012] and a lightweight internal DFT engine based on atom-centered Gaussian-type orbitals for method developing and testing. It solves the Kohn-Sham Equations for the molecular orbitals $\phi_n^\textrm{KS}(\mathbf{r})$ with orbital energies $\varepsilon_n^\textrm{KS}$
+Excited state calculations require a reference ground state calculation within density-functional theory. VOTCA-XTP provides both an automated interface to the ORCA package [@neeseORCAProgramSystem2012] and a lightweight internal DFT engine based on atom-centered Gaussian-type orbitals for method developing and testing. It solves the Kohn-Sham Equations for the molecular orbitals $\phi_n^\textrm{KS}(\mathbf{r})$ with orbital energies $\varepsilon_n^\textrm{KS}$
 \begin{equation}
 \left\{ -\frac{\hbar^2}{2m}\nabla^2 + V_\mathrm{ext}(\mathbf{r}) + V_\textrm{H}(\mathbf{r}) +V_\textrm{xc}(\mathbf{r})\right\}\phi_n^\textrm{KS}(\mathbf{r})  =\varepsilon_n^\textrm{KS} \phi_n^\textrm{KS}(\mathbf{r}) ,
 \label{equ:KS}
 \end{equation}
-where $V_\textrm{ext}$ is the external potential, $V_\textrm{H}$ the Hartree potential, and $V_\textrm{xc}$ the exchange-correlation potential.`XTP` also contains functionality for projector-based-embedding DFT-in-DFT ground state calculations [@manby2012simple], in which a chosen _active_ subregion of a molecular system is embedded into an inactive one, reproducing the total energy of the full system ground state exactly.  
+where $V_\textrm{ext}$ is the external potential, $V_\textrm{H}$ the Hartree potential, and $V_\textrm{xc}$ the exchange-correlation potential. VOTCA-XTP also contains functionality for projector-based-embedding DFT-in-DFT ground state calculations [@manby2012simple], in which a chosen _active_ subregion of a molecular system is embedded into an inactive one, reproducing the total energy of the full system ground state exactly.  
 
 ### Many-Body Green's Functions and the Bethe-Salpeter Equation
 Using the ground-state reference, many-body Green's functions theory with the $GW$ approximation first calculayes _single-particle excitations_ (electron addition or removal) as solutions to the _quasiparticle equations_
@@ -227,7 +222,7 @@ Here, $K^\text{x}$ is the repulsive exchange interaction originating from the ba
 
 
 ### Quantum-Classical Embedding schemes
-Polarization effects of an environment can have significant impact on electronic excitations. As polarization effects are long-ranged accounting for them requires the treatment of large systems which is infeasible with explicit quantum methods such as DFT-$GW$-BSE. Instead, the system is split into a small part with to electronically active subsystem to be treated at quantum (QM) level and a large environment part in which electrostatic and polarization effects are accounted for in classical models (MM). In `XTP` the QM/MM scheme employs distributed atomic multipole representations for molecules in the MM region, which allows treatment of both the effects of static electric fields and the polarization response as a self-consistent reaction field. Specifically, this classical MM energy for the system is evaluated as 
+Polarization effects of an environment can have significant impact on electronic excitations. As polarization effects are long-ranged accounting for them requires the treatment of large systems which is infeasible with explicit quantum methods such as DFT-$GW$-BSE. Instead, the system is split into a small part with to electronically active subsystem to be treated at quantum (QM) level and a large environment part in which electrostatic and polarization effects are accounted for in classical models (MM). In VOTCA-XTP the QM/MM scheme employs distributed atomic multipole representations for molecules in the MM region, which allows treatment of both the effects of static electric fields and the polarization response as a self-consistent reaction field. Specifically, this classical MM energy for the system is evaluated as 
 \begin{equation}
   E_\text{MM} = \frac{1}{2}\sum_{\substack{A,B\\A\neq B}}\sum_{a\in A}\sum_{b\in B}\sum_{tu}{(Q_t^{a} + \Delta Q_t^{a}) T_{tu}^{ab} Q_u^{b}}, 
   \label{equ:EMM}
@@ -260,24 +255,24 @@ TThe particle and molecule data structure were refactored and we add support of 
  
 ### H5MD support
 
-The recent version of `VOTCA` supports the `H5MD` [@debuyl2014h5md] file format, which internally uses `HDF5` [@hdf5] storage. This is a very fast and scalable method for storing molecular trajectories, already implemented in simulation packages such as `LAMMPS`, `ESPResSo++`, and `ESPResSo`.
-`VOTCA` recognizes the trajectory file format by the extension. In the case of H5MD, it expects a `.h5` extension. Following the H5MD concepts, the particle trajectories are organized in the `particles` container.
+The recent version of VOTCA supports the `H5MD` [@debuyl2014h5md] file format, which internally uses `HDF5` [@hdf5] storage. This is a very fast and scalable method for storing molecular trajectories, already implemented in simulation packages such as `LAMMPS`, `ESPResSo++`, and `ESPResSo`.
+VOTCA recognizes the trajectory file format by the extension. In the case of H5MD, it expects a `.h5` extension. Following the H5MD concepts, the particle trajectories are organized in the `particles` container.
 This container can handle multiple subsets of the studied system. Therefore, we must define `h5md_particle_group` in the XML topology file to declare which subset of particles to use.
 The reader handles both coordinates (if present), forces, and velocities.
 
 ## XTP
-Data structures related to atomistic properties (topology, molecules, segments, fragments, atoms) in `XTP` are reused or build upon those of `CSG`. Linear algebra related structures and functionalities are handled by Eigen [@eigenweb] which can be accelerated by internally calling the Intel Math Kernel Library [@intelMKL]. Exchange-correlation functionals are provided by the Library of eXchange-Correlation (`LIBXC`) functionals [@Lehtola2018], while `libint` [@Libint2] and `libecpint` [@Shaw2017] are used for the evaluation of molecular integrals of many-body operators over Gaussian functions.
-`VOTCA-XTP` provides different functionalities in three types of _calculator_ classes: 
+Data structures related to atomistic properties (topology, molecules, segments, fragments, atoms) in XTP are reused or build upon those of CSG. Linear algebra related structures and functionalities are handled by Eigen [@eigenweb] which can be accelerated by internally calling the Intel Math Kernel Library [@intelMKL]. Exchange-correlation functionals are provided by the Library of eXchange-Correlation (`LIBXC`) functionals [@Lehtola2018], while `libint` [@Libint2] and `libecpint` [@Shaw2017] are used for the evaluation of molecular integrals of many-body operators over Gaussian functions.
+VOTCA-XTP provides different functionalities in three types of _calculator_ classes: 
 
 - a collection of tools that do not require information of a mapped MD trajectory, including a specific DFT-$GW$-BSE calculator in `tools` callable by `xtp_tools` 
 - analysis and not-high-throughput applications that require a mapped MD trajectory in `calculators` callable by `xtp_run`
 - high-throughput, high-performance applications that require a mapped MD trajectory in `jobcalculators` callable by `xtp_parallel`
 
-In general, `XTP` uses shared-memory parallelization in the heavy calculations involving the quantum methods, with the possibility to seamlessly offload matrix-matrix and matrix-vector operations to GPU via `CUDA`. 
+In general, VOTCA-XTP uses shared-memory parallelization in the heavy calculations involving the quantum methods, with the possibility to seamlessly offload matrix-matrix and matrix-vector operations to GPU via `CUDA`. 
   
 ### PyXTP
 
-The PyXTP pyhon package distributed with VOTCA, contains python bindings to the main functionalities of `VOTCA-XTP`. These python bindings were created using pybind11 [@pybind11] and provide users with a dedicated Atomisic Simulation Environment (ASE) [@ase] calculator. The use of this calculator not only facilitates the adoption of `VOTCA-XTP` by non-experts users but they also allow to integrate `VOTCA-XTP` in the broader ASE ecosystem. 
+The PyXTP pyhon package distributed with VOTCA, contains python bindings to the main functionalities of VOTCA-XTP. These python bindings were created using pybind11 [@pybind11] and provide users with a dedicated Atomisic Simulation Environment (ASE) [@ase] calculator. The use of this calculator not only facilitates the adoption of VOTCA-XTP by non-experts users but they also allow to integrate VOTCA-XTP in the broader ASE ecosystem. 
 
 The following snippet of code illustrate the use of PyXTP. This small code optimize the geometry of a CO molecule in the first excited singlet states. As seen in the code, the XTP calculator is used to compute the forces on the nuclei while the geometry optimization itself is driven by ASE functionalities. 
 
