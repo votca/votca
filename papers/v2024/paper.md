@@ -8,6 +8,9 @@ authors:
   - name: Bjoern Baumeier # note this makes a footnote saying 'co-first author'
     orcid: 0000-0002-6077-0467
     affiliation: "1, 2"
+  - name: Jens Wehner
+    orcid: 0000-0003-1203-5000
+    affiliation: "1, 2, 4"
   - name: Nicolas Renaud
     orcid: 0000-0001-9589-2694
     affiliation: 4
@@ -31,8 +34,6 @@ authors:
   - name: David Rosenberger
     orcid: 0000-0001-6620-6499
     affiliation: 6
-  - name: Inti Pelupessy
-    affiliation: 4
   - name: Joshua S. Brown
     orcid: 0000-0003-1227-6429
     affiliation: 7
