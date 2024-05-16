@@ -5,18 +5,18 @@ tags:
   - DFT
   - Quantum calculations
 authors:
-  - name: Bjoern Baumeier # note this makes a footnote saying 'co-first author'
+  - name: Björn Baumeier^[corresponding author] # note this makes a footnote saying 'co-first author'
     orcid: 0000-0002-6077-0467
-    affiliation: "1, 2"
+    affiliation: "1,2"
   - name: Jens Wehner
     orcid: 0000-0003-1203-5000
-    affiliation: "1, 2, 4"
+    affiliation: "1,2,3"
   - name: Nicolas Renaud
     orcid: 0000-0001-9589-2694
-    affiliation: 4
+    affiliation: 3
   - name: Felipe Zapata Ruiz
     orcid: 0000-0001-8286-677X
-    affiliation: 4
+    affiliation: 3
   - name: Rene Halver
     orcid: 0000-0002-4895-3762
     affiliation: 5
@@ -28,9 +28,9 @@ authors:
     affiliation: "1,2"
   - name: Gianluca Tirimbo
     orcid: 0000-0002-6641-0761
-    affiliation: "1, 2"
+    affiliation: "1,2"
   - name: Javier Sijen
-    affiliation: "1, 2"
+    affiliation: "1,2"
   - name: David Rosenberger
     orcid: 0000-0001-6620-6499
     affiliation: 6
@@ -39,7 +39,7 @@ authors:
     affiliation: 7
   - name: Vivek Sundaram
     orcid: 0000-0002-9986-8461
-    affiliation: "1, 2"
+    affiliation: "1,2"
   - name: Jakub Krajniak
     orcid: 0000-0001-9372-6975
     affiliation: 8
@@ -48,44 +48,38 @@ authors:
     affiliation: 9
   - name: Christoph Junghans^[corresponding author] # note this makes a footnote saying 'co-first author'
     orcid: 0000-0003-0925-1458
-    affiliation: 3
+    affiliation: 4
 affiliations:
   - name: Department of Mathematics and Computer Science, Eindhoven University of Technology, the Netherlands
     index: 1
   - name: Institute for Complex Molecular Systems, Eindhoven University of Technology, the Netherlands
     index: 2
-  - name: Los Alamos National Laboratory, Los Alamos, New Mexico, USA
-    index: 3
   - name: Netherlands eScience Center, the Netherlands
-    index: 4
+    index: 3
   - name: Forschungszentrum Jülich, Jülich, Germany
-    index: 5
+    index: 4
   - name: Freie Universität Berlin, Berlin, Germany 
-    index: 6
+    index: 5
   - name: Oak Ridge National Laboratory, Oak Ridge, TN, USA 
-    index: 7
+    index: 6
   - name: Katholieke Universiteit Leuven, Leuven, Belgium 
-    index: 8
+    index: 7
   - name: Technische Universität Darmstadt, Darmstadt, Germany 
+    index: 8
+  - name: Los Alamos National Laboratory, Los Alamos, New Mexico, USA
     index: 9
+  
 date: 10 May 2024
 bibliography: paper.bib
 
 ---
 
 # Summary
-Many physical phenomena in liquids and soft matter are multiscale by nature and can involve processes with quantum and classical degrees of freedom occurring over a vast range of length- and timescales. Examples range from structure formation processes of complex polymers or even polymer blends **(better example linked to classical coarse-graining?)** on the classical side to charge and energy transport and conversion processes involving explicit electronic and therefore quantum information. 
+Many physical phenomena in liquids and soft matter are multiscale by nature and can involve processes with quantum and classical degrees of freedom occurring over a vast range of length- and timescales. Examples range from structure formation processes of complex polymers or even polymer blends on the classical side to charge and energy transport and conversion processes involving explicit electronic and therefore quantum information. 
 
-The Versatile Object-Oriented Toolkit for Coarse-grained Applications (VOTCA) provides multiscale frameworks built on a comprehensive set of methods for the development of classical coarse-grained potentials (VOTCA-CSG) as well as state-of-the art excited state electronic structure methods based on density-functional and many-body Green's function theories, coupled in mixed quantum-classical models and used in kinetic network models (VOTCA-XTP). 
+The Versatile Object-Oriented Toolkit for Coarse-graining Applications (VOTCA) provides multiscale frameworks built on a comprehensive set of methods for the development of classical coarse-grained potentials (VOTCA-CSG) as well as state-of-the art excited state electronic structure methods based on density-functional and many-body Green's function theories, coupled in mixed quantum-classical models and used in kinetic network models (VOTCA-XTP). 
 
-### summarize some (technical) details here
-- initial release...
-- **C+P from JCP, probably too detailed and can go to Code Structure?** VOTCA–XTP is written in C++ and mostly adheres to the C++14 standard.78 It can be obtained on www.github.com/votca/xtp. We use the Git feature branch workflow combined with code review and continuous integration, which executes code formatting, static analyzers, debug and release builds, and the test-suite. We use CMake as the build system, which also resolves the inclusion of external dependencies. 82 Various boost packages83 are used for file system string operations. Doxygen is used to document the APIs of VOTCA–XTP and automatically deploys to http://doc.votca.org.
-VOTCA–XTP is designed as a library, which is linked to very thin executables, which can execute a variety of calculators by adding keywords on the command line. Virtual interfaces and factory patterns make the addition of new calculators simple. The same architecture is used for external DFT and MD codes, making VOTCA–XTP easily extensible. Lower-level data structures make use of template metaprogramming to support a variety of data types.
-- summary of recent CSG developments (added methods in CSG)
-- summary of features for XTP part (all new? GTO implementation of GW-BSE, QMMM modes, kinetic MC with finite lifetime, subsystem-embedding)
-- Additionally in last two releases we have done major code clean-up and update of the build systems, but most notable we went to a mono-repository workflow to the user's and developers' life easier.
-
+_Maybe the figure here_?
 
 # Statement of need
 
@@ -95,10 +89,10 @@ Since the last software publication in 2015 VOTCA-CSG was strengthened by adding
 Next to strengthening the coarse-graining functionality of VOTCA, another major development direction taken since 2015 is the addition of explicit quantum-mechanical modules aiming at the simulation of static and dynamic properties of electronically excited states in complex molecular environments using multiscale frameworks. Specifically, the VOTCA-XTP part provides an open-source implementation of many-body Green's functions methods (known as $GW$-BSE) with the capability of linking this quantum-mechanical description of a molecular system to a classical (microelectrostatic) environment model and to perform rate-based dynamic simulations with kinetic Monte-Carlo. Basic $GW$-BSE functionality in molecular settings has also more recently been supported in other packages, such as Turbomole [@turbomole], ADF [@ADF2001], PySCF [@pyscf], or MOLGW [@molgw], but these are either commercial or do not provide links to a multiscale framework for complex environments and dynamics.
 
 ## Coarse-Graining
-In the coarse-graining part of VOTCA, VOTCA-CSG, we made a lot of improvements to the IMC method and have added a new iterative approach the so-called iterative integral equation (IIE) method, which are both described in detail below and in reference therein.
+In the coarse-graining part of VOTCA, VOTCA-CSG, we made a lot of improvements to the inverse Monte Carlo (IMC) method and have added a new iterative approach the so-called iterative integral equation (IIE) method, which are both described in detail below and in reference therein.
 
-### IMC updates
-The inverse Monte-Carlo Method (IMC) introduced by Lyubartsev and Laaksonen in 1995 [@lyubartsev_calculation_1995] is a structure-based coarse graining method, whose goal it is to find an effective pair potential between particles, which reproduces the radial distribution function (RDF) of a reference system (ref) at the coarse grained (CG) resolution. IMC has been part of VOTCA since its first release. In the original implementation the pair potential was determined by iteratively solving a set of linear equations:
+### Inverse Monte Carlo updates
+The inverse Monte-Carlo Method introduced by Lyubartsev and Laaksonen in 1995 [@lyubartsev_calculation_1995] is a structure-based coarse graining method, whose goal it is to find an effective pair potential between particles, which reproduces the radial distribution function (RDF) of a reference system (ref) at the coarse grained (CG) resolution. IMC has been part of VOTCA since its first release. In the original implementation the pair potential was determined by iteratively solving a set of linear equations:
 \begin{equation}
 \label{solve_imc_orig}
 (A^TA)\Delta U_{ij} = A^T(g_{ij}^{n-1} - g_{ij}^{ref}),
@@ -110,7 +104,7 @@ A = \frac{\partial g_{ij}}{\partial U_{ij}},
 \end{equation}
 where $U_{ij}$ is the pair potential between particles i and j.
 
-Rosenberger et al. [@rosenberger_comparison_2016], among others [@toth_iterative_2003; @murtola_coarse-grained_2007; @lyubartsev_systematic_2010], demonstrated that the standard IMC method can suffer from numerical instabilities and/or slow convergence. Therefore, a Tikhonov regularization for IMC has been implemented in VOTCA. This regularization changes the linear equations according to [@rosenberger_comparison_2016]:
+Rosenberger _et al._ [@rosenberger_comparison_2016], among others [@toth_iterative_2003; @murtola_coarse-grained_2007; @lyubartsev_systematic_2010], demonstrated that the standard IMC method can suffer from numerical instabilities and/or slow convergence. Therefore, a Tikhonov regularization for IMC has been implemented in VOTCA. This regularization changes the linear equations according to [@rosenberger_comparison_2016]:
 \begin{equation}
 \label{solve_imc}
 (A^TA + \lambda I)\Delta U_{ij} = A^T(g_{ij}^{n-1} - g_{ij}^{ref}),
@@ -119,9 +113,9 @@ where $\lambda$ determines the strength of the regularization and $I$ is the ide
 One can perform a singular value decomposition of the Jacobian $A$ to determine an initial value for $\lambda$[@rosenberger_comparison_2016].
 As a rule of thumb $\lambda$ should at least be at the order of the smallest singular values squared.
 
-### IIE method
+### Iterative Integral Equation method
 
-The iterative integral equation (IIE) methods are similar to IMC in that they also aim at reconstructing the RDF of a fine-grained reference system with an effective pair potential.
+The iterative integral equation methods are similar to IMC in that they also aim at reconstructing the RDF of a fine-grained reference system with an effective pair potential.
 The main difference is in the construction of the Jacobian, which is approximated in IIE methods from integral equation theory.[@delbaryGeneralizedNewtonIteration2020]
 For a molecular fluid, where each molecule is mapped to a single bead, using the Ornstein-Zernicke equation and the hypernetted-chain closure, one arrives at the Jacobian inverse with the form of
 \begin{equation}\label{eq:dudg}
@@ -222,7 +216,7 @@ and $\eta=2$ ($\eta=0$) for singlet (triplet) excitations.
 Here, $K^\text{x}$ is the repulsive exchange interaction originating from the bare Coulomb term $v_\mathrm{C}$, while the direct interaction $K^\text{d}$ contains the attractive, but screened, interaction $W$ between electron and hole, causing the binding of the electron-hole pair. In Eq.\ref{equ:theory:Kd} it is assumed that the dynamic properties of $W(\omega)$ are negligible, and the computationally less demanding static approximation $\omega=0$ is employed. 
 
 
-### Quantum-Classical Embedding schemes
+### Quantum-Classical Embedding
 Polarization effects of an environment can have significant impact on electronic excitations. As polarization effects are long-ranged accounting for them requires the treatment of large systems which is infeasible with explicit quantum methods such as DFT-$GW$-BSE. Instead, the system is split into a small part with to electronically active subsystem to be treated at quantum (QM) level and a large environment part in which electrostatic and polarization effects are accounted for in classical models (MM). In VOTCA-XTP the QM/MM scheme employs distributed atomic multipole representations for molecules in the MM region, which allows treatment of both the effects of static electric fields and the polarization response as a self-consistent reaction field. Specifically, this classical MM energy for the system is evaluated as 
 \begin{equation}
   E_\text{MM} = \frac{1}{2}\sum_{\substack{A,B\\A\neq B}}\sum_{a\in A}\sum_{b\in B}\sum_{tu}{(Q_t^{a} + \Delta Q_t^{a}) T_{tu}^{ab} Q_u^{b}}, 
@@ -237,33 +231,27 @@ with $\alpha_{tt'}^{aa'}$ the isotropic atomic polarizability on each site. To a
 
 # Code Structure
 
-For the last couple of years, we have also focused on code harding nad the introduction of better software engineering practises.
-Original VOTCA was design as module in separte repositories, but as many other project, this turned out to be quite cumbersome hence we switched to a mono-repo.
-With recent performance improvements in the git tools, the benefits of a single repository by far out-weigh the downside of the very complex workflow of mulitple repositories.
-The module structure still exists in the source code.
+For the last couple of years, we have also focused on code hardening and the introduction of better software engineering practices. Original VOTCA was designed as modules in separate repositories, but as many other projects, this turned out to be quite cumbersome hence we switched to a mono-repo. With recent performance improvements in the git tools, the benefits of a single repository by far out-weigh the downside of the very complex workflow of multiple repositories. The module structure still exists in the source code.
 
-Additionally we have added continous integration testing through GitHub action for 50+ different compiler and operating system combinations. The also perform continous deployment to the GitHub Docker registry.
+Additionally, we have added continuous integration testing through GitHub action for 50+ different compiler and operating system combinations. The also perform continous deployment to the GitHub Docker registry.
 And releases get rolled into all major linux distributions, HomeBrew, Spack and FreeBSD.
 
 ## Code Modernization
 
-We did a lot of code refactoring and bumped the C++ standard to 17. We also modernized our usage of CMake and switched to a mostly target-base scheme.
-An attempt to port our particle structure on top of Cabana [@cabana] was made, due to incompatibilties between Kokkos [@kokkos] and Eigen, we will delay this effort.
+We did a lot of code refactoring and bumped the C++ standard to 17. We also modernized our usage of CMake and switched to a mostly target-base scheme. An attempt to port our particle structure on top of Cabana [@cabana] was made, due to incompatibilties between Kokkos [@kokkos] and Eigen, we will delay this effort.
 
 ## Updates in VOTCA-CSG
 
-TThe particle and molecule data structure were refactored and we add support of the H5MD format, which is described below in details.
+The particle and molecule data structure were refactored, and we add support of the H5MD format, which is described below in details.
  
 ### H5MD support
 
-The recent version of VOTCA supports the `H5MD` [@debuyl2014h5md] file format, which internally uses `HDF5` [@hdf5] storage. This is a very fast and scalable method for storing molecular trajectories, already implemented in simulation packages such as `LAMMPS`, `ESPResSo++`, and `ESPResSo`.
-VOTCA recognizes the trajectory file format by the extension. In the case of H5MD, it expects a `.h5` extension. Following the H5MD concepts, the particle trajectories are organized in the `particles` container.
-This container can handle multiple subsets of the studied system. Therefore, we must define `h5md_particle_group` in the XML topology file to declare which subset of particles to use.
-The reader handles both coordinates (if present), forces, and velocities.
+The recent version of VOTCA supports the `H5MD` [@debuyl2014h5md] file format, which internally uses `HDF5` [@hdf5] storage. This is a very fast and scalable method for storing molecular trajectories, already implemented in simulation packages such as `LAMMPS`, `ESPResSo++`, and `ESPResSo`. VOTCA recognizes the trajectory file format by the extension. In the case of H5MD, it expects a `.h5` extension. Following the H5MD concepts, the particle trajectories are organized in the `particles` container. This container can handle multiple subsets of the studied system. Therefore, we must define `h5md_particle_group` in the XML topology file to declare which subset of particles to use. The reader handles both coordinates (if present), forces, and velocities.
 
-## XTP
+## Design of VOTCA-XTP
 Data structures related to atomistic properties (topology, molecules, segments, fragments, atoms) in XTP are reused or build upon those of CSG. Linear algebra related structures and functionalities are handled by Eigen [@eigenweb] which can be accelerated by internally calling the Intel Math Kernel Library [@intelMKL]. Exchange-correlation functionals are provided by the Library of eXchange-Correlation (`LIBXC`) functionals [@Lehtola2018], while `libint` [@Libint2] and `libecpint` [@Shaw2017] are used for the evaluation of molecular integrals of many-body operators over Gaussian functions.
-VOTCA-XTP provides different functionalities in three types of _calculator_ classes: 
+
+VOTCA–XTP is designed as a library, which is linked to very thin executables. These executables provide a variety of calculators by adding keywords on the command line. Virtual interfaces and factory patterns make the addition of new calculators simple. The same architecture is used for external DFT and MD codes, making VOTCA–XTP easily extensible. Lower-level data structures make use of template metaprogramming to support a variety of data types. VOTCA-XTP provides different functionalities in three types of _calculator_ classes: 
 
 - a collection of tools that do not require information of a mapped MD trajectory, including a specific DFT-$GW$-BSE calculator in `tools` callable by `xtp_tools` 
 - analysis and not-high-throughput applications that require a mapped MD trajectory in `calculators` callable by `xtp_run`
@@ -273,7 +261,7 @@ In general, VOTCA-XTP uses shared-memory parallelization in the heavy calculatio
   
 ### PyXTP
 
-The PyXTP pyhon package distributed with VOTCA, contains python bindings to the main functionalities of VOTCA-XTP. These python bindings were created using pybind11 [@pybind11] and provide users with a dedicated Atomisic Simulation Environment (ASE) [@ase] calculator. The use of this calculator not only facilitates the adoption of VOTCA-XTP by non-experts users but they also allow to integrate VOTCA-XTP in the broader ASE ecosystem. 
+The PyXTP python package distributed with VOTCA, contains python bindings to the main functionalities of VOTCA-XTP. These python bindings were created using pybind11 [@pybind11] and provide users with a dedicated Atomistic Simulation Environment (ASE) [@ase] calculator. The use of this calculator not only facilitates the adoption of VOTCA-XTP by non-experts users, but they also allow integrating VOTCA-XTP in the broader ASE ecosystem. 
 
 The following snippet of code illustrate the use of PyXTP. This small code optimize the geometry of a CO molecule in the first excited singlet states. As seen in the code, the XTP calculator is used to compute the forces on the nuclei while the geometry optimization itself is driven by ASE functionalities. 
 
@@ -313,7 +301,8 @@ write('final.xyz', atoms)
 # Acknowledgements
 
 We acknowledge contributions from Brigitta Sipocz, Syrtis Major, and Semyeong
-Oh, and support from Kathryn Johnston during the genesis of this project.
+Oh, and support from Kathryn Johnston during the genesis of this project. 
+We acknowledge support by the Innovational Research Incentives Scheme Vidi of the Netherlands Organisation for Scientific Research (NWO) with project number 723.016.002. Funding is also provided by NWO and the Netherlands eScience Center for funding through project number 027.017.G15, within the Joint CSER and eScience program for Energy Research (JCER 2017).
 
 # References
 
