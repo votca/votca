@@ -20,6 +20,7 @@ Version 2024-dev
 -  cmake: update hdf5 detection for cmake hdf5 (#1126, #1127)
 -  scripts: use sed in posix way (#1128)
 -  add CI on FreeBSD (#1124)
+-  Fix Sphinx build (#1131)
 
 Version 2024 (released 22.01.24)
 ================================
