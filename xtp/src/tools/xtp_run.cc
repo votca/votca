@@ -43,12 +43,12 @@ class XtpRun final : public xtp::StateApplication {
 
   bool EvaluateFrame(votca::xtp::Topology& top) final;
   std::string CalculatorType() const { return "Calculator"; }
-  void CheckOptions() final{};
+  void CheckOptions() final {};
   std::vector<std::string> CalculatorNames() const {
     return xtp::Calculatorfactory().getKeys();
   }
 
-  void AddCommandLineOpt() final{};
+  void AddCommandLineOpt() final {};
 
  private:
   std::unique_ptr<xtp::QMCalculator> calc_ = nullptr;

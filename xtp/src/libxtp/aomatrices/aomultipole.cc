@@ -2079,7 +2079,7 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                                                shell_col.getCartesianNumFunc());
 
     }  // shell_col Gaussians
-  }    // shell_row Gaussians
+  }  // shell_row Gaussians
 
   matrix = AOTransform::tform(shell_row.getL(), shell_col.getL(), cartesian);
 }

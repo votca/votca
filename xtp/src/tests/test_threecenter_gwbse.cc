@@ -28,7 +28,7 @@
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/threecenter.h"
-#include <libint2/initialize.h>
+#include "xtp_libint2.h"
 using namespace votca::xtp;
 using namespace std;
 

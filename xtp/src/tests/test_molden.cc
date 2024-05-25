@@ -13,7 +13,7 @@
  * limitations under the License.
  *
  */
-#include <libint2/initialize.h>
+#include "xtp_libint2.h"
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE moldenreader_test

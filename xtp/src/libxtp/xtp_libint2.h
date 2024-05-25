@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2024 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,23 +17,15 @@
  *
  */
 
-#include "votca/xtp/qmcalculator.h"
-#include "votca/xtp/eigen.h"
-
-#include "xtp_libint2.h"
-
-namespace votca {
-namespace xtp {
-bool QMCalculator::EvaluateFrame(Topology& top) {
-  libint2::initialize();
-  OPENMP::setMaxThreads(nThreads_);
-  std::cout << " Using " << OPENMP::getMaxThreads() << " threads" << std::flush;
-  bool success = Evaluate(top);
-  libint2::finalize();
-  return success;
-}
-
-void QMCalculator::Initialize(const tools::Property& opt) { ParseOptions(opt); }
-
-}  // namespace xtp
-}  // namespace votca
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
+#include <libint2/initialize.h>
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

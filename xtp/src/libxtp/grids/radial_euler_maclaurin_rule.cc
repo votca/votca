@@ -94,7 +94,7 @@ void EulerMaclaurinGrid::FillElementRangeMap(const AOBasis& aobasis,
       }  // shells
       element_ranges_[name] = this_atom;
     }  // new element
-  }    // atoms
+  }  // atoms
 }
 
 void EulerMaclaurinGrid::RefineElementRangeMap(const AOBasis& aobasis,

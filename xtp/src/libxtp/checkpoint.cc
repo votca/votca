@@ -70,6 +70,11 @@ CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
     hid_t fcpl_id = H5Pcreate(H5P_FILE_CREATE);
     H5::FileCreatPropList fcpList(fcpl_id);
     switch (accessLevel_) {
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
       case CheckpointAccessLevel::READ:
         fileHandle_ = H5::H5File(fileName_, H5F_ACC_RDONLY);
         break;
@@ -82,6 +87,10 @@ CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
         } else {
           fileHandle_ = H5::H5File(fileName_, H5F_ACC_RDWR, fcpList);
         }
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
     }
 
   } catch (H5::Exception&) {

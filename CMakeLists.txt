@@ -186,7 +186,7 @@ add_subdirectory(csg)
 add_subdirectory(csg-tutorials)
 if(BUILD_XTP)
   add_subdirectory(xtp)
-  add_subdirectory(xtp-tutorials)
+  #  add_subdirectory(xtp-tutorials)
 endif()
 
 add_subdirectory(share/sphinx)

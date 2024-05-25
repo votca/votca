@@ -98,16 +98,6 @@ if [[ ${INPUT_DISTRO} = "fedora:intel" ]]; then
   cmake_args+=( -DREQUIRE_MKL=ON )
 fi
 
-if [[ ${INPUT_DISTRO} = ubuntu:* && ${INPUT_TOOLCHAIN} = "gnu" ]]; then
-  # workaround for votca/votca#891, hdf5 warning, no-deprecated-copy  
-  # workaround for votca/votca#1080, libint2 warning, misleading-indentation
-  cmake_args+=( "-DVOTCA_EXTRA_WARNING_FLAGS=\"-Wno-deprecated-copy -Wno-misleading-indentation -Wno-maybe-uninitialized -Wno-array-bounds -Wno-stringop-overflow\"" )
-fi
-if [[ ( ${INPUT_DISTRO} = "opensuse:latest" || ${INPUT_DISTRO} = "ubuntu:devel" || ${INPUT_DISTRO} = "fedora:rawhide" ) && ${INPUT_TOOLCHAIN} = "clang" ]]; then
-  # workaround for votca/votca#1119, libint2 warning on clang, deprecated-declarations
-  cmake_args+=( "-DVOTCA_EXTRA_WARNING_FLAGS=\"-Wno-deprecated-declarations\"" )
-fi
-
 if [[ ${INPUT_CODE_ANALYZER} = "codeql" ]]; then
   # CodeQL does not work with valgrind
   cmake_args+=( -DVALGRIND_EXECUTABLE=FALSE )

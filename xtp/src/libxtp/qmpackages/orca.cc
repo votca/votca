@@ -141,12 +141,9 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
     const ECPElement& element = ecp.getElement(element_name);
 
     inp_file << "\n"
-             << "NewECP"
-             << " " << element_name << endl;
-    inp_file << "N_core"
-             << " " << element.getNcore() << endl;
-    inp_file << "lmax"
-             << " " << EnumToString(element.getLmax()) << endl;
+             << "NewECP" << " " << element_name << endl;
+    inp_file << "N_core" << " " << element.getNcore() << endl;
+    inp_file << "lmax" << " " << EnumToString(element.getLmax()) << endl;
     // For Orca the order doesn't matter but let's write it in ascending order
     // write remaining shells in ascending order s,p,d...
     for (Index i = 0; i <= Index(element.getLmax()); i++) {
@@ -164,9 +161,7 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
         }
       }
     }
-    inp_file << "end\n "
-             << "\n"
-             << endl;
+    inp_file << "end\n " << "\n" << endl;
   }
   return;
 }
@@ -236,35 +231,26 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   WriteCoordinates(inp_file, qmatoms);
   // add parallelization info
   inp_file << "%pal\n"
-           << "nprocs " << threads << "\nend"
-           << "\n"
+           << "nprocs " << threads << "\nend" << "\n"
            << endl;
   // basis set info
   std::string el_file_name = run_dir_ + "/" + "system.bas";
   WriteBasisset(qmatoms, basisset_name_, el_file_name);
   inp_file << "%basis\n";
-  inp_file << "GTOName"
-           << " "
-           << "="
-           << "\"system.bas\";" << endl;
+  inp_file << "GTOName" << " " << "=" << "\"system.bas\";" << endl;
   if (options_.exists("auxbasisset")) {
     std::string aux_file_name = run_dir_ + "/" + "system.aux";
     std::string auxbasisset_name =
         options_.get("auxbasisset").as<std::string>();
     WriteBasisset(qmatoms, auxbasisset_name, aux_file_name);
-    inp_file << "GTOAuxName"
-             << " "
-             << "="
-             << "\"system.aux\";" << endl;
+    inp_file << "GTOAuxName" << " " << "=" << "\"system.aux\";" << endl;
   }  // write_auxbasis set
 
   // ECPs
   if (options_.exists("ecp")) {
     WriteECP(inp_file, qmatoms);
   }
-  inp_file << "end\n "
-           << "\n"
-           << endl;  // This end is for the basis set block
+  inp_file << "end\n " << "\n" << endl;  // This end is for the basis set block
   if (!externalsites_.empty()) {
     WriteBackgroundCharges();
   }
