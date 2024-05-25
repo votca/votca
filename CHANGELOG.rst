@@ -13,7 +13,7 @@ Version 2024-dev
 -  CI: Switch Intel build to Ubuntu (#1111)
 -  CI: update GitHub actions (#1112)
 -  Fix Python print in hoomd tutorial (#1118)
--  CI: fix rawhide, ubuntu and opensuse warnings (#1119, #1122)
+-  CI: fix warnings (#1119, #1122, #1130)
 -  votca_help2doc: fix python warnings (#1121)
 -  Fix build with boost-1.85.0 (#1123)
 -  make some interpreters explicit  (#1125, #1129)
