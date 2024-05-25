@@ -139,7 +139,7 @@ class BeadStructure {
   };
   /// If extra initialization is needed by a child class when a bead is added
   /// this method can be overridden.
-  virtual void UpdateOnBeadAddition_(){};
+  virtual void UpdateOnBeadAddition_() {};
   void InitializeGraph_();
   void CalculateStructure_();
   tools::GraphNode BeadInfoToGraphNode_(const BeadInfo &);

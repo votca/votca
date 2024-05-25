@@ -159,7 +159,7 @@ class DavidsonSolver {
     Eigen::MatrixXd T;   // V.T * A * V
     Index search_space() const {
       return V.cols();
-    };                       // size of the projection i.e. number of cols in V
+    };  // size of the projection i.e. number of cols in V
     Index size_update;       // size update ...
     ArrayXb root_converged;  // keep track of which root have onverged
 

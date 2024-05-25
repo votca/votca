@@ -189,8 +189,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
   ofstream fl;
   fl.open(fname);
 
-  fl << "From VOTCA with love"
-     << " # check/amend this file if needed!\n";
+  fl << "From VOTCA with love" << " # check/amend this file if needed!\n";
   fl << "units kJ\n";
   fl << "molecular types " << MolecularTypes.size() << endl;
 
@@ -286,8 +285,7 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, const Molecule &cg) {
     for (votca::Index i = 0; i < nb; ++i) {
       sout << ic->getBeadId(i) + 1 << " ";
     }
-    sout << "   1.00000  0.00000"
-         << " # ";
+    sout << "   1.00000  0.00000" << " # ";
     sout << to_string(ic->getMolecule() + 1);
     sout << ":" + ic->getGroup();
     sout << ":" + to_string(ic->getIndex() + 1) << endl;

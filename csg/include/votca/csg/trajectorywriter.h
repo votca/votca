@@ -36,7 +36,7 @@ class TrajectoryWriter {
   virtual ~TrajectoryWriter() = default;
 
   virtual void Open(std::string, bool = false) {}
-  virtual void Close(){};
+  virtual void Close() {};
 
   virtual void Write(Topology *) {}
 

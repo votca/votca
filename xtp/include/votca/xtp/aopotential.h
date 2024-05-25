@@ -56,7 +56,7 @@ class AOECP : public AOPotential<double> {
 
  protected:
   void FillBlock(Eigen::Block<Eigen::MatrixXd>&, const AOShell&,
-                 const AOShell&) const final{};
+                 const AOShell&) const final {};
 
  private:
 };

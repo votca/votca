@@ -13,8 +13,8 @@
  * limitations under the License.
  *
  */
-#include <iomanip>
 #include "xtp_libint2.h"
+#include <iomanip>
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE aobasis_test
