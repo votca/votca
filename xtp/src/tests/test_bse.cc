@@ -27,7 +27,7 @@
 #include "votca/xtp/bse.h"
 #include "votca/xtp/convergenceacc.h"
 #include "votca/xtp/qmfragment.h"
-#include <libint2/initialize.h>
+#include "xtp_libint2.h"
 #include <votca/tools/eigenio_matrixmarket.h>
 using namespace votca::xtp;
 using namespace std;

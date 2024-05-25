@@ -25,7 +25,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/filterfactory.h"
-#include <libint2/initialize.h>
+#include "xtp_libint2.h"
 
 using namespace votca::xtp;
 

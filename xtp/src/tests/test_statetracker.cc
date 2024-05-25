@@ -31,7 +31,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/statetracker.h"
-#include <libint2/initialize.h>
+#include "xtp_libint2.h"
 using namespace votca::xtp;
 using namespace std;
 BOOST_AUTO_TEST_SUITE(statetracker_test)
