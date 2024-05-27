@@ -28,7 +28,7 @@
 #include <votca/tools/eigenio_matrixmarket.h>
 
 // Local VOTCA includes
-#include <libint2/initialize.h>
+#include "xtp_libint2.h"
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/sigmafactory.h>

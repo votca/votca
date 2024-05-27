@@ -255,8 +255,7 @@ void OptionsHandler::RecursivelyCheckOptions(const Property &p) const {
         } else {
           oss << " should be one of the following values: ";
           for (const std::string &c : choices) {
-            oss << "\"" << c << "\""
-                << " ";
+            oss << "\"" << c << "\"" << " ";
           }
         }
         oss << " But \"" << prop.value()

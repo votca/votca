@@ -39,7 +39,7 @@ class TrajectoryReader {
   /// open a trejectory file
   virtual bool Open(const std::string &file) = 0;
 
-  virtual void Close(){};
+  virtual void Close() {};
 
   /// read in the first frame
   virtual bool FirstFrame(Topology &top) = 0;

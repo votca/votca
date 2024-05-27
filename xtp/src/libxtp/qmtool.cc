@@ -19,7 +19,8 @@
 
 #include "votca/xtp/qmtool.h"
 #include "votca/xtp/eigen.h"
-#include <libint2/initialize.h>
+
+#include "xtp_libint2.h"
 
 namespace votca {
 namespace xtp {

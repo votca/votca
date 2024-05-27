@@ -278,7 +278,7 @@ void Vxc_Grid::GridSetup(const std::string& type, const QMMolecule& atoms,
                                      i_rad, i_sph);
         atomgrid.push_back(gridpoint);
       }  // spherical gridpoints
-    }    // radial gridpoint
+    }  // radial gridpoint
 
     SSWpartitionAtom(atoms, atomgrid, i_atom, Rij);
     // now remove points from the grid with negligible weights

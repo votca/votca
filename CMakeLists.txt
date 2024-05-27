@@ -9,6 +9,11 @@ if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
 endif (NOT ${SOVERSION} MATCHES "^[0-9]+$")
 set(PROJECT_CONTACT "https://github.com/votca/votca/issues")
 
+# Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
 

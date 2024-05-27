@@ -22,7 +22,8 @@
 // Third party includes
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
-#include <libint2/initialize.h>
+
+#include "xtp_libint2.h"
 
 // Local VOTCA includes
 #include "votca/xtp/parallelxjobcalc.h"

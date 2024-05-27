@@ -16,10 +16,10 @@ concurrency:
 jobs:
   CI:
     # Ubuntu devel, Fedora Rawhide and some other in the matrix are allowed to fail, so continue with other builds
-    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'opensuse:latest' || matrix.distro == 'fedora:rawhide' || matrix.distro == 'fedora:intel' || matrix.continue-on-error == true }}
+    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'opensuse:latest' || matrix.distro == 'fedora:rawhide' || matrix.distro == 'ubuntu:intel' || matrix.continue-on-error == true }}
     strategy:
       matrix:
-        distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling', 'fedora:intel']
+        distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling', 'ubuntu:intel']
         toolchain: [gnu, clang]
         cmake_build_type: [Release, Debug]
         minimal: [false]
@@ -47,10 +47,10 @@ jobs:
             toolchain: gnu
             cmake_build_type: Release
             own_gmx: true
-          - distro: 'fedora:intel'
+          - distro: 'ubuntu:intel'
             toolchain: intel-oneapi
             cmake_build_type: Release
-          - distro: 'fedora:intel'
+          - distro: 'ubuntu:intel'
             toolchain: intel-oneapi
             cmake_build_type: Debug
           - distro: 'fedora:gmx2019'
@@ -116,7 +116,7 @@ jobs:
       options: --security-opt seccomp=unconfined
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Run Votca Setup
         id: setup #use this id below to use outputs
         uses: ./.github/actions/setup
@@ -130,7 +130,7 @@ jobs:
           cmake_build_type: ${{ matrix.cmake_build_type }}
           ctest_args: ${{ matrix.ctest_args }}
           cmake_args: ${{ matrix.cmake_args }}
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/ccache
           key: ${{ steps.setup.outputs.cache_key }}
@@ -164,14 +164,14 @@ jobs:
         run: cmake --build builddir --target format && git diff --exit-code
       - name: Checkout Doxygen repo
         if: ${{ matrix.deploy }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: votca/doxygen
           path: builddir/devdoc
           token: ${{ secrets.VOTCA_BOT_TOKEN || github.token }}
       - name: Checkout Website repo
         if: ${{ matrix.deploy }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: votca/votca.github.io
           path: builddir/userdoc

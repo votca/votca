@@ -164,8 +164,8 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   Index levelsB = Range_orbB.second;
 
   XTP_LOG(Log::error, *pLog_)
-      << "Levels:Basis A[" << levelsA << ":" << basisA << "]"
-      << " B[" << levelsB << ":" << basisB << "]" << flush;
+      << "Levels:Basis A[" << levelsA << ":" << basisA << "]" << " B["
+      << levelsB << ":" << basisB << "]" << flush;
 
   if ((levelsA == 0) || (levelsB == 0)) {
     throw std::runtime_error(
