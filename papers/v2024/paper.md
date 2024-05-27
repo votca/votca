@@ -19,7 +19,7 @@ authors:
     affiliation: 3
   - name: Rene Halver
     orcid: 0000-0002-4895-3762
-    affiliation: 5
+    affiliation: 4
   - name: Pranav Madhikar
     orcid: 0000-0003-3658-3685
     affiliation: "1,2"
@@ -33,22 +33,22 @@ authors:
     affiliation: "1,2"
   - name: David Rosenberger
     orcid: 0000-0001-6620-6499
-    affiliation: 6
+    affiliation: 5
   - name: Joshua S. Brown
     orcid: 0000-0003-1227-6429
-    affiliation: 7
+    affiliation: 6
   - name: Vivek Sundaram
     orcid: 0000-0002-9986-8461
     affiliation: "1,2"
   - name: Jakub Krajniak
     orcid: 0000-0001-9372-6975
-    affiliation: 8
+    affiliation: 7
   - name: Marvin Bernhardt
     orcid: 0000-0001-6520-5208
-    affiliation: 9
+    affiliation: 8
   - name: Christoph Junghans^[corresponding author] # note this makes a footnote saying 'co-first author'
     orcid: 0000-0003-0925-1458
-    affiliation: 4
+    affiliation: 9
 affiliations:
   - name: Department of Mathematics and Computer Science, Eindhoven University of Technology, the Netherlands
     index: 1
