@@ -79,7 +79,7 @@ Many physical phenomena in liquids and soft matter are multiscale by nature and 
 
 The Versatile Object-Oriented Toolkit for Coarse-graining Applications (VOTCA) provides multiscale frameworks built on a comprehensive set of methods for the development of classical coarse-grained potentials (VOTCA-CSG) as well as state-of-the art excited state electronic structure methods based on density-functional and many-body Green's function theories, coupled in mixed quantum-classical models and used in kinetic network models (VOTCA-XTP). 
 
-_Maybe the figure here_?
+![Overview of the differnt VOTCA modules and external interfaces. The trajectory reader of VOTCA-CSG in the dashed line box are reused by VOTCA-XTP.\label{fig:VOTCA_graph}](VOTCA_graph.pdf)
 
 # Statement of need
 
