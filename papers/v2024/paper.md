@@ -62,7 +62,7 @@ affiliations:
     index: 5
   - name: Oak Ridge National Laboratory, Oak Ridge, TN, USA 
     index: 6
-  - name: Katholieke Universiteit Leuven, Leuven, Belgium 
+  - name: Independent researcher, Poznań, Poland 
     index: 7
   - name: Technische Universität Darmstadt, Darmstadt, Germany 
     index: 8
