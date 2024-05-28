@@ -63,15 +63,15 @@ where :math:`\mathbf{r}_\textrm{e}` (:math:`\mathbf{r}_\textrm{h}`) is for the e
                                     \underline{\mathbf{H}}^{\text{res}}&\underline{\mathbf{K}} \\
                                     -\underline{\mathbf{K}} & -\underline{\mathbf{H}}^{\text{res}}
                                    \end{pmatrix}
- \begin{pmatrix}
- \mathbf{A}^S\\ \mathbf{B}^S\
- \end{pmatrix}
-=\Omega_S
-\begin{pmatrix}
- \mathbf{A}^S\\ \mathbf{B}^S\
- \end{pmatrix}.
+                                   \begin{pmatrix}
+                                   \mathbf{A}^S\\ \mathbf{B}^S
+                                   \end{pmatrix}
+                                   =\Omega_S
+                                   \begin{pmatrix}
+                                   \mathbf{A}^S\\ \mathbf{B}^S 
+                                   \\end{pmatrix}.
 
-Specifiaclly, the matrix elements of the blocks :math:`\underline{\mathbf{H}}^{\text{res}}` and :math:`\underline{\mathbf{K}}` are calculated as
+Specifically, the matrix elements of the blocks :math:`\underline{\mathbf{H}}^{\text{res}}` and :math:`\underline{\mathbf{K}}` are calculated as
 
 .. math::
     :label: equ:BSEelements
