@@ -29,3 +29,8 @@ extensions = [
     'sphinx.ext.mathjax', # Write equations
     'sphinx.ext.githubpages' # Create content to publish in githubpages
 ]
+
+numfig = True
+math_numfig = True
+numfig_secnum_depth = 2
+math_eqref_format = "Eq.{number}"
