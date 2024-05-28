@@ -44,7 +44,6 @@ where :math:`W` denotes the dynamically screened Coulomb interaction. Assuming t
 
     \varepsilon_n^\textrm{QP}= \varepsilon_n^\textrm{KS} + \Delta \varepsilon_n^{GW} = \varepsilon_n^\textrm{KS} + \left\langle\phi^\textrm{KS}_n\left\vert \Sigma(\varepsilon_n^\textrm{QP})-V_\text{xc} \right\vert\phi^\textrm{KS}_n\right\rangle .
 
-
 As the correction :math:`\Delta \varepsilon_n^{GW}` itself depends on :math:`\varepsilon_n^\textrm{QP}`, Eq.:eq:`equ:theory:gw_sc` needs to be solved self-consistently.
 
 Neutral excitations with a conserved number of electrons can be obtained from the Bethe-Salpeter Equation (BSE) by expressing coupled electron-hole amplitudes of excitation :math:`S` in a product basis of single-particle orbitals, i.e., 
