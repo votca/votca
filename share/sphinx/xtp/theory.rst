@@ -69,7 +69,7 @@ where :math:`\mathbf{r}_\textrm{e}` (:math:`\mathbf{r}_\textrm{h}`) is for the e
                                    =\Omega_S
                                    \begin{pmatrix}
                                    \mathbf{A}^S\\ \mathbf{B}^S 
-                                   \\end{pmatrix}.
+                                   \end{pmatrix}.
 
 Specifically, the matrix elements of the blocks :math:`\underline{\mathbf{H}}^{\text{res}}` and :math:`\underline{\mathbf{K}}` are calculated as
 
