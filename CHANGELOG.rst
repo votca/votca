@@ -21,6 +21,7 @@ Version 2024-dev
 -  scripts: use sed in posix way (#1128)
 -  add CI on FreeBSD (#1124)
 -  Fix Sphinx build (#1131)
+-  add CONTRIBUTING.md (#1133)
 -  Added v2034 JOSS paper and link to older pubs (#1132)
 
 Version 2024 (released 22.01.24)
