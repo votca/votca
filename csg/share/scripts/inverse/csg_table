@@ -129,7 +129,7 @@ update imc_single update_imc_single.sh
 optimizer prepare_state optimizer_prepare_state.sh
 optimizer parameters_to_potential optimizer_parameters_to_potential.sh
 optimizer state_to_potentials optimizer_state_to_potentials.sh
-optimizer state_to_mapping  optimizer_state_to_mapping.sh
+optimizer state_to_mapping optimizer_state_to_mapping.sh
 update optimizer update_optimizer.sh
 update optimizer_single update_optimizer_single.sh
 

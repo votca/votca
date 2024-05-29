@@ -21,6 +21,8 @@ Version 2024-dev
 -  scripts: use sed in posix way (#1128)
 -  add CI on FreeBSD (#1124)
 -  Fix Sphinx build (#1131)
+-  add CONTRIBUTING.md (#1133)
+-  csg_table fix (#1134)
 
 Version 2024 (released 22.01.24)
 ================================
