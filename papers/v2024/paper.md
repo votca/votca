@@ -196,10 +196,11 @@ where $\mathbf{r}_\textrm{e}$ ($\mathbf{r}_\textrm{h}$) is for the electron (hol
 =\Omega_S
 \begin{pmatrix}
  \mathbf{A}^S\\ \mathbf{B}^S\
- \end{pmatrix}.
+ \end{pmatrix} .
  \label{equ:theory:bseeigenvalue}
 \end{equation}
-Specifiaclly, the matrix elements of the blocks $\underline{\mathbf{H}}^{\text{res}}$ and $\underline{\mathbf{K}}$ are calculated as
+
+Specifically, the matrix elements of the blocks $\underline{\mathbf{H}}^{\text{res}}$ and $\underline{\mathbf{K}}$ are calculated as
 \begin{align}
  H^{\text{res}}_{vc,v'c'}&=D_{vc,v'c'}+\eta K^\mathrm{x}_{vc,v'c'}+K^\mathrm{d}_{vc,v'c'}\label{equ:theory:bseblockH}\\
  K_{cv,v'c'}&=\eta K^\mathrm{x}_{cv,v'c'}+K^\mathrm{d}_{cv,v'c'}\, ,\label{equ:theory:bseblockK}
