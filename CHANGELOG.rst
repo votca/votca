@@ -22,6 +22,7 @@ Version 2024-dev
 -  add CI on FreeBSD (#1124)
 -  Fix Sphinx build (#1131)
 -  add CONTRIBUTING.md (#1133)
+-  csg_table fix (#1134)
 
 Version 2024 (released 22.01.24)
 ================================
