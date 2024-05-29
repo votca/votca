@@ -185,20 +185,20 @@ Neutral excitations with a conserved number of electrons can be obtained from th
   \label{equ:bsewf}
 \end{equation}
 where $\mathbf{r}_\textrm{e}$ ($\mathbf{r}_\textrm{h}$) is for the electron (hole) coordinate and $A_{vc}$ ($B_{vc})$ are the expansion coefficients of the excited state wave function in terms of resonant (anti-resonant) transitions between occupied $v$ and unoccupied $c$ states, respectively. In this basis, the BSE turns into an effective two-particle Hamiltonian problem of the form
-\begin{equation}
+$$
 \begin{pmatrix}
-                                    \underline{\mathbf{H}}^{\text{res}}&\underline{\mathbf{K}} \\
-                                    -\underline{\mathbf{K}} & -\underline{\mathbf{H}}^{\text{res}}
-                                   \end{pmatrix}
+  \underline{\mathbf{H}}^{\text{res}}&\underline{\mathbf{K}} \\
+  -\underline{\mathbf{K}} & -\underline{\mathbf{H}}^{\text{res}}
+ \end{pmatrix}
  \begin{pmatrix}
- \mathbf{A}^S\\ \mathbf{B}^S\
+ \mathbf{A}^S\\ \mathbf{B}^S
  \end{pmatrix}
 =\Omega_S
 \begin{pmatrix}
- \mathbf{A}^S\\ \mathbf{B}^S\
- \end{pmatrix} .
- \label{equ:theory:bseeigenvalue}
-\end{equation}
+ \mathbf{A}^S\\ \mathbf{B}^S
+\end{pmatrix}
+\label{equ:theory:bseeigenvalue} .
+$$
 
 Specifically, the matrix elements of the blocks $\underline{\mathbf{H}}^{\text{res}}$ and $\underline{\mathbf{K}}$ are calculated as
 \begin{align}
