@@ -1,5 +1,5 @@
 project = 'VOTCA'
-copyright = '2020, VOTCA Development Team'
+copyright = '2024, VOTCA Development Team'
 author = 'VOTCA Development Team'
 release = '@PROJECT_VERSION@'
 
@@ -29,3 +29,14 @@ extensions = [
     'sphinx.ext.mathjax', # Write equations
     'sphinx.ext.githubpages' # Create content to publish in githubpages
 ]
+
+numfig = True
+math_numfig = True
+math_eqref_format = "Eq.{number}"
+numfig_secnum_depth: 1
+math_number_all: True
+
+def setup(app):
+    app.add_css_file('css/custom.css')
+
+
