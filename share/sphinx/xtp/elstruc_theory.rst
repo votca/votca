@@ -1,5 +1,5 @@
-Theory and Background
-#####################
+Electronic Structure Theories
+#############################
 
 Density-Functional Theory 
 *************************
@@ -95,11 +95,5 @@ with
 
 and :math:`\eta=2` (:math:`\eta=0`) for singlet (triplet) excitations.
 Here, :math:`K^\text{x}` is the repulsive exchange interaction originating from the bare Coulomb term :math:`v_\mathrm{C}`, while the direct interaction :math:`K^\text{d}` contains the attractive, but screened, interaction :math:`W` between electron and hole, causing the binding of the electron-hole pair. In :eq:`equ:theory:Kd` it is assumed that the dynamic properties of :math:`W(\omega)` are negligible, and the computationally less demanding static approximation :math:`\omega=0` is employed. 
-
-
-
-
-.. Hopping transport
-.. *****************
 
 

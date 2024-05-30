@@ -13,7 +13,8 @@ software and manual versions match.
    :numbered:
 
    xtp_introduction
-   theory
+   elstruc_theory
+   transfer_theory
    pyxtp
    workflows_and_calculators
    reference
