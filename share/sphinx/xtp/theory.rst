@@ -23,7 +23,7 @@ Using the ground-state reference, many-body Green's functions theory with the :m
 
     \left\{ -\frac{\hbar^2}{2m}\nabla^2 + V_\textrm{ext}(\mathbf{r}) + V_\textrm{H}(\mathbf{r})\right\}\phi_n^\textrm{QP}(\mathbf{r}) + \int{\Sigma(\mathbf{r},\mathbf{r}',\varepsilon_n^\textrm{QP})\phi_n^\textrm{QP}(\mathbf{r}')d\mathbf{r}'} = \varepsilon_n^\textrm{QP} \phi_n^\textrm{QP}(\mathbf{r}) .
 
-In place of the exchange-correlation potential in Eq.:eq:`equ:KS`, the energy-dependent self-energy operator :math:`\Sigma(\mathbf{r},\mathbf{r}',E)` occurs in the QP equations. This operator is evaluated using the one-body Green's function in quasi-particle approximation
+In place of the exchange-correlation potential in :eq:`equ:KS`, the energy-dependent self-energy operator :math:`\Sigma(\mathbf{r},\mathbf{r}',E)` occurs in the QP equations. This operator is evaluated using the one-body Green's function in quasi-particle approximation
 
 .. math::
     :label: equ:Green
@@ -44,7 +44,7 @@ where :math:`W` denotes the dynamically screened Coulomb interaction. Assuming t
 
     \varepsilon_n^\textrm{QP}= \varepsilon_n^\textrm{KS} + \Delta \varepsilon_n^{GW} = \varepsilon_n^\textrm{KS} + \left\langle\phi^\textrm{KS}_n\left\vert \Sigma(\varepsilon_n^\textrm{QP})-V_\text{xc} \right\vert\phi^\textrm{KS}_n\right\rangle .
 
-As the correction :math:`\Delta \varepsilon_n^{GW}` itself depends on :math:`\varepsilon_n^\textrm{QP}`, Eq.:eq:`equ:theory:gw_sc` needs to be solved self-consistently.
+As the correction :math:`\Delta \varepsilon_n^{GW}` itself depends on :math:`\varepsilon_n^\textrm{QP}`, :eq:`equ:theory:gw_sc` needs to be solved self-consistently.
 
 Neutral excitations with a conserved number of electrons can be obtained from the Bethe-Salpeter Equation (BSE) by expressing coupled electron-hole amplitudes of excitation :math:`S` in a product basis of single-particle orbitals, i.e., 
 
@@ -94,12 +94,12 @@ with
     \end{align}
 
 and :math:`\eta=2` (:math:`\eta=0`) for singlet (triplet) excitations.
-Here, :math:`K^\text{x}` is the repulsive exchange interaction originating from the bare Coulomb term :math:`v_\mathrm{C}`, while the direct interaction :math:`K^\text{d}` contains the attractive, but screened, interaction :math:`W` between electron and hole, causing the binding of the electron-hole pair. In Eq.:eq:`equ:theory:Kd` it is assumed that the dynamic properties of :math:`W(\omega)` are negligible, and the computationally less demanding static approximation :math:`\omega=0` is employed. 
+Here, :math:`K^\text{x}` is the repulsive exchange interaction originating from the bare Coulomb term :math:`v_\mathrm{C}`, while the direct interaction :math:`K^\text{d}` contains the attractive, but screened, interaction :math:`W` between electron and hole, causing the binding of the electron-hole pair. In :eq:`equ:theory:Kd` it is assumed that the dynamic properties of :math:`W(\omega)` are negligible, and the computationally less demanding static approximation :math:`\omega=0` is employed. 
 
 
 
 
-Hopping transport
-*****************
+.. Hopping transport
+.. *****************
 
 

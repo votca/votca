@@ -10,6 +10,8 @@ software and manual versions match.
 
 
 .. toctree::
+   :numbered:
+
    xtp_introduction
    theory
    pyxtp
