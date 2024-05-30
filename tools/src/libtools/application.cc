@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2024 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,8 @@ void Application::ShowHelpText(std::ostream &out) {
   out << "========   VOTCA (http://www.votca.org)   ========\n";
   out << "==================================================\n\n";
 
-  out << "please submit bugs to " TOOLS_BUGREPORT "\n\n";
+  out << "please sread and cite: "PROJECT_CITATION "\n";
+  out << "and submit bugs to " PROJECT_BUGREPORT "\n\n";
   out << ProgramName();
   if (VersionString() != "") {
     out << ", version " << VersionString();
