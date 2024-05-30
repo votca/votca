@@ -23,6 +23,7 @@ Version 2024-dev
 -  Fix Sphinx build (#1131)
 -  add CONTRIBUTING.md (#1133)
 -  csg_table fix (#1134)
+-  DFT and GW-BSE theory section in manual (#1135)
 
 Version 2024 (released 22.01.24)
 ================================
