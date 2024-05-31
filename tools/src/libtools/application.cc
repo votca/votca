@@ -42,7 +42,7 @@ void Application::ShowHelpText(std::ostream &out) {
   out << "========   VOTCA (http://www.votca.org)   ========\n";
   out << "==================================================\n\n";
 
-  out << "please sread and cite: "PROJECT_CITATION "\n";
+  out << "please sread and cite: " PROJECT_CITATION "\n";
   out << "and submit bugs to " PROJECT_BUGREPORT "\n\n";
   out << ProgramName();
   if (VersionString() != "") {
