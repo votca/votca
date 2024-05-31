@@ -44,7 +44,7 @@ void HelpTextHeader(const std::string &tool_name) {
             << "========   VOTCA (http://www.votca.org)   ========\n"
             << "==================================================\n\n"
             << "please read and cite: " PROJECT_CITATION "\n"
-            << "please submit bugs to " PACKAGE_BUGREPORT "\n\n"
+            << "please submit bugs to " PROJECT_BUGREPORT "\n\n"
             << tool_name << ", version " << votca::tools::ToolsVersionStr()
 #ifdef GMX_DOUBLE
             << "\ngromacs, " << gmx_version()

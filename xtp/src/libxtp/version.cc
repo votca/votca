@@ -36,7 +36,7 @@ void HelpTextHeader(const std::string &tool_name) {
             << "========   VOTCA (http://www.votca.org)   ========\n"
             << "==================================================\n\n"
             << "please read and cite: " PROJECT_CITATION "\n"
-            << "and submit bugs to " PACKAGE_BUGREPORT "\n\n"
+            << "and submit bugs to " PROJECT_BUGREPORT "\n\n"
             << tool_name << ", version " << votca::tools::ToolsVersionStr()
             << "\n\n";
 }
