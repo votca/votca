@@ -25,6 +25,7 @@ Version 2024-dev
 -  csg_table fix (#1134)
 -  DFT and GW-BSE theory section in manual (#1135)
 -  add rate theory part to XTP manual section (#1136)
+-  adding transport model section to XTP manual (#1137)
 
 Version 2024 (released 22.01.24)
 ================================
