@@ -15,6 +15,7 @@ software and manual versions match.
    xtp_introduction
    elstruc_theory
    transfer_theory
+   transport_theory
    pyxtp
    workflows_and_calculators
    reference
