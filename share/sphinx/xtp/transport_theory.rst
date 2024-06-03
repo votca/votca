@@ -118,7 +118,7 @@ Every atom :math:`a` of a molecule is also assigned a polarization tensor :math:
 
     \Delta d^a_\gamma=\alpha^a_{\alpha\beta}\left(F^a_\alpha+\sum_{b\neq a} T^{ab}_{\alpha\beta}\Delta d^b_\beta \right)
 
-The assignment of atomic polarizabilities is called the Applequist model~\cite{Applequist_Atomdipoleinteraction_1972}. Here, the polarizations are only correlated via the fields they generate (see :eq:`equ:theory:apple`) and cannot model the flow of charges across the whole molecule. For molecules with large conjugated systems, which can displace charges over larger distances, necessitating more advanced polarization models or a full quantum mechanical treatment are necessary. The system of equations, :eq:`equ:theory:apple`, has to be solved self-consistently or via matrix inversion, which both increase the computational cost approximately by one order of magnitude in comparison to a static approach.
+The assignment of atomic polarizabilities is called the Applequist model. Here, the polarizations are only correlated via the fields they generate (see :eq:`equ:theory:apple`) and cannot model the flow of charges across the whole molecule. For molecules with large conjugated systems, which can displace charges over larger distances, necessitating more advanced polarization models or a full quantum mechanical treatment are necessary. The system of equations, :eq:`equ:theory:apple`, has to be solved self-consistently or via matrix inversion, which both increase the computational cost approximately by one order of magnitude in comparison to a static approach.
 
 Letting the environment react to the excitation on the center molecule explicitly couples the QM and MM system to each other. So energy differences cannot be calculated for the embedded molecule but instead total energies have to be subtracted. For example, the first excitation energy :math:`\Omega_1` has to be calculated via:
 
@@ -155,3 +155,88 @@ CHELPG partial charges :math:`\{q_i\}` are derived by calculating the electrosta
 
 
 where :math:`j` runs over all grid points, :math:`\phi_{el}(\mathbf{g}_j)` is the respective potential at that grid point and :math:`N` is the number of atomic sites. :math:`\lambda` is a Lagrange multiplier to constrain the optimization to the desired total charge of the molecule :math:`q_{\text{mol}}`.
+
+Reorganization energies
+***********************
+
+In Marcus theory the nuclear rearrangement on excitation and deexcitation of a molecule are expressed in the two reorganization energies:
+
+.. math::
+
+    \begin{align}
+    \lambda_{A\rightarrow B}&=U_B(\xi_A)-U_B(\xi_B)\\
+    \lambda_{B\rightarrow A}&=U_A(\xi_B)-U_A(\xi_A)
+    \end{align}
+
+Using the approximation that the diabatic state can be written as a product of monomer states (:eq:`equ:theory:diabaticstateapprox`) the energy of a diabatic state :math:`U_B(\xi_A)` splits into a sum of monomer contributions. 
+
+.. math::
+    :label: equ:reorg_full
+
+    \begin{align}
+    \lambda_{A\rightarrow B}&=U_b^1(\xi_b^0)+U_a^0(\xi_a^1)-(U_b^1(\xi_b^1)+U_a^0(\xi_a^0))\nonumber\\
+    \lambda_{B\rightarrow A}&=U_a^1(\xi_a^0)+U_b^0(\xi_b^1)-(U_a^1(\xi_a^1)+U_b^0(\xi_b^0))
+    \end{align}
+
+:math:`U_b^1(\xi_b^0)` is the energy of monomer :math:`B`, in its first excited state, evaluated at the nuclear coordinates :math:`\xi_b^0` of the ground state of :math:`B`. Consequently, within this approximation the reorganization energy for a pair of molecules can be calculated from monomer properties of the individual molecules. 
+
+.. _fig_theory_reorg_mol:
+.. figure:: fig/reorg_mol.svg
+    :width: 400
+    :align: center
+
+    Absorption and emission inside a molecule.
+
+A better understanding of the reorganization energy can be gained if we first avoid the dimer problem and look at the single molecule problem of light absorption and emission in a single molecule as depicted in :numref:`fig_theory_reorg_mol`. Upon absorption of a photon with energy :math:`\Delta E^{\text{abs.}}` the molecule transitions from the electronic ground state, :math:`\ket{0(R^0)}`, where :math:`R^0` is the minimum of the ground state PES, to an excited state, :math:`\ket{1(R^0)}`. Here it is assumed, that during the absorption the geometry does not change. This is again the Condon approximation. After absorption the molecule then releases the energy :math:`\lambda^1` thermally, reaching the minimum of the excited state PES, :math:`\ket{1(R^0)}`. Afterwards the molecule emits a photon of energy :math:`\Delta E^{\text{em.}}`, returning to the electronic ground state :math:`\ket{0(R^1)}`, but at an excited geometry. Through thermalisation of the energy :math:`\lambda^0` the molecule finally *descends* to :math:`\ket{0(R^0)}`. If we look at exciton transfer reactions between two molecules, the transfer can be conceptualized as the emission of a photon on one molecule and adsorption on the other. Assigning the emission and, thus, :math:`\lambda^0` to molecule :math:`A` and :math:`\lambda^1` to molecule :math:`B`, we also arrive at equation :eq:`equ:reorg_full`. :numref:`fig_theory_reorg_mol` also shows that :math:`\Delta E^{\text{em.}}` is always smaller than :math:`\Delta E^{\text{abs.}}`. The difference between the two is called the *Stokes-shift* and can be experimentally determined from spectroscopic measurements. Measurements of the Stokes-Shift allow us to compare theoretical reorganization energies with experimental values. As mentioned before in the derivation of the Marcus rates, for excitation transfer to happen :math:`\Delta E^{\text{abs.}}_B` must equal :math:`\Delta E^{\text{em.}}_A` to conserve energy. An energy quantum, corresponding to the Stokes shift, has to be provided by thermal fluctuations. 
+
+The calculation of :math:`U^1(\xi^1)` requires a geometry optimization to find the nuclear configuration with the lowest energy. Especially for excited states, these geometry optimizations are extremely costly. As a further approximation the reorganization is assumed to be independent of the molecular environment. In doing so, the value :math:`\lambda` only has to be calculated once for each molecular species in the system at hand, instead of for every molecule.
+
+Directed Graphs
+***************
+
+After calculating all rates between the segments we have reduced the real system of molecules to a discrete irregular lattice of sites, which are connected (:numref:`fig_theory_directedgraph`). These connections are also called edges. The combination of vertices and edges is called a graph. The graph that results from transfer rate theory is weighted, as the edges connecting vertices :math:`A` and :math:`B` have different rates for each pair, and also directed as the weights differ in both directions:
+
+.. math::
+
+    \omega_{A\rightarrow B}\neq \omega_{B\rightarrow A}.
+
+
+.. _fig_theory_directedgraph:
+.. figure:: fig/directedgraph.svg
+    :width: 400
+    :align: center
+
+    Molecular structure and the resulting directed graph. The rates calculated from the molecular properties reduce the molecular structure allow us to build a directed and weighted graph, with edges weighted by the appropriate rates and vertices carrying occupation probabilities.
+
+As we assume that the excitation hops from site to site and that hopping is a rather rare event, the excitation resides on the site long enough for the thermal vibration to dissipate the information of where the excitation came from. The transport is said to be incoherent, meaning the excitation has lost its memory and the next hop of the excitation is independent of the last hop. Such a process is called *Markovian*. It allows us to formulate an equation of how the occupation probabilities of each vertex :math:`p_A` evolve in time is:
+
+.. math::
+    :label: equ:theory:master_equ
+
+    \frac{d}{d t} p_A(t)=\sum_B p_B(t)\omega_{B\rightarrow A}-p_A(t)\omega_{A\rightarrow B}
+ 
+This continuity equation simply states that change in occupation of site :math:`A` is equal to the probability current flowing in minus the current flowing out and so conserves the total probability. It is also referred to as the Master Equation. In this formulation it only describes the motion of a single excitation, as it does not account for interaction between excitations. Although there are ways to incorporate interaction between excitations into :eq:`equ:theory:master_equ`, we will first deal with its solution. The master equation is simply a system of linear differential equations and can be solved using standard numerical methods. Although this has approach has its merits, we instead choose a very different option using the *kinetic Monte Carlo* or KMC method, because it allows us to easily add excitation interaction, excitation decay and conversion from one species to another. Furthermore, KMC is better suited for very large systems, in which explicitly setting up a large rate matrix is prohibitively expensive, and for systems with widely varying rates, as solvers otherwise run into numerical difficulties.
+
+In KMC, we explicitly simulate the hopping of individual excitations. Using a variable step size method, we promote time and at each time step we randomly choose an excitation and its next hopping destination. The probability of choosing a hopping destination is weighted by the rate assigned to that transition. As these rates can vary by orders of magnitude we do not increment time by a fixed amount but instead use the variable step size method (VSSM).
+
+From the resulting ensemble of trajectories (see :numref:`fig_theory_kmctraj`) the diffusion coefficient :math:`D_{\alpha\beta}` can be calculated via:
+
+.. math::
+    :label: equ:theory:kmcdiff
+
+    6 D_{\alpha\beta}t=\langle \Delta r_\alpha \Delta r_\beta \rangle.
+
+Here :math:`t` is the temporal length of the trajectories, :math:`\Delta \mathbf{r}` denotes the distance vector between initial and last site and :math:`\langle \dots \rangle` denotes an average over the ensemble of trajectories.
+
+
+.. _fig_theory_kmctraj:
+.. figure:: fig/kmctraj.svg
+    :width: 400
+    :align: center
+
+    KMC trajectory of an exciton. :math:`\Delta \mathbf{r}` denotes the end-end distance of the trajectory. The small box indicates the initial simulation box. Diffusion coefficients can be calculated from averaging over trajectories.
+
+With the calculation of the diffusion constant conceptually the bridge between *ab-initio* input and macroscopic transport properties has been build. So using the molecular dynamics approach we are able to simulate morphologies of organic semiconductors and then reintroduce electronic dynamics via rate models. 
+
+
+
