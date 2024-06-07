@@ -38,7 +38,7 @@ using namespace votca::tools;
 
 class TestBead : public BaseBead {
  public:
-  TestBead() : BaseBead(){};
+  TestBead() : BaseBead() {};
 };
 
 BOOST_AUTO_TEST_SUITE(beadstructure_test)

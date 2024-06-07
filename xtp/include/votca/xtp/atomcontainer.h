@@ -47,7 +47,7 @@ namespace xtp {
 template <class T>
 class AtomContainer {
  public:
-  AtomContainer(std::string type, Index id) : type_(type), id_(id){};
+  AtomContainer(std::string type, Index id) : type_(type), id_(id) {};
 
   using Atom_Type = T;
 

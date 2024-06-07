@@ -34,7 +34,7 @@ namespace xtp {
 class PolarRegion;
 class MolPol final : public QMTool {
  public:
-  MolPol() : input_("", 0){};
+  MolPol() : input_("", 0) {};
 
   ~MolPol() = default;
 

@@ -39,7 +39,7 @@ class GW {
         Mmn_(Mmn),
         vxc_(vxc),
         dft_energies_(dft_energies),
-        rpa_(log, Mmn){};
+        rpa_(log, Mmn) {};
 
   struct options {
     Index homo;
@@ -111,7 +111,7 @@ class GW {
   class QPFunc {
    public:
     QPFunc(Index gw_level, const Sigma_base& sigma, double offset)
-        : gw_level_(gw_level), offset_(offset), sigma_c_func_(sigma){};
+        : gw_level_(gw_level), offset_(offset), sigma_c_func_(sigma) {};
     std::pair<double, double> operator()(double frequency) const {
       std::pair<double, double> result;
       result.first = value(frequency);

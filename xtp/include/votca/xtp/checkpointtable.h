@@ -53,7 +53,7 @@ class CptTable {
       : name_(name),
         rowStructure_(rowSize),
         nRows_(nRows),
-        props_(H5::DSetCreatPropList(H5::DSetCreatPropList::DEFAULT)){};
+        props_(H5::DSetCreatPropList(H5::DSetCreatPropList::DEFAULT)) {};
 
   CptTable(const std::string& name, const std::size_t& rowSize,
            const CptLoc& loc)

@@ -38,7 +38,7 @@ class Rate_Engine {
   };
 
   Rate_Engine(double temperature, const Eigen::Vector3d& field)
-      : temperature_(temperature), field_(field){};
+      : temperature_(temperature), field_(field) {};
 
   PairRates Rate(const QMPair& pair, QMStateType carriertype) const;
 

@@ -45,10 +45,10 @@ using namespace checkpoint_utils;
 
 class CheckpointReader {
  public:
-  CheckpointReader(const CptLoc& loc) : CheckpointReader(loc, "/"){};
+  CheckpointReader(const CptLoc& loc) : CheckpointReader(loc, "/") {};
 
   CheckpointReader(const CptLoc& loc, const std::string path)
-      : loc_(loc), path_(path){};
+      : loc_(loc), path_(path) {};
 
   template <typename T>
   typename std::enable_if<!std::is_fundamental<T>::value>::type operator()(

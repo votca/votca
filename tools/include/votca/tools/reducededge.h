@@ -55,7 +55,7 @@ class ReducedEdge : public Edge {
   ReducedEdge(std::vector<Index> vertices);
 
   ReducedEdge(Index vertex1, Index vertex2)
-      : ReducedEdge(std::vector<Index>{vertex1, vertex2}){};
+      : ReducedEdge(std::vector<Index>{vertex1, vertex2}) {};
 
   /// Returns a vector of vertices that constitute the edge
   std::vector<Index> getChain() const { return vertices_; }

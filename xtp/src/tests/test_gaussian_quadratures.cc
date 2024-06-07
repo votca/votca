@@ -36,7 +36,7 @@ using namespace votca;
 // result should by ~sqrt(pi)
 class FunctionEvaluation {
  public:
-  FunctionEvaluation(){};
+  FunctionEvaluation() {};
 
   double operator()(Index j, double point, bool symmetry) const {
     double factor = 0.0;
