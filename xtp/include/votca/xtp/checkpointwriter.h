@@ -49,10 +49,10 @@ using namespace checkpoint_utils;
 
 class CheckpointWriter {
  public:
-  CheckpointWriter(const CptLoc& loc) : CheckpointWriter(loc, "/"){};
+  CheckpointWriter(const CptLoc& loc) : CheckpointWriter(loc, "/") {};
 
   CheckpointWriter(const CptLoc& loc, const std::string& path)
-      : loc_(loc), path_(path){};
+      : loc_(loc), path_(path) {};
 
   // see the following links for details
   // https://stackoverflow.com/a/8671617/1186564

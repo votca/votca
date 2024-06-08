@@ -31,9 +31,9 @@ namespace xtp {
 template <class T>
 class ClassicalSegment : public AtomContainer<T> {
  public:
-  ClassicalSegment(std::string name, Index id) : AtomContainer<T>(name, id){};
+  ClassicalSegment(std::string name, Index id) : AtomContainer<T>(name, id) {};
 
-  ClassicalSegment(CheckpointReader& r) : AtomContainer<T>(r){};
+  ClassicalSegment(CheckpointReader& r) : AtomContainer<T>(r) {};
 
   void LoadFromFile(std::string filename);
 

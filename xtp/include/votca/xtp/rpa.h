@@ -34,7 +34,7 @@ class TCMatrix_gwbse;
 
 class RPA {
  public:
-  RPA(Logger& log, const TCMatrix_gwbse& Mmn) : log_(log), Mmn_(Mmn){};
+  RPA(Logger& log, const TCMatrix_gwbse& Mmn) : log_(log), Mmn_(Mmn) {};
 
   void configure(Index homo, Index rpamin, Index rpamax) {
     homo_ = homo;

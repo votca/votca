@@ -35,7 +35,7 @@ namespace xtp {
 
 class Segment : public AtomContainer<Atom> {
  public:
-  Segment(std::string name, Index id) : AtomContainer<Atom>(name, id){};
+  Segment(std::string name, Index id) : AtomContainer<Atom>(name, id) {};
   // cannot use standard AtomContainer constructor because ReadFromCpt is
   // different.
   Segment(CheckpointReader& r) : AtomContainer<Atom>("", 0) { ReadFromCpt(r); }

@@ -34,7 +34,7 @@ class GNode {
       : id_(seg.getId()),
         siteenergy_(seg.getSiteEnergy(carriertype)),
         position_(seg.getPos()),
-        injectable_(injectable){};
+        injectable_(injectable) {};
 
   bool isOccupied() const { return occupied_; }
   void setOccupation(bool occupied) { occupied_ = occupied; }

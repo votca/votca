@@ -55,7 +55,7 @@ class Graph {
   void calcId_();
 
  public:
-  Graph() : id_(""){};
+  Graph() : id_("") {};
   virtual ~Graph() = default;
   /// Constructor
   /// @param edges - vector of edges where each edge is composed of two

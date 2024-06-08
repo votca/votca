@@ -37,7 +37,7 @@ class vc2index {
 
  public:
   vc2index(Index vmin, Index cmin, Index ctotal)
-      : vmin_(vmin), cmin_(cmin), ctotal_(ctotal){};
+      : vmin_(vmin), cmin_(cmin), ctotal_(ctotal) {};
 
   inline Index I(Index v, Index c) const {
     return ctotal_ * (v - vmin_) + (c - cmin_);

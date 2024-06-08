@@ -31,7 +31,7 @@ namespace xtp {
 
 class Md2QmEngine {
  public:
-  Md2QmEngine(std::string mapfile) : mapfile_(mapfile){};
+  Md2QmEngine(std::string mapfile) : mapfile_(mapfile) {};
 
   Topology map(const csg::Topology& top) const;
 

@@ -43,7 +43,7 @@ class PolarSite final : public StaticSite {
 
   PolarSite(Index id, std::string element, Eigen::Vector3d pos);
   PolarSite(Index id, std::string element)
-      : PolarSite(id, element, Eigen::Vector3d::Zero()){};
+      : PolarSite(id, element, Eigen::Vector3d::Zero()) {};
 
   ~PolarSite() final = default;
 
