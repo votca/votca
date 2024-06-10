@@ -36,7 +36,7 @@ class CubeFile_Writer {
 
  public:
   CubeFile_Writer(Eigen::Array<Index, 3, 1> steps, double padding, Logger& log)
-      : steps_(steps), padding_(padding), log_(log){};
+      : steps_(steps), padding_(padding), log_(log) {};
 
   void WriteFile(const std::string& filename, const Orbitals& orb,
                  QMState state, bool dostateonly) const;

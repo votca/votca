@@ -29,7 +29,9 @@ class ActiveDensityMatrix {
  public:
   ActiveDensityMatrix(Orbitals &orbitals, std::vector<Index> activeatoms,
                       double threshold = 0.4)
-      : orbitals_(orbitals), activeatoms_(activeatoms), threshold_(threshold){};
+      : orbitals_(orbitals),
+        activeatoms_(activeatoms),
+        threshold_(threshold) {};
   std::array<Eigen::MatrixXd, 3> activedensitymatrix(
       const Eigen::MatrixXd &localized_mo_coeff);
   std::array<Eigen::MatrixXd, 3> compute_Dmat_A();

@@ -77,8 +77,8 @@ Topology StateSaver::ReadFrame(Index frameid) const {
   if (!tools::filesystem::FileExists(hdf5file_)) {
     throw std::runtime_error("Statefile " + hdf5file_ + " does not exist.");
   }
-  std::cout << "Import MD Topology (i.e. frame " << frameid << ")" << " from "
-            << hdf5file_ << std::endl;
+  std::cout << "Import MD Topology (i.e. frame " << frameid << ")"
+            << " from " << hdf5file_ << std::endl;
   std::cout << "...";
   boost::interprocess::file_lock flock(hdf5file_.c_str());
   flock.lock_sharable();

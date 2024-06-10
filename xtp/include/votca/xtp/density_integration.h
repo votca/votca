@@ -39,7 +39,7 @@ struct Gyrationtensor {
 template <class Grid>
 class DensityIntegration {
  public:
-  explicit DensityIntegration(const Grid& grid) : grid_(grid){};
+  explicit DensityIntegration(const Grid& grid) : grid_(grid) {};
 
   double IntegrateDensity(const Eigen::MatrixXd& density_matrix);
   double IntegratePotential(const Eigen::Vector3d& rvector) const;

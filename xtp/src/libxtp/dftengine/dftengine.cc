@@ -893,7 +893,8 @@ Vxc_Potential<Vxc_Grid> DFTEngine::SetupVxc(const QMMolecule& mol) {
       << TimeStamp() << " Setup numerical integration grid " << grid_name_
       << " for vxc functional " << xc_functional_name_ << std::flush;
   XTP_LOG(Log::info, *pLog_)
-      << "\t\t " << " with " << grid.getGridSize() << " points"
+      << "\t\t "
+      << " with " << grid.getGridSize() << " points"
       << " divided into " << grid.getBoxesSize() << " boxes" << std::flush;
   return vxc;
 }

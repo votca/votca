@@ -35,7 +35,7 @@ class StaticRegion;
 template <class T>
 class MMRegion : public Region {
  public:
-  MMRegion(Index id, Logger& log) : Region(id, log){};
+  MMRegion(Index id, Logger& log) : Region(id, log) {};
   void WriteToCpt(CheckpointWriter& w) const override;
 
   using SegmentType = T;

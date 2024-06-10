@@ -57,10 +57,10 @@ class StaticSite {
     double Q22s;
   };
   StaticSite(Index id, std::string element, Eigen::Vector3d pos)
-      : id_(id), element_(element), pos_(pos){};
+      : id_(id), element_(element), pos_(pos) {};
 
   StaticSite(Index id, std::string element)
-      : StaticSite(id, element, Eigen::Vector3d::Zero()){};
+      : StaticSite(id, element, Eigen::Vector3d::Zero()) {};
 
   StaticSite(const data& d) { ReadData(d); }
 

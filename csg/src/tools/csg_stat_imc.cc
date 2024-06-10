@@ -613,7 +613,8 @@ void Imc::WriteDist(const string &suffix) {
     // preliminary
     if (interaction->force_) {
       force.Save((pair.first) + ".force.new");
-      cout << "written " << (pair.first) + ".force.new" << "\n";
+      cout << "written " << (pair.first) + ".force.new"
+           << "\n";
     }
   }
 }

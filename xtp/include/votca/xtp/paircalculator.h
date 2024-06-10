@@ -29,8 +29,8 @@ namespace xtp {
 
 class PairCalculator : public QMCalculator {
  public:
-  PairCalculator(){};
-  virtual ~PairCalculator(){};
+  PairCalculator() {};
+  virtual ~PairCalculator() {};
 
   bool EvaluateFrame(Topology *top);
   virtual void EvaluatePair(Topology *top, QMPair *pair) {};

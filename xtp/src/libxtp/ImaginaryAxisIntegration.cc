@@ -60,7 +60,7 @@ class FunctionEvaluation {
  public:
   FunctionEvaluation(const Eigen::MatrixXd& Imx, const Eigen::ArrayXcd& DeltaE,
                      const std::vector<Eigen::MatrixXd>& dielinv_matrices_r)
-      : Imx_(Imx), DeltaE_(DeltaE), dielinv_matrices_r_(dielinv_matrices_r){};
+      : Imx_(Imx), DeltaE_(DeltaE), dielinv_matrices_r_(dielinv_matrices_r) {};
 
   double operator()(Index j, double point, bool symmetry) const {
     Eigen::VectorXcd denominator;

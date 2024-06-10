@@ -33,7 +33,7 @@ namespace xtp {
 
 class StateSaver {
  public:
-  StateSaver(std::string file) : hdf5file_(file){};
+  StateSaver(std::string file) : hdf5file_(file) {};
 
   void WriteFrame(const Topology &top);
 

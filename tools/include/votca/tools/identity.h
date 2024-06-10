@@ -42,7 +42,7 @@ class Identity {
   /// Constructor
   Identity() : id_set_(false) {}
   /// Constructor that takes initial id
-  Identity(const T &id) : id_(id), id_set_(true){};
+  Identity(const T &id) : id_(id), id_set_(true) {};
   /// Gets the id returns error of the id has not been set
   const T &getId() const {
     assert(id_set_ && "No id has been set, cannot get id");
