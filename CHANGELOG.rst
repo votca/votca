@@ -27,6 +27,7 @@ Version 2024-dev
 -  add rate theory part to XTP manual section (#1136)
 -  adding transport model section to XTP manual (#1137)
 -  switching optimizer in XTP tutorial (#1139, #1140)
+-  csg-tutorials: auto-detect gmx binary (#1144)
 
 Version 2024 (released 22.01.24)
 ================================
