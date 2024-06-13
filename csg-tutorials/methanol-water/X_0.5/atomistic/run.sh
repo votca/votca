@@ -1,8 +1,10 @@
 #! /usr/bin/env -S bash -e
 
-gmx grompp -v
+gmx=$(type -p gmx || type -p gmx_d || { echo "gmx not found" >&2; exit 1; })
 
-gmx mdrun -v
+$gmx grompp -v
+
+$gmx mdrun -v
 
 equi=2000
 echo equi = $equi

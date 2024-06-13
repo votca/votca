@@ -28,7 +28,6 @@
       <table_bins>0.002</table_bins>
       <pot_max>1000000</pot_max>
       <table_end>1.9</table_end>
-      <mdrun>gmx mdrun -table</mdrun>
     </gromacs>
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
     <iterations_max>10</iterations_max>
