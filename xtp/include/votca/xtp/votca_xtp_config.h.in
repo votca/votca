@@ -26,12 +26,6 @@
 #include <omp.h>
 #endif
 
-/* Version number of package */
-#define VERSION "@PROJECT_VERSION@"
-
-/* Contact address of package */
-#define PACKAGE_BUGREPORT "@PROJECT_CONTACT@"
-
 #cmakedefine USE_CUDA
 
 #endif  // _VOTCA_XTP_CONFIG_H

@@ -29,7 +29,8 @@ VOTCAHEADER = f"""
 
 {PROGTITLE}
 
-please submit bugs to bugs@votca.org
+please read and cite: PROJECT_CITATION
+and submit bugs to PROJECT_CONTACT
 votca_help2doc
 """
 
@@ -83,7 +84,7 @@ def parse_help_message(msg: str, name: str) -> Data:
     """Parse the help message into an intermediate representation."""
     lines = iter(msg.splitlines())
     # Votca logo
-    take(lines, 6)
+    take(lines, 7)
     # remove Compilation info
     lines = take_while_version(lines)
 

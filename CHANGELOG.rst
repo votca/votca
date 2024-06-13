@@ -23,6 +23,7 @@ Version 2024-dev
 -  Fix Sphinx build (#1131)
 -  add CONTRIBUTING.md (#1133)
 -  csg_table fix (#1134)
+-  Added v2024 JOSS paper and link to older pubs (#1132)
 -  DFT and GW-BSE theory section in manual (#1135)
 -  add rate theory part to XTP manual section (#1136)
 -  adding transport model section to XTP manual (#1137)

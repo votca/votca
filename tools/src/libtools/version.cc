@@ -26,7 +26,7 @@ namespace tools {
 
 // defines gitversion
 #include "gitversion.h"
-static const std::string version_str = std::string(TOOLS_VERSION) + " " +
+static const std::string version_str = std::string(PROJECT_VERSION) + " " +
                                        gitversion +
                                        " (compiled " __DATE__ ", " __TIME__ ")";
 
