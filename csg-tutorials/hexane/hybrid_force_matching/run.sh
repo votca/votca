@@ -5,9 +5,10 @@ if [[ ! -f ../atomistic/topol.tpr || ! -f ../atomistic/traj.trr ]]; then
   exit 1
 fi
 
+gmx=$(type -p gmx || type -p gmx_d || { echo "gmx not found" >&2; exit 1; })
 echo "Rerun md trajectory with excluded bonded interactions"
-gmx grompp -c ../atomistic/conf.gro -f ../atomistic/grompp.mdp
-gmx mdrun -v -rerun ../atomistic/traj.trr
+$gmx grompp -c ../atomistic/conf.gro -f ../atomistic/grompp.mdp
+$gmx mdrun -v -rerun ../atomistic/traj.trr
 
 
 #equilibration time in Gromacs units (ps)
