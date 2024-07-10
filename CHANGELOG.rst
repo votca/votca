@@ -29,6 +29,7 @@ Version 2024-dev
 -  adding transport model section to XTP manual (#1137)
 -  switching optimizer in XTP tutorial (#1139, #1140)
 -  csg-tutorials: auto-detect gmx binary (#1144)
+-  add crest documentation (#1145)
 
 Version 2024 (released 22.01.24)
 ================================
