@@ -25,9 +25,12 @@
 #cmakedefine FFTW3_FOUND
 
 /* Version number of package */
-#define TOOLS_VERSION "@PROJECT_VERSION@"
+#define PROJECT_VERSION "@PROJECT_VERSION@"
 
 /* Contact address of package */
-#define TOOLS_BUGREPORT "@PROJECT_CONTACT@"
+#define PROJECT_BUGREPORT "@PROJECT_CONTACT@"
+
+/* DOI of the latest paper */
+#define PROJECT_CITATION "@PROJECT_CITATION@"
 
 #endif  // __VOTCA_TOOLS_VOTCA_CONFIG_H
