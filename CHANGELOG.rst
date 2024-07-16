@@ -1,8 +1,8 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2024-dev
-================
+Version 2024.1 (released 16.07.24)
+==================================
 
 -  csg_reupdate: remove commented out dosteep (#1103)
 -  CI: drop gmx2023, add gmx2024 (#1106)
