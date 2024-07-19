@@ -75,7 +75,7 @@ bibliography: paper.bib
 ---
 
 # Summary
-Many physical phenomena in liquids and soft matter are multiscale by nature and can involve processes with quantum and classical degrees of freedom occurring over a vast range of length- and timescales. Examples range from structure formation processes of complex polymers or even polymer blends on the classical side to charge and energy transport and conversion processes involving explicit electronic and, therefore, quantum information. 
+Many physical phenomena in liquids and soft matter are multiscale by nature and can involve processes with quantum and classical degrees of freedom occurring over a vast range of length- and timescales. Examples range from structure formation processes of complex polymers or even polymer blends [@Svaneborg2023] on the classical side to charge and energy transport and conversion processes [@Lee2019] involving explicit electronic and, therefore, quantum information. 
 
 The Versatile Object-oriented Toolkit for Coarse-graining Applications (VOTCA) provides multiscale frameworks built on a comprehensive set of methods for the development of classical coarse-grained potentials (VOTCA-CSG) as well as state-of-the art excited state electronic structure methods based on density-functional and many-body Green's function theories, coupled in mixed quantum-classical models and used in kinetic network models (VOTCA-XTP). 
 
@@ -104,7 +104,7 @@ A = \frac{\partial g_{ij}}{\partial U_{ij}},
 \end{equation}
 where $U_{ij}$ is the pair potential between particles i and j.
 
-Rosenberger _et al._ [@rosenberger_comparison_2016], among others [@toth_iterative_2003; @murtola_coarse-grained_2007; @lyubartsev_systematic_2010], demonstrated that the standard IMC method can suffer from numerical instabilities and/or slow convergence. Therefore, a Tikhonov regularization for IMC has been implemented in VOTCA. This regularization changes the linear equations according to [@rosenberger_comparison_2016]:
+Rosenberger _et al._ [@rosenberger_comparison_2016], among others [@toth_iterative_2003; @murtola_coarse-grained_2007; @lyubartsev_systematic_2010], demonstrated that the standard IMC method can suffer from numerical instabilities and/or slow convergence. Therefore, a Tikhonov regularization [@engl2000regularization] for IMC has been implemented in VOTCA. This regularization changes the linear equations according to [@rosenberger_comparison_2016]:
 \begin{equation}
 \label{solve_imc}
 (A^TA + \lambda I)\Delta U_{ij} = A^T(g_{ij}^{n-1} - g_{ij}^{ref}),
