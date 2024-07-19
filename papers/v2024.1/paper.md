@@ -123,7 +123,7 @@ A^{-1} = \frac{dU}{dg} = \frac{1}{\beta} \left( 1 - \frac{1}{g} - \mathcal{F}^{-
 \end{equation}
 Here, $\hat{h}$ is the Fourier transform of $h = g - 1$ and $\mathcal{F}$ is the Fourier operator.
 This approximate Jacobian works well for systems with single-bead molecule representations with convergence as fast as IMC, whereas in the general case, convergence is half as fast as IMC.[@bernhardt_stability_2023]
-The costly sampling of the IMC Matrix is not needed, only an RDF which is calculated on twice the range as the potential.[@bernhardt_iterative_2021]
+The costly sampling of the IMC matrix is not needed, only an RDF which is calculated on twice the range as the potential.[@bernhardt_iterative_2021]
 
 ### Constraints
 
@@ -143,15 +143,15 @@ From a target pressure and the current pressure at each iteration, a constraint 
 The most substantial new feature in the VOTCA package is the addition of explicit quantum-mechanical functionalities in the VOTCA-XTP part. The added methods aim at a first-principles-based multiscale modeling of electronically excited states and their dynamics in complex molecular systems. We very briefly describe the three main modules of XTP in the following.
 
 ### Density-Functional Theory 
-Excited state calculations require a reference ground state calculation within density-functional theory. VOTCA-XTP provides both an automated interface to the ORCA package [@neeseORCAProgramSystem2012] and a lightweight internal DFT engine based on atom-centered Gaussian-type orbitals for method developing and testing. It solves the Kohn-Sham Equations for the molecular orbitals $\phi_n^\textrm{KS}(\mathbf{r})$ with orbital energies $\varepsilon_n^\textrm{KS}$
+Excited state calculations require a reference ground state calculation within density-functional theory. VOTCA-XTP provides both an automated interface to the ORCA package [@neeseORCAProgramSystem2012] and a lightweight internal density-fucntional theory (DFT) engine based on atom-centered Gaussian-type orbitals for method developing and testing. It solves the Kohn-Sham (KS) Equations for the molecular orbitals $\phi_n^\textrm{KS}(\mathbf{r})$ with orbital energies $\varepsilon_n^\textrm{KS}$
 \begin{equation}
 \left\{ -\frac{\hbar^2}{2m}\nabla^2 + V_\mathrm{ext}(\mathbf{r}) + V_\textrm{H}(\mathbf{r}) +V_\textrm{xc}(\mathbf{r})\right\}\phi_n^\textrm{KS}(\mathbf{r})  =\varepsilon_n^\textrm{KS} \phi_n^\textrm{KS}(\mathbf{r}) ,
 \label{equ:KS}
 \end{equation}
-where $V_\textrm{ext}$ is the external potential, $V_\textrm{H}$ the Hartree potential, and $V_\textrm{xc}$ the exchange-correlation potential. VOTCA-XTP also contains functionality for projector-based-embedding DFT-in-DFT ground state calculations [@manby2012simple], in which a chosen _active_ subregion of a molecular system is embedded into an inactive one, reproducing the total energy of the full system ground state exactly.  
+where $V_\textrm{ext}$ is the external potential, $V_\textrm{H}$ the Hartree potential, and $V_\textrm{xc}$ the exchange-correlation potential. VOTCA-XTP also contains functionality for projector-based-embedding DFT-in-DFT ground state calculations [@manby2012simple], in which a chosen active subregion of a molecular system is embedded into an inactive one, reproducing the total energy of the full system ground state exactly.  
 
 ### Many-Body Green's Functions and the Bethe-Salpeter Equation
-Using the ground-state reference, many-body Green's functions theory with the $GW$ approximation first calculayes _single-particle excitations_ (electron addition or removal) as solutions to the _quasiparticle equations_
+Using the ground-state reference, many-body Green's functions theory with the $GW$ approximation first calculayes _single-particle excitations_ (electron addition or removal) as solutions to the _quasiparticle_ (QP) equations
 \begin{equation}
   \left\{ -\frac{\hbar^2}{2m}\nabla^2 + V_\textrm{ext}(\mathbf{r}) +
     V_\textrm{H}(\mathbf{r})\right\}\phi_n^\textrm{QP}(\mathbf{r}) +
