@@ -4,6 +4,7 @@ For more detailed information about the changes see the history of the
 Version 2024.1-dev
 ==================
 
+-  Editorial changes for v2024.1 JOSS paper  (#1148)
 -  Clean up CI (#1146)
 
 Version 2024.1 (released 16.07.24)

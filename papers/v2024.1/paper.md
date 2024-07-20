@@ -75,24 +75,24 @@ bibliography: paper.bib
 ---
 
 # Summary
-Many physical phenomena in liquids and soft matter are multiscale by nature and can involve processes with quantum and classical degrees of freedom occurring over a vast range of length- and timescales. Examples range from structure formation processes of complex polymers or even polymer blends on the classical side to charge and energy transport and conversion processes involving explicit electronic and therefore quantum information. 
+Many physical phenomena in liquids and soft matter are multiscale by nature and can involve processes with quantum and classical degrees of freedom occurring over a vast range of length- and timescales. Examples range from structure formation processes of complex polymers or even polymer blends [@Svaneborg2023] on the classical side to charge and energy transport and conversion processes [@Lee2019] involving explicit electronic and, therefore, quantum information. 
 
-The Versatile Object-Oriented Toolkit for Coarse-graining Applications (VOTCA) provides multiscale frameworks built on a comprehensive set of methods for the development of classical coarse-grained potentials (VOTCA-CSG) as well as state-of-the art excited state electronic structure methods based on density-functional and many-body Green's function theories, coupled in mixed quantum-classical models and used in kinetic network models (VOTCA-XTP). 
+The Versatile Object-oriented Toolkit for Coarse-graining Applications (VOTCA) provides multiscale frameworks built on a comprehensive set of methods for the development of classical coarse-grained potentials (VOTCA-CSG) as well as state-of-the art excited state electronic structure methods based on density-functional and many-body Green's function theories, coupled in mixed quantum-classical models and used in kinetic network models (VOTCA-XTP). 
 
-![Overview of the differnt VOTCA modules and external interfaces. The trajectory reader of VOTCA-CSG in the dashed line box are reused by VOTCA-XTP.\label{fig:VOTCA_graph}](VOTCA_graph.pdf)
+![Overview of the different VOTCA modules and external interfaces. The trajectory reader of VOTCA-CSG in the dashed line box are reused by VOTCA-XTP.\label{fig:VOTCA_graph}](VOTCA_graph.pdf)
 
 # Statement of need
 
 VOTCA was originally developed as a platform for development and comparison of coarse-graining (CSG) methods.
-Since the last software publication in 2015 VOTCA-CSG was strengthened by adding more methods, more examples and involving more developers. Many users have used VOTCA to compare different coarse-graining strategies on a neutral ground and, if needed, proceeded with a more specialized package based on the gained insight. Such other coarse-graining packages include, among others, BOCS [@bocs], DeePCG [@deepcg], IBIsCO [@ibisco], MagiC [@magic] and OpenMSCG [@openmscg], some of which are not open-source or specialized in one method. Others have stopped being developed or lack contributions from the greater community. It is difficult to build all-inclusive community package for coarse-graining as it is sometimes hard to consolidate different development styles and constantly changing priorities from sponsors that leave little time for good software engineering practices. In this context we would like to point out that there is a fork of the VOTCA package [@mpip-votca] that contains some feature e.g. Kernel-based machine learning methods [@mlpot], that has not been merged.
+Since the last software publication in 2015, VOTCA-CSG was strengthened by adding more methods, more examples, and involving more developers. Many users have used VOTCA to compare different coarse-graining strategies on a neutral ground and, if needed, proceeded with a more specialized package based on the gained insight[@Rudzinski_2021]. Such other coarse-graining packages include, among others, BOCS [@bocs], DeePCG [@deepcg], IBIsCO [@ibisco], MagiC [@magic] and OpenMSCG [@openmscg], some of which are not open-source or specialized in one method. Others are no longer being maintained  or lack contributions from the greater community. It is difficult to build an all-inclusive community package for coarse-graining as it is sometimes hard to consolidate different development styles and constantly changing priorities from sponsors that leave little time for good software engineering practices. In this context we would like to point out that there is a fork of the VOTCA package [@mpip-votca] that contains some feature e.g. Kernel-based machine learning methods [@mlpot], that has not been merged.
 
-Next to strengthening the coarse-graining functionality of VOTCA, another major development direction taken since 2015 is the addition of explicit quantum-mechanical modules aiming at the simulation of static and dynamic properties of electronically excited states in complex molecular environments using multiscale frameworks. Specifically, the VOTCA-XTP part provides an open-source implementation of many-body Green's functions methods (known as $GW$-BSE) with the capability of linking this quantum-mechanical description of a molecular system to a classical (microelectrostatic) environment model and to perform rate-based dynamic simulations with kinetic Monte-Carlo. Basic $GW$-BSE functionality in molecular settings has also more recently been supported in other packages, such as Turbomole [@turbomole], ADF [@ADF2001], PySCF [@pyscf], or MOLGW [@molgw], but these are either commercial or do not provide links to a multiscale framework for complex environments and dynamics.
+Next to strengthening the coarse-graining functionality of VOTCA, another major development direction taken since 2015 is the addition of explicit quantum-mechanical modules aiming at the simulation of static and dynamic properties of electronically excited states in complex molecular environments using multiscale frameworks. Specifically, the VOTCA-XTP part provides an open-source implementation of many-body Green's functions methods (known as $GW$-BSE) with the capability of linking this quantum-mechanical description of a molecular system to a classical (microelectrostatic) environment model, and to perform rate-based dynamic simulations with kinetic Monte-Carlo. Basic $GW$-BSE functionality in molecular settings has also more recently been supported in other packages, such as Turbomole [@turbomole], ADF [@ADF2001], PySCF [@pyscf], or MOLGW [@molgw], but these are either commercial or do not provide links to a multiscale framework for complex environments and dynamics.
 
 ## Coarse-Graining
-In the coarse-graining part of VOTCA, VOTCA-CSG, we made a lot of improvements to the inverse Monte Carlo (IMC) method and have added a new iterative approach the so-called iterative integral equation (IIE) method, which are both described in detail below and in reference therein.
+In the coarse-graining part of VOTCA, VOTCA-CSG, we made a lot of improvements to the inverse Monte Carlo (IMC) method and have added a new iterative approach, the so-called iterative integral equation (IIE) method, which are both described in detail below and in reference therein.
 
 ### Inverse Monte Carlo updates
-The inverse Monte-Carlo Method introduced by Lyubartsev and Laaksonen in 1995 [@lyubartsev_calculation_1995] is a structure-based coarse graining method, whose goal it is to find an effective pair potential between particles, which reproduces the radial distribution function (RDF) of a reference system (ref) at the coarse grained (CG) resolution. IMC has been part of VOTCA since its first release. In the original implementation the pair potential was determined by iteratively solving a set of linear equations:
+The inverse Monte Carlo Method introduced by Lyubartsev and Laaksonen in 1995 [@lyubartsev_calculation_1995] is a structure-based coarse graining method, whose goal it is to find an effective pair potential between particles, which reproduces the radial distribution function (RDF) of a reference system (ref) at the coarse grained (CG) resolution. IMC has been part of VOTCA since its first release. In the original implementation the pair potential was determined by iteratively solving a set of linear equations:
 \begin{equation}
 \label{solve_imc_orig}
 (A^TA)\Delta U_{ij} = A^T(g_{ij}^{n-1} - g_{ij}^{ref}),
@@ -104,7 +104,7 @@ A = \frac{\partial g_{ij}}{\partial U_{ij}},
 \end{equation}
 where $U_{ij}$ is the pair potential between particles i and j.
 
-Rosenberger _et al._ [@rosenberger_comparison_2016], among others [@toth_iterative_2003; @murtola_coarse-grained_2007; @lyubartsev_systematic_2010], demonstrated that the standard IMC method can suffer from numerical instabilities and/or slow convergence. Therefore, a Tikhonov regularization for IMC has been implemented in VOTCA. This regularization changes the linear equations according to [@rosenberger_comparison_2016]:
+Rosenberger _et al._ [@rosenberger_comparison_2016], among others [@toth_iterative_2003; @murtola_coarse-grained_2007; @lyubartsev_systematic_2010], demonstrated that the standard IMC method can suffer from numerical instabilities and/or slow convergence. Therefore, a Tikhonov regularization [@engl2000regularization] for IMC has been implemented in VOTCA. This regularization changes the linear equations according to [@rosenberger_comparison_2016]:
 \begin{equation}
 \label{solve_imc}
 (A^TA + \lambda I)\Delta U_{ij} = A^T(g_{ij}^{n-1} - g_{ij}^{ref}),
@@ -123,7 +123,7 @@ A^{-1} = \frac{dU}{dg} = \frac{1}{\beta} \left( 1 - \frac{1}{g} - \mathcal{F}^{-
 \end{equation}
 Here, $\hat{h}$ is the Fourier transform of $h = g - 1$ and $\mathcal{F}$ is the Fourier operator.
 This approximate Jacobian works well for systems with single-bead molecule representations with convergence as fast as IMC, whereas in the general case, convergence is half as fast as IMC.[@bernhardt_stability_2023]
-The costly sampling of the IMC Matrix is not needed, only an RDF which is calculated on twice the range as the potential.[@bernhardt_iterative_2021]
+The costly sampling of the IMC matrix is not needed, only an RDF which is calculated on twice the range as the potential.[@bernhardt_iterative_2021]
 
 ### Constraints
 
@@ -143,15 +143,15 @@ From a target pressure and the current pressure at each iteration, a constraint 
 The most substantial new feature in the VOTCA package is the addition of explicit quantum-mechanical functionalities in the VOTCA-XTP part. The added methods aim at a first-principles-based multiscale modeling of electronically excited states and their dynamics in complex molecular systems. We very briefly describe the three main modules of XTP in the following.
 
 ### Density-Functional Theory 
-Excited state calculations require a reference ground state calculation within density-functional theory. VOTCA-XTP provides both an automated interface to the ORCA package [@neeseORCAProgramSystem2012] and a lightweight internal DFT engine based on atom-centered Gaussian-type orbitals for method developing and testing. It solves the Kohn-Sham Equations for the molecular orbitals $\phi_n^\textrm{KS}(\mathbf{r})$ with orbital energies $\varepsilon_n^\textrm{KS}$
+Excited state calculations require a reference ground state calculation within density-functional theory. VOTCA-XTP provides both an automated interface to the ORCA package [@neeseORCAProgramSystem2012] and a lightweight internal density-fucntional theory (DFT) engine based on atom-centered Gaussian-type orbitals for method developing and testing. It solves the Kohn-Sham (KS) Equations for the molecular orbitals $\phi_n^\textrm{KS}(\mathbf{r})$ with orbital energies $\varepsilon_n^\textrm{KS}$
 \begin{equation}
 \left\{ -\frac{\hbar^2}{2m}\nabla^2 + V_\mathrm{ext}(\mathbf{r}) + V_\textrm{H}(\mathbf{r}) +V_\textrm{xc}(\mathbf{r})\right\}\phi_n^\textrm{KS}(\mathbf{r})  =\varepsilon_n^\textrm{KS} \phi_n^\textrm{KS}(\mathbf{r}) ,
 \label{equ:KS}
 \end{equation}
-where $V_\textrm{ext}$ is the external potential, $V_\textrm{H}$ the Hartree potential, and $V_\textrm{xc}$ the exchange-correlation potential. VOTCA-XTP also contains functionality for projector-based-embedding DFT-in-DFT ground state calculations [@manby2012simple], in which a chosen _active_ subregion of a molecular system is embedded into an inactive one, reproducing the total energy of the full system ground state exactly.  
+where $V_\textrm{ext}$ is the external potential, $V_\textrm{H}$ the Hartree potential, and $V_\textrm{xc}$ the exchange-correlation potential. VOTCA-XTP also contains functionality for projector-based-embedding DFT-in-DFT ground state calculations [@manby2012simple], in which a chosen active subregion of a molecular system is embedded into an inactive one, reproducing the total energy of the full system ground state exactly.  
 
 ### Many-Body Green's Functions and the Bethe-Salpeter Equation
-Using the ground-state reference, many-body Green's functions theory with the $GW$ approximation first calculayes _single-particle excitations_ (electron addition or removal) as solutions to the _quasiparticle equations_
+Using the ground-state reference, many-body Green's functions theory with the $GW$ approximation first calculayes _single-particle excitations_ (electron addition or removal) as solutions to the _quasiparticle_ (QP) equations
 \begin{equation}
   \left\{ -\frac{\hbar^2}{2m}\nabla^2 + V_\textrm{ext}(\mathbf{r}) +
     V_\textrm{H}(\mathbf{r})\right\}\phi_n^\textrm{QP}(\mathbf{r}) +
