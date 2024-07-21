@@ -6,6 +6,7 @@ Version 2024.1-dev
 
 -  Editorial changes for v2024.1 JOSS paper  (#1148)
 -  Fix permissions on some scripts (#1150)
+-  Fix exit code on some scripts (#1151)
 
 Version 2024.1 (released 16.07.24)
 ==================================
