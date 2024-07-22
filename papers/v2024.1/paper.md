@@ -110,7 +110,7 @@ Rosenberger _et al._ [@rosenberger_comparison_2016], among others [@toth_iterati
 (A^TA + \lambda I)\Delta U_{ij} = A^T(g_{ij}^{n-1} - g_{ij}^{ref}),
 \end{equation}
 where $\lambda$ determines the strength of the regularization and $I$ is the identity matrix.
-One can perform a singular value decomposition of the Jacobian $A$ to determine an initial value for $\lambda$[@rosenberger_comparison_2016].
+One can perform a singular value decomposition of the Jacobian $A$ to determine an initial value for $\lambda$  [@rosenberger_comparison_2016].
 As a rule of thumb $\lambda$ should at least be at the order of the smallest singular values squared.
 
 ### Iterative Integral Equation method
