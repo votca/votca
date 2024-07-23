@@ -3,6 +3,9 @@ authors:
 - family-names: Baumeier
   given-names: Björn
   orcid: "https://orcid.org/0000-0002-6077-0467"
+  affiliation: >
+    Eindhoven University of Technology, 
+    Institute for Complex Molecular Systems
 - family-names: Wehner
   given-names: Jens
   orcid: "https://orcid.org/0000-0003-1203-5000"
@@ -41,9 +44,11 @@ authors:
 - family-names: Bernhardt
   given-names: Marvin
   orcid: "https://orcid.org/0000-0001-6520-5208"
+  affiliation: Eduard-Zintl-Institut für Anorganische und Physikalische Chemie
 - family-names: Junghans
   given-names: Christoph
   orcid: "https://orcid.org/0000-0003-0925-1458"
+  affiliation: Los Alamos National Laboratory
 contact:
 - family-names: Baumeier
   given-names: Björn
@@ -81,6 +86,7 @@ preferred-citation:
   - family-names: Ruiz
     given-names: Felipe Zapata
     orcid: "https://orcid.org/0000-0001-8286-677X"
+    affiliation: Netherlands eScience Center
   - family-names: Halver
     given-names: Rene
     orcid: "https://orcid.org/0000-0002-4895-3762"
