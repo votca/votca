@@ -8,6 +8,7 @@ Version 2024.1-dev
 -  Fix permissions on some scripts (#1150)
 -  Fix exit code on some scripts (#1151)
 -  Update CITATION.cff (#1155)
+-  Clean up CI (#1146)
 
 Version 2024.1 (released 16.07.24)
 ==================================
