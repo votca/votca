@@ -56,7 +56,7 @@ message: If you use this software, please cite our article in the
   Journal of Open Source Software.
 title: "VOTCA"
 version: v2024.1
-date-released: 20214-07-16
+date-released: 2024-07-16
 url: "https://github.com/votca/votca"
 abstract: >-
   VOTCA: multiscale frameworks for quantum and classical simulations in soft matter"
