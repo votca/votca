@@ -3,41 +3,50 @@ authors:
 - family-names: Baumeier
   given-names: Björn
   orcid: "https://orcid.org/0000-0002-6077-0467"
-  affiliation: >
-    Eindhoven University of Technology, 
-    Institute for Complex Molecular Systems
+  affiliation: Eindhoven University of Technology, Institute for Complex Molecular Systems
 - family-names: Wehner
   given-names: Jens
   orcid: "https://orcid.org/0000-0003-1203-5000"
+  affiliation: Netherlands eScience Center
 - family-names: Renaud
   given-names: Nicolas
   orcid: "https://orcid.org/0000-0001-9589-2694"
+  affiliation: Netherlands eScience Center
 - family-names: Ruiz
   given-names: Felipe Zapata
   orcid: "https://orcid.org/0000-0001-8286-677X"
+  affiliation: Netherlands eScience Center
 - family-names: Halver
   given-names: Rene
   orcid: "https://orcid.org/0000-0002-4895-3762"
+  affiliation: Forschungszentrum Jülich, Jülich, Germany
 - family-names: Madhikar
   given-names: Pranav
   orcid: "https://orcid.org/0000-0003-3658-3685"
+  affiliation: Eindhoven University of Technology, Institute for Complex Molecular Systems
 - family-names: Gerritsen
   given-names: Ruben
   orcid: "https://orcid.org/0000-0003-0738-8952"
+  affiliation: Eindhoven University of Technology, Institute for Complex Molecular Systems
 - family-names: Tirimbo
   given-names: Gianluca
   orcid: "https://orcid.org/0000-0002-6641-0761"
+  affiliation: Eindhoven University of Technology, Institute for Complex Molecular Systems
 - family-names: Sijen
   given-names: Javier
+  affiliation: Eindhoven University of Technology, Institute for Complex Molecular Systems
 - family-names: Rosenberger
   given-names: David
   orcid: "https://orcid.org/0000-0001-6620-6499"
+  affiliation: Freie Universität Berlin, Berlin, Germany
 - family-names: Brown
   given-names: Joshua S.
   orcid: "https://orcid.org/0000-0003-1227-6429"
+  affiliation: Oak Ridge National Laboratory
 - family-names: Sundaram
   given-names: Vivek
   orcid: "https://orcid.org/0000-0002-9986-8461"
+  affiliation: Eindhoven University of Technology, Institute for Complex Molecular Systems
 - family-names: Krajniak
   given-names: Jakub
   orcid: "https://orcid.org/0000-0001-9372-6975"
