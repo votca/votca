@@ -1,67 +1,65 @@
-# YAML 1.2
----
-cff-version: 1.2.0
-message: >-
-  If you use this software, please cite it as below.
+cff-version: "1.2.0"
 authors:
-  - given-names: Björn
-    family-names: Baumeier
-    orcid: 'https://orcid.org/0000-0002-6077-0467'
-    affiliation: >
-      Eindhoven University of Technology, 
-      Institute for Complex Molecular Systems
-  - given-names: Nicolas
-    family-names: Renaud
-    affiliation: Netherlands eScience Center
-    orcid: 'https://orcid.org/0000-0001-9589-2694'
-  - given-names: Wouter
-    family-names: Scharpach
-    orcid: 'https://orcid.org/0000-0002-4035-3703'
-    affiliation: Eindhoven University of Technology
-  - given-names: Vivek
-    family-names: Sundaram
-    orcid: https://orcid.org/0000-0002-9986-8461
-    affiliation: Eindhoven University of Technology
-  - given-names: Onur
-    family-names: Çaylak
-    orcid: https://orcid.org/0000-0003-2410-7411
-    affiliation: Eindhoven University of Technology
-  - given-names: Gianluca
-    family-names: Tirimbò
-    orcid: https://orcid.org/0000-0002-6641-0761
-    affiliation: Eindhoven University of Technology
-  - given-names: Christoph 
-    family-names: Junghans
-    orcid: https://orcid.org/0000-0003-0925-1458
-    affiliation: Los Alamos National Laboratory
-  - given-names: Joshua 
-    family-names: Brown
-  - given-names: Felipe Zapata
-    family-names: Ruiz
-    orcid: https://orcid.org/0000-0001-8286-677X
-    affiliation: Netherlands eScience Center
-  - given-names: Jens 
-    family-names: Wehner
-    orcid: https://orcid.org/0000-0003-1203-5000
-    affiliation: Netherlands eScience Center
-  - given-names: Ruben
-    family-names: Gerritsen
-    affiliation: Eindhoven University of Technology
-    orcid: 'https://orcid.org/0000-0003-0738-8952'
-  - given-names: Marvin
-    family-names: Bernhardt
-    affiliation: Eduard-Zintl-Institut für Anorganische und Physikalische Chemie
-    orcid: 'https://orcid.org/0000-0001-6520-5208'
-  - given-names: David
-    family-names: Rosenberger
-    orcid: 'https://orcid.org/0000-0001-6620-6499'
+- family-names: Baumeier
+  given-names: Björn
+  orcid: "https://orcid.org/0000-0002-6077-0467"
+- family-names: Wehner
+  given-names: Jens
+  orcid: "https://orcid.org/0000-0003-1203-5000"
+- family-names: Renaud
+  given-names: Nicolas
+  orcid: "https://orcid.org/0000-0001-9589-2694"
+- family-names: Ruiz
+  given-names: Felipe Zapata
+  orcid: "https://orcid.org/0000-0001-8286-677X"
+- family-names: Halver
+  given-names: Rene
+  orcid: "https://orcid.org/0000-0002-4895-3762"
+- family-names: Madhikar
+  given-names: Pranav
+  orcid: "https://orcid.org/0000-0003-3658-3685"
+- family-names: Gerritsen
+  given-names: Ruben
+  orcid: "https://orcid.org/0000-0003-0738-8952"
+- family-names: Tirimbo
+  given-names: Gianluca
+  orcid: "https://orcid.org/0000-0002-6641-0761"
+- family-names: Sijen
+  given-names: Javier
+- family-names: Rosenberger
+  given-names: David
+  orcid: "https://orcid.org/0000-0001-6620-6499"
+- family-names: Brown
+  given-names: Joshua S.
+  orcid: "https://orcid.org/0000-0003-1227-6429"
+- family-names: Sundaram
+  given-names: Vivek
+  orcid: "https://orcid.org/0000-0002-9986-8461"
+- family-names: Krajniak
+  given-names: Jakub
+  orcid: "https://orcid.org/0000-0001-9372-6975"
+- family-names: Bernhardt
+  given-names: Marvin
+  orcid: "https://orcid.org/0000-0001-6520-5208"
+- family-names: Junghans
+  given-names: Christoph
+  orcid: "https://orcid.org/0000-0003-0925-1458"
+contact:
+- family-names: Baumeier
+  given-names: Björn
+  orcid: "https://orcid.org/0000-0002-6077-0467"
+- family-names: Junghans
+  given-names: Christoph
+  orcid: "https://orcid.org/0000-0003-0925-1458"
+doi: 10.5281/zenodo.12750697
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
 title: "VOTCA"
-version: v2021.2
-date-released: 2021-09-19
+version: v2024.1
+date-released: 20214-07-16
 url: "https://github.com/votca/votca"
 abstract: >-
-  VOTCA-XTP is a library which allows you to calculate the electronic properties
-  of organic materials.
+  VOTCA: multiscale frameworks for quantum and classical simulations in soft matter"
 keywords: 
   - "quantum chemistry"
   - "gw bse"
@@ -70,36 +68,64 @@ keywords:
   - "many-body problem"
   - "course graining"
 preferred-citation:
-  type: article
   authors:
-    - given-names: Gianluca
-      family-names: Tirimbò
-    - given-names: Vivek 
-      family-names: Sundaram
-    - given-names: Onur
-      family-names: Çaylak
-    - given-names: Wouter
-      family-names: Scharpach
-    - given-names: Javier
-      family-names: Sijen
-    - given-names: Christoph
-      family-names: Junghans
-    - given-names: Joshua
-      family-names: Brown
-    - given-names: Felipe Zapata
-      family-names: Ruiz
-    - given-names: Nicolas
-      family-names: Renaud
-    - given-names: Jens
-      family-names: Wehner   
-    - given-names: Björn
-      family-names: Baumeier
-  doi: "10.1063/1.5144277"
-  journal: "The Journal of Chemical Physics"
-  title: >
-    Excited-state electronic structure of molecules using many-body Green’s 
-    functions: Quasiparticles and electron–hole excitations with VOTCA-XTP
-  issue: 11
-  volume: 152
-  year: 2020
-...
+  - family-names: Baumeier
+    given-names: Björn
+    orcid: "https://orcid.org/0000-0002-6077-0467"
+  - family-names: Wehner
+    given-names: Jens
+    orcid: "https://orcid.org/0000-0003-1203-5000"
+  - family-names: Renaud
+    given-names: Nicolas
+    orcid: "https://orcid.org/0000-0001-9589-2694"
+  - family-names: Ruiz
+    given-names: Felipe Zapata
+    orcid: "https://orcid.org/0000-0001-8286-677X"
+  - family-names: Halver
+    given-names: Rene
+    orcid: "https://orcid.org/0000-0002-4895-3762"
+  - family-names: Madhikar
+    given-names: Pranav
+    orcid: "https://orcid.org/0000-0003-3658-3685"
+  - family-names: Gerritsen
+    given-names: Ruben
+    orcid: "https://orcid.org/0000-0003-0738-8952"
+  - family-names: Tirimbo
+    given-names: Gianluca
+    orcid: "https://orcid.org/0000-0002-6641-0761"
+  - family-names: Sijen
+    given-names: Javier
+  - family-names: Rosenberger
+    given-names: David
+    orcid: "https://orcid.org/0000-0001-6620-6499"
+  - family-names: Brown
+    given-names: Joshua S.
+    orcid: "https://orcid.org/0000-0003-1227-6429"
+  - family-names: Sundaram
+    given-names: Vivek
+    orcid: "https://orcid.org/0000-0002-9986-8461"
+  - family-names: Krajniak
+    given-names: Jakub
+    orcid: "https://orcid.org/0000-0001-9372-6975"
+  - family-names: Bernhardt
+    given-names: Marvin
+    orcid: "https://orcid.org/0000-0001-6520-5208"
+  - family-names: Junghans
+    given-names: Christoph
+    orcid: "https://orcid.org/0000-0003-0925-1458"
+  date-published: 2024-07-23
+  doi: 10.21105/joss.06864
+  issn: 2475-9066
+  issue: 99
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 6864
+  title: "VOTCA: multiscale frameworks for quantum and classical
+    simulations in soft matter"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.06864"
+  volume: 9
+title: "VOTCA: multiscale frameworks for quantum and classical
+  simulations in soft matter"
+
