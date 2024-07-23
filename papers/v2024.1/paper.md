@@ -84,7 +84,7 @@ The Versatile Object-oriented Toolkit for Coarse-graining Applications (VOTCA) p
 # Statement of need
 
 VOTCA was originally developed as a platform for development and comparison of coarse-graining (CSG) methods.
-Since the last software publication in 2015, VOTCA-CSG was strengthened by adding more methods, more examples, and involving more developers. Many users have used VOTCA to compare different coarse-graining strategies on a neutral ground and, if needed, proceeded with a more specialized package based on the gained insight[@Rudzinski_2021]. Such other coarse-graining packages include, among others, BOCS [@bocs], DeePCG [@deepcg], IBIsCO [@ibisco], MagiC [@magic] and OpenMSCG [@openmscg], some of which are not open-source or specialized in one method. Others are no longer being maintained  or lack contributions from the greater community. It is difficult to build an all-inclusive community package for coarse-graining as it is sometimes hard to consolidate different development styles and constantly changing priorities from sponsors that leave little time for good software engineering practices. In this context we would like to point out that there is a fork of the VOTCA package [@mpip-votca] that contains some feature e.g. Kernel-based machine learning methods [@mlpot], that has not been merged.
+Since the last software publication in 2015, VOTCA-CSG was strengthened by adding more methods, more examples, and involving more developers. Many users have used VOTCA to compare different coarse-graining strategies on a neutral ground and, if needed, proceeded with a more specialized package based on the gained insight [@Rudzinski_2021]. Such other coarse-graining packages include, among others, BOCS [@bocs], DeePCG [@deepcg], IBIsCO [@ibisco], MagiC [@magic] and OpenMSCG [@openmscg], some of which are not open-source or specialized in one method. Others are no longer being maintained  or lack contributions from the greater community. It is difficult to build an all-inclusive community package for coarse-graining as it is sometimes hard to consolidate different development styles and constantly changing priorities from sponsors that leave little time for good software engineering practices. In this context we would like to point out that there is a fork of the VOTCA package [@mpip-votca] that contains some feature, e.g., kernel-based machine learning methods [@mlpot], that has not been merged.
 
 Next to strengthening the coarse-graining functionality of VOTCA, another major development direction taken since 2015 is the addition of explicit quantum-mechanical modules aiming at the simulation of static and dynamic properties of electronically excited states in complex molecular environments using multiscale frameworks. Specifically, the VOTCA-XTP part provides an open-source implementation of many-body Green's functions methods (known as $GW$-BSE) with the capability of linking this quantum-mechanical description of a molecular system to a classical (microelectrostatic) environment model, and to perform rate-based dynamic simulations with kinetic Monte-Carlo. Basic $GW$-BSE functionality in molecular settings has also more recently been supported in other packages, such as Turbomole [@turbomole], ADF [@ADF2001], PySCF [@pyscf], or MOLGW [@molgw], but these are either commercial or do not provide links to a multiscale framework for complex environments and dynamics.
 
@@ -92,7 +92,7 @@ Next to strengthening the coarse-graining functionality of VOTCA, another major 
 In the coarse-graining part of VOTCA, VOTCA-CSG, we made a lot of improvements to the inverse Monte Carlo (IMC) method and have added a new iterative approach, the so-called iterative integral equation (IIE) method, which are both described in detail below and in reference therein.
 
 ### Inverse Monte Carlo updates
-The inverse Monte Carlo Method introduced by Lyubartsev and Laaksonen in 1995 [@lyubartsev_calculation_1995] is a structure-based coarse graining method, whose goal it is to find an effective pair potential between particles, which reproduces the radial distribution function (RDF) of a reference system (ref) at the coarse grained (CG) resolution. IMC has been part of VOTCA since its first release. In the original implementation the pair potential was determined by iteratively solving a set of linear equations:
+The inverse Monte Carlo Method introduced by @lyubartsev_calculation_1995 is a structure-based coarse graining method, whose goal it is to find an effective pair potential between particles, which reproduces the radial distribution function (RDF) of a reference system (ref) at the coarse grained (CG) resolution. IMC has been part of VOTCA since its first release. In the original implementation the pair potential was determined by iteratively solving a set of linear equations:
 \begin{equation}
 \label{solve_imc_orig}
 (A^TA)\Delta U_{ij} = A^T(g_{ij}^{n-1} - g_{ij}^{ref}),
@@ -104,26 +104,26 @@ A = \frac{\partial g_{ij}}{\partial U_{ij}},
 \end{equation}
 where $U_{ij}$ is the pair potential between particles i and j.
 
-Rosenberger _et al._ [@rosenberger_comparison_2016], among others [@toth_iterative_2003; @murtola_coarse-grained_2007; @lyubartsev_systematic_2010], demonstrated that the standard IMC method can suffer from numerical instabilities and/or slow convergence. Therefore, a Tikhonov regularization [@engl2000regularization] for IMC has been implemented in VOTCA. This regularization changes the linear equations according to [@rosenberger_comparison_2016]:
+@rosenberger_comparison_2016, among others [@toth_iterative_2003; @murtola_coarse-grained_2007; @lyubartsev_systematic_2010], demonstrated that the standard IMC method can suffer from numerical instabilities and/or slow convergence. Therefore, a Tikhonov regularization [@engl2000regularization] for IMC has been implemented in VOTCA. This regularization changes the linear equations according to @rosenberger_comparison_2016:
 \begin{equation}
 \label{solve_imc}
 (A^TA + \lambda I)\Delta U_{ij} = A^T(g_{ij}^{n-1} - g_{ij}^{ref}),
 \end{equation}
 where $\lambda$ determines the strength of the regularization and $I$ is the identity matrix.
-One can perform a singular value decomposition of the Jacobian $A$ to determine an initial value for $\lambda$[@rosenberger_comparison_2016].
+One can perform a singular value decomposition of the Jacobian $A$ to determine an initial value for $\lambda$  [@rosenberger_comparison_2016].
 As a rule of thumb $\lambda$ should at least be at the order of the smallest singular values squared.
 
 ### Iterative Integral Equation method
 
 The iterative integral equation methods are similar to IMC in that they also aim at reconstructing the RDF of a fine-grained reference system with an effective pair potential.
-The main difference is in the construction of the Jacobian, which is approximated in IIE methods from integral equation theory.[@delbaryGeneralizedNewtonIteration2020]
+The main difference is in the construction of the Jacobian, which is approximated in IIE methods from integral equation theory [@delbaryGeneralizedNewtonIteration2020].
 For a molecular fluid, where each molecule is mapped to a single bead, using the Ornstein-Zernicke equation and the hypernetted-chain closure, one arrives at the Jacobian inverse with the form of
 \begin{equation}\label{eq:dudg}
 A^{-1} = \frac{dU}{dg} = \frac{1}{\beta} \left( 1 - \frac{1}{g} - \mathcal{F}^{-1} \left( \frac{1}{(1 + \rho \hat{h})^2}\right) \mathcal{F} \right) .
 \end{equation}
 Here, $\hat{h}$ is the Fourier transform of $h = g - 1$ and $\mathcal{F}$ is the Fourier operator.
-This approximate Jacobian works well for systems with single-bead molecule representations with convergence as fast as IMC, whereas in the general case, convergence is half as fast as IMC.[@bernhardt_stability_2023]
-The costly sampling of the IMC matrix is not needed, only an RDF which is calculated on twice the range as the potential.[@bernhardt_iterative_2021]
+This approximate Jacobian works well for systems with single-bead molecule representations with convergence as fast as IMC, whereas in the general case, convergence is half as fast as IMC [@bernhardt_stability_2023].
+The costly sampling of the IMC matrix is not needed, only an RDF which is calculated on twice the range as the potential [@bernhardt_iterative_2021].
 
 ### Constraints
 
@@ -134,7 +134,7 @@ When using the IMC or IIE methods described above to find pair potentials, that 
 where $\Delta g = g - g_\mathrm{target}$.
 In that case, additional constraints can be introduced.
 For example, it is possible to describe the pressure of a system in terms of the RDF $g$ and the pair potential $U$.
-From a target pressure and the current pressure at each iteration, a constraint of the form $B \Delta U = d$ can be described and the constraint is enforced by elimination.[@bernhardt_iterative_2021]
+From a target pressure and the current pressure at each iteration, a constraint of the form $B \Delta U = d$ can be described and the constraint is enforced by elimination [@bernhardt_iterative_2021].
 
 
 
@@ -159,7 +159,7 @@ Using the ground-state reference, many-body Green's functions theory with the $G
   = \varepsilon_n^\textrm{QP} \phi_n^\textrm{QP}(\mathbf{r}) .
 \label{equ:QP}
 \end{equation}
-In place of the exchange-correlation potential in Eq.\ref{equ:KS}, the energy-dependent self-energy operator $\Sigma(\mathbf{r},\mathbf{r}',E)$ occurs in the QP equations. This operator is evaluated using the one-body Green's function in quasi-particle approximation
+In place of the exchange-correlation potential in Eq. \ref{equ:KS}, the energy-dependent self-energy operator $\Sigma(\mathbf{r},\mathbf{r}',E)$ occurs in the QP equations. This operator is evaluated using the one-body Green's function in quasi-particle approximation
 \begin{equation}
   G(\mathbf{r},\mathbf{r}',\omega) = \sum_n{\frac{\phi_n(\mathbf{r})\phi_n^*(\mathbf{r}')}{\omega-\varepsilon_n+i0^+\textrm{sgn}(\varepsilon_n -\mu)}}
 \label{equ:Green}
@@ -176,7 +176,7 @@ where $W$ denotes the dynamically screened Coulomb interaction. Assuming that $\
   \Sigma(\varepsilon_n^\textrm{QP})-V_\text{xc} \right\vert\phi^\textrm{KS}_n\right\rangle .
   \label{equ:theory:gw_sc}
 \end{equation}
-As the correction $\Delta \varepsilon_n^{GW}$ itself depends on $\varepsilon_n^\textrm{QP}$, Eq.\ref{equ:theory:gw_sc} needs to be solved self-consistently.
+As the correction $\Delta \varepsilon_n^{GW}$ itself depends on $\varepsilon_n^\textrm{QP}$, Eq. \ref{equ:theory:gw_sc} needs to be solved self-consistently.
 
 Neutral excitations with a conserved number of electrons can be obtained from the Bethe-Salpeter Equation (BSE) by expressing coupled electron-hole amplitudes of excitation $S$ in a product basis of single-particle orbitals, i.e., 
 \begin{equation}
@@ -214,7 +214,7 @@ K^\text{d}_{vc,v'c'}&=-\iint
                \, .\label{equ:theory:Kd}
 \end{align}
 and $\eta=2$ ($\eta=0$) for singlet (triplet) excitations.
-Here, $K^\text{x}$ is the repulsive exchange interaction originating from the bare Coulomb term $v_\mathrm{C}$, while the direct interaction $K^\text{d}$ contains the attractive, but screened, interaction $W$ between electron and hole, causing the binding of the electron-hole pair. In Eq.\ref{equ:theory:Kd} it is assumed that the dynamic properties of $W(\omega)$ are negligible, and the computationally less demanding static approximation $\omega=0$ is employed. 
+Here, $K^\text{x}$ is the repulsive exchange interaction originating from the bare Coulomb term $v_\mathrm{C}$, while the direct interaction $K^\text{d}$ contains the attractive, but screened, interaction $W$ between electron and hole, causing the binding of the electron-hole pair. In Eq. \ref{equ:theory:Kd} it is assumed that the dynamic properties of $W(\omega)$ are negligible, and the computationally less demanding static approximation $\omega=0$ is employed. 
 
 
 ### Quantum-Classical Embedding
