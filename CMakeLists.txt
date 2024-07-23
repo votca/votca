@@ -8,7 +8,7 @@ if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
   message(FATAL_ERROR "Could not determine SOVERSION (${SOVERSION}) from ${PROJECT_VERSION}")
 endif (NOT ${SOVERSION} MATCHES "^[0-9]+$")
 set(PROJECT_CONTACT "https://github.com/votca/votca/issues")
-set(PROJECT_CITATION "https://doi.org/10.21105/joss.06795")
+set(PROJECT_CITATION "https://doi.org/10.21105/joss.06864")
 
 # Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
