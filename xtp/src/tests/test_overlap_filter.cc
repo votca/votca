@@ -27,7 +27,7 @@
 #include <votca/xtp/filterfactory.h>
 
 // VOTCA includes
-#include <libint2/initialize.h>
+#include "xtp_libint2.h"
 #include <votca/tools/eigenio_matrixmarket.h>
 using namespace votca::xtp;
 

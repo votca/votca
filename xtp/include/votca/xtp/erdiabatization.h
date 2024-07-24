@@ -46,7 +46,7 @@ class ERDiabatization {
         state_idx_1_{state_idx_1},
         state_idx_2_{state_idx_2},
         qmtype_str_(qmtype),
-        useRI_(useRI){};
+        useRI_(useRI) {};
 
   // Function to set up the ERI matrices
   void setUpMatrices();

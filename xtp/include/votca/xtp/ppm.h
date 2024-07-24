@@ -30,7 +30,7 @@ namespace xtp {
 
 class PPM {
  public:
-  PPM() : screening_r(0.0), screening_i(0.5){};
+  PPM() : screening_r(0.0), screening_i(0.5) {};
 
   // This sets the screening frequencies for real and imaginary part in hartree
 

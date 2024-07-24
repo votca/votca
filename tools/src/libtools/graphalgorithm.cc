@@ -119,7 +119,7 @@ ReducedGraph reduceGraph(Graph graph) {
     explicit ExplorationRecord(
         const unordered_map<Index, std::pair<bool, Index>>& vertex_explored)
         : vertex_explored_(vertex_explored),
-          unexplored_vertex_count_(vertex_explored.size()){};
+          unexplored_vertex_count_(vertex_explored.size()) {};
 
     void explore(Index vertex) {
       vertex_explored_[vertex].first = true;

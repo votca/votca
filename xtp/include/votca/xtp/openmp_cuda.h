@@ -111,7 +111,7 @@ class OpenMP_CUDA {
   class DefaultReference {
    public:
     DefaultReference() = default;
-    DefaultReference(T object) : p(&object){};
+    DefaultReference(T object) : p(&object) {};
 
     DefaultReference& operator=(const T& object) {
       p = &object;

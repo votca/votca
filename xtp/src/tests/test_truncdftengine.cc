@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2023 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2024 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * limitations under the License.
  *
  */
-#include <libint2/initialize.h>
+#include "xtp_libint2.h"
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE truncdftengine_test
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(dft_trunc) {
   xml << "    <activeatoms>1</activeatoms>" << std::endl;
   xml << "    <threshold>0.4</threshold>" << std::endl;
   xml << "    <levelshift>10000</levelshift>" << std::endl;
-  xml << "    <truncate_basis>True</truncate_basis>" << std::endl;
+  xml << "    <truncate_basis>true</truncate_basis>" << std::endl;
   xml << "    <truncation_threshold>1e-2</truncation_threshold>" << std::endl;
   xml << "</dft_in_dft>" << std::endl;
   xml << "</xtpdft>" << std::endl;
@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE(dft_trunc) {
   Logger log;
   truncdft.setLogger(&log);
   truncdft.Initialize(prop.get("dftpackage"));
-
+  orb.setChargeAndSpin(0, 1);
   truncdft.EvaluateActiveRegion(orb) &&
       truncdft.EvaluateTruncatedActiveRegion(orb);
 

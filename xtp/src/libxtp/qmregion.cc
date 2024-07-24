@@ -41,11 +41,11 @@ void QMRegion::Initialize(const tools::Property& prop) {
   }
 
   initstate_ = prop.get("state").as<QMState>();
-  if (initstate_.Type() == QMStateType::Hole ||
+  /*if (initstate_.Type() == QMStateType::Hole ||
       initstate_.Type() == QMStateType::Electron) {
     throw std::runtime_error(
         "Charged QM Regions are not implemented currently");
-  }
+  }*/
   if (initstate_.Type().isExciton() || initstate_.Type().isGWState()) {
 
     do_gwbse_ = true;
@@ -59,6 +59,19 @@ void QMRegion::Initialize(const tools::Property& prop) {
     } else {
       throw std::runtime_error(
           "No statetracker options for excited states found");
+    }
+  }
+
+  if (initstate_.Type().isKSState()) {
+
+    if (prop.exists("statetracker")) {
+      tools::Property filter = prop.get("statetracker");
+      statetracker_.setLogger(&log_);
+      statetracker_.Initialize(filter);
+      statetracker_.setInitialState(initstate_);
+      statetracker_.PrintInfo();
+    } else {
+      throw std::runtime_error("No statetracker options for KS states found");
     }
   }
 
@@ -111,8 +124,16 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
       << " Calculated interaction potentials with other regions. E[hrt]= "
       << e_ext << std::flush;
   XTP_LOG(Log::info, log_) << "Writing inputs" << std::flush;
+  Index crg = 0;
+  if (initstate_.Type() == QMStateType::Electron) {
+    crg = -1;
+  } else if (initstate_.Type() == QMStateType::Hole) {
+    crg = +1;
+  }
+  qmpackage_->setCharge(crg);
   qmpackage_->setRunDir(workdir_);
   qmpackage_->WriteInputFile(orb_);
+
   XTP_LOG(Log::error, log_) << "Running DFT calculation" << std::flush;
   bool run_success = qmpackage_->Run();
   if (!run_success) {
@@ -134,12 +155,19 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     return;
   }
   if (do_localize_) {
+    if (orb_.isOpenShell()) {
+      throw std::runtime_error(
+          "MO localization not implemented for open-shell systems");
+    }
     PMLocalization pml(log_, localize_options_);
     pml.computePML(orb_);
   }
   QMMolecule originalmol = orb_.QMAtoms();
   if (do_dft_in_dft_) {
-
+    if (orb_.isOpenShell()) {
+      throw std::runtime_error(
+          "DFT-in-DFT not implemented for open-shell systems");
+    }
     // this only works with XTPDFT, so locally override global qmpackage_
     std::unique_ptr<QMPackage> xtpdft =
         std::unique_ptr<QMPackage>(QMPackageFactory().Create("xtp"));
@@ -201,7 +229,21 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   QMState state = QMState("groundstate");
   double energy = orb_.getDFTTotalEnergy();
 
+  if (initstate_.Type().isKSState()) {
+    state = statetracker_.CalcStateAndUpdate(orb_);
+    // if unoccupied, add QP level energy
+    if (state.StateIdx() > orb_.getHomo()) {
+      energy += orb_.getExcitedStateEnergy(state);
+    } else {
+      // if unoccupied, subtract QP level energy
+      energy -= orb_.getExcitedStateEnergy(state);
+    }
+  }
+
   if (do_gwbse_) {
+    if (orb_.isOpenShell()) {
+      throw std::runtime_error("GWBSE not implemented for open-shell systems");
+    }
     if (do_dft_in_dft_) {
       Index active_electrons = orb_.getNumOfActiveElectrons();
       orb_.MOs() = orb_.getEmbeddedMOs();
@@ -257,13 +299,20 @@ double QMRegion::charge() const {
       nuccharge += a.getNuccharge();
     }
 
-    Index electrons = orb_.getNumberOfAlphaElectrons() * 2;
+    Index electrons = orb_.getNumberOfAlphaElectrons();
+    if (orb_.isOpenShell()) {
+      electrons += orb_.getNumberOfBetaElectrons();
+    } else {
+      electrons *= 2;
+    }
+
     charge = double(nuccharge - electrons);
   } else {
     QMState state = statetracker_.InitialState();
     if (state.Type().isExciton()) {
       charge = 0.0;
-    } else if (state.Type().isSingleParticleState()) {
+    } else if (state.Type().isSingleParticleState() ||
+               state.Type().isKSState()) {
       if (state.StateIdx() <= orb_.getHomo()) {
         charge = +1.0;
       } else {
@@ -335,7 +384,7 @@ void QMRegion::ApplyQMFieldToPolarSegments(
   DensityIntegration<Vxc_Grid> numint(grid);
 
   QMState state = QMState("groundstate");
-  if (do_gwbse_) {
+  if (do_gwbse_ || initstate_.Type().isKSState()) {
     state = statetracker_.CalcState(orb_);
   }
   Eigen::MatrixXd dmat = orb_.DensityMatrixFull(state);

@@ -42,7 +42,7 @@ class TransitionDensities {
   TransitionDensities();
 
   TransitionDensities(Orbitals& orbitals1, Orbitals& orbitals2, Logger* log)
-      : orbitals1_(orbitals1), orbitals2_(orbitals2), log_(log){};
+      : orbitals1_(orbitals1), orbitals2_(orbitals2), log_(log) {};
 
   void configure();
 

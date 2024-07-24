@@ -23,6 +23,11 @@
 #include <typeinfo>
 #include <vector>
 
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
 // Third party includes
 #include <H5Cpp.h>
 
@@ -40,10 +45,10 @@ using namespace checkpoint_utils;
 
 class CheckpointReader {
  public:
-  CheckpointReader(const CptLoc& loc) : CheckpointReader(loc, "/"){};
+  CheckpointReader(const CptLoc& loc) : CheckpointReader(loc, "/") {};
 
   CheckpointReader(const CptLoc& loc, const std::string path)
-      : loc_(loc), path_(path){};
+      : loc_(loc), path_(path) {};
 
   template <typename T>
   typename std::enable_if<!std::is_fundamental<T>::value>::type operator()(
@@ -300,5 +305,10 @@ class CheckpointReader {
 
 }  // namespace xtp
 }  // namespace votca
+
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 #endif  // VOTCA_XTP_CHECKPOINTREADER_H

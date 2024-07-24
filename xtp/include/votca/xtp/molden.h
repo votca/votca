@@ -32,7 +32,7 @@ namespace votca {
 namespace xtp {
 class Molden {
  public:
-  Molden(Logger& log) : log_(log){};
+  Molden(Logger& log) : log_(log) {};
 
   ~Molden() = default;
 

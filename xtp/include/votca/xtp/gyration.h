@@ -34,7 +34,7 @@ namespace xtp {
 
 class Density2Gyration {
  public:
-  Density2Gyration(Logger& log) : log_(log){};
+  Density2Gyration(Logger& log) : log_(log) {};
 
   std::string Identify() { return "density2gyration"; }
 

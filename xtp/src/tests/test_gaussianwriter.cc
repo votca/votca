@@ -13,7 +13,7 @@
  * limitations under the License.
  *
  */
-#include <libint2/initialize.h>
+#include "xtp_libint2.h"
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE gaussianwriter_test
@@ -84,6 +84,7 @@ BOOST_AUTO_TEST_CASE(gaussianwriter_test) {
   orbitals.setQMEnergy(-40.53758914883583);
   orbitals.setNumberOfAlphaElectrons(5);
   orbitals.setNumberOfOccupiedLevels(5);
+  orbitals.setChargeAndSpin(0, 1);
 
   // 2. Write object to gaussian checkpoint file (.fchk)
   Logger log;

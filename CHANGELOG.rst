@@ -1,8 +1,60 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2023-rc.2-dev
-=====================
+Version 2024.1-dev
+==================
+
+-  Editorial changes for v2024.1 JOSS paper  (#1148, #1153, #1154)
+-  Fix permissions on some scripts (#1150)
+-  Fix exit code on some scripts (#1151)
+-  Update CITATION.cff (#1155)
+-  Clean up CI (#1146)
+
+Version 2024.1 (released 16.07.24)
+==================================
+
+-  csg_reupdate: remove commented out dosteep (#1103)
+-  CI: drop gmx2023, add gmx2024 (#1106)
+-  new option to ignore segment types in KMC (#1105)
+-  fixed dftcoupling option path (#1107)
+-  cmake: fix MKL detection (#1110)
+-  cmake: handover GMX options transparently (#1108)
+-  CI: Switch Intel build to Ubuntu (#1111)
+-  CI: update GitHub actions (#1112)
+-  Fix Python print in hoomd tutorial (#1118)
+-  CI: fix warnings (#1119, #1122, #1130, #1138)
+-  votca_help2doc: fix python warnings (#1121)
+-  Fix build with boost-1.85.0 (#1123)
+-  make some interpreters explicit  (#1125, #1129)
+-  cmake: update hdf5 detection for cmake hdf5 (#1126, #1127)
+-  scripts: use sed in posix way (#1128)
+-  add CI on FreeBSD (#1124)
+-  Fix Sphinx build (#1131)
+-  add CONTRIBUTING.md (#1133)
+-  csg_table fix (#1134)
+-  Added v2024 JOSS paper and link to older pubs (#1132)
+-  DFT and GW-BSE theory section in manual (#1135)
+-  add rate theory part to XTP manual section (#1136)
+-  adding transport model section to XTP manual (#1137)
+-  switching optimizer in XTP tutorial (#1139, #1140)
+-  csg-tutorials: auto-detect gmx binary (#1144)
+-  add crest documentation (#1145)
+
+Version 2024 (released 22.01.24)
+================================
+
+-  fix links in README and doc (#1091)
+-  fix python shebang to python3 (#1093)
+-  Clean-up CI (#1092, #1095)
+-  remove reference to old webpage (#1094)
+-  fix doc generation without pyxtp (#1097)
+-  Do not run gmx tests without libgromacs (#1099)
+-  KS-QMMM for single-particle states (#1100)
+-  Spin-orbitals from ORCA in QMMM (#1101)
+-  better unit test for DFT embedding (#1102)
+
+Version 2023 (released 15.11.23)
+================================
 
 -  fix pyxtp option restart (#1074)
 -  fix Changelog check (#1070)
@@ -15,6 +67,8 @@ Version 2023-rc.2-dev
 -  replaced deprecated boost::progress headers (#1083)
 -  drop intel classic builds from CI (#1085)
 -  disable some libint2 warning and CI clean up (#1088)
+-  fix population analysis for embedded DFT (#1089)
+-  fix pyxtp xtp-tutorials (#1090)
 
 Version 2023-rc.2 (released 02.06.23)
 =====================================

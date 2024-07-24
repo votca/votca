@@ -1,13 +1,14 @@
-#! /bin/bash -e
+#! /usr/bin/env -S bash -e
 
 if [[ ! -f ../atomistic/topol.tpr || ! -f ../atomistic/traj.trr ]]; then
   echo "Run atomistic simulation in ../atomistic first"
   exit 1
 fi
 
+gmx=$(type -p gmx || type -p gmx_d || { echo "gmx not found" >&2; exit 1; })
 echo "Rerun md trajectory with excluded bonded interactions"
-gmx grompp -c ../atomistic/conf.gro -f ../atomistic/grompp.mdp
-gmx mdrun -v -rerun ../atomistic/traj.trr
+$gmx grompp -c ../atomistic/conf.gro -f ../atomistic/grompp.mdp
+$gmx mdrun -v -rerun ../atomistic/traj.trr
 
 
 #equilibration time in Gromacs units (ps)

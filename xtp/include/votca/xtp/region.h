@@ -48,7 +48,7 @@ class BackgroundRegion;
 class Region {
 
  public:
-  Region(Index id, Logger& log) : id_(id), log_(log){};
+  Region(Index id, Logger& log) : id_(id), log_(log) {};
   virtual ~Region() = default;
 
   virtual void WriteToCpt(CheckpointWriter& w) const = 0;

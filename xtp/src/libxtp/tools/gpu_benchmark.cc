@@ -17,6 +17,7 @@
 
 // Standard includes
 #include <chrono>
+#include <execution>
 #include <iomanip>
 #include <numeric>
 #include <string>

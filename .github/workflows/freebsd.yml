@@ -1,0 +1,34 @@
+name: FreeBSD
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  schedule:
+    - cron:  '0 4 * * FRI'
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
+jobs:
+  FreeBSD-test:
+    runs-on: ubuntu-latest
+    name: Test VOTCA on FreeBSD
+    steps:
+    - uses: actions/checkout@v4
+    - name: Test in FreeBSD
+      id: test
+      uses: vmactions/FreeBSD-vm@v1.0.7
+      with:
+        usesh: true
+        prepare: |
+         pkg install -y python science/py-ase science/py-h5py devel/py-lxml devel/py-xmltodict science/rdkit shells/bash science/lammps devel/boost-libs science/libecpint textproc/expat2 math/fftw3 science/gromacs science/hdf5 science/libint2 science/libaec science/libxc cmake eigen perl5 pkgconf devel/py-pybind11 devel/py-pytest
+        run: |
+          set -e
+          export LC_ALL=C LANG=C
+          cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -DENABLE_REGRESSION_TESTING=ON -B builddir
+          cmake --build builddir --parallel 2
+          cd builddir && ctest --output-on-failure -E regression_

@@ -27,7 +27,7 @@
 #include "votca/xtp/filterfactory.h"
 
 // VOTCA includes
-#include <libint2/initialize.h>
+#include "xtp_libint2.h"
 #include <votca/tools/eigenio_matrixmarket.h>
 using namespace votca::xtp;
 
@@ -57,6 +57,8 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
 
   A.setNumberOfAlphaElectrons(5);
   A.setNumberOfOccupiedLevels(5);
+  A.setChargeAndSpin(0, 1);
+
   A.MOs().eigenvalues() = Eigen::VectorXd::Zero(17);
   A.MOs().eigenvalues() << -19.8117, -6.22408, -6.14094, -6.14094, -6.14094,
       -3.72889, -3.72889, -3.72889, -3.64731, -3.09048, -3.09048, -3.09048,

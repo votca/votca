@@ -566,11 +566,11 @@ std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
             ao3c[aux_c](row_start + row_c, col_start + col_c) =
                 result(aux_c, col_c, row_c);
           }  // ROW copy
-        }    // COL copy
-      }      // AUX copy
+        }  // COL copy
+      }  // AUX copy
 
     }  // gamma-loop
-  }    // alpha-loop
+  }  // alpha-loop
 
   for (Eigen::MatrixXd& mat : ao3c) {
     mat.triangularView<Eigen::Upper>() =
@@ -633,7 +633,7 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
         matrix_[m_level].middleCols(auxshell2bf[aux], auxshell.size()) =
             block[m_level];
       }  // m-th DFT orbital
-    }    // shells of GW basis set
+    }  // shells of GW basis set
   }
 }
 

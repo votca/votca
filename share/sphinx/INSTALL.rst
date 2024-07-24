@@ -11,10 +11,11 @@ To install the full package:
 ::
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'v2023-rc.2'
+    version=master # or 'v2024.1'
     git clone -b ${version} https://github.com/votca/votca.git
     cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix}
     cmake --build builddir --parallel <number of cores>
+    ctest --test-dir builddir
     cmake --build builddir --target install
 
 
@@ -29,6 +30,17 @@ If you have an older version of a distribution, cmake can be run with the ``-DBU
 
 On Ubuntu 20.10 and older you will not get version 1.0.5 of the libecpint package. So in this case run `this <https://github.com/votca/buildenv/blob/55c88641046dbb6152cf7d9e536e17f29205479f/ubuntu#L30-L33>`_ or
 download the package from `here <http://ftp.us.debian.org/debian/pool/main/libe/libecpint/>`_.
+
+
+Testing your build
+~~~~~~~~~~~~~~~~~~
+
+To test if your build actually works, you can run the VOTCA testsuite:
+
+::
+
+    ctest --test-dir <path-to-build>
+
 
 
 Resolving the 'not found' dependency errors

@@ -74,4 +74,4 @@ for step in range(900):
   run(100)
   write_gro('traj.gro')
 
-print "finished"
+print("finished")

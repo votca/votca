@@ -1,12 +1,13 @@
-#! /bin/bash -e
+#! /usr/bin/env -S bash -e
 
 if [[ -f done ]]; then
     echo "File 'done' exists. Remove if you want to run again"
     exit 0
 fi
 
-gmx grompp -v
-gmx mdrun -v
+gmx=$(type -p gmx || type -p gmx_d || { echo "gmx not found" >&2; exit 1; })
+$gmx grompp -v
+$gmx mdrun -v
 
 echo Running Extract_Energies.sh to extract all thermodynamic quantities from ener.edr
 #equilibration time in Gromacs units (ps)

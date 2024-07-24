@@ -25,7 +25,7 @@
 #include "votca/xtp/espfit.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/orbitals.h"
-#include <libint2/initialize.h>
+#include "xtp_libint2.h"
 using namespace votca::xtp;
 using namespace votca;
 
@@ -39,6 +39,7 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
                          "/espfit/3-21G.xml");
   orbitals.setNumberOfOccupiedLevels(5);
+  orbitals.setChargeAndSpin(0, 1);
 
   Eigen::MatrixXd MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
       std::string(XTP_TEST_DATA_FOLDER) + "/espfit/MOs.mm");

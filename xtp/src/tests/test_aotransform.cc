@@ -25,7 +25,7 @@
 // Local VOTCA includes
 #include "votca/xtp/aotransform.h"
 #include "votca/xtp/orbitals.h"
-#include <libint2/initialize.h>
+#include "xtp_libint2.h"
 #include <votca/tools/eigenio_matrixmarket.h>
 using namespace votca::xtp;
 using namespace votca;

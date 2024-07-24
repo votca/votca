@@ -31,7 +31,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/statetracker.h"
-#include <libint2/initialize.h>
+#include "xtp_libint2.h"
 using namespace votca::xtp;
 using namespace std;
 BOOST_AUTO_TEST_SUITE(statetracker_test)
@@ -46,6 +46,7 @@ BOOST_AUTO_TEST_CASE(osc) {
   orb.setNumberOfOccupiedLevels(4);
   orb.setBSEindices(0, 16);
   orb.setTDAApprox(true);
+  orb.setChargeAndSpin(0, 1);
 
   Eigen::MatrixXd& MOs = orb.MOs().eigenvectors();
 

@@ -21,6 +21,12 @@
 // Standard includes
 #include <fstream>
 
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
+
 // Third party includes
 #include <H5Cpp.h>
 
@@ -65,4 +71,10 @@ class CheckpointFile {
 
 }  // namespace xtp
 }  // namespace votca
+
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
 #endif  // VOTCA_XTP_CHECKPOINT_H

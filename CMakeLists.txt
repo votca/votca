@@ -2,12 +2,18 @@ cmake_minimum_required(VERSION 3.16)
 
 project(votca LANGUAGES CXX)
 
-set(PROJECT_VERSION "2023-rc.2-dev")
+set(PROJECT_VERSION "2024.1-dev")
 string(REGEX REPLACE "[-.].*$" "" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
   message(FATAL_ERROR "Could not determine SOVERSION (${SOVERSION}) from ${PROJECT_VERSION}")
 endif (NOT ${SOVERSION} MATCHES "^[0-9]+$")
 set(PROJECT_CONTACT "https://github.com/votca/votca/issues")
+set(PROJECT_CITATION "https://doi.org/10.21105/joss.06864")
+
+# Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+  cmake_policy(SET CMP0135 NEW)
+endif()
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
