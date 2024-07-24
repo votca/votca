@@ -117,6 +117,13 @@ def write_input(
     # Polar calculation
     polar = "% elprop\npolar 1\nSolver CG\nend\n" if optimize else ""
 
+    if meta.hartreefockX != "":
+        alpha = meta.hartreefockX
+        one_min_alpha = 1.0 - float(alpha)
+        HFXoverride = f"%method\nScalHFX {alpha}\nScalDFX {one_min_alpha}\nend\n"
+    else:
+        HFXoverride = ""
+
     # Input file
     inp = f"""{crg_spin_coord}
 
@@ -126,6 +133,8 @@ end
 
 ! DFT {opt} {meta.functional} {meta.basis} {ri_string} SlowConv
 ! D3BJ
+
+{HFXoverride}
 {chelpg}
 
 {polar}
@@ -290,7 +299,7 @@ topol.top (or similar).
         segment_name = Path(args.pdbfile).stem
         meta = JobMetadata(
             name=segment_name, path_orca=args.orca, functional=args.functional,
-            basis=args.basis, RI=args.nori,threads=args.threads)
+            basis=args.basis, RI=args.nori,threads=args.threads,hfx=args.hartreefockX)
         energies = optimize_geometry_in_state(mol, args.states, meta)
     else:
         # The default energy for any key is 0
@@ -538,6 +547,7 @@ def main():
                         help="Number of threads to use in ORCA")
     parser.add_argument('--version', action='version',
                         version=f"%(prog)s {VERSION}")
+    parser.add_argument('-hfx', '--hartreefockX', default="", help='specify HFX factor')
     args = parser.parse_args()
 
     generate_mapping(args)
