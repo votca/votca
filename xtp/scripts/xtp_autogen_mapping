@@ -69,6 +69,7 @@ class JobMetadata(NamedTuple):
     basis: str
     RI: bool
     threads: int
+    hfx: float
 
 
 def search_cores() -> int:
@@ -118,10 +119,10 @@ def write_input(
     # Polar calculation
     polar = "% elprop\npolar 1\nSolver CG\nend\n" if optimize else ""
 
-    if meta.hartreefockX != "":
-        alpha = meta.hartreefockX
+    if meta.hfx != "":
+        alpha = meta.hfx
         one_min_alpha = 1.0 - float(alpha)
-        HFXoverride = f"%method\nScalHFX {alpha}\nScalDFX {one_min_alpha}\nend\n"
+        HFXoverride = f"%method\nScalHFX= {alpha}\nScalDFX= {one_min_alpha}\nend\n"
     else:
         HFXoverride = ""
 
