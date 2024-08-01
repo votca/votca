@@ -524,7 +524,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
 
   std::string line;
   std::string orca_version;
-  Index orca_major_version;
+  Index orca_major_version = 0;
 
   Index levels = 0;
   Index number_of_electrons = 0;
