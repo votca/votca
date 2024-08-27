@@ -10,6 +10,7 @@ Version 2024.1-dev
 -  Update CITATION.cff (#1155)
 -  Clean up CI (#1146)
 -  supporting ORCA6 logfile reading (#1157)
+-  Update FreeBSD action (#1160)
 
 Version 2024.1 (released 16.07.24)
 ==================================
