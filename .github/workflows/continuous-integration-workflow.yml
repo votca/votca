@@ -147,7 +147,9 @@ jobs:
         working-directory: builddir
       - name: Upload Report to codecov.io
         if: ${{ matrix.coverage }}
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Doxygen
         run: cmake --build builddir --target doxygen
       - name: Build Sphinx

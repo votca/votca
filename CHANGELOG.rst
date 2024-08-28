@@ -8,9 +8,8 @@ Version 2024.1-dev
 -  Fix permissions on some scripts (#1150)
 -  Fix exit code on some scripts (#1151)
 -  Update CITATION.cff (#1155)
--  Clean up CI (#1146)
+-  Clean up CI (#1146, #1160, #1161)
 -  supporting ORCA6 logfile reading (#1157)
--  Update FreeBSD action (#1160)
 
 Version 2024.1 (released 16.07.24)
 ==================================

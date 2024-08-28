@@ -8,6 +8,7 @@ Makefile
 rules.ninja
 build.ninja
 .ninja_*
+*.gcov
 
 build*
 /csgapps
