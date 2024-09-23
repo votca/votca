@@ -70,3 +70,6 @@ jobs:
           context: .
           pull: true
           push: ${{ github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' ) }}
+          plattforms:
+            linux/amd64
+            linux/arm64
