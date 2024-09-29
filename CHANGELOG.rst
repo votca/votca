@@ -1,8 +1,8 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2024.1-dev
-==================
+Version 2024.2 (released 29.09.24)
+==================================
 
 -  Editorial changes for v2024.1 JOSS paper  (#1148, #1153, #1154)
 -  Fix permissions on some scripts (#1150)
