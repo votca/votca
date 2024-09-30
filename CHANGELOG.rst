@@ -13,6 +13,7 @@ Version 2024.2 (released 29.09.24)
 -  Update CITATION.cff (#1155)
 -  Clean up CI (#1146, #1160, #1161, #1162)
 -  supporting ORCA6 logfile reading (#1157)
+-  Add amr64 docker containe (#1164)
 
 Version 2024.1 (released 16.07.24)
 ==================================
