@@ -259,6 +259,41 @@ class Bead : public BaseBead {
   void HasW(bool b);
 
   /**
+   * \returns add descriptor (used for ML)
+   */
+  void addDescriptor(const Eigen::Vector3d &des1, const Eigen::Vector3d &des2, const Eigen::Vector3d &des3, const int &num);
+  
+  /**
+   * sets descriptor size to zero
+   */
+  void clearDescriptors() { _descriptors1.clear(); _descriptors2.clear(); _descriptors3.clear(); _descriptornumber.clear(); };  
+  
+  /**
+   * \returns number of descriptors
+   */
+  unsigned int DescriptorsSize() { return _descriptors1.size(); };
+  
+  /**
+   * \returns ith descriptor1
+   */
+  const Eigen::Vector3d &getDescriptor1(int i) const;
+
+  /**
+   * \returns ith descriptor2
+   */
+  const Eigen::Vector3d &getDescriptor2(int i) const;
+
+  /**
+   * \returns ith descriptor3
+   */
+  const Eigen::Vector3d &getDescriptor3(int i) const;
+  
+  /**
+   * \returns ith descriptornumber
+   */
+  const int &getDescriptorNumber(int i) const;
+
+  /**
    * If it is a mapped beads, returns te bead id the cg bead was created from
    * \return vector of bead ids of reference atoms
    */
@@ -278,6 +313,11 @@ class Bead : public BaseBead {
 
  protected:
   std::vector<Index> parent_beads_;
+
+  std::vector<Eigen::Vector3d>  _descriptors1;
+  std::vector<Eigen::Vector3d>  _descriptors2;
+  std::vector<Eigen::Vector3d>  _descriptors3;
+  std::vector<int>  _descriptornumber;
 
   Symmetry symmetry_;
   double charge_;
@@ -306,6 +346,10 @@ class Bead : public BaseBead {
     bV_ = false;
     bW_ = false;
     bead_force_set_ = false;
+    _descriptors1.clear();
+    _descriptors2.clear();
+    _descriptors3.clear();
+    _descriptornumber.clear();
   }
 
   friend class Topology;
@@ -361,6 +405,29 @@ inline void Bead::setF(const Eigen::Vector3d &bead_force) {
 inline const Eigen::Vector3d &Bead::getF() const {
   assert(bead_force_set_ && "Cannot access bead force, has not been set.");
   return bead_force_;
+}
+
+inline void Bead::addDescriptor(const Eigen::Vector3d &des1, const Eigen::Vector3d &des2, const Eigen::Vector3d &des3, const int &num) { 
+    _descriptors1.push_back(des1);
+    _descriptors2.push_back(des2);
+    _descriptors3.push_back(des3);
+    _descriptornumber.push_back(num);
+}
+
+inline const Eigen::Vector3d &Bead::getDescriptor1(int i) const { 
+    return _descriptors1[i];
+}
+
+inline const Eigen::Vector3d &Bead::getDescriptor2(int i) const { 
+    return _descriptors2[i];
+}
+
+inline const Eigen::Vector3d &Bead::getDescriptor3(int i) const { 
+    return _descriptors3[i];
+}
+
+inline const int &Bead::getDescriptorNumber(int i) const {
+    return _descriptornumber[i];
 }
 
 inline void Bead::HasVel(bool b) { bead_velocity_set_ = b; }
