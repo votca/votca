@@ -27,8 +27,17 @@
 // include libint last otherwise it overrides eigen
 #include "votca/xtp/make_libint_work.h"
 #define LIBINT2_CONSTEXPR_STATICS 0
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
 #include <libint2.hpp>
 #include <libint2/statics_definition.h>
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 namespace votca {
 namespace xtp {
