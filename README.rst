@@ -1,4 +1,4 @@
-|Codacy Badge| |CI| |Docker| |DOI|
+|Codacy Badge| |CI| |Docker| |DOI| |JOSS|
 
 This is VOTCA, which provides the two following subpackages:
 
@@ -16,7 +16,7 @@ Basic installation
 ::
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'v2024.1'
+    version=master # or 'v2024.2'
     git clone -b ${version} https://github.com/votca/votca.git
     cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix}
     cmake --build builddir --parallel <number of cores>
@@ -50,6 +50,8 @@ You find the VOTCA-CTP repository
    :target: https://github.com/votca/votca/actions?query=workflow%3ADocker+branch%3Amaster
 .. |DOI| image:: https://zenodo.org/badge/75022030.svg
    :target: https://zenodo.org/badge/latestdoi/75022030
+.. |JOSS| image:: https://joss.theoj.org/papers/10.21105/joss.06864/status.svg
+   :target: https://doi.org/10.21105/joss.06864
 
 License:
 ########

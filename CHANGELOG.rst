@@ -1,12 +1,18 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2024.1-dev
+Version 2024.2-dev
 ==================
+
+Version 2024.2 (released 29.09.24)
+==================================
 
 -  Editorial changes for v2024.1 JOSS paper  (#1148, #1153, #1154)
 -  Fix permissions on some scripts (#1150)
 -  Fix exit code on some scripts (#1151)
+-  Update CITATION.cff (#1155)
+-  Clean up CI (#1146, #1160, #1161, #1162)
+-  supporting ORCA6 logfile reading (#1157)
 
 Version 2024.1 (released 16.07.24)
 ==================================

@@ -11,7 +11,7 @@ To install the full package:
 ::
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'v2024.1'
+    version=master # or 'v2024.2'
     git clone -b ${version} https://github.com/votca/votca.git
     cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix}
     cmake --build builddir --parallel <number of cores>
