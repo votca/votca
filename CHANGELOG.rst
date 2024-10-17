@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2024.2-dev
 ==================
 
+-  Hide some libint2 warnings (#1166)
+
 Version 2024.2 (released 29.09.24)
 ==================================
 

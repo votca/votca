@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2021 The VOTCA Development Team
+ *            Copyright 2009-2024 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -27,8 +27,17 @@
 // include libint last otherwise it overrides eigen
 #include "votca/xtp/make_libint_work.h"
 #define LIBINT2_CONSTEXPR_STATICS 0
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
 #include <libint2.hpp>
 #include <libint2/statics_definition.h>
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 namespace votca {
 namespace xtp {
