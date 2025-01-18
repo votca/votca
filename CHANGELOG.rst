@@ -5,6 +5,7 @@ Version 2024.2-dev
 ==================
 
 -  Hide some libint2 warnings (#1166)
+-  Fix CI (#1168)
 
 Version 2024.2 (released 29.09.24)
 ==================================

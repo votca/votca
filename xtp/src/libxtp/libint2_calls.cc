@@ -28,13 +28,17 @@
 #include "votca/xtp/make_libint_work.h"
 #define LIBINT2_CONSTEXPR_STATICS 0
 #if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-W#warnings"
 #elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wcpp"
 #endif
 #include <libint2.hpp>
 #include <libint2/statics_definition.h>
 #if defined(__clang__)
+#pragma clang diagnostic pop
 #elif defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
