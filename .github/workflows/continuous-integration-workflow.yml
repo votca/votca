@@ -65,16 +65,16 @@ jobs:
           - distro: 'fedora:gmxpkg'
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2024'
+          - distro: 'fedora:gmx2025'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2024'
+          - distro: 'fedora:gmx2025'
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmx2024_d'
+          - distro: 'fedora:gmx2025_d'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2024_d'
+          - distro: 'fedora:gmx2025_d'
             toolchain: clang
             cmake_build_type: Release
           - distro: 'fedora:gmx9999'
@@ -147,7 +147,7 @@ jobs:
         working-directory: builddir
       - name: Upload Report to codecov.io
         if: ${{ matrix.coverage }}
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Doxygen

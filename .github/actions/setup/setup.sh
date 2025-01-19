@@ -43,13 +43,7 @@ fi
 if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=g++ )
 elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
-  if [[ ${INPUT_DISTRO} = "fedora:intel" ]]; then
-    # intel package has its own clang++ that does not support OpenMP
-    # force usage of system clang
-    cmake_args+=( -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -GNinja )
-  else
-    cmake_args+=( -DCMAKE_CXX_COMPILER=clang++ -GNinja )
-  fi
+  cmake_args+=( -DCMAKE_CXX_COMPILER=clang++ -GNinja )
 elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
   cmake_args+=( -DCMAKE_CXX_COMPILER=icpc )
 elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi" ]]; then
@@ -94,7 +88,7 @@ else
   cmake_args+=( -DENABLE_REGRESSION_TESTING=${INPUT_REGRESSION_TESTING} )
 fi
 
-if [[ ${INPUT_DISTRO} = "fedora:intel" ]]; then
+if [[ ${INPUT_DISTRO} = *:intel ]]; then
   cmake_args+=( -DREQUIRE_MKL=ON )
 fi
 
