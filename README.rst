@@ -1,4 +1,4 @@
-|Codacy Badge| |CI| |Docker| |DOI| |JOSS|
+|Codacy Badge| |CI| |Docker| |FreeBSD| |DOI| |JOSS|
 
 This is VOTCA, which provides the two following subpackages:
 
