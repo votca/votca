@@ -147,7 +147,7 @@ jobs:
         working-directory: builddir
       - name: Upload Report to codecov.io
         if: ${{ matrix.coverage }}
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Doxygen
