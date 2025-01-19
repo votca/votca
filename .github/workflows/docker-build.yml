@@ -17,7 +17,12 @@ concurrency:
 
 jobs:
   Build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - {arch: 'amd64'}
+          - {arch: 'arm64'}
+    runs-on: ${{ matrix.config.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,6 +39,7 @@ jobs:
           elif [[ $GITHUB_REF == refs/pull/* ]]; then
             TAG=pr-${{ github.event.number }}
           fi
+          TAG+="-${{ matrix.config.arch }}"
           echo "Docker tag is ${TAG}"
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
       - name: Set up Docker Buildx
@@ -72,4 +78,50 @@ jobs:
           file: votca/.github/workflows/Dockerfile
           context: .
           pull: true
+          push: ${{ github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' ) }}
+  merge-docker-manifest:
+    runs-on: ubuntu-latest
+    needs: Build
+    steps:
+      - name: Login to Docker Container Registry
+        if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Login to Github Container Registry
+        if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          # username do not matter, but needs to be a secret, so it gets nulled out on PR from forks
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.VOTCA_BOT_TOKEN }}
+      - name: Login to Gitlab Container Registry
+        if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
+        uses: docker/login-action@v3
+        with:
+          registry: registry.gitlab.com
+          username: ${{ secrets.GITLAB_REGISTRY_USERNAME }}
+          password: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
+      - name: Create and push manifest images to Docker Container Registry
+        if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
+        uses: Noelware/docker-manifest-action@master # or use a pinned version in the Releases tab
+        with:
+          inputs: votca/votca:latest
+          images: votca/votca:latest-amd64,votca/votca:latest-arm64
+          push: ${{ github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' ) }}
+      - name: Create and push manifest images to Github Container Registry
+        if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
+        uses: Noelware/docker-manifest-action@master # or use a pinned version in the Releases tab
+        with:
+          inputs: ghcr.io/votca/votca:latest
+          images: ghcr.io/votca/votca:latest-amd64,ghcr.io/votca/votca:latest-arm64
+          push: ${{ github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' ) }}
+      - name: Create and push manifest images to GitLab Container Registry
+        if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
+        uses: Noelware/docker-manifest-action@master # or use a pinned version in the Releases tab
+        with:
+          inputs: registry.gitlab.com/votca/votca:latest
+          images: registry.gitlab.com/votca/votca:latest-amd64,registry.gitlab.com/votca/votca:latest-arm64
           push: ${{ github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' ) }}
