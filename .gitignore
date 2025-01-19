@@ -9,6 +9,7 @@ rules.ninja
 build.ninja
 .ninja_*
 *.gcov
+codecov*
 
 build*
 /csgapps
