@@ -6,6 +6,7 @@ Version 2024.2-dev
 
 -  Hide some libint2 warnings (#1166)
 -  Update CI (#1168, #1169)
+-  Add arm64 docker containe (#1164)
 
 Version 2024.2 (released 29.09.24)
 ==================================
