@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2025-dev
 ================
 
+-  CI: update release action, fix docker tag (#1172)
+
 Version 2025 (released 28.03.25)
 ================================
 
