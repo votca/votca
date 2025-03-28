@@ -1,6 +1,9 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
+Version 2025-dev
+================
+
 Version 2025 (released 28.03.25)
 ================================
 
