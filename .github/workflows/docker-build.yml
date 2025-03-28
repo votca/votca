@@ -83,6 +83,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: Build
     steps:
+      - name: Determine tag
+        id: tag
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+          elif [[ $GITHUB_REF == refs/heads/* ]]; then
+            TAG=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
+            [[ ${TAG} = master ]] && TAG="latest"
+          elif [[ $GITHUB_REF == refs/pull/* ]]; then
+            TAG=pr-${{ github.event.number }}
+          fi
+          echo "Docker tag is ${TAG}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
       - name: Login to Docker Container Registry
         if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
         uses: docker/login-action@v3
@@ -108,20 +121,20 @@ jobs:
         if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
         uses: Noelware/docker-manifest-action@master # or use a pinned version in the Releases tab
         with:
-          inputs: votca/votca:latest
-          images: votca/votca:latest-amd64,votca/votca:latest-arm64
+          inputs: votca/votca:${{ steps.tag.outputs.tag }}
+          images: votca/votca:${{ steps.tag.outputs.tag }}-amd64,votca/votca:${{ steps.tag.outputs.tag }}-arm64
           push: ${{ github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' ) }}
       - name: Create and push manifest images to Github Container Registry
         if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
         uses: Noelware/docker-manifest-action@master # or use a pinned version in the Releases tab
         with:
-          inputs: ghcr.io/votca/votca:latest
-          images: ghcr.io/votca/votca:latest-amd64,ghcr.io/votca/votca:latest-arm64
+          inputs: ghcr.io/votca/votca:${{ steps.tag.outputs.tag }}
+          images: ghcr.io/votca/votca:${{ steps.tag.outputs.tag }}-amd64,ghcr.io/votca/votca:${{ steps.tag.outputs.tag }}-arm64
           push: ${{ github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' ) }}
       - name: Create and push manifest images to GitLab Container Registry
         if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
         uses: Noelware/docker-manifest-action@master # or use a pinned version in the Releases tab
         with:
-          inputs: registry.gitlab.com/votca/votca:latest
-          images: registry.gitlab.com/votca/votca:latest-amd64,registry.gitlab.com/votca/votca:latest-arm64
+          inputs: registry.gitlab.com/votca/votca:${{ steps.tag.outputs.tag }}
+          images: registry.gitlab.com/votca/votca:${{ steps.tag.outputs.tag }}-amd64,registry.gitlab.com/votca/votca:${{ steps.tag.outputs.tag }}-arm64
           push: ${{ github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' ) }}

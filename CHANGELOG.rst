@@ -4,12 +4,14 @@ For more detailed information about the changes see the history of the
 Version 2025-dev
 ================
 
+-  CI: update release action, fix docker tag (#1172)
+
 Version 2025 (released 28.03.25)
 ================================
 
 -  Hide some libint2 warnings (#1166)
 -  Update CI (#1168, #1169)
--  Add arm64 docker containe (#1164)
+-  Add arm64 docker container (#1164)
 
 Version 2024.2 (released 29.09.24)
 ==================================

@@ -83,11 +83,9 @@ jobs:
           changelog: 'release_changelog.md'
       - name: Create Release
         if: ${{ steps.setup.outputs.DEPLOY == 'true' }}
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.VOTCA_BOT_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.setup.outputs.VERSION }}
-          release_name: v${{ steps.setup.outputs.VERSION }}
           prerelease: ${{ contains(steps.setup.outputs.VERSION, 'rc') }}
           body_path: 'release_changelog.md'
+          token: ${{ secrets.VOTCA_BOT_TOKEN }}
