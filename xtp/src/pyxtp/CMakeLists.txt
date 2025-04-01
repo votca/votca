@@ -28,7 +28,7 @@ set_target_properties(xtp_binds PROPERTIES XTP_PYPATH "${XTP_PYPATH}")
 target_link_libraries(xtp_binds PUBLIC VOTCA::votca_xtp)
 
 if(NOT CMAKE_INSTALL_PYTHON_LIBDIR)
-  set(CMAKE_INSTALL_PYTHON_LIBDIR "${CMAKE_INSTALL_LIBDIR}/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages")
+  set(CMAKE_INSTALL_PYTHON_LIBDIR "${CMAKE_INSTALL_LIBDIR}/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
 endif()
 install(TARGETS xtp_binds LIBRARY DESTINATION ${CMAKE_INSTALL_PYTHON_LIBDIR}/pyxtp)
 add_library(VOTCA::xtp_binds ALIAS xtp_binds)
