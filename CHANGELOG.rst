@@ -6,6 +6,7 @@ Version 2025-dev
 
 -  CI: update release action, fix docker tag (#1172)
 -  CMake: fix python install (#1174)
+-  Update CI (#1175)
 
 Version 2025 (released 28.03.25)
 ================================
