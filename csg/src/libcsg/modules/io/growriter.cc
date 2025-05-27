@@ -34,7 +34,10 @@ void GROWriter::Open(string file, bool bAppend) {
 void GROWriter::Close() { fclose(out_); }
 
 void GROWriter::Write(Topology *conf) {
-  char format[100];
+
+  constexpr int MAX_FMT_STR_LEN = 100;
+
+  char format[MAX_FMT_STR_LEN];
   Index i, l, vpr;
   Topology *top = conf;
 
@@ -50,11 +53,11 @@ void GROWriter::Write(Topology *conf) {
   l = pr + 5;
   vpr = pr + 1;
   if (v) {
-    sprintf(format,
+    snprintf(format, MAX_FMT_STR_LEN,
             "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf\n", l,
             pr, l, pr, l, pr, l, vpr, l, vpr, l, vpr);
   } else {
-    sprintf(format, "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf\n", l, pr, l, pr, l, pr);
+    snprintf(format, MAX_FMT_STR_LEN, "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf\n", l, pr, l, pr, l, pr);
   }
 
   for (i = 0; i < top->BeadCount(); i++) {
@@ -87,14 +90,14 @@ void GROWriter::Write(Topology *conf) {
   box_offdiag.diagonal().array() = 0.0;
 
   if (box_offdiag.isApproxToConstant(0, 1e-9)) {
-    sprintf(format,
+    snprintf(format, MAX_FMT_STR_LEN,
             "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf"
             "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf\n",
             l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr);
     fprintf(out_, format, box(0, 0), box(1, 1), box(2, 2), box(1, 0), box(2, 0),
             box(0, 1), box(2, 1), box(0, 2), box(1, 2));
   } else {
-    sprintf(format, "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf\n", l, pr, l, pr, l, pr);
+    snprintf(format, MAX_FMT_STR_LEN, "%%%ld.%ldf%%%ld.%ldf%%%ld.%ldf\n", l, pr, l, pr, l, pr);
     fprintf(out_, format, box(0, 0), box(1, 1), box(2, 2));
   }
   fflush(out_);
