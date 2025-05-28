@@ -4,7 +4,7 @@ For more detailed information about the changes see the history of the
 Version 2025-dev
 ================
 
--  Fix deprecation warning/error on MacOS
+-  Fix deprecation warning/error on MacOS (#1178)
 -  CI: update release action, fix docker tag (#1172)
 -  CMake: fix python install (#1174)
 -  Update CI (#1175)
