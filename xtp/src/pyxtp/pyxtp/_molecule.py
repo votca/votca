@@ -76,9 +76,16 @@ class Molecule(ase.Atoms):
 
         return new
 
-    def write_xyz_file(self, path_to_file: Pathlike):
-        ase.io.write(path_to_file, images = self, format = "xyz")
+    @staticmethod
+    def to_xyz_file(path_to_file: Pathlike, mol: "Molecule"):
+        ase.io.write(path_to_file, images = mol, format = "xyz")
 
-    def read_xyz_file(self, path_to_file: Pathlike):
+    @staticmethod
+    def from_xyz_file(path_to_file: Pathlike):
+
+        file_path = Path(path_to_file)
+        if not file_path.exists():
+            raise ValueError(f"{path_to_file} does not exist")
+
         atoms = ase.io.read(path_to_file, format="xyz")
         return Molecule(Path(path_to_file).stem, atoms=atoms)
