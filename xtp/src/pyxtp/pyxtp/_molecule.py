@@ -81,4 +81,4 @@ class Molecule(ase.Atoms):
 
     def read_xyz_file(self, path_to_file: Pathlike):
         atoms = ase.io.read(path_to_file, format="xyz")
-        return self.__init__(Path(path_to_file).stem, atoms)
+        return Molecule(Path(path_to_file).stem, atoms=atoms)
