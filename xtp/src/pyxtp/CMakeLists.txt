@@ -25,9 +25,9 @@ install(TARGETS xtp_binds LIBRARY DESTINATION ${CMAKE_INSTALL_PYTHON_LIBDIR}/pyx
 
 install (CODE "
     message(STATUS \"Installing Python package with pip from ${CMAKE_CURRENT_SOURCE_DIR}...\")
-    message(AUTHOR_WARNING \"This will install to your system wide packages if you don't install in a venv.\")
+    message(AUTHOR_WARNING \"pyxtp will be installed to your system wide packages if you don't install in a venv.\")
     execute_process(
-    COMMAND ${Python_EXECUTABLE} -m pip install --break-system-packages ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND ${Python_EXECUTABLE} -m pip install --upgrade --break-system-packages ${CMAKE_CURRENT_SOURCE_DIR}
     RESULT_VARIABLE _pip_result
   )
   if(NOT _pip_result EQUAL 0)
