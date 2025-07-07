@@ -18,16 +18,15 @@ set_target_properties(xtp_binds PROPERTIES XTP_PYPATH "${XTP_PYPATH}")
 target_link_libraries(xtp_binds PUBLIC VOTCA::votca_xtp)
 
 if(NOT CMAKE_INSTALL_PYTHON_LIBDIR)
-  set(CMAKE_INSTALL_PYTHON_LIBDIR ${Python_SITELIB})
+  set(CMAKE_INSTALL_PYTHON_LIBDIR "${CMAKE_INSTALL_LIBDIR}/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
 endif()
 
 install(TARGETS xtp_binds LIBRARY DESTINATION ${CMAKE_INSTALL_PYTHON_LIBDIR}/pyxtp_binds)
 
 install (CODE "
     message(STATUS \"Installing Python package with pip from ${CMAKE_CURRENT_SOURCE_DIR}...\")
-    message(AUTHOR_WARNING \"pyxtp will be installed to your system wide packages if you don't install in a venv.\")
     execute_process(
-    COMMAND ${Python_EXECUTABLE} -m pip install --upgrade --break-system-packages ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND ${Python_EXECUTABLE} -m pip install --upgrade --target ${CMAKE_INSTALL_PYTHON_LIBDIR} ${CMAKE_CURRENT_SOURCE_DIR}
     RESULT_VARIABLE _pip_result
   )
   if(NOT _pip_result EQUAL 0)
