@@ -22,6 +22,7 @@ if(NOT CMAKE_INSTALL_PYTHON_LIBDIR)
 endif()
 
 install(TARGETS xtp_binds LIBRARY DESTINATION ${CMAKE_INSTALL_PYTHON_LIBDIR}/pyxtp_binds)
+add_library(VOTCA::xtp_binds ALIAS xtp_binds)
 
 install (CODE "
     message(STATUS \"Installing Python package with pip from ${CMAKE_CURRENT_SOURCE_DIR}...\")
@@ -34,7 +35,10 @@ install (CODE "
   endif()"
 )
 
-add_library(VOTCA::xtp_binds ALIAS xtp_binds)
+# install pyxtp to build dir as well.
+add_custom_target(pyxtp_bindir_install COMMAND ${Python_EXECUTABLE} -m pip install --upgrade --target ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+add_dependencies(xtp_binds pyxtp_bindir_install)
+
 
 if(BUILD_TESTING AND PYpytest_FOUND)
   add_test(NAME integration_test_xtp_binds COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR} )
