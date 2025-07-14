@@ -35,9 +35,9 @@ install (CODE "
   endif()"
 )
 
-# install pyxtp to build dir as well.
-add_custom_target(pyxtp_bindir_install COMMAND ${Python_EXECUTABLE} -m pip install --no-deps --target ${XTP_PYPATH} ${CMAKE_CURRENT_SOURCE_DIR})
-add_dependencies(xtp_binds pyxtp_bindir_install)
+# copy pyxtp to build dir as well.
+add_custom_target(pyxtp_bindir_copy COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/pyxtp ${CMAKE_CURRENT_BINARY_DIR})
+add_dependencies(xtp_binds pyxtp_bindir_copy)
 
 
 if(BUILD_TESTING AND PYpytest_FOUND)
