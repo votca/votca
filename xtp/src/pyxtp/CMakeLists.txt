@@ -36,7 +36,7 @@ install (CODE "
 )
 
 # install pyxtp to build dir as well.
-add_custom_target(pyxtp_bindir_install COMMAND ${Python_EXECUTABLE} -m pip install --upgrade --target ${XTP_PYPATH} ${CMAKE_CURRENT_SOURCE_DIR})
+add_custom_target(pyxtp_bindir_install COMMAND ${Python_EXECUTABLE} -m pip install --no-deps --target ${XTP_PYPATH} ${CMAKE_CURRENT_SOURCE_DIR})
 add_dependencies(xtp_binds pyxtp_bindir_install)
 
 
