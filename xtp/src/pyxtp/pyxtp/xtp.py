@@ -7,7 +7,7 @@ from pathlib import Path
 from ase import Atoms
 from ase.calculators.calculator import Calculator, equal, PropertyNotImplementedError
 from .capture_standard_output import capture_standard_output
-from pyxtp_binds import xtp_binds
+from pyxtp import xtp_binds
 from .options import Options
 from .utils import BOHR2ANG
 
