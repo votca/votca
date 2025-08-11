@@ -8,6 +8,7 @@ Version 2025-dev
 -  CMake: fix python install (#1174)
 -  Update CI (#1175)
 -  Fix deprecation warning on MacOS (#1178)
+-  fix build with boost-1.89.0 (#1183)
 
 Version 2025 (released 28.03.25)
 ================================

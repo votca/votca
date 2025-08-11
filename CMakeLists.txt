@@ -107,7 +107,7 @@ add_feature_info(INSTALL_RC_FILES INSTALL_RC_FILES "Install votca rc files (VOTC
 #Find external packages
 ########################################################################
 find_package(Boost 1.71.0 REQUIRED
-  COMPONENTS program_options filesystem system regex timer)
+  COMPONENTS program_options filesystem regex timer)
 set_package_properties(Boost PROPERTIES TYPE REQUIRED PURPOSE "Extended C++ libraries")
 
 find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
