@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyxtp"
+version = "0.1.0"
+authors = [
+  { name="Bjoern Baumeier", email="bjoernbaumeier@gmail.com" },
+]
+
+dependencies = ["ase", "xmltodict", "h5py", "lxml", "rdkit"]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+
+[project.urls]
+Homepage = "https://github.com/votca/votca"
+Issues = "https://github.com/votca/votca/issues"
