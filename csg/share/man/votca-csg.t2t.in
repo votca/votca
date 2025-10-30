@@ -20,8 +20,6 @@ Please visit the program site at __http://www.votca.org__.
 
 The following commands make up the votca-csg suite.  Please refer to their individual man pages for further details.
 
-: **csg_boltzmann**
-Performs tasks that are needed for simple Boltzmann inversion in an interactive environment.
 : **csg_call**
 Calls script from the interactive framework for the user.
 : **csg_density**

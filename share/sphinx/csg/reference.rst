@@ -6,11 +6,6 @@ Reference
 Programs
 --------
 
-csg_boltzmann
-^^^^^^^^^^^^^
-
-.. include:: csg_boltzmann.rst
-
 csg_call
 ^^^^^^^^
 
