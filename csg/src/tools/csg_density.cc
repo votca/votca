@@ -55,7 +55,7 @@ class CsgDensityApp : public CsgApplication {
 
  protected:
   string filter_, out_;
-  votca::tools::HistogramNew dist_;
+  votca::tools::Histogram dist_;
   string dens_type_;
   double rmax_;
   votca::Index nbin_;

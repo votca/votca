@@ -25,7 +25,7 @@ using namespace std;
 namespace votca {
 namespace tools {
 
-void HistogramNew::Initialize_() {
+void Histogram::Initialize_() {
   if (periodic_) {
     step_ = (max_ - min_) / double(nbins_);
   } else {
@@ -45,14 +45,14 @@ void HistogramNew::Initialize_() {
   data_.flags() = std::vector<char>(nbins_, 'i');
 }
 
-void HistogramNew::Initialize(double min, double max, Index nbins) {
+void Histogram::Initialize(double min, double max, Index nbins) {
   min_ = min;
   max_ = max;
   nbins_ = nbins;
   Initialize_();
 }
 
-void HistogramNew::Process(const double &v, double scale) {
+void Histogram::Process(const double &v, double scale) {
 
   Index i = (Index)floor((v - min_) / step_ + 0.5);
   if (i < 0 || i >= nbins_) {
@@ -69,11 +69,11 @@ void HistogramNew::Process(const double &v, double scale) {
   data_.y(i) += scale;
 }
 
-double HistogramNew::getMinBinVal() const { return data_.getMinY(); }
+double Histogram::getMinBinVal() const { return data_.getMinY(); }
 
-double HistogramNew::getMaxBinVal() const { return data_.getMaxY(); }
+double Histogram::getMaxBinVal() const { return data_.getMaxY(); }
 
-pair<double, double> HistogramNew::getInterval(Index bin) const {
+pair<double, double> Histogram::getInterval(Index bin) const {
   pair<double, double> bounds;
   double value = static_cast<double>(bin);
   bounds.first = value * step_ + min_;
@@ -81,14 +81,14 @@ pair<double, double> HistogramNew::getInterval(Index bin) const {
   return bounds;
 }
 
-void HistogramNew::Normalize() {
+void Histogram::Normalize() {
   double area = 0;
   area = data_.y().cwiseAbs().sum() * step_;
   double scale = 1. / area;
   data_.y() *= scale;
 }
 
-void HistogramNew::Clear() {
+void Histogram::Clear() {
   data_.y() = Eigen::VectorXd::Zero(nbins_);
   data_.yerr() = Eigen::VectorXd::Zero(nbins_);
 }

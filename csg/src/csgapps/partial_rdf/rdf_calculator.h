@@ -89,7 +89,7 @@ class RDFCalculator {
   struct interaction_t {
     Index index_;
     Property *p_;
-    HistogramNew average_;
+    Histogram average_;
     double min_, max_, step_;
     double norm_;
     bool is_bonded_;
@@ -150,7 +150,7 @@ class RDFCalculator {
 
   class Worker : public CsgApplication::Worker {
    public:
-    std::vector<HistogramNew> current_hists_;
+    std::vector<Histogram> current_hists_;
     RDFCalculator *rdfcalculator_;
     double cur_vol_;
     double cur_beadlist_1_count_;  // need to normalize to avg density for

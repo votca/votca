@@ -131,7 +131,7 @@ void IAnalyze::IHist(Topology &top, QMStateType state) {
   // Prepare bins
   Index BIN = Index((MAX - MIN) / resolution_logJ2_ + 0.5) + 1;
 
-  tools::HistogramNew hist;
+  tools::Histogram hist;
   hist.Initialize(MIN, MAX, BIN);
   hist.ProcessRange<std::vector<double>::iterator>(J2s.begin(), J2s.end());
   tools::Table &tab = hist.data();

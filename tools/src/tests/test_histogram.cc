@@ -34,17 +34,17 @@ using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(histogram_test)
 
-BOOST_AUTO_TEST_CASE(create_test) { HistogramNew hn; }
+BOOST_AUTO_TEST_CASE(create_test) { Histogram hn; }
 
 BOOST_AUTO_TEST_CASE(init_test) {
-  HistogramNew hn;
+  Histogram hn;
   double min_v = 1.2;
   double max_v = 102.0;
   hn.Initialize(min_v, max_v, 10);
 }
 
 BOOST_AUTO_TEST_CASE(step_test) {
-  HistogramNew hn;
+  Histogram hn;
   double min_v = 1;
   double max_v = 9;
   hn.Initialize(min_v, max_v, 8);
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(step_test) {
 }
 
 BOOST_AUTO_TEST_CASE(nbins_test) {
-  HistogramNew hn;
+  Histogram hn;
   double min_v = 1.0;
   double max_v = 9.0;
   hn.Initialize(min_v, max_v, 8);
@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(nbins_test) {
 }
 
 BOOST_AUTO_TEST_CASE(Process_test) {
-  HistogramNew hn;
+  Histogram hn;
   double min_v = 0.0;
   double max_v = 10.0;
   hn.Initialize(min_v, max_v, 11);
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(Process_test) {
 }
 
 BOOST_AUTO_TEST_CASE(minmax_test) {
-  HistogramNew hn;
+  Histogram hn;
   double min_v = 0.0;
   double max_v = 10.0;
   hn.Initialize(min_v, max_v, 10);

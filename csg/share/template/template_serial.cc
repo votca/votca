@@ -41,7 +41,7 @@ class CsgTestApp : public CsgApplication {
   void EndEvaluate() override;
 
  protected:
-  votca::tools::HistogramNew rdf_;
+  votca::tools::Histogram rdf_;
   double cut_off_;
 };
 

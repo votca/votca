@@ -64,8 +64,8 @@ class Imc {
   struct interaction_t {
     votca::Index index_;
     tools::Property *p_;
-    tools::HistogramNew average_;
-    tools::HistogramNew average_force_;
+    tools::Histogram average_;
+    tools::Histogram average_force_;
     double min_, max_, step_;
     double norm_;
     double cut_;
@@ -137,8 +137,8 @@ class Imc {
 
   class Worker : public CsgApplication::Worker {
    public:
-    std::vector<tools::HistogramNew> current_hists_;
-    std::vector<tools::HistogramNew> current_hists_force_;
+    std::vector<tools::Histogram> current_hists_;
+    std::vector<tools::Histogram> current_hists_force_;
     Imc *imc_;
     double cur_vol_;
 

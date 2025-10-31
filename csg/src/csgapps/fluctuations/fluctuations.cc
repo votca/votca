@@ -173,7 +173,7 @@ void CsgFluctuations::EvalConfiguration(Topology *conf, Topology *) {
     }
   }
 
-  votca::tools::HistogramNew hist;
+  votca::tools::Histogram hist;
   hist.Initialize(rmin_, rmax_, nbins_);
 
   /* check how many molecules are in each bin*/

@@ -287,10 +287,10 @@ void Imc::ClearAverages() {
 
 class IMCNBSearchHandler {
  public:
-  explicit IMCNBSearchHandler(votca::tools::HistogramNew *hist)
+  explicit IMCNBSearchHandler(votca::tools::Histogram *hist)
       : hist_(*hist) {}
 
-  votca::tools::HistogramNew &hist_;
+  votca::tools::Histogram &hist_;
 
   bool FoundPair(Bead *, Bead *, const Eigen::Vector3d &, const double dist) {
     hist_.Process(dist);

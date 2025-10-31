@@ -36,7 +36,7 @@ namespace tools {
  *  will place bins at those positions. For example if I want to create a
  *  histogram for 0 to 5 with bins centered at 0 and 5, I could do:
  *
- *      HistogramNew hn;
+ *      Histogram hn;
  *      double min_value = 0.0;
  *      double max_value = 5.0;
  *      Index number_bins  = 6;
@@ -74,10 +74,10 @@ namespace tools {
  *  0.00 - 0.416 and 4.580 - 5.00
  *
  */
-class HistogramNew {
+class Histogram {
  public:
   /**
-   * \brief Initialize the HistogramNew
+   * \brief Initialize the Histogram
    * @param min lower bound of interval
    * @param max upper bound of interval
    * @param nbins number of bins
@@ -173,13 +173,13 @@ class HistogramNew {
   Table data_;
 };
 
-inline std::ostream &operator<<(std::ostream &out, HistogramNew &h) {
+inline std::ostream &operator<<(std::ostream &out, Histogram &h) {
   out << h.data();
   return out;
 }
 
 template <typename iterator_type>
-inline void HistogramNew::ProcessRange(const iterator_type &begin,
+inline void Histogram::ProcessRange(const iterator_type &begin,
                                        const iterator_type &end) {
   for (iterator_type iter = begin; iter != end; ++iter) {
     Process(*iter);

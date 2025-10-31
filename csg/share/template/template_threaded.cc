@@ -77,7 +77,7 @@ class CsgParallelTestApp : public CsgApplication {
 
  protected:
   // data belonging to the main class CsgParallelTestApp
-  votca::tools::HistogramNew rdf_;
+  votca::tools::Histogram rdf_;
   double cut_off_;
 };
 
@@ -88,7 +88,7 @@ class RDFWorker : public CsgApplication::Worker {
   // override EvalConfiguration with your analysis routine
   void EvalConfiguration(Topology *, Topology *) override;
   // data belonging to this particular worker
-  votca::tools::HistogramNew rdf_;
+  votca::tools::Histogram rdf_;
   double cut_off_;
 };
 
