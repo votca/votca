@@ -30,7 +30,6 @@ For an installation guide see `here <INSTALL.html>`__.
    :hidden:
    :caption: Tutorials
 
-   csg-tutorials/Tutorial.rst
    xtp-tutorials/XTP-TUTORIAL.rst
    
 .. toctree::

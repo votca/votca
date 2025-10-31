@@ -89,8 +89,7 @@ Extracts from the ``propane.xml`` file of the tutorial are shown below.
     </maps>
   </cg_molecule> <!-- end of the molecule -->
   
-  An extract from the mapping file propane.xml of a propane molecule. The complete
-  file can be found in the csg-tutorials/propane/single_molecule tutorial
+  An extract from the mapping file propane.xml of a propane molecule.
 
 The ``name`` tag indicates the molecule name in the coarse-grained topology. The
 ``ident`` tag must match the name of the molecule in the atomistic representation.
