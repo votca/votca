@@ -31,4 +31,4 @@ jobs:
           export LC_ALL=C LANG=C
           cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -B builddir
           cmake --build builddir --parallel 2
-          cd builddir && ctest --output-on-failure -E regression_
+          cd builddir && ctest --output-on-failure

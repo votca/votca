@@ -96,19 +96,7 @@ jobs:
           - distro: 'fedora:latest'
             toolchain: gnu
             cmake_build_type: Debug
-            coverage: 'Group1'
-          - distro: 'fedora:latest'
-            toolchain: gnu
-            cmake_build_type: Debug
-            coverage: 'Group2'
-          - distro: 'fedora:latest'
-            toolchain: gnu
-            cmake_build_type: Debug
-            coverage: 'Group3'
-          - distro: 'fedora:latest'
-            toolchain: gnu
-            cmake_build_type: Debug
-            coverage: 'RestGroup'
+            coverage: true
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/votca/buildenv/${{ matrix.distro }}
@@ -125,7 +113,6 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           minimal: ${{ matrix.minimal == true }}
           own_gmx: ${{ matrix.own_gmx == true }}
-          regression_testing: ${{ matrix.deploy != true }}
           coverage: ${{ matrix.coverage }}
           cmake_build_type: ${{ matrix.cmake_build_type }}
           ctest_args: ${{ matrix.ctest_args }}

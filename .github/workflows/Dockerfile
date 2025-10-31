@@ -10,5 +10,5 @@ RUN cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
   -B builddir
 RUN cmake --build builddir --parallel 2
-RUN cd builddir && ctest --output-on-failure -E regression_
+RUN cd builddir && ctest --output-on-failure
 RUN sudo cmake --install builddir

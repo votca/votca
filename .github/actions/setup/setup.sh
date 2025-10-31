@@ -13,7 +13,7 @@ print_output() {
   echo "$1=${@:2}" >> $GITHUB_OUTPUT
 }
 
-for i in INPUT_MINIMAL INPUT_OWN_GMX INPUT_REGRESSION_TESTING; do
+for i in INPUT_MINIMAL INPUT_OWN_GMX; do
   [[ "${!i}" = @(true|false) ]] || die "value of $i is ${!i}, excepted 'true' or 'false'"
   echo "$i='${!i}'"
 done
@@ -125,26 +125,6 @@ else
 fi
 
 ctest_args=( )
-if [[ ${INPUT_COVERAGE} || ${INPUT_CODE_ANALYZER} = coverage* ]]; then
-  # split coverage into 4 group with less than 1hr runtime
-  # used votca/votca, csg, tools only
-  # other modules can use 'RestGroup' to run all tests
-
-  # false means the same as empty
-  if [[ ${INPUT_COVERAGE} = "false" ]]; then
-    :
-  elif [[ ${INPUT_COVERAGE} = "Group1" || ${INPUT_CODE_ANALYZER} = "coverage:Group1" ]]; then
-    ctest_args+=( -R "regression_urea-water" )
-  elif [[ ${INPUT_COVERAGE} = "Group2" || ${INPUT_CODE_ANALYZER} = "coverage:Group2" ]]; then
-    ctest_args+=( -R "'regression_spce_(re|imc|cma)'" )
-  elif [[ ${INPUT_COVERAGE} = "Group3" || ${INPUT_CODE_ANALYZER} = "coverage:Group3" ]]; then
-    ctest_args+=( -R "'regression_(methanol-water|propane_imc)'" )
-  elif [[ ${INPUT_COVERAGE} = "RestGroup" || ${INPUT_COVERAGE} = "true" || ${INPUT_CODE_ANALYZER} = "coverage" || ${INPUT_CODE_ANALYZER} = "coverage:RestGroup" ]]; then
-    ctest_args+=( -E "'regression_(urea-water|spce_(re|imc|cma)|methanol-water|propane_imc)'" )
-  else
-    die "Unknown coverage set: ${INPUT_COVERAGE} / ${INPUT_CODE_ANALYZER}"
-  fi
-fi
 ctest_args+=( ${INPUT_CTEST_ARGS} )
 print_output "ctest_args" "${ctest_args[@]}"
 
