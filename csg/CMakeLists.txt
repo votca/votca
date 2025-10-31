@@ -5,7 +5,7 @@ find_program(GMX_EXECUTABLE NAMES gmx_d gmx)
 find_package_handle_standard_args(GMX REQUIRED_VARS GMX_EXECUTABLE)
 
 if(BUILD_TESTING)
-  set(INTEGRATIONTEST_TOLERANCE "5e-5" CACHE STRING "Tolerance for the regression tests")
+  set(INTEGRATIONTEST_TOLERANCE "5e-5" CACHE STRING "Tolerance for the integration tests")
   mark_as_advanced(INTEGRATIONTEST_TOLERANCE)
   find_package(UnixCommands REQUIRED)
   set_package_properties(UnixCommands PROPERTIES TYPE OPTIONAL PURPOSE "Used in testing")

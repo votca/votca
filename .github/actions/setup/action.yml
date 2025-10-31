@@ -32,10 +32,6 @@ inputs:
     description: 'Whether to build our own gromacs'
     required: true
     default: false
-  regression_testing:
-    description: 'Whether to run regression testing'
-    required: true
-    default: true
   toolchain:
     description: 'What compiler to use'
     required: true

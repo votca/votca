@@ -184,7 +184,6 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 
 add_subdirectory(tools)
 add_subdirectory(csg)
-add_subdirectory(csg-tutorials)
 if(BUILD_XTP)
   add_subdirectory(xtp)
   add_subdirectory(xtp-tutorials)

@@ -290,7 +290,6 @@ section with the appropriate interaction name:
    </cg>
 
 For a further description of posprocessing, we refer again to sec. :ref:`preparing_post-processing_of_the_potential`.
-For a more detailed example, we refer to the tutorial in csg-tutorials/spce/3body_sw/.
 
 .. _methods_iterative_methods:
 
@@ -366,9 +365,6 @@ for the potentials that are iteratively refined, must be provided and
 added to the ``<filelist>`` in the settings XML-file. If an atomistic topology and a
 mapping definition are present, VOTCA offers tools to assist the setup of
 a coarse-grained topology (see :ref:`preparing`).
-
-To get an overview of how input files look like, it is suggested to take
-a look at one of the tutorials provided in csg_tutorials.
 
 In what follows we describe how to set up the iterative coarse-graining,
 run the main script, continue the run, and add customized scripts.
