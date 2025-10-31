@@ -19,7 +19,7 @@
 #include <algorithm>
 
 // Local VOTCA includes
-#include "votca/tools/histogramnew.h"
+#include "votca/tools/histogram.h"
 
 using namespace std;
 namespace votca {

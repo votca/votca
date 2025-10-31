@@ -20,7 +20,7 @@
 #include <numeric>
 
 // VOTCA includes
-#include <votca/tools/histogramnew.h>
+#include <votca/tools/histogram.h>
 
 // Local VOTCA includes
 #include "votca/xtp/qmstate.h"

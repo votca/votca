@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef VOTCA_TOOLS_HISTOGRAMNEW_H
-#define VOTCA_TOOLS_HISTOGRAMNEW_H
+#ifndef VOTCA_TOOLS_HISTOGRAM_H
+#define VOTCA_TOOLS_HISTOGRAM_H
 
 // Standard includes
 #include <cmath>
@@ -187,4 +187,4 @@ inline void HistogramNew::ProcessRange(const iterator_type &begin,
 }
 }  // namespace tools
 }  // namespace votca
-#endif  // VOTCA_TOOLS_HISTOGRAMNEW_H
+#endif  // VOTCA_TOOLS_HISTOGRAM_H

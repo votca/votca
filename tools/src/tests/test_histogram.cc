@@ -16,7 +16,7 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE histogramnew_test
+#define BOOST_TEST_MODULE histogram_test
 
 // Standard includes
 #include <exception>
@@ -26,13 +26,13 @@
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
-#include "votca/tools/histogramnew.h"
+#include "votca/tools/histogram.h"
 #include "votca/tools/table.h"
 
 using namespace std;
 using namespace votca::tools;
 
-BOOST_AUTO_TEST_SUITE(histogramnew_test)
+BOOST_AUTO_TEST_SUITE(histogram_test)
 
 BOOST_AUTO_TEST_CASE(create_test) { HistogramNew hn; }
 

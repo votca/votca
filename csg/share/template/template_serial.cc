@@ -20,7 +20,7 @@
 #include <votca/csg/csgapplication.h>
 #include <votca/csg/nblist.h>
 #include <votca/csg/nblistgrid.h>
-#include <votca/tools/histogramnew.h>
+#include <votca/tools/histogram.h>
 
 // using namespace votca::tools;
 using namespace std;

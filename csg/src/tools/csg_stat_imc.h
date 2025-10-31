@@ -20,7 +20,7 @@
 
 // VOTCA includes
 #include <votca/tools/average.h>
-#include <votca/tools/histogramnew.h>
+#include <votca/tools/histogram.h>
 #include <votca/tools/property.h>
 
 // Local VOTCA includes

@@ -27,7 +27,7 @@
 #include <numeric>
 
 // VOTCA includes
-#include <votca/tools/histogramnew.h>
+#include <votca/tools/histogram.h>
 #include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
