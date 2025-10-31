@@ -534,11 +534,8 @@ folder. Have a look at the ``run.sh`` script. Again, adjust the number
 of time steps and the output frequencies in grompp.mdp and run an
 atomistic simulation. Extract the thermodynamic information
 (``./Extract_Energies.sh``) and calculate the 3 different RDFs (A-A,
-B-B, A-B) and the bond and angle distributions with ``csg_stat``. In
-addition, you can compute the bond and angle distributions with
-``csg_boltzmann`` (see ``run_boltzmann.sh``) Compare the distributions
-to those in ``csg-tutorials/hexane/ibi_all`` obtained by a significantly
-longer atomistic MD run. You can map the (final) .gro file of the
+B-B, A-B) and the bond and angle distributions with ``csg_stat``.
+You can map the (final) .gro file of the
 atomistic simuation to the CG one to get all necessary information for
 running the IBI procedure.
 
@@ -568,20 +565,18 @@ contains the same target RDFs as the ``csg-tutorials/hexane/ibi_all``
 folder. In addition, it contains the tabulated bond and angle potentials
 (``table_b1.xvg`` and ``table_a1.xvg``). They are obtained by
 (non-iterative) Boltzmann inversion of the bond and angle target
-distribution functions of a longer MD simulation run. You can compute
-them with ``csg_boltzmann`` (see the ``run_boltzmann.sh`` script). A
-lack of statistics will become most apparent at lower values of the
-angle. In this case you might want to adjust the min value in the
-``boltzmann_cmds`` file. Compare your results with the pre-computed ones
+distribution functions of a longer MD simulation run. 
+Calculate the bond and angle
+distributions (This can be done with ``csg_stat``, using the
+``settings.xml`` file and the ``hexane_cg.xml`` mapping file of the
+``csg-tutorials/hexane/ibi_all`` folder.)
+Compare your results with the pre-computed ones
 (``table_b1.xvg`` and ``table_a1.xvg``) and with the ones in the
 subfolder ``step_001`` in ``csg-tutorials/hexane/ibi_all`` Again, adjust
 the number of time steps and equilibration time and start the iteration
 process. Calculate the pressure and compare the thermodynamic properties
 as well as the obtained non-bonded potentials with the ones of the
-``csg-tutorials/hexane/ibi_all tutorial``. Calculate the bond and angle
-distributions (This can be done with ``csg_stat``, using the
-``settings.xml`` file and the ``hexane_cg.xml`` mapping file of the
-``csg-tutorials/hexane/ibi_all`` folder.)
+``csg-tutorials/hexane/ibi_all tutorial``.
 
 FM for all interactions together
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

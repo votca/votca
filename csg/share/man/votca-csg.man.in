@@ -14,9 +14,6 @@ Please visit the program site at __http://www.votca.org__.
 The following commands make up the votca\-csg suite.  Please refer to their individual man pages for further details.
 
 .TP
-\fBcsg_boltzmann\fR
-Performs tasks that are needed for simple Boltzmann inversion in an interactive environment.
-.TP
 \fBcsg_call\fR
 Calls script from the interactive framework for the user.
 .TP

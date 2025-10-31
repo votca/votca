@@ -18,119 +18,22 @@ degrees of freedom [Tschoep:1998]_. The non-bonded
 potentials can then be obtained by using iterative methods or force
 matching.
 
-The main tool which can be used to calculate histograms, cross-correlate
-coarse-grained variables, create exclusion lists, as well as prepare
-tabulated potentials for coarse-grained simulations is ``csg_boltzmann``. It parses the
+The main tool which can be used to calculate histograms, 
+coarse-grained variables, as well as prepare
+tabulated potentials for coarse-grained simulations is ``csg_stat``. It parses the
 whole trajectory and stores all information on bonded interactions in
-memory, which is useful for interactive analysis. For big systems,
-however, one can run out of memory. In this case ``csg_stat`` can be used which,
-however, has a limited number of tasks it can perform (see 
-:ref:`input_files_setting_files` for an example on its usage).
+memory, which is useful for interactive analysis.
 
 Another useful tool is ``csg_map``. It can be used to convert an atomistic
 trajectory to a coarse-grained one, as it is discussed in
 :ref:`input_files_trajectories`.
 
-To use ``csg_boltzmann`` one has to first define a mapping scheme. This is outlined
+To use ``csg_stat`` one has to first define a mapping scheme. This is outlined
 in :ref:`input_files_mapping_files`. Once the mapping scheme is specified, it
 is possible to generate an exclusion list for the proper sampling of the
 atomistic resolution system.
 
 .. _methods_exclusions:
-
-Generating exclusion lists
---------------------------
-
-Exclusion lists are useful when sampling from a special reference system
-is needed, for example for polymer coarse-graining with a separation of
-bonded and non-bonded degrees of freedom.
-
-To generate an exclusion list, an atomistic topology without exclusions
-and a mapping scheme have to be prepared first. Once the .tpr topology
-and .xml mapping files are ready, simply run
-
-.. code:: bash
-
-      csg_boltzmann --top topol.tpr --cg mapping.xml --excl exclusions.txt
-
-This will create a list of exclusions for all interactions that are not
-within a bonded interaction of the coarse-grained sub-bead. As an
-example, consider coarse-graining of a linear chain of three beads which
-are only connected by bonds. In this case, ``csg_boltzmann`` will create exclusions for
-all non-bonded interactions of atoms in the first bead with atoms of the
-3rd bead as these would contribute only to the non-bonded interaction
-potential. Note that ``csg_boltzmann`` will only create the exclusion list for the fist
-molecule in the topology.
-
-To add the exclusions to the GROMACS topology of the molecule, either
-include the file specified by the –excl option into the .top file as
-follows
-
-.. code:: none
-
-      [ exclusions ]
-      #include "exclusions.txt"
-
-or copy and paste the content of that file to the exclusions section of
-the GROMACS topology file.
-
-Statistical analysis
---------------------
-
-For statistical analysis ``csg_boltzmann`` provides an interactive mode. To enter the
-interactive mode, use the ``–trj`` option followed by the file name of
-the reference trajectory
-
-.. code:: bash
-
-      csg_boltzmann --top topol.tpr --trj traj.trr --cg mapping.xml
-
-To get help on a specific command of the interactive mode, type
-
-.. code:: none
-
-      help <command>
-
-for example
-
-.. code:: none
-
-      help hist
-      help hist set periodic
-
-Additionally, use the
-
-.. code:: none
-
-      list
-
-command for a list of available interactions. Note again that ``csg_boltzmann`` loads the
-whole trajectory and all information on bonded interactions into the
-memory. Hence, its main application should be single molecules. See the
-introduction of this chapter for ``csg_stat`` the command.
-
-If a specific interaction shall be used, it can be referred to by
-
-.. code:: none
-
-      molecule:interaction-group:index
-
-Here, ``molecule`` is the molecule number in the whole topology,
-``interaction-group`` is the name specified in the ``<bond>`` section of
-the mapping file, and ``index`` is the entry in the list of
-interactions. For example, ``1:AA-bond:10`` refers to the 10th bond
-named ``AA-bond`` in molecule 1. To specify a couple of interactions
-during analysis, either give the interactions separated by a space or
-use wildcards (e.g. ``*:AA-bond*``).
-
-To exit the interactive mode, use the command ``q``.
-
-If analysis commands are to be read from a file, use the pipe or stdin
-redirects from the shell.
-
-.. code:: bash
-
-      cat commands | csg_boltzmann topol.top --trj traj.trr --cg mapping.xml
 
 Distribution functions and tabulated potentials
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -179,65 +82,6 @@ described in :ref:`input_files_table_formats`. An optional correlation analysis
 is described in the next section. After the file has been created by
 command ``tab``, the potential is prepared for the coarse-grained run in
 :ref:`preparing`.
-
-Correlation analysis
-~~~~~~~~~~~~~~~~~~~~
-
-The factorization of :math:`P`, :ref:`as shown in the theory
-section<theory_eq_boltzmann_pmf>`, assumed uncorrelated quantities. ``csg_boltzmann``
-offers two ways to evaluate correlations of interactions. One option is to use
-the linear correlation coefficient (command ``cor``).
-
-However, this is not a good measure since ``cor`` calculates the linear
-correlation only which might often lead to misleading
-results [Ruehle:2009.a]_. An example for such a case
-are the two correlated random variables :math:`X \sim U[-1,1]` with
-uniform distribution, and :math:`Y:=X^2`. A simple calculation shows
-:math:`cov(X,Y)=0` and therefore
-
-.. math:: cor=\frac{cov(X,Y)}{\sqrt{var(X)var(Y)}}=0.
-
-A better way is to create 2D histograms. This can be done by specifying
-all values (e.g. bond length, angle, dihedral value) using the command
-*vals*, e.g.:
-
-.. code:: none
-
-      vals vals.txt 1:AA-bond:1 1:AAA-angle:A
-
-This will create a file which contains 3 columns, the first being the
-time, and the second and third being bond and angle, respectively.
-Columns 2 and 3 can either be used to generate the 2D histogram, or a
-simpler plot of column 3 over 2, whose density of points reflect the
-probability.
-
-Two examples for 2D histograms are shown below: one for the propane
-molecule and one for hexane.
-
-.. figure:: fig/propane_hist2d.png
-   :width: 300
-   
-   propane histogram
-
-.. figure:: fig/hexane2.png
-   :width: 600
-
-   hexane histograms: before and after the coarse-grained run
-
-The two plots show the correlations between angle and bondlength for
-both molecules. In the case of propane, the two quantities are not
-correlated as shown by the centered distribution, while correlations
-exist in the case of hexane. Moreover, it is visible from the hexane
-plot that the partition of the correlations has changed slightly during
-coarse-graining.
-
-The tabulated potentials created in this section can be further modified
-and prepared for the coarse-grained run: This includes fitting of a
-smooth functional form, extrapolation and clipping of poorly sampled
-regions. Further processing of the potential is decribed in 
-:ref:`preparing`.
-
-.. _methods_fm:
 
 Force matching
 ==============

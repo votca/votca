@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2025.1-dev
 ==================
 
+-  Remove csg_boltzmann (#1184)
+
 Version 2025.1 (released 03.10.25)
 ==================================
 

@@ -69,8 +69,7 @@ void CsgStatApp::HelpText(ostream &out) {
          "Optionally calculates update Eigen::Matrix3d for invere Monte Carlo. "
          "This "
          "program\n"
-         "is called inside the inverse scripts. Unlike csg_boltzmann, big "
-         "systems\n"
+         "is called inside the inverse scripts. Big systems\n"
          "can be treated as well as non-bonded interactions can be evaluated.";
 }
 

@@ -401,7 +401,3 @@ potential) and ``[error]`` is an optional error for ``y``. The token
 
 The token ``flag`` will be important when extrapolating the table as
 described in :ref:`preparing_post-processing_of_the_potential`.
-
-For historical reasons, ``csg_boltzmann`` uses a slightly different table format, it has
-no ``flag`` column and uses the third column as a force column when
-outputting a potential.

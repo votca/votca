@@ -15,7 +15,6 @@ share/man/*.man
 share/template/template_serial
 share/template/template_threaded
 share/xml/csg_defaults.xml
-src/csg_boltzmann/csg_boltzmann
 src/libcsg/version.cc
 src/tools/csg_dump
 src/tools/csg_fmatch
@@ -35,7 +34,6 @@ src/libcsg/votca_csg_config.h
 
 netbeans/*/build
 netbeans/*/dist
-src/csg_boltzmann/build
 */nbproject/private
 Makefile-variables.mk
 Package-Debug.bash
