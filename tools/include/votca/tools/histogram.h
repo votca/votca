@@ -180,7 +180,7 @@ inline std::ostream &operator<<(std::ostream &out, Histogram &h) {
 
 template <typename iterator_type>
 inline void Histogram::ProcessRange(const iterator_type &begin,
-                                       const iterator_type &end) {
+                                    const iterator_type &end) {
   for (iterator_type iter = begin; iter != end; ++iter) {
     Process(*iter);
   }

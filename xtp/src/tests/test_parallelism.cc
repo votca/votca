@@ -39,7 +39,9 @@ BOOST_AUTO_TEST_CASE(openmp) {
   // Check if the number of threads is actually generated
   int sumThreads = 0;
 #pragma omp parallel reduction(+ : sumThreads)
-  { sumThreads += 1; }
+  {
+    sumThreads += 1;
+  }
   BOOST_CHECK(inThreads == sumThreads);
 }
 #endif

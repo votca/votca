@@ -287,8 +287,7 @@ void Imc::ClearAverages() {
 
 class IMCNBSearchHandler {
  public:
-  explicit IMCNBSearchHandler(votca::tools::Histogram *hist)
-      : hist_(*hist) {}
+  explicit IMCNBSearchHandler(votca::tools::Histogram *hist) : hist_(*hist) {}
 
   votca::tools::Histogram &hist_;
 
@@ -613,8 +612,7 @@ void Imc::WriteDist(const string &suffix) {
     // preliminary
     if (interaction->force_) {
       force.Save((pair.first) + ".force.new");
-      cout << "written " << (pair.first) + ".force.new"
-           << "\n";
+      cout << "written " << (pair.first) + ".force.new" << "\n";
     }
   }
 }

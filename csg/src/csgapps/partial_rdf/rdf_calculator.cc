@@ -190,8 +190,8 @@ void RDFCalculator::ClearAverages() {
 
 class IMCNBSearchHandler {
  public:
-  IMCNBSearchHandler(Histogram *hist, double subvol_rad,
-                     Eigen::Vector3d boxc, bool do_vol_corr)
+  IMCNBSearchHandler(Histogram *hist, double subvol_rad, Eigen::Vector3d boxc,
+                     bool do_vol_corr)
       : hist_(hist),
         subvol_rad_(subvol_rad),
         boxc_(boxc),
