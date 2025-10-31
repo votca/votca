@@ -82,12 +82,6 @@ else
   cmake_args+=( -DBUILD_XTP=ON )
 fi
 
-if [[ ${INPUT_MINIMAL} = true ]];  then
-  cmake_args+=( -DENABLE_REGRESSION_TESTING=OFF )
-else
-  cmake_args+=( -DENABLE_REGRESSION_TESTING=${INPUT_REGRESSION_TESTING} )
-fi
-
 if [[ ${INPUT_DISTRO} = *:intel ]]; then
   cmake_args+=( -DREQUIRE_MKL=ON )
 fi
