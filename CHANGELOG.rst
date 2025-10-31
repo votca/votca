@@ -6,6 +6,7 @@ Version 2025.1-dev
 
 -  Remove csg_boltzmann (#1184)
 -  Remove old histogram class (#1185)
+-  Remove csg_tutorials (#1186)
 
 Version 2025.1 (released 03.10.25)
 ==================================
