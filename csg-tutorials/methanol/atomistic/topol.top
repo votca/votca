@@ -1,9 +1,0 @@
-#include "oplsaa.ff/forcefield.itp"
-#include "methanol_opls.itp"
-
-[ system ]
-Methanol
-
-[ molecules ]
-methanol 1000
-
