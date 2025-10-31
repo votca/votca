@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2025 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 #include <votca/csg/csgapplication.h>
 #include <votca/csg/nblist.h>
 #include <votca/csg/nblistgrid.h>
-#include <votca/tools/histogramnew.h>
+#include <votca/tools/histogram.h>
 
 // using namespace votca::tools;
 using namespace std;
@@ -41,7 +41,7 @@ class CsgTestApp : public CsgApplication {
   void EndEvaluate() override;
 
  protected:
-  votca::tools::HistogramNew rdf_;
+  votca::tools::Histogram rdf_;
   double cut_off_;
 };
 

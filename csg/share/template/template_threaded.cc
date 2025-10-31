@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2025 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 #include <votca/csg/csgapplication.h>
 #include <votca/csg/nblist.h>
 #include <votca/csg/nblistgrid.h>
-#include <votca/tools/histogramnew.h>
+#include <votca/tools/histogram.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -77,7 +77,7 @@ class CsgParallelTestApp : public CsgApplication {
 
  protected:
   // data belonging to the main class CsgParallelTestApp
-  votca::tools::HistogramNew rdf_;
+  votca::tools::Histogram rdf_;
   double cut_off_;
 };
 
@@ -88,7 +88,7 @@ class RDFWorker : public CsgApplication::Worker {
   // override EvalConfiguration with your analysis routine
   void EvalConfiguration(Topology *, Topology *) override;
   // data belonging to this particular worker
-  votca::tools::HistogramNew rdf_;
+  votca::tools::Histogram rdf_;
   double cut_off_;
 };
 

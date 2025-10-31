@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2025 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,9 @@ BOOST_AUTO_TEST_CASE(openmp) {
   // Check if the number of threads is actually generated
   int sumThreads = 0;
 #pragma omp parallel reduction(+ : sumThreads)
-  { sumThreads += 1; }
+  {
+    sumThreads += 1;
+  }
   BOOST_CHECK(inThreads == sumThreads);
 }
 #endif

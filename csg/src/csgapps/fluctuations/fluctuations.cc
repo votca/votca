@@ -19,7 +19,7 @@
 #include <boost/program_options.hpp>
 
 // VOTCA includes
-#include <votca/tools/histogramnew.h>
+#include <votca/tools/histogram.h>
 #include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
@@ -173,7 +173,7 @@ void CsgFluctuations::EvalConfiguration(Topology *conf, Topology *) {
     }
   }
 
-  votca::tools::HistogramNew hist;
+  votca::tools::Histogram hist;
   hist.Initialize(rmin_, rmax_, nbins_);
 
   /* check how many molecules are in each bin*/

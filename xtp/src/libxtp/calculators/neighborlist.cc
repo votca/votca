@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2025 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,9 @@ Index Neighborlist::DetClassicalPairs(Topology& top) {
     if (top.GetShortestDist(*seg1, *seg2) > excitonqmCutoff_) {
       top.NBList()[i]->setType(QMPair::Excitoncl);
 #pragma omp critical
-      { classical_pairs++; }
+      {
+        classical_pairs++;
+      }
     } else {
       top.NBList()[i]->setType(QMPair::Hopping);
     }
@@ -170,7 +172,9 @@ bool Neighborlist::Evaluate(Topology& top) {
 
       if (segdistance2 < cutoff2) {
 #pragma omp critical
-        { top.NBList().Add(*seg1, *seg2, segdistance); }
+        {
+          top.NBList().Add(*seg1, *seg2, segdistance);
+        }
 
       } else if (segdistance2 > (outside * outside)) {
         continue;
@@ -178,12 +182,16 @@ bool Neighborlist::Evaluate(Topology& top) {
         double R = top.GetShortestDist(*seg1, *seg2);
         if ((R * R) < cutoff2) {
 #pragma omp critical
-          { top.NBList().Add(*seg1, *seg2, segdistance); }
+          {
+            top.NBList().Add(*seg1, *seg2, segdistance);
+          }
         }
       }
     } /* exit loop seg2 */
 #pragma omp critical
-    { ++progress; }
+    {
+      ++progress;
+    }
   } /* exit loop seg1 */
 
   if (skippedpairs.size() > 0) {

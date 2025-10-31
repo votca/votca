@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2025 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 // VOTCA includes
 #include <votca/tools/constants.h>
-#include <votca/tools/histogramnew.h>
+#include <votca/tools/histogram.h>
 #include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
@@ -55,7 +55,7 @@ class CsgDensityApp : public CsgApplication {
 
  protected:
   string filter_, out_;
-  votca::tools::HistogramNew dist_;
+  votca::tools::Histogram dist_;
   string dens_type_;
   double rmax_;
   votca::Index nbin_;

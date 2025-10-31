@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2025 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 #include <memory>
 
 // VOTCA includes
-#include <votca/tools/histogramnew.h>
+#include <votca/tools/histogram.h>
 
 // Local VOTCA includes
 #include <votca/csg/beadlist.h>
@@ -71,10 +71,10 @@ class OrientCorrApp : public CsgApplication {
   static std::unique_ptr<NBList> CreateNBSearch();
 
  protected:
-  votca::tools::HistogramNew cor_;
-  votca::tools::HistogramNew count_;
-  votca::tools::HistogramNew cor_excl_;
-  votca::tools::HistogramNew count_excl_;
+  votca::tools::Histogram cor_;
+  votca::tools::Histogram count_;
+  votca::tools::Histogram cor_excl_;
+  votca::tools::Histogram count_excl_;
   static string nbmethod_;
   double cut_off_;
   votca::Index nbins_;
@@ -95,13 +95,13 @@ class MyWorker : public CsgApplication::Worker {
                  const double dist);
 
   // accumulator of the 3/2*u(0)u(r) - 1/2
-  votca::tools::HistogramNew cor_;
+  votca::tools::Histogram cor_;
   // number of hits for each bin
-  votca::tools::HistogramNew count_;
+  votca::tools::Histogram count_;
   // accumulator of the 3/2*u(0)u(r) - 1/2, only inter-molecular
-  votca::tools::HistogramNew cor_excl_;
+  votca::tools::Histogram cor_excl_;
   // number of hits for each bin, only inter-molecular
-  votca::tools::HistogramNew count_excl_;
+  votca::tools::Histogram count_excl_;
   double cut_off_;
 };
 

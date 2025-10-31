@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2025 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,7 +114,7 @@ void EAnalyze::SiteHist(QMStateType state) const {
   // Prepare bins
   Index BIN = Index((MAX - MIN) / resolution_sites_ + 0.5) + 1;
 
-  tools::HistogramNew hist;
+  tools::Histogram hist;
   hist.Initialize(MIN, MAX, BIN);
   hist.ProcessRange<std::vector<double>::iterator>(Es.begin(), Es.end());
   tools::Table &tab = hist.data();
@@ -186,7 +186,7 @@ void EAnalyze::PairHist(const Topology &top, QMStateType state) const {
   Index BIN = Index((MAX - MIN) / resolution_pairs_ + 0.5) + 1;
 
   std::string filename2 = "eanalyze.pairhist_" + state.ToString() + ".out";
-  tools::HistogramNew hist;
+  tools::Histogram hist;
   hist.Initialize(MIN, MAX, BIN);
   hist.ProcessRange<std::vector<double>::iterator>(dE.begin(), dE.end());
   tools::Table &tab = hist.data();
