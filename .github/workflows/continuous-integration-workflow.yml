@@ -130,8 +130,7 @@ jobs:
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -v -s
       - name: Tests
-        run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
-        working-directory: builddir
+        run: ctest --test-dir builddir --parallel ${{ steps.setup.outputs.jobs }} --output-on-failure ${{ steps.setup.outputs.ctest_args }}
       - name: Upload Report to codecov.io
         if: ${{ matrix.coverage }}
         uses: codecov/codecov-action@v5
