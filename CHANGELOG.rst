@@ -8,6 +8,7 @@ Version 2025.1-dev
 -  Remove old histogram class (#1185)
 -  Remove csg_tutorials (#1186)
 -  CI: enable parallel testing (#1187)
+-  Remove csg_inverse and friends (#1188)
 
 Version 2025.1 (released 03.10.25)
 ==================================

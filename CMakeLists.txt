@@ -122,20 +122,8 @@ add_feature_info( BUILD_OWN_GROMACS BUILD_OWN_GROMACS "Build an internal version
 if(BUILD_OWN_GROMACS)
   include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/BuildGromacs.cmake)
 else()
-  find_package(GROMACS 2019.6 CONFIG NAMES gromacs gromacs_d)
+  find_package(GROMACS 2021 CONFIG NAMES gromacs gromacs_d)
   set_package_properties(GROMACS PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read/write gromacs data files")
-  if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_GREATER_EQUAL "2020")
-    message(WARNING "Gromacs-2020 and above have no support for tabulated interactions, that are needed for coarse-graining (see and comment on https://gitlab.com/gromacs/gromacs/-/issues/1347)")
-  endif()
-  # prior gmx-2021, their exported target had some bugs, that we fix below
-  # - missing GMX_DOUBLE define - only gets exported as GROMACS_DEFINITIONS
-  # - missing include directory
-  # - missing namespace
-  if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_LESS "2021")
-    set_target_properties(libgromacs PROPERTIES
-      INTERFACE_COMPILE_OPTIONS ${GROMACS_DEFINITIONS} INTERFACE_INCLUDE_DIRECTORIES ${GROMACS_INCLUDE_DIRS})
-    add_library(Gromacs::libgromacs ALIAS libgromacs)
-  endif()
   if(GROMACS_FOUND AND DEFINED GROMACS_VERSION)
     find_path(_GROMACS_VERSION_PATH gromacs/version.h HINTS ${GROMACS_INCLUDE_DIRS})
     if(NOT _GROMACS_VERSION_PATH)

@@ -12,7 +12,7 @@ votca-csg - The VOTCA coarse-graining engine
 = DESCRIPTION =
 
 Versatile Object-oriented Toolkit for Coarse-graining Applications (VOTCA) is a package intended to reduce the amount of routine work when doing systematic coarse-graining of various systems.
-The core is written in C++. Iterative methods are implemented using bash + perl.
+The core is written in C++.
 
 Please visit the program site at __http://www.votca.org__.
 
@@ -20,8 +20,6 @@ Please visit the program site at __http://www.votca.org__.
 
 The following commands make up the votca-csg suite.  Please refer to their individual man pages for further details.
 
-: **csg_call**
-Calls script from the interactive framework for the user.
 : **csg_density**
 Calculates all kind of density profiles.
 : **csg_dlptopol**
@@ -34,8 +32,6 @@ Performs force matching (also called //multiscale coarse-graining//).
 Create skeleton for gromacs topology based on atomistic topology and a mapping file.
 : **csg_imc_solver**
 Is internally called by inversion scripts to solve matrix equation for inverse Monte Carlo (imc).
-: **csg_inverse**
-Starts the script to run iterative Boltzmann inverse (ibi) or inverse Monte Carlo (imc), etc.
 : **csg_map**
 Map a reference trajectory to a coarse-grained trajectory.
 : **csg_property**
