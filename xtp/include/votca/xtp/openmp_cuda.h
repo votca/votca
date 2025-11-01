@@ -21,6 +21,9 @@
 #ifndef VOTCA_XTP_OPENMP_CUDA_H
 #define VOTCA_XTP_OPENMP_CUDA_H
 
+// Standard includes
+#include <cassert>
+
 // Local VOTCA includes
 #include "eigen.h"
 
