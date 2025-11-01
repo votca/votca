@@ -299,9 +299,6 @@ Setting files
       <min>0</min>  <!-- dimension + grid spacing of tables-->
       <max>1.36</max>
       <step>0.01</step>
-      <inverse>
-        ... specific commands
-      </inverse>
 
       ... specific section for inverse boltzmann, force matching etc.
     </non-bonded>
@@ -313,7 +310,7 @@ Abstract of a ``settings.xml`` file. See secs. :ref:`methods_fm_program_input`,
 A setting file is written in the format ``.xml``. It consists of a
 general section displayed above, and a specific section depending on the
 program used for simulations. The setting displayed above is later
-extended in the sections on iterative boltzmann inversion (``csg_inverse``), force
+extended in the sections on force
 matching (``csg_fmatch``) or statistical analysis (``csg_stat``).
 
 Generally, ``csg_stat`` is an analysis tool which can be used for computing radial

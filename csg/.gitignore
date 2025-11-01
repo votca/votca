@@ -8,8 +8,6 @@ rules.ninja
 build.ninja
 .ninja_*
 build
-scripts/csg_call
-scripts/csg_inverse
 scripts/*.out
 share/man/*.man
 share/template/template_serial

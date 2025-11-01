@@ -166,28 +166,6 @@ but also after every successful processing of each block. The user is
 free to have a look at the output files and decide to stop ``csg_fmatch``, provided
 the force error is small enough.
 
-.. _methods_fm_integration:
-
-Integration and extrapolation of .force files
-----------------------------------------------
-
-To convert forces (``.force``) to potentials (``.pot``), tables have to
-be integrated. To use the built-in integration command from the
-scripting framework, execute
-
-.. code:: bash
-
-     csg_call table integrate CG-CG.force minus_CG-CG.pot
-     csg_call table linearop minus_CG-CG.d CG-CG.d -1 0
-
-This command calls the ``table_integrate.pl`` script, which integrates the force and writes the
-potential to the ``.pot`` file.
-
-In general, each potential contains regions which are not sampled. In
-this case or in the case of further post-processing, the potential can
-be refined by employing resampling or extrapolating methods. See 
-:ref:`preparing_post-processing_of_the_potential` for further details.
-
 .. _methods_fm_threebody:
 
 Three-body Stillinger-Weber interactions
@@ -253,43 +231,7 @@ the error (which is estimated via a block-averaging procedure) and a table flag.
 
 Coarse-grained simulations with three-body Stillinger-Weber interactions can be done with
 LAMMPS with the MANYBODY *pair_style sw/angle/table* (https://docs.lammps.org/pair_sw_angle_table.html). For this, the ``.pot`` file has to be
-converted into a table format according to the LAMMPS *angle_style table* (https://docs.lammps.org/angle_table.html). This can be done with:
-
-.. code:: bash
-
-   csg_call --options table.xml --ia-name XXX --ia-type angle convert_potential lammps --clean --no-shift XXX.pot table_XXX.txt
-
-in line with the conversion of angular tables for bonded interactions. Therefore, the 
-CG-options file (``--options``) now has to contain a ``<bonded>``
-section with the appropriate interaction name:
-
-.. code:: xml
-
-   <cg>
-     <bonded>
-       <!-- name of the interaction -->
-       <name>CG-CG-CG</name>
-       <!-- CG bead types (according to mapping file) -->
-       <type1>A</type1>
-       <type2>A</type2>
-       <type3>A</type3>
-       <min>0.7194247283</min>
-       <max>3.1415927</max>
-       <step>0.0031415927</step>
-       <!-- settings for converting table to lammps angular format -->
-       <inverse>
-         <lammps>
-           <table_begin>0</table_begin>
-           <table_end>180</table_end>
-           <table_bins>0.18</table_bins>
-           <y_scale>0.239006</y_scale>
-           <avg_points>1</avg_points>
-         </lammps>
-       </inverse>
-     </bonded>
-   </cg>
-
-For a further description of posprocessing, we refer again to sec. :ref:`preparing_post-processing_of_the_potential`.
+converted into a table format according to the LAMMPS *angle_style table* (https://docs.lammps.org/angle_table.html).
 
 .. _methods_iterative_methods:
 
@@ -446,91 +388,6 @@ shown in below:
 For more details, see the full
 description of all options in :ref:`reference_settings_file`.
 
-Starting the iterative process
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-After all input files have been set up, the run can be started by
-
-.. code:: bash
-
-      csg_inverse --options settings.xml
-
-Each iteration is stored in a separate directory, named
-``step_<iteration>``. ``step_000`` is a special folder which contains
-the initial setup. For each new iteration, the files required to run the
-CG simulation (as specified in the config file) are copied to the
-current working directory. The updated potentials are copied from the
-last step, ``step_<n-1>/<interaction>.pot.new``, and used as the new
-working potentials ``step_<n>/<interaction>.pot.cur``.
-
-After the run preparation, all potentials are converted into the format
-of the sampling program and the simulation starts. Once the sampling has
-finished, analysis programs generate new distributions, which are stored
-in ``<interaction>.dist.new``, and new potential updates, stored in
-``<interaction>.dpot.new``.
-
-Before adding the update to the old potential, it can be processed in
-the ``post_update`` step. For each script that is specified in the
-postupdate, ``<interaction>.dpot.new`` is renamed to
-``<interaction>.dpot.old`` and stored in
-``<interaction>.dpot.<a-number>`` before the processing script is
-called. Each processing script uses the current potential update
-``<interaction>.dpot.cur`` and writes the processed update to
-``<interaction>.dpot.new``. As an example, a pressure correction is
-implemented as a postupdate script within this framework.
-
-After all postupdate scripts have been called, the update is added to
-the potential and the new potential ``<interaction>.pot.new`` is
-written. Additional post-processing of the potential can be performed in
-the ``post_add`` step which is analogous to the ``post_update`` step
-except for a potential instead of an update.
-
-To summarize, we list all standard output files for each iterative step:
-
-+-----------------------+------------------------------------------------------------------------+
-| ``*.dist.new``        | distribution functions of the current step                             |
-+-----------------------+------------------------------------------------------------------------+
-| ``*.dpot.new``        | the final potential update, created by ``calc_update``                 |
-+-----------------------+------------------------------------------------------------------------+
-| ``*.dpot.<number>``   | for each postupdate script, the ``.dpot.new`` is saved and a new one   |
-+-----------------------+------------------------------------------------------------------------+
-|                       | is created                                                             |
-+-----------------------+------------------------------------------------------------------------+
-| ``*.pot.cur``         | the current potential used for the actual run                          |
-+-----------------------+------------------------------------------------------------------------+
-| ``*.pot.new``         | the new potential after the add step                                   |
-+-----------------------+------------------------------------------------------------------------+
-| ``*.pot.<number>``    | same as ``dpot.<number>`` but for ``post_add``                         |
-+-----------------------+------------------------------------------------------------------------+
-
-If a sub-step fails during the iteration, additional information can be
-found in the log file. The name of the log file is specified in the
-steering XMLfile.
-
-Restarting and continuing
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The interrupted or finished iterative process can be restarted either by
-extending a finished run or by restarting the interrupted run. When the
-script ``csg_inverse`` is called, it automatically checks for a file called ``done`` in
-the current directory. If this file is found, the program assumes that
-the run is finished. To extend the run, simply increase ``inverse.iterations_max`` in the settings
-file and remove the file called ``done``. After that, can be restarted,
-which will automatically recognize existing steps and continue after the
-last one.
-
-If the iteration was interrupted, the script ``csg_inverse`` might not be able to
-restart on its own. In this case, the easiest solution is to delete the
-last step and start again. The script will then repeat the last step and
-continue. However, this method is not always practical since sampling
-and analysis might be time-consuming and the run might have only crashed
-due to some inadequate post processing option. To avoid repeating the
-entire run, the script ``csg_inverse`` creates a file with restart points and labels
-already completed steps such as simulation, analysis, etc. The file name
-is specified in the option ``inverse.restart_file``. If specific actions should be redone, one
-can simply remove the corresponding lines from this file. Note that a
-file ``done`` is also created in each folder for those steps which have
-been successfully finished.
 
 Iterative Boltzmann Inversion
 -----------------------------
