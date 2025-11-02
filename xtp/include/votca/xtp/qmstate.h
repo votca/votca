@@ -22,6 +22,7 @@
 #define VOTCA_XTP_QMSTATE_H
 
 // Standard includes
+#include <cassert>
 #include <string>
 
 // VOTCA includes

@@ -110,7 +110,7 @@ find_package(Boost 1.71.0 REQUIRED
   COMPONENTS program_options filesystem regex timer)
 set_package_properties(Boost PROPERTIES TYPE REQUIRED PURPOSE "Extended C++ libraries")
 
-find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
+find_package(Eigen3 NO_MODULE REQUIRED)
 set_package_properties(Eigen3 PROPERTIES TYPE REQUIRED PURPOSE "C++ vector data structures")
 message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
