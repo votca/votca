@@ -1,5 +1,5 @@
 set(CSG_RST_FILES)
-foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_gmxtopol csg_dlptopol csg_density csg_imc_solve)
+foreach(PROG csg_reupdate csg_map csg_dump csg_resample csg_stat csg_fmatch csg_gmxtopol csg_dlptopol csg_density csg_imc_solve)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
   target_link_libraries(${PROG} votca_csg)
@@ -281,31 +281,4 @@ if(BUILD_TESTING)
              COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare> --etol ${INTEGRATIONTEST_TOLERANCE} -f1 traj_comp.gro -f2 ${REFPATH}/conf.gro WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_csg_map_gmx_xtc_output PROPERTIES DEPENDS integration_Run_csg_map_gmx_xtc)
   endif()
-
-  if(BASH)
-    set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_property)
-    set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/csg_property)
-    file(MAKE_DIRECTORY ${RUNPATH})
-    add_test(NAME integration_Run_csg_property
-      COMMAND ${BASH} -c "$<TARGET_FILE:csg_property> --file ${REFPATH}/csg_defaults.xml --print . --short --path cg.inverse.gromacs.DESC > csg_property.out"
-      WORKING_DIRECTORY ${RUNPATH})
-    add_test(NAME integration_Compare_csg_property_output COMMAND ${CMAKE_COMMAND} -E compare_files csg_property.out ${REFPATH}/csg_property.out WORKING_DIRECTORY ${RUNPATH})
-    set_tests_properties(integration_Compare_csg_property_output PROPERTIES DEPENDS integration_Run_csg_property)
-    add_test(NAME integration_Run_csg_property2
-      COMMAND ${BASH} -c "$<TARGET_FILE:csg_property> --file ${REFPATH}/csg_defaults.xml --print . --path cg.inverse.gromacs.DESC > csg_property.out2"
-      WORKING_DIRECTORY ${RUNPATH})
-    add_test(NAME integration_Compare_csg_property_output2 COMMAND ${CMAKE_COMMAND} -E compare_files csg_property.out2 ${REFPATH}/csg_property.out2 WORKING_DIRECTORY ${RUNPATH})
-    set_tests_properties(integration_Compare_csg_property_output2 PROPERTIES DEPENDS integration_Run_csg_property2)
-    add_test(NAME integration_Run_csg_property3
-      COMMAND ${BASH} -c "$<TARGET_FILE:csg_property> --file ${REFPATH}/test.xml --path A.B.C --print . > csg_property.out3"
-      WORKING_DIRECTORY ${RUNPATH})
-    add_test(NAME integration_Compare_csg_property_output3 COMMAND ${CMAKE_COMMAND} -E compare_files csg_property.out3 ${REFPATH}/csg_property.out3 WORKING_DIRECTORY ${RUNPATH})
-    set_tests_properties(integration_Compare_csg_property_output3 PROPERTIES DEPENDS integration_Run_csg_property3)
-    add_test(NAME integration_Run_csg_property4
-      COMMAND ${BASH} -c "$<TARGET_FILE:csg_property> --file ${REFPATH}/test.xml --path A.B --print C > csg_property.out4"
-      WORKING_DIRECTORY ${RUNPATH})
-    add_test(NAME integration_Compare_csg_property_output4 COMMAND ${CMAKE_COMMAND} -E compare_files csg_property.out4 ${REFPATH}/csg_property.out4 WORKING_DIRECTORY ${RUNPATH})
-    set_tests_properties(integration_Compare_csg_property_output4 PROPERTIES DEPENDS integration_Run_csg_property4)
-
-  endif(BASH)
 endif()

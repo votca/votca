@@ -11,6 +11,7 @@ Version 2025.1-dev
 -  Remove csg_inverse and friends (#1188)
 -  Add support for Eigen3 v5.0.0 (#1189)
 -  Remove GMX builds from CI (#1190)
+-  Remove csg_property (#1192)
 
 Version 2025.1 (released 03.10.25)
 ==================================
