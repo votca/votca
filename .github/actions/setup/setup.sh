@@ -13,7 +13,7 @@ print_output() {
   echo "$1=${@:2}" >> $GITHUB_OUTPUT
 }
 
-for i in INPUT_MINIMAL INPUT_OWN_GMX; do
+for i in INPUT_MINIMAL; do
   [[ "${!i}" = @(true|false) ]] || die "value of $i is ${!i}, excepted 'true' or 'false'"
   echo "$i='${!i}'"
 done
@@ -59,23 +59,7 @@ cmake_args+=( -DCMAKE_INSTALL_PREFIX=/usr )
 # use ccache
 cmake_args+=( -DCMAKE_CXX_COMPILER_LAUNCHER=ccache )
 
-if [[ ${INPUT_OWN_GMX} = true ]]; then
-  cmake_args+=( -DBUILD_OWN_GROMACS=ON -DENABLE_WARNING_FLAGS=OFF -DENABLE_WERROR=OFF -DGMX_SIMD="SSE2" )
-  # remove this block when gromacs uses cxx only, i.e. gmx2021
-  if [[ ${INPUT_TOOLCHAIN} = "gnu" ]]; then
-    cmake_args+=( -DCMAKE_C_COMPILER=gcc )
-  elif [[ ${INPUT_TOOLCHAIN} = "clang" ]]; then
-    cmake_args+=( -DCMAKE_C_COMPILER=clang )
-  elif [[ ${INPUT_TOOLCHAIN} = "intel" ]]; then
-    cmake_args+=( -DCMAKE_C_COMPILER=icc )
-  elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi" ]]; then
-    cmake_args+=( -DCMAKE_C_COMPILER=icx )
-  elif [[ ${INPUT_TOOLCHAIN} = "intel-oneapi-dpc" ]]; then
-    cmake_args+=( -DCMAKE_CXX_COMPILER=dpc )
-  fi
-else
-  cmake_args+=( -DENABLE_WERROR=ON )
-fi
+cmake_args+=( -DENABLE_WERROR=ON )
 if [[ ${INPUT_MINIMAL} = true ]]; then
   cmake_args+=( -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DCMAKE_DISABLE_FIND_PACKAGE_FFTW3=ON -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DCMAKE_DISABLE_FIND_PACKAGE_GROMACS=ON -DBUILD_MANPAGES=OFF -DBUILD_XTP=OFF -DBUILD_TESTING=OFF )
 else
@@ -100,7 +84,7 @@ fi
 cmake_args+=( ${INPUT_CMAKE_ARGS} )
 print_output "cmake_args" "${cmake_args[@]}"
 
-cache_key="ccache-${INPUT_DISTRO/:/_}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYPE}-minimal-${INPUT_MINIMAL}-owngmx-${INPUT_OWN_GMX}-analysis-${INPUT_CODE_ANALYZER%%:*}"
+cache_key="ccache-${INPUT_DISTRO/:/_}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYPE}-minimal-${INPUT_MINIMAL}-analysis-${INPUT_CODE_ANALYZER%%:*}"
 print_output "cache_restore_key" "${cache_key}"
 print_output "cache_key" "${cache_key}-$(date +%s)"
 
