@@ -9,6 +9,7 @@ Version 2025.1-dev
 -  Remove csg_tutorials (#1186)
 -  CI: enable parallel testing (#1187)
 -  Remove csg_inverse and friends (#1188)
+-  Remove GMX builds from CI (#1190)
 
 Version 2025.1 (released 03.10.25)
 ==================================
