@@ -35,9 +35,6 @@ Is internally called by inversion scripts to solve matrix equation for inverse M
 \fBcsg_map\fR
 Map a reference trajectory to a coarse\-grained trajectory.
 .TP
-\fBcsg_property\fR
-Helper program called by inverse scripts to parse xml file.
-.TP
 \fBcsg_resample\fR
 Changes grid + interval and interpolated any sort of table files.
 .TP
