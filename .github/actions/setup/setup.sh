@@ -22,18 +22,6 @@ for i in INPUT_DISTRO INPUT_CMAKE_BUILD_TYPE INPUT_TOOLCHAIN INPUT_COVERAGE INPU
   echo "$i='${!i}'"
 done
 
-if [[ ${INPUT_BRANCH} ]]; then # user overwrite
-  branch="${INPUT_BRANCH}"
-elif [[ ${GITHUB_REF} = refs/pull/*/merge ]]; then # pull request
-  branch="${GITHUB_BASE_REF}"
-elif [[ ${GITHUB_REF} = refs/heads/* ]]; then # branch, e.g. stable
-  branch=${GITHUB_REF#refs/heads/}
-elif [[ ${GITHUB_REF} = refs/tags/* ]]; then # tag or release
-  branch=${GITHUB_REF#refs/tags/}
-else
-  die "Handling on GITHUB_REF=${GITHUB_REF} not implemented"
-fi
-
 cmake_args=( -DCMAKE_VERBOSE_MAKEFILE=ON -DINSTALL_CSGAPPS=ON )
 # do not inject -march=native as the CI runs on different backends and hence will create a conflict with ccache
 cmake_args+=( -DINJECT_MARCH_NATIVE=OFF )
@@ -88,15 +76,14 @@ cache_key="ccache-${INPUT_DISTRO/:/_}-${INPUT_TOOLCHAIN}-${INPUT_CMAKE_BUILD_TYP
 print_output "cache_restore_key" "${cache_key}"
 print_output "cache_key" "${cache_key}-$(date +%s)"
 
-if [[ ${branch} = stable || ${INPUT_DISTRO} != fedora:@(latest|rawhide)  || ${INPUT_CMAKE_BUILD_TYPE} = Debug ]]; then
+if [[ ${INPUT_DISTRO} != fedora:@(latest|rawhide)  || ${INPUT_CMAKE_BUILD_TYPE} = Debug ]]; then
   # Only build doc sphinx on Fedora, as there many issues on other, e.g.:
-  # 1.) Don't build sphinx on stable, not useful, only master is useful
-  # 2.) On Ubuntu 18.04 sphinx is too old for nbsphinx
+  # 1.) On Ubuntu 18.04 sphinx is too old for nbsphinx
   #     File "/usr/lib/python3/dist-packages/nbsphinx.py", line 1383, in _add_notebook_parser
   #       source_suffix.append('.ipynb')
   #     AttributeError: 'dict' object has no attribute 'append'
   #     nbsphinx that requires that sphinx>1.8 but in Ubuntu 18.04 sphinx==1.6.7
-  # 3.) Debug builds are too slow to run notebooks in xtp-tutorials
+  # 2.) Debug builds are too slow to run notebooks in xtp-tutorials
   print_output "build_sphinx" "false"
 else
   print_output "build_sphinx" "true"
