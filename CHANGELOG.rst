@@ -10,6 +10,7 @@ Version 2025.1-dev
 -  CI: enable parallel testing (#1187)
 -  Remove csg_inverse and friends (#1188)
 -  Add support for Eigen3 v5.0.0 (#1189)
+-  Remove GMX builds from CI (#1190)
 
 Version 2025.1 (released 03.10.25)
 ==================================

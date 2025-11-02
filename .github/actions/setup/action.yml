@@ -28,10 +28,6 @@ inputs:
     description: 'Whether to do a minimal build'
     required: true
     default: false
-  own_gmx:
-    description: 'Whether to build our own gromacs'
-    required: true
-    default: false
   toolchain:
     description: 'What compiler to use'
     required: true
