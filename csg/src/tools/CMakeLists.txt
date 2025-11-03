@@ -1,11 +1,12 @@
 set(CSG_RST_FILES)
+set(VOTCA_BINARIES)
 foreach(PROG csg_reupdate csg_map csg_dump csg_stat csg_fmatch csg_gmxtopol csg_dlptopol csg_imc_solve)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
   target_link_libraries(${PROG} votca_csg)
   install(TARGETS ${PROG} EXPORT VOTCA_CSG_Targets RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   add_executable(VOTCA::${PROG} ALIAS ${PROG})
-  set_property(TARGET votca_csg APPEND PROPERTY BINARIES "${PROG}")
+  list(APPEND VOTCA_BINARIES "${PROG}")
   if (BUILD_MANPAGES)
     add_custom_command(OUTPUT ${PROG}.man
       COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_help2doc> --name $<TARGET_FILE:VOTCA::${PROG}> --format groff --out ${PROG}.man
@@ -25,6 +26,14 @@ foreach(PROG csg_reupdate csg_map csg_dump csg_stat csg_fmatch csg_gmxtopol csg_
 
   add_test(integration_${PROG}Help ${PROG} --help)
 endforeach(PROG)
+
+list(SORT VOTCA_BINARIES)
+# for .bash we need a space separated list
+list(JOIN VOTCA_BINARIES " " VOTCA_BINARIES)
+configure_file(csg-completion.bash.in "${CMAKE_CURRENT_BINARY_DIR}/csg-completion.bash" @ONLY)
+if(INSTALL_RC_FILES)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/csg-completion.bash DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/rc)
+endif()
 
 if(SPHINX_FOUND)
   add_custom_target(csg-tools-rst DEPENDS ${CSG_RST_FILES})
