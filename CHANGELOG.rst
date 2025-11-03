@@ -18,6 +18,7 @@ Version 2025.1-dev
 -  Move csg_density into csgapps (#1196)
 -  Remove still_dirty scripts (#1197)
 -  Move csg-completion into tools (#1198)
+-  Remove votca_property (#1199)
 
 Version 2025.1 (released 03.10.25)
 ==================================
