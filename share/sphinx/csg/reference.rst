@@ -6,10 +6,6 @@ Reference
 Programs
 --------
 
-csg_density
-^^^^^^^^^^^
-.. include:: csg_density.rst
-
 csg_dlptopol
 ^^^^^^^^^^^^
 .. include:: csg_dlptopol.rst
@@ -106,3 +102,7 @@ csg_traj_force
 ^^^^^^^^^^^^^^
 
 .. include:: csg_traj_force.rst
+
+csg_density
+^^^^^^^^^^^
+.. include:: csg_density.rst
