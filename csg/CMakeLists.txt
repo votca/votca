@@ -26,7 +26,5 @@ endforeach(HEADER)
 # Include the following subdirectory # 
 ######################################
 add_subdirectory(src)
-# scripts/ used votca_csg PROPERTY BINARIES so do after src/
-add_subdirectory(scripts)
 add_subdirectory(include/votca/csg)
 add_subdirectory(share)
