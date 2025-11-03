@@ -1,13 +1,31 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2025-dev
-================
+Version 2025.1-dev
+==================
+
+-  Remove csg_boltzmann (#1184)
+-  Remove old histogram class (#1185)
+-  Remove csg_tutorials (#1186)
+-  CI: enable parallel testing (#1187)
+-  Remove csg_inverse and friends (#1188)
+-  Add support for Eigen3 v5.0.0 (#1189)
+-  Remove GMX builds from CI (#1190)
+-  Remove csg_property (#1192)
+-  drop gmx 2019 support from readers (#1193)
+-  CI: clean up setup action (#1194)
+-  Remove csg_resample (#1195)
+-  Move csg_density into csgapps (#1196)
+-  Remove still_dirty scripts (#1197)
+
+Version 2025.1 (released 03.10.25)
+==================================
 
 -  CI: update release action, fix docker tag (#1172)
 -  CMake: fix python install (#1174)
 -  Update CI (#1175)
--  Fix deprecation warning/error on MacOS (#1178)
+-  Fix deprecation warning on MacOS (#1178)
+-  fix build with boost-1.89.0 (#1183)
 
 Version 2025 (released 28.03.25)
 ================================

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(votca LANGUAGES CXX)
 
-set(PROJECT_VERSION "2025-dev")
+set(PROJECT_VERSION "2025.1-dev")
 string(REGEX REPLACE "[-.].*$" "" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "^[0-9]+$")
   message(FATAL_ERROR "Could not determine SOVERSION (${SOVERSION}) from ${PROJECT_VERSION}")
@@ -107,40 +107,22 @@ add_feature_info(INSTALL_RC_FILES INSTALL_RC_FILES "Install votca rc files (VOTC
 #Find external packages
 ########################################################################
 find_package(Boost 1.71.0 REQUIRED
-  COMPONENTS program_options filesystem system regex timer)
+  COMPONENTS program_options filesystem regex timer)
 set_package_properties(Boost PROPERTIES TYPE REQUIRED PURPOSE "Extended C++ libraries")
 
-find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
+find_package(Eigen3 NO_MODULE REQUIRED)
 set_package_properties(Eigen3 PROPERTIES TYPE REQUIRED PURPOSE "C++ vector data structures")
 message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
 find_package(Threads REQUIRED)
 set_package_properties(Threads PROPERTIES TYPE REQUIRED PURPOSE "Used for thread parallelization")
 
-option(BUILD_OWN_GROMACS "Build our own gromacs" OFF)
-add_feature_info( BUILD_OWN_GROMACS BUILD_OWN_GROMACS "Build an internal version of gromacs")
-if(BUILD_OWN_GROMACS)
-  include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/BuildGromacs.cmake)
-else()
-  find_package(GROMACS 2019.6 CONFIG NAMES gromacs gromacs_d)
-  set_package_properties(GROMACS PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read/write gromacs data files")
-  if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_GREATER_EQUAL "2020")
-    message(WARNING "Gromacs-2020 and above have no support for tabulated interactions, that are needed for coarse-graining (see and comment on https://gitlab.com/gromacs/gromacs/-/issues/1347)")
-  endif()
-  # prior gmx-2021, their exported target had some bugs, that we fix below
-  # - missing GMX_DOUBLE define - only gets exported as GROMACS_DEFINITIONS
-  # - missing include directory
-  # - missing namespace
-  if(GROMACS_FOUND AND DEFINED GROMACS_VERSION AND GROMACS_VERSION VERSION_LESS "2021")
-    set_target_properties(libgromacs PROPERTIES
-      INTERFACE_COMPILE_OPTIONS ${GROMACS_DEFINITIONS} INTERFACE_INCLUDE_DIRECTORIES ${GROMACS_INCLUDE_DIRS})
-    add_library(Gromacs::libgromacs ALIAS libgromacs)
-  endif()
-  if(GROMACS_FOUND AND DEFINED GROMACS_VERSION)
-    find_path(_GROMACS_VERSION_PATH gromacs/version.h HINTS ${GROMACS_INCLUDE_DIRS})
-    if(NOT _GROMACS_VERSION_PATH)
-      message(FATAL_ERROR "Gromacs library was found, but its headers were not. Make sure you have installed the gromacs-devel package or built gromacs with -DGMX_INSTALL_LEGACY_API=ON")
-    endif()
+find_package(GROMACS 2021 CONFIG NAMES gromacs gromacs_d)
+set_package_properties(GROMACS PROPERTIES TYPE RECOMMENDED PURPOSE "Used to read/write gromacs data files")
+if(GROMACS_FOUND AND DEFINED GROMACS_VERSION)
+  find_path(_GROMACS_VERSION_PATH gromacs/version.h HINTS ${GROMACS_INCLUDE_DIRS})
+  if(NOT _GROMACS_VERSION_PATH)
+    message(FATAL_ERROR "Gromacs library was found, but its headers were not. Make sure you have installed the gromacs-devel package or built gromacs with -DGMX_INSTALL_LEGACY_API=ON")
   endif()
 endif()
 
@@ -184,7 +166,6 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 
 add_subdirectory(tools)
 add_subdirectory(csg)
-add_subdirectory(csg-tutorials)
 if(BUILD_XTP)
   add_subdirectory(xtp)
   add_subdirectory(xtp-tutorials)

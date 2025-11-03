@@ -89,8 +89,7 @@ Extracts from the ``propane.xml`` file of the tutorial are shown below.
     </maps>
   </cg_molecule> <!-- end of the molecule -->
   
-  An extract from the mapping file propane.xml of a propane molecule. The complete
-  file can be found in the csg-tutorials/propane/single_molecule tutorial
+  An extract from the mapping file propane.xml of a propane molecule.
 
 The ``name`` tag indicates the molecule name in the coarse-grained topology. The
 ``ident`` tag must match the name of the molecule in the atomistic representation.
@@ -300,9 +299,6 @@ Setting files
       <min>0</min>  <!-- dimension + grid spacing of tables-->
       <max>1.36</max>
       <step>0.01</step>
-      <inverse>
-        ... specific commands
-      </inverse>
 
       ... specific section for inverse boltzmann, force matching etc.
     </non-bonded>
@@ -314,7 +310,7 @@ Abstract of a ``settings.xml`` file. See secs. :ref:`methods_fm_program_input`,
 A setting file is written in the format ``.xml``. It consists of a
 general section displayed above, and a specific section depending on the
 program used for simulations. The setting displayed above is later
-extended in the sections on iterative boltzmann inversion (``csg_inverse``), force
+extended in the sections on force
 matching (``csg_fmatch``) or statistical analysis (``csg_stat``).
 
 Generally, ``csg_stat`` is an analysis tool which can be used for computing radial
@@ -401,7 +397,3 @@ potential) and ``[error]`` is an optional error for ``y``. The token
 
 The token ``flag`` will be important when extrapolating the table as
 described in :ref:`preparing_post-processing_of_the_potential`.
-
-For historical reasons, ``csg_boltzmann`` uses a slightly different table format, it has
-no ``flag`` column and uses the third column as a force column when
-outputting a potential.

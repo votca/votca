@@ -1,0 +1,88 @@
+<cg>
+  <DESC>Section containing the all coarse-graining options</DESC>
+  <fmatch>
+    <DESC>Force matching options</DESC>
+    <constrainedLS>
+      <DESC>boolean variable: false - simple least squares, true - constrained least squares. For details see the VOTCA paper. Practically, both algorithms give the same results, but simple least squares is faster. If you are a mathematician and you think that a spline can only then be called a spline if it has continuous first and second derivatives, use constrained least squares.</DESC>
+    </constrainedLS>
+    <dist>1e-5
+      <DESC> Accuracy for evaluating the difference in bead positions. Default is 1e-5 </DESC>
+    </dist>
+    <frames_per_block>
+      <DESC>number of frames, being used for block averaging. Atomistic trajectory, specified with --trj option, is divided into blocks and the force matching equations are solved separately for each block. Coarse-grained force-field, which one gets on the output is averaged over those blocks.</DESC>
+    </frames_per_block>
+  </fmatch>
+  <nbsearch>grid
+    <DESC>Grid search algorithm, simple (N square search) or grid</DESC>
+  </nbsearch>
+  <bonded>
+    <DESC>Interaction specific option for bonded interactions, see the cg.non-bonded section for all options</DESC>
+    <dlpoly>
+      <header>
+        <DESC>Header of the interaction in dlpoly TABBND or TABANG file. The header should be a unique set of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
+      </header>
+    </dlpoly>
+    <name>
+      <DESC>Name of the bonded interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</DESC>
+    </name>
+    <periodic>0
+      <DESC>set to 1 when calculating bond dihedral potentials with csg_fmatch -> enforces periodicity of potential. (default is 0) </DESC>
+    </periodic>
+  </bonded>
+  <non-bonded>
+    <DESC>Interaction specific option for non-bonded interactions</DESC>
+    <dlpoly>
+      <header>
+        <DESC>Header of the interaction in dlpoly TABLE file. The header should be a unique pair of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
+      </header>
+    </dlpoly>
+    <name>
+      <DESC>Name of the interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</DESC>
+    </name>
+    <type1>
+      <DESC>**Bead** type 1 of non-bonded interaction.</DESC>
+    </type1>
+    <type2>
+      <DESC>**Bead** type 2 of non-bonded interaction.</DESC>
+    </type2>
+    <bondtype>
+      <DESC>Internal alias for "non-bonded" or "bonded", set automatically</DESC>
+    </bondtype>
+    <min>
+      <DESC>Lower bound of interval for potential table in which calculations are performed. Should be set based on reference distributions.</DESC>
+    </min>
+    <max>
+      <DESC>Upper bound of interval for potential table in which calculations are performed. Should be set based on reference distributions.</DESC>
+    </max>
+    <step>
+      <DESC>Step size of interval for potential table in which calculations are performed. If step site is too small, lots of statistics is needed ( long runs ). If it's too big, features in the distribtuion/potentials might get lost.</DESC>
+    </step>
+    <fmatch>
+      <DESC>Force matching options</DESC>
+      <min>
+        <DESC>Minimum value of interval for distribution sampled in atomistic MD simulation. One can get this number by looking at the distribution function for this interaction. For non-bonded interactions it's the distance to the rdf start. For CG bonds and angles the variable has the similar meaning ( note, that for angles it is specified in radians ).</DESC>
+      </min>
+      <max>
+        <DESC>Maximum value of interval for distribution sampled in atomistic MD simulation. One can get this number by looking at the distribution function for this interaction. For non-bonded interactions it's the cut-off of the interaction.</DESC>
+      </max>
+      <step>
+        <DESC>grid spacing for the spline, which represents the interaction. This parameter should not be too big, otherwise you might lose some features of the interaction potential, and not too small either, otherwise you will have unsampled bins which result in an ill-defined equation system and NaNs in the output.</DESC>
+      </step>
+      <out_step>
+        <DESC>Grid spacing for the output grid. Normally, one wants to have this parameter smaller than fmatch.step, to have a smooth curve, without additional spline interpolation. As a rule of thumb we normally use fmatch.out_step which is approximately 5 times smaller than fmatch.step.</DESC>
+      </out_step>
+    </fmatch>
+    <re>
+      <DESC>Relative entropy options</DESC>
+      <function>
+        <DESC>Functional form for the potential. Available functional forms: lj126 (Lennard-Jones 12-6), ljg (Lennard-Jones 12-6 plus Gaussian), and cbspl (uniform cubic B-splines).</DESC>
+      </function>
+      <cbspl>
+        <DESC>options specific to cbspl function form</DESC>
+        <nknots>
+          <DESC>Number of knot values to be used for the cbspl functional form. Uniform grid size of the CBSPL depends on this parameter; for fixed potential range more the nknots smaller the grid spacing. Make sure grid spacing is sufficiently large and enough CG simulation steps are performed such that the bins at distance greater than the minimum distance are sampled sufficiently otherwise ill-defined system of equation would give NaNs in the output.</DESC>
+        </nknots>
+      </cbspl>
+    </re>
+  </non-bonded>
+</cg>

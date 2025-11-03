@@ -18,6 +18,7 @@
  */
 
 // Standard includes
+#include <cassert>
 #include <iostream>
 
 // Local VOTCA includes

@@ -18,119 +18,22 @@ degrees of freedom [Tschoep:1998]_. The non-bonded
 potentials can then be obtained by using iterative methods or force
 matching.
 
-The main tool which can be used to calculate histograms, cross-correlate
-coarse-grained variables, create exclusion lists, as well as prepare
-tabulated potentials for coarse-grained simulations is ``csg_boltzmann``. It parses the
+The main tool which can be used to calculate histograms, 
+coarse-grained variables, as well as prepare
+tabulated potentials for coarse-grained simulations is ``csg_stat``. It parses the
 whole trajectory and stores all information on bonded interactions in
-memory, which is useful for interactive analysis. For big systems,
-however, one can run out of memory. In this case ``csg_stat`` can be used which,
-however, has a limited number of tasks it can perform (see 
-:ref:`input_files_setting_files` for an example on its usage).
+memory, which is useful for interactive analysis.
 
 Another useful tool is ``csg_map``. It can be used to convert an atomistic
 trajectory to a coarse-grained one, as it is discussed in
 :ref:`input_files_trajectories`.
 
-To use ``csg_boltzmann`` one has to first define a mapping scheme. This is outlined
+To use ``csg_stat`` one has to first define a mapping scheme. This is outlined
 in :ref:`input_files_mapping_files`. Once the mapping scheme is specified, it
 is possible to generate an exclusion list for the proper sampling of the
 atomistic resolution system.
 
 .. _methods_exclusions:
-
-Generating exclusion lists
---------------------------
-
-Exclusion lists are useful when sampling from a special reference system
-is needed, for example for polymer coarse-graining with a separation of
-bonded and non-bonded degrees of freedom.
-
-To generate an exclusion list, an atomistic topology without exclusions
-and a mapping scheme have to be prepared first. Once the .tpr topology
-and .xml mapping files are ready, simply run
-
-.. code:: bash
-
-      csg_boltzmann --top topol.tpr --cg mapping.xml --excl exclusions.txt
-
-This will create a list of exclusions for all interactions that are not
-within a bonded interaction of the coarse-grained sub-bead. As an
-example, consider coarse-graining of a linear chain of three beads which
-are only connected by bonds. In this case, ``csg_boltzmann`` will create exclusions for
-all non-bonded interactions of atoms in the first bead with atoms of the
-3rd bead as these would contribute only to the non-bonded interaction
-potential. Note that ``csg_boltzmann`` will only create the exclusion list for the fist
-molecule in the topology.
-
-To add the exclusions to the GROMACS topology of the molecule, either
-include the file specified by the –excl option into the .top file as
-follows
-
-.. code:: none
-
-      [ exclusions ]
-      #include "exclusions.txt"
-
-or copy and paste the content of that file to the exclusions section of
-the GROMACS topology file.
-
-Statistical analysis
---------------------
-
-For statistical analysis ``csg_boltzmann`` provides an interactive mode. To enter the
-interactive mode, use the ``–trj`` option followed by the file name of
-the reference trajectory
-
-.. code:: bash
-
-      csg_boltzmann --top topol.tpr --trj traj.trr --cg mapping.xml
-
-To get help on a specific command of the interactive mode, type
-
-.. code:: none
-
-      help <command>
-
-for example
-
-.. code:: none
-
-      help hist
-      help hist set periodic
-
-Additionally, use the
-
-.. code:: none
-
-      list
-
-command for a list of available interactions. Note again that ``csg_boltzmann`` loads the
-whole trajectory and all information on bonded interactions into the
-memory. Hence, its main application should be single molecules. See the
-introduction of this chapter for ``csg_stat`` the command.
-
-If a specific interaction shall be used, it can be referred to by
-
-.. code:: none
-
-      molecule:interaction-group:index
-
-Here, ``molecule`` is the molecule number in the whole topology,
-``interaction-group`` is the name specified in the ``<bond>`` section of
-the mapping file, and ``index`` is the entry in the list of
-interactions. For example, ``1:AA-bond:10`` refers to the 10th bond
-named ``AA-bond`` in molecule 1. To specify a couple of interactions
-during analysis, either give the interactions separated by a space or
-use wildcards (e.g. ``*:AA-bond*``).
-
-To exit the interactive mode, use the command ``q``.
-
-If analysis commands are to be read from a file, use the pipe or stdin
-redirects from the shell.
-
-.. code:: bash
-
-      cat commands | csg_boltzmann topol.top --trj traj.trr --cg mapping.xml
 
 Distribution functions and tabulated potentials
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -179,65 +82,6 @@ described in :ref:`input_files_table_formats`. An optional correlation analysis
 is described in the next section. After the file has been created by
 command ``tab``, the potential is prepared for the coarse-grained run in
 :ref:`preparing`.
-
-Correlation analysis
-~~~~~~~~~~~~~~~~~~~~
-
-The factorization of :math:`P`, :ref:`as shown in the theory
-section<theory_eq_boltzmann_pmf>`, assumed uncorrelated quantities. ``csg_boltzmann``
-offers two ways to evaluate correlations of interactions. One option is to use
-the linear correlation coefficient (command ``cor``).
-
-However, this is not a good measure since ``cor`` calculates the linear
-correlation only which might often lead to misleading
-results [Ruehle:2009.a]_. An example for such a case
-are the two correlated random variables :math:`X \sim U[-1,1]` with
-uniform distribution, and :math:`Y:=X^2`. A simple calculation shows
-:math:`cov(X,Y)=0` and therefore
-
-.. math:: cor=\frac{cov(X,Y)}{\sqrt{var(X)var(Y)}}=0.
-
-A better way is to create 2D histograms. This can be done by specifying
-all values (e.g. bond length, angle, dihedral value) using the command
-*vals*, e.g.:
-
-.. code:: none
-
-      vals vals.txt 1:AA-bond:1 1:AAA-angle:A
-
-This will create a file which contains 3 columns, the first being the
-time, and the second and third being bond and angle, respectively.
-Columns 2 and 3 can either be used to generate the 2D histogram, or a
-simpler plot of column 3 over 2, whose density of points reflect the
-probability.
-
-Two examples for 2D histograms are shown below: one for the propane
-molecule and one for hexane.
-
-.. figure:: fig/propane_hist2d.png
-   :width: 300
-   
-   propane histogram
-
-.. figure:: fig/hexane2.png
-   :width: 600
-
-   hexane histograms: before and after the coarse-grained run
-
-The two plots show the correlations between angle and bondlength for
-both molecules. In the case of propane, the two quantities are not
-correlated as shown by the centered distribution, while correlations
-exist in the case of hexane. Moreover, it is visible from the hexane
-plot that the partition of the correlations has changed slightly during
-coarse-graining.
-
-The tabulated potentials created in this section can be further modified
-and prepared for the coarse-grained run: This includes fitting of a
-smooth functional form, extrapolation and clipping of poorly sampled
-regions. Further processing of the potential is decribed in 
-:ref:`preparing`.
-
-.. _methods_fm:
 
 Force matching
 ==============
@@ -296,8 +140,8 @@ example might look like the following
     </non-bonded>
   </cg>
 
-Similarly to the case of spline fitting (see :ref:`reference_programs` on
-``csg_resample``), the parameters ``min`` and ``max`` have to be chosen in such a way as
+Similarly to the case of spline fitting,
+the parameters ``min`` and ``max`` have to be chosen in such a way as
 to avoid empty bins within the grid. Determining ``min`` and ``max`` by
 using ``csg_stat`` is recommended (see :ref:`input_files_setting_files`). A full description
 of all available options can be found in :ref:`reference_settings_file`.
@@ -321,28 +165,6 @@ Output files are not only produced at the end of the program execution,
 but also after every successful processing of each block. The user is
 free to have a look at the output files and decide to stop ``csg_fmatch``, provided
 the force error is small enough.
-
-.. _methods_fm_integration:
-
-Integration and extrapolation of .force files
-----------------------------------------------
-
-To convert forces (``.force``) to potentials (``.pot``), tables have to
-be integrated. To use the built-in integration command from the
-scripting framework, execute
-
-.. code:: bash
-
-     csg_call table integrate CG-CG.force minus_CG-CG.pot
-     csg_call table linearop minus_CG-CG.d CG-CG.d -1 0
-
-This command calls the ``table_integrate.pl`` script, which integrates the force and writes the
-potential to the ``.pot`` file.
-
-In general, each potential contains regions which are not sampled. In
-this case or in the case of further post-processing, the potential can
-be refined by employing resampling or extrapolating methods. See 
-:ref:`preparing_post-processing_of_the_potential` for further details.
 
 .. _methods_fm_threebody:
 
@@ -409,44 +231,7 @@ the error (which is estimated via a block-averaging procedure) and a table flag.
 
 Coarse-grained simulations with three-body Stillinger-Weber interactions can be done with
 LAMMPS with the MANYBODY *pair_style sw/angle/table* (https://docs.lammps.org/pair_sw_angle_table.html). For this, the ``.pot`` file has to be
-converted into a table format according to the LAMMPS *angle_style table* (https://docs.lammps.org/angle_table.html). This can be done with:
-
-.. code:: bash
-
-   csg_call --options table.xml --ia-name XXX --ia-type angle convert_potential lammps --clean --no-shift XXX.pot table_XXX.txt
-
-in line with the conversion of angular tables for bonded interactions. Therefore, the 
-CG-options file (``--options``) now has to contain a ``<bonded>``
-section with the appropriate interaction name:
-
-.. code:: xml
-
-   <cg>
-     <bonded>
-       <!-- name of the interaction -->
-       <name>CG-CG-CG</name>
-       <!-- CG bead types (according to mapping file) -->
-       <type1>A</type1>
-       <type2>A</type2>
-       <type3>A</type3>
-       <min>0.7194247283</min>
-       <max>3.1415927</max>
-       <step>0.0031415927</step>
-       <!-- settings for converting table to lammps angular format -->
-       <inverse>
-         <lammps>
-           <table_begin>0</table_begin>
-           <table_end>180</table_end>
-           <table_bins>0.18</table_bins>
-           <y_scale>0.239006</y_scale>
-           <avg_points>1</avg_points>
-         </lammps>
-       </inverse>
-     </bonded>
-   </cg>
-
-For a further description of posprocessing, we refer again to sec. :ref:`preparing_post-processing_of_the_potential`.
-For a more detailed example, we refer to the tutorial in csg-tutorials/spce/3body_sw/.
+converted into a table format according to the LAMMPS *angle_style table* (https://docs.lammps.org/angle_table.html).
 
 .. _methods_iterative_methods:
 
@@ -522,9 +307,6 @@ for the potentials that are iteratively refined, must be provided and
 added to the ``<filelist>`` in the settings XML-file. If an atomistic topology and a
 mapping definition are present, VOTCA offers tools to assist the setup of
 a coarse-grained topology (see :ref:`preparing`).
-
-To get an overview of how input files look like, it is suggested to take
-a look at one of the tutorials provided in csg_tutorials.
 
 In what follows we describe how to set up the iterative coarse-graining,
 run the main script, continue the run, and add customized scripts.
@@ -606,91 +388,6 @@ shown in below:
 For more details, see the full
 description of all options in :ref:`reference_settings_file`.
 
-Starting the iterative process
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-After all input files have been set up, the run can be started by
-
-.. code:: bash
-
-      csg_inverse --options settings.xml
-
-Each iteration is stored in a separate directory, named
-``step_<iteration>``. ``step_000`` is a special folder which contains
-the initial setup. For each new iteration, the files required to run the
-CG simulation (as specified in the config file) are copied to the
-current working directory. The updated potentials are copied from the
-last step, ``step_<n-1>/<interaction>.pot.new``, and used as the new
-working potentials ``step_<n>/<interaction>.pot.cur``.
-
-After the run preparation, all potentials are converted into the format
-of the sampling program and the simulation starts. Once the sampling has
-finished, analysis programs generate new distributions, which are stored
-in ``<interaction>.dist.new``, and new potential updates, stored in
-``<interaction>.dpot.new``.
-
-Before adding the update to the old potential, it can be processed in
-the ``post_update`` step. For each script that is specified in the
-postupdate, ``<interaction>.dpot.new`` is renamed to
-``<interaction>.dpot.old`` and stored in
-``<interaction>.dpot.<a-number>`` before the processing script is
-called. Each processing script uses the current potential update
-``<interaction>.dpot.cur`` and writes the processed update to
-``<interaction>.dpot.new``. As an example, a pressure correction is
-implemented as a postupdate script within this framework.
-
-After all postupdate scripts have been called, the update is added to
-the potential and the new potential ``<interaction>.pot.new`` is
-written. Additional post-processing of the potential can be performed in
-the ``post_add`` step which is analogous to the ``post_update`` step
-except for a potential instead of an update.
-
-To summarize, we list all standard output files for each iterative step:
-
-+-----------------------+------------------------------------------------------------------------+
-| ``*.dist.new``        | distribution functions of the current step                             |
-+-----------------------+------------------------------------------------------------------------+
-| ``*.dpot.new``        | the final potential update, created by ``calc_update``                 |
-+-----------------------+------------------------------------------------------------------------+
-| ``*.dpot.<number>``   | for each postupdate script, the ``.dpot.new`` is saved and a new one   |
-+-----------------------+------------------------------------------------------------------------+
-|                       | is created                                                             |
-+-----------------------+------------------------------------------------------------------------+
-| ``*.pot.cur``         | the current potential used for the actual run                          |
-+-----------------------+------------------------------------------------------------------------+
-| ``*.pot.new``         | the new potential after the add step                                   |
-+-----------------------+------------------------------------------------------------------------+
-| ``*.pot.<number>``    | same as ``dpot.<number>`` but for ``post_add``                         |
-+-----------------------+------------------------------------------------------------------------+
-
-If a sub-step fails during the iteration, additional information can be
-found in the log file. The name of the log file is specified in the
-steering XMLfile.
-
-Restarting and continuing
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The interrupted or finished iterative process can be restarted either by
-extending a finished run or by restarting the interrupted run. When the
-script ``csg_inverse`` is called, it automatically checks for a file called ``done`` in
-the current directory. If this file is found, the program assumes that
-the run is finished. To extend the run, simply increase ``inverse.iterations_max`` in the settings
-file and remove the file called ``done``. After that, can be restarted,
-which will automatically recognize existing steps and continue after the
-last one.
-
-If the iteration was interrupted, the script ``csg_inverse`` might not be able to
-restart on its own. In this case, the easiest solution is to delete the
-last step and start again. The script will then repeat the last step and
-continue. However, this method is not always practical since sampling
-and analysis might be time-consuming and the run might have only crashed
-due to some inadequate post processing option. To avoid repeating the
-entire run, the script ``csg_inverse`` creates a file with restart points and labels
-already completed steps such as simulation, analysis, etc. The file name
-is specified in the option ``inverse.restart_file``. If specific actions should be redone, one
-can simply remove the corresponding lines from this file. Note that a
-file ``done`` is also created in each folder for those steps which have
-been successfully finished.
 
 Iterative Boltzmann Inversion
 -----------------------------

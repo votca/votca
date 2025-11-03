@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2020 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2025 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 #include <numeric>
 
 // VOTCA includes
-#include <votca/tools/histogramnew.h>
+#include <votca/tools/histogram.h>
 
 // Local VOTCA includes
 #include "votca/xtp/qmstate.h"
@@ -131,7 +131,7 @@ void IAnalyze::IHist(Topology &top, QMStateType state) {
   // Prepare bins
   Index BIN = Index((MAX - MIN) / resolution_logJ2_ + 0.5) + 1;
 
-  tools::HistogramNew hist;
+  tools::Histogram hist;
   hist.Initialize(MIN, MAX, BIN);
   hist.ProcessRange<std::vector<double>::iterator>(J2s.begin(), J2s.end());
   tools::Table &tab = hist.data();

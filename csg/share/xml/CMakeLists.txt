@@ -1,31 +1,9 @@
-set(CSG_DEFAULTS csg_defaults.xml)
-
 file(GLOB_RECURSE VOTCA_XML *.xml)
-file(GLOB_RECURSE NOT_VOTCA_XML ${CSG_DEFAULTS})
-if(NOT_VOTCA_XML)
-  list(REMOVE_ITEM VOTCA_XML ${NOT_VOTCA_XML})
-endif()
 install(FILES ${VOTCA_XML} DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/xml)
-
-if(NOT GMX_FOUND)
-  set(GMX_EXECUTABLE "gmx")
-endif()
-find_program(LMP_EXECUTABLE NAMES lmp lammps)
-find_package_handle_standard_args(LMP REQUIRED_VARS LMP_EXECUTABLE)
-if(NOT LMP_FOUND)
-  set(LMP_EXECUTABLE "lmp")
-endif()
-set(MDRUN "${GMX_EXECUTABLE} mdrun")
-set(G_ENERGY "${GMX_EXECUTABLE} energy")
-set(GROMPP "${GMX_EXECUTABLE} grompp")
-set(G_TRJCAT "${GMX_EXECUTABLE} trjcat")
-
-configure_file(${CSG_DEFAULTS}.in ${CMAKE_CURRENT_BINARY_DIR}/${CSG_DEFAULTS} @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${CSG_DEFAULTS} DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/xml)
 
 if(SPHINX_FOUND)
   set(XML_RST_FILES)
-  foreach(_XML ${VOTCA_XML} ${CMAKE_CURRENT_BINARY_DIR}/${CSG_DEFAULTS})
+  foreach(_XML ${VOTCA_XML})
     get_filename_component(_FILE "${_XML}" NAME_WE)
     add_custom_command(OUTPUT ${VOTCA_SPHINX_DIR}/csg/${_FILE}.rst COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::extract_xml_metadata> -i ${_XML} -m csg -o ${VOTCA_SPHINX_DIR}/csg/${_FILE}.rst
       DEPENDS VOTCA::extract_xml_metadata ${_XML})
