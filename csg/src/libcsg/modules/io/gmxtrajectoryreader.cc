@@ -42,13 +42,8 @@ void GMXTrajectoryReader::Close() { close_trx(gmx_status_); }
 
 bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
   gmx_output_env_t *oenv;
-#if GMX_VERSION >= 20210000
   gmx::TimeUnit timeunit = gmx::TimeUnit::Picoseconds;
   XvgFormat xvg = XvgFormat::None;
-#else
-  time_unit_t timeunit = time_ps;
-  xvg_format_t xvg = exvgNONE;
-#endif
 #if GMX_VERSION >= 20230000
   const std::filesystem::path path = filename_;
 #else
@@ -100,13 +95,8 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
 
 bool GMXTrajectoryReader::NextFrame(Topology &conf) {
   gmx_output_env_t *oenv;
-#if GMX_VERSION >= 20210000
   gmx::TimeUnit timeunit = gmx::TimeUnit::Picoseconds;
   XvgFormat xvg = XvgFormat::None;
-#else
-  time_unit_t timeunit = time_ps;
-  xvg_format_t xvg = exvgNONE;
-#endif
   output_env_init(&oenv, gmx::getProgramContext(), timeunit, FALSE, xvg, 0);
   if (!read_next_frame(oenv, gmx_status_, &gmx_frame_)) {
     return false;
