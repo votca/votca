@@ -16,6 +16,7 @@ Version 2025.1-dev
 -  CI: clean up setup action (#1194)
 -  Remove csg_resample (#1195)
 -  Move csg_density into csgapps (#1196)
+-  Remove still_dirty scripts (#1197)
 
 Version 2025.1 (released 03.10.25)
 ==================================
