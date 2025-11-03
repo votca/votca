@@ -72,33 +72,6 @@ good and is not to noisy and set the flags in the potential file of the
 bad parts by hand to ``o`` (for ``out of range``). Those values will
 later be extrapolated and overwritten.
 
-Resampling
-~~~~~~~~~~
-
-Use the command
-
-.. code:: bash
-
-      csg_resample --in table.pot --out table_resample.pot \
-                   --grid min:step:max
-
-to resample the potential given in file –``table.pot`` from ``min`` to
-``max`` with a grid spacing of ``step`` steps. The result is written to
-the file specified by ``out``. Additionally, ``csg_resample`` allows the specification of
-spline interpolation (``spfit``), the calculation of derivatives
-(``derivative``) and comments (``comment``). Check the help (``help``)
-for further information.
-
-It is important to note that the values ``min`` and ``max`` *don’t*
-correspond to the minimum and maximum value in the input file, but to
-the range of values the potential is desired to cover after
-extrapolation. Therefore, values in :math:`[ \min,\max ]` that are not
-covered in the file are automatically marked by a flag ``o`` (for
-``out of range``) for extrapolation in the next step.
-
-The potential *don’t* have to start at 0, this is done by the export
-script (to xvg) automatically.
-
 Extrapolation
 ~~~~~~~~~~~~~
 
@@ -115,33 +88,3 @@ The output ``table_extrapolate.pot`` of the extrapolation step can now
 be used for the coarse-grained run. If GROMACS is used as a molecule
 dynamics package, the potential has to be converted and exported to a
 suitable GROMACS format as described in the final step.
-
-Exporting the table
-~~~~~~~~~~~~~~~~~~~
-
-Finally, the table is exported to ``xvg``. The conversion procedure
-requires a small xml file ``table.xml`` as shown below:
-
-.. code:: xml
-
-      <cg>
-        <non-bonded>
-          <name>XXX</name>
-          <step>0.01</step>
-        </non-bonded>
-        <inverse>
-          <gromacs>
-            <pot_max>1e8</pot_max>
-            <table_end>8.0</table_end>
-            <table_bins>0.002</table_bins>
-          </gromacs>
-        </inverse>
-      </cg>
-
-where ``<table_end>`` is the GROMACS ``rvdw+table_extension`` and
-``<pot_max>`` is just a number slightly smaller than the upper value of
-single/ double precision. The value given in ``<table_bins>``
-corresponds to the ``step`` value of
-``csg_resample -grid min:step:max``.
-
-

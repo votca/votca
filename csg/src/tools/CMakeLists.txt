@@ -1,5 +1,5 @@
 set(CSG_RST_FILES)
-foreach(PROG csg_reupdate csg_map csg_dump csg_resample csg_stat csg_fmatch csg_gmxtopol csg_dlptopol csg_density csg_imc_solve)
+foreach(PROG csg_reupdate csg_map csg_dump csg_stat csg_fmatch csg_gmxtopol csg_dlptopol csg_density csg_imc_solve)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
   target_link_libraries(${PROG} votca_csg)
@@ -188,30 +188,6 @@ if(BUILD_TESTING)
   add_test(NAME integration_Compare_csg_stat-imc_multi_output_3 COMMAND ${CMAKE_COMMAND} -E compare_files all.idx ${REFPATH}/all.idx WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Compare_csg_stat-imc_multi_output_3 PROPERTIES DEPENDS integration_Run_csg_stat_imc_multi)
 
-  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_resample)
-  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/csg_resample)
-  file(MAKE_DIRECTORY ${RUNPATH})
-  add_test(NAME integration_Run_csg_resample_akima
-    COMMAND csg_resample --in ${REFPATH}/table_in --out table_akima --type akima --grid 0:0.1:3
-    WORKING_DIRECTORY ${RUNPATH})
-  add_test(NAME integration_Compare_csg_resample_akima_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare> --etol ${INTEGRATIONTEST_TOLERANCE} -f1 table_akima -f2 ${REFPATH}/table_akima WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(integration_Compare_csg_resample_akima_output PROPERTIES DEPENDS integration_Run_csg_resample_akima)
-  add_test(NAME integration_Run_csg_resample_cubic
-    COMMAND csg_resample --in ${REFPATH}/table_in --out table_cubic --type cubic --grid 0:0.1:3
-    WORKING_DIRECTORY ${RUNPATH})
-  add_test(NAME integration_Compare_csg_resample_cubic_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare> --etol ${INTEGRATIONTEST_TOLERANCE} -f1 table_cubic -f2 ${REFPATH}/table_cubic WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(integration_Compare_csg_resample_cubic_output PROPERTIES DEPENDS integration_Run_csg_resample_cubic)
-  add_test(NAME integration_Run_csg_resample_linear
-    COMMAND csg_resample --in ${REFPATH}/table_in --out table_linear --type linear --grid 0:0.1:3
-    WORKING_DIRECTORY ${RUNPATH})
-  add_test(NAME integration_Compare_csg_resample_linear_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare> --etol ${INTEGRATIONTEST_TOLERANCE} -f1 table_linear -f2 ${REFPATH}/table_linear WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(integration_Compare_csg_resample_linear_output PROPERTIES DEPENDS integration_Run_csg_resample_linear)
-  add_test(NAME integration_Run_csg_resample_cubicfit
-    COMMAND csg_resample --in ${REFPATH}/table_in --out table_cubicfit --type cubic --grid 0:1:9 --fitgrid 0:2:9
-    WORKING_DIRECTORY ${RUNPATH})
-  add_test(NAME integration_Compare_csg_resample_cubicfit_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare> --etol ${INTEGRATIONTEST_TOLERANCE} -f1 table_cubicfit -f2 ${REFPATH}/table_cubicfit WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(integration_Compare_csg_resample_cubicfit_output PROPERTIES DEPENDS integration_Run_csg_resample_cubicfit)
- 
   if(BASH)
     set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_dump)
     set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/methanol-water/)

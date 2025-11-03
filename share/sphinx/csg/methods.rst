@@ -140,8 +140,8 @@ example might look like the following
     </non-bonded>
   </cg>
 
-Similarly to the case of spline fitting (see :ref:`reference_programs` on
-``csg_resample``), the parameters ``min`` and ``max`` have to be chosen in such a way as
+Similarly to the case of spline fitting,
+the parameters ``min`` and ``max`` have to be chosen in such a way as
 to avoid empty bins within the grid. Determining ``min`` and ``max`` by
 using ``csg_stat`` is recommended (see :ref:`input_files_setting_files`). A full description
 of all available options can be found in :ref:`reference_settings_file`.

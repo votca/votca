@@ -36,11 +36,6 @@ csg_map
 
 .. include:: csg_map.rst
 
-csg_resample
-^^^^^^^^^^^^
-
-.. include:: csg_resample.rst
-
 csg_reupdate
 ^^^^^^^^^^^^
 

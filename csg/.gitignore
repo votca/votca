@@ -18,7 +18,6 @@ src/tools/csg_dump
 src/tools/csg_fmatch
 src/tools/csg_gmxtopol
 src/tools/csg_map
-src/tools/csg_resample
 src/tools/csg_stat
 src/tools/csg_part_dist
 src/tools/csg_density
