@@ -13,6 +13,7 @@ Version 2025.1-dev
 -  Remove GMX builds from CI (#1190)
 -  Remove csg_property (#1192)
 -  drop gmx 2019 support from readers (#1193)
+-  CI: clean up setup action (#1194)
 
 Version 2025.1 (released 03.10.25)
 ==================================
