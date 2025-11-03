@@ -34,8 +34,6 @@ Create skeleton for gromacs topology based on atomistic topology and a mapping f
 Is internally called by inversion scripts to solve matrix equation for inverse Monte Carlo (imc).
 : **csg_map**
 Map a reference trajectory to a coarse-grained trajectory.
-: **csg_property**
-Helper program called by inverse scripts to parse xml file.
 : **csg_resample**
 Changes grid + interval and interpolated any sort of table files.
 : **csg_reupdate**
