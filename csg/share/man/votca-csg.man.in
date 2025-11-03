@@ -14,9 +14,6 @@ Please visit the program site at __http://www.votca.org__.
 The following commands make up the votca\-csg suite.  Please refer to their individual man pages for further details.
 
 .TP
-\fBcsg_density\fR
-Calculates all kind of density profiles.
-.TP
 \fBcsg_dlptopol\fR
 Create skeleton for dlpoly topology based on atomistic topology and a mapping file.
 .TP
