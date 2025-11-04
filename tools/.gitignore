@@ -14,7 +14,6 @@ libvotca*.a
 scripts/VOTCARC.bash
 scripts/VOTCARC.csh
 share/man/*.man
-src/tools/votca_property
 src/tools/*.man
 netbeans/*/build
 */nbproject/private

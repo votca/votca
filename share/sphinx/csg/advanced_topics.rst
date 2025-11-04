@@ -19,8 +19,7 @@ DL\_POLY interface
 ------------------
 
 **WARNING: The DL\_POLY interface is still experimental (in development)
-but it does support the Iterative Boltzmann Inversion and Inverse Monte
-Carlo schemes. The Force Matching might work as well, although it has
+. The Force Matching might work as well, although it has
 not been tested thoroughly.**
 
 

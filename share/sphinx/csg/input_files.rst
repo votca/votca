@@ -373,27 +373,3 @@ The settings file has to contain the additional option:
       <force>true</force>  <!-- calculate pair PMF for this interaction -->
     </non-bonded>
   </cg>
-
-.. _input_files_table_formats:
-
-Table formats
--------------
-
-In the iterative framework distribution functions, potentials and forces
-are returned as tables and saved in a file. Those tables generally have
-the format
-
-.. code:: none
-
-  x y [error] flag
-
-where ``x`` is input quantity (e.g. radius :math:`r`, angles
-:math:`\theta` or :math:`\phi`), ``y`` is the computed quantity (e.g. a
-potential) and ``[error]`` is an optional error for ``y``. The token
-``flag`` can take the values ``i``, ``o`` or ``u``. In the first case,
-``i`` (``in range``) describes a value that lies within the data range,
-``o`` (``out of range``) symbolises a value out of the data range and
-``u`` stands for an ``undefined`` value.
-
-The token ``flag`` will be important when extrapolating the table as
-described in :ref:`preparing_post-processing_of_the_potential`.
