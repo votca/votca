@@ -9,21 +9,7 @@ files required for coarse-grained simulations, and analyzing the latter.
 
 A typical coarse-graining workflow includes *sampling* of the system of
 interest, *analysis* of the trajectory using a specific *mapping* and a
-coarse-graining *method* to derive coarse-grained potentials and, in
-case of iterative methods, running coarse-grained simulations and
-iteratively *refining* the coarse-grained potentials.
-
-In most cases, coarse-graining requires canonical sampling of a
-reference (high resolution) system. In addition, iterative methods
-require canonical sampling of the coarse-grained system. The sampling
-can be done using either molecular dynamics (MD), stochastic dynamics
-(SD), or Monte Carlo (MC) techniques. The latter are implemented in many
-standard simulation packages. Rather than implementing its own MD/SD/MC
-modules, VOTCA allows swift and flexible integration of existing programs
-in such a way that sampling is performed by the program of choice. At
-the moment, an interface to GROMACS [gromacs4]_ and LAMMPS [lammps]_
-simulation packages is provided. The rest of the analysis needed for
-systematic coarse-graining is done using the package tools.
+coarse-graining *method* to derive coarse-grained potentials.
 
 .. _introduction_fig_propane:
 
@@ -74,14 +60,6 @@ provided. The kernel also includes various coarse-graining tools, for
 example calculations of probability distributions of bonded and
 non-bonded interactions, correlation and autocorrelation functions, and
 updates for the coarse-grained pair potential.
-
-The scripting engine is used to steer the iterative procedures. Here the
-analysis tools of the package used for sampling (e.g. GROMACS tools) can
-be integrated into the coarse-graining workflow, if needed. The
-coarse-graining workflow itself is controlled by several Extensible
-Markup Language (XML) input files, which contain mapping and other
-options required for the workflow control. In what follows, these input
-files are described.
 
 Before using the package, do not forget to initalize the variables in
 the bash
