@@ -20,6 +20,8 @@ Version 2025.1-dev
 -  Move csg-completion into tools (#1198)
 -  Remove votca_property (#1199)
 -  Update sphinx doc to reflect csg_inverse removal (#1200)
+-  CI: fix freebsd build (#1201)
+-  fix python test  (#1203)
 -  Make pyxtp a real pip module  (#1180)
 
 Version 2025.1 (released 03.10.25)
