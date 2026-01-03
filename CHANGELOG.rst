@@ -22,6 +22,7 @@ Version 2025.1-dev
 -  Update sphinx doc to reflect csg_inverse removal (#1200)
 -  CI: fix freebsd build (#1201)
 -  fix python test  (#1203)
+-  Make pyxtp a real pip module  (#1180)
 
 Version 2025.1 (released 03.10.25)
 ==================================
