@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2025 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@
 
 // VOTCA includes
 #include <votca/tools/average.h>
-#include <votca/tools/histogramnew.h>
+#include <votca/tools/histogram.h>
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
@@ -89,7 +89,7 @@ class RDFCalculator {
   struct interaction_t {
     Index index_;
     Property *p_;
-    HistogramNew average_;
+    Histogram average_;
     double min_, max_, step_;
     double norm_;
     bool is_bonded_;
@@ -150,7 +150,7 @@ class RDFCalculator {
 
   class Worker : public CsgApplication::Worker {
    public:
-    std::vector<HistogramNew> current_hists_;
+    std::vector<Histogram> current_hists_;
     RDFCalculator *rdfcalculator_;
     double cur_vol_;
     double cur_beadlist_1_count_;  // need to normalize to avg density for

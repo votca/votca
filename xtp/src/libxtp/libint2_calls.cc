@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2021 The VOTCA Development Team
+ *            Copyright 2009-2024 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -27,8 +27,21 @@
 // include libint last otherwise it overrides eigen
 #include "votca/xtp/make_libint_work.h"
 #define LIBINT2_CONSTEXPR_STATICS 0
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-W#warnings"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wcpp"
+#endif
 #include <libint2.hpp>
 #include <libint2/statics_definition.h>
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 namespace votca {
 namespace xtp {
@@ -566,11 +579,11 @@ std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
             ao3c[aux_c](row_start + row_c, col_start + col_c) =
                 result(aux_c, col_c, row_c);
           }  // ROW copy
-        }    // COL copy
-      }      // AUX copy
+        }  // COL copy
+      }  // AUX copy
 
     }  // gamma-loop
-  }    // alpha-loop
+  }  // alpha-loop
 
   for (Eigen::MatrixXd& mat : ao3c) {
     mat.triangularView<Eigen::Upper>() =
@@ -633,7 +646,7 @@ void TCMatrix_gwbse::Fill3cMO(const AOBasis& auxbasis, const AOBasis& dftbasis,
         matrix_[m_level].middleCols(auxshell2bf[aux], auxshell.size()) =
             block[m_level];
       }  // m-th DFT orbital
-    }    // shells of GW basis set
+    }  // shells of GW basis set
   }
 }
 

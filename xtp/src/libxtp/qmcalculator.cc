@@ -19,7 +19,9 @@
 
 #include "votca/xtp/qmcalculator.h"
 #include "votca/xtp/eigen.h"
-#include <libint2/initialize.h>
+
+#include "xtp_libint2.h"
+
 namespace votca {
 namespace xtp {
 bool QMCalculator::EvaluateFrame(Topology& top) {

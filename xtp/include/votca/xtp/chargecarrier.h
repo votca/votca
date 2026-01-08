@@ -34,7 +34,7 @@ class Chargecarrier {
         lifetime(0.0),
         steps(0),
         dr_travelled_(Eigen::Vector3d::Zero()),
-        node(nullptr){};
+        node(nullptr) {};
   bool hasNode() { return (node != nullptr); }
   void updateLifetime(double dt) { lifetime += dt; }
   void updateOccupationtime(double dt) { node->UpdateOccupationTime(dt); }

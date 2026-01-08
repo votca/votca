@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Examples to show xtp_binds usage."""
-from pyxtp import xtp_binds
+from pyxtp_binds import xtp_binds
 from pathlib import Path
 from multiprocessing import cpu_count
 

@@ -16,14 +16,13 @@ concurrency:
 jobs:
   CI:
     # Ubuntu devel, Fedora Rawhide and some other in the matrix are allowed to fail, so continue with other builds
-    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'opensuse:latest' || matrix.distro == 'fedora:rawhide' || matrix.distro == 'fedora:intel' || matrix.continue-on-error == true }}
+    continue-on-error: ${{ matrix.distro == 'ubuntu:devel' || matrix.distro == 'opensuse:latest' || matrix.distro == 'fedora:rawhide' || matrix.distro == 'ubuntu:intel' || matrix.continue-on-error == true }}
     strategy:
       matrix:
-        distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling', 'fedora:intel']
+        distro: ['fedora:latest', 'fedora:rawhide', 'opensuse:latest', 'ubuntu:latest', 'ubuntu:devel', 'ubuntu:rolling', 'ubuntu:intel']
         toolchain: [gnu, clang]
         cmake_build_type: [Release, Debug]
         minimal: [false]
-        own_gmx: [false]
         coverage: [false]
         deploy: [false]
         include:
@@ -31,50 +30,37 @@ jobs:
             toolchain: gnu
             cmake_build_type: Release
             minimal: false
-            own_gmx: false
             coverage: false
             # make sure there is only one build deploying
             deploy: true
-          - distro: 'fedora:nogmx'
+          - distro: 'fedora:latest'
             toolchain: gnu
             cmake_build_type: Release
             minimal: true
-          - distro: 'fedora:nogmx'
+            coverage: false
+            deploy: false
+          - distro: 'fedora:latest'
             toolchain: clang
             cmake_build_type: Release
             minimal: true
-          - distro: 'fedora:nogmx'
-            toolchain: gnu
-            cmake_build_type: Release
-            own_gmx: true
-          - distro: 'fedora:intel'
+            coverage: false
+            deploy: false
+          - distro: 'ubuntu:intel'
             toolchain: intel-oneapi
             cmake_build_type: Release
-          - distro: 'fedora:intel'
+          - distro: 'ubuntu:intel'
             toolchain: intel-oneapi
             cmake_build_type: Debug
-          - distro: 'fedora:gmx2019'
+          - distro: 'fedora:gmx2025'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmx2019'
+          - distro: 'fedora:gmx2025'
             toolchain: clang
             cmake_build_type: Release
-          - distro: 'fedora:gmxpkg'
+          - distro: 'fedora:gmx2025_d'
             toolchain: gnu
             cmake_build_type: Release
-          - distro: 'fedora:gmxpkg'
-            toolchain: clang
-            cmake_build_type: Release
-          - distro: 'fedora:gmx2024'
-            toolchain: gnu
-            cmake_build_type: Release
-          - distro: 'fedora:gmx2024'
-            toolchain: clang
-            cmake_build_type: Release
-          - distro: 'fedora:gmx2024_d'
-            toolchain: gnu
-            cmake_build_type: Release
-          - distro: 'fedora:gmx2024_d'
+          - distro: 'fedora:gmx2025_d'
             toolchain: clang
             cmake_build_type: Release
           - distro: 'fedora:gmx9999'
@@ -96,19 +82,9 @@ jobs:
           - distro: 'fedora:latest'
             toolchain: gnu
             cmake_build_type: Debug
-            coverage: 'Group1'
-          - distro: 'fedora:latest'
-            toolchain: gnu
-            cmake_build_type: Debug
-            coverage: 'Group2'
-          - distro: 'fedora:latest'
-            toolchain: gnu
-            cmake_build_type: Debug
-            coverage: 'Group3'
-          - distro: 'fedora:latest'
-            toolchain: gnu
-            cmake_build_type: Debug
-            coverage: 'RestGroup'
+            minimal: false
+            coverage: true
+            deploy: false
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/votca/buildenv/${{ matrix.distro }}
@@ -116,7 +92,7 @@ jobs:
       options: --security-opt seccomp=unconfined
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Run Votca Setup
         id: setup #use this id below to use outputs
         uses: ./.github/actions/setup
@@ -124,13 +100,11 @@ jobs:
           distro: ${{ matrix.distro }}
           toolchain: ${{ matrix.toolchain }}
           minimal: ${{ matrix.minimal == true }}
-          own_gmx: ${{ matrix.own_gmx == true }}
-          regression_testing: ${{ matrix.deploy != true }}
           coverage: ${{ matrix.coverage }}
           cmake_build_type: ${{ matrix.cmake_build_type }}
           ctest_args: ${{ matrix.ctest_args }}
           cmake_args: ${{ matrix.cmake_args }}
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/ccache
           key: ${{ steps.setup.outputs.cache_key }}
@@ -143,11 +117,12 @@ jobs:
           cmake --build builddir -- -j ${{ steps.setup.outputs.jobs }}
           ccache -v -s
       - name: Tests
-        run: ctest --output-on-failure ${{ steps.setup.outputs.ctest_args }}
-        working-directory: builddir
+        run: ctest --test-dir builddir --parallel ${{ steps.setup.outputs.jobs }} --output-on-failure ${{ steps.setup.outputs.ctest_args }}
       - name: Upload Report to codecov.io
         if: ${{ matrix.coverage }}
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Doxygen
         run: cmake --build builddir --target doxygen
       - name: Build Sphinx
@@ -164,14 +139,14 @@ jobs:
         run: cmake --build builddir --target format && git diff --exit-code
       - name: Checkout Doxygen repo
         if: ${{ matrix.deploy }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: votca/doxygen
           path: builddir/devdoc
           token: ${{ secrets.VOTCA_BOT_TOKEN || github.token }}
       - name: Checkout Website repo
         if: ${{ matrix.deploy }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: votca/votca.github.io
           path: builddir/userdoc

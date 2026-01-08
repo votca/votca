@@ -47,7 +47,7 @@ class SegId;
 class JobTopology {
  public:
   JobTopology(Job& job, Logger& log, std::string workdir)
-      : job_(job), log_(log), workdir_(workdir){};
+      : job_(job), log_(log), workdir_(workdir) {};
   void BuildRegions(const Topology& top,
                     std::pair<std::string, tools::Property> options);
 

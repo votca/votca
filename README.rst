@@ -1,25 +1,26 @@
-|Codacy Badge| |CI| |Docker| |DOI|
+|Codacy Badge| |CI| |Docker| |FreeBSD| |DOI| |JOSS|
 
 This is VOTCA, which provides the two following subpackages:
 
 -  VOTCA-CSG, a library which provides tools to develop coarse-grained
    potentials from atomistic simulation data
--  VOTCA-XTP, a library providing the DFT+GW-BSE method to calculate 
-   electronically excited states in single molecules, in molecular materials 
-   with quantum-classical embedding, as well as electron, hole, and exciton 
+-  VOTCA-XTP, a library providing the DFT+GW-BSE method to calculate
+   electronically excited states in single molecules, in molecular materials
+   with quantum-classical embedding, as well as electron, hole, and exciton
    dynamics in atomistic MD-trajectories.
 
-Basic installation 
-###################
+Basic installation
+##################
 (see performance advice in `Install Guide <share/sphinx/INSTALL.rst>`__)
 
 ::
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'v2024'
+    version=master # or 'v2025.1'
     git clone -b ${version} https://github.com/votca/votca.git
     cmake -B builddir -S votca -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix}
     cmake --build builddir --parallel <number of cores>
+    ctest --test-dir builddir # to test build
     cmake --build builddir --target install
 
 Using this code via docker
@@ -43,12 +44,16 @@ You find the VOTCA-CTP repository
 
 .. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/b5567bfcf2c8411a8057c47fa7126781
    :target: https://www.codacy.com/gh/votca/votca?utm_source=github.com&utm_medium=referral&utm_content=votca/votca&utm_campaign=Badge_Grade
-.. |CI| image:: https://github.com/votca/votca/workflows/CI/badge.svg?branch=master
+.. |CI| image:: https://github.com/votca/votca/actions/workflows/continuous-integration-workflow.yml/badge.svg?branch=master
    :target: https://github.com/votca/votca/actions?query=workflow%3ACI+branch%3Amaster
-.. |Docker| image:: https://github.com/votca/votca/workflows/Docker/badge.svg?branch=master
+.. |Docker| image:: https://github.com/votca/votca/actions/workflows/docker-build.yml/badge.svg?branch=master
    :target: https://github.com/votca/votca/actions?query=workflow%3ADocker+branch%3Amaster
+.. |FreeBSD| image:: https://github.com/votca/votca/actions/workflows/freebsd.yml/badge.svg?branch=master
+   :target: https://github.com/votca/votca/actions?query=workflow%3AFreeBSD+branch%3Amaster
 .. |DOI| image:: https://zenodo.org/badge/75022030.svg
    :target: https://zenodo.org/badge/latestdoi/75022030
+.. |JOSS| image:: https://joss.theoj.org/papers/10.21105/joss.06864/status.svg
+   :target: https://doi.org/10.21105/joss.06864
 
 License:
 ########

@@ -21,6 +21,9 @@
 #ifndef VOTCA_XTP_OPENMP_CUDA_H
 #define VOTCA_XTP_OPENMP_CUDA_H
 
+// Standard includes
+#include <cassert>
+
 // Local VOTCA includes
 #include "eigen.h"
 
@@ -111,7 +114,7 @@ class OpenMP_CUDA {
   class DefaultReference {
    public:
     DefaultReference() = default;
-    DefaultReference(T object) : p(&object){};
+    DefaultReference(T object) : p(&object) {};
 
     DefaultReference& operator=(const T& object) {
       p = &object;

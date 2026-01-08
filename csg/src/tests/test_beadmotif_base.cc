@@ -34,7 +34,7 @@ using namespace votca::csg;
 
 class TestBead : public BaseBead {
  public:
-  TestBead() : BaseBead(){};
+  TestBead() : BaseBead() {};
 };
 
 BOOST_AUTO_TEST_SUITE(beadmotif_test)

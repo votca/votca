@@ -97,7 +97,7 @@ class ERIs {
 
   Eigen::MatrixXd schwarzscreen_;  // Square matrix containing <ab|ab> for all
                                    // shells
-};                                 // namespace xtp
+};  // namespace xtp
 
 }  // namespace xtp
 }  // namespace votca

@@ -14,7 +14,7 @@ foreach(_DEP ${PAGES} ${IMAGES})
   list(APPEND SPHINX_DEPS ${VOTCA_SPHINX_DIR}/${_FILE})
 endforeach()
 file(COPY _themes DESTINATION ${VOTCA_SPHINX_DIR})
-foreach(_MODULE tools csg csg-tutorials xtp xtp-tutorials)
+foreach(_MODULE csg xtp xtp-tutorials)
   file(MAKE_DIRECTORY ${VOTCA_SPHINX_DIR}/${_MODULE})
   file(GLOB ${_MODULE}_FILES ${_MODULE}/*)
   add_custom_target(${_MODULE}_copy_rst

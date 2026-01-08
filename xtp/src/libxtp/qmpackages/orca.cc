@@ -315,7 +315,7 @@ bool Orca::WriteShellScript() {
   ofstream shell_file;
   std::string shell_file_name_full = run_dir_ + "/" + shell_file_name_;
   shell_file.open(shell_file_name_full);
-  shell_file << "#!/bin/bash" << endl;
+  shell_file << "#!/usr/bin/env bash" << endl;
   shell_file << "mkdir -p " << scratch_dir_ << endl;
   std::string base_name = mo_file_name_.substr(0, mo_file_name_.size() - 4);
 
@@ -531,9 +531,14 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   std::map<Index, double> occupancy_beta;
 
   std::string line;
+  std::string orca_version;
+  Index orca_major_version = 0;
+
   Index levels = 0;
   Index number_of_electrons = 0;
   Index number_of_electrons_beta = 0;
+  Index number_of_virtuals = 0;
+  Index number_of_virtuals_beta = 0;
 
   std::vector<std::string> results;
 
@@ -545,8 +550,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     return false;
   } else {
     XTP_LOG(Log::error, *pLog_)
-        << "Reading Coordinates and occupationnumbers and energies from "
-        << log_file_name_full << flush;
+        << "Reading basic ORCA output from " << log_file_name_full << flush;
   }
   // Coordinates of the final configuration depending on whether it is an
   // optimization or not
@@ -558,6 +562,18 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     boost::trim(line);
 
     GetCoordinates(mol, line, input_file);
+
+    std::string::size_type version_pos = line.find("Program Version");
+    if (version_pos != std::string::npos) {
+      results = tools::Tokenizer(line, " ").ToVector();
+      orca_version = results[2];
+      boost::trim(orca_version);
+      XTP_LOG(Log::error, *pLog_) << "ORCA Version " << orca_version << flush;
+      results = tools::Tokenizer(orca_version, ".").ToVector();
+      orca_major_version = boost::lexical_cast<Index>(results[0]);
+      XTP_LOG(Log::error, *pLog_)
+          << "ORCA Major Version " << orca_major_version << flush;
+    }
 
     std::string::size_type energy_pos = line.find("FINAL SINGLE");
     if (energy_pos != std::string::npos) {
@@ -611,6 +627,9 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
             << "Warning: Orbital Energies not found in log file" << flush;
       }
       for (Index i = 0; i < levels; i++) {
+        if (number_of_virtuals == 10 && orca_major_version > 5) {
+          break;
+        }
         results = GetLineAndSplit(input_file, " ");
         std::string no = results[0];
         boost::trim(no);
@@ -629,6 +648,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
           number_of_electrons++;
           occupancy[i] = occ;
         } else if (occ == 0) {
+          number_of_virtuals++;
           occupancy[i] = occ;
         }
         std::string e = results[2];
@@ -639,10 +659,14 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
       // now read spin down energies, if needed
       if (orbitals.isOpenShell()) {
         number_of_electrons_beta = 0;
+        number_of_virtuals_beta = 0;
         tools::getline(input_file, line);
         tools::getline(input_file, line);
         tools::getline(input_file, line);
         for (Index i = 0; i < levels; i++) {
+          if (number_of_virtuals == 10 && orca_major_version > 5) {
+            break;
+          }
           results = GetLineAndSplit(input_file, " ");
           std::string no = results[0];
           boost::trim(no);
@@ -661,6 +685,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
             number_of_electrons_beta++;
             occupancy_beta[i] = occ;
           } else if (occ == 0) {
+            number_of_virtuals_beta++;
             occupancy_beta[i] = occ;
           } else {
             throw runtime_error(
@@ -672,16 +697,6 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
         }
       }
     }
-
-    double total_occ = 0;
-    for (auto const& [i, occ] : occupancy) {
-      total_occ += occ;
-    }
-    for (auto const& [i, occ] : occupancy_beta) {
-      total_occ += occ;
-    }
-    XTP_LOG(Log::info, *pLog_)
-        << "Total number electrons (with spin factor): " << total_occ << flush;
 
     std::string::size_type success =
         line.find("*                     SUCCESS                       *");
@@ -713,7 +728,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   // copying energies to a vector
   orbitals.MOs().eigenvalues().resize(levels);
   // level_ = 1;
-  for (Index i = 0; i < levels; i++) {
+  for (Index i = 0; i < number_of_electrons + number_of_virtuals; i++) {
     orbitals.MOs().eigenvalues()[i] = energies[i];
   }
 
@@ -729,7 +744,8 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
     orbitals.setNumberOfBetaElectrons(number_of_electrons_beta);
     orbitals.setNumberOfOccupiedLevelsBeta(number_of_electrons_beta);
     orbitals.MOs_beta().eigenvalues().resize(levels);
-    for (Index i = 0; i < levels; i++) {
+    for (Index i = 0; i < number_of_electrons_beta + number_of_virtuals_beta;
+         i++) {
       orbitals.MOs_beta().eigenvalues()[i] = energies_beta[i];
     }
   }

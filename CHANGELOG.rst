@@ -1,13 +1,84 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2024-dev
-================
+Version 2025.1-dev
+==================
+
+-  Remove csg_boltzmann (#1184)
+-  Remove old histogram class (#1185)
+-  Remove csg_tutorials (#1186)
+-  CI: enable parallel testing (#1187)
+-  Remove csg_inverse and friends (#1188)
+-  Add support for Eigen3 v5.0.0 (#1189)
+-  Remove GMX builds from CI (#1190)
+-  Remove csg_property (#1192)
+-  drop gmx 2019 support from readers (#1193)
+-  CI: clean up setup action (#1194)
+-  Remove csg_resample (#1195)
+-  Move csg_density into csgapps (#1196)
+-  Remove still_dirty scripts (#1197)
+-  Move csg-completion into tools (#1198)
+-  Remove votca_property (#1199)
+-  Update sphinx doc to reflect csg_inverse removal (#1200)
+-  CI: fix freebsd build (#1201)
+-  fix python test  (#1203)
+-  Make pyxtp a real pip module  (#1180)
+
+Version 2025.1 (released 03.10.25)
+==================================
+
+-  CI: update release action, fix docker tag (#1172)
+-  CMake: fix python install (#1174)
+-  Update CI (#1175)
+-  Fix deprecation warning on MacOS (#1178)
+-  fix build with boost-1.89.0 (#1183)
+
+Version 2025 (released 28.03.25)
+================================
+
+-  Hide some libint2 warnings (#1166)
+-  Update CI (#1168, #1169)
+-  Add arm64 docker container (#1164)
+
+Version 2024.2 (released 29.09.24)
+==================================
+
+-  Editorial changes for v2024.1 JOSS paper  (#1148, #1153, #1154)
+-  Fix permissions on some scripts (#1150)
+-  Fix exit code on some scripts (#1151)
+-  Update CITATION.cff (#1155)
+-  Clean up CI (#1146, #1160, #1161, #1162)
+-  supporting ORCA6 logfile reading (#1157)
+
+Version 2024.1 (released 16.07.24)
+==================================
 
 -  csg_reupdate: remove commented out dosteep (#1103)
 -  CI: drop gmx2023, add gmx2024 (#1106)
 -  new option to ignore segment types in KMC (#1105)
 -  fixed dftcoupling option path (#1107)
+-  cmake: fix MKL detection (#1110)
+-  cmake: handover GMX options transparently (#1108)
+-  CI: Switch Intel build to Ubuntu (#1111)
+-  CI: update GitHub actions (#1112)
+-  Fix Python print in hoomd tutorial (#1118)
+-  CI: fix warnings (#1119, #1122, #1130, #1138)
+-  votca_help2doc: fix python warnings (#1121)
+-  Fix build with boost-1.85.0 (#1123)
+-  make some interpreters explicit  (#1125, #1129)
+-  cmake: update hdf5 detection for cmake hdf5 (#1126, #1127)
+-  scripts: use sed in posix way (#1128)
+-  add CI on FreeBSD (#1124)
+-  Fix Sphinx build (#1131)
+-  add CONTRIBUTING.md (#1133)
+-  csg_table fix (#1134)
+-  Added v2024 JOSS paper and link to older pubs (#1132)
+-  DFT and GW-BSE theory section in manual (#1135)
+-  add rate theory part to XTP manual section (#1136)
+-  adding transport model section to XTP manual (#1137)
+-  switching optimizer in XTP tutorial (#1139, #1140)
+-  csg-tutorials: auto-detect gmx binary (#1144)
+-  add crest documentation (#1145)
 
 Version 2024 (released 22.01.24)
 ================================

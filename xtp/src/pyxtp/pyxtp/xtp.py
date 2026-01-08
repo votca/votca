@@ -7,7 +7,7 @@ from pathlib import Path
 from ase import Atoms
 from ase.calculators.calculator import Calculator, equal, PropertyNotImplementedError
 from .capture_standard_output import capture_standard_output
-from pyxtp import xtp_binds
+from pyxtp_binds import xtp_binds
 from .options import Options
 from .utils import BOHR2ANG
 
@@ -277,16 +277,16 @@ class xtp(Calculator):
 
             self.has_xyz = True
 
-            self.homo = int(orb.attrs['occupied_levels']) - 1
-            self.DFTenergy = float(orb.attrs['qm_energy'])
+            self.homo = int(orb.attrs['occupied_levels'][0]) - 1
+            self.DFTenergy = float(orb.attrs['qm_energy'][0])
             self.qp_energies = read_flatten_array(orb, 'QPpert_energies')
             self.qp_energies_diag, self.ks_energies, self.bse_singlet_energies, self.bse_triplet_energies = [
                 read_flatten_array(orb, x, 'eigenvalues') for x in ('QPdiag', 'mos', 'BSE_singlet', 'BSE_triplet')]
 
             self.bse_singlet_energies_dynamic, self.bse_triplet_energies_dynamic = [
                 read_flatten_array(orb, f"BSE_{x}_dynamic") for x in ("singlet", "triplet")]
-            self.qpmin = int(orb.attrs['qpmin'])
-            self.qpmax = int(orb.attrs['qpmax'])
+            self.qpmin = int(orb.attrs['qpmin'][0])
+            self.qpmax = int(orb.attrs['qpmax'][0])
             td = orb['transition_dipoles']
             self.transition_dipoles = np.array(
                 [td[dset][()] for dset in td.keys()])

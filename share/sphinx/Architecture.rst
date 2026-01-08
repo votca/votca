@@ -10,4 +10,4 @@ VOTCA consists of three main libraries **tools**, **csg** and **xtp**. While the
 
 3. **xtp** contains a lot of functionality for electronic state calculation using DFT and GW-BSE and their coupling to classical environments, i.e. QM/MM. Additionally it has functionality for exciton transport simulations on molecular dynamics structures (it uses the functionality provided by **csg** here). Similar to **csg**, it contains file readers for Quantum Chemistry packages (`ORCA <https://orcaforum.kofo.mpg.de/app.php/portal>`_ and its own DFT implementation). In contrast to **csg** it is OPENMP parallelized and also uses CUDA acceleration for some parts.
 
-Besides the 3 main folders, we also have the **csg-tutorials** and **xtp-tutorials** folder, which contain the respective tutorials. 
+Besides the 3 main folders, we also have the **xtp-tutorials** folder, which contain the **xtp** tutorial. 

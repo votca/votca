@@ -123,7 +123,7 @@ class BeadMotif : public BeadStructure {
 
   BeadMotif() = default;
 
-  BeadMotif(const BeadStructure &structure) : BeadStructure(structure){};
+  BeadMotif(const BeadStructure &structure) : BeadStructure(structure) {};
 
   /// Gets the motif type, calculates it first if it is not yet known
   MotifType getType();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2021 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2025 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -287,10 +287,9 @@ void Imc::ClearAverages() {
 
 class IMCNBSearchHandler {
  public:
-  explicit IMCNBSearchHandler(votca::tools::HistogramNew *hist)
-      : hist_(*hist) {}
+  explicit IMCNBSearchHandler(votca::tools::Histogram *hist) : hist_(*hist) {}
 
-  votca::tools::HistogramNew &hist_;
+  votca::tools::Histogram &hist_;
 
   bool FoundPair(Bead *, Bead *, const Eigen::Vector3d &, const double dist) {
     hist_.Process(dist);
@@ -613,8 +612,7 @@ void Imc::WriteDist(const string &suffix) {
     // preliminary
     if (interaction->force_) {
       force.Save((pair.first) + ".force.new");
-      cout << "written " << (pair.first) + ".force.new"
-           << "\n";
+      cout << "written " << (pair.first) + ".force.new" << "\n";
     }
   }
 }

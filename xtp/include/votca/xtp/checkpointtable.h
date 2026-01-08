@@ -26,6 +26,12 @@
 #include <string>
 #include <vector>
 
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
+
 // Third party includes
 #include <H5Cpp.h>
 
@@ -47,12 +53,11 @@ class CptTable {
       : name_(name),
         rowStructure_(rowSize),
         nRows_(nRows),
-        props_(H5::DSetCreatPropList(H5::DSetCreatPropList::DEFAULT)){};
+        props_(H5::DSetCreatPropList(H5::DSetCreatPropList::DEFAULT)) {};
 
   CptTable(const std::string& name, const std::size_t& rowSize,
            const CptLoc& loc)
       : name_(name), loc_(loc), inited_(true), rowStructure_(rowSize) {
-
     dataset_ = loc_.openDataSet(name_);
     dp_ = dataset_.getSpace();
     hsize_t dims[2];
@@ -213,4 +218,10 @@ inline void CptTable::addCol<std::string>(const std::string& name,
 
 }  // namespace xtp
 }  // namespace votca
+
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
 #endif  // VOTCA_XTP_CHECKPOINTTABLE_H

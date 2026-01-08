@@ -50,7 +50,8 @@ VOTCAHEADER = f"""
 
 {PROGTITLE}
 
-please submit bugs to bugs@votca.org 
+please read and cite: @PROJECT_CITATION@
+and submit bugs to @PROJECT_CONTACT@
 votca_autogen_mapping, version {VERSION}
 """
 DESCRIPTION = f"""{VOTCAHEADER}

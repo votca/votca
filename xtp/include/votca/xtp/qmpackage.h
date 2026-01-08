@@ -104,7 +104,7 @@ class QMPackage {
  protected:
   virtual void ParseSpecificOptions(const tools::Property& options) = 0;
   struct MinimalMMCharge {
-    MinimalMMCharge(const Eigen::Vector3d& pos, double q) : pos_(pos), q_(q){};
+    MinimalMMCharge(const Eigen::Vector3d& pos, double q) : pos_(pos), q_(q) {};
     Eigen::Vector3d pos_;
     double q_;
   };

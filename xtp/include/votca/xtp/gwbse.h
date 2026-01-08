@@ -55,7 +55,7 @@ class AOBasis;
 
 class GWBSE {
  public:
-  GWBSE(Orbitals& orbitals) : orbitals_(orbitals){};
+  GWBSE(Orbitals& orbitals) : orbitals_(orbitals) {};
   void Initialize(tools::Property& options);
 
   std::string Identify() { return "gwbse"; }

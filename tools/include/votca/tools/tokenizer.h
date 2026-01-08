@@ -88,7 +88,7 @@ class Tokenizer {
                                                                            sep);
   }
   Tokenizer(const std::string &str, const std::string &separators)
-      : Tokenizer(str, separators.c_str()){};
+      : Tokenizer(str, separators.c_str()) {};
 
   /**
    * \brief iterator to first element

@@ -19,6 +19,9 @@
 #ifndef VOTCA_XTP_GLINK_H
 #define VOTCA_XTP_GLINK_H
 
+// Standard includes
+#include <cassert>
+
 // Local VOTCA includes
 #include "eigen.h"
 
@@ -30,9 +33,9 @@ class GLink {
 
  public:
   GLink(GNode* dest, double rate, const Eigen::Vector3d& dr)
-      : destination(dest), rate_(rate), dr_(dr){};
+      : destination(dest), rate_(rate), dr_(dr) {};
 
-  GLink(double rate) : rate_(rate), decayevent_(true){};
+  GLink(double rate) : rate_(rate), decayevent_(true) {};
 
   double getValue() const { return rate_; }
   double getRate() const { return rate_; }

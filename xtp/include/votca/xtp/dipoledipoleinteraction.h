@@ -71,7 +71,7 @@ class DipoleDipoleInteraction
   class InnerIterator {
    public:
     InnerIterator(const DipoleDipoleInteraction& xpr, const Index& id)
-        : xpr_(xpr), id_(id){};
+        : xpr_(xpr), id_(id) {};
 
     InnerIterator& operator++() {
       row_++;

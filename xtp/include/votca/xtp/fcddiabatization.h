@@ -46,7 +46,7 @@ class FCDDiabatization {
         state_idx_1_(state_idx_1),
         state_idx_2_(state_idx_2),
         qmstate_str_(qmstate),
-        fragments_(fragments){};
+        fragments_(fragments) {};
 
   void configure();
 
