@@ -21,6 +21,9 @@
 /* Linear algebra packages */
 #cmakedefine MKL_FOUND
 
+/* Linear algebra packages on OSX */
+#cmakedefine LAPACKE_FOUND
+
 /* FFT library */
 #cmakedefine FFTW3_FOUND
 
