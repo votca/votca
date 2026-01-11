@@ -25,6 +25,7 @@
 
 #ifdef LAPACKE_FOUND
 #include <lapacke.h>
+#define EIGEN_USE_BLAS
 #define EIGEN_USE_LAPACKE
 #endif
 
