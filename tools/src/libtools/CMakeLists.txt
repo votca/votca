@@ -28,7 +28,7 @@ set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options Eigen3::Eigen PRIVATE
 	EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
 if(APPLE AND LAPACK_FOUND)
-  target_link_libraries(votca_tools PUBLIC LAPACK:LAPACK -llapacke)
+  target_link_libraries(votca_tools PUBLIC LAPACK::LAPACK -llapacke)
 endif()
 if(MKL_FOUND)
   target_link_libraries(votca_tools PUBLIC MKL::MKL)

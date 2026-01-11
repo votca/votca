@@ -17,6 +17,9 @@ set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated
 # on OSX eigen can use Apple's Accelerate LAPACKE
 if(APPLE)
   find_package(LAPACK)
+
+  set(LAPACKE_STANDALONE TRUE)
+  find_package(LAPACKE)
   set(LAPACKE_FOUND ON)
 endif()
 
