@@ -238,7 +238,7 @@ Ewald3DnD::Ewald3DnD(const Topology *top, PolarTop *ptop, tools::Property *opt,
         << "  o System Q1 compensation: " << system_dpl << "  (apply to "
         << charged_count << " polar sites)" << std::flush;
     vec atomic_compensation_dpl = -system_dpl / charged_count;
-    int compensation_count = 0;
+     [[maybe_unused]] int compensation_count = 0;
     for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
       PolarSeg *pseg = *sit;
       if (!pseg->IsCharged()) continue;
@@ -446,16 +446,16 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
   std::vector<PolarSeg *> red_bg_N;
 
   // Image boxes to consider, set-up boolean foreground table
-  int polar_na_max = ceil(polar_R_co / _a.cwiseAbs().maxCoeff() - 0.5) + 1;
-  int polar_nb_max = ceil(polar_R_co / _b.cwiseAbs().maxCoeff() - 0.5) + 1;
-  int polar_nc_max = ceil(polar_R_co / _c.cwiseAbs().maxCoeff() - 0.5) + 1;
+  int polar_na_max = static_cast<int>(ceil(polar_R_co / _a.cwiseAbs().maxCoeff() - 0.5)) + 1;
+  int polar_nb_max = static_cast<int>(ceil(polar_R_co / _b.cwiseAbs().maxCoeff() - 0.5)) + 1;
+  int polar_nc_max = static_cast<int>(ceil(polar_R_co / _c.cwiseAbs().maxCoeff() - 0.5)) + 1;
 
   XTP_LOG(Log::debug, *_log) << "  o Expanding cell space for neighbour search:"
                                 " +/-"
                              << polar_na_max << " x +/-" << polar_nb_max
                              << " x +/-" << polar_nc_max << std::flush;
 
-  _fg_table = new ForegroundTable(_bg_P.size(), polar_na_max, polar_nb_max,
+  _fg_table = new ForegroundTable(static_cast<int>(_bg_P.size()), polar_na_max, polar_nb_max,
                                   polar_nc_max);
 
   // Max. distance between any two segments in FGC before expansion
@@ -482,7 +482,7 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
   }
 
   // Background expands and migrates to foreground OR remains background
-  int allocated_count_n = 0;
+  [[maybe_unused]] int allocated_count_n = 0;
   for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
     PolarSeg *seg_bg = *sit1;
     for (int na = -polar_na_max; na < polar_na_max + 1; ++na) {
@@ -790,7 +790,7 @@ void Ewald3DnD::WriteDensitiesPDB(std::string pdbfile) {
   return;
 }
 
-void Ewald3DnD::WriteDensitiesPtop(std::string fg, std::string mg,
+void Ewald3DnD::WriteDensitiesPtop(std::string fg,
                                    std::string bg) {
   //    // FGC, FGN, BGN, QM0, MM1, MM2
   //    _ptop->SaveToDrive(fg);
@@ -886,11 +886,11 @@ void Ewald3DnD::WriteDensitiesPtop(std::string fg, std::string mg,
     // Output: polar sites in segment
     for (PolarSeg::iterator pit = (*sit)->begin(); pit != (*sit)->end();
          ++pit) {
-      vec pos = (*pit)->getPos();
+      vec sitepos = (*pit)->getPos();
       vec u1 = (*pit)->getU1();
       ofs << "\t\t<psit>\n";
-      ofs << (format("\t\t\t<pos>%1$1.4f %2$1.4f %3$1.4f</pos>\n") % pos(0) %
-              pos(1) % pos(2));
+      ofs << (format("\t\t\t<pos>%1$1.4f %2$1.4f %3$1.4f</pos>\n") % sitepos(0) %
+              sitepos(1) % sitepos(2));
       ofs << (format("\t\t\t<dpl>%1$1.7e %2$1.7e %3$1.7e</dpl>\n") % u1(0) %
               u1(1) % u1(2));
       ofs << "\t\t</psit>\n";
@@ -1080,7 +1080,6 @@ void Ewald3DnD::WriteInductionStateTable() {
     std::ofstream ofs;
     ofs.open(tabfile.c_str(), std::ofstream::out);
     std::vector<PolarSeg *>::iterator sit, sit1, sit2;
-    PolarSeg::iterator pit1, pit2;
     for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
       PolarSeg *pseg = *sit;
       // Periodic images
@@ -1128,6 +1127,7 @@ void Ewald3DnD::WriteInductionStateTable() {
 
       assert(pseg_h->getId() == pseg_n->getId());
       assert(pseg_h->size() == pseg_n->size());
+      PolarSeg::iterator pit1, pit2;
 
       for (pit1 = pseg_h->begin(), pit2 = pseg_n->begin(); pit1 < pseg_h->end();
            ++pit1, ++pit2) {
@@ -1236,7 +1236,7 @@ void Ewald3DnD::ShowFieldsTeaser(std::vector<PolarSeg *> &target, Logger *log) {
   return;
 }
 
-void Ewald3DnD::ShowEnergySplitting(Logger *log) {
+void Ewald3DnD::ShowEnergySplitting() {
 
   XTP_LOG(Log::debug, *_log) << std::flush;
   XTP_LOG(Log::info, *_log)
@@ -1365,7 +1365,7 @@ void Ewald3DnD::Evaluate() {
   boost::timer::cpu_times t2 = cpu_t.elapsed();
   if (_task_evaluate_energy) EvaluateEnergy(_fg_C);
   boost::timer::cpu_times t3 = cpu_t.elapsed();
-  if (_task_apply_radial) EvaluateRadialCorrection(_fg_C);
+  if (_task_apply_radial) EvaluateRadialCorrection();
   boost::timer::cpu_times t4 = cpu_t.elapsed();
   if (_task_solve_poisson) EvaluatePoisson();
 
@@ -1407,7 +1407,7 @@ void Ewald3DnD::Evaluate() {
   _Eindu = _outer_eppu + _inner_eppu + _inner_ework;
   _Eppuu = _Estat + _Eindu;
 
-  this->ShowEnergySplitting(_log);
+  this->ShowEnergySplitting();
 
   // ADDITIONAL OUTPUT (IF VERBOSE)
   WriteInductionStateTable();
@@ -1704,8 +1704,6 @@ bool Ewald3DnD::EvaluateInductionQMMM(bool do_reset, bool do_reuse_bgp_state,
   if (do_reuse_bgp_state && _started_from_archived_indu_state) {
     XTP_LOG(Log::debug, *_log)
         << " o Reuse induction state from archive" << std::flush;
-    std::vector<PolarSeg *>::iterator sit1, sit2;
-    PolarSeg::iterator pit1, pit2;
     for (sit1 = _fg_C.begin(), sit2 = _fg_N.begin(); sit1 < _fg_C.end();
          ++sit1, ++sit2) {
       PolarSeg *pseg_c = *sit1;
@@ -2081,7 +2079,7 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
   return;
 }
 
-void Ewald3DnD::EvaluateRadialCorrection(std::vector<PolarSeg *> &target) {
+void Ewald3DnD::EvaluateRadialCorrection() {
 
   // ATTENTION This method depolarizes the midground. Do not call prematurely.
 

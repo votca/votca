@@ -245,7 +245,7 @@ void PEwald3D3D::ScanCutoff() {
   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
   double sum = 0.0;
-  double sum_ppuu = 0.0;
+  [[maybe_unused]] double sum_ppuu = 0.0;
 
   XTP_LOG(Log::debug, *_log)
       << std::flush << "Scan cutoff (long-range check)" << std::flush;
@@ -276,9 +276,9 @@ void PEwald3D3D::ScanCutoff() {
   std::vector<TinyNeighbour *>::iterator tnit;
   nbs.reserve(1000000);
 
-  int scan_na_max = ceil((R_max_shell) / _a.cwiseAbs().maxCoeff() - 0.5) + 1;
-  int scan_nb_max = ceil((R_max_shell) / _b.cwiseAbs().maxCoeff() - 0.5) + 1;
-  int scan_nc_max = ceil((R_max_shell) / _c.cwiseAbs().maxCoeff() - 0.5) + 1;
+  int scan_na_max = static_cast<int>(ceil((R_max_shell) / _a.cwiseAbs().maxCoeff() - 0.5)) + 1;
+  int scan_nb_max = static_cast<int>(ceil((R_max_shell) / _b.cwiseAbs().maxCoeff() - 0.5)) + 1;
+  int scan_nc_max = static_cast<int>(ceil((R_max_shell) / _c.cwiseAbs().maxCoeff() - 0.5)) + 1;
 
   if (this->_shape == "xyslab") scan_nc_max = 0;
 
@@ -745,7 +745,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(
       << "K-space (off-axis): Applying K resonances" << std::flush;
 
   crit_grade = 1. * _kxyz_s1s2_norm;
-  double converged03 = false;
+  bool converged03 = false;
   kvit = _kvecs_0_0.begin();
   while (!converged03 && kvit < _kvecs_0_0.end()) {
 
@@ -1145,7 +1145,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
       << "K-space (off-axis): Applying K resonances" << std::flush;
 
   crit_grade = 1. * _kxyz_s1s2_norm;
-  double converged03 = false;
+  bool converged03 = false;
   kvit = _kvecs_0_0.begin();
   while (!converged03 && kvit < _kvecs_0_0.end()) {
 
@@ -1273,7 +1273,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(
     std::vector<PolarSeg *> &target) {
 
   double sum = 0.0;
-  double sum_phi = 0.0;
+  [[maybe_unused]] double sum_phi = 0.0;
   _potential_converged_R = false;
 
   XTP_LOG(Log::debug, *_log)
@@ -1287,7 +1287,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(
 
   bool neighbours_stored = false;
   for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
-    int nb_count = (*sit1)->PolarNbs().size();
+    int nb_count = static_cast<int>((*sit1)->PolarNbs().size());
     if (nb_count > 0) {
       neighbours_stored = true;
       break;
@@ -1501,7 +1501,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(
       << "K-space (off-axis): Applying K resonances" << std::flush;
 
   crit_grade = 1. * _kxyz_s1s2_norm;
-  double converged03 = false;
+  bool converged03 = false;
   kvit = _kvecs_0_0.begin();
   while (!converged03 && kvit < _kvecs_0_0.end()) {
 

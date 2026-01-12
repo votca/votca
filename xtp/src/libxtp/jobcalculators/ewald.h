@@ -286,7 +286,6 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(const Topology &top, Job &job,
 
   if (_ptop_check) {
     ewaldnd.WriteDensitiesPtop(xjob.getTag() + ".fg.ptop",
-                               xjob.getTag() + ".mg.ptop",
                                xjob.getTag() + ".bg.ptop");
   }
 

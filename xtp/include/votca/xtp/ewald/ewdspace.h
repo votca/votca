@@ -103,6 +103,7 @@ struct triple {
   triple() { ; }
   triple(NrTyp pp, NrTyp pu, NrTyp uu) : _pp(pp), _pu(pu), _uu(uu) { ; }
   triple(const triple<NrTyp> &t) : _pp(t._pp), _pu(t._pu), _uu(t._uu) { ; }
+  triple &operator=(const triple &t) = default; 
   triple &operator*=(const double &d);
   triple &operator+=(const triple &t);
   triple &operator-=(const triple &t);

@@ -38,10 +38,10 @@ class PEwald3D3D : public Ewald3DnD {
   EWD::triple<> ConvergeReciprocalSpaceSum(std::vector<PolarSeg *> &target);
   EWD::triple<> CalculateForegroundCorrection(std::vector<PolarSeg *> &target);
   EWD::triple<> CalculateShapeCorrection(std::vector<PolarSeg *> &target);
-  EWD::triple<> CalculateHigherRankCorrection(std::vector<PolarSeg *> &target) {
+  EWD::triple<> CalculateHigherRankCorrection([[maybe_unused]] std::vector<PolarSeg *> &target) {
     return EWD::triple<>(0, 0, 0);
   }
-  EWD::triple<> CalculateK0Correction(std::vector<PolarSeg *> &target) {
+  EWD::triple<> CalculateK0Correction([[maybe_unused]] std::vector<PolarSeg *> &target) {
     return EWD::triple<>(0, 0, 0);
   }
 

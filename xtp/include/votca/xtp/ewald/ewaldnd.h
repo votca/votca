@@ -38,11 +38,11 @@ class Ewald3DnD {
   void CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius);
   void SetupMidground(double R_co);
   void WriteDensitiesPDB(std::string pdbfile);
-  void WriteDensitiesPtop(std::string fg, std::string mg, std::string bg);
+  void WriteDensitiesPtop(std::string fg, std::string bg);
   void WriteInductionStateTable();
   // K-VECTOR GENERATION
-  virtual void GenerateKVectors(std::vector<PolarSeg *> &ps1,
-                                std::vector<PolarSeg *> &ps2) {
+  virtual void GenerateKVectors(std::vector<PolarSeg *> &,
+                                std::vector<PolarSeg *> &) {
     ;
   }
 
@@ -51,7 +51,7 @@ class Ewald3DnD {
   void EvaluateFields(bool do_depolarize_fgc);
   void EvaluateInduction();
   void EvaluateEnergy(std::vector<PolarSeg *> &target);
-  void EvaluateRadialCorrection(std::vector<PolarSeg *> &target);
+  void EvaluateRadialCorrection();
   void EvaluatePoisson();
   // APERIODIC EMBEDDING QMMM
   bool EvaluateInductionQMMM(bool, bool, bool, bool, bool);
@@ -63,7 +63,7 @@ class Ewald3DnD {
   std::string GenerateErrorstring();
   void ShowAgenda(Logger *log);
   void ShowFieldsTeaser(std::vector<PolarSeg *> &target, Logger *log);
-  void ShowEnergySplitting(Logger *log);
+  void ShowEnergySplitting();
 
   // ENERGY CALCULATOR METHODS
   virtual EWD::triple<> ConvergeRealSpaceSum(std::vector<PolarSeg *> &target);
@@ -74,10 +74,10 @@ class Ewald3DnD {
   virtual EWD::triple<> CalculateHigherRankCorrection(
       std::vector<PolarSeg *> &target);
   virtual EWD::triple<> CalculateShapeCorrection(
-      std::vector<PolarSeg *> &target) {
+      std::vector<PolarSeg *> &) {
     return EWD::triple<>(0.0, 0.0, 0.0);
   }
-  virtual EWD::triple<> CalculateK0Correction(std::vector<PolarSeg *> &target) {
+  virtual EWD::triple<> CalculateK0Correction(std::vector<PolarSeg *> &) {
     return EWD::triple<>(0.0, 0.0, 0.0);
   }
 
@@ -90,19 +90,19 @@ class Ewald3DnD {
   // POTENTIAL CALCULATOR METHODS
   void EvaluatePotential(std::vector<PolarSeg *> &target, bool add_bg,
                          bool add_mm1, bool add_qm0);
-  virtual void Potential_ConvergeRealSpaceSum(std::vector<PolarSeg *> &target) {
+  virtual void Potential_ConvergeRealSpaceSum(std::vector<PolarSeg *> &) {
     ;
   }
   virtual void Potential_ConvergeReciprocalSpaceSum(
-      std::vector<PolarSeg *> &target) {
+      std::vector<PolarSeg *> &) {
     ;
   }
   virtual void Potential_CalculateForegroundCorrection(
-      std::vector<PolarSeg *> &target) {
+      std::vector<PolarSeg *> &) {
     ;
   }
   virtual void Potential_CalculateShapeCorrection(
-      std::vector<PolarSeg *> &target) {
+      std::vector<PolarSeg *> &) {
     ;
   }
 
@@ -232,7 +232,7 @@ class Ewald3DnD {
   double _polar_wSOR_C;
   double _polar_epstol;
   double _polar_cutoff;
-  double _polar_converged;
+  bool _polar_converged;
   double _polar_radial_corr_epsilon;
 
   // LATTICE (REAL, RECIPROCAL)

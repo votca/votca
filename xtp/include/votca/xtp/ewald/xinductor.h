@@ -51,8 +51,8 @@ class XInductor {
     _actor = XInteractor(NULL, _aDamp);
   };
 
-  XInductor(bool induce, bool induce_intra_pair, int subthreads, float wSOR_N,
-            float wSOR_C, double epsTol, int maxIter, double aDamp,
+  XInductor(bool induce, bool induce_intra_pair, int subthreads, double wSOR_N,
+            double wSOR_C, double epsTol, int maxIter, double aDamp,
             bool maverick, const Topology *top)
       : _induce(induce),
         _induce_intra_pair(induce_intra_pair),
@@ -310,7 +310,7 @@ class XInductor {
 
     int T = this->_subthreads;  // Threads
     int C = T * 2;              // Chunks
-    int N = _qmm.size();        // Elements
+    int N = static_cast<int>(_qmm.size());        // Elements
     int nr = N % C;             // Rest size
     int nt = (N - nr) / C;      // Chunk size
 
@@ -475,8 +475,8 @@ class XInductor {
   bool _induce_intra_pair;
   // Convergence parameters
   int _subthreads;
-  float _wSOR_N;
-  float _wSOR_C;
+  double _wSOR_N;
+  double _wSOR_C;
   double _epsTol;
   int _maxIter;
   bool _maverick;
