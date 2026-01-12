@@ -14,14 +14,11 @@ else()
 endif()
 set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with MKL")
 
-# on OSX eigen can use Apple's Accelerate LAPACKE
+# on OSX eigen can use Apple's Accelerate Framework
 if(APPLE)
-  set(BLA_VENDOR Apple)
-  find_package(LAPACK)
-  set(LAPACKE_STANDALONE TRUE)
-  find_package(LAPACKE)
+  find_package(APPLE_ACCELERATE)
 endif()
-set_package_properties(LAPACKE PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with Apple Accelerate Framework.")
+set_package_properties(APPLE_ACCELERATE PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with Apple Accelerate Framework.")
 
 
 #user defined reductions are buggy for <= clang-9 (see https://bugs.llvm.org/show_bug.cgi?id=44134)

@@ -1,146 +1,23 @@
-###
+# Copyright 2009-2026 The VOTCA Development Team (http://www.votca.org)
 #
-# @copyright (c) 2009-2014 The University of Tennessee and The University
-#                          of Tennessee Research Foundation.
-#                          All rights reserved.
-# @copyright (c) 2012-2016 Inria. All rights reserved.
-# @copyright (c) 2012-2014 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria, Univ. Bordeaux. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-###
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
-# - Find LAPACKE include dirs and libraries
-# Use this module by invoking find_package with the form:
-#  find_package(LAPACKE
-#               [REQUIRED] # Fail with error if lapacke is not found
-#               [COMPONENTS <comp1> <comp2> ...] # dependencies
-#              )
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
-#  LAPACKE depends on the following libraries:
-#   - LAPACK
-#
-# This module finds headers and lapacke library.
-# Results are reported in variables:
-#  LAPACKE_FOUND            - True if headers and requested libraries were found
-#  LAPACKE_LINKER_FLAGS     - list of required linker flags (excluding -l and -L)
-#  LAPACKE_INCLUDE_DIRS     - lapacke include directories
-#  LAPACKE_LIBRARY_DIRS     - Link directories for lapacke libraries
-#  LAPACKE_LIBRARIES        - lapacke component libraries to be linked
-#  LAPACKE_INCLUDE_DIRS_DEP - lapacke + dependencies include directories
-#  LAPACKE_LIBRARY_DIRS_DEP - lapacke + dependencies link directories
-#  LAPACKE_LIBRARIES_DEP    - lapacke libraries + dependencies
-#
-# The user can give specific paths where to find the libraries adding cmake
-# options at configure (ex: cmake path/to/project -DLAPACKE_DIR=path/to/lapacke):
-#  LAPACKE_DIR             - Where to find the base directory of lapacke
-#  LAPACKE_INCDIR          - Where to find the header files
-#  LAPACKE_LIBDIR          - Where to find the library files
-# The module can also look for the following environment variables if paths
-# are not given as cmake variable: LAPACKE_DIR, LAPACKE_INCDIR, LAPACKE_LIBDIR
-#
-# If the static version of the LAPACKE libraries is required, please add the
-# following in your CMakeLists.txt before calling find_package(LAPACKE):
-# set(LAPACKE_STATIC TRUE)
-#
-# LAPACKE could be directly embedded in LAPACK library (ex: Intel MKL) so that
-# we test a lapacke function with the lapack libraries found and set LAPACKE
-# variables to LAPACK ones if test is successful. To skip this feature and
-# look for a stand alone lapacke, please add the following in your
-# CMakeLists.txt before to call find_package(LAPACKE):
-# set(LAPACKE_STANDALONE TRUE)
 
-#=============================================================================
-# Copyright 2012-2013 Inria
-# Copyright 2012-2013 Emmanuel Agullo
-# Copyright 2012-2013 Mathieu Faverge
-# Copyright 2012      Cedric Castagnede
-# Copyright 2013-2016 Florent Pruvost
-#
-# This file is part of a computer program whose purpose is to process
-# Matrices Over Runtime Systems @ Exascale (MORSE). More information
-# can be found on the following website: http://www.inria.fr/en/teams/morse.
-#
-# This software is governed by the CeCILL-C license under French law and
-# abiding by the rules of distribution of free software.  You can  use,
-# modify and/ or redistribute the software under the terms of the CeCILL-C
-# license as circulated by CEA, CNRS and INRIA at the following URL
-# "http://www.cecill.info".
-#
-# As a counterpart to the access to the source code and  rights to copy,
-# modify and redistribute granted by the license, users are provided only
-# with a limited warranty  and the software's author,  the holder of the
-# economic rights,  and the successive licensors  have only  limited
-# liability.
-#
-# In this respect, the user's attention is drawn to the risks associated
-# with loading,  using,  modifying and/or developing or reproducing the
-# software by the user in light of its specific status of free software,
-# that may mean  that it is complicated to manipulate,  and  that  also
-# therefore means  that it is reserved for developers  and  experienced
-# professionals having in-depth computer knowledge. Users are therefore
-# encouraged to load and test the software's suitability as regards their
-# requirements in conditions enabling the security of their systems and/or
-# data to be ensured and,  more generally, to use and operate it in the
-# same conditions as regards security.
-#
-# The fact that you are presently reading this means that you have had
-# knowledge of the CeCILL-C license and that you accept its terms.
-#
-# This software is distributed WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the License for more information.
-#=============================================================================
+# try to find Apple Accelarate framework
+find_library(ACCELERATE Accelerate REQUIRED)
 
-if (NOT LAPACKE_FOUND)
-  set(LAPACKE_DIR "" CACHE PATH "Installation directory of LAPACKE library")
-endif()
-
-# LAPACKE depends on LAPACK anyway, try to find it
-if (NOT LAPACK_FOUND)
-  if(LAPACKE_FIND_REQUIRED)
-    find_package(LAPACKEXT REQUIRED)
-  else()
-    find_package(LAPACKEXT)
-  endif()
-endif()
-
-# LAPACKE depends on LAPACK
-if (LAPACK_FOUND)
-
-  if (NOT LAPACKE_STANDALONE)
-    # check if a lapacke function exists in the LAPACK lib
-    include(CheckFunctionExists)
-    set(CMAKE_REQUIRED_LIBRARIES "${LAPACK_LINKER_FLAGS};${LAPACK_LIBRARIES}")
-    unset(LAPACKE_WORKS CACHE)
-    check_function_exists(LAPACKE_dgeqrf LAPACKE_WORKS)
-    mark_as_advanced(LAPACKE_WORKS)
-    set(CMAKE_REQUIRED_LIBRARIES)
-
-    if(LAPACKE_WORKS)
-      if(NOT LAPACKE_FIND_QUIETLY)
-        message(STATUS "Looking for lapacke: test with lapack succeeds")
-      endif()
-      # test succeeds: LAPACKE is in LAPACK
-      set(LAPACKE_LIBRARIES "${LAPACK_LIBRARIES}")
-      set(LAPACKE_LIBRARIES_DEP "${LAPACK_LIBRARIES}")
-      if (LAPACK_LIBRARY_DIRS)
-        set(LAPACKE_LIBRARY_DIRS "${LAPACK_LIBRARY_DIRS}")
-      endif()
-      if(LAPACK_INCLUDE_DIRS)
-        set(LAPACKE_INCLUDE_DIRS "${LAPACK_INCLUDE_DIRS}")
-        set(LAPACKE_INCLUDE_DIRS_DEP "${LAPACK_INCLUDE_DIRS}")
-      endif()
-      if (LAPACK_LINKER_FLAGS)
-        set(LAPACKE_LINKER_FLAGS "${LAPACK_LINKER_FLAGS}")
-      endif()
-    endif()
-  endif (NOT LAPACKE_STANDALONE)
-
-  if (LAPACKE_STANDALONE OR NOT LAPACKE_WORKS)
-
-    if(NOT LAPACKE_WORKS AND NOT LAPACKE_FIND_QUIETLY)
-      message(STATUS "Looking for lapacke : test with lapack fails")
-    endif()
-    # test fails: try to find LAPACKE lib exterior to LAPACK
+# Eigen Overload needs also standalone LAPACKE
+if (ACCELERATE)
 
     # Try to find LAPACKE lib
     #######################
@@ -386,16 +263,14 @@ if (LAPACK_FOUND)
       set(CMAKE_REQUIRED_LIBRARIES)
     endif(LAPACKE_LIBRARIES)
 
-  endif (LAPACKE_STANDALONE OR NOT LAPACKE_WORKS)
 
-else(LAPACK_FOUND)
+else(ACCELERATE)
 
   if (NOT LAPACKE_FIND_QUIETLY)
-    message(STATUS "LAPACKE requires LAPACK but LAPACK has not been found."
-      "Please look for LAPACK first.")
+    message(STATUS "Eigen Overload requires Apple Accelerate and it has not been found.")
   endif()
 
-endif(LAPACK_FOUND)
+endif(ACCELERATE)
 
 if (LAPACKE_LIBRARIES)
   list(GET LAPACKE_LIBRARIES 0 first_lib)
@@ -410,9 +285,11 @@ endif()
 mark_as_advanced(LAPACKE_DIR)
 mark_as_advanced(LAPACKE_DIR_FOUND)
 
-# check that LAPACKE has been found
+list(PREPEND LAPACKE_LIBRARIES "${ACCELERATE}")
+
+# check that APPLE_ACCELERATE has been found
 # ---------------------------------
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(LAPACKE DEFAULT_MSG
+find_package_handle_standard_args(APPLE_ACCELERATE DEFAULT_MSG
   LAPACKE_LIBRARIES
   LAPACKE_WORKS)
