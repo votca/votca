@@ -23,6 +23,12 @@
 // Local VOTCA includes
 #include "votca_tools_config.h"
 
+#ifdef APPLE_ACCELERATE_FOUND
+#include <lapacke.h>
+#define EIGEN_USE_BLAS
+#define EIGEN_USE_LAPACKE
+#endif
+
 #ifdef MKL_FOUND
 #include <mkl.h>
 #define EIGEN_USE_MKL_ALL

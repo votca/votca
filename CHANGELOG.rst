@@ -23,6 +23,7 @@ Version 2025.1-dev
 -  CI: fix freebsd build (#1201)
 -  fix python test  (#1203)
 -  Make pyxtp a real pip module  (#1180)
+-  Use Apple Accelerate Framework in Eigen (#1205)
 
 Version 2025.1 (released 03.10.25)
 ==================================

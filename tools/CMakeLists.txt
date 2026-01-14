@@ -14,6 +14,13 @@ else()
 endif()
 set_package_properties(MKL PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with MKL")
 
+# on OSX eigen can use Apple's Accelerate Framework
+if(APPLE)
+  find_package(APPLE_ACCELERATE)
+endif()
+set_package_properties(APPLE_ACCELERATE PROPERTIES TYPE OPTIONAL PURPOSE "Enables accelerated performance with Apple Accelerate Framework.")
+
+
 #user defined reductions are buggy for <= clang-9 (see https://bugs.llvm.org/show_bug.cgi?id=44134)
 if (CMAKE_CXX_COMPILER MATCHES "clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.0)
   # in case OpenMP was detected somewhere else
