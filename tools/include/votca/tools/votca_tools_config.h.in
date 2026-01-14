@@ -22,7 +22,7 @@
 #cmakedefine MKL_FOUND
 
 /* Linear algebra packages on OSX */
-#cmakedefine LAPACKE_FOUND
+#cmakedefine APPLE_ACCELERATE_FOUND
 
 /* FFT library */
 #cmakedefine FFTW3_FOUND
