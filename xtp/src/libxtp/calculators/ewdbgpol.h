@@ -10,10 +10,10 @@
 #include "votca/xtp/ewald/polarseg.h"
 #include "votca/xtp/ewald/polartop.h"
 #include "votca/xtp/segmentmapper.h"
+#include <votca/tools/getline.h>
 #include <votca/xtp/job.h>
 #include <votca/xtp/jobtopology.h>
 #include <votca/xtp/qmcalculator.h>
-#include <votca/tools/getline.h>
 
 namespace votca {
 namespace xtp {
@@ -97,88 +97,91 @@ bool EwaldBgPolarizer::Evaluate(Topology &top) {
   master.getLogger()->setPreface(Log::debug, "\nMST DBG");
   Logger &log = *master.getLogger();
 
-  // GENERATE BACKGROUND (= periodic bg, with empty foreground)
-  std::cout << std::endl << "... ... Initialize MPS-mapper: " << std::flush;
-
-  // use new MAPPER to get a list of mapped PolarSegments (neutral only for now)
-  BackgroundRegion BGN(0, log);
-  PolarMapper polmap(log);
-  polmap.LoadMappingFile(_xml_file);
-  Index seg_index = 0;
-
-  if (_use_mps_table) {
-    // MPS mapping is performed with a unique MPS file for each segment.
-    // filenames are expected to be "MP_FILES/segmentname_segmentid_state.mps"
-    // e.g., MP_FILES/edot_1_n.mps
-    XTP_LOG(Log::debug, log) << "Using segment specific MPS files!" << std::flush;
-    for (auto segment : top.Segments()) {    
-      std::string mpsfile_n = "MP_FILES/" + segment.getType() + "_" + std::to_string(segment.getId()) + "_n.mps";
-      XTP_LOG(Log::debug, log) << "Reading MPS information from " << mpsfile_n << std::flush;
-      PolarSegment mol = polmap.map(segment, mpsfile_n);
-      BGN.push_back(mol);
-      seg_index++;
-    }
-    //exit(0);
-
-  } else {
-    for (auto segment : top.Segments()) {
-      PolarSegment mol = polmap.map(segment, SegId(seg_index, "n"));
-      BGN.push_back(mol);
-      seg_index++;
-    }
-  }
-
-  // Convert this to old PolarTop
+  // Store as PolarTop
   PolarTop ptop(&top);
 
-  // DECLARE TARGET CONTAINERS
-  std::vector<PolarSeg *> bgN;
-  std::vector<Segment *> segs_bgN;
-
-  bgN.reserve(BGN.size());
-  // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
-  segs_bgN.reserve(BGN.size());
-  for (auto segment : top.Segments()) {
-    segs_bgN.push_back(&segment);
-  }
-
-  // segments in BGN are NEW POLARSEGMENTS
-  int state = 0;  // only neutral background segments
-  for (auto segment : BGN) {
-    // get all NEW PolarSites of this segment and convert them to OLD PolarSites
-    std::vector<APolarSite *> psites;
-    psites.reserve(segment.size());
-    for (auto site : segment) {
-      APolarSite *psite = new APolarSite();
-      psite->ConvertFromPolarSite(site, state);
-      psite->Charge(state);  // set state of this sites 0: ground state
-      psites.push_back(psite);
-    }
-
-    // now make an OLD PolarSeg from the new PolarSegment
-    PolarSeg *new_pseg = new PolarSeg(int(segment.getId()), psites);
-    bgN.push_back(new_pseg);
-  }
-
-  // PROPAGATE SHELLS TO POLAR TOPOLOGY
-  ptop.setBGN(bgN);
-  ptop.setSegsBGN(segs_bgN);
-
-  /*PolarTop ptop(&top);
   if (_do_restart) {
+    XTP_LOG(Log::info, log)
+        << "Loading polarization state from file " << _ptop_file << std::flush;
     ptop.LoadFromDrive(_ptop_file);
   } else {
-    _mps_mapper.GenerateMap(_xml_file, _mps_table, &top);
-    _mps_mapper.Gen_BGN(&top, &ptop, &master);
+    // GENERATE BACKGROUND (= periodic bg, with empty foreground)
+    std::cout << std::endl << "... ... Initialize MPS-mapper: " << std::flush;
+
+    // use new MAPPER to get a list of mapped PolarSegments (neutral only for
+    // now)
+    BackgroundRegion BGN(0, log);
+    PolarMapper polmap(log);
+    polmap.LoadMappingFile(_xml_file);
+    Index seg_index = 0;
+
+    if (_use_mps_table) {
+      // MPS mapping is performed with a unique MPS file for each segment.
+      // filenames are expected to be
+      // "MP_FILES/segmentname_segmentid_state.mps" e.g.,
+      // MP_FILES/edot_1_n.mps
+      XTP_LOG(Log::debug, log)
+          << "Using segment specific MPS files!" << std::flush;
+      for (auto segment : top.Segments()) {
+        std::string mpsfile_n = "MP_FILES/" + segment.getType() + "_" +
+                                std::to_string(segment.getId()) + "_n.mps";
+        XTP_LOG(Log::debug, log)
+            << "Reading MPS information from " << mpsfile_n << std::flush;
+        PolarSegment mol = polmap.map(segment, mpsfile_n);
+        BGN.push_back(mol);
+        seg_index++;
+      }
+      // exit(0);
+
+    } else {
+      for (auto segment : top.Segments()) {
+        PolarSegment mol = polmap.map(segment, SegId(seg_index, "n"));
+        BGN.push_back(mol);
+        seg_index++;
+      }
+    }
+
+    // DECLARE TARGET CONTAINERS
+    std::vector<PolarSeg *> bgN;
+    std::vector<Segment *> segs_bgN;
+
+    bgN.reserve(BGN.size());
+    // PARTITION SEGMENTS ONTO BACKGROUND + FOREGROUND
+    segs_bgN.reserve(BGN.size());
+    for (auto segment : top.Segments()) {
+      segs_bgN.push_back(&segment);
+    }
+
+    // segments in BGN are NEW POLARSEGMENTS
+    int state = 0;  // only neutral background segments
+    for (auto segment : BGN) {
+      // get all NEW PolarSites of this segment and convert them to OLD
+      // PolarSites
+      std::vector<APolarSite *> psites;
+      psites.reserve(segment.size());
+      for (auto site : segment) {
+        APolarSite *psite = new APolarSite();
+        psite->ConvertFromPolarSite(site, state);
+        psite->Charge(state);  // set state of this sites 0: ground state
+        psites.push_back(psite);
+      }
+
+      // now make an OLD PolarSeg from the new PolarSegment
+      PolarSeg *new_pseg = new PolarSeg(int(segment.getId()), psites);
+      bgN.push_back(new_pseg);
+    }
+
+    // PROPAGATE SHELLS TO POLAR TOPOLOGY
+    ptop.setBGN(bgN);
+    ptop.setSegsBGN(segs_bgN);
   }
-*/
 
   if (_pdb_check) {
     csg::PDBWriter mpwriter;
     mpwriter.Open("ewdbgpol.pdb", false);
     mpwriter.WriteHeader("Background");
     mpwriter.WriteBox(top.getBox() * tools::conv::bohr2ang);
-    BGN.WritePDB(mpwriter);
+    //BGN.WritePDB(mpwriter);
   }
 
   // POLARIZE SYSTEM

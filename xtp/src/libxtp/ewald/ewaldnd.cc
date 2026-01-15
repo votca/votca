@@ -182,6 +182,7 @@ Ewald3DnD::Ewald3DnD(const Topology *top, PolarTop *ptop, tools::Property *opt,
   _a = votca::tools::conv::bohr2nm * _top->getBox().col(0);  // getCol(0);
   _b = votca::tools::conv::bohr2nm * _top->getBox().col(1);
   _c = votca::tools::conv::bohr2nm * _top->getBox().col(2);
+  std::cout << _a << " " << _b << " " << _c << std::flush;
   _LxLyLz = _a.dot(_b.cross(_c));
   _LxLy = _a.cross(_b).norm();
 

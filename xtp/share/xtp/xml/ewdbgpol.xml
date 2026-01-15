@@ -5,6 +5,7 @@
                         <mps_table/>
                         <pdb_check>1</pdb_check>
                         <ptop_check>1</ptop_check>
+                        <restart_from/>
                 </control>
                 <coulombmethod>
                         <method>ewald</method>
