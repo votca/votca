@@ -30,8 +30,6 @@
 // Local private VOTCA includes
 #include "eqm.h"
 
-using boost::format;
-
 namespace votca {
 namespace xtp {
 
@@ -76,7 +74,7 @@ void EQM::WriteJobFile(const Topology& top) {
     tools::Property Input;
     tools::Property& pInput = Input.add("input", "");
     tools::Property& pSegment =
-        pInput.add("segment", (format("%1$s") % segment.getId()).str());
+        pInput.add("segment", (boost::format("%1$s") % segment.getId()).str());
     pSegment.setAttribute<std::string>("type", segment.getType());
     pSegment.setAttribute<Index>("id", segment.getId());
     Job job(id, tag, Input, Job::AVAILABLE);
@@ -136,8 +134,8 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   std::string frame_dir =
       "frame_" + boost::lexical_cast<std::string>(top.getStep());
   std::string orb_file =
-      (format("%1%_%2%%3%") % "molecule" % segId % ".orb").str();
-  std::string mol_dir = (format("%1%%2%%3%") % "molecule" % "_" % segId).str();
+      (boost::format("%1%_%2%%3%") % "molecule" % segId % ".orb").str();
+  std::string mol_dir = (boost::format("%1%%2%%3%") % "molecule" % "_" % segId).str();
   std::string package_append = "workdir_" + Identify();
   std::string work_dir =
       (arg_path / eqm_work_dir / package_append / frame_dir / mol_dir)
@@ -154,10 +152,10 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     XTP_LOG(Log::error, pLog) << "Running DFT" << std::flush;
     Logger dft_logger(votca::Log::current_level);
     dft_logger.setMultithreading(false);
-    dft_logger.setPreface(Log::info, (format("\nDFT INF ...")).str());
-    dft_logger.setPreface(Log::error, (format("\nDFT ERR ...")).str());
-    dft_logger.setPreface(Log::warning, (format("\nDFT WAR ...")).str());
-    dft_logger.setPreface(Log::debug, (format("\nDFT DBG ...")).str());
+    dft_logger.setPreface(Log::info, (boost::format("\nDFT INF ...")).str());
+    dft_logger.setPreface(Log::error, (boost::format("\nDFT ERR ...")).str());
+    dft_logger.setPreface(Log::warning, (boost::format("\nDFT WAR ...")).str());
+    dft_logger.setPreface(Log::debug, (boost::format("\nDFT DBG ...")).str());
     std::string package = package_options_.get(".name").as<std::string>();
     std::unique_ptr<QMPackage> qmpackage = QMPackageFactory().Create(package);
     qmpackage->setLog(&dft_logger);
@@ -198,7 +196,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
         std::string DIR = eqm_work_dir + "/molecules/" + frame_dir;
         std::filesystem::create_directories(DIR);
         std::string gbw_file =
-            (format("%1%_%2%%3%") % "molecule" % segId % ".gbw").str();
+            (boost::format("%1%_%2%%3%") % "molecule" % segId % ".gbw").str();
         std::string GBWFILE = DIR + "/" + gbw_file;
         XTP_LOG(Log::error, pLog)
             << "Copying MO data to " << gbw_file << std::flush;
@@ -230,10 +228,10 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       GWBSE gwbse = GWBSE(orbitals);
       Logger gwbse_logger(votca::Log::current_level);
       gwbse_logger.setMultithreading(false);
-      gwbse_logger.setPreface(Log::info, (format("\nGWBSE INF ...")).str());
-      gwbse_logger.setPreface(Log::error, (format("\nGWBSE ERR ...")).str());
-      gwbse_logger.setPreface(Log::warning, (format("\nGWBSE WAR ...")).str());
-      gwbse_logger.setPreface(Log::debug, (format("\nGWBSE DBG ...")).str());
+      gwbse_logger.setPreface(Log::info, (boost::format("\nGWBSE INF ...")).str());
+      gwbse_logger.setPreface(Log::error, (boost::format("\nGWBSE ERR ...")).str());
+      gwbse_logger.setPreface(Log::warning, (boost::format("\nGWBSE WAR ...")).str());
+      gwbse_logger.setPreface(Log::debug, (boost::format("\nGWBSE DBG ...")).str());
       gwbse.setLogger(&gwbse_logger);
       gwbse.Initialize(gwbse_options_);
       gwbse.Evaluate();
@@ -254,7 +252,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       std::string ESPDIR =
           "MP_FILES/" + frame_dir + "/" + esp2multipole.GetStateString();
       StaticSegment seg2 = esp2multipole.Extractingcharges(orbitals);
-      std::string mps_file = (format("%1%_%2%_%3%.mps") % segType % segId %
+      std::string mps_file = (boost::format("%1%_%2%_%3%.mps") % segType % segId %
                               esp2multipole.GetStateString())
                                  .str();
       std::filesystem::create_directories(ESPDIR);

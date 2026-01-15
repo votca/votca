@@ -31,7 +31,7 @@
 
 namespace votca {
 namespace xtp {
-using boost::format;
+
 Job::Job(const tools::Property &prop) {
 
   // DEFINED BY USER
@@ -124,23 +124,23 @@ void Job::ToStream(std::ofstream &ofs) const {
                                       "\t\t");
   std::string tab = "\t";
   ofs << tab << "<job>\n";
-  ofs << tab << tab << (format("<id>%1$d</id>\n") % id_).str();
-  ofs << tab << tab << (format("<tag>%1$s</tag>\n") % tag_).str();
+  ofs << tab << tab << (boost::format("<id>%1$d</id>\n") % id_).str();
+  ofs << tab << tab << (boost::format("<tag>%1$s</tag>\n") % tag_).str();
   ofs << iomXML << input_;
   ofs << tab << tab
-      << (format("<status>%1$s</status>\n") % ConvertStatus(status_)).str();
+      << (boost::format("<status>%1$s</status>\n") % ConvertStatus(status_)).str();
 
   if (has_host_) {
-    ofs << tab << tab << (format("<host>%1$s</host>\n") % host_).str();
+    ofs << tab << tab << (boost::format("<host>%1$s</host>\n") % host_).str();
   }
   if (has_time_) {
-    ofs << tab << tab << (format("<time>%1$s</time>\n") % time_).str();
+    ofs << tab << tab << (boost::format("<time>%1$s</time>\n") % time_).str();
   }
   if (has_output_) {
     ofs << iomXML << output_;
   }
   if (has_error_) {
-    ofs << tab << tab << (format("<error>%1$s</error>\n") % error_).str();
+    ofs << tab << tab << (boost::format("<error>%1$s</error>\n") % error_).str();
   }
   ofs << tab << "</job>\n";
   return;
