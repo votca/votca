@@ -1592,5 +1592,350 @@ void PEwald3D3D::Potential_CalculateShapeCorrection(
   return;
 }
 
+
+// ======= GRID POTENTIAL EVALUATIONS =========
+
+
+void PEwald3D3D::Potential_ConvergeRealSpaceSum_Grid(
+    std::vector<PolarSeg *> &target) {
+
+  double sum = 0.0;
+  [[maybe_unused]] double sum_phi = 0.0;
+  _potential_converged_R = false;
+
+
+ if (target.size() > 1 ){
+  throw std::runtime_error("More than one segment not supported for grid potential evaluation inPotential_ConvergeRealSpaceSum_Grid.");
+ }
+
+
+  XTP_LOG(Log::debug, *_log)
+      << std::flush << "R-space potentials via midground" << std::flush;
+
+  std::vector<PolarSeg *>::iterator sit1;
+  std::vector<APolarSite *>::iterator pit1;
+  std::vector<PolarSeg *>::iterator sit2;
+  std::vector<APolarSite *>::iterator pit2;
+  std::vector<PolarNb *>::iterator nit;
+
+  bool neighbours_stored = false;
+  for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
+    int nb_count = static_cast<int>((*sit1)->PolarNbs().size());
+    if (nb_count > 0) {
+      neighbours_stored = true;
+      break;
+    }
+  }
+ 
+  // ENERGY - REUSE NEIGHBOURS ?
+  if (neighbours_stored) {
+    for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
+      std::vector<PolarNb *> &nbs = (*sit1)->PolarNbs();
+      // get the numerical integration grid
+      Vxc_Grid &grid = (*sit1)->getGrid();
+      // evaluate at all points of the grid, going over boxes first
+      for (Index i = 0; i < grid.getBoxesSize(); ++i) {
+        GridBox& box = grid[i];
+        const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+        std::vector<double>& values = box.getPotentialValues();
+
+        // iterate over gridpoints
+        for (Index p = 0; p < box.size(); p++) {
+            // potential created at gridpoint by all neighbors of target segment
+            for (nit = nbs.begin(); nit != nbs.end(); ++nit) {
+              PolarSeg *nb = (*nit)->getNb();
+              for (pit2 = nb->begin(); pit2 < nb->end(); ++pit2) {
+                values[p] = _ewdactor.PhiPU12_ERFC_At_By(points[p], *(*pit2));
+          }
+        }
+      }
+    }
+      if (Log::verbose()) {
+        XTP_LOG(Log::debug, *_log)
+            << (format("  o Id = %5$-4d Rc = %1$+02.7f   |MGN| = %2$5d   "
+                       "dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") %
+                -1.0 % nbs.size() % -1.0 % -1.0 % ((*sit1)->getId()))
+                   .str()
+            << std::flush;
+      }
+    }
+    _potential_converged_R = true;
+  }
+  /*
+  // ENERGY - REGENERATE NEIGHBOURS ?
+  else {
+    double dR_shell = 0.5;
+    double R_overhead = 1.1;
+    double R_add = 3;
+    double R_max = _R_co * R_overhead + R_add;
+    double R_max_shell = R_max + 2 * _polar_cutoff + _max_int_dist_qm0;
+    this->SetupMidground(R_max);
+
+    // FOR EACH FOREGROUND SEGMENT (FGC) ...
+    unsigned int energy_converged_count = 0;
+    for (sit1 = target.begin(); sit1 != target.end(); ++sit1) {
+      (*sit1)->ClearPolarNbs();
+
+      // Bin midground into shells
+      std::vector<std::vector<PolarSeg *> > shelled_mg_N;
+      int N_shells = int(R_max_shell / dR_shell) + 1;
+      shelled_mg_N.resize(N_shells);
+
+      for (sit2 = _mg_N.begin(); sit2 != _mg_N.end(); ++sit2) {
+        double R = ((*sit1)->getPos() - (*sit2)->getPos()).norm();
+        int shell_idx = int(R / dR_shell);
+        shelled_mg_N[shell_idx].push_back(*sit2);
+      }
+
+      // Sum over consecutive shells
+      for (int sidx = 0; sidx < N_shells; ++sidx) {
+        // Shell rms trackers
+        double shell_sum = 0.0;
+        double shell_term = 0.0;
+        double shell_rms = 0.0;
+        int shell_count = 0;
+        // Interact with shell
+        std::vector<PolarSeg *> &shell_mg = shelled_mg_N[sidx];
+        double shell_R = (sidx + 1) * dR_shell;
+        if (shell_mg.size() < 1) continue;
+        EWD::triple<double> ppuu(0, 0, 0);
+        for (sit2 = shell_mg.begin(); sit2 < shell_mg.end(); ++sit2) {
+          for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+            for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+              double phi = _ewdactor.PhiPU12_ERFC_At_By(*(*pit1), *(*pit2));
+              sum_phi += phi;
+              shell_term = phi;
+              shell_sum += shell_term;
+              shell_rms += shell_term * shell_term;
+              shell_count += 1;
+            }
+          }
+        }
+        shell_rms = sqrt(shell_rms / shell_count) * int2eV;
+        sum += shell_sum;
+        if (Log::verbose()) {
+          XTP_LOG(Log::debug, *_log)
+              << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER "
+                         "= %2$+1.7f V   dER2(sum) = %4$+1.3e V") %
+                  shell_R % (sum * int2eV) % shell_mg.size() %
+                  (shell_rms * shell_count) % (*sit1)->getId())
+                     .str()
+              << std::flush;
+        }
+
+        if (shell_rms * shell_count <= _crit_dE && shell_R >= _R_co) {
+          energy_converged_count += 1;
+          if (Log::verbose()) {
+            XTP_LOG(Log::debug, *_log)
+                << (format("  :: ID = %2$-4d : Converged to precision as of Rc "
+                           "= %1$+1.3f nm") %
+                    shell_R % (*sit1)->getId())
+                << std::flush;
+          }
+          break;
+        }
+      }
+    }
+
+    if (energy_converged_count == target.size()) {
+      XTP_LOG(Log::debug, *_log)
+          << (format(":::: Converged to precision (%1$d items)") %
+              energy_converged_count)
+          << std::flush;
+      _potential_converged_R = true;
+    } else if (energy_converged_count < target.size()) {
+      XTP_LOG(Log::error, *_log)
+          << "ERROR Energy not converged on "
+          << target.size() - energy_converged_count << " counts." << std::flush;
+      _potential_converged_R = false;
+    } else {
+      assert(false);
+    }
+  }
+
+  // boost::timer::auto_cpu_timer t0(*_log);
+  // t0.start();
+  // t0.stop();
+  // t0.report();
+*/
+  return;
+}
+
+void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum_Grid(
+    std::vector<PolarSeg *> &target) {
+
+  // ATTENTION K-vectors are generated based on an interaction-energy
+  //           criterion between FGC and BGP. Hence, the <target> density
+  //           should at the very least be located within the space
+  //           covered by FGC.
+  if (!_did_generate_kvectors) this->GenerateKVectors(_fg_C, _bg_P);
+  std::vector<EWD::KVector>::iterator kvit;
+
+  double sum_re = 0.0;
+  double sum_im = 0.0;
+  _potential_converged_K = false;
+  double rV = 1. / _LxLyLz;
+
+  /*
+  // TWO COMPONENTS ZERO, ONE NON-ZERO
+  XTP_LOG(Log::info, *_log)
+      << std::flush << "K-lines through origin: Checking K resonances"
+      << std::flush;
+  for (kvit = _kvecs_2_0.begin(); kvit < _kvecs_2_0.end(); ++kvit) {
+    EWD::KVector kvec = *kvit;
+    EWD::cmplx f_as1s2 =
+        _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), target, _bg_P, rV);
+    sum_re += sqrt(f_as1s2._re);
+    sum_im += f_as1s2._im;
+  }
+
+  XTP_LOG(Log::info, *_log) << (format("  :: RE %1$+1.7e IM %2$+1.7e") %
+                                (sum_re * int2eV) % (sum_im * int2eV))
+                                   .str()
+                            << std::flush;
+
+  // ONE COMPONENT ZERO, TWO NON-ZERO
+  XTP_LOG(Log::info, *_log)
+      << "K-planes through origin: Applying K resonances" << std::flush;
+
+  double crit_grade = 1. * _kxyz_s1s2_norm;
+  bool converged12 = false;
+  kvit = _kvecs_1_0.begin();
+  while (!converged12 && kvit < _kvecs_1_0.end()) {
+
+    double shell_rms = 0.0;
+    int rms_count = 0;
+
+    while (kvit < _kvecs_1_0.end()) {
+      EWD::KVector kvec = *kvit;
+      if (kvec.getGrade() < crit_grade) break;
+      EWD::cmplx f_as1s2 =
+          _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), target, _bg_P, rV);
+      sum_re += f_as1s2._re;
+      sum_im += f_as1s2._im;
+      shell_rms += f_as1s2._re;
+      ++kvit;
+      ++rms_count;
+    }
+    shell_rms = (rms_count > 0) ? sqrt(shell_rms / rms_count) * int2eV : 0.0;
+    double e_measure = shell_rms * rms_count;
+
+    if (rms_count > 0) {
+      XTP_LOG(Log::debug, *_log)
+          << (format("  o M = %1$04d   G = %2$+1.3e   dPhi(rms) = %3$+1.3e V   "
+                     "[1e => %4$+1.3e eV]") %
+              rms_count % crit_grade % shell_rms % e_measure)
+                 .str()
+          << std::flush;
+    }
+
+    if (rms_count > 10 && e_measure <= _crit_dE) {
+      XTP_LOG(Log::info, *_log) << (format("  :: RE %1$+1.7e IM %2$+1.7e") %
+                                    (sqrt(sum_re) * int2eV) % (sum_im * int2eV))
+                                       .str()
+                                << std::flush;
+      converged12 = true;
+    }
+
+    crit_grade /= 10.0;
+  }
+
+  // ZERO COMPONENTS ZERO, THREE NON-ZERO
+  XTP_LOG(Log::info, *_log)
+      << "K-space (off-axis): Applying K resonances" << std::flush;
+
+  crit_grade = 1. * _kxyz_s1s2_norm;
+  bool converged03 = false;
+  kvit = _kvecs_0_0.begin();
+  while (!converged03 && kvit < _kvecs_0_0.end()) {
+
+    double shell_rms = 0.0;
+    int rms_count = 0;
+
+    while (kvit < _kvecs_0_0.end()) {
+      EWD::KVector kvec = *kvit;
+      if (kvec.getGrade() < crit_grade) break;
+      EWD::cmplx f_as1s2 =
+          _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), target, _bg_P, rV);
+      sum_re += f_as1s2._re;
+      sum_im += f_as1s2._im;
+      shell_rms += f_as1s2._re;
+      ++kvit;
+      ++rms_count;
+    }
+    shell_rms = (rms_count > 0) ? sqrt(shell_rms / rms_count) * int2eV : 0.0;
+    double e_measure = shell_rms * 1e-10 * rms_count;
+
+    if (rms_count > 0) {
+      XTP_LOG(Log::debug, *_log)
+          << (format("  o M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V   "
+                     "[1e => %4$+1.3e eV]") %
+              rms_count % crit_grade % shell_rms % e_measure)
+                 .str()
+          << std::flush;
+    }
+
+    if (rms_count > 10 && e_measure <= _crit_dE) {
+      XTP_LOG(Log::info, *_log) << (format("  :: RE %1$+1.7e IM %2$+1.7e") %
+                                    (sqrt(sum_re) * int2eV) % (sum_im * int2eV))
+                                       .str()
+                                << std::flush;
+      converged03 = true;
+    }
+
+    crit_grade /= 10.0;
+  }
+
+  _potential_converged_K = converged12 && converged03;
+
+  if (_potential_converged_K)
+    XTP_LOG(Log::info, *_log)
+        << (format(":::: Converged to precision, {0-2}, {1-2}, {0-3}."))
+        << std::flush;
+  else
+    ;
+*/
+  return;
+}
+
+void PEwald3D3D::Potential_CalculateForegroundCorrection_Grid(
+    std::vector<PolarSeg *> &target) {
+  XTP_LOG(Log::debug, *_log)
+      << "  o Foreground-correction to potentials via FGN" << std::flush;
+
+  std::vector<PolarSeg *>::iterator sit1;
+  std::vector<APolarSite *>::iterator pit1;
+  std::vector<PolarSeg *>::iterator sit2;
+  std::vector<APolarSite *>::iterator pit2;
+/*
+  double rms = 0.0;
+  int rms_count = 0;
+  for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
+    for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
+      for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+        for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+          rms += _ewdactor.PhiPU12_ERF_At_By(*(*pit1), *(*pit2));
+          rms_count += 1;
+        }
+      }
+    }
+  }
+  rms = sqrt(rms / rms_count) * int2eV;
+*/
+  return;
+}
+
+void PEwald3D3D::Potential_CalculateShapeCorrection_Grid(
+    std::vector<PolarSeg *> &target) {
+  /* XTP_LOG(Log::debug, *_log)
+      << std::flush << "Potential correction terms" << std::flush;
+  XTP_LOG(Log::debug, *_log) << "  o Shape-correction to potentials, using '"
+                             << _shape << "'" << std::flush;
+
+  _ewdactor.PhiPU12_ShapeField_At_By(target, _bg_P, _shape, _LxLyLz);
+  */
+  return;
+}
+
 }  // namespace xtp
 }  // namespace votca

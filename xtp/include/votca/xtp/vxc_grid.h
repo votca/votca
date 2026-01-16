@@ -37,7 +37,7 @@ class Vxc_Grid {
                  const AOBasis& basis);
 
   std::vector<const Eigen::Vector3d*> getGridpoints() const;
-  std::vector<double> getWeightedDensities() const;
+  std::vector<double> getPotentialAtGrid() const;
   Index getGridSize() const { return totalgridsize_; }
   Index getBoxesSize() const { return Index(grid_boxes_.size()); }
 
@@ -87,7 +87,7 @@ class Vxc_Grid {
 
   Index totalgridsize_;
   std::vector<GridBox> grid_boxes_;
-  bool density_set_ = false;
+  bool potential_set_ = false;
 };
 
 }  // namespace xtp

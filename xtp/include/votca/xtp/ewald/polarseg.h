@@ -6,6 +6,7 @@
 #include <boost/serialization/vector.hpp>
 #include <votca/xtp/ewald/apolarsite.h>
 #include <votca/xtp/ewald/polarfrag.h>
+#include <votca/xtp/vxc_grid.h>
 
 namespace votca {
 namespace xtp {
@@ -24,7 +25,7 @@ class PolarSeg : public std::vector<APolarSite *> {
         _is_charged(true),
         _is_polarizable(true),
         _indu_cg_site(NULL),
-        _perm_cg_site(NULL) {}
+        _perm_cg_site(NULL), _grid() {}
   PolarSeg(int id, std::vector<APolarSite *> &psites);
   PolarSeg(PolarSeg *templ, bool do_depolarize);
   explicit PolarSeg(int id)
@@ -33,7 +34,7 @@ class PolarSeg : public std::vector<APolarSite *> {
         _is_charged(true),
         _is_polarizable(true),
         _indu_cg_site(NULL),
-        _perm_cg_site(NULL) {}
+        _perm_cg_site(NULL), _grid() {}
   ~PolarSeg();
 
   const int &getId() { return _id; }
@@ -65,6 +66,10 @@ class PolarSeg : public std::vector<APolarSite *> {
   void CalcIsPolarizable();
   bool IsPolarizable() { return _is_polarizable; }
 
+  // setting and accessing a numerical integration grid
+  void setGrid(const Vxc_Grid& grid) {_grid = grid;}
+  Vxc_Grid &getGrid() {return _grid;}
+
   // File output methods
   void PrintPolarNbPDB(std::string outfile);
   void WriteMPS(std::string mpsfile, std::string tag = "");
@@ -90,6 +95,8 @@ class PolarSeg : public std::vector<APolarSite *> {
   vector<PolarNb *> _nbs;
   APolarSite *_indu_cg_site;
   APolarSite *_perm_cg_site;
+  // Integration grid for QM-Ewald
+  Vxc_Grid _grid;
 };
 
 class PolarNb {

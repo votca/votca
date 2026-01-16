@@ -2236,6 +2236,95 @@ void Ewald3DnD::EvaluatePotential(std::vector<PolarSeg *> &target, bool add_bg,
   return;
 }
 
+void Ewald3DnD::EvaluatePotentialGrid(std::vector<PolarSeg *> &target, bool add_bg,
+                                  bool add_mm1, bool add_qm0) {
+
+  // RESET POTENTIALS WHY
+  std::vector<PolarSeg *>::iterator sit;
+  std::vector<APolarSite *>::iterator pit;
+  for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {
+    PolarSeg *pseg = *sit;
+    for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+      (*pit)->ResetPhi(true, true);
+    }
+  }
+
+  // APERIODIC-PERIODIC BACKGROUND
+  if (add_bg) {
+    // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
+    Potential_ConvergeRealSpaceSum_Grid(target);
+
+    // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D)
+    Potential_ConvergeReciprocalSpaceSum_Grid(target);
+
+    // SHAPE-CORRECTION (3D3D)/ K0-CORRECTION (3D2D)
+    Potential_CalculateShapeCorrection_Grid(target);
+
+    // FOREGROUND CORRECTION (3D2D && 3D3D)
+    Potential_CalculateForegroundCorrection_Grid(target);
+  }
+
+  // FOREGROUND EXCLUDING QM
+  /*if (add_mm1) {
+    std::vector<PolarSeg *>::iterator sit1;
+    std::vector<APolarSite *>::iterator pit1;
+    std::vector<PolarSeg *>::iterator sit2;
+    std::vector<APolarSite *>::iterator pit2;
+    for (sit1 = _polar_mm1.begin(); sit1 != _polar_mm1.end(); ++sit1) {
+      PolarSeg *pseg1 = *sit1;
+      for (sit2 = target.begin(); sit2 != target.end(); ++sit2) {
+        PolarSeg *pseg2 = *sit2;
+        if (pseg1 == pseg2) assert(false);
+        for (pit1 = pseg1->begin(); pit1 != pseg1->end(); ++pit1) {
+          for (pit2 = pseg2->begin(); pit2 != pseg2->end(); ++pit2) {
+            _actor.BiasIndu(*(*pit2), *(*pit1));
+            _actor.Potential_At_By(*(*pit2), *(*pit1));
+          }
+        }
+      }
+    }
+  }
+
+  // FOREGROUND EXCLUDING MM
+  if (add_qm0) {
+    std::vector<PolarSeg *>::iterator sit1;
+    std::vector<APolarSite *>::iterator pit1;
+    std::vector<PolarSeg *>::iterator sit2;
+    std::vector<APolarSite *>::iterator pit2;
+    for (sit1 = _polar_qm0.begin(); sit1 != _polar_qm0.end(); ++sit1) {
+      PolarSeg *pseg1 = *sit1;
+      for (sit2 = target.begin(); sit2 != target.end(); ++sit2) {
+        PolarSeg *pseg2 = *sit2;
+        if (pseg1 == pseg2) assert(false);
+        for (pit1 = pseg1->begin(); pit1 != pseg1->end(); ++pit1) {
+          for (pit2 = pseg2->begin(); pit2 != pseg2->end(); ++pit2) {
+            _actor.BiasIndu(*(*pit2), *(*pit1));
+            _actor.Potential_At_By(*(*pit2), *(*pit1));
+          }
+        }
+      }
+    }
+  }*/
+
+  double q_phi = 0.0;
+  for (sit = _polar_qm0.begin(); sit < _polar_qm0.end(); ++sit) {
+    PolarSeg *pseg = *sit;
+    for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
+      q_phi += (*pit)->getQ00() * (*pit)->getPhi();
+    }
+  }
+
+  XTP_LOG(Log::info, *_log)
+      << std::flush << "Potential q*phi " << q_phi * int2eV << std::flush;
+
+  return;
+}
+
+
+
+
+
+
 EWD::triple<> Ewald3DnD::ConvergeRealSpaceSum(std::vector<PolarSeg *> &target) {
 
   XTP_LOG(Log::debug, *_log) << std::flush;

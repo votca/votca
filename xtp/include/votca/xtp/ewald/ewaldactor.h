@@ -79,6 +79,8 @@ class EwdInteractor {
 
   // ============================= REAL SPACE ============================= //
   inline void ApplyBias(APolarSite &p1, APolarSite &p2);
+  inline void ApplyBiasPolar(const vec &r, APolarSite &p2);
+
   inline void ApplyBiasPolar(APolarSite &p1, APolarSite &p2);
   inline void ApplyBias(APolarSite &p1, APolarSite &p2, vec &s);
   inline void ApplyBiasPolar(APolarSite &p1, APolarSite &p2, vec &s);
@@ -157,6 +159,8 @@ class EwdInteractor {
 
   // Real-space term contribution P1 <> P2
   inline double PhiPU12_ERFC_At_By(APolarSite &p1, APolarSite &p2);
+  inline double PhiPU12_ERFC_At_By(const vec &r, APolarSite &p2);
+
   inline double PhiP12_ERFC_At_By(APolarSite &p1, APolarSite &p2);
   inline double PhiU12_ERFC_At_By(APolarSite &p1, APolarSite &p2);
   // Reciprocal-space self-interaction term P1 <> P2
@@ -382,6 +386,40 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite &p1, APolarSite &p2) {
     l3 = l5 = l7 = l9 = 1.;
     lp3 = lp5 = lp7 = lp9 = 1.;
   }
+  return;
+}
+
+
+inline void EwdInteractor::ApplyBiasPolar(const vec &r, APolarSite &p2) {
+
+  r12 = r - p2.getPos();
+
+  rx = r12(0);
+  ry = r12(1);
+  rz = r12(2);
+
+  rxx = rx * rx;
+  rxy = rx * ry;
+  rxz = rx * rz;
+  ryy = ry * ry;
+  ryz = ry * rz;
+  rzz = rz * rz;
+
+  R1 = r12.norm();
+  R2 = R1 * R1;
+  R3 = R1 * R2;
+  // R4 = R1*R3;
+  // R5 = R1*R4;
+
+  rR1 = 1. / R1;
+  rR2 = 1. / R2;
+  // rR3 = 1./R3;
+  // rR4 = 1./R4;
+  // rR5 = 1./R5;
+
+  // Thole damping omitted 
+  l3 = l5 = l7 = l9 = 1.;
+  lp3 = lp5 = lp7 = lp9 = 1.;
   return;
 }
 
@@ -1182,6 +1220,39 @@ inline double EwdInteractor::PhiPU12_ERFC_At_By(APolarSite &p1,
   phi_u = u_mu2_r * B1;
   p1.PhiP += phi_p;
   p1.PhiU += phi_u;
+  return phi_p + phi_u;
+}
+
+inline double EwdInteractor::PhiPU12_ERFC_At_By(const vec &r,
+                                                APolarSite &p2) {
+  // ATTENTION Potentials are currently not damped
+  // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
+  ApplyBiasPolar(r, p2);
+  UpdateAllBls();
+
+  double phi_p = 0.0;
+  double phi_u = 0.0;
+
+  // Dot product µ * r
+  double mu2_r = 0.0;
+  // Dot product µ(ind) * r
+  double u_mu2_r = 0.0;
+  // Dyadic product Q : R
+  double Q2__R = 0.0;
+
+  u_mu2_r = (p2.U1x * rx + p2.U1y * ry + p2.U1z * rz);
+  if (p2._rank > 0) {
+    mu2_r = (p2.Q1x * rx + p2.Q1y * ry + p2.Q1z * rz);
+    if (p2._rank > 1) {
+      Q2__R = (p2.Qxx * rxx + 2 * p2.Qxy * rxy + 2 * p2.Qxz * rxz +
+               p2.Qyy * ryy + 2 * p2.Qyz * ryz + p2.Qzz * rzz);
+    }
+  }
+
+  phi_p = p2.Q00 * B0 + mu2_r * B1 + Q2__R * B2;
+  phi_u = u_mu2_r * B1;
+  //p1.PhiP += phi_p;
+  //p1.PhiU += phi_u;
   return phi_p + phi_u;
 }
 

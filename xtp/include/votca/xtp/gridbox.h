@@ -41,6 +41,7 @@ class GridBox {
   const std::vector<Eigen::Vector3d>& getGridPoints() const { return grid_pos; }
 
   const std::vector<double>& getGridWeights() const { return weights; }
+  std::vector<double>& getPotentialValues()  { return potential_values; }
 
   const std::vector<const AOShell*>& getShells() const {
     return significant_shells;
@@ -57,12 +58,14 @@ class GridBox {
   void addGridBox(const GridBox& box) {
     grid_pos.insert(grid_pos.end(), box.grid_pos.begin(), box.grid_pos.end());
     weights.insert(weights.end(), box.weights.begin(), box.weights.end());
+    potential_values.insert(potential_values.end(), box.potential_values.begin(), box.potential_values.end());
     return;
   }
 
   void addGridPoint(const GridContainers::Cartesian_gridpoint& point) {
     grid_pos.push_back(point.grid_pos);
     weights.push_back(point.grid_weight);
+    potential_values.push_back(0.0);
   };
 
   void addShell(const AOShell* shell) {
@@ -102,6 +105,7 @@ class GridBox {
   std::vector<Eigen::Vector3d> grid_pos;
   std::vector<const AOShell*> significant_shells;
   std::vector<double> weights;
+  std::vector<double> potential_values;
 };
 
 }  // namespace xtp

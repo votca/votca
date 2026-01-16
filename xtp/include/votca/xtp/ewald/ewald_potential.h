@@ -18,42 +18,33 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_GRID_CONTAINERS_H
-#define VOTCA_XTP_GRID_CONTAINERS_H
+#ifndef VOTCA_XTP_VXC_POTENTIAL_H
+#define VOTCA_XTP_VXC_POTENTIAL_H
 
 // Local VOTCA includes
-#include "eigen.h"
+#include "grid_containers.h"
+#include "gridbox.h"
+
+#undef LOG
 
 namespace votca {
 namespace xtp {
 
-class GridContainers {
+template <class Grid>
+class Ewald_Potential {
  public:
-  // containers for radial grids per element
-  struct radial_grid {
-    Eigen::VectorXd radius;
-    Eigen::VectorXd weight;
-  };
+  explicit Ewald_Potential(const Grid& grid) : grid_(grid) {};
+  ~Ewald_Potential();
 
-  std::map<std::string, radial_grid> radial_grids;
+  Mat_p_Energy IntegrateEwald(const Eigen::MatrixXd& density_matrix) const;
 
-  // containers for spherical grids on a unit sphere per element
-  struct spherical_grid {
-    Eigen::VectorXd theta;
-    Eigen::VectorXd phi;
-    Eigen::VectorXd weight;
-  };
+ private:
 
-  std::map<std::string, spherical_grid> spherical_grids;
+  XC_entry EvaluateXC(double rho, double sigma) const;
 
-  // container for cartesian grid points and weights
-  struct Cartesian_gridpoint {
-    Eigen::Vector3d grid_pos;  // bohr
-    double grid_weight;
-    double grid_potential;
-  };
+  const Grid grid_;
 };
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // VOTCA_XTP_GRID_CONTAINERS_H
+#endif  // VOTCA_XTP_EWALD_POTENTIAL_H
