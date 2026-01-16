@@ -53,6 +53,7 @@
 #if (defined STRICT_GNUC) && GCC_VERSION > 70000
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 #include <Eigen/Eigen>
 #include <unsupported/Eigen/CXX11/Tensor>
