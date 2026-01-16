@@ -27,7 +27,6 @@
 
 using namespace votca::csg;
 using namespace std;
-using boost::format;
 
 /**
     \brief class for writing dlpoly topology files
@@ -158,8 +157,8 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *) {
 
           stringstream ss_bp1, ss_bp2;
 
-          ss_bp1 << format("%8s%8s") % bead_name1 % bead_name2;
-          ss_bp2 << format("%8s%8s") % bead_name2 % bead_name1;
+          ss_bp1 << boost::format("%8s%8s") % bead_name1 % bead_name2;
+          ss_bp2 << boost::format("%8s%8s") % bead_name2 % bead_name1;
 
           bool is_new_pair = true;
 
@@ -234,7 +233,7 @@ void DLPTopolApp::WriteMoleculeAtoms(ostream &out, const Molecule &cg) {
     btype = btype.substr(
         0, btype.find_first_of("#"));  // skip #index of atom from its type
 
-    out << format("%8s  %10f  %10f     1     0     1 %10d  %8s  %8s %10d \n") %
+    out << boost::format("%8s  %10f  %10f     1     0     1 %10d  %8s  %8s %10d \n") %
                btype % b->getMass() % b->getQ() % (i + 1) % btype % bname %
                (i + 1);
     //% b->getType()->getName() % b->getMass() % b->getQ() % (i+1) %

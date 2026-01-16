@@ -34,7 +34,6 @@
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/vc2index.h"
 
-using boost::format;
 using std::flush;
 
 namespace votca {
@@ -276,7 +275,7 @@ void BSE::printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
     double dq = frag.value().H[state] + frag.value().E[state];
     double qeff = dq + frag.value().Gs;
     XTP_LOG(Log::error, log_)
-        << format(
+        << boost::format(
                "           Fragment %1$4d -- hole: %2$5.1f%%  electron: "
                "%3$5.1f%%  dQ: %4$+5.2f  Qeff: %5$+5.2f") %
                int(frag.getId()) % (100.0 * frag.value().H[state]) %
@@ -292,7 +291,7 @@ void BSE::PrintWeights(const Eigen::VectorXd& weights) const {
     double weight = weights(i_bse);
     if (weight > opt_.min_print_weight) {
       XTP_LOG(Log::error, log_)
-          << format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") %
+          << boost::format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") %
                  (opt_.homo - vc.v(i_bse)) % (vc.c(i_bse) - opt_.homo - 1) %
                  (100.0 * weight)
           << flush;
@@ -329,7 +328,7 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
 
     double osc = oscs[i];
     XTP_LOG(Log::error, log_)
-        << format(
+        << boost::format(
                "  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> "
                "= %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f") %
                (i + 1) % (hrt2ev * energies(i)) %
@@ -341,7 +340,7 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
 
     const Eigen::Vector3d& trdip = orb.TransitionDipoles()[i];
     XTP_LOG(Log::error, log_)
-        << format(
+        << boost::format(
                "           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = "
                "%2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %
                trdip[0] % trdip[1] % trdip[2] % (trdip.squaredNorm()) % osc
@@ -379,7 +378,7 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
     }
 
     XTP_LOG(Log::error, log_)
-        << format(
+        << boost::format(
                "  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> "
                "= %4$+1.4f <K_d> = %5$+1.4f") %
                (i + 1) % (tools::conv::hrt2ev * energies(i)) %
@@ -392,7 +391,7 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
     if (fragments.size() > 0) {
       printFragInfo(fragments, i);
     }
-    XTP_LOG(Log::error, log_) << format("   ") << flush;
+    XTP_LOG(Log::error, log_) << boost::format("   ") << flush;
   }
 
   return;
@@ -597,7 +596,7 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
     for (Index i = 0; i < opt_.nmax; ++i) {
       double osc = oscs[i];
       XTP_LOG(Log::error, log_)
-          << format(
+          << boost::format(
                  "  S(dynamic) = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f "
                  "nm f "
                  "= %4$+1.4f") %
@@ -614,7 +613,7 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
                               << flush;
     for (Index i = 0; i < opt_.nmax; ++i) {
       XTP_LOG(Log::error, log_)
-          << format(
+          << boost::format(
                  "  T(dynamic) = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f "
                  "nm ") %
                  (i + 1) % (hrt2ev * BSEenergies_dynamic(i)) %

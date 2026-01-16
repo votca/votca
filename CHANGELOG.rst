@@ -24,6 +24,7 @@ Version 2025.1-dev
 -  fix python test  (#1203)
 -  Make pyxtp a real pip module  (#1180)
 -  Use Apple Accelerate Framework in Eigen (#1205)
+-  fixing boost and other warnings on rawhide (#1206)
 
 Version 2025.1 (released 03.10.25)
 ==================================

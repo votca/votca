@@ -38,7 +38,6 @@
 #include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/vxc_potential.h"
 
-using boost::format;
 using std::flush;
 namespace votca {
 namespace xtp {
@@ -427,7 +426,7 @@ void GWBSE::addoutput(tools::Property& summary) {
     gwbse_summary.setAttribute("units", "eV");
     gwbse_summary.setAttribute(
         "DFTEnergy",
-        (format("%1$+1.6f ") % (orbitals_.getDFTTotalEnergy() * hrt2ev)).str());
+        (boost::format("%1$+1.6f ") % (orbitals_.getDFTTotalEnergy() * hrt2ev)).str());
 
     tools::Property& dft_summary = gwbse_summary.add("dft", "");
     dft_summary.setAttribute("HOMO", gwopt_.homo);
@@ -438,16 +437,16 @@ void GWBSE::addoutput(tools::Property& summary) {
       level_summary.setAttribute("number", state + gwopt_.qpmin);
       level_summary.add(
           "dft_energy",
-          (format("%1$+1.6f ") %
+          (boost::format("%1$+1.6f ") %
            (orbitals_.MOs().eigenvalues()(state + gwopt_.qpmin) * hrt2ev))
               .str());
       level_summary.add(
           "gw_energy",
-          (format("%1$+1.6f ") % (orbitals_.QPpertEnergies()(state) * hrt2ev))
+          (boost::format("%1$+1.6f ") % (orbitals_.QPpertEnergies()(state) * hrt2ev))
               .str());
 
       level_summary.add("qp_energy",
-                        (format("%1$+1.6f ") %
+                        (boost::format("%1$+1.6f ") %
                          (orbitals_.QPdiag().eigenvalues()(state) * hrt2ev))
                             .str());
     }
@@ -458,7 +457,7 @@ void GWBSE::addoutput(tools::Property& summary) {
       tools::Property& level_summary = singlet_summary.add("level", "");
       level_summary.setAttribute("number", state + 1);
       level_summary.add(
-          "omega", (format("%1$+1.6f ") %
+          "omega", (boost::format("%1$+1.6f ") %
                     (orbitals_.BSESinglets().eigenvalues()(state) * hrt2ev))
                        .str());
       if (orbitals_.hasTransitionDipoles()) {
@@ -467,9 +466,9 @@ void GWBSE::addoutput(tools::Property& summary) {
         double f = 2 * dipoles.squaredNorm() *
                    orbitals_.BSESinglets().eigenvalues()(state) / 3.0;
 
-        level_summary.add("f", (format("%1$+1.6f ") % f).str());
+        level_summary.add("f", (boost::format("%1$+1.6f ") % f).str());
         tools::Property& dipol_summary = level_summary.add(
-            "Trdipole", (format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles.x() %
+            "Trdipole", (boost::format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles.x() %
                          dipoles.y() % dipoles.z())
                             .str());
         dipol_summary.setAttribute("unit", "e*bohr");
@@ -483,7 +482,7 @@ void GWBSE::addoutput(tools::Property& summary) {
       tools::Property& level_summary = triplet_summary.add("level", "");
       level_summary.setAttribute("number", state + 1);
       level_summary.add(
-          "omega", (format("%1$+1.6f ") %
+          "omega", (boost::format("%1$+1.6f ") %
                     (orbitals_.BSETriplets().eigenvalues()(state) * hrt2ev))
                        .str());
     }

@@ -23,9 +23,6 @@
 #include "votca/xtp/davidsonsolver.h"
 #include "votca/xtp/eigen.h"
 
-using boost::format;
-using std::flush;
-
 namespace votca {
 namespace xtp {
 
@@ -95,7 +92,7 @@ void DavidsonSolver::printIterationData(
   double percent_converged = 100 * double(converged_roots) / double(neigen);
   XTP_LOG(Log::error, log_)
       << TimeStamp()
-      << format(" %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged") % i_iter_ %
+      << boost::format(" %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged") % i_iter_ %
              proj.search_space() % rep.res_norm().head(neigen).maxCoeff() %
              percent_converged
       << std::flush;
@@ -544,7 +541,7 @@ void DavidsonSolver::storeNotConvergedData(
   percent_converged *= 100.;
   XTP_LOG(Log::error, log_)
       << TimeStamp() << "- Warning : Davidson "
-      << format("%1$5.2f%%") % percent_converged << " converged after "
+      << boost::format("%1$5.2f%%") % percent_converged << " converged after "
       << i_iter_ << " iterations." << std::flush;
   info_ = Eigen::ComputationInfo::NoConvergence;
 }

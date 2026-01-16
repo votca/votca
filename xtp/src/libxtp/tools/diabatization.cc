@@ -17,7 +17,6 @@
 
 #include "diabatization.h"
 
-using boost::format;
 using std::flush;
 
 namespace votca {
@@ -145,11 +144,11 @@ bool Diabatization::Run() {
     // Printing Output
     if (!isQMMM_) {
       XTP_LOG(Log::error, log_)
-          << format("Diabatic Energy 1: %1$+1.12f eV") %
+          << boost::format("Diabatic Energy 1: %1$+1.12f eV") %
                  (diabatic_H(0, 0) * votca::tools::conv::hrt2ev)
           << flush;
       XTP_LOG(Log::error, log_)
-          << format("Diabatic Energy 2: %1$+1.12f eV") %
+          << boost::format("Diabatic Energy 2: %1$+1.12f eV") %
                  (diabatic_H(1, 1) * votca::tools::conv::hrt2ev)
           << flush;
       E1_ = E1ad;
@@ -178,7 +177,7 @@ bool Diabatization::Run() {
     J = coupling.second * votca::tools::conv::hrt2ev;
 
     XTP_LOG(Log::error, log_)
-        << format("Unprojected diabatic Coupling: %1$+1.12f eV") % (J_unproj)
+        << boost::format("Unprojected diabatic Coupling: %1$+1.12f eV") % (J_unproj)
         << flush;
     std::pair<double, double> Ead = GMHDiabatization.adiabatic_energies();
 
@@ -214,26 +213,26 @@ bool Diabatization::Run() {
 
   // print output
   XTP_LOG(Log::error, log_)
-      << format("Internal adiabatic energies: %1$+1.12f eV and %2$+1.12f eV") %
+      << boost::format("Internal adiabatic energies: %1$+1.12f eV and %2$+1.12f eV") %
              (E1ad * votca::tools::conv::hrt2ev) %
              (E2ad * votca::tools::conv::hrt2ev)
       << flush;
 
   XTP_LOG(Log::error, log_)
-      << format("Diabatic Coupling: %1$+1.12f eV ") % (J) << flush;
+      << boost::format("Diabatic Coupling: %1$+1.12f eV ") % (J) << flush;
   if (isQMMM_) {
 
     XTP_LOG(Log::error, log_)
-        << format("QMMM adiabatic energies: %1$+1.12f eV and %2$+1.12f eV") %
+        << boost::format("QMMM adiabatic energies: %1$+1.12f eV and %2$+1.12f eV") %
                (E1_ * votca::tools::conv::hrt2ev) %
                (E2_ * votca::tools::conv::hrt2ev)
         << flush;
 
     XTP_LOG(Log::error, log_)
-        << format("QMMM correction factor: %1$+1.12f ") % (QMMM_correction)
+        << boost::format("QMMM correction factor: %1$+1.12f ") % (QMMM_correction)
         << flush;
     XTP_LOG(Log::error, log_)
-        << format("Diabatic Coupling with QMMM: %1$+1.12f eV ") % (J_QMMM)
+        << boost::format("Diabatic Coupling with QMMM: %1$+1.12f eV ") % (J_QMMM)
         << flush;
   }
 
