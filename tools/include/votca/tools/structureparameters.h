@@ -113,11 +113,8 @@ class StructureParameters {
 
 void StructureParameters::set(const StructureParameter parameter,
                               boost::any value) noexcept {
-  //parameters[parameter] = value;
   parameters.insert_or_assign(parameter, std::move(value));
 }
-
-//basic_string<char>[0]' is partly outside array bounds of 'unsigned char [16]
 
 template <class T>
 T StructureParameters::get(const StructureParameter parameter) const {
