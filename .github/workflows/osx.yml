@@ -1,0 +1,35 @@
+name: OSX
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  schedule:
+    - cron:  '0 3 * * FRI'
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
+jobs:
+  FreeBSD-test:
+    name: Test VOTCA on OSX
+    strategy:
+      matrix:
+        include:
+          - runner: "macos-15"
+    runs-on: ${{ matrix.runner }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Install deps
+      run: |
+        brew update
+        brew install ccache llvm libint2 boost libxc
+    - name: Build VOTCA
+      run: |
+        cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -B builddir
+        cmake --build builddir --parallel 2
+        cd builddir && ctest --output-on-failure
