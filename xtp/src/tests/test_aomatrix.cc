@@ -13,7 +13,6 @@
  * limitations under the License.
  *
  */
-#include "xtp_libint2.h"
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE aomatrix_test
@@ -25,6 +24,7 @@
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/orbitals.h"
 #include <votca/tools/eigenio_matrixmarket.h>
+#include "xtp_libint2.h"
 
 using namespace votca::xtp;
 using namespace votca;
