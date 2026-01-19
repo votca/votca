@@ -27,7 +27,7 @@ jobs:
     - name: Install deps
       run: |
         brew update
-        brew install ccache llvm libint2 boost libxc
+        brew install ccache llvm libint libecpint boost libxc
     - name: Build VOTCA
       run: |
         cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -B builddir
