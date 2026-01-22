@@ -25,6 +25,7 @@ Version 2025.1-dev
 -  Make pyxtp a real pip module  (#1180)
 -  Use Apple Accelerate Framework in Eigen (#1205)
 -  fixing boost and other warnings on rawhide (#1206)
+-  CI: drop gmx-2025 builds (#1208)
 
 Version 2025.1 (released 03.10.25)
 ==================================
