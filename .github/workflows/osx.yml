@@ -27,7 +27,7 @@ jobs:
     - name: Install deps
       run: |
         brew update
-        brew install ccache llvm libint libecpint boost libxc hdf5 libomp fftw gromacs pybind11 clang-format
+        brew install ccache gcc libint libecpint boost libxc hdf5 libomp fftw gromacs pybind11 clang-format
     - name: Build VOTCA
       run: |
         cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -B builddir
