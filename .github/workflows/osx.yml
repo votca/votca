@@ -27,7 +27,7 @@ jobs:
     - name: Install deps
       run: |
         brew update
-        brew install ccache llvm libint libecpint boost libxc hdf5 libomp fftw pybind11 clang-format gromacs
+        brew install ccache libint libecpint boost libxc hdf5 libomp fftw pybind11 clang-format gromacs
     - name: Build VOTCA
       run: |
         export OpenMP_ROOT=$(brew --prefix)/opt/libomp
