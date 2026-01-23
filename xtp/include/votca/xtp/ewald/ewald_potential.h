@@ -22,8 +22,8 @@
 #define VOTCA_XTP_VXC_POTENTIAL_H
 
 // Local VOTCA includes
-#include "grid_containers.h"
-#include "gridbox.h"
+#include "votca/xtp/grid_containers.h"
+#include "votca/xtp/gridbox.h"
 
 #undef LOG
 
@@ -40,7 +40,7 @@ class Ewald_Potential {
 
  private:
 
-  XC_entry EvaluateXC(double rho, double sigma) const;
+  //XC_entry EvaluateXC(double rho, double sigma) const;
 
   const Grid grid_;
 };

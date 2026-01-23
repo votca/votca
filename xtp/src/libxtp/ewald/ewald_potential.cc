@@ -25,7 +25,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/vxc_grid.h"
-#include "votca/xtp/ewald_potential.h"
+#include "votca/xtp/ewald/ewald_potential.h"
 
 namespace votca {
 namespace xtp {
@@ -34,7 +34,7 @@ Ewald_Potential<Grid>::~Ewald_Potential() {}
 
 
 
-template <class Grid>
+/*template <class Grid>
 Mat_p_Energy Ewald_Potential<Grid>::IntegrateVXC(
     const Eigen::MatrixXd& density_matrix) const {
 
@@ -85,7 +85,7 @@ Mat_p_Energy Ewald_Potential<Grid>::IntegrateVXC(
   }
 
   return Mat_p_Energy(vxc.energy(), vxc.matrix() + vxc.matrix().transpose());
-}
+}*/
 
 template class Ewald_Potential<Vxc_Grid>;
 

@@ -213,24 +213,13 @@ int XInductor::Induce(XJob* job) {
     induce_intra_pair = true;
   }
 
-  XTP_LOG(Log::info, *_log) << "INduce intra-pair" << _aDamp << std::flush;
-
   // Compute CoM positions, generate coarsegrained sites
   std::vector<PolarFrag*>::iterator fit;
   for (sit1 = _qmm.begin(); sit1 < _qmm.end(); ++sit1) {
     (*sit1)->CalcPos();
-    XTP_LOG(Log::info, *_log) << "calcpos" << _aDamp << std::flush;
     (*sit1)->GeneratePermInduCgSite(false);
-    XTP_LOG(Log::info, *_log)
-        << "GeneratePermIndiCgSite" << _aDamp << std::flush;
-    /*for (fit = (*sit1)->PolarFrags().begin();
-        fit < (*sit1)->PolarFrags().end(); ++fit) {
-        (*fit)->CalcPosCenterOfGeom();
-        (*fit)->GeneratePermInduCgSite(false);
-    }*/
   }
-  XTP_LOG(Log::info, *_log) << "COG calculation" << _aDamp << std::flush;
-
+  
   double r_switch_cg_frag = 100.;  // 2.5;
   double r_switch_cg_seg = 100.;   // 4.5;
 

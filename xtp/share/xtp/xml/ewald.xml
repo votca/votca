@@ -6,6 +6,19 @@
     </io_jobfile>
 		<job_file>job.xml</job_file>
 		<map_file>system.xml</map_file>
+		<explicit_qm>true</explicit_qm>
+		      <qmregion default="OPTIONAL" link="region.xml" help="qmregion with dft and optionally gwbse">
+        <state help="initial state to track or ground state for dftcalculations" default="n" />
+        <gwbse link="gwbse.xml" default="OPTIONAL" />
+        <dftpackage link="dftpackage.xml"/>
+        <localize link="localize.xml"/>
+        <statetracker link="statetracker.xml" default="OPTIONAL" />
+        <grid_for_potential help="Grid to integrate influence of qm density om other regions" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
+        <extgrid help="grid on which the interaction with classical regions is compute" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
+        <tolerance_energy help="if energy difference for this region is below this value it is considered converged" unit="Hartree" default="5e-5" choices="float+" />
+        <tolerance_density help="if RMS difference of density matrix is below this value it is considered converged" default="5e-5" choices="float+" />
+        <tolerance_density_max help="if Max difference of density matrix is below this value it is considered converged" default="5e-5" choices="float+" />
+      </qmregion>
 		<multipoles>
 			<mps_table>0</mps_table>
 			<polar_bg></polar_bg>

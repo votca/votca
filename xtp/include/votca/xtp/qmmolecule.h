@@ -23,6 +23,7 @@
 
 // Local VOTCA includes
 #include "atomcontainer.h"
+#include "votca/xtp/ewald/polarseg.h"
 #include "qmatom.h"
 
 namespace votca {
@@ -34,6 +35,8 @@ class QMMolecule : public AtomContainer<QMAtom> {
 
   QMMolecule(CheckpointReader& r) : AtomContainer<QMAtom>(r) {};
   void LoadFromFile(std::string filename);
+
+  void FromPolarSegment( PolarSeg* polar);
 
   void WriteXYZ(std::string filename, std::string header) const;
 

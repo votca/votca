@@ -67,7 +67,8 @@ class PolarSeg : public std::vector<APolarSite *> {
   bool IsPolarizable() { return _is_polarizable; }
 
   // setting and accessing a numerical integration grid
-  void setGrid(const Vxc_Grid& grid) {_grid = grid;}
+  void setGrid(const Vxc_Grid& grid) {_grid = grid; _has_grid = true;}
+  bool hasGrid() {return _has_grid;}
   Vxc_Grid &getGrid() {return _grid;}
 
   // File output methods
@@ -97,6 +98,7 @@ class PolarSeg : public std::vector<APolarSite *> {
   APolarSite *_perm_cg_site;
   // Integration grid for QM-Ewald
   Vxc_Grid _grid;
+  bool _has_grid = false;
 };
 
 class PolarNb {

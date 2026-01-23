@@ -40,6 +40,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
         " must always be region 0. Currently only one qm region is possible.");
   }
 
+
   initstate_ = prop.get("state").as<QMState>();
   /*if (initstate_.Type() == QMStateType::Hole ||
       initstate_.Type() == QMStateType::Electron) {
@@ -124,6 +125,7 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
       << " Calculated interaction potentials with other regions. E[hrt]= "
       << e_ext << std::flush;
   XTP_LOG(Log::info, log_) << "Writing inputs" << std::flush;
+
   Index crg = 0;
   if (initstate_.Type() == QMStateType::Electron) {
     crg = -1;

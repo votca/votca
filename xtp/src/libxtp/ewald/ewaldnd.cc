@@ -1,9 +1,14 @@
 #include <algorithm>
+#include <filesystem>
+
 #include <boost/format.hpp>
 #include <boost/math/special_functions/round.hpp>
 #include <boost/timer/timer.hpp>
+#include <votca/xtp/aobasis.h>
 #include <votca/xtp/ewald/ewaldnd.h>
 #include <votca/xtp/ewald/poissongrid.h>
+#include <votca/xtp/qmmolecule.h>
+#include <votca/xtp/qmregion.h>
 
 namespace votca {
 namespace xtp {
@@ -45,6 +50,17 @@ Ewald3DnD::Ewald3DnD(const Topology *top, PolarTop *ptop, tools::Property *opt,
 
   // EVALUATE OPTIONS
   std::string pfx = "";
+  // used in QMEwald instead of Classical
+  if (opt->exists(pfx + ".explicit_qm")) {
+    _is_qmewald = opt->get(pfx + ".explicit_qm").as<bool>();
+  } else {
+    _is_qmewald = false;  // default
+  }
+
+  _qmregion_def = opt->get("qmregion");
+
+
+
   // Multipoles: started from archive?
   if (opt->exists(pfx + ".multipoles.polar_bg")) {
     std::string ptop_file =
@@ -182,7 +198,7 @@ Ewald3DnD::Ewald3DnD(const Topology *top, PolarTop *ptop, tools::Property *opt,
   _a = votca::tools::conv::bohr2nm * _top->getBox().col(0);  // getCol(0);
   _b = votca::tools::conv::bohr2nm * _top->getBox().col(1);
   _c = votca::tools::conv::bohr2nm * _top->getBox().col(2);
-  std::cout << _a << " " << _b << " " << _c << std::flush;
+  // std::cout << _a << " " << _b << " " << _c << std::flush;
   _LxLyLz = _a.dot(_b.cross(_c));
   _LxLy = _a.cross(_b).norm();
 
@@ -200,7 +216,7 @@ Ewald3DnD::Ewald3DnD(const Topology *top, PolarTop *ptop, tools::Property *opt,
 
   // SET-UP POLAR GROUNDS (FORE-, MID-, BACK-)
   _center = ptop->getCenter();
-  std::cout << "Center: " << _center << std::flush;
+  // std::cout << "Center: " << _center << std::flush;
 
   _fg_C.clear();
   _fg_N.clear();
@@ -239,7 +255,7 @@ Ewald3DnD::Ewald3DnD(const Topology *top, PolarTop *ptop, tools::Property *opt,
         << "  o System Q1 compensation: " << system_dpl << "  (apply to "
         << charged_count << " polar sites)" << std::flush;
     vec atomic_compensation_dpl = -system_dpl / charged_count;
-     [[maybe_unused]] int compensation_count = 0;
+    [[maybe_unused]] int compensation_count = 0;
     for (sit = _bg_P.begin(); sit < _bg_P.end(); ++sit) {
       PolarSeg *pseg = *sit;
       if (!pseg->IsCharged()) continue;
@@ -258,6 +274,7 @@ Ewald3DnD::Ewald3DnD(const Topology *top, PolarTop *ptop, tools::Property *opt,
   }
   // Grow foreground according to induction cut-off
   this->ExpandForegroundReduceBackground(_polar_cutoff);
+
   // Coarse-grain as demanded by input
   boost::timer::cpu_timer cpu_t;
   cpu_t.start();
@@ -447,17 +464,20 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
   std::vector<PolarSeg *> red_bg_N;
 
   // Image boxes to consider, set-up boolean foreground table
-  int polar_na_max = static_cast<int>(ceil(polar_R_co / _a.cwiseAbs().maxCoeff() - 0.5)) + 1;
-  int polar_nb_max = static_cast<int>(ceil(polar_R_co / _b.cwiseAbs().maxCoeff() - 0.5)) + 1;
-  int polar_nc_max = static_cast<int>(ceil(polar_R_co / _c.cwiseAbs().maxCoeff() - 0.5)) + 1;
+  int polar_na_max =
+      static_cast<int>(ceil(polar_R_co / _a.cwiseAbs().maxCoeff() - 0.5)) + 1;
+  int polar_nb_max =
+      static_cast<int>(ceil(polar_R_co / _b.cwiseAbs().maxCoeff() - 0.5)) + 1;
+  int polar_nc_max =
+      static_cast<int>(ceil(polar_R_co / _c.cwiseAbs().maxCoeff() - 0.5)) + 1;
 
   XTP_LOG(Log::debug, *_log) << "  o Expanding cell space for neighbour search:"
                                 " +/-"
                              << polar_na_max << " x +/-" << polar_nb_max
                              << " x +/-" << polar_nc_max << std::flush;
 
-  _fg_table = new ForegroundTable(static_cast<int>(_bg_P.size()), polar_na_max, polar_nb_max,
-                                  polar_nc_max);
+  _fg_table = new ForegroundTable(static_cast<int>(_bg_P.size()), polar_na_max,
+                                  polar_nb_max, polar_nc_max);
 
   // Max. distance between any two segments in FGC before expansion
   _max_int_dist_qm0 = 0.0;
@@ -555,7 +575,7 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
         }
       }
     }  // Sum over image boxes
-  }    // Sum over periodic neutral background
+  }  // Sum over periodic neutral background
 
   // Exchange new for old containers
   _fg_C.clear();
@@ -734,7 +754,7 @@ void Ewald3DnD::SetupMidground(double R_co) {
         }
       }
     }  // Loop over na, nb, nc
-  }    // Loop over BGP
+  }  // Loop over BGP
 
   return;
 }
@@ -791,8 +811,7 @@ void Ewald3DnD::WriteDensitiesPDB(std::string pdbfile) {
   return;
 }
 
-void Ewald3DnD::WriteDensitiesPtop(std::string fg,
-                                   std::string bg) {
+void Ewald3DnD::WriteDensitiesPtop(std::string fg, std::string bg) {
   //    // FGC, FGN, BGN, QM0, MM1, MM2
   //    _ptop->SaveToDrive(fg);
   //    // MGN
@@ -890,8 +909,8 @@ void Ewald3DnD::WriteDensitiesPtop(std::string fg,
       vec sitepos = (*pit)->getPos();
       vec u1 = (*pit)->getU1();
       ofs << "\t\t<psit>\n";
-      ofs << (format("\t\t\t<pos>%1$1.4f %2$1.4f %3$1.4f</pos>\n") % sitepos(0) %
-              sitepos(1) % sitepos(2));
+      ofs << (format("\t\t\t<pos>%1$1.4f %2$1.4f %3$1.4f</pos>\n") %
+              sitepos(0) % sitepos(1) % sitepos(2));
       ofs << (format("\t\t\t<dpl>%1$1.7e %2$1.7e %3$1.7e</dpl>\n") % u1(0) %
               u1(1) % u1(2));
       ofs << "\t\t</psit>\n";
@@ -947,7 +966,7 @@ void Ewald3DnD::WriteDensitiesPtop(std::string fg,
         }
       }
     }  // Loop over na, nb, nc
-  }    // Loop over BGP
+  }  // Loop over BGP
 
   ofs.close();
 
@@ -1114,7 +1133,7 @@ void Ewald3DnD::WriteInductionStateTable() {
           }
         }
       }  // Loop over na, nb, nc
-    }    // Loop over BGP
+    }  // Loop over BGP
     for (sit1 = _fg_C.begin(), sit2 = _fg_N.begin(); sit1 < _fg_C.end();
          ++sit1, ++sit2) {
       PolarSeg *pseg_h = *sit1;
@@ -1352,28 +1371,120 @@ void Ewald3DnD::Evaluate() {
       << std::flush << "Background fields (FGN):" << std::flush;
   this->ShowFieldsTeaser(_fg_N, _log);
 
-  // PERFORM TASKS
-  if (_task_scan_cutoff) ScanCutoff();
-  boost::timer::cpu_timer cpu_t;
-  cpu_t.start();
-  boost::timer::cpu_times t0 = cpu_t.elapsed();
-  if (_task_calculate_fields) EvaluateFields(true);
-  boost::timer::cpu_times t1 = cpu_t.elapsed();
-  if (_task_polarize_fg)
-    EvaluateInduction();
-  else
-    _polar_converged = true;
-  boost::timer::cpu_times t2 = cpu_t.elapsed();
-  if (_task_evaluate_energy) EvaluateEnergy(_fg_C);
-  boost::timer::cpu_times t3 = cpu_t.elapsed();
-  if (_task_apply_radial) EvaluateRadialCorrection();
-  boost::timer::cpu_times t4 = cpu_t.elapsed();
-  if (_task_solve_poisson) EvaluatePoisson();
+  if (!_is_qmewald) {
+    // PERFORM TASKS
+    if (_task_scan_cutoff) ScanCutoff();
+    boost::timer::cpu_timer cpu_t;
+    cpu_t.start();
+    boost::timer::cpu_times t0 = cpu_t.elapsed();
+    if (_task_calculate_fields) EvaluateFields(true);
+    boost::timer::cpu_times t1 = cpu_t.elapsed();
+    if (_task_polarize_fg)
+      EvaluateInduction();
+    else
+      _polar_converged = true;
+    boost::timer::cpu_times t2 = cpu_t.elapsed();
+    if (_task_evaluate_energy) EvaluateEnergy(_fg_C);
+    boost::timer::cpu_times t3 = cpu_t.elapsed();
+    if (_task_apply_radial) EvaluateRadialCorrection();
+    boost::timer::cpu_times t4 = cpu_t.elapsed();
+    if (_task_solve_poisson) EvaluatePoisson();
 
-  _t_fields = (t1.wall - t0.wall) / 1e9 / 60.;
-  _t_induction = (t2.wall - t1.wall) / 1e9 / 60.;
-  _t_energy = (t3.wall - t2.wall) / 1e9 / 60.;
-  _t_radial = (t4.wall - t3.wall) / 1e9 / 60.;
+    _t_fields = (t1.wall - t0.wall) / 1e9 / 60.;
+    _t_induction = (t2.wall - t1.wall) / 1e9 / 60.;
+    _t_energy = (t3.wall - t2.wall) / 1e9 / 60.;
+    _t_radial = (t4.wall - t3.wall) / 1e9 / 60.;
+  } else {
+    // this function calls EvaluateFields internally!
+    // - assumes that polariability of segments in QM0 is set to zero
+    // - also assumes that QM0 does not use the "true" electrostatic field from
+    // QM
+    //   at the polar sites but one that is created from an updated classical
+    //   segment with new permanent charges
+    XTP_LOG(Log::debug, *_log) << std::flush << "Ewald QMMM:" << std::flush;
+
+    /*
+      if (_is_qmewald) {
+    // check if the first FGC/QM0 segement has numerical grid
+    if (!(*_polar_qm0.begin())->hasGrid()) {
+      std::cout << "QMEWALD WITHOUT GRID IMPOSSIBLE" << std::flush;
+      exit(0);
+    }
+    // TEST Get VXCgrid?
+    // Vxc_Grid thegrid = (*_fg_N.begin())->getGrid();
+    // std::cout << thegrid.getGridpoints().size() << std::flush;
+  }
+    */
+
+    // attach a DFT numerical integration grid to the target PolarSeg
+    // check for units (Bohr in VxcGrid vs nm (?) in PolarSeg)
+    // first only single PolarSegment, not sure how to deal with an integration
+    // grid for more than one (merge?)
+
+    // we have QM0 region
+    // -> make that a single QMMolecule
+    // -> generate that VXC integration grid
+    // -> use QMregion or dftengine after EvaluateQMMM?
+
+    // create a QMregion
+    std::string qmmm_work_dir = "QMEWALD";
+    std::string frame_dir =
+        "frame_" + boost::lexical_cast<std::string>(_top->getStep());
+    std::string job_dir = "job_" + std::to_string(_jobID) + "_" + _tag;
+    std::filesystem::path arg_path;
+    std::string workdir =
+        (arg_path / qmmm_work_dir / frame_dir / job_dir).generic_string();
+    std::filesystem::create_directories(workdir);
+    std::unique_ptr<QMRegion> qmregion =
+        std::make_unique<QMRegion>(0, *_log, workdir);
+    std::unique_ptr<Region> region;
+
+    for (std::vector<PolarSeg *>::iterator sit = _polar_qm0.begin();
+         sit < _polar_qm0.end(); ++sit) {
+      QMMolecule mol = QMMolecule("", 0);
+      // units in QMMolecule are Bohr, in PolarSeg nanometers!
+      mol.FromPolarSegment(*(sit));
+      mol.setType("qm0");
+      qmregion->push_back(mol);
+    }
+
+    // try QMregion evaluation
+    std::vector<std::unique_ptr<Region> > regions_;
+    region = std::move(qmregion);
+    region->Initialize(_qmregion_def);  
+    regions_.push_back(std::move(region));
+    
+    // stupid constuct for accessing the QMRegion after std::move
+    for (std::unique_ptr<Region>& reg : regions_) {   
+      XTP_LOG(Log::error, *_log)
+          << TimeStamp() << " Evaluating " << reg->identify() << " "
+          << reg->getId() << std::flush;
+      reg->Reset();
+      reg->Evaluate(regions_);
+    }
+    // PolarSeg* qm_segment = *(xjob.getPolarTop()->FGC().begin());
+    //PolarSeg *qm_segment = *(_polar_qm0.begin());
+    
+    // make a QMMolecule from the PolarSeg
+    //QMMolecule qm_molecule = QMMolecule("", 0);
+    // units in QMMolecule are Bohr, in PolarSeg nanometers!
+    //qm_molecule.FromPolarSegment(qm_segment);
+    // qm_molecule.WriteXYZ("test.xyz", "transformed polarseg");
+    /*Vxc_Grid grid;
+    std::string grid_name = "medium";  // TODO from OPTIONS
+    BasisSet basis;
+    basis.Load("def2-svp");
+    AOBasis aobasis;
+    aobasis.Fill(basis, qm_molecule);
+    grid.GridSetup(grid_name, qm_molecule, aobasis);
+    XTP_LOG(Log::info, *_log)
+        << "Created numerical integration grid for QM Segment " << std::flush;
+    // attached qm_grid is in BOHR!!!!
+    qm_segment->setGrid(grid);
+    */
+    //exit(0);
+    //EvaluateInductionQMMM(true, true, true, true, true);
+  }
 
   //    EvaluateInductionQMMM(true, true, true, true, true);
   //    EvaluateInductionQMMM(false, false, false, false, false);
@@ -2236,8 +2347,8 @@ void Ewald3DnD::EvaluatePotential(std::vector<PolarSeg *> &target, bool add_bg,
   return;
 }
 
-void Ewald3DnD::EvaluatePotentialGrid(std::vector<PolarSeg *> &target, bool add_bg,
-                                  bool add_mm1, bool add_qm0) {
+void Ewald3DnD::EvaluatePotentialGrid(std::vector<PolarSeg *> &target,
+                                      bool add_bg, bool add_mm1, bool add_qm0) {
 
   // RESET POTENTIALS WHY
   std::vector<PolarSeg *>::iterator sit;
@@ -2319,11 +2430,6 @@ void Ewald3DnD::EvaluatePotentialGrid(std::vector<PolarSeg *> &target, bool add_
 
   return;
 }
-
-
-
-
-
 
 EWD::triple<> Ewald3DnD::ConvergeRealSpaceSum(std::vector<PolarSeg *> &target) {
 

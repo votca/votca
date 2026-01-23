@@ -282,6 +282,9 @@ Job::JobResult Ewald<EwaldMethod>::EvalJob(const Topology &top, Job &job,
     ewaldnd.WriteDensitiesPDB(xjob.getTag() + ".densities.pdb");
   }
 
+  ewaldnd.setTag(xjob.getTag());
+  ewaldnd.setJobID(xjob.getId());
+
   ewaldnd.Evaluate();
 
   if (_ptop_check) {

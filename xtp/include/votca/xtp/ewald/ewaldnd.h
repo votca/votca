@@ -57,6 +57,9 @@ class Ewald3DnD {
   bool EvaluateInductionQMMM(bool, bool, bool, bool, bool);
   void EvaluateEnergyQMMM();
 
+  void setTag(std::string tag) {_tag = tag;}
+  void setJobID(int jobID) {_jobID = jobID;}
+
   // OUTPUT & ERROR COMMUNICATION
   bool Converged() { return _converged_R && _converged_K && _polar_converged; }
   tools::Property GenerateOutputstring();
@@ -231,6 +234,11 @@ class Ewald3DnD {
   bool _task_apply_radial;
   bool _task_solve_poisson;
   bool _task_scan_cutoff;
+
+  bool _is_qmewald;
+  std::string _tag;
+  int _jobID;
+  tools::Property _qmregion_def;
 
   // CONVERGENCE
   // Part I - Ewald

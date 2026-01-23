@@ -48,5 +48,16 @@ void QMMolecule::LoadFromFile(std::string filename) {
   reader.ReadFile<QMMolecule>(*this);
   reader.Close();
 }
+
+void QMMolecule::FromPolarSegment( PolarSeg* polar) {
+  PolarSeg::iterator pit;
+  Index atid = 0;
+  for (pit = (*polar).begin(); pit != (*polar).end(); ++pit) {
+    this->push_back(QMAtom(atid, (*pit)->getName(), votca::tools::conv::nm2bohr*(*pit)->getPos()));
+    atid++;
+  }
+  return;
+}
+
 }  // namespace xtp
 }  // namespace votca
