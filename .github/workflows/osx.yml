@@ -27,7 +27,9 @@ jobs:
     - name: Install deps
       run: |
         brew update
-        brew install wget ccache libint libecpint boost libxc hdf5 libomp fftw pybind11 clang-format
+        brew install wget ccache libint libecpint boost libxc hdf5 libomp fftw pybind11 clang-format lapack
+        python -m pip install --upgrade pip
+        python -m pip install lxml h5py rdkit
     - name: Install Gromacs
       run: |
         wget https://ftp.gromacs.org/gromacs/gromacs-2026.0.tar.gz
