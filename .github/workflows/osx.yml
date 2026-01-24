@@ -45,9 +45,8 @@ jobs:
       run: |
         export OpenMP_ROOT=$(brew --prefix)/opt/libomp
         #source $HOME/gromacs/bin/GMXRC
-        #export CMAKE_PREFIX_PATH="/opt/homebrew/opt/lapack"
-        export INCLUDE=/opt/homebrew/opt/lapack/include:$INCLUDE
-        export LD_LIBRARY_PATH=/opt/homebrew/opt/lapack/lib:$LD_LIBRARY_PATH
+        export CMAKE_PREFIX_PATH="/opt/homebrew/opt/lapack":$CMAKE_PREFIX_PATH
+        echo $CMAKE_PREFIX_PATH
         cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -B builddir
         cmake --build builddir --parallel 2
         cd builddir && ctest --output-on-failure
