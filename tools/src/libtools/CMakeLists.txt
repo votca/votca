@@ -29,7 +29,7 @@ target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options Eig
 	EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
 if(APPLE AND APPLE_ACCELERATE_FOUND)
   target_link_libraries(votca_tools PUBLIC ${ACCELERATE} -llapacke)
-  target_include_directories(votca_tools PUBLIC /opt/homebrew/opt/lapack/include)
+  # target_include_directories(votca_tools PUBLIC /opt/homebrew/opt/lapack/include)
 endif()
 if(MKL_FOUND)
   target_link_libraries(votca_tools PUBLIC MKL::MKL)
