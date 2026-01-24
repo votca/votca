@@ -28,24 +28,25 @@ jobs:
       run: |
         brew update
         brew install wget ccache libint libecpint boost libxc hdf5 libomp fftw pybind11 clang-format lapack
-        python -m pip install --upgrade pip
-        python -m pip install lxml h5py rdkit
-    - name: Install Gromacs
-      run: |
-        wget https://ftp.gromacs.org/gromacs/gromacs-2026.0.tar.gz
-        tar xfz gromacs-2026.0.tar.gz
-        cd gromacs-2026.0
-        mkdir build
-        cd build
-        export OpenMP_ROOT=$(brew --prefix)/opt/libomp
-        cmake .. -DGMX_INSTALL_LEGACY_API=ON -DCMAKE_INSTALL_PREFIX=$HOME/gromacs
-        make -j 2
-        make install
+#        python -m pip install --upgrade pip
+#        python -m pip install lxml h5py rdkit
+#    - name: Install Gromacs
+#      run: |
+#        wget https://ftp.gromacs.org/gromacs/gromacs-2026.0.tar.gz
+#        tar xfz gromacs-2026.0.tar.gz
+#        cd gromacs-2026.0
+#        mkdir build
+#        cd build
+#        export OpenMP_ROOT=$(brew --prefix)/opt/libomp
+#        cmake .. -DGMX_INSTALL_LEGACY_API=ON -DCMAKE_INSTALL_PREFIX=$HOME/gromacs
+#        make -j 2
+#        make install
     - name: Build VOTCA
       run: |
         export OpenMP_ROOT=$(brew --prefix)/opt/libomp
         source $HOME/gromacs/bin/GMXRC
-        export CMAKE_PREFIX_PATH="/opt/homebrew/opt/lapack"
+        #export CMAKE_PREFIX_PATH="/opt/homebrew/opt/lapack"
+        export INCLUDE=/opt/homebrew/opt/lapack/include:$INCLUDE
         cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -B builddir
         cmake --build builddir --parallel 2
         cd builddir && ctest --output-on-failure
