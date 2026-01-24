@@ -27,7 +27,17 @@ jobs:
     - name: Install deps
       run: |
         brew update
-        brew install gcc ccache libint libecpint boost libxc hdf5 libomp fftw pybind11 clang-format gromacs
+        brew install wget ccache libint libecpint boost libxc hdf5 libomp fftw pybind11 clang-format
+    - name: Install Gromacs
+      run: |
+        wget https://ftp.gromacs.org/gromacs/gromacs-2026.0.tar.gz
+        tar xfz gromacs-2026.0.tar.gz
+        cd gromacs-2026.0
+        mkdir build
+        cd build
+        cmake .. 
+        make -j 2
+        make install
     - name: Build VOTCA
       run: |
         export OpenMP_ROOT=$(brew --prefix)/opt/libomp
