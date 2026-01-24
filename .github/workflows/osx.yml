@@ -36,7 +36,7 @@ jobs:
         mkdir build
         cd build
         export OpenMP_ROOT=$(brew --prefix)/opt/libomp
-        cmake .. 
+        cmake .. -DGMX_INSTALL_LEGACY_API=ON
         make -j 2
         make install
     - name: Build VOTCA
