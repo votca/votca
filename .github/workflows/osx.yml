@@ -47,7 +47,7 @@ jobs:
         #source $HOME/gromacs/bin/GMXRC
         export CPLUS_INCLUDE_PATH=/opt/homebrew/opt/lapack/include:$CPLUS_INCLUDE_PATH
         export CMAKE_PREFIX_PATH="/opt/homebrew/opt/lapack":$CMAKE_PREFIX_PATH
-        export LD_LIBRARY_PATH=/opt/homebrew/opt/lapack/lib:$LD_LIBRARY_PATH
+        export LIBRARY_PATH=/opt/homebrew/opt/lapack/lib:$LIBRARY_PATH
         cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -B builddir
         cmake --build builddir --parallel 2
         cd builddir && ctest --output-on-failure
