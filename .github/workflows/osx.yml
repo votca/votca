@@ -28,12 +28,10 @@ jobs:
       run: |
         brew update
         brew install wget ccache libint libecpint boost libxc hdf5 libomp fftw pybind11 clang-format lapack
-        which python
-        PYCMD=$(brew --prefix)/bin/python3
-        $PYCMD -m venv $HOME/venv
+        $(brew --prefix)/bin/python3 -m venv $HOME/venv
         source $HOME/venv/bin/activate
-        $PYCMD -m pip install --upgrade pip
-        $PYCMD -m pip install lxml h5py rdkit
+        python3 -m pip install --upgrade pip
+        python3 -m pip install lxml h5py rdkit
     - name: Install Gromacs
       run: |
         wget https://ftp.gromacs.org/gromacs/gromacs-2026.0.tar.gz
