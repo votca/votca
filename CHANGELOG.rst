@@ -26,6 +26,7 @@ Version 2025.1-dev
 -  Use Apple Accelerate Framework in Eigen (#1205)
 -  fixing boost and other warnings on rawhide (#1206)
 -  CI: drop gmx-2025 builds (#1208)
+-  add OSX builds in CI (#1207)
 
 Version 2025.1 (released 03.10.25)
 ==================================
