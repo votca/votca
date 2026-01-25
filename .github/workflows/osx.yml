@@ -29,8 +29,11 @@ jobs:
         brew update
         brew install wget ccache libint libecpint boost libxc hdf5 libomp fftw pybind11 clang-format lapack
         which python
-        python -m pip install --upgrade pip
-        python -m pip install lxml h5py rdkit
+        PYCMD=$(brew --prefix)/bin/python3
+        $PYCMD -m venv $HOME/venv
+        source $HOME/venv/bin/activate
+        $PYCMD -m pip install --upgrade pip
+        $PYCMD -m pip install lxml h5py rdkit
     - name: Install Gromacs
       run: |
         wget https://ftp.gromacs.org/gromacs/gromacs-2026.0.tar.gz
@@ -49,6 +52,7 @@ jobs:
         export CPLUS_INCLUDE_PATH=/opt/homebrew/opt/lapack/include:$CPLUS_INCLUDE_PATH
         export CMAKE_PREFIX_PATH="/opt/homebrew/opt/lapack":$CMAKE_PREFIX_PATH
         export LIBRARY_PATH=/opt/homebrew/opt/lapack/lib:$LIBRARY_PATH
+        source $HOME/venv/bin/activate
         cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -B builddir
         cmake --build builddir --parallel 2
         cd builddir && ctest --output-on-failure
