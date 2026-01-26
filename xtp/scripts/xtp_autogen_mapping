@@ -218,7 +218,7 @@ def process_charges_and_polarization(root: str) -> None:
     logfile_name = f"{root}_molpol.log"
     errfile_name = f"{root}_molpol.err"
     molpol_command = f"xtp_tools -e molpol -o molpol.xml -c job_name=\"{root}\" > {logfile_name} 2> {errfile_name}"
-    os.system(molpol_command)
+    run_cmd(molpol_command)
     # copy optimized MPS_FILE
     os.makedirs('../MP_FILES', exist_ok=True)
     mpsfile = f"{root}_polar.mps"
