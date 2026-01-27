@@ -467,17 +467,21 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
     tools::getline(input_file, line);
     boost::trim(line);
 
-    std::string::size_type pol_pos = line.find("THE POLARIZABILITY TENSOR");
-    if (pol_pos != std::string::npos) {
-      XTP_LOG(Log::error, *pLog_) << "Getting polarizability" << flush;
-      tools::getline(input_file, line);
-      tools::getline(input_file, line);
-      tools::getline(input_file, line);
+    std::string::size_type pol_pos = line.find("POLARIZABILITY TENSOR");
 
-      if (line.find("The raw cartesian tensor (atomic units)") ==
+    if (pol_pos != std::string::npos) {
+
+      XTP_LOG(Log::error, *pLog_) << "Getting polarizability" << flush;
+      for (Index i = 0; i < 10; i++){
+        tools::getline(input_file, line);
+        if (line.find("The raw cartesian tensor (atomic units)") !=
           std::string::npos) {
-        throw std::runtime_error(
+            break;
+          }
+        if (i == 9) {
+          throw std::runtime_error(
             "Could not find cartesian polarization tensor");
+        }
       }
 
       for (Index i = 0; i < 3; i++) {
