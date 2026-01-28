@@ -29,6 +29,11 @@ from xml.dom import minidom
 from rdkit import Chem
 import rdkit.Chem.Descriptors
 import numpy as np
+import sys
+
+if sys.platform == "darwin":
+    if os.getenv("DYLD_LIBRARY_PATH") == None:
+        sys.exit("You are on OSX and due to its SIP, the DYLD_LIBRARY_PATH variable is not propagated to the VOTCA shell calls. \n Run explicitly with \"python3 $VOTCABIN/xtp_autogen_mapping ...\"")
 
 try:
     importlib.import_module("rdkit")
@@ -95,6 +100,9 @@ def search_cores() -> int:
 def run_cmd(cmd: str):
     """Run a shell command."""
     print("running: ", cmd)
+    # prepending the DYLD_LIBRARY_PATH export on OSX
+    if sys.platform == "darwin":
+        cmd = "export DYLD_LIBRARY_PATH="+os.getenv("DYLD_LIBRARY_PATH") + "; " + cmd
     result = subprocess.run(cmd, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, shell=True)
     if result.stderr:
@@ -210,7 +218,7 @@ def process_charges_and_polarization(root: str) -> None:
     logfile_name = f"{root}_molpol.log"
     errfile_name = f"{root}_molpol.err"
     molpol_command = f"xtp_tools -e molpol -o molpol.xml -c job_name=\"{root}\" > {logfile_name} 2> {errfile_name}"
-    os.system(molpol_command)
+    run_cmd(molpol_command)
     # copy optimized MPS_FILE
     os.makedirs('../MP_FILES', exist_ok=True)
     mpsfile = f"{root}_polar.mps"

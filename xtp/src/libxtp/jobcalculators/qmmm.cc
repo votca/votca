@@ -135,7 +135,14 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
         "checkpoint_iter_" + std::to_string(iteration + 1) + ".hdf5";
     XTP_LOG(Log::error, pLog) << TimeStamp() << " Writing checkpoint to "
                               << checkpointfilename << std::flush;
-    jobtop.WriteToHdf5(workdir + "/" + checkpointfilename);
+    try {
+          jobtop.WriteToHdf5(workdir + "/" + checkpointfilename);
+    } catch (std::exception& e) {
+      XTP_LOG(Log::error, pLog)
+          << TimeStamp()
+          << " Could not write checkpoint file due to exception: " << e.what()
+          << std::flush;
+    }                          
 
     if (!no_top_scf) {
       std::vector<bool> converged_regions;

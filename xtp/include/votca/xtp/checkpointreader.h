@@ -53,6 +53,8 @@ class CheckpointReader {
   template <typename T>
   typename std::enable_if<!std::is_fundamental<T>::value>::type operator()(
       T& var, const std::string& name) const {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
     try {
       ReadData(loc_, var, name);
     } catch (H5::Exception&) {
@@ -69,6 +71,8 @@ class CheckpointReader {
   typename std::enable_if<std::is_fundamental<T>::value &&
                           !std::is_same<T, bool>::value>::type
       operator()(T& var, const std::string& name) const {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
     try {
       ReadScalar(loc_, var, name);
     } catch (H5::Exception&) {
@@ -81,6 +85,8 @@ class CheckpointReader {
   }
 
   void operator()(bool& v, const std::string& name) const {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
     Index temp = Index(v);
     try {
       ReadScalar(loc_, temp, name);
@@ -95,6 +101,8 @@ class CheckpointReader {
   }
 
   void operator()(std::string& var, const std::string& name) const {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
     try {
       ReadScalar(loc_, var, name);
     } catch (H5::Exception&) {
@@ -107,6 +115,8 @@ class CheckpointReader {
   }
 
   CheckpointReader openChild(const std::string& childName) const {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
     try {
       return CheckpointReader(loc_.openGroup(childName),
                               path_ + "/" + childName);
@@ -120,6 +130,8 @@ class CheckpointReader {
   }
 
   std::vector<std::string> getChildGroupNames() const {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
     std::vector<std::string> result;
     char pStr[128];
     for (hsize_t i = 0; i < loc_.getNumObjs(); i++) {
@@ -141,6 +153,8 @@ class CheckpointReader {
 
   template <typename T>
   CptTable openTable(const std::string& name) {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
     try {
       CptTable table = CptTable(name, sizeof(typename T::data), loc_);
       T::SetupCptTable(table);
