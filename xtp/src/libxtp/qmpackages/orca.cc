@@ -41,6 +41,14 @@
 #include "votca/xtp/molden.h"
 #include "votca/xtp/orbitals.h"
 
+// trying posix_spwan
+#include <spawn.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <stdexcept>
+
+extern char **environ;
+
 // Local private VOTCA includes
 #include "orca.h"
 
@@ -308,7 +316,17 @@ bool Orca::WriteShellScript() {
   std::string shell_file_name_full = run_dir_ + "/" + shell_file_name_;
   shell_file.open(shell_file_name_full);
   shell_file << "#!/usr/bin/env bash" << endl;
+  if ( run_dir_ != "." ) {
+    const std::string key = "molecule";
+    std::string path = run_dir_;
+    auto pos = path.find(key);
+
+    if (pos != std::string::npos) {
+      scratch_dir_ += "/" + path.erase(0, pos);
+    }
+  } 
   shell_file << "mkdir -p " << scratch_dir_ << endl;
+  shell_file << "export TMPDIR=" << scratch_dir_ << endl;
   std::string base_name = mo_file_name_.substr(0, mo_file_name_.size() - 4);
 
   if (options_.get("initial_guess").as<std::string>() == "orbfile") {
@@ -326,10 +344,48 @@ bool Orca::WriteShellScript() {
              << input_file_name_ << " > " << log_file_name_ << endl;
 
   shell_file << options_.get("executable").as<std::string>() << "_2mkl "
-             << base_name << " -molden" << endl;
+             << base_name << " -molden > molden.log" << endl;
   shell_file.close();
   return true;
 }
+
+
+
+
+int run_command_spawn(const std::string& command) {
+    pid_t pid;
+
+    // system() implicitly does: /bin/sh -c "command"
+    std::vector<char*> argv = {
+        const_cast<char*>("/bin/sh"),
+        const_cast<char*>("-c"),
+        const_cast<char*>(command.c_str()),
+        nullptr
+    };
+
+    int rc = posix_spawn(
+        &pid,
+        "/bin/sh",
+        nullptr,
+        nullptr,
+        argv.data(),
+        environ
+    );
+
+    if (rc != 0) {
+        throw std::runtime_error("posix_spawn failed: " + std::to_string(rc));
+    }
+
+    int status;
+    waitpid(pid, &status, 0);
+
+    if (WIFEXITED(status))
+        return WEXITSTATUS(status);
+
+    return -1;  // abnormal termination
+}
+
+
 
 /**
  * Runs the Orca job.
@@ -341,7 +397,8 @@ bool Orca::RunDFT() {
   if (std::system(nullptr)) {
 
     std::string command = "cd " + run_dir_ + "; sh " + shell_file_name_;
-    Index check = std::system(command.c_str());
+    //Index check = std::system(command.c_str());
+    Index check = run_command_spawn(command);
     if (check == -1) {
       XTP_LOG(Log::error, *pLog_)
           << input_file_name_ << " failed to start" << flush;
