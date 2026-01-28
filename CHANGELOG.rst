@@ -28,6 +28,7 @@ Version 2025.1-dev
 -  CI: drop gmx-2025 builds (#1208)
 -  fix xtp_autogen_mapping on OSX #1210  (#1211)
 -  fix reading of polarizability tensor from newer ORCA versions (#1213)
+-  fix thread locking in orca calls (#1215)
 -  fix HDF5 thread-safety issue (#1217)
 -  fix building manpageson OSX after #1211  (#1218)
 
