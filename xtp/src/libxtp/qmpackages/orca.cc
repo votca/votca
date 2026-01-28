@@ -397,7 +397,6 @@ bool Orca::RunDFT() {
   if (std::system(nullptr)) {
 
     std::string command = "cd " + run_dir_ + "; sh " + shell_file_name_;
-    //Index check = std::system(command.c_str());
     Index check = run_command_spawn(command);
     if (check == -1) {
       XTP_LOG(Log::error, *pLog_)
