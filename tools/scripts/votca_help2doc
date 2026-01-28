@@ -20,6 +20,7 @@ import re
 import subprocess
 from pathlib import Path
 from typing import Iterator, List, NamedTuple, Tuple
+import sys
 
 PROGTITLE = 'THE VOTCA::TOOLS help to doc converter'
 VOTCAHEADER = f"""
@@ -72,6 +73,8 @@ def parse_user_arguments() -> argparse.Namespace:
     parser.add_argument("-o", "--out", help="Output file", default=None)
     parser.add_argument("-f", "--format", help="Output format",
                         choices=["rst", "groff"], default="rst")
+    parser.add_argument("--ispython", action="store_true",
+                    help="Is this a python script")
     return parser.parse_args()
 
 
@@ -258,8 +261,13 @@ def convert_help_message(args: argparse.Namespace):
     """Convert help message."""
     path = Path(args.name)
     name = path.stem
-    msg = subprocess.check_output(
-        f"{path.absolute().as_posix()} --help", shell=True)
+    msg=None
+    if sys.platform == "darwin" and args.ispython:
+        msg = subprocess.check_output(
+                f"export DYLD_LIBRARY_PATH=\"fake\"; python3 {path.absolute().as_posix()} --help", shell=True)
+    else:
+        msg = subprocess.check_output(
+            f"{path.absolute().as_posix()} --help", shell=True)
     sections = parse_help_message(msg.decode(), name)
     if args.format == "rst":
         data = format_rst(sections)
