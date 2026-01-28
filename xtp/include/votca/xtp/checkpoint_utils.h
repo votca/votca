@@ -100,8 +100,6 @@ struct InferDataType<std::string> {
   }
 };
 
-H5::DataSpace str_scalar(H5::DataSpace(H5S_SCALAR));
-
 }  // namespace checkpoint_utils
 }  // namespace xtp
 }  // namespace votca
