@@ -38,7 +38,7 @@ foreach(SCRIPT ${XTP_SCRIPTS})
   # use the source script for man and rst as the version string gets removed
   if (BUILD_MANPAGES)
     add_custom_command(OUTPUT ${SCRIPT}.man
-      COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_help2doc> --name ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT} --format groff --out ${SCRIPT}.man
+      COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_help2doc> --name ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT} --format groff --out ${SCRIPT}.man --ispython
       COMMENT "Building ${SCRIPT} manpage"
       DEPENDS VOTCA::votca_help2doc)
     add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT})
