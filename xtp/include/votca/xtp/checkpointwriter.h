@@ -59,7 +59,7 @@ class CheckpointWriter {
   template <typename T>
   typename std::enable_if<!std::is_fundamental<T>::value>::type operator()(
       const T& data, const std::string& name) const {
-    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());    
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
     try {
       WriteData(loc_, data, name);
     } catch (H5::Exception&) {
@@ -79,7 +79,7 @@ class CheckpointWriter {
       operator()(const T& v, const std::string& name) const {
     std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
 
-        try {
+    try {
       WriteScalar(loc_, v, name);
     } catch (H5::Exception&) {
       std::stringstream message;
@@ -142,9 +142,9 @@ class CheckpointWriter {
   template <typename T>
   CptTable openTable(const std::string& name, std::size_t nRows,
                      bool compact = false) {
-std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
 
-                      CptTable table;
+    CptTable table;
     try {
       table = CptTable(name, sizeof(typename T::data), loc_);
       T::SetupCptTable(table);

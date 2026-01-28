@@ -53,7 +53,7 @@ class CheckpointReader {
   template <typename T>
   typename std::enable_if<!std::is_fundamental<T>::value>::type operator()(
       T& var, const std::string& name) const {
-        std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
 
     try {
       ReadData(loc_, var, name);
@@ -71,7 +71,7 @@ class CheckpointReader {
   typename std::enable_if<std::is_fundamental<T>::value &&
                           !std::is_same<T, bool>::value>::type
       operator()(T& var, const std::string& name) const {
-        std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
 
     try {
       ReadScalar(loc_, var, name);
