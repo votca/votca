@@ -29,6 +29,7 @@ Version 2025.1-dev
 -  fix xtp_autogen_mapping on OSX #1210  (#1211)
 -  fix reading of polarizability tensor from newer ORCA versions (#1213)
 -  fix thread locking in orca calls (#1215)
+-  fix HDF5 thread-safety issue (#1217)
 
 Version 2025.1 (released 03.10.25)
 ==================================

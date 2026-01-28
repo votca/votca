@@ -21,6 +21,7 @@
 // Standard includes
 #include <cstddef>
 #include <cstring>
+#include <mutex>
 #include <string>
 
 // Third party includes
@@ -36,9 +37,64 @@ using CptLoc = H5::Group;
 
 namespace checkpoint_utils {
 
-H5::DataSpace str_scalar(H5::DataSpace(H5S_SCALAR));
-
 inline H5::DataSpace StrScalar() { return H5::DataSpace(H5S_SCALAR); }
+
+/*
+ * =======================  HDF5 THREAD-SAFETY NOTE  =======================
+ *
+ * IMPORTANT:
+ * ----------
+ * The HDF5 C++ API (H5::*) as provided by Homebrew and most system builds
+ * is NOT thread-safe, even when different threads operate on different
+ * files. In particular:
+ *
+ *   - HDF5 maintains global internal state
+ *   - H5::Attribute, H5::DataSet, H5::Group, and H5::H5File call HDF5
+ *     close functions (H5Aclose, H5Dclose, H5Gclose, H5Fclose) in their
+ *     destructors
+ *   - These destructors may run after leaving local scopes and MUST NOT
+ *     execute concurrently with other HDF5 calls
+ *
+ * Failure to serialize *all* HDF5 activity (including destruction) leads
+ * to hard-to-debug runtime errors such as:
+ *
+ *   - "Attribute::~Attribute - H5Aclose failed"
+ *   - sporadic std::runtime_error from HDF5
+ *   - segmentation faults under multithreading
+ *
+ * DESIGN DECISION:
+ * ----------------
+ * We enforce process-wide serialization of all HDF5 access using a single
+ * global recursive mutex (Hdf5Mutex).
+ *
+ *  - The mutex is recursive because HDF5 calls are layered:
+ *      CheckpointWriter -> CptTable -> HDF5
+ *  - All HDF5-related code must lock this mutex
+ *  - High-level operations (e.g. JobTopology::WriteToHdf5 / ReadFromHdf5)
+ *    MUST hold the lock for their entire duration so that all HDF5 object
+ *    destructors run while the mutex is held
+ *
+ * RULES FOR DEVELOPERS:
+ * --------------------
+ * 1) Any code that creates, reads, writes, or closes HDF5 objects MUST
+ *    hold Hdf5Mutex().
+ *
+ * 2) If a function creates HDF5 objects whose destructors run at function
+ *    exit, the lock MUST span the entire function scope.
+ *
+ * 3) Never call HDF5 (directly or indirectly) without holding this lock,
+ *    even if the file names differ.
+ *
+ * 4) Do NOT remove or replace this mutex unless the entire HDF5 stack
+ *    is redesigned (e.g. single-writer thread or MPI HDF5).
+ *
+ * This policy is REQUIRED for correct behavior under multithreading.
+ * ========================================================================
+ */
+inline std::recursive_mutex& Hdf5Mutex() {
+  static std::recursive_mutex m;
+  return m;
+}
 
 // Declare some HDF5 data type inference stuff:
 // Adapted from
@@ -99,8 +155,6 @@ struct InferDataType<std::string> {
     return &strtype;
   }
 };
-
-H5::DataSpace str_scalar(H5::DataSpace(H5S_SCALAR));
 
 }  // namespace checkpoint_utils
 }  // namespace xtp
