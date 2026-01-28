@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <cstring>
 #include <string>
+#include <mutex>
 
 // Third party includes
 #include <H5Cpp.h>
@@ -36,9 +37,14 @@ using CptLoc = H5::Group;
 
 namespace checkpoint_utils {
 
-H5::DataSpace str_scalar(H5::DataSpace(H5S_SCALAR));
+//H5::DataSpace str_scalar(H5::DataSpace(H5S_SCALAR));
 
 inline H5::DataSpace StrScalar() { return H5::DataSpace(H5S_SCALAR); }
+
+inline std::recursive_mutex& Hdf5Mutex() {
+  static std::recursive_mutex m;
+  return m;
+}
 
 // Declare some HDF5 data type inference stuff:
 // Adapted from

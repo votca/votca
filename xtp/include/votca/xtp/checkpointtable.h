@@ -58,6 +58,8 @@ class CptTable {
   CptTable(const std::string& name, const std::size_t& rowSize,
            const CptLoc& loc)
       : name_(name), loc_(loc), inited_(true), rowStructure_(rowSize) {
+        std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
     dataset_ = loc_.openDataSet(name_);
     dp_ = dataset_.getSpace();
     hsize_t dims[2];
@@ -69,6 +71,8 @@ class CptTable {
   void addCol(const std::string& name, const size_t& offset);
 
   void initialize(const CptLoc& loc, bool compact) {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
     // create the dataspace...
     if (inited_) {
       std::stringstream message;
@@ -102,6 +106,7 @@ class CptTable {
 
   void write(void* buffer, const std::size_t& startIdx,
              const std::size_t& endIdx) {
+std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
 
     if (!inited_) {
       std::stringstream message;
@@ -145,6 +150,7 @@ class CptTable {
 
   void read(void* buffer, const std::size_t& startIdx,
             const std::size_t& endIdx) {
+std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
 
     if (!inited_) {
       std::stringstream message;

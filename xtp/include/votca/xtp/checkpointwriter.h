@@ -59,6 +59,7 @@ class CheckpointWriter {
   template <typename T>
   typename std::enable_if<!std::is_fundamental<T>::value>::type operator()(
       const T& data, const std::string& name) const {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());    
     try {
       WriteData(loc_, data, name);
     } catch (H5::Exception&) {
@@ -76,7 +77,9 @@ class CheckpointWriter {
   typename std::enable_if<std::is_fundamental<T>::value &&
                           !std::is_same<T, bool>::value>::type
       operator()(const T& v, const std::string& name) const {
-    try {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
+        try {
       WriteScalar(loc_, v, name);
     } catch (H5::Exception&) {
       std::stringstream message;
@@ -89,6 +92,8 @@ class CheckpointWriter {
 
   void operator()(const bool& v, const std::string& name) const {
     Index temp = static_cast<Index>(v);
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
     try {
       WriteScalar(loc_, temp, name);
     } catch (H5::Exception&) {
@@ -101,6 +106,8 @@ class CheckpointWriter {
   }
 
   void operator()(const std::string& v, const std::string& name) const {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
     try {
       WriteScalar(loc_, v, name);
     } catch (H5::Exception&) {
@@ -113,6 +120,8 @@ class CheckpointWriter {
   }
 
   CheckpointWriter openChild(const std::string& childName) const {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
     try {
       return CheckpointWriter(loc_.openGroup(childName),
                               path_ + "/" + childName);
@@ -133,7 +142,9 @@ class CheckpointWriter {
   template <typename T>
   CptTable openTable(const std::string& name, std::size_t nRows,
                      bool compact = false) {
-    CptTable table;
+std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
+                      CptTable table;
     try {
       table = CptTable(name, sizeof(typename T::data), loc_);
       T::SetupCptTable(table);

@@ -105,8 +105,12 @@ BOOST_AUTO_TEST_CASE(Serializing) {
   aobasis.Fill(basis, orbitals.QMAtoms());
 
   CheckpointFile ff("aobasis.hdf5");
+
   CheckpointWriter ww = ff.getWriter();
+    std::cout << "starting"  << std::endl;
+
   aobasis.WriteToCpt(ww);
+std::cout << "written"  << std::endl;
 
   CheckpointReader rr = ff.getReader();
   AOBasis aobasis2;

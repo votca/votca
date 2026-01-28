@@ -65,6 +65,8 @@ CheckpointFile::CheckpointFile(std::string fN)
 CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
     : fileName_(fN), accessLevel_(access) {
 
+  std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
   try {
     H5::Exception::dontPrint();
     hid_t fcpl_id = H5Pcreate(H5P_FILE_CREATE);
@@ -110,6 +112,7 @@ CheckpointWriter CheckpointFile::getWriter(const std::string path_) {
   if (accessLevel_ == CheckpointAccessLevel::READ) {
     throw std::runtime_error("Checkpoint file opened as read only.");
   }
+  std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
 
   try {
     return CheckpointWriter(fileHandle_.createGroup(path_), path_);
@@ -129,6 +132,8 @@ CheckpointWriter CheckpointFile::getWriter(const std::string path_) {
 CheckpointWriter CheckpointFile::getWriter() { return getWriter("/"); }
 
 CheckpointReader CheckpointFile::getReader(const std::string path_) {
+    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+
   try {
     return CheckpointReader(fileHandle_.openGroup(path_), path_);
   } catch (H5::Exception&) {
