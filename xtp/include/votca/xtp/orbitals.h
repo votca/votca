@@ -400,10 +400,10 @@ class Orbitals {
 
   void ReadFromCpt(const std::string &filename);
 
-  void WriteToCpt(CheckpointWriter& w) const;
-  void WriteBasisSetsToCpt(CheckpointWriter& w) const;
-  void ReadFromCpt(CheckpointReader& r);
-  void ReadBasisSetsFromCpt(CheckpointReader& r);
+  void WriteToCpt(CheckpointWriter &w) const;
+  void WriteBasisSetsToCpt(CheckpointWriter &w) const;
+  void ReadFromCpt(CheckpointReader &r);
+  void ReadBasisSetsFromCpt(CheckpointReader &r);
 
   bool GetFlagUseHqpOffdiag() const { return use_Hqp_offdiag_; };
   void SetFlagUseHqpOffdiag(bool flag) { use_Hqp_offdiag_ = flag; };
@@ -432,9 +432,9 @@ class Orbitals {
   // returns indeces of a re-sorted vector of energies from lowest to highest
   std::vector<Index> SortEnergies();
 
-  void WriteToCpt(CheckpointFile& f) const;
+  void WriteToCpt(CheckpointFile &f) const;
 
-  void ReadFromCpt(CheckpointFile& f);
+  void ReadFromCpt(CheckpointFile &f);
   Eigen::MatrixXd TransitionDensityMatrix(const QMState &state) const;
   std::array<Eigen::MatrixXd, 2> DensityMatrixExcitedState_R(
       const QMState &state) const;
