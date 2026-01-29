@@ -17,15 +17,16 @@ set_target_properties(xtp_binds PROPERTIES XTP_PYPATH "${XTP_PYPATH}")
 
 target_link_libraries(xtp_binds PUBLIC VOTCA::votca_xtp)
 
+#installation directory is the user's site-packages directory
 if(NOT CMAKE_INSTALL_PYTHON_LIBDIR)
-  set(CMAKE_INSTALL_PYTHON_LIBDIR "${CMAKE_INSTALL_LIBDIR}/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
+  set(CMAKE_INSTALL_PYTHON_LIBDIR "${Python_SITELIB}")
 endif()
 
 install(TARGETS xtp_binds LIBRARY DESTINATION ${CMAKE_INSTALL_PYTHON_LIBDIR}/pyxtp_binds)
 add_library(VOTCA::xtp_binds ALIAS xtp_binds)
 
 install (CODE "
-    message(STATUS \"Installing Python package with pip from ${CMAKE_CURRENT_SOURCE_DIR}...\")
+    message(STATUS \"Installing Python package with pip from ${CMAKE_CURRENT_SOURCE_DIR} to ${CMAKE_INSTALL_PYTHON_LIBDIR}...\")
     execute_process(
     COMMAND ${Python_EXECUTABLE} -m pip install --upgrade --target ${CMAKE_INSTALL_PYTHON_LIBDIR} ${CMAKE_CURRENT_SOURCE_DIR}
     RESULT_VARIABLE _pip_result
