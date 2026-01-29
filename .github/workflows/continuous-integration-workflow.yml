@@ -117,7 +117,7 @@ jobs:
         if: ${{ steps.setup.outputs.build_sphinx == 'true' }}
         run: cmake --build builddir --target sphinx
       - name: Test DESTDIR Install
-        run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
+        run: DESTDIR=${PWD}/install cmake --build builddir --target install && rm -rf ${PWD}/install/usr && rm -rf ${PWD}/install
       - name: Install
         run: sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH cmake --build builddir --target install
       - name: Check for untracked files
