@@ -31,6 +31,7 @@ Version 2025.1-dev
 -  fix thread locking in orca calls (#1215)
 -  fix HDF5 thread-safety issue (#1217)
 -  fix building manpageson OSX after #1211  (#1218)
+-  setting PyXTP installation path to user's site-package directory (#1219)
 
 Version 2025.1 (released 03.10.25)
 ==================================
