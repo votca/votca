@@ -25,11 +25,12 @@ execute_process(
 )
 message(STATUS "Python user site: ${PYTHON_USER_SITE}")
 
-#installation directory is the user's site-packages directory
+#installation directory is the user's site-packages directory or set from outside
 if(NOT CMAKE_INSTALL_PYTHON_LIBDIR)
-  set(CMAKE_INSTALL_PYTHON_LIBDIR "${PYTHON_USER_SITE}")
+  set(CMAKE_INSTALL_PYTHON_LIBDIR "${PYTHON_USER_SITE}"
+      CACHE PATH "Install directory for Python packages (default: Python user site-packages)")
 endif()
-
+message(STATUS "Python install libriary to: ${CMAKE_INSTALL_PYTHON_LIBDIR}")
 
 install(TARGETS xtp_binds LIBRARY DESTINATION ${CMAKE_INSTALL_PYTHON_LIBDIR}/pyxtp_binds)
 add_library(VOTCA::xtp_binds ALIAS xtp_binds)
