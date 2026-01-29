@@ -17,10 +17,19 @@ set_target_properties(xtp_binds PROPERTIES XTP_PYPATH "${XTP_PYPATH}")
 
 target_link_libraries(xtp_binds PUBLIC VOTCA::votca_xtp)
 
+#find the user site-packages directory
+execute_process(
+  COMMAND ${Python_EXECUTABLE} -c "import site; print(site.getusersitepackages())"
+  OUTPUT_VARIABLE PYTHON_USER_SITE
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message(STATUS "Python user site: ${PYTHON_USER_SITE}")
+
 #installation directory is the user's site-packages directory
 if(NOT CMAKE_INSTALL_PYTHON_LIBDIR)
-  set(CMAKE_INSTALL_PYTHON_LIBDIR "${Python_SITELIB}")
+  set(CMAKE_INSTALL_PYTHON_LIBDIR "${PYTHON_USER_SITE}")
 endif()
+
 
 install(TARGETS xtp_binds LIBRARY DESTINATION ${CMAKE_INSTALL_PYTHON_LIBDIR}/pyxtp_binds)
 add_library(VOTCA::xtp_binds ALIAS xtp_binds)
