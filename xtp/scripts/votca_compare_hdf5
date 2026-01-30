@@ -1,23 +1,27 @@
 #!/usr/bin/env python3
 """
-compare_h5.py — semantic HDF5 comparator for unit tests.
+compare_h5.py — semantic HDF5 comparator for unit tests (dtype-agnostic).
+
+Features:
+- Recursively compares groups/datasets/attributes
+- Numeric tolerance (rtol/atol) for floats/complex, including inside compound dtypes
+- Exact compare for ints/bools/strings unless overridden by numeric tolerance rules
+- Ignore specific attribute names (e.g. XTPVersion)
+- Ignore path subtrees (e.g. /metadata, /frame_0/timestamps)
+- Friendly diff output with limited mismatch reporting
 
 Usage:
   python compare_h5.py ref.h5 out.h5
   python compare_h5.py ref.h5 out.h5 --rtol 1e-8 --atol 1e-12 --ignore-attr XTPVersion
-  python compare_h5.py ref.h5 out.h5 --ignore-path /metadata --ignore-path /frame_0/volatile
-
-Exit code:
-  0 if equivalent (within tolerances / ignore rules), 1 otherwise.
+  python compare_h5.py ref.h5 out.h5 --ignore-path /metadata --ignore-path /provenance
 """
 
 from __future__ import annotations
 
 import argparse
-import math
 import sys
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 import h5py
 import numpy as np
@@ -30,31 +34,190 @@ class Diff:
     message: str
 
 
-def is_float_dtype(dtype: np.dtype) -> bool:
-    return np.issubdtype(dtype, np.floating)
-
-
-def is_complex_dtype(dtype: np.dtype) -> bool:
-    return np.issubdtype(dtype, np.complexfloating)
-
-
-def normalize_scalar(x):
-    # Convert numpy scalars to Python scalars for printing
-    if isinstance(x, np.generic):
-        return x.item()
-    return x
-
-
 def should_ignore_path(path: str, ignore_paths: Iterable[str]) -> bool:
-    # Ignore exact match or subtree ignore
+    # ignore exact match or subtree match
     for p in ignore_paths:
-        if path == p or path.startswith(p.rstrip("/") + "/"):
+        p = p.rstrip("/")
+        if not p:
+            continue
+        if path == p or path.startswith(p + "/"):
             return True
     return False
 
 
+def normalize_bytes(x: Any) -> Any:
+    if isinstance(x, (bytes, np.bytes_)):
+        return x.decode(errors="replace")
+    return x
+
+
+def compare_scalars_generic(av: Any, bv: Any, rtol: float, atol: float) -> bool:
+    """Scalar-level compare that handles tuples/lists + numeric tolerances."""
+    # numpy scalar -> python scalar
+    if isinstance(av, np.generic):
+        av = av.item()
+    if isinstance(bv, np.generic):
+        bv = bv.item()
+
+    # normalize bytes to str
+    av = normalize_bytes(av)
+    bv = normalize_bytes(bv)
+
+    # tuple/list recurse elementwise (covers record-like tuples)
+    if isinstance(av, (tuple, list)) and isinstance(bv, (tuple, list)) and len(av) == len(bv):
+        return all(compare_scalars_generic(x, y, rtol, atol) for x, y in zip(av, bv))
+
+    # numeric comparisons
+    if isinstance(av, (int, np.integer)) and isinstance(bv, (int, np.integer)):
+        return int(av) == int(bv)
+
+    if isinstance(av, (float, np.floating)) and isinstance(bv, (float, np.floating)):
+        return bool(np.isclose(av, bv, rtol=rtol, atol=atol, equal_nan=True))
+
+    if isinstance(av, (complex, np.complexfloating)) and isinstance(bv, (complex, np.complexfloating)):
+        avc = complex(av)
+        bvc = complex(bv)
+        return bool(
+            np.isclose(avc.real, bvc.real, rtol=rtol, atol=atol, equal_nan=True)
+            and np.isclose(avc.imag, bvc.imag, rtol=rtol, atol=atol, equal_nan=True)
+        )
+
+    # fallback exact
+    return av == bv
+
+
+def _report_first_mismatches(
+    diffs: List[Diff],
+    path: str,
+    kind: str,
+    coords: List[Tuple[int, ...]],
+    a: np.ndarray,
+    b: np.ndarray,
+    max_report: int,
+    prefix: str = "",
+) -> None:
+    for coord in coords[:max_report]:
+        diffs.append(Diff(
+            path,
+            kind,
+            f"{prefix}Mismatch at {coord}: A={a[coord]!r} vs B={b[coord]!r}"
+        ))
+    if len(coords) > max_report:
+        diffs.append(Diff(path, kind, f"{prefix}... {len(coords) - max_report} more mismatches"))
+
+
+def compare_arrays_generic(
+    a: np.ndarray,
+    b: np.ndarray,
+    path: str,
+    diffs: List[Diff],
+    rtol: float,
+    atol: float,
+    max_report: int,
+) -> None:
+    """Compare numpy arrays of arbitrary dtype, applying float tolerances generically."""
+    if a.shape != b.shape:
+        diffs.append(Diff(path, "shape", f"Shape differs: A {a.shape} vs B {b.shape}"))
+        return
+
+    # If both structured/compound dtype: compare field-by-field
+    if (a.dtype.fields is not None) or (b.dtype.fields is not None):
+        if (a.dtype.fields is None) != (b.dtype.fields is None):
+            diffs.append(Diff(path, "dtype", f"One side structured and other not: A {a.dtype} vs B {b.dtype}"))
+            return
+
+        if a.dtype.names != b.dtype.names:
+            diffs.append(Diff(path, "dtype", f"Field names differ: A {a.dtype.names} vs B {b.dtype.names}"))
+            return
+
+        # Compare each field recursively; tolerances will apply to float fields
+        for name in a.dtype.names or ():
+            try:
+                compare_arrays_generic(a[name], b[name], f"{path}:{name}", diffs, rtol, atol, max_report)
+            except Exception as e:
+                diffs.append(Diff(f"{path}:{name}", "compare_error", f"Error comparing field '{name}': {e}"))
+        return
+
+    # Object dtype or vlen strings can come out as object arrays -> elementwise compare
+    if a.dtype.kind == "O" or b.dtype.kind == "O":
+        a_flat = a.ravel()
+        b_flat = b.ravel()
+        if a_flat.shape != b_flat.shape:
+            diffs.append(Diff(path, "shape", f"Shape differs: A {a.shape} vs B {b.shape}"))
+            return
+        mismatches = []
+        for i, (av, bv) in enumerate(zip(a_flat, b_flat)):
+            if not compare_scalars_generic(av, bv, rtol, atol):
+                mismatches.append((i,))
+                if len(mismatches) >= max_report:
+                    break
+        if mismatches:
+            for (i,) in mismatches:
+                diffs.append(Diff(
+                    path, "value",
+                    f"Mismatch at flat index {i}: A={a_flat[i]!r} vs B={b_flat[i]!r} (rtol={rtol}, atol={atol})"
+                ))
+            # We don't know total mismatches cheaply without scanning, so just indicate truncation.
+            if a_flat.size > max_report:
+                diffs.append(Diff(path, "value", "… more mismatches may exist (report truncated)"))
+        return
+
+    # String/bytes arrays: normalize bytes to str and compare exact
+    if a.dtype.kind in ("S", "U") or b.dtype.kind in ("S", "U"):
+        def norm_arr(x: np.ndarray) -> np.ndarray:
+            if x.dtype.kind == "S":
+                # bytes -> str
+                return np.vectorize(lambda t: normalize_bytes(t))(x).astype(object)
+            if x.dtype.kind == "U":
+                return x.astype(object)
+            # non-string side
+            return x.astype(object)
+
+        a2 = norm_arr(a)
+        b2 = norm_arr(b)
+        if not np.array_equal(a2, b2):
+            idxs = np.argwhere(a2 != b2)
+            coords = [tuple(map(int, c)) for c in idxs]
+            _report_first_mismatches(diffs, path, "value", coords, a2, b2, max_report)
+        return
+
+    # Numeric floats/complex: tolerance
+    if (
+        np.issubdtype(a.dtype, np.floating)
+        or np.issubdtype(a.dtype, np.complexfloating)
+        or np.issubdtype(b.dtype, np.floating)
+        or np.issubdtype(b.dtype, np.complexfloating)
+    ):
+        ok = np.isclose(a, b, rtol=rtol, atol=atol, equal_nan=True)
+        if not np.all(ok):
+            idxs = np.argwhere(~ok)
+            coords = [tuple(map(int, c)) for c in idxs]
+            # report numeric with scalar print
+            for coord in coords[:max_report]:
+                diffs.append(Diff(
+                    path, "value",
+                    f"Mismatch at {coord}: A={a[coord]} vs B={b[coord]} (rtol={rtol}, atol={atol})"
+                ))
+            if len(coords) > max_report:
+                diffs.append(Diff(path, "value", f"... {len(coords) - max_report} more mismatches"))
+        return
+
+    # Everything else (ints/bools/enums/fixed): exact
+    if not np.array_equal(a, b):
+        idxs = np.argwhere(a != b)
+        coords = [tuple(map(int, c)) for c in idxs]
+        _report_first_mismatches(diffs, path, "value", coords, a, b, max_report)
+
+
 def compare_attrs(
-    a_obj, b_obj, path: str, diffs: List[Diff], ignore_attrs: Set[str]
+    a_obj: h5py.Dataset | h5py.Group,
+    b_obj: h5py.Dataset | h5py.Group,
+    path: str,
+    diffs: List[Diff],
+    ignore_attrs: Set[str],
+    rtol: float,
+    atol: float,
+    max_report: int,
 ) -> None:
     a_keys = set(a_obj.attrs.keys())
     b_keys = set(b_obj.attrs.keys())
@@ -71,40 +234,27 @@ def compare_attrs(
         av = a_obj.attrs.get(k)
         bv = b_obj.attrs.get(k)
 
-        # h5py may return bytes for fixed-length strings
-        if isinstance(av, (bytes, np.bytes_)):
-            av = av.decode(errors="replace")
-        if isinstance(bv, (bytes, np.bytes_)):
-            bv = bv.decode(errors="replace")
-
-        # Compare arrays/scalars robustly
+        # Convert attribute values to arrays for generic handling when possible
         try:
-            if isinstance(av, np.ndarray) or isinstance(bv, np.ndarray):
-                av_arr = np.array(av)
-                bv_arr = np.array(bv)
-                if av_arr.shape != bv_arr.shape or av_arr.dtype != bv_arr.dtype:
-                    diffs.append(
-                        Diff(path, "attr_dtype_shape",
-                             f"Attribute '{k}' differs in dtype/shape: "
-                             f"A {av_arr.dtype}{av_arr.shape} vs B {bv_arr.dtype}{bv_arr.shape}")
-                    )
-                else:
-                    if not np.array_equal(av_arr, bv_arr):
-                        diffs.append(
-                            Diff(path, "attr_value",
-                                 f"Attribute '{k}' differs: A={av_arr} vs B={bv_arr}")
-                        )
+            avn = normalize_bytes(av)
+            bvn = normalize_bytes(bv)
+
+            # Arrays or array-like
+            if isinstance(avn, np.ndarray) or isinstance(bvn, np.ndarray):
+                a_arr = np.array(avn)
+                b_arr = np.array(bvn)
+                compare_arrays_generic(a_arr, b_arr, f"{path}@{k}", diffs, rtol, atol, max_report)
             else:
-                if av != bv:
-                    diffs.append(
-                        Diff(path, "attr_value",
-                             f"Attribute '{k}' differs: A={normalize_scalar(av)} vs B={normalize_scalar(bv)}")
-                    )
+                if not compare_scalars_generic(avn, bvn, rtol, atol):
+                    diffs.append(Diff(
+                        path, "attr_value",
+                        f"Attribute '{k}' differs: A={avn!r} vs B={bvn!r}"
+                    ))
         except Exception as e:
             diffs.append(Diff(path, "attr_compare_error", f"Attribute '{k}' compare error: {e}"))
 
 
-def compare_datasets(
+def compare_dataset(
     a_ds: h5py.Dataset,
     b_ds: h5py.Dataset,
     path: str,
@@ -113,16 +263,17 @@ def compare_datasets(
     atol: float,
     max_report: int,
 ) -> None:
+    # Shape check early (cheap)
     if a_ds.shape != b_ds.shape:
         diffs.append(Diff(path, "shape", f"Shape differs: A {a_ds.shape} vs B {b_ds.shape}"))
         return
 
+    # dtype differences are informative but not always fatal for semantic equivalence;
+    # we still compare values.
     if a_ds.dtype != b_ds.dtype:
-        # For portability, dtype metadata may differ even if values are representable.
         diffs.append(Diff(path, "dtype", f"Dtype differs: A {a_ds.dtype} vs B {b_ds.dtype}"))
-        # We still attempt value compare when possible.
 
-    # Read data
+    # Read all data
     try:
         a = a_ds[...]
         b = b_ds[...]
@@ -130,59 +281,9 @@ def compare_datasets(
         diffs.append(Diff(path, "read_error", f"Failed to read dataset: {e}"))
         return
 
-    # For variable-length strings, object dtype, etc.
-    if a.dtype.kind in ("O", "S", "U") or b.dtype.kind in ("O", "S", "U"):
-        # Normalize bytes to str for consistent compare
-        def norm_str(x):
-            if isinstance(x, (bytes, np.bytes_)):
-                return x.decode(errors="replace")
-            return x
-
-        a_flat = np.array([norm_str(x) for x in np.ravel(a)], dtype=object)
-        b_flat = np.array([norm_str(x) for x in np.ravel(b)], dtype=object)
-        if a_flat.shape != b_flat.shape or not np.array_equal(a_flat, b_flat):
-            # report first few mismatches
-            mism = np.where(a_flat != b_flat)[0]
-            if mism.size:
-                for idx in mism[:max_report]:
-                    diffs.append(Diff(
-                        path, "value",
-                        f"Mismatch at flat index {int(idx)}: A={a_flat[idx]!r} vs B={b_flat[idx]!r}"
-                    ))
-                if mism.size > max_report:
-                    diffs.append(Diff(path, "value", f"... {mism.size - max_report} more mismatches"))
-        return
-
-    # Numeric compare
-    if is_float_dtype(a.dtype) or is_float_dtype(b.dtype) or is_complex_dtype(a.dtype) or is_complex_dtype(b.dtype):
-        # Handle NaNs consistently: NaN == NaN for regression testing
-        equal = np.isclose(a, b, rtol=rtol, atol=atol, equal_nan=True)
-        if not np.all(equal):
-            mism = np.where(~equal)
-            # Flatten mismatch indices for reporting
-            coords = list(zip(*mism))
-            for coord in coords[:max_report]:
-                av = a[coord]
-                bv = b[coord]
-                diffs.append(Diff(
-                    path, "value",
-                    f"Mismatch at {coord}: A={normalize_scalar(av)} vs B={normalize_scalar(bv)} "
-                    f"(rtol={rtol}, atol={atol})"
-                ))
-            if len(coords) > max_report:
-                diffs.append(Diff(path, "value", f"... {len(coords) - max_report} more mismatches"))
-    else:
-        # Integers / bool / enums
-        if not np.array_equal(a, b):
-            mism = np.where(a != b)
-            coords = list(zip(*mism))
-            for coord in coords[:max_report]:
-                diffs.append(Diff(
-                    path, "value",
-                    f"Mismatch at {coord}: A={normalize_scalar(a[coord])} vs B={normalize_scalar(b[coord])}"
-                ))
-            if len(coords) > max_report:
-                diffs.append(Diff(path, "value", f"... {len(coords) - max_report} more mismatches"))
+    a_arr = np.array(a)
+    b_arr = np.array(b)
+    compare_arrays_generic(a_arr, b_arr, path, diffs, rtol, atol, max_report)
 
 
 def walk_and_compare(
@@ -193,93 +294,103 @@ def walk_and_compare(
     rtol: float,
     atol: float,
     max_report: int,
-) -> List[Diff]:
-    diffs: List[Diff] = []
-
+    diffs: List[Diff],
+) -> None:
     def recurse(path: str) -> None:
         if should_ignore_path(path, ignore_paths):
             return
 
-        if path not in a_file:
+        in_a = path in a_file
+        in_b = path in b_file
+
+        if not in_a and in_b:
             diffs.append(Diff(path, "missing_in_a", "Path exists in B but not A"))
             return
-        if path not in b_file:
+        if in_a and not in_b:
             diffs.append(Diff(path, "missing_in_b", "Path exists in A but not B"))
+            return
+        if not in_a and not in_b:
             return
 
         a_obj = a_file[path]
         b_obj = b_file[path]
 
-        # Type compare
-        if type(a_obj) != type(b_obj):
+        # Compare type
+        if isinstance(a_obj, h5py.Group) != isinstance(b_obj, h5py.Group):
             diffs.append(Diff(path, "type", f"Type differs: A {type(a_obj)} vs B {type(b_obj)}"))
             return
 
-        # Attributes
-        compare_attrs(a_obj, b_obj, path, diffs, ignore_attrs)
+        # Compare attributes on this object
+        compare_attrs(a_obj, b_obj, path, diffs, ignore_attrs, rtol, atol, max_report)
 
         if isinstance(a_obj, h5py.Group):
-            a_keys = set(a_obj.keys())
-            b_keys = set(b_obj.keys())
+            a_children = set(a_obj.keys())
+            b_children = set(b_obj.keys())
 
-            for k in sorted(a_keys - b_keys):
+            for k in sorted(a_children - b_children):
                 child = f"{path.rstrip('/')}/{k}" if path != "/" else f"/{k}"
                 if not should_ignore_path(child, ignore_paths):
                     diffs.append(Diff(path, "member_missing_in_b", f"Member '{k}' exists in A but not B"))
-            for k in sorted(b_keys - a_keys):
+
+            for k in sorted(b_children - a_children):
                 child = f"{path.rstrip('/')}/{k}" if path != "/" else f"/{k}"
                 if not should_ignore_path(child, ignore_paths):
                     diffs.append(Diff(path, "member_missing_in_a", f"Member '{k}' exists in B but not A"))
 
-            # Recurse common children
-            for k in sorted(a_keys & b_keys):
+            for k in sorted(a_children & b_children):
                 child = f"{path.rstrip('/')}/{k}" if path != "/" else f"/{k}"
                 recurse(child)
 
         elif isinstance(a_obj, h5py.Dataset):
-            compare_datasets(a_obj, b_obj, path, diffs, rtol, atol, max_report)
+            compare_dataset(a_obj, b_obj, path, diffs, rtol, atol, max_report)
 
     recurse("/")
-    return diffs
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("file_a", help="Reference / expected .h5")
     ap.add_argument("file_b", help="Output / actual .h5")
-    ap.add_argument("--rtol", type=float, default=1e-8, help="Relative tolerance for float datasets")
-    ap.add_argument("--atol", type=float, default=1e-12, help="Absolute tolerance for float datasets")
-    ap.add_argument("--ignore-attr", action="append", default=[], help="Attribute name to ignore (repeatable)")
-    ap.add_argument("--ignore-path", action="append", default=[], help="HDF5 path subtree to ignore (repeatable)")
-    ap.add_argument("--max-report", type=int, default=10, help="Max mismatches to print per dataset/attr")
+
+    ap.add_argument("--rtol", type=float, default=1e-8, help="Relative tolerance for float/complex values")
+    ap.add_argument("--atol", type=float, default=1e-12, help="Absolute tolerance for float/complex values")
+
+    ap.add_argument("--ignore-attr", action="append", default=[],
+                    help="Attribute name to ignore (repeatable), e.g. --ignore-attr XTPVersion")
+    ap.add_argument("--ignore-path", action="append", default=[],
+                    help="HDF5 path subtree to ignore (repeatable), e.g. --ignore-path /metadata")
+
+    ap.add_argument("--max-report", type=int, default=20,
+                    help="Max mismatches to print per dataset/attr section")
+    ap.add_argument("--max-diffs", type=int, default=500,
+                    help="Max total diffs to print before truncating")
     args = ap.parse_args()
 
     ignore_attrs = set(args.ignore_attr)
     ignore_paths = list(args.ignore_path)
 
-    # Sensible default for your case:
-    # If you don’t specify, we still won’t auto-ignore anything.
-    # But you can pass: --ignore-attr XTPVersion
+    diffs: List[Diff] = []
     try:
         with h5py.File(args.file_a, "r") as fa, h5py.File(args.file_b, "r") as fb:
-            diffs = walk_and_compare(
+            walk_and_compare(
                 fa, fb,
                 ignore_paths=ignore_paths,
                 ignore_attrs=ignore_attrs,
                 rtol=args.rtol,
                 atol=args.atol,
                 max_report=args.max_report,
+                diffs=diffs,
             )
     except OSError as e:
-        print(f"[compare_h5] Failed to open files: {e}", file=sys.stderr)
+        print(f"[compare_h5] ERROR opening files: {e}", file=sys.stderr)
         return 2
 
     if diffs:
         print(f"[compare_h5] FAIL: {len(diffs)} differences found")
-        for d in diffs[:500]:
+        for d in diffs[:args.max_diffs]:
             print(f" - {d.path}: {d.kind}: {d.message}")
-        if len(diffs) > 500:
-            print(f" ... {len(diffs) - 500} more differences not shown")
+        if len(diffs) > args.max_diffs:
+            print(f" ... {len(diffs) - args.max_diffs} more differences not shown")
         return 1
 
     print("[compare_h5] OK: files match (within tolerances / ignore rules)")

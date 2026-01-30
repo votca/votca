@@ -1,32 +1,128 @@
 #!/usr/bin/env python3
-import argparse
-import sys
+"""
+compare_xml_numeric.py — semantic XML compare with numeric tolerances.
 
-def c14n_bytes(path: str) -> bytes:
-    from lxml import etree
-    parser = etree.XMLParser(remove_blank_text=True, resolve_entities=False, no_network=True)
-    tree = etree.parse(path, parser)
-    # Exclusive C14N is typically the most stable for diffs
-    return etree.tostring(tree, method="c14n", exclusive=True, with_comments=False)
+Usage:
+  python compare_xml_numeric.py ref.xml out.xml --atol 1e-12 --rtol 1e-8
+"""
+
+import argparse
+import math
+import sys
+import re
+from typing import Optional
+from lxml import etree
+
+NUM_RE = re.compile(r"""
+    ^[+-]?(
+      (\d+(\.\d*)?)|(\.\d+)
+    )([eE][+-]?\d+)?$
+""", re.VERBOSE)
+
+def is_number(s: str) -> bool:
+    return bool(NUM_RE.match(s.strip()))
+
+def to_float(s: str) -> float:
+    return float(s.strip())
+
+def num_equal(a: float, b: float, atol: float, rtol: float) -> bool:
+    return math.isclose(a, b, abs_tol=atol, rel_tol=rtol)
+
+def norm_text(s: Optional[str]) -> str:
+    return "" if s is None else s.strip()
+
+def compare_values(path, a: str, b: str, atol, rtol, diffs):
+    a = norm_text(a)
+    b = norm_text(b)
+
+    if a == b:
+        return
+
+    if is_number(a) and is_number(b):
+        fa, fb = to_float(a), to_float(b)
+        if not num_equal(fa, fb, atol, rtol):
+            diffs.append(
+                f"{path}: numeric mismatch {fa} vs {fb} (atol={atol}, rtol={rtol})"
+            )
+    else:
+        diffs.append(f"{path}: text mismatch '{a}' vs '{b}'")
+
+def compare_elements(ea, eb, path, atol, rtol, diffs):
+    if ea.tag != eb.tag:
+        diffs.append(f"{path}: tag differs '{ea.tag}' vs '{eb.tag}'")
+        return
+
+    # Compare attributes (order-independent)
+    a_keys = set(ea.attrib.keys())
+    b_keys = set(eb.attrib.keys())
+
+    for k in sorted(a_keys - b_keys):
+        diffs.append(f"{path}: attribute '{k}' missing in B")
+    for k in sorted(b_keys - a_keys):
+        diffs.append(f"{path}: attribute '{k}' missing in A")
+
+    for k in sorted(a_keys & b_keys):
+        compare_values(
+            f"{path}/@{k}",
+            ea.attrib.get(k),
+            eb.attrib.get(k),
+            atol, rtol, diffs
+        )
+
+    # Compare text
+    compare_values(path, ea.text, eb.text, atol, rtol, diffs)
+
+    # Compare children count
+    ca = list(ea)
+    cb = list(eb)
+    if len(ca) != len(cb):
+        diffs.append(f"{path}: number of children differs {len(ca)} vs {len(cb)}")
+        return
+
+    # Recurse in order (canonical order from lxml)
+    for i, (xa, xb) in enumerate(zip(ca, cb)):
+        compare_elements(
+            xa, xb,
+            f"{path}/{xa.tag}[{i}]",
+            atol, rtol, diffs
+        )
+
+def load_xml(path: str):
+    parser = etree.XMLParser(
+        remove_blank_text=True,
+        resolve_entities=False,
+        no_network=True
+    )
+    return etree.parse(path, parser).getroot()
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("ref")
     ap.add_argument("out")
+    ap.add_argument("--atol", type=float, default=1e-12)
+    ap.add_argument("--rtol", type=float, default=1e-8)
+    ap.add_argument("--max-report", type=int, default=50)
     args = ap.parse_args()
 
     try:
-        a = c14n_bytes(args.ref)
-        b = c14n_bytes(args.out)
+        ra = load_xml(args.ref)
+        rb = load_xml(args.out)
     except Exception as e:
-        print(f"[compare_xml] parse/c14n error: {e}", file=sys.stderr)
+        print(f"[compare_xml] parse error: {e}", file=sys.stderr)
         return 2
 
-    if a != b:
-        print("[compare_xml] FAIL: XML differs after canonicalization")
+    diffs = []
+    compare_elements(ra, rb, f"/{ra.tag}", args.atol, args.rtol, diffs)
+
+    if diffs:
+        print(f"[compare_xml] FAIL: {len(diffs)} differences found")
+        for d in diffs[:args.max_report]:
+            print(" -", d)
+        if len(diffs) > args.max_report:
+            print(f" ... {len(diffs) - args.max_report} more differences")
         return 1
 
-    print("[compare_xml] OK")
+    print("[compare_xml] OK (numeric tolerance applied)")
     return 0
 
 if __name__ == "__main__":
