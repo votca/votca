@@ -137,5 +137,18 @@ if(RUN_XTP_INTEGRATIONTESTING)
   add_test(NAME integration_Compare_xtp_run_mapchecker COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_pdb> ${REFPATH}/qm_segments_n_step_0.pdb ${RUNPATH}/qm_segments_n_step_0.pdb  --ignore-serial --ignore-occupancy --ignore-bfactor  WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Compare_xtp_run_mapchecker PROPERTIES DEPENDS integration_Run_xtp_run_mapchecker)
 
+  # xtp_run -e neighborlist
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_run_neighborlist)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/neighborlist.xml ${RUNPATH}/neighborlist.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_map.hdf5 ${RUNPATH}/state.hdf5)
+  add_test(NAME integration_Run_xtp_run_neighborlist COMMAND xtp_run -e neighborlist -o neighborlist.xml -f state.hdf5 -s 0 WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_run_neighborlist PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  if(HAS_HDF5_COMPARE)
+    add_test(NAME integration_Compare_xtp_run_neighborlist_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --atol 1e-12 --rtol 1e-8 ${REFPATH}/state_neighborlist.hdf5 ${RUNPATH}/state.hdf5 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_run_neighborlist_output PROPERTIES DEPENDS integration_Run_xtp_map)
+  else()
+    message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_run_neighborlist (votca_compare_hdf5 not found)")
+  endif()
 
 endif()
