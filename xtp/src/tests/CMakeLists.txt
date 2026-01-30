@@ -122,7 +122,8 @@ if(RUN_XTP_INTEGRATIONTESTING)
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_map (votca_compare_hdf5 not found)")
   endif()
 
-  # xtp_run -e mapchecker 
+  # xtp_run -e mapchecker
+  set(VOTCASHARE_DIR ${XTP_SOURCE_DIR}/share)
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_run_mapchecker)
   file(MAKE_DIRECTORY ${RUNPATH})
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
@@ -132,7 +133,9 @@ if(RUN_XTP_INTEGRATIONTESTING)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MP_FILES ${RUNPATH}/MP_FILES)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/state_map.hdf5 ${RUNPATH}/state.hdf5)
   add_test(NAME integration_Run_xtp_run_mapchecker COMMAND xtp_run -e mapchecker -o mapchecker.xml -f state.hdf5 -s 0 WORKING_DIRECTORY ${RUNPATH})
-  add_test(NAME integration_Compare_xtp_run_mapchecker COMMAND COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_pdb> ${REFPATH}/qm_segments_n_step_0.pdb ${RUNPATH}/qm_segments_n_step_0.pdb  --ignore-serial --ignore-occupancy --ignore-bfactor  WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_run_mapchecker PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  add_test(NAME integration_Compare_xtp_run_mapchecker COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_pdb> ${REFPATH}/qm_segments_n_step_0.pdb ${RUNPATH}/qm_segments_n_step_0.pdb  --ignore-serial --ignore-occupancy --ignore-bfactor  WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Compare_xtp_run_mapchecker PROPERTIES DEPENDS integration_Run_xtp_run_mapchecker)
 
 
 endif()

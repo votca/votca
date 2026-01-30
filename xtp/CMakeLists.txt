@@ -56,6 +56,8 @@ foreach(HEADER algorithm)
   endif(NOT FOUND_${HEADER})
 endforeach(HEADER)
 
+set(XTP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "XTP Source Path")
+
 ######################################
 # Include the following subdirectory #
 ######################################
