@@ -1,16 +1,26 @@
 #!/usr/bin/env python3
 """
-compare_xml_numeric.py — semantic XML compare with numeric tolerances.
+compare_xml_numeric.py — semantic XML compare with numeric tolerances + ignore tags.
+
+- Compares element tags, attributes, text nodes, and children recursively.
+- Numeric values in text/attributes are compared with atol/rtol.
+- Non-numeric text is compared as strings (trimmed).
+- Attributes are compared order-independently.
+- Tags listed via --ignore-tag are ignored at ANY depth (entire subtree skipped).
 
 Usage:
-  python compare_xml_numeric.py ref.xml out.xml --atol 1e-12 --rtol 1e-8
+  python compare_xml_numeric.py ref.xml out.xml --atol 1e-12 --rtol 1e-8 \
+    --ignore-tag Compute_Time --ignore-tag host --ignore-tag time
 """
+
+from __future__ import annotations
 
 import argparse
 import math
-import sys
 import re
-from typing import Optional
+import sys
+from typing import Optional, Set, List
+
 from lxml import etree
 
 NUM_RE = re.compile(r"""
@@ -19,81 +29,98 @@ NUM_RE = re.compile(r"""
     )([eE][+-]?\d+)?$
 """, re.VERBOSE)
 
-def is_number(s: str) -> bool:
-    return bool(NUM_RE.match(s.strip()))
-
-def to_float(s: str) -> float:
-    return float(s.strip())
-
-def num_equal(a: float, b: float, atol: float, rtol: float) -> bool:
-    return math.isclose(a, b, abs_tol=atol, rel_tol=rtol)
 
 def norm_text(s: Optional[str]) -> str:
     return "" if s is None else s.strip()
 
-def compare_values(path, a: str, b: str, atol, rtol, diffs):
-    a = norm_text(a)
-    b = norm_text(b)
 
-    if a == b:
+def is_number(s: str) -> bool:
+    return bool(NUM_RE.match(s.strip()))
+
+
+def to_float(s: str) -> float:
+    return float(s.strip())
+
+
+def num_equal(a: float, b: float, atol: float, rtol: float) -> bool:
+    return math.isclose(a, b, abs_tol=atol, rel_tol=rtol)
+
+
+def compare_values(path: str, a: Optional[str], b: Optional[str], atol: float, rtol: float, diffs: List[str]) -> None:
+    sa = norm_text(a)
+    sb = norm_text(b)
+
+    if sa == sb:
         return
 
-    if is_number(a) and is_number(b):
-        fa, fb = to_float(a), to_float(b)
+    # numeric tolerance if both look numeric
+    if is_number(sa) and is_number(sb):
+        fa, fb = to_float(sa), to_float(sb)
         if not num_equal(fa, fb, atol, rtol):
-            diffs.append(
-                f"{path}: numeric mismatch {fa} vs {fb} (atol={atol}, rtol={rtol})"
-            )
+            diffs.append(f"{path}: numeric mismatch {fa} vs {fb} (atol={atol}, rtol={rtol})")
     else:
-        diffs.append(f"{path}: text mismatch '{a}' vs '{b}'")
+        diffs.append(f"{path}: text mismatch {sa!r} vs {sb!r}")
 
-def compare_elements(ea, eb, path, atol, rtol, diffs):
-    if ea.tag != eb.tag:
-        diffs.append(f"{path}: tag differs '{ea.tag}' vs '{eb.tag}'")
+
+def compare_elements(
+    ea: etree._Element,
+    eb: etree._Element,
+    path: str,
+    atol: float,
+    rtol: float,
+    diffs: List[str],
+    ignore_tags: Set[str],
+) -> None:
+    # Ignore this tag (and entire subtree) at any depth
+    if ea.tag in ignore_tags or eb.tag in ignore_tags:
         return
 
-    # Compare attributes (order-independent)
+    if ea.tag != eb.tag:
+        diffs.append(f"{path}: tag differs {ea.tag!r} vs {eb.tag!r}")
+        return
+
+    # --- Attributes (order-independent) ---
     a_keys = set(ea.attrib.keys())
     b_keys = set(eb.attrib.keys())
 
     for k in sorted(a_keys - b_keys):
-        diffs.append(f"{path}: attribute '{k}' missing in B")
+        diffs.append(f"{path}: attribute {k!r} missing in B")
     for k in sorted(b_keys - a_keys):
-        diffs.append(f"{path}: attribute '{k}' missing in A")
+        diffs.append(f"{path}: attribute {k!r} missing in A")
 
     for k in sorted(a_keys & b_keys):
-        compare_values(
-            f"{path}/@{k}",
-            ea.attrib.get(k),
-            eb.attrib.get(k),
-            atol, rtol, diffs
-        )
+        compare_values(f"{path}/@{k}", ea.attrib.get(k), eb.attrib.get(k), atol, rtol, diffs)
 
-    # Compare text
+    # --- Text inside element ---
     compare_values(path, ea.text, eb.text, atol, rtol, diffs)
 
-    # Compare children count
-    ca = list(ea)
-    cb = list(eb)
+    # --- Children ---
+    ca = [c for c in list(ea) if c.tag not in ignore_tags]
+    cb = [c for c in list(eb) if c.tag not in ignore_tags]
+
     if len(ca) != len(cb):
-        diffs.append(f"{path}: number of children differs {len(ca)} vs {len(cb)}")
+        diffs.append(f"{path}: number of (non-ignored) children differs {len(ca)} vs {len(cb)}")
         return
 
-    # Recurse in order (canonical order from lxml)
+    # Compare in document order. If your generator can reorder children, tell me and we’ll add sorting by (tag, attrs).
     for i, (xa, xb) in enumerate(zip(ca, cb)):
         compare_elements(
             xa, xb,
             f"{path}/{xa.tag}[{i}]",
-            atol, rtol, diffs
+            atol, rtol,
+            diffs,
+            ignore_tags
         )
 
-def load_xml(path: str):
-    parser = etree.XMLParser(
-        remove_blank_text=True,
-        resolve_entities=False,
-        no_network=True
-    )
+    # Tail text (text after an element, before the next sibling). Usually irrelevant, but we can compare for completeness.
+    # If you never care about tail whitespace, this is safe and typically empty after remove_blank_text=True.
+    compare_values(f"{path}#tail", ea.tail, eb.tail, atol, rtol, diffs)
+
+
+def load_xml(path: str) -> etree._Element:
+    parser = etree.XMLParser(remove_blank_text=True, resolve_entities=False, no_network=True)
     return etree.parse(path, parser).getroot()
+
 
 def main() -> int:
     ap = argparse.ArgumentParser()
@@ -101,8 +128,13 @@ def main() -> int:
     ap.add_argument("out")
     ap.add_argument("--atol", type=float, default=1e-12)
     ap.add_argument("--rtol", type=float, default=1e-8)
-    ap.add_argument("--max-report", type=int, default=50)
+    ap.add_argument("--ignore-tag", action="append", default=[],
+                    help="Tag name to ignore completely at any depth (repeatable)")
+    ap.add_argument("--max-report", type=int, default=50,
+                    help="Max number of differences to print")
     args = ap.parse_args()
+
+    ignore_tags = set(args.ignore_tag)
 
     try:
         ra = load_xml(args.ref)
@@ -111,8 +143,8 @@ def main() -> int:
         print(f"[compare_xml] parse error: {e}", file=sys.stderr)
         return 2
 
-    diffs = []
-    compare_elements(ra, rb, f"/{ra.tag}", args.atol, args.rtol, diffs)
+    diffs: List[str] = []
+    compare_elements(ra, rb, f"/{ra.tag}", args.atol, args.rtol, diffs, ignore_tags)
 
     if diffs:
         print(f"[compare_xml] FAIL: {len(diffs)} differences found")
@@ -122,8 +154,9 @@ def main() -> int:
             print(f" ... {len(diffs) - args.max_report} more differences")
         return 1
 
-    print("[compare_xml] OK (numeric tolerance applied)")
+    print("[compare_xml] OK (numeric tolerance + ignore tags applied)")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
