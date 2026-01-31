@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 """
-compare_xml_numeric.py — semantic XML compare with numeric tolerances + ignore tags.
+compare_xml_numeric.py — semantic XML compare with:
+- numeric tolerances (rtol/atol) for text and attributes
+- ignore tags at any depth (skip subtree)
+- per-tag tolerance overrides (e.g. qp_energy needs looser tolerance)
+- per-tag "allow global sign flip" for numeric vectors in text (e.g. Trdipole)
 
-- Compares element tags, attributes, text nodes, and children recursively.
-- Numeric values in text/attributes are compared with atol/rtol.
-- Non-numeric text is compared as strings (trimmed).
-- Attributes are compared order-independently.
-- Tags listed via --ignore-tag are ignored at ANY depth (entire subtree skipped).
+Examples:
+  python compare_xml_numeric.py ref.xml out.xml \
+    --ignore-tag Compute_Time --ignore-tag host --ignore-tag time \
+    --tag-tol qp_energy:1e-7:1e-6 \
+    --signflip-tag Trdipole
 
-Usage:
-  python compare_xml_numeric.py ref.xml out.xml --atol 1e-12 --rtol 1e-8 \
-    --ignore-tag Compute_Time --ignore-tag host --ignore-tag time
+Format for --tag-tol:
+  TAG:RTOL:ATOL
 """
 
 from __future__ import annotations
@@ -19,7 +22,7 @@ import argparse
 import math
 import re
 import sys
-from typing import Optional, Set, List
+from typing import Optional, Set, List, Dict, Tuple
 
 from lxml import etree
 
@@ -46,14 +49,75 @@ def num_equal(a: float, b: float, atol: float, rtol: float) -> bool:
     return math.isclose(a, b, abs_tol=atol, rel_tol=rtol)
 
 
-def compare_values(path: str, a: Optional[str], b: Optional[str], atol: float, rtol: float, diffs: List[str]) -> None:
+def parse_tag_tol(items: List[str]) -> Dict[str, Tuple[float, float]]:
+    out: Dict[str, Tuple[float, float]] = {}
+    for it in items:
+        # TAG:RTOL:ATOL
+        parts = it.split(":")
+        if len(parts) != 3:
+            raise ValueError(f"--tag-tol expects TAG:RTOL:ATOL, got {it!r}")
+        tag, rtol_s, atol_s = parts
+        out[tag] = (float(rtol_s), float(atol_s))
+    return out
+
+
+def pick_tols(tag: str, default_rtol: float, default_atol: float,
+              tag_tols: Dict[str, Tuple[float, float]]) -> Tuple[float, float]:
+    return tag_tols.get(tag, (default_rtol, default_atol))
+
+
+def parse_float_vector(s: str) -> Optional[List[float]]:
+    """
+    Parse a whitespace-separated list of floats.
+    Returns None if any token is not a float.
+    """
+    s = norm_text(s)
+    if not s:
+        return []
+    parts = s.split()
+    vals: List[float] = []
+    for p in parts:
+        if not is_number(p):
+            return None
+        vals.append(float(p))
+    return vals
+
+
+def vec_equal_allow_signflip(a: List[float], b: List[float], atol: float, rtol: float) -> bool:
+    if len(a) != len(b):
+        return False
+    # v ~ w
+    ok1 = all(math.isclose(x, y, abs_tol=atol, rel_tol=rtol) for x, y in zip(a, b))
+    if ok1:
+        return True
+    # v ~ -w
+    ok2 = all(math.isclose(x, -y, abs_tol=atol, rel_tol=rtol) for x, y in zip(a, b))
+    return ok2
+
+
+def compare_values(path: str, a: Optional[str], b: Optional[str],
+                   rtol: float, atol: float, diffs: List[str],
+                   allow_signflip_vector: bool = False) -> None:
     sa = norm_text(a)
     sb = norm_text(b)
 
     if sa == sb:
         return
 
-    # numeric tolerance if both look numeric
+    # Special: numeric vectors where overall sign is arbitrary
+    if allow_signflip_vector:
+        va = parse_float_vector(sa)
+        vb = parse_float_vector(sb)
+        if va is not None and vb is not None:
+            if vec_equal_allow_signflip(va, vb, atol=atol, rtol=rtol):
+                return
+            diffs.append(
+                f"{path}: numeric-vector mismatch (± allowed) {va} vs {vb} (atol={atol}, rtol={rtol})"
+            )
+            return
+        # If not parseable as a vector, fall back to normal rules
+
+    # Scalar numeric tolerance
     if is_number(sa) and is_number(sb):
         fa, fb = to_float(sa), to_float(sb)
         if not num_equal(fa, fb, atol, rtol):
@@ -66,12 +130,14 @@ def compare_elements(
     ea: etree._Element,
     eb: etree._Element,
     path: str,
-    atol: float,
-    rtol: float,
+    default_atol: float,
+    default_rtol: float,
     diffs: List[str],
     ignore_tags: Set[str],
+    tag_tols: Dict[str, Tuple[float, float]],
+    signflip_tags: Set[str],
 ) -> None:
-    # Ignore this tag (and entire subtree) at any depth
+    # Ignore subtree if either side is ignored tag
     if ea.tag in ignore_tags or eb.tag in ignore_tags:
         return
 
@@ -79,7 +145,11 @@ def compare_elements(
         diffs.append(f"{path}: tag differs {ea.tag!r} vs {eb.tag!r}")
         return
 
-    # --- Attributes (order-independent) ---
+    # pick tolerances for this element tag
+    rtol, atol = pick_tols(ea.tag, default_rtol, default_atol, tag_tols)
+    allow_sf = ea.tag in signflip_tags
+
+    # Attributes (order-independent)
     a_keys = set(ea.attrib.keys())
     b_keys = set(eb.attrib.keys())
 
@@ -89,12 +159,13 @@ def compare_elements(
         diffs.append(f"{path}: attribute {k!r} missing in A")
 
     for k in sorted(a_keys & b_keys):
-        compare_values(f"{path}/@{k}", ea.attrib.get(k), eb.attrib.get(k), atol, rtol, diffs)
+        # attributes are usually scalars; no signflip by default
+        compare_values(f"{path}/@{k}", ea.attrib.get(k), eb.attrib.get(k), rtol, atol, diffs, allow_signflip_vector=False)
 
-    # --- Text inside element ---
-    compare_values(path, ea.text, eb.text, atol, rtol, diffs)
+    # Text content (apply signflip rule if configured for this tag)
+    compare_values(path, ea.text, eb.text, rtol, atol, diffs, allow_signflip_vector=allow_sf)
 
-    # --- Children ---
+    # Children (skip ignored tags)
     ca = [c for c in list(ea) if c.tag not in ignore_tags]
     cb = [c for c in list(eb) if c.tag not in ignore_tags]
 
@@ -102,19 +173,19 @@ def compare_elements(
         diffs.append(f"{path}: number of (non-ignored) children differs {len(ca)} vs {len(cb)}")
         return
 
-    # Compare in document order. If your generator can reorder children, tell me and we’ll add sorting by (tag, attrs).
     for i, (xa, xb) in enumerate(zip(ca, cb)):
         compare_elements(
             xa, xb,
             f"{path}/{xa.tag}[{i}]",
-            atol, rtol,
+            default_atol, default_rtol,
             diffs,
-            ignore_tags
+            ignore_tags,
+            tag_tols,
+            signflip_tags
         )
 
-    # Tail text (text after an element, before the next sibling). Usually irrelevant, but we can compare for completeness.
-    # If you never care about tail whitespace, this is safe and typically empty after remove_blank_text=True.
-    compare_values(f"{path}#tail", ea.tail, eb.tail, atol, rtol, diffs)
+    # Tail text (usually whitespace)
+    compare_values(f"{path}#tail", ea.tail, eb.tail, rtol, atol, diffs, allow_signflip_vector=False)
 
 
 def load_xml(path: str) -> etree._Element:
@@ -128,13 +199,27 @@ def main() -> int:
     ap.add_argument("out")
     ap.add_argument("--atol", type=float, default=1e-12)
     ap.add_argument("--rtol", type=float, default=1e-8)
+
     ap.add_argument("--ignore-tag", action="append", default=[],
                     help="Tag name to ignore completely at any depth (repeatable)")
-    ap.add_argument("--max-report", type=int, default=50,
-                    help="Max number of differences to print")
+
+    ap.add_argument("--tag-tol", action="append", default=[],
+                    help="Per-tag tolerance override: TAG:RTOL:ATOL (repeatable), e.g. qp_energy:1e-7:1e-6")
+
+    ap.add_argument("--signflip-tag", action="append", default=[],
+                    help="For these tags, allow numeric vectors in text to match up to an overall sign flip (repeatable)")
+
+    ap.add_argument("--max-report", type=int, default=50)
     args = ap.parse_args()
 
     ignore_tags = set(args.ignore_tag)
+    signflip_tags = set(args.signflip_tag)
+
+    try:
+        tag_tols = parse_tag_tol(args.tag_tol)
+    except Exception as e:
+        print(f"[compare_xml] bad --tag-tol: {e}", file=sys.stderr)
+        return 2
 
     try:
         ra = load_xml(args.ref)
@@ -144,7 +229,15 @@ def main() -> int:
         return 2
 
     diffs: List[str] = []
-    compare_elements(ra, rb, f"/{ra.tag}", args.atol, args.rtol, diffs, ignore_tags)
+    compare_elements(
+        ra, rb, f"/{ra.tag}",
+        default_atol=args.atol,
+        default_rtol=args.rtol,
+        diffs=diffs,
+        ignore_tags=ignore_tags,
+        tag_tols=tag_tols,
+        signflip_tags=signflip_tags,
+    )
 
     if diffs:
         print(f"[compare_xml] FAIL: {len(diffs)} differences found")
@@ -154,7 +247,7 @@ def main() -> int:
             print(f" ... {len(diffs) - args.max_report} more differences")
         return 1
 
-    print("[compare_xml] OK (numeric tolerance + ignore tags applied)")
+    print("[compare_xml] OK (numeric tolerance + ignore tags + per-tag tolerances + sign-flip tags applied)")
     return 0
 
 
