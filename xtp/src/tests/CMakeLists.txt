@@ -236,6 +236,39 @@ if(RUN_XTP_INTEGRATIONTESTING)
     message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_eqm_write (votca_compare_xml not found)")
   endif()
 
+  # xtp_parallel -e eqm -j run
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_eqm_run)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_qmmm.hdf5 ${RUNPATH}/state.hdf5)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/eqm_run.in ${RUNPATH}/eqm.jobs)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/eqm.xml ${RUNPATH}/eqm.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${REFPATH}/MP_FILES ${RUNPATH}/MP_FILES)
+  add_test(NAME integration_Run_xtp_parallel_eqm_run COMMAND xtp_parallel -e eqm -o eqm.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_parallel_eqm_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  if(HAS_XML_COMPARE)
+    add_test(NAME integration_Compare_xtp_parallel_eqm_run_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/eqm_run.jobs ${RUNPATH}/eqm.jobs --atol 1e-12 --rtol 1e-8 --ignore-tag Compute_Time --ignore-tag host --ignore-tag time WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_parallel_eqm_run_output PROPERTIES DEPENDS integration_Run_xtp_parallel_eqm_run)
+  else()
+    message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_eqm_run (votca_compare_xml not found)")
+  endif()
+  if(HAS_HDF5_COMPARE)
+    add_test(NAME integration_Compare_xtp_parallel_eqm_run_output2 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr number_beta_electrons --atol 1e-12 --rtol 1e-8 ${REFPATH}/OR_FILES/molecules/frame_0/molecule_0.orb ${RUNPATH}/OR_FILES/molecules/frame_0/molecule_0.orb WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_parallel_eqm_run_output3 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr number_beta_electrons --atol 1e-12 --rtol 1e-8 ${REFPATH}/OR_FILES/molecules/frame_0/molecule_1.orb ${RUNPATH}/OR_FILES/molecules/frame_0/molecule_1.orb WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_parallel_eqm_run_output2 PROPERTIES DEPENDS integration_Run_xtp_parallel_eqm_run)
+    set_tests_properties(integration_Compare_xtp_parallel_eqm_run_output3 PROPERTIES DEPENDS integration_Run_xtp_parallel_eqm_run)
+  else()
+    message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_parallel_eqm_run (votca_compare_hdf5 not found)")
+  endif()
+  add_test(NAME integration_Compare_xtp_parallel_eqm_run_output4 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_mps> ${REFPATH}/MP_FILES/frame_0/n2s1/Methane_0_n2s1.mps ${RUNPATH}/MP_FILES/frame_0/n2s1/Methane_0_n2s1.mps --atol 1e-12 --rtol 1e-8 WORKING_DIRECTORY ${RUNPATH})
+  add_test(NAME integration_Compare_xtp_parallel_eqm_run_output5 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_mps> ${REFPATH}/MP_FILES/frame_0/n2s1/Methane_1_n2s1.mps ${RUNPATH}/MP_FILES/frame_0/n2s1/Methane_1_n2s1.mps --atol 1e-12 --rtol 1e-8 WORKING_DIRECTORY ${RUNPATH})
+
+
+
+
+
   # xtp_parallel -e iqm -j write
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_iqm_write)
   file(MAKE_DIRECTORY ${RUNPATH})

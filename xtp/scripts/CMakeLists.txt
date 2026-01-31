@@ -39,6 +39,9 @@ endif()
 add_executable(VOTCA::votca_compare_pdb IMPORTED GLOBAL)
 set_property(TARGET VOTCA::votca_compare_pdb PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/votca_compare_pdb")
 
+add_executable(VOTCA::votca_compare_mps IMPORTED GLOBAL)
+set_property(TARGET VOTCA::votca_compare_mps PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/votca_compare_mps")
+
 foreach(SCRIPT ${XTP_SCRIPTS}) 
   configure_file(${SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.in2 @ONLY)
   add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.install)
