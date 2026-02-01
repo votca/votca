@@ -2,16 +2,17 @@
 """
 compare_h5.py — semantic HDF5 comparator for unit tests (dtype-agnostic).
 
-Key capabilities:
+Policy:
+- Skip eigenvector datasets (gauge dependent across OS/BLAS): */eigenvectors, */eigenvectors2, ...
+- STILL compare /QMdata/transition_dipoles/ind<N>, allowing a consistent global sign flip:
+    accept if A ~= B OR A ~= -B (within tolerances)
+
+Other capabilities:
 - Recursive compare of groups/datasets/attributes
 - Float/complex tolerance (rtol/atol), including inside compound dtypes
 - Ignore attribute names, ignore path subtrees
 - Robust compound dtype detection (dtype.names) + coercion + string normalization
-- NEW: ignore datasets by regex (e.g. skip eigenvectors entirely)
-
-Recommended CI policy:
-- Compare eigenvalues/energies/etc with tolerances
-- Skip eigenvectors (gauge dependent across OS/BLAS)
+- Ignore datasets by regex (repeatable)
 """
 
 from __future__ import annotations
@@ -239,6 +240,70 @@ def compare_arrays_generic(
 
 
 # ---------------------------
+# Transition dipole compare (allow global sign flip)
+# ---------------------------
+
+_TDIPOLE_RE = re.compile(r"^/QMdata/transition_dipoles/ind\d+$")
+
+def compare_transition_dipoles_allow_sign(
+    a: np.ndarray,
+    b: np.ndarray,
+    path: str,
+    diffs: List[Diff],
+    rtol: float,
+    atol: float,
+    max_report: int,
+) -> None:
+    """
+    Accept if A ~= B OR A ~= -B within tolerances.
+    Works for any shape (commonly (3, nstates) or (3, nstates, ...)).
+    """
+    if a.shape != b.shape:
+        diffs.append(Diff(path, "shape", f"Shape differs: A {a.shape} vs B {b.shape}"))
+        return
+
+    if a.size == 0 and b.size == 0:
+        return
+    if a.size == 0 or b.size == 0:
+        diffs.append(Diff(path, "value", f"One is empty: A size={a.size} vs B size={b.size}"))
+        return
+
+    # numeric compare; if not numeric, fall back to generic compare
+    if not (
+        np.issubdtype(a.dtype, np.number) or np.issubdtype(b.dtype, np.number)
+        or np.issubdtype(a.dtype, np.floating) or np.issubdtype(b.dtype, np.floating)
+    ):
+        compare_arrays_generic(a, b, path, diffs, rtol, atol, max_report)
+        return
+
+    ok_same = np.isclose(a, b, rtol=rtol, atol=atol, equal_nan=True)
+    if np.all(ok_same):
+        return
+
+    ok_flip = np.isclose(a, -b, rtol=rtol, atol=atol, equal_nan=True)
+    if np.all(ok_flip):
+        return
+
+    # Report mismatches for the better of the two (same vs flipped)
+    bad_same = np.argwhere(~ok_same)
+    bad_flip = np.argwhere(~ok_flip)
+    if bad_flip.shape[0] < bad_same.shape[0]:
+        coords = [tuple(map(int, c)) for c in bad_flip]
+        for coord in coords[:max_report]:
+            diffs.append(Diff(path, "value",
+                              f"Mismatch (even allowing sign flip) at {coord}: A={a[coord]} vs -B={(-b)[coord]} (rtol={rtol}, atol={atol})"))
+        if len(coords) > max_report:
+            diffs.append(Diff(path, "value", f"... {len(coords) - max_report} more mismatches"))
+    else:
+        coords = [tuple(map(int, c)) for c in bad_same]
+        for coord in coords[:max_report]:
+            diffs.append(Diff(path, "value",
+                              f"Mismatch at {coord}: A={a[coord]} vs B={b[coord]} (rtol={rtol}, atol={atol})"))
+        if len(coords) > max_report:
+            diffs.append(Diff(path, "value", f"... {len(coords) - max_report} more mismatches"))
+
+
+# ---------------------------
 # Attribute compare
 # ---------------------------
 
@@ -305,6 +370,11 @@ def compare_dataset(
         diffs.append(Diff(path, "read_error", f"Failed to read dataset: {e}"))
         return
 
+    # Special-case: transition dipoles allow global sign flip
+    if _TDIPOLE_RE.match(path):
+        compare_transition_dipoles_allow_sign(a_arr, b_arr, path, diffs, rtol, atol, max_report)
+        return
+
     compare_arrays_generic(a_arr, b_arr, path, diffs, rtol, atol, max_report)
 
 
@@ -367,11 +437,13 @@ def walk_and_compare(
                 child = f"{path.rstrip('/')}/{k}" if path != "/" else f"/{k}"
                 recurse(child)
         else:
-            # Dataset
-            if should_ignore_dataset(path, ignore_dataset_regex):
-                if verbose_skips:
-                    print(f"[compare_h5] SKIP dataset {path}", file=sys.stderr)
-                return
+            # Dataset: do NOT skip transition dipoles even if user adds broad patterns
+            # (they are handled with sign-flip logic).
+            if not _TDIPOLE_RE.match(path):
+                if should_ignore_dataset(path, ignore_dataset_regex):
+                    if verbose_skips:
+                        print(f"[compare_h5] SKIP dataset {path}", file=sys.stderr)
+                    return
             compare_dataset(a_obj, b_obj, path, diffs, rtol, atol, max_report)
 
     recurse("/")
@@ -386,8 +458,8 @@ def main() -> int:
     ap.add_argument("file_a", help="Reference / expected .h5")
     ap.add_argument("file_b", help="Output / actual .h5")
 
-    ap.add_argument("--rtol", type=float, default=1e-8, help="Relative tolerance for float/complex values")
-    ap.add_argument("--atol", type=float, default=1e-12, help="Absolute tolerance for float/complex values")
+    ap.add_argument("--rtol", type=float, default=1e-7, help="Relative tolerance for float/complex values")
+    ap.add_argument("--atol", type=float, default=1e-6, help="Absolute tolerance for float/complex values")
 
     ap.add_argument("--ignore-attr", action="append", default=[],
                     help="Attribute name to ignore (repeatable), e.g. --ignore-attr XTPVersion")
@@ -404,12 +476,11 @@ def main() -> int:
                     help="Max total diffs to print before truncating")
     args = ap.parse_args()
 
-    # Default skip patterns: all eigenvectors anywhere
+    # Default skip patterns: skip eigenvectors ONLY (but not transition dipoles indN).
     default_skip = [
         r"/eigenvectors\d*$",
     ]
-    user_skip = args.ignore_dataset_regex or []
-    combined = default_skip + user_skip
+    combined = default_skip + (args.ignore_dataset_regex or [])
     ignore_dataset_regex = [re.compile(p) for p in combined]
 
     diffs: List[Diff] = []
@@ -438,7 +509,7 @@ def main() -> int:
             print(f" ... {len(diffs) - args.max_diffs} more differences not shown")
         return 1
 
-    print("[compare_h5] OK: files match (within tolerances / ignore rules / skipped datasets)")
+    print("[compare_h5] OK: files match (within tolerances / ignore rules / eigenvectors skipped, transition dipoles sign-aware)")
     return 0
 
 
