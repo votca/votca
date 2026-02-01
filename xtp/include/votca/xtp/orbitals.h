@@ -460,7 +460,7 @@ class Orbitals {
 
   Eigen::MatrixXd lmos_;
   Eigen::VectorXd lmos_energies_;
-  Index active_electrons_ =0 ;
+  Index active_electrons_ = 0;
   Eigen::MatrixXd inactivedensity_;
   Eigen::MatrixXd expandedMOs_;
 
