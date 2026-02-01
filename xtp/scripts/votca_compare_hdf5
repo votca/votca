@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """
 compare_h5.py — semantic HDF5 comparator for unit tests (dtype-agnostic),
-with support for eigenvector sign/phase ambiguity and empty eigenvector datasets.
+with support for eigenvector-like sign/phase ambiguity, including:
+  - .../eigenvectors, .../eigenvectors2, .../eigenvectors<N>
+  - /QMdata/transition_dipoles/ind<N> (any N)
+
+Also handles empty eigenvector datasets gracefully.
 
 Features:
 - Recursively compares groups/datasets/attributes
@@ -9,9 +13,8 @@ Features:
 - Exact compare for ints/bools/strings unless overridden by numeric tolerance rules
 - Ignore specific attribute names (e.g. XTPVersion)
 - Ignore path subtrees (e.g. /metadata, /provenance)
-- Special-case: datasets named .../eigenvectors can match up to an independent
-  global sign (real) / phase (complex) per eigenvector (assumed columns).
-- Handles empty eigenvector datasets gracefully (no reshape crash).
+- Special-case: eigenvector-like datasets match up to per-vector sign (real) / phase (complex)
+  using a robust pivot-component alignment (more stable than dot-product sign).
 - Friendly diff output with limited mismatch reporting
 
 Usage:
@@ -23,6 +26,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from dataclasses import dataclass
 from typing import Any, Iterable, List, Set, Tuple
@@ -116,7 +120,7 @@ def _report_first_mismatches(
 
 
 # ---------------------------
-# Eigenvector sign/phase alignment compare
+# Eigenvector-like sign/phase alignment compare
 # ---------------------------
 
 def align_and_compare_eigenvectors(
@@ -131,23 +135,29 @@ def align_and_compare_eigenvectors(
     component_axis: int = -2,
 ) -> None:
     """
-    Compare eigenvectors up to an independent global sign (real) / phase (complex) per eigenvector.
+    Compare eigenvector-like arrays up to an independent global sign (real) / phase (complex)
+    per eigenvector.
 
-    Assumes eigenvectors are columns by default:
-      shape (..., vec_len, nvec)  with eigen_axis=-1, component_axis=-2
+    Default assumption:
+      shape (..., vec_len, nvec)
+        component_axis = -2 (vec_len)
+        eigen_axis     = -1 (nvec)
 
-    Handles empty datasets gracefully.
+    Robust alignment uses a pivot component (largest magnitude) rather than dot-product sign.
+
+    Empty arrays are handled gracefully.
     """
     if a.shape != b.shape:
         diffs.append(Diff(path, "shape", f"Shape differs: A {a.shape} vs B {b.shape}"))
         return
 
-    # --- FIX: handle empty eigenvector datasets safely ---
+    # Handle empty datasets safely
     if a.size == 0 or b.size == 0:
         if a.size != b.size:
-            diffs.append(Diff(path, "value",
-                              f"One eigenvector dataset is empty and the other is not: A size={a.size} vs B size={b.size}"))
-        # Both empty with same shape => equal
+            diffs.append(Diff(
+                path, "value",
+                f"One eigenvector-like dataset is empty and the other is not: A size={a.size} vs B size={b.size}"
+            ))
         return
 
     if a.ndim < 2:
@@ -156,8 +166,10 @@ def align_and_compare_eigenvectors(
             idxs = np.argwhere(~ok)
             coords = [tuple(map(int, c)) for c in idxs]
             for coord in coords[:max_report]:
-                diffs.append(Diff(path, "value",
-                                  f"Mismatch at {coord}: A={a[coord]} vs B={b[coord]} (rtol={rtol}, atol={atol})"))
+                diffs.append(Diff(
+                    path, "value",
+                    f"Mismatch at {coord}: A={a[coord]} vs B={b[coord]} (rtol={rtol}, atol={atol})"
+                ))
         return
 
     eigen_axis = eigen_axis % a.ndim
@@ -178,7 +190,6 @@ def align_and_compare_eigenvectors(
     vec_len = a_perm.shape[-2]
     nvec = a_perm.shape[-1]
 
-    # At this point vec_len and nvec must be > 0 because a.size != 0
     a2 = a_perm.reshape((-1, vec_len, nvec))
     b2 = b_perm.reshape((-1, vec_len, nvec))
 
@@ -188,15 +199,38 @@ def align_and_compare_eigenvectors(
             aj = a2[bi, :, j]
             bj = b2[bi, :, j]
 
-            if np.iscomplexobj(aj) or np.iscomplexobj(bj):
-                dot = np.vdot(aj, bj)  # conj(aj)·bj
-                denom = abs(dot)
-                phase = dot / (denom if denom > 0 else 1.0)
-                bj_aligned = bj * phase.conjugate()
+            # Pivot-based alignment
+            abs_aj = np.abs(aj)
+            abs_bj = np.abs(bj)
+            if abs_aj.max() >= abs_bj.max():
+                pivot = int(np.argmax(abs_aj))
             else:
-                dot = float(np.dot(aj, bj))
-                sgn = -1.0 if dot < 0 else 1.0
-                bj_aligned = bj * sgn
+                pivot = int(np.argmax(abs_bj))
+
+            # If pivot is zero on both sides, fall back to dot alignment
+            if (abs_aj[pivot] == 0) and (abs_bj[pivot] == 0):
+                if np.iscomplexobj(aj) or np.iscomplexobj(bj):
+                    dot = np.vdot(aj, bj)  # conj(aj)·bj
+                    denom = abs(dot)
+                    phase = dot / (denom if denom > 0 else 1.0)
+                    bj_aligned = bj * phase.conjugate()
+                else:
+                    dot = float(np.dot(aj, bj))
+                    sgn = -1.0 if dot < 0 else 1.0
+                    bj_aligned = bj * sgn
+            else:
+                if np.iscomplexobj(aj) or np.iscomplexobj(bj):
+                    ap = aj[pivot]
+                    bp = bj[pivot]
+                    if bp == 0:
+                        bj_aligned = bj
+                    else:
+                        phase = ap / bp
+                        phase = phase / (abs(phase) if abs(phase) > 0 else 1.0)  # pure phase
+                        bj_aligned = bj * phase
+                else:
+                    sgn = -1.0 if (aj[pivot] * bj[pivot] < 0) else 1.0
+                    bj_aligned = bj * sgn
 
             ok = np.isclose(aj, bj_aligned, rtol=rtol, atol=atol, equal_nan=True)
             if not np.all(ok):
@@ -232,7 +266,7 @@ def compare_arrays_generic(
 
     # Structured dtype: compare field-by-field
     if (a.dtype.fields is not None) or (b.dtype.fields is not None):
-        if (a.dtype.fields is None) != (b.dtype.fields is None):
+        if (a.dtype.fields is None) != (b.dtype.fields is not None):
             diffs.append(Diff(path, "dtype", f"One side structured and other not: A {a.dtype} vs B {b.dtype}"))
             return
 
@@ -299,8 +333,10 @@ def compare_arrays_generic(
             idxs = np.argwhere(~ok)
             coords = [tuple(map(int, c)) for c in idxs]
             for coord in coords[:max_report]:
-                diffs.append(Diff(path, "value",
-                                  f"Mismatch at {coord}: A={a[coord]} vs B={b[coord]} (rtol={rtol}, atol={atol})"))
+                diffs.append(Diff(
+                    path, "value",
+                    f"Mismatch at {coord}: A={a[coord]} vs B={b[coord]} (rtol={rtol}, atol={atol})"
+                ))
             if len(coords) > max_report:
                 diffs.append(Diff(path, "value", f"... {len(coords) - max_report} more mismatches"))
         return
@@ -361,6 +397,9 @@ def compare_attrs(
 # Dataset compare
 # ---------------------------
 
+_EIGENVEC_RE = re.compile(r"/eigenvectors\d*$")
+_TDIPOLE_RE = re.compile(r"^/QMdata/transition_dipoles/ind\d+$")
+
 def compare_dataset(
     a_ds: h5py.Dataset,
     b_ds: h5py.Dataset,
@@ -387,8 +426,14 @@ def compare_dataset(
     a_arr = np.array(a)
     b_arr = np.array(b)
 
-    # Special-case: eigenvectors can differ by per-vector sign/phase
-    if path.endswith("/eigenvectors"):
+    # Special-case: eigenvector-like datasets can differ by per-vector sign/phase
+    if _EIGENVEC_RE.search(path):
+        align_and_compare_eigenvectors(a_arr, b_arr, path, diffs, rtol, atol, max_report)
+        return
+
+    # Special-case: transition dipoles ind<N> can also flip sign (phase convention)
+    if _TDIPOLE_RE.match(path):
+        # Most common layout: (3, nstates) => components axis=-2, "vector index" axis=-1
         align_and_compare_eigenvectors(a_arr, b_arr, path, diffs, rtol, atol, max_report)
         return
 
@@ -508,7 +553,7 @@ def main() -> int:
             print(f" ... {len(diffs) - args.max_diffs} more differences not shown")
         return 1
 
-    print("[compare_h5] OK: files match (within tolerances / ignore rules / eigenvector sign-phase alignment)")
+    print("[compare_h5] OK: files match (within tolerances / ignore rules / sign-phase alignment for eigenvector-like data)")
     return 0
 
 
