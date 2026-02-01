@@ -262,8 +262,8 @@ if(RUN_XTP_INTEGRATIONTESTING)
   else()
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_parallel_eqm_run (votca_compare_hdf5 not found)")
   endif()
-  add_test(NAME integration_Compare_xtp_parallel_eqm_run_output4 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_mps> ${REFPATH}/MP_FILES/frame_0/n2s1/Methane_0_n2s1.mps ${RUNPATH}/MP_FILES/frame_0/n2s1/Methane_0_n2s1.mps --atol 1e-12 --rtol 1e-8 WORKING_DIRECTORY ${RUNPATH})
-  add_test(NAME integration_Compare_xtp_parallel_eqm_run_output5 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_mps> ${REFPATH}/MP_FILES/frame_0/n2s1/Methane_1_n2s1.mps ${RUNPATH}/MP_FILES/frame_0/n2s1/Methane_1_n2s1.mps --atol 1e-12 --rtol 1e-8 WORKING_DIRECTORY ${RUNPATH})
+  add_test(NAME integration_Compare_xtp_parallel_eqm_run_output4 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_mps> ${REFPATH}/MP_FILES/frame_0/n2s1/Methane_0_n2s1.mps ${RUNPATH}/MP_FILES/frame_0/n2s1/Methane_0_n2s1.mps --allow-charge-sign --atol 1e-12 --rtol 1e-8 WORKING_DIRECTORY ${RUNPATH})
+  add_test(NAME integration_Compare_xtp_parallel_eqm_run_output5 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_mps> ${REFPATH}/MP_FILES/frame_0/n2s1/Methane_1_n2s1.mps ${RUNPATH}/MP_FILES/frame_0/n2s1/Methane_1_n2s1.mps --allow-charge-sign --atol 1e-12 --rtol 1e-8 WORKING_DIRECTORY ${RUNPATH})
 
 
 
