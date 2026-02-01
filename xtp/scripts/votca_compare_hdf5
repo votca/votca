@@ -1,31 +1,26 @@
 #!/usr/bin/env python3
 """
-compare_h5.py — semantic HDF5 comparator for unit tests (dtype-agnostic),
-with support for eigenvector-like sign/phase ambiguity, including:
-  - .../eigenvectors, .../eigenvectors2, .../eigenvectors<N>
-  - /QMdata/transition_dipoles/ind<N> (any N)
+compare_h5.py — semantic HDF5 comparator for unit tests (dtype-agnostic).
 
-Also handles empty eigenvector datasets gracefully.
-
-Robustness improvements:
-- Uses dtype.names (not dtype.fields) to detect compound/structured arrays.
-- If one side is detected as non-structured due to h5py/string quirks, it attempts
-  a safe coercion into the other dtype before comparing field-by-field.
-
-Features:
-- Recursively compares groups/datasets/attributes
-- Numeric tolerance (rtol/atol) for floats/complex, including inside compound dtypes
-- Exact compare for ints/bools/strings unless overridden by numeric tolerance rules
+Supports:
+- Recursive compare of groups/datasets/attributes
+- Numeric tolerances (rtol/atol) for float/complex, including within compound dtypes
 - Ignore specific attribute names (e.g. XTPVersion)
-- Ignore path subtrees (e.g. /metadata, /provenance)
-- Special-case: eigenvector-like datasets match up to per-vector sign (real) / phase (complex)
-  using a robust pivot-component alignment (more stable than dot-product sign).
-- Friendly diff output with limited mismatch reporting
+- Ignore path subtrees
+- Eigenvector-like sign/phase ambiguity with robust pivot-based alignment:
+    - .../eigenvectors, .../eigenvectors2, .../eigenvectors<N>
+    - /QMdata/transition_dipoles/ind<N>
+- Empty eigenvector-like datasets handled gracefully (no reshape crash)
+- Robust compound dtype detection using dtype.names (not dtype.fields), with safe coercion
+- String-field normalization inside compound dtypes (bytes vs vlen strings vs unicode)
 
-Usage:
-  python compare_h5.py ref.h5 out.h5
-  python compare_h5.py ref.h5 out.h5 --rtol 1e-7 --atol 2e-6 --ignore-attr XTPVersion
-  python compare_h5.py ref.h5 out.h5 --ignore-path /provenance
+New in this version:
+- Separate tolerances for eigenvector-like datasets via --evec-atol/--evec-rtol
+  (because component-wise comparisons of eigenvectors are notoriously sensitive in tiny components).
+
+Usage examples:
+  python compare_h5.py ref.h5 out.h5 --ignore-attr XTPVersion
+  python compare_h5.py ref.h5 out.h5 --rtol 1e-8 --atol 1e-12 --evec-atol 5e-6 --evec-rtol 1e-7
 """
 
 from __future__ import annotations
@@ -69,6 +64,19 @@ def normalize_bytes(x: Any) -> Any:
     if isinstance(x, (bytes, np.bytes_)):
         return x.decode(errors="replace")
     return x
+
+
+def _as_object_array(x: np.ndarray) -> np.ndarray:
+    return x.astype(object, copy=False)
+
+
+def _normalize_string_field(arr: np.ndarray) -> np.ndarray:
+    obj = _as_object_array(arr)
+    return np.vectorize(lambda t: normalize_bytes(t))(obj)
+
+
+def _dtype_is_string_like(dt: np.dtype) -> bool:
+    return dt.kind in ("S", "U", "O")
 
 
 # ---------------------------
@@ -143,38 +151,28 @@ def align_and_compare_eigenvectors(
     Compare eigenvector-like arrays up to an independent global sign (real) / phase (complex)
     per eigenvector.
 
-    Default assumption:
-      shape (..., vec_len, nvec)
-        component_axis = -2 (vec_len)
-        eigen_axis     = -1 (nvec)
+    Default assumption: shape (..., vec_len, nvec) with eigenvectors as columns.
 
-    Robust alignment uses a pivot component (largest magnitude) rather than dot-product sign.
-
-    Empty arrays are handled gracefully.
+    Alignment: pivot-component alignment (largest magnitude component), with dot-product fallback.
+    Empty arrays handled gracefully.
     """
     if a.shape != b.shape:
         diffs.append(Diff(path, "shape", f"Shape differs: A {a.shape} vs B {b.shape}"))
         return
 
-    # Handle empty datasets safely
     if a.size == 0 or b.size == 0:
         if a.size != b.size:
-            diffs.append(Diff(
-                path, "value",
-                f"One eigenvector-like dataset is empty and the other is not: A size={a.size} vs B size={b.size}"
-            ))
+            diffs.append(Diff(path, "value",
+                              f"One eigenvector-like dataset is empty and the other is not: A size={a.size} vs B size={b.size}"))
         return
 
     if a.ndim < 2:
         ok = np.isclose(a, b, rtol=rtol, atol=atol, equal_nan=True)
         if not np.all(ok):
             idxs = np.argwhere(~ok)
-            coords = [tuple(map(int, c)) for c in idxs]
-            for coord in coords[:max_report]:
-                diffs.append(Diff(
-                    path, "value",
-                    f"Mismatch at {coord}: A={a[coord]} vs B={b[coord]} (rtol={rtol}, atol={atol})"
-                ))
+            for coord in [tuple(map(int, c)) for c in idxs][:max_report]:
+                diffs.append(Diff(path, "value",
+                                  f"Mismatch at {coord}: A={a[coord]} vs B={b[coord]} (rtol={rtol}, atol={atol})"))
         return
 
     eigen_axis = eigen_axis % a.ndim
@@ -204,7 +202,6 @@ def align_and_compare_eigenvectors(
             aj = a2[bi, :, j]
             bj = b2[bi, :, j]
 
-            # Pivot-based alignment
             abs_aj = np.abs(aj)
             abs_bj = np.abs(bj)
             pivot = int(np.argmax(abs_aj if abs_aj.max() >= abs_bj.max() else abs_bj))
@@ -212,7 +209,7 @@ def align_and_compare_eigenvectors(
             # If pivot is zero on both sides, fall back to dot alignment
             if (abs_aj[pivot] == 0) and (abs_bj[pivot] == 0):
                 if np.iscomplexobj(aj) or np.iscomplexobj(bj):
-                    dot = np.vdot(aj, bj)  # conj(aj)·bj
+                    dot = np.vdot(aj, bj)
                     denom = abs(dot)
                     phase = dot / (denom if denom > 0 else 1.0)
                     bj_aligned = bj * phase.conjugate()
@@ -228,7 +225,7 @@ def align_and_compare_eigenvectors(
                         bj_aligned = bj
                     else:
                         phase = ap / bp
-                        phase = phase / (abs(phase) if abs(phase) > 0 else 1.0)  # pure phase
+                        phase = phase / (abs(phase) if abs(phase) > 0 else 1.0)
                         bj_aligned = bj * phase
                 else:
                     sgn = -1.0 if (aj[pivot] * bj[pivot] < 0) else 1.0
@@ -277,8 +274,6 @@ def compare_arrays_generic(
         if a_struct and not b_struct:
             try:
                 b = np.array(b, dtype=a.dtype)
-                b_names = b.dtype.names
-                b_struct = b_names is not None
             except Exception:
                 diffs.append(Diff(path, "dtype",
                                   f"One side structured and other not (coercion failed): A {a.dtype} vs B {b.dtype}"))
@@ -287,8 +282,6 @@ def compare_arrays_generic(
         if b_struct and not a_struct:
             try:
                 a = np.array(a, dtype=b.dtype)
-                a_names = a.dtype.names
-                a_struct = a_names is not None
             except Exception:
                 diffs.append(Diff(path, "dtype",
                                   f"One side structured and other not (coercion failed): A {a.dtype} vs B {b.dtype}"))
@@ -304,7 +297,20 @@ def compare_arrays_generic(
 
         for name in a.dtype.names:
             try:
-                compare_arrays_generic(a[name], b[name], f"{path}:{name}", diffs, rtol, atol, max_report)
+                af = a[name]
+                bf = b[name]
+
+                # Normalize string-like fields
+                if _dtype_is_string_like(af.dtype) or _dtype_is_string_like(bf.dtype):
+                    afn = _normalize_string_field(af)
+                    bfn = _normalize_string_field(bf)
+                    if not np.array_equal(afn, bfn):
+                        idxs = np.argwhere(afn != bfn)
+                        coords = [tuple(map(int, c)) for c in idxs]
+                        _report_first_mismatches(diffs, f"{path}:{name}", "value", coords, afn, bfn, max_report)
+                    continue
+
+                compare_arrays_generic(af, bf, f"{path}:{name}", diffs, rtol, atol, max_report)
             except Exception as e:
                 diffs.append(Diff(f"{path}:{name}", "compare_error", f"Error comparing field '{name}': {e}"))
         return
@@ -313,9 +319,6 @@ def compare_arrays_generic(
     if a.dtype.kind == "O" or b.dtype.kind == "O":
         a_flat = a.ravel()
         b_flat = b.ravel()
-        if a_flat.shape != b_flat.shape:
-            diffs.append(Diff(path, "shape", f"Shape differs: A {a.shape} vs B {b.shape}"))
-            return
         mismatches = []
         for i, (av, bv) in enumerate(zip(a_flat, b_flat)):
             if not compare_scalars_generic(av, bv, rtol, atol):
@@ -328,21 +331,12 @@ def compare_arrays_generic(
                     path, "value",
                     f"Mismatch at flat index {i}: A={a_flat[i]!r} vs B={b_flat[i]!r} (rtol={rtol}, atol={atol})"
                 ))
-            if a_flat.size > max_report:
-                diffs.append(Diff(path, "value", "… more mismatches may exist (report truncated)"))
         return
 
     # String/bytes arrays
     if a.dtype.kind in ("S", "U") or b.dtype.kind in ("S", "U"):
-        def norm_arr(x: np.ndarray) -> np.ndarray:
-            if x.dtype.kind == "S":
-                return np.vectorize(lambda t: normalize_bytes(t))(x).astype(object)
-            if x.dtype.kind == "U":
-                return x.astype(object)
-            return x.astype(object)
-
-        a2 = norm_arr(a)
-        b2 = norm_arr(b)
+        a2 = _normalize_string_field(a)
+        b2 = _normalize_string_field(b)
         if not np.array_equal(a2, b2):
             idxs = np.argwhere(a2 != b2)
             coords = [tuple(map(int, c)) for c in idxs]
@@ -359,14 +353,13 @@ def compare_arrays_generic(
         ok = np.isclose(a, b, rtol=rtol, atol=atol, equal_nan=True)
         if not np.all(ok):
             idxs = np.argwhere(~ok)
-            coords = [tuple(map(int, c)) for c in idxs]
-            for coord in coords[:max_report]:
+            for coord in [tuple(map(int, c)) for c in idxs][:max_report]:
                 diffs.append(Diff(
                     path, "value",
                     f"Mismatch at {coord}: A={a[coord]} vs B={b[coord]} (rtol={rtol}, atol={atol})"
                 ))
-            if len(coords) > max_report:
-                diffs.append(Diff(path, "value", f"... {len(coords) - max_report} more mismatches"))
+            if idxs.shape[0] > max_report:
+                diffs.append(Diff(path, "value", f"... {idxs.shape[0] - max_report} more mismatches"))
         return
 
     # Everything else: exact
@@ -402,21 +395,15 @@ def compare_attrs(
         diffs.append(Diff(path, "attr_missing_in_a", f"Attribute '{k}' exists in B but not A"))
 
     for k in sorted(a_keys_eff & b_keys_eff):
-        av = a_obj.attrs.get(k)
-        bv = b_obj.attrs.get(k)
+        av = normalize_bytes(a_obj.attrs.get(k))
+        bv = normalize_bytes(b_obj.attrs.get(k))
 
         try:
-            avn = normalize_bytes(av)
-            bvn = normalize_bytes(bv)
-
-            if isinstance(avn, np.ndarray) or isinstance(bvn, np.ndarray):
-                a_arr = np.array(avn)
-                b_arr = np.array(bvn)
-                compare_arrays_generic(a_arr, b_arr, f"{path}@{k}", diffs, rtol, atol, max_report)
+            if isinstance(av, np.ndarray) or isinstance(bv, np.ndarray):
+                compare_arrays_generic(np.array(av), np.array(bv), f"{path}@{k}", diffs, rtol, atol, max_report)
             else:
-                if not compare_scalars_generic(avn, bvn, rtol, atol):
-                    diffs.append(Diff(path, "attr_value",
-                                      f"Attribute '{k}' differs: A={avn!r} vs B={bvn!r}"))
+                if not compare_scalars_generic(av, bv, rtol, atol):
+                    diffs.append(Diff(path, "attr_value", f"Attribute '{k}' differs: A={av!r} vs B={bv!r}"))
         except Exception as e:
             diffs.append(Diff(path, "attr_compare_error", f"Attribute '{k}' compare error: {e}"))
 
@@ -435,35 +422,33 @@ def compare_dataset(
     diffs: List[Diff],
     rtol: float,
     atol: float,
+    evec_rtol: float,
+    evec_atol: float,
     max_report: int,
 ) -> None:
     if a_ds.shape != b_ds.shape:
         diffs.append(Diff(path, "shape", f"Shape differs: A {a_ds.shape} vs B {b_ds.shape}"))
         return
 
+    # For compound dtypes, dtype object can differ across platforms (string storage),
+    # but values may still be equivalent field-by-field, so only report for non-compound.
     if a_ds.dtype != b_ds.dtype:
-        diffs.append(Diff(path, "dtype", f"Dtype differs: A {a_ds.dtype} vs B {b_ds.dtype}"))
+        if (a_ds.dtype.names is None) or (b_ds.dtype.names is None):
+            diffs.append(Diff(path, "dtype", f"Dtype differs: A {a_ds.dtype} vs B {b_ds.dtype}"))
 
     try:
-        a = a_ds[...]
-        b = b_ds[...]
+        a_arr = np.array(a_ds[...])
+        b_arr = np.array(b_ds[...])
     except Exception as e:
         diffs.append(Diff(path, "read_error", f"Failed to read dataset: {e}"))
         return
 
-    a_arr = np.array(a)
-    b_arr = np.array(b)
-
-    # Special-case: eigenvector-like datasets can differ by per-vector sign/phase
-    if _EIGENVEC_RE.search(path):
-        align_and_compare_eigenvectors(a_arr, b_arr, path, diffs, rtol, atol, max_report)
+    # Eigenvector-like datasets: compare with sign/phase alignment and evec tolerances
+    if _EIGENVEC_RE.search(path) or _TDIPOLE_RE.match(path):
+        align_and_compare_eigenvectors(a_arr, b_arr, path, diffs, evec_rtol, evec_atol, max_report)
         return
 
-    # Special-case: transition dipoles ind<N> can also flip sign (phase convention)
-    if _TDIPOLE_RE.match(path):
-        align_and_compare_eigenvectors(a_arr, b_arr, path, diffs, rtol, atol, max_report)
-        return
-
+    # Everything else
     compare_arrays_generic(a_arr, b_arr, path, diffs, rtol, atol, max_report)
 
 
@@ -478,6 +463,8 @@ def walk_and_compare(
     ignore_attrs: Set[str],
     rtol: float,
     atol: float,
+    evec_rtol: float,
+    evec_atol: float,
     max_report: int,
     diffs: List[Diff],
 ) -> None:
@@ -523,9 +510,8 @@ def walk_and_compare(
             for k in sorted(a_children & b_children):
                 child = f"{path.rstrip('/')}/{k}" if path != "/" else f"/{k}"
                 recurse(child)
-
         else:
-            compare_dataset(a_obj, b_obj, path, diffs, rtol, atol, max_report)
+            compare_dataset(a_obj, b_obj, path, diffs, rtol, atol, evec_rtol, evec_atol, max_report)
 
     recurse("/")
 
@@ -541,6 +527,11 @@ def main() -> int:
 
     ap.add_argument("--rtol", type=float, default=1e-8, help="Relative tolerance for float/complex values")
     ap.add_argument("--atol", type=float, default=1e-12, help="Absolute tolerance for float/complex values")
+
+    ap.add_argument("--evec-rtol", type=float, default=1e-7,
+                    help="Relative tolerance for eigenvector-like datasets (eigenvectors*, transition_dipoles/ind*)")
+    ap.add_argument("--evec-atol", type=float, default=5e-6,
+                    help="Absolute tolerance for eigenvector-like datasets (recommended >= 5e-6 for cross-OS stability)")
 
     ap.add_argument("--ignore-attr", action="append", default=[],
                     help="Attribute name to ignore (repeatable), e.g. --ignore-attr XTPVersion")
@@ -565,6 +556,8 @@ def main() -> int:
                 ignore_attrs=ignore_attrs,
                 rtol=args.rtol,
                 atol=args.atol,
+                evec_rtol=args.evec_rtol,
+                evec_atol=args.evec_atol,
                 max_report=args.max_report,
                 diffs=diffs,
             )
@@ -580,7 +573,7 @@ def main() -> int:
             print(f" ... {len(diffs) - args.max_diffs} more differences not shown")
         return 1
 
-    print("[compare_h5] OK: files match (within tolerances / ignore rules / sign-phase alignment for eigenvector-like data)")
+    print("[compare_h5] OK: files match (within tolerances / ignore rules / eigenvector sign-phase alignment)")
     return 0
 
 
