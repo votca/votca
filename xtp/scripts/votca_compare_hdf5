@@ -7,6 +7,11 @@ with support for eigenvector-like sign/phase ambiguity, including:
 
 Also handles empty eigenvector datasets gracefully.
 
+Robustness improvements:
+- Uses dtype.names (not dtype.fields) to detect compound/structured arrays.
+- If one side is detected as non-structured due to h5py/string quirks, it attempts
+  a safe coercion into the other dtype before comparing field-by-field.
+
 Features:
 - Recursively compares groups/datasets/attributes
 - Numeric tolerance (rtol/atol) for floats/complex, including inside compound dtypes
@@ -202,10 +207,7 @@ def align_and_compare_eigenvectors(
             # Pivot-based alignment
             abs_aj = np.abs(aj)
             abs_bj = np.abs(bj)
-            if abs_aj.max() >= abs_bj.max():
-                pivot = int(np.argmax(abs_aj))
-            else:
-                pivot = int(np.argmax(abs_bj))
+            pivot = int(np.argmax(abs_aj if abs_aj.max() >= abs_bj.max() else abs_bj))
 
             # If pivot is zero on both sides, fall back to dot alignment
             if (abs_aj[pivot] == 0) and (abs_bj[pivot] == 0):
@@ -264,17 +266,43 @@ def compare_arrays_generic(
         diffs.append(Diff(path, "shape", f"Shape differs: A {a.shape} vs B {b.shape}"))
         return
 
-    # Structured dtype: compare field-by-field
-    if (a.dtype.fields is not None) or (b.dtype.fields is not None):
-        if (a.dtype.fields is None) != (b.dtype.fields is not None):
-            diffs.append(Diff(path, "dtype", f"One side structured and other not: A {a.dtype} vs B {b.dtype}"))
+    # Structured / compound dtype: compare field-by-field (robust detection via dtype.names)
+    a_names = a.dtype.names
+    b_names = b.dtype.names
+    a_struct = a_names is not None
+    b_struct = b_names is not None
+
+    if a_struct or b_struct:
+        # If one side isn't structured but the other is, try to coerce
+        if a_struct and not b_struct:
+            try:
+                b = np.array(b, dtype=a.dtype)
+                b_names = b.dtype.names
+                b_struct = b_names is not None
+            except Exception:
+                diffs.append(Diff(path, "dtype",
+                                  f"One side structured and other not (coercion failed): A {a.dtype} vs B {b.dtype}"))
+                return
+
+        if b_struct and not a_struct:
+            try:
+                a = np.array(a, dtype=b.dtype)
+                a_names = a.dtype.names
+                a_struct = a_names is not None
+            except Exception:
+                diffs.append(Diff(path, "dtype",
+                                  f"One side structured and other not (coercion failed): A {a.dtype} vs B {b.dtype}"))
+                return
+
+        if (a.dtype.names is None) or (b.dtype.names is None):
+            diffs.append(Diff(path, "dtype", f"Structured dtype detection mismatch: A {a.dtype} vs B {b.dtype}"))
             return
 
         if a.dtype.names != b.dtype.names:
             diffs.append(Diff(path, "dtype", f"Field names differ: A {a.dtype.names} vs B {b.dtype.names}"))
             return
 
-        for name in a.dtype.names or ():
+        for name in a.dtype.names:
             try:
                 compare_arrays_generic(a[name], b[name], f"{path}:{name}", diffs, rtol, atol, max_report)
             except Exception as e:
@@ -433,7 +461,6 @@ def compare_dataset(
 
     # Special-case: transition dipoles ind<N> can also flip sign (phase convention)
     if _TDIPOLE_RE.match(path):
-        # Most common layout: (3, nstates) => components axis=-2, "vector index" axis=-1
         align_and_compare_eigenvectors(a_arr, b_arr, path, diffs, rtol, atol, max_report)
         return
 
