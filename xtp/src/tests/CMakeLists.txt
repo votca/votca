@@ -265,10 +265,6 @@ if(RUN_XTP_INTEGRATIONTESTING)
   add_test(NAME integration_Compare_xtp_parallel_eqm_run_output4 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_mps> ${REFPATH}/MP_FILES/frame_0/n2s1/Methane_0_n2s1.mps ${RUNPATH}/MP_FILES/frame_0/n2s1/Methane_0_n2s1.mps --allow-charge-sign --atol 1e-7 --rtol 1e-8 WORKING_DIRECTORY ${RUNPATH})
   add_test(NAME integration_Compare_xtp_parallel_eqm_run_output5 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_mps> ${REFPATH}/MP_FILES/frame_0/n2s1/Methane_1_n2s1.mps ${RUNPATH}/MP_FILES/frame_0/n2s1/Methane_1_n2s1.mps --allow-charge-sign --atol 1e-7 --rtol 1e-8 WORKING_DIRECTORY ${RUNPATH})
 
-
-
-
-
   # xtp_parallel -e iqm -j write
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_iqm_write)
   file(MAKE_DIRECTORY ${RUNPATH})
@@ -285,6 +281,26 @@ if(RUN_XTP_INTEGRATIONTESTING)
     set_tests_properties(integration_Compare_xtp_parallel_iqm_write_output PROPERTIES DEPENDS integration_Run_xtp_parallel_iqm_write)
   else()
     message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_iqm_write (votca_compare_xml not found)")
+  endif()
+
+
+  # xtp_parallel -e iqm -j run
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_iqm_run)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_qmmm.hdf5 ${RUNPATH}/state.hdf5)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/iqm_run.in ${RUNPATH}/iqm.jobs)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/iqm.xml ${RUNPATH}/iqm.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${REFPATH}/OR_FILES ${RUNPATH}/OR_FILES)
+  add_test(NAME integration_Run_xtp_parallel_iqm_run COMMAND xtp_parallel -e iqm -o iqm.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_parallel_iqm_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  if(HAS_XML_COMPARE)
+    add_test(NAME integration_Compare_xtp_parallel_iqm_run_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/iqm_run.jobs ${RUNPATH}/iqm.jobs   --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --rtol 1e-8 --atol 1e-12 --signflip-tag Trdipole WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_parallel_iqm_run_output PROPERTIES DEPENDS integration_Run_xtp_parallel_iqm_run)
+  else()
+    message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_iqm_run (votca_compare_xml not found)")
   endif()
 
 endif()
