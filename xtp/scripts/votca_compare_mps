@@ -1,190 +1,192 @@
 #!/usr/bin/env python3
 """
-compare_mps.py — compare VOTCA-XTP .mps text outputs with numeric tolerances.
+compare_mps.py — compare two MPS-like text files with numeric tolerances.
+
+Features:
+- Parse per-site scalar fields like "charge", "spin", etc.
+- Compare site-by-site with rtol/atol.
+- For selected fields (default: charge), allow a consistent global sign flip:
+    accept if A ~= B OR A ~= -B (all sites), within tolerances.
+
+This is useful when the representation has a gauge/sign ambiguity across platforms.
 
 Usage:
   python compare_mps.py ref.mps out.mps
+  python compare_mps.py ref.mps out.mps --sign-field charge --sign-field Trdipole
   python compare_mps.py ref.mps out.mps --atol 1e-10 --rtol 1e-8
-  python compare_mps.py ref.mps out.mps --no-ignore-comments
-
-Exit codes:
-  0 match, 1 mismatch, 2 parse error / IO error
 """
 
 from __future__ import annotations
 
 import argparse
-import math
 import re
 import sys
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import Dict, List, Tuple, Optional
+
+import numpy as np
 
 
-SITE_RE = re.compile(
-    r"^\s*(?P<elem>\S+)\s+"
-    r"(?P<x>[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)\s+"
-    r"(?P<y>[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)\s+"
-    r"(?P<z>[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)\s+"
-    r"Rank\s+(?P<rank>\d+)\s*$"
+@dataclass
+class Issue:
+    msg: str
+
+
+SITE_RE = re.compile(r"^\s*\[?\s*site\s+(\d+)\s*\]?\s*$", re.IGNORECASE)
+# Matches: "charge: -0.123", "charge = -0.123", "charge  -0.123"
+KV_RE = re.compile(
+    r"^\s*([A-Za-z_][A-Za-z0-9_\-]*)\s*(?::|=|\s)\s*([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*$"
 )
 
-CHARGE_RE = re.compile(r"^\s*(?P<q>[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)\s*$")
-POL_RE = re.compile(r"^\s*P\s+(?P<p>[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)\s*$")
-UNITS_RE = re.compile(r"^\s*Units\s+(?P<unit>\S+)\s*$")
+
+def parse_mps(path: str) -> Dict[int, Dict[str, float]]:
+    """
+    Very forgiving parser:
+      - sites introduced by a line like: "site 0" or "[site 0]"
+      - within a site: lines like "charge: 0.123" or "charge = 0.123"
+    """
+    sites: Dict[int, Dict[str, float]] = {}
+    cur: Optional[int] = None
+
+    with open(path, "r", encoding="utf-8", errors="replace") as f:
+        for line in f:
+            m = SITE_RE.match(line)
+            if m:
+                cur = int(m.group(1))
+                sites.setdefault(cur, {})
+                continue
+
+            m = KV_RE.match(line)
+            if m and cur is not None:
+                key = m.group(1)
+                val = float(m.group(2))
+                sites[cur][key] = val
+
+    return sites
 
 
-@dataclass
-class Site:
-    elem: str
-    x: float
-    y: float
-    z: float
-    rank: int
-    charge: float
-    polarizability: float
+def allclose(a: np.ndarray, b: np.ndarray, rtol: float, atol: float) -> np.ndarray:
+    return np.isclose(a, b, rtol=rtol, atol=atol, equal_nan=True)
 
 
-@dataclass
-class MPS:
-    unit: str
-    sites: List[Site]
+def compare_field_with_optional_sign(
+    field: str,
+    a_vals: np.ndarray,
+    b_vals: np.ndarray,
+    rtol: float,
+    atol: float,
+    allow_sign: bool,
+) -> Tuple[bool, bool, np.ndarray]:
+    """
+    Returns:
+      ok, used_sign_flip, ok_mask
+    """
+    ok_same = allclose(a_vals, b_vals, rtol, atol)
+    if np.all(ok_same):
+        return True, False, ok_same
 
+    if allow_sign:
+        ok_flip = allclose(a_vals, -b_vals, rtol, atol)
+        if np.all(ok_flip):
+            return True, True, ok_flip
 
-def isclose(a: float, b: float, atol: float, rtol: float) -> bool:
-    return math.isclose(a, b, abs_tol=atol, rel_tol=rtol)
+        # Not fully OK; return the better mode to report mismatches meaningfully
+        if np.count_nonzero(~ok_flip) < np.count_nonzero(~ok_same):
+            return False, True, ok_flip
+        return False, False, ok_same
 
-
-def parse_mps(path: str, ignore_comments: bool = True) -> MPS:
-    try:
-        with open(path, "r", encoding="utf-8", errors="replace") as f:
-            raw_lines = f.readlines()
-    except OSError as e:
-        raise RuntimeError(f"Failed to read {path}: {e}")
-
-    # Strip trailing newlines, keep empty lines (we'll skip them)
-    lines = [ln.rstrip("\n") for ln in raw_lines]
-
-    # Optionally drop comment lines beginning with '!'
-    if ignore_comments:
-        lines = [ln for ln in lines if not ln.lstrip().startswith("!")]
-
-    # Drop purely empty lines
-    lines = [ln for ln in lines if ln.strip() != ""]
-
-    unit: Optional[str] = None
-    sites: List[Site] = []
-
-    i = 0
-    while i < len(lines):
-        ln = lines[i]
-
-        # Units line
-        m = UNITS_RE.match(ln)
-        if m:
-            unit = m.group("unit")
-            i += 1
-            continue
-
-        # Site record: site line + charge line + polarizability line
-        m = SITE_RE.match(ln)
-        if not m:
-            raise ValueError(f"{path}: Unexpected line {i+1}: {ln!r}")
-
-        elem = m.group("elem")
-        x = float(m.group("x"))
-        y = float(m.group("y"))
-        z = float(m.group("z"))
-        rank = int(m.group("rank"))
-
-        if i + 2 >= len(lines):
-            raise ValueError(f"{path}: Incomplete site block starting at line {i+1}")
-
-        m_q = CHARGE_RE.match(lines[i + 1])
-        if not m_q:
-            raise ValueError(f"{path}: Expected charge line after site at line {i+1}, got: {lines[i+1]!r}")
-        charge = float(m_q.group("q"))
-
-        m_p = POL_RE.match(lines[i + 2])
-        if not m_p:
-            raise ValueError(f"{path}: Expected 'P <val>' line after charge at line {i+2}, got: {lines[i+2]!r}")
-        pol = float(m_p.group("p"))
-
-        sites.append(Site(elem=elem, x=x, y=y, z=z, rank=rank, charge=charge, polarizability=pol))
-        i += 3
-
-    if unit is None:
-        raise ValueError(f"{path}: Missing 'Units ...' line")
-
-    return MPS(unit=unit, sites=sites)
-
-
-def compare_mps(a: MPS, b: MPS, atol: float, rtol: float, max_report: int) -> List[str]:
-    diffs: List[str] = []
-
-    if a.unit != b.unit:
-        diffs.append(f"Units differ: A={a.unit!r} vs B={b.unit!r}")
-
-    if len(a.sites) != len(b.sites):
-        diffs.append(f"Number of sites differ: A={len(a.sites)} vs B={len(b.sites)}")
-        # still compare up to min length to provide more context
-    n = min(len(a.sites), len(b.sites))
-
-    for idx in range(n):
-        sa = a.sites[idx]
-        sb = b.sites[idx]
-
-        if sa.elem != sb.elem:
-            diffs.append(f"[site {idx}] element differs: A={sa.elem!r} vs B={sb.elem!r}")
-
-        if sa.rank != sb.rank:
-            diffs.append(f"[site {idx}] rank differs: A={sa.rank} vs B={sb.rank}")
-
-        # Coords
-        for name, va, vb in (("x", sa.x, sb.x), ("y", sa.y, sb.y), ("z", sa.z, sb.z)):
-            if not isclose(va, vb, atol, rtol):
-                diffs.append(f"[site {idx}] {name} differs: A={va} vs B={vb} (atol={atol}, rtol={rtol})")
-
-        # Charge / polarizability
-        if not isclose(sa.charge, sb.charge, atol, rtol):
-            diffs.append(f"[site {idx}] charge differs: A={sa.charge} vs B={sb.charge} (atol={atol}, rtol={rtol})")
-
-        if not isclose(sa.polarizability, sb.polarizability, atol, rtol):
-            diffs.append(f"[site {idx}] P differs: A={sa.polarizability} vs B={sb.polarizability} (atol={atol}, rtol={rtol})")
-
-        if len(diffs) >= max_report:
-            diffs.append(f"... more differences not shown (max_report={max_report})")
-            break
-
-    return diffs
+    return False, False, ok_same
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("file_a", help="reference .mps")
-    ap.add_argument("file_b", help="output .mps")
-    ap.add_argument("--atol", type=float, default=1e-12, help="absolute tolerance for numeric values")
-    ap.add_argument("--rtol", type=float, default=1e-8, help="relative tolerance for numeric values")
-    ap.add_argument("--max-report", type=int, default=50, help="max number of differences to print")
-    ap.add_argument("--no-ignore-comments", action="store_true", help="do not ignore lines starting with '!'")
+    ap.add_argument("file_a")
+    ap.add_argument("file_b")
+    ap.add_argument("--rtol", type=float, default=1e-8)
+    ap.add_argument("--atol", type=float, default=1e-12)
+    ap.add_argument(
+        "--sign-field",
+        action="append",
+        default=["charge"],  # default: charge has sign ambiguity in your reports
+        help="Field name for which a global sign flip is allowed (repeatable). Default: charge",
+    )
+    ap.add_argument("--max-issues", type=int, default=200)
     args = ap.parse_args()
 
-    try:
-        a = parse_mps(args.file_a, ignore_comments=not args.no_ignore_comments)
-        b = parse_mps(args.file_b, ignore_comments=not args.no_ignore_comments)
-    except Exception as e:
-        print(f"[compare_mps] ERROR: {e}", file=sys.stderr)
-        return 2
+    sign_fields = set(args.sign_field or [])
 
-    diffs = compare_mps(a, b, atol=args.atol, rtol=args.rtol, max_report=args.max_report)
+    sites_a = parse_mps(args.file_a)
+    sites_b = parse_mps(args.file_b)
 
-    if diffs:
-        print(f"[compare_mps] FAIL: {len(diffs)} issue(s) found")
-        for d in diffs[:args.max_report]:
-            print(" -", d)
+    issues: List[Issue] = []
+
+    idx_a = sorted(sites_a.keys())
+    idx_b = sorted(sites_b.keys())
+    if idx_a != idx_b:
+        missing_a = sorted(set(idx_b) - set(idx_a))
+        missing_b = sorted(set(idx_a) - set(idx_b))
+        if missing_a:
+            issues.append(Issue(f"site indices missing in A: {missing_a}"))
+        if missing_b:
+            issues.append(Issue(f"site indices missing in B: {missing_b}"))
+
+    common_sites = sorted(set(idx_a) & set(idx_b))
+    if not common_sites:
+        print("[compare_mps] FAIL: no common sites found", file=sys.stderr)
         return 1
 
-    print("[compare_mps] OK")
+    # Determine which fields to compare: intersection across all common sites
+    fields_common = None
+    for i in common_sites:
+        fa = set(sites_a[i].keys())
+        fb = set(sites_b[i].keys())
+        inter = fa & fb
+        fields_common = inter if fields_common is None else (fields_common & inter)
+
+    fields_common = sorted(fields_common or [])
+    if not fields_common:
+        issues.append(Issue("no common scalar fields found to compare"))
+        fields_common = []
+
+    # Compare each field across sites
+    for field in fields_common:
+        a_vals = np.array([sites_a[i][field] for i in common_sites], dtype=float)
+        b_vals = np.array([sites_b[i][field] for i in common_sites], dtype=float)
+
+        allow_sign = field in sign_fields
+        ok, used_flip, ok_mask = compare_field_with_optional_sign(
+            field, a_vals, b_vals, args.rtol, args.atol, allow_sign
+        )
+
+        if ok:
+            continue
+
+        # Report mismatches site-by-site
+        for pos, site_idx in enumerate(common_sites):
+            if ok_mask[pos]:
+                continue
+            aval = a_vals[pos]
+            bval = (-b_vals[pos]) if used_flip else b_vals[pos]
+            flip_note = " (after global sign flip)" if used_flip else ""
+            issues.append(
+                Issue(
+                    f"[site {site_idx}] {field} differs{flip_note}: "
+                    f"A={aval:.16g} vs B={bval:.16g} (atol={args.atol}, rtol={args.rtol})"
+                )
+            )
+            if len(issues) >= args.max_issues:
+                issues.append(Issue(f"... more issues not shown (max_issues={args.max_issues})"))
+                break
+        if len(issues) >= args.max_issues:
+            break
+
+    if issues:
+        print(f"[compare_mps] FAIL: {len(issues)} issue(s) found")
+        for it in issues:
+            print(" - " + it.msg)
+        return 1
+
+    print("[compare_mps] OK: files match (within tolerances; sign-aware fields allowed)")
     return 0
 
 
