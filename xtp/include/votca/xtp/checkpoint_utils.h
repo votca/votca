@@ -124,6 +124,11 @@ struct InferDataType<long int> {
 };
 
 template <>
+struct InferDataType<std::uint8_t> {
+  static const H5::DataType* get() { return &H5::PredType::NATIVE_UINT8; }
+};
+
+template <>
 struct InferDataType<unsigned> {
   static const H5::DataType* get(void) { return &H5::PredType::NATIVE_UINT; }
 };
