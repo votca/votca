@@ -446,7 +446,7 @@ class Orbitals {
   Index occupied_levels_;
   Index occupied_levels_beta_ = 0;
   Index number_alpha_electrons_;
-  Index number_beta_electrons_;
+  Index number_beta_electrons_ = 0;
   std::string ECP_ = "";
   bool useTDA_;
 
@@ -509,7 +509,7 @@ class Orbitals {
   Eigen::VectorXd BSE_singlet_energies_dynamic_;
   Eigen::VectorXd BSE_triplet_energies_dynamic_;
 
-  bool use_Hqp_offdiag_ = true;
+  bool use_Hqp_offdiag_ = false;
 
   // Version 2: adds BSE energies after perturbative dynamical screening
   // Version 3: changed shell ordering
