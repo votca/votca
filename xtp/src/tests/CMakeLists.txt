@@ -104,10 +104,8 @@ foreach(PROG ${test_cases} )
   add_test(NAME unit_${PROG} COMMAND $<TARGET_FILE:unit_${PROG}> WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
 endforeach(PROG)
 
-# run integration tests
-
-set(RUN_XTP_INTEGRATIONTESTING ON CACHE BOOL "Enable running of XTP integration tests")
-if(RUN_XTP_INTEGRATIONTESTING)
+# build and run xtp integration tests
+if(RUN_XTP_INTEGRATIONTESTS)
   # xtp_map test
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_map)
   set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/DataFiles/xtp_integration_tests)
@@ -303,4 +301,20 @@ if(RUN_XTP_INTEGRATIONTESTING)
     message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_iqm_run (votca_compare_xml not found)")
   endif()
 
+  # xtp_parallel -e iqm -j read
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_iqm_read)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_qmmm.hdf5 ${RUNPATH}/state.hdf5)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/iqm_run.jobs ${RUNPATH}/iqm.jobs)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/iqm.xml ${RUNPATH}/iqm.xml)
+  add_test(NAME integration_Run_xtp_parallel_iqm_read COMMAND xtp_parallel -e iqm -o iqm.xml -f state.hdf5 -x 1 -t 1 -j read WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_parallel_iqm_read PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  if(HAS_HDF5_COMPARE)
+    add_test(NAME integration_Compare_xtp_parallel_iqm_read_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --atol 1e-6 --rtol 1e-7  --td-atol 3e-6 ${REFPATH}/state_iqm.hdf5 ${RUNPATH}/state.hdf5 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_parallel_iqm_read_output PROPERTIES DEPENDS integration_Run_xtp_parallel_iqm_read)
+  else()
+    message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_parallel_iqm_read (votca_compare_hdf5 not found)")
+  endif()
+ 
 endif()
