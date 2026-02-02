@@ -14,7 +14,7 @@ target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost
 
 # silencing all warnings from external Libint library
 get_target_property(_libint_inc Libint2::int2 INTERFACE_INCLUDE_DIRECTORIES)
-target_include_directories(my_target SYSTEM PRIVATE ${_libint_inc})
+target_include_directories(votca_xtp SYSTEM PRIVATE ${_libint_inc})
 
 
 if(USE_CUDA)
