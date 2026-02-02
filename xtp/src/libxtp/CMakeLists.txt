@@ -22,7 +22,7 @@ if(TARGET Libint2::int2)
   get_target_property(_libint_inc Libint2::int2 INTERFACE_INCLUDE_DIRECTORIES)
   if(_libint_inc)
     # Make the intended libint include dir win header resolution
-    target_include_directories(votca_xtp BEFORE SYSTEM PRIVATE ${_libint_inc})
+    target_include_directories(votca_xtp SYSTEM BEFORE PRIVATE ${_libint_inc})
   endif()
 endif()
 
