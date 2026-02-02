@@ -76,6 +76,9 @@ if(ENABLE_WARNING_FLAGS)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel") #only icpc, not icpx
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcheck -Wno-sign-conversion")
   endif()
+  if(APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|i386)$" AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=shorten-64-to-32")
+  endif()
   # allow adding extra warning flags at the very end
   if(VOTCA_EXTRA_WARNING_FLAGS)
     message(STATUS "Adding extra flags: ${VOTCA_EXTRA_WARNING_FLAGS}")
