@@ -10,12 +10,18 @@ target_compile_features(votca_xtp PUBLIC cxx_std_17)
 set_target_properties(votca_xtp PROPERTIES SOVERSION ${SOVERSION})
 set_target_properties(votca_xtp PROPERTIES VOTCA_SHARE ${PROJECT_SOURCE_DIR}/xtp/share)
 set_target_properties(votca_xtp PROPERTIES XTP_PATH ${_PARENT_PATH}/tools)
-target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE Libxc::xc Libint2::int2 ECPINT::ecpint Boost::program_options Boost::timer)
 
-# silencing all warnings from external Libint library
-get_target_property(_libint_inc Libint2::int2 INTERFACE_INCLUDE_DIRECTORIES)
-target_include_directories(votca_xtp SYSTEM PRIVATE ${_libint_inc})
+# Wrap Libint2 so its headers are treated as SYSTEM for consumers
+add_library(Libint2_system INTERFACE)
+target_link_libraries(Libint2_system INTERFACE Libint2::int2)
 
+# Re-export Libint2 include dirs as SYSTEM
+get_target_property(_libint2_incs Libint2::int2 INTERFACE_INCLUDE_DIRECTORIES)
+if(_libint2_incs)
+  target_include_directories(Libint2_system SYSTEM INTERFACE ${_libint2_incs})
+endif()
+
+target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE Libxc::xc Libint2_system ECPINT::ecpint Boost::program_options Boost::timer)
 
 if(USE_CUDA)
   target_link_libraries(votca_xtp PUBLIC ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
