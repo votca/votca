@@ -176,7 +176,6 @@ void GWBSE::Initialize(tools::Property& options) {
   orbitals_.setRPAindices(rpamin, rpamax);
   orbitals_.setGWindices(qpmin, qpmax);
   orbitals_.setBSEindices(bse_vmin, bse_cmax);
-  orbitals_.SetFlagUseHqpOffdiag(bseopt_.use_Hqp_offdiag);
 
   Index bse_vmax = homo;
   Index bse_cmin = homo + 1;
@@ -223,6 +222,7 @@ void GWBSE::Initialize(tools::Property& options) {
                               << full_bse_size << "x" << full_bse_size << flush;
 
   bseopt_.use_Hqp_offdiag = options.get("bse.use_Hqp_offdiag").as<bool>();
+  orbitals_.SetFlagUseHqpOffdiag(bseopt_.use_Hqp_offdiag);
 
   if (!bseopt_.use_Hqp_offdiag) {
     XTP_LOG(Log::error, *pLog_)

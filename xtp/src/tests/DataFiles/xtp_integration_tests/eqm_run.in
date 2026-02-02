@@ -1,0 +1,18 @@
+<jobs>
+	<job>
+		<id>0</id>
+		<tag></tag>
+		<input>
+			<segment id="0" type="Methane">0</segment>
+		</input>
+		<status>AVAILABLE</status>
+	</job>
+	<job>
+		<id>1</id>
+		<tag></tag>
+		<input>
+			<segment id="1" type="Methane">1</segment>
+		</input>
+		<status>AVAILABLE</status>
+	</job>
+</jobs>

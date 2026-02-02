@@ -1,0 +1,30 @@
+<options>
+<qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
+	<print_regions_pdb choices="bool" default="true" help="print the geometry of the regions to a pdb file">false</print_regions_pdb>
+	<max_iterations choices="int+" default="100" help="max iterations for qmmm scf loop">100</max_iterations>
+	<map_file default="votca_map.xml" help="xml file with segment definition">system.xml</map_file>
+	<job_file default="qmmm_jobs.xml" help="name of jobfile to which jobs are written">qmmm_mm.jobs</job_file>
+	<io_jobfile help="options to write a jobfile">
+		<states default="n e h" help="states to write jobs for and which to parse from jobfile">n h</states>
+		<segments default="all" help="segments to write jobs for and which to parse from jobfile">all</segments>
+	</io_jobfile>
+	<regions default="REQUIRED" help="Definitions of all regions inside qmmmm" list="">
+		<polarregion default="OPTIONAL" help="polar region with polarisation dipoles and thole damping">
+			<id choices="int" default="REQUIRED" help="id of the region, first region has to have id 0, ids must be consecutive">0</id>
+			<segments default="OPTIONAL" help="List of segments to include in the region separated by a whitespace. Each segment is defined by an index and a qmstate or a filename for the coordinates. e.g 1:s3 or 0:ORFILES/methane.xyz">jobfile</segments>
+			<cutoff default="OPTIONAL" help="specifies the cutoff around either an another region or explicit segments in this region">
+				<radius choices="float+" default="REQUIRED" help="radius" unit="nm">0.5</radius>
+				<region choices="int+" default="REQUIRED" help="Id of the region the cutoff should refer to, can be the same as this region's id, if segments are specified">0</region>
+			</cutoff>
+		</polarregion>
+		<staticregion default="OPTIONAL">
+			<id choices="int" default="REQUIRED" help="id of the region, first region has to have id 0, ids must be consecutive">1</id>
+			<cutoff default="OPTIONAL" help="specifies the cutoff around either an another region or explicit segments in this region">
+				<radius choices="float+" default="REQUIRED" help="radius" unit="nm">1.0</radius>
+				<region choices="int+" default="REQUIRED" help="Id of the region the cutoff should refer to, can be the same as this region's id, if segments are specified">0</region>
+			</cutoff>
+		</staticregion>
+</regions>
+</qmmm>
+</options>
+

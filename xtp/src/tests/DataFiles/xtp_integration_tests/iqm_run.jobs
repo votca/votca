@@ -1,0 +1,52 @@
+<jobs>
+	<job>
+		<id>0</id>
+		<tag></tag>
+		<input>
+			<segment id="0" type="Methane">0</segment>
+			<segment id="1" type="Methane">1</segment>
+		</input>
+		<status>COMPLETE</status>
+		<host>wlan-241186.nbw.tue.nl:42680</host>
+		<time>20:24:29</time>
+		<output>
+			<dftcoupling homoA="4" homoB="4">
+				<hole>
+					<coupling j="2.428142e-02" levelA="4" levelB="4"/>
+				</hole>
+				<electron>
+					<coupling j="5.828776e-01" levelA="5" levelB="5"/>
+				</electron>
+			</dftcoupling>
+			<bsecoupling>
+				<singlet algorithm="j_pert">
+					<coupling j_diag="-2.674497e-01" j_pert="3.099902e-02" stateA="s1" stateB="s1"/>
+					<coupling j_diag="-2.131795e+00" j_pert="-5.172986e-02" stateA="s1" stateB="s2"/>
+					<coupling j_diag="-1.159770e+00" j_pert="-5.431735e-02" stateA="s1" stateB="s3"/>
+					<coupling j_diag="-7.669764e-01" j_pert="-6.535603e-03" stateA="s1" stateB="s4"/>
+					<coupling j_diag="6.441082e-01" j_pert="1.023270e-02" stateA="s1" stateB="s5"/>
+					<coupling j_diag="9.143835e+00" j_pert="-1.184069e-01" stateA="s2" stateB="s1"/>
+					<coupling j_diag="-2.500183e+00" j_pert="1.179707e-01" stateA="s2" stateB="s2"/>
+					<coupling j_diag="8.850350e+00" j_pert="6.612118e-02" stateA="s2" stateB="s3"/>
+					<coupling j_diag="-3.330056e-01" j_pert="7.476227e-03" stateA="s2" stateB="s4"/>
+					<coupling j_diag="3.865206e-02" j_pert="-7.116281e-03" stateA="s2" stateB="s5"/>
+					<coupling j_diag="-7.771405e+00" j_pert="-3.057293e-03" stateA="s3" stateB="s1"/>
+					<coupling j_diag="-8.585975e+00" j_pert="2.751501e-02" stateA="s3" stateB="s2"/>
+					<coupling j_diag="-2.914988e-02" j_pert="-3.354399e-03" stateA="s3" stateB="s3"/>
+					<coupling j_diag="-1.351541e+00" j_pert="4.812606e-03" stateA="s3" stateB="s4"/>
+					<coupling j_diag="1.015137e+00" j_pert="3.883803e-04" stateA="s3" stateB="s5"/>
+					<coupling j_diag="5.696137e-01" j_pert="-2.017125e-02" stateA="s4" stateB="s1"/>
+					<coupling j_diag="-6.998562e-01" j_pert="1.653178e-02" stateA="s4" stateB="s2"/>
+					<coupling j_diag="2.093647e-01" j_pert="1.007271e-02" stateA="s4" stateB="s3"/>
+					<coupling j_diag="-1.501807e-01" j_pert="-2.709923e-05" stateA="s4" stateB="s4"/>
+					<coupling j_diag="-1.176351e-01" j_pert="-4.818944e-04" stateA="s4" stateB="s5"/>
+					<coupling j_diag="1.992884e+00" j_pert="-8.435230e-03" stateA="s5" stateB="s1"/>
+					<coupling j_diag="-1.086485e+00" j_pert="7.522087e-03" stateA="s5" stateB="s2"/>
+					<coupling j_diag="7.620712e-01" j_pert="3.560930e-03" stateA="s5" stateB="s3"/>
+					<coupling j_diag="-5.668551e-02" j_pert="4.240581e-04" stateA="s5" stateB="s4"/>
+					<coupling j_diag="1.868987e-01" j_pert="5.927019e-04" stateA="s5" stateB="s5"/>
+				</singlet>
+			</bsecoupling>
+		</output>
+	</job>
+</jobs>

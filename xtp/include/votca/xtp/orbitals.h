@@ -444,9 +444,9 @@ class Orbitals {
   Eigen::MatrixXd CalcAuxMat_vv(const Eigen::VectorXd &coeffs) const;
 
   Index occupied_levels_;
-  Index occupied_levels_beta_;
+  Index occupied_levels_beta_ = 0;
   Index number_alpha_electrons_;
-  Index number_beta_electrons_;
+  Index number_beta_electrons_ = 0;
   std::string ECP_ = "";
   bool useTDA_;
 
@@ -460,7 +460,7 @@ class Orbitals {
 
   Eigen::MatrixXd lmos_;
   Eigen::VectorXd lmos_energies_;
-  Index active_electrons_;
+  Index active_electrons_ = 0;
   Eigen::MatrixXd inactivedensity_;
   Eigen::MatrixXd expandedMOs_;
 
@@ -509,7 +509,7 @@ class Orbitals {
   Eigen::VectorXd BSE_singlet_energies_dynamic_;
   Eigen::VectorXd BSE_triplet_energies_dynamic_;
 
-  bool use_Hqp_offdiag_ = true;
+  bool use_Hqp_offdiag_ = false;
 
   // Version 2: adds BSE energies after perturbative dynamical screening
   // Version 3: changed shell ordering
