@@ -12,6 +12,11 @@ set_target_properties(votca_xtp PROPERTIES VOTCA_SHARE ${PROJECT_SOURCE_DIR}/xtp
 set_target_properties(votca_xtp PROPERTIES XTP_PATH ${_PARENT_PATH}/tools)
 target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE Libxc::xc Libint2::int2 ECPINT::ecpint Boost::program_options Boost::timer)
 
+# silencing all warnings from external Libint library
+get_target_property(_libint_inc Libint2::int2 INTERFACE_INCLUDE_DIRECTORIES)
+target_include_directories(my_target SYSTEM PRIVATE ${_libint_inc})
+
+
 if(USE_CUDA)
   target_link_libraries(votca_xtp PUBLIC ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
   target_include_directories(votca_xtp PUBLIC ${CUDA_INCLUDE_DIRS})
