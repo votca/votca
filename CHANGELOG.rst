@@ -26,6 +26,7 @@ Version 2025.1-dev
 -  Use Apple Accelerate Framework in Eigen (#1205)
 -  fixing boost and other warnings on rawhide (#1206)
 -  CI: drop gmx-2025 builds (#1208)
+-  add OSX builds in CI (#1207)
 -  fix xtp_autogen_mapping on OSX #1210  (#1211)
 -  fix reading of polarizability tensor from newer ORCA versions (#1213)
 -  fix thread locking in orca calls (#1215)
