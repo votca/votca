@@ -682,7 +682,8 @@ void Orbitals::WriteToCpt(CheckpointWriter& w) const {
 
   w(BSE_triplet_, "BSE_triplet");
 
-  w(use_Hqp_offdiag_, "use_Hqp_offdiag");
+  std::uint8_t tmp = use_Hqp_offdiag_ ? 1u : 0u;
+  w(tmp, "use_Hqp_offdiag");
 
   w(BSE_singlet_energies_dynamic_, "BSE_singlet_dynamic");
 
@@ -805,7 +806,9 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
 
   r(BSE_triplet_, "BSE_triplet");
 
-  r(use_Hqp_offdiag_, "use_Hqp_offdiag");
+  std::uint8_t tmp = 0;
+  r(tmp, "use_Hqp_offdiag");
+  use_Hqp_offdiag_ = (tmp != 0);
 
   if (version > 1) {
     r(BSE_singlet_energies_dynamic_, "BSE_singlet_dynamic");

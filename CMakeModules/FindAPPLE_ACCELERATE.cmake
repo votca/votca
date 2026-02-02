@@ -293,3 +293,66 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(APPLE_ACCELERATE DEFAULT_MSG
   LAPACKE_LIBRARIES
   LAPACKE_WORKS)
+
+
+  # ---------------------------------------------------------------------------
+# Imported targets
+# ---------------------------------------------------------------------------
+if(APPLE_ACCELERATE_FOUND)
+
+  # 1) Accelerate framework target
+  if(ACCELERATE AND NOT TARGET APPLE_ACCELERATE::Accelerate)
+    add_library(APPLE_ACCELERATE::Accelerate INTERFACE IMPORTED)
+    set_target_properties(APPLE_ACCELERATE::Accelerate PROPERTIES
+      INTERFACE_LINK_LIBRARIES "${ACCELERATE}"
+    )
+  endif()
+
+  # 2) LAPACKE (+deps) target, for Eigen overload usage
+  #
+  # Prefer the "validated" *_DEP variables when available (they include deps).
+  if(LAPACKE_WORKS AND LAPACKE_LIBRARIES AND NOT TARGET APPLE_ACCELERATE::LAPACKE)
+
+    add_library(APPLE_ACCELERATE::LAPACKE INTERFACE IMPORTED)
+
+    # Includes
+    if(DEFINED LAPACKE_INCLUDE_DIRS_DEP AND LAPACKE_INCLUDE_DIRS_DEP)
+      set_property(TARGET APPLE_ACCELERATE::LAPACKE PROPERTY
+        INTERFACE_INCLUDE_DIRECTORIES "${LAPACKE_INCLUDE_DIRS_DEP}"
+      )
+    elseif(DEFINED LAPACKE_INCLUDE_DIRS AND LAPACKE_INCLUDE_DIRS)
+      set_property(TARGET APPLE_ACCELERATE::LAPACKE PROPERTY
+        INTERFACE_INCLUDE_DIRECTORIES "${LAPACKE_INCLUDE_DIRS}"
+      )
+    endif()
+
+    # Link libs (use the “DEP” set if present, otherwise fall back)
+    if(DEFINED LAPACKE_LIBRARIES_DEP AND LAPACKE_LIBRARIES_DEP)
+      set_property(TARGET APPLE_ACCELERATE::LAPACKE PROPERTY
+        INTERFACE_LINK_LIBRARIES "${LAPACKE_LIBRARIES_DEP}"
+      )
+    else()
+      set_property(TARGET APPLE_ACCELERATE::LAPACKE PROPERTY
+        INTERFACE_LINK_LIBRARIES "${LAPACKE_LIBRARIES}"
+      )
+    endif()
+
+    # Link options / flags, if any
+    if(DEFINED LAPACKE_LINKER_FLAGS AND LAPACKE_LINKER_FLAGS)
+      # CMake >= 3.13 supports INTERFACE_LINK_OPTIONS
+      set_property(TARGET APPLE_ACCELERATE::LAPACKE APPEND PROPERTY
+        INTERFACE_LINK_OPTIONS "${LAPACKE_LINKER_FLAGS}"
+      )
+    endif()
+
+    # Ensure Accelerate is in the chain (your module prepends it to LAPACKE_LIBRARIES,
+    # but in case you end up using *_DEP which might not include it)
+    if(TARGET APPLE_ACCELERATE::Accelerate)
+      set_property(TARGET APPLE_ACCELERATE::LAPACKE APPEND PROPERTY
+        INTERFACE_LINK_LIBRARIES APPLE_ACCELERATE::Accelerate
+      )
+    endif()
+
+  endif()
+
+endif()

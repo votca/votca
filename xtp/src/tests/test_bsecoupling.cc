@@ -83,6 +83,8 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
   AB.setNumberOfAlphaElectrons(10);
   AB.setNumberOfOccupiedLevels(10);
 
+  AB.SetFlagUseHqpOffdiag(true);
+
   std::ofstream opt("bsecoupling.xml");
   opt << "<bsecoupling>" << std::endl;
   opt << "        <use_perturbation>true</use_perturbation>" << std::endl;
