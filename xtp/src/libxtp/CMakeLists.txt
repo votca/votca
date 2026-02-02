@@ -11,14 +11,19 @@ set_target_properties(votca_xtp PROPERTIES SOVERSION ${SOVERSION})
 set_target_properties(votca_xtp PROPERTIES VOTCA_SHARE ${PROJECT_SOURCE_DIR}/xtp/share)
 set_target_properties(votca_xtp PROPERTIES XTP_PATH ${_PARENT_PATH}/tools)
 
+
+
+
 # Wrap Libint2 so its headers are treated as SYSTEM for consumers
 add_library(Libint2_system INTERFACE)
 target_link_libraries(Libint2_system INTERFACE Libint2::int2)
 
-# Re-export Libint2 include dirs as SYSTEM
-get_target_property(_libint2_incs Libint2::int2 INTERFACE_INCLUDE_DIRECTORIES)
-if(_libint2_incs)
-  target_include_directories(Libint2_system SYSTEM INTERFACE ${_libint2_incs})
+if(TARGET Libint2::int2)
+  get_target_property(_libint_inc Libint2::int2 INTERFACE_INCLUDE_DIRECTORIES)
+  if(_libint_inc)
+    # Make the intended libint include dir win header resolution
+    target_include_directories(votca_xtp BEFORE SYSTEM PRIVATE ${_libint_inc})
+  endif()
 endif()
 
 target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE Libxc::xc Libint2_system ECPINT::ecpint Boost::program_options Boost::timer)
