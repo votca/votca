@@ -47,9 +47,9 @@ jobs:
       run: |
         export OpenMP_ROOT=$(brew --prefix)/opt/libomp
         source $HOME/gromacs/bin/GMXRC
-        export CPLUS_INCLUDE_PATH=/opt/homebrew/opt/lapack/include:$CPLUS_INCLUDE_PATH
-        export CMAKE_PREFIX_PATH="/opt/homebrew/opt/lapack":$CMAKE_PREFIX_PATH
-        export LIBRARY_PATH=/opt/homebrew/opt/lapack/lib:$LIBRARY_PATH
+        export CPLUS_INCLUDE_PATH=$(brew --prefix)/opt/lapack/include:$CPLUS_INCLUDE_PATH
+        export CMAKE_PREFIX_PATH="$(brew --prefix)/opt/lapack":$CMAKE_PREFIX_PATH
+        export LIBRARY_PATH=$(brew --prefix)/opt/lapack/lib:$LIBRARY_PATH
         source $HOME/venv/bin/activate
         cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -B builddir
         cmake --build builddir --parallel $(sysctl -n hw.ncpu)
