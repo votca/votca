@@ -18,7 +18,7 @@ jobs:
     name: Test VOTCA on OSX
     strategy:
       matrix:
-        runner: ['macos-14', 'macos-15']#, 'macos-15-intel']
+        runner: ['macos-14', 'macos-15', 'macos-15-intel']
     runs-on: ${{ matrix.runner }}
     steps:
     - name: Checkout code
