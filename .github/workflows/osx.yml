@@ -18,8 +18,7 @@ jobs:
     name: Test VOTCA on OSX
     strategy:
       matrix:
-        include:
-          - runner: "macos-15"
+        runner: ['macos-14', 'macos-15']#, 'macos-15-intel']
     runs-on: ${{ matrix.runner }}
     steps:
     - name: Checkout code
@@ -27,30 +26,32 @@ jobs:
     - name: Install deps
       run: |
         brew update
-        brew install wget ccache libint libecpint boost libxc hdf5 libomp fftw pybind11 clang-format lapack
+        brew install wget ccache libint libecpint boost libxc hdf5 libomp fftw pybind11 clang-format lapack gromacs
+        # this hack is needed for homebrew on macos-intel 
+        brew unlink libint
         $(brew --prefix)/bin/python3 -m venv $HOME/venv
         source $HOME/venv/bin/activate
         python3 -m pip install --upgrade pip
         python3 -m pip install lxml h5py rdkit
-    - name: Install Gromacs
-      run: |
-        wget https://ftp.gromacs.org/gromacs/gromacs-2026.0.tar.gz
-        tar xfz gromacs-2026.0.tar.gz
-        cd gromacs-2026.0
-        mkdir build
-        cd build
-        export OpenMP_ROOT=$(brew --prefix)/opt/libomp
-        cmake .. -DGMX_INSTALL_LEGACY_API=ON -DCMAKE_INSTALL_PREFIX=$HOME/gromacs
-        make -j 2
-        make install
+#    - name: Install Gromacs
+#      run: |
+#        wget https://ftp.gromacs.org/gromacs/gromacs-2026.0.tar.gz
+#        tar xfz gromacs-2026.0.tar.gz
+#        cd gromacs-2026.0
+#        mkdir build
+#        cd build
+#        export OpenMP_ROOT=$(brew --prefix)/opt/libomp
+#        cmake .. -DGMX_INSTALL_LEGACY_API=ON -DGMX_USE_RDTSCP=OFF -DCMAKE_INSTALL_PREFIX=$HOME/gromacs
+#        make -j $(sysctl -n hw.ncpu)
+#        make install
     - name: Build VOTCA
       run: |
         export OpenMP_ROOT=$(brew --prefix)/opt/libomp
-        source $HOME/gromacs/bin/GMXRC
-        export CPLUS_INCLUDE_PATH=/opt/homebrew/opt/lapack/include:$CPLUS_INCLUDE_PATH
-        export CMAKE_PREFIX_PATH="/opt/homebrew/opt/lapack":$CMAKE_PREFIX_PATH
-        export LIBRARY_PATH=/opt/homebrew/opt/lapack/lib:$LIBRARY_PATH
+        #source $HOME/gromacs/bin/GMXRC
+        export CPLUS_INCLUDE_PATH=$(brew --prefix)/opt/lapack/include:$CPLUS_INCLUDE_PATH
+        export CMAKE_PREFIX_PATH="$(brew --prefix)/opt/lapack":$CMAKE_PREFIX_PATH
+        export LIBRARY_PATH=$(brew --prefix)/opt/lapack/lib:$LIBRARY_PATH
         source $HOME/venv/bin/activate
-        cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -B builddir
-        cmake --build builddir --parallel 2
+        cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH="$(brew --prefix libint)" -DCMAKE_BUILD_TYPE=Debug -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -B builddir
+        cmake --build builddir --parallel $(sysctl -n hw.ncpu)
         cd builddir && ctest --output-on-failure
