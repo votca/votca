@@ -28,6 +28,8 @@ jobs:
       run: |
         brew update
         brew install wget ccache libint libecpint boost libxc hdf5 libomp fftw pybind11 clang-format lapack
+        # this hack is needed for homebrew on macos-intel 
+        brew unlink libint
         $(brew --prefix)/bin/python3 -m venv $HOME/venv
         source $HOME/venv/bin/activate
         python3 -m pip install --upgrade pip
@@ -51,6 +53,6 @@ jobs:
         export CMAKE_PREFIX_PATH="$(brew --prefix)/opt/lapack":$CMAKE_PREFIX_PATH
         export LIBRARY_PATH=$(brew --prefix)/opt/lapack/lib:$LIBRARY_PATH
         source $HOME/venv/bin/activate
-        cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Debug -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -B builddir
+        cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_PREFIX_PATH="$(brew --prefix libint)" -DCMAKE_BUILD_TYPE=Debug -DINSTALL_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_WERROR=ON -DINJECT_MARCH_NATIVE=OFF -B builddir
         cmake --build builddir --parallel $(sysctl -n hw.ncpu)
         cd builddir && ctest --output-on-failure
