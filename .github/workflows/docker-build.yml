@@ -119,17 +119,17 @@ jobs:
           password: ${{ secrets.GITLAB_REGISTRY_TOKEN }}
       - name: Create and push manifest images to Docker Container Registry
         if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
-        uses: Noelware/docker-manifest-action@0.4.3
+        uses: Noelware/docker-manifest-action@1.0.0
         with:
           inputs: votca/votca:${{ steps.tag.outputs.tag }}
-          images: votca/votca:${{ steps.tag.outputs.tag }}-amd64,votca/votca:${{ steps.tag.outputs.tag }}-arm64
+          tags: votca/votca:${{ steps.tag.outputs.tag }}-amd64,votca/votca:${{ steps.tag.outputs.tag }}-arm64
           push: ${{ github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' ) }}
       - name: Create and push manifest images to Github Container Registry
         if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
-        uses: Noelware/docker-manifest-action@0.4.3
+        uses: Noelware/docker-manifest-action@1.0.0
         with:
           inputs: ghcr.io/votca/votca:${{ steps.tag.outputs.tag }}
-          images: ghcr.io/votca/votca:${{ steps.tag.outputs.tag }}-amd64,ghcr.io/votca/votca:${{ steps.tag.outputs.tag }}-arm64
+          tags: ghcr.io/votca/votca:${{ steps.tag.outputs.tag }}-amd64,ghcr.io/votca/votca:${{ steps.tag.outputs.tag }}-arm64
           push: ${{ github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' ) }}
       - name: Create and push manifest images to GitLab Container Registry
         if: github.repository_owner == 'votca' && ( github.event_name == 'push' ||  github.event_name == 'schedule' )
