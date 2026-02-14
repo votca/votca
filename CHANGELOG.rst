@@ -34,7 +34,6 @@ Version 2025.1-dev
 -  setting PyXTP installation path to user's site-package directory (#1219)
 -  allow for overriding python library installation directory (#1221)
 -  add integration tests for xtp (#1220)
--  CI: fix docker image merge (#1223)
 
 Version 2025.1 (released 03.10.25)
 ==================================
