@@ -456,6 +456,10 @@ void KMCMultiple::RunVSSM() {
 
 bool KMCMultiple::Evaluate(Topology& top) {
 
+  if (OPENMP::getMaxThreads() == 1){
+    log_.setMultithreading(true);
+  }
+
   XTP_LOG(Log::error, log_) << "\n-----------------------------------"
                                "\n      KMC FOR MULTIPLE CHARGES"
                                "\n-----------------------------------\n"
