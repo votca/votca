@@ -28,8 +28,6 @@
 // Local VOTCA includes
 #include "votca/xtp/parallelxjobcalc.h"
 
-using boost::format;
-
 namespace votca {
 namespace xtp {
 
@@ -124,13 +122,13 @@ void ParallelXJobCalc<JobContainer>::CustomizeLogger(QMThread &thread) {
   log.setMultithreading(maverick_);
 
   log.setPreface(Log::info,
-                 (format("\nT%1$02d INF ...") % thread.getId()).str());
+                 (boost::format("\nT%1$02d INF ...") % thread.getId()).str());
   log.setPreface(Log::error,
-                 (format("\nT%1$02d ERR ...") % thread.getId()).str());
+                 (boost::format("\nT%1$02d ERR ...") % thread.getId()).str());
   log.setPreface(Log::warning,
-                 (format("\nT%1$02d WAR ...") % thread.getId()).str());
+                 (boost::format("\nT%1$02d WAR ...") % thread.getId()).str());
   log.setPreface(Log::debug,
-                 (format("\nT%1$02d DBG ...") % thread.getId()).str());
+                 (boost::format("\nT%1$02d DBG ...") % thread.getId()).str());
 }
 
 // REGISTER PARALLEL CALCULATORS

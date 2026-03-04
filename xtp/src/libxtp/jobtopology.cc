@@ -344,6 +344,8 @@ void JobTopology::CheckEnumerationOfRegions(
 }
 
 void JobTopology::WriteToHdf5(std::string filename) const {
+    std::lock_guard<std::recursive_mutex> lock(
+      votca::xtp::checkpoint_utils::Hdf5Mutex());
   CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
   CheckpointWriter a = cpf.getWriter();
   a(job_.getId(), "jobid");
@@ -357,6 +359,8 @@ void JobTopology::WriteToHdf5(std::string filename) const {
 }
 
 void JobTopology::ReadFromHdf5(std::string filename) {
+    std::lock_guard<std::recursive_mutex> lock(
+      votca::xtp::checkpoint_utils::Hdf5Mutex());
   CheckpointFile cpf(filename, CheckpointAccessLevel::READ);
   CheckpointReader a = cpf.getReader();
   Index id = -1;

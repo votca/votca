@@ -113,7 +113,7 @@ class StructureParameters {
 
 void StructureParameters::set(const StructureParameter parameter,
                               boost::any value) noexcept {
-  parameters[parameter] = value;
+  parameters.insert_or_assign(parameter, std::move(value));
 }
 
 template <class T>

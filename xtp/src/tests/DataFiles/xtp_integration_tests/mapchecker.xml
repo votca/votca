@@ -1,0 +1,11 @@
+<options>
+<mapchecker help="Outputs .pdb files for segments, qmmolecules and classical segments to check the mapping" section="sec:mapchecker">
+	<qm_states default="n" help="qmstates states to check">n</qm_states>
+	<mp_states default="e h" help="multipole states to check">n h</mp_states>
+	<map_file default="votca_map.xml" help="xml file with segment definition">system.xml</map_file>
+	<md_pdbfile default="md_segments.pdb" help="PDB file with the MD calculation">md_segments.pdb</md_pdbfile>
+	<qm_pdbfile default="qm_segments.pdb" help="PDB file with the QM calculation">qm_segments.pdb</qm_pdbfile>
+	<mp_pdbfile default="mp_segments.pdb" help="PDB file with the MP segments">mp_segments.pdb</mp_pdbfile>
+</mapchecker>
+</options>
+

@@ -36,8 +36,6 @@
 // Local private VOTCA includes
 #include "iqm.h"
 
-using boost::format;
-
 namespace votca {
 namespace xtp {
 
@@ -211,23 +209,23 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
 
   // set the folders
   std::string pair_dir =
-      (format("%1%%2%%3%%4%%5%") % "pair" % "_" % ID_A % "_" % ID_B).str();
+      (boost::format("%1%%2%%3%%4%%5%") % "pair" % "_" % ID_A % "_" % ID_B).str();
 
   std::filesystem::path arg_path, arg_pathA, arg_pathB, arg_pathAB;
 
   std::string orbFileA =
       (arg_pathA / eqm_work_dir / "molecules" / frame_dir /
-       (format("%1%_%2%%3%") % "molecule" % ID_A % ".orb").str())
+       (boost::format("%1%_%2%%3%") % "molecule" % ID_A % ".orb").str())
           .generic_string();
   ;
   std::string orbFileB =
       (arg_pathB / eqm_work_dir / "molecules" / frame_dir /
-       (format("%1%_%2%%3%") % "molecule" % ID_B % ".orb").str())
+       (boost::format("%1%_%2%%3%") % "molecule" % ID_B % ".orb").str())
           .generic_string();
   ;
   std::string orbFileAB =
       (arg_pathAB / iqm_work_dir / "pairs_iqm" / frame_dir /
-       (format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb").str())
+       (boost::format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb").str())
           .generic_string();
   ;
   std::string orb_dir =
@@ -287,10 +285,10 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
 
     Logger dft_logger(Log::current_level);
     dft_logger.setMultithreading(false);
-    dft_logger.setPreface(Log::info, (format("\nDFT INF ...")).str());
-    dft_logger.setPreface(Log::error, (format("\nDFT ERR ...")).str());
-    dft_logger.setPreface(Log::warning, (format("\nDFT WAR ...")).str());
-    dft_logger.setPreface(Log::debug, (format("\nDFT DBG ...")).str());
+    dft_logger.setPreface(Log::info, (boost::format("\nDFT INF ...")).str());
+    dft_logger.setPreface(Log::error, (boost::format("\nDFT ERR ...")).str());
+    dft_logger.setPreface(Log::warning, (boost::format("\nDFT WAR ...")).str());
+    dft_logger.setPreface(Log::debug, (boost::format("\nDFT DBG ...")).str());
     std::string package = dftpackage_options_.get("name").as<std::string>();
     std::unique_ptr<QMPackage> qmpackage = QMPackageFactory().Create(package);
     qmpackage->setLog(&dft_logger);
@@ -316,12 +314,12 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
               << "Copying monomer .gbw files to pair folder" << std::flush;
           std::string gbwFileA =
               (arg_pathA / eqm_work_dir / "molecules" / frame_dir /
-               (format("%1%_%2%%3%") % "molecule" % ID_A % ".gbw").str())
+               (boost::format("%1%_%2%%3%") % "molecule" % ID_A % ".gbw").str())
                   .generic_string();
           ;
           std::string gbwFileB =
               (arg_pathB / eqm_work_dir / "molecules" / frame_dir /
-               (format("%1%_%2%%3%") % "molecule" % ID_B % ".gbw").str())
+               (boost::format("%1%_%2%%3%") % "molecule" % ID_B % ".gbw").str())
                   .generic_string();
           ;
           std::string gbwFileA_workdir =
@@ -451,10 +449,10 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       XTP_LOG(Log::error, pLog) << "Running GWBSE" << std::flush;
       Logger gwbse_logger(Log::current_level);
       gwbse_logger.setMultithreading(false);
-      gwbse_logger.setPreface(Log::info, (format("\nGWBSE INF ...")).str());
-      gwbse_logger.setPreface(Log::error, (format("\nGWBSE ERR ...")).str());
-      gwbse_logger.setPreface(Log::warning, (format("\nGWBSE WAR ...")).str());
-      gwbse_logger.setPreface(Log::debug, (format("\nGWBSE DBG ...")).str());
+      gwbse_logger.setPreface(Log::info, (boost::format("\nGWBSE INF ...")).str());
+      gwbse_logger.setPreface(Log::error, (boost::format("\nGWBSE ERR ...")).str());
+      gwbse_logger.setPreface(Log::warning, (boost::format("\nGWBSE WAR ...")).str());
+      gwbse_logger.setPreface(Log::debug, (boost::format("\nGWBSE DBG ...")).str());
       GWBSE gwbse = GWBSE(orbitalsAB);
       gwbse.setLogger(&gwbse_logger);
       gwbse.Initialize(gwbse_options_);
@@ -507,13 +505,13 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       Logger bsecoupling_logger(Log::current_level);
       bsecoupling_logger.setMultithreading(false);
       bsecoupling_logger.setPreface(Log::info,
-                                    (format("\nBSECOU INF ...")).str());
+                                    (boost::format("\nBSECOU INF ...")).str());
       bsecoupling_logger.setPreface(Log::error,
-                                    (format("\nBSECOU ERR ...")).str());
+                                    (boost::format("\nBSECOU ERR ...")).str());
       bsecoupling_logger.setPreface(Log::warning,
-                                    (format("\nBSECOU WAR ...")).str());
+                                    (boost::format("\nBSECOU WAR ...")).str());
       bsecoupling_logger.setPreface(Log::debug,
-                                    (format("\nBSECOU DBG ...")).str());
+                                    (boost::format("\nBSECOU DBG ...")).str());
       bsecoupling.setLogger(&bsecoupling_logger);
       bsecoupling.Initialize(bsecoupling_options_);
       bsecoupling.CalculateCouplings(orbitalsA, orbitalsB, orbitalsAB);

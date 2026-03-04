@@ -23,6 +23,12 @@
 // Local VOTCA includes
 #include "votca_tools_config.h"
 
+#ifdef APPLE_ACCELERATE_FOUND
+#include <lapacke.h>
+#define EIGEN_USE_BLAS
+#define EIGEN_USE_LAPACKE
+#endif
+
 #ifdef MKL_FOUND
 #include <mkl.h>
 #define EIGEN_USE_MKL_ALL
@@ -47,6 +53,7 @@
 #if (defined STRICT_GNUC) && GCC_VERSION > 70000
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 
 // #ifndef EIGEN_CONFIG_H_

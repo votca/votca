@@ -1,0 +1,378 @@
+<jobs>
+	<job>
+		<id>0</id>
+		<tag></tag>
+		<input>
+			<segment id="0" type="Methane">0</segment>
+		</input>
+		<status>COMPLETE</status>
+		<host>wlan-241186.nbw.tue.nl:88113</host>
+		<time>20:05:01</time>
+		<output>
+			<segment id="0" type="Methane">
+				<GWBSE DFTEnergy="-1095.048363 " units="eV">
+					<dft HOMO="4" LUMO="5">
+						<level number="0">
+							<dft_energy>-276.116215 </dft_energy>
+							<gw_energy>-287.072141 </gw_energy>
+							<qp_energy>-287.077147 </qp_energy>
+						</level>
+						<level number="1">
+							<dft_energy>-19.356516 </dft_energy>
+							<gw_energy>-22.401102 </gw_energy>
+							<qp_energy>-22.410827 </qp_energy>
+						</level>
+						<level number="2">
+							<dft_energy>-10.909297 </dft_energy>
+							<gw_energy>-13.636298 </gw_energy>
+							<qp_energy>-13.642340 </qp_energy>
+						</level>
+						<level number="3">
+							<dft_energy>-10.894034 </dft_energy>
+							<gw_energy>-13.621312 </gw_energy>
+							<qp_energy>-13.626776 </qp_energy>
+						</level>
+						<level number="4">
+							<dft_energy>-10.872681 </dft_energy>
+							<gw_energy>-13.598914 </gw_energy>
+							<qp_energy>-13.605815 </qp_energy>
+						</level>
+						<level number="5">
+							<dft_energy>+4.410402 </dft_energy>
+							<gw_energy>+7.543428 </gw_energy>
+							<qp_energy>+7.332528 </qp_energy>
+						</level>
+						<level number="6">
+							<dft_energy>+5.637251 </dft_energy>
+							<gw_energy>+9.113962 </gw_energy>
+							<qp_energy>+9.074413 </qp_energy>
+						</level>
+						<level number="7">
+							<dft_energy>+5.653883 </dft_energy>
+							<gw_energy>+9.131478 </gw_energy>
+							<qp_energy>+9.081438 </qp_energy>
+						</level>
+						<level number="8">
+							<dft_energy>+5.668010 </dft_energy>
+							<gw_energy>+9.142447 </gw_energy>
+							<qp_energy>+9.093545 </qp_energy>
+						</level>
+						<level number="9">
+							<dft_energy>+19.724857 </dft_energy>
+							<gw_energy>+23.707454 </gw_energy>
+							<qp_energy>+23.643690 </qp_energy>
+						</level>
+						<level number="10">
+							<dft_energy>+19.766513 </dft_energy>
+							<gw_energy>+23.750306 </gw_energy>
+							<qp_energy>+23.693567 </qp_energy>
+						</level>
+						<level number="11">
+							<dft_energy>+19.832369 </dft_energy>
+							<gw_energy>+23.812064 </gw_energy>
+							<qp_energy>+23.766412 </qp_energy>
+						</level>
+						<level number="12">
+							<dft_energy>+28.765474 </dft_energy>
+							<gw_energy>+35.282382 </gw_energy>
+							<qp_energy>+32.304607 </qp_energy>
+						</level>
+						<level number="13">
+							<dft_energy>+29.626773 </dft_energy>
+							<gw_energy>+32.240028 </gw_energy>
+							<qp_energy>+32.356180 </qp_energy>
+						</level>
+						<level number="14">
+							<dft_energy>+29.660435 </dft_energy>
+							<gw_energy>+32.250163 </gw_energy>
+							<qp_energy>+32.428398 </qp_energy>
+						</level>
+						<level number="15">
+							<dft_energy>+29.687333 </dft_energy>
+							<gw_energy>+32.273762 </gw_energy>
+							<qp_energy>+35.130116 </qp_energy>
+						</level>
+						<level number="16">
+							<dft_energy>+46.611691 </dft_energy>
+							<gw_energy>+52.646740 </gw_energy>
+							<qp_energy>+53.022460 </qp_energy>
+						</level>
+					</dft>
+					<singlets>
+						<level number="1">
+							<omega>+13.893463 </omega>
+							<f>+0.240534 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.5077 -0.5280 +0.4125</Trdipole>
+						</level>
+						<level number="2">
+							<omega>+13.921500 </omega>
+							<f>+0.254191 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.6092 -0.6110 -0.0287</Trdipole>
+						</level>
+						<level number="3">
+							<omega>+13.935669 </omega>
+							<f>+0.253169 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.3266 -0.2581 -0.7538</Trdipole>
+						</level>
+						<level number="4">
+							<omega>+14.588765 </omega>
+							<f>+0.000786 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.0445 -0.0074 +0.0128</Trdipole>
+						</level>
+						<level number="5">
+							<omega>+14.608568 </omega>
+							<f>+0.000400 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.0021 +0.0190 +0.0274</Trdipole>
+						</level>
+						<level number="6">
+							<omega>+14.615625 </omega>
+							<f>+0.000282 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.0045 -0.0175 -0.0215</Trdipole>
+						</level>
+						<level number="7">
+							<omega>+14.961064 </omega>
+							<f>+0.000227 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.0139 +0.0083 -0.0189</Trdipole>
+						</level>
+						<level number="8">
+							<omega>+14.968067 </omega>
+							<f>+0.000073 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.0111 -0.0054 -0.0068</Trdipole>
+						</level>
+						<level number="9">
+							<omega>+16.007724 </omega>
+							<f>+0.799924 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.3088 +1.2357 -0.6461</Trdipole>
+						</level>
+						<level number="10">
+							<omega>+16.010646 </omega>
+							<f>+0.802475 </f>
+							<Trdipole gauge="length" unit="e*bohr">-1.3875 +0.2114 -0.2758</Trdipole>
+						</level>
+					</singlets>
+					<triplets>
+						<level number="1">
+							<omega>+11.698081 </omega>
+						</level>
+						<level number="2">
+							<omega>+11.761917 </omega>
+						</level>
+						<level number="3">
+							<omega>+11.787598 </omega>
+						</level>
+						<level number="4">
+							<omega>+11.802080 </omega>
+						</level>
+						<level number="5">
+							<omega>+13.775889 </omega>
+						</level>
+						<level number="6">
+							<omega>+13.815121 </omega>
+						</level>
+						<level number="7">
+							<omega>+13.845062 </omega>
+						</level>
+						<level number="8">
+							<omega>+14.211927 </omega>
+						</level>
+						<level number="9">
+							<omega>+14.219783 </omega>
+						</level>
+						<level number="10">
+							<omega>+14.330487 </omega>
+						</level>
+					</triplets>
+				</GWBSE>
+				<partialcharges>MP_FILES/frame_0/n2s1/Methane_0_n2s1.mps</partialcharges>
+			</segment>
+		</output>
+	</job>
+	<job>
+		<id>1</id>
+		<tag></tag>
+		<input>
+			<segment id="1" type="Methane">1</segment>
+		</input>
+		<status>COMPLETE</status>
+		<host>wlan-241186.nbw.tue.nl:88113</host>
+		<time>20:05:04</time>
+		<output>
+			<segment id="1" type="Methane">
+				<GWBSE DFTEnergy="-1095.046893 " units="eV">
+					<dft HOMO="4" LUMO="5">
+						<level number="0">
+							<dft_energy>-276.116296 </dft_energy>
+							<gw_energy>-287.071502 </gw_energy>
+							<qp_energy>-287.075200 </qp_energy>
+						</level>
+						<level number="1">
+							<dft_energy>-19.356661 </dft_energy>
+							<gw_energy>-22.400903 </gw_energy>
+							<qp_energy>-22.428106 </qp_energy>
+						</level>
+						<level number="2">
+							<dft_energy>-10.946891 </dft_energy>
+							<gw_energy>-13.673435 </gw_energy>
+							<qp_energy>-13.682283 </qp_energy>
+						</level>
+						<level number="3">
+							<dft_energy>-10.911027 </dft_energy>
+							<gw_energy>-13.637989 </gw_energy>
+							<qp_energy>-13.644174 </qp_energy>
+						</level>
+						<level number="4">
+							<dft_energy>-10.818551 </dft_energy>
+							<gw_energy>-13.545639 </gw_energy>
+							<qp_energy>-13.553139 </qp_energy>
+						</level>
+						<level number="5">
+							<dft_energy>+4.410154 </dft_energy>
+							<gw_energy>+7.543391 </gw_energy>
+							<qp_energy>+7.506538 </qp_energy>
+						</level>
+						<level number="6">
+							<dft_energy>+5.585924 </dft_energy>
+							<gw_energy>+9.071870 </gw_energy>
+							<qp_energy>+9.031046 </qp_energy>
+						</level>
+						<level number="7">
+							<dft_energy>+5.664957 </dft_energy>
+							<gw_energy>+9.139114 </gw_energy>
+							<qp_energy>+9.095062 </qp_energy>
+						</level>
+						<level number="8">
+							<dft_energy>+5.708134 </dft_energy>
+							<gw_energy>+9.176440 </gw_energy>
+							<qp_energy>+9.162004 </qp_energy>
+						</level>
+						<level number="9">
+							<dft_energy>+19.726344 </dft_energy>
+							<gw_energy>+23.717283 </gw_energy>
+							<qp_energy>+23.668715 </qp_energy>
+						</level>
+						<level number="10">
+							<dft_energy>+19.759821 </dft_energy>
+							<gw_energy>+23.741053 </gw_energy>
+							<qp_energy>+23.705101 </qp_energy>
+						</level>
+						<level number="11">
+							<dft_energy>+19.837085 </dft_energy>
+							<gw_energy>+23.809967 </gw_energy>
+							<qp_energy>+23.769453 </qp_energy>
+						</level>
+						<level number="12">
+							<dft_energy>+28.766915 </dft_energy>
+							<gw_energy>+30.215648 </gw_energy>
+							<qp_energy>+30.115097 </qp_energy>
+						</level>
+						<level number="13">
+							<dft_energy>+29.524540 </dft_energy>
+							<gw_energy>+32.166775 </gw_energy>
+							<qp_energy>+32.238847 </qp_energy>
+						</level>
+						<level number="14">
+							<dft_energy>+29.678300 </dft_energy>
+							<gw_energy>+32.269322 </gw_energy>
+							<qp_energy>+32.452019 </qp_energy>
+						</level>
+						<level number="15">
+							<dft_energy>+29.772189 </dft_energy>
+							<gw_energy>+34.371200 </gw_energy>
+							<qp_energy>+34.413898 </qp_energy>
+						</level>
+						<level number="16">
+							<dft_energy>+46.612148 </dft_energy>
+							<gw_energy>+52.643451 </gw_energy>
+							<qp_energy>+52.761169 </qp_energy>
+						</level>
+					</dft>
+					<singlets>
+						<level number="1">
+							<omega>+13.843540 </omega>
+							<f>+0.257125 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.5741 -0.1919 -0.6258</Trdipole>
+						</level>
+						<level number="2">
+							<omega>+13.933241 </omega>
+							<f>+0.248948 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.5559 +0.2221 -0.6091</Trdipole>
+						</level>
+						<level number="3">
+							<omega>+13.967771 </omega>
+							<f>+0.238922 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.2914 +0.7827 +0.0261</Trdipole>
+						</level>
+						<level number="4">
+							<omega>+14.550437 </omega>
+							<f>+0.000766 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.0317 +0.0083 -0.0328</Trdipole>
+						</level>
+						<level number="5">
+							<omega>+14.593422 </omega>
+							<f>+0.000820 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.0015 -0.0435 -0.0199</Trdipole>
+						</level>
+						<level number="6">
+							<omega>+14.677991 </omega>
+							<f>+0.000247 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.0197 +0.0040 +0.0168</Trdipole>
+						</level>
+						<level number="7">
+							<omega>+14.944313 </omega>
+							<f>+0.002146 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.0733 +0.0010 +0.0220</Trdipole>
+						</level>
+						<level number="8">
+							<omega>+14.981816 </omega>
+							<f>+0.003810 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.0391 +0.0664 -0.0667</Trdipole>
+						</level>
+						<level number="9">
+							<omega>+15.955596 </omega>
+							<f>+0.785166 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.5594 -0.1922 -1.2879</Trdipole>
+						</level>
+						<level number="10">
+							<omega>+16.017245 </omega>
+							<f>+0.803383 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.9775 +0.8832 -0.5584</Trdipole>
+						</level>
+					</singlets>
+					<triplets>
+						<level number="1">
+							<omega>+11.594511 </omega>
+						</level>
+						<level number="2">
+							<omega>+11.739327 </omega>
+						</level>
+						<level number="3">
+							<omega>+11.786776 </omega>
+						</level>
+						<level number="4">
+							<omega>+11.877280 </omega>
+						</level>
+						<level number="5">
+							<omega>+13.775954 </omega>
+						</level>
+						<level number="6">
+							<omega>+13.801570 </omega>
+						</level>
+						<level number="7">
+							<omega>+13.849736 </omega>
+						</level>
+						<level number="8">
+							<omega>+14.206421 </omega>
+						</level>
+						<level number="9">
+							<omega>+14.248694 </omega>
+						</level>
+						<level number="10">
+							<omega>+14.291605 </omega>
+						</level>
+					</triplets>
+				</GWBSE>
+				<partialcharges>MP_FILES/frame_0/n2s1/Methane_1_n2s1.mps</partialcharges>
+			</segment>
+		</output>
+	</job>
+</jobs>

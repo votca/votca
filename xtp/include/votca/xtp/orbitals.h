@@ -400,10 +400,10 @@ class Orbitals {
 
   void ReadFromCpt(const std::string &filename);
 
-  void WriteToCpt(CheckpointWriter w) const;
-  void WriteBasisSetsToCpt(CheckpointWriter w) const;
-  void ReadFromCpt(CheckpointReader r);
-  void ReadBasisSetsFromCpt(CheckpointReader r);
+  void WriteToCpt(CheckpointWriter &w) const;
+  void WriteBasisSetsToCpt(CheckpointWriter &w) const;
+  void ReadFromCpt(CheckpointReader &r);
+  void ReadBasisSetsFromCpt(CheckpointReader &r);
 
   bool GetFlagUseHqpOffdiag() const { return use_Hqp_offdiag_; };
   void SetFlagUseHqpOffdiag(bool flag) { use_Hqp_offdiag_ = flag; };
@@ -432,9 +432,9 @@ class Orbitals {
   // returns indeces of a re-sorted vector of energies from lowest to highest
   std::vector<Index> SortEnergies();
 
-  void WriteToCpt(CheckpointFile f) const;
+  void WriteToCpt(CheckpointFile &f) const;
 
-  void ReadFromCpt(CheckpointFile f);
+  void ReadFromCpt(CheckpointFile &f);
   Eigen::MatrixXd TransitionDensityMatrix(const QMState &state) const;
   std::array<Eigen::MatrixXd, 2> DensityMatrixExcitedState_R(
       const QMState &state) const;
@@ -444,9 +444,9 @@ class Orbitals {
   Eigen::MatrixXd CalcAuxMat_vv(const Eigen::VectorXd &coeffs) const;
 
   Index occupied_levels_;
-  Index occupied_levels_beta_;
+  Index occupied_levels_beta_ = 0;
   Index number_alpha_electrons_;
-  Index number_beta_electrons_;
+  Index number_beta_electrons_ = 0;
   std::string ECP_ = "";
   bool useTDA_;
 
@@ -460,7 +460,7 @@ class Orbitals {
 
   Eigen::MatrixXd lmos_;
   Eigen::VectorXd lmos_energies_;
-  Index active_electrons_;
+  Index active_electrons_ = 0;
   Eigen::MatrixXd inactivedensity_;
   Eigen::MatrixXd expandedMOs_;
 
@@ -509,7 +509,7 @@ class Orbitals {
   Eigen::VectorXd BSE_singlet_energies_dynamic_;
   Eigen::VectorXd BSE_triplet_energies_dynamic_;
 
-  bool use_Hqp_offdiag_ = true;
+  bool use_Hqp_offdiag_ = false;
 
   // Version 2: adds BSE energies after perturbative dynamical screening
   // Version 3: changed shell ordering

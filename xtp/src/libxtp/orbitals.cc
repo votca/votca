@@ -613,24 +613,26 @@ void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
 }
 
 void Orbitals::WriteToCpt(const std::string& filename) const {
+    std::lock_guard<std::recursive_mutex> lock(
+      votca::xtp::checkpoint_utils::Hdf5Mutex());
   CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
   WriteToCpt(cpf);
 }
 
-void Orbitals::WriteToCpt(CheckpointFile f) const {
+void Orbitals::WriteToCpt(CheckpointFile& f) const {
   CheckpointWriter writer = f.getWriter("/QMdata");
   WriteToCpt(writer);
   WriteBasisSetsToCpt(writer);
 }
 
-void Orbitals::WriteBasisSetsToCpt(CheckpointWriter w) const {
+void Orbitals::WriteBasisSetsToCpt(CheckpointWriter& w) const {
   CheckpointWriter dftWriter = w.openChild("dft");
   dftbasis_.WriteToCpt(dftWriter);
   CheckpointWriter auxWriter = w.openChild("aux");
   auxbasis_.WriteToCpt(auxWriter);
 }
 
-void Orbitals::WriteToCpt(CheckpointWriter w) const {
+void Orbitals::WriteToCpt(CheckpointWriter& w) const {
   w(votca::tools::ToolsVersionStr(), "XTPVersion");
   w(orbitals_version(), "version");
   w(occupied_levels_, "occupied_levels");
@@ -680,7 +682,8 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
 
   w(BSE_triplet_, "BSE_triplet");
 
-  w(use_Hqp_offdiag_, "use_Hqp_offdiag");
+  std::uint8_t tmp = use_Hqp_offdiag_ ? 1u : 0u;
+  w(tmp, "use_Hqp_offdiag");
 
   w(BSE_singlet_energies_dynamic_, "BSE_singlet_dynamic");
 
@@ -690,24 +693,26 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
 }
 
 void Orbitals::ReadFromCpt(const std::string& filename) {
+    std::lock_guard<std::recursive_mutex> lock(
+      votca::xtp::checkpoint_utils::Hdf5Mutex());
   CheckpointFile cpf(filename, CheckpointAccessLevel::READ);
   ReadFromCpt(cpf);
 }
 
-void Orbitals::ReadFromCpt(CheckpointFile f) {
+void Orbitals::ReadFromCpt(CheckpointFile& f) {
   CheckpointReader reader = f.getReader("/QMdata");
   ReadFromCpt(reader);
   ReadBasisSetsFromCpt(reader);
 }
 
-void Orbitals::ReadBasisSetsFromCpt(CheckpointReader r) {
+void Orbitals::ReadBasisSetsFromCpt(CheckpointReader& r) {
   CheckpointReader dftReader = r.openChild("dft");
   dftbasis_.ReadFromCpt(dftReader);
   CheckpointReader auxReader = r.openChild("aux");
   auxbasis_.ReadFromCpt(auxReader);
 }
 
-void Orbitals::ReadFromCpt(CheckpointReader r) {
+void Orbitals::ReadFromCpt(CheckpointReader& r) {
   r(occupied_levels_, "occupied_levels");
   r(number_alpha_electrons_, "number_alpha_electrons");
 
@@ -801,7 +806,9 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
 
   r(BSE_triplet_, "BSE_triplet");
 
-  r(use_Hqp_offdiag_, "use_Hqp_offdiag");
+  std::uint8_t tmp = 0;
+  r(tmp, "use_Hqp_offdiag");
+  use_Hqp_offdiag_ = (tmp != 0);
 
   if (version > 1) {
     r(BSE_singlet_energies_dynamic_, "BSE_singlet_dynamic");

@@ -24,6 +24,24 @@ if(SPHINX_FOUND)
   file(WRITE ${XTP_REFERENCE} "Reference\n=========\n\nPrograms\n--------\n\n")
 endif()
 
+if(PYh5py_FOUND)
+  add_executable(VOTCA::votca_compare_hdf5 IMPORTED GLOBAL)
+  set_property(TARGET VOTCA::votca_compare_hdf5 PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/votca_compare_hdf5")
+  set(HAS_HDF5_COMPARE ON CACHE BOOL "votca_compare_hdf5 found")
+endif()
+
+if(PYlxml_FOUND)
+  add_executable(VOTCA::votca_compare_xml IMPORTED GLOBAL)
+  set_property(TARGET VOTCA::votca_compare_xml PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/votca_compare_xml")
+  set(HAS_XML_COMPARE ON CACHE BOOL "votca_compare_xml found")
+endif()
+
+add_executable(VOTCA::votca_compare_pdb IMPORTED GLOBAL)
+set_property(TARGET VOTCA::votca_compare_pdb PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/votca_compare_pdb")
+
+add_executable(VOTCA::votca_compare_mps IMPORTED GLOBAL)
+set_property(TARGET VOTCA::votca_compare_mps PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/votca_compare_mps")
+
 foreach(SCRIPT ${XTP_SCRIPTS}) 
   configure_file(${SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.in2 @ONLY)
   add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.install)
@@ -38,7 +56,7 @@ foreach(SCRIPT ${XTP_SCRIPTS})
   # use the source script for man and rst as the version string gets removed
   if (BUILD_MANPAGES)
     add_custom_command(OUTPUT ${SCRIPT}.man
-      COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_help2doc> --name ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT} --format groff --out ${SCRIPT}.man
+      COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_help2doc> --name ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT} --format groff --out ${SCRIPT}.man --ispython
       COMMENT "Building ${SCRIPT} manpage"
       DEPENDS VOTCA::votca_help2doc)
     add_custom_target(${SCRIPT}_manpage DEPENDS ${SCRIPT}.man ${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT})

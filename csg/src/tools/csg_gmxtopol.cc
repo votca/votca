@@ -27,7 +27,6 @@
 
 using namespace votca::csg;
 using namespace std;
-using boost::format;
 
 class GmxTopolApp : public CsgApplication {
  public:
@@ -77,7 +76,7 @@ void GmxTopolApp::WriteAtoms(ostream &out, Molecule &cg) {
   out << "; nr type resnr residue atom cgnr charge mass\n";
   for (votca::Index i = 0; i < cg.BeadCount(); ++i) {
     Bead *b = cg.getBead(i);
-    out << format("%d %s 1 RES %s %d %f %f\n") % (i + 1) % b->getType() %
+    out << boost::format("%d %s 1 RES %s %d %f %f\n") % (i + 1) % b->getType() %
                b->getName() % (i + 1) % b->getQ() % b->getMass();
   }
   out << endl;
