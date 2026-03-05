@@ -93,6 +93,23 @@ void QMRegion::Initialize(const tools::Property& prop) {
   }
 }
 
+void QMRegion::PrepareEwaldPotentialGrid(const tools::Property& prop) {
+
+  // purpose: prepare a grid integration object that can
+  // - hand over the grid to Ewald
+  // - after Ewald calculates the potential at the grid points, be put into xtpdft
+  std::string dftbasis_name = prop.get("dftpackage.basisset").as<std::string>();
+  std::string grid_name = prop.get("dftpackage.xtpdft.integration_grid").as<std::string>();
+  QMMolecule mol =  orb_.QMAtoms();
+  BasisSet bs;
+  bs.Load(dftbasis_name);
+  AOBasis dftbasis;
+  dftbasis.Fill(bs, mol);
+  ewaldgrid_.GridSetup(grid_name, mol, dftbasis);
+  //Vxc_Potential<Vxc_Grid> vxc(grid);
+  return;
+}
+
 bool QMRegion::Converged() const {
   if (!E_hist_.filled()) {
     return false;

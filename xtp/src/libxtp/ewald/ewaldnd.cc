@@ -59,8 +59,6 @@ Ewald3DnD::Ewald3DnD(const Topology *top, PolarTop *ptop, tools::Property *opt,
 
   _qmregion_def = opt->get("qmregion");
 
-
-
   // Multipoles: started from archive?
   if (opt->exists(pfx + ".multipoles.polar_bg")) {
     std::string ptop_file =
@@ -1447,15 +1445,26 @@ void Ewald3DnD::Evaluate() {
       mol.setType("qm0");
       qmregion->push_back(mol);
     }
-
+    // prepare the numerical integration grid for Ewald in QMRegion
+    qmregion->PrepareEwaldPotentialGrid(_qmregion_def);
+    qmregion->Initialize(_qmregion_def);
+    XTP_LOG(Log::error, *_log)
+          << TimeStamp() << " Evaluating QMRegion" << std::flush;
+    qmregion->Reset();
     // try QMregion evaluation
     std::vector<std::unique_ptr<Region> > regions_;
+    qmregion->Evaluate(regions_);
+
+
+
+
     region = std::move(qmregion);
-    region->Initialize(_qmregion_def);  
+    region->Initialize(_qmregion_def);
+
     regions_.push_back(std::move(region));
-    
+
     // stupid constuct for accessing the QMRegion after std::move
-    for (std::unique_ptr<Region>& reg : regions_) {   
+    for (std::unique_ptr<Region> &reg : regions_) {
       XTP_LOG(Log::error, *_log)
           << TimeStamp() << " Evaluating " << reg->identify() << " "
           << reg->getId() << std::flush;
@@ -1463,12 +1472,12 @@ void Ewald3DnD::Evaluate() {
       reg->Evaluate(regions_);
     }
     // PolarSeg* qm_segment = *(xjob.getPolarTop()->FGC().begin());
-    //PolarSeg *qm_segment = *(_polar_qm0.begin());
-    
+    // PolarSeg *qm_segment = *(_polar_qm0.begin());
+
     // make a QMMolecule from the PolarSeg
-    //QMMolecule qm_molecule = QMMolecule("", 0);
+    // QMMolecule qm_molecule = QMMolecule("", 0);
     // units in QMMolecule are Bohr, in PolarSeg nanometers!
-    //qm_molecule.FromPolarSegment(qm_segment);
+    // qm_molecule.FromPolarSegment(qm_segment);
     // qm_molecule.WriteXYZ("test.xyz", "transformed polarseg");
     /*Vxc_Grid grid;
     std::string grid_name = "medium";  // TODO from OPTIONS
@@ -1482,8 +1491,8 @@ void Ewald3DnD::Evaluate() {
     // attached qm_grid is in BOHR!!!!
     qm_segment->setGrid(grid);
     */
-    //exit(0);
-    //EvaluateInductionQMMM(true, true, true, true, true);
+    // exit(0);
+    // EvaluateInductionQMMM(true, true, true, true, true);
   }
 
   //    EvaluateInductionQMMM(true, true, true, true, true);

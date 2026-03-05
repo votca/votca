@@ -59,6 +59,8 @@ class QMRegion : public Region {
 
   void ApplyQMFieldToPolarSegments(std::vector<PolarSegment>& segments) const;
 
+  void PrepareEwaldPotentialGrid(const tools::Property& prop);
+
   Index size() const override { return size_; }
 
   void WritePDB(csg::PDBWriter& writer) const override;
@@ -108,6 +110,9 @@ class QMRegion : public Region {
   tools::Property localize_options_;
 
   StateTracker statetracker_;
+
+  // for QMEwald
+  Vxc_Grid ewaldgrid_;
 };
 
 }  // namespace xtp
