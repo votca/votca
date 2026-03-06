@@ -93,6 +93,16 @@ void QMRegion::Initialize(const tools::Property& prop) {
   }
 }
 
+// helper function to hand the grid changable over to Ewald
+std::vector<Eigen::Vector3d> QMRegion::copyEwaldGrid() {
+
+  std::vector<const Eigen::Vector3d*> src = ewaldgrid_.getGridpoints(); 
+  std::vector<Eigen::Vector3d> dst(src.size());
+  std::transform(src.begin(), src.end(), dst.begin(),
+               [](const Eigen::Vector3d* v) { return *v; });
+  return dst;
+}
+
 void QMRegion::PrepareEwaldPotentialGrid(const tools::Property& prop) {
 
   // purpose: prepare a grid integration object that can
@@ -106,6 +116,8 @@ void QMRegion::PrepareEwaldPotentialGrid(const tools::Property& prop) {
   AOBasis dftbasis;
   dftbasis.Fill(bs, mol);
   ewaldgrid_.GridSetup(grid_name, mol, dftbasis);
+  XTP_LOG(Log::error, log_) << TimeStamp()
+      << " Constructed Grid for Integration of Ewald Potential" << std::flush;
   //Vxc_Potential<Vxc_Grid> vxc(grid);
   return;
 }

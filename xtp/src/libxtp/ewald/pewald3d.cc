@@ -2,7 +2,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <votca/xtp/ewald/pewald3d.h>
-//#include <boost/timer/timer.hpp>
+// #include <boost/timer/timer.hpp>
 
 namespace votca {
 namespace xtp {
@@ -276,9 +276,15 @@ void PEwald3D3D::ScanCutoff() {
   std::vector<TinyNeighbour *>::iterator tnit;
   nbs.reserve(1000000);
 
-  int scan_na_max = static_cast<int>(ceil((R_max_shell) / _a.cwiseAbs().maxCoeff() - 0.5)) + 1;
-  int scan_nb_max = static_cast<int>(ceil((R_max_shell) / _b.cwiseAbs().maxCoeff() - 0.5)) + 1;
-  int scan_nc_max = static_cast<int>(ceil((R_max_shell) / _c.cwiseAbs().maxCoeff() - 0.5)) + 1;
+  int scan_na_max =
+      static_cast<int>(ceil((R_max_shell) / _a.cwiseAbs().maxCoeff() - 0.5)) +
+      1;
+  int scan_nb_max =
+      static_cast<int>(ceil((R_max_shell) / _b.cwiseAbs().maxCoeff() - 0.5)) +
+      1;
+  int scan_nc_max =
+      static_cast<int>(ceil((R_max_shell) / _c.cwiseAbs().maxCoeff() - 0.5)) +
+      1;
 
   if (this->_shape == "xyslab") scan_nc_max = 0;
 
@@ -315,7 +321,7 @@ void PEwald3D3D::ScanCutoff() {
         }
       }
     }  // Loop over na, nb, nc
-  }    // Loop over BGP
+  }  // Loop over BGP
 
   for (sit1 = _fg_C.begin(); sit1 != _fg_C.end(); ++sit1) {
 
@@ -1592,22 +1598,21 @@ void PEwald3D3D::Potential_CalculateShapeCorrection(
   return;
 }
 
-
 // ======= GRID POTENTIAL EVALUATIONS =========
 
-
 void PEwald3D3D::Potential_ConvergeRealSpaceSum_Grid(
-    std::vector<PolarSeg *> &target) {
+    std::vector<PolarSeg *> &target, Vxc_Grid &grid) {
 
   double sum = 0.0;
   [[maybe_unused]] double sum_phi = 0.0;
   _potential_converged_R = false;
 
-
- if (target.size() > 1 ){
-  throw std::runtime_error("More than one segment not supported for grid potential evaluation inPotential_ConvergeRealSpaceSum_Grid.");
- }
-
+  // probably not true any more
+  if (target.size() > 1) {
+    throw std::runtime_error(
+        "More than one segment not supported for grid potential evaluation "
+        "in Potential_ConvergeRealSpaceSum_Grid.");
+  }
 
   XTP_LOG(Log::debug, *_log)
       << std::flush << "R-space potentials via midground" << std::flush;
@@ -1618,6 +1623,8 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum_Grid(
   std::vector<APolarSite *>::iterator pit2;
   std::vector<PolarNb *>::iterator nit;
 
+  // neighbors to be determined still from polarsegments, not grid point
+  // neighbors
   bool neighbours_stored = false;
   for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
     int nb_count = static_cast<int>((*sit1)->PolarNbs().size());
@@ -1626,30 +1633,29 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum_Grid(
       break;
     }
   }
- 
+
   // ENERGY - REUSE NEIGHBOURS ?
   if (neighbours_stored) {
     for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
       std::vector<PolarNb *> &nbs = (*sit1)->PolarNbs();
-      // get the numerical integration grid
-      Vxc_Grid &grid = (*sit1)->getGrid();
       // evaluate at all points of the grid, going over boxes first
       for (Index i = 0; i < grid.getBoxesSize(); ++i) {
-        GridBox& box = grid[i];
-        const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
-        std::vector<double>& values = box.getPotentialValues();
+        GridBox &box = grid[i];
+        const std::vector<Eigen::Vector3d> &points = box.getGridPoints();
+        std::vector<double> &values = box.getPotentialValues();
 
         // iterate over gridpoints
         for (Index p = 0; p < box.size(); p++) {
-            // potential created at gridpoint by all neighbors of target segment
-            for (nit = nbs.begin(); nit != nbs.end(); ++nit) {
-              PolarSeg *nb = (*nit)->getNb();
-              for (pit2 = nb->begin(); pit2 < nb->end(); ++pit2) {
-                values[p] = _ewdactor.PhiPU12_ERFC_At_By(points[p], *(*pit2));
+          // potential created at gridpoint by all neighbors of target segment
+          for (nit = nbs.begin(); nit != nbs.end(); ++nit) {
+            PolarSeg *nb = (*nit)->getNb();
+            for (pit2 = nb->begin(); pit2 < nb->end(); ++pit2) {
+              values[p] += _ewdactor.PhiPU12_ERFC_At_By(
+                  points[p] * tools::conv::bohr2nm, *(*pit2))* tools::conv::nm2bohr;
+            }
           }
         }
       }
-    }
       if (Log::verbose()) {
         XTP_LOG(Log::debug, *_log)
             << (format("  o Id = %5$-4d Rc = %1$+02.7f   |MGN| = %2$5d   "
@@ -1660,8 +1666,8 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum_Grid(
       }
     }
     _potential_converged_R = true;
+
   }
-  /*
   // ENERGY - REGENERATE NEIGHBOURS ?
   else {
     double dR_shell = 0.5;
@@ -1670,6 +1676,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum_Grid(
     double R_max = _R_co * R_overhead + R_add;
     double R_max_shell = R_max + 2 * _polar_cutoff + _max_int_dist_qm0;
     this->SetupMidground(R_max);
+
 
     // FOR EACH FOREGROUND SEGMENT (FGC) ...
     unsigned int energy_converged_count = 0;
@@ -1700,14 +1707,23 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum_Grid(
         if (shell_mg.size() < 1) continue;
         EWD::triple<double> ppuu(0, 0, 0);
         for (sit2 = shell_mg.begin(); sit2 < shell_mg.end(); ++sit2) {
-          for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-            for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-              double phi = _ewdactor.PhiPU12_ERFC_At_By(*(*pit1), *(*pit2));
-              sum_phi += phi;
-              shell_term = phi;
-              shell_sum += shell_term;
-              shell_rms += shell_term * shell_term;
-              shell_count += 1;
+          for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+            // evaluate at all points of the grid, going over boxes first
+            for (Index i = 0; i < grid.getBoxesSize(); ++i) {
+              GridBox &box = grid[i];
+              const std::vector<Eigen::Vector3d> &points = box.getGridPoints();
+              std::vector<double> &values = box.getPotentialValues();
+              // iterate over gridpoints
+              for (Index p = 0; p < box.size(); p++) {
+                double phi = _ewdactor.PhiPU12_ERFC_At_By(
+                    points[p] * tools::conv::bohr2nm, *(*pit2));
+                values[p] += phi * tools::conv::nm2bohr; // store in Hartree
+                sum_phi += phi;
+                shell_term = phi;
+                shell_sum += shell_term;
+                shell_rms += shell_term * shell_term;
+                shell_count += 1;
+              }
             }
           }
         }
@@ -1752,17 +1768,11 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum_Grid(
       assert(false);
     }
   }
-
-  // boost::timer::auto_cpu_timer t0(*_log);
-  // t0.start();
-  // t0.stop();
-  // t0.report();
-*/
   return;
 }
 
 void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum_Grid(
-    std::vector<PolarSeg *> &target) {
+    std::vector<PolarSeg *> &target, Vxc_Grid &grid) {
 
   // ATTENTION K-vectors are generated based on an interaction-energy
   //           criterion between FGC and BGP. Hence, the <target> density
@@ -1899,7 +1909,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum_Grid(
 }
 
 void PEwald3D3D::Potential_CalculateForegroundCorrection_Grid(
-    std::vector<PolarSeg *> &target) {
+    std::vector<PolarSeg *> &target, Vxc_Grid &grid) {
   XTP_LOG(Log::debug, *_log)
       << "  o Foreground-correction to potentials via FGN" << std::flush;
 
@@ -1907,26 +1917,26 @@ void PEwald3D3D::Potential_CalculateForegroundCorrection_Grid(
   std::vector<APolarSite *>::iterator pit1;
   std::vector<PolarSeg *>::iterator sit2;
   std::vector<APolarSite *>::iterator pit2;
-/*
-  double rms = 0.0;
-  int rms_count = 0;
-  for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
-    for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
-      for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
-        for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-          rms += _ewdactor.PhiPU12_ERF_At_By(*(*pit1), *(*pit2));
-          rms_count += 1;
+  /*
+    double rms = 0.0;
+    int rms_count = 0;
+    for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
+      for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+          for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
+            rms += _ewdactor.PhiPU12_ERF_At_By(*(*pit1), *(*pit2));
+            rms_count += 1;
+          }
         }
       }
     }
-  }
-  rms = sqrt(rms / rms_count) * int2eV;
-*/
+    rms = sqrt(rms / rms_count) * int2eV;
+  */
   return;
 }
 
 void PEwald3D3D::Potential_CalculateShapeCorrection_Grid(
-    std::vector<PolarSeg *> &target) {
+    std::vector<PolarSeg *> &target, Vxc_Grid &grid) {
   /* XTP_LOG(Log::debug, *_log)
       << std::flush << "Potential correction terms" << std::flush;
   XTP_LOG(Log::debug, *_log) << "  o Shape-correction to potentials, using '"

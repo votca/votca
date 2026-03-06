@@ -1251,8 +1251,7 @@ inline double EwdInteractor::PhiPU12_ERFC_At_By(const vec &r,
 
   phi_p = p2.Q00 * B0 + mu2_r * B1 + Q2__R * B2;
   phi_u = u_mu2_r * B1;
-  //p1.PhiP += phi_p;
-  //p1.PhiU += phi_u;
+
   return phi_p + phi_u;
 }
 

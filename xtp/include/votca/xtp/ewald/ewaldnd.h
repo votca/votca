@@ -110,22 +110,22 @@ class Ewald3DnD {
   }
 
   // POTENTIAL EVALUATION AT GRID POINTS
-  void EvaluatePotentialGrid(std::vector<PolarSeg *> &target, bool add_bg,
+  void EvaluatePotentialGrid(std::vector<PolarSeg *> &target, Vxc_Grid &grid, bool add_bg,
                          bool add_mm1, bool add_qm0);
 
-  virtual void Potential_ConvergeRealSpaceSum_Grid(std::vector<PolarSeg *> &) {
+  virtual void Potential_ConvergeRealSpaceSum_Grid(std::vector<PolarSeg *> &, Vxc_Grid &) {
     ;
   }
   virtual void Potential_ConvergeReciprocalSpaceSum_Grid(
-      std::vector<PolarSeg *> &) {
+      std::vector<PolarSeg *> &, Vxc_Grid &) {
     ;
   }
   virtual void Potential_CalculateForegroundCorrection_Grid(
-      std::vector<PolarSeg *> &) {
+      std::vector<PolarSeg *> &, Vxc_Grid &) {
     ;
   }
   virtual void Potential_CalculateShapeCorrection_Grid(
-      std::vector<PolarSeg *> &) {
+      std::vector<PolarSeg *> &, Vxc_Grid &) {
     ;
   }
 

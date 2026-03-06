@@ -1446,31 +1446,59 @@ void Ewald3DnD::Evaluate() {
       qmregion->push_back(mol);
     }
     // prepare the numerical integration grid for Ewald in QMRegion
-    qmregion->PrepareEwaldPotentialGrid(_qmregion_def);
     qmregion->Initialize(_qmregion_def);
+    qmregion->PrepareEwaldPotentialGrid(_qmregion_def);
+
+        for (std::vector<PolarSeg *>::iterator sit = _polar_mm1.begin();
+         sit < _polar_qm0.end(); ++sit) {
+
+              for (std::vector<APolarSite *>::iterator pit = (*sit)->begin(); pit != (*sit)->end(); ++pit ){
+            std::cout << (*pit)->getRank() << std::endl;
+
+          }
+        }
+
+
+
+    // Access the constructed grid as a copy, is now in Bohr!
+    std::vector<Eigen::Vector3d> ewald_gridpoints = qmregion->copyEwaldGrid();
+    Vxc_Grid& ewaldgrid = qmregion->getEwaldGrid();
+    //std::cout << ewald_gridpoints[0] << std::endl;
+
+    // evaluate the static Ewald background potential at the gridpoints
+    // EvaluateInduction QMMM was not called!
+    bool add_bg = true;
+    bool add_mm1 = true;
+    bool add_qm0 = false;
+    XTP_LOG(Log::error, *_log)
+          << TimeStamp() << " Evaluating Ewald Potential" << std::flush;
+    EvaluatePotentialGrid(_polar_qm0,ewaldgrid, add_bg, add_mm1, add_qm0);
+
+
     XTP_LOG(Log::error, *_log)
           << TimeStamp() << " Evaluating QMRegion" << std::flush;
     qmregion->Reset();
+
     // try QMregion evaluation
-    std::vector<std::unique_ptr<Region> > regions_;
+    std::vector<std::unique_ptr<Region> > regions_; // to make Evaluate happy
     qmregion->Evaluate(regions_);
 
 
 
 
-    region = std::move(qmregion);
-    region->Initialize(_qmregion_def);
+//    region = std::move(qmregion);
+//    region->Initialize(_qmregion_def);
 
-    regions_.push_back(std::move(region));
+//    regions_.push_back(std::move(region));
 
     // stupid constuct for accessing the QMRegion after std::move
-    for (std::unique_ptr<Region> &reg : regions_) {
-      XTP_LOG(Log::error, *_log)
-          << TimeStamp() << " Evaluating " << reg->identify() << " "
-          << reg->getId() << std::flush;
-      reg->Reset();
-      reg->Evaluate(regions_);
-    }
+//    for (std::unique_ptr<Region> &reg : regions_) {
+//      XTP_LOG(Log::error, *_log)
+ //         << TimeStamp() << " Evaluating " << reg->identify() << " "
+ //         << reg->getId() << std::flush;
+//      reg->Reset();
+//      reg->Evaluate(regions_);
+//    }
     // PolarSeg* qm_segment = *(xjob.getPolarTop()->FGC().begin());
     // PolarSeg *qm_segment = *(_polar_qm0.begin());
 
@@ -2356,7 +2384,7 @@ void Ewald3DnD::EvaluatePotential(std::vector<PolarSeg *> &target, bool add_bg,
   return;
 }
 
-void Ewald3DnD::EvaluatePotentialGrid(std::vector<PolarSeg *> &target,
+void Ewald3DnD::EvaluatePotentialGrid(std::vector<PolarSeg *> &target,Vxc_Grid &grid,
                                       bool add_bg, bool add_mm1, bool add_qm0) {
 
   // RESET POTENTIALS WHY
@@ -2372,16 +2400,16 @@ void Ewald3DnD::EvaluatePotentialGrid(std::vector<PolarSeg *> &target,
   // APERIODIC-PERIODIC BACKGROUND
   if (add_bg) {
     // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
-    Potential_ConvergeRealSpaceSum_Grid(target);
+    Potential_ConvergeRealSpaceSum_Grid(target,grid);
 
     // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D)
-    Potential_ConvergeReciprocalSpaceSum_Grid(target);
+    Potential_ConvergeReciprocalSpaceSum_Grid(target,grid);
 
     // SHAPE-CORRECTION (3D3D)/ K0-CORRECTION (3D2D)
-    Potential_CalculateShapeCorrection_Grid(target);
+    Potential_CalculateShapeCorrection_Grid(target,grid);
 
     // FOREGROUND CORRECTION (3D2D && 3D3D)
-    Potential_CalculateForegroundCorrection_Grid(target);
+    Potential_CalculateForegroundCorrection_Grid(target,grid);
   }
 
   // FOREGROUND EXCLUDING QM

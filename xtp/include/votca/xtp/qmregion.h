@@ -74,6 +74,11 @@ class QMRegion : public Region {
   double charge() const override;
   double Etotal() const override { return E_hist_.back(); }
 
+  std::vector<Eigen::Vector3d> copyEwaldGrid(); 
+
+  Vxc_Grid &getEwaldGrid() {return ewaldgrid_;};
+
+
  protected:
   void AppendResult(tools::Property& prop) const override;
   double InteractwithQMRegion(const QMRegion& region) override;
