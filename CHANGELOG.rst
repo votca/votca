@@ -37,6 +37,7 @@ Version 2025.1-dev
 -  add integration tests for xtp (#1220)
 -  CI: docker build add provenance=false (#1225)
 -  unbuffered KMC output on single thread (#1226)
+-  CI: ignore c2y-extensions warning on rawhide (#1228)
 
 Version 2025.1 (released 03.10.25)
 ==================================
