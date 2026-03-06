@@ -881,6 +881,65 @@ EWD::cmplx EwdInteractor::PhiPU12_AS1S2_At_By(const vec &k,
   return EWD::cmplx(sum_re_phi_ms, sum_im_phi);
 }
 
+EWD::cmplx EwdInteractor::PhiPU12_AS1S2_At_By(const vec &k,
+                                              std::vector<PolarSeg *> &s1,
+                                              Vxc_Grid &grid,
+                                              std::vector<PolarSeg *> &s2,
+                                              double &rV) {
+  // ATTENTION Increments *permanent* potential PhiP of s1 only
+  // ATTENTION Structure factors include PERMANENT & INDUCED moments of s2
+  // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
+
+  ApplyBiasK(k);
+
+  std::vector<PolarSeg *>::iterator sit;
+  std::vector<APolarSite *>::iterator pit;
+
+  // NOTE sum_re_phi_rms => convergence check (to be performed by caller)
+  // NOTE sum_im_phi_xyz => sanity check      (to be performed by caller)
+  double sum_re_phi_ms = 0.0;
+  double sum_im_phi = 0.0;
+  int rms_count = 0;
+
+  // Structure amplitude S2* from s2 = B*
+  EWD::cmplx cmplx_S2 = PUStructureAmplitude(s2).Conjugate();
+  double re_S2 = cmplx_S2._re;
+  double im_S2 = cmplx_S2._im;
+
+  // Compute k-component of potential acting on gridpoints
+  for (Index i = 0; i < grid.getBoxesSize(); ++i) {
+    GridBox &box = grid[i];
+    const std::vector<Eigen::Vector3d> &points = box.getGridPoints();
+    std::vector<double> &values = box.getPotentialValues();
+
+    // iterate over gridpoints
+    for (Index p = 0; p < box.size(); p++) {
+      Eigen::Vector3d gridpoint = points[p] * tools::conv::bohr2nm;
+      kr = k.dot(gridpoint);
+
+      coskr = cos(kr);
+      sinkr = sin(kr);
+
+      // Real component
+      double phi = rV * AK * (coskr * re_S2 - sinkr * im_S2);
+      values[p] += phi* tools::conv::nm2bohr;
+
+      // Imaginary component (error check)
+      double iphi = rV * AK * (coskr * im_S2 + sinkr * re_S2);
+
+      rms_count += 1;
+      sum_re_phi_ms += phi * phi;
+      sum_im_phi += iphi;
+    }
+  }
+
+  sum_re_phi_ms /= rms_count;
+
+  // NOTE sum_re_phi_rms => convergence check (to be performed by caller)
+  // NOTE sum_im_phi     => sanity check      (to be performed by caller)
+  return EWD::cmplx(sum_re_phi_ms, sum_im_phi);
+}
+
 EWD::cmplx EwdInteractor::PhiP12_AS1S2_At_By(const vec &k,
                                              std::vector<PolarSeg *> &s1,
                                              std::vector<PolarSeg *> &s2,

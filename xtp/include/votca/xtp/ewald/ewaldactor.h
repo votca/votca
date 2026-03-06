@@ -224,6 +224,8 @@ class EwdInteractor {
   // Potentials
   EWD::cmplx PhiPU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg *> &s1,
                                  std::vector<PolarSeg *> &s2, double &rV);
+  EWD::cmplx PhiPU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg *> &s1,Vxc_Grid &grid,
+                                 std::vector<PolarSeg *> &s2, double &rV);
   EWD::cmplx PhiP12_AS1S2_At_By(const vec &k, std::vector<PolarSeg *> &s1,
                                 std::vector<PolarSeg *> &s2, double &rV);
   EWD::cmplx PhiU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg *> &s1,

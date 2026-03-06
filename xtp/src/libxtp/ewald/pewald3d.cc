@@ -1786,7 +1786,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum_Grid(
   _potential_converged_K = false;
   double rV = 1. / _LxLyLz;
 
-  /*
+  
   // TWO COMPONENTS ZERO, ONE NON-ZERO
   XTP_LOG(Log::info, *_log)
       << std::flush << "K-lines through origin: Checking K resonances"
@@ -1794,7 +1794,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum_Grid(
   for (kvit = _kvecs_2_0.begin(); kvit < _kvecs_2_0.end(); ++kvit) {
     EWD::KVector kvec = *kvit;
     EWD::cmplx f_as1s2 =
-        _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), target, _bg_P, rV);
+        _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), target, grid, _bg_P, rV);
     sum_re += sqrt(f_as1s2._re);
     sum_im += f_as1s2._im;
   }
@@ -1820,7 +1820,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum_Grid(
       EWD::KVector kvec = *kvit;
       if (kvec.getGrade() < crit_grade) break;
       EWD::cmplx f_as1s2 =
-          _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), target, _bg_P, rV);
+          _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), target, grid, _bg_P, rV);
       sum_re += f_as1s2._re;
       sum_im += f_as1s2._im;
       shell_rms += f_as1s2._re;
@@ -1866,7 +1866,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum_Grid(
       EWD::KVector kvec = *kvit;
       if (kvec.getGrade() < crit_grade) break;
       EWD::cmplx f_as1s2 =
-          _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), target, _bg_P, rV);
+          _ewdactor.PhiPU12_AS1S2_At_By(kvec.getK(), target, grid, _bg_P, rV);
       sum_re += f_as1s2._re;
       sum_im += f_as1s2._im;
       shell_rms += f_as1s2._re;
@@ -1904,7 +1904,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum_Grid(
         << std::flush;
   else
     ;
-*/
+
   return;
 }
 
