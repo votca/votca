@@ -1917,33 +1917,42 @@ void PEwald3D3D::Potential_CalculateForegroundCorrection_Grid(
   std::vector<APolarSite *>::iterator pit1;
   std::vector<PolarSeg *>::iterator sit2;
   std::vector<APolarSite *>::iterator pit2;
-  /*
+  
     double rms = 0.0;
     int rms_count = 0;
-    for (sit1 = target.begin(); sit1 < target.end(); ++sit1) {
-      for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
-        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+
+    // evaluate at all points of the grid, going over boxes first
+      for (Index i = 0; i < grid.getBoxesSize(); ++i) {
+        GridBox &box = grid[i];
+        const std::vector<Eigen::Vector3d> &points = box.getGridPoints();
+        std::vector<double> &values = box.getPotentialValues();
+
+        // iterate over gridpoints
+        for (Index p = 0; p < box.size(); p++) {
+            for (sit2 = _fg_N.begin(); sit2 < _fg_N.end(); ++sit2) {
           for (pit2 = (*sit2)->begin(); pit2 < (*sit2)->end(); ++pit2) {
-            rms += _ewdactor.PhiPU12_ERF_At_By(*(*pit1), *(*pit2));
+            double phi = _ewdactor.PhiPU12_ERF_At_By(points[p] * tools::conv::bohr2nm , *(*pit2));
+            rms -= phi;
+            values[p] += phi *  tools::conv::nm2bohr;
             rms_count += 1;
           }
         }
       }
     }
     rms = sqrt(rms / rms_count) * int2eV;
-  */
+  
   return;
 }
 
 void PEwald3D3D::Potential_CalculateShapeCorrection_Grid(
     std::vector<PolarSeg *> &target, Vxc_Grid &grid) {
-  /* XTP_LOG(Log::debug, *_log)
+   XTP_LOG(Log::debug, *_log)
       << std::flush << "Potential correction terms" << std::flush;
   XTP_LOG(Log::debug, *_log) << "  o Shape-correction to potentials, using '"
                              << _shape << "'" << std::flush;
 
-  _ewdactor.PhiPU12_ShapeField_At_By(target, _bg_P, _shape, _LxLyLz);
-  */
+  _ewdactor.PhiPU12_ShapeField_At_By(target, grid, _bg_P, _shape, _LxLyLz);
+  
   return;
 }
 
