@@ -13,7 +13,6 @@
  * limitations under the License.
  *
  */
-#include "xtp_libint2.h"
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE aomatrix_test
@@ -25,6 +24,7 @@
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/orbitals.h"
 #include <votca/tools/eigenio_matrixmarket.h>
+#include "xtp_libint2.h"
 
 using namespace votca::xtp;
 using namespace votca;
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(aomatrices_test) {
       std::string(XTP_TEST_DATA_FOLDER) + "/aomatrix/kinetic_ref.mm");
 
   bool check_kinetic = kinetic.Matrix().isApprox(kinetic_ref, 0.00001);
-  BOOST_CHECK_EQUAL(check_kinetic, 1);
+  BOOST_CHECK_EQUAL(check_kinetic, true);
   if (!check_kinetic) {
     cout << "ref" << endl;
     cout << kinetic_ref << endl;
