@@ -6,7 +6,7 @@ using boost::format;
 namespace votca {
 namespace xtp {
 
-XJob::XJob(int id, std::string tag, std::vector<Segment *> &qmSegs,
+XJob::XJob(int id, std::string tag, std::vector<const Segment *> &qmSegs,
            std::vector<std::string> &qmSegsState, const Topology *top)
     :
 
@@ -70,7 +70,7 @@ void XJob::CalcCenterPos() {
   // Calc. center
   for (unsigned int i = 0; i < _qmSegs.size(); ++i) {
 
-    Segment *seg = _qmSegs[i];
+    const Segment *seg = _qmSegs[i];
     vec pbc_com = refPt + _top->PbShortestConnect(refPt, seg->getPos());
 
     center += seg->size() * pbc_com;
@@ -251,7 +251,7 @@ std::vector<XJob *> XJOBS_FROM_TABLE<std::vector<XJob *>, XJob *>(
   if (intt.is_open()) {
     while (intt.good()) {
 
-      std::vector<Segment *> qmSegs;
+      std::vector<const Segment *> qmSegs;
       std::vector<std::string> qmSegMps;
 
       std::getline(intt, line);

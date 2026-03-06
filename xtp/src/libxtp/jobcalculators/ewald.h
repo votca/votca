@@ -228,7 +228,7 @@ void Ewald<EwaldMethod>::WriteJobFile(const Topology &top) {
 template <class EwaldMethod>
 XJob Ewald<EwaldMethod>::ProcessInputString(Job &job, const Topology &top) {
 
-  std::vector<Segment *> qmSegs;
+  std::vector<const Segment *> qmSegs;
   std::vector<std::string> qmSegsState;
 
   // split <segments> tag at space
@@ -236,13 +236,13 @@ XJob Ewald<EwaldMethod>::ProcessInputString(Job &job, const Topology &top) {
       tools::Tokenizer(job.getInput().get("segments").as<std::string>(), " ")
           .ToVector();
 
-  for (auto segment : segments) {
+  for (const auto& segment : segments) {
     // now split each at :
     std::vector<std::string> split_segment =
         tools::Tokenizer(segment, ":").ToVector();
     Index segId = std::stoi(split_segment[0]);
-    Segment seg = top.getSegment(segId);
-    qmSegs.push_back(&seg);
+    //Segment seg = top.getSegment(segId);
+    qmSegs.push_back(&top.getSegment(segId));
     qmSegsState.push_back(segment);
   }
 

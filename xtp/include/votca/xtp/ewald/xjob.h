@@ -30,7 +30,7 @@ typedef Eigen::Matrix3d matrix;
 
 class XJob {
  public:
-  XJob(int id, std::string tag, std::vector<Segment *> &qmSegs,
+  XJob(int id, std::string tag, std::vector<const Segment *> &qmSegs,
        std::vector<std::string> &qmSegsState, const Topology *top);
 
   XJob(PolarTop *ptop, bool start_from_cpt);
@@ -39,7 +39,7 @@ class XJob {
 
   int getId() { return _id; }
   std::string getTag() { return _tag; }
-  std::vector<Segment *> &getSegments() { return _qmSegs; }
+  std::vector<const Segment *> &getSegments() { return _qmSegs; }
   std::vector<std::string> &getSegsState() { return _qmSegsState; }
   const Topology *getTop() { return _top; }
   PolarTop *getPolarTop() { return _ptop; }
@@ -137,7 +137,7 @@ class XJob {
   const Topology *_top;
 
   bool _start_from_cpt;
-  std::vector<Segment *> _qmSegs;
+  std::vector<const Segment *> _qmSegs;
   std::vector<std::string> _qmSegsState;
   vec _center;
   std::map<int, bool> _isSegInCenter;
@@ -202,7 +202,7 @@ inline bool XJob::isWithinDist(const vec &pt, double dist, Topology *top) {
   bool inCenter = false;
 
   for (unsigned int i = 0; i < _qmSegs.size(); ++i) {
-    Segment *seg = _qmSegs[i];
+    const Segment *seg = _qmSegs[i];
     double dR = (top->PbShortestConnect(seg->getPos(), pt)).norm();
     if (dR <= dist) {
       inCenter = true;
