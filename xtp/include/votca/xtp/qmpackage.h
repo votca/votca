@@ -101,6 +101,8 @@ class QMPackage {
 
   std::string getMOFile() const { return mo_file_name_; };
 
+  void setEwaldgrid( const Vxc_Grid& ewaldgrid ){ ewaldgrid_ = ewaldgrid; has_ewaldgrid_ = true;};
+
  protected:
   virtual void ParseSpecificOptions(const tools::Property& options) = 0;
   struct MinimalMMCharge {
@@ -142,6 +144,9 @@ class QMPackage {
   Logger* pLog_;
 
   std::vector<std::unique_ptr<StaticSite> > externalsites_;
+
+  Vxc_Grid ewaldgrid_; 
+  bool has_ewaldgrid_ = false;
 };
 
 }  // namespace xtp

@@ -39,6 +39,7 @@
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/pmlocalization.h"
+#include "votca/xtp/ewald/ewald_potential.h"
 
 namespace votca {
 namespace xtp {
@@ -468,6 +469,21 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
         << TimeStamp() << " Integrating external electric field with F[Hrt]="
         << extfield_.transpose() << std::flush;
     H0 += IntegrateExternalField(mol);
+  }
+
+  if (has_ewaldgrid_){
+        XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Integrating external Ewald Potential" << std::flush;
+        Vxc_Grid ewaldgrid;
+        ewaldgrid.GridSetup(grid_name_, mol, dftbasis_);
+        // make sure the Potential values are copied from the external ewald grid to this one
+        for (Index i = 0; i < ewaldgrid.getBoxesSize(); ++i) {
+          GridBox &box = ewaldgrid[i];
+          std::vector<double> &values = box.getPotentialValues();
+          values = external_ewaldgrid_[i].getPotentialValues();
+        }
+        Ewald_Potential<Vxc_Grid> EwaldIntegration(ewaldgrid);
+        H0+= EwaldIntegration.IntegrateEwald(dftbasis_.AOBasisSize()).matrix();
   }
 
   return Mat_p_Energy(E0, H0);

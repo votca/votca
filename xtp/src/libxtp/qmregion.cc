@@ -119,6 +119,7 @@ void QMRegion::PrepareEwaldPotentialGrid(const tools::Property& prop) {
   XTP_LOG(Log::error, log_) << TimeStamp()
       << " Constructed Grid for Integration of Ewald Potential" << std::flush;
   //Vxc_Potential<Vxc_Grid> vxc(grid);
+  is_qmewald_ = true;
   return;
 }
 
@@ -164,6 +165,16 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   qmpackage_->setCharge(crg);
   qmpackage_->setRunDir(workdir_);
   qmpackage_->WriteInputFile(orb_);
+
+  // attach ewaldgrid to xtpdft
+  if (is_qmewald_){
+    if (qmpackage_->getPackageName() == "xtp" ) {
+      qmpackage_->setEwaldgrid(ewaldgrid_);
+    } else {
+      throw std::runtime_error(
+          "QMEwald can only run with XTP as qmpackage.");
+    }
+  }
 
   XTP_LOG(Log::error, log_) << "Running DFT calculation" << std::flush;
   bool run_success = qmpackage_->Run();

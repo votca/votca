@@ -56,6 +56,8 @@ class DFTEngine {
     externalsites_ = externalsites;
   }
 
+  void setEwaldgrid(const Vxc_Grid& ewaldgrid) { external_ewaldgrid_ = ewaldgrid; has_ewaldgrid_ = true; }
+
   bool Evaluate(Orbitals& orb);
 
   bool EvaluateActiveRegion(Orbitals& orb);
@@ -185,6 +187,10 @@ class DFTEngine {
   double truncation_threshold_;
   std::vector<Index> active_and_border_atoms_;
   std::vector<Index> numfuncpatom_;
+
+  //QMEwald
+  Vxc_Grid external_ewaldgrid_;
+  bool has_ewaldgrid_ = false;
 };
 
 }  // namespace xtp

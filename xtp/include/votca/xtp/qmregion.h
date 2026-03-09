@@ -118,6 +118,7 @@ class QMRegion : public Region {
 
   // for QMEwald
   Vxc_Grid ewaldgrid_;
+  bool is_qmewald_ = false;
 };
 
 }  // namespace xtp

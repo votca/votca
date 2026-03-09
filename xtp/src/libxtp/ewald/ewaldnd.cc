@@ -1450,7 +1450,7 @@ void Ewald3DnD::Evaluate() {
     qmregion->PrepareEwaldPotentialGrid(_qmregion_def);
 
     // Access the constructed grid as a copy, is now in Bohr!
-    std::vector<Eigen::Vector3d> ewald_gridpoints = qmregion->copyEwaldGrid();
+    //std::vector<Eigen::Vector3d> ewald_gridpoints = qmregion->copyEwaldGrid();
     Vxc_Grid& ewaldgrid = qmregion->getEwaldGrid();
     //std::cout << ewald_gridpoints[0] << std::endl;
 
@@ -1463,7 +1463,7 @@ void Ewald3DnD::Evaluate() {
           << TimeStamp() << " Evaluating Ewald Potential" << std::flush;
     EvaluatePotentialGrid(_polar_qm0,ewaldgrid, add_bg, add_mm1, add_qm0);
 
-    // Hand over the ewaldgrid with the potential values to the QMregion
+    // ewaldgrid is in the QMregion, needs to hand this over to xtpdft
 
 
     XTP_LOG(Log::error, *_log)
