@@ -73,8 +73,15 @@ if(ENABLE_WARNING_FLAGS)
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-conversion")
   endif()
+  # ignore c2y-extentions warnings on newer clang, this is mostly in boost
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 22)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=c2y-extensions")
+  endif()
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel") #only icpc, not icpx
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcheck -Wno-sign-conversion")
+  endif()
+  if(APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|i386)$" AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=shorten-64-to-32 -Wno-error=sign-compare -Wno-error=implicit-float-conversion")
   endif()
   # allow adding extra warning flags at the very end
   if(VOTCA_EXTRA_WARNING_FLAGS)
