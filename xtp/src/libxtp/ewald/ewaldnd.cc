@@ -1449,17 +1449,6 @@ void Ewald3DnD::Evaluate() {
     qmregion->Initialize(_qmregion_def);
     qmregion->PrepareEwaldPotentialGrid(_qmregion_def);
 
-        for (std::vector<PolarSeg *>::iterator sit = _polar_mm1.begin();
-         sit < _polar_qm0.end(); ++sit) {
-
-              for (std::vector<APolarSite *>::iterator pit = (*sit)->begin(); pit != (*sit)->end(); ++pit ){
-            std::cout << (*pit)->getRank() << std::endl;
-
-          }
-        }
-
-
-
     // Access the constructed grid as a copy, is now in Bohr!
     std::vector<Eigen::Vector3d> ewald_gridpoints = qmregion->copyEwaldGrid();
     Vxc_Grid& ewaldgrid = qmregion->getEwaldGrid();
@@ -1469,15 +1458,17 @@ void Ewald3DnD::Evaluate() {
     // EvaluateInduction QMMM was not called!
     bool add_bg = true;
     bool add_mm1 = true;
-    bool add_qm0 = false;
+    bool add_qm0 = false; // we want he field from BG and MM1 on QM0
     XTP_LOG(Log::error, *_log)
           << TimeStamp() << " Evaluating Ewald Potential" << std::flush;
     EvaluatePotentialGrid(_polar_qm0,ewaldgrid, add_bg, add_mm1, add_qm0);
 
+    // Hand over the ewaldgrid with the potential values to the QMregion
+
 
     XTP_LOG(Log::error, *_log)
           << TimeStamp() << " Evaluating QMRegion" << std::flush;
-    qmregion->Reset();
+    qmregion->Reset(); // check what this does
 
     // try QMregion evaluation
     std::vector<std::unique_ptr<Region> > regions_; // to make Evaluate happy
@@ -2312,7 +2303,6 @@ void Ewald3DnD::EvaluatePotential(std::vector<PolarSeg *> &target, bool add_bg,
       (*pit)->ResetPhi(true, true);
     }
   }
-
   // APERIODIC-PERIODIC BACKGROUND
   if (add_bg) {
     // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
@@ -2398,72 +2388,69 @@ void Ewald3DnD::EvaluatePotentialGrid(std::vector<PolarSeg *> &target,Vxc_Grid &
   }
 
   // APERIODIC-PERIODIC BACKGROUND
+  // target in QM0!
+
   if (add_bg) {
-    // REAL-SPACE CONTRIBUTION (3D2D && 3D3D)
+    // REAL-SPACE CONTRIBUTION (3D2D && 3D3D) -> via MIDGROUND
     Potential_ConvergeRealSpaceSum_Grid(target,grid);
 
-    // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D)
+    // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D) -> Kvec criterion based on FGC-BGP interaction
     Potential_ConvergeReciprocalSpaceSum_Grid(target,grid);
 
     // SHAPE-CORRECTION (3D3D)/ K0-CORRECTION (3D2D)
     Potential_CalculateShapeCorrection_Grid(target,grid);
 
     // FOREGROUND CORRECTION (3D2D && 3D3D)
+    // REMOVES THE POTENTIAL CREATED BY THE NEUTRAL(!) FGN (QM0 u MM1)
     Potential_CalculateForegroundCorrection_Grid(target,grid);
   }
 
   // FOREGROUND EXCLUDING QM
-  /*if (add_mm1) {
+  // MM1 potential is inserted now with the actual charge state
+  if (add_mm1) {
     std::vector<PolarSeg *>::iterator sit1;
     std::vector<APolarSite *>::iterator pit1;
-    std::vector<PolarSeg *>::iterator sit2;
-    std::vector<APolarSite *>::iterator pit2;
     for (sit1 = _polar_mm1.begin(); sit1 != _polar_mm1.end(); ++sit1) {
       PolarSeg *pseg1 = *sit1;
-      for (sit2 = target.begin(); sit2 != target.end(); ++sit2) {
-        PolarSeg *pseg2 = *sit2;
-        if (pseg1 == pseg2) assert(false);
-        for (pit1 = pseg1->begin(); pit1 != pseg1->end(); ++pit1) {
-          for (pit2 = pseg2->begin(); pit2 != pseg2->end(); ++pit2) {
-            _actor.BiasIndu(*(*pit2), *(*pit1));
-            _actor.Potential_At_By(*(*pit2), *(*pit1));
+      for (pit1 = pseg1->begin(); pit1 != pseg1->end(); ++pit1) {
+      // evaluate at all points of the grid, going over boxes first
+      for (Index i = 0; i < grid.getBoxesSize(); ++i) {
+        GridBox &box = grid[i];
+        const std::vector<Eigen::Vector3d> &points = box.getGridPoints();
+        std::vector<double> &values = box.getPotentialValues();
+        // iterate over gridpoints
+        for (Index p = 0; p < box.size(); p++) {
+            values[p]+=_actor.Potential_At_By(points[p]* tools::conv::bohr2nm, *(*pit1)) * tools::conv::nm2bohr;
           }
         }
       }
     }
   }
 
+ 
   // FOREGROUND EXCLUDING MM
   if (add_qm0) {
     std::vector<PolarSeg *>::iterator sit1;
     std::vector<APolarSite *>::iterator pit1;
-    std::vector<PolarSeg *>::iterator sit2;
-    std::vector<APolarSite *>::iterator pit2;
     for (sit1 = _polar_qm0.begin(); sit1 != _polar_qm0.end(); ++sit1) {
       PolarSeg *pseg1 = *sit1;
-      for (sit2 = target.begin(); sit2 != target.end(); ++sit2) {
-        PolarSeg *pseg2 = *sit2;
-        if (pseg1 == pseg2) assert(false);
-        for (pit1 = pseg1->begin(); pit1 != pseg1->end(); ++pit1) {
-          for (pit2 = pseg2->begin(); pit2 != pseg2->end(); ++pit2) {
-            _actor.BiasIndu(*(*pit2), *(*pit1));
-            _actor.Potential_At_By(*(*pit2), *(*pit1));
+      for (pit1 = pseg1->begin(); pit1 != pseg1->end(); ++pit1) {
+      // evaluate at all points of the grid, going over boxes first
+      for (Index i = 0; i < grid.getBoxesSize(); ++i) {
+        GridBox &box = grid[i];
+        const std::vector<Eigen::Vector3d> &points = box.getGridPoints();
+        std::vector<double> &values = box.getPotentialValues();
+        // iterate over gridpoints
+        for (Index p = 0; p < box.size(); p++) {
+            values[p]+=_actor.Potential_At_By(points[p]* tools::conv::bohr2nm, *(*pit1)) * tools::conv::nm2bohr;
           }
         }
       }
     }
-  }*/
-
-  double q_phi = 0.0;
-  for (sit = _polar_qm0.begin(); sit < _polar_qm0.end(); ++sit) {
-    PolarSeg *pseg = *sit;
-    for (pit = pseg->begin(); pit < pseg->end(); ++pit) {
-      q_phi += (*pit)->getQ00() * (*pit)->getPhi();
-    }
   }
 
   XTP_LOG(Log::info, *_log)
-      << std::flush << "Potential q*phi " << q_phi * int2eV << std::flush;
+      << std::flush << "Potential calculated on numerical integration grid " << std::flush;
 
   return;
 }

@@ -81,6 +81,8 @@ class XInteractor {
 
   inline double PotentialPerm(vec r, APolarSite &pol);
   inline void Potential_At_By(APolarSite &at, APolarSite &by);
+  inline double Potential_At_By(const vec &r, APolarSite &by);
+
   inline void PotentialPerm_At_By(APolarSite &at, APolarSite &by);
   inline void PotentialIndu_At_By(APolarSite &at, APolarSite &by);
   inline double EnergyInter_Indu_Perm(APolarSite &pol1, APolarSite &pol2);
@@ -115,6 +117,8 @@ class XInteractor {
   //    &, vector<PolarSite*> &);
 
   inline void BiasIndu(APolarSite &pol1, APolarSite &pol2);
+  inline void BiasIndu(const vec &r, APolarSite &pol2);
+
   inline void BiasStat(APolarSite &pol1, APolarSite &pol2);
   inline void BiasIndu(APolarSite &pol1, APolarSite &pol2, vec &s);
   inline void BiasStat(APolarSite &pol1, APolarSite &pol2, vec &s);
@@ -847,6 +851,40 @@ inline void XInteractor::Potential_At_By(APolarSite &pol1, APolarSite &pol2) {
 
   return;
 }
+
+
+inline double XInteractor::Potential_At_By(const vec &r, APolarSite &pol2){
+
+ BiasIndu(r , pol2);
+
+  double phi_p = 0.0;
+  double phi_u = 0.0;
+
+  phi_p += T00_00() * pol2.Q00;
+
+  if (pol2._rank > 0) {
+    phi_p += T00_1x() * pol2.Q1x;
+    phi_p += T00_1y() * pol2.Q1y;
+    phi_p += T00_1z() * pol2.Q1z;
+  }
+
+  if (pol2._rank > 1) {
+    phi_p += T00_20() * pol2.Q20;
+    phi_p += T00_21c() * pol2.Q21c;
+    phi_p += T00_21s() * pol2.Q21s;
+    phi_p += T00_22c() * pol2.Q22c;
+    phi_p += T00_22s() * pol2.Q22s;
+  }
+
+
+    phi_u += T00_1x() * pol2.U1x;
+    phi_u += T00_1y() * pol2.U1y;
+    phi_u += T00_1z() * pol2.U1z;
+
+  return phi_p + phi_u;
+
+}
+
 
 inline void XInteractor::PotentialPerm_At_By(APolarSite &pol1,
                                              APolarSite &pol2) {
@@ -3430,6 +3468,40 @@ inline void XInteractor::BiasStat(APolarSite &pol1, APolarSite &pol2) {
     plambda3 = plambda5 = plambda7 = plambda9 = 1.;
   }
 }
+
+inline void XInteractor::BiasIndu(const vec &r, APolarSite &p2){
+
+  e12 = r - p2.getPos();
+  R = 1 / e12.norm();
+  R2 = R * R;
+  R3 = R2 * R;
+  R4 = R3 * R;
+  R5 = R4 * R;
+  e12 *= R;
+
+  rax = e12(0);
+  rbx = -rax;
+  ray = e12(1);
+  rby = -ray;
+  raz = e12(2);
+  rbz = -raz;
+
+  cxx = 1;
+  cxy = 0;
+  cxz = 0;
+  cyx = 0;
+  cyy = 1;
+  cyz = 0;
+  czx = 0;
+  czy = 0;
+  czz = 1;
+
+  // Thole damping omitted 
+  lambda3 = lambda5 = lambda7 = lambda9 = 1.;
+  plambda3 = plambda5 = plambda7 = plambda9 = 1.;
+  return;
+}
+
 
 inline void XInteractor::BiasIndu(APolarSite &pol1, APolarSite &pol2) {
 
