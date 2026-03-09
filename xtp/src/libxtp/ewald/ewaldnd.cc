@@ -1401,30 +1401,10 @@ void Ewald3DnD::Evaluate() {
     //   segment with new permanent charges
     XTP_LOG(Log::debug, *_log) << std::flush << "Ewald QMMM:" << std::flush;
 
-    /*
-      if (_is_qmewald) {
-    // check if the first FGC/QM0 segement has numerical grid
-    if (!(*_polar_qm0.begin())->hasGrid()) {
-      std::cout << "QMEWALD WITHOUT GRID IMPOSSIBLE" << std::flush;
-      exit(0);
-    }
-    // TEST Get VXCgrid?
-    // Vxc_Grid thegrid = (*_fg_N.begin())->getGrid();
-    // std::cout << thegrid.getGridpoints().size() << std::flush;
-  }
-    */
-
-    // attach a DFT numerical integration grid to the target PolarSeg
     // check for units (Bohr in VxcGrid vs nm (?) in PolarSeg)
     // first only single PolarSegment, not sure how to deal with an integration
-    // grid for more than one (merge?)
 
-    // we have QM0 region
-    // -> make that a single QMMolecule
-    // -> generate that VXC integration grid
-    // -> use QMregion or dftengine after EvaluateQMMM?
-
-    // create a QMregion
+    // create a QMregion from QM0
     std::string qmmm_work_dir = "QMEWALD";
     std::string frame_dir =
         "frame_" + boost::lexical_cast<std::string>(_top->getStep());
@@ -1450,12 +1430,12 @@ void Ewald3DnD::Evaluate() {
     qmregion->PrepareEwaldPotentialGrid(_qmregion_def);
 
     // Access the constructed grid as a copy, is now in Bohr!
-    //std::vector<Eigen::Vector3d> ewald_gridpoints = qmregion->copyEwaldGrid();
     Vxc_Grid& ewaldgrid = qmregion->getEwaldGrid();
-    //std::cout << ewald_gridpoints[0] << std::endl;
 
-    // evaluate the static Ewald background potential at the gridpoints
-    // EvaluateInduction QMMM was not called!
+    // evaluate the 1st QMMM induction step using an MM copy of the QM0 region
+    EvaluateInductionQMMM(true, true, true, true, true);
+
+    // evaluate the Ewald background potential after Induction step at the gridpoints
     bool add_bg = true;
     bool add_mm1 = true;
     bool add_qm0 = false; // we want he field from BG and MM1 on QM0
@@ -1463,54 +1443,17 @@ void Ewald3DnD::Evaluate() {
           << TimeStamp() << " Evaluating Ewald Potential" << std::flush;
     EvaluatePotentialGrid(_polar_qm0,ewaldgrid, add_bg, add_mm1, add_qm0);
 
-    // ewaldgrid is in the QMregion, needs to hand this over to xtpdft
-
-
     XTP_LOG(Log::error, *_log)
           << TimeStamp() << " Evaluating QMRegion" << std::flush;
     qmregion->Reset(); // check what this does
 
-    // try QMregion evaluation
+    // QMregion evaluation uses the Ewald potential on a numerical grid
     std::vector<std::unique_ptr<Region> > regions_; // to make Evaluate happy
     qmregion->Evaluate(regions_);
 
+    // calculate the field of the QM region at the MM1 polar sites
 
 
-
-//    region = std::move(qmregion);
-//    region->Initialize(_qmregion_def);
-
-//    regions_.push_back(std::move(region));
-
-    // stupid constuct for accessing the QMRegion after std::move
-//    for (std::unique_ptr<Region> &reg : regions_) {
-//      XTP_LOG(Log::error, *_log)
- //         << TimeStamp() << " Evaluating " << reg->identify() << " "
- //         << reg->getId() << std::flush;
-//      reg->Reset();
-//      reg->Evaluate(regions_);
-//    }
-    // PolarSeg* qm_segment = *(xjob.getPolarTop()->FGC().begin());
-    // PolarSeg *qm_segment = *(_polar_qm0.begin());
-
-    // make a QMMolecule from the PolarSeg
-    // QMMolecule qm_molecule = QMMolecule("", 0);
-    // units in QMMolecule are Bohr, in PolarSeg nanometers!
-    // qm_molecule.FromPolarSegment(qm_segment);
-    // qm_molecule.WriteXYZ("test.xyz", "transformed polarseg");
-    /*Vxc_Grid grid;
-    std::string grid_name = "medium";  // TODO from OPTIONS
-    BasisSet basis;
-    basis.Load("def2-svp");
-    AOBasis aobasis;
-    aobasis.Fill(basis, qm_molecule);
-    grid.GridSetup(grid_name, qm_molecule, aobasis);
-    XTP_LOG(Log::info, *_log)
-        << "Created numerical integration grid for QM Segment " << std::flush;
-    // attached qm_grid is in BOHR!!!!
-    qm_segment->setGrid(grid);
-    */
-    // exit(0);
     // EvaluateInductionQMMM(true, true, true, true, true);
   }
 

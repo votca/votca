@@ -1678,7 +1678,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum_Grid(
     this->SetupMidground(R_max);
 
 
-    // FOR EACH FOREGROUND SEGMENT (FGC) ...
+    // FOR EACH target SEGMENT ...
     unsigned int energy_converged_count = 0;
     for (sit1 = target.begin(); sit1 != target.end(); ++sit1) {
       (*sit1)->ClearPolarNbs();
