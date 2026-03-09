@@ -1,6 +1,9 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
+Version 2026-dev
+================
+
 Version 2026 (released 09.03.26)
 ================================
 
