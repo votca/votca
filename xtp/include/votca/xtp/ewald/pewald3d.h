@@ -55,6 +55,10 @@ class PEwald3D3D : public Ewald3DnD {
   void Potential_CalculateForegroundCorrection(std::vector<PolarSeg *> &target);
   void Potential_CalculateShapeCorrection(std::vector<PolarSeg *> &target);
 
+  void Moments_ConvergeRealSpaceSum(std::vector<PolarSeg *> &target, ewaldcontainer::PotentialData &data);
+  void Moments_ConvergeReciprocalSpaceSum(std::vector<PolarSeg *> &target,ewaldcontainer::PotentialData &data);
+  void Moments_CalculateForegroundCorrection(std::vector<PolarSeg *> &target, ewaldcontainer::PotentialData &data);
+  void Moments_CalculateShapeCorrection(std::vector<PolarSeg *> &target, ewaldcontainer::PotentialData &data);
 
   void Potential_ConvergeRealSpaceSum_Grid(std::vector<PolarSeg *> &target,Vxc_Grid &grid);//, std::vector<const Eigen::Vector3d*> &gridpoints);
   void Potential_ConvergeReciprocalSpaceSum_Grid(std::vector<PolarSeg *> &target,Vxc_Grid &grid);

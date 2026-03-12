@@ -33,6 +33,8 @@
 #include "staticsite.h"
 #include "vxc_grid.h"
 #include "vxc_potential.h"
+#include <votca/xtp/ewald/ewaldcontainer.h>
+
 namespace votca {
 namespace xtp {
 class Orbitals;
@@ -65,6 +67,68 @@ class DFTEngine {
 
   std::string getDFTBasisName() const { return dftbasis_name_; };
 
+// =========== EWALD MOMENTS SETTER AND ACCESS ==========
+// +++++++++++ BACKGROUND +++++++++++++++++++++++++++++++
+ void setEwaldBackground(ewaldcontainer::PotentialData& bg) {
+    ewald_background_ = &bg;
+    has_ewaldbackground_ = true;
+  }
+
+  ewaldcontainer::PotentialData& ewaldBackground() {
+    assert(ewald_background_ != nullptr);
+    return *ewald_background_;
+  }
+
+  const ewaldcontainer::PotentialData& ewaldBackground() const {
+    assert(ewald_background_ != nullptr);
+    return *ewald_background_;
+  }
+
+// +++++++++++ FOREGROUND CORRECTION ++++++++++++++++++++++
+ void setEwaldForegroundCorrection(ewaldcontainer::PotentialData& fg_corr) {
+    ewald_foreground_correction_ = &fg_corr;
+  }
+
+  ewaldcontainer::PotentialData& ewaldForegroundCorrection() {
+    assert(ewald_foreground_correction_ != nullptr);
+    return *ewald_foreground_correction_;
+  }
+
+  const ewaldcontainer::PotentialData& ewaldForegroundCorrection() const {
+    assert(ewald_foreground_correction_ != nullptr);
+    return *ewald_foreground_correction_;
+  }
+
+// +++++++++++ SHAPE CORRECTION +++++++++++++++++++++++++++
+ void setEwaldShapeCorrection(ewaldcontainer::PotentialData& shape_corr) {
+    ewald_shape_correction_ = &shape_corr;
+  }
+
+  ewaldcontainer::PotentialData& ewaldShapeCorrection() {
+    assert(ewald_shape_correction_ != nullptr);
+    return *ewald_shape_correction_;
+  }
+
+  const ewaldcontainer::PotentialData& ewaldShapeCorrection() const {
+    assert(ewald_shape_correction_ != nullptr);
+    return *ewald_shape_correction_;
+  }
+
+  // +++++++++++ MM1 REGION +++++++++++++++++++++++++++
+ void setEwaldMM1(ewaldcontainer::PotentialData& mm1) {
+    ewald_mm1_ = &mm1;
+  }
+
+  ewaldcontainer::PotentialData& ewaldMM1() {
+    assert(ewald_mm1_ != nullptr);
+    return *ewald_mm1_;
+  }
+
+  const ewaldcontainer::PotentialData& ewaldMM1() const {
+    assert(ewald_mm1_ != nullptr);
+    return *ewald_mm1_;
+  }
+
  private:
   void Prepare(Orbitals& orb, Index numofelectrons = -1);
 
@@ -91,6 +155,12 @@ class DFTEngine {
       const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
   Mat_p_Energy IntegrateExternalDensity(const QMMolecule& mol,
                                         const Orbitals& extdensity) const;
+
+Mat_p_Energy IntegrateEwaldRealSpaceMultipoles(
+    const ewaldcontainer::PotentialData& bg) const;
+
+Mat_p_Energy IntegrateForegroundCorrectionMultipoles(const ewaldcontainer::PotentialData& fgc) const;
+Mat_p_Energy IntegrateShapeCorrection(const ewaldcontainer::PotentialData& data) const;
 
   Eigen::MatrixXd IntegrateExternalField(const QMMolecule& mol) const;
 
@@ -191,6 +261,12 @@ class DFTEngine {
   //QMEwald
   Vxc_Grid external_ewaldgrid_;
   bool has_ewaldgrid_ = false;
+
+  ewaldcontainer::PotentialData* ewald_background_ = nullptr;
+  bool has_ewaldbackground_ = false;
+  ewaldcontainer::PotentialData* ewald_foreground_correction_ = nullptr;
+  ewaldcontainer::PotentialData* ewald_shape_correction_ = nullptr;
+  ewaldcontainer::PotentialData* ewald_mm1_ = nullptr;
 };
 
 }  // namespace xtp

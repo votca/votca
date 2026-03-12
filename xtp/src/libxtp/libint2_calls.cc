@@ -150,6 +150,69 @@ std::array<MatrixLibInt, libint2::operator_traits<obtype>::nopers>
   return result;
 }
 
+
+template <libint2::Operator obtype,
+          typename OperatorParams =
+              typename libint2::operator_traits<obtype>::oper_params_type>
+std::vector<MatrixLibInt> computeOneBodyIntegralsDeriv1(
+    const AOBasis& aobasis, OperatorParams oparams = OperatorParams()) {
+
+#if !LIBINT2_DERIV_ONEBODY_ORDER
+  throw std::runtime_error(
+      "LIBINT was built without 1-body derivative support "
+      "(LIBINT2_DERIV_ONEBODY_ORDER == 0)");
+#else
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<libint2::Shell> shells = aobasis.GenerateLibintBasis();
+  std::vector<std::vector<Index>> shellpair_list = aobasis.ComputeShellPairs();
+  std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
+
+  // deriv_order = 1
+  std::vector<libint2::Engine> engines(nthreads);
+  engines[0] = libint2::Engine(obtype, aobasis.getMaxNprim(),
+                               static_cast<int>(aobasis.getMaxL()), 1);
+  engines[0].set_params(oparams);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
+  }
+
+  const size_t nshellsets = engines[0].nshellsets();
+  std::vector<MatrixLibInt> result(
+      nshellsets,
+      MatrixLibInt::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize()));
+
+#pragma omp parallel for schedule(dynamic)
+  for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
+    Index thread_id = OPENMP::getThreadId();
+    libint2::Engine& engine = engines[thread_id];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
+
+    Index bf1 = shell2bf[s1];
+    Index n1 = shells[s1].size();
+
+    for (Index s2 : shellpair_list[s1]) {
+      engine.compute(shells[s1], shells[s2]);
+      if (buf[0] == nullptr) {
+        continue;
+      }
+
+      Index bf2 = shell2bf[s2];
+      Index n2 = shells[s2].size();
+
+      for (size_t shset = 0; shset < nshellsets; ++shset) {
+        Eigen::Map<const MatrixLibInt> buf_mat(buf[shset], n1, n2);
+        result[shset].block(bf1, bf2, n1, n2) = buf_mat;
+        if (s1 != s2) {
+          result[shset].block(bf2, bf1, n2, n1) = buf_mat.transpose();
+        }
+      }
+    }
+  }
+
+  return result;
+#endif
+}
+
 /***********************************
  * KINETIC
  ***********************************/
@@ -212,6 +275,147 @@ void AODipole::Fill(const AOBasis& aobasis) {
     aomatrix_[i] = results[1 + i];  // emultipole1 returns: overlap, x-dipole,
                                     // y-dipole, z-dipole
   }
+}
+
+/***********************************
+ * EWALD SHAPE CORRECTION
+ ***********************************/
+void AOEwaldShapeCorrection::Fill(const AOBasis& aobasis) {
+  auto results = computeOneBodyIntegrals<libint2::Operator::emultipole1,
+                                         std::array<libint2::Shell::real_t, 3>>(
+      aobasis, r_);
+
+  for (Index i = 0; i < 4; i++) {
+    aomatrix_[i] = results[i];  // emultipole1 returns: overlap, x-dipole,
+                                    // y-dipole, z-dipole
+  }
+}
+
+/***********************************
+ * EWALD REAL-SPACE CHARGES
+ ***********************************/
+void AOEwaldRealSpaceCharges::Fill(const AOBasis& aobasis) {
+  if (eta_ <= 0.0) {
+    throw std::runtime_error("AOEwaldRealSpaceCharges: eta must be > 0");
+  }
+
+  using scalar_t = libint2::Shell::real_t;
+  constexpr auto oper_t = libint2::Operator::erfc_nuclear;
+
+  using charge_oper_params_t =
+      typename libint2::operator_traits<libint2::Operator::nuclear>::oper_params_type;
+  using oper_params_t =
+      typename libint2::operator_traits<oper_t>::oper_params_type;
+
+
+  charge_oper_params_t qparams;
+  qparams.reserve(charges_.size());
+
+  for (const auto& site : charges_) {
+    std::array<scalar_t, 3> xyz = {site.position[0], site.position[1], site.position[2]};
+    qparams.emplace_back(site.charge, xyz);
+  }
+
+  oper_params_t params = std::make_tuple(static_cast<scalar_t>(eta_), qparams);
+
+  aomatrix_ = computeOneBodyIntegrals<oper_t, oper_params_t>(aobasis, params)[0];
+}
+
+/***************************************
+ * EWALD FOREGROUND CORRECTIONS CHARGES
+ ***************************************/
+void AOEwaldForegroundCharges::Fill(const AOBasis& aobasis) {
+  if (eta_ <= 0.0) {
+    throw std::runtime_error("AOEwaldRealSpaceCharges: eta must be > 0");
+  }
+
+  using scalar_t = libint2::Shell::real_t;
+  constexpr auto oper_t = libint2::Operator::erf_nuclear;
+
+  using charge_oper_params_t =
+      typename libint2::operator_traits<libint2::Operator::nuclear>::oper_params_type;
+  using oper_params_t =
+      typename libint2::operator_traits<oper_t>::oper_params_type;
+
+
+  charge_oper_params_t qparams;
+  qparams.reserve(charges_.size());
+
+  for (const auto& site : charges_) {
+    std::array<scalar_t, 3> xyz = {site.position[0], site.position[1], site.position[2]};
+    qparams.emplace_back(site.charge, xyz);
+  }
+
+  oper_params_t params = std::make_tuple(static_cast<scalar_t>(eta_), qparams);
+
+  aomatrix_ = computeOneBodyIntegrals<oper_t, oper_params_t>(aobasis, params)[0];
+}
+
+/***********************************
+ * EWALD REAL-SPACE DIPOLES
+ ***********************************/
+void AOEwaldRealSpaceDipoles::Fill(const AOBasis& aobasis) {
+  if (eta_ <= 0.0) {
+    throw std::runtime_error("AOEwaldRealSpaceDipoles: eta must be > 0");
+  }
+
+#if !LIBINT2_DERIV_ONEBODY_ORDER
+  throw std::runtime_error(
+      "AOEwaldRealSpaceDipoles requires LIBINT 1-body derivative support");
+#else
+  using scalar_t = libint2::Shell::real_t;
+  using charge_oper_params_t =
+      typename libint2::operator_traits<libint2::Operator::nuclear>::oper_params_type;
+  using oper_params_t =
+      typename libint2::operator_traits<libint2::Operator::erfc_nuclear>::oper_params_type;
+
+  const Index nao = aobasis.AOBasisSize();
+  aomatrix_ = Eigen::MatrixXd::Zero(nao, nao);
+
+  if (dipoles_.empty()) {
+    return;
+  }
+
+  charge_oper_params_t qparams;
+  qparams.reserve(dipoles_.size());
+
+  for (const auto& site : dipoles_) {
+    std::array<scalar_t, 3> xyz = {site.pos[0], site.pos[1], site.pos[2]};
+    qparams.emplace_back(1.0, xyz);
+  }
+
+  oper_params_t params =
+      std::make_tuple(static_cast<scalar_t>(eta_), qparams);
+
+  auto deriv_blocks =
+      computeOneBodyIntegralsDeriv1<libint2::Operator::erfc_nuclear,
+                                    oper_params_t>(aobasis, params);
+
+  // For first derivatives of a 2-center one-body operator with N operator centers:
+  // 0..2   : d/dA_x, d/dA_y, d/dA_z
+  // 3..5   : d/dB_x, d/dB_y, d/dB_z
+  // 6..8   : d/dR_0x, d/dR_0y, d/dR_0z
+  // 9..11  : d/dR_1x, d/dR_1y, d/dR_1z
+  // etc.
+  const size_t expected_shellsets = 6 + 3 * dipoles_.size();
+  if (deriv_blocks.size() != expected_shellsets) {
+    std::ostringstream oss;
+    oss << "AOEwaldRealSpaceDipoles: unexpected number of derivative shellsets. "
+        << "Got " << deriv_blocks.size() << ", expected "
+        << expected_shellsets;
+    throw std::runtime_error(oss.str());
+  }
+
+  for (size_t p = 0; p < dipoles_.size(); ++p) {
+    const Eigen::MatrixXd& dVdRx = deriv_blocks[6 + 3 * p + 0];
+    const Eigen::MatrixXd& dVdRy = deriv_blocks[6 + 3 * p + 1];
+    const Eigen::MatrixXd& dVdRz = deriv_blocks[6 + 3 * p + 2];
+
+    aomatrix_.noalias() += dipoles_[p].dipole.x() * dVdRx;
+    aomatrix_.noalias() += dipoles_[p].dipole.y() * dVdRy;
+    aomatrix_.noalias() += dipoles_[p].dipole.z() * dVdRz;
+  }
+#endif
 }
 
 /***********************************

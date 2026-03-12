@@ -35,11 +35,11 @@
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/eeinteractor.h"
+#include "votca/xtp/ewald/ewald_potential.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/pmlocalization.h"
-#include "votca/xtp/ewald/ewald_potential.h"
 
 namespace votca {
 namespace xtp {
@@ -471,21 +471,79 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
     H0 += IntegrateExternalField(mol);
   }
 
-  if (has_ewaldgrid_){
-        XTP_LOG(Log::error, *pLog_)
+  if (has_ewaldgrid_) {
+    XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Integrating external Ewald Potential" << std::flush;
-        Vxc_Grid ewaldgrid;
-        ewaldgrid.GridSetup(grid_name_, mol, dftbasis_);
-        // make sure the Potential values are copied from the external ewald grid to this one
-        for (Index i = 0; i < ewaldgrid.getBoxesSize(); ++i) {
-          GridBox &box = ewaldgrid[i];
-          std::vector<double> &values = box.getPotentialValues();
-          values = external_ewaldgrid_[i].getPotentialValues();
-        }
-        Ewald_Potential<Vxc_Grid> EwaldIntegration(ewaldgrid);
-        H0+= EwaldIntegration.IntegrateEwald(dftbasis_.AOBasisSize()).matrix();
+    Vxc_Grid ewaldgrid;
+    ewaldgrid.GridSetup(grid_name_, mol, dftbasis_);
+    // make sure the Potential values are copied from the external ewald grid to
+    // this one
+    for (Index i = 0; i < ewaldgrid.getBoxesSize(); ++i) {
+      GridBox& box = ewaldgrid[i];
+      std::vector<double>& values = box.getPotentialValues();
+      values = external_ewaldgrid_[i].getPotentialValues();
+    }
+    Ewald_Potential<Vxc_Grid> EwaldIntegration(ewaldgrid);
+    H0 += EwaldIntegration.IntegrateEwald(dftbasis_.AOBasisSize()).matrix();
   }
 
+  if (has_ewaldbackground_) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Integrating external Ewald Potential via MOMENTS"
+        << std::flush;
+
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " ... REAL SPACE BACKGROUND MOMENTS" << std::flush;
+    Mat_p_Energy Ewald_RSBG_result =
+        IntegrateEwaldRealSpaceMultipoles(ewaldBackground());
+    // std::cout << Ewald_RSBG_result.matrix() << std::endl;
+    H0 += Ewald_RSBG_result.matrix();
+
+
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " ... SHAPE CORRECTION MOMENTS" << std::flush;
+    Mat_p_Energy Ewald_ShapeC_result =
+        IntegrateShapeCorrection(ewaldShapeCorrection());
+    H0 += Ewald_ShapeC_result.matrix();
+
+    /*
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " ... RECIPROCAL SPACE BACKGROUND MOMENTS"
+            << std::flush;
+        const std::vector<ewaldcontainer::ReciprocalTerm>& recips =
+            ewald_background_->reciprocalTerms();
+        for (const auto& recip : recips) {
+          std::cout << "KSBM: " << recip.G << " " << recip.coefficient <<
+      std::endl;
+        }
+
+
+
+    */
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " ... FOREGROUND CORRECTION MOMENTS" << std::flush;
+    Mat_p_Energy Ewald_FGC_result =
+        IntegrateForegroundCorrectionMultipoles(ewaldForegroundCorrection());
+    //std::cout << Ewald_FGC_result.matrix() << std::endl;
+    H0 -= Ewald_FGC_result.matrix();
+
+    /*
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " ... MM1 MOMENTS" << std::flush;
+      const std::vector<ewaldcontainer::PointCharge>& chargesMM1 =
+          ewald_mm1_->charges();
+      for (const auto& charge : chargesMM1) {
+        std::cout << "MM1-c " << charge.charge << " " << charge.position
+                  << std::endl;
+      }
+
+      const std::vector<ewaldcontainer::PointDipole>& dipolesMM1 =
+          ewald_mm1_->dipoles();
+      for (const auto& dipole : dipolesMM1) {
+        std::cout << "MM1-d " << dipole.dipole << " " << dipole.position
+                  << std::endl;
+      }*/
+  }
   return Mat_p_Energy(E0, H0);
 }
 
@@ -1016,6 +1074,91 @@ Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
   result.matrix() = dftAOESP.Matrix();
   result.energy() = ExternalRepulsion(mol, multipoles);
 
+  return result;
+}
+
+Mat_p_Energy DFTEngine::IntegrateEwaldRealSpaceMultipoles(
+    const ewaldcontainer::PotentialData& bg) const {
+
+  Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
+  AOEwaldRealSpaceCharges dftAOEwaldRealSpace;
+  // hand over eta
+  dftAOEwaldRealSpace.setEta(bg.eta());
+  // hand over charges
+  dftAOEwaldRealSpace.setCharges(bg.charges());
+  // add split dipoles
+  for (const auto& d : bg.dipoles()) {
+    const double mu = d.dipole.norm();
+    if (mu == 0.0) {
+      continue;
+    }
+    const double delta = 0.01;  // split dipole in bohr
+    const Eigen::Vector3d e = d.dipole / mu;
+    const Eigen::Vector3d shift = 0.5 * delta * e;
+    const double qeff = mu / delta;
+    dftAOEwaldRealSpace.addCharge(+qeff, d.position + shift);
+    dftAOEwaldRealSpace.addCharge(-qeff, d.position - shift);
+  }
+
+  dftAOEwaldRealSpace.Fill(dftbasis_);
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp()
+      << " Filled DFT Ewald Real Space Multipole potential matrix"
+      << std::flush;
+  result.matrix() = dftAOEwaldRealSpace.Matrix();
+  result.energy() = 0.0;
+
+  return result;
+}
+
+Mat_p_Energy DFTEngine::IntegrateForegroundCorrectionMultipoles(
+    const ewaldcontainer::PotentialData& fgc) const {
+
+  Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
+  AOEwaldForegroundCharges dftAOEwaldForeGround;
+  // hand over eta
+  dftAOEwaldForeGround.setEta(fgc.eta());
+  // hand over charges
+  dftAOEwaldForeGround.setCharges(fgc.charges());
+  // add split dipoles
+  for (const auto& d : fgc.dipoles()) {
+    const double mu = d.dipole.norm();
+    if (mu == 0.0) {
+      continue;
+    }
+    const double delta = 0.01;  // split dipole in bohr
+    const Eigen::Vector3d e = d.dipole / mu;
+    const Eigen::Vector3d shift = 0.5 * delta * e;
+    const double qeff = mu / delta;
+    dftAOEwaldForeGround.addCharge(+qeff, d.position + shift);
+    dftAOEwaldForeGround.addCharge(-qeff, d.position - shift);
+  }
+
+  dftAOEwaldForeGround.Fill(dftbasis_);
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp()
+      << " Filled DFT Ewald Foreground Correction Multipole potential matrix"
+      << std::flush;
+  result.matrix() = dftAOEwaldForeGround.Matrix();
+  result.energy() = 0.0;
+
+  return result;
+}
+
+Mat_p_Energy DFTEngine::IntegrateShapeCorrection(const ewaldcontainer::PotentialData& shapec) const{
+  Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
+  AOEwaldShapeCorrection dftAOEwaldShapeCorrection;
+  dftAOEwaldShapeCorrection.Fill(dftbasis_);
+    XTP_LOG(Log::error, *pLog_)
+      << TimeStamp()
+      << " Filled DFT Ewald Shape Correction potential matrix"
+      << std::flush;
+  const Eigen::Vector4d coefs = shapec.shapeFactors();
+  for (Index i = 0; i < 4; i++) {
+    result.matrix() += coefs(i) * dftAOEwaldShapeCorrection.Matrix()[i];  // emultipole1 returns: overlap, x-dipole,
+                                    // y-dipole, z-dipole
+  }
+  
   return result;
 }
 

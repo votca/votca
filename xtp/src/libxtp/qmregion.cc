@@ -147,6 +147,19 @@ bool QMRegion::Converged() const {
 
 void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
 
+// some funny checks
+/*const std::vector<ewaldcontainer::PointCharge>& charges = ewald_background_->charges();
+for (const auto& charge : charges) {
+    std::cout << charge.charge << " " << charge.position << std::endl;
+}
+
+const std::vector<ewaldcontainer::PointDipole>& dipoles = ewald_background_->dipoles();
+for (const auto& dipole : dipoles) {
+    std::cout << dipole.dipole << " " << dipole.position << std::endl;
+}*/
+
+
+
   std::vector<double> interact_energies = ApplyInfluenceOfOtherRegions(regions);
   double e_ext =
       std::accumulate(interact_energies.begin(), interact_energies.end(), 0.0);
@@ -169,7 +182,11 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   // attach ewaldgrid to xtpdft
   if (is_qmewald_){
     if (qmpackage_->getPackageName() == "xtp" ) {
-      qmpackage_->setEwaldgrid(ewaldgrid_);
+      //qmpackage_->setEwaldgrid(ewaldgrid_);
+      qmpackage_->setEwaldBackground(ewaldBackground());
+      qmpackage_->setEwaldForegroundCorrection(ewaldForegroundCorrection());
+      qmpackage_->setEwaldShapeCorrection(ewaldShapeCorrection());
+      qmpackage_->setEwaldMM1(ewaldMM1());
     } else {
       throw std::runtime_error(
           "QMEwald can only run with XTP as qmpackage.");

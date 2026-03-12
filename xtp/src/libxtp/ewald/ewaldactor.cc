@@ -190,6 +190,79 @@ void EwdInteractor::FU12_ShapeField_At_By(std::vector<PolarSeg *> &at,
   return;
 }
 
+void EwdInteractor::PhiPU12_ShapeField_At_By(ewaldcontainer::PotentialData &data,
+                                             std::vector<PolarSeg *> &s2,
+                                             std::string shape, double V) {
+  // NOTE : WITH PREFACTOR = -4*PI/V (xyslab) v -4*PI/3V (cube, sphere)
+  // NOTE : Similar operations in PhiPU12_..., PhiP12_..., PhiU12_...
+
+  std::vector<PolarSeg *>::iterator sit;
+  std::vector<APolarSite *>::iterator pit;
+
+  // Charge, dipole, quadrupole for <s2>:
+  // Q... <> permanent, U... <> induced
+  // double Q0_S2 = 0.0;
+  vec Q1_S2 = vec(0, 0, 0);
+  vec U1_S2 = vec(0, 0, 0);
+  matrix Q2_S2 = Eigen::Matrix3d::Zero();
+  // Q2_S2.ZeroMatrix();
+  // votca::tools::matrix U2_S2;
+  matrix U2_S2 = Eigen::Matrix3d::Zero();
+
+  for (sit = s2.begin(); sit != s2.end(); ++sit) {
+    for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
+      vec r = (*pit)->getPos();
+      double q0 = (*pit)->Q00;
+      vec q1 = vec((*pit)->Q1x, (*pit)->Q1y, (*pit)->Q1z);
+      vec u1 = vec((*pit)->U1x, (*pit)->U1y, (*pit)->U1z);
+      matrix q2;
+      q2.row(0) = vec((*pit)->Qxx, (*pit)->Qxy, (*pit)->Qxz);
+      q2.row(1) = vec((*pit)->Qxy, (*pit)->Qyy, (*pit)->Qyz);
+      q2.row(2) = vec((*pit)->Qxz, (*pit)->Qyz, (*pit)->Qzz);
+      /* = matrix(
+          vec((*pit)->Qxx, (*pit)->Qxy, (*pit)->Qxz),
+          vec((*pit)->Qxy, (*pit)->Qyy, (*pit)->Qyz),
+          vec((*pit)->Qxz, (*pit)->Qyz, (*pit)->Qzz));*/
+      // Charge
+      // Q0_S2 += q0;
+      // Dipole
+      Q1_S2 += q0 * r;
+      if ((*pit)->getRank() > 0) Q1_S2 += q1;
+      U1_S2 += u1;
+      // Quadrupole
+      Q2_S2 += 0.5 * q0 * r * r.transpose();  //  (r|r);
+      if ((*pit)->getRank() > 0) {
+        Q2_S2 += q1 * r.transpose();
+        if ((*pit)->getRank() > 1) {
+          Q2_S2 += q2;
+        }
+      }
+      U2_S2 += u1 * r.transpose();
+    }
+  }
+
+  // Traces
+  double TrQ2_S2 = Q2_S2(0, 0) + Q2_S2(1, 1) + Q2_S2(2, 2);
+  double TrU2_S2 = U2_S2(0, 0) + U2_S2(1, 1) + U2_S2(2, 2);
+
+  // Increment potentials
+  if (shape == "xyslab") {
+    double prefac = -4 * M_PI / V;
+    data.setShapeFactors(Eigen::Vector4d(prefac * (Q2_S2(2,2)+U2_S2(2,2)), 0.0, 0.0, -prefac*(Q1_S2(2)+U1_S2(2))));
+  } else if (shape == "cube" || shape == "sphere") {
+    double prefac = -4 * M_PI / (3 * V);
+    data.setShapeFactors(Eigen::Vector4d(prefac * (TrQ2_S2+TrU2_S2), -prefac * (Q1_S2(0)+U1_S2(0)),-prefac * (Q1_S2(1)+U1_S2(1)) , -prefac*(Q1_S2(2)+U1_S2(2))));
+
+  } else if (shape == "none") {
+    ;  // Nothing to do here
+  } else {
+    std::cout << std::endl;
+    throw std::runtime_error("Shape '" + shape + "' not implemented");
+  }
+
+  return;
+}
+
 void EwdInteractor::PhiPU12_ShapeField_At_By(std::vector<PolarSeg *> &s1,
                                              std::vector<PolarSeg *> &s2,
                                              std::string shape, double V) {
@@ -953,6 +1026,7 @@ void EwdInteractor::PhiPU12_ShapeField_At_By(std::vector<PolarSeg *> &s1,
     double re_S2 = cmplx_S2._re;
     double im_S2 = cmplx_S2._im;
 
+
     // Compute k-component of potential acting on s1 = A(c)
     for (sit = s1.begin(); sit < s1.end(); ++sit) {
       for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
@@ -980,6 +1054,66 @@ void EwdInteractor::PhiPU12_ShapeField_At_By(std::vector<PolarSeg *> &s1,
     // NOTE sum_im_phi     => sanity check      (to be performed by caller)
     return EWD::cmplx(sum_re_phi_ms, sum_im_phi);
   }
+
+
+
+EWD::cmplx EwdInteractor::PhiPU12_AS1S2_At_By(
+      const vec &k, ewaldcontainer::PotentialData &data,  std::vector<PolarSeg *> &s1,
+      std::vector<PolarSeg *> &s2, double &rV) {
+    // ATTENTION Increments *permanent* potential PhiP of s1 only
+    // ATTENTION Structure factors include PERMANENT & INDUCED moments of s2
+    // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
+
+    ApplyBiasK(k);
+
+    std::vector<PolarSeg *>::iterator sit;
+    std::vector<APolarSite *>::iterator pit;
+
+    // NOTE sum_re_phi_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_phi_xyz => sanity check      (to be performed by caller)
+    double sum_re_phi_ms = 0.0;
+    double sum_im_phi = 0.0;
+    int rms_count = 0;
+
+    // Structure amplitude S2* from s2 = B*
+    EWD::cmplx cmplx_S2 = PUStructureAmplitude(s2).Conjugate();
+    double re_S2 = cmplx_S2._re;
+    double im_S2 = cmplx_S2._im;
+
+    // storing the reciprocal data in ewald container
+    data.addReciprocalTerm(k,std::complex<double>(re_S2,im_S2) * rV * AK );
+
+
+    // Compute k-component of potential acting on gridpoints
+    for (sit = s1.begin(); sit < s1.end(); ++sit) {
+      for (pit = (*sit)->begin(); pit < (*sit)->end(); ++pit) {
+        kr = kx * (*pit)->getPos()(0) + ky * (*pit)->getPos()(1) +
+             kz * (*pit)->getPos()(2);
+        coskr = cos(kr);
+        sinkr = sin(kr);
+
+        // Real component
+        double phi = rV * AK * (coskr * re_S2 - sinkr * im_S2);
+        // (*pit)->PhiP += phi;
+
+        // Imaginary component (error check)
+        double iphi = rV * AK * (coskr * im_S2 + sinkr * re_S2);
+
+        rms_count += 1;
+        sum_re_phi_ms += phi * phi;
+        sum_im_phi += iphi;
+      }
+    }
+
+    sum_re_phi_ms /= rms_count;
+
+    // NOTE sum_re_phi_rms => convergence check (to be performed by caller)
+    // NOTE sum_im_phi     => sanity check      (to be performed by caller)
+    return EWD::cmplx(sum_re_phi_ms, sum_im_phi);
+  }
+
+
+
 
   EWD::cmplx EwdInteractor::PhiPU12_AS1S2_At_By(
       const vec &k, std::vector<PolarSeg *> &s1, Vxc_Grid &grid,

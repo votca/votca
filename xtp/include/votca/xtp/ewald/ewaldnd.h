@@ -8,6 +8,7 @@
 #include <votca/xtp/ewald/xinteractor.h>
 #include <votca/xtp/ewald/xjob.h>
 #include <votca/xtp/qmthread.h>
+#include <votca/xtp/ewald/ewaldcontainer.h>
 
 namespace CSG = votca::csg;
 
@@ -126,6 +127,26 @@ class Ewald3DnD {
   }
   virtual void Potential_CalculateShapeCorrection_Grid(
       std::vector<PolarSeg *> &, Vxc_Grid &) {
+    ;
+  }
+
+  // TRANSFER to QM
+  void TransferEwald2QM(std::vector<PolarSeg *> &target, bool add_bg,
+                         bool add_mm1, bool add_qm0);
+
+  virtual void Moments_ConvergeRealSpaceSum(std::vector<PolarSeg *> &, ewaldcontainer::PotentialData &) {
+    ;
+  }
+  virtual void Moments_ConvergeReciprocalSpaceSum(
+      std::vector<PolarSeg *> &, ewaldcontainer::PotentialData &) {
+    ;
+  }
+  virtual void Moments_CalculateForegroundCorrection(
+      std::vector<PolarSeg *> &, ewaldcontainer::PotentialData &) {
+    ;
+  }
+  virtual void Moments_CalculateShapeCorrection(
+      std::vector<PolarSeg *> &, ewaldcontainer::PotentialData &) {
     ;
   }
 
@@ -350,6 +371,15 @@ class Ewald3DnD {
       1 / (4 * EWD::Pi * 8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
   const double int2V_m =
       1 / (4 * EWD::Pi * 8.854187817e-12) * 1.602176487e-19 / 1.000e-18;
+
+  ewaldcontainer::PotentialData ewald_background_;
+  ewaldcontainer::PotentialData ewald_foreground_correction_;
+  ewaldcontainer::PotentialData ewald_shape_correction_;
+  ewaldcontainer::PotentialData ewald_mm1_;
+  ewaldcontainer::PotentialData ewald_qm0_;
+
+
+
 };
 
 }  // namespace xtp

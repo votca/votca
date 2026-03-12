@@ -27,6 +27,7 @@
 #include "qmpackagefactory.h"
 #include "region.h"
 #include "statetracker.h"
+#include <votca/xtp/ewald/ewaldcontainer.h>
 
 /**
  * \brief defines a qm region and runs dft and gwbse calculations
@@ -78,6 +79,68 @@ class QMRegion : public Region {
 
   Vxc_Grid &getEwaldGrid() {return ewaldgrid_;};
 
+// =========== EWALD MOMENTS SETTER AND ACCESS ==========
+// +++++++++++ BACKGROUND +++++++++++++++++++++++++++++++
+ void setEwaldBackground(ewaldcontainer::PotentialData* bg) {
+    ewald_background_ = bg;
+    is_qmewald_ = true;
+  }
+
+  ewaldcontainer::PotentialData& ewaldBackground() {
+    assert(ewald_background_ != nullptr);
+    return *ewald_background_;
+  }
+
+  const ewaldcontainer::PotentialData& ewaldBackground() const {
+    assert(ewald_background_ != nullptr);
+    return *ewald_background_;
+  }
+
+// +++++++++++ FOREGROUND CORRECTION ++++++++++++++++++++++
+ void setEwaldForegroundCorrection(ewaldcontainer::PotentialData* fg_corr) {
+    ewald_foreground_correction_ = fg_corr;
+  }
+
+  ewaldcontainer::PotentialData& ewaldForegroundCorrection() {
+    assert(ewald_foreground_correction_ != nullptr);
+    return *ewald_foreground_correction_;
+  }
+
+  const ewaldcontainer::PotentialData& ewaldForegroundCorrection() const {
+    assert(ewald_foreground_correction_ != nullptr);
+    return *ewald_foreground_correction_;
+  }
+
+// +++++++++++ SHAPE CORRECTION +++++++++++++++++++++++++++
+ void setEwaldShapeCorrection(ewaldcontainer::PotentialData* shape_corr) {
+    ewald_shape_correction_ = shape_corr;
+  }
+
+  ewaldcontainer::PotentialData& ewaldShapeCorrection() {
+    assert(ewald_shape_correction_ != nullptr);
+    return *ewald_shape_correction_;
+  }
+
+  const ewaldcontainer::PotentialData& ewaldShapeCorrection() const {
+    assert(ewald_shape_correction_ != nullptr);
+    return *ewald_shape_correction_;
+  }
+
+  // +++++++++++ MM1 REGION +++++++++++++++++++++++++++
+ void setEwaldMM1(ewaldcontainer::PotentialData* mm1) {
+    ewald_mm1_ = mm1;
+  }
+
+  ewaldcontainer::PotentialData& ewaldMM1() {
+    assert(ewald_mm1_ != nullptr);
+    return *ewald_mm1_;
+  }
+
+  const ewaldcontainer::PotentialData& ewaldMM1() const {
+    assert(ewald_mm1_ != nullptr);
+    return *ewald_mm1_;
+  }
+
 
  protected:
   void AppendResult(tools::Property& prop) const override;
@@ -119,7 +182,13 @@ class QMRegion : public Region {
   // for QMEwald
   Vxc_Grid ewaldgrid_;
   bool is_qmewald_ = false;
-};
+  ewaldcontainer::PotentialData* ewald_background_ = nullptr;
+  ewaldcontainer::PotentialData* ewald_foreground_correction_ = nullptr;
+  ewaldcontainer::PotentialData* ewald_shape_correction_ = nullptr;
+  ewaldcontainer::PotentialData* ewald_mm1_ = nullptr;
+  //ewaldcontainer::PotentialData* ewald_qm0_ = nullptr;
+
+  };
 
 }  // namespace xtp
 }  // namespace votca
