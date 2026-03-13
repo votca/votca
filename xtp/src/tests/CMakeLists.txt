@@ -31,6 +31,7 @@ list(APPEND test_cases test_density_filter)
 list(APPEND test_cases test_densityintegration)
 list(APPEND test_cases test_dftcoupling)
 list(APPEND test_cases test_dftengine)
+list(APPEND test_cases test_dftengine_private)
 list(APPEND test_cases test_diabatization)
 list(APPEND test_cases test_diis)
 list(APPEND test_cases test_dipoledipoleinteraction)
@@ -97,12 +98,14 @@ list(APPEND test_cases test_vxc_grid)
 
 # build and run unit tests
 foreach(PROG ${test_cases} )
+  set(VOTCASHARE_DIR ${XTP_SOURCE_DIR}/share)
   add_executable(unit_${PROG} ${PROG}.cc)
   target_compile_definitions(unit_${PROG} PRIVATE XTP_TEST_DATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/DataFiles")
   target_link_libraries(unit_${PROG} votca_xtp Boost::unit_test_framework Libint2::int2 ECPINT::ecpint)
   target_compile_definitions(unit_${PROG} PRIVATE BOOST_TEST_DYN_LINK)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
   add_test(NAME unit_${PROG} COMMAND $<TARGET_FILE:unit_${PROG}> WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
+  set_tests_properties(unit_${PROG} PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
 endforeach(PROG)
 
 # build and run xtp integration tests
