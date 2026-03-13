@@ -14,7 +14,7 @@
  *
  */
 
- #define BOOST_TEST_MAIN
+#define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE dftengine_private_test
 #include "xtp_libint2.h"
 #include <boost/test/unit_test.hpp>
@@ -59,7 +59,7 @@ class DFTEngineTestAccess {
     return e.BuildEHTHamiltonian(mol);
   }
 
-    static Eigen::MatrixXd OrthogonalizeGuess(const DFTEngine& e,
+  static Eigen::MatrixXd OrthogonalizeGuess(const DFTEngine& e,
                                             const Eigen::MatrixXd& guess) {
     return e.OrthogonalizeGuess(guess);
   }
@@ -74,7 +74,9 @@ class DFTEngineTestAccess {
     return e.InsertZeroCols(M, startidx, numofzerocols);
   }
 
-  static void SetBasis(DFTEngine& e, const AOBasis& basis) { e.dftbasis_ = basis; }
+  static void SetBasis(DFTEngine& e, const AOBasis& basis) {
+    e.dftbasis_ = basis;
+  }
 
   static void FillOverlap(DFTEngine& e) { e.dftAOoverlap_.Fill(e.dftbasis_); }
 
@@ -82,7 +84,9 @@ class DFTEngineTestAccess {
     e.dftbasis_name_ = basis_name;
   }
 
-  static const AOOverlap& Overlap(const DFTEngine& e) { return e.dftAOoverlap_; }
+  static const AOOverlap& Overlap(const DFTEngine& e) {
+    return e.dftAOoverlap_;
+  }
 };
 
 QMMolecule MakeH2(double distance_bohr) {
@@ -112,7 +116,8 @@ bool BlockIsConstant(const Eigen::MatrixXd& m, Index row0, Index col0,
   return ((m.block(row0, col0, rows, cols).array() - value).abs() < tol).all();
 }
 
-} } // namespace
+}  // namespace xtp
+}  // namespace votca
 
 BOOST_AUTO_TEST_CASE(nuclear_repulsion_h2_at_2_bohr) {
   DFTEngine engine;
@@ -141,7 +146,8 @@ BOOST_AUTO_TEST_CASE(build_eht_hamiltonian_is_symmetric_and_matches_formula) {
   DFTEngineTestAccess::SetBasisName(engine, basis_name);
   DFTEngineTestAccess::FillOverlap(engine);
 
-  const Eigen::MatrixXd H = DFTEngineTestAccess::BuildEHTHamiltonian(engine, mol);
+  const Eigen::MatrixXd H =
+      DFTEngineTestAccess::BuildEHTHamiltonian(engine, mol);
   const Eigen::VectorXd eps =
       DFTEngineTestAccess::BuildEHTOrbitalEnergies(engine, mol);
   const Eigen::MatrixXd& S = DFTEngineTestAccess::Overlap(engine).Matrix();
@@ -183,7 +189,8 @@ BOOST_AUTO_TEST_CASE(spherical_average_shells_makes_shell_blocks_uniform) {
   Eigen::MatrixXd dmat = Eigen::MatrixXd::Zero(nao, nao);
   for (Index i = 0; i < nao; ++i) {
     for (Index j = 0; j < nao; ++j) {
-      dmat(i, j) = 10.0 * static_cast<double>(i + 1) + static_cast<double>(j + 1);
+      dmat(i, j) =
+          10.0 * static_cast<double>(i + 1) + static_cast<double>(j + 1);
     }
   }
 
@@ -214,7 +221,8 @@ BOOST_AUTO_TEST_CASE(spherical_average_shells_makes_shell_blocks_uniform) {
           BOOST_TEST(out_block(0, 0) == diagavg,
                      boost::test_tools::tolerance(1e-12));
         } else {
-          const Index offdiag_n = in_block.rows() * in_block.cols() - in_block.cols();
+          const Index offdiag_n =
+              in_block.rows() * in_block.cols() - in_block.cols();
           const double offdiagavg =
               (in_block.sum() - in_block.diagonal().sum()) /
               static_cast<double>(offdiag_n);
@@ -234,11 +242,11 @@ BOOST_AUTO_TEST_CASE(spherical_average_shells_makes_shell_blocks_uniform) {
       } else {
         const double expected =
             in_block.sum() / static_cast<double>(in_block.size());
-        BOOST_TEST(BlockIsConstant(avg, start_row, start_col, size_row, size_col,
-                                   expected));
+        BOOST_TEST(BlockIsConstant(avg, start_row, start_col, size_row,
+                                   size_col, expected));
       }
     }
-  } 
+  }
   libint2::finalize();
 }
 
@@ -275,10 +283,10 @@ BOOST_AUTO_TEST_CASE(orthogonalize_guess_produces_s_orthonormal_vectors) {
   const Eigen::MatrixXd& S = DFTEngineTestAccess::Overlap(engine).Matrix();
 
   const Eigen::MatrixXd metric = orth.transpose() * S * orth;
-  const Eigen::MatrixXd I = Eigen::MatrixXd::Identity(metric.rows(), metric.cols());
+  const Eigen::MatrixXd I =
+      Eigen::MatrixXd::Identity(metric.rows(), metric.cols());
 
   BOOST_TEST((metric - I).norm() < 1e-10);
 
   libint2::finalize();
 }
-
