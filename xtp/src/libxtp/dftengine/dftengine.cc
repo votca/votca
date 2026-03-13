@@ -229,7 +229,13 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
       MOs = IndependentElectronGuess(H0);
     } else if (initial_guess_ == "atom") {
       MOs = ModelPotentialGuess(H0, orb.QMAtoms(), vxcpotential);
-    } else {
+    } else if (initial_guess_ == "huckel") {
+      MOs = ExtendedHuckelGuess(orb.QMAtoms());
+    } else if (initial_guess_ == "huckel_dft") {
+      MOs = ExtendedHuckelDFTGuess(H0, orb.QMAtoms(), vxcpotential);
+    }
+
+    else {
       throw std::runtime_error("Initial guess method not known/implemented");
     }
   }
@@ -1049,5 +1055,98 @@ Eigen::MatrixXd DFTEngine::OrthogonalizeGuess(
   Eigen::MatrixXd result = GuessMOs * es.operatorInverseSqrt();
   return result;
 }
+
+/*************************************************************
+ * Extended Hueckel Theory
+ ************************************************************/
+Eigen::VectorXd DFTEngine::BuildEHTOrbitalEnergies(
+    const QMMolecule& mol) const {
+
+  ExtendedHuckelParameters params;
+
+  const Index nao = dftbasis_.AOBasisSize();
+  Eigen::VectorXd eps = Eigen::VectorXd::Zero(nao);
+
+  for (const AOShell& shell : dftbasis_) {
+
+    int l = static_cast<int>(shell.getL());
+    Index start = shell.getStartIndex();
+    Index nfunc = shell.getNumFunc();
+
+    const QMAtom& atom = mol[shell.getAtomIndex()];
+    const std::string& element = atom.getElement();
+
+    int used_l = l;
+    double e = params.GetWithFallback(element, l, &used_l);
+
+    for (Index i = 0; i < nfunc; ++i) {
+      eps(start + i) = e;
+    }
+  }
+
+  return eps;
+}
+
+Eigen::MatrixXd DFTEngine::BuildEHTHamiltonian(const QMMolecule& mol) const {
+
+  const Eigen::MatrixXd& S = dftAOoverlap_.Matrix();
+  const Index nao = S.rows();
+  Eigen::VectorXd eps = BuildEHTOrbitalEnergies(mol);
+  Eigen::MatrixXd H = Eigen::MatrixXd::Zero(nao, nao);
+  constexpr double K = 1.75;
+
+  for (Index mu = 0; mu < nao; ++mu) {
+    H(mu, mu) = eps(mu);
+    for (Index nu = 0; nu < mu; ++nu) {
+      double hij = K * S(mu, nu) * 0.5 * (eps(mu) + eps(nu));
+      H(mu, nu) = hij;
+      H(nu, mu) = hij;
+    }
+  }
+
+  return H;
+}
+
+tools::EigenSystem DFTEngine::ExtendedHuckelGuess(const QMMolecule& mol) const {
+
+  XTP_LOG(Log::info, *pLog_)
+      << TimeStamp() << " Building Extended Huckel guess" << std::flush;
+
+  Eigen::MatrixXd H = BuildEHTHamiltonian(mol);
+
+  XTP_LOG(Log::info, *pLog_)
+      << TimeStamp() << " Solving EHT generalized eigenproblem" << std::flush;
+
+  return conv_accelerator_.SolveFockmatrix(H);
+}
+
+tools::EigenSystem DFTEngine::ExtendedHuckelDFTGuess(
+    const Mat_p_Energy& H0, const QMMolecule& mol,
+    const Vxc_Potential<Vxc_Grid>& vxcpotential) const {
+
+  tools::EigenSystem eht = ExtendedHuckelGuess(mol);
+
+  Eigen::MatrixXd Dmat = conv_accelerator_.DensityMatrix(eht);
+
+  Mat_p_Energy e_vxc = vxcpotential.IntegrateVXC(Dmat);
+
+  Eigen::MatrixXd H = H0.matrix() + e_vxc.matrix();
+
+  if (ScaHFX_ > 0) {
+
+    std::array<Eigen::MatrixXd, 2> both =
+        CalcERIs_EXX(Eigen::MatrixXd::Zero(0, 0), Dmat, 1e-12);
+
+    H += both[0];
+    H += ScaHFX_ * both[1];
+
+  } else {
+
+    H += CalcERIs(Dmat, 1e-12);
+  }
+
+  return conv_accelerator_.SolveFockmatrix(H);
+}
+
 }  // namespace xtp
 }  // namespace votca

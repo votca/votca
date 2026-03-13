@@ -15,7 +15,7 @@
   <temporary_file help="Filename for temporary files without extension" default="temp"/>
   <convergence_tightness help="How accurate the dft self-consistency has to be" default="tight" choices="low,normal,tight,verytight" />
   <cleanup help="files to remove after the calculation. Specify the fileextensions" default="" />
-  <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities) or previous calculation keyword orbfile" default="atom" choices="independent,atom,orbfile" />
+  <initial_guess help="Method to use to make initial guess, independent(electrons) or atom(densities) or previous calculation keyword orbfile" default="atom" choices="independent,atom,orbfile,huckel,huckel_dft" />
   <orca help="orca specific keywords can be added here, where the xml tag corresponds to the option and the value to the option's value" unchecked=""/>
   <xtpdft help="xtpdft specific keywords can be added here">
     <dft_in_dft help="options for qminqm">

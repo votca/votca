@@ -132,7 +132,7 @@ CheckpointWriter CheckpointFile::getWriter(const std::string path_) {
 CheckpointWriter CheckpointFile::getWriter() { return getWriter("/"); }
 
 CheckpointReader CheckpointFile::getReader(const std::string path_) {
-    std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
+  std::lock_guard<std::recursive_mutex> lock(checkpoint_utils::Hdf5Mutex());
 
   try {
     return CheckpointReader(fileHandle_.openGroup(path_), path_);

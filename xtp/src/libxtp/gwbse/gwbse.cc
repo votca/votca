@@ -426,7 +426,8 @@ void GWBSE::addoutput(tools::Property& summary) {
     gwbse_summary.setAttribute("units", "eV");
     gwbse_summary.setAttribute(
         "DFTEnergy",
-        (boost::format("%1$+1.6f ") % (orbitals_.getDFTTotalEnergy() * hrt2ev)).str());
+        (boost::format("%1$+1.6f ") % (orbitals_.getDFTTotalEnergy() * hrt2ev))
+            .str());
 
     tools::Property& dft_summary = gwbse_summary.add("dft", "");
     dft_summary.setAttribute("HOMO", gwopt_.homo);
@@ -440,10 +441,10 @@ void GWBSE::addoutput(tools::Property& summary) {
           (boost::format("%1$+1.6f ") %
            (orbitals_.MOs().eigenvalues()(state + gwopt_.qpmin) * hrt2ev))
               .str());
-      level_summary.add(
-          "gw_energy",
-          (boost::format("%1$+1.6f ") % (orbitals_.QPpertEnergies()(state) * hrt2ev))
-              .str());
+      level_summary.add("gw_energy",
+                        (boost::format("%1$+1.6f ") %
+                         (orbitals_.QPpertEnergies()(state) * hrt2ev))
+                            .str());
 
       level_summary.add("qp_energy",
                         (boost::format("%1$+1.6f ") %
@@ -468,8 +469,8 @@ void GWBSE::addoutput(tools::Property& summary) {
 
         level_summary.add("f", (boost::format("%1$+1.6f ") % f).str());
         tools::Property& dipol_summary = level_summary.add(
-            "Trdipole", (boost::format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles.x() %
-                         dipoles.y() % dipoles.z())
+            "Trdipole", (boost::format("%1$+1.4f %2$+1.4f %3$+1.4f") %
+                         dipoles.x() % dipoles.y() % dipoles.z())
                             .str());
         dipol_summary.setAttribute("unit", "e*bohr");
         dipol_summary.setAttribute("gauge", "length");

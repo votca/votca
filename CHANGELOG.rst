@@ -4,6 +4,8 @@ For more detailed information about the changes see the history of the
 Version 2026-dev
 ================
 
+-  Extended Hueckel methods for initial guess in DFT (#1230)
+
 Version 2026 (released 09.03.26)
 ================================
 

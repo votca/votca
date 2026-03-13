@@ -136,13 +136,13 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
     XTP_LOG(Log::error, pLog) << TimeStamp() << " Writing checkpoint to "
                               << checkpointfilename << std::flush;
     try {
-          jobtop.WriteToHdf5(workdir + "/" + checkpointfilename);
+      jobtop.WriteToHdf5(workdir + "/" + checkpointfilename);
     } catch (std::exception& e) {
       XTP_LOG(Log::error, pLog)
           << TimeStamp()
           << " Could not write checkpoint file due to exception: " << e.what()
           << std::flush;
-    }                          
+    }
 
     if (!no_top_scf) {
       std::vector<bool> converged_regions;
