@@ -59,6 +59,21 @@ class DFTEngineTestAccess {
     return e.BuildEHTHamiltonian(mol);
   }
 
+    static Eigen::MatrixXd OrthogonalizeGuess(const DFTEngine& e,
+                                            const Eigen::MatrixXd& guess) {
+    return e.OrthogonalizeGuess(guess);
+  }
+
+  static Eigen::MatrixXd InsertZeroRows(DFTEngine& e, Eigen::MatrixXd M,
+                                        Index startidx, Index numofzerorows) {
+    return e.InsertZeroRows(M, startidx, numofzerorows);
+  }
+
+  static Eigen::MatrixXd InsertZeroCols(DFTEngine& e, Eigen::MatrixXd M,
+                                        Index startidx, Index numofzerocols) {
+    return e.InsertZeroCols(M, startidx, numofzerocols);
+  }
+
   static void SetBasis(DFTEngine& e, const AOBasis& basis) { e.dftbasis_ = basis; }
 
   static void FillOverlap(DFTEngine& e) { e.dftAOoverlap_.Fill(e.dftbasis_); }
@@ -226,3 +241,44 @@ BOOST_AUTO_TEST_CASE(spherical_average_shells_makes_shell_blocks_uniform) {
   } 
   libint2::finalize();
 }
+
+BOOST_AUTO_TEST_CASE(orthogonalize_guess_produces_s_orthonormal_vectors) {
+  libint2::initialize();
+
+  DFTEngine engine;
+  Logger log;
+  engine.setLogger(&log);
+
+  const std::string basis_name = "3-21G";
+  QMMolecule mol = MakeH2(1.4);
+
+  AOBasis basis = MakeBasis(basis_name, mol);
+  DFTEngineTestAccess::SetBasis(engine, basis);
+  DFTEngineTestAccess::SetBasisName(engine, basis_name);
+  DFTEngineTestAccess::FillOverlap(engine);
+
+  const Index nao = basis.AOBasisSize();
+  BOOST_REQUIRE(nao >= 2);
+
+  Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(nao, 2);
+  guess(0, 0) = 1.0;
+  guess(0, 1) = 1.0;
+  guess(1, 0) = 0.25;
+  guess(1, 1) = 1.0;
+  if (nao > 2) {
+    guess(2, 0) = -0.3;
+    guess(2, 1) = 0.1;
+  }
+
+  const Eigen::MatrixXd orth =
+      DFTEngineTestAccess::OrthogonalizeGuess(engine, guess);
+  const Eigen::MatrixXd& S = DFTEngineTestAccess::Overlap(engine).Matrix();
+
+  const Eigen::MatrixXd metric = orth.transpose() * S * orth;
+  const Eigen::MatrixXd I = Eigen::MatrixXd::Identity(metric.rows(), metric.cols());
+
+  BOOST_TEST((metric - I).norm() < 1e-10);
+
+  libint2::finalize();
+}
+
