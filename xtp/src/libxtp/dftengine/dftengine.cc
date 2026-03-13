@@ -496,9 +496,7 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
         << TimeStamp() << " ... REAL SPACE BACKGROUND MOMENTS" << std::flush;
     Mat_p_Energy Ewald_RSBG_result =
         IntegrateEwaldRealSpaceMultipoles(ewaldBackground());
-    // std::cout << Ewald_RSBG_result.matrix() << std::endl;
     H0 += Ewald_RSBG_result.matrix();
-
 
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " ... SHAPE CORRECTION MOMENTS" << std::flush;
@@ -506,43 +504,62 @@ Mat_p_Energy DFTEngine::SetupH0(const QMMolecule& mol) const {
         IntegrateShapeCorrection(ewaldShapeCorrection());
     H0 += Ewald_ShapeC_result.matrix();
 
-    /*
+  
         XTP_LOG(Log::error, *pLog_)
             << TimeStamp() << " ... RECIPROCAL SPACE BACKGROUND MOMENTS"
             << std::flush;
-        const std::vector<ewaldcontainer::ReciprocalTerm>& recips =
-            ewald_background_->reciprocalTerms();
-        for (const auto& recip : recips) {
-          std::cout << "KSBM: " << recip.G << " " << recip.coefficient <<
-      std::endl;
-        }
+
+Mat_p_Energy Ewald_KSBG_result =
+        IntegrateEwaldReciprocalSpace(ewaldBackground());
+        H0 += Ewald_KSBG_result.matrix();
 
 
-
-    */
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " ... FOREGROUND CORRECTION MOMENTS" << std::flush;
     Mat_p_Energy Ewald_FGC_result =
         IntegrateForegroundCorrectionMultipoles(ewaldForegroundCorrection());
-    //std::cout << Ewald_FGC_result.matrix() << std::endl;
+    // std::cout << Ewald_FGC_result.matrix() << std::endl;
     H0 -= Ewald_FGC_result.matrix();
 
-    /*
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " ... MM1 MOMENTS" << std::flush;
-      const std::vector<ewaldcontainer::PointCharge>& chargesMM1 =
-          ewald_mm1_->charges();
-      for (const auto& charge : chargesMM1) {
-        std::cout << "MM1-c " << charge.charge << " " << charge.position
-                  << std::endl;
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " ... MM1 REGION MOMENTS" << std::flush;
+
+    // convert elements in ewald container to list of staticsites
+    std::vector<std::unique_ptr<StaticSite>> multipoles;
+    assert(ewaldMM1().numCharges() == ewaldMM1().numDipoles());
+    multipoles.reserve(ewaldMM1().numCharges());
+    for (std::size_t i = 0; i < ewaldMM1().numCharges(); ++i) {
+      const Eigen::Vector3d& pos = ewaldMM1().charges()[i].position;
+      const double q = ewaldMM1().charges()[i].charge;
+      const Eigen::Vector3d& mu = ewaldMM1().dipoles()[i].dipole;
+
+      auto site = std::make_unique<StaticSite>(static_cast<Index>(i), "X", pos);
+
+      Vector9d mp = Vector9d::Zero();
+      mp(0) = q;       // Q00
+      mp(1) = mu.x();  // Q11c
+      mp(2) = mu.y();  // Q11s
+      mp(3) = mu.z();  // Q10
+
+      Index rank = 0;
+      if (mu.norm() > 0.0) {
+        rank = 1;
+      }
+      if (std::abs(q) > 0.0 && rank == 0) {
+        rank = 0;
       }
 
-      const std::vector<ewaldcontainer::PointDipole>& dipolesMM1 =
-          ewald_mm1_->dipoles();
-      for (const auto& dipole : dipolesMM1) {
-        std::cout << "MM1-d " << dipole.dipole << " " << dipole.position
-                  << std::endl;
-      }*/
+      site->setMultipole(mp, rank);
+      multipoles.push_back(std::move(site));
+    }
+   Mat_p_Energy EwaldMM1Region =
+        IntegrateExternalMultipoles(mol, multipoles);
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Nuclei-external site interaction energy "
+        << std::setprecision(9) << EwaldMM1Region.energy() << std::flush;
+    //E0 += EwaldMM1Region.energy();
+    H0 += EwaldMM1Region.matrix();
+
   }
   return Mat_p_Energy(E0, H0);
 }
@@ -1023,7 +1040,7 @@ Eigen::MatrixXd DFTEngine::SphericalAverageShells(
 
 double DFTEngine::ExternalRepulsion(
     const QMMolecule& mol,
-    const std::vector<std::unique_ptr<StaticSite> >& multipoles) const {
+    const std::vector<std::unique_ptr<StaticSite>>& multipoles) const {
 
   if (multipoles.size() == 0) {
     return 0;
@@ -1033,7 +1050,7 @@ double DFTEngine::ExternalRepulsion(
   eeInteractor interactor;
   for (const QMAtom& atom : mol) {
     StaticSite nucleus = StaticSite(atom, double(atom.getNuccharge()));
-    for (const std::unique_ptr<StaticSite>& site : *externalsites_) {
+    for (const std::unique_ptr<StaticSite>& site : multipoles) {
       if ((site->getPos() - nucleus.getPos()).norm() < 1e-7) {
         XTP_LOG(Log::error, *pLog_) << TimeStamp()
                                     << " External site sits on nucleus, "
@@ -1060,9 +1077,23 @@ Eigen::MatrixXd DFTEngine::IntegrateExternalField(const QMMolecule& mol) const {
   return result;
 }
 
+
+Mat_p_Energy DFTEngine::IntegrateEwaldReciprocalSpace( const ewaldcontainer::PotentialData& bg) const {
+
+  Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
+  AOPlanewave dftAOEwaldKSP;
+  dftAOEwaldKSP.FillPotential(dftbasis_,bg.reciprocalTerms());
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Norm of complex part (should be practically zero!) " << dftAOEwaldKSP.Matrix().imag().norm()
+      << std::flush;
+  result.matrix() = dftAOEwaldKSP.Matrix().real();
+  result.energy() = 0.0;
+  return result;
+}
+
 Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
     const QMMolecule& mol,
-    const std::vector<std::unique_ptr<StaticSite> >& multipoles) const {
+    const std::vector<std::unique_ptr<StaticSite>>& multipoles) const {
 
   Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
   AOMultipole dftAOESP;
@@ -1145,20 +1176,22 @@ Mat_p_Energy DFTEngine::IntegrateForegroundCorrectionMultipoles(
   return result;
 }
 
-Mat_p_Energy DFTEngine::IntegrateShapeCorrection(const ewaldcontainer::PotentialData& shapec) const{
+Mat_p_Energy DFTEngine::IntegrateShapeCorrection(
+    const ewaldcontainer::PotentialData& shapec) const {
   Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
   AOEwaldShapeCorrection dftAOEwaldShapeCorrection;
   dftAOEwaldShapeCorrection.Fill(dftbasis_);
-    XTP_LOG(Log::error, *pLog_)
-      << TimeStamp()
-      << " Filled DFT Ewald Shape Correction potential matrix"
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Filled DFT Ewald Shape Correction potential matrix"
       << std::flush;
   const Eigen::Vector4d coefs = shapec.shapeFactors();
   for (Index i = 0; i < 4; i++) {
-    result.matrix() += coefs(i) * dftAOEwaldShapeCorrection.Matrix()[i];  // emultipole1 returns: overlap, x-dipole,
-                                    // y-dipole, z-dipole
+    result.matrix() +=
+        coefs(i) *
+        dftAOEwaldShapeCorrection.Matrix()[i];  // emultipole1 returns: overlap,
+                                                // x-dipole, y-dipole, z-dipole
   }
-  
+
   return result;
 }
 

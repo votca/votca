@@ -159,6 +159,9 @@ class DFTEngine {
 Mat_p_Energy IntegrateEwaldRealSpaceMultipoles(
     const ewaldcontainer::PotentialData& bg) const;
 
+    Mat_p_Energy IntegrateEwaldReciprocalSpace(
+    const ewaldcontainer::PotentialData& bg) const;
+
 Mat_p_Energy IntegrateForegroundCorrectionMultipoles(const ewaldcontainer::PotentialData& fgc) const;
 Mat_p_Energy IntegrateShapeCorrection(const ewaldcontainer::PotentialData& data) const;
 
