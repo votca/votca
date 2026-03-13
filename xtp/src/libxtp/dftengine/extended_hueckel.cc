@@ -17,7 +17,7 @@
  *
  */
 
- #include <votca/xtp/extended_hueckel.h>
+#include <votca/xtp/extended_hueckel.h>
 
 namespace votca {
 namespace xtp {
@@ -36,7 +36,7 @@ ExtendedHuckelParameters::ExtendedHuckelParameters() {
 
   // Second row
   add("B", 0, -15.20);
-  add("B", 1,  -8.50);
+  add("B", 1, -8.50);
 
   add("C", 0, -21.40);
   add("C", 1, -11.40);
@@ -52,10 +52,10 @@ ExtendedHuckelParameters::ExtendedHuckelParameters() {
 
   // Third row
   add("Al", 0, -12.30);
-  add("Al", 1,  -6.50);
+  add("Al", 1, -6.50);
 
   add("Si", 0, -17.30);
-  add("Si", 1,  -9.20);
+  add("Si", 1, -9.20);
 
   add("P", 0, -18.60);
   add("P", 1, -10.70);
@@ -80,10 +80,10 @@ ExtendedHuckelParameters::ExtendedHuckelParameters() {
 
   // Optional: common heavier main-group
   add("Ga", 0, -12.10);
-  add("Ga", 1,  -6.70);
+  add("Ga", 1, -6.70);
 
   add("Ge", 0, -16.00);
-  add("Ge", 1,  -8.90);
+  add("Ge", 1, -8.90);
 
   add("As", 0, -18.90);
   add("As", 1, -11.00);
@@ -117,8 +117,7 @@ double ExtendedHuckelParameters::Get(const std::string& element, int l) const {
 }
 
 double ExtendedHuckelParameters::GetWithFallback(const std::string& element,
-                                                 int l,
-                                                 int* used_l) const {
+                                                 int l, int* used_l) const {
   // 1. Exact match
   auto exact = eps_.find({element, l});
   if (exact != eps_.end()) {
@@ -130,7 +129,8 @@ double ExtendedHuckelParameters::GetWithFallback(const std::string& element,
 
   // 2. Element missing entirely
   if (!HasElement(element)) {
-    throw std::runtime_error("No EHT parameters available for element " + element);
+    throw std::runtime_error("No EHT parameters available for element " +
+                             element);
   }
 
   // 3. Fallback logic

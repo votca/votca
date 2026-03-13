@@ -291,7 +291,8 @@ void BSE::PrintWeights(const Eigen::VectorXd& weights) const {
     double weight = weights(i_bse);
     if (weight > opt_.min_print_weight) {
       XTP_LOG(Log::error, log_)
-          << boost::format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") %
+          << boost::format(
+                 "           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") %
                  (opt_.homo - vc.v(i_bse)) % (vc.c(i_bse) - opt_.homo - 1) %
                  (100.0 * weight)
           << flush;

@@ -233,9 +233,8 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
       MOs = ExtendedHuckelGuess(orb.QMAtoms());
     } else if (initial_guess_ == "huckel_dft") {
       MOs = ExtendedHuckelDFTGuess(H0, orb.QMAtoms(), vxcpotential);
-}
-    
-    
+    }
+
     else {
       throw std::runtime_error("Initial guess method not known/implemented");
     }
@@ -1058,7 +1057,7 @@ Eigen::MatrixXd DFTEngine::OrthogonalizeGuess(
 }
 
 /*************************************************************
- * Extended Hueckel Theory 
+ * Extended Hueckel Theory
  ************************************************************/
 Eigen::VectorXd DFTEngine::BuildEHTOrbitalEnergies(
     const QMMolecule& mol) const {
@@ -1088,8 +1087,7 @@ Eigen::VectorXd DFTEngine::BuildEHTOrbitalEnergies(
   return eps;
 }
 
-Eigen::MatrixXd DFTEngine::BuildEHTHamiltonian(
-    const QMMolecule& mol) const {
+Eigen::MatrixXd DFTEngine::BuildEHTHamiltonian(const QMMolecule& mol) const {
 
   const Eigen::MatrixXd& S = dftAOoverlap_.Matrix();
   const Index nao = S.rows();
@@ -1100,8 +1098,7 @@ Eigen::MatrixXd DFTEngine::BuildEHTHamiltonian(
   for (Index mu = 0; mu < nao; ++mu) {
     H(mu, mu) = eps(mu);
     for (Index nu = 0; nu < mu; ++nu) {
-      double hij =
-          K * S(mu, nu) * 0.5 * (eps(mu) + eps(nu));
+      double hij = K * S(mu, nu) * 0.5 * (eps(mu) + eps(nu));
       H(mu, nu) = hij;
       H(nu, mu) = hij;
     }
@@ -1110,26 +1107,21 @@ Eigen::MatrixXd DFTEngine::BuildEHTHamiltonian(
   return H;
 }
 
-tools::EigenSystem DFTEngine::ExtendedHuckelGuess(
-    const QMMolecule& mol) const {
+tools::EigenSystem DFTEngine::ExtendedHuckelGuess(const QMMolecule& mol) const {
 
   XTP_LOG(Log::info, *pLog_)
-      << TimeStamp() << " Building Extended Huckel guess"
-      << std::flush;
+      << TimeStamp() << " Building Extended Huckel guess" << std::flush;
 
   Eigen::MatrixXd H = BuildEHTHamiltonian(mol);
 
   XTP_LOG(Log::info, *pLog_)
-      << TimeStamp() << " Solving EHT generalized eigenproblem"
-      << std::flush;
+      << TimeStamp() << " Solving EHT generalized eigenproblem" << std::flush;
 
-  return conv_accelerator_.SolveFockmatrix(
-      H);
+  return conv_accelerator_.SolveFockmatrix(H);
 }
 
 tools::EigenSystem DFTEngine::ExtendedHuckelDFTGuess(
-    const Mat_p_Energy& H0,
-    const QMMolecule& mol,
+    const Mat_p_Energy& H0, const QMMolecule& mol,
     const Vxc_Potential<Vxc_Grid>& vxcpotential) const {
 
   tools::EigenSystem eht = ExtendedHuckelGuess(mol);
@@ -1142,8 +1134,8 @@ tools::EigenSystem DFTEngine::ExtendedHuckelDFTGuess(
 
   if (ScaHFX_ > 0) {
 
-    std::array<Eigen::MatrixXd,2> both =
-        CalcERIs_EXX(Eigen::MatrixXd::Zero(0,0), Dmat, 1e-12);
+    std::array<Eigen::MatrixXd, 2> both =
+        CalcERIs_EXX(Eigen::MatrixXd::Zero(0, 0), Dmat, 1e-12);
 
     H += both[0];
     H += ScaHFX_ * both[1];
@@ -1151,12 +1143,10 @@ tools::EigenSystem DFTEngine::ExtendedHuckelDFTGuess(
   } else {
 
     H += CalcERIs(Dmat, 1e-12);
-
   }
 
   return conv_accelerator_.SolveFockmatrix(H);
 }
-
 
 }  // namespace xtp
 }  // namespace votca

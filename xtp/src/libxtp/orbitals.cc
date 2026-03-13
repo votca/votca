@@ -613,7 +613,7 @@ void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
 }
 
 void Orbitals::WriteToCpt(const std::string& filename) const {
-    std::lock_guard<std::recursive_mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
       votca::xtp::checkpoint_utils::Hdf5Mutex());
   CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
   WriteToCpt(cpf);
@@ -693,7 +693,7 @@ void Orbitals::WriteToCpt(CheckpointWriter& w) const {
 }
 
 void Orbitals::ReadFromCpt(const std::string& filename) {
-    std::lock_guard<std::recursive_mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
       votca::xtp::checkpoint_utils::Hdf5Mutex());
   CheckpointFile cpf(filename, CheckpointAccessLevel::READ);
   ReadFromCpt(cpf);

@@ -283,7 +283,6 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   libint2::finalize();
 }
 
-
 BOOST_AUTO_TEST_CASE(huckel_guess) {
   libint2::initialize();
   DFTEngine dft;
@@ -334,7 +333,8 @@ BOOST_AUTO_TEST_CASE(huckel_guess) {
   BOOST_CHECK_CLOSE(orb.getDFTTotalEnergy(), -75.89101729307095, 1e-5);
 
   Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(13);
-  MOs_energy_ref <<  -19.0739, -1.01904, -0.520731, -0.341996, -0.27356, 0.118834, 0.210783, 0.953576, 1.04314, 1.46895, 1.54729, 1.67293, 2.77584;
+  MOs_energy_ref << -19.0739, -1.01904, -0.520731, -0.341996, -0.27356,
+      0.118834, 0.210783, 0.953576, 1.04314, 1.46895, 1.54729, 1.67293, 2.77584;
 
   bool check_eng = MOs_energy_ref.isApprox(orb.MOs().eigenvalues(), 1e-5);
   BOOST_CHECK_EQUAL(check_eng, true);
@@ -348,8 +348,6 @@ BOOST_AUTO_TEST_CASE(huckel_guess) {
   Eigen::MatrixXd MOs_coeff_ref =
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
           std::string(XTP_TEST_DATA_FOLDER) + "/dftengine/MOs_coeff_ref3.mm");
-
-
 
   AOBasis basis = orb.getDftBasis();
   AOOverlap overlap;
@@ -419,7 +417,8 @@ BOOST_AUTO_TEST_CASE(huckel_dft_guess) {
   BOOST_CHECK_CLOSE(orb.getDFTTotalEnergy(), -75.89101729307095, 1e-5);
 
   Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(13);
-  MOs_energy_ref <<  -19.0739, -1.01904, -0.520731, -0.341996, -0.27356, 0.118834, 0.210783, 0.953576, 1.04314, 1.46895, 1.54729, 1.67293, 2.77584;
+  MOs_energy_ref << -19.0739, -1.01904, -0.520731, -0.341996, -0.27356,
+      0.118834, 0.210783, 0.953576, 1.04314, 1.46895, 1.54729, 1.67293, 2.77584;
 
   bool check_eng = MOs_energy_ref.isApprox(orb.MOs().eigenvalues(), 1e-5);
   BOOST_CHECK_EQUAL(check_eng, true);
@@ -434,7 +433,7 @@ BOOST_AUTO_TEST_CASE(huckel_dft_guess) {
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
           std::string(XTP_TEST_DATA_FOLDER) + "/dftengine/MOs_coeff_ref4.mm");
 
-        AOBasis basis = orb.getDftBasis();
+  AOBasis basis = orb.getDftBasis();
   AOOverlap overlap;
   overlap.Fill(basis);
   Eigen::MatrixXd proj = MOs_coeff_ref.leftCols(5).transpose() *
