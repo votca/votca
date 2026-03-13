@@ -28,6 +28,7 @@
 #include "ERIs.h"
 #include "convergenceacc.h"
 #include "ecpaobasis.h"
+#include "extended_hueckel.h"
 #include "logger.h"
 #include "qmmolecule.h"
 #include "staticsite.h"
@@ -99,6 +100,12 @@ class DFTEngine {
 
   Eigen::MatrixXd AtomicGuess(const QMMolecule& mol) const;
 
+  Eigen::VectorXd BuildEHTOrbitalEnergies(const QMMolecule& mol) const;
+  Eigen::MatrixXd BuildEHTHamiltonian(const QMMolecule& mol) const;
+  tools::EigenSystem ExtendedHuckelGuess(const QMMolecule& mol) const;
+  tools::EigenSystem ExtendedHuckelDFTGuess(
+      const Mat_p_Energy& H0, const QMMolecule& mol,
+      const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
   Eigen::MatrixXd RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom) const;
 
   double NuclearRepulsion(const QMMolecule& mol) const;
@@ -120,6 +127,7 @@ class DFTEngine {
                                  Index numofzerocols);
   Eigen::MatrixXd InsertZeroRows(Eigen::MatrixXd MOsMatrix, Index startidx,
                                  Index numofzerorows);
+
   Logger* pLog_;
 
   // basis sets
