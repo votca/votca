@@ -65,6 +65,25 @@ class DFTEngine {
 
   std::string getDFTBasisName() const { return dftbasis_name_; };
 
+  struct SpinDensity {
+  Eigen::MatrixXd alpha;
+  Eigen::MatrixXd beta;
+
+  Eigen::MatrixXd total() const { return alpha + beta; }
+  Eigen::MatrixXd spin() const { return alpha - beta; }
+};
+
+bool IsRestrictedOpenShell() const {
+  return num_alpha_electrons_ != num_beta_electrons_;
+}
+
+Index NumberOfRestrictedOccupiedOrbitals() const {
+  return std::max(num_alpha_electrons_, num_beta_electrons_);
+}
+
+SpinDensity BuildSpinDensity(const tools::EigenSystem& MOs) const;
+ConvergenceAcc::options BuildConvergenceOptions() const;
+
  private:
   friend class DFTEngineTestAccess;
 
@@ -196,6 +215,14 @@ class DFTEngine {
   double truncation_threshold_;
   std::vector<Index> active_and_border_atoms_;
   std::vector<Index> numfuncpatom_;
+
+  // Spin-DFT Extension
+  Index num_alpha_electrons_ = 0;
+Index num_beta_electrons_ = 0;
+Index num_docc_ = 0;
+Index num_socc_alpha_ = 0;
+Index spin_ = 1;
+Index charge_ = 0;
 };
 
 }  // namespace xtp

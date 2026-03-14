@@ -35,7 +35,7 @@ namespace xtp {
 
 class ConvergenceAcc {
  public:
-  enum KSmode { closed, open, fractional };
+enum KSmode { closed, open, fractional, restricted_open };
 
   struct options {
     KSmode mode = KSmode::closed;
@@ -51,7 +51,17 @@ class ConvergenceAcc {
     double mixingparameter;
     double Econverged;
     double error_converged;
+    Index number_alpha_electrons = 0;
+    Index number_beta_electrons = 0;
   };
+
+struct SpinDensity {
+  Eigen::MatrixXd alpha;
+  Eigen::MatrixXd beta;
+
+  Eigen::MatrixXd total() const { return alpha + beta; }
+  Eigen::MatrixXd spin() const { return alpha - beta; }
+};
 
   void Configure(const ConvergenceAcc::options& opt) {
     opt_ = opt;
@@ -61,6 +71,9 @@ class ConvergenceAcc {
       nocclevels_ = opt_.numberofelectrons;
     } else if (opt_.mode == KSmode::fractional) {
       nocclevels_ = 0;
+    } else if (opt_.mode == KSmode::restricted_open) {
+      nocclevels_ = std::max(opt_.number_alpha_electrons,
+                         opt_.number_beta_electrons);
     }
     diis_.setHistLength(opt_.histlength);
   }
@@ -97,6 +110,8 @@ class ConvergenceAcc {
 
   Eigen::MatrixXd DensityMatrix(const tools::EigenSystem& MOs) const;
 
+  SpinDensity DensityMatrixSpinResolved(const tools::EigenSystem& MOs) const;
+
  private:
   options opt_;
 
@@ -105,6 +120,9 @@ class ConvergenceAcc {
       const Eigen::MatrixXd& MOs) const;
   Eigen::MatrixXd DensityMatrixGroundState_frac(
       const tools::EigenSystem& MOs) const;
+
+  SpinDensity DensityMatrixGroundState_restricted_open(
+    const Eigen::MatrixXd& MOs) const;
 
   bool usedmixing_ = true;
   double diiserror_ = std::numeric_limits<double>::max();

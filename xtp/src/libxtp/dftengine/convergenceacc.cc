@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2022 The VOTCA Development Team
+ *            Copyright 2009-2026 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -47,14 +47,16 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
   }
 
   totE_.push_back(totE);
-  if (opt_.mode != KSmode::fractional) {
-    double gap =
-        MOs.eigenvalues()(nocclevels_) - MOs.eigenvalues()(nocclevels_ - 1);
-    if ((diiserror_ > opt_.levelshiftend && opt_.levelshift > 0.0) ||
-        gap < 1e-6) {
-      Levelshift(H, MOs.eigenvectors());
-    }
+if (opt_.mode != KSmode::fractional &&
+    nocclevels_ > 0 &&
+    nocclevels_ < MOs.eigenvalues().size()) {
+  double gap =
+      MOs.eigenvalues()(nocclevels_) - MOs.eigenvalues()(nocclevels_ - 1);
+  if ((diiserror_ > opt_.levelshiftend && opt_.levelshift > 0.0) ||
+      gap < 1e-6) {
+    Levelshift(H, MOs.eigenvectors());
   }
+}
   const Eigen::MatrixXd& S = S_->Matrix();
   Eigen::MatrixXd errormatrix =
       Sminusahalf.transpose() * (H * dmat * S - S * dmat * H) * Sminusahalf;
@@ -197,6 +199,7 @@ void ConvergenceAcc::Levelshift(Eigen::MatrixXd& H,
   return;
 }
 
+/*
 Eigen::MatrixXd ConvergenceAcc::DensityMatrix(
     const tools::EigenSystem& MOs) const {
   Eigen::MatrixXd result;
@@ -208,7 +211,7 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrix(
     result = DensityMatrixGroundState_frac(MOs);
   }
   return result;
-}
+} */
 
 Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState(
     const Eigen::MatrixXd& MOs) const {
@@ -265,6 +268,60 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(
   Eigen::MatrixXd dmatGS = MOs.eigenvectors() * occupation.asDiagonal() *
                            MOs.eigenvectors().transpose();
   return dmatGS;
+}
+
+/*******************************************************
+ * EXTENSION FOR SPIN-KS-DFT
+ *******************************************************/
+
+ ConvergenceAcc::SpinDensity ConvergenceAcc::DensityMatrixGroundState_restricted_open(
+    const Eigen::MatrixXd& MOs) const {
+
+  const Index n_docc =
+      std::min(opt_.number_alpha_electrons, opt_.number_beta_electrons);
+  const Index n_socc_alpha =
+      opt_.number_alpha_electrons - n_docc;
+
+  SpinDensity result;
+  result.alpha = Eigen::MatrixXd::Zero(MOs.rows(), MOs.rows());
+  result.beta  = Eigen::MatrixXd::Zero(MOs.rows(), MOs.rows());
+
+  if (n_docc > 0) {
+    const Eigen::MatrixXd docc = MOs.leftCols(n_docc);
+    const Eigen::MatrixXd d_docc = docc * docc.transpose();
+    result.alpha += d_docc;
+    result.beta  += d_docc;
+  }
+
+  if (n_socc_alpha > 0) {
+    const Eigen::MatrixXd socc = MOs.middleCols(n_docc, n_socc_alpha);
+    result.alpha += socc * socc.transpose();
+  }
+
+  return result;
+}
+
+ConvergenceAcc::SpinDensity ConvergenceAcc::DensityMatrixSpinResolved(
+    const tools::EigenSystem& MOs) const {
+
+  if (opt_.mode == KSmode::restricted_open) {
+    return DensityMatrixGroundState_restricted_open(MOs.eigenvectors());
+  } else if (opt_.mode == KSmode::closed) {
+    Eigen::MatrixXd d = DensityMatrixGroundState(MOs.eigenvectors());
+    return {0.5 * d, 0.5 * d};
+  } else if (opt_.mode == KSmode::open) {
+    Eigen::MatrixXd d = DensityMatrixGroundState_unres(MOs.eigenvectors());
+    return {d, Eigen::MatrixXd::Zero(d.rows(), d.cols())};
+  } else {
+    Eigen::MatrixXd d = DensityMatrixGroundState_frac(MOs);
+    return {0.5 * d, 0.5 * d};
+  }
+}
+
+Eigen::MatrixXd ConvergenceAcc::DensityMatrix(
+    const tools::EigenSystem& MOs) const {
+  SpinDensity spin_dmat = DensityMatrixSpinResolved(MOs);
+  return spin_dmat.total();
 }
 
 }  // namespace xtp

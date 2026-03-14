@@ -134,15 +134,20 @@ void DFTEngine::Initialize(tools::Property& options) {
 void DFTEngine::PrintMOs(const Eigen::VectorXd& MOEnergies, Log::Level level) {
   XTP_LOG(level, *pLog_) << "  Orbital energies: " << std::flush;
   XTP_LOG(level, *pLog_) << "  index occupation energy(Hartree) " << std::flush;
-  for (Index i = 0; i < MOEnergies.size(); i++) {
+
+  for (Index i = 0; i < MOEnergies.size(); ++i) {
     Index occupancy = 0;
-    if (i < numofelectrons_ / 2) {
+    if (i < num_docc_) {
       occupancy = 2;
+    } else if (i < num_docc_ + num_socc_alpha_) {
+      occupancy = 1;
     }
-    XTP_LOG(level, *pLog_) << (boost::format(" %1$5d      %2$1d   %3$+1.10f") %
-                               i % occupancy % MOEnergies(i))
-                                  .str()
-                           << std::flush;
+
+    XTP_LOG(level, *pLog_)
+        << (boost::format(" %1$5d      %2$1d   %3$+1.10f") %
+            i % occupancy % MOEnergies(i))
+               .str()
+        << std::flush;
   }
   return;
 }
@@ -163,7 +168,7 @@ std::array<Eigen::MatrixXd, 2> DFTEngine::CalcERIs_EXX(
     if (conv_accelerator_.getUseMixing() || MOCoeff.rows() == 0) {
       return ERIs_.CalculateERIs_EXX_3c(Eigen::MatrixXd::Zero(0, 0), Dmat);
     } else {
-      Eigen::MatrixXd occblock = MOCoeff.leftCols(numofelectrons_ / 2);
+      Eigen::MatrixXd occblock = MOCoeff.leftCols(num_docc_ + num_socc_alpha_);
       return ERIs_.CalculateERIs_EXX_3c(occblock, Dmat);
     }
   } else {
@@ -240,7 +245,9 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     }
   }
 
-  Eigen::MatrixXd Dmat = conv_accelerator_.DensityMatrix(MOs);
+ConvergenceAcc::SpinDensity spin_dmat =
+    conv_accelerator_.DensityMatrixSpinResolved(MOs);
+Eigen::MatrixXd Dmat = spin_dmat.total();
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Guess Matrix gives N=" << std::setprecision(9)
       << Dmat.cwiseProduct(dftAOoverlap_.Matrix()).sum() << " electrons."
@@ -330,10 +337,13 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
 
     PrintMOs(MOs.eigenvalues(), Log::info);
 
-    XTP_LOG(Log::info, *pLog_) << "\t\tGAP "
-                               << MOs.eigenvalues()(numofelectrons_ / 2) -
-                                      MOs.eigenvalues()(numofelectrons_ / 2 - 1)
-                               << std::flush;
+    if (num_docc_ + num_socc_alpha_ > 0 &&
+        num_docc_ + num_socc_alpha_ < MOs.eigenvalues().size()) {
+      XTP_LOG(Log::info, *pLog_) << "\t\tGAP "
+                                 << MOs.eigenvalues()(num_docc_ + num_socc_alpha_) -
+                                        MOs.eigenvalues()(num_docc_ + num_socc_alpha_ - 1)
+                                 << std::flush;
+    }
 
     if (conv_accelerator_.isConverged()) {
       XTP_LOG(Log::error, *pLog_)
@@ -355,8 +365,19 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
       }
 
       PrintMOs(MOs.eigenvalues(), Log::error);
+        Index nuclear_charge = 0;
+  for (const QMAtom& atom : orb.QMAtoms()) {
+    nuclear_charge += atom.getNuccharge();
+  }
       orb.setQMEnergy(totenergy);
       orb.MOs() = MOs;
+      orb.setNumberOfAlphaElectrons(num_alpha_electrons_);
+      orb.setNumberOfBetaElectrons(num_beta_electrons_);
+      orb.setNumberOfOccupiedLevels(num_docc_ + num_socc_alpha_);
+      orb.setChargeAndSpin(
+          nuclear_charge - numofelectrons_,
+          std::abs(num_alpha_electrons_ - num_beta_electrons_) + 1);
+
       CalcElDipole(orb);
       break;
     } else if (this_iter == max_iter_ - 1) {
@@ -485,6 +506,11 @@ void DFTEngine::SetupInvariantMatrices() {
       << TimeStamp() << " Filled DFT Overlap matrix." << std::flush;
 
   conv_opt_.numberofelectrons = numofelectrons_;
+  conv_opt_.number_alpha_electrons = num_alpha_electrons_;
+  conv_opt_.number_beta_electrons = num_beta_electrons_;
+  conv_opt_.mode = (num_alpha_electrons_ == num_beta_electrons_)
+                       ? ConvergenceAcc::KSmode::closed
+                       : ConvergenceAcc::KSmode::restricted_open;
   conv_accelerator_.Configure(conv_opt_);
   conv_accelerator_.setLogger(pLog_);
   conv_accelerator_.setOverlap(dftAOoverlap_, 1e-8);
@@ -761,9 +787,18 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
           << dftbasis_name_ << std::flush;
     }
   }
-  // XTPDFT only with neutral, closed-shell systems
-  orb.setChargeAndSpin(0, 1);
-  orb.setNumberOfBetaElectrons(0);
+
+  Index nuclear_charge = 0;
+  for (const QMAtom& atom : orb.QMAtoms()) {
+    nuclear_charge += atom.getNuccharge();
+  }
+ // Preserve user-provided target charge and multiplicity
+  const Index target_charge = orb.getCharge();
+  const Index multiplicity = orb.getSpin();
+
+  orb.setChargeAndSpin(target_charge, multiplicity);
+  orb.setNumberOfAlphaElectrons(num_alpha_electrons_);
+  orb.setNumberOfBetaElectrons(num_beta_electrons_);
 
   orb.setXCFunctionalName(xc_functional_name_);
   orb.setXCGrid(grid_name_);
@@ -784,11 +819,14 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
                 .str());
       }
     }
-    if (orb.getNumberOfAlphaElectrons() != numofelectrons_ / 2) {
+    if (orb.getNumberOfAlphaElectrons() != num_alpha_electrons_ ||
+        orb.getNumberOfBetaElectrons() != num_beta_electrons_) {
       throw std::runtime_error(
-          (boost::format("Number of electron in guess orb file: %1% and in "
-                         "dftengine: %2% differ.") %
-           orb.getNumberOfAlphaElectrons() % (numofelectrons_ / 2))
+          (boost::format("Number of electrons in guess orb file "
+                         "and in dftengine differ: "
+                         "alpha %1% vs %2%, beta %3% vs %4%.") %
+           orb.getNumberOfAlphaElectrons() % num_alpha_electrons_ %
+           orb.getNumberOfBetaElectrons() % num_beta_electrons_)
               .str());
     }
     if (orb.getBasisSetSize() != dftbasis_.AOBasisSize()) {
@@ -799,12 +837,10 @@ void DFTEngine::ConfigOrbfile(Orbitals& orb) {
               .str());
     }
   } else {
-    orb.setNumberOfAlphaElectrons(numofelectrons_ / 2);
-    orb.setNumberOfOccupiedLevels(numofelectrons_ / 2);
+    orb.setNumberOfOccupiedLevels(num_docc_ + num_socc_alpha_);
   }
   return;
 }
-
 void DFTEngine::Prepare(Orbitals& orb, Index numofelectrons) {
   QMMolecule& mol = orb.QMAtoms();
 
@@ -867,18 +903,61 @@ void DFTEngine::Prepare(Orbitals& orb, Index numofelectrons) {
           << std::flush;
     }
   }
-  if (numofelectrons < 0) {
-    for (const QMAtom& atom : mol) {
-      numofelectrons_ += atom.getNuccharge();
-    }
-  } else {
-    numofelectrons_ = numofelectrons;
+
+  numofelectrons_ = 0;
+  num_alpha_electrons_ = 0;
+  num_beta_electrons_ = 0;
+  num_docc_ = 0;
+  num_socc_alpha_ = 0;
+  
+  Index nuclear_charge = 0;
+  for (const QMAtom& atom : mol) {
+    nuclear_charge += atom.getNuccharge();
   }
 
-  // here number of electrons is actually the total number, everywhere else in
-  // votca it is just alpha_electrons
+Index target_charge = orb.getCharge();
+  Index multiplicity = orb.getSpin();
+
+  if (multiplicity < 1) {
+    throw std::runtime_error("Spin multiplicity must be >= 1.");
+  }
+
+  if (numofelectrons >= 0) {
+    numofelectrons_ = numofelectrons;
+  } else {
+    numofelectrons_ = nuclear_charge - target_charge;
+  }
+
+  Index spin_excess = multiplicity - 1;
+
+  if (numofelectrons_ < 0) {
+    throw std::runtime_error("Computed a negative number of electrons.");
+  }
+
+  if (spin_excess > numofelectrons_) {
+    throw std::runtime_error(
+        "Spin multiplicity incompatible with total number of electrons.");
+  }
+
+  if (((numofelectrons_ + spin_excess) % 2) != 0) {
+    throw std::runtime_error(
+        "Charge and spin multiplicity imply non-integer alpha/beta occupations.");
+  }
+
+  num_alpha_electrons_ = (numofelectrons_ + spin_excess) / 2;
+  num_beta_electrons_ = (numofelectrons_ - spin_excess) / 2;
+
+  num_docc_ = std::min(num_alpha_electrons_, num_beta_electrons_);
+  num_socc_alpha_ = num_alpha_electrons_ - num_docc_;
+
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Total number of electrons: " << numofelectrons_
+      << " (charge=" << target_charge
+      << ", multiplicity=" << multiplicity
+      << ", alpha=" << num_alpha_electrons_
+      << ", beta=" << num_beta_electrons_
+      << ", docc=" << num_docc_
+      << ", socc=" << num_socc_alpha_ << ")"
       << std::flush;
 
   SetupInvariantMatrices();

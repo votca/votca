@@ -426,6 +426,20 @@ class Orbitals {
     inactivedensity_ = inactivedensity;
   }
 
+  /************************************
+  * Extensions spin DFT
+  *************************************/
+bool hasUnrestrictedOrbitals() const { return hasBetaMOs(); }
+
+bool isRestrictedOpenShell() const {
+  return total_spin_ > 1 && !hasUnrestrictedOrbitals();
+}
+
+bool isUnrestrictedOpenShell() const {
+  return total_spin_ > 1 && hasUnrestrictedOrbitals();
+}
+ std::array<Eigen::MatrixXd, 2> DensityMatrixGroundStateSpinResolved() const;
+
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
@@ -443,9 +457,9 @@ class Orbitals {
   Eigen::MatrixXd CalcAuxMat_cc(const Eigen::VectorXd &coeffs) const;
   Eigen::MatrixXd CalcAuxMat_vv(const Eigen::VectorXd &coeffs) const;
 
-  Index occupied_levels_;
+  Index occupied_levels_ =0 ;
   Index occupied_levels_beta_ = 0;
-  Index number_alpha_electrons_;
+  Index number_alpha_electrons_ = 0;
   Index number_beta_electrons_ = 0;
   std::string ECP_ = "";
   bool useTDA_;
@@ -471,8 +485,8 @@ class Orbitals {
 
   double qm_energy_ = 0;
 
-  Index total_charge_;
-  Index total_spin_;
+  Index total_charge_ =0;
+  Index total_spin_ =1;
 
   // new variables for GW-BSE storage
   Index rpamin_ = 0;
