@@ -21,10 +21,8 @@
 #ifndef VOTCA_XTP_VXC_POTENTIAL_H
 #define VOTCA_XTP_VXC_POTENTIAL_H
 
-// Third party includes
 #include <xc.h>
 
-// Local VOTCA includes
 #include "grid_containers.h"
 #include "gridbox.h"
 
@@ -36,32 +34,51 @@ namespace xtp {
 template <class Grid>
 class Vxc_Potential {
  public:
+  struct SpinResult {
+    double energy = 0.0;
+    Eigen::MatrixXd vxc_alpha;
+    Eigen::MatrixXd vxc_beta;
+  };
+
   explicit Vxc_Potential(const Grid& grid) : grid_(grid) {};
   ~Vxc_Potential();
 
   static double getExactExchange(const std::string& functional);
   void setXCfunctional(const std::string& functional);
+
   Mat_p_Energy IntegrateVXC(const Eigen::MatrixXd& density_matrix) const;
+  SpinResult IntegrateVXCSpin(const Eigen::MatrixXd& dmat_alpha,
+                              const Eigen::MatrixXd& dmat_beta) const;
 
  private:
   struct XC_entry {
-    double f_xc = 0;  // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r
-    double df_drho = 0;    // v_xc_rho(r) = df/drho
-    double df_dsigma = 0;  // df/dsigma ( df/dgrad(rho) = df/dsigma *
-                           // dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
+    double f_xc = 0;
+    double df_drho = 0;
+    double df_dsigma = 0;
+  };
+
+  struct XC_entry_spin {
+    double f_xc = 0;
+    double vrho_a = 0;
+    double vrho_b = 0;
+    double vsigma_aa = 0;
+    double vsigma_ab = 0;
+    double vsigma_bb = 0;
   };
 
   XC_entry EvaluateXC(double rho, double sigma) const;
+  XC_entry_spin EvaluateXCSpin(double rho_a, double rho_b, double sigma_aa,
+                               double sigma_ab, double sigma_bb) const;
 
   const Grid grid_;
   int xfunc_id;
   bool setXC_ = false;
   bool use_separate_;
   int cfunc_id;
-  xc_func_type xfunc;  // handle for exchange functional
-  xc_func_type cfunc;  // handle for correlation functional
+  xc_func_type xfunc;
+  xc_func_type cfunc;
 };
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // VOTCA_XTP_VXC_POTENTIAL_H
+#endif // VOTCA_XTP_VXC_POTENTIAL_H

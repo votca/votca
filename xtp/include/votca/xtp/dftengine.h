@@ -93,6 +93,9 @@ ConvergenceAcc::options BuildConvergenceOptions() const;
 
   Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs) const;
   void PrintMOs(const Eigen::VectorXd& MOEnergies, Log::Level level);
+  void PrintMOsUKS(const Eigen::VectorXd& alpha_energies,
+                 const Eigen::VectorXd& beta_energies,
+                 Log::Level level) const;
   void CalcElDipole(const Orbitals& orb) const;
 
   std::array<Eigen::MatrixXd, 2> CalcERIs_EXX(const Eigen::MatrixXd& MOCoeff,
@@ -149,6 +152,11 @@ ConvergenceAcc::options BuildConvergenceOptions() const;
                                  Index numofzerocols);
   Eigen::MatrixXd InsertZeroRows(Eigen::MatrixXd MOsMatrix, Index startidx,
                                  Index numofzerorows);
+
+bool EvaluateClosedShell(Orbitals& orb, const Mat_p_Energy& H0,
+                         const Vxc_Potential<Vxc_Grid>& vxcpotential);
+bool EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
+                 const Vxc_Potential<Vxc_Grid>& vxcpotential);
 
   Logger* pLog_;
 
