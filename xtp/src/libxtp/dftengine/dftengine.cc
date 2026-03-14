@@ -39,6 +39,7 @@
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/pmlocalization.h"
+#include "votca/xtp/uks_convergenceacc.h"
 
 namespace votca {
 namespace xtp {
@@ -481,8 +482,7 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
   MOs_beta.eigenvalues() = Eigen::VectorXd::Zero(H0.cols());
   MOs_beta.eigenvectors() = Eigen::MatrixXd::Zero(H0.rows(), H0.cols());
 
-  ConvergenceAcc conv_alpha;
-  ConvergenceAcc conv_beta;
+  UKSConvergenceAcc conv_uks;
 
   ConvergenceAcc::options opt_alpha = conv_opt_;
   opt_alpha.mode = ConvergenceAcc::KSmode::open;
@@ -492,13 +492,9 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
   opt_beta.mode = ConvergenceAcc::KSmode::open;
   opt_beta.numberofelectrons = num_beta_electrons_;
 
-  conv_alpha.Configure(opt_alpha);
-  conv_alpha.setLogger(pLog_);
-  conv_alpha.setOverlap(dftAOoverlap_, 1e-8);
-
-  conv_beta.Configure(opt_beta);
-  conv_beta.setLogger(pLog_);
-  conv_beta.setOverlap(dftAOoverlap_, 1e-8);
+  conv_uks.Configure(opt_alpha, opt_beta);
+  conv_uks.setLogger(pLog_);
+  conv_uks.setOverlap(dftAOoverlap_, 1e-8);
 
   if (initial_guess_ == "orbfile") {
     XTP_LOG(Log::error, *pLog_)
@@ -540,15 +536,14 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
     MOs_beta = guess;
   }
 
-  Eigen::MatrixXd D_alpha = conv_alpha.DensityMatrix(MOs_alpha);
-  Eigen::MatrixXd D_beta = conv_beta.DensityMatrix(MOs_beta);
+  UKSConvergenceAcc::SpinDensity Dspin = conv_uks.DensityMatrix(MOs_alpha, MOs_beta);
 
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " UKS guess gives Nalpha="
-      << D_alpha.cwiseProduct(dftAOoverlap_.Matrix()).sum()
-      << " Nbeta=" << D_beta.cwiseProduct(dftAOoverlap_.Matrix()).sum()
+      << Dspin.alpha.cwiseProduct(dftAOoverlap_.Matrix()).sum()
+      << " Nbeta=" << Dspin.beta.cwiseProduct(dftAOoverlap_.Matrix()).sum()
       << " Ntot="
-      << (D_alpha + D_beta).cwiseProduct(dftAOoverlap_.Matrix()).sum()
+      << Dspin.total().cwiseProduct(dftAOoverlap_.Matrix()).sum()
       << std::flush;
 
   XTP_LOG(Log::error, *pLog_)
@@ -565,25 +560,22 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
     Eigen::MatrixXd H_alpha = H0.matrix();
     Eigen::MatrixXd H_beta = H0.matrix();
 
-    const Eigen::MatrixXd D_total = D_alpha + D_beta;
+    const Eigen::MatrixXd D_total = Dspin.total();
 
-    double E_one = D_alpha.cwiseProduct(H0.matrix()).sum() +
-                   D_beta.cwiseProduct(H0.matrix()).sum();
+    double E_one = Dspin.alpha.cwiseProduct(H0.matrix()).sum() +
+                   Dspin.beta.cwiseProduct(H0.matrix()).sum();
 
     double E_coul = 0.0;
     double E_xc = 0.0;
     double E_exx = 0.0;
 
-    double integral_error =
-        std::min(0.5 * (conv_alpha.getDIIsError() + conv_beta.getDIIsError()) *
-                     1e-5,
-                 1e-5);
+    double integral_error = std::min(conv_uks.getDIIsError() * 1e-5, 1e-5);
 
     if (ScaHFX_ > 0) {
       std::array<Eigen::MatrixXd, 2> both_alpha =
-          CalcERIs_EXX(Eigen::MatrixXd::Zero(0, 0), D_alpha, integral_error);
+          CalcERIs_EXX(Eigen::MatrixXd::Zero(0, 0), Dspin.alpha, integral_error);
       std::array<Eigen::MatrixXd, 2> both_beta =
-          CalcERIs_EXX(Eigen::MatrixXd::Zero(0, 0), D_beta, integral_error);
+          CalcERIs_EXX(Eigen::MatrixXd::Zero(0, 0), Dspin.beta, integral_error);
 
       Eigen::MatrixXd J = both_alpha[0] + both_beta[0];
       Eigen::MatrixXd K_alpha = both_alpha[1];
@@ -594,8 +586,8 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
 
       E_coul = 0.5 * D_total.cwiseProduct(J).sum();
       E_exx = 0.5 * ScaHFX_ *
-              (D_alpha.cwiseProduct(K_alpha).sum() +
-               D_beta.cwiseProduct(K_beta).sum());
+              (Dspin.alpha.cwiseProduct(K_alpha).sum() +
+               Dspin.beta.cwiseProduct(K_beta).sum());
     } else {
       Eigen::MatrixXd J = CalcERIs(D_total, integral_error);
       H_alpha += J;
@@ -603,7 +595,7 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
       E_coul = 0.5 * D_total.cwiseProduct(J).sum();
     }
 
-    auto vxc = vxcpotential.IntegrateVXCSpin(D_alpha, D_beta);
+    auto vxc = vxcpotential.IntegrateVXCSpin(Dspin.alpha, Dspin.beta);
     H_alpha += vxc.vxc_alpha;
     H_beta += vxc.vxc_beta;
     E_xc = vxc.energy;
@@ -625,24 +617,23 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
                                 << std::setprecision(12) << totenergy
                                 << std::flush;
 
-    D_alpha = conv_alpha.Iterate(D_alpha, H_alpha, MOs_alpha, totenergy);
-    D_beta = conv_beta.Iterate(D_beta, H_beta, MOs_beta, totenergy);
+    UKSConvergenceAcc::SpinFock Hspin{H_alpha, H_beta};
+    Dspin = conv_uks.Iterate(Dspin, Hspin, MOs_alpha, MOs_beta, totenergy);
 
     XTP_LOG(Log::info, *pLog_)
         << TimeStamp() << " Nalpha="
-        << D_alpha.cwiseProduct(dftAOoverlap_.Matrix()).sum()
-        << " Nbeta=" << D_beta.cwiseProduct(dftAOoverlap_.Matrix()).sum()
+        << Dspin.alpha.cwiseProduct(dftAOoverlap_.Matrix()).sum()
+        << " Nbeta=" << Dspin.beta.cwiseProduct(dftAOoverlap_.Matrix()).sum()
         << std::flush;
-    
+
     XTP_LOG(Log::info, *pLog_)
-    << TimeStamp() << " <Sz> = "
-    << 0.5 * double(num_alpha_electrons_ - num_beta_electrons_)
-    << std::flush;
+        << TimeStamp() << " <Sz> = "
+        << 0.5 * double(num_alpha_electrons_ - num_beta_electrons_)
+        << std::flush;
 
     PrintMOsUKS(MOs_alpha.eigenvalues(), MOs_beta.eigenvalues(), Log::info);
 
-    bool converged = conv_alpha.isConverged() && conv_beta.isConverged();
-    if (converged) {
+    if (conv_uks.isConverged()) {
       Index nuclear_charge = 0;
       for (const QMAtom& atom : orb.QMAtoms()) {
         nuclear_charge += atom.getNuccharge();
@@ -661,13 +652,27 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
 
       XTP_LOG(Log::error, *pLog_)
           << TimeStamp() << " UKS converged after " << this_iter + 1
-          << " iterations. DIIS errors: alpha=" << conv_alpha.getDIIsError()
-          << " beta=" << conv_beta.getDIIsError() << std::flush;
+          << " iterations. Delta E=" << conv_uks.getDeltaE()
+          << " DIIS error=" << conv_uks.getDIIsError() << std::flush;
+
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Final Single Point Energy "
+          << std::setprecision(12) << totenergy << " Ha" << std::flush;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << std::setprecision(12)
+          << " Final XC contribution " << E_xc << " Ha" << std::flush;
+      if (ScaHFX_ > 0) {
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << std::setprecision(12)
+            << " Final EXX contribution " << E_exx << " Ha" << std::flush;
+      }
 
       XTP_LOG(Log::info, *pLog_)
-    << TimeStamp() << " <Sz> = "
-    << 0.5 * double(num_alpha_electrons_ - num_beta_electrons_)
-    << std::flush;
+          << TimeStamp() << " <Sz> = "
+          << 0.5 * double(num_alpha_electrons_ - num_beta_electrons_)
+          << std::flush;
+
+      PrintMOsUKS(MOs_alpha.eigenvalues(), MOs_beta.eigenvalues(), Log::error);
 
       CalcElDipole(orb);
       return true;

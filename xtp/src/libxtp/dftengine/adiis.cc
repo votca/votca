@@ -69,5 +69,61 @@ Eigen::VectorXd ADIIS::CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
   return coeffs;
 }
 
+Eigen::VectorXd ADIIS::CalcCoeff(
+    const std::vector<Eigen::MatrixXd>& dmathist_alpha,
+    const std::vector<Eigen::MatrixXd>& dmathist_beta,
+    const std::vector<Eigen::MatrixXd>& mathist_alpha,
+    const std::vector<Eigen::MatrixXd>& mathist_beta) {
+
+  success = true;
+  Index size = dmathist_alpha.size();
+
+  const Eigen::MatrixXd& dmat_alpha = dmathist_alpha.back();
+  const Eigen::MatrixXd& dmat_beta = dmathist_beta.back();
+  const Eigen::MatrixXd& H_alpha = mathist_alpha.back();
+  const Eigen::MatrixXd& H_beta = mathist_beta.back();
+
+  Eigen::VectorXd DiF = Eigen::VectorXd::Zero(size);
+  Eigen::MatrixXd DiFj = Eigen::MatrixXd::Zero(size, size);
+
+  for (Index i = 0; i < size; ++i) {
+    DiF(i) =
+        (dmathist_alpha[i] - dmat_alpha).cwiseProduct(H_alpha).sum() +
+        (dmathist_beta[i] - dmat_beta).cwiseProduct(H_beta).sum();
+  }
+
+  for (Index i = 0; i < size; ++i) {
+    for (Index j = 0; j < size; ++j) {
+      DiFj(i, j) =
+          (dmathist_alpha[i] - dmat_alpha)
+              .cwiseProduct(mathist_alpha[j] - H_alpha)
+              .sum() +
+          (dmathist_beta[i] - dmat_beta)
+              .cwiseProduct(mathist_beta[j] - H_beta)
+              .sum();
+    }
+  }
+
+  ADIIS_costfunction a_cost(DiF, DiFj);
+  BFGSTRM optimizer(a_cost);
+  Logger log;
+  optimizer.setLog(&log);
+  optimizer.setNumofIterations(1000);
+  optimizer.setTrustRadius(0.01);
+
+  Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / double(size));
+  optimizer.Optimize(coeffs);
+  success = optimizer.Success();
+
+  coeffs = optimizer.getParameters().cwiseAbs2();
+  double xnorm = coeffs.sum();
+  coeffs /= xnorm;
+
+  if (std::abs(coeffs.tail(1).value()) < 0.001) {
+    success = false;
+  }
+  return coeffs;
+}
+
 }  // namespace xtp
 }  // namespace votca

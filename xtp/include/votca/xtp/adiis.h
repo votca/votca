@@ -35,6 +35,10 @@ class ADIIS {
  public:
   Eigen::VectorXd CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
                             const std::vector<Eigen::MatrixXd>& mathist);
+  Eigen::VectorXd CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist_alpha,
+                          const std::vector<Eigen::MatrixXd>& dmathist_beta,
+                          const std::vector<Eigen::MatrixXd>& mathist_alpha,
+                          const std::vector<Eigen::MatrixXd>& mathist_beta);
 
   bool Info() { return success; }
 

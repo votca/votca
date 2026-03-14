@@ -27,6 +27,8 @@
 // Local VOTCA includes
 #include "ERIs.h"
 #include "convergenceacc.h"
+#include "uks_convergenceacc.h"
+
 #include "ecpaobasis.h"
 #include "extended_hueckel.h"
 #include "logger.h"
