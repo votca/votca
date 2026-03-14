@@ -5,6 +5,7 @@ Version 2026-dev
 ================
 
 -  Extended Hueckel methods for initial guess in DFT (#1230)
+-  more unit tests for dftengine (#1231)
 
 Version 2026 (released 09.03.26)
 ================================
