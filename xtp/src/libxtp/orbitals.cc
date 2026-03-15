@@ -577,45 +577,63 @@ void Orbitals::OrderMOsbyEnergy() {
 void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
                                  const Orbitals& orbitalsB) {
 
+  // This routine constructs a block-diagonal guess only from the restricted
+  // MO coefficient matrices mos_. It therefore only makes sense for
+  // restricted closed-shell inputs.
+  if (orbitalsA.hasUnrestrictedOrbitals() || orbitalsB.hasUnrestrictedOrbitals()) {
+    throw std::runtime_error(
+        "PrepareDimerGuess currently supports only restricted orbitals.");
+  }
+
+  if (orbitalsA.getSpin() != 1 || orbitalsB.getSpin() != 1) {
+    throw std::runtime_error(
+        "PrepareDimerGuess currently supports only closed-shell singlets.");
+  }
+
   // constructing the direct product orbA x orbB
   Index basisA = orbitalsA.getBasisSetSize();
   Index basisB = orbitalsB.getBasisSetSize();
 
-  Index electronsA = orbitalsA.getNumberOfAlphaElectrons();
-  Index electronsB = orbitalsB.getNumberOfAlphaElectrons();
+  // In the restricted closed-shell case, getLumo() is the number of occupied
+  // spatial orbitals, which is exactly what this block-merging logic assumes.
+  Index occA = orbitalsA.getLumo();
+  Index occB = orbitalsB.getLumo();
 
   mos_.eigenvectors() = Eigen::MatrixXd::Zero(basisA + basisB, basisA + basisB);
 
-  // AxB = | A 0 |  //   A = [EA, EB]  //
-  //       | 0 B |  //                 //
+  // AxB = | A 0 |
+  //       | 0 B |
   if (orbitalsA.getDFTbasisName() != orbitalsB.getDFTbasisName()) {
     throw std::runtime_error("Basissets of Orbitals A and B differ " +
                              orbitalsA.getDFTbasisName() + ":" +
                              orbitalsB.getDFTbasisName());
   }
   this->SetupDftBasis(orbitalsA.getDFTbasisName());
+
   if (orbitalsA.getECPName() != orbitalsB.getECPName()) {
     throw std::runtime_error("ECPs of Orbitals A and B differ " +
                              orbitalsA.getECPName() + ":" +
                              orbitalsB.getECPName());
   }
   this->setECPName(orbitalsA.getECPName());
-  this->setNumberOfOccupiedLevels(electronsA + electronsB);
-  this->setNumberOfAlphaElectrons(electronsA + electronsB);
 
-  mos_.eigenvectors().topLeftCorner(basisA, basisA) =
+  // Keep occupation metadata fully consistent for a restricted singlet.
+  this->setNumberOfOccupiedLevels(occA + occB);
+  this->setNumberOfOccupiedLevelsBeta(occA + occB);
+  this->setNumberOfAlphaElectrons(occA + occB);
+  this->setNumberOfBetaElectrons(occA + occB);
+  this->setChargeAndSpin(orbitalsA.getCharge() + orbitalsB.getCharge(), 1);
+
+  this->MOs().eigenvectors().block(0, 0, basisA, basisA) =
       orbitalsA.MOs().eigenvectors();
-  mos_.eigenvectors().bottomRightCorner(basisB, basisB) =
+  this->MOs().eigenvectors().block(basisA, basisA, basisB, basisB) =
       orbitalsB.MOs().eigenvectors();
 
-  mos_.eigenvalues().resize(basisA + basisB);
+  this->MOs().eigenvalues() = Eigen::VectorXd::Zero(basisA + basisB);
+  this->MOs().eigenvalues().segment(0, basisA) = orbitalsA.MOs().eigenvalues();
+  this->MOs().eigenvalues().segment(basisA, basisB) = orbitalsB.MOs().eigenvalues();
 
-  mos_.eigenvalues().head(basisA) = orbitalsA.MOs().eigenvalues();
-  mos_.eigenvalues().tail(basisB) = orbitalsB.MOs().eigenvalues();
-
-  OrderMOsbyEnergy();
-
-  return;
+  this->OrderMOsbyEnergy();
 }
 
 void Orbitals::WriteToCpt(const std::string& filename) const {

@@ -63,9 +63,33 @@ class Orbitals {
 
   Index getBasisSetSize() const { return dftbasis_.AOBasisSize(); }
 
-  Index getLumo() const { return occupied_levels_; }
+  Index getLumoAlpha() const {
+    if (number_alpha_electrons_ > 0) {
+      return number_alpha_electrons_;
+    }
+    return occupied_levels_;
+  }
 
-  Index getHomo() const { return occupied_levels_ - 1; }
+  Index getHomoAlpha() const { return getLumoAlpha() - 1; }
+
+  Index getLumoBeta() const {
+    if (number_beta_electrons_ > 0) {
+      return number_beta_electrons_;
+    }
+
+    // Legacy restricted closed-shell fallback
+    if (!hasUnrestrictedOrbitals() && total_spin_ == 1) {
+      return occupied_levels_;
+    }
+
+    return occupied_levels_beta_;
+  }
+
+  Index getHomoBeta() const { return getLumoBeta() - 1; }
+
+  // Current generic convention: use alpha frontier orbitals
+  Index getLumo() const { return getLumoAlpha(); }
+  Index getHomo() const { return getHomoAlpha(); }
 
   // access to DFT number of levels, new, tested
   bool hasNumberOfLevels() const {
@@ -97,7 +121,7 @@ class Orbitals {
   void setNumberOfBetaElectrons(Index electrons) {
     number_beta_electrons_ = electrons;
   }
-  
+
   // access to DFT number of electrons, new, tested
   bool hasNumberOfAlphaElectrons() const {
     return (number_alpha_electrons_ > 0) ? true : false;

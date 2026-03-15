@@ -244,11 +244,25 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     if (orb_.isOpenShell()) {
       throw std::runtime_error("GWBSE not implemented for open-shell systems");
     }
-    if (do_dft_in_dft_) {
+       if (do_dft_in_dft_) {
       Index active_electrons = orb_.getNumOfActiveElectrons();
+
+      if (active_electrons % 2 != 0) {
+        throw std::runtime_error(
+            "DFT-in-DFT embedded GWBSE currently supports only closed-shell "
+            "active spaces with an even number of electrons");
+      }
+
       orb_.MOs() = orb_.getEmbeddedMOs();
-      orb_.setNumberOfAlphaElectrons(active_electrons);
-      orb_.setNumberOfOccupiedLevels(active_electrons / 2);
+
+      const Index active_occ = active_electrons / 2;
+
+      // Restricted closed-shell rewrite of the embedded orbital object
+      orb_.setNumberOfOccupiedLevels(active_occ);
+      orb_.setNumberOfOccupiedLevelsBeta(active_occ);
+      orb_.setNumberOfAlphaElectrons(active_occ);
+      orb_.setNumberOfBetaElectrons(active_occ);
+      orb_.setChargeAndSpin(orb_.getCharge(), 1);
     }
     GWBSE gwbse(orb_);
     gwbse.setLogger(&log_);
