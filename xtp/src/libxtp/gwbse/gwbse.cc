@@ -143,13 +143,13 @@ void GWBSE::Initialize(tools::Property& options) {
   }
 
   // check maximum and minimum sizes
-  if (rpamax > num_of_levels) {
+  if (rpamax >= num_of_levels) {
     rpamax = num_of_levels - 1;
   }
-  if (qpmax > num_of_levels) {
+  if (qpmax >= num_of_levels) {
     qpmax = num_of_levels - 1;
   }
-  if (bse_cmax > num_of_levels) {
+  if (bse_cmax >= num_of_levels) {
     bse_cmax = num_of_levels - 1;
   }
   if (bse_vmin < 0) {
@@ -157,6 +157,30 @@ void GWBSE::Initialize(tools::Property& options) {
   }
   if (qpmin < 0) {
     qpmin = 0;
+  }
+
+  Index bse_vmax = homo;
+  Index bse_cmin = homo + 1;
+
+  if (rpamin < 0 || rpamax < 0 || rpamin > rpamax) {
+    throw std::runtime_error("Invalid RPA level range after setup/clamping.");
+  }
+  if (qpmin < 0 || qpmax < 0 || qpmin > qpmax) {
+    throw std::runtime_error("Invalid GW level range after setup/clamping.");
+  }
+  if (bse_vmin < 0 || bse_vmax < 0 || bse_vmin > bse_vmax) {
+    throw std::runtime_error(
+        "Invalid BSE occupied level range after setup/clamping.");
+  }
+  if (bse_cmin < 0 || bse_cmax < 0 || bse_cmin > bse_cmax) {
+    throw std::runtime_error(
+        "Invalid BSE virtual level range after setup/clamping.");
+  }
+  if (bse_vmax >= num_of_levels || bse_cmax >= num_of_levels) {
+    throw std::runtime_error("BSE level range exceeds available orbital indices.");
+  }
+  if (bse_vmax >= bse_cmin) {
+    throw std::runtime_error("BSE occupied and virtual level ranges overlap.");
   }
 
   gwopt_.homo = homo;
@@ -177,8 +201,8 @@ void GWBSE::Initialize(tools::Property& options) {
   orbitals_.setGWindices(qpmin, qpmax);
   orbitals_.setBSEindices(bse_vmin, bse_cmax);
 
-  Index bse_vmax = homo;
-  Index bse_cmin = homo + 1;
+  //Index bse_vmax = homo;
+  //Index bse_cmin = homo + 1;
   Index bse_vtotal = bse_vmax - bse_vmin + 1;
   Index bse_ctotal = bse_cmax - bse_cmin + 1;
   Index bse_size = bse_vtotal * bse_ctotal;
