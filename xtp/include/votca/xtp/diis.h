@@ -32,13 +32,18 @@ namespace xtp {
 
 class DIIS {
  public:
+  /// Store a new restricted-spin DIIS error matrix and update the B matrix history.
   void Update(Index maxerrorindex, const Eigen::MatrixXd& errormatrix);
+  /// Store new alpha/beta DIIS error matrices and update the unrestricted-spin B matrix history.
   void Update(Index maxerrorindex, const Eigen::MatrixXd& errormatrix_alpha,
             const Eigen::MatrixXd& errormatrix_beta);
+  /// Solve the Pulay linear system and return the DIIS interpolation coefficients.
   Eigen::VectorXd CalcCoeff();
 
+  /// Set the maximum number of past error matrices retained for DIIS extrapolation.
   void setHistLength(Index length) { histlength_ = length; }
 
+  /// Report whether the most recent DIIS setup and solve completed successfully.
   bool Info() { return success; }
 
  private:

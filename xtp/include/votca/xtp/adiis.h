@@ -33,13 +33,16 @@ namespace xtp {
 
 class ADIIS {
  public:
+  /// Compute ADIIS mixing coefficients for a restricted-spin history of density and Fock matrices.
   Eigen::VectorXd CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
                             const std::vector<Eigen::MatrixXd>& mathist);
+  /// Compute ADIIS mixing coefficients from separate alpha and beta density/Fock histories.
   Eigen::VectorXd CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist_alpha,
                           const std::vector<Eigen::MatrixXd>& dmathist_beta,
                           const std::vector<Eigen::MatrixXd>& mathist_alpha,
                           const std::vector<Eigen::MatrixXd>& mathist_beta);
 
+  /// Report whether the most recent ADIIS optimization converged successfully.
   bool Info() { return success; }
 
  private:
