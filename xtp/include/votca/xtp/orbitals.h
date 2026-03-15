@@ -77,11 +77,27 @@ class Orbitals {
 
   void setNumberOfOccupiedLevels(Index occupied_levels) {
     occupied_levels_ = occupied_levels;
+
+    // Backward compatibility for legacy restricted/singlet workflows:
+    // many callers only set occupied_levels_ and expect a closed-shell density.
+    if (!hasUnrestrictedOrbitals() && total_spin_ == 1) {
+      number_alpha_electrons_ = occupied_levels;
+      number_beta_electrons_ = occupied_levels;
+    }
   }
+
   void setNumberOfOccupiedLevelsBeta(Index occupied_levels_beta) {
     occupied_levels_beta_ = occupied_levels_beta;
   }
 
+  void setNumberOfAlphaElectrons(Index electrons) {
+    number_alpha_electrons_ = electrons;
+  }
+
+  void setNumberOfBetaElectrons(Index electrons) {
+    number_beta_electrons_ = electrons;
+  }
+  
   // access to DFT number of electrons, new, tested
   bool hasNumberOfAlphaElectrons() const {
     return (number_alpha_electrons_ > 0) ? true : false;
@@ -93,12 +109,7 @@ class Orbitals {
   Index getNumberOfAlphaElectrons() const { return number_alpha_electrons_; };
   Index getNumberOfBetaElectrons() const { return number_beta_electrons_; };
 
-  void setNumberOfAlphaElectrons(Index electrons) {
-    number_alpha_electrons_ = electrons;
-  }
-  void setNumberOfBetaElectrons(Index electrons) {
-    number_beta_electrons_ = electrons;
-  }
+
   bool hasECPName() const { return (ECP_ != "") ? true : false; }
 
   const std::string &getECPName() const { return ECP_; };

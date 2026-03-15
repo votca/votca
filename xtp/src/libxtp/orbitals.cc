@@ -821,20 +821,33 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
 
     r(BSE_triplet_energies_dynamic_, "BSE_triplet_dynamic");
   }
+  // Backward compatibility for older restricted checkpoints that may not
+  // contain explicit beta-electron information.
+  if (!hasUnrestrictedOrbitals() && total_spin_ == 1 && occupied_levels_ > 0) {
+    if (number_alpha_electrons_ == 0) {
+      number_alpha_electrons_ = occupied_levels_;
+    }
+    if (number_beta_electrons_ == 0) {
+      number_beta_electrons_ = occupied_levels_;
+    }
+  }
+
 }
 
 /*********************************************
  * Extensions Spin-DFT
  **********************************************/
 
- std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixGroundStateSpinResolved() const {
+std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixGroundStateSpinResolved() const {
   if (!hasMOs()) {
     throw std::runtime_error("Orbitals file does not contain MO coefficients");
   }
 
   std::array<Eigen::MatrixXd, 2> result;
-  result[0] = Eigen::MatrixXd::Zero(mos_.eigenvectors().rows(), mos_.eigenvectors().rows());
-  result[1] = Eigen::MatrixXd::Zero(mos_.eigenvectors().rows(), mos_.eigenvectors().rows());
+  result[0] =
+      Eigen::MatrixXd::Zero(mos_.eigenvectors().rows(), mos_.eigenvectors().rows());
+  result[1] =
+      Eigen::MatrixXd::Zero(mos_.eigenvectors().rows(), mos_.eigenvectors().rows());
 
   if (hasUnrestrictedOrbitals()) {
     if (occupied_levels_ > 0) {
@@ -842,16 +855,27 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
       result[0] = occ_a * occ_a.transpose();
     }
     if (occupied_levels_beta_ > 0) {
-      const Eigen::MatrixXd occ_b = mos_beta_.eigenvectors().leftCols(occupied_levels_beta_);
+      const Eigen::MatrixXd occ_b =
+          mos_beta_.eigenvectors().leftCols(occupied_levels_beta_);
       result[1] = occ_b * occ_b.transpose();
     }
     return result;
   }
 
-  const Index n_alpha = number_alpha_electrons_;
-  const Index n_beta = number_beta_electrons_;
+  // Restricted branch:
+  // Prefer explicit alpha/beta electron counts, but fall back to the legacy
+  // occupied_levels_ convention when those counts were never set.
+  Index n_alpha = number_alpha_electrons_;
+  Index n_beta = number_beta_electrons_;
+
+  if (n_alpha == 0 && n_beta == 0 && occupied_levels_ > 0) {
+    n_alpha = occupied_levels_;
+    n_beta = occupied_levels_;
+  }
+
   const Index n_docc = std::min(n_alpha, n_beta);
   const Index n_socc_alpha = n_alpha - n_docc;
+  const Index n_socc_beta = n_beta - n_docc;
 
   if (n_docc > 0) {
     const Eigen::MatrixXd docc = mos_.eigenvectors().leftCols(n_docc);
@@ -861,8 +885,15 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
   }
 
   if (n_socc_alpha > 0) {
-    const Eigen::MatrixXd socc = mos_.eigenvectors().middleCols(n_docc, n_socc_alpha);
-    result[0] += socc * socc.transpose();
+    const Eigen::MatrixXd socc_a =
+        mos_.eigenvectors().middleCols(n_docc, n_socc_alpha);
+    result[0] += socc_a * socc_a.transpose();
+  }
+
+  if (n_socc_beta > 0) {
+    const Eigen::MatrixXd socc_b =
+        mos_.eigenvectors().middleCols(n_docc + n_socc_alpha, n_socc_beta);
+    result[1] += socc_b * socc_b.transpose();
   }
 
   return result;
