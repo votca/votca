@@ -82,7 +82,8 @@ class Orbitals {
   /// Return the alpha-spin HOMO index.
   Index getHomoAlpha() const { return getLumoAlpha() - 1; }
 
-  /// Return the beta-spin LUMO index, including legacy restricted closed-shell fallback logic.
+  /// Return the beta-spin LUMO index, including legacy restricted closed-shell
+  /// fallback logic.
   Index getLumoBeta() const {
     if (number_beta_electrons_ > 0) {
       return number_beta_electrons_;
@@ -110,12 +111,14 @@ class Orbitals {
   bool hasNumberOfLevels() const {
     return ((occupied_levels_ > 0) ? true : false);
   }
-  /// Report whether the beta-spin occupied-orbital count has been set explicitly.
+  /// Report whether the beta-spin occupied-orbital count has been set
+  /// explicitly.
   bool hasNumberOfLevelsBeta() const {
     return ((occupied_levels_beta_ > 0) ? true : false);
   }
 
-  /// Store the number of occupied spatial orbitals and update closed-shell electron counts when applicable.
+  /// Store the number of occupied spatial orbitals and update closed-shell
+  /// electron counts when applicable.
   void setNumberOfOccupiedLevels(Index occupied_levels) {
     occupied_levels_ = occupied_levels;
 
@@ -156,7 +159,6 @@ class Orbitals {
   Index getNumberOfAlphaElectrons() const { return number_alpha_electrons_; };
   /// Return the stored number of beta electrons.
   Index getNumberOfBetaElectrons() const { return number_beta_electrons_; };
-
 
   /// Report whether an effective core potential label has been stored.
   bool hasECPName() const { return (ECP_ != "") ? true : false; }
@@ -202,7 +204,8 @@ class Orbitals {
   tools::EigenSystem &MOs_beta() { return mos_beta_; }
 
   // determine (pseudo-)degeneracy of a DFT molecular orbital
-  /// Return all orbitals whose energies are degenerate with the requested level within a tolerance.
+  /// Return all orbitals whose energies are degenerate with the requested level
+  /// within a tolerance.
   std::vector<Index> CheckDegeneracy(Index level,
                                      double energy_difference) const;
 
@@ -235,7 +238,8 @@ class Orbitals {
   /// Return the stored calculation-type tag.
   std::string getCalculationType() const { return CalcType_; }
 
-  /// Store the total charge and spin multiplicity associated with the orbital set.
+  /// Store the total charge and spin multiplicity associated with the orbital
+  /// set.
   void setChargeAndSpin(Index charge, Index spin) {
     total_charge_ = charge;
     total_spin_ = spin;
@@ -264,7 +268,8 @@ class Orbitals {
     auxbasis_.UpdateShellPositions(this->QMAtoms());
   }
 
-  /// Store the exchange-correlation functional label associated with the orbitals.
+  /// Store the exchange-correlation functional label associated with the
+  /// orbitals.
   void setXCFunctionalName(std::string functionalname) {
     functionalname_ = functionalname;
   }
@@ -298,7 +303,8 @@ class Orbitals {
   /// Build and attach the DFT AO basis from the stored molecular geometry.
   void SetupDftBasis(std::string basis_name);
 
-  /// Build and attach the auxiliary AO basis from the stored molecular geometry.
+  /// Build and attach the auxiliary AO basis from the stored molecular
+  /// geometry.
   void SetupAuxBasis(std::string aux_basis_name);
 
   /// Return the DFT AO basis, throwing if it has not been initialized.
@@ -381,7 +387,8 @@ class Orbitals {
   /// Report whether the BSE valence/conduction window has been defined.
   bool hasBSEindices() const { return (bse_cmax_ > 0) ? true : false; }
 
-  /// Define the BSE excitation window from a valence lower bound and conduction upper bound.
+  /// Define the BSE excitation window from a valence lower bound and conduction
+  /// upper bound.
   void setBSEindices(Index vmin, Index cmax) {
     bse_vmin_ = vmin;
     bse_vmax_ = getHomo();
@@ -435,7 +442,8 @@ class Orbitals {
 
   // access to diagonalized QP energies and wavefunctions
 
-  /// Report whether diagonalized quasiparticle energies and orbitals are available.
+  /// Report whether diagonalized quasiparticle energies and orbitals are
+  /// available.
   bool hasQPdiag() const {
     return (QPdiag_.eigenvalues().size() > 0) ? true : false;
   }
@@ -511,7 +519,8 @@ class Orbitals {
     return transition_dipoles_;
   }
 
-  /// Compute oscillator strengths from the stored excitation energies and transition dipoles.
+  /// Compute oscillator strengths from the stored excitation energies and
+  /// transition dipoles.
   Eigen::VectorXd Oscillatorstrengths() const;
 
   /// Compute the electronic dipole moment associated with a state density.
@@ -520,9 +529,11 @@ class Orbitals {
   // Calculates full electron density for state or transition density, if you
   // want to calculate only the density contribution of hole or electron use
   // DensityMatrixExcitedState
-  /// Build the full AO density matrix for an excited or transition state including the ground-state part.
+  /// Build the full AO density matrix for an excited or transition state
+  /// including the ground-state part.
   Eigen::MatrixXd DensityMatrixFull(const QMState &state) const;
-  /// Build the excited- or transition-state density contribution without the ground-state density.
+  /// Build the excited- or transition-state density contribution without the
+  /// ground-state density.
   Eigen::MatrixXd DensityMatrixWithoutGS(const QMState &state) const;
 
   // functions for calculating density matrices
@@ -538,17 +549,20 @@ class Orbitals {
   /// Transform quasiparticle amplitudes into the AO representation.
   Eigen::MatrixXd CalculateQParticleAORepresentation() const;
   /// Return the absolute total energy of the requested state in Hartree.
-  double getTotalStateEnergy(const QMState &state) const;    // Hartree
+  double getTotalStateEnergy(const QMState &state) const;  // Hartree
   /// Return the excitation energy of the requested state in Hartree.
   double getExcitedStateEnergy(const QMState &state) const;  // Hartree
 
-  /// Resort molecular orbitals and associated quantities by increasing orbital energy.
+  /// Resort molecular orbitals and associated quantities by increasing orbital
+  /// energy.
   void OrderMOsbyEnergy();
 
-  /// Build a dimer starting guess by combining orbital information from two fragments.
+  /// Build a dimer starting guess by combining orbital information from two
+  /// fragments.
   void PrepareDimerGuess(const Orbitals &orbitalsA, const Orbitals &orbitalsB);
 
-  /// Compute transition dipoles for coupled excited states from the stored BSE data.
+  /// Compute transition dipoles for coupled excited states from the stored BSE
+  /// data.
   void CalcCoupledTransition_Dipoles();
 
   /// Write the orbital container to a checkpoint file on disk.
@@ -559,16 +573,19 @@ class Orbitals {
 
   /// Serialize the orbital container into an already-open checkpoint writer.
   void WriteToCpt(CheckpointWriter &w) const;
-  /// Serialize the attached AO basis sets into an already-open checkpoint writer.
+  /// Serialize the attached AO basis sets into an already-open checkpoint
+  /// writer.
   void WriteBasisSetsToCpt(CheckpointWriter &w) const;
   /// Deserialize the orbital container from an already-open checkpoint reader.
   void ReadFromCpt(CheckpointReader &r);
   /// Deserialize attached AO basis sets from an already-open checkpoint reader.
   void ReadBasisSetsFromCpt(CheckpointReader &r);
 
-  /// Return whether off-diagonal quasiparticle Hamiltonian elements should be used.
+  /// Return whether off-diagonal quasiparticle Hamiltonian elements should be
+  /// used.
   bool GetFlagUseHqpOffdiag() const { return use_Hqp_offdiag_; };
-  /// Set whether off-diagonal quasiparticle Hamiltonian elements should be used.
+  /// Set whether off-diagonal quasiparticle Hamiltonian elements should be
+  /// used.
   void SetFlagUseHqpOffdiag(bool flag) { use_Hqp_offdiag_ = flag; };
 
   /// Return localized molecular orbitals, if available.
@@ -598,22 +615,24 @@ class Orbitals {
   }
 
   /************************************
-  * Extensions spin DFT
-  *************************************/
-/// Report whether separate beta-spin orbitals are present.
-bool hasUnrestrictedOrbitals() const { return hasBetaMOs(); }
+   * Extensions spin DFT
+   *************************************/
+  /// Report whether separate beta-spin orbitals are present.
+  bool hasUnrestrictedOrbitals() const { return hasBetaMOs(); }
 
-/// Report whether the orbitals represent a restricted open-shell reference.
-bool isRestrictedOpenShell() const {
-  return total_spin_ > 1 && !hasUnrestrictedOrbitals();
-}
+  /// Report whether the orbitals represent a restricted open-shell reference.
+  bool isRestrictedOpenShell() const {
+    return total_spin_ > 1 && !hasUnrestrictedOrbitals();
+  }
 
-/// Report whether the orbitals represent an unrestricted open-shell reference.
-bool isUnrestrictedOpenShell() const {
-  return total_spin_ > 1 && hasUnrestrictedOrbitals();
-}
- /// Build separate alpha and beta ground-state density matrices from the stored orbitals.
- std::array<Eigen::MatrixXd, 2> DensityMatrixGroundStateSpinResolved() const;
+  /// Report whether the orbitals represent an unrestricted open-shell
+  /// reference.
+  bool isUnrestrictedOpenShell() const {
+    return total_spin_ > 1 && hasUnrestrictedOrbitals();
+  }
+  /// Build separate alpha and beta ground-state density matrices from the
+  /// stored orbitals.
+  std::array<Eigen::MatrixXd, 2> DensityMatrixGroundStateSpinResolved() const;
 
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
@@ -632,7 +651,7 @@ bool isUnrestrictedOpenShell() const {
   Eigen::MatrixXd CalcAuxMat_cc(const Eigen::VectorXd &coeffs) const;
   Eigen::MatrixXd CalcAuxMat_vv(const Eigen::VectorXd &coeffs) const;
 
-  Index occupied_levels_ =0 ;
+  Index occupied_levels_ = 0;
   Index occupied_levels_beta_ = 0;
   Index number_alpha_electrons_ = 0;
   Index number_beta_electrons_ = 0;
@@ -660,8 +679,8 @@ bool isUnrestrictedOpenShell() const {
 
   double qm_energy_ = 0;
 
-  Index total_charge_ =0;
-  Index total_spin_ =1;
+  Index total_charge_ = 0;
+  Index total_spin_ = 1;
 
   // new variables for GW-BSE storage
   Index rpamin_ = 0;

@@ -182,18 +182,18 @@ typename Vxc_Potential<Grid>::XC_entry Vxc_Potential<Grid>::EvaluateXC(
 }
 
 template <class Grid>
-typename Vxc_Potential<Grid>::XC_entry_spin
-Vxc_Potential<Grid>::EvaluateXCSpin(double rho_a, double rho_b,
-                                    double sigma_aa, double sigma_ab,
-                                    double sigma_bb) const {
+typename Vxc_Potential<Grid>::XC_entry_spin Vxc_Potential<Grid>::EvaluateXCSpin(
+    double rho_a, double rho_b, double sigma_aa, double sigma_ab,
+    double sigma_bb) const {
   typename Vxc_Potential<Grid>::XC_entry_spin result;
 
   // UKS/open-shell path: use temporary POLARIZED handles so LibXC receives the
   // correct rho[2], sigma[3], vrho[2], vsigma[3] layout.
   xc_func_type xfunc_pol;
   if (xc_func_init(&xfunc_pol, xfunc_id, XC_POLARIZED) != 0) {
-    throw std::runtime_error("Failed to initialize polarized exchange XC "
-                             "functional in EvaluateXCSpin.");
+    throw std::runtime_error(
+        "Failed to initialize polarized exchange XC "
+        "functional in EvaluateXCSpin.");
   }
 
   xc_func_type cfunc_pol;
@@ -201,8 +201,9 @@ Vxc_Potential<Grid>::EvaluateXCSpin(double rho_a, double rho_b,
   if (use_separate_) {
     if (xc_func_init(&cfunc_pol, cfunc_id, XC_POLARIZED) != 0) {
       xc_func_end(&xfunc_pol);
-      throw std::runtime_error("Failed to initialize polarized correlation XC "
-                               "functional in EvaluateXCSpin.");
+      throw std::runtime_error(
+          "Failed to initialize polarized correlation XC "
+          "functional in EvaluateXCSpin.");
     }
     cfunc_pol_init = true;
   }
@@ -349,9 +350,8 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
 }
 
 template <class Grid>
-typename Vxc_Potential<Grid>::SpinResult
-Vxc_Potential<Grid>::IntegrateVXCSpin(const Eigen::MatrixXd& dmat_alpha,
-                                      const Eigen::MatrixXd& dmat_beta) const {
+typename Vxc_Potential<Grid>::SpinResult Vxc_Potential<Grid>::IntegrateVXCSpin(
+    const Eigen::MatrixXd& dmat_alpha, const Eigen::MatrixXd& dmat_beta) const {
   assert(dmat_alpha.isApprox(dmat_alpha.transpose()) &&
          "Alpha density matrix has to be symmetric!");
   assert(dmat_beta.isApprox(dmat_beta.transpose()) &&
@@ -360,8 +360,7 @@ Vxc_Potential<Grid>::IntegrateVXCSpin(const Eigen::MatrixXd& dmat_alpha,
   typename Vxc_Potential<Grid>::SpinResult result;
   result.vxc_alpha =
       Eigen::MatrixXd::Zero(dmat_alpha.rows(), dmat_alpha.cols());
-  result.vxc_beta =
-      Eigen::MatrixXd::Zero(dmat_beta.rows(), dmat_beta.cols());
+  result.vxc_beta = Eigen::MatrixXd::Zero(dmat_beta.rows(), dmat_beta.cols());
 
 #pragma omp parallel
   {
@@ -440,13 +439,11 @@ Vxc_Potential<Grid>::IntegrateVXCSpin(const Eigen::MatrixXd& dmat_alpha,
 
           // Same 0.5 prefactor on vrho term as in restricted path.
           Eigen::VectorXd wa =
-              weight * (0.5 * xc.vrho_a * ao.values +
-                        2.0 * xc.vsigma_aa * g_a +
+              weight * (0.5 * xc.vrho_a * ao.values + 2.0 * xc.vsigma_aa * g_a +
                         xc.vsigma_ab * g_b);
 
           Eigen::VectorXd wb =
-              weight * (0.5 * xc.vrho_b * ao.values +
-                        xc.vsigma_ab * g_a +
+              weight * (0.5 * xc.vrho_b * ao.values + xc.vsigma_ab * g_a +
                         2.0 * xc.vsigma_bb * g_b);
 
           Vxc_a_here.noalias() += wa * ao.values.transpose();

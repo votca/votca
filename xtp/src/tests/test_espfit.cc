@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
                                   "/espfit/molecule.xyz");
   orbitals.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
                          "/espfit/3-21G.xml");
-  //orbitals.setNumberOfOccupiedLevels(5);
+  // orbitals.setNumberOfOccupiedLevels(5);
   orbitals.setNumberOfAlphaElectrons(5);
   orbitals.setNumberOfBetaElectrons(5);
   orbitals.setChargeAndSpin(0, 1);

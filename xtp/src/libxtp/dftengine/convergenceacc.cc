@@ -69,8 +69,7 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
   }
 
   totE_.push_back(totE);
-  if (opt_.mode != KSmode::fractional &&
-      nocclevels_ > 0 &&
+  if (opt_.mode != KSmode::fractional && nocclevels_ > 0 &&
       nocclevels_ < MOs.eigenvalues().size()) {
     double gap =
         MOs.eigenvalues()(nocclevels_) - MOs.eigenvalues()(nocclevels_ - 1);
@@ -332,23 +331,23 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(
  * EXTENSION FOR SPIN-KS-DFT
  *******************************************************/
 
- ConvergenceAcc::SpinDensity ConvergenceAcc::DensityMatrixGroundState_restricted_open(
-    const Eigen::MatrixXd& MOs) const {
+ConvergenceAcc::SpinDensity
+    ConvergenceAcc::DensityMatrixGroundState_restricted_open(
+        const Eigen::MatrixXd& MOs) const {
 
   const Index n_docc =
       std::min(opt_.number_alpha_electrons, opt_.number_beta_electrons);
-  const Index n_socc_alpha =
-      opt_.number_alpha_electrons - n_docc;
+  const Index n_socc_alpha = opt_.number_alpha_electrons - n_docc;
 
   SpinDensity result;
   result.alpha = Eigen::MatrixXd::Zero(MOs.rows(), MOs.rows());
-  result.beta  = Eigen::MatrixXd::Zero(MOs.rows(), MOs.rows());
+  result.beta = Eigen::MatrixXd::Zero(MOs.rows(), MOs.rows());
 
   if (n_docc > 0) {
     const Eigen::MatrixXd docc = MOs.leftCols(n_docc);
     const Eigen::MatrixXd d_docc = docc * docc.transpose();
     result.alpha += d_docc;
-    result.beta  += d_docc;
+    result.beta += d_docc;
   }
 
   if (n_socc_alpha > 0) {

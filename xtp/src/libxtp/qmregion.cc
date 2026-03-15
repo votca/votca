@@ -244,7 +244,7 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     if (orb_.isOpenShell()) {
       throw std::runtime_error("GWBSE not implemented for open-shell systems");
     }
-       if (do_dft_in_dft_) {
+    if (do_dft_in_dft_) {
       Index active_electrons = orb_.getNumOfActiveElectrons();
 
       if (active_electrons % 2 != 0) {

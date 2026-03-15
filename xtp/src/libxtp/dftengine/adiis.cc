@@ -107,20 +107,18 @@ Eigen::VectorXd ADIIS::CalcCoeff(
   Eigen::MatrixXd DiFj = Eigen::MatrixXd::Zero(size, size);
 
   for (Index i = 0; i < size; ++i) {
-    DiF(i) =
-        (dmathist_alpha[i] - dmat_alpha).cwiseProduct(H_alpha).sum() +
-        (dmathist_beta[i] - dmat_beta).cwiseProduct(H_beta).sum();
+    DiF(i) = (dmathist_alpha[i] - dmat_alpha).cwiseProduct(H_alpha).sum() +
+             (dmathist_beta[i] - dmat_beta).cwiseProduct(H_beta).sum();
   }
 
   for (Index i = 0; i < size; ++i) {
     for (Index j = 0; j < size; ++j) {
-      DiFj(i, j) =
-          (dmathist_alpha[i] - dmat_alpha)
-              .cwiseProduct(mathist_alpha[j] - H_alpha)
-              .sum() +
-          (dmathist_beta[i] - dmat_beta)
-              .cwiseProduct(mathist_beta[j] - H_beta)
-              .sum();
+      DiFj(i, j) = (dmathist_alpha[i] - dmat_alpha)
+                       .cwiseProduct(mathist_alpha[j] - H_alpha)
+                       .sum() +
+                   (dmathist_beta[i] - dmat_beta)
+                       .cwiseProduct(mathist_beta[j] - H_beta)
+                       .sum();
     }
   }
 

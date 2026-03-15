@@ -157,11 +157,10 @@ void DFTEngine::PrintMOs(const Eigen::VectorXd& MOEnergies, Log::Level level) {
       occupancy = 1;
     }
 
-    XTP_LOG(level, *pLog_)
-        << (boost::format(" %1$5d      %2$1d   %3$+1.10f") %
-            i % occupancy % MOEnergies(i))
-               .str()
-        << std::flush;
+    XTP_LOG(level, *pLog_) << (boost::format(" %1$5d      %2$1d   %3$+1.10f") %
+                               i % occupancy % MOEnergies(i))
+                                  .str()
+                           << std::flush;
   }
   return;
 }
@@ -170,8 +169,8 @@ void DFTEngine::PrintMOsUKS(const Eigen::VectorXd& alpha_energies,
                             const Eigen::VectorXd& beta_energies,
                             Log::Level level) const {
   XTP_LOG(level, *pLog_) << "  UKS orbital energies:" << std::flush;
-  XTP_LOG(level, *pLog_)
-      << "  index   occ   eps_a(Ha)         eps_b(Ha)" << std::flush;
+  XTP_LOG(level, *pLog_) << "  index   occ   eps_a(Ha)         eps_b(Ha)"
+                         << std::flush;
 
   const Index nrows =
       std::max<Index>(alpha_energies.size(), beta_energies.size());
@@ -199,31 +198,30 @@ void DFTEngine::PrintMOsUKS(const Eigen::VectorXd& alpha_energies,
       eps_b = (boost::format("%+1.10f") % beta_energies(i)).str();
     }
 
-    XTP_LOG(level, *pLog_)
-        << (boost::format(" %1$5d   %2$1s   %3$15s   %4$15s") %
-            i % occ % eps_a % eps_b)
-               .str()
-        << std::flush;
+    XTP_LOG(level, *pLog_) << (boost::format(
+                                   " %1$5d   %2$1s   %3$15s   %4$15s") %
+                               i % occ % eps_a % eps_b)
+                                  .str()
+                           << std::flush;
   }
 
   if (num_alpha_electrons_ > 0 &&
       num_alpha_electrons_ < alpha_energies.size()) {
-    XTP_LOG(level, *pLog_)
-        << (boost::format("  alpha HOMO-LUMO gap: %+1.10f Ha") %
-            (alpha_energies(num_alpha_electrons_) -
-             alpha_energies(num_alpha_electrons_ - 1)))
-               .str()
-        << std::flush;
+    XTP_LOG(level, *pLog_) << (boost::format(
+                                   "  alpha HOMO-LUMO gap: %+1.10f Ha") %
+                               (alpha_energies(num_alpha_electrons_) -
+                                alpha_energies(num_alpha_electrons_ - 1)))
+                                  .str()
+                           << std::flush;
   }
 
-  if (num_beta_electrons_ > 0 &&
-      num_beta_electrons_ < beta_energies.size()) {
-    XTP_LOG(level, *pLog_)
-        << (boost::format("  beta  HOMO-LUMO gap: %+1.10f Ha") %
-            (beta_energies(num_beta_electrons_) -
-             beta_energies(num_beta_electrons_ - 1)))
-               .str()
-        << std::flush;
+  if (num_beta_electrons_ > 0 && num_beta_electrons_ < beta_energies.size()) {
+    XTP_LOG(level, *pLog_) << (boost::format(
+                                   "  beta  HOMO-LUMO gap: %+1.10f Ha") %
+                               (beta_energies(num_beta_electrons_) -
+                                beta_energies(num_beta_electrons_ - 1)))
+                                  .str()
+                           << std::flush;
   }
 }
 
@@ -588,8 +586,7 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
       << TimeStamp() << " UKS guess gives Nalpha="
       << Dspin.alpha.cwiseProduct(dftAOoverlap_.Matrix()).sum()
       << " Nbeta=" << Dspin.beta.cwiseProduct(dftAOoverlap_.Matrix()).sum()
-      << " Ntot="
-      << Dspin.total().cwiseProduct(dftAOoverlap_.Matrix()).sum()
+      << " Ntot=" << Dspin.total().cwiseProduct(dftAOoverlap_.Matrix()).sum()
       << std::flush;
 
   XTP_LOG(Log::error, *pLog_)
@@ -620,8 +617,8 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
     double integral_error = std::min(conv_uks.getDIIsError() * 1e-5, 1e-5);
 
     if (ScaHFX_ > 0) {
-      std::array<Eigen::MatrixXd, 2> both_alpha =
-          CalcERIs_EXX(Eigen::MatrixXd::Zero(0, 0), Dspin.alpha, integral_error);
+      std::array<Eigen::MatrixXd, 2> both_alpha = CalcERIs_EXX(
+          Eigen::MatrixXd::Zero(0, 0), Dspin.alpha, integral_error);
       std::array<Eigen::MatrixXd, 2> both_beta =
           CalcERIs_EXX(Eigen::MatrixXd::Zero(0, 0), Dspin.beta, integral_error);
 
@@ -657,20 +654,20 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
     XTP_LOG(Log::info, *pLog_) << TimeStamp() << " XC contribution "
                                << std::setprecision(12) << E_xc << std::flush;
     if (ScaHFX_ > 0) {
-      XTP_LOG(Log::info, *pLog_) << TimeStamp() << " EXX contribution "
-                                 << std::setprecision(12) << E_exx
-                                 << std::flush;
+      XTP_LOG(Log::info, *pLog_)
+          << TimeStamp() << " EXX contribution " << std::setprecision(12)
+          << E_exx << std::flush;
     }
-    XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Total Energy "
-                                << std::setprecision(12) << totenergy
-                                << std::flush;
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Total Energy " << std::setprecision(12) << totenergy
+        << std::flush;
 
     UKSConvergenceAcc::SpinFock Hspin{H_alpha, H_beta};
     Dspin = conv_uks.Iterate(Dspin, Hspin, MOs_alpha, MOs_beta, totenergy);
 
     XTP_LOG(Log::info, *pLog_)
-        << TimeStamp() << " Nalpha="
-        << Dspin.alpha.cwiseProduct(dftAOoverlap_.Matrix()).sum()
+        << TimeStamp()
+        << " Nalpha=" << Dspin.alpha.cwiseProduct(dftAOoverlap_.Matrix()).sum()
         << " Nbeta=" << Dspin.beta.cwiseProduct(dftAOoverlap_.Matrix()).sum()
         << std::flush;
 
@@ -707,8 +704,8 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
           << TimeStamp() << " Final Single Point Energy "
           << std::setprecision(12) << totenergy << " Ha" << std::flush;
       XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << std::setprecision(12)
-          << " Final XC contribution " << E_xc << " Ha" << std::flush;
+          << TimeStamp() << std::setprecision(12) << " Final XC contribution "
+          << E_xc << " Ha" << std::flush;
       if (ScaHFX_ > 0) {
         XTP_LOG(Log::error, *pLog_)
             << TimeStamp() << std::setprecision(12)
@@ -1032,8 +1029,8 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
 
     dftAOdmat_alpha = Convergence_alpha.Iterate(dftAOdmat_alpha, H_alpha,
                                                 MOs_alpha, totenergy);
-    dftAOdmat_beta = Convergence_beta.Iterate(dftAOdmat_beta, H_beta, MOs_beta,
-                                              totenergy);
+    dftAOdmat_beta =
+        Convergence_beta.Iterate(dftAOdmat_beta, H_beta, MOs_beta, totenergy);
 
     XTP_LOG(Log::debug, *pLog_)
         << TimeStamp() << " Iter " << this_iter << " of " << maxiter << " Etot "
@@ -1289,7 +1286,8 @@ void DFTEngine::Prepare(Orbitals& orb, Index numofelectrons) {
 
   if (((numofelectrons_ + spin_excess) % 2) != 0) {
     throw std::runtime_error(
-        "Charge and spin multiplicity imply non-integer alpha/beta occupations.");
+        "Charge and spin multiplicity imply non-integer alpha/beta "
+        "occupations.");
   }
 
   num_alpha_electrons_ = (numofelectrons_ + spin_excess) / 2;
@@ -1300,12 +1298,9 @@ void DFTEngine::Prepare(Orbitals& orb, Index numofelectrons) {
 
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " Total number of electrons: " << numofelectrons_
-      << " (charge=" << target_charge
-      << ", multiplicity=" << multiplicity
-      << ", alpha=" << num_alpha_electrons_
-      << ", beta=" << num_beta_electrons_
-      << ", docc=" << num_docc_
-      << ", socc=" << num_socc_alpha_ << ")"
+      << " (charge=" << target_charge << ", multiplicity=" << multiplicity
+      << ", alpha=" << num_alpha_electrons_ << ", beta=" << num_beta_electrons_
+      << ", docc=" << num_docc_ << ", socc=" << num_socc_alpha_ << ")"
       << std::flush;
 
   SetupInvariantMatrices();

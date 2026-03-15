@@ -40,7 +40,8 @@ namespace xtp {
  */
 class ADIIS {
  public:
-  /// Compute ADIIS mixing coefficients for a restricted-spin history of density and Fock matrices.
+  /// Compute ADIIS mixing coefficients for a restricted-spin history of density
+  /// and Fock matrices.
   Eigen::VectorXd CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
                             const std::vector<Eigen::MatrixXd>& mathist);
   /// Compute ADIIS mixing coefficients from separate alpha and beta

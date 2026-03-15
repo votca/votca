@@ -25,8 +25,8 @@
 // VOTCA includes
 #include <votca/tools/linalg.h>
 
-#include "votca/xtp/aomatrix.h"
 #include "votca/xtp/adiis.h"
+#include "votca/xtp/aomatrix.h"
 #include "votca/xtp/convergenceacc.h"
 #include "votca/xtp/diis.h"
 #include "votca/xtp/logger.h"
@@ -56,7 +56,7 @@ class UKSConvergenceAcc {
   void setOverlap(AOOverlap& S, double etol);
 
   SpinDensity DensityMatrix(const tools::EigenSystem& MOs_alpha,
-                           const tools::EigenSystem& MOs_beta) const;
+                            const tools::EigenSystem& MOs_beta) const;
 
   SpinDensity Iterate(const SpinDensity& dmat, SpinFock& H,
                       tools::EigenSystem& MOs_alpha,
@@ -70,8 +70,8 @@ class UKSConvergenceAcc {
   bool getUseMixing() const { return usedmixing_; }
 
  private:
-  Eigen::MatrixXd DensityMatrixGroundState_unres(
-      const Eigen::MatrixXd& MOs, Index nocclevels) const;
+  Eigen::MatrixXd DensityMatrixGroundState_unres(const Eigen::MatrixXd& MOs,
+                                                 Index nocclevels) const;
 
   void Levelshift(Eigen::MatrixXd& H, const Eigen::MatrixXd& MOs_old,
                   const options& opt, Index nocclevels) const;
@@ -110,4 +110,4 @@ class UKSConvergenceAcc {
 }  // namespace xtp
 }  // namespace votca
 
-#endif // VOTCA_XTP_UKS_CONVERGENCEACC_H
+#endif  // VOTCA_XTP_UKS_CONVERGENCEACC_H

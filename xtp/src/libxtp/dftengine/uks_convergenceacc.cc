@@ -33,7 +33,7 @@ void UKSConvergenceAcc::Configure(const options& opt_alpha,
 
   // one shared DIIS/ADIIS history length
   diis_.setHistLength(opt_alpha_.histlength);
-  //adiis_.setHistLength(opt_alpha_.histlength);
+  // adiis_.setHistLength(opt_alpha_.histlength);
 }
 
 void UKSConvergenceAcc::setLogger(Logger* log) { log_ = log; }
@@ -78,8 +78,8 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::DensityMatrix(
     const tools::EigenSystem& MOs_alpha,
     const tools::EigenSystem& MOs_beta) const {
   SpinDensity result;
-  result.alpha =
-      DensityMatrixGroundState_unres(MOs_alpha.eigenvectors(), nocclevels_alpha_);
+  result.alpha = DensityMatrixGroundState_unres(MOs_alpha.eigenvectors(),
+                                                nocclevels_alpha_);
   result.beta =
       DensityMatrixGroundState_unres(MOs_beta.eigenvectors(), nocclevels_beta_);
   return result;
@@ -87,8 +87,7 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::DensityMatrix(
 
 void UKSConvergenceAcc::Levelshift(Eigen::MatrixXd& H,
                                    const Eigen::MatrixXd& MOs_old,
-                                   const options& opt,
-                                   Index nocclevels) const {
+                                   const options& opt, Index nocclevels) const {
   if (opt.levelshift < 1e-9) {
     return;
   }
@@ -132,20 +131,22 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
 
   totE_.push_back(totE);
 
-  if (nocclevels_alpha_ > 0 && nocclevels_alpha_ < MOs_alpha.eigenvalues().size()) {
-    double gap_alpha =
-        MOs_alpha.eigenvalues()(nocclevels_alpha_) -
-        MOs_alpha.eigenvalues()(nocclevels_alpha_ - 1);
-    if ((diiserror_ > opt_alpha_.levelshiftend && opt_alpha_.levelshift > 0.0) ||
+  if (nocclevels_alpha_ > 0 &&
+      nocclevels_alpha_ < MOs_alpha.eigenvalues().size()) {
+    double gap_alpha = MOs_alpha.eigenvalues()(nocclevels_alpha_) -
+                       MOs_alpha.eigenvalues()(nocclevels_alpha_ - 1);
+    if ((diiserror_ > opt_alpha_.levelshiftend &&
+         opt_alpha_.levelshift > 0.0) ||
         gap_alpha < 1e-6) {
-      Levelshift(H.alpha, MOs_alpha.eigenvectors(), opt_alpha_, nocclevels_alpha_);
+      Levelshift(H.alpha, MOs_alpha.eigenvectors(), opt_alpha_,
+                 nocclevels_alpha_);
     }
   }
 
-  if (nocclevels_beta_ > 0 && nocclevels_beta_ < MOs_beta.eigenvalues().size()) {
-    double gap_beta =
-        MOs_beta.eigenvalues()(nocclevels_beta_) -
-        MOs_beta.eigenvalues()(nocclevels_beta_ - 1);
+  if (nocclevels_beta_ > 0 &&
+      nocclevels_beta_ < MOs_beta.eigenvalues().size()) {
+    double gap_beta = MOs_beta.eigenvalues()(nocclevels_beta_) -
+                      MOs_beta.eigenvalues()(nocclevels_beta_ - 1);
     if ((diiserror_ > opt_beta_.levelshiftend && opt_beta_.levelshift > 0.0) ||
         gap_beta < 1e-6) {
       Levelshift(H.beta, MOs_beta.eigenvectors(), opt_beta_, nocclevels_beta_);
@@ -183,21 +184,22 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
   Eigen::MatrixXd H_guess_alpha = H.alpha;
   Eigen::MatrixXd H_guess_beta = H.beta;
 
-  if ((diiserror_ < opt_alpha_.adiis_start || diiserror_ < opt_alpha_.diis_start) &&
+  if ((diiserror_ < opt_alpha_.adiis_start ||
+       diiserror_ < opt_alpha_.diis_start) &&
       opt_alpha_.usediis && mathist_alpha_.size() > 2) {
 
     Eigen::VectorXd coeffs;
 
     if (diiserror_ > opt_alpha_.diis_start ||
         totE_.back() > 0.9 * totE_[totE_.size() - 2]) {
-      coeffs = adiis_.CalcCoeff(dmatHist_alpha_, dmatHist_beta_,
-                                mathist_alpha_, mathist_beta_);
+      coeffs = adiis_.CalcCoeff(dmatHist_alpha_, dmatHist_beta_, mathist_alpha_,
+                                mathist_beta_);
       diis_error = !adiis_.Info() || coeffs.size() == 0;
       XTP_LOG(Log::warning, *log_)
           << TimeStamp() << " Using ADIIS for next UKS guess" << std::flush;
     } else {
-coeffs = diis_.CalcCoeff();
-diis_error = !diis_.Info() || coeffs.size() == 0;
+      coeffs = diis_.CalcCoeff();
+      diis_error = !diis_.Info() || coeffs.size() == 0;
       XTP_LOG(Log::warning, *log_)
           << TimeStamp() << " Using DIIS for next UKS guess" << std::flush;
     }
@@ -226,16 +228,17 @@ diis_error = !diis_.Info() || coeffs.size() == 0;
 
   SpinDensity dmatout = DensityMatrix(MOs_alpha, MOs_beta);
 
-  if (diiserror_ > opt_alpha_.adiis_start || !opt_alpha_.usediis || diis_error ||
-      mathist_alpha_.size() <= 2) {
+  if (diiserror_ > opt_alpha_.adiis_start || !opt_alpha_.usediis ||
+      diis_error || mathist_alpha_.size() <= 2) {
     usedmixing_ = true;
     dmatout.alpha = opt_alpha_.mixingparameter * dmat.alpha +
                     (1.0 - opt_alpha_.mixingparameter) * dmatout.alpha;
     dmatout.beta = opt_beta_.mixingparameter * dmat.beta +
                    (1.0 - opt_beta_.mixingparameter) * dmatout.beta;
     XTP_LOG(Log::warning, *log_)
-        << TimeStamp() << " Using coupled UKS mixing with alpha="
-        << opt_alpha_.mixingparameter << std::flush;
+        << TimeStamp()
+        << " Using coupled UKS mixing with alpha=" << opt_alpha_.mixingparameter
+        << std::flush;
   } else {
     usedmixing_ = false;
   }

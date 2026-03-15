@@ -147,12 +147,12 @@ Eigen::VectorXd DIIS::CalcCoeff() {
 // Unrestricted DIIS update. The alpha and beta residual overlaps are added
 // so that B_ij represents the spin-summed residual metric used in the UKS
 // extrapolation.
-void DIIS::Update(Index maxerrorindex,
-                  const Eigen::MatrixXd& errormatrix_alpha,
+void DIIS::Update(Index maxerrorindex, const Eigen::MatrixXd& errormatrix_alpha,
                   const Eigen::MatrixXd& errormatrix_beta) {
 
   if (int(errormatrixhist_alpha_.size()) == histlength_) {
-    errormatrixhist_alpha_.erase(errormatrixhist_alpha_.begin() + maxerrorindex);
+    errormatrixhist_alpha_.erase(errormatrixhist_alpha_.begin() +
+                                 maxerrorindex);
     errormatrixhist_beta_.erase(errormatrixhist_beta_.begin() + maxerrorindex);
     Diis_Bs_.erase(Diis_Bs_.begin() + maxerrorindex);
     for (std::vector<double>& subvec : Diis_Bs_) {
@@ -166,8 +166,10 @@ void DIIS::Update(Index maxerrorindex,
   std::vector<double> Bijs;
   for (Index i = 0; i < Index(errormatrixhist_alpha_.size()) - 1; ++i) {
     double value =
-        errormatrix_alpha.cwiseProduct(errormatrixhist_alpha_[i].transpose()).sum() +
-        errormatrix_beta.cwiseProduct(errormatrixhist_beta_[i].transpose()).sum();
+        errormatrix_alpha.cwiseProduct(errormatrixhist_alpha_[i].transpose())
+            .sum() +
+        errormatrix_beta.cwiseProduct(errormatrixhist_beta_[i].transpose())
+            .sum();
     Bijs.push_back(value);
     Diis_Bs_[i].push_back(value);
   }

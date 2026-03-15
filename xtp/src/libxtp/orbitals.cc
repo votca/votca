@@ -629,7 +629,8 @@ void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
   // This routine constructs a block-diagonal guess only from the restricted
   // MO coefficient matrices mos_. It therefore only makes sense for
   // restricted closed-shell inputs.
-  if (orbitalsA.hasUnrestrictedOrbitals() || orbitalsB.hasUnrestrictedOrbitals()) {
+  if (orbitalsA.hasUnrestrictedOrbitals() ||
+      orbitalsB.hasUnrestrictedOrbitals()) {
     throw std::runtime_error(
         "PrepareDimerGuess currently supports only restricted orbitals.");
   }
@@ -680,7 +681,8 @@ void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
 
   this->MOs().eigenvalues() = Eigen::VectorXd::Zero(basisA + basisB);
   this->MOs().eigenvalues().segment(0, basisA) = orbitalsA.MOs().eigenvalues();
-  this->MOs().eigenvalues().segment(basisA, basisB) = orbitalsB.MOs().eigenvalues();
+  this->MOs().eigenvalues().segment(basisA, basisB) =
+      orbitalsB.MOs().eigenvalues();
 
   this->OrderMOsbyEnergy();
 }
@@ -898,7 +900,6 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
       number_beta_electrons_ = occupied_levels_;
     }
   }
-
 }
 
 /*********************************************
@@ -914,20 +915,22 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
 // for unrestricted calculations. In the restricted branch the same spatial MO
 // coefficients are reused and distributed over alpha/beta occupations according
 // to the stored electron counts.
-std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixGroundStateSpinResolved() const {
+std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixGroundStateSpinResolved()
+    const {
   if (!hasMOs()) {
     throw std::runtime_error("Orbitals file does not contain MO coefficients");
   }
 
   std::array<Eigen::MatrixXd, 2> result;
-  result[0] =
-      Eigen::MatrixXd::Zero(mos_.eigenvectors().rows(), mos_.eigenvectors().rows());
-  result[1] =
-      Eigen::MatrixXd::Zero(mos_.eigenvectors().rows(), mos_.eigenvectors().rows());
+  result[0] = Eigen::MatrixXd::Zero(mos_.eigenvectors().rows(),
+                                    mos_.eigenvectors().rows());
+  result[1] = Eigen::MatrixXd::Zero(mos_.eigenvectors().rows(),
+                                    mos_.eigenvectors().rows());
 
   if (hasUnrestrictedOrbitals()) {
     if (occupied_levels_ > 0) {
-      const Eigen::MatrixXd occ_a = mos_.eigenvectors().leftCols(occupied_levels_);
+      const Eigen::MatrixXd occ_a =
+          mos_.eigenvectors().leftCols(occupied_levels_);
       result[0] = occ_a * occ_a.transpose();
     }
     if (occupied_levels_beta_ > 0) {

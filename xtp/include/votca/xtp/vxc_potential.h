@@ -81,4 +81,4 @@ class Vxc_Potential {
 
 }  // namespace xtp
 }  // namespace votca
-#endif // VOTCA_XTP_VXC_POTENTIAL_H
+#endif  // VOTCA_XTP_VXC_POTENTIAL_H
