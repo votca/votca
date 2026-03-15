@@ -26,6 +26,12 @@
 namespace votca {
 namespace xtp {
 
+// Update the Pulay error history. The scalar products stored in Diis_Bs_
+// form the DIIS B matrix with elements
+//
+//   B_ij = <R_i | R_j> = Tr[R_i^T R_j],
+//
+// where R_i is the commutator residual of iteration i.
 void DIIS::Update(Index maxerrorindex, const Eigen::MatrixXd& errormatrix) {
 
   if (int(errormatrixhist_.size()) == histlength_) {
@@ -50,6 +56,12 @@ void DIIS::Update(Index maxerrorindex, const Eigen::MatrixXd& errormatrix) {
   return;
 }
 
+// Solve the standard constrained DIIS system
+//
+//   [ B  -1 ] [c]   [0]
+//   [ -1  0 ] [l] = [-1]
+//
+// to obtain extrapolation coefficients c whose sum is one.
 Eigen::VectorXd DIIS::CalcCoeff() {
   success = true;
 

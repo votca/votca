@@ -196,12 +196,29 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   return dmatGS;
 }*/
 
+// Ground-state one-particle density in the AO basis.
+//
+// For unrestricted calculations the total density is assembled as
+//
+//   P = P^alpha + P^beta,
+//
+// with P^sigma = C_occ^sigma (C_occ^sigma)^T.
+//
+// For restricted cases the spin-resolved helper reconstructs the same object
+// from the shared spatial orbitals together with the stored alpha/beta
+// occupation pattern.
 Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
   auto spin = DensityMatrixGroundStateSpinResolved();
   return spin[0] + spin[1];
 }
 
 // Density matrix for a single KS orbital
+// One-orbital projector in the AO basis,
+//
+//   P^(k)_(mu,nu) = C_(mu,k) C_(nu,k),
+//
+// used for adding or removing a single KS occupation relative to the ground
+// state.
 Eigen::MatrixXd Orbitals::DensityMatrixKSstate(const QMState& state) const {
   if (this->hasUnrestrictedOrbitals()) {
     throw std::runtime_error(
@@ -229,6 +246,12 @@ Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const {
 }
 
 // Determine QuasiParticle Density Matrix
+// Quasiparticle projector in the AO basis,
+//
+//   P^QP_(mu,nu) = Lambda_(mu,n) Lambda_(nu,n),
+//
+// where Lambda is the AO representation of the quasiparticle eigenvectors in
+// the selected GW subspace.
 Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(
     const QMState& state) const {
   if (this->hasUnrestrictedOrbitals()) {
@@ -245,6 +268,13 @@ Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(
   return dmatQP;
 }
 
+// Electric dipole moment relative to the molecular origin,
+//
+//   mu = sum_A Z_A (R_A - R_0) - Tr[P M],
+//
+// where M contains the AO dipole integrals for x, y, and z and P is the full
+// state density matrix. Transition densities omit the nuclear term and return
+// only the electronic transition dipole.
 Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) const {
   Eigen::Vector3d nuclei_dip = Eigen::Vector3d::Zero();
   if (!state.isTransition()) {
@@ -265,6 +295,14 @@ Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) const {
   return nuclei_dip - electronic_dip;
 }
 
+// AO transition density for a singlet BSE excitation.
+//
+// In TDA form this evaluates
+//
+//   gamma_(mu,nu) = sqrt(2) sum_(v,c) A_(v,c) C_(mu,v) C_(nu,c),
+//
+// and for full BSE the resonant and anti-resonant amplitudes are added before
+// the AO transformation.
 Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
   if (this->hasUnrestrictedOrbitals()) {
     throw std::runtime_error(
@@ -305,6 +343,9 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
   return occlevels * mat.transpose() * virtlevels.transpose();
 }
 
+// Spin-summed excited-state density correction split into hole and electron
+// blocks. For full BSE the anti-resonant contribution is subtracted from the
+// resonant part, yielding the usual RPA/BSE excited-state density.
 std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState(
     const QMState& state) const {
   if (this->hasUnrestrictedOrbitals()) {
@@ -856,6 +897,15 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
  * Extensions Spin-DFT
  **********************************************/
 
+// Spin-resolved ground-state density matrices.
+//
+// The returned pair is (P^alpha, P^beta) with
+//
+//   P^sigma = C_occ^sigma (C_occ^sigma)^T
+//
+// for unrestricted calculations. In the restricted branch the same spatial MO
+// coefficients are reused and distributed over alpha/beta occupations according
+// to the stored electron counts.
 std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixGroundStateSpinResolved() const {
   if (!hasMOs()) {
     throw std::runtime_error("Orbitals file does not contain MO coefficients");

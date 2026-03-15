@@ -29,6 +29,14 @@
 namespace votca {
 namespace xtp {
 
+// Restricted ADIIS coefficients. The minimization is carried out for the
+// approximate energy functional
+//
+//   E(c) = sum_i c_i D_iF + 1/2 sum_ij c_i c_j D_iF_j,
+//
+// under the simplex constraints c_i >= 0 and sum_i c_i = 1. The latter is
+// enforced through the squared optimizer parameters followed by
+// renormalization.
 Eigen::VectorXd ADIIS::CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
                                  const std::vector<Eigen::MatrixXd>& mathist) {
   success = true;
@@ -69,6 +77,9 @@ Eigen::VectorXd ADIIS::CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
   return coeffs;
 }
 
+// Unrestricted ADIIS variant. The same quadratic surrogate is assembled, but
+// with alpha and beta traces added so that the objective approximates the spin-
+// summed SCF energy change.
 Eigen::VectorXd ADIIS::CalcCoeff(
     const std::vector<Eigen::MatrixXd>& dmathist_alpha,
     const std::vector<Eigen::MatrixXd>& dmathist_beta,
