@@ -22,8 +22,8 @@
 #ifndef VOTCA_XTP_UKS_CONVERGENCEACC_H
 #define VOTCA_XTP_UKS_CONVERGENCEACC_H
 
-#include <vector>
-#include <Eigen/Dense>
+// VOTCA includes
+#include <votca/tools/linalg.h>
 
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/adiis.h"
