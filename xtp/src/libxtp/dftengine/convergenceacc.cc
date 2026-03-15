@@ -23,6 +23,15 @@
 namespace votca {
 namespace xtp {
 
+/**
+ * Convergence acceleration for the SCF cycle.
+ *
+ * The central residual is the AO-metric commutator R = F P S - S P F, which
+ * vanishes at self-consistency in a non-orthogonal basis. This file provides
+ * the orthogonalized residual, DIIS or ADIIS extrapolation, level shifting,
+ * and occupation-model-specific density construction.
+ */
+
 // Build the symmetric orthogonalization matrix X = S^{-1/2}. All Fock-like
 // matrices are diagonalized in the orthogonal AO basis X^T F X.
 void ConvergenceAcc::setOverlap(AOOverlap& S, double etol) {
@@ -60,16 +69,16 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
   }
 
   totE_.push_back(totE);
-if (opt_.mode != KSmode::fractional &&
-    nocclevels_ > 0 &&
-    nocclevels_ < MOs.eigenvalues().size()) {
-  double gap =
-      MOs.eigenvalues()(nocclevels_) - MOs.eigenvalues()(nocclevels_ - 1);
-  if ((diiserror_ > opt_.levelshiftend && opt_.levelshift > 0.0) ||
-      gap < 1e-6) {
-    Levelshift(H, MOs.eigenvectors());
+  if (opt_.mode != KSmode::fractional &&
+      nocclevels_ > 0 &&
+      nocclevels_ < MOs.eigenvalues().size()) {
+    double gap =
+        MOs.eigenvalues()(nocclevels_) - MOs.eigenvalues()(nocclevels_ - 1);
+    if ((diiserror_ > opt_.levelshiftend && opt_.levelshift > 0.0) ||
+        gap < 1e-6) {
+      Levelshift(H, MOs.eigenvectors());
+    }
   }
-}
   const Eigen::MatrixXd& S = S_->Matrix();
   Eigen::MatrixXd errormatrix =
       Sminusahalf.transpose() * (H * dmat * S - S * dmat * H) * Sminusahalf;
@@ -241,7 +250,10 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrix(
 
 // Closed-shell AO density matrix
 //
-//   P = 2 C_occ C_occ^T.
+//   P = 2 C_occ C_occ^T,
+//
+// where each occupied spatial orbital contributes one alpha and one beta
+// electron.
 Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState(
     const Eigen::MatrixXd& MOs) const {
   const Eigen::MatrixXd occstates = MOs.leftCols(nocclevels_);
@@ -251,7 +263,9 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState(
 
 // Spin-resolved unrestricted AO density matrix for one spin channel,
 //
-//   P^sigma = C_occ^sigma (C_occ^sigma)^T.
+//   P^sigma = C_occ^sigma (C_occ^sigma)^T,
+//
+// with no factor of two because a single spin channel is represented.
 Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_unres(
     const Eigen::MatrixXd& MOs) const {
   if (nocclevels_ == 0) {
@@ -268,6 +282,12 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_unres(
 //
 // where f is a diagonal matrix of orbital occupations assembled from the
 // configured electron count.
+// Fractional-occupation AO density matrix
+//
+//   P = C n C^T,
+//
+// where n is the diagonal matrix of orbital occupations provided in the
+// EigenSystem container.
 Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(
     const tools::EigenSystem& MOs) const {
   if (opt_.numberofelectrons == 0) {
@@ -339,6 +359,9 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(
   return result;
 }
 
+// Construct spin-resolved densities according to the configured occupation
+// model. For restricted open-shell cases the same spatial orbitals are split
+// into doubly and singly occupied subsets using the stored alpha/beta counts.
 ConvergenceAcc::SpinDensity ConvergenceAcc::DensityMatrixSpinResolved(
     const tools::EigenSystem& MOs) const {
 

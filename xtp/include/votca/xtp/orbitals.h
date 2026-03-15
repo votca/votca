@@ -38,10 +38,11 @@ namespace votca {
 namespace xtp {
 
 /**
- * \brief container for molecular orbitals
+ * \brief Container for molecular orbitals and derived one-particle data.
  *
- * The Orbitals class stores orbital id, energy, MO coefficients, basis set
- *
+ * Besides orbital energies and coefficients, the class stores basis-set
+ * metadata, electron counts, spin information, excited-state amplitudes, and
+ * helpers for building AO-basis density matrices from the stored states.
  */
 class Orbitals {
  public:

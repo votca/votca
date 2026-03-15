@@ -29,6 +29,15 @@
 namespace votca {
 namespace xtp {
 
+/**
+ * ADIIS implementation.
+ *
+ * ADIIS minimizes a quadratic surrogate of the SCF energy over the simplex of
+ * mixing coefficients. It is typically more robust than plain DIIS far from
+ * convergence and is therefore used as an intermediate accelerator before the
+ * switch to standard Pulay extrapolation.
+ */
+
 // Restricted ADIIS coefficients. The minimization is carried out for the
 // approximate energy functional
 //

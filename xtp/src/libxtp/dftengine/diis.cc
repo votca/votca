@@ -26,6 +26,14 @@
 namespace votca {
 namespace xtp {
 
+/**
+ * Pulay DIIS implementation.
+ *
+ * The method stores recent commutator error matrices e_i and solves an
+ * augmented linear system built from B_ij = <e_i, e_j>. The resulting
+ * coefficients define the extrapolated Fock matrix F' = sum_i c_i F_i.
+ */
+
 // Update the Pulay error history. The scalar products stored in Diis_Bs_
 // form the DIIS B matrix with elements
 //
@@ -136,6 +144,9 @@ Eigen::VectorXd DIIS::CalcCoeff() {
   return coeffs;
 }
 
+// Unrestricted DIIS update. The alpha and beta residual overlaps are added
+// so that B_ij represents the spin-summed residual metric used in the UKS
+// extrapolation.
 void DIIS::Update(Index maxerrorindex,
                   const Eigen::MatrixXd& errormatrix_alpha,
                   const Eigen::MatrixXd& errormatrix_beta) {

@@ -33,10 +33,20 @@
 namespace votca {
 namespace xtp {
 
+/**
+ * SCF convergence accelerator for Kohn-Sham iterations.
+ *
+ * The class stores the Fock and density history needed for linear mixing,
+ * Pulay DIIS, and ADIIS, and provides the density construction matching the
+ * selected occupation model.
+ */
 class ConvergenceAcc {
  public:
-enum KSmode { closed, open, fractional, restricted_open };
+  /// Occupation model used when constructing density matrices.
+  enum KSmode { closed, open, fractional, restricted_open };
 
+  /// User-configurable settings controlling mixing, DIIS, and convergence
+  /// thresholds.
   struct options {
     KSmode mode = KSmode::closed;
     bool usediis;
@@ -55,13 +65,17 @@ enum KSmode { closed, open, fractional, restricted_open };
     Index number_beta_electrons = 0;
   };
 
-struct SpinDensity {
-  Eigen::MatrixXd alpha;
-  Eigen::MatrixXd beta;
+  /// Spin-resolved density matrices returned for open-shell SCF updates.
+  struct SpinDensity {
+    Eigen::MatrixXd alpha;
+    Eigen::MatrixXd beta;
 
-  Eigen::MatrixXd total() const { return alpha + beta; }
-  Eigen::MatrixXd spin() const { return alpha - beta; }
-};
+    /// Return the total density P = P^alpha + P^beta.
+    Eigen::MatrixXd total() const { return alpha + beta; }
+
+    /// Return the spin density P^alpha - P^beta.
+    Eigen::MatrixXd spin() const { return alpha - beta; }
+  };
 
   /// Store SCF acceleration settings and derive the number of occupied levels for the selected KS mode.
   void Configure(const ConvergenceAcc::options& opt) {
@@ -74,7 +88,7 @@ struct SpinDensity {
       nocclevels_ = 0;
     } else if (opt_.mode == KSmode::restricted_open) {
       nocclevels_ = std::max(opt_.number_alpha_electrons,
-                         opt_.number_beta_electrons);
+                             opt_.number_beta_electrons);
     }
     diis_.setHistLength(opt_.histlength);
   }
@@ -139,7 +153,7 @@ struct SpinDensity {
 
   /// Construct alpha and beta densities for a restricted open-shell determinant.
   SpinDensity DensityMatrixGroundState_restricted_open(
-    const Eigen::MatrixXd& MOs) const;
+      const Eigen::MatrixXd& MOs) const;
 
   bool usedmixing_ = true;
   double diiserror_ = std::numeric_limits<double>::max();

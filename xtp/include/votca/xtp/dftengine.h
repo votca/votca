@@ -42,11 +42,13 @@ class Orbitals;
 class DFTEngineTestAccess;
 
 /**
- * \brief Electronic ground-state via Density-Functional Theory
+ * \brief Electronic ground-state via Density-Functional Theory.
  *
- * Evaluates electronic ground state in molecular systems based on
- * density functional theory with Gaussian Orbitals.
- *
+ * This class assembles the one- and two-electron matrix contributions needed
+ * for self-consistent Kohn-Sham calculations in a Gaussian AO basis. The SCF
+ * machinery supports restricted closed-shell calculations and unrestricted
+ * spin-polarized calculations, while reusing the same integral and numerical
+ * XC infrastructure whenever possible.
  */
 
 class DFTEngine {
@@ -74,28 +76,38 @@ class DFTEngine {
   /// Return the configured AO basis-set name for the DFT calculation.
   std::string getDFTBasisName() const { return dftbasis_name_; };
 
+  /// Spin-resolved density matrices used to pass alpha and beta quantities
+  /// together through the UKS workflow.
   struct SpinDensity {
-  Eigen::MatrixXd alpha;
-  Eigen::MatrixXd beta;
+    Eigen::MatrixXd alpha;
+    Eigen::MatrixXd beta;
 
-  Eigen::MatrixXd total() const { return alpha + beta; }
-  Eigen::MatrixXd spin() const { return alpha - beta; }
-};
+    /// Return the total density P = P^alpha + P^beta.
+    Eigen::MatrixXd total() const { return alpha + beta; }
 
-/// Report whether the current electron counts correspond to a restricted open-shell reference.
-bool IsRestrictedOpenShell() const {
-  return num_alpha_electrons_ != num_beta_electrons_;
-}
+    /// Return the spin density P^alpha - P^beta.
+    Eigen::MatrixXd spin() const { return alpha - beta; }
+  };
 
-/// Return the number of spatial orbitals occupied in a restricted open-shell reference.
-Index NumberOfRestrictedOccupiedOrbitals() const {
-  return std::max(num_alpha_electrons_, num_beta_electrons_);
-}
+  /// Report whether the current electron counts define a spin-polarized
+  /// reference.
+  bool IsRestrictedOpenShell() const {
+    return num_alpha_electrons_ != num_beta_electrons_;
+  }
 
-/// Construct alpha and beta density matrices from the current molecular orbitals.
-SpinDensity BuildSpinDensity(const tools::EigenSystem& MOs) const;
-/// Assemble the SCF accelerator settings consistent with the current spin treatment.
-ConvergenceAcc::options BuildConvergenceOptions() const;
+  /// Return the number of spatial orbitals occupied by at least one electron
+  /// in a restricted open-shell reference.
+  Index NumberOfRestrictedOccupiedOrbitals() const {
+    return std::max(num_alpha_electrons_, num_beta_electrons_);
+  }
+
+  /// Construct alpha and beta density matrices from a shared MO coefficient
+  /// matrix and the current occupation metadata.
+  SpinDensity BuildSpinDensity(const tools::EigenSystem& MOs) const;
+
+  /// Assemble SCF acceleration settings consistent with the current spin
+  /// treatment and occupation model.
+  ConvergenceAcc::options BuildConvergenceOptions() const;
 
  private:
   friend class DFTEngineTestAccess;
@@ -196,12 +208,14 @@ ConvergenceAcc::options BuildConvergenceOptions() const;
   Eigen::MatrixXd InsertZeroRows(Eigen::MatrixXd MOsMatrix, Index startidx,
                                  Index numofzerorows);
 
-/// Run the restricted closed-shell SCF loop and store the converged result.
-bool EvaluateClosedShell(Orbitals& orb, const Mat_p_Energy& H0,
-                         const Vxc_Potential<Vxc_Grid>& vxcpotential);
-/// Run the unrestricted Kohn-Sham SCF loop and store alpha/beta orbitals separately.
-bool EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
-                 const Vxc_Potential<Vxc_Grid>& vxcpotential);
+  /// Run the restricted closed-shell SCF loop and store the converged result.
+  bool EvaluateClosedShell(Orbitals& orb, const Mat_p_Energy& H0,
+                           const Vxc_Potential<Vxc_Grid>& vxcpotential);
+
+  /// Run the unrestricted Kohn-Sham SCF loop and store alpha and beta orbitals
+  /// separately.
+  bool EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
+                   const Vxc_Potential<Vxc_Grid>& vxcpotential);
 
   Logger* pLog_;
 

@@ -30,13 +30,21 @@
 namespace votca {
 namespace xtp {
 
+/**
+ * Pulay direct inversion in the iterative subspace.
+ *
+ * The class stores recent commutator error matrices and solves the augmented
+ * linear DIIS system to obtain extrapolation coefficients for the next Fock
+ * guess.
+ */
 class DIIS {
  public:
   /// Store a new restricted-spin DIIS error matrix and update the B matrix history.
   void Update(Index maxerrorindex, const Eigen::MatrixXd& errormatrix);
-  /// Store new alpha/beta DIIS error matrices and update the unrestricted-spin B matrix history.
+  /// Store new alpha and beta DIIS error matrices and update the
+  /// unrestricted-spin B matrix history.
   void Update(Index maxerrorindex, const Eigen::MatrixXd& errormatrix_alpha,
-            const Eigen::MatrixXd& errormatrix_beta);
+              const Eigen::MatrixXd& errormatrix_beta);
   /// Solve the Pulay linear system and return the DIIS interpolation coefficients.
   Eigen::VectorXd CalcCoeff();
 
@@ -52,7 +60,7 @@ class DIIS {
   std::vector<std::vector<double> > Diis_Bs_;
   std::vector<Eigen::MatrixXd> errormatrixhist_;
   std::vector<Eigen::MatrixXd> errormatrixhist_alpha_;
-std::vector<Eigen::MatrixXd> errormatrixhist_beta_;
+  std::vector<Eigen::MatrixXd> errormatrixhist_beta_;
 };
 
 }  // namespace xtp

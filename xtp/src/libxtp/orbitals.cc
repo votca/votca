@@ -34,6 +34,15 @@
 namespace votca {
 namespace xtp {
 
+/**
+ * AO-basis one-particle observables built from stored orbitals.
+ *
+ * This file implements density matrices, transition densities, dipoles, and
+ * related projections derived from the MO coefficients stored in Orbitals. The
+ * formulas are written in the AO basis so they can be combined directly with
+ * other matrix elements used throughout XTP.
+ */
+
 Orbitals::Orbitals() : atoms_("", 0) { ; }
 
 /**
@@ -105,10 +114,10 @@ void Orbitals::SetupAuxBasis(std::string aux_basis_name) {
   auxbasis_.Fill(bs, this->QMAtoms());
 }
 
-/*
- * Returns the density matrix relative to the ground state, for the full density
- * use DensityMatrixFull
- */
+// Return the density change relative to the ground state. For excited states
+// this corresponds to the response density Delta P, whereas for charged states
+// it returns the projector that must be added to or removed from the ground-
+// state density.
 Eigen::MatrixXd Orbitals::DensityMatrixWithoutGS(const QMState& state) const {
   if (this->hasUnrestrictedOrbitals()) {
     throw std::runtime_error(
@@ -133,10 +142,9 @@ Eigen::MatrixXd Orbitals::DensityMatrixWithoutGS(const QMState& state) const {
   }
 }
 
-/*
- * Returns the density matrix with the ground state density, for the partial
- * density relative to the ground state use DensityMatrixWithoutGS
- */
+// Return the full AO density associated with the requested state. Depending
+// on the state type this is the ground-state density with the corresponding
+// particle, hole, or excitonic correction added on top.
 Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   if (state.isTransition()) {
     return this->TransitionDensityMatrix(state);

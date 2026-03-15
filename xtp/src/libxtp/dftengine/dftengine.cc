@@ -44,6 +44,19 @@
 namespace votca {
 namespace xtp {
 
+/**
+ * Self-consistent Kohn-Sham implementation.
+ *
+ * The SCF cycle solves F C = S C eps in a Gaussian AO basis. In the
+ * restricted branch a single density matrix is iterated, whereas in the UKS
+ * branch separate alpha and beta densities are propagated while sharing the
+ * same one-electron Hamiltonian, Coulomb term, and AO overlap matrix.
+ *
+ * Relative to the earlier restricted implementation, the UKS extension keeps
+ * the spin channels separate only where the equations require it: exchange,
+ * spin-resolved XC potentials, occupations, and convergence acceleration.
+ */
+
 void DFTEngine::Initialize(tools::Property& options) {
 
   const std::string key_xtpdft = "xtpdft";
@@ -301,6 +314,12 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
   return EvaluateClosedShell(orb, H0, vxcpotential);
 }
 
+// Restricted SCF loop. The total energy is assembled as
+//
+//   E = Tr[P H0] + E_nuc + E_coul + E_xc + E_exx,
+//
+// with P = 2 C_occ C_occ^T. DIIS or mixing updates the density until both
+// the energy change and the commutator error are converged.
 bool DFTEngine::EvaluateClosedShell(
     Orbitals& orb, const Mat_p_Energy& H0,
     const Vxc_Potential<Vxc_Grid>& vxcpotential) {
@@ -488,6 +507,14 @@ bool DFTEngine::EvaluateClosedShell(
   return true;
 }
 
+// Unrestricted SCF loop. The alpha and beta channels are iterated through
+// separate Fock matrices
+//
+//   F^alpha = H0 + J[P^alpha + P^beta] + V_xc^alpha + K^alpha
+//   F^beta  = H0 + J[P^alpha + P^beta] + V_xc^beta  + K^beta,
+//
+// while the total energy uses the spin-summed one-electron and Coulomb terms
+// together with spin-resolved XC and exact-exchange contributions.
 bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
                             const Vxc_Potential<Vxc_Grid>& vxcpotential) {
   tools::EigenSystem MOs_alpha;
@@ -552,7 +579,10 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
     MOs_beta = guess;
   }
 
-  UKSConvergenceAcc::SpinDensity Dspin = conv_uks.DensityMatrix(MOs_alpha, MOs_beta);
+  // Build the initial spin densities P^alpha and P^beta from the chosen
+  // starting orbitals before entering the coupled UKS iterations.
+  UKSConvergenceAcc::SpinDensity Dspin =
+      conv_uks.DensityMatrix(MOs_alpha, MOs_beta);
 
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " UKS guess gives Nalpha="
@@ -576,6 +606,8 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
     Eigen::MatrixXd H_alpha = H0.matrix();
     Eigen::MatrixXd H_beta = H0.matrix();
 
+    // The Coulomb contribution depends only on the total density
+    // P = P^alpha + P^beta, while exchange and XC remain spin resolved.
     const Eigen::MatrixXd D_total = Dspin.total();
 
     double E_one = Dspin.alpha.cwiseProduct(H0.matrix()).sum() +
