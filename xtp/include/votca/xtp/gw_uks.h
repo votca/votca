@@ -15,6 +15,7 @@
 #include "rpa_uks.h"
 #include "sigma_base_uks.h"
 #include "threecenter.h"
+#include "votca/xtp/ppm.h"
 
 namespace votca {
 namespace xtp {
@@ -98,6 +99,8 @@ class QPFunc {
   const Sigma_base_UKS& sigma_c_func_;
 };
 
+  PPM ppm_;
+  bool ppm_prepared_ = false;
 
   const Eigen::VectorXd& DftEnergies(Spin spin) const;
   const Eigen::MatrixXd& Vxc(Spin spin) const;

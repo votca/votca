@@ -674,6 +674,10 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
 
     UKSConvergenceAcc::SpinFock Hspin{H_alpha, H_beta};
     Dspin = conv_uks.Iterate(Dspin, Hspin, MOs_alpha, MOs_beta, totenergy);
+if (force_uks_path_ && num_alpha_electrons_ == num_beta_electrons_) {
+  MOs_beta = MOs_alpha;
+  Dspin.beta = Dspin.alpha;
+}
 
     XTP_LOG(Log::info, *pLog_)
         << TimeStamp()

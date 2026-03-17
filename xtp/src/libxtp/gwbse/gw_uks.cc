@@ -17,6 +17,8 @@
 #include "votca/xtp/rpa_uks.h"
 #include "votca/xtp/sigmafactory_uks.h"
 
+#include "self_energy_evaluators/sigma_ppm_uks.h"
+
 namespace votca {
 namespace xtp {
 
@@ -67,6 +69,52 @@ if (!sigma_alpha_ || !sigma_beta_) {
   Sigma_x_beta_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
   Sigma_c_alpha_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
   Sigma_c_beta_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
+
+    auto print_spin_ranges = [&](Spin spin, Index homo) {
+    const Index lumo = homo + 1;
+
+    const Index n_occ_rpa =
+        (opt_.rpamin <= homo) ? (homo - opt_.rpamin + 1) : 0;
+    const Index n_virt_rpa =
+        (lumo <= opt_.rpamax) ? (opt_.rpamax - lumo + 1) : 0;
+
+    const Index qp_occ_min = opt_.qpmin;
+    const Index qp_occ_max = std::min(opt_.qpmax, homo);
+    const Index n_occ_qp =
+        (qp_occ_min <= qp_occ_max) ? (qp_occ_max - qp_occ_min + 1) : 0;
+
+    const Index qp_virt_min = std::max(opt_.qpmin, lumo);
+    const Index qp_virt_max = opt_.qpmax;
+    const Index n_virt_qp =
+        (qp_virt_min <= qp_virt_max) ? (qp_virt_max - qp_virt_min + 1) : 0;
+
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " UKS " << SpinName(spin)
+        << " effective ranges: HOMO=" << homo << " LUMO=" << lumo
+        << " | RPA occ[" << opt_.rpamin << ":" << homo << "]"
+        << " virt[" << lumo << ":" << opt_.rpamax << "]"
+        << " (#occ=" << n_occ_rpa << ", #virt=" << n_virt_rpa << ")"
+        << " | GW occ[" << qp_occ_min << ":" << qp_occ_max << "]"
+        << " virt[" << qp_virt_min << ":" << qp_virt_max << "]"
+        << " (#occ=" << n_occ_qp << ", #virt=" << n_virt_qp << ")"
+        << std::flush;
+  };
+
+  print_spin_ranges(Spin::Alpha, opt_.homo_alpha);
+  print_spin_ranges(Spin::Beta, opt_.homo_beta);
+
+    if (opt_.sigma_integration == "ppm") {
+    auto* ppm_a = dynamic_cast<Sigma_PPM_UKS*>(sigma_alpha_.get());
+    auto* ppm_b = dynamic_cast<Sigma_PPM_UKS*>(sigma_beta_.get());
+
+    if (ppm_a == nullptr || ppm_b == nullptr) {
+      throw std::runtime_error(
+          "GW_UKS: expected Sigma_PPM_UKS evaluators for sigma_integration=ppm");
+    }
+
+    ppm_a->SetSharedPPM(ppm_);
+    ppm_b->SetSharedPPM(ppm_);
+  }
 }
 
 const Eigen::VectorXd& GW_UKS::DftEnergies(Spin spin) const {
@@ -172,8 +220,15 @@ void GW_UKS::CalculateGWPerturbation() {
           << std::flush;
     }
 
-    sigma_alpha_->PrepareScreening();
-    sigma_beta_->PrepareScreening();
+    if (opt_.sigma_integration == "ppm") {
+      ppm_.PPM_construct_parameters(rpa_);
+      sigma_alpha_->PrepareScreening();
+      sigma_beta_->PrepareScreening();
+    } else {
+      sigma_alpha_->PrepareScreening();
+      sigma_beta_->PrepareScreening();
+    }
+
     XTP_LOG(Log::info, log_)
         << TimeStamp() << " Calculated unrestricted screening via RPA"
         << std::flush;

@@ -27,9 +27,13 @@
 namespace votca {
 namespace xtp {
 
-void Sigma_PPM_UKS::PrepareScreening() {
-  ppm_.PPM_construct_parameters(rpa_);
-  Mmn_.MultiplyRightWithAuxMatrix(ppm_.getPpm_phi());
+    void Sigma_PPM_UKS::PrepareScreening() {
+  if (ppm_ == nullptr) {
+    throw std::runtime_error(
+        "Sigma_PPM_UKS: shared PPM parameters were not set before "
+        "PrepareScreening().");
+  }
+  Mmn_.MultiplyRightWithAuxMatrix(ppm_->getPpm_phi());
 }
 
 double Sigma_PPM_UKS::CalcCorrelationDiagElement(Index gw_level,
@@ -42,12 +46,12 @@ double Sigma_PPM_UKS::CalcCorrelationDiagElement(Index gw_level,
 
   double sigma = 0.0;
   for (Index i_aux = 0; i_aux < Mmn_.auxsize(); i_aux++) {
-    if (ppm_.getPpm_weight()(i_aux) < 1.e-9) {
+    if (ppm_->getPpm_weight()(i_aux) < 1.e-9) {
       continue;
     }
 
-    const double ppm_freq = ppm_.getPpm_freq()(i_aux);
-    const double fac = 0.5 * ppm_.getPpm_weight()(i_aux) * ppm_freq;
+    const double ppm_freq = ppm_->getPpm_freq()(i_aux);
+    const double fac = 0.5 * ppm_->getPpm_weight()(i_aux) * ppm_freq;
 
     const Eigen::ArrayXd Mmn2 =
         Mmn_[gw_level + qpmin_offset].col(i_aux).cwiseAbs2();
@@ -72,12 +76,12 @@ double Sigma_PPM_UKS::CalcCorrelationDiagElementDerivative(
 
   double dsigma_domega = 0.0;
   for (Index i_aux = 0; i_aux < Mmn_.auxsize(); i_aux++) {
-    if (ppm_.getPpm_weight()(i_aux) < 1.e-9) {
+    if (ppm_->getPpm_weight()(i_aux) < 1.e-9) {
       continue;
     }
 
-    const double ppm_freq = ppm_.getPpm_freq()(i_aux);
-    const double fac = 0.5 * ppm_.getPpm_weight()(i_aux) * ppm_freq;
+    const double ppm_freq = ppm_->getPpm_freq()(i_aux);
+    const double fac = 0.5 * ppm_->getPpm_weight()(i_aux) * ppm_freq;
 
     const Eigen::ArrayXd Mmn2 =
         Mmn_[gw_level + qpmin_offset].col(i_aux).cwiseAbs2();
@@ -100,8 +104,8 @@ double Sigma_PPM_UKS::CalcCorrelationOffDiagElement(Index gw_level1,
   const double eta2 = opt_.eta * opt_.eta;
   const Index levelsum = Mmn_.nsize();
   const Index auxsize = Mmn_.auxsize();
-  const Eigen::VectorXd ppm_weight = ppm_.getPpm_weight();
-  const Eigen::VectorXd ppm_freqs = ppm_.getPpm_freq();
+  const Eigen::VectorXd ppm_weight = ppm_->getPpm_weight();
+  const Eigen::VectorXd ppm_freqs = ppm_->getPpm_freq();
   const Index qpmin_offset = opt_.qpmin - opt_.rpamin;
   const Eigen::VectorXd& energies = getSpinRPAInputEnergies();
 

@@ -33,6 +33,8 @@ class Sigma_PPM_UKS : public Sigma_base_UKS {
                 TCMatrix::SpinChannel spin)
       : Sigma_base_UKS(Mmn, rpa, spin) {}
 
+  void SetSharedPPM(const PPM& ppm) { ppm_ = &ppm; }
+
   void PrepareScreening() final;
 
   double CalcCorrelationDiagElement(Index gw_level,
@@ -46,10 +48,11 @@ class Sigma_PPM_UKS : public Sigma_base_UKS {
                                        double frequency2) const final;
 
  private:
-  PPM ppm_;
+  const PPM* ppm_ = nullptr;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
 #endif
+

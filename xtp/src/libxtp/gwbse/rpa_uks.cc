@@ -153,13 +153,13 @@ Eigen::MatrixXd RPA_UKS::calculate_epsilon(double frequency) const {
         if (imag) {
           // Imaginary-frequency expression:
           //
-          //   contribution ~ 4 * Delta_e / (Delta_e^2 + w^2)
+          //   contribution ~ 2 * Delta_e / (Delta_e^2 + w^2)
           //
           // This matches the algebraic structure used in the restricted code.
           // The crucial difference is that here alpha and beta channels are
           // added explicitly instead of being folded into a closed-shell
           // degeneracy factor.
-          denom = 4.0 * deltaE / (deltaE.square() + freq2);
+          denom = 2.0 * deltaE / (deltaE.square() + freq2);
         } else {
           // Real-frequency expression with finite broadening eta:
           //
@@ -172,7 +172,7 @@ Eigen::MatrixXd RPA_UKS::calculate_epsilon(double frequency) const {
           Eigen::ArrayXd sum = deltEf / (deltEf.square() + eta2);
           deltEf = deltaE + frequency;
           sum += deltEf / (deltEf.square() + eta2);
-          denom = 2.0 * sum;
+          denom = sum;
         }
 
         // Contract the virtual-index weights back to the auxiliary basis. This
@@ -252,7 +252,7 @@ Eigen::MatrixXd RPA_UKS::calculate_epsilon_r(
 
     // The overall prefactor follows the existing restricted convention. The
     // spin resolution still enters explicitly through separate alpha/beta sums.
-    result += (-2.0 * transform.getReductionVar());
+    result -=  transform.getReductionVar();
   };
 
   accumulate_spin(Mmn_.alpha, energies_alpha_, homo_alpha_);
