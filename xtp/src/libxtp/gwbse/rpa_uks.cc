@@ -386,7 +386,7 @@ Eigen::MatrixXd RPA_UKS::Calculate_H2p_ApB() const {
       // implementation is not present anymore; spin is represented explicitly
       // by separate alpha and beta blocks.
       ApB.block(i1, i2, n_unocc_alpha, n_unocc_alpha) =
-          2.0 * Mmn_.alpha[v1].middleRows(n_occ_alpha, n_unocc_alpha) * Mmn_v2T;
+          1.0 * Mmn_.alpha[v1].middleRows(n_occ_alpha, n_unocc_alpha) * Mmn_v2T;
     }
   }
 
@@ -400,7 +400,7 @@ Eigen::MatrixXd RPA_UKS::Calculate_H2p_ApB() const {
     for (Index v1 = v2; v1 < n_occ_beta; v1++) {
       const Index i1 = size_alpha + vc_beta.I(v1, 0);
       ApB.block(i1, i2, n_unocc_beta, n_unocc_beta) =
-          2.0 * Mmn_.beta[v1].middleRows(n_occ_beta, n_unocc_beta) * Mmn_v2T;
+          1.0 * Mmn_.beta[v1].middleRows(n_occ_beta, n_unocc_beta) * Mmn_v2T;
     }
   }
 
@@ -416,7 +416,7 @@ Eigen::MatrixXd RPA_UKS::Calculate_H2p_ApB() const {
     for (Index v_alpha = 0; v_alpha < n_occ_alpha; v_alpha++) {
       const Index i_alpha = vc_alpha.I(v_alpha, 0);
       ApB.block(i_alpha, i_beta, n_unocc_alpha, n_unocc_beta) =
-          2.0 *
+          1.0 *
           Mmn_.alpha[v_alpha].middleRows(n_occ_alpha, n_unocc_alpha) *
           Mmn_beta_T;
     }
