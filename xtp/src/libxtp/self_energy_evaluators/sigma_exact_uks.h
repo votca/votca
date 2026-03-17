@@ -46,10 +46,11 @@ class Sigma_Exact_UKS : public Sigma_base_UKS {
                                        double frequency2) const final;
 
  private:
-  Eigen::MatrixXd CalcResidues(Index gw_level,
-                               const Eigen::MatrixXd& XpY) const;
+  void BuildScreeningModes(const Eigen::MatrixXd& XpY,
+                           const Eigen::VectorXd& omegas);
 
   Eigen::VectorXd rpa_omegas_;
+  std::vector<Eigen::VectorXd> screening_modes_;
   std::vector<Eigen::MatrixXd> residues_;
 };
 

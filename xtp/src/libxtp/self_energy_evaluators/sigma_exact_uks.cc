@@ -19,6 +19,10 @@
 
 #include "sigma_exact_uks.h"
 
+#include <algorithm>
+#include <utility>
+#include <vector>
+
 #include "votca/xtp/rpa_uks.h"
 #include "votca/xtp/threecenter.h"
 #include "votca/xtp/vc2index.h"
@@ -28,12 +32,29 @@ namespace xtp {
 
 void Sigma_Exact_UKS::PrepareScreening() {
   RPA_UKS::rpa_eigensolution rpa_solution = rpa_.Diagonalize_H2p();
-  rpa_omegas_ = rpa_solution.omega;
+
+  // Build Coulomb-active screening modes in the auxiliary basis from the full
+  // unrestricted H2p eigenvectors. This suppresses numerically dark / spin-like
+  // modes that can appear in the explicit alpha+beta transition basis but
+  // should not contribute to the screened Coulomb interaction W.
+  BuildScreeningModes(rpa_solution.XpY, rpa_solution.omega);
+std::cout << "Sigma_Exact_UKS: raw RPA modes      = "
+                     << rpa_solution.omega.size() << std::endl;
+std::cout << "Sigma_Exact_UKS: active screening modes = "
+                     << rpa_omegas_.size() << std::endl;
 
   residues_ = std::vector<Eigen::MatrixXd>(qptotal_);
 #pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < qptotal_; gw_level++) {
-    residues_[gw_level] = CalcResidues(gw_level, rpa_solution.XpY);
+    const Index qpoffset = opt_.qpmin - opt_.rpamin;
+    const Eigen::MatrixXd& Mmn_i = Mmn_[gw_level + qpoffset];
+
+    Eigen::MatrixXd res =
+        Eigen::MatrixXd::Zero(rpatotal_, rpa_omegas_.size());
+    for (Index s = 0; s < rpa_omegas_.size(); s++) {
+      res.col(s) = Mmn_i * screening_modes_[s];
+    }
+    residues_[gw_level] = std::move(res);
   }
 }
 
@@ -117,8 +138,8 @@ double Sigma_Exact_UKS::CalcCorrelationOffDiagElement(Index gw_level1,
   return sigma_c;
 }
 
-Eigen::MatrixXd Sigma_Exact_UKS::CalcResidues(Index gw_level,
-                                              const Eigen::MatrixXd& XpY) const {
+void Sigma_Exact_UKS::BuildScreeningModes(const Eigen::MatrixXd& XpY,
+                                          const Eigen::VectorXd& omegas) {
   const Index lumo_alpha = rpa_.getHomoAlpha() + 1;
   const Index lumo_beta = rpa_.getHomoBeta() + 1;
 
@@ -128,31 +149,58 @@ Eigen::MatrixXd Sigma_Exact_UKS::CalcResidues(Index gw_level,
   const Index n_unocc_beta = opt_.rpamax - rpa_.getHomoBeta();
 
   const Index size_alpha = n_occ_alpha * n_unocc_alpha;
-  const Index size_beta = n_occ_beta * n_unocc_beta;
-  const Index rpasize = size_alpha + size_beta;
+  const Index auxsize = Mmn_.auxsize();
+  const Index nmodes = Index(omegas.size());
 
-  const Index qpoffset = opt_.qpmin - opt_.rpamin;
-  const Eigen::MatrixXd& Mmn_i = Mmn_[gw_level + qpoffset];
-
-  Eigen::MatrixXd res = Eigen::MatrixXd::Zero(rpatotal_, rpasize);
+  std::vector<Eigen::VectorXd> all_modes;
+  all_modes.reserve(nmodes);
 
   vc2index vc_alpha(0, 0, n_unocc_alpha);
-  for (Index v = 0; v < n_occ_alpha; v++) {
-    auto Mmn_v = Mmn_spin_.alpha[v].middleRows(n_occ_alpha, n_unocc_alpha);
-    auto fc = Mmn_v * Mmn_i.transpose();
-    auto XpY_v = XpY.middleRows(vc_alpha.I(v, 0), n_unocc_alpha);
-    res += fc.transpose() * XpY_v;
-  }
-
   vc2index vc_beta(0, 0, n_unocc_beta);
-  for (Index v = 0; v < n_occ_beta; v++) {
-    auto Mmn_v = Mmn_spin_.beta[v].middleRows(n_occ_beta, n_unocc_beta);
-    auto fc = Mmn_v * Mmn_i.transpose();
-    auto XpY_v = XpY.middleRows(size_alpha + vc_beta.I(v, 0), n_unocc_beta);
-    res += fc.transpose() * XpY_v;
+
+  double max_norm = 0.0;
+  for (Index s = 0; s < nmodes; s++) {
+    Eigen::VectorXd mode = Eigen::VectorXd::Zero(auxsize);
+
+    for (Index v = 0; v < n_occ_alpha; v++) {
+      const auto Mmn_v =
+          Mmn_spin_.alpha[v].middleRows(n_occ_alpha, n_unocc_alpha);
+      const auto XpY_v = XpY.col(s).segment(vc_alpha.I(v, 0), n_unocc_alpha);
+      mode.noalias() += Mmn_v.transpose() * XpY_v;
+    }
+
+    for (Index v = 0; v < n_occ_beta; v++) {
+      const auto Mmn_v =
+          Mmn_spin_.beta[v].middleRows(n_occ_beta, n_unocc_beta);
+      const auto XpY_v =
+          XpY.col(s).segment(size_alpha + vc_beta.I(v, 0), n_unocc_beta);
+      mode.noalias() += Mmn_v.transpose() * XpY_v;
+    }
+
+    max_norm = std::max(max_norm, mode.norm());
+    all_modes.push_back(std::move(mode));
   }
 
-  return res;
+  const double tol = 1e-10 * std::max(1.0, max_norm);
+
+  std::vector<Eigen::VectorXd> active_modes;
+  std::vector<double> active_omegas;
+  active_modes.reserve(nmodes);
+  active_omegas.reserve(nmodes);
+
+  for (Index s = 0; s < nmodes; s++) {
+    if (all_modes[s].norm() > tol) {
+      active_modes.push_back(std::move(all_modes[s]));
+      active_omegas.push_back(omegas(s));
+    }
+  }
+
+  rpa_omegas_ = Eigen::VectorXd::Zero(Index(active_omegas.size()));
+  for (Index s = 0; s < rpa_omegas_.size(); s++) {
+    rpa_omegas_(s) = active_omegas[std::size_t(s)];
+  }
+
+  screening_modes_ = std::move(active_modes);
 }
 
 }  // namespace xtp
