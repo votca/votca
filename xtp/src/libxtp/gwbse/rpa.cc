@@ -19,6 +19,8 @@
 
 // Local VOTCA includes
 #include "votca/xtp/rpa.h"
+#include <iomanip>
+#include <sstream>
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/threecenter.h"
@@ -177,6 +179,20 @@ RPA::rpa_eigensolution RPA::Diagonalize_H2p() const {
   sol.omega = Eigen::VectorXd::Zero(es.eigenvalues().size());
   sol.omega = es.eigenvalues().cwiseSqrt();
   sol.ERPA_correlation += 0.5 * sol.omega.sum();
+
+{
+  std::ostringstream oss;
+  oss << TimeStamp() << " RKS H2p poles (first 20, eV): ";
+  const Index nprint = std::min<Index>(20, sol.omega.size());
+  for (Index i = 0; i < nprint; ++i) {
+    oss << std::fixed << std::setprecision(6)
+        << tools::conv::hrt2ev * sol.omega(i);
+    if (i + 1 < nprint) {
+      oss << ", ";
+    }
+  }
+  XTP_LOG(Log::error, log_) << oss.str() << std::flush;
+}
 
   XTP_LOG(Log::info, log_) << TimeStamp()
                            << " Lowest neutral excitation energy (eV): "
