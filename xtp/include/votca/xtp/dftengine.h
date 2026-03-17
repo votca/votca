@@ -27,6 +27,8 @@
 // Local VOTCA includes
 #include "ERIs.h"
 #include "convergenceacc.h"
+#include "uks_convergenceacc.h"
+
 #include "ecpaobasis.h"
 #include "extended_hueckel.h"
 #include "logger.h"
@@ -40,96 +42,199 @@ class Orbitals;
 class DFTEngineTestAccess;
 
 /**
- * \brief Electronic ground-state via Density-Functional Theory
+ * \brief Electronic ground-state via Density-Functional Theory.
  *
- * Evaluates electronic ground state in molecular systems based on
- * density functional theory with Gaussian Orbitals.
- *
+ * This class assembles the one- and two-electron matrix contributions needed
+ * for self-consistent Kohn-Sham calculations in a Gaussian AO basis. The SCF
+ * machinery supports restricted closed-shell calculations and unrestricted
+ * spin-polarized calculations, while reusing the same integral and numerical
+ * XC infrastructure whenever possible.
  */
 
 class DFTEngine {
  public:
+  /// Read DFT, grid, and SCF settings from the user options tree.
   void Initialize(tools::Property& options);
 
+  /// Attach the logger used for SCF progress and diagnostics.
   void setLogger(Logger* pLog) { pLog_ = pLog; }
 
+  /// Provide external static sites whose electrostatic potential enters the
+  /// Hamiltonian.
   void setExternalcharges(
       std::vector<std::unique_ptr<StaticSite> >* externalsites) {
     externalsites_ = externalsites;
   }
 
+  /// Run a full ground-state DFT calculation and store the results in the
+  /// orbital container.
   bool Evaluate(Orbitals& orb);
 
+  /// Run an embedded active-region DFT calculation for the supplied orbital
+  /// container.
   bool EvaluateActiveRegion(Orbitals& orb);
+  /// Run the truncated active-region workflow used for reduced embedded
+  /// calculations.
   bool EvaluateTruncatedActiveRegion(Orbitals& trunc_orb);
 
+  /// Return the configured AO basis-set name for the DFT calculation.
   std::string getDFTBasisName() const { return dftbasis_name_; };
+
+  /// Spin-resolved density matrices used to pass alpha and beta quantities
+  /// together through the UKS workflow.
+  struct SpinDensity {
+    Eigen::MatrixXd alpha;
+    Eigen::MatrixXd beta;
+
+    /// Return the total density P = P^alpha + P^beta.
+    Eigen::MatrixXd total() const { return alpha + beta; }
+
+    /// Return the spin density P^alpha - P^beta.
+    Eigen::MatrixXd spin() const { return alpha - beta; }
+  };
+
+  /// Report whether the current electron counts define a spin-polarized
+  /// reference.
+  bool IsRestrictedOpenShell() const {
+    return num_alpha_electrons_ != num_beta_electrons_;
+  }
+
+  /// Return the number of spatial orbitals occupied by at least one electron
+  /// in a restricted open-shell reference.
+  Index NumberOfRestrictedOccupiedOrbitals() const {
+    return std::max(num_alpha_electrons_, num_beta_electrons_);
+  }
+
+  /// Construct alpha and beta density matrices from a shared MO coefficient
+  /// matrix and the current occupation metadata.
+  SpinDensity BuildSpinDensity(const tools::EigenSystem& MOs) const;
+
+  /// Assemble SCF acceleration settings consistent with the current spin
+  /// treatment and occupation model.
+  ConvergenceAcc::options BuildConvergenceOptions() const;
 
  private:
   friend class DFTEngineTestAccess;
 
+  /// Initialize basis sets, integral engines, and electron counts before
+  /// entering the SCF loop.
   void Prepare(Orbitals& orb, Index numofelectrons = -1);
 
+  /// Build the numerical exchange-correlation integration object for the
+  /// current molecule.
   Vxc_Potential<Vxc_Grid> SetupVxc(const QMMolecule& mol);
 
+  /// Orthonormalize an initial MO guess with respect to the AO overlap matrix.
   Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs) const;
+  /// Print a one-spin list of orbital energies and occupations to the logger.
   void PrintMOs(const Eigen::VectorXd& MOEnergies, Log::Level level);
+  /// Print separate alpha and beta orbital energies for a UKS calculation.
+  void PrintMOsUKS(const Eigen::VectorXd& alpha_energies,
+                   const Eigen::VectorXd& beta_energies,
+                   Log::Level level) const;
+  /// Evaluate and print the electronic dipole moment from the final density.
   void CalcElDipole(const Orbitals& orb) const;
 
+  /// Build Coulomb and exact-exchange matrix contributions from the current MO
+  /// coefficients and density.
   std::array<Eigen::MatrixXd, 2> CalcERIs_EXX(const Eigen::MatrixXd& MOCoeff,
                                               const Eigen::MatrixXd& Dmat,
                                               double error) const;
 
+  /// Build the Coulomb matrix contribution from the current density matrix.
   Eigen::MatrixXd CalcERIs(const Eigen::MatrixXd& Dmat, double error) const;
 
+  /// Propagate basis-set, XC, and metadata settings into the orbital container.
   void ConfigOrbfile(Orbitals& orb);
+  /// Precompute AO matrices that remain unchanged throughout the SCF procedure.
   void SetupInvariantMatrices();
+  /// Apply McWeeny purification to improve the idempotency of a density-matrix
+  /// guess.
   Eigen::MatrixXd McWeenyPurification(Eigen::MatrixXd& Dmat_in,
                                       AOOverlap& overlap);
 
+  /// Assemble the one-electron core Hamiltonian for the current molecule.
   Mat_p_Energy SetupH0(const QMMolecule& mol) const;
+  /// Integrate the electrostatic potential generated by external multipoles
+  /// into the AO basis.
   Mat_p_Energy IntegrateExternalMultipoles(
       const QMMolecule& mol,
       const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
+  /// Integrate an external electron density represented by another orbital
+  /// container.
   Mat_p_Energy IntegrateExternalDensity(const QMMolecule& mol,
                                         const Orbitals& extdensity) const;
 
+  /// Integrate a homogeneous external electric field into the AO basis.
   Eigen::MatrixXd IntegrateExternalField(const QMMolecule& mol) const;
 
+  /// Generate an initial guess by diagonalizing the core Hamiltonian only.
   tools::EigenSystem IndependentElectronGuess(const Mat_p_Energy& H0) const;
+  /// Generate an initial guess from a model potential including numerical XC
+  /// contributions.
   tools::EigenSystem ModelPotentialGuess(
       const Mat_p_Energy& H0, const QMMolecule& mol,
       const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
 
+  /// Build an atomic-density based initial guess in the AO basis.
   Eigen::MatrixXd AtomicGuess(const QMMolecule& mol) const;
 
+  /// Build orbital energies used in the extended-Hückel starting guess.
   Eigen::VectorXd BuildEHTOrbitalEnergies(const QMMolecule& mol) const;
+  /// Build the extended-Hückel Hamiltonian for the current molecule.
   Eigen::MatrixXd BuildEHTHamiltonian(const QMMolecule& mol) const;
+  /// Generate an initial guess by diagonalizing the extended-Hückel
+  /// Hamiltonian.
   tools::EigenSystem ExtendedHuckelGuess(const QMMolecule& mol) const;
+  /// Generate an extended-Hückel based guess refined with the one-electron DFT
+  /// Hamiltonian.
   tools::EigenSystem ExtendedHuckelDFTGuess(
       const Mat_p_Energy& H0, const QMMolecule& mol,
       const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
+  /// Run an unrestricted atomic reference calculation used in open-shell atomic
+  /// guesses.
   Eigen::MatrixXd RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom) const;
 
+  /// Compute the classical nucleus-nucleus repulsion energy.
   double NuclearRepulsion(const QMMolecule& mol) const;
+  /// Compute the classical interaction energy between nuclei and external
+  /// multipoles.
   double ExternalRepulsion(
       const QMMolecule& mol,
       const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
+  /// Average density-matrix elements over functions belonging to the same
+  /// atomic shell.
   Eigen::MatrixXd SphericalAverageShells(const Eigen::MatrixXd& dmat,
                                          const AOBasis& dftbasis) const;
 
+  /// Project the full-system Hamiltonian and densities onto the selected
+  /// truncated active basis.
   void TruncateBasis(Orbitals& orb, std::vector<Index>& activeatoms,
                      Mat_p_Energy& H0,
                      Eigen::MatrixXd InitialActiveDensityMatrix,
                      Eigen::MatrixXd v_embedding,
                      Eigen::MatrixXd InitialInactiveMOs);
 
+  /// Expand truncated active-region orbitals back into the full AO basis with
+  /// zero padding.
   void TruncMOsFullBasis(Orbitals& orb, std::vector<Index> activeatoms,
                          std::vector<Index> numfuncpatom);
+  /// Insert zero columns into an MO coefficient matrix at the requested
+  /// position.
   Eigen::MatrixXd InsertZeroCols(Eigen::MatrixXd MOsMatrix, Index startidx,
                                  Index numofzerocols);
+  /// Insert zero rows into an MO coefficient matrix at the requested position.
   Eigen::MatrixXd InsertZeroRows(Eigen::MatrixXd MOsMatrix, Index startidx,
                                  Index numofzerorows);
+
+  /// Run the restricted closed-shell SCF loop and store the converged result.
+  bool EvaluateClosedShell(Orbitals& orb, const Mat_p_Energy& H0,
+                           const Vxc_Potential<Vxc_Grid>& vxcpotential);
+
+  /// Run the unrestricted Kohn-Sham SCF loop and store alpha and beta orbitals
+  /// separately.
+  bool EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
+                   const Vxc_Potential<Vxc_Grid>& vxcpotential);
 
   Logger* pLog_;
 
@@ -196,6 +301,14 @@ class DFTEngine {
   double truncation_threshold_;
   std::vector<Index> active_and_border_atoms_;
   std::vector<Index> numfuncpatom_;
+
+  // Spin-DFT Extension
+  Index num_alpha_electrons_ = 0;
+  Index num_beta_electrons_ = 0;
+  Index num_docc_ = 0;
+  Index num_socc_alpha_ = 0;
+  Index spin_ = 1;
+  Index charge_ = 0;
 };
 
 }  // namespace xtp

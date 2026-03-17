@@ -34,6 +34,15 @@
 namespace votca {
 namespace xtp {
 
+/**
+ * AO-basis one-particle observables built from stored orbitals.
+ *
+ * This file implements density matrices, transition densities, dipoles, and
+ * related projections derived from the MO coefficients stored in Orbitals. The
+ * formulas are written in the AO basis so they can be combined directly with
+ * other matrix elements used throughout XTP.
+ */
+
 Orbitals::Orbitals() : atoms_("", 0) { ; }
 
 /**
@@ -46,7 +55,7 @@ Orbitals::Orbitals() : atoms_("", 0) { ; }
  */
 std::vector<Index> Orbitals::CheckDegeneracy(Index level,
                                              double energy_difference) const {
-  if (this->isOpenShell()) {
+  if (this->hasUnrestrictedOrbitals()) {
     throw std::runtime_error(
         "Checking degeneracy not implemented for open-shell systems.");
   }
@@ -70,7 +79,7 @@ std::vector<Index> Orbitals::CheckDegeneracy(Index level,
 }
 
 std::vector<Index> Orbitals::SortEnergies() {
-  if (this->isOpenShell()) {
+  if (this->hasUnrestrictedOrbitals()) {
     throw std::runtime_error(
         "MO sorting not implemented for open-shell systems.");
   }
@@ -105,12 +114,12 @@ void Orbitals::SetupAuxBasis(std::string aux_basis_name) {
   auxbasis_.Fill(bs, this->QMAtoms());
 }
 
-/*
- * Returns the density matrix relative to the ground state, for the full density
- * use DensityMatrixFull
- */
+// Return the density change relative to the ground state. For excited states
+// this corresponds to the response density Delta P, whereas for charged states
+// it returns the projector that must be added to or removed from the ground-
+// state density.
 Eigen::MatrixXd Orbitals::DensityMatrixWithoutGS(const QMState& state) const {
-  if (this->isOpenShell()) {
+  if (this->hasUnrestrictedOrbitals()) {
     throw std::runtime_error(
         "DensityMatrixWithoutGS not implemented for open-shell systems.");
   }
@@ -133,10 +142,9 @@ Eigen::MatrixXd Orbitals::DensityMatrixWithoutGS(const QMState& state) const {
   }
 }
 
-/*
- * Returns the density matrix with the ground state density, for the partial
- * density relative to the ground state use DensityMatrixWithoutGS
- */
+// Return the full AO density associated with the requested state. Depending
+// on the state type this is the ground-state density with the corresponding
+// particle, hole, or excitonic correction added on top.
 Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   if (state.isTransition()) {
     return this->TransitionDensityMatrix(state);
@@ -167,7 +175,7 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
     }
   } else if (state.Type() == QMStateType::Hole ||
              state.Type() == QMStateType::Electron) {
-    if (!this->isOpenShell()) {
+    if (!this->hasUnrestrictedOrbitals()) {
       throw std::runtime_error("QMStateType:" + state.Type().ToLongString() +
                                " requires an openshell calculation");
     }
@@ -180,13 +188,13 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
 }
 
 // Determine ground state density matrix
-Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
+/*Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
   if (!hasMOs()) {
     throw std::runtime_error("Orbitals file does not contain MO coefficients");
   }
   Eigen::MatrixXd occstates = mos_.eigenvectors().leftCols(occupied_levels_);
   Eigen::MatrixXd dmatGS = occstates * occstates.transpose();
-  if (this->isOpenShell()) {
+  if (this->hasUnrestrictedOrbitals()) {
     Eigen::MatrixXd occstates_beta =
         mos_beta_.eigenvectors().leftCols(occupied_levels_beta_);
     dmatGS += occstates_beta * occstates_beta.transpose();
@@ -194,10 +202,33 @@ Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
     dmatGS *= 2.0;
   }
   return dmatGS;
+}*/
+
+// Ground-state one-particle density in the AO basis.
+//
+// For unrestricted calculations the total density is assembled as
+//
+//   P = P^alpha + P^beta,
+//
+// with P^sigma = C_occ^sigma (C_occ^sigma)^T.
+//
+// For restricted cases the spin-resolved helper reconstructs the same object
+// from the shared spatial orbitals together with the stored alpha/beta
+// occupation pattern.
+Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
+  auto spin = DensityMatrixGroundStateSpinResolved();
+  return spin[0] + spin[1];
 }
+
 // Density matrix for a single KS orbital
+// One-orbital projector in the AO basis,
+//
+//   P^(k)_(mu,nu) = C_(mu,k) C_(nu,k),
+//
+// used for adding or removing a single KS occupation relative to the ground
+// state.
 Eigen::MatrixXd Orbitals::DensityMatrixKSstate(const QMState& state) const {
-  if (this->isOpenShell()) {
+  if (this->hasUnrestrictedOrbitals()) {
     throw std::runtime_error(
         "DensityMatrixKSstate not implemented for open-shell systems.");
   }
@@ -223,9 +254,15 @@ Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const {
 }
 
 // Determine QuasiParticle Density Matrix
+// Quasiparticle projector in the AO basis,
+//
+//   P^QP_(mu,nu) = Lambda_(mu,n) Lambda_(nu,n),
+//
+// where Lambda is the AO representation of the quasiparticle eigenvectors in
+// the selected GW subspace.
 Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(
     const QMState& state) const {
-  if (this->isOpenShell()) {
+  if (this->hasUnrestrictedOrbitals()) {
     throw std::runtime_error(
         "DensityMatrixQuasiParticle not implemented for open-shell systems.");
   }
@@ -239,6 +276,13 @@ Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(
   return dmatQP;
 }
 
+// Electric dipole moment relative to the molecular origin,
+//
+//   mu = sum_A Z_A (R_A - R_0) - Tr[P M],
+//
+// where M contains the AO dipole integrals for x, y, and z and P is the full
+// state density matrix. Transition densities omit the nuclear term and return
+// only the electronic transition dipole.
 Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) const {
   Eigen::Vector3d nuclei_dip = Eigen::Vector3d::Zero();
   if (!state.isTransition()) {
@@ -259,8 +303,16 @@ Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) const {
   return nuclei_dip - electronic_dip;
 }
 
+// AO transition density for a singlet BSE excitation.
+//
+// In TDA form this evaluates
+//
+//   gamma_(mu,nu) = sqrt(2) sum_(v,c) A_(v,c) C_(mu,v) C_(nu,c),
+//
+// and for full BSE the resonant and anti-resonant amplitudes are added before
+// the AO transformation.
 Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
-  if (this->isOpenShell()) {
+  if (this->hasUnrestrictedOrbitals()) {
     throw std::runtime_error(
         "TransitionDensityMatrix not implemented for open-shell systems.");
   }
@@ -299,9 +351,12 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
   return occlevels * mat.transpose() * virtlevels.transpose();
 }
 
+// Spin-summed excited-state density correction split into hole and electron
+// blocks. For full BSE the anti-resonant contribution is subtracted from the
+// resonant part, yielding the usual RPA/BSE excited-state density.
 std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState(
     const QMState& state) const {
-  if (this->isOpenShell()) {
+  if (this->hasUnrestrictedOrbitals()) {
     throw std::runtime_error(
         "DensityMatrixExcitedState not implemented for open-shell systems.");
   }
@@ -571,45 +626,65 @@ void Orbitals::OrderMOsbyEnergy() {
 void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
                                  const Orbitals& orbitalsB) {
 
+  // This routine constructs a block-diagonal guess only from the restricted
+  // MO coefficient matrices mos_. It therefore only makes sense for
+  // restricted closed-shell inputs.
+  if (orbitalsA.hasUnrestrictedOrbitals() ||
+      orbitalsB.hasUnrestrictedOrbitals()) {
+    throw std::runtime_error(
+        "PrepareDimerGuess currently supports only restricted orbitals.");
+  }
+
+  if (orbitalsA.getSpin() != 1 || orbitalsB.getSpin() != 1) {
+    throw std::runtime_error(
+        "PrepareDimerGuess currently supports only closed-shell singlets.");
+  }
+
   // constructing the direct product orbA x orbB
   Index basisA = orbitalsA.getBasisSetSize();
   Index basisB = orbitalsB.getBasisSetSize();
 
-  Index electronsA = orbitalsA.getNumberOfAlphaElectrons();
-  Index electronsB = orbitalsB.getNumberOfAlphaElectrons();
+  // In the restricted closed-shell case, getLumo() is the number of occupied
+  // spatial orbitals, which is exactly what this block-merging logic assumes.
+  Index occA = orbitalsA.getLumo();
+  Index occB = orbitalsB.getLumo();
 
   mos_.eigenvectors() = Eigen::MatrixXd::Zero(basisA + basisB, basisA + basisB);
 
-  // AxB = | A 0 |  //   A = [EA, EB]  //
-  //       | 0 B |  //                 //
+  // AxB = | A 0 |
+  //       | 0 B |
   if (orbitalsA.getDFTbasisName() != orbitalsB.getDFTbasisName()) {
     throw std::runtime_error("Basissets of Orbitals A and B differ " +
                              orbitalsA.getDFTbasisName() + ":" +
                              orbitalsB.getDFTbasisName());
   }
   this->SetupDftBasis(orbitalsA.getDFTbasisName());
+
   if (orbitalsA.getECPName() != orbitalsB.getECPName()) {
     throw std::runtime_error("ECPs of Orbitals A and B differ " +
                              orbitalsA.getECPName() + ":" +
                              orbitalsB.getECPName());
   }
   this->setECPName(orbitalsA.getECPName());
-  this->setNumberOfOccupiedLevels(electronsA + electronsB);
-  this->setNumberOfAlphaElectrons(electronsA + electronsB);
 
-  mos_.eigenvectors().topLeftCorner(basisA, basisA) =
+  // Keep occupation metadata fully consistent for a restricted singlet.
+  this->setNumberOfOccupiedLevels(occA + occB);
+  this->setNumberOfOccupiedLevelsBeta(occA + occB);
+  this->setNumberOfAlphaElectrons(occA + occB);
+  this->setNumberOfBetaElectrons(occA + occB);
+  this->setChargeAndSpin(orbitalsA.getCharge() + orbitalsB.getCharge(), 1);
+
+  this->MOs().eigenvectors().block(0, 0, basisA, basisA) =
       orbitalsA.MOs().eigenvectors();
-  mos_.eigenvectors().bottomRightCorner(basisB, basisB) =
+  this->MOs().eigenvectors().block(basisA, basisA, basisB, basisB) =
       orbitalsB.MOs().eigenvectors();
 
-  mos_.eigenvalues().resize(basisA + basisB);
+  this->MOs().eigenvalues() = Eigen::VectorXd::Zero(basisA + basisB);
+  this->MOs().eigenvalues().segment(0, basisA) = orbitalsA.MOs().eigenvalues();
+  this->MOs().eigenvalues().segment(basisA, basisB) =
+      orbitalsB.MOs().eigenvalues();
 
-  mos_.eigenvalues().head(basisA) = orbitalsA.MOs().eigenvalues();
-  mos_.eigenvalues().tail(basisB) = orbitalsB.MOs().eigenvalues();
-
-  OrderMOsbyEnergy();
-
-  return;
+  this->OrderMOsbyEnergy();
 }
 
 void Orbitals::WriteToCpt(const std::string& filename) const {
@@ -815,6 +890,93 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
 
     r(BSE_triplet_energies_dynamic_, "BSE_triplet_dynamic");
   }
+  // Backward compatibility for older restricted checkpoints that may not
+  // contain explicit beta-electron information.
+  if (!hasUnrestrictedOrbitals() && total_spin_ == 1 && occupied_levels_ > 0) {
+    if (number_alpha_electrons_ == 0) {
+      number_alpha_electrons_ = occupied_levels_;
+    }
+    if (number_beta_electrons_ == 0) {
+      number_beta_electrons_ = occupied_levels_;
+    }
+  }
 }
+
+/*********************************************
+ * Extensions Spin-DFT
+ **********************************************/
+
+// Spin-resolved ground-state density matrices.
+//
+// The returned pair is (P^alpha, P^beta) with
+//
+//   P^sigma = C_occ^sigma (C_occ^sigma)^T
+//
+// for unrestricted calculations. In the restricted branch the same spatial MO
+// coefficients are reused and distributed over alpha/beta occupations according
+// to the stored electron counts.
+std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixGroundStateSpinResolved()
+    const {
+  if (!hasMOs()) {
+    throw std::runtime_error("Orbitals file does not contain MO coefficients");
+  }
+
+  std::array<Eigen::MatrixXd, 2> result;
+  result[0] = Eigen::MatrixXd::Zero(mos_.eigenvectors().rows(),
+                                    mos_.eigenvectors().rows());
+  result[1] = Eigen::MatrixXd::Zero(mos_.eigenvectors().rows(),
+                                    mos_.eigenvectors().rows());
+
+  if (hasUnrestrictedOrbitals()) {
+    if (occupied_levels_ > 0) {
+      const Eigen::MatrixXd occ_a =
+          mos_.eigenvectors().leftCols(occupied_levels_);
+      result[0] = occ_a * occ_a.transpose();
+    }
+    if (occupied_levels_beta_ > 0) {
+      const Eigen::MatrixXd occ_b =
+          mos_beta_.eigenvectors().leftCols(occupied_levels_beta_);
+      result[1] = occ_b * occ_b.transpose();
+    }
+    return result;
+  }
+
+  // Restricted branch:
+  // Prefer explicit alpha/beta electron counts, but fall back to the legacy
+  // occupied_levels_ convention when those counts were never set.
+  Index n_alpha = number_alpha_electrons_;
+  Index n_beta = number_beta_electrons_;
+
+  if (n_alpha == 0 && n_beta == 0 && occupied_levels_ > 0) {
+    n_alpha = occupied_levels_;
+    n_beta = occupied_levels_;
+  }
+
+  const Index n_docc = std::min(n_alpha, n_beta);
+  const Index n_socc_alpha = n_alpha - n_docc;
+  const Index n_socc_beta = n_beta - n_docc;
+
+  if (n_docc > 0) {
+    const Eigen::MatrixXd docc = mos_.eigenvectors().leftCols(n_docc);
+    const Eigen::MatrixXd d_docc = docc * docc.transpose();
+    result[0] += d_docc;
+    result[1] += d_docc;
+  }
+
+  if (n_socc_alpha > 0) {
+    const Eigen::MatrixXd socc_a =
+        mos_.eigenvectors().middleCols(n_docc, n_socc_alpha);
+    result[0] += socc_a * socc_a.transpose();
+  }
+
+  if (n_socc_beta > 0) {
+    const Eigen::MatrixXd socc_b =
+        mos_.eigenvectors().middleCols(n_docc + n_socc_alpha, n_socc_beta);
+    result[1] += socc_b * socc_b.transpose();
+  }
+
+  return result;
+}
+
 }  // namespace xtp
 }  // namespace votca

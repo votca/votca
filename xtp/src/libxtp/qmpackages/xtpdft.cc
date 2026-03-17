@@ -45,6 +45,7 @@ void XTPDFT::ParseSpecificOptions(const tools::Property& options) {
 bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {
   orbitals_ = orbitals;
   orbitals_.setQMpackage(getPackageName());
+  orbitals_.setChargeAndSpin(charge_, spin_);
   return true;
 }
 
