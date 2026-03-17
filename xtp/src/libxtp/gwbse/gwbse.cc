@@ -66,9 +66,18 @@ void GWBSE::Initialize(tools::Property& options) {
   Index bse_vmin = 0;
   Index bse_cmax = 0;
 
+  const bool is_uks = orbitals_.hasUnrestrictedOrbitals();
   Index homo = orbitals_.getHomo();  // indexed from 0
+  if (is_uks) {
+    homo = std::max(orbitals_.getHomoAlpha(), orbitals_.getHomoBeta());
+  }
   Index num_of_levels = orbitals_.getBasisSetSize();
   Index num_of_occlevels = orbitals_.getNumberOfAlphaElectrons();
+  if (is_uks) {
+    num_of_occlevels =
+        std::max(orbitals_.getNumberOfAlphaElectrons(),
+                 orbitals_.getNumberOfBetaElectrons());
+  }
 
   std::string ranges = options.get(".ranges").as<std::string>();
 
@@ -440,6 +449,12 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *pLog_)
         << " Sigma plot filename: " << sigma_plot_filename_ << flush;
   }
+  if (orbitals_.hasUnrestrictedOrbitals() &&
+      (do_bse_singlets_ || do_bse_triplets_ || do_dynamical_screening_bse_)) {
+    throw std::runtime_error(
+        "Open-shell GWBSE currently supports GW only; BSE is still restricted to closed-shell references.");
+  }
+
 }
 
 void GWBSE::addoutput(tools::Property& summary) {
@@ -453,27 +468,72 @@ void GWBSE::addoutput(tools::Property& summary) {
         (boost::format("%1$+1.6f ") % (orbitals_.getDFTTotalEnergy() * hrt2ev))
             .str());
 
-    tools::Property& dft_summary = gwbse_summary.add("dft", "");
-    dft_summary.setAttribute("HOMO", gwopt_.homo);
-    dft_summary.setAttribute("LUMO", gwopt_.homo + 1);
+    if (orbitals_.hasUnrestrictedOrbitals()) {
+      gwbse_summary.add("dft_alpha", "");
+      gwbse_summary.add("dft_beta", "");
 
-    for (Index state = 0; state < gwopt_.qpmax + 1 - gwopt_.qpmin; state++) {
-      tools::Property& level_summary = dft_summary.add("level", "");
-      level_summary.setAttribute("number", state + gwopt_.qpmin);
-      level_summary.add(
-          "dft_energy",
-          (boost::format("%1$+1.6f ") %
-           (orbitals_.MOs().eigenvalues()(state + gwopt_.qpmin) * hrt2ev))
-              .str());
-      level_summary.add("gw_energy",
+      tools::Property& alpha_summary = gwbse_summary.get("dft_alpha");
+      tools::Property& beta_summary = gwbse_summary.get("dft_beta");
+
+      alpha_summary.setAttribute("HOMO", orbitals_.getHomoAlpha());
+      alpha_summary.setAttribute("LUMO", orbitals_.getLumoAlpha());
+      beta_summary.setAttribute("HOMO", orbitals_.getHomoBeta());
+      beta_summary.setAttribute("LUMO", orbitals_.getLumoBeta());
+      for (Index state = 0; state < gwopt_.qpmax + 1 - gwopt_.qpmin; state++) {
+        tools::Property& level_alpha = alpha_summary.add("level", "");
+        level_alpha.setAttribute("number", state + gwopt_.qpmin);
+        level_alpha.add("dft_energy",
                         (boost::format("%1$+1.6f ") %
-                         (orbitals_.QPpertEnergies()(state) * hrt2ev))
+                         (orbitals_.MOs().eigenvalues()(state + gwopt_.qpmin) *
+                          hrt2ev))
+                            .str());
+        level_alpha.add("gw_energy",
+                        (boost::format("%1$+1.6f ") %
+                         (orbitals_.QPpertEnergiesAlpha()(state) * hrt2ev))
+                            .str());
+        level_alpha.add("qp_energy",
+                        (boost::format("%1$+1.6f ") %
+                         (orbitals_.QPdiagAlpha().eigenvalues()(state) * hrt2ev))
                             .str());
 
-      level_summary.add("qp_energy",
-                        (boost::format("%1$+1.6f ") %
-                         (orbitals_.QPdiag().eigenvalues()(state) * hrt2ev))
-                            .str());
+        tools::Property& level_beta = beta_summary.add("level", "");
+        level_beta.setAttribute("number", state + gwopt_.qpmin);
+        level_beta.add("dft_energy",
+                       (boost::format("%1$+1.6f ") %
+                        (orbitals_.MOs_beta().eigenvalues()(state + gwopt_.qpmin) *
+                         hrt2ev))
+                           .str());
+        level_beta.add("gw_energy",
+                       (boost::format("%1$+1.6f ") %
+                        (orbitals_.QPpertEnergiesBeta()(state) * hrt2ev))
+                           .str());
+        level_beta.add("qp_energy",
+                       (boost::format("%1$+1.6f ") %
+                        (orbitals_.QPdiagBeta().eigenvalues()(state) * hrt2ev))
+                           .str());
+      }
+    } else {
+      tools::Property& dft_summary = gwbse_summary.add("dft", "");
+      dft_summary.setAttribute("HOMO", gwopt_.homo);
+      dft_summary.setAttribute("LUMO", gwopt_.homo + 1);
+
+      for (Index state = 0; state < gwopt_.qpmax + 1 - gwopt_.qpmin; state++) {
+        tools::Property& level_summary = dft_summary.add("level", "");
+        level_summary.setAttribute("number", state + gwopt_.qpmin);
+        level_summary.add(
+            "dft_energy",
+            (boost::format("%1$+1.6f ") %
+             (orbitals_.MOs().eigenvalues()(state + gwopt_.qpmin) * hrt2ev))
+                .str());
+        level_summary.add("gw_energy",
+                          (boost::format("%1$+1.6f ") %
+                           (orbitals_.QPpertEnergies()(state) * hrt2ev))
+                              .str());
+        level_summary.add("qp_energy",
+                          (boost::format("%1$+1.6f ") %
+                           (orbitals_.QPdiag().eigenvalues()(state) * hrt2ev))
+                              .str());
+      }
     }
   }
   if (do_bse_singlets_) {
@@ -565,6 +625,39 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
   return vxc;
 }
 
+std::pair<Eigen::MatrixXd, Eigen::MatrixXd> GWBSE::CalculateVXCSpinResolved(
+    const AOBasis& dftbasis) {
+  if (orbitals_.getXCFunctionalName().empty()) {
+    orbitals_.setXCFunctionalName(functional_);
+  } else if (!(functional_ == orbitals_.getXCFunctionalName())) {
+    throw std::runtime_error("Functionals from DFT " +
+                             orbitals_.getXCFunctionalName() + " GWBSE " +
+                             functional_ + " differ!");
+  }
+
+  Vxc_Grid grid;
+  grid.GridSetup(grid_, orbitals_.QMAtoms(), dftbasis);
+  Vxc_Potential<Vxc_Grid> vxcpotential(grid);
+  vxcpotential.setXCfunctional(functional_);
+
+  auto dmats = orbitals_.DensityMatrixGroundStateSpinResolved();
+  auto e_vxc_ao = vxcpotential.IntegrateVXCSpin(dmats[0], dmats[1]);
+
+  Index qptotal = gwopt_.qpmax - gwopt_.qpmin + 1;
+  Eigen::MatrixXd mos_alpha =
+      orbitals_.MOs().eigenvectors().middleCols(gwopt_.qpmin, qptotal);
+  Eigen::MatrixXd mos_beta =
+      orbitals_.MOs_beta().eigenvectors().middleCols(gwopt_.qpmin, qptotal);
+
+  Eigen::MatrixXd vxc_alpha =
+      mos_alpha.transpose() * e_vxc_ao.vxc_alpha * mos_alpha;
+  Eigen::MatrixXd vxc_beta =
+      mos_beta.transpose() * e_vxc_ao.vxc_beta * mos_beta;
+
+  return std::make_pair(vxc_alpha, vxc_beta);
+}
+
+
 bool GWBSE::Evaluate() {
 
   // set the parallelization
@@ -629,70 +722,139 @@ bool GWBSE::Evaluate() {
     }
   }
 
-  if (!do_gw_ && !orbitals_.hasQPdiag()) {
-    throw std::runtime_error(
-        "You want no GW calculation but the orb file has no QPcoefficients for "
-        "BSE");
+  if (!do_gw_) {
+    if ((!orbitals_.hasUnrestrictedOrbitals() && !orbitals_.hasQPdiag()) ||
+        (orbitals_.hasUnrestrictedOrbitals() &&
+         (!orbitals_.hasQPdiagAlpha() || !orbitals_.hasQPdiagBeta()))) {
+      throw std::runtime_error(
+          "You want no GW calculation but the orb file has no matching QP coefficients.");
+    }
   }
+  const bool is_uks = orbitals_.hasUnrestrictedOrbitals();
   TCMatrix_gwbse Mmn;
+  TCMatrix_gwbse_spin Mmn_spin;
   // rpamin here, because RPA needs till rpamin
   Index max_3c = std::max(bseopt_.cmax, gwopt_.qpmax);
-  Mmn.Initialize(auxbasis.AOBasisSize(), gwopt_.rpamin, max_3c, gwopt_.rpamin,
-                 gwopt_.rpamax);
-  XTP_LOG(Log::error, *pLog_)
-      << TimeStamp()
-      << " Calculating Mmn_beta (3-center-repulsion x orbitals)  " << flush;
-  Mmn.Fill(auxbasis, dftbasis, orbitals_.MOs().eigenvectors());
-  XTP_LOG(Log::info, *pLog_)
-      << TimeStamp() << " Removed " << Mmn.Removedfunctions()
-      << " functions from Aux Coulomb matrix to avoid near linear dependencies"
-      << flush;
-  XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " Calculated Mmn_beta (3-center-repulsion x orbitals)  "
-      << flush;
+  if (is_uks) {
+    Mmn_spin.alpha.Initialize(auxbasis.AOBasisSize(), gwopt_.rpamin, max_3c,
+                              gwopt_.rpamin, gwopt_.rpamax);
+    Mmn_spin.beta.Initialize(auxbasis.AOBasisSize(), gwopt_.rpamin, max_3c,
+                             gwopt_.rpamin, gwopt_.rpamax);
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Calculating alpha spin Mmn " << flush;
+    Mmn_spin.alpha.Fill(auxbasis, dftbasis, orbitals_.MOs().eigenvectors());
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Calculating beta spin Mmn " << flush;
+    Mmn_spin.beta.Fill(auxbasis, dftbasis, orbitals_.MOs_beta().eigenvectors());
+  } else {
+    Mmn.Initialize(auxbasis.AOBasisSize(), gwopt_.rpamin, max_3c, gwopt_.rpamin,
+                   gwopt_.rpamax);
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Calculating Mmn (3-center-repulsion x orbitals)  " << flush;
+    Mmn.Fill(auxbasis, dftbasis, orbitals_.MOs().eigenvectors());
+    XTP_LOG(Log::info, *pLog_)
+        << TimeStamp() << " Removed " << Mmn.Removedfunctions()
+        << " functions from Aux Coulomb matrix to avoid near linear dependencies"
+        << flush;
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Calculated Mmn (3-center-repulsion x orbitals)  " << flush;
+  }
 
   Eigen::MatrixXd Hqp;
   if (do_gw_) {
 
     std::chrono::time_point<std::chrono::system_clock> start =
         std::chrono::system_clock::now();
-    Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
-    GW gw = GW(*pLog_, Mmn, vxc, orbitals_.MOs().eigenvalues());
-    gw.configure(gwopt_);
+    if (is_uks) {
+      auto vxc = CalculateVXCSpinResolved(dftbasis);
+      GW_UKS::options gwopt_uks;
+      gwopt_uks.homo_alpha = orbitals_.getHomoAlpha();
+      gwopt_uks.homo_beta = orbitals_.getHomoBeta();
+      gwopt_uks.qpmin = gwopt_.qpmin;
+      gwopt_uks.qpmax = gwopt_.qpmax;
+      gwopt_uks.rpamin = gwopt_.rpamin;
+      gwopt_uks.rpamax = gwopt_.rpamax;
+      gwopt_uks.eta = gwopt_.eta;
+      gwopt_uks.g_sc_limit = gwopt_.g_sc_limit;
+      gwopt_uks.g_sc_max_iterations = gwopt_.g_sc_max_iterations;
+      gwopt_uks.gw_sc_limit = gwopt_.gw_sc_limit;
+      gwopt_uks.gw_sc_max_iterations = gwopt_.gw_sc_max_iterations;
+      gwopt_uks.shift = gwopt_.shift;
+      gwopt_uks.ScaHFX = gwopt_.ScaHFX;
+      gwopt_uks.sigma_integration = gwopt_.sigma_integration;
+      gwopt_uks.reset_3c = gwopt_.reset_3c;
+      gwopt_uks.qp_solver = gwopt_.qp_solver;
+      gwopt_uks.qp_solver_alpha = gwopt_.qp_solver_alpha;
+      gwopt_uks.qp_grid_steps = gwopt_.qp_grid_steps;
+      gwopt_uks.qp_grid_spacing = gwopt_.qp_grid_spacing;
+      gwopt_uks.gw_mixing_order = gwopt_.gw_mixing_order;
+      gwopt_uks.gw_mixing_alpha = gwopt_.gw_mixing_alpha;
+      gwopt_uks.quadrature_scheme = gwopt_.quadrature_scheme;
+      gwopt_uks.order = gwopt_.order;
+      gwopt_uks.alpha = gwopt_.alpha;
 
-    gw.CalculateGWPerturbation();
+      GW_UKS gw = GW_UKS(*pLog_, Mmn_spin, vxc.first, vxc.second,
+                         orbitals_.MOs().eigenvalues(),
+                         orbitals_.MOs_beta().eigenvalues());
+      gw.configure(gwopt_uks);
+      gw.CalculateGWPerturbation();
+      orbitals_.QPpertEnergiesAlpha() = gw.getGWAResultsAlpha();
+      orbitals_.QPpertEnergiesBeta() = gw.getGWAResultsBeta();
+      orbitals_.RPAInputEnergiesAlpha() = gw.RPAInputEnergiesAlpha();
+      orbitals_.RPAInputEnergiesBeta() = gw.RPAInputEnergiesBeta();
+      gw.CalculateHQP();
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_alpha =
+          gw.DiagonalizeQPHamiltonianAlpha();
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_beta =
+          gw.DiagonalizeQPHamiltonianBeta();
+      orbitals_.QPdiagAlpha().eigenvectors() = es_alpha.eigenvectors();
+      orbitals_.QPdiagAlpha().eigenvalues() = es_alpha.eigenvalues();
+      orbitals_.QPdiagBeta().eigenvectors() = es_beta.eigenvectors();
+      orbitals_.QPdiagBeta().eigenvalues() = es_beta.eigenvalues();
+      std::chrono::duration<double> elapsed_time =
+          std::chrono::system_clock::now() - start;
+      XTP_LOG(Log::error, *pLog_) << TimeStamp()
+                                  << " UKS GW calculation took "
+                                  << elapsed_time.count() << " seconds." << flush;
+    } else {
+      Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
+      GW gw = GW(*pLog_, Mmn, vxc, orbitals_.MOs().eigenvalues());
+      gw.configure(gwopt_);
 
-    if (!sigma_plot_states_.empty()) {
-      gw.PlotSigma(sigma_plot_filename_, sigma_plot_steps_, sigma_plot_spacing_,
-                   sigma_plot_states_);
-    }
+      gw.CalculateGWPerturbation();
 
-    // store perturbative QP energy data in orbitals object (DFT, S_x,S_c, V_xc,
-    // E_qp)
-    orbitals_.QPpertEnergies() = gw.getGWAResults();
-    orbitals_.RPAInputEnergies() = gw.RPAInputEnergies();
+      if (!sigma_plot_states_.empty()) {
+        gw.PlotSigma(sigma_plot_filename_, sigma_plot_steps_, sigma_plot_spacing_,
+                     sigma_plot_states_);
+      }
 
-    XTP_LOG(Log::info, *pLog_)
-        << TimeStamp() << " Calculating offdiagonal part of Sigma  " << flush;
-    gw.CalculateHQP();
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
+      orbitals_.QPpertEnergies() = gw.getGWAResults();
+      orbitals_.RPAInputEnergies() = gw.RPAInputEnergies();
 
-    Hqp = gw.getHQP();
-
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
-        gw.DiagonalizeQPHamiltonian();
-    if (es.info() == Eigen::ComputationInfo::Success) {
+      XTP_LOG(Log::info, *pLog_)
+          << TimeStamp() << " Calculating offdiagonal part of Sigma  " << flush;
+      gw.CalculateHQP();
       XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
-    }
+          << TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
 
-    orbitals_.QPdiag().eigenvectors() = es.eigenvectors();
-    orbitals_.QPdiag().eigenvalues() = es.eigenvalues();
-    std::chrono::duration<double> elapsed_time =
-        std::chrono::system_clock::now() - start;
-    XTP_LOG(Log::error, *pLog_) << TimeStamp() << " GW calculation took "
-                                << elapsed_time.count() << " seconds." << flush;
+      Hqp = gw.getHQP();
+
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
+          gw.DiagonalizeQPHamiltonian();
+      if (es.info() == Eigen::ComputationInfo::Success) {
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
+      }
+
+      orbitals_.QPdiag().eigenvectors() = es.eigenvectors();
+      orbitals_.QPdiag().eigenvalues() = es.eigenvalues();
+      std::chrono::duration<double> elapsed_time =
+          std::chrono::system_clock::now() - start;
+      XTP_LOG(Log::error, *pLog_) << TimeStamp() << " GW calculation took "
+                                  << elapsed_time.count() << " seconds." << flush;
+    }
 
   } else {
     if (orbitals_.getGWAmax() != gwopt_.qpmax ||
@@ -711,6 +873,10 @@ bool GWBSE::Evaluate() {
 
   // proceed only if BSE requested
   if (do_bse_singlets_ || do_bse_triplets_) {
+    if (is_uks) {
+      throw std::runtime_error(
+          "BSE for unrestricted open-shell references is not implemented yet.");
+    }
 
     std::chrono::time_point<std::chrono::system_clock> start =
         std::chrono::system_clock::now();

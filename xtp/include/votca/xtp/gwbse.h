@@ -31,6 +31,7 @@
 #include "bse.h"
 #include "eigen.h"
 #include "gw.h"
+#include "gw_uks.h"
 #include "logger.h"
 #include "qmfragment.h"
 
@@ -68,6 +69,8 @@ class GWBSE {
 
  private:
   Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
+  std::pair<Eigen::MatrixXd, Eigen::MatrixXd> CalculateVXCSpinResolved(
+      const AOBasis& dftbasis);
   Index CountCoreLevels();
   Logger* pLog_;
   Orbitals& orbitals_;
