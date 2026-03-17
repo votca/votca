@@ -253,6 +253,9 @@ class RPA_UKS {
    */
   rpa_eigensolution Diagonalize_H2p() const;
 
+  Index getHomoAlpha() const { return homo_alpha_; }
+  Index getHomoBeta() const { return homo_beta_; }
+
  private:
   /**
    * \brief Internal implementation of epsilon(w).

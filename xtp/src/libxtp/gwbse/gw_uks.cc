@@ -46,7 +46,7 @@ sigma_beta_ = SigmaFactory_UKS().Create(
 if (!sigma_alpha_ || !sigma_beta_) {
   throw std::runtime_error(
       "GW_UKS currently supports only implemented unrestricted sigma "
-      "evaluators. At present this is 'ppm' and 'cda'.");
+      "evaluators. At present this is 'ppm', 'cda', and 'exact'.");
 }
 
   Sigma_base_UKS::options sigma_opt;
