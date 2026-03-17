@@ -40,10 +40,33 @@ void ImaginaryAxisIntegration::configure(
   CalcDielInvVector(rpa, kDielMxInv_zero);
 }
 
+void ImaginaryAxisIntegration::configure(
+    options opt, const RPA_UKS& rpa, const Eigen::MatrixXd& kDielMxInv_zero) {
+  opt_ = opt;
+  gq_ = QuadratureFactory().Create(opt_.quadrature_scheme);
+  gq_->configure(opt_.order);
+
+  CalcDielInvVector(rpa, kDielMxInv_zero);
+}
+
 // This function calculates and stores inverses of the microscopic dielectric
 // matrix in a matrix vector
 void ImaginaryAxisIntegration::CalcDielInvVector(
     const RPA& rpa, const Eigen::MatrixXd& kDielMxInv_zero) {
+  dielinv_matrices_r_.resize(gq_->Order());
+
+  for (Index j = 0; j < gq_->Order(); j++) {
+    double newpoint = gq_->ScaledPoint(j);
+    Eigen::MatrixXd eps_inv_j = rpa.calculate_epsilon_i(newpoint).inverse();
+    eps_inv_j.diagonal().array() -= 1.0;
+    dielinv_matrices_r_[j] =
+        -eps_inv_j +
+        kDielMxInv_zero * std::exp(-std::pow(opt_.alpha * newpoint, 2));
+  }
+}
+
+void ImaginaryAxisIntegration::CalcDielInvVector(
+    const RPA_UKS& rpa, const Eigen::MatrixXd& kDielMxInv_zero) {
   dielinv_matrices_r_.resize(gq_->Order());
 
   for (Index j = 0; j < gq_->Order(); j++) {
@@ -99,5 +122,4 @@ double ImaginaryAxisIntegration::SigmaGQDiag(double frequency, Index gw_level,
 }
 
 }  // namespace xtp
-
 }  // namespace votca

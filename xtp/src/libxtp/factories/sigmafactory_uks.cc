@@ -18,14 +18,16 @@
  *
  */
 
- #include "votca/xtp/sigmafactory_uks.h"
+#include "votca/xtp/sigmafactory_uks.h"
 
+#include "self_energy_evaluators/sigma_cda_uks.h"
 #include "self_energy_evaluators/sigma_ppm_uks.h"
 
 namespace votca {
 namespace xtp {
 
 void SigmaFactory_UKS::RegisterAll() {
+  this->Register<Sigma_CDA_UKS>("cda");
   this->Register<Sigma_PPM_UKS>("ppm");
 }
 
