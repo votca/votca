@@ -75,6 +75,10 @@ void DFTEngine::Initialize(tools::Property& options) {
     ecp_name_ = options.get(".ecp").as<std::string>();
   }
 
+  if (options.exists(key_xtpdft + ".force_uks_path")) {
+    force_uks_path_ = options.get(key_xtpdft + ".force_uks_path").as<bool>();
+  }
+
   initial_guess_ = options.get(".initial_guess").as<std::string>();
 
   grid_name_ = options.get(key_xtpdft + ".integration_grid").as<std::string>();
@@ -306,7 +310,13 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
   Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
   ConfigOrbfile(orb);
 
-  if (num_alpha_electrons_ != num_beta_electrons_) {
+  if (force_uks_path_ || num_alpha_electrons_ != num_beta_electrons_) {
+      if (force_uks_path_ && num_alpha_electrons_ == num_beta_electrons_) {
+    XTP_LOG(Log::warning, *pLog_)
+        << TimeStamp()
+        << " Forcing closed-shell singlet through UKS development path."
+        << std::flush;
+  }
     return EvaluateUKS(orb, H0, vxcpotential);
   }
   return EvaluateClosedShell(orb, H0, vxcpotential);

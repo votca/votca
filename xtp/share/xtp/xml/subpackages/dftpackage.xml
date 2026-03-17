@@ -28,6 +28,7 @@
     <screening_eps help="screening eps" default="1e-9" choices="float+" />
     <fock_matrix_reset help="how often the fock matrix is reset" default="5" choices="int+" />
     <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
+    <force_uks_path help="forcing UKS path" default="false" choices="bool"/>
     <convergence>
       <energy help="DeltaE at which calculation is converged" unit="hartree" choices="float+" default="1E-7" />
       <method help="Main method to use for convergence accelertation" choices="DIIS,mixing" default="DIIS" />
