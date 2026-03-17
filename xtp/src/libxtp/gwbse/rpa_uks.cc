@@ -464,10 +464,23 @@ Eigen::MatrixXd RPA_UKS::Calculate_H2p_ApB() const {
     }
   }
 
-  // Fill the opposite mixed block and the missing lower-triangular parts by
-  // Hermitian symmetry.
-  ApB.template triangularView<Eigen::StrictlyUpper>() =
-      ApB.transpose().template triangularView<Eigen::StrictlyUpper>();
+  // Symmetrize alpha-alpha block from its computed lower triangle.
+  ApB.block(0, 0, size_alpha, size_alpha)
+      .template triangularView<Eigen::StrictlyUpper>() =
+      ApB.block(0, 0, size_alpha, size_alpha)
+          .transpose()
+          .template triangularView<Eigen::StrictlyUpper>();
+
+  // Symmetrize beta-beta block from its computed lower triangle.
+  ApB.block(size_alpha, size_alpha, size_beta, size_beta)
+      .template triangularView<Eigen::StrictlyUpper>() =
+      ApB.block(size_alpha, size_alpha, size_beta, size_beta)
+          .transpose()
+          .template triangularView<Eigen::StrictlyUpper>();
+
+  // Copy the mixed alpha-beta block into the beta-alpha block.
+  ApB.block(size_alpha, 0, size_beta, size_alpha) =
+      ApB.block(0, size_alpha, size_alpha, size_beta).transpose();
 
   // Add the diagonal bare transition energies.
   ApB.diagonal() += Calculate_H2p_AmB();
