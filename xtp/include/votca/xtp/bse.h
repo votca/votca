@@ -70,6 +70,9 @@ class BSE {
   void Solve_singlets(Orbitals& orb) const;
   void Solve_triplets(Orbitals& orb) const;
 
+  void Solve_excitons_alpha(Orbitals& orb) const;
+  void Solve_excitons_beta(Orbitals& orb) const;
+
   Eigen::MatrixXd getHqp() const { return Hqp_; };
 
   SingletOperator_TDA getSingletOperator_TDA() const;
@@ -79,6 +82,13 @@ class BSE {
                         const Orbitals& orb) const;
   void Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
                         const Orbitals& orb) const;
+
+  void Analyze_excitons_alpha(
+      std::vector<QMFragment<BSE_Population> > fragments,
+      const Orbitals& orb) const;
+  void Analyze_excitons_beta(
+      std::vector<QMFragment<BSE_Population> > fragments,
+      const Orbitals& orb) const;
 
   void Perturbative_DynamicalScreening(const QMStateType& type, Orbitals& orb);
 
@@ -117,6 +127,12 @@ class BSE {
   tools::EigenSystem Solve_triplets_TDA() const;
   tools::EigenSystem Solve_triplets_BTDA() const;
 
+  tools::EigenSystem Solve_excitons_alpha_TDA() const;
+  tools::EigenSystem Solve_excitons_alpha_BTDA() const;
+
+  tools::EigenSystem Solve_excitons_beta_TDA() const;
+  tools::EigenSystem Solve_excitons_beta_BTDA() const;
+
   void PrintWeights(const Eigen::VectorXd& weights) const;
 
   template <typename BSE_OPERATOR>
@@ -152,6 +168,16 @@ class BSE {
   template <typename BSE_OPERATOR>
   ExpectationValues ExpectationValue_Operator_State(
       const QMState& state, const Orbitals& orb, const BSE_OPERATOR& H) const;
+
+    tools::EigenSystem& GetBSEEigenSystem(const QMStateType& type,
+                                        Orbitals& orb) const;
+  const tools::EigenSystem& GetBSEEigenSystem(const QMStateType& type,
+                                              const Orbitals& orb) const;
+
+  std::string StateEnergiesHeader(const QMStateType& type) const;
+  std::string StateShortLabel(const QMStateType& type) const;
+  std::string StateDynamicLabel(const QMStateType& type) const;
+  double ExchangePrefactor(const QMStateType& type) const;
 };
 }  // namespace xtp
 }  // namespace votca

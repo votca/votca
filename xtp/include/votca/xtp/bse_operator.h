@@ -86,6 +86,15 @@ typedef BSE_OPERATOR<0, 1, 0, 0> HxOperator;
 typedef BSE_OPERATOR<0, 0, 1, 0> HdOperator;
 typedef BSE_OPERATOR<0, 0, 0, 1> Hd2Operator;
 
+typedef BSE_OPERATOR<1, 1, 1, 0> ExcitonSpinOperator_TDA;
+typedef BSE_OPERATOR<0, 1, 0, 1> ExcitonSpinOperator_BTDA_B;
+
+typedef ExcitonSpinOperator_TDA ExcitonAlphaOperator_TDA;
+typedef ExcitonSpinOperator_TDA ExcitonBetaOperator_TDA;
+
+typedef ExcitonSpinOperator_BTDA_B ExcitonAlphaOperator_BTDA_B;
+typedef ExcitonSpinOperator_BTDA_B ExcitonBetaOperator_BTDA_B;
+
 }  // namespace xtp
 }  // namespace votca
 

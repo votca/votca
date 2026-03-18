@@ -336,22 +336,51 @@ void GWBSE::Initialize(tools::Property& options) {
   // possible tasks
   std::string tasks_string = options.get(".tasks").as<std::string>();
   boost::algorithm::to_lower(tasks_string);
-  if (tasks_string.find("all") != std::string::npos) {
-    do_gw_ = true;
-    do_bse_singlets_ = true;
-    do_bse_triplets_ = true;
-  }
+
   if (tasks_string.find("gw") != std::string::npos) {
     do_gw_ = true;
   }
-  if (tasks_string.find("singlets") != std::string::npos) {
-    do_bse_singlets_ = true;
-  }
-  if (tasks_string.find("triplets") != std::string::npos) {
-    do_bse_triplets_ = true;
+
+  if (is_uks) {
+    if (tasks_string.find("all") != std::string::npos ||
+        tasks_string.find("excitons") != std::string::npos) {
+      do_gw_ = true;
+      do_bse_exciton_alpha_ = true;
+      do_bse_exciton_beta_ = true;
+    }
+    if (tasks_string.find("exciton_alpha") != std::string::npos) {
+      do_bse_exciton_alpha_ = true;
+    }
+    if (tasks_string.find("exciton_beta") != std::string::npos) {
+      do_bse_exciton_beta_ = true;
+    }
+
+    // Backward-compatible fallback: old restricted BSE task names on UKS
+    // trigger both spin-conserving exciton channels.
+    if (tasks_string.find("singlets") != std::string::npos ||
+        tasks_string.find("triplets") != std::string::npos) {
+      do_bse_exciton_alpha_ = true;
+      do_bse_exciton_beta_ = true;
+      XTP_LOG(Log::error, *pLog_)
+          << " UKS reference detected: interpreting requested BSE tasks as "
+             "spin-conserving exciton_alpha and exciton_beta channels."
+          << flush;
+    }
+  } else {
+    if (tasks_string.find("all") != std::string::npos) {
+      do_gw_ = true;
+      do_bse_singlets_ = true;
+      do_bse_triplets_ = true;
+    }
+    if (tasks_string.find("singlets") != std::string::npos) {
+      do_bse_singlets_ = true;
+    }
+    if (tasks_string.find("triplets") != std::string::npos) {
+      do_bse_triplets_ = true;
+    }
   }
 
-  XTP_LOG(Log::error, *pLog_) << " Tasks: " << flush;
+   XTP_LOG(Log::error, *pLog_) << " Tasks: " << flush;
   if (do_gw_) {
     XTP_LOG(Log::error, *pLog_) << " GW " << flush;
   }
@@ -361,9 +390,11 @@ void GWBSE::Initialize(tools::Property& options) {
   if (do_bse_triplets_) {
     XTP_LOG(Log::error, *pLog_) << " triplets " << flush;
   }
-  XTP_LOG(Log::error, *pLog_) << " Store: " << flush;
-  if (do_gw_) {
-    XTP_LOG(Log::error, *pLog_) << " GW " << flush;
+  if (do_bse_exciton_alpha_) {
+    XTP_LOG(Log::error, *pLog_) << " exciton_alpha " << flush;
+  }
+  if (do_bse_exciton_beta_) {
+    XTP_LOG(Log::error, *pLog_) << " exciton_beta " << flush;
   }
 
   if (options.exists("bse.fragments")) {
@@ -449,12 +480,12 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *pLog_)
         << " Sigma plot filename: " << sigma_plot_filename_ << flush;
   }
-  if (orbitals_.hasUnrestrictedOrbitals() &&
+  /*if (orbitals_.hasUnrestrictedOrbitals() &&
       (do_bse_singlets_ || do_bse_triplets_ || do_dynamical_screening_bse_)) {
     throw std::runtime_error(
         "Open-shell GWBSE currently supports GW only; BSE is still restricted "
         "to closed-shell references.");
-  }
+  }*/
 }
 
 void GWBSE::addoutput(tools::Property& summary) {
@@ -574,6 +605,32 @@ void GWBSE::addoutput(tools::Property& summary) {
                        .str());
     }
   }
+  if (do_bse_exciton_alpha_) {
+    tools::Property& alpha_exciton_summary =
+        gwbse_summary.add("exciton_alpha", "");
+    for (Index state = 0; state < bseopt_.nmax; ++state) {
+      tools::Property& level_summary = alpha_exciton_summary.add("level", "");
+      level_summary.setAttribute("number", state + 1);
+      level_summary.add(
+          "omega", (boost::format("%1$+1.6f ") %
+                    (orbitals_.BSEAlpha().eigenvalues()(state) * hrt2ev))
+                       .str());
+    }
+  }
+
+    if (do_bse_exciton_beta_) {
+    tools::Property& beta_exciton_summary =
+        gwbse_summary.add("exciton_beta", "");
+    for (Index state = 0; state < bseopt_.nmax; ++state) {
+      tools::Property& level_summary = beta_exciton_summary.add("level", "");
+      level_summary.setAttribute("number", state + 1);
+      level_summary.add(
+          "omega", (boost::format("%1$+1.6f ") %
+                    (orbitals_.BSEBeta().eigenvalues()(state) * hrt2ev))
+                       .str());
+    }
+  }
+
   return;
 }
 
@@ -716,7 +773,9 @@ bool GWBSE::Evaluate() {
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled Auxbasis of size "
                               << auxbasis.AOBasisSize() << flush;
 
-  if ((do_bse_singlets_ || do_bse_triplets_) && fragments_.size() > 0) {
+  if ((do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_alpha_ ||
+       do_bse_exciton_beta_) &&
+      fragments_.size() > 0) {
     for (const auto& frag : fragments_) {
       XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Fragment " << frag.getId()
                                   << " size:" << frag.size() << flush;
@@ -766,6 +825,8 @@ bool GWBSE::Evaluate() {
   }
 
   Eigen::MatrixXd Hqp;
+  Eigen::MatrixXd Hqp_alpha;
+  Eigen::MatrixXd Hqp_beta;
   if (do_gw_) {
 
     std::chrono::time_point<std::chrono::system_clock> start =
@@ -808,6 +869,8 @@ bool GWBSE::Evaluate() {
       orbitals_.RPAInputEnergiesAlpha() = gw.RPAInputEnergiesAlpha();
       orbitals_.RPAInputEnergiesBeta() = gw.RPAInputEnergiesBeta();
       gw.CalculateHQP();
+      Hqp_alpha = gw.getHQPAlpha();
+      Hqp_beta = gw.getHQPBeta();
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_alpha =
           gw.DiagonalizeQPHamiltonianAlpha();
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_beta =
@@ -860,7 +923,7 @@ bool GWBSE::Evaluate() {
           << " seconds." << flush;
     }
 
-  } else {
+  }  else {
     if (orbitals_.getGWAmax() != gwopt_.qpmax ||
         orbitals_.getGWAmin() != gwopt_.qpmin ||
         orbitals_.getRPAmax() != gwopt_.rpamax ||
@@ -869,54 +932,99 @@ bool GWBSE::Evaluate() {
           "The ranges for GW and RPA do not agree with the ranges from the "
           ".orb file, rerun your GW calculation");
     }
-    const Eigen::MatrixXd& qpcoeff = orbitals_.QPdiag().eigenvectors();
 
-    Hqp = qpcoeff * orbitals_.QPdiag().eigenvalues().asDiagonal() *
-          qpcoeff.transpose();
+    if (is_uks) {
+      const Eigen::MatrixXd& qpcoeff_alpha = orbitals_.QPdiagAlpha().eigenvectors();
+      const Eigen::MatrixXd& qpcoeff_beta = orbitals_.QPdiagBeta().eigenvectors();
+
+      Hqp_alpha =
+          qpcoeff_alpha * orbitals_.QPdiagAlpha().eigenvalues().asDiagonal() *
+          qpcoeff_alpha.transpose();
+      Hqp_beta =
+          qpcoeff_beta * orbitals_.QPdiagBeta().eigenvalues().asDiagonal() *
+          qpcoeff_beta.transpose();
+    } else {
+      const Eigen::MatrixXd& qpcoeff = orbitals_.QPdiag().eigenvectors();
+
+      Hqp = qpcoeff * orbitals_.QPdiag().eigenvalues().asDiagonal() *
+            qpcoeff.transpose();
+    }
   }
 
   // proceed only if BSE requested
-  if (do_bse_singlets_ || do_bse_triplets_) {
-    if (is_uks) {
-      throw std::runtime_error(
-          "BSE for unrestricted open-shell references is not implemented yet.");
-    }
+  if (do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_alpha_ ||
+      do_bse_exciton_beta_) {
 
     std::chrono::time_point<std::chrono::system_clock> start =
         std::chrono::system_clock::now();
 
-    BSE bse = BSE(*pLog_, Mmn);
-    bse.configure(bseopt_, orbitals_.RPAInputEnergies(), Hqp);
+    if (is_uks) {
+      if (do_bse_exciton_alpha_) {
+        BSE::options bseopt_alpha = bseopt_;
+        bseopt_alpha.homo = orbitals_.getHomoAlpha();
 
-    // store the direct contribution to the static BSE results
-    Eigen::VectorXd Hd_static_contrib_triplet;
-    Eigen::VectorXd Hd_static_contrib_singlet;
+        BSE bse_alpha = BSE(*pLog_, Mmn_spin.alpha);
+        bse_alpha.configure(bseopt_alpha, orbitals_.RPAInputEnergiesAlpha(),
+                            Hqp_alpha);
 
-    if (do_bse_triplets_) {
-      bse.Solve_triplets(orbitals_);
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " Solved BSE for triplets " << flush;
-      bse.Analyze_triplets(fragments_, orbitals_);
-    }
+        bse_alpha.Solve_excitons_alpha(orbitals_);
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Solved BSE for exciton alpha channel " << flush;
+        bse_alpha.Analyze_excitons_alpha(fragments_, orbitals_);
 
-    if (do_bse_singlets_) {
-      bse.Solve_singlets(orbitals_);
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " Solved BSE for singlets " << flush;
-      bse.Analyze_singlets(fragments_, orbitals_);
-    }
+        if (do_dynamical_screening_bse_) {
+          bse_alpha.Perturbative_DynamicalScreening(
+              QMStateType(QMStateType::ExcitonAlpha), orbitals_);
+        }
+      }
 
-    // do perturbative dynamical screening in BSE
-    if (do_dynamical_screening_bse_) {
+      if (do_bse_exciton_beta_) {
+        BSE::options bseopt_beta = bseopt_;
+        bseopt_beta.homo = orbitals_.getHomoBeta();
+
+        BSE bse_beta = BSE(*pLog_, Mmn_spin.beta);
+        bse_beta.configure(bseopt_beta, orbitals_.RPAInputEnergiesBeta(),
+                           Hqp_beta);
+
+        bse_beta.Solve_excitons_beta(orbitals_);
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Solved BSE for exciton beta channel " << flush;
+        bse_beta.Analyze_excitons_beta(fragments_, orbitals_);
+
+        if (do_dynamical_screening_bse_) {
+          bse_beta.Perturbative_DynamicalScreening(
+              QMStateType(QMStateType::ExcitonBeta), orbitals_);
+        }
+      }
+
+    } else {
+      BSE bse = BSE(*pLog_, Mmn);
+      bse.configure(bseopt_, orbitals_.RPAInputEnergies(), Hqp);
 
       if (do_bse_triplets_) {
-        bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Triplet),
-                                            orbitals_);
+        bse.Solve_triplets(orbitals_);
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Solved BSE for triplets " << flush;
+        bse.Analyze_triplets(fragments_, orbitals_);
       }
 
       if (do_bse_singlets_) {
-        bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Singlet),
-                                            orbitals_);
+        bse.Solve_singlets(orbitals_);
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Solved BSE for singlets " << flush;
+        bse.Analyze_singlets(fragments_, orbitals_);
+      }
+
+      if (do_dynamical_screening_bse_) {
+        if (do_bse_triplets_) {
+          bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Triplet),
+                                              orbitals_);
+        }
+
+        if (do_bse_singlets_) {
+          bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Singlet),
+                                              orbitals_);
+        }
       }
     }
 

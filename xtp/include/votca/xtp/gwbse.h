@@ -80,6 +80,8 @@ class GWBSE {
   bool do_bse_singlets_ = false;
   bool do_bse_triplets_ = false;
   bool do_dynamical_screening_bse_ = false;
+  bool do_bse_exciton_alpha_ = false;
+  bool do_bse_exciton_beta_ = false;
 
   // options for own Vxc calculation
   std::string functional_;

@@ -57,6 +57,98 @@ void BSE::configure(const options& opt, const Eigen::VectorXd& RPAInputEnergies,
   SetupDirectInteractionOperator(RPAInputEnergies, 0.0);
 }
 
+tools::EigenSystem& BSE::GetBSEEigenSystem(const QMStateType& type,
+                                           Orbitals& orb) const {
+  if (type == QMStateType::Singlet) {
+    return orb.BSESinglets();
+  } else if (type == QMStateType::Triplet) {
+    return orb.BSETriplets();
+  } else if (type == QMStateType::ExcitonAlpha) {
+    return orb.BSEAlpha();
+  } else if (type == QMStateType::ExcitonBeta) {
+    return orb.BSEBeta();
+  } else {
+    throw std::runtime_error(
+        "Unsupported QMStateType in BSE::GetBSEEigenSystem");
+  }
+}
+
+const tools::EigenSystem& BSE::GetBSEEigenSystem(const QMStateType& type,
+                                                 const Orbitals& orb) const {
+  if (type == QMStateType::Singlet) {
+    return orb.BSESinglets();
+  } else if (type == QMStateType::Triplet) {
+    return orb.BSETriplets();
+  } else if (type == QMStateType::ExcitonAlpha) {
+    return orb.BSEAlpha();
+  } else if (type == QMStateType::ExcitonBeta) {
+    return orb.BSEBeta();
+  } else {
+    throw std::runtime_error(
+        "Unsupported QMStateType in BSE::GetBSEEigenSystem");
+  }
+}
+
+std::string BSE::StateEnergiesHeader(const QMStateType& type) const {
+  if (type == QMStateType::Singlet) {
+    return "  ====== singlet energies (eV) ====== ";
+  } else if (type == QMStateType::Triplet) {
+    return "  ====== triplet energies (eV) ====== ";
+  } else if (type == QMStateType::ExcitonAlpha) {
+    return "  ====== exciton alpha energies (eV) ====== ";
+  } else if (type == QMStateType::ExcitonBeta) {
+    return "  ====== exciton beta energies (eV) ====== ";
+  } else {
+    throw std::runtime_error(
+        "Unsupported QMStateType in BSE::StateEnergiesHeader");
+  }
+}
+
+std::string BSE::StateShortLabel(const QMStateType& type) const {
+  if (type == QMStateType::Singlet) {
+    return "S";
+  } else if (type == QMStateType::Triplet) {
+    return "T";
+  } else if (type == QMStateType::ExcitonAlpha) {
+    return "XA";
+  } else if (type == QMStateType::ExcitonBeta) {
+    return "XB";
+  } else {
+    throw std::runtime_error(
+        "Unsupported QMStateType in BSE::StateShortLabel");
+  }
+}
+
+std::string BSE::StateDynamicLabel(const QMStateType& type) const {
+  if (type == QMStateType::Singlet) {
+    return "singlet";
+  } else if (type == QMStateType::Triplet) {
+    return "triplet";
+  } else if (type == QMStateType::ExcitonAlpha) {
+    return "exciton alpha";
+  } else if (type == QMStateType::ExcitonBeta) {
+    return "exciton beta";
+  } else {
+    throw std::runtime_error(
+        "Unsupported QMStateType in BSE::StateDynamicLabel");
+  }
+}
+
+double BSE::ExchangePrefactor(const QMStateType& type) const {
+  if (type == QMStateType::Singlet) {
+    return 2.0;
+  } else if (type == QMStateType::Triplet) {
+    return 0.0;
+  } else if (type == QMStateType::ExcitonAlpha) {
+    return 1.0;
+  } else if (type == QMStateType::ExcitonBeta) {
+    return 1.0;
+  } else {
+    throw std::runtime_error(
+        "Unsupported QMStateType in BSE::ExchangePrefactor");
+  }
+}
+
 Eigen::MatrixXd BSE::AdjustHqpSize(const Eigen::MatrixXd& Hqp,
                                    const Eigen::VectorXd& RPAInputEnergies) {
 
@@ -125,6 +217,65 @@ void BSE::configureBSEOperator(BSE_OPERATOR& H) const {
   opt.rpamin = opt_.rpamin;
   opt.vmin = opt_.vmin;
   H.configure(opt);
+}
+
+
+tools::EigenSystem BSE::Solve_excitons_alpha_TDA() const {
+
+  ExcitonAlphaOperator_TDA H(epsilon_0_inv_, Mmn_, Hqp_);
+  configureBSEOperator(H);
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Setup TDA exciton alpha hamiltonian " << flush;
+  return solve_hermitian(H);
+}
+
+tools::EigenSystem BSE::Solve_excitons_beta_TDA() const {
+
+  ExcitonBetaOperator_TDA H(epsilon_0_inv_, Mmn_, Hqp_);
+  configureBSEOperator(H);
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Setup TDA exciton beta hamiltonian " << flush;
+  return solve_hermitian(H);
+}
+
+tools::EigenSystem BSE::Solve_excitons_alpha_BTDA() const {
+
+  ExcitonAlphaOperator_TDA A(epsilon_0_inv_, Mmn_, Hqp_);
+  configureBSEOperator(A);
+  ExcitonAlphaOperator_BTDA_B B(epsilon_0_inv_, Mmn_, Hqp_);
+  configureBSEOperator(B);
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Setup Full exciton alpha hamiltonian " << flush;
+  return Solve_nonhermitian_Davidson(A, B);
+}
+
+tools::EigenSystem BSE::Solve_excitons_beta_BTDA() const {
+
+  ExcitonBetaOperator_TDA A(epsilon_0_inv_, Mmn_, Hqp_);
+  configureBSEOperator(A);
+  ExcitonBetaOperator_BTDA_B B(epsilon_0_inv_, Mmn_, Hqp_);
+  configureBSEOperator(B);
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Setup Full exciton beta hamiltonian " << flush;
+  return Solve_nonhermitian_Davidson(A, B);
+}
+
+void BSE::Solve_excitons_alpha(Orbitals& orb) const {
+  orb.setTDAApprox(opt_.useTDA);
+  if (opt_.useTDA) {
+    orb.BSEAlpha() = Solve_excitons_alpha_TDA();
+  } else {
+    orb.BSEAlpha() = Solve_excitons_alpha_BTDA();
+  }
+}
+
+void BSE::Solve_excitons_beta(Orbitals& orb) const {
+  orb.setTDAApprox(opt_.useTDA);
+  if (opt_.useTDA) {
+    orb.BSEBeta() = Solve_excitons_beta_TDA();
+  } else {
+    orb.BSEBeta() = Solve_excitons_beta_BTDA();
+  }
 }
 
 tools::EigenSystem BSE::Solve_triplets_TDA() const {
@@ -304,35 +455,33 @@ void BSE::PrintWeights(const Eigen::VectorXd& weights) const {
 void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
                            const Orbitals& orb) const {
 
-  QMStateType singlet = QMStateType(QMStateType::Singlet);
+  QMStateType type = QMStateType(QMStateType::Singlet);
 
   Eigen::VectorXd oscs = orb.Oscillatorstrengths();
-
-  Interaction act = Analyze_eh_interaction(singlet, orb);
+  Interaction act = Analyze_eh_interaction(type, orb);
 
   if (fragments.size() > 0) {
     Lowdin low;
-    low.CalcChargeperFragment(fragments, orb, singlet);
+    low.CalcChargeperFragment(fragments, orb, type);
   }
 
-  const Eigen::VectorXd& energies = orb.BSESinglets().eigenvalues();
+  const tools::EigenSystem& bse = GetBSEEigenSystem(type, orb);
+  const Eigen::VectorXd& energies = bse.eigenvalues();
 
   double hrt2ev = tools::conv::hrt2ev;
-  XTP_LOG(Log::error, log_)
-      << "  ====== singlet energies (eV) ====== " << flush;
+  XTP_LOG(Log::error, log_) << StateEnergiesHeader(type) << flush;
   for (Index i = 0; i < opt_.nmax; ++i) {
-    Eigen::VectorXd weights =
-        orb.BSESinglets().eigenvectors().col(i).cwiseAbs2();
+    Eigen::VectorXd weights = bse.eigenvectors().col(i).cwiseAbs2();
     if (!orb.getTDAApprox()) {
-      weights -= orb.BSESinglets().eigenvectors2().col(i).cwiseAbs2();
+      weights -= bse.eigenvectors2().col(i).cwiseAbs2();
     }
 
     double osc = oscs[i];
     XTP_LOG(Log::error, log_)
         << boost::format(
-               "  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> "
-               "= %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f") %
-               (i + 1) % (hrt2ev * energies(i)) %
+               "  %1$2s = %2$4d Omega = %3$+1.12f eV  lamdba = %4$+3.2f nm "
+               "<FT> = %5$+1.4f <K_x> = %6$+1.4f <K_d> = %7$+1.4f") %
+               StateShortLabel(type) % (i + 1) % (hrt2ev * energies(i)) %
                (1240.0 / (hrt2ev * energies(i))) %
                (hrt2ev * act.qp_contrib(i)) %
                (hrt2ev * act.exchange_contrib(i)) %
@@ -360,29 +509,30 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
 void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
                            const Orbitals& orb) const {
 
-  QMStateType triplet = QMStateType(QMStateType::Triplet);
-  Interaction act = Analyze_eh_interaction(triplet, orb);
+  QMStateType type = QMStateType(QMStateType::Triplet);
+  Interaction act = Analyze_eh_interaction(type, orb);
 
   if (fragments.size() > 0) {
     Lowdin low;
-    low.CalcChargeperFragment(fragments, orb, triplet);
+    low.CalcChargeperFragment(fragments, orb, type);
   }
 
-  const Eigen::VectorXd& energies = orb.BSETriplets().eigenvalues();
-  XTP_LOG(Log::error, log_)
-      << "  ====== triplet energies (eV) ====== " << flush;
+  const tools::EigenSystem& bse = GetBSEEigenSystem(type, orb);
+  const Eigen::VectorXd& energies = bse.eigenvalues();
+
+  XTP_LOG(Log::error, log_) << StateEnergiesHeader(type) << flush;
   for (Index i = 0; i < opt_.nmax; ++i) {
-    Eigen::VectorXd weights =
-        orb.BSETriplets().eigenvectors().col(i).cwiseAbs2();
+    Eigen::VectorXd weights = bse.eigenvectors().col(i).cwiseAbs2();
     if (!orb.getTDAApprox()) {
-      weights -= orb.BSETriplets().eigenvectors2().col(i).cwiseAbs2();
+      weights -= bse.eigenvectors2().col(i).cwiseAbs2();
     }
 
     XTP_LOG(Log::error, log_)
         << boost::format(
-               "  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> "
-               "= %4$+1.4f <K_d> = %5$+1.4f") %
-               (i + 1) % (tools::conv::hrt2ev * energies(i)) %
+               "  %1$2s = %2$4d Omega = %3$+1.12f eV  lamdba = %4$+3.2f nm "
+               "<FT> = %5$+1.4f <K_d> = %6$+1.4f") %
+               StateShortLabel(type) % (i + 1) %
+               (tools::conv::hrt2ev * energies(i)) %
                (1240.0 / (tools::conv::hrt2ev * energies(i))) %
                (tools::conv::hrt2ev * act.qp_contrib(i)) %
                (tools::conv::hrt2ev * act.direct_contrib(i))
@@ -397,6 +547,97 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
 
   return;
 }
+
+void BSE::Analyze_excitons_alpha(
+    std::vector<QMFragment<BSE_Population> > fragments,
+    const Orbitals& orb) const {
+
+  QMStateType type = QMStateType(QMStateType::ExcitonAlpha);
+  Interaction act = Analyze_eh_interaction(type, orb);
+
+  if (fragments.size() > 0) {
+    Lowdin low;
+    low.CalcChargeperFragment(fragments, orb, type);
+  }
+
+  const tools::EigenSystem& bse = GetBSEEigenSystem(type, orb);
+  const Eigen::VectorXd& energies = bse.eigenvalues();
+
+  double hrt2ev = tools::conv::hrt2ev;
+  XTP_LOG(Log::error, log_) << StateEnergiesHeader(type) << flush;
+  for (Index i = 0; i < opt_.nmax; ++i) {
+    Eigen::VectorXd weights = bse.eigenvectors().col(i).cwiseAbs2();
+    if (!orb.getTDAApprox()) {
+      weights -= bse.eigenvectors2().col(i).cwiseAbs2();
+    }
+
+    XTP_LOG(Log::error, log_)
+        << boost::format(
+               "  %1$2s = %2$4d Omega = %3$+1.12f eV  lamdba = %4$+3.2f nm "
+               "<FT> = %5$+1.4f <K_x> = %6$+1.4f <K_d> = %7$+1.4f") %
+               StateShortLabel(type) % (i + 1) % (hrt2ev * energies(i)) %
+               (1240.0 / (hrt2ev * energies(i))) %
+               (hrt2ev * act.qp_contrib(i)) %
+               (hrt2ev * act.exchange_contrib(i)) %
+               (hrt2ev * act.direct_contrib(i))
+        << flush;
+
+    PrintWeights(weights);
+    if (fragments.size() > 0) {
+      printFragInfo(fragments, i);
+    }
+
+    XTP_LOG(Log::error, log_) << flush;
+  }
+  return;
+}
+
+void BSE::Analyze_excitons_beta(
+    std::vector<QMFragment<BSE_Population> > fragments,
+    const Orbitals& orb) const {
+
+  QMStateType type = QMStateType(QMStateType::ExcitonBeta);
+  Interaction act = Analyze_eh_interaction(type, orb);
+
+  if (fragments.size() > 0) {
+    Lowdin low;
+    low.CalcChargeperFragment(fragments, orb, type);
+  }
+
+  const tools::EigenSystem& bse = GetBSEEigenSystem(type, orb);
+  const Eigen::VectorXd& energies = bse.eigenvalues();
+
+  double hrt2ev = tools::conv::hrt2ev;
+  XTP_LOG(Log::error, log_) << StateEnergiesHeader(type) << flush;
+  for (Index i = 0; i < opt_.nmax; ++i) {
+    Eigen::VectorXd weights = bse.eigenvectors().col(i).cwiseAbs2();
+    if (!orb.getTDAApprox()) {
+      weights -= bse.eigenvectors2().col(i).cwiseAbs2();
+    }
+
+    XTP_LOG(Log::error, log_)
+        << boost::format(
+               "  %1$2s = %2$4d Omega = %3$+1.12f eV  lamdba = %4$+3.2f nm "
+               "<FT> = %5$+1.4f <K_x> = %6$+1.4f <K_d> = %7$+1.4f") %
+               StateShortLabel(type) % (i + 1) % (hrt2ev * energies(i)) %
+               (1240.0 / (hrt2ev * energies(i))) %
+               (hrt2ev * act.qp_contrib(i)) %
+               (hrt2ev * act.exchange_contrib(i)) %
+               (hrt2ev * act.direct_contrib(i))
+        << flush;
+
+    PrintWeights(weights);
+    if (fragments.size() > 0) {
+      printFragInfo(fragments, i);
+    }
+
+    XTP_LOG(Log::error, log_) << flush;
+  }
+  return;
+}
+
+
+
 template <class OP>
 Eigen::VectorXd ExpValue(const Eigen::MatrixXd& state1, OP OPxstate2) {
   return state1.cwiseProduct(OPxstate2.eval()).colwise().sum().transpose();
@@ -411,8 +652,7 @@ template <typename BSE_OPERATOR>
 BSE::ExpectationValues BSE::ExpectationValue_Operator(
     const QMStateType& type, const Orbitals& orb, const BSE_OPERATOR& H) const {
 
-  const tools::EigenSystem& BSECoefs =
-      (type == QMStateType::Singlet) ? orb.BSESinglets() : orb.BSETriplets();
+  const tools::EigenSystem& BSECoefs = GetBSEEigenSystem(type, orb);
 
   ExpectationValues expectation_values;
 
@@ -434,9 +674,7 @@ template <typename BSE_OPERATOR>
 BSE::ExpectationValues BSE::ExpectationValue_Operator_State(
     const QMState& state, const Orbitals& orb, const BSE_OPERATOR& H) const {
 
-  const tools::EigenSystem& BSECoefs = (state.Type() == QMStateType::Singlet)
-                                           ? orb.BSESinglets()
-                                           : orb.BSETriplets();
+  const tools::EigenSystem& BSECoefs = GetBSEEigenSystem(state.Type(), orb);
 
   ExpectationValues expectation_values;
 
@@ -500,17 +738,19 @@ BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
     analysis.direct_contrib += expectation_values.cross_term;
   }
 
-  if (type == QMStateType::Singlet) {
+  double xpref = ExchangePrefactor(type);
+  if (xpref != 0.0) {
     HxOperator hx(epsilon_0_inv_, Mmn_, Hqp_);
     configureBSEOperator(hx);
     ExpectationValues expectation_values =
         ExpectationValue_Operator(type, orb, hx);
-    analysis.exchange_contrib = 2.0 * expectation_values.direct_term;
+    analysis.exchange_contrib = xpref * expectation_values.direct_term;
     if (!orb.getTDAApprox()) {
-      analysis.exchange_contrib += 2.0 * expectation_values.cross_term;
+      analysis.exchange_contrib += xpref * expectation_values.cross_term;
     }
   } else {
-    analysis.exchange_contrib = Eigen::VectorXd::Zero(0);
+    analysis.exchange_contrib =
+        Eigen::VectorXd::Zero(analysis.direct_contrib.size());
   }
 
   return analysis;
@@ -521,8 +761,7 @@ BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
 void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
                                           Orbitals& orb) {
 
-  const tools::EigenSystem& BSECoefs =
-      (type == QMStateType::Singlet) ? orb.BSESinglets() : orb.BSETriplets();
+  const tools::EigenSystem& BSECoefs = GetBSEEigenSystem(type, orb);
 
   const Eigen::VectorXd& RPAInputEnergies = orb.RPAInputEnergies();
 
@@ -607,7 +846,7 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
           << flush;
     }
 
-  } else {
+  } else if (type == QMStateType::Triplet) {
     orb.BSETriplets_dynamic() = BSEenergies_dynamic;
     XTP_LOG(Log::error, log_) << "  ====== triplet energies with perturbative "
                                  "dynamical screening (eV) ====== "
@@ -621,6 +860,42 @@ void BSE::Perturbative_DynamicalScreening(const QMStateType& type,
                  (1240.0 / (hrt2ev * BSEenergies_dynamic(i)))
           << flush;
     }
+
+  } else if (type == QMStateType::ExcitonAlpha) {
+    orb.BSEAlpha_dynamic() = BSEenergies_dynamic;
+    XTP_LOG(Log::error, log_)
+        << "  ====== exciton alpha energies with perturbative dynamical "
+           "screening (eV) ====== "
+        << flush;
+    for (Index i = 0; i < opt_.nmax; ++i) {
+      XTP_LOG(Log::error, log_)
+          << boost::format(
+                 "  XA(dynamic) = %1$4d Omega = %2$+1.12f eV  lamdba = "
+                 "%3$+3.2f nm ") %
+                 (i + 1) % (hrt2ev * BSEenergies_dynamic(i)) %
+                 (1240.0 / (hrt2ev * BSEenergies_dynamic(i)))
+          << flush;
+    }
+
+  } else if (type == QMStateType::ExcitonBeta) {
+    orb.BSEBeta_dynamic() = BSEenergies_dynamic;
+    XTP_LOG(Log::error, log_)
+        << "  ====== exciton beta energies with perturbative dynamical "
+           "screening (eV) ====== "
+        << flush;
+    for (Index i = 0; i < opt_.nmax; ++i) {
+      XTP_LOG(Log::error, log_)
+          << boost::format(
+                 "  XB(dynamic) = %1$4d Omega = %2$+1.12f eV  lamdba = "
+                 "%3$+3.2f nm ") %
+                 (i + 1) % (hrt2ev * BSEenergies_dynamic(i)) %
+                 (1240.0 / (hrt2ev * BSEenergies_dynamic(i)))
+          << flush;
+    }
+
+  } else {
+    throw std::runtime_error(
+        "Unsupported QMStateType in BSE::Perturbative_DynamicalScreening");
   }
 }
 
