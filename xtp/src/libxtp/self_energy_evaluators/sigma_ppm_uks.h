@@ -55,4 +55,3 @@ class Sigma_PPM_UKS : public Sigma_base_UKS {
 }  // namespace votca
 
 #endif
-

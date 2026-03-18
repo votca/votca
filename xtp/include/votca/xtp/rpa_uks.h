@@ -17,7 +17,7 @@
  *
  */
 
- #pragma once
+#pragma once
 #ifndef VOTCA_XTP_RPA_UKS_H
 #define VOTCA_XTP_RPA_UKS_H
 
@@ -176,57 +176,57 @@ class RPA_UKS {
                               const Eigen::VectorXd& gwaenergies_beta,
                               Index qpmin);
 
-/**
- * Transition-index ordering for unrestricted RPA (UKS)
- *
- * The particle-hole basis is constructed as a concatenation:
- *
- *   [ all alpha excitations | all beta excitations ]
- *
- * where each excitation corresponds to a same-spin transition
- *
- *   v_sigma -> c_sigma
- *
- * within the selected RPA window [rpamin_, rpamax_].
- *
- * Definitions:
- *
- *   n_occ_alpha   = (homo_alpha_ + 1) - rpamin_
- *   n_unocc_alpha = rpamax_ - (homo_alpha_ + 1) + 1
- *
- *   n_occ_beta    = (homo_beta_  + 1) - rpamin_
- *   n_unocc_beta  = rpamax_ - (homo_beta_  + 1) + 1
- *
- * Row indices are assigned as:
- *
- *   I_alpha(v,c) = v * n_unocc_alpha + c
- *
- *   I_beta(v,c)  = n_occ_alpha * n_unocc_alpha
- *                  + v * n_unocc_beta + c
- *
- * with:
- *   v = 0..n_occ_alpha-1, c = 0..n_unocc_alpha-1   (alpha)
- *   v = 0..n_occ_beta -1, c = 0..n_unocc_beta -1   (beta)
- *
- * Orbital indexing inside energies_alpha_/energies_beta_:
- *
- *   occupied:  index = v
- *   virtual:   index = n_occ_spin + c
- *
- * The matrix XpY is ordered according to this indexing:
- *
- *   XpY(I_alpha(v,c), s) -> amplitude of (v_alpha -> c_alpha)
- *   XpY(I_beta(v,c), s)  -> amplitude of (v_beta  -> c_beta)
- *
- * Each column s corresponds to one RPA screening mode with energy omega(s).
- *
- * NOTE:
- * The RPA modes represent charge-density fluctuations and therefore mix
- * alpha and beta transitions. Downstream GW self-energy evaluators must:
- *
- *   - sum over both alpha and beta rows of XpY (screening)
- *   - but use spin-diagonal one-particle states (Green's function)
- */
+  /**
+   * Transition-index ordering for unrestricted RPA (UKS)
+   *
+   * The particle-hole basis is constructed as a concatenation:
+   *
+   *   [ all alpha excitations | all beta excitations ]
+   *
+   * where each excitation corresponds to a same-spin transition
+   *
+   *   v_sigma -> c_sigma
+   *
+   * within the selected RPA window [rpamin_, rpamax_].
+   *
+   * Definitions:
+   *
+   *   n_occ_alpha   = (homo_alpha_ + 1) - rpamin_
+   *   n_unocc_alpha = rpamax_ - (homo_alpha_ + 1) + 1
+   *
+   *   n_occ_beta    = (homo_beta_  + 1) - rpamin_
+   *   n_unocc_beta  = rpamax_ - (homo_beta_  + 1) + 1
+   *
+   * Row indices are assigned as:
+   *
+   *   I_alpha(v,c) = v * n_unocc_alpha + c
+   *
+   *   I_beta(v,c)  = n_occ_alpha * n_unocc_alpha
+   *                  + v * n_unocc_beta + c
+   *
+   * with:
+   *   v = 0..n_occ_alpha-1, c = 0..n_unocc_alpha-1   (alpha)
+   *   v = 0..n_occ_beta -1, c = 0..n_unocc_beta -1   (beta)
+   *
+   * Orbital indexing inside energies_alpha_/energies_beta_:
+   *
+   *   occupied:  index = v
+   *   virtual:   index = n_occ_spin + c
+   *
+   * The matrix XpY is ordered according to this indexing:
+   *
+   *   XpY(I_alpha(v,c), s) -> amplitude of (v_alpha -> c_alpha)
+   *   XpY(I_beta(v,c), s)  -> amplitude of (v_beta  -> c_beta)
+   *
+   * Each column s corresponds to one RPA screening mode with energy omega(s).
+   *
+   * NOTE:
+   * The RPA modes represent charge-density fluctuations and therefore mix
+   * alpha and beta transitions. Downstream GW self-energy evaluators must:
+   *
+   *   - sum over both alpha and beta rows of XpY (screening)
+   *   - but use spin-diagonal one-particle states (Green's function)
+   */
 
   /**
    * \brief Solution of the two-particle Hamiltonian in the unrestricted basis.
@@ -258,8 +258,9 @@ class RPA_UKS {
   Index getHomoAlpha() const { return homo_alpha_; }
   Index getHomoBeta() const { return homo_beta_; }
 
-                         void GetCachedScreeningModes(const Eigen::VectorXd*& omegas,
-                               const std::vector<Eigen::VectorXd>*& modes) const;
+  void GetCachedScreeningModes(
+      const Eigen::VectorXd*& omegas,
+      const std::vector<Eigen::VectorXd>*& modes) const;
 
  private:
   /**
@@ -290,7 +291,8 @@ class RPA_UKS {
   Eigen::VectorXd Calculate_H2p_AmB() const;
 
   /**
-   * \brief Construct the ApB block of the unrestricted two-particle Hamiltonian.
+   * \brief Construct the ApB block of the unrestricted two-particle
+   * Hamiltonian.
    *
    * This contains Coulomb coupling between particle-hole excitations. In the
    * unrestricted case, all four spin blocks are present:
@@ -358,7 +360,7 @@ class RPA_UKS {
   mutable bool screening_cached_ = false;
   mutable Eigen::VectorXd screening_omegas_;
   mutable std::vector<Eigen::VectorXd> screening_modes_;
-    void BuildCachedScreeningModes() const;
+  void BuildCachedScreeningModes() const;
 };
 
 }  // namespace xtp

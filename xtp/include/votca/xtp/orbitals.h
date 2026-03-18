@@ -638,41 +638,39 @@ class Orbitals {
    * Extensions spin GW
    *************************************/
   bool hasRPAInputEnergiesAlpha() const {
-  return (rpa_inputenergies_alpha_.size() > 0);
-}
-bool hasRPAInputEnergiesBeta() const {
-  return (rpa_inputenergies_beta_.size() > 0);
-}
-const Eigen::VectorXd& RPAInputEnergiesAlpha() const {
-  return rpa_inputenergies_alpha_;
-}
-const Eigen::VectorXd& RPAInputEnergiesBeta() const {
-  return rpa_inputenergies_beta_;
-}
-Eigen::VectorXd& RPAInputEnergiesAlpha() { return rpa_inputenergies_alpha_; }
-Eigen::VectorXd& RPAInputEnergiesBeta() { return rpa_inputenergies_beta_; }
+    return (rpa_inputenergies_alpha_.size() > 0);
+  }
+  bool hasRPAInputEnergiesBeta() const {
+    return (rpa_inputenergies_beta_.size() > 0);
+  }
+  const Eigen::VectorXd &RPAInputEnergiesAlpha() const {
+    return rpa_inputenergies_alpha_;
+  }
+  const Eigen::VectorXd &RPAInputEnergiesBeta() const {
+    return rpa_inputenergies_beta_;
+  }
+  Eigen::VectorXd &RPAInputEnergiesAlpha() { return rpa_inputenergies_alpha_; }
+  Eigen::VectorXd &RPAInputEnergiesBeta() { return rpa_inputenergies_beta_; }
 
-bool hasQPpertAlpha() const { return (QPpert_energies_alpha_.size() > 0); }
-bool hasQPpertBeta() const { return (QPpert_energies_beta_.size() > 0); }
-const Eigen::MatrixXd& QPpertEnergiesAlpha() const {
-  return QPpert_energies_alpha_;
-}
-const Eigen::MatrixXd& QPpertEnergiesBeta() const {
-  return QPpert_energies_beta_;
-}
-Eigen::MatrixXd& QPpertEnergiesAlpha() { return QPpert_energies_alpha_; }
-Eigen::MatrixXd& QPpertEnergiesBeta() { return QPpert_energies_beta_; }
+  bool hasQPpertAlpha() const { return (QPpert_energies_alpha_.size() > 0); }
+  bool hasQPpertBeta() const { return (QPpert_energies_beta_.size() > 0); }
+  const Eigen::MatrixXd &QPpertEnergiesAlpha() const {
+    return QPpert_energies_alpha_;
+  }
+  const Eigen::MatrixXd &QPpertEnergiesBeta() const {
+    return QPpert_energies_beta_;
+  }
+  Eigen::MatrixXd &QPpertEnergiesAlpha() { return QPpert_energies_alpha_; }
+  Eigen::MatrixXd &QPpertEnergiesBeta() { return QPpert_energies_beta_; }
 
-bool hasQPdiagAlpha() const {
-  return (QPdiag_alpha_.eigenvalues().size() > 0);
-}
-bool hasQPdiagBeta() const {
-  return (QPdiag_beta_.eigenvalues().size() > 0);
-}
-const tools::EigenSystem& QPdiagAlpha() const { return QPdiag_alpha_; }
-const tools::EigenSystem& QPdiagBeta() const { return QPdiag_beta_; }
-tools::EigenSystem& QPdiagAlpha() { return QPdiag_alpha_; }
-tools::EigenSystem& QPdiagBeta() { return QPdiag_beta_; }
+  bool hasQPdiagAlpha() const {
+    return (QPdiag_alpha_.eigenvalues().size() > 0);
+  }
+  bool hasQPdiagBeta() const { return (QPdiag_beta_.eigenvalues().size() > 0); }
+  const tools::EigenSystem &QPdiagAlpha() const { return QPdiag_alpha_; }
+  const tools::EigenSystem &QPdiagBeta() const { return QPdiag_beta_; }
+  tools::EigenSystem &QPdiagAlpha() { return QPdiag_alpha_; }
+  tools::EigenSystem &QPdiagBeta() { return QPdiag_beta_; }
 
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
@@ -761,13 +759,13 @@ tools::EigenSystem& QPdiagBeta() { return QPdiag_beta_; }
 
   // Spin-GW additions
   Eigen::VectorXd rpa_inputenergies_alpha_;
-Eigen::VectorXd rpa_inputenergies_beta_;
+  Eigen::VectorXd rpa_inputenergies_beta_;
 
-Eigen::MatrixXd QPpert_energies_alpha_;
-Eigen::MatrixXd QPpert_energies_beta_;
+  Eigen::MatrixXd QPpert_energies_alpha_;
+  Eigen::MatrixXd QPpert_energies_beta_;
 
-tools::EigenSystem QPdiag_alpha_;
-tools::EigenSystem QPdiag_beta_;
+  tools::EigenSystem QPdiag_alpha_;
+  tools::EigenSystem QPdiag_beta_;
 
   // Version 2: adds BSE energies after perturbative dynamical screening
   // Version 3: changed shell ordering

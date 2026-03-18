@@ -27,7 +27,7 @@
 namespace votca {
 namespace xtp {
 
-    void Sigma_PPM_UKS::PrepareScreening() {
+void Sigma_PPM_UKS::PrepareScreening() {
   if (ppm_ == nullptr) {
     throw std::runtime_error(
         "Sigma_PPM_UKS: shared PPM parameters were not set before "

@@ -55,4 +55,3 @@ class PPM {
 }  // namespace votca
 
 #endif
-

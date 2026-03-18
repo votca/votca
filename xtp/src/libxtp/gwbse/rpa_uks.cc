@@ -17,7 +17,7 @@
  *
  */
 
- #include "votca/xtp/rpa_uks.h"
+#include "votca/xtp/rpa_uks.h"
 
 #include <algorithm>
 #include <cmath>
@@ -79,7 +79,6 @@ void RPA_UKS::InvalidateH2pCache() {
   screening_modes_.clear();
 }
 
-
 void RPA_UKS::GetCachedScreeningModes(
     const Eigen::VectorXd*& omegas,
     const std::vector<Eigen::VectorXd>*& modes) const {
@@ -120,15 +119,13 @@ void RPA_UKS::BuildCachedScreeningModes() const {
     Eigen::VectorXd mode = Eigen::VectorXd::Zero(auxsize);
 
     for (Index v = 0; v < n_occ_alpha; v++) {
-      const auto Mmn_v =
-          Mmn_.alpha[v].middleRows(n_occ_alpha, n_unocc_alpha);
+      const auto Mmn_v = Mmn_.alpha[v].middleRows(n_occ_alpha, n_unocc_alpha);
       const auto XpY_v = XpY.col(s).segment(vc_alpha.I(v, 0), n_unocc_alpha);
       mode.noalias() += Mmn_v.transpose() * XpY_v;
     }
 
     for (Index v = 0; v < n_occ_beta; v++) {
-      const auto Mmn_v =
-          Mmn_.beta[v].middleRows(n_occ_beta, n_unocc_beta);
+      const auto Mmn_v = Mmn_.beta[v].middleRows(n_occ_beta, n_unocc_beta);
       const auto XpY_v =
           XpY.col(s).segment(size_alpha + vc_beta.I(v, 0), n_unocc_beta);
       mode.noalias() += Mmn_v.transpose() * XpY_v;
@@ -163,11 +160,9 @@ void RPA_UKS::BuildCachedScreeningModes() const {
   screening_cached_ = true;
 }
 
-
 void RPA_UKS::ShiftUncorrectedEnergies(Eigen::VectorXd& energies,
                                        const Eigen::VectorXd& dftenergies,
-                                       Index homo, Index qpmin,
-                                       Index gwsize) {
+                                       Index homo, Index qpmin, Index gwsize) {
   const Index lumo = homo + 1;
   const Index qpmax = qpmin + gwsize - 1;
 
@@ -303,8 +298,10 @@ Eigen::MatrixXd RPA_UKS::calculate_epsilon(double frequency) const {
   return result;
 }
 
-template Eigen::MatrixXd RPA_UKS::calculate_epsilon<true>(double frequency) const;
-template Eigen::MatrixXd RPA_UKS::calculate_epsilon<false>(double frequency) const;
+template Eigen::MatrixXd RPA_UKS::calculate_epsilon<true>(
+    double frequency) const;
+template Eigen::MatrixXd RPA_UKS::calculate_epsilon<false>(
+    double frequency) const;
 
 Eigen::MatrixXd RPA_UKS::calculate_epsilon_r(
     std::complex<double> frequency) const {
@@ -359,7 +356,7 @@ Eigen::MatrixXd RPA_UKS::calculate_epsilon_r(
 
     // The overall prefactor follows the existing restricted convention. The
     // spin resolution still enters explicitly through separate alpha/beta sums.
-    result -=  transform.getReductionVar();
+    result -= transform.getReductionVar();
   };
 
   accumulate_spin(Mmn_.alpha, energies_alpha_, homo_alpha_);
@@ -499,8 +496,7 @@ Eigen::MatrixXd RPA_UKS::Calculate_H2p_ApB() const {
       // by separate alpha and beta blocks.
       ApB.block(i1, i2, n_unocc_alpha, n_unocc_alpha) =
           kUKSApBPrefactor *
-          Mmn_.alpha[v1].middleRows(n_occ_alpha, n_unocc_alpha) *
-          Mmn_v2T;
+          Mmn_.alpha[v1].middleRows(n_occ_alpha, n_unocc_alpha) * Mmn_v2T;
     }
   }
 

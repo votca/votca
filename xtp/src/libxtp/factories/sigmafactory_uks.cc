@@ -18,7 +18,7 @@
  *
  */
 
- // Local VOTCA includes
+// Local VOTCA includes
 #include <votca/xtp/sigmafactory_uks.h>
 
 #include "self_energy_evaluators/sigma_cda_uks.h"

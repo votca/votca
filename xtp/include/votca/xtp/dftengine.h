@@ -113,7 +113,7 @@ class DFTEngine {
   /// treatment and occupation model.
   ConvergenceAcc::options BuildConvergenceOptions() const;
 
-  //development path RKS vs UKS
+  // development path RKS vs UKS
   void setForceUKSPath(bool force) { force_uks_path_ = force; }
 
  private:

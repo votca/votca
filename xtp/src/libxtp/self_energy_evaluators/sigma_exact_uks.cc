@@ -29,9 +29,7 @@
 #include "votca/xtp/threecenter.h"
 #include "votca/xtp/vc2index.h"
 
-namespace {
-
-}  // namespace
+namespace {}  // namespace
 
 namespace votca {
 namespace xtp {
@@ -54,8 +52,7 @@ void Sigma_Exact_UKS::PrepareScreening() {
     const Index qpoffset = opt_.qpmin - opt_.rpamin;
     const Eigen::MatrixXd& Mmn_i = Mmn_[gw_level + qpoffset];
 
-    Eigen::MatrixXd res =
-        Eigen::MatrixXd::Zero(rpatotal_, rpa_omegas_.size());
+    Eigen::MatrixXd res = Eigen::MatrixXd::Zero(rpatotal_, rpa_omegas_.size());
     for (Index s = 0; s < rpa_omegas_.size(); s++) {
       res.col(s) = Mmn_i * screening_modes_[s];
     }
@@ -142,7 +139,6 @@ double Sigma_Exact_UKS::CalcCorrelationOffDiagElement(Index gw_level1,
   }
   return sigma_c;
 }
-
 
 }  // namespace xtp
 }  // namespace votca

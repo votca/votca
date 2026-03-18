@@ -166,8 +166,7 @@ double ImaginaryAxisIntegration::SigmaGQDiag(double frequency, Index gw_level,
 
     for (Index i = 0; i < DeltaE.size(); ++i) {
       std::cout << "\n [CDA-DEBUG] ImagAxis i=" << i
-                << " occ=" << (i < occ ? 1 : 0)
-                << " DeltaE=" << DeltaE(i);
+                << " occ=" << (i < occ ? 1 : 0) << " DeltaE=" << DeltaE(i);
     }
     std::cout << std::flush;
   }

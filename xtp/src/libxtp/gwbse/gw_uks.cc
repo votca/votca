@@ -40,16 +40,16 @@ void GW_UKS::configure(const options& opt) {
   qptotal_ = opt_.qpmax - opt_.qpmin + 1;
   rpa_.configure(opt_.homo_alpha, opt_.homo_beta, opt_.rpamin, opt_.rpamax);
 
-sigma_alpha_ = SigmaFactory_UKS().Create(
-    opt_.sigma_integration, Mmn_, rpa_, TCMatrix::SpinChannel::Alpha);
-sigma_beta_ = SigmaFactory_UKS().Create(
-    opt_.sigma_integration, Mmn_, rpa_, TCMatrix::SpinChannel::Beta);
+  sigma_alpha_ = SigmaFactory_UKS().Create(opt_.sigma_integration, Mmn_, rpa_,
+                                           TCMatrix::SpinChannel::Alpha);
+  sigma_beta_ = SigmaFactory_UKS().Create(opt_.sigma_integration, Mmn_, rpa_,
+                                          TCMatrix::SpinChannel::Beta);
 
-if (!sigma_alpha_ || !sigma_beta_) {
-  throw std::runtime_error(
-      "GW_UKS currently supports only implemented unrestricted sigma "
-      "evaluators. At present this is 'ppm', 'cda', and 'exact'.");
-}
+  if (!sigma_alpha_ || !sigma_beta_) {
+    throw std::runtime_error(
+        "GW_UKS currently supports only implemented unrestricted sigma "
+        "evaluators. At present this is 'ppm', 'cda', and 'exact'.");
+  }
 
   Sigma_base_UKS::options sigma_opt;
   sigma_opt.homo = opt_.homo_alpha;
@@ -70,7 +70,7 @@ if (!sigma_alpha_ || !sigma_beta_) {
   Sigma_c_alpha_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
   Sigma_c_beta_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
 
-    auto print_spin_ranges = [&](Spin spin, Index homo) {
+  auto print_spin_ranges = [&](Spin spin, Index homo) {
     const Index lumo = homo + 1;
 
     const Index n_occ_rpa =
@@ -103,13 +103,14 @@ if (!sigma_alpha_ || !sigma_beta_) {
   print_spin_ranges(Spin::Alpha, opt_.homo_alpha);
   print_spin_ranges(Spin::Beta, opt_.homo_beta);
 
-    if (opt_.sigma_integration == "ppm") {
+  if (opt_.sigma_integration == "ppm") {
     auto* ppm_a = dynamic_cast<Sigma_PPM_UKS*>(sigma_alpha_.get());
     auto* ppm_b = dynamic_cast<Sigma_PPM_UKS*>(sigma_beta_.get());
 
     if (ppm_a == nullptr || ppm_b == nullptr) {
       throw std::runtime_error(
-          "GW_UKS: expected Sigma_PPM_UKS evaluators for sigma_integration=ppm");
+          "GW_UKS: expected Sigma_PPM_UKS evaluators for "
+          "sigma_integration=ppm");
     }
 
     ppm_a->SetSharedPPM(ppm_);
@@ -162,8 +163,8 @@ const char* GW_UKS::OccupationTag(Spin spin, Index level) const {
   return (level <= Homo(spin)) ? "occ" : "virt";
 }
 
-Eigen::VectorXd GW_UKS::ScissorShift_DFTlevel(const Eigen::VectorXd& dft_energies,
-                                              Index homo) const {
+Eigen::VectorXd GW_UKS::ScissorShift_DFTlevel(
+    const Eigen::VectorXd& dft_energies, Index homo) const {
   Eigen::VectorXd shifted_energies = dft_energies;
   shifted_energies.segment(homo + 1, dft_energies.size() - homo - 1).array() +=
       opt_.shift;
@@ -175,8 +176,8 @@ double GW_UKS::CalcSpinHomoLumoShift(const Eigen::VectorXd& frequencies,
   const Index homo = Homo(spin);
   const Eigen::VectorXd& dft = DftEnergies(spin);
   const double DFTgap = dft(homo + 1) - dft(homo);
-  const double QPgap = frequencies(homo + 1 - opt_.qpmin) -
-                       frequencies(homo - opt_.qpmin);
+  const double QPgap =
+      frequencies(homo + 1 - opt_.qpmin) - frequencies(homo - opt_.qpmin);
   return QPgap - DFTgap;
 }
 
@@ -194,8 +195,9 @@ void GW_UKS::CalculateGWPerturbation() {
       ScissorShift_DFTlevel(dft_energies_beta_, opt_.homo_beta);
 
   XTP_LOG(Log::error, log_)
-      << TimeStamp() << " Scissor shifting alpha/beta DFT energies by: "
-      << opt_.shift << " Hrt" << std::flush;
+      << TimeStamp()
+      << " Scissor shifting alpha/beta DFT energies by: " << opt_.shift
+      << " Hrt" << std::flush;
 
   rpa_.setRPAInputEnergies(
       dft_shifted_alpha.segment(opt_.rpamin, opt_.rpamax - opt_.rpamin + 1),
@@ -216,8 +218,7 @@ void GW_UKS::CalculateGWPerturbation() {
       Mmn_.alpha.Rebuild();
       Mmn_.beta.Rebuild();
       XTP_LOG(Log::info, log_)
-          << TimeStamp() << " Rebuilding alpha/beta 3c integrals"
-          << std::flush;
+          << TimeStamp() << " Rebuilding alpha/beta 3c integrals" << std::flush;
     }
 
     if (opt_.sigma_integration == "ppm") {
@@ -257,19 +258,15 @@ void GW_UKS::CalculateGWPerturbation() {
                                   opt_.qpmin);
 
       XTP_LOG(Log::info, log_)
-          << TimeStamp() << " GW_Iteration:" << i_gw
-          << " Shift_alpha[Hrt]:"
+          << TimeStamp() << " GW_Iteration:" << i_gw << " Shift_alpha[Hrt]:"
           << CalcSpinHomoLumoShift(frequencies_alpha, Spin::Alpha)
           << " Shift_beta[Hrt]:"
-          << CalcSpinHomoLumoShift(frequencies_beta, Spin::Beta)
-          << std::flush;
+          << CalcSpinHomoLumoShift(frequencies_beta, Spin::Beta) << std::flush;
 
-      const bool converged_alpha =
-          Converged(rpa_.getRPAInputEnergiesAlpha(), rpa_alpha_old,
-                    opt_.gw_sc_limit);
-      const bool converged_beta =
-          Converged(rpa_.getRPAInputEnergiesBeta(), rpa_beta_old,
-                    opt_.gw_sc_limit);
+      const bool converged_alpha = Converged(rpa_.getRPAInputEnergiesAlpha(),
+                                             rpa_alpha_old, opt_.gw_sc_limit);
+      const bool converged_beta = Converged(rpa_.getRPAInputEnergiesBeta(),
+                                            rpa_beta_old, opt_.gw_sc_limit);
       if (converged_alpha && converged_beta) {
         XTP_LOG(Log::info, log_)
             << TimeStamp() << " Converged after " << i_gw + 1
@@ -285,7 +282,8 @@ void GW_UKS::CalculateGWPerturbation() {
     }
   }
 
-  Sigma_c_alpha_.diagonal() = sigma_alpha_->CalcCorrelationDiag(frequencies_alpha);
+  Sigma_c_alpha_.diagonal() =
+      sigma_alpha_->CalcCorrelationDiag(frequencies_alpha);
   Sigma_c_beta_.diagonal() = sigma_beta_->CalcCorrelationDiag(frequencies_beta);
   PrintGWA_Energies(Spin::Alpha);
   PrintGWA_Energies(Spin::Beta);
@@ -293,11 +291,13 @@ void GW_UKS::CalculateGWPerturbation() {
 
 Eigen::VectorXd GW_UKS::getGWAResultsAlpha() const {
   return Sigma_x_alpha_.diagonal() + Sigma_c_alpha_.diagonal() -
-         vxc_alpha_.diagonal() + dft_energies_alpha_.segment(opt_.qpmin, qptotal_);
+         vxc_alpha_.diagonal() +
+         dft_energies_alpha_.segment(opt_.qpmin, qptotal_);
 }
 Eigen::VectorXd GW_UKS::getGWAResultsBeta() const {
   return Sigma_x_beta_.diagonal() + Sigma_c_beta_.diagonal() -
-         vxc_beta_.diagonal() + dft_energies_beta_.segment(opt_.qpmin, qptotal_);
+         vxc_beta_.diagonal() +
+         dft_energies_beta_.segment(opt_.qpmin, qptotal_);
 }
 const Eigen::VectorXd& GW_UKS::RPAInputEnergiesAlpha() const {
   return rpa_.getRPAInputEnergiesAlpha();
@@ -309,8 +309,8 @@ const Eigen::VectorXd& GW_UKS::RPAInputEnergiesBeta() const {
 Eigen::VectorXd GW_UKS::SolveQP(Spin spin,
                                 const Eigen::VectorXd& frequencies) const {
   const Eigen::VectorXd intercepts =
-      DftEnergies(spin).segment(opt_.qpmin, qptotal_) + SigmaX(spin).diagonal() -
-      Vxc(spin).diagonal();
+      DftEnergies(spin).segment(opt_.qpmin, qptotal_) +
+      SigmaX(spin).diagonal() - Vxc(spin).diagonal();
   Eigen::VectorXd frequencies_new = frequencies;
   Eigen::Array<bool, Eigen::Dynamic, 1> converged =
       Eigen::Array<bool, Eigen::Dynamic, 1>::Zero(qptotal_);
@@ -395,8 +395,7 @@ boost::optional<double> GW_UKS::SolveQP_Grid(Spin spin, double intercept0,
   return newf;
 }
 
-boost::optional<double> GW_UKS::SolveQP_FixedPoint(Spin spin,
-                                                   double intercept0,
+boost::optional<double> GW_UKS::SolveQP_FixedPoint(Spin spin, double intercept0,
                                                    double frequency0,
                                                    Index gw_level) const {
   boost::optional<double> newf = boost::none;
@@ -466,14 +465,14 @@ Eigen::MatrixXd GW_UKS::getHQPBeta() const {
 }
 
 Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>
-GW_UKS::DiagonalizeQPHamiltonianAlpha() const {
+    GW_UKS::DiagonalizeQPHamiltonianAlpha() const {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> qpdiag(getHQPAlpha());
   PrintQP_Energies(Spin::Alpha, qpdiag.eigenvalues());
   return qpdiag;
 }
 
 Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>
-GW_UKS::DiagonalizeQPHamiltonianBeta() const {
+    GW_UKS::DiagonalizeQPHamiltonianBeta() const {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> qpdiag(getHQPBeta());
   PrintQP_Energies(Spin::Beta, qpdiag.eigenvalues());
   return qpdiag;
@@ -487,8 +486,8 @@ void GW_UKS::PrintGWA_Energies(Spin spin) const {
   const Eigen::VectorXd& dft = DftEnergies(spin);
 
   XTP_LOG(Log::error, log_)
-      << (boost::format(
-              "  ====== Perturbative %1% quasiparticle energies (Hartree) ======") %
+      << (boost::format("  ====== Perturbative %1% quasiparticle energies "
+                        "(Hartree) ======") %
           SpinName(spin))
              .str()
       << std::flush;
@@ -498,7 +497,8 @@ void GW_UKS::PrintGWA_Energies(Spin spin) const {
     const double qp_gap = gwa(homo + 1 - opt_.qpmin) - gwa(homo - opt_.qpmin);
 
     XTP_LOG(Log::error, log_)
-        << (boost::format("   %1% DFT gap = %2$+1.6f Hartree   %1% GWA gap = %3$+1.6f Hartree   Delta = %4$+1.6f Hartree") %
+        << (boost::format("   %1% DFT gap = %2$+1.6f Hartree   %1% GWA gap = "
+                          "%3$+1.6f Hartree   Delta = %4$+1.6f Hartree") %
             SpinName(spin) % dft_gap % qp_gap % (qp_gap - dft_gap))
                .str()
         << std::flush;
@@ -508,9 +508,8 @@ void GW_UKS::PrintGWA_Energies(Spin spin) const {
     const Index level = i + opt_.qpmin;
     XTP_LOG(Log::error, log_)
         << LevelLabel(spin, level)
-        << (boost::format(
-                " = %1$4d (%2%) %3% DFT = %4$+1.4f VXC = %5$+1.4f "
-                "S-X = %6$+1.4f S-C = %7$+1.4f GWA = %8$+1.4f") %
+        << (boost::format(" = %1$4d (%2%) %3% DFT = %4$+1.4f VXC = %5$+1.4f "
+                          "S-X = %6$+1.4f S-C = %7$+1.4f GWA = %8$+1.4f") %
             level % OccupationTag(spin, level) % SpinName(spin) %
             DftEnergies(spin)(level) % Vxc(spin)(i, i) % SigmaX(spin)(i, i) %
             SigmaC(spin)(i, i) % gwa(i))
@@ -527,18 +526,18 @@ void GW_UKS::PrintQP_Energies(Spin spin,
   const Index homo = Homo(spin);
   const Eigen::VectorXd& dft = DftEnergies(spin);
 
-  XTP_LOG(Log::error, log_)
-      << TimeStamp() << " Full " << SpinName(spin)
-      << " quasiparticle Hamiltonian" << std::flush;
+  XTP_LOG(Log::error, log_) << TimeStamp() << " Full " << SpinName(spin)
+                            << " quasiparticle Hamiltonian" << std::flush;
 
   if (opt_.qpmin <= homo && homo + 1 <= opt_.qpmax) {
     const double dft_gap = dft(homo + 1) - dft(homo);
     const double pqp_gap = gwa(homo + 1 - opt_.qpmin) - gwa(homo - opt_.qpmin);
-    const double dqp_gap =
-        qp_diag_energies(homo + 1 - opt_.qpmin) - qp_diag_energies(homo - opt_.qpmin);
+    const double dqp_gap = qp_diag_energies(homo + 1 - opt_.qpmin) -
+                           qp_diag_energies(homo - opt_.qpmin);
 
     XTP_LOG(Log::error, log_)
-        << (boost::format("   %1% DFT gap = %2$+1.6f Hartree   %1% PQP gap = %3$+1.6f Hartree   %1% DQP gap = %4$+1.6f Hartree") %
+        << (boost::format("   %1% DFT gap = %2$+1.6f Hartree   %1% PQP gap = "
+                          "%3$+1.6f Hartree   %1% DQP gap = %4$+1.6f Hartree") %
             SpinName(spin) % dft_gap % pqp_gap % dqp_gap)
                .str()
         << std::flush;
@@ -549,8 +548,8 @@ void GW_UKS::PrintQP_Energies(Spin spin,
     XTP_LOG(Log::error, log_)
         << LevelLabel(spin, level)
         << (boost::format(" = %1$4d (%2%) %3% PQP = %4$+1.6f DQP = %5$+1.6f") %
-            level % OccupationTag(spin, level) % SpinName(spin) %
-            gwa(i) % qp_diag_energies(i))
+            level % OccupationTag(spin, level) % SpinName(spin) % gwa(i) %
+            qp_diag_energies(i))
                .str()
         << std::flush;
   }
