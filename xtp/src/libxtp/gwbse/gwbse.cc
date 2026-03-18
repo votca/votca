@@ -37,6 +37,7 @@
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/vxc_potential.h"
+#include "votca/xtp/rpa_uks.h"
 
 using std::flush;
 namespace votca {
@@ -959,42 +960,70 @@ bool GWBSE::Evaluate() {
         std::chrono::system_clock::now();
 
     if (is_uks) {
+
+      if (do_dynamical_screening_bse_) {
+        throw std::runtime_error(
+            "Perturbative dynamical BSE screening is not yet implemented "
+            "consistently for UKS. The static UKS BSE screening is now built "
+            "from the combined alpha+beta RPA response, but the dynamical path "
+            "still assumes restricted RPA input energies.");
+      }
+
+      // Build a single spin-summed dielectric screening from the unrestricted
+      // RPA response and reuse it for both exciton spin channels.
+      RPA_UKS rpa_uks_bse(*pLog_, Mmn_spin);
+      rpa_uks_bse.configure(orbitals_.getHomoAlpha(), orbitals_.getHomoBeta(),
+                            bseopt_.rpamin, bseopt_.rpamax);
+      rpa_uks_bse.setRPAInputEnergies(orbitals_.RPAInputEnergiesAlpha(),
+                                      orbitals_.RPAInputEnergiesBeta());
+
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_bse(
+          rpa_uks_bse.calculate_epsilon_r(0.0));
+
+      Eigen::VectorXd epsilon_0_inv_bse =
+          Eigen::VectorXd::Zero(es_bse.eigenvalues().size());
+      for (Index i = 0; i < es_bse.eigenvalues().size(); ++i) {
+        if (es_bse.eigenvalues()(i) > 1e-8) {
+          epsilon_0_inv_bse(i) = 1.0 / es_bse.eigenvalues()(i);
+        }
+      }
+
+      // Rotate both alpha and beta three-center matrices with the same
+      // dielectric eigenvectors so that both BSE channels use the identical
+      // screened interaction W built from chi0_alpha + chi0_beta.
+      TCMatrix_gwbse Mmn_alpha_bse = Mmn_spin.alpha;
+      TCMatrix_gwbse Mmn_beta_bse = Mmn_spin.beta;
+      Mmn_alpha_bse.MultiplyRightWithAuxMatrix(es_bse.eigenvectors());
+      Mmn_beta_bse.MultiplyRightWithAuxMatrix(es_bse.eigenvectors());
+
       if (do_bse_exciton_alpha_) {
         BSE::options bseopt_alpha = bseopt_;
         bseopt_alpha.homo = orbitals_.getHomoAlpha();
 
-        BSE bse_alpha = BSE(*pLog_, Mmn_spin.alpha);
-        bse_alpha.configure(bseopt_alpha, orbitals_.RPAInputEnergiesAlpha(),
-                            Hqp_alpha);
+        BSE bse_alpha(*pLog_, Mmn_alpha_bse);
+        bse_alpha.configure_with_precomputed_screening(
+            bseopt_alpha, orbitals_.RPAInputEnergiesAlpha(), Hqp_alpha,
+            epsilon_0_inv_bse);
 
         bse_alpha.Solve_excitons_alpha(orbitals_);
         XTP_LOG(Log::error, *pLog_)
             << TimeStamp() << " Solved BSE for exciton alpha channel " << flush;
         bse_alpha.Analyze_excitons_alpha(fragments_, orbitals_);
-
-        if (do_dynamical_screening_bse_) {
-          bse_alpha.Perturbative_DynamicalScreening(
-              QMStateType(QMStateType::ExcitonAlpha), orbitals_);
-        }
       }
 
       if (do_bse_exciton_beta_) {
         BSE::options bseopt_beta = bseopt_;
         bseopt_beta.homo = orbitals_.getHomoBeta();
 
-        BSE bse_beta = BSE(*pLog_, Mmn_spin.beta);
-        bse_beta.configure(bseopt_beta, orbitals_.RPAInputEnergiesBeta(),
-                           Hqp_beta);
+        BSE bse_beta(*pLog_, Mmn_beta_bse);
+        bse_beta.configure_with_precomputed_screening(
+            bseopt_beta, orbitals_.RPAInputEnergiesBeta(), Hqp_beta,
+            epsilon_0_inv_bse);
 
         bse_beta.Solve_excitons_beta(orbitals_);
         XTP_LOG(Log::error, *pLog_)
             << TimeStamp() << " Solved BSE for exciton beta channel " << flush;
         bse_beta.Analyze_excitons_beta(fragments_, orbitals_);
-
-        if (do_dynamical_screening_bse_) {
-          bse_beta.Perturbative_DynamicalScreening(
-              QMStateType(QMStateType::ExcitonBeta), orbitals_);
-        }
       }
 
     } else {

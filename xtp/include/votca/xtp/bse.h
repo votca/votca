@@ -67,6 +67,10 @@ class BSE {
   void configure(const options& opt, const Eigen::VectorXd& RPAEnergies,
                  const Eigen::MatrixXd& Hqp_in);
 
+  void configure_with_precomputed_screening(
+      const options& opt, const Eigen::VectorXd& RPAEnergies,
+      const Eigen::MatrixXd& Hqp_in, const Eigen::VectorXd& epsilon_0_inv);
+
   void Solve_singlets(Orbitals& orb) const;
   void Solve_triplets(Orbitals& orb) const;
 

@@ -57,6 +57,25 @@ void BSE::configure(const options& opt, const Eigen::VectorXd& RPAInputEnergies,
   SetupDirectInteractionOperator(RPAInputEnergies, 0.0);
 }
 
+void BSE::configure_with_precomputed_screening(
+    const options& opt, const Eigen::VectorXd& RPAInputEnergies,
+    const Eigen::MatrixXd& Hqp_in, const Eigen::VectorXd& epsilon_0_inv) {
+  opt_ = opt;
+  bse_vmax_ = opt_.homo;
+  bse_cmin_ = opt_.homo + 1;
+  bse_vtotal_ = bse_vmax_ - opt_.vmin + 1;
+  bse_ctotal_ = opt_.cmax - bse_cmin_ + 1;
+  bse_size_ = bse_vtotal_ * bse_ctotal_;
+  max_dyn_iter_ = opt_.max_dyn_iter;
+  dyn_tolerance_ = opt_.dyn_tolerance;
+  if (opt_.use_Hqp_offdiag) {
+    Hqp_ = AdjustHqpSize(Hqp_in, RPAInputEnergies);
+  } else {
+    Hqp_ = AdjustHqpSize(Hqp_in, RPAInputEnergies).diagonal().asDiagonal();
+  }
+  epsilon_0_inv_ = epsilon_0_inv;
+}
+
 tools::EigenSystem& BSE::GetBSEEigenSystem(const QMStateType& type,
                                            Orbitals& orb) const {
   if (type == QMStateType::Singlet) {
