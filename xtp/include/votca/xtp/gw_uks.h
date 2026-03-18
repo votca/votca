@@ -100,8 +100,6 @@ class QPFunc {
 };
 
   PPM ppm_;
-  bool ppm_prepared_ = false;
-
   const Eigen::VectorXd& DftEnergies(Spin spin) const;
   const Eigen::MatrixXd& Vxc(Spin spin) const;
   Eigen::MatrixXd& SigmaX(Spin spin);
