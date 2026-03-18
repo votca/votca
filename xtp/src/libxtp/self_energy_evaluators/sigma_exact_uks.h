@@ -46,8 +46,8 @@ class Sigma_Exact_UKS : public Sigma_base_UKS {
                                        double frequency2) const final;
 
  private:
-  //void BuildScreeningModes(const Eigen::MatrixXd& XpY,
-  //                         const Eigen::VectorXd& omegas);
+  // void BuildScreeningModes(const Eigen::MatrixXd& XpY,
+  //                          const Eigen::VectorXd& omegas);
 
   Eigen::VectorXd rpa_omegas_;
   std::vector<Eigen::VectorXd> screening_modes_;

@@ -17,7 +17,7 @@
  *
  */
 
- #pragma once
+#pragma once
 #ifndef VOTCA_XTP_SIGMA_BASE_UKS_H
 #define VOTCA_XTP_SIGMA_BASE_UKS_H
 

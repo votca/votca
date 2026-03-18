@@ -768,13 +768,13 @@ void Orbitals::WriteToCpt(CheckpointWriter& w) const {
 
   // spin GW
   w(rpa_inputenergies_alpha_, "RPA_inputenergies_alpha");
-w(rpa_inputenergies_beta_, "RPA_inputenergies_beta");
+  w(rpa_inputenergies_beta_, "RPA_inputenergies_beta");
 
-w(QPpert_energies_alpha_, "QPpert_energies_alpha");
-w(QPpert_energies_beta_, "QPpert_energies_beta");
+  w(QPpert_energies_alpha_, "QPpert_energies_alpha");
+  w(QPpert_energies_beta_, "QPpert_energies_beta");
 
-w(QPdiag_alpha_, "QPdiag_alpha");
-w(QPdiag_beta_, "QPdiag_beta");
+  w(QPdiag_alpha_, "QPdiag_alpha");
+  w(QPdiag_beta_, "QPdiag_beta");
 }
 
 void Orbitals::ReadFromCpt(const std::string& filename) {
@@ -805,11 +805,11 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
   r(version, "version");
 
   auto r_optional = [&r](auto& obj, const std::string& key) {
-  try {
-    r(obj, key);
-  } catch (std::runtime_error&) {
-    // Older checkpoints may not contain this field.
-  }
+    try {
+      r(obj, key);
+    } catch (std::runtime_error&) {
+      // Older checkpoints may not contain this field.
+    }
   };
 
   // Read qmatoms
@@ -889,20 +889,20 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
   r(useTDA_, "useTDA");
   r(ECP_, "ECP");
 
- r(rpa_inputenergies_, "RPA_inputenergies");
+  r(rpa_inputenergies_, "RPA_inputenergies");
 
-r(QPpert_energies_, "QPpert_energies");
-r(QPdiag_, "QPdiag");
+  r(QPpert_energies_, "QPpert_energies");
+  r(QPdiag_, "QPdiag");
 
-// Optional unrestricted GW data
-r_optional(rpa_inputenergies_alpha_, "RPA_inputenergies_alpha");
-r_optional(rpa_inputenergies_beta_, "RPA_inputenergies_beta");
+  // Optional unrestricted GW data
+  r_optional(rpa_inputenergies_alpha_, "RPA_inputenergies_alpha");
+  r_optional(rpa_inputenergies_beta_, "RPA_inputenergies_beta");
 
-r_optional(QPpert_energies_alpha_, "QPpert_energies_alpha");
-r_optional(QPpert_energies_beta_, "QPpert_energies_beta");
+  r_optional(QPpert_energies_alpha_, "QPpert_energies_alpha");
+  r_optional(QPpert_energies_beta_, "QPpert_energies_beta");
 
-r_optional(QPdiag_alpha_, "QPdiag_alpha");
-r_optional(QPdiag_beta_, "QPdiag_beta");
+  r_optional(QPdiag_alpha_, "QPdiag_alpha");
+  r_optional(QPdiag_beta_, "QPdiag_beta");
 
   r(BSE_singlet_, "BSE_singlet");
 

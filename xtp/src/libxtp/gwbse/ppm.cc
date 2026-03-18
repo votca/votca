@@ -28,11 +28,10 @@ namespace xtp {
 
 namespace {
 template <typename RPAType>
-void ConstructPPMParametersImpl(const RPAType& rpa,
-                                Eigen::MatrixXd& ppm_phi,
+void ConstructPPMParametersImpl(const RPAType& rpa, Eigen::MatrixXd& ppm_phi,
                                 Eigen::VectorXd& ppm_weight,
-                                Eigen::VectorXd& ppm_freq,
-                                double screening_r, double screening_i) {
+                                Eigen::VectorXd& ppm_freq, double screening_r,
+                                double screening_i) {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
       rpa.calculate_epsilon_r(screening_r));
   ppm_phi = es.eigenvectors();
@@ -61,13 +60,13 @@ void ConstructPPMParametersImpl(const RPAType& rpa,
 }  // namespace
 
 void PPM::PPM_construct_parameters(const RPA& rpa) {
-  ConstructPPMParametersImpl(rpa, ppm_phi_, ppm_weight_, ppm_freq_,
-                             screening_r, screening_i);
+  ConstructPPMParametersImpl(rpa, ppm_phi_, ppm_weight_, ppm_freq_, screening_r,
+                             screening_i);
 }
 
 void PPM::PPM_construct_parameters(const RPA_UKS& rpa) {
-  ConstructPPMParametersImpl(rpa, ppm_phi_, ppm_weight_, ppm_freq_,
-                             screening_r, screening_i);
+  ConstructPPMParametersImpl(rpa, ppm_phi_, ppm_weight_, ppm_freq_, screening_r,
+                             screening_i);
 }
 
 }  // namespace xtp

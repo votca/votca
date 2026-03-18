@@ -74,9 +74,8 @@ void GWBSE::Initialize(tools::Property& options) {
   Index num_of_levels = orbitals_.getBasisSetSize();
   Index num_of_occlevels = orbitals_.getNumberOfAlphaElectrons();
   if (is_uks) {
-    num_of_occlevels =
-        std::max(orbitals_.getNumberOfAlphaElectrons(),
-                 orbitals_.getNumberOfBetaElectrons());
+    num_of_occlevels = std::max(orbitals_.getNumberOfAlphaElectrons(),
+                                orbitals_.getNumberOfBetaElectrons());
   }
 
   std::string ranges = options.get(".ranges").as<std::string>();
@@ -186,7 +185,8 @@ void GWBSE::Initialize(tools::Property& options) {
         "Invalid BSE virtual level range after setup/clamping.");
   }
   if (bse_vmax >= num_of_levels || bse_cmax >= num_of_levels) {
-    throw std::runtime_error("BSE level range exceeds available orbital indices.");
+    throw std::runtime_error(
+        "BSE level range exceeds available orbital indices.");
   }
   if (bse_vmax >= bse_cmin) {
     throw std::runtime_error("BSE occupied and virtual level ranges overlap.");
@@ -210,8 +210,8 @@ void GWBSE::Initialize(tools::Property& options) {
   orbitals_.setGWindices(qpmin, qpmax);
   orbitals_.setBSEindices(bse_vmin, bse_cmax);
 
-  //Index bse_vmax = homo;
-  //Index bse_cmin = homo + 1;
+  // Index bse_vmax = homo;
+  // Index bse_cmin = homo + 1;
   Index bse_vtotal = bse_vmax - bse_vmin + 1;
   Index bse_ctotal = bse_cmax - bse_cmin + 1;
   Index bse_size = bse_vtotal * bse_ctotal;
@@ -452,9 +452,9 @@ void GWBSE::Initialize(tools::Property& options) {
   if (orbitals_.hasUnrestrictedOrbitals() &&
       (do_bse_singlets_ || do_bse_triplets_ || do_dynamical_screening_bse_)) {
     throw std::runtime_error(
-        "Open-shell GWBSE currently supports GW only; BSE is still restricted to closed-shell references.");
+        "Open-shell GWBSE currently supports GW only; BSE is still restricted "
+        "to closed-shell references.");
   }
-
 }
 
 void GWBSE::addoutput(tools::Property& summary) {
@@ -482,27 +482,29 @@ void GWBSE::addoutput(tools::Property& summary) {
       for (Index state = 0; state < gwopt_.qpmax + 1 - gwopt_.qpmin; state++) {
         tools::Property& level_alpha = alpha_summary.add("level", "");
         level_alpha.setAttribute("number", state + gwopt_.qpmin);
-        level_alpha.add("dft_energy",
-                        (boost::format("%1$+1.6f ") %
-                         (orbitals_.MOs().eigenvalues()(state + gwopt_.qpmin) *
-                          hrt2ev))
-                            .str());
+        level_alpha.add(
+            "dft_energy",
+            (boost::format("%1$+1.6f ") %
+             (orbitals_.MOs().eigenvalues()(state + gwopt_.qpmin) * hrt2ev))
+                .str());
         level_alpha.add("gw_energy",
                         (boost::format("%1$+1.6f ") %
                          (orbitals_.QPpertEnergiesAlpha()(state) * hrt2ev))
                             .str());
-        level_alpha.add("qp_energy",
-                        (boost::format("%1$+1.6f ") %
-                         (orbitals_.QPdiagAlpha().eigenvalues()(state) * hrt2ev))
-                            .str());
+        level_alpha.add(
+            "qp_energy",
+            (boost::format("%1$+1.6f ") %
+             (orbitals_.QPdiagAlpha().eigenvalues()(state) * hrt2ev))
+                .str());
 
         tools::Property& level_beta = beta_summary.add("level", "");
         level_beta.setAttribute("number", state + gwopt_.qpmin);
-        level_beta.add("dft_energy",
-                       (boost::format("%1$+1.6f ") %
-                        (orbitals_.MOs_beta().eigenvalues()(state + gwopt_.qpmin) *
-                         hrt2ev))
-                           .str());
+        level_beta.add(
+            "dft_energy",
+            (boost::format("%1$+1.6f ") %
+             (orbitals_.MOs_beta().eigenvalues()(state + gwopt_.qpmin) *
+              hrt2ev))
+                .str());
         level_beta.add("gw_energy",
                        (boost::format("%1$+1.6f ") %
                         (orbitals_.QPpertEnergiesBeta()(state) * hrt2ev))
@@ -657,7 +659,6 @@ std::pair<Eigen::MatrixXd, Eigen::MatrixXd> GWBSE::CalculateVXCSpinResolved(
   return std::make_pair(vxc_alpha, vxc_beta);
 }
 
-
 bool GWBSE::Evaluate() {
 
   // set the parallelization
@@ -727,7 +728,8 @@ bool GWBSE::Evaluate() {
         (orbitals_.hasUnrestrictedOrbitals() &&
          (!orbitals_.hasQPdiagAlpha() || !orbitals_.hasQPdiagBeta()))) {
       throw std::runtime_error(
-          "You want no GW calculation but the orb file has no matching QP coefficients.");
+          "You want no GW calculation but the orb file has no matching QP "
+          "coefficients.");
     }
   }
   const bool is_uks = orbitals_.hasUnrestrictedOrbitals();
@@ -750,16 +752,17 @@ bool GWBSE::Evaluate() {
     Mmn.Initialize(auxbasis.AOBasisSize(), gwopt_.rpamin, max_3c, gwopt_.rpamin,
                    gwopt_.rpamax);
     XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << " Calculating Mmn (3-center-repulsion x orbitals)  " << flush;
+        << TimeStamp() << " Calculating Mmn (3-center-repulsion x orbitals)  "
+        << flush;
     Mmn.Fill(auxbasis, dftbasis, orbitals_.MOs().eigenvectors());
     XTP_LOG(Log::info, *pLog_)
         << TimeStamp() << " Removed " << Mmn.Removedfunctions()
-        << " functions from Aux Coulomb matrix to avoid near linear dependencies"
+        << " functions from Aux Coulomb matrix to avoid near linear "
+           "dependencies"
         << flush;
     XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << " Calculated Mmn (3-center-repulsion x orbitals)  " << flush;
+        << TimeStamp() << " Calculated Mmn (3-center-repulsion x orbitals)  "
+        << flush;
   }
 
   Eigen::MatrixXd Hqp;
@@ -815,9 +818,9 @@ bool GWBSE::Evaluate() {
       orbitals_.QPdiagBeta().eigenvalues() = es_beta.eigenvalues();
       std::chrono::duration<double> elapsed_time =
           std::chrono::system_clock::now() - start;
-      XTP_LOG(Log::error, *pLog_) << TimeStamp()
-                                  << " UKS GW calculation took "
-                                  << elapsed_time.count() << " seconds." << flush;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " UKS GW calculation took " << elapsed_time.count()
+          << " seconds." << flush;
     } else {
       Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
       GW gw = GW(*pLog_, Mmn, vxc, orbitals_.MOs().eigenvalues());
@@ -826,8 +829,8 @@ bool GWBSE::Evaluate() {
       gw.CalculateGWPerturbation();
 
       if (!sigma_plot_states_.empty()) {
-        gw.PlotSigma(sigma_plot_filename_, sigma_plot_steps_, sigma_plot_spacing_,
-                     sigma_plot_states_);
+        gw.PlotSigma(sigma_plot_filename_, sigma_plot_steps_,
+                     sigma_plot_spacing_, sigma_plot_states_);
       }
 
       orbitals_.QPpertEnergies() = gw.getGWAResults();
@@ -852,8 +855,9 @@ bool GWBSE::Evaluate() {
       orbitals_.QPdiag().eigenvalues() = es.eigenvalues();
       std::chrono::duration<double> elapsed_time =
           std::chrono::system_clock::now() - start;
-      XTP_LOG(Log::error, *pLog_) << TimeStamp() << " GW calculation took "
-                                  << elapsed_time.count() << " seconds." << flush;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " GW calculation took " << elapsed_time.count()
+          << " seconds." << flush;
     }
 
   } else {

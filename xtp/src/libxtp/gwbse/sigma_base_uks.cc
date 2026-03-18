@@ -17,7 +17,6 @@
  *
  */
 
-
 #include "votca/xtp/sigma_base_uks.h"
 
 namespace votca {

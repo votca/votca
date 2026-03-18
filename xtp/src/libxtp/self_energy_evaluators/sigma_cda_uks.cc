@@ -111,8 +111,7 @@ double Sigma_CDA_UKS::CalcResidueContribution(double frequency,
     double factor = CalcResiduePrefactor(fermi_rpa, rpa_energies(i), frequency);
 
     if (std::abs(factor) > kResidueFactorTol) {
-      double diag =
-          CalcDiagContribution(Imx.row(i), abs_delta, rpa_.getEta());
+      double diag = CalcDiagContribution(Imx.row(i), abs_delta, rpa_.getEta());
       double contribution = factor * diag;
       sigma_c += contribution;
 
@@ -127,12 +126,12 @@ double Sigma_CDA_UKS::CalcResidueContribution(double frequency,
     }
   }
 
-  double kappa = sum_abs_contributions /
-                 (std::abs(sum_signed_contributions) + kTiny);
+  double kappa =
+      sum_abs_contributions / (std::abs(sum_signed_contributions) + kTiny);
 
   if (min_abs_delta < kCdaWarnMinDelta || kappa > kCdaWarnKappa) {
-    std::cout << "\nWarning: CDA may be unreliable for "
-              << SpinName(spin_) << " GW level " << (gw_level + opt_.qpmin)
+    std::cout << "\nWarning: CDA may be unreliable for " << SpinName(spin_)
+              << " GW level " << (gw_level + opt_.qpmin)
               << " at omega = " << frequency
               << " Ha: min |e_m - omega| = " << min_abs_delta
               << " Ha, cancellation metric = " << kappa << std::flush;

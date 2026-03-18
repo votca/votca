@@ -64,40 +64,42 @@ class GW_UKS {
   const Eigen::VectorXd& RPAInputEnergiesBeta() const;
   Eigen::MatrixXd getHQPAlpha() const;
   Eigen::MatrixXd getHQPBeta() const;
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonianAlpha() const;
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonianBeta() const;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonianAlpha()
+      const;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonianBeta()
+      const;
 
  private:
   enum class Spin { Alpha, Beta };
 
-class QPFunc {
- public:
-  QPFunc(Index gw_level, const Sigma_base_UKS& sigma, double offset)
-      : gw_level_(gw_level), offset_(offset), sigma_c_func_(sigma) {}
+  class QPFunc {
+   public:
+    QPFunc(Index gw_level, const Sigma_base_UKS& sigma, double offset)
+        : gw_level_(gw_level), offset_(offset), sigma_c_func_(sigma) {}
 
-  std::pair<double, double> operator()(double frequency) const {
-    std::pair<double, double> result;
-    result.first = value(frequency);
-    result.second = deriv(frequency);
-    return result;
-  }
+    std::pair<double, double> operator()(double frequency) const {
+      std::pair<double, double> result;
+      result.first = value(frequency);
+      result.second = deriv(frequency);
+      return result;
+    }
 
-  double value(double frequency) const {
-    return sigma_c_func_.CalcCorrelationDiagElement(gw_level_, frequency) +
-           offset_ - frequency;
-  }
+    double value(double frequency) const {
+      return sigma_c_func_.CalcCorrelationDiagElement(gw_level_, frequency) +
+             offset_ - frequency;
+    }
 
-  double deriv(double frequency) const {
-    return sigma_c_func_.CalcCorrelationDiagElementDerivative(gw_level_,
-                                                              frequency) -
-           1.0;
-  }
+    double deriv(double frequency) const {
+      return sigma_c_func_.CalcCorrelationDiagElementDerivative(gw_level_,
+                                                                frequency) -
+             1.0;
+    }
 
- private:
-  Index gw_level_;
-  double offset_;
-  const Sigma_base_UKS& sigma_c_func_;
-};
+   private:
+    Index gw_level_;
+    double offset_;
+    const Sigma_base_UKS& sigma_c_func_;
+  };
 
   PPM ppm_;
   const Eigen::VectorXd& DftEnergies(Spin spin) const;
@@ -120,8 +122,7 @@ class QPFunc {
                         const Eigen::VectorXd& qp_diag_energies) const;
   Eigen::VectorXd SolveQP(Spin spin, const Eigen::VectorXd& frequencies) const;
   boost::optional<double> SolveQP_Grid(Spin spin, double intercept0,
-                                       double frequency0,
-                                       Index gw_level) const;
+                                       double frequency0, Index gw_level) const;
   boost::optional<double> SolveQP_FixedPoint(Spin spin, double intercept0,
                                              double frequency0,
                                              Index gw_level) const;
@@ -134,7 +135,7 @@ class QPFunc {
   bool Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                  double epsilon) const;
 
-    std::string LevelLabel(Spin spin, Index level) const;
+  std::string LevelLabel(Spin spin, Index level) const;
   const char* OccupationTag(Spin spin, Index level) const;
 
   Index qptotal_ = 0;
