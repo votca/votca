@@ -66,6 +66,13 @@ void RPA_UKS::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies_alpha,
                            qpmin, gwsize_alpha);
   ShiftUncorrectedEnergies(energies_beta_, dftenergies_beta, homo_beta_, qpmin,
                            gwsize_beta);
+
+  InvalidateH2pCache();
+}
+
+void RPA_UKS::InvalidateH2pCache() {
+  h2p_cached_ = false;
+  h2p_solution_cache_ = rpa_eigensolution{};
 }
 
 void RPA_UKS::ShiftUncorrectedEnergies(Eigen::VectorXd& energies,
@@ -273,7 +280,10 @@ Eigen::MatrixXd RPA_UKS::calculate_epsilon_r(
   return result;
 }
 
-RPA_UKS::rpa_eigensolution RPA_UKS::Diagonalize_H2p() const {
+const RPA_UKS::rpa_eigensolution& RPA_UKS::Diagonalize_H2p() const {
+  if (h2p_cached_) {
+    return h2p_solution_cache_;
+  }
   // AmB contains the bare particle-hole energy differences and is diagonal in
   // the particle-hole basis.
   Eigen::VectorXd AmB = Calculate_H2p_AmB();
@@ -321,7 +331,9 @@ RPA_UKS::rpa_eigensolution RPA_UKS::Diagonalize_H2p() const {
         Omega_sqrt_inv(s) * AmB_sqrt.cwiseProduct(es.eigenvectors().col(s));
   }
 
-  return sol;
+  h2p_solution_cache_ = std::move(sol);
+  h2p_cached_ = true;
+  return h2p_solution_cache_;
 }
 
 Eigen::VectorXd RPA_UKS::Calculate_H2p_AmB() const {

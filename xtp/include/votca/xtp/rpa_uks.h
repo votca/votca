@@ -94,6 +94,7 @@ class RPA_UKS {
     homo_beta_ = homo_beta;
     rpamin_ = rpamin;
     rpamax_ = rpamax;
+    InvalidateH2pCache();
   }
 
   /**
@@ -158,6 +159,7 @@ class RPA_UKS {
                            const Eigen::VectorXd& rpaenergies_beta) {
     energies_alpha_ = rpaenergies_alpha;
     energies_beta_ = rpaenergies_beta;
+    InvalidateH2pCache();
   }
 
   /**
@@ -251,7 +253,7 @@ class RPA_UKS {
    * ApB adds Coulomb coupling between particle-hole excitations from both spin
    * channels.
    */
-  rpa_eigensolution Diagonalize_H2p() const;
+  const rpa_eigensolution& Diagonalize_H2p() const;
 
   Index getHomoAlpha() const { return homo_alpha_; }
   Index getHomoBeta() const { return homo_beta_; }
@@ -268,6 +270,8 @@ class RPA_UKS {
    */
   template <bool imag>
   Eigen::MatrixXd calculate_epsilon(double frequency) const;
+
+  void InvalidateH2pCache();
 
   /**
    * \brief Construct the diagonal AmB block of the two-particle Hamiltonian.
@@ -343,6 +347,9 @@ class RPA_UKS {
   // Spin-resolved three-center integrals:
   // Mmn_.alpha for alpha MOs, Mmn_.beta for beta MOs
   const TCMatrix_gwbse_spin& Mmn_;
+
+  mutable bool h2p_cached_ = false;
+  mutable rpa_eigensolution h2p_solution_cache_;
 };
 
 }  // namespace xtp

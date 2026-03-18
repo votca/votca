@@ -37,13 +37,13 @@ namespace votca {
 namespace xtp {
 
 void Sigma_Exact_UKS::PrepareScreening() {
-  RPA_UKS::rpa_eigensolution rpa_solution = rpa_.Diagonalize_H2p();
+  const RPA_UKS::rpa_eigensolution& rpa_solution = rpa_.Diagonalize_H2p();
 
   // Build Coulomb-active screening modes in the auxiliary basis from the full
   // unrestricted H2p eigenvectors. This suppresses numerically dark / spin-like
   // modes that can appear in the explicit alpha+beta transition basis but
   // should not contribute to the screened Coulomb interaction W.
-BuildScreeningModes(rpa_solution.XpY, rpa_solution.omega);
+  BuildScreeningModes(rpa_solution.XpY, rpa_solution.omega);
 
   residues_ = std::vector<Eigen::MatrixXd>(qptotal_);
 #pragma omp parallel for schedule(dynamic)
@@ -194,14 +194,11 @@ all_norms.push_back(norm);
   active_modes.reserve(nmodes);
   active_omegas.reserve(nmodes);
 
-Index ndark = 0;
 for (Index s = 0; s < nmodes; s++) {
   if (all_norms[s] > tol) {
     active_modes.push_back(std::move(all_modes[s]));
     active_omegas.push_back(omegas(s));
-  } else {
-    ++ndark;
-  }
+  } 
 }
 rpa_omegas_ = Eigen::VectorXd::Zero(Index(active_omegas.size()));
   for (Index s = 0; s < rpa_omegas_.size(); s++) {
