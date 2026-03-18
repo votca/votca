@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2020 The VOTCA Development Team
+ *            Copyright 2009-2026 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,17 +20,23 @@
 #include "sigma_cda_uks.h"
 #include "votca/xtp/gw.h"
 
-#include <cstdlib>
+#include <algorithm>
 #include <iostream>
-#include <set>
-#include <sstream>
-
-#include <votca/tools/constants.h>
+#include <limits>
 
 namespace votca {
 namespace xtp {
 
 namespace {
+
+constexpr double kResidueFactorTol = 1e-10;
+constexpr double kCdaWarnMinDelta = 1e-4;  // Ha
+constexpr double kCdaWarnKappa = 1e3;
+constexpr double kTiny = 1e-14;
+
+const char* SpinName(TCMatrix::SpinChannel spin) {
+  return (spin == TCMatrix::SpinChannel::Alpha) ? "alpha" : "beta";
+}
 
 }  // namespace
 
@@ -52,7 +58,8 @@ void Sigma_CDA_UKS::PrepareScreening() {
 }
 
 double Sigma_CDA_UKS::CalcDiagContribution(
-    const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta, double eta) const {
+    const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta,
+    double eta) const {
   std::complex<double> delta_eta(delta, eta);
 
   Eigen::MatrixXd DielMxInv = rpa_.calculate_epsilon_r(delta_eta);
@@ -90,24 +97,47 @@ double Sigma_CDA_UKS::CalcResidueContribution(double frequency,
   Index lumo = homo + 1;
   double fermi_rpa = (rpa_energies(lumo) + rpa_energies(homo)) / 2.0;
 
+  double min_abs_delta = std::numeric_limits<double>::infinity();
+  double sum_abs_contributions = 0.0;
+  double sum_signed_contributions = 0.0;
+
   const Eigen::MatrixXd& Imx = Mmn_[gw_level_offset];
 
   for (Index i = 0; i < rpatotal; ++i) {
     double delta = rpa_energies(i) - frequency;
     double abs_delta = std::abs(delta);
+    min_abs_delta = std::min(min_abs_delta, abs_delta);
+
     double factor = CalcResiduePrefactor(fermi_rpa, rpa_energies(i), frequency);
 
-    if (std::abs(factor) > 1e-10) {
+    if (std::abs(factor) > kResidueFactorTol) {
       double diag =
           CalcDiagContribution(Imx.row(i), abs_delta, rpa_.getEta());
       double contribution = factor * diag;
       sigma_c += contribution;
+
+      sum_abs_contributions += std::abs(contribution);
+      sum_signed_contributions += contribution;
     }
-    if (abs_delta > 1e-10) {
-      double tail = CalcDiagContributionValue_tail(Imx.row(i), delta, opt_.alpha);
+
+    if (abs_delta > kResidueFactorTol) {
+      double tail =
+          CalcDiagContributionValue_tail(Imx.row(i), delta, opt_.alpha);
       sigma_c_tail += tail;
     }
   }
+
+  double kappa = sum_abs_contributions /
+                 (std::abs(sum_signed_contributions) + kTiny);
+
+  if (min_abs_delta < kCdaWarnMinDelta || kappa > kCdaWarnKappa) {
+    std::cout << "\nWarning: CDA may be unreliable for "
+              << SpinName(spin_) << " GW level " << (gw_level + opt_.qpmin)
+              << " at omega = " << frequency
+              << " Ha: min |e_m - omega| = " << min_abs_delta
+              << " Ha, cancellation metric = " << kappa << std::flush;
+  }
+
   return sigma_c + sigma_c_tail;
 }
 
