@@ -746,46 +746,6 @@ bool GWBSE::Evaluate() {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Calculating beta spin Mmn " << flush;
     Mmn_spin.beta.Fill(auxbasis, dftbasis, orbitals_.MOs_beta().eigenvectors());
-
-    // === DIAGNOSTICS: alpha vs beta orbitals and Mmn ===
-
-const auto& C_alpha = orbitals_.MOs().eigenvectors();
-const auto& C_beta  = orbitals_.MOs_beta().eigenvectors();
-
-// 1. Global difference
-XTP_LOG(Log::error, *pLog_) << TimeStamp()
-    << " ||C_alpha - C_beta|| = "
-    << (C_alpha - C_beta).norm() << std::flush;
-
-// 2. Per-orbital overlaps (VERY informative)
-for (Index i = gwopt_.rpamin; i <= gwopt_.rpamax; ++i) {
-  double overlap = C_alpha.col(i).dot(C_beta.col(i));
-  XTP_LOG(Log::error, *pLog_) << TimeStamp()
-      << " MO overlap alpha/beta level " << i
-      << " = " << overlap << std::flush;
-}
-
-// 3. Occupied vs virtual separation
-Index homo = gwopt_.homo;
-
-double occ_diff = (C_alpha.leftCols(homo + 1) -
-                   C_beta.leftCols(homo + 1)).norm();
-
-double virt_diff = (C_alpha.rightCols(C_alpha.cols() - (homo + 1)) -
-                    C_beta.rightCols(C_beta.cols() - (homo + 1))).norm();
-
-XTP_LOG(Log::error, *pLog_) << TimeStamp()
-    << " ||occupied alpha-beta|| = " << occ_diff
-    << " ||virtual alpha-beta|| = " << virt_diff
-    << std::flush;
-
-// 4. Mmn comparison (this is what GW actually uses)
-XTP_LOG(Log::error, *pLog_) << TimeStamp()
-    << " ||Mmn_alpha[0] - Mmn_beta[0]|| = "
-    << (Mmn_spin.alpha[0] - Mmn_spin.beta[0]).norm()
-    << std::flush;
-
-Mmn_spin.beta = Mmn_spin.alpha;
   } else {
     Mmn.Initialize(auxbasis.AOBasisSize(), gwopt_.rpamin, max_3c, gwopt_.rpamin,
                    gwopt_.rpamax);

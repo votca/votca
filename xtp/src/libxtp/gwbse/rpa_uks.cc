@@ -31,7 +31,6 @@
 
 namespace {
 
-constexpr bool kDebugH2pUKS = true;
 constexpr double kUKSApBPrefactor = 2.0;
 
 }  // namespace
@@ -301,20 +300,6 @@ RPA_UKS::rpa_eigensolution RPA_UKS::Diagonalize_H2p() const {
   sol.omega = es.eigenvalues().cwiseSqrt();
   sol.ERPA_correlation += 0.5 * sol.omega.sum();
 
-if (kDebugH2pUKS) {
-  std::ostringstream oss;
-  oss << TimeStamp() << " UKS raw H2p poles (first 20, eV): ";
-  const Index nprint = std::min<Index>(20, sol.omega.size());
-  for (Index i = 0; i < nprint; ++i) {
-    oss << std::fixed << std::setprecision(6)
-        << tools::conv::hrt2ev * sol.omega(i);
-    if (i + 1 < nprint) {
-      oss << ", ";
-    }
-  }
-  XTP_LOG(Log::error, log_) << oss.str() << std::flush;
-}
-
   XTP_LOG(Log::info, log_) << TimeStamp()
                            << " Lowest neutral excitation energy (eV): "
                            << tools::conv::hrt2ev * sol.omega.minCoeff()
@@ -389,19 +374,6 @@ Eigen::MatrixXd RPA_UKS::Calculate_H2p_ApB() const {
 
   const Index size_alpha = n_occ_alpha * n_unocc_alpha;
   const Index size_beta = n_occ_beta * n_unocc_beta;
-
-  if (kDebugH2pUKS) {
-    XTP_LOG(Log::error, log_) << TimeStamp()
-                              << " UKS H2p dimensions:"
-                              << " n_occ_alpha=" << n_occ_alpha
-                              << " n_unocc_alpha=" << n_unocc_alpha
-                              << " size_alpha=" << size_alpha
-                              << " | n_occ_beta=" << n_occ_beta
-                              << " n_unocc_beta=" << n_unocc_beta
-                              << " size_beta=" << size_beta
-                              << " | ApB prefactor=" << kUKSApBPrefactor
-                              << std::flush;
-  }
 
   Eigen::MatrixXd ApB =
       Eigen::MatrixXd::Zero(size_alpha + size_beta, size_alpha + size_beta);
@@ -484,61 +456,7 @@ Eigen::MatrixXd RPA_UKS::Calculate_H2p_ApB() const {
 
   // Add the diagonal bare transition energies.
   ApB.diagonal() += Calculate_H2p_AmB();
-
-  if (kDebugH2pUKS) {
-    const Eigen::MatrixXd aa = ApB.block(0, 0, size_alpha, size_alpha);
-    const Eigen::MatrixXd bb =
-        ApB.block(size_alpha, size_alpha, size_beta, size_beta);
-    const Eigen::MatrixXd ab =
-        ApB.block(0, size_alpha, size_alpha, size_beta);
-    const Eigen::MatrixXd ba =
-        ApB.block(size_alpha, 0, size_beta, size_alpha);
-
-    XTP_LOG(Log::error, log_) << TimeStamp()
-                              << " UKS H2p block norms:"
-                              << " ||AA||_F=" << aa.norm()
-                              << " ||BB||_F=" << bb.norm()
-                              << " ||AB||_F=" << ab.norm()
-                              << " ||BA||_F=" << ba.norm()
-                              << std::flush;
-
-    if (size_alpha == size_beta && n_occ_alpha == n_occ_beta &&
-        n_unocc_alpha == n_unocc_beta) {
-      const double aa_bb_diff = (aa - bb).norm();
-      const double ab_ba_diff = (ab - ba.transpose()).norm();
-
-      XTP_LOG(Log::error, log_) << TimeStamp()
-                                << " UKS forced-closed-shell diagnostics:"
-                                << " ||AA-BB||_F=" << aa_bb_diff
-                                << " ||AB-BA^T||_F=" << ab_ba_diff
-                                << std::flush;
-
-      if (aa.rows() == ab.rows() && aa.cols() == ab.cols()) {
-        const Eigen::MatrixXd charge_block = aa + ab;
-        const Eigen::MatrixXd spin_block = aa - ab;
-
-        XTP_LOG(Log::error, log_) << TimeStamp()
-                                  << " UKS transformed closed-shell blocks:"
-                                  << " ||charge||_F=" << charge_block.norm()
-                                  << " ||spin||_F=" << spin_block.norm()
-                                  << " tr(charge)=" << charge_block.trace()
-                                  << " tr(spin)=" << spin_block.trace()
-                                  << std::flush;
-
-        const Eigen::VectorXd bare = Calculate_H2p_AmB();
-        if (spin_block.rows() == bare.size()) {
-          const Eigen::MatrixXd bare_diag = bare.asDiagonal().toDenseMatrix();
-const double spin_minus_bare = (spin_block - bare_diag).norm();
-
-          XTP_LOG(Log::error, log_) << TimeStamp()
-                                    << " UKS spin-block vs bare D:"
-                                    << " ||spin-D||_F=" << spin_minus_bare
-                                    << std::flush;
-        }
-      }
-    }
-  }
-
+  
   return ApB;
 }
 

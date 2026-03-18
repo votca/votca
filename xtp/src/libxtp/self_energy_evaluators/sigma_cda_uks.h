@@ -61,8 +61,7 @@ class Sigma_CDA_UKS : public Sigma_base_UKS {
   double CalcResiduePrefactor(double e_f, double e_m, double frequency) const;
   double CalcResidueContribution(double frequency, Index gw_level) const;
   double CalcDiagContribution(const Eigen::MatrixXd::ConstRowXpr& Imx_row,
-                              double delta, double eta,
-                              Index gw_level) const;
+                              double delta, double eta) const;
   double CalcDiagContributionValue_tail(
       const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta,
       double alpha) const;

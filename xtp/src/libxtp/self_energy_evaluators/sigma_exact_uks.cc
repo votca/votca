@@ -31,8 +31,6 @@
 
 namespace {
 
-constexpr bool kDebugSigmaExactUKS = true;
-
 }  // namespace
 
 namespace votca {
@@ -47,26 +45,6 @@ void Sigma_Exact_UKS::PrepareScreening() {
   // should not contribute to the screened Coulomb interaction W.
 BuildScreeningModes(rpa_solution.XpY, rpa_solution.omega);
 
-if (kDebugSigmaExactUKS) {
-  std::cout << TimeStamp()
-                            << " Sigma_Exact_UKS: raw RPA modes = "
-                            << rpa_solution.omega.size()
-                            << " active screening modes = "
-                            << rpa_omegas_.size() << std::endl;
-
-  std::ostringstream oss;
-  oss << TimeStamp() << " Sigma_Exact_UKS: active poles (first 20, eV): ";
-  const Index nprint = std::min<Index>(20, rpa_omegas_.size());
-  for (Index i = 0; i < nprint; ++i) {
-    oss << std::fixed << std::setprecision(6)
-        << tools::conv::hrt2ev * rpa_omegas_(i);
-    if (i + 1 < nprint) {
-      oss << ", ";
-    }
-  }
-  std::cout << oss.str() << std::endl;
-}
-
   residues_ = std::vector<Eigen::MatrixXd>(qptotal_);
 #pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < qptotal_; gw_level++) {
@@ -79,18 +57,6 @@ if (kDebugSigmaExactUKS) {
       res.col(s) = Mmn_i * screening_modes_[s];
     }
     residues_[gw_level] = std::move(res);
-
-if (kDebugSigmaExactUKS && gw_level < 4) {
-  double max_col_norm = 0.0;
-  for (Index s = 0; s < residues_[gw_level].cols(); ++s) {
-    max_col_norm =
-        std::max(max_col_norm, residues_[gw_level].col(s).norm());
-  }
-  std::cout << TimeStamp()
-                            << " Sigma_Exact_UKS residues: gw_level="
-                            << gw_level << " max ||R_ns||=" << max_col_norm
-                            << std::endl;
-}
   }
 }
 
@@ -215,23 +181,6 @@ void Sigma_Exact_UKS::BuildScreeningModes(const Eigen::MatrixXd& XpY,
       mode.noalias() += Mmn_v.transpose() * XpY_v;
     }
 
-if (kDebugSigmaExactUKS && size_alpha == XpY.rows() - size_alpha &&
-    n_occ_alpha == n_occ_beta && n_unocc_alpha == n_unocc_beta && s < 12) {
-  const Eigen::VectorXd x_alpha = XpY.col(s).head(size_alpha);
-  const Eigen::VectorXd x_beta = XpY.col(s).tail(size_alpha);
-  const double plus_norm = (x_alpha + x_beta).norm();
-  const double minus_norm = (x_alpha - x_beta).norm();
-  const double ratio = plus_norm / std::max(1e-16, minus_norm);
-
-  std::cout << TimeStamp()
-                            << " Mode symmetry test s=" << s
-                            << " omega(eV)="
-                            << tools::conv::hrt2ev * omegas(s)
-                            << " ||a+b||=" << plus_norm
-                            << " ||a-b||=" << minus_norm
-                            << " ratio=" << ratio << std::endl;
-}
-
 const double norm = mode.norm();
 max_norm = std::max(max_norm, norm);
 all_modes.push_back(std::move(mode));
@@ -254,29 +203,6 @@ for (Index s = 0; s < nmodes; s++) {
     ++ndark;
   }
 }
-
-if (kDebugSigmaExactUKS) {
-  std::cout << TimeStamp()
-                            << " Sigma_Exact_UKS mode filter:"
-                            << " max_norm=" << max_norm
-                            << " tol=" << tol
-                            << " bright=" << active_omegas.size()
-                            << " dark=" << ndark << std::endl;
-
-  std::ostringstream oss;
-  oss << TimeStamp() << " Sigma_Exact_UKS mode brightness (first 20): ";
-  const Index nprint = std::min<Index>(20, nmodes);
-  for (Index s = 0; s < nprint; ++s) {
-    oss << "[" << std::fixed << std::setprecision(6)
-        << tools::conv::hrt2ev * omegas(s) << " eV, norm="
-        << all_norms[s] << "]";
-    if (s + 1 < nprint) {
-      oss << ", ";
-    }
-  }
-  std::cout << oss.str() << std::endl;
-}
-
 rpa_omegas_ = Eigen::VectorXd::Zero(Index(active_omegas.size()));
   for (Index s = 0; s < rpa_omegas_.size(); s++) {
     rpa_omegas_(s) = active_omegas[std::size_t(s)];

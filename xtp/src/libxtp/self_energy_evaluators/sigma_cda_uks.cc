@@ -32,53 +32,6 @@ namespace xtp {
 
 namespace {
 
-bool CdaDebugEnabled() {
-  const char* env = std::getenv("VOTCA_XTP_CDA_DEBUG");
-  return env != nullptr && std::string(env) == "1";
-}
-
-bool CdaDebugSpinMatch(TCMatrix::SpinChannel spin) {
-  const char* env = std::getenv("VOTCA_XTP_CDA_DEBUG_SPIN");
-  if (env == nullptr) {
-    return true;
-  }
-
-  std::string spin_env(env);
-  if (spin_env == "alpha") {
-    return spin == TCMatrix::SpinChannel::Alpha;
-  }
-  if (spin_env == "beta") {
-    return spin == TCMatrix::SpinChannel::Beta;
-  }
-  return true;
-}
-
-bool CdaDebugLevelMatch(Index level) {
-  const char* env = std::getenv("VOTCA_XTP_CDA_DEBUG_LEVELS");
-  if (env == nullptr) {
-    return true;
-  }
-
-  std::set<int> allowed;
-  std::stringstream ss(env);
-  std::string token;
-  while (std::getline(ss, token, ',')) {
-    if (!token.empty()) {
-      allowed.insert(std::stoi(token));
-    }
-  }
-  return allowed.count(static_cast<int>(level)) > 0;
-}
-
-bool CdaDebugMatch(Index level, TCMatrix::SpinChannel spin) {
-  return CdaDebugEnabled() && CdaDebugSpinMatch(spin) &&
-         CdaDebugLevelMatch(level);
-}
-
-const char* SpinName(TCMatrix::SpinChannel spin) {
-  return (spin == TCMatrix::SpinChannel::Alpha) ? "alpha" : "beta";
-}
-
 }  // namespace
 
 void Sigma_CDA_UKS::PrepareScreening() {
@@ -99,21 +52,12 @@ void Sigma_CDA_UKS::PrepareScreening() {
 }
 
 double Sigma_CDA_UKS::CalcDiagContribution(
-    const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta, double eta,
-    Index gw_level) const {
+    const Eigen::MatrixXd::ConstRowXpr& Imx_row, double delta, double eta) const {
   std::complex<double> delta_eta(delta, eta);
 
   Eigen::MatrixXd DielMxInv = rpa_.calculate_epsilon_r(delta_eta);
-  double rcond = DielMxInv.fullPivLu().rcond();
   Eigen::VectorXd x =
       DielMxInv.partialPivLu().solve(Imx_row.transpose()) - Imx_row.transpose();
-  if (CdaDebugMatch(gw_level, spin_)) {
-    std::cout << "\n [CDA-DEBUG] solve level=" << gw_level
-              << " spin=" << SpinName(spin_) << " delta=" << delta
-              << " eta=" << eta << " ||Imn||=" << Imx_row.norm()
-              << " ||x||=" << x.norm() << " rcond=" << rcond
-              << std::flush;
-  }
 
   return x.dot(Imx_row.transpose());
 }
@@ -145,12 +89,6 @@ double Sigma_CDA_UKS::CalcResidueContribution(double frequency,
   Index homo = opt_.homo - opt_.rpamin;
   Index lumo = homo + 1;
   double fermi_rpa = (rpa_energies(lumo) + rpa_energies(homo)) / 2.0;
-  bool debug = CdaDebugMatch(gw_level, spin_);
-  if (debug) {
-    std::cout << "\n [CDA-DEBUG] Residue start level=" << gw_level
-              << " spin=" << SpinName(spin_) << " freq=" << frequency
-              << std::flush;
-  }
 
   const Eigen::MatrixXd& Imx = Mmn_[gw_level_offset];
 
@@ -161,27 +99,13 @@ double Sigma_CDA_UKS::CalcResidueContribution(double frequency,
 
     if (std::abs(factor) > 1e-10) {
       double diag =
-          CalcDiagContribution(Imx.row(i), abs_delta, rpa_.getEta(), gw_level);
+          CalcDiagContribution(Imx.row(i), abs_delta, rpa_.getEta());
       double contribution = factor * diag;
       sigma_c += contribution;
-      if (debug) {
-        std::cout << "\n [CDA-DEBUG] residue i=" << i
-                  << " spin=" << SpinName(spin_)
-                  << " occ=" << (i <= homo ? 1 : 0)
-                  << " e_m=" << rpa_energies(i)
-                  << " delta=" << delta << " |delta|=" << abs_delta
-                  << " factor=" << factor << " diag=" << diag
-                  << " contrib=" << contribution << std::flush;
-      }
     }
     if (abs_delta > 1e-10) {
       double tail = CalcDiagContributionValue_tail(Imx.row(i), delta, opt_.alpha);
       sigma_c_tail += tail;
-      if (debug) {
-        std::cout << "\n [CDA-DEBUG] tail i=" << i
-                  << " spin=" << SpinName(spin_)
-                  << " tail=" << tail << std::flush;
-      }
     }
   }
   return sigma_c + sigma_c_tail;
