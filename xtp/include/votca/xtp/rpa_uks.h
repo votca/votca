@@ -258,6 +258,9 @@ class RPA_UKS {
   Index getHomoAlpha() const { return homo_alpha_; }
   Index getHomoBeta() const { return homo_beta_; }
 
+                         void GetCachedScreeningModes(const Eigen::VectorXd*& omegas,
+                               const std::vector<Eigen::VectorXd>*& modes) const;
+
  private:
   /**
    * \brief Internal implementation of epsilon(w).
@@ -350,6 +353,12 @@ class RPA_UKS {
 
   mutable bool h2p_cached_ = false;
   mutable rpa_eigensolution h2p_solution_cache_;
+
+  // Cached screening modes (shared across alpha/beta exact GW)
+  mutable bool screening_cached_ = false;
+  mutable Eigen::VectorXd screening_omegas_;
+  mutable std::vector<Eigen::VectorXd> screening_modes_;
+    void BuildCachedScreeningModes() const;
 };
 
 }  // namespace xtp

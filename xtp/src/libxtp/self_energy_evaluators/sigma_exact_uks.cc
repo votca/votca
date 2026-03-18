@@ -37,14 +37,17 @@ namespace votca {
 namespace xtp {
 
 void Sigma_Exact_UKS::PrepareScreening() {
-  const RPA_UKS::rpa_eigensolution& rpa_solution = rpa_.Diagonalize_H2p();
 
   // Build Coulomb-active screening modes in the auxiliary basis from the full
   // unrestricted H2p eigenvectors. This suppresses numerically dark / spin-like
   // modes that can appear in the explicit alpha+beta transition basis but
   // should not contribute to the screened Coulomb interaction W.
-  BuildScreeningModes(rpa_solution.XpY, rpa_solution.omega);
+  const Eigen::VectorXd* cached_omegas = nullptr;
+  const std::vector<Eigen::VectorXd>* cached_modes = nullptr;
+  rpa_.GetCachedScreeningModes(cached_omegas, cached_modes);
 
+  rpa_omegas_ = *cached_omegas;
+  screening_modes_ = *cached_modes;
   residues_ = std::vector<Eigen::MatrixXd>(qptotal_);
 #pragma omp parallel for schedule(dynamic)
   for (Index gw_level = 0; gw_level < qptotal_; gw_level++) {
@@ -140,73 +143,6 @@ double Sigma_Exact_UKS::CalcCorrelationOffDiagElement(Index gw_level1,
   return sigma_c;
 }
 
-void Sigma_Exact_UKS::BuildScreeningModes(const Eigen::MatrixXd& XpY,
-                                          const Eigen::VectorXd& omegas) {
-  const Index lumo_alpha = rpa_.getHomoAlpha() + 1;
-  const Index lumo_beta = rpa_.getHomoBeta() + 1;
-
-  const Index n_occ_alpha = lumo_alpha - opt_.rpamin;
-  const Index n_occ_beta = lumo_beta - opt_.rpamin;
-  const Index n_unocc_alpha = opt_.rpamax - rpa_.getHomoAlpha();
-  const Index n_unocc_beta = opt_.rpamax - rpa_.getHomoBeta();
-
-  const Index size_alpha = n_occ_alpha * n_unocc_alpha;
-  const Index auxsize = Mmn_.auxsize();
-  const Index nmodes = Index(omegas.size());
-
-  std::vector<Eigen::VectorXd> all_modes;
-  all_modes.reserve(nmodes);
-  std::vector<double> all_norms;
-  all_norms.reserve(nmodes);
-
-  vc2index vc_alpha(0, 0, n_unocc_alpha);
-  vc2index vc_beta(0, 0, n_unocc_beta);
-
-  double max_norm = 0.0;
-  for (Index s = 0; s < nmodes; s++) {
-    Eigen::VectorXd mode = Eigen::VectorXd::Zero(auxsize);
-
-    for (Index v = 0; v < n_occ_alpha; v++) {
-      const auto Mmn_v =
-          Mmn_spin_.alpha[v].middleRows(n_occ_alpha, n_unocc_alpha);
-      const auto XpY_v = XpY.col(s).segment(vc_alpha.I(v, 0), n_unocc_alpha);
-      mode.noalias() += Mmn_v.transpose() * XpY_v;
-    }
-
-    for (Index v = 0; v < n_occ_beta; v++) {
-      const auto Mmn_v =
-          Mmn_spin_.beta[v].middleRows(n_occ_beta, n_unocc_beta);
-      const auto XpY_v =
-          XpY.col(s).segment(size_alpha + vc_beta.I(v, 0), n_unocc_beta);
-      mode.noalias() += Mmn_v.transpose() * XpY_v;
-    }
-
-const double norm = mode.norm();
-max_norm = std::max(max_norm, norm);
-all_modes.push_back(std::move(mode));
-all_norms.push_back(norm);
-  }
-
-  const double tol = 1e-10 * std::max(1.0, max_norm);
-
-  std::vector<Eigen::VectorXd> active_modes;
-  std::vector<double> active_omegas;
-  active_modes.reserve(nmodes);
-  active_omegas.reserve(nmodes);
-
-for (Index s = 0; s < nmodes; s++) {
-  if (all_norms[s] > tol) {
-    active_modes.push_back(std::move(all_modes[s]));
-    active_omegas.push_back(omegas(s));
-  } 
-}
-rpa_omegas_ = Eigen::VectorXd::Zero(Index(active_omegas.size()));
-  for (Index s = 0; s < rpa_omegas_.size(); s++) {
-    rpa_omegas_(s) = active_omegas[std::size_t(s)];
-  }
-
-  screening_modes_ = std::move(active_modes);
-}
 
 }  // namespace xtp
 }  // namespace votca

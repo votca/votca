@@ -73,7 +73,96 @@ void RPA_UKS::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies_alpha,
 void RPA_UKS::InvalidateH2pCache() {
   h2p_cached_ = false;
   h2p_solution_cache_ = rpa_eigensolution{};
+
+  screening_cached_ = false;
+  screening_omegas_.resize(0);
+  screening_modes_.clear();
 }
+
+
+void RPA_UKS::GetCachedScreeningModes(
+    const Eigen::VectorXd*& omegas,
+    const std::vector<Eigen::VectorXd>*& modes) const {
+  if (!screening_cached_) {
+    BuildCachedScreeningModes();
+  }
+  omegas = &screening_omegas_;
+  modes = &screening_modes_;
+}
+
+void RPA_UKS::BuildCachedScreeningModes() const {
+  const rpa_eigensolution& rpa_solution = Diagonalize_H2p();
+  const Eigen::MatrixXd& XpY = rpa_solution.XpY;
+  const Eigen::VectorXd& omegas = rpa_solution.omega;
+
+  const Index lumo_alpha = homo_alpha_ + 1;
+  const Index lumo_beta = homo_beta_ + 1;
+
+  const Index n_occ_alpha = lumo_alpha - rpamin_;
+  const Index n_occ_beta = lumo_beta - rpamin_;
+  const Index n_unocc_alpha = rpamax_ - homo_alpha_;
+  const Index n_unocc_beta = rpamax_ - homo_beta_;
+
+  const Index size_alpha = n_occ_alpha * n_unocc_alpha;
+  const Index auxsize = Mmn_.alpha.auxsize();
+  const Index nmodes = Index(omegas.size());
+
+  std::vector<Eigen::VectorXd> all_modes;
+  all_modes.reserve(nmodes);
+  std::vector<double> all_norms;
+  all_norms.reserve(nmodes);
+
+  vc2index vc_alpha(0, 0, n_unocc_alpha);
+  vc2index vc_beta(0, 0, n_unocc_beta);
+
+  double max_norm = 0.0;
+  for (Index s = 0; s < nmodes; s++) {
+    Eigen::VectorXd mode = Eigen::VectorXd::Zero(auxsize);
+
+    for (Index v = 0; v < n_occ_alpha; v++) {
+      const auto Mmn_v =
+          Mmn_.alpha[v].middleRows(n_occ_alpha, n_unocc_alpha);
+      const auto XpY_v = XpY.col(s).segment(vc_alpha.I(v, 0), n_unocc_alpha);
+      mode.noalias() += Mmn_v.transpose() * XpY_v;
+    }
+
+    for (Index v = 0; v < n_occ_beta; v++) {
+      const auto Mmn_v =
+          Mmn_.beta[v].middleRows(n_occ_beta, n_unocc_beta);
+      const auto XpY_v =
+          XpY.col(s).segment(size_alpha + vc_beta.I(v, 0), n_unocc_beta);
+      mode.noalias() += Mmn_v.transpose() * XpY_v;
+    }
+
+    const double norm = mode.norm();
+    max_norm = std::max(max_norm, norm);
+    all_modes.push_back(std::move(mode));
+    all_norms.push_back(norm);
+  }
+
+  const double tol = 1e-10 * std::max(1.0, max_norm);
+
+  std::vector<Eigen::VectorXd> active_modes;
+  std::vector<double> active_omegas;
+  active_modes.reserve(nmodes);
+  active_omegas.reserve(nmodes);
+
+  for (Index s = 0; s < nmodes; s++) {
+    if (all_norms[s] > tol) {
+      active_modes.push_back(std::move(all_modes[s]));
+      active_omegas.push_back(omegas(s));
+    }
+  }
+
+  screening_omegas_ = Eigen::VectorXd::Zero(Index(active_omegas.size()));
+  for (Index s = 0; s < screening_omegas_.size(); s++) {
+    screening_omegas_(s) = active_omegas[std::size_t(s)];
+  }
+
+  screening_modes_ = std::move(active_modes);
+  screening_cached_ = true;
+}
+
 
 void RPA_UKS::ShiftUncorrectedEnergies(Eigen::VectorXd& energies,
                                        const Eigen::VectorXd& dftenergies,
@@ -468,7 +557,7 @@ Eigen::MatrixXd RPA_UKS::Calculate_H2p_ApB() const {
 
   // Add the diagonal bare transition energies.
   ApB.diagonal() += Calculate_H2p_AmB();
-  
+
   return ApB;
 }
 
