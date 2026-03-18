@@ -20,12 +20,48 @@
 
 #include <votca/tools/constants.h>
 
+#include <algorithm>
+#include <cstdlib>
+#include <limits>
+#include <set>
+#include <sstream>
+
 #include "votca/xtp/ImaginaryAxisIntegration.h"
 #include "votca/xtp/quadrature_factory.h"
 #include "votca/xtp/threecenter.h"
 
 namespace votca {
 namespace xtp {
+
+namespace {
+
+bool CdaDebugEnabled() {
+  const char* env = std::getenv("VOTCA_XTP_CDA_DEBUG");
+  return env != nullptr && std::string(env) == "1";
+}
+
+bool CdaDebugLevelMatch(Index level) {
+  const char* env = std::getenv("VOTCA_XTP_CDA_DEBUG_LEVELS");
+  if (env == nullptr) {
+    return true;
+  }
+
+  std::set<int> allowed;
+  std::stringstream ss(env);
+  std::string token;
+  while (std::getline(ss, token, ',')) {
+    if (!token.empty()) {
+      allowed.insert(std::stoi(token));
+    }
+  }
+  return allowed.count(static_cast<int>(level)) > 0;
+}
+
+bool CdaDebugMatch(Index level) {
+  return CdaDebugEnabled() && CdaDebugLevelMatch(level);
+}
+
+}  // namespace
 
 ImaginaryAxisIntegration::ImaginaryAxisIntegration(
     const Eigen::VectorXd& energies, const TCMatrix_gwbse& Mmn)
@@ -117,6 +153,25 @@ double ImaginaryAxisIntegration::SigmaGQDiag(double frequency, Index gw_level,
   Eigen::ArrayXcd DeltaE = frequency - energies_.array();
   DeltaE.imag().head(occ) = eta;
   DeltaE.imag().tail(unocc) = -eta;
+
+  if (CdaDebugMatch(gw_level)) {
+    double min_abs = std::numeric_limits<double>::max();
+    for (Index i = 0; i < DeltaE.size(); ++i) {
+      min_abs = std::min(min_abs, std::abs(DeltaE(i)));
+    }
+
+    std::cout << "\n [CDA-DEBUG] ImagAxis level=" << gw_level
+              << " freq=" << frequency << " eta=" << eta
+              << " min|DeltaE|=" << min_abs << " ||Imx||=" << Imx.norm();
+
+    for (Index i = 0; i < DeltaE.size(); ++i) {
+      std::cout << "\n [CDA-DEBUG] ImagAxis i=" << i
+                << " occ=" << (i < occ ? 1 : 0)
+                << " DeltaE=" << DeltaE(i);
+    }
+    std::cout << std::flush;
+  }
+
   FunctionEvaluation f(Imx, DeltaE, dielinv_matrices_r_);
   return gq_->Integrate(f);
 }
