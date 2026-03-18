@@ -62,6 +62,12 @@ std::string QMStateType::ToString() const {
     case QMStateType::LMOstate:
       identifier = "l";
       break;
+    case QMStateType::ExcitonAlpha:
+      identifier = "xa";
+      break;
+    case QMStateType::ExcitonBeta:
+      identifier = "xb";
+      break;
   }
   return identifier;
 }
@@ -96,6 +102,12 @@ std::string QMStateType::ToLongString() const {
     case QMStateType::LMOstate:
       identifier = "localized-orbital";
       break;
+    case QMStateType::ExcitonAlpha:
+      identifier = "alpha-exciton";
+      break;
+    case QMStateType::ExcitonBeta:
+      identifier = "beta-exciton";
+      break;
   }
   return identifier;
 }
@@ -121,6 +133,10 @@ void QMStateType::FromString(const std::string& statetypestring) {
     type_ = QMStateType::Electron;
   } else if (lower == "l" || lower == "localized-orbital") {
     type_ = QMStateType::LMOstate;
+  } else if (lower == "xa" || lower == "alpha-exciton") {
+    type_ = QMStateType::ExcitonAlpha;
+  } else if (lower == "xb" || lower == "beta-exciton") {
+    type_ = QMStateType::ExcitonBeta;
   } else {
     throw std::runtime_error("Statetype:" + statetypestring +
                              " not recognized");

@@ -227,6 +227,12 @@ class Orbitals {
       case QMStateType::DQPstate:
         return Index(QPdiag_.eigenvalues().size());
         break;
+      case QMStateType::ExcitonAlpha:
+        return Index(BSE_alpha_.eigenvalues().size());
+        break;
+      case QMStateType::ExcitonBeta:
+        return Index(BSE_beta_.eigenvalues().size());
+        break;
       default:
         return 1;
         break;
@@ -672,6 +678,38 @@ class Orbitals {
   tools::EigenSystem &QPdiagAlpha() { return QPdiag_alpha_; }
   tools::EigenSystem &QPdiagBeta() { return QPdiag_beta_; }
 
+
+  /**
+   * EXTENSIONS SPIN BSE
+   */
+    bool hasBSEAlpha() const {
+    return (BSE_alpha_.eigenvectors().cols() > 0) ? true : false;
+  }
+  const tools::EigenSystem &BSEAlpha() const { return BSE_alpha_; }
+  tools::EigenSystem &BSEAlpha() { return BSE_alpha_; }
+
+  bool hasBSEBeta() const {
+    return (BSE_beta_.eigenvectors().cols() > 0) ? true : false;
+  }
+  const tools::EigenSystem &BSEBeta() const { return BSE_beta_; }
+  tools::EigenSystem &BSEBeta() { return BSE_beta_; }
+
+  bool hasBSEAlpha_dynamic() const {
+    return (BSE_alpha_energies_dynamic_.size() > 0) ? true : false;
+  }
+  const Eigen::VectorXd &BSEAlpha_dynamic() const {
+    return BSE_alpha_energies_dynamic_;
+  }
+  Eigen::VectorXd &BSEAlpha_dynamic() { return BSE_alpha_energies_dynamic_; }
+
+  bool hasBSEBeta_dynamic() const {
+    return (BSE_beta_energies_dynamic_.size() > 0) ? true : false;
+  }
+  const Eigen::VectorXd &BSEBeta_dynamic() const {
+    return BSE_beta_energies_dynamic_;
+  }
+  Eigen::VectorXd &BSEBeta_dynamic() { return BSE_beta_energies_dynamic_; }
+
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
@@ -767,12 +805,18 @@ class Orbitals {
   tools::EigenSystem QPdiag_alpha_;
   tools::EigenSystem QPdiag_beta_;
 
+  tools::EigenSystem BSE_alpha_;
+  tools::EigenSystem BSE_beta_;
+
+  Eigen::VectorXd BSE_alpha_energies_dynamic_;
+  Eigen::VectorXd BSE_beta_energies_dynamic_;
+
   // Version 2: adds BSE energies after perturbative dynamical screening
   // Version 3: changed shell ordering
   // Version 4: added vxc grid quality
   // Version 5: added the dft and aux basisset
   // Version 6: added spin in dft
-  static constexpr int orbitals_version() { return 7; }
+  static constexpr int orbitals_version() { return 8; }
 };
 
 }  // namespace xtp
