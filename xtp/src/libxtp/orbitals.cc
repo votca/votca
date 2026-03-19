@@ -119,9 +119,11 @@ void Orbitals::SetupAuxBasis(std::string aux_basis_name) {
 // it returns the projector that must be added to or removed from the ground-
 // state density.
 Eigen::MatrixXd Orbitals::DensityMatrixWithoutGS(const QMState& state) const {
-  if (this->hasUnrestrictedOrbitals()) {
+  if (this->hasUnrestrictedOrbitals() &&
+      state.Type() != QMStateType::ExcitonUKS) {
     throw std::runtime_error(
-        "DensityMatrixWithoutGS not implemented for open-shell systems.");
+        "DensityMatrixWithoutGS not implemented for open-shell systems "
+        "except ExcitonUKS.");
   }
   if (state.Type().isExciton()) {
     std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
@@ -312,9 +314,74 @@ Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) const {
 // and for full BSE the resonant and anti-resonant amplitudes are added before
 // the AO transformation.
 Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
+
+  if (state.Type() == QMStateType::ExcitonUKS) {
+    if (!this->hasUnrestrictedOrbitals()) {
+      throw std::runtime_error(
+          "ExcitonUKS transition density requested, but no unrestricted "
+          "orbitals are present.");
+    }
+
+    const Eigen::MatrixXd& BSECoefs = BSE_uks_.eigenvectors();
+    if (BSECoefs.cols() < state.StateIdx() + 1 || BSECoefs.rows() < 2) {
+      throw std::runtime_error("Orbitals object has no information about state:" +
+                               state.ToString());
+    }
+
+    Eigen::VectorXd coeffs = BSECoefs.col(state.StateIdx());
+    if (!useTDA_) {
+      coeffs += BSE_uks_.eigenvectors2().col(state.StateIdx());
+    }
+
+    const Index alpha_vtotal = getHomoAlpha() - bse_vmin_ + 1;
+    const Index alpha_ctotal = bse_cmax_ - getLumoAlpha() + 1;
+    const Index beta_vtotal = getHomoBeta() - bse_vmin_ + 1;
+    const Index beta_ctotal = bse_cmax_ - getLumoBeta() + 1;
+
+    const Index alpha_size = alpha_vtotal * alpha_ctotal;
+    const Index beta_size = beta_vtotal * beta_ctotal;
+
+    if (coeffs.size() != alpha_size + beta_size) {
+      throw std::runtime_error(
+          "ExcitonUKS coefficient vector size does not match expected "
+          "alpha+beta BSE space dimensions.");
+    }
+
+    Eigen::MatrixXd tdm =
+        Eigen::MatrixXd::Zero(mos_.eigenvectors().rows(),
+                              mos_.eigenvectors().rows());
+
+    if (alpha_size > 0) {
+      const Eigen::VectorXd coeffs_alpha = coeffs.head(alpha_size);
+      const auto occ_alpha =
+          mos_.eigenvectors().middleCols(bse_vmin_, alpha_vtotal);
+      const auto virt_alpha =
+          mos_.eigenvectors().middleCols(getLumoAlpha(), alpha_ctotal);
+      const Eigen::Map<const Eigen::MatrixXd> mat_alpha(
+          coeffs_alpha.data(), alpha_ctotal, alpha_vtotal);
+
+      tdm += occ_alpha * mat_alpha.transpose() * virt_alpha.transpose();
+    }
+
+    if (beta_size > 0) {
+      const Eigen::VectorXd coeffs_beta = coeffs.tail(beta_size);
+      const auto occ_beta =
+          mos_beta_.eigenvectors().middleCols(bse_vmin_, beta_vtotal);
+      const auto virt_beta =
+          mos_beta_.eigenvectors().middleCols(getLumoBeta(), beta_ctotal);
+      const Eigen::Map<const Eigen::MatrixXd> mat_beta(
+          coeffs_beta.data(), beta_ctotal, beta_vtotal);
+
+      tdm += occ_beta * mat_beta.transpose() * virt_beta.transpose();
+    }
+
+    return tdm;
+  }
+
   if (this->hasUnrestrictedOrbitals()) {
     throw std::runtime_error(
-        "TransitionDensityMatrix not implemented for open-shell systems.");
+        "TransitionDensityMatrix not implemented for open-shell systems "
+        "except ExcitonUKS.");
   }
   if (state.Type() != QMStateType::Singlet) {
     throw std::runtime_error(
@@ -326,16 +393,6 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
     throw std::runtime_error("Orbitals object has no information about state:" +
                              state.ToString());
   }
-
-  // The Transition dipole is sqrt2 bigger because of the spin, the excited
-  // state is a linear combination of 2 slater determinants, where either alpha
-  // or beta spin electron is excited
-
-  /*Trying to implement D_{alpha,beta}=
-   * sqrt2*sum_{i}^{occ}sum_{j}^{virt}{BSEcoef(i,j)*MOcoef(alpha,i)*MOcoef(beta,j)}
-   */
-  // c stands for conduction band and thus virtual orbitals
-  // v stand for valence band and thus occupied orbitals
 
   Eigen::VectorXd coeffs = BSECoefs.col(state.StateIdx());
 
@@ -356,10 +413,114 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
 // resonant part, yielding the usual RPA/BSE excited-state density.
 std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState(
     const QMState& state) const {
+
+  if (state.Type() == QMStateType::ExcitonUKS) {
+    if (!this->hasUnrestrictedOrbitals()) {
+      throw std::runtime_error(
+          "ExcitonUKS excited-state density requested, but no unrestricted "
+          "orbitals are present.");
+    }
+
+    const Eigen::MatrixXd& X = BSE_uks_.eigenvectors();
+    if (X.cols() < state.StateIdx() + 1 || X.rows() < 2) {
+      throw std::runtime_error("Orbitals object has no information about state:" +
+                               state.ToString());
+    }
+
+    const Index alpha_vtotal = getHomoAlpha() - bse_vmin_ + 1;
+    const Index alpha_ctotal = bse_cmax_ - getLumoAlpha() + 1;
+    const Index beta_vtotal = getHomoBeta() - bse_vmin_ + 1;
+    const Index beta_ctotal = bse_cmax_ - getLumoBeta() + 1;
+
+    const Index alpha_size = alpha_vtotal * alpha_ctotal;
+    const Index beta_size = beta_vtotal * beta_ctotal;
+
+    if (X.rows() != alpha_size + beta_size) {
+      throw std::runtime_error(
+          "ExcitonUKS coefficient vector size does not match expected "
+          "alpha+beta BSE space dimensions.");
+    }
+
+    const Index nao = mos_.eigenvectors().rows();
+    std::array<Eigen::MatrixXd, 2> dmat;
+    dmat[0] = Eigen::MatrixXd::Zero(nao, nao);  // hole
+    dmat[1] = Eigen::MatrixXd::Zero(nao, nao);  // electron
+
+    auto add_resonant = [&](const Eigen::VectorXd& coeffs, bool alpha_spin) {
+      if (coeffs.size() == 0) {
+        return;
+      }
+
+      const Index vtotal = alpha_spin ? alpha_vtotal : beta_vtotal;
+      const Index ctotal = alpha_spin ? alpha_ctotal : beta_ctotal;
+
+      const auto& mos_spin =
+          alpha_spin ? mos_.eigenvectors() : mos_beta_.eigenvectors();
+      const Index lumo = alpha_spin ? getLumoAlpha() : getLumoBeta();
+
+      const auto occlevels = mos_spin.middleCols(bse_vmin_, vtotal);
+      const auto virtlevels = mos_spin.middleCols(lumo, ctotal);
+
+      const Eigen::Map<const Eigen::MatrixXd> mat(coeffs.data(), ctotal,
+                                                  vtotal);
+
+      dmat[0] += occlevels * (mat.transpose() * mat) * occlevels.transpose();
+      dmat[1] += virtlevels * (mat * mat.transpose()) * virtlevels.transpose();
+    };
+
+    auto subtract_antiresonant = [&](const Eigen::VectorXd& coeffs,
+                                     bool alpha_spin) {
+      if (coeffs.size() == 0) {
+        return;
+      }
+
+      const Index vtotal = alpha_spin ? alpha_vtotal : beta_vtotal;
+      const Index ctotal = alpha_spin ? alpha_ctotal : beta_ctotal;
+
+      const auto& mos_spin =
+          alpha_spin ? mos_.eigenvectors() : mos_beta_.eigenvectors();
+      const Index lumo = alpha_spin ? getLumoAlpha() : getLumoBeta();
+
+      const auto occlevels = mos_spin.middleCols(bse_vmin_, vtotal);
+      const auto virtlevels = mos_spin.middleCols(lumo, ctotal);
+
+      const Eigen::Map<const Eigen::MatrixXd> mat(coeffs.data(), ctotal,
+                                                  vtotal);
+
+      // Full-BSE anti-resonant correction:
+      // hole  -= virt * (B B^T) * virt^T
+      // electron -= occ * (B^T B) * occ^T
+      dmat[0] -= virtlevels * (mat * mat.transpose()) * virtlevels.transpose();
+      dmat[1] -= occlevels * (mat.transpose() * mat) * occlevels.transpose();
+    };
+
+    const Eigen::VectorXd Xstate = X.col(state.StateIdx());
+    add_resonant(Xstate.head(alpha_size), true);
+    add_resonant(Xstate.tail(beta_size), false);
+
+    if (!useTDA_) {
+      const Eigen::MatrixXd& Y = BSE_uks_.eigenvectors2();
+      if (Y.cols() < state.StateIdx() + 1 || Y.rows() != X.rows()) {
+        throw std::runtime_error(
+            "Orbitals object has inconsistent anti-resonant ExcitonUKS "
+            "coefficients for state:" +
+            state.ToString());
+      }
+
+      const Eigen::VectorXd Ystate = Y.col(state.StateIdx());
+      subtract_antiresonant(Ystate.head(alpha_size), true);
+      subtract_antiresonant(Ystate.tail(beta_size), false);
+    }
+
+    return dmat;
+  }
+
   if (this->hasUnrestrictedOrbitals()) {
     throw std::runtime_error(
-        "DensityMatrixExcitedState not implemented for open-shell systems.");
+        "DensityMatrixExcitedState not implemented for open-shell systems "
+        "except ExcitonUKS.");
   }
+
   std::array<Eigen::MatrixXd, 2> dmat = DensityMatrixExcitedState_R(state);
   if (!useTDA_) {
     std::array<Eigen::MatrixXd, 2> dmat_AR =
