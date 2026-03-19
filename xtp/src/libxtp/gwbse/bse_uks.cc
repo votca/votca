@@ -26,6 +26,7 @@
 #include "votca/xtp/bse_operator_uks.h"
 #include "votca/xtp/bseoperator_btda.h"
 #include "votca/xtp/davidsonsolver.h"
+#include "votca/xtp/bse_initialization.h"
 
 using std::flush;
 
@@ -148,62 +149,15 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
       << TimeStamp() << " Setup combined UKS full BSE exciton hamiltonian "
       << flush;
 
-  // --- dense diagnostic for small systems ---
-  if (A.rows() <= 200) {
-    Eigen::MatrixXd Ad = A.dense_matrix();
-    Eigen::MatrixXd Bd = B.dense_matrix();
-
-    XTP_LOG(Log::error, log_)
-        << TimeStamp() << " full-BSE diagnostics: ||A-A^T|| = "
-        << (Ad - Ad.transpose()).norm()
-        << "  ||B-B^T|| = "
-        << (Bd - Bd.transpose()).norm()
-        << flush;
-
-    Eigen::MatrixXd H = Eigen::MatrixXd::Zero(2 * A.rows(), 2 * A.rows());
-    H.topLeftCorner(A.rows(), A.rows()) = Ad;
-    H.topRightCorner(A.rows(), A.rows()) = Bd;
-    H.bottomLeftCorner(A.rows(), A.rows()) = -Bd;
-    H.bottomRightCorner(A.rows(), A.rows()) = -Ad;
-
-    Eigen::EigenSolver<Eigen::MatrixXd> es(H, false);
-    if (es.info() == Eigen::Success) {
-      std::vector<double> positive_real;
-      for (Index i = 0; i < es.eigenvalues().size(); ++i) {
-        const std::complex<double>& ev = es.eigenvalues()(i);
-        if (std::abs(ev.imag()) < 1e-8 && ev.real() > 0.0) {
-          positive_real.push_back(ev.real());
-        }
-      }
-      std::sort(positive_real.begin(), positive_real.end());
-      const Index nprint =
-          std::min<Index>(10, static_cast<Index>(positive_real.size()));
-      for (Index i = 0; i < nprint; ++i) {
-        XTP_LOG(Log::error, log_)
-            << TimeStamp() << " dense full-BSE root " << (i + 1) << " = "
-            << positive_real[i] * tools::conv::hrt2ev << " eV"
-            << flush;
-      }
-    }
-  }
-
-  // --- TDA-seeded initial guess for diagnostic purposes ---
-  tools::EigenSystem tda_guess = solve_hermitian(A);
-
-  const Index ntda = tda_guess.eigenvectors().cols();
-  const Index nguess =
-      std::min<Index>(A.rows(), std::max<Index>(2 * opt_.nmax, 8));
-
+  // Cheap production initial guess:
+  // rank excitations by local diagonal full-BSE estimate
+  //   omega_i = sqrt(max(0, A_ii^2 - B_ii^2))
+  // but keep the actual start vectors X-only for robustness with the
+  // current HAM Davidson implementation.
+  const Eigen::VectorXd adiag = A.diagonal();
+  const Eigen::VectorXd bdiag = B.diagonal();
   Eigen::MatrixXd initial_guess =
-      Eigen::MatrixXd::Zero(2 * A.rows(), nguess);
-
-  // Put the available TDA eigenvectors into the X block
-  initial_guess.topRows(A.rows()).leftCols(ntda) = tda_guess.eigenvectors();
-
-  // Fill remaining guess vectors with simple X-space basis vectors
-  for (Index j = ntda; j < nguess; ++j) {
-    initial_guess(j - ntda, j) = 1.0;
-  }
+      BuildFullBSEXRankedInitialGuess(adiag, bdiag, opt_.nmax);
 
   HamiltonianOperator<ExcitonUKSOperator_TDA, ExcitonUKSOperator_BTDA_B> Hop(A,
                                                                              B);
@@ -213,7 +167,7 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
   DS.set_tolerance(opt_.davidson_tolerance);
   DS.set_size_update(opt_.davidson_update);
   DS.set_iter_max(opt_.davidson_maxiter);
-  DS.set_max_search_space(2 * A.rows());
+  DS.set_max_search_space(10 * opt_.nmax);
   DS.set_matrix_type("HAM");
   DS.solve(Hop, opt_.nmax, initial_guess);
 

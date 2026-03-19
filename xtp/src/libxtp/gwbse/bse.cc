@@ -33,6 +33,7 @@
 #include "votca/xtp/qmfragment.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/vc2index.h"
+#include "votca/xtp/bse_initialization.h"
 
 using std::flush;
 
@@ -410,10 +411,12 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   DS.set_tolerance(opt_.davidson_tolerance);
   DS.set_size_update(opt_.davidson_update);
   DS.set_iter_max(opt_.davidson_maxiter);
-  //DS.set_max_search_space(10 * opt_.nmax);
-    DS.set_max_search_space(2 * Aop.rows());
+  DS.set_max_search_space(10 * opt_.nmax);
   DS.set_matrix_type("HAM");
-  DS.solve(Hop, opt_.nmax);
+  Eigen::MatrixXd initial_guess =
+    BuildFullBSEXRankedInitialGuess(Aop.diagonal(), Bop.diagonal(), opt_.nmax);
+
+  DS.solve(Hop, opt_.nmax, initial_guess);
 
   // results
   tools::EigenSystem result;
