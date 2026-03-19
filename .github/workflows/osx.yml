@@ -26,7 +26,7 @@ jobs:
     - name: Install deps
       run: |
         brew update
-        brew install wget ccache libint libecpint boost libxc hdf5 libomp fftw pybind11 clang-format lapack gromacs
+        brew install wget ccache libint libecpint boost libxc hdf5 libomp fftw pybind11 lapack gromacs
         # this hack is needed for homebrew on macos-intel 
         brew unlink libint
         $(brew --prefix)/bin/python3 -m venv $HOME/venv
