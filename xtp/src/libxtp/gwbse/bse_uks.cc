@@ -123,18 +123,9 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_TDA() const {
   opt.vmin = opt_.vmin;
   opt.cmax = opt_.cmax;
   H.configure(opt);
-  Eigen::MatrixXd dense = Eigen::MatrixXd::Zero(H.rows(), H.cols());
-  for (Index i = 0; i < H.cols(); ++i) {
-    Eigen::MatrixXd e = Eigen::MatrixXd::Zero(H.rows(), 1);
-    e(i, 0) = 1.0;
-    dense.col(i) = H.matmul(e);
-  }
 
-  double asym = (dense - dense.transpose()).norm();
   XTP_LOG(Log::error, log_)
-      << TimeStamp() << " TDA asymmetry ||A-A^T|| = " << asym << flush;
-  XTP_LOG(Log::error, log_)
-      << TimeStamp() << " Setup combined UKS TDA exciton hamiltonian " << flush;
+      << TimeStamp() << " Setup combined UKS TDA Hamiltonian " << flush;
   return solve_hermitian(H);
 }
 
@@ -156,6 +147,46 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Setup combined UKS full BSE exciton hamiltonian "
       << flush;
+
+  // --- dense diagnostic for small systems ---
+  if (A.rows() <= 200) {
+    Eigen::MatrixXd Ad = A.dense_matrix();
+    Eigen::MatrixXd Bd = B.dense_matrix();
+
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " full-BSE diagnostics: ||A-A^T|| = "
+        << (Ad - Ad.transpose()).norm()
+        << "  ||B-B^T|| = "
+        << (Bd - Bd.transpose()).norm()
+        << flush;
+
+    Eigen::MatrixXd H = Eigen::MatrixXd::Zero(2 * A.rows(), 2 * A.rows());
+    H.topLeftCorner(A.rows(), A.rows()) = Ad;
+    H.topRightCorner(A.rows(), A.rows()) = Bd;
+    H.bottomLeftCorner(A.rows(), A.rows()) = -Bd;
+    H.bottomRightCorner(A.rows(), A.rows()) = -Ad;
+
+    Eigen::EigenSolver<Eigen::MatrixXd> es(H, false);
+    if (es.info() == Eigen::Success) {
+      std::vector<double> positive_real;
+      for (Index i = 0; i < es.eigenvalues().size(); ++i) {
+        const std::complex<double>& ev = es.eigenvalues()(i);
+        if (std::abs(ev.imag()) < 1e-8 && ev.real() > 0.0) {
+          positive_real.push_back(ev.real());
+        }
+      }
+      std::sort(positive_real.begin(), positive_real.end());
+      const Index nprint =
+          std::min<Index>(10, static_cast<Index>(positive_real.size()));
+      for (Index i = 0; i < nprint; ++i) {
+        XTP_LOG(Log::error, log_)
+            << TimeStamp() << " dense full-BSE root " << (i + 1) << " = "
+            << positive_real[i] * tools::conv::hrt2ev << " eV"
+            << flush;
+      }
+    }
+  }
+
   return Solve_nonhermitian_Davidson(A, B);
 }
 
@@ -236,41 +267,79 @@ tools::EigenSystem BSE_UKS::Solve_nonhermitian_Davidson(
   return result;
 }
 
-void BSE_UKS::PrintWeightsUKS(const Eigen::VectorXd& coeffs) const {
-  const Eigen::VectorXd weights = coeffs.array().square();
+void BSE_UKS::PrintWeightsUKS(const Eigen::VectorXd& weights) const {
+  struct Contribution {
+    double weight;
+    bool is_alpha;
+    Index v;
+    Index c;
+  };
+
+  constexpr Index max_print = 8;
 
   double alpha_weight = weights.head(alpha_size_).sum();
   double beta_weight = weights.tail(beta_size_).sum();
 
   XTP_LOG(Log::error, log_)
-      << boost::format("           alpha-sector: %1$5.1f%%   beta-sector: %2$5.1f%%")
+      << boost::format(
+             "           alpha-sector: %1$+6.2f%%   beta-sector: %2$+6.2f%%")
              % (100.0 * alpha_weight) % (100.0 * beta_weight)
       << flush;
 
+  std::vector<Contribution> contributions;
+  contributions.reserve(alpha_size_ + beta_size_);
+
   for (Index i = 0; i < alpha_size_; ++i) {
-    if (weights(i) > opt_.min_print_weight) {
-      Index v = i / alpha_ctotal_;
-      Index c = i % alpha_ctotal_;
-      XTP_LOG(Log::error, log_)
-          << boost::format("           [alpha] HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
-                 % (homo_alpha_ - (opt_.vmin + v))
-                 % ((homo_alpha_ + 1 + c) - (homo_alpha_ + 1))
-                 % (100.0 * weights(i))
-          << flush;
+    if (std::abs(weights(i)) > opt_.min_print_weight) {
+      contributions.push_back(
+          {weights(i), true, i / alpha_ctotal_, i % alpha_ctotal_});
     }
   }
 
   for (Index i = 0; i < beta_size_; ++i) {
-    if (weights(alpha_size_ + i) > opt_.min_print_weight) {
-      Index v = i / beta_ctotal_;
-      Index c = i % beta_ctotal_;
+    const double w = weights(alpha_size_ + i);
+    if (std::abs(w) > opt_.min_print_weight) {
+      contributions.push_back(
+          {w, false, i / beta_ctotal_, i % beta_ctotal_});
+    }
+  }
+
+  std::sort(contributions.begin(), contributions.end(),
+            [](const Contribution& a, const Contribution& b) {
+              return std::abs(a.weight) > std::abs(b.weight);
+            });
+
+  const Index nprint =
+      std::min<Index>(max_print, static_cast<Index>(contributions.size()));
+
+  for (Index i = 0; i < nprint; ++i) {
+    const Contribution& c = contributions[i];
+
+    if (c.is_alpha) {
       XTP_LOG(Log::error, log_)
-          << boost::format("           [beta ] HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
-                 % (homo_beta_ - (opt_.vmin + v))
-                 % ((homo_beta_ + 1 + c) - (homo_beta_ + 1))
-                 % (100.0 * weights(alpha_size_ + i))
+          << boost::format(
+                 "           [alpha] HOMO-%1$-3d -> LUMO+%2$-3d  : %3$+6.2f%%")
+                 % (homo_alpha_ - (opt_.vmin + c.v))
+                 % ((homo_alpha_ + 1 + c.c) - (homo_alpha_ + 1))
+                 % (100.0 * c.weight)
+          << flush;
+    } else {
+      XTP_LOG(Log::error, log_)
+          << boost::format(
+                 "           [beta ] HOMO-%1$-3d -> LUMO+%2$-3d  : %3$+6.2f%%")
+                 % (homo_beta_ - (opt_.vmin + c.v))
+                 % ((homo_beta_ + 1 + c.c) - (homo_beta_ + 1))
+                 % (100.0 * c.weight)
           << flush;
     }
+  }
+
+  if (static_cast<Index>(contributions.size()) > nprint) {
+    XTP_LOG(Log::error, log_)
+        << boost::format(
+               "           ... %1$d more contributions above threshold")
+               % (static_cast<Index>(contributions.size()) - nprint)
+        << flush;
   }
 }
 
@@ -279,17 +348,30 @@ void BSE_UKS::Analyze_excitons_uks(
     const Orbitals& orb) const {
   (void)fragments;
 
-  XTP_LOG(Log::error, log_)
-      << "  ====== combined UKS exciton energies (eV) ====== " << flush;
-
   const tools::EigenSystem& es = orb.BSEUKS();
+
+  if (orb.getTDAApprox()) {
+    XTP_LOG(Log::error, log_)
+        << "  ====== combined UKS TDA exciton energies (eV) ====== " << flush;
+  } else {
+    XTP_LOG(Log::error, log_)
+        << "  ====== combined UKS full-BSE exciton energies (eV) ====== "
+        << flush;
+  }
+
   for (Index i = 0; i < std::min<Index>(opt_.nmax, es.eigenvalues().size());
        ++i) {
     XTP_LOG(Log::error, log_)
         << boost::format("  XU%-4d %+1.6f") % (i + 1)
                % (es.eigenvalues()(i) * tools::conv::hrt2ev)
         << flush;
-    PrintWeightsUKS(es.eigenvectors().col(i));
+
+    Eigen::VectorXd weights = es.eigenvectors().col(i).cwiseAbs2();
+    if (!orb.getTDAApprox()) {
+      weights -= es.eigenvectors2().col(i).cwiseAbs2();
+    }
+
+    PrintWeightsUKS(weights);
   }
 }
 

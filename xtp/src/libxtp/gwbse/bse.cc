@@ -410,7 +410,8 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   DS.set_tolerance(opt_.davidson_tolerance);
   DS.set_size_update(opt_.davidson_update);
   DS.set_iter_max(opt_.davidson_maxiter);
-  DS.set_max_search_space(10 * opt_.nmax);
+  //DS.set_max_search_space(10 * opt_.nmax);
+    DS.set_max_search_space(2 * Aop.rows());
   DS.set_matrix_type("HAM");
   DS.solve(Hop, opt_.nmax);
 

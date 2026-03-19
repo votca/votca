@@ -53,6 +53,7 @@ class BSE_OPERATOR_UKS final : public MatrixFreeOperator {
 
   Eigen::VectorXd diagonal() const override;
   Eigen::MatrixXd matmul(const Eigen::MatrixXd& input) const override;
+    Eigen::MatrixXd dense_matrix() const;
 
  private:
   struct SpinBlockInfo {

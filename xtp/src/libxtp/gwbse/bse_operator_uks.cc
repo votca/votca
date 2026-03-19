@@ -260,10 +260,21 @@ Eigen::MatrixXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::matmul(
                     -static_cast<double>(cd2));
   add_direct2_block(y_beta, x_alpha, beta_, alpha_, Mmn_.beta, Mmn_.alpha,
                     -static_cast<double>(cd2));
-                    
+
   y.topRows(alpha_.size) = y_alpha;
   y.bottomRows(beta_.size) = y_beta;
   return y;
+}
+
+template <Index cqp, Index cx, Index cd, Index cd2>
+Eigen::MatrixXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::dense_matrix() const {
+  Eigen::MatrixXd dense = Eigen::MatrixXd::Zero(rows(), cols());
+  for (Index i = 0; i < cols(); ++i) {
+    Eigen::MatrixXd e = Eigen::MatrixXd::Zero(rows(), 1);
+    e(i, 0) = 1.0;
+    dense.col(i) = matmul(e);
+  }
+  return dense;
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>
