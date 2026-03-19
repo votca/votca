@@ -74,9 +74,6 @@ class BSE {
   void Solve_singlets(Orbitals& orb) const;
   void Solve_triplets(Orbitals& orb) const;
 
-  void Solve_excitons_alpha(Orbitals& orb) const;
-  void Solve_excitons_beta(Orbitals& orb) const;
-
   Eigen::MatrixXd getHqp() const { return Hqp_; };
 
   SingletOperator_TDA getSingletOperator_TDA() const;
@@ -86,13 +83,6 @@ class BSE {
                         const Orbitals& orb) const;
   void Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
                         const Orbitals& orb) const;
-
-  void Analyze_excitons_alpha(
-      std::vector<QMFragment<BSE_Population> > fragments,
-      const Orbitals& orb) const;
-  void Analyze_excitons_beta(
-      std::vector<QMFragment<BSE_Population> > fragments,
-      const Orbitals& orb) const;
 
   void Perturbative_DynamicalScreening(const QMStateType& type, Orbitals& orb);
 
@@ -130,12 +120,6 @@ class BSE {
 
   tools::EigenSystem Solve_triplets_TDA() const;
   tools::EigenSystem Solve_triplets_BTDA() const;
-
-  tools::EigenSystem Solve_excitons_alpha_TDA() const;
-  tools::EigenSystem Solve_excitons_alpha_BTDA() const;
-
-  tools::EigenSystem Solve_excitons_beta_TDA() const;
-  tools::EigenSystem Solve_excitons_beta_BTDA() const;
 
   void PrintWeights(const Eigen::VectorXd& weights) const;
 

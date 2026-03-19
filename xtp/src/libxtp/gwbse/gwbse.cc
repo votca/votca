@@ -608,6 +608,14 @@ void GWBSE::addoutput(tools::Property& summary) {
   if (do_bse_exciton_uks_) {
     tools::Property& exciton_uks_summary =
         gwbse_summary.add("exciton_uks", "");
+
+    const bool has_dipoles = orbitals_.hasTransitionDipoles();
+    Eigen::VectorXd oscs = Eigen::VectorXd::Zero(0);
+    if (has_dipoles) {
+      oscs = orbitals_.Oscillatorstrengths(
+          QMStateType(QMStateType::ExcitonUKS));
+    }
+
     for (Index state = 0;
          state < std::min<Index>(bseopt_.nmax,
                                  orbitals_.BSEUKS().eigenvalues().size());
@@ -618,6 +626,21 @@ void GWBSE::addoutput(tools::Property& summary) {
           "omega", (boost::format("%1$+1.6f ") %
                     (orbitals_.BSEUKS().eigenvalues()(state) * hrt2ev))
                        .str());
+    const Index ndip = static_cast<Index>(orbitals_.TransitionDipoles().size());
+    const Index nosc = static_cast<Index>(oscs.size());
+
+    if (has_dipoles && state < ndip && state < nosc) {
+        const Eigen::Vector3d& dipoles = orbitals_.TransitionDipoles()[state];
+
+        level_summary.add("f", (boost::format("%1$+1.6f ") % oscs(state)).str());
+
+        tools::Property& dipol_summary = level_summary.add(
+            "Trdipole", (boost::format("%1$+1.4f %2$+1.4f %3$+1.4f") %
+                         dipoles.x() % dipoles.y() % dipoles.z())
+                            .str());
+        dipol_summary.setAttribute("unit", "e*bohr");
+        dipol_summary.setAttribute("gauge", "length");
+      }
     }
   }
 

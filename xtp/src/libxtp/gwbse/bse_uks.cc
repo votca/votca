@@ -194,6 +194,7 @@ void BSE_UKS::Solve_excitons_uks(Orbitals& orb) const {
   } else {
     orb.BSEUKS() = Solve_excitons_uks_BTDA();
   }
+  orb.CalcCoupledTransition_Dipoles(QMStateType(QMStateType::ExcitonUKS));
 }
 
 template <typename BSE_OPERATOR>
@@ -346,6 +347,8 @@ void BSE_UKS::Analyze_excitons_uks(
   (void)fragments;
 
   const tools::EigenSystem& es = orb.BSEUKS();
+  const Eigen::VectorXd oscs =
+      orb.Oscillatorstrengths(QMStateType(QMStateType::ExcitonUKS));
 
   if (orb.getTDAApprox()) {
     XTP_LOG(Log::error, log_)
@@ -361,6 +364,16 @@ void BSE_UKS::Analyze_excitons_uks(
     XTP_LOG(Log::error, log_)
         << boost::format("  XU%-4d %+1.6f") % (i + 1)
                % (es.eigenvalues()(i) * tools::conv::hrt2ev)
+        << flush;
+
+    const Eigen::Vector3d& trdip = orb.TransitionDipoles()[i];
+    const double osc = (i < oscs.size()) ? oscs(i) : 0.0;
+
+    XTP_LOG(Log::error, log_)
+        << boost::format(
+               "           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = "
+               "%2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %
+               trdip[0] % trdip[1] % trdip[2] % (trdip.squaredNorm()) % osc
         << flush;
 
     Eigen::VectorXd weights = es.eigenvectors().col(i).cwiseAbs2();
