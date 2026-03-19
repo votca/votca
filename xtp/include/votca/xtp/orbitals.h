@@ -233,6 +233,9 @@ class Orbitals {
       case QMStateType::ExcitonBeta:
         return Index(BSE_beta_.eigenvalues().size());
         break;
+      case QMStateType::ExcitonUKS:
+        return Index(BSE_uks_.eigenvalues().size());
+        break;
       default:
         return 1;
         break;
@@ -710,6 +713,21 @@ class Orbitals {
   }
   Eigen::VectorXd &BSEBeta_dynamic() { return BSE_beta_energies_dynamic_; }
 
+
+  bool hasBSEUKS() const {
+    return (BSE_uks_.eigenvectors().cols() > 0) ? true : false;
+  }
+  const tools::EigenSystem &BSEUKS() const { return BSE_uks_; }
+  tools::EigenSystem &BSEUKS() { return BSE_uks_; }
+
+  bool hasBSEUKS_dynamic() const {
+    return (BSE_uks_energies_dynamic_.size() > 0) ? true : false;
+  }
+  const Eigen::VectorXd &BSEUKS_dynamic() const {
+    return BSE_uks_energies_dynamic_;
+  }
+  Eigen::VectorXd &BSEUKS_dynamic() { return BSE_uks_energies_dynamic_; }
+
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
@@ -810,6 +828,9 @@ class Orbitals {
 
   Eigen::VectorXd BSE_alpha_energies_dynamic_;
   Eigen::VectorXd BSE_beta_energies_dynamic_;
+
+  tools::EigenSystem BSE_uks_;
+  Eigen::VectorXd BSE_uks_energies_dynamic_;
 
   // Version 2: adds BSE energies after perturbative dynamical screening
   // Version 3: changed shell ordering

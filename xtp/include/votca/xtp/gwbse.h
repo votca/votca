@@ -29,6 +29,7 @@
 
 // Local VOTCA includes
 #include "bse.h"
+#include "bse_uks.h"
 #include "eigen.h"
 #include "gw.h"
 #include "gw_uks.h"
@@ -82,6 +83,7 @@ class GWBSE {
   bool do_dynamical_screening_bse_ = false;
   bool do_bse_exciton_alpha_ = false;
   bool do_bse_exciton_beta_ = false;
+  bool do_bse_exciton_uks_ = false;
 
   // options for own Vxc calculation
   std::string functional_;

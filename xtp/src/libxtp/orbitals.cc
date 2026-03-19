@@ -781,6 +781,9 @@ void Orbitals::WriteToCpt(CheckpointWriter& w) const {
 
   w(BSE_alpha_energies_dynamic_, "BSE_alpha_dynamic");
   w(BSE_beta_energies_dynamic_, "BSE_beta_dynamic");
+
+  w(BSE_uks_, "BSE_uks");
+  w(BSE_uks_energies_dynamic_, "BSE_uks_dynamic");
 }
 
 void Orbitals::ReadFromCpt(const std::string& filename) {
@@ -913,6 +916,8 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
   r_optional(BSE_beta_, "BSE_beta");
   r_optional(BSE_alpha_energies_dynamic_, "BSE_alpha_dynamic");
   r_optional(BSE_beta_energies_dynamic_, "BSE_beta_dynamic");
+  r_optional(BSE_uks_, "BSE_uks");
+  r_optional(BSE_uks_energies_dynamic_, "BSE_uks_dynamic");
   r(BSE_singlet_, "BSE_singlet");
 
   r(transition_dipoles_, "transition_dipoles");
