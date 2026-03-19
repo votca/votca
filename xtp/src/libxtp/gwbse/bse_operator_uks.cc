@@ -358,6 +358,8 @@ Eigen::VectorXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::diagonal() const {
 
 template class BSE_OPERATOR_UKS<1, 1, 1, 0>;
 template class BSE_OPERATOR_UKS<0, 1, 0, 1>;
+template class BSE_OPERATOR_UKS<0, 0, 1, 0>;
+template class BSE_OPERATOR_UKS<0, 0, 0, 1>;
 
 }  // namespace xtp
 }  // namespace votca

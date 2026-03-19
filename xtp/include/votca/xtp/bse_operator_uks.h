@@ -122,6 +122,10 @@ typedef BSE_OPERATOR_UKS<1, 1, 1, 0> ExcitonUKSOperator_TDA;
 // full BSE B block: Hx - Hd2
 typedef BSE_OPERATOR_UKS<0, 1, 0, 1> ExcitonUKSOperator_BTDA_B;
 
+// direct-only operators used for perturbative dynamical screening
+typedef BSE_OPERATOR_UKS<0, 0, 1, 0> HdUKSOperator;
+typedef BSE_OPERATOR_UKS<0, 0, 0, 1> Hd2UKSOperator;
+
 }  // namespace xtp
 }  // namespace votca
 

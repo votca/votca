@@ -52,25 +52,34 @@ class BSE_UKS {
     double dyn_tolerance;
   };
 
-  BSE_UKS(Logger& log, const TCMatrix_gwbse_spin& Mmn) : log_(log), Mmn_(Mmn) {}
+  BSE_UKS(Logger& log, const TCMatrix_gwbse_spin& Mmn)
+      : log_(log), Mmn_raw_(Mmn), Mmn_(Mmn) {}
 
   void configure_with_precomputed_screening(
-      const options& opt,
-      Index homo_alpha, Index homo_beta,
+      const options& opt, Index homo_alpha, Index homo_beta,
       const Eigen::VectorXd& RPAInputEnergiesAlpha,
       const Eigen::VectorXd& RPAInputEnergiesBeta,
       const Eigen::MatrixXd& Hqp_alpha_in,
       const Eigen::MatrixXd& Hqp_beta_in,
-      const Eigen::VectorXd& epsilon_0_inv);
+      const Eigen::VectorXd& epsilon_0_inv,
+      const Eigen::MatrixXd& epsilon_eigenvectors);
 
   void Solve_excitons_uks(Orbitals& orb) const;
 
   void Analyze_excitons_uks(std::vector<QMFragment<BSE_Population>> fragments,
                             const Orbitals& orb) const;
 
+  void Perturbative_DynamicalScreening(Orbitals& orb);
+
  private:
+  struct ExpectationValues {
+    Eigen::VectorXd direct_term;
+    Eigen::VectorXd cross_term;
+  };
+
   Logger& log_;
-  const TCMatrix_gwbse_spin& Mmn_;
+  const TCMatrix_gwbse_spin& Mmn_raw_;
+  TCMatrix_gwbse_spin Mmn_;
   options opt_;
 
   Index homo_alpha_ = 0;
@@ -90,6 +99,22 @@ class BSE_UKS {
   Eigen::MatrixXd AdjustHqpSize(const Eigen::MatrixXd& Hqp_in,
                                 const Eigen::VectorXd& RPAInputEnergies,
                                 Index homo) const;
+
+  void SetupDirectInteractionOperator(
+      const Eigen::VectorXd& RPAInputEnergiesAlpha,
+      const Eigen::VectorXd& RPAInputEnergiesBeta, double energy);
+
+  template <typename BSE_OPERATOR>
+  void configureBSEOperator(BSE_OPERATOR& H) const;
+
+  template <typename BSE_OPERATOR>
+  ExpectationValues ExpectationValue_Operator(const Orbitals& orb,
+                                              const BSE_OPERATOR& H) const;
+
+  template <typename BSE_OPERATOR>
+  ExpectationValues ExpectationValue_Operator_State(Index state,
+                                                    const Orbitals& orb,
+                                                    const BSE_OPERATOR& H) const;
 
   tools::EigenSystem Solve_excitons_uks_TDA() const;
   tools::EigenSystem Solve_excitons_uks_BTDA() const;

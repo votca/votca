@@ -23,6 +23,7 @@
 #include <votca/tools/linalg.h>
 
 #include "votca/xtp/bse_uks.h"
+#include "votca/xtp/rpa_uks.h"
 #include "votca/xtp/bse_operator_uks.h"
 #include "votca/xtp/bseoperator_btda.h"
 #include "votca/xtp/davidsonsolver.h"
@@ -30,17 +31,30 @@
 
 using std::flush;
 
+namespace {
+
+template <class OP>
+Eigen::VectorXd ExpValue(const Eigen::MatrixXd& state1, OP OPxstate2) {
+  return state1.cwiseProduct(OPxstate2.eval()).colwise().sum().transpose();
+}
+
+Eigen::VectorXd ExpValue(const Eigen::MatrixXd& state1,
+                         const Eigen::MatrixXd& OPxstate2) {
+  return state1.cwiseProduct(OPxstate2).colwise().sum().transpose();
+}
+
+}  // namespace
+
 namespace votca {
 namespace xtp {
 
 void BSE_UKS::configure_with_precomputed_screening(
-    const options& opt,
-    Index homo_alpha, Index homo_beta,
+    const options& opt, Index homo_alpha, Index homo_beta,
     const Eigen::VectorXd& RPAInputEnergiesAlpha,
     const Eigen::VectorXd& RPAInputEnergiesBeta,
-    const Eigen::MatrixXd& Hqp_alpha_in,
-    const Eigen::MatrixXd& Hqp_beta_in,
-    const Eigen::VectorXd& epsilon_0_inv) {
+    const Eigen::MatrixXd& Hqp_alpha_in, const Eigen::MatrixXd& Hqp_beta_in,
+    const Eigen::VectorXd& epsilon_0_inv,
+    const Eigen::MatrixXd& epsilon_eigenvectors) {
 
   opt_ = opt;
   homo_alpha_ = homo_alpha;
@@ -55,8 +69,10 @@ void BSE_UKS::configure_with_precomputed_screening(
   beta_size_ = beta_vtotal_ * beta_ctotal_;
 
   if (opt_.use_Hqp_offdiag) {
-    Hqp_alpha_ = AdjustHqpSize(Hqp_alpha_in, RPAInputEnergiesAlpha, homo_alpha_);
-    Hqp_beta_ = AdjustHqpSize(Hqp_beta_in, RPAInputEnergiesBeta, homo_beta_);
+    Hqp_alpha_ =
+        AdjustHqpSize(Hqp_alpha_in, RPAInputEnergiesAlpha, homo_alpha_);
+    Hqp_beta_ =
+        AdjustHqpSize(Hqp_beta_in, RPAInputEnergiesBeta, homo_beta_);
   } else {
     Hqp_alpha_ =
         AdjustHqpSize(Hqp_alpha_in, RPAInputEnergiesAlpha, homo_alpha_)
@@ -67,6 +83,11 @@ void BSE_UKS::configure_with_precomputed_screening(
             .diagonal()
             .asDiagonal();
   }
+
+  // Store the statically screened interaction in the working copy Mmn_.
+  Mmn_ = Mmn_raw_;
+  Mmn_.alpha.MultiplyRightWithAuxMatrix(epsilon_eigenvectors);
+  Mmn_.beta.MultiplyRightWithAuxMatrix(epsilon_eigenvectors);
 
   epsilon_0_inv_ = epsilon_0_inv;
 }
@@ -112,6 +133,90 @@ Eigen::MatrixXd BSE_UKS::AdjustHqpSize(const Eigen::MatrixXd& Hqp,
   }
 
   return Hqp_BSE;
+}
+
+
+void BSE_UKS::SetupDirectInteractionOperator(
+    const Eigen::VectorXd& RPAInputEnergiesAlpha,
+    const Eigen::VectorXd& RPAInputEnergiesBeta, double energy) {
+
+  RPA_UKS rpa(log_, Mmn_raw_);
+  rpa.configure(homo_alpha_, homo_beta_, opt_.rpamin, opt_.rpamax);
+  rpa.setRPAInputEnergies(RPAInputEnergiesAlpha, RPAInputEnergiesBeta);
+
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(
+      rpa.calculate_epsilon_r(energy));
+
+  Mmn_ = Mmn_raw_;
+  Mmn_.alpha.MultiplyRightWithAuxMatrix(es.eigenvectors());
+  Mmn_.beta.MultiplyRightWithAuxMatrix(es.eigenvectors());
+
+  epsilon_0_inv_ = Eigen::VectorXd::Zero(es.eigenvalues().size());
+  for (Index i = 0; i < es.eigenvalues().size(); ++i) {
+    if (es.eigenvalues()(i) > 1e-8) {
+      epsilon_0_inv_(i) = 1.0 / es.eigenvalues()(i);
+    }
+  }
+}
+
+template <typename BSE_OPERATOR>
+void BSE_UKS::configureBSEOperator(BSE_OPERATOR& H) const {
+  BSEOperatorUKS_Options opt;
+  opt.homo_alpha = homo_alpha_;
+  opt.homo_beta = homo_beta_;
+  opt.rpamin = opt_.rpamin;
+  opt.qpmin = opt_.qpmin;
+  opt.vmin = opt_.vmin;
+  opt.cmax = opt_.cmax;
+  H.configure(opt);
+}
+
+template <typename BSE_OPERATOR>
+BSE_UKS::ExpectationValues BSE_UKS::ExpectationValue_Operator(
+    const Orbitals& orb, const BSE_OPERATOR& H) const {
+
+  const tools::EigenSystem& BSECoefs = orb.BSEUKS();
+
+  ExpectationValues expectation_values;
+
+  const Eigen::MatrixXd temp = H * BSECoefs.eigenvectors();
+
+  expectation_values.direct_term = ExpValue(BSECoefs.eigenvectors(), temp);
+
+  if (!orb.getTDAApprox()) {
+    expectation_values.direct_term +=
+        ExpValue(BSECoefs.eigenvectors2(), H * BSECoefs.eigenvectors2());
+    expectation_values.cross_term =
+        2.0 * ExpValue(BSECoefs.eigenvectors2(), temp);
+  } else {
+    expectation_values.cross_term = Eigen::VectorXd::Zero(0);
+  }
+
+  return expectation_values;
+}
+
+template <typename BSE_OPERATOR>
+BSE_UKS::ExpectationValues BSE_UKS::ExpectationValue_Operator_State(
+    Index state, const Orbitals& orb, const BSE_OPERATOR& H) const {
+
+  const tools::EigenSystem& BSECoefs = orb.BSEUKS();
+
+  ExpectationValues expectation_values;
+
+  const Eigen::MatrixXd Xstate = BSECoefs.eigenvectors().col(state);
+  const Eigen::MatrixXd temp = H * Xstate;
+
+  expectation_values.direct_term = ExpValue(Xstate, temp);
+
+  if (!orb.getTDAApprox()) {
+    const Eigen::MatrixXd Ystate = BSECoefs.eigenvectors2().col(state);
+    expectation_values.direct_term += ExpValue(Ystate, H * Ystate);
+    expectation_values.cross_term = 2.0 * ExpValue(Ystate, temp);
+  } else {
+    expectation_values.cross_term = Eigen::VectorXd::Zero(0);
+  }
+
+  return expectation_values;
 }
 
 tools::EigenSystem BSE_UKS::Solve_excitons_uks_TDA() const {
@@ -385,6 +490,116 @@ void BSE_UKS::Analyze_excitons_uks(
   }
 }
 
+void BSE_UKS::Perturbative_DynamicalScreening(Orbitals& orb) {
+
+  const tools::EigenSystem& BSECoefs = orb.BSEUKS();
+  const Eigen::VectorXd& BSEenergies = BSECoefs.eigenvalues();
+
+  const Eigen::VectorXd& RPAInputEnergiesAlpha = orb.RPAInputEnergiesAlpha();
+  const Eigen::VectorXd& RPAInputEnergiesBeta = orb.RPAInputEnergiesBeta();
+
+  // Static reference contribution of the direct kernel.
+  SetupDirectInteractionOperator(RPAInputEnergiesAlpha, RPAInputEnergiesBeta,
+                                 0.0);
+
+  HdUKSOperator Hd_static(epsilon_0_inv_, Mmn_, Hqp_alpha_, Hqp_beta_);
+  configureBSEOperator(Hd_static);
+
+  ExpectationValues expectation_values =
+      ExpectationValue_Operator(orb, Hd_static);
+  Eigen::VectorXd Hd_static_contribution = expectation_values.direct_term;
+
+  if (!orb.getTDAApprox()) {
+    Hd2UKSOperator Hd2_static(epsilon_0_inv_, Mmn_, Hqp_alpha_, Hqp_beta_);
+    configureBSEOperator(Hd2_static);
+    expectation_values = ExpectationValue_Operator(orb, Hd2_static);
+    Hd_static_contribution += expectation_values.cross_term;
+  }
+
+  Eigen::VectorXd BSEenergies_dynamic = BSEenergies;
+
+  for (Index i_exc = 0; i_exc < BSEenergies.size(); ++i_exc) {
+    XTP_LOG(Log::info, log_)
+        << "Dynamical Screening UKS BSE, Excitation " << i_exc
+        << " static " << BSEenergies(i_exc) << flush;
+
+    for (Index iter = 0; iter < opt_.max_dyn_iter; ++iter) {
+      const double old_energy = BSEenergies_dynamic(i_exc);
+
+      SetupDirectInteractionOperator(RPAInputEnergiesAlpha,
+                                     RPAInputEnergiesBeta, old_energy);
+
+      HdUKSOperator Hd_dyn(epsilon_0_inv_, Mmn_, Hqp_alpha_, Hqp_beta_);
+      configureBSEOperator(Hd_dyn);
+
+      expectation_values = ExpectationValue_Operator_State(i_exc, orb, Hd_dyn);
+      Eigen::VectorXd Hd_dynamic_contribution = expectation_values.direct_term;
+
+      if (!orb.getTDAApprox()) {
+        Hd2UKSOperator Hd2_dyn(epsilon_0_inv_, Mmn_, Hqp_alpha_, Hqp_beta_);
+        configureBSEOperator(Hd2_dyn);
+        expectation_values =
+            ExpectationValue_Operator_State(i_exc, orb, Hd2_dyn);
+        Hd_dynamic_contribution += expectation_values.cross_term;
+      }
+
+      BSEenergies_dynamic(i_exc) =
+          BSEenergies(i_exc) + Hd_static_contribution(i_exc) -
+          Hd_dynamic_contribution(0);
+
+      XTP_LOG(Log::info, log_)
+          << "Dynamical Screening UKS BSE, excitation " << i_exc
+          << " iteration " << iter << " dynamic "
+          << BSEenergies_dynamic(i_exc) << flush;
+
+      if (std::abs(BSEenergies_dynamic(i_exc) - old_energy) <
+          opt_.dyn_tolerance) {
+        break;
+      }
+    }
+  }
+
+  orb.BSEUKS_dynamic() = BSEenergies_dynamic;
+
+  const double hrt2ev = tools::conv::hrt2ev;
+  const bool has_dipoles = orb.hasTransitionDipoles();
+
+  Eigen::VectorXd oscs = Eigen::VectorXd::Zero(0);
+  if (has_dipoles) {
+    oscs = orb.Oscillatorstrengths(QMStateType(QMStateType::ExcitonUKS));
+  }
+
+  if (orb.getTDAApprox()) {
+    XTP_LOG(Log::error, log_)
+        << "  ====== combined UKS TDA exciton energies with perturbative "
+           "dynamical screening (eV) ====== "
+        << flush;
+  } else {
+    XTP_LOG(Log::error, log_)
+        << "  ====== combined UKS full-BSE exciton energies with perturbative "
+           "dynamical screening (eV) ====== "
+        << flush;
+  }
+
+  const Index nprint =
+      std::min<Index>(opt_.nmax, BSEenergies_dynamic.size());
+
+  for (Index i = 0; i < nprint; ++i) {
+    double osc = 0.0;
+    if (has_dipoles && i < oscs.size()) {
+      osc = oscs(i) * BSEenergies_dynamic(i) / BSEenergies(i);
+    }
+
+    XTP_LOG(Log::error, log_)
+        << boost::format(
+               "  XU(dynamic) = %1$4d Omega = %2$+1.12f eV  lambda = %3$+3.2f nm"
+               " f = %4$+1.4f") %
+               (i + 1) % (hrt2ev * BSEenergies_dynamic(i)) %
+               (1240.0 / (hrt2ev * BSEenergies_dynamic(i))) % osc
+        << flush;
+  }
+}
+
 template tools::EigenSystem BSE_UKS::solve_hermitian<ExcitonUKSOperator_TDA>(
     ExcitonUKSOperator_TDA&) const;
 
@@ -392,6 +607,41 @@ template tools::EigenSystem
 BSE_UKS::Solve_nonhermitian_Davidson<ExcitonUKSOperator_TDA,
                                      ExcitonUKSOperator_BTDA_B>(
     ExcitonUKSOperator_TDA&, ExcitonUKSOperator_BTDA_B&) const;
+
+template void BSE_UKS::configureBSEOperator<ExcitonUKSOperator_TDA>(
+    ExcitonUKSOperator_TDA&) const;
+template void BSE_UKS::configureBSEOperator<ExcitonUKSOperator_BTDA_B>(
+    ExcitonUKSOperator_BTDA_B&) const;
+template void BSE_UKS::configureBSEOperator<HdUKSOperator>(
+    HdUKSOperator&) const;
+template void BSE_UKS::configureBSEOperator<Hd2UKSOperator>(
+    Hd2UKSOperator&) const;
+
+template BSE_UKS::ExpectationValues
+BSE_UKS::ExpectationValue_Operator<ExcitonUKSOperator_TDA>(
+    const Orbitals&, const ExcitonUKSOperator_TDA&) const;
+template BSE_UKS::ExpectationValues
+BSE_UKS::ExpectationValue_Operator<ExcitonUKSOperator_BTDA_B>(
+    const Orbitals&, const ExcitonUKSOperator_BTDA_B&) const;
+template BSE_UKS::ExpectationValues
+BSE_UKS::ExpectationValue_Operator<HdUKSOperator>(
+    const Orbitals&, const HdUKSOperator&) const;
+template BSE_UKS::ExpectationValues
+BSE_UKS::ExpectationValue_Operator<Hd2UKSOperator>(
+    const Orbitals&, const Hd2UKSOperator&) const;
+
+template BSE_UKS::ExpectationValues
+BSE_UKS::ExpectationValue_Operator_State<ExcitonUKSOperator_TDA>(
+    Index, const Orbitals&, const ExcitonUKSOperator_TDA&) const;
+template BSE_UKS::ExpectationValues
+BSE_UKS::ExpectationValue_Operator_State<ExcitonUKSOperator_BTDA_B>(
+    Index, const Orbitals&, const ExcitonUKSOperator_BTDA_B&) const;
+template BSE_UKS::ExpectationValues
+BSE_UKS::ExpectationValue_Operator_State<HdUKSOperator>(
+    Index, const Orbitals&, const HdUKSOperator&) const;
+template BSE_UKS::ExpectationValues
+BSE_UKS::ExpectationValue_Operator_State<Hd2UKSOperator>(
+    Index, const Orbitals&, const Hd2UKSOperator&) const;
 
 }  // namespace xtp
 }  // namespace votca

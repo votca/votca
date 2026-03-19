@@ -479,13 +479,7 @@ void GWBSE::Initialize(tools::Property& options) {
         << " Sigma plot spacing: " << sigma_plot_spacing_ << flush;
     XTP_LOG(Log::error, *pLog_)
         << " Sigma plot filename: " << sigma_plot_filename_ << flush;
-  }
-  /*if (orbitals_.hasUnrestrictedOrbitals() &&
-      (do_bse_singlets_ || do_bse_triplets_ || do_dynamical_screening_bse_)) {
-    throw std::runtime_error(
-        "Open-shell GWBSE currently supports GW only; BSE is still restricted "
-        "to closed-shell references.");
-  }*/
+    }
 }
 
 void GWBSE::addoutput(tools::Property& summary) {
@@ -971,14 +965,6 @@ if (do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) {
 
     if (is_uks) {
 
-      if (do_dynamical_screening_bse_) {
-        throw std::runtime_error(
-            "Perturbative dynamical BSE screening is not yet implemented "
-            "consistently for UKS. The static UKS BSE screening is now built "
-            "from the combined alpha+beta RPA response, but the dynamical path "
-            "still assumes restricted RPA input energies.");
-      }
-
       // Build a single spin-summed dielectric screening from the unrestricted
       // RPA response and reuse it for both exciton spin channels.
       RPA_UKS rpa_uks_bse(*pLog_, Mmn_spin);
@@ -997,15 +983,6 @@ if (do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) {
           epsilon_0_inv_bse(i) = 1.0 / es_bse.eigenvalues()(i);
         }
       }
-
-      // Rotate both alpha and beta three-center matrices with the same
-      // dielectric eigenvectors so that the combined UKS BSE uses the
-      // identical screened interaction W built from chi0_alpha + chi0_beta.
-      TCMatrix_gwbse_spin Mmn_bse_spin;
-      Mmn_bse_spin.alpha = Mmn_spin.alpha;
-      Mmn_bse_spin.beta = Mmn_spin.beta;
-      Mmn_bse_spin.alpha.MultiplyRightWithAuxMatrix(es_bse.eigenvectors());
-      Mmn_bse_spin.beta.MultiplyRightWithAuxMatrix(es_bse.eigenvectors());
 
       if (do_bse_exciton_uks_) {
         BSE_UKS::options bseopt_uks;
@@ -1026,12 +1003,12 @@ if (do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) {
         bseopt_uks.max_dyn_iter = bseopt_.max_dyn_iter;
         bseopt_uks.dyn_tolerance = bseopt_.dyn_tolerance;
 
-        BSE_UKS bse_uks(*pLog_, Mmn_bse_spin);
+        BSE_UKS bse_uks(*pLog_, Mmn_spin);
         bse_uks.configure_with_precomputed_screening(
             bseopt_uks, orbitals_.getHomoAlpha(), orbitals_.getHomoBeta(),
             orbitals_.RPAInputEnergiesAlpha(),
             orbitals_.RPAInputEnergiesBeta(),
-            Hqp_alpha, Hqp_beta, epsilon_0_inv_bse);
+            Hqp_alpha, Hqp_beta, epsilon_0_inv_bse, es_bse.eigenvectors());
 
         bse_uks.Solve_excitons_uks(orbitals_);
         XTP_LOG(Log::error, *pLog_)
@@ -1039,6 +1016,10 @@ if (do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) {
             << " Solved combined UKS BSE exciton problem "
             << flush;
         bse_uks.Analyze_excitons_uks(fragments_, orbitals_);
+
+        if (do_dynamical_screening_bse_) {
+          bse_uks.Perturbative_DynamicalScreening(orbitals_);
+        }
       }
     } else {
       BSE bse = BSE(*pLog_, Mmn);
