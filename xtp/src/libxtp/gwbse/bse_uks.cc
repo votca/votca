@@ -187,7 +187,50 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
     }
   }
 
-  return Solve_nonhermitian_Davidson(A, B);
+  // --- TDA-seeded initial guess for diagnostic purposes ---
+  tools::EigenSystem tda_guess = solve_hermitian(A);
+
+  const Index ntda = tda_guess.eigenvectors().cols();
+  const Index nguess =
+      std::min<Index>(A.rows(), std::max<Index>(2 * opt_.nmax, 8));
+
+  Eigen::MatrixXd initial_guess =
+      Eigen::MatrixXd::Zero(2 * A.rows(), nguess);
+
+  // Put the available TDA eigenvectors into the X block
+  initial_guess.topRows(A.rows()).leftCols(ntda) = tda_guess.eigenvectors();
+
+  // Fill remaining guess vectors with simple X-space basis vectors
+  for (Index j = ntda; j < nguess; ++j) {
+    initial_guess(j - ntda, j) = 1.0;
+  }
+
+  HamiltonianOperator<ExcitonUKSOperator_TDA, ExcitonUKSOperator_BTDA_B> Hop(A,
+                                                                             B);
+
+  DavidsonSolver DS(log_);
+  DS.set_correction(opt_.davidson_correction);
+  DS.set_tolerance(opt_.davidson_tolerance);
+  DS.set_size_update(opt_.davidson_update);
+  DS.set_iter_max(opt_.davidson_maxiter);
+  DS.set_max_search_space(2 * A.rows());
+  DS.set_matrix_type("HAM");
+  DS.solve(Hop, opt_.nmax, initial_guess);
+
+  tools::EigenSystem result;
+  result.eigenvalues() = DS.eigenvalues();
+
+  Eigen::MatrixXd tmpX = DS.eigenvectors().topRows(A.rows());
+  Eigen::MatrixXd tmpY = DS.eigenvectors().bottomRows(B.rows());
+
+  Eigen::VectorXd normX = tmpX.colwise().squaredNorm();
+  Eigen::VectorXd normY = tmpY.colwise().squaredNorm();
+  Eigen::ArrayXd sqinvnorm = (normX - normY).array().inverse().cwiseSqrt();
+
+  result.eigenvectors() = tmpX * sqinvnorm.matrix().asDiagonal();
+  result.eigenvectors2() = tmpY * sqinvnorm.matrix().asDiagonal();
+
+  return result;
 }
 
 void BSE_UKS::Solve_excitons_uks(Orbitals& orb) const {
