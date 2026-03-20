@@ -40,6 +40,7 @@
 	  <bse>
 	    <dyn_screen_max_iter choices="int+" default="0" help="maximum number of iterations for perturbative dynamical screening in BSE">5</dyn_screen_max_iter>
 	    <useTDA>true</useTDA>
+		<exctotal>5</exctotal>
 	  </bse>
 	</gwbse>
 </dftgwbse>
