@@ -330,6 +330,69 @@ const Eigen::MatrixXd B_rebuilt = Hx_dense + Hd2_dense;
     const Index nbeta = (homo_beta_ - opt_.vmin + 1) *
                         (opt_.cmax - (homo_beta_ + 1) + 1);
 
+                          auto dump_matrix_txt = [&](const std::string& name,
+                             const Eigen::MatrixXd& M) {
+    std::ofstream ofs(name.c_str());
+    ofs.setf(std::ios::scientific);
+    ofs << std::setprecision(17);
+    for (Index i = 0; i < M.rows(); ++i) {
+      for (Index j = 0; j < M.cols(); ++j) {
+        ofs << M(i, j);
+        if (j + 1 < M.cols()) {
+          ofs << " ";
+        }
+      }
+      ofs << "\n";
+    }
+    ofs.close();
+
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " dumped matrix to " << name
+        << " (" << M.rows() << "x" << M.cols() << ")"
+        << flush;
+  };
+
+  auto dump_matrix_bin = [&](const std::string& name,
+                             const Eigen::MatrixXd& M) {
+    std::ofstream ofs(name.c_str(), std::ios::binary);
+    const Index rows = M.rows();
+    const Index cols = M.cols();
+    ofs.write(reinterpret_cast<const char*>(&rows), sizeof(Index));
+    ofs.write(reinterpret_cast<const char*>(&cols), sizeof(Index));
+    ofs.write(reinterpret_cast<const char*>(M.data()),
+              sizeof(double) * rows * cols);
+    ofs.close();
+
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " dumped binary matrix to " << name
+        << " (" << rows << "x" << cols << ")"
+        << flush;
+  };
+
+    // ---- dump full dense matrices for cross-platform comparison ----
+    {
+      std::ostringstream tag;
+      tag << "uks_bse_debug_dim" << (nalpha + nbeta);
+
+      dump_matrix_txt(tag.str() + "_A_dense.txt", A_dense);
+      dump_matrix_txt(tag.str() + "_B_dense.txt", B_dense);
+      dump_matrix_txt(tag.str() + "_Hqp_dense.txt", Hqp_dense);
+      dump_matrix_txt(tag.str() + "_Hx_dense.txt", Hx_dense);
+      dump_matrix_txt(tag.str() + "_Hd_dense.txt", Hd_dense);
+      dump_matrix_txt(tag.str() + "_Hd2_dense.txt", Hd2_dense);
+
+      // optional: binary copies too
+      // dump_matrix_bin(tag.str() + "_A_dense.bin", A_dense);
+      // dump_matrix_bin(tag.str() + "_B_dense.bin", B_dense);
+      // dump_matrix_bin(tag.str() + "_Hqp_dense.bin", Hqp_dense);
+      // dump_matrix_bin(tag.str() + "_Hx_dense.bin", Hx_dense);
+      // dump_matrix_bin(tag.str() + "_Hd_dense.bin", Hd_dense);
+      // dump_matrix_bin(tag.str() + "_Hd2_dense.bin", Hd2_dense);
+    }
+
+
+
+
     auto print_block = [&](const std::string& name, const Eigen::MatrixXd& M) {
       const Eigen::MatrixXd aa = M.topLeftCorner(nalpha, nalpha);
       const Eigen::MatrixXd ab = M.topRightCorner(nalpha, nbeta);
