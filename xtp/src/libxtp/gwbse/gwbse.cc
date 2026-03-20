@@ -343,22 +343,10 @@ void GWBSE::Initialize(tools::Property& options) {
   }
 
   if (is_uks) {
-    if (tasks_string.find("all") != std::string::npos ||
-        tasks_string.find("excitons") != std::string::npos ||
+    if (tasks_string.find("excitons") != std::string::npos ||
         tasks_string.find("exciton_uks") != std::string::npos) {
       do_gw_ = true;
       do_bse_exciton_uks_ = true;
-    }
-
-    if (tasks_string.find("exciton_alpha") != std::string::npos ||
-        tasks_string.find("exciton_beta") != std::string::npos) {
-      do_bse_exciton_uks_ = true;
-      XTP_LOG(Log::error, *pLog_)
-          << " UKS BSE now solves the combined alpha-alpha/beta-beta "
-             "spin-conserving exciton problem. "
-             "exciton_alpha/exciton_beta are treated as deprecated aliases "
-             "for exciton_uks."
-          << flush;
     }
 
     if (tasks_string.find("singlets") != std::string::npos ||
@@ -371,9 +359,14 @@ void GWBSE::Initialize(tools::Property& options) {
     }
   } else {
     if (tasks_string.find("all") != std::string::npos) {
+      if (is_uks){
+      do_gw_ = true;
+      do_bse_exciton_uks_ = true;
+      } else {
       do_gw_ = true;
       do_bse_singlets_ = true;
-      do_bse_triplets_ = true;
+      do_bse_triplets_ = true;  
+      }
     }
     if (tasks_string.find("singlets") != std::string::npos) {
       do_bse_singlets_ = true;
