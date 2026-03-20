@@ -322,8 +322,8 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
     const Eigen::MatrixXd Hd_dense = Hd.dense_matrix();
     const Eigen::MatrixXd Hd2_dense = Hd2.dense_matrix();
 
-    const Eigen::MatrixXd A_rebuilt = Hqp_dense + Hx_dense - Hd_dense;
-    const Eigen::MatrixXd B_rebuilt = Hx_dense - Hd2_dense;
+const Eigen::MatrixXd A_rebuilt = Hqp_dense + Hx_dense + Hd_dense;
+const Eigen::MatrixXd B_rebuilt = Hx_dense + Hd2_dense;
 
     const Index nalpha = (homo_alpha_ - opt_.vmin + 1) *
                          (opt_.cmax - (homo_alpha_ + 1) + 1);
@@ -393,9 +393,8 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
     print_asym("Hd2_dense", Hd2_dense);
 
     XTP_LOG(Log::error, log_)
-        << TimeStamp() << " rebuild check: ||A-(Hqp+Hx-Hd)||="
-        << (A_dense - A_rebuilt).norm()
-        << " ||B-(Hx-Hd2)||=" << (B_dense - B_rebuilt).norm()
+        << TimeStamp() << " rebuild check: ||A-(Hqp+Hx+Hd)||=" << (A_dense - A_rebuilt).norm()
+<< " ||B-(Hx+Hd2)||=" << (B_dense - B_rebuilt).norm()
         << flush;
 
     // Small slices for cross-architecture comparison
