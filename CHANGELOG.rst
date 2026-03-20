@@ -8,6 +8,7 @@ Version 2026-dev
 -  more unit tests for dftengine (#1231)
 -  implementing Unrestricted KS-DFT for open-shell systems (#1232)
 -  added open-shell support for GW (#1234)
+-  implemented BSE for spin-polarized ground states (#1235)
 
 Version 2026 (released 09.03.26)
 ================================
