@@ -155,6 +155,54 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
       const Eigen::MatrixXd right =
           Min[v1 + out_blk.vmin_rpa].middleRows(in_blk.cmin_rpa, in_blk.ctotal);
 
+      const Eigen::MatrixXd block = right * eps * left.transpose();
+
+      Eigen::VectorXd row(in_blk.vtotal * in_blk.ctotal);
+      for (Index v2 = 0; v2 < in_blk.vtotal; ++v2) {
+        for (Index c2 = 0; c2 < in_blk.ctotal; ++c2) {
+          const Index idx = v2 * in_blk.ctotal + c2;
+          row(idx) = block(c2, v2);
+        }
+      }
+
+      if (v1 < 2 && c1 < 2) {
+        std::ostringstream oss;
+        oss.setf(std::ios::scientific);
+        oss.precision(16);
+        oss << "Hd2 row v1=" << v1 << " c1=" << c1 << ":";
+        for (Index k = 0; k < std::min<Index>(8, row.size()); ++k) {
+          oss << " " << row(k);
+        }
+        std::cout << " " << oss.str() << std::flush;
+      }
+
+      const Index out_idx = v1 * out_blk.ctotal + c1;
+      y.row(out_idx) += row.transpose() * x;
+    }
+  }
+}
+
+/*template <Index cqp, Index cx, Index cd, Index cd2>
+void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
+    Eigen::MatrixXd& y, const Eigen::MatrixXd& x, const SpinBlockInfo& out_blk,
+    const SpinBlockInfo& in_blk, const TCMatrix_gwbse& Mout,
+    const TCMatrix_gwbse& Min, double prefactor) const {
+  if (cd2 == 0 || prefactor == 0.0) {
+    return;
+  }
+
+  const Eigen::DiagonalMatrix<double, Eigen::Dynamic> eps =
+      epsilon_0_inv_.asDiagonal();
+
+  for (Index c1 = 0; c1 < out_blk.ctotal; ++c1) {
+    const Eigen::MatrixXd left =
+        prefactor *
+        Mout[c1 + out_blk.cmin_rpa].middleRows(in_blk.vmin_rpa, in_blk.vtotal);
+
+    for (Index v1 = 0; v1 < out_blk.vtotal; ++v1) {
+      const Eigen::MatrixXd right =
+          Min[v1 + out_blk.vmin_rpa].middleRows(in_blk.cmin_rpa, in_blk.ctotal);
+
       // We need matrix dimensions (ctotal_in x vtotal_in) so that the
       // flattened memory order matches the existing vc = v*ctotal + c layout.
       const Eigen::MatrixXd block = right * eps * left.transpose();
@@ -165,7 +213,7 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
       y.row(out_idx) += row.transpose() * x;
     }
   }
-}
+}*/
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct_cross_tda_block(
