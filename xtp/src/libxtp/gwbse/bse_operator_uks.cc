@@ -150,18 +150,22 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
     const Eigen::MatrixXd left =
         prefactor *
         Mout[c1 + out_blk.cmin_rpa].middleRows(in_blk.vmin_rpa, in_blk.vtotal);
+    // left: (vtotal_in x naux)
 
     for (Index v1 = 0; v1 < out_blk.vtotal; ++v1) {
       const Eigen::MatrixXd right =
           Min[v1 + out_blk.vmin_rpa].middleRows(in_blk.cmin_rpa, in_blk.ctotal);
+      // right: (ctotal_in x naux)
 
-      const Eigen::MatrixXd block = right * eps * left.transpose();
+      // Trial: swap orientation of the coupling block
+      const Eigen::MatrixXd block = (right * eps * left.transpose()).transpose();
+      // block now has shape (vtotal_in x ctotal_in)
 
       Eigen::VectorXd row(in_blk.vtotal * in_blk.ctotal);
       for (Index v2 = 0; v2 < in_blk.vtotal; ++v2) {
         for (Index c2 = 0; c2 < in_blk.ctotal; ++c2) {
           const Index idx = v2 * in_blk.ctotal + c2;
-          row(idx) = block(c2, v2);
+          row(idx) = block(v2, c2);
         }
       }
 
