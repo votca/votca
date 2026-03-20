@@ -113,6 +113,9 @@ class DFTEngine {
   /// treatment and occupation model.
   ConvergenceAcc::options BuildConvergenceOptions() const;
 
+  // development path RKS vs UKS
+  void setForceUKSPath(bool force) { force_uks_path_ = force; }
+
  private:
   friend class DFTEngineTestAccess;
 
@@ -309,6 +312,7 @@ class DFTEngine {
   Index num_socc_alpha_ = 0;
   Index spin_ = 1;
   Index charge_ = 0;
+  bool force_uks_path_ = false;
 };
 
 }  // namespace xtp

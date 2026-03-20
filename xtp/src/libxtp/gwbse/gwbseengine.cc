@@ -196,9 +196,6 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   tools::Property& output_summary = summary_.add("output", "");
 
   if (do_gwbse_) {
-    if (orbitals.isOpenShell()) {
-      throw std::runtime_error("GWBSE not implemented for open-shell systems");
-    }
     if (do_dft_in_dft_ || orbitals.getEmbeddedMOs().eigenvectors().size() > 0) {
       Orbitals orb_embedded = orbitals;
       orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();

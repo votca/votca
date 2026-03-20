@@ -496,18 +496,20 @@ BOOST_AUTO_TEST_CASE(dft_cation) {
   Logger log;
   dft.setLogger(&log);
   dft.Initialize(prop.get("dftpackage"));
-  orb.setChargeAndSpin(1,2);
+  orb.setChargeAndSpin(1, 2);
   dft.Evaluate(orb);
 
   BOOST_CHECK_CLOSE(orb.getDFTTotalEnergy(), -75.456593793657646, 1e-5);
 
   Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(13);
-  MOs_energy_ref <<  -19.6958, -1.58537, -1.03212, -0.899489, -0.873537, 
-  -0.255014, -0.169427, 0.548747, 0.609376, 0.899063, 1.05047, 1.18105, 2.23438;
-  
+  MOs_energy_ref << -19.6958, -1.58537, -1.03212, -0.899489, -0.873537,
+      -0.255014, -0.169427, 0.548747, 0.609376, 0.899063, 1.05047, 1.18105,
+      2.23438;
+
   Eigen::VectorXd MOs_energy_ref_beta = Eigen::VectorXd::Zero(13);
-  MOs_energy_ref_beta <<    -19.668, -1.50742, -1.00909, -0.837772, -0.588854,
-  -0.242175, -0.161593, 0.547669, 0.616913, 1.02967, 1.07354, 1.2038, 2.29571;
+  MOs_energy_ref_beta << -19.668, -1.50742, -1.00909, -0.837772, -0.588854,
+      -0.242175, -0.161593, 0.547669, 0.616913, 1.02967, 1.07354, 1.2038,
+      2.29571;
 
   bool check_eng = MOs_energy_ref.isApprox(orb.MOs().eigenvalues(), 1e-5);
   BOOST_CHECK_EQUAL(check_eng, true);
@@ -519,7 +521,8 @@ BOOST_AUTO_TEST_CASE(dft_cation) {
     std::cout << MOs_energy_ref << std::endl;
   }
 
-  bool check_eng_beta = MOs_energy_ref_beta.isApprox(orb.MOs_beta().eigenvalues(), 1e-5);
+  bool check_eng_beta =
+      MOs_energy_ref_beta.isApprox(orb.MOs_beta().eigenvalues(), 1e-5);
   BOOST_CHECK_EQUAL(check_eng_beta, true);
   if (!check_eng_beta) {
     std::cout << "result eng beta" << std::endl;
@@ -529,14 +532,15 @@ BOOST_AUTO_TEST_CASE(dft_cation) {
     std::cout << MOs_energy_ref_beta << std::endl;
   }
 
-
   Eigen::MatrixXd MOs_coeff_ref =
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) + "/dftengine/MOs_coeff_cation_alpha.mm");
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/dftengine/MOs_coeff_cation_alpha.mm");
 
   Eigen::MatrixXd MOs_coeff_beta_ref =
       votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) + "/dftengine/MOs_coeff_cation_beta.mm");
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/dftengine/MOs_coeff_cation_beta.mm");
 
   AOBasis basis = orb.getDftBasis();
   AOOverlap overlap;
@@ -555,8 +559,8 @@ BOOST_AUTO_TEST_CASE(dft_cation) {
   }
 
   Eigen::MatrixXd proj_beta = MOs_coeff_beta_ref.leftCols(5).transpose() *
-                         overlap.Matrix() *
-                         orb.MOs_beta().eigenvectors().leftCols(5);
+                              overlap.Matrix() *
+                              orb.MOs_beta().eigenvectors().leftCols(5);
   Eigen::VectorXd norms_beta = proj_beta.colwise().norm();
   bool check_coeff_beta = norms_beta.isApproxToConstant(1, 1e-5);
   BOOST_CHECK_EQUAL(check_coeff_beta, true);
@@ -566,10 +570,8 @@ BOOST_AUTO_TEST_CASE(dft_cation) {
     std::cout << "ref coeff beta" << std::endl;
     std::cout << MOs_coeff_beta_ref << std::endl;
   }
-  
 
   libint2::finalize();
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()
