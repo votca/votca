@@ -6,8 +6,8 @@
 			<segment id="0" type="Methane">0</segment>
 		</input>
 		<status>COMPLETE</status>
-		<host>wlan-241186.nbw.tue.nl:88113</host>
-		<time>20:05:01</time>
+		<host>wlan-241186.nbw.tue.nl:21935</host>
+		<time>08:48:11</time>
 		<output>
 			<segment id="0" type="Methane">
 				<GWBSE DFTEnergy="-1095.048363 " units="eV">
@@ -35,7 +35,7 @@
 						<level number="4">
 							<dft_energy>-10.872681 </dft_energy>
 							<gw_energy>-13.598914 </gw_energy>
-							<qp_energy>-13.605815 </qp_energy>
+							<qp_energy>-13.605816 </qp_energy>
 						</level>
 						<level number="5">
 							<dft_energy>+4.410402 </dft_energy>
@@ -100,86 +100,86 @@
 					</dft>
 					<singlets>
 						<level number="1">
-							<omega>+13.893463 </omega>
-							<f>+0.240534 </f>
-							<Trdipole gauge="length" unit="e*bohr">+0.5077 -0.5280 +0.4125</Trdipole>
+							<omega>+13.893461 </omega>
+							<f>+0.240500 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.5076 -0.5281 +0.4123</Trdipole>
 						</level>
 						<level number="2">
 							<omega>+13.921500 </omega>
-							<f>+0.254191 </f>
-							<Trdipole gauge="length" unit="e*bohr">-0.6092 -0.6110 -0.0287</Trdipole>
+							<f>+0.254147 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.6088 +0.6113 +0.0295</Trdipole>
 						</level>
 						<level number="3">
-							<omega>+13.935669 </omega>
-							<f>+0.253169 </f>
-							<Trdipole gauge="length" unit="e*bohr">+0.3266 -0.2581 -0.7538</Trdipole>
+							<omega>+13.935686 </omega>
+							<f>+0.253159 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.3272 +0.2574 +0.7538</Trdipole>
 						</level>
 						<level number="4">
-							<omega>+14.588765 </omega>
+							<omega>+14.588764 </omega>
 							<f>+0.000786 </f>
 							<Trdipole gauge="length" unit="e*bohr">+0.0445 -0.0074 +0.0128</Trdipole>
 						</level>
 						<level number="5">
 							<omega>+14.608568 </omega>
 							<f>+0.000400 </f>
-							<Trdipole gauge="length" unit="e*bohr">-0.0021 +0.0190 +0.0274</Trdipole>
+							<Trdipole gauge="length" unit="e*bohr">+0.0021 -0.0190 -0.0274</Trdipole>
 						</level>
 						<level number="6">
 							<omega>+14.615625 </omega>
 							<f>+0.000282 </f>
-							<Trdipole gauge="length" unit="e*bohr">+0.0045 -0.0175 -0.0215</Trdipole>
+							<Trdipole gauge="length" unit="e*bohr">-0.0045 +0.0175 +0.0215</Trdipole>
 						</level>
 						<level number="7">
-							<omega>+14.961064 </omega>
+							<omega>+14.961065 </omega>
 							<f>+0.000227 </f>
-							<Trdipole gauge="length" unit="e*bohr">-0.0139 +0.0083 -0.0189</Trdipole>
+							<Trdipole gauge="length" unit="e*bohr">+0.0139 -0.0083 +0.0189</Trdipole>
 						</level>
 						<level number="8">
-							<omega>+14.968067 </omega>
+							<omega>+14.968076 </omega>
 							<f>+0.000073 </f>
 							<Trdipole gauge="length" unit="e*bohr">+0.0111 -0.0054 -0.0068</Trdipole>
 						</level>
 						<level number="9">
-							<omega>+16.007724 </omega>
-							<f>+0.799924 </f>
-							<Trdipole gauge="length" unit="e*bohr">+0.3088 +1.2357 -0.6461</Trdipole>
+							<omega>+16.007697 </omega>
+							<f>+0.799886 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.3106 +1.2361 -0.6442</Trdipole>
 						</level>
 						<level number="10">
-							<omega>+16.010646 </omega>
-							<f>+0.802475 </f>
-							<Trdipole gauge="length" unit="e*bohr">-1.3875 +0.2114 -0.2758</Trdipole>
+							<omega>+16.010576 </omega>
+							<f>+0.802419 </f>
+							<Trdipole gauge="length" unit="e*bohr">-1.3876 +0.2118 -0.2743</Trdipole>
 						</level>
 					</singlets>
 					<triplets>
 						<level number="1">
-							<omega>+11.698081 </omega>
+							<omega>+11.698000 </omega>
 						</level>
 						<level number="2">
-							<omega>+11.761917 </omega>
+							<omega>+11.761893 </omega>
 						</level>
 						<level number="3">
-							<omega>+11.787598 </omega>
+							<omega>+11.787581 </omega>
 						</level>
 						<level number="4">
-							<omega>+11.802080 </omega>
+							<omega>+11.802069 </omega>
 						</level>
 						<level number="5">
-							<omega>+13.775889 </omega>
+							<omega>+13.775893 </omega>
 						</level>
 						<level number="6">
-							<omega>+13.815121 </omega>
+							<omega>+13.815124 </omega>
 						</level>
 						<level number="7">
-							<omega>+13.845062 </omega>
+							<omega>+13.845064 </omega>
 						</level>
 						<level number="8">
-							<omega>+14.211927 </omega>
+							<omega>+14.211903 </omega>
 						</level>
 						<level number="9">
-							<omega>+14.219783 </omega>
+							<omega>+14.219785 </omega>
 						</level>
 						<level number="10">
-							<omega>+14.330487 </omega>
+							<omega>+14.330486 </omega>
 						</level>
 					</triplets>
 				</GWBSE>
@@ -194,8 +194,8 @@
 			<segment id="1" type="Methane">1</segment>
 		</input>
 		<status>COMPLETE</status>
-		<host>wlan-241186.nbw.tue.nl:88113</host>
-		<time>20:05:04</time>
+		<host>wlan-241186.nbw.tue.nl:21935</host>
+		<time>08:52:35</time>
 		<output>
 			<segment id="1" type="Methane">
 				<GWBSE DFTEnergy="-1095.046893 " units="eV">
@@ -267,7 +267,7 @@
 						</level>
 						<level number="13">
 							<dft_energy>+29.524540 </dft_energy>
-							<gw_energy>+32.166775 </gw_energy>
+							<gw_energy>+32.166776 </gw_energy>
 							<qp_energy>+32.238847 </qp_energy>
 						</level>
 						<level number="14">
@@ -278,7 +278,7 @@
 						<level number="15">
 							<dft_energy>+29.772189 </dft_energy>
 							<gw_energy>+34.371200 </gw_energy>
-							<qp_energy>+34.413898 </qp_energy>
+							<qp_energy>+34.413897 </qp_energy>
 						</level>
 						<level number="16">
 							<dft_energy>+46.612148 </dft_energy>
@@ -288,86 +288,86 @@
 					</dft>
 					<singlets>
 						<level number="1">
-							<omega>+13.843540 </omega>
-							<f>+0.257125 </f>
-							<Trdipole gauge="length" unit="e*bohr">-0.5741 -0.1919 -0.6258</Trdipole>
+							<omega>+13.843543 </omega>
+							<f>+0.257112 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.5741 +0.1919 +0.6258</Trdipole>
 						</level>
 						<level number="2">
-							<omega>+13.933241 </omega>
-							<f>+0.248948 </f>
-							<Trdipole gauge="length" unit="e*bohr">+0.5559 +0.2221 -0.6091</Trdipole>
+							<omega>+13.933238 </omega>
+							<f>+0.248919 </f>
+							<Trdipole gauge="length" unit="e*bohr">+0.5558 +0.2221 -0.6090</Trdipole>
 						</level>
 						<level number="3">
-							<omega>+13.967771 </omega>
-							<f>+0.238922 </f>
-							<Trdipole gauge="length" unit="e*bohr">-0.2914 +0.7827 +0.0261</Trdipole>
+							<omega>+13.967790 </omega>
+							<f>+0.238908 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.2915 +0.7826 +0.0262</Trdipole>
 						</level>
 						<level number="4">
-							<omega>+14.550437 </omega>
+							<omega>+14.550440 </omega>
 							<f>+0.000766 </f>
-							<Trdipole gauge="length" unit="e*bohr">+0.0317 +0.0083 -0.0328</Trdipole>
+							<Trdipole gauge="length" unit="e*bohr">+0.0318 +0.0083 -0.0327</Trdipole>
 						</level>
 						<level number="5">
-							<omega>+14.593422 </omega>
+							<omega>+14.593421 </omega>
 							<f>+0.000820 </f>
 							<Trdipole gauge="length" unit="e*bohr">+0.0015 -0.0435 -0.0199</Trdipole>
 						</level>
 						<level number="6">
-							<omega>+14.677991 </omega>
+							<omega>+14.677990 </omega>
 							<f>+0.000247 </f>
-							<Trdipole gauge="length" unit="e*bohr">-0.0197 +0.0040 +0.0168</Trdipole>
+							<Trdipole gauge="length" unit="e*bohr">+0.0197 -0.0040 -0.0168</Trdipole>
 						</level>
 						<level number="7">
-							<omega>+14.944313 </omega>
+							<omega>+14.944325 </omega>
 							<f>+0.002146 </f>
 							<Trdipole gauge="length" unit="e*bohr">-0.0733 +0.0010 +0.0220</Trdipole>
 						</level>
 						<level number="8">
-							<omega>+14.981816 </omega>
+							<omega>+14.981817 </omega>
 							<f>+0.003810 </f>
 							<Trdipole gauge="length" unit="e*bohr">+0.0391 +0.0664 -0.0667</Trdipole>
 						</level>
 						<level number="9">
-							<omega>+15.955596 </omega>
-							<f>+0.785166 </f>
-							<Trdipole gauge="length" unit="e*bohr">-0.5594 -0.1922 -1.2879</Trdipole>
+							<omega>+15.955616 </omega>
+							<f>+0.785165 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.5594 -0.1920 -1.2879</Trdipole>
 						</level>
 						<level number="10">
-							<omega>+16.017245 </omega>
-							<f>+0.803383 </f>
-							<Trdipole gauge="length" unit="e*bohr">+0.9775 +0.8832 -0.5584</Trdipole>
+							<omega>+16.017173 </omega>
+							<f>+0.803328 </f>
+							<Trdipole gauge="length" unit="e*bohr">-0.9770 -0.8837 +0.5582</Trdipole>
 						</level>
 					</singlets>
 					<triplets>
 						<level number="1">
-							<omega>+11.594511 </omega>
+							<omega>+11.594468 </omega>
 						</level>
 						<level number="2">
-							<omega>+11.739327 </omega>
+							<omega>+11.739289 </omega>
 						</level>
 						<level number="3">
-							<omega>+11.786776 </omega>
+							<omega>+11.786763 </omega>
 						</level>
 						<level number="4">
-							<omega>+11.877280 </omega>
+							<omega>+11.877256 </omega>
 						</level>
 						<level number="5">
-							<omega>+13.775954 </omega>
+							<omega>+13.775959 </omega>
 						</level>
 						<level number="6">
-							<omega>+13.801570 </omega>
+							<omega>+13.801572 </omega>
 						</level>
 						<level number="7">
-							<omega>+13.849736 </omega>
+							<omega>+13.849735 </omega>
 						</level>
 						<level number="8">
-							<omega>+14.206421 </omega>
+							<omega>+14.206423 </omega>
 						</level>
 						<level number="9">
-							<omega>+14.248694 </omega>
+							<omega>+14.248696 </omega>
 						</level>
 						<level number="10">
-							<omega>+14.291605 </omega>
+							<omega>+14.291602 </omega>
 						</level>
 					</triplets>
 				</GWBSE>
