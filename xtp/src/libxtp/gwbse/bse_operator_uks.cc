@@ -157,9 +157,9 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
           Min[v1 + out_blk.vmin_rpa].middleRows(in_blk.cmin_rpa, in_blk.ctotal);
       // right: (ctotal_in x naux)
 
-      // Trial: swap orientation of the coupling block
-      const Eigen::MatrixXd block = (right * eps * left.transpose()).transpose();
-      // block now has shape (vtotal_in x ctotal_in)
+      // swapped contraction trial
+      const Eigen::MatrixXd block = left * eps * right.transpose();
+      // block: (vtotal_in x ctotal_in)
 
       Eigen::VectorXd row(in_blk.vtotal * in_blk.ctotal);
       for (Index v2 = 0; v2 < in_blk.vtotal; ++v2) {
@@ -177,7 +177,7 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
         for (Index k = 0; k < std::min<Index>(8, row.size()); ++k) {
           oss << " " << row(k);
         }
-        std::cout << " " << oss.str() << std::endl;
+        std::cout << TimeStamp() << " " << oss.str() << std::endl;
       }
 
       const Index out_idx = v1 * out_blk.ctotal + c1;
