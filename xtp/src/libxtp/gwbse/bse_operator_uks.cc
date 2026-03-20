@@ -173,7 +173,7 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
         for (Index k = 0; k < std::min<Index>(8, row.size()); ++k) {
           oss << " " << row(k);
         }
-        std::cout << " " << oss.str() << std::flush;
+        std::cout << " " << oss.str() << std::endl;
       }
 
       const Index out_idx = v1 * out_blk.ctotal + c1;
