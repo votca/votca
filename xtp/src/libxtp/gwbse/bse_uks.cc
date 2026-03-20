@@ -303,6 +303,124 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
   A.configure(opt);
   B.configure(opt);
 
+    // ---- DEBUG: decompose UKS full-BSE operators into constituent pieces ----
+  {
+    QpUKSOperator Hqp(epsilon_0_inv_, Mmn_, Hqp_alpha_, Hqp_beta_);
+    HxUKSOperator Hx(epsilon_0_inv_, Mmn_, Hqp_alpha_, Hqp_beta_);
+    HdUKSOperator Hd(epsilon_0_inv_, Mmn_, Hqp_alpha_, Hqp_beta_);
+    Hd2UKSOperator Hd2(epsilon_0_inv_, Mmn_, Hqp_alpha_, Hqp_beta_);
+
+    Hqp.configure(opt);
+    Hx.configure(opt);
+    Hd.configure(opt);
+    Hd2.configure(opt);
+
+    const Eigen::MatrixXd A_dense = A.dense_matrix();
+    const Eigen::MatrixXd B_dense = B.dense_matrix();
+    const Eigen::MatrixXd Hqp_dense = Hqp.dense_matrix();
+    const Eigen::MatrixXd Hx_dense = Hx.dense_matrix();
+    const Eigen::MatrixXd Hd_dense = Hd.dense_matrix();
+    const Eigen::MatrixXd Hd2_dense = Hd2.dense_matrix();
+
+    const Eigen::MatrixXd A_rebuilt = Hqp_dense + Hx_dense - Hd_dense;
+    const Eigen::MatrixXd B_rebuilt = Hx_dense - Hd2_dense;
+
+    const Index nalpha = (homo_alpha_ - opt_.vmin + 1) *
+                         (opt_.cmax - (homo_alpha_ + 1) + 1);
+    const Index nbeta = (homo_beta_ - opt_.vmin + 1) *
+                        (opt_.cmax - (homo_beta_ + 1) + 1);
+
+    auto print_block = [&](const std::string& name, const Eigen::MatrixXd& M) {
+      const Eigen::MatrixXd aa = M.topLeftCorner(nalpha, nalpha);
+      const Eigen::MatrixXd ab = M.topRightCorner(nalpha, nbeta);
+      const Eigen::MatrixXd ba = M.bottomLeftCorner(nbeta, nalpha);
+      const Eigen::MatrixXd bb = M.bottomRightCorner(nbeta, nbeta);
+
+      XTP_LOG(Log::error, log_)
+          << TimeStamp() << " " << name
+          << " ||aa||=" << aa.norm()
+          << " ||ab||=" << ab.norm()
+          << " ||ba||=" << ba.norm()
+          << " ||bb||=" << bb.norm()
+          << " max|aa|=" << aa.cwiseAbs().maxCoeff()
+          << " max|ab|=" << ab.cwiseAbs().maxCoeff()
+          << " max|ba|=" << ba.cwiseAbs().maxCoeff()
+          << " max|bb|=" << bb.cwiseAbs().maxCoeff()
+          << flush;
+    };
+
+    auto print_asym = [&](const std::string& name, const Eigen::MatrixXd& M) {
+      XTP_LOG(Log::error, log_)
+          << TimeStamp() << " " << name
+          << " ||M-M^T||=" << (M - M.transpose()).norm()
+          << flush;
+    };
+
+    auto print_first_entries = [&](const std::string& name,
+                                   const Eigen::MatrixXd& M,
+                                   Index nrow, Index ncol) {
+      const Index rmax = std::min<Index>(nrow, M.rows());
+      const Index cmax = std::min<Index>(ncol, M.cols());
+      for (Index i = 0; i < rmax; ++i) {
+        std::ostringstream oss;
+        oss.setf(std::ios::scientific);
+        oss.precision(16);
+        oss << name << " row " << i << ":";
+        for (Index j = 0; j < cmax; ++j) {
+          oss << " " << M(i, j);
+        }
+        XTP_LOG(Log::error, log_) << TimeStamp() << " " << oss.str() << flush;
+      }
+    };
+
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " UKS-BSE debug sizes: nalpha=" << nalpha
+        << " nbeta=" << nbeta << " ntotal=" << (nalpha + nbeta)
+        << flush;
+
+    print_block("A_dense", A_dense);
+    print_block("B_dense", B_dense);
+    print_block("Hqp_dense", Hqp_dense);
+    print_block("Hx_dense", Hx_dense);
+    print_block("Hd_dense", Hd_dense);
+    print_block("Hd2_dense", Hd2_dense);
+
+    print_asym("A_dense", A_dense);
+    print_asym("B_dense", B_dense);
+    print_asym("Hqp_dense", Hqp_dense);
+    print_asym("Hx_dense", Hx_dense);
+    print_asym("Hd_dense", Hd_dense);
+    print_asym("Hd2_dense", Hd2_dense);
+
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " rebuild check: ||A-(Hqp+Hx-Hd)||="
+        << (A_dense - A_rebuilt).norm()
+        << " ||B-(Hx-Hd2)||=" << (B_dense - B_rebuilt).norm()
+        << flush;
+
+    // Small slices for cross-architecture comparison
+    print_first_entries("A_aa", A_dense.topLeftCorner(nalpha, nalpha), 4, 4);
+    print_first_entries("A_ab", A_dense.topRightCorner(nalpha, nbeta), 4, 4);
+    print_first_entries("A_ba", A_dense.bottomLeftCorner(nbeta, nalpha), 4, 4);
+    print_first_entries("A_bb", A_dense.bottomRightCorner(nbeta, nbeta), 4, 4);
+
+    print_first_entries("B_aa", B_dense.topLeftCorner(nalpha, nalpha), 4, 4);
+    print_first_entries("B_ab", B_dense.topRightCorner(nalpha, nbeta), 4, 4);
+    print_first_entries("B_ba", B_dense.bottomLeftCorner(nbeta, nalpha), 4, 4);
+    print_first_entries("B_bb", B_dense.bottomRightCorner(nbeta, nbeta), 4, 4);
+
+    print_first_entries("Hqp_aa", Hqp_dense.topLeftCorner(nalpha, nalpha), 4, 4);
+    print_first_entries("Hx_aa", Hx_dense.topLeftCorner(nalpha, nalpha), 4, 4);
+    print_first_entries("Hd_aa", Hd_dense.topLeftCorner(nalpha, nalpha), 4, 4);
+    print_first_entries("Hd2_aa", Hd2_dense.topLeftCorner(nalpha, nalpha), 4, 4);
+
+    print_first_entries("Hd_ab", Hd_dense.topRightCorner(nalpha, nbeta), 4, 4);
+    print_first_entries("Hd_ba", Hd_dense.bottomLeftCorner(nbeta, nalpha), 4, 4);
+    print_first_entries("Hd2_ab", Hd2_dense.topRightCorner(nalpha, nbeta), 4, 4);
+    print_first_entries("Hd2_ba", Hd2_dense.bottomLeftCorner(nbeta, nalpha), 4, 4);
+  }
+  // ---- END DEBUG ----
+
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Setup combined UKS full BSE exciton hamiltonian "
       << flush;

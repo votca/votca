@@ -119,6 +119,9 @@ typedef BSE_OPERATOR_UKS<0, 1, 0, 1> ExcitonUKSOperator_BTDA_B;
 typedef BSE_OPERATOR_UKS<0, 0, 1, 0> HdUKSOperator;
 typedef BSE_OPERATOR_UKS<0, 0, 0, 1> Hd2UKSOperator;
 
+typedef BSE_OPERATOR_UKS<1, 0, 0, 0> QpUKSOperator;
+typedef BSE_OPERATOR_UKS<0, 1, 0, 0> HxUKSOperator;
+
 }  // namespace xtp
 }  // namespace votca
 

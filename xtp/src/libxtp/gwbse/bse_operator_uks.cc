@@ -352,5 +352,8 @@ template class BSE_OPERATOR_UKS<0, 1, 0, 1>;
 template class BSE_OPERATOR_UKS<0, 0, 1, 0>;
 template class BSE_OPERATOR_UKS<0, 0, 0, 1>;
 
+template class BSE_OPERATOR_UKS<1, 0, 0, 0>;
+template class BSE_OPERATOR_UKS<0, 1, 0, 0>;
+
 }  // namespace xtp
 }  // namespace votca
