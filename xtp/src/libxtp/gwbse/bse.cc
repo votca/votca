@@ -26,6 +26,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/bse.h"
+#include "votca/xtp/bse_initialization.h"
 #include "votca/xtp/bse_operator.h"
 #include "votca/xtp/bseoperator_btda.h"
 #include "votca/xtp/davidsonsolver.h"
@@ -33,7 +34,6 @@
 #include "votca/xtp/qmfragment.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/vc2index.h"
-#include "votca/xtp/bse_initialization.h"
 
 using std::flush;
 
@@ -118,8 +118,7 @@ std::string BSE::StateShortLabel(const QMStateType& type) const {
   } else if (type == QMStateType::Triplet) {
     return "T";
   } else {
-    throw std::runtime_error(
-        "Unsupported QMStateType in BSE::StateShortLabel");
+    throw std::runtime_error("Unsupported QMStateType in BSE::StateShortLabel");
   }
 }
 
@@ -330,8 +329,8 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   DS.set_iter_max(opt_.davidson_maxiter);
   DS.set_max_search_space(10 * opt_.nmax);
   DS.set_matrix_type("HAM");
-  Eigen::MatrixXd initial_guess =
-    BuildFullBSEXRankedInitialGuess(Aop.diagonal(), Bop.diagonal(), opt_.nmax);
+  Eigen::MatrixXd initial_guess = BuildFullBSEXRankedInitialGuess(
+      Aop.diagonal(), Bop.diagonal(), opt_.nmax);
 
   DS.solve(Hop, opt_.nmax, initial_guess);
 

@@ -157,7 +157,7 @@ class BSE {
   ExpectationValues ExpectationValue_Operator_State(
       const QMState& state, const Orbitals& orb, const BSE_OPERATOR& H) const;
 
-    tools::EigenSystem& GetBSEEigenSystem(const QMStateType& type,
+  tools::EigenSystem& GetBSEEigenSystem(const QMStateType& type,
                                         Orbitals& orb) const;
   const tools::EigenSystem& GetBSEEigenSystem(const QMStateType& type,
                                               const Orbitals& orb) const;

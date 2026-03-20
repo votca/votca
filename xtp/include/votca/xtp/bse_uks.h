@@ -59,8 +59,7 @@ class BSE_UKS {
       const options& opt, Index homo_alpha, Index homo_beta,
       const Eigen::VectorXd& RPAInputEnergiesAlpha,
       const Eigen::VectorXd& RPAInputEnergiesBeta,
-      const Eigen::MatrixXd& Hqp_alpha_in,
-      const Eigen::MatrixXd& Hqp_beta_in,
+      const Eigen::MatrixXd& Hqp_alpha_in, const Eigen::MatrixXd& Hqp_beta_in,
       const Eigen::VectorXd& epsilon_0_inv,
       const Eigen::MatrixXd& epsilon_eigenvectors);
 
@@ -112,9 +111,8 @@ class BSE_UKS {
                                               const BSE_OPERATOR& H) const;
 
   template <typename BSE_OPERATOR>
-  ExpectationValues ExpectationValue_Operator_State(Index state,
-                                                    const Orbitals& orb,
-                                                    const BSE_OPERATOR& H) const;
+  ExpectationValues ExpectationValue_Operator_State(
+      Index state, const Orbitals& orb, const BSE_OPERATOR& H) const;
 
   tools::EigenSystem Solve_excitons_uks_TDA() const;
   tools::EigenSystem Solve_excitons_uks_BTDA() const;

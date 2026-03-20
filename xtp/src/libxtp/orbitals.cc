@@ -324,8 +324,8 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
 
     const Eigen::MatrixXd& BSECoefs = BSE_uks_.eigenvectors();
     if (BSECoefs.cols() < state.StateIdx() + 1 || BSECoefs.rows() < 2) {
-      throw std::runtime_error("Orbitals object has no information about state:" +
-                               state.ToString());
+      throw std::runtime_error(
+          "Orbitals object has no information about state:" + state.ToString());
     }
 
     Eigen::VectorXd coeffs = BSECoefs.col(state.StateIdx());
@@ -347,9 +347,8 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
           "alpha+beta BSE space dimensions.");
     }
 
-    Eigen::MatrixXd tdm =
-        Eigen::MatrixXd::Zero(mos_.eigenvectors().rows(),
-                              mos_.eigenvectors().rows());
+    Eigen::MatrixXd tdm = Eigen::MatrixXd::Zero(mos_.eigenvectors().rows(),
+                                                mos_.eigenvectors().rows());
 
     if (alpha_size > 0) {
       const Eigen::VectorXd coeffs_alpha = coeffs.head(alpha_size);
@@ -423,8 +422,8 @@ std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState(
 
     const Eigen::MatrixXd& X = BSE_uks_.eigenvectors();
     if (X.cols() < state.StateIdx() + 1 || X.rows() < 2) {
-      throw std::runtime_error("Orbitals object has no information about state:" +
-                               state.ToString());
+      throw std::runtime_error(
+          "Orbitals object has no information about state:" + state.ToString());
     }
 
     const Index alpha_vtotal = getHomoAlpha() - bse_vmin_ + 1;
@@ -668,8 +667,8 @@ Eigen::VectorXd Orbitals::Oscillatorstrengths(const QMStateType& type) const {
   for (Index i = 0; i < size; ++i) {
     // f = (2/3) * Omega * |d|^2
     // Omega must be in Hartree, d in e*bohr
-    oscs(i) = transition_dipoles_[i].squaredNorm() * 2.0 / 3.0 *
-              es->eigenvalues()(i);
+    oscs(i) =
+        transition_dipoles_[i].squaredNorm() * 2.0 / 3.0 * es->eigenvalues()(i);
   }
   return oscs;
 }
@@ -868,9 +867,8 @@ void Orbitals::CalcCoupledTransition_Dipoles(const QMStateType& type) {
 
       Eigen::Vector3d tdipole = Eigen::Vector3d::Zero();
       for (Index i = 0; i < 3; ++i) {
-        tdipole[i] =
-            mat_alpha.cwiseProduct(interlevel_dipoles_alpha[i]).sum() +
-            mat_beta.cwiseProduct(interlevel_dipoles_beta[i]).sum();
+        tdipole[i] = mat_alpha.cwiseProduct(interlevel_dipoles_alpha[i]).sum() +
+                     mat_beta.cwiseProduct(interlevel_dipoles_beta[i]).sum();
       }
 
       // Combined UKS exciton:

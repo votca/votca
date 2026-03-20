@@ -86,7 +86,6 @@ typedef BSE_OPERATOR<0, 1, 0, 0> HxOperator;
 typedef BSE_OPERATOR<0, 0, 1, 0> HdOperator;
 typedef BSE_OPERATOR<0, 0, 0, 1> Hd2Operator;
 
-
 }  // namespace xtp
 }  // namespace votca
 

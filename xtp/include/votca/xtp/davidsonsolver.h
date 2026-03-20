@@ -121,7 +121,7 @@ class DavidsonSolver {
     printTiming(start);
   }
 
-    template <typename MatrixReplacement>
+  template <typename MatrixReplacement>
   void solve(const MatrixReplacement &A, Index neigen,
              const Eigen::MatrixXd &initial_guess) {
 

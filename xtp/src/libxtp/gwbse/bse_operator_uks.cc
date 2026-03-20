@@ -24,8 +24,7 @@ namespace xtp {
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::setup_block(SpinBlockInfo& blk,
-                                                     Index homo,
-                                                     Index offset) {
+                                                     Index homo, Index offset) {
   blk.homo = homo;
   blk.vmin_rpa = opt_.vmin - opt_.rpamin;
   blk.cmin_rpa = homo + 1 - opt_.rpamin;
@@ -46,8 +45,8 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::configure(BSEOperatorUKS_Options opt) {
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 Eigen::VectorXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::Hqp_row(
-    const Eigen::MatrixXd& Hqp, const SpinBlockInfo& blk,
-    Index v1, Index c1) const {
+    const Eigen::MatrixXd& Hqp, const SpinBlockInfo& blk, Index v1,
+    Index c1) const {
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(blk.ctotal, blk.vtotal);
   Index cmin_qp = blk.vtotal;
   result.col(v1) += Hqp.col(c1 + cmin_qp).segment(cmin_qp, blk.ctotal);
@@ -57,8 +56,8 @@ Eigen::VectorXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::Hqp_row(
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_qp_block(
-    Eigen::MatrixXd& y, const Eigen::MatrixXd& x,
-    const SpinBlockInfo& blk, const Eigen::MatrixXd& Hqp) const {
+    Eigen::MatrixXd& y, const Eigen::MatrixXd& x, const SpinBlockInfo& blk,
+    const Eigen::MatrixXd& Hqp) const {
   if (cqp == 0) {
     return;
   }
@@ -74,10 +73,9 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_qp_block(
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_exchange_block(
-    Eigen::MatrixXd& y, const Eigen::MatrixXd& x,
-    const SpinBlockInfo& out_blk, const SpinBlockInfo& in_blk,
-    const TCMatrix_gwbse& Mout, const TCMatrix_gwbse& Min,
-    double prefactor) const {
+    Eigen::MatrixXd& y, const Eigen::MatrixXd& x, const SpinBlockInfo& out_blk,
+    const SpinBlockInfo& in_blk, const TCMatrix_gwbse& Mout,
+    const TCMatrix_gwbse& Min, double prefactor) const {
   if (cx == 0 || prefactor == 0.0) {
     return;
   }
@@ -102,10 +100,9 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_exchange_block(
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct_block(
-    Eigen::MatrixXd& y, const Eigen::MatrixXd& x,
-    const SpinBlockInfo& out_blk, const SpinBlockInfo& in_blk,
-    const TCMatrix_gwbse& Mout, const TCMatrix_gwbse& Min,
-    double prefactor) const {
+    Eigen::MatrixXd& y, const Eigen::MatrixXd& x, const SpinBlockInfo& out_blk,
+    const SpinBlockInfo& in_blk, const TCMatrix_gwbse& Mout,
+    const TCMatrix_gwbse& Min, double prefactor) const {
   if (cd == 0 || prefactor == 0.0) {
     return;
   }
@@ -118,8 +115,8 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct_block(
 
       // rows correspond to c2, columns correspond to v2
       const Eigen::MatrixXd left =
-          prefactor *
-          Mout[c1 + out_blk.cmin_rpa].middleRows(in_blk.cmin_rpa, in_blk.ctotal);
+          prefactor * Mout[c1 + out_blk.cmin_rpa].middleRows(in_blk.cmin_rpa,
+                                                             in_blk.ctotal);
 
       const Eigen::MatrixXd right =
           Min[v1 + out_blk.vmin_rpa].middleRows(in_blk.vmin_rpa, in_blk.vtotal);
@@ -139,10 +136,9 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct_block(
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
-    Eigen::MatrixXd& y, const Eigen::MatrixXd& x,
-    const SpinBlockInfo& out_blk, const SpinBlockInfo& in_blk,
-    const TCMatrix_gwbse& Mout, const TCMatrix_gwbse& Min,
-    double prefactor) const {
+    Eigen::MatrixXd& y, const Eigen::MatrixXd& x, const SpinBlockInfo& out_blk,
+    const SpinBlockInfo& in_blk, const TCMatrix_gwbse& Mout,
+    const TCMatrix_gwbse& Min, double prefactor) const {
   if (cd2 == 0 || prefactor == 0.0) {
     return;
   }
@@ -173,10 +169,9 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct_cross_tda_block(
-    Eigen::MatrixXd& y, const Eigen::MatrixXd& x,
-    const SpinBlockInfo& out_blk, const SpinBlockInfo& in_blk,
-    const TCMatrix_gwbse& Mout, const TCMatrix_gwbse& Min,
-    double prefactor) const {
+    Eigen::MatrixXd& y, const Eigen::MatrixXd& x, const SpinBlockInfo& out_blk,
+    const SpinBlockInfo& in_blk, const TCMatrix_gwbse& Mout,
+    const TCMatrix_gwbse& Min, double prefactor) const {
   if (cd == 0 || prefactor == 0.0) {
     return;
   }
@@ -189,25 +184,23 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct_cross_tda_block(
 
       // Transition density for the output excitation (v1 -> c1)
       const Eigen::RowVectorXd tout =
-          prefactor *
-          Mout[c1 + out_blk.cmin_rpa].row(v1 + out_blk.vmin_rpa);
+          prefactor * Mout[c1 + out_blk.cmin_rpa].row(v1 + out_blk.vmin_rpa);
 
       const Index out_idx = v1 * out_blk.ctotal + c1;
 
       // Build the row blockwise in the input excitation space:
       // input ordering is (v2 * ctotal + c2), i.e. c2 runs fastest.
       for (Index v2 = 0; v2 < in_blk.vtotal; ++v2) {
-        const Eigen::MatrixXd Tin =
-            Min[v2 + in_blk.vmin_rpa].middleRows(in_blk.cmin_rpa,
-                                                 in_blk.ctotal);
+        const Eigen::MatrixXd Tin = Min[v2 + in_blk.vmin_rpa].middleRows(
+            in_blk.cmin_rpa, in_blk.ctotal);
 
         // Tin rows correspond to c2, and column-major flattening over
         // successive v2 blocks is therefore consistent with vc = v*ctotal + c.
         const Eigen::VectorXd row_block = Tin * eps * tout.transpose();
 
         const Index in_row0 = v2 * in_blk.ctotal;
-        y.row(out_idx) += row_block.transpose() *
-                          x.middleRows(in_row0, in_blk.ctotal);
+        y.row(out_idx) +=
+            row_block.transpose() * x.middleRows(in_row0, in_blk.ctotal);
       }
     }
   }
@@ -246,13 +239,11 @@ Eigen::MatrixXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::matmul(
   add_direct2_block(y_beta, x_beta, beta_, beta_, Mmn_.beta, Mmn_.beta,
                     -static_cast<double>(cd2));
 
-    // Cross-spin TDA coupling: use transition-density form.
-  add_direct_cross_tda_block(y_alpha, x_beta, alpha_, beta_,
-                             Mmn_.alpha, Mmn_.beta,
-                             -static_cast<double>(cd));
-  add_direct_cross_tda_block(y_beta, x_alpha, beta_, alpha_,
-                             Mmn_.beta, Mmn_.alpha,
-                             -static_cast<double>(cd));
+  // Cross-spin TDA coupling: use transition-density form.
+  add_direct_cross_tda_block(y_alpha, x_beta, alpha_, beta_, Mmn_.alpha,
+                             Mmn_.beta, -static_cast<double>(cd));
+  add_direct_cross_tda_block(y_beta, x_alpha, beta_, alpha_, Mmn_.beta,
+                             Mmn_.alpha, -static_cast<double>(cd));
 
   // Cross-spin full-BSE B-block coupling is not the same object as the TDA
   // cross block above; keep the existing Hd2-style contraction for now.
@@ -294,26 +285,28 @@ Eigen::VectorXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::diagonal() const {
 
       if (cx != 0) {
         entry += cx * Mmn_.alpha[v + alpha_.vmin_rpa]
-                           .row(alpha_.cmin_rpa + c)
-                           .squaredNorm();
+                          .row(alpha_.cmin_rpa + c)
+                          .squaredNorm();
       }
       if (cqp != 0) {
         Index cmin_qp = alpha_.vtotal;
         entry += Hqp_alpha_(c + cmin_qp, c + cmin_qp) - Hqp_alpha_(v, v);
       }
       if (cd != 0) {
-        entry -= (Mmn_.alpha[c + alpha_.cmin_rpa].row(alpha_.cmin_rpa + c) *
-                  eps *
-                  Mmn_.alpha[v + alpha_.vmin_rpa].row(alpha_.vmin_rpa + v)
-                      .transpose())
-                     .value();
+        entry -=
+            (Mmn_.alpha[c + alpha_.cmin_rpa].row(alpha_.cmin_rpa + c) * eps *
+             Mmn_.alpha[v + alpha_.vmin_rpa]
+                 .row(alpha_.vmin_rpa + v)
+                 .transpose())
+                .value();
       }
       if (cd2 != 0) {
-        entry -= (Mmn_.alpha[c + alpha_.cmin_rpa].row(alpha_.vmin_rpa + v) *
-                  eps *
-                  Mmn_.alpha[v + alpha_.vmin_rpa].row(alpha_.cmin_rpa + c)
-                      .transpose())
-                     .value();
+        entry -=
+            (Mmn_.alpha[c + alpha_.cmin_rpa].row(alpha_.vmin_rpa + v) * eps *
+             Mmn_.alpha[v + alpha_.vmin_rpa]
+                 .row(alpha_.cmin_rpa + c)
+                 .transpose())
+                .value();
       }
 
       result(alpha_.offset + v * alpha_.ctotal + c) = entry;
@@ -326,27 +319,25 @@ Eigen::VectorXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::diagonal() const {
       double entry = 0.0;
 
       if (cx != 0) {
-        entry += cx * Mmn_.beta[v + beta_.vmin_rpa]
-                           .row(beta_.cmin_rpa + c)
-                           .squaredNorm();
+        entry +=
+            cx *
+            Mmn_.beta[v + beta_.vmin_rpa].row(beta_.cmin_rpa + c).squaredNorm();
       }
       if (cqp != 0) {
         Index cmin_qp = beta_.vtotal;
         entry += Hqp_beta_(c + cmin_qp, c + cmin_qp) - Hqp_beta_(v, v);
       }
       if (cd != 0) {
-        entry -= (Mmn_.beta[c + beta_.cmin_rpa].row(beta_.cmin_rpa + c) *
-                  eps *
-                  Mmn_.beta[v + beta_.vmin_rpa].row(beta_.vmin_rpa + v)
-                      .transpose())
-                     .value();
+        entry -=
+            (Mmn_.beta[c + beta_.cmin_rpa].row(beta_.cmin_rpa + c) * eps *
+             Mmn_.beta[v + beta_.vmin_rpa].row(beta_.vmin_rpa + v).transpose())
+                .value();
       }
       if (cd2 != 0) {
-        entry -= (Mmn_.beta[c + beta_.cmin_rpa].row(beta_.vmin_rpa + v) *
-                  eps *
-                  Mmn_.beta[v + beta_.vmin_rpa].row(beta_.cmin_rpa + c)
-                      .transpose())
-                     .value();
+        entry -=
+            (Mmn_.beta[c + beta_.cmin_rpa].row(beta_.vmin_rpa + v) * eps *
+             Mmn_.beta[v + beta_.vmin_rpa].row(beta_.cmin_rpa + c).transpose())
+                .value();
       }
 
       result(beta_.offset + v * beta_.ctotal + c) = entry;

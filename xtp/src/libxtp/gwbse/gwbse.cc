@@ -35,9 +35,9 @@
 #include "votca/xtp/logger.h"
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/rpa_uks.h"
 #include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/vxc_potential.h"
-#include "votca/xtp/rpa_uks.h"
 
 using std::flush;
 namespace votca {
@@ -359,13 +359,13 @@ void GWBSE::Initialize(tools::Property& options) {
     }
   } else {
     if (tasks_string.find("all") != std::string::npos) {
-      if (is_uks){
-      do_gw_ = true;
-      do_bse_exciton_uks_ = true;
+      if (is_uks) {
+        do_gw_ = true;
+        do_bse_exciton_uks_ = true;
       } else {
-      do_gw_ = true;
-      do_bse_singlets_ = true;
-      do_bse_triplets_ = true;  
+        do_gw_ = true;
+        do_bse_singlets_ = true;
+        do_bse_triplets_ = true;
       }
     }
     if (tasks_string.find("singlets") != std::string::npos) {
@@ -472,7 +472,7 @@ void GWBSE::Initialize(tools::Property& options) {
         << " Sigma plot spacing: " << sigma_plot_spacing_ << flush;
     XTP_LOG(Log::error, *pLog_)
         << " Sigma plot filename: " << sigma_plot_filename_ << flush;
-    }
+  }
 }
 
 void GWBSE::addoutput(tools::Property& summary) {
@@ -593,33 +593,34 @@ void GWBSE::addoutput(tools::Property& summary) {
     }
   }
   if (do_bse_exciton_uks_) {
-    tools::Property& exciton_uks_summary =
-        gwbse_summary.add("exciton_uks", "");
+    tools::Property& exciton_uks_summary = gwbse_summary.add("exciton_uks", "");
 
     const bool has_dipoles = orbitals_.hasTransitionDipoles();
     Eigen::VectorXd oscs = Eigen::VectorXd::Zero(0);
     if (has_dipoles) {
-      oscs = orbitals_.Oscillatorstrengths(
-          QMStateType(QMStateType::ExcitonUKS));
+      oscs =
+          orbitals_.Oscillatorstrengths(QMStateType(QMStateType::ExcitonUKS));
     }
 
     for (Index state = 0;
-         state < std::min<Index>(bseopt_.nmax,
-                                 orbitals_.BSEUKS().eigenvalues().size());
+         state <
+         std::min<Index>(bseopt_.nmax, orbitals_.BSEUKS().eigenvalues().size());
          ++state) {
       tools::Property& level_summary = exciton_uks_summary.add("level", "");
       level_summary.setAttribute("number", state + 1);
-      level_summary.add(
-          "omega", (boost::format("%1$+1.6f ") %
-                    (orbitals_.BSEUKS().eigenvalues()(state) * hrt2ev))
-                       .str());
-    const Index ndip = static_cast<Index>(orbitals_.TransitionDipoles().size());
-    const Index nosc = static_cast<Index>(oscs.size());
+      level_summary.add("omega",
+                        (boost::format("%1$+1.6f ") %
+                         (orbitals_.BSEUKS().eigenvalues()(state) * hrt2ev))
+                            .str());
+      const Index ndip =
+          static_cast<Index>(orbitals_.TransitionDipoles().size());
+      const Index nosc = static_cast<Index>(oscs.size());
 
-    if (has_dipoles && state < ndip && state < nosc) {
+      if (has_dipoles && state < ndip && state < nosc) {
         const Eigen::Vector3d& dipoles = orbitals_.TransitionDipoles()[state];
 
-        level_summary.add("f", (boost::format("%1$+1.6f ") % oscs(state)).str());
+        level_summary.add("f",
+                          (boost::format("%1$+1.6f ") % oscs(state)).str());
 
         tools::Property& dipol_summary = level_summary.add(
             "Trdipole", (boost::format("%1$+1.4f %2$+1.4f %3$+1.4f") %
@@ -773,7 +774,7 @@ bool GWBSE::Evaluate() {
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled Auxbasis of size "
                               << auxbasis.AOBasisSize() << flush;
 
-if ((do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) &&
+  if ((do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) &&
       fragments_.size() > 0) {
     for (const auto& frag : fragments_) {
       XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Fragment " << frag.getId()
@@ -922,7 +923,7 @@ if ((do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) &&
           << " seconds." << flush;
     }
 
-  }  else {
+  } else {
     if (orbitals_.getGWAmax() != gwopt_.qpmax ||
         orbitals_.getGWAmin() != gwopt_.qpmin ||
         orbitals_.getRPAmax() != gwopt_.rpamax ||
@@ -933,15 +934,17 @@ if ((do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) &&
     }
 
     if (is_uks) {
-      const Eigen::MatrixXd& qpcoeff_alpha = orbitals_.QPdiagAlpha().eigenvectors();
-      const Eigen::MatrixXd& qpcoeff_beta = orbitals_.QPdiagBeta().eigenvectors();
+      const Eigen::MatrixXd& qpcoeff_alpha =
+          orbitals_.QPdiagAlpha().eigenvectors();
+      const Eigen::MatrixXd& qpcoeff_beta =
+          orbitals_.QPdiagBeta().eigenvectors();
 
-      Hqp_alpha =
-          qpcoeff_alpha * orbitals_.QPdiagAlpha().eigenvalues().asDiagonal() *
-          qpcoeff_alpha.transpose();
-      Hqp_beta =
-          qpcoeff_beta * orbitals_.QPdiagBeta().eigenvalues().asDiagonal() *
-          qpcoeff_beta.transpose();
+      Hqp_alpha = qpcoeff_alpha *
+                  orbitals_.QPdiagAlpha().eigenvalues().asDiagonal() *
+                  qpcoeff_alpha.transpose();
+      Hqp_beta = qpcoeff_beta *
+                 orbitals_.QPdiagBeta().eigenvalues().asDiagonal() *
+                 qpcoeff_beta.transpose();
     } else {
       const Eigen::MatrixXd& qpcoeff = orbitals_.QPdiag().eigenvectors();
 
@@ -951,7 +954,7 @@ if ((do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) &&
   }
 
   // proceed only if BSE requested
-if (do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) {
+  if (do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) {
 
     std::chrono::time_point<std::chrono::system_clock> start =
         std::chrono::system_clock::now();
@@ -999,14 +1002,12 @@ if (do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) {
         BSE_UKS bse_uks(*pLog_, Mmn_spin);
         bse_uks.configure_with_precomputed_screening(
             bseopt_uks, orbitals_.getHomoAlpha(), orbitals_.getHomoBeta(),
-            orbitals_.RPAInputEnergiesAlpha(),
-            orbitals_.RPAInputEnergiesBeta(),
+            orbitals_.RPAInputEnergiesAlpha(), orbitals_.RPAInputEnergiesBeta(),
             Hqp_alpha, Hqp_beta, epsilon_0_inv_bse, es_bse.eigenvectors());
 
         bse_uks.Solve_excitons_uks(orbitals_);
         XTP_LOG(Log::error, *pLog_)
-            << TimeStamp()
-            << " Solved combined UKS BSE exciton problem "
+            << TimeStamp() << " Solved combined UKS BSE exciton problem "
             << flush;
         bse_uks.Analyze_excitons_uks(fragments_, orbitals_);
 

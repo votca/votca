@@ -681,7 +681,6 @@ class Orbitals {
   tools::EigenSystem &QPdiagAlpha() { return QPdiag_alpha_; }
   tools::EigenSystem &QPdiagBeta() { return QPdiag_beta_; }
 
-
   /**
    * EXTENSIONS SPIN BSE
    */

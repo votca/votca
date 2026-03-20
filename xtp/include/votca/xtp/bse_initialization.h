@@ -17,7 +17,7 @@
  *
  */
 
- #pragma once
+#pragma once
 
 #include <Eigen/Dense>
 #include <algorithm>
@@ -45,13 +45,10 @@ namespace xtp {
  *  - RKS full-BSE (future reuse)
  */
 inline Eigen::MatrixXd BuildFullBSEXRankedInitialGuess(
-    const Eigen::VectorXd& adiag,
-    const Eigen::VectorXd& bdiag,
-    Index nroots) {
+    const Eigen::VectorXd& adiag, const Eigen::VectorXd& bdiag, Index nroots) {
 
   if (adiag.size() != bdiag.size()) {
-    throw std::runtime_error(
-        "BuildFullBSEXRankedInitialGuess: size mismatch.");
+    throw std::runtime_error("BuildFullBSEXRankedInitialGuess: size mismatch.");
   }
 
   const Index n = adiag.size();
