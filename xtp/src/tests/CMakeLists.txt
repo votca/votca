@@ -337,6 +337,23 @@ if(RUN_XTP_INTEGRATIONTESTS)
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_tools_dftgwbse_neutral (votca_compare_hdf5 not found)")
   endif()
 
+  # xtp_tools -e dftgwbse cation water TDA
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_cation_tda)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/DataFiles/xtp_tools_integration_tests)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/molecule.xyz ${RUNPATH}/molecule_cation_tda.xyz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/dftgwbse_cation_tda.xml ${RUNPATH}/dftgwbse_cation_tda.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/3-21G.xml ${RUNPATH}/3-21G.xml)
+  add_test(NAME integration_Run_xtp_tools_dftgwbse_cation_tda COMMAND xtp_tools -e dftgwbse -o dftgwbse_cation_tda.xml WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_tools_dftgwbse_cation_tda PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  if(HAS_HDF5_COMPARE)
+    add_test(NAME integration_Compare_xtp_tools_dftgwbse_cation_tda_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --atol 1e-6 --rtol 1e-7  --td-atol 3e-6 ${REFPATH}/molecule_cation_tda.orb ${RUNPATH}/molecule_cation_tda.orb WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_tools_dftgwbse_cation_tda_output PROPERTIES DEPENDS integration_Run_xtp_tools_dftgwbse_cation_tda)
+  else()
+    message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_tools_dftgwbse_cation_tda (votca_compare_hdf5 not found)")
+  endif()
+
+
   # xtp_tools -e dftgwbse cation water
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_cation)
   file(MAKE_DIRECTORY ${RUNPATH})

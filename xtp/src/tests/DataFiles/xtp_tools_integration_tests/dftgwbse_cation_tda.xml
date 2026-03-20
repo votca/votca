@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <options>
 <dftgwbse help="Compute electronic excitations using GW-BSE">
-	<job_name default="system" help="Input file name without extension, also used for intermediate files">molecule_cation</job_name>
+	<job_name default="system" help="Input file name without extension, also used for intermediate files">molecule_cation_tda</job_name>
 <dftpackage>
 <spin>2</spin>
 <name>xtp</name>
@@ -39,7 +39,7 @@
 	  </gw>
 	  <bse>
 	    <dyn_screen_max_iter choices="int+" default="0" help="maximum number of iterations for perturbative dynamical screening in BSE">5</dyn_screen_max_iter>
-	    <useTDA>false</useTDA>
+	    <useTDA>true</useTDA>
 	  </bse>
 	</gwbse>
 </dftgwbse>
