@@ -70,15 +70,6 @@ class BSE_OPERATOR_UKS final : public MatrixFreeOperator {
   SpinBlockInfo alpha_;
   SpinBlockInfo beta_;
 
-  std::string spin_block_info_string(const SpinBlockInfo& blk) const;
-  std::string matrix_label(const TCMatrix_gwbse& M) const;
-  void log_add_direct2_call(const std::string& block_label,
-                            const SpinBlockInfo& out_blk,
-                            const SpinBlockInfo& in_blk,
-                            const TCMatrix_gwbse& Mout,
-                            const TCMatrix_gwbse& Min,
-                            double prefactor) const;
-
   Index size_total_ = 0;
 
   const Eigen::VectorXd& epsilon_0_inv_;
@@ -109,8 +100,7 @@ class BSE_OPERATOR_UKS final : public MatrixFreeOperator {
                          const SpinBlockInfo& out_blk,
                          const SpinBlockInfo& in_blk,
                          const TCMatrix_gwbse& Mout, const TCMatrix_gwbse& Min,
-                         double prefactor,
-                         const std::string& block_label) const;
+                         double prefactor) const;
 
   void add_direct_cross_tda_block(Eigen::MatrixXd& y, const Eigen::MatrixXd& x,
                                   const SpinBlockInfo& out_blk,

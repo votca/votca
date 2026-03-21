@@ -17,62 +17,10 @@
  *
  */
 
- #include <iomanip>
-#include <iostream>
-#include <sstream>
-#include <string>
-
-#include "votca/xtp/bse_operator_uks.h"
+ #include "votca/xtp/bse_operator_uks.h"
 
 namespace votca {
 namespace xtp {
-
- namespace {
-
-bool hd2_trace_enabled() {
-  const char* env = std::getenv("VOTCA_XTP_HD2_TRACE");
-  return (env != nullptr && std::string(env) == "1");
-}
-
-std::string hd2_trace_block() {
-  const char* env = std::getenv("VOTCA_XTP_HD2_BLOCK");
-  return (env != nullptr) ? std::string(env) : std::string();
-}
-
-bool hd2_trace_has_value(const char* name) {
-  return std::getenv(name) != nullptr;
-}
-
-Index hd2_trace_value(const char* name, Index fallback = -1) {
-  const char* env = std::getenv(name);
-  if (env == nullptr) {
-    return fallback;
-  }
-  try {
-    return static_cast<Index>(std::stol(env));
-  } catch (...) {
-    return fallback;
-  }
-}
-
-std::string vec_to_string(const Eigen::RowVectorXd& v, Index max_elems = 12) {
-  std::ostringstream oss;
-  oss.setf(std::ios::scientific);
-  oss << std::setprecision(16);
-  const Index n = std::min<Index>(max_elems, v.size());
-  for (Index i = 0; i < n; ++i) {
-    if (i > 0) {
-      oss << " ";
-    }
-    oss << v(i);
-  }
-  if (v.size() > n) {
-    oss << " ...";
-  }
-  return oss.str();
-}
-
-}  // namespace
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::setup_block(SpinBlockInfo& blk,
@@ -95,50 +43,6 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::configure(BSEOperatorUKS_Options opt) {
   this->set_size(size_total_);
 }
 
-
-template <Index cqp, Index cx, Index cd, Index cd2>
-std::string BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::spin_block_info_string(
-    const SpinBlockInfo& blk) const {
-  std::ostringstream oss;
-  oss << "{homo=" << blk.homo
-      << ", vmin_rpa=" << blk.vmin_rpa
-      << ", cmin_rpa=" << blk.cmin_rpa
-      << ", vtotal=" << blk.vtotal
-      << ", ctotal=" << blk.ctotal
-      << ", size=" << blk.size
-      << ", offset=" << blk.offset
-      << "}";
-  return oss.str();
-}
-
-template <Index cqp, Index cx, Index cd, Index cd2>
-std::string BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::matrix_label(
-    const TCMatrix_gwbse& M) const {
-  if (&M == &Mmn_.alpha) {
-    return "Mmn_.alpha";
-  }
-  if (&M == &Mmn_.beta) {
-    return "Mmn_.beta";
-  }
-  return "unknown";
-}
-
-template <Index cqp, Index cx, Index cd, Index cd2>
-void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::log_add_direct2_call(
-    const std::string& block_label, const SpinBlockInfo& out_blk,
-    const SpinBlockInfo& in_blk, const TCMatrix_gwbse& Mout,
-    const TCMatrix_gwbse& Min, double prefactor) const {
-  std::ostringstream oss;
-  oss.setf(std::ios::scientific);
-  oss << std::setprecision(16);
-  oss << "[UKS Hd2 call] block=" << block_label
-      << " prefactor=" << prefactor
-      << " Mout=" << matrix_label(Mout)
-      << " Min=" << matrix_label(Min)
-      << " out_blk=" << spin_block_info_string(out_blk)
-      << " in_blk=" << spin_block_info_string(in_blk);
-  std::cout << oss.str() << std::endl;
-}
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 Eigen::VectorXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::Hqp_row(
@@ -235,153 +139,6 @@ template <Index cqp, Index cx, Index cd, Index cd2>
 void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
     Eigen::MatrixXd& y, const Eigen::MatrixXd& x, const SpinBlockInfo& out_blk,
     const SpinBlockInfo& in_blk, const TCMatrix_gwbse& Mout,
-    const TCMatrix_gwbse& Min, double prefactor,
-    const std::string& block_label) const {
-  if (cd2 == 0 || prefactor == 0.0) {
-    return;
-  }
-
-  const Eigen::DiagonalMatrix<double, Eigen::Dynamic> eps =
-      epsilon_0_inv_.asDiagonal();
-
-  const bool trace_enabled = hd2_trace_enabled();
-  const std::string trace_block = hd2_trace_block();
-  const Index trace_row_local = hd2_trace_value("VOTCA_XTP_HD2_ROW", -1);
-  const Index trace_col_local = hd2_trace_value("VOTCA_XTP_HD2_COL", -1);
-  const Index trace_xcol = hd2_trace_value("VOTCA_XTP_HD2_XCOL", -1);
-
-  for (Index c1 = 0; c1 < out_blk.ctotal; ++c1) {
-    const Eigen::MatrixXd left =
-        prefactor *
-        Mout[c1 + out_blk.cmin_rpa].middleRows(in_blk.vmin_rpa, in_blk.vtotal);
-    // left: (vtotal_in x naux)
-
-    for (Index v1 = 0; v1 < out_blk.vtotal; ++v1) {
-      const Eigen::MatrixXd right =
-          Min[v1 + out_blk.vmin_rpa].middleRows(in_blk.cmin_rpa, in_blk.ctotal);
-      // right: (ctotal_in x naux)
-
-      const Eigen::MatrixXd block = left * eps * right.transpose();
-      // block: (vtotal_in x ctotal_in)
-
-      Eigen::VectorXd row(in_blk.vtotal * in_blk.ctotal);
-      for (Index v2 = 0; v2 < in_blk.vtotal; ++v2) {
-        for (Index c2 = 0; c2 < in_blk.ctotal; ++c2) {
-          const Index idx = v2 * in_blk.ctotal + c2;
-          row(idx) = block(v2, c2);
-
-          const Index out_idx = v1 * out_blk.ctotal + c1;
-          bool trace_this_entry =
-              trace_enabled && block_label == trace_block &&
-              out_idx == trace_row_local && idx == trace_col_local;
-
-          if (trace_this_entry && trace_xcol >= 0) {
-            if (trace_xcol >= x.cols()) {
-              trace_this_entry = false;
-            } else {
-              const double xsel = x(idx, trace_xcol);
-              trace_this_entry = (std::abs(xsel - 1.0) < 1e-14);
-            }
-          }
-
-          if (trace_this_entry) {
-            const Eigen::RowVectorXd left_row = left.row(v2);
-            const Eigen::RowVectorXd right_row = right.row(c2);
-            const Eigen::RowVectorXd left_row_eps = left_row * eps;
-            const double dot_value = left_row_eps.dot(right_row);
-
-            std::ostringstream oss;
-            oss.setf(std::ios::scientific);
-            oss << std::setprecision(16);
-
-            oss << "[HD2 TRACE] "
-                << "block=" << block_label
-                << " out_idx=" << out_idx
-                << " in_idx=" << idx
-                << " v1=" << v1
-                << " c1=" << c1
-                << " v2=" << v2
-                << " c2=" << c2
-                << " prefactor=" << prefactor
-                << " block_value=" << block(v2, c2)
-                << " dot_value=" << dot_value
-                << " x_col0=" << (x.cols() > 0 ? x(idx, 0) : 0.0)
-                << " y_before_col0=" << (y.cols() > 0 ? y(out_idx, 0) : 0.0)
-                << "\n  left_row      = " << vec_to_string(left_row)
-                << "\n  left_row_eps  = " << vec_to_string(left_row_eps)
-                << "\n  right_row     = " << vec_to_string(right_row);
-
-            std::cout << oss.str() << std::endl;
-          }
-        }
-      }
-
-      if (v1 < 2 && c1 < 2) {
-        std::ostringstream oss;
-        oss.setf(std::ios::scientific);
-        oss.precision(16);
-        oss << "Hd2 row v1=" << v1 << " c1=" << c1 << ":";
-        for (Index k = 0; k < std::min<Index>(8, row.size()); ++k) {
-          oss << " " << row(k);
-        }
-        std::cout << " " << oss.str() << std::endl;
-      }
-
-      const Index out_idx = v1 * out_blk.ctotal + c1;
-
-      bool trace_this_row_apply =
-          trace_enabled && block_label == trace_block &&
-          out_idx == trace_row_local;
-
-      if (trace_this_row_apply && trace_xcol >= 0) {
-        if (trace_xcol >= x.cols()) {
-          trace_this_row_apply = false;
-        } else {
-          const double xsel = x(trace_col_local, trace_xcol);
-          trace_this_row_apply = (std::abs(xsel - 1.0) < 1e-14);
-        }
-      }
-
-      if (trace_this_row_apply) {
-        const double contrib_col0 =
-            (x.cols() > 0) ? row.transpose().dot(x.col(0)) : 0.0;
-
-        std::ostringstream oss;
-        oss.setf(std::ios::scientific);
-        oss << std::setprecision(16);
-        oss << "[HD2 TRACE ROW APPLY] "
-            << "block=" << block_label
-            << " out_idx=" << out_idx
-            << " v1=" << v1
-            << " c1=" << c1
-            << " contrib_col0=" << contrib_col0
-            << " y_before_col0=" << (y.cols() > 0 ? y(out_idx, 0) : 0.0);
-        std::cout << oss.str() << std::endl;
-      }
-
-      y.row(out_idx) += row.transpose() * x;
-
-      if (trace_enabled && block_label == trace_block &&
-          out_idx == trace_row_local) {
-        std::ostringstream oss;
-        oss.setf(std::ios::scientific);
-        oss << std::setprecision(16);
-        oss << "[HD2 TRACE ROW DONE] "
-            << "block=" << block_label
-            << " out_idx=" << out_idx
-            << " v1=" << v1
-            << " c1=" << c1
-            << " y_after_col0=" << (y.cols() > 0 ? y(out_idx, 0) : 0.0);
-        std::cout << oss.str() << std::endl;
-      }
-    }
-  }
-}
-
-/*template <Index cqp, Index cx, Index cd, Index cd2>
-void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
-    Eigen::MatrixXd& y, const Eigen::MatrixXd& x, const SpinBlockInfo& out_blk,
-    const SpinBlockInfo& in_blk, const TCMatrix_gwbse& Mout,
     const TCMatrix_gwbse& Min, double prefactor) const {
   if (cd2 == 0 || prefactor == 0.0) {
     return;
@@ -399,17 +156,21 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
       const Eigen::MatrixXd right =
           Min[v1 + out_blk.vmin_rpa].middleRows(in_blk.cmin_rpa, in_blk.ctotal);
 
-      // We need matrix dimensions (ctotal_in x vtotal_in) so that the
-      // flattened memory order matches the existing vc = v*ctotal + c layout.
-      const Eigen::MatrixXd block = right * eps * left.transpose();
-      const Eigen::VectorXd row =
-          Eigen::Map<const Eigen::VectorXd>(block.data(), block.size());
+      const Eigen::MatrixXd block = left * eps * right.transpose();
+
+      Eigen::VectorXd row(in_blk.vtotal * in_blk.ctotal);
+      for (Index v2 = 0; v2 < in_blk.vtotal; ++v2) {
+        for (Index c2 = 0; c2 < in_blk.ctotal; ++c2) {
+          const Index idx = v2 * in_blk.ctotal + c2;
+          row(idx) = block(v2, c2);
+        }
+      }
 
       const Index out_idx = v1 * out_blk.ctotal + c1;
       y.row(out_idx) += row.transpose() * x;
     }
   }
-}*/
+}
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct_cross_tda_block(
@@ -471,10 +232,8 @@ Eigen::MatrixXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::matmul(
                      static_cast<double>(cx));
   add_direct_block(y_alpha, x_alpha, alpha_, alpha_, Mmn_.alpha, Mmn_.alpha,
                    -static_cast<double>(cd));
-  log_add_direct2_call("aa", alpha_, alpha_, Mmn_.alpha, Mmn_.alpha,
-                       -static_cast<double>(cd2));
   add_direct2_block(y_alpha, x_alpha, alpha_, alpha_, Mmn_.alpha, Mmn_.alpha,
-                    -static_cast<double>(cd2), "aa");
+                    -static_cast<double>(cd2));
 
   // Same-spin beta-beta
   add_qp_block(y_beta, x_beta, beta_, Hqp_beta_);
@@ -482,10 +241,8 @@ Eigen::MatrixXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::matmul(
                      static_cast<double>(cx));
   add_direct_block(y_beta, x_beta, beta_, beta_, Mmn_.beta, Mmn_.beta,
                    -static_cast<double>(cd));
-  log_add_direct2_call("bb", beta_, beta_, Mmn_.beta, Mmn_.beta,
-                       -static_cast<double>(cd2));
   add_direct2_block(y_beta, x_beta, beta_, beta_, Mmn_.beta, Mmn_.beta,
-                    -static_cast<double>(cd2), "bb");
+                    -static_cast<double>(cd2));
 
   // Cross-spin TDA coupling: use transition-density form.
   add_direct_cross_tda_block(y_alpha, x_beta, alpha_, beta_, Mmn_.alpha,
@@ -495,15 +252,11 @@ Eigen::MatrixXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::matmul(
 
   // Cross-spin full-BSE B-block coupling is not the same object as the TDA
   // cross block above; keep the existing Hd2-style contraction for now.
-   log_add_direct2_call("ab", alpha_, beta_, Mmn_.alpha, Mmn_.beta,
-                       -static_cast<double>(cd2));
   add_direct2_block(y_alpha, x_beta, alpha_, beta_, Mmn_.alpha, Mmn_.beta,
-                    -static_cast<double>(cd2), "ab");
+                    -static_cast<double>(cd2));
 
-  log_add_direct2_call("ba", beta_, alpha_, Mmn_.beta, Mmn_.alpha,
-                       -static_cast<double>(cd2));
   add_direct2_block(y_beta, x_alpha, beta_, alpha_, Mmn_.beta, Mmn_.alpha,
-                    -static_cast<double>(cd2),"ba");
+                    -static_cast<double>(cd2));
 
   y.topRows(alpha_.size) = y_alpha;
   y.bottomRows(beta_.size) = y_beta;
