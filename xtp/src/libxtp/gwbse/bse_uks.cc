@@ -330,6 +330,12 @@ const Eigen::MatrixXd B_rebuilt = Hx_dense + Hd2_dense;
     const Index nbeta = (homo_beta_ - opt_.vmin + 1) *
                         (opt_.cmax - (homo_beta_ + 1) + 1);
 
+    const Eigen::MatrixXd Hd2_aa = Hd2_dense.topLeftCorner(nalpha, nalpha);
+    const Eigen::MatrixXd Hd2_ab = Hd2_dense.topRightCorner(nalpha, nbeta);
+    const Eigen::MatrixXd Hd2_ba = Hd2_dense.bottomLeftCorner(nbeta, nalpha);
+    const Eigen::MatrixXd Hd2_bb = Hd2_dense.bottomRightCorner(nbeta, nbeta);
+
+
                           auto dump_matrix_txt = [&](const std::string& name,
                              const Eigen::MatrixXd& M) {
     std::ofstream ofs(name.c_str());
@@ -380,6 +386,11 @@ const Eigen::MatrixXd B_rebuilt = Hx_dense + Hd2_dense;
       dump_matrix_txt(tag.str() + "_Hx_dense.txt", Hx_dense);
       dump_matrix_txt(tag.str() + "_Hd_dense.txt", Hd_dense);
       dump_matrix_txt(tag.str() + "_Hd2_dense.txt", Hd2_dense);
+
+      dump_matrix_txt(tag.str() + "_Hd2_aa.txt", Hd2_aa);
+      dump_matrix_txt(tag.str() + "_Hd2_ab.txt", Hd2_ab);
+      dump_matrix_txt(tag.str() + "_Hd2_ba.txt", Hd2_ba);
+      dump_matrix_txt(tag.str() + "_Hd2_bb.txt", Hd2_bb);
 
       // optional: binary copies too
       // dump_matrix_bin(tag.str() + "_A_dense.bin", A_dense);

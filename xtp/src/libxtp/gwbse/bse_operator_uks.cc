@@ -17,6 +17,11 @@
  *
  */
 
+ #include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+
 #include "votca/xtp/bse_operator_uks.h"
 
 namespace votca {
@@ -41,6 +46,51 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::configure(BSEOperatorUKS_Options opt) {
   setup_block(beta_, opt_.homo_beta, alpha_.size);
   size_total_ = alpha_.size + beta_.size;
   this->set_size(size_total_);
+}
+
+
+template <Index cqp, Index cx, Index cd, Index cd2>
+std::string BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::spin_block_info_string(
+    const SpinBlockInfo& blk) const {
+  std::ostringstream oss;
+  oss << "{homo=" << blk.homo
+      << ", vmin_rpa=" << blk.vmin_rpa
+      << ", cmin_rpa=" << blk.cmin_rpa
+      << ", vtotal=" << blk.vtotal
+      << ", ctotal=" << blk.ctotal
+      << ", size=" << blk.size
+      << ", offset=" << blk.offset
+      << "}";
+  return oss.str();
+}
+
+template <Index cqp, Index cx, Index cd, Index cd2>
+std::string BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::matrix_label(
+    const TCMatrix_gwbse& M) const {
+  if (&M == &Mmn_.alpha) {
+    return "Mmn_.alpha";
+  }
+  if (&M == &Mmn_.beta) {
+    return "Mmn_.beta";
+  }
+  return "unknown";
+}
+
+template <Index cqp, Index cx, Index cd, Index cd2>
+void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::log_add_direct2_call(
+    const std::string& block_label, const SpinBlockInfo& out_blk,
+    const SpinBlockInfo& in_blk, const TCMatrix_gwbse& Mout,
+    const TCMatrix_gwbse& Min, double prefactor) const {
+  std::ostringstream oss;
+  oss.setf(std::ios::scientific);
+  oss << std::setprecision(16);
+  oss << "[UKS Hd2 call] block=" << block_label
+      << " prefactor=" << prefactor
+      << " Mout=" << matrix_label(Mout)
+      << " Min=" << matrix_label(Min)
+      << " out_blk=" << spin_block_info_string(out_blk)
+      << " in_blk=" << spin_block_info_string(in_blk);
+  std::cout << oss.str() << std::endl;
 }
 
 template <Index cqp, Index cx, Index cd, Index cd2>
@@ -279,6 +329,8 @@ Eigen::MatrixXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::matmul(
                      static_cast<double>(cx));
   add_direct_block(y_alpha, x_alpha, alpha_, alpha_, Mmn_.alpha, Mmn_.alpha,
                    -static_cast<double>(cd));
+  log_add_direct2_call("aa", alpha_, alpha_, Mmn_.alpha, Mmn_.alpha,
+                       -static_cast<double>(cd2));
   add_direct2_block(y_alpha, x_alpha, alpha_, alpha_, Mmn_.alpha, Mmn_.alpha,
                     -static_cast<double>(cd2));
 
@@ -288,6 +340,8 @@ Eigen::MatrixXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::matmul(
                      static_cast<double>(cx));
   add_direct_block(y_beta, x_beta, beta_, beta_, Mmn_.beta, Mmn_.beta,
                    -static_cast<double>(cd));
+  log_add_direct2_call("bb", beta_, beta_, Mmn_.beta, Mmn_.beta,
+                       -static_cast<double>(cd2));
   add_direct2_block(y_beta, x_beta, beta_, beta_, Mmn_.beta, Mmn_.beta,
                     -static_cast<double>(cd2));
 
@@ -299,8 +353,13 @@ Eigen::MatrixXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::matmul(
 
   // Cross-spin full-BSE B-block coupling is not the same object as the TDA
   // cross block above; keep the existing Hd2-style contraction for now.
+   log_add_direct2_call("ab", alpha_, beta_, Mmn_.alpha, Mmn_.beta,
+                       -static_cast<double>(cd2));
   add_direct2_block(y_alpha, x_beta, alpha_, beta_, Mmn_.alpha, Mmn_.beta,
                     -static_cast<double>(cd2));
+
+  log_add_direct2_call("ba", beta_, alpha_, Mmn_.beta, Mmn_.alpha,
+                       -static_cast<double>(cd2));
   add_direct2_block(y_beta, x_alpha, beta_, alpha_, Mmn_.beta, Mmn_.alpha,
                     -static_cast<double>(cd2));
 
