@@ -248,6 +248,7 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
   const std::string trace_block = hd2_trace_block();
   const Index trace_row_local = hd2_trace_value("VOTCA_XTP_HD2_ROW", -1);
   const Index trace_col_local = hd2_trace_value("VOTCA_XTP_HD2_COL", -1);
+  const Index trace_xcol = hd2_trace_value("VOTCA_XTP_HD2_XCOL", -1);
 
   for (Index c1 = 0; c1 < out_blk.ctotal; ++c1) {
     const Eigen::MatrixXd left =
@@ -270,9 +271,18 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
           row(idx) = block(v2, c2);
 
           const Index out_idx = v1 * out_blk.ctotal + c1;
-          const bool trace_this_entry =
+          bool trace_this_entry =
               trace_enabled && block_label == trace_block &&
               out_idx == trace_row_local && idx == trace_col_local;
+
+          if (trace_this_entry && trace_xcol >= 0) {
+            if (trace_xcol >= x.cols()) {
+              trace_this_entry = false;
+            } else {
+              const double xsel = x(idx, trace_xcol);
+              trace_this_entry = (std::abs(xsel - 1.0) < 1e-14);
+            }
+          }
 
           if (trace_this_entry) {
             const Eigen::RowVectorXd left_row = left.row(v2);
@@ -319,8 +329,20 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::add_direct2_block(
 
       const Index out_idx = v1 * out_blk.ctotal + c1;
 
-      if (trace_enabled && block_label == trace_block &&
-          out_idx == trace_row_local) {
+      bool trace_this_row_apply =
+          trace_enabled && block_label == trace_block &&
+          out_idx == trace_row_local;
+
+      if (trace_this_row_apply && trace_xcol >= 0) {
+        if (trace_xcol >= x.cols()) {
+          trace_this_row_apply = false;
+        } else {
+          const double xsel = x(trace_col_local, trace_xcol);
+          trace_this_row_apply = (std::abs(xsel - 1.0) < 1e-14);
+        }
+      }
+
+      if (trace_this_row_apply) {
         const double contrib_col0 =
             (x.cols() > 0) ? row.transpose().dot(x.col(0)) : 0.0;
 
