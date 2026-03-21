@@ -109,7 +109,8 @@ class BSE_OPERATOR_UKS final : public MatrixFreeOperator {
                          const SpinBlockInfo& out_blk,
                          const SpinBlockInfo& in_blk,
                          const TCMatrix_gwbse& Mout, const TCMatrix_gwbse& Min,
-                         double prefactor) const;
+                         double prefactor,
+                         const std::string& block_label) const;
 
   void add_direct_cross_tda_block(Eigen::MatrixXd& y, const Eigen::MatrixXd& x,
                                   const SpinBlockInfo& out_blk,
