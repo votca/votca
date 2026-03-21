@@ -184,6 +184,9 @@ template class BSE_OPERATOR<0, 0, 0, 1>;
 
 template class BSE_OPERATOR<0, 2, 0, 1>;
 
+template class BSE_OPERATOR<1, 1, 1, 0>;
+template class BSE_OPERATOR<0, 1, 0, 1>;
+
 }  // namespace xtp
 
 }  // namespace votca
