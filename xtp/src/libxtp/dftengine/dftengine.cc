@@ -44,7 +44,7 @@
 namespace votca {
 namespace xtp {
 
-  namespace {
+namespace {
 
 void CanonicalizeOrbitalPhases(Eigen::MatrixXd& coeffs) {
   constexpr double tol = 1e-14;

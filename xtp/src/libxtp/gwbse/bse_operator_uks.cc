@@ -17,7 +17,7 @@
  *
  */
 
- #include "votca/xtp/bse_operator_uks.h"
+#include "votca/xtp/bse_operator_uks.h"
 
 namespace votca {
 namespace xtp {
@@ -42,7 +42,6 @@ void BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::configure(BSEOperatorUKS_Options opt) {
   size_total_ = alpha_.size + beta_.size;
   this->set_size(size_total_);
 }
-
 
 template <Index cqp, Index cx, Index cd, Index cd2>
 Eigen::VectorXd BSE_OPERATOR_UKS<cqp, cx, cd, cd2>::Hqp_row(

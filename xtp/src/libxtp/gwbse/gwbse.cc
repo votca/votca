@@ -352,10 +352,9 @@ void GWBSE::Initialize(tools::Property& options) {
     if (tasks_string.find("singlets") != std::string::npos ||
         tasks_string.find("triplets") != std::string::npos) {
       throw std::runtime_error(
-        "Invalid gwbse task for UKS reference: 'singlets' and 'triplets' "
-        "are not defined for open-shell systems.\n"
-        "Use 'exciton_uks' (or 'excitons') instead."
-    );
+          "Invalid gwbse task for UKS reference: 'singlets' and 'triplets' "
+          "are not defined for open-shell systems.\n"
+          "Use 'exciton_uks' (or 'excitons') instead.");
     }
   } else {
     if (tasks_string.find("all") != std::string::npos) {

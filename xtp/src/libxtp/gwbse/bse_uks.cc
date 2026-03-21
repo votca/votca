@@ -303,7 +303,6 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
   A.configure(opt);
   B.configure(opt);
 
-
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Setup combined UKS full BSE exciton hamiltonian "
       << flush;
@@ -314,9 +313,10 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
   constexpr Index dense_threshold = 128;
 
   if (A.rows() <= dense_threshold) {
-    XTP_LOG(Log::error, log_) << TimeStamp()
-                         << " Using dense full UKS-BSE solve for small system (dim="
-                         << A.rows() << ")" << flush;
+    XTP_LOG(Log::error, log_)
+        << TimeStamp()
+        << " Using dense full UKS-BSE solve for small system (dim=" << A.rows()
+        << ")" << flush;
     std::chrono::time_point<std::chrono::system_clock> start =
         std::chrono::system_clock::now();
 
@@ -335,7 +335,8 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
       throw std::runtime_error("Dense full UKS-BSE diagonalization failed.");
     }
 
-    using RootInfo = std::tuple<double, Index, double>;  // (eval, col, imag_abs)
+    using RootInfo =
+        std::tuple<double, Index, double>;  // (eval, col, imag_abs)
     std::vector<RootInfo> positive_roots;
     positive_roots.reserve(2 * n);
 
@@ -353,7 +354,8 @@ tools::EigenSystem BSE_UKS::Solve_excitons_uks_BTDA() const {
 
     if (positive_roots.empty()) {
       throw std::runtime_error(
-          "Dense full UKS-BSE diagonalization produced no positive real roots.");
+          "Dense full UKS-BSE diagonalization produced no positive real "
+          "roots.");
     }
 
     const Index nroots =
