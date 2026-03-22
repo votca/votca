@@ -227,6 +227,9 @@ class Orbitals {
       case QMStateType::DQPstate:
         return Index(QPdiag_.eigenvalues().size());
         break;
+      case QMStateType::ExcitonUKS:
+        return Index(BSE_uks_.eigenvalues().size());
+        break;
       default:
         return 1;
         break;
@@ -520,8 +523,11 @@ class Orbitals {
   }
 
   /// Compute oscillator strengths from the stored excitation energies and
-  /// transition dipoles.
+  /// transition dipoles for the default restricted singlet BSE case.
   Eigen::VectorXd Oscillatorstrengths() const;
+
+  /// Compute oscillator strengths for a specific excitation family.
+  Eigen::VectorXd Oscillatorstrengths(const QMStateType &type) const;
 
   /// Compute the electronic dipole moment associated with a state density.
   Eigen::Vector3d CalcElDipole(const QMState &state) const;
@@ -562,8 +568,11 @@ class Orbitals {
   void PrepareDimerGuess(const Orbitals &orbitalsA, const Orbitals &orbitalsB);
 
   /// Compute transition dipoles for coupled excited states from the stored BSE
-  /// data.
+  /// data for the default restricted singlet BSE case.
   void CalcCoupledTransition_Dipoles();
+
+  /// Compute transition dipoles for a specific excitation family.
+  void CalcCoupledTransition_Dipoles(const QMStateType &type);
 
   /// Write the orbital container to a checkpoint file on disk.
   void WriteToCpt(const std::string &filename) const;
@@ -672,6 +681,23 @@ class Orbitals {
   tools::EigenSystem &QPdiagAlpha() { return QPdiag_alpha_; }
   tools::EigenSystem &QPdiagBeta() { return QPdiag_beta_; }
 
+  /**
+   * EXTENSIONS SPIN BSE
+   */
+  bool hasBSEUKS() const {
+    return (BSE_uks_.eigenvectors().cols() > 0) ? true : false;
+  }
+  const tools::EigenSystem &BSEUKS() const { return BSE_uks_; }
+  tools::EigenSystem &BSEUKS() { return BSE_uks_; }
+
+  bool hasBSEUKS_dynamic() const {
+    return (BSE_uks_energies_dynamic_.size() > 0) ? true : false;
+  }
+  const Eigen::VectorXd &BSEUKS_dynamic() const {
+    return BSE_uks_energies_dynamic_;
+  }
+  Eigen::VectorXd &BSEUKS_dynamic() { return BSE_uks_energies_dynamic_; }
+
  private:
   std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
@@ -767,12 +793,15 @@ class Orbitals {
   tools::EigenSystem QPdiag_alpha_;
   tools::EigenSystem QPdiag_beta_;
 
+  tools::EigenSystem BSE_uks_;
+  Eigen::VectorXd BSE_uks_energies_dynamic_;
+
   // Version 2: adds BSE energies after perturbative dynamical screening
   // Version 3: changed shell ordering
   // Version 4: added vxc grid quality
   // Version 5: added the dft and aux basisset
   // Version 6: added spin in dft
-  static constexpr int orbitals_version() { return 7; }
+  static constexpr int orbitals_version() { return 8; }
 };
 
 }  // namespace xtp

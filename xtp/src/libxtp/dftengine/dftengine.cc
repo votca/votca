@@ -44,6 +44,31 @@
 namespace votca {
 namespace xtp {
 
+namespace {
+
+void CanonicalizeOrbitalPhases(Eigen::MatrixXd& coeffs) {
+  constexpr double tol = 1e-14;
+
+  for (Index col = 0; col < coeffs.cols(); ++col) {
+    Eigen::Index pivot = 0;
+    const double maxabs = coeffs.col(col).cwiseAbs().maxCoeff(&pivot);
+
+    if (maxabs <= tol) {
+      continue;
+    }
+
+    if (coeffs(pivot, col) < 0.0) {
+      coeffs.col(col) *= -1.0;
+    }
+  }
+}
+
+void CanonicalizeOrbitalPhases(tools::EigenSystem& mos) {
+  CanonicalizeOrbitalPhases(mos.eigenvectors());
+}
+
+}  // namespace
+
 /**
  * Self-consistent Kohn-Sham implementation.
  *
@@ -697,6 +722,9 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
       for (const QMAtom& atom : orb.QMAtoms()) {
         nuclear_charge += atom.getNuccharge();
       }
+
+      CanonicalizeOrbitalPhases(MOs_alpha);
+      CanonicalizeOrbitalPhases(MOs_beta);
 
       orb.setQMEnergy(totenergy);
       orb.MOs() = MOs_alpha;
