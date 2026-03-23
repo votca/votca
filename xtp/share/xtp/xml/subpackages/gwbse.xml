@@ -12,7 +12,7 @@
   <gw>
     <mode help="use single short (G0W0) or self-consistent GW (evGW)" default="evGW" choices="evGW,G0W0" />
     <scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" default="0.0" unit="hartree" choices="float" />
-    <sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact, cda" />
+    <sigma_integrator help="self-energy correlation integration method" default="ppm" choices="ppm, exact, cda, ri_reduced" />
     <eta help="small parameter eta of the Green's function" default="1e-3" unit="Hartree" choices="float+" />
     <alpha help="parameter to smooth residue and integral calculation for the contour deformation technique" default="1e-3" choices="float" />
     <quadrature_scheme help="If CDA is used for sigma integration this set the quadrature scheme to use" default="legendre" choices="hermite,laguerre,legendre" />

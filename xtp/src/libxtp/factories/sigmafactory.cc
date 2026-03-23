@@ -25,6 +25,7 @@
 #include "self_energy_evaluators/sigma_cda.h"
 #include "self_energy_evaluators/sigma_exact.h"
 #include "self_energy_evaluators/sigma_ppm.h"
+#include "self_energy_evaluators/sigma_ri_reduced.h"
 
 namespace votca {
 namespace xtp {
@@ -33,6 +34,7 @@ void SigmaFactory::RegisterAll(void) {
   this->Register<Sigma_CDA>("cda");
   this->Register<Sigma_Exact>("exact");
   this->Register<Sigma_PPM>("ppm");
+  this->Register<Sigma_RI_Reduced>("ri_reduced");
 }
 }  // namespace xtp
 }  // namespace votca
