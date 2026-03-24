@@ -133,7 +133,6 @@ void RPA_RI_Reduced::BuildReducedBasis() {
   }
 
   if (keep.empty()) {
-    // Keep at least the dominant mode so the reduced space is never empty.
     keep.push_back(order.front());
   }
 
@@ -157,8 +156,44 @@ Eigen::MatrixXd RPA_RI_Reduced::BuildReducedWcImag(double omega) const {
   const Index dim = pi_red.rows();
   const Eigen::MatrixXd I = Eigen::MatrixXd::Identity(dim, dim);
 
-  // Correlation part of reduced screened interaction in the reduced basis
   return (I - pi_red).inverse() - I;
+}
+
+// NEW
+Eigen::MatrixXd RPA_RI_Reduced::BuildWcImag(double omega) const {
+  const Eigen::MatrixXd pi = BuildPiImag(omega);
+  const Index dim = pi.rows();
+  const Eigen::MatrixXd I = Eigen::MatrixXd::Identity(dim, dim);
+
+  return (I - pi).inverse() - I;
+}
+
+// NEW
+Eigen::MatrixXd RPA_RI_Reduced::BuildProjectedReducedWcImag(double omega) const {
+  if (U_.cols() == 0) {
+    throw std::runtime_error(
+        "RPA_RI_Reduced::BuildProjectedReducedWcImag called before BuildReducedBasis.");
+  }
+
+  const Eigen::MatrixXd wc_red = BuildReducedWcImag(omega);
+  return U_ * wc_red * U_.transpose();
+}
+
+// NEW
+RPA_RI_Reduced::wc_diagnostic RPA_RI_Reduced::CompareWcImag(double omega) const {
+  const Eigen::MatrixXd wc_full = BuildWcImag(omega);
+  const Eigen::MatrixXd wc_proj = BuildProjectedReducedWcImag(omega);
+  const Eigen::MatrixXd diff = wc_full - wc_proj;
+
+  wc_diagnostic diag;
+  diag.omega = omega;
+  diag.norm_full = wc_full.norm();
+  diag.norm_proj = wc_proj.norm();
+  diag.abs_diff = diff.norm();
+  diag.rel_diff =
+      (diag.norm_full > 1e-14) ? (diag.abs_diff / diag.norm_full) : diag.abs_diff;
+
+  return diag;
 }
 
 }  // namespace xtp

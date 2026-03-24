@@ -38,11 +38,6 @@ class TCMatrix_gwbse;
  * polarizability directly in the Coulomb-whitened auxiliary RI basis already
  * stored in TCMatrix_gwbse, and compresses that screening response into a
  * truncated auxiliary subspace U.
- *
- * Current first implementation:
- *  - Build Pi(iw) in auxiliary space
- *  - Construct reduced basis from eigendecomposition of Pi(0)
- *  - Provide reduced Pi(iw) and reduced Wc(iw)
  */
 class RPA_RI_Reduced {
  public:
@@ -51,6 +46,14 @@ class RPA_RI_Reduced {
     Index imag_omega_points = 6;
     double basis_threshold = 1e-8;
     Index max_rank = -1;  // <= 0 means "no explicit cap"
+  };
+
+  struct wc_diagnostic {
+    double omega = 0.0;
+    double norm_full = 0.0;
+    double norm_proj = 0.0;
+    double abs_diff = 0.0;
+    double rel_diff = 0.0;
   };
 
   explicit RPA_RI_Reduced(const TCMatrix_gwbse& Mmn) : Mmn_(Mmn) {}
@@ -71,6 +74,15 @@ class RPA_RI_Reduced {
 
   Eigen::MatrixXd BuildReducedPiImag(double omega) const;
   Eigen::MatrixXd BuildReducedWcImag(double omega) const;
+
+  // NEW: full auxiliary-space correlation screening
+  Eigen::MatrixXd BuildWcImag(double omega) const;
+
+  // NEW: projected-back reduced approximation U Wc_red U^T
+  Eigen::MatrixXd BuildProjectedReducedWcImag(double omega) const;
+
+  // NEW: compare full vs projected reduced Wc
+  wc_diagnostic CompareWcImag(double omega) const;
 
   const Eigen::MatrixXd& BasisU() const { return U_; }
   Index rank() const { return U_.cols(); }

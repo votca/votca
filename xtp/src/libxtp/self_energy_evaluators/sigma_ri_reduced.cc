@@ -74,6 +74,28 @@ void Sigma_RI_Reduced::PrepareScreening() {
   // --- build reduced basis ---
   rpa_red_.BuildReducedBasis();
 
+    // Temporary Wc diagnostic: compare full auxiliary-space Wc(iw)
+  // against projected reduced approximation U Wc_red(iw) U^T.
+  {
+    const std::vector<double> test_omegas = {0.0, 0.5, 1.0};
+
+    std::cout << "\n[RI-REDUCED Wc DIAGNOSTIC] rank = " << rpa_red_.rank()
+              << "\n";
+
+    for (double omega : test_omegas) {
+      const auto diag = rpa_red_.CompareWcImag(omega);
+
+      std::cout << std::setprecision(10)
+                << "  omega = " << diag.omega
+                << "  ||Wc_full||_F = " << diag.norm_full
+                << "  ||Wc_proj||_F = " << diag.norm_proj
+                << "  ||diff||_F = " << diag.abs_diff
+                << "  rel = " << diag.rel_diff
+                << "\n";
+    }
+    std::cout << std::endl;
+  }
+
   // --- build couplings C_im^α ---
   const Index qpoffset = opt_.qpmin - opt_.rpamin;
 
