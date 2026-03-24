@@ -24,7 +24,7 @@ void Sigma_RI_Reduced::PrepareScreening() {
   rpa_red_.configure_qp_window(opt_.qpmin, opt_.qpmax);
   rpa_red_.setRPAInputEnergies(rpa_.getRPAInputEnergies());
 
-  RPA_RI_Reduced::options ropt;
+    RPA_RI_Reduced::options ropt;
   ropt.imag_omega_max = opt_red_.imag_omega_max;
   ropt.imag_omega_points = opt_red_.imag_omega_points;
   ropt.basis_threshold = opt_red_.basis_threshold;
@@ -32,8 +32,12 @@ void Sigma_RI_Reduced::PrepareScreening() {
   ropt.sigma_aware_basis = opt_red_.sigma_aware_basis;
   ropt.sigma_mix = opt_red_.sigma_mix;
   ropt.normalize_metric_components = opt_red_.normalize_metric_components;
-  rpa_red_.configure_reduced(ropt);
 
+  ropt.sigma_targeted_basis = opt_red_.sigma_targeted_basis;
+  ropt.sigma_target_delta = opt_red_.sigma_target_delta;
+  ropt.sigma_target_levels = opt_red_.sigma_target_levels;
+
+  rpa_red_.configure_reduced(ropt);
   rpa_red_.BuildReducedBasis();
 
   const Index qpoffset = opt_.qpmin - opt_.rpamin;
@@ -120,8 +124,326 @@ void Sigma_RI_Reduced::PrepareScreening() {
   if (opt_red_.run_sigma_diagnostics) {
     RunSigmaDiagnostics();
   }
-    if (opt_red_.run_pole_weight_diagnostics) {
+  if (opt_red_.run_pole_weight_diagnostics) {
     RunPoleWeightDiagnostics();
+  }
+  if (opt_red_.run_m_weight_diagnostics) {
+    RunMResolvedResidueWeightDiagnostics();
+  }
+    if (opt_red_.run_sigma_term_diagnostics) {
+    RunSigmaTermDiagnostics();
+  }
+
+    if (opt_red_.run_sigma_partial_sum_diagnostics) {
+    RunSigmaPartialSumDiagnostics();
+  }
+}
+
+void Sigma_RI_Reduced::RunSigmaPartialSumDiagnostics() const {
+  std::vector<Index> gw_levels_to_check;
+
+  if (!opt_red_.sigma_target_levels.empty()) {
+    for (Index level_abs : opt_red_.sigma_target_levels) {
+      if (level_abs >= opt_.qpmin && level_abs <= opt_.qpmax) {
+        gw_levels_to_check.push_back(level_abs - opt_.qpmin);
+      }
+    }
+  }
+
+  if (gw_levels_to_check.empty()) {
+    if (opt_.homo >= opt_.qpmin && opt_.homo <= opt_.qpmax) {
+      gw_levels_to_check.push_back(opt_.homo - opt_.qpmin);
+    }
+    if (opt_.homo + 1 >= opt_.qpmin && opt_.homo + 1 <= opt_.qpmax) {
+      gw_levels_to_check.push_back(opt_.homo + 1 - opt_.qpmin);
+    }
+  }
+
+  std::sort(gw_levels_to_check.begin(), gw_levels_to_check.end());
+  gw_levels_to_check.erase(
+      std::unique(gw_levels_to_check.begin(), gw_levels_to_check.end()),
+      gw_levels_to_check.end());
+
+  std::vector<Index> ns = opt_red_.sigma_partial_sum_ns;
+  if (ns.empty()) {
+    ns = {1, 2, 5, 10, 20, 50};
+  }
+  std::sort(ns.begin(), ns.end());
+  ns.erase(std::unique(ns.begin(), ns.end()), ns.end());
+
+  for (Index gw_level : gw_levels_to_check) {
+    const Index gw_abs = gw_level + opt_.qpmin;
+    const double eps_i =
+        rpa_.getRPAInputEnergies()(gw_abs - opt_.rpamin);
+
+    const std::vector<double> omegas = GetSigmaTermDiagnosticOmegas(gw_level);
+
+    for (double omega_eval : omegas) {
+      const std::vector<SigmaTermEntry> entries =
+          BuildSigmaTermEntries(gw_level, omega_eval);
+
+      if (entries.empty()) {
+        std::cout << "[RI-REDUCED SIGMA-PARTIAL-SUM DIAGNOSTIC] gw_level = "
+                  << gw_abs << "  omega = " << omega_eval
+                  << "  no entries\n";
+        continue;
+      }
+
+      double total_half = 0.0;
+      double pos_total_half = 0.0;
+      double neg_total_half = 0.0;
+
+      std::vector<SigmaTermEntry> positive_entries;
+      std::vector<SigmaTermEntry> negative_entries;
+      positive_entries.reserve(entries.size());
+      negative_entries.reserve(entries.size());
+
+      for (const auto& e : entries) {
+        total_half += e.term;
+        if (e.term >= 0.0) {
+          pos_total_half += e.term;
+          positive_entries.push_back(e);
+        } else {
+          neg_total_half += e.term;
+          negative_entries.push_back(e);
+        }
+      }
+
+      std::sort(positive_entries.begin(), positive_entries.end(),
+                [](const SigmaTermEntry& a, const SigmaTermEntry& b) {
+                  return a.term > b.term;
+                });
+
+      std::sort(negative_entries.begin(), negative_entries.end(),
+                [](const SigmaTermEntry& a, const SigmaTermEntry& b) {
+                  return std::abs(a.term) > std::abs(b.term);
+                });
+
+      std::cout << "[RI-REDUCED SIGMA-PARTIAL-SUM DIAGNOSTIC] gw_level = "
+                << gw_abs
+                << "  eps_i = " << eps_i
+                << "  omega = " << omega_eval
+                << "  total_sigma = " << (2.0 * total_half)
+                << "  total_sigma_half = " << total_half
+                << "  positive_half = " << pos_total_half
+                << "  negative_half = " << neg_total_half
+                << "  cancellation_ratio = ";
+
+      if (std::abs(total_half) > 1e-14) {
+        std::cout << (std::abs(pos_total_half) + std::abs(neg_total_half)) /
+                         std::abs(total_half);
+      } else {
+        std::cout << 0.0;
+      }
+      std::cout << "\n";
+
+      for (Index n : ns) {
+        const Index n_all =
+            std::min<Index>(n, static_cast<Index>(entries.size()));
+        const Index n_pos =
+            std::min<Index>(n, static_cast<Index>(positive_entries.size()));
+        const Index n_neg =
+            std::min<Index>(n, static_cast<Index>(negative_entries.size()));
+
+        double sum_all = 0.0;
+        for (Index k = 0; k < n_all; ++k) {
+          sum_all += entries[static_cast<std::size_t>(k)].term;
+        }
+
+        double sum_pos = 0.0;
+        for (Index k = 0; k < n_pos; ++k) {
+          sum_pos += positive_entries[static_cast<std::size_t>(k)].term;
+        }
+
+        double sum_neg = 0.0;
+        for (Index k = 0; k < n_neg; ++k) {
+          sum_neg += negative_entries[static_cast<std::size_t>(k)].term;
+        }
+
+        const double frac_all =
+            (std::abs(total_half) > 1e-14) ? (sum_all / total_half) : 0.0;
+        const double frac_pos =
+            (std::abs(pos_total_half) > 1e-14) ? (sum_pos / pos_total_half) : 0.0;
+        const double frac_neg =
+            (std::abs(neg_total_half) > 1e-14) ? (sum_neg / neg_total_half) : 0.0;
+
+        std::cout << "  topN = " << n
+                  << "  sum_all = " << sum_all
+                  << "  frac_all = " << frac_all
+                  << "  sum_pos = " << sum_pos
+                  << "  frac_pos = " << frac_pos
+                  << "  sum_neg = " << sum_neg
+                  << "  frac_neg = " << frac_neg
+                  << "\n";
+      }
+    }
+  }
+}
+
+std::vector<double> Sigma_RI_Reduced::GetSigmaTermDiagnosticOmegas(
+    Index gw_level) const {
+  if (!opt_red_.sigma_term_omegas.empty()) {
+    return opt_red_.sigma_term_omegas;
+  }
+
+  std::vector<double> omegas;
+
+  const Index gw_abs = gw_level + opt_.qpmin;
+  const Index i_rel = gw_abs - opt_.rpamin;
+
+  if (i_rel >= 0 && i_rel < rpa_.getRPAInputEnergies().size()) {
+    omegas.push_back(rpa_.getRPAInputEnergies()(i_rel));
+  }
+
+  return omegas;
+}
+
+std::vector<Sigma_RI_Reduced::SigmaTermEntry>
+Sigma_RI_Reduced::BuildSigmaTermEntries(Index gw_level, double frequency) const {
+  std::vector<SigmaTermEntry> entries;
+
+  if (gw_level < 0 || gw_level >= static_cast<Index>(residues_.size())) {
+    return entries;
+  }
+
+  const Eigen::MatrixXd& R = residues_[gw_level];
+  if (R.rows() == 0 || R.cols() != rpa_omegas_.size()) {
+    return entries;
+  }
+
+  const double eta2 = opt_.eta * opt_.eta;
+  const Index lumo = opt_.homo + 1;
+  const Index n_occ = lumo - opt_.rpamin;
+
+  entries.reserve(static_cast<std::size_t>(R.rows() * R.cols()));
+
+  for (Index m = 0; m < R.rows(); ++m) {
+    const bool occupied = (m < n_occ);
+    const double eps_m = rpa_.getRPAInputEnergies()(m);
+
+    for (Index s = 0; s < R.cols(); ++s) {
+      const double omega_pole = rpa_omegas_(s);
+      const double res = R(m, s);
+      const double residue2 = res * res;
+
+      double temp = frequency - eps_m;
+      if (occupied) {
+        temp += omega_pole;
+      } else {
+        temp -= omega_pole;
+      }
+
+      const double denom = temp * temp + eta2;
+      const double term = residue2 * temp / denom;
+
+      SigmaTermEntry e;
+      e.m = m;
+      e.pole = s;
+      e.eps_m = eps_m;
+      e.omega_pole = omega_pole;
+      e.residue2 = residue2;
+      e.denom = temp;
+      e.term = term;
+      e.occupied = occupied;
+
+      entries.push_back(e);
+    }
+  }
+
+  std::sort(entries.begin(), entries.end(),
+            [](const SigmaTermEntry& a, const SigmaTermEntry& b) {
+              return std::abs(a.term) > std::abs(b.term);
+            });
+
+  return entries;
+}
+
+void Sigma_RI_Reduced::RunSigmaTermDiagnostics() const {
+  std::vector<Index> gw_levels_to_check;
+
+  if (!opt_red_.sigma_target_levels.empty()) {
+    for (Index level_abs : opt_red_.sigma_target_levels) {
+      if (level_abs >= opt_.qpmin && level_abs <= opt_.qpmax) {
+        gw_levels_to_check.push_back(level_abs - opt_.qpmin);
+      }
+    }
+  }
+
+  if (gw_levels_to_check.empty()) {
+    if (opt_.homo >= opt_.qpmin && opt_.homo <= opt_.qpmax) {
+      gw_levels_to_check.push_back(opt_.homo - opt_.qpmin);
+    }
+    if (opt_.homo + 1 >= opt_.qpmin && opt_.homo + 1 <= opt_.qpmax) {
+      gw_levels_to_check.push_back(opt_.homo + 1 - opt_.qpmin);
+    }
+  }
+
+  std::sort(gw_levels_to_check.begin(), gw_levels_to_check.end());
+  gw_levels_to_check.erase(
+      std::unique(gw_levels_to_check.begin(), gw_levels_to_check.end()),
+      gw_levels_to_check.end());
+
+  const Index topn = std::max<Index>(1, opt_red_.sigma_term_topn);
+
+  for (Index gw_level : gw_levels_to_check) {
+    const Index gw_abs = gw_level + opt_.qpmin;
+    const double eps_i =
+        rpa_.getRPAInputEnergies()(gw_abs - opt_.rpamin);
+
+    const std::vector<double> omegas = GetSigmaTermDiagnosticOmegas(gw_level);
+
+    for (double omega_eval : omegas) {
+      std::vector<SigmaTermEntry> entries =
+          BuildSigmaTermEntries(gw_level, omega_eval);
+
+      if (entries.empty()) {
+        std::cout << "[RI-REDUCED SIGMA-TERM DIAGNOSTIC] gw_level = " << gw_abs
+                  << "  omega = " << omega_eval
+                  << "  no entries\n";
+        continue;
+      }
+
+      const Index nprint =
+          std::min<Index>(topn, static_cast<Index>(entries.size()));
+
+      double total_sigma_half = 0.0;
+      for (const auto& e : entries) {
+        total_sigma_half += e.term;
+      }
+      const double total_sigma = 2.0 * total_sigma_half;
+
+      std::cout << "[RI-REDUCED SIGMA-TERM DIAGNOSTIC] gw_level = " << gw_abs
+                << "  eps_i = " << eps_i
+                << "  omega = " << omega_eval
+                << "  total_sigma = " << total_sigma
+                << "  total_sigma_half = " << total_sigma_half
+                << "  topn = " << nprint << "\n";
+
+      double cumulative = 0.0;
+      for (Index k = 0; k < nprint; ++k) {
+        const SigmaTermEntry& e = entries[static_cast<std::size_t>(k)];
+        cumulative += e.term;
+
+        const double frac =
+            (std::abs(total_sigma_half) > 1e-14) ? (e.term / total_sigma_half) : 0.0;
+        const double cum_frac =
+            (std::abs(total_sigma_half) > 1e-14) ? (cumulative / total_sigma_half) : 0.0;
+
+        std::cout << "  rank = " << (k + 1)
+                  << "  m = " << e.m
+                  << "  sector = " << (e.occupied ? "occ" : "vir")
+                  << "  pole = " << e.pole
+                  << "  eps_m = " << e.eps_m
+                  << "  Omega = " << e.omega_pole
+                  << "  residue2 = " << e.residue2
+                  << "  temp = " << e.denom
+                  << "  lorentz_denom = " << (e.denom * e.denom + opt_.eta * opt_.eta)
+                  << "  term = " << e.term
+                  << "  frac = " << frac
+                  << "  cum_frac = " << cum_frac
+                  << "\n";
+      }
+    }
   }
 }
 
@@ -233,6 +555,192 @@ void Sigma_RI_Reduced::RunPoleWeightDiagnostics() const {
                 << "\n";
     }
   }
+}
+
+void Sigma_RI_Reduced::RunMResolvedResidueWeightDiagnostics() const {
+  if (rpa_omegas_.size() == 0 || residues_.empty()) {
+    std::cout << "[RI-REDUCED M-WEIGHT DIAGNOSTIC] no poles or residues available\n";
+    return;
+  }
+
+  const Index lumo = opt_.homo + 1;
+  const Index n_occ = lumo - opt_.rpamin;
+  const Index n_unocc = opt_.rpamax - opt_.homo;
+  const Index rpatotal = n_occ + n_unocc;
+
+  std::vector<Index> gw_levels_to_check;
+
+  if (!opt_red_.sigma_target_levels.empty()) {
+    for (Index level_abs : opt_red_.sigma_target_levels) {
+      if (level_abs >= opt_.qpmin && level_abs <= opt_.qpmax) {
+        gw_levels_to_check.push_back(level_abs - opt_.qpmin);
+      }
+    }
+  }
+
+  if (gw_levels_to_check.empty()) {
+    gw_levels_to_check.push_back(std::max<Index>(0, opt_.homo - opt_.qpmin));
+    if (opt_.homo + 1 >= opt_.qpmin && opt_.homo + 1 <= opt_.qpmax) {
+      gw_levels_to_check.push_back(opt_.homo + 1 - opt_.qpmin);
+    }
+  }
+
+  std::sort(gw_levels_to_check.begin(), gw_levels_to_check.end());
+  gw_levels_to_check.erase(std::unique(gw_levels_to_check.begin(),
+                                       gw_levels_to_check.end()),
+                           gw_levels_to_check.end());
+
+  const Index topn = std::max<Index>(1, opt_red_.m_weight_topn);
+
+  for (Index gw_level : gw_levels_to_check) {
+    if (gw_level < 0 || gw_level >= static_cast<Index>(residues_.size())) {
+      continue;
+    }
+
+    const Eigen::MatrixXd& R = residues_[gw_level];
+    if (R.rows() != rpatotal || R.cols() != rpa_omegas_.size()) {
+      throw std::runtime_error(
+          "Sigma_RI_Reduced::RunMResolvedResidueWeightDiagnostics: residue dimensions inconsistent.");
+    }
+
+    struct MInfo {
+      Index m_rel;
+      Index m_abs;
+      double eps_m;
+      double weight;
+      double max_abs_residue;
+      Index dominant_pole;
+      double dominant_omega;
+      double dominant_pole_weight;
+      bool occupied;
+    };
+
+    std::vector<MInfo> data;
+    data.reserve(static_cast<std::size_t>(rpatotal));
+
+    double total_weight = 0.0;
+    for (Index m = 0; m < rpatotal; ++m) {
+      const Eigen::VectorXd row = R.row(m).transpose();
+      const double weight = row.squaredNorm();
+      total_weight += weight;
+
+      Index dominant_pole = 0;
+      double max_abs_residue = 0.0;
+      double dominant_pole_weight = 0.0;
+
+      for (Index s = 0; s < rpa_omegas_.size(); ++s) {
+        const double abs_res = std::abs(row(s));
+        const double pole_w = row(s) * row(s);
+        if (abs_res > max_abs_residue) {
+          max_abs_residue = abs_res;
+          dominant_pole = s;
+          dominant_pole_weight = pole_w;
+        }
+      }
+
+      data.push_back({m,
+                      opt_.rpamin + m,
+                      rpa_.getRPAInputEnergies()(m),
+                      weight,
+                      max_abs_residue,
+                      dominant_pole,
+                      rpa_omegas_(dominant_pole),
+                      dominant_pole_weight,
+                      (m < n_occ)});
+    }
+
+    std::sort(data.begin(), data.end(),
+              [](const MInfo& a, const MInfo& b) {
+                return a.weight > b.weight;
+              });
+
+    const Index gw_abs = gw_level + opt_.qpmin;
+    const double eps_i = rpa_.getRPAInputEnergies()(gw_abs - opt_.rpamin);
+    const Index nprint = std::min<Index>(topn, static_cast<Index>(data.size()));
+
+    std::cout << "[RI-REDUCED M-WEIGHT DIAGNOSTIC] gw_level = " << gw_abs
+              << "  eps_i = " << eps_i
+              << "  total_weight = " << total_weight
+              << "  topn = " << nprint << "\n";
+
+    double cumulative = 0.0;
+    for (Index k = 0; k < nprint; ++k) {
+      const MInfo& x = data[static_cast<std::size_t>(k)];
+      cumulative += x.weight;
+
+      const double frac =
+          (total_weight > 1e-16) ? (x.weight / total_weight) : 0.0;
+      const double cum_frac =
+          (total_weight > 1e-16) ? (cumulative / total_weight) : 0.0;
+
+      std::cout << "  rank = " << (k + 1)
+                << "  m_rel = " << x.m_rel
+                << "  m_abs = " << x.m_abs
+                << "  sector = " << (x.occupied ? "occ" : "vir")
+                << "  eps_m = " << x.eps_m
+                << "  W_m^(i) = " << x.weight
+                << "  frac = " << frac
+                << "  cum_frac = " << cum_frac
+                << "  dominant_pole = " << x.dominant_pole
+                << "  Omega_dom = " << x.dominant_omega
+                << "  dominant_pole_weight = " << x.dominant_pole_weight
+                << "  max|R_im^(s)| = " << x.max_abs_residue
+                << "\n";
+    }
+  }
+}
+
+std::vector<double> Sigma_RI_Reduced::GetContractedDiagnosticOmegas() const {
+  if (!opt_red_.contracted_diag_omegas.empty()) {
+    return opt_red_.contracted_diag_omegas;
+  }
+  return {0.0, 0.5, 1.0};
+}
+
+std::vector<Index> Sigma_RI_Reduced::GetTopMChannelsForLevel(Index gw_level,
+                                                             Index topn) const {
+  std::vector<Index> result;
+
+  if (gw_level < 0 || gw_level >= static_cast<Index>(residues_.size())) {
+    return result;
+  }
+  if (rpa_omegas_.size() == 0) {
+    return result;
+  }
+
+  const Eigen::MatrixXd& R = residues_[gw_level];
+  const Index rpatotal = R.rows();
+  if (rpatotal <= 0) {
+    return result;
+  }
+
+  struct Entry {
+    Index m;
+    double weight;
+  };
+
+  std::vector<Entry> entries;
+  entries.reserve(static_cast<std::size_t>(rpatotal));
+
+  for (Index m = 0; m < rpatotal; ++m) {
+    const double weight = R.row(m).squaredNorm();
+    entries.push_back({m, weight});
+  }
+
+  std::sort(entries.begin(), entries.end(),
+            [](const Entry& a, const Entry& b) {
+              return a.weight > b.weight;
+            });
+
+  const Index nkeep =
+      std::min<Index>(std::max<Index>(1, topn), static_cast<Index>(entries.size()));
+
+  result.reserve(static_cast<std::size_t>(nkeep));
+  for (Index k = 0; k < nkeep; ++k) {
+    result.push_back(entries[static_cast<std::size_t>(k)].m);
+  }
+
+  return result;
 }
 
 void Sigma_RI_Reduced::BuildReducedTransitionModel() {
@@ -797,93 +1305,172 @@ double Sigma_RI_Reduced::ContractedPoleWcImag(Index gw_level, Index m,
 }
 
 void Sigma_RI_Reduced::RunContractedWcDiagnostics() const {
-  const Index lumo = opt_.homo + 1;
-  const Index n_occ = lumo - opt_.rpamin;
-  const Index n_unocc = opt_.rpamax - opt_.homo;
-  const Index rpatotal = n_occ + n_unocc;
-
   std::vector<Index> gw_levels_to_check;
-  gw_levels_to_check.push_back(std::max<Index>(0, opt_.homo - opt_.qpmin));
-  if (opt_.homo + 1 >= opt_.qpmin && opt_.homo + 1 <= opt_.qpmax) {
-    gw_levels_to_check.push_back(opt_.homo + 1 - opt_.qpmin);
+
+  if (!opt_red_.sigma_target_levels.empty()) {
+    for (Index level_abs : opt_red_.sigma_target_levels) {
+      if (level_abs >= opt_.qpmin && level_abs <= opt_.qpmax) {
+        gw_levels_to_check.push_back(level_abs - opt_.qpmin);
+      }
+    }
   }
 
-  std::vector<Index> m_to_check = {0, n_occ - 1, n_occ, rpatotal - 1};
-  std::vector<double> omegas = {0.0, 0.5, 1.0};
+  if (gw_levels_to_check.empty()) {
+    if (opt_.homo >= opt_.qpmin && opt_.homo <= opt_.qpmax) {
+      gw_levels_to_check.push_back(opt_.homo - opt_.qpmin);
+    }
+    if (opt_.homo + 1 >= opt_.qpmin && opt_.homo + 1 <= opt_.qpmax) {
+      gw_levels_to_check.push_back(opt_.homo + 1 - opt_.qpmin);
+    }
+  }
+
+  std::sort(gw_levels_to_check.begin(), gw_levels_to_check.end());
+  gw_levels_to_check.erase(
+      std::unique(gw_levels_to_check.begin(), gw_levels_to_check.end()),
+      gw_levels_to_check.end());
+
+  const std::vector<double> omegas = GetContractedDiagnosticOmegas();
 
   for (Index gw_level : gw_levels_to_check) {
-    std::cout << "[RI-REDUCED CONTRACTED-W DIAGNOSTIC] gw_level = "
-              << gw_level + opt_.qpmin << "\n";
+    std::vector<Index> m_list;
 
-    for (Index m : m_to_check) {
-      if (m < 0 || m >= rpatotal) {
-        continue;
+    if (opt_red_.contracted_use_top_m_weights) {
+      m_list = GetTopMChannelsForLevel(gw_level, opt_red_.contracted_top_m);
+    }
+
+    if (m_list.empty()) {
+      // fallback to a few safe/default channels
+      m_list = {0};
+      const Index lumo = opt_.homo + 1;
+      const Index n_occ = lumo - opt_.rpamin;
+      const Index n_unocc = opt_.rpamax - opt_.homo;
+      const Index rpatotal = n_occ + n_unocc;
+
+      if (rpatotal > 4) {
+        m_list.push_back(4);
       }
+      if (rpatotal > 5) {
+        m_list.push_back(5);
+      }
+      if (rpatotal > 12) {
+        m_list.push_back(12);
+      }
+    }
 
+    std::sort(m_list.begin(), m_list.end());
+    m_list.erase(std::unique(m_list.begin(), m_list.end()), m_list.end());
+
+    const Index gw_abs = gw_level + opt_.qpmin;
+
+    std::cout << "[RI-REDUCED CONTRACTED-W DIAGNOSTIC] gw_level = " << gw_abs
+              << "  m_selection = "
+              << (opt_red_.contracted_use_top_m_weights ? "top-weight" : "manual")
+              << "  n_m = " << m_list.size() << "\n";
+
+    for (Index m : m_list) {
       for (double omega : omegas) {
         const double direct = ContractedDirectWcImag(gw_level, m, omega);
         const double pole = ContractedPoleWcImag(gw_level, m, omega);
         const double abs_diff = std::abs(direct - pole);
         const double rel_diff =
-            (std::abs(direct) > 1e-14) ? abs_diff / std::abs(direct) : abs_diff;
+            abs_diff / std::max(1e-14, std::abs(direct));
 
         std::cout << "  m = " << m
                   << "  omega = " << omega
                   << "  direct = " << direct
                   << "  pole = " << pole
                   << "  abs_diff = " << abs_diff
-                  << "  rel_diff = " << rel_diff << "\n";
+                  << "  rel_diff = " << rel_diff
+                  << "\n";
       }
     }
   }
 }
 
 void Sigma_RI_Reduced::RunFullVsReducedContractedDiagnostics() const {
-  const Index lumo = opt_.homo + 1;
-  const Index n_occ = lumo - opt_.rpamin;
-  const Index n_unocc = opt_.rpamax - opt_.homo;
-  const Index rpatotal = n_occ + n_unocc;
-
   std::vector<Index> gw_levels_to_check;
-  gw_levels_to_check.push_back(std::max<Index>(0, opt_.homo - opt_.qpmin));
-  if (opt_.homo + 1 >= opt_.qpmin && opt_.homo + 1 <= opt_.qpmax) {
-    gw_levels_to_check.push_back(opt_.homo + 1 - opt_.qpmin);
+
+  if (!opt_red_.sigma_target_levels.empty()) {
+    for (Index level_abs : opt_red_.sigma_target_levels) {
+      if (level_abs >= opt_.qpmin && opt_.qpmax >= level_abs) {
+        gw_levels_to_check.push_back(level_abs - opt_.qpmin);
+      }
+    }
   }
 
-  std::vector<Index> m_to_check = {0, n_occ - 1, n_occ, rpatotal - 1};
-  std::vector<double> omegas = {0.0, 0.5, 1.0};
+  if (gw_levels_to_check.empty()) {
+    if (opt_.homo >= opt_.qpmin && opt_.homo <= opt_.qpmax) {
+      gw_levels_to_check.push_back(opt_.homo - opt_.qpmin);
+    }
+    if (opt_.homo + 1 >= opt_.qpmin && opt_.homo + 1 <= opt_.qpmax) {
+      gw_levels_to_check.push_back(opt_.homo + 1 - opt_.qpmin);
+    }
+  }
+
+  std::sort(gw_levels_to_check.begin(), gw_levels_to_check.end());
+  gw_levels_to_check.erase(
+      std::unique(gw_levels_to_check.begin(), gw_levels_to_check.end()),
+      gw_levels_to_check.end());
+
+  const std::vector<double> omegas = GetContractedDiagnosticOmegas();
 
   for (Index gw_level : gw_levels_to_check) {
-    std::cout << "[RI-REDUCED FULL-vs-PROJECTED CONTRACTED-W DIAGNOSTIC] gw_level = "
-              << gw_level + opt_.qpmin << "\n";
+    std::vector<Index> m_list;
 
-    for (Index m : m_to_check) {
-      if (m < 0 || m >= rpatotal) {
-        continue;
+    if (opt_red_.contracted_use_top_m_weights) {
+      m_list = GetTopMChannelsForLevel(gw_level, opt_red_.contracted_top_m);
+    }
+
+    if (m_list.empty()) {
+      m_list = {0};
+      const Index lumo = opt_.homo + 1;
+      const Index n_occ = lumo - opt_.rpamin;
+      const Index n_unocc = opt_.rpamax - opt_.homo;
+      const Index rpatotal = n_occ + n_unocc;
+
+      if (rpatotal > 4) {
+        m_list.push_back(4);
       }
+      if (rpatotal > 5) {
+        m_list.push_back(5);
+      }
+      if (rpatotal > 12) {
+        m_list.push_back(12);
+      }
+    }
 
+    std::sort(m_list.begin(), m_list.end());
+    m_list.erase(std::unique(m_list.begin(), m_list.end()), m_list.end());
+
+    const Index gw_abs = gw_level + opt_.qpmin;
+
+    std::cout << "[RI-REDUCED FULL-vs-PROJECTED CONTRACTED-W DIAGNOSTIC] gw_level = "
+              << gw_abs
+              << "  m_selection = "
+              << (opt_red_.contracted_use_top_m_weights ? "top-weight" : "manual")
+              << "  n_m = " << m_list.size() << "\n";
+
+    for (Index m : m_list) {
       for (double omega : omegas) {
         const double full = ContractedFullWcImag(gw_level, m, omega);
         const double proj = ContractedProjectedReducedWcImag(gw_level, m, omega);
         const double red = ContractedDirectWcImag(gw_level, m, omega);
 
-        const double abs_diff_proj = std::abs(full - proj);
-        const double rel_diff_proj =
-            (std::abs(full) > 1e-14) ? abs_diff_proj / std::abs(full) : abs_diff_proj;
+        const double abs_fp = std::abs(full - proj);
+        const double rel_fp = abs_fp / std::max(1e-14, std::abs(full));
 
-        const double abs_diff_red = std::abs(full - red);
-        const double rel_diff_red =
-            (std::abs(full) > 1e-14) ? abs_diff_red / std::abs(full) : abs_diff_red;
+        const double abs_fr = std::abs(full - red);
+        const double rel_fr = abs_fr / std::max(1e-14, std::abs(full));
 
         std::cout << "  m = " << m
                   << "  omega = " << omega
                   << "  full = " << full
                   << "  proj = " << proj
                   << "  red = " << red
-                  << "  abs(full-proj) = " << abs_diff_proj
-                  << "  rel(full-proj) = " << rel_diff_proj
-                  << "  abs(full-red) = " << abs_diff_red
-                  << "  rel(full-red) = " << rel_diff_red
+                  << "  abs(full-proj) = " << abs_fp
+                  << "  rel(full-proj) = " << rel_fp
+                  << "  abs(full-red) = " << abs_fr
+                  << "  rel(full-red) = " << rel_fr
                   << "\n";
       }
     }

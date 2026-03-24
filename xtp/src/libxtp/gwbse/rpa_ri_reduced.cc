@@ -63,6 +63,51 @@ std::vector<double> RPA_RI_Reduced::ImagFrequencyGrid() const {
   return grid;
 }
 
+std::vector<Index> RPA_RI_Reduced::GetSigmaTargetLevels() const {
+  std::vector<Index> targets = opt_red_.sigma_target_levels;
+
+  if (targets.empty()) {
+    for (Index level = qpmin_; level <= qpmax_; ++level) {
+      targets.push_back(level);
+    }
+  }
+
+  // Keep only levels that are actually available in the RPA energy window
+  std::vector<Index> filtered;
+  filtered.reserve(targets.size());
+  for (Index level : targets) {
+    if (level >= rpamin_ && level <= rpamax_) {
+      filtered.push_back(level);
+    }
+  }
+
+  std::sort(filtered.begin(), filtered.end());
+  filtered.erase(std::unique(filtered.begin(), filtered.end()), filtered.end());
+
+  return filtered;
+}
+
+double RPA_RI_Reduced::SigmaTargetWeight(Index level_abs, Index m_rel) const {
+  if (!opt_red_.sigma_targeted_basis) {
+    return 1.0;
+  }
+
+  const Index i_rel = level_abs - rpamin_;
+  if (i_rel < 0 || i_rel >= energies_.size()) {
+    return 0.0;
+  }
+  if (m_rel < 0 || m_rel >= energies_.size()) {
+    return 0.0;
+  }
+
+  const double eps_i = energies_(i_rel);
+  const double eps_m = energies_(m_rel);
+  const double delta = std::max(opt_red_.sigma_target_delta, 1e-8);
+  const double denom = (eps_i - eps_m) * (eps_i - eps_m) + delta * delta;
+
+  return 1.0 / denom;
+}
+
 Eigen::MatrixXd RPA_RI_Reduced::BuildPiImag(double omega) const {
   if (energies_.size() == 0) {
     throw std::runtime_error(
@@ -135,12 +180,15 @@ Eigen::MatrixXd RPA_RI_Reduced::BuildStaticOrDynamicCompressionMatrix() const {
 Eigen::MatrixXd RPA_RI_Reduced::BuildSigmaAwareCompressionMatrix() const {
   const RPAWindow w = GetWindow();
   const Index n_aux = Mmn_.auxsize();
-  const Index qptotal = (qpmax_ >= qpmin_) ? (qpmax_ - qpmin_ + 1) : 0;
   const Index rpatotal = w.n_occ + w.n_unocc;
 
   Eigen::MatrixXd Csigma = Eigen::MatrixXd::Zero(n_aux, n_aux);
+  if (rpatotal <= 0 || energies_.size() == 0) {
+    return Csigma;
+  }
 
-  if (qptotal <= 0 || rpatotal <= 0) {
+  const std::vector<Index> targets = GetSigmaTargetLevels();
+  if (targets.empty()) {
     return Csigma;
   }
 
@@ -149,13 +197,24 @@ Eigen::MatrixXd RPA_RI_Reduced::BuildSigmaAwareCompressionMatrix() const {
     Eigen::MatrixXd Cthread = Eigen::MatrixXd::Zero(n_aux, n_aux);
 
 #pragma omp for schedule(dynamic)
-    for (Index iq = 0; iq < qptotal; ++iq) {
-      const Index level = qpmin_ + iq;
-      const Eigen::MatrixXd& Mim = Mmn_[level - rpamin_];
+    for (Index it = 0; it < static_cast<Index>(targets.size()); ++it) {
+      const Index level_abs = targets[static_cast<std::size_t>(it)];
+      const Index level_rel = level_abs - rpamin_;
+
+      if (level_rel < 0 || level_rel >= Mmn_.msize()) {
+        continue;
+      }
+
+      const Eigen::MatrixXd& Mim = Mmn_[level_rel];
 
       for (Index m = 0; m < rpatotal; ++m) {
+        const double alpha_im = SigmaTargetWeight(level_abs, m);
+        if (alpha_im <= 0.0) {
+          continue;
+        }
+
         const Eigen::VectorXd c = Mim.row(m).transpose();
-        Cthread.noalias() += c * c.transpose();
+        Cthread.noalias() += alpha_im * (c * c.transpose());
       }
     }
 
@@ -241,9 +300,24 @@ void RPA_RI_Reduced::BuildReducedBasis() {
         << (opt_red_.dynamic_basis ? "dynamic" : "static")
         << "  sigma_aware = " << (opt_red_.sigma_aware_basis ? "true" : "false")
         << "  sigma_mix = " << opt_red_.sigma_mix
+        << "  sigma_metric = "
+        << (opt_red_.sigma_targeted_basis ? "targeted" : "global")
         << "  rank = " << U_.cols()
         << "  imag_omega_points = " << opt_red_.imag_omega_points
-        << "  imag_omega_max = " << opt_red_.imag_omega_max << "\n";
+        << "  imag_omega_max = " << opt_red_.imag_omega_max;
+
+    if (opt_red_.sigma_aware_basis) {
+      oss << "  sigma_target_delta = " << opt_red_.sigma_target_delta;
+      const std::vector<Index> targets = GetSigmaTargetLevels();
+      oss << "  n_targets = " << targets.size();
+      if (!targets.empty()) {
+        oss << "\n  targets =";
+        for (Index level : targets) {
+          oss << " " << level;
+        }
+      }
+    }
+    oss << "\n";
 
     const std::vector<double> grid = ImagFrequencyGrid();
     for (double omega : grid) {

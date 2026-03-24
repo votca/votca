@@ -25,6 +25,11 @@ class Sigma_RI_Reduced : public Sigma_base {
     double sigma_mix = 0.25;
     bool normalize_metric_components = true;
 
+    // New targeted sigma metric options
+    bool sigma_targeted_basis = false;
+    double sigma_target_delta = 0.10;  // Hartree
+    std::vector<Index> sigma_target_levels;  // absolute MO indices
+
     double pole_shift = 1e-8;
     double pole_tol = 1e-10;
     Index max_bisection = 200;
@@ -35,11 +40,32 @@ class Sigma_RI_Reduced : public Sigma_base {
     bool run_contracted_pole_diagnostics = true;
     bool run_full_vs_reduced_contracted_diagnostics = true;
 
-    // New: compare direct reduced Sigma against pole-based reduced Sigma
     bool run_sigma_diagnostics = true;
 
-        bool run_pole_weight_diagnostics = true;
+    bool run_pole_weight_diagnostics = true;
     Index pole_weight_topn = 12;
+
+    // New m-resolved residue-weight diagnostic
+    bool run_m_weight_diagnostics = true;
+    Index m_weight_topn = 12;
+    // Automatically choose dominant m channels from the residue-weight
+    // diagnostic when running contracted-W comparisons.
+    bool contracted_use_top_m_weights = true;
+    Index contracted_top_m = 8;
+
+    // Frequencies (Hartree) used in contracted-W diagnostics.
+    std::vector<double> contracted_diag_omegas = {0.0, 0.5, 1.0};
+
+        bool run_sigma_term_diagnostics = true;
+    Index sigma_term_topn = 20;
+
+     // Frequencies for Σ-term diagnostics.
+    // If empty, use the input orbital energy of the target level.
+    std::vector<double> sigma_term_omegas;
+
+        bool run_sigma_partial_sum_diagnostics = true;
+    std::vector<Index> sigma_partial_sum_ns = {1, 2, 5, 10, 20, 50};
+    
   };
 
   struct pole_diagnostic {
@@ -106,7 +132,6 @@ class Sigma_RI_Reduced : public Sigma_base {
 
   std::vector<double> UniqueSortedTransitionEnergies() const;
 
-  // Wc diagnostics
   Eigen::MatrixXd BuildReducedWcImagFromPoles(double omega,
                                               double prefactor) const;
   std::vector<pole_diagnostic> RunPoleDiagnostics() const;
@@ -119,7 +144,6 @@ class Sigma_RI_Reduced : public Sigma_base {
   void RunContractedWcDiagnostics() const;
   void RunFullVsReducedContractedDiagnostics() const;
 
-  // New: direct reduced Sigma diagnostics
   double CalcCorrelationDiagElementDirectReduced(Index gw_level,
                                                  double frequency) const;
   double CalcCorrelationOffDiagElementDirectReduced(Index gw_level1,
@@ -128,7 +152,29 @@ class Sigma_RI_Reduced : public Sigma_base {
                                                     double frequency2) const;
   void RunSigmaDiagnostics() const;
 
-    void RunPoleWeightDiagnostics() const;
+  void RunPoleWeightDiagnostics() const;
+  void RunMResolvedResidueWeightDiagnostics() const;
+
+    std::vector<Index> GetTopMChannelsForLevel(Index gw_level, Index topn) const;
+  std::vector<double> GetContractedDiagnosticOmegas() const;
+
+    struct SigmaTermEntry {
+    Index m = -1;
+    Index pole = -1;
+    double eps_m = 0.0;
+    double omega_pole = 0.0;
+    double residue2 = 0.0;
+    double denom = 0.0;
+    double term = 0.0;
+    bool occupied = false;
+  };
+
+  std::vector<double> GetSigmaTermDiagnosticOmegas(Index gw_level) const;
+  std::vector<SigmaTermEntry> BuildSigmaTermEntries(Index gw_level,
+                                                    double frequency) const;
+  void RunSigmaTermDiagnostics() const;
+
+    void RunSigmaPartialSumDiagnostics() const;
 };
 
 }  // namespace xtp

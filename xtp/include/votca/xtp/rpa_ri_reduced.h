@@ -55,12 +55,19 @@ class RPA_RI_Reduced {
     // Hybrid sigma-aware compression:
     //   C = (1-mix) * normalized(C_dyn or C_stat) + mix * normalized(C_sigma)
     //
-    // where
-    //   C_sigma = sum_{i in QP window} sum_m c_im c_im^T
-    // with c_im the full auxiliary-space coupling vector for target QP state i
-    // and intermediate state m.
+    // Default/global sigma metric:
+    //   C_sigma = sum_{i in targets} sum_m c_im c_im^T
+    //
+    // Targeted sigma metric:
+    //   C_sigma = sum_{i in targets} sum_m alpha_im c_im c_im^T
+    // with
+    //   alpha_im = 1 / ((eps_i - eps_m)^2 + delta^2)
     bool sigma_aware_basis = false;
     double sigma_mix = 0.25;  // in [0,1]
+
+    bool sigma_targeted_basis = false;
+    double sigma_target_delta = 0.10;  // Hartree
+    std::vector<Index> sigma_target_levels;  // absolute MO indices
 
     // Normalize metric blocks before mixing so that the relative weight is
     // controlled by sigma_mix rather than raw matrix magnitude.
@@ -118,6 +125,8 @@ class RPA_RI_Reduced {
 
   RPAWindow GetWindow() const;
   std::vector<double> ImagFrequencyGrid() const;
+  std::vector<Index> GetSigmaTargetLevels() const;
+  double SigmaTargetWeight(Index level_abs, Index m_rel) const;
 
   Eigen::MatrixXd BuildStaticOrDynamicCompressionMatrix() const;
   Eigen::MatrixXd BuildSigmaAwareCompressionMatrix() const;

@@ -49,7 +49,6 @@ void GW::configure(const options& opt) {
   sigma_opt.quadrature_scheme = opt_.quadrature_scheme;
   sigma_opt.order = opt_.order;
   sigma_->configure(sigma_opt);
-sigma_->configure(sigma_opt);
 
 if (opt_.sigma_integration == "ri_reduced") {
   auto* sigma_red = dynamic_cast<Sigma_RI_Reduced*>(sigma_.get());
@@ -59,22 +58,54 @@ if (opt_.sigma_integration == "ri_reduced") {
         "Sigma_RI_Reduced failed.");
   }
 
-  Sigma_RI_Reduced::reduced_options ropt;
+    Sigma_RI_Reduced::reduced_options ropt;
   ropt.imag_omega_points = 12;
   ropt.imag_omega_max = 2.0;
   ropt.basis_threshold = 1e-8;
   ropt.max_rank = 40;
 
-  ropt.sigma_aware_basis = true;  //     options.get("gwbse.gw.reduced.sigma_aware_basis", false);
-  ropt.sigma_mix = 0.25; //      options.get("gwbse.gw.reduced.sigma_mix", 0.25);
-  ropt.normalize_metric_components = true; //      options.get("gwbse.gw.reduced.normalize_metric_components", true);
+  ropt.sigma_aware_basis = true;
+  ropt.sigma_mix = 0.25;
+  ropt.normalize_metric_components = true;
+
+  // New targeted sigma metric:
+  // start with HOMO/LUMO targeting on small systems
+  ropt.sigma_targeted_basis = true;
+  ropt.sigma_target_delta = 0.10;  // Hartree
+  ropt.sigma_target_levels = {opt_.homo, opt_.homo + 1};
+
   ropt.run_sigma_diagnostics = false;
-  ropt.run_contracted_pole_diagnostics = true;//     options.get("gwbse.gw.reduced.run_contracted_pole_diagnostics", true);
-  ropt.run_full_vs_reduced_contracted_diagnostics = true; //      options.get("gwbse.gw.reduced.run_full_vs_reduced_contracted_diagnostics", true);
+  ropt.run_contracted_pole_diagnostics = true;
+  ropt.run_full_vs_reduced_contracted_diagnostics = true;
+
+  ropt.run_contracted_pole_diagnostics = true;
+  ropt.run_full_vs_reduced_contracted_diagnostics = true;
+
+  ropt.contracted_use_top_m_weights = true;
+  ropt.contracted_top_m = 8;
+  ropt.contracted_diag_omegas = {0.0, 0.5, 1.0};
+
+  ropt.run_pole_diagnostics = true;
   ropt.run_pole_weight_diagnostics = true;
   ropt.pole_weight_topn = 12;
-  //ropt.dynamic_basis = true;
-  ropt.run_pole_diagnostics = true;
+
+  ropt.run_sigma_term_diagnostics = true;
+  ropt.sigma_term_topn = 20;
+  ropt.sigma_term_omegas.clear();  // use DFT + chosen QP automatically
+
+  ropt.run_m_weight_diagnostics = true;
+  ropt.m_weight_topn = 12;
+
+    ropt.run_sigma_term_diagnostics = true;
+  ropt.sigma_term_topn = 20;
+
+  // Example for water HOMO/LUMO:
+  // DFT(HOMO) = -0.273653, QP(HOMO) = -0.4160
+  // DFT(LUMO) =  0.11888,  QP(LUMO) =  0.2614
+  ropt.sigma_term_omegas = {-0.273653, -0.4160, 0.11888, 0.2614};
+
+    ropt.run_sigma_partial_sum_diagnostics = true;
+  ropt.sigma_partial_sum_ns = {1, 2, 5, 10, 20, 50};
 
   sigma_red->configure_reduced(ropt);
 }
