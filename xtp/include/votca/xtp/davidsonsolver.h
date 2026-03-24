@@ -121,6 +121,74 @@ class DavidsonSolver {
     printTiming(start);
   }
 
+  template <typename MatrixReplacement>
+  void solve(const MatrixReplacement &A, Index neigen,
+             const Eigen::MatrixXd &initial_guess) {
+
+    if (max_search_space_ < neigen) {
+      max_search_space_ = neigen * 5;
+    }
+    std::chrono::time_point<std::chrono::system_clock> start =
+        std::chrono::system_clock::now();
+    Index op_size = A.rows();
+
+    checkOptions(op_size);
+    printOptions(op_size);
+
+    if (initial_guess.rows() != op_size) {
+      throw std::runtime_error(
+          "DavidsonSolver::solve initial_guess has wrong number of rows.");
+    }
+    if (initial_guess.cols() < neigen) {
+      throw std::runtime_error(
+          "DavidsonSolver::solve initial_guess has fewer columns than neigen.");
+    }
+
+    restart_size_ = std::min<Index>(initial_guess.cols(), max_search_space_);
+    // get the diagonal of the operator
+    this->Adiag_ = A.diagonal();
+
+    ProjectedSpace proj;
+    proj.V = initial_guess;
+    orthogonalize(proj.V, proj.V.cols());
+
+    proj.size_update = DavidsonSolver::getSizeUpdate(neigen);
+    proj.root_converged = ArrayXb::Constant(proj.size_update, false);
+
+    RitzEigenPair rep;
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " iter\tSearch Space\tNorm" << std::flush;
+
+    for (i_iter_ = 0; i_iter_ < iter_max_; i_iter_++) {
+
+      updateProjection(A, proj);
+
+      rep = getRitzEigenPairs(proj);
+
+      bool converged = checkConvergence(rep, proj, neigen);
+
+      printIterationData(rep, proj, neigen);
+
+      bool last_iter = i_iter_ == (iter_max_ - 1);
+
+      if (converged) {
+        storeConvergedData(rep, neigen);
+        break;
+      } else if (last_iter) {
+        storeNotConvergedData(rep, proj.root_converged, neigen);
+        break;
+      }
+      Index extension_size = extendProjection(rep, proj);
+      bool do_restart = (proj.search_space() > max_search_space_);
+
+      if (do_restart) {
+        restart(rep, proj, extension_size);
+      }
+    }
+
+    printTiming(start);
+  }
+
  private:
   using ArrayXb = Eigen::Array<bool, Eigen::Dynamic, 1>;
   Logger &log_;

@@ -35,6 +35,7 @@
 #include "votca/xtp/logger.h"
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/rpa_uks.h"
 #include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/vxc_potential.h"
 
@@ -336,19 +337,42 @@ void GWBSE::Initialize(tools::Property& options) {
   // possible tasks
   std::string tasks_string = options.get(".tasks").as<std::string>();
   boost::algorithm::to_lower(tasks_string);
-  if (tasks_string.find("all") != std::string::npos) {
-    do_gw_ = true;
-    do_bse_singlets_ = true;
-    do_bse_triplets_ = true;
-  }
+
   if (tasks_string.find("gw") != std::string::npos) {
     do_gw_ = true;
   }
-  if (tasks_string.find("singlets") != std::string::npos) {
-    do_bse_singlets_ = true;
-  }
-  if (tasks_string.find("triplets") != std::string::npos) {
-    do_bse_triplets_ = true;
+
+  if (is_uks) {
+    if (tasks_string.find("excitons") != std::string::npos ||
+        tasks_string.find("exciton_uks") != std::string::npos) {
+      do_gw_ = true;
+      do_bse_exciton_uks_ = true;
+    }
+
+    if (tasks_string.find("singlets") != std::string::npos ||
+        tasks_string.find("triplets") != std::string::npos) {
+      throw std::runtime_error(
+          "Invalid gwbse task for UKS reference: 'singlets' and 'triplets' "
+          "are not defined for open-shell systems.\n"
+          "Use 'exciton_uks' (or 'excitons') instead.");
+    }
+  } else {
+    if (tasks_string.find("all") != std::string::npos) {
+      if (is_uks) {
+        do_gw_ = true;
+        do_bse_exciton_uks_ = true;
+      } else {
+        do_gw_ = true;
+        do_bse_singlets_ = true;
+        do_bse_triplets_ = true;
+      }
+    }
+    if (tasks_string.find("singlets") != std::string::npos) {
+      do_bse_singlets_ = true;
+    }
+    if (tasks_string.find("triplets") != std::string::npos) {
+      do_bse_triplets_ = true;
+    }
   }
 
   XTP_LOG(Log::error, *pLog_) << " Tasks: " << flush;
@@ -361,9 +385,8 @@ void GWBSE::Initialize(tools::Property& options) {
   if (do_bse_triplets_) {
     XTP_LOG(Log::error, *pLog_) << " triplets " << flush;
   }
-  XTP_LOG(Log::error, *pLog_) << " Store: " << flush;
-  if (do_gw_) {
-    XTP_LOG(Log::error, *pLog_) << " GW " << flush;
+  if (do_bse_exciton_uks_) {
+    XTP_LOG(Log::error, *pLog_) << " exciton_uks " << flush;
   }
 
   if (options.exists("bse.fragments")) {
@@ -448,12 +471,6 @@ void GWBSE::Initialize(tools::Property& options) {
         << " Sigma plot spacing: " << sigma_plot_spacing_ << flush;
     XTP_LOG(Log::error, *pLog_)
         << " Sigma plot filename: " << sigma_plot_filename_ << flush;
-  }
-  if (orbitals_.hasUnrestrictedOrbitals() &&
-      (do_bse_singlets_ || do_bse_triplets_ || do_dynamical_screening_bse_)) {
-    throw std::runtime_error(
-        "Open-shell GWBSE currently supports GW only; BSE is still restricted "
-        "to closed-shell references.");
   }
 }
 
@@ -574,6 +591,46 @@ void GWBSE::addoutput(tools::Property& summary) {
                        .str());
     }
   }
+  if (do_bse_exciton_uks_) {
+    tools::Property& exciton_uks_summary = gwbse_summary.add("exciton_uks", "");
+
+    const bool has_dipoles = orbitals_.hasTransitionDipoles();
+    Eigen::VectorXd oscs = Eigen::VectorXd::Zero(0);
+    if (has_dipoles) {
+      oscs =
+          orbitals_.Oscillatorstrengths(QMStateType(QMStateType::ExcitonUKS));
+    }
+
+    for (Index state = 0;
+         state <
+         std::min<Index>(bseopt_.nmax, orbitals_.BSEUKS().eigenvalues().size());
+         ++state) {
+      tools::Property& level_summary = exciton_uks_summary.add("level", "");
+      level_summary.setAttribute("number", state + 1);
+      level_summary.add("omega",
+                        (boost::format("%1$+1.6f ") %
+                         (orbitals_.BSEUKS().eigenvalues()(state) * hrt2ev))
+                            .str());
+      const Index ndip =
+          static_cast<Index>(orbitals_.TransitionDipoles().size());
+      const Index nosc = static_cast<Index>(oscs.size());
+
+      if (has_dipoles && state < ndip && state < nosc) {
+        const Eigen::Vector3d& dipoles = orbitals_.TransitionDipoles()[state];
+
+        level_summary.add("f",
+                          (boost::format("%1$+1.6f ") % oscs(state)).str());
+
+        tools::Property& dipol_summary = level_summary.add(
+            "Trdipole", (boost::format("%1$+1.4f %2$+1.4f %3$+1.4f") %
+                         dipoles.x() % dipoles.y() % dipoles.z())
+                            .str());
+        dipol_summary.setAttribute("unit", "e*bohr");
+        dipol_summary.setAttribute("gauge", "length");
+      }
+    }
+  }
+
   return;
 }
 
@@ -716,7 +773,8 @@ bool GWBSE::Evaluate() {
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Filled Auxbasis of size "
                               << auxbasis.AOBasisSize() << flush;
 
-  if ((do_bse_singlets_ || do_bse_triplets_) && fragments_.size() > 0) {
+  if ((do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) &&
+      fragments_.size() > 0) {
     for (const auto& frag : fragments_) {
       XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Fragment " << frag.getId()
                                   << " size:" << frag.size() << flush;
@@ -766,6 +824,8 @@ bool GWBSE::Evaluate() {
   }
 
   Eigen::MatrixXd Hqp;
+  Eigen::MatrixXd Hqp_alpha;
+  Eigen::MatrixXd Hqp_beta;
   if (do_gw_) {
 
     std::chrono::time_point<std::chrono::system_clock> start =
@@ -808,6 +868,8 @@ bool GWBSE::Evaluate() {
       orbitals_.RPAInputEnergiesAlpha() = gw.RPAInputEnergiesAlpha();
       orbitals_.RPAInputEnergiesBeta() = gw.RPAInputEnergiesBeta();
       gw.CalculateHQP();
+      Hqp_alpha = gw.getHQPAlpha();
+      Hqp_beta = gw.getHQPBeta();
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_alpha =
           gw.DiagonalizeQPHamiltonianAlpha();
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_beta =
@@ -869,54 +931,117 @@ bool GWBSE::Evaluate() {
           "The ranges for GW and RPA do not agree with the ranges from the "
           ".orb file, rerun your GW calculation");
     }
-    const Eigen::MatrixXd& qpcoeff = orbitals_.QPdiag().eigenvectors();
 
-    Hqp = qpcoeff * orbitals_.QPdiag().eigenvalues().asDiagonal() *
-          qpcoeff.transpose();
+    if (is_uks) {
+      const Eigen::MatrixXd& qpcoeff_alpha =
+          orbitals_.QPdiagAlpha().eigenvectors();
+      const Eigen::MatrixXd& qpcoeff_beta =
+          orbitals_.QPdiagBeta().eigenvectors();
+
+      Hqp_alpha = qpcoeff_alpha *
+                  orbitals_.QPdiagAlpha().eigenvalues().asDiagonal() *
+                  qpcoeff_alpha.transpose();
+      Hqp_beta = qpcoeff_beta *
+                 orbitals_.QPdiagBeta().eigenvalues().asDiagonal() *
+                 qpcoeff_beta.transpose();
+    } else {
+      const Eigen::MatrixXd& qpcoeff = orbitals_.QPdiag().eigenvectors();
+
+      Hqp = qpcoeff * orbitals_.QPdiag().eigenvalues().asDiagonal() *
+            qpcoeff.transpose();
+    }
   }
 
   // proceed only if BSE requested
-  if (do_bse_singlets_ || do_bse_triplets_) {
-    if (is_uks) {
-      throw std::runtime_error(
-          "BSE for unrestricted open-shell references is not implemented yet.");
-    }
+  if (do_bse_singlets_ || do_bse_triplets_ || do_bse_exciton_uks_) {
 
     std::chrono::time_point<std::chrono::system_clock> start =
         std::chrono::system_clock::now();
 
-    BSE bse = BSE(*pLog_, Mmn);
-    bse.configure(bseopt_, orbitals_.RPAInputEnergies(), Hqp);
+    if (is_uks) {
 
-    // store the direct contribution to the static BSE results
-    Eigen::VectorXd Hd_static_contrib_triplet;
-    Eigen::VectorXd Hd_static_contrib_singlet;
+      // Build a single spin-summed dielectric screening from the unrestricted
+      // RPA response and reuse it for both exciton spin channels.
+      RPA_UKS rpa_uks_bse(*pLog_, Mmn_spin);
+      rpa_uks_bse.configure(orbitals_.getHomoAlpha(), orbitals_.getHomoBeta(),
+                            bseopt_.rpamin, bseopt_.rpamax);
+      rpa_uks_bse.setRPAInputEnergies(orbitals_.RPAInputEnergiesAlpha(),
+                                      orbitals_.RPAInputEnergiesBeta());
 
-    if (do_bse_triplets_) {
-      bse.Solve_triplets(orbitals_);
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " Solved BSE for triplets " << flush;
-      bse.Analyze_triplets(fragments_, orbitals_);
-    }
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_bse(
+          rpa_uks_bse.calculate_epsilon_r(0.0));
 
-    if (do_bse_singlets_) {
-      bse.Solve_singlets(orbitals_);
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " Solved BSE for singlets " << flush;
-      bse.Analyze_singlets(fragments_, orbitals_);
-    }
+      Eigen::VectorXd epsilon_0_inv_bse =
+          Eigen::VectorXd::Zero(es_bse.eigenvalues().size());
+      for (Index i = 0; i < es_bse.eigenvalues().size(); ++i) {
+        if (es_bse.eigenvalues()(i) > 1e-8) {
+          epsilon_0_inv_bse(i) = 1.0 / es_bse.eigenvalues()(i);
+        }
+      }
 
-    // do perturbative dynamical screening in BSE
-    if (do_dynamical_screening_bse_) {
+      if (do_bse_exciton_uks_) {
+        BSE_UKS::options bseopt_uks;
+        bseopt_uks.useTDA = bseopt_.useTDA;
+        bseopt_uks.rpamin = bseopt_.rpamin;
+        bseopt_uks.rpamax = bseopt_.rpamax;
+        bseopt_uks.qpmin = bseopt_.qpmin;
+        bseopt_uks.qpmax = bseopt_.qpmax;
+        bseopt_uks.vmin = bseopt_.vmin;
+        bseopt_uks.cmax = bseopt_.cmax;
+        bseopt_uks.nmax = bseopt_.nmax;
+        bseopt_uks.davidson_correction = bseopt_.davidson_correction;
+        bseopt_uks.davidson_tolerance = bseopt_.davidson_tolerance;
+        bseopt_uks.davidson_update = bseopt_.davidson_update;
+        bseopt_uks.davidson_maxiter = bseopt_.davidson_maxiter;
+        bseopt_uks.min_print_weight = bseopt_.min_print_weight;
+        bseopt_uks.use_Hqp_offdiag = bseopt_.use_Hqp_offdiag;
+        bseopt_uks.max_dyn_iter = bseopt_.max_dyn_iter;
+        bseopt_uks.dyn_tolerance = bseopt_.dyn_tolerance;
+
+        BSE_UKS bse_uks(*pLog_, Mmn_spin);
+        bse_uks.configure_with_precomputed_screening(
+            bseopt_uks, orbitals_.getHomoAlpha(), orbitals_.getHomoBeta(),
+            orbitals_.RPAInputEnergiesAlpha(), orbitals_.RPAInputEnergiesBeta(),
+            Hqp_alpha, Hqp_beta, epsilon_0_inv_bse, es_bse.eigenvectors());
+
+        bse_uks.Solve_excitons_uks(orbitals_);
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Solved combined UKS BSE exciton problem "
+            << flush;
+        bse_uks.Analyze_excitons_uks(fragments_, orbitals_);
+
+        if (do_dynamical_screening_bse_) {
+          bse_uks.Perturbative_DynamicalScreening(orbitals_);
+        }
+      }
+    } else {
+      BSE bse = BSE(*pLog_, Mmn);
+      bse.configure(bseopt_, orbitals_.RPAInputEnergies(), Hqp);
 
       if (do_bse_triplets_) {
-        bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Triplet),
-                                            orbitals_);
+        bse.Solve_triplets(orbitals_);
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Solved BSE for triplets " << flush;
+        bse.Analyze_triplets(fragments_, orbitals_);
       }
 
       if (do_bse_singlets_) {
-        bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Singlet),
-                                            orbitals_);
+        bse.Solve_singlets(orbitals_);
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " Solved BSE for singlets " << flush;
+        bse.Analyze_singlets(fragments_, orbitals_);
+      }
+
+      if (do_dynamical_screening_bse_) {
+        if (do_bse_triplets_) {
+          bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Triplet),
+                                              orbitals_);
+        }
+
+        if (do_bse_singlets_) {
+          bse.Perturbative_DynamicalScreening(QMStateType(QMStateType::Singlet),
+                                              orbitals_);
+        }
       }
     }
 
