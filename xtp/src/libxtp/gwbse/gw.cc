@@ -28,6 +28,7 @@
 #include "votca/xtp/newton_rapson.h"
 #include "votca/xtp/rpa.h"
 #include "votca/xtp/sigmafactory.h"
+#include "../self_energy_evaluators/sigma_ri_reduced.h"
 
 namespace votca {
 namespace xtp {
@@ -48,6 +49,26 @@ void GW::configure(const options& opt) {
   sigma_opt.quadrature_scheme = opt_.quadrature_scheme;
   sigma_opt.order = opt_.order;
   sigma_->configure(sigma_opt);
+sigma_->configure(sigma_opt);
+
+if (opt_.sigma_integration == "ri_reduced") {
+  auto* sigma_red = dynamic_cast<Sigma_RI_Reduced*>(sigma_.get());
+  if (sigma_red == nullptr) {
+    throw std::runtime_error(
+        "GW::configure: sigma_integration is ri_reduced but cast to "
+        "Sigma_RI_Reduced failed.");
+  }
+
+  Sigma_RI_Reduced::reduced_options ropt;
+  ropt.imag_omega_points = 12;
+  ropt.imag_omega_max = 3.0;
+  ropt.basis_threshold = 1e-10;
+  //ropt.dynamic_basis = true;
+  ropt.run_pole_diagnostics = true;
+
+  sigma_red->configure_reduced(ropt);
+}
+
   Sigma_x_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
   Sigma_c_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
 }

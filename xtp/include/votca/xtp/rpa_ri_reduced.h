@@ -46,6 +46,14 @@ class RPA_RI_Reduced {
     Index imag_omega_points = 6;
     double basis_threshold = 1e-8;
     Index max_rank = -1;  // <= 0 means "no explicit cap"
+
+    // If true, build U from a frequency-averaged dynamical metric
+    //   C = sum_k Pi(iw_k)^2
+    // over the imaginary-axis grid. If false, fall back to Pi(0).
+    bool dynamic_basis = true;
+
+    // Print basis construction diagnostics.
+    bool print_basis_diagnostics = true;
   };
 
   struct wc_diagnostic {
@@ -75,13 +83,8 @@ class RPA_RI_Reduced {
   Eigen::MatrixXd BuildReducedPiImag(double omega) const;
   Eigen::MatrixXd BuildReducedWcImag(double omega) const;
 
-  // NEW: full auxiliary-space correlation screening
   Eigen::MatrixXd BuildWcImag(double omega) const;
-
-  // NEW: projected-back reduced approximation U Wc_red U^T
   Eigen::MatrixXd BuildProjectedReducedWcImag(double omega) const;
-
-  // NEW: compare full vs projected reduced Wc
   wc_diagnostic CompareWcImag(double omega) const;
 
   const Eigen::MatrixXd& BasisU() const { return U_; }
@@ -96,6 +99,7 @@ class RPA_RI_Reduced {
 
   RPAWindow GetWindow() const;
   std::vector<double> ImagFrequencyGrid() const;
+  Eigen::MatrixXd BuildCompressionMatrix() const;
 
   const TCMatrix_gwbse& Mmn_;
 

@@ -22,9 +22,27 @@ class Sigma_RI_Reduced : public Sigma_base {
     Index max_rank = -1;
 
     // pole search
-    double pole_shift = 1e-8;      // shift away from bare transition poles
-    double pole_tol = 1e-10;       // bisection tolerance
+    double pole_shift = 1e-8;
+    double pole_tol = 1e-10;
     Index max_bisection = 200;
+
+    // diagnostics
+    bool run_pole_diagnostics = true;
+    double pole_reconstruction_tol = 1e-8;
+  };
+
+  struct pole_diagnostic {
+    double omega = 0.0;
+
+    double norm_direct = 0.0;
+
+    double norm_pole2 = 0.0;
+    double abs_diff_pole2 = 0.0;
+    double rel_diff_pole2 = 0.0;
+
+    double norm_pole4 = 0.0;
+    double abs_diff_pole4 = 0.0;
+    double rel_diff_pole4 = 0.0;
   };
 
   void configure_reduced(reduced_options opt) { opt_red_ = opt; }
@@ -46,14 +64,14 @@ class Sigma_RI_Reduced : public Sigma_base {
   RPA_RI_Reduced rpa_red_;
 
   // Reduced transition model
-  Eigen::VectorXd transition_energies_;   // Delta_t
-  Eigen::MatrixXd transition_couplings_;  // rows: t, cols: reduced index a
+  Eigen::VectorXd transition_energies_;
+  Eigen::MatrixXd transition_couplings_;
 
   // Pole expansion of reduced Wc
-  Eigen::VectorXd rpa_omegas_;            // Omega_s
-  Eigen::MatrixXd pole_vectors_;          // cols: z_s in reduced RI basis
+  Eigen::VectorXd rpa_omegas_;
+  Eigen::MatrixXd pole_vectors_;
 
-  // Sigma_Exact-style residues: one matrix per GW state, size (rpatotal x npoles)
+  // Sigma_Exact-style residues
   std::vector<Eigen::MatrixXd> residues_;
 
   // Per-QP reduced couplings C_i(m,a) = sum_mu M_im^mu U_mu,a
@@ -72,6 +90,26 @@ class Sigma_RI_Reduced : public Sigma_base {
   double RefineRoot(double left, double right, Index nneg_left) const;
 
   std::vector<double> UniqueSortedTransitionEnergies() const;
+
+  // diagnostics
+  Eigen::MatrixXd BuildReducedWcImagFromPoles(double omega,
+                                              double prefactor) const;
+  std::vector<pole_diagnostic> RunPoleDiagnostics() const;
+
+struct contracted_w_diagnostic {
+  Index gw_level = 0;
+  Index m = 0;
+  double omega = 0.0;
+  double direct = 0.0;
+  double pole = 0.0;
+  double abs_diff = 0.0;
+  double rel_diff = 0.0;
+};
+
+double ContractedDirectWcImag(Index gw_level, Index m, double omega) const;
+double ContractedPoleWcImag(Index gw_level, Index m, double omega) const;
+void RunContractedWcDiagnostics() const;
+
 };
 
 }  // namespace xtp

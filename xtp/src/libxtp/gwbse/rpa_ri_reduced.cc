@@ -21,7 +21,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <numeric>
+#include <sstream>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -80,8 +82,6 @@ Eigen::MatrixXd RPA_RI_Reduced::BuildPiImag(double omega) const {
     for (Index v = 0; v < w.n_occ; ++v) {
       const double eps_v = energies_(v);
 
-      // rows correspond to n in [rpamin, rpamax]
-      // middleRows(n_occ, n_unocc) == virtual block c for fixed occupied v
       const Eigen::MatrixXd Mvc = Mmn_[v].middleRows(w.n_occ, w.n_unocc);
 
       Eigen::VectorXd weight(w.n_unocc);
@@ -100,13 +100,42 @@ Eigen::MatrixXd RPA_RI_Reduced::BuildPiImag(double omega) const {
   return Pi;
 }
 
-void RPA_RI_Reduced::BuildReducedBasis() {
-  const Eigen::MatrixXd Pi0 = BuildPiImag(0.0);
+Eigen::MatrixXd RPA_RI_Reduced::BuildCompressionMatrix() const {
+  const std::vector<double> grid = ImagFrequencyGrid();
 
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(Pi0);
+  if (!opt_red_.dynamic_basis || grid.empty()) {
+    return BuildPiImag(0.0);
+  }
+
+  const Index n_aux = Mmn_.auxsize();
+  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(n_aux, n_aux);
+
+  // Build a symmetric positive semidefinite dynamical metric
+  //   C = sum_k Pi(iw_k)^2
+  // Since Pi(iw) is symmetric in the RI basis, Pi^2 captures directions that
+  // matter across the whole imaginary-frequency interval and avoids sign
+  // cancellation between frequencies.
+  for (double omega : grid) {
+    const Eigen::MatrixXd Piw = BuildPiImag(omega);
+    C.noalias() += Piw * Piw;
+  }
+
+  // In case the grid is pathological and C becomes numerically tiny,
+  // fall back to the static metric.
+  if (C.norm() < 1e-16) {
+    return BuildPiImag(0.0);
+  }
+
+  return C;
+}
+
+void RPA_RI_Reduced::BuildReducedBasis() {
+  const Eigen::MatrixXd compression = BuildCompressionMatrix();
+
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(compression);
   if (es.info() != Eigen::Success) {
     throw std::runtime_error(
-        "RPA_RI_Reduced::BuildReducedBasis failed to diagonalize Pi(0).");
+        "RPA_RI_Reduced::BuildReducedBasis failed to diagonalize compression matrix.");
   }
 
   const Eigen::VectorXd evals = es.eigenvalues();
@@ -136,9 +165,30 @@ void RPA_RI_Reduced::BuildReducedBasis() {
     keep.push_back(order.front());
   }
 
-  U_.resize(Pi0.rows(), static_cast<Index>(keep.size()));
+  U_.resize(compression.rows(), static_cast<Index>(keep.size()));
   for (Index i = 0; i < static_cast<Index>(keep.size()); ++i) {
     U_.col(i) = evecs.col(keep[static_cast<std::size_t>(i)]);
+  }
+
+  if (opt_red_.print_basis_diagnostics) {
+    std::ostringstream oss;
+    oss << "[RI-REDUCED BASIS] mode = "
+        << (opt_red_.dynamic_basis ? "dynamic" : "static")
+        << "  rank = " << U_.cols()
+        << "  imag_omega_points = " << opt_red_.imag_omega_points
+        << "  imag_omega_max = " << opt_red_.imag_omega_max << "\n";
+
+    const std::vector<double> grid = ImagFrequencyGrid();
+    for (double omega : grid) {
+      const auto diag = CompareWcImag(omega);
+      oss << "  omega = " << diag.omega
+          << "  ||Wc_full||_F = " << diag.norm_full
+          << "  ||Wc_proj||_F = " << diag.norm_proj
+          << "  ||diff||_F = " << diag.abs_diff
+          << "  rel = " << diag.rel_diff << "\n";
+    }
+
+    std::cout << oss.str() << std::flush;
   }
 }
 
@@ -159,7 +209,6 @@ Eigen::MatrixXd RPA_RI_Reduced::BuildReducedWcImag(double omega) const {
   return (I - pi_red).inverse() - I;
 }
 
-// NEW
 Eigen::MatrixXd RPA_RI_Reduced::BuildWcImag(double omega) const {
   const Eigen::MatrixXd pi = BuildPiImag(omega);
   const Index dim = pi.rows();
@@ -168,7 +217,6 @@ Eigen::MatrixXd RPA_RI_Reduced::BuildWcImag(double omega) const {
   return (I - pi).inverse() - I;
 }
 
-// NEW
 Eigen::MatrixXd RPA_RI_Reduced::BuildProjectedReducedWcImag(double omega) const {
   if (U_.cols() == 0) {
     throw std::runtime_error(
@@ -179,7 +227,6 @@ Eigen::MatrixXd RPA_RI_Reduced::BuildProjectedReducedWcImag(double omega) const 
   return U_ * wc_red * U_.transpose();
 }
 
-// NEW
 RPA_RI_Reduced::wc_diagnostic RPA_RI_Reduced::CompareWcImag(double omega) const {
   const Eigen::MatrixXd wc_full = BuildWcImag(omega);
   const Eigen::MatrixXd wc_proj = BuildProjectedReducedWcImag(omega);
