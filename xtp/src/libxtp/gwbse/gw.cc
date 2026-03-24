@@ -61,8 +61,18 @@ if (opt_.sigma_integration == "ri_reduced") {
 
   Sigma_RI_Reduced::reduced_options ropt;
   ropt.imag_omega_points = 12;
-  ropt.imag_omega_max = 3.0;
-  ropt.basis_threshold = 1e-10;
+  ropt.imag_omega_max = 2.0;
+  ropt.basis_threshold = 1e-8;
+  ropt.max_rank = 40;
+
+  ropt.sigma_aware_basis = true;  //     options.get("gwbse.gw.reduced.sigma_aware_basis", false);
+  ropt.sigma_mix = 0.25; //      options.get("gwbse.gw.reduced.sigma_mix", 0.25);
+  ropt.normalize_metric_components = true; //      options.get("gwbse.gw.reduced.normalize_metric_components", true);
+  ropt.run_sigma_diagnostics = false;
+  ropt.run_contracted_pole_diagnostics = true;//     options.get("gwbse.gw.reduced.run_contracted_pole_diagnostics", true);
+  ropt.run_full_vs_reduced_contracted_diagnostics = true; //      options.get("gwbse.gw.reduced.run_full_vs_reduced_contracted_diagnostics", true);
+  ropt.run_pole_weight_diagnostics = true;
+  ropt.pole_weight_topn = 12;
   //ropt.dynamic_basis = true;
   ropt.run_pole_diagnostics = true;
 

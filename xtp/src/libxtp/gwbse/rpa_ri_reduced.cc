@@ -100,7 +100,15 @@ Eigen::MatrixXd RPA_RI_Reduced::BuildPiImag(double omega) const {
   return Pi;
 }
 
-Eigen::MatrixXd RPA_RI_Reduced::BuildCompressionMatrix() const {
+Eigen::MatrixXd RPA_RI_Reduced::NormalizeMetric(const Eigen::MatrixXd& M) {
+  const double fnorm = M.norm();
+  if (fnorm < 1e-16) {
+    return M;
+  }
+  return M / fnorm;
+}
+
+Eigen::MatrixXd RPA_RI_Reduced::BuildStaticOrDynamicCompressionMatrix() const {
   const std::vector<double> grid = ImagFrequencyGrid();
 
   if (!opt_red_.dynamic_basis || grid.empty()) {
@@ -110,20 +118,77 @@ Eigen::MatrixXd RPA_RI_Reduced::BuildCompressionMatrix() const {
   const Index n_aux = Mmn_.auxsize();
   Eigen::MatrixXd C = Eigen::MatrixXd::Zero(n_aux, n_aux);
 
-  // Build a symmetric positive semidefinite dynamical metric
+  // Symmetric positive semidefinite dynamical metric:
   //   C = sum_k Pi(iw_k)^2
-  // Since Pi(iw) is symmetric in the RI basis, Pi^2 captures directions that
-  // matter across the whole imaginary-frequency interval and avoids sign
-  // cancellation between frequencies.
   for (double omega : grid) {
     const Eigen::MatrixXd Piw = BuildPiImag(omega);
     C.noalias() += Piw * Piw;
   }
 
-  // In case the grid is pathological and C becomes numerically tiny,
-  // fall back to the static metric.
   if (C.norm() < 1e-16) {
     return BuildPiImag(0.0);
+  }
+
+  return C;
+}
+
+Eigen::MatrixXd RPA_RI_Reduced::BuildSigmaAwareCompressionMatrix() const {
+  const RPAWindow w = GetWindow();
+  const Index n_aux = Mmn_.auxsize();
+  const Index qptotal = (qpmax_ >= qpmin_) ? (qpmax_ - qpmin_ + 1) : 0;
+  const Index rpatotal = w.n_occ + w.n_unocc;
+
+  Eigen::MatrixXd Csigma = Eigen::MatrixXd::Zero(n_aux, n_aux);
+
+  if (qptotal <= 0 || rpatotal <= 0) {
+    return Csigma;
+  }
+
+#pragma omp parallel
+  {
+    Eigen::MatrixXd Cthread = Eigen::MatrixXd::Zero(n_aux, n_aux);
+
+#pragma omp for schedule(dynamic)
+    for (Index iq = 0; iq < qptotal; ++iq) {
+      const Index level = qpmin_ + iq;
+      const Eigen::MatrixXd& Mim = Mmn_[level - rpamin_];
+
+      for (Index m = 0; m < rpatotal; ++m) {
+        const Eigen::VectorXd c = Mim.row(m).transpose();
+        Cthread.noalias() += c * c.transpose();
+      }
+    }
+
+#pragma omp critical
+    Csigma += Cthread;
+  }
+
+  return Csigma;
+}
+
+Eigen::MatrixXd RPA_RI_Reduced::BuildCompressionMatrix() const {
+  Eigen::MatrixXd Cbase = BuildStaticOrDynamicCompressionMatrix();
+
+  if (!opt_red_.sigma_aware_basis) {
+    return Cbase;
+  }
+
+  Eigen::MatrixXd Csigma = BuildSigmaAwareCompressionMatrix();
+  if (Csigma.norm() < 1e-16) {
+    return Cbase;
+  }
+
+  const double mix = std::max(0.0, std::min(1.0, opt_red_.sigma_mix));
+
+  if (opt_red_.normalize_metric_components) {
+    Cbase = NormalizeMetric(Cbase);
+    Csigma = NormalizeMetric(Csigma);
+  }
+
+  Eigen::MatrixXd C = (1.0 - mix) * Cbase + mix * Csigma;
+
+  if (C.norm() < 1e-16) {
+    return BuildStaticOrDynamicCompressionMatrix();
   }
 
   return C;
@@ -174,6 +239,8 @@ void RPA_RI_Reduced::BuildReducedBasis() {
     std::ostringstream oss;
     oss << "[RI-REDUCED BASIS] mode = "
         << (opt_red_.dynamic_basis ? "dynamic" : "static")
+        << "  sigma_aware = " << (opt_red_.sigma_aware_basis ? "true" : "false")
+        << "  sigma_mix = " << opt_red_.sigma_mix
         << "  rank = " << U_.cols()
         << "  imag_omega_points = " << opt_red_.imag_omega_points
         << "  imag_omega_max = " << opt_red_.imag_omega_max << "\n";

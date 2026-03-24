@@ -21,14 +21,25 @@ class Sigma_RI_Reduced : public Sigma_base {
     double basis_threshold = 1e-8;
     Index max_rank = -1;
 
-    // pole search
+    bool sigma_aware_basis = false;
+    double sigma_mix = 0.25;
+    bool normalize_metric_components = true;
+
     double pole_shift = 1e-8;
     double pole_tol = 1e-10;
     Index max_bisection = 200;
 
-    // diagnostics
     bool run_pole_diagnostics = true;
     double pole_reconstruction_tol = 1e-8;
+
+    bool run_contracted_pole_diagnostics = true;
+    bool run_full_vs_reduced_contracted_diagnostics = true;
+
+    // New: compare direct reduced Sigma against pole-based reduced Sigma
+    bool run_sigma_diagnostics = true;
+
+        bool run_pole_weight_diagnostics = true;
+    Index pole_weight_topn = 12;
   };
 
   struct pole_diagnostic {
@@ -71,7 +82,11 @@ class Sigma_RI_Reduced : public Sigma_base {
   Eigen::VectorXd rpa_omegas_;
   Eigen::MatrixXd pole_vectors_;
 
-  // Sigma_Exact-style residues
+  // Raw Wc amplitudes: wc_amplitudes_(m,s) = (C_i z_s)_m
+  std::vector<Eigen::MatrixXd> wc_amplitudes_;
+
+  // Sigma-style residues used in CalcCorrelation...
+  // residues_(m,s) = wc_amplitudes_(m,s) / sqrt(2 Omega_s)
   std::vector<Eigen::MatrixXd> residues_;
 
   // Per-QP reduced couplings C_i(m,a) = sum_mu M_im^mu U_mu,a
@@ -91,25 +106,29 @@ class Sigma_RI_Reduced : public Sigma_base {
 
   std::vector<double> UniqueSortedTransitionEnergies() const;
 
-  // diagnostics
+  // Wc diagnostics
   Eigen::MatrixXd BuildReducedWcImagFromPoles(double omega,
                                               double prefactor) const;
   std::vector<pole_diagnostic> RunPoleDiagnostics() const;
 
-struct contracted_w_diagnostic {
-  Index gw_level = 0;
-  Index m = 0;
-  double omega = 0.0;
-  double direct = 0.0;
-  double pole = 0.0;
-  double abs_diff = 0.0;
-  double rel_diff = 0.0;
-};
+  double ContractedFullWcImag(Index gw_level, Index m, double omega) const;
+  double ContractedProjectedReducedWcImag(Index gw_level, Index m, double omega) const;
+  double ContractedDirectWcImag(Index gw_level, Index m, double omega) const;
+  double ContractedPoleWcImag(Index gw_level, Index m, double omega) const;
 
-double ContractedDirectWcImag(Index gw_level, Index m, double omega) const;
-double ContractedPoleWcImag(Index gw_level, Index m, double omega) const;
-void RunContractedWcDiagnostics() const;
+  void RunContractedWcDiagnostics() const;
+  void RunFullVsReducedContractedDiagnostics() const;
 
+  // New: direct reduced Sigma diagnostics
+  double CalcCorrelationDiagElementDirectReduced(Index gw_level,
+                                                 double frequency) const;
+  double CalcCorrelationOffDiagElementDirectReduced(Index gw_level1,
+                                                    Index gw_level2,
+                                                    double frequency1,
+                                                    double frequency2) const;
+  void RunSigmaDiagnostics() const;
+
+    void RunPoleWeightDiagnostics() const;
 };
 
 }  // namespace xtp

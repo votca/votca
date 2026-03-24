@@ -2,7 +2,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
+#include <iostream>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -17,8 +20,8 @@ Sigma_RI_Reduced::Sigma_RI_Reduced(TCMatrix_gwbse& Mmn, RPA& rpa)
     : Sigma_base(Mmn, rpa), rpa_red_(Mmn) {}
 
 void Sigma_RI_Reduced::PrepareScreening() {
-  // Build reduced RI basis U from imaginary-axis Pi(0)
   rpa_red_.configure(opt_.homo, opt_.rpamin, opt_.rpamax);
+  rpa_red_.configure_qp_window(opt_.qpmin, opt_.qpmax);
   rpa_red_.setRPAInputEnergies(rpa_.getRPAInputEnergies());
 
   RPA_RI_Reduced::options ropt;
@@ -26,11 +29,13 @@ void Sigma_RI_Reduced::PrepareScreening() {
   ropt.imag_omega_points = opt_red_.imag_omega_points;
   ropt.basis_threshold = opt_red_.basis_threshold;
   ropt.max_rank = opt_red_.max_rank;
+  ropt.sigma_aware_basis = opt_red_.sigma_aware_basis;
+  ropt.sigma_mix = opt_red_.sigma_mix;
+  ropt.normalize_metric_components = opt_red_.normalize_metric_components;
   rpa_red_.configure_reduced(ropt);
 
   rpa_red_.BuildReducedBasis();
 
-  // Build reduced couplings C_i(m,a) for all QP states i
   const Index qpoffset = opt_.qpmin - opt_.rpamin;
   reduced_couplings_.resize(qptotal_);
 
@@ -40,10 +45,7 @@ void Sigma_RI_Reduced::PrepareScreening() {
         Mmn_[gw_level + qpoffset] * rpa_red_.BasisU();
   }
 
-  // Build reduced transition model G_ta and Delta_t
   BuildReducedTransitionModel();
-
-  // Extract pole expansion within reduced model
   BuildPoleExpansion();
 
   if (opt_red_.run_pole_diagnostics) {
@@ -79,28 +81,158 @@ void Sigma_RI_Reduced::PrepareScreening() {
     }
   }
 
-  // Convert reduced pole vectors z_s into Sigma_Exact-style residues
   const Index npoles = rpa_omegas_.size();
+
+  // Raw Wc amplitudes
+  wc_amplitudes_.resize(qptotal_);
+
+#pragma omp parallel for schedule(dynamic)
+  for (Index gw_level = 0; gw_level < qptotal_; ++gw_level) {
+    wc_amplitudes_[gw_level] = reduced_couplings_[gw_level] * pole_vectors_;
+    if (wc_amplitudes_[gw_level].cols() != npoles) {
+      throw std::runtime_error("Sigma_RI_Reduced: wc_amplitudes shape mismatch.");
+    }
+  }
+
+  // Sigma-style residues
   residues_.resize(qptotal_);
 
 #pragma omp parallel for schedule(dynamic)
-for (Index gw_level = 0; gw_level < qptotal_; ++gw_level) {
-  residues_[gw_level] = reduced_couplings_[gw_level] * pole_vectors_;
-  if (residues_[gw_level].cols() != npoles) {
-    throw std::runtime_error("Sigma_RI_Reduced: residue shape mismatch.");
+  for (Index gw_level = 0; gw_level < qptotal_; ++gw_level) {
+    residues_[gw_level] = wc_amplitudes_[gw_level];
+
+    for (Index s = 0; s < npoles; ++s) {
+      const double omega_s = rpa_omegas_(s);
+      if (!(omega_s > 0.0)) {
+        throw std::runtime_error(
+            "Sigma_RI_Reduced: encountered non-positive screening pole.");
+      }
+      residues_[gw_level].col(s) /= std::sqrt(2.0 * omega_s);
+    }
   }
 
-  for (Index s = 0; s < npoles; ++s) {
-    const double omega_s = rpa_omegas_(s);
-    if (!(omega_s > 0.0)) {
-      throw std::runtime_error(
-          "Sigma_RI_Reduced: encountered non-positive screening pole.");
-    }
-    residues_[gw_level].col(s) /= std::sqrt(2.0 * omega_s);
+  if (opt_red_.run_contracted_pole_diagnostics) {
+    RunContractedWcDiagnostics();
+  }
+  if (opt_red_.run_full_vs_reduced_contracted_diagnostics) {
+    RunFullVsReducedContractedDiagnostics();
+  }
+  if (opt_red_.run_sigma_diagnostics) {
+    RunSigmaDiagnostics();
+  }
+    if (opt_red_.run_pole_weight_diagnostics) {
+    RunPoleWeightDiagnostics();
   }
 }
 
-  RunContractedWcDiagnostics();
+void Sigma_RI_Reduced::RunPoleWeightDiagnostics() const {
+  if (rpa_omegas_.size() == 0 || residues_.empty()) {
+    std::cout << "[RI-REDUCED POLE-WEIGHT DIAGNOSTIC] no poles or residues available\n";
+    return;
+  }
+
+  std::vector<Index> gw_levels_to_check;
+  gw_levels_to_check.push_back(std::max<Index>(0, opt_.homo - opt_.qpmin));
+  if (opt_.homo + 1 >= opt_.qpmin && opt_.homo + 1 <= opt_.qpmax) {
+    gw_levels_to_check.push_back(opt_.homo + 1 - opt_.qpmin);
+  }
+
+  const Index topn = std::max<Index>(1, opt_red_.pole_weight_topn);
+
+  for (Index gw_level : gw_levels_to_check) {
+    const Eigen::MatrixXd& R = residues_[gw_level];
+
+    if (R.cols() != rpa_omegas_.size()) {
+      throw std::runtime_error(
+          "Sigma_RI_Reduced::RunPoleWeightDiagnostics: residue/pole dimension mismatch.");
+    }
+
+    struct PoleInfo {
+      Index s;
+      double omega;
+      double weight;
+      double max_abs_residue;
+      Index max_m;
+    };
+
+    std::vector<PoleInfo> poles;
+    poles.reserve(static_cast<std::size_t>(rpa_omegas_.size()));
+
+    double total_weight = 0.0;
+
+    for (Index s = 0; s < rpa_omegas_.size(); ++s) {
+      const Eigen::VectorXd col = R.col(s);
+      const double weight = col.squaredNorm();
+      total_weight += weight;
+
+      Index max_m = 0;
+      double max_abs_res = 0.0;
+      for (Index m = 0; m < col.size(); ++m) {
+        const double val = std::abs(col(m));
+        if (val > max_abs_res) {
+          max_abs_res = val;
+          max_m = m;
+        }
+      }
+
+      poles.push_back({s, rpa_omegas_(s), weight, max_abs_res, max_m});
+    }
+
+    std::sort(poles.begin(), poles.end(),
+              [](const PoleInfo& a, const PoleInfo& b) {
+                return a.weight > b.weight;
+              });
+
+    const Index nprint =
+        std::min<Index>(topn, static_cast<Index>(poles.size()));
+
+    std::cout << "[RI-REDUCED POLE-WEIGHT DIAGNOSTIC] gw_level = "
+              << gw_level + opt_.qpmin
+              << "  npoles = " << rpa_omegas_.size()
+              << "  total_weight = " << total_weight
+              << "\n";
+
+    double cumulative = 0.0;
+    for (Index k = 0; k < nprint; ++k) {
+      const PoleInfo& p = poles[static_cast<std::size_t>(k)];
+      cumulative += p.weight;
+      const double frac =
+          (total_weight > 1e-16) ? (p.weight / total_weight) : 0.0;
+      const double cumfrac =
+          (total_weight > 1e-16) ? (cumulative / total_weight) : 0.0;
+
+      std::cout << "  rank = " << (k + 1)
+                << "  pole = " << p.s
+                << "  Omega = " << p.omega
+                << "  weight = " << p.weight
+                << "  frac = " << frac
+                << "  cum_frac = " << cumfrac
+                << "  max|R_im| = " << p.max_abs_residue
+                << "  at m = " << p.max_m
+                << "\n";
+    }
+
+    // Also print the poles in energy order for the dominant subset
+    std::vector<PoleInfo> dominant_by_energy(
+        poles.begin(), poles.begin() + static_cast<std::size_t>(nprint));
+    std::sort(dominant_by_energy.begin(), dominant_by_energy.end(),
+              [](const PoleInfo& a, const PoleInfo& b) {
+                return a.omega < b.omega;
+              });
+
+    std::cout << "  dominant poles in ascending Omega:\n";
+    for (const PoleInfo& p : dominant_by_energy) {
+      const double frac =
+          (total_weight > 1e-16) ? (p.weight / total_weight) : 0.0;
+      std::cout << "    pole = " << p.s
+                << "  Omega = " << p.omega
+                << "  weight = " << p.weight
+                << "  frac = " << frac
+                << "  max|R_im| = " << p.max_abs_residue
+                << "  at m = " << p.max_m
+                << "\n";
+    }
+  }
 }
 
 void Sigma_RI_Reduced::BuildReducedTransitionModel() {
@@ -119,7 +251,6 @@ void Sigma_RI_Reduced::BuildReducedTransitionModel() {
   for (Index v = 0; v < n_occ; ++v) {
     const double eps_v = eps(v);
 
-    // rows c=0..n_unocc-1 correspond to virtual states
     const Eigen::MatrixXd Mvc_red =
         Mmn_[v].middleRows(n_occ, n_unocc) * U;
 
@@ -131,7 +262,6 @@ void Sigma_RI_Reduced::BuildReducedTransitionModel() {
     }
   }
 
-  // Sort transitions by energy
   std::vector<Index> order(static_cast<std::size_t>(n_trans));
   for (Index i = 0; i < n_trans; ++i) {
     order[static_cast<std::size_t>(i)] = i;
@@ -195,9 +325,12 @@ Index Sigma_RI_Reduced::CountNegativeEigenvalues(const Eigen::MatrixXd& A) const
     throw std::runtime_error("Sigma_RI_Reduced: failed to diagonalize reduced dielectric matrix.");
   }
 
+  const double scale = std::max(1.0, A.norm());
+  const double tol = 1e-10 * scale;
+
   Index nneg = 0;
   for (Index i = 0; i < es.eigenvalues().size(); ++i) {
-    if (es.eigenvalues()(i) < 0.0) {
+    if (es.eigenvalues()(i) < -tol) {
       ++nneg;
     }
   }
@@ -208,26 +341,59 @@ void Sigma_RI_Reduced::IsolateRootsInInterval(
     double left, double right, Index nneg_left, Index nneg_right,
     std::vector<std::pair<double, double>>& brackets) const {
 
-  if (nneg_left <= nneg_right) {
-    return;  // no root in this interval
+  struct Node {
+    double left;
+    double right;
+    Index nneg_left;
+    Index nneg_right;
+  };
+
+  std::vector<Node> stack;
+  stack.push_back({left, right, nneg_left, nneg_right});
+
+  const double width_tol = std::max(opt_red_.pole_tol, 1e-12);
+
+  while (!stack.empty()) {
+    const Node node = stack.back();
+    stack.pop_back();
+
+    if (node.nneg_left == node.nneg_right) {
+      continue;
+    }
+
+    if (node.nneg_right - node.nneg_left == 1) {
+      brackets.emplace_back(node.left, node.right);
+      continue;
+    }
+
+    const double width = node.right - node.left;
+    if (!(width > width_tol)) {
+      brackets.emplace_back(node.left, node.right);
+      continue;
+    }
+
+    const double mid = 0.5 * (node.left + node.right);
+    if (!(mid > node.left && mid < node.right)) {
+      brackets.emplace_back(node.left, node.right);
+      continue;
+    }
+
+    const Index nneg_mid = CountNegativeEigenvalues(BuildAReal(mid));
+    const bool no_progress =
+        (nneg_mid == node.nneg_left && nneg_mid == node.nneg_right);
+
+    if (no_progress) {
+      brackets.emplace_back(node.left, node.right);
+      continue;
+    }
+
+    if (nneg_mid != node.nneg_right) {
+      stack.push_back({mid, node.right, nneg_mid, node.nneg_right});
+    }
+    if (nneg_mid != node.nneg_left) {
+      stack.push_back({node.left, mid, node.nneg_left, nneg_mid});
+    }
   }
-
-  const Index nroots = nneg_left - nneg_right;
-  if (nroots == 1 && std::abs(right - left) < 100.0 * opt_red_.pole_tol) {
-    brackets.emplace_back(left, right);
-    return;
-  }
-
-  const double mid = 0.5 * (left + right);
-  const Index nneg_mid = CountNegativeEigenvalues(BuildAReal(mid));
-
-  if (mid == left || mid == right) {
-    brackets.emplace_back(left, right);
-    return;
-  }
-
-  IsolateRootsInInterval(left, mid, nneg_left, nneg_mid, brackets);
-  IsolateRootsInInterval(mid, right, nneg_mid, nneg_right, brackets);
 }
 
 double Sigma_RI_Reduced::RefineRoot(double left, double right, Index nneg_left) const {
@@ -236,36 +402,65 @@ double Sigma_RI_Reduced::RefineRoot(double left, double right, Index nneg_left) 
 
   for (Index iter = 0; iter < opt_red_.max_bisection; ++iter) {
     const double mid = 0.5 * (a + b);
+
+    if (!(mid > a && mid < b) || (b - a) < opt_red_.pole_tol) {
+      break;
+    }
+
     const Index nneg_mid = CountNegativeEigenvalues(BuildAReal(mid));
 
-    if (nneg_mid < nneg_left) {
+    if (nneg_mid > nneg_left) {
       b = mid;
     } else {
       a = mid;
     }
-
-    if (std::abs(b - a) < opt_red_.pole_tol * (1.0 + std::abs(mid))) {
-      return 0.5 * (a + b);
-    }
   }
 
-  return 0.5 * (a + b);
+  auto minabs_eval = [&](double x) {
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(BuildAReal(x));
+    if (es.info() != Eigen::Success) {
+      return std::numeric_limits<double>::infinity();
+    }
+    double v = std::abs(es.eigenvalues()(0));
+    for (Index i = 1; i < es.eigenvalues().size(); ++i) {
+      v = std::min(v, std::abs(es.eigenvalues()(i)));
+    }
+    return v;
+  };
+
+  const double x1 = a;
+  const double x2 = 0.5 * (a + b);
+  const double x3 = b;
+
+  double best_x = x2;
+  double best_v = minabs_eval(x2);
+
+  const double v1 = minabs_eval(x1);
+  if (v1 < best_v) {
+    best_v = v1;
+    best_x = x1;
+  }
+
+  const double v3 = minabs_eval(x3);
+  if (v3 < best_v) {
+    best_x = x3;
+  }
+
+  return best_x;
 }
 
 std::vector<double> Sigma_RI_Reduced::UniqueSortedTransitionEnergies() const {
-  std::vector<double> vals;
-  vals.reserve(static_cast<std::size_t>(transition_energies_.size()));
-
+  std::vector<double> bare(static_cast<std::size_t>(transition_energies_.size()));
   for (Index i = 0; i < transition_energies_.size(); ++i) {
-    vals.push_back(transition_energies_(i));
+    bare[static_cast<std::size_t>(i)] = transition_energies_(i);
   }
 
-  std::sort(vals.begin(), vals.end());
+  std::sort(bare.begin(), bare.end());
 
-  const double tol = 1e-12;
   std::vector<double> uniq;
-  for (double x : vals) {
-    if (uniq.empty() || std::abs(x - uniq.back()) > tol) {
+  uniq.reserve(bare.size());
+  for (double x : bare) {
+    if (uniq.empty() || std::abs(x - uniq.back()) > opt_red_.pole_shift) {
       uniq.push_back(x);
     }
   }
@@ -280,9 +475,8 @@ void Sigma_RI_Reduced::BuildPoleExpansion() {
 
   std::vector<std::pair<double, double>> brackets;
 
-  // First interval: (0, Delta_1)
   {
-    const double left = 0.0;
+    const double left = std::max(1e-12, bare.front() * 0.5);
     const double right = bare.front() - opt_red_.pole_shift;
     if (right > left) {
       const Index nneg_left = CountNegativeEigenvalues(BuildAReal(left));
@@ -291,7 +485,6 @@ void Sigma_RI_Reduced::BuildPoleExpansion() {
     }
   }
 
-  // Intervals between bare transitions
   for (std::size_t i = 0; i + 1 < bare.size(); ++i) {
     const double left = bare[i] + opt_red_.pole_shift;
     const double right = bare[i + 1] - opt_red_.pole_shift;
@@ -304,12 +497,11 @@ void Sigma_RI_Reduced::BuildPoleExpansion() {
     IsolateRootsInInterval(left, right, nneg_left, nneg_right, brackets);
   }
 
-  // Final interval: (Delta_max, infinity). Increase upper bound until A > 0.
   {
     const double left = bare.back() + opt_red_.pole_shift;
     double right = std::max(2.0 * bare.back(), bare.back() + 1.0);
 
-    Index nneg_left = CountNegativeEigenvalues(BuildAReal(left));
+    const Index nneg_left = CountNegativeEigenvalues(BuildAReal(left));
     Index nneg_right = CountNegativeEigenvalues(BuildAReal(right));
 
     while (nneg_right > 0) {
@@ -323,19 +515,17 @@ void Sigma_RI_Reduced::BuildPoleExpansion() {
     IsolateRootsInInterval(left, right, nneg_left, nneg_right, brackets);
   }
 
-  if (brackets.empty()) {
-    throw std::runtime_error("Sigma_RI_Reduced: no reduced screening poles found.");
-  }
+  std::vector<double> roots;
+  std::vector<Eigen::VectorXd> zvecs;
 
-  const Index npoles = static_cast<Index>(brackets.size());
-  rpa_omegas_.resize(npoles);
-  pole_vectors_.resize(rpa_red_.rank(), npoles);
+  roots.reserve(brackets.size());
+  zvecs.reserve(brackets.size());
 
-  for (Index s = 0; s < npoles; ++s) {
-    const double left = brackets[static_cast<std::size_t>(s)].first;
-    const double right = brackets[static_cast<std::size_t>(s)].second;
-    const Index nneg_left = CountNegativeEigenvalues(BuildAReal(left));
-    const double omega = RefineRoot(left, right, nneg_left);
+  for (const auto& br : brackets) {
+    const double left_i = br.first;
+    const double right_i = br.second;
+    const Index nneg_left_i = CountNegativeEigenvalues(BuildAReal(left_i));
+    const double omega = RefineRoot(left_i, right_i, nneg_left_i);
 
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(BuildAReal(omega));
     if (es.info() != Eigen::Success) {
@@ -359,14 +549,72 @@ void Sigma_RI_Reduced::BuildPoleExpansion() {
     const double alpha = p.dot(dA * p);
 
     if (!(alpha > 0.0)) {
-      throw std::runtime_error("Sigma_RI_Reduced: non-positive residue normalization encountered.");
+      continue;
     }
 
-    rpa_omegas_(s) = omega;
-    pole_vectors_.col(s) = p / std::sqrt(alpha);
+    roots.push_back(omega);
+    zvecs.push_back(p / std::sqrt(alpha));
   }
-}
 
+  if (roots.empty()) {
+    throw std::runtime_error("Sigma_RI_Reduced: no valid reduced screening poles found.");
+  }
+
+  std::vector<Index> order(roots.size());
+  for (std::size_t i = 0; i < order.size(); ++i) {
+    order[i] = static_cast<Index>(i);
+  }
+  std::sort(order.begin(), order.end(),
+            [&](Index a, Index b) { return roots[a] < roots[b]; });
+
+  std::vector<double> roots_unique;
+  std::vector<Eigen::VectorXd> zvecs_unique;
+
+  const double root_merge_tol = std::max(10.0 * opt_red_.pole_tol, 1e-8);
+
+  for (Index idx : order) {
+    const double omega = roots[idx];
+    const Eigen::VectorXd& z = zvecs[idx];
+
+    if (roots_unique.empty() ||
+        std::abs(omega - roots_unique.back()) >
+            root_merge_tol * std::max(1.0, std::abs(omega))) {
+      roots_unique.push_back(omega);
+      zvecs_unique.push_back(z);
+    } else {
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_old(BuildAReal(roots_unique.back()));
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_new(BuildAReal(omega));
+
+      double old_min = std::abs(es_old.eigenvalues()(0));
+      for (Index i = 1; i < es_old.eigenvalues().size(); ++i) {
+        old_min = std::min(old_min, std::abs(es_old.eigenvalues()(i)));
+      }
+
+      double new_min = std::abs(es_new.eigenvalues()(0));
+      for (Index i = 1; i < es_new.eigenvalues().size(); ++i) {
+        new_min = std::min(new_min, std::abs(es_new.eigenvalues()(i)));
+      }
+
+      if (new_min < old_min) {
+        roots_unique.back() = omega;
+        zvecs_unique.back() = z;
+      }
+    }
+  }
+
+  const Index npoles = static_cast<Index>(roots_unique.size());
+  rpa_omegas_.resize(npoles);
+  pole_vectors_.resize(rpa_red_.rank(), npoles);
+
+  for (Index s = 0; s < npoles; ++s) {
+    rpa_omegas_(s) = roots_unique[static_cast<std::size_t>(s)];
+    pole_vectors_.col(s) = zvecs_unique[static_cast<std::size_t>(s)];
+  }
+
+  std::cout << "[RI-REDUCED POLES] raw_brackets = " << brackets.size()
+            << "  unique_poles = " << npoles
+            << "  rank = " << rpa_red_.rank() << "\n";
+}
 
 Eigen::MatrixXd Sigma_RI_Reduced::BuildReducedWcImagFromPoles(
     double omega, double prefactor) const {
@@ -441,7 +689,7 @@ double Sigma_RI_Reduced::CalcCorrelationDiagElement(Index gw_level,
   double sigma = 0.0;
   for (Index s = 0; s < rpa_omegas_.size(); ++s) {
     const double eigenvalue = rpa_omegas_(s);
-    Eigen::ArrayXd res_12 = residues_[gw_level].col(s).cwiseAbs2();
+    const Eigen::ArrayXd res_12 = residues_[gw_level].col(s).cwiseAbs2();
 
     Eigen::ArrayXd temp = -rpa_.getRPAInputEnergies().array() + frequency;
     temp.segment(0, n_occ) += eigenvalue;
@@ -451,7 +699,6 @@ double Sigma_RI_Reduced::CalcCorrelationDiagElement(Index gw_level,
     sigma += (res_12 * temp / denom).sum();
   }
 
-  // restricted spin factor, same as Sigma_Exact
   return 2.0 * sigma;
 }
 
@@ -512,6 +759,22 @@ double Sigma_RI_Reduced::CalcCorrelationOffDiagElement(Index gw_level1,
   return 2.0 * sigma_c;
 }
 
+double Sigma_RI_Reduced::ContractedFullWcImag(Index gw_level, Index m,
+                                              double omega) const {
+  const Index qpoffset = opt_.qpmin - opt_.rpamin;
+  const Eigen::MatrixXd Wfull = rpa_red_.BuildWcImag(omega);
+  const Eigen::VectorXd cfull = Mmn_[gw_level + qpoffset].row(m).transpose();
+  return cfull.dot(Wfull * cfull);
+}
+
+double Sigma_RI_Reduced::ContractedProjectedReducedWcImag(Index gw_level, Index m,
+                                                          double omega) const {
+  const Index qpoffset = opt_.qpmin - opt_.rpamin;
+  const Eigen::MatrixXd Wproj = rpa_red_.BuildProjectedReducedWcImag(omega);
+  const Eigen::VectorXd cfull = Mmn_[gw_level + qpoffset].row(m).transpose();
+  return cfull.dot(Wproj * cfull);
+}
+
 double Sigma_RI_Reduced::ContractedDirectWcImag(Index gw_level, Index m,
                                                 double omega) const {
   const Eigen::MatrixXd Wred = rpa_red_.BuildReducedWcImag(omega);
@@ -526,8 +789,8 @@ double Sigma_RI_Reduced::ContractedPoleWcImag(Index gw_level, Index m,
 
   for (Index s = 0; s < rpa_omegas_.size(); ++s) {
     const double Omega = rpa_omegas_(s);
-    const double Rim = residues_[gw_level](m, s);
-    val += -2.0 * Omega * Rim * Rim / (omega2 + Omega * Omega);
+    const double Aim = wc_amplitudes_[gw_level](m, s);
+    val += -2.0 * Omega * Aim * Aim / (omega2 + Omega * Omega);
   }
 
   return val;
@@ -572,6 +835,176 @@ void Sigma_RI_Reduced::RunContractedWcDiagnostics() const {
                   << "  rel_diff = " << rel_diff << "\n";
       }
     }
+  }
+}
+
+void Sigma_RI_Reduced::RunFullVsReducedContractedDiagnostics() const {
+  const Index lumo = opt_.homo + 1;
+  const Index n_occ = lumo - opt_.rpamin;
+  const Index n_unocc = opt_.rpamax - opt_.homo;
+  const Index rpatotal = n_occ + n_unocc;
+
+  std::vector<Index> gw_levels_to_check;
+  gw_levels_to_check.push_back(std::max<Index>(0, opt_.homo - opt_.qpmin));
+  if (opt_.homo + 1 >= opt_.qpmin && opt_.homo + 1 <= opt_.qpmax) {
+    gw_levels_to_check.push_back(opt_.homo + 1 - opt_.qpmin);
+  }
+
+  std::vector<Index> m_to_check = {0, n_occ - 1, n_occ, rpatotal - 1};
+  std::vector<double> omegas = {0.0, 0.5, 1.0};
+
+  for (Index gw_level : gw_levels_to_check) {
+    std::cout << "[RI-REDUCED FULL-vs-PROJECTED CONTRACTED-W DIAGNOSTIC] gw_level = "
+              << gw_level + opt_.qpmin << "\n";
+
+    for (Index m : m_to_check) {
+      if (m < 0 || m >= rpatotal) {
+        continue;
+      }
+
+      for (double omega : omegas) {
+        const double full = ContractedFullWcImag(gw_level, m, omega);
+        const double proj = ContractedProjectedReducedWcImag(gw_level, m, omega);
+        const double red = ContractedDirectWcImag(gw_level, m, omega);
+
+        const double abs_diff_proj = std::abs(full - proj);
+        const double rel_diff_proj =
+            (std::abs(full) > 1e-14) ? abs_diff_proj / std::abs(full) : abs_diff_proj;
+
+        const double abs_diff_red = std::abs(full - red);
+        const double rel_diff_red =
+            (std::abs(full) > 1e-14) ? abs_diff_red / std::abs(full) : abs_diff_red;
+
+        std::cout << "  m = " << m
+                  << "  omega = " << omega
+                  << "  full = " << full
+                  << "  proj = " << proj
+                  << "  red = " << red
+                  << "  abs(full-proj) = " << abs_diff_proj
+                  << "  rel(full-proj) = " << rel_diff_proj
+                  << "  abs(full-red) = " << abs_diff_red
+                  << "  rel(full-red) = " << rel_diff_red
+                  << "\n";
+      }
+    }
+  }
+}
+
+double Sigma_RI_Reduced::CalcCorrelationDiagElementDirectReduced(
+    Index gw_level, double frequency) const {
+  const double eta2 = opt_.eta * opt_.eta;
+  const Index lumo = opt_.homo + 1;
+  const Index n_occ = lumo - opt_.rpamin;
+  const Index n_unocc = opt_.rpamax - opt_.homo;
+  const Index rpatotal = n_occ + n_unocc;
+
+  double sigma = 0.0;
+
+  // simple imaginary-axis quadrature for diagnostics only
+  const Index nw = std::max<Index>(16, opt_red_.imag_omega_points);
+  const double wmax = std::max(4.0, opt_red_.imag_omega_max);
+
+  for (Index iw = 0; iw < nw; ++iw) {
+    const double x = static_cast<double>(iw) / static_cast<double>(nw - 1);
+    const double omega = wmax * x;
+    const double weight =
+        (iw == 0 || iw == nw - 1) ? 0.5 * wmax / static_cast<double>(nw - 1)
+                                  :       wmax / static_cast<double>(nw - 1);
+
+    const Eigen::MatrixXd Wred = rpa_red_.BuildReducedWcImag(omega);
+
+    for (Index m = 0; m < rpatotal; ++m) {
+      const Eigen::VectorXd c = reduced_couplings_[gw_level].row(m).transpose();
+      const double Wim = c.dot(Wred * c);
+
+      double denom = frequency - rpa_.getRPAInputEnergies()(m);
+      if (m < n_occ) {
+        denom += omega;
+      } else {
+        denom -= omega;
+      }
+
+      sigma += weight * Wim * denom / (denom * denom + eta2);
+    }
+  }
+
+  return sigma / M_PI;
+}
+
+double Sigma_RI_Reduced::CalcCorrelationOffDiagElementDirectReduced(
+    Index gw_level1, Index gw_level2, double frequency1, double frequency2) const {
+  const double eta2 = opt_.eta * opt_.eta;
+  const Index lumo = opt_.homo + 1;
+  const Index n_occ = lumo - opt_.rpamin;
+  const Index n_unocc = opt_.rpamax - opt_.homo;
+  const Index rpatotal = n_occ + n_unocc;
+
+  double sigma = 0.0;
+
+  const Index nw = std::max<Index>(16, opt_red_.imag_omega_points);
+  const double wmax = std::max(4.0, opt_red_.imag_omega_max);
+
+  for (Index iw = 0; iw < nw; ++iw) {
+    const double x = static_cast<double>(iw) / static_cast<double>(nw - 1);
+    const double omega = wmax * x;
+    const double weight =
+        (iw == 0 || iw == nw - 1) ? 0.5 * wmax / static_cast<double>(nw - 1)
+                                  :       wmax / static_cast<double>(nw - 1);
+
+    const Eigen::MatrixXd Wred = rpa_red_.BuildReducedWcImag(omega);
+
+    for (Index m = 0; m < rpatotal; ++m) {
+      const Eigen::VectorXd c1 = reduced_couplings_[gw_level1].row(m).transpose();
+      const Eigen::VectorXd c2 = reduced_couplings_[gw_level2].row(m).transpose();
+      const double Wim = c1.dot(Wred * c2);
+
+      double d1 = frequency1 - rpa_.getRPAInputEnergies()(m);
+      double d2 = frequency2 - rpa_.getRPAInputEnergies()(m);
+
+      if (m < n_occ) {
+        d1 += omega;
+        d2 += omega;
+      } else {
+        d1 -= omega;
+        d2 -= omega;
+      }
+
+      sigma += weight * 0.5 *
+               (Wim * d1 / (d1 * d1 + eta2) + Wim * d2 / (d2 * d2 + eta2));
+    }
+  }
+
+  return sigma / M_PI;
+}
+
+void Sigma_RI_Reduced::RunSigmaDiagnostics() const {
+  std::vector<Index> gw_levels_to_check;
+  gw_levels_to_check.push_back(std::max<Index>(0, opt_.homo - opt_.qpmin));
+  if (opt_.homo + 1 >= opt_.qpmin && opt_.homo + 1 <= opt_.qpmax) {
+    gw_levels_to_check.push_back(opt_.homo + 1 - opt_.qpmin);
+  }
+
+  const Index qpoffset = opt_.qpmin - opt_.rpamin;
+  const Eigen::VectorXd& eps = rpa_.getRPAInputEnergies();
+
+  for (Index gw_level : gw_levels_to_check) {
+    const double freq = eps(gw_level + qpoffset);
+
+    const double sigma_pole = CalcCorrelationDiagElement(gw_level, freq);
+    const double sigma_direct = CalcCorrelationDiagElementDirectReduced(gw_level, freq);
+
+    const double abs_diff = std::abs(sigma_pole - sigma_direct);
+    const double rel_diff =
+        (std::abs(sigma_direct) > 1e-14) ? abs_diff / std::abs(sigma_direct) : abs_diff;
+
+    std::cout << "[RI-REDUCED SIGMA DIAGNOSTIC] gw_level = "
+              << gw_level + opt_.qpmin
+              << "  freq = " << freq
+              << "  sigma_pole = " << sigma_pole
+              << "  sigma_direct = " << sigma_direct
+              << "  abs_diff = " << abs_diff
+              << "  rel_diff = " << rel_diff
+              << "\n";
   }
 }
 
