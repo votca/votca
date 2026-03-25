@@ -68,6 +68,9 @@ class GW {
     std::string quadrature_scheme;  // Kind of Gaussian-quadrature scheme to use
     Index order;   // only needed for complex integration sigma CDA
     double alpha;  // smooth tail in complex integration sigma CDA
+    bool qp_restrict_search = false;
+    double qp_zero_margin = 1e-6;
+    double qp_virtual_min_energy = -0.1;
   };
 
   void configure(const options& opt);
@@ -105,6 +108,8 @@ class GW {
   TCMatrix_gwbse& Mmn_;
   const Eigen::MatrixXd& vxc_;
   const Eigen::VectorXd& dft_energies_;
+
+      Index gw_sc_iteration;
 
   RPA rpa_;
   // small class which calculates f(w) with and df/dw(w)
@@ -230,6 +235,11 @@ class GW {
   boost::optional<double> SolveQP_Grid(double intercept0, double frequency0,
                                        Index gw_level,
                                        QPFunc::Stats* stats = nullptr) const;
+
+  boost::optional<double> SolveQP_Grid_Windowed(
+      double intercept0, double frequency0, Index gw_level,
+      double left_limit, double right_limit,
+      QPFunc::Stats* stats = nullptr) const;
   boost::optional<double> SolveQP_FixedPoint(double intercept0,
                                              double frequency0,
                                              Index gw_level,
