@@ -493,6 +493,108 @@ double GW::SolveQP_Bisection(double lowerbound, double f_lowerbound,
   return zero;
 }
 
+
+double GW::SolveQP_Brent(double lowerbound, double f_lowerbound,
+                         double upperbound, double f_upperbound,
+                         const QPFunc& f) const {
+
+  if (f_lowerbound * f_upperbound > 0.0) {
+    throw std::runtime_error(
+        "Brent needs a positive and negative function value");
+  }
+
+  double a = lowerbound;
+  double b = upperbound;
+  double fa = f_lowerbound;
+  double fb = f_upperbound;
+
+  // c is the previous bracket endpoint
+  double c = a;
+  double fc = fa;
+
+  // d and e track the last and second-last step sizes
+  double d = b - a;
+  double e = d;
+
+  for (Index iter = 0; iter < opt_.g_sc_max_iterations; ++iter) {
+
+    // Ensure that b is the best current estimate
+    if ((fb > 0.0 && fc > 0.0) || (fb < 0.0 && fc < 0.0)) {
+      c = a;
+      fc = fa;
+      d = b - a;
+      e = d;
+    }
+
+    if (std::abs(fc) < std::abs(fb)) {
+      a = b;
+      b = c;
+      c = a;
+      fa = fb;
+      fb = fc;
+      fc = fa;
+    }
+
+    const double tol = opt_.g_sc_limit;
+    const double m = 0.5 * (c - b);
+
+    if (std::abs(m) < tol || std::abs(fb) < opt_.g_sc_limit) {
+      return b;
+    }
+
+    if (std::abs(e) >= tol && std::abs(fa) > std::abs(fb)) {
+      // Attempt inverse interpolation
+      double s = fb / fa;
+      double p = 0.0;
+      double q = 0.0;
+
+      if (a == c) {
+        // Secant step
+        p = 2.0 * m * s;
+        q = 1.0 - s;
+      } else {
+        // Inverse quadratic interpolation
+        double q1 = fa / fc;
+        double r = fb / fc;
+        p = s * (2.0 * m * q1 * (q1 - r) - (b - a) * (r - 1.0));
+        q = (q1 - 1.0) * (r - 1.0) * (s - 1.0);
+      }
+
+      if (p > 0.0) {
+        q = -q;
+      }
+      p = std::abs(p);
+
+      // Accept interpolation only if it is safe
+      if (q != 0.0 &&
+          2.0 * p < std::min(3.0 * m * q - std::abs(tol * q),
+                             std::abs(e * q))) {
+        e = d;
+        d = p / q;
+      } else {
+        d = m;
+        e = m;
+      }
+    } else {
+      d = m;
+      e = m;
+    }
+
+    a = b;
+    fa = fb;
+
+    if (std::abs(d) > tol) {
+      b += d;
+    } else {
+      b += (m > 0.0 ? tol : -tol);
+    }
+
+    fb = f.value(b);
+  }
+
+  throw std::runtime_error("Brent did not converge within qp_bisect_max_iterations");
+}
+
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                    double epsilon) const {
   Index state = 0;
@@ -592,8 +694,10 @@ boost::optional<GW::QPRootCandidate> GW::RefineQPInterval(
     const QPFunc& f, double reference) const {
 
   QPRootCandidate cand;
-  cand.omega = SolveQP_Bisection(lowerbound, f_lowerbound,
-                                 upperbound, f_upperbound, f);
+  //cand.omega = SolveQP_Bisection(lowerbound, f_lowerbound,
+  //                               upperbound, f_upperbound, f);
+  cand.omega = SolveQP_Brent(lowerbound, f_lowerbound,
+                             upperbound, f_upperbound, f);
   cand.residual = f.value(cand.omega);
   cand.deriv = f.deriv(cand.omega);
 

@@ -138,6 +138,10 @@ class GW {
   double SolveQP_Bisection(double lowerbound, double f_lowerbound,
                            double upperbound, double f_upperbound,
                            const QPFunc& f) const;
+
+  double SolveQP_Brent(double lowerbound, double f_lowerbound,
+                       double upperbound, double f_upperbound,
+                       const QPFunc& f) const;
   double CalcHomoLumoShift(Eigen::VectorXd frequencies) const;
   Eigen::VectorXd ScissorShift_DFTlevel(
       const Eigen::VectorXd& dft_energies) const;
