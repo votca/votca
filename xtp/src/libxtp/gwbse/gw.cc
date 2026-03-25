@@ -240,7 +240,7 @@ Eigen::VectorXd GW::getGWAResults() const {
 }
 
 Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
-
+  sigma_->ResetDiagEvalCounter();
   Eigen::VectorXd env = Eigen::VectorXd::Zero(qptotal_);
 
   const Eigen::VectorXd intercepts =
@@ -293,6 +293,9 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     XTP_LOG(Log::error, log_)
         << TimeStamp() << " Increase the grid search interval" << std::flush;
   }
+  XTP_LOG(Log::info, log_) << TimeStamp()
+                         << " Sigma diagonal evaluations in SolveQP: "
+                         << sigma_->GetDiagEvalCounter() << std::flush;
   return frequencies_new;
 }
 
@@ -313,55 +316,135 @@ boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
 
 boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
                                          Index gw_level) const {
-  std::vector<std::pair<double, double>> roots;
+  struct IntervalCandidate {
+    double a = 0.0;
+    double fa = 0.0;
+    double b = 0.0;
+    double fb = 0.0;
+    double midpoint_dist = 0.0;
+  };
+
+  QPFunc fqp(gw_level, *sigma_.get(), intercept0);
+
   const double range =
       opt_.qp_grid_spacing * double(opt_.qp_grid_steps - 1) / 2.0;
-  boost::optional<double> newf = boost::none;
+
+  // Coarse global scan: still searches the full window, but much more cheaply
+  const Index coarse_steps = std::max<Index>(21, opt_.qp_grid_steps / 4);
+  const double coarse_spacing =
+      2.0 * range / double(coarse_steps - 1);
+
+  std::vector<IntervalCandidate> intervals;
+  std::vector<QPRootCandidate> accepted_roots;
+  std::vector<QPRootCandidate> rejected_roots;
+
   double freq_prev = frequency0 - range;
-  QPFunc fqp(gw_level, *sigma_.get(), intercept0);
   double targ_prev = fqp.value(freq_prev);
-  double qp_energy = 0.0;
-  double gradient_max = std::numeric_limits<double>::max();
-  bool pole_found = false;
-  for (Index i_node = 1; i_node < opt_.qp_grid_steps; ++i_node) {
-    double freq = freq_prev + opt_.qp_grid_spacing;
+
+  for (Index i_node = 1; i_node < coarse_steps; ++i_node) {
+    double freq = frequency0 - range + double(i_node) * coarse_spacing;
     double targ = fqp.value(freq);
-    if (targ_prev * targ < 0.0) {  // Sign change
-      double f = SolveQP_Bisection(freq_prev, targ_prev, freq, targ, fqp);
-      double gradient = fqp.deriv(f);
-      double qp_weight = -1.0 / gradient;
-      roots.push_back(std::make_pair(f, qp_weight));
-      if (std::abs(gradient) < gradient_max) {
-        gradient_max = std::abs(gradient);
-        qp_energy = f;
-        pole_found = true;
-      }
+
+    if (targ_prev * targ < 0.0) {
+      IntervalCandidate ic;
+      ic.a = freq_prev;
+      ic.fa = targ_prev;
+      ic.b = freq;
+      ic.fb = targ;
+      ic.midpoint_dist = std::abs(0.5 * (freq_prev + freq) - frequency0);
+      intervals.push_back(ic);
     }
+
     freq_prev = freq;
     targ_prev = targ;
   }
-  if (Log::current_level > Log::error) {
+
+  if (intervals.empty()) {
+    if (Log::current_level > Log::error) {
 #pragma omp critical
-    {
-      if (!pole_found) {
-        XTP_LOG(Log::info, log_)
-            << " No roots found for qplevel:" << gw_level << std::flush;
-      } else {
-        XTP_LOG(Log::info, log_) << " Roots found for qplevel:" << gw_level
-                                 << " (qpenergy:qpweight)\n\t\t";
-        for (auto& root : roots) {
-          XTP_LOG(Log::info, log_) << std::setprecision(5) << root.first << ":"
-                                   << root.second << " ";
-        }
-        XTP_LOG(Log::info, log_) << "Root chosen " << qp_energy << std::flush;
+      {
+        XTP_LOG(Log::info, log_) << " No roots found for qplevel:" << gw_level
+                                 << std::flush;
       }
+    }
+    return boost::none;
+  }
+
+  std::sort(intervals.begin(), intervals.end(),
+            [](const IntervalCandidate& x, const IntervalCandidate& y) {
+              return x.midpoint_dist < y.midpoint_dist;
+            });
+
+  for (const auto& interval : intervals) {
+    auto cand_opt = RefineQPInterval(interval.a, interval.fa,
+                                     interval.b, interval.fb,
+                                     fqp, frequency0);
+    if (!cand_opt) {
+      continue;
+    }
+
+    const QPRootCandidate& cand = cand_opt.value();
+    if (cand.accepted) {
+      accepted_roots.push_back(cand);
+    } else {
+      rejected_roots.push_back(cand);
     }
   }
 
-  if (pole_found) {
-    newf = qp_energy;
+  if (Log::current_level > Log::error) {
+#pragma omp critical
+    {
+      XTP_LOG(Log::info, log_) << " Roots found for qplevel:" << gw_level
+                               << " (qpenergy:Z:accepted)\n\t\t";
+      for (const auto& root : accepted_roots) {
+        XTP_LOG(Log::info, log_) << std::setprecision(5)
+                                 << root.omega << ":" << root.Z << ":yes ";
+      }
+      for (const auto& root : rejected_roots) {
+        XTP_LOG(Log::info, log_) << std::setprecision(5)
+                                 << root.omega << ":" << root.Z << ":no ";
+      }
+      XTP_LOG(Log::info, log_) << std::flush;
+    }
   }
-  return newf;
+
+  if (!accepted_roots.empty()) {
+    auto best = std::max_element(
+        accepted_roots.begin(), accepted_roots.end(),
+        [this](const QPRootCandidate& a, const QPRootCandidate& b) {
+          return ScoreQPRoot(a) < ScoreQPRoot(b);
+        });
+
+    if (Log::current_level > Log::error) {
+#pragma omp critical
+      {
+        XTP_LOG(Log::info, log_) << " Root chosen " << best->omega
+                                 << " with Z=" << best->Z << std::flush;
+      }
+    }
+    return best->omega;
+  }
+
+  // Fallback: no accepted root, choose the least bad rejected one
+  if (!rejected_roots.empty()) {
+    auto least_bad = std::max_element(
+        rejected_roots.begin(), rejected_roots.end(),
+        [this](const QPRootCandidate& a, const QPRootCandidate& b) {
+          return ScoreQPRoot(a) < ScoreQPRoot(b);
+        });
+
+    if (Log::current_level > Log::error) {
+#pragma omp critical
+      {
+        XTP_LOG(Log::info, log_) << " No accepted root; fallback root "
+                                 << least_bad->omega
+                                 << " with Z=" << least_bad->Z << std::flush;
+      }
+    }
+    return least_bad->omega;
+  }
+
+  return boost::none;
 }
 
 boost::optional<double> GW::SolveQP_FixedPoint(double intercept0,
@@ -478,6 +561,52 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
   Eigen::IOFormat matFormat(Eigen::StreamPrecision, 0, "\t", "\n");
   out << numFormat % mat.format(matFormat) << std::endl;
   out.close();
+}
+
+bool GW::AcceptQPRoot(const QPRootCandidate& cand) const {
+  if (!std::isfinite(cand.omega) || !std::isfinite(cand.Z)) {
+    return false;
+  }
+  if (std::abs(cand.residual) > opt_.g_sc_limit) {
+    return false;
+  }
+  if (cand.Z <= 0.0) {
+    return false;
+  }
+  if (cand.Z < 0.05) {
+    return false;
+  }
+  if (cand.Z > 1.5) {
+    return false;
+  }
+  return true;
+}
+
+double GW::ScoreQPRoot(const QPRootCandidate& cand) const {
+  return cand.Z - 0.1 * cand.distance_to_ref;
+}
+
+boost::optional<GW::QPRootCandidate> GW::RefineQPInterval(
+    double lowerbound, double f_lowerbound,
+    double upperbound, double f_upperbound,
+    const QPFunc& f, double reference) const {
+
+  QPRootCandidate cand;
+  cand.omega = SolveQP_Bisection(lowerbound, f_lowerbound,
+                                 upperbound, f_upperbound, f);
+  cand.residual = f.value(cand.omega);
+  cand.deriv = f.deriv(cand.omega);
+
+  if (std::abs(cand.deriv) > 1e-14) {
+    cand.Z = -1.0 / cand.deriv;
+  } else {
+    cand.Z = std::numeric_limits<double>::infinity();
+  }
+
+  cand.distance_to_ref = std::abs(cand.omega - reference);
+  cand.accepted = AcceptQPRoot(cand);
+
+  return cand;
 }
 
 }  // namespace xtp

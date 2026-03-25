@@ -120,7 +120,7 @@ double Sigma_CDA::CalcResidueContribution(double frequency,
 // and residue contributions
 double Sigma_CDA::CalcCorrelationDiagElement(Index gw_level,
                                              double frequency) const {
-
+  CountDiagEval();
   double sigma_c_residue = CalcResidueContribution(frequency, gw_level);
   double sigma_c_integral = gq_.SigmaGQDiag(frequency, gw_level, rpa_.getEta());
   return sigma_c_residue + sigma_c_integral;

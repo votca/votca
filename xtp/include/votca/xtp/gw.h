@@ -155,6 +155,26 @@ class GW {
                                                 Index gw_level) const;
   bool Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                  double epsilon) const;
+
+
+    struct QPRootCandidate {
+    double omega = 0.0;
+    double residual = 0.0;
+    double deriv = 0.0;
+    double Z = 0.0;
+    double distance_to_ref = 0.0;
+    bool accepted = false;
+  };
+
+  boost::optional<QPRootCandidate> RefineQPInterval(double lowerbound,
+                                                    double f_lowerbound,
+                                                    double upperbound,
+                                                    double f_upperbound,
+                                                    const QPFunc& f,
+                                                    double reference) const;
+
+  bool AcceptQPRoot(const QPRootCandidate& cand) const;
+  double ScoreQPRoot(const QPRootCandidate& cand) const;
 };
 }  // namespace xtp
 }  // namespace votca

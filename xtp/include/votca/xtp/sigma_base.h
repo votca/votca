@@ -74,6 +74,11 @@ class Sigma_base {
                                                double frequency1,
                                                double frequency2) const = 0;
 
+  void ResetDiagEvalCounter() const { diag_eval_counter_.store(0); }
+  std::size_t GetDiagEvalCounter() const {
+    return diag_eval_counter_.load();
+  }
+
  protected:
   options opt_;
   TCMatrix_gwbse& Mmn_;
@@ -81,7 +86,11 @@ class Sigma_base {
 
   Index qptotal_ = 0;
   Index rpatotal_ = 0;
-};
+
+  void CountDiagEval() const { diag_eval_counter_.fetch_add(1); }
+
+ private:
+  mutable std::atomic<std::size_t> diag_eval_counter_{0};};
 }  // namespace xtp
 }  // namespace votca
 
