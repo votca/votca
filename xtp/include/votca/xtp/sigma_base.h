@@ -75,9 +75,7 @@ class Sigma_base {
                                                double frequency2) const = 0;
 
   void ResetDiagEvalCounter() const { diag_eval_counter_.store(0); }
-  std::size_t GetDiagEvalCounter() const {
-    return diag_eval_counter_.load();
-  }
+  std::size_t GetDiagEvalCounter() const { return diag_eval_counter_.load(); }
 
  protected:
   options opt_;
@@ -90,7 +88,8 @@ class Sigma_base {
   void CountDiagEval() const { diag_eval_counter_.fetch_add(1); }
 
  private:
-  mutable std::atomic<std::size_t> diag_eval_counter_{0};};
+  mutable std::atomic<std::size_t> diag_eval_counter_{0};
+};
 }  // namespace xtp
 }  // namespace votca
 

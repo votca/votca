@@ -362,9 +362,7 @@ Eigen::VectorXd GW_UKS::SolveQP(Spin spin,
         const Index mo_level = opt_.qpmin + gw_level;
 
         XTP_LOG(Log::info, log_)
-            << " QP stats "
-            << LevelLabel(spin, mo_level)
-            << " mo=" << mo_level
+            << " QP stats " << LevelLabel(spin, mo_level) << " mo=" << mo_level
             << " spin=" << SpinName(spin)
             << " sigma_calls=" << total_stats.TotalSigmaCalls()
             << " scan=" << total_stats.sigma_scan_calls
@@ -372,8 +370,7 @@ Eigen::VectorXd GW_UKS::SolveQP(Spin spin,
             << " other=" << total_stats.sigma_other_calls
             << " deriv_calls=" << total_stats.deriv_calls
             << " unique_omega=" << total_stats.sigma_unique_frequencies
-            << " repeat_omega=" << total_stats.sigma_repeat_calls
-            << std::flush;
+            << " repeat_omega=" << total_stats.sigma_repeat_calls << std::flush;
       }
     }
   }
@@ -381,9 +378,11 @@ Eigen::VectorXd GW_UKS::SolveQP(Spin spin,
   return frequencies_new;
 }
 
-boost::optional<double> GW_UKS::SolveQP_Linearisation(
-    Spin spin, double intercept0, double frequency0, Index gw_level,
-    QPStats* stats) const {
+boost::optional<double> GW_UKS::SolveQP_Linearisation(Spin spin,
+                                                      double intercept0,
+                                                      double frequency0,
+                                                      Index gw_level,
+                                                      QPStats* stats) const {
   boost::optional<double> newf = boost::none;
 
   QPFunc fqp(gw_level, SigmaEvaluator(spin), intercept0);
@@ -403,9 +402,9 @@ boost::optional<double> GW_UKS::SolveQP_Linearisation(
   return newf;
 }
 
-boost::optional<double> GW_UKS::SolveQP_Grid(
-    Spin spin, double intercept0, double frequency0, Index gw_level,
-    QPStats* stats) const {
+boost::optional<double> GW_UKS::SolveQP_Grid(Spin spin, double intercept0,
+                                             double frequency0, Index gw_level,
+                                             QPStats* stats) const {
   const double range =
       opt_.qp_grid_spacing * double(opt_.qp_grid_steps - 1) / 2.0;
 
@@ -422,8 +421,7 @@ boost::optional<double> GW_UKS::SolveQP_Grid(
     const bool is_occupied = (mo_level <= Homo(spin));
 
     if (is_occupied) {
-      restricted_right_limit =
-          std::min(full_right_limit, -opt_.qp_zero_margin);
+      restricted_right_limit = std::min(full_right_limit, -opt_.qp_zero_margin);
     } else {
       restricted_left_limit =
           std::max(full_left_limit, opt_.qp_virtual_min_energy);
@@ -435,11 +433,10 @@ boost::optional<double> GW_UKS::SolveQP_Grid(
         (std::abs(restricted_right_limit - full_right_limit) > tol);
   }
 
-  if (use_restricted_window &&
-      restricted_left_limit < restricted_right_limit) {
-    auto restricted = SolveQP_Grid_Windowed(
-        spin, intercept0, frequency0, gw_level, restricted_left_limit,
-        restricted_right_limit, stats);
+  if (use_restricted_window && restricted_left_limit < restricted_right_limit) {
+    auto restricted = SolveQP_Grid_Windowed(spin, intercept0, frequency0,
+                                            gw_level, restricted_left_limit,
+                                            restricted_right_limit, stats);
 
     if (restricted) {
       return restricted;
@@ -450,12 +447,10 @@ boost::optional<double> GW_UKS::SolveQP_Grid(
       {
         XTP_LOG(Log::info, log_)
             << " Restricted QP search failed for "
-            << LevelLabel(spin, opt_.qpmin + gw_level)
-            << " in window [" << restricted_left_limit
-            << ", " << restricted_right_limit
-            << "], retrying full window ["
-            << full_left_limit << ", " << full_right_limit << "]"
-            << std::flush;
+            << LevelLabel(spin, opt_.qpmin + gw_level) << " in window ["
+            << restricted_left_limit << ", " << restricted_right_limit
+            << "], retrying full window [" << full_left_limit << ", "
+            << full_right_limit << "]" << std::flush;
       }
     }
   }
@@ -463,7 +458,6 @@ boost::optional<double> GW_UKS::SolveQP_Grid(
   return SolveQP_Grid_Windowed(spin, intercept0, frequency0, gw_level,
                                full_left_limit, full_right_limit, stats);
 }
-
 
 boost::optional<double> GW_UKS::SolveQP_Grid_Windowed(
     Spin spin, double intercept0, double frequency0, Index gw_level,
@@ -482,28 +476,25 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed(
   std::vector<QPRootCandidate> rejected_roots;
 
   auto result = qp_solver::SolveQP_Grid_Windowed(
-      fqp, frequency0, left_limit, right_limit, gw_sc_iteration_,
-      solver_opt, &wdiag, &accepted_roots, &rejected_roots, true);
+      fqp, frequency0, left_limit, right_limit, gw_sc_iteration_, solver_opt,
+      &wdiag, &accepted_roots, &rejected_roots, true);
 
   if (Log::current_level > Log::error) {
 #pragma omp critical
     {
       if (accepted_roots.empty() && rejected_roots.empty()) {
         XTP_LOG(Log::info, log_)
-            << " No roots found for "
-            << LevelLabel(spin, opt_.qpmin + gw_level)
-            << " (center=" << std::max(left_limit, std::min(right_limit, frequency0))
-            << ", shells=" << wdiag.shells_explored << ")"
-            << std::flush;
+            << " No roots found for " << LevelLabel(spin, opt_.qpmin + gw_level)
+            << " (center="
+            << std::max(left_limit, std::min(right_limit, frequency0))
+            << ", shells=" << wdiag.shells_explored << ")" << std::flush;
       } else {
         XTP_LOG(Log::info, log_)
-            << " Adaptive scan "
-            << LevelLabel(spin, opt_.qpmin + gw_level)
+            << " Adaptive scan " << LevelLabel(spin, opt_.qpmin + gw_level)
             << " shells=" << wdiag.shells_explored
             << " first_interval_shell=" << wdiag.first_interval_shell
             << " first_accepted_shell=" << wdiag.first_accepted_shell
-            << " intervals=" << wdiag.intervals_found
-            << std::flush;
+            << " intervals=" << wdiag.intervals_found << std::flush;
       }
     }
   }
@@ -514,9 +505,10 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed(
 
   return result;
 }
-boost::optional<double> GW_UKS::SolveQP_FixedPoint(
-    Spin spin, double intercept0, double frequency0, Index gw_level,
-    QPStats* stats) const {
+boost::optional<double> GW_UKS::SolveQP_FixedPoint(Spin spin, double intercept0,
+                                                   double frequency0,
+                                                   Index gw_level,
+                                                   QPStats* stats) const {
   boost::optional<double> newf = boost::none;
 
   QPFunc f(gw_level, SigmaEvaluator(spin), intercept0);
@@ -535,7 +527,6 @@ boost::optional<double> GW_UKS::SolveQP_FixedPoint(
   return newf;
 }
 
-
 bool GW_UKS::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                        double epsilon) const {
   Index state = 0;
@@ -544,7 +535,6 @@ bool GW_UKS::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                            << " StateNo:" << state << std::flush;
   return diff_max <= epsilon;
 }
-
 
 void GW_UKS::CalculateHQP() {
   Eigen::VectorXd diag_backup_alpha = Sigma_c_alpha_.diagonal();
@@ -619,7 +609,6 @@ void GW_UKS::PrintGWA_Energies(Spin spin) const {
         << std::flush;
   }
 }
-
 
 void GW_UKS::PrintQP_Energies(Spin spin,
                               const Eigen::VectorXd& qp_diag_energies) const {

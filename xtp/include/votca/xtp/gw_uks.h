@@ -13,11 +13,11 @@
 
 #include "logger.h"
 #include "orbitals.h"
+#include "qp_solver_utils.h"
 #include "rpa_uks.h"
 #include "sigma_base_uks.h"
 #include "threecenter.h"
 #include "votca/xtp/ppm.h"
-#include "qp_solver_utils.h"
 
 namespace votca {
 namespace xtp {
@@ -28,6 +28,7 @@ class GW_UKS {
   using QPStats = qp_solver::Stats;
   using QPRootCandidate = qp_solver::RootCandidate;
   using QPWindowDiagnostics = qp_solver::WindowDiagnostics;
+
  public:
   struct options {
     Index homo_alpha;
@@ -84,7 +85,6 @@ class GW_UKS {
 
   class QPFunc {
    public:
-
     QPFunc(Index gw_level, const Sigma_base_UKS& sigma, double offset)
         : gw_level_(gw_level), offset_(offset), sigma_c_func_(sigma) {}
 
@@ -178,22 +178,22 @@ class GW_UKS {
                         const Eigen::VectorXd& qp_diag_energies) const;
   Eigen::VectorXd SolveQP(Spin spin, const Eigen::VectorXd& frequencies) const;
 
-  boost::optional<double> SolveQP_Grid(
-      Spin spin, double intercept0, double frequency0, Index gw_level,
-      QPStats* stats = nullptr) const;
+  boost::optional<double> SolveQP_Grid(Spin spin, double intercept0,
+                                       double frequency0, Index gw_level,
+                                       QPStats* stats = nullptr) const;
 
   boost::optional<double> SolveQP_Grid_Windowed(
       Spin spin, double intercept0, double frequency0, Index gw_level,
-      double left_limit, double right_limit,
-      QPStats* stats = nullptr) const;
+      double left_limit, double right_limit, QPStats* stats = nullptr) const;
 
-  boost::optional<double> SolveQP_FixedPoint(
-      Spin spin, double intercept0, double frequency0, Index gw_level,
-      QPStats* stats = nullptr) const;
+  boost::optional<double> SolveQP_FixedPoint(Spin spin, double intercept0,
+                                             double frequency0, Index gw_level,
+                                             QPStats* stats = nullptr) const;
 
-  boost::optional<double> SolveQP_Linearisation(
-      Spin spin, double intercept0, double frequency0, Index gw_level,
-      QPStats* stats = nullptr) const;
+  boost::optional<double> SolveQP_Linearisation(Spin spin, double intercept0,
+                                                double frequency0,
+                                                Index gw_level,
+                                                QPStats* stats = nullptr) const;
 
   bool Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                  double epsilon) const;
@@ -201,7 +201,6 @@ class GW_UKS {
   boost::optional<QPRootCandidate> RefineQPInterval(
       double lowerbound, double f_lowerbound, double upperbound,
       double f_upperbound, const QPFunc& f, double reference) const;
-
 
   std::string LevelLabel(Spin spin, Index level) const;
   const char* OccupationTag(Spin spin, Index level) const;

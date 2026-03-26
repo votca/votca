@@ -26,10 +26,10 @@
 // Local VOTCA includes
 #include "logger.h"
 #include "orbitals.h"
+#include "qp_solver_utils.h"
 #include "rpa.h"
 #include "sigma_base.h"
 #include "threecenter.h"
-#include "qp_solver_utils.h"
 
 namespace votca {
 namespace xtp {
@@ -40,6 +40,7 @@ class GW {
   using QPStats = qp_solver::Stats;
   using QPRootCandidate = qp_solver::RootCandidate;
   using QPWindowDiagnostics = qp_solver::WindowDiagnostics;
+
  public:
   GW(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& vxc,
      const Eigen::VectorXd& dft_energies)
@@ -115,7 +116,7 @@ class GW {
   const Eigen::MatrixXd& vxc_;
   const Eigen::VectorXd& dft_energies_;
 
-      Index gw_sc_iteration_;
+  Index gw_sc_iteration_;
 
   RPA rpa_;
   // small class which calculates f(w) with and df/dw(w)
@@ -123,7 +124,6 @@ class GW {
   // offset= e_dft+Sigma_x-Vxc
   class QPFunc {
    public:
-
     QPFunc(Index gw_level, const Sigma_base& sigma, double offset)
         : gw_level_(gw_level), offset_(offset), sigma_c_func_(sigma) {}
 
@@ -208,12 +208,10 @@ class GW {
                                        QPStats* stats = nullptr) const;
 
   boost::optional<double> SolveQP_Grid_Windowed(
-      double intercept0, double frequency0, Index gw_level,
-      double left_limit, double right_limit,
-      QPStats* stats = nullptr) const;
+      double intercept0, double frequency0, Index gw_level, double left_limit,
+      double right_limit, QPStats* stats = nullptr) const;
   boost::optional<double> SolveQP_FixedPoint(double intercept0,
-                                             double frequency0,
-                                             Index gw_level,
+                                             double frequency0, Index gw_level,
                                              QPStats* stats = nullptr) const;
   boost::optional<double> SolveQP_Linearisation(double intercept0,
                                                 double frequency0,
@@ -222,15 +220,9 @@ class GW {
   bool Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                  double epsilon) const;
 
-
-  boost::optional<QPRootCandidate> RefineQPInterval(double lowerbound,
-                                                    double f_lowerbound,
-                                                    double upperbound,
-                                                    double f_upperbound,
-                                                    const QPFunc& f,
-                                                    double reference) const;
-
-
+  boost::optional<QPRootCandidate> RefineQPInterval(
+      double lowerbound, double f_lowerbound, double upperbound,
+      double f_upperbound, const QPFunc& f, double reference) const;
 };
 }  // namespace xtp
 }  // namespace votca

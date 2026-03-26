@@ -58,8 +58,8 @@ struct Stats {
   }
 
   std::size_t TotalSigmaCalls() const {
-    return sigma_scan_calls + sigma_refine_calls +
-           sigma_derivative_calls + sigma_other_calls;
+    return sigma_scan_calls + sigma_refine_calls + sigma_derivative_calls +
+           sigma_other_calls;
   }
 };
 
@@ -121,9 +121,9 @@ double SolveQP_Bisection(double lowerbound, double f_lowerbound,
 }
 
 template <typename QPFunc>
-double SolveQP_Brent(double lowerbound, double f_lowerbound,
-                     double upperbound, double f_upperbound,
-                     const QPFunc& f, const SolverOptions& opt) {
+double SolveQP_Brent(double lowerbound, double f_lowerbound, double upperbound,
+                     double f_upperbound, const QPFunc& f,
+                     const SolverOptions& opt) {
   if (f_lowerbound * f_upperbound > 0.0) {
     throw std::runtime_error(
         "Brent needs a positive and negative function value");
@@ -192,9 +192,8 @@ double SolveQP_Brent(double lowerbound, double f_lowerbound,
       p = std::abs(p);
 
       // Accept interpolation only if it is safe
-      if (q != 0.0 &&
-          2.0 * p < std::min(3.0 * m * q - std::abs(tol * q),
-                             std::abs(e * q))) {
+      if (q != 0.0 && 2.0 * p < std::min(3.0 * m * q - std::abs(tol * q),
+                                         std::abs(e * q))) {
         e = d;
         d = p / q;
       } else {
@@ -252,18 +251,15 @@ inline double ScoreRoot(const RootCandidate& cand) {
 
 template <typename QPFunc>
 boost::optional<RootCandidate> RefineQPInterval(
-    double lowerbound, double f_lowerbound,
-    double upperbound, double f_upperbound,
-    const QPFunc& f, double reference,
+    double lowerbound, double f_lowerbound, double upperbound,
+    double f_upperbound, const QPFunc& f, double reference,
     const SolverOptions& opt, bool use_brent = true) {
   RootCandidate cand;
 
- cand.omega = use_brent
-                   ? SolveQP_Brent(lowerbound, f_lowerbound,
-                                   upperbound, f_upperbound, f, opt)
-                   : SolveQP_Bisection(lowerbound, f_lowerbound,
-                                       upperbound, f_upperbound, f, opt);
-
+  cand.omega = use_brent ? SolveQP_Brent(lowerbound, f_lowerbound, upperbound,
+                                         f_upperbound, f, opt)
+                         : SolveQP_Bisection(lowerbound, f_lowerbound,
+                                             upperbound, f_upperbound, f, opt);
 
   cand.residual = f.value(cand.omega, EvalStage::Refine);
   cand.deriv = f.deriv(cand.omega);
@@ -276,25 +272,23 @@ boost::optional<RootCandidate> RefineQPInterval(
 
   cand.distance_to_ref = std::abs(cand.omega - reference);
   cand.accepted = AcceptRoot(cand, opt);
-  
-cand.accepted = AcceptRoot(cand, opt);
 
-/*std::cout << "DEBUG ROOT "
-          << "omega=" << cand.omega
-          << " residual=" << cand.residual
-          << " deriv=" << cand.deriv
-          << " Z=" << cand.Z
-          << " accepted=" << cand.accepted
-          << std::endl;*/
+  cand.accepted = AcceptRoot(cand, opt);
+
+  /*std::cout << "DEBUG ROOT "
+            << "omega=" << cand.omega
+            << " residual=" << cand.residual
+            << " deriv=" << cand.deriv
+            << " Z=" << cand.Z
+            << " accepted=" << cand.accepted
+            << std::endl;*/
   return cand;
 }
 
 template <typename QPFunc>
 boost::optional<double> SolveQP_Grid_Windowed(
-    QPFunc& fqp, double frequency0,
-    double left_limit, double right_limit,
-    Index gw_sc_iteration,
-    const SolverOptions& opt,
+    QPFunc& fqp, double frequency0, double left_limit, double right_limit,
+    Index gw_sc_iteration, const SolverOptions& opt,
     WindowDiagnostics* wdiag = nullptr,
     std::vector<RootCandidate>* accepted_roots_out = nullptr,
     std::vector<RootCandidate>* rejected_roots_out = nullptr,
@@ -328,8 +322,8 @@ boost::optional<double> SolveQP_Grid_Windowed(
   const double base_coarse_spacing =
       full_window_width / double(base_coarse_steps - 1);
 
-  const Index coarse_steps = std::max(
-      3, static_cast<int>(std::ceil(range / base_coarse_spacing)) + 1);
+  const Index coarse_steps =
+      std::max(3, static_cast<int>(std::ceil(range / base_coarse_spacing)) + 1);
   const double coarse_spacing = range / double(coarse_steps - 1);
 
   double center = frequency0;
@@ -339,8 +333,7 @@ boost::optional<double> SolveQP_Grid_Windowed(
     const double df0 = fqp.deriv(frequency0);
     if (std::isfinite(f0) && std::isfinite(df0) && std::abs(df0) > 1e-6) {
       const double w_lin = frequency0 - f0 / df0;
-      if (std::isfinite(w_lin) &&
-          w_lin >= left_limit && w_lin <= right_limit) {
+      if (std::isfinite(w_lin) && w_lin >= left_limit && w_lin <= right_limit) {
         center = w_lin;
       }
     }
@@ -348,29 +341,29 @@ boost::optional<double> SolveQP_Grid_Windowed(
 
   center = std::max(left_limit, std::min(right_limit, center));
 
-  auto refine_and_store =
-      [&](double a, double fa, double b, double fb, Index shell_idx) {
-        auto cand_opt = RefineQPInterval(a, fa, b, fb, fqp, frequency0, opt,
-                                         use_brent);
-        if (!cand_opt) {
-          return;
-        }
+  auto refine_and_store = [&](double a, double fa, double b, double fb,
+                              Index shell_idx) {
+    auto cand_opt =
+        RefineQPInterval(a, fa, b, fb, fqp, frequency0, opt, use_brent);
+    if (!cand_opt) {
+      return;
+    }
 
-        if (local_diag.first_interval_shell < 0) {
-          local_diag.first_interval_shell = shell_idx;
-        }
-        ++local_diag.intervals_found;
+    if (local_diag.first_interval_shell < 0) {
+      local_diag.first_interval_shell = shell_idx;
+    }
+    ++local_diag.intervals_found;
 
-        const RootCandidate& cand = cand_opt.value();
-        if (cand.accepted) {
-          if (local_diag.first_accepted_shell < 0) {
-            local_diag.first_accepted_shell = shell_idx;
-          }
-          accepted_roots.push_back(cand);
-        } else {
-          rejected_roots.push_back(cand);
-        }
-      };
+    const RootCandidate& cand = cand_opt.value();
+    if (cand.accepted) {
+      if (local_diag.first_accepted_shell < 0) {
+        local_diag.first_accepted_shell = shell_idx;
+      }
+      accepted_roots.push_back(cand);
+    } else {
+      rejected_roots.push_back(cand);
+    }
+  };
 
   SamplePoIndex center_pt{center, fqp.value(center, EvalStage::Scan)};
 
@@ -388,12 +381,12 @@ boost::optional<double> SolveQP_Grid_Windowed(
       const double omega_left = center - delta;
       if (omega_left >= left_limit) {
         SamplePoIndex left_curr{omega_left,
-                              fqp.value(omega_left, EvalStage::Scan)};
+                                fqp.value(omega_left, EvalStage::Scan)};
         added_this_shell = true;
 
         if (left_prev.fval * left_curr.fval < 0.0) {
-          refine_and_store(left_curr.omega, left_curr.fval,
-                           left_prev.omega, left_prev.fval, shell);
+          refine_and_store(left_curr.omega, left_curr.fval, left_prev.omega,
+                           left_prev.fval, shell);
         }
         left_prev = left_curr;
       } else {
@@ -405,12 +398,12 @@ boost::optional<double> SolveQP_Grid_Windowed(
       const double omega_right = center + delta;
       if (omega_right <= right_limit) {
         SamplePoIndex right_curr{omega_right,
-                               fqp.value(omega_right, EvalStage::Scan)};
+                                 fqp.value(omega_right, EvalStage::Scan)};
         added_this_shell = true;
 
         if (right_prev.fval * right_curr.fval < 0.0) {
-          refine_and_store(right_prev.omega, right_prev.fval,
-                           right_curr.omega, right_curr.fval, shell);
+          refine_and_store(right_prev.omega, right_prev.fval, right_curr.omega,
+                           right_curr.fval, shell);
         }
         right_prev = right_curr;
       } else {
@@ -426,28 +419,26 @@ boost::optional<double> SolveQP_Grid_Windowed(
   if (left_prev.omega > left_limit + 1e-12) {
     SamplePoIndex left_end{left_limit, fqp.value(left_limit, EvalStage::Scan)};
     if (left_end.fval * left_prev.fval < 0.0) {
-      refine_and_store(left_end.omega, left_end.fval,
-                       left_prev.omega, left_prev.fval,
-                       local_diag.shells_explored + 1);
+      refine_and_store(left_end.omega, left_end.fval, left_prev.omega,
+                       left_prev.fval, local_diag.shells_explored + 1);
     }
   }
 
   if (right_prev.omega < right_limit - 1e-12) {
     SamplePoIndex right_end{right_limit,
-                          fqp.value(right_limit, EvalStage::Scan)};
+                            fqp.value(right_limit, EvalStage::Scan)};
     if (right_prev.fval * right_end.fval < 0.0) {
-      refine_and_store(right_prev.omega, right_prev.fval,
-                       right_end.omega, right_end.fval,
-                       local_diag.shells_explored + 1);
+      refine_and_store(right_prev.omega, right_prev.fval, right_end.omega,
+                       right_end.fval, local_diag.shells_explored + 1);
     }
   }
 
   if (!accepted_roots.empty()) {
-    auto best = std::max_element(
-        accepted_roots.begin(), accepted_roots.end(),
-        [](const RootCandidate& a, const RootCandidate& b) {
-          return ScoreRoot(a) < ScoreRoot(b);
-        });
+    auto best =
+        std::max_element(accepted_roots.begin(), accepted_roots.end(),
+                         [](const RootCandidate& a, const RootCandidate& b) {
+                           return ScoreRoot(a) < ScoreRoot(b);
+                         });
 
     local_diag.chosen_shell = static_cast<int>(
         std::llround(std::abs(best->omega - center) / coarse_spacing));
@@ -465,11 +456,11 @@ boost::optional<double> SolveQP_Grid_Windowed(
   }
 
   if (!rejected_roots.empty()) {
-    auto least_bad = std::max_element(
-        rejected_roots.begin(), rejected_roots.end(),
-        [](const RootCandidate& a, const RootCandidate& b) {
-          return ScoreRoot(a) < ScoreRoot(b);
-        });
+    auto least_bad =
+        std::max_element(rejected_roots.begin(), rejected_roots.end(),
+                         [](const RootCandidate& a, const RootCandidate& b) {
+                           return ScoreRoot(a) < ScoreRoot(b);
+                         });
 
     local_diag.chosen_shell = static_cast<int>(
         std::llround(std::abs(least_bad->omega - center) / coarse_spacing));
