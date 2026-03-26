@@ -29,11 +29,17 @@
 #include "rpa.h"
 #include "sigma_base.h"
 #include "threecenter.h"
+#include "qp_solver_utils.h"
 
 namespace votca {
 namespace xtp {
 
 class GW {
+
+  using EvalStage = qp_solver::EvalStage;
+  using QPStats = qp_solver::Stats;
+  using QPRootCandidate = qp_solver::RootCandidate;
+  using QPWindowDiagnostics = qp_solver::WindowDiagnostics;
  public:
   GW(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& vxc,
      const Eigen::VectorXd& dft_energies)
@@ -109,7 +115,7 @@ class GW {
   const Eigen::MatrixXd& vxc_;
   const Eigen::VectorXd& dft_energies_;
 
-      Index gw_sc_iteration;
+      Index gw_sc_iteration_;
 
   RPA rpa_;
   // small class which calculates f(w) with and df/dw(w)
@@ -117,34 +123,6 @@ class GW {
   // offset= e_dft+Sigma_x-Vxc
   class QPFunc {
    public:
-    enum class EvalStage { Scan, Refine, Derivative, Other };
-
-    struct Stats {
-      std::size_t sigma_scan_calls = 0;
-      std::size_t sigma_refine_calls = 0;
-      std::size_t sigma_derivative_calls = 0;
-      std::size_t sigma_other_calls = 0;
-
-      std::size_t sigma_repeat_calls = 0;
-      std::size_t sigma_unique_frequencies = 0;
-
-      std::size_t deriv_calls = 0;
-
-      void Add(const Stats& other) {
-        sigma_scan_calls += other.sigma_scan_calls;
-        sigma_refine_calls += other.sigma_refine_calls;
-        sigma_derivative_calls += other.sigma_derivative_calls;
-        sigma_other_calls += other.sigma_other_calls;
-        sigma_repeat_calls += other.sigma_repeat_calls;
-        sigma_unique_frequencies += other.sigma_unique_frequencies;
-        deriv_calls += other.deriv_calls;
-      }
-
-      std::size_t TotalSigmaCalls() const {
-        return sigma_scan_calls + sigma_refine_calls +
-               sigma_derivative_calls + sigma_other_calls;
-      }
-    };
 
     QPFunc(Index gw_level, const Sigma_base& sigma, double offset)
         : gw_level_(gw_level), offset_(offset), sigma_c_func_(sigma) {}
@@ -181,7 +159,7 @@ class GW {
              1.0;
     }
 
-    const Stats& GetStats() const { return stats_; }
+    const QPStats& GetStats() const { return stats_; }
 
    private:
     static std::uint64_t FrequencyKey(double x) {
@@ -215,16 +193,9 @@ class GW {
     const Sigma_base& sigma_c_func_;
 
     mutable std::unordered_set<std::uint64_t> seen_frequencies_;
-    mutable Stats stats_;
+    mutable QPStats stats_;
   };
 
-  double SolveQP_Bisection(double lowerbound, double f_lowerbound,
-                           double upperbound, double f_upperbound,
-                           const QPFunc& f) const;
-
-  double SolveQP_Brent(double lowerbound, double f_lowerbound,
-                       double upperbound, double f_upperbound,
-                       const QPFunc& f) const;
   double CalcHomoLumoShift(Eigen::VectorXd frequencies) const;
   Eigen::VectorXd ScissorShift_DFTlevel(
       const Eigen::VectorXd& dft_energies) const;
@@ -234,32 +205,23 @@ class GW {
   Eigen::VectorXd SolveQP(const Eigen::VectorXd& frequencies) const;
   boost::optional<double> SolveQP_Grid(double intercept0, double frequency0,
                                        Index gw_level,
-                                       QPFunc::Stats* stats = nullptr) const;
+                                       QPStats* stats = nullptr) const;
 
   boost::optional<double> SolveQP_Grid_Windowed(
       double intercept0, double frequency0, Index gw_level,
       double left_limit, double right_limit,
-      QPFunc::Stats* stats = nullptr) const;
+      QPStats* stats = nullptr) const;
   boost::optional<double> SolveQP_FixedPoint(double intercept0,
                                              double frequency0,
                                              Index gw_level,
-                                             QPFunc::Stats* stats = nullptr) const;
+                                             QPStats* stats = nullptr) const;
   boost::optional<double> SolveQP_Linearisation(double intercept0,
                                                 double frequency0,
                                                 Index gw_level,
-                                                QPFunc::Stats* stats = nullptr) const;
+                                                QPStats* stats = nullptr) const;
   bool Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                  double epsilon) const;
 
-
-    struct QPRootCandidate {
-    double omega = 0.0;
-    double residual = 0.0;
-    double deriv = 0.0;
-    double Z = 0.0;
-    double distance_to_ref = 0.0;
-    bool accepted = false;
-  };
 
   boost::optional<QPRootCandidate> RefineQPInterval(double lowerbound,
                                                     double f_lowerbound,
@@ -268,8 +230,7 @@ class GW {
                                                     const QPFunc& f,
                                                     double reference) const;
 
-  bool AcceptQPRoot(const QPRootCandidate& cand) const;
-  double ScoreQPRoot(const QPRootCandidate& cand) const;
+
 };
 }  // namespace xtp
 }  // namespace votca

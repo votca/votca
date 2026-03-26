@@ -167,7 +167,7 @@ void GW::CalculateGWPerturbation() {
   mixing_.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
 
   for (Index i_gw = 0; i_gw < opt_.gw_sc_max_iterations; ++i_gw) {
-    gw_sc_iteration = i_gw;
+    gw_sc_iteration_ = i_gw;
     if (i_gw % opt_.reset_3c == 0 && i_gw != 0) {
       Mmn_.Rebuild();
       XTP_LOG(Log::info, log_)
@@ -255,7 +255,7 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
   Eigen::Array<bool, Eigen::Dynamic, 1> converged =
       Eigen::Array<bool, Eigen::Dynamic, 1>::Zero(qptotal_);
 
-  QPFunc::Stats total_stats;
+  QPStats total_stats;
 
 #ifdef _OPENMP
   Index use_threads =
@@ -270,7 +270,7 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     double initial_f = frequencies[gw_level];
     double intercept = intercepts[gw_level];
     boost::optional<double> newf;
-    QPFunc::Stats local_stats;
+    QPStats local_stats;
 
     if (opt_.qp_solver == "fixedpoint") {
       newf = SolveQP_FixedPoint(intercept, initial_f, gw_level, &local_stats);
@@ -332,12 +332,12 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
 boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
                                                   double frequency0,
                                                   Index gw_level,
-                                                  QPFunc::Stats* stats) const {
+                                                  QPStats* stats) const {
   boost::optional<double> newf = boost::none;
 
   QPFunc fqp(gw_level, *sigma_.get(), intercept0);
 
-  double sigma = fqp.sigma(frequency0, QPFunc::EvalStage::Other);
+  double sigma = fqp.sigma(frequency0, EvalStage::Other);
   double dsigma_domega = fqp.deriv(frequency0);
   double Z = 1.0 - dsigma_domega;
   if (std::abs(Z) > 1e-9) {
@@ -352,287 +352,50 @@ boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
 
 boost::optional<double> GW::SolveQP_Grid_Windowed(
     double intercept0, double frequency0, Index gw_level,
-    double left_limit, double right_limit,
-    QPFunc::Stats* stats) const {
-  struct SamplePoint {
-    double omega = 0.0;
-    double fval = 0.0;
-  };
-
-  struct AdaptiveDiag {
-    Index shells_explored = 0;
-    Index first_interval_shell = -1;
-    Index first_accepted_shell = -1;
-    Index chosen_shell = -1;
-    Index intervals_found = 0;
-  };
-
-  auto refine_and_store = [&](double a, double fa, double b, double fb,
-                              Index shell_idx, QPFunc& fqp,
-                              std::vector<QPRootCandidate>& accepted_roots,
-                              std::vector<QPRootCandidate>& rejected_roots,
-                              AdaptiveDiag& adiag) {
-    auto cand_opt = RefineQPInterval(a, fa, b, fb, fqp, frequency0);
-    if (!cand_opt) {
-      return;
-    }
-
-    if (adiag.first_interval_shell < 0) {
-      adiag.first_interval_shell = shell_idx;
-    }
-    ++adiag.intervals_found;
-
-    const QPRootCandidate& cand = cand_opt.value();
-    if (cand.accepted) {
-      if (adiag.first_accepted_shell < 0) {
-        adiag.first_accepted_shell = shell_idx;
-      }
-      accepted_roots.push_back(cand);
-    } else {
-      rejected_roots.push_back(cand);
-    }
-  };
+    double left_limit, double right_limit, QPStats* stats) const {
 
   QPFunc fqp(gw_level, *sigma_.get(), intercept0);
-  if (left_limit >= right_limit) {
-    if (stats != nullptr) {
-      *stats = fqp.GetStats();
-    }
-    return boost::none;
-  }
-  const double range = right_limit - left_limit;
 
-  // Reference coarse scan resolution from the original full search window
-  const double full_window_width =
-      opt_.qp_grid_spacing * double(opt_.qp_grid_steps - 1);
-  const Index base_coarse_steps =
-      std::max<Index>(21, opt_.qp_grid_steps / 4);
-  const double base_coarse_spacing =
-      full_window_width / double(base_coarse_steps - 1);
+  qp_solver::SolverOptions solver_opt;
+  solver_opt.g_sc_limit = opt_.g_sc_limit;
+  solver_opt.qp_bisection_max_iter = opt_.g_sc_max_iterations;
+  solver_opt.qp_grid_spacing = opt_.qp_grid_spacing;
+  solver_opt.qp_grid_steps = opt_.qp_grid_steps;
 
-  // For a restricted window, keep approximately the same absolute coarse spacing,
-  // so smaller windows actually use fewer scan points.
-  const Index coarse_steps = std::max<Index>(
-      3, static_cast<Index>(std::ceil(range / base_coarse_spacing)) + 1);
-  const double coarse_spacing = range / double(coarse_steps - 1);
-
+  QPWindowDiagnostics wdiag;
   std::vector<QPRootCandidate> accepted_roots;
   std::vector<QPRootCandidate> rejected_roots;
-  AdaptiveDiag adiag;
 
-  // ---- linearized center estimate ----
-  double center = frequency0;
-
-  if (gw_sc_iteration == 0) {
-    const double f0 = fqp.value(frequency0, QPFunc::EvalStage::Other);
-    const double df0 = fqp.deriv(frequency0);
-
-    if (std::isfinite(f0) && std::isfinite(df0) && std::abs(df0) > 1e-6) {
-      const double w_lin = frequency0 - f0 / df0;
-      if (std::isfinite(w_lin) &&
-          w_lin >= left_limit && w_lin <= right_limit) {
-        center = w_lin;
-      }
-    }
-  }
-
-  // Evaluate center once
-  SamplePoint center_pt;
-  center_pt.omega = center;
-  center_pt.fval = fqp.value(center, QPFunc::EvalStage::Scan);
-
-  // Left and right frontiers expand independently from center
-  bool left_active = true;
-  bool right_active = true;
-  SamplePoint left_prev = center_pt;
-  SamplePoint right_prev = center_pt;
-
-  // Explore outward shell by shell
-  for (Index shell = 1; shell < coarse_steps; ++shell) {
-    adiag.shells_explored = shell;
-
-    const double delta = double(shell) * coarse_spacing;
-
-    bool added_this_shell = false;
-
-    // Left expansion
-    if (left_active) {
-      const double omega_left = center - delta;
-      if (omega_left >= left_limit) {
-        SamplePoint left_curr;
-        left_curr.omega = omega_left;
-        left_curr.fval = fqp.value(omega_left, QPFunc::EvalStage::Scan);
-        added_this_shell = true;
-
-        if (left_prev.fval * left_curr.fval < 0.0) {
-          refine_and_store(left_curr.omega, left_curr.fval,
-                           left_prev.omega, left_prev.fval,
-                           shell, fqp, accepted_roots, rejected_roots, adiag);
-        }
-        left_prev = left_curr;
-      } else {
-        left_active = false;
-      }
-    }
-
-    // Right expansion
-    if (right_active) {
-      const double omega_right = center + delta;
-      if (omega_right <= right_limit) {
-        SamplePoint right_curr;
-        right_curr.omega = omega_right;
-        right_curr.fval = fqp.value(omega_right, QPFunc::EvalStage::Scan);
-        added_this_shell = true;
-
-        if (right_prev.fval * right_curr.fval < 0.0) {
-          refine_and_store(right_prev.omega, right_prev.fval,
-                           right_curr.omega, right_curr.fval,
-                           shell, fqp, accepted_roots, rejected_roots, adiag);
-        }
-        right_prev = right_curr;
-      } else {
-        right_active = false;
-      }
-    }
-
-    if (!added_this_shell && !left_active && !right_active) {
-      break;
-    }
-  }
-
-  // Ensure exact endpoints are covered if the shell construction missed them
-  // because center is off-grid relative to the original window.
-  if (left_prev.omega > left_limit + 1e-12) {
-    SamplePoint left_end;
-    left_end.omega = left_limit;
-    left_end.fval = fqp.value(left_limit, QPFunc::EvalStage::Scan);
-    if (left_end.fval * left_prev.fval < 0.0) {
-      refine_and_store(left_end.omega, left_end.fval,
-                       left_prev.omega, left_prev.fval,
-                       adiag.shells_explored + 1, fqp,
-                       accepted_roots, rejected_roots, adiag);
-    }
-    left_prev = left_end;
-  }
-
-  if (right_prev.omega < right_limit - 1e-12) {
-    SamplePoint right_end;
-    right_end.omega = right_limit;
-    right_end.fval = fqp.value(right_limit, QPFunc::EvalStage::Scan);
-    if (right_prev.fval * right_end.fval < 0.0) {
-      refine_and_store(right_prev.omega, right_prev.fval,
-                       right_end.omega, right_end.fval,
-                       adiag.shells_explored + 1, fqp,
-                       accepted_roots, rejected_roots, adiag);
-    }
-    right_prev = right_end;
-  }
-
-  if (accepted_roots.empty() && rejected_roots.empty()) {
-    if (Log::current_level > Log::error) {
-#pragma omp critical
-      {
-        XTP_LOG(Log::info, log_)
-            << " No roots found for qplevel:" << gw_level
-            << " (center=" << center
-            << ", shells=" << adiag.shells_explored << ")"
-            << std::flush;
-      }
-    }
-    if (stats != nullptr) {
-      *stats = fqp.GetStats();
-    }
-    return boost::none;
-  }
+  auto result = qp_solver::SolveQP_Grid_Windowed(
+      fqp, frequency0, left_limit, right_limit, gw_sc_iteration_,
+      solver_opt, &wdiag, &accepted_roots, &rejected_roots, true);
 
   if (Log::current_level > Log::error) {
 #pragma omp critical
     {
-      XTP_LOG(Log::info, log_)
-          << " Adaptive scan qplevel:" << gw_level
-          << " center=" << center
-          << " shells=" << adiag.shells_explored
-          << " first_interval_shell=" << adiag.first_interval_shell
-          << " first_accepted_shell=" << adiag.first_accepted_shell
-          << " intervals=" << adiag.intervals_found
-          << std::flush;
-
-      XTP_LOG(Log::info, log_) << " Roots found for qplevel:" << gw_level
-                               << " (qpenergy:Z:accepted)\n\t\t";
-      for (const auto& root : accepted_roots) {
-        XTP_LOG(Log::info, log_) << std::setprecision(5)
-                                 << root.omega << ":" << root.Z << ":yes ";
-      }
-      for (const auto& root : rejected_roots) {
-        XTP_LOG(Log::info, log_) << std::setprecision(5)
-                                 << root.omega << ":" << root.Z << ":no ";
-      }
-      XTP_LOG(Log::info, log_) << std::flush;
-    }
-  }
-
-  if (!accepted_roots.empty()) {
-    auto best = std::max_element(
-        accepted_roots.begin(), accepted_roots.end(),
-        [this](const QPRootCandidate& a, const QPRootCandidate& b) {
-          return ScoreQPRoot(a) < ScoreQPRoot(b);
-        });
-
-    // Determine shell index of chosen root approximately by distance from center
-    adiag.chosen_shell =
-        static_cast<Index>(std::llround(std::abs(best->omega - center) /
-                                        coarse_spacing));
-
-    if (Log::current_level > Log::error) {
-#pragma omp critical
-      {
+      if (!accepted_roots.empty() || !rejected_roots.empty()) {
         XTP_LOG(Log::info, log_)
-            << " Root chosen " << best->omega
-            << " with Z=" << best->Z
-            << " (center=" << center
-            << ", chosen_shell=" << adiag.chosen_shell << ")"
+            << " Adaptive scan qplevel:" << gw_level
+            << " center=" << std::max(left_limit, std::min(right_limit, frequency0))
+            << " shells=" << wdiag.shells_explored
+            << " first_interval_shell=" << wdiag.first_interval_shell
+            << " first_accepted_shell=" << wdiag.first_accepted_shell
+            << " intervals=" << wdiag.intervals_found
             << std::flush;
       }
-    }
-
-    if (stats != nullptr) {
-      *stats = fqp.GetStats();
-    }
-    return best->omega;
-  }
-
-  auto least_bad = std::max_element(
-      rejected_roots.begin(), rejected_roots.end(),
-      [this](const QPRootCandidate& a, const QPRootCandidate& b) {
-        return ScoreQPRoot(a) < ScoreQPRoot(b);
-      });
-
-  adiag.chosen_shell =
-      static_cast<Index>(std::llround(std::abs(least_bad->omega - center) /
-                                      coarse_spacing));
-
-  if (Log::current_level > Log::error) {
-#pragma omp critical
-    {
-      XTP_LOG(Log::info, log_)
-          << " No accepted root; fallback root "
-          << least_bad->omega
-          << " with Z=" << least_bad->Z
-          << " (center=" << center
-          << ", chosen_shell=" << adiag.chosen_shell << ")"
-          << std::flush;
     }
   }
 
   if (stats != nullptr) {
     *stats = fqp.GetStats();
   }
-  return least_bad->omega;
+
+  return result;
 }
 
 boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
                                          Index gw_level,
-                                         QPFunc::Stats* stats) const {
+                                         QPStats* stats) const {
   const double range =
       opt_.qp_grid_spacing * double(opt_.qp_grid_steps - 1) / 2.0;
 
@@ -692,7 +455,7 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
 boost::optional<double> GW::SolveQP_FixedPoint(double intercept0,
                                                double frequency0,
                                                Index gw_level,
-                                               QPFunc::Stats* stats) const {
+                                               QPStats* stats) const {
   boost::optional<double> newf = boost::none;
   QPFunc f(gw_level, *sigma_.get(), intercept0);
   NewtonRapson<QPFunc> newton = NewtonRapson<QPFunc>(
@@ -707,138 +470,6 @@ boost::optional<double> GW::SolveQP_FixedPoint(double intercept0,
   return newf;
 }
 
-// https://en.wikipedia.org/wiki/Bisection_method
-double GW::SolveQP_Bisection(double lowerbound, double f_lowerbound,
-                             double upperbound, double f_upperbound,
-                             const QPFunc& f) const {
-
-  if (f_lowerbound * f_upperbound > 0) {
-    throw std::runtime_error(
-        "Bisection needs a postive and negative function value");
-  }
-  double zero = 0.0;
-  while (true) {
-    double c = 0.5 * (lowerbound + upperbound);
-    if (std::abs(upperbound - lowerbound) < opt_.g_sc_limit) {
-      zero = c;
-      break;
-    }
-    double y_c = f.value(c, QPFunc::EvalStage::Refine);
-        if (std::abs(y_c) < opt_.g_sc_limit) {
-      zero = c;
-      break;
-    }
-    if (y_c * f_lowerbound > 0) {
-      lowerbound = c;
-      f_lowerbound = y_c;
-    } else {
-      upperbound = c;
-      f_upperbound = y_c;
-    }
-  }
-  return zero;
-}
-
-
-double GW::SolveQP_Brent(double lowerbound, double f_lowerbound,
-                         double upperbound, double f_upperbound,
-                         const QPFunc& f) const {
-
-  if (f_lowerbound * f_upperbound > 0.0) {
-    throw std::runtime_error(
-        "Brent needs a positive and negative function value");
-  }
-
-  double a = lowerbound;
-  double b = upperbound;
-  double fa = f_lowerbound;
-  double fb = f_upperbound;
-
-  // c is the previous bracket endpoint
-  double c = a;
-  double fc = fa;
-
-  // d and e track the last and second-last step sizes
-  double d = b - a;
-  double e = d;
-
-  for (Index iter = 0; iter < opt_.g_sc_max_iterations; ++iter) {
-
-    // Ensure that b is the best current estimate
-    if ((fb > 0.0 && fc > 0.0) || (fb < 0.0 && fc < 0.0)) {
-      c = a;
-      fc = fa;
-      d = b - a;
-      e = d;
-    }
-
-    if (std::abs(fc) < std::abs(fb)) {
-      a = b;
-      b = c;
-      c = a;
-      fa = fb;
-      fb = fc;
-      fc = fa;
-    }
-
-    const double tol = opt_.g_sc_limit;
-    const double m = 0.5 * (c - b);
-
-    if (std::abs(m) < tol || std::abs(fb) < opt_.g_sc_limit) {
-      return b;
-    }
-
-    if (std::abs(e) >= tol && std::abs(fa) > std::abs(fb)) {
-      // Attempt inverse interpolation
-      double s = fb / fa;
-      double p = 0.0;
-      double q = 0.0;
-
-      if (a == c) {
-        // Secant step
-        p = 2.0 * m * s;
-        q = 1.0 - s;
-      } else {
-        // Inverse quadratic interpolation
-        double q1 = fa / fc;
-        double r = fb / fc;
-        p = s * (2.0 * m * q1 * (q1 - r) - (b - a) * (r - 1.0));
-        q = (q1 - 1.0) * (r - 1.0) * (s - 1.0);
-      }
-
-      if (p > 0.0) {
-        q = -q;
-      }
-      p = std::abs(p);
-
-      // Accept interpolation only if it is safe
-      if (q != 0.0 &&
-          2.0 * p < std::min(3.0 * m * q - std::abs(tol * q),
-                             std::abs(e * q))) {
-        e = d;
-        d = p / q;
-      } else {
-        d = m;
-        e = m;
-      }
-    } else {
-      d = m;
-      e = m;
-    }
-
-    a = b;
-    fa = fb;
-
-    if (std::abs(d) > tol) {
-      b += d;
-    } else {
-      b += (m > 0.0 ? tol : -tol);
-    }
-
-    fb = f.value(b, QPFunc::EvalStage::Refine);  }
-
-  throw std::runtime_error("Brent did not converge within qp_bisect_max_iterations");
-}
 
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                    double epsilon) const {
@@ -910,53 +541,6 @@ void GW::PlotSigma(std::string filename, Index steps, double spacing,
   out.close();
 }
 
-bool GW::AcceptQPRoot(const QPRootCandidate& cand) const {
-  if (!std::isfinite(cand.omega) || !std::isfinite(cand.Z)) {
-    return false;
-  }
-  if (std::abs(cand.residual) > opt_.g_sc_limit) {
-    return false;
-  }
-  if (cand.Z <= 0.0) {
-    return false;
-  }
-  if (cand.Z < 0.05) {
-    return false;
-  }
-  if (cand.Z > 1.5) {
-    return false;
-  }
-  return true;
-}
-
-double GW::ScoreQPRoot(const QPRootCandidate& cand) const {
-  return cand.Z - 0.1 * cand.distance_to_ref;
-}
-
-boost::optional<GW::QPRootCandidate> GW::RefineQPInterval(
-    double lowerbound, double f_lowerbound,
-    double upperbound, double f_upperbound,
-    const QPFunc& f, double reference) const {
-
-  QPRootCandidate cand;
-  //cand.omega = SolveQP_Bisection(lowerbound, f_lowerbound,
-  //                               upperbound, f_upperbound, f);
-  cand.omega = SolveQP_Brent(lowerbound, f_lowerbound,
-                             upperbound, f_upperbound, f);
-  cand.residual = f.value(cand.omega, QPFunc::EvalStage::Refine);
-  cand.deriv = f.deriv(cand.omega);
-
-  if (std::abs(cand.deriv) > 1e-14) {
-    cand.Z = -1.0 / cand.deriv;
-  } else {
-    cand.Z = std::numeric_limits<double>::infinity();
-  }
-
-  cand.distance_to_ref = std::abs(cand.omega - reference);
-  cand.accepted = AcceptQPRoot(cand);
-
-  return cand;
-}
 
 }  // namespace xtp
 }  // namespace votca
