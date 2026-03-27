@@ -435,6 +435,7 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *pLog_)
         << " QP grid spacing: " << gwopt_.qp_grid_spacing << flush;
   }
+  gwopt_.qp_root_finder = options.get("gw.qp_root_finder").as<std::string>();
   gwopt_.gw_mixing_order =
       options.get("gw.mixing_order").as<Index>();  // max history in
                                                    // mixing (0: plain,

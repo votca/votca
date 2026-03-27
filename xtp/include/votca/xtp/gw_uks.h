@@ -58,6 +58,7 @@ class GW_UKS {
     bool qp_restrict_search = false;
     double qp_zero_margin = 1e-6;
     double qp_virtual_min_energy = -0.1;
+    std::string qp_root_finder;
   };
 
   GW_UKS(Logger& log, TCMatrix_gwbse_spin& Mmn,

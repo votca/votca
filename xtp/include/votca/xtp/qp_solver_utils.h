@@ -99,6 +99,9 @@ double SolveQP_Bisection(double lowerbound, double f_lowerbound,
         "Bisection needs a positive and negative function value");
   }
 
+  std::cout << "Bisection" << std::endl;
+
+
   while (true) {
     const double c = 0.5 * (lowerbound + upperbound);
     if (std::abs(upperbound - lowerbound) < opt.g_sc_limit) {
@@ -128,6 +131,8 @@ double SolveQP_Brent(double lowerbound, double f_lowerbound, double upperbound,
     throw std::runtime_error(
         "Brent needs a positive and negative function value");
   }
+
+  std::cout << "Brent" << std::endl;
 
   double a = lowerbound;
   double b = upperbound;
@@ -253,7 +258,7 @@ template <typename QPFunc>
 boost::optional<RootCandidate> RefineQPInterval(
     double lowerbound, double f_lowerbound, double upperbound,
     double f_upperbound, const QPFunc& f, double reference,
-    const SolverOptions& opt, bool use_brent = true) {
+    const SolverOptions& opt, bool use_brent) {
   RootCandidate cand;
 
   cand.omega = use_brent ? SolveQP_Brent(lowerbound, f_lowerbound, upperbound,
@@ -292,7 +297,7 @@ boost::optional<double> SolveQP_Grid_Windowed(
     WindowDiagnostics* wdiag = nullptr,
     std::vector<RootCandidate>* accepted_roots_out = nullptr,
     std::vector<RootCandidate>* rejected_roots_out = nullptr,
-    bool use_brent = true) {
+    bool use_brent= false) {
   struct SamplePoIndex {
     double omega = 0.0;
     double fval = 0.0;

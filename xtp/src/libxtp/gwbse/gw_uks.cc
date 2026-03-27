@@ -475,9 +475,14 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed(
   std::vector<QPRootCandidate> accepted_roots;
   std::vector<QPRootCandidate> rejected_roots;
 
+  bool use_brent = false;
+  if (opt_.qp_root_finder == "brent"){
+    use_brent = true;
+  }
+
   auto result = qp_solver::SolveQP_Grid_Windowed(
       fqp, frequency0, left_limit, right_limit, gw_sc_iteration_, solver_opt,
-      &wdiag, &accepted_roots, &rejected_roots, true);
+      &wdiag, &accepted_roots, &rejected_roots, use_brent);
 
   if (Log::current_level > Log::error) {
 #pragma omp critical
