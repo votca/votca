@@ -18,35 +18,6 @@
 					<coupling j="5.828776e-01" levelA="5" levelB="5"/>
 				</electron>
 			</dftcoupling>
-			<bsecoupling>
-				<singlet algorithm="j_pert">
-					<coupling j_diag="-8.510693e-01" j_pert="2.894553e-02" stateA="s1" stateB="s1"/>
-					<coupling j_diag="1.871219e+00" j_pert="4.606401e-02" stateA="s1" stateB="s2"/>
-					<coupling j_diag="-1.375838e+00" j_pert="-4.789261e-02" stateA="s1" stateB="s3"/>
-					<coupling j_diag="6.643747e-01" j_pert="6.095790e-03" stateA="s1" stateB="s4"/>
-					<coupling j_diag="-9.201675e-01" j_pert="-9.766386e-03" stateA="s1" stateB="s5"/>
-					<coupling j_diag="-7.904819e+00" j_pert="1.083047e-01" stateA="s2" stateB="s1"/>
-					<coupling j_diag="-1.443484e+00" j_pert="1.067842e-01" stateA="s2" stateB="s2"/>
-					<coupling j_diag="-8.933297e+00" j_pert="-5.713926e-02" stateA="s2" stateB="s3"/>
-					<coupling j_diag="-4.867128e-01" j_pert="7.496191e-03" stateA="s2" stateB="s4"/>
-					<coupling j_diag="5.158874e-01" j_pert="-6.569730e-03" stateA="s2" stateB="s5"/>
-					<coupling j_diag="6.126436e+00" j_pert="-5.957707e-03" stateA="s3" stateB="s1"/>
-					<coupling j_diag="-7.076154e+00" j_pert="1.533306e-02" stateA="s3" stateB="s2"/>
-					<coupling j_diag="1.568706e-01" j_pert="7.754769e-03" stateA="s3" stateB="s3"/>
-					<coupling j_diag="-1.215397e+00" j_pert="3.945334e-03" stateA="s3" stateB="s4"/>
-					<coupling j_diag="8.103699e-01" j_pert="8.945530e-04" stateA="s3" stateB="s5"/>
-					<coupling j_diag="6.848230e-01" j_pert="-1.953567e-02" stateA="s4" stateB="s1"/>
-					<coupling j_diag="8.448974e-01" j_pert="-1.553001e-02" stateA="s4" stateB="s2"/>
-					<coupling j_diag="5.938518e-01" j_pert="9.309365e-03" stateA="s4" stateB="s3"/>
-					<coupling j_diag="-6.313128e-01" j_pert="4.873512e-06" stateA="s4" stateB="s4"/>
-					<coupling j_diag="-2.976065e-01" j_pert="4.981798e-04" stateA="s4" stateB="s5"/>
-					<coupling j_diag="-1.821797e+00" j_pert="8.017547e-03" stateA="s5" stateB="s1"/>
-					<coupling j_diag="-9.615402e-01" j_pert="7.001289e-03" stateA="s5" stateB="s2"/>
-					<coupling j_diag="-6.727572e-01" j_pert="-3.110756e-03" stateA="s5" stateB="s3"/>
-					<coupling j_diag="-5.668297e-02" j_pert="4.591425e-04" stateA="s5" stateB="s4"/>
-					<coupling j_diag="-8.905279e-01" j_pert="5.971319e-04" stateA="s5" stateB="s5"/>
-				</singlet>
-			</bsecoupling>
 		</output>
 	</job>
 </jobs>
