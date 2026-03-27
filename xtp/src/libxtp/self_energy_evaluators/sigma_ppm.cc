@@ -36,6 +36,7 @@ void Sigma_PPM::PrepareScreening() {
 
 double Sigma_PPM::CalcCorrelationDiagElement(Index gw_level,
                                              double frequency) const {
+  CountDiagEval();
   const Index lumo = opt_.homo + 1;
   const double eta2 = opt_.eta * opt_.eta;
   const Index levelsum = Mmn_.nsize();  // total number of bands

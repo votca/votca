@@ -50,6 +50,10 @@ void GW::configure(const options& opt) {
   sigma_->configure(sigma_opt);
   Sigma_x_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
   Sigma_c_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
+
+  opt_.qp_restrict_search = true;
+  opt_.qp_zero_margin = 1e-6;
+  opt_.qp_virtual_min_energy = -0.1;
 }
 
 double GW::CalcHomoLumoShift(Eigen::VectorXd frequencies) const {
@@ -163,7 +167,7 @@ void GW::CalculateGWPerturbation() {
   mixing_.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
 
   for (Index i_gw = 0; i_gw < opt_.gw_sc_max_iterations; ++i_gw) {
-
+    gw_sc_iteration_ = i_gw;
     if (i_gw % opt_.reset_3c == 0 && i_gw != 0) {
       Mmn_.Rebuild();
       XTP_LOG(Log::info, log_)
@@ -240,7 +244,7 @@ Eigen::VectorXd GW::getGWAResults() const {
 }
 
 Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
-
+  sigma_->ResetDiagEvalCounter();
   Eigen::VectorXd env = Eigen::VectorXd::Zero(qptotal_);
 
   const Eigen::VectorXd intercepts =
@@ -250,33 +254,47 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
   Eigen::VectorXd frequencies_new = frequencies;
   Eigen::Array<bool, Eigen::Dynamic, 1> converged =
       Eigen::Array<bool, Eigen::Dynamic, 1>::Zero(qptotal_);
+
+  QPStats total_stats;
+
 #ifdef _OPENMP
   Index use_threads =
       OPENMP::getMaxThreads() > qptotal_ ? qptotal_ : OPENMP::getMaxThreads();
+#else
+  Index use_threads = 1;
 #endif
+
 #pragma omp parallel for schedule(dynamic) num_threads(use_threads)
   for (Index gw_level = 0; gw_level < qptotal_; ++gw_level) {
 
     double initial_f = frequencies[gw_level];
     double intercept = intercepts[gw_level];
     boost::optional<double> newf;
+    QPStats local_stats;
+
     if (opt_.qp_solver == "fixedpoint") {
-      newf = SolveQP_FixedPoint(intercept, initial_f, gw_level);
+      newf = SolveQP_FixedPoint(intercept, initial_f, gw_level, &local_stats);
     }
     if (newf) {
       frequencies_new[gw_level] = newf.value();
       converged[gw_level] = true;
     } else {
-      newf = SolveQP_Grid(intercept, initial_f, gw_level);
+      newf = SolveQP_Grid(intercept, initial_f, gw_level, &local_stats);
       if (newf) {
         frequencies_new[gw_level] = newf.value();
         converged[gw_level] = true;
       } else {
-        newf = SolveQP_Linearisation(intercept, initial_f, gw_level);
+        newf =
+            SolveQP_Linearisation(intercept, initial_f, gw_level, &local_stats);
         if (newf) {
           frequencies_new[gw_level] = newf.value();
         }
       }
+    }
+
+#pragma omp critical
+    {
+      total_stats.Add(local_stats);
     }
   }
 
@@ -293,80 +311,153 @@ Eigen::VectorXd GW::SolveQP(const Eigen::VectorXd& frequencies) const {
     XTP_LOG(Log::error, log_)
         << TimeStamp() << " Increase the grid search interval" << std::flush;
   }
+
+  XTP_LOG(Log::info, log_) << TimeStamp()
+                           << " Sigma diagonal evaluations in SolveQP: "
+                           << sigma_->GetDiagEvalCounter() << std::flush;
+
+  XTP_LOG(Log::info, log_) << TimeStamp() << " QP diagnostics: "
+                           << "scan=" << total_stats.sigma_scan_calls
+                           << " refine=" << total_stats.sigma_refine_calls
+                           << " deriv_sigma="
+                           << total_stats.sigma_derivative_calls
+                           << " other=" << total_stats.sigma_other_calls
+                           << " total_sigma=" << total_stats.TotalSigmaCalls()
+                           << " unique_omega="
+                           << total_stats.sigma_unique_frequencies
+                           << " repeat_sigma=" << total_stats.sigma_repeat_calls
+                           << " deriv_calls=" << total_stats.deriv_calls
+                           << std::flush;
+
   return frequencies_new;
 }
 
 boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
                                                   double frequency0,
-                                                  Index gw_level) const {
+                                                  Index gw_level,
+                                                  QPStats* stats) const {
   boost::optional<double> newf = boost::none;
 
-  double sigma = sigma_->CalcCorrelationDiagElement(gw_level, frequency0);
-  double dsigma_domega =
-      sigma_->CalcCorrelationDiagElementDerivative(gw_level, frequency0);
+  QPFunc fqp(gw_level, *sigma_.get(), intercept0);
+
+  double sigma = fqp.sigma(frequency0, EvalStage::Other);
+  double dsigma_domega = fqp.deriv(frequency0);
   double Z = 1.0 - dsigma_domega;
   if (std::abs(Z) > 1e-9) {
     newf = frequency0 + (intercept0 - frequency0 + sigma) / Z;
   }
+
+  if (stats != nullptr) {
+    *stats = fqp.GetStats();
+  }
   return newf;
 }
 
-boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
-                                         Index gw_level) const {
-  std::vector<std::pair<double, double>> roots;
-  const double range =
-      opt_.qp_grid_spacing * double(opt_.qp_grid_steps - 1) / 2.0;
-  boost::optional<double> newf = boost::none;
-  double freq_prev = frequency0 - range;
+boost::optional<double> GW::SolveQP_Grid_Windowed(
+    double intercept0, double frequency0, Index gw_level, double left_limit,
+    double right_limit, QPStats* stats) const {
+
   QPFunc fqp(gw_level, *sigma_.get(), intercept0);
-  double targ_prev = fqp.value(freq_prev);
-  double qp_energy = 0.0;
-  double gradient_max = std::numeric_limits<double>::max();
-  bool pole_found = false;
-  for (Index i_node = 1; i_node < opt_.qp_grid_steps; ++i_node) {
-    double freq = freq_prev + opt_.qp_grid_spacing;
-    double targ = fqp.value(freq);
-    if (targ_prev * targ < 0.0) {  // Sign change
-      double f = SolveQP_Bisection(freq_prev, targ_prev, freq, targ, fqp);
-      double gradient = fqp.deriv(f);
-      double qp_weight = -1.0 / gradient;
-      roots.push_back(std::make_pair(f, qp_weight));
-      if (std::abs(gradient) < gradient_max) {
-        gradient_max = std::abs(gradient);
-        qp_energy = f;
-        pole_found = true;
-      }
-    }
-    freq_prev = freq;
-    targ_prev = targ;
+
+  qp_solver::SolverOptions solver_opt;
+  solver_opt.g_sc_limit = opt_.g_sc_limit;
+  solver_opt.qp_bisection_max_iter = opt_.g_sc_max_iterations;
+  solver_opt.qp_grid_spacing = opt_.qp_grid_spacing;
+  solver_opt.qp_grid_steps = opt_.qp_grid_steps;
+
+  QPWindowDiagnostics wdiag;
+  std::vector<QPRootCandidate> accepted_roots;
+  std::vector<QPRootCandidate> rejected_roots;
+
+  bool use_brent = false;
+  if (opt_.qp_root_finder == "brent") {
+    use_brent = true;
   }
+
+  auto result = qp_solver::SolveQP_Grid_Windowed(
+      fqp, frequency0, left_limit, right_limit, gw_sc_iteration_, solver_opt,
+      &wdiag, &accepted_roots, &rejected_roots, use_brent);
+
   if (Log::current_level > Log::error) {
 #pragma omp critical
     {
-      if (!pole_found) {
+      if (!accepted_roots.empty() || !rejected_roots.empty()) {
         XTP_LOG(Log::info, log_)
-            << " No roots found for qplevel:" << gw_level << std::flush;
-      } else {
-        XTP_LOG(Log::info, log_) << " Roots found for qplevel:" << gw_level
-                                 << " (qpenergy:qpweight)\n\t\t";
-        for (auto& root : roots) {
-          XTP_LOG(Log::info, log_) << std::setprecision(5) << root.first << ":"
-                                   << root.second << " ";
-        }
-        XTP_LOG(Log::info, log_) << "Root chosen " << qp_energy << std::flush;
+            << " Adaptive scan qplevel:" << gw_level << " center="
+            << std::max(left_limit, std::min(right_limit, frequency0))
+            << " shells=" << wdiag.shells_explored
+            << " first_interval_shell=" << wdiag.first_interval_shell
+            << " first_accepted_shell=" << wdiag.first_accepted_shell
+            << " intervals=" << wdiag.intervals_found << std::flush;
       }
     }
   }
 
-  if (pole_found) {
-    newf = qp_energy;
+  if (stats != nullptr) {
+    *stats = fqp.GetStats();
   }
-  return newf;
+
+  return result;
+}
+
+boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
+                                         Index gw_level, QPStats* stats) const {
+  const double range =
+      opt_.qp_grid_spacing * double(opt_.qp_grid_steps - 1) / 2.0;
+
+  const double full_left_limit = frequency0 - range;
+  const double full_right_limit = frequency0 + range;
+
+  double restricted_left_limit = full_left_limit;
+  double restricted_right_limit = full_right_limit;
+
+  bool use_restricted_window = false;
+
+  if (opt_.qp_restrict_search) {
+    const Index mo_level = gw_level + opt_.qpmin;
+    const bool is_occupied = (mo_level <= opt_.homo);
+
+    if (is_occupied) {
+      restricted_right_limit = std::min(full_right_limit, -opt_.qp_zero_margin);
+    } else {
+      restricted_left_limit =
+          std::max(full_left_limit, opt_.qp_virtual_min_energy);
+    }
+
+    const double tol = 1e-12;
+    use_restricted_window =
+        (std::abs(restricted_left_limit - full_left_limit) > tol) ||
+        (std::abs(restricted_right_limit - full_right_limit) > tol);
+  }
+
+  if (use_restricted_window && restricted_left_limit < restricted_right_limit) {
+    auto restricted = SolveQP_Grid_Windowed(intercept0, frequency0, gw_level,
+                                            restricted_left_limit,
+                                            restricted_right_limit, stats);
+    if (restricted) {
+      return restricted;
+    }
+
+    if (Log::current_level > Log::error) {
+#pragma omp critical
+      {
+        XTP_LOG(Log::info, log_)
+            << " Restricted QP search failed for qplevel:" << gw_level
+            << " in window [" << restricted_left_limit << ", "
+            << restricted_right_limit << "], retrying full window ["
+            << full_left_limit << ", " << full_right_limit << "]" << std::flush;
+      }
+    }
+  }
+
+  return SolveQP_Grid_Windowed(intercept0, frequency0, gw_level,
+                               full_left_limit, full_right_limit, stats);
 }
 
 boost::optional<double> GW::SolveQP_FixedPoint(double intercept0,
                                                double frequency0,
-                                               Index gw_level) const {
+                                               Index gw_level,
+                                               QPStats* stats) const {
   boost::optional<double> newf = boost::none;
   QPFunc f(gw_level, *sigma_.get(), intercept0);
   NewtonRapson<QPFunc> newton = NewtonRapson<QPFunc>(
@@ -375,39 +466,10 @@ boost::optional<double> GW::SolveQP_FixedPoint(double intercept0,
   if (newton.getInfo() == NewtonRapson<QPFunc>::success) {
     newf = freq_new;
   }
+  if (stats != nullptr) {
+    *stats = f.GetStats();
+  }
   return newf;
-}
-
-// https://en.wikipedia.org/wiki/Bisection_method
-double GW::SolveQP_Bisection(double lowerbound, double f_lowerbound,
-                             double upperbound, double f_upperbound,
-                             const QPFunc& f) const {
-
-  if (f_lowerbound * f_upperbound > 0) {
-    throw std::runtime_error(
-        "Bisection needs a postive and negative function value");
-  }
-  double zero = 0.0;
-  while (true) {
-    double c = 0.5 * (lowerbound + upperbound);
-    if (std::abs(upperbound - lowerbound) < opt_.g_sc_limit) {
-      zero = c;
-      break;
-    }
-    double y_c = f.value(c);
-    if (std::abs(y_c) < opt_.g_sc_limit) {
-      zero = c;
-      break;
-    }
-    if (y_c * f_lowerbound > 0) {
-      lowerbound = c;
-      f_lowerbound = y_c;
-    } else {
-      upperbound = c;
-      f_upperbound = y_c;
-    }
-  }
-  return zero;
 }
 
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,

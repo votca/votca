@@ -2,16 +2,7 @@
 <options>
   <eqm help="Executes qm calculations for individual molecules" section="sec:eqm">
     <map_file>system.xml</map_file>
-    <gwbse>
-      <gw>
-        <mode>G0W0</mode>
-      </gw>
-      <bse>
-      <useTDA>true</useTDA>
-        <exctotal>10</exctotal>
-      </bse>
-      <ranges>full</ranges>
-    </gwbse>
+    <tasks>input,dft,parse</tasks>
     <dftpackage>
       <basisset>3-21G</basisset>
       <auxbasisset>aux-def2-svp</auxbasisset>
