@@ -101,7 +101,6 @@ double SolveQP_Bisection(double lowerbound, double f_lowerbound,
 
   std::cout << "Bisection" << std::endl;
 
-
   while (true) {
     const double c = 0.5 * (lowerbound + upperbound);
     if (std::abs(upperbound - lowerbound) < opt.g_sc_limit) {
@@ -297,7 +296,7 @@ boost::optional<double> SolveQP_Grid_Windowed(
     WindowDiagnostics* wdiag = nullptr,
     std::vector<RootCandidate>* accepted_roots_out = nullptr,
     std::vector<RootCandidate>* rejected_roots_out = nullptr,
-    bool use_brent= false) {
+    bool use_brent = false) {
   struct SamplePoIndex {
     double omega = 0.0;
     double fval = 0.0;

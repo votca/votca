@@ -476,7 +476,7 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed(
   std::vector<QPRootCandidate> rejected_roots;
 
   bool use_brent = false;
-  if (opt_.qp_root_finder == "brent"){
+  if (opt_.qp_root_finder == "brent") {
     use_brent = true;
   }
 
