@@ -99,8 +99,6 @@ double SolveQP_Bisection(double lowerbound, double f_lowerbound,
         "Bisection needs a positive and negative function value");
   }
 
-  std::cout << "Bisection" << std::endl;
-
   while (true) {
     const double c = 0.5 * (lowerbound + upperbound);
     if (std::abs(upperbound - lowerbound) < opt.g_sc_limit) {
@@ -347,6 +345,82 @@ boost::optional<double> SolveQP_Grid_Windowed(
 
   auto refine_and_store = [&](double a, double fa, double b, double fb,
                               Index shell_idx) {
+    if (b < a) {
+      std::swap(a, b);
+      std::swap(fa, fb);
+    }
+
+    // Deterministic local mini-scan inside the coarse sign-change interval.
+    // This restores much of the old dense-grid robustness while keeping the
+    // fast coarse search globally.
+    struct LocalBracket {
+      double left = 0.0;
+      double f_left = 0.0;
+      double right = 0.0;
+      double f_right = 0.0;
+      double midpoint() const { return 0.5 * (left + right); }
+    };
+
+    const Index local_substeps = 12;
+    std::vector<LocalBracket> local_brackets;
+    local_brackets.reserve(static_cast<std::size_t>(local_substeps));
+
+    if (b > a) {
+      const double dx = (b - a) / static_cast<double>(local_substeps);
+
+      double x_prev = a;
+      double f_prev = fa;
+
+      for (Index i = 1; i <= local_substeps; ++i) {
+        const double x_curr =
+            (i == local_substeps) ? b : (a + static_cast<double>(i) * dx);
+        const double f_curr =
+            (i == local_substeps) ? fb : fqp.value(x_curr, EvalStage::Scan);
+
+        // Standard sign change
+        if ((f_prev < 0.0 && f_curr > 0.0) ||
+            (f_prev > 0.0 && f_curr < 0.0)) {
+          local_brackets.push_back({x_prev, f_prev, x_curr, f_curr});
+        }
+
+        // Near-exact zero at the left node
+        if (std::abs(f_prev) <= opt.g_sc_limit && x_prev < x_curr) {
+          local_brackets.push_back({x_prev, f_prev, x_curr, f_curr});
+        }
+
+        // Near-exact zero at the right node
+        if (std::abs(f_curr) <= opt.g_sc_limit && x_prev < x_curr) {
+          local_brackets.push_back({x_prev, f_prev, x_curr, f_curr});
+        }
+
+        x_prev = x_curr;
+        f_prev = f_curr;
+      }
+    }
+
+    // Choose the local bracket deterministically:
+    // midpoint closest to the search center, tie-broken by lower left edge.
+    if (!local_brackets.empty()) {
+      auto best_it = local_brackets.begin();
+      double best_dist = std::abs(best_it->midpoint() - center);
+
+      for (auto it = local_brackets.begin() + 1; it != local_brackets.end();
+           ++it) {
+        const double dist = std::abs(it->midpoint() - center);
+        if (dist < best_dist - 1e-14 ||
+            (std::abs(dist - best_dist) <= 1e-14 &&
+             it->left < best_it->left)) {
+          best_it = it;
+          best_dist = dist;
+        }
+      }
+
+      a = best_it->left;
+      fa = best_it->f_left;
+      b = best_it->right;
+      fb = best_it->f_right;
+    }
+
     auto cand_opt =
         RefineQPInterval(a, fa, b, fb, fqp, frequency0, opt, use_brent);
     if (!cand_opt) {
