@@ -129,8 +129,6 @@ double SolveQP_Brent(double lowerbound, double f_lowerbound, double upperbound,
         "Brent needs a positive and negative function value");
   }
 
-  std::cout << "Brent" << std::endl;
-
   double a = lowerbound;
   double b = upperbound;
   double fa = f_lowerbound;
