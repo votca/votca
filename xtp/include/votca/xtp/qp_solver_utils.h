@@ -378,8 +378,7 @@ boost::optional<double> SolveQP_Grid_Windowed(
             (i == local_substeps) ? fb : fqp.value(x_curr, EvalStage::Scan);
 
         // Standard sign change
-        if ((f_prev < 0.0 && f_curr > 0.0) ||
-            (f_prev > 0.0 && f_curr < 0.0)) {
+        if ((f_prev < 0.0 && f_curr > 0.0) || (f_prev > 0.0 && f_curr < 0.0)) {
           local_brackets.push_back({x_prev, f_prev, x_curr, f_curr});
         }
 
@@ -408,8 +407,7 @@ boost::optional<double> SolveQP_Grid_Windowed(
            ++it) {
         const double dist = std::abs(it->midpoint() - center);
         if (dist < best_dist - 1e-14 ||
-            (std::abs(dist - best_dist) <= 1e-14 &&
-             it->left < best_it->left)) {
+            (std::abs(dist - best_dist) <= 1e-14 && it->left < best_it->left)) {
           best_it = it;
           best_dist = dist;
         }
