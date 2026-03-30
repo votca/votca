@@ -386,14 +386,20 @@ if(RUN_XTP_INTEGRATIONTESTS)
 
   
   # xtp_tools -e dftgwbse neutal, gw only, CH4, Brent
-  #set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_ch4_gw_brent)
-  #file(MAKE_DIRECTORY ${RUNPATH})
-  #set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/DataFiles/xtp_tools_integration_tests)
-  #execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/molecule.xyz ${RUNPATH}/molecule.xyz)
-  #execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/dftgwbse_cation.xml ${RUNPATH}/dftgwbse_cation.xml)
-  #execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/3-21G.xml ${RUNPATH}/3-21G.xml)
-
-
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tools_dftgwbse_ch4_gw_brent)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/DataFiles/xtp_tools_integration_tests)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/molecule.xyz ${RUNPATH}/molecule_ch4.xyz)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/dftgwbse_ch4_cation.xml ${RUNPATH}/dftgwbse_ch4_cation.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/3-21G.xml ${RUNPATH}/3-21G.xml)
+  add_test(NAME integration_Run_xtp_tools_dftgwbse_ch4_gw_brent COMMAND xtp_tools -e dftgwbse -o dftgwbse_ch4_cation.xml WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_tools_dftgwbse_ch4_gw_brent PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  if(HAS_HDF5_COMPARE)
+    add_test(NAME integration_Compare_xtp_tools_dftgwbse_ch4_gw_brent_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag_beta/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPdiag_alpha/eigenvalues:1e-06:1e-03 --path-tol /QMdata/BSE_uks_dynamic:1e-06:3e-06 --path-tol /QMdata/QPpert_energies_beta:1e-06:1e-04 --path-tol /QMdata/BSE_uks/eigenvalues:1e-06:1e-05 --path-tol /QMdata/QPpert_energies_alpha:1e-06:1e-06 --td-atol 1e-3 ${REFPATH}/molecule_ch4.orb ${RUNPATH}/molecule_ch4.orb WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_tools_dftgwbse_ch4_gw_brent_output PROPERTIES DEPENDS integration_Run_xtp_tools_dftgwbse_ch4_gw_brent)
+  else()
+    message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_tools_dftgwbse_ch4_gw_brent (votca_compare_hdf5 not found)")
+  endif()
 
 
 endif()
