@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
-"""Examples to show xtp_binds usage."""
 import io
-from contextlib import redirect_stdout
+from contextlib import redirect_stdout, redirect_stderr
 
 
 def capture_standard_output(function, *args, **kwargs):
-    """Capture standard output of a given function."""
-    with redirect_stdout(io.StringIO()) as stdout:
+    """Capture standard output and standard error of a given function."""
+    stdout_buffer = io.StringIO()
+    stderr_buffer = io.StringIO()
+
+    with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
         function(*args, **kwargs)
 
-    return stdout.getvalue()
+    output = stdout_buffer.getvalue()
+    errput = stderr_buffer.getvalue()
+
+    if errput:
+        output += "\n[stderr]\n" + errput
+
+    return output

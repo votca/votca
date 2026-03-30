@@ -19,6 +19,8 @@
 #include <pybind11/complex.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <iostream>
+#include <pybind11/iostream.h>
 
 namespace py = pybind11;
 
@@ -28,27 +30,44 @@ PYBIND11_MODULE(xtp_binds, module) {
       "properties of organic materials,"
       "https://votca.github.io";
 
-  module.def("call_calculator", &pyxtp::call_calculator,
-             R"pbdoc(
+  module.def(
+      "call_calculator",
+      [](const std::string& name,
+         const std::map<std::string, std::string>& dict) {
+        py::scoped_ostream_redirect redirect_cout(
+            std::cout, py::module_::import("sys").attr("stdout"));
+        py::scoped_ostream_redirect redirect_cerr(
+            std::cerr, py::module_::import("sys").attr("stderr"));
+        pyxtp::call_calculator(name, dict);
+      },
+      R"pbdoc(
         Invoke a Votca XTP calculator
 
         Parameters
         ----------
         name
           Calculator's name
-        threads
-          Number of threads to perform the computation
-        xml_file
-          Input file specification
+        dict
+          Calculator options
   )pbdoc");
-  module.def("call_tool", &pyxtp::call_tool,
-             R"pbdoc(
+
+  module.def(
+      "call_tool",
+      [](const std::string& name, Index nthreads,
+         const std::string& xml_file) {
+        py::scoped_ostream_redirect redirect_cout(
+            std::cout, py::module_::import("sys").attr("stdout"));
+        py::scoped_ostream_redirect redirect_cerr(
+            std::cerr, py::module_::import("sys").attr("stderr"));
+        pyxtp::call_tool(name, nthreads, xml_file);
+      },
+      R"pbdoc(
         Invoke a Votca XTP Tool
 
         Parameters
         ----------
         name
-          Calculator's name
+          Tool's name
         threads
           Number of threads to perform the computation
         xml_file
