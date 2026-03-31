@@ -352,7 +352,7 @@ boost::optional<double> GW::SolveQP_Linearisation(double intercept0,
 
 boost::optional<double> GW::SolveQP_Grid_Windowed_Adaptive(
     double intercept0, double frequency0, Index gw_level, double left_limit,
-    double right_limit, QPStats* stats) const {
+    double right_limit, bool allow_rejected_return, QPStats* stats) const {
 
   QPFunc fqp(gw_level, *sigma_.get(), intercept0);
 
@@ -394,12 +394,29 @@ boost::optional<double> GW::SolveQP_Grid_Windowed_Adaptive(
     *stats = fqp.GetStats();
   }
 
+  if (!accepted_roots.empty()) {
+    return result;
+  }
+
+  if (!rejected_roots.empty() && !allow_rejected_return) {
+    if (Log::current_level > Log::error) {
+#pragma omp critical
+      {
+        XTP_LOG(Log::info, log_)
+            << " Adaptive scan qplevel:" << gw_level
+            << " produced only rejected roots in [" << left_limit << ", "
+            << right_limit << "], forcing wider retry" << std::flush;
+      }
+    }
+    return boost::none;
+  }
+
   return result;
 }
 
 boost::optional<double> GW::SolveQP_Grid_Windowed_Dense(
     double intercept0, double frequency0, Index gw_level, double left_limit,
-    double right_limit, QPStats* stats) const {
+    double right_limit, bool allow_rejected_return, QPStats* stats) const {
 
   QPFunc fqp(gw_level, *sigma_.get(), intercept0);
 
@@ -477,7 +494,7 @@ boost::optional<double> GW::SolveQP_Grid_Windowed_Dense(
     *stats = fqp.GetStats();
   }
 
-  if (!accepted_roots.empty()) {
+   if (!accepted_roots.empty()) {
     auto best =
         std::max_element(accepted_roots.begin(), accepted_roots.end(),
                          [](const QPRootCandidate& a,
@@ -489,6 +506,19 @@ boost::optional<double> GW::SolveQP_Grid_Windowed_Dense(
   }
 
   if (!rejected_roots.empty()) {
+    if (!allow_rejected_return) {
+      if (Log::current_level > Log::error) {
+#pragma omp critical
+        {
+          XTP_LOG(Log::info, log_)
+              << " Dense scan qplevel:" << gw_level
+              << " produced only rejected roots in [" << left_limit << ", "
+              << right_limit << "], forcing wider retry" << std::flush;
+        }
+      }
+      return boost::none;
+    }
+
     auto least_bad =
         std::max_element(rejected_roots.begin(), rejected_roots.end(),
                          [](const QPRootCandidate& a,
@@ -504,23 +534,26 @@ boost::optional<double> GW::SolveQP_Grid_Windowed_Dense(
 
 boost::optional<double> GW::SolveQP_Grid_Windowed(
     double intercept0, double frequency0, Index gw_level, double left_limit,
-    double right_limit, QPStats* stats) const {
+    double right_limit, bool allow_rejected_return, QPStats* stats) const {
 
   if (opt_.qp_grid_search_mode == "adaptive") {
     return SolveQP_Grid_Windowed_Adaptive(intercept0, frequency0, gw_level,
-                                          left_limit, right_limit, stats);
+                                          left_limit, right_limit,
+                                          allow_rejected_return, stats);
   }
 
   if (opt_.qp_grid_search_mode == "dense") {
     return SolveQP_Grid_Windowed_Dense(intercept0, frequency0, gw_level,
-                                       left_limit, right_limit, stats);
+                                       left_limit, right_limit,
+                                       allow_rejected_return, stats);
   }
 
   if (opt_.qp_grid_search_mode == "adaptive_with_dense_fallback") {
     QPStats total_stats;
     auto adaptive =
         SolveQP_Grid_Windowed_Adaptive(intercept0, frequency0, gw_level,
-                                       left_limit, right_limit, &total_stats);
+                                       left_limit, right_limit,
+                                       allow_rejected_return, &total_stats);
     if (adaptive) {
       if (stats != nullptr) {
         *stats = total_stats;
@@ -531,6 +564,7 @@ boost::optional<double> GW::SolveQP_Grid_Windowed(
     QPStats dense_stats;
     auto dense = SolveQP_Grid_Windowed_Dense(intercept0, frequency0, gw_level,
                                              left_limit, right_limit,
+                                             allow_rejected_return,
                                              &dense_stats);
     total_stats.Add(dense_stats);
 
@@ -587,7 +621,9 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
   if (use_restricted_window && restricted_left_limit < restricted_right_limit) {
     auto restricted = SolveQP_Grid_Windowed(intercept0, frequency0, gw_level,
                                             restricted_left_limit,
-                                            restricted_right_limit, stats);
+                                            restricted_right_limit,
+                                            false,  // accepted roots only
+                                            stats);
     if (restricted) {
       return restricted;
     }
@@ -598,14 +634,24 @@ boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
         XTP_LOG(Log::info, log_)
             << " Restricted QP search failed for qplevel:" << gw_level
             << " in window [" << restricted_left_limit << ", "
-            << restricted_right_limit << "], retrying full window ["
-            << full_left_limit << ", " << full_right_limit << "]" << std::flush;
+            << restricted_right_limit
+            << "], forcing full dense window ["
+            << full_left_limit << ", " << full_right_limit << "]"
+            << std::flush;
       }
     }
+
+    // Important: do NOT go back to adaptive here.
+    // The restricted window already failed to produce an accepted root.
+    // Force the old robust full-window dense search.
+    return SolveQP_Grid_Windowed_Dense(intercept0, frequency0, gw_level,
+                                       full_left_limit, full_right_limit,
+                                       true, stats);
   }
 
   return SolveQP_Grid_Windowed(intercept0, frequency0, gw_level,
-                               full_left_limit, full_right_limit, stats);
+                               full_left_limit, full_right_limit,
+                               true, stats);
 }
 
 boost::optional<double> GW::SolveQP_FixedPoint(double intercept0,

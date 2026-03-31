@@ -211,15 +211,19 @@ class GW {
 
   boost::optional<double> SolveQP_Grid_Windowed(
       double intercept0, double frequency0, Index gw_level, double left_limit,
-      double right_limit, QPStats* stats = nullptr) const;
+      double right_limit, bool allow_rejected_return = true,
+      QPStats* stats = nullptr) const;
 
   boost::optional<double> SolveQP_Grid_Windowed_Adaptive(
       double intercept0, double frequency0, Index gw_level, double left_limit,
-      double right_limit, QPStats* stats = nullptr) const;
+      double right_limit, bool allow_rejected_return = true,
+      QPStats* stats = nullptr) const;
 
   boost::optional<double> SolveQP_Grid_Windowed_Dense(
       double intercept0, double frequency0, Index gw_level, double left_limit,
-      double right_limit, QPStats* stats = nullptr) const;
+      double right_limit, bool allow_rejected_return = true,
+      QPStats* stats = nullptr) const;
+      
   boost::optional<double> SolveQP_FixedPoint(double intercept0,
                                              double frequency0, Index gw_level,
                                              QPStats* stats = nullptr) const;

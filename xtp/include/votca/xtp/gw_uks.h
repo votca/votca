@@ -186,15 +186,18 @@ class GW_UKS {
 
   boost::optional<double> SolveQP_Grid_Windowed(
       Spin spin, double intercept0, double frequency0, Index gw_level,
-      double left_limit, double right_limit, QPStats* stats = nullptr) const;
+      double left_limit, double right_limit, bool allow_rejected_return = true,
+      QPStats* stats = nullptr) const;
 
   boost::optional<double> SolveQP_Grid_Windowed_Adaptive(
       Spin spin, double intercept0, double frequency0, Index gw_level,
-      double left_limit, double right_limit, QPStats* stats = nullptr) const;
+      double left_limit, double right_limit, bool allow_rejected_return = true,
+      QPStats* stats = nullptr) const;
 
   boost::optional<double> SolveQP_Grid_Windowed_Dense(
       Spin spin, double intercept0, double frequency0, Index gw_level,
-      double left_limit, double right_limit, QPStats* stats = nullptr) const;
+      double left_limit, double right_limit, bool allow_rejected_return = true,
+      QPStats* stats = nullptr) const;
 
   boost::optional<double> SolveQP_FixedPoint(Spin spin, double intercept0,
                                              double frequency0, Index gw_level,
