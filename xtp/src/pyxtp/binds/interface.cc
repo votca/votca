@@ -16,11 +16,11 @@
 
 #include "xtp_bind_calculators.h"
 #include "xtp_bind_tools.h"
+#include <iostream>
 #include <pybind11/complex.h>
+#include <pybind11/iostream.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <iostream>
-#include <pybind11/iostream.h>
 
 namespace py = pybind11;
 
@@ -53,8 +53,7 @@ PYBIND11_MODULE(xtp_binds, module) {
 
   module.def(
       "call_tool",
-      [](const std::string& name, Index nthreads,
-         const std::string& xml_file) {
+      [](const std::string& name, Index nthreads, const std::string& xml_file) {
         py::scoped_ostream_redirect redirect_cout(
             std::cout, py::module_::import("sys").attr("stdout"));
         py::scoped_ostream_redirect redirect_cerr(

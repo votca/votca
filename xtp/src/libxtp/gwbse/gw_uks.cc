@@ -434,11 +434,11 @@ boost::optional<double> GW_UKS::SolveQP_Grid(Spin spin, double intercept0,
   }
 
   if (use_restricted_window && restricted_left_limit < restricted_right_limit) {
-    auto restricted = SolveQP_Grid_Windowed(spin, intercept0, frequency0,
-                                            gw_level, restricted_left_limit,
-                                            restricted_right_limit,
-                                            false,  // accepted roots only
-                                            stats);
+    auto restricted =
+        SolveQP_Grid_Windowed(spin, intercept0, frequency0, gw_level,
+                              restricted_left_limit, restricted_right_limit,
+                              false,  // accepted roots only
+                              stats);
 
     if (restricted) {
       return restricted;
@@ -457,14 +457,13 @@ boost::optional<double> GW_UKS::SolveQP_Grid(Spin spin, double intercept0,
     }
 
     return SolveQP_Grid_Windowed_Dense(spin, intercept0, frequency0, gw_level,
-                                       full_left_limit, full_right_limit,
-                                       true, stats);
+                                       full_left_limit, full_right_limit, true,
+                                       stats);
   }
 
   return SolveQP_Grid_Windowed(spin, intercept0, frequency0, gw_level,
-                               full_left_limit, full_right_limit,
-                               true, stats);
-  }
+                               full_left_limit, full_right_limit, true, stats);
+}
 
 boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Adaptive(
     Spin spin, double intercept0, double frequency0, Index gw_level,
@@ -559,26 +558,24 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Dense(
     double freq_prev = left_limit;
     double targ_prev = fqp.value(freq_prev, EvalStage::Scan);
 
-    const Index n_steps =
-        std::max<Index>(2, static_cast<Index>(
-                               std::ceil((right_limit - left_limit) /
-                                         opt_.qp_grid_spacing)) +
-                               1);
+    const Index n_steps = std::max<Index>(
+        2, static_cast<Index>(
+               std::ceil((right_limit - left_limit) / opt_.qp_grid_spacing)) +
+               1);
 
     for (Index i_node = 1; i_node < n_steps; ++i_node) {
       const double freq =
           (i_node == n_steps - 1)
               ? right_limit
-              : std::min(right_limit,
-                         left_limit + static_cast<double>(i_node) *
-                                          opt_.qp_grid_spacing);
+              : std::min(right_limit, left_limit + static_cast<double>(i_node) *
+                                                       opt_.qp_grid_spacing);
 
       const double targ = fqp.value(freq, EvalStage::Scan);
 
       if (targ_prev * targ < 0.0) {
-        auto cand = qp_solver::RefineQPInterval(freq_prev, targ_prev, freq, targ,
-                                                fqp, frequency0, solver_opt,
-                                                use_brent);
+        auto cand =
+            qp_solver::RefineQPInterval(freq_prev, targ_prev, freq, targ, fqp,
+                                        frequency0, solver_opt, use_brent);
         if (cand) {
           roots.emplace_back(cand->omega, cand->Z);
           if (cand->accepted) {
@@ -620,13 +617,11 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Dense(
   }
 
   if (!accepted_roots.empty()) {
-    auto best =
-        std::max_element(accepted_roots.begin(), accepted_roots.end(),
-                         [](const QPRootCandidate& a,
-                            const QPRootCandidate& b) {
-                           return qp_solver::ScoreRoot(a) <
-                                  qp_solver::ScoreRoot(b);
-                         });
+    auto best = std::max_element(
+        accepted_roots.begin(), accepted_roots.end(),
+        [](const QPRootCandidate& a, const QPRootCandidate& b) {
+          return qp_solver::ScoreRoot(a) < qp_solver::ScoreRoot(b);
+        });
     return best->omega;
   }
 
@@ -643,13 +638,11 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Dense(
       }
       return boost::none;
     }
-    auto least_bad =
-        std::max_element(rejected_roots.begin(), rejected_roots.end(),
-                         [](const QPRootCandidate& a,
-                            const QPRootCandidate& b) {
-                           return qp_solver::ScoreRoot(a) <
-                                  qp_solver::ScoreRoot(b);
-                         });
+    auto least_bad = std::max_element(
+        rejected_roots.begin(), rejected_roots.end(),
+        [](const QPRootCandidate& a, const QPRootCandidate& b) {
+          return qp_solver::ScoreRoot(a) < qp_solver::ScoreRoot(b);
+        });
     return least_bad->omega;
   }
 
@@ -669,16 +662,15 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed(
 
   if (opt_.qp_grid_search_mode == "dense") {
     return SolveQP_Grid_Windowed_Dense(spin, intercept0, frequency0, gw_level,
-                                       left_limit, right_limit, 
+                                       left_limit, right_limit,
                                        allow_rejected_return, stats);
   }
 
   if (opt_.qp_grid_search_mode == "adaptive_with_dense_fallback") {
     QPStats total_stats;
-    auto adaptive =
-        SolveQP_Grid_Windowed_Adaptive(spin, intercept0, frequency0, gw_level,
-                                       left_limit, right_limit,
-                                       allow_rejected_return, &total_stats);
+    auto adaptive = SolveQP_Grid_Windowed_Adaptive(
+        spin, intercept0, frequency0, gw_level, left_limit, right_limit,
+        allow_rejected_return, &total_stats);
     if (adaptive) {
       if (stats != nullptr) {
         *stats = total_stats;
@@ -687,10 +679,9 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed(
     }
 
     QPStats dense_stats;
-    auto dense =
-        SolveQP_Grid_Windowed_Dense(spin, intercept0, frequency0, gw_level,
-                                    left_limit, right_limit, 
-                                    allow_rejected_return, &dense_stats);
+    auto dense = SolveQP_Grid_Windowed_Dense(
+        spin, intercept0, frequency0, gw_level, left_limit, right_limit,
+        allow_rejected_return, &dense_stats);
     total_stats.Add(dense_stats);
 
     if (Log::current_level > Log::error) {
