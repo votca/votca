@@ -75,10 +75,11 @@ class GW {
     std::string quadrature_scheme;  // Kind of Gaussian-quadrature scheme to use
     Index order;   // only needed for complex integration sigma CDA
     double alpha;  // smooth tail in complex integration sigma CDA
-    bool qp_restrict_search = false;
+    bool qp_restrict_search = true;
     double qp_zero_margin = 1e-6;
     double qp_virtual_min_energy = -0.1;
-    std::string qp_root_finder;
+    std::string qp_root_finder = "bisection";
+    std::string qp_grid_search_mode = "adaptive_with_dense_fallback";
   };
 
   void configure(const options& opt);
@@ -209,6 +210,14 @@ class GW {
                                        QPStats* stats = nullptr) const;
 
   boost::optional<double> SolveQP_Grid_Windowed(
+      double intercept0, double frequency0, Index gw_level, double left_limit,
+      double right_limit, QPStats* stats = nullptr) const;
+
+  boost::optional<double> SolveQP_Grid_Windowed_Adaptive(
+      double intercept0, double frequency0, Index gw_level, double left_limit,
+      double right_limit, QPStats* stats = nullptr) const;
+
+  boost::optional<double> SolveQP_Grid_Windowed_Dense(
       double intercept0, double frequency0, Index gw_level, double left_limit,
       double right_limit, QPStats* stats = nullptr) const;
   boost::optional<double> SolveQP_FixedPoint(double intercept0,

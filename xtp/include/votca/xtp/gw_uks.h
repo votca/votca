@@ -55,10 +55,11 @@ class GW_UKS {
     std::string quadrature_scheme;
     Index order;
     double alpha;
-    bool qp_restrict_search = false;
+    bool qp_restrict_search = true;
     double qp_zero_margin = 1e-6;
     double qp_virtual_min_energy = -0.1;
-    std::string qp_root_finder;
+    std::string qp_root_finder = "bisection";
+    std::string qp_grid_search_mode = "adaptive_with_dense_fallback";
   };
 
   GW_UKS(Logger& log, TCMatrix_gwbse_spin& Mmn,
@@ -184,6 +185,14 @@ class GW_UKS {
                                        QPStats* stats = nullptr) const;
 
   boost::optional<double> SolveQP_Grid_Windowed(
+      Spin spin, double intercept0, double frequency0, Index gw_level,
+      double left_limit, double right_limit, QPStats* stats = nullptr) const;
+
+  boost::optional<double> SolveQP_Grid_Windowed_Adaptive(
+      Spin spin, double intercept0, double frequency0, Index gw_level,
+      double left_limit, double right_limit, QPStats* stats = nullptr) const;
+
+  boost::optional<double> SolveQP_Grid_Windowed_Dense(
       Spin spin, double intercept0, double frequency0, Index gw_level,
       double left_limit, double right_limit, QPStats* stats = nullptr) const;
 

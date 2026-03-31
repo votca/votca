@@ -18,9 +18,13 @@
     <quadrature_scheme help="If CDA is used for sigma integration this set the quadrature scheme to use" default="legendre" choices="hermite,laguerre,legendre" />
     <quadrature_order help="Quadrature order if CDA is used for sigma integration" default="12" choices="8,10,12,14,16,18,20,40,100" />
     <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid" />
+    <qp_grid_search_mode help="grid-search backend for QP root detection" default="adaptive_with_dense_fallback" choices="adaptive,dense,adaptive_with_dense_fallback" />
     <qp_root_finder help="rootfinder in grid search" default="bisection" choices="bisection,brent"/>
     <qp_grid_steps help="number of QP grid points" default="201" choices="int+" />
     <qp_grid_spacing help="spacing of QP grid points" unit="Hartree" default="0.01" choices="float+" />
+    <qp_restrict_search help="restrict occupied and virtual QP scans away from the zero-energy crossing region before retrying the full window" default="true" choices="bool" />
+    <qp_zero_margin help="margin below zero used as upper bound for occupied restricted scans" unit="Hartree" default="1e-6" choices="float+" />
+    <qp_virtual_min_energy help="lower bound for virtual restricted scans" unit="Hartree" default="-0.1" choices="float" />
     <qp_sc_max_iter help="maximum number of iterations for quasiparticle equation solution" default="100" choices="int+" />
     <qp_sc_limit help="quasiparticle equation solver convergence" unit="Hartree" default="1e-5" choices="float+" />
     <sc_max_iter help="Maximum number of iterations in eVGW" default="50" choices="int+" />

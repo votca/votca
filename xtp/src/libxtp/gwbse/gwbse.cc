@@ -436,6 +436,9 @@ void GWBSE::Initialize(tools::Property& options) {
         << " QP grid spacing: " << gwopt_.qp_grid_spacing << flush;
   }
   gwopt_.qp_root_finder = options.get("gw.qp_root_finder").as<std::string>();
+
+
+
   gwopt_.gw_mixing_order =
       options.get("gw.mixing_order").as<Index>();  // max history in
                                                    // mixing (0: plain,
@@ -443,7 +446,14 @@ void GWBSE::Initialize(tools::Property& options) {
                                                    // Anderson)
 
   gwopt_.gw_mixing_alpha = options.get("gw.mixing_alpha").as<double>();
-
+  gwopt_.qp_grid_search_mode =
+      options.get("gw.qp_grid_search_mode").as<std::string>();
+  gwopt_.qp_restrict_search =
+      options.get("gw.qp_restrict_search").as<bool>();
+  gwopt_.qp_zero_margin =
+      options.get("gw.qp_zero_margin").as<double>();
+  gwopt_.qp_virtual_min_energy =
+      options.get("gw.qp_virtual_min_energy").as<double>();
   if (mode == "evGW") {
     if (gwopt_.gw_mixing_order == 0) {
       XTP_LOG(Log::error, *pLog_) << " evGW with plain update " << std::flush;
@@ -858,6 +868,11 @@ bool GWBSE::Evaluate() {
       gwopt_uks.quadrature_scheme = gwopt_.quadrature_scheme;
       gwopt_uks.order = gwopt_.order;
       gwopt_uks.alpha = gwopt_.alpha;
+      gwopt_uks.qp_restrict_search = gwopt_.qp_restrict_search;
+      gwopt_uks.qp_zero_margin = gwopt_.qp_zero_margin;
+      gwopt_uks.qp_virtual_min_energy = gwopt_.qp_virtual_min_energy;
+      gwopt_uks.qp_root_finder = gwopt_.qp_root_finder;
+      gwopt_uks.qp_grid_search_mode = gwopt_.qp_grid_search_mode;
 
       GW_UKS gw = GW_UKS(*pLog_, Mmn_spin, vxc.first, vxc.second,
                          orbitals_.MOs().eigenvalues(),

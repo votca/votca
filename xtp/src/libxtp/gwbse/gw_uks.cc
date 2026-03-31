@@ -459,7 +459,7 @@ boost::optional<double> GW_UKS::SolveQP_Grid(Spin spin, double intercept0,
                                full_left_limit, full_right_limit, stats);
 }
 
-boost::optional<double> GW_UKS::SolveQP_Grid_Windowed(
+boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Adaptive(
     Spin spin, double intercept0, double frequency0, Index gw_level,
     double left_limit, double right_limit, QPStats* stats) const {
 
@@ -510,6 +510,168 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed(
 
   return result;
 }
+
+boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Dense(
+    Spin spin, double intercept0, double frequency0, Index gw_level,
+    double left_limit, double right_limit, QPStats* stats) const {
+
+  QPFunc fqp(gw_level, SigmaEvaluator(spin), intercept0);
+
+  qp_solver::SolverOptions solver_opt;
+  solver_opt.g_sc_limit = opt_.g_sc_limit;
+  solver_opt.qp_bisection_max_iter = opt_.g_sc_max_iterations;
+  solver_opt.qp_grid_spacing = opt_.qp_grid_spacing;
+  solver_opt.qp_grid_steps = opt_.qp_grid_steps;
+
+  const bool use_brent = (opt_.qp_root_finder == "brent");
+
+  std::vector<QPRootCandidate> accepted_roots;
+  std::vector<QPRootCandidate> rejected_roots;
+  std::vector<std::pair<double, double>> roots;  // omega : Z
+
+  if (left_limit < right_limit) {
+    double freq_prev = left_limit;
+    double targ_prev = fqp.value(freq_prev, EvalStage::Scan);
+
+    const Index n_steps =
+        std::max<Index>(2, static_cast<Index>(
+                               std::ceil((right_limit - left_limit) /
+                                         opt_.qp_grid_spacing)) +
+                               1);
+
+    for (Index i_node = 1; i_node < n_steps; ++i_node) {
+      const double freq =
+          (i_node == n_steps - 1)
+              ? right_limit
+              : std::min(right_limit,
+                         left_limit + static_cast<double>(i_node) *
+                                          opt_.qp_grid_spacing);
+
+      const double targ = fqp.value(freq, EvalStage::Scan);
+
+      if (targ_prev * targ < 0.0) {
+        auto cand = qp_solver::RefineQPInterval(freq_prev, targ_prev, freq, targ,
+                                                fqp, frequency0, solver_opt,
+                                                use_brent);
+        if (cand) {
+          roots.emplace_back(cand->omega, cand->Z);
+          if (cand->accepted) {
+            accepted_roots.push_back(*cand);
+          } else {
+            rejected_roots.push_back(*cand);
+          }
+        }
+      }
+
+      freq_prev = freq;
+      targ_prev = targ;
+    }
+  }
+
+  if (Log::current_level > Log::error) {
+#pragma omp critical
+    {
+      if (accepted_roots.empty() && rejected_roots.empty()) {
+        XTP_LOG(Log::info, log_)
+            << " Dense scan " << LevelLabel(spin, opt_.qpmin + gw_level)
+            << " found no roots in [" << left_limit << ", " << right_limit
+            << "]" << std::flush;
+      } else {
+        XTP_LOG(Log::info, log_)
+            << " Dense scan " << LevelLabel(spin, opt_.qpmin + gw_level)
+            << " roots (omega:Z)\n\t\t";
+        for (const auto& root : roots) {
+          XTP_LOG(Log::info, log_) << std::setprecision(5) << root.first << ":"
+                                   << root.second << " ";
+        }
+        XTP_LOG(Log::info, log_) << std::flush;
+      }
+    }
+  }
+
+  if (stats != nullptr) {
+    *stats = fqp.GetStats();
+  }
+
+  if (!accepted_roots.empty()) {
+    auto best =
+        std::max_element(accepted_roots.begin(), accepted_roots.end(),
+                         [](const QPRootCandidate& a,
+                            const QPRootCandidate& b) {
+                           return qp_solver::ScoreRoot(a) <
+                                  qp_solver::ScoreRoot(b);
+                         });
+    return best->omega;
+  }
+
+  if (!rejected_roots.empty()) {
+    auto least_bad =
+        std::max_element(rejected_roots.begin(), rejected_roots.end(),
+                         [](const QPRootCandidate& a,
+                            const QPRootCandidate& b) {
+                           return qp_solver::ScoreRoot(a) <
+                                  qp_solver::ScoreRoot(b);
+                         });
+    return least_bad->omega;
+  }
+
+  return boost::none;
+}
+
+boost::optional<double> GW_UKS::SolveQP_Grid_Windowed(
+    Spin spin, double intercept0, double frequency0, Index gw_level,
+    double left_limit, double right_limit, QPStats* stats) const {
+
+  if (opt_.qp_grid_search_mode == "adaptive") {
+    return SolveQP_Grid_Windowed_Adaptive(spin, intercept0, frequency0,
+                                          gw_level, left_limit, right_limit,
+                                          stats);
+  }
+
+  if (opt_.qp_grid_search_mode == "dense") {
+    return SolveQP_Grid_Windowed_Dense(spin, intercept0, frequency0, gw_level,
+                                       left_limit, right_limit, stats);
+  }
+
+  if (opt_.qp_grid_search_mode == "adaptive_with_dense_fallback") {
+    QPStats total_stats;
+    auto adaptive =
+        SolveQP_Grid_Windowed_Adaptive(spin, intercept0, frequency0, gw_level,
+                                       left_limit, right_limit, &total_stats);
+    if (adaptive) {
+      if (stats != nullptr) {
+        *stats = total_stats;
+      }
+      return adaptive;
+    }
+
+    QPStats dense_stats;
+    auto dense =
+        SolveQP_Grid_Windowed_Dense(spin, intercept0, frequency0, gw_level,
+                                    left_limit, right_limit, &dense_stats);
+    total_stats.Add(dense_stats);
+
+    if (Log::current_level > Log::error) {
+#pragma omp critical
+      {
+        XTP_LOG(Log::info, log_)
+            << " Adaptive QP scan failed for "
+            << LevelLabel(spin, opt_.qpmin + gw_level)
+            << ", retrying dense grid scan in [" << left_limit << ", "
+            << right_limit << "]" << std::flush;
+      }
+    }
+
+    if (stats != nullptr) {
+      *stats = total_stats;
+    }
+    return dense;
+  }
+
+  throw std::runtime_error("Unknown gw.qp_grid_search_mode '" +
+                           opt_.qp_grid_search_mode + "'");
+}
+
 boost::optional<double> GW_UKS::SolveQP_FixedPoint(Spin spin, double intercept0,
                                                    double frequency0,
                                                    Index gw_level,
