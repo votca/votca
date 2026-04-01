@@ -153,8 +153,7 @@ inline double LegacyAdaptiveShellWidth(const Opt& opt) {
 // fill values that were left unset by the caller.
 template <typename Opt>
 inline void NormalizeGridSearchOptions(Opt& opt) {
-  const bool has_legacy =
-      (opt.qp_grid_steps > 1 && opt.qp_grid_spacing > 0.0);
+  const bool has_legacy = (opt.qp_grid_steps > 1 && opt.qp_grid_spacing > 0.0);
 
   if (opt.qp_full_window_half_width <= 0.0) {
     opt.qp_full_window_half_width =
@@ -165,8 +164,7 @@ inline void NormalizeGridSearchOptions(Opt& opt) {
     opt.qp_dense_spacing = has_legacy ? opt.qp_grid_spacing : 0.002;
   }
 
-  if (opt.qp_adaptive_shell_count <= 0 &&
-      opt.qp_adaptive_shell_width <= 0.0) {
+  if (opt.qp_adaptive_shell_count <= 0 && opt.qp_adaptive_shell_width <= 0.0) {
     opt.qp_adaptive_shell_width =
         has_legacy ? LegacyAdaptiveShellWidth(opt) : 0.025;
   }
@@ -181,8 +179,7 @@ inline void NormalizeGridSearchOptions(Opt& opt) {
         "Invalid QP search setup: qp_dense_spacing must be > 0");
   }
 
-  if (opt.qp_adaptive_shell_count <= 0 &&
-      opt.qp_adaptive_shell_width <= 0.0) {
+  if (opt.qp_adaptive_shell_count <= 0 && opt.qp_adaptive_shell_width <= 0.0) {
     throw std::runtime_error(
         "Invalid QP search setup: need qp_adaptive_shell_width > 0 or "
         "qp_adaptive_shell_count > 0");
@@ -450,8 +447,8 @@ boost::optional<double> SolveQP_Grid_Windowed(
   // explicit adaptive shell control, not on the dense scan spacing.
   const double max_shell_reach =
       std::max(center - left_limit, right_limit - center);
-  const Index n_shells = static_cast<Index>(
-      std::ceil(max_shell_reach / shell_width));
+  const Index n_shells =
+      static_cast<Index>(std::ceil(max_shell_reach / shell_width));
 
   auto refine_and_store = [&](double a, double fa, double b, double fb,
                               Index shell_idx) {
@@ -628,7 +625,8 @@ boost::optional<double> SolveQP_Grid_Windowed(
   //   1. return the best accepted root found in the scanned shells
   //   2. if the caller allows it, return the best rejected root
   // The outer GW driver uses this to enforce that restricted-window searches
-  // only succeed on accepted roots; otherwise it escalates to a full dense scan.
+  // only succeed on accepted roots; otherwise it escalates to a full dense
+  // scan.
   if (!accepted_roots.empty()) {
     auto best =
         std::max_element(accepted_roots.begin(), accepted_roots.end(),
