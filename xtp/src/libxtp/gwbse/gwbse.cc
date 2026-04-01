@@ -441,8 +441,7 @@ void GWBSE::Initialize(tools::Property& options) {
           options.get("gw.qp_full_window_half_width").as<double>();
     }
     if (options.exists("gw.qp_dense_spacing")) {
-      gwopt_.qp_dense_spacing =
-          options.get("gw.qp_dense_spacing").as<double>();
+      gwopt_.qp_dense_spacing = options.get("gw.qp_dense_spacing").as<double>();
     }
     if (options.exists("gw.qp_adaptive_shell_width")) {
       gwopt_.qp_adaptive_shell_width =
@@ -491,8 +490,8 @@ void GWBSE::Initialize(tools::Property& options) {
           << " -> mapped to qp_full_window_half_width="
           << gwopt_.qp_full_window_half_width
           << " qp_dense_spacing=" << gwopt_.qp_dense_spacing
-          << " qp_adaptive_shell_width="
-          << gwopt_.qp_adaptive_shell_width << flush;
+          << " qp_adaptive_shell_width=" << gwopt_.qp_adaptive_shell_width
+          << flush;
     }
 
     // Final normalization produces one canonical option set used by both
@@ -500,17 +499,16 @@ void GWBSE::Initialize(tools::Property& options) {
     qp_solver::NormalizeGridSearchOptions(gwopt_);
 
     XTP_LOG(Log::error, *pLog_)
-        << " QP full window half-width: "
-        << gwopt_.qp_full_window_half_width << flush;
+        << " QP full window half-width: " << gwopt_.qp_full_window_half_width
+        << flush;
     XTP_LOG(Log::error, *pLog_)
-        << " QP dense spacing: "
-        << gwopt_.qp_dense_spacing << flush;
+        << " QP dense spacing: " << gwopt_.qp_dense_spacing << flush;
     XTP_LOG(Log::error, *pLog_)
-        << " QP adaptive shell width: "
-        << gwopt_.qp_adaptive_shell_width << flush;
+        << " QP adaptive shell width: " << gwopt_.qp_adaptive_shell_width
+        << flush;
     XTP_LOG(Log::error, *pLog_)
-        << " QP adaptive shell count: "
-        << gwopt_.qp_adaptive_shell_count << flush;
+        << " QP adaptive shell count: " << gwopt_.qp_adaptive_shell_count
+        << flush;
   }
   gwopt_.qp_root_finder = options.get("gw.qp_root_finder").as<std::string>();
 
