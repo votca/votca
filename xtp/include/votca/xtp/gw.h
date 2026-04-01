@@ -68,8 +68,16 @@ class GW {
                      // rebuilt
     std::string qp_solver;
     double qp_solver_alpha = 0.75;
-    Index qp_grid_steps;            // Number of grid points
-    double qp_grid_spacing;         // Spacing of grid points in Ha
+    // Deprecated legacy aliases. Kept for backward compatibility and tests.
+    Index qp_grid_steps = 0;
+    double qp_grid_spacing = 0.0;
+
+    // New decoupled QP search controls
+    double qp_full_window_half_width = -1.0;  // Ha; <=0 means "unset"
+    double qp_dense_spacing = -1.0;           // Ha; <=0 means "unset"
+    double qp_adaptive_shell_width = -1.0;    // Ha; <=0 means "unset"
+    Index qp_adaptive_shell_count = 0;        // 0 means "use shell width"
+    
     Index gw_mixing_order;          // mixing order
     double gw_mixing_alpha;         // mixing alpha, also linear mixing
     std::string quadrature_scheme;  // Kind of Gaussian-quadrature scheme to use

@@ -19,12 +19,19 @@
     <quadrature_order help="Quadrature order if CDA is used for sigma integration" default="12" choices="8,10,12,14,16,18,20,40,100" />
     <qp_solver help="QP equation solve method" default="grid" choices="fixedpoint,grid" />
     <qp_grid_search_mode help="grid-search backend for QP root detection" default="adaptive_with_dense_fallback" choices="adaptive,dense,adaptive_with_dense_fallback" />
-    <qp_root_finder help="rootfinder in grid search" default="bisection" choices="bisection,brent"/>
-    <qp_grid_steps help="number of QP grid points" default="201" choices="int+" />
-    <qp_grid_spacing help="spacing of QP grid points" unit="Hartree" default="0.01" choices="float+" />
+    <qp_root_finder help="rootfinder used to refine a sign-change interval" default="bisection" choices="bisection,brent"/>
+
+    <qp_full_window_half_width help="half-width of the full QP search window around the reference energy" unit="Hartree" default="OPTIONAL" choices="float+" />
+    <qp_dense_spacing help="spacing of the dense QP scan used for robust sign-change detection" unit="Hartree" default="OPTIONAL" choices="float+" />
+    <qp_adaptive_shell_width help="radial shell width of the adaptive QP scan" unit="Hartree" default="OPTIONAL" choices="float+" />
+    <qp_adaptive_shell_count help="number of adaptive shell layers per side; if > 0 it overrides qp_adaptive_shell_width" default="OPTIONAL" choices="int+" />
+
+    <qp_grid_steps help="DEPRECATED: legacy number of QP grid points; maps to qp_full_window_half_width and qp_adaptive_shell_width together with qp_grid_spacing" default="OPTIONAL" choices="int+" />
+    <qp_grid_spacing help="DEPRECATED: legacy QP grid spacing; maps to qp_dense_spacing and contributes to qp_full_window_half_width together with qp_grid_steps" unit="Hartree" default="OPTIONAL" choices="float+" />
+
     <qp_restrict_search help="restrict occupied and virtual QP scans away from the zero-energy crossing region before retrying the full window" default="true" choices="bool" />
     <qp_zero_margin help="margin below zero used as upper bound for occupied restricted scans" unit="Hartree" default="1e-6" choices="float+" />
-    <qp_virtual_min_energy help="lower bound for virtual restricted scans" unit="Hartree" default="-0.1" choices="float" />
+    <qp_virtual_min_energy help="lower bound for virtual restricted scans" unit="Hartree" default="-0.1" choices="float" />  
     <qp_sc_max_iter help="maximum number of iterations for quasiparticle equation solution" default="100" choices="int+" />
     <qp_sc_limit help="quasiparticle equation solver convergence" unit="Hartree" default="1e-5" choices="float+" />
     <sc_max_iter help="Maximum number of iterations in eVGW" default="50" choices="int+" />

@@ -83,12 +83,91 @@ struct WindowDiagnostics {
 struct SolverOptions {
   double g_sc_limit = 1e-5;
   Index qp_bisection_max_iter = 200;
-  double qp_grid_spacing = 0.01;
-  Index qp_grid_steps = 201;
+
+  // Full symmetric QP search window around the reference energy
+  double qp_full_window_half_width = 0.75;
+
+  // Robust dense sign-change detection
+  double qp_dense_spacing = 0.002;
+
+  // Adaptive outward shell scan
+  double qp_adaptive_shell_width = 0.025;
+  Index qp_adaptive_shell_count = 0;  // 0 -> use width
 
   double min_accepted_Z = 0.05;
   double max_accepted_Z = 1.5;
 };
+
+template <typename Opt>
+inline double LegacyFullWindowHalfWidth(const Opt& opt) {
+  if (opt.qp_grid_steps <= 1 || opt.qp_grid_spacing <= 0.0) {
+    return -1.0;
+  }
+  return 0.5 * opt.qp_grid_spacing * double(opt.qp_grid_steps - 1);
+}
+
+template <typename Opt>
+inline double LegacyAdaptiveShellWidth(const Opt& opt) {
+  if (opt.qp_grid_steps <= 1 || opt.qp_grid_spacing <= 0.0) {
+    return -1.0;
+  }
+
+  const double full_window_width =
+      opt.qp_grid_spacing * double(opt.qp_grid_steps - 1);
+  const Index base_coarse_steps = std::max<Index>(21, opt.qp_grid_steps / 4);
+
+  if (base_coarse_steps <= 1) {
+    return 4.0 * opt.qp_grid_spacing;
+  }
+
+  return full_window_width / double(base_coarse_steps - 1);
+}
+
+template <typename Opt>
+inline void NormalizeGridSearchOptions(Opt& opt) {
+  const bool has_legacy =
+      (opt.qp_grid_steps > 1 && opt.qp_grid_spacing > 0.0);
+
+  if (opt.qp_full_window_half_width <= 0.0) {
+    opt.qp_full_window_half_width =
+        has_legacy ? LegacyFullWindowHalfWidth(opt) : 0.75;
+  }
+
+  if (opt.qp_dense_spacing <= 0.0) {
+    opt.qp_dense_spacing = has_legacy ? opt.qp_grid_spacing : 0.002;
+  }
+
+  if (opt.qp_adaptive_shell_count <= 0 &&
+      opt.qp_adaptive_shell_width <= 0.0) {
+    opt.qp_adaptive_shell_width =
+        has_legacy ? LegacyAdaptiveShellWidth(opt) : 0.025;
+  }
+
+  if (opt.qp_full_window_half_width <= 0.0) {
+    throw std::runtime_error(
+        "Invalid QP search setup: qp_full_window_half_width must be > 0");
+  }
+
+  if (opt.qp_dense_spacing <= 0.0) {
+    throw std::runtime_error(
+        "Invalid QP search setup: qp_dense_spacing must be > 0");
+  }
+
+  if (opt.qp_adaptive_shell_count <= 0 &&
+      opt.qp_adaptive_shell_width <= 0.0) {
+    throw std::runtime_error(
+        "Invalid QP search setup: need qp_adaptive_shell_width > 0 or "
+        "qp_adaptive_shell_count > 0");
+  }
+}
+
+inline double EffectiveAdaptiveShellWidth(const SolverOptions& opt) {
+  if (opt.qp_adaptive_shell_count > 0) {
+    return opt.qp_full_window_half_width /
+           static_cast<double>(opt.qp_adaptive_shell_count);
+  }
+  return opt.qp_adaptive_shell_width;
+}
 
 template <typename QPFunc>
 double SolveQP_Bisection(double lowerbound, double f_lowerbound,
@@ -315,17 +394,7 @@ boost::optional<double> SolveQP_Grid_Windowed(
     return boost::none;
   }
 
-  const double range = right_limit - left_limit;
-  const double full_window_width =
-      opt.qp_grid_spacing * double(opt.qp_grid_steps - 1);
-  const Index base_coarse_steps = std::max<Index>(21, opt.qp_grid_steps / 4);
-  const double base_coarse_spacing =
-      full_window_width / double(base_coarse_steps - 1);
-
-  const Index coarse_steps =
-      std::max(3, static_cast<int>(std::ceil(range / base_coarse_spacing)) + 1);
-  const double coarse_spacing = range / double(coarse_steps - 1);
-
+  const double shell_width = EffectiveAdaptiveShellWidth(opt);
   double center = frequency0;
 
   if (gw_sc_iteration == 0) {
@@ -340,6 +409,11 @@ boost::optional<double> SolveQP_Grid_Windowed(
   }
 
   center = std::max(left_limit, std::min(right_limit, center));
+
+  const double max_shell_reach =
+      std::max(center - left_limit, right_limit - center);
+  const Index n_shells = static_cast<Index>(
+      std::ceil(max_shell_reach / shell_width));
 
   auto refine_and_store = [&](double a, double fa, double b, double fb,
                               Index shell_idx) {
@@ -446,10 +520,10 @@ boost::optional<double> SolveQP_Grid_Windowed(
   SamplePoIndex left_prev = center_pt;
   SamplePoIndex right_prev = center_pt;
 
-  for (Index shell = 1; shell < coarse_steps; ++shell) {
+  for (Index shell = 1; shell <= n_shells; ++shell) {
     local_diag.shells_explored = shell;
     bool added_this_shell = false;
-    const double delta = double(shell) * coarse_spacing;
+    const double delta = double(shell) * shell_width;
 
     if (left_active) {
       const double omega_left = center - delta;
@@ -515,7 +589,7 @@ boost::optional<double> SolveQP_Grid_Windowed(
                          });
 
     local_diag.chosen_shell = static_cast<int>(
-        std::llround(std::abs(best->omega - center) / coarse_spacing));
+        std::llround(std::abs(best->omega - center) / shell_width));
 
     if (wdiag != nullptr) {
       *wdiag = local_diag;
@@ -537,7 +611,7 @@ boost::optional<double> SolveQP_Grid_Windowed(
                          });
 
     local_diag.chosen_shell = static_cast<int>(
-        std::llround(std::abs(least_bad->omega - center) / coarse_spacing));
+        std::llround(std::abs(least_bad->omega - center) / shell_width));
 
     if (wdiag != nullptr) {
       *wdiag = local_diag;

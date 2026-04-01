@@ -37,6 +37,7 @@ GW_UKS::GW_UKS(Logger& log, TCMatrix_gwbse_spin& Mmn,
 
 void GW_UKS::configure(const options& opt) {
   opt_ = opt;
+  qp_solver::NormalizeGridSearchOptions(opt_);
   qptotal_ = opt_.qpmax - opt_.qpmin + 1;
   rpa_.configure(opt_.homo_alpha, opt_.homo_beta, opt_.rpamin, opt_.rpamax);
 
@@ -405,8 +406,7 @@ boost::optional<double> GW_UKS::SolveQP_Linearisation(Spin spin,
 boost::optional<double> GW_UKS::SolveQP_Grid(Spin spin, double intercept0,
                                              double frequency0, Index gw_level,
                                              QPStats* stats) const {
-  const double range =
-      opt_.qp_grid_spacing * double(opt_.qp_grid_steps - 1) / 2.0;
+  const double range = opt_.qp_full_window_half_width;
 
   const double full_left_limit = frequency0 - range;
   const double full_right_limit = frequency0 + range;
@@ -475,9 +475,10 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Adaptive(
   qp_solver::SolverOptions solver_opt;
   solver_opt.g_sc_limit = opt_.g_sc_limit;
   solver_opt.qp_bisection_max_iter = opt_.g_sc_max_iterations;
-  solver_opt.qp_grid_spacing = opt_.qp_grid_spacing;
-  solver_opt.qp_grid_steps = opt_.qp_grid_steps;
-
+  solver_opt.qp_full_window_half_width = opt_.qp_full_window_half_width;
+  solver_opt.qp_dense_spacing = opt_.qp_dense_spacing;
+  solver_opt.qp_adaptive_shell_width = opt_.qp_adaptive_shell_width;
+  solver_opt.qp_adaptive_shell_count = opt_.qp_adaptive_shell_count;
   QPWindowDiagnostics wdiag;
   std::vector<QPRootCandidate> accepted_roots;
   std::vector<QPRootCandidate> rejected_roots;
@@ -545,8 +546,10 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Dense(
   qp_solver::SolverOptions solver_opt;
   solver_opt.g_sc_limit = opt_.g_sc_limit;
   solver_opt.qp_bisection_max_iter = opt_.g_sc_max_iterations;
-  solver_opt.qp_grid_spacing = opt_.qp_grid_spacing;
-  solver_opt.qp_grid_steps = opt_.qp_grid_steps;
+  solver_opt.qp_full_window_half_width = opt_.qp_full_window_half_width;
+  solver_opt.qp_dense_spacing = opt_.qp_dense_spacing;
+  solver_opt.qp_adaptive_shell_width = opt_.qp_adaptive_shell_width;
+  solver_opt.qp_adaptive_shell_count = opt_.qp_adaptive_shell_count;
 
   const bool use_brent = (opt_.qp_root_finder == "brent");
 
@@ -560,7 +563,7 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Dense(
 
     const Index n_steps = std::max<Index>(
         2, static_cast<Index>(
-               std::ceil((right_limit - left_limit) / opt_.qp_grid_spacing)) +
+               std::ceil((right_limit - left_limit) / opt_.qp_dense_spacing)) +
                1);
 
     for (Index i_node = 1; i_node < n_steps; ++i_node) {
@@ -568,7 +571,7 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Dense(
           (i_node == n_steps - 1)
               ? right_limit
               : std::min(right_limit, left_limit + static_cast<double>(i_node) *
-                                                       opt_.qp_grid_spacing);
+                                                       opt_.qp_dense_spacing);
 
       const double targ = fqp.value(freq, EvalStage::Scan);
 

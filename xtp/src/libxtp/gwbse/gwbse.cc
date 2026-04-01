@@ -428,12 +428,79 @@ void GWBSE::Initialize(tools::Property& options) {
 
   XTP_LOG(Log::error, *pLog_) << " QP solver: " << gwopt_.qp_solver << flush;
   if (gwopt_.qp_solver == "grid") {
-    gwopt_.qp_grid_steps = options.get("gw.qp_grid_steps").as<Index>();
-    gwopt_.qp_grid_spacing = options.get("gw.qp_grid_spacing").as<double>();
+    // New decoupled QP search options
+    if (options.exists("gw.qp_full_window_half_width")) {
+      gwopt_.qp_full_window_half_width =
+          options.get("gw.qp_full_window_half_width").as<double>();
+    }
+    if (options.exists("gw.qp_dense_spacing")) {
+      gwopt_.qp_dense_spacing =
+          options.get("gw.qp_dense_spacing").as<double>();
+    }
+    if (options.exists("gw.qp_adaptive_shell_width")) {
+      gwopt_.qp_adaptive_shell_width =
+          options.get("gw.qp_adaptive_shell_width").as<double>();
+    }
+    if (options.exists("gw.qp_adaptive_shell_count")) {
+      gwopt_.qp_adaptive_shell_count =
+          options.get("gw.qp_adaptive_shell_count").as<Index>();
+    }
+
+    // Deprecated legacy aliases
+    const bool has_legacy_steps = options.exists("gw.qp_grid_steps");
+    const bool has_legacy_spacing = options.exists("gw.qp_grid_spacing");
+
+    if (has_legacy_steps != has_legacy_spacing) {
+      throw std::runtime_error(
+          "Deprecated gw.qp_grid_steps and gw.qp_grid_spacing must be given "
+          "together if either is used.");
+    }
+
+    if (has_legacy_steps && has_legacy_spacing) {
+      gwopt_.qp_grid_steps = options.get("gw.qp_grid_steps").as<Index>();
+      gwopt_.qp_grid_spacing = options.get("gw.qp_grid_spacing").as<double>();
+
+      const double legacy_half_width =
+          qp_solver::LegacyFullWindowHalfWidth(gwopt_);
+      const double legacy_shell_width =
+          qp_solver::LegacyAdaptiveShellWidth(gwopt_);
+
+      if (gwopt_.qp_full_window_half_width <= 0.0) {
+        gwopt_.qp_full_window_half_width = legacy_half_width;
+      }
+      if (gwopt_.qp_dense_spacing <= 0.0) {
+        gwopt_.qp_dense_spacing = gwopt_.qp_grid_spacing;
+      }
+      if (gwopt_.qp_adaptive_shell_count <= 0 &&
+          gwopt_.qp_adaptive_shell_width <= 0.0) {
+        gwopt_.qp_adaptive_shell_width = legacy_shell_width;
+      }
+
+      XTP_LOG(Log::error, *pLog_)
+          << " Deprecated GW QP options detected: "
+          << "qp_grid_steps=" << gwopt_.qp_grid_steps
+          << " qp_grid_spacing=" << gwopt_.qp_grid_spacing
+          << " -> mapped to qp_full_window_half_width="
+          << gwopt_.qp_full_window_half_width
+          << " qp_dense_spacing=" << gwopt_.qp_dense_spacing
+          << " qp_adaptive_shell_width="
+          << gwopt_.qp_adaptive_shell_width << flush;
+    }
+
+    qp_solver::NormalizeGridSearchOptions(gwopt_);
+
     XTP_LOG(Log::error, *pLog_)
-        << " QP grid steps: " << gwopt_.qp_grid_steps << flush;
+        << " QP full window half-width: "
+        << gwopt_.qp_full_window_half_width << flush;
     XTP_LOG(Log::error, *pLog_)
-        << " QP grid spacing: " << gwopt_.qp_grid_spacing << flush;
+        << " QP dense spacing: "
+        << gwopt_.qp_dense_spacing << flush;
+    XTP_LOG(Log::error, *pLog_)
+        << " QP adaptive shell width: "
+        << gwopt_.qp_adaptive_shell_width << flush;
+    XTP_LOG(Log::error, *pLog_)
+        << " QP adaptive shell count: "
+        << gwopt_.qp_adaptive_shell_count << flush;
   }
   gwopt_.qp_root_finder = options.get("gw.qp_root_finder").as<std::string>();
 
@@ -859,6 +926,10 @@ bool GWBSE::Evaluate() {
       gwopt_uks.qp_solver_alpha = gwopt_.qp_solver_alpha;
       gwopt_uks.qp_grid_steps = gwopt_.qp_grid_steps;
       gwopt_uks.qp_grid_spacing = gwopt_.qp_grid_spacing;
+      gwopt_uks.qp_full_window_half_width = gwopt_.qp_full_window_half_width;
+      gwopt_uks.qp_dense_spacing = gwopt_.qp_dense_spacing;
+      gwopt_uks.qp_adaptive_shell_width = gwopt_.qp_adaptive_shell_width;
+      gwopt_uks.qp_adaptive_shell_count = gwopt_.qp_adaptive_shell_count;
       gwopt_uks.gw_mixing_order = gwopt_.gw_mixing_order;
       gwopt_uks.gw_mixing_alpha = gwopt_.gw_mixing_alpha;
       gwopt_uks.quadrature_scheme = gwopt_.quadrature_scheme;
