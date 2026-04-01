@@ -9,6 +9,7 @@ Version 2026-dev
 -  implementing Unrestricted KS-DFT for open-shell systems (#1232)
 -  added open-shell support for GW (#1234)
 -  implemented BSE for spin-polarized ground states (#1235)
+-  implemented smarter grid search in QP solver (#1236)
 
 Version 2026 (released 09.03.26)
 ================================
