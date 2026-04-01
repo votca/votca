@@ -68,11 +68,20 @@ class GW {
                      // rebuilt
     std::string qp_solver;
     double qp_solver_alpha = 0.75;
-    // Deprecated legacy aliases. Kept for backward compatibility and tests.
+    // Legacy aliases from the original grid-search implementation.
+    // They used to define both the total QP window and the scan resolution at
+    // the same time. The new implementation keeps them only so that old XML
+    // files and existing tests still work; configuration code maps them onto
+    // the decoupled controls below.
     Index qp_grid_steps = 0;
     double qp_grid_spacing = 0.0;
 
-    // New decoupled QP search controls
+    // Decoupled QP search controls:
+    //  - qp_full_window_half_width defines the outer full search interval
+    //  - qp_dense_spacing defines the dense scan used for robust sign changes
+    //  - qp_adaptive_shell_width / count define the outward shell search
+    // All values are normalized in configure(); negative values mean "unset"
+    // and trigger either legacy mapping or robust defaults.
     double qp_full_window_half_width = -1.0;  // Ha; <=0 means "unset"
     double qp_dense_spacing = -1.0;           // Ha; <=0 means "unset"
     double qp_adaptive_shell_width = -1.0;    // Ha; <=0 means "unset"

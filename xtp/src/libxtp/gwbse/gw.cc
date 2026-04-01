@@ -34,6 +34,10 @@ namespace xtp {
 
 void GW::configure(const options& opt) {
   opt_ = opt;
+
+  // Normalize legacy and new grid-search settings once at configuration time.
+  // From this point on, the solver operates only on the decoupled canonical
+  // controls, independent of how the user specified them in XML.
   qp_solver::NormalizeGridSearchOptions(opt_);
   qptotal_ = opt_.qpmax - opt_.qpmin + 1;
   rpa_.configure(opt_.homo, opt_.rpamin, opt_.rpamax);
@@ -357,6 +361,10 @@ boost::optional<double> GW::SolveQP_Grid_Windowed_Adaptive(
   QPFunc fqp(gw_level, *sigma_.get(), intercept0);
 
   qp_solver::SolverOptions solver_opt;
+
+  // Pass only canonical search controls into the shared grid-search utility.
+  // RKS and UKS intentionally use the same search semantics; only the sigma
+  // evaluator differs between the two implementations.
   solver_opt.g_sc_limit = opt_.g_sc_limit;
   solver_opt.qp_bisection_max_iter = opt_.g_sc_max_iterations;
   solver_opt.qp_full_window_half_width = opt_.qp_full_window_half_width;
@@ -423,6 +431,9 @@ boost::optional<double> GW::SolveQP_Grid_Windowed_Dense(
   QPFunc fqp(gw_level, *sigma_.get(), intercept0);
 
   qp_solver::SolverOptions solver_opt;
+
+  // The dense path performs a uniform sign-change scan over the requested
+  // interval. Its spacing is qp_dense_spacing, not the adaptive shell width.
   solver_opt.g_sc_limit = opt_.g_sc_limit;
   solver_opt.qp_bisection_max_iter = opt_.g_sc_max_iterations;
   solver_opt.qp_full_window_half_width = opt_.qp_full_window_half_width;
@@ -440,6 +451,9 @@ boost::optional<double> GW::SolveQP_Grid_Windowed_Dense(
     double freq_prev = left_limit;
     double targ_prev = fqp.value(freq_prev, EvalStage::Scan);
 
+    // Dense scanning is the robustness path: it uniformly samples the entire
+    // interval to avoid missing sign changes that a coarser adaptive shell
+    // search might step over.
     const Index n_steps = std::max<Index>(
         2, static_cast<Index>(
                std::ceil((right_limit - left_limit) / opt_.qp_dense_spacing)) +
@@ -586,6 +600,8 @@ boost::optional<double> GW::SolveQP_Grid_Windowed(
 
 boost::optional<double> GW::SolveQP_Grid(double intercept0, double frequency0,
                                          Index gw_level, QPStats* stats) const {
+  // The full QP search window is now controlled explicitly and no longer
+  // inferred from the dense-grid spacing.
   const double range = opt_.qp_full_window_half_width;
 
   const double full_left_limit = frequency0 - range;

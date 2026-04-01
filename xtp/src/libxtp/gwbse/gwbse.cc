@@ -428,6 +428,13 @@ void GWBSE::Initialize(tools::Property& options) {
 
   XTP_LOG(Log::error, *pLog_) << " QP solver: " << gwopt_.qp_solver << flush;
   if (gwopt_.qp_solver == "grid") {
+    // Grid-based QP solving now exposes the full search extent, dense scan,
+    // and adaptive shell scan as separate controls. This avoids the old
+    // overloading of qp_grid_steps / qp_grid_spacing, where one pair of values
+    // simultaneously determined the window width and both scan resolutions.
+    //
+    // New-style options are read first. Deprecated legacy aliases are then
+    // translated only for values that are still unset.
     // New decoupled QP search options
     if (options.exists("gw.qp_full_window_half_width")) {
       gwopt_.qp_full_window_half_width =
@@ -446,7 +453,8 @@ void GWBSE::Initialize(tools::Property& options) {
           options.get("gw.qp_adaptive_shell_count").as<Index>();
     }
 
-    // Deprecated legacy aliases
+    // Deprecated legacy aliases. They are accepted for backward
+    // compatibility and mapped onto the canonical controls below.
     const bool has_legacy_steps = options.exists("gw.qp_grid_steps");
     const bool has_legacy_spacing = options.exists("gw.qp_grid_spacing");
 
@@ -487,6 +495,8 @@ void GWBSE::Initialize(tools::Property& options) {
           << gwopt_.qp_adaptive_shell_width << flush;
     }
 
+    // Final normalization produces one canonical option set used by both
+    // GW and GW_UKS implementations.
     qp_solver::NormalizeGridSearchOptions(gwopt_);
 
     XTP_LOG(Log::error, *pLog_)
@@ -926,6 +936,10 @@ bool GWBSE::Evaluate() {
       gwopt_uks.qp_solver_alpha = gwopt_.qp_solver_alpha;
       gwopt_uks.qp_grid_steps = gwopt_.qp_grid_steps;
       gwopt_uks.qp_grid_spacing = gwopt_.qp_grid_spacing;
+
+      // Forward the already-normalized canonical grid-search controls so that
+      // RKS and UKS use the same search design and only differ in the
+      // spin-dependent sigma evaluation.
       gwopt_uks.qp_full_window_half_width = gwopt_.qp_full_window_half_width;
       gwopt_uks.qp_dense_spacing = gwopt_.qp_dense_spacing;
       gwopt_uks.qp_adaptive_shell_width = gwopt_.qp_adaptive_shell_width;

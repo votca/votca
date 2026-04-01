@@ -84,13 +84,28 @@ struct SolverOptions {
   double g_sc_limit = 1e-5;
   Index qp_bisection_max_iter = 200;
 
-  // Full symmetric QP search window around the reference energy
+  // The new grid-search design separates four previously entangled concerns:
+  //   (1) full QP search extent
+  //   (2) dense sign-change detection spacing
+  //   (3) adaptive shell spacing / shell count
+  //   (4) interval refinement method (configured elsewhere)
+  // This makes the search numerics easier to reason about and allows robust
+  // dense fallback without forcing the adaptive scan to inherit the same mesh.
+  //
+  // qp_full_window_half_width defines the full symmetric interval around the
+  // current reference frequency that can be searched when no narrower window
+  // is imposed by the caller.
   double qp_full_window_half_width = 0.75;
 
-  // Robust dense sign-change detection
+  // qp_dense_spacing is only for the robust dense scan that detects sign
+  // changes before interval refinement. It is intentionally independent from
+  // the adaptive search spacing.
   double qp_dense_spacing = 0.002;
 
-  // Adaptive outward shell scan
+  // The adaptive search starts at the reference energy and expands outward in
+  // shells. The shell spacing can be set directly or derived from a requested
+  // number of shells per half-window. This search is meant to find the most
+  // relevant root early, while the dense scan remains the robust fallback.
   double qp_adaptive_shell_width = 0.025;
   Index qp_adaptive_shell_count = 0;  // 0 -> use width
 
@@ -98,6 +113,10 @@ struct SolverOptions {
   double max_accepted_Z = 1.5;
 };
 
+// Legacy mapping helpers preserve the old qp_grid_steps / qp_grid_spacing
+// behavior for existing XML files and tests. They are translation utilities
+// only; the actual search code below works exclusively with the decoupled
+// canonical options.
 template <typename Opt>
 inline double LegacyFullWindowHalfWidth(const Opt& opt) {
   if (opt.qp_grid_steps <= 1 || opt.qp_grid_spacing <= 0.0) {
@@ -114,6 +133,11 @@ inline double LegacyAdaptiveShellWidth(const Opt& opt) {
 
   const double full_window_width =
       opt.qp_grid_spacing * double(opt.qp_grid_steps - 1);
+
+  // Reconstruct the historical "coarse" spacing as closely as possible.
+  // The hard-coded 21-point floor is legacy behavior from the original
+  // implementation and intentionally remains confined to this compatibility
+  // path instead of the new adaptive search itself.
   const Index base_coarse_steps = std::max<Index>(21, opt.qp_grid_steps / 4);
 
   if (base_coarse_steps <= 1) {
@@ -123,6 +147,10 @@ inline double LegacyAdaptiveShellWidth(const Opt& opt) {
   return full_window_width / double(base_coarse_steps - 1);
 }
 
+// NormalizeGridSearchOptions is the single entry point that converts a mix of
+// new and legacy settings into one canonical set of search controls. New-style
+// options always take precedence; legacy qp_grid_steps / qp_grid_spacing only
+// fill values that were left unset by the caller.
 template <typename Opt>
 inline void NormalizeGridSearchOptions(Opt& opt) {
   const bool has_legacy =
@@ -161,6 +189,8 @@ inline void NormalizeGridSearchOptions(Opt& opt) {
   }
 }
 
+// Convert either an explicit shell width or an explicit shell count into the
+// actual shell spacing used by the adaptive outward scan.
 inline double EffectiveAdaptiveShellWidth(const SolverOptions& opt) {
   if (opt.qp_adaptive_shell_count > 0) {
     return opt.qp_full_window_half_width /
@@ -395,6 +425,11 @@ boost::optional<double> SolveQP_Grid_Windowed(
   }
 
   const double shell_width = EffectiveAdaptiveShellWidth(opt);
+
+  // The adaptive search is centered on the current reference frequency. On
+  // the first GW iteration, a local linearized estimate is used when it stays
+  // inside the requested window; later iterations keep the current frequency as
+  // the center. From that center, the scan expands symmetrically in shells.
   double center = frequency0;
 
   if (gw_sc_iteration == 0) {
@@ -410,6 +445,9 @@ boost::optional<double> SolveQP_Grid_Windowed(
 
   center = std::max(left_limit, std::min(right_limit, center));
 
+  // Compute how many shells are needed to reach both limits from the chosen
+  // center. Unlike the legacy implementation, this depends only on the
+  // explicit adaptive shell control, not on the dense scan spacing.
   const double max_shell_reach =
       std::max(center - left_limit, right_limit - center);
   const Index n_shells = static_cast<Index>(
@@ -525,6 +563,11 @@ boost::optional<double> SolveQP_Grid_Windowed(
     bool added_this_shell = false;
     const double delta = double(shell) * shell_width;
 
+    // Each shell adds one point to the left and one to the right of the
+    // center. Whenever a sign change is detected between neighboring samples,
+    // that interval is refined by bisection or Brent and the resulting root is
+    // classified as accepted or rejected using the Z-based acceptance test.
+
     if (left_active) {
       const double omega_left = center - delta;
       if (omega_left >= left_limit) {
@@ -581,6 +624,11 @@ boost::optional<double> SolveQP_Grid_Windowed(
     }
   }
 
+  // Preference order for the adaptive search:
+  //   1. return the best accepted root found in the scanned shells
+  //   2. if the caller allows it, return the best rejected root
+  // The outer GW driver uses this to enforce that restricted-window searches
+  // only succeed on accepted roots; otherwise it escalates to a full dense scan.
   if (!accepted_roots.empty()) {
     auto best =
         std::max_element(accepted_roots.begin(), accepted_roots.end(),

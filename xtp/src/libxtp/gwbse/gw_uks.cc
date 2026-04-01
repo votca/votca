@@ -37,6 +37,9 @@ GW_UKS::GW_UKS(Logger& log, TCMatrix_gwbse_spin& Mmn,
 
 void GW_UKS::configure(const options& opt) {
   opt_ = opt;
+
+  // Normalize legacy and new grid-search settings once at configuration time.
+  // This keeps the UKS path numerically aligned with the RKS path.
   qp_solver::NormalizeGridSearchOptions(opt_);
   qptotal_ = opt_.qpmax - opt_.qpmin + 1;
   rpa_.configure(opt_.homo_alpha, opt_.homo_beta, opt_.rpamin, opt_.rpamax);
@@ -406,6 +409,8 @@ boost::optional<double> GW_UKS::SolveQP_Linearisation(Spin spin,
 boost::optional<double> GW_UKS::SolveQP_Grid(Spin spin, double intercept0,
                                              double frequency0, Index gw_level,
                                              QPStats* stats) const {
+  // The full QP search window is now controlled explicitly and no longer
+  // derived from the dense-grid spacing.
   const double range = opt_.qp_full_window_half_width;
 
   const double full_left_limit = frequency0 - range;
@@ -473,6 +478,10 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Adaptive(
   QPFunc fqp(gw_level, SigmaEvaluator(spin), intercept0);
 
   qp_solver::SolverOptions solver_opt;
+
+  // Pass only canonical search controls into the shared grid-search utility.
+  // UKS uses the same adaptive/dense logic as RKS; only the spin-resolved
+  // sigma evaluation changes.
   solver_opt.g_sc_limit = opt_.g_sc_limit;
   solver_opt.qp_bisection_max_iter = opt_.g_sc_max_iterations;
   solver_opt.qp_full_window_half_width = opt_.qp_full_window_half_width;
@@ -544,6 +553,10 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Dense(
   QPFunc fqp(gw_level, SigmaEvaluator(spin), intercept0);
 
   qp_solver::SolverOptions solver_opt;
+
+  // The dense path performs a uniform sign-change scan over the requested
+  // interval. Its mesh is controlled by qp_dense_spacing and is independent
+  // from the adaptive shell spacing.
   solver_opt.g_sc_limit = opt_.g_sc_limit;
   solver_opt.qp_bisection_max_iter = opt_.g_sc_max_iterations;
   solver_opt.qp_full_window_half_width = opt_.qp_full_window_half_width;
@@ -561,6 +574,9 @@ boost::optional<double> GW_UKS::SolveQP_Grid_Windowed_Dense(
     double freq_prev = left_limit;
     double targ_prev = fqp.value(freq_prev, EvalStage::Scan);
 
+    // Dense scanning is the robustness path: it uniformly samples the entire
+    // interval to avoid missing sign changes that a shell-based scan may not
+    // hit directly.
     const Index n_steps = std::max<Index>(
         2, static_cast<Index>(
                std::ceil((right_limit - left_limit) / opt_.qp_dense_spacing)) +
