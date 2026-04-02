@@ -428,13 +428,94 @@ void GWBSE::Initialize(tools::Property& options) {
 
   XTP_LOG(Log::error, *pLog_) << " QP solver: " << gwopt_.qp_solver << flush;
   if (gwopt_.qp_solver == "grid") {
-    gwopt_.qp_grid_steps = options.get("gw.qp_grid_steps").as<Index>();
-    gwopt_.qp_grid_spacing = options.get("gw.qp_grid_spacing").as<double>();
+    // Grid-based QP solving now exposes the full search extent, dense scan,
+    // and adaptive shell scan as separate controls. This avoids the old
+    // overloading of qp_grid_steps / qp_grid_spacing, where one pair of values
+    // simultaneously determined the window width and both scan resolutions.
+    //
+    // New-style options are read first. Deprecated legacy aliases are then
+    // translated only for values that are still unset.
+    // New decoupled QP search options
+    if (options.exists("gw.qp_full_window_half_width")) {
+      gwopt_.qp_full_window_half_width =
+          options.get("gw.qp_full_window_half_width").as<double>();
+    }
+    if (options.exists("gw.qp_dense_spacing")) {
+      gwopt_.qp_dense_spacing = options.get("gw.qp_dense_spacing").as<double>();
+    }
+    if (options.exists("gw.qp_adaptive_shell_width")) {
+      gwopt_.qp_adaptive_shell_width =
+          options.get("gw.qp_adaptive_shell_width").as<double>();
+    }
+    if (options.exists("gw.qp_adaptive_shell_count")) {
+      gwopt_.qp_adaptive_shell_count =
+          options.get("gw.qp_adaptive_shell_count").as<Index>();
+    }
+
+    // Deprecated legacy aliases. They are accepted for backward
+    // compatibility and mapped onto the canonical controls below.
+    const bool has_legacy_steps = options.exists("gw.qp_grid_steps");
+    const bool has_legacy_spacing = options.exists("gw.qp_grid_spacing");
+
+    if (has_legacy_steps != has_legacy_spacing) {
+      throw std::runtime_error(
+          "Deprecated gw.qp_grid_steps and gw.qp_grid_spacing must be given "
+          "together if either is used.");
+    }
+
+    if (has_legacy_steps && has_legacy_spacing) {
+      gwopt_.qp_grid_steps = options.get("gw.qp_grid_steps").as<Index>();
+      gwopt_.qp_grid_spacing = options.get("gw.qp_grid_spacing").as<double>();
+
+      const double legacy_half_width =
+          qp_solver::LegacyFullWindowHalfWidth(gwopt_);
+      const double legacy_shell_width =
+          qp_solver::LegacyAdaptiveShellWidth(gwopt_);
+
+      if (gwopt_.qp_full_window_half_width <= 0.0) {
+        gwopt_.qp_full_window_half_width = legacy_half_width;
+      }
+      if (gwopt_.qp_dense_spacing <= 0.0) {
+        gwopt_.qp_dense_spacing = gwopt_.qp_grid_spacing;
+      }
+      if (gwopt_.qp_adaptive_shell_count <= 0 &&
+          gwopt_.qp_adaptive_shell_width <= 0.0) {
+        gwopt_.qp_adaptive_shell_width = legacy_shell_width;
+      }
+
+      XTP_LOG(Log::error, *pLog_)
+          << " Deprecated GW QP options detected: "
+          << "qp_grid_steps=" << gwopt_.qp_grid_steps
+          << " qp_grid_spacing=" << gwopt_.qp_grid_spacing
+          << " -> mapped to qp_full_window_half_width="
+          << gwopt_.qp_full_window_half_width
+          << " qp_dense_spacing=" << gwopt_.qp_dense_spacing
+          << " qp_adaptive_shell_width=" << gwopt_.qp_adaptive_shell_width
+          << flush;
+    }
+
+    // Final normalization produces one canonical option set used by both
+    // GW and GW_UKS implementations.
+    qp_solver::NormalizeGridSearchOptions(gwopt_);
+
     XTP_LOG(Log::error, *pLog_)
-        << " QP grid steps: " << gwopt_.qp_grid_steps << flush;
+        << " QP full window half-width: " << gwopt_.qp_full_window_half_width
+        << flush;
     XTP_LOG(Log::error, *pLog_)
-        << " QP grid spacing: " << gwopt_.qp_grid_spacing << flush;
+        << " QP dense spacing: " << gwopt_.qp_dense_spacing << flush;
+    XTP_LOG(Log::error, *pLog_)
+        << " QP adaptive shell width: " << gwopt_.qp_adaptive_shell_width
+        << flush;
+    XTP_LOG(Log::error, *pLog_)
+        << " QP adaptive shell count: " << gwopt_.qp_adaptive_shell_count
+        << flush;
   }
+  gwopt_.qp_root_finder = options.get("gw.qp_root_finder").as<std::string>();
+  XTP_LOG(Log::error, *pLog_)
+      << " QP root finder: "
+      << gwopt_.qp_root_finder << flush;
+
+
   gwopt_.gw_mixing_order =
       options.get("gw.mixing_order").as<Index>();  // max history in
                                                    // mixing (0: plain,
@@ -442,7 +523,12 @@ void GWBSE::Initialize(tools::Property& options) {
                                                    // Anderson)
 
   gwopt_.gw_mixing_alpha = options.get("gw.mixing_alpha").as<double>();
-
+  gwopt_.qp_grid_search_mode =
+      options.get("gw.qp_grid_search_mode").as<std::string>();
+  gwopt_.qp_restrict_search = options.get("gw.qp_restrict_search").as<bool>();
+  gwopt_.qp_zero_margin = options.get("gw.qp_zero_margin").as<double>();
+  gwopt_.qp_virtual_min_energy =
+      options.get("gw.qp_virtual_min_energy").as<double>();
   if (mode == "evGW") {
     if (gwopt_.gw_mixing_order == 0) {
       XTP_LOG(Log::error, *pLog_) << " evGW with plain update " << std::flush;
@@ -852,11 +938,24 @@ bool GWBSE::Evaluate() {
       gwopt_uks.qp_solver_alpha = gwopt_.qp_solver_alpha;
       gwopt_uks.qp_grid_steps = gwopt_.qp_grid_steps;
       gwopt_uks.qp_grid_spacing = gwopt_.qp_grid_spacing;
+
+      // Forward the already-normalized canonical grid-search controls so that
+      // RKS and UKS use the same search design and only differ in the
+      // spin-dependent sigma evaluation.
+      gwopt_uks.qp_full_window_half_width = gwopt_.qp_full_window_half_width;
+      gwopt_uks.qp_dense_spacing = gwopt_.qp_dense_spacing;
+      gwopt_uks.qp_adaptive_shell_width = gwopt_.qp_adaptive_shell_width;
+      gwopt_uks.qp_adaptive_shell_count = gwopt_.qp_adaptive_shell_count;
       gwopt_uks.gw_mixing_order = gwopt_.gw_mixing_order;
       gwopt_uks.gw_mixing_alpha = gwopt_.gw_mixing_alpha;
       gwopt_uks.quadrature_scheme = gwopt_.quadrature_scheme;
       gwopt_uks.order = gwopt_.order;
       gwopt_uks.alpha = gwopt_.alpha;
+      gwopt_uks.qp_restrict_search = gwopt_.qp_restrict_search;
+      gwopt_uks.qp_zero_margin = gwopt_.qp_zero_margin;
+      gwopt_uks.qp_virtual_min_energy = gwopt_.qp_virtual_min_energy;
+      gwopt_uks.qp_root_finder = gwopt_.qp_root_finder;
+      gwopt_uks.qp_grid_search_mode = gwopt_.qp_grid_search_mode;
 
       GW_UKS gw = GW_UKS(*pLog_, Mmn_spin, vxc.first, vxc.second,
                          orbitals_.MOs().eigenvalues(),

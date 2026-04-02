@@ -9,9 +9,11 @@
 #define VOTCA_XTP_GW_UKS_H
 
 #include <memory>
+#include <unordered_set>
 
 #include "logger.h"
 #include "orbitals.h"
+#include "qp_solver_utils.h"
 #include "rpa_uks.h"
 #include "sigma_base_uks.h"
 #include "threecenter.h"
@@ -21,6 +23,12 @@ namespace votca {
 namespace xtp {
 
 class GW_UKS {
+
+  using EvalStage = qp_solver::EvalStage;
+  using QPStats = qp_solver::Stats;
+  using QPRootCandidate = qp_solver::RootCandidate;
+  using QPWindowDiagnostics = qp_solver::WindowDiagnostics;
+
  public:
   struct options {
     Index homo_alpha;
@@ -40,13 +48,34 @@ class GW_UKS {
     Index reset_3c;
     std::string qp_solver;
     double qp_solver_alpha = 0.75;
-    Index qp_grid_steps;
-    double qp_grid_spacing;
+    // Legacy aliases from the original grid-search implementation.
+    // They used to define both the total QP window and the scan resolution at
+    // the same time. The new implementation keeps them only so that old XML
+    // files and existing tests still work; configuration code maps them onto
+    // the decoupled controls below.
+    Index qp_grid_steps = 0;
+    double qp_grid_spacing = 0.0;
+
+    // Decoupled QP search controls:
+    //  - qp_full_window_half_width defines the outer full search interval
+    //  - qp_dense_spacing defines the dense scan used for robust sign changes
+    //  - qp_adaptive_shell_width / count define the outward shell search
+    // All values are normalized in configure(); negative values mean "unset"
+    // and trigger either legacy mapping or robust defaults.
+    double qp_full_window_half_width = -1.0;  // Ha; <=0 means "unset"
+    double qp_dense_spacing = -1.0;           // Ha; <=0 means "unset"
+    double qp_adaptive_shell_width = -1.0;    // Ha; <=0 means "unset"
+    Index qp_adaptive_shell_count = 0;        // 0 means "use shell width"
     Index gw_mixing_order;
     double gw_mixing_alpha;
     std::string quadrature_scheme;
     Index order;
     double alpha;
+    bool qp_restrict_search = true;
+    double qp_zero_margin = 1e-6;
+    double qp_virtual_min_energy = -0.1;
+    std::string qp_root_finder = "bisection";
+    std::string qp_grid_search_mode = "adaptive_with_dense_fallback";
   };
 
   GW_UKS(Logger& log, TCMatrix_gwbse_spin& Mmn,
@@ -79,26 +108,71 @@ class GW_UKS {
 
     std::pair<double, double> operator()(double frequency) const {
       std::pair<double, double> result;
-      result.first = value(frequency);
+      result.first = value(frequency, EvalStage::Other);
       result.second = deriv(frequency);
       return result;
     }
 
-    double value(double frequency) const {
-      return sigma_c_func_.CalcCorrelationDiagElement(gw_level_, frequency) +
-             offset_ - frequency;
+    double sigma(double frequency, EvalStage stage = EvalStage::Other) const {
+      const std::uint64_t key = FrequencyKey(frequency);
+
+      auto insert_result = seen_frequencies_.insert(key);
+      if (!insert_result.second) {
+        ++stats_.sigma_repeat_calls;
+      } else {
+        ++stats_.sigma_unique_frequencies;
+      }
+
+      CountSigmaStage(stage);
+      return sigma_c_func_.CalcCorrelationDiagElement(gw_level_, frequency);
+    }
+
+    double value(double frequency, EvalStage stage = EvalStage::Other) const {
+      return sigma(frequency, stage) + offset_ - frequency;
     }
 
     double deriv(double frequency) const {
+      ++stats_.deriv_calls;
       return sigma_c_func_.CalcCorrelationDiagElementDerivative(gw_level_,
                                                                 frequency) -
              1.0;
     }
 
+    const QPStats& GetStats() const { return stats_; }
+
    private:
+    static std::uint64_t FrequencyKey(double x) {
+      std::uint64_t key = 0;
+      static_assert(sizeof(double) == sizeof(std::uint64_t),
+                    "Unexpected double size");
+      std::memcpy(&key, &x, sizeof(double));
+      return key;
+    }
+
+    void CountSigmaStage(EvalStage stage) const {
+      switch (stage) {
+        case EvalStage::Scan:
+          ++stats_.sigma_scan_calls;
+          break;
+        case EvalStage::Refine:
+          ++stats_.sigma_refine_calls;
+          break;
+        case EvalStage::Derivative:
+          ++stats_.sigma_derivative_calls;
+          break;
+        case EvalStage::Other:
+        default:
+          ++stats_.sigma_other_calls;
+          break;
+      }
+    }
+
     Index gw_level_;
     double offset_;
     const Sigma_base_UKS& sigma_c_func_;
+
+    mutable std::unordered_set<std::uint64_t> seen_frequencies_;
+    mutable QPStats stats_;
   };
 
   PPM ppm_;
@@ -121,19 +195,41 @@ class GW_UKS {
   void PrintQP_Energies(Spin spin,
                         const Eigen::VectorXd& qp_diag_energies) const;
   Eigen::VectorXd SolveQP(Spin spin, const Eigen::VectorXd& frequencies) const;
+
   boost::optional<double> SolveQP_Grid(Spin spin, double intercept0,
-                                       double frequency0, Index gw_level) const;
+                                       double frequency0, Index gw_level,
+                                       QPStats* stats = nullptr) const;
+
+  boost::optional<double> SolveQP_Grid_Windowed(
+      Spin spin, double intercept0, double frequency0, Index gw_level,
+      double left_limit, double right_limit, bool allow_rejected_return = true,
+      QPStats* stats = nullptr) const;
+
+  boost::optional<double> SolveQP_Grid_Windowed_Adaptive(
+      Spin spin, double intercept0, double frequency0, Index gw_level,
+      double left_limit, double right_limit, bool allow_rejected_return = true,
+      QPStats* stats = nullptr) const;
+
+  boost::optional<double> SolveQP_Grid_Windowed_Dense(
+      Spin spin, double intercept0, double frequency0, Index gw_level,
+      double left_limit, double right_limit, bool allow_rejected_return = true,
+      QPStats* stats = nullptr) const;
+
   boost::optional<double> SolveQP_FixedPoint(Spin spin, double intercept0,
-                                             double frequency0,
-                                             Index gw_level) const;
+                                             double frequency0, Index gw_level,
+                                             QPStats* stats = nullptr) const;
+
   boost::optional<double> SolveQP_Linearisation(Spin spin, double intercept0,
                                                 double frequency0,
-                                                Index gw_level) const;
-  double SolveQP_Bisection(double lowerbound, double f_lowerbound,
-                           double upperbound, double f_upperbound,
-                           const QPFunc& f) const;
+                                                Index gw_level,
+                                                QPStats* stats = nullptr) const;
+
   bool Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2,
                  double epsilon) const;
+
+  boost::optional<QPRootCandidate> RefineQPInterval(
+      double lowerbound, double f_lowerbound, double upperbound,
+      double f_upperbound, const QPFunc& f, double reference) const;
 
   std::string LevelLabel(Spin spin, Index level) const;
   const char* OccupationTag(Spin spin, Index level) const;
@@ -141,6 +237,7 @@ class GW_UKS {
   Index qptotal_ = 0;
   options opt_;
   Logger& log_;
+  Index gw_sc_iteration_ = 0;
   TCMatrix_gwbse_spin& Mmn_;
   const Eigen::MatrixXd& vxc_alpha_;
   const Eigen::MatrixXd& vxc_beta_;

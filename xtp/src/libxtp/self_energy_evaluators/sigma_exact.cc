@@ -39,6 +39,7 @@ void Sigma_Exact::PrepareScreening() {
 
 double Sigma_Exact::CalcCorrelationDiagElement(Index gw_level,
                                                double frequency) const {
+  CountDiagEval();
   const double eta2 = opt_.eta * opt_.eta;
   const Index lumo = opt_.homo + 1;
   const Index n_occ = lumo - opt_.rpamin;
