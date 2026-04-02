@@ -283,4 +283,295 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   libint2::finalize();
 }
 
+BOOST_AUTO_TEST_CASE(huckel_guess) {
+  libint2::initialize();
+  DFTEngine dft;
+
+  WriteBasis321G();
+
+  Orbitals orb;
+  orb.QMAtoms() = Water();
+
+  std::ofstream xml("dftengine_huckel.xml");
+
+  xml << "<dftpackage>" << std::endl;
+  xml << "<spin>1</spin>" << std::endl;
+  xml << "<name>xtp</name>" << std::endl;
+  xml << "<charge>0</charge>" << std::endl;
+  xml << "<functional>XC_HYB_GGA_XC_PBEH</functional>" << std::endl;
+  xml << "<basisset>3-21G.xml</basisset>" << std::endl;
+  xml << "<initial_guess>huckel</initial_guess>" << std::endl;
+  xml << "<xtpdft>" << std::endl;
+  xml << "<screening_eps>1e-9</screening_eps>\n";
+  xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
+  xml << "<convergence>" << std::endl;
+  xml << "    <energy>1e-7</energy>" << std::endl;
+  xml << "    <method>DIIS</method>" << std::endl;
+  xml << "    <DIIS_start>0.002</DIIS_start>" << std::endl;
+  xml << "    <ADIIS_start>0.8</ADIIS_start>" << std::endl;
+  xml << "    <DIIS_length>20</DIIS_length>" << std::endl;
+  xml << "    <levelshift>0.0</levelshift>" << std::endl;
+  xml << "    <levelshift_end>0.2</levelshift_end>" << std::endl;
+  xml << "    <max_iterations>100</max_iterations>\n";
+  xml << "    <error>1e-7</error>\n";
+  xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
+  xml << "    <mixing>0.7</mixing>\n";
+  xml << "</convergence>" << std::endl;
+  xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
+  xml << "<max_iterations>1</max_iterations>" << std::endl;
+  xml << "</xtpdft>" << std::endl;
+  xml << "</dftpackage>" << std::endl;
+  xml.close();
+  votca::tools::Property prop;
+  prop.LoadFromXML("dftengine_huckel.xml");
+
+  Logger log;
+  dft.setLogger(&log);
+  dft.Initialize(prop.get("dftpackage"));
+  dft.Evaluate(orb);
+
+  BOOST_CHECK_CLOSE(orb.getDFTTotalEnergy(), -75.89101729307095, 1e-5);
+
+  Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(13);
+  MOs_energy_ref << -19.0739, -1.01904, -0.520731, -0.341996, -0.27356,
+      0.118834, 0.210783, 0.953576, 1.04314, 1.46895, 1.54729, 1.67293, 2.77584;
+
+  bool check_eng = MOs_energy_ref.isApprox(orb.MOs().eigenvalues(), 1e-5);
+  BOOST_CHECK_EQUAL(check_eng, true);
+  if (!check_eng) {
+    std::cout << "result eng" << std::endl;
+    std::cout << orb.MOs().eigenvalues() << std::endl;
+    std::cout << "ref eng" << std::endl;
+    std::cout << MOs_energy_ref << std::endl;
+  }
+
+  Eigen::MatrixXd MOs_coeff_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/dftengine/MOs_coeff_ref3.mm");
+
+  AOBasis basis = orb.getDftBasis();
+  AOOverlap overlap;
+  overlap.Fill(basis);
+  Eigen::MatrixXd proj = MOs_coeff_ref.leftCols(5).transpose() *
+                         overlap.Matrix() *
+                         orb.MOs().eigenvectors().leftCols(5);
+  Eigen::VectorXd norms = proj.colwise().norm();
+  bool check_coeff = norms.isApproxToConstant(1, 1e-5);
+  BOOST_CHECK_EQUAL(check_coeff, true);
+  if (!check_coeff) {
+    std::cout << "result coeff" << std::endl;
+    std::cout << orb.MOs().eigenvectors() << std::endl;
+    std::cout << "ref coeff" << std::endl;
+    std::cout << MOs_coeff_ref << std::endl;
+  }
+
+  libint2::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(huckel_dft_guess) {
+  libint2::initialize();
+  DFTEngine dft;
+
+  WriteBasis321G();
+
+  Orbitals orb;
+  orb.QMAtoms() = Water();
+
+  std::ofstream xml("dftengine_huckel_dft.xml");
+
+  xml << "<dftpackage>" << std::endl;
+  xml << "<spin>1</spin>" << std::endl;
+  xml << "<name>xtp</name>" << std::endl;
+  xml << "<charge>0</charge>" << std::endl;
+  xml << "<functional>XC_HYB_GGA_XC_PBEH</functional>" << std::endl;
+  xml << "<basisset>3-21G.xml</basisset>" << std::endl;
+  xml << "<initial_guess>huckel_dft</initial_guess>" << std::endl;
+  xml << "<xtpdft>" << std::endl;
+  xml << "<screening_eps>1e-9</screening_eps>\n";
+  xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
+  xml << "<convergence>" << std::endl;
+  xml << "    <energy>1e-7</energy>" << std::endl;
+  xml << "    <method>DIIS</method>" << std::endl;
+  xml << "    <DIIS_start>0.002</DIIS_start>" << std::endl;
+  xml << "    <ADIIS_start>0.8</ADIIS_start>" << std::endl;
+  xml << "    <DIIS_length>20</DIIS_length>" << std::endl;
+  xml << "    <levelshift>0.0</levelshift>" << std::endl;
+  xml << "    <levelshift_end>0.2</levelshift_end>" << std::endl;
+  xml << "    <max_iterations>100</max_iterations>\n";
+  xml << "    <error>1e-7</error>\n";
+  xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
+  xml << "    <mixing>0.7</mixing>\n";
+  xml << "</convergence>" << std::endl;
+  xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
+  xml << "</xtpdft>" << std::endl;
+  xml << "</dftpackage>" << std::endl;
+  xml.close();
+  votca::tools::Property prop;
+  prop.LoadFromXML("dftengine_huckel_dft.xml");
+
+  Logger log;
+  dft.setLogger(&log);
+  dft.Initialize(prop.get("dftpackage"));
+  dft.Evaluate(orb);
+
+  BOOST_CHECK_CLOSE(orb.getDFTTotalEnergy(), -75.89101729307095, 1e-5);
+
+  Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(13);
+  MOs_energy_ref << -19.0739, -1.01904, -0.520731, -0.341996, -0.27356,
+      0.118834, 0.210783, 0.953576, 1.04314, 1.46895, 1.54729, 1.67293, 2.77584;
+
+  bool check_eng = MOs_energy_ref.isApprox(orb.MOs().eigenvalues(), 1e-5);
+  BOOST_CHECK_EQUAL(check_eng, true);
+  if (!check_eng) {
+    std::cout << "result eng" << std::endl;
+    std::cout << orb.MOs().eigenvalues() << std::endl;
+    std::cout << "ref eng" << std::endl;
+    std::cout << MOs_energy_ref << std::endl;
+  }
+
+  Eigen::MatrixXd MOs_coeff_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/dftengine/MOs_coeff_ref4.mm");
+
+  AOBasis basis = orb.getDftBasis();
+  AOOverlap overlap;
+  overlap.Fill(basis);
+  Eigen::MatrixXd proj = MOs_coeff_ref.leftCols(5).transpose() *
+                         overlap.Matrix() *
+                         orb.MOs().eigenvectors().leftCols(5);
+  Eigen::VectorXd norms = proj.colwise().norm();
+  bool check_coeff = norms.isApproxToConstant(1, 1e-5);
+  BOOST_CHECK_EQUAL(check_coeff, true);
+  if (!check_coeff) {
+    std::cout << "result coeff" << std::endl;
+    std::cout << orb.MOs().eigenvectors() << std::endl;
+    std::cout << "ref coeff" << std::endl;
+    std::cout << MOs_coeff_ref << std::endl;
+  }
+
+  libint2::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(dft_cation) {
+  libint2::initialize();
+  DFTEngine dft;
+
+  WriteBasis321G();
+
+  Orbitals orb;
+  orb.QMAtoms() = Water();
+
+  std::ofstream xml("dftengine_cation.xml");
+
+  xml << "<dftpackage>" << std::endl;
+  xml << "<spin>2</spin>" << std::endl;
+  xml << "<name>xtp</name>" << std::endl;
+  xml << "<charge>1</charge>" << std::endl;
+  xml << "<functional>XC_HYB_GGA_XC_PBEH</functional>" << std::endl;
+  xml << "<basisset>3-21G.xml</basisset>" << std::endl;
+  xml << "<initial_guess>huckel_dft</initial_guess>" << std::endl;
+  xml << "<xtpdft>" << std::endl;
+  xml << "<screening_eps>1e-9</screening_eps>\n";
+  xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
+  xml << "<convergence>" << std::endl;
+  xml << "    <energy>1e-7</energy>" << std::endl;
+  xml << "    <method>DIIS</method>" << std::endl;
+  xml << "    <DIIS_start>0.002</DIIS_start>" << std::endl;
+  xml << "    <ADIIS_start>0.8</ADIIS_start>" << std::endl;
+  xml << "    <DIIS_length>20</DIIS_length>" << std::endl;
+  xml << "    <levelshift>0.0</levelshift>" << std::endl;
+  xml << "    <levelshift_end>0.2</levelshift_end>" << std::endl;
+  xml << "    <max_iterations>100</max_iterations>\n";
+  xml << "    <error>1e-7</error>\n";
+  xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
+  xml << "    <mixing>0.7</mixing>\n";
+  xml << "</convergence>" << std::endl;
+  xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
+  xml << "</xtpdft>" << std::endl;
+  xml << "</dftpackage>" << std::endl;
+  xml.close();
+  votca::tools::Property prop;
+  prop.LoadFromXML("dftengine_cation.xml");
+
+  Logger log;
+  dft.setLogger(&log);
+  dft.Initialize(prop.get("dftpackage"));
+  orb.setChargeAndSpin(1, 2);
+  dft.Evaluate(orb);
+
+  BOOST_CHECK_CLOSE(orb.getDFTTotalEnergy(), -75.456593793657646, 1e-5);
+
+  Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(13);
+  MOs_energy_ref << -19.6958, -1.58537, -1.03212, -0.899489, -0.873537,
+      -0.255014, -0.169427, 0.548747, 0.609376, 0.899063, 1.05047, 1.18105,
+      2.23438;
+
+  Eigen::VectorXd MOs_energy_ref_beta = Eigen::VectorXd::Zero(13);
+  MOs_energy_ref_beta << -19.668, -1.50742, -1.00909, -0.837772, -0.588854,
+      -0.242175, -0.161593, 0.547669, 0.616913, 1.02967, 1.07354, 1.2038,
+      2.29571;
+
+  bool check_eng = MOs_energy_ref.isApprox(orb.MOs().eigenvalues(), 1e-5);
+  BOOST_CHECK_EQUAL(check_eng, true);
+  if (!check_eng) {
+    std::cout << "result eng" << std::endl;
+    std::cout << orb.MOs().eigenvalues() << std::endl;
+
+    std::cout << "ref eng" << std::endl;
+    std::cout << MOs_energy_ref << std::endl;
+  }
+
+  bool check_eng_beta =
+      MOs_energy_ref_beta.isApprox(orb.MOs_beta().eigenvalues(), 1e-5);
+  BOOST_CHECK_EQUAL(check_eng_beta, true);
+  if (!check_eng_beta) {
+    std::cout << "result eng beta" << std::endl;
+    std::cout << orb.MOs_beta().eigenvalues() << std::endl;
+
+    std::cout << "ref eng beta" << std::endl;
+    std::cout << MOs_energy_ref_beta << std::endl;
+  }
+
+  Eigen::MatrixXd MOs_coeff_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/dftengine/MOs_coeff_cation_alpha.mm");
+
+  Eigen::MatrixXd MOs_coeff_beta_ref =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) +
+          "/dftengine/MOs_coeff_cation_beta.mm");
+
+  AOBasis basis = orb.getDftBasis();
+  AOOverlap overlap;
+  overlap.Fill(basis);
+  Eigen::MatrixXd proj = MOs_coeff_ref.leftCols(5).transpose() *
+                         overlap.Matrix() *
+                         orb.MOs().eigenvectors().leftCols(5);
+  Eigen::VectorXd norms = proj.colwise().norm();
+  bool check_coeff = norms.isApproxToConstant(1, 1e-5);
+  BOOST_CHECK_EQUAL(check_coeff, true);
+  if (!check_coeff) {
+    std::cout << "result coeff" << std::endl;
+    std::cout << orb.MOs().eigenvectors() << std::endl;
+    std::cout << "ref coeff" << std::endl;
+    std::cout << MOs_coeff_ref << std::endl;
+  }
+
+  Eigen::MatrixXd proj_beta = MOs_coeff_beta_ref.leftCols(5).transpose() *
+                              overlap.Matrix() *
+                              orb.MOs_beta().eigenvectors().leftCols(5);
+  Eigen::VectorXd norms_beta = proj_beta.colwise().norm();
+  bool check_coeff_beta = norms_beta.isApproxToConstant(1, 1e-5);
+  BOOST_CHECK_EQUAL(check_coeff_beta, true);
+  if (!check_coeff_beta) {
+    std::cout << "result coeff beta" << std::endl;
+    std::cout << orb.MOs_beta().eigenvectors() << std::endl;
+    std::cout << "ref coeff beta" << std::endl;
+    std::cout << MOs_coeff_beta_ref << std::endl;
+  }
+
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

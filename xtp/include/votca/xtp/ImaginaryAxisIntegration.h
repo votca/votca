@@ -23,6 +23,7 @@
 #include "eigen.h"
 #include "quadrature_factory.h"
 #include "rpa.h"
+#include "rpa_uks.h"
 #include <memory>
 
 // Computes the contribution from the Gauss-Laguerre quadrature to the
@@ -49,6 +50,8 @@ class ImaginaryAxisIntegration {
 
   void configure(options opt, const RPA& rpa,
                  const Eigen::MatrixXd& kDielMxInv_zero);
+  void configure(options opt, const RPA_UKS& rpa,
+                 const Eigen::MatrixXd& kDielMxInv_zero);
 
   double SigmaGQDiag(double frequency, Index gw_level, double eta) const;
 
@@ -60,6 +63,8 @@ class ImaginaryAxisIntegration {
   // This function calculates and stores inverses of the microscopic dielectric
   // matrix in a matrix vector
   void CalcDielInvVector(const RPA& rpa,
+                         const Eigen::MatrixXd& kDielMxInv_zero);
+  void CalcDielInvVector(const RPA_UKS& rpa,
                          const Eigen::MatrixXd& kDielMxInv_zero);
   const Eigen::VectorXd& energies_;
   std::vector<Eigen::MatrixXd> dielinv_matrices_r_;

@@ -209,7 +209,8 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
 
   // set the folders
   std::string pair_dir =
-      (boost::format("%1%%2%%3%%4%%5%") % "pair" % "_" % ID_A % "_" % ID_B).str();
+      (boost::format("%1%%2%%3%%4%%5%") % "pair" % "_" % ID_A % "_" % ID_B)
+          .str();
 
   std::filesystem::path arg_path, arg_pathA, arg_pathB, arg_pathAB;
 
@@ -225,7 +226,8 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   ;
   std::string orbFileAB =
       (arg_pathAB / iqm_work_dir / "pairs_iqm" / frame_dir /
-       (boost::format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb").str())
+       (boost::format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb")
+           .str())
           .generic_string();
   ;
   std::string orb_dir =
@@ -449,10 +451,14 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       XTP_LOG(Log::error, pLog) << "Running GWBSE" << std::flush;
       Logger gwbse_logger(Log::current_level);
       gwbse_logger.setMultithreading(false);
-      gwbse_logger.setPreface(Log::info, (boost::format("\nGWBSE INF ...")).str());
-      gwbse_logger.setPreface(Log::error, (boost::format("\nGWBSE ERR ...")).str());
-      gwbse_logger.setPreface(Log::warning, (boost::format("\nGWBSE WAR ...")).str());
-      gwbse_logger.setPreface(Log::debug, (boost::format("\nGWBSE DBG ...")).str());
+      gwbse_logger.setPreface(Log::info,
+                              (boost::format("\nGWBSE INF ...")).str());
+      gwbse_logger.setPreface(Log::error,
+                              (boost::format("\nGWBSE ERR ...")).str());
+      gwbse_logger.setPreface(Log::warning,
+                              (boost::format("\nGWBSE WAR ...")).str());
+      gwbse_logger.setPreface(Log::debug,
+                              (boost::format("\nGWBSE DBG ...")).str());
       GWBSE gwbse = GWBSE(orbitalsAB);
       gwbse.setLogger(&gwbse_logger);
       gwbse.Initialize(gwbse_options_);

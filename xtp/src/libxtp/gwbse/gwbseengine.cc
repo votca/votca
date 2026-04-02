@@ -196,15 +196,26 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   tools::Property& output_summary = summary_.add("output", "");
 
   if (do_gwbse_) {
-    if (orbitals.isOpenShell()) {
-      throw std::runtime_error("GWBSE not implemented for open-shell systems");
-    }
     if (do_dft_in_dft_ || orbitals.getEmbeddedMOs().eigenvectors().size() > 0) {
       Orbitals orb_embedded = orbitals;
       orb_embedded.MOs() = orb_embedded.getEmbeddedMOs();
+
       Index active_electrons = orb_embedded.getNumOfActiveElectrons();
-      orb_embedded.setNumberOfAlphaElectrons(active_electrons);
-      orb_embedded.setNumberOfOccupiedLevels(active_electrons / 2);
+      if (active_electrons % 2 != 0) {
+        throw std::runtime_error(
+            "Embedded GWBSE currently supports only closed-shell active "
+            "spaces with an even number of electrons");
+      }
+
+      const Index active_occ = active_electrons / 2;
+
+      // Restricted closed-shell rewrite of the embedded orbital object
+      orb_embedded.setNumberOfOccupiedLevels(active_occ);
+      orb_embedded.setNumberOfOccupiedLevelsBeta(active_occ);
+      orb_embedded.setNumberOfAlphaElectrons(active_occ);
+      orb_embedded.setNumberOfBetaElectrons(active_occ);
+      orb_embedded.setChargeAndSpin(orb_embedded.getCharge(), 1);
+
       GWBSE gwbse = GWBSE(orb_embedded);
       gwbse.setLogger(logger);
       gwbse.Initialize(gwbse_options_);

@@ -23,8 +23,8 @@
 // Local VOTCA includes
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/orbitals.h"
-#include <votca/tools/eigenio_matrixmarket.h>
 #include "xtp_libint2.h"
+#include <votca/tools/eigenio_matrixmarket.h>
 
 using namespace votca::xtp;
 using namespace votca;

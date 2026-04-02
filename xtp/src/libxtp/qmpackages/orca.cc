@@ -43,11 +43,11 @@
 
 // trying posix_spwan
 #include <spawn.h>
+#include <stdexcept>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <stdexcept>
 
-extern char **environ;
+extern char** environ;
 
 // Local private VOTCA includes
 #include "orca.h"
@@ -324,7 +324,7 @@ bool Orca::WriteShellScript() {
   std::string shell_file_name_full = run_dir_ + "/" + shell_file_name_;
   shell_file.open(shell_file_name_full);
   shell_file << "#!/usr/bin/env bash" << endl;
-  if ( run_dir_ != "." ) {
+  if (run_dir_ != ".") {
     const std::string key = "molecule";
     std::string path = run_dir_;
     auto pos = path.find(key);
@@ -332,7 +332,7 @@ bool Orca::WriteShellScript() {
     if (pos != std::string::npos) {
       scratch_dir_ += "/" + path.erase(0, pos);
     }
-  } 
+  }
   shell_file << "mkdir -p " << scratch_dir_ << endl;
   shell_file << "export TMPDIR=" << scratch_dir_ << endl;
   std::string base_name = mo_file_name_.substr(0, mo_file_name_.size() - 4);
@@ -357,43 +357,27 @@ bool Orca::WriteShellScript() {
   return true;
 }
 
-
-
-
 int run_command_spawn(const std::string& command) {
-    pid_t pid;
+  pid_t pid;
 
-    // system() implicitly does: /bin/sh -c "command"
-    std::vector<char*> argv = {
-        const_cast<char*>("/bin/sh"),
-        const_cast<char*>("-c"),
-        const_cast<char*>(command.c_str()),
-        nullptr
-    };
+  // system() implicitly does: /bin/sh -c "command"
+  std::vector<char*> argv = {const_cast<char*>("/bin/sh"),
+                             const_cast<char*>("-c"),
+                             const_cast<char*>(command.c_str()), nullptr};
 
-    int rc = posix_spawn(
-        &pid,
-        "/bin/sh",
-        nullptr,
-        nullptr,
-        argv.data(),
-        environ
-    );
+  int rc = posix_spawn(&pid, "/bin/sh", nullptr, nullptr, argv.data(), environ);
 
-    if (rc != 0) {
-        throw std::runtime_error("posix_spawn failed: " + std::to_string(rc));
-    }
+  if (rc != 0) {
+    throw std::runtime_error("posix_spawn failed: " + std::to_string(rc));
+  }
 
-    int status;
-    waitpid(pid, &status, 0);
+  int status;
+  waitpid(pid, &status, 0);
 
-    if (WIFEXITED(status))
-        return WEXITSTATUS(status);
+  if (WIFEXITED(status)) return WEXITSTATUS(status);
 
-    return -1;  // abnormal termination
+  return -1;  // abnormal termination
 }
-
-
 
 /**
  * Runs the Orca job.
@@ -536,15 +520,15 @@ Eigen::Matrix3d Orca::GetPolarizability() const {
     if (pol_pos != std::string::npos) {
 
       XTP_LOG(Log::error, *pLog_) << "Getting polarizability" << flush;
-      for (Index i = 0; i < 10; i++){
+      for (Index i = 0; i < 10; i++) {
         tools::getline(input_file, line);
         if (line.find("The raw cartesian tensor (atomic units)") !=
-          std::string::npos) {
-            break;
-          }
+            std::string::npos) {
+          break;
+        }
         if (i == 9) {
           throw std::runtime_error(
-            "Could not find cartesian polarization tensor");
+              "Could not find cartesian polarization tensor");
         }
       }
 

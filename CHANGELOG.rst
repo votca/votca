@@ -4,6 +4,13 @@ For more detailed information about the changes see the history of the
 Version 2026-dev
 ================
 
+-  Extended Hueckel methods for initial guess in DFT (#1230)
+-  more unit tests for dftengine (#1231)
+-  implementing Unrestricted KS-DFT for open-shell systems (#1232)
+-  added open-shell support for GW (#1234)
+-  implemented BSE for spin-polarized ground states (#1235)
+-  implemented smarter grid search in QP solver (#1236)
+
 Version 2026 (released 09.03.26)
 ================================
 

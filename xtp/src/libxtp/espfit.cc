@@ -192,8 +192,9 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
                            << flush;
   Eigen::VectorXd charges;
   if (do_svd_) {
-#if EIGEN_VERSION_AT_LEAST(3,5,0)
-    Eigen::JacobiSVD<Eigen::MatrixXd, Eigen::ComputeThinU | Eigen::ComputeThinV> svd;
+#if EIGEN_VERSION_AT_LEAST(3, 5, 0)
+    Eigen::JacobiSVD<Eigen::MatrixXd, Eigen::ComputeThinU | Eigen::ComputeThinV>
+        svd;
     svd.setThreshold(conditionnumber_);
     svd.compute(Amat);
 #else
