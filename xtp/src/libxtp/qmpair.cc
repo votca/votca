@@ -107,7 +107,7 @@ void QMPair::ReadData(const data& d, const std::vector<Segment>& segments) {
 
   std::string type_enum = std::string(d.pair_type);
   pair_type_ = QMPair::get_Enum(type_enum);
-  free(d.pair_type);
+  delete[] d.pair_type;
 
   lambda0_.setValue(d.lambda0e, QMStateType::Electron);
   lambda0_.setValue(d.lambda0h, QMStateType::Hole);
