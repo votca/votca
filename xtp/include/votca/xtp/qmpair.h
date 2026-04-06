@@ -64,6 +64,11 @@ class QMPair {
     double lambda0s;
     double lambda0t;
 
+    double jeffe;
+    double jeffh;
+    double jeffs;
+    double jefft;
+
     double jeff2e;
     double jeff2h;
     double jeff2s;
@@ -109,6 +114,9 @@ class QMPair {
            segments_.second->getU_nX_nN(state);
   }  // 2->1
 
+  double getJeff(QMStateType state) const { return Jeff_.getValue(state); }
+  void setJeff(double Jeff, QMStateType state) { Jeff_.setValue(Jeff, state); }
+
   double getJeff2(QMStateType state) const { return Jeff2_.getValue(state); }
   void setJeff2(double Jeff2, QMStateType state) {
     Jeff2_.setValue(Jeff2, state);
@@ -143,6 +151,7 @@ class QMPair {
   PairType pair_type_ = PairType::Hopping;
 
   QMStateCarrierStorage<double> lambda0_;
+  QMStateCarrierStorage<double> Jeff_;
   QMStateCarrierStorage<double> Jeff2_;
 };
 

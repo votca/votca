@@ -10,6 +10,7 @@ Version 2026-dev
 -  added open-shell support for GW (#1234)
 -  implemented BSE for spin-polarized ground states (#1235)
 -  implemented smarter grid search in QP solver (#1236)
+-  raw J storage in statefile  (#1237)
 
 Version 2026 (released 09.03.26)
 ================================

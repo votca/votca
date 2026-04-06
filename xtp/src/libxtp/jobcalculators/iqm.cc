@@ -625,9 +625,9 @@ double IQM::GetDFTCouplingFromProp(const tools::Property& dftprop, Index stateA,
     }
   }
   if (found) {
-    return J * J;
+    return J;
   } else {
-    return -1;
+    return std::numeric_limits<double>::quiet_NaN();
   }
 }
 
@@ -647,9 +647,9 @@ double IQM::GetBSECouplingFromProp(const tools::Property& bseprop,
     }
   }
   if (found) {
-    return J * J;
+    return J;
   } else {
-    return -1;
+    return std::numeric_limits<double>::quiet_NaN();
   }
 }
 
@@ -743,9 +743,10 @@ void IQM::ReadJobFile(Topology& top) {
         QMState stateB = GetElementFromMap(hole_levels_, segB.getType());
         Index levelA = homoA - stateA.StateIdx();  // h1 is is homo;
         Index levelB = homoB - stateB.StateIdx();
-        double J2 = GetDFTCouplingFromProp(holes, levelA, levelB);
-        if (J2 >= 0) {
-          qmp->setJeff2(J2, hole);
+        double J = GetDFTCouplingFromProp(holes, levelA, levelB);
+        if (!std::isnan(J)) {
+          qmp->setJeff(J, hole);
+          qmp->setJeff2(J * J, hole);
           dft_h++;
         }
       }
@@ -756,9 +757,10 @@ void IQM::ReadJobFile(Topology& top) {
         QMState stateB = GetElementFromMap(electron_levels_, segB.getType());
         Index levelA = homoA + 1 + stateA.StateIdx();  // e1 is lumo;
         Index levelB = homoB + 1 + stateB.StateIdx();
-        double J2 = GetDFTCouplingFromProp(electrons, levelA, levelB);
-        if (J2 >= 0) {
-          qmp->setJeff2(J2, electron);
+        double J = GetDFTCouplingFromProp(electrons, levelA, levelB);
+        if (!std::isnan(J)) {
+          qmp->setJeff(J, electron);
+          qmp->setJeff2(J * J, electron);
           dft_e++;
         }
       }
@@ -770,9 +772,10 @@ void IQM::ReadJobFile(Topology& top) {
         const tools::Property& singlets = bseprop.get(singlet.ToLongString());
         QMState stateA = GetElementFromMap(singlet_levels_, segA.getType());
         QMState stateB = GetElementFromMap(singlet_levels_, segB.getType());
-        double J2 = GetBSECouplingFromProp(singlets, stateA, stateB);
-        if (J2 >= 0) {
-          qmp->setJeff2(J2, singlet);
+        double J = GetBSECouplingFromProp(singlets, stateA, stateB);
+        if (!std::isnan(J)) {
+          qmp->setJeff(J, singlet);
+          qmp->setJeff2(J * J, singlet);
           bse_s++;
         }
       }
@@ -781,9 +784,10 @@ void IQM::ReadJobFile(Topology& top) {
         const tools::Property& triplets = bseprop.get(triplet.ToLongString());
         QMState stateA = GetElementFromMap(triplet_levels_, segA.getType());
         QMState stateB = GetElementFromMap(triplet_levels_, segB.getType());
-        double J2 = GetBSECouplingFromProp(triplets, stateA, stateB);
-        if (J2 >= 0) {
-          qmp->setJeff2(J2, triplet);
+        double J = GetBSECouplingFromProp(triplets, stateA, stateB);
+        if (!std::isnan(J)) {
+          qmp->setJeff(J, triplet);
+          qmp->setJeff2(J * J, triplet);
           bse_t++;
         }
       }
