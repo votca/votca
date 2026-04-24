@@ -205,6 +205,10 @@ class BSECoupling : public CouplingBase {
   bool doTriplets_;
   bool doSinglets_;
   bool output_perturbation_;
+  // When true, write TB-specific output: monomer energies, transition
+  // dipoles, diagnostics, and raw H/S matrices. Default false for compact
+  // output in KMC/rate workflows that only need scalar couplings.
+  bool output_tb_ = false;
   Index levA_;
   Index levB_;
   Index occA_;

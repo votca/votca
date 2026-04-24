@@ -54,6 +54,10 @@ void BSECoupling::Initialize(Property& options) {
             .str());
   }
   output_perturbation_ = options.get("use_perturbation").as<bool>();
+  // When true, write monomer energies, transition dipoles, diagnostics,
+  // and raw H/S TB matrices to the XML output. Default false for compact
+  // output in KMC/rate workflows that only need scalar couplings.
+  output_tb_ = options.ifExistsReturnElseReturnDefault<bool>("output_tb", false);
 
   levA_ = options.get("moleculeA.states").as<Index>();
   levB_ = options.get("moleculeB.states").as<Index>();
@@ -122,8 +126,8 @@ void BSECoupling::WriteToProperty(Property& summary, const QMState& stateA,
 //   - tb_matrices node (raw H and S blocks in FE+CT basis, in eV)
 // The existing <coupling> elements are unchanged for backward compatibility.
 // =============================================================================
-void BSECoupling::Addoutput(Property& type_summary, const Orbitals&,
-                            const Orbitals&) const {
+void BSECoupling::Addoutput(Property& type_summary, const Orbitals& orbitalsA,
+                            const Orbitals& orbitalsB) const {
   tools::Property& bsecoupling = type_summary.add(Identify(), "");
   string algorithm = "j_diag";
   if (output_perturbation_) {
@@ -132,12 +136,13 @@ void BSECoupling::Addoutput(Property& type_summary, const Orbitals&,
 
   // Lambda to write one spin channel — avoids duplicating singlet/triplet logic
   auto WriteSpinChannel = [&](const std::string& spin_name,
-                               const std::array<Eigen::MatrixXd, 2>& JAB,
                                const Eigen::MatrixXd& J_dimer,
                                const Eigen::MatrixXd& S_dimer,
                                const Diagnostics& diag,
                                const Eigen::VectorXd& monA_energies,
                                const Eigen::VectorXd& monB_energies,
+                               const std::vector<Eigen::Vector3d>& tdipsA,
+                               const std::vector<Eigen::Vector3d>& tdipsB,
                                QMStateType spin_type) {
     Property& spin_summary = bsecoupling.add(spin_name, "");
     spin_summary.setAttribute("algorithm", algorithm);
@@ -151,90 +156,113 @@ void BSECoupling::Addoutput(Property& type_summary, const Orbitals&,
       }
     }
 
-    // --- monomer site energies ---
-    // Isolated monomer excitation energies, pairwise-consistent for TB.
-    // Environmental corrections should be added on top of these externally.
-    {
-      Property& mono_prop = spin_summary.add("monomer_energies", "");
-      Property& propA = mono_prop.add("fragmentA", "");
-      for (Index i = 0; i < monA_energies.size(); i++) {
-        Property& e = propA.add("energy", "");
-        QMState st(spin_type, i, false);
-        e.setAttribute("state", st.ToString());
-        e.setAttribute("eV", (format("%1$1.6e") % monA_energies(i)).str());
+    // --- TB output: monomer energies, diagnostics, raw matrices ---
+    // Only written when output_tb_ = true. For KMC/rate workflows that only
+    // need scalar effective couplings, leave output_tb_ = false.
+    if (output_tb_) {
+      // Monomer excitation energies and transition dipoles
+      {
+        Property& mono_prop = spin_summary.add("monomer_energies", "");
+        Property& propA = mono_prop.add("fragmentA", "");
+        for (Index i = 0; i < monA_energies.size(); i++) {
+          Property& e = propA.add("energy", "");
+          QMState st(spin_type, i, false);
+          e.setAttribute("state", st.ToString());
+          e.setAttribute("eV", (format("%1$1.6e") % monA_energies(i)).str());
+          if (i < static_cast<Index>(tdipsA.size())) {
+            e.setAttribute("tdx",
+                (format("%1$1.6e") % tdipsA[i].x()).str());
+            e.setAttribute("tdy",
+                (format("%1$1.6e") % tdipsA[i].y()).str());
+            e.setAttribute("tdz",
+                (format("%1$1.6e") % tdipsA[i].z()).str());
+          }
+        }
+        Property& propB = mono_prop.add("fragmentB", "");
+        for (Index i = 0; i < monB_energies.size(); i++) {
+          Property& e = propB.add("energy", "");
+          QMState st(spin_type, i, false);
+          e.setAttribute("state", st.ToString());
+          e.setAttribute("eV", (format("%1$1.6e") % monB_energies(i)).str());
+          if (i < static_cast<Index>(tdipsB.size())) {
+            e.setAttribute("tdx",
+                (format("%1$1.6e") % tdipsB[i].x()).str());
+            e.setAttribute("tdy",
+                (format("%1$1.6e") % tdipsB[i].y()).str());
+            e.setAttribute("tdz",
+                (format("%1$1.6e") % tdipsB[i].z()).str());
+          }
+        }
       }
-      Property& propB = mono_prop.add("fragmentB", "");
-      for (Index i = 0; i < monB_energies.size(); i++) {
-        Property& e = propB.add("energy", "");
-        QMState st(spin_type, i, false);
-        e.setAttribute("state", st.ToString());
-        e.setAttribute("eV", (format("%1$1.6e") % monB_energies(i)).str());
+
+      // Diagnostics
+      {
+        Property& diag_prop = spin_summary.add("diagnostics", "");
+        diag_prop.setAttribute("xi", (format("%1$1.4f") % diag.xi).str());
+        diag_prop.setAttribute(
+            "pt_rm_discrepancy_eV",
+            (format("%1$1.6e") %
+             (diag.pt_rm_discrepancy * votca::tools::conv::hrt2ev))
+                .str());
+        diag_prop.setAttribute("downfolding_safe",
+                               diag.downfolding_safe ? "true" : "false");
       }
-    }
 
-    // --- diagnostics ---
-    Property& diag_prop = spin_summary.add("diagnostics", "");
-    diag_prop.setAttribute("xi", (format("%1$1.4f") % diag.xi).str());
-    diag_prop.setAttribute(
-        "pt_rm_discrepancy_eV",
-        (format("%1$1.6e") %
-         (diag.pt_rm_discrepancy * votca::tools::conv::hrt2ev))
-            .str());
-    diag_prop.setAttribute("downfolding_safe",
-                           diag.downfolding_safe ? "true" : "false");
+      // Raw TB matrices (H in eV, S dimensionless)
+      // Block layout: [ H_FE_FE  H_FE_CT ] / [ H_CT_FE  H_CT_CT ]
+      {
+        Index bse_exc = levA_ + levB_;
+        Index ct = J_dimer.rows() - bse_exc;
 
-    // --- raw TB matrices ---
-    // Written in eV for H, dimensionless for S.
-    // Block layout mirrors the comment in CalcJ_dimer:
-    //   [ H_FE_FE  H_FE_CT ]   [ S_FE_FE  S_FE_CT ]
-    //   [ H_CT_FE  H_CT_CT ]   [ S_CT_FE  S_CT_CT ]
-    Index bse_exc = levA_ + levB_;
-    Index ct = J_dimer.rows() - bse_exc;
+        Property& tb_prop = spin_summary.add("tb_matrices", "");
+        tb_prop.setAttribute("n_FE", bse_exc);
+        tb_prop.setAttribute("n_CT", ct);
+        tb_prop.setAttribute("n_occA", occA_);
+        tb_prop.setAttribute("n_unoccA", unoccA_);
+        tb_prop.setAttribute("n_occB", occB_);
+        tb_prop.setAttribute("n_unoccB", unoccB_);
 
-    Property& tb_prop = spin_summary.add("tb_matrices", "");
-    tb_prop.setAttribute("n_FE", bse_exc);
-    tb_prop.setAttribute("n_CT", ct);
-    tb_prop.setAttribute("n_occA", occA_);
-    tb_prop.setAttribute("n_unoccA", unoccA_);
-    tb_prop.setAttribute("n_occB", occB_);
-    tb_prop.setAttribute("n_unoccB", unoccB_);
+        WriteMatrixToProperty(tb_prop, "H_FE_FE",
+                              J_dimer.topLeftCorner(bse_exc, bse_exc),
+                              votca::tools::conv::hrt2ev);
+        WriteMatrixToProperty(tb_prop, "S_FE_FE",
+                              S_dimer.topLeftCorner(bse_exc, bse_exc));
 
-    // FE-FE block always present
-    WriteMatrixToProperty(tb_prop, "H_FE_FE",
-                          J_dimer.topLeftCorner(bse_exc, bse_exc),
-                          votca::tools::conv::hrt2ev);
-    WriteMatrixToProperty(tb_prop, "S_FE_FE",
-                          S_dimer.topLeftCorner(bse_exc, bse_exc));
-
-    if (ct > 0) {
-      // FE-CT off-diagonal blocks
-      WriteMatrixToProperty(tb_prop, "H_FE_CT",
-                            J_dimer.topRightCorner(bse_exc, ct),
-                            votca::tools::conv::hrt2ev);
-      WriteMatrixToProperty(tb_prop, "S_FE_CT",
-                            S_dimer.topRightCorner(bse_exc, ct));
-
-      // CT-CT block
-      WriteMatrixToProperty(tb_prop, "H_CT_CT",
-                            J_dimer.bottomRightCorner(ct, ct),
-                            votca::tools::conv::hrt2ev);
-      WriteMatrixToProperty(tb_prop, "S_CT_CT",
-                            S_dimer.bottomRightCorner(ct, ct));
-    }
+        if (ct > 0) {
+          WriteMatrixToProperty(tb_prop, "H_FE_CT",
+                                J_dimer.topRightCorner(bse_exc, ct),
+                                votca::tools::conv::hrt2ev);
+          WriteMatrixToProperty(tb_prop, "S_FE_CT",
+                                S_dimer.topRightCorner(bse_exc, ct));
+          WriteMatrixToProperty(tb_prop, "H_CT_CT",
+                                J_dimer.bottomRightCorner(ct, ct),
+                                votca::tools::conv::hrt2ev);
+          WriteMatrixToProperty(tb_prop, "S_CT_CT",
+                                S_dimer.bottomRightCorner(ct, ct));
+        }
+      }
+    }  // output_tb_
   };
 
   if (doSinglets_) {
     WriteSpinChannel(QMStateType(QMStateType::Singlet).ToLongString(),
-                     JAB_singlet, J_dimer_singlet_, S_dimer_singlet_,
+                     J_dimer_singlet_, S_dimer_singlet_,
                      diag_singlet_,
                      monomerA_energies_singlet_, monomerB_energies_singlet_,
+                     orbitalsA.TransitionDipoles(),
+                     orbitalsB.TransitionDipoles(),
                      QMStateType(QMStateType::Singlet));
   }
   if (doTriplets_) {
+    // Triplet states have zero electric transition dipole from the singlet
+    // ground state — pass empty vectors so no tdx/tdy/tdz attributes are
+    // written, making clear that oscillator strengths are not meaningful.
+    const std::vector<Eigen::Vector3d> empty_dipoles;
     WriteSpinChannel(QMStateType(QMStateType::Triplet).ToLongString(),
-                     JAB_triplet, J_dimer_triplet_, S_dimer_triplet_,
+                     J_dimer_triplet_, S_dimer_triplet_,
                      diag_triplet_,
                      monomerA_energies_triplet_, monomerB_energies_triplet_,
+                     empty_dipoles, empty_dipoles,
                      QMStateType(QMStateType::Triplet));
   }
 }
