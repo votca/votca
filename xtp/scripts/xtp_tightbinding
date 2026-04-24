@@ -15,6 +15,23 @@
 # limitations under the License.
 #
 #
+
+VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
+PROGTITLE = 'THE VOTCA::XTP Tight-Binding Module'
+PROGDESCR = 'Builds a fragment DFT/GW/BSE Tight-Binding Hamiltonians and solves,...'
+VOTCAHEADER = f"""
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+{PROGTITLE}
+
+please read and cite: @PROJECT_CITATION@
+and submit bugs to @PROJECT_CONTACT@
+xtp_tightbinding, version {VERSION}
+
+"""
+
 """
 TB assembler for VOTCA IQM output files.
 
