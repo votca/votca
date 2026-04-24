@@ -1,0 +1,1153 @@
+#! /usr/bin/env python3
+#
+# Copyright 2009-2026 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+"""
+TB assembler for VOTCA IQM output files.
+
+Reads a single jobs XML file (e.g. iqm_out.xml) produced by a VOTCA IQM
+workflow, assembles a TB Hamiltonian for a chosen model type, and computes
+eigenstates and basic observables including oscillator strengths.
+
+Requires VOTCA bsecoupling/dftcoupling built with the enriched XML output
+that writes raw TB matrices, monomer energies, transition dipoles, and
+diagnostics alongside the standard pairwise effective couplings.
+
+Supported model types
+---------------------
+'hole'      -- valence band (occupied MOs) from dftcoupling
+'electron'  -- conduction band (virtual MOs) from dftcoupling
+'transport' -- combined hole+electron two-band quasiparticle model;
+               both bands in a single block-diagonal Hamiltonian, useful
+               for charge transport band structure and optical gap estimates
+'singlet'   -- singlet Frenkel excitons from bsecoupling
+'triplet'   -- triplet Frenkel excitons from bsecoupling
+
+CT state treatment (singlet/triplet only)
+-----------------------------------------
+Adaptive (default): explicit CT basis for pairs where downfolding is unsafe
+    (xi >= threshold or large PT/RM discrepancy); effective J_diag coupling
+    for safe pairs. Smaller basis.
+--explicit-ct: keep CT states in the basis for ALL pairs regardless of the
+    safety diagnostic. Recommended when optical selection rules (J- vs
+    H-aggregate character, oscillator strength distribution) matter, since
+    the scalar J_diag has sign ambiguity near CT resonances (xi ~ 1).
+
+Site energy priority (FE/MO diagonal)
+--------------------------------------
+1. external_site_energies dict passed to TBAssembler.assemble()
+2. Monomer energies from XML + optional electrostatic_corrections dict
+3. Averaged dimer diagonal H_FE_FE[i,i] (fallback, warns — inconsistent)
+
+CT diagonal always comes from H_CT_CT in the pair XML.
+
+Oscillator strengths (singlet only)
+------------------------------------
+Computed from monomer transition dipoles written into the XML by the updated
+bsecoupling. Formula: f = (2/3) * E[Hrt] * |sum_i c_i * mu_i|^2.
+CT basis states contribute zero dipole (no ground-state coupling).
+Note: cross-fragment dipole terms and CT brightness via charge separation
+(dQ * R_AB) are not yet included.
+
+Usage
+-----
+    python xtp_tightbinding --model singlet --input iqm_out.xml
+    python xtp_tightbinding --model singlet --input iqm_out.xml --explicit-ct
+    python xtp_tightbinding --model hole    --input iqm_out.xml
+    python xtp_tightbinding --model transport --input iqm_out.xml
+    python xtp_tightbinding --model singlet --input iqm_out.xml --n-states 20
+    python xtp_tightbinding --model singlet --input iqm_out.xml --dense
+"""
+
+import numpy as np
+import xml.etree.ElementTree as ET
+import scipy.linalg as la
+import scipy.sparse as sp
+import scipy.sparse.linalg as spla
+from dataclasses import dataclass, field
+from typing import Dict, List, Tuple, Optional
+import warnings
+import argparse
+
+
+# =============================================================================
+# Data structures
+# =============================================================================
+
+@dataclass
+class BSEDiagnostics:
+    xi: float
+    pt_rm_discrepancy_eV: float
+    downfolding_safe: bool
+
+
+@dataclass
+class DFTDiagnostics:
+    min_S_eigenvalue: float
+    basis_ok: bool
+
+
+@dataclass
+class PairData:
+    """All data for one pair, for one model type."""
+    frag_A: int
+    frag_B: int
+    model: str           # 'hole', 'electron', 'singlet', 'triplet'
+
+    # number of basis states per fragment
+    n_A: int
+    n_B: int
+    # for BSE: number of CT states
+    n_CT: int = 0
+
+    # monomer MO energies [eV] — pairwise-consistent site energies
+    # KS: Kohn-Sham DFT eigenvalues (always present when XML is new format)
+    # QP: perturbative GW quasiparticle energies (None if GW not run)
+    monomer_energies_A: Optional[np.ndarray] = None      # KS
+    monomer_energies_B: Optional[np.ndarray] = None      # KS
+    monomer_energies_A_QP: Optional[np.ndarray] = None   # QPpert
+    monomer_energies_B_QP: Optional[np.ndarray] = None   # QPpert
+
+    # raw TB matrices (H in eV, S dimensionless)
+    H_AA: Optional[np.ndarray] = None
+    S_AA: Optional[np.ndarray] = None
+    H_BB: Optional[np.ndarray] = None
+    S_BB: Optional[np.ndarray] = None
+    H_AB: Optional[np.ndarray] = None   # off-diagonal coupling block
+    S_AB: Optional[np.ndarray] = None
+
+    # BSE-only: FE-CT and CT-CT blocks
+    H_FE_CT: Optional[np.ndarray] = None
+    S_FE_CT: Optional[np.ndarray] = None
+    H_CT_CT: Optional[np.ndarray] = None
+    S_CT_CT: Optional[np.ndarray] = None
+
+    # transition dipole moments [e*bohr] per basis state
+    # shape (n_A, 3) and (n_B, 3); None if not in XML (DFT, or old BSE output)
+    # CT states implicitly have zero dipole
+    transition_dipoles_A: Optional[np.ndarray] = None
+    transition_dipoles_B: Optional[np.ndarray] = None
+
+    # diagnostics
+    diagnostics: object = None   # BSEDiagnostics or DFTDiagnostics
+
+    # effective scalar couplings (for reference / KMC use)
+    # dict {(levelA, levelB): J_eV} for DFT
+    # dict {(stateA, stateB): (j_diag, j_pert)} for BSE
+    effective_couplings: Dict = field(default_factory=dict)
+
+    @property
+    def downfolding_safe(self) -> bool:
+        if isinstance(self.diagnostics, BSEDiagnostics):
+            return self.diagnostics.downfolding_safe
+        return True  # DFT has no CT downfolding
+
+
+# =============================================================================
+# XML parsing helpers
+# =============================================================================
+
+def parse_matrix(node) -> np.ndarray:
+    """Parse a matrix node with row_N attributes into a numpy array."""
+    rows = int(node.get("rows"))
+    cols = int(node.get("cols"))
+    mat = np.zeros((rows, cols))
+    for i in range(rows):
+        mat[i, :] = [float(x) for x in node.get(f"row_{i}").split()]
+    return mat
+
+
+def parse_dft_carrier(node, frag_A: int, frag_B: int,
+                      model: str) -> Optional[PairData]:
+    """
+    Parse one <hole> or <electron> node from dftcoupling output.
+    Returns None if the node is absent.
+    """
+    if node is None:
+        return None
+
+    # effective scalar couplings
+    eff = {}
+    for c in node.findall("coupling"):
+        lA = int(c.get("levelA"))
+        lB = int(c.get("levelB"))
+        eff[(lA, lB)] = float(c.get("j"))
+
+    # monomer MO energies
+    mono = node.find("monomer_energies")
+    if mono is not None:
+        mosA = mono.find("fragmentA").findall("mo")
+        mosB = mono.find("fragmentB").findall("mo")
+        # Support both old format (eV) and new format (eV_KS / eV_QP)
+        def _ks(m): return float(m.get("eV_KS") or m.get("eV"))
+        def _qp(m): return m.get("eV_QP")
+        monA = np.array([_ks(e) for e in mosA])
+        monB = np.array([_ks(e) for e in mosB])
+        monA_QP = np.array([float(_qp(e)) for e in mosA]) \
+                  if all(_qp(e) is not None for e in mosA) else None
+        monB_QP = np.array([float(_qp(e)) for e in mosB]) \
+                  if all(_qp(e) is not None for e in mosB) else None
+    else:
+        monA = monB = monA_QP = monB_QP = None
+
+    # TB matrices — absent when dftcoupling was run with output_tb=false
+    tb = node.find("tb_matrices")
+    if tb is None:
+        raise ValueError(
+            f"No <tb_matrices> found for pair {frag_A}-{frag_B} ({model}). "
+            f"Re-run dftcoupling with output_tb=true in the calculator "
+            f"options to generate TB Hamiltonian output.")
+    nA = int(tb.get("n_A"))
+    nB = int(tb.get("n_B"))
+    H_AA = parse_matrix(tb.find("H_AA"))
+    S_AA = parse_matrix(tb.find("S_AA"))
+    H_BB = parse_matrix(tb.find("H_BB"))
+    S_BB = parse_matrix(tb.find("S_BB"))
+    H_AB = parse_matrix(tb.find("H_AB"))
+    S_AB = parse_matrix(tb.find("S_AB"))
+
+    # diagnostics
+    diag_node = node.find("diagnostics")
+    diag = DFTDiagnostics(
+        min_S_eigenvalue=float(diag_node.get("min_S_eigenvalue")),
+        basis_ok=(diag_node.get("basis_ok") == "true")
+    ) if diag_node is not None else DFTDiagnostics(1.0, True)
+
+    return PairData(
+        frag_A=frag_A, frag_B=frag_B, model=model,
+        n_A=nA, n_B=nB, n_CT=0,
+        monomer_energies_A=monA, monomer_energies_B=monB,
+        monomer_energies_A_QP=monA_QP, monomer_energies_B_QP=monB_QP,
+        transition_dipoles_A=None, transition_dipoles_B=None,
+        H_AA=H_AA, S_AA=S_AA, H_BB=H_BB, S_BB=S_BB,
+        H_AB=H_AB, S_AB=S_AB,
+        diagnostics=diag, effective_couplings=eff
+    )
+
+
+def parse_bse_spin(node, frag_A: int, frag_B: int,
+                   model: str) -> Optional[PairData]:
+    """
+    Parse one <singlet> or <triplet> node from bsecoupling output.
+    Returns None if the node is absent.
+    """
+    if node is None:
+        return None
+
+    # effective couplings
+    eff = {}
+    for c in node.findall("coupling"):
+        sA, sB = c.get("stateA"), c.get("stateB")
+        eff[(sA, sB)] = (float(c.get("j_diag")), float(c.get("j_pert")))
+
+    # monomer FE energies
+    mono = node.find("monomer_energies")
+    if mono is not None:
+        energiesA = mono.find("fragmentA").findall("energy")
+        energiesB = mono.find("fragmentB").findall("energy")
+        monA = np.array([float(e.get("eV")) for e in energiesA])
+        monB = np.array([float(e.get("eV")) for e in energiesB])
+        # transition dipoles [e*bohr] — present for singlets, absent for triplets
+        def _parse_tdips(energy_nodes):
+            if energy_nodes and energy_nodes[0].get("tdx") is not None:
+                return np.array([[float(e.get("tdx")),
+                                  float(e.get("tdy")),
+                                  float(e.get("tdz"))]
+                                 for e in energy_nodes])
+            return None
+        tdipsA = _parse_tdips(energiesA)
+        tdipsB = _parse_tdips(energiesB)
+    else:
+        monA = monB = None
+        tdipsA = tdipsB = None
+
+    # diagnostics
+    diag_node = node.find("diagnostics")
+    diag = BSEDiagnostics(
+        xi=float(diag_node.get("xi")),
+        pt_rm_discrepancy_eV=float(diag_node.get("pt_rm_discrepancy_eV")),
+        downfolding_safe=(diag_node.get("downfolding_safe") == "true")
+    ) if diag_node is not None else BSEDiagnostics(0.0, 0.0, True)
+
+    # TB matrices — absent when bsecoupling was run with output_tb=false
+    tb = node.find("tb_matrices")
+    if tb is None:
+        raise ValueError(
+            f"No <tb_matrices> found for pair {frag_A}-{frag_B} ({model}). "
+            f"Re-run bsecoupling with output_tb=true in the calculator "
+            f"options to generate TB Hamiltonian output.")
+    nFE = int(tb.get("n_FE"))
+    nCT = int(tb.get("n_CT"))
+    # infer n_A and n_B from state labels
+    stateA_labels = sorted(set(c.get("stateA") for c in node.findall("coupling")))
+    stateB_labels = sorted(set(c.get("stateB") for c in node.findall("coupling")))
+    nA = len(stateA_labels)
+    nB = len(stateB_labels)
+
+    H_FF = parse_matrix(tb.find("H_FE_FE"))
+    S_FF = parse_matrix(tb.find("S_FE_FE"))
+
+    # Split the FE-FE block into AA, BB, AB sub-blocks
+    H_AA = H_FF[:nA, :nA]
+    H_BB = H_FF[nA:, nA:]
+    H_AB = H_FF[:nA, nA:]
+    S_AA = S_FF[:nA, :nA]
+    S_BB = S_FF[nA:, nA:]
+    S_AB = S_FF[:nA, nA:]
+
+    H_FE_CT = parse_matrix(tb.find("H_FE_CT")) if nCT > 0 else None
+    S_FE_CT = parse_matrix(tb.find("S_FE_CT")) if nCT > 0 else None
+    H_CT_CT = parse_matrix(tb.find("H_CT_CT")) if nCT > 0 else None
+    S_CT_CT = parse_matrix(tb.find("S_CT_CT")) if nCT > 0 else None
+
+    return PairData(
+        frag_A=frag_A, frag_B=frag_B, model=model,
+        n_A=nA, n_B=nB, n_CT=nCT,
+        monomer_energies_A=monA, monomer_energies_B=monB,
+        transition_dipoles_A=tdipsA, transition_dipoles_B=tdipsB,
+        H_AA=H_AA, S_AA=S_AA, H_BB=H_BB, S_BB=S_BB,
+        H_AB=H_AB, S_AB=S_AB,
+        H_FE_CT=H_FE_CT, S_FE_CT=S_FE_CT,
+        H_CT_CT=H_CT_CT, S_CT_CT=S_CT_CT,
+        diagnostics=diag, effective_couplings=eff
+    )
+
+
+def parse_jobs_xml(filepath: str, model: str) -> Tuple[List[PairData], List[int]]:
+    """
+    Parse a VOTCA jobs XML file and extract all pair data for the chosen model.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to the jobs XML file (e.g. iqm_out.xml).
+    model : str
+        One of 'hole', 'electron', 'singlet', 'triplet'.
+
+    Returns
+    -------
+    pairs : list of PairData
+        One entry per completed job that contains the requested model type.
+    fragments : list of int
+        Sorted list of unique fragment IDs found across all pairs.
+    """
+    if model not in ('hole', 'electron', 'singlet', 'triplet', 'transport'):
+        raise ValueError(f"model must be one of hole/electron/singlet/triplet/transport, "
+                         f"got '{model}'")
+
+    root = ET.parse(filepath).getroot()
+    pairs = []
+    frag_set = set()
+
+    for job in root.findall("job"):
+        status = job.find("status").text.strip()
+        if status != "COMPLETE":
+            continue
+
+        segs = job.findall("input/segment")
+        if len(segs) != 2:
+            continue
+        frag_A = int(segs[0].get("id"))
+        frag_B = int(segs[1].get("id"))
+
+        out = job.find("output")
+        if out is None:
+            continue
+
+        pair = None
+        if model == 'transport':
+            # Parse both hole and electron as separate PairData objects
+            dft = out.find("dftcoupling")
+            if dft is None:
+                warnings.warn(f"Job {frag_A}-{frag_B}: no dftcoupling output, "
+                              f"skipping for model 'transport'")
+                continue
+            pair_hole = parse_dft_carrier(dft.find("hole"), frag_A, frag_B, "hole")
+            pair_elec = parse_dft_carrier(dft.find("electron"), frag_A, frag_B, "electron")
+            if pair_hole is None and pair_elec is None:
+                warnings.warn(f"Job {frag_A}-{frag_B}: neither hole nor electron "
+                              f"block found, skipping")
+                continue
+            for p in [pair_hole, pair_elec]:
+                if p is not None:
+                    pairs.append(p)
+                    frag_set.add(frag_A)
+                    frag_set.add(frag_B)
+            continue  # already appended
+
+        elif model in ('hole', 'electron'):
+            dft = out.find("dftcoupling")
+            if dft is None:
+                warnings.warn(f"Job {frag_A}-{frag_B}: no dftcoupling output, "
+                              f"skipping for model '{model}'")
+                continue
+            carrier_node = dft.find(model)
+            pair = parse_dft_carrier(carrier_node, frag_A, frag_B, model)
+            if pair is None:
+                warnings.warn(f"Job {frag_A}-{frag_B}: no '{model}' block in "
+                              f"dftcoupling, skipping")
+                continue
+
+        elif model in ('singlet', 'triplet'):
+            bse = out.find("bsecoupling")
+            if bse is None:
+                warnings.warn(f"Job {frag_A}-{frag_B}: no bsecoupling output, "
+                              f"skipping for model '{model}'")
+                continue
+            spin_node = bse.find(model)
+            pair = parse_bse_spin(spin_node, frag_A, frag_B, model)
+            if pair is None:
+                warnings.warn(f"Job {frag_A}-{frag_B}: no '{model}' block in "
+                              f"bsecoupling, skipping")
+                continue
+
+        pairs.append(pair)
+        frag_set.add(frag_A)
+        frag_set.add(frag_B)
+
+    fragments = sorted(frag_set)
+    return pairs, fragments
+
+
+# =============================================================================
+# TB assembler
+# =============================================================================
+
+class TBAssembler:
+    """
+    Assembles the TB Hamiltonian H and overlap S from pairwise data.
+
+    Works for all four model types (hole, electron, singlet, triplet).
+    For singlet/triplet, applies the adaptive FE+CT basis strategy:
+    CT states are kept explicit for pairs where downfolding_safe=False,
+    and effective J_diag couplings are used for safe pairs.
+
+    Basis ordering:
+        [ states_frag0, states_frag1, ...,   <- per-fragment states
+          CT_pair_AB_0, ...,                 <- explicit CT (BSE only)
+          CT_pair_BC_0, ... ]
+    """
+
+    def __init__(self, pairs: List[PairData], fragments: List[int],
+                 explicit_ct: bool = False):
+        self.pairs = pairs
+        self.fragments = fragments
+        models = set(p.model for p in pairs)
+        self.model = 'transport' if models == {'hole', 'electron'} else \
+                     (pairs[0].model if pairs else None)
+        self.explicit_ct = explicit_ct
+
+        self.state_idx: Dict[Tuple[int, int], int] = {}  # (frag, i) -> global
+        self.CT_idx: Dict[Tuple[int, int, int], int] = {}  # (fA,fB,k) -> global
+        self.explicit_CT_pairs: List[PairData] = []
+        self.downfolded_pairs: List[PairData] = []
+        self.total_dim: int = 0
+
+        self._assign_indices()
+
+    def _assign_indices(self):
+        # Infer n states per fragment from pair data, with consistency check.
+        # Each fragment must appear with the same state count in all pairs —
+        # if not, pairs were computed with different settings and cannot be
+        # combined into a single Hamiltonian.
+        n_per_frag: Dict[int, int] = {}
+        for p in self.pairs:
+            for frag, n in [(p.frag_A, p.n_A), (p.frag_B, p.n_B)]:
+                if frag in n_per_frag:
+                    if n_per_frag[frag] != n:
+                        raise ValueError(
+                            f"Fragment {frag} appears with inconsistent state "
+                            f"counts across pairs: {n_per_frag[frag]} vs {n}. "
+                            f"Check that all pairs were computed with the same "
+                            f"settings (same levA/levB/states).")
+                else:
+                    n_per_frag[frag] = n
+
+        # For transport: assign hole block then electron block.
+        # For other models: normal FE loop.
+        idx = 0
+        if self.model == 'transport':
+            hole_pairs = [p for p in self.pairs if p.model == 'hole']
+            elec_pairs = [p for p in self.pairs if p.model == 'electron']
+            n_hole_frag: Dict[int, int] = {}
+            for p in hole_pairs:
+                n_hole_frag[p.frag_A] = p.n_A
+                n_hole_frag[p.frag_B] = p.n_B
+            n_elec_frag: Dict[int, int] = {}
+            for p in elec_pairs:
+                n_elec_frag[p.frag_A] = p.n_A
+                n_elec_frag[p.frag_B] = p.n_B
+            for frag in self.fragments:
+                for i in range(n_hole_frag.get(frag, 0)):
+                    self.state_idx[(frag, i, 'hole')] = idx; idx += 1
+            self._elec_start = idx
+            for frag in self.fragments:
+                for i in range(n_elec_frag.get(frag, 0)):
+                    self.state_idx[(frag, i, 'electron')] = idx; idx += 1
+            self.explicit_CT_pairs = []
+            self.downfolded_pairs = list(self.pairs)
+            self.total_dim = idx
+            self.transition_dipoles = {}  # not applicable for transport
+            return
+
+        # Assign fragment state indices in deterministic fragment order
+        # (fragments list is already sorted by parse_jobs_xml).
+        for frag in self.fragments:
+            n = n_per_frag.get(frag, 0)
+            if n == 0:
+                warnings.warn(
+                    f"Fragment {frag} has no pairs in this dataset — "
+                    f"it will have no states in the TB Hamiltonian.")
+            for i in range(n):
+                self.state_idx[(frag, i)] = idx
+                idx += 1
+
+        # CT states only for BSE models.
+        # explicit_ct=True: keep CT for ALL pairs — avoids sign ambiguity of
+        # the effective coupling when CT states are near-resonant with FE states
+        # (xi~1). Recommended when optical selection rules matter.
+        # explicit_ct=False (default): adaptive — explicit CT for unsafe pairs,
+        # downfolded J_diag for safe pairs. Smaller basis.
+        # Sort by (frag_A, frag_B) for deterministic index assignment
+        # regardless of the order pairs appear in the XML file.
+        is_bse = self.model in ('singlet', 'triplet')
+        if self.explicit_ct and is_bse:
+            all_unsafe = list(self.pairs)
+            all_safe = []
+        else:
+            all_unsafe = [p for p in self.pairs
+                          if is_bse and not p.downfolding_safe]
+            all_safe = [p for p in self.pairs if p not in all_unsafe]
+
+        self.explicit_CT_pairs = sorted(all_unsafe,
+                                        key=lambda p: (p.frag_A, p.frag_B))
+        self.downfolded_pairs = sorted(all_safe,
+                                       key=lambda p: (p.frag_A, p.frag_B))
+
+        for p in self.explicit_CT_pairs:
+            for k in range(p.n_CT):
+                self.CT_idx[(p.frag_A, p.frag_B, k)] = idx
+                idx += 1
+
+        self.total_dim = idx
+
+        # Collect transition dipole vectors per (frag, state) for optical spectra.
+        # Take from the first pair that provides them; verify consistency across pairs.
+        self.transition_dipoles: Dict[Tuple[int, int], np.ndarray] = {}
+        for p in self.pairs:
+            for frag, n, tdips in [
+                    (p.frag_A, p.n_A, p.transition_dipoles_A),
+                    (p.frag_B, p.n_B, p.transition_dipoles_B)]:
+                if tdips is None:
+                    continue
+                for i in range(min(n, len(tdips))):
+                    key = (frag, i)
+                    if key not in self.transition_dipoles:
+                        self.transition_dipoles[key] = tdips[i]
+                    # consistency check: warn if dipoles differ across pairs
+                    elif not np.allclose(self.transition_dipoles[key],
+                                         tdips[i], atol=1e-6):
+                        warnings.warn(
+                            f"Transition dipole for fragment {frag} state {i} "
+                            f"inconsistent across pairs — using first occurrence.")
+        # CT states always have zero transition dipole (no direct ground-state coupling)
+
+    def _resolve_site_energies(
+            self,
+            external_site_energies: Optional[Dict],
+            electrostatic_corrections: Optional[Dict]
+    ) -> Tuple[Dict, str]:
+        """Determine site energies with priority hierarchy."""
+        if external_site_energies is not None:
+            for key in self.state_idx:
+                if key not in external_site_energies:
+                    raise ValueError(
+                        f"external_site_energies missing ({key[0]}, {key[1]})")
+            return dict(external_site_energies), "external (environment-corrected)"
+
+        has_monomer = all(
+            p.monomer_energies_A is not None and p.monomer_energies_B is not None
+            for p in self.pairs
+        )
+
+        if has_monomer:
+            collected: Dict[Tuple[int,int], List[float]] = {}
+            for p in self.pairs:
+                for i, eps in enumerate(p.monomer_energies_A):
+                    collected.setdefault((p.frag_A, i), []).append(eps)
+                for j, eps in enumerate(p.monomer_energies_B):
+                    collected.setdefault((p.frag_B, j), []).append(eps)
+
+            site_energies = {}
+            for key, vals in collected.items():
+                spread = max(vals) - min(vals)
+                if spread > 1e-4:
+                    warnings.warn(
+                        f"Monomer energy for frag {key[0]} state {key[1]} "
+                        f"varies by {spread*1000:.2f} meV across pairs.")
+                eps = float(np.mean(vals))
+                if electrostatic_corrections is not None:
+                    eps += electrostatic_corrections.get(key, 0.0)
+                site_energies[key] = eps
+
+            source = "monomer energies from XML"
+            if electrostatic_corrections:
+                source += " + electrostatic corrections"
+            return site_energies, source
+
+        # Fallback
+        warnings.warn(
+            "monomer_energies not in XML — falling back to averaged dimer "
+            "diagonal as site energies (pairwise-inconsistent).",
+            UserWarning)
+        energy_sum: Dict = {}
+        energy_count: Dict = {}
+        for p in self.pairs:
+            for i in range(p.n_A):
+                key = (p.frag_A, i)
+                energy_sum[key] = energy_sum.get(key, 0.0) + p.H_AA[i, i]
+                energy_count[key] = energy_count.get(key, 0) + 1
+            for j in range(p.n_B):
+                key = (p.frag_B, j)
+                energy_sum[key] = energy_sum.get(key, 0.0) + p.H_BB[j, j]
+                energy_count[key] = energy_count.get(key, 0) + 1
+        return ({k: energy_sum[k]/energy_count[k] for k in energy_sum},
+                "averaged dimer diagonal (fallback)")
+
+    def _assemble_transport(self, sparse: bool = True,
+                            use_qp: bool = False):
+        """Assemble the combined hole+electron TB Hamiltonian for band structure.
+
+        The Hamiltonian is block diagonal:
+            H = [ H_hole    0      ]
+                [   0    H_electron]
+
+        Hole and electron blocks are assembled independently using their
+        respective site energies and H_AB coupling matrices. The two-band
+        structure gives valence (hole) and conduction (electron) bands.
+        Hole-electron off-diagonal coupling is zero -- this is a single-particle
+        quasiparticle model, not a particle-hole (BSE) model.
+        """
+        dim = self.total_dim
+        H = np.zeros((dim, dim))
+        S = np.zeros((dim, dim))
+        np.fill_diagonal(S, 1.0)
+
+        hole_pairs = [p for p in self.pairs if p.model == 'hole']
+        elec_pairs = [p for p in self.pairs if p.model == 'electron']
+
+        def _fill_block(carrier_pairs, carrier):
+            # use_qp: prefer QPpert energies, warn and fall back to KS if absent
+            collected: Dict = {}
+            for p in carrier_pairs:
+                mono_A = (p.monomer_energies_A_QP
+                          if use_qp and p.monomer_energies_A_QP is not None
+                          else p.monomer_energies_A)
+                mono_B = (p.monomer_energies_B_QP
+                          if use_qp and p.monomer_energies_B_QP is not None
+                          else p.monomer_energies_B)
+                if use_qp and p.monomer_energies_A_QP is None:
+                    warnings.warn(f"QP energies unavailable for pair "
+                                  f"{p.frag_A}-{p.frag_B} frag A: using KS")
+                if use_qp and p.monomer_energies_B_QP is None:
+                    warnings.warn(f"QP energies unavailable for pair "
+                                  f"{p.frag_A}-{p.frag_B} frag B: using KS")
+                for frag, n, mono in [(p.frag_A, p.n_A, mono_A),
+                                      (p.frag_B, p.n_B, mono_B)]:
+                    if mono is not None:
+                        for i, eps in enumerate(mono):
+                            collected.setdefault((frag, i), []).append(eps)
+            for key, vals in collected.items():
+                idx = self.state_idx.get((key[0], key[1], carrier))
+                if idx is not None:
+                    H[idx, idx] = float(np.mean(vals))
+
+            # off-diagonal
+            for p in carrier_pairs:
+                idx_A = [self.state_idx[(p.frag_A, i, carrier)]
+                         for i in range(p.n_A)]
+                idx_B = [self.state_idx[(p.frag_B, j, carrier)]
+                         for j in range(p.n_B)]
+                for i, ia in enumerate(idx_A):
+                    for j, jb in enumerate(idx_B):
+                        H[ia, jb] = H[jb, ia] = p.H_AB[i, j]
+                        S[ia, jb] = S[jb, ia] = p.S_AB[i, j]
+
+        _fill_block(hole_pairs, 'hole')
+        _fill_block(elec_pairs, 'electron')
+
+        H = 0.5 * (H + H.T)
+        S = 0.5 * (S + S.T)
+        self._site_energy_source = "monomer MO energies from XML"
+
+        if sparse:
+            return sp.csr_matrix(H), sp.csr_matrix(S)
+        return H, S
+
+    def assemble(
+            self,
+            external_site_energies: Optional[Dict] = None,
+            electrostatic_corrections: Optional[Dict] = None,
+            sparse: bool = True,
+            use_qp: bool = False
+    ) -> Tuple[object, object]:
+        """
+        Assemble H and S.
+
+        Parameters
+        ----------
+        external_site_energies : dict, optional
+            {(frag_id, state_idx): energy_eV} — highest priority site energies.
+        electrostatic_corrections : dict, optional
+            {(frag_id, state_idx): delta_eV} — added to monomer XML energies.
+        sparse : bool
+            If True return scipy.sparse.csr_matrix, else numpy dense array.
+
+        Returns
+        -------
+        H, S : matrices of shape (total_dim, total_dim)
+
+        Notes
+        -----
+        CT treatment is set at construction via explicit_ct:
+        - False (default): adaptive — explicit CT for unsafe pairs, effective
+          J_diag for safe pairs. Smaller basis but scalar J_diag can have sign
+          ambiguity when CT states are near-resonant (xi~1).
+        - True: all BSE pairs keep CT states explicitly. No downfolding, no
+          sign ambiguity. Recommended when optical selection rules matter.
+        """
+        dim = self.total_dim
+        H = np.zeros((dim, dim))
+        S = np.zeros((dim, dim))
+        np.fill_diagonal(S, 1.0)
+
+        # transport model uses its own assembly method
+        if self.model == 'transport':
+            return self._assemble_transport(sparse, use_qp=use_qp)
+
+        # --- site energies ---
+        site_energies, source = self._resolve_site_energies(
+            external_site_energies, electrostatic_corrections)
+        self._site_energy_source = source
+        for (frag, i), idx in self.state_idx.items():
+            H[idx, idx] = site_energies.get((frag, i), 0.0)
+
+        # --- CT site energies (BSE only) ---
+        for p in self.explicit_CT_pairs:
+            for k in range(p.n_CT):
+                kc = self.CT_idx[(p.frag_A, p.frag_B, k)]
+                H[kc, kc] = p.H_CT_CT[k, k]
+                for l in range(p.n_CT):
+                    if l != k:
+                        lc = self.CT_idx[(p.frag_A, p.frag_B, l)]
+                        H[kc, lc] = p.H_CT_CT[k, l]
+                        S[kc, lc] = p.S_CT_CT[k, l]
+
+        # --- off-diagonal blocks ---
+        for p in self.pairs:
+            idx_A = [self.state_idx[(p.frag_A, i)] for i in range(p.n_A)]
+            idx_B = [self.state_idx[(p.frag_B, j)] for j in range(p.n_B)]
+
+            if p.downfolding_safe or self.model in ('hole', 'electron'):
+                # DFT: always direct (no CT downfolding concept)
+                # BSE safe: use effective J_diag
+                if self.model in ('singlet', 'triplet') and p.downfolding_safe:
+                    # use J_diag from effective couplings
+                    for i, ia in enumerate(idx_A):
+                        for j, jb in enumerate(idx_B):
+                            J = p.H_AB[i, j]  # already effective after Lowdin
+                            H[ia, jb] = H[jb, ia] = J
+                            H[ia, jb] = H[jb, ia] = J
+                            S[ia, jb] = S[jb, ia] = p.S_AB[i, j]
+                else:
+                    # DFT hole/electron: raw H_AB
+                    for i, ia in enumerate(idx_A):
+                        for j, jb in enumerate(idx_B):
+                            H[ia, jb] = H[jb, ia] = p.H_AB[i, j]
+                            S[ia, jb] = S[jb, ia] = p.S_AB[i, j]
+            else:
+                # BSE unsafe: direct FE-FE + explicit CT
+                for i, ia in enumerate(idx_A):
+                    for j, jb in enumerate(idx_B):
+                        H[ia, jb] = H[jb, ia] = p.H_AB[i, j]
+                        S[ia, jb] = S[jb, ia] = p.S_AB[i, j]
+                # FE-CT blocks
+                all_fe = [(ia, i) for i, ia in enumerate(idx_A)] + \
+                         [(jb, p.n_A + j) for j, jb in enumerate(idx_B)]
+                for glob_idx, loc_idx in all_fe:
+                    for k in range(p.n_CT):
+                        kc = self.CT_idx[(p.frag_A, p.frag_B, k)]
+                        H[glob_idx, kc] = H[kc, glob_idx] = p.H_FE_CT[loc_idx, k]
+                        S[glob_idx, kc] = S[kc, glob_idx] = p.S_FE_CT[loc_idx, k]
+
+        H = 0.5 * (H + H.T)
+        S = 0.5 * (S + S.T)
+
+        if sparse:
+            return sp.csr_matrix(H), sp.csr_matrix(S)
+        return H, S
+
+    def basis_labels(self) -> List[str]:
+        labels = [''] * self.total_dim
+        if self.model == 'transport':
+            for (frag, i, carrier), idx in self.state_idx.items():
+                prefix = 'h' if carrier == 'hole' else 'e'
+                labels[idx] = f"{prefix}_f{frag}_{i+1}"
+        else:
+            prefix = {'hole': 'h', 'electron': 'e',
+                      'singlet': 's', 'triplet': 't'}.get(self.model, 'x')
+            for (frag, i), idx in self.state_idx.items():
+                labels[idx] = f"{prefix}_f{frag}_{i+1}"
+            for (fA, fB, k), idx in self.CT_idx.items():
+                labels[idx] = f"CT_f{fA}{fB}_k{k+1}"
+        return labels
+
+
+# =============================================================================
+# TB solver
+# =============================================================================
+
+class TBSolver:
+    """Solve H*c = E*S*c, using sparse or dense methods."""
+
+    def __init__(self, H, S):
+        self.H = H
+        self.S = S
+        self._sparse = sp.issparse(H)
+
+    def solve(self, n_states: Optional[int] = None
+              ) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Solve the generalized eigenvalue problem.
+
+        Parameters
+        ----------
+        n_states : int, optional
+            Number of lowest eigenstates to compute. If None, compute all.
+            For sparse matrices, n_states must be given and < dim - 1.
+        """
+        if self._sparse:
+            if n_states is None:
+                # fall back to dense for full spectrum
+                H = self.H.toarray()
+                S = self.S.toarray()
+                return la.eigh(H, S)
+            else:
+                return spla.eigsh(self.H, k=n_states, M=self.S, which='SM')
+        else:
+            evals, evecs = la.eigh(self.H, self.S)
+            if n_states is not None:
+                return evals[:n_states], evecs[:, :n_states]
+            return evals, evecs
+
+    def participation_ratio(self, evec: np.ndarray) -> float:
+        p = np.abs(evec) ** 2
+        return np.sum(p) ** 2 / np.sum(p ** 2)
+
+    def oscillator_strengths(
+            self,
+            evecs: np.ndarray,
+            evals: np.ndarray,
+            assembler: TBAssembler
+    ) -> np.ndarray:
+        """
+        Compute oscillator strengths for all TB eigenstates.
+
+        f_n = (2/3) * E_n * |<0|mu|n>|^2
+
+        where mu_n = sum_i c_i^(n) * mu_i is built from the eigenvector
+        coefficients and the basis state transition dipoles [e*bohr].
+        CT basis states always contribute zero (no direct ground-state dipole).
+
+        Returns array of shape (n_states,).
+        Units: dimensionless oscillator strength (consistent with GW-BSE output).
+        """
+        if not assembler.transition_dipoles:
+            raise ValueError(
+                "No transition dipoles available. Re-run bsecoupling with "
+                "updated code that writes tdx/tdy/tdz to the XML output.")
+
+        dim = assembler.total_dim
+        # Build (dim x 3) transition dipole matrix for all basis states
+        mu_basis = np.zeros((dim, 3))
+        for (frag, i), idx in assembler.state_idx.items():
+            tdip = assembler.transition_dipoles.get((frag, i))
+            if tdip is not None:
+                mu_basis[idx] = tdip
+        # CT states remain zero
+
+        # Standard formula: f = (2/3) * E[Hartree] * |<0|r|n>|^2[bohr^2]
+        # Energies in assembler are in eV; convert to Hartree before use.
+        eV2Hrt = 1.0 / 27.211386245988
+
+        f = np.zeros(len(evals))
+        for n in range(len(evals)):
+            mu_n = mu_basis.T @ evecs[:, n]      # (3,)
+            d_sq = float(np.dot(mu_n, mu_n))     # |<0|mu|n>|^2 in e^2*bohr^2
+            f[n] = (2.0 / 3.0) * (evals[n] * eV2Hrt) * d_sq
+        return f
+
+    def absorption_spectrum(
+            self,
+            evecs: np.ndarray,
+            evals: np.ndarray,
+            assembler: TBAssembler,
+            e_min: Optional[float] = None,
+            e_max: Optional[float] = None,
+            n_points: int = 1000,
+            gamma_eV: float = 0.1,
+            lineshape: str = 'lorentzian'
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Compute the broadened absorption spectrum.
+
+        Parameters
+        ----------
+        gamma_eV : float
+            Broadening HWHM in eV (Lorentzian) or sigma (Gaussian).
+        lineshape : str
+            'lorentzian' or 'gaussian'.
+
+        Returns
+        -------
+        E : np.ndarray   energy axis [eV]
+        A : np.ndarray   absorption intensity [arbitrary units]
+        """
+        f = self.oscillator_strengths(evecs, evals, assembler)
+        e0 = e_min if e_min is not None else evals[0] - 3 * gamma_eV
+        e1 = e_max if e_max is not None else evals[-1] + 3 * gamma_eV
+        E = np.linspace(e0, e1, n_points)
+        A = np.zeros(n_points)
+        for n, (f_n, E_n) in enumerate(zip(f, evals)):
+            if f_n < 1e-10:
+                continue
+            if lineshape == 'lorentzian':
+                A += f_n * (gamma_eV / np.pi) / ((E - E_n)**2 + gamma_eV**2)
+            else:
+                A += f_n * np.exp(-0.5 * ((E - E_n) / gamma_eV)**2)
+        return E, A
+
+    def state_weights(self, evec: np.ndarray,
+                      assembler: TBAssembler,
+                      fragments: List[int]) -> Dict:
+        """Return per-fragment weight and total FE/CT weight."""
+        frag_w = {f: 0.0 for f in fragments}
+        fe_w = ct_w = hole_w = elec_w = 0.0
+        for key, idx in assembler.state_idx.items():
+            w = evec[idx] ** 2
+            frag = key[0]
+            frag_w[frag] = frag_w.get(frag, 0.0) + w
+            fe_w += w
+            if assembler.model == 'transport':
+                if key[2] == 'hole': hole_w += w
+                else: elec_w += w
+        for idx in assembler.CT_idx.values():
+            w = evec[idx] ** 2
+            ct_w += w
+        return {'fragments': frag_w, 'FE': fe_w, 'CT': ct_w,
+                'hole': hole_w, 'electron': elec_w}
+
+
+# =============================================================================
+# Main
+# =============================================================================
+
+def main():
+    parser = argparse.ArgumentParser(description="VOTCA TB Hamiltonian assembler")
+    parser.add_argument("--input", default="/mnt/user-data/uploads/iqm_out.xml",
+                        help="Path to VOTCA jobs XML file")
+    parser.add_argument("--model", default="singlet",
+                        choices=["hole", "electron", "singlet", "triplet",
+                                 "transport"],
+                        help="Model type. 'transport' combines hole+electron ")
+    # fix trailing paren removed above
+    parser.add_argument("--n-states", type=int, default=None,
+                        help="Number of lowest eigenstates (default: all)")
+    parser.add_argument("--dense", action="store_true",
+                        help="Use dense matrices (default: sparse)")
+    parser.add_argument("--explicit-ct", action="store_true",
+                        help="Keep CT states for ALL BSE pairs, never downfold "
+                             "(recommended when optical spectra matter)")
+    parser.add_argument("--qp-energies", action="store_true",
+                        help="Use GW QPpert energies as MO site energies "
+                             "instead of KS eigenvalues (hole/electron/transport "
+                             "only; falls back to KS with warning if unavailable)")
+    args = parser.parse_args()
+
+    print("=" * 60)
+    print(f"VOTCA TB Assembler — model: {args.model}")
+    print("=" * 60)
+
+    # --- parse ---
+    print(f"\nReading: {args.input}")
+    pairs, fragments = parse_jobs_xml(args.input, args.model)
+
+    if not pairs:
+        print(f"ERROR: No pairs found for model '{args.model}'. "
+              f"Check that the XML contains the requested calculation type.")
+        return
+
+    print(f"Found {len(pairs)} pairs, {len(fragments)} fragments: {fragments}")
+    print()
+
+    for p in pairs:
+        safe_str = ""
+        if isinstance(p.diagnostics, BSEDiagnostics):
+            safe_str = (f"  xi={p.diagnostics.xi:.4f} "
+                        f"PT/RM={p.diagnostics.pt_rm_discrepancy_eV*1000:.1f}meV "
+                        f"safe={p.diagnostics.downfolding_safe}")
+        elif isinstance(p.diagnostics, DFTDiagnostics):
+            safe_str = (f"  minS={p.diagnostics.min_S_eigenvalue:.4f} "
+                        f"ok={p.diagnostics.basis_ok}")
+        print(f"  Pair {p.frag_A}-{p.frag_B}: "
+              f"n_A={p.n_A} n_B={p.n_B} n_CT={p.n_CT}{safe_str}")
+
+    # --- assemble ---
+    print(f"\n{'='*60}")
+    print("Assembling TB Hamiltonian")
+    print("=" * 60)
+
+    explicit_ct = getattr(args, 'explicit_ct', False)
+    assembler = TBAssembler(pairs, fragments, explicit_ct=explicit_ct)
+    labels = assembler.basis_labels()
+
+    print(f"\nBasis: {assembler.total_dim} states total")
+    print(f"  Fragment states: {len(assembler.state_idx)}")
+    if args.model == 'transport':
+        n_hole = sum(1 for k in assembler.state_idx if k[2] == 'hole')
+        n_elec = len(assembler.state_idx) - n_hole
+        print(f"  Hole states:     {n_hole}")
+        print(f"  Electron states: {n_elec}")
+    print(f"  Explicit CT:     {len(assembler.CT_idx)}")
+    if args.model in ('singlet', 'triplet'):
+        ct_mode = "all pairs (--explicit-ct)" if explicit_ct else "adaptive"
+        print(f"  CT strategy:     {ct_mode}")
+        if assembler.explicit_CT_pairs:
+            print(f"  Explicit CT pairs:  "
+                  f"{[(p.frag_A, p.frag_B) for p in assembler.explicit_CT_pairs]}")
+        if assembler.downfolded_pairs:
+            print(f"  Downfolded pairs:   "
+                  f"{[(p.frag_A, p.frag_B) for p in assembler.downfolded_pairs]}")
+
+    use_qp = getattr(args, 'qp_energies', False)
+    H, S = assembler.assemble(sparse=not args.dense, use_qp=use_qp)
+    print(f"\nSite energy source: {assembler._site_energy_source}")
+    if args.model in ('hole', 'electron', 'transport'):
+        energy_type = 'QPpert (GW)' if use_qp else 'KS (DFT)'
+        print(f"  MO energies:       {energy_type}")
+
+    print(f"\nSite energies [eV]:")
+    H_dense = H.toarray() if sp.issparse(H) else H
+    for key, idx in sorted(assembler.state_idx.items()):
+        E = H_dense[idx, idx]
+        if assembler.model == 'transport':
+            frag, i, carrier = key
+            print(f"  Fragment {frag} {carrier} state {i+1}: {E:.6f}")
+        else:
+            frag, i = key
+            print(f"  Fragment {frag} state {i+1}: {E:.6f}")
+
+    if assembler.CT_idx:
+        print(f"\nCT site energies [eV]:")
+        for (fA, fB, k), idx in sorted(assembler.CT_idx.items()):
+            E = H[idx, idx] if not sp.issparse(H) else H.toarray()[idx, idx]
+            print(f"  CT f{fA}-f{fB} k{k+1}: {E:.6f}")
+
+    # check S
+    S_dense = S.toarray() if sp.issparse(S) else S
+    evals_S = np.linalg.eigvalsh(S_dense)
+    print(f"\nS eigenvalues: min={evals_S.min():.6f}  max={evals_S.max():.6f}")
+    if evals_S.min() < 1e-6:
+        warnings.warn("S has very small eigenvalue — basis near-linearly-dependent")
+
+    # --- solve ---
+    print(f"\n{'='*60}")
+    print(f"Solving TB eigenvalue problem")
+    print("=" * 60)
+
+    solver = TBSolver(H, S)
+    n_req = args.n_states if args.n_states else assembler.total_dim
+    # for sparse, can't solve all states via eigsh
+    if sp.issparse(H) and args.n_states is None:
+        evals, evecs = solver.solve(n_states=None)  # falls back to dense
+    else:
+        evals, evecs = solver.solve(n_states=args.n_states)
+
+    if args.model == 'transport':
+        header2 = f"{'hole':>6}  {'elec':>6}"
+    else:
+        header2 = f"{'FE':>6}  {'CT':>6}"
+    print(f"\n{'#':>4}  {'E (eV)':>10}  {'IPR':>6}  " + header2 + "  " +
+          "  ".join(f"{'f'+str(f):>6}" for f in fragments) +
+          "  Dominant")
+    print("-" * (55 + 8 * len(fragments)))
+
+    for n in range(len(evals)):
+        evec = evecs[:, n]
+        ipr = solver.participation_ratio(evec)
+        w = solver.state_weights(evec, assembler, fragments)
+        dom_idx = np.argmax(np.abs(evec) ** 2)
+        dom = labels[dom_idx] if dom_idx < len(labels) else "?"
+        frag_str = "  ".join(f"{w['fragments'].get(f, 0.0):>6.3f}"
+                              for f in fragments)
+        if args.model == 'transport':
+            col2 = f"{w['hole']:>6.3f}  {w['electron']:>6.3f}"
+        else:
+            col2 = f"{w['FE']:>6.3f}  {w['CT']:>6.3f}"
+        print(f"{n+1:>4}  {evals[n]:>10.4f}  {ipr:>6.2f}  "
+              f"{col2}  {frag_str}  {dom}")
+
+    # --- oscillator strengths ---
+    if assembler.transition_dipoles:
+        print(f"\n{'='*60}")
+        print("Oscillator strengths")
+        print("=" * 60)
+        f_osc = solver.oscillator_strengths(evecs, evals, assembler)
+        print(f"\n  {'#':>4}  {'E (eV)':>9}  {'f_osc':>10}  {'|d|^2':>10}")
+        print("  " + "-" * 40)
+        f_total = 0.0
+        for n in range(len(evals)):
+            d_sq = f_osc[n] / ((2.0/3.0) * evals[n]) if evals[n] > 0 else 0.0
+            print(f"  {n+1:>4}  {evals[n]:>9.4f}  {f_osc[n]:>10.4f}  {d_sq:>10.4f}")
+            f_total += f_osc[n]
+        print(f"\n  Total oscillator strength: {f_total:.4f}")
+        print(f"  (Thomas-Reiche-Kuhn sum rule: should equal n_electrons)")
+
+        # broadened spectrum
+        E_spec, A_spec = solver.absorption_spectrum(
+            evecs, evals, assembler, gamma_eV=0.1)
+        print(f"\n  Spectrum computed ({len(E_spec)} points, gamma=0.1 eV)")
+        print(f"  Peak at E = {E_spec[np.argmax(A_spec)]:.3f} eV")
+    else:
+        print(f"\n  (No transition dipoles in XML — "
+              f"rerun with updated bsecoupling to get oscillator strengths)")
+
+    # --- eigenvector composition ---
+    print(f"\n{'='*60}")
+    print("Eigenvector composition (|coeff| > 0.1)")
+    print("=" * 60)
+    for n in range(len(evals)):
+        evec = evecs[:, n]
+        significant = [(abs(c), c, lab)
+                       for c, lab in zip(evec, labels) if abs(c) > 0.1]
+        if significant:
+            print(f"\nState {n+1}  E = {evals[n]:.4f} eV:")
+            for _, c, lab in sorted(significant, reverse=True):
+                print(f"  {c:+.4f}  {lab}")
+
+
+if __name__ == "__main__":
+    main()
