@@ -91,6 +91,11 @@ Usage
 
 import numpy as np
 import xml.etree.ElementTree as ET
+try:
+    import h5py
+    HAS_HDF5 = True
+except ImportError:
+    HAS_HDF5 = False
 import scipy.linalg as la
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
@@ -978,6 +983,228 @@ class TBSolver:
                 'hole': hole_w, 'electron': elec_w}
 
 
+
+# =============================================================================
+# HDF5 output
+# =============================================================================
+
+def write_hdf5(filepath: str,
+               assembler: TBAssembler,
+               solver: 'TBSolver',
+               H, S,
+               evals: np.ndarray,
+               evecs: np.ndarray,
+               fragments: List[int],
+               f_osc: Optional[np.ndarray] = None,
+               spectrum_E: Optional[np.ndarray] = None,
+               spectrum_A: Optional[np.ndarray] = None) -> None:
+    """
+    Write all TB results to an HDF5 file for postprocessing.
+
+    File structure
+    --------------
+    /metadata/
+        model           str   — hole/electron/singlet/triplet/transport
+        n_fragments     int
+        n_states        int   — eigenstates stored
+        basis_dim       int   — total Hamiltonian dimension
+        site_energy_source  str
+        explicit_ct     bool  — only meaningful for singlet/triplet
+    /basis/
+        labels          (dim,) str    — human-readable basis state labels
+        fragment_ids    (dim,) int    — fragment index for each basis state
+        state_types     (dim,) str    — 'FE', 'CT', 'hole', 'electron'
+        state_indices   (dim,) int    — state index within fragment
+        ct_frag_A       (dim,) int    — -1 for non-CT states
+        ct_frag_B       (dim,) int    — -1 for non-CT states
+    /hamiltonian/
+        H_data / H_indices / H_indptr / H_shape   CSR sparse H [eV]
+        S_data / S_indices / S_indptr / S_shape   CSR sparse S
+    /eigenstates/
+        eigenvalues     (n_states,)       [eV]
+        eigenvectors    (dim, n_states)   S-normalised
+        participation_ratios  (n_states,)
+        FE_weights      (n_states,)
+        CT_weights      (n_states,)
+        fragment_weights  (n_states, n_fragments)
+        dominant_basis  (n_states,) int   — index of largest |coeff|
+    /optical/                           — only present for singlet model
+        oscillator_strengths  (n_states,)
+        transition_dipoles    (n_states, 3)  [e*bohr]
+        spectrum_E      (n_points,)   [eV]
+        spectrum_A      (n_points,)
+    /pairs/
+        <fA>_<fB>/
+            frag_A      int
+            frag_B      int
+            model       str
+            n_A         int
+            n_B         int
+            n_CT        int
+            H_AB        (n_A, n_B) [eV]
+            S_AB        (n_A, n_B)
+            monomer_energies_A   (n_A,) [eV]
+            monomer_energies_B   (n_B,) [eV]
+            xi          float    — BSE only
+            downfolding_safe  bool  — BSE only
+    """
+    if not HAS_HDF5:
+        warnings.warn("h5py not available — skipping HDF5 output. "
+                      "Install with: pip install h5py")
+        return
+
+    H_csr = H if sp.issparse(H) else sp.csr_matrix(H)
+    S_csr = S if sp.issparse(S) else sp.csr_matrix(S)
+    labels = assembler.basis_labels()
+    dim = assembler.total_dim
+    n_states = len(evals)
+    n_frags = len(fragments)
+
+    # build per-basis-state metadata arrays
+    basis_fragment_ids = np.full(dim, -1, dtype=np.int32)
+    basis_state_indices = np.full(dim, -1, dtype=np.int32)
+    basis_state_types = np.empty(dim, dtype=object)
+    ct_frag_A = np.full(dim, -1, dtype=np.int32)
+    ct_frag_B = np.full(dim, -1, dtype=np.int32)
+
+    if assembler.model == 'transport':
+        for (frag, i, carrier), idx in assembler.state_idx.items():
+            basis_fragment_ids[idx] = frag
+            basis_state_indices[idx] = i
+            basis_state_types[idx] = carrier
+    else:
+        for (frag, i), idx in assembler.state_idx.items():
+            basis_fragment_ids[idx] = frag
+            basis_state_indices[idx] = i
+            basis_state_types[idx] = 'FE'
+        for (fA, fB, k), idx in assembler.CT_idx.items():
+            basis_fragment_ids[idx] = fA  # assign to fragment A by convention
+            basis_state_indices[idx] = k
+            basis_state_types[idx] = 'CT'
+            ct_frag_A[idx] = fA
+            ct_frag_B[idx] = fB
+
+    # per-eigenstate arrays
+    iprs = np.array([solver.participation_ratio(evecs[:, n])
+                     for n in range(n_states)])
+    fe_w = np.zeros(n_states)
+    ct_w = np.zeros(n_states)
+    frag_w = np.zeros((n_states, n_frags))
+    dominant = np.argmax(np.abs(evecs), axis=0)[:n_states]
+
+    for n in range(n_states):
+        w = solver.state_weights(evecs[:, n], assembler, fragments)
+        fe_w[n] = w['FE']
+        ct_w[n] = w['CT']
+        for fi, frag in enumerate(fragments):
+            frag_w[n, fi] = w['fragments'].get(frag, 0.0)
+
+    # transition dipoles per eigenstate
+    if f_osc is not None:
+        mu_basis = np.zeros((dim, 3))
+        for (frag, i), idx in assembler.state_idx.items():
+            tdip = assembler.transition_dipoles.get((frag, i))
+            if tdip is not None:
+                mu_basis[idx] = tdip
+        eV2Hrt = 1.0 / 27.211386245988
+        td_states = np.array([mu_basis.T @ evecs[:, n] for n in range(n_states)])
+
+    with h5py.File(filepath, 'w') as f:
+        # --- metadata ---
+        meta = f.create_group('metadata')
+        meta.attrs['model'] = assembler.model
+        meta.attrs['n_fragments'] = n_frags
+        meta.attrs['n_states'] = n_states
+        meta.attrs['basis_dim'] = dim
+        meta.attrs['site_energy_source'] = assembler._site_energy_source
+        meta.attrs['explicit_ct'] = assembler.explicit_ct
+        meta.attrs['fragment_ids'] = np.array(fragments, dtype=np.int32)
+
+        # --- basis ---
+        bas = f.create_group('basis')
+        bas.create_dataset('labels',
+            data=np.array(labels, dtype=h5py.string_dtype()))
+        bas.create_dataset('fragment_ids',
+            data=basis_fragment_ids)
+        bas.create_dataset('state_types',
+            data=np.array(basis_state_types, dtype=h5py.string_dtype()))
+        bas.create_dataset('state_indices',
+            data=basis_state_indices)
+        bas.create_dataset('ct_frag_A', data=ct_frag_A)
+        bas.create_dataset('ct_frag_B', data=ct_frag_B)
+
+        # --- hamiltonian (sparse CSR) ---
+        ham = f.create_group('hamiltonian')
+        for name, mat in [('H', H_csr), ('S', S_csr)]:
+            grp = ham.create_group(name)
+            grp.create_dataset('data',    data=mat.data)
+            grp.create_dataset('indices', data=mat.indices)
+            grp.create_dataset('indptr',  data=mat.indptr)
+            grp.attrs['shape'] = mat.shape
+            grp.attrs['format'] = 'csr'
+
+        # --- eigenstates ---
+        eig = f.create_group('eigenstates')
+        eig.create_dataset('eigenvalues',         data=evals)
+        eig.create_dataset('eigenvectors',        data=evecs[:, :n_states])
+        eig.create_dataset('participation_ratios', data=iprs)
+        eig.create_dataset('FE_weights',          data=fe_w)
+        eig.create_dataset('CT_weights',          data=ct_w)
+        eig.create_dataset('fragment_weights',    data=frag_w)
+        eig.create_dataset('dominant_basis',      data=dominant)
+        eig.attrs['fragment_ids'] = np.array(fragments, dtype=np.int32)
+
+        # --- optical (singlet only) ---
+        if f_osc is not None:
+            opt = f.create_group('optical')
+            opt.create_dataset('oscillator_strengths', data=f_osc)
+            opt.create_dataset('transition_dipoles',   data=td_states)
+            if spectrum_E is not None and spectrum_A is not None:
+                opt.create_dataset('spectrum_E', data=spectrum_E)
+                opt.create_dataset('spectrum_A', data=spectrum_A)
+
+        # --- pairs ---
+        pairs_grp = f.create_group('pairs')
+        seen = set()
+        for p in assembler.pairs:
+            key = (p.frag_A, p.frag_B, p.model)
+            if key in seen:
+                continue
+            seen.add(key)
+            grp_name = f"{p.frag_A}_{p.frag_B}_{p.model}"
+            pg = pairs_grp.create_group(grp_name)
+            pg.attrs['frag_A'] = p.frag_A
+            pg.attrs['frag_B'] = p.frag_B
+            pg.attrs['model'] = p.model
+            pg.attrs['n_A'] = p.n_A
+            pg.attrs['n_B'] = p.n_B
+            pg.attrs['n_CT'] = p.n_CT
+            if p.H_AB is not None:
+                pg.create_dataset('H_AB', data=p.H_AB)
+                pg.create_dataset('S_AB', data=p.S_AB)
+            if p.monomer_energies_A is not None:
+                pg.create_dataset('monomer_energies_A', data=p.monomer_energies_A)
+                pg.create_dataset('monomer_energies_B', data=p.monomer_energies_B)
+            if p.monomer_energies_A_QP is not None:
+                pg.create_dataset('monomer_energies_A_QP', data=p.monomer_energies_A_QP)
+                pg.create_dataset('monomer_energies_B_QP', data=p.monomer_energies_B_QP)
+            if isinstance(p.diagnostics, BSEDiagnostics):
+                pg.attrs['xi'] = p.diagnostics.xi
+                pg.attrs['pt_rm_discrepancy_eV'] = p.diagnostics.pt_rm_discrepancy_eV
+                pg.attrs['downfolding_safe'] = p.diagnostics.downfolding_safe
+                if p.H_FE_CT is not None:
+                    pg.create_dataset('H_FE_CT', data=p.H_FE_CT)
+                    pg.create_dataset('S_FE_CT', data=p.S_FE_CT)
+                    pg.create_dataset('H_CT_CT', data=p.H_CT_CT)
+                    pg.create_dataset('S_CT_CT', data=p.S_CT_CT)
+            elif isinstance(p.diagnostics, DFTDiagnostics):
+                pg.attrs['min_S_eigenvalue'] = p.diagnostics.min_S_eigenvalue
+                pg.attrs['basis_ok'] = p.diagnostics.basis_ok
+            if p.transition_dipoles_A is not None:
+                pg.create_dataset('transition_dipoles_A', data=p.transition_dipoles_A)
+                pg.create_dataset('transition_dipoles_B', data=p.transition_dipoles_B)
+
+
 # =============================================================================
 # Main
 # =============================================================================
@@ -1002,6 +1229,9 @@ def main():
                         help="Use GW QPpert energies as MO site energies "
                              "instead of KS eigenvalues (hole/electron/transport "
                              "only; falls back to KS with warning if unavailable)")
+    parser.add_argument("--output", default=None, metavar="FILE.h5",
+                        help="Write all results to an HDF5 file for "
+                             "postprocessing (requires h5py)")
     args = parser.parse_args()
 
     print("=" * 60)
@@ -1128,11 +1358,12 @@ def main():
               f"{col2}  {frag_str}  {dom}")
 
     # --- oscillator strengths ---
+    f_osc = None; E_spec = None; A_spec = None
     if assembler.transition_dipoles:
         print(f"\n{'='*60}")
         print("Oscillator strengths")
         print("=" * 60)
-        f_osc = solver.oscillator_strengths(evecs, evals, assembler)
+        f_osc = solver.oscillator_strengths(evecs, evals, assembler)  # noqa
         print(f"\n  {'#':>4}  {'E (eV)':>9}  {'f_osc':>10}  {'|d|^2':>10}")
         print("  " + "-" * 40)
         f_total = 0.0
@@ -1144,13 +1375,25 @@ def main():
         print(f"  (Thomas-Reiche-Kuhn sum rule: should equal n_electrons)")
 
         # broadened spectrum
-        E_spec, A_spec = solver.absorption_spectrum(
+        E_spec, A_spec = solver.absorption_spectrum(  # noqa
             evecs, evals, assembler, gamma_eV=0.1)
         print(f"\n  Spectrum computed ({len(E_spec)} points, gamma=0.1 eV)")
         print(f"  Peak at E = {E_spec[np.argmax(A_spec)]:.3f} eV")
     else:
         print(f"\n  (No transition dipoles in XML — "
               f"rerun with updated bsecoupling to get oscillator strengths)")
+
+    # --- HDF5 output ---
+    if args.output:
+        f_osc_out = f_osc if assembler.transition_dipoles else None
+        spec_E_out = E_spec if assembler.transition_dipoles else None
+        spec_A_out = A_spec if assembler.transition_dipoles else None
+        write_hdf5(args.output, assembler, solver, H, S,
+                   evals, evecs, fragments,
+                   f_osc=f_osc_out,
+                   spectrum_E=spec_E_out,
+                   spectrum_A=spec_A_out)
+        print(f"\nResults written to: {args.output}")
 
     # --- eigenvector composition ---
     print(f"\n{'='*60}")
