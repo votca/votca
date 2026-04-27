@@ -33,23 +33,24 @@ xtp_tightbinding, version {VERSION}
 """
 
 """
-TB assembler for VOTCA IQM output files.
+TB Hamiltonian assembler, solver, and dynamics for VOTCA IQM output files.
 
 Reads a single jobs XML file (e.g. iqm_out.xml) produced by a VOTCA IQM
-workflow, assembles a TB Hamiltonian for a chosen model type, and computes
-eigenstates and basic observables including oscillator strengths.
+workflow, assembles a fragment-based tight-binding (TB) Hamiltonian for a
+chosen model type, computes eigenstates and optical observables, and
+optionally runs coherent wavepacket dynamics.
 
-Requires VOTCA bsecoupling/dftcoupling built with the enriched XML output
-that writes raw TB matrices, monomer energies, transition dipoles, and
-diagnostics alongside the standard pairwise effective couplings.
+Requires VOTCA bsecoupling/dftcoupling built with output_tb=true, which
+writes raw TB matrices, monomer energies, transition dipoles, and diagnostics
+into the jobs XML alongside the standard pairwise effective couplings.
 
 Supported model types
 ---------------------
 'hole'      -- valence band (occupied MOs) from dftcoupling
 'electron'  -- conduction band (virtual MOs) from dftcoupling
 'transport' -- combined hole+electron two-band quasiparticle model;
-               both bands in a single block-diagonal Hamiltonian, useful
-               for charge transport band structure and optical gap estimates
+               block-diagonal Hamiltonian, useful for band structure and
+               optical gap estimates
 'singlet'   -- singlet Frenkel excitons from bsecoupling
 'triplet'   -- triplet Frenkel excitons from bsecoupling
 
@@ -58,10 +59,11 @@ CT state treatment (singlet/triplet only)
 Adaptive (default): explicit CT basis for pairs where downfolding is unsafe
     (xi >= threshold or large PT/RM discrepancy); effective J_diag coupling
     for safe pairs. Smaller basis.
---explicit-ct: keep CT states in the basis for ALL pairs regardless of the
-    safety diagnostic. Recommended when optical selection rules (J- vs
-    H-aggregate character, oscillator strength distribution) matter, since
-    the scalar J_diag has sign ambiguity near CT resonances (xi ~ 1).
+--explicit-ct: keep CT states for ALL pairs regardless of the safety
+    diagnostic. Avoids sign ambiguity of the scalar J_diag when CT states
+    are near-resonant with FE states (xi ~ 1). Recommended when optical
+    selection rules (J- vs H-aggregate character, oscillator strength
+    distribution) are of interest.
 
 Site energy priority (FE/MO diagonal)
 --------------------------------------
@@ -71,22 +73,98 @@ Site energy priority (FE/MO diagonal)
 
 CT diagonal always comes from H_CT_CT in the pair XML.
 
+MO energies (hole/electron/transport)
+--------------------------------------
+--qp-energies: use GW QPpert quasiparticle energies instead of KS DFT
+    eigenvalues as site energies. Falls back to KS with a warning if QP
+    energies are absent from the XML (requires GW calculation on monomers
+    and dftcoupling built with output_tb=true).
+
 Oscillator strengths (singlet only)
 ------------------------------------
 Computed from monomer transition dipoles written into the XML by the updated
 bsecoupling. Formula: f = (2/3) * E[Hrt] * |sum_i c_i * mu_i|^2.
-CT basis states contribute zero dipole (no ground-state coupling).
-Note: cross-fragment dipole terms and CT brightness via charge separation
-(dQ * R_AB) are not yet included.
+CT basis states contribute zero dipole (no direct ground-state coupling).
+Known limitations: cross-fragment dipole terms and CT brightness via charge
+separation (dQ * R_AB) are not yet included.
+
+HDF5 output
+-----------
+--output FILE.h5: write all static results (Hamiltonian, eigenstates, optical
+    data, raw pair matrices) to an HDF5 file for postprocessing. Requires
+    h5py. Dynamics results are appended to the same file under /dynamics/.
+
+Coherent wavepacket dynamics
+-----------------------------
+--dynamics: propagate a wavepacket under the TB Hamiltonian after solving.
+    Two modes depending on --noise-sigma:
+
+    Noiseless (--noise-sigma 0, default):
+        Unitary propagation via Krylov-subspace matrix exponential
+        (scipy expm_multiply). Exact to machine precision, no stepsize
+        restriction. Produces perfectly coherent oscillations.
+
+    Stochastic (--noise-sigma > 0):
+        Stochastic Schrödinger equation (SSE): each of N realisations
+        propagates a pure state under H(t) = H_TB + δH(t) via RK4, where
+        δH(t) is Ornstein-Uhlenbeck noise. The ensemble average
+        rho(t) = <|psi(r)(t)><psi(r)(t)|> is a mixed state whose purity
+        Tr(rho^2) decays from 1 (pure) toward 1/N_frags (fully dephased).
+        Equivalent to the Redfield master equation in the Markovian limit.
+        Stability requires dt << hbar/sigma and dt << tau/5.
+
+        Noise sources (can be combined):
+        --noise-sigma [meV]: site energy noise (diagonal dH). Physical
+            origin: intramolecular vibrations modulating excitation energies.
+            Uncorrelated between fragments. Usually dominant for rigid
+            pi-stacked systems. Cost: O(n_frags) per step.
+        --noise-couplings [--noise-sigma-coupling meV]: coupling noise
+            (off-diagonal dH). Physical origin: intermolecular motions
+            modulating spatial overlap. Correlated within each pair.
+            Default coupling sigma = site sigma / 3. More important for
+            flexible linkers. Cost: O(n_pairs) per step.
+
+    Initial states (--init-state):
+        site     : single-site excitation on --init-frag
+        gaussian : Gaussian wavepacket centred on --init-frag, width
+                   --init-sigma (in fragment units or Angstrom if positions
+                   are provided)
+        thermal  : Boltzmann mixture of eigenstates at --thermal-T [K]
+                   (inherently mixed; only meaningful with stochastic mode)
+
+    Observables: fragment populations P_i(t), purity Tr(rho^2), von Neumann
+    entropy, IPR, mean-square displacement (if fragment positions given),
+    and decoherence time (stochastic only).
 
 Usage
 -----
-    python xtp_tightbinding --model singlet --input iqm_out.xml
-    python xtp_tightbinding --model singlet --input iqm_out.xml --explicit-ct
-    python xtp_tightbinding --model hole    --input iqm_out.xml
-    python xtp_tightbinding --model transport --input iqm_out.xml
-    python xtp_tightbinding --model singlet --input iqm_out.xml --n-states 20
-    python xtp_tightbinding --model singlet --input iqm_out.xml --dense
+    # Static TB calculation
+    xtp_tightbinding --model singlet --input iqm_out.xml
+    xtp_tightbinding --model singlet --input iqm_out.xml --explicit-ct
+    xtp_tightbinding --model hole    --input iqm_out.xml --qp-energies
+    xtp_tightbinding --model transport --input iqm_out.xml
+    xtp_tightbinding --model singlet --input iqm_out.xml --n-states 20
+    xtp_tightbinding --model singlet --input iqm_out.xml --output results.h5
+
+    # Noiseless dynamics
+    xtp_tightbinding --model singlet --input iqm_out.xml --explicit-ct \
+        --dynamics --t-max 500 --dt 1 --init-state site --init-frag 0
+
+    # Stochastic dynamics (50 meV noise, 50 fs correlation, 200 realisations)
+    xtp_tightbinding --model singlet --input iqm_out.xml --explicit-ct \
+        --dynamics --t-max 500 --dt 1 \
+        --noise-sigma 50 --noise-tau 50 --n-realisations 200 \
+        --output results.h5
+
+    # Stochastic dynamics with coupling noise also
+    xtp_tightbinding --model singlet --input iqm_out.xml --explicit-ct \
+        --dynamics --t-max 500 --dt 1 --noise-sigma 50 --noise-tau 50 \
+        --noise-couplings --noise-sigma-coupling 15 --n-realisations 200
+
+    # Gaussian wavepacket with thermal initial state
+    xtp_tightbinding --model singlet --input iqm_out.xml --explicit-ct \
+        --dynamics --init-state gaussian --init-frag 5 --init-sigma 2.0 \
+        --noise-sigma 30 --noise-tau 100 --n-realisations 500
 """
 
 import numpy as np
@@ -99,6 +177,7 @@ except ImportError:
 import scipy.linalg as la
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
+from scipy.sparse.linalg import expm_multiply
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Optional
 import warnings
@@ -984,6 +1063,687 @@ class TBSolver:
 
 
 
+
+# =============================================================================
+# TB Dynamics
+# =============================================================================
+
+class TBDynamics:
+    """
+    Coherent wavepacket dynamics under the TB Hamiltonian.
+
+    Operates in the Löwdin-orthogonalised basis where the equation of motion
+    is the standard TDSE: iħ dc̃/dt = H̃ c̃(t), with H̃ = S^{-1/2} H S^{-1/2}.
+    All observables are transformed back to the site basis for output.
+
+    Two propagation modes:
+
+    propagate_pure(psi0, ...)
+        Noiseless unitary evolution of a single pure state using scipy's
+        Krylov-subspace matrix exponential (expm_multiply). Exact to machine
+        precision, memory-efficient for sparse H. Produces perfectly coherent
+        dynamics — oscillations never damp.
+
+    propagate_stochastic(psi0, ..., sigma_eV, tau_fs, n_realisations)
+        Stochastic Schrödinger equation (SSE): each realisation propagates a
+        pure state under H(t) = H_TB + δH(t) using RK4. The ensemble average
+        ρ(t) = <|ψ(r)(t)><ψ(r)(t)|>_r is a mixed state whose off-diagonal
+        elements decay, modelling thermal dephasing. Equivalent to the Redfield
+        master equation in appropriate limits.
+
+        δH(t) is Ornstein-Uhlenbeck noise on site energies (diagonal) and
+        optionally on couplings (off-diagonal):
+            dδε_i = -δε_i/τ_c dt + σ_ε sqrt(2/τ_c) dW_i
+        White noise is the limit τ_c → 0 with σ_ε√τ_c held constant.
+        The OU process has:
+            <δε_i(t) δε_i(0)> = σ_ε² exp(-|t|/τ_c)
+        which connects directly to the spectral density of nuclear fluctuations
+        obtained from MD trajectories.
+
+    Observables stored per timestep:
+        populations     (n_frags, n_t)   fragment populations P_i(t)
+        coherences      (dim, dim, n_t)  |ρ_ij(t)| — only if store_coherences
+        purity          (n_t,)           Tr(ρ²) — 1=pure, 1/N=fully mixed
+        entropy         (n_t,)           -Tr(ρ log ρ) (von Neumann entropy)
+        ipr             (n_t,)           inverse participation ratio in site basis
+        msd             (n_t,)           mean-square displacement (needs positions)
+    """
+
+    # ħ in eV·fs
+    HBAR_EV_FS = 0.6582119569
+
+    def __init__(self, H, S, assembler: 'TBAssembler',
+                 fragment_positions: Optional[np.ndarray] = None):
+        """
+        Parameters
+        ----------
+        H, S        : Hamiltonian and overlap from TBAssembler.assemble()
+        assembler   : TBAssembler instance (for basis metadata)
+        fragment_positions : (n_frags, 3) array of fragment centre positions [Angstrom]
+                       Required for MSD calculation; None disables MSD.
+        """
+        self.assembler = assembler
+        self.fragments = assembler.fragments
+        self.dim = assembler.total_dim
+        self.n_frags = len(self.fragments)
+        self.frag_to_idx = {f: i for i, f in enumerate(self.fragments)}
+        self.fragment_positions = fragment_positions
+
+        # Convert to dense for dynamics (sparse expm_multiply needs CSR)
+        H_dense = H.toarray() if sp.issparse(H) else H.copy()
+        S_dense = S.toarray() if sp.issparse(S) else S.copy()
+
+        # Löwdin transformation: H̃ = S^{-1/2} H S^{-1/2}
+        # Store S^{1/2} and S^{-1/2} for basis transformations
+        evals_S, evecs_S = np.linalg.eigh(S_dense)
+        if evals_S.min() < 1e-10:
+            raise ValueError(
+                f"Overlap matrix S has eigenvalue {evals_S.min():.2e} — "
+                f"basis is near-linearly-dependent, dynamics ill-defined.")
+        sqrt_S  = evecs_S @ np.diag(np.sqrt(evals_S))  @ evecs_S.T
+        isqrt_S = evecs_S @ np.diag(1.0/np.sqrt(evals_S)) @ evecs_S.T
+
+        self._sqrt_S  = sqrt_S
+        self._isqrt_S = isqrt_S
+        self._H_orth  = isqrt_S @ H_dense @ isqrt_S  # H̃ in orthonormal basis
+        self._H_dense = H_dense  # original, for noise perturbation
+
+        # Pre-build fragment weight matrix W: W[i,j] = 1 if basis state j
+        # belongs to fragment i, 0 otherwise. Enables fast P_i = W @ |c|^2.
+        self._W = np.zeros((self.n_frags, self.dim))
+        if assembler.model == 'transport':
+            for (frag, si, carrier), idx in assembler.state_idx.items():
+                fi = self.frag_to_idx.get(frag, -1)
+                if fi >= 0:
+                    self._W[fi, idx] = 1.0
+        else:
+            for (frag, si), idx in assembler.state_idx.items():
+                fi = self.frag_to_idx.get(frag, -1)
+                if fi >= 0:
+                    self._W[fi, idx] = 1.0
+            # CT states: assign to frag_A by convention
+            for (fA, fB, k), idx in assembler.CT_idx.items():
+                fi = self.frag_to_idx.get(fA, -1)
+                if fi >= 0:
+                    self._W[fi, idx] = 0.5  # split between A and B
+                fi = self.frag_to_idx.get(fB, -1)
+                if fi >= 0:
+                    self._W[fi, idx] = 0.5
+
+    # -------------------------------------------------------------------------
+    # Initial state constructors
+    # -------------------------------------------------------------------------
+
+    def site_excitation(self, frag_id: int,
+                        state_idx: int = 0) -> np.ndarray:
+        """
+        Pure state: excitation on one fragment, one state.
+        Returns normalised coefficient vector in the SITE basis (not orthonormal).
+
+        Parameters
+        ----------
+        frag_id   : fragment ID (as used in assembler)
+        state_idx : which state on that fragment (0 = lowest, e.g. s1 or HOMO)
+        """
+        psi = np.zeros(self.dim, dtype=complex)
+        if self.assembler.model == 'transport':
+            # need to specify carrier; default to hole
+            for carrier in ('hole', 'electron'):
+                key = (frag_id, state_idx, carrier)
+                if key in self.assembler.state_idx:
+                    psi[self.assembler.state_idx[key]] = 1.0
+                    break
+        else:
+            key = (frag_id, state_idx)
+            if key not in self.assembler.state_idx:
+                raise ValueError(
+                    f"No state ({frag_id}, {state_idx}) in basis. "
+                    f"Available fragments: {self.fragments}, "
+                    f"states per frag: 0..{self.assembler.pairs[0].n_A - 1}")
+            psi[self.assembler.state_idx[key]] = 1.0
+        return self._normalise_site(psi)
+
+    def gaussian_packet(self, centre_frag: int,
+                        sigma_frags: float = 1.0,
+                        state_idx: int = 0) -> np.ndarray:
+        """
+        Pure state: Gaussian envelope centred on centre_frag, width sigma_frags.
+        Amplitude on fragment i ∝ exp(-|i_pos - centre_pos|² / (2 sigma²))
+        where positions are fragment indices if fragment_positions not provided,
+        or actual spatial positions if provided.
+
+        Parameters
+        ----------
+        centre_frag  : fragment ID at the centre of the wavepacket
+        sigma_frags  : width in fragment units (or Angstrom if positions given)
+        state_idx    : which state on each fragment to excite
+        """
+        psi = np.zeros(self.dim, dtype=complex)
+        centre_pos = (self.fragment_positions[self.frag_to_idx[centre_frag]]
+                      if self.fragment_positions is not None
+                      else np.array([self.frag_to_idx[centre_frag], 0.0, 0.0]))
+
+        for frag in self.fragments:
+            fi = self.frag_to_idx[frag]
+            if self.fragment_positions is not None:
+                pos = self.fragment_positions[fi]
+            else:
+                pos = np.array([fi, 0.0, 0.0])
+            r2 = np.sum((pos - centre_pos)**2)
+            amp = np.exp(-r2 / (2.0 * sigma_frags**2))
+
+            if self.assembler.model == 'transport':
+                for carrier in ('hole', 'electron'):
+                    key = (frag, state_idx, carrier)
+                    if key in self.assembler.state_idx:
+                        psi[self.assembler.state_idx[key]] = amp
+                        break
+            else:
+                key = (frag, state_idx)
+                if key in self.assembler.state_idx:
+                    psi[self.assembler.state_idx[key]] = amp
+
+        return self._normalise_site(psi)
+
+    def thermal_mixture(self, T_K: float,
+                        evals: np.ndarray,
+                        evecs: np.ndarray) -> np.ndarray:
+        """
+        Mixed initial state: Boltzmann distribution over eigenstates.
+        Returns density matrix ρ₀ in site basis, shape (dim, dim).
+        Only meaningful as initial condition for propagate_stochastic.
+
+        Parameters
+        ----------
+        T_K    : temperature in Kelvin
+        evals  : eigenvalues from TBSolver.solve() [eV]
+        evecs  : eigenvectors from TBSolver.solve()
+        """
+        kT = 8.617333e-5 * T_K  # eV
+        E_min = evals.min()
+        weights = np.exp(-(evals - E_min) / kT)
+        weights /= weights.sum()
+        # ρ₀ = Σ_n p_n |n><n|  in site basis
+        rho = np.zeros((self.dim, self.dim), dtype=complex)
+        for n, (p, evec) in enumerate(zip(weights, evecs.T)):
+            rho += p * np.outer(evec, evec.conj())
+        return rho
+
+    # -------------------------------------------------------------------------
+    # Noiseless propagation (Krylov expm_multiply)
+    # -------------------------------------------------------------------------
+
+    def propagate_pure(self,
+                       psi0: np.ndarray,
+                       t_max_fs: float,
+                       dt_fs: float,
+                       store_coherences: bool = False) -> Dict:
+        """
+        Noiseless coherent propagation of a pure state.
+
+        Uses scipy.sparse.linalg.expm_multiply which applies exp(-i H̃ dt/ħ)|ψ⟩
+        via Krylov subspace methods — no stepsize restriction, numerically exact.
+
+        Parameters
+        ----------
+        psi0             : initial state in site basis (from site_excitation etc.)
+        t_max_fs         : total propagation time [fs]
+        dt_fs            : output timestep [fs] (internal steps may be smaller)
+        store_coherences : if True, store full |ρ_ij(t)| — expensive for large dim
+
+        Returns
+        -------
+        dict with keys:
+            t              (n_t,)          time axis [fs]
+            populations    (n_frags, n_t)  fragment populations
+            purity         (n_t,)          Tr(ρ²) = 1 always for pure state
+            entropy        (n_t,)          von Neumann entropy (= 0 for pure)
+            ipr            (n_t,)          IPR in site basis
+            msd            (n_t,)          MSD [Angstrom²] if positions given
+            coherences     (dim, dim, n_t) if store_coherences
+            psi_history    (dim, n_t)      complex amplitudes in site basis
+        """
+        # Transform to orthonormal basis
+        psi_orth = self._sqrt_S @ psi0
+
+        t_steps = np.arange(0.0, t_max_fs + dt_fs, dt_fs)
+        n_t = len(t_steps)
+
+        populations = np.zeros((self.n_frags, n_t))
+        purity      = np.ones(n_t)   # always 1 for pure state
+        entropy     = np.zeros(n_t)  # always 0 for pure state
+        ipr_arr     = np.zeros(n_t)
+        msd_arr     = np.zeros(n_t) if self.fragment_positions is not None else None
+        psi_history = np.zeros((self.dim, n_t), dtype=complex)
+
+        if store_coherences:
+            coherences = np.zeros((self.dim, self.dim, n_t))
+        else:
+            coherences = None
+
+        # Propagation operator: -i H̃ / ħ  (purely imaginary anti-Hermitian)
+        # expm_multiply applies exp(A * t) to a vector
+        hbar = self.HBAR_EV_FS
+        A = -1j * self._H_orth / hbar  # shape (dim, dim)
+        A_sparse = sp.csr_matrix(A)
+
+        psi_current = psi_orth.copy()
+        t_prev = 0.0
+
+        for ti, t in enumerate(t_steps):
+            # transform back to site basis for observables
+            psi_site = self._isqrt_S @ psi_current
+            psi_history[:, ti] = psi_site
+
+            probs = np.abs(psi_site)**2
+            populations[:, ti] = self._W @ probs
+            ipr_arr[ti] = 1.0 / np.sum(probs**2) if np.sum(probs**2) > 0 else 1.0
+
+            if store_coherences:
+                rho_col = np.outer(psi_site, psi_site.conj())
+                coherences[:, :, ti] = np.abs(rho_col)
+
+            if msd_arr is not None:
+                msd_arr[ti] = self._compute_msd(probs)
+
+            # propagate to next step
+            if ti < n_t - 1:
+                dt = t_steps[ti + 1] - t
+                psi_current = expm_multiply(A_sparse * dt, psi_current)
+
+        result = dict(t=t_steps, populations=populations,
+                      purity=purity, entropy=entropy,
+                      ipr=ipr_arr, psi_history=psi_history)
+        if msd_arr is not None:
+            result['msd'] = msd_arr
+        if coherences is not None:
+            result['coherences'] = coherences
+        return result
+
+    # -------------------------------------------------------------------------
+    # Stochastic propagation (SSE with Ornstein-Uhlenbeck noise)
+    # -------------------------------------------------------------------------
+
+    def propagate_stochastic(self,
+                             psi0_or_rho0,
+                             t_max_fs: float,
+                             dt_fs: float,
+                             sigma_eV: float,
+                             tau_fs: float,
+                             n_realisations: int = 200,
+                             noise_on_couplings: bool = False,
+                             sigma_coupling_eV: Optional[float] = None,
+                             store_coherences: bool = False,
+                             seed: Optional[int] = None) -> Dict:
+        """
+        Stochastic Schrödinger equation dynamics.
+
+        Each realisation propagates a pure state under H(t) = H_TB + δH(t)
+        using RK4. The ensemble average gives the mixed-state density matrix.
+
+        Noise model: Ornstein-Uhlenbeck on site energies
+            δε_i(t+dt) = δε_i(t) exp(-dt/τ_c)
+                       + σ_ε sqrt(1 - exp(-2dt/τ_c)) * N(0,1)
+        This is the exact discrete update for OU noise at any dt.
+        White noise limit: τ_c → 0 with σ_ε²τ_c = const.
+
+        Parameters
+        ----------
+        psi0_or_rho0     : initial pure state (1D array) or density matrix (2D)
+                           Use thermal_mixture() to create a mixed initial state
+        t_max_fs         : total propagation time [fs]
+        dt_fs            : timestep [fs] (RK4, so keep dt << τ_c and ħ/σ_ε)
+        sigma_eV         : site energy fluctuation amplitude [eV]
+        tau_fs           : correlation time of fluctuations [fs]
+        n_realisations   : number of stochastic trajectories to average
+        noise_on_couplings : also add noise to off-diagonal H elements
+        sigma_coupling_eV  : coupling noise amplitude [eV]; defaults to sigma_eV/3
+        store_coherences : store |ρ_ij(t)| averaged over realisations
+        seed             : random seed for reproducibility
+
+        Returns
+        -------
+        dict with keys:
+            t              (n_t,)           time axis [fs]
+            populations    (n_frags, n_t)   ensemble-averaged populations
+            purity         (n_t,)           Tr(ρ²) — decay from 1 signals dephasing
+            entropy        (n_t,)           von Neumann entropy of ρ(t)
+            ipr            (n_t,)           IPR in site basis, averaged
+            msd            (n_t,)           MSD [Angstrom²] if positions given
+            coherences     (dim, dim, n_t)  if store_coherences
+            decoherence_time  float         time for purity to fall to 1/e
+            n_realisations    int
+            sigma_eV, tau_fs  float         noise parameters used
+        """
+        rng = np.random.default_rng(seed)
+        hbar = self.HBAR_EV_FS
+
+        t_steps = np.arange(0.0, t_max_fs + dt_fs, dt_fs)
+        n_t = len(t_steps)
+
+        # Determine if initial state is pure (1D) or mixed (2D density matrix)
+        is_mixed_init = (np.ndim(psi0_or_rho0) == 2)
+
+        # Accumulate ensemble averages of rho in SITE basis
+        rho_avg = np.zeros((self.dim, self.dim), dtype=complex)
+        pop_sum = np.zeros((self.n_frags, n_t))
+        ipr_sum = np.zeros(n_t)
+        msd_sum = np.zeros(n_t) if self.fragment_positions is not None else None
+
+        if store_coherences:
+            coh_sum = np.zeros((self.dim, self.dim, n_t))
+        else:
+            coh_sum = None
+
+        # OU noise prefactors
+        exp_dt  = np.exp(-dt_fs / tau_fs) if tau_fs > 0 else 0.0
+        ou_std  = sigma_eV * np.sqrt(1.0 - exp_dt**2)
+
+        if noise_on_couplings:
+            sigma_coup = sigma_coupling_eV if sigma_coupling_eV is not None                          else sigma_eV / 3.0
+            exp_dt_c = exp_dt
+            ou_std_c = sigma_coup * np.sqrt(1.0 - exp_dt_c**2)
+
+        # Build coupling mask: off-diagonal elements of H that are non-zero
+        # (only perturb elements that exist in the original Hamiltonian)
+        if noise_on_couplings:
+            coup_mask = (np.abs(self._H_dense) > 1e-10)
+            np.fill_diagonal(coup_mask, False)
+            coup_indices = np.argwhere(coup_mask)
+
+        # Derivative function for RK4: dc/dt = -i H(t) c / ħ in orthonormal basis
+        def deriv(psi, H_pert_orth):
+            return (-1j / hbar) * (H_pert_orth @ psi)
+
+        def rk4_step(psi, H_orth, dt):
+            k1 = deriv(psi, H_orth)
+            k2 = deriv(psi + 0.5*dt*k1, H_orth)
+            k3 = deriv(psi + 0.5*dt*k2, H_orth)
+            k4 = deriv(psi + dt*k3, H_orth)
+            return psi + (dt/6.0) * (k1 + 2*k2 + 2*k3 + k4)
+
+        # Temporary storage for this realisation's populations
+        pop_r   = np.zeros((self.n_frags, n_t))
+        ipr_r   = np.zeros(n_t)
+        msd_r   = np.zeros(n_t) if self.fragment_positions is not None else None
+
+        for r in range(n_realisations):
+            # Initial state for this realisation
+            if is_mixed_init:
+                # Sample a pure state from the mixed initial density matrix
+                # via eigendecomposition: pick eigenstate with prob proportional to eigenvalue
+                evals_rho, evecs_rho = np.linalg.eigh(psi0_or_rho0)
+                evals_rho = np.maximum(evals_rho, 0)
+                evals_rho /= evals_rho.sum()
+                chosen = rng.choice(len(evals_rho), p=evals_rho)
+                psi0 = evecs_rho[:, chosen].astype(complex)
+            else:
+                psi0 = np.asarray(psi0_or_rho0, dtype=complex)
+
+            # Transform to orthonormal basis
+            psi_orth = self._sqrt_S @ psi0
+
+            # Initialise OU noise state
+            delta_eps = rng.normal(0, sigma_eV, self.dim)
+
+            if noise_on_couplings:
+                delta_coup = np.zeros((self.dim, self.dim))
+                for ci, cj in coup_indices:
+                    if ci < cj:  # upper triangle only; symmetrise below
+                        delta_coup[ci, cj] = rng.normal(0, sigma_coup)
+                        delta_coup[cj, ci] = delta_coup[ci, cj]
+
+            psi_current = psi_orth.copy()
+
+            for ti, t in enumerate(t_steps):
+                # Build perturbed H in orthonormal basis
+                H_pert = self._H_dense.copy()
+                H_pert[np.arange(self.dim), np.arange(self.dim)] += delta_eps
+                if noise_on_couplings:
+                    H_pert += delta_coup
+                H_pert_orth = self._isqrt_S @ H_pert @ self._isqrt_S
+
+                # observables in site basis
+                psi_site = self._isqrt_S @ psi_current
+                probs = np.abs(psi_site)**2
+                pop_r[:, ti]  = self._W @ probs
+                ipr_r[ti]     = 1.0 / np.sum(probs**2) if np.sum(probs**2) > 0 else 1.0
+                if msd_r is not None:
+                    msd_r[ti] = self._compute_msd(probs)
+
+                if store_coherences:
+                    rho_site = np.outer(psi_site, psi_site.conj())
+                    coh_sum[:, :, ti] += np.abs(rho_site)
+
+                # RK4 step
+                if ti < n_t - 1:
+                    psi_current = rk4_step(psi_current, H_pert_orth, dt_fs)
+                    # Renormalise every step to suppress RK4 norm drift
+                    norm = np.sqrt(np.real(psi_current.conj() @ psi_current))
+                    if norm > 1e-15:
+                        psi_current /= norm
+
+                    # Update OU noise
+                    delta_eps = (delta_eps * exp_dt
+                                 + rng.normal(0, ou_std, self.dim))
+                    if noise_on_couplings:
+                        for ci, cj in coup_indices:
+                            if ci < cj:
+                                v = delta_coup[ci, cj] * exp_dt_c                                     + rng.normal(0, ou_std_c)
+                                delta_coup[ci, cj] = v
+                                delta_coup[cj, ci] = v
+
+            pop_sum  += pop_r
+            ipr_sum  += ipr_r
+            if msd_sum is not None:
+                msd_sum += msd_r
+
+            # Accumulate rho from final state for purity/entropy
+            psi_site_final = self._isqrt_S @ psi_current
+            rho_avg += np.outer(psi_site_final, psi_site_final.conj())
+
+        # Normalise averages
+        pop_avg = pop_sum / n_realisations
+        ipr_avg = ipr_sum / n_realisations
+        rho_avg /= n_realisations
+
+        if store_coherences:
+            coh_avg = coh_sum / n_realisations
+        else:
+            coh_avg = None
+
+        # Purity and entropy at each timestep require storing rho(t) per step,
+        # which is expensive. Instead compute them from the instantaneous
+        # single-step rho at each t by accumulating:
+        # Re-run a lighter pass to get purity/entropy per timestep
+        purity_arr, entropy_arr = self._compute_purity_entropy_trajectory(
+            psi0_or_rho0, is_mixed_init, t_steps, dt_fs,
+            sigma_eV, tau_fs, exp_dt, ou_std,
+            noise_on_couplings,
+            ou_std_c if noise_on_couplings else 0.0,
+            exp_dt if noise_on_couplings else 0.0,
+            coup_indices if noise_on_couplings else None,
+            n_realisations, rng)
+
+        # Decoherence time: first time purity < 1/e
+        decoherence_time = None
+        threshold = np.exp(-1.0)
+        for ti in range(1, n_t):
+            if purity_arr[ti] < threshold:
+                # linear interpolation
+                t0, t1 = t_steps[ti-1], t_steps[ti]
+                p0, p1 = purity_arr[ti-1], purity_arr[ti]
+                decoherence_time = t0 + (threshold - p0) / (p1 - p0) * (t1 - t0)
+                break
+
+        result = dict(
+            t=t_steps,
+            populations=pop_avg,
+            purity=purity_arr,
+            entropy=entropy_arr,
+            ipr=ipr_avg,
+            decoherence_time=decoherence_time,
+            n_realisations=n_realisations,
+            sigma_eV=sigma_eV,
+            tau_fs=tau_fs,
+        )
+        if msd_sum is not None:
+            result['msd'] = msd_sum / n_realisations
+        if coh_avg is not None:
+            result['coherences'] = coh_avg
+        return result
+
+    def _compute_purity_entropy_trajectory(
+            self, psi0_or_rho0, is_mixed_init,
+            t_steps, dt_fs,
+            sigma_eV, tau_fs, exp_dt, ou_std,
+            noise_on_couplings, ou_std_c, exp_dt_c, coup_indices,
+            n_realisations, rng) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Compute purity Tr(ρ²(t)) and entropy -Tr(ρ log ρ) at each timestep
+        by accumulating the full density matrix across realisations.
+        Uses a reduced number of realisations for efficiency.
+        """
+        hbar = self.HBAR_EV_FS
+        n_t = len(t_steps)
+        n_rho = min(n_realisations, 50)  # 50 realisations sufficient for purity
+
+        rho_t = np.zeros((self.dim, self.dim, n_t), dtype=complex)
+
+        def rk4_step_local(psi, H_orth):
+            k1 = (-1j/hbar) * (H_orth @ psi)
+            k2 = (-1j/hbar) * (H_orth @ (psi + 0.5*dt_fs*k1))
+            k3 = (-1j/hbar) * (H_orth @ (psi + 0.5*dt_fs*k2))
+            k4 = (-1j/hbar) * (H_orth @ (psi + dt_fs*k3))
+            return psi + (dt_fs/6.0)*(k1 + 2*k2 + 2*k3 + k4)
+
+        for r in range(n_rho):
+            if is_mixed_init:
+                evals_rho, evecs_rho = np.linalg.eigh(psi0_or_rho0)
+                evals_rho = np.maximum(evals_rho, 0)
+                evals_rho /= evals_rho.sum()
+                chosen = rng.choice(len(evals_rho), p=evals_rho)
+                psi0 = evecs_rho[:, chosen].astype(complex)
+            else:
+                psi0 = np.asarray(psi0_or_rho0, dtype=complex)
+
+            psi_orth = self._sqrt_S @ psi0
+            delta_eps = rng.normal(0, sigma_eV, self.dim)
+
+            if noise_on_couplings and coup_indices is not None:
+                delta_coup = np.zeros((self.dim, self.dim))
+                for ci, cj in coup_indices:
+                    if ci < cj:
+                        v = rng.normal(0, sigma_eV/3.0)
+                        delta_coup[ci, cj] = v; delta_coup[cj, ci] = v
+
+            psi_current = psi_orth.copy()
+
+            for ti, t in enumerate(t_steps):
+                psi_site = self._isqrt_S @ psi_current
+                rho_t[:, :, ti] += np.outer(psi_site, psi_site.conj())
+
+                if ti < n_t - 1:
+                    H_pert = self._H_dense.copy()
+                    H_pert[np.arange(self.dim), np.arange(self.dim)] += delta_eps
+                    if noise_on_couplings and coup_indices is not None:
+                        H_pert += delta_coup
+                    H_pert_orth = self._isqrt_S @ H_pert @ self._isqrt_S
+                    psi_current = rk4_step_local(psi_current, H_pert_orth)
+                    norm = np.sqrt(np.real(psi_current.conj() @ psi_current))
+                    if norm > 1e-15: psi_current /= norm
+                    delta_eps = delta_eps * exp_dt + rng.normal(0, ou_std, self.dim)
+
+        rho_t /= n_rho
+        purity_arr  = np.array([np.real(np.trace(rho_t[:,:,ti] @ rho_t[:,:,ti]))
+                                 for ti in range(n_t)])
+        # von Neumann entropy: -Tr(ρ log ρ)
+        entropy_arr = np.zeros(n_t)
+        for ti in range(n_t):
+            evals_rho = np.real(np.linalg.eigvalsh(rho_t[:,:,ti]))
+            evals_rho = evals_rho[evals_rho > 1e-12]
+            entropy_arr[ti] = -np.sum(evals_rho * np.log(evals_rho))
+
+        return purity_arr, entropy_arr
+
+    # -------------------------------------------------------------------------
+    # Helpers
+    # -------------------------------------------------------------------------
+
+    def _normalise_site(self, psi: np.ndarray) -> np.ndarray:
+        """Normalise psi w.r.t. the overlap matrix: <ψ|S|ψ> = 1."""
+        norm_sq = np.real(psi.conj() @ (self._sqrt_S @ self._sqrt_S @ psi))
+        if norm_sq < 1e-15:
+            raise ValueError("Initial state has zero norm under S")
+        return psi / np.sqrt(norm_sq)
+
+    def _compute_msd(self, probs: np.ndarray) -> float:
+        """Mean-square displacement from fragment probabilities."""
+        if self.fragment_positions is None:
+            return 0.0
+        # MSD = <r²> - <r>²
+        pos = self.fragment_positions  # (n_frags, 3)
+        # fragment probability = sum of probabilities of states on that fragment
+        frag_probs = self._W @ probs  # (n_frags,)
+        mean_r = frag_probs @ pos     # (3,)
+        mean_r2 = frag_probs @ np.sum(pos**2, axis=1)
+        return float(mean_r2 - np.sum(mean_r**2))
+
+
+def write_dynamics_hdf5(filepath: str,
+                        result: Dict,
+                        assembler: 'TBAssembler',
+                        mode: str = 'pure',
+                        append: bool = True) -> None:
+    """
+    Write dynamics results to HDF5 file, under /dynamics/<mode>/.
+    If append=True and file exists, adds to existing file (e.g. alongside
+    static TB results from write_hdf5).
+
+    Group structure
+    ---------------
+    /dynamics/
+        pure/           or    stochastic/
+            t               (n_t,)   [fs]
+            populations     (n_frags, n_t)
+            purity          (n_t,)
+            entropy         (n_t,)
+            ipr             (n_t,)
+            msd             (n_t,)   if available
+            coherences      (dim, dim, n_t)  if stored
+            psi_history     (dim, n_t)  pure only
+            decoherence_time  float    stochastic only
+            attrs: sigma_eV, tau_fs, n_realisations  stochastic only
+    """
+    if not HAS_HDF5:
+        warnings.warn("h5py not available — skipping dynamics HDF5 output.")
+        return
+
+    open_mode = 'a' if (append and __import__('os').path.exists(filepath)) else 'w'
+    with h5py.File(filepath, open_mode) as f:
+        dyn_grp = f.require_group('dynamics')
+        if mode in dyn_grp:
+            del dyn_grp[mode]
+        grp = dyn_grp.create_group(mode)
+
+        grp.create_dataset('t',           data=result['t'])
+        grp.create_dataset('populations', data=result['populations'])
+        grp.create_dataset('purity',      data=result['purity'])
+        grp.create_dataset('entropy',     data=result['entropy'])
+        grp.create_dataset('ipr',         data=result['ipr'])
+        grp.attrs['fragment_ids'] = np.array(assembler.fragments, dtype=np.int32)
+        grp.attrs['model'] = assembler.model
+
+        for key in ('msd', 'coherences', 'psi_history'):
+            if key in result:
+                grp.create_dataset(key, data=result[key])
+
+        if 'decoherence_time' in result and result['decoherence_time'] is not None:
+            grp.attrs['decoherence_time_fs'] = result['decoherence_time']
+        for key in ('n_realisations', 'sigma_eV', 'tau_fs'):
+            if key in result:
+                grp.attrs[key] = result[key]
+
 # =============================================================================
 # HDF5 output
 # =============================================================================
@@ -1232,6 +1992,37 @@ def main():
     parser.add_argument("--output", default=None, metavar="FILE.h5",
                         help="Write all results to an HDF5 file for "
                              "postprocessing (requires h5py)")
+    # dynamics options
+    parser.add_argument("--dynamics", action="store_true",
+                        help="Run wavepacket dynamics after solving the TB problem")
+    parser.add_argument("--t-max", type=float, default=500.0,
+                        help="Propagation time [fs] (default: 500)")
+    parser.add_argument("--dt", type=float, default=1.0,
+                        help="Output timestep [fs] (default: 1)")
+    parser.add_argument("--init-state", default="site",
+                        choices=["site", "gaussian", "thermal"],
+                        help="Initial state type (default: site)")
+    parser.add_argument("--init-frag", type=int, default=None,
+                        help="Fragment ID for initial excitation (default: first)")
+    parser.add_argument("--init-state-idx", type=int, default=0,
+                        help="State index within fragment (default: 0)")
+    parser.add_argument("--init-sigma", type=float, default=1.0,
+                        help="Gaussian wavepacket width in fragment units (default: 1)")
+    parser.add_argument("--noise-sigma", type=float, default=0.0,
+                        help="Site energy noise amplitude [meV] (0=noiseless, default: 0)")
+    parser.add_argument("--noise-tau", type=float, default=50.0,
+                        help="Noise correlation time [fs] (default: 50)")
+    parser.add_argument("--n-realisations", type=int, default=200,
+                        help="Stochastic realisations (default: 200)")
+    parser.add_argument("--thermal-T", type=float, default=300.0,
+                        help="Temperature for thermal initial state [K] (default: 300)")
+    parser.add_argument("--noise-couplings", action="store_true",
+                        help="Also apply OU noise to off-diagonal coupling elements. "
+                             "Physical origin: intermolecular motions modulating J. "
+                             "More expensive than site-energy-only noise.")
+    parser.add_argument("--noise-sigma-coupling", type=float, default=None,
+                        help="Coupling noise amplitude [meV] (default: noise-sigma/3). "
+                             "Only used when --noise-couplings is set.")
     args = parser.parse_args()
 
     print("=" * 60)
@@ -1394,6 +2185,107 @@ def main():
                    spectrum_E=spec_E_out,
                    spectrum_A=spec_A_out)
         print(f"\nResults written to: {args.output}")
+
+    # --- dynamics ---
+    if args.dynamics:
+        print(f"\n{'='*60}")
+        print("Wavepacket Dynamics")
+        print("=" * 60)
+
+        # Need dense matrices for dynamics
+        H_dyn = H.toarray() if sp.issparse(H) else H
+        S_dyn = S.toarray() if sp.issparse(S) else S
+        dyn = TBDynamics(H_dyn, S_dyn, assembler)
+
+        # Initial state
+        init_frag = args.init_frag if args.init_frag is not None \
+                    else fragments[0]
+        if init_frag not in fragments:
+            print(f"WARNING: --init-frag {init_frag} not in fragments {fragments}, "
+                  f"using {fragments[0]}")
+            init_frag = fragments[0]
+
+        is_thermal = (args.init_state == 'thermal')
+        if is_thermal:
+            if 'evals' not in dir():
+                print("ERROR: thermal initial state requires eigenstate solution")
+                is_thermal = False
+            else:
+                psi0 = dyn.thermal_mixture(args.thermal_T, evals, evecs)
+                print(f"  Initial state: thermal mixture at {args.thermal_T} K")
+        elif args.init_state == 'gaussian':
+            psi0 = dyn.gaussian_packet(init_frag, args.init_sigma,
+                                       args.init_state_idx)
+            print(f"  Initial state: Gaussian wavepacket centred on "
+                  f"fragment {init_frag}, sigma={args.init_sigma} fragments")
+        else:
+            psi0 = dyn.site_excitation(init_frag, args.init_state_idx)
+            print(f"  Initial state: site excitation on fragment {init_frag} "
+                  f"state {args.init_state_idx}")
+
+        use_noise = (args.noise_sigma > 0)
+        sigma_eV = args.noise_sigma * 1e-3  # meV -> eV
+        if use_noise and args.dt > args.noise_tau / 5.0:
+            print(f"  WARNING: dt={args.dt} fs > tau/5={args.noise_tau/5:.1f} fs "
+                  f"— consider reducing --dt for stable RK4")
+        if use_noise and args.dt > TBDynamics.HBAR_EV_FS / sigma_eV:
+            print(f"  WARNING: dt={args.dt} fs > hbar/sigma="
+                  f"{TBDynamics.HBAR_EV_FS/sigma_eV:.2f} fs "
+                  f"— RK4 may be unstable, reduce --dt")
+
+        if use_noise:
+            print(f"  Propagation: stochastic SSE")
+            print(f"  Noise: sigma={args.noise_sigma} meV, "
+                  f"tau={args.noise_tau} fs, "
+                  f"{args.n_realisations} realisations")
+            noise_on_coup = getattr(args, 'noise_couplings', False)
+            sigma_coup_eV = (args.noise_sigma_coupling * 1e-3
+                             if args.noise_sigma_coupling is not None
+                             else None)
+            if noise_on_coup:
+                coup_str = (f"{args.noise_sigma_coupling:.1f}"
+                            if args.noise_sigma_coupling is not None
+                            else f"{args.noise_sigma/3:.1f}")
+                print(f"  Coupling noise: sigma={coup_str} meV")
+            dyn_result = dyn.propagate_stochastic(
+                psi0, args.t_max, args.dt,
+                sigma_eV=sigma_eV, tau_fs=args.noise_tau,
+                n_realisations=args.n_realisations,
+                noise_on_couplings=noise_on_coup,
+                sigma_coupling_eV=sigma_coup_eV)
+            if dyn_result['decoherence_time'] is not None:
+                print(f"  Decoherence time: "
+                      f"{dyn_result['decoherence_time']:.1f} fs")
+            dyn_mode = 'stochastic'
+        else:
+            print(f"  Propagation: noiseless Krylov (expm_multiply)")
+            print(f"  t_max={args.t_max} fs, dt={args.dt} fs")
+            dyn_result = dyn.propagate_pure(psi0, args.t_max, args.dt)
+            dyn_mode = 'pure'
+
+        # Print population dynamics summary
+        print(f"\n  Fragment populations at selected times:")
+        t_report = dyn_result['t']
+        pop = dyn_result['populations']
+        t_indices = np.linspace(0, len(t_report)-1, min(6, len(t_report)),
+                                dtype=int)
+        header = f"  {'t(fs)':>8}  " + \
+                 '  '.join(f"{'f'+str(f):>6}" for f in fragments)
+        print(header)
+        print('  ' + '-' * (10 + 8*len(fragments)))
+        for ti in t_indices:
+            row = f"  {t_report[ti]:>8.1f}  " + \
+                  '  '.join(f"{pop[fi,ti]:>6.3f}"
+                            for fi in range(len(fragments)))
+            print(row)
+        print(f"\n  Final purity: {dyn_result['purity'][-1]:.4f} "
+              f"(1=pure, 1/N≈{1/len(fragments):.3f}=fully mixed)")
+
+        # Write dynamics to HDF5
+        if args.output:
+            write_dynamics_hdf5(args.output, dyn_result, assembler,
+                               mode=dyn_mode, append=True)
+            print(f"  Dynamics written to: {args.output} (/dynamics/{dyn_mode}/)")
 
     # --- eigenvector composition ---
     print(f"\n{'='*60}")
