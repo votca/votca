@@ -57,7 +57,8 @@ void BSECoupling::Initialize(Property& options) {
   // When true, write monomer energies, transition dipoles, diagnostics,
   // and raw H/S TB matrices to the XML output. Default false for compact
   // output in KMC/rate workflows that only need scalar couplings.
-  output_tb_ = options.ifExistsReturnElseReturnDefault<bool>("output_tb", false);
+  output_tb_ =
+      options.ifExistsReturnElseReturnDefault<bool>("output_tb", false);
 
   levA_ = options.get("moleculeA.states").as<Index>();
   levB_ = options.get("moleculeB.states").as<Index>();
@@ -112,10 +113,8 @@ void BSECoupling::WriteToProperty(Property& summary, const QMState& stateA,
   }
   coupling_summary.setAttribute("stateA", stateA.ToString());
   coupling_summary.setAttribute("stateB", stateB.ToString());
-  coupling_summary.setAttribute("j_pert",
-                                (format("%1$1.6e") % JAB_pert).str());
-  coupling_summary.setAttribute("j_diag",
-                                (format("%1$1.6e") % JAB_diag).str());
+  coupling_summary.setAttribute("j_pert", (format("%1$1.6e") % JAB_pert).str());
+  coupling_summary.setAttribute("j_diag", (format("%1$1.6e") % JAB_diag).str());
 }
 
 // =============================================================================
@@ -136,14 +135,14 @@ void BSECoupling::Addoutput(Property& type_summary, const Orbitals& orbitalsA,
 
   // Lambda to write one spin channel — avoids duplicating singlet/triplet logic
   auto WriteSpinChannel = [&](const std::string& spin_name,
-                               const Eigen::MatrixXd& J_dimer,
-                               const Eigen::MatrixXd& S_dimer,
-                               const Diagnostics& diag,
-                               const Eigen::VectorXd& monA_energies,
-                               const Eigen::VectorXd& monB_energies,
-                               const std::vector<Eigen::Vector3d>& tdipsA,
-                               const std::vector<Eigen::Vector3d>& tdipsB,
-                               QMStateType spin_type) {
+                              const Eigen::MatrixXd& J_dimer,
+                              const Eigen::MatrixXd& S_dimer,
+                              const Diagnostics& diag,
+                              const Eigen::VectorXd& monA_energies,
+                              const Eigen::VectorXd& monB_energies,
+                              const std::vector<Eigen::Vector3d>& tdipsA,
+                              const std::vector<Eigen::Vector3d>& tdipsB,
+                              QMStateType spin_type) {
     Property& spin_summary = bsecoupling.add(spin_name, "");
     spin_summary.setAttribute("algorithm", algorithm);
 
@@ -170,12 +169,9 @@ void BSECoupling::Addoutput(Property& type_summary, const Orbitals& orbitalsA,
           e.setAttribute("state", st.ToString());
           e.setAttribute("eV", (format("%1$1.6e") % monA_energies(i)).str());
           if (i < static_cast<Index>(tdipsA.size())) {
-            e.setAttribute("tdx",
-                (format("%1$1.6e") % tdipsA[i].x()).str());
-            e.setAttribute("tdy",
-                (format("%1$1.6e") % tdipsA[i].y()).str());
-            e.setAttribute("tdz",
-                (format("%1$1.6e") % tdipsA[i].z()).str());
+            e.setAttribute("tdx", (format("%1$1.6e") % tdipsA[i].x()).str());
+            e.setAttribute("tdy", (format("%1$1.6e") % tdipsA[i].y()).str());
+            e.setAttribute("tdz", (format("%1$1.6e") % tdipsA[i].z()).str());
           }
         }
         Property& propB = mono_prop.add("fragmentB", "");
@@ -185,12 +181,9 @@ void BSECoupling::Addoutput(Property& type_summary, const Orbitals& orbitalsA,
           e.setAttribute("state", st.ToString());
           e.setAttribute("eV", (format("%1$1.6e") % monB_energies(i)).str());
           if (i < static_cast<Index>(tdipsB.size())) {
-            e.setAttribute("tdx",
-                (format("%1$1.6e") % tdipsB[i].x()).str());
-            e.setAttribute("tdy",
-                (format("%1$1.6e") % tdipsB[i].y()).str());
-            e.setAttribute("tdz",
-                (format("%1$1.6e") % tdipsB[i].z()).str());
+            e.setAttribute("tdx", (format("%1$1.6e") % tdipsB[i].x()).str());
+            e.setAttribute("tdy", (format("%1$1.6e") % tdipsB[i].y()).str());
+            e.setAttribute("tdz", (format("%1$1.6e") % tdipsB[i].z()).str());
           }
         }
       }
@@ -245,13 +238,11 @@ void BSECoupling::Addoutput(Property& type_summary, const Orbitals& orbitalsA,
   };
 
   if (doSinglets_) {
-    WriteSpinChannel(QMStateType(QMStateType::Singlet).ToLongString(),
-                     J_dimer_singlet_, S_dimer_singlet_,
-                     diag_singlet_,
-                     monomerA_energies_singlet_, monomerB_energies_singlet_,
-                     orbitalsA.TransitionDipoles(),
-                     orbitalsB.TransitionDipoles(),
-                     QMStateType(QMStateType::Singlet));
+    WriteSpinChannel(
+        QMStateType(QMStateType::Singlet).ToLongString(), J_dimer_singlet_,
+        S_dimer_singlet_, diag_singlet_, monomerA_energies_singlet_,
+        monomerB_energies_singlet_, orbitalsA.TransitionDipoles(),
+        orbitalsB.TransitionDipoles(), QMStateType(QMStateType::Singlet));
   }
   if (doTriplets_) {
     // Triplet states have zero electric transition dipole from the singlet
@@ -259,8 +250,7 @@ void BSECoupling::Addoutput(Property& type_summary, const Orbitals& orbitalsA,
     // written, making clear that oscillator strengths are not meaningful.
     const std::vector<Eigen::Vector3d> empty_dipoles;
     WriteSpinChannel(QMStateType(QMStateType::Triplet).ToLongString(),
-                     J_dimer_triplet_, S_dimer_triplet_,
-                     diag_triplet_,
+                     J_dimer_triplet_, S_dimer_triplet_, diag_triplet_,
                      monomerA_energies_triplet_, monomerB_energies_triplet_,
                      empty_dipoles, empty_dipoles,
                      QMStateType(QMStateType::Triplet));
@@ -341,15 +331,13 @@ Eigen::MatrixXd BSECoupling::ProjectFrenkelExcitons(
   auto X_unocc = X_AB.rightCols(bseX_ctotal);
   const Eigen::MatrixXd X_occ_occ = X_occ.topRows(bseAB_vtotal);
   const Eigen::MatrixXd X_unocc_unocc = X_unocc.bottomRows(bseAB_ctotal);
-  Eigen::MatrixXd result =
-      Eigen::MatrixXd::Zero(bseAB_size, BSE_Coeffs.cols());
+  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(bseAB_size, BSE_Coeffs.cols());
   // no pragma here because often we will only have one Coeff
   for (Index i = 0; i < BSE_Coeffs.cols(); i++) {
     Eigen::VectorXd coeff = BSE_Coeffs.col(i);
     Eigen::Map<Eigen::MatrixXd> coeffmatrix =
         Eigen::Map<Eigen::MatrixXd>(coeff.data(), bseX_ctotal, bseX_vtotal);
-    Eigen::MatrixXd proj =
-        X_unocc_unocc * coeffmatrix * X_occ_occ.transpose();
+    Eigen::MatrixXd proj = X_unocc_unocc * coeffmatrix * X_occ_occ.transpose();
     result.col(i) = Eigen::Map<Eigen::VectorXd>(proj.data(), proj.size());
   }
   return result;
@@ -420,19 +408,19 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
 
   if (doSinglets_) {
     if (levA_ > bseA_singlet_exc) {
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp()
-          << "  Number of excitons you want is greater than stored for molecule "
-             "A. Setting to max number available"
-          << flush;
+      XTP_LOG(Log::error, *pLog_) << TimeStamp()
+                                  << "  Number of excitons you want is greater "
+                                     "than stored for molecule "
+                                     "A. Setting to max number available"
+                                  << flush;
       levA_ = bseA_singlet_exc;
     }
     if (levB_ > bseB_singlet_exc) {
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp()
-          << "  Number of excitons you want is greater than stored for molecule "
-             "B. Setting to max number available"
-          << flush;
+      XTP_LOG(Log::error, *pLog_) << TimeStamp()
+                                  << "  Number of excitons you want is greater "
+                                     "than stored for molecule "
+                                     "B. Setting to max number available"
+                                  << flush;
       levB_ = bseB_singlet_exc;
     }
   }
@@ -789,9 +777,8 @@ BSECoupling::Diagnostics BSECoupling::ComputeDiagnostics(
     }
   }
 
-  diag.downfolding_safe =
-      std::isfinite(diag.xi) && (diag.xi < 0.3) &&
-      (diag.pt_rm_discrepancy < 1e-4);
+  diag.downfolding_safe = std::isfinite(diag.xi) && (diag.xi < 0.3) &&
+                          (diag.pt_rm_discrepancy < 1e-4);
 
   return diag;
 }

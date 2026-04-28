@@ -48,9 +48,8 @@ class DFTcoupling : public CouplingBase {
                  const Orbitals& orbitalsB) const override;
 
  private:
-  void WriteToProperty(tools::Property& type_summary,
-                       const Orbitals& orbitalsA, const Orbitals& orbitalsB,
-                       Index a, Index b) const;
+  void WriteToProperty(tools::Property& type_summary, const Orbitals& orbitalsA,
+                       const Orbitals& orbitalsB, Index a, Index b) const;
 
   double getCouplingElement(Index levelA, Index levelB,
                             const Orbitals& orbitalsA,
@@ -88,10 +87,10 @@ class DFTcoupling : public CouplingBase {
   //       [ H_BA  H_BB ]        [ S_BA  S_BB ]
   // where A = fragment A MOs, B = fragment B MOs for that carrier type.
   // H is in Hartree; conversion to eV happens in Addoutput.
-  Eigen::MatrixXd JAB_dimer_hole_;   // pre-Lowdin H, hole block [Hrt]
-  Eigen::MatrixXd S_AxB_hole_;       // overlap, hole block
-  Eigen::MatrixXd JAB_dimer_elec_;   // pre-Lowdin H, electron block [Hrt]
-  Eigen::MatrixXd S_AxB_elec_;       // overlap, electron block
+  Eigen::MatrixXd JAB_dimer_hole_;  // pre-Lowdin H, hole block [Hrt]
+  Eigen::MatrixXd S_AxB_hole_;      // overlap, hole block
+  Eigen::MatrixXd JAB_dimer_elec_;  // pre-Lowdin H, electron block [Hrt]
+  Eigen::MatrixXd S_AxB_elec_;      // overlap, electron block
 
   // --- new: monomer MO energies [eV] ---
   // Isolated monomer quasiparticle energies for the relevant MO ranges.
@@ -105,13 +104,13 @@ class DFTcoupling : public CouplingBase {
   // QP: perturbative GW quasiparticle energies, present only when a GW
   //     calculation was run on the monomer. Stored as empty vector otherwise.
   //     Indexed identically to the KS vectors — same MO range, same ordering.
-  Eigen::VectorXd moEnergiesA_hole_KS_;   // fragment A hole MOs, KS [eV]
+  Eigen::VectorXd moEnergiesA_hole_KS_;  // fragment A hole MOs, KS [eV]
   Eigen::VectorXd moEnergiesB_hole_KS_;
-  Eigen::VectorXd moEnergiesA_elec_KS_;   // fragment A electron MOs, KS [eV]
+  Eigen::VectorXd moEnergiesA_elec_KS_;  // fragment A electron MOs, KS [eV]
   Eigen::VectorXd moEnergiesB_elec_KS_;
 
-  Eigen::VectorXd moEnergiesA_hole_QP_;   // fragment A hole MOs, QPpert [eV]
-  Eigen::VectorXd moEnergiesB_hole_QP_;   // empty if GW not available
+  Eigen::VectorXd moEnergiesA_hole_QP_;  // fragment A hole MOs, QPpert [eV]
+  Eigen::VectorXd moEnergiesB_hole_QP_;  // empty if GW not available
   Eigen::VectorXd moEnergiesA_elec_QP_;
   Eigen::VectorXd moEnergiesB_elec_QP_;
 

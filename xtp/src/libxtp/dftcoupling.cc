@@ -41,7 +41,8 @@ void DFTcoupling::Initialize(tools::Property& options) {
   // Optional TB output: monomer MO energies (KS and QP), raw H/S matrices,
   // and diagnostics. Default false to keep XML output compact for KMC/rate
   // workflows that only need the scalar effective couplings.
-  output_tb_ = options.ifExistsReturnElseReturnDefault<bool>("output_tb", false);
+  output_tb_ =
+      options.ifExistsReturnElseReturnDefault<bool>("output_tb", false);
 }
 
 // =============================================================================
@@ -101,16 +102,14 @@ void DFTcoupling::Addoutput(tools::Property& type_summary,
   // helper lambda: write one carrier type (hole or electron) into a
   // property node, including existing pairwise couplings, monomer energies
   // (KS always, QPpert when available), raw TB matrices, and diagnostics.
-  auto WriteCarrier = [&](tools::Property& carrier_summary,
-                          Index start_a, Index end_a,
-                          Index start_b, Index end_b,
+  auto WriteCarrier = [&](tools::Property& carrier_summary, Index start_a,
+                          Index end_a, Index start_b, Index end_b,
                           const Eigen::MatrixXd& JAB_dimer,
                           const Eigen::MatrixXd& S_AxB,
                           const Eigen::VectorXd& moEnA_KS,
                           const Eigen::VectorXd& moEnB_KS,
                           const Eigen::VectorXd& moEnA_QP,
-                          const Eigen::VectorXd& moEnB_QP,
-                          double min_S_eval) {
+                          const Eigen::VectorXd& moEnB_QP, double min_S_eval) {
     // --- existing pairwise effective couplings (backward compatible) ---
     for (Index a = start_a; a <= end_a; ++a) {
       for (Index b = start_b; b <= end_b; ++b) {
@@ -129,8 +128,10 @@ void DFTcoupling::Addoutput(tools::Property& type_summary,
         bool hasQP_A = (moEnA_QP.size() == moEnA_KS.size());
         bool hasQP_B = (moEnB_QP.size() == moEnB_KS.size());
 
-        tools::Property& mono_prop = carrier_summary.add("monomer_energies", "");
-        mono_prop.setAttribute("has_qp", (hasQP_A && hasQP_B) ? "true" : "false");
+        tools::Property& mono_prop =
+            carrier_summary.add("monomer_energies", "");
+        mono_prop.setAttribute("has_qp",
+                               (hasQP_A && hasQP_B) ? "true" : "false");
 
         tools::Property& propA = mono_prop.add("fragmentA", "");
         for (Index i = 0; i < moEnA_KS.size(); i++) {
@@ -161,53 +162,48 @@ void DFTcoupling::Addoutput(tools::Property& type_summary,
         tb_prop.setAttribute("n_B", levB_range);
 
         WriteMatrixToProperty(tb_prop, "H_AA",
-            JAB_dimer.topLeftCorner(levA_range, levA_range),
-            votca::tools::conv::hrt2ev);
+                              JAB_dimer.topLeftCorner(levA_range, levA_range),
+                              votca::tools::conv::hrt2ev);
         WriteMatrixToProperty(tb_prop, "S_AA",
-            S_AxB.topLeftCorner(levA_range, levA_range));
-        WriteMatrixToProperty(tb_prop, "H_BB",
+                              S_AxB.topLeftCorner(levA_range, levA_range));
+        WriteMatrixToProperty(
+            tb_prop, "H_BB",
             JAB_dimer.bottomRightCorner(levB_range, levB_range),
             votca::tools::conv::hrt2ev);
         WriteMatrixToProperty(tb_prop, "S_BB",
-            S_AxB.bottomRightCorner(levB_range, levB_range));
+                              S_AxB.bottomRightCorner(levB_range, levB_range));
         WriteMatrixToProperty(tb_prop, "H_AB",
-            JAB_dimer.topRightCorner(levA_range, levB_range),
-            votca::tools::conv::hrt2ev);
+                              JAB_dimer.topRightCorner(levA_range, levB_range),
+                              votca::tools::conv::hrt2ev);
         WriteMatrixToProperty(tb_prop, "S_AB",
-            S_AxB.topRightCorner(levA_range, levB_range));
+                              S_AxB.topRightCorner(levA_range, levB_range));
       }
 
       // Basis diagnostics
       {
         tools::Property& diag_prop = carrier_summary.add("diagnostics", "");
-        diag_prop.setAttribute(
-            "min_S_eigenvalue",
-            (format("%1$1.6e") % min_S_eval).str());
-        diag_prop.setAttribute(
-            "basis_ok", (min_S_eval > 0.01) ? "true" : "false");
+        diag_prop.setAttribute("min_S_eigenvalue",
+                               (format("%1$1.6e") % min_S_eval).str());
+        diag_prop.setAttribute("basis_ok",
+                               (min_S_eval > 0.01) ? "true" : "false");
       }
     }  // output_tb_
   };
 
   // --- hole block ---
   tools::Property& hole_summary = dftcoupling.add("hole", "");
-  WriteCarrier(hole_summary,
-               Range_orbA.first, orbitalsA.getHomo(),
-               Range_orbB.first, orbitalsB.getHomo(),
-               JAB_dimer_hole_, S_AxB_hole_,
-               moEnergiesA_hole_KS_, moEnergiesB_hole_KS_,
+  WriteCarrier(hole_summary, Range_orbA.first, orbitalsA.getHomo(),
+               Range_orbB.first, orbitalsB.getHomo(), JAB_dimer_hole_,
+               S_AxB_hole_, moEnergiesA_hole_KS_, moEnergiesB_hole_KS_,
                moEnergiesA_hole_QP_, moEnergiesB_hole_QP_,
                min_S_eigenvalue_hole_);
 
   // --- electron block ---
   tools::Property& electron_summary = dftcoupling.add("electron", "");
-  WriteCarrier(electron_summary,
-               orbitalsA.getLumo(),
-               Range_orbA.first + Range_orbA.second - 1,
-               orbitalsB.getLumo(),
-               Range_orbB.first + Range_orbB.second - 1,
-               JAB_dimer_elec_, S_AxB_elec_,
-               moEnergiesA_elec_KS_, moEnergiesB_elec_KS_,
+  WriteCarrier(electron_summary, orbitalsA.getLumo(),
+               Range_orbA.first + Range_orbA.second - 1, orbitalsB.getLumo(),
+               Range_orbB.first + Range_orbB.second - 1, JAB_dimer_elec_,
+               S_AxB_elec_, moEnergiesA_elec_KS_, moEnergiesB_elec_KS_,
                moEnergiesA_elec_QP_, moEnergiesB_elec_QP_,
                min_S_eigenvalue_elec_);
 }
@@ -426,8 +422,8 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   min_S_eigenvalue_elec_ = es_e.eigenvalues()(0);
 
   XTP_LOG(Log::info, *pLog_)
-      << "Smallest S eigenvalue hole/elec: "
-      << min_S_eigenvalue_hole_ << " / " << min_S_eigenvalue_elec_ << flush;
+      << "Smallest S eigenvalue hole/elec: " << min_S_eigenvalue_hole_ << " / "
+      << min_S_eigenvalue_elec_ << flush;
 
   // -----------------------------------------------------------------------
   // Monomer MO energies — KS and QPpert (if available)
@@ -445,19 +441,17 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   // Helper lambda: extract QPpert energies for a given MO range,
   // returning an empty vector if GW is unavailable or the window
   // does not cover the requested range.
-  auto ExtractQPEnergies = [&](const Orbitals& orb,
-                                Index mo_start, Index n_mos)
-      -> Eigen::VectorXd {
+  auto ExtractQPEnergies = [&](const Orbitals& orb, Index mo_start,
+                               Index n_mos) -> Eigen::VectorXd {
     if (!orb.hasQPpert()) return Eigen::VectorXd{};
     Index qpmin = orb.getGWAmin();
     Index qpmax = orb.getGWAmax();
     if (mo_start < qpmin || mo_start + n_mos - 1 > qpmax) {
       XTP_LOG(Log::warning, *pLog_)
-          << TimeStamp()
-          << " WARNING: QPpert window [" << qpmin << "," << qpmax
-          << "] does not fully cover MO range ["
-          << mo_start << "," << mo_start + n_mos - 1
-          << "] -- QP energies omitted for this range" << flush;
+          << TimeStamp() << " WARNING: QPpert window [" << qpmin << "," << qpmax
+          << "] does not fully cover MO range [" << mo_start << ","
+          << mo_start + n_mos - 1 << "] -- QP energies omitted for this range"
+          << flush;
       return Eigen::VectorXd{};
     }
     // QPpert_energies_ is indexed from qpmin, so offset accordingly
@@ -484,8 +478,10 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   // QPpert energies — extracted over the same ranges; empty if unavailable
   moEnergiesA_hole_QP_ = ExtractQPEnergies(orbitalsA, Range_orbA.first, holesA);
   moEnergiesB_hole_QP_ = ExtractQPEnergies(orbitalsB, Range_orbB.first, holesB);
-  moEnergiesA_elec_QP_ = ExtractQPEnergies(orbitalsA, orbitalsA.getLumo(), elecsA);
-  moEnergiesB_elec_QP_ = ExtractQPEnergies(orbitalsB, orbitalsB.getLumo(), elecsB);
+  moEnergiesA_elec_QP_ =
+      ExtractQPEnergies(orbitalsA, orbitalsA.getLumo(), elecsA);
+  moEnergiesB_elec_QP_ =
+      ExtractQPEnergies(orbitalsB, orbitalsB.getLumo(), elecsB);
 
   if (orbitalsA.hasQPpert()) {
     XTP_LOG(Log::info, *pLog_)

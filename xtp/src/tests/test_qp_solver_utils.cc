@@ -203,9 +203,9 @@ BOOST_AUTO_TEST_CASE(windowed_solver_finds_simple_root_with_bisection) {
   std::vector<RootCandidate> accepted_roots;
   std::vector<RootCandidate> rejected_roots;
 
-  boost::optional<double> root = SolveQP_Grid_Windowed(
-      fqp, 0.0, -0.5, 0.5, 1, opt, &diag, &accepted_roots, &rejected_roots,
-      false);
+  boost::optional<double> root =
+      SolveQP_Grid_Windowed(fqp, 0.0, -0.5, 0.5, 1, opt, &diag, &accepted_roots,
+                            &rejected_roots, false);
 
   BOOST_REQUIRE(root);
   BOOST_CHECK_CLOSE_FRACTION(*root, 0.23, 1e-6);
@@ -238,9 +238,9 @@ BOOST_AUTO_TEST_CASE(windowed_solver_finds_simple_root_with_brent) {
   std::vector<RootCandidate> accepted_roots;
   std::vector<RootCandidate> rejected_roots;
 
-  boost::optional<double> root = SolveQP_Grid_Windowed(
-      fqp, 0.0, -0.5, 0.5, 1, opt, &diag, &accepted_roots, &rejected_roots,
-      true);
+  boost::optional<double> root =
+      SolveQP_Grid_Windowed(fqp, 0.0, -0.5, 0.5, 1, opt, &diag, &accepted_roots,
+                            &rejected_roots, true);
 
   BOOST_REQUIRE(root);
   BOOST_CHECK_CLOSE_FRACTION(*root, 0.23, 1e-10);
@@ -266,9 +266,9 @@ BOOST_AUTO_TEST_CASE(windowed_solver_returns_nearest_accepted_root) {
   std::vector<RootCandidate> accepted_roots;
   std::vector<RootCandidate> rejected_roots;
 
-  boost::optional<double> root = SolveQP_Grid_Windowed(
-      fqp, 0.0, -0.2, 0.8, 1, opt, &diag, &accepted_roots, &rejected_roots,
-      false);
+  boost::optional<double> root =
+      SolveQP_Grid_Windowed(fqp, 0.0, -0.2, 0.8, 1, opt, &diag, &accepted_roots,
+                            &rejected_roots, false);
 
   BOOST_REQUIRE(root);
   BOOST_CHECK_CLOSE_FRACTION(*root, 0.12, 1e-6);
@@ -280,7 +280,8 @@ BOOST_AUTO_TEST_CASE(windowed_solver_returns_nearest_accepted_root) {
   BOOST_CHECK(diag.chosen_shell >= 0);
 }
 
-BOOST_AUTO_TEST_CASE(windowed_solver_returns_rejected_root_if_no_accepted_root_exists) {
+BOOST_AUTO_TEST_CASE(
+    windowed_solver_returns_rejected_root_if_no_accepted_root_exists) {
   LinearRejectedFunc fqp(0.23);
 
   SolverOptions opt;
@@ -295,9 +296,9 @@ BOOST_AUTO_TEST_CASE(windowed_solver_returns_rejected_root_if_no_accepted_root_e
   std::vector<RootCandidate> accepted_roots;
   std::vector<RootCandidate> rejected_roots;
 
-  boost::optional<double> root = SolveQP_Grid_Windowed(
-      fqp, 0.0, -0.5, 0.5, 1, opt, &diag, &accepted_roots, &rejected_roots,
-      false);
+  boost::optional<double> root =
+      SolveQP_Grid_Windowed(fqp, 0.0, -0.5, 0.5, 1, opt, &diag, &accepted_roots,
+                            &rejected_roots, false);
 
   BOOST_REQUIRE(root);
   BOOST_CHECK_CLOSE_FRACTION(*root, 0.23, 1e-6);

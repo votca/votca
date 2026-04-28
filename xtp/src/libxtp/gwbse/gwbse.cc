@@ -512,9 +512,7 @@ void GWBSE::Initialize(tools::Property& options) {
   }
   gwopt_.qp_root_finder = options.get("gw.qp_root_finder").as<std::string>();
   XTP_LOG(Log::error, *pLog_)
-      << " QP root finder: "
-      << gwopt_.qp_root_finder << flush;
-
+      << " QP root finder: " << gwopt_.qp_root_finder << flush;
 
   gwopt_.gw_mixing_order =
       options.get("gw.mixing_order").as<Index>();  // max history in

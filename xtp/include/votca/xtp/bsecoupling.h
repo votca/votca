@@ -119,10 +119,12 @@ class BSECoupling : public CouplingBase {
    * @return            array of {J_pert, J_diag} matrices
    */
   template <class BSE_OPERATOR>
-  std::array<Eigen::MatrixXd, 2> ProjectExcitons(
-      Eigen::MatrixXd& FE_AB, Eigen::MatrixXd& CTStates, BSE_OPERATOR H,
-      Eigen::MatrixXd& J_dimer_out, Eigen::MatrixXd& S_dimer_out,
-      Diagnostics& diag_out) const;
+  std::array<Eigen::MatrixXd, 2> ProjectExcitons(Eigen::MatrixXd& FE_AB,
+                                                 Eigen::MatrixXd& CTStates,
+                                                 BSE_OPERATOR H,
+                                                 Eigen::MatrixXd& J_dimer_out,
+                                                 Eigen::MatrixXd& S_dimer_out,
+                                                 Diagnostics& diag_out) const;
 
   /**
    * \brief Form J_dimer and S_dimer from the projection, then Lowdin

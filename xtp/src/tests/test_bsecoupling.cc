@@ -204,8 +204,10 @@ BOOST_AUTO_TEST_CASE(tb_output_test) {
       1.04977, 1.08863, 1.10318, 1.17822, 1.18094, 1.18094, 1.69037, 1.91046;
   AB.setNumberOfAlphaElectrons(10);
   AB.setNumberOfOccupiedLevels(10);
-  AB.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/bsecoupling/3-21G.xml");
-  AB.SetupAuxBasis(std::string(XTP_TEST_DATA_FOLDER) + "/bsecoupling/3-21G.xml");
+  AB.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                   "/bsecoupling/3-21G.xml");
+  AB.SetupAuxBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                   "/bsecoupling/3-21G.xml");
   AB.setRPAindices(0, 33);
   AB.setBSEindices(0, 33);
   AB.setGWindices(0, 33);
@@ -264,38 +266,38 @@ BOOST_AUTO_TEST_CASE(tb_output_test) {
   // -------------------------------------------------------------------------
   // n_FE = levA + levB = 1 + 1 = 2
   // n_CT = 2 * occLevels * unoccLevels = 2 * 3 * 3 = 18
-  Index n_FE = output.get("bsecoupling.singlet.tb_matrices")
-                     .getAttribute<Index>("n_FE");
-  Index n_CT = output.get("bsecoupling.singlet.tb_matrices")
-                     .getAttribute<Index>("n_CT");
+  Index n_FE =
+      output.get("bsecoupling.singlet.tb_matrices").getAttribute<Index>("n_FE");
+  Index n_CT =
+      output.get("bsecoupling.singlet.tb_matrices").getAttribute<Index>("n_CT");
   BOOST_CHECK_EQUAL(n_FE, 2);
   BOOST_CHECK_EQUAL(n_CT, 18);
 
   // Matrix dimensions
   Index hff_rows = output.get("bsecoupling.singlet.tb_matrices.H_FE_FE")
-                         .getAttribute<Index>("rows");
+                       .getAttribute<Index>("rows");
   Index hff_cols = output.get("bsecoupling.singlet.tb_matrices.H_FE_FE")
-                         .getAttribute<Index>("cols");
+                       .getAttribute<Index>("cols");
   BOOST_CHECK_EQUAL(hff_rows, 2);
   BOOST_CHECK_EQUAL(hff_cols, 2);
 
   Index hfc_rows = output.get("bsecoupling.singlet.tb_matrices.H_FE_CT")
-                         .getAttribute<Index>("rows");
+                       .getAttribute<Index>("rows");
   Index hfc_cols = output.get("bsecoupling.singlet.tb_matrices.H_FE_CT")
-                         .getAttribute<Index>("cols");
+                       .getAttribute<Index>("cols");
   BOOST_CHECK_EQUAL(hfc_rows, 2);
   BOOST_CHECK_EQUAL(hfc_cols, 18);
 
   Index hcc_rows = output.get("bsecoupling.singlet.tb_matrices.H_CT_CT")
-                         .getAttribute<Index>("rows");
+                       .getAttribute<Index>("rows");
   BOOST_CHECK_EQUAL(hcc_rows, 18);
 
   // -------------------------------------------------------------------------
   // H_FE_FE matrix: raw non-orthogonal projected BSE Hamiltonian.
   // H_FE_FE is in the non-normalised dimer projection basis BEFORE Lowdin
   // orthogonalisation, so its diagonal is NOT the monomer site energy.
-  // The diagonal H_AA = <psi_A|H|psi_A> where psi_A has norm S_AA = <psi_A|psi_A>.
-  // The site energy is recovered as H_AA / S_AA after Lowdin.
+  // The diagonal H_AA = <psi_A|H|psi_A> where psi_A has norm S_AA =
+  // <psi_A|psi_A>. The site energy is recovered as H_AA / S_AA after Lowdin.
   //
   // What we CAN test:
   //   1. H and S are symmetric: H_AB == H_BA, S_AB == S_BA
@@ -305,12 +307,10 @@ BOOST_AUTO_TEST_CASE(tb_output_test) {
   //      is recovered correctly by S^{-1/2} H S^{-1/2} off-diagonal
   //      — verified implicitly since coupling_test already checks J_diag
   // -------------------------------------------------------------------------
-  std::string row0_str =
-      output.get("bsecoupling.singlet.tb_matrices.H_FE_FE")
-            .getAttribute<std::string>("row_0");
-  std::string row1_str =
-      output.get("bsecoupling.singlet.tb_matrices.H_FE_FE")
-            .getAttribute<std::string>("row_1");
+  std::string row0_str = output.get("bsecoupling.singlet.tb_matrices.H_FE_FE")
+                             .getAttribute<std::string>("row_0");
+  std::string row1_str = output.get("bsecoupling.singlet.tb_matrices.H_FE_FE")
+                             .getAttribute<std::string>("row_1");
   std::istringstream ss0(row0_str), ss1(row1_str);
   double H_AA, H_AB, H_BA, H_BB;
   ss0 >> H_AA >> H_AB;
@@ -322,12 +322,10 @@ BOOST_AUTO_TEST_CASE(tb_output_test) {
   BOOST_CHECK(std::isfinite(H_AA));
   BOOST_CHECK(std::isfinite(H_BB));
 
-  std::string sff_row0 =
-      output.get("bsecoupling.singlet.tb_matrices.S_FE_FE")
-            .getAttribute<std::string>("row_0");
-  std::string sff_row1 =
-      output.get("bsecoupling.singlet.tb_matrices.S_FE_FE")
-            .getAttribute<std::string>("row_1");
+  std::string sff_row0 = output.get("bsecoupling.singlet.tb_matrices.S_FE_FE")
+                             .getAttribute<std::string>("row_0");
+  std::string sff_row1 = output.get("bsecoupling.singlet.tb_matrices.S_FE_FE")
+                             .getAttribute<std::string>("row_1");
   std::istringstream ss2(sff_row0), ss3(sff_row1);
   double S_AA, S_AB_s, S_BA_s, S_BB;
   ss2 >> S_AA >> S_AB_s;
@@ -361,12 +359,10 @@ BOOST_AUTO_TEST_CASE(tb_output_test) {
   // the test geometry. Since the sign is gauge-dependent we use abs.
   // Reference: 171.0 eV (from test run; large due to 4-bohr separation).
   // -------------------------------------------------------------------------
-  std::string hfc_row0 =
-      output.get("bsecoupling.singlet.tb_matrices.H_FE_CT")
-            .getAttribute<std::string>("row_0");
-  std::string hfc_row1 =
-      output.get("bsecoupling.singlet.tb_matrices.H_FE_CT")
-            .getAttribute<std::string>("row_1");
+  std::string hfc_row0 = output.get("bsecoupling.singlet.tb_matrices.H_FE_CT")
+                             .getAttribute<std::string>("row_0");
+  std::string hfc_row1 = output.get("bsecoupling.singlet.tb_matrices.H_FE_CT")
+                             .getAttribute<std::string>("row_1");
   // find max |H_FE_CT| across both rows
   auto maxAbsRow = [](const std::string& row_str) {
     std::istringstream ss(row_str);
@@ -375,17 +371,16 @@ BOOST_AUTO_TEST_CASE(tb_output_test) {
     return maxval;
   };
   double max_hfc = std::max(maxAbsRow(hfc_row0), maxAbsRow(hfc_row1));
-  BOOST_CHECK(max_hfc > 0.0);           // coupling is non-zero
-  BOOST_CHECK(std::isfinite(max_hfc));  // and finite
+  BOOST_CHECK(max_hfc > 0.0);                // coupling is non-zero
+  BOOST_CHECK(std::isfinite(max_hfc));       // and finite
   BOOST_CHECK_CLOSE(max_hfc, 1894.51, 1.0);  // within 1%, eV
 
   // -------------------------------------------------------------------------
   // CT diagonal (H_CT_CT): first CT state energy must be finite.
   // No physical ordering guarantee for this unphysical geometry.
   // -------------------------------------------------------------------------
-  std::string hcc_row0 =
-      output.get("bsecoupling.singlet.tb_matrices.H_CT_CT")
-            .getAttribute<std::string>("row_0");
+  std::string hcc_row0 = output.get("bsecoupling.singlet.tb_matrices.H_CT_CT")
+                             .getAttribute<std::string>("row_0");
   std::istringstream ss4(hcc_row0);
   double H_CT00;
   ss4 >> H_CT00;
@@ -394,10 +389,10 @@ BOOST_AUTO_TEST_CASE(tb_output_test) {
   // -------------------------------------------------------------------------
   // Diagnostics: xi and downfolding_safe
   // -------------------------------------------------------------------------
-  double xi = output.get("bsecoupling.singlet.diagnostics")
-                    .getAttribute<double>("xi");
+  double xi =
+      output.get("bsecoupling.singlet.diagnostics").getAttribute<double>("xi");
   bool safe = output.get("bsecoupling.singlet.diagnostics")
-                    .getAttribute<bool>("downfolding_safe");
+                  .getAttribute<bool>("downfolding_safe");
   // xi must be non-negative
   BOOST_CHECK(xi >= 0.0);
   // With such large couplings (23 eV!) relative to any reasonable FE-CT gap,
@@ -407,7 +402,7 @@ BOOST_AUTO_TEST_CASE(tb_output_test) {
   // Check monomer energy node eV attribute matches BSE eigenvalue
   double mono_eV =
       output.get("bsecoupling.singlet.monomer_energies.fragmentA.energy")
-            .getAttribute<double>("eV");
+          .getAttribute<double>("eV");
   BOOST_CHECK_CLOSE(mono_eV, e_mono_ref, 1e-4);
 
   libint2::finalize();
