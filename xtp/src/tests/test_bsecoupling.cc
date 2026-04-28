@@ -55,6 +55,14 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
 
   A.BSESinglets().eigenvectors() = spsi_ref;
 
+  // Set BSE singlet eigenvalues (excitation energies in Hartree).
+  // Required by the updated BSECoupling which stores monomer energies
+  // as pairwise-consistent TB site energies. The value here is a
+  // placeholder consistent with the HOMO-LUMO gap of the test molecule
+  // (~2.4 eV = 0.0883 Hrt from the MO eigenvalues above).
+  A.BSESinglets().eigenvalues().resize(1);
+  A.BSESinglets().eigenvalues() << 0.08831;  // ~2.4 eV placeholder
+
   Orbitals B = A;
   B.QMAtoms().Translate(4 * Eigen::Vector3d::UnitX());
 
@@ -89,6 +97,7 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
   opt << "<bsecoupling>" << std::endl;
   opt << "        <use_perturbation>true</use_perturbation>" << std::endl;
   opt << "        <spin>singlet</spin>" << std::endl;
+  opt << "        <output_tb>false</output_tb>" << std::endl;
   opt << "       <moleculeA>" << std::endl;
   opt << "                <states>1</states>" << std::endl;
   opt << "                <occLevels>3</occLevels>" << std::endl;
@@ -127,16 +136,23 @@ BOOST_AUTO_TEST_CASE(coupling_test) {
   coup.CalculateCouplings(A, B, AB);
   votca::tools::Property output;
   coup.Addoutput(output, A, B);
-  double diag_J_ref = 32.67651;
-  double pert_J_ref = 4.434018;
+  // Reference values updated to reflect removal of the incorrect CT
+  // pre-orthogonalization (P = F*F^T was only exact for orthonormal FE
+  // states). The joint Lowdin in CalcJ_dimer now handles all non-orthogonality
+  // correctly. The large values (eV) reflect the unphysically short
+  // intermolecular distance in the test geometry (4 bohr).
+  // The sign of J_diag is gauge-dependent (BSE eigenvector phase),
+  // so comparisons use absolute values.
+  double diag_J_ref = 23.662750;  // eV
+  double pert_J_ref = 9.529579;   // eV
 
   double diag_j =
       output.get("bsecoupling.singlet.coupling").getAttribute<double>("j_diag");
   double pert_j =
       output.get("bsecoupling.singlet.coupling").getAttribute<double>("j_pert");
 
-  BOOST_CHECK_CLOSE(diag_J_ref, diag_j, 1e-4);
-  BOOST_CHECK_CLOSE(pert_J_ref, pert_j, 1e-4);
+  BOOST_CHECK_CLOSE(diag_J_ref, std::abs(diag_j), 1e-4);
+  BOOST_CHECK_CLOSE(pert_J_ref, std::abs(pert_j), 1e-4);
   libint2::finalize();
 }
 BOOST_AUTO_TEST_SUITE_END()
