@@ -20,7 +20,6 @@
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
-#include <sstream>
 
 // Local VOTCA includes
 #include "votca/tools/eigenio_matrixmarket.h"
