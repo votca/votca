@@ -11,6 +11,7 @@ Version 2026-dev
 -  implemented BSE for spin-polarized ground states (#1235)
 -  implemented smarter grid search in QP solver (#1236)
 -  raw J storage in statefile  (#1237)
+-  Add DFT/GW-BSE Tight-Binding Hamiltonian calculator (#1238)
 
 Version 2026 (released 09.03.26)
 ================================
