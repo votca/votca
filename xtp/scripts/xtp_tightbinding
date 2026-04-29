@@ -1044,20 +1044,60 @@ class TBSolver:
     def state_weights(self, evec: np.ndarray,
                       assembler: TBAssembler,
                       fragments: List[int]) -> Dict:
-        """Return per-fragment weight and total FE/CT weight."""
-        frag_w = {f: 0.0 for f in fragments}
-        fe_w = ct_w = hole_w = elec_w = 0.0
-        for key, idx in assembler.state_idx.items():
-            w = evec[idx] ** 2
-            frag = key[0]
-            frag_w[frag] = frag_w.get(frag, 0.0) + w
-            fe_w += w
-            if assembler.model == 'transport':
-                if key[2] == 'hole': hole_w += w
-                else: elec_w += w
-        for idx in assembler.CT_idx.values():
-            w = evec[idx] ** 2
-            ct_w += w
+        """Return per-fragment weight and total FE/CT weight.
+
+        Fragment populations are computed via the _W matrix from TBDynamics
+        when available, which correctly distributes CT state weight 0.5/0.5
+        across their two parent fragments so that fragment populations sum
+        to 1 exactly.  When called without a TBDynamics instance (e.g. in
+        static analysis) the per-fragment FE weights are returned directly
+        and CT states are reported separately but not assigned to fragments
+        — callers should be aware that sum(frag_w.values()) < 1 in that case.
+        """
+        probs = np.abs(evec) ** 2
+
+        # FE and CT scalar weights (in identity metric)
+        fe_w  = sum(probs[idx] for idx in assembler.state_idx.values())
+        ct_w  = sum(probs[idx] for idx in assembler.CT_idx.values())
+        hole_w = elec_w = 0.0
+
+        # Per-fragment weights: use _W if assembler has one (set by TBDynamics),
+        # otherwise fall back to FE-only fragment assignment.
+        if hasattr(assembler, '_S') and assembler._S is not None:
+            # Mulliken: P_f = Σ_{i∈f} Re[(Sc)_i c_i*], sums to 1 exactly
+            Sc = assembler._S @ evec
+            frag_to_fi = {f: i for i, f in enumerate(fragments)}
+            frag_pop_arr = np.zeros(len(fragments))
+            for key, idx in assembler.state_idx.items():
+                fi = frag_to_fi.get(key[0])
+                if fi is not None:
+                    frag_pop_arr[fi] += np.real(Sc[idx] * np.conj(evec[idx]))
+            for (fA, fB, k), idx in assembler.CT_idx.items():
+                val = 0.5 * np.real(Sc[idx] * np.conj(evec[idx]))
+                for frag in (fA, fB):
+                    fi = frag_to_fi.get(frag)
+                    if fi is not None: frag_pop_arr[fi] += val
+            frag_w = {frag: float(frag_pop_arr[fi])
+                      for fi, frag in enumerate(fragments)}
+        elif hasattr(assembler, '_W') and assembler._W is not None:
+            frag_pop = assembler._W @ probs
+            frag_w = {frag: float(frag_pop[fi])
+                      for fi, frag in enumerate(fragments)}
+        else:
+            frag_w = {f: 0.0 for f in fragments}
+            for key, idx in assembler.state_idx.items():
+                frag = key[0]
+                frag_w[frag] = frag_w.get(frag, 0.0) + probs[idx]
+            # CT states split 0.5/0.5 to their two parent fragments
+            for (fA, fB, k), idx in assembler.CT_idx.items():
+                frag_w[fA] = frag_w.get(fA, 0.0) + 0.5 * probs[idx]
+                frag_w[fB] = frag_w.get(fB, 0.0) + 0.5 * probs[idx]
+
+        if assembler.model == 'transport':
+            for key, idx in assembler.state_idx.items():
+                if key[2] == 'hole':   hole_w += probs[idx]
+                else:                  elec_w += probs[idx]
+
         return {'fragments': frag_w, 'FE': fe_w, 'CT': ct_w,
                 'hole': hole_w, 'electron': elec_w}
 
@@ -1169,6 +1209,10 @@ class TBDynamics:
                 fi = self.frag_to_idx.get(fB, -1)
                 if fi >= 0:
                     self._W[fi, idx] = 0.5
+
+        # Attach _W and S to assembler for use by TBSolver.state_weights
+        assembler._W = self._W
+        assembler._S = self._sqrt_S @ self._sqrt_S  # S matrix
 
     # -------------------------------------------------------------------------
     # Initial state constructors
@@ -1335,8 +1379,8 @@ class TBDynamics:
             psi_site = self._isqrt_S @ psi_current
             psi_history[:, ti] = psi_site
 
+            populations[:, ti] = self._mulliken_populations(psi_site)
             probs = np.abs(psi_site)**2
-            populations[:, ti] = self._W @ probs
             ipr_arr[ti] = 1.0 / np.sum(probs**2) if np.sum(probs**2) > 0 else 1.0
 
             if store_coherences:
@@ -1505,8 +1549,8 @@ class TBDynamics:
 
                 # observables in site basis
                 psi_site = self._isqrt_S @ psi_current
+                pop_r[:, ti]  = self._mulliken_populations(psi_site)
                 probs = np.abs(psi_site)**2
-                pop_r[:, ti]  = self._W @ probs
                 ipr_r[ti]     = 1.0 / np.sum(probs**2) if np.sum(probs**2) > 0 else 1.0
                 if msd_r is not None:
                     msd_r[ti] = self._compute_msd(probs)
@@ -1669,6 +1713,27 @@ class TBDynamics:
     # -------------------------------------------------------------------------
     # Helpers
     # -------------------------------------------------------------------------
+
+    def _mulliken_populations(self, c: np.ndarray) -> np.ndarray:
+        """Mulliken fragment populations: P_f = Σ_{i∈f} Re[(Sc)_i c_i*].
+        Satisfies Σ_f P_f = <c|S|c> = 1 exactly for S-normalised c.
+        Reduces to |c_i|^2 per fragment when S = I (orthogonal basis).
+        CT states split 0.5/0.5 across their two parent fragments.
+        """
+        Sc = self._sqrt_S @ (self._sqrt_S @ c)
+        pop = np.zeros(self.n_frags)
+        for key, idx in self.assembler.state_idx.items():
+            frag = key[0]
+            fi = self.frag_to_idx.get(frag)
+            if fi is not None:
+                pop[fi] += np.real(Sc[idx] * np.conj(c[idx]))
+        for (fA, fB, k), idx in self.assembler.CT_idx.items():
+            val = 0.5 * np.real(Sc[idx] * np.conj(c[idx]))
+            for frag in (fA, fB):
+                fi = self.frag_to_idx.get(frag)
+                if fi is not None:
+                    pop[fi] += val
+        return pop
 
     def _normalise_site(self, psi: np.ndarray) -> np.ndarray:
         """Normalise psi w.r.t. the overlap matrix: <ψ|S|ψ> = 1."""

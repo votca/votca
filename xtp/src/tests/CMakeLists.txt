@@ -404,3 +404,22 @@ if(RUN_XTP_INTEGRATIONTESTS)
 
 
 endif()
+
+# pytest
+if(NOT PYpytest_FOUND)
+  execute_process(COMMAND ${Python_EXECUTABLE} -c "import pytest" RESULT_VARIABLE IMPORT_pypytest)
+  if(IMPORT_pypytest EQUAL 0)
+    set(PYpytest_FOUND TRUE CACHE INTERNAL "")
+    message(STATUS "Found python module pytest")
+  endif()
+endif()
+if (PYpytest_FOUND)
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_tightbinding)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/DataFiles/xtp_tightbinding_tests)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/iqm_out.xml ${RUNPATH}/iqm_out.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${PROJECT_SOURCE_DIR}/xtp/scripts/xtp_tightbinding ${RUNPATH}/xtp_tightbinding.py)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test_xtp_tightbinding.py ${RUNPATH}/test_xtp_tightbinding.py)
+  add_test(NAME integration_xtp_tightbinding COMMAND ${Python_EXECUTABLE} -m pytest ${RUNPATH}/test_xtp_tightbinding.py -v WORKING_DIRECTORY ${RUNPATH} )
+  set_property(TEST integration_xtp_tightbinding PROPERTY ENVIRONMENT "PYTHONPATH=${XTP_PYPATH}:$ENV{PYTHONPATH};VOTCASHARE==${VOTCASHARE_DIR}")
+ endif()
