@@ -584,7 +584,7 @@ BOOST_AUTO_TEST_CASE(tb_output) {
   // -------------------------------------------------------------------------
   // Structural checks: n_A=2, n_B=2 (levA=levB=2 in options)
   // -------------------------------------------------------------------------
-  for (const std::string& carrier : {"hole", "electron"}) {
+  for (const std::string& carrier : std::vector<std::string>{"hole", "electron"}) {
     std::string tb_path = "dftcoupling." + carrier + ".tb_matrices";
     Index nA = output.get(tb_path).getAttribute<Index>("n_A");
     Index nB = output.get(tb_path).getAttribute<Index>("n_B");
@@ -716,7 +716,7 @@ BOOST_AUTO_TEST_CASE(tb_output) {
     double max_hab = std::max({std::abs(hab0[0]), std::abs(hab0[1]),
                                std::abs(hab1[0]), std::abs(hab1[1])});
     // Reference: to be confirmed from first test run
-    BOOST_CHECK_CLOSE(max_hab, 26.35484999999999 , 1.0);  // within 1%, eV — PLACEHOLDER
+    BOOST_CHECK_CLOSE(max_hab, 26.35484999999999, 1.0);  // within 1%, eV — PLACEHOLDER
   }
 
   libint2::finalize();
