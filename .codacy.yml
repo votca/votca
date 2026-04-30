@@ -1,3 +1,10 @@
 exclude_paths:
   - "share/sphinx/_themes/**"
   
+engines:
+  pylint-python3:
+    exclude_paths:
+      - "xtp/src/tests/test_xtp_tightbinding.py"
+  ruff:
+    exclude_paths:
+      - "xtp/src/tests/test_xtp_tightbinding.py"

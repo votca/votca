@@ -18,7 +18,6 @@ import scipy.linalg as la
 import scipy.sparse as sp
 import warnings
 import os
-import sys
 import pytest
 
 # Import xtp_tightbinding as a module.  The file has no .py extension
@@ -167,7 +166,7 @@ class TestTBAssembler:
     def test_basis_dimension(self, singlet_assembler, singlet_pairs_frags):
         pairs, fragments = singlet_pairs_frags
         asm = singlet_assembler
-        n_FE = sum(p.n_A for p in pairs if p.frag_A == fragments[0])
+        _ = sum(p.n_A for p in pairs if p.frag_A == fragments[0])
         # For explicit_ct=True: all pairs contribute CT states
         expected_FE = len(fragments) * pairs[0].n_A
         assert len(asm.state_idx) == expected_FE
@@ -439,7 +438,7 @@ class TestRegression:
     def test_s2_manifold_centre(self, singlet_evals_evecs, singlet_assembler):
         evals, evecs = singlet_evals_evecs
         # Find s2 FE states: FE-dominated states in the 7-9 eV range
-        H_dense = singlet_assembler.assemble(sparse=False)[0]
+        _ = singlet_assembler.assemble(sparse=False)[0]
         s2_states = [n for n in range(len(evals))
                      if 7.0 < evals[n] < 9.0 and
                      sum(evecs[idx, n]**2
@@ -526,7 +525,7 @@ class TestTBDynamics:
         _, fragments = singlet_pairs_frags
         psi0 = dynamics.site_excitation(fragments[0], 0)
         # Weight on the target fragment should be 1 (only that site excited)
-        target_idx = singlet_assembler.state_idx[(fragments[0], 0)]
+        _ = singlet_assembler.state_idx[(fragments[0], 0)]
         pop = np.abs(psi0)**2
         frag_pop = dynamics._W @ pop
         assert frag_pop[0] > 0.99, \
@@ -631,7 +630,7 @@ class TestTBDynamics:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             # dt=50 fs >> tau/5=10 fs should warn
-            result = dynamics.propagate_stochastic(
+            _ = dynamics.propagate_stochastic(
                 psi0, t_max_fs=50.0, dt_fs=50.0,
                 sigma_eV=0.05, tau_fs=10.0,
                 n_realisations=5, seed=1)
