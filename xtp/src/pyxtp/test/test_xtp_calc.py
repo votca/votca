@@ -34,7 +34,7 @@ class TestXTP:
         CO.calc.options.dftpackage.basisset = 'invalid_basis_set'
         CO.get_potential_energy()
 
-    def test_set(sefl, CO):
+    def test_set(self, CO):
         CO.calc.set(basis='def2-svp', xc='lda', charge=1)
         if CO.calc.options.dftpackage.basisset != 'def2-svp':
             raise AssertionError("Error in test_set")
