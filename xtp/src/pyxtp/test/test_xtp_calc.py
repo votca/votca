@@ -65,7 +65,6 @@ class TestXTP:
         CO.calc.options.gwbse.gw.qp_full_window_half_width = 1.0
         CO.calc.options.gwbse.gw.qp_dense_spacing = 0.001
         CO.get_potential_energy()
-    
         new_atoms = xtp.read_atoms('CO.orb')
         if(CO.calc.results['energy'] != new_atoms.calc.results['energy']):
             raise AssertionError("Error in test_get_total_energy")
