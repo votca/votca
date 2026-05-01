@@ -33,7 +33,6 @@
 using namespace votca::xtp;
 using namespace std;
 
-
 namespace {
 
 struct GWTestSystem {
@@ -96,9 +95,10 @@ GW::options MakeGWTestOptions() {
 }
 
 Eigen::VectorXd RunGWPerturbation(const GWTestSystem& system,
-                                 const GW::options& opt) {
-  GW gw(const_cast<Logger&>(system.log), const_cast<TCMatrix_gwbse&>(system.Mmn),
-        system.vxc, system.mo_eigenvalues);
+                                  const GW::options& opt) {
+  GW gw(const_cast<Logger&>(system.log),
+        const_cast<TCMatrix_gwbse&>(system.Mmn), system.vxc,
+        system.mo_eigenvalues);
   gw.configure(opt);
   gw.CalculateGWPerturbation();
   return gw.getGWAResults();

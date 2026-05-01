@@ -1,0 +1,2370 @@
+#! /usr/bin/env python3
+#
+# Copyright 2009-2026 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+
+VERSION = '@PROJECT_VERSION@ #VOTCA_GIT_ID#'
+PROGTITLE = 'THE VOTCA::XTP Tight-Binding Module'
+PROGDESCR = 'Builds a fragment DFT/GW/BSE Tight-Binding Hamiltonians and solves,...'
+VOTCAHEADER = f"""
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+{PROGTITLE}
+
+please read and cite: @PROJECT_CITATION@
+and submit bugs to @PROJECT_CONTACT@
+xtp_tightbinding, version {VERSION}
+
+"""
+
+"""
+TB Hamiltonian assembler, solver, and dynamics for VOTCA IQM output files.
+
+Reads a single jobs XML file (e.g. iqm_out.xml) produced by a VOTCA IQM
+workflow, assembles a fragment-based tight-binding (TB) Hamiltonian for a
+chosen model type, computes eigenstates and optical observables, and
+optionally runs coherent wavepacket dynamics.
+
+Requires VOTCA bsecoupling/dftcoupling built with output_tb=true, which
+writes raw TB matrices, monomer energies, transition dipoles, and diagnostics
+into the jobs XML alongside the standard pairwise effective couplings.
+
+Supported model types
+---------------------
+'hole'      -- valence band (occupied MOs) from dftcoupling
+'electron'  -- conduction band (virtual MOs) from dftcoupling
+'transport' -- combined hole+electron two-band quasiparticle model;
+               block-diagonal Hamiltonian, useful for band structure and
+               optical gap estimates
+'singlet'   -- singlet Frenkel excitons from bsecoupling
+'triplet'   -- triplet Frenkel excitons from bsecoupling
+
+CT state treatment (singlet/triplet only)
+-----------------------------------------
+Adaptive (default): explicit CT basis for pairs where downfolding is unsafe
+    (xi >= threshold or large PT/RM discrepancy); effective J_diag coupling
+    for safe pairs. Smaller basis.
+--explicit-ct: keep CT states for ALL pairs regardless of the safety
+    diagnostic. Avoids sign ambiguity of the scalar J_diag when CT states
+    are near-resonant with FE states (xi ~ 1). Recommended when optical
+    selection rules (J- vs H-aggregate character, oscillator strength
+    distribution) are of interest.
+
+Site energy priority (FE/MO diagonal)
+--------------------------------------
+1. external_site_energies dict passed to TBAssembler.assemble()
+2. Monomer energies from XML + optional electrostatic_corrections dict
+3. Averaged dimer diagonal H_FE_FE[i,i] (fallback, warns — inconsistent)
+
+CT diagonal always comes from H_CT_CT in the pair XML.
+
+MO energies (hole/electron/transport)
+--------------------------------------
+--qp-energies: use GW QPpert quasiparticle energies instead of KS DFT
+    eigenvalues as site energies. Falls back to KS with a warning if QP
+    energies are absent from the XML (requires GW calculation on monomers
+    and dftcoupling built with output_tb=true).
+
+Oscillator strengths (singlet only)
+------------------------------------
+Computed from monomer transition dipoles written into the XML by the updated
+bsecoupling. Formula: f = (2/3) * E[Hrt] * |sum_i c_i * mu_i|^2.
+CT basis states contribute zero dipole (no direct ground-state coupling).
+Known limitations: cross-fragment dipole terms and CT brightness via charge
+separation (dQ * R_AB) are not yet included.
+
+HDF5 output
+-----------
+--output FILE.h5: write all static results (Hamiltonian, eigenstates, optical
+    data, raw pair matrices) to an HDF5 file for postprocessing. Requires
+    h5py. Dynamics results are appended to the same file under /dynamics/.
+
+Coherent wavepacket dynamics
+-----------------------------
+--dynamics: propagate a wavepacket under the TB Hamiltonian after solving.
+    Two modes depending on --noise-sigma:
+
+    Noiseless (--noise-sigma 0, default):
+        Unitary propagation via Krylov-subspace matrix exponential
+        (scipy expm_multiply). Exact to machine precision, no stepsize
+        restriction. Produces perfectly coherent oscillations.
+
+    Stochastic (--noise-sigma > 0):
+        Stochastic Schrödinger equation (SSE): each of N realisations
+        propagates a pure state under H(t) = H_TB + δH(t) via RK4, where
+        δH(t) is Ornstein-Uhlenbeck noise. The ensemble average
+        rho(t) = <|psi(r)(t)><psi(r)(t)|> is a mixed state whose purity
+        Tr(rho^2) decays from 1 (pure) toward 1/N_frags (fully dephased).
+        Equivalent to the Redfield master equation in the Markovian limit.
+        Stability requires dt << hbar/sigma and dt << tau/5.
+
+        Noise sources (can be combined):
+        --noise-sigma [meV]: site energy noise (diagonal dH). Physical
+            origin: intramolecular vibrations modulating excitation energies.
+            Uncorrelated between fragments. Usually dominant for rigid
+            pi-stacked systems. Cost: O(n_frags) per step.
+        --noise-couplings [--noise-sigma-coupling meV]: coupling noise
+            (off-diagonal dH). Physical origin: intermolecular motions
+            modulating spatial overlap. Correlated within each pair.
+            Default coupling sigma = site sigma / 3. More important for
+            flexible linkers. Cost: O(n_pairs) per step.
+
+    Initial states (--init-state):
+        site     : single-site excitation on --init-frag
+        gaussian : Gaussian wavepacket centred on --init-frag, width
+                   --init-sigma (in fragment units or Angstrom if positions
+                   are provided)
+        thermal  : Boltzmann mixture of eigenstates at --thermal-T [K]
+                   (inherently mixed; only meaningful with stochastic mode)
+
+    Observables: fragment populations P_i(t), purity Tr(rho^2), von Neumann
+    entropy, IPR, mean-square displacement (if fragment positions given),
+    and decoherence time (stochastic only).
+
+Usage
+-----
+    # Static TB calculation
+    xtp_tightbinding --model singlet --input iqm_out.xml
+    xtp_tightbinding --model singlet --input iqm_out.xml --explicit-ct
+    xtp_tightbinding --model hole    --input iqm_out.xml --qp-energies
+    xtp_tightbinding --model transport --input iqm_out.xml
+    xtp_tightbinding --model singlet --input iqm_out.xml --n-states 20
+    xtp_tightbinding --model singlet --input iqm_out.xml --output results.h5
+
+    # Noiseless dynamics
+    xtp_tightbinding --model singlet --input iqm_out.xml --explicit-ct \
+        --dynamics --t-max 500 --dt 1 --init-state site --init-frag 0
+
+    # Stochastic dynamics (50 meV noise, 50 fs correlation, 200 realisations)
+    xtp_tightbinding --model singlet --input iqm_out.xml --explicit-ct \
+        --dynamics --t-max 500 --dt 1 \
+        --noise-sigma 50 --noise-tau 50 --n-realisations 200 \
+        --output results.h5
+
+    # Stochastic dynamics with coupling noise also
+    xtp_tightbinding --model singlet --input iqm_out.xml --explicit-ct \
+        --dynamics --t-max 500 --dt 1 --noise-sigma 50 --noise-tau 50 \
+        --noise-couplings --noise-sigma-coupling 15 --n-realisations 200
+
+    # Gaussian wavepacket with thermal initial state
+    xtp_tightbinding --model singlet --input iqm_out.xml --explicit-ct \
+        --dynamics --init-state gaussian --init-frag 5 --init-sigma 2.0 \
+        --noise-sigma 30 --noise-tau 100 --n-realisations 500
+"""
+
+import numpy as np
+import xml.etree.ElementTree as ET
+try:
+    import h5py
+    HAS_HDF5 = True
+except ImportError:
+    HAS_HDF5 = False
+import scipy.linalg as la
+import scipy.sparse as sp
+import scipy.sparse.linalg as spla
+from scipy.sparse.linalg import expm_multiply
+from dataclasses import dataclass, field
+from typing import Dict, List, Tuple, Optional
+import warnings
+import argparse
+
+
+# =============================================================================
+# Data structures
+# =============================================================================
+
+@dataclass
+class BSEDiagnostics:
+    xi: float
+    pt_rm_discrepancy_eV: float
+    downfolding_safe: bool
+
+
+@dataclass
+class DFTDiagnostics:
+    min_S_eigenvalue: float
+    basis_ok: bool
+
+
+@dataclass
+class PairData:
+    """All data for one pair, for one model type."""
+    frag_A: int
+    frag_B: int
+    model: str           # 'hole', 'electron', 'singlet', 'triplet'
+
+    # number of basis states per fragment
+    n_A: int
+    n_B: int
+    # for BSE: number of CT states
+    n_CT: int = 0
+
+    # monomer MO energies [eV] — pairwise-consistent site energies
+    # KS: Kohn-Sham DFT eigenvalues (always present when XML is new format)
+    # QP: perturbative GW quasiparticle energies (None if GW not run)
+    monomer_energies_A: Optional[np.ndarray] = None      # KS
+    monomer_energies_B: Optional[np.ndarray] = None      # KS
+    monomer_energies_A_QP: Optional[np.ndarray] = None   # QPpert
+    monomer_energies_B_QP: Optional[np.ndarray] = None   # QPpert
+
+    # raw TB matrices (H in eV, S dimensionless)
+    H_AA: Optional[np.ndarray] = None
+    S_AA: Optional[np.ndarray] = None
+    H_BB: Optional[np.ndarray] = None
+    S_BB: Optional[np.ndarray] = None
+    H_AB: Optional[np.ndarray] = None   # off-diagonal coupling block
+    S_AB: Optional[np.ndarray] = None
+
+    # BSE-only: FE-CT and CT-CT blocks
+    H_FE_CT: Optional[np.ndarray] = None
+    S_FE_CT: Optional[np.ndarray] = None
+    H_CT_CT: Optional[np.ndarray] = None
+    S_CT_CT: Optional[np.ndarray] = None
+
+    # transition dipole moments [e*bohr] per basis state
+    # shape (n_A, 3) and (n_B, 3); None if not in XML (DFT, or old BSE output)
+    # CT states implicitly have zero dipole
+    transition_dipoles_A: Optional[np.ndarray] = None
+    transition_dipoles_B: Optional[np.ndarray] = None
+
+    # diagnostics
+    diagnostics: object = None   # BSEDiagnostics or DFTDiagnostics
+
+    # effective scalar couplings (for reference / KMC use)
+    # dict {(levelA, levelB): J_eV} for DFT
+    # dict {(stateA, stateB): (j_diag, j_pert)} for BSE
+    effective_couplings: Dict = field(default_factory=dict)
+
+    @property
+    def downfolding_safe(self) -> bool:
+        if isinstance(self.diagnostics, BSEDiagnostics):
+            return self.diagnostics.downfolding_safe
+        return True  # DFT has no CT downfolding
+
+
+# =============================================================================
+# XML parsing helpers
+# =============================================================================
+
+def parse_matrix(node) -> np.ndarray:
+    """Parse a matrix node with row_N attributes into a numpy array."""
+    rows = int(node.get("rows"))
+    cols = int(node.get("cols"))
+    mat = np.zeros((rows, cols))
+    for i in range(rows):
+        mat[i, :] = [float(x) for x in node.get(f"row_{i}").split()]
+    return mat
+
+
+def parse_dft_carrier(node, frag_A: int, frag_B: int,
+                      model: str) -> Optional[PairData]:
+    """
+    Parse one <hole> or <electron> node from dftcoupling output.
+    Returns None if the node is absent.
+    """
+    if node is None:
+        return None
+
+    # effective scalar couplings
+    eff = {}
+    for c in node.findall("coupling"):
+        lA = int(c.get("levelA"))
+        lB = int(c.get("levelB"))
+        eff[(lA, lB)] = float(c.get("j"))
+
+    # monomer MO energies
+    mono = node.find("monomer_energies")
+    if mono is not None:
+        mosA = mono.find("fragmentA").findall("mo")
+        mosB = mono.find("fragmentB").findall("mo")
+        # Support both old format (eV) and new format (eV_KS / eV_QP)
+        def _ks(m): return float(m.get("eV_KS") or m.get("eV"))
+        def _qp(m): return m.get("eV_QP")
+        monA = np.array([_ks(e) for e in mosA])
+        monB = np.array([_ks(e) for e in mosB])
+        monA_QP = np.array([float(_qp(e)) for e in mosA]) \
+                  if all(_qp(e) is not None for e in mosA) else None
+        monB_QP = np.array([float(_qp(e)) for e in mosB]) \
+                  if all(_qp(e) is not None for e in mosB) else None
+    else:
+        monA = monB = monA_QP = monB_QP = None
+
+    # TB matrices — absent when dftcoupling was run with output_tb=false
+    tb = node.find("tb_matrices")
+    if tb is None:
+        raise ValueError(
+            f"No <tb_matrices> found for pair {frag_A}-{frag_B} ({model}). "
+            f"Re-run dftcoupling with output_tb=true in the calculator "
+            f"options to generate TB Hamiltonian output.")
+    nA = int(tb.get("n_A"))
+    nB = int(tb.get("n_B"))
+    H_AA = parse_matrix(tb.find("H_AA"))
+    S_AA = parse_matrix(tb.find("S_AA"))
+    H_BB = parse_matrix(tb.find("H_BB"))
+    S_BB = parse_matrix(tb.find("S_BB"))
+    H_AB = parse_matrix(tb.find("H_AB"))
+    S_AB = parse_matrix(tb.find("S_AB"))
+
+    # diagnostics
+    diag_node = node.find("diagnostics")
+    diag = DFTDiagnostics(
+        min_S_eigenvalue=float(diag_node.get("min_S_eigenvalue")),
+        basis_ok=(diag_node.get("basis_ok") == "true")
+    ) if diag_node is not None else DFTDiagnostics(1.0, True)
+
+    return PairData(
+        frag_A=frag_A, frag_B=frag_B, model=model,
+        n_A=nA, n_B=nB, n_CT=0,
+        monomer_energies_A=monA, monomer_energies_B=monB,
+        monomer_energies_A_QP=monA_QP, monomer_energies_B_QP=monB_QP,
+        transition_dipoles_A=None, transition_dipoles_B=None,
+        H_AA=H_AA, S_AA=S_AA, H_BB=H_BB, S_BB=S_BB,
+        H_AB=H_AB, S_AB=S_AB,
+        diagnostics=diag, effective_couplings=eff
+    )
+
+
+def parse_bse_spin(node, frag_A: int, frag_B: int,
+                   model: str) -> Optional[PairData]:
+    """
+    Parse one <singlet> or <triplet> node from bsecoupling output.
+    Returns None if the node is absent.
+    """
+    if node is None:
+        return None
+
+    # effective couplings
+    eff = {}
+    for c in node.findall("coupling"):
+        sA, sB = c.get("stateA"), c.get("stateB")
+        eff[(sA, sB)] = (float(c.get("j_diag")), float(c.get("j_pert")))
+
+    # monomer FE energies
+    mono = node.find("monomer_energies")
+    if mono is not None:
+        energiesA = mono.find("fragmentA").findall("energy")
+        energiesB = mono.find("fragmentB").findall("energy")
+        monA = np.array([float(e.get("eV")) for e in energiesA])
+        monB = np.array([float(e.get("eV")) for e in energiesB])
+        # transition dipoles [e*bohr] — present for singlets, absent for triplets
+        def _parse_tdips(energy_nodes):
+            if energy_nodes and energy_nodes[0].get("tdx") is not None:
+                return np.array([[float(e.get("tdx")),
+                                  float(e.get("tdy")),
+                                  float(e.get("tdz"))]
+                                 for e in energy_nodes])
+            return None
+        tdipsA = _parse_tdips(energiesA)
+        tdipsB = _parse_tdips(energiesB)
+    else:
+        monA = monB = None
+        tdipsA = tdipsB = None
+
+    # diagnostics
+    diag_node = node.find("diagnostics")
+    diag = BSEDiagnostics(
+        xi=float(diag_node.get("xi")),
+        pt_rm_discrepancy_eV=float(diag_node.get("pt_rm_discrepancy_eV")),
+        downfolding_safe=(diag_node.get("downfolding_safe") == "true")
+    ) if diag_node is not None else BSEDiagnostics(0.0, 0.0, True)
+
+    # TB matrices — absent when bsecoupling was run with output_tb=false
+    tb = node.find("tb_matrices")
+    if tb is None:
+        raise ValueError(
+            f"No <tb_matrices> found for pair {frag_A}-{frag_B} ({model}). "
+            f"Re-run bsecoupling with output_tb=true in the calculator "
+            f"options to generate TB Hamiltonian output.")
+    nFE = int(tb.get("n_FE"))
+    nCT = int(tb.get("n_CT"))
+    # infer n_A and n_B from state labels
+    stateA_labels = sorted(set(c.get("stateA") for c in node.findall("coupling")))
+    stateB_labels = sorted(set(c.get("stateB") for c in node.findall("coupling")))
+    nA = len(stateA_labels)
+    nB = len(stateB_labels)
+
+    H_FF = parse_matrix(tb.find("H_FE_FE"))
+    S_FF = parse_matrix(tb.find("S_FE_FE"))
+
+    # Split the FE-FE block into AA, BB, AB sub-blocks
+    H_AA = H_FF[:nA, :nA]
+    H_BB = H_FF[nA:, nA:]
+    H_AB = H_FF[:nA, nA:]
+    S_AA = S_FF[:nA, :nA]
+    S_BB = S_FF[nA:, nA:]
+    S_AB = S_FF[:nA, nA:]
+
+    H_FE_CT = parse_matrix(tb.find("H_FE_CT")) if nCT > 0 else None
+    S_FE_CT = parse_matrix(tb.find("S_FE_CT")) if nCT > 0 else None
+    H_CT_CT = parse_matrix(tb.find("H_CT_CT")) if nCT > 0 else None
+    S_CT_CT = parse_matrix(tb.find("S_CT_CT")) if nCT > 0 else None
+
+    return PairData(
+        frag_A=frag_A, frag_B=frag_B, model=model,
+        n_A=nA, n_B=nB, n_CT=nCT,
+        monomer_energies_A=monA, monomer_energies_B=monB,
+        transition_dipoles_A=tdipsA, transition_dipoles_B=tdipsB,
+        H_AA=H_AA, S_AA=S_AA, H_BB=H_BB, S_BB=S_BB,
+        H_AB=H_AB, S_AB=S_AB,
+        H_FE_CT=H_FE_CT, S_FE_CT=S_FE_CT,
+        H_CT_CT=H_CT_CT, S_CT_CT=S_CT_CT,
+        diagnostics=diag, effective_couplings=eff
+    )
+
+
+def parse_jobs_xml(filepath: str, model: str) -> Tuple[List[PairData], List[int]]:
+    """
+    Parse a VOTCA jobs XML file and extract all pair data for the chosen model.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to the jobs XML file (e.g. iqm_out.xml).
+    model : str
+        One of 'hole', 'electron', 'singlet', 'triplet'.
+
+    Returns
+    -------
+    pairs : list of PairData
+        One entry per completed job that contains the requested model type.
+    fragments : list of int
+        Sorted list of unique fragment IDs found across all pairs.
+    """
+    if model not in ('hole', 'electron', 'singlet', 'triplet', 'transport'):
+        raise ValueError(f"model must be one of hole/electron/singlet/triplet/transport, "
+                         f"got '{model}'")
+
+    root = ET.parse(filepath).getroot()
+    pairs = []
+    frag_set = set()
+
+    for job in root.findall("job"):
+        status = job.find("status").text.strip()
+        if status != "COMPLETE":
+            continue
+
+        segs = job.findall("input/segment")
+        if len(segs) != 2:
+            continue
+        frag_A = int(segs[0].get("id"))
+        frag_B = int(segs[1].get("id"))
+
+        out = job.find("output")
+        if out is None:
+            continue
+
+        pair = None
+        if model == 'transport':
+            # Parse both hole and electron as separate PairData objects
+            dft = out.find("dftcoupling")
+            if dft is None:
+                warnings.warn(f"Job {frag_A}-{frag_B}: no dftcoupling output, "
+                              f"skipping for model 'transport'")
+                continue
+            pair_hole = parse_dft_carrier(dft.find("hole"), frag_A, frag_B, "hole")
+            pair_elec = parse_dft_carrier(dft.find("electron"), frag_A, frag_B, "electron")
+            if pair_hole is None and pair_elec is None:
+                warnings.warn(f"Job {frag_A}-{frag_B}: neither hole nor electron "
+                              f"block found, skipping")
+                continue
+            for p in [pair_hole, pair_elec]:
+                if p is not None:
+                    pairs.append(p)
+                    frag_set.add(frag_A)
+                    frag_set.add(frag_B)
+            continue  # already appended
+
+        elif model in ('hole', 'electron'):
+            dft = out.find("dftcoupling")
+            if dft is None:
+                warnings.warn(f"Job {frag_A}-{frag_B}: no dftcoupling output, "
+                              f"skipping for model '{model}'")
+                continue
+            carrier_node = dft.find(model)
+            pair = parse_dft_carrier(carrier_node, frag_A, frag_B, model)
+            if pair is None:
+                warnings.warn(f"Job {frag_A}-{frag_B}: no '{model}' block in "
+                              f"dftcoupling, skipping")
+                continue
+
+        elif model in ('singlet', 'triplet'):
+            bse = out.find("bsecoupling")
+            if bse is None:
+                warnings.warn(f"Job {frag_A}-{frag_B}: no bsecoupling output, "
+                              f"skipping for model '{model}'")
+                continue
+            spin_node = bse.find(model)
+            pair = parse_bse_spin(spin_node, frag_A, frag_B, model)
+            if pair is None:
+                warnings.warn(f"Job {frag_A}-{frag_B}: no '{model}' block in "
+                              f"bsecoupling, skipping")
+                continue
+
+        pairs.append(pair)
+        frag_set.add(frag_A)
+        frag_set.add(frag_B)
+
+    fragments = sorted(frag_set)
+    return pairs, fragments
+
+
+# =============================================================================
+# TB assembler
+# =============================================================================
+
+class TBAssembler:
+    """
+    Assembles the TB Hamiltonian H and overlap S from pairwise data.
+
+    Works for all four model types (hole, electron, singlet, triplet).
+    For singlet/triplet, applies the adaptive FE+CT basis strategy:
+    CT states are kept explicit for pairs where downfolding_safe=False,
+    and effective J_diag couplings are used for safe pairs.
+
+    Basis ordering:
+        [ states_frag0, states_frag1, ...,   <- per-fragment states
+          CT_pair_AB_0, ...,                 <- explicit CT (BSE only)
+          CT_pair_BC_0, ... ]
+    """
+
+    def __init__(self, pairs: List[PairData], fragments: List[int],
+                 explicit_ct: bool = False):
+        self.pairs = pairs
+        self.fragments = fragments
+        models = set(p.model for p in pairs)
+        self.model = 'transport' if models == {'hole', 'electron'} else \
+                     (pairs[0].model if pairs else None)
+        self.explicit_ct = explicit_ct
+
+        self.state_idx: Dict[Tuple[int, int], int] = {}  # (frag, i) -> global
+        self.CT_idx: Dict[Tuple[int, int, int], int] = {}  # (fA,fB,k) -> global
+        self.explicit_CT_pairs: List[PairData] = []
+        self.downfolded_pairs: List[PairData] = []
+        self.total_dim: int = 0
+
+        self._assign_indices()
+
+    def _assign_indices(self):
+        # Infer n states per fragment from pair data, with consistency check.
+        # Each fragment must appear with the same state count in all pairs —
+        # if not, pairs were computed with different settings and cannot be
+        # combined into a single Hamiltonian.
+        n_per_frag: Dict[int, int] = {}
+        for p in self.pairs:
+            for frag, n in [(p.frag_A, p.n_A), (p.frag_B, p.n_B)]:
+                if frag in n_per_frag:
+                    if n_per_frag[frag] != n:
+                        raise ValueError(
+                            f"Fragment {frag} appears with inconsistent state "
+                            f"counts across pairs: {n_per_frag[frag]} vs {n}. "
+                            f"Check that all pairs were computed with the same "
+                            f"settings (same levA/levB/states).")
+                else:
+                    n_per_frag[frag] = n
+
+        # For transport: assign hole block then electron block.
+        # For other models: normal FE loop.
+        idx = 0
+        if self.model == 'transport':
+            hole_pairs = [p for p in self.pairs if p.model == 'hole']
+            elec_pairs = [p for p in self.pairs if p.model == 'electron']
+            n_hole_frag: Dict[int, int] = {}
+            for p in hole_pairs:
+                n_hole_frag[p.frag_A] = p.n_A
+                n_hole_frag[p.frag_B] = p.n_B
+            n_elec_frag: Dict[int, int] = {}
+            for p in elec_pairs:
+                n_elec_frag[p.frag_A] = p.n_A
+                n_elec_frag[p.frag_B] = p.n_B
+            for frag in self.fragments:
+                for i in range(n_hole_frag.get(frag, 0)):
+                    self.state_idx[(frag, i, 'hole')] = idx; idx += 1
+            self._elec_start = idx
+            for frag in self.fragments:
+                for i in range(n_elec_frag.get(frag, 0)):
+                    self.state_idx[(frag, i, 'electron')] = idx; idx += 1
+            self.explicit_CT_pairs = []
+            self.downfolded_pairs = list(self.pairs)
+            self.total_dim = idx
+            self.transition_dipoles = {}  # not applicable for transport
+            return
+
+        # Assign fragment state indices in deterministic fragment order
+        # (fragments list is already sorted by parse_jobs_xml).
+        for frag in self.fragments:
+            n = n_per_frag.get(frag, 0)
+            if n == 0:
+                warnings.warn(
+                    f"Fragment {frag} has no pairs in this dataset — "
+                    f"it will have no states in the TB Hamiltonian.")
+            for i in range(n):
+                self.state_idx[(frag, i)] = idx
+                idx += 1
+
+        # CT states only for BSE models.
+        # explicit_ct=True: keep CT for ALL pairs — avoids sign ambiguity of
+        # the effective coupling when CT states are near-resonant with FE states
+        # (xi~1). Recommended when optical selection rules matter.
+        # explicit_ct=False (default): adaptive — explicit CT for unsafe pairs,
+        # downfolded J_diag for safe pairs. Smaller basis.
+        # Sort by (frag_A, frag_B) for deterministic index assignment
+        # regardless of the order pairs appear in the XML file.
+        is_bse = self.model in ('singlet', 'triplet')
+        if self.explicit_ct and is_bse:
+            all_unsafe = list(self.pairs)
+            all_safe = []
+        else:
+            all_unsafe = [p for p in self.pairs
+                          if is_bse and not p.downfolding_safe]
+            all_safe = [p for p in self.pairs if p not in all_unsafe]
+
+        self.explicit_CT_pairs = sorted(all_unsafe,
+                                        key=lambda p: (p.frag_A, p.frag_B))
+        self.downfolded_pairs = sorted(all_safe,
+                                       key=lambda p: (p.frag_A, p.frag_B))
+
+        for p in self.explicit_CT_pairs:
+            for k in range(p.n_CT):
+                self.CT_idx[(p.frag_A, p.frag_B, k)] = idx
+                idx += 1
+
+        self.total_dim = idx
+
+        # Collect transition dipole vectors per (frag, state) for optical spectra.
+        # Take from the first pair that provides them; verify consistency across pairs.
+        self.transition_dipoles: Dict[Tuple[int, int], np.ndarray] = {}
+        for p in self.pairs:
+            for frag, n, tdips in [
+                    (p.frag_A, p.n_A, p.transition_dipoles_A),
+                    (p.frag_B, p.n_B, p.transition_dipoles_B)]:
+                if tdips is None:
+                    continue
+                for i in range(min(n, len(tdips))):
+                    key = (frag, i)
+                    if key not in self.transition_dipoles:
+                        self.transition_dipoles[key] = tdips[i]
+                    # consistency check: warn if dipoles differ across pairs
+                    elif not np.allclose(self.transition_dipoles[key],
+                                         tdips[i], atol=1e-6):
+                        warnings.warn(
+                            f"Transition dipole for fragment {frag} state {i} "
+                            f"inconsistent across pairs — using first occurrence.")
+        # CT states always have zero transition dipole (no direct ground-state coupling)
+
+    def _resolve_site_energies(
+            self,
+            external_site_energies: Optional[Dict],
+            electrostatic_corrections: Optional[Dict]
+    ) -> Tuple[Dict, str]:
+        """Determine site energies with priority hierarchy."""
+        if external_site_energies is not None:
+            for key in self.state_idx:
+                if key not in external_site_energies:
+                    raise ValueError(
+                        f"external_site_energies missing ({key[0]}, {key[1]})")
+            return dict(external_site_energies), "external (environment-corrected)"
+
+        has_monomer = all(
+            p.monomer_energies_A is not None and p.monomer_energies_B is not None
+            for p in self.pairs
+        )
+
+        if has_monomer:
+            collected: Dict[Tuple[int,int], List[float]] = {}
+            for p in self.pairs:
+                for i, eps in enumerate(p.monomer_energies_A):
+                    collected.setdefault((p.frag_A, i), []).append(eps)
+                for j, eps in enumerate(p.monomer_energies_B):
+                    collected.setdefault((p.frag_B, j), []).append(eps)
+
+            site_energies = {}
+            for key, vals in collected.items():
+                spread = max(vals) - min(vals)
+                if spread > 1e-4:
+                    warnings.warn(
+                        f"Monomer energy for frag {key[0]} state {key[1]} "
+                        f"varies by {spread*1000:.2f} meV across pairs.")
+                eps = float(np.mean(vals))
+                if electrostatic_corrections is not None:
+                    eps += electrostatic_corrections.get(key, 0.0)
+                site_energies[key] = eps
+
+            source = "monomer energies from XML"
+            if electrostatic_corrections:
+                source += " + electrostatic corrections"
+            return site_energies, source
+
+        # Fallback
+        warnings.warn(
+            "monomer_energies not in XML — falling back to averaged dimer "
+            "diagonal as site energies (pairwise-inconsistent).",
+            UserWarning)
+        energy_sum: Dict = {}
+        energy_count: Dict = {}
+        for p in self.pairs:
+            for i in range(p.n_A):
+                key = (p.frag_A, i)
+                energy_sum[key] = energy_sum.get(key, 0.0) + p.H_AA[i, i]
+                energy_count[key] = energy_count.get(key, 0) + 1
+            for j in range(p.n_B):
+                key = (p.frag_B, j)
+                energy_sum[key] = energy_sum.get(key, 0.0) + p.H_BB[j, j]
+                energy_count[key] = energy_count.get(key, 0) + 1
+        return ({k: energy_sum[k]/energy_count[k] for k in energy_sum},
+                "averaged dimer diagonal (fallback)")
+
+    def _assemble_transport(self, sparse: bool = True,
+                            use_qp: bool = False):
+        """Assemble the combined hole+electron TB Hamiltonian for band structure.
+
+        The Hamiltonian is block diagonal:
+            H = [ H_hole    0      ]
+                [   0    H_electron]
+
+        Hole and electron blocks are assembled independently using their
+        respective site energies and H_AB coupling matrices. The two-band
+        structure gives valence (hole) and conduction (electron) bands.
+        Hole-electron off-diagonal coupling is zero -- this is a single-particle
+        quasiparticle model, not a particle-hole (BSE) model.
+        """
+        dim = self.total_dim
+        H = np.zeros((dim, dim))
+        S = np.zeros((dim, dim))
+        np.fill_diagonal(S, 1.0)
+
+        hole_pairs = [p for p in self.pairs if p.model == 'hole']
+        elec_pairs = [p for p in self.pairs if p.model == 'electron']
+
+        def _fill_block(carrier_pairs, carrier):
+            # use_qp: prefer QPpert energies, warn and fall back to KS if absent
+            collected: Dict = {}
+            for p in carrier_pairs:
+                mono_A = (p.monomer_energies_A_QP
+                          if use_qp and p.monomer_energies_A_QP is not None
+                          else p.monomer_energies_A)
+                mono_B = (p.monomer_energies_B_QP
+                          if use_qp and p.monomer_energies_B_QP is not None
+                          else p.monomer_energies_B)
+                if use_qp and p.monomer_energies_A_QP is None:
+                    warnings.warn(f"QP energies unavailable for pair "
+                                  f"{p.frag_A}-{p.frag_B} frag A: using KS")
+                if use_qp and p.monomer_energies_B_QP is None:
+                    warnings.warn(f"QP energies unavailable for pair "
+                                  f"{p.frag_A}-{p.frag_B} frag B: using KS")
+                for frag, n, mono in [(p.frag_A, p.n_A, mono_A),
+                                      (p.frag_B, p.n_B, mono_B)]:
+                    if mono is not None:
+                        for i, eps in enumerate(mono):
+                            collected.setdefault((frag, i), []).append(eps)
+            for key, vals in collected.items():
+                idx = self.state_idx.get((key[0], key[1], carrier))
+                if idx is not None:
+                    H[idx, idx] = float(np.mean(vals))
+
+            # off-diagonal
+            for p in carrier_pairs:
+                idx_A = [self.state_idx[(p.frag_A, i, carrier)]
+                         for i in range(p.n_A)]
+                idx_B = [self.state_idx[(p.frag_B, j, carrier)]
+                         for j in range(p.n_B)]
+                for i, ia in enumerate(idx_A):
+                    for j, jb in enumerate(idx_B):
+                        H[ia, jb] = H[jb, ia] = p.H_AB[i, j]
+                        S[ia, jb] = S[jb, ia] = p.S_AB[i, j]
+
+        _fill_block(hole_pairs, 'hole')
+        _fill_block(elec_pairs, 'electron')
+
+        H = 0.5 * (H + H.T)
+        S = 0.5 * (S + S.T)
+        self._site_energy_source = "monomer MO energies from XML"
+
+        if sparse:
+            return sp.csr_matrix(H), sp.csr_matrix(S)
+        return H, S
+
+    def assemble(
+            self,
+            external_site_energies: Optional[Dict] = None,
+            electrostatic_corrections: Optional[Dict] = None,
+            sparse: bool = True,
+            use_qp: bool = False
+    ) -> Tuple[object, object]:
+        """
+        Assemble H and S.
+
+        Parameters
+        ----------
+        external_site_energies : dict, optional
+            {(frag_id, state_idx): energy_eV} — highest priority site energies.
+        electrostatic_corrections : dict, optional
+            {(frag_id, state_idx): delta_eV} — added to monomer XML energies.
+        sparse : bool
+            If True return scipy.sparse.csr_matrix, else numpy dense array.
+
+        Returns
+        -------
+        H, S : matrices of shape (total_dim, total_dim)
+
+        Notes
+        -----
+        CT treatment is set at construction via explicit_ct:
+        - False (default): adaptive — explicit CT for unsafe pairs, effective
+          J_diag for safe pairs. Smaller basis but scalar J_diag can have sign
+          ambiguity when CT states are near-resonant (xi~1).
+        - True: all BSE pairs keep CT states explicitly. No downfolding, no
+          sign ambiguity. Recommended when optical selection rules matter.
+        """
+        dim = self.total_dim
+        H = np.zeros((dim, dim))
+        S = np.zeros((dim, dim))
+        np.fill_diagonal(S, 1.0)
+
+        # transport model uses its own assembly method
+        if self.model == 'transport':
+            return self._assemble_transport(sparse, use_qp=use_qp)
+
+        # --- site energies ---
+        site_energies, source = self._resolve_site_energies(
+            external_site_energies, electrostatic_corrections)
+        self._site_energy_source = source
+        for (frag, i), idx in self.state_idx.items():
+            H[idx, idx] = site_energies.get((frag, i), 0.0)
+
+        # --- CT site energies (BSE only) ---
+        for p in self.explicit_CT_pairs:
+            for k in range(p.n_CT):
+                kc = self.CT_idx[(p.frag_A, p.frag_B, k)]
+                H[kc, kc] = p.H_CT_CT[k, k]
+                for l in range(p.n_CT):
+                    if l != k:
+                        lc = self.CT_idx[(p.frag_A, p.frag_B, l)]
+                        H[kc, lc] = p.H_CT_CT[k, l]
+                        S[kc, lc] = p.S_CT_CT[k, l]
+
+        # --- off-diagonal blocks ---
+        for p in self.pairs:
+            idx_A = [self.state_idx[(p.frag_A, i)] for i in range(p.n_A)]
+            idx_B = [self.state_idx[(p.frag_B, j)] for j in range(p.n_B)]
+
+            if p.downfolding_safe or self.model in ('hole', 'electron'):
+                # DFT: always direct (no CT downfolding concept)
+                # BSE safe: use effective J_diag
+                if self.model in ('singlet', 'triplet') and p.downfolding_safe:
+                    # use J_diag from effective couplings
+                    for i, ia in enumerate(idx_A):
+                        for j, jb in enumerate(idx_B):
+                            J = p.H_AB[i, j]  # already effective after Lowdin
+                            H[ia, jb] = H[jb, ia] = J
+                            H[ia, jb] = H[jb, ia] = J
+                            S[ia, jb] = S[jb, ia] = p.S_AB[i, j]
+                else:
+                    # DFT hole/electron: raw H_AB
+                    for i, ia in enumerate(idx_A):
+                        for j, jb in enumerate(idx_B):
+                            H[ia, jb] = H[jb, ia] = p.H_AB[i, j]
+                            S[ia, jb] = S[jb, ia] = p.S_AB[i, j]
+            else:
+                # BSE unsafe: direct FE-FE + explicit CT
+                for i, ia in enumerate(idx_A):
+                    for j, jb in enumerate(idx_B):
+                        H[ia, jb] = H[jb, ia] = p.H_AB[i, j]
+                        S[ia, jb] = S[jb, ia] = p.S_AB[i, j]
+                # FE-CT blocks
+                all_fe = [(ia, i) for i, ia in enumerate(idx_A)] + \
+                         [(jb, p.n_A + j) for j, jb in enumerate(idx_B)]
+                for glob_idx, loc_idx in all_fe:
+                    for k in range(p.n_CT):
+                        kc = self.CT_idx[(p.frag_A, p.frag_B, k)]
+                        H[glob_idx, kc] = H[kc, glob_idx] = p.H_FE_CT[loc_idx, k]
+                        S[glob_idx, kc] = S[kc, glob_idx] = p.S_FE_CT[loc_idx, k]
+
+        H = 0.5 * (H + H.T)
+        S = 0.5 * (S + S.T)
+
+        if sparse:
+            return sp.csr_matrix(H), sp.csr_matrix(S)
+        return H, S
+
+    def basis_labels(self) -> List[str]:
+        labels = [''] * self.total_dim
+        if self.model == 'transport':
+            for (frag, i, carrier), idx in self.state_idx.items():
+                prefix = 'h' if carrier == 'hole' else 'e'
+                labels[idx] = f"{prefix}_f{frag}_{i+1}"
+        else:
+            prefix = {'hole': 'h', 'electron': 'e',
+                      'singlet': 's', 'triplet': 't'}.get(self.model, 'x')
+            for (frag, i), idx in self.state_idx.items():
+                labels[idx] = f"{prefix}_f{frag}_{i+1}"
+            for (fA, fB, k), idx in self.CT_idx.items():
+                labels[idx] = f"CT_f{fA}{fB}_k{k+1}"
+        return labels
+
+
+# =============================================================================
+# TB solver
+# =============================================================================
+
+class TBSolver:
+    """Solve H*c = E*S*c, using sparse or dense methods."""
+
+    def __init__(self, H, S):
+        self.H = H
+        self.S = S
+        self._sparse = sp.issparse(H)
+
+    def solve(self, n_states: Optional[int] = None
+              ) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Solve the generalized eigenvalue problem.
+
+        Parameters
+        ----------
+        n_states : int, optional
+            Number of lowest eigenstates to compute. If None, compute all.
+            For sparse matrices, n_states must be given and < dim - 1.
+        """
+        if self._sparse:
+            if n_states is None:
+                # fall back to dense for full spectrum
+                H = self.H.toarray()
+                S = self.S.toarray()
+                return la.eigh(H, S)
+            else:
+                return spla.eigsh(self.H, k=n_states, M=self.S, which='SM')
+        else:
+            evals, evecs = la.eigh(self.H, self.S)
+            if n_states is not None:
+                return evals[:n_states], evecs[:, :n_states]
+            return evals, evecs
+
+    def participation_ratio(self, evec: np.ndarray) -> float:
+        p = np.abs(evec) ** 2
+        return np.sum(p) ** 2 / np.sum(p ** 2)
+
+    def oscillator_strengths(
+            self,
+            evecs: np.ndarray,
+            evals: np.ndarray,
+            assembler: TBAssembler
+    ) -> np.ndarray:
+        """
+        Compute oscillator strengths for all TB eigenstates.
+
+        f_n = (2/3) * E_n * |<0|mu|n>|^2
+
+        where mu_n = sum_i c_i^(n) * mu_i is built from the eigenvector
+        coefficients and the basis state transition dipoles [e*bohr].
+        CT basis states always contribute zero (no direct ground-state dipole).
+
+        Returns array of shape (n_states,).
+        Units: dimensionless oscillator strength (consistent with GW-BSE output).
+        """
+        if not assembler.transition_dipoles:
+            raise ValueError(
+                "No transition dipoles available. Re-run bsecoupling with "
+                "updated code that writes tdx/tdy/tdz to the XML output.")
+
+        dim = assembler.total_dim
+        # Build (dim x 3) transition dipole matrix for all basis states
+        mu_basis = np.zeros((dim, 3))
+        for (frag, i), idx in assembler.state_idx.items():
+            tdip = assembler.transition_dipoles.get((frag, i))
+            if tdip is not None:
+                mu_basis[idx] = tdip
+        # CT states remain zero
+
+        # Standard formula: f = (2/3) * E[Hartree] * |<0|r|n>|^2[bohr^2]
+        # Energies in assembler are in eV; convert to Hartree before use.
+        eV2Hrt = 1.0 / 27.211386245988
+
+        f = np.zeros(len(evals))
+        for n in range(len(evals)):
+            mu_n = mu_basis.T @ evecs[:, n]      # (3,)
+            d_sq = float(np.dot(mu_n, mu_n))     # |<0|mu|n>|^2 in e^2*bohr^2
+            f[n] = (2.0 / 3.0) * (evals[n] * eV2Hrt) * d_sq
+        return f
+
+    def absorption_spectrum(
+            self,
+            evecs: np.ndarray,
+            evals: np.ndarray,
+            assembler: TBAssembler,
+            e_min: Optional[float] = None,
+            e_max: Optional[float] = None,
+            n_points: int = 1000,
+            gamma_eV: float = 0.1,
+            lineshape: str = 'lorentzian'
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Compute the broadened absorption spectrum.
+
+        Parameters
+        ----------
+        gamma_eV : float
+            Broadening HWHM in eV (Lorentzian) or sigma (Gaussian).
+        lineshape : str
+            'lorentzian' or 'gaussian'.
+
+        Returns
+        -------
+        E : np.ndarray   energy axis [eV]
+        A : np.ndarray   absorption intensity [arbitrary units]
+        """
+        f = self.oscillator_strengths(evecs, evals, assembler)
+        e0 = e_min if e_min is not None else evals[0] - 3 * gamma_eV
+        e1 = e_max if e_max is not None else evals[-1] + 3 * gamma_eV
+        E = np.linspace(e0, e1, n_points)
+        A = np.zeros(n_points)
+        for n, (f_n, E_n) in enumerate(zip(f, evals)):
+            if f_n < 1e-10:
+                continue
+            if lineshape == 'lorentzian':
+                A += f_n * (gamma_eV / np.pi) / ((E - E_n)**2 + gamma_eV**2)
+            else:
+                A += f_n * np.exp(-0.5 * ((E - E_n) / gamma_eV)**2)
+        return E, A
+
+    def state_weights(self, evec: np.ndarray,
+                      assembler: TBAssembler,
+                      fragments: List[int]) -> Dict:
+        """Return per-fragment weight and total FE/CT weight.
+
+        Fragment populations are computed via the _W matrix from TBDynamics
+        when available, which correctly distributes CT state weight 0.5/0.5
+        across their two parent fragments so that fragment populations sum
+        to 1 exactly.  When called without a TBDynamics instance (e.g. in
+        static analysis) the per-fragment FE weights are returned directly
+        and CT states are reported separately but not assigned to fragments
+        — callers should be aware that sum(frag_w.values()) < 1 in that case.
+        """
+        probs = np.abs(evec) ** 2
+
+        # FE and CT scalar weights (in identity metric)
+        fe_w  = sum(probs[idx] for idx in assembler.state_idx.values())
+        ct_w  = sum(probs[idx] for idx in assembler.CT_idx.values())
+        hole_w = elec_w = 0.0
+
+        # Per-fragment weights: use _W if assembler has one (set by TBDynamics),
+        # otherwise fall back to FE-only fragment assignment.
+        if hasattr(assembler, '_S') and assembler._S is not None:
+            # Mulliken: P_f = Σ_{i∈f} Re[(Sc)_i c_i*], sums to 1 exactly
+            Sc = assembler._S @ evec
+            frag_to_fi = {f: i for i, f in enumerate(fragments)}
+            frag_pop_arr = np.zeros(len(fragments))
+            for key, idx in assembler.state_idx.items():
+                fi = frag_to_fi.get(key[0])
+                if fi is not None:
+                    frag_pop_arr[fi] += np.real(Sc[idx] * np.conj(evec[idx]))
+            for (fA, fB, k), idx in assembler.CT_idx.items():
+                val = 0.5 * np.real(Sc[idx] * np.conj(evec[idx]))
+                for frag in (fA, fB):
+                    fi = frag_to_fi.get(frag)
+                    if fi is not None: frag_pop_arr[fi] += val
+            frag_w = {frag: float(frag_pop_arr[fi])
+                      for fi, frag in enumerate(fragments)}
+        elif hasattr(assembler, '_W') and assembler._W is not None:
+            frag_pop = assembler._W @ probs
+            frag_w = {frag: float(frag_pop[fi])
+                      for fi, frag in enumerate(fragments)}
+        else:
+            frag_w = {f: 0.0 for f in fragments}
+            for key, idx in assembler.state_idx.items():
+                frag = key[0]
+                frag_w[frag] = frag_w.get(frag, 0.0) + probs[idx]
+            # CT states split 0.5/0.5 to their two parent fragments
+            for (fA, fB, k), idx in assembler.CT_idx.items():
+                frag_w[fA] = frag_w.get(fA, 0.0) + 0.5 * probs[idx]
+                frag_w[fB] = frag_w.get(fB, 0.0) + 0.5 * probs[idx]
+
+        if assembler.model == 'transport':
+            for key, idx in assembler.state_idx.items():
+                if key[2] == 'hole':   hole_w += probs[idx]
+                else:                  elec_w += probs[idx]
+
+        return {'fragments': frag_w, 'FE': fe_w, 'CT': ct_w,
+                'hole': hole_w, 'electron': elec_w}
+
+
+
+
+# =============================================================================
+# TB Dynamics
+# =============================================================================
+
+class TBDynamics:
+    """
+    Coherent wavepacket dynamics under the TB Hamiltonian.
+
+    Operates in the Löwdin-orthogonalised basis where the equation of motion
+    is the standard TDSE: iħ dc̃/dt = H̃ c̃(t), with H̃ = S^{-1/2} H S^{-1/2}.
+    All observables are transformed back to the site basis for output.
+
+    Two propagation modes:
+
+    propagate_pure(psi0, ...)
+        Noiseless unitary evolution of a single pure state using scipy's
+        Krylov-subspace matrix exponential (expm_multiply). Exact to machine
+        precision, memory-efficient for sparse H. Produces perfectly coherent
+        dynamics — oscillations never damp.
+
+    propagate_stochastic(psi0, ..., sigma_eV, tau_fs, n_realisations)
+        Stochastic Schrödinger equation (SSE): each realisation propagates a
+        pure state under H(t) = H_TB + δH(t) using RK4. The ensemble average
+        ρ(t) = <|ψ(r)(t)><ψ(r)(t)|>_r is a mixed state whose off-diagonal
+        elements decay, modelling thermal dephasing. Equivalent to the Redfield
+        master equation in appropriate limits.
+
+        δH(t) is Ornstein-Uhlenbeck noise on site energies (diagonal) and
+        optionally on couplings (off-diagonal):
+            dδε_i = -δε_i/τ_c dt + σ_ε sqrt(2/τ_c) dW_i
+        White noise is the limit τ_c → 0 with σ_ε√τ_c held constant.
+        The OU process has:
+            <δε_i(t) δε_i(0)> = σ_ε² exp(-|t|/τ_c)
+        which connects directly to the spectral density of nuclear fluctuations
+        obtained from MD trajectories.
+
+    Observables stored per timestep:
+        populations     (n_frags, n_t)   fragment populations P_i(t)
+        coherences      (dim, dim, n_t)  |ρ_ij(t)| — only if store_coherences
+        purity          (n_t,)           Tr(ρ²) — 1=pure, 1/N=fully mixed
+        entropy         (n_t,)           -Tr(ρ log ρ) (von Neumann entropy)
+        ipr             (n_t,)           inverse participation ratio in site basis
+        msd             (n_t,)           mean-square displacement (needs positions)
+    """
+
+    # ħ in eV·fs
+    HBAR_EV_FS = 0.6582119569
+
+    def __init__(self, H, S, assembler: 'TBAssembler',
+                 fragment_positions: Optional[np.ndarray] = None):
+        """
+        Parameters
+        ----------
+        H, S        : Hamiltonian and overlap from TBAssembler.assemble()
+        assembler   : TBAssembler instance (for basis metadata)
+        fragment_positions : (n_frags, 3) array of fragment centre positions [Angstrom]
+                       Required for MSD calculation; None disables MSD.
+        """
+        self.assembler = assembler
+        self.fragments = assembler.fragments
+        self.dim = assembler.total_dim
+        self.n_frags = len(self.fragments)
+        self.frag_to_idx = {f: i for i, f in enumerate(self.fragments)}
+        self.fragment_positions = fragment_positions
+
+        # Convert to dense for dynamics (sparse expm_multiply needs CSR)
+        H_dense = H.toarray() if sp.issparse(H) else H.copy()
+        S_dense = S.toarray() if sp.issparse(S) else S.copy()
+
+        # Löwdin transformation: H̃ = S^{-1/2} H S^{-1/2}
+        # Store S^{1/2} and S^{-1/2} for basis transformations
+        evals_S, evecs_S = np.linalg.eigh(S_dense)
+        if evals_S.min() < 1e-10:
+            raise ValueError(
+                f"Overlap matrix S has eigenvalue {evals_S.min():.2e} — "
+                f"basis is near-linearly-dependent, dynamics ill-defined.")
+        sqrt_S  = evecs_S @ np.diag(np.sqrt(evals_S))  @ evecs_S.T
+        isqrt_S = evecs_S @ np.diag(1.0/np.sqrt(evals_S)) @ evecs_S.T
+
+        self._sqrt_S  = sqrt_S
+        self._isqrt_S = isqrt_S
+        self._H_orth  = isqrt_S @ H_dense @ isqrt_S  # H̃ in orthonormal basis
+        self._H_dense = H_dense  # original, for noise perturbation
+
+        # Pre-build fragment weight matrix W: W[i,j] = 1 if basis state j
+        # belongs to fragment i, 0 otherwise. Enables fast P_i = W @ |c|^2.
+        self._W = np.zeros((self.n_frags, self.dim))
+        if assembler.model == 'transport':
+            for (frag, si, carrier), idx in assembler.state_idx.items():
+                fi = self.frag_to_idx.get(frag, -1)
+                if fi >= 0:
+                    self._W[fi, idx] = 1.0
+        else:
+            for (frag, si), idx in assembler.state_idx.items():
+                fi = self.frag_to_idx.get(frag, -1)
+                if fi >= 0:
+                    self._W[fi, idx] = 1.0
+            # CT states: assign to frag_A by convention
+            for (fA, fB, k), idx in assembler.CT_idx.items():
+                fi = self.frag_to_idx.get(fA, -1)
+                if fi >= 0:
+                    self._W[fi, idx] = 0.5  # split between A and B
+                fi = self.frag_to_idx.get(fB, -1)
+                if fi >= 0:
+                    self._W[fi, idx] = 0.5
+
+        # Attach _W and S to assembler for use by TBSolver.state_weights
+        assembler._W = self._W
+        assembler._S = self._sqrt_S @ self._sqrt_S  # S matrix
+
+    # -------------------------------------------------------------------------
+    # Initial state constructors
+    # -------------------------------------------------------------------------
+
+    def site_excitation(self, frag_id: int,
+                        state_idx: int = 0) -> np.ndarray:
+        """
+        Pure state: excitation on one fragment, one state.
+        Returns normalised coefficient vector in the SITE basis (not orthonormal).
+
+        Parameters
+        ----------
+        frag_id   : fragment ID (as used in assembler)
+        state_idx : which state on that fragment (0 = lowest, e.g. s1 or HOMO)
+        """
+        psi = np.zeros(self.dim, dtype=complex)
+        if self.assembler.model == 'transport':
+            # need to specify carrier; default to hole
+            for carrier in ('hole', 'electron'):
+                key = (frag_id, state_idx, carrier)
+                if key in self.assembler.state_idx:
+                    psi[self.assembler.state_idx[key]] = 1.0
+                    break
+        else:
+            key = (frag_id, state_idx)
+            if key not in self.assembler.state_idx:
+                raise ValueError(
+                    f"No state ({frag_id}, {state_idx}) in basis. "
+                    f"Available fragments: {self.fragments}, "
+                    f"states per frag: 0..{self.assembler.pairs[0].n_A - 1}")
+            psi[self.assembler.state_idx[key]] = 1.0
+        return self._normalise_site(psi)
+
+    def gaussian_packet(self, centre_frag: int,
+                        sigma_frags: float = 1.0,
+                        state_idx: int = 0) -> np.ndarray:
+        """
+        Pure state: Gaussian envelope centred on centre_frag, width sigma_frags.
+        Amplitude on fragment i ∝ exp(-|i_pos - centre_pos|² / (2 sigma²))
+        where positions are fragment indices if fragment_positions not provided,
+        or actual spatial positions if provided.
+
+        Parameters
+        ----------
+        centre_frag  : fragment ID at the centre of the wavepacket
+        sigma_frags  : width in fragment units (or Angstrom if positions given)
+        state_idx    : which state on each fragment to excite
+        """
+        psi = np.zeros(self.dim, dtype=complex)
+        centre_pos = (self.fragment_positions[self.frag_to_idx[centre_frag]]
+                      if self.fragment_positions is not None
+                      else np.array([self.frag_to_idx[centre_frag], 0.0, 0.0]))
+
+        for frag in self.fragments:
+            fi = self.frag_to_idx[frag]
+            if self.fragment_positions is not None:
+                pos = self.fragment_positions[fi]
+            else:
+                pos = np.array([fi, 0.0, 0.0])
+            r2 = np.sum((pos - centre_pos)**2)
+            amp = np.exp(-r2 / (2.0 * sigma_frags**2))
+
+            if self.assembler.model == 'transport':
+                for carrier in ('hole', 'electron'):
+                    key = (frag, state_idx, carrier)
+                    if key in self.assembler.state_idx:
+                        psi[self.assembler.state_idx[key]] = amp
+                        break
+            else:
+                key = (frag, state_idx)
+                if key in self.assembler.state_idx:
+                    psi[self.assembler.state_idx[key]] = amp
+
+        return self._normalise_site(psi)
+
+    def thermal_mixture(self, T_K: float,
+                        evals: np.ndarray,
+                        evecs: np.ndarray) -> np.ndarray:
+        """
+        Mixed initial state: Boltzmann distribution over eigenstates.
+        Returns density matrix ρ₀ in site basis, shape (dim, dim).
+        Only meaningful as initial condition for propagate_stochastic.
+
+        Parameters
+        ----------
+        T_K    : temperature in Kelvin
+        evals  : eigenvalues from TBSolver.solve() [eV]
+        evecs  : eigenvectors from TBSolver.solve()
+        """
+        kT = 8.617333e-5 * T_K  # eV
+        E_min = evals.min()
+        weights = np.exp(-(evals - E_min) / kT)
+        weights /= weights.sum()
+        # ρ₀ = Σ_n p_n |n><n|  in site basis
+        rho = np.zeros((self.dim, self.dim), dtype=complex)
+        for n, (p, evec) in enumerate(zip(weights, evecs.T)):
+            rho += p * np.outer(evec, evec.conj())
+        return rho
+
+    # -------------------------------------------------------------------------
+    # Noiseless propagation (Krylov expm_multiply)
+    # -------------------------------------------------------------------------
+
+    def propagate_pure(self,
+                       psi0: np.ndarray,
+                       t_max_fs: float,
+                       dt_fs: float,
+                       store_coherences: bool = False) -> Dict:
+        """
+        Noiseless coherent propagation of a pure state.
+
+        Uses scipy.sparse.linalg.expm_multiply which applies exp(-i H̃ dt/ħ)|ψ⟩
+        via Krylov subspace methods — no stepsize restriction, numerically exact.
+
+        Parameters
+        ----------
+        psi0             : initial state in site basis (from site_excitation etc.)
+        t_max_fs         : total propagation time [fs]
+        dt_fs            : output timestep [fs] (internal steps may be smaller)
+        store_coherences : if True, store full |ρ_ij(t)| — expensive for large dim
+
+        Returns
+        -------
+        dict with keys:
+            t              (n_t,)          time axis [fs]
+            populations    (n_frags, n_t)  fragment populations
+            purity         (n_t,)          Tr(ρ²) = 1 always for pure state
+            entropy        (n_t,)          von Neumann entropy (= 0 for pure)
+            ipr            (n_t,)          IPR in site basis
+            msd            (n_t,)          MSD [Angstrom²] if positions given
+            coherences     (dim, dim, n_t) if store_coherences
+            psi_history    (dim, n_t)      complex amplitudes in site basis
+        """
+        # Transform to orthonormal basis
+        psi_orth = self._sqrt_S @ psi0
+
+        t_steps = np.arange(0.0, t_max_fs + dt_fs, dt_fs)
+        n_t = len(t_steps)
+
+        populations = np.zeros((self.n_frags, n_t))
+        purity      = np.ones(n_t)   # always 1 for pure state
+        entropy     = np.zeros(n_t)  # always 0 for pure state
+        ipr_arr     = np.zeros(n_t)
+        msd_arr     = np.zeros(n_t) if self.fragment_positions is not None else None
+        psi_history = np.zeros((self.dim, n_t), dtype=complex)
+
+        if store_coherences:
+            coherences = np.zeros((self.dim, self.dim, n_t))
+        else:
+            coherences = None
+
+        # Propagation operator: -i H̃ / ħ  (purely imaginary anti-Hermitian)
+        # expm_multiply applies exp(A * t) to a vector
+        hbar = self.HBAR_EV_FS
+        A = -1j * self._H_orth / hbar  # shape (dim, dim)
+        A_sparse = sp.csr_matrix(A)
+
+        psi_current = psi_orth.copy()
+        t_prev = 0.0
+
+        for ti, t in enumerate(t_steps):
+            # transform back to site basis for observables
+            psi_site = self._isqrt_S @ psi_current
+            psi_history[:, ti] = psi_site
+
+            populations[:, ti] = self._mulliken_populations(psi_site)
+            probs = np.abs(psi_site)**2
+            ipr_arr[ti] = 1.0 / np.sum(probs**2) if np.sum(probs**2) > 0 else 1.0
+
+            if store_coherences:
+                rho_col = np.outer(psi_site, psi_site.conj())
+                coherences[:, :, ti] = np.abs(rho_col)
+
+            if msd_arr is not None:
+                msd_arr[ti] = self._compute_msd(probs)
+
+            # propagate to next step
+            if ti < n_t - 1:
+                dt = t_steps[ti + 1] - t
+                psi_current = expm_multiply(A_sparse * dt, psi_current)
+
+        result = dict(t=t_steps, populations=populations,
+                      purity=purity, entropy=entropy,
+                      ipr=ipr_arr, psi_history=psi_history)
+        if msd_arr is not None:
+            result['msd'] = msd_arr
+        if coherences is not None:
+            result['coherences'] = coherences
+        return result
+
+    # -------------------------------------------------------------------------
+    # Stochastic propagation (SSE with Ornstein-Uhlenbeck noise)
+    # -------------------------------------------------------------------------
+
+    def propagate_stochastic(self,
+                             psi0_or_rho0,
+                             t_max_fs: float,
+                             dt_fs: float,
+                             sigma_eV: float,
+                             tau_fs: float,
+                             n_realisations: int = 200,
+                             noise_on_couplings: bool = False,
+                             sigma_coupling_eV: Optional[float] = None,
+                             store_coherences: bool = False,
+                             seed: Optional[int] = None) -> Dict:
+        """
+        Stochastic Schrödinger equation dynamics.
+
+        Each realisation propagates a pure state under H(t) = H_TB + δH(t)
+        using RK4. The ensemble average gives the mixed-state density matrix.
+
+        Noise model: Ornstein-Uhlenbeck on site energies
+            δε_i(t+dt) = δε_i(t) exp(-dt/τ_c)
+                       + σ_ε sqrt(1 - exp(-2dt/τ_c)) * N(0,1)
+        This is the exact discrete update for OU noise at any dt.
+        White noise limit: τ_c → 0 with σ_ε²τ_c = const.
+
+        Parameters
+        ----------
+        psi0_or_rho0     : initial pure state (1D array) or density matrix (2D)
+                           Use thermal_mixture() to create a mixed initial state
+        t_max_fs         : total propagation time [fs]
+        dt_fs            : timestep [fs] (RK4, so keep dt << τ_c and ħ/σ_ε)
+        sigma_eV         : site energy fluctuation amplitude [eV]
+        tau_fs           : correlation time of fluctuations [fs]
+        n_realisations   : number of stochastic trajectories to average
+        noise_on_couplings : also add noise to off-diagonal H elements
+        sigma_coupling_eV  : coupling noise amplitude [eV]; defaults to sigma_eV/3
+        store_coherences : store |ρ_ij(t)| averaged over realisations
+        seed             : random seed for reproducibility
+
+        Returns
+        -------
+        dict with keys:
+            t              (n_t,)           time axis [fs]
+            populations    (n_frags, n_t)   ensemble-averaged populations
+            purity         (n_t,)           Tr(ρ²) — decay from 1 signals dephasing
+            entropy        (n_t,)           von Neumann entropy of ρ(t)
+            ipr            (n_t,)           IPR in site basis, averaged
+            msd            (n_t,)           MSD [Angstrom²] if positions given
+            coherences     (dim, dim, n_t)  if store_coherences
+            decoherence_time  float         time for purity to fall to 1/e
+            n_realisations    int
+            sigma_eV, tau_fs  float         noise parameters used
+        """
+        rng = np.random.default_rng(seed)
+        hbar = self.HBAR_EV_FS
+
+        t_steps = np.arange(0.0, t_max_fs + dt_fs, dt_fs)
+        n_t = len(t_steps)
+
+        # Determine if initial state is pure (1D) or mixed (2D density matrix)
+        is_mixed_init = (np.ndim(psi0_or_rho0) == 2)
+
+        # Accumulate ensemble averages of rho in SITE basis
+        rho_avg = np.zeros((self.dim, self.dim), dtype=complex)
+        pop_sum = np.zeros((self.n_frags, n_t))
+        ipr_sum = np.zeros(n_t)
+        msd_sum = np.zeros(n_t) if self.fragment_positions is not None else None
+
+        if store_coherences:
+            coh_sum = np.zeros((self.dim, self.dim, n_t))
+        else:
+            coh_sum = None
+
+        # OU noise prefactors
+        exp_dt  = np.exp(-dt_fs / tau_fs) if tau_fs > 0 else 0.0
+        ou_std  = sigma_eV * np.sqrt(1.0 - exp_dt**2)
+
+        if noise_on_couplings:
+            sigma_coup = sigma_coupling_eV if sigma_coupling_eV is not None                          else sigma_eV / 3.0
+            exp_dt_c = exp_dt
+            ou_std_c = sigma_coup * np.sqrt(1.0 - exp_dt_c**2)
+
+        # Build coupling mask: off-diagonal elements of H that are non-zero
+        # (only perturb elements that exist in the original Hamiltonian)
+        if noise_on_couplings:
+            coup_mask = (np.abs(self._H_dense) > 1e-10)
+            np.fill_diagonal(coup_mask, False)
+            coup_indices = np.argwhere(coup_mask)
+
+        # Derivative function for RK4: dc/dt = -i H(t) c / ħ in orthonormal basis
+        def deriv(psi, H_pert_orth):
+            return (-1j / hbar) * (H_pert_orth @ psi)
+
+        def rk4_step(psi, H_orth, dt):
+            k1 = deriv(psi, H_orth)
+            k2 = deriv(psi + 0.5*dt*k1, H_orth)
+            k3 = deriv(psi + 0.5*dt*k2, H_orth)
+            k4 = deriv(psi + dt*k3, H_orth)
+            return psi + (dt/6.0) * (k1 + 2*k2 + 2*k3 + k4)
+
+        # Temporary storage for this realisation's populations
+        pop_r   = np.zeros((self.n_frags, n_t))
+        ipr_r   = np.zeros(n_t)
+        msd_r   = np.zeros(n_t) if self.fragment_positions is not None else None
+
+        for r in range(n_realisations):
+            # Initial state for this realisation
+            if is_mixed_init:
+                # Sample a pure state from the mixed initial density matrix
+                # via eigendecomposition: pick eigenstate with prob proportional to eigenvalue
+                evals_rho, evecs_rho = np.linalg.eigh(psi0_or_rho0)
+                evals_rho = np.maximum(evals_rho, 0)
+                evals_rho /= evals_rho.sum()
+                chosen = rng.choice(len(evals_rho), p=evals_rho)
+                psi0 = evecs_rho[:, chosen].astype(complex)
+            else:
+                psi0 = np.asarray(psi0_or_rho0, dtype=complex)
+
+            # Transform to orthonormal basis
+            psi_orth = self._sqrt_S @ psi0
+
+            # Initialise OU noise state
+            delta_eps = rng.normal(0, sigma_eV, self.dim)
+
+            if noise_on_couplings:
+                delta_coup = np.zeros((self.dim, self.dim))
+                for ci, cj in coup_indices:
+                    if ci < cj:  # upper triangle only; symmetrise below
+                        delta_coup[ci, cj] = rng.normal(0, sigma_coup)
+                        delta_coup[cj, ci] = delta_coup[ci, cj]
+
+            psi_current = psi_orth.copy()
+
+            for ti, t in enumerate(t_steps):
+                # Build perturbed H in orthonormal basis
+                H_pert = self._H_dense.copy()
+                H_pert[np.arange(self.dim), np.arange(self.dim)] += delta_eps
+                if noise_on_couplings:
+                    H_pert += delta_coup
+                H_pert_orth = self._isqrt_S @ H_pert @ self._isqrt_S
+
+                # observables in site basis
+                psi_site = self._isqrt_S @ psi_current
+                pop_r[:, ti]  = self._mulliken_populations(psi_site)
+                probs = np.abs(psi_site)**2
+                ipr_r[ti]     = 1.0 / np.sum(probs**2) if np.sum(probs**2) > 0 else 1.0
+                if msd_r is not None:
+                    msd_r[ti] = self._compute_msd(probs)
+
+                if store_coherences:
+                    rho_site = np.outer(psi_site, psi_site.conj())
+                    coh_sum[:, :, ti] += np.abs(rho_site)
+
+                # RK4 step
+                if ti < n_t - 1:
+                    psi_current = rk4_step(psi_current, H_pert_orth, dt_fs)
+                    # Renormalise every step to suppress RK4 norm drift
+                    norm = np.sqrt(np.real(psi_current.conj() @ psi_current))
+                    if norm > 1e-15:
+                        psi_current /= norm
+
+                    # Update OU noise
+                    delta_eps = (delta_eps * exp_dt
+                                 + rng.normal(0, ou_std, self.dim))
+                    if noise_on_couplings:
+                        for ci, cj in coup_indices:
+                            if ci < cj:
+                                v = delta_coup[ci, cj] * exp_dt_c                                     + rng.normal(0, ou_std_c)
+                                delta_coup[ci, cj] = v
+                                delta_coup[cj, ci] = v
+
+            pop_sum  += pop_r
+            ipr_sum  += ipr_r
+            if msd_sum is not None:
+                msd_sum += msd_r
+
+            # Accumulate rho from final state for purity/entropy
+            psi_site_final = self._isqrt_S @ psi_current
+            rho_avg += np.outer(psi_site_final, psi_site_final.conj())
+
+        # Normalise averages
+        pop_avg = pop_sum / n_realisations
+        ipr_avg = ipr_sum / n_realisations
+        rho_avg /= n_realisations
+
+        if store_coherences:
+            coh_avg = coh_sum / n_realisations
+        else:
+            coh_avg = None
+
+        # Purity and entropy at each timestep require storing rho(t) per step,
+        # which is expensive. Instead compute them from the instantaneous
+        # single-step rho at each t by accumulating:
+        # Re-run a lighter pass to get purity/entropy per timestep
+        purity_arr, entropy_arr = self._compute_purity_entropy_trajectory(
+            psi0_or_rho0, is_mixed_init, t_steps, dt_fs,
+            sigma_eV, tau_fs, exp_dt, ou_std,
+            noise_on_couplings,
+            ou_std_c if noise_on_couplings else 0.0,
+            exp_dt if noise_on_couplings else 0.0,
+            coup_indices if noise_on_couplings else None,
+            n_realisations, rng)
+
+        # Decoherence time: first time purity < 1/e
+        decoherence_time = None
+        threshold = np.exp(-1.0)
+        for ti in range(1, n_t):
+            if purity_arr[ti] < threshold:
+                # linear interpolation
+                t0, t1 = t_steps[ti-1], t_steps[ti]
+                p0, p1 = purity_arr[ti-1], purity_arr[ti]
+                decoherence_time = t0 + (threshold - p0) / (p1 - p0) * (t1 - t0)
+                break
+
+        result = dict(
+            t=t_steps,
+            populations=pop_avg,
+            purity=purity_arr,
+            entropy=entropy_arr,
+            ipr=ipr_avg,
+            decoherence_time=decoherence_time,
+            n_realisations=n_realisations,
+            sigma_eV=sigma_eV,
+            tau_fs=tau_fs,
+        )
+        if msd_sum is not None:
+            result['msd'] = msd_sum / n_realisations
+        if coh_avg is not None:
+            result['coherences'] = coh_avg
+        return result
+
+    def _compute_purity_entropy_trajectory(
+            self, psi0_or_rho0, is_mixed_init,
+            t_steps, dt_fs,
+            sigma_eV, tau_fs, exp_dt, ou_std,
+            noise_on_couplings, ou_std_c, exp_dt_c, coup_indices,
+            n_realisations, rng) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Compute purity Tr(ρ²(t)) and entropy -Tr(ρ log ρ) at each timestep
+        by accumulating the full density matrix across realisations.
+        Uses a reduced number of realisations for efficiency.
+        """
+        hbar = self.HBAR_EV_FS
+        n_t = len(t_steps)
+        n_rho = min(n_realisations, 50)  # 50 realisations sufficient for purity
+
+        rho_t = np.zeros((self.dim, self.dim, n_t), dtype=complex)
+
+        def rk4_step_local(psi, H_orth):
+            k1 = (-1j/hbar) * (H_orth @ psi)
+            k2 = (-1j/hbar) * (H_orth @ (psi + 0.5*dt_fs*k1))
+            k3 = (-1j/hbar) * (H_orth @ (psi + 0.5*dt_fs*k2))
+            k4 = (-1j/hbar) * (H_orth @ (psi + dt_fs*k3))
+            return psi + (dt_fs/6.0)*(k1 + 2*k2 + 2*k3 + k4)
+
+        for r in range(n_rho):
+            if is_mixed_init:
+                evals_rho, evecs_rho = np.linalg.eigh(psi0_or_rho0)
+                evals_rho = np.maximum(evals_rho, 0)
+                evals_rho /= evals_rho.sum()
+                chosen = rng.choice(len(evals_rho), p=evals_rho)
+                psi0 = evecs_rho[:, chosen].astype(complex)
+            else:
+                psi0 = np.asarray(psi0_or_rho0, dtype=complex)
+
+            psi_orth = self._sqrt_S @ psi0
+            delta_eps = rng.normal(0, sigma_eV, self.dim)
+
+            if noise_on_couplings and coup_indices is not None:
+                delta_coup = np.zeros((self.dim, self.dim))
+                for ci, cj in coup_indices:
+                    if ci < cj:
+                        v = rng.normal(0, sigma_eV/3.0)
+                        delta_coup[ci, cj] = v; delta_coup[cj, ci] = v
+
+            psi_current = psi_orth.copy()
+
+            for ti, t in enumerate(t_steps):
+                psi_site = self._isqrt_S @ psi_current
+                rho_t[:, :, ti] += np.outer(psi_site, psi_site.conj())
+
+                if ti < n_t - 1:
+                    H_pert = self._H_dense.copy()
+                    H_pert[np.arange(self.dim), np.arange(self.dim)] += delta_eps
+                    if noise_on_couplings and coup_indices is not None:
+                        H_pert += delta_coup
+                    H_pert_orth = self._isqrt_S @ H_pert @ self._isqrt_S
+                    psi_current = rk4_step_local(psi_current, H_pert_orth)
+                    norm = np.sqrt(np.real(psi_current.conj() @ psi_current))
+                    if norm > 1e-15: psi_current /= norm
+                    delta_eps = delta_eps * exp_dt + rng.normal(0, ou_std, self.dim)
+
+        rho_t /= n_rho
+        purity_arr  = np.array([np.real(np.trace(rho_t[:,:,ti] @ rho_t[:,:,ti]))
+                                 for ti in range(n_t)])
+        # von Neumann entropy: -Tr(ρ log ρ)
+        entropy_arr = np.zeros(n_t)
+        for ti in range(n_t):
+            evals_rho = np.real(np.linalg.eigvalsh(rho_t[:,:,ti]))
+            evals_rho = evals_rho[evals_rho > 1e-12]
+            entropy_arr[ti] = -np.sum(evals_rho * np.log(evals_rho))
+
+        return purity_arr, entropy_arr
+
+    # -------------------------------------------------------------------------
+    # Helpers
+    # -------------------------------------------------------------------------
+
+    def _mulliken_populations(self, c: np.ndarray) -> np.ndarray:
+        """Mulliken fragment populations: P_f = Σ_{i∈f} Re[(Sc)_i c_i*].
+        Satisfies Σ_f P_f = <c|S|c> = 1 exactly for S-normalised c.
+        Reduces to |c_i|^2 per fragment when S = I (orthogonal basis).
+        CT states split 0.5/0.5 across their two parent fragments.
+        """
+        Sc = self._sqrt_S @ (self._sqrt_S @ c)
+        pop = np.zeros(self.n_frags)
+        for key, idx in self.assembler.state_idx.items():
+            frag = key[0]
+            fi = self.frag_to_idx.get(frag)
+            if fi is not None:
+                pop[fi] += np.real(Sc[idx] * np.conj(c[idx]))
+        for (fA, fB, k), idx in self.assembler.CT_idx.items():
+            val = 0.5 * np.real(Sc[idx] * np.conj(c[idx]))
+            for frag in (fA, fB):
+                fi = self.frag_to_idx.get(frag)
+                if fi is not None:
+                    pop[fi] += val
+        return pop
+
+    def _normalise_site(self, psi: np.ndarray) -> np.ndarray:
+        """Normalise psi w.r.t. the overlap matrix: <ψ|S|ψ> = 1."""
+        norm_sq = np.real(psi.conj() @ (self._sqrt_S @ self._sqrt_S @ psi))
+        if norm_sq < 1e-15:
+            raise ValueError("Initial state has zero norm under S")
+        return psi / np.sqrt(norm_sq)
+
+    def _compute_msd(self, probs: np.ndarray) -> float:
+        """Mean-square displacement from fragment probabilities."""
+        if self.fragment_positions is None:
+            return 0.0
+        # MSD = <r²> - <r>²
+        pos = self.fragment_positions  # (n_frags, 3)
+        # fragment probability = sum of probabilities of states on that fragment
+        frag_probs = self._W @ probs  # (n_frags,)
+        mean_r = frag_probs @ pos     # (3,)
+        mean_r2 = frag_probs @ np.sum(pos**2, axis=1)
+        return float(mean_r2 - np.sum(mean_r**2))
+
+
+def write_dynamics_hdf5(filepath: str,
+                        result: Dict,
+                        assembler: 'TBAssembler',
+                        mode: str = 'pure',
+                        append: bool = True) -> None:
+    """
+    Write dynamics results to HDF5 file, under /dynamics/<mode>/.
+    If append=True and file exists, adds to existing file (e.g. alongside
+    static TB results from write_hdf5).
+
+    Group structure
+    ---------------
+    /dynamics/
+        pure/           or    stochastic/
+            t               (n_t,)   [fs]
+            populations     (n_frags, n_t)
+            purity          (n_t,)
+            entropy         (n_t,)
+            ipr             (n_t,)
+            msd             (n_t,)   if available
+            coherences      (dim, dim, n_t)  if stored
+            psi_history     (dim, n_t)  pure only
+            decoherence_time  float    stochastic only
+            attrs: sigma_eV, tau_fs, n_realisations  stochastic only
+    """
+    if not HAS_HDF5:
+        warnings.warn("h5py not available — skipping dynamics HDF5 output.")
+        return
+
+    open_mode = 'a' if (append and __import__('os').path.exists(filepath)) else 'w'
+    with h5py.File(filepath, open_mode) as f:
+        dyn_grp = f.require_group('dynamics')
+        if mode in dyn_grp:
+            del dyn_grp[mode]
+        grp = dyn_grp.create_group(mode)
+
+        grp.create_dataset('t',           data=result['t'])
+        grp.create_dataset('populations', data=result['populations'])
+        grp.create_dataset('purity',      data=result['purity'])
+        grp.create_dataset('entropy',     data=result['entropy'])
+        grp.create_dataset('ipr',         data=result['ipr'])
+        grp.attrs['fragment_ids'] = np.array(assembler.fragments, dtype=np.int32)
+        grp.attrs['model'] = assembler.model
+
+        for key in ('msd', 'coherences', 'psi_history'):
+            if key in result:
+                grp.create_dataset(key, data=result[key])
+
+        if 'decoherence_time' in result and result['decoherence_time'] is not None:
+            grp.attrs['decoherence_time_fs'] = result['decoherence_time']
+        for key in ('n_realisations', 'sigma_eV', 'tau_fs'):
+            if key in result:
+                grp.attrs[key] = result[key]
+
+# =============================================================================
+# HDF5 output
+# =============================================================================
+
+def write_hdf5(filepath: str,
+               assembler: TBAssembler,
+               solver: 'TBSolver',
+               H, S,
+               evals: np.ndarray,
+               evecs: np.ndarray,
+               fragments: List[int],
+               f_osc: Optional[np.ndarray] = None,
+               spectrum_E: Optional[np.ndarray] = None,
+               spectrum_A: Optional[np.ndarray] = None) -> None:
+    """
+    Write all TB results to an HDF5 file for postprocessing.
+
+    File structure
+    --------------
+    /metadata/
+        model           str   — hole/electron/singlet/triplet/transport
+        n_fragments     int
+        n_states        int   — eigenstates stored
+        basis_dim       int   — total Hamiltonian dimension
+        site_energy_source  str
+        explicit_ct     bool  — only meaningful for singlet/triplet
+    /basis/
+        labels          (dim,) str    — human-readable basis state labels
+        fragment_ids    (dim,) int    — fragment index for each basis state
+        state_types     (dim,) str    — 'FE', 'CT', 'hole', 'electron'
+        state_indices   (dim,) int    — state index within fragment
+        ct_frag_A       (dim,) int    — -1 for non-CT states
+        ct_frag_B       (dim,) int    — -1 for non-CT states
+    /hamiltonian/
+        H_data / H_indices / H_indptr / H_shape   CSR sparse H [eV]
+        S_data / S_indices / S_indptr / S_shape   CSR sparse S
+    /eigenstates/
+        eigenvalues     (n_states,)       [eV]
+        eigenvectors    (dim, n_states)   S-normalised
+        participation_ratios  (n_states,)
+        FE_weights      (n_states,)
+        CT_weights      (n_states,)
+        fragment_weights  (n_states, n_fragments)
+        dominant_basis  (n_states,) int   — index of largest |coeff|
+    /optical/                           — only present for singlet model
+        oscillator_strengths  (n_states,)
+        transition_dipoles    (n_states, 3)  [e*bohr]
+        spectrum_E      (n_points,)   [eV]
+        spectrum_A      (n_points,)
+    /pairs/
+        <fA>_<fB>/
+            frag_A      int
+            frag_B      int
+            model       str
+            n_A         int
+            n_B         int
+            n_CT        int
+            H_AB        (n_A, n_B) [eV]
+            S_AB        (n_A, n_B)
+            monomer_energies_A   (n_A,) [eV]
+            monomer_energies_B   (n_B,) [eV]
+            xi          float    — BSE only
+            downfolding_safe  bool  — BSE only
+    """
+    if not HAS_HDF5:
+        warnings.warn("h5py not available — skipping HDF5 output. "
+                      "Install with: pip install h5py")
+        return
+
+    H_csr = H if sp.issparse(H) else sp.csr_matrix(H)
+    S_csr = S if sp.issparse(S) else sp.csr_matrix(S)
+    labels = assembler.basis_labels()
+    dim = assembler.total_dim
+    n_states = len(evals)
+    n_frags = len(fragments)
+
+    # build per-basis-state metadata arrays
+    basis_fragment_ids = np.full(dim, -1, dtype=np.int32)
+    basis_state_indices = np.full(dim, -1, dtype=np.int32)
+    basis_state_types = np.empty(dim, dtype=object)
+    ct_frag_A = np.full(dim, -1, dtype=np.int32)
+    ct_frag_B = np.full(dim, -1, dtype=np.int32)
+
+    if assembler.model == 'transport':
+        for (frag, i, carrier), idx in assembler.state_idx.items():
+            basis_fragment_ids[idx] = frag
+            basis_state_indices[idx] = i
+            basis_state_types[idx] = carrier
+    else:
+        for (frag, i), idx in assembler.state_idx.items():
+            basis_fragment_ids[idx] = frag
+            basis_state_indices[idx] = i
+            basis_state_types[idx] = 'FE'
+        for (fA, fB, k), idx in assembler.CT_idx.items():
+            basis_fragment_ids[idx] = fA  # assign to fragment A by convention
+            basis_state_indices[idx] = k
+            basis_state_types[idx] = 'CT'
+            ct_frag_A[idx] = fA
+            ct_frag_B[idx] = fB
+
+    # per-eigenstate arrays
+    iprs = np.array([solver.participation_ratio(evecs[:, n])
+                     for n in range(n_states)])
+    fe_w = np.zeros(n_states)
+    ct_w = np.zeros(n_states)
+    frag_w = np.zeros((n_states, n_frags))
+    dominant = np.argmax(np.abs(evecs), axis=0)[:n_states]
+
+    for n in range(n_states):
+        w = solver.state_weights(evecs[:, n], assembler, fragments)
+        fe_w[n] = w['FE']
+        ct_w[n] = w['CT']
+        for fi, frag in enumerate(fragments):
+            frag_w[n, fi] = w['fragments'].get(frag, 0.0)
+
+    # transition dipoles per eigenstate
+    if f_osc is not None:
+        mu_basis = np.zeros((dim, 3))
+        for (frag, i), idx in assembler.state_idx.items():
+            tdip = assembler.transition_dipoles.get((frag, i))
+            if tdip is not None:
+                mu_basis[idx] = tdip
+        eV2Hrt = 1.0 / 27.211386245988
+        td_states = np.array([mu_basis.T @ evecs[:, n] for n in range(n_states)])
+
+    with h5py.File(filepath, 'w') as f:
+        # --- metadata ---
+        meta = f.create_group('metadata')
+        meta.attrs['model'] = assembler.model
+        meta.attrs['n_fragments'] = n_frags
+        meta.attrs['n_states'] = n_states
+        meta.attrs['basis_dim'] = dim
+        meta.attrs['site_energy_source'] = assembler._site_energy_source
+        meta.attrs['explicit_ct'] = assembler.explicit_ct
+        meta.attrs['fragment_ids'] = np.array(fragments, dtype=np.int32)
+
+        # --- basis ---
+        bas = f.create_group('basis')
+        bas.create_dataset('labels',
+            data=np.array(labels, dtype=h5py.string_dtype()))
+        bas.create_dataset('fragment_ids',
+            data=basis_fragment_ids)
+        bas.create_dataset('state_types',
+            data=np.array(basis_state_types, dtype=h5py.string_dtype()))
+        bas.create_dataset('state_indices',
+            data=basis_state_indices)
+        bas.create_dataset('ct_frag_A', data=ct_frag_A)
+        bas.create_dataset('ct_frag_B', data=ct_frag_B)
+
+        # --- hamiltonian (sparse CSR) ---
+        ham = f.create_group('hamiltonian')
+        for name, mat in [('H', H_csr), ('S', S_csr)]:
+            grp = ham.create_group(name)
+            grp.create_dataset('data',    data=mat.data)
+            grp.create_dataset('indices', data=mat.indices)
+            grp.create_dataset('indptr',  data=mat.indptr)
+            grp.attrs['shape'] = mat.shape
+            grp.attrs['format'] = 'csr'
+
+        # --- eigenstates ---
+        eig = f.create_group('eigenstates')
+        eig.create_dataset('eigenvalues',         data=evals)
+        eig.create_dataset('eigenvectors',        data=evecs[:, :n_states])
+        eig.create_dataset('participation_ratios', data=iprs)
+        eig.create_dataset('FE_weights',          data=fe_w)
+        eig.create_dataset('CT_weights',          data=ct_w)
+        eig.create_dataset('fragment_weights',    data=frag_w)
+        eig.create_dataset('dominant_basis',      data=dominant)
+        eig.attrs['fragment_ids'] = np.array(fragments, dtype=np.int32)
+
+        # --- optical (singlet only) ---
+        if f_osc is not None:
+            opt = f.create_group('optical')
+            opt.create_dataset('oscillator_strengths', data=f_osc)
+            opt.create_dataset('transition_dipoles',   data=td_states)
+            if spectrum_E is not None and spectrum_A is not None:
+                opt.create_dataset('spectrum_E', data=spectrum_E)
+                opt.create_dataset('spectrum_A', data=spectrum_A)
+
+        # --- pairs ---
+        pairs_grp = f.create_group('pairs')
+        seen = set()
+        for p in assembler.pairs:
+            key = (p.frag_A, p.frag_B, p.model)
+            if key in seen:
+                continue
+            seen.add(key)
+            grp_name = f"{p.frag_A}_{p.frag_B}_{p.model}"
+            pg = pairs_grp.create_group(grp_name)
+            pg.attrs['frag_A'] = p.frag_A
+            pg.attrs['frag_B'] = p.frag_B
+            pg.attrs['model'] = p.model
+            pg.attrs['n_A'] = p.n_A
+            pg.attrs['n_B'] = p.n_B
+            pg.attrs['n_CT'] = p.n_CT
+            if p.H_AB is not None:
+                pg.create_dataset('H_AB', data=p.H_AB)
+                pg.create_dataset('S_AB', data=p.S_AB)
+            if p.monomer_energies_A is not None:
+                pg.create_dataset('monomer_energies_A', data=p.monomer_energies_A)
+                pg.create_dataset('monomer_energies_B', data=p.monomer_energies_B)
+            if p.monomer_energies_A_QP is not None:
+                pg.create_dataset('monomer_energies_A_QP', data=p.monomer_energies_A_QP)
+                pg.create_dataset('monomer_energies_B_QP', data=p.monomer_energies_B_QP)
+            if isinstance(p.diagnostics, BSEDiagnostics):
+                pg.attrs['xi'] = p.diagnostics.xi
+                pg.attrs['pt_rm_discrepancy_eV'] = p.diagnostics.pt_rm_discrepancy_eV
+                pg.attrs['downfolding_safe'] = p.diagnostics.downfolding_safe
+                if p.H_FE_CT is not None:
+                    pg.create_dataset('H_FE_CT', data=p.H_FE_CT)
+                    pg.create_dataset('S_FE_CT', data=p.S_FE_CT)
+                    pg.create_dataset('H_CT_CT', data=p.H_CT_CT)
+                    pg.create_dataset('S_CT_CT', data=p.S_CT_CT)
+            elif isinstance(p.diagnostics, DFTDiagnostics):
+                pg.attrs['min_S_eigenvalue'] = p.diagnostics.min_S_eigenvalue
+                pg.attrs['basis_ok'] = p.diagnostics.basis_ok
+            if p.transition_dipoles_A is not None:
+                pg.create_dataset('transition_dipoles_A', data=p.transition_dipoles_A)
+                pg.create_dataset('transition_dipoles_B', data=p.transition_dipoles_B)
+
+
+# =============================================================================
+# Main
+# =============================================================================
+
+def main():
+    parser = argparse.ArgumentParser(description="VOTCA TB Hamiltonian assembler")
+    parser.add_argument("--input", default="/mnt/user-data/uploads/iqm_out.xml",
+                        help="Path to VOTCA jobs XML file")
+    parser.add_argument("--model", default="singlet",
+                        choices=["hole", "electron", "singlet", "triplet",
+                                 "transport"],
+                        help="Model type. 'transport' combines hole+electron ")
+    # fix trailing paren removed above
+    parser.add_argument("--n-states", type=int, default=None,
+                        help="Number of lowest eigenstates (default: all)")
+    parser.add_argument("--dense", action="store_true",
+                        help="Use dense matrices (default: sparse)")
+    parser.add_argument("--explicit-ct", action="store_true",
+                        help="Keep CT states for ALL BSE pairs, never downfold "
+                             "(recommended when optical spectra matter)")
+    parser.add_argument("--qp-energies", action="store_true",
+                        help="Use GW QPpert energies as MO site energies "
+                             "instead of KS eigenvalues (hole/electron/transport "
+                             "only; falls back to KS with warning if unavailable)")
+    parser.add_argument("--output", default=None, metavar="FILE.h5",
+                        help="Write all results to an HDF5 file for "
+                             "postprocessing (requires h5py)")
+    # dynamics options
+    parser.add_argument("--dynamics", action="store_true",
+                        help="Run wavepacket dynamics after solving the TB problem")
+    parser.add_argument("--t-max", type=float, default=500.0,
+                        help="Propagation time [fs] (default: 500)")
+    parser.add_argument("--dt", type=float, default=1.0,
+                        help="Output timestep [fs] (default: 1)")
+    parser.add_argument("--init-state", default="site",
+                        choices=["site", "gaussian", "thermal"],
+                        help="Initial state type (default: site)")
+    parser.add_argument("--init-frag", type=int, default=None,
+                        help="Fragment ID for initial excitation (default: first)")
+    parser.add_argument("--init-state-idx", type=int, default=0,
+                        help="State index within fragment (default: 0)")
+    parser.add_argument("--init-sigma", type=float, default=1.0,
+                        help="Gaussian wavepacket width in fragment units (default: 1)")
+    parser.add_argument("--noise-sigma", type=float, default=0.0,
+                        help="Site energy noise amplitude [meV] (0=noiseless, default: 0)")
+    parser.add_argument("--noise-tau", type=float, default=50.0,
+                        help="Noise correlation time [fs] (default: 50)")
+    parser.add_argument("--n-realisations", type=int, default=200,
+                        help="Stochastic realisations (default: 200)")
+    parser.add_argument("--thermal-T", type=float, default=300.0,
+                        help="Temperature for thermal initial state [K] (default: 300)")
+    parser.add_argument("--noise-couplings", action="store_true",
+                        help="Also apply OU noise to off-diagonal coupling elements. "
+                             "Physical origin: intermolecular motions modulating J. "
+                             "More expensive than site-energy-only noise.")
+    parser.add_argument("--noise-sigma-coupling", type=float, default=None,
+                        help="Coupling noise amplitude [meV] (default: noise-sigma/3). "
+                             "Only used when --noise-couplings is set.")
+    args = parser.parse_args()
+
+    print("=" * 60)
+    print(f"VOTCA TB Assembler — model: {args.model}")
+    print("=" * 60)
+
+    # --- parse ---
+    print(f"\nReading: {args.input}")
+    pairs, fragments = parse_jobs_xml(args.input, args.model)
+
+    if not pairs:
+        print(f"ERROR: No pairs found for model '{args.model}'. "
+              f"Check that the XML contains the requested calculation type.")
+        return
+
+    print(f"Found {len(pairs)} pairs, {len(fragments)} fragments: {fragments}")
+    print()
+
+    for p in pairs:
+        safe_str = ""
+        if isinstance(p.diagnostics, BSEDiagnostics):
+            safe_str = (f"  xi={p.diagnostics.xi:.4f} "
+                        f"PT/RM={p.diagnostics.pt_rm_discrepancy_eV*1000:.1f}meV "
+                        f"safe={p.diagnostics.downfolding_safe}")
+        elif isinstance(p.diagnostics, DFTDiagnostics):
+            safe_str = (f"  minS={p.diagnostics.min_S_eigenvalue:.4f} "
+                        f"ok={p.diagnostics.basis_ok}")
+        print(f"  Pair {p.frag_A}-{p.frag_B}: "
+              f"n_A={p.n_A} n_B={p.n_B} n_CT={p.n_CT}{safe_str}")
+
+    # --- assemble ---
+    print(f"\n{'='*60}")
+    print("Assembling TB Hamiltonian")
+    print("=" * 60)
+
+    explicit_ct = getattr(args, 'explicit_ct', False)
+    assembler = TBAssembler(pairs, fragments, explicit_ct=explicit_ct)
+    labels = assembler.basis_labels()
+
+    print(f"\nBasis: {assembler.total_dim} states total")
+    print(f"  Fragment states: {len(assembler.state_idx)}")
+    if args.model == 'transport':
+        n_hole = sum(1 for k in assembler.state_idx if k[2] == 'hole')
+        n_elec = len(assembler.state_idx) - n_hole
+        print(f"  Hole states:     {n_hole}")
+        print(f"  Electron states: {n_elec}")
+    print(f"  Explicit CT:     {len(assembler.CT_idx)}")
+    if args.model in ('singlet', 'triplet'):
+        ct_mode = "all pairs (--explicit-ct)" if explicit_ct else "adaptive"
+        print(f"  CT strategy:     {ct_mode}")
+        if assembler.explicit_CT_pairs:
+            print(f"  Explicit CT pairs:  "
+                  f"{[(p.frag_A, p.frag_B) for p in assembler.explicit_CT_pairs]}")
+        if assembler.downfolded_pairs:
+            print(f"  Downfolded pairs:   "
+                  f"{[(p.frag_A, p.frag_B) for p in assembler.downfolded_pairs]}")
+
+    use_qp = getattr(args, 'qp_energies', False)
+    H, S = assembler.assemble(sparse=not args.dense, use_qp=use_qp)
+    print(f"\nSite energy source: {assembler._site_energy_source}")
+    if args.model in ('hole', 'electron', 'transport'):
+        energy_type = 'QPpert (GW)' if use_qp else 'KS (DFT)'
+        print(f"  MO energies:       {energy_type}")
+
+    print(f"\nSite energies [eV]:")
+    H_dense = H.toarray() if sp.issparse(H) else H
+    for key, idx in sorted(assembler.state_idx.items()):
+        E = H_dense[idx, idx]
+        if assembler.model == 'transport':
+            frag, i, carrier = key
+            print(f"  Fragment {frag} {carrier} state {i+1}: {E:.6f}")
+        else:
+            frag, i = key
+            print(f"  Fragment {frag} state {i+1}: {E:.6f}")
+
+    if assembler.CT_idx:
+        print(f"\nCT site energies [eV]:")
+        for (fA, fB, k), idx in sorted(assembler.CT_idx.items()):
+            E = H[idx, idx] if not sp.issparse(H) else H.toarray()[idx, idx]
+            print(f"  CT f{fA}-f{fB} k{k+1}: {E:.6f}")
+
+    # check S
+    S_dense = S.toarray() if sp.issparse(S) else S
+    evals_S = np.linalg.eigvalsh(S_dense)
+    print(f"\nS eigenvalues: min={evals_S.min():.6f}  max={evals_S.max():.6f}")
+    if evals_S.min() < 1e-6:
+        warnings.warn("S has very small eigenvalue — basis near-linearly-dependent")
+
+    # --- solve ---
+    print(f"\n{'='*60}")
+    print(f"Solving TB eigenvalue problem")
+    print("=" * 60)
+
+    solver = TBSolver(H, S)
+    n_req = args.n_states if args.n_states else assembler.total_dim
+    # for sparse, can't solve all states via eigsh
+    if sp.issparse(H) and args.n_states is None:
+        evals, evecs = solver.solve(n_states=None)  # falls back to dense
+    else:
+        evals, evecs = solver.solve(n_states=args.n_states)
+
+    if args.model == 'transport':
+        header2 = f"{'hole':>6}  {'elec':>6}"
+    else:
+        header2 = f"{'FE':>6}  {'CT':>6}"
+    print(f"\n{'#':>4}  {'E (eV)':>10}  {'IPR':>6}  " + header2 + "  " +
+          "  ".join(f"{'f'+str(f):>6}" for f in fragments) +
+          "  Dominant")
+    print("-" * (55 + 8 * len(fragments)))
+
+    for n in range(len(evals)):
+        evec = evecs[:, n]
+        ipr = solver.participation_ratio(evec)
+        w = solver.state_weights(evec, assembler, fragments)
+        dom_idx = np.argmax(np.abs(evec) ** 2)
+        dom = labels[dom_idx] if dom_idx < len(labels) else "?"
+        frag_str = "  ".join(f"{w['fragments'].get(f, 0.0):>6.3f}"
+                              for f in fragments)
+        if args.model == 'transport':
+            col2 = f"{w['hole']:>6.3f}  {w['electron']:>6.3f}"
+        else:
+            col2 = f"{w['FE']:>6.3f}  {w['CT']:>6.3f}"
+        print(f"{n+1:>4}  {evals[n]:>10.4f}  {ipr:>6.2f}  "
+              f"{col2}  {frag_str}  {dom}")
+
+    # --- oscillator strengths ---
+    f_osc = None; E_spec = None; A_spec = None
+    if assembler.transition_dipoles:
+        print(f"\n{'='*60}")
+        print("Oscillator strengths")
+        print("=" * 60)
+        f_osc = solver.oscillator_strengths(evecs, evals, assembler)  # noqa
+        print(f"\n  {'#':>4}  {'E (eV)':>9}  {'f_osc':>10}  {'|d|^2':>10}")
+        print("  " + "-" * 40)
+        f_total = 0.0
+        for n in range(len(evals)):
+            d_sq = f_osc[n] / ((2.0/3.0) * evals[n]) if evals[n] > 0 else 0.0
+            print(f"  {n+1:>4}  {evals[n]:>9.4f}  {f_osc[n]:>10.4f}  {d_sq:>10.4f}")
+            f_total += f_osc[n]
+        print(f"\n  Total oscillator strength: {f_total:.4f}")
+        print(f"  (Thomas-Reiche-Kuhn sum rule: should equal n_electrons)")
+
+        # broadened spectrum
+        E_spec, A_spec = solver.absorption_spectrum(  # noqa
+            evecs, evals, assembler, gamma_eV=0.1)
+        print(f"\n  Spectrum computed ({len(E_spec)} points, gamma=0.1 eV)")
+        print(f"  Peak at E = {E_spec[np.argmax(A_spec)]:.3f} eV")
+    else:
+        print(f"\n  (No transition dipoles in XML — "
+              f"rerun with updated bsecoupling to get oscillator strengths)")
+
+    # --- HDF5 output ---
+    if args.output:
+        f_osc_out = f_osc if assembler.transition_dipoles else None
+        spec_E_out = E_spec if assembler.transition_dipoles else None
+        spec_A_out = A_spec if assembler.transition_dipoles else None
+        write_hdf5(args.output, assembler, solver, H, S,
+                   evals, evecs, fragments,
+                   f_osc=f_osc_out,
+                   spectrum_E=spec_E_out,
+                   spectrum_A=spec_A_out)
+        print(f"\nResults written to: {args.output}")
+
+    # --- dynamics ---
+    if args.dynamics:
+        print(f"\n{'='*60}")
+        print("Wavepacket Dynamics")
+        print("=" * 60)
+
+        # Need dense matrices for dynamics
+        H_dyn = H.toarray() if sp.issparse(H) else H
+        S_dyn = S.toarray() if sp.issparse(S) else S
+        dyn = TBDynamics(H_dyn, S_dyn, assembler)
+
+        # Initial state
+        init_frag = args.init_frag if args.init_frag is not None \
+                    else fragments[0]
+        if init_frag not in fragments:
+            print(f"WARNING: --init-frag {init_frag} not in fragments {fragments}, "
+                  f"using {fragments[0]}")
+            init_frag = fragments[0]
+
+        is_thermal = (args.init_state == 'thermal')
+        if is_thermal:
+            if 'evals' not in dir():
+                print("ERROR: thermal initial state requires eigenstate solution")
+                is_thermal = False
+            else:
+                psi0 = dyn.thermal_mixture(args.thermal_T, evals, evecs)
+                print(f"  Initial state: thermal mixture at {args.thermal_T} K")
+        elif args.init_state == 'gaussian':
+            psi0 = dyn.gaussian_packet(init_frag, args.init_sigma,
+                                       args.init_state_idx)
+            print(f"  Initial state: Gaussian wavepacket centred on "
+                  f"fragment {init_frag}, sigma={args.init_sigma} fragments")
+        else:
+            psi0 = dyn.site_excitation(init_frag, args.init_state_idx)
+            print(f"  Initial state: site excitation on fragment {init_frag} "
+                  f"state {args.init_state_idx}")
+
+        use_noise = (args.noise_sigma > 0)
+        sigma_eV = args.noise_sigma * 1e-3  # meV -> eV
+        if use_noise and args.dt > args.noise_tau / 5.0:
+            print(f"  WARNING: dt={args.dt} fs > tau/5={args.noise_tau/5:.1f} fs "
+                  f"— consider reducing --dt for stable RK4")
+        if use_noise and args.dt > TBDynamics.HBAR_EV_FS / sigma_eV:
+            print(f"  WARNING: dt={args.dt} fs > hbar/sigma="
+                  f"{TBDynamics.HBAR_EV_FS/sigma_eV:.2f} fs "
+                  f"— RK4 may be unstable, reduce --dt")
+
+        if use_noise:
+            print(f"  Propagation: stochastic SSE")
+            print(f"  Noise: sigma={args.noise_sigma} meV, "
+                  f"tau={args.noise_tau} fs, "
+                  f"{args.n_realisations} realisations")
+            noise_on_coup = getattr(args, 'noise_couplings', False)
+            sigma_coup_eV = (args.noise_sigma_coupling * 1e-3
+                             if args.noise_sigma_coupling is not None
+                             else None)
+            if noise_on_coup:
+                coup_str = (f"{args.noise_sigma_coupling:.1f}"
+                            if args.noise_sigma_coupling is not None
+                            else f"{args.noise_sigma/3:.1f}")
+                print(f"  Coupling noise: sigma={coup_str} meV")
+            dyn_result = dyn.propagate_stochastic(
+                psi0, args.t_max, args.dt,
+                sigma_eV=sigma_eV, tau_fs=args.noise_tau,
+                n_realisations=args.n_realisations,
+                noise_on_couplings=noise_on_coup,
+                sigma_coupling_eV=sigma_coup_eV)
+            if dyn_result['decoherence_time'] is not None:
+                print(f"  Decoherence time: "
+                      f"{dyn_result['decoherence_time']:.1f} fs")
+            dyn_mode = 'stochastic'
+        else:
+            print(f"  Propagation: noiseless Krylov (expm_multiply)")
+            print(f"  t_max={args.t_max} fs, dt={args.dt} fs")
+            dyn_result = dyn.propagate_pure(psi0, args.t_max, args.dt)
+            dyn_mode = 'pure'
+
+        # Print population dynamics summary
+        print(f"\n  Fragment populations at selected times:")
+        t_report = dyn_result['t']
+        pop = dyn_result['populations']
+        t_indices = np.linspace(0, len(t_report)-1, min(6, len(t_report)),
+                                dtype=int)
+        header = f"  {'t(fs)':>8}  " + \
+                 '  '.join(f"{'f'+str(f):>6}" for f in fragments)
+        print(header)
+        print('  ' + '-' * (10 + 8*len(fragments)))
+        for ti in t_indices:
+            row = f"  {t_report[ti]:>8.1f}  " + \
+                  '  '.join(f"{pop[fi,ti]:>6.3f}"
+                            for fi in range(len(fragments)))
+            print(row)
+        print(f"\n  Final purity: {dyn_result['purity'][-1]:.4f} "
+              f"(1=pure, 1/N≈{1/len(fragments):.3f}=fully mixed)")
+
+        # Write dynamics to HDF5
+        if args.output:
+            write_dynamics_hdf5(args.output, dyn_result, assembler,
+                               mode=dyn_mode, append=True)
+            print(f"  Dynamics written to: {args.output} (/dynamics/{dyn_mode}/)")
+
+    # --- eigenvector composition ---
+    print(f"\n{'='*60}")
+    print("Eigenvector composition (|coeff| > 0.1)")
+    print("=" * 60)
+    for n in range(len(evals)):
+        evec = evecs[:, n]
+        significant = [(abs(c), c, lab)
+                       for c, lab in zip(evec, labels) if abs(c) > 0.1]
+        if significant:
+            print(f"\nState {n+1}  E = {evals[n]:.4f} eV:")
+            for _, c, lab in sorted(significant, reverse=True):
+                print(f"  {c:+.4f}  {lab}")
+
+
+if __name__ == "__main__":
+    main()

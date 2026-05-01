@@ -60,7 +60,7 @@ void ExcitonCoupling::ParseOptions(const tools::Property& options) {
 
   if (!classical_) {
 
-    coupling_options_.get(".bsecoupling_options");
+    coupling_options_ = options.get(".bsecoupling");
 
     orbA_ = options.get(".orbitalsA").as<std::string>();
     orbB_ = options.get(".orbitalsB").as<std::string>();

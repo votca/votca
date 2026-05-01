@@ -1,4 +1,3 @@
-
 /*
  *            Copyright 2009-2020 The VOTCA Development Team
  *                       (http://www.votca.org)
@@ -56,8 +55,39 @@ class BSECoupling : public CouplingBase {
                           const Orbitals& orbitalsAB) override;
 
  private:
+  /**
+   * \brief Diagnostic quantities for assessing whether CT downfolding is safe.
+   *
+   * xi:                  max over FE-CT pairs of |H_FE_CT| / |E_FE - E_CT|.
+   *                      Small xi (< ~0.3) means perturbative downfolding is
+   *                      reliable.
+   * pt_rm_discrepancy:   max |J_pert - J_diag| over all FE pairs [Hrt].
+   *                      Large discrepancy flags near-resonant CT states.
+   * downfolding_safe:    true if both xi and pt_rm_discrepancy are below
+   *                      their respective thresholds.
+   */
+  struct Diagnostics {
+    double xi = 0.0;
+    double pt_rm_discrepancy = 0.0;
+    bool downfolding_safe = true;
+  };
+
   void WriteToProperty(tools::Property& summary, const QMState& stateA,
                        const QMState& stateB) const;
+
+  /**
+   * \brief Write an Eigen matrix as rows of space-separated values into an
+   *        XML property node. Each row becomes an attribute "row_N".
+   *
+   * @param prop        parent Property node to attach the matrix node to
+   * @param name        name of the new child node
+   * @param mat         matrix to write
+   * @param conversion  optional unit conversion factor (default 1.0)
+   */
+  static void WriteMatrixToProperty(tools::Property& prop,
+                                    const std::string& name,
+                                    const Eigen::MatrixXd& mat,
+                                    double conversion = 1.0);
 
   double getSingletCouplingElement(Index levelA, Index levelB,
                                    Index methodindex) const;
@@ -76,14 +106,56 @@ class BSECoupling : public CouplingBase {
                                          Index bseAB_vtotal,
                                          Index bseAB_ctotal) const;
 
+  /**
+   * \brief Compute J_pert and J_diag, and store raw J_dimer/S_dimer and
+   *        diagnostics for later output.
+   *
+   * @param FE_AB       projected FE states in dimer basis
+   * @param CTStates    CT states in dimer basis
+   * @param H           BSE Hamiltonian operator
+   * @param J_dimer_out raw (pre-Lowdin) Hamiltonian matrix [out]
+   * @param S_dimer_out raw overlap matrix [out]
+   * @param diag_out    diagnostics struct [out]
+   * @return            array of {J_pert, J_diag} matrices
+   */
   template <class BSE_OPERATOR>
   std::array<Eigen::MatrixXd, 2> ProjectExcitons(Eigen::MatrixXd& FE_AB,
                                                  Eigen::MatrixXd& CTStates,
-                                                 BSE_OPERATOR H) const;
-  template <class BSE_OPERATOR>
-  Eigen::MatrixXd CalcJ_dimer(BSE_OPERATOR& H,
-                              Eigen::MatrixXd& projection) const;
+                                                 BSE_OPERATOR H,
+                                                 Eigen::MatrixXd& J_dimer_out,
+                                                 Eigen::MatrixXd& S_dimer_out,
+                                                 Diagnostics& diag_out) const;
 
+  /**
+   * \brief Form J_dimer and S_dimer from the projection, then Lowdin
+   *        orthogonalize to produce J_ortho.
+   *
+   * @param H           BSE Hamiltonian operator
+   * @param projection  merged FE+CT projection matrix (consumed)
+   * @param J_dimer_out raw Hamiltonian matrix before Lowdin [out]
+   * @param S_dimer_out raw overlap matrix before Lowdin [out]
+   * @return            Lowdin-orthogonalized Hamiltonian J_ortho
+   */
+  template <class BSE_OPERATOR>
+  Eigen::MatrixXd CalcJ_dimer(BSE_OPERATOR& H, Eigen::MatrixXd& projection,
+                              Eigen::MatrixXd& J_dimer_out,
+                              Eigen::MatrixXd& S_dimer_out) const;
+
+  /**
+   * \brief Merge FE and CT projection vectors into a single projection matrix
+   *        without pre-orthogonalization.
+   *
+   * The non-orthogonality between FE and CT states is handled correctly
+   * downstream by the joint Lowdin in CalcJ_dimer (for the reduction method)
+   * or by the generalized eigenvalue problem / SRG (for TB use of J_dimer
+   * and S_dimer directly).
+   *
+   * Pre-orthogonalizing CT states against FE states (previous behaviour) used
+   * the incorrect projector P = F*F^T, which is only exact when FE_AB columns
+   * are orthonormal. This introduced a systematic error that grows with the
+   * number of CT states included. The function name is retained for interface
+   * compatibility but the orthogonalization step has been removed.
+   */
   Eigen::MatrixXd OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
                                    Eigen::MatrixXd& CTStates) const;
 
@@ -91,12 +163,54 @@ class BSECoupling : public CouplingBase {
 
   Eigen::MatrixXd Perturbation(const Eigen::MatrixXd& J_dimer) const;
 
-  std::array<Eigen::MatrixXd, 2> JAB_singlet;
+  /**
+   * \brief Compute diagnostics from raw J_dimer and the two effective
+   *        coupling matrices.
+   *
+   * @param J_dimer  raw (pre-Lowdin) Hamiltonian in FE+CT basis
+   * @param J_pert   effective couplings from perturbation theory
+   * @param J_diag   effective couplings from reduction method
+   * @return         populated Diagnostics struct
+   */
+  Diagnostics ComputeDiagnostics(const Eigen::MatrixXd& J_dimer,
+                                 const Eigen::MatrixXd& J_pert,
+                                 const Eigen::MatrixXd& J_diag) const;
+
+  // --- effective coupling results (existing) ---
+  std::array<Eigen::MatrixXd, 2> JAB_singlet;  // [J_pert, J_diag]
   std::array<Eigen::MatrixXd, 2> JAB_triplet;
+
+  // --- raw TB matrices (new) ---
+  // These are the pre-Lowdin J and S in the full FE+CT basis,
+  // suitable for assembling a TB Hamiltonian or feeding into SRG.
+  Eigen::MatrixXd J_dimer_singlet_;
+  Eigen::MatrixXd S_dimer_singlet_;
+  Eigen::MatrixXd J_dimer_triplet_;
+  Eigen::MatrixXd S_dimer_triplet_;
+
+  // --- diagnostics (new) ---
+  Diagnostics diag_singlet_;
+  Diagnostics diag_triplet_;
+
+  // --- monomer FE energies (new) ---
+  // Isolated monomer excitation energies in eV, stored per spin channel.
+  // These provide pairwise-consistent site energies for TB assembly:
+  // the same monomer calculation is used regardless of which dimer pair
+  // is being processed, unlike the dimer diagonal H_FE_FE[i,i] which
+  // varies with the partner. Environmental corrections (electrostatic
+  // embedding) should be added separately on top of these values.
+  Eigen::VectorXd monomerA_energies_singlet_;
+  Eigen::VectorXd monomerB_energies_singlet_;
+  Eigen::VectorXd monomerA_energies_triplet_;
+  Eigen::VectorXd monomerB_energies_triplet_;
 
   bool doTriplets_;
   bool doSinglets_;
   bool output_perturbation_;
+  // When true, write TB-specific output: monomer energies, transition
+  // dipoles, diagnostics, and raw H/S matrices. Default false for compact
+  // output in KMC/rate workflows that only need scalar couplings.
+  bool output_tb_ = false;
   Index levA_;
   Index levB_;
   Index occA_;

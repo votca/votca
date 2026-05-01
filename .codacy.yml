@@ -1,3 +1,4 @@
 exclude_paths:
   - "share/sphinx/_themes/**"
+  - "xtp/src/tests/test_xtp_tightbinding.py"
   

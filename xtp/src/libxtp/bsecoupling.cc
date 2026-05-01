@@ -54,6 +54,11 @@ void BSECoupling::Initialize(Property& options) {
             .str());
   }
   output_perturbation_ = options.get("use_perturbation").as<bool>();
+  // When true, write monomer energies, transition dipoles, diagnostics,
+  // and raw H/S TB matrices to the XML output. Default false for compact
+  // output in KMC/rate workflows that only need scalar couplings.
+  output_tb_ =
+      options.ifExistsReturnElseReturnDefault<bool>("output_tb", false);
 
   levA_ = options.get("moleculeA.states").as<Index>();
   levB_ = options.get("moleculeB.states").as<Index>();
@@ -63,6 +68,33 @@ void BSECoupling::Initialize(Property& options) {
   unoccB_ = options.get("moleculeB.unoccLevels").as<Index>();
 }
 
+// =============================================================================
+// WriteMatrixToProperty
+// Write an Eigen matrix as space-separated rows into an XML property node.
+// Each row is stored as attribute "row_N". Unit conversion is applied if given.
+// =============================================================================
+void BSECoupling::WriteMatrixToProperty(tools::Property& prop,
+                                        const std::string& name,
+                                        const Eigen::MatrixXd& mat,
+                                        double conversion) {
+  tools::Property& mat_prop = prop.add(name, "");
+  mat_prop.setAttribute("rows", mat.rows());
+  mat_prop.setAttribute("cols", mat.cols());
+  for (Index i = 0; i < mat.rows(); i++) {
+    std::string row_str;
+    for (Index j = 0; j < mat.cols(); j++) {
+      if (j > 0) row_str += " ";
+      row_str += (format("%1$1.6e") % (mat(i, j) * conversion)).str();
+    }
+    mat_prop.setAttribute("row_" + std::to_string(i), row_str);
+  }
+}
+
+// =============================================================================
+// WriteToProperty
+// Write the pairwise effective couplings for one (stateA, stateB) pair.
+// Backward compatible: attributes unchanged.
+// =============================================================================
 void BSECoupling::WriteToProperty(Property& summary, const QMState& stateA,
                                   const QMState& stateB) const {
   Property& coupling_summary = summary.add("coupling", "");
@@ -85,37 +117,143 @@ void BSECoupling::WriteToProperty(Property& summary, const QMState& stateA,
   coupling_summary.setAttribute("j_diag", (format("%1$1.6e") % JAB_diag).str());
 }
 
-void BSECoupling::Addoutput(Property& type_summary, const Orbitals&,
-                            const Orbitals&) const {
+// =============================================================================
+// Addoutput
+// Write all results to the XML property tree.
+// Extends the existing pairwise coupling output with:
+//   - diagnostics node (xi, PT/RM discrepancy, downfolding_safe flag)
+//   - tb_matrices node (raw H and S blocks in FE+CT basis, in eV)
+// The existing <coupling> elements are unchanged for backward compatibility.
+// =============================================================================
+void BSECoupling::Addoutput(Property& type_summary, const Orbitals& orbitalsA,
+                            const Orbitals& orbitalsB) const {
   tools::Property& bsecoupling = type_summary.add(Identify(), "");
   string algorithm = "j_diag";
   if (output_perturbation_) {
     algorithm = "j_pert";
   }
-  if (doSinglets_) {
-    QMStateType singlet = QMStateType(QMStateType::Singlet);
-    Property& singlet_summary = bsecoupling.add(singlet.ToLongString(), "");
-    singlet_summary.setAttribute("algorithm", algorithm);
-    for (Index stateA = 0; stateA < levA_; ++stateA) {
-      QMState qmstateA = QMState(singlet, stateA, false);
-      for (Index stateB = 0; stateB < levB_; ++stateB) {
-        QMState qmstateB = QMState(singlet, stateB, false);
-        WriteToProperty(singlet_summary, qmstateA, qmstateB);
-      }
-    }
-  }
 
-  if (doTriplets_) {
-    QMStateType triplet = QMStateType(QMStateType::Triplet);
-    Property& triplet_summary = bsecoupling.add(triplet.ToLongString(), "");
-    triplet_summary.setAttribute("algorithm", algorithm);
+  // Lambda to write one spin channel — avoids duplicating singlet/triplet logic
+  auto WriteSpinChannel = [&](const std::string& spin_name,
+                              const Eigen::MatrixXd& J_dimer,
+                              const Eigen::MatrixXd& S_dimer,
+                              const Diagnostics& diag,
+                              const Eigen::VectorXd& monA_energies,
+                              const Eigen::VectorXd& monB_energies,
+                              const std::vector<Eigen::Vector3d>& tdipsA,
+                              const std::vector<Eigen::Vector3d>& tdipsB,
+                              QMStateType spin_type) {
+    Property& spin_summary = bsecoupling.add(spin_name, "");
+    spin_summary.setAttribute("algorithm", algorithm);
+
+    // --- existing pairwise effective couplings (backward compatible) ---
     for (Index stateA = 0; stateA < levA_; ++stateA) {
-      QMState qmstateA = QMState(triplet, stateA, false);
+      QMState qmstateA = QMState(spin_type, stateA, false);
       for (Index stateB = 0; stateB < levB_; ++stateB) {
-        QMState qmstateB = QMState(triplet, stateB, false);
-        WriteToProperty(triplet_summary, qmstateA, qmstateB);
+        QMState qmstateB = QMState(spin_type, stateB, false);
+        WriteToProperty(spin_summary, qmstateA, qmstateB);
       }
     }
+
+    // --- TB output: monomer energies, diagnostics, raw matrices ---
+    // Only written when output_tb_ = true. For KMC/rate workflows that only
+    // need scalar effective couplings, leave output_tb_ = false.
+    if (output_tb_) {
+      // Monomer excitation energies and transition dipoles
+      {
+        Property& mono_prop = spin_summary.add("monomer_energies", "");
+        Property& propA = mono_prop.add("fragmentA", "");
+        for (Index i = 0; i < monA_energies.size(); i++) {
+          Property& e = propA.add("energy", "");
+          QMState st(spin_type, i, false);
+          e.setAttribute("state", st.ToString());
+          e.setAttribute("eV", (format("%1$1.6e") % monA_energies(i)).str());
+          if (i < static_cast<Index>(tdipsA.size())) {
+            e.setAttribute("tdx", (format("%1$1.6e") % tdipsA[i].x()).str());
+            e.setAttribute("tdy", (format("%1$1.6e") % tdipsA[i].y()).str());
+            e.setAttribute("tdz", (format("%1$1.6e") % tdipsA[i].z()).str());
+          }
+        }
+        Property& propB = mono_prop.add("fragmentB", "");
+        for (Index i = 0; i < monB_energies.size(); i++) {
+          Property& e = propB.add("energy", "");
+          QMState st(spin_type, i, false);
+          e.setAttribute("state", st.ToString());
+          e.setAttribute("eV", (format("%1$1.6e") % monB_energies(i)).str());
+          if (i < static_cast<Index>(tdipsB.size())) {
+            e.setAttribute("tdx", (format("%1$1.6e") % tdipsB[i].x()).str());
+            e.setAttribute("tdy", (format("%1$1.6e") % tdipsB[i].y()).str());
+            e.setAttribute("tdz", (format("%1$1.6e") % tdipsB[i].z()).str());
+          }
+        }
+      }
+
+      // Diagnostics
+      {
+        Property& diag_prop = spin_summary.add("diagnostics", "");
+        diag_prop.setAttribute("xi", (format("%1$1.4f") % diag.xi).str());
+        diag_prop.setAttribute(
+            "pt_rm_discrepancy_eV",
+            (format("%1$1.6e") %
+             (diag.pt_rm_discrepancy * votca::tools::conv::hrt2ev))
+                .str());
+        diag_prop.setAttribute("downfolding_safe",
+                               diag.downfolding_safe ? "true" : "false");
+      }
+
+      // Raw TB matrices (H in eV, S dimensionless)
+      // Block layout: [ H_FE_FE  H_FE_CT ] / [ H_CT_FE  H_CT_CT ]
+      {
+        Index bse_exc = levA_ + levB_;
+        Index ct = J_dimer.rows() - bse_exc;
+
+        Property& tb_prop = spin_summary.add("tb_matrices", "");
+        tb_prop.setAttribute("n_FE", bse_exc);
+        tb_prop.setAttribute("n_CT", ct);
+        tb_prop.setAttribute("n_occA", occA_);
+        tb_prop.setAttribute("n_unoccA", unoccA_);
+        tb_prop.setAttribute("n_occB", occB_);
+        tb_prop.setAttribute("n_unoccB", unoccB_);
+
+        WriteMatrixToProperty(tb_prop, "H_FE_FE",
+                              J_dimer.topLeftCorner(bse_exc, bse_exc),
+                              votca::tools::conv::hrt2ev);
+        WriteMatrixToProperty(tb_prop, "S_FE_FE",
+                              S_dimer.topLeftCorner(bse_exc, bse_exc));
+
+        if (ct > 0) {
+          WriteMatrixToProperty(tb_prop, "H_FE_CT",
+                                J_dimer.topRightCorner(bse_exc, ct),
+                                votca::tools::conv::hrt2ev);
+          WriteMatrixToProperty(tb_prop, "S_FE_CT",
+                                S_dimer.topRightCorner(bse_exc, ct));
+          WriteMatrixToProperty(tb_prop, "H_CT_CT",
+                                J_dimer.bottomRightCorner(ct, ct),
+                                votca::tools::conv::hrt2ev);
+          WriteMatrixToProperty(tb_prop, "S_CT_CT",
+                                S_dimer.bottomRightCorner(ct, ct));
+        }
+      }
+    }  // output_tb_
+  };
+
+  if (doSinglets_) {
+    WriteSpinChannel(
+        QMStateType(QMStateType::Singlet).ToLongString(), J_dimer_singlet_,
+        S_dimer_singlet_, diag_singlet_, monomerA_energies_singlet_,
+        monomerB_energies_singlet_, orbitalsA.TransitionDipoles(),
+        orbitalsB.TransitionDipoles(), QMStateType(QMStateType::Singlet));
+  }
+  if (doTriplets_) {
+    // Triplet states have zero electric transition dipole from the singlet
+    // ground state — pass empty vectors so no tdx/tdy/tdz attributes are
+    // written, making clear that oscillator strengths are not meaningful.
+    const std::vector<Eigen::Vector3d> empty_dipoles;
+    WriteSpinChannel(QMStateType(QMStateType::Triplet).ToLongString(),
+                     J_dimer_triplet_, S_dimer_triplet_, diag_triplet_,
+                     monomerA_energies_triplet_, monomerB_energies_triplet_,
+                     empty_dipoles, empty_dipoles,
+                     QMStateType(QMStateType::Triplet));
   }
 }
 
@@ -136,7 +274,6 @@ Eigen::MatrixXd BSECoupling::SetupCTStates(Index bseA_vtotal, Index bseB_vtotal,
                                            Index bseAB_ctotal,
                                            const Eigen::MatrixXd& A_AB,
                                            const Eigen::MatrixXd& B_AB) const {
-
   Index noAB = occA_ * unoccB_;
   Index noBA = unoccA_ * occB_;
   Index bseAB_size = bseAB_vtotal * bseAB_ctotal;
@@ -151,11 +288,9 @@ Eigen::MatrixXd BSECoupling::SetupCTStates(Index bseA_vtotal, Index bseB_vtotal,
   const Eigen::MatrixXd B_unocc_unocc = B_unocc.bottomRows(bseAB_ctotal);
 
   // notation AB is CT states with A+B-, BA is the counterpart
-  // Setting up CT-states:
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << "   Setting up CT-states" << flush;
 
-  // Number of A+B- states
 #pragma omp parallel for
   for (Index a_occ = 0; a_occ < occA_; a_occ++) {
     for (Index b_unocc = 0; b_unocc < unoccB_; b_unocc++) {
@@ -222,18 +357,17 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
                                      const Orbitals& orbitalsAB) {
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << "  Calculating exciton couplings" << flush;
-  // set the parallelization
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Using "
                               << OPENMP::getMaxThreads() << " threads" << flush;
 
   CheckAtomCoordinates(orbitalsA, orbitalsB, orbitalsAB);
 
-  // constructing the direct product orbA x orbB
   Index basisB = orbitalsB.getBasisSetSize();
   Index basisA = orbitalsA.getBasisSetSize();
   if ((basisA == 0) || (basisB == 0)) {
     throw std::runtime_error("Basis set size is not stored in monomers");
   }
+
   // get exciton information of molecule A
   Index bseA_cmax = orbitalsA.getBSEcmax();
   Index bseA_cmin = orbitalsA.getBSEcmin();
@@ -324,7 +458,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
         << flush;
     unoccB_ = bseB_ctotal;
   }
-
   if (occA_ > bseA_vtotal || occA_ < 0) {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp()
@@ -352,7 +485,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   Index bseAB_total = bseAB_vtotal + bseAB_ctotal;
   Index bseAB_size = bseAB_vtotal * bseAB_ctotal;
 
-  // DFT levels of monomers can be reduced to those used in BSE
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << "   levels used for BSE of molA: " << bseA_vmin
       << " to " << bseA_cmax << " total: " << bseA_total << flush;
@@ -398,7 +530,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   AOBasis dftbasis = orbitalsAB.getDftBasis();
   AOBasis auxbasis = orbitalsAB.getAuxBasis();
   TCMatrix_gwbse Mmn;
-  // rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), orbitalsAB.getRPAmin(),
                  orbitalsAB.getGWAmax(), orbitalsAB.getRPAmin(),
                  orbitalsAB.getRPAmax());
@@ -423,12 +554,22 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   bse.configure(opt, orbitalsAB.RPAInputEnergies(), Hqp);
   XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Setup BSE operator" << flush;
 
-  // now the different spin types
   if (doSinglets_) {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << "   Evaluating singlets" << flush;
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << "   Setup Hamiltonian" << flush;
+
+    // Store isolated monomer singlet excitation energies [eV].
+    // These are pairwise-consistent site energies for TB assembly —
+    // independent of which dimer partner is used.
+    monomerA_energies_singlet_ =
+        orbitalsA.BSESinglets().eigenvalues().head(levA_) *
+        votca::tools::conv::hrt2ev;
+    monomerB_energies_singlet_ =
+        orbitalsB.BSESinglets().eigenvalues().head(levB_) *
+        votca::tools::conv::hrt2ev;
+
     Eigen::MatrixXd FE_AB = Eigen::MatrixXd::Zero(bseAB_size, levA_ + levB_);
     const Eigen::MatrixXd bseA =
         orbitalsA.BSESinglets().eigenvectors().leftCols(levA_);
@@ -441,13 +582,23 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
     Eigen::MatrixXd CTStates = SetupCTStates(
         bseA_vtotal, bseB_vtotal, bseAB_vtotal, bseAB_ctotal, A_AB, B_AB);
     JAB_singlet =
-        ProjectExcitons(FE_AB, CTStates, bse.getSingletOperator_TDA());
+        ProjectExcitons(FE_AB, CTStates, bse.getSingletOperator_TDA(),
+                        J_dimer_singlet_, S_dimer_singlet_, diag_singlet_);
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << "   calculated singlet couplings " << flush;
   }
   if (doTriplets_) {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << "   Evaluating triplets" << flush;
+
+    // Store isolated monomer triplet excitation energies [eV].
+    monomerA_energies_triplet_ =
+        orbitalsA.BSETriplets().eigenvalues().head(levA_) *
+        votca::tools::conv::hrt2ev;
+    monomerB_energies_triplet_ =
+        orbitalsB.BSETriplets().eigenvalues().head(levB_) *
+        votca::tools::conv::hrt2ev;
+
     Eigen::MatrixXd FE_AB = Eigen::MatrixXd::Zero(bseAB_size, levA_ + levB_);
     const Eigen::MatrixXd bseA =
         orbitalsA.BSETriplets().eigenvectors().leftCols(levA_);
@@ -460,7 +611,8 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
     Eigen::MatrixXd CTStates = SetupCTStates(
         bseA_vtotal, bseB_vtotal, bseAB_vtotal, bseAB_ctotal, A_AB, B_AB);
     JAB_triplet =
-        ProjectExcitons(FE_AB, CTStates, bse.getTripletOperator_TDA());
+        ProjectExcitons(FE_AB, CTStates, bse.getTripletOperator_TDA(),
+                        J_dimer_triplet_, S_dimer_triplet_, diag_triplet_);
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << "   calculated triplet couplings " << flush;
   }
@@ -468,33 +620,52 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
       << TimeStamp() << "  Done with exciton couplings" << flush;
 }
 
+// =============================================================================
+// OrthogonalizeCTs
+// Merge FE and CT projection vectors into a single matrix without any
+// pre-orthogonalization. The non-orthogonality between FE and CT states,
+// and within each block, is handled correctly downstream:
+//   - For the reduction method: by the joint Lowdin in CalcJ_dimer.
+//   - For TB use of J_dimer/S_dimer: by the generalized eigenvalue problem
+//     or SRG.
+//
+// Pre-orthogonalizing CT states against FE states (as done previously) used
+// the incorrect projector P = F*F^T, which is only exact when FE_AB columns
+// are orthonormal. Since projected monomer FE states are generally not
+// orthonormal, this introduced a systematic error — particularly for larger
+// CT manifolds (many occ/unocc pairs) where higher orbital pairs have
+// non-negligible overlap with the FE space. Removing the pre-orthogonalization
+// preserves the physical FE and CT state characters and lets the subsequent
+// linear algebra handle the non-orthogonality correctly and consistently.
+//
+// A linear dependence check is performed on the CT states: if any CT state
+// has norm below threshold after projection onto the dimer basis, it indicates
+// near-linear dependence with other basis states and is flagged.
+// =============================================================================
 Eigen::MatrixXd BSECoupling::OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
                                               Eigen::MatrixXd& CTStates) const {
   Index ct = CTStates.cols();
+  Index bse_exc = levA_ + levB_;
+  Index bseAB_size = FE_AB.rows();
 
+  // Check for near-linear dependence in CT states via their norms.
+  // A very small norm indicates a CT state that is nearly identical to
+  // another basis state and would cause numerical problems in the Lowdin step.
   if (ct > 0) {
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp() << " Orthogonalizing CT-states with respect to FE-states"
-        << flush;
-    Eigen::MatrixXd correction = FE_AB * (FE_AB.transpose() * CTStates);
-    CTStates -= correction;
-
-    // normalize
     Eigen::VectorXd norm = CTStates.colwise().norm();
-    for (Index i = 0; i < CTStates.cols(); i++) {
-      CTStates.col(i) /= norm(i);
-    }
     Index minstateindex = 0;
     double minnorm = norm.minCoeff(&minstateindex);
     if (minnorm < 0.95) {
       XTP_LOG(Log::error, *pLog_)
           << TimeStamp() << " WARNING: CT-state " << minstateindex
-          << " norm is only " << minnorm << flush;
+          << " norm is only " << minnorm
+          << " -- near-linear dependence in projection basis" << flush;
     }
+    XTP_LOG(Log::info, *pLog_)
+        << TimeStamp() << " Merging " << ct
+        << " CT states into projection (no pre-orthogonalization)" << flush;
   }
-  Index bse_exc = levA_ + levB_;
 
-  Index bseAB_size = CTStates.rows();
   Eigen::MatrixXd projection(bseAB_size, bse_exc + ct);
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " merging projections into one vector  " << flush;
@@ -507,77 +678,143 @@ Eigen::MatrixXd BSECoupling::OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
   return projection;
 }
 
+// =============================================================================
+// CalcJ_dimer
+// Form J_dimer and S_dimer from the projection, expose them via output
+// references for TB use, then Lowdin-orthogonalize to produce J_ortho.
+// The block structure of J_dimer and S_dimer is:
+//   [ H_FE_FE  H_FE_CT ]   [ S_FE_FE  S_FE_CT ]
+//   [ H_CT_FE  H_CT_CT ]   [ S_CT_FE  S_CT_CT ]
+// =============================================================================
 template <class BSE_OPERATOR>
 Eigen::MatrixXd BSECoupling::CalcJ_dimer(BSE_OPERATOR& H,
-                                         Eigen::MatrixXd& projection) const {
-
+                                         Eigen::MatrixXd& projection,
+                                         Eigen::MatrixXd& J_dimer_out,
+                                         Eigen::MatrixXd& S_dimer_out) const {
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << "   Setting up coupling matrix size "
       << projection.cols() << flush;
-  // matrix  J_
-  //  E_A         J_AB        J_A_ABCT        J_A_BACT
-  //  J_BA        E_B         J_B_ABCT        J_B_BACT
-  //  J_ABCT_A    J_ABCT_B    E_ABCT          J_ABCT_BACT
-  //  J_BACT_A   J_BACT_B    J_BACT_ABCT     E_BACT
 
   // this only works for hermitian/symmetric H so only in TDA
-
-  Eigen::MatrixXd J_dimer = projection.transpose() * (H * projection).eval();
+  J_dimer_out = projection.transpose() * (H * projection).eval();
 
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << "   Setting up overlap matrix size "
       << projection.cols() << flush;
-  Eigen::MatrixXd S_dimer = projection.transpose() * projection;
+  S_dimer_out = projection.transpose() * projection;
 
   projection.resize(0, 0);
-  if (projection.cols()) {
-    XTP_LOG(Log::debug, *pLog_)
-        << "---------------------------------------" << flush;
-    XTP_LOG(Log::debug, *pLog_) << " J_dimer_[Ryd]" << flush;
 
-    XTP_LOG(Log::debug, *pLog_) << J_dimer << flush;
-    XTP_LOG(Log::debug, *pLog_) << " S_dimer_" << flush;
+  XTP_LOG(Log::debug, *pLog_)
+      << "---------------------------------------" << flush;
+  XTP_LOG(Log::debug, *pLog_) << " J_dimer_[Hrt]" << flush;
+  XTP_LOG(Log::debug, *pLog_) << J_dimer_out << flush;
+  XTP_LOG(Log::debug, *pLog_) << " S_dimer_" << flush;
+  XTP_LOG(Log::debug, *pLog_) << S_dimer_out << flush;
+  XTP_LOG(Log::debug, *pLog_)
+      << "---------------------------------------" << flush;
 
-    XTP_LOG(Log::debug, *pLog_) << S_dimer << flush;
-    XTP_LOG(Log::debug, *pLog_)
-        << "---------------------------------------" << flush;
-  }
-
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S_dimer);
-  Eigen::MatrixXd Sm1 = es.operatorInverseSqrt();
-  Eigen::MatrixXd J_ortho = Sm1 * J_dimer * Sm1;
-
-  if (projection.cols()) {
-    XTP_LOG(Log::debug, *pLog_)
-        << "---------------------------------------" << flush;
-    XTP_LOG(Log::debug, *pLog_) << " J_ortho_[Ryd]" << flush;
-    XTP_LOG(Log::debug, *pLog_) << J_ortho << flush;
-    XTP_LOG(Log::debug, *pLog_) << " S_-1/2" << flush;
-    XTP_LOG(Log::debug, *pLog_) << Sm1 << flush;
-    XTP_LOG(Log::debug, *pLog_)
-        << "---------------------------------------" << flush;
-  }
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S_dimer_out);
   XTP_LOG(Log::debug, *pLog_)
       << TimeStamp() << "   Smallest value of dimer overlapmatrix is "
       << es.eigenvalues()(0) << flush;
+
+  Eigen::MatrixXd Sm1 = es.operatorInverseSqrt();
+  Eigen::MatrixXd J_ortho = Sm1 * J_dimer_out * Sm1;
+
+  XTP_LOG(Log::debug, *pLog_)
+      << "---------------------------------------" << flush;
+  XTP_LOG(Log::debug, *pLog_) << " J_ortho_[Hrt]" << flush;
+  XTP_LOG(Log::debug, *pLog_) << J_ortho << flush;
+  XTP_LOG(Log::debug, *pLog_) << " S_-1/2" << flush;
+  XTP_LOG(Log::debug, *pLog_) << Sm1 << flush;
+  XTP_LOG(Log::debug, *pLog_)
+      << "---------------------------------------" << flush;
+
   return J_ortho;
 }
 
+// =============================================================================
+// ComputeDiagnostics
+// Assess whether CT downfolding is reliable for this pair.
+//   xi:                max |H_FE_CT| / |E_FE - E_CT| over all FE-CT pairs.
+//                      Small xi => perturbation theory is safe.
+//   pt_rm_discrepancy: max |J_pert - J_diag| over all FE pairs [Hrt].
+//                      Large discrepancy flags near-resonant CT states.
+//   downfolding_safe:  true if xi < 0.3 and discrepancy < 1e-4 Hrt.
+// Note: J_dimer here is the raw pre-Lowdin matrix (in Hrt), not J_ortho.
+// =============================================================================
+BSECoupling::Diagnostics BSECoupling::ComputeDiagnostics(
+    const Eigen::MatrixXd& J_dimer, const Eigen::MatrixXd& J_pert,
+    const Eigen::MatrixXd& J_diag) const {
+  Index bse_exc = levA_ + levB_;
+  Index ct = J_dimer.rows() - bse_exc;
+  Diagnostics diag;
+
+  if (ct > 0) {
+    for (Index i = 0; i < bse_exc; i++) {
+      double Ei = J_dimer(i, i);
+      for (Index k = bse_exc; k < bse_exc + ct; k++) {
+        double Ek = J_dimer(k, k);
+        double dE = std::abs(Ei - Ek);
+        double coupling = std::abs(J_dimer(i, k));
+        if (dE > 1e-10) {
+          diag.xi = std::max(diag.xi, coupling / dE);
+        } else {
+          // exact degeneracy — downfolding is meaningless
+          diag.xi = std::numeric_limits<double>::infinity();
+        }
+      }
+    }
+  }
+
+  // PT vs RM discrepancy over all FE pairs
+  for (Index i = 0; i < levA_; i++) {
+    for (Index j = 0; j < levB_; j++) {
+      Index jd = j + levA_;
+      double diff = std::abs(J_pert(i, jd) - J_diag(i, jd));
+      diag.pt_rm_discrepancy = std::max(diag.pt_rm_discrepancy, diff);
+    }
+  }
+
+  diag.downfolding_safe = std::isfinite(diag.xi) && (diag.xi < 0.3) &&
+                          (diag.pt_rm_discrepancy < 1e-4);
+
+  return diag;
+}
+
+// =============================================================================
+// ProjectExcitons
+// Top-level driver: orthogonalize CTs, form J_dimer/S_dimer, Lowdin-
+// orthogonalize, run perturbation and reduction methods, compute diagnostics.
+// Raw J_dimer and S_dimer (pre-Lowdin, in Hrt) and diagnostics are returned
+// via output references for storage as member variables.
+// =============================================================================
 template <class BSE_OPERATOR>
 std::array<Eigen::MatrixXd, 2> BSECoupling::ProjectExcitons(
-    Eigen::MatrixXd& FE_AB, Eigen::MatrixXd& CTStates, BSE_OPERATOR H) const {
+    Eigen::MatrixXd& FE_AB, Eigen::MatrixXd& CTStates, BSE_OPERATOR H,
+    Eigen::MatrixXd& J_dimer_out, Eigen::MatrixXd& S_dimer_out,
+    Diagnostics& diag_out) const {
 
   Eigen::MatrixXd projection = OrthogonalizeCTs(FE_AB, CTStates);
-  Eigen::MatrixXd J_ortho = CalcJ_dimer(H, projection);
+  Eigen::MatrixXd J_ortho =
+      CalcJ_dimer(H, projection, J_dimer_out, S_dimer_out);
 
   std::array<Eigen::MatrixXd, 2> J;
-
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << "   Running Perturbation algorithm" << flush;
   J[0] = Perturbation(J_ortho);
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << "    Running Projection algorithm" << flush;
   J[1] = Fulldiag(J_ortho);
+
+  diag_out = ComputeDiagnostics(J_dimer_out, J[0], J[1]);
+
+  XTP_LOG(Log::info, *pLog_)
+      << TimeStamp() << "   Diagnostics: xi=" << diag_out.xi
+      << " PT/RM discrepancy[Hrt]=" << diag_out.pt_rm_discrepancy
+      << " downfolding_safe=" << (diag_out.downfolding_safe ? "true" : "false")
+      << flush;
 
   XTP_LOG(Log::debug, *pLog_)
       << "---------------------------------------" << flush;
@@ -591,6 +828,13 @@ std::array<Eigen::MatrixXd, 2> BSECoupling::ProjectExcitons(
   return J;
 }
 
+// =============================================================================
+// Perturbation
+// First-order perturbation theory correction for CT-mediated coupling.
+// The factor of 0.5 in the correction term comes from the symmetric treatment
+// of corrections |delta Phi_A> and |delta Phi_B> in eq 28 of Wehner/Baumeier
+// JCTC 2017 — each contributes half the total CT-mediated coupling.
+// =============================================================================
 Eigen::MatrixXd BSECoupling::Perturbation(
     const Eigen::MatrixXd& J_dimer) const {
   Index bse_exc = levA_ + levB_;
@@ -607,10 +851,8 @@ Eigen::MatrixXd BSECoupling::Perturbation(
     XTP_LOG(Log::debug, *pLog_) << "FE state hamiltonian" << flush;
     XTP_LOG(Log::debug, *pLog_)
         << J_dimer.topLeftCorner(bse_exc, bse_exc) << flush;
-    if (ct > 0) {
-      XTP_LOG(Log::debug, *pLog_) << "eigenvalues of CT states" << flush;
-      XTP_LOG(Log::debug, *pLog_) << es.eigenvalues().transpose() << flush;
-    }
+    XTP_LOG(Log::debug, *pLog_) << "eigenvalues of CT states" << flush;
+    XTP_LOG(Log::debug, *pLog_) << es.eigenvalues().transpose() << flush;
 
     J_result = transformation.transpose() * J_dimer * transformation;
     XTP_LOG(Log::debug, *pLog_)
@@ -630,7 +872,6 @@ Eigen::MatrixXd BSECoupling::Perturbation(
           << TimeStamp() << "   Calculating coupling between exciton A"
           << stateA + 1 << " and exciton B" << stateB + 1 << flush;
       double J = J_result(stateA, stateBd);
-
       double Eb = J_result(stateBd, stateBd);
       for (Index k = bse_exc; k < (bse_exc + ct); k++) {
         double Eab = J_result(k, k);
@@ -646,8 +887,11 @@ Eigen::MatrixXd BSECoupling::Perturbation(
               << stateB + 1 << "and CT state " << k + 1 << " is " << Eab - Eb
               << "[Hrt]" << flush;
         }
+        // Factor 0.5 from symmetric first-order correction: see eq 28,
+        // Wehner/Baumeier JCTC 2017. Each of |delta Phi_A> and |delta Phi_B>
+        // contributes equally, giving the 1/2 * (1/Delta_A + 1/Delta_B) form.
         J += 0.5 * J_result(k, stateA) * J_result(k, stateBd) *
-             (1 / (Ea - Eab) + 1 / (Eb - Eab));  // Have no clue why 0.5
+             (1.0 / (Ea - Eab) + 1.0 / (Eb - Eab));
       }
       Jmatrix(stateA, stateBd) = J;
       Jmatrix(stateBd, stateA) = J;
@@ -656,6 +900,15 @@ Eigen::MatrixXd BSECoupling::Perturbation(
   return Jmatrix;
 }
 
+// =============================================================================
+// Fulldiag (reduction method)
+// Diagonalizes J_ortho (full FE+CT system), then for each (stateA, stateB)
+// pair independently extracts the two eigenvectors most resembling those
+// states, projects to the 2x2 FE subspace, Lowdin-orthogonalizes, and
+// rotates back to recover the effective coupling. This per-pair 2x2 approach
+// is consistent with the reduction method of Wehner/Baumeier JCTC 2017 and
+// is robust at CT/FE near-resonance where perturbation theory diverges.
+// =============================================================================
 Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
   Index bse_exc = levA_ + levB_;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(J_dimer);
@@ -667,11 +920,10 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
   XTP_LOG(Log::debug, *pLog_) << es.eigenvalues() << flush;
   XTP_LOG(Log::debug, *pLog_)
       << "---------------------------------------" << flush;
+
   Eigen::MatrixXd Jmat = Eigen::MatrixXd::Zero(bse_exc, bse_exc);
-  // Calculate projection on subspace for every pair of excitons separately
   for (Index stateA = 0; stateA < levA_; stateA++) {
     for (Index stateB = 0; stateB < levB_; stateB++) {
-
       Index stateBd = stateB + levA_;
       XTP_LOG(Log::info, *pLog_)
           << TimeStamp() << "   Calculating coupling between exciton A"
@@ -680,11 +932,11 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
       std::array<int, 2> indexes;
       std::array<int, 2> signs;
 
-      // Find the eigenstate state, which in an L2 is closed to A or B
-      // respectively
+      // Find the eigenstates closest to stateA and stateBd by maximum overlap
       es.eigenvectors().row(stateA).cwiseAbs().maxCoeff(&indexes[0]);
       es.eigenvectors().row(stateBd).cwiseAbs().maxCoeff(&indexes[1]);
       if (indexes[0] == indexes[1]) {
+        // same eigenvector selected for both: pick next best for stateBd
         Eigen::RowVectorXd stateamplitudes =
             es.eigenvectors().row(stateBd).cwiseAbs();
         stateamplitudes[indexes[1]] = 0.0;
@@ -702,12 +954,10 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
       XTP_LOG(Log::info, *pLog_) << "    B" << stateB + 1 << ":" << stateBd + 1
                                  << "->" << indexes[1] + 1 << " " << flush;
 
-      // setting up transformation matrix Tmat and diagonal matrix Emat for the
-      // eigenvalues;
+      // Build 2x2 transformation matrix from the two selected eigenvectors
+      // (rows stateA and stateBd only) and diagonal eigenvalue matrix
       Eigen::Matrix2d Emat = Eigen::Matrix2d::Zero();
       Eigen::Matrix2d Tmat = Eigen::Matrix2d::Zero();
-      // find the eigenvectors which are most similar to the initial states
-      // row
       for (Index i = 0; i < 2; i++) {
         Index k = indexes[i];
         double sign = signs[i];
@@ -730,11 +980,10 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
       XTP_LOG(Log::debug, *pLog_) << " T_" << flush;
       XTP_LOG(Log::debug, *pLog_) << Tmat << flush;
 
+      // Lowdin orthogonalize the 2x2 projected subspace
       Eigen::Matrix2d S_small = Tmat * Tmat.transpose();
-
       XTP_LOG(Log::debug, *pLog_) << "S_small" << flush;
       XTP_LOG(Log::debug, *pLog_) << S_small << flush;
-      // orthogonalize that matrix
 
       Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> ss(S_small);
       Eigen::Matrix2d sm1 = ss.operatorInverseSqrt();
@@ -743,19 +992,18 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
       XTP_LOG(Log::info, *pLog_)
           << TimeStamp() << "   Smallest value of dimer overlapmatrix is "
           << ss.eigenvalues()(0) << flush;
-
       XTP_LOG(Log::debug, *pLog_) << "S-1/2" << flush;
       XTP_LOG(Log::debug, *pLog_) << sm1 << flush;
       XTP_LOG(Log::debug, *pLog_) << "E_ortho" << flush;
       XTP_LOG(Log::debug, *pLog_) << Emat << flush;
 
       Tmat = Tmat * sm1;
-
       XTP_LOG(Log::debug, *pLog_) << "T_ortho" << flush;
       XTP_LOG(Log::debug, *pLog_) << Tmat << flush;
       XTP_LOG(Log::debug, *pLog_)
           << "---------------------------------------" << flush;
 
+      // H_eff = T * E * T^T; off-diagonal is the effective coupling
       Eigen::Matrix2d J_small = Tmat * Emat * Tmat.transpose();
       XTP_LOG(Log::debug, *pLog_) << "T_ortho*E_ortho*T_ortho^T" << flush;
       XTP_LOG(Log::debug, *pLog_) << J_small << flush;
@@ -764,7 +1012,6 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
       Jmat(stateBd, stateA) = J_small(1, 0);
     }
   }
-
   return Jmat;
 }
 
