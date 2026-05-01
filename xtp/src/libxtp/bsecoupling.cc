@@ -59,6 +59,15 @@ void BSECoupling::Initialize(Property& options) {
   // output in KMC/rate workflows that only need scalar couplings.
   output_tb_ =
       options.ifExistsReturnElseReturnDefault<bool>("output_tb", false);
+  output_tb_sf_ =
+      options.ifExistsReturnElseReturnDefault<bool>("output_tb_sf", false);
+  if (output_tb_sf_ && !output_tb_) {
+    throw std::runtime_error("output_tb_sf requires output_tb=true");
+  }
+  if (output_tb_sf_ && !(doSinglets_ && doTriplets_)) {
+    throw std::runtime_error(
+        "output_tb_sf requires spin=all (both singlets and triplets)");
+  }
 
   levA_ = options.get("moleculeA.states").as<Index>();
   levB_ = options.get("moleculeB.states").as<Index>();
@@ -235,6 +244,26 @@ void BSECoupling::Addoutput(Property& type_summary, const Orbitals& orbitalsA,
         }
       }
     }  // output_tb_
+
+    // SF amplitude output: written inside output_tb_ guard, singlet channel only.
+    // Stores the T1 eigenvector sub-block for the CT window and T1 energies.
+    // Size is (occA*unoccA + occB*unoccB) floats — negligible in the XML.
+    if (output_tb_sf_ && spin_type == QMStateType::Singlet) {
+      Property& sf_prop = spin_summary.add("tb_sf_amplitudes", "");
+      sf_prop.setAttribute("n_occA",   occA_);
+      sf_prop.setAttribute("n_unoccA", unoccA_);
+      sf_prop.setAttribute("n_occB",   occB_);
+      sf_prop.setAttribute("n_unoccB", unoccB_);
+      sf_prop.setAttribute(
+          "triplet_energy_A_eV",
+          (format("%1$1.6e") % triplet_energy_A_eV_).str());
+      sf_prop.setAttribute(
+          "triplet_energy_B_eV",
+          (format("%1$1.6e") % triplet_energy_B_eV_).str());
+      // Row i = HOMO-i, col a = LUMO+a  (matches SetupCTStates ordering)
+      WriteMatrixToProperty(sf_prop, "X_T_A", triplet_amplitudes_A_);
+      WriteMatrixToProperty(sf_prop, "X_T_B", triplet_amplitudes_B_);
+    }
   };
 
   if (doSinglets_) {
@@ -615,6 +644,20 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
                         J_dimer_triplet_, S_dimer_triplet_, diag_triplet_);
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << "   calculated triplet couplings " << flush;
+  }
+  if (output_tb_sf_) {
+    triplet_amplitudes_A_ =
+        ExtractTripletAmplitudes(orbitalsA, occA_, unoccA_);
+    triplet_amplitudes_B_ =
+        ExtractTripletAmplitudes(orbitalsB, occB_, unoccB_);
+    triplet_energy_A_eV_ =
+        orbitalsA.BSETriplets().eigenvalues()(0) * votca::tools::conv::hrt2ev;
+    triplet_energy_B_eV_ =
+        orbitalsB.BSETriplets().eigenvalues()(0) * votca::tools::conv::hrt2ev;
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << "   Extracted T1 amplitudes for SF: "
+        << occA_ << "x" << unoccA_ << " (A), " << occB_ << "x" << unoccB_
+        << " (B)" << flush;
   }
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << "  Done with exciton couplings" << flush;
@@ -1013,6 +1056,58 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
     }
   }
   return Jmat;
+}
+
+// =============================================================================
+// ExtractTripletAmplitudes
+// Extract the CT-window sub-block of the T1 BSE eigenvector for monomer X.
+//
+// BSE eigenvectors are stored as flat vectors of length bse_vtotal*bse_ctotal
+// in vc2index order: I = bse_ctotal * v + c, where v indexes occupied levels
+// (0 = lowest, bse_vtotal-1 = HOMO) and c indexes virtual levels (0 = LUMO).
+//
+// We return a matrix of shape (n_occ, n_unocc):
+//   row 0 = HOMO,   row 1 = HOMO-1,  ...
+//   col 0 = LUMO,   col 1 = LUMO+1,  ...
+// This matches the CT state ordering used by SetupCTStates (a_occ=0 is the
+// HOMO end of occA_, b_unocc=0 is the LUMO end of unoccB_).
+// =============================================================================
+Eigen::MatrixXd BSECoupling::ExtractTripletAmplitudes(const Orbitals& orbitalsX,
+                                                      Index n_occ,
+                                                      Index n_unocc) {
+  if (!orbitalsX.hasBSETriplets()) {
+    throw std::runtime_error(
+        "ExtractTripletAmplitudes: no triplet BSE eigenvectors in Orbitals. "
+        "Run monomer calculations with triplet BSE enabled.");
+  }
+
+  // T1 eigenvector is the first column
+  const Eigen::VectorXd& evec =
+      orbitalsX.BSETriplets().eigenvectors().col(0);
+
+  Index bse_vtotal =
+      orbitalsX.getBSEvmax() - orbitalsX.getBSEvmin() + 1;
+  Index bse_ctotal =
+      orbitalsX.getBSEcmax() - orbitalsX.getBSEcmin() + 1;
+
+  if (evec.size() != bse_vtotal * bse_ctotal) {
+    throw std::runtime_error(
+        "ExtractTripletAmplitudes: eigenvector size mismatch with BSE window");
+  }
+  if (n_occ > bse_vtotal || n_unocc > bse_ctotal) {
+    throw std::runtime_error(
+        "ExtractTripletAmplitudes: CT window exceeds BSE orbital window");
+  }
+
+  Eigen::MatrixXd result(n_occ, n_unocc);
+  for (Index i = 0; i < n_occ; i++) {
+    Index v = bse_vtotal - 1 - i;   // HOMO-i
+    for (Index a = 0; a < n_unocc; a++) {
+      Index c = a;                  // LUMO+a
+      result(i, a) = evec(bse_ctotal * v + c);
+    }
+  }
+  return result;
 }
 
 }  // namespace xtp

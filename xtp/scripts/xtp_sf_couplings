@@ -1,0 +1,516 @@
+#!/usr/bin/env python3
+"""
+xtp_sf_couplings
+================
+Compute singlet-fission effective couplings J_SF_eff for each dimer pair
+in an iqm_out.xml file.
+
+For each pair the tool reads:
+  - From <bsecoupling><singlet><tb_matrices>:
+      H_FE_CT  (FE-CT coupling block, eV)
+      H_CT_CT  (CT diagonal, eV)
+      H_FE_FE  (FE diagonal, eV — used for E_S1)
+  - From <bsecoupling><singlet><tb_sf_amplitudes>:
+      X_T_A    (triplet BSE amplitudes for monomer A, CT window)
+      X_T_B    (triplet BSE amplitudes for monomer B, CT window)
+      triplet_energy_A_eV
+      triplet_energy_B_eV
+  - From <dftcoupling><electron><tb_matrices>:
+      H_AB     (electron transfer integrals, eV)  — LUMO–LUMO block
+  - From <dftcoupling><hole><tb_matrices>:
+      H_AB     (hole transfer integrals, eV)      — HOMO–HOMO block
+
+Physical conventions
+--------------------
+CT basis ordering (matches SetupCTStates in bsecoupling.cc):
+  First  n_CT_AB = occA * unoccB  columns: A+B- states (hole on A, electron on B)
+                                           index = a_occ * unoccB + b_unocc
+  Next   n_CT_BA = unoccA * occB  columns: A-B+ states (hole on B, electron on A)
+                                           index = b_occ * unoccA + a_unocc
+
+Triplet amplitude matrix X_T_X shape (n_occ, n_unocc):
+  row i = HOMO-i  (i=0 is HOMO)
+  col a = LUMO+a  (a=0 is LUMO)
+
+The CT-TT coupling for CT state |i_A -> a_B> (A+B- channel) is:
+  J_{CT+,TT} = (1/sqrt(6)) * X_T_A[i, L_A] * t_LL'[L_A, a_B] * X_T_B[j, a_B]
+             = (1/sqrt(6)) * (sum over CT-window) X_T_A[i,a] * t_e[a, b] * X_T_B[j,b]
+where t_e is the electron (LUMO-LUMO block) transfer integral matrix.
+
+For CT state |i_B -> a_A> (A-B+ channel):
+  J_{CT-,TT} = (1/sqrt(6)) * X_T_B[j, L_B] * t_HH'[i_A, j_B] * X_T_A[i, a_A]
+             = (1/sqrt(6)) * X_T_B[j,b] * t_h[i, j] * X_T_A[i, a]
+
+Superexchange effective coupling:
+  J_SF_eff = sum_alpha  J_FE,CT_alpha * J_CT_alpha,TT / (E_avg - E_CT_alpha)
+
+where E_avg = (E_S1 + E_TT) / 2,  E_TT = E_T1_A + E_T1_B.
+
+Units: all energies in eV, couplings in eV.
+"""
+
+import argparse
+import sys
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+import numpy as np
+
+
+# ---------------------------------------------------------------------------
+# XML matrix reader  (matches WriteMatrixToProperty in bsecoupling.cc)
+# ---------------------------------------------------------------------------
+
+def read_matrix(node, name):
+    """Read a matrix written by WriteMatrixToProperty from an XML node."""
+    mat_node = node.find(name)
+    if mat_node is None:
+        raise KeyError(f"Matrix node '{name}' not found under <{node.tag}>")
+    rows = int(mat_node.get("rows"))
+    cols = int(mat_node.get("cols"))
+    data = np.zeros((rows, cols))
+    for i in range(rows):
+        vals = mat_node.get(f"row_{i}").split()
+        if len(vals) != cols:
+            raise ValueError(
+                f"Matrix '{name}' row {i}: expected {cols} values, got {len(vals)}"
+            )
+        data[i, :] = [float(v) for v in vals]
+    return data
+
+
+# ---------------------------------------------------------------------------
+# Parse one job node
+# ---------------------------------------------------------------------------
+
+def parse_job(job_node):
+    """
+    Extract all quantities needed for J_SF_eff from a single <job> node.
+
+    Returns a dict with keys:
+      job_id, n_occA, n_unoccA, n_occB, n_unoccB,
+      H_FE_CT,    # shape (n_FE, n_CT), eV
+      H_CT_diag,  # shape (n_CT,), diagonal of H_CT_CT, eV
+      E_S1_A,     # float, eV  — H_FE_FE[0,0] diagonal (site energy of FE_A)
+      E_S1_B,     # float, eV  — H_FE_FE[levA, levA]
+      X_T_A,      # shape (n_occA, n_unoccA)
+      X_T_B,      # shape (n_occB, n_unoccB)
+      E_T1_A,     # float, eV
+      E_T1_B,     # float, eV
+      t_electron, # shape (n_unoccA, n_unoccB), eV   H_AB from electron channel
+      t_hole,     # shape (n_occA, n_occB), eV       H_AB from hole channel
+    or None if the job is missing required data.
+    """
+    job_id = job_node.findtext("id", default="?")
+    output = job_node.find("output")
+    if output is None:
+        return None
+
+    # ---- bsecoupling singlet ----
+    bsec = output.find("bsecoupling")
+    if bsec is None:
+        return None
+    singlet = bsec.find("singlet")
+    if singlet is None:
+        return None
+
+    tb_mat = singlet.find("tb_matrices")
+    if tb_mat is None:
+        raise RuntimeError(
+            f"Job {job_id}: <tb_matrices> missing from bsecoupling singlet. "
+            "Re-run bsecoupling with output_tb=true."
+        )
+
+    tb_sf = singlet.find("tb_sf_amplitudes")
+    if tb_sf is None:
+        raise RuntimeError(
+            f"Job {job_id}: <tb_sf_amplitudes> missing from bsecoupling singlet. "
+            "Re-run bsecoupling with output_tb_sf=true and spin=all."
+        )
+
+    n_FE = int(tb_mat.get("n_FE"))
+    n_CT = int(tb_mat.get("n_CT"))
+    n_occA = int(tb_mat.get("n_occA"))
+    n_unoccA = int(tb_mat.get("n_unoccA"))
+    n_occB = int(tb_mat.get("n_occB"))
+    n_unoccB = int(tb_mat.get("n_unoccB"))
+
+    H_FE_FE = read_matrix(tb_mat, "H_FE_FE")   # (n_FE, n_FE)
+    H_FE_CT = read_matrix(tb_mat, "H_FE_CT")   # (n_FE, n_CT)
+    H_CT_CT = read_matrix(tb_mat, "H_CT_CT")   # (n_CT, n_CT)
+
+    # Site energies: diagonal of H_FE_FE
+    # levA = n_FE // 2 in the symmetric case; we read directly from the
+    # tb_sf_amplitudes node which knows n_occA (used as a proxy).
+    # For a single FE state per monomer (the common case levA=levB=1):
+    #   H_FE_FE[0,0] = E_FE_A,  H_FE_FE[1,1] = E_FE_B.
+    # More generally the FE block has levA states for A followed by levB for B.
+    # We use the mean diagonal of the A and B blocks as representative S1
+    # energies (consistent with how the assembler uses monomer_energies).
+    levA = n_FE // 2   # exact when levA == levB; otherwise user should check
+    E_S1_A = float(np.mean(np.diag(H_FE_FE)[:levA]))
+    E_S1_B = float(np.mean(np.diag(H_FE_FE)[levA:]))
+
+    # Triplet amplitudes and energies
+    n_occA_sf  = int(tb_sf.get("n_occA"))
+    n_unoccA_sf = int(tb_sf.get("n_unoccA"))
+    n_occB_sf  = int(tb_sf.get("n_occB"))
+    n_unoccB_sf = int(tb_sf.get("n_unoccB"))
+
+    if (n_occA_sf != n_occA or n_unoccA_sf != n_unoccA or
+            n_occB_sf != n_occB or n_unoccB_sf != n_unoccB):
+        raise RuntimeError(
+            f"Job {job_id}: CT window mismatch between tb_matrices "
+            f"({n_occA}x{n_unoccA} / {n_occB}x{n_unoccB}) and "
+            f"tb_sf_amplitudes ({n_occA_sf}x{n_unoccA_sf} / "
+            f"{n_occB_sf}x{n_unoccB_sf})."
+        )
+
+    X_T_A = read_matrix(tb_sf, "X_T_A")   # (n_occA, n_unoccA)
+    X_T_B = read_matrix(tb_sf, "X_T_B")   # (n_occB, n_unoccB)
+    E_T1_A = float(tb_sf.get("triplet_energy_A_eV"))
+    E_T1_B = float(tb_sf.get("triplet_energy_B_eV"))
+
+    # ---- dftcoupling electron channel (LUMO-LUMO transfer integrals) ----
+    dftc = output.find("dftcoupling")
+    if dftc is None:
+        raise RuntimeError(
+            f"Job {job_id}: <dftcoupling> missing. "
+            "Re-run dftcoupling with output_tb=true."
+        )
+
+    electron = dftc.find("electron")
+    hole     = dftc.find("hole")
+    if electron is None or hole is None:
+        raise RuntimeError(
+            f"Job {job_id}: dftcoupling missing electron or hole channel."
+        )
+
+    tb_e = electron.find("tb_matrices")
+    tb_h = hole.find("tb_matrices")
+    if tb_e is None or tb_h is None:
+        raise RuntimeError(
+            f"Job {job_id}: dftcoupling tb_matrices missing. "
+            "Re-run dftcoupling with output_tb=true."
+        )
+
+    # H_AB in dftcoupling is the inter-monomer transfer integral matrix.
+    # For the electron channel it spans the unoccupied (virtual) levels:
+    #   shape (n_unoccA, n_unoccB)
+    # For the hole channel it spans the occupied levels:
+    #   shape (n_occA, n_occB)
+    t_electron = read_matrix(tb_e, "H_AB")   # (n_unoccA, n_unoccB)
+    t_hole     = read_matrix(tb_h, "H_AB")   # (n_occA,   n_occB)
+
+    # Dimension consistency check
+    if t_electron.shape != (n_unoccA, n_unoccB):
+        raise RuntimeError(
+            f"Job {job_id}: t_electron shape {t_electron.shape} != "
+            f"({n_unoccA}, {n_unoccB}). Check dftcoupling orbital window."
+        )
+    if t_hole.shape != (n_occA, n_occB):
+        raise RuntimeError(
+            f"Job {job_id}: t_hole shape {t_hole.shape} != "
+            f"({n_occA}, {n_occB}). Check dftcoupling orbital window."
+        )
+
+    return dict(
+        job_id=job_id,
+        n_occA=n_occA, n_unoccA=n_unoccA,
+        n_occB=n_occB, n_unoccB=n_unoccB,
+        n_FE=n_FE, n_CT=n_CT,
+        H_FE_CT=H_FE_CT,
+        H_CT_diag=np.diag(H_CT_CT),
+        E_S1_A=E_S1_A, E_S1_B=E_S1_B,
+        X_T_A=X_T_A, X_T_B=X_T_B,
+        E_T1_A=E_T1_A, E_T1_B=E_T1_B,
+        t_electron=t_electron,
+        t_hole=t_hole,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Core coupling computation
+# ---------------------------------------------------------------------------
+
+def compute_sf_couplings(d, verbose=False):
+    """
+    Compute J_SF_eff for one pair given the parsed data dict.
+
+    Returns a dict with:
+      J_SF_eff_eV         total effective SF coupling (eV)
+      J_direct_eV         direct two-electron contribution (always 0 here)
+      J_super_AB_eV       superexchange via A+B- CT channel (eV)
+      J_super_BA_eV       superexchange via A-B+ CT channel (eV)
+      E_TT_eV             E_T1_A + E_T1_B (eV)
+      E_avg_eV            (E_S1 + E_TT) / 2 (eV)
+      xi_TT               max |J_FE,CT * J_CT,TT| / (E_avg - E_CT)^2  (diagnostic)
+    """
+    n_occA   = d["n_occA"]
+    n_unoccA = d["n_unoccA"]
+    n_occB   = d["n_occB"]
+    n_unoccB = d["n_unoccB"]
+
+    H_FE_CT   = d["H_FE_CT"]    # (n_FE, n_CT)
+    H_CT_diag = d["H_CT_diag"]  # (n_CT,)
+    X_T_A     = d["X_T_A"]      # (n_occA, n_unoccA)
+    X_T_B     = d["X_T_B"]      # (n_occB, n_unoccB)
+    t_e       = d["t_electron"]  # (n_unoccA, n_unoccB)
+    t_h       = d["t_hole"]      # (n_occA, n_occB)
+
+    E_T1_A = d["E_T1_A"]
+    E_T1_B = d["E_T1_B"]
+    E_TT   = E_T1_A + E_T1_B
+
+    # Representative S1 energy: mean of the two monomer values
+    E_S1 = 0.5 * (d["E_S1_A"] + d["E_S1_B"])
+    E_avg = 0.5 * (E_S1 + E_TT)
+
+    # ------------------------------------------------------------------
+    # Build J_CT,TT vector: one scalar per CT state
+    #
+    # CT state ordering (matches SetupCTStates):
+    #   columns 0 .. n_CT_AB-1  : A+B- states
+    #     index = a_occ * n_unoccB + b_unocc
+    #     a_occ in [0, n_occA),   b_unocc in [0, n_unoccB)
+    #     a_occ=0 -> HOMO of A;  b_unocc=0 -> LUMO of B
+    #
+    #   columns n_CT_AB .. n_CT-1 : A-B+ states
+    #     index = b_occ * n_unoccA + a_unocc  (offset by n_CT_AB)
+    #     b_occ in [0, n_occB),   a_unocc in [0, n_unoccA)
+    #
+    # CT-TT coupling (derivation in project knowledge):
+    #
+    #   A+B- channel (hole on A, electron on B):
+    #     The TT state is formed by electron on L_B hopping back to L_A.
+    #     J_{i_A->a_B, TT} = (1/sqrt(6))
+    #                       * sum_a' X_T_A[i, a'] * t_e[a', a_B]
+    #                       * sum_j' X_T_B[j', a_B-index] * delta_{j',i_B}
+    #
+    #     In the single-transition approximation this simplifies to:
+    #       J = (1/sqrt(6)) * (X_T_A[i,:] @ t_e)[:,a_B] * X_T_B norm
+    #
+    #     In the full CT-window picture:
+    #       For CT state alpha = (i_A=i, b_unocc=b):
+    #         J_{alpha,TT} = (1/sqrt(6))
+    #                       * (sum_{a} X_T_A[i,a] * t_e[a, b])
+    #                       * (sum_{b'} X_T_B[:, b'].sum() ... )
+    #
+    #     More carefully: the TT state has both A and B triplet-excited.
+    #     The CT->TT one-electron step is:
+    #       electron on b_B hops to any virtual a_A, completing T_A excitation.
+    #     So:
+    #       J_{(i,b),TT}^{A+B-} = (1/sqrt(6))
+    #                             * [sum_a X_T_A[i,a] * t_e[a,b]]
+    #                             * [sum_j X_T_B[j,b]]
+    #     where sum_j X_T_B[j,b] is the column sum of X_T_B for virtual b.
+    #
+    #   A-B+ channel (hole on B, electron on A):
+    #     By symmetry, hole on j_B hops to any occupied k_B:
+    #       J_{(b,i),TT}^{A-B+} = (1/sqrt(6))
+    #                             * [sum_j X_T_B[j,b] * t_h[i,j]]   (wrong)
+    #     Correct: the electron on a_A hops via t_h (hole integral = occupied
+    #     transfer) to complete T_B.  The relevant one-electron step for A-B+:
+    #     hole on j_B hops from j_B to any occupied k_A, completing T_B.
+    #       J_{(j,a),TT}^{A-B+} = (1/sqrt(6))
+    #                             * [sum_b X_T_B[j,b]]             (unocc norm)
+    #                             * [sum_i X_T_A[i,a] * t_h[i,j]]
+    # ------------------------------------------------------------------
+
+    n_CT_AB = n_occA * n_unoccB
+    n_CT_BA = n_occB * n_unoccA
+    assert n_CT_AB + n_CT_BA == len(H_CT_diag), (
+        f"CT count mismatch: {n_CT_AB}+{n_CT_BA} != {len(H_CT_diag)}"
+    )
+
+    prefactor = 1.0 / np.sqrt(6.0)
+
+    J_CT_TT = np.zeros(n_CT_AB + n_CT_BA)
+
+    # --- A+B- block ---
+    # X_T_A @ t_e  has shape (n_occA, n_unoccB):
+    #   entry [i, b] = sum_a X_T_A[i,a] * t_e[a,b]
+    #                = amplitude for electron on b_B to hop into T_A excitation
+    XTA_te = X_T_A @ t_e          # (n_occA, n_unoccB)
+
+    # Column sums of X_T_B: sum_j X_T_B[j, b] for each b
+    XTB_col_sum = X_T_B.sum(axis=0)   # (n_unoccB,)
+
+    for i in range(n_occA):
+        for b in range(n_unoccB):
+            idx = i * n_unoccB + b
+            J_CT_TT[idx] = prefactor * XTA_te[i, b] * XTB_col_sum[b]
+
+    # --- A-B+ block ---
+    # X_T_B @ t_h.T  has shape (n_occB, n_occA):
+    #   entry [j, i] = sum_b X_T_B[j,b] * ... no — hole channel:
+    # t_h[i,j] = transfer integral between occ i on A and occ j on B.
+    # sum_i X_T_A[i,a] * t_h[i,j]  = (X_T_A.T @ t_h)[a, j]  — shape (n_unoccA, n_occB)
+    XTA_T = X_T_A.T                 # (n_unoccA, n_occA)
+    XTA_th = X_T_A.T @ t_h         # (n_unoccA, n_occB): [a,j] = sum_i X_T_A[i,a]*t_h[i,j]
+
+    # Row sums of X_T_B: sum_b X_T_B[j,b] for each j
+    XTB_row_sum = X_T_B.sum(axis=1)   # (n_occB,)
+
+    for j in range(n_occB):
+        for a in range(n_unoccA):
+            idx = n_CT_AB + j * n_unoccA + a
+            J_CT_TT[idx] = prefactor * XTB_row_sum[j] * XTA_th[a, j]
+
+    # ------------------------------------------------------------------
+    # Superexchange sum
+    #   J_SF_eff = sum_alpha J_FE,CT_alpha * J_CT_alpha,TT / (E_avg - E_CT_alpha)
+    #
+    # H_FE_CT has shape (n_FE, n_CT). We sum over the FE index (use the
+    # first FE state as the primary singlet; for levA=levB=1 this is exact).
+    # For multiple FE states one should use the dominant S1 eigenvector —
+    # here we take the first FE state (index 0, = FE_A) as representative.
+    # ------------------------------------------------------------------
+
+    E_denom = E_avg - H_CT_diag    # (n_CT,)
+
+    # Guard against near-resonant denominators
+    resonance_threshold = 0.05    # eV
+    near_resonant = np.abs(E_denom) < resonance_threshold
+    if np.any(near_resonant):
+        n_res = np.sum(near_resonant)
+        print(f"  WARNING: {n_res} CT state(s) within {resonance_threshold} eV "
+              f"of E_avg — superexchange denominators small, result unreliable.",
+              file=sys.stderr)
+
+    # Avoid division by zero: set near-resonant denominators to inf
+    safe_denom = np.where(near_resonant, np.inf, E_denom)
+
+    # Use FE state 0 (FE_A) as the reference singlet
+    J_FE0_CT = H_FE_CT[0, :]       # (n_CT,)
+
+    superexchange_terms = J_FE0_CT * J_CT_TT / safe_denom  # (n_CT,)
+
+    # Split by channel for diagnostics
+    J_super_AB = np.sum(superexchange_terms[:n_CT_AB])
+    J_super_BA = np.sum(superexchange_terms[n_CT_AB:])
+    J_SF_eff   = J_super_AB + J_super_BA    # direct term = 0 at this level
+
+    # Diagnostic: max perturbation parameter for TT coupling
+    numerators = np.abs(J_FE0_CT * J_CT_TT)
+    xi_TT = float(np.max(numerators / np.maximum(safe_denom**2, 1e-30)))
+
+    return dict(
+        J_SF_eff_eV=float(J_SF_eff),
+        J_direct_eV=0.0,
+        J_super_AB_eV=float(J_super_AB),
+        J_super_BA_eV=float(J_super_BA),
+        E_TT_eV=float(E_TT),
+        E_S1_eV=float(E_S1),
+        E_avg_eV=float(E_avg),
+        E_T1_A_eV=float(E_T1_A),
+        E_T1_B_eV=float(E_T1_B),
+        xi_TT=xi_TT,
+        J_CT_TT=J_CT_TT,
+        superexchange_terms=superexchange_terms,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Output formatting
+# ---------------------------------------------------------------------------
+
+def print_pair_summary(job_id, res, verbose=False):
+    print(f"\nJob {job_id}")
+    print(f"  E_T1_A = {res['E_T1_A_eV']:.4f} eV,  "
+          f"E_T1_B = {res['E_T1_B_eV']:.4f} eV")
+    print(f"  E_TT   = {res['E_TT_eV']:.4f} eV,  "
+          f"E_S1   = {res['E_S1_eV']:.4f} eV")
+    print(f"  E_avg  = {res['E_avg_eV']:.4f} eV  "
+          f"(driving force dE = {res['E_S1_eV'] - res['E_TT_eV']:+.4f} eV)")
+    print(f"  J_super(A+B-) = {res['J_super_AB_eV']*1000:.4f} meV")
+    print(f"  J_super(A-B+) = {res['J_super_BA_eV']*1000:.4f} meV")
+    print(f"  J_SF_eff      = {res['J_SF_eff_eV']*1000:.4f} meV")
+    print(f"  xi_TT (diagnostic) = {res['xi_TT']:.4f}")
+
+    if verbose:
+        print(f"\n  CT-TT coupling vector (meV):")
+        jct = res["J_CT_TT"] * 1000
+        se  = res["superexchange_terms"] * 1000
+        for k, (jk, sk) in enumerate(zip(jct, se)):
+            if abs(jk) > 1e-6:
+                print(f"    CT[{k:3d}]: J_CT,TT={jk:+8.4f} meV  "
+                      f"superexchange term={sk:+8.4f} meV")
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Compute singlet-fission effective couplings from iqm_out.xml"
+    )
+    parser.add_argument("--input", "-i", required=True,
+                        help="Path to iqm_out.xml")
+    parser.add_argument("--output", "-o", default=None,
+                        help="Optional output XML file for J_SF_eff values")
+    parser.add_argument("--verbose", "-v", action="store_true",
+                        help="Print CT-TT coupling details per pair")
+    args = parser.parse_args()
+
+    xml_path = Path(args.input)
+    if not xml_path.exists():
+        print(f"Error: {xml_path} not found", file=sys.stderr)
+        sys.exit(1)
+
+    tree = ET.parse(xml_path)
+    root = tree.getroot()
+
+    jobs = root.findall("job") if root.tag != "job" else [root]
+
+    results = {}
+    errors  = []
+
+    for job_node in jobs:
+        status = job_node.findtext("status", default="")
+        if status != "COMPLETE":
+            continue
+        job_id = job_node.findtext("id", default="?")
+        try:
+            d = parse_job(job_node)
+            if d is None:
+                continue
+            res = compute_sf_couplings(d, verbose=args.verbose)
+            results[job_id] = res
+            print_pair_summary(job_id, res, verbose=args.verbose)
+        except (RuntimeError, KeyError, ValueError) as exc:
+            errors.append((job_id, str(exc)))
+            print(f"\nJob {job_id}: SKIPPED — {exc}", file=sys.stderr)
+
+    print(f"\n{'='*60}")
+    print(f"Processed {len(results)} pairs, skipped {len(errors)}.")
+
+    if args.output:
+        _write_output_xml(args.output, results)
+        print(f"Results written to {args.output}")
+
+    if errors:
+        sys.exit(1)
+
+
+def _write_output_xml(path, results):
+    """Write J_SF_eff results to a compact XML file."""
+    import xml.etree.ElementTree as ET
+    root = ET.Element("sf_couplings")
+    for job_id, res in results.items():
+        job_el = ET.SubElement(root, "pair")
+        job_el.set("job_id", str(job_id))
+        job_el.set("J_SF_eff_eV",    f"{res['J_SF_eff_eV']:.6e}")
+        job_el.set("J_super_AB_eV",  f"{res['J_super_AB_eV']:.6e}")
+        job_el.set("J_super_BA_eV",  f"{res['J_super_BA_eV']:.6e}")
+        job_el.set("E_TT_eV",        f"{res['E_TT_eV']:.6e}")
+        job_el.set("E_S1_eV",        f"{res['E_S1_eV']:.6e}")
+        job_el.set("xi_TT",          f"{res['xi_TT']:.4f}")
+    tree = ET.ElementTree(root)
+    ET.indent(tree, space="  ")
+    tree.write(path, encoding="unicode", xml_declaration=False)
+
+
+if __name__ == "__main__":
+    main()

@@ -211,12 +211,32 @@ class BSECoupling : public CouplingBase {
   // dipoles, diagnostics, and raw H/S matrices. Default false for compact
   // output in KMC/rate workflows that only need scalar couplings.
   bool output_tb_ = false;
+  // When true (requires output_tb_=true and spin=all), extract the T1 BSE
+  // eigenvector components for the CT orbital window from each monomer and
+  // write them to the XML alongside the T1 energies. Used by xtp_sf_couplings
+  // to compute CT-TT couplings without storing full eigenvectors.
+  bool output_tb_sf_ = false;
+
+  // Triplet BSE eigenvector sub-block restricted to the CT orbital window.
+  // Shape: (occA_, unoccA_) and (occB_, unoccB_). Row 0 = HOMO, col 0 = LUMO.
+  // Only populated when output_tb_sf_ = true.
+  Eigen::MatrixXd triplet_amplitudes_A_;
+  Eigen::MatrixXd triplet_amplitudes_B_;
+  double triplet_energy_A_eV_ = 0.0;
+  double triplet_energy_B_eV_ = 0.0;
+
   Index levA_;
   Index levB_;
   Index occA_;
   Index unoccA_;
   Index occB_;
   Index unoccB_;
+
+  // Extract the (n_occ x n_unocc) sub-block of the T1 BSE eigenvector for
+  // monomer X using the vc2index convention of the BSE: row 0 = HOMO,
+  // col 0 = LUMO, matching the CT state ordering in SetupCTStates.
+  static Eigen::MatrixXd ExtractTripletAmplitudes(const Orbitals& orbitalsX,
+                                                  Index n_occ, Index n_unocc);
 };
 
 }  // namespace xtp
