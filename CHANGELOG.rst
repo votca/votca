@@ -12,6 +12,7 @@ Version 2026-dev
 -  implemented smarter grid search in QP solver (#1236)
 -  raw J storage in statefile  (#1237)
 -  Add DFT/GW-BSE Tight-Binding Hamiltonian calculator (#1238)
+-  fix xtp_binds test timeout (#1239, #1240)
 
 Version 2026 (released 09.03.26)
 ================================
