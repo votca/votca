@@ -68,7 +68,6 @@ class TestXTP:
         new_atoms = xtp.read_atoms('CO.orb')
         if(CO.calc.results['energy'] != new_atoms.calc.results['energy']):
             raise AssertionError("Error in test_get_total_energy")
-    
         for name in CO.calc.implemented_properties:
             if name not in ["forces", "oscillator_strength"]:
                 if CO.calc.get_total_energy(name, level=1, dynamic = False) == None:
