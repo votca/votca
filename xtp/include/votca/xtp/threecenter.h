@@ -23,7 +23,9 @@
 
 // Local VOTCA includes
 #include "aobasis.h"
+#include "classicalsegment.h"
 #include "eigen.h"
+#include "qmmolecule.h"
 #include "symmetric_matrix.h"
 
 /**
@@ -94,6 +96,17 @@ class TCMatrix_gwbse final : public TCMatrix {
 
   void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
             const Eigen::MatrixXd& dft_orbitals);
+
+  // Overload that additionally computes and adds the MM reaction-field
+  // correction to the 2-centre Coulomb matrix before forming V^{-1/2}.
+  // polar_segs must contain Thole-parametrised PolarSites; their
+  // induced-dipole fields are used as scratch and are reset on return.
+  // grid_quality is passed to Vxc_Grid::GridSetup; "xfine" is recommended.
+  void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
+            const Eigen::MatrixXd& dft_orbitals, const QMMolecule& qmatoms,
+            std::vector<PolarSegment>& polar_segs,
+            const std::string& grid_quality = "xfine");
+
   // Rebuilds ThreeCenterIntegrals, only works if the original basisobjects
   // still exist
   void Rebuild() { Fill(*auxbasis_, *dftbasis_, *dft_orbitals_); }
