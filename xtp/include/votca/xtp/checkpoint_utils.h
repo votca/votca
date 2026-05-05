@@ -105,12 +105,12 @@ struct InferDataType;
 
 template <>
 struct InferDataType<float> {
-  static const H5::DataType* get(void) { return &H5::PredType::NATIVE_FLOAT; }
+  static const H5::DataType* get(void) { return &H5::PredType::IEEE_F32LE; }
 };
 
 template <>
 struct InferDataType<double> {
-  static const H5::DataType* get(void) { return &H5::PredType::NATIVE_DOUBLE; }
+  static const H5::DataType* get(void) { return &H5::PredType::IEEE_F64LE; }
 };
 
 template <>
