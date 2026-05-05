@@ -13,7 +13,7 @@ Version 2026-dev
 -  raw J storage in statefile  (#1237)
 -  Add DFT/GW-BSE Tight-Binding Hamiltonian calculator (#1238)
 -  fix xtp_binds test timeout (#1239, #1240)
--  use IEEE data types in HDF5 (#1241, #1242) (#1242)
+-  use IEEE data types in HDF5 (#1241, #1242)
 
 Version 2026 (released 09.03.26)
 ================================
