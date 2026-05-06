@@ -105,11 +105,28 @@ struct InferDataType;
 
 template <>
 struct InferDataType<float> {
-  static const H5::DataType* get(void) { return &H5::PredType::IEEE_F32LE; }
+  static const H5::DataType* get(void) { return &H5::PredType::NATIVE_FLOAT; }
 };
 
 template <>
 struct InferDataType<double> {
+  static const H5::DataType* get(void) { return &H5::PredType::NATIVE_DOUBLE; }
+};
+
+// New trait: explicit little-endian type for on-disk storage (used in writes):
+template <typename T>
+struct FileDataType {
+  // Default: same as memory type (for integers, strings, etc.)
+  static const H5::DataType* get(void) { return InferDataType<T>::get(); }
+};
+
+template <>
+struct FileDataType<float> {
+  static const H5::DataType* get(void) { return &H5::PredType::IEEE_F32LE; }
+};
+
+template <>
+struct FileDataType<double> {
   static const H5::DataType* get(void) { return &H5::PredType::IEEE_F64LE; }
 };
 
