@@ -150,6 +150,31 @@ struct InferDataType<unsigned> {
   static const H5::DataType* get(void) { return &H5::PredType::NATIVE_UINT; }
 };
 
+template <>
+struct FileDataType<int> {
+  static const H5::DataType* get(void) { return &H5::PredType::STD_I32LE; }
+};
+
+template <>
+struct FileDataType<long int> {
+  static const H5::DataType* get(void) { return &H5::PredType::STD_I64LE; }
+};
+
+template <>
+struct FileDataType<unsigned> {
+  static const H5::DataType* get(void) { return &H5::PredType::STD_U32LE; }
+};
+
+template <>
+struct FileDataType<std::uint8_t> {
+  static const H5::DataType* get(void) { return &H5::PredType::STD_U8LE; }
+};
+
+template <>
+struct FileDataType<bool> {
+  static const H5::DataType* get(void) { return &H5::PredType::STD_U8LE; }
+};
+
 // Optional: treat bool on disk as uint8 (recommended)
 template <>
 struct InferDataType<bool> {
