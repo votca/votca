@@ -215,9 +215,11 @@ class CheckpointWriter {
     }
 
     H5::DataSpace dp(2, dims);
-    //const H5::DataType* dataType = InferDataType<typename T::Scalar>::get();
-    const H5::DataType* memType  = InferDataType<typename T::Scalar>::get();  // native, for memory
-    const H5::DataType* fileType = FileDataType<typename T::Scalar>::get();   // LE, for disk
+    // const H5::DataType* dataType = InferDataType<typename T::Scalar>::get();
+    const H5::DataType* memType =
+        InferDataType<typename T::Scalar>::get();  // native, for memory
+    const H5::DataType* fileType =
+        FileDataType<typename T::Scalar>::get();  // LE, for disk
 
     H5::DataSet dataset;
     try {
@@ -256,8 +258,8 @@ class CheckpointWriter {
       const std::string& name) const {
     hsize_t dims[2] = {(hsize_t)v.size(), 1};
 
-    //const H5::DataType* dataType = InferDataType<T>::get();
-    const H5::DataType* memType  = InferDataType<T>::get();
+    // const H5::DataType* dataType = InferDataType<T>::get();
+    const H5::DataType* memType = InferDataType<T>::get();
     const H5::DataType* fileType = FileDataType<T>::get();
     H5::DataSet dataset;
     H5::DataSpace dp(2, dims);
