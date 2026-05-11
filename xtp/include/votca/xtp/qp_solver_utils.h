@@ -362,10 +362,33 @@ boost::optional<RootCandidate> RefineQPInterval(
     const SolverOptions& opt, bool use_brent) {
   RootCandidate cand;
 
-  cand.omega = use_brent ? SolveQP_Brent(lowerbound, f_lowerbound, upperbound,
-                                         f_upperbound, f, opt)
-                         : SolveQP_Bisection(lowerbound, f_lowerbound,
-                                             upperbound, f_upperbound, f, opt);
+  // Near-exact-zero brackets: one endpoint is already essentially at the root.
+  // Bisection and Brent both require opposite signs; handle this case directly
+  // by returning whichever endpoint is closer to zero. This occurs when the
+  // local mini-scan inside refine_and_store finds a near-zero node and inserts
+  // a same-sign bracket -- those brackets are valid root indicators but cannot
+  // be refined by interval methods.
+  const bool left_near_zero = std::abs(f_lowerbound) <= opt.g_sc_limit;
+  const bool right_near_zero = std::abs(f_upperbound) <= opt.g_sc_limit;
+  const bool same_sign = (f_lowerbound * f_upperbound > 0.0);
+
+  if (same_sign) {
+    if (left_near_zero || right_near_zero) {
+      // Pick the endpoint closest to zero as the root estimate
+      cand.omega = (std::abs(f_lowerbound) <= std::abs(f_upperbound))
+                       ? lowerbound
+                       : upperbound;
+    } else {
+      // No bracket and no near-zero endpoint -- cannot refine, skip silently
+      return boost::none;
+    }
+  } else {
+    cand.omega =
+        use_brent ? SolveQP_Brent(lowerbound, f_lowerbound, upperbound,
+                                   f_upperbound, f, opt)
+                  : SolveQP_Bisection(lowerbound, f_lowerbound, upperbound,
+                                      f_upperbound, f, opt);
+  }
 
   cand.residual = f.value(cand.omega, EvalStage::Refine);
   cand.deriv = f.deriv(cand.omega);
