@@ -383,11 +383,11 @@ boost::optional<RootCandidate> RefineQPInterval(
       return boost::none;
     }
   } else {
-    cand.omega =
-        use_brent ? SolveQP_Brent(lowerbound, f_lowerbound, upperbound,
-                                   f_upperbound, f, opt)
-                  : SolveQP_Bisection(lowerbound, f_lowerbound, upperbound,
-                                      f_upperbound, f, opt);
+    cand.omega = use_brent
+                     ? SolveQP_Brent(lowerbound, f_lowerbound, upperbound,
+                                     f_upperbound, f, opt)
+                     : SolveQP_Bisection(lowerbound, f_lowerbound, upperbound,
+                                         f_upperbound, f, opt);
   }
 
   cand.residual = f.value(cand.omega, EvalStage::Refine);
