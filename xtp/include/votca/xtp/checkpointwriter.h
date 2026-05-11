@@ -215,10 +215,15 @@ class CheckpointWriter {
     }
 
     H5::DataSpace dp(2, dims);
-    const H5::DataType* dataType = InferDataType<typename T::Scalar>::get();
+    // const H5::DataType* dataType = InferDataType<typename T::Scalar>::get();
+    const H5::DataType* memType =
+        InferDataType<typename T::Scalar>::get();  // native, for memory
+    const H5::DataType* fileType =
+        FileDataType<typename T::Scalar>::get();  // LE, for disk
+
     H5::DataSet dataset;
     try {
-      dataset = loc.createDataSet(name.c_str(), *dataType, dp);
+      dataset = loc.createDataSet(name.c_str(), *fileType, dp);
     } catch (H5::GroupIException&) {
       dataset = loc.openDataSet(name.c_str());
     }
@@ -243,7 +248,7 @@ class CheckpointWriter {
       hsize_t mStart[2] = {0, i};
       dp.selectHyperslab(H5S_SELECT_SET, fCount, fStart, fStride, fBlock);
       mspace.selectHyperslab(H5S_SELECT_SET, mCount, mStart, mStride, mBlock);
-      dataset.write(matrix.derived().data(), *dataType, mspace, dp);
+      dataset.write(matrix.derived().data(), *memType, mspace, dp);
     }
   }
 
@@ -253,15 +258,17 @@ class CheckpointWriter {
       const std::string& name) const {
     hsize_t dims[2] = {(hsize_t)v.size(), 1};
 
-    const H5::DataType* dataType = InferDataType<T>::get();
+    // const H5::DataType* dataType = InferDataType<T>::get();
+    const H5::DataType* memType = InferDataType<T>::get();
+    const H5::DataType* fileType = FileDataType<T>::get();
     H5::DataSet dataset;
     H5::DataSpace dp(2, dims);
     try {
-      dataset = loc.createDataSet(name.c_str(), *dataType, dp);
+      dataset = loc.createDataSet(name.c_str(), *fileType, dp);
     } catch (H5::GroupIException&) {
       dataset = loc.openDataSet(name.c_str());
     }
-    dataset.write(v.data(), *dataType);
+    dataset.write(v.data(), *memType);
   }
 
   void WriteData(const CptLoc& loc, const std::vector<std::string>& v,
