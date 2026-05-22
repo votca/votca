@@ -110,6 +110,45 @@ void GW::PrintGWA_Energies() const {
   return;
 }
 
+void GW::PrintQSGW_Composition(double threshold) const {
+  XTP_LOG(Log::error, log_)
+      << TimeStamp()
+      << "  ====== QSGW QP state composition (dominant KS contributions) ======"
+      << std::flush;
+
+  for (Index n = 0; n < qptotal_; n++) {
+    const Index abs_n = n + opt_.qpmin;
+    std::string level = "  Level";
+    if (abs_n == opt_.homo)     level = "  HOMO ";
+    else if (abs_n == opt_.homo + 1) level = "  LUMO ";
+
+    // Collect contributions above threshold, sorted by weight descending
+    Eigen::VectorXd weights = qsgw_rotation_.col(n).cwiseAbs2();
+    std::vector<std::pair<double, Index>> contribs;
+    for (Index m = 0; m < qptotal_; m++) {
+      if (weights(m) >= threshold) {
+        contribs.push_back({weights(m), m + opt_.qpmin});
+      }
+    }
+    std::sort(contribs.begin(), contribs.end(),
+              [](const auto& a, const auto& b) { return a.first > b.first; });
+
+    std::string line;
+    for (const auto& [w, ks] : contribs) {
+      std::string ks_label;
+      if (ks == opt_.homo)      ks_label = "(HOMO)";
+      else if (ks == opt_.homo + 1) ks_label = "(LUMO)";
+
+      line += (boost::format("  %1$5.1f%% KS_%2$d%3$s")
+               % (100.0 * w) % ks % ks_label).str();
+    }
+    XTP_LOG(Log::error, log_)
+        << level
+        << (boost::format(" = %1$4d:") % abs_n).str()
+        << line << std::flush;
+  }
+}
+
 void GW::PrintQSGW_Energies(const std::string& seed_label,
                             const Eigen::VectorXd& seed_energies,
                             const Eigen::VectorXd& qsgw_energies) const {
@@ -770,15 +809,13 @@ void GW::CalculateQSGW() {
         "). Use a pure GGA or LDA functional as the DFT starting point.");
   }
 
-  // Diagnostic: log norms of diagonal vs off-diagonal V_xc to assess
-  // whether the diagonal approximation for H0 is valid.
-  {
-    double diag_norm    = vxc_.diagonal().norm();
-    double offdiag_norm = (vxc_ - Eigen::MatrixXd(vxc_.diagonal().asDiagonal())).norm();
-    XTP_LOG(Log::error, log_)
-        << TimeStamp()
-        << "  vxc norms: diagonal=" << diag_norm
-        << " off-diagonal=" << offdiag_norm << std::flush;
+  if (opt_.sigma_integration == "cda") {
+    throw std::runtime_error(
+        "GW::CalculateQSGW: QSGW is not supported with the CDA sigma "
+        "integration method. The Gaussian quadrature grid used by CDA becomes "
+        "ill-conditioned as the QP wavefunctions rotate away from the DFT-MO "
+        "basis, causing numerical divergence. Use sigma_integration=ppm or "
+        "sigma_integration=exact instead.");
   }
 
   // H0 = diag(e_DFT - v_xc): diagonal approximation for the non-interacting
@@ -796,16 +833,26 @@ void GW::CalculateQSGW() {
   // This is necessary because dU (eigenvectors of H_QSGW, always in DFT-MO
   // basis) gives the total rotation from DFT-MOs directly, not an incremental
   // rotation relative to the previous QP basis.
-  const Index qp_offset = opt_.qpmin - Mmn_.get_mmin();
-  std::vector<Eigen::MatrixXd> Mmn_orig(qptotal_);
-  for (Index m = 0; m < qptotal_; m++) {
-    Mmn_orig[m] = Mmn_[m + qp_offset];
+  // Store ALL m-slices in the full RPA window, not just the QP window.
+  // PrepareScreening (PPM, CDA) calls MultiplyRightWithAuxMatrix which
+  // overwrites all slices including those outside the QP window (e.g. the
+  // core level when qpmin > rpamin). If we only restore QP-window slices,
+  // out-of-window slices accumulate PPM-basis corruption across iterations,
+  // causing the persistent oscillation seen when qpmin > rpamin.
+  const Index mtotal = Mmn_.msize();
+  std::vector<Eigen::MatrixXd> Mmn_orig(mtotal);
+  for (Index m = 0; m < mtotal; m++) {
+    Mmn_orig[m] = Mmn_[m];
   }
 
   // Anderson/DIIS mixer for tilde_Sigma.
   // Reuses gw_mixing_order and gw_mixing_alpha options.
   Anderson qsgw_mixer;
   qsgw_mixer.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
+  XTP_LOG(Log::error, log_) << TimeStamp()
+    << "  QSGW mixer: order=" << opt_.gw_mixing_order
+    << " alpha=" << opt_.gw_mixing_alpha << std::flush;
+  
 
   // Register the QSGW rotation with sigma and rpa so that PrepareScreening
   // and the RPA functions apply the m-rotation to QP-window hole slices.
@@ -815,11 +862,13 @@ void GW::CalculateQSGW() {
   rpa_.setQSGWRotation(&qsgw_rotation_, opt_.qpmin, opt_.homo);
 
 
+  double diff_max_prev = std::numeric_limits<double>::max();
+
   for (Index iter = 0; iter < opt_.qsgw_max_iterations; iter++) {
 
     // ── Step 1: restore Mmn_ to DFT-MO basis and apply full rotation ─────────
-    for (Index m = 0; m < qptotal_; m++) {
-      Mmn_[m + qp_offset] = Mmn_orig[m];
+    for (Index m = 0; m < mtotal; m++) {
+      Mmn_[m] = Mmn_orig[m];
     }
     if (iter > 0) {
       Mmn_.Rotate(qsgw_rotation_, opt_.qpmin, opt_.qpmax);
@@ -838,6 +887,14 @@ void GW::CalculateQSGW() {
     tilde_Sigma.diagonal() += sigma_->CalcCorrelationDiag(e_qp);
 
     // ── Step 2: mix tilde_Sigma with Anderson/DIIS ───────────────────────────
+    // Follows the evGW mixer pattern:
+    //   UpdateInput  is called at the END of each iteration with the raw
+    //                tilde_Sigma (what "went in" to that step).
+    //   UpdateOutput is called at the START of the next iteration with the
+    //                new raw tilde_Sigma (what "came out").
+    //   MixHistory   then returns the Anderson-mixed tilde_Sigma.
+    // This ensures output_.size() == input_.size() at all times, giving the
+    // mixer a consistent residual (output - input) to minimise.
     Eigen::VectorXd S_flat =
         Eigen::Map<const Eigen::VectorXd>(tilde_Sigma.data(),
                                           qptotal_ * qptotal_);
@@ -845,28 +902,38 @@ void GW::CalculateQSGW() {
       qsgw_mixer.UpdateOutput(S_flat);
       S_flat = qsgw_mixer.MixHistory();
     }
-    qsgw_mixer.UpdateInput(S_flat);
 
+    // ── Step 3: diagonalise H_QSGW ───────────────────────────────────────────
+    // Two diagonalisations:
+    //
+    // (a) Mixed H_QSGW -> dU for rotating Mmn_ next iteration.
+    //     S_flat is the Anderson-mixed tilde_Sigma — this is where the damping
+    //     actually takes effect. Different alpha must give different dU here.
+    //
+    // (b) Unmixed H_QSGW -> e_new for convergence check.
+    //     The convergence criterion must track the true fixed point, not the
+    //     damped approximation, so we use the raw tilde_Sigma for eigenvalues.
+
+    // (a) mixed: rotation
     Eigen::MatrixXd tilde_Sigma_mixed =
         Eigen::Map<const Eigen::MatrixXd>(S_flat.data(), qptotal_, qptotal_);
+    Eigen::MatrixXd H_qsgw_mixed = H0 + tilde_Sigma_mixed;
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_mixed(H_qsgw_mixed);
+    if (es_mixed.info() != Eigen::ComputationInfo::Success) {
+      throw std::runtime_error(
+          "GW::CalculateQSGW: diagonalisation of mixed H_QSGW failed at iter " +
+          std::to_string(iter));
+    }
+    Eigen::MatrixXd dU = es_mixed.eigenvectors();
 
-    // ── Step 3: diagonalise unmixed H_QSGW ───────────────────────────────────
-    // Use the unmixed H_QSGW for both the rotation (dU) and the convergence
-    // check (e_new). The mixed tilde_Sigma feeds into the next iteration's
-    // Mmn_ rotation via qsgw_rotation_, damping the path without corrupting
-    // the convergence criterion.
-    // Using the mixed H for convergence but unmixed for rotation caused a
-    // persistent limit cycle because the two were checking different fixed
-    // points.
+    // (b) unmixed: convergence check
     Eigen::MatrixXd H_qsgw_new = H0 + tilde_Sigma;
-    //H_qsgw_new.diagonal() += e_dft_minus_vxc;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_new(H_qsgw_new);
     if (es_new.info() != Eigen::ComputationInfo::Success) {
       throw std::runtime_error(
-          "GW::CalculateQSGW: diagonalisation of H_QSGW failed at iteration " +
+          "GW::CalculateQSGW: diagonalisation of H_QSGW failed at iter " +
           std::to_string(iter));
     }
-    Eigen::MatrixXd dU    = es_new.eigenvectors();
     Eigen::VectorXd e_new = es_new.eigenvalues();
 
     double diff_max = (e_new - e_qp).cwiseAbs().maxCoeff();
@@ -874,6 +941,16 @@ void GW::CalculateQSGW() {
         << TimeStamp() << "  QSGW iter " << iter
         << "  max|dE_QP| = " << diff_max * votca::tools::conv::hrt2ev
         << " eV" << std::flush;
+
+    // Reset Anderson history when residual increases significantly.
+    // This prevents accumulation of bad history when the mixer overshoots.
+    // Anderson::Configure() does not clear the history vectors, so we
+    // reconstruct the mixer object entirely to get a true reset.
+    if (iter > 1 && diff_max > 2.0 * diff_max_prev) {
+      qsgw_mixer = Anderson();
+      qsgw_mixer.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
+    }
+    diff_max_prev = diff_max;
 
     if (diff_max < opt_.qsgw_sc_limit) {
       XTP_LOG(Log::error, log_)
@@ -895,6 +972,13 @@ void GW::CalculateQSGW() {
     // ── Step 5: update QP energies and total rotation ─────────────────────────
     e_qp = e_new;
     qsgw_rotation_ = dU;
+
+    // Store the raw (unmixed) tilde_Sigma as Anderson input for the next
+    // iteration. Must be the unmixed version so that MixHistory computes
+    // the correct residual: new_tilde_Sigma (output) - old_tilde_Sigma (input).
+    qsgw_mixer.UpdateInput(
+        Eigen::Map<const Eigen::VectorXd>(tilde_Sigma.data(),
+                                          qptotal_ * qptotal_));
 
     // Update the RPA input energies to the new QP energies.
     rpa_.UpdateRPAInputEnergies(dft_energies_, e_qp, opt_.qpmin);

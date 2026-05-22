@@ -152,6 +152,17 @@ class GW {
                           const Eigen::VectorXd& seed_energies,
                           const Eigen::VectorXd& qsgw_energies) const;
 
+  /**
+   * \brief Print the dominant DFT-KS orbital contributions to each converged
+   *        QSGW quasiparticle state.
+   *
+   * For each QP state n, prints the KS orbitals m with |U_{mn}|^2 > threshold,
+   * where U = qsgw_rotation_ (columns = QP states in DFT-KS basis).
+   *
+   * @param threshold  Minimum weight to print (default 0.01 = 1%)
+   */
+  void PrintQSGW_Composition(double threshold = 0.01) const;
+
   Eigen::MatrixXd getHQP() const;
 
   // Diagonalize QP particle Hamiltonian

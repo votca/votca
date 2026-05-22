@@ -107,17 +107,24 @@ void TCMatrix_gwbse::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
 // =============================================================================
 void TCMatrix_gwbse::Rotate(const Eigen::MatrixXd& U, Index qpmin, Index qpmax) {
   const Index qptotal     = qpmax - qpmin + 1;
-  const Index qp_offset_n = qpmin - nmin_;
+  const Index qp_offset_n = qpmin - nmin_;  // row offset in n-storage
+  const Index qp_offset_m = qpmin - mmin_;  // slice offset in m-storage
 
   assert(qpmin >= nmin_ && qpmax <= nmax_);
+  assert(qpmin >= mmin_ && qpmax <= mmax_);
   assert(U.rows() == qptotal && U.cols() == qptotal);
 
-  // Rotate the QP-window block of n-rows in every m-slice.
-  // new_rows = U^T * old_rows  (U^T left-multiplies the row block)
+  // Rotate the n-rows of ONLY the QP-window m-slices [qpmin, qpmax].
+  // Slices outside this range (e.g. core levels below qpmin, or high virtuals
+  // above qpmax) are always DFT-MOs and must NOT be touched -- they are not
+  // saved/restored by Mmn_orig in gw.cc and would accumulate drift if rotated.
+  // Only the QP-window n-row block [qp_offset_n, qp_offset_n+qptotal) is
+  // rotated; rows outside remain as DFT-MOs (consistent with evGW treatment).
+  // new_rows = U^T * old_rows
 #pragma omp parallel for schedule(dynamic)
-  for (Index m = 0; m < mtotal_; m++) {
-    matrix_[m].middleRows(qp_offset_n, qptotal) =
-        U.transpose() * matrix_[m].middleRows(qp_offset_n, qptotal);
+  for (Index m = 0; m < qptotal; m++) {
+    matrix_[m + qp_offset_m].middleRows(qp_offset_n, qptotal) =
+        U.transpose() * matrix_[m + qp_offset_m].middleRows(qp_offset_n, qptotal);
   }
 }
 

@@ -1024,6 +1024,7 @@ bool GWBSE::Evaluate() {
         Eigen::VectorXd qsgw_energies = gw.getGWAResults();
         gw.PrintQSGW_Energies(seed_label, gw.getQSGWSeedEnergies(),
                               qsgw_energies);
+        gw.PrintQSGW_Composition();
 
         // Store QSGW energies as the perturbative QP energies so that
         // downstream code (BSE, output) sees the QSGW values.
