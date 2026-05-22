@@ -527,6 +527,22 @@ void GWBSE::Initialize(tools::Property& options) {
   gwopt_.qp_zero_margin = options.get("gw.qp_zero_margin").as<double>();
   gwopt_.qp_virtual_min_energy =
       options.get("gw.qp_virtual_min_energy").as<double>();
+
+  // QSGW options
+  gwopt_.do_qsgw =
+      options.ifExistsReturnElseReturnDefault<bool>("gw.do_qsgw", false);
+  gwopt_.qsgw_max_iterations =
+      options.ifExistsReturnElseReturnDefault<Index>("gw.qsgw_max_iterations",
+                                                     20);
+  gwopt_.qsgw_sc_limit =
+      options.ifExistsReturnElseReturnDefault<double>("gw.qsgw_sc_limit",
+                                                      1e-5);
+  if (gwopt_.do_qsgw) {
+    XTP_LOG(Log::error, *pLog_)
+        << " QSGW enabled: max_iter=" << gwopt_.qsgw_max_iterations
+        << " sc_limit=" << gwopt_.qsgw_sc_limit << " Ha" << std::flush;
+  }
+
   if (mode == "evGW") {
     if (gwopt_.gw_mixing_order == 0) {
       XTP_LOG(Log::error, *pLog_) << " evGW with plain update " << std::flush;
@@ -997,21 +1013,50 @@ bool GWBSE::Evaluate() {
 
       XTP_LOG(Log::info, *pLog_)
           << TimeStamp() << " Calculating offdiagonal part of Sigma  " << flush;
-      gw.CalculateHQP();
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
+      if (gwopt_.do_qsgw) {
+        // QSGW: iterate rotation of Mmn until QP energies converge.
+        gw.CalculateQSGW();
 
-      Hqp = gw.getHQP();
+        // Print seed vs QSGW comparison. Label the seed column by what
+        // CalculateGWPerturbation ran: G0W0 if one iteration, evGW otherwise.
+        const std::string seed_label =
+            (gwopt_.gw_sc_max_iterations == 1) ? "G0W0" : "evGW";
+        Eigen::VectorXd qsgw_energies = gw.getGWAResults();
+        gw.PrintQSGW_Energies(seed_label, gw.getQSGWSeedEnergies(),
+                              qsgw_energies);
 
-      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
-          gw.DiagonalizeQPHamiltonian();
-      if (es.info() == Eigen::ComputationInfo::Success) {
+        // Store QSGW energies as the perturbative QP energies so that
+        // downstream code (BSE, output) sees the QSGW values.
+        orbitals_.QPpertEnergies() = qsgw_energies;
+
+        // Store the accumulated QSGW rotation (DFT MOs -> QP wavefunctions).
+        orbitals_.setQSGWRotation(gw.getQSGWRotation());
+
+        // Skip DiagonalizeQPHamiltonian — QSGW already produced the converged
+        // eigensystem. Store the QSGW energies and identity eigenvectors in
+        // QPdiag to signal no further diagonalisation was done.
+        Hqp = gw.getHQP();
+        orbitals_.QPdiag().eigenvalues()  = qsgw_energies;
+        orbitals_.QPdiag().eigenvectors() =
+            Eigen::MatrixXd::Identity(qsgw_energies.size(),
+                                      qsgw_energies.size());
+      } else {
+        gw.CalculateHQP();
         XTP_LOG(Log::error, *pLog_)
-            << TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
-      }
+            << TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
 
-      orbitals_.QPdiag().eigenvectors() = es.eigenvectors();
-      orbitals_.QPdiag().eigenvalues() = es.eigenvalues();
+        Hqp = gw.getHQP();
+
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
+            gw.DiagonalizeQPHamiltonian();
+        if (es.info() == Eigen::ComputationInfo::Success) {
+          XTP_LOG(Log::error, *pLog_)
+              << TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
+        }
+
+        orbitals_.QPdiag().eigenvectors() = es.eigenvectors();
+        orbitals_.QPdiag().eigenvalues()  = es.eigenvalues();
+      }
       std::chrono::duration<double> elapsed_time =
           std::chrono::system_clock::now() - start;
       XTP_LOG(Log::error, *pLog_)

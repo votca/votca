@@ -100,6 +100,26 @@ class TCMatrix_gwbse final : public TCMatrix {
 
   void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix);
 
+  /**
+   * \brief Rotate the n-index (construction rows) of Mmn for QSGW.
+   *
+   * In QSGW the self-energy matrix elements are in the DFT-MO basis
+   * (outer m-index unchanged). The internal construction sum over particle/hole
+   * states (inner n-rows) must use QP wavefunctions. This method rotates only
+   * the n-rows of ALL m-slices within the QP window block:
+   *
+   *   new_M[m].rows(qp_offset_n : qp_offset_n+qptotal) =
+   *       U^T * old_M[m].rows(qp_offset_n : qp_offset_n+qptotal)
+   *
+   * Rows outside the QP window remain as DFT-MOs (consistent with evGW).
+   * The outer m-index and auxiliary index are unchanged.
+   *
+   * @param U      Rotation matrix (qptotal x qptotal)
+   * @param qpmin  First QP level (absolute MO index)
+   * @param qpmax  Last  QP level (absolute MO index)
+   */
+  void Rotate(const Eigen::MatrixXd& U, Index qpmin, Index qpmax);
+
  private:
   // store vector of matrices
   std::vector<Eigen::MatrixXd> matrix_;

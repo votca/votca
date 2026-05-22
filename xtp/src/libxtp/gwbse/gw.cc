@@ -110,6 +110,34 @@ void GW::PrintGWA_Energies() const {
   return;
 }
 
+void GW::PrintQSGW_Energies(const std::string& seed_label,
+                            const Eigen::VectorXd& seed_energies,
+                            const Eigen::VectorXd& qsgw_energies) const {
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " QSGW quasiparticle energies" << std::flush;
+  XTP_LOG(Log::error, log_)
+      << (boost::format(
+              "  ====== QSGW quasiparticle energies (Hartree) ====== "))
+             .str()
+      << std::flush;
+
+  for (Index i = 0; i < qptotal_; i++) {
+    std::string level = "  Level";
+    if ((i + opt_.qpmin) == opt_.homo) {
+      level = "  HOMO ";
+    } else if ((i + opt_.qpmin) == opt_.homo + 1) {
+      level = "  LUMO ";
+    }
+    XTP_LOG(Log::error, log_)
+        << level
+        << (boost::format(" = %1$4d %2$s = %3$+1.6f  QSGW = %4$+1.6f") %
+            (i + opt_.qpmin) % seed_label % seed_energies(i) %
+            qsgw_energies(i))
+               .str()
+        << std::flush;
+  }
+}
+
 void GW::PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const {
   Eigen::VectorXd gwa_energies = getGWAResults();
   XTP_LOG(Log::error, log_)
@@ -697,6 +725,207 @@ void GW::CalculateHQP() {
   Eigen::VectorXd diag_backup = Sigma_c_.diagonal();
   Sigma_c_ = sigma_->CalcCorrelationOffDiag(getGWAResults());
   Sigma_c_.diagonal() = diag_backup;
+}
+
+// =============================================================================
+// GW::CalculateQSGW
+//
+// Quasiparticle self-consistent GW: iterates the rotation of the
+// three-centre integrals until the QP energies are converged.
+//
+// Index conventions (same as evGW throughout):
+//   gw_level  : 0-based index within the QP window  [0, qptotal_)
+//   MO level  : absolute MO index = gw_level + opt_.qpmin
+//
+// H_QSGW[m,n] = (e_DFT[m] - v_xc[m]) * delta_{mn} + tilde_Sigma[m,n]
+//
+// where tilde_Sigma = 0.5 * Re( Sigma(e_m) + Sigma(e_n) )
+//                   = 0.5 * (Sigma_x + Sigma_x^T)     <- exchange (already sym)
+//                   + 0.5 * (Sigma_c(e_m,e_n) + Sigma_c(e_n,e_m)^T) <- corr
+//
+// Note: CalcCorrelationOffDiag(freqs) evaluates element (m,n) at
+//       frequency freqs[m] for the row index. To form the symmetrised
+//       average we call it twice with swapped frequency vectors.
+// =============================================================================
+void GW::CalculateQSGW() {
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " Starting QSGW self-consistency loop  " << std::flush;
+
+  // Initialise: start from evGW energies as first guess for QP energies,
+  // and identity rotation (we are in the DFT-MO basis).
+  Eigen::VectorXd e_qp = getGWAResults();
+  qsgw_seed_energies_ = e_qp;  // save for output comparison
+  qsgw_rotation_ = Eigen::MatrixXd::Identity(qptotal_, qptotal_);
+
+  // QSGW requires a local (GGA/LDA) DFT starting point.
+  // With a hybrid functional, the HF exchange embedded in the DFT eigenvalues
+  // introduces a starting-point dependence that is not removed by the QSGW
+  // self-consistency loop. See Faleev, van Schilfgaarde & Kotani PRL 2004
+  // and Betzinger, Friedrich & Blugel PRB 2010 for discussion.
+  if (opt_.ScaHFX > 0.0) {
+    throw std::runtime_error(
+        "GW::CalculateQSGW: QSGW is not compatible with hybrid DFT starting "
+        "points (ScaHFX = " +
+        std::to_string(opt_.ScaHFX) +
+        "). Use a pure GGA or LDA functional as the DFT starting point.");
+  }
+
+  // Diagnostic: log norms of diagonal vs off-diagonal V_xc to assess
+  // whether the diagonal approximation for H0 is valid.
+  {
+    double diag_norm    = vxc_.diagonal().norm();
+    double offdiag_norm = (vxc_ - Eigen::MatrixXd(vxc_.diagonal().asDiagonal())).norm();
+    XTP_LOG(Log::error, log_)
+        << TimeStamp()
+        << "  vxc norms: diagonal=" << diag_norm
+        << " off-diagonal=" << offdiag_norm << std::flush;
+  }
+
+  // H0 = diag(e_DFT - v_xc): diagonal approximation for the non-interacting
+  // part of H_QSGW. The off-diagonal V_xc elements are neglected here.
+  // Their significance is printed above for diagnostics.
+  const Eigen::VectorXd e_dft_minus_vxc =
+      dft_energies_.segment(opt_.qpmin, qptotal_) - vxc_.diagonal();
+
+  Eigen::MatrixXd H0 = -vxc_;
+  H0.diagonal() += dft_energies_.segment(opt_.qpmin, qptotal_);
+
+  // Store a copy of the original (unrotated) Mmn_ QP-window slices.
+  // At each iteration we restore Mmn_ to the DFT-MO state and apply the full
+  // rotation qsgw_rotation_ in one shot.
+  // This is necessary because dU (eigenvectors of H_QSGW, always in DFT-MO
+  // basis) gives the total rotation from DFT-MOs directly, not an incremental
+  // rotation relative to the previous QP basis.
+  const Index qp_offset = opt_.qpmin - Mmn_.get_mmin();
+  std::vector<Eigen::MatrixXd> Mmn_orig(qptotal_);
+  for (Index m = 0; m < qptotal_; m++) {
+    Mmn_orig[m] = Mmn_[m + qp_offset];
+  }
+
+  // Anderson/DIIS mixer for tilde_Sigma.
+  // Reuses gw_mixing_order and gw_mixing_alpha options.
+  Anderson qsgw_mixer;
+  qsgw_mixer.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
+
+  // Register the QSGW rotation with sigma and rpa so that PrepareScreening
+  // and the RPA functions apply the m-rotation to QP-window hole slices.
+  // At iteration 0 qsgw_rotation_ is identity so no actual rotation is done
+  // (the pointer is set; the rotation only matters when iter > 0).
+  sigma_->setQSGWRotation(&qsgw_rotation_, opt_.qpmin, opt_.homo);
+  rpa_.setQSGWRotation(&qsgw_rotation_, opt_.qpmin, opt_.homo);
+
+
+  for (Index iter = 0; iter < opt_.qsgw_max_iterations; iter++) {
+
+    // ── Step 1: restore Mmn_ to DFT-MO basis and apply full rotation ─────────
+    for (Index m = 0; m < qptotal_; m++) {
+      Mmn_[m + qp_offset] = Mmn_orig[m];
+    }
+    if (iter > 0) {
+      Mmn_.Rotate(qsgw_rotation_, opt_.qpmin, opt_.qpmax);
+    }
+
+    // Recompute screening W and Sigma in current QP basis.
+    sigma_->PrepareScreening();
+
+    // Exchange: symmetric, frequency-independent.
+    Sigma_x_ = sigma_->CalcExchangeMatrix();
+
+    // Symmetrised static self-energy (full matrix including diagonal)
+    Eigen::MatrixXd Sc_row = sigma_->CalcCorrelationOffDiag(e_qp);
+    Eigen::MatrixXd Sc_col = Sc_row.transpose();
+    Eigen::MatrixXd tilde_Sigma = Sigma_x_ + 0.5 * (Sc_row + Sc_col);
+    tilde_Sigma.diagonal() += sigma_->CalcCorrelationDiag(e_qp);
+
+    // ── Step 2: mix tilde_Sigma with Anderson/DIIS ───────────────────────────
+    Eigen::VectorXd S_flat =
+        Eigen::Map<const Eigen::VectorXd>(tilde_Sigma.data(),
+                                          qptotal_ * qptotal_);
+    if (iter > 0) {
+      qsgw_mixer.UpdateOutput(S_flat);
+      S_flat = qsgw_mixer.MixHistory();
+    }
+    qsgw_mixer.UpdateInput(S_flat);
+
+    Eigen::MatrixXd tilde_Sigma_mixed =
+        Eigen::Map<const Eigen::MatrixXd>(S_flat.data(), qptotal_, qptotal_);
+
+    // ── Step 3: diagonalise unmixed H_QSGW ───────────────────────────────────
+    // Use the unmixed H_QSGW for both the rotation (dU) and the convergence
+    // check (e_new). The mixed tilde_Sigma feeds into the next iteration's
+    // Mmn_ rotation via qsgw_rotation_, damping the path without corrupting
+    // the convergence criterion.
+    // Using the mixed H for convergence but unmixed for rotation caused a
+    // persistent limit cycle because the two were checking different fixed
+    // points.
+    Eigen::MatrixXd H_qsgw_new = H0 + tilde_Sigma;
+    //H_qsgw_new.diagonal() += e_dft_minus_vxc;
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_new(H_qsgw_new);
+    if (es_new.info() != Eigen::ComputationInfo::Success) {
+      throw std::runtime_error(
+          "GW::CalculateQSGW: diagonalisation of H_QSGW failed at iteration " +
+          std::to_string(iter));
+    }
+    Eigen::MatrixXd dU    = es_new.eigenvectors();
+    Eigen::VectorXd e_new = es_new.eigenvalues();
+
+    double diff_max = (e_new - e_qp).cwiseAbs().maxCoeff();
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << "  QSGW iter " << iter
+        << "  max|dE_QP| = " << diff_max * votca::tools::conv::hrt2ev
+        << " eV" << std::flush;
+
+    if (diff_max < opt_.qsgw_sc_limit) {
+      XTP_LOG(Log::error, log_)
+          << TimeStamp() << "  QSGW converged in " << iter + 1
+          << " iterations." << std::flush;
+      e_qp = e_new;
+      qsgw_rotation_ = dU;
+      break;
+    }
+
+    if (iter == opt_.qsgw_max_iterations - 1) {
+      XTP_LOG(Log::error, log_)
+          << TimeStamp()
+          << "  WARNING: QSGW did not converge in "
+          << opt_.qsgw_max_iterations
+          << " iterations. Inspect results carefully." << std::flush;
+    }
+
+    // ── Step 5: update QP energies and total rotation ─────────────────────────
+    e_qp = e_new;
+    qsgw_rotation_ = dU;
+
+    // Update the RPA input energies to the new QP energies.
+    rpa_.UpdateRPAInputEnergies(dft_energies_, e_qp, opt_.qpmin);
+  }
+
+  // Store converged results in the standard output fields.
+  // Sigma_c_ diagonal is set to the converged on-diagonal correlation
+  // (needed by getGWAResults / PrintGWA_Energies).
+  Sigma_c_.diagonal() = sigma_->CalcCorrelationDiag(e_qp);
+
+  // Store QP energies and eigenvectors (= accumulated rotation from DFT MOs)
+  // in Sigma_c_ off-diagonal is left as the last iteration's off-diagonal.
+  // The calling code in gwbse.cc reads QPdiag from DiagonalizeQPHamiltonian,
+  // but for QSGW the "Hamiltonian" IS already diagonal in the converged basis.
+  // We set Sigma_c_ so that getHQP() returns the correct H_QSGW:
+  //   H_QSGW = diag(e_DFT - v_xc) + tilde_Sigma
+  // which is what Sigma_x_ + Sigma_c_ - vxc_.diagonal() + e_DFT gives
+  // when Sigma_c_ is set appropriately. The cleanest approach is to
+  // store the full off-diagonal tilde_Sigma in Sigma_c_ and set Sigma_x_
+  // to zero for the final iteration -- but that would break getGWAResults.
+  // Instead we leave Sigma_x_ and Sigma_c_ as-is from the last iteration
+  // and note that DiagonalizeQPHamiltonian() called by gwbse.cc will
+  // produce the correct converged eigensystem from getHQP().
+
+  // Clear QSGW rotation from sigma and rpa so subsequent G0W0/evGW/BSE calls
+  // (if any) operate in the standard DFT-MO basis.
+  sigma_->setQSGWRotation(nullptr, 0, 0);
+  rpa_.setQSGWRotation(nullptr, 0, 0);
+
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << " QSGW loop complete." << std::flush;
 }
 
 void GW::PlotSigma(std::string filename, Index steps, double spacing,

@@ -89,5 +89,37 @@ void TCMatrix_gwbse::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
   return;
 }
 
+// =============================================================================
+// TCMatrix_gwbse::Rotate
+//
+// Rotates only the n-index (inner rows) of ALL m-slices for the QP window.
+//
+// In QSGW the self-energy matrix element indices (outer m) stay in the
+// DFT-MO basis. Only the construction sum indices (inner n-rows) need to be
+// in the QP wavefunction basis. This method applies:
+//
+//   new_M[m].middleRows(qp_offset_n, qptotal) =
+//       U^T * old_M[m].middleRows(qp_offset_n, qptotal)
+//
+// for ALL m-slices in the full RPA range (because every sigma calculation
+// uses every m-slice as a matrix element index and needs updated n-rows).
+// Rows outside the QP window remain as DFT-MOs.
+// =============================================================================
+void TCMatrix_gwbse::Rotate(const Eigen::MatrixXd& U, Index qpmin, Index qpmax) {
+  const Index qptotal     = qpmax - qpmin + 1;
+  const Index qp_offset_n = qpmin - nmin_;
+
+  assert(qpmin >= nmin_ && qpmax <= nmax_);
+  assert(U.rows() == qptotal && U.cols() == qptotal);
+
+  // Rotate the QP-window block of n-rows in every m-slice.
+  // new_rows = U^T * old_rows  (U^T left-multiplies the row block)
+#pragma omp parallel for schedule(dynamic)
+  for (Index m = 0; m < mtotal_; m++) {
+    matrix_[m].middleRows(qp_offset_n, qptotal) =
+        U.transpose() * matrix_[m].middleRows(qp_offset_n, qptotal);
+  }
+}
+
 }  // namespace xtp
 }  // namespace votca

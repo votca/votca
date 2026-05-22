@@ -92,7 +92,31 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
     for (Index m_level = 0; m_level < n_occ; m_level++) {
       const double qp_energy_m = energies_(m_level);
 
-      Eigen::MatrixXd Mmn_RPA = Mmn_[m_level].bottomRows(n_unocc);
+      // QSGW: for hole slices in the QP window, apply the m-rotation on the fly.
+      // This makes the RPA hole states consistent with the current QP wavefunctions
+      // while keeping Mmn_ unmodified (its m-index remains in the DFT-MO basis
+      // for correct sigma matrix element evaluation).
+      Eigen::MatrixXd Mmn_RPA;
+      if (qsgw_U_ != nullptr) {
+        const Index qp_offset_m = qsgw_qpmin_ - rpamin_;
+        const Index qptotal     = Index(qsgw_U_->cols());
+        const Index qp_end_occ  = std::min(qsgw_homo_ - rpamin_ + 1,
+                                           qp_offset_m + qptotal);
+        if (m_level >= qp_offset_m && m_level < qp_end_occ) {
+          // This hole slice is within the QP window: apply m-rotation
+          const Index v_qp = m_level - qp_offset_m;
+          Mmn_RPA = Eigen::MatrixXd::Zero(n_unocc, Mmn_.auxsize());
+          for (Index vp = 0; vp < qptotal; vp++) {
+            Mmn_RPA.noalias() +=
+                (*qsgw_U_)(vp, v_qp) * Mmn_[vp + qp_offset_m].bottomRows(n_unocc);
+          }
+        } else {
+          Mmn_RPA = Mmn_[m_level].bottomRows(n_unocc);
+        }
+      } else {
+        Mmn_RPA = Mmn_[m_level].bottomRows(n_unocc);
+      }
+
       transform.PushMatrix(Mmn_RPA, threadid);
       const Eigen::ArrayXd deltaE =
           energies_.tail(n_unocc).array() - qp_energy_m;
@@ -134,7 +158,28 @@ Eigen::MatrixXd RPA::calculate_epsilon_r(std::complex<double> frequency) const {
     for (Index m_level = 0; m_level < n_occ; m_level++) {
 
       const double qp_energy_m = energies_(m_level);
-      Eigen::MatrixXd Mmn_RPA = Mmn_[m_level].bottomRows(n_unocc);
+
+      // QSGW: apply m-rotation to QP-window hole slices on the fly
+      Eigen::MatrixXd Mmn_RPA;
+      if (qsgw_U_ != nullptr) {
+        const Index qp_offset_m = qsgw_qpmin_ - rpamin_;
+        const Index qptotal     = Index(qsgw_U_->cols());
+        const Index qp_end_occ  = std::min(qsgw_homo_ - rpamin_ + 1,
+                                           qp_offset_m + qptotal);
+        if (m_level >= qp_offset_m && m_level < qp_end_occ) {
+          const Index v_qp = m_level - qp_offset_m;
+          Mmn_RPA = Eigen::MatrixXd::Zero(n_unocc, Mmn_.auxsize());
+          for (Index vp = 0; vp < qptotal; vp++) {
+            Mmn_RPA.noalias() +=
+                (*qsgw_U_)(vp, v_qp) * Mmn_[vp + qp_offset_m].bottomRows(n_unocc);
+          }
+        } else {
+          Mmn_RPA = Mmn_[m_level].bottomRows(n_unocc);
+        }
+      } else {
+        Mmn_RPA = Mmn_[m_level].bottomRows(n_unocc);
+      }
+
       transform.PushMatrix(Mmn_RPA, threadid);
       const Eigen::ArrayXd deltaE =
           energies_.tail(n_unocc).array() - qp_energy_m;
@@ -240,16 +285,38 @@ Eigen::MatrixXd RPA::Calculate_H2p_ApB() const {
   const Index rpasize = n_occ * n_unocc;
   vc2index vc = vc2index(0, 0, n_unocc);
   Eigen::MatrixXd ApB = Eigen::MatrixXd::Zero(rpasize, rpasize);
+  // QSGW: pre-compute m-rotated slices for QP-window hole states
+  // to avoid repeated on-the-fly rotation inside the double loop.
+  const Index qp_offset_m_apb = (qsgw_U_ != nullptr) ? (qsgw_qpmin_ - rpamin_) : -1;
+  const Index qptotal_apb     = (qsgw_U_ != nullptr) ? Index(qsgw_U_->cols()) : 0;
+  const Index qp_end_occ_apb  = (qsgw_U_ != nullptr)
+      ? std::min(qsgw_homo_ - rpamin_ + 1, qp_offset_m_apb + qptotal_apb)
+      : 0;
+
+  // Pre-build rotated virtual-row blocks for occupied QP-window slices
+  std::vector<Eigen::MatrixXd> Mmn_virt_rotated(n_occ);
+  for (Index v = 0; v < n_occ; v++) {
+    if (qsgw_U_ != nullptr && v >= qp_offset_m_apb && v < qp_end_occ_apb) {
+      const Index v_qp = v - qp_offset_m_apb;
+      Mmn_virt_rotated[v] = Eigen::MatrixXd::Zero(n_unocc, Mmn_.auxsize());
+      for (Index vp = 0; vp < qptotal_apb; vp++) {
+        Mmn_virt_rotated[v].noalias() +=
+            (*qsgw_U_)(vp, v_qp) *
+            Mmn_[vp + qp_offset_m_apb].middleRows(n_occ, n_unocc);
+      }
+    } else {
+      Mmn_virt_rotated[v] = Mmn_[v].middleRows(n_occ, n_unocc);
+    }
+  }
 #pragma omp parallel for schedule(guided)
   for (Index v2 = 0; v2 < n_occ; v2++) {
     Index i2 = vc.I(v2, 0);
-    const Eigen::MatrixXd Mmn_v2T =
-        Mmn_[v2].middleRows(n_occ, n_unocc).transpose();
+    const Eigen::MatrixXd Mmn_v2T = Mmn_virt_rotated[v2].transpose();
     for (Index v1 = v2; v1 < n_occ; v1++) {
       Index i1 = vc.I(v1, 0);
       // Multiply with factor 2 to sum over both (identical) spin states
       ApB.block(i1, i2, n_unocc, n_unocc) =
-          2 * 2 * Mmn_[v1].middleRows(n_occ, n_unocc) * Mmn_v2T;
+          2 * 2 * Mmn_virt_rotated[v1] * Mmn_v2T;
     }
   }
   ApB.diagonal() += Calculate_H2p_AmB();
