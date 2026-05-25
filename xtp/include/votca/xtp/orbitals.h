@@ -458,7 +458,8 @@ class Orbitals {
   /// Return whether a QSGW rotation matrix is available.
   bool hasQSGWRotation() const { return qsgw_rotation_.size() > 0; }
 
-  /// Return read-only access to the QSGW rotation matrix U (DFT MOs -> QP wavefunctions).
+  /// Return read-only access to the QSGW rotation matrix U (DFT MOs -> QP
+  /// wavefunctions).
   const Eigen::MatrixXd &getQSGWRotation() const { return qsgw_rotation_; }
 
   /// Store the QSGW rotation matrix U produced by GW::CalculateQSGW.
@@ -781,7 +782,8 @@ class Orbitals {
 
   // quasiparticle energies and coefficients after diagonalization
   tools::EigenSystem QPdiag_;
-  Eigen::MatrixXd qsgw_rotation_;  ///< Accumulated QSGW rotation U (DFT MOs -> QP wavefunctions)
+  Eigen::MatrixXd qsgw_rotation_;  ///< Accumulated QSGW rotation U (DFT MOs ->
+                                   ///< QP wavefunctions)
 
   tools::EigenSystem BSE_singlet_;
   std::vector<Eigen::Vector3d> transition_dipoles_;

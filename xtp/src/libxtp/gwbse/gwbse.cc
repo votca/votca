@@ -531,12 +531,10 @@ void GWBSE::Initialize(tools::Property& options) {
   // QSGW options
   gwopt_.do_qsgw =
       options.ifExistsReturnElseReturnDefault<bool>("gw.do_qsgw", false);
-  gwopt_.qsgw_max_iterations =
-      options.ifExistsReturnElseReturnDefault<Index>("gw.qsgw_max_iterations",
-                                                     20);
+  gwopt_.qsgw_max_iterations = options.ifExistsReturnElseReturnDefault<Index>(
+      "gw.qsgw_max_iterations", 20);
   gwopt_.qsgw_sc_limit =
-      options.ifExistsReturnElseReturnDefault<double>("gw.qsgw_sc_limit",
-                                                      1e-5);
+      options.ifExistsReturnElseReturnDefault<double>("gw.qsgw_sc_limit", 1e-5);
   if (gwopt_.do_qsgw) {
     XTP_LOG(Log::error, *pLog_)
         << " QSGW enabled: max_iter=" << gwopt_.qsgw_max_iterations
@@ -1037,14 +1035,14 @@ bool GWBSE::Evaluate() {
         // eigensystem. Store the QSGW energies and identity eigenvectors in
         // QPdiag to signal no further diagonalisation was done.
         Hqp = gw.getHQP();
-        orbitals_.QPdiag().eigenvalues()  = qsgw_energies;
-        orbitals_.QPdiag().eigenvectors() =
-            Eigen::MatrixXd::Identity(qsgw_energies.size(),
-                                      qsgw_energies.size());
+        orbitals_.QPdiag().eigenvalues() = qsgw_energies;
+        orbitals_.QPdiag().eigenvectors() = Eigen::MatrixXd::Identity(
+            qsgw_energies.size(), qsgw_energies.size());
       } else {
         gw.CalculateHQP();
         XTP_LOG(Log::error, *pLog_)
-            << TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
+            << TimeStamp() << " Calculated offdiagonal part of Sigma  "
+            << flush;
 
         Hqp = gw.getHQP();
 
@@ -1056,7 +1054,7 @@ bool GWBSE::Evaluate() {
         }
 
         orbitals_.QPdiag().eigenvectors() = es.eigenvectors();
-        orbitals_.QPdiag().eigenvalues()  = es.eigenvalues();
+        orbitals_.QPdiag().eigenvalues() = es.eigenvalues();
       }
       std::chrono::duration<double> elapsed_time =
           std::chrono::system_clock::now() - start;

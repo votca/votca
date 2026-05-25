@@ -105,8 +105,9 @@ void TCMatrix_gwbse::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
 // uses every m-slice as a matrix element index and needs updated n-rows).
 // Rows outside the QP window remain as DFT-MOs.
 // =============================================================================
-void TCMatrix_gwbse::Rotate(const Eigen::MatrixXd& U, Index qpmin, Index qpmax) {
-  const Index qptotal     = qpmax - qpmin + 1;
+void TCMatrix_gwbse::Rotate(const Eigen::MatrixXd& U, Index qpmin,
+                            Index qpmax) {
+  const Index qptotal = qpmax - qpmin + 1;
   const Index qp_offset_n = qpmin - nmin_;  // row offset in n-storage
   const Index qp_offset_m = qpmin - mmin_;  // slice offset in m-storage
 
@@ -124,7 +125,8 @@ void TCMatrix_gwbse::Rotate(const Eigen::MatrixXd& U, Index qpmin, Index qpmax) 
 #pragma omp parallel for schedule(dynamic)
   for (Index m = 0; m < qptotal; m++) {
     matrix_[m + qp_offset_m].middleRows(qp_offset_n, qptotal) =
-        U.transpose() * matrix_[m + qp_offset_m].middleRows(qp_offset_n, qptotal);
+        U.transpose() *
+        matrix_[m + qp_offset_m].middleRows(qp_offset_n, qptotal);
   }
 }
 

@@ -117,14 +117,15 @@ Eigen::MatrixXd Sigma_Exact::CalcResidues(Index gw_level,
   const Eigen::MatrixXd& Mmn_i = Mmn_[gw_level + qpoffset];
   Eigen::MatrixXd res = Eigen::MatrixXd::Zero(rpatotal_, rpasize);
   // QSGW: apply m-rotation to QP-window hole slices on the fly.
-  // The outer v-index is a hole construction index and must use QP wavefunctions.
-  const Index qp_offset_m_res = (qsgw_U_ != nullptr)
-      ? (qsgw_qpmin_ - opt_.rpamin) : -1;
+  // The outer v-index is a hole construction index and must use QP
+  // wavefunctions.
+  const Index qp_offset_m_res =
+      (qsgw_U_ != nullptr) ? (qsgw_qpmin_ - opt_.rpamin) : -1;
   const Index qptotal_res = (qsgw_U_ != nullptr) ? Index(qsgw_U_->cols()) : 0;
   const Index qp_end_occ_res = (qsgw_U_ != nullptr)
-      ? std::min(qsgw_homo_ - opt_.rpamin + 1,
-                 qp_offset_m_res + qptotal_res)
-      : 0;
+                                   ? std::min(qsgw_homo_ - opt_.rpamin + 1,
+                                              qp_offset_m_res + qptotal_res)
+                                   : 0;
 
   for (Index v = 0; v < n_occ; v++) {  // Sum over v
     Eigen::MatrixXd Mmn_v_virt;

@@ -134,11 +134,14 @@ class GW {
    */
   void CalculateQSGW();
 
-  /// Return the accumulated QSGW rotation matrix U (DFT MOs -> QP wavefunctions)
+  /// Return the accumulated QSGW rotation matrix U (DFT MOs -> QP
+  /// wavefunctions)
   const Eigen::MatrixXd& getQSGWRotation() const { return qsgw_rotation_; }
 
   /// Return the seed (G0W0/evGW) energies that QSGW started from
-  const Eigen::VectorXd& getQSGWSeedEnergies() const { return qsgw_seed_energies_; }
+  const Eigen::VectorXd& getQSGWSeedEnergies() const {
+    return qsgw_seed_energies_;
+  }
 
   /**
    * \brief Print a two-column comparison of seed (G0W0 or evGW) vs converged
@@ -181,7 +184,8 @@ class GW {
 
   Eigen::MatrixXd Sigma_x_;
   Eigen::MatrixXd Sigma_c_;
-  Eigen::MatrixXd qsgw_rotation_;       // accumulated U: DFT MOs -> QSGW QP wavefunctions
+  Eigen::MatrixXd qsgw_rotation_;       // accumulated U: DFT MOs -> QSGW QP
+                                        // wavefunctions
   Eigen::VectorXd qsgw_seed_energies_;  // evGW/G0W0 energies used as QSGW seed
 
   options opt_;
@@ -277,7 +281,6 @@ class GW {
       const Eigen::VectorXd& dft_energies) const;
   void PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies) const;
   void PrintGWA_Energies() const;
-
 
   Eigen::VectorXd SolveQP(const Eigen::VectorXd& frequencies) const;
   boost::optional<double> SolveQP_Grid(double intercept0, double frequency0,

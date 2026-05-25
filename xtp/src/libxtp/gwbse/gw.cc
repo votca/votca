@@ -119,8 +119,10 @@ void GW::PrintQSGW_Composition(double threshold) const {
   for (Index n = 0; n < qptotal_; n++) {
     const Index abs_n = n + opt_.qpmin;
     std::string level = "  Level";
-    if (abs_n == opt_.homo)     level = "  HOMO ";
-    else if (abs_n == opt_.homo + 1) level = "  LUMO ";
+    if (abs_n == opt_.homo)
+      level = "  HOMO ";
+    else if (abs_n == opt_.homo + 1)
+      level = "  LUMO ";
 
     // Collect contributions above threshold, sorted by weight descending
     Eigen::VectorXd weights = qsgw_rotation_.col(n).cwiseAbs2();
@@ -136,16 +138,18 @@ void GW::PrintQSGW_Composition(double threshold) const {
     std::string line;
     for (const auto& [w, ks] : contribs) {
       std::string ks_label;
-      if (ks == opt_.homo)      ks_label = "(HOMO)";
-      else if (ks == opt_.homo + 1) ks_label = "(LUMO)";
+      if (ks == opt_.homo)
+        ks_label = "(HOMO)";
+      else if (ks == opt_.homo + 1)
+        ks_label = "(LUMO)";
 
-      line += (boost::format("  %1$5.1f%% KS_%2$d%3$s")
-               % (100.0 * w) % ks % ks_label).str();
+      line += (boost::format("  %1$5.1f%% KS_%2$d%3$s") % (100.0 * w) % ks %
+               ks_label)
+                  .str();
     }
     XTP_LOG(Log::error, log_)
-        << level
-        << (boost::format(" = %1$4d:") % abs_n).str()
-        << line << std::flush;
+        << level << (boost::format(" = %1$4d:") % abs_n).str() << line
+        << std::flush;
   }
 }
 
@@ -170,8 +174,7 @@ void GW::PrintQSGW_Energies(const std::string& seed_label,
     XTP_LOG(Log::error, log_)
         << level
         << (boost::format(" = %1$4d %2$s = %3$+1.6f  QSGW = %4$+1.6f") %
-            (i + opt_.qpmin) % seed_label % seed_energies(i) %
-            qsgw_energies(i))
+            (i + opt_.qpmin) % seed_label % seed_energies(i) % qsgw_energies(i))
                .str()
         << std::flush;
   }
@@ -849,10 +852,9 @@ void GW::CalculateQSGW() {
   // Reuses gw_mixing_order and gw_mixing_alpha options.
   Anderson qsgw_mixer;
   qsgw_mixer.Configure(opt_.gw_mixing_order, opt_.gw_mixing_alpha);
-  XTP_LOG(Log::error, log_) << TimeStamp()
-    << "  QSGW mixer: order=" << opt_.gw_mixing_order
-    << " alpha=" << opt_.gw_mixing_alpha << std::flush;
-  
+  XTP_LOG(Log::error, log_)
+      << TimeStamp() << "  QSGW mixer: order=" << opt_.gw_mixing_order
+      << " alpha=" << opt_.gw_mixing_alpha << std::flush;
 
   // Register the QSGW rotation with sigma and rpa so that PrepareScreening
   // and the RPA functions apply the m-rotation to QP-window hole slices.
@@ -860,7 +862,6 @@ void GW::CalculateQSGW() {
   // (the pointer is set; the rotation only matters when iter > 0).
   sigma_->setQSGWRotation(&qsgw_rotation_, opt_.qpmin, opt_.homo);
   rpa_.setQSGWRotation(&qsgw_rotation_, opt_.qpmin, opt_.homo);
-
 
   double diff_max_prev = std::numeric_limits<double>::max();
 
@@ -895,9 +896,8 @@ void GW::CalculateQSGW() {
     //   MixHistory   then returns the Anderson-mixed tilde_Sigma.
     // This ensures output_.size() == input_.size() at all times, giving the
     // mixer a consistent residual (output - input) to minimise.
-    Eigen::VectorXd S_flat =
-        Eigen::Map<const Eigen::VectorXd>(tilde_Sigma.data(),
-                                          qptotal_ * qptotal_);
+    Eigen::VectorXd S_flat = Eigen::Map<const Eigen::VectorXd>(
+        tilde_Sigma.data(), qptotal_ * qptotal_);
     if (iter > 0) {
       qsgw_mixer.UpdateOutput(S_flat);
       S_flat = qsgw_mixer.MixHistory();
@@ -939,8 +939,8 @@ void GW::CalculateQSGW() {
     double diff_max = (e_new - e_qp).cwiseAbs().maxCoeff();
     XTP_LOG(Log::error, log_)
         << TimeStamp() << "  QSGW iter " << iter
-        << "  max|dE_QP| = " << diff_max * votca::tools::conv::hrt2ev
-        << " eV" << std::flush;
+        << "  max|dE_QP| = " << diff_max * votca::tools::conv::hrt2ev << " eV"
+        << std::flush;
 
     // Reset Anderson history when residual increases significantly.
     // This prevents accumulation of bad history when the mixer overshoots.
@@ -953,9 +953,8 @@ void GW::CalculateQSGW() {
     diff_max_prev = diff_max;
 
     if (diff_max < opt_.qsgw_sc_limit) {
-      XTP_LOG(Log::error, log_)
-          << TimeStamp() << "  QSGW converged in " << iter + 1
-          << " iterations." << std::flush;
+      XTP_LOG(Log::error, log_) << TimeStamp() << "  QSGW converged in "
+                                << iter + 1 << " iterations." << std::flush;
       e_qp = e_new;
       qsgw_rotation_ = dU;
       break;
@@ -963,22 +962,21 @@ void GW::CalculateQSGW() {
 
     if (iter == opt_.qsgw_max_iterations - 1) {
       XTP_LOG(Log::error, log_)
-          << TimeStamp()
-          << "  WARNING: QSGW did not converge in "
+          << TimeStamp() << "  WARNING: QSGW did not converge in "
           << opt_.qsgw_max_iterations
           << " iterations. Inspect results carefully." << std::flush;
     }
 
-    // ── Step 5: update QP energies and total rotation ─────────────────────────
+    // ── Step 5: update QP energies and total rotation
+    // ─────────────────────────
     e_qp = e_new;
     qsgw_rotation_ = dU;
 
     // Store the raw (unmixed) tilde_Sigma as Anderson input for the next
     // iteration. Must be the unmixed version so that MixHistory computes
     // the correct residual: new_tilde_Sigma (output) - old_tilde_Sigma (input).
-    qsgw_mixer.UpdateInput(
-        Eigen::Map<const Eigen::VectorXd>(tilde_Sigma.data(),
-                                          qptotal_ * qptotal_));
+    qsgw_mixer.UpdateInput(Eigen::Map<const Eigen::VectorXd>(
+        tilde_Sigma.data(), qptotal_ * qptotal_));
 
     // Update the RPA input energies to the new QP energies.
     rpa_.UpdateRPAInputEnergies(dft_energies_, e_qp, opt_.qpmin);
