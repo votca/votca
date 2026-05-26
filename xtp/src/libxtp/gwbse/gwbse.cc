@@ -1024,20 +1024,48 @@ bool GWBSE::Evaluate() {
                               qsgw_energies);
         gw.PrintQSGW_Composition();
 
-        // Store QSGW energies as the perturbative QP energies so that
-        // downstream code (BSE, output) sees the QSGW values.
-        orbitals_.QPpertEnergies() = qsgw_energies;
+        // ── BSE hookup ────────────────────────────────────────────────────────
+        // Rebuild Mmn_ in the QP wavefunction basis so the BSE Hamiltonian is
+        // expressed directly in the QP basis. Only QP-window columns of the
+        // MO coefficient matrix are rotated by U = qsgw_rotation_; columns
+        // outside the QP window (deep occupied / high virtual states that were
+        // not corrected by QSGW) remain as DFT-MOs, consistent with the
+        // scissor-shift treatment in UpdateRPAInputEnergies and AdjustHqpSize.
+        //
+        // orbitals_.MOs().eigenvectors() is NOT modified — the original DFT-MO
+        // coefficients in the AO basis are preserved for postprocessing
+        // (transition dipoles, population analysis, density matrices etc.)
+        {
+          const Index qptotal = gwopt_.qpmax - gwopt_.qpmin + 1;
+          const Eigen::MatrixXd& U = gw.getQSGWRotation();
+          Eigen::MatrixXd C_qp = orbitals_.MOs().eigenvectors();
+          C_qp.middleCols(gwopt_.qpmin, qptotal) =
+              orbitals_.MOs().eigenvectors().middleCols(gwopt_.qpmin, qptotal)
+              * U;
+          XTP_LOG(Log::error, *pLog_)
+              << TimeStamp()
+              << " Rebuilding Mmn in QSGW QP wavefunction basis" << flush;
+          Mmn.Fill(auxbasis, dftbasis, C_qp);
+          XTP_LOG(Log::error, *pLog_)
+              << TimeStamp()
+              << " Rebuilt Mmn (3-center-repulsion x QP orbitals)" << flush;
+        }
 
-        // Store the accumulated QSGW rotation (DFT MOs -> QP wavefunctions).
-        orbitals_.setQSGWRotation(gw.getQSGWRotation());
+        // In the QP basis H_QSGW is diagonal — Hqp = diag(qsgw_energies).
+        // AdjustHqpSize (in bse.cc) pads states outside the QP window with
+        // scissor-shifted DFT energies from RPAInputEnergies automatically.
+        Hqp = qsgw_energies.asDiagonal();
 
-        // Skip DiagonalizeQPHamiltonian — QSGW already produced the converged
-        // eigensystem. Store the QSGW energies and identity eigenvectors in
-        // QPdiag to signal no further diagonalisation was done.
-        Hqp = gw.getHQP();
-        orbitals_.QPdiag().eigenvalues() = qsgw_energies;
-        orbitals_.QPdiag().eigenvectors() = Eigen::MatrixXd::Identity(
-            qsgw_energies.size(), qsgw_energies.size());
+        // Store converged QSGW eigensystem in QPdiag.
+        // eigenvalues  = QSGW QP energies (used by BSE for energy differences)
+        // eigenvectors = identity (Mmn_ is already in QP basis, so H_QSGW is
+        //                diagonal and no further rotation is needed)
+        // QPpertEnergies() is intentionally left holding the G0W0/evGW seed
+        // energies — it should only contain perturbative QP corrections.
+        orbitals_.QPdiag().eigenvalues()  = qsgw_energies;
+        orbitals_.QPdiag().eigenvectors() =
+            Eigen::MatrixXd::Identity(qsgw_energies.size(),
+                                      qsgw_energies.size());
       } else {
         gw.CalculateHQP();
         XTP_LOG(Log::error, *pLog_)

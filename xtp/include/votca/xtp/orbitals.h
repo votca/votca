@@ -607,6 +607,12 @@ class Orbitals {
   /// used.
   void SetFlagUseHqpOffdiag(bool flag) { use_Hqp_offdiag_ = flag; };
 
+  /// Returns true if QP data was obtained via QSGW (not perturbative GW).
+  /// When true, BSE must be built in the QP basis using rotated MO coefficients
+  /// C_qp = C_dft * U where U = QPdiag().eigenvectors().
+  bool isQSGW() const { return is_qsgw_; };
+  void setQSGW(bool flag) { is_qsgw_ = flag; };
+
   /// Return localized molecular orbitals, if available.
   const Eigen::MatrixXd &getLMOs() const { return lmos_; };
   /// Store localized molecular orbitals.
@@ -794,6 +800,7 @@ class Orbitals {
   Eigen::VectorXd BSE_triplet_energies_dynamic_;
 
   bool use_Hqp_offdiag_ = false;
+  bool is_qsgw_ = false;  // true if QP data comes from a QSGW calculation
 
   // Spin-GW additions
   Eigen::VectorXd rpa_inputenergies_alpha_;
