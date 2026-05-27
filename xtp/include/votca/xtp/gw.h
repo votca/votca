@@ -197,7 +197,7 @@ class GW {
   Eigen::MatrixXd Sigma_c_;
   Eigen::MatrixXd qsgw_rotation_;       // accumulated U: DFT MOs -> QSGW QP
                                         // wavefunctions
-  Eigen::VectorXd qsgw_seed_energies_;   // evGW/G0W0 energies used as QSGW seed
+  Eigen::VectorXd qsgw_seed_energies_;  // evGW/G0W0 energies used as QSGW seed
   // Merged QSGW+seed energies for the full QP window. Set by CalculateQSGW()
   // when the virtual window is trimmed. getGWAResults() returns this when
   // non-empty, bypassing the sigma-matrix recomputation which would be wrong
