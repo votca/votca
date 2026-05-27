@@ -105,6 +105,17 @@ class GW {
     bool do_qsgw = false;
     Index qsgw_max_iterations = 20;
     double qsgw_sc_limit = 1e-5;  // Ha; convergence threshold on QP energies
+
+    // Maximum allowed perturbative QP correction for virtual states to be
+    // included in the QSGW self-consistency loop. Virtual states with
+    // |e_QP - e_DFT| > qsgw_max_virt_correction are excluded from the QSGW
+    // window and kept at their perturbative QP energies (DFT-MO wavefunctions).
+    // This prevents pathological high-energy basis-set artefact states from
+    // destabilising the QSGW rotation. Occupied states are never excluded.
+    // Default: 0.5 Ha (13.6 eV, 1 Rydberg) -- corrections above this are
+    // unlikely to be physically meaningful for typical molecular systems.
+    // Set to a large value (e.g. 1e10) to disable the threshold entirely.
+    double qsgw_max_virt_correction = 0.5;  // Ha
   };
 
   void configure(const options& opt);
@@ -186,7 +197,12 @@ class GW {
   Eigen::MatrixXd Sigma_c_;
   Eigen::MatrixXd qsgw_rotation_;       // accumulated U: DFT MOs -> QSGW QP
                                         // wavefunctions
-  Eigen::VectorXd qsgw_seed_energies_;  // evGW/G0W0 energies used as QSGW seed
+  Eigen::VectorXd qsgw_seed_energies_;   // evGW/G0W0 energies used as QSGW seed
+  // Merged QSGW+seed energies for the full QP window. Set by CalculateQSGW()
+  // when the virtual window is trimmed. getGWAResults() returns this when
+  // non-empty, bypassing the sigma-matrix recomputation which would be wrong
+  // for the excluded levels.
+  Eigen::VectorXd qsgw_final_energies_;
 
   options opt_;
 

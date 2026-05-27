@@ -820,7 +820,8 @@ class Orbitals {
   // Version 4: added vxc grid quality
   // Version 5: added the dft and aux basisset
   // Version 6: added spin in dft
-  static constexpr int orbitals_version() { return 8; }
+  // Version 9: added is_qsgw flag
+  static constexpr int orbitals_version() { return 9; }
 };
 
 }  // namespace xtp

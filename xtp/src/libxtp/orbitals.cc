@@ -1200,7 +1200,7 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
   r(tmp, "use_Hqp_offdiag");
   use_Hqp_offdiag_ = (tmp != 0);
   std::uint8_t tmp_qsgw = 0;
-  if (version > 2) {
+  if (version > 8) {
     r(tmp_qsgw, "is_qsgw");
   }
   is_qsgw_ = (tmp_qsgw != 0);
