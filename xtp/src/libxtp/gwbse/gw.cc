@@ -812,29 +812,28 @@ void GW::CalculateQSGW() {
     const Index lumo_local = opt_.homo - opt_.qpmin + 1;
     bool trimmed = false;
     for (Index n = lumo_local; n < qptotal_; n++) {
-      const double corr = std::abs(
-          e_qp_full(n) - dft_energies_(opt_.qpmin + n));
+      const double corr =
+          std::abs(e_qp_full(n) - dft_energies_(opt_.qpmin + n));
       if (corr > opt_.qsgw_max_virt_correction) {
         qsgw_qpmax = opt_.qpmin + n - 1;
         trimmed = true;
         XTP_LOG(Log::error, log_)
-            << TimeStamp()
-            << "  QSGW virtual threshold: level " << (opt_.qpmin + n)
-            << " correction = "
-            << corr * votca::tools::conv::hrt2ev << " eV exceeds "
+            << TimeStamp() << "  QSGW virtual threshold: level "
+            << (opt_.qpmin + n)
+            << " correction = " << corr * votca::tools::conv::hrt2ev
+            << " eV exceeds "
             << opt_.qsgw_max_virt_correction * votca::tools::conv::hrt2ev
-            << " eV. Trimming QSGW window to ["
-            << opt_.qpmin << "," << qsgw_qpmax << "]." << std::flush;
+            << " eV. Trimming QSGW window to [" << opt_.qpmin << ","
+            << qsgw_qpmax << "]." << std::flush;
         break;
       }
     }
     if (!trimmed) {
       XTP_LOG(Log::error, log_)
-          << TimeStamp()
-          << "  QSGW virtual threshold: all corrections within "
+          << TimeStamp() << "  QSGW virtual threshold: all corrections within "
           << opt_.qsgw_max_virt_correction * votca::tools::conv::hrt2ev
-          << " eV. Using full window ["
-          << opt_.qpmin << "," << qsgw_qpmax << "]." << std::flush;
+          << " eV. Using full window [" << opt_.qpmin << "," << qsgw_qpmax
+          << "]." << std::flush;
     }
   }
 
@@ -844,15 +843,15 @@ void GW::CalculateQSGW() {
   // If trimmed, reconfigure sigma for the reduced window
   if (window_trimmed) {
     Sigma_base::options sigma_opt;
-    sigma_opt.homo   = opt_.homo;
-    sigma_opt.qpmin  = opt_.qpmin;
-    sigma_opt.qpmax  = qsgw_qpmax;
+    sigma_opt.homo = opt_.homo;
+    sigma_opt.qpmin = opt_.qpmin;
+    sigma_opt.qpmax = qsgw_qpmax;
     sigma_opt.rpamin = opt_.rpamin;
     sigma_opt.rpamax = opt_.rpamax;
-    sigma_opt.eta    = opt_.eta;
+    sigma_opt.eta = opt_.eta;
     sigma_opt.quadrature_scheme = opt_.quadrature_scheme;
-    sigma_opt.order  = opt_.order;
-    sigma_opt.alpha  = opt_.alpha;
+    sigma_opt.order = opt_.order;
+    sigma_opt.alpha = opt_.alpha;
     sigma_->configure(sigma_opt);
     Sigma_x_ = Eigen::MatrixXd::Zero(qsgw_qptotal, qsgw_qptotal);
     Sigma_c_ = Eigen::MatrixXd::Zero(qsgw_qptotal, qsgw_qptotal);
@@ -978,8 +977,8 @@ void GW::CalculateQSGW() {
     //     damped approximation, so we use the raw tilde_Sigma for eigenvalues.
 
     // (a) mixed: rotation
-    Eigen::MatrixXd tilde_Sigma_mixed =
-        Eigen::Map<const Eigen::MatrixXd>(S_flat.data(), qsgw_qptotal, qsgw_qptotal);
+    Eigen::MatrixXd tilde_Sigma_mixed = Eigen::Map<const Eigen::MatrixXd>(
+        S_flat.data(), qsgw_qptotal, qsgw_qptotal);
     Eigen::MatrixXd H_qsgw_mixed = H0 + tilde_Sigma_mixed;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_mixed(H_qsgw_mixed);
     if (es_mixed.info() != Eigen::ComputationInfo::Success) {
@@ -1073,21 +1072,19 @@ void GW::CalculateQSGW() {
   rpa_.setQSGWRotation(nullptr, 0, 0);
 
   // If the virtual window was trimmed, merge converged QSGW energies for
-  // [qpmin, qsgw_qpmax] with perturbative seed energies for (qsgw_qpmax, qpmax].
-  // Pad rotation matrix with identity for excluded virtuals so that
+  // [qpmin, qsgw_qpmax] with perturbative seed energies for (qsgw_qpmax,
+  // qpmax]. Pad rotation matrix with identity for excluded virtuals so that
   // getQSGWRotation() returns a qptotal_ x qptotal_ matrix for BSE hookup.
   if (window_trimmed) {
     const Index n_excluded = qptotal_ - qsgw_qptotal;
     XTP_LOG(Log::error, log_)
-        << TimeStamp()
-        << "  QSGW: merging converged energies [" << opt_.qpmin
+        << TimeStamp() << "  QSGW: merging converged energies [" << opt_.qpmin
         << "," << qsgw_qpmax << "] with perturbative seed energies for "
-        << n_excluded << " excluded virtual(s) ["
-        << qsgw_qpmax + 1 << "," << opt_.qpmax << "]" << std::flush;
+        << n_excluded << " excluded virtual(s) [" << qsgw_qpmax + 1 << ","
+        << opt_.qpmax << "]" << std::flush;
 
     // Pad rotation with identity for excluded virtual levels
-    Eigen::MatrixXd U_full =
-        Eigen::MatrixXd::Identity(qptotal_, qptotal_);
+    Eigen::MatrixXd U_full = Eigen::MatrixXd::Identity(qptotal_, qptotal_);
     U_full.topLeftCorner(qsgw_qptotal, qsgw_qptotal) = qsgw_rotation_;
     qsgw_rotation_ = U_full;
 
@@ -1104,15 +1101,15 @@ void GW::CalculateQSGW() {
     // Restore full-size sigma configuration so CalcCorrelationDiag (called
     // after the loop for diagonal Sigma_c_ output) works correctly.
     Sigma_base::options sigma_opt_full;
-    sigma_opt_full.homo   = opt_.homo;
-    sigma_opt_full.qpmin  = opt_.qpmin;
-    sigma_opt_full.qpmax  = opt_.qpmax;
+    sigma_opt_full.homo = opt_.homo;
+    sigma_opt_full.qpmin = opt_.qpmin;
+    sigma_opt_full.qpmax = opt_.qpmax;
     sigma_opt_full.rpamin = opt_.rpamin;
     sigma_opt_full.rpamax = opt_.rpamax;
-    sigma_opt_full.eta    = opt_.eta;
+    sigma_opt_full.eta = opt_.eta;
     sigma_opt_full.quadrature_scheme = opt_.quadrature_scheme;
-    sigma_opt_full.order  = opt_.order;
-    sigma_opt_full.alpha  = opt_.alpha;
+    sigma_opt_full.order = opt_.order;
+    sigma_opt_full.alpha = opt_.alpha;
     sigma_->configure(sigma_opt_full);
   }
 

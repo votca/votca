@@ -542,9 +542,8 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(Log::error, *pLog_)
         << " QSGW enabled: max_iter=" << gwopt_.qsgw_max_iterations
         << " sc_limit=" << gwopt_.qsgw_sc_limit << " Ha"
-        << " max_virt_correction=" << gwopt_.qsgw_max_virt_correction
-        << " Ha (" << gwopt_.qsgw_max_virt_correction * 27.2114
-        << " eV)" << std::flush;
+        << " max_virt_correction=" << gwopt_.qsgw_max_virt_correction << " Ha ("
+        << gwopt_.qsgw_max_virt_correction * 27.2114 << " eV)" << std::flush;
   }
 
   if (mode == "evGW") {
@@ -1030,12 +1029,13 @@ bool GWBSE::Evaluate() {
                               qsgw_energies);
         gw.PrintQSGW_Composition();
 
-        // ── BSE hookup ────────────────────────────────────────────────────────
-        // Rebuild Mmn_ in the QP wavefunction basis so the BSE Hamiltonian is
-        // expressed directly in the QP basis. Only QP-window columns of the
-        // MO coefficient matrix are rotated by U = qsgw_rotation_; columns
-        // outside the QP window (deep occupied / high virtual states that were
-        // not corrected by QSGW) remain as DFT-MOs, consistent with the
+        // ── BSE hookup
+        // ──────────────────────────────────────────────────────── Rebuild Mmn_
+        // in the QP wavefunction basis so the BSE Hamiltonian is expressed
+        // directly in the QP basis. Only QP-window columns of the MO
+        // coefficient matrix are rotated by U = qsgw_rotation_; columns outside
+        // the QP window (deep occupied / high virtual states that were not
+        // corrected by QSGW) remain as DFT-MOs, consistent with the
         // scissor-shift treatment in UpdateRPAInputEnergies and AdjustHqpSize.
         //
         // orbitals_.MOs().eigenvectors() is NOT modified — the original DFT-MO
@@ -1046,11 +1046,11 @@ bool GWBSE::Evaluate() {
           const Eigen::MatrixXd& U = gw.getQSGWRotation();
           Eigen::MatrixXd C_qp = orbitals_.MOs().eigenvectors();
           C_qp.middleCols(gwopt_.qpmin, qptotal) =
-              orbitals_.MOs().eigenvectors().middleCols(gwopt_.qpmin, qptotal)
-              * U;
+              orbitals_.MOs().eigenvectors().middleCols(gwopt_.qpmin, qptotal) *
+              U;
           XTP_LOG(Log::error, *pLog_)
-              << TimeStamp()
-              << " Rebuilding Mmn in QSGW QP wavefunction basis" << flush;
+              << TimeStamp() << " Rebuilding Mmn in QSGW QP wavefunction basis"
+              << flush;
           Mmn.Fill(auxbasis, dftbasis, C_qp);
           XTP_LOG(Log::error, *pLog_)
               << TimeStamp()
@@ -1069,7 +1069,7 @@ bool GWBSE::Evaluate() {
         //                the correct rotated MO coefficients C_qp = C_dft * U.
         // QPpertEnergies() is intentionally left holding the G0W0/evGW seed
         // energies — it should only contain perturbative QP corrections.
-        orbitals_.QPdiag().eigenvalues()  = qsgw_energies;
+        orbitals_.QPdiag().eigenvalues() = qsgw_energies;
         orbitals_.QPdiag().eigenvectors() = gw.getQSGWRotation();
 
         // Flag the orbitals object so BSE-only runs know to use the QP basis.
@@ -1135,8 +1135,8 @@ bool GWBSE::Evaluate() {
           << flush;
       Mmn.Fill(auxbasis, dftbasis, C_qp);
       XTP_LOG(Log::error, *pLog_)
-          << TimeStamp()
-          << " Rebuilt Mmn (3-center-repulsion x QP orbitals)" << flush;
+          << TimeStamp() << " Rebuilt Mmn (3-center-repulsion x QP orbitals)"
+          << flush;
       Hqp = orbitals_.QPdiag().eigenvalues().asDiagonal();
     } else {
       const Eigen::MatrixXd& qpcoeff = orbitals_.QPdiag().eigenvectors();
