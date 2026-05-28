@@ -29,7 +29,6 @@
 
 // VOTCA includes
 #include <votca/tools/eigenio_matrixmarket.h>
-#include <votca/xtp/orbitals.h>
 
 using namespace votca::xtp;
 using namespace std;

@@ -1098,6 +1098,13 @@ void GW::CalculateQSGW() {
     // Update RPA with merged energies so RPAInputEnergies() is consistent.
     rpa_.UpdateRPAInputEnergies(dft_energies_, e_merged, opt_.qpmin);
 
+    // Restore Sigma_x_ and Sigma_c_ to full qptotal_ x qptotal_ size so that
+    // any downstream code doesn't encounter a size mismatch with vxc_.diagonal()
+    // (which has qptotal_ elements). getGWAResults() bypasses these matrices
+    // via qsgw_final_energies_, so zeroing them is safe.
+    Sigma_x_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
+    Sigma_c_ = Eigen::MatrixXd::Zero(qptotal_, qptotal_);
+
     // Restore full-size sigma configuration so CalcCorrelationDiag (called
     // after the loop for diagonal Sigma_c_ output) works correctly.
     Sigma_base::options sigma_opt_full;
