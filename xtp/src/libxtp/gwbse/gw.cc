@@ -799,6 +799,12 @@ void GW::CalculateQSGW() {
   XTP_LOG(Log::error, log_)
       << TimeStamp() << " Starting QSGW self-consistency loop  " << std::flush;
 
+      XTP_LOG(Log::error, log_) << TimeStamp()
+    << " QSGW start: qptotal_=" << qptotal_
+    << " vxc rows=" << vxc_.rows() << " cols=" << vxc_.cols()
+    << " Sigma_x rows=" << Sigma_x_.rows()
+    << std::flush;
+
   // Initialise: start from evGW/G0W0 seed energies.
   const Eigen::VectorXd e_qp_full = getGWAResults();  // full [qpmin,qpmax]
   qsgw_seed_energies_ = e_qp_full;

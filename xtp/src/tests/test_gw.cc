@@ -383,7 +383,11 @@ BOOST_AUTO_TEST_CASE(qsgw_ppm) {
   TCMatrix_gwbse Mmn1;
   Mmn1.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn1.Fill(aobasis, aobasis, mo_eigenvectors);
-  GW gw1(log1, Mmn1, vxc, mo_eigenvalues);
+  // Slice vxc to QP window — gwbse.cc does this before constructing GW
+  const votca::Index qptotal_gw = opt.qpmax - opt.qpmin + 1;
+  Eigen::MatrixXd vxc_gw = vxc.block(opt.qpmin, opt.qpmin,
+                                       qptotal_gw, qptotal_gw);
+  GW gw1(log1, Mmn1, vxc_gw, mo_eigenvalues);
   gw1.configure(opt);
   gw1.CalculateGWPerturbation();
   Mmn1.Fill(aobasis, aobasis, mo_eigenvectors);
@@ -396,7 +400,7 @@ BOOST_AUTO_TEST_CASE(qsgw_ppm) {
   TCMatrix_gwbse Mmn2;
   Mmn2.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn2.Fill(aobasis, aobasis, mo_eigenvectors);
-  GW gw2(log2, Mmn2, vxc, mo_eigenvalues);
+  GW gw2(log2, Mmn2, vxc_gw, mo_eigenvalues);
   gw2.configure(opt);
   gw2.CalculateGWPerturbation();
   Mmn2.Fill(aobasis, aobasis, mo_eigenvectors);
@@ -464,7 +468,11 @@ BOOST_AUTO_TEST_CASE(qsgw_virtual_threshold) {
   opt.qpmax                    = 16;
   opt.qsgw_max_virt_correction = 0.2;
 
-  GW gw(log, Mmn, vxc, mo_eigenvalues);
+  // Slice vxc to QP window
+  const votca::Index qptotal_vt = opt.qpmax - opt.qpmin + 1;
+  Eigen::MatrixXd vxc_vt = vxc.block(opt.qpmin, opt.qpmin,
+                                       qptotal_vt, qptotal_vt);
+  GW gw(log, Mmn, vxc_vt, mo_eigenvalues);
   gw.configure(opt);
   gw.CalculateGWPerturbation();
   const double e16_seed = gw.getGWAResults()(16);
