@@ -494,6 +494,10 @@ BOOST_AUTO_TEST_CASE(qsgw_virtual_threshold) {
   BOOST_CHECK_EQUAL(U.cols(), 17);
   BOOST_CHECK_CLOSE(U(16, 16), 1.0, 1e-6);
 
+  const Eigen::VectorXd& seed_energies = gw.getQSGWSeedEnergies();
+  BOOST_CHECK_EQUAL(seed_energies.size(),17);
+
+
   libint2::finalize();
 }
 

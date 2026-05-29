@@ -261,4 +261,11 @@ BOOST_AUTO_TEST_CASE(osc_strength) {
   libint2::finalize();
 }
 
+BOOST_AUTO_TEST_CASE(qsgw_setget) {
+  Orbitals orb;
+  orb.setQSGW(true);
+  const bool check_isQSGW = orb.isQSGW();
+  BOOST_CHECK_EQUAL(check_isQSGW, true);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
