@@ -455,6 +455,16 @@ class Orbitals {
   /// Return writable access to the diagonalized quasiparticle representation.
   tools::EigenSystem &QPdiag() { return QPdiag_; }
 
+  /// Return whether a QSGW rotation matrix is available.
+  bool hasQSGWRotation() const { return qsgw_rotation_.size() > 0; }
+
+  /// Return read-only access to the QSGW rotation matrix U (DFT MOs -> QP
+  /// wavefunctions).
+  const Eigen::MatrixXd &getQSGWRotation() const { return qsgw_rotation_; }
+
+  /// Store the QSGW rotation matrix U produced by GW::CalculateQSGW.
+  void setQSGWRotation(const Eigen::MatrixXd &U) { qsgw_rotation_ = U; }
+
   /// Report whether triplet BSE eigenpairs are available.
   bool hasBSETriplets() const {
     return (BSE_triplet_.eigenvectors().cols() > 0) ? true : false;
@@ -596,6 +606,12 @@ class Orbitals {
   /// Set whether off-diagonal quasiparticle Hamiltonian elements should be
   /// used.
   void SetFlagUseHqpOffdiag(bool flag) { use_Hqp_offdiag_ = flag; };
+
+  /// Returns true if QP data was obtained via QSGW (not perturbative GW).
+  /// When true, BSE must be built in the QP basis using rotated MO coefficients
+  /// C_qp = C_dft * U where U = QPdiag().eigenvectors().
+  bool isQSGW() const { return is_qsgw_; };
+  void setQSGW(bool flag) { is_qsgw_ = flag; };
 
   /// Return localized molecular orbitals, if available.
   const Eigen::MatrixXd &getLMOs() const { return lmos_; };
@@ -772,6 +788,8 @@ class Orbitals {
 
   // quasiparticle energies and coefficients after diagonalization
   tools::EigenSystem QPdiag_;
+  Eigen::MatrixXd qsgw_rotation_;  ///< Accumulated QSGW rotation U (DFT MOs ->
+                                   ///< QP wavefunctions)
 
   tools::EigenSystem BSE_singlet_;
   std::vector<Eigen::Vector3d> transition_dipoles_;
@@ -782,6 +800,7 @@ class Orbitals {
   Eigen::VectorXd BSE_triplet_energies_dynamic_;
 
   bool use_Hqp_offdiag_ = false;
+  bool is_qsgw_ = false;  // true if QP data comes from a QSGW calculation
 
   // Spin-GW additions
   Eigen::VectorXd rpa_inputenergies_alpha_;
@@ -801,7 +820,8 @@ class Orbitals {
   // Version 4: added vxc grid quality
   // Version 5: added the dft and aux basisset
   // Version 6: added spin in dft
-  static constexpr int orbitals_version() { return 8; }
+  // Version 9: added is_qsgw flag
+  static constexpr int orbitals_version() { return 9; }
 };
 
 }  // namespace xtp

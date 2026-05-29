@@ -527,6 +527,25 @@ void GWBSE::Initialize(tools::Property& options) {
   gwopt_.qp_zero_margin = options.get("gw.qp_zero_margin").as<double>();
   gwopt_.qp_virtual_min_energy =
       options.get("gw.qp_virtual_min_energy").as<double>();
+
+  // QSGW options
+  gwopt_.do_qsgw =
+      options.ifExistsReturnElseReturnDefault<bool>("gw.do_qsgw", false);
+  gwopt_.qsgw_max_iterations = options.ifExistsReturnElseReturnDefault<Index>(
+      "gw.qsgw_max_iterations", 20);
+  gwopt_.qsgw_sc_limit =
+      options.ifExistsReturnElseReturnDefault<double>("gw.qsgw_sc_limit", 1e-5);
+  gwopt_.qsgw_max_virt_correction =
+      options.ifExistsReturnElseReturnDefault<double>(
+          "gw.qsgw_max_virt_correction", 0.5);
+  if (gwopt_.do_qsgw) {
+    XTP_LOG(Log::error, *pLog_)
+        << " QSGW enabled: max_iter=" << gwopt_.qsgw_max_iterations
+        << " sc_limit=" << gwopt_.qsgw_sc_limit << " Ha"
+        << " max_virt_correction=" << gwopt_.qsgw_max_virt_correction << " Ha ("
+        << gwopt_.qsgw_max_virt_correction * 27.2114 << " eV)" << std::flush;
+  }
+
   if (mode == "evGW") {
     if (gwopt_.gw_mixing_order == 0) {
       XTP_LOG(Log::error, *pLog_) << " evGW with plain update " << std::flush;
@@ -997,21 +1016,82 @@ bool GWBSE::Evaluate() {
 
       XTP_LOG(Log::info, *pLog_)
           << TimeStamp() << " Calculating offdiagonal part of Sigma  " << flush;
-      gw.CalculateHQP();
-      XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
+      if (gwopt_.do_qsgw) {
+        // QSGW: iterate rotation of Mmn until QP energies converge.
+        gw.CalculateQSGW();
 
-      Hqp = gw.getHQP();
+        // Print seed vs QSGW comparison. Label the seed column by what
+        // CalculateGWPerturbation ran: G0W0 if one iteration, evGW otherwise.
+        const std::string seed_label =
+            (gwopt_.gw_sc_max_iterations == 1) ? "G0W0" : "evGW";
+        Eigen::VectorXd qsgw_energies = gw.getGWAResults();
+        gw.PrintQSGW_Energies(seed_label, gw.getQSGWSeedEnergies(),
+                              qsgw_energies);
+        gw.PrintQSGW_Composition();
 
-      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
-          gw.DiagonalizeQPHamiltonian();
-      if (es.info() == Eigen::ComputationInfo::Success) {
+        // ── BSE hookup
+        // ──────────────────────────────────────────────────────── Rebuild Mmn_
+        // in the QP wavefunction basis so the BSE Hamiltonian is expressed
+        // directly in the QP basis. Only QP-window columns of the MO
+        // coefficient matrix are rotated by U = qsgw_rotation_; columns outside
+        // the QP window (deep occupied / high virtual states that were not
+        // corrected by QSGW) remain as DFT-MOs, consistent with the
+        // scissor-shift treatment in UpdateRPAInputEnergies and AdjustHqpSize.
+        //
+        // orbitals_.MOs().eigenvectors() is NOT modified — the original DFT-MO
+        // coefficients in the AO basis are preserved for postprocessing
+        // (transition dipoles, population analysis, density matrices etc.)
+        {
+          const Index qptotal = gwopt_.qpmax - gwopt_.qpmin + 1;
+          const Eigen::MatrixXd& U = gw.getQSGWRotation();
+          Eigen::MatrixXd C_qp = orbitals_.MOs().eigenvectors();
+          C_qp.middleCols(gwopt_.qpmin, qptotal) =
+              orbitals_.MOs().eigenvectors().middleCols(gwopt_.qpmin, qptotal) *
+              U;
+          XTP_LOG(Log::error, *pLog_)
+              << TimeStamp() << " Rebuilding Mmn in QSGW QP wavefunction basis"
+              << flush;
+          Mmn.Fill(auxbasis, dftbasis, C_qp);
+          XTP_LOG(Log::error, *pLog_)
+              << TimeStamp()
+              << " Rebuilt Mmn (3-center-repulsion x QP orbitals)" << flush;
+        }
+
+        // In the QP basis H_QSGW is diagonal — Hqp = diag(qsgw_energies).
+        // AdjustHqpSize (in bse.cc) pads states outside the QP window with
+        // scissor-shifted DFT energies from RPAInputEnergies automatically.
+        Hqp = qsgw_energies.asDiagonal();
+
+        // Store converged QSGW eigensystem in QPdiag.
+        // eigenvalues  = QSGW QP energies (used by BSE for energy differences)
+        // eigenvectors = U (DFT-MOs -> QP wavefunctions), stored so that a
+        //                BSE-only run loading from .orb can rebuild Mmn_ with
+        //                the correct rotated MO coefficients C_qp = C_dft * U.
+        // QPpertEnergies() is intentionally left holding the G0W0/evGW seed
+        // energies — it should only contain perturbative QP corrections.
+        orbitals_.QPdiag().eigenvalues() = qsgw_energies;
+        orbitals_.QPdiag().eigenvectors() = gw.getQSGWRotation();
+
+        // Flag the orbitals object so BSE-only runs know to use the QP basis.
+        orbitals_.setQSGW(true);
+      } else {
+        gw.CalculateHQP();
         XTP_LOG(Log::error, *pLog_)
-            << TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
-      }
+            << TimeStamp() << " Calculated offdiagonal part of Sigma  "
+            << flush;
 
-      orbitals_.QPdiag().eigenvectors() = es.eigenvectors();
-      orbitals_.QPdiag().eigenvalues() = es.eigenvalues();
+        Hqp = gw.getHQP();
+
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
+            gw.DiagonalizeQPHamiltonian();
+        if (es.info() == Eigen::ComputationInfo::Success) {
+          XTP_LOG(Log::error, *pLog_)
+              << TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
+        }
+
+        orbitals_.QPdiag().eigenvectors() = es.eigenvectors();
+        orbitals_.QPdiag().eigenvalues() = es.eigenvalues();
+      }
       std::chrono::duration<double> elapsed_time =
           std::chrono::system_clock::now() - start;
       XTP_LOG(Log::error, *pLog_)
@@ -1041,6 +1121,23 @@ bool GWBSE::Evaluate() {
       Hqp_beta = qpcoeff_beta *
                  orbitals_.QPdiagBeta().eigenvalues().asDiagonal() *
                  qpcoeff_beta.transpose();
+    } else if (orbitals_.isQSGW()) {
+      // QSGW BSE-only run: rebuild Mmn_ in the QP basis using the stored
+      // rotation U = QPdiag().eigenvectors(). Hqp is diagonal in the QP basis.
+      const Eigen::MatrixXd& U = orbitals_.QPdiag().eigenvectors();
+      const Index qptotal = gwopt_.qpmax - gwopt_.qpmin + 1;
+      Eigen::MatrixXd C_qp = orbitals_.MOs().eigenvectors();
+      C_qp.middleCols(gwopt_.qpmin, qptotal) =
+          orbitals_.MOs().eigenvectors().middleCols(gwopt_.qpmin, qptotal) * U;
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp()
+          << " Rebuilding Mmn in QSGW QP wavefunction basis (BSE-only)"
+          << flush;
+      Mmn.Fill(auxbasis, dftbasis, C_qp);
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " Rebuilt Mmn (3-center-repulsion x QP orbitals)"
+          << flush;
+      Hqp = orbitals_.QPdiag().eigenvalues().asDiagonal();
     } else {
       const Eigen::MatrixXd& qpcoeff = orbitals_.QPdiag().eigenvectors();
 

@@ -97,6 +97,25 @@ class GW {
     double qp_virtual_min_energy = -0.1;
     std::string qp_root_finder = "bisection";
     std::string qp_grid_search_mode = "adaptive_with_dense_fallback";
+
+    // QSGW options
+    // When true, run quasiparticle self-consistent GW instead of evGW.
+    // The three-centre integrals are rotated at each iteration so that W and
+    // Sigma are evaluated in the basis of the current QP wavefunctions.
+    bool do_qsgw = false;
+    Index qsgw_max_iterations = 20;
+    double qsgw_sc_limit = 1e-5;  // Ha; convergence threshold on QP energies
+
+    // Maximum allowed perturbative QP correction for virtual states to be
+    // included in the QSGW self-consistency loop. Virtual states with
+    // |e_QP - e_DFT| > qsgw_max_virt_correction are excluded from the QSGW
+    // window and kept at their perturbative QP energies (DFT-MO wavefunctions).
+    // This prevents pathological high-energy basis-set artefact states from
+    // destabilising the QSGW rotation. Occupied states are never excluded.
+    // Default: 0.5 Ha (13.6 eV, 1 Rydberg) -- corrections above this are
+    // unlikely to be physically meaningful for typical molecular systems.
+    // Set to a large value (e.g. 1e10) to disable the threshold entirely.
+    double qsgw_max_virt_correction = 0.5;  // Ha
   };
 
   void configure(const options& opt);
@@ -107,6 +126,56 @@ class GW {
 
   // Calculated offdiagonal elements as well
   void CalculateHQP();
+
+  /**
+   * \brief Run quasiparticle self-consistent GW (QSGW).
+   *
+   * At each iteration:
+   *   1. Compute the full off-diagonal self-energy matrix tilde_Sigma
+   *      (symmetrised static approximation) in the current QP basis.
+   *   2. Diagonalise H_QSGW = diag(e_DFT - v_xc) + tilde_Sigma to obtain
+   *      new QP energies and a rotation matrix U.
+   *   3. Rotate the three-centre integrals Mmn via U so that W and Sigma
+   *      are computed from the updated QP wavefunctions next iteration.
+   * Converges when max|e_QP^{k+1} - e_QP^k| < qsgw_sc_limit.
+   *
+   * The accumulated rotation U (DFT MOs -> converged QP wavefunctions) is
+   * stored in qsgw_rotation_ and returned via getQSGWRotation().
+   * QPdiag energies and eigenvectors are set to the converged QSGW values.
+   */
+  void CalculateQSGW();
+
+  /// Return the accumulated QSGW rotation matrix U (DFT MOs -> QP
+  /// wavefunctions)
+  const Eigen::MatrixXd& getQSGWRotation() const { return qsgw_rotation_; }
+
+  /// Return the seed (G0W0/evGW) energies that QSGW started from
+  const Eigen::VectorXd& getQSGWSeedEnergies() const {
+    return qsgw_seed_energies_;
+  }
+
+  /**
+   * \brief Print a two-column comparison of seed (G0W0 or evGW) vs converged
+   *        QSGW quasiparticle energies.
+   *
+   * @param seed_label    Label for the seed column, e.g. "G0W0" or "evGW".
+   * @param seed_energies QP energies from the seed calculation (Ha).
+   * @param qsgw_energies Converged QSGW eigenvalues (Ha).
+   */
+  void PrintQSGW_Energies(const std::string& seed_label,
+                          const Eigen::VectorXd& seed_energies,
+                          const Eigen::VectorXd& qsgw_energies) const;
+
+  /**
+   * \brief Print the dominant DFT-KS orbital contributions to each converged
+   *        QSGW quasiparticle state.
+   *
+   * For each QP state n, prints the KS orbitals m with |U_{mn}|^2 > threshold,
+   * where U = qsgw_rotation_ (columns = QP states in DFT-KS basis).
+   *
+   * @param threshold  Minimum weight to print (default 0.01 = 1%)
+   */
+  void PrintQSGW_Composition(double threshold = 0.01) const;
 
   Eigen::MatrixXd getHQP() const;
 
@@ -126,6 +195,14 @@ class GW {
 
   Eigen::MatrixXd Sigma_x_;
   Eigen::MatrixXd Sigma_c_;
+  Eigen::MatrixXd qsgw_rotation_;       // accumulated U: DFT MOs -> QSGW QP
+                                        // wavefunctions
+  Eigen::VectorXd qsgw_seed_energies_;  // evGW/G0W0 energies used as QSGW seed
+  // Merged QSGW+seed energies for the full QP window. Set by CalculateQSGW()
+  // when the virtual window is trimmed. getGWAResults() returns this when
+  // non-empty, bypassing the sigma-matrix recomputation which would be wrong
+  // for the excluded levels.
+  Eigen::VectorXd qsgw_final_energies_;
 
   options opt_;
 
