@@ -139,4 +139,53 @@ BOOST_AUTO_TEST_CASE(rpa_full) {
   libint2::finalize();
 }
 
+
+BOOST_AUTO_TEST_CASE(rpa_qsgw_rotation) {
+  // Test the QSGW m-rotation code path in rpa.cc (Calculate_H2p_ApB).
+  // With U = Identity the dielectric matrix must match the non-QSGW result.
+  libint2::initialize();
+  Orbitals orbitals;
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/rpa/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/rpa/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, orbitals.QMAtoms());
+
+  Eigen::VectorXd eigenvals = votca::tools::EigenIO_MatrixMarket::ReadVector(
+      std::string(XTP_TEST_DATA_FOLDER) + "/rpa/eigenvals.mm");
+  Eigen::MatrixXd eigenvectors =
+      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+          std::string(XTP_TEST_DATA_FOLDER) + "/rpa/eigenvectors.mm");
+
+  Logger log;
+  TCMatrix_gwbse Mmn;
+  Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
+  Mmn.Fill(aobasis, aobasis, eigenvectors);
+
+  RPA rpa(log, Mmn);
+  rpa.configure(4, 0, 16);
+  rpa.setRPAInputEnergies(eigenvals);
+
+  // Reference: compute epsilon_i without QSGW rotation
+  Eigen::MatrixXd e_i_ref = rpa.calculate_epsilon_i(0.5);
+
+  // Set QSGW rotation to identity -- exercises the m-rotation branch in
+  // rpa.cc (Calculate_H2p_ApB lines 302-309) while giving the same result.
+  Eigen::MatrixXd U = Eigen::MatrixXd::Identity(17, 17);
+  rpa.setQSGWRotation(&U, 0, 4);
+
+  Eigen::MatrixXd e_i_qsgw = rpa.calculate_epsilon_i(0.5);
+
+  rpa.setQSGWRotation(nullptr, 0, 0);
+
+  bool check = e_i_ref.isApprox(e_i_qsgw, 1e-5);
+  if (!check) {
+    cout << "epsilon_i with identity QSGW rotation differs from reference" << endl;
+    cout << "Max diff: " << (e_i_qsgw - e_i_ref).cwiseAbs().maxCoeff() << endl;
+  }
+  BOOST_CHECK_EQUAL(check, true);
+
+  libint2::finalize();
+}
 BOOST_AUTO_TEST_SUITE_END()
