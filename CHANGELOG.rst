@@ -15,6 +15,7 @@ Version 2026-dev
 -  fix xtp_binds test timeout (#1239, #1240)
 -  use IEEE data types in HDF5 (#1241, #1242)
 -  fixing bisection in QP solve (#1244)
+-  added quasiparticle self-consistent GW (#1245)
 
 Version 2026 (released 09.03.26)
 ================================
