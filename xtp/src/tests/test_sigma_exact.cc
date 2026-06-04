@@ -119,4 +119,71 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   libint2::finalize();
 }
 
+
+BOOST_AUTO_TEST_CASE(sigma_exact_qsgw_rotation) {
+  // Test that the QSGW m-rotation code path in sigma_exact is exercised.
+  // With U = Identity the results must match the non-QSGW case exactly.
+  libint2::initialize();
+  Orbitals orbitals;
+  orbitals.QMAtoms().LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) +
+                                  "/sigma_exact/molecule.xyz");
+  BasisSet basis;
+  basis.Load(std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/3-21G.xml");
+  AOBasis aobasis;
+  aobasis.Fill(basis, orbitals.QMAtoms());
+
+  Eigen::VectorXd mo_energy = Eigen::VectorXd::Zero(17);
+  mo_energy << 0.0468207, 0.0907801, 0.0907801, 0.104563, 0.592491, 0.663355,
+      0.663355, 0.768373, 1.69292, 1.97724, 1.97724, 2.50877, 2.98732, 3.4418,
+      3.4418, 4.81084, 17.1838;
+
+  Eigen::MatrixXd MOs = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/sigma_exact/MOs.mm");
+
+  Logger log;
+  TCMatrix_gwbse Mmn;
+  Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
+  Mmn.Fill(aobasis, aobasis, MOs);
+
+  RPA rpa(log, Mmn);
+  rpa.setRPAInputEnergies(mo_energy);
+  rpa.configure(4, 0, 16);
+  std::unique_ptr<Sigma_base> sigma = SigmaFactory().Create("exact", Mmn, rpa);
+
+  Sigma_base::options opt;
+  opt.homo = 4;
+  opt.qpmin = 0;
+  opt.qpmax = 16;
+  opt.rpamin = 0;
+  opt.rpamax = 16;
+  opt.eta = 1e-3;
+  sigma->configure(opt);
+
+  // Set QSGW rotation to identity — exercises the m-rotation code path in
+  // CalcCorrelationOffDiag (sigma_exact.cc lines 132-142) while producing
+  // results identical to the non-QSGW case.
+  Eigen::MatrixXd U = Eigen::MatrixXd::Identity(17, 17);
+  sigma->setQSGWRotation(&U, 0, 4);
+
+  sigma->PrepareScreening();
+  Eigen::MatrixXd c_qsgw = sigma->CalcCorrelationOffDiag(mo_energy);
+  c_qsgw.diagonal() = sigma->CalcCorrelationDiag(mo_energy);
+
+  // Clear rotation and recompute without QSGW — results must match
+  sigma->setQSGWRotation(nullptr, 0, 0);
+  Mmn.Fill(aobasis, aobasis, MOs);
+  sigma->PrepareScreening();
+  Eigen::MatrixXd c_ref = sigma->CalcCorrelationOffDiag(mo_energy);
+  c_ref.diagonal() = sigma->CalcCorrelationDiag(mo_energy);
+
+  bool check_c = c_qsgw.isApprox(c_ref, 1e-5);
+  if (!check_c) {
+    cout << "Sigma C with identity QSGW rotation differs from reference" << endl;
+    cout << "Max diff: " << (c_qsgw - c_ref).cwiseAbs().maxCoeff() << endl;
+  }
+  BOOST_CHECK_EQUAL(check_c, true);
+
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()
