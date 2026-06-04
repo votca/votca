@@ -89,5 +89,46 @@ void TCMatrix_gwbse::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
   return;
 }
 
+// =============================================================================
+// TCMatrix_gwbse::Rotate
+//
+// Rotates only the n-index (inner rows) of ALL m-slices for the QP window.
+//
+// In QSGW the self-energy matrix element indices (outer m) stay in the
+// DFT-MO basis. Only the construction sum indices (inner n-rows) need to be
+// in the QP wavefunction basis. This method applies:
+//
+//   new_M[m].middleRows(qp_offset_n, qptotal) =
+//       U^T * old_M[m].middleRows(qp_offset_n, qptotal)
+//
+// for ALL m-slices in the full RPA range (because every sigma calculation
+// uses every m-slice as a matrix element index and needs updated n-rows).
+// Rows outside the QP window remain as DFT-MOs.
+// =============================================================================
+void TCMatrix_gwbse::Rotate(const Eigen::MatrixXd& U, Index qpmin,
+                            Index qpmax) {
+  const Index qptotal = qpmax - qpmin + 1;
+  const Index qp_offset_n = qpmin - nmin_;  // row offset in n-storage
+  const Index qp_offset_m = qpmin - mmin_;  // slice offset in m-storage
+
+  assert(qpmin >= nmin_ && qpmax <= nmax_);
+  assert(qpmin >= mmin_ && qpmax <= mmax_);
+  assert(U.rows() == qptotal && U.cols() == qptotal);
+
+  // Rotate the n-rows of ONLY the QP-window m-slices [qpmin, qpmax].
+  // Slices outside this range (e.g. core levels below qpmin, or high virtuals
+  // above qpmax) are always DFT-MOs and must NOT be touched -- they are not
+  // saved/restored by Mmn_orig in gw.cc and would accumulate drift if rotated.
+  // Only the QP-window n-row block [qp_offset_n, qp_offset_n+qptotal) is
+  // rotated; rows outside remain as DFT-MOs (consistent with evGW treatment).
+  // new_rows = U^T * old_rows
+#pragma omp parallel for schedule(dynamic)
+  for (Index m = 0; m < qptotal; m++) {
+    matrix_[m + qp_offset_m].middleRows(qp_offset_n, qptotal) =
+        U.transpose() *
+        matrix_[m + qp_offset_m].middleRows(qp_offset_n, qptotal);
+  }
+}
+
 }  // namespace xtp
 }  // namespace votca

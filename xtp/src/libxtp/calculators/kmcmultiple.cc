@@ -456,7 +456,7 @@ void KMCMultiple::RunVSSM() {
 
 bool KMCMultiple::Evaluate(Topology& top) {
 
-  if (OPENMP::getMaxThreads() == 1){
+  if (OPENMP::getMaxThreads() == 1) {
     log_.setMultithreading(true);
   }
 

@@ -5,12 +5,14 @@ compare_xml_numeric.py — semantic XML compare with:
 - ignore tags at any depth (skip subtree)
 - per-tag tolerance overrides (e.g. qp_energy needs looser tolerance)
 - per-tag "allow global sign flip" for numeric vectors in text (e.g. Trdipole)
+- per-attribute "allow sign flip" for scalar numeric attributes (e.g. j_diag, j_pert)
 
 Examples:
   python compare_xml_numeric.py ref.xml out.xml \
     --ignore-tag Compute_Time --ignore-tag host --ignore-tag time \
     --tag-tol qp_energy:1e-7:1e-6 \
-    --signflip-tag Trdipole
+    --signflip-tag Trdipole \
+    --signflip-attr j_diag --signflip-attr j_pert
 
 Format for --tag-tol:
   TAG:RTOL:ATOL
@@ -136,6 +138,7 @@ def compare_elements(
     ignore_tags: Set[str],
     tag_tols: Dict[str, Tuple[float, float]],
     signflip_tags: Set[str],
+    signflip_attrs: Set[str],
 ) -> None:
     # Ignore subtree if either side is ignored tag
     if ea.tag in ignore_tags or eb.tag in ignore_tags:
@@ -159,8 +162,24 @@ def compare_elements(
         diffs.append(f"{path}: attribute {k!r} missing in A")
 
     for k in sorted(a_keys & b_keys):
-        # attributes are usually scalars; no signflip by default
-        compare_values(f"{path}/@{k}", ea.attrib.get(k), eb.attrib.get(k), rtol, atol, diffs, allow_signflip_vector=False)
+        sa = norm_text(ea.attrib.get(k))
+        sb = norm_text(eb.attrib.get(k))
+        if k in signflip_attrs and is_number(sa) and is_number(sb):
+            fa, fb = to_float(sa), to_float(sb)
+            if num_equal(fa, fb, atol, rtol) or num_equal(fa, -fb, atol, rtol):
+                continue
+            diffs.append(f"{path}/@{k}: numeric mismatch {fa} vs {fb} (atol={atol}, rtol={rtol})")
+        else:
+            # attributes are usually scalars; no signflip by default
+            compare_values(
+                f"{path}/@{k}",
+                ea.attrib.get(k),
+                eb.attrib.get(k),
+                rtol,
+                atol,
+                diffs,
+                allow_signflip_vector=False,
+            )
 
     # Text content (apply signflip rule if configured for this tag)
     compare_values(path, ea.text, eb.text, rtol, atol, diffs, allow_signflip_vector=allow_sf)
@@ -181,7 +200,8 @@ def compare_elements(
             diffs,
             ignore_tags,
             tag_tols,
-            signflip_tags
+            signflip_tags,
+            signflip_attrs,
         )
 
     # Tail text (usually whitespace)
@@ -209,11 +229,15 @@ def main() -> int:
     ap.add_argument("--signflip-tag", action="append", default=[],
                     help="For these tags, allow numeric vectors in text to match up to an overall sign flip (repeatable)")
 
+    ap.add_argument("--signflip-attr", action="append", default=[],
+                    help="For these attribute names, allow scalar numeric values to match up to a sign flip (repeatable)")
+
     ap.add_argument("--max-report", type=int, default=50)
     args = ap.parse_args()
 
     ignore_tags = set(args.ignore_tag)
     signflip_tags = set(args.signflip_tag)
+    signflip_attrs = set(args.signflip_attr)
 
     try:
         tag_tols = parse_tag_tol(args.tag_tol)
@@ -237,6 +261,7 @@ def main() -> int:
         ignore_tags=ignore_tags,
         tag_tols=tag_tols,
         signflip_tags=signflip_tags,
+        signflip_attrs=signflip_attrs,
     )
 
     if diffs:
@@ -247,7 +272,7 @@ def main() -> int:
             print(f" ... {len(diffs) - args.max_report} more differences")
         return 1
 
-    print("[compare_xml] OK (numeric tolerance + ignore tags + per-tag tolerances + sign-flip tags applied)")
+    print("[compare_xml] OK (numeric tolerance + ignore tags + per-tag tolerances + sign-flip tags/attrs applied)")
     return 0
 
 

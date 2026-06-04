@@ -21,25 +21,23 @@
 #ifndef VOTCA_XTP_PPM_H
 #define VOTCA_XTP_PPM_H
 
-// Local VOTCA includes
 #include "eigen.h"
 #include "rpa.h"
 
 namespace votca {
 namespace xtp {
 
+class RPA_UKS;
+
 class PPM {
  public:
   PPM() : screening_r(0.0), screening_i(0.5) {};
 
-  // This sets the screening frequencies for real and imaginary part in hartree
-
   void PPM_construct_parameters(const RPA& rpa);
+  void PPM_construct_parameters(const RPA_UKS& rpa);
 
   const Eigen::VectorXd& getPpm_weight() const { return ppm_weight_; }
-
   const Eigen::VectorXd& getPpm_freq() const { return ppm_freq_; }
-
   const Eigen::MatrixXd& getPpm_phi() const { return ppm_phi_; }
 
   void FreeMatrix() { ppm_phi_.resize(0, 0); }
@@ -48,12 +46,12 @@ class PPM {
   double screening_r;
   double screening_i;
 
-  // PPM related variables and functions
   Eigen::MatrixXd ppm_phi_;
   Eigen::VectorXd ppm_freq_;
   Eigen::VectorXd ppm_weight_;
 };
+
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_PPM_H
+#endif

@@ -48,6 +48,15 @@ class Sigma_base {
     double alpha;
   };
 
+  // QSGW: set the rotation matrix U (DFT-MOs -> QP wavefunctions) so that
+  // PrepareScreening can apply the m-rotation to hole slices used by the RPA.
+  // Call with U=nullptr to disable (default: G0W0/evGW, no rotation needed).
+  void setQSGWRotation(const Eigen::MatrixXd* U, Index qpmin, Index homo) {
+    qsgw_U_ = U;
+    qsgw_qpmin_ = qpmin;
+    qsgw_homo_ = homo;
+  }
+
   void configure(options opt) {
     opt_ = opt;
     qptotal_ = opt.qpmax - opt.qpmin + 1;
@@ -74,6 +83,9 @@ class Sigma_base {
                                                double frequency1,
                                                double frequency2) const = 0;
 
+  void ResetDiagEvalCounter() const { diag_eval_counter_.store(0); }
+  std::size_t GetDiagEvalCounter() const { return diag_eval_counter_.load(); }
+
  protected:
   options opt_;
   TCMatrix_gwbse& Mmn_;
@@ -81,6 +93,16 @@ class Sigma_base {
 
   Index qptotal_ = 0;
   Index rpatotal_ = 0;
+
+  // QSGW rotation (nullptr in G0W0/evGW, set in QSGW PrepareScreening)
+  const Eigen::MatrixXd* qsgw_U_ = nullptr;
+  Index qsgw_qpmin_ = 0;
+  Index qsgw_homo_ = 0;
+
+  void CountDiagEval() const { diag_eval_counter_.fetch_add(1); }
+
+ private:
+  mutable std::atomic<std::size_t> diag_eval_counter_{0};
 };
 }  // namespace xtp
 }  // namespace votca

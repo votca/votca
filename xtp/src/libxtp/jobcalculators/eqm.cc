@@ -135,7 +135,8 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       "frame_" + boost::lexical_cast<std::string>(top.getStep());
   std::string orb_file =
       (boost::format("%1%_%2%%3%") % "molecule" % segId % ".orb").str();
-  std::string mol_dir = (boost::format("%1%%2%%3%") % "molecule" % "_" % segId).str();
+  std::string mol_dir =
+      (boost::format("%1%%2%%3%") % "molecule" % "_" % segId).str();
   std::string package_append = "workdir_" + Identify();
   std::string work_dir =
       (arg_path / eqm_work_dir / package_append / frame_dir / mol_dir)
@@ -228,10 +229,14 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       GWBSE gwbse = GWBSE(orbitals);
       Logger gwbse_logger(votca::Log::current_level);
       gwbse_logger.setMultithreading(false);
-      gwbse_logger.setPreface(Log::info, (boost::format("\nGWBSE INF ...")).str());
-      gwbse_logger.setPreface(Log::error, (boost::format("\nGWBSE ERR ...")).str());
-      gwbse_logger.setPreface(Log::warning, (boost::format("\nGWBSE WAR ...")).str());
-      gwbse_logger.setPreface(Log::debug, (boost::format("\nGWBSE DBG ...")).str());
+      gwbse_logger.setPreface(Log::info,
+                              (boost::format("\nGWBSE INF ...")).str());
+      gwbse_logger.setPreface(Log::error,
+                              (boost::format("\nGWBSE ERR ...")).str());
+      gwbse_logger.setPreface(Log::warning,
+                              (boost::format("\nGWBSE WAR ...")).str());
+      gwbse_logger.setPreface(Log::debug,
+                              (boost::format("\nGWBSE DBG ...")).str());
       gwbse.setLogger(&gwbse_logger);
       gwbse.Initialize(gwbse_options_);
       gwbse.Evaluate();
@@ -252,8 +257,8 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       std::string ESPDIR =
           "MP_FILES/" + frame_dir + "/" + esp2multipole.GetStateString();
       StaticSegment seg2 = esp2multipole.Extractingcharges(orbitals);
-      std::string mps_file = (boost::format("%1%_%2%_%3%.mps") % segType % segId %
-                              esp2multipole.GetStateString())
+      std::string mps_file = (boost::format("%1%_%2%_%3%.mps") % segType %
+                              segId % esp2multipole.GetStateString())
                                  .str();
       std::filesystem::create_directories(ESPDIR);
       seg2.WriteMPS(ESPDIR + "/" + mps_file,

@@ -29,8 +29,10 @@
 
 // Local VOTCA includes
 #include "bse.h"
+#include "bse_uks.h"
 #include "eigen.h"
 #include "gw.h"
+#include "gw_uks.h"
 #include "logger.h"
 #include "qmfragment.h"
 
@@ -68,6 +70,8 @@ class GWBSE {
 
  private:
   Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
+  std::pair<Eigen::MatrixXd, Eigen::MatrixXd> CalculateVXCSpinResolved(
+      const AOBasis& dftbasis);
   Index CountCoreLevels();
   Logger* pLog_;
   Orbitals& orbitals_;
@@ -77,6 +81,7 @@ class GWBSE {
   bool do_bse_singlets_ = false;
   bool do_bse_triplets_ = false;
   bool do_dynamical_screening_bse_ = false;
+  bool do_bse_exciton_uks_ = false;
 
   // options for own Vxc calculation
   std::string functional_;

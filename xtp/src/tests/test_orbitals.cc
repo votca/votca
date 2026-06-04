@@ -77,8 +77,9 @@ BOOST_AUTO_TEST_CASE(densmat_test) {
   libint2::initialize();
   Orbitals orb;
   orb.setNumberOfOccupiedLevels(4);
+  orb.setNumberOfAlphaElectrons(4);
+  orb.setNumberOfBetaElectrons(4);
   orb.setBSEindices(0, 9);
-  orb.setNumberOfAlphaElectrons(5);
   orb.setChargeAndSpin(0, 1);
   orb.MOs().eigenvalues() = Eigen::VectorXd::Ones(17);
   orb.MOs().eigenvectors() = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
@@ -258,6 +259,13 @@ BOOST_AUTO_TEST_CASE(osc_strength) {
   }
 
   libint2::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(qsgw_setget) {
+  Orbitals orb;
+  orb.setQSGW(true);
+  const bool check_isQSGW = orb.isQSGW();
+  BOOST_CHECK_EQUAL(check_isQSGW, true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

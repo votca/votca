@@ -29,6 +29,23 @@
 namespace votca {
 namespace xtp {
 
+/**
+ * ADIIS implementation.
+ *
+ * ADIIS minimizes a quadratic surrogate of the SCF energy over the simplex of
+ * mixing coefficients. It is typically more robust than plain DIIS far from
+ * convergence and is therefore used as an intermediate accelerator before the
+ * switch to standard Pulay extrapolation.
+ */
+
+// Restricted ADIIS coefficients. The minimization is carried out for the
+// approximate energy functional
+//
+//   E(c) = sum_i c_i D_iF + 1/2 sum_ij c_i c_j D_iF_j,
+//
+// under the simplex constraints c_i >= 0 and sum_i c_i = 1. The latter is
+// enforced through the squared optimizer parameters followed by
+// renormalization.
 Eigen::VectorXd ADIIS::CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
                                  const std::vector<Eigen::MatrixXd>& mathist) {
   success = true;
@@ -59,6 +76,63 @@ Eigen::VectorXd ADIIS::CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
   Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / double(size));
   optimizer.Optimize(coeffs);
   success = optimizer.Success();
+  coeffs = optimizer.getParameters().cwiseAbs2();
+  double xnorm = coeffs.sum();
+  coeffs /= xnorm;
+
+  if (std::abs(coeffs.tail(1).value()) < 0.001) {
+    success = false;
+  }
+  return coeffs;
+}
+
+// Unrestricted ADIIS variant. The same quadratic surrogate is assembled, but
+// with alpha and beta traces added so that the objective approximates the spin-
+// summed SCF energy change.
+Eigen::VectorXd ADIIS::CalcCoeff(
+    const std::vector<Eigen::MatrixXd>& dmathist_alpha,
+    const std::vector<Eigen::MatrixXd>& dmathist_beta,
+    const std::vector<Eigen::MatrixXd>& mathist_alpha,
+    const std::vector<Eigen::MatrixXd>& mathist_beta) {
+
+  success = true;
+  Index size = dmathist_alpha.size();
+
+  const Eigen::MatrixXd& dmat_alpha = dmathist_alpha.back();
+  const Eigen::MatrixXd& dmat_beta = dmathist_beta.back();
+  const Eigen::MatrixXd& H_alpha = mathist_alpha.back();
+  const Eigen::MatrixXd& H_beta = mathist_beta.back();
+
+  Eigen::VectorXd DiF = Eigen::VectorXd::Zero(size);
+  Eigen::MatrixXd DiFj = Eigen::MatrixXd::Zero(size, size);
+
+  for (Index i = 0; i < size; ++i) {
+    DiF(i) = (dmathist_alpha[i] - dmat_alpha).cwiseProduct(H_alpha).sum() +
+             (dmathist_beta[i] - dmat_beta).cwiseProduct(H_beta).sum();
+  }
+
+  for (Index i = 0; i < size; ++i) {
+    for (Index j = 0; j < size; ++j) {
+      DiFj(i, j) = (dmathist_alpha[i] - dmat_alpha)
+                       .cwiseProduct(mathist_alpha[j] - H_alpha)
+                       .sum() +
+                   (dmathist_beta[i] - dmat_beta)
+                       .cwiseProduct(mathist_beta[j] - H_beta)
+                       .sum();
+    }
+  }
+
+  ADIIS_costfunction a_cost(DiF, DiFj);
+  BFGSTRM optimizer(a_cost);
+  Logger log;
+  optimizer.setLog(&log);
+  optimizer.setNumofIterations(1000);
+  optimizer.setTrustRadius(0.01);
+
+  Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / double(size));
+  optimizer.Optimize(coeffs);
+  success = optimizer.Success();
+
   coeffs = optimizer.getParameters().cwiseAbs2();
   double xnorm = coeffs.sum();
   coeffs /= xnorm;

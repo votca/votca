@@ -128,7 +128,8 @@ void Job::ToStream(std::ofstream &ofs) const {
   ofs << tab << tab << (boost::format("<tag>%1$s</tag>\n") % tag_).str();
   ofs << iomXML << input_;
   ofs << tab << tab
-      << (boost::format("<status>%1$s</status>\n") % ConvertStatus(status_)).str();
+      << (boost::format("<status>%1$s</status>\n") % ConvertStatus(status_))
+             .str();
 
   if (has_host_) {
     ofs << tab << tab << (boost::format("<host>%1$s</host>\n") % host_).str();
@@ -140,7 +141,8 @@ void Job::ToStream(std::ofstream &ofs) const {
     ofs << iomXML << output_;
   }
   if (has_error_) {
-    ofs << tab << tab << (boost::format("<error>%1$s</error>\n") % error_).str();
+    ofs << tab << tab
+        << (boost::format("<error>%1$s</error>\n") % error_).str();
   }
   ofs << tab << "</job>\n";
   return;

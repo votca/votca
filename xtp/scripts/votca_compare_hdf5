@@ -6,6 +6,9 @@ Policy:
 - Skip eigenvector datasets (gauge dependent): */eigenvectors, */eigenvectors2, ...
 - Compare /QMdata/transition_dipoles/ind<N> allowing global sign flip and dedicated tolerances:
     accept if A ~= B OR A ~= -B within (td_rtol, td_atol)
+- Support per-dataset tolerance overrides:
+    --path-tol /QMdata/QPdiag/eigenvalues:1e-06:5e-06
+    --path-tol /QMdata/QPpert_energies:1e-06:5e-06
 
 Other:
 - Recursive compare groups/datasets/attributes
@@ -19,7 +22,7 @@ import argparse
 import re
 import sys
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Set, Tuple
+from typing import Any, Iterable, List, Set, Tuple, Dict
 
 import h5py
 import numpy as np
@@ -63,6 +66,23 @@ def _normalize_string_field(arr: np.ndarray) -> np.ndarray:
 
 def _dtype_is_string_like(dt: np.dtype) -> bool:
     return dt.kind in ("S", "U", "O")
+
+
+def parse_path_tol(items: List[str]) -> Dict[str, Tuple[float, float]]:
+    """
+    Parse repeatable CLI args of the form:
+      PATH:RTOL:ATOL
+    Example:
+      /QMdata/QPdiag/eigenvalues:1e-06:5e-06
+    """
+    out: Dict[str, Tuple[float, float]] = {}
+    for it in items:
+        parts = it.rsplit(":", 2)
+        if len(parts) != 3:
+            raise ValueError(f"--path-tol expects PATH:RTOL:ATOL, got {it!r}")
+        path, rtol_s, atol_s = parts
+        out[path] = (float(rtol_s), float(atol_s))
+    return out
 
 
 def compare_scalars_generic(av: Any, bv: Any, rtol: float, atol: float) -> bool:
@@ -234,7 +254,6 @@ def compare_transition_dipoles_allow_sign(
         diffs.append(Diff(path, "value", f"One is empty: A size={a.size} vs B size={b.size}"))
         return
 
-    # Check both sign conventions
     ok_same = np.isclose(a, b, rtol=rtol, atol=atol, equal_nan=True)
     if np.all(ok_same):
         return
@@ -243,7 +262,6 @@ def compare_transition_dipoles_allow_sign(
     if np.all(ok_flip):
         return
 
-    # Report mismatches for the better fit (same vs flipped)
     bad_same = np.argwhere(~ok_same)
     bad_flip = np.argwhere(~ok_flip)
 
@@ -345,6 +363,7 @@ def walk_and_compare(
     atol: float,
     td_rtol: float,
     td_atol: float,
+    path_tols: Dict[str, Tuple[float, float]],
     max_report: int,
     diffs: List[Diff],
 ) -> None:
@@ -371,7 +390,8 @@ def walk_and_compare(
             diffs.append(Diff(path, "type", f"Type differs: A {type(a_obj)} vs B {type(b_obj)}"))
             return
 
-        compare_attrs(a_obj, b_obj, path, diffs, ignore_attrs, rtol, atol, max_report)
+        attr_rtol, attr_atol = path_tols.get(path, (rtol, atol))
+        compare_attrs(a_obj, b_obj, path, diffs, ignore_attrs, attr_rtol, attr_atol, max_report)
 
         if isinstance(a_obj, h5py.Group):
             a_children = set(a_obj.keys())
@@ -396,7 +416,9 @@ def walk_and_compare(
                     if verbose_skips:
                         print(f"[compare_h5] SKIP dataset {path}", file=sys.stderr)
                     return
-            compare_dataset(a_obj, b_obj, path, diffs, rtol, atol, td_rtol, td_atol, max_report)
+
+            ds_rtol, ds_atol = path_tols.get(path, (rtol, atol))
+            compare_dataset(a_obj, b_obj, path, diffs, ds_rtol, ds_atol, td_rtol, td_atol, max_report)
 
     recurse("/")
 
@@ -414,6 +436,9 @@ def main() -> int:
     ap.add_argument("--td-atol", type=float, default=None,
                     help="Transition dipole absolute tolerance (defaults to max(--atol, 2e-6))")
 
+    ap.add_argument("--path-tol", action="append", default=[],
+                    help="Per-dataset/path tolerance override: PATH:RTOL:ATOL (repeatable)")
+
     ap.add_argument("--ignore-attr", action="append", default=[],
                     help="Attribute name to ignore (repeatable)")
     ap.add_argument("--ignore-path", action="append", default=[],
@@ -426,8 +451,13 @@ def main() -> int:
     ap.add_argument("--max-diffs", type=int, default=500)
     args = ap.parse_args()
 
+    try:
+        path_tols = parse_path_tol(args.path_tol)
+    except Exception as e:
+        print(f"[compare_h5] bad --path-tol: {e}", file=sys.stderr)
+        return 2
+
     td_rtol = args.td_rtol if args.td_rtol is not None else args.rtol
-    # default: slightly looser than global, because dipoles often wobble at ~1e-6
     td_atol = args.td_atol if args.td_atol is not None else max(args.atol, 2e-6)
 
     default_skip = [
@@ -448,6 +478,7 @@ def main() -> int:
                 atol=args.atol,
                 td_rtol=td_rtol,
                 td_atol=td_atol,
+                path_tols=path_tols,
                 max_report=args.max_report,
                 diffs=diffs,
             )
@@ -463,7 +494,7 @@ def main() -> int:
             print(f" ... {len(diffs) - args.max_diffs} more differences not shown")
         return 1
 
-    print("[compare_h5] OK: files match (eigenvectors skipped; transition dipoles sign-aware with dedicated tolerances)")
+    print("[compare_h5] OK: files match (eigenvectors skipped; transition dipoles sign-aware with dedicated tolerances; per-path tolerances applied)")
     return 0
 
 

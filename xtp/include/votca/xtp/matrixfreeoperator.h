@@ -19,6 +19,8 @@
 #ifndef VOTCA_XTP_MATRIXFREEOPERATOR_H
 #define VOTCA_XTP_MATRIXFREEOPERATOR_H
 
+#include <cassert>
+
 // Local VOTCA includes
 #include "eigen.h"
 

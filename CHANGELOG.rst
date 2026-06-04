@@ -1,8 +1,24 @@
 For more detailed information about the changes see the history of the
 `repository <https://github.com/votca/votca/commits/master>`__.
 
-Version 2025.1-dev
-==================
+Version 2026-dev
+================
+
+-  Extended Hueckel methods for initial guess in DFT (#1230)
+-  more unit tests for dftengine (#1231)
+-  implementing Unrestricted KS-DFT for open-shell systems (#1232)
+-  added open-shell support for GW (#1234)
+-  implemented BSE for spin-polarized ground states (#1235)
+-  implemented smarter grid search in QP solver (#1236)
+-  raw J storage in statefile  (#1237)
+-  Add DFT/GW-BSE Tight-Binding Hamiltonian calculator (#1238)
+-  fix xtp_binds test timeout (#1239, #1240)
+-  use IEEE data types in HDF5 (#1241, #1242)
+-  fixing bisection in QP solve (#1244)
+-  added quasiparticle self-consistent GW (#1245)
+
+Version 2026 (released 09.03.26)
+================================
 
 -  Remove csg_boltzmann (#1184)
 -  Remove old histogram class (#1185)
@@ -26,6 +42,7 @@ Version 2025.1-dev
 -  Use Apple Accelerate Framework in Eigen (#1205)
 -  fixing boost and other warnings on rawhide (#1206)
 -  CI: drop gmx-2025 builds (#1208)
+-  add OSX builds in CI (#1207)
 -  fix xtp_autogen_mapping on OSX #1210  (#1211)
 -  fix reading of polarizability tensor from newer ORCA versions (#1213)
 -  fix thread locking in orca calls (#1215)
@@ -36,6 +53,7 @@ Version 2025.1-dev
 -  add integration tests for xtp (#1220)
 -  CI: docker build add provenance=false (#1225)
 -  unbuffered KMC output on single thread (#1226)
+-  CI: ignore c2y-extensions warning on rawhide (#1228)
 
 Version 2025.1 (released 03.10.25)
 ==================================

@@ -56,6 +56,15 @@ class RPA {
 
   const Eigen::VectorXd& getRPAInputEnergies() const { return energies_; }
 
+  // QSGW: provide the rotation matrix so that calculate_epsilon and
+  // Calculate_H2p_ApB can apply the m-rotation to QP-window hole slices.
+  // Call with nullptr to disable (default behaviour for G0W0/evGW).
+  void setQSGWRotation(const Eigen::MatrixXd* U, Index qpmin, Index homo) {
+    qsgw_U_ = U;
+    qsgw_qpmin_ = qpmin;
+    qsgw_homo_ = homo;
+  }
+
   void setRPAInputEnergies(const Eigen::VectorXd& rpaenergies) {
     energies_ = rpaenergies;
   }
@@ -79,6 +88,11 @@ class RPA {
   Index rpamin_;
   Index rpamax_;
   const double eta_ = 0.0001;
+
+  // QSGW m-rotation (nullptr = disabled, i.e. G0W0/evGW)
+  const Eigen::MatrixXd* qsgw_U_ = nullptr;
+  Index qsgw_qpmin_ = 0;
+  Index qsgw_homo_ = 0;
 
   Eigen::VectorXd energies_;
 

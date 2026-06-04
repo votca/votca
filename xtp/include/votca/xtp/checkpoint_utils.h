@@ -113,6 +113,23 @@ struct InferDataType<double> {
   static const H5::DataType* get(void) { return &H5::PredType::NATIVE_DOUBLE; }
 };
 
+// New trait: explicit little-endian type for on-disk storage (used in writes):
+template <typename T>
+struct FileDataType {
+  // Default: same as memory type (for integers, strings, etc.)
+  static const H5::DataType* get(void) { return InferDataType<T>::get(); }
+};
+
+template <>
+struct FileDataType<float> {
+  static const H5::DataType* get(void) { return &H5::PredType::IEEE_F32LE; }
+};
+
+template <>
+struct FileDataType<double> {
+  static const H5::DataType* get(void) { return &H5::PredType::IEEE_F64LE; }
+};
+
 template <>
 struct InferDataType<int> {
   static const H5::DataType* get(void) { return &H5::PredType::NATIVE_INT; }
@@ -131,6 +148,31 @@ struct InferDataType<std::uint8_t> {
 template <>
 struct InferDataType<unsigned> {
   static const H5::DataType* get(void) { return &H5::PredType::NATIVE_UINT; }
+};
+
+template <>
+struct FileDataType<int> {
+  static const H5::DataType* get(void) { return &H5::PredType::STD_I32LE; }
+};
+
+template <>
+struct FileDataType<long int> {
+  static const H5::DataType* get(void) { return &H5::PredType::STD_I64LE; }
+};
+
+template <>
+struct FileDataType<unsigned> {
+  static const H5::DataType* get(void) { return &H5::PredType::STD_U32LE; }
+};
+
+template <>
+struct FileDataType<std::uint8_t> {
+  static const H5::DataType* get(void) { return &H5::PredType::STD_U8LE; }
+};
+
+template <>
+struct FileDataType<bool> {
+  static const H5::DataType* get(void) { return &H5::PredType::STD_U8LE; }
 };
 
 // Optional: treat bool on disk as uint8 (recommended)

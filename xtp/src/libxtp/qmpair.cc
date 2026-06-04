@@ -61,6 +61,11 @@ void QMPair::SetupCptTable(CptTable& table) {
   table.addCol<double>("lambda0s", HOFFSET(data, lambda0s));
   table.addCol<double>("lambda0t", HOFFSET(data, lambda0t));
 
+  table.addCol<double>("jeffe", HOFFSET(data, jeffe));
+  table.addCol<double>("jeffh", HOFFSET(data, jeffh));
+  table.addCol<double>("jeffs", HOFFSET(data, jeffs));
+  table.addCol<double>("jefft", HOFFSET(data, jefft));
+
   table.addCol<double>("jeff2e", HOFFSET(data, jeff2e));
   table.addCol<double>("jeff2h", HOFFSET(data, jeff2h));
   table.addCol<double>("jeff2s", HOFFSET(data, jeff2s));
@@ -83,6 +88,11 @@ void QMPair::WriteData(data& d) const {
   d.lambda0s = lambda0_.getValue(QMStateType::Singlet);
   d.lambda0t = lambda0_.getValue(QMStateType::Triplet);
 
+  d.jeffe = Jeff_.getValue(QMStateType::Electron);
+  d.jeffh = Jeff_.getValue(QMStateType::Hole);
+  d.jeffs = Jeff_.getValue(QMStateType::Singlet);
+  d.jefft = Jeff_.getValue(QMStateType::Triplet);
+
   d.jeff2e = Jeff2_.getValue(QMStateType::Electron);
   d.jeff2h = Jeff2_.getValue(QMStateType::Hole);
   d.jeff2s = Jeff2_.getValue(QMStateType::Singlet);
@@ -97,12 +107,17 @@ void QMPair::ReadData(const data& d, const std::vector<Segment>& segments) {
 
   std::string type_enum = std::string(d.pair_type);
   pair_type_ = QMPair::get_Enum(type_enum);
-  free(d.pair_type);
+  delete[] d.pair_type;
 
   lambda0_.setValue(d.lambda0e, QMStateType::Electron);
   lambda0_.setValue(d.lambda0h, QMStateType::Hole);
   lambda0_.setValue(d.lambda0s, QMStateType::Singlet);
   lambda0_.setValue(d.lambda0t, QMStateType::Triplet);
+
+  Jeff_.setValue(d.jeffe, QMStateType::Electron);
+  Jeff_.setValue(d.jeffh, QMStateType::Hole);
+  Jeff_.setValue(d.jeffs, QMStateType::Singlet);
+  Jeff_.setValue(d.jefft, QMStateType::Triplet);
 
   Jeff2_.setValue(d.jeff2e, QMStateType::Electron);
   Jeff2_.setValue(d.jeff2h, QMStateType::Hole);

@@ -67,6 +67,10 @@ class BSE {
   void configure(const options& opt, const Eigen::VectorXd& RPAEnergies,
                  const Eigen::MatrixXd& Hqp_in);
 
+  void configure_with_precomputed_screening(
+      const options& opt, const Eigen::VectorXd& RPAEnergies,
+      const Eigen::MatrixXd& Hqp_in, const Eigen::VectorXd& epsilon_0_inv);
+
   void Solve_singlets(Orbitals& orb) const;
   void Solve_triplets(Orbitals& orb) const;
 
@@ -152,6 +156,16 @@ class BSE {
   template <typename BSE_OPERATOR>
   ExpectationValues ExpectationValue_Operator_State(
       const QMState& state, const Orbitals& orb, const BSE_OPERATOR& H) const;
+
+  tools::EigenSystem& GetBSEEigenSystem(const QMStateType& type,
+                                        Orbitals& orb) const;
+  const tools::EigenSystem& GetBSEEigenSystem(const QMStateType& type,
+                                              const Orbitals& orb) const;
+
+  std::string StateEnergiesHeader(const QMStateType& type) const;
+  std::string StateShortLabel(const QMStateType& type) const;
+  std::string StateDynamicLabel(const QMStateType& type) const;
+  double ExchangePrefactor(const QMStateType& type) const;
 };
 }  // namespace xtp
 }  // namespace votca

@@ -39,6 +39,7 @@ void Sigma_Exact::PrepareScreening() {
 
 double Sigma_Exact::CalcCorrelationDiagElement(Index gw_level,
                                                double frequency) const {
+  CountDiagEval();
   const double eta2 = opt_.eta * opt_.eta;
   const Index lumo = opt_.homo + 1;
   const Index n_occ = lumo - opt_.rpamin;
@@ -115,9 +116,31 @@ Eigen::MatrixXd Sigma_Exact::CalcResidues(Index gw_level,
   vc2index vc = vc2index(0, 0, n_unocc);
   const Eigen::MatrixXd& Mmn_i = Mmn_[gw_level + qpoffset];
   Eigen::MatrixXd res = Eigen::MatrixXd::Zero(rpatotal_, rpasize);
+  // QSGW: apply m-rotation to QP-window hole slices on the fly.
+  // The outer v-index is a hole construction index and must use QP
+  // wavefunctions.
+  const Index qp_offset_m_res =
+      (qsgw_U_ != nullptr) ? (qsgw_qpmin_ - opt_.rpamin) : -1;
+  const Index qptotal_res = (qsgw_U_ != nullptr) ? Index(qsgw_U_->cols()) : 0;
+  const Index qp_end_occ_res = (qsgw_U_ != nullptr)
+                                   ? std::min(qsgw_homo_ - opt_.rpamin + 1,
+                                              qp_offset_m_res + qptotal_res)
+                                   : 0;
+
   for (Index v = 0; v < n_occ; v++) {  // Sum over v
-    auto Mmn_v = Mmn_[v].middleRows(n_occ, n_unocc);
-    auto fc = Mmn_v * Mmn_i.transpose();  // Sum over chi
+    Eigen::MatrixXd Mmn_v_virt;
+    if (qsgw_U_ != nullptr && v >= qp_offset_m_res && v < qp_end_occ_res) {
+      const Index v_qp = v - qp_offset_m_res;
+      Mmn_v_virt = Eigen::MatrixXd::Zero(n_unocc, Mmn_.auxsize());
+      for (Index vp = 0; vp < qptotal_res; vp++) {
+        Mmn_v_virt.noalias() +=
+            (*qsgw_U_)(vp, v_qp) *
+            Mmn_[vp + qp_offset_m_res].middleRows(n_occ, n_unocc);
+      }
+    } else {
+      Mmn_v_virt = Mmn_[v].middleRows(n_occ, n_unocc);
+    }
+    auto fc = Mmn_v_virt * Mmn_i.transpose();  // Sum over chi
     auto XpY_v = XpY.middleRows(vc.I(v, 0), n_unocc);
     res += fc.transpose() * XpY_v;  // Sum over c
   }

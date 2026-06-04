@@ -42,7 +42,8 @@ class QMStateType {
     PQPstate,
     DQPstate,
     KSstate,
-    LMOstate
+    LMOstate,
+    ExcitonUKS
   };
 
   QMStateType(const statetype& type) : type_(type) { ; }
@@ -70,7 +71,8 @@ class QMStateType {
   }
 
   bool isExciton() const {
-    return (type_ == statetype::Singlet || type_ == statetype::Triplet);
+    return (type_ == statetype::Singlet || type_ == statetype::Triplet ||
+            type_ == statetype::ExcitonUKS);
   }
 
   bool isKMCState() const {
