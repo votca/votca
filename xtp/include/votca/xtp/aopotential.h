@@ -25,6 +25,7 @@
 #include "aobasis.h"
 #include "ecpaobasis.h"
 #include "staticsite.h"
+#include <votca/xtp/ewald/ewaldcontainer.h>
 
 namespace votca {
 namespace xtp {
@@ -84,6 +85,8 @@ class AOPlanewave : public AOPotential<std::complex<double>> {
  public:
   void FillPotential(const AOBasis& aobasis,
                      const std::vector<Eigen::Vector3d>& kpoints);
+    void FillPotential(const AOBasis& aobasis,
+      const std::vector<ewaldcontainer::ReciprocalTerm>& reciprocal_terms );
 
  protected:
   void FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,

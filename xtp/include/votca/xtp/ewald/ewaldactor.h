@@ -3,6 +3,7 @@
 
 #include <cmath>
 // #include <votca/tools/vec.h>
+#include <votca/xtp/ewald/ewaldcontainer.h>
 #include <votca/xtp/ewald/ewdspace.h>
 #include <votca/xtp/ewald/polartop.h>
 #include <votca/xtp/logger.h>
@@ -42,8 +43,8 @@ class EwdInteractor {
     ta3 = ta1 * ta2;
   };
 
-  EwdInteractor(){};
-  ~EwdInteractor(){};
+  EwdInteractor() {};
+  ~EwdInteractor() {};
 
   inline void Init(double alpha, double tsharp) {
     a1 = alpha;
@@ -65,6 +66,7 @@ class EwdInteractor {
   constexpr static const double rSqrtPi =
       0.5 * M_2_SQRTPI;  // 64189583547756279280349644977832;
 
+  inline double getAlpha(){return a1;}
   // Thole damping functions
   inline double L3() { return 1 - exp(-ta1 * tu3); }
   inline double L5() { return 1 - (1 + ta1 * tu3) * exp(-ta1 * tu3); }
@@ -165,12 +167,22 @@ class EwdInteractor {
   inline double PhiU12_ERFC_At_By(APolarSite &p1, APolarSite &p2);
   // Reciprocal-space self-interaction term P1 <> P2
   inline double PhiPU12_ERF_At_By(APolarSite &p1, APolarSite &p2);
+  inline double PhiPU12_ERF_At_By(const vec &r, APolarSite &p2);
+
   inline double PhiP12_ERF_At_By(APolarSite &p1, APolarSite &p2);
   inline double PhiU12_ERF_At_By(APolarSite &p1, APolarSite &p2);
   // Reciprocal-space K=0 shape correction term P1 <> P2
   void PhiPU12_ShapeField_At_By(std::vector<PolarSeg *> &at,
                                 std::vector<PolarSeg *> &by, std::string shape,
                                 double volume);
+  void PhiPU12_ShapeField_At_By(std::vector<PolarSeg *> &at, Vxc_Grid &grid,
+                                std::vector<PolarSeg *> &by, std::string shape,
+                                double volume);
+
+  void PhiPU12_ShapeField_At_By(ewaldcontainer::PotentialData &data,
+                                std::vector<PolarSeg *> &s2, std::string shape,
+                                double V);
+
   void PhiP12_ShapeField_At_By(std::vector<PolarSeg *> &at,
                                std::vector<PolarSeg *> &by, std::string shape,
                                double volume);
@@ -224,6 +236,15 @@ class EwdInteractor {
   // Potentials
   EWD::cmplx PhiPU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg *> &s1,
                                  std::vector<PolarSeg *> &s2, double &rV);
+
+  EWD::cmplx PhiPU12_AS1S2_At_By(const vec &k,
+                                 ewaldcontainer::PotentialData &data,
+                                 std::vector<PolarSeg *> &s1,
+                                 std::vector<PolarSeg *> &s2, double &rV);
+
+  EWD::cmplx PhiPU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg *> &s1,
+                                 Vxc_Grid &grid, std::vector<PolarSeg *> &s2,
+                                 double &rV);
   EWD::cmplx PhiP12_AS1S2_At_By(const vec &k, std::vector<PolarSeg *> &s1,
                                 std::vector<PolarSeg *> &s2, double &rV);
   EWD::cmplx PhiU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg *> &s1,
@@ -389,7 +410,6 @@ inline void EwdInteractor::ApplyBiasPolar(APolarSite &p1, APolarSite &p2) {
   return;
 }
 
-
 inline void EwdInteractor::ApplyBiasPolar(const vec &r, APolarSite &p2) {
 
   r12 = r - p2.getPos();
@@ -417,7 +437,7 @@ inline void EwdInteractor::ApplyBiasPolar(const vec &r, APolarSite &p2) {
   // rR4 = 1./R4;
   // rR5 = 1./R5;
 
-  // Thole damping omitted 
+  // Thole damping omitted
   l3 = l5 = l7 = l9 = 1.;
   lp3 = lp5 = lp7 = lp9 = 1.;
   return;
@@ -1223,8 +1243,7 @@ inline double EwdInteractor::PhiPU12_ERFC_At_By(APolarSite &p1,
   return phi_p + phi_u;
 }
 
-inline double EwdInteractor::PhiPU12_ERFC_At_By(const vec &r,
-                                                APolarSite &p2) {
+inline double EwdInteractor::PhiPU12_ERFC_At_By(const vec &r, APolarSite &p2) {
   // ATTENTION Potentials are currently not damped
   // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
   ApplyBiasPolar(r, p2);
@@ -1251,8 +1270,7 @@ inline double EwdInteractor::PhiPU12_ERFC_At_By(const vec &r,
 
   phi_p = p2.Q00 * B0 + mu2_r * B1 + Q2__R * B2;
   phi_u = u_mu2_r * B1;
-  //p1.PhiP += phi_p;
-  //p1.PhiU += phi_u;
+
   return phi_p + phi_u;
 }
 
@@ -1336,6 +1354,44 @@ inline double EwdInteractor::PhiPU12_ERF_At_By(APolarSite &p1, APolarSite &p2) {
   p1.PhiP -= phi_p;
   p1.PhiU -= phi_u;
   return phi_p + phi_u;
+}
+
+inline double EwdInteractor::PhiPU12_ERF_At_By(const vec &r, APolarSite &p2) {
+  // NOTE Analogous operations in PhiPU12_..., PhiP12_..., PhiU12_...
+  ApplyBiasPolar(r, p2);
+  UpdateAllCls();
+
+  double phi_p = 0.0;
+  double phi_u = 0.0;
+
+  if (R1 < 1e-2) {
+    phi_p += 2. * a1 * rSqrtPi * (p2.Q00);
+    phi_u += 0.0;
+  } else {
+    // Dot product µ * r
+    double mu2_r = 0.0;
+    // Dot product µ(ind) * r
+    double u_mu2_r = 0.0;
+    // Dyadic product Q : R
+    double Q2__R = 0.0;
+
+    u_mu2_r = (p2.U1x * rx + p2.U1y * ry + p2.U1z * rz);
+    if (p2._rank > 0) {
+      mu2_r = (p2.Q1x * rx + p2.Q1y * ry + p2.Q1z * rz);
+      if (p2._rank > 1) {
+        Q2__R = (p2.Qxx * rxx + 2 * p2.Qxy * rxy + 2 * p2.Qxz * rxz +
+                 p2.Qyy * ryy + 2 * p2.Qyz * ryz + p2.Qzz * rzz);
+      }
+    }
+
+    phi_p = p2.Q00 * C0 + mu2_r * C1 + Q2__R * C2;
+    phi_u = u_mu2_r * C1;
+  }
+
+  // Note the (-): This is a compensation term.
+  // p1.PhiP -= phi_p;
+  // p1.PhiU -= phi_u;
+  return -phi_p - phi_u;
 }
 
 inline double EwdInteractor::PhiP12_ERF_At_By(APolarSite &p1, APolarSite &p2) {

@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_VXC_POTENTIAL_H
-#define VOTCA_XTP_VXC_POTENTIAL_H
+#ifndef VOTCA_XTP_EWALD_POTENTIAL_H
+#define VOTCA_XTP_EWALD_POTENTIAL_H
 
 // Local VOTCA includes
 #include "votca/xtp/grid_containers.h"
@@ -36,11 +36,9 @@ class Ewald_Potential {
   explicit Ewald_Potential(const Grid& grid) : grid_(grid) {};
   ~Ewald_Potential();
 
-  Mat_p_Energy IntegrateEwald(const Eigen::MatrixXd& density_matrix) const;
+  Mat_p_Energy IntegrateEwald(Index basissize) const;
 
  private:
-
-  //XC_entry EvaluateXC(double rho, double sigma) const;
 
   const Grid grid_;
 };

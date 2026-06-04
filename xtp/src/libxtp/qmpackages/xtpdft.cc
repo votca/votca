@@ -60,6 +60,18 @@ bool XTPDFT::RunDFT() {
   if (!externalsites_.empty()) {
     xtpdft.setExternalcharges(&externalsites_);
   }
+  if (has_ewaldgrid_){
+    xtpdft.setEwaldgrid(ewaldgrid_);
+  }
+
+  if (has_ewaldbackground_){
+    xtpdft.setEwaldBackground(ewaldBackground());
+    xtpdft.setEwaldForegroundCorrection(ewaldForegroundCorrection());
+    xtpdft.setEwaldShapeCorrection(ewaldShapeCorrection());
+    xtpdft.setEwaldMM1(ewaldMM1());
+
+  }
+
   bool success = xtpdft.Evaluate(orbitals_);
   std::string file_name = run_dir_ + "/" + log_file_name_;
   XTP_LOG(Log::error, *pLog_)

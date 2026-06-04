@@ -93,6 +93,36 @@ void QMRegion::Initialize(const tools::Property& prop) {
   }
 }
 
+// helper function to hand the grid changable over to Ewald
+std::vector<Eigen::Vector3d> QMRegion::copyEwaldGrid() {
+
+  std::vector<const Eigen::Vector3d*> src = ewaldgrid_.getGridpoints(); 
+  std::vector<Eigen::Vector3d> dst(src.size());
+  std::transform(src.begin(), src.end(), dst.begin(),
+               [](const Eigen::Vector3d* v) { return *v; });
+  return dst;
+}
+
+void QMRegion::PrepareEwaldPotentialGrid(const tools::Property& prop) {
+
+  // purpose: prepare a grid integration object that can
+  // - hand over the grid to Ewald
+  // - after Ewald calculates the potential at the grid points, be put into xtpdft
+  std::string dftbasis_name = prop.get("dftpackage.basisset").as<std::string>();
+  std::string grid_name = prop.get("dftpackage.xtpdft.integration_grid").as<std::string>();
+  QMMolecule mol =  orb_.QMAtoms();
+  BasisSet bs;
+  bs.Load(dftbasis_name);
+  AOBasis dftbasis;
+  dftbasis.Fill(bs, mol);
+  ewaldgrid_.GridSetup(grid_name, mol, dftbasis);
+  XTP_LOG(Log::error, log_) << TimeStamp()
+      << " Constructed Grid for Integration of Ewald Potential" << std::flush;
+  //Vxc_Potential<Vxc_Grid> vxc(grid);
+  is_qmewald_ = true;
+  return;
+}
+
 bool QMRegion::Converged() const {
   if (!E_hist_.filled()) {
     return false;
@@ -117,6 +147,19 @@ bool QMRegion::Converged() const {
 
 void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
 
+// some funny checks
+/*const std::vector<ewaldcontainer::PointCharge>& charges = ewald_background_->charges();
+for (const auto& charge : charges) {
+    std::cout << charge.charge << " " << charge.position << std::endl;
+}
+
+const std::vector<ewaldcontainer::PointDipole>& dipoles = ewald_background_->dipoles();
+for (const auto& dipole : dipoles) {
+    std::cout << dipole.dipole << " " << dipole.position << std::endl;
+}*/
+
+
+
   std::vector<double> interact_energies = ApplyInfluenceOfOtherRegions(regions);
   double e_ext =
       std::accumulate(interact_energies.begin(), interact_energies.end(), 0.0);
@@ -135,6 +178,20 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   qmpackage_->setCharge(crg);
   qmpackage_->setRunDir(workdir_);
   qmpackage_->WriteInputFile(orb_);
+
+  // attach ewaldgrid to xtpdft
+  if (is_qmewald_){
+    if (qmpackage_->getPackageName() == "xtp" ) {
+      //qmpackage_->setEwaldgrid(ewaldgrid_);
+      qmpackage_->setEwaldBackground(ewaldBackground());
+      qmpackage_->setEwaldForegroundCorrection(ewaldForegroundCorrection());
+      qmpackage_->setEwaldShapeCorrection(ewaldShapeCorrection());
+      qmpackage_->setEwaldMM1(ewaldMM1());
+    } else {
+      throw std::runtime_error(
+          "QMEwald can only run with XTP as qmpackage.");
+    }
+  }
 
   XTP_LOG(Log::error, log_) << "Running DFT calculation" << std::flush;
   bool run_success = qmpackage_->Run();

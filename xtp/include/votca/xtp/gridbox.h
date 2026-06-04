@@ -42,6 +42,7 @@ class GridBox {
 
   const std::vector<double>& getGridWeights() const { return weights; }
   std::vector<double>& getPotentialValues()  { return potential_values; }
+  const std::vector<double>& getPotentialValues() const { return potential_values; }
 
   const std::vector<const AOShell*>& getShells() const {
     return significant_shells;

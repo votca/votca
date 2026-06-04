@@ -32,6 +32,7 @@
 #include "logger.h"
 #include "staticsite.h"
 #include "votca/xtp/orbreorder.h"
+#include <votca/xtp/ewald/ewaldcontainer.h>
 
 namespace votca {
 namespace xtp {
@@ -101,6 +102,72 @@ class QMPackage {
 
   std::string getMOFile() const { return mo_file_name_; };
 
+  void setEwaldgrid( const Vxc_Grid& ewaldgrid ){ ewaldgrid_ = ewaldgrid; has_ewaldgrid_ = true;};
+
+
+// =========== EWALD MOMENTS SETTER AND ACCESS ==========
+// +++++++++++ BACKGROUND +++++++++++++++++++++++++++++++
+ void setEwaldBackground(ewaldcontainer::PotentialData& bg) {
+    ewald_background_ = &bg;
+    has_ewaldbackground_ = true;
+  }
+
+  ewaldcontainer::PotentialData& ewaldBackground() {
+    assert(ewald_background_ != nullptr);
+    return *ewald_background_;
+  }
+
+  const ewaldcontainer::PotentialData& ewaldBackground() const {
+    assert(ewald_background_ != nullptr);
+    return *ewald_background_;
+  }
+
+// +++++++++++ FOREGROUND CORRECTION ++++++++++++++++++++++
+ void setEwaldForegroundCorrection(ewaldcontainer::PotentialData& fg_corr) {
+    ewald_foreground_correction_ = &fg_corr;
+  }
+
+  ewaldcontainer::PotentialData& ewaldForegroundCorrection() {
+    assert(ewald_foreground_correction_ != nullptr);
+    return *ewald_foreground_correction_;
+  }
+
+  const ewaldcontainer::PotentialData& ewaldForegroundCorrection() const {
+    assert(ewald_foreground_correction_ != nullptr);
+    return *ewald_foreground_correction_;
+  }
+
+// +++++++++++ SHAPE CORRECTION +++++++++++++++++++++++++++
+ void setEwaldShapeCorrection(ewaldcontainer::PotentialData& shape_corr) {
+    ewald_shape_correction_ = &shape_corr;
+  }
+
+  ewaldcontainer::PotentialData& ewaldShapeCorrection() {
+    assert(ewald_shape_correction_ != nullptr);
+    return *ewald_shape_correction_;
+  }
+
+  const ewaldcontainer::PotentialData& ewaldShapeCorrection() const {
+    assert(ewald_shape_correction_ != nullptr);
+    return *ewald_shape_correction_;
+  }
+
+  // +++++++++++ MM1 REGION +++++++++++++++++++++++++++
+ void setEwaldMM1(ewaldcontainer::PotentialData& mm1) {
+    ewald_mm1_ = &mm1;
+  }
+
+  ewaldcontainer::PotentialData& ewaldMM1() {
+    assert(ewald_mm1_ != nullptr);
+    return *ewald_mm1_;
+  }
+
+  const ewaldcontainer::PotentialData& ewaldMM1() const {
+    assert(ewald_mm1_ != nullptr);
+    return *ewald_mm1_;
+  }
+
+
  protected:
   virtual void ParseSpecificOptions(const tools::Property& options) = 0;
   struct MinimalMMCharge {
@@ -142,6 +209,15 @@ class QMPackage {
   Logger* pLog_;
 
   std::vector<std::unique_ptr<StaticSite> > externalsites_;
+
+  Vxc_Grid ewaldgrid_; 
+  bool has_ewaldgrid_ = false;
+
+  ewaldcontainer::PotentialData* ewald_background_ = nullptr;
+  bool has_ewaldbackground_ = false;
+  ewaldcontainer::PotentialData* ewald_foreground_correction_ = nullptr;
+  ewaldcontainer::PotentialData* ewald_shape_correction_ = nullptr;
+  ewaldcontainer::PotentialData* ewald_mm1_ = nullptr;
 };
 
 }  // namespace xtp
