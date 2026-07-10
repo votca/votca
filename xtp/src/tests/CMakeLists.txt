@@ -6,6 +6,11 @@ list(APPEND test_cases test_activedensitymatrix)
 list(APPEND test_cases test_activedftengine)
 list(APPEND test_cases test_adiis)
 list(APPEND test_cases test_anderson)
+# DRAFT/UNTESTED -- see test_aoderivatives.cc and libint2_derivative_calls.cc
+# header comments before trusting this; added here so it builds and runs
+# alongside everything else once libint2 is available, not because it has
+# been confirmed to pass.
+list(APPEND test_cases test_aoderivatives)
 list(APPEND test_cases test_aobasis)
 list(APPEND test_cases test_aomatrix)
 list(APPEND test_cases test_aomatrix3d)
