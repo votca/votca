@@ -18,28 +18,35 @@
  */
 
 // ===========================================================================
-// STATUS: DRAFT, UNCOMPILED, UNTESTED.
+// STATUS: compiles and links cleanly as of the fix below (confirmed against
+// a real build attempt). NOT YET RUNTIME-TESTED -- the finite-difference
+// check in test_aoderivatives.cc has not yet been run to confirm the
+// numbers coming out of this code are actually correct, only that it
+// builds. Run that test next, before trusting any number this produces.
 //
-// This file was written without access to a local libint2 installation
-// (not present in the environment this was drafted in), so it could not be
-// compiled or run against the real library. Before trusting any number this
-// produces:
-//   1. Build it against the actual libint2 version this project depends on.
-//   2. Run test_aoderivatives.cc (below) and confirm the finite-difference
-//      check passes to numerical precision.
+// Build history on this file:
+//   - Originally drafted with no local libint2 install available, so it
+//     could not be compiled or run at all when first written.
+//   - First real build attempt failed at link time: duplicate symbols for
+//     libint2's internal static tables (FmEval_Chebyshev7<double>::
+//     cheb_table, TennoGmEval<double>::cheb_table), because this file
+//     originally included <libint2/statics_definition.h> a second time --
+//     that header defines storage and must appear in exactly one
+//     translation unit per library. libint2_calls.cc already provides it
+//     for the whole votca_xtp library; the duplicate include here has
+//     been removed (see include block below).
 //
-// HIGHEST-RISK ASSUMPTION, to check first against the installed libint2
-// version's actual header/docs:
+// HIGHEST-RISK REMAINING ASSUMPTION, to check via the finite-difference
+// test before trusting numerical results:
 //   For a two-center one-electron integral engine constructed with
 //   deriv_order = 1, this code assumes engine.results() returns exactly 6
 //   buffers per shell pair: indices 0,1,2 are d/dx,dy,dz with respect to
 //   shell1's atom center, and indices 3,4,5 are d/dx,dy,dz with respect to
-//   shell2's atom center (i.e. libint2 does NOT automatically fold in
-//   translational invariance to omit one center's derivatives for generic
-//   two distinct shells). If the installed libint2 version's convention
-//   differs, the buffer indexing below needs to change accordingly. A
-//   runtime check (asserting buf.size() == 6) is included so this fails
-//   loudly rather than silently on a mismatched assumption.
+//   shell2's atom center. Compiling successfully confirms the API *shape*
+//   used here (constructor arguments, .results(), indexing) matches this
+//   libint2 version -- it says nothing about whether 6 is actually the
+//   right buffer count, since that assert is a runtime check. This is
+//   only genuinely confirmed once the test binary has actually been run.
 // ===========================================================================
 
 // Local VOTCA includes
@@ -59,7 +66,14 @@
 #pragma GCC diagnostic ignored "-Wcpp"
 #endif
 #include <libint2.hpp>
-#include <libint2/statics_definition.h>
+// NOTE: deliberately NOT including <libint2/statics_definition.h> here.
+// That header *defines* storage for libint2's internal static tables
+// (e.g. FmEval_Chebyshev7<double>::cheb_table) and must appear in exactly
+// one translation unit per library -- libint2_calls.cc already provides
+// it for the whole votca_xtp library. Including it here too caused a
+// duplicate-symbol link error (caught when actually building against a
+// real libint2 install, which wasn't possible in the environment this
+// file was originally drafted in -- see file status note above).
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #elif defined(__GNUC__)
