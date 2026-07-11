@@ -18,36 +18,51 @@
  */
 
 // ===========================================================================
-// STATUS: compiles and links cleanly as of the fix below (confirmed against
-// a real build attempt). NOT YET RUNTIME-TESTED -- the finite-difference
-// check in test_aoderivatives.cc has not yet been run to confirm the
-// numbers coming out of this code are actually correct, only that it
-// builds. Run that test next, before trusting any number this produces.
+// STATUS: compiles and links cleanly. Crashed on first real run with a
+// null-pointer memory access violation (address 0x0), single-threaded,
+// right at test entry -- consistent with the HIGHEST-RISK ASSUMPTION below
+// being wrong. Buffer indexing has been revised accordingly (see below),
+// but this revision is ALSO not yet confirmed by an actual passing run --
+// treat it as the current best hypothesis, not a verified fix.
 //
-// Build history on this file:
+// Build/run history on this file:
 //   - Originally drafted with no local libint2 install available, so it
 //     could not be compiled or run at all when first written.
-//   - First real build attempt failed at link time: duplicate symbols for
-//     libint2's internal static tables (FmEval_Chebyshev7<double>::
-//     cheb_table, TennoGmEval<double>::cheb_table), because this file
-//     originally included <libint2/statics_definition.h> a second time --
-//     that header defines storage and must appear in exactly one
-//     translation unit per library. libint2_calls.cc already provides it
-//     for the whole votca_xtp library; the duplicate include here has
-//     been removed (see include block below).
+//   - First real build attempt failed at link time (duplicate symbols for
+//     libint2's internal static tables) -- fixed by removing a duplicate
+//     inclusion of <libint2/statics_definition.h>, which must appear in
+//     exactly one translation unit per library.
+//   - First real run attempt crashed (null pointer, address 0x0) at test
+//     entry, single-threaded. Multi-threaded, the same underlying issue
+//     showed up as a repeating C++ exception across worker threads rather
+//     than a clean crash, which is a separate, real defect in its own
+//     right: the parallel loop below never wrapped its body in a
+//     try/catch, so an exception escaping an OpenMP worker thread is
+//     undefined behavior. That is not yet fixed either -- still worth
+//     adding once the buffer-count question is settled, so a real error
+//     in production use terminates cleanly instead of hanging.
 //
-// HIGHEST-RISK REMAINING ASSUMPTION, to check via the finite-difference
-// test before trusting numerical results:
-//   For a two-center one-electron integral engine constructed with
-//   deriv_order = 1, this code assumes engine.results() returns exactly 6
-//   buffers per shell pair: indices 0,1,2 are d/dx,dy,dz with respect to
-//   shell1's atom center, and indices 3,4,5 are d/dx,dy,dz with respect to
-//   shell2's atom center. Compiling successfully confirms the API *shape*
-//   used here (constructor arguments, .results(), indexing) matches this
-//   libint2 version -- it says nothing about whether 6 is actually the
-//   right buffer count, since that assert is a runtime check. This is
-//   only genuinely confirmed once the test binary has actually been run.
+// CURRENT HYPOTHESIS (revised from the original 6-buffer assumption):
+//   For a two-center one-electron integral, libint2 most likely returns
+//   only 3 derivative buffers (d/dx,dy,dz with respect to shell1's atom),
+//   not 6, exploiting the translational-invariance sum rule
+//   d(integral)/dR_atom1 + d(integral)/dR_atom2 = 0 (valid because this
+//   integral depends only on the relative position of the two atoms) to
+//   avoid computing shell2's derivative explicitly. The original
+//   assert(buf.size() == 6) did not catch this, most likely because
+//   target_ptr_vec's size() reports a fixed nominal capacity rather than
+//   the number of meaningfully-populated buffers -- so an out-of-bounds
+//   read at buf[3+xyz] returned a null pointer rather than tripping a
+//   bounds check. The code below has been revised to derive shell2's
+//   derivative as the negative of shell1's, per shell pair, rather than
+//   reading buf[3+xyz] at all. A diagnostic print has been left in to
+//   directly confirm the real buf.size() and which entries are non-null
+//   on the next run -- please check that output before trusting this fix,
+//   and remove the diagnostic once confirmed either way.
 // ===========================================================================
+
+// Standard includes
+#include <iostream>
 
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
@@ -160,33 +175,55 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
         continue;  // integrals screened out
       }
 
-      // See HIGHEST-RISK ASSUMPTION note at the top of this file.
-      assert(buf.size() == 6 &&
-             "Unexpected number of derivative buffers for a two-center "
-             "one-electron integral at deriv_order=1 -- check this "
-             "libint2 version's buffer-ordering convention before "
-             "proceeding (see file header comment).");
+      // See HIGHEST-RISK ASSUMPTION note at the top of this file -- the
+      // original assert(buf.size()==6) here did not catch a real problem:
+      // a null-pointer crash (address 0x0) was observed at runtime,
+      // consistent with buf[3..5] being unpopulated even though buf.size()
+      // reports 6 (likely a fixed nominal capacity rather than the number
+      // of meaningfully-populated buffers). Diagnostic left in place below
+      // to confirm this directly on the next run rather than guess again.
+      // Diagnostic only, not meant to stay: benign race on this static
+      // bool if run multi-threaded (worst case, prints a few times instead
+      // of once) -- acceptable for a one-off confirmation, remove once the
+      // buffer-count question below is settled.
+      static bool printed_diagnostic = false;
+      if (!printed_diagnostic) {
+        std::cerr << "[aoderivatives diagnostic] buf.size()=" << buf.size();
+        for (size_t i = 0; i < buf.size(); ++i) {
+          std::cerr << " buf[" << i << "]="
+                     << (buf[i] == nullptr ? "null" : "non-null");
+        }
+        std::cerr << std::endl;
+        printed_diagnostic = true;
+      }
 
       Index bf2 = shell2bf[s2];
       Index n2 = shells[s2].size();
       Index atom2 = shell2atom[s2];
 
       for (Index xyz = 0; xyz < 3; ++xyz) {
-        // derivative with respect to shell1's atom (buf indices 0,1,2)
-        {
-          Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[xyz], n1, n2);
-          result[atom1][xyz].block(bf1, bf2, n1, n2) += buf_mat;
-          if (s1 != s2) {
-            result[atom1][xyz].block(bf2, bf1, n2, n1) += buf_mat.transpose();
-          }
+        // derivative with respect to shell1's atom (buf indices 0,1,2) --
+        // this is the only part of buf[] actually read now.
+        Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[xyz], n1, n2);
+        result[atom1][xyz].block(bf1, bf2, n1, n2) += buf_mat;
+        if (s1 != s2) {
+          result[atom1][xyz].block(bf2, bf1, n2, n1) += buf_mat.transpose();
         }
-        // derivative with respect to shell2's atom (buf indices 3,4,5)
-        {
-          Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[3 + xyz], n1, n2);
-          result[atom2][xyz].block(bf1, bf2, n1, n2) += buf_mat;
-          if (s1 != s2) {
-            result[atom2][xyz].block(bf2, bf1, n2, n1) += buf_mat.transpose();
-          }
+
+        // derivative with respect to shell2's atom, via translational
+        // invariance rather than reading buf[3+xyz] directly: for a
+        // two-center integral depending only on relative position,
+        // d(integral)/dR_atom1 + d(integral)/dR_atom2 = 0, so
+        // d(integral)/dR_atom2 = -d(integral)/dR_atom1, per shell pair,
+        // before summing across shell pairs into the full gradient.
+        // NOTE: this identity holds only because exactly two centers are
+        // involved in a one-electron two-center integral; it does NOT
+        // generalize as-is to three-/four-center integrals (RI/ERI),
+        // which have more than two centers to distribute the sum-rule
+        // across -- a separate, correct treatment will be needed there.
+        result[atom2][xyz].block(bf1, bf2, n1, n2) += -buf_mat;
+        if (s1 != s2) {
+          result[atom2][xyz].block(bf2, bf1, n2, n1) += -buf_mat.transpose();
         }
       }
     }
