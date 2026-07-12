@@ -359,5 +359,179 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
   return result;
 }
 
+// ===========================================================================
+// Three-center RI integral derivatives, d(mu,nu|P)/dR, the remaining piece
+// needed (alongside the two-center metric above) for the RI-J/RI-K
+// gradient assembly.
+//
+// STATUS: written but NOT yet run or tested. This case is genuinely new
+// relative to everything validated so far (one-body: 2 real centers, 6
+// buffers, confirmed; two-center metric: 2 real centers via dummy unit
+// shells, 6 buffers, confirmed): THIS integral has THREE real centers
+// (the aux shell's atom, and both dft shells' atoms -- see
+// ComputeAO3cBlock above, which this mirrors at deriv_order=1 instead of
+// 0, using the same auxshell/unit()/shell_col/shell_row shell ordering).
+// The hypothesis, extrapolating from the confirmed "libint2 returns every
+// real center's derivative explicitly, never omits one via translational
+// invariance" pattern, is that this returns 9 buffers (3 real centers x
+// 3 Cartesian), NOT yet checked. If the buffer count is actually
+// different, expect either an immediate crash/assertion (same failure
+// mode as the wrong libint2 build-configuration flag earlier) or a
+// right-count-wrong-ordering bug that would only show up as a numerical
+// discrepancy in a finite-difference test (same as the units bug did for
+// the one-body case) -- do not trust this without running the
+// corresponding test first.
+//
+// Also NOT yet verified: which libint2 build flag(s) this needs. Given
+// Psi4's documented pattern ("need ENABLE_ERI and ENABLE_ERI3 and
+// ENABLE_ERI2 =2" for gradients), ENABLE_ERI3=2 is the most likely
+// requirement, separate from both ENABLE_ONEBODY=2 (confirmed necessary
+// for the one-body case) and whatever ENABLE_ERI2 level the two-center
+// metric case above turned out to need.
+//
+// Memory/design note, not a correctness concern for this validation-scale
+// function but worth flagging before this gets used in a real gradient
+// assembly on a real molecule: this materializes the FULL derivative
+// tensor (all aux functions x all dft functions x all dft functions x
+// all atoms x 3) at once, which scales as O(Naux * Ndft^2 * Natoms * 3) --
+// fine for a small test system, but a real RI-J gradient assembly should
+// almost certainly contract with the density matrix and fitting
+// coefficients on the fly, per shell, rather than ever materializing this
+// full tensor. Not addressed here; this function exists to validate the
+// underlying integral derivative in isolation first, same as the
+// one-body and two-center cases above.
+// ===========================================================================
+
+// One entry per Cartesian direction (x,y,z); each holds one matrix per
+// aux basis function (indexed by absolute aux AO index), each matrix
+// being (dftbasis size x dftbasis size).
+using ThreeCenterDerivative = std::array<std::vector<Eigen::MatrixXd>, 3>;
+
+std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
+    const AOBasis& auxbasis, const AOBasis& dftbasis) {
+  Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
+  // NOTE: assumes auxbasis and dftbasis are defined on the SAME molecule
+  // (same atoms, same count) -- true for every real use case (RI fitting
+  // basis and DFT basis both live on the same molecular geometry), not
+  // separately checked here.
+
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
+  std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
+  std::vector<Index> shell2bf = dftbasis.getMapToBasisFunctions();
+  std::vector<Index> auxshell2bf = auxbasis.getMapToBasisFunctions();
+
+  std::vector<Index> dftshell2atom;
+  dftshell2atom.reserve(dftbasis.getNumofShells());
+  for (Index s = 0; s < dftbasis.getNumofShells(); ++s) {
+    dftshell2atom.push_back(dftbasis.getShell(s).getAtomIndex());
+  }
+  std::vector<Index> auxshell2atom;
+  auxshell2atom.reserve(auxbasis.getNumofShells());
+  for (Index s = 0; s < auxbasis.getNumofShells(); ++s) {
+    auxshell2atom.push_back(auxbasis.getShell(s).getAtomIndex());
+  }
+
+  Index n_dft_bf = dftbasis.AOBasisSize();
+  Index n_aux_bf = auxbasis.AOBasisSize();
+
+  std::vector<ThreeCenterDerivative> result(natoms);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      result[a][xyz] = std::vector<Eigen::MatrixXd>(
+          n_aux_bf, Eigen::MatrixXd::Zero(n_dft_bf, n_dft_bf));
+    }
+  }
+
+  std::vector<libint2::Engine> engines(nthreads);
+  engines[0] = libint2::Engine(
+      libint2::Operator::coulomb,
+      std::max(dftbasis.getMaxNprim(), auxbasis.getMaxNprim()),
+      static_cast<int>(std::max(dftbasis.getMaxL(), auxbasis.getMaxL())), 1);
+  engines[0].set(libint2::BraKet::xs_xx);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
+  }
+
+#pragma omp parallel for schedule(dynamic)
+  for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
+    libint2::Engine& engine = engines[OPENMP::getThreadId()];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
+
+    const libint2::Shell& auxshell = auxshells[aux];
+    Index aux_start = auxshell2bf[aux];
+    Index atom_aux = auxshell2atom[aux];
+
+    for (Index row = 0; row < dftbasis.getNumofShells(); ++row) {
+      const libint2::Shell& shell_row = dftshells[row];
+      Index row_start = shell2bf[row];
+      Index atom_row = dftshell2atom[row];
+
+      // NOTE: unlike ComputeAO3cBlock (deriv_order=0), NOT restricting to
+      // col <= row here even though (mu,nu|P) is symmetric in mu,nu --
+      // keeping the full loop for this validation-scale function to
+      // avoid also having to get a derivative-specific symmetrization
+      // step right on the first pass. Revisit once this is confirmed
+      // correct; the deriv_order=0 code's triangular-then-mirror
+      // approach should still apply to the derivative case in principle
+      // (differentiating a symmetric quantity preserves the symmetry),
+      // but that itself is an assumption worth checking separately
+      // rather than combining with the buffer-count question here.
+      for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
+        const libint2::Shell& shell_col = dftshells[col];
+        Index col_start = shell2bf[col];
+        Index atom_col = dftshell2atom[col];
+
+        engine
+            .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
+                auxshell, libint2::Shell::unit(), shell_col, shell_row);
+
+        if (buf[0] == nullptr) {
+          continue;
+        }
+
+        // See HIGHEST-RISK note above: 9 buffers assumed (3 real centers
+        // x 3 Cartesian), ordered [aux center xyz][col-shell's atom
+        // xyz][row-shell's atom xyz] -- matching the shell ARGUMENT order
+        // passed to compute2 above (auxshell, unit, shell_col,
+        // shell_row), by direct analogy with the two-center case where
+        // buffer order matched argument order. NOT independently
+        // confirmed for this 3-real-center case.
+        for (Index xyz = 0; xyz < 3; ++xyz) {
+          Eigen::TensorMap<
+              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+              result_aux(buf[xyz], auxshell.size(), shell_col.size(),
+                         shell_row.size());
+          Eigen::TensorMap<
+              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+              result_col(buf[3 + xyz], auxshell.size(), shell_col.size(),
+                         shell_row.size());
+          Eigen::TensorMap<
+              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+              result_row(buf[6 + xyz], auxshell.size(), shell_col.size(),
+                         shell_row.size());
+
+          for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
+            Index global_aux = aux_start + static_cast<Index>(aux_c);
+            for (size_t col_c = 0; col_c < shell_col.size(); ++col_c) {
+              for (size_t row_c = 0; row_c < shell_row.size(); ++row_c) {
+                double val_aux = result_aux(aux_c, col_c, row_c);
+                double val_col = result_col(aux_c, col_c, row_c);
+                double val_row = result_row(aux_c, col_c, row_c);
+                Index r = row_start + static_cast<Index>(row_c);
+                Index c = col_start + static_cast<Index>(col_c);
+                result[atom_aux][xyz][global_aux](r, c) += val_aux;
+                result[atom_col][xyz][global_aux](r, c) += val_col;
+                result[atom_row][xyz][global_aux](r, c) += val_row;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return result;
+}
+
 }  // namespace xtp
 }  // namespace votca

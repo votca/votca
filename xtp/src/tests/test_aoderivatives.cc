@@ -61,6 +61,14 @@ std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
     const AOBasis& aobasis);
 std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
     const AOBasis& aobasis);
+using ThreeCenterDerivative = std::array<std::vector<Eigen::MatrixXd>, 3>;
+std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
+    const AOBasis& auxbasis, const AOBasis& dftbasis);
+// Declared (not in any header) in libint2_calls.cc; used here only to
+// build the deriv_order=0 finite-difference reference.
+std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
+                                               const AOBasis& dftbasis,
+                                               libint2::Engine& engine);
 }  // namespace xtp
 }  // namespace votca
 
@@ -314,6 +322,127 @@ BOOST_AUTO_TEST_CASE(coulomb_metric_derivative_finite_difference) {
               << std::endl;
   }
   BOOST_CHECK_EQUAL(matches, true);
+
+  libint2::finalize();
+}
+
+// Three-center RI integral derivative d(mu,nu|P)/dR. Uses H2/3-21G for
+// BOTH the "dft" and "aux" basis (same file loaded twice) -- deliberately
+// avoiding the question of whether the existing C2-specific aux basis
+// files (used in test_threecenter_dft.cc) cover hydrogen; this is purely
+// about validating the integral derivative in isolation, so any valid
+// basis pair works, it doesn't need to be a realistic RI fitting basis.
+//
+// STATUS: NOT yet run. This is the least-tested piece so far: THREE
+// genuinely untested hypotheses stack here (see the detailed comment in
+// libint2_derivative_calls.cc for each): the 9-buffer count for 3 real
+// centers, the buffer-to-center ordering (aux, col, row, following
+// argument order with the dummy skipped -- reasonably well-grounded by
+// direct analogy with the CONFIRMED 2-center metric case, but not
+// independently checked here), and which libint2 build flag
+// (ENABLE_ERI3, presumably =2) this needs. If this crashes with the
+// "null build function ptr" assertion, check the build flag first. If it
+// runs but gives a large numerical discrepancy, check buffer ordering
+// before anything else.
+BOOST_AUTO_TEST_CASE(three_center_derivative_finite_difference) {
+  libint2::initialize();
+
+  std::string basis_path =
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml";
+
+  double bond_length = 0.74;  // Angstrom, roughly H2 equilibrium
+  double h = 1e-4;            // finite-difference step, Angstrom
+
+  BasisSet basisset;
+  basisset.Load(basis_path);
+
+  QMMolecule mol0 = BuildH2(bond_length);
+  AOBasis dftbasis0;
+  dftbasis0.Fill(basisset, mol0);
+  AOBasis auxbasis0;
+  auxbasis0.Fill(basisset, mol0);  // same basis set used for both
+
+  auto deriv = ComputeThreeCenterDerivatives(auxbasis0, dftbasis0);
+
+  // Translational invariance now distributes across THREE atoms, not
+  // two -- but this molecule only has two atoms (both dftbasis and
+  // auxbasis are defined on the same H2), so the sum rule still reduces
+  // to the same two-term check: for every aux function k and every xyz,
+  // d(...)/dR_atom0 + d(...)/dR_atom1 = 0, since there is no third atom
+  // to distribute across in this specific test system. This is NOT a
+  // generic 3-center check (a real 3-atom system would need a genuine
+  // 3-term sum), but it's a valid check for this specific 2-atom case
+  // and costs nothing extra to include.
+  Index n_aux_bf = auxbasis0.AOBasisSize();
+  for (Index k = 0; k < n_aux_bf; ++k) {
+    BOOST_CHECK_SMALL(
+        (deriv[0][2][k] + deriv[1][2][k]).cwiseAbs().maxCoeff(), 1e-8);
+  }
+
+  // Finite-difference reference: rebuild the full (mu,nu|P) tensor via
+  // the existing, validated (deriv_order=0) ComputeAO3cBlock helper, at
+  // displaced geometries.
+  auto build_3c_tensor = [&](const AOBasis& auxbasis,
+                              const AOBasis& dftbasis) {
+    std::vector<Eigen::MatrixXd> tensor(
+        auxbasis.AOBasisSize(),
+        Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize()));
+    std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
+    std::vector<Index> auxshell2bf = auxbasis.getMapToBasisFunctions();
+    libint2::Engine engine(
+        libint2::Operator::coulomb,
+        std::max(dftbasis.getMaxNprim(), auxbasis.getMaxNprim()),
+        static_cast<int>(std::max(dftbasis.getMaxL(), auxbasis.getMaxL())),
+        0);
+    engine.set(libint2::BraKet::xs_xx);
+    for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
+      std::vector<Eigen::MatrixXd> block =
+          ComputeAO3cBlock(auxshells[aux], dftbasis, engine);
+      Index aux_start = auxshell2bf[aux];
+      for (size_t i = 0; i < block.size(); ++i) {
+        tensor[aux_start + static_cast<Index>(i)] = block[i];
+      }
+    }
+    return tensor;
+  };
+
+  QMMolecule mol_plus = BuildH2(bond_length + h);
+  AOBasis dftbasis_plus;
+  dftbasis_plus.Fill(basisset, mol_plus);
+  AOBasis auxbasis_plus;
+  auxbasis_plus.Fill(basisset, mol_plus);
+  std::vector<Eigen::MatrixXd> tensor_plus =
+      build_3c_tensor(auxbasis_plus, dftbasis_plus);
+
+  QMMolecule mol_minus = BuildH2(bond_length - h);
+  AOBasis dftbasis_minus;
+  dftbasis_minus.Fill(basisset, mol_minus);
+  AOBasis auxbasis_minus;
+  auxbasis_minus.Fill(basisset, mol_minus);
+  std::vector<Eigen::MatrixXd> tensor_minus =
+      build_3c_tensor(auxbasis_minus, dftbasis_minus);
+
+  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  bool all_match = true;
+  for (Index k = 0; k < n_aux_bf; ++k) {
+    Eigen::MatrixXd finite_diff_deriv =
+        (tensor_plus[k] - tensor_minus[k]) / (2.0 * h) * kBohrPerAngstrom;
+    bool matches = finite_diff_deriv.isApprox(deriv[1][2][k], 1e-4);
+    if (!matches) {
+      all_match = false;
+      std::cout << "Mismatch for aux function " << k << ":\n";
+      std::cout << "Analytic d(mu,nu|P)/dz(atom1):\n"
+                << deriv[1][2][k] << std::endl;
+      std::cout << "Finite-difference:\n" << finite_diff_deriv << std::endl;
+    }
+  }
+  if (!all_match) {
+    std::cout << "NOTE: if this fails with a large (not small numerical) "
+                 "discrepancy, check the buffer-count/ordering hypothesis "
+                 "flagged in libint2_derivative_calls.cc first."
+              << std::endl;
+  }
+  BOOST_CHECK_EQUAL(all_match, true);
 
   libint2::finalize();
 }
