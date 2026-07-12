@@ -32,6 +32,7 @@ namespace votca {
 namespace xtp {
 
 class AOBasis;
+class QMMolecule;
 
 template <class Grid>
 class Vxc_Potential {
@@ -67,6 +68,35 @@ class Vxc_Potential {
   // ===========================================================================
   Eigen::MatrixXd PulayGradient(const Eigen::MatrixXd& density_matrix,
                                 const AOBasis& dftbasis) const;
+
+  // ===========================================================================
+  // STATUS: written but NOT yet run/tested. This is the second (and
+  // harder) of the two pieces needed for the XC gradient, alongside
+  // PulayGradient above -- the SSW grid-weight nuclear derivative.
+  //
+  // The underlying formula was derived and independently verified
+  // NUMERICALLY in Python (two separate multi-atom test configurations,
+  // matching finite differences to ~1e-9/1e-10) before writing any of
+  // this C++ -- see conversation history for the full derivation. This
+  // C++ is a direct translation of that verified Python, not a fresh
+  // derivation done blind.
+  //
+  // Combined with PulayGradient, this should give the complete LDA-level
+  // XC gradient (GGA's additional df_dsigma-driven Pulay term is still
+  // out of scope, per the note on PulayGradient). Validate the SUM of
+  // the two against a finite difference of the real total XC energy
+  // (IntegrateVXC's energy output) -- neither piece alone can be checked
+  // against the total energy in isolation.
+  //
+  // SCALING NOTE: this is O(Natoms^3) per grid point (derivative w.r.t.
+  // every atom, each needing a sum over every other atom's pairwise
+  // term) -- consistent with the SSW partition's inherent O(Natoms^2)
+  // energy-level cost, but one power of Natoms worse for the gradient.
+  // Fine for validation-scale systems; would need optimizing before use
+  // on anything large.
+  // ===========================================================================
+  Eigen::MatrixXd GridWeightGradient(const Eigen::MatrixXd& density_matrix,
+                                     const QMMolecule& atoms) const;
 
  private:
   struct XC_entry {
