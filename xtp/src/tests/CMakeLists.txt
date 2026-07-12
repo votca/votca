@@ -37,6 +37,8 @@ list(APPEND test_cases test_densityintegration)
 list(APPEND test_cases test_dftcoupling)
 list(APPEND test_cases test_dftengine)
 list(APPEND test_cases test_dftengine_private)
+# DRAFT/UNTESTED -- see file header comment before trusting this.
+list(APPEND test_cases test_dftgradient)
 list(APPEND test_cases test_diabatization)
 list(APPEND test_cases test_diis)
 list(APPEND test_cases test_dipoledipoleinteraction)
