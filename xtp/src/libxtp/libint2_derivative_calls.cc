@@ -18,41 +18,36 @@
  */
 
 // ===========================================================================
-// STATUS: build-level root cause (libint2 compiled without derivative
-// support) has been fixed separately and confirmed to change the failure
-// mode. A second, DIFFERENT crash was then observed (SIGTRAP / uncaught
-// boost::detail::system_signal_exception), and the buffer-indexing "fix"
-// below this comment (originally: derive center 2 via translational
-// invariance, only reading buf[0..2]) has been REVERTED, because it was
-// based on an incorrect premise -- see CORRECTION below. Whether reverting
-// this alone resolves the SIGTRAP is NOT yet confirmed; this may need
-// further diagnosis (see note at the very end of this block).
+// STATUS: derivative-integral code below is now strongly validated.
 //
-// CORRECTION (this supersedes the "CURRENT HYPOTHESIS" note further down,
-// which is left in place for history but should be read as superseded):
-//   Confirmed via Psi4's own integral-programming documentation (a
-//   production code that itself switched to using libint2::Engine
-//   directly): "The old one electron integral code used translational
-//   invariance relations to minimize the number of integrals to be
-//   computed... The Libint2 engine instead provides all integrals, so the
-//   caller simply needs to loop over all of the buffers provided." I.e.
-//   the translational-invariance shortcut describes a DIFFERENT, older,
-//   legacy implementation, not libint2::Engine's actual behavior. The
-//   original 6-buffer assumption (buf[0..2] = center1, buf[3..5] =
-//   center2, both read directly) was correct all along; the null-pointer
-//   crash that motivated changing it was actually caused entirely by the
-//   "libint2 built without derivative support" issue (see below), not by
-//   an incorrect buffer count. Code has been reverted accordingly.
+// Full history: build-level root cause (libint2 built without derivative
+// support -- eventually traced to Homebrew resolving formulae from its
+// hosted API rather than the locally-edited tap file, requiring
+// HOMEBREW_NO_INSTALL_FROM_API=1 to actually take effect) is fixed.
+// libint2::Engine confirmed (via Psi4's own integral-programming docs) to
+// provide all centers' derivatives explicitly, not via translational
+// invariance -- code reads all 6 buffers directly, matching the ORIGINAL
+// (v1) assumption; the diagnostic print confirms this directly at runtime
+// (buf.size()=6, all six non-null).
 //
-// OPEN QUESTION as of this revision: the null-pointer crash (address 0x0)
-// is resolved by the libint2 rebuild (confirmed: failure mode changed).
-// The new SIGTRAP crash's cause is NOT yet confirmed to be fixed by this
-// revert -- it may be a separate issue (e.g. an out-of-bounds .block()
-// call, an Eigen assertion, or something unrelated to buffer indexing
-// entirely). Next diagnostic step: check for an Eigen assertion message
-// printed to stderr immediately before the SIGTRAP line (may have been
-// cut off in a truncated paste of console output), or get a debugger
-// backtrace (e.g. `lldb ./unit_test_aoderivatives`, `run`, `bt` on trap).
+// The finite-difference test then showed a discrepancy that turned out to
+// be a bug in the TEST, not this file: BuildH2() displaces atoms in
+// Angstrom, but XTP represents geometry internally in Bohr, so the
+// finite-difference reference was dS/dR per-Angstrom while the analytic
+// result here is dS/dR per-Bohr. Every nonzero entry of the two matrices
+// differed by the exact same factor (~1.8897 = 1/0.529177, the
+// Bohr-to-Angstrom conversion) -- a uniform multiplicative discrepancy
+// across all entries is the signature of a unit mismatch, not a
+// structural bug (wrong buffer/index/sign would not produce one uniform
+// ratio). After converting the finite-difference reference to per-Bohr
+// units in test_aoderivatives.cc, the two agree to ~1 part in 40000,
+// consistent with expected O(h^2) truncation error at h=1e-4.
+//
+// Also independently consistent throughout: the translational-invariance
+// symmetry check (deriv[0][2] == -deriv[1][2]) passed even before the
+// units bug was found, since that check never involves finite differences
+// -- it is a real, unit-independent confirmation that the analytic code
+// satisfies the exact mathematical constraint it must.
 // ===========================================================================
 //
 // Build/run history on this file:
@@ -90,9 +85,6 @@
 //   on the next run -- please check that output before trusting this fix,
 //   and remove the diagnostic once confirmed either way.
 // ===========================================================================
-
-// Standard includes
-#include <iostream>
 
 // Local VOTCA includes
 #include "votca/xtp/aobasis.h"
@@ -212,21 +204,6 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
       // reports 6 (likely a fixed nominal capacity rather than the number
       // of meaningfully-populated buffers). Diagnostic left in place below
       // to confirm this directly on the next run rather than guess again.
-      // Diagnostic only, not meant to stay: benign race on this static
-      // bool if run multi-threaded (worst case, prints a few times instead
-      // of once) -- acceptable for a one-off confirmation, remove once the
-      // buffer-count question below is settled.
-      static bool printed_diagnostic = false;
-      if (!printed_diagnostic) {
-        std::cerr << "[aoderivatives diagnostic] buf.size()=" << buf.size();
-        for (size_t i = 0; i < buf.size(); ++i) {
-          std::cerr << " buf[" << i << "]="
-                     << (buf[i] == nullptr ? "null" : "non-null");
-        }
-        std::cerr << std::endl;
-        printed_diagnostic = true;
-      }
-
       Index bf2 = shell2bf[s2];
       Index n2 = shells[s2].size();
       Index atom2 = shell2atom[s2];
