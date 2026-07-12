@@ -89,6 +89,34 @@ class DFTGradient {
   static Eigen::MatrixXd RIJGradient(const Eigen::MatrixXd& density,
                                       const AOBasis& auxbasis,
                                       const AOBasis& dftbasis);
+
+  /// RI-K (exchange) gradient assembly. Uses the SAME simpler asymmetric
+  /// V^-1 fitting convention as RIJGradient, rather than the symmetric
+  /// V^-1/2 convention used elsewhere in this codebase for the exchange
+  /// OPERATOR (see ERIs::CalculateEXX_mos) -- differentiating a matrix
+  /// square root directly would need more machinery than this validates;
+  /// the simpler convention is mathematically self-consistent for this
+  /// purpose (energy and its derivative computed the same way) even
+  /// though it won't bit-for-bit match that production code's numerics.
+  ///
+  /// mo_coeffs: (nbf x ncols) coefficient matrix. Despite the name, this
+  /// does NOT need to be genuinely orthonormal SCF occupied orbitals for
+  /// this function to be valid -- same reasoning as RIJGradient's
+  /// density argument: the per-orbital-pair fitting coefficients are
+  /// stationary in the fitted exchange energy expression for ANY fixed
+  /// C, by the same pure linear-algebra argument (independent
+  /// least-squares fit per (i,j) pair), not a consequence of either SCF
+  /// self-consistency or orthonormality.
+  ///
+  /// Energy convention used (for internal self-consistency with the
+  /// derivative below, not claimed to match any particular textbook
+  /// prefactor): E_K = sum_{i,j} 1/2 c_ij . d_ij, with
+  /// d_ij(P) = C_i^T (AO 3-center integral matrix for aux fn P) C_j and
+  /// c_ij = V^-1 d_ij, summed over ALL ordered pairs (i,j) of columns of
+  /// mo_coeffs (including i==j).
+  static Eigen::MatrixXd RIKGradient(const Eigen::MatrixXd& mo_coeffs,
+                                      const AOBasis& auxbasis,
+                                      const AOBasis& dftbasis);
 };
 
 }  // namespace xtp

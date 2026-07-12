@@ -276,4 +276,120 @@ BOOST_AUTO_TEST_CASE(rij_gradient_finite_difference) {
   libint2::finalize();
 }
 
+// RI-K (exchange) gradient assembly (DFTGradient::RIKGradient), validated
+// the same way as RI-J: finite difference of the total (self-defined,
+// internally-consistent -- see the energy-convention note on
+// RIKGradient in dftgradient.h) exchange energy, using a FIXED, arbitrary
+// (nbf x 2) coefficient matrix rather than genuine converged/orthonormal
+// occupied orbitals -- valid for the same reason as RIJGradient's
+// density argument (per-pair fitting-coefficient stationarity is a
+// linear-algebra property, not a consequence of SCF self-consistency or
+// orthonormality).
+//
+// STATUS: NOT yet run. Structurally similar to the RI-J test but with an
+// extra (i,j) double sum over coefficient-matrix columns -- a failure
+// here would most likely point at that double-sum bookkeeping rather
+// than the underlying integrals, which are shared with (and already
+// validated by) the RI-J test above.
+BOOST_AUTO_TEST_CASE(rik_gradient_finite_difference) {
+  libint2::initialize();
+
+  std::string basis_path =
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml";
+  double bond_length = 0.74;  // Angstrom
+  double h = 1e-4;            // Angstrom
+
+  BasisSet basisset;
+  basisset.Load(basis_path);
+
+  auto build_h2 = [](double bond_length_angstrom) {
+    QMMolecule mol(" ", 0);
+    std::string xyz_content =
+        "2\n\n"
+        "H 0.0 0.0 0.0\n"
+        "H 0.0 0.0 " +
+        std::to_string(bond_length_angstrom) + "\n";
+    std::string tmp_path = "/tmp/xtp_test_dftgradient_h2_rik.xyz";
+    std::ofstream out(tmp_path);
+    out << xyz_content;
+    out.close();
+    mol.LoadFromFile(tmp_path);
+    return mol;
+  };
+
+  QMMolecule mol0 = build_h2(bond_length);
+  AOBasis dftbasis0;
+  dftbasis0.Fill(basisset, mol0);
+  AOBasis auxbasis0;
+  auxbasis0.Fill(basisset, mol0);
+
+  // Fixed, arbitrary (nbf x 2) coefficient matrix -- generated once,
+  // reused unchanged at every geometry. Not orthonormal, not from any
+  // SCF -- deliberately, per the reasoning in the header comment.
+  Index n_dft_bf = dftbasis0.AOBasisSize();
+  Eigen::MatrixXd mo_coeffs = Eigen::MatrixXd::Random(n_dft_bf, 2);
+
+  Eigen::MatrixXd analytic_grad =
+      DFTGradient::RIKGradient(mo_coeffs, auxbasis0, dftbasis0);
+
+  Eigen::Vector3d total = analytic_grad.colwise().sum();
+  BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-6);
+
+  auto rik_energy = [&](const AOBasis& auxbasis, const AOBasis& dftbasis) {
+    std::vector<Eigen::MatrixXd> tensor =
+        ComputeThreeCenterIntegrals(auxbasis, dftbasis);
+    Index n_aux_bf = auxbasis.AOBasisSize();
+    AOCoulomb aocoulomb;
+    aocoulomb.Fill(auxbasis);
+    const Eigen::MatrixXd& V = aocoulomb.Matrix();
+    Index ncols = mo_coeffs.cols();
+    double energy = 0.0;
+    for (Index i = 0; i < ncols; ++i) {
+      for (Index j = 0; j < ncols; ++j) {
+        Eigen::VectorXd d(n_aux_bf);
+        for (Index p = 0; p < n_aux_bf; ++p) {
+          d(p) = mo_coeffs.col(i).dot(tensor[p] * mo_coeffs.col(j));
+        }
+        Eigen::VectorXd c = V.ldlt().solve(d);
+        energy += 0.5 * c.dot(d);
+      }
+    }
+    return energy;
+  };
+
+  QMMolecule mol_plus = build_h2(bond_length + h);
+  AOBasis dftbasis_plus;
+  dftbasis_plus.Fill(basisset, mol_plus);
+  AOBasis auxbasis_plus;
+  auxbasis_plus.Fill(basisset, mol_plus);
+  double e_plus = rik_energy(auxbasis_plus, dftbasis_plus);
+
+  QMMolecule mol_minus = build_h2(bond_length - h);
+  AOBasis dftbasis_minus;
+  dftbasis_minus.Fill(basisset, mol_minus);
+  AOBasis auxbasis_minus;
+  auxbasis_minus.Fill(basisset, mol_minus);
+  double e_minus = rik_energy(auxbasis_minus, dftbasis_minus);
+
+  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  double finite_diff_deriv =
+      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+
+  double analytic = analytic_grad(1, 2);  // atom 1 (second H), z-component
+  bool matches =
+      std::abs(finite_diff_deriv - analytic) < 1e-4 * std::abs(analytic);
+  if (!matches) {
+    std::cout << "Analytic dE_K/dz(atom1): " << analytic << std::endl;
+    std::cout << "Finite-difference: " << finite_diff_deriv << std::endl;
+    std::cout << "NOTE: if this fails, check the (i,j) double-sum "
+                 "bookkeeping in DFTGradient::RIKGradient first -- the "
+                 "underlying integrals are shared with, and already "
+                 "validated by, the RI-J test above."
+              << std::endl;
+  }
+  BOOST_CHECK_EQUAL(matches, true);
+
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

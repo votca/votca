@@ -122,5 +122,69 @@ Eigen::MatrixXd DFTGradient::RIJGradient(const Eigen::MatrixXd& density,
   return grad;
 }
 
+Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& mo_coeffs,
+                                          const AOBasis& auxbasis,
+                                          const AOBasis& dftbasis) {
+  Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
+  Index n_aux_bf = auxbasis.AOBasisSize();
+  Index ncols = mo_coeffs.cols();
+
+  std::vector<Eigen::MatrixXd> tensor =
+      ComputeThreeCenterIntegrals(auxbasis, dftbasis);
+
+  AOCoulomb aocoulomb;
+  aocoulomb.Fill(auxbasis);
+  const Eigen::MatrixXd& V = aocoulomb.Matrix();
+  Eigen::LDLT<Eigen::MatrixXd> V_ldlt(V);
+
+  std::vector<ThreeCenterDerivative> d3c =
+      ComputeThreeCenterDerivatives(auxbasis, dftbasis);
+  std::vector<AOMatrixDerivative> dV = ComputeCoulombMetricDerivatives(auxbasis);
+
+  Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
+
+  // Precompute d_ij(P) = C_i^T tensor[P] C_j for every (i,j) pair and
+  // every aux function P, and the corresponding fit coefficients
+  // c_ij = V^-1 d_ij, once -- reused across all atoms/xyz below rather
+  // than recomputed per atom, since neither depends on which
+  // atom/Cartesian derivative is being assembled.
+  std::vector<std::vector<Eigen::VectorXd>> d_ij(
+      ncols, std::vector<Eigen::VectorXd>(ncols));
+  std::vector<std::vector<Eigen::VectorXd>> c_ij(
+      ncols, std::vector<Eigen::VectorXd>(ncols));
+  for (Index i = 0; i < ncols; ++i) {
+    for (Index j = 0; j < ncols; ++j) {
+      Eigen::VectorXd d(n_aux_bf);
+      for (Index p = 0; p < n_aux_bf; ++p) {
+        d(p) = mo_coeffs.col(i).dot(tensor[p] * mo_coeffs.col(j));
+      }
+      d_ij[i][j] = d;
+      c_ij[i][j] = V_ldlt.solve(d);
+    }
+  }
+
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      double energy_term = 0.0;
+      double metric_term = 0.0;
+      for (Index i = 0; i < ncols; ++i) {
+        for (Index j = 0; j < ncols; ++j) {
+          const Eigen::VectorXd& c = c_ij[i][j];
+          // d(d_ij(P))/dR = C_i^T d3c[a][xyz][P] C_j
+          Eigen::VectorXd dd(n_aux_bf);
+          for (Index p = 0; p < n_aux_bf; ++p) {
+            dd(p) =
+                mo_coeffs.col(i).dot(d3c[a][xyz][p] * mo_coeffs.col(j));
+          }
+          energy_term += c.dot(dd);
+          metric_term += c.dot(dV[a][xyz] * c);
+        }
+      }
+      grad(a, xyz) = energy_term - 0.5 * metric_term;
+    }
+  }
+  return grad;
+}
+
 }  // namespace xtp
 }  // namespace votca
