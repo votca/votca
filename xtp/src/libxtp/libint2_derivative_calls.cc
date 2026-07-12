@@ -18,12 +18,42 @@
  */
 
 // ===========================================================================
-// STATUS: compiles and links cleanly. Crashed on first real run with a
-// null-pointer memory access violation (address 0x0), single-threaded,
-// right at test entry -- consistent with the HIGHEST-RISK ASSUMPTION below
-// being wrong. Buffer indexing has been revised accordingly (see below),
-// but this revision is ALSO not yet confirmed by an actual passing run --
-// treat it as the current best hypothesis, not a verified fix.
+// STATUS: build-level root cause (libint2 compiled without derivative
+// support) has been fixed separately and confirmed to change the failure
+// mode. A second, DIFFERENT crash was then observed (SIGTRAP / uncaught
+// boost::detail::system_signal_exception), and the buffer-indexing "fix"
+// below this comment (originally: derive center 2 via translational
+// invariance, only reading buf[0..2]) has been REVERTED, because it was
+// based on an incorrect premise -- see CORRECTION below. Whether reverting
+// this alone resolves the SIGTRAP is NOT yet confirmed; this may need
+// further diagnosis (see note at the very end of this block).
+//
+// CORRECTION (this supersedes the "CURRENT HYPOTHESIS" note further down,
+// which is left in place for history but should be read as superseded):
+//   Confirmed via Psi4's own integral-programming documentation (a
+//   production code that itself switched to using libint2::Engine
+//   directly): "The old one electron integral code used translational
+//   invariance relations to minimize the number of integrals to be
+//   computed... The Libint2 engine instead provides all integrals, so the
+//   caller simply needs to loop over all of the buffers provided." I.e.
+//   the translational-invariance shortcut describes a DIFFERENT, older,
+//   legacy implementation, not libint2::Engine's actual behavior. The
+//   original 6-buffer assumption (buf[0..2] = center1, buf[3..5] =
+//   center2, both read directly) was correct all along; the null-pointer
+//   crash that motivated changing it was actually caused entirely by the
+//   "libint2 built without derivative support" issue (see below), not by
+//   an incorrect buffer count. Code has been reverted accordingly.
+//
+// OPEN QUESTION as of this revision: the null-pointer crash (address 0x0)
+// is resolved by the libint2 rebuild (confirmed: failure mode changed).
+// The new SIGTRAP crash's cause is NOT yet confirmed to be fixed by this
+// revert -- it may be a separate issue (e.g. an out-of-bounds .block()
+// call, an Eigen assertion, or something unrelated to buffer indexing
+// entirely). Next diagnostic step: check for an Eigen assertion message
+// printed to stderr immediately before the SIGTRAP line (may have been
+// cut off in a truncated paste of console output), or get a debugger
+// backtrace (e.g. `lldb ./unit_test_aoderivatives`, `run`, `bt` on trap).
+// ===========================================================================
 //
 // Build/run history on this file:
 //   - Originally drafted with no local libint2 install available, so it
@@ -201,29 +231,23 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
       Index n2 = shells[s2].size();
       Index atom2 = shell2atom[s2];
 
+      // CORRECTED (see file header): libint2::Engine provides all centers'
+      // derivatives explicitly -- confirmed against Psi4's own
+      // integral-programming documentation, which contrasts this directly
+      // against an older, legacy one-electron implementation that DID rely
+      // on translational invariance to omit one center. Reading buf[3+xyz]
+      // directly (not deriving it via negation) is the corrected approach.
       for (Index xyz = 0; xyz < 3; ++xyz) {
-        // derivative with respect to shell1's atom (buf indices 0,1,2) --
-        // this is the only part of buf[] actually read now.
-        Eigen::Map<const Eigen::MatrixXd> buf_mat(buf[xyz], n1, n2);
-        result[atom1][xyz].block(bf1, bf2, n1, n2) += buf_mat;
+        Eigen::Map<const Eigen::MatrixXd> buf_mat1(buf[xyz], n1, n2);
+        result[atom1][xyz].block(bf1, bf2, n1, n2) += buf_mat1;
         if (s1 != s2) {
-          result[atom1][xyz].block(bf2, bf1, n2, n1) += buf_mat.transpose();
+          result[atom1][xyz].block(bf2, bf1, n2, n1) += buf_mat1.transpose();
         }
 
-        // derivative with respect to shell2's atom, via translational
-        // invariance rather than reading buf[3+xyz] directly: for a
-        // two-center integral depending only on relative position,
-        // d(integral)/dR_atom1 + d(integral)/dR_atom2 = 0, so
-        // d(integral)/dR_atom2 = -d(integral)/dR_atom1, per shell pair,
-        // before summing across shell pairs into the full gradient.
-        // NOTE: this identity holds only because exactly two centers are
-        // involved in a one-electron two-center integral; it does NOT
-        // generalize as-is to three-/four-center integrals (RI/ERI),
-        // which have more than two centers to distribute the sum-rule
-        // across -- a separate, correct treatment will be needed there.
-        result[atom2][xyz].block(bf1, bf2, n1, n2) += -buf_mat;
+        Eigen::Map<const Eigen::MatrixXd> buf_mat2(buf[3 + xyz], n1, n2);
+        result[atom2][xyz].block(bf1, bf2, n1, n2) += buf_mat2;
         if (s1 != s2) {
-          result[atom2][xyz].block(bf2, bf1, n2, n1) += -buf_mat.transpose();
+          result[atom2][xyz].block(bf2, bf1, n2, n1) += buf_mat2.transpose();
         }
       }
     }
