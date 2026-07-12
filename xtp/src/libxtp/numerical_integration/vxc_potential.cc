@@ -26,6 +26,8 @@
 #include <votca/tools/tokenizer.h>
 
 // Local VOTCA includes
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/vxc_functionals.h"
 #include "votca/xtp/vxc_grid.h"
 #include "votca/xtp/vxc_potential.h"
@@ -347,6 +349,129 @@ Mat_p_Energy Vxc_Potential<Grid>::IntegrateVXC(
   }
 
   return Mat_p_Energy(vxc.energy(), vxc.matrix() + vxc.matrix().transpose());
+}
+
+// ===========================================================================
+// Derivation (worked out before writing this, checked against LibXC's own
+// documented API convention rather than assumed):
+//
+// E_xc = sum_p weight_p * e_xc(rho_p)  (e_xc = rho*f_xc, energy density)
+//
+// dE_xc/dR_A |_Pulay = sum_p weight_p * v_xc(rho_p) * d(rho_p)/dR_A|_basis
+//
+// where v_xc(rho) = de_xc/drho. Confirmed (not assumed) that this is
+// EXACTLY xc.df_drho as already computed by EvaluateXC: xc_lda_exc_vxc /
+// xc_gga_exc_vxc are LibXC's own named functions -- "exc" = energy per
+// particle (f_xc), "vxc" = the potential dE_xc/drho directly (LibXC
+// applies the f_xc + rho*df_xc/drho correction internally; the "vxc"
+// output already IS the full potential, matching how df_drho is already
+// used to build Vxc_here above -- no extra term needed here).
+//
+// For an atom-centered Gaussian chi_mu(r) = phi_mu(r - R_A), the nuclear
+// derivative is EXACTLY -grad_r(chi_mu) for the atom mu is centered on,
+// and exactly zero for every other atom (since r-R_A depends negatively
+// on R_A). This means d(chi_mu)/dR_A can be read directly off
+// ao.derivatives (already computed for the GGA sigma term above), just
+// negated and restricted to basis functions centered on atom A -- no new
+// basis-function-derivative machinery is needed for this piece.
+//
+// Using the symmetry of the density matrix (same trick as the standard
+// Pulay-force derivation):
+//   d(rho_p)/dR_A|_basis = -2 * sum_{mu in A} sum_nu P_munu (grad_r chi_mu)(r_p) chi_nu(r_p)
+//                        = -sum_{mu in A} temp(mu) * (grad_r chi_mu)(r_p)
+// where temp = ao.values^T * DMAT_here (DMAT_here = 2P, already exactly
+// what IntegrateVXC computes above) -- the factor of 2 from symmetry is
+// already folded into DMAT_here, so no extra factor is needed here either.
+//
+// SCOPE (see also the STATUS note on the declaration in vxc_potential.h):
+// this captures the FULL Pulay term for LDA functionals. For GGA
+// functionals, it captures only the df_drho-driven part; the additional
+// df_dsigma-driven Pulay contribution needs second derivatives of basis
+// functions w.r.t. electron position, not implemented here. The
+// grid-weight (SSW partition) derivative term is a SEPARATE piece,
+// deliberately not included in this function.
+//
+// STATUS: written but NOT yet run/tested.
+// ===========================================================================
+template <class Grid>
+Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
+    const Eigen::MatrixXd& density_matrix, const AOBasis& dftbasis) const {
+  assert(density_matrix.isApprox(density_matrix.transpose()) &&
+         "Density matrix has to be symmetric!");
+
+  Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<Eigen::MatrixXd> grad_thread(
+      nthreads, Eigen::MatrixXd::Zero(natoms, 3));
+
+#pragma omp parallel for schedule(guided)
+  for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+    Index thread_id = OPENMP::getThreadId();
+    const GridBox& box = grid_[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
+
+    const Eigen::MatrixXd DMAT_here = 2 * box.ReadFromBigMatrix(density_matrix);
+
+    double cutoff =
+        1.e-40 / double(density_matrix.rows()) / double(density_matrix.rows());
+    if (DMAT_here.cwiseAbs2().maxCoeff() < cutoff) {
+      continue;
+    }
+
+    // Box-local AO index -> atom index, built once per box (not once per
+    // grid point), using the same getShells()/getAOranges() mapping the
+    // rest of GridBox already relies on for its own big-matrix
+    // read/write bookkeeping.
+    std::vector<Index> local_idx_to_atom(box.Matrixsize());
+    const std::vector<const AOShell*>& shells = box.getShells();
+    const std::vector<GridboxRange>& ao_ranges = box.getAOranges();
+    for (size_t s = 0; s < shells.size(); ++s) {
+      Index atom = shells[s]->getAtomIndex();
+      for (Index k = 0; k < ao_ranges[s].size; ++k) {
+        local_idx_to_atom[ao_ranges[s].start + k] = atom;
+      }
+    }
+
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+
+    for (Index p = 0; p < box.size(); ++p) {
+      AOShell::AOValues ao = box.CalcAOValues(points[p]);
+
+      Eigen::VectorXd temp = ao.values.transpose() * DMAT_here;
+      double rho = 0.5 * temp.dot(ao.values);
+      const double weight = weights[p];
+
+      if (rho * weight < 1.e-20) {
+        continue;
+      }
+
+      const Eigen::Vector3d rho_grad = temp.transpose() * ao.derivatives;
+      typename Vxc_Potential<Grid>::XC_entry xc =
+          EvaluateXC(rho, rho_grad.squaredNorm());
+
+      // d(rho_p)/dR_A|_basis, accumulated per local AO index mu, then
+      // scattered to the correct atom via local_idx_to_atom. Looping
+      // over local indices directly (rather than trying to slice
+      // contiguous per-atom row ranges) since a single box's
+      // significant shells are not guaranteed to be grouped
+      // contiguously by atom.
+      for (Index mu = 0; mu < box.Matrixsize(); ++mu) {
+        Index atom = local_idx_to_atom[mu];
+        Eigen::Vector3d contribution =
+            -weight * xc.df_drho * temp(mu) * ao.derivatives.row(mu).transpose();
+        grad_thread[thread_id].row(atom) += contribution.transpose();
+      }
+    }
+  }
+
+  Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index t = 0; t < nthreads; ++t) {
+    grad += grad_thread[t];
+  }
+  return grad;
 }
 
 template <class Grid>

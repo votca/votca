@@ -31,6 +31,8 @@
 namespace votca {
 namespace xtp {
 
+class AOBasis;
+
 template <class Grid>
 class Vxc_Potential {
  public:
@@ -49,6 +51,22 @@ class Vxc_Potential {
   Mat_p_Energy IntegrateVXC(const Eigen::MatrixXd& density_matrix) const;
   SpinResult IntegrateVXCSpin(const Eigen::MatrixXd& dmat_alpha,
                               const Eigen::MatrixXd& dmat_beta) const;
+
+  // ===========================================================================
+  // STATUS: written but NOT yet run/tested (see vxc_potential.cc for the
+  // detailed derivation and honest scope note).
+  // This is only the
+  // basis-function/Pulay piece of the XC gradient, valid in FULL for LDA
+  // functionals; for GGA functionals it captures only the df_drho-driven
+  // part of the Pulay contribution, NOT the additional df_dsigma-driven
+  // Pulay term, which needs second derivatives of basis functions w.r.t.
+  // electron position (not yet available anywhere in this codebase). The
+  // grid-weight (SSW partition) derivative term is ALSO not included here
+  // -- this is deliberately only one of the (at least) two pieces needed
+  // for a complete XC gradient.
+  // ===========================================================================
+  Eigen::MatrixXd PulayGradient(const Eigen::MatrixXd& density_matrix,
+                                const AOBasis& dftbasis) const;
 
  private:
   struct XC_entry {
