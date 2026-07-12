@@ -15,15 +15,18 @@
  */
 
 // ===========================================================================
-// STATUS: DRAFT, UNCOMPILED, UNTESTED (see libint2_derivative_calls.cc).
+// STATUS: overlap_derivative_finite_difference PASSES (confirmed against a
+// real build, after fixing a duplicate-symbol link error, a libint2
+// build-configuration issue -- needed ENABLE_ONEBODY=2 at libint2's own
+// build time, discovered via Psi4's integral-programming docs -- and a
+// Bohr/Angstrom unit mismatch in this test's own finite-difference
+// reference). See libint2_derivative_calls.cc for the full history.
 //
-// This is the intended first correctness check for ComputeOverlapDerivatives
-// / ComputeKineticDerivatives: compare the analytic derivative against a
-// central finite difference of the corresponding AOOverlap/AOKinetic
-// matrices under small nuclear displacements. If the buffer-ordering
-// assumption flagged in libint2_derivative_calls.cc is wrong, this test
-// should fail clearly (large discrepancy, not a subtle one) rather than
-// silently passing.
+// kinetic_derivative_finite_difference is newly added, following the same
+// pattern, and has NOT yet been run. Given how many non-obvious issues
+// turned up validating the overlap case (buffer conventions, build flags,
+// units), don't assume this one passes just because overlap did -- run it
+// and check before trusting ComputeKineticDerivatives.
 // ===========================================================================
 
 #include "xtp_libint2.h"
@@ -53,6 +56,8 @@ namespace votca {
 namespace xtp {
 using AOMatrixDerivative = std::array<Eigen::MatrixXd, 3>;
 std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(
+    const AOBasis& aobasis);
+std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
     const AOBasis& aobasis);
 }  // namespace xtp
 }  // namespace votca
@@ -159,6 +164,80 @@ BOOST_AUTO_TEST_CASE(overlap_derivative_finite_difference) {
                  "discrepancy, check the buffer-ordering assumption flagged "
                  "in libint2_derivative_calls.cc first."
               << std::endl;
+  }
+  BOOST_CHECK_EQUAL(matches, true);
+
+  libint2::finalize();
+}
+
+// Same pattern as overlap_derivative_finite_difference above, but for
+// AOKinetic instead of AOOverlap. Worth testing separately even though
+// both go through the same computeOneBodyIntegralDerivatives<obtype>
+// template in libint2_derivative_calls.cc (so the shell-pair loop, atom
+// bookkeeping, and Bohr-unit handling are already exercised by the
+// overlap test above): the kinetic-energy integral has a genuinely
+// different, more complex analytic form than overlap, so this checks
+// that libint2's kinetic-derivative engine specifically produces
+// correctly-shaped, correctly-valued buffers -- not just that the
+// shared loop logic around it is right.
+BOOST_AUTO_TEST_CASE(kinetic_derivative_finite_difference) {
+  libint2::initialize();
+
+  std::string basis_path =
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml";
+
+  double bond_length = 0.74;  // Angstrom, roughly H2 equilibrium
+  double h = 1e-4;            // finite-difference step, Angstrom
+
+  BasisSet basisset;
+  basisset.Load(basis_path);
+
+  QMMolecule mol0 = BuildH2(bond_length);
+  AOBasis aobasis0;
+  aobasis0.Fill(basisset, mol0);
+
+  auto deriv = ComputeKineticDerivatives(aobasis0);
+
+  // Translational invariance holds here for the same reason it holds for
+  // overlap: the kinetic-energy integral <chi_A| -1/2 nabla^2 |chi_B> for
+  // two Gaussians depends only on their relative separation (A-B), not on
+  // absolute position -- unlike, e.g., the nuclear attraction integral,
+  // which depends on external nuclear positions as well and would NOT
+  // satisfy this same simple two-center sum rule.
+  BOOST_CHECK_SMALL(
+      (deriv[0][2] + deriv[1][2]).cwiseAbs().maxCoeff(), 1e-8);
+
+  QMMolecule mol_plus = BuildH2(bond_length + h);
+  AOBasis aobasis_plus;
+  aobasis_plus.Fill(basisset, mol_plus);
+  AOKinetic kinetic_plus;
+  kinetic_plus.Fill(aobasis_plus);
+
+  QMMolecule mol_minus = BuildH2(bond_length - h);
+  AOBasis aobasis_minus;
+  aobasis_minus.Fill(basisset, mol_minus);
+  AOKinetic kinetic_minus;
+  kinetic_minus.Fill(aobasis_minus);
+
+  Eigen::MatrixXd finite_diff_deriv =
+      (kinetic_plus.Matrix() - kinetic_minus.Matrix()) / (2.0 * h);
+  // Same Bohr/Angstrom conversion as the overlap test above, and for the
+  // identical reason -- see the detailed note there.
+  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  finite_diff_deriv *= kBohrPerAngstrom;
+
+  // Same tolerance rationale as the overlap test: expected O(h^2)
+  // central-difference truncation error at h=1e-4 is on the order of a
+  // few 1e-5 relative, so 1e-4 gives a safe margin. Kept identical to the
+  // overlap test's tolerance for consistency; if the kinetic integral's
+  // higher-derivative curvature turns out to need a looser bound in
+  // practice, that would itself be worth understanding rather than just
+  // loosening blindly.
+  bool matches = finite_diff_deriv.isApprox(deriv[1][2], 1e-4);
+  if (!matches) {
+    std::cout << "Analytic dT/dz(atom1):\n" << deriv[1][2] << std::endl;
+    std::cout << "Finite-difference dT/dz(atom1):\n"
+              << finite_diff_deriv << std::endl;
   }
   BOOST_CHECK_EQUAL(matches, true);
 
