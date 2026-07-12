@@ -30,6 +30,39 @@
 // ===========================================================================
 
 #include "xtp_libint2.h"
+
+// Full libint2 declarations (Engine, Shell, Operator, BraKet, etc.),
+// needed directly in this test file by
+// three_center_derivative_finite_difference (to build its deriv_order=0
+// finite-difference reference via ComputeAO3cBlock, which takes a
+// libint2::Engine&). Earlier tests in this file never needed this --
+// xtp_libint2.h only pulls in <libint2/initialize.h>, just enough for
+// libint2::initialize()/finalize(), not the full Engine/Shell/BraKet API.
+//
+// Deliberately NOT including <libint2/statics_definition.h> here, for
+// the same reason it was removed from libint2_derivative_calls.cc
+// earlier in this branch: that header DEFINES storage for libint2's
+// internal static tables and must appear in exactly one translation
+// unit per library. libint2_derivative_calls.cc (linked into
+// libvotca_xtp, which this test binary links against) already provides
+// it; including it a second time here would reproduce the exact
+// duplicate-symbol link error fixed earlier.
+#define LIBINT2_CONSTEXPR_STATICS 0
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-W#warnings"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wcpp"
+#endif
+#include <libint2.hpp>
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE aoderivatives_test
