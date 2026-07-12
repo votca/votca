@@ -33,6 +33,7 @@
 // bug couldn't hide from both.
 // ===========================================================================
 
+#include "xtp_libint2.h"
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE dftgradient_test
@@ -46,11 +47,26 @@
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
+#include <votca/xtp/aobasis.h>
+#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/basisset.h>
 #include <votca/xtp/dftgradient.h>
 #include <votca/xtp/qmmolecule.h>
 
 using namespace votca::xtp;
 using namespace votca;
+
+// Defined in libint2_derivative_calls.cc, not yet in any header; forward
+// declared here purely to build the finite-difference reference energy
+// (production code, DFTGradient::RIJGradient, already calls this
+// internally -- this is not duplicating the derivative logic, only the
+// energy-level integral used for the reference calculation).
+namespace votca {
+namespace xtp {
+std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
+    const AOBasis& auxbasis, const AOBasis& dftbasis);
+}  // namespace xtp
+}  // namespace votca
 
 BOOST_AUTO_TEST_SUITE(dftgradient_test)
 
@@ -141,6 +157,123 @@ BOOST_AUTO_TEST_CASE(nuclear_repulsion_derivative_finite_difference) {
     std::cout << "Finite-difference: " << finite_diff_deriv_bohr << std::endl;
   }
   BOOST_CHECK_EQUAL(matches, true);
+}
+
+// RI-J gradient assembly (DFTGradient::RIJGradient), validated against a
+// finite difference of the total RI-J energy computed with a FIXED,
+// arbitrary density matrix -- see the detailed "IMPORTANT" note on this
+// function in dftgradient.h for why an arbitrary (not necessarily
+// converged-SCF) density matrix is a legitimate way to validate the
+// assembly formula: the RI fitting coefficients' stationarity is a
+// property of the linear least-squares fit itself, not of electronic
+// self-consistency.
+//
+// STATUS: NOT yet run. This is the most integrative piece tested so far
+// in this branch -- it combines four previously-validated pieces
+// (ComputeThreeCenterIntegrals/Derivatives, AOCoulomb, and the
+// two-center metric derivative) through NEW contraction/assembly code
+// that has not itself been checked. A failure here would point to the
+// assembly logic (the c=V^-1 d solve, or the term1/term2 contraction),
+// not to any of the underlying integrals, which are already separately
+// confirmed correct.
+BOOST_AUTO_TEST_CASE(rij_gradient_finite_difference) {
+  libint2::initialize();
+
+  std::string basis_path =
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml";
+  double bond_length = 0.74;  // Angstrom
+  double h = 1e-4;            // Angstrom
+
+  BasisSet basisset;
+  basisset.Load(basis_path);
+
+  auto build_h2 = [](double bond_length_angstrom) {
+    QMMolecule mol(" ", 0);
+    std::string xyz_content =
+        "2\n\n"
+        "H 0.0 0.0 0.0\n"
+        "H 0.0 0.0 " +
+        std::to_string(bond_length_angstrom) + "\n";
+    std::string tmp_path = "/tmp/xtp_test_dftgradient_h2.xyz";
+    std::ofstream out(tmp_path);
+    out << xyz_content;
+    out.close();
+    mol.LoadFromFile(tmp_path);
+    return mol;
+  };
+
+  QMMolecule mol0 = build_h2(bond_length);
+  AOBasis dftbasis0;
+  dftbasis0.Fill(basisset, mol0);
+  AOBasis auxbasis0;
+  auxbasis0.Fill(basisset, mol0);  // same basis used for both, as in the
+                                    // three-center integral test
+
+  // Fixed, arbitrary, symmetric density matrix -- generated once and
+  // reused unchanged at every geometry. Its specific values don't
+  // matter for this test (see IMPORTANT note referenced above); what
+  // matters is that it stays FIXED while the geometry moves.
+  Index n_dft_bf = dftbasis0.AOBasisSize();
+  Eigen::MatrixXd density = Eigen::MatrixXd::Random(n_dft_bf, n_dft_bf);
+  density = 0.5 * (density + density.transpose());
+
+  Eigen::MatrixXd analytic_grad =
+      DFTGradient::RIJGradient(density, auxbasis0, dftbasis0);
+
+  // Sanity check independent of finite differences, same reasoning as
+  // the nuclear repulsion test: translational invariance of the total
+  // energy means the gradient must sum to zero across all atoms.
+  Eigen::Vector3d total = analytic_grad.colwise().sum();
+  BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-6);
+
+  auto rij_energy = [&](const AOBasis& auxbasis, const AOBasis& dftbasis) {
+    std::vector<Eigen::MatrixXd> tensor =
+        ComputeThreeCenterIntegrals(auxbasis, dftbasis);
+    Index n_aux_bf = auxbasis.AOBasisSize();
+    Eigen::VectorXd d(n_aux_bf);
+    for (Index p = 0; p < n_aux_bf; ++p) {
+      d(p) = (density.array() * tensor[p].array()).sum();
+    }
+    AOCoulomb aocoulomb;
+    aocoulomb.Fill(auxbasis);
+    Eigen::VectorXd c = aocoulomb.Matrix().ldlt().solve(d);
+    return 0.5 * c.dot(d);
+  };
+
+  QMMolecule mol_plus = build_h2(bond_length + h);
+  AOBasis dftbasis_plus;
+  dftbasis_plus.Fill(basisset, mol_plus);
+  AOBasis auxbasis_plus;
+  auxbasis_plus.Fill(basisset, mol_plus);
+  double e_plus = rij_energy(auxbasis_plus, dftbasis_plus);
+
+  QMMolecule mol_minus = build_h2(bond_length - h);
+  AOBasis dftbasis_minus;
+  dftbasis_minus.Fill(basisset, mol_minus);
+  AOBasis auxbasis_minus;
+  auxbasis_minus.Fill(basisset, mol_minus);
+  double e_minus = rij_energy(auxbasis_minus, dftbasis_minus);
+
+  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  double finite_diff_deriv =
+      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+
+  double analytic = analytic_grad(1, 2);  // atom 1 (second H), z-component
+  bool matches =
+      std::abs(finite_diff_deriv - analytic) < 1e-4 * std::abs(analytic);
+  if (!matches) {
+    std::cout << "Analytic dE_J/dz(atom1): " << analytic << std::endl;
+    std::cout << "Finite-difference: " << finite_diff_deriv << std::endl;
+    std::cout << "NOTE: if this fails, the assembly logic (c=V^-1 d "
+                 "solve, or the term1/term2 contraction in "
+                 "DFTGradient::RIJGradient) is the first thing to check "
+                 "-- the underlying integrals it consumes are already "
+                 "separately validated in test_aoderivatives.cc."
+              << std::endl;
+  }
+  BOOST_CHECK_EQUAL(matches, true);
+
+  libint2::finalize();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

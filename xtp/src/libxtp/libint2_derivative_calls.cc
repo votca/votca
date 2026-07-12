@@ -120,6 +120,13 @@
 namespace votca {
 namespace xtp {
 
+// Defined in libint2_calls.cc, not declared in any header; forward
+// declared here for use by ComputeThreeCenterIntegrals below, to avoid
+// re-deriving the same shell-iteration logic a third time.
+std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
+                                               const AOBasis& dftbasis,
+                                               libint2::Engine& engine);
+
 // Result type: one entry per atom, each holding the three Cartesian
 // derivative matrices (d/dx, d/dy, d/dz) of the full AO matrix with respect
 // to that atom's nuclear coordinate. Matches the AO matrix convention used
@@ -531,6 +538,43 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
     }
   }
   return result;
+}
+
+// Energy-level (deriv_order=0) three-center integral (mu,nu|P), kept here
+// (rather than in dftgradient.cc) so all direct libint2 API usage stays
+// confined to this file and libint2_calls.cc -- dftgradient.cc, which
+// needs this for the RI-J gradient assembly, consumes only the returned
+// matrices, never touching libint2 types directly. Structurally the same
+// shell-loop as ComputeThreeCenterDerivatives above, minus the
+// atom/Cartesian bookkeeping that only applies at deriv_order=1, and
+// reusing the already-existing ComputeAO3cBlock helper from
+// libint2_calls.cc (declared there, not in any header -- forward
+// declared here) rather than re-deriving the same shell-iteration logic
+// a third time.
+std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
+    const AOBasis& auxbasis, const AOBasis& dftbasis) {
+  std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
+  std::vector<Index> auxshell2bf = auxbasis.getMapToBasisFunctions();
+
+  std::vector<Eigen::MatrixXd> tensor(
+      auxbasis.AOBasisSize(),
+      Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize()));
+
+  libint2::Engine engine(
+      libint2::Operator::coulomb,
+      std::max(dftbasis.getMaxNprim(), auxbasis.getMaxNprim()),
+      static_cast<int>(std::max(dftbasis.getMaxL(), auxbasis.getMaxL())), 0);
+  engine.set(libint2::BraKet::xs_xx);
+
+  for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
+    std::vector<Eigen::MatrixXd> block =
+        ComputeAO3cBlock(auxshells[aux], dftbasis, engine);
+    Index aux_start = auxshell2bf[aux];
+    for (size_t i = 0; i < block.size(); ++i) {
+      tensor[aux_start + static_cast<Index>(i)] = block[i];
+    }
+  }
+  return tensor;
 }
 
 }  // namespace xtp

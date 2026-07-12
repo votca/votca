@@ -43,6 +43,7 @@
 #define VOTCA_XTP_DFTGRADIENT_H
 
 // Local VOTCA includes
+#include "aobasis.h"
 #include "qmmolecule.h"
 
 namespace votca {
@@ -65,6 +66,29 @@ class DFTGradient {
   /// classical repulsion term consistently with an ECP-modified
   /// Hamiltonian.
   static Eigen::MatrixXd NuclearRepulsionDerivative(const QMMolecule& mol);
+
+  /// RI-J (Coulomb) gradient assembly, contracting the already-validated
+  /// two-/three-center integral derivatives with a FIXED density matrix
+  /// and the corresponding RI fitting coefficients. Returns (Natoms x 3)
+  /// dE_J/dR in Hartree/Bohr, same convention as
+  /// NuclearRepulsionDerivative.
+  ///
+  /// IMPORTANT: "density" here does not need to come from a converged
+  /// SCF -- the underlying identity this relies on (that the RI fitting
+  /// coefficients c_P are stationary in the fitted energy expression, so
+  /// their own response to a geometry change doesn't need to be
+  /// differentiated) is a property of the linear least-squares fit
+  /// itself (c = V^-1 d makes E_J(c) = c^T d - 1/2 c^T V c stationary in
+  /// c by construction, for ANY fixed d), not a consequence of
+  /// electronic self-consistency. This function is valid for any fixed
+  /// density matrix passed in, converged or not; it is the CALLER's
+  /// responsibility to pass in a genuinely converged SCF density when
+  /// this is used for a real gradient (as opposed to, e.g., a testing
+  /// context where an arbitrary fixed density is a legitimate way to
+  /// validate the assembly formula itself).
+  static Eigen::MatrixXd RIJGradient(const Eigen::MatrixXd& density,
+                                      const AOBasis& auxbasis,
+                                      const AOBasis& dftbasis);
 };
 
 }  // namespace xtp
