@@ -268,4 +268,89 @@ BOOST_AUTO_TEST_CASE(qsgw_setget) {
   BOOST_CHECK_EQUAL(check_isQSGW, true);
 }
 
+BOOST_AUTO_TEST_CASE(forces_setget) {
+  Orbitals orb;
+  BOOST_CHECK_EQUAL(orb.hasForces(), false);
+
+  Eigen::MatrixXd forces = Eigen::MatrixXd::Zero(2, 3);
+  forces(0, 2) = -0.5;
+  forces(1, 2) = 0.5;
+  orb.setForces(forces);
+
+  BOOST_CHECK_EQUAL(orb.hasForces(), true);
+  BOOST_CHECK(orb.getForces().isApprox(forces, 1e-12));
+}
+
+// Exercises the actual HDF5 read/write wiring added for forces_ in
+// WriteToCpt/ReadFromCpt, not just the in-memory setter/getter above --
+// this is the part most likely to have a subtle bug (wrong group
+// nesting, wrong handling of the empty/rows()==0 case, etc.), and it's
+// also the part that actually matters for the ASE-handover use case this
+// field exists for: reading a force back out of a real orb.hdf5 file
+// after a separate process wrote it.
+//
+// Populates molecule + basis + MOs before writing, following the same
+// pattern as the existing, validated round-trip test in test_hdf5.cc --
+// deliberately NOT using a bare/empty Orbitals object, since there's no
+// existing evidence that's safe to WriteToCpt (every other real
+// checkpoint test in this codebase populates several fields first), and
+// this hasn't been checked either way.
+BOOST_AUTO_TEST_CASE(forces_checkpoint_roundtrip) {
+  libint2::initialize();
+
+  QMMolecule atoms = QMMolecule(" ", 0);
+  atoms.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/hdf5/molecule.xyz");
+
+  Orbitals orb;
+  orb.QMAtoms() = atoms;
+  orb.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) + "/hdf5/3-21G.xml");
+
+  Index n_atoms = atoms.size();
+  Eigen::MatrixXd forces = Eigen::MatrixXd::Zero(n_atoms, 3);
+  for (Index i = 0; i < n_atoms; ++i) {
+    forces(i, 2) = 0.01 * static_cast<double>(i + 1);
+  }
+  orb.setForces(forces);
+
+  std::string tmp_path = "/tmp/xtp_test_forces_roundtrip.hdf5";
+  orb.WriteToCpt(tmp_path);
+
+  Orbitals orb_read;
+  orb_read.ReadFromCpt(tmp_path);
+
+  BOOST_CHECK_EQUAL(orb_read.hasForces(), true);
+  BOOST_CHECK(orb_read.getForces().isApprox(forces, 1e-12));
+
+  libint2::finalize();
+}
+
+// Confirms reading an orb.hdf5 file written WITHOUT the forces_ field
+// (i.e. from before this field existed) does not crash, per the
+// try/catch added around r(forces_, "forces") in ReadFromCpt -- this is
+// the backward-compatibility path, exercised by simply never calling
+// setForces() before writing. Same minimal-but-populated setup as above,
+// for the same reason.
+BOOST_AUTO_TEST_CASE(forces_checkpoint_backward_compatibility) {
+  libint2::initialize();
+
+  QMMolecule atoms = QMMolecule(" ", 0);
+  atoms.LoadFromFile(std::string(XTP_TEST_DATA_FOLDER) + "/hdf5/molecule.xyz");
+
+  Orbitals orb_no_forces;
+  orb_no_forces.QMAtoms() = atoms;
+  orb_no_forces.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
+                               "/hdf5/3-21G.xml");
+  // deliberately not calling setForces()
+
+  std::string tmp_path = "/tmp/xtp_test_forces_absent.hdf5";
+  orb_no_forces.WriteToCpt(tmp_path);
+
+  Orbitals orb_read;
+  orb_read.ReadFromCpt(tmp_path);  // should not throw
+
+  BOOST_CHECK_EQUAL(orb_read.hasForces(), false);
+
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -1011,6 +1011,7 @@ void Orbitals::WriteToCpt(CheckpointWriter& w) const {
   atoms_.WriteToCpt(molgroup);
 
   w(qm_energy_, "qm_energy");
+  w(forces_, "forces");
   w(qm_package_, "qm_package");
 
   w(rpamin_, "rpamin");
@@ -1102,6 +1103,12 @@ void Orbitals::ReadFromCpt(CheckpointReader& r) {
   atoms_.ReadFromCpt(molgroup);
 
   r(qm_energy_, "qm_energy");
+  try {
+    r(forces_, "forces");
+  } catch (std::runtime_error& e) {
+    ;  // older checkpoint files won't have this field -- leave forces_
+       // empty (hasForces() == false), same convention as LMOs below.
+  }
   r(qm_package_, "qm_package");
   try {
     r(lmos_, "LMOs");
