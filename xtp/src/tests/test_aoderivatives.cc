@@ -59,6 +59,8 @@ std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(
     const AOBasis& aobasis);
 std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
     const AOBasis& aobasis);
+std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
+    const AOBasis& aobasis);
 }  // namespace xtp
 }  // namespace votca
 
@@ -238,6 +240,78 @@ BOOST_AUTO_TEST_CASE(kinetic_derivative_finite_difference) {
     std::cout << "Analytic dT/dz(atom1):\n" << deriv[1][2] << std::endl;
     std::cout << "Finite-difference dT/dz(atom1):\n"
               << finite_diff_deriv << std::endl;
+  }
+  BOOST_CHECK_EQUAL(matches, true);
+
+  libint2::finalize();
+}
+
+// Two-center Coulomb metric (P|Q) derivative, needed for the RI-J/RI-K
+// gradient assembly. Same H2/3-21G setup as the one-body tests above --
+// no aux basis needed here, since this integral type is generic to any
+// basis pair, not specific to an auxiliary RI basis (that distinction
+// only matters for the three-center case, tested separately).
+//
+// STATUS: NOT yet run. Two things are genuinely untested hypotheses here
+// (see the detailed comment in libint2_derivative_calls.cc):
+//   1. That this operator/braket combination (coulomb, xs_xs, with dummy
+//      unit shells) also returns exactly 6 buffers for the two real
+//      centers, the same convention confirmed for the one-body case.
+//   2. That ENABLE_ERI2=2 (a different libint2 build flag from
+//      ENABLE_ONEBODY=2) is what this specific build needs -- if this
+//      test crashes with the same "null build function ptr" assertion
+//      the one-body case hit before ITS build was fixed, check that flag
+//      first, not the code below.
+BOOST_AUTO_TEST_CASE(coulomb_metric_derivative_finite_difference) {
+  libint2::initialize();
+
+  std::string basis_path =
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml";
+
+  double bond_length = 0.74;  // Angstrom, roughly H2 equilibrium
+  double h = 1e-4;            // finite-difference step, Angstrom
+
+  BasisSet basisset;
+  basisset.Load(basis_path);
+
+  QMMolecule mol0 = BuildH2(bond_length);
+  AOBasis aobasis0;
+  aobasis0.Fill(basisset, mol0);
+
+  auto deriv = ComputeCoulombMetricDerivatives(aobasis0);
+
+  // Same translational-invariance argument as overlap/kinetic: (P|Q)
+  // depends only on the relative separation of the two centers.
+  BOOST_CHECK_SMALL(
+      (deriv[0][2] + deriv[1][2]).cwiseAbs().maxCoeff(), 1e-8);
+
+  QMMolecule mol_plus = BuildH2(bond_length + h);
+  AOBasis aobasis_plus;
+  aobasis_plus.Fill(basisset, mol_plus);
+  AOCoulomb coulomb_plus;
+  coulomb_plus.Fill(aobasis_plus);
+
+  QMMolecule mol_minus = BuildH2(bond_length - h);
+  AOBasis aobasis_minus;
+  aobasis_minus.Fill(basisset, mol_minus);
+  AOCoulomb coulomb_minus;
+  coulomb_minus.Fill(aobasis_minus);
+
+  Eigen::MatrixXd finite_diff_deriv =
+      (coulomb_plus.Matrix() - coulomb_minus.Matrix()) / (2.0 * h);
+  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  finite_diff_deriv *= kBohrPerAngstrom;
+
+  bool matches = finite_diff_deriv.isApprox(deriv[1][2], 1e-4);
+  if (!matches) {
+    std::cout << "Analytic d(P|Q)/dz(atom1):\n" << deriv[1][2] << std::endl;
+    std::cout << "Finite-difference d(P|Q)/dz(atom1):\n"
+              << finite_diff_deriv << std::endl;
+    std::cout << "NOTE: if this fails with a large (not small numerical) "
+                 "discrepancy, the buffer-count hypothesis for this "
+                 "operator/braket combination (see libint2_derivative_"
+                 "calls.cc) is the first thing to check."
+              << std::endl;
   }
   BOOST_CHECK_EQUAL(matches, true);
 

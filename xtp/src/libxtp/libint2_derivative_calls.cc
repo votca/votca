@@ -248,5 +248,116 @@ std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
       aobasis);
 }
 
+// ===========================================================================
+// Two-center Coulomb metric (P|Q) derivatives, needed for the RI-J/RI-K
+// gradient assembly: d(V_PQ)/dR, contracted per the formula derived
+// separately (dE_J/dR = sum_P c_P d(d_P)/dR - 1/2 sum_PQ c_P c_Q d(V_PQ)/dR).
+//
+// STATUS: written following the same validated pattern as the one-body
+// case above (computeOneBodyIntegralDerivatives), but NOT yet run or
+// tested. Two things specifically are hypotheses, not confirmed facts,
+// unlike the one-body case where both are now confirmed:
+//
+// 1. Buffer count/content: this integral is represented internally as a
+//    degenerate 4-center integral via two dummy "unit" shells (s-type,
+//    no physical center) -- see AOCoulomb::computeCoulombIntegrals for
+//    the deriv_order=0 version this mirrors. The hypothesis here is that
+//    at deriv_order=1, libint2 still returns derivatives for only the TWO
+//    REAL centers (shells[s1]'s atom, shells[s2]'s atom), i.e. 6 buffers,
+//    the same count as the one-body case, since the dummy unit shells
+//    have no nuclear position to differentiate with respect to. This is
+//    a reasonable extrapolation from the one-body case (confirmed: all
+//    real centers' derivatives are returned explicitly, not omitted via
+//    translational invariance) but has NOT been checked against this
+//    specific operator/braket combination. If this is wrong, expect
+//    either a wrong buffer count (should show up immediately as an
+//    assertion or crash, same as the one-body case's build-configuration
+//    issue did) or, more subtly, a right count with wrong center
+//    ordering (would show up as a numerical discrepancy in a
+//    finite-difference test, same as the units bug did for one-body).
+//
+// 2. libint2 build configuration: needs ENABLE_ERI2=2 (per Psi4's
+//    documented pattern: "In order for gradient and Hessian tests to not
+//    segfault, need ENABLE_ERI and ENABLE_ERI3 and ENABLE_ERI2 =2"),
+//    which is a DIFFERENT flag from the ENABLE_ONEBODY=2 already
+//    confirmed necessary and sufficient for the one-body case. This has
+//    NOT been separately verified working -- if this crashes with the
+//    same "null build function ptr" assertion the one-body case hit
+//    before its build was fixed, check this flag/value first, not the
+//    buffer-indexing code below.
+// ===========================================================================
+std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
+    const AOBasis& aobasis) {
+  Index natoms = static_cast<Index>(aobasis.getFuncPerAtom().size());
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<libint2::Shell> shells = aobasis.GenerateLibintBasis();
+  std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
+
+  std::vector<Index> shell2atom;
+  shell2atom.reserve(aobasis.getNumofShells());
+  for (Index s = 0; s < aobasis.getNumofShells(); ++s) {
+    shell2atom.push_back(aobasis.getShell(s).getAtomIndex());
+  }
+
+  Index nbf = aobasis.AOBasisSize();
+  std::vector<AOMatrixDerivative> result(natoms);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      result[a][xyz] = Eigen::MatrixXd::Zero(nbf, nbf);
+    }
+  }
+
+  std::vector<libint2::Engine> engines(nthreads);
+  engines[0] = libint2::Engine(libint2::Operator::coulomb,
+                                aobasis.getMaxNprim(),
+                                static_cast<int>(aobasis.getMaxL()), 1);
+  engines[0].set(libint2::BraKet::xs_xs);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
+  }
+
+#pragma omp parallel for schedule(dynamic)
+  for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
+    libint2::Engine& engine = engines[OPENMP::getThreadId()];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
+
+    Index bf1 = shell2bf[s1];
+    Index n1 = shells[s1].size();
+    Index atom1 = shell2atom[s1];
+
+    // Same note as AOCoulomb::computeCoulombIntegrals: cannot use
+    // shellpairs here, this is a two-center integral and overlap
+    // screening would give the wrong result.
+    for (Index s2 = 0; s2 <= s1; ++s2) {
+      engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xs, 1>(
+          shells[s1], libint2::Shell::unit(), shells[s2],
+          libint2::Shell::unit());
+
+      if (buf[0] == nullptr) {
+        continue;
+      }
+
+      Index bf2 = shell2bf[s2];
+      Index n2 = shells[s2].size();
+      Index atom2 = shell2atom[s2];
+
+      for (Index xyz = 0; xyz < 3; ++xyz) {
+        Eigen::Map<const Eigen::MatrixXd> buf_mat1(buf[xyz], n1, n2);
+        result[atom1][xyz].block(bf1, bf2, n1, n2) += buf_mat1;
+        if (s1 != s2) {
+          result[atom1][xyz].block(bf2, bf1, n2, n1) += buf_mat1.transpose();
+        }
+
+        Eigen::Map<const Eigen::MatrixXd> buf_mat2(buf[3 + xyz], n1, n2);
+        result[atom2][xyz].block(bf1, bf2, n1, n2) += buf_mat2;
+        if (s1 != s2) {
+          result[atom2][xyz].block(bf2, bf1, n2, n1) += buf_mat2.transpose();
+        }
+      }
+    }
+  }
+  return result;
+}
+
 }  // namespace xtp
 }  // namespace votca
