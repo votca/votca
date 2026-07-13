@@ -815,7 +815,39 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
         return p(k) * total;
       };
 
-      double prefactor = rho * xc.f_xc;
+      // Guard against dividing by a near-zero w_owner: if w_owner is
+      // negligible, weight_p = C_p*w_owner is also negligible (C_p is a
+      // bounded quadrature weight, not something that can blow up to
+      // compensate), so this point's actual contribution to the total
+      // XC energy is negligible regardless of what C_p technically
+      // works out to -- same physical justification as the earlier
+      // p(k) threshold: a point with negligible weight can't
+      // meaningfully affect the total either way, so treating it as
+      // contributing exactly zero here is defensible, not just a
+      // numerical patch.
+      constexpr double kNegligibleWOwner = 1.e-8;
+      if (w_owner < kNegligibleWOwner) {
+        continue;
+      }
+
+      // BUG FIX: weight (as stored/read from the grid) is NOT w_owner
+      // alone -- per GridSetup, weight_p = C_p * w_owner(p), where C_p
+      // is the raw radial*angular quadrature weight (position-
+      // independent -- depends only on the fixed Lebedev/Euler-Maclaurin
+      // grid design for the owning element, never on any atom's
+      // position) and w_owner is the SSW partition fraction computed
+      // above. The energy contribution from this point is
+      // weight_p*rho_p*f_xc_p = C_p*w_owner*rho_p*f_xc_p, so
+      // differentiating w_owner alone (which is all `dw` below
+      // computes) needs the missing C_p = weight/w_owner factor too --
+      // previously this was bare rho*f_xc, silently missing C_p, which
+      // is ~1 for "typical" points but swings far from 1 for points
+      // where the partition is lopsided (w_owner small), exactly
+      // matching why the resulting error's magnitude depended on which
+      // points a given density matrix happened to weight rather than
+      // ever looking pathological in any single point's own dw value.
+      double C_p = weight / w_owner;
+      double prefactor = C_p * rho * xc.f_xc;
 
       // Diagnostic: print the RAW INPUTS (owner, absolute point position)
       // for one informative point, so it can be reproduced EXACTLY in an
