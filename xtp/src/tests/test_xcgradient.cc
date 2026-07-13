@@ -273,7 +273,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2) {
   AOBasis aobasis0;
   aobasis0.Fill(basis0, mol0);
   Vxc_Grid grid0;
-  grid0.GridSetup("coarse", mol0, aobasis0);
+  grid0.GridSetup("medium", mol0, aobasis0);
   Vxc_Potential<Vxc_Grid> vxc0(grid0);
   vxc0.setXCfunctional(functional);
 
@@ -307,7 +307,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2) {
   AOBasis aobasis_plus;
   aobasis_plus.Fill(basis0, mol_plus);
   Vxc_Grid grid_plus;
-  grid_plus.GridSetup("coarse", mol_plus, aobasis_plus);
+  grid_plus.GridSetup("medium", mol_plus, aobasis_plus);
   Vxc_Potential<Vxc_Grid> vxc_plus(grid_plus);
   vxc_plus.setXCfunctional(functional);
   double e_plus = vxc_plus.IntegrateVXC(dmat).energy();
@@ -316,7 +316,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2) {
   AOBasis aobasis_minus;
   aobasis_minus.Fill(basis0, mol_minus);
   Vxc_Grid grid_minus;
-  grid_minus.GridSetup("coarse", mol_minus, aobasis_minus);
+  grid_minus.GridSetup("medium", mol_minus, aobasis_minus);
   Vxc_Potential<Vxc_Grid> vxc_minus(grid_minus);
   vxc_minus.setXCfunctional(functional);
   double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
