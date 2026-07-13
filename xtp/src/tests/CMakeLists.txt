@@ -103,6 +103,8 @@ list(APPEND test_cases test_trustregion)
 list(APPEND test_cases test_vc2index)
 list(APPEND test_cases test_vxc_potential)
 list(APPEND test_cases test_vxc_grid)
+# DRAFT/UNTESTED -- see file header comment before trusting this.
+list(APPEND test_cases test_xcgradient)
 
 # build and run unit tests
 foreach(PROG ${test_cases} )
