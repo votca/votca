@@ -644,6 +644,11 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<Eigen::MatrixXd> grad_thread(
       nthreads, Eigen::MatrixXd::Zero(natoms, 3));
+  // Aggregate diagnostics (atom A==1 only, the one under test in
+  // test_xcgradient.cc) -- see usage below for what each measures.
+  std::vector<double> gross_sum_thread(nthreads, 0.0);
+  std::vector<double> max_contribution_thread(nthreads, 0.0);
+  std::vector<long> active_point_count_thread(nthreads, 0);
 
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
@@ -811,50 +816,6 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
 
       double prefactor = rho * xc.f_xc;
 
-      // Diagnostic: print full intermediate values for the first point
-      // encountered that is actually INFORMATIVE -- non-negligible
-      // density (prefactor not ~0) AND genuine multi-atom competition
-      // (w_owner well below 1, i.e. a "bond region" point, not deep in
-      // one atom's own core). The previous version printed whichever
-      // point ran first, which turned out to be deep in the vacuum
-      // tail (rho~1e-16, prefactor~0) -- uninformative regardless of
-      // what dw was, since prefactor*dw~0 either way. A real formula
-      // bug should be most visible exactly where the SSW weight varies
-      // fastest: bond-region points with real density.
-      static bool printed_once = false;
-      bool is_informative = (rho > 1.e-4) && (w_owner < 0.9);
-      bool should_print = false;
-      if (is_informative) {
-#pragma omp critical
-        {
-          if (!printed_once) {
-            printed_once = true;
-            should_print = true;
-          }
-        }
-      }
-      if (should_print) {
-        std::cerr << "[GridWeightGradient diagnostic, bond-region point] owner="
-                   << owner << " rho=" << rho << " weight=" << weight
-                   << " prefactor=" << prefactor << "\n"
-                   << "  p()=" << p.transpose() << "\n"
-                   << "  wsum=" << wsum << " w_owner=" << w_owner << "\n";
-        for (Index A = 0; A < natoms; ++A) {
-          Eigen::Vector3d dp_owner_dbg = dp_dR(owner, A);
-          Eigen::Vector3d dwsum_dbg = Eigen::Vector3d::Zero();
-          for (Index k = 0; k < natoms; ++k) {
-            dwsum_dbg += dp_dR(k, A);
-          }
-          Eigen::Vector3d dw_dbg =
-              dp_owner_dbg / wsum - w_owner * dwsum_dbg / wsum;
-          std::cerr << "  A=" << A << " dp_owner=" << dp_owner_dbg.transpose()
-                     << " dwsum=" << dwsum_dbg.transpose()
-                     << " dw=" << dw_dbg.transpose()
-                     << " contribution=" << (prefactor * dw_dbg).transpose()
-                     << std::endl;
-        }
-      }
-
       for (Index A = 0; A < natoms; ++A) {
         Eigen::Vector3d dp_owner = dp_dR(owner, A);
         Eigen::Vector3d dwsum = Eigen::Vector3d::Zero();
@@ -863,23 +824,26 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
         }
         Eigen::Vector3d dw = dp_owner / wsum - w_owner * dwsum / wsum;
         Eigen::Vector3d contribution = prefactor * dw;
-        // Diagnostic only: flag any single point/atom contribution that's
-        // wildly larger than a physically reasonable per-point magnitude
-        // -- if the threshold fix above doesn't fully resolve the
-        // instability it was meant to address, this pinpoints exactly
-        // which point/atom/pair is still misbehaving rather than only
-        // showing the already-summed (and therefore harder to trace)
-        // final gradient.
-        if (contribution.cwiseAbs().maxCoeff() > 10.0) {
-#pragma omp critical
-          {
-            std::cerr << "[GridWeightGradient diagnostic] large single "
-                          "contribution: point owner="
-                       << owner << " target_atom(A)=" << A
-                       << " contribution=" << contribution.transpose()
-                       << " rho=" << rho << " weight=" << weight
-                       << " wsum=" << wsum << " w_owner=" << w_owner
-                       << std::endl;
+
+        // Aggregate diagnostics (thread-local, merged after the loop):
+        // sum of |contribution| (gross magnitude, vs the net summed
+        // gradient -- a big gap between gross and net would indicate
+        // cancellation happening imperfectly, i.e. a subtle bias, while
+        // gross~net would mean most points agree in sign), max single
+        // |contribution| seen (already had an explicit >10 flag before;
+        // this additionally reports the actual max regardless of
+        // threshold), and point count contributing to atom A=1
+        // specifically (the one under test) with non-negligible
+        // prefactor, to get a sense of how many points are actually
+        // "in play" for the quantity being compared against the
+        // finite-difference reference.
+        if (A == 1) {
+          gross_sum_thread[thread_id] += contribution.cwiseAbs().sum();
+          max_contribution_thread[thread_id] =
+              std::max(max_contribution_thread[thread_id],
+                       contribution.cwiseAbs().maxCoeff());
+          if (std::abs(prefactor) > 1.e-12) {
+            active_point_count_thread[thread_id]++;
           }
         }
         grad_thread[thread_id].row(A) += contribution.transpose();
@@ -888,9 +852,23 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
   }
 
   Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
+  double gross_sum = 0.0;
+  double max_contribution = 0.0;
+  long active_point_count = 0;
   for (Index t = 0; t < nthreads; ++t) {
     grad += grad_thread[t];
+    gross_sum += gross_sum_thread[t];
+    max_contribution = std::max(max_contribution, max_contribution_thread[t]);
+    active_point_count += active_point_count_thread[t];
   }
+  std::cerr << "[GridWeightGradient diagnostic, aggregate for atom A=1] "
+             << "net dE/dR(A=1) row = " << grad.row(1) << "\n"
+             << "  gross sum of |contribution| = " << gross_sum << "\n"
+             << "  max single |contribution| = " << max_contribution << "\n"
+             << "  active (non-negligible prefactor) point count = "
+             << active_point_count << "\n"
+             << "  total grid points (all boxes) = " << grid_.getGridSize()
+             << std::endl;
   return grad;
 }
 
