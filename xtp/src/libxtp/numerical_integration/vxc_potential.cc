@@ -810,6 +810,45 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
       };
 
       double prefactor = rho * xc.f_xc;
+
+      // Diagnostic: unconditionally print full intermediate values for
+      // exactly ONE representative point (the first one processed by
+      // whichever thread gets there first), rather than only flagging
+      // rare large outliers as before -- that outlier-triggered
+      // diagnostic never fired despite the total being wildly wrong,
+      // which itself is informative: it suggests a systematic,
+      // per-point bias (present at most/all points, individually not
+      // large enough to trip a ">10" threshold but not cancelling
+      // either) rather than a rare catastrophic blowup at isolated
+      // points. This dump is meant to distinguish those two
+      // possibilities directly, e.g. by checking whether wsum itself
+      // (not just individual p(k) values) is behaving reasonably.
+      static bool printed_once = false;
+      bool should_print = false;
+#pragma omp critical
+      {
+        if (!printed_once) {
+          printed_once = true;
+          should_print = true;
+        }
+      }
+      if (should_print) {
+        std::cerr << "[GridWeightGradient diagnostic, one point] owner="
+                   << owner << " rho=" << rho << " weight=" << weight
+                   << " prefactor=" << prefactor << "\n"
+                   << "  p()=" << p.transpose() << "\n"
+                   << "  wsum=" << wsum << " w_owner=" << w_owner << "\n";
+        for (Index A = 0; A < natoms; ++A) {
+          Eigen::Vector3d dp_owner_dbg = dp_dR(owner, A);
+          Eigen::Vector3d dwsum_dbg = Eigen::Vector3d::Zero();
+          for (Index k = 0; k < natoms; ++k) {
+            dwsum_dbg += dp_dR(k, A);
+          }
+          std::cerr << "  A=" << A << " dp_owner=" << dp_owner_dbg.transpose()
+                     << " dwsum=" << dwsum_dbg.transpose() << std::endl;
+        }
+      }
+
       for (Index A = 0; A < natoms; ++A) {
         Eigen::Vector3d dp_owner = dp_dR(owner, A);
         Eigen::Vector3d dwsum = Eigen::Vector3d::Zero();
