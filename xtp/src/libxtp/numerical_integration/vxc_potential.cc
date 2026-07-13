@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <boost/format.hpp>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <stdexcept>
 
@@ -815,6 +816,38 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
       };
 
       double prefactor = rho * xc.f_xc;
+
+      // Diagnostic: print the RAW INPUTS (owner, absolute point position)
+      // for one informative point, so it can be reproduced EXACTLY in an
+      // independent Python implementation and every intermediate value
+      // compared number-for-number -- the decisive check, since static
+      // code review found no discrepancy and aggregate statistics only
+      // narrowed this to "likely a C++-translation-specific bug" without
+      // identifying it.
+      static bool printed_once_inputs = false;
+      bool is_informative_inputs = (rho > 1.e-4) && (w_owner < 0.9);
+      bool should_print_inputs = false;
+      if (is_informative_inputs) {
+#pragma omp critical
+        {
+          if (!printed_once_inputs) {
+            printed_once_inputs = true;
+            should_print_inputs = true;
+          }
+        }
+      }
+      if (should_print_inputs) {
+        std::cerr << std::setprecision(17)
+                   << "[GridWeightGradient RAW INPUTS for cross-check] owner="
+                   << owner << " point=" << point.x() << " " << point.y()
+                   << " " << point.z() << std::endl;
+        for (Index k = 0; k < natoms; ++k) {
+          std::cerr << "  atom " << k << " pos="
+                     << atoms[k].getPos().x() << " "
+                     << atoms[k].getPos().y() << " "
+                     << atoms[k].getPos().z() << std::endl;
+        }
+      }
 
       for (Index A = 0; A < natoms; ++A) {
         Eigen::Vector3d dp_owner = dp_dR(owner, A);
