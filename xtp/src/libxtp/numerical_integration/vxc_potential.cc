@@ -440,6 +440,11 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
 
     const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
     const std::vector<double>& weights = box.getGridWeights();
+    // Needed for the grid-point-translation term added below -- NOT
+    // needed by the basis-function/Pulay term itself, which only cares
+    // about which atom owns each AO (local_idx_to_atom above), not
+    // which atom owns each grid POINT.
+    const std::vector<Index>& owner_atoms = box.getOwnerAtoms();
 
     for (Index p = 0; p < box.size(); ++p) {
       AOShell::AOValues ao = box.CalcAOValues(points[p]);
@@ -455,6 +460,48 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
       const Eigen::Vector3d rho_grad = temp.transpose() * ao.derivatives;
       typename Vxc_Potential<Grid>::XC_entry xc =
           EvaluateXC(rho, rho_grad.squaredNorm());
+
+      // ===========================================================
+      // NEWLY ADDED TERM: grid-point translation.
+      //
+      // A genuinely distinct THIRD contribution to the XC gradient,
+      // separate from both the basis-function/Pulay term below and the
+      // grid-weight (SSW partition) term in GridWeightGradient. Found
+      // by re-deriving the full chain rule for rho_p(r_p(R)) after the
+      // C_p fix (in GridWeightGradient) substantially improved but did
+      // not fully resolve a residual discrepancy against finite
+      // differences.
+      //
+      // Grid points are rigidly attached to their owner atom
+      // (r_p = R_owner + local_offset, local_offset fixed). Since
+      // rho_p = rho(r_p(R)), differentiating through r_p itself (not
+      // just through the basis functions' own centers, which is what
+      // the Pulay term below captures) gives an EXTRA term whenever
+      // A is this point's own owner:
+      //
+      //   d(rho_p)/dR_A |_translation = (dr_p/dR_A) . grad_r(rho_p)
+      //                               = grad_r(rho_p)   if A == owner(p)
+      //                               = 0                otherwise
+      //
+      // (dr_p/dR_owner = identity, since r_p moves rigidly with its
+      // owner; dr_p/dR_A = 0 for any other atom, since a point's
+      // position never depends on any atom besides its own owner).
+      // grad_r(rho_p) is exactly rho_grad, already computed above for
+      // the GGA sigma term -- no new integral or expensive computation
+      // needed, just one more accumulation using quantities already in
+      // hand. Contracting with v_xc = xc.df_drho (same convention
+      // established for the basis-function term below) and the
+      // point's full stored weight (this term does NOT involve any
+      // weight derivative -- weight is held fixed here, exactly like
+      // the Pulay term; only rho_p's dependence on the point's own
+      // moving position is new):
+      //
+      //   dE_xc/dR_A |_translation = sum_{p: owner(p)==A}
+      //                                  weight_p * v_xc(rho_p) * grad_r(rho_p)
+      Index owner_of_point = owner_atoms[p];
+      grad_thread[thread_id].row(owner_of_point) +=
+          (weight * xc.df_drho * rho_grad).transpose();
+      // ===========================================================
 
       // d(rho_p)/dR_A|_basis, accumulated per local AO index mu, then
       // scattered to the correct atom via local_idx_to_atom. Looping

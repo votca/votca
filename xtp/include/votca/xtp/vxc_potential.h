@@ -54,17 +54,26 @@ class Vxc_Potential {
                               const Eigen::MatrixXd& dmat_beta) const;
 
   // ===========================================================================
-  // STATUS: written but NOT yet run/tested (see vxc_potential.cc for the
-  // detailed derivation and honest scope note).
-  // This is only the
-  // basis-function/Pulay piece of the XC gradient, valid in FULL for LDA
-  // functionals; for GGA functionals it captures only the df_drho-driven
-  // part of the Pulay contribution, NOT the additional df_dsigma-driven
-  // Pulay term, which needs second derivatives of basis functions w.r.t.
-  // electron position (not yet available anywhere in this codebase). The
-  // grid-weight (SSW partition) derivative term is ALSO not included here
-  // -- this is deliberately only one of the (at least) two pieces needed
-  // for a complete XC gradient.
+  // STATUS: originally basis-function/Pulay term only; a second, distinct
+  // term (grid-point translation) was added later after the
+  // GridWeightGradient C_p fix substantially improved but did not fully
+  // resolve a residual discrepancy against finite differences -- see
+  // vxc_potential.cc for the full derivation of both terms. The name
+  // "PulayGradient" is now a slight misnomer (it computes basis-function
+  // + grid-point-translation contributions together, since both loop
+  // over the same grid points and share the same expensive AO
+  // evaluation) -- kept for now rather than renaming mid-branch, but
+  // worth reconsidering once the whole XC gradient is confirmed correct.
+  //
+  // Valid in FULL for LDA functionals for the basis-function part; for
+  // GGA functionals it captures only the df_drho-driven part of that
+  // term, NOT the additional df_dsigma-driven Pulay contribution, which
+  // needs second derivatives of basis functions w.r.t. electron position
+  // (not yet available anywhere in this codebase). The grid-point-
+  // translation term added later has the same LDA-only caveat (uses
+  // df_drho only, not df_dsigma). The grid-weight (SSW partition)
+  // derivative term is a separate, third piece, computed in
+  // GridWeightGradient below.
   // ===========================================================================
   Eigen::MatrixXd PulayGradient(const Eigen::MatrixXd& density_matrix,
                                 const AOBasis& dftbasis) const;
