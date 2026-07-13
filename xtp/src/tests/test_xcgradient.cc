@@ -143,6 +143,18 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference) {
   Eigen::MatrixXd weight_grad = vxc0.GridWeightGradient(dmat, mol0);
   Eigen::MatrixXd total_grad = pulay_grad + weight_grad;
 
+  // Check translational invariance on EACH term separately, not just
+  // the total -- H2's weight term alone satisfied this exactly; if
+  // methane's weight term alone does NOT, that's definitive evidence of
+  // a real bug specific to this case, rather than something in the
+  // shared formula (which H2 didn't expose).
+  Eigen::Vector3d pulay_sum_check = pulay_grad.colwise().sum();
+  Eigen::Vector3d weight_sum_check = weight_grad.colwise().sum();
+  std::cerr << "[xc_gradient_finite_difference diagnostic] "
+             << "Pulay alone t.i. sum = " << pulay_sum_check.transpose()
+             << "\nWeight alone t.i. sum = " << weight_sum_check.transpose()
+             << std::endl;
+
   // Sanity check independent of finite differences, same reasoning as
   // every other gradient in this branch: translational invariance means
   // the total must sum to zero across all atoms.
