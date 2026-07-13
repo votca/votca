@@ -811,29 +811,30 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
 
       double prefactor = rho * xc.f_xc;
 
-      // Diagnostic: unconditionally print full intermediate values for
-      // exactly ONE representative point (the first one processed by
-      // whichever thread gets there first), rather than only flagging
-      // rare large outliers as before -- that outlier-triggered
-      // diagnostic never fired despite the total being wildly wrong,
-      // which itself is informative: it suggests a systematic,
-      // per-point bias (present at most/all points, individually not
-      // large enough to trip a ">10" threshold but not cancelling
-      // either) rather than a rare catastrophic blowup at isolated
-      // points. This dump is meant to distinguish those two
-      // possibilities directly, e.g. by checking whether wsum itself
-      // (not just individual p(k) values) is behaving reasonably.
+      // Diagnostic: print full intermediate values for the first point
+      // encountered that is actually INFORMATIVE -- non-negligible
+      // density (prefactor not ~0) AND genuine multi-atom competition
+      // (w_owner well below 1, i.e. a "bond region" point, not deep in
+      // one atom's own core). The previous version printed whichever
+      // point ran first, which turned out to be deep in the vacuum
+      // tail (rho~1e-16, prefactor~0) -- uninformative regardless of
+      // what dw was, since prefactor*dw~0 either way. A real formula
+      // bug should be most visible exactly where the SSW weight varies
+      // fastest: bond-region points with real density.
       static bool printed_once = false;
+      bool is_informative = (rho > 1.e-4) && (w_owner < 0.9);
       bool should_print = false;
+      if (is_informative) {
 #pragma omp critical
-      {
-        if (!printed_once) {
-          printed_once = true;
-          should_print = true;
+        {
+          if (!printed_once) {
+            printed_once = true;
+            should_print = true;
+          }
         }
       }
       if (should_print) {
-        std::cerr << "[GridWeightGradient diagnostic, one point] owner="
+        std::cerr << "[GridWeightGradient diagnostic, bond-region point] owner="
                    << owner << " rho=" << rho << " weight=" << weight
                    << " prefactor=" << prefactor << "\n"
                    << "  p()=" << p.transpose() << "\n"
@@ -844,8 +845,13 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
           for (Index k = 0; k < natoms; ++k) {
             dwsum_dbg += dp_dR(k, A);
           }
+          Eigen::Vector3d dw_dbg =
+              dp_owner_dbg / wsum - w_owner * dwsum_dbg / wsum;
           std::cerr << "  A=" << A << " dp_owner=" << dp_owner_dbg.transpose()
-                     << " dwsum=" << dwsum_dbg.transpose() << std::endl;
+                     << " dwsum=" << dwsum_dbg.transpose()
+                     << " dw=" << dw_dbg.transpose()
+                     << " contribution=" << (prefactor * dw_dbg).transpose()
+                     << std::endl;
         }
       }
 
