@@ -825,7 +825,7 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
       // narrowed this to "likely a C++-translation-specific bug" without
       // identifying it.
       static bool printed_once_inputs = false;
-      bool is_informative_inputs = (rho > 1.e-4) && (w_owner < 0.9);
+      bool is_informative_inputs = (rho > 1.e-4) && (owner == 1);
       bool should_print_inputs = false;
       if (is_informative_inputs) {
 #pragma omp critical
@@ -846,6 +846,24 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
                      << atoms[k].getPos().x() << " "
                      << atoms[k].getPos().y() << " "
                      << atoms[k].getPos().z() << std::endl;
+        }
+        std::cerr << std::setprecision(9) << "  rq=" << rq.transpose()
+                   << "\n  p=" << p.transpose() << "\n  wsum=" << wsum
+                   << " w_owner=" << w_owner << "\n  rho=" << rho
+                   << " prefactor=" << prefactor << std::endl;
+        for (Index A = 0; A < natoms; ++A) {
+          Eigen::Vector3d dp_owner_dbg = dp_dR(owner, A);
+          Eigen::Vector3d dwsum_dbg = Eigen::Vector3d::Zero();
+          for (Index k = 0; k < natoms; ++k) {
+            dwsum_dbg += dp_dR(k, A);
+          }
+          Eigen::Vector3d dw_dbg =
+              dp_owner_dbg / wsum - w_owner * dwsum_dbg / wsum;
+          std::cerr << "  A=" << A << " dp_owner=" << dp_owner_dbg.transpose()
+                     << " dwsum=" << dwsum_dbg.transpose()
+                     << " dw=" << dw_dbg.transpose()
+                     << " contribution=" << (prefactor * dw_dbg).transpose()
+                     << std::endl;
         }
       }
 
