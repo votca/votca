@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <boost/format.hpp>
 #include <cmath>
+#include <iostream>
 #include <stdexcept>
 
 // VOTCA includes
@@ -764,7 +765,20 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
         return (d_rq_b - d_rq_a) / Rab - (mu / Rab) * dRab;
       };
       auto dp_dR = [&](Index k, Index A) -> Eigen::Vector3d {
-        if (p(k) == 0.0) {
+        // Threshold, not exact-zero check: p(k) approaches zero
+        // SMOOTHLY as any of its factors approaches the SSW saturation
+        // boundary (sk->1 or 1-sk->0), and the log-derivative terms
+        // below (divided by sk or (1-sk)) blow up faster than p(k)
+        // itself vanishes, in that regime -- a classic 0/0 numerical
+        // instability. A state with negligible weight can't meaningfully
+        // contribute to the total either way, so treating it as exactly
+        // zero here is a defensible approximation, not just a numerical
+        // patch. Threshold value not yet tuned against real data; if
+        // this test now passes but with values that look suspiciously
+        // insensitive to h, or if a genuinely different tolerance is
+        // needed elsewhere, revisit this constant specifically.
+        constexpr double kNegligibleP = 1.e-8;
+        if (p(k) < kNegligibleP) {
           return Eigen::Vector3d::Zero();
         }
         Eigen::Vector3d total = Eigen::Vector3d::Zero();
@@ -773,6 +787,11 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
             continue;
           }
           double skv = sk_table(k, b);
+          if (skv < kNegligibleP) {
+            continue;  // this factor's own contribution to p(k) is
+                       // already negligible; skip rather than divide by
+                       // a near-zero skv.
+          }
           total += (SSWDerivative(mu_table(k, b)) / skv) * dmu_dR(k, b, A);
         }
         for (Index a = 0; a < k; ++a) {
@@ -780,7 +799,11 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
             continue;
           }
           double skv = sk_table(a, k);
-          total += (-SSWDerivative(mu_table(a, k)) / (1.0 - skv)) *
+          double one_minus_skv = 1.0 - skv;
+          if (one_minus_skv < kNegligibleP) {
+            continue;  // same reasoning, for the (1-sk) denominator.
+          }
+          total += (-SSWDerivative(mu_table(a, k)) / one_minus_skv) *
                     dmu_dR(a, k, A);
         }
         return p(k) * total;
@@ -794,7 +817,27 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
           dwsum += dp_dR(k, A);
         }
         Eigen::Vector3d dw = dp_owner / wsum - w_owner * dwsum / wsum;
-        grad_thread[thread_id].row(A) += (prefactor * dw).transpose();
+        Eigen::Vector3d contribution = prefactor * dw;
+        // Diagnostic only: flag any single point/atom contribution that's
+        // wildly larger than a physically reasonable per-point magnitude
+        // -- if the threshold fix above doesn't fully resolve the
+        // instability it was meant to address, this pinpoints exactly
+        // which point/atom/pair is still misbehaving rather than only
+        // showing the already-summed (and therefore harder to trace)
+        // final gradient.
+        if (contribution.cwiseAbs().maxCoeff() > 10.0) {
+#pragma omp critical
+          {
+            std::cerr << "[GridWeightGradient diagnostic] large single "
+                          "contribution: point owner="
+                       << owner << " target_atom(A)=" << A
+                       << " contribution=" << contribution.transpose()
+                       << " rho=" << rho << " weight=" << weight
+                       << " wsum=" << wsum << " w_owner=" << w_owner
+                       << std::endl;
+          }
+        }
+        grad_thread[thread_id].row(A) += contribution.transpose();
       }
     }
   }
