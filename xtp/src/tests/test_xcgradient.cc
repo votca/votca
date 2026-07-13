@@ -211,4 +211,103 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference) {
   libint2::finalize();
 }
 
+// Much smaller reproduction case: H2 instead of methane. Methane's
+// per-point formula has now been cross-checked against an independent
+// Python implementation for THREE diverse points (different owners,
+// including the previously-untested owner==A case) with exact
+// agreement every time -- yet the aggregate result is still off by
+// ~400x. Continuing to sample individual points at the 5-atom,
+// ~28000-point scale isn't converging; H2 has far fewer points and
+// only 2 atoms, small enough to reason about (or dump) exhaustively
+// rather than by sample, the same way reducing to a minimal case
+// resolved the libint2 buffer-ordering question earlier in this branch.
+BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2) {
+  libint2::initialize();
+
+  const std::string functional = "XC_LDA_X XC_LDA_C_VWN";
+  double h = 1e-4;  // Angstrom
+  double bond_length = 0.74;  // Angstrom, roughly H2 equilibrium
+
+  BasisSet basisset;
+  basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
+                "/threecenter_dft/3-21G.xml");
+
+  auto build_h2 = [](double bond_length_angstrom) {
+    QMMolecule mol(" ", 0);
+    std::string xyz_content =
+        "2\n\n"
+        "H 0.0 0.0 0.0\n"
+        "H 0.0 0.0 " +
+        std::to_string(bond_length_angstrom) + "\n";
+    std::string tmp_path = "/tmp/xtp_test_xcgradient_h2.xyz";
+    std::ofstream out(tmp_path);
+    out << xyz_content;
+    out.close();
+    mol.LoadFromFile(tmp_path);
+    return mol;
+  };
+
+  QMMolecule mol0 = build_h2(bond_length);
+  BasisSet basis0;
+  basis0.Load(std::string(XTP_TEST_DATA_FOLDER) +
+              "/threecenter_dft/3-21G.xml");
+  AOBasis aobasis0;
+  aobasis0.Fill(basis0, mol0);
+  Vxc_Grid grid0;
+  grid0.GridSetup("coarse", mol0, aobasis0);
+  Vxc_Potential<Vxc_Grid> vxc0(grid0);
+  vxc0.setXCfunctional(functional);
+
+  // No real converged density for bare H2 at hand here -- reuse the
+  // SAME "arbitrary fixed matrix" reasoning already used throughout
+  // this branch (RI-J/RI-K): PulayGradient/GridWeightGradient only need
+  // A fixed density matrix, not a converged one, to test the gradient
+  // ASSEMBLY formula itself. Build a simple fixed, symmetric one.
+  Index n_bf = aobasis0.AOBasisSize();
+  Eigen::MatrixXd dmat = Eigen::MatrixXd::Random(n_bf, n_bf);
+  dmat = 0.5 * (dmat + dmat.transpose());
+
+  Eigen::MatrixXd pulay_grad = vxc0.PulayGradient(dmat, aobasis0);
+  Eigen::MatrixXd weight_grad = vxc0.GridWeightGradient(dmat, mol0);
+  Eigen::MatrixXd total_grad = pulay_grad + weight_grad;
+
+  std::cout << "H2 test -- Pulay:\n" << pulay_grad << std::endl;
+  std::cout << "H2 test -- Weight:\n" << weight_grad << std::endl;
+  std::cout << "H2 test -- Total:\n" << total_grad << std::endl;
+
+  Eigen::Vector3d sum = total_grad.colwise().sum();
+  BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
+
+  QMMolecule mol_plus = build_h2(bond_length + h);
+  AOBasis aobasis_plus;
+  aobasis_plus.Fill(basis0, mol_plus);
+  Vxc_Grid grid_plus;
+  grid_plus.GridSetup("coarse", mol_plus, aobasis_plus);
+  Vxc_Potential<Vxc_Grid> vxc_plus(grid_plus);
+  vxc_plus.setXCfunctional(functional);
+  double e_plus = vxc_plus.IntegrateVXC(dmat).energy();
+
+  QMMolecule mol_minus = build_h2(bond_length - h);
+  AOBasis aobasis_minus;
+  aobasis_minus.Fill(basis0, mol_minus);
+  Vxc_Grid grid_minus;
+  grid_minus.GridSetup("coarse", mol_minus, aobasis_minus);
+  Vxc_Potential<Vxc_Grid> vxc_minus(grid_minus);
+  vxc_minus.setXCfunctional(functional);
+  double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
+
+  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  double finite_diff_deriv =
+      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  double analytic = total_grad(1, 2);
+  std::cout << "H2 test -- analytic dE_xc/dz(atom1)=" << analytic
+             << " finite-difference=" << finite_diff_deriv << std::endl;
+
+  bool matches =
+      std::abs(finite_diff_deriv - analytic) < 1e-3 * std::abs(analytic);
+  BOOST_CHECK_EQUAL(matches, true);
+
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()
