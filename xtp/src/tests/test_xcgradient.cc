@@ -132,28 +132,14 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference) {
   QMMolecule mol0 = BuildDisplacedMethane(base_atoms, displaced_atom, 0.0);
   AOBasis aobasis0 = BuildBasis(mol0);
 
-  // DIAGNOSTIC SWAP: using an arbitrary random (properly symmetrized, no
-  // aliasing) density matrix here instead of the real dmat.mm, keeping
-  // everything else (real 5-atom geometry, real grid) identical to the
-  // original test -- to test directly whether dmat.mm itself is
-  // responsible for the -34.86 blowup, given that H2's test (which
-  // behaves normally) also uses an arbitrary random matrix rather than
-  // a loaded one. dw (the weight derivative) never touches the density
-  // matrix at all -- only prefactor=rho*f_xc does -- so if dmat.mm has
-  // some mismatch with a freshly-built AOBasis for this geometry (e.g.
-  // a basis-ordering incompatibility), that could produce badly wrong
-  // rho values without necessarily breaking translational invariance,
-  // if the resulting error pattern happens to be symmetric enough.
-  //
-  // If this test now passes (small, sane weight term, matching H2's
-  // pattern), that confirms dmat.mm specifically. If it still blows up
-  // even with an arbitrary matrix, that rules out dmat.mm and points at
-  // something about the 5-atom geometry/grid itself.
-  Index n_bf_methane = aobasis0.AOBasisSize();
-  Eigen::MatrixXd dmat_random_methane =
-      Eigen::MatrixXd::Random(n_bf_methane, n_bf_methane);
-  Eigen::MatrixXd dmat =
-      0.5 * (dmat_random_methane + dmat_random_methane.transpose());
+  // Diagnostic random-matrix swap (previous commit) served its
+  // purpose and is no longer needed: the root cause turned out to be
+  // the missing C_p factor in GridWeightGradient itself (see that
+  // fix's commit message), not anything specific to dmat.mm or a
+  // basis-ordering mismatch. Restoring the real, physically meaningful
+  // density matrix for this test.
+  Eigen::MatrixXd dmat = tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/vxc_potential/dmat.mm");
 
   Vxc_Grid grid0;
   grid0.GridSetup("coarse", mol0, aobasis0);
