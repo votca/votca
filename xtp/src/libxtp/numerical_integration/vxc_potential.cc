@@ -650,6 +650,13 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
   std::vector<double> gross_sum_thread(nthreads, 0.0);
   std::vector<double> max_contribution_thread(nthreads, 0.0);
   std::vector<long> active_point_count_thread(nthreads, 0);
+  // Fresh per CALL (not `static`, which would persist across the three
+  // separate calls this test makes -- one per displaced geometry --
+  // letting only the first ever print anything, exactly defeating the
+  // purpose of comparing C_p across geometries). Shared across threads
+  // within this one call via the omp critical sections below.
+  bool printed_once_cp = false;
+  bool printed_once_inputs = false;
 
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
@@ -847,6 +854,34 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
       // points a given density matrix happened to weight rather than
       // ever looking pathological in any single point's own dw value.
       double C_p = weight / w_owner;
+
+      // NEW DIAGNOSTIC: after the C_p fix substantially improved but did
+      // not fully resolve the discrepancy (methane/H2 both went from
+      // catastrophically wrong to ~4x/~1.15x off, not exact), and after
+      // directly ruling out one hypothesis for the residual (adaptive
+      // grid pruning depending on other atoms' positions -- confirmed
+      // via source inspection that PruningIntervals depends only on
+      // element name and r=|local_offset| is a fixed per-point constant,
+      // never other-atom-position-dependent), verify C_p's assumed
+      // constancy directly: print it for the SAME owner==1 point this
+      // file already targets, across all three geometries this test
+      // calls GridWeightGradient at (base, +h, -h) -- printed_once_cp
+      // is declared once per CALL (see top of function), not `static`,
+      // specifically so each of the three separate calls prints its own
+      // value rather than only the first ever call doing so.
+      if ((rho > 1.e-4) && (owner == 1) && !printed_once_cp) {
+#pragma omp critical
+        {
+          std::cerr << std::setprecision(15)
+                     << "[C_p constancy check] owner=" << owner
+                     << " point=" << point.x() << " " << point.y() << " "
+                     << point.z() << " weight=" << weight
+                     << " w_owner=" << w_owner << " C_p=" << C_p
+                     << std::endl;
+          printed_once_cp = true;
+        }
+      }
+
       double prefactor = C_p * rho * xc.f_xc;
 
       // Diagnostic: print the RAW INPUTS (owner, absolute point position)
@@ -856,7 +891,6 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
       // code review found no discrepancy and aggregate statistics only
       // narrowed this to "likely a C++-translation-specific bug" without
       // identifying it.
-      static bool printed_once_inputs = false;
       bool is_informative_inputs = (rho > 1.e-4) && (owner == 1);
       bool should_print_inputs = false;
       if (is_informative_inputs) {
