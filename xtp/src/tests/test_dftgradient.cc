@@ -214,8 +214,8 @@ BOOST_AUTO_TEST_CASE(rij_gradient_finite_difference) {
   // matter for this test (see IMPORTANT note referenced above); what
   // matters is that it stays FIXED while the geometry moves.
   Index n_dft_bf = dftbasis0.AOBasisSize();
-  Eigen::MatrixXd density = Eigen::MatrixXd::Random(n_dft_bf, n_dft_bf);
-  density = 0.5 * (density + density.transpose());
+  Eigen::MatrixXd density_random = Eigen::MatrixXd::Random(n_dft_bf, n_dft_bf);
+  Eigen::MatrixXd density = 0.5 * (density_random + density_random.transpose());
 
   Eigen::MatrixXd analytic_grad =
       DFTGradient::RIJGradient(density, auxbasis0, dftbasis0);

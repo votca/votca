@@ -264,8 +264,14 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2) {
   // A fixed density matrix, not a converged one, to test the gradient
   // ASSEMBLY formula itself. Build a simple fixed, symmetric one.
   Index n_bf = aobasis0.AOBasisSize();
-  Eigen::MatrixXd dmat = Eigen::MatrixXd::Random(n_bf, n_bf);
-  dmat = 0.5 * (dmat + dmat.transpose());
+  Eigen::MatrixXd dmat_random = Eigen::MatrixXd::Random(n_bf, n_bf);
+  // NOTE: dmat = 0.5*(dmat+dmat.transpose()) is a classic Eigen aliasing
+  // trap -- assigning an expression that reads from dmat while
+  // simultaneously overwriting it can give a result that's only
+  // approximately (not exactly) symmetric, tripping PulayGradient's
+  // exact isApprox symmetry assertion. Using a separate source variable
+  // (dmat_random) for the RHS avoids the aliasing entirely.
+  Eigen::MatrixXd dmat = 0.5 * (dmat_random + dmat_random.transpose());
 
   Eigen::MatrixXd pulay_grad = vxc0.PulayGradient(dmat, aobasis0);
   Eigen::MatrixXd weight_grad = vxc0.GridWeightGradient(dmat, mol0);
