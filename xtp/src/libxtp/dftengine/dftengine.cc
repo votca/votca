@@ -507,26 +507,9 @@ Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
   Eigen::MatrixXd overlap_pulay_grad =
       ComputeOverlapPulayGradientUKS(mol, MOs_alpha, MOs_beta);
 
-  // Only computed here if ScaHFX_>0 (RI-K only) -- note this duplicates
-  // the same construction inside ComputeOverlapPulayGradientUKS
-  // (extracted to its own method above, which needs its own copy
-  // internally). A minor redundancy, not a correctness issue -- these
-  // are cheap matrix slices, not expensive computations.
-  Eigen::MatrixXd rij_term =
-      DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
-
-  // DIAGNOSTIC: the discrepancy against finite differences was shown to
-  // be h-independent (identical at h=1e-4 and h=1e-3), ruling out
-  // numerical noise -- earlier, more detailed diagnostic data (before a
-  // later refactor removed it) suggested RI-J specifically, not nuclear
-  // repulsion or one-electron, both of which matched their own finite
-  // differences almost exactly. Re-added here, targeted, to confirm.
-  std::cerr << std::setprecision(10)
-            << "[RI-J targeted diagnostic, atom=1 x-component] rij_grad="
-            << rij_term(1, 0) << std::endl;
-
   Eigen::MatrixXd grad = DFTGradient::NuclearRepulsionDerivative(mol) +
-                         eone_grad + overlap_pulay_grad + rij_term;
+                         eone_grad + overlap_pulay_grad +
+                         DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
 
   // Exact exchange (RI-K), hybrids only. Factor of 0.5*ScaHFX_ (not
   // ScaHFX_ alone) -- confirmed both algebraically and numerically
