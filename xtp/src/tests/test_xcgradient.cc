@@ -447,7 +447,12 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks) {
   BOOST_CHECK_EQUAL(matches, true);
 
   libint2::finalize();
-} This is the first genuine test of the GGA
+}
+
+// Same H2 setup and validation pattern as the LDA test above, but with a
+// real GGA functional (XC_GGA_X_PBE XC_GGA_C_PBE, the same combination
+// already used successfully elsewhere in this codebase -- see
+// test_vxc_potential.cc). This is the first genuine test of the GGA
 // sigma-dependent terms added to PulayGradient (basis-type and
 // grid-translation-type, using AOShell::EvalAOspaceHessian) -- the LDA
 // tests above cannot exercise this code at all, since xc.df_dsigma is
