@@ -239,6 +239,28 @@ class DFTEngine {
   bool EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
                    const Vxc_Potential<Vxc_Grid>& vxcpotential);
 
+  /// Assemble the total ground-state nuclear gradient (nuclear repulsion +
+  /// RI-J Coulomb + XC, LDA or GGA) from a converged density matrix and
+  /// store it in the orbital container via Orbitals::setForces(), as the
+  /// physical force (-dE/dR, matching the convention external tools such
+  /// as ASE expect from a Calculator's getForces()).
+  ///
+  /// SCOPE, explicitly checked and logged rather than silently producing
+  /// a wrong result: only supported when RI is actually in use for the
+  /// SCF (auxbasis_name_ non-empty -- DFTGradient::RIJGradient only
+  /// implements the RI path, not conventional 4-center ERIs) AND for
+  /// non-hybrid functionals (ScaHFX_ == 0). Hybrid functionals need an
+  /// exact-exchange gradient matching CalculateEXX_mos's symmetric
+  /// V^-1/2 RI fitting convention -- DFTGradient::RIKGradient uses a
+  /// simpler asymmetric V^-1 convention instead (a real, previously
+  /// flagged limitation, not yet resolved), which does NOT correspond to
+  /// differentiating the actual K matrix used in a hybrid SCF energy; a
+  /// mismatched exact-exchange gradient would be silently wrong, not
+  /// just imprecise, so this is skipped entirely for ScaHFX_ > 0 rather
+  /// than computing something incorrect.
+  void ComputeAndStoreForces(Orbitals& orb, const Eigen::MatrixXd& Dmat,
+                             const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
+
   Logger* pLog_;
 
   // basis sets
