@@ -241,38 +241,44 @@ class DFTEngine {
 
   /// Assemble the total ground-state nuclear gradient (one-electron
   /// [kinetic + nuclear attraction] + overlap "Pulay force" + nuclear
-  /// repulsion + RI-J Coulomb + XC, LDA or GGA) from a converged density
-  /// matrix and store it in the orbital container via
-  /// Orbitals::setForces(), as the physical force (-dE/dR, matching the
-  /// convention external tools such as ASE expect from a Calculator's
-  /// getForces()).
+  /// repulsion + RI-J Coulomb + RI-K exact exchange [hybrid functionals]
+  /// + XC, LDA or GGA) from a converged density matrix and store it in
+  /// the orbital container via Orbitals::setForces(), as the physical
+  /// force (-dE/dR, matching the convention external tools such as ASE
+  /// expect from a Calculator's getForces()).
   ///
-  /// Both the one-electron term and the overlap Pulay force were
-  /// initially MISSING entirely -- discovered by the first genuine
-  /// end-to-end SCF+forces test (test_dftengine_forces.cc), since every
-  /// earlier gradient test in this branch validated individual terms
-  /// against fixed density matrices without ever checking the complete
-  /// gradient against a real total SCF energy. The overlap Pulay force
-  /// (arising because the MO orthonormality constraint C^T S C = I
-  /// depends on geometry through the moving basis functions, weighted by
-  /// orbital energies rather than occupation) is a standard part of any
+  /// The one-electron term and the overlap Pulay force were initially
+  /// MISSING entirely -- discovered by the first genuine end-to-end
+  /// SCF+forces test (test_dftengine_forces.cc), since every earlier
+  /// gradient test in this branch validated individual terms against
+  /// fixed density matrices without ever checking the complete gradient
+  /// against a real total SCF energy. The overlap Pulay force (arising
+  /// because the MO orthonormality constraint C^T S C = I depends on
+  /// geometry through the moving basis functions, weighted by orbital
+  /// energies rather than occupation) is a standard part of any
   /// Gaussian-basis SCF gradient, distinct from the "PulayGradient"
   /// naming used elsewhere in this codebase for the XC-integral
   /// basis-function term.
   ///
+  /// RI-K/hybrid-functional support was added after DFTGradient::
+  /// RIKGradient's energy convention was fixed (a self-introduced
+  /// regression during that work: a plausible-looking hand-algebra
+  /// "correction" to a half-transformed structure was wrong, caught by
+  /// directly, numerically simulating ERIs::CalculateEXX_mos's real
+  /// algorithm before committing to it -- the original fully-MO-
+  /// transformed structure was correct, needing only a missing factor
+  /// of 2) and then verified via a real C++ finite-difference test
+  /// against ERIs::CalculateEXX_mos itself, not just a self-consistent
+  /// formula. Also confirmed (numerically, to machine precision):
+  /// CalculateEXX_mos's symmetric V^-1/2 RI fitting and RIKGradient's
+  /// simpler asymmetric V^-1 fitting give IDENTICAL exchange energies
+  /// (an exact algebraic identity for symmetric positive-definite V),
+  /// so no matrix square root derivative was ever actually needed.
+  ///
   /// SCOPE, explicitly checked and logged rather than silently producing
   /// a wrong result: only supported when RI is actually in use for the
-  /// SCF (auxbasis_name_ non-empty -- DFTGradient::RIJGradient only
-  /// implements the RI path, not conventional 4-center ERIs) AND for
-  /// non-hybrid functionals (ScaHFX_ == 0). Hybrid functionals need an
-  /// exact-exchange gradient matching CalculateEXX_mos's symmetric
-  /// V^-1/2 RI fitting convention -- DFTGradient::RIKGradient uses a
-  /// simpler asymmetric V^-1 convention instead (a real, previously
-  /// flagged limitation, not yet resolved), which does NOT correspond to
-  /// differentiating the actual K matrix used in a hybrid SCF energy; a
-  /// mismatched exact-exchange gradient would be silently wrong, not
-  /// just imprecise, so this is skipped entirely for ScaHFX_ > 0 rather
-  /// than computing something incorrect.
+  /// SCF (auxbasis_name_ non-empty -- DFTGradient::RIJGradient/RIKGradient
+  /// only implement the RI path, not conventional 4-center ERIs).
   void ComputeAndStoreForces(Orbitals& orb, const Eigen::MatrixXd& Dmat,
                              const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
 

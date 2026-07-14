@@ -301,20 +301,6 @@ void DFTEngine::ComputeAndStoreForces(
         << std::flush;
     return;
   }
-  if (ScaHFX_ > 0.0) {
-    XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << " Skipping force calculation: exact-exchange gradient not yet "
-           "implemented for hybrid functionals (ScaHFX_=" << ScaHFX_
-        << " > 0) -- DFTGradient::RIKGradient uses a different RI fitting "
-           "convention (asymmetric V^-1) than the one actually used for "
-           "this SCF's exact exchange (symmetric V^-1/2, see "
-           "ERIs::CalculateEXX_mos), so it would not correspond to the "
-           "real energy being differentiated. See the SCOPE note on "
-           "ComputeAndStoreForces in dftengine.h."
-        << std::flush;
-    return;
-  }
 
   const QMMolecule& mol = orb.QMAtoms();
   Index natoms = mol.size();
@@ -386,6 +372,29 @@ void DFTEngine::ComputeAndStoreForces(
       DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_) +
       vxcpotential.PulayGradient(Dmat, dftbasis_) +
       vxcpotential.GridWeightGradient(Dmat, mol);
+
+  // Exact-exchange (RI-K) gradient -- hybrid functionals only. Skipped
+  // entirely (not just multiplied by a zero ScaHFX_) when not needed,
+  // since RIKGradient is genuinely expensive (O(nocc^2 * naux) linear
+  // solves) unlike the GGA sigma terms, which are cheap enough to
+  // compute unconditionally.
+  //
+  // RIKGradient's own energy convention (E_K = -sum_ij c_ij.d_ij) was
+  // confirmed, via direct numerical simulation of
+  // ERIs::CalculateEXX_mos's real algorithm and then a real C++
+  // finite-difference test against that same production function
+  // (test_dftgradient.cc), to equal EXACTLY 0.25*Dmat.cwiseProduct(K).sum()
+  // at ScaHFX_=1 -- so for general ScaHFX_, the contribution is
+  // ScaHFX_ * RIKGradient(...), a direct scaling, matching exactly how
+  // the real SCF energy scales its own exx term
+  // (exx = 0.25*ScaHFX_*Dmat.cwiseProduct(K).sum()).
+  //
+  // This removes what was previously an explicit, logged SCOPE
+  // limitation (hybrid functionals skipped entirely) -- see git history
+  // for the full derivation/verification that led to this.
+  if (ScaHFX_ > 0.0) {
+    grad += ScaHFX_ * DFTGradient::RIKGradient(C_occ, auxbasis_, dftbasis_);
+  }
 
   // Sanity check independent of the finite-difference tests already done
   // per-term: translational invariance means the TOTAL gradient must sum
