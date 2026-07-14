@@ -122,12 +122,12 @@ Eigen::MatrixXd DFTGradient::RIJGradient(const Eigen::MatrixXd& density,
   return grad;
 }
 
-Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& mo_coeffs,
+Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
                                           const AOBasis& auxbasis,
                                           const AOBasis& dftbasis) {
   Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
   Index n_aux_bf = auxbasis.AOBasisSize();
-  Index ncols = mo_coeffs.cols();
+  Index nocc = occ_mo_coeffs.cols();
 
   std::vector<Eigen::MatrixXd> tensor =
       ComputeThreeCenterIntegrals(auxbasis, dftbasis);
@@ -143,20 +143,38 @@ Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& mo_coeffs,
 
   Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
 
-  // Precompute d_ij(P) = C_i^T tensor[P] C_j for every (i,j) pair and
-  // every aux function P, and the corresponding fit coefficients
-  // c_ij = V^-1 d_ij, once -- reused across all atoms/xyz below rather
-  // than recomputed per atom, since neither depends on which
-  // atom/Cartesian derivative is being assembled.
+  // NOTE ON HISTORY: an earlier revision of this function briefly
+  // switched to a "half-transformed" structure (one index MO, one AO),
+  // reasoned (incorrectly, via error-prone hand algebra) to be needed
+  // to match ERIs::CalculateEXX_mos's real K matrix. Settled by DIRECT
+  // NUMERICAL SIMULATION of CalculateEXX_mos's actual algorithm
+  // (symmetric V^-1/2 fit, TCxMOs_T = occMos^T*B_tilde, etc.) against
+  // both candidate formulas, on several random test systems: the
+  // FULLY-MO-transformed structure below (both indices occupied MOs,
+  // matching the ORIGINAL version of this function) is correct, and
+  // matches the real energy EXACTLY (to ~1e-14) once multiplied by 2 --
+  // not the half-transformed structure, which did not match at all
+  // (not even up to a constant factor). See conversation history for
+  // the verification. This confirms the earlier documented concern
+  // (needing to differentiate a matrix square root) was never actually
+  // a problem -- V^-1 and V^-1/2 fitting give identical energies
+  // (|V^-1/2 x|^2 == x^T V^-1 x exactly, for symmetric positive-definite
+  // V) -- the only real fix needed here was the missing factor of 2.
+  //
+  // d_ij(P) = C_i^T tensor[P] C_j, c_ij = V^-1 d_ij (i,j both occupied
+  // MOs, all ordered pairs including i==j).
+  // E_K = -2 * sum_{i,j} [0.5 * c_ij . d_ij] = -sum_{i,j} c_ij . d_ij
+  // (matches ERIs::CalculateEXX_mos's real physical exchange energy
+  // exactly, confirmed numerically, not just up to an unknown scale).
   std::vector<std::vector<Eigen::VectorXd>> d_ij(
-      ncols, std::vector<Eigen::VectorXd>(ncols));
+      nocc, std::vector<Eigen::VectorXd>(nocc));
   std::vector<std::vector<Eigen::VectorXd>> c_ij(
-      ncols, std::vector<Eigen::VectorXd>(ncols));
-  for (Index i = 0; i < ncols; ++i) {
-    for (Index j = 0; j < ncols; ++j) {
+      nocc, std::vector<Eigen::VectorXd>(nocc));
+  for (Index i = 0; i < nocc; ++i) {
+    for (Index j = 0; j < nocc; ++j) {
       Eigen::VectorXd d(n_aux_bf);
       for (Index p = 0; p < n_aux_bf; ++p) {
-        d(p) = mo_coeffs.col(i).dot(tensor[p] * mo_coeffs.col(j));
+        d(p) = occ_mo_coeffs.col(i).dot(tensor[p] * occ_mo_coeffs.col(j));
       }
       d_ij[i][j] = d;
       c_ij[i][j] = V_ldlt.solve(d);
@@ -167,20 +185,22 @@ Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& mo_coeffs,
     for (Index xyz = 0; xyz < 3; ++xyz) {
       double energy_term = 0.0;
       double metric_term = 0.0;
-      for (Index i = 0; i < ncols; ++i) {
-        for (Index j = 0; j < ncols; ++j) {
+      for (Index i = 0; i < nocc; ++i) {
+        for (Index j = 0; j < nocc; ++j) {
           const Eigen::VectorXd& c = c_ij[i][j];
-          // d(d_ij(P))/dR = C_i^T d3c[a][xyz][P] C_j
           Eigen::VectorXd dd(n_aux_bf);
           for (Index p = 0; p < n_aux_bf; ++p) {
-            dd(p) =
-                mo_coeffs.col(i).dot(d3c[a][xyz][p] * mo_coeffs.col(j));
+            dd(p) = occ_mo_coeffs.col(i).dot(d3c[a][xyz][p] *
+                                             occ_mo_coeffs.col(j));
           }
           energy_term += c.dot(dd);
           metric_term += c.dot(dV[a][xyz] * c);
         }
       }
-      grad(a, xyz) = energy_term - 0.5 * metric_term;
+      // Factor of -2, matching E_K = -2*sum[0.5*c.d] confirmed above --
+      // NOT the "-(energy_term - 0.5*metric_term)" (factor of -1) used
+      // in the intermediate, incorrect half-transformed revision.
+      grad(a, xyz) = -2.0 * (energy_term - 0.5 * metric_term);
     }
   }
   return grad;

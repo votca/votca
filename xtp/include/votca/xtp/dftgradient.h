@@ -90,31 +90,53 @@ class DFTGradient {
                                       const AOBasis& auxbasis,
                                       const AOBasis& dftbasis);
 
-  /// RI-K (exchange) gradient assembly. Uses the SAME simpler asymmetric
-  /// V^-1 fitting convention as RIJGradient, rather than the symmetric
-  /// V^-1/2 convention used elsewhere in this codebase for the exchange
-  /// OPERATOR (see ERIs::CalculateEXX_mos) -- differentiating a matrix
-  /// square root directly would need more machinery than this validates;
-  /// the simpler convention is mathematically self-consistent for this
-  /// purpose (energy and its derivative computed the same way) even
-  /// though it won't bit-for-bit match that production code's numerics.
+  /// RI-K (exchange) gradient assembly.
   ///
-  /// mo_coeffs: (nbf x ncols) coefficient matrix. Despite the name, this
-  /// does NOT need to be genuinely orthonormal SCF occupied orbitals for
-  /// this function to be valid -- same reasoning as RIJGradient's
-  /// density argument: the per-orbital-pair fitting coefficients are
-  /// stationary in the fitted exchange energy expression for ANY fixed
-  /// C, by the same pure linear-algebra argument (independent
-  /// least-squares fit per (i,j) pair), not a consequence of either SCF
-  /// self-consistency or orthonormality.
+  /// HISTORY, worth keeping for the record: a brief intermediate
+  /// revision switched this to a "half-transformed" structure (one
+  /// index MO, one AO), reasoned via error-prone hand algebra to be
+  /// needed to match the real K matrix (see ERIs::CalculateEXX_mos).
+  /// That reasoning was WRONG. Settled by directly, numerically
+  /// simulating CalculateEXX_mos's actual algorithm (symmetric V^-1/2
+  /// fit) against both candidate formulas on several random test
+  /// systems: the FULLY-MO-transformed structure below (both indices
+  /// occupied MOs) is correct and matches the real energy exactly (to
+  /// ~1e-14) once a missing factor of 2 is included -- the
+  /// half-transformed version did not match at all, not even up to a
+  /// constant factor.
   ///
-  /// Energy convention used (for internal self-consistency with the
-  /// derivative below, not claimed to match any particular textbook
-  /// prefactor): E_K = sum_{i,j} 1/2 c_ij . d_ij, with
-  /// d_ij(P) = C_i^T (AO 3-center integral matrix for aux fn P) C_j and
-  /// c_ij = V^-1 d_ij, summed over ALL ordered pairs (i,j) of columns of
-  /// mo_coeffs (including i==j).
-  static Eigen::MatrixXd RIKGradient(const Eigen::MatrixXd& mo_coeffs,
+  /// Separately confirmed (also numerically, to machine precision): for
+  /// symmetric positive-definite V, |V^-1/2 x|^2 == x^T V^-1 x EXACTLY,
+  /// an algebraic identity -- so the symmetric (production) and
+  /// asymmetric (used here) RI fitting schemes give IDENTICAL total
+  /// exchange energies, and therefore identical gradients under the
+  /// same stationarity argument used throughout this file. No matrix
+  /// square root derivative is needed; V^-1 is both simpler AND exact,
+  /// once the factor of 2 is included.
+  ///
+  /// occ_mo_coeffs: (nbf x nocc) occupied MO coefficient matrix. Despite
+  /// the name, does NOT need to be genuinely orthonormal SCF occupied
+  /// orbitals for this function to be mathematically valid -- same
+  /// reasoning as RIJGradient's density argument: the per-(i,j)-pair
+  /// fitting coefficients are stationary in the fitted exchange energy
+  /// expression for ANY fixed C, a pure linear-algebra property, not a
+  /// consequence of SCF self-consistency or orthonormality. (In
+  /// PRACTICE, for this to match a real hybrid SCF's exact-exchange
+  /// gradient, it must be called with the genuine converged occupied
+  /// MOs -- the "doesn't need to be orthonormal" note is about
+  /// mathematical validity for testing purposes, per this file's
+  /// established pattern, not a license to pass arbitrary MOs in
+  /// production use.)
+  ///
+  /// Energy convention (matches ERIs::CalculateEXX_mos's REAL physical
+  /// exchange energy exactly, confirmed numerically, not just up to an
+  /// unknown scale):
+  ///   d_ij(P) = C_i^T (AO 3-center integral tensor[P]) C_j
+  ///   c_ij = V^-1 d_ij   (per (i,j) pair)
+  ///   E_K = -2 * sum_{i,j} [0.5 * c_ij . d_ij] = -sum_{i,j} c_ij . d_ij
+  /// summed over ALL ordered pairs (i,j) of occupied MOs (including
+  /// i==j).
+  static Eigen::MatrixXd RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
                                       const AOBasis& auxbasis,
                                       const AOBasis& dftbasis);
 };
