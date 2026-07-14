@@ -347,9 +347,11 @@ BOOST_AUTO_TEST_CASE(rik_gradient_finite_difference) {
   auto rik_energy = [&](const AOBasis& auxbasis, const AOBasis& dftbasis) {
     ERIs eris;
     eris.Initialize(dftbasis, auxbasis);
-    Eigen::MatrixXd K = eris.CalculateEXX_mos(mo_coeffs);
-    Eigen::MatrixXd Dmat = 2.0 * mo_coeffs * mo_coeffs.transpose();
-    return 0.25 * Dmat.cwiseProduct(K).sum();  // ScaHFX=1 for this check
+    Eigen::MatrixXd Dmat_local = 2.0 * mo_coeffs * mo_coeffs.transpose();
+    std::array<Eigen::MatrixXd, 2> JK =
+        eris.CalculateERIs_EXX_3c(mo_coeffs, Dmat_local);
+    const Eigen::MatrixXd& K = JK[1];
+    return 0.25 * Dmat_local.cwiseProduct(K).sum();  // ScaHFX=1 for this check
   };
 
   QMMolecule mol_plus = build_h2(bond_length + h);
