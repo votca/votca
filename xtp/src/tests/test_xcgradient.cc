@@ -388,12 +388,26 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks) {
   vxc0.setXCfunctional(functional);
 
   Index n_bf = aobasis0.AOBasisSize();
-  Eigen::MatrixXd dmat_alpha_random = Eigen::MatrixXd::Random(n_bf, n_bf);
-  Eigen::MatrixXd dmat_alpha =
-      0.5 * (dmat_alpha_random + dmat_alpha_random.transpose());
-  Eigen::MatrixXd dmat_beta_random = Eigen::MatrixXd::Random(n_bf, n_bf);
-  Eigen::MatrixXd dmat_beta =
-      0.5 * (dmat_beta_random + dmat_beta_random.transpose());
+  // POSITIVE-SEMIDEFINITE (C*C^T), not just arbitrary symmetric --
+  // confirmed necessary directly: an earlier arbitrary-symmetric version
+  // of this test produced a NEGATIVE rho_a at the diagnostic point
+  // (rho_a=-4.317e-05 while rho_a+rho_b was still positive, passing the
+  // rho*weight<1e-20 cutoff meant for the TOTAL density). Unlike the
+  // restricted case (where that same cutoff, applied to the single total
+  // rho, automatically excludes every point ever passed to the
+  // functional), UKS's individual rho_a/rho_b can be negative even while
+  // their SUM passes the cutoff -- and libxc's LDA functional is not
+  // expected to be smoothly differentiable (or even well-defined) for a
+  // negative spin density, which would break a finite-difference
+  // comparison regardless of whether the analytic gradient formula
+  // itself is correct. A genuine C*C^T density matrix keeps rho_a/rho_b
+  // non-negative everywhere, matching a physically valid density and
+  // matching how the (already-passing) non-XC UKS test builds its own
+  // density matrices.
+  Eigen::MatrixXd C_alpha = Eigen::MatrixXd::Random(n_bf, 1);
+  Eigen::MatrixXd dmat_alpha = C_alpha * C_alpha.transpose();
+  Eigen::MatrixXd C_beta = Eigen::MatrixXd::Random(n_bf, 1);
+  Eigen::MatrixXd dmat_beta = C_beta * C_beta.transpose();
 
   Eigen::MatrixXd pulay_grad =
       vxc0.PulayGradientUKS(dmat_alpha, dmat_beta, aobasis0);
