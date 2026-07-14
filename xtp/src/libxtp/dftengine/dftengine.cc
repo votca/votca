@@ -282,6 +282,8 @@ void DFTEngine::CalcElDipole(const Orbitals& orb) const {
 // derivatives (d(matrix_munu)/dR), not already-contracted energy
 // gradients -- the contraction with Dmat is done explicitly below.
 using AOMatrixDerivative = std::array<Eigen::MatrixXd, 3>;
+std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(
+    const AOBasis& aobasis);
 std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
     const AOBasis& aobasis);
 std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
@@ -338,9 +340,49 @@ void DFTEngine::ComputeAndStoreForces(
     }
   }
 
+  // Overlap "Pulay force" -- a SECOND, genuinely distinct missing term,
+  // found after the kinetic+nuclear-attraction fix improved but did not
+  // fully resolve the discrepancy against the end-to-end finite-difference
+  // test (magnitude dropped ~7x in the right direction, but still wrong
+  // by roughly the size of a real missing term, not noise).
+  //
+  // Distinct from the earlier "PulayGradient" naming (which is about
+  // basis functions inside the XC integral) -- this is the CLASSICAL
+  // SCF Pulay/overlap force, present in essentially any Gaussian-basis
+  // HF/DFT gradient: the MO coefficients C are only implicitly
+  // R-independent because they satisfy the orthonormality constraint
+  // C^T S C = I, and S itself depends on R (basis functions move). At
+  // the SCF stationary point, the Lagrange multipliers for this
+  // constraint are exactly the orbital energies (canonical MOs), giving
+  // an extra term dE/dR_A|_overlap = -Tr[W . dS/dR_A], where
+  // W = 2 * C_occ * diag(eps_occ) * C_occ^T (the "energy-weighted
+  // density matrix", factor of 2 matching the same doubled convention
+  // Dmat already uses for closed-shell restricted). Confirmed as a
+  // standard, expected term by libint2's own reference SCF-gradient
+  // example (compute_1body_ints_deriv<Operator::overlap> combined with
+  // exactly this W construction, in
+  // libint2/include/libint2/lcao/1body.h) -- not a novel derivation.
+  //
+  // ComputeOverlapDerivatives itself was validated (finite-difference
+  // tested) at the very start of this whole branch and then never
+  // actually used in any gradient assembly until now, same as kinetic.
+  Index n_occ = num_docc_ + num_socc_alpha_;
+  Eigen::MatrixXd C_occ = orb.MOs().eigenvectors().leftCols(n_occ);
+  Eigen::VectorXd eps_occ = orb.MOs().eigenvalues().head(n_occ);
+  Eigen::MatrixXd W = 2.0 * C_occ * eps_occ.asDiagonal() * C_occ.transpose();
+
+  std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis_);
+  Eigen::MatrixXd overlap_pulay_grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      overlap_pulay_grad(a, xyz) = -W.cwiseProduct(dS[a][xyz]).sum();
+    }
+  }
+
   Eigen::MatrixXd grad =
       DFTGradient::NuclearRepulsionDerivative(mol) +
       eone_grad +
+      overlap_pulay_grad +
       DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_) +
       vxcpotential.PulayGradient(Dmat, dftbasis_) +
       vxcpotential.GridWeightGradient(Dmat, mol);
