@@ -431,6 +431,55 @@ void DFTEngine::ComputeAndStoreForces(
       << std::flush;
 }
 
+Eigen::MatrixXd DFTEngine::ComputeOverlapPulayGradientUKS(
+    const QMMolecule& mol, const tools::EigenSystem& MOs_alpha,
+    const tools::EigenSystem& MOs_beta) const {
+  // W = W_alpha + W_beta, each WITHOUT the factor of 2 RKS uses -- UKS
+  // spin densities/MO occupations are not pre-doubled (each spin
+  // channel already corresponds to its own electron count).
+  //
+  // NOTE ON VALIDATION: this term is NOT checkable against a
+  // fixed-C finite difference the way the other UKS gradient terms are
+  // -- confirmed directly by a failed attempt to do exactly that (see
+  // git history). The overlap Pulay force specifically corrects for C's
+  // IMPLICIT R-dependence through the orthonormality constraint
+  // C^T S(R) C = I, valid only at a genuine variational stationary
+  // point (the Lagrange-multiplier argument requires C to actually be a
+  // converged SCF solution) -- a fixed, arbitrary C held constant across
+  // displaced geometries never satisfies that constraint
+  // self-consistently, so there is no fixed-C energy this term is
+  // supposed to match. This mirrors exactly why the RKS version of this
+  // term was only ever validated by a genuine, self-consistent
+  // end-to-end SCF test (test_dftengine_forces.cc), never a
+  // fixed-density-matrix unit test. See
+  // compute_non_xc_gradient_uks_finite_difference and
+  // overlap_pulay_gradient_uks_reduces_to_rks in
+  // test_dftengine_private.cc for how this piece is actually checked
+  // instead: the other four terms against a fixed-C finite difference,
+  // and this term separately against the already-validated RKS formula
+  // in the alpha==beta limit.
+  Index n_occ_alpha = num_alpha_electrons_;
+  Index n_occ_beta = num_beta_electrons_;
+  Eigen::MatrixXd C_alpha_occ = MOs_alpha.eigenvectors().leftCols(n_occ_alpha);
+  Eigen::MatrixXd C_beta_occ = MOs_beta.eigenvectors().leftCols(n_occ_beta);
+  Eigen::VectorXd eps_alpha_occ = MOs_alpha.eigenvalues().head(n_occ_alpha);
+  Eigen::VectorXd eps_beta_occ = MOs_beta.eigenvalues().head(n_occ_beta);
+  Eigen::MatrixXd W = C_alpha_occ * eps_alpha_occ.asDiagonal() *
+                          C_alpha_occ.transpose() +
+                      C_beta_occ * eps_beta_occ.asDiagonal() *
+                          C_beta_occ.transpose();
+
+  Index natoms = mol.size();
+  std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis_);
+  Eigen::MatrixXd overlap_pulay_grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      overlap_pulay_grad(a, xyz) = -W.cwiseProduct(dS[a][xyz]).sum();
+    }
+  }
+  return overlap_pulay_grad;
+}
+
 Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
     const QMMolecule& mol, const UKSConvergenceAcc::SpinDensity& Dspin,
     const tools::EigenSystem& MOs_alpha,
@@ -455,50 +504,12 @@ Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
     }
   }
 
-  // Overlap Pulay force: W = W_alpha + W_beta, each WITHOUT the factor
-  // of 2 RKS uses -- UKS spin densities/MO occupations are not
-  // pre-doubled (Dspin.alpha/beta each already correspond to a single
-  // spin channel's own electron count).
-  Index n_occ_alpha = num_alpha_electrons_;
-  Index n_occ_beta = num_beta_electrons_;
-  Eigen::MatrixXd C_alpha_occ = MOs_alpha.eigenvectors().leftCols(n_occ_alpha);
-  Eigen::MatrixXd C_beta_occ = MOs_beta.eigenvectors().leftCols(n_occ_beta);
-  Eigen::VectorXd eps_alpha_occ = MOs_alpha.eigenvalues().head(n_occ_alpha);
-  Eigen::VectorXd eps_beta_occ = MOs_beta.eigenvalues().head(n_occ_beta);
-  Eigen::MatrixXd W = C_alpha_occ * eps_alpha_occ.asDiagonal() *
-                          C_alpha_occ.transpose() +
-                      C_beta_occ * eps_beta_occ.asDiagonal() *
-                          C_beta_occ.transpose();
-
-  std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis_);
-  Eigen::MatrixXd overlap_pulay_grad = Eigen::MatrixXd::Zero(natoms, 3);
-  for (Index a = 0; a < natoms; ++a) {
-    for (Index xyz = 0; xyz < 3; ++xyz) {
-      overlap_pulay_grad(a, xyz) = -W.cwiseProduct(dS[a][xyz]).sum();
-    }
-  }
+  Eigen::MatrixXd overlap_pulay_grad =
+      ComputeOverlapPulayGradientUKS(mol, MOs_alpha, MOs_beta);
 
   Eigen::MatrixXd grad = DFTGradient::NuclearRepulsionDerivative(mol) +
                          eone_grad + overlap_pulay_grad +
                          DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
-
-  // DIAGNOSTIC: isolate which term is responsible for a mismatch against
-  // finite differences, rather than continuing to guess via algebra.
-  // Prints the (atom=1, x) component of each individual term.
-  {
-    Eigen::MatrixXd nuc_rep_term = DFTGradient::NuclearRepulsionDerivative(mol);
-    Eigen::MatrixXd rij_term =
-        DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
-    std::cerr << std::setprecision(10)
-              << "[ComputeNonXCGradientUKS diagnostic, atom=1 x-component]"
-              << "\n  nuclear_repulsion = " << nuc_rep_term(1, 0)
-              << "\n  eone_grad         = " << eone_grad(1, 0)
-              << "\n  overlap_pulay     = " << overlap_pulay_grad(1, 0)
-              << "\n  rij_grad          = " << rij_term(1, 0)
-              << "\n  n_occ_alpha=" << n_occ_alpha
-              << " n_occ_beta=" << n_occ_beta << " ScaHFX_=" << ScaHFX_
-              << std::endl;
-  }
 
   // Exact exchange (RI-K), hybrids only. Factor of 0.5*ScaHFX_ (not
   // ScaHFX_ alone) -- confirmed both algebraically and numerically

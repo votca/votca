@@ -25,6 +25,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <votca/xtp/basisset.h>
 
@@ -43,6 +44,12 @@ namespace votca {
 namespace xtp {
 
 constexpr double kTol = 1e-10;
+
+// Defined in libint2_derivative_calls.cc, not yet in any header (same
+// pattern used throughout the branch this test file belongs to).
+using AOMatrixDerivative = std::array<Eigen::MatrixXd, 3>;
+std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(
+    const AOBasis& aobasis);
 
 class DFTEngineTestAccess {
  public:
@@ -116,6 +123,13 @@ class DFTEngineTestAccess {
       const tools::EigenSystem& MOs_alpha,
       const tools::EigenSystem& MOs_beta) {
     return e.ComputeNonXCGradientUKS(mol, Dspin, MOs_alpha, MOs_beta);
+  }
+
+  static Eigen::MatrixXd ComputeOverlapPulayGradientUKS(
+      const DFTEngine& e, const QMMolecule& mol,
+      const tools::EigenSystem& MOs_alpha,
+      const tools::EigenSystem& MOs_beta) {
+    return e.ComputeOverlapPulayGradientUKS(mol, MOs_alpha, MOs_beta);
   }
 };
 
@@ -464,6 +478,24 @@ BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
       Eigen::Vector3d sum = analytic_grad.colwise().sum();
       BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-6);
 
+      // The overlap Pulay term is deliberately EXCLUDED from this
+      // comparison -- confirmed directly (see git history: the first
+      // real run of this test failed by exactly the overlap Pulay
+      // term's own value, in both the ScaHFX_=0 and ScaHFX_=0.25 cases)
+      // that it is NOT checkable against a fixed-C finite difference: it
+      // specifically corrects for C's implicit R-dependence through the
+      // orthonormality constraint C^T S(R) C = I, valid only at a
+      // genuine SCF stationary point, which a fixed, arbitrary C held
+      // constant across displaced geometries never satisfies
+      // self-consistently. The other four terms (nuclear repulsion,
+      // one-electron, RI-J, RI-K) don't have this issue -- their
+      // stationarity arguments hold for ANY fixed C -- so this
+      // comparison still meaningfully validates them.
+      Eigen::MatrixXd overlap_pulay =
+          DFTEngineTestAccess::ComputeOverlapPulayGradientUKS(
+              engine, base.mol, MOs_alpha, MOs_beta);
+      Eigen::MatrixXd fixed_c_checkable_grad = analytic_grad - overlap_pulay;
+
       auto plus = build_system(bond_length + h, sca_hfx, C_alpha_fixed,
                                C_beta_fixed);
       auto minus = build_system(bond_length - h, sca_hfx,
@@ -481,26 +513,84 @@ BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
 
       // Atom 1 sits at (bond_length, 0, 0) -- the x-component carries the
       // bond-stretch derivative.
-      double analytic = analytic_grad(1, 0);
+      double analytic = fixed_c_checkable_grad(1, 0);
 
       bool matches =
           std::abs(finite_diff_deriv - analytic) < 1e-4 * std::abs(analytic);
       if (!matches) {
-        std::cout << "ScaHFX_=" << sca_hfx << " analytic dE/dx(atom1)="
+        std::cout << "ScaHFX_=" << sca_hfx
+                  << " analytic dE/dx(atom1) [excluding overlap Pulay]="
                   << analytic << " finite-difference=" << finite_diff_deriv
                   << std::endl;
         std::cout << "NOTE: if this fails only for sca_hfx=0.25 (not 0.0), "
                      "the bug is isolated to the RI-K/0.5*ScaHFX_ factor "
-                     "specifically -- see the detailed derivation on "
-                     "ComputeAndStoreForcesUKS's declaration in "
-                     "dftengine.h. If it fails for BOTH, the bug is in one "
-                     "of the shared pieces (nuclear repulsion, "
-                     "one-electron, overlap Pulay force, or RI-J)."
+                     "specifically. If it fails for BOTH, the bug is in one "
+                     "of nuclear repulsion, one-electron, or RI-J."
                   << std::endl;
       }
       BOOST_CHECK_EQUAL(matches, true);
     }
   }
+
+  libint2::finalize();
+}
+
+// Validates ComputeOverlapPulayGradientUKS the OTHER way, since it's
+// not checkable against a fixed-C finite difference (see the detailed
+// note in compute_non_xc_gradient_uks_finite_difference above and on
+// ComputeOverlapPulayGradientUKS's declaration in dftengine.h): checks
+// that it reduces to exactly the already-validated RKS overlap Pulay
+// formula (W_RKS = 2*C_occ*eps_occ*C_occ^T, dE/dR = -Tr[W_RKS.dS/dR])
+// in the alpha==beta limit (same occupied orbitals, same orbital
+// energies, for both spins) -- a real, meaningful mathematical
+// invariant that doesn't require self-consistency to check.
+//
+// STATUS: written but NOT yet run.
+BOOST_AUTO_TEST_CASE(overlap_pulay_gradient_uks_reduces_to_rks) {
+  libint2::initialize();
+
+  QMMolecule mol = MakeH2(1.4);
+  BasisSet basisset;
+  basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
+                "/threecenter_dft/3-21G.xml");
+  AOBasis dftbasis;
+  dftbasis.Fill(basisset, mol);
+  Index n_bf = dftbasis.AOBasisSize();
+
+  DFTEngine engine;
+  DFTEngineTestAccess::SetBasis(engine, dftbasis);
+  DFTEngineTestAccess::SetElectronCounts(engine, 1, 1);
+
+  Eigen::MatrixXd C_occ = Eigen::MatrixXd::Random(n_bf, 1);
+  Eigen::VectorXd eps_occ = Eigen::VectorXd::Random(1);
+
+  tools::EigenSystem MOs_same;
+  MOs_same.eigenvectors() = C_occ;
+  MOs_same.eigenvalues() = eps_occ;
+
+  // alpha == beta: same occupied orbital, same orbital energy, for
+  // both spins.
+  Eigen::MatrixXd uks_grad = DFTEngineTestAccess::ComputeOverlapPulayGradientUKS(
+      engine, mol, MOs_same, MOs_same);
+
+  // Independently-computed RKS-style reference: W_RKS = 2*C_occ*eps_occ*C_occ^T.
+  Eigen::MatrixXd W_rks =
+      2.0 * C_occ * eps_occ.asDiagonal() * C_occ.transpose();
+  std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis);
+  Index natoms = mol.size();
+  Eigen::MatrixXd rks_grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      rks_grad(a, xyz) = -W_rks.cwiseProduct(dS[a][xyz]).sum();
+    }
+  }
+
+  bool matches = uks_grad.isApprox(rks_grad, 1e-10);
+  if (!matches) {
+    std::cout << "UKS overlap Pulay (alpha==beta):\n" << uks_grad << std::endl;
+    std::cout << "RKS-style reference:\n" << rks_grad << std::endl;
+  }
+  BOOST_CHECK_EQUAL(matches, true);
 
   libint2::finalize();
 }

@@ -290,6 +290,21 @@ class DFTEngine {
   void ComputeAndStoreForces(Orbitals& orb, const Eigen::MatrixXd& Dmat,
                              const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
 
+  /// UKS overlap Pulay force -- W = W_alpha + W_beta, each WITHOUT the
+  /// factor of 2 RKS uses. Split out as its own method (rather than
+  /// inlined in ComputeNonXCGradientUKS) because it needs a genuinely
+  /// DIFFERENT validation strategy than the other four terms: it is NOT
+  /// checkable against a fixed-C finite difference (confirmed directly
+  /// by a failed attempt to do exactly that -- see git history), since
+  /// it specifically corrects for C's implicit R-dependence through the
+  /// orthonormality constraint, valid only at a genuine SCF stationary
+  /// point. See test_dftengine_private.cc for how this is actually
+  /// validated instead (reduction to the already-validated RKS formula
+  /// when alpha==beta).
+  Eigen::MatrixXd ComputeOverlapPulayGradientUKS(
+      const QMMolecule& mol, const tools::EigenSystem& MOs_alpha,
+      const tools::EigenSystem& MOs_beta) const;
+
   /// The four non-XC-adjacent gradient terms that generalize cleanly to
   /// UKS -- see the detailed derivation on ComputeAndStoreForcesUKS
   /// below, which calls this and then decides whether/how to report the
