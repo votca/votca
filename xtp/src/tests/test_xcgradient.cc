@@ -438,4 +438,104 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_gga) {
   libint2::finalize();
 }
 
+// Same methane setup as the LDA methane test above, but with a real GGA
+// functional (XC_GGA_X_PBE XC_GGA_C_PBE, same combination as the H2 GGA
+// test). The H2 GGA test only has 2 atoms with a single bond -- it
+// cannot exercise cases where SEVERAL atoms' basis functions and
+// Hessians interact simultaneously (e.g. two different atoms' basis
+// functions overlapping at the same grid point, or a grid point sitting
+// near the boundary between more than two atoms' SSW partition
+// regions), the way the LDA methane test did for the rho-only terms.
+// This is the corresponding check for the sigma-dependent terms on a
+// genuinely multi-atom system.
+//
+// STATUS: written but NOT yet run.
+BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_gga) {
+  libint2::initialize();
+
+  const std::string functional = "XC_GGA_X_PBE XC_GGA_C_PBE";
+  double h = 1e-4;  // Angstrom
+  Index displaced_atom = 1;  // first H (index 1, methane is C,H,H,H,H)
+
+  auto base_atoms = LoadBaseGeometry();
+
+  QMMolecule mol0 = BuildDisplacedMethane(base_atoms, displaced_atom, 0.0);
+  AOBasis aobasis0 = BuildBasis(mol0);
+
+  // Same real, physically meaningful density matrix as the LDA methane
+  // test (not an arbitrary random one) -- already confirmed compatible
+  // with this exact geometry/basis by that test passing.
+  Eigen::MatrixXd dmat = tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/vxc_potential/dmat.mm");
+
+  Vxc_Grid grid0;
+  grid0.GridSetup("coarse", mol0, aobasis0);
+  Vxc_Potential<Vxc_Grid> vxc0(grid0);
+  vxc0.setXCfunctional(functional);
+
+  Eigen::MatrixXd pulay_grad = vxc0.PulayGradient(dmat, aobasis0);
+  Eigen::MatrixXd weight_grad = vxc0.GridWeightGradient(dmat, mol0);
+  Eigen::MatrixXd total_grad = pulay_grad + weight_grad;
+
+  Eigen::Vector3d pulay_sum_check = pulay_grad.colwise().sum();
+  Eigen::Vector3d weight_sum_check = weight_grad.colwise().sum();
+  std::cerr << "[xc_gradient_finite_difference_gga diagnostic] "
+             << "Pulay alone t.i. sum = " << pulay_sum_check.transpose()
+             << "\nWeight alone t.i. sum = " << weight_sum_check.transpose()
+             << std::endl;
+
+  Eigen::Vector3d sum = total_grad.colwise().sum();
+  if (sum.cwiseAbs().maxCoeff() > 1e-4) {
+    std::cout << "WARNING: translational invariance check failed, sum="
+              << sum.transpose() << std::endl;
+    std::cout << "Pulay term alone:\n" << pulay_grad << std::endl;
+    std::cout << "Weight term alone:\n" << weight_grad << std::endl;
+  }
+  BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
+
+  QMMolecule mol_plus = BuildDisplacedMethane(base_atoms, displaced_atom, h);
+  AOBasis aobasis_plus = BuildBasis(mol_plus);
+  Vxc_Grid grid_plus;
+  grid_plus.GridSetup("coarse", mol_plus, aobasis_plus);
+  Vxc_Potential<Vxc_Grid> vxc_plus(grid_plus);
+  vxc_plus.setXCfunctional(functional);
+  double e_plus = vxc_plus.IntegrateVXC(dmat).energy();
+
+  QMMolecule mol_minus = BuildDisplacedMethane(base_atoms, displaced_atom, -h);
+  AOBasis aobasis_minus = BuildBasis(mol_minus);
+  Vxc_Grid grid_minus;
+  grid_minus.GridSetup("coarse", mol_minus, aobasis_minus);
+  Vxc_Potential<Vxc_Grid> vxc_minus(grid_minus);
+  vxc_minus.setXCfunctional(functional);
+  double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
+
+  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  double finite_diff_deriv =
+      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+
+  double analytic = total_grad(displaced_atom, 2);  // z-component
+  bool matches =
+      std::abs(finite_diff_deriv - analytic) < 1e-3 * std::abs(analytic);
+  if (!matches) {
+    std::cout << "Analytic dE_xc/dz(atom" << displaced_atom
+              << "): " << analytic << std::endl;
+    std::cout << "  Pulay contribution: " << pulay_grad(displaced_atom, 2)
+              << std::endl;
+    std::cout << "  Weight contribution: " << weight_grad(displaced_atom, 2)
+              << std::endl;
+    std::cout << "Finite-difference: " << finite_diff_deriv << std::endl;
+    std::cout << "NOTE: if this fails while the LDA methane test and the "
+                 "H2 GGA test both pass, that isolates the bug to "
+                 "something specific to MULTIPLE atoms' sigma-dependent "
+                 "contributions interacting (e.g. the Gmat/Hessian_rho "
+                 "sums spanning several atoms' basis functions at one "
+                 "grid point) -- something the 2-atom H2 GGA test cannot "
+                 "exercise at all."
+              << std::endl;
+  }
+  BOOST_CHECK_EQUAL(matches, true);
+
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()
