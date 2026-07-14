@@ -388,11 +388,17 @@ BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
     AOBasis dftbasis;
     dftbasis.Fill(basisset, mol);
 
-    BasisSet auxbasisset;
-    auxbasisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
-                     "/diabatization/aux-def2-svp.xml");
+    // DIAGNOSTIC: using the SAME basis for both DFT and aux here,
+    // matching the already-passing rij_gradient_finite_difference
+    // test's exact setup (test_dftgradient.cc), instead of the
+    // dedicated aux-def2-svp basis used elsewhere in this file -- to
+    // isolate whether the aux basis choice itself is the variable
+    // responsible for the discrepancy (Removedfunctions()=0 ruled out
+    // near-linear-dependence specifically, but there could be some
+    // other numerical sensitivity in this particular aux basis'
+    // structure).
     AOBasis auxbasis;
-    auxbasis.Fill(auxbasisset, mol);
+    auxbasis.Fill(basisset, mol);
 
     AOKinetic kinetic;
     kinetic.Fill(dftbasis);
@@ -560,7 +566,7 @@ BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
       double analytic = fixed_c_checkable_grad(1, 0);
 
       bool matches =
-          std::abs(finite_diff_deriv - analytic) < 1e-3 * std::abs(analytic);
+          std::abs(finite_diff_deriv - analytic) < 1e-4 * std::abs(analytic);
       if (!matches) {
         std::cout << "ScaHFX_=" << sca_hfx
                   << " analytic dE/dx(atom1) [excluding overlap Pulay]="
