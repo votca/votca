@@ -239,11 +239,19 @@ class DFTEngine {
   bool EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
                    const Vxc_Potential<Vxc_Grid>& vxcpotential);
 
-  /// Assemble the total ground-state nuclear gradient (nuclear repulsion +
-  /// RI-J Coulomb + XC, LDA or GGA) from a converged density matrix and
-  /// store it in the orbital container via Orbitals::setForces(), as the
-  /// physical force (-dE/dR, matching the convention external tools such
-  /// as ASE expect from a Calculator's getForces()).
+  /// Assemble the total ground-state nuclear gradient (one-electron
+  /// [kinetic + nuclear attraction] + nuclear repulsion + RI-J Coulomb +
+  /// XC, LDA or GGA) from a converged density matrix and store it in the
+  /// orbital container via Orbitals::setForces(), as the physical force
+  /// (-dE/dR, matching the convention external tools such as ASE expect
+  /// from a Calculator's getForces()).
+  ///
+  /// The one-electron term (kinetic + nuclear attraction) was initially
+  /// MISSING entirely -- discovered by the first genuine end-to-end
+  /// SCF+forces test (test_dftengine_forces.cc), since every earlier
+  /// gradient test in this branch validated individual terms against
+  /// fixed density matrices without ever checking the complete gradient
+  /// against a real total SCF energy.
   ///
   /// SCOPE, explicitly checked and logged rather than silently producing
   /// a wrong result: only supported when RI is actually in use for the

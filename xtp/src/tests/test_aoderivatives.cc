@@ -76,6 +76,7 @@
 // Local VOTCA includes
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aopotential.h>
 #include <votca/xtp/qmmolecule.h>
 
 using namespace votca::xtp;
@@ -94,6 +95,8 @@ std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
     const AOBasis& aobasis);
 std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
     const AOBasis& aobasis);
+std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
+    const AOBasis& aobasis, const QMMolecule& mol);
 using ThreeCenterDerivative = std::array<std::vector<Eigen::MatrixXd>, 3>;
 std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
     const AOBasis& auxbasis, const AOBasis& dftbasis);
@@ -476,6 +479,79 @@ BOOST_AUTO_TEST_CASE(three_center_derivative_finite_difference) {
               << std::endl;
   }
   BOOST_CHECK_EQUAL(all_match, true);
+
+  libint2::finalize();
+}
+
+// Nuclear attraction (electron-nucleus Coulomb) integral derivative --
+// the piece discovered MISSING from the total gradient assembly by the
+// first genuine end-to-end SCF+forces test
+// (test_dftengine_forces.cc), after every earlier gradient test in this
+// branch validated individual terms against fixed density matrices
+// without ever exercising the complete picture against a real total SCF
+// energy. Uses the same H2/3-21G setup as the other one-electron tests
+// above. Genuinely a 3-real-center integral per point charge (2 basis
+// centers + 1 point-charge atom) -- structurally the least-tested case
+// so far in terms of buffer count/ordering, by direct analogy with the
+// already-confirmed 3-center RI case but not independently checked at
+// this exact operator/point-charge combination.
+BOOST_AUTO_TEST_CASE(nuclear_attraction_derivative_finite_difference) {
+  libint2::initialize();
+
+  std::string basis_path =
+      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml";
+
+  double bond_length = 0.74;  // Angstrom, roughly H2 equilibrium
+  double h = 1e-4;            // Angstrom
+
+  BasisSet basisset;
+  basisset.Load(basis_path);
+
+  QMMolecule mol0 = BuildH2(bond_length);
+  AOBasis aobasis0;
+  aobasis0.Fill(basisset, mol0);
+
+  auto deriv = ComputeNuclearAttractionDerivatives(aobasis0, mol0);
+
+  // Same translational-invariance argument as overlap/kinetic/coulomb
+  // metric: V_ne depends only on relative positions (basis centers and
+  // point-charge positions), so the sum over all atoms' derivatives
+  // must vanish.
+  BOOST_CHECK_SMALL((deriv[0][2] + deriv[1][2]).cwiseAbs().maxCoeff(), 1e-8);
+
+  QMMolecule mol_plus = BuildH2(bond_length + h);
+  AOBasis aobasis_plus;
+  aobasis_plus.Fill(basisset, mol_plus);
+  AOMultipole esp_plus;
+  esp_plus.FillPotential(aobasis_plus, mol_plus);
+
+  QMMolecule mol_minus = BuildH2(bond_length - h);
+  AOBasis aobasis_minus;
+  aobasis_minus.Fill(basisset, mol_minus);
+  AOMultipole esp_minus;
+  esp_minus.FillPotential(aobasis_minus, mol_minus);
+
+  Eigen::MatrixXd finite_diff_deriv =
+      (esp_plus.Matrix() - esp_minus.Matrix()) / (2.0 * h);
+  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  finite_diff_deriv *= kBohrPerAngstrom;
+
+  bool matches = finite_diff_deriv.isApprox(deriv[1][2], 1e-4);
+  if (!matches) {
+    std::cout << "Analytic d(V_ne)/dz(atom1):\n" << deriv[1][2] << std::endl;
+    std::cout << "Finite-difference d(V_ne)/dz(atom1):\n"
+              << finite_diff_deriv << std::endl;
+    std::cout << "NOTE: if this fails with a large (not small numerical) "
+                 "discrepancy, check the buffer-count/ordering hypothesis "
+                 "for this operator (9 buffers, [shell1 atom][shell2 atom]"
+                 "[point-charge atom]) flagged in "
+                 "libint2_derivative_calls.cc first. If the SIGN looks "
+                 "flipped specifically, check the explicit negation "
+                 "against AOMultipole::FillPotential's own convention "
+                 "(also documented there)."
+              << std::endl;
+  }
+  BOOST_CHECK_EQUAL(matches, true);
 
   libint2::finalize();
 }

@@ -276,6 +276,17 @@ void DFTEngine::CalcElDipole(const Orbitals& orb) const {
 // test_dftgradient.cc and test_xcgradient.cc) -- this function's own new
 // content is just the SUMMATION and the sign convention, not any new
 // derivative math.
+// Defined in libint2_derivative_calls.cc, not yet in any header (same
+// STATUS noted throughout that file) -- forward declared here. Unlike
+// DFTGradient::RIJGradient/PulayGradient/etc., these return RAW AO-matrix
+// derivatives (d(matrix_munu)/dR), not already-contracted energy
+// gradients -- the contraction with Dmat is done explicitly below.
+using AOMatrixDerivative = std::array<Eigen::MatrixXd, 3>;
+std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
+    const AOBasis& aobasis);
+std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
+    const AOBasis& aobasis, const QMMolecule& mol);
+
 void DFTEngine::ComputeAndStoreForces(
     Orbitals& orb, const Eigen::MatrixXd& Dmat,
     const Vxc_Potential<Vxc_Grid>& vxcpotential) const {
@@ -304,9 +315,32 @@ void DFTEngine::ComputeAndStoreForces(
   }
 
   const QMMolecule& mol = orb.QMAtoms();
+  Index natoms = mol.size();
+
+  // One-electron (kinetic + nuclear attraction) contribution --
+  // dEone/dR_A = Tr[Dmat . d(T+V_ne)/dR_A]. This was the piece
+  // discovered MISSING from the total gradient by the first genuine
+  // end-to-end SCF+forces test (test_dftengine_forces.cc): kinetic
+  // derivatives were validated at the very start of this whole branch
+  // and then never actually wired into any gradient assembly, and
+  // nuclear attraction derivatives were never implemented at all until
+  // that gap was found. See ComputeNuclearAttractionDerivatives in
+  // libint2_derivative_calls.cc for the detailed derivation (sign
+  // convention checked directly against AOMultipole's own,
+  // already-validated energy-level code, not assumed).
+  std::vector<AOMatrixDerivative> dT = ComputeKineticDerivatives(dftbasis_);
+  std::vector<AOMatrixDerivative> dVne =
+      ComputeNuclearAttractionDerivatives(dftbasis_, mol);
+  Eigen::MatrixXd eone_grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      eone_grad(a, xyz) = Dmat.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
+    }
+  }
 
   Eigen::MatrixXd grad =
       DFTGradient::NuclearRepulsionDerivative(mol) +
+      eone_grad +
       DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_) +
       vxcpotential.PulayGradient(Dmat, dftbasis_) +
       vxcpotential.GridWeightGradient(Dmat, mol);

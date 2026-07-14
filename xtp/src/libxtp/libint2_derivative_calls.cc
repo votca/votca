@@ -90,6 +90,7 @@
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/openmp_cuda.h"
+#include "votca/xtp/qmmolecule.h"
 
 // include libint last otherwise it overrides eigen
 #include "votca/xtp/make_libint_work.h"
@@ -575,6 +576,165 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
     }
   }
   return tensor;
+}
+
+// ===========================================================================
+// Nuclear attraction (electron-nucleus Coulomb) integral derivative --
+// d(V_ne)/dR, the piece discovered MISSING from the total gradient
+// assembly by the first genuine end-to-end SCF+forces test
+// (test_dftengine_forces.cc). Every earlier gradient test in this branch
+// validated individual terms against FIXED density matrices, never the
+// complete picture against a real total SCF energy -- which is exactly
+// why this gap went undetected until now: kinetic derivatives were
+// validated at the very start of this session and then never actually
+// used in any gradient assembly, and this nuclear attraction piece was
+// never implemented at all.
+//
+// V_ne_munu = -sum_A Z_A * integral[ chi_mu(r) (1/|r-R_A|) chi_nu(r) dr ]
+//
+// Genuinely a 3-real-center integral per point charge: the two basis
+// function centers, PLUS the point charge's own position -- structurally
+// identical to the already-validated 3-center RI derivative case (2
+// basis centers + 1 external center = 3 total), just with a different
+// operator (libint2::Operator::nuclear instead of coulomb/xs_xx) and
+// looping over EACH atom as a single point charge at a time (via
+// engine.set_params(make_point_charges(...)) per atom, matching the
+// pattern in libint2's own reference example --
+// compute_1body_ints_deriv<Operator::nuclear> in
+// libint2/include/libint2/lcao/1body.h, used directly to build real HF
+// forces there) rather than all atoms simultaneously.
+//
+// SIGN: confirmed directly from this codebase's own existing,
+// already-validated energy-level code, not assumed -- AOMultipole::
+// FillPotential(aobasis, atoms) computes a POSITIVE-charge Fill(aobasis)
+// per atom then does `aopotential_ -= Fill(aobasis)`, and
+// DFTEngine::SetupH0 does `H0 = kinetic + dftAOESP` (a plain addition,
+// no extra negation by the caller) -- confirming AOMultipole's own
+// output is ALREADY negative (the correct, attractive V_ne sign).
+// libint2::Operator::nuclear computes the integral with a POSITIVE
+// point-charge convention directly (per its own "Coulomb potential due
+// to point charges" documentation, no built-in sign flip) -- so an
+// explicit negation is applied here to match this codebase's
+// established convention.
+//
+// STATUS: written but NOT yet run/tested. HIGHEST-RISK ASSUMPTION,
+// flagged explicitly since not yet directly confirmed for this specific
+// operator/point-charge combination (though well-grounded by direct
+// analogy with the CONFIRMED 3-center RI case, which has the same
+// 3-real-center structure): 9 buffers per shell-pair-per-point-charge,
+// ordered [shell1's atom][shell2's atom][point-charge atom]. If this is
+// wrong, expect either a crash/assertion (wrong buffer count) or a
+// right-count-wrong-ordering numerical discrepancy in a
+// finite-difference test -- do not trust this without running the
+// corresponding test first.
+// ===========================================================================
+std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
+    const AOBasis& aobasis, const QMMolecule& mol) {
+  Index natoms = mol.size();
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<libint2::Shell> shells = aobasis.GenerateLibintBasis();
+  std::vector<Index> shell2bf = aobasis.getMapToBasisFunctions();
+
+  std::vector<Index> shell2atom;
+  shell2atom.reserve(aobasis.getNumofShells());
+  for (Index s = 0; s < aobasis.getNumofShells(); ++s) {
+    shell2atom.push_back(aobasis.getShell(s).getAtomIndex());
+  }
+
+  Index nbf = aobasis.AOBasisSize();
+  std::vector<std::vector<AOMatrixDerivative>> result_thread(nthreads);
+  for (Index t = 0; t < nthreads; ++t) {
+    result_thread[t].resize(natoms);
+    for (Index a = 0; a < natoms; ++a) {
+      for (Index xyz = 0; xyz < 3; ++xyz) {
+        result_thread[t][a][xyz] = Eigen::MatrixXd::Zero(nbf, nbf);
+      }
+    }
+  }
+
+  std::vector<libint2::Engine> engines(nthreads);
+  for (Index i = 0; i < nthreads; ++i) {
+    engines[i] = libint2::Engine(libint2::Operator::nuclear,
+                                 aobasis.getMaxNprim(),
+                                 static_cast<int>(aobasis.getMaxL()), 1);
+  }
+
+  // Parallelized over the OUTER atom (point-charge) loop, not the inner
+  // shell-pair loop as in every other function in this file -- each
+  // atom needs its own engine.set_params() call (mutating shared engine
+  // state), so a per-thread engine set up fresh per atom is the natural
+  // parallelization axis here, not shell pairs within one fixed engine
+  // configuration.
+#pragma omp parallel for schedule(dynamic)
+  for (Index A = 0; A < natoms; ++A) {
+    Index thread_id = OPENMP::getThreadId();
+    libint2::Engine& engine = engines[thread_id];
+
+    std::vector<libint2::Atom> single_atom(1);
+    single_atom[0].atomic_number =
+        static_cast<int>(mol[A].getNuccharge());
+    single_atom[0].x = mol[A].getPos().x();
+    single_atom[0].y = mol[A].getPos().y();
+    single_atom[0].z = mol[A].getPos().z();
+    engine.set_params(libint2::make_point_charges(single_atom));
+
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
+
+    for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
+      Index bf1 = shell2bf[s1];
+      Index n1 = shells[s1].size();
+      Index atom1 = shell2atom[s1];
+
+      for (Index s2 = 0; s2 <= s1; ++s2) {
+        engine.compute(shells[s1], shells[s2]);
+
+        if (buf[0] == nullptr) {
+          continue;
+        }
+
+        Index bf2 = shell2bf[s2];
+        Index n2 = shells[s2].size();
+        Index atom2 = shell2atom[s2];
+
+        for (Index xyz = 0; xyz < 3; ++xyz) {
+          Eigen::Map<const Eigen::MatrixXd> buf_mat1(buf[xyz], n1, n2);
+          result_thread[thread_id][atom1][xyz].block(bf1, bf2, n1, n2) -=
+              buf_mat1;
+          if (s1 != s2) {
+            result_thread[thread_id][atom1][xyz].block(bf2, bf1, n2, n1) -=
+                buf_mat1.transpose();
+          }
+
+          Eigen::Map<const Eigen::MatrixXd> buf_mat2(buf[3 + xyz], n1, n2);
+          result_thread[thread_id][atom2][xyz].block(bf1, bf2, n1, n2) -=
+              buf_mat2;
+          if (s1 != s2) {
+            result_thread[thread_id][atom2][xyz].block(bf2, bf1, n2, n1) -=
+                buf_mat2.transpose();
+          }
+
+          Eigen::Map<const Eigen::MatrixXd> buf_mat3(buf[6 + xyz], n1, n2);
+          result_thread[thread_id][A][xyz].block(bf1, bf2, n1, n2) -=
+              buf_mat3;
+          if (s1 != s2) {
+            result_thread[thread_id][A][xyz].block(bf2, bf1, n2, n1) -=
+                buf_mat3.transpose();
+          }
+        }
+      }
+    }
+  }
+
+  std::vector<AOMatrixDerivative> result(natoms);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      result[a][xyz] = Eigen::MatrixXd::Zero(nbf, nbf);
+      for (Index t = 0; t < nthreads; ++t) {
+        result[a][xyz] += result_thread[t][a][xyz];
+      }
+    }
+  }
+  return result;
 }
 
 }  // namespace xtp
