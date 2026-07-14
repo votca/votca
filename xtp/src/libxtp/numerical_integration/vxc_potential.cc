@@ -447,7 +447,7 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
     const std::vector<Index>& owner_atoms = box.getOwnerAtoms();
 
     for (Index p = 0; p < box.size(); ++p) {
-      AOShell::AOValues ao = box.CalcAOValues(points[p]);
+      AOShell::AOValuesHessian ao = box.CalcAOValuesHessian(points[p]);
 
       Eigen::VectorXd temp = ao.values.transpose() * DMAT_here;
       double rho = 0.5 * temp.dot(ao.values);
@@ -460,6 +460,55 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
       const Eigen::Vector3d rho_grad = temp.transpose() * ao.derivatives;
       typename Vxc_Potential<Grid>::XC_entry xc =
           EvaluateXC(rho, rho_grad.squaredNorm());
+
+      // ===========================================================
+      // GGA SIGMA-DEPENDENT TERMS (added after the LDA-only version was
+      // fully validated -- see aoshell.h/aoshell.cc for the
+      // EvalAOspaceHessian this depends on, and conversation history
+      // for the derivation, independently verified numerically in
+      // Python on a toy multi-atom system to ~1e-12 before writing any
+      // of this C++). Exactly zero for LDA functionals (xc.df_dsigma is
+      // default-initialized to 0 and untouched by xc_lda_exc_vxc, which
+      // never writes to it -- confirmed directly in EvaluateXC above),
+      // so this cannot regress the already-validated LDA behavior;
+      // safe to compute unconditionally rather than branch on
+      // functional type.
+      //
+      // sigma_p = |grad_r(rho_p)|^2 = rho_grad . rho_grad
+      //
+      // Gmat(mu,l) = sum_nu DMAT_mu,nu * grad_nu,l = (DMAT_here * ao.derivatives)
+      // s_vec(mu)  = sum_l Gmat(mu,l) * rho_grad_l = Gmat * rho_grad
+      //
+      // Basis-type (mu in A):
+      //   dsigma_p/dR_A|_basis = -2 * sum_{mu in A} [ grad_mu * s_vec(mu)
+      //                                                + temp_mu * (Hessian_mu . rho_grad) ]
+      //
+      // Translation-type (A == owner(p) only), via the density's OWN
+      // Hessian at this point:
+      //   Hessian_rho = sum_mu temp_mu*Hessian_mu
+      //                 + symmetrized(ao.derivatives^T * Gmat)
+      //   dsigma_p/dR_owner|_translation = 2 * (Hessian_rho * rho_grad)
+      //
+      // Both contract with v_sigma = xc.df_dsigma (LibXC's vsigma
+      // convention, analogous to df_drho/vrho -- already the full
+      // dE_xc/dsigma, no further correction needed, same reasoning
+      // already confirmed for df_drho) and the point's full weight,
+      // exactly like the rho-dependent terms above/below.
+      Eigen::MatrixX3d Gmat = DMAT_here * ao.derivatives;  // (Matrixsize x 3)
+      Eigen::VectorXd s_vec = Gmat * rho_grad;  // (Matrixsize)
+
+      Eigen::Matrix3d Hessian_rho = Eigen::Matrix3d::Zero();
+      for (Index mu = 0; mu < box.Matrixsize(); ++mu) {
+        Hessian_rho += temp(mu) * ao.hessians[mu];
+      }
+      Eigen::Matrix3d M = ao.derivatives.transpose() * Gmat;
+      Hessian_rho += 0.5 * (M + M.transpose());
+
+      Index owner_of_point_sigma = owner_atoms[p];
+      Eigen::Vector3d dsigma_translation = 2.0 * (Hessian_rho * rho_grad);
+      grad_thread[thread_id].row(owner_of_point_sigma) +=
+          (weight * xc.df_dsigma * dsigma_translation).transpose();
+      // ===========================================================
 
       // ===========================================================
       // NEWLY ADDED TERM: grid-point translation.
@@ -513,6 +562,13 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
         Index atom = local_idx_to_atom[mu];
         Eigen::Vector3d contribution =
             -weight * xc.df_drho * temp(mu) * ao.derivatives.row(mu).transpose();
+        // GGA sigma basis-type term, added to the same per-mu
+        // contribution (same atom, same accumulation) -- see the
+        // detailed derivation comment above.
+        Eigen::Vector3d dsigma_basis_mu =
+            -2.0 * (ao.derivatives.row(mu).transpose() * s_vec(mu) +
+                    temp(mu) * (ao.hessians[mu] * rho_grad));
+        contribution += weight * xc.df_dsigma * dsigma_basis_mu;
         grad_thread[thread_id].row(atom) += contribution.transpose();
       }
     }

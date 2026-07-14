@@ -38,6 +38,13 @@ class GridBox {
   void FindSignificantShells(const AOBasis& basis);
   AOShell::AOValues CalcAOValues(const Eigen::Vector3d& point) const;
 
+  // Added for GGA XC-gradient support -- same pattern as CalcAOValues
+  // above (loop over significant_shells, pack into box-local ranges via
+  // aoranges), calling AOShell::EvalAOspaceHessian instead of
+  // EvalAOspace.
+  AOShell::AOValuesHessian CalcAOValuesHessian(
+      const Eigen::Vector3d& point) const;
+
   const std::vector<Eigen::Vector3d>& getGridPoints() const { return grid_pos; }
 
   const std::vector<double>& getGridWeights() const { return weights; }

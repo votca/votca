@@ -54,26 +54,29 @@ class Vxc_Potential {
                               const Eigen::MatrixXd& dmat_beta) const;
 
   // ===========================================================================
-  // STATUS: originally basis-function/Pulay term only; a second, distinct
-  // term (grid-point translation) was added later after the
+  // STATUS: originally basis-function/Pulay term only (LDA-only); a
+  // second, distinct term (grid-point translation) was added after the
   // GridWeightGradient C_p fix substantially improved but did not fully
-  // resolve a residual discrepancy against finite differences -- see
-  // vxc_potential.cc for the full derivation of both terms. The name
-  // "PulayGradient" is now a slight misnomer (it computes basis-function
-  // + grid-point-translation contributions together, since both loop
-  // over the same grid points and share the same expensive AO
-  // evaluation) -- kept for now rather than renaming mid-branch, but
-  // worth reconsidering once the whole XC gradient is confirmed correct.
+  // resolve a residual discrepancy against finite differences; a third
+  // addition (GGA sigma-dependent contributions to BOTH the basis and
+  // translation terms, using AOShell::EvalAOspaceHessian) followed once
+  // the LDA-only version was fully validated end to end -- see
+  // vxc_potential.cc for the full derivation of all three. The name
+  // "PulayGradient" is now a real misnomer (it computes basis-function +
+  // grid-point-translation + GGA-sigma contributions together, since
+  // they all loop over the same grid points and share the same
+  // expensive AO evaluation) -- kept for now rather than renaming
+  // mid-branch, but worth reconsidering once the whole XC gradient is
+  // confirmed correct for GGA too.
   //
-  // Valid in FULL for LDA functionals for the basis-function part; for
-  // GGA functionals it captures only the df_drho-driven part of that
-  // term, NOT the additional df_dsigma-driven Pulay contribution, which
-  // needs second derivatives of basis functions w.r.t. electron position
-  // (not yet available anywhere in this codebase). The grid-point-
-  // translation term added later has the same LDA-only caveat (uses
-  // df_drho only, not df_dsigma). The grid-weight (SSW partition)
-  // derivative term is a separate, third piece, computed in
-  // GridWeightGradient below.
+  // The GGA sigma terms are exactly zero for LDA functionals (xc.df_dsigma
+  // is default-initialized to 0 and never written to by xc_lda_exc_vxc --
+  // confirmed directly in EvaluateXC), so they cannot regress the
+  // already-validated LDA behavior; computed unconditionally rather than
+  // branching on functional type. NOT yet confirmed correct for GGA by
+  // an actual test, though the underlying dsigma/dR formula was verified
+  // numerically (to ~1e-12) on a toy multi-atom system before writing
+  // any of this C++ -- see conversation history.
   // ===========================================================================
   Eigen::MatrixXd PulayGradient(const Eigen::MatrixXd& density_matrix,
                                 const AOBasis& dftbasis) const;
