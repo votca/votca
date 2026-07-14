@@ -49,6 +49,7 @@
 // Standard includes
 #include <cmath>
 #include <fstream>
+#include <functional>
 #include <iostream>
 
 // Third party includes
@@ -78,19 +79,29 @@ QMMolecule BuildH2(double bond_length_angstrom) {
 }
 
 // Writes the options XML and runs one full SCF calculation at the given
-// bond length, returning the converged Orbitals object.
-Orbitals RunSCF(double bond_length_angstrom) {
+// bond length, returning the converged Orbitals object. functional
+// defaults to the existing non-hybrid GGA choice; pass a hybrid
+// functional (e.g. "XC_HYB_GGA_XC_PBEH", the same name already used and
+// confirmed valid in test_dftengine.cc's dft_full test) to exercise the
+// RI-K/hybrid path in ComputeAndStoreForces.
+Orbitals RunSCF(double bond_length_angstrom,
+                const std::string& functional = "XC_GGA_X_PBE XC_GGA_C_PBE") {
   DFTEngine dft;
   Orbitals orb;
   orb.QMAtoms() = BuildH2(bond_length_angstrom);
 
-  std::string xml_path = "/tmp/xtp_test_dftengine_forces.xml";
+  // Distinct temp file per functional, so a hybrid-functional test run
+  // (see below) can't collide with or be shadowed by the non-hybrid
+  // test's own options file if tests happen to run concurrently.
+  std::string xml_path =
+      "/tmp/xtp_test_dftengine_forces_" +
+      std::to_string(std::hash<std::string>{}(functional)) + ".xml";
   std::ofstream xml(xml_path);
   xml << "<dftpackage>\n";
   xml << "<spin>1</spin>\n";
   xml << "<name>xtp</name>\n";
   xml << "<charge>0</charge>\n";
-  xml << "<functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional>\n";
+  xml << "<functional>" << functional << "</functional>\n";
   xml << "<basisset>" << XTP_TEST_DATA_FOLDER
       << "/threecenter_dft/3-21G.xml</basisset>\n";
   xml << "<auxbasisset>" << XTP_TEST_DATA_FOLDER
@@ -187,6 +198,75 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference) {
                  "whether tightening SCF convergence or h changes the "
                  "result substantially (would suggest reconvergence "
                  "noise rather than a real formula bug)."
+              << std::endl;
+  }
+  BOOST_CHECK_EQUAL(matches, true);
+
+  libint2::finalize();
+}
+
+// Same pattern as forces_finite_difference above, but with a hybrid
+// functional (XC_HYB_GGA_XC_PBEH -- same name already used and
+// confirmed valid in test_dftengine.cc's dft_full test), to exercise
+// the RI-K/exact-exchange path in ComputeAndStoreForces end to end for
+// the first time. Everything else in the pipeline (nuclear repulsion,
+// one-electron, overlap Pulay force, RI-J, XC) is already validated by
+// the non-hybrid test above; this specifically checks the newly-added
+// ScaHFX_ * RIKGradient(...) contribution, on top of a real,
+// self-consistently-converged hybrid SCF (RIKGradient's underlying
+// formula was separately validated against real production code with a
+// FIXED, arbitrary MO coefficient matrix in test_dftgradient.cc -- this
+// is the first check of it with genuine, converged occupied MOs feeding
+// back into its own Fock matrix).
+//
+// STATUS: written but NOT yet run.
+BOOST_AUTO_TEST_CASE(forces_finite_difference_hybrid) {
+  libint2::initialize();
+
+  double bond_length = 0.74;  // Angstrom
+  double h = 1e-3;            // Angstrom, same reasoning as above
+  const std::string functional = "XC_HYB_GGA_XC_PBEH";
+
+  Orbitals orb0 = RunSCF(bond_length, functional);
+  BOOST_REQUIRE_EQUAL(orb0.hasForces(), true);
+  Eigen::MatrixXd forces = orb0.getForces();
+
+  std::cout << "H2 hybrid SCF forces:\n" << forces << std::endl;
+  std::cout << "H2 hybrid SCF energy: " << orb0.getDFTTotalEnergy()
+             << std::endl;
+
+  Eigen::Vector3d sum = forces.colwise().sum();
+  BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
+
+  Orbitals orb_plus = RunSCF(bond_length + h, functional);
+  Orbitals orb_minus = RunSCF(bond_length - h, functional);
+
+  double e_plus = orb_plus.getDFTTotalEnergy();
+  double e_minus = orb_minus.getDFTTotalEnergy();
+
+  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  double finite_diff_dEdz =
+      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  double finite_diff_force = -finite_diff_dEdz;
+
+  double analytic_force = forces(1, 2);
+
+  std::cout << "Analytic force on atom 1 (z): " << analytic_force
+             << std::endl;
+  std::cout << "Finite-difference force on atom 1 (z): "
+             << finite_diff_force << std::endl;
+
+  bool matches = std::abs(finite_diff_force - analytic_force) <
+                 1e-2 * std::abs(analytic_force);
+  if (!matches) {
+    std::cout << "NOTE: since the non-hybrid test above already "
+                 "validates everything except the RI-K term, a failure "
+                 "here most likely points at the ScaHFX_ * RIKGradient "
+                 "contribution specifically -- e.g. an issue with how "
+                 "C_occ (built for the overlap Pulay term, reused here) "
+                 "is threaded through, or a remaining scale/sign issue "
+                 "not caught by the FIXED-MO-matrix test in "
+                 "test_dftgradient.cc."
               << std::endl;
   }
   BOOST_CHECK_EQUAL(matches, true);
