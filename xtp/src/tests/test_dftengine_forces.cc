@@ -15,6 +15,13 @@
  */
 
 // ===========================================================================
+// REPO NOTE: force computation is opt-in (compute_forces_ defaults to
+// false, since it adds real cost to every converged SCF) -- RunSCF
+// below explicitly sets <compute_forces>true</compute_forces> in its
+// options XML for exactly this reason. If this test ever starts failing
+// with hasForces()==false and no other error, check that setting first
+// before suspecting a real regression.
+//
 // STATUS: written but NOT yet run. This is the most decisive validation
 // possible for DFTEngine::ComputeAndStoreForces -- a genuine end-to-end
 // test: real SCF convergence (not a fixed/arbitrary density matrix, as
@@ -125,6 +132,7 @@ Orbitals RunSCF(double bond_length_angstrom,
   xml << "</convergence>\n";
   xml << "<integration_grid>xcoarse</integration_grid>\n";
   xml << "<max_iterations>200</max_iterations>\n";
+  xml << "<compute_forces>true</compute_forces>\n";
   xml << "</xtpdft>\n";
   xml << "</dftpackage>\n";
   xml.close();

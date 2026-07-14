@@ -279,6 +279,14 @@ class DFTEngine {
   /// a wrong result: only supported when RI is actually in use for the
   /// SCF (auxbasis_name_ non-empty -- DFTGradient::RIJGradient/RIKGradient
   /// only implement the RI path, not conventional 4-center ERIs).
+  ///
+  /// OPT-IN: only called at all if compute_forces_ is true (see its
+  /// declaration below), settable via <xtpdft><compute_forces>true
+  /// </compute_forces></xtpdft> in the options tree, defaulting to false.
+  /// Computing forces adds real, non-trivial cost to every converged
+  /// SCF, so this is deliberately not silently always-on -- added after
+  /// this was pointed out as an unflagged side effect of the original,
+  /// unconditional wiring.
   void ComputeAndStoreForces(Orbitals& orb, const Eigen::MatrixXd& Dmat,
                              const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
 
@@ -356,6 +364,19 @@ class DFTEngine {
   Index spin_ = 1;
   Index charge_ = 0;
   bool force_uks_path_ = false;
+  // Default false to preserve existing performance for callers not
+  // using this feature -- computing forces adds real, non-trivial cost
+  // (kinetic/nuclear-attraction/overlap derivatives, RI-J gradient, full
+  // XC gradient, RI-K for hybrids) to every converged SCF, so this must
+  // be explicit opt-in, not silently always-on. Settable via the
+  // <xtpdft> options block, which flows through unmodified from
+  // XTPDFT::RunDFT() (options_) straight into DFTEngine::Initialize --
+  // confirmed directly by reading XTPDFT::ParseSpecificOptions, which
+  // only extracts a single unrelated field (temporary_file) and does
+  // not filter/transform anything else -- so this option is
+  // automatically available through the full QMPackage/XTPDFT flow with
+  // no changes needed there.
+  bool compute_forces_ = false;
 };
 
 }  // namespace xtp

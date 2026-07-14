@@ -105,6 +105,10 @@ void DFTEngine::Initialize(tools::Property& options) {
     force_uks_path_ = options.get(key_xtpdft + ".force_uks_path").as<bool>();
   }
 
+  if (options.exists(key_xtpdft + ".compute_forces")) {
+    compute_forces_ = options.get(key_xtpdft + ".compute_forces").as<bool>();
+  }
+
   initial_guess_ = options.get(".initial_guess").as<std::string>();
 
   grid_name_ = options.get(key_xtpdft + ".integration_grid").as<std::string>();
@@ -687,7 +691,9 @@ bool DFTEngine::EvaluateClosedShell(
           nuclear_charge - numofelectrons_,
           std::abs(num_alpha_electrons_ - num_beta_electrons_) + 1);
 
-      ComputeAndStoreForces(orb, Dmat, vxcpotential);
+      if (compute_forces_) {
+        ComputeAndStoreForces(orb, Dmat, vxcpotential);
+      }
 
       CalcElDipole(orb);
       return true;
