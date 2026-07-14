@@ -50,6 +50,8 @@ constexpr double kTol = 1e-10;
 using AOMatrixDerivative = std::array<Eigen::MatrixXd, 3>;
 std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(
     const AOBasis& aobasis);
+std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
+    const AOBasis& auxbasis, const AOBasis& dftbasis);
 
 class DFTEngineTestAccess {
  public:
@@ -414,6 +416,34 @@ BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
     std::cerr << "[diagnostic] ERIs::Removedfunctions() = "
               << eris.Removedfunctions() << std::endl;
     Eigen::MatrixXd J = eris.CalculateERIs_3c(D_total);
+
+    // DIAGNOSTIC: build J the SAME way RIJGradient itself does
+    // internally (raw three-center tensor + plain LDLT solve, no
+    // eigenvalue screening), to check directly whether the two J
+    // constructions actually agree at the ENERGY level -- isolating
+    // whether a discrepancy lives in the J construction itself or
+    // specifically in the gradient formula built on top of it.
+    {
+      std::vector<Eigen::MatrixXd> tensor =
+          ComputeThreeCenterIntegrals(auxbasis, dftbasis);
+      Index n_aux_bf = auxbasis.AOBasisSize();
+      Eigen::VectorXd d(n_aux_bf);
+      for (Index p = 0; p < n_aux_bf; ++p) {
+        d(p) = (D_total.array() * tensor[p].array()).sum();
+      }
+      AOCoulomb aocoulomb;
+      aocoulomb.Fill(auxbasis);
+      Eigen::VectorXd c = aocoulomb.Matrix().ldlt().solve(d);
+      Eigen::MatrixXd J_rijstyle = Eigen::MatrixXd::Zero(J.rows(), J.cols());
+      for (Index p = 0; p < n_aux_bf; ++p) {
+        J_rijstyle += c(p) * tensor[p];
+      }
+      std::cerr << std::setprecision(10)
+                << "[J comparison diagnostic] (J - J_rijstyle).norm() = "
+                << (J - J_rijstyle).norm() << "  J.norm()=" << J.norm()
+                << std::endl;
+    }
+
     double E_coul = 0.5 * D_total.cwiseProduct(J).sum();
 
     double E_exx = 0.0;
