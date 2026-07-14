@@ -110,6 +110,43 @@ class Vxc_Potential {
   Eigen::MatrixXd GridWeightGradient(const Eigen::MatrixXd& density_matrix,
                                      const QMMolecule& atoms) const;
 
+  // ===========================================================================
+  // UKS (spin-polarized) analogs of PulayGradient/GridWeightGradient
+  // above. LDA-ONLY for now -- GGA needs the additional sigma_aa/
+  // sigma_ab/sigma_bb cross-term structure (no analog in the spin-
+  // restricted case at all, not just an extension of the existing
+  // sigma=|grad(rho)|^2 machinery), genuinely new derivation work not
+  // yet attempted. Throws if called with a GGA/hybrid-GGA functional.
+  //
+  // Basis-type and translation-type terms both generalize the
+  // spin-restricted derivation directly, verified numerically (Python,
+  // toy multi-atom system, ~1e-11) before writing this: for each spin
+  // channel s in {a,b},
+  //   d(rho_s,p)/dR_A|_basis = -2 * sum_{mu in A} temp_s,mu * grad(chi_mu)
+  //   d(rho_s,p)/dR_A|_translation = grad_s,p   if A == owner(p), else 0
+  // (matching this file's own IntegrateVXCSpin convention exactly:
+  // temp_s = dmat_s * ao.values, grad_s = 2*(ao.derivatives^T * temp_s),
+  // no extra factor of 2 needed for temp_s itself since UKS spin
+  // density matrices are NOT pre-doubled, unlike RKS's DMAT_here=2*P).
+  // Contracted with vrho_a/vrho_b (EvaluateXCSpin's own "full potential"
+  // convention, same reasoning already established for the restricted
+  // case's df_drho -- no further correction needed) and summed over
+  // both spin channels.
+  //
+  // The weight-derivative term is functional-form-agnostic (same
+  // geometric dw/dR logic as the restricted GridWeightGradient,
+  // unchanged) -- only the energy-density prefactor changes, from
+  // rho*f_xc to (rho_a+rho_b)*f_xc (EvaluateXCSpin's own f_xc
+  // convention, matching IntegrateVXCSpin's own energy accumulation
+  // exactly: exc_private += weight*rho*xc.f_xc, rho=rho_a+rho_b).
+  Eigen::MatrixXd PulayGradientUKS(const Eigen::MatrixXd& dmat_alpha,
+                                   const Eigen::MatrixXd& dmat_beta,
+                                   const AOBasis& dftbasis) const;
+  Eigen::MatrixXd GridWeightGradientUKS(const Eigen::MatrixXd& dmat_alpha,
+                                        const Eigen::MatrixXd& dmat_beta,
+                                        const QMMolecule& atoms) const;
+  // ===========================================================================
+
  private:
   struct XC_entry {
     double f_xc = 0;
