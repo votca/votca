@@ -1165,8 +1165,30 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradientUKS(
       const Eigen::Vector3d grad_b =
           2.0 * (ao.derivatives.transpose() * temp_b);
       Index owner_of_point = owner_atoms[p];
+      Eigen::Vector3d translation_contribution =
+          weight * (xc.vrho_a * grad_a + xc.vrho_b * grad_b);
       grad_thread[thread_id].row(owner_of_point) +=
-          (weight * (xc.vrho_a * grad_a + xc.vrho_b * grad_b)).transpose();
+          translation_contribution.transpose();
+
+      // DIAGNOSTIC: print full detail for one representative,
+      // non-negligible point, to isolate a large (~30%) discrepancy
+      // against finite differences seen in the first real test run.
+      static bool printed_diag = false;
+      if (owner_of_point == 1 && rho > 1.e-4 && !printed_diag) {
+#pragma omp critical
+        {
+          std::cerr << std::setprecision(10)
+                    << "[PulayGradientUKS diagnostic] owner=" << owner_of_point
+                    << " rho_a=" << rho_a << " rho_b=" << rho_b
+                    << " weight=" << weight << " vrho_a=" << xc.vrho_a
+                    << " vrho_b=" << xc.vrho_b << " f_xc=" << xc.f_xc
+                    << "\n  grad_a=" << grad_a.transpose()
+                    << " grad_b=" << grad_b.transpose()
+                    << "\n  translation_contribution="
+                    << translation_contribution.transpose() << std::endl;
+          printed_diag = true;
+        }
+      }
 
       // Basis-type term, accumulated per local AO index mu, scattered to
       // the correct atom via local_idx_to_atom -- same derivation as
