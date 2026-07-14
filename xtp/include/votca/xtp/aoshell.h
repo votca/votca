@@ -133,6 +133,45 @@ class AOShell {
 
   AOValues EvalAOspace(const Eigen::Vector3d& grid_pos) const;
 
+  // ===========================================================================
+  // STATUS: written but NOT yet compiled/tested (see aoshell.cc for the
+  // detailed derivation). Added for GGA XC-gradient support -- the
+  // existing AOValues/EvalAOspace (first derivatives only) is untouched;
+  // this is a new, separate struct/function reusing the SAME per-shell
+  // polynomial structure, extended with second r-derivatives (Hessians),
+  // needed to differentiate sigma=|grad(rho)|^2 for GGA functionals.
+  //
+  // Supports S, P, D, F, G shells (l=0..4), matching EvalAOspace's own
+  // supported range exactly -- not a new limitation, same shells this
+  // codebase's AO evaluator has always supported for values/gradients.
+  //
+  // General formula (verified symbolically/exactly against direct
+  // double differentiation for representative polynomials spanning
+  // every supported shell, via sympy, before writing any of this):
+  // for chi(r) = exp(-alpha*d^2) * P(center), d^2=|center|^2,
+  //   H_ij = prefactor * d2P/dxi_dxj
+  //          - 2*alpha*delta_ij*AOvalue
+  //          - 2*alpha*xi*grad_j - 2*alpha*xj*grad_i
+  //          - 4*alpha^2*xi*xj*AOvalue
+  // where prefactor, AOvalue, grad_i are exactly the quantities
+  // EvalAOspace already computes for the SAME shell -- only the new
+  // d2P/dxi_dxj terms (the polynomial P's own second derivatives,
+  // exact per shell, also sympy-verified) are new per-shell content.
+  // ===========================================================================
+  struct AOValuesHessian {
+    AOValuesHessian(Index size) {
+      values = Eigen::VectorXd::Zero(size);
+      derivatives = Eigen::MatrixX3d::Zero(size, 3);
+      hessians = std::vector<Eigen::Matrix3d>(
+          size, Eigen::Matrix3d::Zero());
+    }
+    Eigen::VectorXd values;
+    Eigen::MatrixX3d derivatives;
+    std::vector<Eigen::Matrix3d> hessians;
+  };
+
+  AOValuesHessian EvalAOspaceHessian(const Eigen::Vector3d& grid_pos) const;
+
   // iterator over pairs (decay constant; contraction coefficient)
   using GaussianIterator = std::vector<AOGaussianPrimitive>::const_iterator;
   GaussianIterator begin() const { return gaussians_.begin(); }

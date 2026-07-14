@@ -15,6 +15,8 @@ list(APPEND test_cases test_aobasis)
 list(APPEND test_cases test_aomatrix)
 list(APPEND test_cases test_aomatrix3d)
 list(APPEND test_cases test_aoshell)
+# DRAFT/UNTESTED -- see file header comment before trusting this.
+list(APPEND test_cases test_aoshell_hessian)
 list(APPEND test_cases test_aotransform)
 list(APPEND test_cases test_aopotential)
 list(APPEND test_cases test_atom)
