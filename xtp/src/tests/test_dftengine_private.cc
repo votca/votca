@@ -411,6 +411,8 @@ BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
 
     ERIs eris;
     eris.Initialize(dftbasis, auxbasis);
+    std::cerr << "[diagnostic] ERIs::Removedfunctions() = "
+              << eris.Removedfunctions() << std::endl;
     Eigen::MatrixXd J = eris.CalculateERIs_3c(D_total);
     double E_coul = 0.5 * D_total.cwiseProduct(J).sum();
 
