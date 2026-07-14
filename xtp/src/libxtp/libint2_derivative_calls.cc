@@ -604,29 +604,25 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
 // libint2/include/libint2/lcao/1body.h, used directly to build real HF
 // forces there) rather than all atoms simultaneously.
 //
-// SIGN: confirmed directly from this codebase's own existing,
-// already-validated energy-level code, not assumed -- AOMultipole::
-// FillPotential(aobasis, atoms) computes a POSITIVE-charge Fill(aobasis)
+// SIGN: this codebase's own existing, already-validated energy-level
+// code confirms V_ne (AOMultipole::FillPotential's output) is negative
+// (attractive) -- AOMultipole computes a POSITIVE-charge Fill(aobasis)
 // per atom then does `aopotential_ -= Fill(aobasis)`, and
 // DFTEngine::SetupH0 does `H0 = kinetic + dftAOESP` (a plain addition,
-// no extra negation by the caller) -- confirming AOMultipole's own
-// output is ALREADY negative (the correct, attractive V_ne sign).
-// libint2::Operator::nuclear computes the integral with a POSITIVE
-// point-charge convention directly (per its own "Coulomb potential due
-// to point charges" documentation, no built-in sign flip) -- so an
-// explicit negation is applied here to match this codebase's
-// established convention.
+// no extra negation by the caller). Initially reasoned (incorrectly)
+// that libint2::Operator::nuclear must therefore need an explicit
+// negation to match -- a finite-difference test (exact magnitude match,
+// opposite sign in every single element) confirmed the OPPOSITE:
+// libint2::Operator::nuclear already returns the attractive (negative)
+// convention directly, no negation needed. Fixed by using += throughout
+// rather than -=. Worth remembering as a concrete example of why this
+// branch insists on actually running things rather than trusting
+// plausible-sounding sign reasoning alone.
 //
-// STATUS: written but NOT yet run/tested. HIGHEST-RISK ASSUMPTION,
-// flagged explicitly since not yet directly confirmed for this specific
-// operator/point-charge combination (though well-grounded by direct
-// analogy with the CONFIRMED 3-center RI case, which has the same
-// 3-real-center structure): 9 buffers per shell-pair-per-point-charge,
-// ordered [shell1's atom][shell2's atom][point-charge atom]. If this is
-// wrong, expect either a crash/assertion (wrong buffer count) or a
-// right-count-wrong-ordering numerical discrepancy in a
-// finite-difference test -- do not trust this without running the
-// corresponding test first.
+// STATUS: buffer count/ordering (9 buffers per shell-pair-per-point-
+// charge, [shell1 atom][shell2 atom][point-charge atom]) CONFIRMED
+// correct by the same finite-difference test -- only the sign was
+// wrong, now fixed. Re-run pending to confirm the fix.
 // ===========================================================================
 std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
     const AOBasis& aobasis, const QMMolecule& mol) {
@@ -697,27 +693,35 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
         Index atom2 = shell2atom[s2];
 
         for (Index xyz = 0; xyz < 3; ++xyz) {
+          // SIGN FIX: confirmed via finite-difference test (exact
+          // magnitude match, opposite sign everywhere) that
+          // libint2::Operator::nuclear already returns the attractive
+          // (negative) V_ne convention directly -- the explicit
+          // negation originally here (reasoned from AOMultipole's own
+          // "positive charge in, subtract" pattern) was backwards,
+          // double-negating an already-correctly-signed quantity. Using
+          // += throughout now, not -=.
           Eigen::Map<const Eigen::MatrixXd> buf_mat1(buf[xyz], n1, n2);
-          result_thread[thread_id][atom1][xyz].block(bf1, bf2, n1, n2) -=
+          result_thread[thread_id][atom1][xyz].block(bf1, bf2, n1, n2) +=
               buf_mat1;
           if (s1 != s2) {
-            result_thread[thread_id][atom1][xyz].block(bf2, bf1, n2, n1) -=
+            result_thread[thread_id][atom1][xyz].block(bf2, bf1, n2, n1) +=
                 buf_mat1.transpose();
           }
 
           Eigen::Map<const Eigen::MatrixXd> buf_mat2(buf[3 + xyz], n1, n2);
-          result_thread[thread_id][atom2][xyz].block(bf1, bf2, n1, n2) -=
+          result_thread[thread_id][atom2][xyz].block(bf1, bf2, n1, n2) +=
               buf_mat2;
           if (s1 != s2) {
-            result_thread[thread_id][atom2][xyz].block(bf2, bf1, n2, n1) -=
+            result_thread[thread_id][atom2][xyz].block(bf2, bf1, n2, n1) +=
                 buf_mat2.transpose();
           }
 
           Eigen::Map<const Eigen::MatrixXd> buf_mat3(buf[6 + xyz], n1, n2);
-          result_thread[thread_id][A][xyz].block(bf1, bf2, n1, n2) -=
+          result_thread[thread_id][A][xyz].block(bf1, bf2, n1, n2) +=
               buf_mat3;
           if (s1 != s2) {
-            result_thread[thread_id][A][xyz].block(bf2, bf1, n2, n1) -=
+            result_thread[thread_id][A][xyz].block(bf2, bf1, n2, n1) +=
                 buf_mat3.transpose();
           }
         }
