@@ -39,6 +39,8 @@ list(APPEND test_cases test_densityintegration)
 list(APPEND test_cases test_dftcoupling)
 list(APPEND test_cases test_dftengine)
 list(APPEND test_cases test_dftengine_private)
+# DRAFT/UNTESTED, slow (three full SCF runs) -- see file header comment.
+list(APPEND test_cases test_dftengine_forces)
 # DRAFT/UNTESTED -- see file header comment before trusting this.
 list(APPEND test_cases test_dftgradient)
 list(APPEND test_cases test_diabatization)
