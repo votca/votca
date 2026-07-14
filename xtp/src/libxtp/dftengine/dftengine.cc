@@ -507,6 +507,11 @@ Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
   Eigen::MatrixXd overlap_pulay_grad =
       ComputeOverlapPulayGradientUKS(mol, MOs_alpha, MOs_beta);
 
+  // Only computed here if ScaHFX_>0 (RI-K only) -- note this duplicates
+  // the same construction inside ComputeOverlapPulayGradientUKS
+  // (extracted to its own method above, which needs its own copy
+  // internally). A minor redundancy, not a correctness issue -- these
+  // are cheap matrix slices, not expensive computations.
   Eigen::MatrixXd grad = DFTGradient::NuclearRepulsionDerivative(mol) +
                          eone_grad + overlap_pulay_grad +
                          DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
@@ -522,6 +527,10 @@ Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
   // 0.5*ScaHFX_*[RIKGradient(C_alpha_occ)+RIKGradient(C_beta_occ)], not
   // the naive ScaHFX_*(...) that would be a factor-of-2 error.
   if (ScaHFX_ > 0.0) {
+    Eigen::MatrixXd C_alpha_occ =
+        MOs_alpha.eigenvectors().leftCols(num_alpha_electrons_);
+    Eigen::MatrixXd C_beta_occ =
+        MOs_beta.eigenvectors().leftCols(num_beta_electrons_);
     grad += 0.5 * ScaHFX_ *
             (DFTGradient::RIKGradient(C_alpha_occ, auxbasis_, dftbasis_) +
              DFTGradient::RIKGradient(C_beta_occ, auxbasis_, dftbasis_));
