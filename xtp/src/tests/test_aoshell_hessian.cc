@@ -68,9 +68,21 @@ BOOST_AUTO_TEST_CASE(EvalAOspaceHessian_finite_difference) {
   AOBasis aobasis;
   aobasis.Fill(basis, mol);
 
-  BOOST_REQUIRE_EQUAL(aobasis.getNumofShells(), 1);
-  const AOShell& shell = aobasis.getShell(0);
-  BOOST_REQUIRE_EQUAL(shell.getNumFunc(), 25);  // 1(S)+3(P)+5(D)+7(F)+9(G)
+  BOOST_REQUIRE(aobasis.getNumofShells() >= 1);
+  // NOTE: the SPDFG XML tag groups S/P/D/F/G under one shared set of
+  // Gaussian primitives, but AOShell::l_ can only hold a single angular
+  // momentum (matching EvalAOspace's single-shell-type switch
+  // statement) -- AOBasis::Fill splits this into separate AOShell
+  // objects internally, one per angular momentum, each sharing the same
+  // primitive data. Confirmed directly: getNumofShells() returns 5, not
+  // 1, for this basis file (an incorrect assumption in an earlier
+  // version of this test). Sum function counts across all shells
+  // instead of assuming a single shell with 25 functions.
+  Index total_funcs = 0;
+  for (Index s = 0; s < aobasis.getNumofShells(); ++s) {
+    total_funcs += aobasis.getShell(s).getNumFunc();
+  }
+  BOOST_REQUIRE_EQUAL(total_funcs, 25);  // 1(S)+3(P)+5(D)+7(F)+9(G)
 
   // Deliberately NOT at the shell center (Al is at the origin) or on any
   // coordinate axis/plane -- an off-axis, generic point exercises every
@@ -81,63 +93,68 @@ BOOST_AUTO_TEST_CASE(EvalAOspaceHessian_finite_difference) {
   Eigen::Vector3d point(0.83, -0.51, 1.27);
   double h = 1e-5;
 
-  AOShell::AOValuesHessian AO = shell.EvalAOspaceHessian(point);
-
   double max_rel_error = 0.0;
-  Index worst_func = -1;
+  Index worst_shell = -1, worst_func = -1;
   Index worst_i = -1, worst_j = -1;
+  double max_asymmetry = 0.0;
 
-  for (Index j = 0; j < 3; ++j) {
-    Eigen::Vector3d point_plus = point;
-    Eigen::Vector3d point_minus = point;
-    point_plus(j) += h;
-    point_minus(j) -= h;
+  for (Index s = 0; s < aobasis.getNumofShells(); ++s) {
+    const AOShell& shell = aobasis.getShell(s);
+    AOShell::AOValuesHessian AO = shell.EvalAOspaceHessian(point);
 
-    AOShell::AOValues AO_plus = shell.EvalAOspace(point_plus);
-    AOShell::AOValues AO_minus = shell.EvalAOspace(point_minus);
+    for (Index j = 0; j < 3; ++j) {
+      Eigen::Vector3d point_plus = point;
+      Eigen::Vector3d point_minus = point;
+      point_plus(j) += h;
+      point_minus(j) -= h;
 
-    // Finite difference of the first derivative (a Matrix, size
-    // nfunc x 3) w.r.t. displacement in direction j gives column j of
-    // every function's Hessian: d(derivatives(:,i))/dx_j.
-    Eigen::MatrixX3d fd_hessian_col_j =
-        (AO_plus.derivatives - AO_minus.derivatives) / (2.0 * h);
+      AOShell::AOValues AO_plus = shell.EvalAOspace(point_plus);
+      AOShell::AOValues AO_minus = shell.EvalAOspace(point_minus);
 
-    for (Index k = 0; k < shell.getNumFunc(); ++k) {
-      for (Index i = 0; i < 3; ++i) {
-        double analytic = AO.hessians[k](i, j);
-        double numeric = fd_hessian_col_j(k, i);
-        double scale = std::max({std::abs(analytic), std::abs(numeric), 1e-8});
-        double rel_error = std::abs(analytic - numeric) / scale;
-        if (rel_error > max_rel_error) {
-          max_rel_error = rel_error;
-          worst_func = k;
-          worst_i = i;
-          worst_j = j;
+      // Finite difference of the first derivative (a Matrix, size
+      // nfunc x 3) w.r.t. displacement in direction j gives column j of
+      // every function's Hessian: d(derivatives(:,i))/dx_j.
+      Eigen::MatrixX3d fd_hessian_col_j =
+          (AO_plus.derivatives - AO_minus.derivatives) / (2.0 * h);
+
+      for (Index k = 0; k < shell.getNumFunc(); ++k) {
+        for (Index i = 0; i < 3; ++i) {
+          double analytic = AO.hessians[k](i, j);
+          double numeric = fd_hessian_col_j(k, i);
+          double scale =
+              std::max({std::abs(analytic), std::abs(numeric), 1e-8});
+          double rel_error = std::abs(analytic - numeric) / scale;
+          if (rel_error > max_rel_error) {
+            max_rel_error = rel_error;
+            worst_shell = s;
+            worst_func = k;
+            worst_i = i;
+            worst_j = j;
+          }
         }
       }
+    }
+
+    // Hessian symmetry (H_ij == H_ji) is a real, independent
+    // mathematical requirement for any twice-differentiable function --
+    // cheap to check, doesn't depend on finite-difference precision at
+    // all.
+    for (Index k = 0; k < shell.getNumFunc(); ++k) {
+      double asymmetry = (AO.hessians[k] - AO.hessians[k].transpose())
+                              .cwiseAbs()
+                              .maxCoeff();
+      max_asymmetry = std::max(max_asymmetry, asymmetry);
     }
   }
 
   if (max_rel_error > 1e-4) {
     std::cout << "Largest relative Hessian error: " << max_rel_error
-              << " at function " << worst_func << ", component (" << worst_i
+              << " at shell " << worst_shell << " (L="
+              << EnumToString(aobasis.getShell(worst_shell).getL())
+              << "), function " << worst_func << ", component (" << worst_i
               << "," << worst_j << ")" << std::endl;
-    std::cout << "Analytic Hessian for that function:\n"
-              << AO.hessians[worst_func] << std::endl;
   }
   BOOST_CHECK_SMALL(max_rel_error, 1e-4);
-
-  // Also check the symmetry of every Hessian directly (a real,
-  // independent mathematical requirement -- H_ij must equal H_ji for
-  // any twice-differentiable function -- and a cheap check that doesn't
-  // depend on finite-difference precision at all).
-  double max_asymmetry = 0.0;
-  for (Index k = 0; k < shell.getNumFunc(); ++k) {
-    double asymmetry = (AO.hessians[k] - AO.hessians[k].transpose())
-                            .cwiseAbs()
-                            .maxCoeff();
-    max_asymmetry = std::max(max_asymmetry, asymmetry);
-  }
   BOOST_CHECK_SMALL(max_asymmetry, 1e-10);
 
   libint2::finalize();
