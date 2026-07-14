@@ -21,11 +21,17 @@
 
 #include <Eigen/Core>
 
+#include <array>
+#include <iostream>
+#include <string>
+
 #include <votca/xtp/basisset.h>
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aopotential.h>
 #include <votca/xtp/dftengine.h>
+#include <votca/xtp/ERIs.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/qmmolecule.h>
 
@@ -86,6 +92,29 @@ class DFTEngineTestAccess {
 
   static const AOOverlap& Overlap(const DFTEngine& e) {
     return e.dftAOoverlap_;
+  }
+
+  static void SetAuxBasis(DFTEngine& e, const AOBasis& basis) {
+    e.auxbasis_ = basis;
+    e.auxbasis_name_ = "set-for-testing";  // must be non-empty: the RI-J/
+                                           // RI-K guard in
+                                           // ComputeAndStoreForces(UKS)
+                                           // checks auxbasis_name_.empty()
+  }
+
+  static void SetElectronCounts(DFTEngine& e, Index n_alpha, Index n_beta) {
+    e.num_alpha_electrons_ = n_alpha;
+    e.num_beta_electrons_ = n_beta;
+  }
+
+  static void SetScaHFX(DFTEngine& e, double scahfx) { e.ScaHFX_ = scahfx; }
+
+  static Eigen::MatrixXd ComputeNonXCGradientUKS(
+      const DFTEngine& e, const QMMolecule& mol,
+      const UKSConvergenceAcc::SpinDensity& Dspin,
+      const tools::EigenSystem& MOs_alpha,
+      const tools::EigenSystem& MOs_beta) {
+    return e.ComputeNonXCGradientUKS(mol, Dspin, MOs_alpha, MOs_beta);
   }
 };
 
@@ -290,3 +319,177 @@ BOOST_AUTO_TEST_CASE(orthogonalize_guess_produces_s_orthonormal_vectors) {
 
   libint2::finalize();
 }
+
+// Validates DFTEngine::ComputeNonXCGradientUKS -- the four gradient
+// terms that generalize cleanly from RKS to UKS (nuclear repulsion,
+// one-electron [kinetic + nuclear attraction], overlap Pulay force, and
+// RI-J/RI-K) -- against a finite difference of the corresponding
+// non-XC part of the UKS total energy (E_nuc + E_one + E_coul + E_exx,
+// deliberately excluding E_xc, which is not yet implemented for UKS --
+// see the detailed STATUS note on ComputeAndStoreForcesUKS in
+// dftengine.h).
+//
+// Uses FIXED, arbitrary (not SCF-converged) alpha/beta MO coefficient
+// matrices, evaluated identically at each displaced geometry -- same
+// "arbitrary matrix" pattern already used for RIJGradient/RIKGradient
+// in test_dftgradient.cc, valid here for the same reason: the
+// stationarity argument underlying each of these gradient terms holds
+// for ANY fixed C, not just genuine SCF-converged orbitals.
+//
+// Runs TWICE: once with ScaHFX_=0 (checking nuclear repulsion +
+// one-electron + overlap Pulay + RI-J only) and once with ScaHFX_>0
+// (additionally checking the RI-K exact-exchange piece, including its
+// extra factor of 0.5 relative to the RKS case -- confirmed separately,
+// both algebraically and numerically in Python, but not yet checked
+// against the real, assembled C++ implementation before this test).
+//
+// STATUS: written but NOT yet run.
+BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
+  libint2::initialize();
+
+  double h = 1e-4;  // Bohr
+
+  auto build_system = [](double bond_length_bohr, double sca_hfx,
+                         const Eigen::MatrixXd& C_alpha_fixed,
+                         const Eigen::MatrixXd& C_beta_fixed) {
+    QMMolecule mol = MakeH2(bond_length_bohr);
+    BasisSet basisset;
+    basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
+                  "/threecenter_dft/3-21G.xml");
+    AOBasis dftbasis;
+    dftbasis.Fill(basisset, mol);
+
+    BasisSet auxbasisset;
+    auxbasisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
+                     "/diabatization/aux-def2-svp.xml");
+    AOBasis auxbasis;
+    auxbasis.Fill(auxbasisset, mol);
+
+    AOKinetic kinetic;
+    kinetic.Fill(dftbasis);
+    AOMultipole esp;
+    esp.FillPotential(dftbasis, mol);
+    Eigen::MatrixXd H0 = kinetic.Matrix() + esp.Matrix();
+
+    UKSConvergenceAcc::SpinDensity Dspin;
+    Dspin.alpha = C_alpha_fixed * C_alpha_fixed.transpose();
+    Dspin.beta = C_beta_fixed * C_beta_fixed.transpose();
+    Eigen::MatrixXd D_total = Dspin.total();
+
+    static Logger log;
+    DFTEngine nuc_rep_engine;
+    nuc_rep_engine.setLogger(&log);
+    double E_nuc = DFTEngineTestAccess::NuclearRepulsion(nuc_rep_engine, mol);
+    double E_one = D_total.cwiseProduct(H0).sum();
+
+    ERIs eris;
+    eris.Initialize(dftbasis, auxbasis);
+    Eigen::MatrixXd J = eris.CalculateERIs_3c(D_total);
+    double E_coul = 0.5 * D_total.cwiseProduct(J).sum();
+
+    double E_exx = 0.0;
+    if (sca_hfx > 0.0) {
+      // CalculateEXX_dmat is private -- use the public
+      // CalculateERIs_EXX_3c wrapper with an empty occMos, matching
+      // EXACTLY how EvaluateUKS itself calls it
+      // (CalcERIs_EXX(Eigen::MatrixXd::Zero(0,0), Dspin.alpha/beta, ...)).
+      std::array<Eigen::MatrixXd, 2> JK_alpha =
+          eris.CalculateERIs_EXX_3c(Eigen::MatrixXd::Zero(0, 0), Dspin.alpha);
+      std::array<Eigen::MatrixXd, 2> JK_beta =
+          eris.CalculateERIs_EXX_3c(Eigen::MatrixXd::Zero(0, 0), Dspin.beta);
+      const Eigen::MatrixXd& K_alpha = JK_alpha[1];
+      const Eigen::MatrixXd& K_beta = JK_beta[1];
+      E_exx = 0.5 * sca_hfx *
+              (Dspin.alpha.cwiseProduct(K_alpha).sum() +
+               Dspin.beta.cwiseProduct(K_beta).sum());
+    }
+
+    struct Result {
+      double energy;
+      QMMolecule mol;
+      AOBasis dftbasis;
+      AOBasis auxbasis;
+      UKSConvergenceAcc::SpinDensity Dspin;
+    };
+    return Result{E_nuc + E_one + E_coul + E_exx, mol, dftbasis, auxbasis,
+                  Dspin};
+  };
+
+  // Determine the actual DFT basis size once, up front, via a quick
+  // "probe" build (geometry-independent for a fixed molecule/basis-set
+  // pair) -- avoids guessing a size and rebuilding later.
+  {
+    QMMolecule probe_mol = MakeH2(1.4);
+    BasisSet probe_basisset;
+    probe_basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
+                        "/threecenter_dft/3-21G.xml");
+    AOBasis probe_basis;
+    probe_basis.Fill(probe_basisset, probe_mol);
+    Index actual_nbf = probe_basis.AOBasisSize();
+
+    for (double sca_hfx : {0.0, 0.25}) {
+      double bond_length = 1.4;  // Bohr, roughly H2 equilibrium
+
+      // Fixed, arbitrary (not orthonormal, not SCF-converged) coefficient
+      // "columns" -- one occupied alpha orbital, one occupied beta
+      // orbital (minimal, but sufficient to exercise every term).
+      Eigen::MatrixXd C_alpha_fixed = Eigen::MatrixXd::Random(actual_nbf, 1);
+      Eigen::MatrixXd C_beta_fixed = Eigen::MatrixXd::Random(actual_nbf, 1);
+      Eigen::VectorXd eps_alpha_fixed = Eigen::VectorXd::Random(1);
+      Eigen::VectorXd eps_beta_fixed = Eigen::VectorXd::Random(1);
+
+      auto base = build_system(bond_length, sca_hfx, C_alpha_fixed,
+                               C_beta_fixed);
+
+      DFTEngine engine;
+      DFTEngineTestAccess::SetBasis(engine, base.dftbasis);
+      DFTEngineTestAccess::SetAuxBasis(engine, base.auxbasis);
+      DFTEngineTestAccess::SetElectronCounts(engine, 1, 1);
+      DFTEngineTestAccess::SetScaHFX(engine, sca_hfx);
+
+      tools::EigenSystem MOs_alpha;
+      MOs_alpha.eigenvectors() = C_alpha_fixed;
+      MOs_alpha.eigenvalues() = eps_alpha_fixed;
+      tools::EigenSystem MOs_beta;
+      MOs_beta.eigenvectors() = C_beta_fixed;
+      MOs_beta.eigenvalues() = eps_beta_fixed;
+
+      Eigen::MatrixXd analytic_grad =
+          DFTEngineTestAccess::ComputeNonXCGradientUKS(
+              engine, base.mol, base.Dspin, MOs_alpha, MOs_beta);
+
+      Eigen::Vector3d sum = analytic_grad.colwise().sum();
+      BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-6);
+
+      auto plus = build_system(bond_length + h, sca_hfx, C_alpha_fixed,
+                               C_beta_fixed);
+      auto minus = build_system(bond_length - h, sca_hfx,
+                                C_alpha_fixed, C_beta_fixed);
+      double finite_diff_deriv = (plus.energy - minus.energy) / (2.0 * h);
+
+      // Atom 1 sits at (bond_length, 0, 0) -- the x-component carries the
+      // bond-stretch derivative.
+      double analytic = analytic_grad(1, 0);
+
+      bool matches =
+          std::abs(finite_diff_deriv - analytic) < 1e-4 * std::abs(analytic);
+      if (!matches) {
+        std::cout << "ScaHFX_=" << sca_hfx << " analytic dE/dx(atom1)="
+                  << analytic << " finite-difference=" << finite_diff_deriv
+                  << std::endl;
+        std::cout << "NOTE: if this fails only for sca_hfx=0.25 (not 0.0), "
+                     "the bug is isolated to the RI-K/0.5*ScaHFX_ factor "
+                     "specifically -- see the detailed derivation on "
+                     "ComputeAndStoreForcesUKS's declaration in "
+                     "dftengine.h. If it fails for BOTH, the bug is in one "
+                     "of the shared pieces (nuclear repulsion, "
+                     "one-electron, overlap Pulay force, or RI-J)."
+                  << std::endl;
+      }
+      BOOST_CHECK_EQUAL(matches, true);
+    }
+  }
+
+  libint2::finalize();
+}
+

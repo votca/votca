@@ -290,6 +290,56 @@ class DFTEngine {
   void ComputeAndStoreForces(Orbitals& orb, const Eigen::MatrixXd& Dmat,
                              const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
 
+  /// The four non-XC-adjacent gradient terms that generalize cleanly to
+  /// UKS -- see the detailed derivation on ComputeAndStoreForcesUKS
+  /// below, which calls this and then decides whether/how to report the
+  /// result (currently: never stores it, since XC is missing). Returns
+  /// the (natoms x 3) dE/dR gradient directly (NOT negated to the
+  /// physical force convention -- that flip, if/when this becomes part
+  /// of a complete, storable UKS gradient, belongs at the point of
+  /// storage, same as the RKS path).
+  Eigen::MatrixXd ComputeNonXCGradientUKS(
+      const QMMolecule& mol, const UKSConvergenceAcc::SpinDensity& Dspin,
+      const tools::EigenSystem& MOs_alpha,
+      const tools::EigenSystem& MOs_beta) const;
+
+  /// UKS (open-shell) analog of ComputeAndStoreForces.
+  ///
+  /// STATUS: PARTIAL, deliberately. Four of the five non-XC-adjacent
+  /// terms generalize cleanly to UKS and are implemented here: nuclear
+  /// repulsion (unchanged), one-electron [kinetic + nuclear attraction]
+  /// (uses D_total = Dspin.alpha + Dspin.beta, exactly the same
+  /// convention RKS's Dmat already uses), the overlap Pulay force
+  /// (W = W_alpha + W_beta, each WITHOUT the factor of 2 RKS uses, since
+  /// UKS spin densities are not pre-doubled), and RI-K exact exchange
+  /// for hybrids (0.5 * ScaHFX_ * [RIKGradient(C_alpha_occ,...) +
+  /// RIKGradient(C_beta_occ,...)] -- the extra factor of 0.5 relative to
+  /// the naive guess of ScaHFX_*(...) confirmed both algebraically and
+  /// numerically: ERIs::CalculateEXX_dmat(P) == 0.5 *
+  /// ERIs::CalculateEXX_mos(C) when P = C*C^T, checked directly rather
+  /// than assumed, since UKS's exact exchange goes through
+  /// CalculateEXX_dmat, a different code path than the one
+  /// RIKGradient/CalculateEXX_mos were validated against).
+  ///
+  /// The XC gradient is NOT included -- UKS uses a genuinely
+  /// spin-polarized XC energy (IntegrateVXCSpin, separate rho_alpha/
+  /// rho_beta, and for GGA a sigma_alpha-beta cross term with no analog
+  /// in the spin-restricted PulayGradient/GridWeightGradient), which is
+  /// new derivation work, not a quick generalization -- comparable in
+  /// scope to the original spin-restricted XC gradient work. Since a
+  /// gradient silently missing XC would be wrong (not just incomplete)
+  /// for any real functional-based calculation, this function does NOT
+  /// call Orbitals::setForces() at all yet -- it logs clearly that XC is
+  /// not yet included and stops there. The four implemented pieces are
+  /// validated (see test_dftengine.cc) against a finite difference of
+  /// the non-XC part of the UKS energy directly, so this is real,
+  /// tested foundation work for when the XC piece is added, not
+  /// speculative.
+  void ComputeAndStoreForcesUKS(
+      Orbitals& orb, const UKSConvergenceAcc::SpinDensity& Dspin,
+      const tools::EigenSystem& MOs_alpha,
+      const tools::EigenSystem& MOs_beta) const;
+
   Logger* pLog_;
 
   // basis sets

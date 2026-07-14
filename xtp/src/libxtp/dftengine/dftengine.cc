@@ -430,6 +430,109 @@ void DFTEngine::ComputeAndStoreForces(
       << std::flush;
 }
 
+Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
+    const QMMolecule& mol, const UKSConvergenceAcc::SpinDensity& Dspin,
+    const tools::EigenSystem& MOs_alpha,
+    const tools::EigenSystem& MOs_beta) const {
+  Index natoms = mol.size();
+  const Eigen::MatrixXd D_total = Dspin.total();
+
+  // One-electron and RI-J: identical formulas/conventions to the RKS
+  // case, just built from D_total = Dspin.alpha + Dspin.beta -- matches
+  // exactly how RKS's own Dmat is already alpha+beta (E_one and E_coul
+  // in EvaluateUKS use D_total the same way EvaluateClosedShell's Eone/
+  // Etwo use Dmat), confirmed directly by reading EvaluateUKS rather
+  // than assumed.
+  std::vector<AOMatrixDerivative> dT = ComputeKineticDerivatives(dftbasis_);
+  std::vector<AOMatrixDerivative> dVne =
+      ComputeNuclearAttractionDerivatives(dftbasis_, mol);
+  Eigen::MatrixXd eone_grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      eone_grad(a, xyz) =
+          D_total.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
+    }
+  }
+
+  // Overlap Pulay force: W = W_alpha + W_beta, each WITHOUT the factor
+  // of 2 RKS uses -- UKS spin densities/MO occupations are not
+  // pre-doubled (Dspin.alpha/beta each already correspond to a single
+  // spin channel's own electron count).
+  Index n_occ_alpha = num_alpha_electrons_;
+  Index n_occ_beta = num_beta_electrons_;
+  Eigen::MatrixXd C_alpha_occ = MOs_alpha.eigenvectors().leftCols(n_occ_alpha);
+  Eigen::MatrixXd C_beta_occ = MOs_beta.eigenvectors().leftCols(n_occ_beta);
+  Eigen::VectorXd eps_alpha_occ = MOs_alpha.eigenvalues().head(n_occ_alpha);
+  Eigen::VectorXd eps_beta_occ = MOs_beta.eigenvalues().head(n_occ_beta);
+  Eigen::MatrixXd W = C_alpha_occ * eps_alpha_occ.asDiagonal() *
+                          C_alpha_occ.transpose() +
+                      C_beta_occ * eps_beta_occ.asDiagonal() *
+                          C_beta_occ.transpose();
+
+  std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis_);
+  Eigen::MatrixXd overlap_pulay_grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      overlap_pulay_grad(a, xyz) = -W.cwiseProduct(dS[a][xyz]).sum();
+    }
+  }
+
+  Eigen::MatrixXd grad = DFTGradient::NuclearRepulsionDerivative(mol) +
+                         eone_grad + overlap_pulay_grad +
+                         DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
+
+  // Exact exchange (RI-K), hybrids only. Factor of 0.5*ScaHFX_ (not
+  // ScaHFX_ alone) -- confirmed both algebraically and numerically
+  // (Python, to ~1e-14) that ERIs::CalculateEXX_dmat(P) ==
+  // 0.5*ERIs::CalculateEXX_mos(C) when P=C*C^T, and UKS's own exact
+  // exchange goes through CalculateEXX_dmat (a DIFFERENT code path than
+  // RIKGradient was validated against, which uses CalculateEXX_mos
+  // directly) -- tracing that factor of 0.5 through both spin channels'
+  // energy expressions gives dE_exx/dR =
+  // 0.5*ScaHFX_*[RIKGradient(C_alpha_occ)+RIKGradient(C_beta_occ)], not
+  // the naive ScaHFX_*(...) that would be a factor-of-2 error.
+  if (ScaHFX_ > 0.0) {
+    grad += 0.5 * ScaHFX_ *
+            (DFTGradient::RIKGradient(C_alpha_occ, auxbasis_, dftbasis_) +
+             DFTGradient::RIKGradient(C_beta_occ, auxbasis_, dftbasis_));
+  }
+  return grad;
+}
+
+void DFTEngine::ComputeAndStoreForcesUKS(
+    Orbitals& orb, const UKSConvergenceAcc::SpinDensity& Dspin,
+    const tools::EigenSystem& MOs_alpha,
+    const tools::EigenSystem& MOs_beta) const {
+  if (auxbasis_name_.empty()) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Skipping UKS force calculation: RI-J gradient only "
+           "implements the RI path, but this SCF ran without an "
+           "auxiliary basis."
+        << std::flush;
+    return;
+  }
+
+  // grad here is only the non-XC part of the total UKS gradient -- see
+  // the detailed STATUS note on this function's declaration in
+  // dftengine.h. NOT calling orb.setForces() with it: storing it as if
+  // it were complete would be actively wrong for any real,
+  // functional-based UKS calculation, not just imprecise.
+  Eigen::MatrixXd grad =
+      ComputeNonXCGradientUKS(orb.QMAtoms(), Dspin, MOs_alpha, MOs_beta);
+  (void)grad;
+
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp()
+      << " UKS force calculation: nuclear repulsion, one-electron, "
+         "overlap Pulay force, and RI-J/RI-K are implemented, but the "
+         "XC gradient is NOT YET IMPLEMENTED for open-shell (spin-"
+         "polarized) functionals -- forces are NOT being stored, since "
+         "a gradient missing XC would be wrong, not just incomplete, "
+         "for any real DFT calculation."
+      << std::flush;
+}
+
 // Build the Coulomb and exact-exchange contributions generated by the current
 // density matrix. The returned pair is conventionally interpreted as
 //
@@ -931,6 +1034,10 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
           << std::flush;
 
       PrintMOsUKS(MOs_alpha.eigenvalues(), MOs_beta.eigenvalues(), Log::error);
+
+      if (compute_forces_) {
+        ComputeAndStoreForcesUKS(orb, Dspin, MOs_alpha, MOs_beta);
+      }
 
       CalcElDipole(orb);
       return true;
