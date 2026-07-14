@@ -22,6 +22,7 @@
 #include <Eigen/Core>
 
 #include <array>
+#include <iomanip>
 #include <iostream>
 #include <string>
 
@@ -406,13 +407,15 @@ BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
 
     struct Result {
       double energy;
+      double E_nuc, E_one, E_coul, E_exx;
       QMMolecule mol;
       AOBasis dftbasis;
       AOBasis auxbasis;
       UKSConvergenceAcc::SpinDensity Dspin;
     };
-    return Result{E_nuc + E_one + E_coul + E_exx, mol, dftbasis, auxbasis,
-                  Dspin};
+    return Result{E_nuc + E_one + E_coul + E_exx,
+                  E_nuc,      E_one, E_coul, E_exx,
+                  mol,        dftbasis, auxbasis, Dspin};
   };
 
   // Determine the actual DFT basis size once, up front, via a quick
@@ -466,6 +469,15 @@ BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
       auto minus = build_system(bond_length - h, sca_hfx,
                                 C_alpha_fixed, C_beta_fixed);
       double finite_diff_deriv = (plus.energy - minus.energy) / (2.0 * h);
+
+      std::cout << std::setprecision(10)
+                << "[test diagnostic, per-term finite differences]"
+                << "\n  d(E_nuc)/dx  = " << (plus.E_nuc - minus.E_nuc) / (2.0 * h)
+                << "\n  d(E_one)/dx  = " << (plus.E_one - minus.E_one) / (2.0 * h)
+                << "\n  d(E_coul)/dx = "
+                << (plus.E_coul - minus.E_coul) / (2.0 * h)
+                << "\n  d(E_exx)/dx  = " << (plus.E_exx - minus.E_exx) / (2.0 * h)
+                << std::endl;
 
       // Atom 1 sits at (bond_length, 0, 0) -- the x-component carries the
       // bond-stretch derivative.

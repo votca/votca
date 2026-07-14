@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <iostream>
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -480,6 +481,24 @@ Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
   Eigen::MatrixXd grad = DFTGradient::NuclearRepulsionDerivative(mol) +
                          eone_grad + overlap_pulay_grad +
                          DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
+
+  // DIAGNOSTIC: isolate which term is responsible for a mismatch against
+  // finite differences, rather than continuing to guess via algebra.
+  // Prints the (atom=1, x) component of each individual term.
+  {
+    Eigen::MatrixXd nuc_rep_term = DFTGradient::NuclearRepulsionDerivative(mol);
+    Eigen::MatrixXd rij_term =
+        DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
+    std::cerr << std::setprecision(10)
+              << "[ComputeNonXCGradientUKS diagnostic, atom=1 x-component]"
+              << "\n  nuclear_repulsion = " << nuc_rep_term(1, 0)
+              << "\n  eone_grad         = " << eone_grad(1, 0)
+              << "\n  overlap_pulay     = " << overlap_pulay_grad(1, 0)
+              << "\n  rij_grad          = " << rij_term(1, 0)
+              << "\n  n_occ_alpha=" << n_occ_alpha
+              << " n_occ_beta=" << n_occ_beta << " ScaHFX_=" << ScaHFX_
+              << std::endl;
+  }
 
   // Exact exchange (RI-K), hybrids only. Factor of 0.5*ScaHFX_ (not
   // ScaHFX_ alone) -- confirmed both algebraically and numerically
