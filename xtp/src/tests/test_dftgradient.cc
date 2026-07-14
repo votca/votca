@@ -51,6 +51,7 @@
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/dftgradient.h>
+#include <votca/xtp/ERIs.h>
 #include <votca/xtp/qmmolecule.h>
 
 using namespace votca::xtp;
@@ -325,7 +326,9 @@ BOOST_AUTO_TEST_CASE(rik_gradient_finite_difference) {
 
   // Fixed, arbitrary (nbf x 2) coefficient matrix -- generated once,
   // reused unchanged at every geometry. Not orthonormal, not from any
-  // SCF -- deliberately, per the reasoning in the header comment.
+  // SCF -- deliberately, per the reasoning in the header comment (valid
+  // for testing the gradient FORMULA's correctness, even though it
+  // would not be physically meaningful as real occupied MOs).
   Index n_dft_bf = dftbasis0.AOBasisSize();
   Eigen::MatrixXd mo_coeffs = Eigen::MatrixXd::Random(n_dft_bf, 2);
 
@@ -335,26 +338,18 @@ BOOST_AUTO_TEST_CASE(rik_gradient_finite_difference) {
   Eigen::Vector3d total = analytic_grad.colwise().sum();
   BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-6);
 
+  // Reference energy via the REAL, production ERIs::CalculateEXX_mos --
+  // not a separately-defined, self-consistent-but-possibly-wrong toy
+  // formula. This is the decisive check: RIKGradient's energy
+  // convention (E_K = -sum_ij c_ij.d_ij, confirmed via direct numerical
+  // simulation of CalculateEXX_mos's own algorithm -- see the detailed
+  // history in dftgradient.h/.cc) should match this exactly.
   auto rik_energy = [&](const AOBasis& auxbasis, const AOBasis& dftbasis) {
-    std::vector<Eigen::MatrixXd> tensor =
-        ComputeThreeCenterIntegrals(auxbasis, dftbasis);
-    Index n_aux_bf = auxbasis.AOBasisSize();
-    AOCoulomb aocoulomb;
-    aocoulomb.Fill(auxbasis);
-    const Eigen::MatrixXd& V = aocoulomb.Matrix();
-    Index ncols = mo_coeffs.cols();
-    double energy = 0.0;
-    for (Index i = 0; i < ncols; ++i) {
-      for (Index j = 0; j < ncols; ++j) {
-        Eigen::VectorXd d(n_aux_bf);
-        for (Index p = 0; p < n_aux_bf; ++p) {
-          d(p) = mo_coeffs.col(i).dot(tensor[p] * mo_coeffs.col(j));
-        }
-        Eigen::VectorXd c = V.ldlt().solve(d);
-        energy += 0.5 * c.dot(d);
-      }
-    }
-    return energy;
+    ERIs eris;
+    eris.Initialize(dftbasis, auxbasis);
+    Eigen::MatrixXd K = eris.CalculateEXX_mos(mo_coeffs);
+    Eigen::MatrixXd Dmat = 2.0 * mo_coeffs * mo_coeffs.transpose();
+    return 0.25 * Dmat.cwiseProduct(K).sum();  // ScaHFX=1 for this check
   };
 
   QMMolecule mol_plus = build_h2(bond_length + h);
@@ -381,10 +376,16 @@ BOOST_AUTO_TEST_CASE(rik_gradient_finite_difference) {
   if (!matches) {
     std::cout << "Analytic dE_K/dz(atom1): " << analytic << std::endl;
     std::cout << "Finite-difference: " << finite_diff_deriv << std::endl;
-    std::cout << "NOTE: if this fails, check the (i,j) double-sum "
-                 "bookkeeping in DFTGradient::RIKGradient first -- the "
-                 "underlying integrals are shared with, and already "
-                 "validated by, the RI-J test above."
+    std::cout << "NOTE: this compares against the REAL, production "
+                 "ERIs::CalculateEXX_mos energy (symmetric V^-1/2 RI "
+                 "fitting), not a self-consistent toy formula -- if this "
+                 "fails, first double check the factor of 2 and sign in "
+                 "RIKGradient's energy convention (E_K = "
+                 "-sum_ij c_ij.d_ij, see the detailed history in "
+                 "dftgradient.h/.cc, confirmed via a SEPARATE numerical "
+                 "simulation in Python before this C++ test was written -- "
+                 "worth re-checking that simulation's assumptions if this "
+                 "C++ test disagrees with it)."
               << std::endl;
   }
   BOOST_CHECK_EQUAL(matches, true);
