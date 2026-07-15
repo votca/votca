@@ -1191,8 +1191,8 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradientUKS(
       Eigen::Matrix3d Hessian_rho_a = Eigen::Matrix3d::Zero();
       Eigen::Matrix3d Hessian_rho_b = Eigen::Matrix3d::Zero();
       for (Index mu = 0; mu < box.Matrixsize(); ++mu) {
-        Hessian_rho_a += temp_a(mu) * ao.hessians[mu];
-        Hessian_rho_b += temp_b(mu) * ao.hessians[mu];
+        Hessian_rho_a += 2.0 * temp_a(mu) * ao.hessians[mu];
+        Hessian_rho_b += 2.0 * temp_b(mu) * ao.hessians[mu];
       }
       Eigen::Matrix3d Ma = ao.derivatives.transpose() * Gmat_a;
       Eigen::Matrix3d Mb = ao.derivatives.transpose() * Gmat_b;
@@ -1215,9 +1215,9 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradientUKS(
         Eigen::Vector3d sigma_contribution =
             -weight *
             (ao.derivatives.row(mu).transpose() * Gmat_a_dot_Va(mu) +
-             temp_a(mu) * (ao.hessians[mu] * V_a) +
+             2.0 * temp_a(mu) * (ao.hessians[mu] * V_a) +
              ao.derivatives.row(mu).transpose() * Gmat_b_dot_Vb(mu) +
-             temp_b(mu) * (ao.hessians[mu] * V_b));
+             2.0 * temp_b(mu) * (ao.hessians[mu] * V_b));
         grad_thread[thread_id].row(atom) +=
             (lda_contribution + sigma_contribution).transpose();
       }
