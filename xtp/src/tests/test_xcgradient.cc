@@ -666,4 +666,111 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_gga) {
   libint2::finalize();
 }
 
+// GGA analog of xc_gradient_finite_difference_h2_uks above. Tests the
+// sigma_aa/sigma_ab/sigma_bb cross-term extension to PulayGradientUKS/
+// GridWeightGradientUKS specifically -- the LDA test above cannot
+// exercise this code at all, since vsigma_aa/ab/bb are exactly zero for
+// LDA functionals by construction.
+//
+// Same positive-semidefinite (C*C^T) density matrix reasoning as the
+// LDA UKS test -- still necessary here, and for the same reason
+// (negative individual rho_a/rho_b feeding an unphysical input to
+// libxc, independent of LDA vs GGA).
+//
+// STATUS: written but NOT yet run. The underlying V_a/V_b-combined
+// formula was verified numerically in Python (~1e-12) before any C++
+// was written, but this is the first check of the actual assembled
+// implementation.
+BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks_gga) {
+  libint2::initialize();
+
+  const std::string functional = "XC_GGA_X_PBE XC_GGA_C_PBE";
+  double h = 1e-4;  // Angstrom
+  double bond_length = 0.74;  // Angstrom, roughly H2 equilibrium
+
+  auto build_h2_uks_gga = [](double bond_length_angstrom) {
+    QMMolecule mol(" ", 0);
+    std::string xyz_content =
+        "2\n\n"
+        "H 0.0 0.0 0.0\n"
+        "H 0.0 0.0 " +
+        std::to_string(bond_length_angstrom) + "\n";
+    std::string tmp_path = "/tmp/xtp_test_xcgradient_h2_uks_gga.xyz";
+    std::ofstream out(tmp_path);
+    out << xyz_content;
+    out.close();
+    mol.LoadFromFile(tmp_path);
+    return mol;
+  };
+
+  QMMolecule mol0 = build_h2_uks_gga(bond_length);
+  BasisSet basis0;
+  basis0.Load(std::string(XTP_TEST_DATA_FOLDER) +
+              "/threecenter_dft/3-21G.xml");
+  AOBasis aobasis0;
+  aobasis0.Fill(basis0, mol0);
+  Vxc_Grid grid0;
+  grid0.GridSetup("medium", mol0, aobasis0);
+  Vxc_Potential<Vxc_Grid> vxc0(grid0);
+  vxc0.setXCfunctional(functional);
+
+  Index n_bf = aobasis0.AOBasisSize();
+  Eigen::MatrixXd C_alpha = Eigen::MatrixXd::Random(n_bf, 1);
+  Eigen::MatrixXd dmat_alpha = C_alpha * C_alpha.transpose();
+  Eigen::MatrixXd C_beta = Eigen::MatrixXd::Random(n_bf, 1);
+  Eigen::MatrixXd dmat_beta = C_beta * C_beta.transpose();
+
+  Eigen::MatrixXd pulay_grad =
+      vxc0.PulayGradientUKS(dmat_alpha, dmat_beta, aobasis0);
+  Eigen::MatrixXd weight_grad =
+      vxc0.GridWeightGradientUKS(dmat_alpha, dmat_beta, mol0);
+  Eigen::MatrixXd total_grad = pulay_grad + weight_grad;
+
+  std::cout << "H2 UKS GGA test -- Pulay:\n" << pulay_grad << std::endl;
+  std::cout << "H2 UKS GGA test -- Weight:\n" << weight_grad << std::endl;
+  std::cout << "H2 UKS GGA test -- Total:\n" << total_grad << std::endl;
+
+  Eigen::Vector3d sum = total_grad.colwise().sum();
+  BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
+
+  QMMolecule mol_plus = build_h2_uks_gga(bond_length + h);
+  AOBasis aobasis_plus;
+  aobasis_plus.Fill(basis0, mol_plus);
+  Vxc_Grid grid_plus;
+  grid_plus.GridSetup("medium", mol_plus, aobasis_plus);
+  Vxc_Potential<Vxc_Grid> vxc_plus(grid_plus);
+  vxc_plus.setXCfunctional(functional);
+  double e_plus = vxc_plus.IntegrateVXCSpin(dmat_alpha, dmat_beta).energy;
+
+  QMMolecule mol_minus = build_h2_uks_gga(bond_length - h);
+  AOBasis aobasis_minus;
+  aobasis_minus.Fill(basis0, mol_minus);
+  Vxc_Grid grid_minus;
+  grid_minus.GridSetup("medium", mol_minus, aobasis_minus);
+  Vxc_Potential<Vxc_Grid> vxc_minus(grid_minus);
+  vxc_minus.setXCfunctional(functional);
+  double e_minus = vxc_minus.IntegrateVXCSpin(dmat_alpha, dmat_beta).energy;
+
+  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  double finite_diff_deriv =
+      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  double analytic = total_grad(1, 2);
+  std::cout << "H2 UKS GGA test -- analytic dE_xc/dz(atom1)=" << analytic
+             << " finite-difference=" << finite_diff_deriv << std::endl;
+
+  bool matches =
+      std::abs(finite_diff_deriv - analytic) < 1e-3 * std::abs(analytic);
+  if (!matches) {
+    std::cout << "NOTE: if the LDA UKS test above still passes, the bug "
+                 "is isolated to the sigma-dependent terms specifically "
+                 "(Gmat_a/Gmat_b/Hessian_rho_a/Hessian_rho_b/V_a/V_b "
+                 "construction in PulayGradientUKS, or the real "
+                 "sigma_aa/ab/bb computation in GridWeightGradientUKS)."
+              << std::endl;
+  }
+  BOOST_CHECK_EQUAL(matches, true);
+
+  libint2::finalize();
+}
+
 BOOST_AUTO_TEST_SUITE_END()
