@@ -535,8 +535,8 @@ Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
 
 void DFTEngine::ComputeAndStoreForcesUKS(
     Orbitals& orb, const UKSConvergenceAcc::SpinDensity& Dspin,
-    const tools::EigenSystem& MOs_alpha,
-    const tools::EigenSystem& MOs_beta) const {
+    const tools::EigenSystem& MOs_alpha, const tools::EigenSystem& MOs_beta,
+    const Vxc_Potential<Vxc_Grid>& vxcpotential) const {
   if (auxbasis_name_.empty()) {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp()
@@ -547,23 +547,43 @@ void DFTEngine::ComputeAndStoreForcesUKS(
     return;
   }
 
-  // grad here is only the non-XC part of the total UKS gradient -- see
-  // the detailed STATUS note on this function's declaration in
-  // dftengine.h. NOT calling orb.setForces() with it: storing it as if
-  // it were complete would be actively wrong for any real,
-  // functional-based UKS calculation, not just imprecise.
   Eigen::MatrixXd grad =
       ComputeNonXCGradientUKS(orb.QMAtoms(), Dspin, MOs_alpha, MOs_beta);
-  (void)grad;
+
+  // XC gradient (LDA and GGA both supported -- see the detailed
+  // derivation/validation history on this function's declaration in
+  // dftengine.h and on PulayGradientUKS/GridWeightGradientUKS in
+  // vxc_potential.h).
+  grad += vxcpotential.PulayGradientUKS(Dspin.alpha, Dspin.beta, dftbasis_);
+  grad += vxcpotential.GridWeightGradientUKS(Dspin.alpha, Dspin.beta,
+                                             orb.QMAtoms());
+
+  // Sanity check independent of the finite-difference tests already
+  // done per-term: translational invariance means the TOTAL gradient
+  // must sum to zero across all atoms. Logged rather than asserted/
+  // thrown, same as the RKS path -- deliberately not blocking a real
+  // SCF run over a force-only sanity check.
+  Eigen::Vector3d sum = grad.colwise().sum();
+  if (sum.cwiseAbs().maxCoeff() > 1e-4) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " WARNING: computed UKS forces do not sum to zero across "
+           "atoms (translational invariance check failed, max "
+           "component="
+        << sum.cwiseAbs().maxCoeff() << ") -- treat these forces with "
+        "caution."
+        << std::flush;
+  }
+
+  // Physical force = -dE/dR, matching the RKS ComputeAndStoreForces
+  // convention exactly -- all pieces above return dE/dR directly (the
+  // gradient, not the force), negated once here at the point of
+  // storage.
+  orb.setForces(-grad);
 
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp()
-      << " UKS force calculation: nuclear repulsion, one-electron, "
-         "overlap Pulay force, and RI-J/RI-K are implemented, but the "
-         "XC gradient is NOT YET IMPLEMENTED for open-shell (spin-"
-         "polarized) functionals -- forces are NOT being stored, since "
-         "a gradient missing XC would be wrong, not just incomplete, "
-         "for any real DFT calculation."
+      << " Computed and stored ground-state UKS nuclear forces."
       << std::flush;
 }
 
@@ -1070,7 +1090,7 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
       PrintMOsUKS(MOs_alpha.eigenvalues(), MOs_beta.eigenvalues(), Log::error);
 
       if (compute_forces_) {
-        ComputeAndStoreForcesUKS(orb, Dspin, MOs_alpha, MOs_beta);
+        ComputeAndStoreForcesUKS(orb, Dspin, MOs_alpha, MOs_beta, vxcpotential);
       }
 
       CalcElDipole(orb);

@@ -336,24 +336,23 @@ class DFTEngine {
   /// CalculateEXX_dmat, a different code path than the one
   /// RIKGradient/CalculateEXX_mos were validated against).
   ///
-  /// The XC gradient is NOT included -- UKS uses a genuinely
-  /// spin-polarized XC energy (IntegrateVXCSpin, separate rho_alpha/
-  /// rho_beta, and for GGA a sigma_alpha-beta cross term with no analog
-  /// in the spin-restricted PulayGradient/GridWeightGradient), which is
-  /// new derivation work, not a quick generalization -- comparable in
-  /// scope to the original spin-restricted XC gradient work. Since a
-  /// gradient silently missing XC would be wrong (not just incomplete)
-  /// for any real functional-based calculation, this function does NOT
-  /// call Orbitals::setForces() at all yet -- it logs clearly that XC is
-  /// not yet included and stops there. The four implemented pieces are
-  /// validated (see test_dftengine.cc) against a finite difference of
-  /// the non-XC part of the UKS energy directly, so this is real,
-  /// tested foundation work for when the XC piece is added, not
-  /// speculative.
+  /// The XC gradient (PulayGradientUKS + GridWeightGradientUKS, LDA and
+  /// GGA) is now included too -- initially deferred as new derivation
+  /// work (spin-polarized rho_alpha/rho_beta, and for GGA a genuinely
+  /// new sigma_alpha-alpha/alpha-beta/beta-beta cross-term structure
+  /// with no analog in the spin-restricted case), then completed and
+  /// validated (Python-verified formulas first, then a real C++ finite-
+  /// difference test against IntegrateVXCSpin -- caught and fixed one
+  /// real transcription bug, a missing factor of 2 in the GGA sigma
+  /// term's Hessian contraction, found by careful line-by-line
+  /// comparison against the verified Python once the first real test
+  /// run showed a partial, non-catastrophic discrepancy). With XC now
+  /// included, this function DOES call Orbitals::setForces(), same as
+  /// the RKS ComputeAndStoreForces.
   void ComputeAndStoreForcesUKS(
       Orbitals& orb, const UKSConvergenceAcc::SpinDensity& Dspin,
-      const tools::EigenSystem& MOs_alpha,
-      const tools::EigenSystem& MOs_beta) const;
+      const tools::EigenSystem& MOs_alpha, const tools::EigenSystem& MOs_beta,
+      const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
 
   Logger* pLog_;
 
