@@ -46,6 +46,11 @@
 // deliberately NOT reusing test_dftengine.cc's existing hybrid-functional
 // water setup, which ComputeAndStoreForces would (correctly) skip force
 // computation for.
+//
+// Also includes forces_finite_difference_uks: the same end-to-end
+// methodology applied to a genuinely open-shell system (H2+, doublet),
+// exercising DFTEngine::ComputeAndStoreForcesUKS and the actual
+// EvaluateUKS path for the first time end to end.
 // ===========================================================================
 
 #include "xtp_libint2.h"
@@ -90,24 +95,29 @@ QMMolecule BuildH2(double bond_length_angstrom) {
 // defaults to the existing non-hybrid GGA choice; pass a hybrid
 // functional (e.g. "XC_HYB_GGA_XC_PBEH", the same name already used and
 // confirmed valid in test_dftengine.cc's dft_full test) to exercise the
-// RI-K/hybrid path in ComputeAndStoreForces.
+// RI-K/hybrid path in ComputeAndStoreForces. spin/charge default to the
+// existing closed-shell H2 case (singlet, neutral); pass spin=2, charge=1
+// for H2+ (doublet, one unpaired electron) to exercise the UKS path.
 Orbitals RunSCF(double bond_length_angstrom,
-                const std::string& functional = "XC_GGA_X_PBE XC_GGA_C_PBE") {
+                const std::string& functional = "XC_GGA_X_PBE XC_GGA_C_PBE",
+                Index spin = 1, Index charge = 0) {
   DFTEngine dft;
   Orbitals orb;
   orb.QMAtoms() = BuildH2(bond_length_angstrom);
 
-  // Distinct temp file per functional, so a hybrid-functional test run
-  // (see below) can't collide with or be shadowed by the non-hybrid
-  // test's own options file if tests happen to run concurrently.
+  // Distinct temp file per (functional, spin, charge), so different test
+  // cases' options files can't collide with or shadow each other if
+  // tests happen to run concurrently.
   std::string xml_path =
       "/tmp/xtp_test_dftengine_forces_" +
-      std::to_string(std::hash<std::string>{}(functional)) + ".xml";
+      std::to_string(std::hash<std::string>{}(
+          functional + std::to_string(spin) + std::to_string(charge))) +
+      ".xml";
   std::ofstream xml(xml_path);
   xml << "<dftpackage>\n";
-  xml << "<spin>1</spin>\n";
+  xml << "<spin>" << spin << "</spin>\n";
   xml << "<name>xtp</name>\n";
-  xml << "<charge>0</charge>\n";
+  xml << "<charge>" << charge << "</charge>\n";
   xml << "<functional>" << functional << "</functional>\n";
   xml << "<basisset>" << XTP_TEST_DATA_FOLDER
       << "/threecenter_dft/3-21G.xml</basisset>\n";
@@ -275,6 +285,84 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference_hybrid) {
                  "is threaded through, or a remaining scale/sign issue "
                  "not caught by the FIXED-MO-matrix test in "
                  "test_dftgradient.cc."
+              << std::endl;
+  }
+  BOOST_CHECK_EQUAL(matches, true);
+
+  libint2::finalize();
+}
+
+// Same pattern as forces_finite_difference above, but for a genuinely
+// open-shell (UKS) system: H2+ (one electron total, doublet -- spin=2
+// meaning multiplicity 2, i.e. one unpaired electron), charge=+1. This
+// is the most decisive validation possible for
+// DFTEngine::ComputeAndStoreForcesUKS -- real SCF convergence down the
+// actual EvaluateUKS path (num_alpha=1, num_beta=0 for H2+, naturally
+// unequal, no need for force_uks_path_), the actual wiring inside
+// EvaluateUKS, and the newly-added XC gradient (PulayGradientUKS +
+// GridWeightGradientUKS) all exercised together for the first time.
+// Every individual UKS gradient term has already been separately
+// validated (test_dftengine_private.cc, test_xcgradient.cc); this test
+// checks the ASSEMBLY and INTEGRATION specifically, the same gap that,
+// on the RKS side, turned out to hide two genuinely missing physics
+// terms (kinetic+nuclear-attraction, then the overlap Pulay force) that
+// no amount of per-term testing could have caught.
+//
+// STATUS: written but NOT yet run.
+BOOST_AUTO_TEST_CASE(forces_finite_difference_uks) {
+  libint2::initialize();
+
+  double bond_length = 1.06;  // Angstrom, roughly H2+ equilibrium
+                              // (longer than neutral H2's ~0.74 A,
+                              // consistent with a weaker one-electron
+                              // bond)
+  double h = 1e-3;  // Angstrom, same reasoning as the RKS tests above
+  const std::string functional = "XC_GGA_X_PBE XC_GGA_C_PBE";
+  Index spin = 2;    // doublet
+  Index charge = 1;  // H2+
+
+  Orbitals orb0 = RunSCF(bond_length, functional, spin, charge);
+  BOOST_REQUIRE_EQUAL(orb0.hasForces(), true);
+  Eigen::MatrixXd forces = orb0.getForces();
+
+  std::cout << "H2+ UKS SCF forces:\n" << forces << std::endl;
+  std::cout << "H2+ UKS SCF energy: " << orb0.getDFTTotalEnergy()
+             << std::endl;
+
+  Eigen::Vector3d sum = forces.colwise().sum();
+  BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
+
+  Orbitals orb_plus = RunSCF(bond_length + h, functional, spin, charge);
+  Orbitals orb_minus = RunSCF(bond_length - h, functional, spin, charge);
+
+  double e_plus = orb_plus.getDFTTotalEnergy();
+  double e_minus = orb_minus.getDFTTotalEnergy();
+
+  constexpr double kBohrPerAngstrom = 0.52917721090380;
+  double finite_diff_dEdz =
+      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  double finite_diff_force = -finite_diff_dEdz;
+
+  double analytic_force = forces(1, 2);
+
+  std::cout << "Analytic force on atom 1 (z): " << analytic_force
+             << std::endl;
+  std::cout << "Finite-difference force on atom 1 (z): "
+             << finite_diff_force << std::endl;
+
+  bool matches = std::abs(finite_diff_force - analytic_force) <
+                 1e-2 * std::abs(analytic_force);
+  if (!matches) {
+    std::cout << "NOTE: if this fails, check individually: (1) whether "
+                 "orb0.hasForces() was even true (a scoping guard may "
+                 "have silently skipped force computation), (2) whether "
+                 "the translational-invariance check above passed (if "
+                 "not, the bug is likely in the assembly/sign convention "
+                 "in ComputeAndStoreForcesUKS itself, not in any "
+                 "individual already-validated term), (3) whether "
+                 "tightening SCF convergence or h changes the result "
+                 "substantially (would suggest reconvergence noise "
+                 "rather than a real formula bug)."
               << std::endl;
   }
   BOOST_CHECK_EQUAL(matches, true);
