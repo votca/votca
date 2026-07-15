@@ -53,7 +53,8 @@ class TestOptions:
             opts.jobname = "options_test"
 
     @pytest.mark.parametrize(
-        "attr, expected", [("job_name", "system"), (("dftpackage", "spin"), "1")]
+        "attr, expected", [("job_name", "system"), (("dftpackage", "spin"), "1"),
+                          (("dftpackage", "xtpdft", "compute_forces"), "false")]
     )
     def test_attr_default(self, opts, attr, expected):
         if isinstance(attr, str):

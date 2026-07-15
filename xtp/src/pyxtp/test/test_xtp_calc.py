@@ -43,6 +43,19 @@ class TestXTP:
         if CO.calc.options.dftpackage.charge != 1:
             raise AssertionError("Error in test_set")
 
+    def test_set_compute_forces(self, CO):
+        # compute_forces defaults to false (opt-in, matching the C++
+        # DFTEngine::compute_forces_ default) -- settable the same way
+        # as any other schema-defined option, via the dftpackage/xtpdft
+        # path (no special-casing needed in pyxtp itself, since Options
+        # builds its whole attribute tree dynamically from the XML
+        # schema -- see subpackages/dftpackage.xml).
+        if CO.calc.options.dftpackage.xtpdft.compute_forces != 'false':
+            raise AssertionError("Error in test_set_compute_forces: unexpected default")
+        CO.calc.set(**{'dftpackage/xtpdft/compute_forces': True})
+        if CO.calc.options.dftpackage.xtpdft.compute_forces != True:
+            raise AssertionError("Error in test_set_compute_forces")
+
     def test_set_default(self, CO):
         CO.calc.set(basis='sto-3g')
         CO.calc.set_default_options()
