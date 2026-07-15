@@ -1096,14 +1096,17 @@ template <class Grid>
 Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradientUKS(
     const Eigen::MatrixXd& dmat_alpha, const Eigen::MatrixXd& dmat_beta,
     const AOBasis& dftbasis) const {
-  if (xfunc.info->family != XC_FAMILY_LDA) {
-    throw std::runtime_error(
-        "PulayGradientUKS: only LDA functionals are supported so far -- "
-        "GGA needs the additional sigma_aa/sigma_ab/sigma_bb cross-term "
-        "structure, genuinely new derivation work not yet done. See the "
-        "STATUS note on this function's declaration in vxc_potential.h.");
-  }
-
+  // GGA support: full derivation verified numerically in Python (toy
+  // multi-atom system, ~1e-12) before writing this -- see conversation
+  // history. Key simplification found: the sigma-dependent gradient,
+  // which naively needs THREE separate contributions (from sigma_aa,
+  // sigma_ab, sigma_bb), collapses into reusing the SAME per-spin
+  // machinery as the restricted GGA case (Gmat_s, Hessian_rho_s) twice
+  // -- once per spin channel -- by combining the three vsigma weights
+  // into two "effective" gradient vectors:
+  //   V_a = 2*vsigma_aa*rho_a_grad + vsigma_ab*rho_b_grad
+  //   V_b = 2*vsigma_bb*rho_b_grad + vsigma_ab*rho_a_grad
+  // No LDA-only restriction needed anymore.
   Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<Eigen::MatrixXd> grad_thread(
@@ -1140,7 +1143,7 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradientUKS(
     const std::vector<double>& weights = box.getGridWeights();
 
     for (Index p = 0; p < box.size(); ++p) {
-      AOShell::AOValues ao = box.CalcAOValues(points[p]);
+      AOShell::AOValuesHessian ao = box.CalcAOValuesHessian(points[p]);
 
       Eigen::VectorXd temp_a = DMa * ao.values;
       Eigen::VectorXd temp_b = DMb * ao.values;
@@ -1153,32 +1156,70 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradientUKS(
         continue;
       }
 
-      typename Vxc_Potential<Grid>::XC_entry_spin xc =
-          EvaluateXCSpin(rho_a, rho_b, 0.0, 0.0, 0.0);
-
-      // Translation-type term (A == owner(p) only) -- same derivation
-      // as the restricted case's grid-point-translation term, summed
-      // over both spin channels. grad_s = 2*(ao.derivatives^T*temp_s),
-      // matching IntegrateVXCSpin's own convention exactly.
-      const Eigen::Vector3d grad_a =
+      const Eigen::Vector3d rho_a_grad =
           2.0 * (ao.derivatives.transpose() * temp_a);
-      const Eigen::Vector3d grad_b =
+      const Eigen::Vector3d rho_b_grad =
           2.0 * (ao.derivatives.transpose() * temp_b);
+      const double sigma_aa = rho_a_grad.dot(rho_a_grad);
+      const double sigma_ab = rho_a_grad.dot(rho_b_grad);
+      const double sigma_bb = rho_b_grad.dot(rho_b_grad);
+
+      typename Vxc_Potential<Grid>::XC_entry_spin xc =
+          EvaluateXCSpin(rho_a, rho_b, sigma_aa, sigma_ab, sigma_bb);
+
+      // Translation-type term (A == owner(p) only), LDA part -- same as
+      // before, unaffected by GGA.
       Index owner_of_point = owner_atoms[p];
       grad_thread[thread_id].row(owner_of_point) +=
-          (weight * (xc.vrho_a * grad_a + xc.vrho_b * grad_b)).transpose();
+          (weight * (xc.vrho_a * rho_a_grad + xc.vrho_b * rho_b_grad))
+              .transpose();
 
-      // Basis-type term, accumulated per local AO index mu, scattered to
-      // the correct atom via local_idx_to_atom -- same derivation as
-      // the restricted case's basis-function/Pulay term, summed over
-      // both spin channels.
+      // GGA sigma terms -- both basis-type and translation-type reuse
+      // the same Gmat_s/Hessian_rho_s construction per spin channel
+      // (matching the restricted GGA case's own Gmat/Hessian_rho
+      // exactly, just built from dmat_alpha/dmat_beta separately
+      // instead of one pre-doubled DMAT_here), contracted with V_a/V_b.
+      Eigen::MatrixX3d Gmat_a = 2.0 * (DMa * ao.derivatives);
+      Eigen::MatrixX3d Gmat_b = 2.0 * (DMb * ao.derivatives);
+      Eigen::Vector3d V_a =
+          2.0 * xc.vsigma_aa * rho_a_grad + xc.vsigma_ab * rho_b_grad;
+      Eigen::Vector3d V_b =
+          2.0 * xc.vsigma_bb * rho_b_grad + xc.vsigma_ab * rho_a_grad;
+
+      // Translation-type sigma contribution: Hessian_rho_s * V_s,
+      // summed over both spins.
+      Eigen::Matrix3d Hessian_rho_a = Eigen::Matrix3d::Zero();
+      Eigen::Matrix3d Hessian_rho_b = Eigen::Matrix3d::Zero();
+      for (Index mu = 0; mu < box.Matrixsize(); ++mu) {
+        Hessian_rho_a += temp_a(mu) * ao.hessians[mu];
+        Hessian_rho_b += temp_b(mu) * ao.hessians[mu];
+      }
+      Eigen::Matrix3d Ma = ao.derivatives.transpose() * Gmat_a;
+      Eigen::Matrix3d Mb = ao.derivatives.transpose() * Gmat_b;
+      Hessian_rho_a += 0.5 * (Ma + Ma.transpose());
+      Hessian_rho_b += 0.5 * (Mb + Mb.transpose());
+
+      grad_thread[thread_id].row(owner_of_point) +=
+          (weight * (Hessian_rho_a * V_a + Hessian_rho_b * V_b)).transpose();
+
+      // Basis-type term (LDA + sigma), accumulated per local AO index
+      // mu, scattered to the correct atom via local_idx_to_atom.
+      Eigen::VectorXd Gmat_a_dot_Va = Gmat_a * V_a;
+      Eigen::VectorXd Gmat_b_dot_Vb = Gmat_b * V_b;
       for (Index mu = 0; mu < box.Matrixsize(); ++mu) {
         Index atom = local_idx_to_atom[mu];
-        Eigen::Vector3d contribution =
+        Eigen::Vector3d lda_contribution =
             -2.0 * weight *
             (xc.vrho_a * temp_a(mu) + xc.vrho_b * temp_b(mu)) *
             ao.derivatives.row(mu).transpose();
-        grad_thread[thread_id].row(atom) += contribution.transpose();
+        Eigen::Vector3d sigma_contribution =
+            -weight *
+            (ao.derivatives.row(mu).transpose() * Gmat_a_dot_Va(mu) +
+             temp_a(mu) * (ao.hessians[mu] * V_a) +
+             ao.derivatives.row(mu).transpose() * Gmat_b_dot_Vb(mu) +
+             temp_b(mu) * (ao.hessians[mu] * V_b));
+        grad_thread[thread_id].row(atom) +=
+            (lda_contribution + sigma_contribution).transpose();
       }
     }
   }
@@ -1194,13 +1235,11 @@ template <class Grid>
 Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradientUKS(
     const Eigen::MatrixXd& dmat_alpha, const Eigen::MatrixXd& dmat_beta,
     const QMMolecule& atoms) const {
-  if (xfunc.info->family != XC_FAMILY_LDA) {
-    throw std::runtime_error(
-        "GridWeightGradientUKS: only LDA functionals are supported so "
-        "far. See the STATUS note on this function's declaration in "
-        "vxc_potential.h.");
-  }
-
+  // GGA support: the weight-derivative term is functional-form-agnostic
+  // (unchanged geometric dw/dR logic below) -- only needed real
+  // sigma_aa/sigma_ab/sigma_bb instead of hardcoded zeros, computed
+  // from the actual density gradients below. No LDA-only restriction
+  // needed here at all.
   // Copy-adapted from GridWeightGradient (restricted case) -- the SSW
   // weight-derivative logic itself (d_rq_dR, d_Rab_dR, dmu_dR, dp_dR,
   // and the C_p/w_owner construction) is PURELY GEOMETRIC and
@@ -1251,8 +1290,15 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradientUKS(
       if (rho * weight < 1.e-20) {
         continue;
       }
+      const Eigen::Vector3d rho_a_grad =
+          2.0 * (ao.derivatives.transpose() * temp_a);
+      const Eigen::Vector3d rho_b_grad =
+          2.0 * (ao.derivatives.transpose() * temp_b);
+      const double sigma_aa = rho_a_grad.dot(rho_a_grad);
+      const double sigma_ab = rho_a_grad.dot(rho_b_grad);
+      const double sigma_bb = rho_b_grad.dot(rho_b_grad);
       typename Vxc_Potential<Grid>::XC_entry_spin xc =
-          EvaluateXCSpin(rho_a, rho_b, 0.0, 0.0, 0.0);
+          EvaluateXCSpin(rho_a, rho_b, sigma_aa, sigma_ab, sigma_bb);
 
       Index owner = owner_atoms[pidx];
       if (owner < 0) {

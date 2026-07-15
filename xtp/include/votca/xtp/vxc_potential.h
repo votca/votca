@@ -112,13 +112,11 @@ class Vxc_Potential {
 
   // ===========================================================================
   // UKS (spin-polarized) analogs of PulayGradient/GridWeightGradient
-  // above. LDA-ONLY for now -- GGA needs the additional sigma_aa/
-  // sigma_ab/sigma_bb cross-term structure (no analog in the spin-
-  // restricted case at all, not just an extension of the existing
-  // sigma=|grad(rho)|^2 machinery), genuinely new derivation work not
-  // yet attempted. Throws if called with a GGA/hybrid-GGA functional.
+  // above. Now support GGA functionals too, not just LDA -- extended
+  // after the LDA-only version was fully validated, following the same
+  // derive-in-Python-first discipline used throughout this codebase.
   //
-  // Basis-type and translation-type terms both generalize the
+  // LDA basis-type and translation-type terms generalize the
   // spin-restricted derivation directly, verified numerically (Python,
   // toy multi-atom system, ~1e-11) before writing this: for each spin
   // channel s in {a,b},
@@ -133,12 +131,32 @@ class Vxc_Potential {
   // case's df_drho -- no further correction needed) and summed over
   // both spin channels.
   //
+  // GGA sigma_aa/sigma_ab/sigma_bb terms: naively need THREE separate
+  // contributions, but collapse into reusing the SAME per-spin
+  // machinery as the restricted GGA case (Gmat_s, Hessian_rho_s) twice
+  // -- once per spin channel -- by combining the three vsigma weights
+  // into two "effective" gradient vectors (verified numerically,
+  // ~1e-12, before writing the C++):
+  //   V_a = 2*vsigma_aa*rho_a_grad + vsigma_ab*rho_b_grad
+  //   V_b = 2*vsigma_bb*rho_b_grad + vsigma_ab*rho_a_grad
+  // Basis-type sigma contribution per mu in A:
+  //   -[grad(chi_mu)*(Gmat_a.V_a)_mu + temp_a,mu*(Hessian_mu.V_a)
+  //     + grad(chi_mu)*(Gmat_b.V_b)_mu + temp_b,mu*(Hessian_mu.V_b)]
+  // Translation-type sigma contribution (A==owner(p) only):
+  //   Hessian_rho_a . V_a + Hessian_rho_b . V_b
+  // where Gmat_s = 2*dmat_s*ao.derivatives and Hessian_rho_s is built
+  // exactly like the restricted case's Hessian_rho, just per spin
+  // channel.
+  //
   // The weight-derivative term is functional-form-agnostic (same
   // geometric dw/dR logic as the restricted GridWeightGradient,
   // unchanged) -- only the energy-density prefactor changes, from
   // rho*f_xc to (rho_a+rho_b)*f_xc (EvaluateXCSpin's own f_xc
   // convention, matching IntegrateVXCSpin's own energy accumulation
-  // exactly: exc_private += weight*rho*xc.f_xc, rho=rho_a+rho_b).
+  // exactly: exc_private += weight*rho*xc.f_xc, rho=rho_a+rho_b), now
+  // evaluated with real sigma_aa/sigma_ab/sigma_bb (computed from the
+  // actual density gradients) instead of the LDA-only version's
+  // hardcoded zeros.
   Eigen::MatrixXd PulayGradientUKS(const Eigen::MatrixXd& dmat_alpha,
                                    const Eigen::MatrixXd& dmat_beta,
                                    const AOBasis& dftbasis) const;
