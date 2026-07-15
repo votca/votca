@@ -29,6 +29,7 @@
     <fock_matrix_reset help="how often the fock matrix is reset" default="5" choices="int+" />
     <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
     <force_uks_path help="forcing UKS path" default="false" choices="bool"/>
+    <compute_forces help="Compute analytic ground-state DFT nuclear forces (RI, and hybrid-exchange for UKS) and store them in the orb (HDF5) file. Adds real cost to every converged SCF, so this is opt-in." default="false" choices="bool"/>
     <convergence>
       <energy help="DeltaE at which calculation is converged" unit="hartree" choices="float+" default="1E-7" />
       <method help="Main method to use for convergence accelertation" choices="DIIS,mixing" default="DIIS" />

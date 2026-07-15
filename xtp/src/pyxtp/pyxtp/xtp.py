@@ -69,6 +69,7 @@ class xtp(Calculator):
 
         self.has_data = False
         self.has_forces = False
+        self.has_dft_forces = False
 
         self.hdf5_filename = None
         self.logfile = 'dftgwbse.log'
@@ -166,6 +167,7 @@ class xtp(Calculator):
         self.results = {}
         self.select_force()
         self.has_forces = False
+        self.has_dft_forces = False
         self.has_data = False
 
 
@@ -185,7 +187,8 @@ class xtp(Calculator):
             self.calculate_energies(atoms=atoms)
 
         if 'forces' in properties:
-            self.calculate_numerical_forces('energy')
+            if not self._try_analytic_forces(atoms=atoms):
+                self.calculate_numerical_forces('energy')
 
     def calculate_energies(self, atoms: Atoms = None) -> None:
         """Compute all the energies of the dft+gw+bse pipeline
@@ -290,6 +293,40 @@ class xtp(Calculator):
             td = orb['transition_dipoles']
             self.transition_dipoles = np.array(
                 [td[dset][()] for dset in td.keys()])
+
+            # Analytic ground-state DFT forces, if the run was configured
+            # with <compute_forces>true</compute_forces> under xtpdft --
+            # see DFTEngine::ComputeAndStoreForces(UKS) and
+            # Orbitals::setForces()/hasForces() on the C++ side. Stored on
+            # disk in Hartree/Bohr (atomic units); NOT present at all
+            # (dataset missing) if compute_forces was left at its default
+            # (false), and can also be an empty (0-row) dataset if
+            # Orbitals::hasForces() was false when written (e.g. a
+            # hybrid-functional or non-RI UKS run, which
+            # ComputeAndStoreForcesUKS/ComputeAndStoreForces skip with a
+            # logged warning rather than silently storing something
+            # wrong) -- both cases are treated as "no analytic forces
+            # available" here, falling back to the existing numerical
+            # path.
+            if 'forces' in orb:
+                dft_forces_bohr = orb['forces'][()]
+                self.has_dft_forces = dft_forces_bohr.shape[0] > 0
+                if self.has_dft_forces:
+                    # Match the existing numerical-forces path's own
+                    # (uncorrected) unit convention -- see
+                    # calculate_numerical_forces/numeric_force_xtp, which
+                    # differentiates an energy in Hartree w.r.t. ASE
+                    # positions in Angstrom directly, with no unit
+                    # conversion applied. Converting the analytic
+                    # Hartree/Bohr forces to this same Hartree/Angstrom
+                    # convention (rather than "fixing" either path
+                    # unilaterally) is what makes it possible to switch
+                    # between numerical and analytic forces without any
+                    # other code -- including any ASE optimizer -- having
+                    # to care which one it's getting.
+                    self.dft_forces = dft_forces_bohr / BOHR2ANG
+            else:
+                self.has_dft_forces = False
 
             self.has_data = True
 
@@ -526,6 +563,52 @@ class xtp(Calculator):
 
         return energy, np.array(osc)
 
+    def _try_analytic_forces(self, atoms: Atoms = None) -> bool:
+        """Use the analytic ground-state DFT forces already stored in the
+        orb (HDF5) file, if applicable and available, storing them into
+        self.results['forces'] exactly like calculate_numerical_forces
+        does. Returns True if analytic forces were used (nothing further
+        to do), False if the caller should fall back to the existing
+        numerical finite-difference path.
+
+        Only applies to ground-state DFT forces (self.option_forces
+        ['energy'] == 'energy') -- excited-state properties
+        (singlets/triplets/ks/qp/qp_pert) have no analytic gradient on
+        the C++ side at all and always return False here, falling
+        through to the existing numerical path unconditionally, exactly
+        as before this method existed.
+        """
+        if self.option_forces['energy'] != 'energy':
+            return False
+
+        if atoms is None:
+            atoms = self.atoms
+
+        # Same state-change detection get_total_energy already uses --
+        # avoids returning stale forces (or a stale has_data=True) if
+        # atoms moved since the last computation without going through
+        # calculate() first.
+        if self.has_data and self.check_state(atoms):
+            self.reset()
+
+        if not self.has_data:
+            # Ensure a converged SCF (and therefore an up to date orb/
+            # HDF5 file) exists at the CURRENT geometry before checking
+            # for analytic forces. Only reached when nothing has been
+            # computed yet for these atoms -- if energies were already
+            # computed (e.g. because 'energy' was requested alongside
+            # 'forces', the common case for an ASE optimizer),
+            # self.has_data is already true and this is skipped, so the
+            # purely-numerical path never pays for an extra SCF run it
+            # doesn't need.
+            self.calculate_energies(atoms=atoms)
+
+        if self.has_dft_forces:
+            self.results['forces'] = self.dft_forces
+            self.has_forces = True
+            return True
+        return False
+
     def select_force(self, energy: str = 'energy', level: int = 0, dynamic: bool = False):
         """Set up which energy term and energy level we want to compute the forces on
 
@@ -575,8 +658,9 @@ class xtp(Calculator):
         """
         if self.check_forces():
             return self.results['forces']
-        else:
-            return self.calculate_numerical_forces(atoms=atoms)
+        if self._try_analytic_forces(atoms=atoms):
+            return self.results['forces']
+        return self.calculate_numerical_forces(atoms=atoms)
 
     def read_forces_from_logfile(self, logfile: Pathlike) -> None:
         """Read Forces from VOTCA logfile
