@@ -100,7 +100,7 @@ QMMolecule BuildH2(double bond_length_angstrom) {
 // for H2+ (doublet, one unpaired electron) to exercise the UKS path.
 Orbitals RunSCF(double bond_length_angstrom,
                 const std::string& functional = "XC_GGA_X_PBE XC_GGA_C_PBE",
-                Index spin = 1, Index charge = 0) {
+                int spin = 1, int charge = 0) {
   DFTEngine dft;
   Orbitals orb;
   orb.QMAtoms() = BuildH2(bond_length_angstrom);
@@ -318,8 +318,8 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference_uks) {
                               // bond)
   double h = 1e-3;  // Angstrom, same reasoning as the RKS tests above
   const std::string functional = "XC_GGA_X_PBE XC_GGA_C_PBE";
-  Index spin = 2;    // doublet
-  Index charge = 1;  // H2+
+  int spin = 2;    // doublet
+  int charge = 1;  // H2+
 
   Orbitals orb0 = RunSCF(bond_length, functional, spin, charge);
   BOOST_REQUIRE_EQUAL(orb0.hasForces(), true);
