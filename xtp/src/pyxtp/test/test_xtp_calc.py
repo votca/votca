@@ -44,14 +44,18 @@ class TestXTP:
             raise AssertionError("Error in test_set")
 
     def test_set_compute_forces(self, CO):
-        # compute_forces defaults to false (opt-in, matching the C++
-        # DFTEngine::compute_forces_ default) -- settable the same way
-        # as any other schema-defined option, via the dftpackage/xtpdft
-        # path (no special-casing needed in pyxtp itself, since Options
-        # builds its whole attribute tree dynamically from the XML
-        # schema -- see subpackages/dftpackage.xml).
-        if CO.calc.options.dftpackage.xtpdft.compute_forces != 'false':
-            raise AssertionError("Error in test_set_compute_forces: unexpected default")
+        # compute_forces is settable the same way as any other schema-
+        # defined option, via the dftpackage/xtpdft path (no special-
+        # casing needed in pyxtp itself, since Options builds its whole
+        # attribute tree dynamically from the XML schema -- see
+        # subpackages/dftpackage.xml). Not checking the default value
+        # here: this fixture's Options object is built via
+        # set_default_options() -> Options(file_name), WITHOUT
+        # set_default=True, so every leaf defaults to '' rather than the
+        # XML's own default="false" (see make_options: "if not
+        # set_default: return ''") -- that specific behavior is already
+        # covered correctly by test_options.py's test_attr_default,
+        # which does use set_default=True.
         CO.calc.set(**{'dftpackage/xtpdft/compute_forces': True})
         if CO.calc.options.dftpackage.xtpdft.compute_forces != True:
             raise AssertionError("Error in test_set_compute_forces")
