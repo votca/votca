@@ -122,8 +122,8 @@ class xtp(Calculator):
                     split_key = key.split('/')
                     element = self.options
                     for k in split_key[:-1]:
-                        element = element.__getattr__(k)
-                    element.__setattr__(split_key[-1], value)
+                        element = getattr(element, k)
+                    setattr(element, split_key[-1], value)
             else:
                 print(f'Option {key} not available in xtp')
 
