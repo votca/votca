@@ -1,7 +1,10 @@
 import unittest
 import pytest
+from ase import Atoms
 from ase.build import molecule
 import os
+import numpy as np
+import h5py
 try:
     from pyxtp import xtp
     from pyxtp.options import Options

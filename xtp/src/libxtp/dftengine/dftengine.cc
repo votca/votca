@@ -370,13 +370,33 @@ void DFTEngine::ComputeAndStoreForces(
     }
   }
 
+  Eigen::MatrixXd rij_term = DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_);
+  Eigen::MatrixXd pulay_term = vxcpotential.PulayGradient(Dmat, dftbasis_);
+  Eigen::MatrixXd weight_term = vxcpotential.GridWeightGradient(Dmat, mol);
+  Eigen::MatrixXd nucrep_term = DFTGradient::NuclearRepulsionDerivative(mol);
+
+  // DIAGNOSTIC: print every individual term's contribution to atom 0,
+  // to isolate which term (if any) breaks rotational covariance --
+  // every term here is a real physical quantity (dE/dR for that specific
+  // physical contribution) and must transform correctly under rotation
+  // of the whole molecule; comparing the SAME geometry in two different
+  // orientations, term by term, should show clearly which one doesn't.
+  std::cerr << std::setprecision(10)
+            << "[FORCE DIAGNOSTIC] atom0 nuclear_repulsion=" << nucrep_term.row(0)
+            << "\n[FORCE DIAGNOSTIC] atom0 one_electron=" << eone_grad.row(0)
+            << "\n[FORCE DIAGNOSTIC] atom0 overlap_pulay=" << overlap_pulay_grad.row(0)
+            << "\n[FORCE DIAGNOSTIC] atom0 rij=" << rij_term.row(0)
+            << "\n[FORCE DIAGNOSTIC] atom0 xc_pulay=" << pulay_term.row(0)
+            << "\n[FORCE DIAGNOSTIC] atom0 xc_weight=" << weight_term.row(0)
+            << std::endl;
+
   Eigen::MatrixXd grad =
-      DFTGradient::NuclearRepulsionDerivative(mol) +
+      nucrep_term +
       eone_grad +
       overlap_pulay_grad +
-      DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_) +
-      vxcpotential.PulayGradient(Dmat, dftbasis_) +
-      vxcpotential.GridWeightGradient(Dmat, mol);
+      rij_term +
+      pulay_term +
+      weight_term;
 
   // Exact-exchange (RI-K) gradient -- hybrid functionals only. Skipped
   // entirely (not just multiplied by a zero ScaHFX_) when not needed,
@@ -398,7 +418,11 @@ void DFTEngine::ComputeAndStoreForces(
   // limitation (hybrid functionals skipped entirely) -- see git history
   // for the full derivation/verification that led to this.
   if (ScaHFX_ > 0.0) {
-    grad += ScaHFX_ * DFTGradient::RIKGradient(C_occ, auxbasis_, dftbasis_);
+    Eigen::MatrixXd rik_term = DFTGradient::RIKGradient(C_occ, auxbasis_, dftbasis_);
+    std::cerr << std::setprecision(10)
+              << "[FORCE DIAGNOSTIC] atom0 rik(unscaled)=" << rik_term.row(0)
+              << " ScaHFX_=" << ScaHFX_ << std::endl;
+    grad += ScaHFX_ * rik_term;
   }
 
   // Sanity check independent of the finite-difference tests already done
