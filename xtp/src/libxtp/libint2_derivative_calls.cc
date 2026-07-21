@@ -121,6 +121,7 @@
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/qmmolecule.h"
+#include <atomic>
 #include <exception>
 #include <stdexcept>
 #include <string>
@@ -257,6 +258,7 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
   }
 
   std::exception_ptr eptr = nullptr;
+  std::atomic<bool> any_nonnull_buffer{false};
 #pragma omp parallel for schedule(dynamic)
   for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
    try {
@@ -274,6 +276,7 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
       if (buf[0] == nullptr) {
         continue;  // integrals screened out
       }
+      any_nonnull_buffer.store(true, std::memory_order_relaxed);
 
       // See HIGHEST-RISK ASSUMPTION note at the top of this file -- the
       // original assert(buf.size()==6) here did not catch a real problem:
@@ -324,6 +327,23 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
   }
   if (eptr) {
     std::rethrow_exception(eptr);
+  }
+  if (!any_nonnull_buffer.load() && aobasis.getNumofShells() > 0) {
+    // See the detailed explanation on ComputeNuclearAttractionDerivatives'
+    // own version of this check -- distinct from the compile-time
+    // LIBINT2_MAX_DERIV_ORDER guard, since individual operators can each
+    // have their own build configuration; this specific operator
+    // (obtype -- overlap or kinetic, depending on which public entry
+    // point called this template) never produced a single non-null
+    // buffer across the entire computation.
+    throw std::runtime_error(
+        "computeOneBodyIntegralDerivatives: engine.results() returned a "
+        "null buffer for EVERY shell pair -- this libint2 build does not "
+        "actually support this operator's derivative integrals at "
+        "runtime, even though it may report LIBINT2_MAX_DERIV_ORDER >= 1 "
+        "for other operators. Rebuild libint2 with this operator's "
+        "derivative support enabled (--enable-1body=1) to use this "
+        "feature.");
   }
   return result;
 }
@@ -413,6 +433,7 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
   }
 
   std::exception_ptr eptr_coulmetric = nullptr;
+  std::atomic<bool> any_nonnull_buffer_coulmetric{false};
 #pragma omp parallel for schedule(dynamic)
   for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
    try {
@@ -434,6 +455,7 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
       if (buf[0] == nullptr) {
         continue;
       }
+      any_nonnull_buffer_coulmetric.store(true, std::memory_order_relaxed);
 
       Index bf2 = shell2bf[s2];
       Index n2 = shells[s2].size();
@@ -464,6 +486,18 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
   }
   if (eptr_coulmetric) {
     std::rethrow_exception(eptr_coulmetric);
+  }
+  if (!any_nonnull_buffer_coulmetric.load() && aobasis.getNumofShells() > 0) {
+    // See the detailed explanation on ComputeNuclearAttractionDerivatives'
+    // own version of this check.
+    throw std::runtime_error(
+        "ComputeCoulombMetricDerivatives: engine.results() returned a "
+        "null buffer for EVERY shell pair -- this libint2 build does not "
+        "actually support this operator's derivative integrals at "
+        "runtime, even though it may report LIBINT2_MAX_DERIV_ORDER >= 1 "
+        "for other operators. Rebuild libint2 with this operator's "
+        "derivative support enabled (--enable-eri2=1) to use this "
+        "feature.");
   }
   return result;
 }
@@ -563,6 +597,7 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
   }
 
   std::exception_ptr eptr_3c = nullptr;
+  std::atomic<bool> any_nonnull_buffer_3c{false};
 #pragma omp parallel for schedule(dynamic)
   for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
    try {
@@ -600,6 +635,7 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
         if (buf[0] == nullptr) {
           continue;
         }
+        any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
 
         // See HIGHEST-RISK note above: 9 buffers assumed (3 real centers
         // x 3 Cartesian), ordered [aux center xyz][col-shell's atom
@@ -651,6 +687,19 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
   }
   if (eptr_3c) {
     std::rethrow_exception(eptr_3c);
+  }
+  if (!any_nonnull_buffer_3c.load() && auxbasis.getNumofShells() > 0 &&
+      dftbasis.getNumofShells() > 0) {
+    // See the detailed explanation on ComputeNuclearAttractionDerivatives'
+    // own version of this check.
+    throw std::runtime_error(
+        "ComputeThreeCenterDerivatives: engine.results() returned a null "
+        "buffer for EVERY shell triple -- this libint2 build does not "
+        "actually support this operator's derivative integrals at "
+        "runtime, even though it may report LIBINT2_MAX_DERIV_ORDER >= 1 "
+        "for other operators. Rebuild libint2 with this operator's "
+        "derivative support enabled (--enable-eri3=1) to use this "
+        "feature.");
   }
   return result;
 }
@@ -816,6 +865,7 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
   // parallelization axis here, not shell pairs within one fixed engine
   // configuration.
   std::exception_ptr eptr_nucattr = nullptr;
+  std::atomic<bool> any_nonnull_buffer_nucattr{false};
 #pragma omp parallel for schedule(dynamic)
   for (Index A = 0; A < natoms; ++A) {
    try {
@@ -843,6 +893,7 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
         if (buf[0] == nullptr) {
           continue;
         }
+        any_nonnull_buffer_nucattr.store(true, std::memory_order_relaxed);
 
         Index bf2 = shell2bf[s2];
         Index n2 = shells[s2].size();
@@ -894,6 +945,34 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
   }
   if (eptr_nucattr) {
     std::rethrow_exception(eptr_nucattr);
+  }
+  if (!any_nonnull_buffer_nucattr.load() && natoms > 0 &&
+      aobasis.getNumofShells() > 0) {
+    // Distinct from the LIBINT2_MAX_DERIV_ORDER compile-time guard
+    // above: that macro is library-wide (the maximum derivative order
+    // ANY operator supports), but individual operators can each have
+    // their own, separate build configuration -- a libint2 build can
+    // report LIBINT2_MAX_DERIV_ORDER>=1 (enough for e.g. overlap/
+    // kinetic) while this specific operator (nuclear attraction with
+    // point-charge derivatives) was never actually generated, in which
+    // case engine.results() silently returns null buffers for EVERY
+    // shell pair rather than throwing -- exactly the failure mode a CI
+    // run against such a libint2 hit: this function ran to completion
+    // and returned an all-zero matrix, not an exception, which a
+    // finite-difference test then correctly reports as a large,
+    // confusing discrepancy rather than a clear "not supported"
+    // message. Catching it here, at the one place that already knows
+    // whether a single buffer was ever populated across the entire
+    // computation, turns that into an explicit, actionable error.
+    throw std::runtime_error(
+        "ComputeNuclearAttractionDerivatives: engine.results() returned "
+        "a null buffer for EVERY shell pair and point charge -- this "
+        "libint2 build does not actually support nuclear-attraction "
+        "derivative integrals at runtime, even though it may report "
+        "LIBINT2_MAX_DERIV_ORDER >= 1 for other operators. Rebuild "
+        "libint2 with this operator's derivative support enabled "
+        "(--enable-1body=1, which nuclear attraction is part of) to "
+        "use this feature.");
   }
 
   std::vector<AOMatrixDerivative> result(natoms);
