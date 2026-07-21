@@ -199,7 +199,17 @@ namespace {
 // defined here, unconditionally (not inside any #if guard), since it
 // does not itself depend on any of those macros -- only the stubs that
 // call it do.
-[[noreturn]] void ThrowNoDerivativeSupport(const char* function_name,
+// [[maybe_unused]]: on a build where all three categories (ONEBODY,
+// ERI2, ERI3) are actually supported, none of the #else stub blocks
+// below that call this are ever compiled -- making this function
+// itself genuinely unused. Confirmed as a real -Werror -Wunused-function
+// build failure on a CI runner with full derivative support (clang,
+// this exact function flagged). Defined unconditionally (not inside
+// any #if guard) specifically so it can be shared across every stub
+// block regardless of which category(ies) are missing; that same
+// choice is what makes it possible for none of them to be active at
+// once.
+[[noreturn, maybe_unused]] void ThrowNoDerivativeSupport(const char* function_name,
                                            const char* configure_flag) {
   throw std::runtime_error(
       std::string(function_name) +
