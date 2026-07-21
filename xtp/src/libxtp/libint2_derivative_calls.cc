@@ -121,6 +121,8 @@
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/qmmolecule.h"
+#include <stdexcept>
+#include <string>
 
 // include libint last otherwise it overrides eigen
 #include "votca/xtp/make_libint_work.h"
@@ -190,6 +192,23 @@ using MatrixLibInt =
 // with more than two centers (e.g. coulomb/three-center RI integrals) --
 // those need separate handling for the additional center(s)' derivatives
 // and are deliberately out of scope for this first pass.
+//
+// COMPILE GUARD: many pre-packaged libint2 builds (Homebrew, Ubuntu
+// apt, etc.) are NOT built with derivative support at all -- this
+// branch's own build hit exactly this issue early on (traced to
+// Homebrew resolving formulae from its hosted API rather than a
+// locally-edited tap file; see the file-level history comment above).
+// libint2 exposes its own build-time maximum derivative order as the
+// LIBINT2_MAX_DERIV_ORDER macro (confirmed directly: libint2's own
+// Engine::initialize asserts deriv_order_ <= LIBINT2_MAX_DERIV_ORDER).
+// Every function below this point (up to the matching #endif) uses
+// deriv_order=1 engines -- if LIBINT2_MAX_DERIV_ORDER is 0, calling any
+// of them would hit that assertion (a hard crash), or worse, undefined
+// behavior if NDEBUG has compiled the assertion out. Guarding at
+// compile time means a build against a derivative-less libint2 simply
+// never generates code that could do this, rather than relying on
+// every call site remembering to check first.
+#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1
 template <libint2::Operator obtype>
 std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
     const AOBasis& aobasis) {
@@ -588,6 +607,44 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
   }
   return result;
 }
+#else   // !(LIBINT2_MAX_DERIV_ORDER >= 1)
+// Stubs for a libint2 build without derivative support (see the compile
+// guard's own explanatory comment above computeOneBodyIntegralDerivatives).
+// These exist only so the rest of the codebase (dftgradient.cc,
+// dftengine.cc) still links; DFTEngine::ComputeAndStoreForces(UKS) has
+// its own, separate compile-time check and never actually calls these,
+// so in normal use this throw is never reached at all -- it is a
+// last-resort safety net, not the primary way this limitation is
+// communicated to a user.
+namespace {
+[[noreturn]] void ThrowNoDerivativeSupport(const char* function_name) {
+  throw std::runtime_error(
+      std::string(function_name) +
+      ": this libint2 build was compiled without derivative integral "
+      "support (LIBINT2_MAX_DERIV_ORDER < 1) -- analytic nuclear forces "
+      "are unavailable. Rebuild libint2 with derivative support enabled "
+      "(e.g. --enable-1body=1 and, for RI-J/RI-K forces, --enable-eri2=1 "
+      "at libint2 configure time) to use this feature. Many pre-packaged "
+      "libint2 builds (Homebrew, Ubuntu apt, etc.) do not enable this by "
+      "default.");
+}
+}  // namespace
+
+std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(const AOBasis&) {
+  ThrowNoDerivativeSupport("ComputeOverlapDerivatives");
+}
+std::vector<AOMatrixDerivative> ComputeKineticDerivatives(const AOBasis&) {
+  ThrowNoDerivativeSupport("ComputeKineticDerivatives");
+}
+std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
+    const AOBasis&) {
+  ThrowNoDerivativeSupport("ComputeCoulombMetricDerivatives");
+}
+std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
+    const AOBasis&, const AOBasis&) {
+  ThrowNoDerivativeSupport("ComputeThreeCenterDerivatives");
+}
+#endif  // LIBINT2_MAX_DERIV_ORDER >= 1
 
 // Energy-level (deriv_order=0) three-center integral (mu,nu|P), kept here
 // (rather than in dftgradient.cc) so all direct libint2 API usage stays
@@ -599,7 +656,8 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
 // reusing the already-existing ComputeAO3cBlock helper from
 // libint2_calls.cc (declared there, not in any header -- forward
 // declared here) rather than re-deriving the same shell-iteration logic
-// a third time.
+// a third time. UNGUARDED (unlike the functions above): deriv_order=0
+// integrals are always supported, by any libint2 build.
 std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
     const AOBasis& auxbasis, const AOBasis& dftbasis) {
   std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
@@ -672,6 +730,7 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
 // correct by the same finite-difference test -- only the sign was
 // wrong, now fixed. Re-run pending to confirm the fix.
 // ===========================================================================
+#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1
 std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
     const AOBasis& aobasis, const QMMolecule& mol) {
   Index natoms = mol.size();
@@ -787,6 +846,33 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
     }
   }
   return result;
+}
+#else   // !(LIBINT2_MAX_DERIV_ORDER >= 1)
+std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
+    const AOBasis&, const QMMolecule&) {
+  throw std::runtime_error(
+      "ComputeNuclearAttractionDerivatives: this libint2 build was "
+      "compiled without derivative integral support "
+      "(LIBINT2_MAX_DERIV_ORDER < 1) -- analytic nuclear forces are "
+      "unavailable. Rebuild libint2 with derivative support enabled to "
+      "use this feature. Many pre-packaged libint2 builds (Homebrew, "
+      "Ubuntu apt, etc.) do not enable this by default.");
+}
+#endif  // LIBINT2_MAX_DERIV_ORDER >= 1
+
+// Small, deliberately libint2-header-free helper: lets other files (e.g.
+// dftengine.cc, which does not otherwise include any libint2 header at
+// all) check whether this build's linked libint2 supports derivative
+// integrals, WITHOUT needing to include <libint2.hpp> themselves just
+// for this one macro. Used by DFTEngine::ComputeAndStoreForces(UKS) to
+// skip cleanly (log and return) rather than ever calling the throwing
+// stubs above at all.
+bool HasLibint2DerivativeSupport() {
+#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1
+  return true;
+#else
+  return false;
+#endif
 }
 
 }  // namespace xtp

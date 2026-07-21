@@ -71,6 +71,16 @@ void CanonicalizeOrbitalPhases(tools::EigenSystem& mos) {
 
 }  // namespace
 
+// Defined in libint2_derivative_calls.cc -- forward declared here
+// (rather than only near ComputeAndStoreForces further down, where the
+// other libint2_derivative_calls.cc forward declarations live) because
+// Initialize() below needs it too, to warn early -- at options-parsing
+// time, before any SCF work at all -- if compute_forces=true was
+// requested on a build that cannot actually do it. See that file's own
+// compile-time guard (around LIBINT2_MAX_DERIV_ORDER) for the full
+// explanation of why this check exists.
+bool HasLibint2DerivativeSupport();
+
 /**
  * Self-consistent Kohn-Sham implementation.
  *
@@ -108,6 +118,33 @@ void DFTEngine::Initialize(tools::Property& options) {
 
   if (options.exists(key_xtpdft + ".compute_forces")) {
     compute_forces_ = options.get(key_xtpdft + ".compute_forces").as<bool>();
+  }
+  if (compute_forces_ && !HasLibint2DerivativeSupport()) {
+    // Fail fast, at options-parsing time, rather than only discovering
+    // this after a full (potentially expensive) SCF has already
+    // converged -- ComputeAndStoreForces(UKS) has its own, separate
+    // check too (since compute_forces_ could in principle be flipped
+    // some other way), but that one only fires much later, right
+    // before forces would actually be computed.
+    //
+    // Deliberately std::cerr, NOT XTP_LOG(*pLog_): pLog_ has no default
+    // initializer (Logger* pLog_;) and is only ever set via the
+    // separate setLogger() call -- Initialize() itself never
+    // previously depended on pLog_ being valid at all (confirmed: no
+    // other XTP_LOG/pLog_ usage anywhere else in this function), so
+    // there's no guarantee setLogger() has already been called by the
+    // time Initialize() runs. Using pLog_ here could dereference an
+    // uninitialized pointer.
+    std::cerr
+        << " WARNING: compute_forces=true was requested, but the "
+           "libint2 this was built against does not support derivative "
+           "integrals (LIBINT2_MAX_DERIV_ORDER < 1) -- analytic forces "
+           "will NOT be computed or stored, no matter how this SCF "
+           "converges. Many pre-packaged libint2 builds (Homebrew, "
+           "Ubuntu apt, etc.) do not enable this by default; rebuild "
+           "libint2 with derivative support enabled to use this "
+           "feature."
+        << std::endl;
   }
 
   initial_guess_ = options.get(".initial_guess").as<std::string>();
@@ -293,6 +330,10 @@ std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
     const AOBasis& aobasis);
 std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
     const AOBasis& aobasis, const QMMolecule& mol);
+// HasLibint2DerivativeSupport() (used below in both ComputeAndStoreForces
+// and ComputeAndStoreForcesUKS) is already forward declared earlier in
+// this file, near Initialize() -- see that declaration's own comment
+// for why it needed to be that early.
 
 void DFTEngine::ComputeAndStoreForces(
     Orbitals& orb, const Eigen::MatrixXd& Dmat,
@@ -303,6 +344,19 @@ void DFTEngine::ComputeAndStoreForces(
         << " Skipping force calculation: RI-J gradient (DFTGradient::"
            "RIJGradient) only implements the RI path, but this SCF ran "
            "without an auxiliary basis (conventional 4-center ERIs)."
+        << std::flush;
+    return;
+  }
+
+  if (!HasLibint2DerivativeSupport()) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Skipping force calculation: the libint2 this was built "
+           "against does not support derivative integrals "
+           "(LIBINT2_MAX_DERIV_ORDER < 1). Many pre-packaged libint2 "
+           "builds (Homebrew, Ubuntu apt, etc.) do not enable this by "
+           "default -- rebuild libint2 with derivative support enabled "
+           "to use analytic forces."
         << std::flush;
     return;
   }
@@ -567,6 +621,19 @@ void DFTEngine::ComputeAndStoreForcesUKS(
         << " Skipping UKS force calculation: RI-J gradient only "
            "implements the RI path, but this SCF ran without an "
            "auxiliary basis."
+        << std::flush;
+    return;
+  }
+
+  if (!HasLibint2DerivativeSupport()) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Skipping UKS force calculation: the libint2 this was "
+           "built against does not support derivative integrals "
+           "(LIBINT2_MAX_DERIV_ORDER < 1). Many pre-packaged libint2 "
+           "builds (Homebrew, Ubuntu apt, etc.) do not enable this by "
+           "default -- rebuild libint2 with derivative support enabled "
+           "to use analytic forces."
         << std::flush;
     return;
   }
