@@ -135,16 +135,15 @@ void DFTEngine::Initialize(tools::Property& options) {
     // there's no guarantee setLogger() has already been called by the
     // time Initialize() runs. Using pLog_ here could dereference an
     // uninitialized pointer.
-    std::cerr
-        << " WARNING: compute_forces=true was requested, but the "
-           "libint2 this was built against does not support derivative "
-           "integrals (LIBINT2_MAX_DERIV_ORDER < 1) -- analytic forces "
-           "will NOT be computed or stored, no matter how this SCF "
-           "converges. Many pre-packaged libint2 builds (Homebrew, "
-           "Ubuntu apt, etc.) do not enable this by default; rebuild "
-           "libint2 with derivative support enabled to use this "
-           "feature."
-        << std::endl;
+    std::cerr << " WARNING: compute_forces=true was requested, but the "
+                 "libint2 this was built against does not support derivative "
+                 "integrals (LIBINT2_MAX_DERIV_ORDER < 1) -- analytic forces "
+                 "will NOT be computed or stored, no matter how this SCF "
+                 "converges. Many pre-packaged libint2 builds (Homebrew, "
+                 "Ubuntu apt, etc.) do not enable this by default; rebuild "
+                 "libint2 with derivative support enabled to use this "
+                 "feature."
+              << std::endl;
   }
 
   initial_guess_ = options.get(".initial_guess").as<std::string>();
@@ -424,18 +423,14 @@ void DFTEngine::ComputeAndStoreForces(
     }
   }
 
-  Eigen::MatrixXd rij_term = DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_);
+  Eigen::MatrixXd rij_term =
+      DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_);
   Eigen::MatrixXd pulay_term = vxcpotential.PulayGradient(Dmat, dftbasis_);
   Eigen::MatrixXd weight_term = vxcpotential.GridWeightGradient(Dmat, mol);
   Eigen::MatrixXd nucrep_term = DFTGradient::NuclearRepulsionDerivative(mol);
 
-  Eigen::MatrixXd grad =
-      nucrep_term +
-      eone_grad +
-      overlap_pulay_grad +
-      rij_term +
-      pulay_term +
-      weight_term;
+  Eigen::MatrixXd grad = nucrep_term + eone_grad + overlap_pulay_grad +
+                         rij_term + pulay_term + weight_term;
 
   // Exact-exchange (RI-K) gradient -- hybrid functionals only. Skipped
   // entirely (not just multiplied by a zero ScaHFX_) when not needed,
@@ -471,8 +466,9 @@ void DFTEngine::ComputeAndStoreForces(
         << TimeStamp()
         << " WARNING: computed forces do not sum to zero across atoms "
            "(translational invariance check failed, max component="
-        << sum.cwiseAbs().maxCoeff() << ") -- treat these forces with "
-        "caution."
+        << sum.cwiseAbs().maxCoeff()
+        << ") -- treat these forces with "
+           "caution."
         << std::flush;
   }
 
@@ -497,11 +493,11 @@ void DFTEngine::ComputeAndStoreForces(
   // unrelated to this).
   XTP_LOG(Log::error, *pLog_) << " Forces [Ha/Bohr]" << std::flush;
   for (Index a = 0; a < natoms; ++a) {
-    std::string output = (boost::format(" %1$s"
-                                        "   %2$+1.6f %3$+1.6f %4$+1.6f") %
-                          mol[a].getElement() % force(a, 0) % force(a, 1) %
-                          force(a, 2))
-                             .str();
+    std::string output =
+        (boost::format(" %1$s"
+                       "   %2$+1.6f %3$+1.6f %4$+1.6f") %
+         mol[a].getElement() % force(a, 0) % force(a, 1) % force(a, 2))
+            .str();
     XTP_LOG(Log::error, *pLog_) << output << std::flush;
   }
 }
@@ -539,10 +535,9 @@ Eigen::MatrixXd DFTEngine::ComputeOverlapPulayGradientUKS(
   Eigen::MatrixXd C_beta_occ = MOs_beta.eigenvectors().leftCols(n_occ_beta);
   Eigen::VectorXd eps_alpha_occ = MOs_alpha.eigenvalues().head(n_occ_alpha);
   Eigen::VectorXd eps_beta_occ = MOs_beta.eigenvalues().head(n_occ_beta);
-  Eigen::MatrixXd W = C_alpha_occ * eps_alpha_occ.asDiagonal() *
-                          C_alpha_occ.transpose() +
-                      C_beta_occ * eps_beta_occ.asDiagonal() *
-                          C_beta_occ.transpose();
+  Eigen::MatrixXd W =
+      C_alpha_occ * eps_alpha_occ.asDiagonal() * C_alpha_occ.transpose() +
+      C_beta_occ * eps_beta_occ.asDiagonal() * C_beta_occ.transpose();
 
   Index natoms = mol.size();
   std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis_);
@@ -574,17 +569,17 @@ Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
   Eigen::MatrixXd eone_grad = Eigen::MatrixXd::Zero(natoms, 3);
   for (Index a = 0; a < natoms; ++a) {
     for (Index xyz = 0; xyz < 3; ++xyz) {
-      eone_grad(a, xyz) =
-          D_total.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
+      eone_grad(a, xyz) = D_total.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
     }
   }
 
   Eigen::MatrixXd overlap_pulay_grad =
       ComputeOverlapPulayGradientUKS(mol, MOs_alpha, MOs_beta);
 
-  Eigen::MatrixXd grad = DFTGradient::NuclearRepulsionDerivative(mol) +
-                         eone_grad + overlap_pulay_grad +
-                         DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
+  Eigen::MatrixXd grad =
+      DFTGradient::NuclearRepulsionDerivative(mol) + eone_grad +
+      overlap_pulay_grad +
+      DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
 
   // Exact exchange (RI-K), hybrids only. Factor of 0.5*ScaHFX_ (not
   // ScaHFX_ alone) -- confirmed both algebraically and numerically
@@ -658,8 +653,9 @@ void DFTEngine::ComputeAndStoreForcesUKS(
         << " WARNING: computed UKS forces do not sum to zero across "
            "atoms (translational invariance check failed, max "
            "component="
-        << sum.cwiseAbs().maxCoeff() << ") -- treat these forces with "
-        "caution."
+        << sum.cwiseAbs().maxCoeff()
+        << ") -- treat these forces with "
+           "caution."
         << std::flush;
   }
 
@@ -671,8 +667,7 @@ void DFTEngine::ComputeAndStoreForcesUKS(
   orb.setForces(force);
 
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp()
-      << " Computed and stored ground-state UKS nuclear forces."
+      << TimeStamp() << " Computed and stored ground-state UKS nuclear forces."
       << std::flush;
   // Same convention as ComputeAndStoreForces (RKS): atomic units
   // (Hartree/Bohr), matching what gets stored via setForces() above.
