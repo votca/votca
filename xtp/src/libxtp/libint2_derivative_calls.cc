@@ -273,8 +273,24 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
     for (Index s2 : shellpair_list[s1]) {
 
       engine.compute(shells[s1], shells[s2]);
-      if (buf[0] == nullptr) {
-        continue;  // integrals screened out
+      // CRITICAL FIX: buf[0]==nullptr alone is not a sufficient guard.
+      // A real, hard crash (SIGSEGV, "no mapping at fault address 0x0")
+      // was observed on a different CI architecture than the one that
+      // showed the "silently all zero" failure mode -- consistent with
+      // buf[0] coming back non-null (passing this check) while
+      // buf[3+xyz] (dereferenced below, unconditionally, for shell2's/
+      // atom2's derivative) is still null. This exact possibility was
+      // flagged in this file's own history from early in this branch
+      // ("buf[3..5] being unpopulated even though buf.size() reports
+      // 6") but the check was never actually added until now. A
+      // segfault is a hardware signal, not a C++ exception -- no
+      // try/catch anywhere can catch it, so this must be prevented
+      // before the dereference, not handled after.
+      if (buf[0] == nullptr || buf[3] == nullptr) {
+        continue;  // integrals screened out, or this operator's
+                   // derivative support is genuinely absent (caught
+                   // below by any_nonnull_buffer/the zero-result check
+                   // once every shell pair has been skipped this way).
       }
       any_nonnull_buffer.store(true, std::memory_order_relaxed);
 
@@ -452,7 +468,11 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
           shells[s1], libint2::Shell::unit(), shells[s2],
           libint2::Shell::unit());
 
-      if (buf[0] == nullptr) {
+      // See the detailed explanation on the analogous check in
+      // computeOneBodyIntegralDerivatives above -- buf[0]==nullptr
+      // alone is not sufficient; buf[3+xyz] is dereferenced
+      // unconditionally below too.
+      if (buf[0] == nullptr || buf[3] == nullptr) {
         continue;
       }
       any_nonnull_buffer_coulmetric.store(true, std::memory_order_relaxed);
@@ -632,7 +652,11 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
             .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
                 auxshell, libint2::Shell::unit(), shell_col, shell_row);
 
-        if (buf[0] == nullptr) {
+        // See the detailed explanation on the analogous check in
+        // computeOneBodyIntegralDerivatives above -- this operator
+        // dereferences buf[3+xyz] AND buf[6+xyz] unconditionally below
+        // too (3 real centers, not 2), so both need checking here.
+        if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
           continue;
         }
         any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
@@ -890,7 +914,19 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
       for (Index s2 = 0; s2 <= s1; ++s2) {
         engine.compute(shells[s1], shells[s2]);
 
-        if (buf[0] == nullptr) {
+        // See the detailed explanation on the analogous check in
+        // computeOneBodyIntegralDerivatives above -- this operator
+        // dereferences buf[3+xyz] AND buf[6+xyz] unconditionally below
+        // too (3 real centers: shell1's atom, shell2's atom, the point
+        // charge), so both need checking here. This exact gap is what
+        // produced BOTH observed failure modes on different CI
+        // architectures for this specific function: a hard segfault
+        // (buf[3] or buf[6] actually null) on one, and a silently
+        // all-zero result (buf[3]/buf[6] non-null but zero-filled,
+        // caught instead by the separate norm check further below) on
+        // another -- same underlying root cause, different libint2
+        // build behavior for an unsupported operator.
+        if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
           continue;
         }
         any_nonnull_buffer_nucattr.store(true, std::memory_order_relaxed);
@@ -973,6 +1009,37 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
         "libint2 with this operator's derivative support enabled "
         "(--enable-1body=1, which nuclear attraction is part of) to "
         "use this feature.");
+  }
+
+  // SECOND, COMPLEMENTARY CHECK: the check above only catches every
+  // buffer coming back NULL. A real CI run on a different architecture
+  // showed that check did NOT fire, yet the assembled result was still
+  // exactly, precisely all-zero -- some libint2 builds apparently
+  // return valid, non-null buffer POINTERS for this operator, but the
+  // underlying computation for it was never actually generated, so the
+  // pointed-to memory is zero-filled rather than containing a real
+  // result. A genuine nuclear attraction derivative for any real
+  // molecule with nonzero nuclear charges and a non-empty basis can
+  // never be exactly zero everywhere.
+  double total_norm_sq_nucattr = 0.0;
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      for (Index t = 0; t < nthreads; ++t) {
+        total_norm_sq_nucattr += result_thread[t][a][xyz].squaredNorm();
+      }
+    }
+  }
+  if (total_norm_sq_nucattr < 1.e-20 && natoms > 0 &&
+      aobasis.getNumofShells() > 0) {
+    throw std::runtime_error(
+        "ComputeNuclearAttractionDerivatives: the assembled result is "
+        "exactly zero everywhere, which is physically impossible for a "
+        "real molecule -- this libint2 build likely returns valid but "
+        "zero-filled buffers for this operator (rather than either "
+        "computing it correctly or returning null, which the separate, "
+        "earlier check in this function already handles). Rebuild "
+        "libint2 with this operator's derivative support enabled "
+        "(--enable-1body=1) to use this feature.");
   }
 
   std::vector<AOMatrixDerivative> result(natoms);
