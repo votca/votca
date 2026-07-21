@@ -52,7 +52,8 @@ namespace xtp {
 class DFTGradient {
  public:
   /// Derivative of the classical nuclear-nuclear repulsion energy
-  /// E_nn = sum_{A<B} Z_A Z_B / R_AB with respect to nuclear coordinates.
+  /// E_nn = sum over atom pairs A,B with A \< B of Z_A Z_B / R_AB, with
+  /// respect to nuclear coordinates.
   /// Returns an (Natoms x 3) matrix in Hartree/Bohr, consistent with
   /// QMAtom::getPos() being stored in Bohr and with the
   /// Orbitals::setForces() convention -- no unit conversion needed here,
