@@ -9,7 +9,7 @@ from ase.calculators.calculator import Calculator, equal, PropertyNotImplemented
 from .capture_standard_output import capture_standard_output
 from pyxtp_binds import xtp_binds
 from .options import Options
-from .utils import BOHR2ANG
+from .utils import BOHR2ANG, H2EV
 
 Pathlike = Union[Path, str]
 
@@ -188,7 +188,7 @@ class xtp(Calculator):
 
         if 'forces' in properties:
             if not self._try_analytic_forces(atoms=atoms):
-                self.calculate_numerical_forces('energy')
+                self.calculate_numerical_forces(atoms=atoms)
 
     def calculate_energies(self, atoms: Atoms = None) -> None:
         """Compute all the energies of the dft+gw+bse pipeline
@@ -280,14 +280,34 @@ class xtp(Calculator):
 
             self.has_xyz = True
 
+            # UNITS: every quantity read directly from the orb (HDF5) file
+            # below is stored in atomic units (Hartree for energies,
+            # Hartree/Bohr for forces) -- XTP's native convention,
+            # confirmed directly against the C++ source (no unit
+            # conversion happens anywhere in DFTEngine::ComputeAndStoreForces
+            # (UKS) or Orbitals::setForces()/WriteToCpt). ASE's own
+            # documented convention (https://wiki.fysik.dtu.dk/ase/ase/units.html;
+            # explicitly for energy+forces together:
+            # https://ase-lib.org/examples_generated/gettingstarted/01-atoms-and-calculators.html)
+            # is eV for energy and eV/Angstrom for forces -- confirmed
+            # directly, this was NOT previously applied anywhere in this
+            # file (H2EV was defined in utils.py but never imported here),
+            # so every energy-like quantity below was silently off by a
+            # factor of H2EV (~27.211) relative to what ASE (and any
+            # optimizer built on it) expects. Fixed by converting once,
+            # here, at the point of reading -- everything downstream
+            # (get_dft_energy, get_ks_total_energy, etc., and the entire
+            # numerical-forces path via numeric_force_xtp, which just
+            # differentiates whatever get_total_energy returns) is
+            # consistent automatically, with no further changes needed.
             self.homo = int(orb.attrs['occupied_levels'][0]) - 1
-            self.DFTenergy = float(orb.attrs['qm_energy'][0])
-            self.qp_energies = read_flatten_array(orb, 'QPpert_energies')
+            self.DFTenergy = H2EV * float(orb.attrs['qm_energy'][0])
+            self.qp_energies = H2EV * read_flatten_array(orb, 'QPpert_energies')
             self.qp_energies_diag, self.ks_energies, self.bse_singlet_energies, self.bse_triplet_energies = [
-                read_flatten_array(orb, x, 'eigenvalues') for x in ('QPdiag', 'mos', 'BSE_singlet', 'BSE_triplet')]
+                H2EV * read_flatten_array(orb, x, 'eigenvalues') for x in ('QPdiag', 'mos', 'BSE_singlet', 'BSE_triplet')]
 
             self.bse_singlet_energies_dynamic, self.bse_triplet_energies_dynamic = [
-                read_flatten_array(orb, f"BSE_{x}_dynamic") for x in ("singlet", "triplet")]
+                H2EV * read_flatten_array(orb, f"BSE_{x}_dynamic") for x in ("singlet", "triplet")]
             self.qpmin = int(orb.attrs['qpmin'][0])
             self.qpmax = int(orb.attrs['qpmax'][0])
             td = orb['transition_dipoles']
@@ -312,19 +332,16 @@ class xtp(Calculator):
                 dft_forces_bohr = orb['forces'][()]
                 self.has_dft_forces = dft_forces_bohr.shape[0] > 0
                 if self.has_dft_forces:
-                    # Match the existing numerical-forces path's own
-                    # (uncorrected) unit convention -- see
-                    # calculate_numerical_forces/numeric_force_xtp, which
-                    # differentiates an energy in Hartree w.r.t. ASE
-                    # positions in Angstrom directly, with no unit
-                    # conversion applied. Converting the analytic
-                    # Hartree/Bohr forces to this same Hartree/Angstrom
-                    # convention (rather than "fixing" either path
-                    # unilaterally) is what makes it possible to switch
-                    # between numerical and analytic forces without any
-                    # other code -- including any ASE optimizer -- having
-                    # to care which one it's getting.
-                    self.dft_forces = dft_forces_bohr / BOHR2ANG
+                    # Hartree/Bohr -> eV/Angstrom, matching ASE's
+                    # documented convention exactly (same references as
+                    # above). The numerical-forces path (calculate_numerical_forces/
+                    # numeric_force_xtp) now also returns eV/Angstrom
+                    # automatically, since it differentiates
+                    # get_total_energy's output (now in eV) w.r.t. ASE
+                    # positions (already in Angstrom) directly -- so
+                    # both forces paths agree on units with no special-
+                    # casing needed to switch between them.
+                    self.dft_forces = H2EV * dft_forces_bohr / BOHR2ANG
             else:
                 self.has_dft_forces = False
 
@@ -558,8 +575,17 @@ class xtp(Calculator):
             energy = self.bse_singlet_energies_dynamic
         else:
             energy = self.bse_singlet_energies
+        # Oscillator strength is dimensionless and has no ASE-unit-
+        # convention obligation at all -- but the standard formula
+        # f = (2/3)*deltaE*|mu|^2 is only correct when deltaE is in
+        # Hartree and mu (self.transition_dipoles) is in atomic units
+        # (e*Bohr) TOGETHER. self.bse_singlet_energies(_dynamic) is now
+        # in eV (converted in read_hdf5_data, for ASE's benefit) while
+        # transition_dipoles is untouched atomic-unit data -- so convert
+        # back to Hartree here, locally, just for this formula.
+        energy_hartree = energy / H2EV
         osc = [(2. / 3.) * e * (t ** 2).sum()
-               for e, t in zip(energy, self.transition_dipoles)]
+               for e, t in zip(energy_hartree, self.transition_dipoles)]
 
         return energy, np.array(osc)
 
@@ -641,7 +667,17 @@ class xtp(Calculator):
                 new_atoms.calc = xtp(options=self.options, nthreads=self.nthreads)
                 _force.append(numeric_force_xtp(new_atoms, a, i, eps, self.option_forces))
             forces.append(_force)
-        self.results['forces'] = np.array(forces) #* Hartree / Bohr ?
+        # UNITS: eV/Angstrom automatically, with no conversion needed at
+        # this point -- d (eps) is already in Angstrom (ASE's own
+        # position units, applied directly to atoms.get_positions()
+        # above), and numeric_force_xtp's own energy differences are now
+        # in eV too (get_total_energy -> get_dft_energy/get_ks_total_energy/
+        # etc., all of which read from read_hdf5_data's H2EV-converted
+        # attributes). This was previously Hartree/Angstrom (H2EV was
+        # never applied anywhere in this file) -- fixed at the source in
+        # read_hdf5_data, not here, so nothing in this function needed
+        # to change to get the right units.
+        self.results['forces'] = np.array(forces)
         self.has_forces = True
         return self.results['forces']
 
@@ -660,7 +696,7 @@ class xtp(Calculator):
             return self.results['forces']
         if self._try_analytic_forces(atoms=atoms):
             return self.results['forces']
-        return self.calculate_numerical_forces(atoms=atoms)
+        return self.calculate_numerical_forces(eps=eps, atoms=atoms)
 
     def read_forces_from_logfile(self, logfile: Pathlike) -> None:
         """Read Forces from VOTCA logfile
