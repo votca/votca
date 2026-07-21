@@ -18,7 +18,34 @@
  */
 
 // ===========================================================================
-// STATUS: derivative-integral code below is now strongly validated.
+// STATUS UPDATE (later, via a real pyxtp run, not a unit test): a second,
+// independent, more serious bug was found AFTER everything below was
+// believed validated. Every buffer-mapping test in this file (and every
+// finite-difference test built on top of it, throughout the whole
+// plain-DFT-forces branch) used H2 with a minimal, all-s-shell basis
+// (3-21G). libint2 returns each shell-pair derivative buffer in
+// ROW-MAJOR order, but every buffer mapping below used plain
+// Eigen::Map<const Eigen::MatrixXd> (Eigen's default COLUMN-MAJOR) --
+// identical to row-major for a 1x1 (pure s-shell) block, silently wrong
+// for any block with more than one function per shell (p/d/f angular
+// momentum). Invisible for H2/3-21G; a large (~2-4%), real rotational-
+// covariance violation for a genuine CO/def2-tzvp calculation (both
+// atoms have p and d shells) -- found by comparing the same molecule in
+// two orientations term-by-term, not by any test in this codebase.
+// Fixed by switching to MatrixLibInt (Eigen::RowMajor), matching the
+// already-correct, already-validated convention libint2_calls.cc uses
+// for the energy-level (deriv_order=0) integrals this file's functions
+// are the derivatives of. See the MatrixLibInt definition below for the
+// full explanation. NOT yet re-confirmed by a real rerun as of this
+// comment -- the fix is reasoned from a clear, specific mechanism (not
+// a guess), but treat the "strongly validated" claims elsewhere in this
+// file's history below with real skepticism: they were true only for
+// all-s-shell systems, which is a much narrower claim than it reads.
+// ===========================================================================
+//
+// STATUS (ORIGINAL, PRE-DATING THE BUG ABOVE): derivative-integral code
+// below is now strongly validated -- FOR H2/3-21G SPECIFICALLY, not in
+// general; see the update above.
 //
 // Full history: build-level root cause (libint2 built without derivative
 // support -- eventually traced to Homebrew resolving formulae from its
@@ -47,7 +74,10 @@
 // symmetry check (deriv[0][2] == -deriv[1][2]) passed even before the
 // units bug was found, since that check never involves finite differences
 // -- it is a real, unit-independent confirmation that the analytic code
-// satisfies the exact mathematical constraint it must.
+// satisfies the exact mathematical constraint it must. NOTE: this check
+// is ALSO blind to the row-major/column-major bug above for an all-s-shell
+// system -- d[0][2]==-d[1][2] holds regardless of storage order for 1x1
+// blocks, so it could not have caught this either.
 // ===========================================================================
 //
 // Build/run history on this file:
@@ -133,6 +163,24 @@ std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
 // to that atom's nuclear coordinate. Matches the AO matrix convention used
 // elsewhere in this file (dense Eigen::MatrixXd, size AOBasisSize^2).
 using AOMatrixDerivative = std::array<Eigen::MatrixXd, 3>;
+
+// BUG FOUND (real pyxtp run on CO, def2-tzvp -- see conversation history
+// for the full diagnostic trail): libint2 returns each shell-pair
+// derivative buffer in ROW-MAJOR order (n1 rows x n2 columns, matching
+// libint2_calls.cc's own already-validated MatrixLibInt convention used
+// throughout the energy-level, deriv_order=0 integral code). Every
+// function below originally mapped these buffers with plain
+// Eigen::Map<const Eigen::MatrixXd>, which defaults to Eigen's
+// COLUMN-MAJOR storage order -- silently transposing each block within
+// a shell pair whenever either shell has more than one function (any
+// p/d/f angular momentum, not pure s-type). This was invisible in
+// EVERY finite-difference test in this branch, all of which used H2
+// with a minimal, all-s-shell basis (3-21G) -- row-major and
+// column-major are identical for a 1x1 block. It showed up as a
+// genuine, large (~2-4%) rotational-covariance violation for a real
+// CO/def2-tzvp calculation (both O and C have p and d shells).
+using MatrixLibInt =
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 // Computes nuclear-coordinate derivatives of a two-center one-electron
 // integral matrix (overlap, kinetic) via libint2's deriv_order=1 engine.
@@ -223,13 +271,13 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
       // on translational invariance to omit one center. Reading buf[3+xyz]
       // directly (not deriving it via negation) is the corrected approach.
       for (Index xyz = 0; xyz < 3; ++xyz) {
-        Eigen::Map<const Eigen::MatrixXd> buf_mat1(buf[xyz], n1, n2);
+        Eigen::Map<const MatrixLibInt> buf_mat1(buf[xyz], n1, n2);
         result[atom1][xyz].block(bf1, bf2, n1, n2) += buf_mat1;
         if (s1 != s2) {
           result[atom1][xyz].block(bf2, bf1, n2, n1) += buf_mat1.transpose();
         }
 
-        Eigen::Map<const Eigen::MatrixXd> buf_mat2(buf[3 + xyz], n1, n2);
+        Eigen::Map<const MatrixLibInt> buf_mat2(buf[3 + xyz], n1, n2);
         result[atom2][xyz].block(bf1, bf2, n1, n2) += buf_mat2;
         if (s1 != s2) {
           result[atom2][xyz].block(bf2, bf1, n2, n1) += buf_mat2.transpose();
@@ -350,13 +398,13 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
       Index atom2 = shell2atom[s2];
 
       for (Index xyz = 0; xyz < 3; ++xyz) {
-        Eigen::Map<const Eigen::MatrixXd> buf_mat1(buf[xyz], n1, n2);
+        Eigen::Map<const MatrixLibInt> buf_mat1(buf[xyz], n1, n2);
         result[atom1][xyz].block(bf1, bf2, n1, n2) += buf_mat1;
         if (s1 != s2) {
           result[atom1][xyz].block(bf2, bf1, n2, n1) += buf_mat1.transpose();
         }
 
-        Eigen::Map<const Eigen::MatrixXd> buf_mat2(buf[3 + xyz], n1, n2);
+        Eigen::Map<const MatrixLibInt> buf_mat2(buf[3 + xyz], n1, n2);
         result[atom2][xyz].block(bf1, bf2, n1, n2) += buf_mat2;
         if (s1 != s2) {
           result[atom2][xyz].block(bf2, bf1, n2, n1) += buf_mat2.transpose();
@@ -701,7 +749,7 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
           // "positive charge in, subtract" pattern) was backwards,
           // double-negating an already-correctly-signed quantity. Using
           // += throughout now, not -=.
-          Eigen::Map<const Eigen::MatrixXd> buf_mat1(buf[xyz], n1, n2);
+          Eigen::Map<const MatrixLibInt> buf_mat1(buf[xyz], n1, n2);
           result_thread[thread_id][atom1][xyz].block(bf1, bf2, n1, n2) +=
               buf_mat1;
           if (s1 != s2) {
@@ -709,7 +757,7 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
                 buf_mat1.transpose();
           }
 
-          Eigen::Map<const Eigen::MatrixXd> buf_mat2(buf[3 + xyz], n1, n2);
+          Eigen::Map<const MatrixLibInt> buf_mat2(buf[3 + xyz], n1, n2);
           result_thread[thread_id][atom2][xyz].block(bf1, bf2, n1, n2) +=
               buf_mat2;
           if (s1 != s2) {
@@ -717,7 +765,7 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
                 buf_mat2.transpose();
           }
 
-          Eigen::Map<const Eigen::MatrixXd> buf_mat3(buf[6 + xyz], n1, n2);
+          Eigen::Map<const MatrixLibInt> buf_mat3(buf[6 + xyz], n1, n2);
           result_thread[thread_id][A][xyz].block(bf1, bf2, n1, n2) +=
               buf_mat3;
           if (s1 != s2) {
