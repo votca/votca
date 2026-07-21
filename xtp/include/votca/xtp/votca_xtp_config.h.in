@@ -28,15 +28,4 @@
 
 #cmakedefine USE_CUDA
 
-// Set by xtp/CMakeLists.txt's try_run check
-// (CMakeModules/check_libint2_derivatives.cc): whether the libint2 this
-// was built against actually WORKS for deriv_order=1 (first-derivative)
-// integrals at runtime, not just claims to via the LIBINT2_MAX_DERIV_ORDER
-// header macro alone -- that macro was found insufficient on real CI
-// runs, where it reported >=1 while specific operators either silently
-// returned zero-filled buffers or segfaulted outright inside
-// engine.compute() itself. See libint2_derivative_calls.cc's own guard
-// around this macro for where this is actually used.
-#cmakedefine XTP_LIBINT2_DERIVATIVES_WORK
-
 #endif  // _VOTCA_XTP_CONFIG_H

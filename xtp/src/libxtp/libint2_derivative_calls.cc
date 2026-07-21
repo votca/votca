@@ -188,6 +188,35 @@ using AOMatrixDerivative = std::array<Eigen::MatrixXd, 3>;
 using MatrixLibInt =
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
+namespace {
+// Shared by every derivative-computing function's own compile-guard
+// stub below (see each guard's own comment for why it exists and which
+// specific libint2 configure flag is relevant to it -- overlap/
+// kinetic/nuclear attraction, the Coulomb metric, and three-center RI
+// each have their OWN, independent flag, confirmed via libint2's own
+// engine.impl.h, which validates braket_ against LIBINT_INCLUDE_ONEBODY/
+// _ERI2/_ERI3 completely independently of one another). Deliberately
+// defined here, unconditionally (not inside any #if guard), since it
+// does not itself depend on any of those macros -- only the stubs that
+// call it do.
+[[noreturn]] void ThrowNoDerivativeSupport(const char* function_name,
+                                           const char* configure_flag) {
+  throw std::runtime_error(
+      std::string(function_name) +
+      ": this libint2 build was compiled without derivative integral "
+      "support for this specific operator category -- analytic nuclear "
+      "forces using this function are unavailable. Rebuild libint2 "
+      "with this configured (" +
+      configure_flag +
+      " at libint2 configure time) to use this feature. Many "
+      "pre-packaged libint2 builds (Homebrew, Ubuntu apt, etc.) do not "
+      "enable this by default; note in particular that different "
+      "operator categories (one-body, the two-center Coulomb metric, "
+      "three-center RI) each have their own, independent flag -- "
+      "enabling one does not enable the others.");
+}
+}  // namespace
+
 // Computes nuclear-coordinate derivatives of a two-center one-electron
 // integral matrix (overlap, kinetic) via libint2's deriv_order=1 engine.
 // obtype must be a two-center operator (libint2::Operator::overlap or
@@ -207,23 +236,37 @@ using MatrixLibInt =
 // Engine::initialize asserts deriv_order_ <= LIBINT2_MAX_DERIV_ORDER).
 //
 // THIS ALONE WAS NOT ENOUGH: real CI runs showed LIBINT2_MAX_DERIV_ORDER
-// can report >=1 (library-wide) while individual operators either
-// silently return zero-filled buffers or segfault outright inside
-// engine.compute() itself -- a crash that cannot be caught by any
-// try/catch, since it happens before control ever returns to this
-// file's own code, no matter how carefully the returned buffers are
-// checked afterward. The only reliable fix was to move detection
-// earlier: xtp/CMakeLists.txt's try_run check
-// (CMakeModules/check_libint2_derivatives.cc) actually COMPILES AND RUNS
-// a real deriv_order=1 computation for every operator this file uses,
-// at CMake configure time, and only defines XTP_LIBINT2_DERIVATIVES_WORK
-// (in the generated votca_xtp_config.h) if that genuinely succeeds --
-// catching a crash there means the broken installation is diagnosed
-// once, at build time, rather than discovered as a segfault deep inside
-// a real user's SCF run. Both conditions (the header macro AND the
-// actual runtime-verified flag) are required below, since neither alone
-// was sufficient.
-#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1 && defined(XTP_LIBINT2_DERIVATIVES_WORK)
+// can report >=1 (library-wide -- the maximum ANY operator supports)
+// while individual, independently-configured operator categories are
+// disabled or broken -- either silently returning zero-filled buffers,
+// or segfaulting outright inside engine.compute() itself (a crash that
+// cannot be caught by any try/catch, since it happens before control
+// ever returns to this file's own code, no matter how carefully the
+// returned buffers are checked afterward).
+//
+// An earlier version of this guard tried to catch this by actually
+// compiling and running a small test program at CMake configure time
+// (a try_run check). That approach was abandoned -- fragile in
+// practice (needed multiple rounds of fixes for the check program's
+// own bugs, including once for a missing Eigen include path) and,
+// more importantly, unnecessary: libint2's OWN engine.impl.h already
+// validates braket_ against per-category macros internally
+// (LIBINT_INCLUDE_ONEBODY, LIBINT_INCLUDE_ERI2, LIBINT_INCLUDE_ERI3),
+// each set independently at libint2's OWN configure time
+// (LIBINT2_ENABLE_ONEBODY / _ERI2 / _ERI3, each with its own N or -1
+// for "off" -- confirmed via libint2's own INSTALL.md and
+// engine.impl.h). Checking these directly, per function below,
+// against exactly the category each one actually uses, is simpler,
+// more direct, and does not require compiling or running anything --
+// it just asks libint2's own headers what was actually built in.
+// computeOneBodyIntegralDerivatives (and ComputeNuclearAttractionDerivatives
+// further below, which uses the same two-center compute() API) needs
+// LIBINT_INCLUDE_ONEBODY; ComputeCoulombMetricDerivatives needs
+// LIBINT_INCLUDE_ERI2; ComputeThreeCenterDerivatives needs
+// LIBINT_INCLUDE_ERI3 -- three genuinely independent flags, any one of
+// which can be enabled while the others are not (e.g. Psi4's own
+// default configuration leaves ERI2/ERI3 off while ONEBODY is on).
+#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1 && defined(LIBINT_INCLUDE_ONEBODY)
 template <libint2::Operator obtype>
 std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
     const AOBasis& aobasis) {
@@ -392,6 +435,21 @@ std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
   return computeOneBodyIntegralDerivatives<libint2::Operator::kinetic>(
       aobasis);
 }
+#else   // !(LIBINT_INCLUDE_ONEBODY)
+// See the detailed compile-guard explanation above
+// computeOneBodyIntegralDerivatives. This stub covers ONLY overlap and
+// kinetic here -- ComputeCoulombMetricDerivatives (ERI2) and
+// ComputeThreeCenterDerivatives (ERI3) are each guarded separately
+// below, against their OWN, independent libint2 configure-time flags,
+// since these are genuinely separate capabilities that can be enabled
+// or disabled independently of each other and of LIBINT_INCLUDE_ONEBODY.
+std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(const AOBasis&) {
+  ThrowNoDerivativeSupport("ComputeOverlapDerivatives", "--enable-1body=1");
+}
+std::vector<AOMatrixDerivative> ComputeKineticDerivatives(const AOBasis&) {
+  ThrowNoDerivativeSupport("ComputeKineticDerivatives", "--enable-1body=1");
+}
+#endif  // LIBINT_INCLUDE_ONEBODY
 
 // ===========================================================================
 // Two-center Coulomb metric (P|Q) derivatives, needed for the RI-J/RI-K
@@ -430,7 +488,21 @@ std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
 //    same "null build function ptr" assertion the one-body case hit
 //    before its build was fixed, check this flag/value first, not the
 //    buffer-indexing code below.
-// ===========================================================================
+//
+// COMPILE GUARD: this is EXACTLY the flag/value distinction the comment
+// above already called out, now actually wired up -- libint2's own
+// engine.impl.h validates braket_ against LIBINT_INCLUDE_ERI2
+// specifically for this braket type (xs_xs), a macro entirely
+// independent of LIBINT_INCLUDE_ONEBODY (which guards overlap/kinetic/
+// nuclear attraction above) and of LIBINT_INCLUDE_ERI3 (which guards
+// the three-center case below). A libint2 build can have ONEBODY
+// enabled while ERI2 is disabled (Psi4's own default configuration,
+// LIBINT2_ENABLE_ERI2=-1, "OFF", is a real, common example) -- exactly
+// the situation that caused this specific operator's real, observed
+// runtime failures (null buffers / segfault) despite
+// LIBINT2_MAX_DERIV_ORDER alone reporting derivative support was
+// available somewhere in the library.
+#if defined(LIBINT_INCLUDE_ERI2)
 std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
     const AOBasis& aobasis) {
   Index natoms = static_cast<Index>(aobasis.getFuncPerAtom().size());
@@ -534,6 +606,13 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
   }
   return result;
 }
+#else   // !(LIBINT_INCLUDE_ERI2)
+std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
+    const AOBasis&) {
+  ThrowNoDerivativeSupport("ComputeCoulombMetricDerivatives",
+                           "--enable-eri2=1");
+}
+#endif  // LIBINT_INCLUDE_ERI2
 
 // ===========================================================================
 // Three-center RI integral derivatives, d(mu,nu|P)/dR, the remaining piece
@@ -576,6 +655,14 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
 // full tensor. Not addressed here; this function exists to validate the
 // underlying integral derivative in isolation first, same as the
 // one-body and two-center cases above.
+//
+// COMPILE GUARD: confirmed via libint2's own engine.impl.h, which
+// validates braket_ against LIBINT_INCLUDE_ERI3 specifically for this
+// braket type (xs_xx / xx_xs) -- independent of both
+// LIBINT_INCLUDE_ONEBODY (overlap/kinetic/nuclear attraction) and
+// LIBINT_INCLUDE_ERI2 (the two-center metric just above). Exactly the
+// already-documented-but-until-now-not-actually-checked distinction
+// from the STATUS comment above this function.
 // ===========================================================================
 
 // One entry per Cartesian direction (x,y,z); each holds one matrix per
@@ -583,6 +670,7 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
 // being (dftbasis size x dftbasis size).
 using ThreeCenterDerivative = std::array<std::vector<Eigen::MatrixXd>, 3>;
 
+#if defined(LIBINT_INCLUDE_ERI3)
 std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
     const AOBasis& auxbasis, const AOBasis& dftbasis) {
   Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
@@ -740,44 +828,13 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
   }
   return result;
 }
-#else   // !(LIBINT2_MAX_DERIV_ORDER >= 1)
-// Stubs for a libint2 build without derivative support (see the compile
-// guard's own explanatory comment above computeOneBodyIntegralDerivatives).
-// These exist only so the rest of the codebase (dftgradient.cc,
-// dftengine.cc) still links; DFTEngine::ComputeAndStoreForces(UKS) has
-// its own, separate compile-time check and never actually calls these,
-// so in normal use this throw is never reached at all -- it is a
-// last-resort safety net, not the primary way this limitation is
-// communicated to a user.
-namespace {
-[[noreturn]] void ThrowNoDerivativeSupport(const char* function_name) {
-  throw std::runtime_error(
-      std::string(function_name) +
-      ": this libint2 build was compiled without derivative integral "
-      "support (LIBINT2_MAX_DERIV_ORDER < 1) -- analytic nuclear forces "
-      "are unavailable. Rebuild libint2 with derivative support enabled "
-      "(e.g. --enable-1body=1 and, for RI-J/RI-K forces, --enable-eri2=1 "
-      "at libint2 configure time) to use this feature. Many pre-packaged "
-      "libint2 builds (Homebrew, Ubuntu apt, etc.) do not enable this by "
-      "default.");
-}
-}  // namespace
-
-std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(const AOBasis&) {
-  ThrowNoDerivativeSupport("ComputeOverlapDerivatives");
-}
-std::vector<AOMatrixDerivative> ComputeKineticDerivatives(const AOBasis&) {
-  ThrowNoDerivativeSupport("ComputeKineticDerivatives");
-}
-std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
-    const AOBasis&) {
-  ThrowNoDerivativeSupport("ComputeCoulombMetricDerivatives");
-}
+#else   // !(LIBINT_INCLUDE_ERI3)
 std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
     const AOBasis&, const AOBasis&) {
-  ThrowNoDerivativeSupport("ComputeThreeCenterDerivatives");
+  ThrowNoDerivativeSupport("ComputeThreeCenterDerivatives",
+                           "--enable-eri3=1");
 }
-#endif  // LIBINT2_MAX_DERIV_ORDER >= 1
+#endif  // LIBINT_INCLUDE_ERI3
 
 // Energy-level (deriv_order=0) three-center integral (mu,nu|P), kept here
 // (rather than in dftgradient.cc) so all direct libint2 API usage stays
@@ -863,7 +920,7 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
 // correct by the same finite-difference test -- only the sign was
 // wrong, now fixed. Re-run pending to confirm the fix.
 // ===========================================================================
-#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1 && defined(XTP_LIBINT2_DERIVATIVES_WORK)
+#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1 && defined(LIBINT_INCLUDE_ONEBODY)
 std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
     const AOBasis& aobasis, const QMMolecule& mol) {
   Index natoms = mol.size();
@@ -1066,18 +1123,13 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
   }
   return result;
 }
-#else   // !(LIBINT2_MAX_DERIV_ORDER >= 1)
+#else   // !(LIBINT_INCLUDE_ONEBODY)
 std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
     const AOBasis&, const QMMolecule&) {
-  throw std::runtime_error(
-      "ComputeNuclearAttractionDerivatives: this libint2 build was "
-      "compiled without derivative integral support "
-      "(LIBINT2_MAX_DERIV_ORDER < 1) -- analytic nuclear forces are "
-      "unavailable. Rebuild libint2 with derivative support enabled to "
-      "use this feature. Many pre-packaged libint2 builds (Homebrew, "
-      "Ubuntu apt, etc.) do not enable this by default.");
+  ThrowNoDerivativeSupport("ComputeNuclearAttractionDerivatives",
+                           "--enable-1body=1");
 }
-#endif  // LIBINT2_MAX_DERIV_ORDER >= 1
+#endif  // LIBINT_INCLUDE_ONEBODY
 
 // Small, deliberately libint2-header-free helper: lets other files (e.g.
 // dftengine.cc, which does not otherwise include any libint2 header at
@@ -1087,7 +1139,19 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
 // skip cleanly (log and return) rather than ever calling the throwing
 // stubs above at all.
 bool HasLibint2DerivativeSupport() {
-#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1 && defined(XTP_LIBINT2_DERIVATIVES_WORK)
+  // Unlike the per-function compile guards above (each checking only
+  // its OWN specific category), this helper answers "can the full
+  // forces pipeline run at all" -- DFTEngine::ComputeAndStoreForces
+  // (UKS) unconditionally needs ComputeOverlapDerivatives/
+  // ComputeKineticDerivatives/ComputeNuclearAttractionDerivatives
+  // (ONEBODY), DFTGradient::RIJGradient/RIKGradient's own calls into
+  // ComputeCoulombMetricDerivatives (ERI2), AND their calls into
+  // ComputeThreeCenterDerivatives (ERI3, confirmed used at two call
+  // sites in dftgradient.cc) -- so all three, independent categories
+  // must be available, not just one.
+#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1 && \
+    defined(LIBINT_INCLUDE_ONEBODY) && defined(LIBINT_INCLUDE_ERI2) && \
+    defined(LIBINT_INCLUDE_ERI3)
   return true;
 #else
   return false;

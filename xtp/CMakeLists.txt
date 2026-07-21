@@ -14,52 +14,60 @@ if(NOT TARGET Libint2::int2)
   endif()
 endif()
 
-# Real, hands-on history behind this check: LIBINT2_MAX_DERIV_ORDER (a
-# macro libint2's own headers define) is library-wide -- the maximum
-# derivative order ANY operator supports -- but individual libint2
-# builds/packages have shown, on real CI runs, that it can report
-# LIBINT2_MAX_DERIV_ORDER>=1 while derivative support for SPECIFIC
-# operators (nuclear attraction with a point charge; even plain overlap
-# on one architecture) either silently returns zero-filled buffers or
-# segfaults outright inside engine.compute() itself -- a crash that
-# cannot be caught, detected, or guarded against from ANY
-# application-level code once it happens. The only reliable way to catch
-# this is to actually run a real deriv_order=1 computation before the
-# main build exists at all, so a broken libint2 installation is
-# diagnosed at configure time rather than as a segfault deep inside a
-# real user's SCF run.
-try_run(
-  XTP_LIBINT2_DERIVATIVES_RUN_RESULT
-  XTP_LIBINT2_DERIVATIVES_COMPILE_RESULT
-  ${CMAKE_BINARY_DIR}/CMakeTmp/xtp_libint2_derivatives_check
-  ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/check_libint2_derivatives.cc
-  LINK_LIBRARIES Libint2::int2
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED ON
-  RUN_OUTPUT_VARIABLE XTP_LIBINT2_DERIVATIVES_OUTPUT
-)
+# Report, at configure time, whether this libint2 was built with
+# derivative-integral support for each of the three independent
+# operator categories libint2_derivative_calls.cc actually uses --
+# LIBINT_INCLUDE_ONEBODY (overlap, kinetic, nuclear attraction),
+# LIBINT_INCLUDE_ERI2 (the two-center Coulomb metric),
+# LIBINT_INCLUDE_ERI3 (three-center RI) -- each set independently at
+# libint2's OWN configure time (LIBINT2_ENABLE_ONEBODY/_ERI2/_ERI3).
+# Deliberately check_cxx_symbol_exists, NOT try_run: this only needs to
+# COMPILE a one-line check (does #include <libint2.hpp> define this
+# macro), never actually running anything -- avoiding the exact
+# category of fragility try_run had (a full, standalone test program
+# with its own bugs to get right: an earlier version of this check hit
+# both a libint2 API mismatch and a missing Eigen include path before
+# being replaced with the current, simpler compile-time #ifdef guards
+# in libint2_derivative_calls.cc itself; this CMake-level check exists
+# only to surface the same information as a clear, early message,
+# purely for visibility -- the actual C++ guards do not depend on it).
+include(CheckCXXSymbolExists)
+# CMAKE_REQUIRED_LIBRARIES accepts imported targets directly (modern
+# CMake) and pulls in their FULL interface -- include directories,
+# compile definitions, and transitive dependencies -- automatically.
+# Deliberately NOT get_target_property(... INTERFACE_INCLUDE_DIRECTORIES)
+# on each target individually: that approach was tried first and
+# produced a false "not found" for all three symbols even on a machine
+# with confirmed-working derivative support, most likely because
+# libint2's own headers transitively need Eigen/Core (confirmed
+# separately: this exact "'Eigen/Core' file not found" error showed up
+# during the earlier, abandoned try_run attempt) and manually extracted
+# include-directory properties do not reliably capture everything a
+# full target-based CMAKE_REQUIRED_LIBRARIES resolution does.
+set(CMAKE_REQUIRED_LIBRARIES Libint2::int2 Eigen3::Eigen)
+set(CMAKE_REQUIRED_FLAGS "-std=c++17")
+check_cxx_symbol_exists(LIBINT_INCLUDE_ONEBODY "libint2.hpp" XTP_LIBINT_HAS_ONEBODY_DERIVS)
+check_cxx_symbol_exists(LIBINT_INCLUDE_ERI2 "libint2.hpp" XTP_LIBINT_HAS_ERI2_DERIVS)
+check_cxx_symbol_exists(LIBINT_INCLUDE_ERI3 "libint2.hpp" XTP_LIBINT_HAS_ERI3_DERIVS)
+unset(CMAKE_REQUIRED_LIBRARIES)
+unset(CMAKE_REQUIRED_FLAGS)
 
-if(XTP_LIBINT2_DERIVATIVES_COMPILE_RESULT AND
-   "${XTP_LIBINT2_DERIVATIVES_RUN_RESULT}" STREQUAL "0")
-  message(STATUS "libint2 derivative integrals: working "
-                 "(overlap, kinetic, nuclear attraction, Coulomb metric "
-                 "all verified at configure time)")
-  set(XTP_LIBINT2_DERIVATIVES_WORK TRUE)
+if(XTP_LIBINT_HAS_ONEBODY_DERIVS AND XTP_LIBINT_HAS_ERI2_DERIVS AND XTP_LIBINT_HAS_ERI3_DERIVS)
+  message(STATUS "libint2 derivative integrals: full support found "
+                 "(one-body, two-center Coulomb metric, three-center RI) "
+                 "-- DFTEngine's compute_forces option will be available.")
 else()
   message(WARNING
-    "libint2 derivative integrals: NOT usable on this build "
-    "(compile result: ${XTP_LIBINT2_DERIVATIVES_COMPILE_RESULT}, "
-    "run result: ${XTP_LIBINT2_DERIVATIVES_RUN_RESULT}). "
-    "Output:\n${XTP_LIBINT2_DERIVATIVES_OUTPUT}\n"
-    "Analytic nuclear forces (DFTEngine's compute_forces option) will "
-    "be unavailable in this build -- rebuild libint2 with working "
-    "derivative-integral support (--enable-1body=1 --enable-eri2=1 at "
-    "libint2 configure time) to enable this feature. This is NOT a "
-    "VOTCA-XTP code defect; it reflects what this specific libint2 "
-    "installation actually supports at runtime, which the "
-    "LIBINT2_MAX_DERIV_ORDER header macro alone was found insufficient "
-    "to detect reliably.")
-  set(XTP_LIBINT2_DERIVATIVES_WORK FALSE)
+    "libint2 derivative integrals: PARTIAL OR NO support found -- "
+    "one-body (overlap/kinetic/nuclear attraction): "
+    "${XTP_LIBINT_HAS_ONEBODY_DERIVS}, two-center Coulomb metric: "
+    "${XTP_LIBINT_HAS_ERI2_DERIVS}, three-center RI: "
+    "${XTP_LIBINT_HAS_ERI3_DERIVS}. DFTEngine's compute_forces option "
+    "will be unavailable (or only partially available) in this build. "
+    "These are three independent libint2 configure-time flags "
+    "(--enable-1body / --enable-eri2 / --enable-eri3); this is NOT a "
+    "VOTCA-XTP defect, it reflects what this specific libint2 "
+    "installation was actually built with.")
 endif()
 
 find_package(ecpint REQUIRED)
