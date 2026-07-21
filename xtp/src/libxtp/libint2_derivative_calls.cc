@@ -121,6 +121,7 @@
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/qmmolecule.h"
+#include "votca/xtp/votca_xtp_config.h"
 #include <atomic>
 #include <exception>
 #include <iostream>
@@ -204,14 +205,25 @@ using MatrixLibInt =
 // libint2 exposes its own build-time maximum derivative order as the
 // LIBINT2_MAX_DERIV_ORDER macro (confirmed directly: libint2's own
 // Engine::initialize asserts deriv_order_ <= LIBINT2_MAX_DERIV_ORDER).
-// Every function below this point (up to the matching #endif) uses
-// deriv_order=1 engines -- if LIBINT2_MAX_DERIV_ORDER is 0, calling any
-// of them would hit that assertion (a hard crash), or worse, undefined
-// behavior if NDEBUG has compiled the assertion out. Guarding at
-// compile time means a build against a derivative-less libint2 simply
-// never generates code that could do this, rather than relying on
-// every call site remembering to check first.
-#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1
+//
+// THIS ALONE WAS NOT ENOUGH: real CI runs showed LIBINT2_MAX_DERIV_ORDER
+// can report >=1 (library-wide) while individual operators either
+// silently return zero-filled buffers or segfault outright inside
+// engine.compute() itself -- a crash that cannot be caught by any
+// try/catch, since it happens before control ever returns to this
+// file's own code, no matter how carefully the returned buffers are
+// checked afterward. The only reliable fix was to move detection
+// earlier: xtp/CMakeLists.txt's try_run check
+// (CMakeModules/check_libint2_derivatives.cc) actually COMPILES AND RUNS
+// a real deriv_order=1 computation for every operator this file uses,
+// at CMake configure time, and only defines XTP_LIBINT2_DERIVATIVES_WORK
+// (in the generated votca_xtp_config.h) if that genuinely succeeds --
+// catching a crash there means the broken installation is diagnosed
+// once, at build time, rather than discovered as a segfault deep inside
+// a real user's SCF run. Both conditions (the header macro AND the
+// actual runtime-verified flag) are required below, since neither alone
+// was sufficient.
+#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1 && defined(XTP_LIBINT2_DERIVATIVES_WORK)
 template <libint2::Operator obtype>
 std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
     const AOBasis& aobasis) {
@@ -273,21 +285,7 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
 
     for (Index s2 : shellpair_list[s1]) {
 
-      // TARGETED DIAGNOSTIC: confirm whether the crash happens INSIDE
-      // engine.compute() itself (libint2's own generated code), before
-      // this function's own buffer-checking logic (added in the
-      // previous fix) ever gets a chance to run at all -- if so, that
-      // fix could never have addressed this, and the print for the
-      // CURRENT shell pair would be the last output seen before the
-      // crash. std::endl (not just "\n") to force a flush immediately,
-      // so this survives even a crash on the very next line.
-      std::cerr << "[PRE-COMPUTE DIAGNOSTIC] about to call engine.compute "
-                   "for shell pair s1="
-                << s1 << " s2=" << s2 << std::endl;
       engine.compute(shells[s1], shells[s2]);
-      std::cerr << "[PRE-COMPUTE DIAGNOSTIC] engine.compute RETURNED for "
-                   "shell pair s1="
-                << s1 << " s2=" << s2 << std::endl;
       // CRITICAL FIX: buf[0]==nullptr alone is not a sufficient guard.
       // A real, hard crash (SIGSEGV, "no mapping at fault address 0x0")
       // was observed on a different CI architecture than the one that
@@ -865,7 +863,7 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
 // correct by the same finite-difference test -- only the sign was
 // wrong, now fixed. Re-run pending to confirm the fix.
 // ===========================================================================
-#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1
+#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1 && defined(XTP_LIBINT2_DERIVATIVES_WORK)
 std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
     const AOBasis& aobasis, const QMMolecule& mol) {
   Index natoms = mol.size();
@@ -1089,7 +1087,7 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
 // skip cleanly (log and return) rather than ever calling the throwing
 // stubs above at all.
 bool HasLibint2DerivativeSupport() {
-#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1
+#if defined(LIBINT2_MAX_DERIV_ORDER) && LIBINT2_MAX_DERIV_ORDER >= 1 && defined(XTP_LIBINT2_DERIVATIVES_WORK)
   return true;
 #else
   return false;
