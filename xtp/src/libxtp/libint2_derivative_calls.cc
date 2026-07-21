@@ -159,8 +159,8 @@ namespace xtp {
 // declared here for use by ComputeThreeCenterIntegrals below, to avoid
 // re-deriving the same shell-iteration logic a third time.
 std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
-                                               const AOBasis& dftbasis,
-                                               libint2::Engine& engine);
+                                              const AOBasis& dftbasis,
+                                              libint2::Engine& engine);
 
 // Result type: one entry per atom, each holding the three Cartesian
 // derivative matrices (d/dx, d/dy, d/dz) of the full AO matrix with respect
@@ -261,85 +261,85 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
   std::atomic<bool> any_nonnull_buffer{false};
 #pragma omp parallel for schedule(dynamic)
   for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
-   try {
-    Index thread_id = OPENMP::getThreadId();
-    libint2::Engine& engine = engines[thread_id];
-    const libint2::Engine::target_ptr_vec& buf = engine.results();
+    try {
+      Index thread_id = OPENMP::getThreadId();
+      libint2::Engine& engine = engines[thread_id];
+      const libint2::Engine::target_ptr_vec& buf = engine.results();
 
-    Index bf1 = shell2bf[s1];
-    Index n1 = shells[s1].size();
-    Index atom1 = shell2atom[s1];
+      Index bf1 = shell2bf[s1];
+      Index n1 = shells[s1].size();
+      Index atom1 = shell2atom[s1];
 
-    for (Index s2 : shellpair_list[s1]) {
+      for (Index s2 : shellpair_list[s1]) {
 
-      engine.compute(shells[s1], shells[s2]);
-      // CRITICAL FIX: buf[0]==nullptr alone is not a sufficient guard.
-      // A real, hard crash (SIGSEGV, "no mapping at fault address 0x0")
-      // was observed on a different CI architecture than the one that
-      // showed the "silently all zero" failure mode -- consistent with
-      // buf[0] coming back non-null (passing this check) while
-      // buf[3+xyz] (dereferenced below, unconditionally, for shell2's/
-      // atom2's derivative) is still null. This exact possibility was
-      // flagged in this file's own history from early in this branch
-      // ("buf[3..5] being unpopulated even though buf.size() reports
-      // 6") but the check was never actually added until now. A
-      // segfault is a hardware signal, not a C++ exception -- no
-      // try/catch anywhere can catch it, so this must be prevented
-      // before the dereference, not handled after.
-      if (buf[0] == nullptr || buf[3] == nullptr) {
-        continue;  // integrals screened out, or this operator's
-                   // derivative support is genuinely absent (caught
-                   // below by any_nonnull_buffer/the zero-result check
-                   // once every shell pair has been skipped this way).
-      }
-      any_nonnull_buffer.store(true, std::memory_order_relaxed);
-
-      // See HIGHEST-RISK ASSUMPTION note at the top of this file -- the
-      // original assert(buf.size()==6) here did not catch a real problem:
-      // a null-pointer crash (address 0x0) was observed at runtime,
-      // consistent with buf[3..5] being unpopulated even though buf.size()
-      // reports 6 (likely a fixed nominal capacity rather than the number
-      // of meaningfully-populated buffers). Diagnostic left in place below
-      // to confirm this directly on the next run rather than guess again.
-      Index bf2 = shell2bf[s2];
-      Index n2 = shells[s2].size();
-      Index atom2 = shell2atom[s2];
-
-      // CORRECTED (see file header): libint2::Engine provides all centers'
-      // derivatives explicitly -- confirmed against Psi4's own
-      // integral-programming documentation, which contrasts this directly
-      // against an older, legacy one-electron implementation that DID rely
-      // on translational invariance to omit one center. Reading buf[3+xyz]
-      // directly (not deriving it via negation) is the corrected approach.
-      for (Index xyz = 0; xyz < 3; ++xyz) {
-        Eigen::Map<const MatrixLibInt> buf_mat1(buf[xyz], n1, n2);
-        result[atom1][xyz].block(bf1, bf2, n1, n2) += buf_mat1;
-        if (s1 != s2) {
-          result[atom1][xyz].block(bf2, bf1, n2, n1) += buf_mat1.transpose();
+        engine.compute(shells[s1], shells[s2]);
+        // CRITICAL FIX: buf[0]==nullptr alone is not a sufficient guard.
+        // A real, hard crash (SIGSEGV, "no mapping at fault address 0x0")
+        // was observed on a different CI architecture than the one that
+        // showed the "silently all zero" failure mode -- consistent with
+        // buf[0] coming back non-null (passing this check) while
+        // buf[3+xyz] (dereferenced below, unconditionally, for shell2's/
+        // atom2's derivative) is still null. This exact possibility was
+        // flagged in this file's own history from early in this branch
+        // ("buf[3..5] being unpopulated even though buf.size() reports
+        // 6") but the check was never actually added until now. A
+        // segfault is a hardware signal, not a C++ exception -- no
+        // try/catch anywhere can catch it, so this must be prevented
+        // before the dereference, not handled after.
+        if (buf[0] == nullptr || buf[3] == nullptr) {
+          continue;  // integrals screened out, or this operator's
+                     // derivative support is genuinely absent (caught
+                     // below by any_nonnull_buffer/the zero-result check
+                     // once every shell pair has been skipped this way).
         }
+        any_nonnull_buffer.store(true, std::memory_order_relaxed);
 
-        Eigen::Map<const MatrixLibInt> buf_mat2(buf[3 + xyz], n1, n2);
-        result[atom2][xyz].block(bf1, bf2, n1, n2) += buf_mat2;
-        if (s1 != s2) {
-          result[atom2][xyz].block(bf2, bf1, n2, n1) += buf_mat2.transpose();
+        // See HIGHEST-RISK ASSUMPTION note at the top of this file -- the
+        // original assert(buf.size()==6) here did not catch a real problem:
+        // a null-pointer crash (address 0x0) was observed at runtime,
+        // consistent with buf[3..5] being unpopulated even though buf.size()
+        // reports 6 (likely a fixed nominal capacity rather than the number
+        // of meaningfully-populated buffers). Diagnostic left in place below
+        // to confirm this directly on the next run rather than guess again.
+        Index bf2 = shell2bf[s2];
+        Index n2 = shells[s2].size();
+        Index atom2 = shell2atom[s2];
+
+        // CORRECTED (see file header): libint2::Engine provides all centers'
+        // derivatives explicitly -- confirmed against Psi4's own
+        // integral-programming documentation, which contrasts this directly
+        // against an older, legacy one-electron implementation that DID rely
+        // on translational invariance to omit one center. Reading buf[3+xyz]
+        // directly (not deriving it via negation) is the corrected approach.
+        for (Index xyz = 0; xyz < 3; ++xyz) {
+          Eigen::Map<const MatrixLibInt> buf_mat1(buf[xyz], n1, n2);
+          result[atom1][xyz].block(bf1, bf2, n1, n2) += buf_mat1;
+          if (s1 != s2) {
+            result[atom1][xyz].block(bf2, bf1, n2, n1) += buf_mat1.transpose();
+          }
+
+          Eigen::Map<const MatrixLibInt> buf_mat2(buf[3 + xyz], n1, n2);
+          result[atom2][xyz].block(bf1, bf2, n1, n2) += buf_mat2;
+          if (s1 != s2) {
+            result[atom2][xyz].block(bf2, bf1, n2, n1) += buf_mat2.transpose();
+          }
+        }
+      }
+    } catch (...) {
+      // An exception escaping an OpenMP worker thread uncaught is
+      // undefined behavior -- observed in this exact function's own
+      // early history (see file header) to manifest as a hang/repeating
+      // exception across worker threads rather than a clean crash, not
+      // just theoretically risky. Capture it here, inside the thread,
+      // and rethrow once, safely, in the sequential context after the
+      // parallel region ends.
+#pragma omp critical
+      {
+        if (!eptr) {
+          eptr = std::current_exception();
         }
       }
     }
-   } catch (...) {
-     // An exception escaping an OpenMP worker thread uncaught is
-     // undefined behavior -- observed in this exact function's own
-     // early history (see file header) to manifest as a hang/repeating
-     // exception across worker threads rather than a clean crash, not
-     // just theoretically risky. Capture it here, inside the thread,
-     // and rethrow once, safely, in the sequential context after the
-     // parallel region ends.
-#pragma omp critical
-     {
-       if (!eptr) {
-         eptr = std::current_exception();
-       }
-     }
-   }
   }
   if (eptr) {
     std::rethrow_exception(eptr);
@@ -370,14 +370,12 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
 // deriv_order=0) code paths at all.
 std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(
     const AOBasis& aobasis) {
-  return computeOneBodyIntegralDerivatives<libint2::Operator::overlap>(
-      aobasis);
+  return computeOneBodyIntegralDerivatives<libint2::Operator::overlap>(aobasis);
 }
 
 std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
     const AOBasis& aobasis) {
-  return computeOneBodyIntegralDerivatives<libint2::Operator::kinetic>(
-      aobasis);
+  return computeOneBodyIntegralDerivatives<libint2::Operator::kinetic>(aobasis);
 }
 
 // ===========================================================================
@@ -440,9 +438,9 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
   }
 
   std::vector<libint2::Engine> engines(nthreads);
-  engines[0] = libint2::Engine(libint2::Operator::coulomb,
-                                aobasis.getMaxNprim(),
-                                static_cast<int>(aobasis.getMaxL()), 1);
+  engines[0] =
+      libint2::Engine(libint2::Operator::coulomb, aobasis.getMaxNprim(),
+                      static_cast<int>(aobasis.getMaxL()), 1);
   engines[0].set(libint2::BraKet::xs_xs);
   for (Index i = 1; i < nthreads; ++i) {
     engines[i] = engines[0];
@@ -452,57 +450,57 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
   std::atomic<bool> any_nonnull_buffer_coulmetric{false};
 #pragma omp parallel for schedule(dynamic)
   for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
-   try {
-    libint2::Engine& engine = engines[OPENMP::getThreadId()];
-    const libint2::Engine::target_ptr_vec& buf = engine.results();
+    try {
+      libint2::Engine& engine = engines[OPENMP::getThreadId()];
+      const libint2::Engine::target_ptr_vec& buf = engine.results();
 
-    Index bf1 = shell2bf[s1];
-    Index n1 = shells[s1].size();
-    Index atom1 = shell2atom[s1];
+      Index bf1 = shell2bf[s1];
+      Index n1 = shells[s1].size();
+      Index atom1 = shell2atom[s1];
 
-    // Same note as AOCoulomb::computeCoulombIntegrals: cannot use
-    // shellpairs here, this is a two-center integral and overlap
-    // screening would give the wrong result.
-    for (Index s2 = 0; s2 <= s1; ++s2) {
-      engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xs, 1>(
-          shells[s1], libint2::Shell::unit(), shells[s2],
-          libint2::Shell::unit());
+      // Same note as AOCoulomb::computeCoulombIntegrals: cannot use
+      // shellpairs here, this is a two-center integral and overlap
+      // screening would give the wrong result.
+      for (Index s2 = 0; s2 <= s1; ++s2) {
+        engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xs, 1>(
+            shells[s1], libint2::Shell::unit(), shells[s2],
+            libint2::Shell::unit());
 
-      // See the detailed explanation on the analogous check in
-      // computeOneBodyIntegralDerivatives above -- buf[0]==nullptr
-      // alone is not sufficient; buf[3+xyz] is dereferenced
-      // unconditionally below too.
-      if (buf[0] == nullptr || buf[3] == nullptr) {
-        continue;
-      }
-      any_nonnull_buffer_coulmetric.store(true, std::memory_order_relaxed);
-
-      Index bf2 = shell2bf[s2];
-      Index n2 = shells[s2].size();
-      Index atom2 = shell2atom[s2];
-
-      for (Index xyz = 0; xyz < 3; ++xyz) {
-        Eigen::Map<const MatrixLibInt> buf_mat1(buf[xyz], n1, n2);
-        result[atom1][xyz].block(bf1, bf2, n1, n2) += buf_mat1;
-        if (s1 != s2) {
-          result[atom1][xyz].block(bf2, bf1, n2, n1) += buf_mat1.transpose();
+        // See the detailed explanation on the analogous check in
+        // computeOneBodyIntegralDerivatives above -- buf[0]==nullptr
+        // alone is not sufficient; buf[3+xyz] is dereferenced
+        // unconditionally below too.
+        if (buf[0] == nullptr || buf[3] == nullptr) {
+          continue;
         }
+        any_nonnull_buffer_coulmetric.store(true, std::memory_order_relaxed);
 
-        Eigen::Map<const MatrixLibInt> buf_mat2(buf[3 + xyz], n1, n2);
-        result[atom2][xyz].block(bf1, bf2, n1, n2) += buf_mat2;
-        if (s1 != s2) {
-          result[atom2][xyz].block(bf2, bf1, n2, n1) += buf_mat2.transpose();
+        Index bf2 = shell2bf[s2];
+        Index n2 = shells[s2].size();
+        Index atom2 = shell2atom[s2];
+
+        for (Index xyz = 0; xyz < 3; ++xyz) {
+          Eigen::Map<const MatrixLibInt> buf_mat1(buf[xyz], n1, n2);
+          result[atom1][xyz].block(bf1, bf2, n1, n2) += buf_mat1;
+          if (s1 != s2) {
+            result[atom1][xyz].block(bf2, bf1, n2, n1) += buf_mat1.transpose();
+          }
+
+          Eigen::Map<const MatrixLibInt> buf_mat2(buf[3 + xyz], n1, n2);
+          result[atom2][xyz].block(bf1, bf2, n1, n2) += buf_mat2;
+          if (s1 != s2) {
+            result[atom2][xyz].block(bf2, bf1, n2, n1) += buf_mat2.transpose();
+          }
+        }
+      }
+    } catch (...) {
+#pragma omp critical
+      {
+        if (!eptr_coulmetric) {
+          eptr_coulmetric = std::current_exception();
         }
       }
     }
-   } catch (...) {
-#pragma omp critical
-     {
-       if (!eptr_coulmetric) {
-         eptr_coulmetric = std::current_exception();
-       }
-     }
-   }
   }
   if (eptr_coulmetric) {
     std::rethrow_exception(eptr_coulmetric);
@@ -620,94 +618,94 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
   std::atomic<bool> any_nonnull_buffer_3c{false};
 #pragma omp parallel for schedule(dynamic)
   for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
-   try {
-    libint2::Engine& engine = engines[OPENMP::getThreadId()];
-    const libint2::Engine::target_ptr_vec& buf = engine.results();
+    try {
+      libint2::Engine& engine = engines[OPENMP::getThreadId()];
+      const libint2::Engine::target_ptr_vec& buf = engine.results();
 
-    const libint2::Shell& auxshell = auxshells[aux];
-    Index aux_start = auxshell2bf[aux];
-    Index atom_aux = auxshell2atom[aux];
+      const libint2::Shell& auxshell = auxshells[aux];
+      Index aux_start = auxshell2bf[aux];
+      Index atom_aux = auxshell2atom[aux];
 
-    for (Index row = 0; row < dftbasis.getNumofShells(); ++row) {
-      const libint2::Shell& shell_row = dftshells[row];
-      Index row_start = shell2bf[row];
-      Index atom_row = dftshell2atom[row];
+      for (Index row = 0; row < dftbasis.getNumofShells(); ++row) {
+        const libint2::Shell& shell_row = dftshells[row];
+        Index row_start = shell2bf[row];
+        Index atom_row = dftshell2atom[row];
 
-      // NOTE: unlike ComputeAO3cBlock (deriv_order=0), NOT restricting to
-      // col <= row here even though (mu,nu|P) is symmetric in mu,nu --
-      // keeping the full loop for this validation-scale function to
-      // avoid also having to get a derivative-specific symmetrization
-      // step right on the first pass. Revisit once this is confirmed
-      // correct; the deriv_order=0 code's triangular-then-mirror
-      // approach should still apply to the derivative case in principle
-      // (differentiating a symmetric quantity preserves the symmetry),
-      // but that itself is an assumption worth checking separately
-      // rather than combining with the buffer-count question here.
-      for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
-        const libint2::Shell& shell_col = dftshells[col];
-        Index col_start = shell2bf[col];
-        Index atom_col = dftshell2atom[col];
+        // NOTE: unlike ComputeAO3cBlock (deriv_order=0), NOT restricting to
+        // col <= row here even though (mu,nu|P) is symmetric in mu,nu --
+        // keeping the full loop for this validation-scale function to
+        // avoid also having to get a derivative-specific symmetrization
+        // step right on the first pass. Revisit once this is confirmed
+        // correct; the deriv_order=0 code's triangular-then-mirror
+        // approach should still apply to the derivative case in principle
+        // (differentiating a symmetric quantity preserves the symmetry),
+        // but that itself is an assumption worth checking separately
+        // rather than combining with the buffer-count question here.
+        for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
+          const libint2::Shell& shell_col = dftshells[col];
+          Index col_start = shell2bf[col];
+          Index atom_col = dftshell2atom[col];
 
-        engine
-            .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
-                auxshell, libint2::Shell::unit(), shell_col, shell_row);
+          engine
+              .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
+                  auxshell, libint2::Shell::unit(), shell_col, shell_row);
 
-        // See the detailed explanation on the analogous check in
-        // computeOneBodyIntegralDerivatives above -- this operator
-        // dereferences buf[3+xyz] AND buf[6+xyz] unconditionally below
-        // too (3 real centers, not 2), so both need checking here.
-        if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
-          continue;
-        }
-        any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
+          // See the detailed explanation on the analogous check in
+          // computeOneBodyIntegralDerivatives above -- this operator
+          // dereferences buf[3+xyz] AND buf[6+xyz] unconditionally below
+          // too (3 real centers, not 2), so both need checking here.
+          if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
+            continue;
+          }
+          any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
 
-        // See HIGHEST-RISK note above: 9 buffers assumed (3 real centers
-        // x 3 Cartesian), ordered [aux center xyz][col-shell's atom
-        // xyz][row-shell's atom xyz] -- matching the shell ARGUMENT order
-        // passed to compute2 above (auxshell, unit, shell_col,
-        // shell_row), by direct analogy with the two-center case where
-        // buffer order matched argument order. NOT independently
-        // confirmed for this 3-real-center case.
-        for (Index xyz = 0; xyz < 3; ++xyz) {
-          Eigen::TensorMap<
-              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-              result_aux(buf[xyz], auxshell.size(), shell_col.size(),
-                         shell_row.size());
-          Eigen::TensorMap<
-              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-              result_col(buf[3 + xyz], auxshell.size(), shell_col.size(),
-                         shell_row.size());
-          Eigen::TensorMap<
-              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-              result_row(buf[6 + xyz], auxshell.size(), shell_col.size(),
-                         shell_row.size());
+          // See HIGHEST-RISK note above: 9 buffers assumed (3 real centers
+          // x 3 Cartesian), ordered [aux center xyz][col-shell's atom
+          // xyz][row-shell's atom xyz] -- matching the shell ARGUMENT order
+          // passed to compute2 above (auxshell, unit, shell_col,
+          // shell_row), by direct analogy with the two-center case where
+          // buffer order matched argument order. NOT independently
+          // confirmed for this 3-real-center case.
+          for (Index xyz = 0; xyz < 3; ++xyz) {
+            Eigen::TensorMap<
+                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                result_aux(buf[xyz], auxshell.size(), shell_col.size(),
+                           shell_row.size());
+            Eigen::TensorMap<
+                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                result_col(buf[3 + xyz], auxshell.size(), shell_col.size(),
+                           shell_row.size());
+            Eigen::TensorMap<
+                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                result_row(buf[6 + xyz], auxshell.size(), shell_col.size(),
+                           shell_row.size());
 
-          for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
-            Index global_aux = aux_start + static_cast<Index>(aux_c);
-            for (size_t col_c = 0; col_c < shell_col.size(); ++col_c) {
-              for (size_t row_c = 0; row_c < shell_row.size(); ++row_c) {
-                double val_aux = result_aux(aux_c, col_c, row_c);
-                double val_col = result_col(aux_c, col_c, row_c);
-                double val_row = result_row(aux_c, col_c, row_c);
-                Index r = row_start + static_cast<Index>(row_c);
-                Index c = col_start + static_cast<Index>(col_c);
-                result[atom_aux][xyz][global_aux](r, c) += val_aux;
-                result[atom_col][xyz][global_aux](r, c) += val_col;
-                result[atom_row][xyz][global_aux](r, c) += val_row;
+            for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
+              Index global_aux = aux_start + static_cast<Index>(aux_c);
+              for (size_t col_c = 0; col_c < shell_col.size(); ++col_c) {
+                for (size_t row_c = 0; row_c < shell_row.size(); ++row_c) {
+                  double val_aux = result_aux(aux_c, col_c, row_c);
+                  double val_col = result_col(aux_c, col_c, row_c);
+                  double val_row = result_row(aux_c, col_c, row_c);
+                  Index r = row_start + static_cast<Index>(row_c);
+                  Index c = col_start + static_cast<Index>(col_c);
+                  result[atom_aux][xyz][global_aux](r, c) += val_aux;
+                  result[atom_col][xyz][global_aux](r, c) += val_col;
+                  result[atom_row][xyz][global_aux](r, c) += val_row;
+                }
               }
             }
           }
         }
       }
-    }
-   } catch (...) {
+    } catch (...) {
 #pragma omp critical
-     {
-       if (!eptr_3c) {
-         eptr_3c = std::current_exception();
-       }
-     }
-   }
+      {
+        if (!eptr_3c) {
+          eptr_3c = std::current_exception();
+        }
+      }
+    }
   }
   if (eptr_3c) {
     std::rethrow_exception(eptr_3c);
@@ -877,9 +875,9 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
 
   std::vector<libint2::Engine> engines(nthreads);
   for (Index i = 0; i < nthreads; ++i) {
-    engines[i] = libint2::Engine(libint2::Operator::nuclear,
-                                 aobasis.getMaxNprim(),
-                                 static_cast<int>(aobasis.getMaxL()), 1);
+    engines[i] =
+        libint2::Engine(libint2::Operator::nuclear, aobasis.getMaxNprim(),
+                        static_cast<int>(aobasis.getMaxL()), 1);
   }
 
   // Parallelized over the OUTER atom (point-charge) loop, not the inner
@@ -892,92 +890,91 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
   std::atomic<bool> any_nonnull_buffer_nucattr{false};
 #pragma omp parallel for schedule(dynamic)
   for (Index A = 0; A < natoms; ++A) {
-   try {
-    Index thread_id = OPENMP::getThreadId();
-    libint2::Engine& engine = engines[thread_id];
+    try {
+      Index thread_id = OPENMP::getThreadId();
+      libint2::Engine& engine = engines[thread_id];
 
-    std::vector<libint2::Atom> single_atom(1);
-    single_atom[0].atomic_number =
-        static_cast<int>(mol[A].getNuccharge());
-    single_atom[0].x = mol[A].getPos().x();
-    single_atom[0].y = mol[A].getPos().y();
-    single_atom[0].z = mol[A].getPos().z();
-    engine.set_params(libint2::make_point_charges(single_atom));
+      std::vector<libint2::Atom> single_atom(1);
+      single_atom[0].atomic_number = static_cast<int>(mol[A].getNuccharge());
+      single_atom[0].x = mol[A].getPos().x();
+      single_atom[0].y = mol[A].getPos().y();
+      single_atom[0].z = mol[A].getPos().z();
+      engine.set_params(libint2::make_point_charges(single_atom));
 
-    const libint2::Engine::target_ptr_vec& buf = engine.results();
+      const libint2::Engine::target_ptr_vec& buf = engine.results();
 
-    for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
-      Index bf1 = shell2bf[s1];
-      Index n1 = shells[s1].size();
-      Index atom1 = shell2atom[s1];
+      for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
+        Index bf1 = shell2bf[s1];
+        Index n1 = shells[s1].size();
+        Index atom1 = shell2atom[s1];
 
-      for (Index s2 = 0; s2 <= s1; ++s2) {
-        engine.compute(shells[s1], shells[s2]);
+        for (Index s2 = 0; s2 <= s1; ++s2) {
+          engine.compute(shells[s1], shells[s2]);
 
-        // See the detailed explanation on the analogous check in
-        // computeOneBodyIntegralDerivatives above -- this operator
-        // dereferences buf[3+xyz] AND buf[6+xyz] unconditionally below
-        // too (3 real centers: shell1's atom, shell2's atom, the point
-        // charge), so both need checking here. This exact gap is what
-        // produced BOTH observed failure modes on different CI
-        // architectures for this specific function: a hard segfault
-        // (buf[3] or buf[6] actually null) on one, and a silently
-        // all-zero result (buf[3]/buf[6] non-null but zero-filled,
-        // caught instead by the separate norm check further below) on
-        // another -- same underlying root cause, different libint2
-        // build behavior for an unsupported operator.
-        if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
-          continue;
-        }
-        any_nonnull_buffer_nucattr.store(true, std::memory_order_relaxed);
-
-        Index bf2 = shell2bf[s2];
-        Index n2 = shells[s2].size();
-        Index atom2 = shell2atom[s2];
-
-        for (Index xyz = 0; xyz < 3; ++xyz) {
-          // SIGN FIX: confirmed via finite-difference test (exact
-          // magnitude match, opposite sign everywhere) that
-          // libint2::Operator::nuclear already returns the attractive
-          // (negative) V_ne convention directly -- the explicit
-          // negation originally here (reasoned from AOMultipole's own
-          // "positive charge in, subtract" pattern) was backwards,
-          // double-negating an already-correctly-signed quantity. Using
-          // += throughout now, not -=.
-          Eigen::Map<const MatrixLibInt> buf_mat1(buf[xyz], n1, n2);
-          result_thread[thread_id][atom1][xyz].block(bf1, bf2, n1, n2) +=
-              buf_mat1;
-          if (s1 != s2) {
-            result_thread[thread_id][atom1][xyz].block(bf2, bf1, n2, n1) +=
-                buf_mat1.transpose();
+          // See the detailed explanation on the analogous check in
+          // computeOneBodyIntegralDerivatives above -- this operator
+          // dereferences buf[3+xyz] AND buf[6+xyz] unconditionally below
+          // too (3 real centers: shell1's atom, shell2's atom, the point
+          // charge), so both need checking here. This exact gap is what
+          // produced BOTH observed failure modes on different CI
+          // architectures for this specific function: a hard segfault
+          // (buf[3] or buf[6] actually null) on one, and a silently
+          // all-zero result (buf[3]/buf[6] non-null but zero-filled,
+          // caught instead by the separate norm check further below) on
+          // another -- same underlying root cause, different libint2
+          // build behavior for an unsupported operator.
+          if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
+            continue;
           }
+          any_nonnull_buffer_nucattr.store(true, std::memory_order_relaxed);
 
-          Eigen::Map<const MatrixLibInt> buf_mat2(buf[3 + xyz], n1, n2);
-          result_thread[thread_id][atom2][xyz].block(bf1, bf2, n1, n2) +=
-              buf_mat2;
-          if (s1 != s2) {
-            result_thread[thread_id][atom2][xyz].block(bf2, bf1, n2, n1) +=
-                buf_mat2.transpose();
-          }
+          Index bf2 = shell2bf[s2];
+          Index n2 = shells[s2].size();
+          Index atom2 = shell2atom[s2];
 
-          Eigen::Map<const MatrixLibInt> buf_mat3(buf[6 + xyz], n1, n2);
-          result_thread[thread_id][A][xyz].block(bf1, bf2, n1, n2) +=
-              buf_mat3;
-          if (s1 != s2) {
-            result_thread[thread_id][A][xyz].block(bf2, bf1, n2, n1) +=
-                buf_mat3.transpose();
+          for (Index xyz = 0; xyz < 3; ++xyz) {
+            // SIGN FIX: confirmed via finite-difference test (exact
+            // magnitude match, opposite sign everywhere) that
+            // libint2::Operator::nuclear already returns the attractive
+            // (negative) V_ne convention directly -- the explicit
+            // negation originally here (reasoned from AOMultipole's own
+            // "positive charge in, subtract" pattern) was backwards,
+            // double-negating an already-correctly-signed quantity. Using
+            // += throughout now, not -=.
+            Eigen::Map<const MatrixLibInt> buf_mat1(buf[xyz], n1, n2);
+            result_thread[thread_id][atom1][xyz].block(bf1, bf2, n1, n2) +=
+                buf_mat1;
+            if (s1 != s2) {
+              result_thread[thread_id][atom1][xyz].block(bf2, bf1, n2, n1) +=
+                  buf_mat1.transpose();
+            }
+
+            Eigen::Map<const MatrixLibInt> buf_mat2(buf[3 + xyz], n1, n2);
+            result_thread[thread_id][atom2][xyz].block(bf1, bf2, n1, n2) +=
+                buf_mat2;
+            if (s1 != s2) {
+              result_thread[thread_id][atom2][xyz].block(bf2, bf1, n2, n1) +=
+                  buf_mat2.transpose();
+            }
+
+            Eigen::Map<const MatrixLibInt> buf_mat3(buf[6 + xyz], n1, n2);
+            result_thread[thread_id][A][xyz].block(bf1, bf2, n1, n2) +=
+                buf_mat3;
+            if (s1 != s2) {
+              result_thread[thread_id][A][xyz].block(bf2, bf1, n2, n1) +=
+                  buf_mat3.transpose();
+            }
           }
         }
       }
-    }
-   } catch (...) {
+    } catch (...) {
 #pragma omp critical
-     {
-       if (!eptr_nucattr) {
-         eptr_nucattr = std::current_exception();
-       }
-     }
-   }
+      {
+        if (!eptr_nucattr) {
+          eptr_nucattr = std::current_exception();
+        }
+      }
+    }
   }
   if (eptr_nucattr) {
     std::rethrow_exception(eptr_nucattr);

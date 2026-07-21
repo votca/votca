@@ -164,12 +164,12 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference) {
 
   double bond_length = 0.74;  // Angstrom, roughly H2 equilibrium
   double h = 1e-3;  // Angstrom -- larger than the fixed-density-matrix
-                     // tests elsewhere in this branch (which could afford
-                     // 1e-4 or smaller), since SCF reconvergence at each
-                     // displaced geometry introduces its own numerical
-                     // noise floor (convergence threshold, grid
-                     // discretization) that a too-small h would be
-                     // swamped by.
+                    // tests elsewhere in this branch (which could afford
+                    // 1e-4 or smaller), since SCF reconvergence at each
+                    // displaced geometry introduces its own numerical
+                    // noise floor (convergence threshold, grid
+                    // discretization) that a too-small h would be
+                    // swamped by.
 
   Orbitals orb0 = RunSCF(bond_length);
   BOOST_REQUIRE_EQUAL(orb0.hasForces(), true);
@@ -190,17 +190,15 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference) {
   double e_minus = orb_minus.getDFTTotalEnergy();
 
   constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_dEdz =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  double finite_diff_dEdz = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
   // force = -dE/dR, matching ComputeAndStoreForces's own convention.
   double finite_diff_force = -finite_diff_dEdz;
 
   double analytic_force = forces(1, 2);  // second H, z-component
 
-  std::cout << "Analytic force on atom 1 (z): " << analytic_force
-             << std::endl;
-  std::cout << "Finite-difference force on atom 1 (z): "
-             << finite_diff_force << std::endl;
+  std::cout << "Analytic force on atom 1 (z): " << analytic_force << std::endl;
+  std::cout << "Finite-difference force on atom 1 (z): " << finite_diff_force
+            << std::endl;
 
   bool matches = std::abs(finite_diff_force - analytic_force) <
                  1e-2 * std::abs(analytic_force);
@@ -251,7 +249,7 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference_hybrid) {
 
   std::cout << "H2 hybrid SCF forces:\n" << forces << std::endl;
   std::cout << "H2 hybrid SCF energy: " << orb0.getDFTTotalEnergy()
-             << std::endl;
+            << std::endl;
 
   Eigen::Vector3d sum = forces.colwise().sum();
   BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
@@ -263,16 +261,14 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference_hybrid) {
   double e_minus = orb_minus.getDFTTotalEnergy();
 
   constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_dEdz =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  double finite_diff_dEdz = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
   double finite_diff_force = -finite_diff_dEdz;
 
   double analytic_force = forces(1, 2);
 
-  std::cout << "Analytic force on atom 1 (z): " << analytic_force
-             << std::endl;
-  std::cout << "Finite-difference force on atom 1 (z): "
-             << finite_diff_force << std::endl;
+  std::cout << "Analytic force on atom 1 (z): " << analytic_force << std::endl;
+  std::cout << "Finite-difference force on atom 1 (z): " << finite_diff_force
+            << std::endl;
 
   bool matches = std::abs(finite_diff_force - analytic_force) <
                  1e-2 * std::abs(analytic_force);
@@ -316,7 +312,7 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference_uks) {
                               // (longer than neutral H2's ~0.74 A,
                               // consistent with a weaker one-electron
                               // bond)
-  double h = 1e-3;  // Angstrom, same reasoning as the RKS tests above
+  double h = 1e-3;            // Angstrom, same reasoning as the RKS tests above
   const std::string functional = "XC_GGA_X_PBE XC_GGA_C_PBE";
   int spin = 2;    // doublet
   int charge = 1;  // H2+
@@ -326,8 +322,7 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference_uks) {
   Eigen::MatrixXd forces = orb0.getForces();
 
   std::cout << "H2+ UKS SCF forces:\n" << forces << std::endl;
-  std::cout << "H2+ UKS SCF energy: " << orb0.getDFTTotalEnergy()
-             << std::endl;
+  std::cout << "H2+ UKS SCF energy: " << orb0.getDFTTotalEnergy() << std::endl;
 
   Eigen::Vector3d sum = forces.colwise().sum();
   BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
@@ -339,16 +334,14 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference_uks) {
   double e_minus = orb_minus.getDFTTotalEnergy();
 
   constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_dEdz =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  double finite_diff_dEdz = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
   double finite_diff_force = -finite_diff_dEdz;
 
   double analytic_force = forces(1, 2);
 
-  std::cout << "Analytic force on atom 1 (z): " << analytic_force
-             << std::endl;
-  std::cout << "Finite-difference force on atom 1 (z): "
-             << finite_diff_force << std::endl;
+  std::cout << "Analytic force on atom 1 (z): " << analytic_force << std::endl;
+  std::cout << "Finite-difference force on atom 1 (z): " << finite_diff_force
+            << std::endl;
 
   bool matches = std::abs(finite_diff_force - analytic_force) <
                  1e-2 * std::abs(analytic_force);

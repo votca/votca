@@ -140,17 +140,16 @@ BOOST_AUTO_TEST_CASE(EvalAOspaceHessian_finite_difference) {
     // cheap to check, doesn't depend on finite-difference precision at
     // all.
     for (Index k = 0; k < shell.getNumFunc(); ++k) {
-      double asymmetry = (AO.hessians[k] - AO.hessians[k].transpose())
-                              .cwiseAbs()
-                              .maxCoeff();
+      double asymmetry =
+          (AO.hessians[k] - AO.hessians[k].transpose()).cwiseAbs().maxCoeff();
       max_asymmetry = std::max(max_asymmetry, asymmetry);
     }
   }
 
   if (max_rel_error > 1e-4) {
     std::cout << "Largest relative Hessian error: " << max_rel_error
-              << " at shell " << worst_shell << " (L="
-              << EnumToString(aobasis.getShell(worst_shell).getL())
+              << " at shell " << worst_shell
+              << " (L=" << EnumToString(aobasis.getShell(worst_shell).getL())
               << "), function " << worst_func << ", component (" << worst_i
               << "," << worst_j << ")" << std::endl;
   }

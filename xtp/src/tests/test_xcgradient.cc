@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference) {
   libint2::initialize();
 
   const std::string functional = "XC_LDA_X XC_LDA_C_VWN";
-  double h = 1e-4;  // Angstrom
+  double h = 1e-4;           // Angstrom
   Index displaced_atom = 1;  // first H (index 1, methane is C,H,H,H,H)
 
   auto base_atoms = LoadBaseGeometry();
@@ -158,9 +158,9 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference) {
   Eigen::Vector3d pulay_sum_check = pulay_grad.colwise().sum();
   Eigen::Vector3d weight_sum_check = weight_grad.colwise().sum();
   std::cerr << "[xc_gradient_finite_difference diagnostic] "
-             << "Pulay alone t.i. sum = " << pulay_sum_check.transpose()
-             << "\nWeight alone t.i. sum = " << weight_sum_check.transpose()
-             << std::endl;
+            << "Pulay alone t.i. sum = " << pulay_sum_check.transpose()
+            << "\nWeight alone t.i. sum = " << weight_sum_check.transpose()
+            << std::endl;
 
   // Sanity check independent of finite differences, same reasoning as
   // every other gradient in this branch: translational invariance means
@@ -196,15 +196,14 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference) {
   double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
 
   constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
 
   double analytic = total_grad(displaced_atom, 2);  // z-component
   bool matches =
       std::abs(finite_diff_deriv - analytic) < 1e-3 * std::abs(analytic);
   if (!matches) {
-    std::cout << "Analytic dE_xc/dz(atom" << displaced_atom
-              << "): " << analytic << std::endl;
+    std::cout << "Analytic dE_xc/dz(atom" << displaced_atom << "): " << analytic
+              << std::endl;
     std::cout << "  Pulay contribution: " << pulay_grad(displaced_atom, 2)
               << std::endl;
     std::cout << "  Weight contribution: " << weight_grad(displaced_atom, 2)
@@ -244,7 +243,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2) {
   libint2::initialize();
 
   const std::string functional = "XC_LDA_X XC_LDA_C_VWN";
-  double h = 1e-4;  // Angstrom
+  double h = 1e-4;            // Angstrom
   double bond_length = 0.74;  // Angstrom, roughly H2 equilibrium
 
   BasisSet basisset;
@@ -268,8 +267,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2) {
 
   QMMolecule mol0 = build_h2(bond_length);
   BasisSet basis0;
-  basis0.Load(std::string(XTP_TEST_DATA_FOLDER) +
-              "/threecenter_dft/3-21G.xml");
+  basis0.Load(std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml");
   AOBasis aobasis0;
   aobasis0.Fill(basis0, mol0);
   Vxc_Grid grid0;
@@ -322,11 +320,10 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2) {
   double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
 
   constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
   double analytic = total_grad(1, 2);
   std::cout << "H2 test -- analytic dE_xc/dz(atom1)=" << analytic
-             << " finite-difference=" << finite_diff_deriv << std::endl;
+            << " finite-difference=" << finite_diff_deriv << std::endl;
 
   bool matches =
       std::abs(finite_diff_deriv - analytic) < 1e-3 * std::abs(analytic);
@@ -358,7 +355,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks) {
   libint2::initialize();
 
   const std::string functional = "XC_LDA_X XC_LDA_C_VWN";
-  double h = 1e-4;  // Angstrom
+  double h = 1e-4;            // Angstrom
   double bond_length = 0.74;  // Angstrom, roughly H2 equilibrium
 
   auto build_h2_uks = [](double bond_length_angstrom) {
@@ -378,8 +375,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks) {
 
   QMMolecule mol0 = build_h2_uks(bond_length);
   BasisSet basis0;
-  basis0.Load(std::string(XTP_TEST_DATA_FOLDER) +
-              "/threecenter_dft/3-21G.xml");
+  basis0.Load(std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml");
   AOBasis aobasis0;
   aobasis0.Fill(basis0, mol0);
   Vxc_Grid grid0;
@@ -441,11 +437,10 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks) {
   double e_minus = vxc_minus.IntegrateVXCSpin(dmat_alpha, dmat_beta).energy;
 
   constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
   double analytic = total_grad(1, 2);
   std::cout << "H2 UKS test -- analytic dE_xc/dz(atom1)=" << analytic
-             << " finite-difference=" << finite_diff_deriv << std::endl;
+            << " finite-difference=" << finite_diff_deriv << std::endl;
 
   bool matches =
       std::abs(finite_diff_deriv - analytic) < 1e-3 * std::abs(analytic);
@@ -480,7 +475,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_gga) {
   libint2::initialize();
 
   const std::string functional = "XC_GGA_X_PBE XC_GGA_C_PBE";
-  double h = 1e-4;  // Angstrom
+  double h = 1e-4;            // Angstrom
   double bond_length = 0.74;  // Angstrom, roughly H2 equilibrium
 
   auto build_h2_gga = [](double bond_length_angstrom) {
@@ -500,8 +495,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_gga) {
 
   QMMolecule mol0 = build_h2_gga(bond_length);
   BasisSet basis0;
-  basis0.Load(std::string(XTP_TEST_DATA_FOLDER) +
-              "/threecenter_dft/3-21G.xml");
+  basis0.Load(std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml");
   AOBasis aobasis0;
   aobasis0.Fill(basis0, mol0);
   Vxc_Grid grid0;
@@ -543,11 +537,10 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_gga) {
   double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
 
   constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
   double analytic = total_grad(1, 2);
   std::cout << "H2 GGA test -- analytic dE_xc/dz(atom1)=" << analytic
-             << " finite-difference=" << finite_diff_deriv << std::endl;
+            << " finite-difference=" << finite_diff_deriv << std::endl;
 
   bool matches_gga =
       std::abs(finite_diff_deriv - analytic) < 1e-3 * std::abs(analytic);
@@ -582,7 +575,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_gga) {
   libint2::initialize();
 
   const std::string functional = "XC_GGA_X_PBE XC_GGA_C_PBE";
-  double h = 1e-4;  // Angstrom
+  double h = 1e-4;           // Angstrom
   Index displaced_atom = 1;  // first H (index 1, methane is C,H,H,H,H)
 
   auto base_atoms = LoadBaseGeometry();
@@ -608,9 +601,9 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_gga) {
   Eigen::Vector3d pulay_sum_check = pulay_grad.colwise().sum();
   Eigen::Vector3d weight_sum_check = weight_grad.colwise().sum();
   std::cerr << "[xc_gradient_finite_difference_gga diagnostic] "
-             << "Pulay alone t.i. sum = " << pulay_sum_check.transpose()
-             << "\nWeight alone t.i. sum = " << weight_sum_check.transpose()
-             << std::endl;
+            << "Pulay alone t.i. sum = " << pulay_sum_check.transpose()
+            << "\nWeight alone t.i. sum = " << weight_sum_check.transpose()
+            << std::endl;
 
   Eigen::Vector3d sum = total_grad.colwise().sum();
   if (sum.cwiseAbs().maxCoeff() > 1e-4) {
@@ -638,15 +631,14 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_gga) {
   double e_minus = vxc_minus.IntegrateVXC(dmat).energy();
 
   constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
 
   double analytic = total_grad(displaced_atom, 2);  // z-component
   bool matches =
       std::abs(finite_diff_deriv - analytic) < 1e-3 * std::abs(analytic);
   if (!matches) {
-    std::cout << "Analytic dE_xc/dz(atom" << displaced_atom
-              << "): " << analytic << std::endl;
+    std::cout << "Analytic dE_xc/dz(atom" << displaced_atom << "): " << analytic
+              << std::endl;
     std::cout << "  Pulay contribution: " << pulay_grad(displaced_atom, 2)
               << std::endl;
     std::cout << "  Weight contribution: " << weight_grad(displaced_atom, 2)
@@ -685,7 +677,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks_gga) {
   libint2::initialize();
 
   const std::string functional = "XC_GGA_X_PBE XC_GGA_C_PBE";
-  double h = 1e-4;  // Angstrom
+  double h = 1e-4;            // Angstrom
   double bond_length = 0.74;  // Angstrom, roughly H2 equilibrium
 
   auto build_h2_uks_gga = [](double bond_length_angstrom) {
@@ -705,8 +697,7 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks_gga) {
 
   QMMolecule mol0 = build_h2_uks_gga(bond_length);
   BasisSet basis0;
-  basis0.Load(std::string(XTP_TEST_DATA_FOLDER) +
-              "/threecenter_dft/3-21G.xml");
+  basis0.Load(std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml");
   AOBasis aobasis0;
   aobasis0.Fill(basis0, mol0);
   Vxc_Grid grid0;
@@ -752,11 +743,10 @@ BOOST_AUTO_TEST_CASE(xc_gradient_finite_difference_h2_uks_gga) {
   double e_minus = vxc_minus.IntegrateVXCSpin(dmat_alpha, dmat_beta).energy;
 
   constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+  double finite_diff_deriv = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
   double analytic = total_grad(1, 2);
   std::cout << "H2 UKS GGA test -- analytic dE_xc/dz(atom1)=" << analytic
-             << " finite-difference=" << finite_diff_deriv << std::endl;
+            << " finite-difference=" << finite_diff_deriv << std::endl;
 
   bool matches =
       std::abs(finite_diff_deriv - analytic) < 1e-3 * std::abs(analytic);

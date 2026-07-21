@@ -88,8 +88,8 @@ class DFTGradient {
   /// context where an arbitrary fixed density is a legitimate way to
   /// validate the assembly formula itself).
   static Eigen::MatrixXd RIJGradient(const Eigen::MatrixXd& density,
-                                      const AOBasis& auxbasis,
-                                      const AOBasis& dftbasis);
+                                     const AOBasis& auxbasis,
+                                     const AOBasis& dftbasis);
 
   /// RI-K (exchange) gradient assembly.
   ///
@@ -138,8 +138,8 @@ class DFTGradient {
   /// summed over ALL ordered pairs (i,j) of occupied MOs (including
   /// i==j).
   static Eigen::MatrixXd RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
-                                      const AOBasis& auxbasis,
-                                      const AOBasis& dftbasis);
+                                     const AOBasis& auxbasis,
+                                     const AOBasis& dftbasis);
 };
 
 }  // namespace xtp

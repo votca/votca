@@ -339,7 +339,7 @@ BOOST_AUTO_TEST_CASE(forces_checkpoint_backward_compatibility) {
   Orbitals orb_no_forces;
   orb_no_forces.QMAtoms() = atoms;
   orb_no_forces.SetupDftBasis(std::string(XTP_TEST_DATA_FOLDER) +
-                               "/hdf5/3-21G.xml");
+                              "/hdf5/3-21G.xml");
   // deliberately not calling setForces()
 
   std::string tmp_path = "/tmp/xtp_test_forces_absent.hdf5";

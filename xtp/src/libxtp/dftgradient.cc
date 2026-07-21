@@ -38,8 +38,7 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
 std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
     const AOBasis& auxbasis, const AOBasis& dftbasis);
 
-Eigen::MatrixXd DFTGradient::NuclearRepulsionDerivative(
-    const QMMolecule& mol) {
+Eigen::MatrixXd DFTGradient::NuclearRepulsionDerivative(const QMMolecule& mol) {
   Index natoms = mol.size();
   Eigen::MatrixXd deriv = Eigen::MatrixXd::Zero(natoms, 3);
 
@@ -73,8 +72,8 @@ Eigen::MatrixXd DFTGradient::NuclearRepulsionDerivative(
 }
 
 Eigen::MatrixXd DFTGradient::RIJGradient(const Eigen::MatrixXd& density,
-                                          const AOBasis& auxbasis,
-                                          const AOBasis& dftbasis) {
+                                         const AOBasis& auxbasis,
+                                         const AOBasis& dftbasis) {
   Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
   Index n_aux_bf = auxbasis.AOBasisSize();
 
@@ -101,7 +100,8 @@ Eigen::MatrixXd DFTGradient::RIJGradient(const Eigen::MatrixXd& density,
   // tested) in test_aoderivatives.cc.
   std::vector<ThreeCenterDerivative> d3c =
       ComputeThreeCenterDerivatives(auxbasis, dftbasis);
-  std::vector<AOMatrixDerivative> dV = ComputeCoulombMetricDerivatives(auxbasis);
+  std::vector<AOMatrixDerivative> dV =
+      ComputeCoulombMetricDerivatives(auxbasis);
 
   // dE_J/dR = sum_P c_P d(d_P)/dR - 1/2 sum_PQ c_P c_Q d(V_PQ)/dR
   // d(d_P)/dR = sum_{mu,nu} P_{mu,nu} d(mu,nu|P)/dR (density held fixed --
@@ -123,8 +123,8 @@ Eigen::MatrixXd DFTGradient::RIJGradient(const Eigen::MatrixXd& density,
 }
 
 Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
-                                          const AOBasis& auxbasis,
-                                          const AOBasis& dftbasis) {
+                                         const AOBasis& auxbasis,
+                                         const AOBasis& dftbasis) {
   Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
   Index n_aux_bf = auxbasis.AOBasisSize();
   Index nocc = occ_mo_coeffs.cols();
@@ -139,7 +139,8 @@ Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
 
   std::vector<ThreeCenterDerivative> d3c =
       ComputeThreeCenterDerivatives(auxbasis, dftbasis);
-  std::vector<AOMatrixDerivative> dV = ComputeCoulombMetricDerivatives(auxbasis);
+  std::vector<AOMatrixDerivative> dV =
+      ComputeCoulombMetricDerivatives(auxbasis);
 
   Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
 
@@ -190,8 +191,8 @@ Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
           const Eigen::VectorXd& c = c_ij[i][j];
           Eigen::VectorXd dd(n_aux_bf);
           for (Index p = 0; p < n_aux_bf; ++p) {
-            dd(p) = occ_mo_coeffs.col(i).dot(d3c[a][xyz][p] *
-                                             occ_mo_coeffs.col(j));
+            dd(p) =
+                occ_mo_coeffs.col(i).dot(d3c[a][xyz][p] * occ_mo_coeffs.col(j));
           }
           energy_term += c.dot(dd);
           metric_term += c.dot(dV[a][xyz] * c);

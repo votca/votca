@@ -162,8 +162,7 @@ class AOShell {
     AOValuesHessian(Index size) {
       values = Eigen::VectorXd::Zero(size);
       derivatives = Eigen::MatrixX3d::Zero(size, 3);
-      hessians = std::vector<Eigen::Matrix3d>(
-          size, Eigen::Matrix3d::Zero());
+      hessians = std::vector<Eigen::Matrix3d>(size, Eigen::Matrix3d::Zero());
     }
     Eigen::VectorXd values;
     Eigen::MatrixX3d derivatives;

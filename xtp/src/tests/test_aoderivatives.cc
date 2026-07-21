@@ -104,8 +104,8 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
 // Declared (not in any header) in libint2_calls.cc; used here only to
 // build the deriv_order=0 finite-difference reference.
 std::vector<Eigen::MatrixXd> ComputeAO3cBlock(const libint2::Shell& auxshell,
-                                               const AOBasis& dftbasis,
-                                               libint2::Engine& engine);
+                                              const AOBasis& dftbasis,
+                                              libint2::Engine& engine);
 }  // namespace xtp
 }  // namespace votca
 
@@ -160,8 +160,8 @@ BOOST_AUTO_TEST_CASE(overlap_derivative_finite_difference) {
   try {
     deriv = ComputeOverlapDerivatives(aobasis0);
   } catch (const std::runtime_error& e) {
-    std::cout << "SKIPPING overlap_derivative_finite_difference: "
-              << e.what() << std::endl;
+    std::cout << "SKIPPING overlap_derivative_finite_difference: " << e.what()
+              << std::endl;
     libint2::finalize();
     return;
   }
@@ -172,8 +172,7 @@ BOOST_AUTO_TEST_CASE(overlap_derivative_finite_difference) {
   // bond-length-dependent overlap as displacing atom 1 by -dz. This
   // symmetry is itself a cheap first sanity check, independent of the
   // finite-difference comparison below.
-  BOOST_CHECK_SMALL(
-      (deriv[0][2] + deriv[1][2]).cwiseAbs().maxCoeff(), 1e-8);
+  BOOST_CHECK_SMALL((deriv[0][2] + deriv[1][2]).cwiseAbs().maxCoeff(), 1e-8);
 
   // Central finite difference: displace atom 1 (index 1, the second H)
   // along z by +-h, recompute overlap, compare to analytic deriv[1][2].
@@ -255,8 +254,8 @@ BOOST_AUTO_TEST_CASE(kinetic_derivative_finite_difference) {
   try {
     deriv = ComputeKineticDerivatives(aobasis0);
   } catch (const std::runtime_error& e) {
-    std::cout << "SKIPPING kinetic_derivative_finite_difference: "
-              << e.what() << std::endl;
+    std::cout << "SKIPPING kinetic_derivative_finite_difference: " << e.what()
+              << std::endl;
     libint2::finalize();
     return;
   }
@@ -267,8 +266,7 @@ BOOST_AUTO_TEST_CASE(kinetic_derivative_finite_difference) {
   // absolute position -- unlike, e.g., the nuclear attraction integral,
   // which depends on external nuclear positions as well and would NOT
   // satisfy this same simple two-center sum rule.
-  BOOST_CHECK_SMALL(
-      (deriv[0][2] + deriv[1][2]).cwiseAbs().maxCoeff(), 1e-8);
+  BOOST_CHECK_SMALL((deriv[0][2] + deriv[1][2]).cwiseAbs().maxCoeff(), 1e-8);
 
   QMMolecule mol_plus = BuildH2(bond_length + h);
   AOBasis aobasis_plus;
@@ -351,8 +349,7 @@ BOOST_AUTO_TEST_CASE(coulomb_metric_derivative_finite_difference) {
 
   // Same translational-invariance argument as overlap/kinetic: (P|Q)
   // depends only on the relative separation of the two centers.
-  BOOST_CHECK_SMALL(
-      (deriv[0][2] + deriv[1][2]).cwiseAbs().maxCoeff(), 1e-8);
+  BOOST_CHECK_SMALL((deriv[0][2] + deriv[1][2]).cwiseAbs().maxCoeff(), 1e-8);
 
   QMMolecule mol_plus = BuildH2(bond_length + h);
   AOBasis aobasis_plus;
@@ -444,15 +441,14 @@ BOOST_AUTO_TEST_CASE(three_center_derivative_finite_difference) {
   // and costs nothing extra to include.
   Index n_aux_bf = auxbasis0.AOBasisSize();
   for (Index k = 0; k < n_aux_bf; ++k) {
-    BOOST_CHECK_SMALL(
-        (deriv[0][2][k] + deriv[1][2][k]).cwiseAbs().maxCoeff(), 1e-8);
+    BOOST_CHECK_SMALL((deriv[0][2][k] + deriv[1][2][k]).cwiseAbs().maxCoeff(),
+                      1e-8);
   }
 
   // Finite-difference reference: rebuild the full (mu,nu|P) tensor via
   // the existing, validated (deriv_order=0) ComputeAO3cBlock helper, at
   // displaced geometries.
-  auto build_3c_tensor = [&](const AOBasis& auxbasis,
-                              const AOBasis& dftbasis) {
+  auto build_3c_tensor = [&](const AOBasis& auxbasis, const AOBasis& dftbasis) {
     std::vector<Eigen::MatrixXd> tensor(
         auxbasis.AOBasisSize(),
         Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize()));
@@ -461,8 +457,7 @@ BOOST_AUTO_TEST_CASE(three_center_derivative_finite_difference) {
     libint2::Engine engine(
         libint2::Operator::coulomb,
         std::max(dftbasis.getMaxNprim(), auxbasis.getMaxNprim()),
-        static_cast<int>(std::max(dftbasis.getMaxL(), auxbasis.getMaxL())),
-        0);
+        static_cast<int>(std::max(dftbasis.getMaxL(), auxbasis.getMaxL())), 0);
     engine.set(libint2::BraKet::xs_xx);
     for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
       std::vector<Eigen::MatrixXd> block =
