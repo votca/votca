@@ -121,6 +121,7 @@
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/openmp_cuda.h"
 #include "votca/xtp/qmmolecule.h"
+#include <exception>
 #include <stdexcept>
 #include <string>
 
@@ -255,8 +256,10 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
     engines[i] = engines[0];
   }
 
+  std::exception_ptr eptr = nullptr;
 #pragma omp parallel for schedule(dynamic)
   for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
+   try {
     Index thread_id = OPENMP::getThreadId();
     libint2::Engine& engine = engines[thread_id];
     const libint2::Engine::target_ptr_vec& buf = engine.results();
@@ -303,6 +306,24 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
         }
       }
     }
+   } catch (...) {
+     // An exception escaping an OpenMP worker thread uncaught is
+     // undefined behavior -- observed in this exact function's own
+     // early history (see file header) to manifest as a hang/repeating
+     // exception across worker threads rather than a clean crash, not
+     // just theoretically risky. Capture it here, inside the thread,
+     // and rethrow once, safely, in the sequential context after the
+     // parallel region ends.
+#pragma omp critical
+     {
+       if (!eptr) {
+         eptr = std::current_exception();
+       }
+     }
+   }
+  }
+  if (eptr) {
+    std::rethrow_exception(eptr);
   }
   return result;
 }
@@ -391,8 +412,10 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
     engines[i] = engines[0];
   }
 
+  std::exception_ptr eptr_coulmetric = nullptr;
 #pragma omp parallel for schedule(dynamic)
   for (Index s1 = 0; s1 < aobasis.getNumofShells(); ++s1) {
+   try {
     libint2::Engine& engine = engines[OPENMP::getThreadId()];
     const libint2::Engine::target_ptr_vec& buf = engine.results();
 
@@ -430,6 +453,17 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
         }
       }
     }
+   } catch (...) {
+#pragma omp critical
+     {
+       if (!eptr_coulmetric) {
+         eptr_coulmetric = std::current_exception();
+       }
+     }
+   }
+  }
+  if (eptr_coulmetric) {
+    std::rethrow_exception(eptr_coulmetric);
   }
   return result;
 }
@@ -528,8 +562,10 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
     engines[i] = engines[0];
   }
 
+  std::exception_ptr eptr_3c = nullptr;
 #pragma omp parallel for schedule(dynamic)
   for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
+   try {
     libint2::Engine& engine = engines[OPENMP::getThreadId()];
     const libint2::Engine::target_ptr_vec& buf = engine.results();
 
@@ -604,6 +640,17 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
         }
       }
     }
+   } catch (...) {
+#pragma omp critical
+     {
+       if (!eptr_3c) {
+         eptr_3c = std::current_exception();
+       }
+     }
+   }
+  }
+  if (eptr_3c) {
+    std::rethrow_exception(eptr_3c);
   }
   return result;
 }
@@ -768,8 +815,10 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
   // state), so a per-thread engine set up fresh per atom is the natural
   // parallelization axis here, not shell pairs within one fixed engine
   // configuration.
+  std::exception_ptr eptr_nucattr = nullptr;
 #pragma omp parallel for schedule(dynamic)
   for (Index A = 0; A < natoms; ++A) {
+   try {
     Index thread_id = OPENMP::getThreadId();
     libint2::Engine& engine = engines[thread_id];
 
@@ -834,6 +883,17 @@ std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
         }
       }
     }
+   } catch (...) {
+#pragma omp critical
+     {
+       if (!eptr_nucattr) {
+         eptr_nucattr = std::current_exception();
+       }
+     }
+   }
+  }
+  if (eptr_nucattr) {
+    std::rethrow_exception(eptr_nucattr);
   }
 
   std::vector<AOMatrixDerivative> result(natoms);

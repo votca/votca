@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <boost/format.hpp>
 #include <cmath>
+#include <exception>
 #include <iomanip>
 #include <iostream>
 #include <stdexcept>
@@ -408,8 +409,10 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
   std::vector<Eigen::MatrixXd> grad_thread(
       nthreads, Eigen::MatrixXd::Zero(natoms, 3));
 
+  std::exception_ptr eptr_pulay = nullptr;
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+   try {
     Index thread_id = OPENMP::getThreadId();
     const GridBox& box = grid_[i];
     if (!box.Matrixsize()) {
@@ -572,6 +575,17 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradient(
         grad_thread[thread_id].row(atom) += contribution.transpose();
       }
     }
+   } catch (...) {
+#pragma omp critical
+     {
+       if (!eptr_pulay) {
+         eptr_pulay = std::current_exception();
+       }
+     }
+   }
+  }
+  if (eptr_pulay) {
+    std::rethrow_exception(eptr_pulay);
   }
 
   Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
@@ -748,21 +762,11 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
   Index nthreads = OPENMP::getMaxThreads();
   std::vector<Eigen::MatrixXd> grad_thread(
       nthreads, Eigen::MatrixXd::Zero(natoms, 3));
-  // Aggregate diagnostics (atom A==1 only, the one under test in
-  // test_xcgradient.cc) -- see usage below for what each measures.
-  std::vector<double> gross_sum_thread(nthreads, 0.0);
-  std::vector<double> max_contribution_thread(nthreads, 0.0);
-  std::vector<long> active_point_count_thread(nthreads, 0);
-  // Fresh per CALL (not `static`, which would persist across the three
-  // separate calls this test makes -- one per displaced geometry --
-  // letting only the first ever print anything, exactly defeating the
-  // purpose of comparing C_p across geometries). Shared across threads
-  // within this one call via the omp critical sections below.
-  bool printed_once_cp = false;
-  bool printed_once_inputs = false;
 
+  std::exception_ptr eptr_weight = nullptr;
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+   try {
     Index thread_id = OPENMP::getThreadId();
     const GridBox& box = grid_[i];
     if (!box.Matrixsize()) {
@@ -958,83 +962,7 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
       // ever looking pathological in any single point's own dw value.
       double C_p = weight / w_owner;
 
-      // NEW DIAGNOSTIC: after the C_p fix substantially improved but did
-      // not fully resolve the discrepancy (methane/H2 both went from
-      // catastrophically wrong to ~4x/~1.15x off, not exact), and after
-      // directly ruling out one hypothesis for the residual (adaptive
-      // grid pruning depending on other atoms' positions -- confirmed
-      // via source inspection that PruningIntervals depends only on
-      // element name and r=|local_offset| is a fixed per-point constant,
-      // never other-atom-position-dependent), verify C_p's assumed
-      // constancy directly: print it for the SAME owner==1 point this
-      // file already targets, across all three geometries this test
-      // calls GridWeightGradient at (base, +h, -h) -- printed_once_cp
-      // is declared once per CALL (see top of function), not `static`,
-      // specifically so each of the three separate calls prints its own
-      // value rather than only the first ever call doing so.
-      if ((rho > 1.e-4) && (owner == 1) && !printed_once_cp) {
-#pragma omp critical
-        {
-          std::cerr << std::setprecision(15)
-                     << "[C_p constancy check] owner=" << owner
-                     << " point=" << point.x() << " " << point.y() << " "
-                     << point.z() << " weight=" << weight
-                     << " w_owner=" << w_owner << " C_p=" << C_p
-                     << std::endl;
-          printed_once_cp = true;
-        }
-      }
-
       double prefactor = C_p * rho * xc.f_xc;
-
-      // Diagnostic: print the RAW INPUTS (owner, absolute point position)
-      // for one informative point, so it can be reproduced EXACTLY in an
-      // independent Python implementation and every intermediate value
-      // compared number-for-number -- the decisive check, since static
-      // code review found no discrepancy and aggregate statistics only
-      // narrowed this to "likely a C++-translation-specific bug" without
-      // identifying it.
-      bool is_informative_inputs = (rho > 1.e-4) && (owner == 1);
-      bool should_print_inputs = false;
-      if (is_informative_inputs) {
-#pragma omp critical
-        {
-          if (!printed_once_inputs) {
-            printed_once_inputs = true;
-            should_print_inputs = true;
-          }
-        }
-      }
-      if (should_print_inputs) {
-        std::cerr << std::setprecision(17)
-                   << "[GridWeightGradient RAW INPUTS for cross-check] owner="
-                   << owner << " point=" << point.x() << " " << point.y()
-                   << " " << point.z() << std::endl;
-        for (Index k = 0; k < natoms; ++k) {
-          std::cerr << "  atom " << k << " pos="
-                     << atoms[k].getPos().x() << " "
-                     << atoms[k].getPos().y() << " "
-                     << atoms[k].getPos().z() << std::endl;
-        }
-        std::cerr << std::setprecision(9) << "  rq=" << rq.transpose()
-                   << "\n  p=" << p.transpose() << "\n  wsum=" << wsum
-                   << " w_owner=" << w_owner << "\n  rho=" << rho
-                   << " prefactor=" << prefactor << std::endl;
-        for (Index A = 0; A < natoms; ++A) {
-          Eigen::Vector3d dp_owner_dbg = dp_dR(owner, A);
-          Eigen::Vector3d dwsum_dbg = Eigen::Vector3d::Zero();
-          for (Index k = 0; k < natoms; ++k) {
-            dwsum_dbg += dp_dR(k, A);
-          }
-          Eigen::Vector3d dw_dbg =
-              dp_owner_dbg / wsum - w_owner * dwsum_dbg / wsum;
-          std::cerr << "  A=" << A << " dp_owner=" << dp_owner_dbg.transpose()
-                     << " dwsum=" << dwsum_dbg.transpose()
-                     << " dw=" << dw_dbg.transpose()
-                     << " contribution=" << (prefactor * dw_dbg).transpose()
-                     << std::endl;
-        }
-      }
 
       for (Index A = 0; A < natoms; ++A) {
         Eigen::Vector3d dp_owner = dp_dR(owner, A);
@@ -1044,51 +972,26 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradient(
         }
         Eigen::Vector3d dw = dp_owner / wsum - w_owner * dwsum / wsum;
         Eigen::Vector3d contribution = prefactor * dw;
-
-        // Aggregate diagnostics (thread-local, merged after the loop):
-        // sum of |contribution| (gross magnitude, vs the net summed
-        // gradient -- a big gap between gross and net would indicate
-        // cancellation happening imperfectly, i.e. a subtle bias, while
-        // gross~net would mean most points agree in sign), max single
-        // |contribution| seen (already had an explicit >10 flag before;
-        // this additionally reports the actual max regardless of
-        // threshold), and point count contributing to atom A=1
-        // specifically (the one under test) with non-negligible
-        // prefactor, to get a sense of how many points are actually
-        // "in play" for the quantity being compared against the
-        // finite-difference reference.
-        if (A == 1) {
-          gross_sum_thread[thread_id] += contribution.cwiseAbs().sum();
-          max_contribution_thread[thread_id] =
-              std::max(max_contribution_thread[thread_id],
-                       contribution.cwiseAbs().maxCoeff());
-          if (std::abs(prefactor) > 1.e-12) {
-            active_point_count_thread[thread_id]++;
-          }
-        }
         grad_thread[thread_id].row(A) += contribution.transpose();
       }
     }
+   } catch (...) {
+#pragma omp critical
+     {
+       if (!eptr_weight) {
+         eptr_weight = std::current_exception();
+       }
+     }
+   }
+  }
+  if (eptr_weight) {
+    std::rethrow_exception(eptr_weight);
   }
 
   Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
-  double gross_sum = 0.0;
-  double max_contribution = 0.0;
-  long active_point_count = 0;
   for (Index t = 0; t < nthreads; ++t) {
     grad += grad_thread[t];
-    gross_sum += gross_sum_thread[t];
-    max_contribution = std::max(max_contribution, max_contribution_thread[t]);
-    active_point_count += active_point_count_thread[t];
   }
-  std::cerr << "[GridWeightGradient diagnostic, aggregate for atom A=1] "
-             << "net dE/dR(A=1) row = " << grad.row(1) << "\n"
-             << "  gross sum of |contribution| = " << gross_sum << "\n"
-             << "  max single |contribution| = " << max_contribution << "\n"
-             << "  active (non-negligible prefactor) point count = "
-             << active_point_count << "\n"
-             << "  total grid points (all boxes) = " << grid_.getGridSize()
-             << std::endl;
   return grad;
 }
 
@@ -1112,8 +1015,10 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradientUKS(
   std::vector<Eigen::MatrixXd> grad_thread(
       nthreads, Eigen::MatrixXd::Zero(natoms, 3));
 
+  std::exception_ptr eptr_pulay_uks = nullptr;
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+   try {
     Index thread_id = OPENMP::getThreadId();
     const GridBox& box = grid_[i];
     if (!box.Matrixsize()) {
@@ -1222,6 +1127,17 @@ Eigen::MatrixXd Vxc_Potential<Grid>::PulayGradientUKS(
             (lda_contribution + sigma_contribution).transpose();
       }
     }
+   } catch (...) {
+#pragma omp critical
+     {
+       if (!eptr_pulay_uks) {
+         eptr_pulay_uks = std::current_exception();
+       }
+     }
+   }
+  }
+  if (eptr_pulay_uks) {
+    std::rethrow_exception(eptr_pulay_uks);
   }
 
   Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
@@ -1258,8 +1174,10 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradientUKS(
   std::vector<Eigen::MatrixXd> grad_thread(
       nthreads, Eigen::MatrixXd::Zero(natoms, 3));
 
+  std::exception_ptr eptr_weight_uks = nullptr;
 #pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid_.getBoxesSize(); ++i) {
+   try {
     Index thread_id = OPENMP::getThreadId();
     const GridBox& box = grid_[i];
     if (!box.Matrixsize()) {
@@ -1416,6 +1334,17 @@ Eigen::MatrixXd Vxc_Potential<Grid>::GridWeightGradientUKS(
         grad_thread[thread_id].row(A) += contribution.transpose();
       }
     }
+   } catch (...) {
+#pragma omp critical
+     {
+       if (!eptr_weight_uks) {
+         eptr_weight_uks = std::current_exception();
+       }
+     }
+   }
+  }
+  if (eptr_weight_uks) {
+    std::rethrow_exception(eptr_weight_uks);
   }
 
   Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
