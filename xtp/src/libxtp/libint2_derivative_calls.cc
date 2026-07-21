@@ -123,6 +123,7 @@
 #include "votca/xtp/qmmolecule.h"
 #include <atomic>
 #include <exception>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
@@ -272,7 +273,21 @@ std::vector<AOMatrixDerivative> computeOneBodyIntegralDerivatives(
 
     for (Index s2 : shellpair_list[s1]) {
 
+      // TARGETED DIAGNOSTIC: confirm whether the crash happens INSIDE
+      // engine.compute() itself (libint2's own generated code), before
+      // this function's own buffer-checking logic (added in the
+      // previous fix) ever gets a chance to run at all -- if so, that
+      // fix could never have addressed this, and the print for the
+      // CURRENT shell pair would be the last output seen before the
+      // crash. std::endl (not just "\n") to force a flush immediately,
+      // so this survives even a crash on the very next line.
+      std::cerr << "[PRE-COMPUTE DIAGNOSTIC] about to call engine.compute "
+                   "for shell pair s1="
+                << s1 << " s2=" << s2 << std::endl;
       engine.compute(shells[s1], shells[s2]);
+      std::cerr << "[PRE-COMPUTE DIAGNOSTIC] engine.compute RETURNED for "
+                   "shell pair s1="
+                << s1 << " s2=" << s2 << std::endl;
       // CRITICAL FIX: buf[0]==nullptr alone is not a sufficient guard.
       // A real, hard crash (SIGSEGV, "no mapping at fault address 0x0")
       // was observed on a different CI architecture than the one that
