@@ -21,6 +21,7 @@
 #include "votca/xtp/hirshfeldpartition.h"
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/basisset.h"
+#include "votca/xtp/gridbox.h"
 
 // Standard includes
 #include <stdexcept>
@@ -105,6 +106,48 @@ double HirshfeldPartition::EvaluateWeight(
     return 0.0;
   }
   return numerator / denominator;
+}
+
+Eigen::MatrixXd HirshfeldPartition::BuildWeightMatrix(
+    const std::vector<AtomicReference>& atoms, Index target_atom_index,
+    const AOBasis& full_dftbasis, const Vxc_Grid& grid) {
+  Index full_size = full_dftbasis.AOBasisSize();
+  Eigen::MatrixXd W = Eigen::MatrixXd::Zero(full_size, full_size);
+
+  for (Index i = 0; i < grid.getBoxesSize(); ++i) {
+    const GridBox& box = grid[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+
+    Eigen::MatrixXd box_contribution =
+        Eigen::MatrixXd::Zero(box.Matrixsize(), box.Matrixsize());
+
+    for (Index p = 0; p < static_cast<Index>(points.size()); ++p) {
+      double w_i = EvaluateWeight(atoms, target_atom_index, points[p]);
+      if (w_i == 0.0) {
+        // Purely a performance guard (skip the AO evaluation entirely
+        // when it cannot contribute anything), not a correctness one --
+        // see this function's own header comment.
+        continue;
+      }
+      AOShell::AOValues ao = box.CalcAOValues(points[p]);
+      box_contribution +=
+          (weights[p] * w_i) * (ao.values * ao.values.transpose());
+    }
+
+    box.AddtoBigMatrix(W, box_contribution);
+  }
+
+  // The outer product ao.values * ao.values.transpose() is already
+  // exactly symmetric by construction, so this is a numerical no-op --
+  // guards only against tiny floating-point asymmetry accumulating
+  // across many grid points, matching the same defensive pattern used
+  // elsewhere in this branch for operator matrices built this way.
+  W = 0.5 * (W + W.transpose());
+  return W;
 }
 
 }  // namespace xtp

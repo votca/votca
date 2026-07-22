@@ -61,6 +61,7 @@
 // Local VOTCA includes
 #include "aobasis.h"
 #include "qmmolecule.h"
+#include "vxc_grid.h"
 
 namespace votca {
 namespace xtp {
@@ -124,6 +125,28 @@ class HirshfeldPartition {
   static double EvaluateWeight(const std::vector<AtomicReference>& atoms,
                                 Index target_atom_index,
                                 const Eigen::Vector3d& point);
+
+  /// The actual AO-basis operator matrix the Lagrange-multiplier
+  /// potential needs: W_i,munu = integral w_i(r) phi_mu(r) phi_nu(r) dr,
+  /// numerically integrated over full_dftbasis's own molecule-wide
+  /// grid -- the same grid, and the same box-by-box
+  /// CalcAOValues/AddtoBigMatrix pattern, already used throughout this
+  /// branch's own XC potential/Pulay-gradient code
+  /// (vxc_potential.cc's IntegrateVXC/PulayGradient). atoms should be
+  /// built once via BuildAtomicReferences and passed in here; grid
+  /// should be the SAME grid used for the real molecule's own SCF (not
+  /// a separately-built one), so this weight matrix is evaluated at
+  /// exactly the same points already being used for everything else.
+  ///
+  /// Skips evaluating AO values entirely at any point where
+  /// EvaluateWeight itself returns exactly 0 (points far from every
+  /// atom, or on the far side of the molecule from target_atom_index)
+  /// -- purely a performance guard, not a correctness one, since a
+  /// zero weight contributes nothing to the integral regardless of
+  /// what the AO values happen to be there.
+  static Eigen::MatrixXd BuildWeightMatrix(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      const AOBasis& full_dftbasis, const Vxc_Grid& grid);
 };
 
 }  // namespace xtp
