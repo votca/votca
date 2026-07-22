@@ -1484,8 +1484,21 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   opt_alpha.levelshift = 0.1;
   opt_alpha.levelshiftend = 0.0;
   opt_alpha.usediis = true;
-  opt_alpha.adiis_start = 0.0;
-  opt_alpha.diis_start = 0.0;
+  // adiis_start/diis_start deliberately NOT overridden here (previously
+  // both hardcoded to 0.0) -- confirmed via ConvergenceAcc::Iterate's
+  // own gating logic (the "diiserror_ < opt_.adiis_start ||
+  // diiserror_ < opt_.diis_start" check) that 0.0 makes this condition
+  // permanently false, since diiserror_ is a norm and can never be
+  // negative. That silently disabled BOTH DIIS and ADIIS for the
+  // entire atomic SCF regardless of usediis=true just above -- an
+  // internal inconsistency, not an intentional design choice -- and is
+  // the likely root cause of this function's own, separately reported
+  // slow convergence (falling back to plain, level-shift-damped linear
+  // mixing every single iteration, with no (A)DIIS extrapolation ever
+  // actually applied). Inheriting these two fields from conv_opt_
+  // (already the base for opt_alpha above, via "= conv_opt_") matches
+  // the main UKS SCF path'''s own behavior, which never overrides them
+  // at all.
   opt_alpha.numberofelectrons = alpha_e;
 
   ConvergenceAcc::options opt_beta = opt_alpha;
