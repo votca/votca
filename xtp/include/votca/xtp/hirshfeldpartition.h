@@ -147,6 +147,31 @@ class HirshfeldPartition {
   static Eigen::MatrixXd BuildWeightMatrix(
       const std::vector<AtomicReference>& atoms, Index target_atom_index,
       const AOBasis& full_dftbasis, const Vxc_Grid& grid);
+
+  /// One active CDFT constraint: the Lagrange-multiplier potential term
+  /// added to the Fock matrix(es) is lambda * spin_alpha_coefficient *
+  /// weight_matrix for the alpha channel, and lambda *
+  /// spin_beta_coefficient * weight_matrix for the beta channel.
+  ///
+  /// For a CHARGE constraint (the only kind implemented so far):
+  /// spin_alpha_coefficient = spin_beta_coefficient = +1.0, since the
+  /// constrained quantity is Tr[(P_alpha + P_beta) * W] -- the SAME
+  /// potential added to both spin channels. A SPIN constraint (not yet
+  /// implemented, but the reason these two coefficients are stored
+  /// separately rather than hardcoding "add to both channels equally")
+  /// would instead need +1.0/-1.0, since it constrains
+  /// Tr[(P_alpha - P_beta) * W] -- per the design discussion this
+  /// struct grew out of, adding spin constraints later should only
+  /// ever require constructing a Constraint with different
+  /// coefficients, never touching the Fock-matrix-assembly code that
+  /// consumes this struct at all.
+  struct Constraint {
+    Eigen::MatrixXd weight_matrix;
+    double target_population;
+    double lambda = 0.0;
+    double spin_alpha_coefficient = 1.0;
+    double spin_beta_coefficient = 1.0;
+  };
 };
 
 }  // namespace xtp

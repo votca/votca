@@ -1174,6 +1174,34 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
 
     double totenergy = H0.energy() + E_one + E_coul + E_xc + E_exx;
 
+    // CDFT constraint potential -- deliberately the LAST term added to
+    // either Fock matrix, and gated by a single, cheap .empty() check:
+    // for any standard, non-CDFT run (constraints_ left at its default,
+    // empty state), this entire block is skipped, and both H_alpha and
+    // H_beta are built exactly as they always were -- no measurable
+    // overhead, no behavior change whatsoever. Adds
+    // lambda_c * spin_alpha/beta_coefficient * W_c to the respective
+    // Fock matrix for every active constraint c (a charge constraint
+    // uses +1/+1, adding the identical potential to both channels; a
+    // future spin constraint would use +1/-1 -- see Constraint's own
+    // comment in hirshfeldpartition.h for why these are stored
+    // separately rather than this code assuming "charge" specifically),
+    // and the corresponding correction term to the reported total
+    // energy: E_CDFT = E_KS + sum_c lambda_c * (N_c^computed -
+    // N_c^target), the standard Wu-Van Voorhis Lagrangian.
+    if (!constraints_.empty()) {
+      for (const HirshfeldPartition::Constraint& c : constraints_) {
+        H_alpha += (c.lambda * c.spin_alpha_coefficient) * c.weight_matrix;
+        H_beta += (c.lambda * c.spin_beta_coefficient) * c.weight_matrix;
+        double population =
+            c.spin_alpha_coefficient *
+                Dspin.alpha.cwiseProduct(c.weight_matrix).sum() +
+            c.spin_beta_coefficient *
+                Dspin.beta.cwiseProduct(c.weight_matrix).sum();
+        totenergy += c.lambda * (population - c.target_population);
+      }
+    }
+
     XTP_LOG(Log::info, *pLog_) << TimeStamp() << " One particle energy "
                                << std::setprecision(12) << E_one << std::flush;
     XTP_LOG(Log::info, *pLog_) << TimeStamp() << " Coulomb contribution "
