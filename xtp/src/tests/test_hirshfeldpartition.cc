@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
   xml << "<charge>0</charge>\n";
   xml << "<functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional>\n";
   xml << "<basisset>" << XTP_TEST_DATA_FOLDER
-      << "/threecenter_dft/3-21G.xml</basisset>\n";
+      << "/hirshfeldpartition/3-21G.xml</basisset>\n";
   xml << "<auxbasisset>" << XTP_TEST_DATA_FOLDER
       << "/diabatization/aux-def2-svp.xml</auxbasisset>\n";
   xml << "<initial_guess>independent</initial_guess>\n";
@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
 
   BasisSet basisset;
   basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
-               "/threecenter_dft/3-21G.xml");
+               "/hirshfeldpartition/3-21G.xml");
   AOBasis full_basis;
   full_basis.Fill(basisset, mol);
 
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
   std::vector<HirshfeldPartition::AtomicReference> atoms =
       HirshfeldPartition::BuildAtomicReferences(
           mol,
-          std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml",
+          std::string(XTP_TEST_DATA_FOLDER) + "/hirshfeldpartition/3-21G.xml",
           reference_densities);
   BOOST_REQUIRE_EQUAL(atoms.size(), 2);
 
