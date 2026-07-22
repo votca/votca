@@ -1476,8 +1476,7 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   dftAOESP.FillPotential(dftbasis, atom);
   ERIs_atom.Initialize_4c(dftbasis);
 
-  ConvergenceAcc Convergence_alpha;
-  ConvergenceAcc Convergence_beta;
+  UKSConvergenceAcc conv_uks;
   ConvergenceAcc::options opt_alpha = conv_opt_;
   opt_alpha.mode = ConvergenceAcc::KSmode::open;
   opt_alpha.histlength = 20;
@@ -1497,7 +1496,7 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   // mixing every single iteration, with no (A)DIIS extrapolation ever
   // actually applied). Inheriting these two fields from conv_opt_
   // (already the base for opt_alpha above, via "= conv_opt_") matches
-  // the main UKS SCF path'''s own behavior, which never overrides them
+  // the main UKS SCF path's own behavior, which never overrides them
   // at all.
   opt_alpha.numberofelectrons = alpha_e;
 
@@ -1505,12 +1504,26 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   opt_beta.numberofelectrons = beta_e;
 
   Logger log;
-  Convergence_alpha.Configure(opt_alpha);
-  Convergence_alpha.setLogger(&log);
-  Convergence_alpha.setOverlap(dftAOoverlap, 1e-8);
-  Convergence_beta.Configure(opt_beta);
-  Convergence_beta.setLogger(&log);
-  Convergence_beta.setOverlap(dftAOoverlap, 1e-8);
+  // Single, shared accelerator -- previously two fully independent
+  // ConvergenceAcc instances (Convergence_alpha, Convergence_beta),
+  // each with its own separate DIIS history/error tracking/coefficient
+  // calculation, with no coupling between the two spin channels at
+  // all. The main UKS SCF path (DFTEngine::EvaluateUKS) instead uses
+  // exactly this UKSConvergenceAcc class, which builds ONE combined
+  // error metric from both spin channels together and applies a
+  // single, jointly-derived set of (A)DIIS coefficients to both --
+  // confirmed directly from uks_convergenceacc.cc's own comment ("one
+  // shared DIIS/ADIIS history length") and its Iterate()'s own
+  // "diis_.Update(maxerrorindex_, err_alpha, err_beta)" call. This is
+  // the standard, textbook-correct formulation of UKS DIIS; the
+  // previous two-independent-accelerators approach was not wrong in
+  // the sense of being internally inconsistent (unlike the
+  // adiis_start/diis_start bug above), but it let each spin channel's
+  // extrapolation disagree with the other's, which is not how UKS DIIS
+  // is meant to work.
+  conv_uks.Configure(opt_alpha, opt_beta);
+  conv_uks.setLogger(&log);
+  conv_uks.setOverlap(dftAOoverlap, 1e-8);
 
   Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.Matrix();
   if (with_ecp) {
@@ -1518,15 +1531,22 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
     H0 += dftAOECP.Matrix();
   }
 
-  tools::EigenSystem MOs_alpha = Convergence_alpha.SolveFockmatrix(H0);
-  Eigen::MatrixXd dftAOdmat_alpha = Convergence_alpha.DensityMatrix(MOs_alpha);
+  tools::EigenSystem MOs_alpha = conv_uks.SolveFockmatrix(H0);
 
   if (uniqueAtom.getElement() == "H") {
-    return dftAOdmat_alpha;
+    // H has no beta electrons at all (beta_e=0 above) -- nocclevels_beta_
+    // will be 0 once Configure() runs, and
+    // DensityMatrixGroundState_unres already returns a zero matrix
+    // whenever nocclevels==0 regardless of what MOs are passed in, so
+    // reusing MOs_alpha as a dummy beta argument here is safe: only
+    // Dspin_H.alpha is ever used below.
+    UKSConvergenceAcc::SpinDensity Dspin_H =
+        conv_uks.DensityMatrix(MOs_alpha, MOs_alpha);
+    return Dspin_H.alpha;
   }
 
-  tools::EigenSystem MOs_beta = Convergence_beta.SolveFockmatrix(H0);
-  Eigen::MatrixXd dftAOdmat_beta = Convergence_beta.DensityMatrix(MOs_beta);
+  tools::EigenSystem MOs_beta = conv_uks.SolveFockmatrix(H0);
+  UKSConvergenceAcc::SpinDensity Dspin = conv_uks.DensityMatrix(MOs_alpha, MOs_beta);
 
   Index maxiter = 80;
   for (Index this_iter = 0; this_iter < maxiter; this_iter++) {
@@ -1537,65 +1557,56 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
     double E_exx = 0.0;
     double E_xc = 0.0;
 
-    double integral_error = std::min(1e-5 * 0.5 *
-                                         (Convergence_alpha.getDIIsError() +
-                                          Convergence_beta.getDIIsError()),
-                                     1e-5);
+    // Matches EvaluateUKS's own formula exactly (a single combined
+    // DIIS error now, not an average of two independent ones).
+    double integral_error = std::min(conv_uks.getDIIsError() * 1e-5, 1e-5);
 
     if (ScaHFX_ > 0) {
       std::array<Eigen::MatrixXd, 2> both_alpha =
-          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_alpha, integral_error);
+          ERIs_atom.CalculateERIs_EXX_4c(Dspin.alpha, integral_error);
       std::array<Eigen::MatrixXd, 2> both_beta =
-          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_beta, integral_error);
+          ERIs_atom.CalculateERIs_EXX_4c(Dspin.beta, integral_error);
 
       Eigen::MatrixXd Hartree = both_alpha[0] + both_beta[0];
       H_alpha += Hartree + ScaHFX_ * both_alpha[1];
       H_beta += Hartree + ScaHFX_ * both_beta[1];
 
-      E_coul =
-          0.5 * (dftAOdmat_alpha + dftAOdmat_beta).cwiseProduct(Hartree).sum();
+      E_coul = 0.5 * Dspin.total().cwiseProduct(Hartree).sum();
       E_exx = 0.5 * ScaHFX_ *
-              (both_alpha[1].cwiseProduct(dftAOdmat_alpha).sum() +
-               both_beta[1].cwiseProduct(dftAOdmat_beta).sum());
+              (both_alpha[1].cwiseProduct(Dspin.alpha).sum() +
+               both_beta[1].cwiseProduct(Dspin.beta).sum());
     } else {
-      Eigen::MatrixXd Hartree = ERIs_atom.CalculateERIs_4c(
-          dftAOdmat_alpha + dftAOdmat_beta, integral_error);
+      Eigen::MatrixXd Hartree =
+          ERIs_atom.CalculateERIs_4c(Dspin.total(), integral_error);
       H_alpha += Hartree;
       H_beta += Hartree;
-      E_coul =
-          0.5 * (dftAOdmat_alpha + dftAOdmat_beta).cwiseProduct(Hartree).sum();
+      E_coul = 0.5 * Dspin.total().cwiseProduct(Hartree).sum();
     }
 
-    auto vxc =
-        gridIntegration.IntegrateVXCSpin(dftAOdmat_alpha, dftAOdmat_beta);
+    auto vxc = gridIntegration.IntegrateVXCSpin(Dspin.alpha, Dspin.beta);
     H_alpha += vxc.vxc_alpha;
     H_beta += vxc.vxc_beta;
     E_xc = vxc.energy;
 
-    double E_one_alpha = dftAOdmat_alpha.cwiseProduct(H0).sum();
-    double E_one_beta = dftAOdmat_beta.cwiseProduct(H0).sum();
+    double E_one_alpha = Dspin.alpha.cwiseProduct(H0).sum();
+    double E_one_beta = Dspin.beta.cwiseProduct(H0).sum();
     double totenergy = E_one_alpha + E_one_beta + E_coul + E_exx + E_xc;
 
-    dftAOdmat_alpha = Convergence_alpha.Iterate(dftAOdmat_alpha, H_alpha,
-                                                MOs_alpha, totenergy);
-    dftAOdmat_beta =
-        Convergence_beta.Iterate(dftAOdmat_beta, H_beta, MOs_beta, totenergy);
+    UKSConvergenceAcc::SpinFock Hspin{H_alpha, H_beta};
+    Dspin = conv_uks.Iterate(Dspin, Hspin, MOs_alpha, MOs_beta, totenergy);
 
     XTP_LOG(Log::debug, *pLog_)
         << TimeStamp() << " Iter " << this_iter << " of " << maxiter << " Etot "
-        << totenergy << " diise_a " << Convergence_alpha.getDIIsError()
-        << " diise_b " << Convergence_beta.getDIIsError() << "\n\t\t a_gap "
+        << totenergy << " diise " << conv_uks.getDIIsError() << "\n\t\t a_gap "
         << MOs_alpha.eigenvalues()(alpha_e) -
                MOs_alpha.eigenvalues()(alpha_e - 1)
         << " b_gap "
         << MOs_beta.eigenvalues()(beta_e) - MOs_beta.eigenvalues()(beta_e - 1)
-        << " Nalpha="
-        << dftAOoverlap.Matrix().cwiseProduct(dftAOdmat_alpha).sum()
-        << " Nbeta=" << dftAOoverlap.Matrix().cwiseProduct(dftAOdmat_beta).sum()
+        << " Nalpha=" << dftAOoverlap.Matrix().cwiseProduct(Dspin.alpha).sum()
+        << " Nbeta=" << dftAOoverlap.Matrix().cwiseProduct(Dspin.beta).sum()
         << std::flush;
 
-    bool converged =
-        Convergence_alpha.isConverged() && Convergence_beta.isConverged();
+    bool converged = conv_uks.isConverged();
     if (converged || this_iter == maxiter - 1) {
       if (converged) {
         XTP_LOG(Log::info, *pLog_)
@@ -1605,16 +1616,14 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
         XTP_LOG(Log::info, *pLog_)
             << TimeStamp() << " Not converged after " << this_iter + 1
             << " iterations. Unconverged density.\n\t\t\t"
-            << " DIIsError_alpha=" << Convergence_alpha.getDIIsError()
-            << " DIIsError_beta=" << Convergence_beta.getDIIsError()
-            << std::flush;
+            << " DIIsError=" << conv_uks.getDIIsError() << std::flush;
       }
       break;
     }
   }
 
   Eigen::MatrixXd avgmatrix =
-      SphericalAverageShells(dftAOdmat_alpha + dftAOdmat_beta, dftbasis);
+      SphericalAverageShells(Dspin.total(), dftbasis);
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Atomic density Matrix for " << uniqueAtom.getElement()
       << " gives N=" << std::setprecision(9)
