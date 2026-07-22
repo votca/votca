@@ -66,6 +66,10 @@
 #include "votca/xtp/vxc_grid.h"
 
 using namespace votca::xtp;
+using namespace votca;
+
+namespace votca {
+namespace xtp {
 
 BOOST_AUTO_TEST_SUITE(hirshfeldpartition_test)
 
@@ -203,3 +207,6 @@ BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+}  // namespace xtp
+}  // namespace votca
