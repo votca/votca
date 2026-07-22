@@ -66,12 +66,23 @@
 #include "votca/xtp/vxc_grid.h"
 
 using namespace votca::xtp;
+using namespace votca;
 
-BOOST_AUTO_TEST_SUITE(hirshfeldpartition_test)
+namespace votca {
+namespace xtp {
 
 // Local friend-class test-access helper, matching the same pattern
 // already established in test_dftengine_private.cc/test_dftengine_forces.cc
 // -- ComputeHirshfeldReferenceDensities is a private DFTEngine method.
+//
+// Deliberately defined BEFORE BOOST_AUTO_TEST_SUITE below, not after:
+// that macro introduces its own nested scope (confirmed directly --
+// test_dftengine_private.cc, which also needs this same friend class,
+// does not use BOOST_AUTO_TEST_SUITE at all, keeping everything flat
+// inside namespace votca::xtp with nothing in between), so a class
+// defined after it is NOT directly votca::xtp::DFTEngineTestAccess
+// anymore -- which is exactly what dftengine.h's own
+// "friend class DFTEngineTestAccess;" declaration needs to match.
 class DFTEngineTestAccess {
  public:
   static std::map<std::string, Eigen::MatrixXd>
@@ -96,6 +107,8 @@ QMMolecule BuildCO(double bond_length_angstrom) {
   return mol;
 }
 
+BOOST_AUTO_TEST_SUITE(hirshfeldpartition_test)
+
 BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
   libint2::initialize();
  try {
@@ -109,7 +122,7 @@ BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
   xml << "<charge>0</charge>\n";
   xml << "<functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional>\n";
   xml << "<basisset>" << XTP_TEST_DATA_FOLDER
-      << "/threecenter_dft/3-21G.xml</basisset>\n";
+      << "/hirshfeldpartition/3-21G.xml</basisset>\n";
   xml << "<auxbasisset>" << XTP_TEST_DATA_FOLDER
       << "/diabatization/aux-def2-svp.xml</auxbasisset>\n";
   xml << "<initial_guess>independent</initial_guess>\n";
@@ -155,7 +168,7 @@ BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
 
   BasisSet basisset;
   basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
-               "/threecenter_dft/3-21G.xml");
+               "/hirshfeldpartition/3-21G.xml");
   AOBasis full_basis;
   full_basis.Fill(basisset, mol);
 
@@ -165,7 +178,7 @@ BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
   std::vector<HirshfeldPartition::AtomicReference> atoms =
       HirshfeldPartition::BuildAtomicReferences(
           mol,
-          std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml",
+          std::string(XTP_TEST_DATA_FOLDER) + "/hirshfeldpartition/3-21G.xml",
           reference_densities);
   BOOST_REQUIRE_EQUAL(atoms.size(), 2);
 
@@ -203,3 +216,6 @@ BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+}  // namespace xtp
+}  // namespace votca
