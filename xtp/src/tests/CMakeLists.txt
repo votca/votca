@@ -59,6 +59,8 @@ list(APPEND test_cases test_gnode)
 list(APPEND test_cases test_grid)
 list(APPEND test_cases test_gw)
 list(APPEND test_cases test_hdf5)
+# DRAFT/UNTESTED -- see file header comment before trusting this.
+list(APPEND test_cases test_hirshfeldpartition)
 list(APPEND test_cases test_hist)
 list(APPEND test_cases test_incrementalfockbuilder)
 list(APPEND test_cases test_indexparser)
