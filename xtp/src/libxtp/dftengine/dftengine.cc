@@ -22,6 +22,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <iostream>
+#include <map>
 #include <optional>
 
 // VOTCA includes
@@ -1772,6 +1773,29 @@ Eigen::MatrixXd DFTEngine::AtomicGuess(const QMMolecule& mol) const {
   }
 
   return guess;
+}
+
+std::map<std::string, Eigen::MatrixXd>
+DFTEngine::ComputeHirshfeldReferenceDensities(const QMMolecule& mol) const {
+  std::vector<std::string> elements = mol.FindUniqueElements();
+  XTP_LOG(Log::info, *pLog_)
+      << TimeStamp() << " Scanning molecule of size " << mol.size()
+      << " for unique elements (Hirshfeld reference densities)"
+      << std::flush;
+
+  std::map<std::string, Eigen::MatrixXd> reference_densities;
+  for (const std::string& element : elements) {
+    QMAtom unique_atom(0, element, Eigen::Vector3d::Zero());
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Calculating Hirshfeld reference density for "
+        << element << std::flush;
+    // use_hunds_rule_occupation=true unconditionally here -- this is
+    // the one and only caller that should ever request it; AtomicGuess
+    // just above, the pre-existing SAD-guess caller, never does.
+    reference_densities[element] =
+        RunAtomicDFT_unrestricted(unique_atom, /*use_hunds_rule_occupation=*/true);
+  }
+  return reference_densities;
 }
 
 void DFTEngine::ConfigOrbfile(Orbitals& orb) {

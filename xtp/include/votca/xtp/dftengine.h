@@ -21,6 +21,9 @@
 #ifndef VOTCA_XTP_DFTENGINE_H
 #define VOTCA_XTP_DFTENGINE_H
 
+// Standard includes
+#include <map>
+
 // VOTCA includes
 #include <votca/tools/property.h>
 
@@ -219,6 +222,23 @@ class DFTEngine {
   /// comment in dftengine.cc.
   Eigen::MatrixXd RunAtomicDFT_unrestricted(
       const QMAtom& uniqueAtom, bool use_hunds_rule_occupation = false) const;
+
+  /// Build one isolated-atom reference density per unique element in
+  /// mol, keyed by element symbol -- the promolecular densities
+  /// Hirshfeld-based CDFT constraints need. Mirrors AtomicGuess's own
+  /// "find unique elements, run RunAtomicDFT_unrestricted once each,
+  /// cache by element" structure exactly, but (a) always passes
+  /// use_hunds_rule_occupation=true (unlike AtomicGuess's own call,
+  /// which never does), and (b) returns the per-element densities
+  /// directly rather than assembling them into one combined,
+  /// molecule-sized AO-basis matrix -- Hirshfeld only ever needs each
+  /// reference density evaluated as a real-space scalar function,
+  /// using that element's own (small, atom-only) basis re-centered on
+  /// each real atom's actual position, never embedded into the full
+  /// molecule's AO basis at all, so there is no molecule-sized object
+  /// to assemble here in the first place.
+  std::map<std::string, Eigen::MatrixXd> ComputeHirshfeldReferenceDensities(
+      const QMMolecule& mol) const;
 
   /// Compute the classical nucleus-nucleus repulsion energy.
   double NuclearRepulsion(const QMMolecule& mol) const;
