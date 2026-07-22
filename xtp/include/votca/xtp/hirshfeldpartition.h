@@ -53,14 +53,43 @@
 #ifndef VOTCA_XTP_HIRSHFELDPARTITION_H
 #define VOTCA_XTP_HIRSHFELDPARTITION_H
 
+// Standard includes
+#include <map>
+#include <string>
+#include <vector>
+
 // Local VOTCA includes
 #include "aobasis.h"
+#include "qmmolecule.h"
 
 namespace votca {
 namespace xtp {
 
 class HirshfeldPartition {
  public:
+  /// One real atom's own contribution to the Hirshfeld partition: its
+  /// small, atom-only basis, re-centered (via its own Fill() call) on
+  /// that atom's REAL position in the molecule, together with its
+  /// element's reference density matrix (the same matrix is shared,
+  /// by value, across every atom of the same element -- only the
+  /// basis's own center differs per atom).
+  struct AtomicReference {
+    AOBasis basis;
+    Eigen::MatrixXd density;
+  };
+
+  /// Builds one AtomicReference per real atom in mol (NOT one per
+  /// unique element -- every atom needs its own, distinctly-centered
+  /// basis, even though atoms of the same element share the same
+  /// reference density matrix). Intended to be called ONCE per
+  /// molecule/SCF, then reused across every grid point EvaluateWeight
+  /// is called for -- rebuilding an AOBasis per point would be
+  /// wasteful, since only the evaluation point changes from one call
+  /// to the next, not the geometry.
+  static std::vector<AtomicReference> BuildAtomicReferences(
+      const QMMolecule& mol, const std::string& basisset_name,
+      const std::map<std::string, Eigen::MatrixXd>& reference_densities);
+
   /// Evaluates one isolated-atom reference density (in its own small,
   /// atom-only basis, already re-centered -- via atom_basis's own Fill()
   /// call -- on that atom's real position in the molecule, NOT wherever
@@ -81,6 +110,20 @@ class HirshfeldPartition {
   static double EvaluateAtomicDensity(const AOBasis& atom_basis,
                                        const Eigen::MatrixXd& reference_density,
                                        const Eigen::Vector3d& point);
+
+  /// The actual Hirshfeld weight: w_target(point) = rho_target(point) /
+  /// sum_j rho_j(point), summing rho_j over EVERY atom in atoms (not
+  /// just target_atom_index -- the denominator needs every atom's
+  /// contribution, per the Hirshfeld definition). atoms is intended to
+  /// be built once via BuildAtomicReferences and reused across many
+  /// calls at different points. Returns 0 (rather than dividing by a
+  /// near-zero denominator) at points far from every atom, where every
+  /// rho_j(point) is negligible -- matching the same
+  /// negligible-denominator guard pattern already used for the SSW
+  /// grid weights in GridWeightGradient (kNegligibleWOwner there).
+  static double EvaluateWeight(const std::vector<AtomicReference>& atoms,
+                                Index target_atom_index,
+                                const Eigen::Vector3d& point);
 };
 
 }  // namespace xtp
