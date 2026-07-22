@@ -29,6 +29,7 @@
 
 // Local VOTCA includes
 #include "ERIs.h"
+#include "hirshfeldpartition.h"
 #include "convergenceacc.h"
 #include "uks_convergenceacc.h"
 
@@ -484,6 +485,23 @@ class DFTEngine {
   // automatically available through the full QMPackage/XTPDFT flow with
   // no changes needed there.
   bool compute_forces_ = false;
+
+  // Empty by default -- the ONLY thing a standard, non-CDFT run needs
+  // to know about this member is that it is empty, checked via a
+  // single, cheap constraints_.empty() guard inside
+  // EvaluateUKS's own Fock-matrix assembly (see that function's own
+  // comment at the point the constraint potential term is added).
+  // When empty, that guard means the added term is a complete no-op:
+  // the Hamiltonian is built exactly as it always was, with no
+  // measurable overhead and no change in behavior whatsoever for any
+  // run that never touches this member. Populated only by the
+  // (not yet implemented) outer Lagrange-multiplier optimization loop,
+  // which is expected to modify each Constraint's own lambda field in
+  // place between successive, warm-started calls into EvaluateUKS --
+  // per the design discussion this grew out of (CP2K's own documented
+  // approach: restart the inner SCF from the previous trial's
+  // converged density at each new lambda, rather than a cold start).
+  std::vector<HirshfeldPartition::Constraint> constraints_;
 };
 
 }  // namespace xtp
