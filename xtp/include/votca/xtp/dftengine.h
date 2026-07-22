@@ -196,7 +196,29 @@ class DFTEngine {
       const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
   /// Run an unrestricted atomic reference calculation used in open-shell atomic
   /// guesses.
-  Eigen::MatrixXd RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom) const;
+  ///
+  /// use_hunds_rule_occupation (default false, preserving all EXISTING
+  /// callers' behavior exactly): when true, use a small, explicit
+  /// Hund's-rule ground-state alpha/beta electron-count table for
+  /// common main-group (s/p-block) elements, instead of the simpler
+  /// parity-based split (odd nuclear charge -> one extra alpha electron;
+  /// even -> alpha == beta) used by default. That default split is
+  /// wrong for many real ground states -- e.g. carbon (true ground
+  /// state alpha=4,beta=2, a triplet) gets alpha=beta=3 (an artificial
+  /// singlet) -- but this does not matter for a SAD initial-guess
+  /// starting DENSITY MATRIX SHAPE (AtomicGuess, this function's only
+  /// existing caller), since the full molecule's own SCF reshapes the
+  /// density regardless of the isolated reference atom's spin state.
+  /// It DOES matter for promolecular reference densities used in
+  /// Hirshfeld-based CDFT constraints, which is what this parameter
+  /// exists for. Falls back to the default, parity-based split (with a
+  /// logged warning) for any element not covered by the table --
+  /// currently d/f-block only, where the ground-state configuration is
+  /// genuinely ambiguous/functional-dependent rather than a simple,
+  /// textbook Hund's-rule case; see HundsRuleAlphaBetaElectrons's own
+  /// comment in dftengine.cc.
+  Eigen::MatrixXd RunAtomicDFT_unrestricted(
+      const QMAtom& uniqueAtom, bool use_hunds_rule_occupation = false) const;
 
   /// Compute the classical nucleus-nucleus repulsion energy.
   double NuclearRepulsion(const QMMolecule& mol) const;

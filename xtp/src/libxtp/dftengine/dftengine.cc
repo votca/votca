@@ -22,6 +22,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <iostream>
+#include <optional>
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -1426,8 +1427,78 @@ void DFTEngine::SetupInvariantMatrices() {
   return;
 }
 
+namespace {
+// Hund's-rule ground-state (alpha electrons, beta electrons) for the
+// main-group (s/p-block) elements most relevant to organic systems --
+// H through Kr, plus the heavier halogens (Br, I) via their own,
+// separately-computed period-5 entries. Explicitly does NOT cover
+// d-block (Sc-Zn, Y-Cd) or f-block elements: the d^n s^2 vs d^(n+1) s^1
+// (and worse, f-block) ground-state competition is genuinely subtle
+// and functional-dependent -- exactly why CP2K's own isolated-atom
+// ("ATOM") program requires explicit, manual per-subshell occupation
+// specification rather than trusting any automatic rule (confirmed
+// directly: HORTON's own CP2K pro-atom documentation states "The ATOM
+// program of CP2K does not simply follow the Aufbau rule to assign
+// orbital occupations"). Returns std::nullopt for anything not
+// explicitly covered, so callers can fall back to the existing,
+// simpler parity-based logic with a clear warning rather than silently
+// guessing.
+//
+// Method: standard Aufbau filling order (1s,2s,2p,3s,3p,4s,3d,4p,5s,
+// 4d,5p) up to (but explicitly skipping) each d-block range, applying
+// Hund's rule within any open p subshell (spread across all 3 p
+// orbitals with parallel/majority spin first, only pairing once every
+// orbital in that subshell already has one) -- for p^n, n<=3 gives n
+// alpha/0 beta in that subshell; n>3 gives 3 alpha/(n-3) beta. Every
+// entry below was computed by hand from this rule and can be checked
+// against any standard table of atomic ground-state term symbols
+// (all are unambiguous, textbook Hund's-rule cases for main-group
+// atoms -- no functional-dependent ambiguity of the kind that affects
+// d/f-block).
+std::optional<std::pair<Index, Index>> HundsRuleAlphaBetaElectrons(
+    Index nuclear_charge) {
+  switch (nuclear_charge) {
+    case 1:  return std::make_pair(1, 0);    // H:  1s1
+    case 2:  return std::make_pair(1, 1);    // He: 1s2
+    case 3:  return std::make_pair(2, 1);    // Li: [He] 2s1
+    case 4:  return std::make_pair(2, 2);    // Be: 2s2
+    case 5:  return std::make_pair(3, 2);    // B:  2p1
+    case 6:  return std::make_pair(4, 2);    // C:  2p2 (2a)
+    case 7:  return std::make_pair(5, 2);    // N:  2p3 (3a)
+    case 8:  return std::make_pair(5, 3);    // O:  2p4 (3a+1b)
+    case 9:  return std::make_pair(5, 4);    // F:  2p5 (3a+2b)
+    case 10: return std::make_pair(5, 5);    // Ne: 2p6
+    case 11: return std::make_pair(6, 5);    // Na: [Ne] 3s1
+    case 12: return std::make_pair(6, 6);    // Mg: 3s2
+    case 13: return std::make_pair(7, 6);    // Al: 3p1
+    case 14: return std::make_pair(8, 6);    // Si: 3p2 (2a)
+    case 15: return std::make_pair(9, 6);    // P:  3p3 (3a)
+    case 16: return std::make_pair(9, 7);    // S:  3p4 (3a+1b)
+    case 17: return std::make_pair(9, 8);    // Cl: 3p5 (3a+2b)
+    case 18: return std::make_pair(9, 9);    // Ar: 3p6
+    case 19: return std::make_pair(10, 9);   // K:  [Ar] 4s1
+    case 20: return std::make_pair(10, 10);  // Ca: 4s2
+    // 21-30 (Sc-Zn): 3d block -- deliberately NOT covered.
+    case 31: return std::make_pair(16, 15);  // Ga: [Zn] 4p1
+    case 32: return std::make_pair(17, 15);  // Ge: 4p2 (2a)
+    case 33: return std::make_pair(18, 15);  // As: 4p3 (3a)
+    case 34: return std::make_pair(18, 16);  // Se: 4p4 (3a+1b)
+    case 35: return std::make_pair(18, 17);  // Br: 4p5 (3a+2b)
+    case 36: return std::make_pair(18, 18);  // Kr: 4p6
+    // 39-48 (Y-Cd): 4d block -- deliberately NOT covered.
+    case 49: return std::make_pair(25, 24);  // In: [Cd] 5p1
+    case 50: return std::make_pair(26, 24);  // Sn: 5p2 (2a)
+    case 51: return std::make_pair(27, 24);  // Sb: 5p3 (3a)
+    case 52: return std::make_pair(27, 25);  // Te: 5p4 (3a+1b)
+    case 53: return std::make_pair(27, 26);  // I:  5p5 (3a+2b)
+    case 54: return std::make_pair(27, 27);  // Xe: 5p6
+    default: return std::nullopt;
+  }
+}
+}  // namespace
+
 Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
-    const QMAtom& uniqueAtom) const {
+    const QMAtom& uniqueAtom, bool use_hunds_rule_occupation) const {
   bool with_ecp = !ecp_name_.empty();
   if (uniqueAtom.getElement() == "H" || uniqueAtom.getElement() == "He") {
     with_ecp = false;
@@ -1456,12 +1527,42 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   Index alpha_e = 0;
   Index beta_e = 0;
 
-  if ((numofelectrons % 2) != 0) {
-    alpha_e = numofelectrons / 2 + numofelectrons % 2;
-    beta_e = numofelectrons / 2;
-  } else {
-    alpha_e = numofelectrons / 2;
-    beta_e = alpha_e;
+  // Deliberately opt-in, defaulting to false: this changes ONLY which
+  // total alpha/beta split is used for the reference atom's own SCF,
+  // not the SphericalAverageShells step below (kept unconditionally,
+  // for both modes) -- the existing SAD-initial-guess caller
+  // (AtomicGuess) is not changed at all by this parameter existing, and
+  // continues to use the simpler, parity-based split exactly as
+  // before. A physically correct free-atom ground state is not needed
+  // for a good SCF starting guess (the molecule's own overall spin
+  // state, and the SCF that follows, will reshape this regardless);
+  // it matters for the promolecular reference densities Hirshfeld-based
+  // CDFT will need instead, which is what this parameter exists for.
+  if (use_hunds_rule_occupation) {
+    auto hunds_rule = HundsRuleAlphaBetaElectrons(numofelectrons);
+    if (hunds_rule.has_value()) {
+      alpha_e = hunds_rule->first;
+      beta_e = hunds_rule->second;
+    } else {
+      XTP_LOG(Log::warning, *pLog_)
+          << TimeStamp() << " No Hund's-rule ground-state occupation table "
+                            "entry for nuclear charge "
+          << numofelectrons
+          << " (d/f-block elements are not covered -- see "
+             "HundsRuleAlphaBetaElectrons's own comment for why) -- "
+             "falling back to the simpler, parity-based alpha/beta split."
+          << std::flush;
+      use_hunds_rule_occupation = false;
+    }
+  }
+  if (!use_hunds_rule_occupation) {
+    if ((numofelectrons % 2) != 0) {
+      alpha_e = numofelectrons / 2 + numofelectrons % 2;
+      beta_e = numofelectrons / 2;
+    } else {
+      alpha_e = numofelectrons / 2;
+      beta_e = alpha_e;
+    }
   }
 
   AOOverlap dftAOoverlap;
