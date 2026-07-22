@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <iostream>
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -34,6 +35,7 @@
 #include "votca/xtp/aopotential.h"
 #include "votca/xtp/density_integration.h"
 #include "votca/xtp/dftengine.h"
+#include "votca/xtp/dftgradient.h"
 #include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/logger.h"
 #include "votca/xtp/mmregion.h"
@@ -69,6 +71,16 @@ void CanonicalizeOrbitalPhases(tools::EigenSystem& mos) {
 
 }  // namespace
 
+// Defined in libint2_derivative_calls.cc -- forward declared here
+// (rather than only near ComputeAndStoreForces further down, where the
+// other libint2_derivative_calls.cc forward declarations live) because
+// Initialize() below needs it too, to warn early -- at options-parsing
+// time, before any SCF work at all -- if compute_forces=true was
+// requested on a build that cannot actually do it. See that file's own
+// compile-time guard (around LIBINT2_MAX_DERIV_ORDER) for the full
+// explanation of why this check exists.
+bool HasLibint2DerivativeSupport();
+
 /**
  * Self-consistent Kohn-Sham implementation.
  *
@@ -102,6 +114,56 @@ void DFTEngine::Initialize(tools::Property& options) {
 
   if (options.exists(key_xtpdft + ".force_uks_path")) {
     force_uks_path_ = options.get(key_xtpdft + ".force_uks_path").as<bool>();
+  }
+
+  if (options.exists(key_xtpdft + ".compute_forces")) {
+    compute_forces_ = options.get(key_xtpdft + ".compute_forces").as<bool>();
+  }
+  if (compute_forces_ && !HasLibint2DerivativeSupport()) {
+    // Fail fast, at options-parsing time, rather than only discovering
+    // this after a full (potentially expensive) SCF has already
+    // converged. Genuinely throws now (previously only printed a
+    // std::cerr WARNING and let Initialize() return normally, so the
+    // full SCF still ran to completion regardless, wasting real
+    // compute on a calculation that could never produce forces) --
+    // throwing std::runtime_error here for an invalid/impossible
+    // options combination matches this file's own, already-established
+    // convention (see e.g. "Spin multiplicity must be >= 1." and
+    // several other throw std::runtime_error(...) calls elsewhere in
+    // this same function), not a new pattern.
+    throw std::runtime_error(
+        "compute_forces=true was requested, but the libint2 this was "
+        "built against does not support derivative integrals for one "
+        "or more operator categories it needs (one-body, the two-center "
+        "Coulomb metric, or three-center RI -- see "
+        "libint2_derivative_calls.cc's own compile guards for exactly "
+        "which). Many pre-packaged libint2 builds (Homebrew, Ubuntu "
+        "apt, etc.) do not enable derivative-integral support for all "
+        "of these by default; rebuild libint2 with "
+        "--enable-1body/--enable-eri2/--enable-eri3 to use this "
+        "feature.");
+  }
+  if (compute_forces_ && !ecp_name_.empty()) {
+    // A real, previously-unguarded gap: the SCF's own Hamiltonian
+    // genuinely includes the ECP contribution (H0 = T + V_nuc + V_ECP
+    // + V_ext, see the comment on that further down in this file, and
+    // dftAOECP.FillPotential(dftbasis_, ecp_) actually called during
+    // the SCF itself) -- but ComputeAndStoreForces/ComputeAndStoreForcesUKS
+    // have no d(V_ECP)/dR term at all (confirmed directly: neither
+    // function references ecp_ or ecp_name_ anywhere). Computing
+    // forces anyway in this case would not fail cleanly the way the
+    // libint2-support case above does -- it would silently produce a
+    // physically INCOMPLETE result (missing the ECP contribution to
+    // the force entirely) that looks like a normal, valid force
+    // output, which is worse than refusing outright. Refuse instead.
+    throw std::runtime_error(
+        "compute_forces=true was requested together with an ECP ('" +
+        ecp_name_ +
+        "'), but analytic nuclear forces do not yet include the ECP "
+        "contribution to the force (d(V_ECP)/dR) -- computing forces "
+        "in this configuration would silently omit that term rather "
+        "than fail visibly. Either drop the ECP or do not request "
+        "compute_forces until this is implemented.");
   }
 
   initial_guess_ = options.get(".initial_guess").as<std::string>();
@@ -261,6 +323,430 @@ void DFTEngine::CalcElDipole(const Orbitals& orb) const {
       << TimeStamp() << " Electric Dipole is[e*bohr]:\n\t\t dx=" << result[0]
       << "\n\t\t dy=" << result[1] << "\n\t\t dz=" << result[2] << std::flush;
   return;
+}
+
+// Assembles the total ground-state gradient (nuclear repulsion + RI-J
+// Coulomb + XC, LDA or GGA) from the converged density matrix, negates it
+// to the physical force convention, and stores it via Orbitals::setForces().
+// See the detailed SCOPE note on the declaration in dftengine.h for exactly
+// which cases this does and does not support, and why.
+//
+// Every individual term here (NuclearRepulsionDerivative, RIJGradient,
+// PulayGradient, GridWeightGradient) was separately derived and validated
+// via finite-difference tests earlier in this branch (see
+// test_dftgradient.cc and test_xcgradient.cc) -- this function's own new
+// content is just the SUMMATION and the sign convention, not any new
+// derivative math.
+// Defined in libint2_derivative_calls.cc, not yet in any header (same
+// STATUS noted throughout that file) -- forward declared here. Unlike
+// DFTGradient::RIJGradient/PulayGradient/etc., these return RAW AO-matrix
+// derivatives (d(matrix_munu)/dR), not already-contracted energy
+// gradients -- the contraction with Dmat is done explicitly below.
+using AOMatrixDerivative = std::array<Eigen::MatrixXd, 3>;
+std::vector<AOMatrixDerivative> ComputeOverlapDerivatives(
+    const AOBasis& aobasis);
+std::vector<AOMatrixDerivative> ComputeKineticDerivatives(
+    const AOBasis& aobasis);
+std::vector<AOMatrixDerivative> ComputeNuclearAttractionDerivatives(
+    const AOBasis& aobasis, const QMMolecule& mol);
+// HasLibint2DerivativeSupport() (used below in both ComputeAndStoreForces
+// and ComputeAndStoreForcesUKS) is already forward declared earlier in
+// this file, near Initialize() -- see that declaration's own comment
+// for why it needed to be that early.
+
+void DFTEngine::ComputeAndStoreForces(
+    Orbitals& orb, const Eigen::MatrixXd& Dmat,
+    const Vxc_Potential<Vxc_Grid>& vxcpotential) const {
+  if (auxbasis_name_.empty()) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Skipping force calculation: RI-J gradient (DFTGradient::"
+           "RIJGradient) only implements the RI path, but this SCF ran "
+           "without an auxiliary basis (conventional 4-center ERIs)."
+        << std::flush;
+    return;
+  }
+
+  if (!HasLibint2DerivativeSupport()) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Skipping force calculation: the libint2 this was built "
+           "against does not support derivative integrals for one or "
+           "more operator categories it needs. Many pre-packaged "
+           "libint2 builds (Homebrew, Ubuntu apt, etc.) do not enable "
+           "this by default -- rebuild libint2 with "
+           "--enable-1body/--enable-eri2/--enable-eri3 to use analytic "
+           "forces."
+        << std::flush;
+    return;
+  }
+
+  if (!ecp_name_.empty()) {
+    // Same reasoning as Initialize()'s own, earlier check (which
+    // should already have caught this before any SCF work even
+    // started) -- this is a defense-in-depth repeat, matching the
+    // existing HasLibint2DerivativeSupport() re-check just above,
+    // in case compute_forces_/ecp_name_ were ever set some other way
+    // than through Initialize()'s own options parsing. Skips cleanly
+    // (log + return) rather than throwing here, matching this
+    // function's own existing style for the libint2-support case
+    // above -- by the time SCF has already converged this far,
+    // throwing would be a less graceful failure than simply not
+    // storing forces, though Initialize()'s own check is the
+    // preferred, much earlier place for this to actually be caught.
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Skipping force calculation: an ECP ('" << ecp_name_
+        << "') was used for this SCF, but analytic nuclear forces do "
+           "not yet include the ECP contribution to the force "
+           "(d(V_ECP)/dR) -- computing forces in this configuration "
+           "would silently omit that term rather than fail visibly."
+        << std::flush;
+    return;
+  }
+
+  const QMMolecule& mol = orb.QMAtoms();
+  Index natoms = mol.size();
+
+  // One-electron (kinetic + nuclear attraction) contribution --
+  // dEone/dR_A = Tr[Dmat . d(T+V_ne)/dR_A]. This was the piece
+  // discovered MISSING from the total gradient by the first genuine
+  // end-to-end SCF+forces test (test_dftengine_forces.cc): kinetic
+  // derivatives were validated at the very start of this whole branch
+  // and then never actually wired into any gradient assembly, and
+  // nuclear attraction derivatives were never implemented at all until
+  // that gap was found. See ComputeNuclearAttractionDerivatives in
+  // libint2_derivative_calls.cc for the detailed derivation (sign
+  // convention checked directly against AOMultipole's own,
+  // already-validated energy-level code, not assumed).
+  std::vector<AOMatrixDerivative> dT = ComputeKineticDerivatives(dftbasis_);
+  std::vector<AOMatrixDerivative> dVne =
+      ComputeNuclearAttractionDerivatives(dftbasis_, mol);
+  Eigen::MatrixXd eone_grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      eone_grad(a, xyz) = Dmat.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
+    }
+  }
+
+  // Overlap "Pulay force" -- a SECOND, genuinely distinct missing term,
+  // found after the kinetic+nuclear-attraction fix improved but did not
+  // fully resolve the discrepancy against the end-to-end finite-difference
+  // test (magnitude dropped ~7x in the right direction, but still wrong
+  // by roughly the size of a real missing term, not noise).
+  //
+  // Distinct from the earlier "PulayGradient" naming (which is about
+  // basis functions inside the XC integral) -- this is the CLASSICAL
+  // SCF Pulay/overlap force, present in essentially any Gaussian-basis
+  // HF/DFT gradient: the MO coefficients C are only implicitly
+  // R-independent because they satisfy the orthonormality constraint
+  // C^T S C = I, and S itself depends on R (basis functions move). At
+  // the SCF stationary point, the Lagrange multipliers for this
+  // constraint are exactly the orbital energies (canonical MOs), giving
+  // an extra term dE/dR_A|_overlap = -Tr[W . dS/dR_A], where
+  // W = 2 * C_occ * diag(eps_occ) * C_occ^T (the "energy-weighted
+  // density matrix", factor of 2 matching the same doubled convention
+  // Dmat already uses for closed-shell restricted). Confirmed as a
+  // standard, expected term by libint2's own reference SCF-gradient
+  // example (compute_1body_ints_deriv<Operator::overlap> combined with
+  // exactly this W construction, in
+  // libint2/include/libint2/lcao/1body.h) -- not a novel derivation.
+  //
+  // ComputeOverlapDerivatives itself was validated (finite-difference
+  // tested) at the very start of this whole branch and then never
+  // actually used in any gradient assembly until now, same as kinetic.
+  Index n_occ = num_docc_ + num_socc_alpha_;
+  Eigen::MatrixXd C_occ = orb.MOs().eigenvectors().leftCols(n_occ);
+  Eigen::VectorXd eps_occ = orb.MOs().eigenvalues().head(n_occ);
+  Eigen::MatrixXd W = 2.0 * C_occ * eps_occ.asDiagonal() * C_occ.transpose();
+
+  std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis_);
+  Eigen::MatrixXd overlap_pulay_grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      overlap_pulay_grad(a, xyz) = -W.cwiseProduct(dS[a][xyz]).sum();
+    }
+  }
+
+  Eigen::MatrixXd rij_term = DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_);
+  Eigen::MatrixXd pulay_term = vxcpotential.PulayGradient(Dmat, dftbasis_);
+  Eigen::MatrixXd weight_term = vxcpotential.GridWeightGradient(Dmat, mol);
+  Eigen::MatrixXd nucrep_term = DFTGradient::NuclearRepulsionDerivative(mol);
+
+  Eigen::MatrixXd grad =
+      nucrep_term +
+      eone_grad +
+      overlap_pulay_grad +
+      rij_term +
+      pulay_term +
+      weight_term;
+
+  // Exact-exchange (RI-K) gradient -- hybrid functionals only. Skipped
+  // entirely (not just multiplied by a zero ScaHFX_) when not needed,
+  // since RIKGradient is genuinely expensive (O(nocc^2 * naux) linear
+  // solves) unlike the GGA sigma terms, which are cheap enough to
+  // compute unconditionally.
+  //
+  // RIKGradient's own energy convention (E_K = -sum_ij c_ij.d_ij) was
+  // confirmed, via direct numerical simulation of
+  // ERIs::CalculateEXX_mos's real algorithm and then a real C++
+  // finite-difference test against that same production function
+  // (test_dftgradient.cc), to equal EXACTLY 0.25*Dmat.cwiseProduct(K).sum()
+  // at ScaHFX_=1 -- so for general ScaHFX_, the contribution is
+  // ScaHFX_ * RIKGradient(...), a direct scaling, matching exactly how
+  // the real SCF energy scales its own exx term
+  // (exx = 0.25*ScaHFX_*Dmat.cwiseProduct(K).sum()).
+  //
+  // This removes what was previously an explicit, logged SCOPE
+  // limitation (hybrid functionals skipped entirely) -- see git history
+  // for the full derivation/verification that led to this.
+  if (ScaHFX_ > 0.0) {
+    grad += ScaHFX_ * DFTGradient::RIKGradient(C_occ, auxbasis_, dftbasis_);
+  }
+
+  // Sanity check independent of the finite-difference tests already done
+  // per-term: translational invariance means the TOTAL gradient must sum
+  // to zero across all atoms. Logged rather than asserted/thrown --
+  // deliberately not blocking a real SCF run over a force-only sanity
+  // check, but worth knowing about if it ever fires.
+  Eigen::Vector3d sum = grad.colwise().sum();
+  if (sum.cwiseAbs().maxCoeff() > 1e-4) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " WARNING: computed forces do not sum to zero across atoms "
+           "(translational invariance check failed, max component="
+        << sum.cwiseAbs().maxCoeff() << ") -- treat these forces with "
+        "caution."
+        << std::flush;
+  }
+
+  // Physical force = -dE/dR, matching the convention external tools
+  // (e.g. ASE's Calculator.get_forces()) expect -- NuclearRepulsionDerivative/
+  // RIJGradient/PulayGradient/GridWeightGradient all return dE/dR directly
+  // (the gradient, not the force), consistent with each other throughout
+  // this branch; negating once here, at the point of storage, rather than
+  // in each individual term, keeps that internal convention consistent
+  // and puts the physical-force sign flip in exactly one place.
+  Eigen::MatrixXd force = -grad;
+  orb.setForces(force);
+
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Computed and stored ground-state nuclear forces."
+      << std::flush;
+  // Atomic units (Hartree/Bohr) -- deliberately NOT converted here, same
+  // convention as what gets stored via setForces()/WriteToCpt above and
+  // what the rest of this file's own log output uses for energies
+  // (Hartree throughout; only the earlier "Molecule Coordinates" section
+  // converts to Angstrom, for readability, and that conversion is
+  // unrelated to this).
+  XTP_LOG(Log::error, *pLog_) << " Forces [Ha/Bohr]" << std::flush;
+  for (Index a = 0; a < natoms; ++a) {
+    std::string output = (boost::format(" %1$s"
+                                        "   %2$+1.6f %3$+1.6f %4$+1.6f") %
+                          mol[a].getElement() % force(a, 0) % force(a, 1) %
+                          force(a, 2))
+                             .str();
+    XTP_LOG(Log::error, *pLog_) << output << std::flush;
+  }
+}
+
+Eigen::MatrixXd DFTEngine::ComputeOverlapPulayGradientUKS(
+    const QMMolecule& mol, const tools::EigenSystem& MOs_alpha,
+    const tools::EigenSystem& MOs_beta) const {
+  // W = W_alpha + W_beta, each WITHOUT the factor of 2 RKS uses -- UKS
+  // spin densities/MO occupations are not pre-doubled (each spin
+  // channel already corresponds to its own electron count).
+  //
+  // NOTE ON VALIDATION: this term is NOT checkable against a
+  // fixed-C finite difference the way the other UKS gradient terms are
+  // -- confirmed directly by a failed attempt to do exactly that (see
+  // git history). The overlap Pulay force specifically corrects for C's
+  // IMPLICIT R-dependence through the orthonormality constraint
+  // C^T S(R) C = I, valid only at a genuine variational stationary
+  // point (the Lagrange-multiplier argument requires C to actually be a
+  // converged SCF solution) -- a fixed, arbitrary C held constant across
+  // displaced geometries never satisfies that constraint
+  // self-consistently, so there is no fixed-C energy this term is
+  // supposed to match. This mirrors exactly why the RKS version of this
+  // term was only ever validated by a genuine, self-consistent
+  // end-to-end SCF test (test_dftengine_forces.cc), never a
+  // fixed-density-matrix unit test. See
+  // compute_non_xc_gradient_uks_finite_difference and
+  // overlap_pulay_gradient_uks_reduces_to_rks in
+  // test_dftengine_private.cc for how this piece is actually checked
+  // instead: the other four terms against a fixed-C finite difference,
+  // and this term separately against the already-validated RKS formula
+  // in the alpha==beta limit.
+  Index n_occ_alpha = num_alpha_electrons_;
+  Index n_occ_beta = num_beta_electrons_;
+  Eigen::MatrixXd C_alpha_occ = MOs_alpha.eigenvectors().leftCols(n_occ_alpha);
+  Eigen::MatrixXd C_beta_occ = MOs_beta.eigenvectors().leftCols(n_occ_beta);
+  Eigen::VectorXd eps_alpha_occ = MOs_alpha.eigenvalues().head(n_occ_alpha);
+  Eigen::VectorXd eps_beta_occ = MOs_beta.eigenvalues().head(n_occ_beta);
+  Eigen::MatrixXd W = C_alpha_occ * eps_alpha_occ.asDiagonal() *
+                          C_alpha_occ.transpose() +
+                      C_beta_occ * eps_beta_occ.asDiagonal() *
+                          C_beta_occ.transpose();
+
+  Index natoms = mol.size();
+  std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis_);
+  Eigen::MatrixXd overlap_pulay_grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      overlap_pulay_grad(a, xyz) = -W.cwiseProduct(dS[a][xyz]).sum();
+    }
+  }
+  return overlap_pulay_grad;
+}
+
+Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
+    const QMMolecule& mol, const UKSConvergenceAcc::SpinDensity& Dspin,
+    const tools::EigenSystem& MOs_alpha,
+    const tools::EigenSystem& MOs_beta) const {
+  Index natoms = mol.size();
+  const Eigen::MatrixXd D_total = Dspin.total();
+
+  // One-electron and RI-J: identical formulas/conventions to the RKS
+  // case, just built from D_total = Dspin.alpha + Dspin.beta -- matches
+  // exactly how RKS's own Dmat is already alpha+beta (E_one and E_coul
+  // in EvaluateUKS use D_total the same way EvaluateClosedShell's Eone/
+  // Etwo use Dmat), confirmed directly by reading EvaluateUKS rather
+  // than assumed.
+  std::vector<AOMatrixDerivative> dT = ComputeKineticDerivatives(dftbasis_);
+  std::vector<AOMatrixDerivative> dVne =
+      ComputeNuclearAttractionDerivatives(dftbasis_, mol);
+  Eigen::MatrixXd eone_grad = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      eone_grad(a, xyz) =
+          D_total.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
+    }
+  }
+
+  Eigen::MatrixXd overlap_pulay_grad =
+      ComputeOverlapPulayGradientUKS(mol, MOs_alpha, MOs_beta);
+
+  Eigen::MatrixXd grad = DFTGradient::NuclearRepulsionDerivative(mol) +
+                         eone_grad + overlap_pulay_grad +
+                         DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
+
+  // Exact exchange (RI-K), hybrids only. Factor of 0.5*ScaHFX_ (not
+  // ScaHFX_ alone) -- confirmed both algebraically and numerically
+  // (Python, to ~1e-14) that ERIs::CalculateEXX_dmat(P) ==
+  // 0.5*ERIs::CalculateEXX_mos(C) when P=C*C^T, and UKS's own exact
+  // exchange goes through CalculateEXX_dmat (a DIFFERENT code path than
+  // RIKGradient was validated against, which uses CalculateEXX_mos
+  // directly) -- tracing that factor of 0.5 through both spin channels'
+  // energy expressions gives dE_exx/dR =
+  // 0.5*ScaHFX_*[RIKGradient(C_alpha_occ)+RIKGradient(C_beta_occ)], not
+  // the naive ScaHFX_*(...) that would be a factor-of-2 error.
+  if (ScaHFX_ > 0.0) {
+    Eigen::MatrixXd C_alpha_occ =
+        MOs_alpha.eigenvectors().leftCols(num_alpha_electrons_);
+    Eigen::MatrixXd C_beta_occ =
+        MOs_beta.eigenvectors().leftCols(num_beta_electrons_);
+    grad += 0.5 * ScaHFX_ *
+            (DFTGradient::RIKGradient(C_alpha_occ, auxbasis_, dftbasis_) +
+             DFTGradient::RIKGradient(C_beta_occ, auxbasis_, dftbasis_));
+  }
+  return grad;
+}
+
+void DFTEngine::ComputeAndStoreForcesUKS(
+    Orbitals& orb, const UKSConvergenceAcc::SpinDensity& Dspin,
+    const tools::EigenSystem& MOs_alpha, const tools::EigenSystem& MOs_beta,
+    const Vxc_Potential<Vxc_Grid>& vxcpotential) const {
+  if (auxbasis_name_.empty()) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Skipping UKS force calculation: RI-J gradient only "
+           "implements the RI path, but this SCF ran without an "
+           "auxiliary basis."
+        << std::flush;
+    return;
+  }
+
+  if (!HasLibint2DerivativeSupport()) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Skipping UKS force calculation: the libint2 this was "
+           "built against does not support derivative integrals for "
+           "one or more operator categories it needs. Many "
+           "pre-packaged libint2 builds (Homebrew, Ubuntu apt, etc.) "
+           "do not enable this by default -- rebuild libint2 with "
+           "--enable-1body/--enable-eri2/--enable-eri3 to use "
+           "analytic forces."
+        << std::flush;
+    return;
+  }
+
+  if (!ecp_name_.empty()) {
+    // Same reasoning as the RKS ComputeAndStoreForces' own, identical
+    // check just above (and Initialize()'s own, earlier, preferred
+    // check) -- ECP forces are not implemented in either spin
+    // channel's gradient assembly.
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Skipping UKS force calculation: an ECP ('" << ecp_name_
+        << "') was used for this SCF, but analytic nuclear forces do "
+           "not yet include the ECP contribution to the force "
+           "(d(V_ECP)/dR) -- computing forces in this configuration "
+           "would silently omit that term rather than fail visibly."
+        << std::flush;
+    return;
+  }
+
+  Eigen::MatrixXd grad =
+      ComputeNonXCGradientUKS(orb.QMAtoms(), Dspin, MOs_alpha, MOs_beta);
+
+  // XC gradient (LDA and GGA both supported -- see the detailed
+  // derivation/validation history on this function's declaration in
+  // dftengine.h and on PulayGradientUKS/GridWeightGradientUKS in
+  // vxc_potential.h).
+  grad += vxcpotential.PulayGradientUKS(Dspin.alpha, Dspin.beta, dftbasis_);
+  grad += vxcpotential.GridWeightGradientUKS(Dspin.alpha, Dspin.beta,
+                                             orb.QMAtoms());
+
+  // Sanity check independent of the finite-difference tests already
+  // done per-term: translational invariance means the TOTAL gradient
+  // must sum to zero across all atoms. Logged rather than asserted/
+  // thrown, same as the RKS path -- deliberately not blocking a real
+  // SCF run over a force-only sanity check.
+  Eigen::Vector3d sum = grad.colwise().sum();
+  if (sum.cwiseAbs().maxCoeff() > 1e-4) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " WARNING: computed UKS forces do not sum to zero across "
+           "atoms (translational invariance check failed, max "
+           "component="
+        << sum.cwiseAbs().maxCoeff() << ") -- treat these forces with "
+        "caution."
+        << std::flush;
+  }
+
+  // Physical force = -dE/dR, matching the RKS ComputeAndStoreForces
+  // convention exactly -- all pieces above return dE/dR directly (the
+  // gradient, not the force), negated once here at the point of
+  // storage.
+  Eigen::MatrixXd force = -grad;
+  orb.setForces(force);
+
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp()
+      << " Computed and stored ground-state UKS nuclear forces."
+      << std::flush;
+  // Same convention as ComputeAndStoreForces (RKS): atomic units
+  // (Hartree/Bohr), matching what gets stored via setForces() above.
+  const QMMolecule& mol_for_print = orb.QMAtoms();
+  XTP_LOG(Log::error, *pLog_) << " Forces [Ha/Bohr]" << std::flush;
+  for (Index a = 0; a < force.rows(); ++a) {
+    std::string output = (boost::format(" %1$s"
+                                        "   %2$+1.6f %3$+1.6f %4$+1.6f") %
+                          mol_for_print[a].getElement() % force(a, 0) %
+                          force(a, 1) % force(a, 2))
+                             .str();
+    XTP_LOG(Log::error, *pLog_) << output << std::flush;
+  }
 }
 
 // Build the Coulomb and exact-exchange contributions generated by the current
@@ -524,6 +1010,10 @@ bool DFTEngine::EvaluateClosedShell(
           nuclear_charge - numofelectrons_,
           std::abs(num_alpha_electrons_ - num_beta_electrons_) + 1);
 
+      if (compute_forces_) {
+        ComputeAndStoreForces(orb, Dmat, vxcpotential);
+      }
+
       CalcElDipole(orb);
       return true;
     } else if (this_iter == max_iter_ - 1) {
@@ -760,6 +1250,10 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
           << std::flush;
 
       PrintMOsUKS(MOs_alpha.eigenvalues(), MOs_beta.eigenvalues(), Log::error);
+
+      if (compute_forces_) {
+        ComputeAndStoreForcesUKS(orb, Dspin, MOs_alpha, MOs_beta, vxcpotential);
+      }
 
       CalcElDipole(orb);
       return true;

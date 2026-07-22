@@ -276,6 +276,7 @@ void Vxc_Grid::GridSetup(const std::string& type, const QMMolecule& atoms,
         GridContainers::Cartesian_gridpoint gridpoint =
             CreateCartesianGridpoint(atomA_pos, radial_grid, spherical_grid,
                                      i_rad, i_sph);
+        gridpoint.owner_atom = i_atom;
         atomgrid.push_back(gridpoint);
       }  // spherical gridpoints
     }  // radial gridpoint

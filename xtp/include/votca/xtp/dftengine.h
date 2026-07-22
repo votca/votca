@@ -239,6 +239,122 @@ class DFTEngine {
   bool EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
                    const Vxc_Potential<Vxc_Grid>& vxcpotential);
 
+  /// Assemble the total ground-state nuclear gradient (one-electron
+  /// [kinetic + nuclear attraction] + overlap "Pulay force" + nuclear
+  /// repulsion + RI-J Coulomb + RI-K exact exchange [hybrid functionals]
+  /// + XC, LDA or GGA) from a converged density matrix and store it in
+  /// the orbital container via Orbitals::setForces(), as the physical
+  /// force (-dE/dR, matching the convention external tools such as ASE
+  /// expect from a Calculator's getForces()).
+  ///
+  /// The one-electron term and the overlap Pulay force were initially
+  /// MISSING entirely -- discovered by the first genuine end-to-end
+  /// SCF+forces test (test_dftengine_forces.cc), since every earlier
+  /// gradient test in this branch validated individual terms against
+  /// fixed density matrices without ever checking the complete gradient
+  /// against a real total SCF energy. The overlap Pulay force (arising
+  /// because the MO orthonormality constraint C^T S C = I depends on
+  /// geometry through the moving basis functions, weighted by orbital
+  /// energies rather than occupation) is a standard part of any
+  /// Gaussian-basis SCF gradient, distinct from the "PulayGradient"
+  /// naming used elsewhere in this codebase for the XC-integral
+  /// basis-function term.
+  ///
+  /// RI-K/hybrid-functional support was added after DFTGradient::
+  /// RIKGradient's energy convention was fixed (a self-introduced
+  /// regression during that work: a plausible-looking hand-algebra
+  /// "correction" to a half-transformed structure was wrong, caught by
+  /// directly, numerically simulating ERIs::CalculateEXX_mos's real
+  /// algorithm before committing to it -- the original fully-MO-
+  /// transformed structure was correct, needing only a missing factor
+  /// of 2) and then verified via a real C++ finite-difference test
+  /// against ERIs::CalculateEXX_mos itself, not just a self-consistent
+  /// formula. Also confirmed (numerically, to machine precision):
+  /// CalculateEXX_mos's symmetric V^-1/2 RI fitting and RIKGradient's
+  /// simpler asymmetric V^-1 fitting give IDENTICAL exchange energies
+  /// (an exact algebraic identity for symmetric positive-definite V),
+  /// so no matrix square root derivative was ever actually needed.
+  ///
+  /// SCOPE, explicitly checked and logged rather than silently producing
+  /// a wrong result: only supported when RI is actually in use for the
+  /// SCF (auxbasis_name_ non-empty -- DFTGradient::RIJGradient/RIKGradient
+  /// only implement the RI path, not conventional 4-center ERIs).
+  ///
+  /// OPT-IN: only called at all if compute_forces_ is true (see its
+  /// declaration below), settable via
+  /// \<xtpdft\>\<compute_forces\>true\</compute_forces\>\</xtpdft\> in
+  /// the options tree, defaulting to false.
+  /// Computing forces adds real, non-trivial cost to every converged
+  /// SCF, so this is deliberately not silently always-on -- added after
+  /// this was pointed out as an unflagged side effect of the original,
+  /// unconditional wiring.
+  void ComputeAndStoreForces(Orbitals& orb, const Eigen::MatrixXd& Dmat,
+                             const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
+
+  /// UKS overlap Pulay force -- W = W_alpha + W_beta, each WITHOUT the
+  /// factor of 2 RKS uses. Split out as its own method (rather than
+  /// inlined in ComputeNonXCGradientUKS) because it needs a genuinely
+  /// DIFFERENT validation strategy than the other four terms: it is NOT
+  /// checkable against a fixed-C finite difference (confirmed directly
+  /// by a failed attempt to do exactly that -- see git history), since
+  /// it specifically corrects for C's implicit R-dependence through the
+  /// orthonormality constraint, valid only at a genuine SCF stationary
+  /// point. See test_dftengine_private.cc for how this is actually
+  /// validated instead (reduction to the already-validated RKS formula
+  /// when alpha==beta).
+  Eigen::MatrixXd ComputeOverlapPulayGradientUKS(
+      const QMMolecule& mol, const tools::EigenSystem& MOs_alpha,
+      const tools::EigenSystem& MOs_beta) const;
+
+  /// The four non-XC-adjacent gradient terms that generalize cleanly to
+  /// UKS -- see the detailed derivation on ComputeAndStoreForcesUKS
+  /// below, which calls this and then decides whether/how to report the
+  /// result (currently: never stores it, since XC is missing). Returns
+  /// the (natoms x 3) dE/dR gradient directly (NOT negated to the
+  /// physical force convention -- that flip, if/when this becomes part
+  /// of a complete, storable UKS gradient, belongs at the point of
+  /// storage, same as the RKS path).
+  Eigen::MatrixXd ComputeNonXCGradientUKS(
+      const QMMolecule& mol, const UKSConvergenceAcc::SpinDensity& Dspin,
+      const tools::EigenSystem& MOs_alpha,
+      const tools::EigenSystem& MOs_beta) const;
+
+  /// UKS (open-shell) analog of ComputeAndStoreForces.
+  ///
+  /// STATUS: PARTIAL, deliberately. Four of the five non-XC-adjacent
+  /// terms generalize cleanly to UKS and are implemented here: nuclear
+  /// repulsion (unchanged), one-electron [kinetic + nuclear attraction]
+  /// (uses D_total = Dspin.alpha + Dspin.beta, exactly the same
+  /// convention RKS's Dmat already uses), the overlap Pulay force
+  /// (W = W_alpha + W_beta, each WITHOUT the factor of 2 RKS uses, since
+  /// UKS spin densities are not pre-doubled), and RI-K exact exchange
+  /// for hybrids (0.5 * ScaHFX_ * [RIKGradient(C_alpha_occ,...) +
+  /// RIKGradient(C_beta_occ,...)] -- the extra factor of 0.5 relative to
+  /// the naive guess of ScaHFX_*(...) confirmed both algebraically and
+  /// numerically: ERIs::CalculateEXX_dmat(P) == 0.5 *
+  /// ERIs::CalculateEXX_mos(C) when P = C*C^T, checked directly rather
+  /// than assumed, since UKS's exact exchange goes through
+  /// CalculateEXX_dmat, a different code path than the one
+  /// RIKGradient/CalculateEXX_mos were validated against).
+  ///
+  /// The XC gradient (PulayGradientUKS + GridWeightGradientUKS, LDA and
+  /// GGA) is now included too -- initially deferred as new derivation
+  /// work (spin-polarized rho_alpha/rho_beta, and for GGA a genuinely
+  /// new sigma_alpha-alpha/alpha-beta/beta-beta cross-term structure
+  /// with no analog in the spin-restricted case), then completed and
+  /// validated (Python-verified formulas first, then a real C++ finite-
+  /// difference test against IntegrateVXCSpin -- caught and fixed one
+  /// real transcription bug, a missing factor of 2 in the GGA sigma
+  /// term's Hessian contraction, found by careful line-by-line
+  /// comparison against the verified Python once the first real test
+  /// run showed a partial, non-catastrophic discrepancy). With XC now
+  /// included, this function DOES call Orbitals::setForces(), same as
+  /// the RKS ComputeAndStoreForces.
+  void ComputeAndStoreForcesUKS(
+      Orbitals& orb, const UKSConvergenceAcc::SpinDensity& Dspin,
+      const tools::EigenSystem& MOs_alpha, const tools::EigenSystem& MOs_beta,
+      const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
+
   Logger* pLog_;
 
   // basis sets
@@ -313,6 +429,19 @@ class DFTEngine {
   Index spin_ = 1;
   Index charge_ = 0;
   bool force_uks_path_ = false;
+  // Default false to preserve existing performance for callers not
+  // using this feature -- computing forces adds real, non-trivial cost
+  // (kinetic/nuclear-attraction/overlap derivatives, RI-J gradient, full
+  // XC gradient, RI-K for hybrids) to every converged SCF, so this must
+  // be explicit opt-in, not silently always-on. Settable via the
+  // \<xtpdft\> options block, which flows through unmodified from
+  // XTPDFT::RunDFT() (options_) straight into DFTEngine::Initialize --
+  // confirmed directly by reading XTPDFT::ParseSpecificOptions, which
+  // only extracts a single unrelated field (temporary_file) and does
+  // not filter/transform anything else -- so this option is
+  // automatically available through the full QMPackage/XTPDFT flow with
+  // no changes needed there.
+  bool compute_forces_ = false;
 };
 
 }  // namespace xtp

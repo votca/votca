@@ -38,9 +38,18 @@ class GridBox {
   void FindSignificantShells(const AOBasis& basis);
   AOShell::AOValues CalcAOValues(const Eigen::Vector3d& point) const;
 
+  // Added for GGA XC-gradient support -- same pattern as CalcAOValues
+  // above (loop over significant_shells, pack into box-local ranges via
+  // aoranges), calling AOShell::EvalAOspaceHessian instead of
+  // EvalAOspace.
+  AOShell::AOValuesHessian CalcAOValuesHessian(
+      const Eigen::Vector3d& point) const;
+
   const std::vector<Eigen::Vector3d>& getGridPoints() const { return grid_pos; }
 
   const std::vector<double>& getGridWeights() const { return weights; }
+
+  const std::vector<Index>& getOwnerAtoms() const { return owner_atoms; }
 
   const std::vector<const AOShell*>& getShells() const {
     return significant_shells;
@@ -57,12 +66,15 @@ class GridBox {
   void addGridBox(const GridBox& box) {
     grid_pos.insert(grid_pos.end(), box.grid_pos.begin(), box.grid_pos.end());
     weights.insert(weights.end(), box.weights.begin(), box.weights.end());
+    owner_atoms.insert(owner_atoms.end(), box.owner_atoms.begin(),
+                       box.owner_atoms.end());
     return;
   }
 
   void addGridPoint(const GridContainers::Cartesian_gridpoint& point) {
     grid_pos.push_back(point.grid_pos);
     weights.push_back(point.grid_weight);
+    owner_atoms.push_back(point.owner_atom);
   };
 
   void addShell(const AOShell* shell) {
@@ -102,6 +114,11 @@ class GridBox {
   std::vector<Eigen::Vector3d> grid_pos;
   std::vector<const AOShell*> significant_shells;
   std::vector<double> weights;
+  // Parallel to grid_pos/weights: which atom each point's radial/angular
+  // quadrature was generated from. Added for the SSW grid-weight nuclear
+  // derivative (Vxc_Potential::GridWeightGradient); not used by any
+  // existing (deriv_order=0) code path.
+  std::vector<Index> owner_atoms;
 };
 
 }  // namespace xtp

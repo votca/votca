@@ -50,6 +50,13 @@ class GridContainers {
   struct Cartesian_gridpoint {
     Eigen::Vector3d grid_pos;  // bohr
     double grid_weight;
+    // Index of the atom this point's radial/angular quadrature was
+    // generated from (the atom it moves rigidly with, in the standard
+    // atom-centered-grid convention). -1 = unset, for any pre-existing
+    // code path that doesn't set this explicitly. Added for the SSW
+    // grid-weight nuclear derivative (Vxc_Potential::GridWeightGradient),
+    // which needs to know which atom each point is attached to.
+    Index owner_atom = -1;
   };
 };
 

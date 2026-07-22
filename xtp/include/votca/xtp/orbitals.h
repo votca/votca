@@ -294,6 +294,20 @@ class Orbitals {
   /// Store the total DFT energy.
   void setQMEnergy(double qmenergy) { qm_energy_ = qmenergy; }
 
+  // access to nuclear forces (gradient of total energy w.r.t. nuclear
+  // coordinates), Natoms x 3, atomic units (Hartree/Bohr), consistent
+  // with QMAtom::pos_ being stored in Bohr.
+  /// Report whether nuclear forces have been stored.
+  bool hasForces() const { return forces_.rows() > 0; }
+
+  /// Return the stored nuclear forces (Natoms x 3, Hartree/Bohr).
+  const Eigen::MatrixXd &getForces() const { return forces_; }
+
+  /// Store nuclear forces (Natoms x 3, Hartree/Bohr). Caller is
+  /// responsible for the sign convention (dE/dR vs -dE/dR); this class
+  /// stores whatever is passed in without reinterpreting it.
+  void setForces(const Eigen::MatrixXd &forces) { forces_ = forces; }
+
   // access to DFT basis set name
   /// Report whether a DFT basis-set name has been stored.
   bool hasDFTbasisName() const {
@@ -758,6 +772,12 @@ class Orbitals {
   AOBasis auxbasis_;
 
   double qm_energy_ = 0;
+  // Natoms x 3, Hartree/Bohr; empty (rows()==0) means "not computed",
+  // matching the pattern of qm_energy_'s hasQMEnergy() check above but
+  // via emptiness rather than a sentinel value, since 0.0 is a
+  // legitimate force value on any individual component in a way it isn't
+  // for a total energy.
+  Eigen::MatrixXd forces_;
 
   Index total_charge_ = 0;
   Index total_spin_ = 1;

@@ -31,6 +31,9 @@
 namespace votca {
 namespace xtp {
 
+class AOBasis;
+class QMMolecule;
+
 template <class Grid>
 class Vxc_Potential {
  public:
@@ -49,6 +52,118 @@ class Vxc_Potential {
   Mat_p_Energy IntegrateVXC(const Eigen::MatrixXd& density_matrix) const;
   SpinResult IntegrateVXCSpin(const Eigen::MatrixXd& dmat_alpha,
                               const Eigen::MatrixXd& dmat_beta) const;
+
+  // ===========================================================================
+  // STATUS: originally basis-function/Pulay term only (LDA-only); a
+  // second, distinct term (grid-point translation) was added after the
+  // GridWeightGradient C_p fix substantially improved but did not fully
+  // resolve a residual discrepancy against finite differences; a third
+  // addition (GGA sigma-dependent contributions to BOTH the basis and
+  // translation terms, using AOShell::EvalAOspaceHessian) followed once
+  // the LDA-only version was fully validated end to end -- see
+  // vxc_potential.cc for the full derivation of all three. The name
+  // "PulayGradient" is now a real misnomer (it computes basis-function +
+  // grid-point-translation + GGA-sigma contributions together, since
+  // they all loop over the same grid points and share the same
+  // expensive AO evaluation) -- kept for now rather than renaming
+  // mid-branch, but worth reconsidering once the whole XC gradient is
+  // confirmed correct for GGA too.
+  //
+  // The GGA sigma terms are exactly zero for LDA functionals (xc.df_dsigma
+  // is default-initialized to 0 and never written to by xc_lda_exc_vxc --
+  // confirmed directly in EvaluateXC), so they cannot regress the
+  // already-validated LDA behavior; computed unconditionally rather than
+  // branching on functional type. NOT yet confirmed correct for GGA by
+  // an actual test, though the underlying dsigma/dR formula was verified
+  // numerically (to ~1e-12) on a toy multi-atom system before writing
+  // any of this C++ -- see conversation history.
+  // ===========================================================================
+  Eigen::MatrixXd PulayGradient(const Eigen::MatrixXd& density_matrix,
+                                const AOBasis& dftbasis) const;
+
+  // ===========================================================================
+  // STATUS: written but NOT yet run/tested. This is the second (and
+  // harder) of the two pieces needed for the XC gradient, alongside
+  // PulayGradient above -- the SSW grid-weight nuclear derivative.
+  //
+  // The underlying formula was derived and independently verified
+  // NUMERICALLY in Python (two separate multi-atom test configurations,
+  // matching finite differences to ~1e-9/1e-10) before writing any of
+  // this C++ -- see conversation history for the full derivation. This
+  // C++ is a direct translation of that verified Python, not a fresh
+  // derivation done blind.
+  //
+  // Combined with PulayGradient, this should give the complete LDA-level
+  // XC gradient (GGA's additional df_dsigma-driven Pulay term is still
+  // out of scope, per the note on PulayGradient). Validate the SUM of
+  // the two against a finite difference of the real total XC energy
+  // (IntegrateVXC's energy output) -- neither piece alone can be checked
+  // against the total energy in isolation.
+  //
+  // SCALING NOTE: this is O(Natoms^3) per grid point (derivative w.r.t.
+  // every atom, each needing a sum over every other atom's pairwise
+  // term) -- consistent with the SSW partition's inherent O(Natoms^2)
+  // energy-level cost, but one power of Natoms worse for the gradient.
+  // Fine for validation-scale systems; would need optimizing before use
+  // on anything large.
+  // ===========================================================================
+  Eigen::MatrixXd GridWeightGradient(const Eigen::MatrixXd& density_matrix,
+                                     const QMMolecule& atoms) const;
+
+  // ===========================================================================
+  // UKS (spin-polarized) analogs of PulayGradient/GridWeightGradient
+  // above. Now support GGA functionals too, not just LDA -- extended
+  // after the LDA-only version was fully validated, following the same
+  // derive-in-Python-first discipline used throughout this codebase.
+  //
+  // LDA basis-type and translation-type terms generalize the
+  // spin-restricted derivation directly, verified numerically (Python,
+  // toy multi-atom system, ~1e-11) before writing this: for each spin
+  // channel s in {a,b},
+  //   d(rho_s,p)/dR_A|_basis = -2 * sum_{mu in A} temp_s,mu * grad(chi_mu)
+  //   d(rho_s,p)/dR_A|_translation = grad_s,p   if A == owner(p), else 0
+  // (matching this file's own IntegrateVXCSpin convention exactly:
+  // temp_s = dmat_s * ao.values, grad_s = 2*(ao.derivatives^T * temp_s),
+  // no extra factor of 2 needed for temp_s itself since UKS spin
+  // density matrices are NOT pre-doubled, unlike RKS's DMAT_here=2*P).
+  // Contracted with vrho_a/vrho_b (EvaluateXCSpin's own "full potential"
+  // convention, same reasoning already established for the restricted
+  // case's df_drho -- no further correction needed) and summed over
+  // both spin channels.
+  //
+  // GGA sigma_aa/sigma_ab/sigma_bb terms: naively need THREE separate
+  // contributions, but collapse into reusing the SAME per-spin
+  // machinery as the restricted GGA case (Gmat_s, Hessian_rho_s) twice
+  // -- once per spin channel -- by combining the three vsigma weights
+  // into two "effective" gradient vectors (verified numerically,
+  // ~1e-12, before writing the C++):
+  //   V_a = 2*vsigma_aa*rho_a_grad + vsigma_ab*rho_b_grad
+  //   V_b = 2*vsigma_bb*rho_b_grad + vsigma_ab*rho_a_grad
+  // Basis-type sigma contribution per mu in A:
+  //   -[grad(chi_mu)*(Gmat_a.V_a)_mu + temp_a,mu*(Hessian_mu.V_a)
+  //     + grad(chi_mu)*(Gmat_b.V_b)_mu + temp_b,mu*(Hessian_mu.V_b)]
+  // Translation-type sigma contribution (A==owner(p) only):
+  //   Hessian_rho_a . V_a + Hessian_rho_b . V_b
+  // where Gmat_s = 2*dmat_s*ao.derivatives and Hessian_rho_s is built
+  // exactly like the restricted case's Hessian_rho, just per spin
+  // channel.
+  //
+  // The weight-derivative term is functional-form-agnostic (same
+  // geometric dw/dR logic as the restricted GridWeightGradient,
+  // unchanged) -- only the energy-density prefactor changes, from
+  // rho*f_xc to (rho_a+rho_b)*f_xc (EvaluateXCSpin's own f_xc
+  // convention, matching IntegrateVXCSpin's own energy accumulation
+  // exactly: exc_private += weight*rho*xc.f_xc, rho=rho_a+rho_b), now
+  // evaluated with real sigma_aa/sigma_ab/sigma_bb (computed from the
+  // actual density gradients) instead of the LDA-only version's
+  // hardcoded zeros.
+  Eigen::MatrixXd PulayGradientUKS(const Eigen::MatrixXd& dmat_alpha,
+                                   const Eigen::MatrixXd& dmat_beta,
+                                   const AOBasis& dftbasis) const;
+  Eigen::MatrixXd GridWeightGradientUKS(const Eigen::MatrixXd& dmat_alpha,
+                                        const Eigen::MatrixXd& dmat_beta,
+                                        const QMMolecule& atoms) const;
+  // ===========================================================================
 
  private:
   struct XC_entry {
