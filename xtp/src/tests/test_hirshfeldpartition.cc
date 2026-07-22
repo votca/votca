@@ -71,11 +71,18 @@ using namespace votca;
 namespace votca {
 namespace xtp {
 
-BOOST_AUTO_TEST_SUITE(hirshfeldpartition_test)
-
 // Local friend-class test-access helper, matching the same pattern
 // already established in test_dftengine_private.cc/test_dftengine_forces.cc
 // -- ComputeHirshfeldReferenceDensities is a private DFTEngine method.
+//
+// Deliberately defined BEFORE BOOST_AUTO_TEST_SUITE below, not after:
+// that macro introduces its own nested scope (confirmed directly --
+// test_dftengine_private.cc, which also needs this same friend class,
+// does not use BOOST_AUTO_TEST_SUITE at all, keeping everything flat
+// inside namespace votca::xtp with nothing in between), so a class
+// defined after it is NOT directly votca::xtp::DFTEngineTestAccess
+// anymore -- which is exactly what dftengine.h's own
+// "friend class DFTEngineTestAccess;" declaration needs to match.
 class DFTEngineTestAccess {
  public:
   static std::map<std::string, Eigen::MatrixXd>
@@ -99,6 +106,8 @@ QMMolecule BuildCO(double bond_length_angstrom) {
   mol.LoadFromFile(tmp_path);
   return mol;
 }
+
+BOOST_AUTO_TEST_SUITE(hirshfeldpartition_test)
 
 BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
   libint2::initialize();
