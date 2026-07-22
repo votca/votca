@@ -122,28 +122,48 @@ void DFTEngine::Initialize(tools::Property& options) {
   if (compute_forces_ && !HasLibint2DerivativeSupport()) {
     // Fail fast, at options-parsing time, rather than only discovering
     // this after a full (potentially expensive) SCF has already
-    // converged -- ComputeAndStoreForces(UKS) has its own, separate
-    // check too (since compute_forces_ could in principle be flipped
-    // some other way), but that one only fires much later, right
-    // before forces would actually be computed.
-    //
-    // Deliberately std::cerr, NOT XTP_LOG(*pLog_): pLog_ has no default
-    // initializer (Logger* pLog_;) and is only ever set via the
-    // separate setLogger() call -- Initialize() itself never
-    // previously depended on pLog_ being valid at all (confirmed: no
-    // other XTP_LOG/pLog_ usage anywhere else in this function), so
-    // there's no guarantee setLogger() has already been called by the
-    // time Initialize() runs. Using pLog_ here could dereference an
-    // uninitialized pointer.
-    std::cerr << " WARNING: compute_forces=true was requested, but the "
-                 "libint2 this was built against does not support derivative "
-                 "integrals (LIBINT2_MAX_DERIV_ORDER < 1) -- analytic forces "
-                 "will NOT be computed or stored, no matter how this SCF "
-                 "converges. Many pre-packaged libint2 builds (Homebrew, "
-                 "Ubuntu apt, etc.) do not enable this by default; rebuild "
-                 "libint2 with derivative support enabled to use this "
-                 "feature."
-              << std::endl;
+    // converged. Genuinely throws now (previously only printed a
+    // std::cerr WARNING and let Initialize() return normally, so the
+    // full SCF still ran to completion regardless, wasting real
+    // compute on a calculation that could never produce forces) --
+    // throwing std::runtime_error here for an invalid/impossible
+    // options combination matches this file's own, already-established
+    // convention (see e.g. "Spin multiplicity must be >= 1." and
+    // several other throw std::runtime_error(...) calls elsewhere in
+    // this same function), not a new pattern.
+    throw std::runtime_error(
+        "compute_forces=true was requested, but the libint2 this was "
+        "built against does not support derivative integrals for one "
+        "or more operator categories it needs (one-body, the two-center "
+        "Coulomb metric, or three-center RI -- see "
+        "libint2_derivative_calls.cc's own compile guards for exactly "
+        "which). Many pre-packaged libint2 builds (Homebrew, Ubuntu "
+        "apt, etc.) do not enable derivative-integral support for all "
+        "of these by default; rebuild libint2 with "
+        "--enable-1body/--enable-eri2/--enable-eri3 to use this "
+        "feature.");
+  }
+  if (compute_forces_ && !ecp_name_.empty()) {
+    // A real, previously-unguarded gap: the SCF's own Hamiltonian
+    // genuinely includes the ECP contribution (H0 = T + V_nuc + V_ECP
+    // + V_ext, see the comment on that further down in this file, and
+    // dftAOECP.FillPotential(dftbasis_, ecp_) actually called during
+    // the SCF itself) -- but ComputeAndStoreForces/ComputeAndStoreForcesUKS
+    // have no d(V_ECP)/dR term at all (confirmed directly: neither
+    // function references ecp_ or ecp_name_ anywhere). Computing
+    // forces anyway in this case would not fail cleanly the way the
+    // libint2-support case above does -- it would silently produce a
+    // physically INCOMPLETE result (missing the ECP contribution to
+    // the force entirely) that looks like a normal, valid force
+    // output, which is worse than refusing outright. Refuse instead.
+    throw std::runtime_error(
+        "compute_forces=true was requested together with an ECP ('" +
+        ecp_name_ +
+        "'), but analytic nuclear forces do not yet include the ECP "
+        "contribution to the force (d(V_ECP)/dR) -- computing forces "
+        "in this configuration would silently omit that term rather "
+        "than fail visibly. Either drop the ECP or do not request "
+        "compute_forces until this is implemented.");
   }
 
   initial_guess_ = options.get(".initial_guess").as<std::string>();
@@ -351,11 +371,36 @@ void DFTEngine::ComputeAndStoreForces(
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp()
         << " Skipping force calculation: the libint2 this was built "
-           "against does not support derivative integrals "
-           "(LIBINT2_MAX_DERIV_ORDER < 1). Many pre-packaged libint2 "
-           "builds (Homebrew, Ubuntu apt, etc.) do not enable this by "
-           "default -- rebuild libint2 with derivative support enabled "
-           "to use analytic forces."
+           "against does not support derivative integrals for one or "
+           "more operator categories it needs. Many pre-packaged "
+           "libint2 builds (Homebrew, Ubuntu apt, etc.) do not enable "
+           "this by default -- rebuild libint2 with "
+           "--enable-1body/--enable-eri2/--enable-eri3 to use analytic "
+           "forces."
+        << std::flush;
+    return;
+  }
+
+  if (!ecp_name_.empty()) {
+    // Same reasoning as Initialize()'s own, earlier check (which
+    // should already have caught this before any SCF work even
+    // started) -- this is a defense-in-depth repeat, matching the
+    // existing HasLibint2DerivativeSupport() re-check just above,
+    // in case compute_forces_/ecp_name_ were ever set some other way
+    // than through Initialize()'s own options parsing. Skips cleanly
+    // (log + return) rather than throwing here, matching this
+    // function's own existing style for the libint2-support case
+    // above -- by the time SCF has already converged this far,
+    // throwing would be a less graceful failure than simply not
+    // storing forces, though Initialize()'s own check is the
+    // preferred, much earlier place for this to actually be caught.
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Skipping force calculation: an ECP ('" << ecp_name_
+        << "') was used for this SCF, but analytic nuclear forces do "
+           "not yet include the ECP contribution to the force "
+           "(d(V_ECP)/dR) -- computing forces in this configuration "
+           "would silently omit that term rather than fail visibly."
         << std::flush;
     return;
   }
@@ -423,14 +468,18 @@ void DFTEngine::ComputeAndStoreForces(
     }
   }
 
-  Eigen::MatrixXd rij_term =
-      DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_);
+  Eigen::MatrixXd rij_term = DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_);
   Eigen::MatrixXd pulay_term = vxcpotential.PulayGradient(Dmat, dftbasis_);
   Eigen::MatrixXd weight_term = vxcpotential.GridWeightGradient(Dmat, mol);
   Eigen::MatrixXd nucrep_term = DFTGradient::NuclearRepulsionDerivative(mol);
 
-  Eigen::MatrixXd grad = nucrep_term + eone_grad + overlap_pulay_grad +
-                         rij_term + pulay_term + weight_term;
+  Eigen::MatrixXd grad =
+      nucrep_term +
+      eone_grad +
+      overlap_pulay_grad +
+      rij_term +
+      pulay_term +
+      weight_term;
 
   // Exact-exchange (RI-K) gradient -- hybrid functionals only. Skipped
   // entirely (not just multiplied by a zero ScaHFX_) when not needed,
@@ -466,9 +515,8 @@ void DFTEngine::ComputeAndStoreForces(
         << TimeStamp()
         << " WARNING: computed forces do not sum to zero across atoms "
            "(translational invariance check failed, max component="
-        << sum.cwiseAbs().maxCoeff()
-        << ") -- treat these forces with "
-           "caution."
+        << sum.cwiseAbs().maxCoeff() << ") -- treat these forces with "
+        "caution."
         << std::flush;
   }
 
@@ -493,11 +541,11 @@ void DFTEngine::ComputeAndStoreForces(
   // unrelated to this).
   XTP_LOG(Log::error, *pLog_) << " Forces [Ha/Bohr]" << std::flush;
   for (Index a = 0; a < natoms; ++a) {
-    std::string output =
-        (boost::format(" %1$s"
-                       "   %2$+1.6f %3$+1.6f %4$+1.6f") %
-         mol[a].getElement() % force(a, 0) % force(a, 1) % force(a, 2))
-            .str();
+    std::string output = (boost::format(" %1$s"
+                                        "   %2$+1.6f %3$+1.6f %4$+1.6f") %
+                          mol[a].getElement() % force(a, 0) % force(a, 1) %
+                          force(a, 2))
+                             .str();
     XTP_LOG(Log::error, *pLog_) << output << std::flush;
   }
 }
@@ -535,9 +583,10 @@ Eigen::MatrixXd DFTEngine::ComputeOverlapPulayGradientUKS(
   Eigen::MatrixXd C_beta_occ = MOs_beta.eigenvectors().leftCols(n_occ_beta);
   Eigen::VectorXd eps_alpha_occ = MOs_alpha.eigenvalues().head(n_occ_alpha);
   Eigen::VectorXd eps_beta_occ = MOs_beta.eigenvalues().head(n_occ_beta);
-  Eigen::MatrixXd W =
-      C_alpha_occ * eps_alpha_occ.asDiagonal() * C_alpha_occ.transpose() +
-      C_beta_occ * eps_beta_occ.asDiagonal() * C_beta_occ.transpose();
+  Eigen::MatrixXd W = C_alpha_occ * eps_alpha_occ.asDiagonal() *
+                          C_alpha_occ.transpose() +
+                      C_beta_occ * eps_beta_occ.asDiagonal() *
+                          C_beta_occ.transpose();
 
   Index natoms = mol.size();
   std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis_);
@@ -569,17 +618,17 @@ Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
   Eigen::MatrixXd eone_grad = Eigen::MatrixXd::Zero(natoms, 3);
   for (Index a = 0; a < natoms; ++a) {
     for (Index xyz = 0; xyz < 3; ++xyz) {
-      eone_grad(a, xyz) = D_total.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
+      eone_grad(a, xyz) =
+          D_total.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
     }
   }
 
   Eigen::MatrixXd overlap_pulay_grad =
       ComputeOverlapPulayGradientUKS(mol, MOs_alpha, MOs_beta);
 
-  Eigen::MatrixXd grad =
-      DFTGradient::NuclearRepulsionDerivative(mol) + eone_grad +
-      overlap_pulay_grad +
-      DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
+  Eigen::MatrixXd grad = DFTGradient::NuclearRepulsionDerivative(mol) +
+                         eone_grad + overlap_pulay_grad +
+                         DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
 
   // Exact exchange (RI-K), hybrids only. Factor of 0.5*ScaHFX_ (not
   // ScaHFX_ alone) -- confirmed both algebraically and numerically
@@ -621,11 +670,28 @@ void DFTEngine::ComputeAndStoreForcesUKS(
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp()
         << " Skipping UKS force calculation: the libint2 this was "
-           "built against does not support derivative integrals "
-           "(LIBINT2_MAX_DERIV_ORDER < 1). Many pre-packaged libint2 "
-           "builds (Homebrew, Ubuntu apt, etc.) do not enable this by "
-           "default -- rebuild libint2 with derivative support enabled "
-           "to use analytic forces."
+           "built against does not support derivative integrals for "
+           "one or more operator categories it needs. Many "
+           "pre-packaged libint2 builds (Homebrew, Ubuntu apt, etc.) "
+           "do not enable this by default -- rebuild libint2 with "
+           "--enable-1body/--enable-eri2/--enable-eri3 to use "
+           "analytic forces."
+        << std::flush;
+    return;
+  }
+
+  if (!ecp_name_.empty()) {
+    // Same reasoning as the RKS ComputeAndStoreForces' own, identical
+    // check just above (and Initialize()'s own, earlier, preferred
+    // check) -- ECP forces are not implemented in either spin
+    // channel's gradient assembly.
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Skipping UKS force calculation: an ECP ('" << ecp_name_
+        << "') was used for this SCF, but analytic nuclear forces do "
+           "not yet include the ECP contribution to the force "
+           "(d(V_ECP)/dR) -- computing forces in this configuration "
+           "would silently omit that term rather than fail visibly."
         << std::flush;
     return;
   }
@@ -653,9 +719,8 @@ void DFTEngine::ComputeAndStoreForcesUKS(
         << " WARNING: computed UKS forces do not sum to zero across "
            "atoms (translational invariance check failed, max "
            "component="
-        << sum.cwiseAbs().maxCoeff()
-        << ") -- treat these forces with "
-           "caution."
+        << sum.cwiseAbs().maxCoeff() << ") -- treat these forces with "
+        "caution."
         << std::flush;
   }
 
@@ -667,7 +732,8 @@ void DFTEngine::ComputeAndStoreForcesUKS(
   orb.setForces(force);
 
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " Computed and stored ground-state UKS nuclear forces."
+      << TimeStamp()
+      << " Computed and stored ground-state UKS nuclear forces."
       << std::flush;
   // Same convention as ComputeAndStoreForces (RKS): atomic units
   // (Hartree/Bohr), matching what gets stored via setForces() above.
