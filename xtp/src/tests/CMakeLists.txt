@@ -38,6 +38,10 @@ list(APPEND test_cases test_density_filter)
 list(APPEND test_cases test_densityintegration)
 list(APPEND test_cases test_dftcoupling)
 list(APPEND test_cases test_dftengine)
+# DRAFT/UNTESTED, slow (calls RunCDFT, which itself calls EvaluateUKS
+# many times: one unconstrained run plus a full bisection search) --
+# see file header comment before trusting this.
+list(APPEND test_cases test_dftengine_cdft)
 list(APPEND test_cases test_dftengine_private)
 # DRAFT/UNTESTED, slow (three full SCF runs) -- see file header comment.
 list(APPEND test_cases test_dftengine_forces)
