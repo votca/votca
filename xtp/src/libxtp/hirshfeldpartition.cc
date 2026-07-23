@@ -157,6 +157,31 @@ Eigen::Vector3d HirshfeldPartition::EvaluateWeightGradient(
   return (w_target - indicator) * grad_rho_A / denominator;
 }
 
+Eigen::Vector3d HirshfeldPartition::EvaluatePointWeightGradient(
+    const std::vector<AtomicReference>& atoms, Index target_atom_index,
+    const Eigen::Vector3d& point) {
+  double denominator = 0.0;
+  Eigen::Vector3d grad_denominator = Eigen::Vector3d::Zero();
+  for (Index j = 0; j < static_cast<Index>(atoms.size()); ++j) {
+    denominator +=
+        EvaluateAtomicDensity(atoms[j].basis, atoms[j].density, point);
+    grad_denominator +=
+        EvaluateAtomicDensityGradient(atoms[j].basis, atoms[j].density, point);
+  }
+  constexpr double kNegligibleDenominator = 1.e-12;
+  if (denominator < kNegligibleDenominator) {
+    return Eigen::Vector3d::Zero();
+  }
+
+  double w_target = EvaluateWeight(atoms, target_atom_index, point);
+  Eigen::Vector3d grad_rho_target = EvaluateAtomicDensityGradient(
+      atoms[target_atom_index].basis, atoms[target_atom_index].density,
+      point);
+  // grad_r w(r) = [grad_r rho_target(r) - w(r)*grad_r rho_tot(r)] /
+  //               rho_tot(r) -- see this function's own header comment.
+  return (grad_rho_target - w_target * grad_denominator) / denominator;
+}
+
 Eigen::MatrixXd HirshfeldPartition::BuildWeightMatrix(
     const std::vector<AtomicReference>& atoms, Index target_atom_index,
     const AOBasis& full_dftbasis, const Vxc_Grid& grid) {
@@ -381,6 +406,93 @@ Eigen::MatrixXd HirshfeldPartition::GridWeightDerivativeContribution(
         Eigen::Vector3d dw = dp_owner / wsum - w_owner * dwsum / wsum;
         force_contribution.row(A) += (prefactor * dw).transpose();
       }
+    }
+  }
+  return force_contribution;
+}
+
+Eigen::MatrixXd HirshfeldPartition::PulayAndTranslationContribution(
+    const std::vector<AtomicReference>& atoms, Index target_atom_index,
+    const Eigen::MatrixXd& density_matrix, const AOBasis& full_dftbasis,
+    const Vxc_Grid& grid) {
+  Index natoms = static_cast<Index>(full_dftbasis.getFuncPerAtom().size());
+  Eigen::MatrixXd force_contribution = Eigen::MatrixXd::Zero(natoms, 3);
+
+  for (Index i = 0; i < grid.getBoxesSize(); ++i) {
+    const GridBox& box = grid[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
+
+    // DMAT_here carries the same factor-of-2 convention as
+    // PulayGradient's own DMAT_here -- temp(mu) below is therefore
+    // already 2*(D*phi)_mu, matching that function's own contribution
+    // formula exactly (no separate factor of 2 needed at the point of
+    // use).
+    const Eigen::MatrixXd DMAT_here = 2 * box.ReadFromBigMatrix(density_matrix);
+
+    // Same box-local-AO-index -> atom-index bookkeeping as
+    // PulayGradient's own, identical reasoning: a box's significant
+    // shells are not guaranteed to be grouped contiguously by atom.
+    std::vector<Index> local_idx_to_atom(box.Matrixsize());
+    const std::vector<const AOShell*>& shells = box.getShells();
+    const std::vector<GridboxRange>& ao_ranges = box.getAOranges();
+    for (size_t s = 0; s < shells.size(); ++s) {
+      Index atom = shells[s]->getAtomIndex();
+      for (Index k = 0; k < ao_ranges[s].size; ++k) {
+        local_idx_to_atom[ao_ranges[s].start + k] = atom;
+      }
+    }
+
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+    const std::vector<Index>& owner_atoms = box.getOwnerAtoms();
+
+    for (Index p = 0; p < box.size(); ++p) {
+      const Eigen::Vector3d& point = points[p];
+      AOShell::AOValues ao = box.CalcAOValues(point);
+      Eigen::VectorXd temp = ao.values.transpose() * DMAT_here;
+      double rho_molecule = 0.5 * temp.dot(ao.values);
+      double weight = weights[p];
+      if (std::abs(rho_molecule * weight) < 1.e-20) {
+        continue;
+      }
+
+      double w_c = EvaluateWeight(atoms, target_atom_index, point);
+
+      // --- Pulay (basis-function) term ---
+      // Same sign/accumulation convention as PulayGradient's own LDA
+      // term, confirmed directly: contribution = -weight * <potential>
+      // * temp(mu) * ao.derivatives.row(mu), with w_c(point) here in
+      // place of xc.df_drho there.
+      for (Index mu = 0; mu < box.Matrixsize(); ++mu) {
+        Index atom = local_idx_to_atom[mu];
+        Eigen::Vector3d contribution =
+            -weight * w_c * temp(mu) * ao.derivatives.row(mu).transpose();
+        force_contribution.row(atom) += contribution.transpose();
+      }
+
+      // --- Grid-point-translation term ---
+      // Only the point's OWNER atom is affected (r_p moves rigidly
+      // with its owner only) -- see EvaluatePointWeightGradient's own
+      // header comment for the derivation. Full product rule, since
+      // both w_c(r) and rho_molecule(r) vary here (unlike the analogous
+      // XC term, which has only one point-varying factor -- xc.df_drho
+      // is evaluated AT rho, not itself differentiated in that specific
+      // term).
+      Index owner = owner_atoms[p];
+      if (owner < 0) {
+        throw std::runtime_error(
+            "PulayAndTranslationContribution: grid point has no "
+            "owner_atom set -- was this grid built via GridSetup after "
+            "the owner-atom tracking change?");
+      }
+      Eigen::Vector3d rho_molecule_grad = temp.transpose() * ao.derivatives;
+      Eigen::Vector3d grad_w_c =
+          EvaluatePointWeightGradient(atoms, target_atom_index, point);
+      Eigen::Vector3d translation_term =
+          weight * (grad_w_c * rho_molecule + w_c * rho_molecule_grad);
+      force_contribution.row(owner) += translation_term.transpose();
     }
   }
   return force_contribution;

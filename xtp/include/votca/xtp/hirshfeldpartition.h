@@ -165,6 +165,35 @@ class HirshfeldPartition {
       const std::vector<AtomicReference>& atoms, Index target_atom_index,
       Index differentiate_atom_index, const Eigen::Vector3d& point);
 
+  /// grad_r w_target(point) -- the weight's gradient with respect to
+  /// the EVALUATION POINT itself, a genuinely different quantity from
+  /// EvaluateWeightGradient (which holds the point fixed and
+  /// differentiates with respect to an ATOM's position). Needed for
+  /// the grid-point-translation force term: grid points are rigidly
+  /// attached to their owner atom (r_p = R_owner + fixed local
+  /// offset, confirmed directly from PulayGradient's own, already-
+  /// validated comment on this exact subtlety -- that term was only
+  /// discovered there after finite-difference validation revealed a
+  /// residual discrepancy the SSW-weight and Pulay terms alone did not
+  /// explain), so moving the owner atom moves r_p itself, and anything
+  /// evaluated "at r_p" picks up this extra chain-rule contribution
+  /// through the point's own motion, separate from the "explicit"
+  /// dependence EvaluateWeightGradient captures.
+  ///
+  /// w(r) = rho_target(r)/rho_tot(r), so by the ordinary (non-atom-
+  /// position) quotient rule:
+  ///   grad_r w(r) = [grad_r rho_target(r) - w(r) * grad_r rho_tot(r)]
+  ///                 / rho_tot(r)
+  /// -- built directly from EvaluateAtomicDensityGradient (no sign
+  /// flip needed here, unlike EvaluateWeightGradient's own use of it:
+  /// that function needed the ATOM-position derivative
+  /// d rho_j/d R_A = -grad_r rho_j, but this one wants grad_r rho_j
+  /// itself, which EvaluateAtomicDensityGradient already returns
+  /// directly).
+  static Eigen::Vector3d EvaluatePointWeightGradient(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      const Eigen::Vector3d& point);
+
   /// One of the three CDFT force terms -- the SSW grid-weight
   /// derivative contribution to d(Tr[D*W_c])/dR, for EVERY atom in
   /// mol (returned as an Natoms x 3 matrix). Directly computes the
@@ -197,6 +226,31 @@ class HirshfeldPartition {
   static Eigen::MatrixXd GridWeightDerivativeContribution(
       const std::vector<AtomicReference>& atoms, Index target_atom_index,
       const Eigen::MatrixXd& density_matrix, const QMMolecule& mol,
+      const Vxc_Grid& grid);
+
+  /// The remaining two of the four CDFT force terms, combined into one
+  /// function since both are computed within the same grid-point loop
+  /// (reusing the same box.CalcAOValues call, rather than looping over
+  /// the grid twice): the basis-function/Pulay derivative, and the
+  /// grid-point-translation term (see EvaluatePointWeightGradient's
+  /// own header comment for why this fourth term exists at all --
+  /// grid points move rigidly with their owner atom, so anything
+  /// evaluated "at r_p" has an extra dependence on R_owner(p) through
+  /// r_p's own motion, on top of the "explicit" dependence the other
+  /// three terms capture).
+  ///
+  /// Deliberately a standalone implementation reusing PulayGradient's
+  /// own already-validated local_idx_to_atom bookkeeping pattern and
+  /// exact sign convention (confirmed directly:
+  /// contribution = -weight * <potential> * temp(mu) *
+  /// ao.derivatives.row(mu), with <potential> = w_c(point) here in
+  /// place of xc.df_drho there), NOT a refactor of that function --
+  /// same reasoning as GridWeightDerivativeContribution's own choice
+  /// on this. Returns an Natoms x 3 matrix: these two terms'
+  /// combined contribution to d(Tr[D*W_c])/dR for every atom.
+  static Eigen::MatrixXd PulayAndTranslationContribution(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      const Eigen::MatrixXd& density_matrix, const AOBasis& full_dftbasis,
       const Vxc_Grid& grid);
 
   /// The actual AO-basis operator matrix the Lagrange-multiplier
