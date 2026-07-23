@@ -165,6 +165,40 @@ class HirshfeldPartition {
       const std::vector<AtomicReference>& atoms, Index target_atom_index,
       Index differentiate_atom_index, const Eigen::Vector3d& point);
 
+  /// One of the three CDFT force terms -- the SSW grid-weight
+  /// derivative contribution to d(Tr[D*W_c])/dR, for EVERY atom in
+  /// mol (returned as an Natoms x 3 matrix). Directly computes the
+  /// force contribution itself (folding the Tr[D*...] contraction
+  /// into the grid-point loop), never materializing an intermediate
+  /// d(W_c)/dR AO-basis matrix -- matching the exact same pattern
+  /// Vxc_Potential::GridWeightGradient itself already uses for the
+  /// analogous XC-energy-gradient term.
+  ///
+  /// Deliberately a SEPARATE, standalone implementation, NOT a call
+  /// into Vxc_Potential::GridWeightGradient or a refactor extracting
+  /// a shared helper from it -- per the explicit decision this grew
+  /// out of: touching that existing, already-validated function (used
+  /// by the forces feature merged earlier this session) carries real
+  /// regression risk for no benefit CDFT specifically needs, versus
+  /// some duplication of the (small, well-defined, already faithfully
+  /// copied) SSWValue/SSWDerivative math and the (larger, but
+  /// mechanically identical except for which scalar multiplies the
+  /// same underlying dw quantity) grid-point loop structure.
+  ///
+  /// density_matrix is the REAL, CONVERGED molecular density (NOT any
+  /// Hirshfeld reference density) -- rho_molecule(point) is evaluated
+  /// from THIS, using the full molecule's own AO basis (via the SAME
+  /// grid/GridBox already used for BuildWeightMatrix), while
+  /// w_c(point) is evaluated separately from atoms (the small,
+  /// per-element Hirshfeld AtomicReference objects) via
+  /// EvaluateWeight -- these are two structurally different objects
+  /// multiplying each other in the same integrand (see the earlier
+  /// design discussion on this), not the same thing computed twice.
+  static Eigen::MatrixXd GridWeightDerivativeContribution(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      const Eigen::MatrixXd& density_matrix, const QMMolecule& mol,
+      const Vxc_Grid& grid);
+
   /// The actual AO-basis operator matrix the Lagrange-multiplier
   /// potential needs: W_i,munu = integral w_i(r) phi_mu(r) phi_nu(r) dr,
   /// numerically integrated over full_dftbasis's own molecule-wide
