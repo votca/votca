@@ -273,6 +273,33 @@ class DFTEngine {
   std::map<std::string, Eigen::MatrixXd> ComputeHirshfeldReferenceDensities(
       const QMMolecule& mol) const;
 
+  /// Parsed directly from the <cdft> options block at Initialize()
+  /// time -- atom indices and target charge only, NOT yet a full
+  /// HirshfeldPartition::Constraint (which needs the reference
+  /// densities/weight matrix, neither of which exist until Evaluate()
+  /// actually has a real molecule to work with). BuildCDFTConstraint
+  /// (just below) does that later conversion. Deliberately defined
+  /// HERE, before BuildCDFTConstraint's own declaration -- a type must
+  /// already be visible before it is used as a parameter type in a
+  /// member function DECLARATION (unlike a function body, which can
+  /// freely reference members declared later in the same class, since
+  /// the whole class body is parsed first); this was a real compile
+  /// error caught directly (previously defined near
+  /// cdft_constraint_spec_ at the end of this class, well after this
+  /// point).
+  struct CDFTConstraintSpec {
+    std::vector<Index> atom_indices;
+    // Relative to the fragment's own neutral reference state (the sum
+    // of its atoms' nuclear charges) -- e.g. +1.0 means one electron
+    // REMOVED (a cation). Converted to an absolute target electron
+    // count once, inside BuildCDFTConstraint, matching CP2K's own
+    // internal (absolute) TARGET convention exactly -- only the
+    // user-facing options syntax is charge-relative, per the earlier
+    // design discussion on this.
+    double target_charge = 0.0;
+    double initial_lambda = 0.0;
+  };
+
   /// Converts a parsed CDFTConstraintSpec (atom indices + relative
   /// target charge, from Initialize()'s own <cdft> options parsing)
   /// into a fully-built HirshfeldPartition::Constraint, given the real
@@ -564,24 +591,6 @@ class DFTEngine {
   Index max_cdft_iterations_ = 50;
   double cdft_population_tolerance_ = 1.e-4;
 
-  /// Parsed directly from the <cdft> options block at Initialize()
-  /// time -- atom indices and target charge only, NOT yet a full
-  /// HirshfeldPartition::Constraint (which needs the reference
-  /// densities/weight matrix, neither of which exist until Evaluate()
-  /// actually has a real molecule to work with). BuildCDFTConstraint
-  /// does that later conversion.
-  struct CDFTConstraintSpec {
-    std::vector<Index> atom_indices;
-    // Relative to the fragment's own neutral reference state (the sum
-    // of its atoms' nuclear charges) -- e.g. +1.0 means one electron
-    // REMOVED (a cation). Converted to an absolute target electron
-    // count once, inside BuildCDFTConstraint, matching CP2K's own
-    // internal (absolute) TARGET convention exactly -- only the
-    // user-facing options syntax is charge-relative, per the earlier
-    // design discussion on this.
-    double target_charge = 0.0;
-    double initial_lambda = 0.0;
-  };
   bool cdft_enabled_ = false;
   CDFTConstraintSpec cdft_constraint_spec_;
 };
