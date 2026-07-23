@@ -273,6 +273,24 @@ class DFTEngine {
   std::map<std::string, Eigen::MatrixXd> ComputeHirshfeldReferenceDensities(
       const QMMolecule& mol) const;
 
+  /// Converts a parsed CDFTConstraintSpec (atom indices + relative
+  /// target charge, from Initialize()'s own <cdft> options parsing)
+  /// into a fully-built HirshfeldPartition::Constraint, given the real
+  /// molecule this calculation is actually running on. Builds the
+  /// weight matrix as the SUM of BuildWeightMatrix over every atom in
+  /// spec.atom_indices -- Hirshfeld weights are additive across atoms
+  /// in a fragment (w_fragment(r) = sum_{i in fragment} w_i(r)), so
+  /// this generalizes correctly to a multi-atom region, not just a
+  /// single atom. The absolute target_population is computed as
+  /// (sum of the fragment atoms' own nuclear charges) -
+  /// spec.target_charge, matching CP2K's own internal (absolute)
+  /// TARGET convention -- only the OPTIONS-file syntax is
+  /// charge-relative, per the earlier design discussion on this; the
+  /// underlying Constraint/RunCDFT machinery itself was never changed
+  /// and still only ever deals in absolute populations.
+  HirshfeldPartition::Constraint BuildCDFTConstraint(
+      const QMMolecule& mol, const CDFTConstraintSpec& spec) const;
+
   /// Compute the classical nucleus-nucleus repulsion energy.
   double NuclearRepulsion(const QMMolecule& mol) const;
   /// Compute the classical interaction energy between nuclei and external
@@ -538,8 +556,34 @@ class DFTEngine {
   // CDFT outer-loop (Lagrange-multiplier) control, used only by
   // RunCDFT below -- never read by the ordinary Evaluate/EvaluateUKS
   // path at all, so these have no bearing on any standard run either.
+  // max_cdft_iterations_/cdft_population_tolerance_ are also settable
+  // from options (see Initialize()'s own cdft.max_iterations/
+  // cdft.population_tolerance parsing) when cdft.enabled=true; their
+  // defaults here are what a directly-constructed RunCDFT call (e.g.
+  // from a test, bypassing Initialize() entirely) gets instead.
   Index max_cdft_iterations_ = 50;
   double cdft_population_tolerance_ = 1.e-4;
+
+  /// Parsed directly from the <cdft> options block at Initialize()
+  /// time -- atom indices and target charge only, NOT yet a full
+  /// HirshfeldPartition::Constraint (which needs the reference
+  /// densities/weight matrix, neither of which exist until Evaluate()
+  /// actually has a real molecule to work with). BuildCDFTConstraint
+  /// does that later conversion.
+  struct CDFTConstraintSpec {
+    std::vector<Index> atom_indices;
+    // Relative to the fragment's own neutral reference state (the sum
+    // of its atoms' nuclear charges) -- e.g. +1.0 means one electron
+    // REMOVED (a cation). Converted to an absolute target electron
+    // count once, inside BuildCDFTConstraint, matching CP2K's own
+    // internal (absolute) TARGET convention exactly -- only the
+    // user-facing options syntax is charge-relative, per the earlier
+    // design discussion on this.
+    double target_charge = 0.0;
+    double initial_lambda = 0.0;
+  };
+  bool cdft_enabled_ = false;
+  CDFTConstraintSpec cdft_constraint_spec_;
 };
 
 }  // namespace xtp

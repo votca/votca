@@ -33,6 +33,7 @@
 // Local VOTCA includes
 #include "votca/xtp/IncrementalFockBuilder.h"
 #include "votca/xtp/IndexParser.h"
+#include "votca/xtp/IndexParser.h"
 #include "votca/xtp/activedensitymatrix.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aopotential.h"
@@ -167,6 +168,48 @@ void DFTEngine::Initialize(tools::Property& options) {
         "in this configuration would silently omit that term rather "
         "than fail visibly. Either drop the ECP or do not request "
         "compute_forces until this is implemented.");
+  }
+
+  if (options.exists(key_xtpdft + ".cdft.enabled")) {
+    cdft_enabled_ = options.get(key_xtpdft + ".cdft.enabled").as<bool>();
+  }
+  if (cdft_enabled_) {
+    // Deliberately parsed into a CDFTConstraintSpec (atom indices +
+    // charge, both directly from the options tree) here, at
+    // Initialize() time, rather than building the actual
+    // HirshfeldPartition::Constraint (which needs the reference
+    // densities and weight matrix) right away -- those need the
+    // molecule and basis, neither of which exist yet at this point;
+    // BuildCDFTConstraint (elsewhere in this file) does that
+    // conversion later, once Evaluate() actually has an Orbitals
+    // object with real QMAtoms to work with.
+    std::string indices_str =
+        options.get(key_xtpdft + ".cdft.indices").as<std::string>();
+    if (indices_str.empty()) {
+      throw std::runtime_error(
+          "cdft.enabled=true was requested, but cdft.indices is empty -- "
+          "specify which atoms (0-based, e.g. '1 3 13:17', same syntax "
+          "already used for diabatization.xml's own fragment indices) "
+          "make up the constrained fragment.");
+    }
+    cdft_constraint_spec_.atom_indices =
+        IndexParser().CreateIndexVector(indices_str);
+    cdft_constraint_spec_.target_charge =
+        options.get(key_xtpdft + ".cdft.charge").as<double>();
+    cdft_constraint_spec_.initial_lambda =
+        options.get(key_xtpdft + ".cdft.initial_lambda").as<double>();
+    max_cdft_iterations_ =
+        options.get(key_xtpdft + ".cdft.max_iterations").as<Index>();
+    cdft_population_tolerance_ =
+        options.get(key_xtpdft + ".cdft.population_tolerance").as<double>();
+    // Note: CDFT itself needs no derivative integral at all (it only
+    // ever builds ENERGY-level quantities -- reference densities,
+    // weight matrices, Fock-matrix potentials -- never the
+    // deriv_order=1 machinery compute_forces needs), so there is no
+    // separate HasLibint2DerivativeSupport() check needed here; if
+    // compute_forces were ALSO left enabled alongside cdft.enabled,
+    // the earlier compute_forces-specific check above already covers
+    // that combination.
   }
 
   initial_guess_ = options.get(".initial_guess").as<std::string>();
@@ -819,6 +862,20 @@ tools::EigenSystem DFTEngine::ModelPotentialGuess(
 }
 
 bool DFTEngine::Evaluate(Orbitals& orb) {
+  if (cdft_enabled_) {
+    // Deliberately dispatched here, BEFORE any of the normal
+    // Prepare/SetupH0/SetupVxc/ConfigOrbfile setup below -- RunCDFT
+    // does that same setup internally itself (matching this
+    // function's own structure exactly), so doing it here too would
+    // just duplicate the work. BuildCDFTConstraint needs orb.QMAtoms()
+    // to already be set (the same requirement Evaluate() itself has,
+    // via SetupH0(orb.QMAtoms()) below), so this is not adding any new
+    // requirement on the caller.
+    HirshfeldPartition::Constraint constraint =
+        BuildCDFTConstraint(orb.QMAtoms(), cdft_constraint_spec_);
+    return RunCDFT(orb, constraint);
+  }
+
   Prepare(orb);
   Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
   Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
@@ -1948,6 +2005,68 @@ DFTEngine::ComputeHirshfeldReferenceDensities(const QMMolecule& mol) const {
         RunAtomicDFT_unrestricted(unique_atom, /*use_hunds_rule_occupation=*/true);
   }
   return reference_densities;
+}
+
+HirshfeldPartition::Constraint DFTEngine::BuildCDFTConstraint(
+    const QMMolecule& mol, const CDFTConstraintSpec& spec) const {
+  std::map<std::string, Eigen::MatrixXd> reference_densities =
+      ComputeHirshfeldReferenceDensities(mol);
+
+  AOBasis full_dftbasis;
+  {
+    BasisSet basisset;
+    basisset.Load(dftbasis_name_);
+    full_dftbasis.Fill(basisset, mol);
+  }
+
+  Vxc_Grid grid;
+  grid.GridSetup(grid_name_, mol, full_dftbasis);
+
+  std::vector<HirshfeldPartition::AtomicReference> atoms =
+      HirshfeldPartition::BuildAtomicReferences(mol, dftbasis_name_,
+                                                reference_densities);
+
+  HirshfeldPartition::Constraint constraint;
+  constraint.weight_matrix = Eigen::MatrixXd::Zero(full_dftbasis.AOBasisSize(),
+                                                    full_dftbasis.AOBasisSize());
+  double neutral_reference_population = 0.0;
+  for (Index atom_index : spec.atom_indices) {
+    if (atom_index < 0 || atom_index >= static_cast<Index>(mol.size())) {
+      throw std::runtime_error(
+          "BuildCDFTConstraint: cdft.indices contains atom index " +
+          std::to_string(atom_index) + ", but this molecule only has " +
+          std::to_string(mol.size()) +
+          " atoms (0-based indexing -- valid range is 0.." +
+          std::to_string(mol.size() - 1) + ").");
+    }
+    // Hirshfeld weights are additive across atoms in a fragment --
+    // w_fragment(r) = sum_{i in fragment} w_i(r) -- so the fragment's
+    // own weight matrix is just the sum of each atom's own
+    // BuildWeightMatrix result, and the neutral reference population
+    // (needed to convert the options file's charge-relative target
+    // into RunCDFT's own absolute-population convention) is just the
+    // sum of the fragment atoms' own nuclear charges.
+    constraint.weight_matrix += HirshfeldPartition::BuildWeightMatrix(
+        atoms, atom_index, full_dftbasis, grid);
+    neutral_reference_population +=
+        static_cast<double>(mol[atom_index].getNuccharge());
+  }
+
+  constraint.target_population =
+      neutral_reference_population - spec.target_charge;
+  constraint.lambda = spec.initial_lambda;
+  constraint.spin_alpha_coefficient = 1.0;
+  constraint.spin_beta_coefficient = 1.0;
+
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " CDFT constraint: " << spec.atom_indices.size()
+      << " atom(s), neutral reference population="
+      << neutral_reference_population << ", requested relative charge="
+      << spec.target_charge
+      << ", absolute target population=" << constraint.target_population
+      << std::flush;
+
+  return constraint;
 }
 
 void DFTEngine::ConfigOrbfile(Orbitals& orb) {
