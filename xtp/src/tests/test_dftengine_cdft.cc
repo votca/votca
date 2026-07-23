@@ -190,6 +190,7 @@ BOOST_AUTO_TEST_CASE(rundcft_reaches_shifted_target_population) {
   // what this value "should" be, just whatever this exact
   // basis/functional/geometry combination actually gives.
   Orbitals orb;
+  orb.QMAtoms() = mol;
   bool scf_converged = dft.Evaluate(orb);
   BOOST_REQUIRE_EQUAL(scf_converged, true);
 
