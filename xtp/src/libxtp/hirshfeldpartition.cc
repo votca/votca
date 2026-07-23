@@ -83,6 +83,26 @@ double HirshfeldPartition::EvaluateAtomicDensity(
   return ao_values.dot(reference_density * ao_values);
 }
 
+Eigen::Vector3d HirshfeldPartition::EvaluateAtomicDensityGradient(
+    const AOBasis& atom_basis, const Eigen::MatrixXd& reference_density,
+    const Eigen::Vector3d& point) {
+  Index n = atom_basis.AOBasisSize();
+  Eigen::VectorXd ao_values = Eigen::VectorXd::Zero(n);
+  Eigen::MatrixX3d ao_derivatives = Eigen::MatrixX3d::Zero(n, 3);
+  for (const AOShell& shell : atom_basis) {
+    AOShell::AOValues vals = shell.EvalAOspace(point);
+    ao_values.segment(shell.getStartIndex(), shell.getNumFunc()) =
+        vals.values;
+    ao_derivatives.block(shell.getStartIndex(), 0, shell.getNumFunc(), 3) =
+        vals.derivatives;
+  }
+  // rho(r) = phi^T P phi, so grad_rho(r) = 2 * derivatives^T * (P * phi) --
+  // same quadratic-form pattern as EvaluateAtomicDensity itself, just
+  // carrying the extra factor of 2 and the derivative (rather than
+  // value) of the second phi in the product rule.
+  return 2.0 * ao_derivatives.transpose() * (reference_density * ao_values);
+}
+
 double HirshfeldPartition::EvaluateWeight(
     const std::vector<AtomicReference>& atoms, Index target_atom_index,
     const Eigen::Vector3d& point) {
@@ -106,6 +126,34 @@ double HirshfeldPartition::EvaluateWeight(
     return 0.0;
   }
   return numerator / denominator;
+}
+
+Eigen::Vector3d HirshfeldPartition::EvaluateWeightGradient(
+    const std::vector<AtomicReference>& atoms, Index target_atom_index,
+    Index differentiate_atom_index, const Eigen::Vector3d& point) {
+  double denominator = 0.0;
+  for (Index j = 0; j < static_cast<Index>(atoms.size()); ++j) {
+    denominator +=
+        EvaluateAtomicDensity(atoms[j].basis, atoms[j].density, point);
+  }
+  // Same negligible-denominator guard as EvaluateWeight itself, for
+  // the identical reason -- points far from every atom, where the
+  // whole formula is 0/0 in the limit.
+  constexpr double kNegligibleDenominator = 1.e-12;
+  if (denominator < kNegligibleDenominator) {
+    return Eigen::Vector3d::Zero();
+  }
+
+  double w_target = EvaluateWeight(atoms, target_atom_index, point);
+  Eigen::Vector3d grad_rho_A = EvaluateAtomicDensityGradient(
+      atoms[differentiate_atom_index].basis,
+      atoms[differentiate_atom_index].density, point);
+  double indicator =
+      (differentiate_atom_index == target_atom_index) ? 1.0 : 0.0;
+  // d w_target/d R_A = [w_target(point) - 1_{A==target}] *
+  //                    grad_rho_A(point) / rho_tot(point)
+  // -- see this function's own header comment for the derivation.
+  return (w_target - indicator) * grad_rho_A / denominator;
 }
 
 Eigen::MatrixXd HirshfeldPartition::BuildWeightMatrix(

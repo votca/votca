@@ -112,6 +112,25 @@ class HirshfeldPartition {
                                        const Eigen::MatrixXd& reference_density,
                                        const Eigen::Vector3d& point);
 
+  /// grad_r rho_i^free(point) -- the real-space GRADIENT of one
+  /// isolated-atom reference density, needed for the CDFT force term
+  /// (specifically, the Hirshfeld weight-function-derivative piece:
+  /// d w_c(r)/d R_A = [w_c(r) - 1_{A in fragment}] * grad_rho_A(r) /
+  /// rho_tot(r), derived directly from the fact that each reference
+  /// density rho_j(r - R_j) depends only on its own atom's position,
+  /// so the quotient-rule derivative of the ratio w_c = rho_c/rho_tot
+  /// collapses to this single-gradient form).
+  ///
+  /// Standard density-gradient formula: rho(r) = phi(r)^T P phi(r), so
+  /// grad_rho(r) = 2 * derivatives^T * (P * values), using AOShell::
+  /// AOValues's own .derivatives (already computed by EvalAOspace
+  /// alongside .values -- no new libint2-level work needed; this reuses
+  /// existing per-shell derivative evaluation, the same one already
+  /// used for GGA XC-gradient support elsewhere in this basis).
+  static Eigen::Vector3d EvaluateAtomicDensityGradient(
+      const AOBasis& atom_basis, const Eigen::MatrixXd& reference_density,
+      const Eigen::Vector3d& point);
+
   /// The actual Hirshfeld weight: w_target(point) = rho_target(point) /
   /// sum_j rho_j(point), summing rho_j over EVERY atom in atoms (not
   /// just target_atom_index -- the denominator needs every atom's
@@ -125,6 +144,26 @@ class HirshfeldPartition {
   static double EvaluateWeight(const std::vector<AtomicReference>& atoms,
                                 Index target_atom_index,
                                 const Eigen::Vector3d& point);
+
+  /// d w_target(point) / d R_{differentiate_atom_index} -- the
+  /// Hirshfeld weight-function-derivative term needed for CDFT forces.
+  /// Derived directly from the quotient rule applied to
+  /// w_i(r) = rho_i(r) / sum_j rho_j(r), using the fact that each
+  /// rho_j(r - R_j) depends only on its OWN atom's position (so
+  /// d rho_j/d R_A is zero unless A=j): the result collapses to
+  ///   d w_target/d R_A = [w_target(point) - 1_{A==target}]
+  ///                      * grad_rho_A(point) / rho_tot(point)
+  /// This holds even when A != target_atom_index -- EVERY atom in the
+  /// whole molecule contributes a nonzero term here, not just the
+  /// fragment atom(s), since every atom's own reference density
+  /// contributes to rho_tot (the shared denominator). For a multi-atom
+  /// fragment, sum this over each fragment atom as target_atom_index
+  /// separately and add the results -- matches BuildWeightMatrix's own,
+  /// already-established convention exactly (BuildCDFTConstraint
+  /// already sums BuildWeightMatrix per fragment atom this same way).
+  static Eigen::Vector3d EvaluateWeightGradient(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      Index differentiate_atom_index, const Eigen::Vector3d& point);
 
   /// The actual AO-basis operator matrix the Lagrange-multiplier
   /// potential needs: W_i,munu = integral w_i(r) phi_mu(r) phi_nu(r) dr,
