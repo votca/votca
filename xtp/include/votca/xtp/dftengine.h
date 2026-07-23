@@ -74,6 +74,38 @@ class DFTEngine {
   /// orbital container.
   bool Evaluate(Orbitals& orb);
 
+  /// Run a single, charge-constrained DFT (CDFT) calculation: finds the
+  /// Lagrange multiplier lambda such that
+  /// Tr[(P_alpha + P_beta) * constraint.weight_matrix] equals
+  /// constraint.target_population, then converges the SCF at that
+  /// lambda -- the standard Wu-Van Voorhis outer loop, warm-started
+  /// (matching CP2K's own documented approach: each new trial's SCF is
+  /// restarted from the PREVIOUS trial's converged density, not a cold
+  /// start) via the existing "orbfile" initial-guess mechanism, reusing
+  /// it exactly as written rather than building new warm-start
+  /// machinery. Only ever wires through EvaluateUKS (never
+  /// EvaluateClosedShell) -- CDFT charge constraints are built on UKS
+  /// from the start, per the design discussion that preceded this: a
+  /// localized extra charge is almost always naturally an open-shell/
+  /// radical situation regardless of whether spin constraints are ever
+  /// added later.
+  ///
+  /// constraint.lambda is used as the initial guess for the bisection
+  /// search (0.0 is a reasonable default for most systems) and is left
+  /// holding the converged value on return. Returns false (with
+  /// constraints_ left populated, holding the last-attempted lambda)
+  /// if EITHER a root cannot be bracketed at all, OR the outer
+  /// bisection loop exhausts max_cdft_iterations_ without reaching
+  /// cdft_population_tolerance_. If any individual INNER SCF call
+  /// itself fails to converge, this throws std::runtime_error instead
+  /// (does not return false) -- an inner SCF failure means something
+  /// more fundamental than "the outer loop needs more iterations" is
+  /// wrong (e.g. a genuinely bad initial guess, or too tight an SCF
+  /// convergence threshold for this system), and silently returning
+  /// false would look identical to the ordinary "ran out of outer
+  /// iterations" case, which it is not.
+  bool RunCDFT(Orbitals& orb, HirshfeldPartition::Constraint& constraint);
+
   /// Run an embedded active-region DFT calculation for the supplied orbital
   /// container.
   bool EvaluateActiveRegion(Orbitals& orb);
@@ -502,6 +534,12 @@ class DFTEngine {
   // approach: restart the inner SCF from the previous trial's
   // converged density at each new lambda, rather than a cold start).
   std::vector<HirshfeldPartition::Constraint> constraints_;
+
+  // CDFT outer-loop (Lagrange-multiplier) control, used only by
+  // RunCDFT below -- never read by the ordinary Evaluate/EvaluateUKS
+  // path at all, so these have no bearing on any standard run either.
+  Index max_cdft_iterations_ = 50;
+  double cdft_population_tolerance_ = 1.e-4;
 };
 
 }  // namespace xtp
