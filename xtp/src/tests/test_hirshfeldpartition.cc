@@ -315,13 +315,32 @@ BOOST_AUTO_TEST_CASE(cdft_force_finite_difference) {
       atoms0, kCarbonIndex, density, mol0, full_basis0, grid0);
   BOOST_REQUIRE_EQUAL(analytic_grad.rows(), 2);
 
-  // Tr[D*W_c] at a given geometry, rebuilding everything geometry-
-  // dependent (atoms' own re-centered bases, the basis, the grid) but
-  // reusing the SAME reference_densities (isolated-atom SCF results
-  // do not depend on the molecule's own geometry at all) and the SAME
-  // fixed density matrix D throughout.
-  auto trace_at_bond_length = [&](double bl) {
-    QMMolecule mol = BuildCO(bl);
+  // Sanity check independent of finite differences, same reasoning as
+  // the existing NuclearRepulsionDerivative/RIJGradient tests:
+  // Tr[D*W_c] cannot depend on where the whole molecule sits in
+  // absolute space, only its internal geometry, so its gradient
+  // summed over every atom must vanish.
+  Eigen::Vector3d total = analytic_grad.colwise().sum();
+  BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-6);
+
+  // Tr[D*W_c] with ONE atom's position displaced by "delta" along one
+  // Cartesian axis (0=x, 1=y, 2=z) from mol0's own base geometry,
+  // rebuilding everything geometry-dependent (atoms' own re-centered
+  // bases, the basis, the grid) but reusing the SAME reference_densities
+  // (isolated-atom SCF results do not depend on the molecule's own
+  // geometry at all) and the SAME fixed density matrix D throughout.
+  // delta is in Angstrom, matching BuildCO's own xyz-file convention.
+  auto trace_displaced = [&](Index atom_index, int axis, double delta) {
+    QMMolecule mol = BuildCO(bond_length);
+    Eigen::Vector3d pos = mol[atom_index].getPos();
+    pos(axis) += delta * 1.8897259886;  // Angstrom -> Bohr, matching
+                                        // this codebase's own internal
+                                        // (atomic) units throughout --
+                                        // getPos()/setPos() work in
+                                        // Bohr, unlike BuildCO's own
+                                        // xyz-file input, which LoadFromFile
+                                        // itself converts from Angstrom.
+    mol[atom_index].setPos(pos);
     AOBasis full_basis;
     full_basis.Fill(basisset, mol);
     std::vector<HirshfeldPartition::AtomicReference> atoms =
@@ -334,38 +353,47 @@ BOOST_AUTO_TEST_CASE(cdft_force_finite_difference) {
     return density.cwiseProduct(W).sum();
   };
 
-  double trace_plus = trace_at_bond_length(bond_length + h);
-  double trace_minus = trace_at_bond_length(bond_length - h);
-  double h_bohr = h * 1.8897259886;  // Angstrom -> Bohr, matching this
-                                     // codebase's own internal (atomic)
-                                     // units throughout.
-  double numerical_dtrace_dz_oxygen = (trace_plus - trace_minus) / (2.0 * h_bohr);
-
-  // Oxygen is atom index 1 in BuildCO's own xyz, displaced purely
-  // along z (the bond axis) -- so the z-component of oxygen's own row
-  // is the only one this specific finite difference can check
-  // directly.
-  double analytic_dtrace_dz_oxygen = analytic_grad(1, 2);
-
-  std::cout << "Numerical d(Tr[D*W_c])/dR_oxygen_z: "
-            << numerical_dtrace_dz_oxygen << ", analytic: "
-            << analytic_dtrace_dz_oxygen << std::endl;
-
-  double mismatch =
-      std::abs(numerical_dtrace_dz_oxygen - analytic_dtrace_dz_oxygen);
-  if (mismatch > 1.e-4) {
-    std::cout << "NOTE: if this fails, first check whether the mismatch is "
-                 "merely large-ish (grid-integration/finite-difference-step "
-                 "error) or drastically wrong (a genuine bug in one or more "
-                 "of the four CDFT force terms -- check each of "
-                 "GridWeightDerivativeContribution/"
-                 "WeightFunctionDerivativeContribution/"
-                 "PulayAndTranslationContribution individually against its "
-                 "own finite difference before assuming the bug is in how "
-                 "they are summed)."
-              << std::endl;
+  double h_bohr = h * 1.8897259886;
+  double max_mismatch = 0.0;
+  // Both atoms (0=Carbon, the constrained TARGET itself -- a
+  // genuinely different code path than atom 1, via the
+  // 1_{A==target_atom_index} indicator in EvaluateWeightGradient's
+  // own formula -- and 1=Oxygen, non-target), all three Cartesian
+  // axes -- deliberately not just the bond-length/z direction: CO is
+  // linear, so a pure bond-length displacement preserves the
+  // molecule's own cylindrical symmetry and could not by itself catch
+  // a bug specific to an off-axis (x/y) direction.
+  for (Index atom_index = 0; atom_index < 2; ++atom_index) {
+    for (int axis = 0; axis < 3; ++axis) {
+      double trace_plus = trace_displaced(atom_index, axis, h);
+      double trace_minus = trace_displaced(atom_index, axis, -h);
+      double numerical = (trace_plus - trace_minus) / (2.0 * h_bohr);
+      double analytic = analytic_grad(atom_index, axis);
+      double mismatch = std::abs(numerical - analytic);
+      max_mismatch = std::max(max_mismatch, mismatch);
+      std::cout << "atom " << atom_index << ", axis " << axis
+                << ": numerical=" << numerical << ", analytic=" << analytic
+                << ", mismatch=" << mismatch << std::endl;
+      if (mismatch > 1.e-4) {
+        std::cout << "NOTE: if this fails, first check whether the mismatch "
+                     "is merely large-ish (grid-integration/finite-"
+                     "difference-step error) or drastically wrong (a "
+                     "genuine bug in one or more of the four CDFT force "
+                     "terms -- check each of GridWeightDerivativeContribution"
+                     "/WeightFunctionDerivativeContribution/"
+                     "PulayAndTranslationContribution individually against "
+                     "its own finite difference before assuming the bug is "
+                     "in how they are summed). Also worth noting whether "
+                     "this specific failure is on atom 0 (the TARGET atom "
+                     "itself, exercising the 1_{A==target} indicator branch "
+                     "in EvaluateWeightGradient) versus atom 1 (non-target) "
+                     "-- a failure isolated to one of these but not the "
+                     "other would point specifically at that branch."
+                  << std::endl;
+      }
+      BOOST_CHECK_SMALL(mismatch, 1.e-4);
+    }
   }
-  BOOST_CHECK_SMALL(mismatch, 1.e-4);
  } catch (const std::runtime_error& e) {
    std::cout << "SKIPPING cdft_force_finite_difference: " << e.what()
              << std::endl;
