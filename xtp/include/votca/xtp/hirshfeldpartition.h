@@ -253,6 +253,42 @@ class HirshfeldPartition {
       const Eigen::MatrixXd& density_matrix, const AOBasis& full_dftbasis,
       const Vxc_Grid& grid);
 
+  /// The grid-integrated form of EvaluateWeightGradient -- term II of
+  /// the four CDFT force terms: d(Tr[D*W_c])/dR|_term_II =
+  /// sum_p omega_p * [d w_c(r_p)/d R_A] * rho_molecule(r_p), holding
+  /// omega_p and rho_molecule(r_p) fixed in this term (matching the
+  /// product-rule decomposition the other three terms also follow:
+  /// each holds the OTHER two factors of the omega_p*w_c(r_p)*
+  /// rho_molecule(r_p) product fixed while differentiating its own
+  /// one factor). rho_molecule(r_p) evaluated from the REAL, converged
+  /// molecular density matrix via the full molecule's own AO basis
+  /// (box.CalcAOValues), exactly as in GridWeightDerivativeContribution
+  /// and PulayAndTranslationContribution. Returns an Natoms x 3
+  /// matrix.
+  static Eigen::MatrixXd WeightFunctionDerivativeContribution(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      const Eigen::MatrixXd& density_matrix, const AOBasis& full_dftbasis,
+      const Vxc_Grid& grid);
+
+  /// The full d(Tr[D*W_c])/dR contribution to the CDFT force, for
+  /// every atom in mol -- the sum of all four terms (grid-weight/SSW
+  /// derivative, weight-function derivative, Pulay/basis-function
+  /// derivative, grid-point-translation), each computed independently
+  /// above and simply added together here (the product rule that
+  /// decomposes d[omega_p * w_c(r_p) * rho_molecule(r_p)]/dR into
+  /// these four pieces is linear, so their sum is exactly the full
+  /// derivative -- no additional cross-terms). The actual CDFT force
+  /// contribution from constraint c is -lambda_c times this result
+  /// (the Wu-Van Voorhis Lagrangian's own sign convention, matching
+  /// F_i^c = -lambda * dN_c/dR_i, per the design discussion this grew
+  /// out of); this function itself returns the gradient
+  /// (d(Tr[D*W_c])/dR), not the force, matching the sign convention
+  /// already used by the three per-term functions it sums.
+  static Eigen::MatrixXd ComputeCDFTForceContribution(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      const Eigen::MatrixXd& density_matrix, const QMMolecule& mol,
+      const AOBasis& full_dftbasis, const Vxc_Grid& grid);
+
   /// The actual AO-basis operator matrix the Lagrange-multiplier
   /// potential needs: W_i,munu = integral w_i(r) phi_mu(r) phi_nu(r) dr,
   /// numerically integrated over full_dftbasis's own molecule-wide

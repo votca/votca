@@ -498,5 +498,56 @@ Eigen::MatrixXd HirshfeldPartition::PulayAndTranslationContribution(
   return force_contribution;
 }
 
+Eigen::MatrixXd HirshfeldPartition::WeightFunctionDerivativeContribution(
+    const std::vector<AtomicReference>& atoms, Index target_atom_index,
+    const Eigen::MatrixXd& density_matrix, const AOBasis& full_dftbasis,
+    const Vxc_Grid& grid) {
+  Index natoms = static_cast<Index>(full_dftbasis.getFuncPerAtom().size());
+  Eigen::MatrixXd force_contribution = Eigen::MatrixXd::Zero(natoms, 3);
+
+  for (Index i = 0; i < grid.getBoxesSize(); ++i) {
+    const GridBox& box = grid[i];
+    if (!box.Matrixsize()) {
+      continue;
+    }
+    const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+
+    for (Index p = 0; p < box.size(); ++p) {
+      const Eigen::Vector3d& point = points[p];
+      AOShell::AOValues ao = box.CalcAOValues(point);
+      double rho_molecule = ao.values.dot(DMAT_here * ao.values);
+      double weight = weights[p];
+      if (std::abs(rho_molecule * weight) < 1.e-20) {
+        continue;
+      }
+      double prefactor = weight * rho_molecule;
+      for (Index A = 0; A < natoms; ++A) {
+        Eigen::Vector3d dw_dR_A =
+            EvaluateWeightGradient(atoms, target_atom_index, A, point);
+        force_contribution.row(A) += (prefactor * dw_dR_A).transpose();
+      }
+    }
+  }
+  return force_contribution;
+}
+
+Eigen::MatrixXd HirshfeldPartition::ComputeCDFTForceContribution(
+    const std::vector<AtomicReference>& atoms, Index target_atom_index,
+    const Eigen::MatrixXd& density_matrix, const QMMolecule& mol,
+    const AOBasis& full_dftbasis, const Vxc_Grid& grid) {
+  // Linear sum of all four terms -- see this function's own header
+  // comment for why the product-rule decomposition means their sum is
+  // exactly the full derivative, with no additional cross-terms.
+  return GridWeightDerivativeContribution(atoms, target_atom_index,
+                                          density_matrix, mol, grid) +
+        WeightFunctionDerivativeContribution(atoms, target_atom_index,
+                                              density_matrix, full_dftbasis,
+                                              grid) +
+        PulayAndTranslationContribution(atoms, target_atom_index,
+                                        density_matrix, full_dftbasis, grid);
+}
+
 }  // namespace xtp
 }  // namespace votca
