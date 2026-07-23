@@ -24,6 +24,7 @@
 #include <iostream>
 #include <map>
 #include <optional>
+#include <string>
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -833,6 +834,129 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     return EvaluateUKS(orb, H0, vxcpotential);
   }
   return EvaluateClosedShell(orb, H0, vxcpotential);
+}
+
+bool DFTEngine::RunCDFT(Orbitals& orb,
+                        HirshfeldPartition::Constraint& constraint) {
+  Prepare(orb);
+  Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
+  Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
+  ConfigOrbfile(orb);
+
+  // Restored on every exit path (converged or not) -- RunCDFT
+  // deliberately overrides this member's own value between outer
+  // iterations (to force the warm-start "orbfile" guess from the
+  // second iteration onward), so it must not leak whatever value the
+  // caller's own options actually specified.
+  std::string saved_initial_guess = initial_guess_;
+
+  constraints_ = {constraint};
+
+  // Bisection bracket for lambda -- deliberately not Newton's method:
+  // bisection needs only that the population is monotonic in lambda
+  // (true for a well-behaved CDFT problem: increasing lambda always
+  // pushes more density toward -- or away from, depending on sign --
+  // the constrained region), never an explicit dN/dlambda derivative,
+  // making this the more robust choice for a first implementation.
+  // Starts centered on the caller's own initial guess (constraint.lambda,
+  // 0.0 by default) and expands outward, doubling each time, until the
+  // mismatch changes sign across the bracket or a hard iteration limit
+  // is hit -- rather than assuming any single fixed bracket width is
+  // always wide enough for every system.
+  double lambda_lo = constraint.lambda - 0.1;
+  double lambda_hi = constraint.lambda + 0.1;
+
+  auto EvaluateMismatch = [&](double lambda) -> double {
+    constraints_[0].lambda = lambda;
+    bool scf_converged = EvaluateUKS(orb, H0, vxcpotential);
+    if (!scf_converged) {
+      throw std::runtime_error(
+          "RunCDFT: inner SCF did not converge at lambda=" +
+          std::to_string(lambda));
+    }
+    initial_guess_ = "orbfile";  // warm start every subsequent call
+    std::array<Eigen::MatrixXd, 2> Dspin =
+        orb.DensityMatrixGroundStateSpinResolved();
+    double population =
+        constraint.spin_alpha_coefficient *
+            Dspin[0].cwiseProduct(constraint.weight_matrix).sum() +
+        constraint.spin_beta_coefficient *
+            Dspin[1].cwiseProduct(constraint.weight_matrix).sum();
+    return population - constraint.target_population;
+  };
+
+  double mismatch_lo;
+  double mismatch_hi;
+  try {
+    mismatch_lo = EvaluateMismatch(lambda_lo);
+    mismatch_hi = EvaluateMismatch(lambda_hi);
+
+    Index bracket_attempts = 0;
+    constexpr Index kMaxBracketAttempts = 10;
+    while (mismatch_lo * mismatch_hi > 0.0 &&
+          bracket_attempts < kMaxBracketAttempts) {
+      double width = lambda_hi - lambda_lo;
+      lambda_lo -= 0.5 * width;
+      lambda_hi += 0.5 * width;
+      mismatch_lo = EvaluateMismatch(lambda_lo);
+      mismatch_hi = EvaluateMismatch(lambda_hi);
+      ++bracket_attempts;
+    }
+    if (mismatch_lo * mismatch_hi > 0.0) {
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp()
+          << " RunCDFT: could not bracket a root for the population "
+             "mismatch after "
+          << kMaxBracketAttempts
+          << " bracket-expansion attempts -- the target population may "
+             "be unreachable for this system, or the initial "
+             "lambda guess may be far from the actual root."
+          << std::flush;
+      initial_guess_ = saved_initial_guess;
+      constraints_.clear();
+      return false;
+    }
+
+    for (Index outer_iter = 0; outer_iter < max_cdft_iterations_;
+        ++outer_iter) {
+      double lambda_mid = 0.5 * (lambda_lo + lambda_hi);
+      double mismatch_mid = EvaluateMismatch(lambda_mid);
+
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " CDFT outer iteration " << outer_iter + 1
+          << " of " << max_cdft_iterations_ << ": lambda=" << lambda_mid
+          << " population mismatch=" << mismatch_mid << std::flush;
+
+      if (std::abs(mismatch_mid) < cdft_population_tolerance_) {
+        constraint.lambda = lambda_mid;
+        initial_guess_ = saved_initial_guess;
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " CDFT converged after " << outer_iter + 1
+            << " outer iterations, lambda=" << lambda_mid << std::flush;
+        return true;
+      }
+
+      if (mismatch_mid * mismatch_lo < 0.0) {
+        lambda_hi = lambda_mid;
+        mismatch_hi = mismatch_mid;
+      } else {
+        lambda_lo = lambda_mid;
+        mismatch_lo = mismatch_mid;
+      }
+    }
+  } catch (const std::runtime_error&) {
+    initial_guess_ = saved_initial_guess;
+    constraints_.clear();
+    throw;
+  }
+
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " RunCDFT: outer bisection loop did not converge "
+                       "within "
+      << max_cdft_iterations_ << " iterations." << std::flush;
+  constraint.lambda = 0.5 * (lambda_lo + lambda_hi);
+  initial_guess_ = saved_initial_guess;
+  return false;
 }
 
 // Restricted SCF loop. The total energy is assembled as
