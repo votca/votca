@@ -1,0 +1,343 @@
+/*
+ *            Copyright 2009-2026 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+// ===========================================================================
+// STATUS: new, in-progress home for Hirshfeld real-space partitioning, the
+// weight-function scheme chosen for CDFT charge (and, later, spin)
+// constraints -- see the design discussion this branch grew out of for why
+// Hirshfeld over Becke/SSW (Becke-family partitions are known to give
+// unphysical atomic charges when atoms differ significantly in size,
+// confirmed via CP2K's own move away from plain Becke for this purpose;
+// Hirshfeld's promolecular-density weighting avoids that).
+//
+// A Hirshfeld weight for atom i is w_i(r) = rho_i^free(r) / sum_j
+// rho_j^free(r), where rho_i^free is atom i's own ISOLATED, spherically-
+// averaged reference density (DFTEngine::ComputeHirshfeldReferenceDensities,
+// via RunAtomicDFT_unrestricted with use_hunds_rule_occupation=true) -- this
+// class never touches that atomic-SCF machinery itself (which stays private
+// to DFTEngine); it only ever receives the resulting densities as an
+// explicit argument, matching DFTGradient's own established pattern in this
+// branch: static methods, explicit arguments only, no reaching into
+// DFTEngine's private state.
+//
+// Deliberately NOT yet implemented: the sum-over-atoms denominator, the
+// full AO-basis weight matrix W_i (the projection actually needed for the
+// Lagrange-multiplier potential added to the Fock matrix), or anything
+// about the constraint/Lagrange-multiplier optimization itself. This
+// commit is only the first, single-atom building block: evaluating one
+// isolated reference density, at one real-space point, given that atom's
+// own (small, atom-only) basis re-centered on its real position in the
+// molecule -- no embedding into the full molecule's AO basis at all (that
+// question, and why it does not arise here, was worked out separately:
+// unlike DFTEngine::AtomicGuess's own SAD-guess construction, Hirshfeld
+// never needs a molecule-sized combined object).
+// ===========================================================================
+
+#pragma once
+#ifndef VOTCA_XTP_HIRSHFELDPARTITION_H
+#define VOTCA_XTP_HIRSHFELDPARTITION_H
+
+// Standard includes
+#include <map>
+#include <string>
+#include <vector>
+
+// Local VOTCA includes
+#include "aobasis.h"
+#include "qmmolecule.h"
+#include "vxc_grid.h"
+
+namespace votca {
+namespace xtp {
+
+class HirshfeldPartition {
+ public:
+  /// One real atom's own contribution to the Hirshfeld partition: its
+  /// small, atom-only basis, re-centered (via its own Fill() call) on
+  /// that atom's REAL position in the molecule, together with its
+  /// element's reference density matrix (the same matrix is shared,
+  /// by value, across every atom of the same element -- only the
+  /// basis's own center differs per atom).
+  struct AtomicReference {
+    AOBasis basis;
+    Eigen::MatrixXd density;
+  };
+
+  /// Builds one AtomicReference per real atom in mol (NOT one per
+  /// unique element -- every atom needs its own, distinctly-centered
+  /// basis, even though atoms of the same element share the same
+  /// reference density matrix). Intended to be called ONCE per
+  /// molecule/SCF, then reused across every grid point EvaluateWeight
+  /// is called for -- rebuilding an AOBasis per point would be
+  /// wasteful, since only the evaluation point changes from one call
+  /// to the next, not the geometry.
+  static std::vector<AtomicReference> BuildAtomicReferences(
+      const QMMolecule& mol, const std::string& basisset_name,
+      const std::map<std::string, Eigen::MatrixXd>& reference_densities);
+
+  /// Evaluates one isolated-atom reference density (in its own small,
+  /// atom-only basis, already re-centered -- via atom_basis's own Fill()
+  /// call -- on that atom's real position in the molecule, NOT wherever
+  /// the isolated calculation that produced reference_density happened to
+  /// place it) at a single real-space point: rho_i^free(point) =
+  /// sum_munu P_munu phi_mu(point) phi_nu(point), the standard AO-basis
+  /// density-at-a-point formula (matching the same quadratic-form pattern
+  /// already used throughout this branch's own XC grid-integration code,
+  /// e.g. PulayGradient/GridWeightGradient's own rho = ao.values.dot(DMAT
+  /// * ao.values)).
+  ///
+  /// Deliberately evaluates every shell in atom_basis directly (via each
+  /// AOShell's own EvalAOspace), rather than going through GridBox's
+  /// "significant shells" filtering (GridBox::CalcAOValues's own
+  /// approach) -- atom_basis is already small (one atom's own basis
+  /// functions only), so that optimization, built for a full molecule's
+  /// much larger basis, does not help here and would only add complexity.
+  static double EvaluateAtomicDensity(const AOBasis& atom_basis,
+                                       const Eigen::MatrixXd& reference_density,
+                                       const Eigen::Vector3d& point);
+
+  /// grad_r rho_i^free(point) -- the real-space GRADIENT of one
+  /// isolated-atom reference density, needed for the CDFT force term
+  /// (specifically, the Hirshfeld weight-function-derivative piece:
+  /// d w_c(r)/d R_A = [w_c(r) - 1_{A in fragment}] * grad_rho_A(r) /
+  /// rho_tot(r), derived directly from the fact that each reference
+  /// density rho_j(r - R_j) depends only on its own atom's position,
+  /// so the quotient-rule derivative of the ratio w_c = rho_c/rho_tot
+  /// collapses to this single-gradient form).
+  ///
+  /// Standard density-gradient formula: rho(r) = phi(r)^T P phi(r), so
+  /// grad_rho(r) = 2 * derivatives^T * (P * values), using AOShell::
+  /// AOValues's own .derivatives (already computed by EvalAOspace
+  /// alongside .values -- no new libint2-level work needed; this reuses
+  /// existing per-shell derivative evaluation, the same one already
+  /// used for GGA XC-gradient support elsewhere in this basis).
+  static Eigen::Vector3d EvaluateAtomicDensityGradient(
+      const AOBasis& atom_basis, const Eigen::MatrixXd& reference_density,
+      const Eigen::Vector3d& point);
+
+  /// The actual Hirshfeld weight: w_target(point) = rho_target(point) /
+  /// sum_j rho_j(point), summing rho_j over EVERY atom in atoms (not
+  /// just target_atom_index -- the denominator needs every atom's
+  /// contribution, per the Hirshfeld definition). atoms is intended to
+  /// be built once via BuildAtomicReferences and reused across many
+  /// calls at different points. Returns 0 (rather than dividing by a
+  /// near-zero denominator) at points far from every atom, where every
+  /// rho_j(point) is negligible -- matching the same
+  /// negligible-denominator guard pattern already used for the SSW
+  /// grid weights in GridWeightGradient (kNegligibleWOwner there).
+  static double EvaluateWeight(const std::vector<AtomicReference>& atoms,
+                                Index target_atom_index,
+                                const Eigen::Vector3d& point);
+
+  /// d w_target(point) / d R_{differentiate_atom_index} -- the
+  /// Hirshfeld weight-function-derivative term needed for CDFT forces.
+  /// Derived directly from the quotient rule applied to
+  /// w_i(r) = rho_i(r) / sum_j rho_j(r), using the fact that each
+  /// rho_j(r - R_j) depends only on its OWN atom's position (so
+  /// d rho_j/d R_A is zero unless A=j): the result collapses to
+  ///   d w_target/d R_A = [w_target(point) - 1_{A==target}]
+  ///                      * grad_rho_A(point) / rho_tot(point)
+  /// This holds even when A != target_atom_index -- EVERY atom in the
+  /// whole molecule contributes a nonzero term here, not just the
+  /// fragment atom(s), since every atom's own reference density
+  /// contributes to rho_tot (the shared denominator). For a multi-atom
+  /// fragment, sum this over each fragment atom as target_atom_index
+  /// separately and add the results -- matches BuildWeightMatrix's own,
+  /// already-established convention exactly (BuildCDFTConstraint
+  /// already sums BuildWeightMatrix per fragment atom this same way).
+  static Eigen::Vector3d EvaluateWeightGradient(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      Index differentiate_atom_index, const Eigen::Vector3d& point);
+
+  /// grad_r w_target(point) -- the weight's gradient with respect to
+  /// the EVALUATION POINT itself, a genuinely different quantity from
+  /// EvaluateWeightGradient (which holds the point fixed and
+  /// differentiates with respect to an ATOM's position). Needed for
+  /// the grid-point-translation force term: grid points are rigidly
+  /// attached to their owner atom (r_p = R_owner + fixed local
+  /// offset, confirmed directly from PulayGradient's own, already-
+  /// validated comment on this exact subtlety -- that term was only
+  /// discovered there after finite-difference validation revealed a
+  /// residual discrepancy the SSW-weight and Pulay terms alone did not
+  /// explain), so moving the owner atom moves r_p itself, and anything
+  /// evaluated "at r_p" picks up this extra chain-rule contribution
+  /// through the point's own motion, separate from the "explicit"
+  /// dependence EvaluateWeightGradient captures.
+  ///
+  /// w(r) = rho_target(r)/rho_tot(r), so by the ordinary (non-atom-
+  /// position) quotient rule:
+  ///   grad_r w(r) = [grad_r rho_target(r) - w(r) * grad_r rho_tot(r)]
+  ///                 / rho_tot(r)
+  /// -- built directly from EvaluateAtomicDensityGradient (no sign
+  /// flip needed here, unlike EvaluateWeightGradient's own use of it:
+  /// that function needed the ATOM-position derivative
+  /// d rho_j/d R_A = -grad_r rho_j, but this one wants grad_r rho_j
+  /// itself, which EvaluateAtomicDensityGradient already returns
+  /// directly).
+  static Eigen::Vector3d EvaluatePointWeightGradient(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      const Eigen::Vector3d& point);
+
+  /// One of the three CDFT force terms -- the SSW grid-weight
+  /// derivative contribution to d(Tr[D*W_c])/dR, for EVERY atom in
+  /// mol (returned as an Natoms x 3 matrix). Directly computes the
+  /// force contribution itself (folding the Tr[D*...] contraction
+  /// into the grid-point loop), never materializing an intermediate
+  /// d(W_c)/dR AO-basis matrix -- matching the exact same pattern
+  /// Vxc_Potential::GridWeightGradient itself already uses for the
+  /// analogous XC-energy-gradient term.
+  ///
+  /// Deliberately a SEPARATE, standalone implementation, NOT a call
+  /// into Vxc_Potential::GridWeightGradient or a refactor extracting
+  /// a shared helper from it -- per the explicit decision this grew
+  /// out of: touching that existing, already-validated function (used
+  /// by the forces feature merged earlier this session) carries real
+  /// regression risk for no benefit CDFT specifically needs, versus
+  /// some duplication of the (small, well-defined, already faithfully
+  /// copied) SSWValue/SSWDerivative math and the (larger, but
+  /// mechanically identical except for which scalar multiplies the
+  /// same underlying dw quantity) grid-point loop structure.
+  ///
+  /// density_matrix is the REAL, CONVERGED molecular density (NOT any
+  /// Hirshfeld reference density) -- rho_molecule(point) is evaluated
+  /// from THIS, using the full molecule's own AO basis (via the SAME
+  /// grid/GridBox already used for BuildWeightMatrix), while
+  /// w_c(point) is evaluated separately from atoms (the small,
+  /// per-element Hirshfeld AtomicReference objects) via
+  /// EvaluateWeight -- these are two structurally different objects
+  /// multiplying each other in the same integrand (see the earlier
+  /// design discussion on this), not the same thing computed twice.
+  static Eigen::MatrixXd GridWeightDerivativeContribution(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      const Eigen::MatrixXd& density_matrix, const QMMolecule& mol,
+      const Vxc_Grid& grid);
+
+  /// The remaining two of the four CDFT force terms, combined into one
+  /// function since both are computed within the same grid-point loop
+  /// (reusing the same box.CalcAOValues call, rather than looping over
+  /// the grid twice): the basis-function/Pulay derivative, and the
+  /// grid-point-translation term (see EvaluatePointWeightGradient's
+  /// own header comment for why this fourth term exists at all --
+  /// grid points move rigidly with their owner atom, so anything
+  /// evaluated "at r_p" has an extra dependence on R_owner(p) through
+  /// r_p's own motion, on top of the "explicit" dependence the other
+  /// three terms capture).
+  ///
+  /// Deliberately a standalone implementation reusing PulayGradient's
+  /// own already-validated local_idx_to_atom bookkeeping pattern and
+  /// exact sign convention (confirmed directly:
+  /// contribution = -weight * <potential> * temp(mu) *
+  /// ao.derivatives.row(mu), with <potential> = w_c(point) here in
+  /// place of xc.df_drho there), NOT a refactor of that function --
+  /// same reasoning as GridWeightDerivativeContribution's own choice
+  /// on this. Returns an Natoms x 3 matrix: these two terms'
+  /// combined contribution to d(Tr[D*W_c])/dR for every atom.
+  static Eigen::MatrixXd PulayAndTranslationContribution(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      const Eigen::MatrixXd& density_matrix, const AOBasis& full_dftbasis,
+      const Vxc_Grid& grid);
+
+  /// The grid-integrated form of EvaluateWeightGradient -- term II of
+  /// the four CDFT force terms: d(Tr[D*W_c])/dR|_term_II =
+  /// sum_p omega_p * [d w_c(r_p)/d R_A] * rho_molecule(r_p), holding
+  /// omega_p and rho_molecule(r_p) fixed in this term (matching the
+  /// product-rule decomposition the other three terms also follow:
+  /// each holds the OTHER two factors of the omega_p*w_c(r_p)*
+  /// rho_molecule(r_p) product fixed while differentiating its own
+  /// one factor). rho_molecule(r_p) evaluated from the REAL, converged
+  /// molecular density matrix via the full molecule's own AO basis
+  /// (box.CalcAOValues), exactly as in GridWeightDerivativeContribution
+  /// and PulayAndTranslationContribution. Returns an Natoms x 3
+  /// matrix.
+  static Eigen::MatrixXd WeightFunctionDerivativeContribution(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      const Eigen::MatrixXd& density_matrix, const AOBasis& full_dftbasis,
+      const Vxc_Grid& grid);
+
+  /// The full d(Tr[D*W_c])/dR contribution to the CDFT force, for
+  /// every atom in mol -- the sum of all four terms (grid-weight/SSW
+  /// derivative, weight-function derivative, Pulay/basis-function
+  /// derivative, grid-point-translation), each computed independently
+  /// above and simply added together here (the product rule that
+  /// decomposes d[omega_p * w_c(r_p) * rho_molecule(r_p)]/dR into
+  /// these four pieces is linear, so their sum is exactly the full
+  /// derivative -- no additional cross-terms). The actual CDFT force
+  /// contribution from constraint c is -lambda_c times this result
+  /// (the Wu-Van Voorhis Lagrangian's own sign convention, matching
+  /// F_i^c = -lambda * dN_c/dR_i, per the design discussion this grew
+  /// out of); this function itself returns the gradient
+  /// (d(Tr[D*W_c])/dR), not the force, matching the sign convention
+  /// already used by the three per-term functions it sums.
+  static Eigen::MatrixXd ComputeCDFTForceContribution(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      const Eigen::MatrixXd& density_matrix, const QMMolecule& mol,
+      const AOBasis& full_dftbasis, const Vxc_Grid& grid);
+
+  /// The actual AO-basis operator matrix the Lagrange-multiplier
+  /// potential needs: W_i,munu = integral w_i(r) phi_mu(r) phi_nu(r) dr,
+  /// numerically integrated over full_dftbasis's own molecule-wide
+  /// grid -- the same grid, and the same box-by-box
+  /// CalcAOValues/AddtoBigMatrix pattern, already used throughout this
+  /// branch's own XC potential/Pulay-gradient code
+  /// (vxc_potential.cc's IntegrateVXC/PulayGradient). atoms should be
+  /// built once via BuildAtomicReferences and passed in here; grid
+  /// should be the SAME grid used for the real molecule's own SCF (not
+  /// a separately-built one), so this weight matrix is evaluated at
+  /// exactly the same points already being used for everything else.
+  ///
+  /// Skips evaluating AO values entirely at any point where
+  /// EvaluateWeight itself returns exactly 0 (points far from every
+  /// atom, or on the far side of the molecule from target_atom_index)
+  /// -- purely a performance guard, not a correctness one, since a
+  /// zero weight contributes nothing to the integral regardless of
+  /// what the AO values happen to be there.
+  static Eigen::MatrixXd BuildWeightMatrix(
+      const std::vector<AtomicReference>& atoms, Index target_atom_index,
+      const AOBasis& full_dftbasis, const Vxc_Grid& grid);
+
+  /// One active CDFT constraint: the Lagrange-multiplier potential term
+  /// added to the Fock matrix(es) is lambda * spin_alpha_coefficient *
+  /// weight_matrix for the alpha channel, and lambda *
+  /// spin_beta_coefficient * weight_matrix for the beta channel.
+  ///
+  /// For a CHARGE constraint (the only kind implemented so far):
+  /// spin_alpha_coefficient = spin_beta_coefficient = +1.0, since the
+  /// constrained quantity is Tr[(P_alpha + P_beta) * W] -- the SAME
+  /// potential added to both spin channels. A SPIN constraint (not yet
+  /// implemented, but the reason these two coefficients are stored
+  /// separately rather than hardcoding "add to both channels equally")
+  /// would instead need +1.0/-1.0, since it constrains
+  /// Tr[(P_alpha - P_beta) * W] -- per the design discussion this
+  /// struct grew out of, adding spin constraints later should only
+  /// ever require constructing a Constraint with different
+  /// coefficients, never touching the Fock-matrix-assembly code that
+  /// consumes this struct at all.
+  struct Constraint {
+    Eigen::MatrixXd weight_matrix;
+    double target_population;
+    double lambda = 0.0;
+    double spin_alpha_coefficient = 1.0;
+    double spin_beta_coefficient = 1.0;
+  };
+};
+
+}  // namespace xtp
+}  // namespace votca
+
+#endif  // VOTCA_XTP_HIRSHFELDPARTITION_H

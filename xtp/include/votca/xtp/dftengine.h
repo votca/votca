@@ -21,11 +21,15 @@
 #ifndef VOTCA_XTP_DFTENGINE_H
 #define VOTCA_XTP_DFTENGINE_H
 
+// Standard includes
+#include <map>
+
 // VOTCA includes
 #include <votca/tools/property.h>
 
 // Local VOTCA includes
 #include "ERIs.h"
+#include "hirshfeldpartition.h"
 #include "convergenceacc.h"
 #include "uks_convergenceacc.h"
 
@@ -69,6 +73,38 @@ class DFTEngine {
   /// Run a full ground-state DFT calculation and store the results in the
   /// orbital container.
   bool Evaluate(Orbitals& orb);
+
+  /// Run a single, charge-constrained DFT (CDFT) calculation: finds the
+  /// Lagrange multiplier lambda such that
+  /// Tr[(P_alpha + P_beta) * constraint.weight_matrix] equals
+  /// constraint.target_population, then converges the SCF at that
+  /// lambda -- the standard Wu-Van Voorhis outer loop, warm-started
+  /// (matching CP2K's own documented approach: each new trial's SCF is
+  /// restarted from the PREVIOUS trial's converged density, not a cold
+  /// start) via the existing "orbfile" initial-guess mechanism, reusing
+  /// it exactly as written rather than building new warm-start
+  /// machinery. Only ever wires through EvaluateUKS (never
+  /// EvaluateClosedShell) -- CDFT charge constraints are built on UKS
+  /// from the start, per the design discussion that preceded this: a
+  /// localized extra charge is almost always naturally an open-shell/
+  /// radical situation regardless of whether spin constraints are ever
+  /// added later.
+  ///
+  /// constraint.lambda is used as the initial guess for the bisection
+  /// search (0.0 is a reasonable default for most systems) and is left
+  /// holding the converged value on return. Returns false (with
+  /// constraints_ left populated, holding the last-attempted lambda)
+  /// if EITHER a root cannot be bracketed at all, OR the outer
+  /// bisection loop exhausts max_cdft_iterations_ without reaching
+  /// cdft_population_tolerance_. If any individual INNER SCF call
+  /// itself fails to converge, this throws std::runtime_error instead
+  /// (does not return false) -- an inner SCF failure means something
+  /// more fundamental than "the outer loop needs more iterations" is
+  /// wrong (e.g. a genuinely bad initial guess, or too tight an SCF
+  /// convergence threshold for this system), and silently returning
+  /// false would look identical to the ordinary "ran out of outer
+  /// iterations" case, which it is not.
+  bool RunCDFT(Orbitals& orb, HirshfeldPartition::Constraint& constraint);
 
   /// Run an embedded active-region DFT calculation for the supplied orbital
   /// container.
@@ -196,7 +232,91 @@ class DFTEngine {
       const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
   /// Run an unrestricted atomic reference calculation used in open-shell atomic
   /// guesses.
-  Eigen::MatrixXd RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom) const;
+  ///
+  /// use_hunds_rule_occupation (default false, preserving all EXISTING
+  /// callers' behavior exactly): when true, use a small, explicit
+  /// Hund's-rule ground-state alpha/beta electron-count table for
+  /// common main-group (s/p-block) elements, instead of the simpler
+  /// parity-based split (odd nuclear charge -> one extra alpha electron;
+  /// even -> alpha == beta) used by default. That default split is
+  /// wrong for many real ground states -- e.g. carbon (true ground
+  /// state alpha=4,beta=2, a triplet) gets alpha=beta=3 (an artificial
+  /// singlet) -- but this does not matter for a SAD initial-guess
+  /// starting DENSITY MATRIX SHAPE (AtomicGuess, this function's only
+  /// existing caller), since the full molecule's own SCF reshapes the
+  /// density regardless of the isolated reference atom's spin state.
+  /// It DOES matter for promolecular reference densities used in
+  /// Hirshfeld-based CDFT constraints, which is what this parameter
+  /// exists for. Falls back to the default, parity-based split (with a
+  /// logged warning) for any element not covered by the table --
+  /// currently d/f-block only, where the ground-state configuration is
+  /// genuinely ambiguous/functional-dependent rather than a simple,
+  /// textbook Hund's-rule case; see HundsRuleAlphaBetaElectrons's own
+  /// comment in dftengine.cc.
+  Eigen::MatrixXd RunAtomicDFT_unrestricted(
+      const QMAtom& uniqueAtom, bool use_hunds_rule_occupation = false) const;
+
+  /// Build one isolated-atom reference density per unique element in
+  /// mol, keyed by element symbol -- the promolecular densities
+  /// Hirshfeld-based CDFT constraints need. Mirrors AtomicGuess's own
+  /// "find unique elements, run RunAtomicDFT_unrestricted once each,
+  /// cache by element" structure exactly, but (a) always passes
+  /// use_hunds_rule_occupation=true (unlike AtomicGuess's own call,
+  /// which never does), and (b) returns the per-element densities
+  /// directly rather than assembling them into one combined,
+  /// molecule-sized AO-basis matrix -- Hirshfeld only ever needs each
+  /// reference density evaluated as a real-space scalar function,
+  /// using that element's own (small, atom-only) basis re-centered on
+  /// each real atom's actual position, never embedded into the full
+  /// molecule's AO basis at all, so there is no molecule-sized object
+  /// to assemble here in the first place.
+  std::map<std::string, Eigen::MatrixXd> ComputeHirshfeldReferenceDensities(
+      const QMMolecule& mol) const;
+
+  /// Parsed directly from the <cdft> options block at Initialize()
+  /// time -- atom indices and target charge only, NOT yet a full
+  /// HirshfeldPartition::Constraint (which needs the reference
+  /// densities/weight matrix, neither of which exist until Evaluate()
+  /// actually has a real molecule to work with). BuildCDFTConstraint
+  /// (just below) does that later conversion. Deliberately defined
+  /// HERE, before BuildCDFTConstraint's own declaration -- a type must
+  /// already be visible before it is used as a parameter type in a
+  /// member function DECLARATION (unlike a function body, which can
+  /// freely reference members declared later in the same class, since
+  /// the whole class body is parsed first); this was a real compile
+  /// error caught directly (previously defined near
+  /// cdft_constraint_spec_ at the end of this class, well after this
+  /// point).
+  struct CDFTConstraintSpec {
+    std::vector<Index> atom_indices;
+    // Relative to the fragment's own neutral reference state (the sum
+    // of its atoms' nuclear charges) -- e.g. +1.0 means one electron
+    // REMOVED (a cation). Converted to an absolute target electron
+    // count once, inside BuildCDFTConstraint, matching CP2K's own
+    // internal (absolute) TARGET convention exactly -- only the
+    // user-facing options syntax is charge-relative, per the earlier
+    // design discussion on this.
+    double target_charge = 0.0;
+    double initial_lambda = 0.0;
+  };
+
+  /// Converts a parsed CDFTConstraintSpec (atom indices + relative
+  /// target charge, from Initialize()'s own <cdft> options parsing)
+  /// into a fully-built HirshfeldPartition::Constraint, given the real
+  /// molecule this calculation is actually running on. Builds the
+  /// weight matrix as the SUM of BuildWeightMatrix over every atom in
+  /// spec.atom_indices -- Hirshfeld weights are additive across atoms
+  /// in a fragment (w_fragment(r) = sum_{i in fragment} w_i(r)), so
+  /// this generalizes correctly to a multi-atom region, not just a
+  /// single atom. The absolute target_population is computed as
+  /// (sum of the fragment atoms' own nuclear charges) -
+  /// spec.target_charge, matching CP2K's own internal (absolute)
+  /// TARGET convention -- only the OPTIONS-file syntax is
+  /// charge-relative, per the earlier design discussion on this; the
+  /// underlying Constraint/RunCDFT machinery itself was never changed
+  /// and still only ever deals in absolute populations.
+  HirshfeldPartition::Constraint BuildCDFTConstraint(
+      const QMMolecule& mol, const CDFTConstraintSpec& spec) const;
 
   /// Compute the classical nucleus-nucleus repulsion energy.
   double NuclearRepulsion(const QMMolecule& mol) const;
@@ -442,6 +562,37 @@ class DFTEngine {
   // automatically available through the full QMPackage/XTPDFT flow with
   // no changes needed there.
   bool compute_forces_ = false;
+
+  // Empty by default -- the ONLY thing a standard, non-CDFT run needs
+  // to know about this member is that it is empty, checked via a
+  // single, cheap constraints_.empty() guard inside
+  // EvaluateUKS's own Fock-matrix assembly (see that function's own
+  // comment at the point the constraint potential term is added).
+  // When empty, that guard means the added term is a complete no-op:
+  // the Hamiltonian is built exactly as it always was, with no
+  // measurable overhead and no change in behavior whatsoever for any
+  // run that never touches this member. Populated only by the
+  // (not yet implemented) outer Lagrange-multiplier optimization loop,
+  // which is expected to modify each Constraint's own lambda field in
+  // place between successive, warm-started calls into EvaluateUKS --
+  // per the design discussion this grew out of (CP2K's own documented
+  // approach: restart the inner SCF from the previous trial's
+  // converged density at each new lambda, rather than a cold start).
+  std::vector<HirshfeldPartition::Constraint> constraints_;
+
+  // CDFT outer-loop (Lagrange-multiplier) control, used only by
+  // RunCDFT below -- never read by the ordinary Evaluate/EvaluateUKS
+  // path at all, so these have no bearing on any standard run either.
+  // max_cdft_iterations_/cdft_population_tolerance_ are also settable
+  // from options (see Initialize()'s own cdft.max_iterations/
+  // cdft.population_tolerance parsing) when cdft.enabled=true; their
+  // defaults here are what a directly-constructed RunCDFT call (e.g.
+  // from a test, bypassing Initialize() entirely) gets instead.
+  Index max_cdft_iterations_ = 50;
+  double cdft_population_tolerance_ = 1.e-4;
+
+  bool cdft_enabled_ = false;
+  CDFTConstraintSpec cdft_constraint_spec_;
 };
 
 }  // namespace xtp

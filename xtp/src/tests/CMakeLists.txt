@@ -38,6 +38,11 @@ list(APPEND test_cases test_density_filter)
 list(APPEND test_cases test_densityintegration)
 list(APPEND test_cases test_dftcoupling)
 list(APPEND test_cases test_dftengine)
+# DRAFT/UNTESTED, slow (two test cases: one unconstrained run plus a
+# full bisection search, and a second running three FULL, independently
+# re-converged CDFT calculations for a total-force finite-difference
+# check) -- see file header comments before trusting this.
+list(APPEND test_cases test_dftengine_cdft)
 list(APPEND test_cases test_dftengine_private)
 # DRAFT/UNTESTED, slow (three full SCF runs) -- see file header comment.
 list(APPEND test_cases test_dftengine_forces)
@@ -59,6 +64,8 @@ list(APPEND test_cases test_gnode)
 list(APPEND test_cases test_grid)
 list(APPEND test_cases test_gw)
 list(APPEND test_cases test_hdf5)
+# DRAFT/UNTESTED -- see file header comment before trusting this.
+list(APPEND test_cases test_hirshfeldpartition)
 list(APPEND test_cases test_hist)
 list(APPEND test_cases test_incrementalfockbuilder)
 list(APPEND test_cases test_indexparser)

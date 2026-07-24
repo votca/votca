@@ -30,6 +30,14 @@
     <integration_grid help="vxc grid quality" default="medium" choices="xcoarse,coarse,medium,fine,xfine" />
     <force_uks_path help="forcing UKS path" default="false" choices="bool"/>
     <compute_forces help="Compute analytic ground-state DFT nuclear forces (RI, and hybrid-exchange for UKS) and store them in the orb (HDF5) file. Adds real cost to every converged SCF, so this is opt-in." default="false" choices="bool"/>
+    <cdft help="Constrained DFT (CDFT): a Hirshfeld-based charge constraint on a fragment of the molecule, via an outer, warm-started Lagrange-multiplier loop around the ordinary UKS SCF (Wu-Van Voorhis approach). Opt-in via cdft.enabled -- has no effect on any calculation unless explicitly enabled, matching compute_forces's own opt-in convention just above.">
+      <enabled help="Enable a CDFT charge constraint on this calculation" default="false" choices="bool"/>
+      <indices help="Indices of atoms in the constrained fragment (0-based), using the same range syntax already used for diabatization.xml's own fragment indices, e.g. '1 3 13:17'" default="" />
+      <charge help="Target charge on the fragment, RELATIVE to its neutral reference state (the sum of the fragment atoms' own nuclear charges) -- e.g. +1.0 means one electron REMOVED from the fragment (a cation), -1.0 means one electron ADDED (an anion). Converted internally to an absolute target electron count once, at setup time." default="0.0" choices="float" />
+      <initial_lambda help="Initial guess for the Lagrange multiplier lambda, used as the center of the outer loop's own bisection bracket" default="0.0" choices="float" />
+      <population_tolerance help="Outer-loop convergence criterion: the CDFT calculation is considered converged once the achieved fragment population is within this many electrons of the target" default="1e-4" choices="float+" />
+      <max_iterations help="Maximum number of outer (Lagrange-multiplier, bisection) iterations -- each one is a full, warm-started inner SCF" default="50" choices="int+" />
+    </cdft>
     <convergence>
       <energy help="DeltaE at which calculation is converged" unit="hartree" choices="float+" default="1E-7" />
       <method help="Main method to use for convergence accelertation" choices="DIIS,mixing" default="DIIS" />
