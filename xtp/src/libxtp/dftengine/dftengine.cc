@@ -873,7 +873,69 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     // requirement on the caller.
     HirshfeldPartition::Constraint constraint =
         BuildCDFTConstraint(orb.QMAtoms(), cdft_constraint_spec_);
-    return RunCDFT(orb, constraint);
+    bool converged = RunCDFT(orb, constraint);
+
+    if (converged && orb.hasForces()) {
+      // RunCDFT's own final EvaluateUKS call already computed and
+      // stored the ordinary DFT force (via ComputeAndStoreForcesUKS,
+      // triggered internally whenever compute_forces_ is also set) --
+      // this adds the CDFT-specific correction on top of it. Done
+      // HERE, once, after RunCDFT's outer loop has fully converged --
+      // deliberately NOT inside ComputeAndStoreForcesUKS itself (which
+      // would otherwise redo this work, wastefully and riskily, at
+      // EVERY outer CDFT iteration, since RunCDFT calls EvaluateUKS
+      // repeatedly) and deliberately NOT by changing RunCDFT's own
+      // signature to pass through the original per-atom fragment
+      // indices (constraint only carries the already-SUMMED
+      // weight_matrix, not which atoms went into it -- rebuilding here
+      // instead, via cdft_constraint_spec_'s own atom_indices, avoids
+      // touching RunCDFT's own, already-validated signature/behavior
+      // at all).
+      //
+      // Rebuilds the same reference densities/atomic references/
+      // basis/grid BuildCDFTConstraint itself already built internally
+      // -- a redundant but cheap recomputation (no SCF involved),
+      // accepted deliberately for this reason.
+      std::map<std::string, Eigen::MatrixXd> reference_densities =
+          ComputeHirshfeldReferenceDensities(orb.QMAtoms());
+      AOBasis full_dftbasis;
+      {
+        BasisSet basisset;
+        basisset.Load(dftbasis_name_);
+        full_dftbasis.Fill(basisset, orb.QMAtoms());
+      }
+      Vxc_Grid grid;
+      grid.GridSetup(grid_name_, orb.QMAtoms(), full_dftbasis);
+      std::vector<HirshfeldPartition::AtomicReference> atoms =
+          HirshfeldPartition::BuildAtomicReferences(
+              orb.QMAtoms(), dftbasis_name_, reference_densities);
+
+      std::array<Eigen::MatrixXd, 2> Dspin =
+          orb.DensityMatrixGroundStateSpinResolved();
+      // Total (alpha+beta) density -- matches the charge constraint's
+      // own spin_alpha_coefficient=spin_beta_coefficient=+1.0
+      // convention exactly (Tr[(D_alpha+D_beta)*W] = the same
+      // population EvaluateMismatch itself computes inside RunCDFT).
+      Eigen::MatrixXd density_total = Dspin[0] + Dspin[1];
+
+      Eigen::MatrixXd cdft_gradient_correction = Eigen::MatrixXd::Zero(
+          static_cast<Index>(orb.QMAtoms().size()), 3);
+      for (Index atom_index : cdft_constraint_spec_.atom_indices) {
+        cdft_gradient_correction +=
+            HirshfeldPartition::ComputeCDFTForceContribution(
+                atoms, atom_index, density_total, orb.QMAtoms(),
+                full_dftbasis, grid);
+      }
+      // Physical force = -dE/dR (ComputeAndStoreForcesUKS's own,
+      // already-established convention): the CDFT correction to the
+      // GRADIENT is +lambda*d(Tr[D*W_c])/dR (added directly, matching
+      // ComputeCDFTForceContribution's own gradient-convention
+      // return), so the correction to the FORCE is -lambda times this
+      // same quantity.
+      orb.setForces(orb.getForces() -
+                    constraint.lambda * cdft_gradient_correction);
+    }
+    return converged;
   }
 
   Prepare(orb);
