@@ -896,6 +896,53 @@ void Orbitals::OrderMOsbyEnergy() {
   }
 }
 
+std::vector<Index> Orbitals::SortEnergiesAlpha() {
+  // Same logic as SortEnergies, but deliberately WITHOUT its
+  // hasUnrestrictedOrbitals() guard -- this is meant to be called on an
+  // unrestricted system, sorting the alpha channel only.
+  std::vector<Index> index = std::vector<Index>(mos_.eigenvalues().size());
+  std::iota(index.begin(), index.end(), 0);
+  std::stable_sort(index.begin(), index.end(), [this](Index i1, Index i2) {
+    return this->MOs().eigenvalues()[i1] < this->MOs().eigenvalues()[i2];
+  });
+  return index;
+}
+
+std::vector<Index> Orbitals::SortEnergiesBeta() {
+  std::vector<Index> index =
+      std::vector<Index>(mos_beta_.eigenvalues().size());
+  std::iota(index.begin(), index.end(), 0);
+  std::stable_sort(index.begin(), index.end(), [this](Index i1, Index i2) {
+    return this->MOs_beta().eigenvalues()[i1] <
+           this->MOs_beta().eigenvalues()[i2];
+  });
+  return index;
+}
+
+void Orbitals::OrderMOsbyEnergyAlpha() {
+  std::vector<Index> sort_index = SortEnergiesAlpha();
+  tools::EigenSystem MO_copy = mos_;
+  Index size = mos_.eigenvalues().size();
+  for (Index i = 0; i < size; ++i) {
+    mos_.eigenvalues()(i) = MO_copy.eigenvalues()(sort_index[i]);
+  }
+  for (Index i = 0; i < size; ++i) {
+    mos_.eigenvectors().col(i) = MO_copy.eigenvectors().col(sort_index[i]);
+  }
+}
+
+void Orbitals::OrderMOsbyEnergyBeta() {
+  std::vector<Index> sort_index = SortEnergiesBeta();
+  tools::EigenSystem MO_copy = mos_beta_;
+  Index size = mos_beta_.eigenvalues().size();
+  for (Index i = 0; i < size; ++i) {
+    mos_beta_.eigenvalues()(i) = MO_copy.eigenvalues()(sort_index[i]);
+  }
+  for (Index i = 0; i < size; ++i) {
+    mos_beta_.eigenvectors().col(i) = MO_copy.eigenvectors().col(sort_index[i]);
+  }
+}
+
 /**
  * \brief Guess for a dimer based on monomer orbitals
  *
