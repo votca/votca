@@ -82,6 +82,26 @@ class UKSConvergenceAcc {
   double CombinedError(const Eigen::MatrixXd& err_alpha,
                        const Eigen::MatrixXd& err_beta) const;
 
+  /// Approximate ARH-style direct energy minimization step: builds new
+  /// MO coefficients directly via an orbital rotation (occ-virt block
+  /// only, since occ-occ/virt-virt rotations leave the density matrix
+  /// unchanged), using the orbital gradient (the occ-virt block of the
+  /// MO-basis Fock matrix, which vanishes exactly at self-consistency)
+  /// and an approximate, diagonal Hessian (orbital energy differences --
+  /// the same cheap approximation used as the starting point for most
+  /// quasi-Newton SCF methods, e.g. SOSCF's own initial Hessian guess).
+  /// The step is trust-radius bounded, and the resulting (only
+  /// approximately unitary) rotation is re-orthonormalized via the same
+  /// Lowdin approach as OrthogonalizeGuess. See the design discussion
+  /// this grew out of for the full reasoning: this is a deliberately
+  /// simplified relative of the ARH/TRAH family of direct-minimization
+  /// SCF methods (confirmed directly, on this exact system, to resolve
+  /// an ADIIS/DIIS convergence failure that ORCA's own auto-TRAH
+  /// fallback also had to invoke), not a full implementation of either.
+  Eigen::MatrixXd DirectMinimizationRotation(const Eigen::MatrixXd& H_AO,
+                                             const tools::EigenSystem& MOs,
+                                             Index nocclevels) const;
+
   options opt_alpha_;
   options opt_beta_;
 
@@ -105,6 +125,17 @@ class UKSConvergenceAcc {
   double maxerror_ = -1.0;
   Index maxerrorindex_ = 0;
   bool usedmixing_ = true;
+
+  // Direct-minimization fallback bookkeeping. consecutive_adiis_failures_
+  // tracks how many (A)DIIS attempts in a row have failed -- switching
+  // to DirectMinimizationRotation after kMaxConsecutiveADIISFailures
+  // deliberately mirrors ORCA's own auto-TRAH trigger (switching away
+  // from DIIS-family methods after they visibly struggle), rather than
+  // falling back to plain mixing indefinitely the way this class
+  // already did before this addition.
+  Index consecutive_adiis_failures_ = 0;
+  static constexpr Index kMaxConsecutiveADIISFailures = 5;
+  static constexpr double trust_radius_ = 0.2;
 };
 
 }  // namespace xtp

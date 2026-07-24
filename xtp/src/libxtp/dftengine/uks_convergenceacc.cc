@@ -65,6 +65,55 @@ tools::EigenSystem UKSConvergenceAcc::SolveFockmatrix(
   return result;
 }
 
+Eigen::MatrixXd UKSConvergenceAcc::DirectMinimizationRotation(
+    const Eigen::MatrixXd& H_AO, const tools::EigenSystem& MOs,
+    Index nocclevels) const {
+  Index nao = MOs.eigenvectors().rows();
+  const Eigen::MatrixXd& C = MOs.eigenvectors();
+  const Eigen::VectorXd& eps = MOs.eigenvalues();
+
+  // Orbital gradient: the occ-virt block of the MO-basis Fock matrix,
+  // which vanishes exactly at self-consistency (F_MO would be block-
+  // diagonal, occ-occ and virt-virt only).
+  Eigen::MatrixXd F_MO = C.transpose() * H_AO * C;
+
+  // Antisymmetric rotation generator: nonzero only in the occ-virt (and
+  // virt-occ, by antisymmetry) blocks -- occ-occ/virt-virt rotations
+  // would leave the density matrix (and therefore the energy) entirely
+  // unchanged, so there is nothing to gain from including them.
+  Eigen::MatrixXd kappa = Eigen::MatrixXd::Zero(nao, nao);
+  // Guards near-degenerate occ-virt orbital pairs from producing a
+  // wildly oversized step -- the trust-radius bound below provides a
+  // second, independent safeguard on top of this one.
+  constexpr double kMinGap = 1e-3;
+  for (Index i = 0; i < nocclevels; ++i) {
+    for (Index a = nocclevels; a < nao; ++a) {
+      double gap = std::max(eps(a) - eps(i), kMinGap);
+      // Approximate, diagonal Hessian: orbital energy differences --
+      // the same cheap starting approximation used by most quasi-
+      // Newton SCF methods (e.g. SOSCF's own initial Hessian guess).
+      double kappa_ia = -F_MO(i, a) / (2.0 * gap);
+      kappa(i, a) = kappa_ia;
+      kappa(a, i) = -kappa_ia;
+    }
+  }
+
+  double knorm = kappa.norm();
+  if (knorm > trust_radius_) {
+    kappa *= (trust_radius_ / knorm);
+  }
+
+  // exp(kappa) ~= I + kappa is valid specifically because the trust-
+  // radius bound above keeps kappa small -- re-orthonormalize
+  // afterward since I+kappa is only approximately unitary, using the
+  // same Lowdin (symmetric orthogonalization) approach as
+  // DFTEngine::OrthogonalizeGuess.
+  Eigen::MatrixXd C_new = C * (Eigen::MatrixXd::Identity(nao, nao) + kappa);
+  Eigen::MatrixXd nonortho = C_new.transpose() * S_->Matrix() * C_new;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_ortho(nonortho);
+  return C_new * es_ortho.operatorInverseSqrt();
+}
+
 Eigen::MatrixXd UKSConvergenceAcc::DensityMatrixGroundState_unres(
     const Eigen::MatrixXd& MOs, Index nocclevels) const {
   if (nocclevels == 0) {
@@ -205,12 +254,45 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
     }
 
     if (diis_error) {
+      ++consecutive_adiis_failures_;
+      if (consecutive_adiis_failures_ >= kMaxConsecutiveADIISFailures) {
+        // Mirrors ORCA's own auto-TRAH trigger: after (A)DIIS has
+        // visibly, repeatedly failed rather than just being slow, fall
+        // back to a direct-minimization step instead of plain mixing --
+        // see this class's own header comment on DirectMinimizationRotation
+        // for the full reasoning and the ORCA log this was validated
+        // against directly.
+        XTP_LOG(Log::warning, *log_)
+            << TimeStamp() << " (A)DIIS failed " << consecutive_adiis_failures_
+            << " times in a row, switching to direct-minimization step"
+            << std::flush;
+        Eigen::MatrixXd C_new_alpha =
+            DirectMinimizationRotation(H.alpha, MOs_alpha, nocclevels_alpha_);
+        Eigen::MatrixXd C_new_beta =
+            DirectMinimizationRotation(H.beta, MOs_beta, nocclevels_beta_);
+        MOs_alpha.eigenvectors() = C_new_alpha;
+        MOs_beta.eigenvectors() = C_new_beta;
+        // Approximate orbital energies from the (only approximately
+        // diagonal, post-rotation) MO-basis Fock matrix -- consistent
+        // with the rotated orbitals themselves, and cheap to obtain;
+        // used only for level-shift gap checks and diagnostics until
+        // the next full diagonalization naturally supersedes them.
+        MOs_alpha.eigenvalues() =
+            (C_new_alpha.transpose() * H.alpha * C_new_alpha).diagonal();
+        MOs_beta.eigenvalues() =
+            (C_new_beta.transpose() * H.beta * C_new_beta).diagonal();
+
+        SpinDensity dmatout_direct = DensityMatrix(MOs_alpha, MOs_beta);
+        usedmixing_ = false;
+        return dmatout_direct;
+      }
       XTP_LOG(Log::warning, *log_)
           << TimeStamp() << " (A)DIIS failed using mixing instead"
           << std::flush;
       H_guess_alpha = H.alpha;
       H_guess_beta = H.beta;
     } else {
+      consecutive_adiis_failures_ = 0;
       H_guess_alpha.setZero();
       H_guess_beta.setZero();
       for (Index i = 0; i < coeffs.size(); ++i) {
