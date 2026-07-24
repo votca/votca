@@ -230,6 +230,30 @@ class DFTEngine {
   tools::EigenSystem ExtendedHuckelDFTGuess(
       const Mat_p_Energy& H0, const QMMolecule& mol,
       const Vxc_Potential<Vxc_Grid>& vxcpotential) const;
+
+  /// Build a dimer guess (both alpha and beta MOs, genuinely different
+  /// from each other in general) by loading two independently-converged
+  /// monomer .orb files (dimer_guess_orbA_name_/dimer_guess_orbB_name_)
+  /// and combining them via Orbitals::PrepareDimerGuessMixedSpin.
+  ///
+  /// Runs two sanity checks against dimer_mol (this calculation's own,
+  /// real molecule) before trusting either monomer file at all:
+  /// (1) element-sequence match -- monomer A's own elements, in order,
+  /// must exactly match dimer_mol's first N_A atoms, and monomer B's
+  /// must match the remaining atoms; (2) internal-geometry match --
+  /// every pairwise interatomic distance WITHIN monomer A must match
+  /// the corresponding pairwise distance within dimer_mol's own first
+  /// N_A atoms, to a tight numerical tolerance (and likewise for
+  /// monomer B against the remaining atoms). Deliberately NOT an
+  /// absolute-position comparison: after being optimized as a
+  /// standalone monomer and then placed into the dimer, a monomer's
+  /// atoms are expected to be translated/rotated relative to their own,
+  /// independent optimization -- only the INTERNAL geometry (bond
+  /// lengths/angles, which no translation or rotation changes) should
+  /// still match if the supplied file genuinely corresponds to that
+  /// fragment.
+  Orbitals BuildDimerGuessFromMonomerFiles(const QMMolecule& dimer_mol) const;
+
   /// Run an unrestricted atomic reference calculation used in open-shell atomic
   /// guesses.
   ///
@@ -496,6 +520,12 @@ class DFTEngine {
   AOOverlap dftAOoverlap_;
 
   std::string initial_guess_;
+
+  // Only read from options / actually used when initial_guess_ ==
+  // "dimer_guess" -- see BuildDimerGuessFromMonomerFiles's own header
+  // comment for what this guess does and why it exists.
+  std::string dimer_guess_orbA_name_;
+  std::string dimer_guess_orbB_name_;
 
   // Convergence
   Index numofelectrons_ = 0;
