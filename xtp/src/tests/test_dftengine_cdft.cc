@@ -156,6 +156,9 @@ std::string WriteCDFTForcesOptionsXML(double target_charge) {
   xml << "<cdft>\n";
   xml << "  <enabled>true</enabled>\n";
   xml << "  <indices>0</indices>\n";
+  xml << "  <initial_lambda>0.0</initial_lambda>\n";
+  xml << "  <max_iterations>50</max_iterations>\n";
+  xml << "  <population_tolerance>1e-4</population_tolerance>\n";
   xml << "  <charge>" << target_charge << "</charge>\n";
   xml << "</cdft>\n";
   xml << "<convergence>\n";
