@@ -1014,6 +1014,96 @@ void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
   this->OrderMOsbyEnergy();
 }
 
+/**
+ * \brief Guess for a dimer of two monomers with independently ARBITRARY
+ * charge and spin, built by combining each monomer's own, already-
+ * converged electronic structure directly.
+ *
+ * Unlike PrepareDimerGuess (restricted, closed-shell singlets only),
+ * this builds the dimer's alpha and beta MO coefficient blocks
+ * SEPARATELY: | Aalpha 0 | and | Abeta 0 |
+ *             | 0 Balpha|     | 0  Bbeta|
+ * A restricted monomer contributes the SAME block to both alpha and
+ * beta (its own alpha/beta MOs being identical by construction); an
+ * unrestricted monomer contributes its own, genuinely different alpha
+ * and beta blocks. The dimer itself is always treated as unrestricted,
+ * since that is the only representation general enough to hold two
+ * monomers whose electron counts need not match.
+ */
+void Orbitals::PrepareDimerGuessMixedSpin(const Orbitals& orbitalsA,
+                                          const Orbitals& orbitalsB) {
+  Index basisA = orbitalsA.getBasisSetSize();
+  Index basisB = orbitalsB.getBasisSetSize();
+
+  if (orbitalsA.getDFTbasisName() != orbitalsB.getDFTbasisName()) {
+    throw std::runtime_error("Basissets of Orbitals A and B differ " +
+                             orbitalsA.getDFTbasisName() + ":" +
+                             orbitalsB.getDFTbasisName());
+  }
+  this->SetupDftBasis(orbitalsA.getDFTbasisName());
+
+  if (orbitalsA.getECPName() != orbitalsB.getECPName()) {
+    throw std::runtime_error("ECPs of Orbitals A and B differ " +
+                             orbitalsA.getECPName() + ":" +
+                             orbitalsB.getECPName());
+  }
+  this->setECPName(orbitalsA.getECPName());
+
+  // A restricted monomer's own alpha and beta MOs are identical by
+  // construction -- MOs_beta() only holds meaningful, independent data
+  // for a monomer that is itself already unrestricted.
+  const Eigen::MatrixXd& A_alpha = orbitalsA.MOs().eigenvectors();
+  const Eigen::MatrixXd& A_beta = orbitalsA.hasUnrestrictedOrbitals()
+                                      ? orbitalsA.MOs_beta().eigenvectors()
+                                      : orbitalsA.MOs().eigenvectors();
+  const Eigen::MatrixXd& B_alpha = orbitalsB.MOs().eigenvectors();
+  const Eigen::MatrixXd& B_beta = orbitalsB.hasUnrestrictedOrbitals()
+                                      ? orbitalsB.MOs_beta().eigenvectors()
+                                      : orbitalsB.MOs().eigenvectors();
+
+  const Eigen::VectorXd& A_alpha_energies = orbitalsA.MOs().eigenvalues();
+  const Eigen::VectorXd& A_beta_energies =
+      orbitalsA.hasUnrestrictedOrbitals() ? orbitalsA.MOs_beta().eigenvalues()
+                                         : orbitalsA.MOs().eigenvalues();
+  const Eigen::VectorXd& B_alpha_energies = orbitalsB.MOs().eigenvalues();
+  const Eigen::VectorXd& B_beta_energies =
+      orbitalsB.hasUnrestrictedOrbitals() ? orbitalsB.MOs_beta().eigenvalues()
+                                         : orbitalsB.MOs().eigenvalues();
+
+  mos_.eigenvectors() = Eigen::MatrixXd::Zero(basisA + basisB, basisA + basisB);
+  mos_.eigenvectors().block(0, 0, basisA, basisA) = A_alpha;
+  mos_.eigenvectors().block(basisA, basisA, basisB, basisB) = B_alpha;
+  mos_.eigenvalues() = Eigen::VectorXd::Zero(basisA + basisB);
+  mos_.eigenvalues().segment(0, basisA) = A_alpha_energies;
+  mos_.eigenvalues().segment(basisA, basisB) = B_alpha_energies;
+
+  mos_beta_.eigenvectors() =
+      Eigen::MatrixXd::Zero(basisA + basisB, basisA + basisB);
+  mos_beta_.eigenvectors().block(0, 0, basisA, basisA) = A_beta;
+  mos_beta_.eigenvectors().block(basisA, basisA, basisB, basisB) = B_beta;
+  mos_beta_.eigenvalues() = Eigen::VectorXd::Zero(basisA + basisB);
+  mos_beta_.eigenvalues().segment(0, basisA) = A_beta_energies;
+  mos_beta_.eigenvalues().segment(basisA, basisB) = B_beta_energies;
+
+  Index alpha_electrons =
+      orbitalsA.getLumoAlpha() + orbitalsB.getLumoAlpha();
+  Index beta_electrons = orbitalsA.getLumoBeta() + orbitalsB.getLumoBeta();
+  this->setNumberOfOccupiedLevels(alpha_electrons);
+  this->setNumberOfOccupiedLevelsBeta(beta_electrons);
+  this->setNumberOfAlphaElectrons(alpha_electrons);
+  this->setNumberOfBetaElectrons(beta_electrons);
+  // spin is the MULTIPLICITY (2S+1) convention throughout this codebase
+  // (spin=1 is singlet, spin=2 is doublet, etc.) -- 2S itself is exactly
+  // the alpha-beta electron-count difference, matching how DFTEngine's
+  // own Initialize() derives num_alpha_electrons_/num_beta_electrons_
+  // from a user-specified charge+spin pair in the first place.
+  Index spin = (alpha_electrons - beta_electrons) + 1;
+  this->setChargeAndSpin(orbitalsA.getCharge() + orbitalsB.getCharge(), spin);
+
+  this->OrderMOsbyEnergyAlpha();
+  this->OrderMOsbyEnergyBeta();
+}
+
 void Orbitals::WriteToCpt(const std::string& filename) const {
   std::lock_guard<std::recursive_mutex> lock(
       votca::xtp::checkpoint_utils::Hdf5Mutex());
