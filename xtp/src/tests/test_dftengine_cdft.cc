@@ -323,20 +323,6 @@ BOOST_AUTO_TEST_CASE(rundcft_reaches_shifted_target_population) {
 BOOST_AUTO_TEST_CASE(cdft_total_force_finite_difference) {
   libint2::initialize();
  try {
-  // Direct, empirical check rather than inferring from build
-  // configuration: OPENMP::getMaxThreads() returns the REAL
-  // omp_get_max_threads() when this build was compiled with OpenMP
-  // enabled (_OPENMP defined), or a hardcoded 1 otherwise -- and even
-  // with OpenMP compiled in, the actual thread count a given ctest
-  // invocation ends up using can still depend on runtime factors
-  // (OMP_NUM_THREADS in the environment, any CTest-level PROCESSORS/
-  // resource constraints) that are not visible from the source code
-  // alone. Printing this directly is the only way to know for certain
-  // whether THIS run actually exercised more than one thread in
-  // HirshfeldPartition's own parallel loops.
-  std::cout << "OPENMP::getMaxThreads() for this test run: "
-            << OPENMP::getMaxThreads() << std::endl;
-
   double bond_length = 1.13;  // Angstrom, roughly CO equilibrium
   double h = 1e-3;  // Angstrom -- larger than
                     // cdft_force_finite_difference's own 1e-4, since
