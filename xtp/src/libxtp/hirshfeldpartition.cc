@@ -21,8 +21,8 @@
 #include "votca/xtp/hirshfeldpartition.h"
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/basisset.h"
+#include "votca/xtp/eigen.h"
 #include "votca/xtp/gridbox.h"
-#include "votca/xtp/openmp_cuda.h"
 
 // Standard includes
 #include <cmath>
