@@ -214,6 +214,16 @@ void DFTEngine::Initialize(tools::Property& options) {
 
   initial_guess_ = options.get(".initial_guess").as<std::string>();
 
+  if (initial_guess_ == "dimer_guess") {
+    dimer_guess_orbA_name_ = options.get(".dimer_guess_orbA").as<std::string>();
+    dimer_guess_orbB_name_ = options.get(".dimer_guess_orbB").as<std::string>();
+    if (dimer_guess_orbA_name_.empty() || dimer_guess_orbB_name_.empty()) {
+      throw std::runtime_error(
+          "initial_guess=dimer_guess requires both dimer_guess_orbA and "
+          "dimer_guess_orbB to be set to real monomer .orb file paths.");
+    }
+  }
+
   grid_name_ = options.get(key_xtpdft + ".integration_grid").as<std::string>();
   xc_functional_name_ = options.get(".functional").as<std::string>();
 
@@ -1110,6 +1120,14 @@ bool DFTEngine::EvaluateClosedShell(
       MOs = ExtendedHuckelGuess(orb.QMAtoms());
     } else if (initial_guess_ == "huckel_dft") {
       MOs = ExtendedHuckelDFTGuess(H0, orb.QMAtoms(), vxcpotential);
+    } else if (initial_guess_ == "dimer_guess") {
+      throw std::runtime_error(
+          "initial_guess=dimer_guess is only meaningful for a genuinely "
+          "unrestricted (UKS) calculation -- it exists specifically to "
+          "combine two monomers of independently arbitrary charge/spin, "
+          "which by construction do not reduce to a single restricted "
+          "MO set. Use force_uks_path or an odd total electron count to "
+          "route through EvaluateUKS instead.");
     } else {
       throw std::runtime_error("Initial guess method not known/implemented");
     }
@@ -1325,6 +1343,16 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
           << std::flush;
       MOs_beta = MOs_alpha;
     }
+  } else if (initial_guess_ == "dimer_guess") {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Building UKS guess from two monomer .orb files (dimer_guess)"
+        << std::flush;
+    Orbitals dimer_guess_orb = BuildDimerGuessFromMonomerFiles(orb.QMAtoms());
+    MOs_alpha = dimer_guess_orb.MOs();
+    MOs_alpha.eigenvectors() = OrthogonalizeGuess(MOs_alpha.eigenvectors());
+    MOs_beta = dimer_guess_orb.MOs_beta();
+    MOs_beta.eigenvectors() = OrthogonalizeGuess(MOs_beta.eigenvectors());
   } else {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Setup UKS Initial Guess using: " << initial_guess_
@@ -2580,6 +2608,109 @@ tools::EigenSystem DFTEngine::ExtendedHuckelDFTGuess(
   }
 
   return conv_accelerator_.SolveFockmatrix(H);
+}
+
+Orbitals DFTEngine::BuildDimerGuessFromMonomerFiles(
+    const QMMolecule& dimer_mol) const {
+  Orbitals monomerA;
+  monomerA.ReadFromCpt(dimer_guess_orbA_name_);
+  Orbitals monomerB;
+  monomerB.ReadFromCpt(dimer_guess_orbB_name_);
+
+  const QMMolecule& atomsA = monomerA.QMAtoms();
+  const QMMolecule& atomsB = monomerB.QMAtoms();
+  Index nA = atomsA.size();
+  Index nB = atomsB.size();
+
+  // --- Sanity check 1: element count and sequence ---
+  // Deliberately checked BEFORE the geometry check below -- a clear
+  // "wrong element at index N" error is far more actionable than the
+  // generic "distance mismatch" the geometry check alone would give if
+  // the atom ordering itself were wrong.
+  if (nA + nB != dimer_mol.size()) {
+    throw std::runtime_error(
+        "BuildDimerGuessFromMonomerFiles: monomer A (" +
+        std::to_string(nA) + " atoms) + monomer B (" + std::to_string(nB) +
+        " atoms) does not equal this calculation's own molecule (" +
+        std::to_string(dimer_mol.size()) +
+        " atoms) -- wrong monomer file(s), or this calculation's molecule "
+        "is not simply the concatenation of these two monomers.");
+  }
+  for (Index i = 0; i < nA; ++i) {
+    if (atomsA[i].getElement() != dimer_mol[i].getElement()) {
+      throw std::runtime_error(
+          "BuildDimerGuessFromMonomerFiles: monomer A's own atom " +
+          std::to_string(i) + " (" + atomsA[i].getElement() +
+          ") does not match this calculation's own atom " +
+          std::to_string(i) + " (" + dimer_mol[i].getElement() +
+          ") -- dimer_guess assumes monomer A occupies exactly the first "
+          "N_A atoms of this calculation's molecule, in the same order.");
+    }
+  }
+  for (Index i = 0; i < nB; ++i) {
+    if (atomsB[i].getElement() != dimer_mol[nA + i].getElement()) {
+      throw std::runtime_error(
+          "BuildDimerGuessFromMonomerFiles: monomer B's own atom " +
+          std::to_string(i) + " (" + atomsB[i].getElement() +
+          ") does not match this calculation's own atom " +
+          std::to_string(nA + i) + " (" + dimer_mol[nA + i].getElement() +
+          ") -- dimer_guess assumes monomer B occupies exactly the "
+          "remaining atoms of this calculation's molecule (after monomer "
+          "A's own N_A atoms), in the same order.");
+    }
+  }
+
+  // --- Sanity check 2: internal geometry (translation/rotation
+  // invariant) ---
+  // Every pairwise interatomic distance WITHIN a monomer is unchanged
+  // by rigid translation or rotation of that monomer as a whole --
+  // exactly the operation that happens between a monomer's own,
+  // independent optimization and its placement into the dimer. So this
+  // checks the one thing that SHOULD be identical (internal geometry)
+  // rather than the one thing that is EXPECTED to differ (absolute
+  // position/orientation).
+  constexpr double kGeometryToleranceBohr = 1e-3;
+  auto CheckInternalGeometry = [&](const QMMolecule& monomer_atoms,
+                                   Index offset_in_dimer,
+                                   const std::string& label) {
+    Index n = monomer_atoms.size();
+    for (Index i = 0; i < n; ++i) {
+      for (Index j = i + 1; j < n; ++j) {
+        double monomer_distance =
+            (monomer_atoms[i].getPos() - monomer_atoms[j].getPos()).norm();
+        double dimer_distance =
+            (dimer_mol[offset_in_dimer + i].getPos() -
+             dimer_mol[offset_in_dimer + j].getPos())
+                .norm();
+        double diff = std::abs(monomer_distance - dimer_distance);
+        if (diff > kGeometryToleranceBohr) {
+          throw std::runtime_error(
+              "BuildDimerGuessFromMonomerFiles: " + label +
+              "'s own internal geometry does not match this calculation's "
+              "molecule -- distance between its own atoms " +
+              std::to_string(i) + " and " + std::to_string(j) +
+              " is " + std::to_string(monomer_distance) +
+              " Bohr in the monomer file, but " +
+              std::to_string(dimer_distance) +
+              " Bohr in this calculation's own molecule (difference " +
+              std::to_string(diff) + " Bohr, tolerance " +
+              std::to_string(kGeometryToleranceBohr) +
+              " Bohr). This is checked as an INTERNAL, translation/"
+              "rotation-invariant distance specifically because the "
+              "monomer's absolute position/orientation is expected to "
+              "differ between its own standalone optimization and its "
+              "placement in the dimer -- only its internal geometry "
+              "should still match.");
+        }
+      }
+    }
+  };
+  CheckInternalGeometry(atomsA, 0, "Monomer A");
+  CheckInternalGeometry(atomsB, nA, "Monomer B");
+
+  Orbitals dimer_guess;
+  dimer_guess.PrepareDimerGuessMixedSpin(monomerA, monomerB);
+  return dimer_guess;
 }
 
 }  // namespace xtp
