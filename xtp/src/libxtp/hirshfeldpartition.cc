@@ -22,6 +22,7 @@
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/basisset.h"
 #include "votca/xtp/gridbox.h"
+#include "votca/xtp/openmp_cuda.h"
 
 // Standard includes
 #include <cmath>
@@ -188,31 +189,56 @@ Eigen::MatrixXd HirshfeldPartition::BuildWeightMatrix(
   Index full_size = full_dftbasis.AOBasisSize();
   Eigen::MatrixXd W = Eigen::MatrixXd::Zero(full_size, full_size);
 
+  // Deliberately omp critical around AddtoBigMatrix alone, rather than
+  // the per-thread full-Natoms-squared-sized accumulator pattern used
+  // for the (much smaller) Natoms x 3 force-contribution functions
+  // below -- W is a full AOBasisSize x AOBasisSize matrix, potentially
+  // large for bigger systems, so nthreads separate copies of it would
+  // be a real memory cost; box_contribution (the only thing entering
+  // the critical section) is small and box-local, so only that final,
+  // cheap accumulation step is serialized, not the expensive per-point
+  // EvaluateWeight/CalcAOValues work this loop spends most of its time
+  // on.
+  std::exception_ptr eptr_weightmatrix = nullptr;
+#pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid.getBoxesSize(); ++i) {
-    const GridBox& box = grid[i];
-    if (!box.Matrixsize()) {
-      continue;
-    }
-    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
-    const std::vector<double>& weights = box.getGridWeights();
-
-    Eigen::MatrixXd box_contribution =
-        Eigen::MatrixXd::Zero(box.Matrixsize(), box.Matrixsize());
-
-    for (Index p = 0; p < static_cast<Index>(points.size()); ++p) {
-      double w_i = EvaluateWeight(atoms, target_atom_index, points[p]);
-      if (w_i == 0.0) {
-        // Purely a performance guard (skip the AO evaluation entirely
-        // when it cannot contribute anything), not a correctness one --
-        // see this function's own header comment.
+    try {
+      const GridBox& box = grid[i];
+      if (!box.Matrixsize()) {
         continue;
       }
-      AOShell::AOValues ao = box.CalcAOValues(points[p]);
-      box_contribution +=
-          (weights[p] * w_i) * (ao.values * ao.values.transpose());
-    }
+      const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+      const std::vector<double>& weights = box.getGridWeights();
 
-    box.AddtoBigMatrix(W, box_contribution);
+      Eigen::MatrixXd box_contribution =
+          Eigen::MatrixXd::Zero(box.Matrixsize(), box.Matrixsize());
+
+      for (Index p = 0; p < static_cast<Index>(points.size()); ++p) {
+        double w_i = EvaluateWeight(atoms, target_atom_index, points[p]);
+        if (w_i == 0.0) {
+          // Purely a performance guard (skip the AO evaluation entirely
+          // when it cannot contribute anything), not a correctness one --
+          // see this function's own header comment.
+          continue;
+        }
+        AOShell::AOValues ao = box.CalcAOValues(points[p]);
+        box_contribution +=
+            (weights[p] * w_i) * (ao.values * ao.values.transpose());
+      }
+
+#pragma omp critical
+      { box.AddtoBigMatrix(W, box_contribution); }
+    } catch (...) {
+#pragma omp critical
+      {
+        if (!eptr_weightmatrix) {
+          eptr_weightmatrix = std::current_exception();
+        }
+      }
+    }
+  }
+  if (eptr_weightmatrix) {
+    std::rethrow_exception(eptr_weightmatrix);
   }
 
   // The outer product ao.values * ao.values.transpose() is already
@@ -262,9 +288,16 @@ Eigen::MatrixXd HirshfeldPartition::GridWeightDerivativeContribution(
     const Vxc_Grid& grid) {
   Index natoms = mol.size();
   Eigen::MatrixXd Rij = grid.CalcInverseAtomDist(mol);
-  Eigen::MatrixXd force_contribution = Eigen::MatrixXd::Zero(natoms, 3);
 
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<Eigen::MatrixXd> force_thread(
+      nthreads, Eigen::MatrixXd::Zero(natoms, 3));
+
+  std::exception_ptr eptr_gridweight = nullptr;
+#pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid.getBoxesSize(); ++i) {
+   try {
+    Index thread_id = OPENMP::getThreadId();
     const GridBox& box = grid[i];
     if (!box.Matrixsize()) {
       continue;
@@ -404,9 +437,25 @@ Eigen::MatrixXd HirshfeldPartition::GridWeightDerivativeContribution(
           dwsum += dp_dR(k, A);
         }
         Eigen::Vector3d dw = dp_owner / wsum - w_owner * dwsum / wsum;
-        force_contribution.row(A) += (prefactor * dw).transpose();
+        force_thread[thread_id].row(A) += (prefactor * dw).transpose();
       }
     }
+   } catch (...) {
+#pragma omp critical
+    {
+      if (!eptr_gridweight) {
+        eptr_gridweight = std::current_exception();
+      }
+    }
+   }
+  }
+  if (eptr_gridweight) {
+    std::rethrow_exception(eptr_gridweight);
+  }
+
+  Eigen::MatrixXd force_contribution = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index t = 0; t < nthreads; ++t) {
+    force_contribution += force_thread[t];
   }
   return force_contribution;
 }
@@ -416,84 +465,108 @@ Eigen::MatrixXd HirshfeldPartition::PulayAndTranslationContribution(
     const Eigen::MatrixXd& density_matrix, const AOBasis& full_dftbasis,
     const Vxc_Grid& grid) {
   Index natoms = static_cast<Index>(full_dftbasis.getFuncPerAtom().size());
-  Eigen::MatrixXd force_contribution = Eigen::MatrixXd::Zero(natoms, 3);
 
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<Eigen::MatrixXd> force_thread(
+      nthreads, Eigen::MatrixXd::Zero(natoms, 3));
+
+  std::exception_ptr eptr_pulaytranslation = nullptr;
+#pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid.getBoxesSize(); ++i) {
-    const GridBox& box = grid[i];
-    if (!box.Matrixsize()) {
-      continue;
-    }
-
-    // DMAT_here carries the same factor-of-2 convention as
-    // PulayGradient's own DMAT_here -- temp(mu) below is therefore
-    // already 2*(D*phi)_mu, matching that function's own contribution
-    // formula exactly (no separate factor of 2 needed at the point of
-    // use).
-    const Eigen::MatrixXd DMAT_here = 2 * box.ReadFromBigMatrix(density_matrix);
-
-    // Same box-local-AO-index -> atom-index bookkeeping as
-    // PulayGradient's own, identical reasoning: a box's significant
-    // shells are not guaranteed to be grouped contiguously by atom.
-    std::vector<Index> local_idx_to_atom(box.Matrixsize());
-    const std::vector<const AOShell*>& shells = box.getShells();
-    const std::vector<GridboxRange>& ao_ranges = box.getAOranges();
-    for (size_t s = 0; s < shells.size(); ++s) {
-      Index atom = shells[s]->getAtomIndex();
-      for (Index k = 0; k < ao_ranges[s].size; ++k) {
-        local_idx_to_atom[ao_ranges[s].start + k] = atom;
-      }
-    }
-
-    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
-    const std::vector<double>& weights = box.getGridWeights();
-    const std::vector<Index>& owner_atoms = box.getOwnerAtoms();
-
-    for (Index p = 0; p < box.size(); ++p) {
-      const Eigen::Vector3d& point = points[p];
-      AOShell::AOValues ao = box.CalcAOValues(point);
-      Eigen::VectorXd temp = ao.values.transpose() * DMAT_here;
-      double rho_molecule = 0.5 * temp.dot(ao.values);
-      double weight = weights[p];
-      if (std::abs(rho_molecule * weight) < 1.e-20) {
+    try {
+      Index thread_id = OPENMP::getThreadId();
+      const GridBox& box = grid[i];
+      if (!box.Matrixsize()) {
         continue;
       }
 
-      double w_c = EvaluateWeight(atoms, target_atom_index, point);
+      // DMAT_here carries the same factor-of-2 convention as
+      // PulayGradient's own DMAT_here -- temp(mu) below is therefore
+      // already 2*(D*phi)_mu, matching that function's own contribution
+      // formula exactly (no separate factor of 2 needed at the point of
+      // use).
+      const Eigen::MatrixXd DMAT_here =
+          2 * box.ReadFromBigMatrix(density_matrix);
 
-      // --- Pulay (basis-function) term ---
-      // Same sign/accumulation convention as PulayGradient's own LDA
-      // term, confirmed directly: contribution = -weight * <potential>
-      // * temp(mu) * ao.derivatives.row(mu), with w_c(point) here in
-      // place of xc.df_drho there.
-      for (Index mu = 0; mu < box.Matrixsize(); ++mu) {
-        Index atom = local_idx_to_atom[mu];
-        Eigen::Vector3d contribution =
-            -weight * w_c * temp(mu) * ao.derivatives.row(mu).transpose();
-        force_contribution.row(atom) += contribution.transpose();
+      // Same box-local-AO-index -> atom-index bookkeeping as
+      // PulayGradient's own, identical reasoning: a box's significant
+      // shells are not guaranteed to be grouped contiguously by atom.
+      std::vector<Index> local_idx_to_atom(box.Matrixsize());
+      const std::vector<const AOShell*>& shells = box.getShells();
+      const std::vector<GridboxRange>& ao_ranges = box.getAOranges();
+      for (size_t s = 0; s < shells.size(); ++s) {
+        Index atom = shells[s]->getAtomIndex();
+        for (Index k = 0; k < ao_ranges[s].size; ++k) {
+          local_idx_to_atom[ao_ranges[s].start + k] = atom;
+        }
       }
 
-      // --- Grid-point-translation term ---
-      // Only the point's OWNER atom is affected (r_p moves rigidly
-      // with its owner only) -- see EvaluatePointWeightGradient's own
-      // header comment for the derivation. Full product rule, since
-      // both w_c(r) and rho_molecule(r) vary here (unlike the analogous
-      // XC term, which has only one point-varying factor -- xc.df_drho
-      // is evaluated AT rho, not itself differentiated in that specific
-      // term).
-      Index owner = owner_atoms[p];
-      if (owner < 0) {
-        throw std::runtime_error(
-            "PulayAndTranslationContribution: grid point has no "
-            "owner_atom set -- was this grid built via GridSetup after "
-            "the owner-atom tracking change?");
+      const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+      const std::vector<double>& weights = box.getGridWeights();
+      const std::vector<Index>& owner_atoms = box.getOwnerAtoms();
+
+      for (Index p = 0; p < box.size(); ++p) {
+        const Eigen::Vector3d& point = points[p];
+        AOShell::AOValues ao = box.CalcAOValues(point);
+        Eigen::VectorXd temp = ao.values.transpose() * DMAT_here;
+        double rho_molecule = 0.5 * temp.dot(ao.values);
+        double weight = weights[p];
+        if (std::abs(rho_molecule * weight) < 1.e-20) {
+          continue;
+        }
+
+        double w_c = EvaluateWeight(atoms, target_atom_index, point);
+
+        // --- Pulay (basis-function) term ---
+        // Same sign/accumulation convention as PulayGradient's own LDA
+        // term, confirmed directly: contribution = -weight * <potential>
+        // * temp(mu) * ao.derivatives.row(mu), with w_c(point) here in
+        // place of xc.df_drho there.
+        for (Index mu = 0; mu < box.Matrixsize(); ++mu) {
+          Index atom = local_idx_to_atom[mu];
+          Eigen::Vector3d contribution =
+              -weight * w_c * temp(mu) * ao.derivatives.row(mu).transpose();
+          force_thread[thread_id].row(atom) += contribution.transpose();
+        }
+
+        // --- Grid-point-translation term ---
+        // Only the point's OWNER atom is affected (r_p moves rigidly
+        // with its owner only) -- see EvaluatePointWeightGradient's own
+        // header comment for the derivation. Full product rule, since
+        // both w_c(r) and rho_molecule(r) vary here (unlike the analogous
+        // XC term, which has only one point-varying factor -- xc.df_drho
+        // is evaluated AT rho, not itself differentiated in that specific
+        // term).
+        Index owner = owner_atoms[p];
+        if (owner < 0) {
+          throw std::runtime_error(
+              "PulayAndTranslationContribution: grid point has no "
+              "owner_atom set -- was this grid built via GridSetup after "
+              "the owner-atom tracking change?");
+        }
+        Eigen::Vector3d rho_molecule_grad = temp.transpose() * ao.derivatives;
+        Eigen::Vector3d grad_w_c =
+            EvaluatePointWeightGradient(atoms, target_atom_index, point);
+        Eigen::Vector3d translation_term =
+            weight * (grad_w_c * rho_molecule + w_c * rho_molecule_grad);
+        force_thread[thread_id].row(owner) += translation_term.transpose();
       }
-      Eigen::Vector3d rho_molecule_grad = temp.transpose() * ao.derivatives;
-      Eigen::Vector3d grad_w_c =
-          EvaluatePointWeightGradient(atoms, target_atom_index, point);
-      Eigen::Vector3d translation_term =
-          weight * (grad_w_c * rho_molecule + w_c * rho_molecule_grad);
-      force_contribution.row(owner) += translation_term.transpose();
+    } catch (...) {
+#pragma omp critical
+      {
+        if (!eptr_pulaytranslation) {
+          eptr_pulaytranslation = std::current_exception();
+        }
+      }
     }
+  }
+  if (eptr_pulaytranslation) {
+    std::rethrow_exception(eptr_pulaytranslation);
+  }
+
+  Eigen::MatrixXd force_contribution = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index t = 0; t < nthreads; ++t) {
+    force_contribution += force_thread[t];
   }
   return force_contribution;
 }
@@ -503,32 +576,55 @@ Eigen::MatrixXd HirshfeldPartition::WeightFunctionDerivativeContribution(
     const Eigen::MatrixXd& density_matrix, const AOBasis& full_dftbasis,
     const Vxc_Grid& grid) {
   Index natoms = static_cast<Index>(full_dftbasis.getFuncPerAtom().size());
-  Eigen::MatrixXd force_contribution = Eigen::MatrixXd::Zero(natoms, 3);
 
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<Eigen::MatrixXd> force_thread(
+      nthreads, Eigen::MatrixXd::Zero(natoms, 3));
+
+  std::exception_ptr eptr_weightfunction = nullptr;
+#pragma omp parallel for schedule(guided)
   for (Index i = 0; i < grid.getBoxesSize(); ++i) {
-    const GridBox& box = grid[i];
-    if (!box.Matrixsize()) {
-      continue;
-    }
-    const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
-    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
-    const std::vector<double>& weights = box.getGridWeights();
-
-    for (Index p = 0; p < box.size(); ++p) {
-      const Eigen::Vector3d& point = points[p];
-      AOShell::AOValues ao = box.CalcAOValues(point);
-      double rho_molecule = ao.values.dot(DMAT_here * ao.values);
-      double weight = weights[p];
-      if (std::abs(rho_molecule * weight) < 1.e-20) {
+    try {
+      Index thread_id = OPENMP::getThreadId();
+      const GridBox& box = grid[i];
+      if (!box.Matrixsize()) {
         continue;
       }
-      double prefactor = weight * rho_molecule;
-      for (Index A = 0; A < natoms; ++A) {
-        Eigen::Vector3d dw_dR_A =
-            EvaluateWeightGradient(atoms, target_atom_index, A, point);
-        force_contribution.row(A) += (prefactor * dw_dR_A).transpose();
+      const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
+      const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+      const std::vector<double>& weights = box.getGridWeights();
+
+      for (Index p = 0; p < box.size(); ++p) {
+        const Eigen::Vector3d& point = points[p];
+        AOShell::AOValues ao = box.CalcAOValues(point);
+        double rho_molecule = ao.values.dot(DMAT_here * ao.values);
+        double weight = weights[p];
+        if (std::abs(rho_molecule * weight) < 1.e-20) {
+          continue;
+        }
+        double prefactor = weight * rho_molecule;
+        for (Index A = 0; A < natoms; ++A) {
+          Eigen::Vector3d dw_dR_A =
+              EvaluateWeightGradient(atoms, target_atom_index, A, point);
+          force_thread[thread_id].row(A) += (prefactor * dw_dR_A).transpose();
+        }
+      }
+    } catch (...) {
+#pragma omp critical
+      {
+        if (!eptr_weightfunction) {
+          eptr_weightfunction = std::current_exception();
+        }
       }
     }
+  }
+  if (eptr_weightfunction) {
+    std::rethrow_exception(eptr_weightfunction);
+  }
+
+  Eigen::MatrixXd force_contribution = Eigen::MatrixXd::Zero(natoms, 3);
+  for (Index t = 0; t < nthreads; ++t) {
+    force_contribution += force_thread[t];
   }
   return force_contribution;
 }
