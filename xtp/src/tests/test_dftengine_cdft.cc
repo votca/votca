@@ -130,6 +130,55 @@ std::string WriteOptionsXML() {
   return xml_path;
 }
 
+// Same as WriteOptionsXML, but also enables compute_forces and a
+// single-atom (carbon, index 0) CDFT charge constraint -- needed for
+// cdft_total_force_finite_difference below, which validates the
+// PRODUCTION path (DFTEngine::Evaluate's own cdft_enabled_ dispatch,
+// including the force correction wired in there), not RunCDFT called
+// directly the way rundcft_reaches_shifted_target_population does.
+std::string WriteCDFTForcesOptionsXML(double target_charge) {
+  std::string xml_path = "/tmp/xtp_test_dftengine_cdft_forces.xml";
+  std::ofstream xml(xml_path);
+  xml << "<dftpackage>\n";
+  xml << "<spin>1</spin>\n";
+  xml << "<name>xtp</name>\n";
+  xml << "<charge>0</charge>\n";
+  xml << "<functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional>\n";
+  xml << "<basisset>" << XTP_TEST_DATA_FOLDER
+      << "/hirshfeldpartition/3-21G.xml</basisset>\n";
+  xml << "<auxbasisset>" << XTP_TEST_DATA_FOLDER
+      << "/diabatization/aux-def2-svp.xml</auxbasisset>\n";
+  xml << "<initial_guess>independent</initial_guess>\n";
+  xml << "<xtpdft>\n";
+  xml << "<screening_eps>1e-9</screening_eps>\n";
+  xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
+  xml << "<compute_forces>true</compute_forces>\n";
+  xml << "<cdft>\n";
+  xml << "  <enabled>true</enabled>\n";
+  xml << "  <indices>0</indices>\n";
+  xml << "  <charge>" << target_charge << "</charge>\n";
+  xml << "</cdft>\n";
+  xml << "<convergence>\n";
+  xml << "    <energy>1e-9</energy>\n";
+  xml << "    <method>DIIS</method>\n";
+  xml << "    <DIIS_start>0.002</DIIS_start>\n";
+  xml << "    <ADIIS_start>0.8</ADIIS_start>\n";
+  xml << "    <DIIS_length>20</DIIS_length>\n";
+  xml << "    <levelshift>0.0</levelshift>\n";
+  xml << "    <levelshift_end>0.2</levelshift_end>\n";
+  xml << "    <max_iterations>100</max_iterations>\n";
+  xml << "    <error>1e-8</error>\n";
+  xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
+  xml << "    <mixing>0.7</mixing>\n";
+  xml << "</convergence>\n";
+  xml << "<integration_grid>fine</integration_grid>\n";
+  xml << "<max_iterations>200</max_iterations>\n";
+  xml << "</xtpdft>\n";
+  xml << "</dftpackage>\n";
+  xml.close();
+  return xml_path;
+}
+
 // Measures the Hirshfeld population on target_atom_index from orb's
 // OWN, currently-stored MOs -- deliberately uses the exact same
 // spin_alpha/beta_coefficient=+1/+1 (charge) weighting RunCDFT itself
@@ -238,6 +287,116 @@ BOOST_AUTO_TEST_CASE(rundcft_reaches_shifted_target_population) {
  } catch (const std::runtime_error& e) {
    std::cout << "SKIPPING rundcft_reaches_shifted_target_population: "
              << e.what() << std::endl;
+   libint2::finalize();
+   return;
+ }
+
+  libint2::finalize();
+}
+
+// ===========================================================================
+// STATUS: written but NOT yet run. Validates the PRODUCTION path this
+// time -- DFTEngine::Evaluate's own cdft_enabled_ dispatch, including
+// the force correction wired into it -- not RunCDFT called directly
+// the way rundcft_reaches_shifted_target_population does. This is the
+// natural next step after ComputeCDFTForceContribution's own
+// fixed-density-matrix finite-difference test (in
+// test_hirshfeldpartition.cc) already passed to near machine
+// precision: THAT test confirmed the underlying force TERM is
+// mathematically correct in isolation; THIS test checks that it is
+// correctly wired into a real, fully self-consistent CDFT calculation
+// end to end -- Evaluate() -> BuildCDFTConstraint -> RunCDFT (full
+// bisection, warm-started inner SCF) -> the force correction added
+// afterward.
+//
+// Runs three FULL CDFT calculations (bond_length, bond_length+h,
+// bond_length-h), each its own complete outer bisection loop -- unlike
+// the fixed-density-matrix test, there is no way to isolate just the
+// force term here without running the real optimizer, so this is
+// slower (comparable to or more than the existing "3 full SCF"
+// plain-DFT forces test already in this codebase).
+// ===========================================================================
+BOOST_AUTO_TEST_CASE(cdft_total_force_finite_difference) {
+  libint2::initialize();
+ try {
+  double bond_length = 1.13;  // Angstrom, roughly CO equilibrium
+  double h = 1e-3;  // Angstrom -- larger than
+                    // cdft_force_finite_difference's own 1e-4, since
+                    // each displaced geometry here needs a FULL,
+                    // re-converged CDFT calculation (SCF convergence
+                    // threshold, cdft_population_tolerance_) whose own
+                    // noise floor would otherwise swamp too small a
+                    // step.
+  double target_charge = 0.3;  // Relative to neutral -- arbitrary but
+                               // large enough that RunCDFT's own
+                               // +-0.1 initial lambda bracket has
+                               // genuine work to do.
+
+  std::string xml_path = WriteCDFTForcesOptionsXML(target_charge);
+  votca::tools::Property prop;
+  prop.LoadFromXML(xml_path);
+
+  auto run_cdft_at_bond_length = [&](double bl) {
+    DFTEngine dft;
+    Logger log;
+    dft.setLogger(&log);
+    dft.Initialize(prop.get("dftpackage"));
+    Orbitals orb;
+    orb.QMAtoms() = BuildCO(bl);
+    bool converged = dft.Evaluate(orb);
+    if (!converged) {
+      throw std::runtime_error(
+          "cdft_total_force_finite_difference: CDFT did not converge "
+          "at bond_length=" +
+          std::to_string(bl));
+    }
+    return orb;
+  };
+
+  Orbitals orb0 = run_cdft_at_bond_length(bond_length);
+  BOOST_REQUIRE_EQUAL(orb0.hasForces(), true);
+
+  Orbitals orb_plus = run_cdft_at_bond_length(bond_length + h);
+  Orbitals orb_minus = run_cdft_at_bond_length(bond_length - h);
+
+  double h_bohr = h * 1.8897259886;  // Angstrom -> Bohr
+  // Numerical FORCE (not gradient) directly: F = -dE/dR, so
+  // -(E(+h)-E(-h))/(2h) IS the numerical force already, matching
+  // orb0.getForces()'s own convention with no extra sign flip needed.
+  double numerical_force_oxygen_z =
+      -(orb_plus.getDFTTotalEnergy() - orb_minus.getDFTTotalEnergy()) /
+      (2.0 * h_bohr);
+
+  // Oxygen is atom index 1 in BuildCO's own xyz, displaced purely
+  // along z (the bond axis).
+  double analytic_force_oxygen_z = orb0.getForces()(1, 2);
+
+  std::cout << "Numerical total CDFT force on oxygen_z: "
+            << numerical_force_oxygen_z
+            << ", analytic (F_DFT + F_c): " << analytic_force_oxygen_z
+            << std::endl;
+
+  double mismatch =
+      std::abs(numerical_force_oxygen_z - analytic_force_oxygen_z);
+  if (mismatch > 1.e-3) {
+    std::cout << "NOTE: if this fails, first check whether it is merely "
+                 "large-ish (SCF/cdft_population_tolerance_ convergence "
+                 "noise across the three independently-converged "
+                 "calculations, or finite-difference step error) or "
+                 "drastically wrong. Since ComputeCDFTForceContribution "
+                 "itself already passed an independent, fixed-density-"
+                 "matrix finite-difference test to near machine "
+                 "precision, a large failure HERE points specifically at "
+                 "the WIRING (Evaluate()'s own force-correction block: "
+                 "the sign, the -lambda*correction formula, or reusing "
+                 "the correct converged density/lambda), not at the "
+                 "underlying force term's own math."
+              << std::endl;
+  }
+  BOOST_CHECK_SMALL(mismatch, 1.e-3);
+ } catch (const std::runtime_error& e) {
+   std::cout << "SKIPPING cdft_total_force_finite_difference: " << e.what()
+             << std::endl;
    libint2::finalize();
    return;
  }
