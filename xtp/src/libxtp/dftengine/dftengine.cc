@@ -2709,6 +2709,13 @@ Orbitals DFTEngine::BuildDimerGuessFromMonomerFiles(
   CheckInternalGeometry(atomsB, nA, "Monomer B");
 
   Orbitals dimer_guess;
+  // PrepareDimerGuess/PrepareDimerGuessMixedSpin both call SetupDftBasis
+  // internally, which needs this->QMAtoms() already populated -- the
+  // SAME requirement iqm.cc's own, existing caller of PrepareDimerGuess
+  // already satisfies (orbitalsAB.QMAtoms() is set there well before its
+  // own PrepareDimerGuess call), confirmed directly by reading that
+  // code rather than assumed.
+  dimer_guess.QMAtoms() = dimer_mol;
   dimer_guess.PrepareDimerGuessMixedSpin(monomerA, monomerB);
   return dimer_guess;
 }
