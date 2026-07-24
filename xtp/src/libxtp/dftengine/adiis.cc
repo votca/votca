@@ -79,28 +79,29 @@ Eigen::VectorXd ADIIS::CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
   Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / double(size));
   optimizer.Optimize(coeffs);
   success = optimizer.Success();
+  bool optimizer_success = success;
   coeffs = optimizer.getParameters().cwiseAbs2();
   double xnorm = coeffs.sum();
   coeffs /= xnorm;
 
-  // Temporary diagnostic (see the conversation this grew out of): two
-  // genuinely different conditions can set success=false above/below --
-  // the BFGSTRM optimizer itself reporting failure, vs. this specific
-  // heuristic (the optimal ADIIS weight on the MOST RECENT iteration's
-  // own matrix being near-zero, suggesting the extrapolation does not
-  // trust the newest estimate at all). Distinguishing which one is
-  // actually firing, on a system where ADIIS has been failing on
-  // essentially every iteration, determines whether the right next
-  // step is investigating the optimizer itself or reconsidering this
-  // 0.001 threshold specifically.
-  if (!success) {
-    std::cerr << "ADIIS (restricted) failed: optimizer.Success()="
-              << optimizer.Success() << ", tail coeff="
-              << std::abs(coeffs.tail(1).value()) << std::endl;
-  }
-
   if (std::abs(coeffs.tail(1).value()) < 0.001) {
     success = false;
+  }
+
+  // Temporary diagnostic (see the conversation this grew out of):
+  // placed AFTER both failure conditions are evaluated, deliberately --
+  // an earlier version of this diagnostic sat between them and could
+  // therefore only ever see optimizer_success failing, never the
+  // second, separate condition (the optimal ADIIS weight on the MOST
+  // RECENT iteration's own matrix being near-zero). Distinguishing
+  // which one is actually firing, on a system where ADIIS has been
+  // failing on essentially every iteration, determines whether the
+  // right next step is investigating the optimizer itself or
+  // reconsidering this 0.001 threshold specifically.
+  if (!success) {
+    std::cerr << "ADIIS (restricted) failed: optimizer_success="
+              << optimizer_success << ", tail coeff="
+              << std::abs(coeffs.tail(1).value()) << std::endl;
   }
   return coeffs;
 }
@@ -151,23 +152,25 @@ Eigen::VectorXd ADIIS::CalcCoeff(
   Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / double(size));
   optimizer.Optimize(coeffs);
   success = optimizer.Success();
+  bool optimizer_success = success;
 
   coeffs = optimizer.getParameters().cwiseAbs2();
   double xnorm = coeffs.sum();
   coeffs /= xnorm;
 
-  // Temporary diagnostic -- see the identical comment in the restricted
-  // CalcCoeff overload above for the full reasoning. This is the
-  // overload actually exercised by UKS calculations, including the
-  // water dimer cation this diagnostic was added for specifically.
-  if (!success) {
-    std::cerr << "ADIIS (unrestricted) failed: optimizer.Success()="
-              << optimizer.Success() << ", tail coeff="
-              << std::abs(coeffs.tail(1).value()) << std::endl;
-  }
-
   if (std::abs(coeffs.tail(1).value()) < 0.001) {
     success = false;
+  }
+
+  // Temporary diagnostic -- see the identical comment in the restricted
+  // CalcCoeff overload above for the full reasoning (in particular, WHY
+  // this is placed after both conditions, not between them). This is
+  // the overload actually exercised by UKS calculations, including the
+  // water dimer cation this diagnostic was added for specifically.
+  if (!success) {
+    std::cerr << "ADIIS (unrestricted) failed: optimizer_success="
+              << optimizer_success << ", tail coeff="
+              << std::abs(coeffs.tail(1).value()) << std::endl;
   }
   return coeffs;
 }
