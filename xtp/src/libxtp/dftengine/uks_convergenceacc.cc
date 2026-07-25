@@ -353,7 +353,16 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
                                fock_builder, F_MO, this,       diag_h};
     DavidsonSolver solver(*log_);
     solver.set_matrix_type("SYMM");
-    solver.set_tolerance("normal");
+    // Loosened from "normal" (1e-4): each bisection trial's own
+    // Davidson solve is just one approximate step inside the outer
+    // Fletcher accept/reject loop (which already independently
+    // catches a bad step and retries with a smaller trust radius
+    // regardless), so it does not need to fully converge on every
+    // single one of up to kMaxBisectionIters trials -- a real,
+    // reported cost problem confirmed directly: ~1.4s per Davidson
+    // solve, times up to 20 bisection trials per spin channel, made a
+    // single AugmentedHessianStep call impractically slow.
+    solver.set_tolerance("loose");
     solver.set_iter_max(16);
     solver.solve(op, 1, initial_guess);
     Eigen::VectorXd eigvec = solver.eigenvectors().col(0);
@@ -377,7 +386,17 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
   // own off-diagonal coupling alpha*g needlessly large before there is
   // any reason yet to believe that is necessary.
   double alpha_try = alpha_min;
-  for (int bisection_iter = 0; bisection_iter < 20; ++bisection_iter) {
+  // Reduced from 20 -- bisection narrows [alpha_min, alpha_max] by
+  // half each iteration, so even 8 iterations already shrinks the
+  // paper's own default [1, 1000] interval by a factor of 2^8=256
+  // (down to a width of ~4), comfortably within any reasonable
+  // precision this trust-radius constraint actually needs -- the
+  // previous 20 was an arbitrary, generous choice never tuned against
+  // actual cost, and each additional iteration means another full
+  // Davidson solve (confirmed directly: ~1.4s each on this system).
+  constexpr int kMaxBisectionIters = 8;
+  for (int bisection_iter = 0; bisection_iter < kMaxBisectionIters;
+      ++bisection_iter) {
     Eigen::VectorXd kappa_flat;
     double mu;
     SolveForAlpha(alpha_try, kappa_flat, mu);
