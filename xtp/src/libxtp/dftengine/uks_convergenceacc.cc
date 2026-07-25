@@ -452,15 +452,19 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
   // own off-diagonal coupling alpha*g needlessly large before there is
   // any reason yet to believe that is necessary.
   double alpha_try = alpha_min;
-  // Reduced from 20 -- bisection narrows [alpha_min, alpha_max] by
-  // half each iteration, so even 8 iterations already shrinks the
-  // paper's own default [1, 1000] interval by a factor of 2^8=256
-  // (down to a width of ~4), comfortably within any reasonable
-  // precision this trust-radius constraint actually needs -- the
-  // previous 20 was an arbitrary, generous choice never tuned against
-  // actual cost, and each additional iteration means another full
-  // Davidson solve (confirmed directly: ~1.4s each on this system).
-  constexpr int kMaxBisectionIters = 8;
+  // Increased from 8 -- a real run showed the bisection failing to
+  // actually converge within 8 iterations for at least some trials:
+  // requesting trust_radius=0.098 landed on achieved step_norm=0.1374,
+  // roughly 40% off target and identical to the PREVIOUS call's own
+  // achieved value for trust_radius=0.14 -- i.e. hitting the iteration
+  // cap without satisfying its own 1% convergence criterion at all,
+  // rather than genuinely tracking the shrinking trust radius. The
+  // interval-halving math (2^n shrink factor) says 8 should be enough
+  // for a well-behaved, monotonic step_norm(alpha); the real data says
+  // otherwise for at least part of this system's own trajectory, so
+  // this trades back some of the earlier cost reduction for a bisection
+  // that actually reaches its own target.
+  constexpr int kMaxBisectionIters = 20;
   for (int bisection_iter = 0; bisection_iter < kMaxBisectionIters;
       ++bisection_iter) {
     Eigen::VectorXd kappa_flat;
