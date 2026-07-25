@@ -98,9 +98,18 @@ class UKSConvergenceAcc {
   /// SCF methods (confirmed directly, on this exact system, to resolve
   /// an ADIIS/DIIS convergence failure that ORCA's own auto-TRAH
   /// fallback also had to invoke), not a full implementation of either.
-  Eigen::MatrixXd DirectMinimizationRotation(const Eigen::MatrixXd& H_AO,
-                                             const tools::EigenSystem& MOs,
-                                             Index nocclevels) const;
+  /// predicted_energy_change (output): the quadratic model's own
+  /// predicted E_new - E_old, Sum_ia[g_ia*kappa_ia + 0.5*h_ia*kappa_ia^2]
+  /// using the SAME (possibly per-element- and trust-radius-clamped)
+  /// kappa actually applied -- needed by Iterate's own Fletcher-style
+  /// accept/reject logic (see its own header comment) to compute the
+  /// ratio r = E_actual_change / E_predicted_change once the actual,
+  /// post-step energy becomes available (on the NEXT Iterate() call,
+  /// once the caller has built a new Fock matrix from this step's own
+  /// density and passed its energy back in).
+  Eigen::MatrixXd DirectMinimizationRotation(
+      const Eigen::MatrixXd& H_AO, const tools::EigenSystem& MOs,
+      Index nocclevels, double& predicted_energy_change) const;
 
   options opt_alpha_;
   options opt_beta_;
@@ -135,7 +144,25 @@ class UKSConvergenceAcc {
   // already did before this addition.
   Index consecutive_adiis_failures_ = 0;
   static constexpr Index kMaxConsecutiveADIISFailures = 5;
-  static constexpr double trust_radius_ = 0.2;
+
+  // Fletcher's trust-radius update (Helmich-Paris, J. Chem. Phys. 154,
+  // 164104 (2021), Sec. II D -- ORCA's own TRAH-SCF paper, confirmed
+  // directly by reading it rather than reconstructed from memory): the
+  // trust radius is no longer a fixed constant. direct_min_pending_
+  // marks that the MOs/density just returned came from a
+  // DirectMinimizationRotation step whose actual effect on the energy
+  // has not yet been verified -- checked at the START of the NEXT
+  // Iterate() call (see this class's own header comment on
+  // DirectMinimizationRotation for why it can only be checked then,
+  // not within the same call that took the step).
+  bool direct_min_pending_ = false;
+  double direct_min_pre_energy_ = 0.0;
+  double direct_min_predicted_change_ = 0.0;
+  Eigen::MatrixXd direct_min_pre_MOs_alpha_;
+  Eigen::MatrixXd direct_min_pre_MOs_beta_;
+  Eigen::VectorXd direct_min_pre_MOs_alpha_energies_;
+  Eigen::VectorXd direct_min_pre_MOs_beta_energies_;
+  double trust_radius_current_ = 0.2;
 };
 
 }  // namespace xtp

@@ -67,7 +67,7 @@ tools::EigenSystem UKSConvergenceAcc::SolveFockmatrix(
 
 Eigen::MatrixXd UKSConvergenceAcc::DirectMinimizationRotation(
     const Eigen::MatrixXd& H_AO, const tools::EigenSystem& MOs,
-    Index nocclevels) const {
+    Index nocclevels, double& predicted_energy_change) const {
   Index nao = MOs.eigenvectors().rows();
   const Eigen::MatrixXd& C = MOs.eigenvectors();
   const Eigen::VectorXd& eps = MOs.eigenvalues();
@@ -82,6 +82,13 @@ Eigen::MatrixXd UKSConvergenceAcc::DirectMinimizationRotation(
   // would leave the density matrix (and therefore the energy) entirely
   // unchanged, so there is nothing to gain from including them.
   Eigen::MatrixXd kappa = Eigen::MatrixXd::Zero(nao, nao);
+  // g_h_ratio(i,a) below stores kappa_ia's own g_ia/h_ia BEFORE the
+  // whole-matrix trust-radius scaling further down -- needed again
+  // afterward to compute the quadratic model's predicted energy change
+  // using the FINAL (per-element- and trust-radius-clamped) kappa,
+  // since g_ia and h_ia themselves do not change under that later,
+  // uniform rescaling, only kappa does.
+  Eigen::MatrixXd h_matrix = Eigen::MatrixXd::Zero(nao, nao);
   // Guards near-degenerate occ-virt orbital pairs from producing a
   // wildly oversized step for THAT pair specifically -- confirmed
   // directly against an independent ORCA reference run on this exact
@@ -114,16 +121,33 @@ Eigen::MatrixXd UKSConvergenceAcc::DirectMinimizationRotation(
       // Approximate, diagonal Hessian: orbital energy differences --
       // the same cheap starting approximation used by most quasi-
       // Newton SCF methods (e.g. SOSCF's own initial Hessian guess).
-      double kappa_ia = -F_MO(i, a) / (2.0 * gap);
+      double h_ia = 2.0 * gap;
+      double kappa_ia = -F_MO(i, a) / h_ia;
       kappa_ia = std::clamp(kappa_ia, -kMaxKappaElement, kMaxKappaElement);
       kappa(i, a) = kappa_ia;
       kappa(a, i) = -kappa_ia;
+      h_matrix(i, a) = h_ia;
     }
   }
 
   double knorm = kappa.norm();
-  if (knorm > trust_radius_) {
-    kappa *= (trust_radius_ / knorm);
+  if (knorm > trust_radius_current_) {
+    kappa *= (trust_radius_current_ / knorm);
+  }
+
+  // Quadratic model's own predicted energy change, Sum_ia[g_ia*kappa_ia
+  // + 0.5*h_ia*kappa_ia^2], using the FINAL kappa (after both the
+  // per-element clamp and the whole-matrix trust-radius scaling above)
+  // -- needed by Iterate's own Fletcher-style accept/reject logic.
+  // g_ia = F_MO(i,a) directly, matching the sign convention kappa_ia =
+  // -F_MO(i,a)/h_ia was itself built from above.
+  predicted_energy_change = 0.0;
+  for (Index i = 0; i < nocclevels; ++i) {
+    for (Index a = nocclevels; a < nao; ++a) {
+      double kappa_ia = kappa(i, a);
+      predicted_energy_change +=
+          F_MO(i, a) * kappa_ia + 0.5 * h_matrix(i, a) * kappa_ia * kappa_ia;
+    }
   }
 
   // exp(kappa) ~= I + kappa is valid specifically because the trust-
@@ -192,6 +216,58 @@ double UKSConvergenceAcc::CombinedError(const Eigen::MatrixXd& err_alpha,
 UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
     const SpinDensity& dmat, SpinFock& H, tools::EigenSystem& MOs_alpha,
     tools::EigenSystem& MOs_beta, double totE) {
+
+  // Fletcher's trust-radius update (Helmich-Paris, J. Chem. Phys. 154,
+  // 164104 (2021), Sec. II D -- confirmed directly by reading that
+  // paper, not reconstructed from memory): verify whatever
+  // DirectMinimizationRotation step was taken last call, now that its
+  // actual effect on the energy (totE, just passed in -- computed by
+  // the caller from a real Fock build on that step's own density) is
+  // finally available. This CANNOT be checked within the same
+  // Iterate() call that took the step, since that call has no way to
+  // know what energy its own returned density will produce until the
+  // caller has built a new Fock matrix from it and come back around.
+  if (direct_min_pending_) {
+    double actual_change = totE - direct_min_pre_energy_;
+    double r = (std::abs(direct_min_predicted_change_) > 1e-14)
+                  ? actual_change / direct_min_predicted_change_
+                  : -1.0;  // treat a degenerate (~zero) predicted change
+                          // as an outright reject, same as r<0 below --
+                          // the model gave no useful information about
+                          // this step at all.
+    XTP_LOG(Log::warning, *log_)
+        << TimeStamp() << " Direct-minimization step check: actual dE="
+        << actual_change << ", predicted dE=" << direct_min_predicted_change_
+        << ", r=" << r << ", trust radius=" << trust_radius_current_
+        << std::flush;
+    if (r < 0.0) {
+      // Reject: the quadratic model was not applicable within the
+      // given trust region (either the energy rose while predicted to
+      // fall, or vice versa). Revert to the pre-step MOs/energy and
+      // shrink the trust radius -- the NEXT call's own
+      // consecutive_adiis_failures_ check will naturally retry
+      // DirectMinimizationRotation from this reverted point with the
+      // smaller radius, since nothing here has changed the underlying
+      // (A)DIIS behavior that triggered it in the first place.
+      trust_radius_current_ *= 0.7;
+      MOs_alpha.eigenvectors() = direct_min_pre_MOs_alpha_;
+      MOs_beta.eigenvectors() = direct_min_pre_MOs_beta_;
+      MOs_alpha.eigenvalues() = direct_min_pre_MOs_alpha_energies_;
+      MOs_beta.eigenvalues() = direct_min_pre_MOs_beta_energies_;
+      totE_.push_back(direct_min_pre_energy_);
+      direct_min_pending_ = false;
+      usedmixing_ = false;
+      return DensityMatrix(MOs_alpha, MOs_beta);
+    } else if (r <= 0.25) {
+      // Accepted, but the step was too long -- shrink for next time.
+      trust_radius_current_ *= 0.7;
+    } else if (r > 0.75) {
+      // Accepted, and the model was a good fit -- grow for next time.
+      trust_radius_current_ *= 1.2;
+    }
+    // 0.25 < r <= 0.75: accepted, trust radius left unchanged.
+    direct_min_pending_ = false;
+  }
 
   if (int(mathist_alpha_.size()) == opt_alpha_.histlength) {
     totE_.erase(totE_.begin() + maxerrorindex_);
@@ -289,10 +365,26 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
             << TimeStamp() << " (A)DIIS failed " << consecutive_adiis_failures_
             << " times in a row, switching to direct-minimization step"
             << std::flush;
-        Eigen::MatrixXd C_new_alpha =
-            DirectMinimizationRotation(H.alpha, MOs_alpha, nocclevels_alpha_);
-        Eigen::MatrixXd C_new_beta =
-            DirectMinimizationRotation(H.beta, MOs_beta, nocclevels_beta_);
+        // Save the pre-step state so this step's actual effect can be
+        // verified (and, if necessary, reverted) once its own energy
+        // becomes available on the NEXT Iterate() call -- see the
+        // Fletcher accept/reject check at the top of this function.
+        direct_min_pre_energy_ = totE;
+        direct_min_pre_MOs_alpha_ = MOs_alpha.eigenvectors();
+        direct_min_pre_MOs_beta_ = MOs_beta.eigenvectors();
+        direct_min_pre_MOs_alpha_energies_ = MOs_alpha.eigenvalues();
+        direct_min_pre_MOs_beta_energies_ = MOs_beta.eigenvalues();
+
+        double predicted_change_alpha = 0.0;
+        double predicted_change_beta = 0.0;
+        Eigen::MatrixXd C_new_alpha = DirectMinimizationRotation(
+            H.alpha, MOs_alpha, nocclevels_alpha_, predicted_change_alpha);
+        Eigen::MatrixXd C_new_beta = DirectMinimizationRotation(
+            H.beta, MOs_beta, nocclevels_beta_, predicted_change_beta);
+        direct_min_predicted_change_ =
+            predicted_change_alpha + predicted_change_beta;
+        direct_min_pending_ = true;
+
         MOs_alpha.eigenvectors() = C_new_alpha;
         MOs_beta.eigenvectors() = C_new_beta;
         // Approximate orbital energies from the (only approximately
