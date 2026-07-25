@@ -85,23 +85,23 @@ Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
     const FockBuilder& fock_builder, const Eigen::MatrixXd& g_occ_virt) const {
   Index nao = C.rows();
   Index nvirt = nao - nocclevels;
+  (void)g_occ_virt;  // no longer needed for a CENTRAL difference -- kept
+                    // in the signature for interface stability with
+                    // AugmentedHessianOperator's own construction.
 
-  // Standard finite-difference Hessian-vector product: step a small
-  // amount along the trial direction v_ov, and compare the resulting
-  // gradient against the unperturbed one -- avoids needing the exact,
-  // analytic coupled-perturbed Fock response the augmented Hessian's
-  // own true sigma vector would require (see this class's own header
-  // comment on this function and on AugmentedHessianStep for the full
-  // reasoning).
-  // Temporarily increased from 1e-4 -- a probe on this exact system
-  // (see the conversation this grew out of) showed sigma(g/||g||) at
-  // ~2270 in magnitude, roughly 20-4000x larger than the diagonal
-  // Hessian's own scale, suggesting the finite-difference numerator
-  // itself carries some OTHER numerical noise floor (candidates:
-  // fock_builder's own 1e-8 integral-screening tolerance, or the
-  // Lowdin re-orthonormalization) that does not shrink proportionally
-  // with the step -- testing whether a larger step dilutes that noise
-  // relative to the true signal.
+  // CENTRAL, not one-sided/forward, finite-difference Hessian-vector
+  // product -- confirmed necessary, not just a nicety, by this
+  // class's own symmetry check (u.(H*v) vs v.(H*u), see the
+  // conversation this grew out of): a forward difference's leading
+  // error term is proportional to the THIRD derivative of the energy,
+  // which is not symmetric between u and v the way the true Hessian
+  // is, and empirically this asymmetry was found to be large (a
+  // complete, ~100% relative mismatch), not a small correction on an
+  // otherwise-good answer. A central difference cancels this leading,
+  // odd-order error term exactly, at the cost of one extra Fock build
+  // per sigma-vector evaluation (two perturbed gradient evaluations
+  // instead of one, since the UNPERTURBED gradient g_occ_virt is no
+  // longer needed at all for this formula).
   constexpr double kFiniteDiffStep = 1e-2;
   Eigen::MatrixXd kappa_trial =
       kFiniteDiffStep * UnflattenRotation(v_ov, nao, nocclevels);
@@ -111,24 +111,29 @@ Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
   // for the identical reason: kFiniteDiffStep keeps kappa_trial small
   // regardless of how large v_ov itself is (v_ov is a Davidson trial
   // vector, not itself trust-radius bounded at this stage).
-  Eigen::MatrixXd C_rot =
-      C * (Eigen::MatrixXd::Identity(nao, nao) + kappa_trial);
-  Eigen::MatrixXd nonortho = C_rot.transpose() * S_->Matrix() * C_rot;
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_ortho(nonortho);
-  C_rot = C_rot * es_ortho.operatorInverseSqrt();
+  auto EvaluateGradientAt =
+      [&](const Eigen::MatrixXd& kappa) -> Eigen::MatrixXd {
+    Eigen::MatrixXd C_rot = C * (Eigen::MatrixXd::Identity(nao, nao) + kappa);
+    Eigen::MatrixXd nonortho = C_rot.transpose() * S_->Matrix() * C_rot;
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_ortho(nonortho);
+    C_rot = C_rot * es_ortho.operatorInverseSqrt();
 
-  Eigen::MatrixXd C_occ_rot = C_rot.leftCols(nocclevels);
-  Eigen::MatrixXd D_rot = C_occ_rot * C_occ_rot.transpose();
+    Eigen::MatrixXd C_occ_rot = C_rot.leftCols(nocclevels);
+    Eigen::MatrixXd D_rot = C_occ_rot * C_occ_rot.transpose();
 
-  Eigen::MatrixXd F_AO_rot = fock_builder(D_rot);
-  Eigen::MatrixXd F_MO_rot = C_rot.transpose() * F_AO_rot * C_rot;
+    Eigen::MatrixXd F_AO_rot = fock_builder(D_rot);
+    return C_rot.transpose() * F_AO_rot * C_rot;
+  };
+
+  Eigen::MatrixXd F_MO_plus = EvaluateGradientAt(kappa_trial);
+  Eigen::MatrixXd F_MO_minus = EvaluateGradientAt(-kappa_trial);
 
   Eigen::VectorXd sigma(nocclevels * nvirt);
   for (Index i = 0; i < nocclevels; ++i) {
     for (Index a = 0; a < nvirt; ++a) {
-      double g_rot_ia = F_MO_rot(i, nocclevels + a);
-      double g_ia = g_occ_virt(i, nocclevels + a);
-      sigma(i * nvirt + a) = (g_rot_ia - g_ia) / kFiniteDiffStep;
+      double g_plus_ia = F_MO_plus(i, nocclevels + a);
+      double g_minus_ia = F_MO_minus(i, nocclevels + a);
+      sigma(i * nvirt + a) = (g_plus_ia - g_minus_ia) / (2.0 * kFiniteDiffStep);
     }
   }
   return sigma;
