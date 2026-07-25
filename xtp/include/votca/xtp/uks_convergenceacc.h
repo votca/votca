@@ -22,12 +22,16 @@
 #ifndef VOTCA_XTP_UKS_CONVERGENCEACC_H
 #define VOTCA_XTP_UKS_CONVERGENCEACC_H
 
+// Standard includes
+#include <functional>
+
 // VOTCA includes
 #include <votca/tools/linalg.h>
 
 #include "votca/xtp/adiis.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/convergenceacc.h"
+#include "votca/xtp/davidsonsolver.h"
 #include "votca/xtp/diis.h"
 #include "votca/xtp/logger.h"
 
@@ -51,9 +55,34 @@ class UKSConvergenceAcc {
     Eigen::MatrixXd beta;
   };
 
+  /// Given a new density matrix for ONE spin channel, returns a new AO
+  /// Fock matrix for that SAME channel (H0 + Coulomb + exchange + XC),
+  /// holding the OTHER spin channel's own density fixed at whatever it
+  /// was when this callback was constructed. Injected from DFTEngine
+  /// (setFockBuilderAlpha/Beta below) since the actual integral/XC
+  /// machinery (CalcERIs/CalcERIs_EXX, Vxc_Potential::IntegrateVXCSpin)
+  /// lives there, not in this class -- matching the same
+  /// pointer-injection pattern already used for S_/log_.
+  ///
+  /// Deliberately holds the other spin fixed rather than modeling the
+  /// full alpha-beta coupling of the true augmented Hessian (which
+  /// would need a single, combined rotation vector over BOTH channels
+  /// together, since both spins see the same Coulomb potential and are
+  /// coupled through the XC kernel) -- matching
+  /// DirectMinimizationRotation's own, already-agreed simplification
+  /// of treating the two channels independently, not a new, separate
+  /// approximation introduced only here.
+  using FockBuilder = std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)>;
+
   void Configure(const options& opt_alpha, const options& opt_beta);
   void setLogger(Logger* log);
   void setOverlap(AOOverlap& S, double etol);
+  void setFockBuilderAlpha(const FockBuilder& builder) {
+    fock_builder_alpha_ = builder;
+  }
+  void setFockBuilderBeta(const FockBuilder& builder) {
+    fock_builder_beta_ = builder;
+  }
 
   SpinDensity DensityMatrix(const tools::EigenSystem& MOs_alpha,
                             const tools::EigenSystem& MOs_beta) const;
@@ -63,6 +92,42 @@ class UKSConvergenceAcc {
                       tools::EigenSystem& MOs_beta, double totE);
 
   tools::EigenSystem SolveFockmatrix(const Eigen::MatrixXd& H) const;
+
+  /// One column of the Davidson trial-vector matrix V, containing
+  /// [v0; v_ov] (the scalar augmented component and the flattened
+  /// occ-virt rotation-space vector), mapped back to a full nao x nao
+  /// antisymmetric matrix (occ-virt/virt-occ blocks only, matching
+  /// DirectMinimizationRotation's own convention) -- needed to
+  /// actually apply a trial rotation direction when building the
+  /// finite-difference sigma vector. Public specifically so the
+  /// AugmentedHessianOperator helper (an anonymous-namespace struct in
+  /// uks_convergenceacc.cc, needed to match DavidsonSolver's own
+  /// MatrixReplacement template interface) can call it via a raw
+  /// pointer -- a friend declaration would need the struct to be
+  /// visible from this header, which an anonymous-namespace type
+  /// defined only in the .cc file cannot be.
+  Eigen::MatrixXd UnflattenRotation(const Eigen::VectorXd& v_ov, Index nao,
+                                    Index nocclevels) const;
+
+  /// Sigma vector (H*v_ov) via finite differences of the orbital
+  /// gradient: rotate the current MOs by a SMALL step (finite_diff_step
+  /// * v_ov, unflattened via UnflattenRotation), build the density for
+  /// that rotated state, call fock_builder to get a new AO Fock matrix
+  /// for that density (holding the OTHER spin channel fixed --
+  /// captured inside fock_builder itself, not this function's own
+  /// concern), transform to the ROTATED MO basis, and difference
+  /// against the unperturbed gradient g -- a standard, well-established
+  /// technique for approximating a Hessian-vector product without
+  /// implementing the exact analytic second-derivative response,
+  /// reusing only the ALREADY-EXISTING ordinary Fock-build machinery
+  /// (via fock_builder) rather than needing new, separate
+  /// coupled-perturbed response code. Public for the same reason as
+  /// UnflattenRotation above.
+  Eigen::VectorXd BuildSigmaVector(const Eigen::VectorXd& v_ov,
+                                   const Eigen::MatrixXd& C,
+                                   Index nocclevels,
+                                   const FockBuilder& fock_builder,
+                                   const Eigen::MatrixXd& g_occ_virt) const;
 
   bool isConverged() const;
   double getDIIsError() const { return diiserror_; }
@@ -107,9 +172,59 @@ class UKSConvergenceAcc {
   /// post-step energy becomes available (on the NEXT Iterate() call,
   /// once the caller has built a new Fock matrix from this step's own
   /// density and passed its energy back in).
+  ///
+  /// STATUS as of this addition: superseded by AugmentedHessianStep
+  /// below whenever a Fock-builder callback has been injected (i.e.
+  /// DFTEngine has wired up setFockBuilderAlpha/Beta) -- kept as the
+  /// fallback for any caller that has not done so, and because
+  /// AugmentedHessianStep itself still uses this same diagonal
+  /// approximation as the Davidson preconditioner, exactly as the
+  /// TRAH paper's own Sec. II B describes doing.
   Eigen::MatrixXd DirectMinimizationRotation(
       const Eigen::MatrixXd& H_AO, const tools::EigenSystem& MOs,
       Index nocclevels, double& predicted_energy_change) const;
+
+  /// The actual, proper direct-minimization step: solves the augmented-
+  /// Hessian eigenvalue problem (Helmich-Paris, J. Chem. Phys. 154,
+  /// 164104 (2021), Eq. 9 -- read in full from arXiv:2012.08306, not
+  /// reconstructed from memory)
+  ///   [[0, alpha*g^T], [alpha*g, H]] * [1; kappa(alpha)] = mu * [1; kappa(alpha)]
+  /// for its LOWEST eigenvalue/eigenvector via the existing
+  /// DavidsonSolver, which simultaneously determines both the level
+  /// shift mu and the orbital rotation kappa -- correctly handling
+  /// indefinite Hessian directions (confirmed directly to be the real
+  /// problem here: an independent ORCA run on this exact system showed
+  /// both strongly negative and near-zero HOMO-LUMO gaps repeatedly,
+  /// and DirectMinimizationRotation's own diagonal, always-positive
+  /// Hessian approximation was confirmed -- via this class's own
+  /// Fletcher accept/reject check -- to never find an accepted step at
+  /// all for this system, consistently predicting improvement where
+  /// the true energy surface delivered the opposite).
+  ///
+  /// The Hessian-vector product ("sigma vector") needed by the
+  /// Davidson solver is approximated via FINITE DIFFERENCES of the
+  /// orbital gradient (rather than the exact analytic response the
+  /// paper's own Appendix derives, which would need a second,
+  /// coupled-perturbed Fock build with the second XC functional
+  /// derivative -- a substantially larger, separate undertaking not
+  /// pursued here) -- see BuildSigmaVector's own header comment for
+  /// the exact recipe. Bisection over alpha keeps the resulting kappa
+  /// within trust_radius, per the paper's own Sec. II B.
+  ///
+  /// Deliberately treats the alpha and beta spin channels
+  /// INDEPENDENTLY (a separate augmented-Hessian solve per channel,
+  /// holding the other channel's density fixed) rather than the full,
+  /// coupled treatment the paper's own formulation implies (a single
+  /// rotation vector spanning both channels together, since they share
+  /// the same Coulomb potential and are coupled through the XC kernel)
+  /// -- matching DirectMinimizationRotation's own, already-agreed
+  /// simplification, not a new approximation introduced only here.
+  Eigen::MatrixXd AugmentedHessianStep(const Eigen::MatrixXd& H_AO,
+                                       const tools::EigenSystem& MOs,
+                                       Index nocclevels,
+                                       const FockBuilder& fock_builder,
+                                       double trust_radius,
+                                       double& predicted_energy_change) const;
 
   options opt_alpha_;
   options opt_beta_;
@@ -117,6 +232,9 @@ class UKSConvergenceAcc {
   AOOverlap* S_ = nullptr;
   Logger* log_ = nullptr;
   Eigen::MatrixXd Sminusahalf;
+
+  FockBuilder fock_builder_alpha_;
+  FockBuilder fock_builder_beta_;
 
   Index nocclevels_alpha_ = 0;
   Index nocclevels_beta_ = 0;
@@ -137,11 +255,11 @@ class UKSConvergenceAcc {
 
   // Direct-minimization fallback bookkeeping. consecutive_adiis_failures_
   // tracks how many (A)DIIS attempts in a row have failed -- switching
-  // to DirectMinimizationRotation after kMaxConsecutiveADIISFailures
-  // deliberately mirrors ORCA's own auto-TRAH trigger (switching away
-  // from DIIS-family methods after they visibly struggle), rather than
-  // falling back to plain mixing indefinitely the way this class
-  // already did before this addition.
+  // to DirectMinimizationRotation/AugmentedHessianStep after
+  // kMaxConsecutiveADIISFailures deliberately mirrors ORCA's own
+  // auto-TRAH trigger (switching away from DIIS-family methods after
+  // they visibly struggle), rather than falling back to plain mixing
+  // indefinitely the way this class already did before this addition.
   Index consecutive_adiis_failures_ = 0;
   static constexpr Index kMaxConsecutiveADIISFailures = 5;
 
@@ -149,10 +267,11 @@ class UKSConvergenceAcc {
   // 164104 (2021), Sec. II D -- ORCA's own TRAH-SCF paper, confirmed
   // directly by reading it rather than reconstructed from memory): the
   // trust radius is no longer a fixed constant. direct_min_pending_
-  // marks that the MOs/density just returned came from a
-  // DirectMinimizationRotation step whose actual effect on the energy
-  // has not yet been verified -- checked at the START of the NEXT
-  // Iterate() call (see this class's own header comment on
+  // marks that the MOs/density just returned came from a direct-
+  // minimization step (either DirectMinimizationRotation or
+  // AugmentedHessianStep) whose actual effect on the energy has not
+  // yet been verified -- checked at the START of the NEXT Iterate()
+  // call (see this class's own header comment on
   // DirectMinimizationRotation for why it can only be checked then,
   // not within the same call that took the step).
   bool direct_min_pending_ = false;
