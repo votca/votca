@@ -298,6 +298,22 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
   Eigen::VectorXd best_kappa_flat = Eigen::VectorXd::Zero(n_ov);
   double best_mu = 0.0;
 
+  // The paper's own, deliberately problem-tailored starting vectors
+  // (Eq. 12): b0 separates out the pure level-shift direction, b1 the
+  // component parallel to the gradient -- NOT the Davidson solver's
+  // own generic, diagonal-based default starting guess (which has no
+  // reason to already reflect this specific, bordered-matrix
+  // structure, including the fixed, exact 0 in its own top-left
+  // element).
+  Eigen::MatrixXd initial_guess = Eigen::MatrixXd::Zero(1 + n_ov, 2);
+  initial_guess(0, 0) = 1.0;
+  double gnorm = g.norm();
+  if (gnorm > 1e-12) {
+    initial_guess.block(1, 1, n_ov, 1) = g / gnorm;
+  } else {
+    initial_guess(1, 1) = 1.0;
+  }
+
   auto SolveForAlpha = [&](double alpha_try, Eigen::VectorXd& kappa_flat_out,
                           double& mu_out) {
     AugmentedHessianOperator op{g,      C,     nocclevels, alpha_try,
@@ -306,7 +322,7 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
     solver.set_matrix_type("SYMM");
     solver.set_tolerance("normal");
     solver.set_iter_max(16);
-    solver.solve(op, 1);
+    solver.solve(op, 1, initial_guess);
     Eigen::VectorXd eigvec = solver.eigenvectors().col(0);
     mu_out = solver.eigenvalues()(0);
     double v0 = eigvec(0);
@@ -320,23 +336,31 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
     kappa_flat_out = eigvec.tail(g.size()) / v0;
   };
 
+  // Start from alpha_min (the gentlest, least aggressive alpha*g
+  // coupling), not the midpoint of [alpha_min, alpha_max] -- the paper
+  // itself notes alpha ends up AT alpha_min once things are
+  // well-behaved (Sec. II B), and starting the search at 500+ (the
+  // naive midpoint of [1, 1000]) makes the very first Davidson solve's
+  // own off-diagonal coupling alpha*g needlessly large before there is
+  // any reason yet to believe that is necessary.
+  double alpha_try = alpha_min;
   for (int bisection_iter = 0; bisection_iter < 20; ++bisection_iter) {
-    double alpha_try = 0.5 * (alpha_min + alpha_max);
     Eigen::VectorXd kappa_flat;
     double mu;
     SolveForAlpha(alpha_try, kappa_flat, mu);
     double step_norm = kappa_flat.norm() / alpha_try;
     best_kappa_flat = kappa_flat;
     best_mu = mu;
+    if (std::abs(step_norm - trust_radius) < 0.01 * trust_radius) {
+      break;
+    }
     if (step_norm > trust_radius) {
       // Step too long -- Sec. II B confirms larger alpha shrinks it.
       alpha_min = alpha_try;
     } else {
       alpha_max = alpha_try;
     }
-    if (std::abs(step_norm - trust_radius) < 0.01 * trust_radius) {
-      break;
-    }
+    alpha_try = 0.5 * (alpha_min + alpha_max);
   }
 
   Eigen::MatrixXd kappa = UnflattenRotation(best_kappa_flat, nao, nocclevels);
