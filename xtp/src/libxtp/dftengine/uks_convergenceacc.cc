@@ -102,7 +102,20 @@ Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
   // per sigma-vector evaluation (two perturbed gradient evaluations
   // instead of one, since the UNPERTURBED gradient g_occ_virt is no
   // longer needed at all for this formula).
-  constexpr double kFiniteDiffStep = 1e-2;
+  //
+  // 1e-3, not the earlier 1e-2 -- though confirmed directly NOT to be
+  // the explanation for a real, observed "stuck" pattern (predicted/
+  // actual dE frozen identically across a dozen+ consecutive trust-
+  // radius shrinks): a real run at 1e-2 and another at 1e-3 both got
+  // stuck at the EXACT SAME trust radius (0.000465261027974) to many
+  // decimal places, which a genuine step-size-floor explanation would
+  // not produce (a 10x smaller step should have moved that threshold
+  // by a corresponding amount). Kept at the smaller, still-reasonable
+  // 1e-3 regardless, since there is no remaining reason to prefer the
+  // larger value -- but the actual "stuck" mechanism is now believed
+  // to be AugmentedHessianStep's own alpha_max=1000 bisection ceiling
+  // saturating, not this step size; see that function's own comment.
+  constexpr double kFiniteDiffStep = 1e-3;
   Eigen::MatrixXd kappa_trial =
       kFiniteDiffStep * UnflattenRotation(v_ov, nao, nocclevels);
 
@@ -357,6 +370,14 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
   // [alpha_min, alpha_max] = [1, 1000] (Table I).
   double alpha_min = 1.0;
   double alpha_max = 1000.0;
+  const double kOriginalAlphaMax = alpha_max;  // alpha_max itself gets
+                                               // narrowed during the
+                                               // bisection loop below,
+                                               // so this is needed
+                                               // separately to check
+                                               // whether alpha_try
+                                               // actually approaches
+                                               // the ORIGINAL ceiling.
   Eigen::VectorXd best_kappa_flat = Eigen::VectorXd::Zero(n_ov);
   double best_mu = 0.0;
 
@@ -459,6 +480,24 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
     }
     alpha_try = 0.5 * (alpha_min + alpha_max);
   }
+
+  // Temporary diagnostic (see the conversation this grew out of): a
+  // real run showed predicted/actual dE frozen identically across a
+  // dozen+ consecutive trust-radius shrinks, at the exact same
+  // threshold regardless of BuildSigmaVector's own finite-difference
+  // step size -- ruling that step size out as the cause and pointing
+  // instead at this bisection's own alpha_max=1000 ceiling possibly
+  // saturating (once alpha itself cannot grow any further, the
+  // resulting step cannot shrink any further either, no matter how
+  // small trust_radius itself becomes). Prints the actual final
+  // alpha_try used and how close it sits to alpha_max, to confirm or
+  // rule this out directly rather than continue guessing.
+  XTP_LOG(Log::warning, *log_)
+      << TimeStamp() << " AugmentedHessianStep bisection diagnostic: "
+         "final alpha_try="
+      << alpha_try << ", original alpha_max ceiling=" << kOriginalAlphaMax
+      << ", achieved step_norm=" << (best_kappa_flat.norm() / alpha_try)
+      << ", requested trust_radius=" << trust_radius << std::flush;
 
   Eigen::MatrixXd kappa = UnflattenRotation(best_kappa_flat, nao, nocclevels);
 
