@@ -52,6 +52,7 @@
       <max_iterations help="max iterations to use" default="100" choices="int+" />
       <error help="convergence error" default="1e-7" choices="float+" />
       <mixing help="mixing parameter for linear mixing of density matrices" default="0.7" choices="float+" />
+      <mixing_end help="DIIS error below which mixing is disabled -- independent of ADIIS_start (see ORCA's own DampErr, kept independent of DIISStart for the same reason: difficult systems benefit from keeping mixing active well past the point where ADIIS/DIIS themselves start being tried, not exactly until that same point). Defaults to match ADIIS_start's own default (0.8) for backward compatibility -- existing configurations see identical behavior unless this is set explicitly." default="0.8" choices="float+" />
     </convergence>
   </xtpdft>
 </dftpackage>

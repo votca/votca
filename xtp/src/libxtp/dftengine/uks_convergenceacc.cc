@@ -859,8 +859,17 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
 
   SpinDensity dmatout = DensityMatrix(MOs_alpha, MOs_beta);
 
-  if (diiserror_ > opt_alpha_.adiis_start || !opt_alpha_.usediis ||
+  if (diiserror_ > opt_alpha_.mixingend || !opt_alpha_.usediis ||
       diis_error || mathist_alpha_.size() <= 2) {
+    // mixingend, not adiis_start -- deliberately decoupled (see the
+    // options struct's own comment in convergenceacc.h): ORCA keeps
+    // DampErr fully independent of DIISStart, and recommends making
+    // DampErr much SMALLER for difficult systems specifically so
+    // damping stays active well past the point where DIIS itself
+    // starts being tried -- reusing adiis_start here could never
+    // represent that independently, since it would tie "when does
+    // mixing turn off" to the same value as "when does ADIIS/DIIS
+    // engage at all", which are conceptually separate questions.
     usedmixing_ = true;
     dmatout.alpha = opt_alpha_.mixingparameter * dmat.alpha +
                     (1.0 - opt_alpha_.mixingparameter) * dmatout.alpha;
