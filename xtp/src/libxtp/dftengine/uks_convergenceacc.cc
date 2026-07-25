@@ -93,7 +93,16 @@ Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
   // own true sigma vector would require (see this class's own header
   // comment on this function and on AugmentedHessianStep for the full
   // reasoning).
-  constexpr double kFiniteDiffStep = 1e-4;
+  // Temporarily increased from 1e-4 -- a probe on this exact system
+  // (see the conversation this grew out of) showed sigma(g/||g||) at
+  // ~2270 in magnitude, roughly 20-4000x larger than the diagonal
+  // Hessian's own scale, suggesting the finite-difference numerator
+  // itself carries some OTHER numerical noise floor (candidates:
+  // fock_builder's own 1e-8 integral-screening tolerance, or the
+  // Lowdin re-orthonormalization) that does not shrink proportionally
+  // with the step -- testing whether a larger step dilutes that noise
+  // relative to the true signal.
+  constexpr double kFiniteDiffStep = 1e-2;
   Eigen::MatrixXd kappa_trial =
       kFiniteDiffStep * UnflattenRotation(v_ov, nao, nocclevels);
 
