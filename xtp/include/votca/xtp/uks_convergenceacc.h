@@ -134,11 +134,21 @@ class UKSConvergenceAcc {
   /// the signature for interface stability with
   /// AugmentedHessianOperator's own construction. Public for the same
   /// reason as UnflattenRotation above.
+  /// finite_diff_step: defaults to 1e-3, matching every existing call
+  /// site's own previous, hardcoded value -- exposed as a parameter
+  /// specifically to let AugmentedHessianStep's own diagnostic run the
+  /// SAME evaluation at two different step sizes and compare them
+  /// directly, testing whether finite-difference truncation error or
+  /// rounding/cancellation noise (from fock_builder's own integral-
+  /// screening tolerance and the XC grid's own finite accuracy) is the
+  /// dominant error source for this specific, difficult system -- see
+  /// the conversation this grew out of.
   Eigen::VectorXd BuildSigmaVector(const Eigen::VectorXd& v_ov,
                                    const Eigen::MatrixXd& C,
                                    Index nocclevels,
                                    const FockBuilder& fock_builder,
-                                   const Eigen::MatrixXd& g_occ_virt) const;
+                                   const Eigen::MatrixXd& g_occ_virt,
+                                   double finite_diff_step = 1e-3) const;
 
   bool isConverged() const;
   double getDIIsError() const { return diiserror_; }

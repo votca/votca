@@ -82,7 +82,8 @@ Eigen::MatrixXd UKSConvergenceAcc::UnflattenRotation(const Eigen::VectorXd& v_ov
 
 Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
     const Eigen::VectorXd& v_ov, const Eigen::MatrixXd& C, Index nocclevels,
-    const FockBuilder& fock_builder, const Eigen::MatrixXd& g_occ_virt) const {
+    const FockBuilder& fock_builder, const Eigen::MatrixXd& g_occ_virt,
+    double finite_diff_step) const {
   Index nao = C.rows();
   Index nvirt = nao - nocclevels;
   (void)g_occ_virt;  // no longer needed for a CENTRAL difference -- kept
@@ -115,13 +116,20 @@ Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
   // larger value -- but the actual "stuck" mechanism is now believed
   // to be AugmentedHessianStep's own alpha_max=1000 bisection ceiling
   // saturating, not this step size; see that function's own comment.
-  constexpr double kFiniteDiffStep = 1e-3;
+  //
+  // Now a parameter, not a hardcoded constant: needed to run the same
+  // sigma-vector evaluation at two different step sizes and compare
+  // them directly, testing whether finite-difference truncation vs.
+  // rounding-error noise is the dominant error source here -- see the
+  // conversation this grew out of. Every existing call site continues
+  // to pass 1e-3 explicitly (via the default argument), so behavior is
+  // unchanged unless a caller deliberately requests a different value.
   Eigen::MatrixXd kappa_trial =
-      kFiniteDiffStep * UnflattenRotation(v_ov, nao, nocclevels);
+      finite_diff_step * UnflattenRotation(v_ov, nao, nocclevels);
 
   // Same linearized-exponential + Lowdin-reorthonormalization approach
   // as DirectMinimizationRotation's own orbital update -- valid here
-  // for the identical reason: kFiniteDiffStep keeps kappa_trial small
+  // for the identical reason: finite_diff_step keeps kappa_trial small
   // regardless of how large v_ov itself is (v_ov is a Davidson trial
   // vector, not itself trust-radius bounded at this stage).
   auto EvaluateGradientAt =
@@ -146,7 +154,7 @@ Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
     for (Index a = 0; a < nvirt; ++a) {
       double g_plus_ia = F_MO_plus(i, nocclevels + a);
       double g_minus_ia = F_MO_minus(i, nocclevels + a);
-      sigma(i * nvirt + a) = (g_plus_ia - g_minus_ia) / (2.0 * kFiniteDiffStep);
+      sigma(i * nvirt + a) = (g_plus_ia - g_minus_ia) / (2.0 * finite_diff_step);
     }
   }
   return sigma;
@@ -362,6 +370,46 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
         << ", relative difference=" << std::abs(u_dot_Hv - v_dot_Hu) /
                                         std::max(std::abs(u_dot_Hv), 1e-12)
         << std::flush;
+
+    // Step-size (truncation vs. rounding/cancellation noise) check
+    // (see the conversation this grew out of): a genuine, external
+    // ORCA comparison on this exact system found ORCA's own TRAH
+    // (using the EXACT analytic coupled-perturbed response, not a
+    // finite-difference approximation) converges where this class's
+    // own AugmentedHessianStep does not -- raising the question of
+    // whether the finite-difference sigma vector itself is simply too
+    // noisy for this specific, difficult system, rather than the
+    // deliberate alpha/beta decoupling simplification being the
+    // dominant gap. If BuildSigmaVector's own result is genuinely
+    // dominated by truncation error (the expected, well-behaved
+    // regime), shrinking the step should make consecutive evaluations
+    // agree MORE closely, converging toward some fixed answer. If
+    // instead the smaller step gives a WORSE, noisier result than the
+    // larger one, that specifically implicates rounding/cancellation
+    // noise (from fock_builder's own integral-screening tolerance and
+    // the XC grid's own finite quadrature accuracy) as dominant --
+    // direct, empirical evidence for exactly the general concern that
+    // Hessian-vector products via nested finite differences are
+    // especially sensitive to numerical noise, since this differences
+    // a quantity that is already itself a derivative.
+    Eigen::VectorXd sigma_step1 = probe_sigma;  // already computed above
+                                                // at the same direction
+                                                // and the same default
+                                                // (1e-3) step -- reused
+                                                // here rather than
+                                                // redundantly recomputed,
+                                                // saving two Fock builds.
+    Eigen::VectorXd sigma_step2 =
+        BuildSigmaVector(probe_direction, C, nocclevels, fock_builder, F_MO,
+                         1e-4);
+    double step_relative_diff =
+        (sigma_step1 - sigma_step2).norm() /
+        std::max(sigma_step1.norm(), 1e-12);
+    XTP_LOG(Log::warning, *log_)
+        << TimeStamp() << " AugmentedHessianStep step-size check: "
+           "||sigma(1e-3)||="
+        << sigma_step1.norm() << ", ||sigma(1e-4)||=" << sigma_step2.norm()
+        << ", relative difference=" << step_relative_diff << std::flush;
   }
 
   // Bisection over alpha (Helmich-Paris Sec. II B, Eq. 11) to keep the
