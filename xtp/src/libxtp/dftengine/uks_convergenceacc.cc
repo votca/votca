@@ -364,6 +364,15 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
     // single AugmentedHessianStep call impractically slow.
     solver.set_tolerance("loose");
     solver.set_iter_max(16);
+    // Real, confirmed bug: DavidsonSolver defaults max_search_space_
+    // to neigen*5 = 1*5 = 5 whenever it is left unset (its own
+    // constructor initializes it to 0, and solve() itself falls back
+    // to neigen*5 in that case) -- far too small a subspace for this
+    // (1+n_ov)-dimensional problem (761 here), and confirmed directly
+    // to be why "Search Space" kept cycling 2->3->4->5->restart
+    // without ever accumulating enough information to converge (0.00%
+    // converged, every single trial, across every run so far).
+    solver.set_max_search_space(40);
     solver.solve(op, 1, initial_guess);
     Eigen::VectorXd eigvec = solver.eigenvectors().col(0);
     mu_out = solver.eigenvalues()(0);
