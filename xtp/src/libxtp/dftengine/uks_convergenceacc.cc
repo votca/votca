@@ -102,7 +102,7 @@ Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
   // per sigma-vector evaluation (two perturbed gradient evaluations
   // instead of one, since the UNPERTURBED gradient g_occ_virt is no
   // longer needed at all for this formula).
-  constexpr double kFiniteDiffStep = 1e-2;
+  constexpr double kFiniteDiffStep = 1e-3;
   Eigen::MatrixXd kappa_trial =
       kFiniteDiffStep * UnflattenRotation(v_ov, nao, nocclevels);
 
