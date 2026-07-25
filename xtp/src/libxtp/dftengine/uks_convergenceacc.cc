@@ -670,11 +670,37 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
       nocclevels_alpha_ < MOs_alpha.eigenvalues().size()) {
     double gap_alpha = MOs_alpha.eigenvalues()(nocclevels_alpha_) -
                        MOs_alpha.eigenvalues()(nocclevels_alpha_ - 1);
+    // consecutive_adiis_failures_ < kMaxConsecutiveADIISFailures added
+    // deliberately: a real run showed level shift catastrophically
+    // breaking AugmentedHessianStep's own Davidson solve (residual
+    // climbing past 395, far beyond any prior failure mode) once
+    // direct-minimization engaged. Root cause: Levelshift() modifies H
+    // in place, BEFORE AugmentedHessianStep/DirectMinimizationRotation
+    // ever see it -- and AugmentedHessianStep's own diagonal-Hessian
+    // preconditioner (diag_h) is built directly from eps(a)-eps(i),
+    // the raw orbital energy gap, which becomes systematically
+    // inflated by the shift for virtual orbitals. ADIIS/DIIS do not
+    // have this problem (they operate on the Fock/density matrices
+    // themselves, never deriving a separate quantity like an orbital
+    // gap from the shifted eigenvalues), so level shift stays active
+    // for them -- this guard only disables it once direct-minimization
+    // is about to take over, since level shift's own purpose
+    // (discouraging occ-virt mixing during diagonalization) does not
+    // even apply to a method that never diagonalizes H at all.
     if ((diiserror_ > opt_alpha_.levelshiftend &&
          opt_alpha_.levelshift > 0.0) ||
         gap_alpha < 1e-6) {
-      Levelshift(H.alpha, MOs_alpha.eigenvectors(), opt_alpha_,
-                 nocclevels_alpha_);
+      // "- 1" margin: consecutive_adiis_failures_ is only incremented
+      // LATER in this same Iterate() call (after this check runs), so
+      // without the margin this would still see the PREVIOUS
+      // iteration's count on the exact iteration where the threshold
+      // is reached and direct-minimization actually fires -- letting
+      // level shift through on precisely the iteration it needs to be
+      // blocked, one iteration too late.
+      if (consecutive_adiis_failures_ < kMaxConsecutiveADIISFailures - 1) {
+        Levelshift(H.alpha, MOs_alpha.eigenvectors(), opt_alpha_,
+                  nocclevels_alpha_);
+      }
     }
   }
 
@@ -684,7 +710,10 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
                       MOs_beta.eigenvalues()(nocclevels_beta_ - 1);
     if ((diiserror_ > opt_beta_.levelshiftend && opt_beta_.levelshift > 0.0) ||
         gap_beta < 1e-6) {
-      Levelshift(H.beta, MOs_beta.eigenvectors(), opt_beta_, nocclevels_beta_);
+      if (consecutive_adiis_failures_ < kMaxConsecutiveADIISFailures - 1) {
+        Levelshift(H.beta, MOs_beta.eigenvectors(), opt_beta_,
+                  nocclevels_beta_);
+      }
     }
   }
 
