@@ -109,20 +109,31 @@ class UKSConvergenceAcc {
   Eigen::MatrixXd UnflattenRotation(const Eigen::VectorXd& v_ov, Index nao,
                                     Index nocclevels) const;
 
-  /// Sigma vector (H*v_ov) via finite differences of the orbital
-  /// gradient: rotate the current MOs by a SMALL step (finite_diff_step
-  /// * v_ov, unflattened via UnflattenRotation), build the density for
-  /// that rotated state, call fock_builder to get a new AO Fock matrix
-  /// for that density (holding the OTHER spin channel fixed --
-  /// captured inside fock_builder itself, not this function's own
-  /// concern), transform to the ROTATED MO basis, and difference
-  /// against the unperturbed gradient g -- a standard, well-established
-  /// technique for approximating a Hessian-vector product without
-  /// implementing the exact analytic second-derivative response,
-  /// reusing only the ALREADY-EXISTING ordinary Fock-build machinery
-  /// (via fock_builder) rather than needing new, separate
-  /// coupled-perturbed response code. Public for the same reason as
-  /// UnflattenRotation above.
+  /// Sigma vector (H*v_ov) via a CENTRAL finite difference of the
+  /// orbital gradient: rotate the current MOs by +-a small step
+  /// (finite_diff_step * v_ov, unflattened via UnflattenRotation),
+  /// build the density for EACH rotated state, call fock_builder to
+  /// get a new AO Fock matrix for each (holding the OTHER spin channel
+  /// fixed -- captured inside fock_builder itself, not this function's
+  /// own concern), transform each to its OWN rotated MO basis, and
+  /// difference the two -- a standard, well-established technique for
+  /// approximating a Hessian-vector product without implementing the
+  /// exact analytic second-derivative response, reusing only the
+  /// ALREADY-EXISTING ordinary Fock-build machinery (via fock_builder)
+  /// rather than needing new, separate coupled-perturbed response
+  /// code. Deliberately CENTRAL rather than one-sided/forward
+  /// (costing one extra Fock build per call) -- confirmed necessary,
+  /// not just a nicety, by this class's own symmetry check (u.(H*v)
+  /// vs v.(H*u) on this exact system showed a complete, ~100%
+  /// relative mismatch with a one-sided difference): a forward
+  /// difference's leading error term is proportional to the THIRD
+  /// derivative of the energy, which does not respect the symmetry a
+  /// central difference's leading error term (now fourth-order) does.
+  /// g_occ_virt is unused by the central-difference formula itself
+  /// (the unperturbed gradient cancels out of it entirely) but kept in
+  /// the signature for interface stability with
+  /// AugmentedHessianOperator's own construction. Public for the same
+  /// reason as UnflattenRotation above.
   Eigen::VectorXd BuildSigmaVector(const Eigen::VectorXd& v_ov,
                                    const Eigen::MatrixXd& C,
                                    Index nocclevels,
