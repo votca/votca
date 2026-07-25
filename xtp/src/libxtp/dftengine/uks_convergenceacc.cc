@@ -320,6 +320,30 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
         << gnorm_diag << ", diag_h range=[" << diag_h.minCoeff() << ", "
         << diag_h.maxCoeff() << "], ||sigma(g/||g||)||=" << probe_sigma.norm()
         << ", max|sigma|=" << probe_sigma.cwiseAbs().maxCoeff() << std::flush;
+
+    // Symmetry check (see the conversation this grew out of): a
+    // genuinely symmetric operator must satisfy u.(H*v) == v.(H*u)
+    // exactly (up to floating-point noise) for ANY u, v -- the
+    // Davidson solver's own "SYMM" matrix-type assumption depends on
+    // this holding for whatever BuildSigmaVector actually computes,
+    // not just on the TRUE, analytic Hessian being symmetric (a
+    // finite-difference approximation to it has no guarantee of
+    // inheriting that property automatically). Uses two simple,
+    // distinct probe directions (the normalized gradient, and the
+    // first unit basis vector) rather than random vectors, so this
+    // is exactly reproducible run to run.
+    Eigen::VectorXd u = probe_direction;
+    Eigen::VectorXd v = Eigen::VectorXd::Unit(n_ov, std::min<Index>(1, n_ov - 1));
+    Eigen::VectorXd Hv = BuildSigmaVector(v, C, nocclevels, fock_builder, F_MO);
+    Eigen::VectorXd Hu = probe_sigma;
+    double u_dot_Hv = u.dot(Hv);
+    double v_dot_Hu = v.dot(Hu);
+    XTP_LOG(Log::warning, *log_)
+        << TimeStamp() << " AugmentedHessianStep symmetry check: u.(H*v)="
+        << u_dot_Hv << ", v.(H*u)=" << v_dot_Hu
+        << ", relative difference=" << std::abs(u_dot_Hv - v_dot_Hu) /
+                                        std::max(std::abs(u_dot_Hv), 1e-12)
+        << std::flush;
   }
 
   // Bisection over alpha (Helmich-Paris Sec. II B, Eq. 11) to keep the
