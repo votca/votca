@@ -293,6 +293,27 @@ class UKSConvergenceAcc {
   Eigen::VectorXd direct_min_pre_MOs_alpha_energies_;
   Eigen::VectorXd direct_min_pre_MOs_beta_energies_;
   double trust_radius_current_ = 0.2;
+
+  // Trust-radius floor tied to BuildSigmaVector's own finite-
+  // difference step size (kFiniteDiffStep = 1e-3, defined there): a
+  // real run showed trust_radius_current_ shrinking past 1e-6 with
+  // an IDENTICAL step/predicted-change/actual-change every single
+  // time, since the bisection's own alpha_min=1 floor means the
+  // gentlest achievable step cannot shrink any further -- the reject
+  // loop could never resolve on its own and only ended when the
+  // outer SCF's own iteration budget ran out. A trust radius below
+  // the sigma vector's own probing resolution is also asking for
+  // precision the underlying finite-difference model was never built
+  // to provide. direct_min_floor_hit_ marks that this floor has been
+  // reached without an accepted step, at which point Iterate() stops
+  // retriggering AugmentedHessianStep/DirectMinimizationRotation and
+  // falls back to plain mixing instead -- reset naturally each time a
+  // new UKSConvergenceAcc is constructed (a fresh instance per
+  // DFTEngine::EvaluateUKS call, i.e. per outer CDFT lambda trial or
+  // per geometry step), not explicitly reset within one instance's
+  // own lifetime.
+  bool direct_min_floor_hit_ = false;
+  static constexpr double kMinTrustRadius = 1e-2;
 };
 
 }  // namespace xtp

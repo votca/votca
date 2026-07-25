@@ -611,6 +611,32 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
       // smaller radius, since nothing here has changed the underlying
       // (A)DIIS behavior that triggered it in the first place.
       trust_radius_current_ *= 0.7;
+      // Floor tied to BuildSigmaVector's own finite-difference step
+      // (kFiniteDiffStep = 1e-3, defined there): a real run showed
+      // trust_radius shrinking past 1e-6 while the step, predicted
+      // change, and actual change stayed EXACTLY identical every
+      // time -- the bisection's own alpha_min=1 floor means the
+      // gentlest achievable step cannot shrink further once alpha_min
+      // itself is the binding constraint, so continuing to request an
+      // even smaller trust radius changes nothing and the reject loop
+      // can never resolve on its own (confirmed directly: it only
+      // ended when the outer SCF's own 100-iteration budget ran out).
+      // More fundamentally, a trust radius below the sigma vector's
+      // own probing resolution is asking for precision the underlying
+      // finite-difference model was never built to provide -- its
+      // accuracy does not improve as the requested step shrinks, only
+      // the requested step size does. Once hit, give up on direct
+      // minimization for this SCF call rather than loop toward
+      // ever-smaller radii that cannot change the outcome.
+      if (trust_radius_current_ < kMinTrustRadius) {
+        direct_min_floor_hit_ = true;
+        XTP_LOG(Log::warning, *log_)
+            << TimeStamp() << " Direct-minimization trust radius fell "
+               "below its own finite-difference resolution floor ("
+            << kMinTrustRadius << ") without an accepted step -- "
+               "falling back to mixing instead of continuing to shrink."
+            << std::flush;
+      }
       MOs_alpha.eigenvectors() = direct_min_pre_MOs_alpha_;
       MOs_beta.eigenvectors() = direct_min_pre_MOs_beta_;
       MOs_alpha.eigenvalues() = direct_min_pre_MOs_alpha_energies_;
@@ -715,7 +741,8 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
 
     if (diis_error) {
       ++consecutive_adiis_failures_;
-      if (consecutive_adiis_failures_ >= kMaxConsecutiveADIISFailures) {
+      if (consecutive_adiis_failures_ >= kMaxConsecutiveADIISFailures &&
+          !direct_min_floor_hit_) {
         // Mirrors ORCA's own auto-TRAH trigger: after (A)DIIS has
         // visibly, repeatedly failed rather than just being slow, fall
         // back to a direct-minimization step instead of plain mixing --
