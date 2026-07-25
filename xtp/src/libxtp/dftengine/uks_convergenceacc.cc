@@ -83,16 +83,39 @@ Eigen::MatrixXd UKSConvergenceAcc::DirectMinimizationRotation(
   // unchanged, so there is nothing to gain from including them.
   Eigen::MatrixXd kappa = Eigen::MatrixXd::Zero(nao, nao);
   // Guards near-degenerate occ-virt orbital pairs from producing a
-  // wildly oversized step -- the trust-radius bound below provides a
-  // second, independent safeguard on top of this one.
+  // wildly oversized step for THAT pair specifically -- confirmed
+  // directly against an independent ORCA reference run on this exact
+  // system, whose own TRAH implementation repeatedly hit BOTH
+  // genuinely negative gaps (occupied/virtual character swapping
+  // during iteration, since occupation here is defined by column
+  // index, not current energy ordering -- down to -0.635 Ha) and
+  // gaps numerically indistinguishable from zero (as small as
+  // 0.000002 Ha), needing its own explicit warnings and special
+  // handling for both. abs() here is essential, not cosmetic: a
+  // signed gap of -0.6 would otherwise pass std::max(-0.6, kMinGap)
+  // as if it were the tiny POSITIVE value kMinGap, producing an
+  // enormous, wrong-direction step for exactly that pair -- the
+  // Hessian approximation must be treated as positive-definite
+  // (a legitimate descent direction) regardless of the true, possibly
+  // negative or near-zero curvature this diagonal approximation
+  // cannot itself represent.
   constexpr double kMinGap = 1e-3;
+  // Per-PAIR step cap, independent of and in addition to the overall,
+  // whole-matrix trust-radius bound below -- confirmed necessary
+  // because a single pathological pair (as above) could otherwise
+  // dominate the entire rotation DIRECTION even after the whole
+  // matrix is normalized to the trust radius, silently scaling every
+  // other, well-behaved pair down to near-nothing while that one bad
+  // pair still controls where the step actually points.
+  constexpr double kMaxKappaElement = 0.1;
   for (Index i = 0; i < nocclevels; ++i) {
     for (Index a = nocclevels; a < nao; ++a) {
-      double gap = std::max(eps(a) - eps(i), kMinGap);
+      double gap = std::max(std::abs(eps(a) - eps(i)), kMinGap);
       // Approximate, diagonal Hessian: orbital energy differences --
       // the same cheap starting approximation used by most quasi-
       // Newton SCF methods (e.g. SOSCF's own initial Hessian guess).
       double kappa_ia = -F_MO(i, a) / (2.0 * gap);
+      kappa_ia = std::clamp(kappa_ia, -kMaxKappaElement, kMaxKappaElement);
       kappa(i, a) = kappa_ia;
       kappa(a, i) = -kappa_ia;
     }
