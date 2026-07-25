@@ -289,6 +289,26 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
     }
   }
 
+  // Temporary diagnostic (see the conversation this grew out of): a
+  // residual norm in the thousands, not decreasing, needs concrete
+  // magnitudes to actually locate rather than continued guessing.
+  // Probes BuildSigmaVector directly on the SAME normalized direction
+  // (g/||g||) used to build the Davidson initial guess below -- a
+  // well-behaved Hessian-vector product on a unit-norm input should
+  // itself be a reasonably-scaled vector, not thousands in magnitude.
+  {
+    double gnorm_diag = g.norm();
+    Eigen::VectorXd probe_direction =
+        (gnorm_diag > 1e-12) ? (g / gnorm_diag) : Eigen::VectorXd::Unit(n_ov, 0);
+    Eigen::VectorXd probe_sigma =
+        BuildSigmaVector(probe_direction, C, nocclevels, fock_builder, F_MO);
+    XTP_LOG(Log::warning, *log_)
+        << TimeStamp() << " AugmentedHessianStep diagnostic: ||g||="
+        << gnorm_diag << ", diag_h range=[" << diag_h.minCoeff() << ", "
+        << diag_h.maxCoeff() << "], ||sigma(g/||g||)||=" << probe_sigma.norm()
+        << ", max|sigma|=" << probe_sigma.cwiseAbs().maxCoeff() << std::flush;
+  }
+
   // Bisection over alpha (Helmich-Paris Sec. II B, Eq. 11) to keep the
   // resulting step within the trust radius: ||kappa(alpha)||^2/alpha^2
   // <= trust_radius^2. Bounds match the paper's own default
