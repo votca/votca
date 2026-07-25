@@ -392,7 +392,14 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
     // solve, times up to 20 bisection trials per spin channel, made a
     // single AugmentedHessianStep call impractically slow.
     solver.set_tolerance("loose");
-    solver.set_iter_max(16);
+    // Increased from 16 -- a real run on this system got to within
+    // ~10x of the "loose" (1e-3) tolerance (residual 0.0108) by
+    // iteration 13 of 15, then ran out of budget before actually
+    // crossing it. Set generously higher rather than just enough to
+    // barely close that specific gap, so this does not need another
+    // round of incremental bumping if a slightly harder case needs a
+    // few more iterations than this one did.
+    solver.set_iter_max(50);
     // Real, confirmed bug: DavidsonSolver defaults max_search_space_
     // to neigen*5 = 1*5 = 5 whenever it is left unset (its own
     // constructor initializes it to 0, and solve() itself falls back
