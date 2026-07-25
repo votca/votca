@@ -266,6 +266,11 @@ void DFTEngine::Initialize(tools::Property& options) {
       options.get(key_xtpdft + ".convergence.levelshift").as<double>();
   conv_opt_.levelshiftend =
       options.get(key_xtpdft + ".convergence.levelshift_end").as<double>();
+  // Independent from adiis_start -- see the options struct's own
+  // comment (convergenceacc.h) and UKSConvergenceAcc::Iterate's own
+  // mixing-trigger comment for the full reasoning.
+  conv_opt_.mixingend =
+      options.get(key_xtpdft + ".convergence.mixing_end").as<double>();
   conv_opt_.maxout =
       options.get(key_xtpdft + ".convergence.DIIS_maxout").as<bool>();
   conv_opt_.histlength =

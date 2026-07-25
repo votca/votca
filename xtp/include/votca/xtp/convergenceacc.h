@@ -57,6 +57,15 @@ class ConvergenceAcc {
     double diis_start;
     double levelshift;
     double levelshiftend;
+    // Independent from adiis_start deliberately -- see
+    // UKSConvergenceAcc::Iterate's own comment on where this is used
+    // for the full reasoning: ORCA's own DampErr is kept fully
+    // separate from its own DIISStart, and their own guidance for
+    // difficult systems is to make DampErr much SMALLER than default
+    // (keeping damping active LONGER), independent of when DIIS
+    // itself engages. Reusing adiis_start for both purposes could not
+    // represent that independently.
+    double mixingend;
     Index numberofelectrons;
     double mixingparameter;
     double Econverged;
