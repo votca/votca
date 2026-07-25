@@ -1489,6 +1489,60 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
         << std::flush;
 
     UKSConvergenceAcc::SpinFock Hspin{H_alpha, H_beta};
+
+    // Rebuilt fresh every iteration (capturing THIS iteration's own,
+    // current densities by value) rather than injected once at setup
+    // -- AugmentedHessianStep's own finite-difference sigma vectors
+    // need a Fock build for a NEW density in one spin channel while
+    // holding the OTHER channel's density fixed at whatever it
+    // currently is; see UKSConvergenceAcc::FockBuilder's own header
+    // comment for why the two channels are deliberately treated
+    // independently rather than fully coupled. Mirrors the exact same
+    // H0 + Coulomb/exchange + XC sequence already used to build
+    // H_alpha/H_beta themselves just above, so a perturbed density
+    // that happens to equal the current one reproduces the identical
+    // Fock matrix.
+    conv_uks.setFockBuilderAlpha(
+        [this, &H0, &vxcpotential, beta_fixed = Dspin.beta](
+            const Eigen::MatrixXd& alpha_new) -> Eigen::MatrixXd {
+          Eigen::MatrixXd H_alpha_new = H0.matrix();
+          constexpr double kIntegralError = 1e-8;
+          if (ScaHFX_ > 0) {
+            std::array<Eigen::MatrixXd, 2> both_alpha_new = CalcERIs_EXX(
+                Eigen::MatrixXd::Zero(0, 0), alpha_new, kIntegralError);
+            std::array<Eigen::MatrixXd, 2> both_beta_fixed = CalcERIs_EXX(
+                Eigen::MatrixXd::Zero(0, 0), beta_fixed, kIntegralError);
+            Eigen::MatrixXd J_new = both_alpha_new[0] + both_beta_fixed[0];
+            H_alpha_new += J_new + ScaHFX_ * both_alpha_new[1];
+          } else {
+            Eigen::MatrixXd D_total_new = alpha_new + beta_fixed;
+            H_alpha_new += CalcERIs(D_total_new, kIntegralError);
+          }
+          auto vxc_new = vxcpotential.IntegrateVXCSpin(alpha_new, beta_fixed);
+          H_alpha_new += vxc_new.vxc_alpha;
+          return H_alpha_new;
+        });
+    conv_uks.setFockBuilderBeta(
+        [this, &H0, &vxcpotential, alpha_fixed = Dspin.alpha](
+            const Eigen::MatrixXd& beta_new) -> Eigen::MatrixXd {
+          Eigen::MatrixXd H_beta_new = H0.matrix();
+          constexpr double kIntegralError = 1e-8;
+          if (ScaHFX_ > 0) {
+            std::array<Eigen::MatrixXd, 2> both_beta_new = CalcERIs_EXX(
+                Eigen::MatrixXd::Zero(0, 0), beta_new, kIntegralError);
+            std::array<Eigen::MatrixXd, 2> both_alpha_fixed = CalcERIs_EXX(
+                Eigen::MatrixXd::Zero(0, 0), alpha_fixed, kIntegralError);
+            Eigen::MatrixXd J_new = both_beta_new[0] + both_alpha_fixed[0];
+            H_beta_new += J_new + ScaHFX_ * both_beta_new[1];
+          } else {
+            Eigen::MatrixXd D_total_new = alpha_fixed + beta_new;
+            H_beta_new += CalcERIs(D_total_new, kIntegralError);
+          }
+          auto vxc_new = vxcpotential.IntegrateVXCSpin(alpha_fixed, beta_new);
+          H_beta_new += vxc_new.vxc_beta;
+          return H_beta_new;
+        });
+
     Dspin = conv_uks.Iterate(Dspin, Hspin, MOs_alpha, MOs_beta, totenergy);
     if (force_uks_path_ && num_alpha_electrons_ == num_beta_electrons_) {
       MOs_beta = MOs_alpha;

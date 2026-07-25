@@ -65,6 +65,66 @@ tools::EigenSystem UKSConvergenceAcc::SolveFockmatrix(
   return result;
 }
 
+Eigen::MatrixXd UKSConvergenceAcc::UnflattenRotation(const Eigen::VectorXd& v_ov,
+                                                     Index nao,
+                                                     Index nocclevels) const {
+  Index nvirt = nao - nocclevels;
+  Eigen::MatrixXd kappa = Eigen::MatrixXd::Zero(nao, nao);
+  for (Index i = 0; i < nocclevels; ++i) {
+    for (Index a = 0; a < nvirt; ++a) {
+      double val = v_ov(i * nvirt + a);
+      kappa(i, nocclevels + a) = val;
+      kappa(nocclevels + a, i) = -val;
+    }
+  }
+  return kappa;
+}
+
+Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
+    const Eigen::VectorXd& v_ov, const Eigen::MatrixXd& C, Index nocclevels,
+    const FockBuilder& fock_builder, const Eigen::MatrixXd& g_occ_virt) const {
+  Index nao = C.rows();
+  Index nvirt = nao - nocclevels;
+
+  // Standard finite-difference Hessian-vector product: step a small
+  // amount along the trial direction v_ov, and compare the resulting
+  // gradient against the unperturbed one -- avoids needing the exact,
+  // analytic coupled-perturbed Fock response the augmented Hessian's
+  // own true sigma vector would require (see this class's own header
+  // comment on this function and on AugmentedHessianStep for the full
+  // reasoning).
+  constexpr double kFiniteDiffStep = 1e-4;
+  Eigen::MatrixXd kappa_trial =
+      kFiniteDiffStep * UnflattenRotation(v_ov, nao, nocclevels);
+
+  // Same linearized-exponential + Lowdin-reorthonormalization approach
+  // as DirectMinimizationRotation's own orbital update -- valid here
+  // for the identical reason: kFiniteDiffStep keeps kappa_trial small
+  // regardless of how large v_ov itself is (v_ov is a Davidson trial
+  // vector, not itself trust-radius bounded at this stage).
+  Eigen::MatrixXd C_rot =
+      C * (Eigen::MatrixXd::Identity(nao, nao) + kappa_trial);
+  Eigen::MatrixXd nonortho = C_rot.transpose() * S_->Matrix() * C_rot;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_ortho(nonortho);
+  C_rot = C_rot * es_ortho.operatorInverseSqrt();
+
+  Eigen::MatrixXd C_occ_rot = C_rot.leftCols(nocclevels);
+  Eigen::MatrixXd D_rot = C_occ_rot * C_occ_rot.transpose();
+
+  Eigen::MatrixXd F_AO_rot = fock_builder(D_rot);
+  Eigen::MatrixXd F_MO_rot = C_rot.transpose() * F_AO_rot * C_rot;
+
+  Eigen::VectorXd sigma(nocclevels * nvirt);
+  for (Index i = 0; i < nocclevels; ++i) {
+    for (Index a = 0; a < nvirt; ++a) {
+      double g_rot_ia = F_MO_rot(i, nocclevels + a);
+      double g_ia = g_occ_virt(i, nocclevels + a);
+      sigma(i * nvirt + a) = (g_rot_ia - g_ia) / kFiniteDiffStep;
+    }
+  }
+  return sigma;
+}
+
 Eigen::MatrixXd UKSConvergenceAcc::DirectMinimizationRotation(
     const Eigen::MatrixXd& H_AO, const tools::EigenSystem& MOs,
     Index nocclevels, double& predicted_energy_change) const {
@@ -155,6 +215,143 @@ Eigen::MatrixXd UKSConvergenceAcc::DirectMinimizationRotation(
   // afterward since I+kappa is only approximately unitary, using the
   // same Lowdin (symmetric orthogonalization) approach as
   // DFTEngine::OrthogonalizeGuess.
+  Eigen::MatrixXd C_new = C * (Eigen::MatrixXd::Identity(nao, nao) + kappa);
+  Eigen::MatrixXd nonortho = C_new.transpose() * S_->Matrix() * C_new;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_ortho(nonortho);
+  return C_new * es_ortho.operatorInverseSqrt();
+}
+
+namespace {
+// Local operator matching DavidsonSolver's own MatrixReplacement
+// template interface (.rows(), .diagonal(), operator*(MatrixXd)) for
+// the scaled augmented Hessian, Helmich-Paris Eq. 9:
+//   [[0, alpha*g^T], [alpha*g, H]]
+// H*v_ov itself is never built explicitly -- only ever applied to a
+// trial vector, via UKSConvergenceAcc::BuildSigmaVector's own finite-
+// difference approximation (see that function's own header comment).
+struct AugmentedHessianOperator {
+  const Eigen::VectorXd& g;
+  const Eigen::MatrixXd& C;
+  Index nocclevels;
+  double alpha_scale;
+  const UKSConvergenceAcc::FockBuilder& fock_builder;
+  const Eigen::MatrixXd& F_MO;
+  const UKSConvergenceAcc* self;
+  const Eigen::VectorXd& diag_h;  // approximate diagonal Hessian,
+                                  // reused as the Davidson
+                                  // preconditioner (Helmich-Paris
+                                  // Sec. II B) -- NOT the step itself.
+
+  Index rows() const { return 1 + g.size(); }
+
+  Eigen::VectorXd diagonal() const {
+    Eigen::VectorXd d(1 + g.size());
+    d(0) = 0.0;
+    d.tail(g.size()) = diag_h;
+    return d;
+  }
+
+  Eigen::MatrixXd operator*(const Eigen::MatrixXd& V) const {
+    Eigen::MatrixXd AV = Eigen::MatrixXd::Zero(V.rows(), V.cols());
+    for (Index col = 0; col < V.cols(); ++col) {
+      double v0 = V(0, col);
+      Eigen::VectorXd v_ov = V.block(1, col, g.size(), 1);
+      AV(0, col) = alpha_scale * g.dot(v_ov);
+      Eigen::VectorXd sigma =
+          self->BuildSigmaVector(v_ov, C, nocclevels, fock_builder, F_MO);
+      AV.block(1, col, g.size(), 1) = alpha_scale * g * v0 + sigma;
+    }
+    return AV;
+  }
+};
+}  // namespace
+
+Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
+    const Eigen::MatrixXd& H_AO, const tools::EigenSystem& MOs,
+    Index nocclevels, const FockBuilder& fock_builder, double trust_radius,
+    double& predicted_energy_change) const {
+  Index nao = MOs.eigenvectors().rows();
+  Index nvirt = nao - nocclevels;
+  Index n_ov = nocclevels * nvirt;
+  const Eigen::MatrixXd& C = MOs.eigenvectors();
+  const Eigen::VectorXd& eps = MOs.eigenvalues();
+
+  Eigen::MatrixXd F_MO = C.transpose() * H_AO * C;
+
+  Eigen::VectorXd g(n_ov);
+  Eigen::VectorXd diag_h(n_ov);
+  constexpr double kMinGap = 1e-3;
+  for (Index i = 0; i < nocclevels; ++i) {
+    for (Index a = 0; a < nvirt; ++a) {
+      g(i * nvirt + a) = F_MO(i, nocclevels + a);
+      double gap = std::max(std::abs(eps(nocclevels + a) - eps(i)), kMinGap);
+      diag_h(i * nvirt + a) = 2.0 * gap;
+    }
+  }
+
+  // Bisection over alpha (Helmich-Paris Sec. II B, Eq. 11) to keep the
+  // resulting step within the trust radius: ||kappa(alpha)||^2/alpha^2
+  // <= trust_radius^2. Bounds match the paper's own default
+  // [alpha_min, alpha_max] = [1, 1000] (Table I).
+  double alpha_min = 1.0;
+  double alpha_max = 1000.0;
+  Eigen::VectorXd best_kappa_flat = Eigen::VectorXd::Zero(n_ov);
+  double best_mu = 0.0;
+
+  auto SolveForAlpha = [&](double alpha_try, Eigen::VectorXd& kappa_flat_out,
+                          double& mu_out) {
+    AugmentedHessianOperator op{g,      C,     nocclevels, alpha_try,
+                               fock_builder, F_MO, this,       diag_h};
+    DavidsonSolver solver(*log_);
+    solver.set_matrix_type("SYMM");
+    solver.set_tolerance("normal");
+    solver.set_iter_max(16);
+    solver.solve(op, 1);
+    Eigen::VectorXd eigvec = solver.eigenvectors().col(0);
+    mu_out = solver.eigenvalues()(0);
+    double v0 = eigvec(0);
+    // Guards against a degenerate eigenvector with (near-)zero
+    // leading component, for which Eq. 10's own kappa(alpha) =
+    // eigvec_tail/v0 normalization is ill-defined.
+    if (std::abs(v0) < 1e-8) {
+      kappa_flat_out = Eigen::VectorXd::Zero(g.size());
+      return;
+    }
+    kappa_flat_out = eigvec.tail(g.size()) / v0;
+  };
+
+  for (int bisection_iter = 0; bisection_iter < 20; ++bisection_iter) {
+    double alpha_try = 0.5 * (alpha_min + alpha_max);
+    Eigen::VectorXd kappa_flat;
+    double mu;
+    SolveForAlpha(alpha_try, kappa_flat, mu);
+    double step_norm = kappa_flat.norm() / alpha_try;
+    best_kappa_flat = kappa_flat;
+    best_mu = mu;
+    if (step_norm > trust_radius) {
+      // Step too long -- Sec. II B confirms larger alpha shrinks it.
+      alpha_min = alpha_try;
+    } else {
+      alpha_max = alpha_try;
+    }
+    if (std::abs(step_norm - trust_radius) < 0.01 * trust_radius) {
+      break;
+    }
+  }
+
+  Eigen::MatrixXd kappa = UnflattenRotation(best_kappa_flat, nao, nocclevels);
+
+  // Predicted energy change from the SAME quadratic model the
+  // augmented-Hessian eigenvalue problem itself is built from --
+  // Q(kappa)-E0 = g^T*kappa + 0.5*kappa^T*H*kappa. mu itself already
+  // equals g^T*kappa + kappa^T*H*kappa (the level-shifted stationarity
+  // condition, Eq. 8, dotted with kappa) at the exact solution, so
+  // 0.5*(g^T*kappa + mu*||kappa||^2) is the equivalent, cheaper-to-
+  // evaluate form -- avoids needing a further BuildSigmaVector call
+  // just to get this number.
+  predicted_energy_change =
+      0.5 * (g.dot(best_kappa_flat) + best_mu * best_kappa_flat.squaredNorm());
+
   Eigen::MatrixXd C_new = C * (Eigen::MatrixXd::Identity(nao, nao) + kappa);
   Eigen::MatrixXd nonortho = C_new.transpose() * S_->Matrix() * C_new;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_ortho(nonortho);
@@ -377,10 +574,27 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
 
         double predicted_change_alpha = 0.0;
         double predicted_change_beta = 0.0;
-        Eigen::MatrixXd C_new_alpha = DirectMinimizationRotation(
-            H.alpha, MOs_alpha, nocclevels_alpha_, predicted_change_alpha);
-        Eigen::MatrixXd C_new_beta = DirectMinimizationRotation(
-            H.beta, MOs_beta, nocclevels_beta_, predicted_change_beta);
+        Eigen::MatrixXd C_new_alpha;
+        Eigen::MatrixXd C_new_beta;
+        // AugmentedHessianStep needs a Fock-builder callback (injected
+        // by DFTEngine via setFockBuilderAlpha/Beta) to evaluate its
+        // own finite-difference sigma vectors -- fall back to the
+        // simpler, diagonal-Hessian-only DirectMinimizationRotation for
+        // any caller that has not wired this up, rather than failing
+        // outright.
+        if (fock_builder_alpha_ && fock_builder_beta_) {
+          C_new_alpha = AugmentedHessianStep(
+              H.alpha, MOs_alpha, nocclevels_alpha_, fock_builder_alpha_,
+              trust_radius_current_, predicted_change_alpha);
+          C_new_beta = AugmentedHessianStep(
+              H.beta, MOs_beta, nocclevels_beta_, fock_builder_beta_,
+              trust_radius_current_, predicted_change_beta);
+        } else {
+          C_new_alpha = DirectMinimizationRotation(
+              H.alpha, MOs_alpha, nocclevels_alpha_, predicted_change_alpha);
+          C_new_beta = DirectMinimizationRotation(
+              H.beta, MOs_beta, nocclevels_beta_, predicted_change_beta);
+        }
         direct_min_predicted_change_ =
             predicted_change_alpha + predicted_change_beta;
         direct_min_pending_ = true;
