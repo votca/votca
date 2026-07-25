@@ -298,8 +298,12 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
   // itself be a reasonably-scaled vector, not thousands in magnitude.
   {
     double gnorm_diag = g.norm();
-    Eigen::VectorXd probe_direction =
-        (gnorm_diag > 1e-12) ? (g / gnorm_diag) : Eigen::VectorXd::Unit(n_ov, 0);
+    Eigen::VectorXd probe_direction;
+    if (gnorm_diag > 1e-12) {
+      probe_direction = g / gnorm_diag;
+    } else {
+      probe_direction = Eigen::VectorXd::Unit(n_ov, 0);
+    }
     Eigen::VectorXd probe_sigma =
         BuildSigmaVector(probe_direction, C, nocclevels, fock_builder, F_MO);
     XTP_LOG(Log::warning, *log_)
