@@ -1235,14 +1235,39 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
     // mixing turn off" to the same value as "when does ADIIS/DIIS
     // engage at all", which are conceptually separate questions.
     usedmixing_ = true;
-    dmatout.alpha = opt_alpha_.mixingparameter * dmat.alpha +
-                    (1.0 - opt_alpha_.mixingparameter) * dmatout.alpha;
-    dmatout.beta = opt_beta_.mixingparameter * dmat.beta +
-                   (1.0 - opt_beta_.mixingparameter) * dmatout.beta;
+    // Adaptive damping (matches ORCA's own DampFac/DampMax design,
+    // confirmed directly from a real ORCA log's own resolved SCF
+    // settings -- see the options struct's own comment in
+    // convergenceacc.h for the full reasoning): ramp LINEARLY from
+    // mixingparameter (the base, e.g. 0.7) toward mixingmax (the
+    // ceiling, e.g. 0.98) as consecutive_adiis_failures_ increases
+    // toward kMaxConsecutiveADIISFailures, rather than applying the
+    // ceiling value for the entire run regardless of whether the SCF
+    // is actually struggling. Ties the ramp to the SAME signal already
+    // driving the direct-minimization trigger itself, rather than
+    // introducing a separate struggle metric -- consecutive_adiis_
+    // failures_ resets to 0 on any successful ADIIS/DIIS step, so the
+    // ramp relaxes back toward the base value just as readily as it
+    // climbed.
+    double ramp_fraction =
+        std::min(1.0, double(consecutive_adiis_failures_) /
+                          double(kMaxConsecutiveADIISFailures));
+    double mixingparameter_alpha_current =
+        opt_alpha_.mixingparameter +
+        ramp_fraction * (opt_alpha_.mixingmax - opt_alpha_.mixingparameter);
+    double mixingparameter_beta_current =
+        opt_beta_.mixingparameter +
+        ramp_fraction * (opt_beta_.mixingmax - opt_beta_.mixingparameter);
+    dmatout.alpha = mixingparameter_alpha_current * dmat.alpha +
+                    (1.0 - mixingparameter_alpha_current) * dmatout.alpha;
+    dmatout.beta = mixingparameter_beta_current * dmat.beta +
+                   (1.0 - mixingparameter_beta_current) * dmatout.beta;
     XTP_LOG(Log::warning, *log_)
-        << TimeStamp()
-        << " Using coupled UKS mixing with alpha=" << opt_alpha_.mixingparameter
-        << std::flush;
+        << TimeStamp() << " Using coupled UKS mixing with adaptive alpha="
+        << mixingparameter_alpha_current
+        << " (base=" << opt_alpha_.mixingparameter
+        << ", ceiling=" << opt_alpha_.mixingmax
+        << ", ramp fraction=" << ramp_fraction << ")" << std::flush;
   } else {
     usedmixing_ = false;
   }
