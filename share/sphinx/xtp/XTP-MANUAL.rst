@@ -14,6 +14,7 @@ software and manual versions match.
 
    xtp_introduction
    elstruc_theory
+   implementation_notes
    transfer_theory
    transport_theory
    pyxtp
