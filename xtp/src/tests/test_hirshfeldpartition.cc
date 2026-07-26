@@ -141,6 +141,8 @@ BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
   xml << "    <error>1e-8</error>\n";
   xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
   xml << "    <mixing>0.7</mixing>\n";
+  xml << "    <mixing_max>0.98</mixing_max>\n";
+  xml << "    <mixing_end>0.8</mixing_end>\n";
   xml << "</convergence>\n";
   // fine, not xcoarse: this test's own accuracy is limited by the
   // SAME grid's own integration error (BuildWeightMatrix integrates
@@ -277,6 +279,8 @@ BOOST_AUTO_TEST_CASE(cdft_force_finite_difference) {
   xml << "    <error>1e-8</error>\n";
   xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
   xml << "    <mixing>0.7</mixing>\n";
+  xml << "    <mixing_max>0.98</mixing_max>\n";
+  xml << "    <mixing_end>0.8</mixing_end>\n";
   xml << "</convergence>\n";
   xml << "<integration_grid>fine</integration_grid>\n";
   xml << "<max_iterations>200</max_iterations>\n";

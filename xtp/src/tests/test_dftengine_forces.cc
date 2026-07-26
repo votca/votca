@@ -140,6 +140,8 @@ Orbitals RunSCF(double bond_length_angstrom,
   xml << "    <error>1e-8</error>\n";
   xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
   xml << "    <mixing>0.7</mixing>\n";
+  xml << "    <mixing_max>0.98</mixing_max>\n";
+  xml << "    <mixing_end>0.8</mixing_end>\n";
   xml << "</convergence>\n";
   xml << "<integration_grid>xcoarse</integration_grid>\n";
   xml << "<max_iterations>200</max_iterations>\n";
