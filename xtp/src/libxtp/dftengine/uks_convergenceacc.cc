@@ -1064,6 +1064,18 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
 
   diiserror_ = CombinedError(err_alpha, err_beta);
 
+  // Trailing-average trigger bookkeeping (see this class's own header
+  // comment on diiserror_history_ for the full ORCA-derived reasoning)
+  // -- tracked unconditionally, every iteration, regardless of what
+  // this iteration goes on to do (ADIIS/DIIS/mixing/direct-
+  // minimization), since the whole point is to observe the genuine,
+  // realized trajectory of diiserror_ itself.
+  ++total_iteration_count_;
+  diiserror_history_.push_back(diiserror_);
+  if (Index(diiserror_history_.size()) > kTrailingWindowSize) {
+    diiserror_history_.erase(diiserror_history_.begin());
+  }
+
   mathist_alpha_.push_back(H.alpha);
   mathist_beta_.push_back(H.beta);
   dmatHist_alpha_.push_back(dmat.alpha);
@@ -1112,18 +1124,60 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
 
     if (diis_error) {
       ++consecutive_adiis_failures_;
-      if (consecutive_adiis_failures_ >= kMaxConsecutiveADIISFailures &&
+      // Trailing-average check (see this class's own header comment on
+      // diiserror_history_): true once enough iterations have
+      // happened AND diiserror_ has, on average, failed to shrink by
+      // more than kMeanRatioTolerance's own margin over the trailing
+      // window -- an ADDITIONAL, independent way to detect "genuinely
+      // stalled, not just occasionally failing," alongside (not
+      // instead of) the consecutive-failures count. A system that
+      // fails ADIIS's own tail-coefficient check occasionally, while
+      // still making real progress overall, would not trip this;
+      // ORCA's own AutoTRAH design (confirmed directly from a real
+      // ORCA log's own resolved SCF settings) is built the same way,
+      // reacting to the genuine RATE of improvement rather than
+      // isolated pass/fail outcomes alone.
+      bool trailing_average_stalled = false;
+      if (total_iteration_count_ >= kAutoStartIteration &&
+          Index(diiserror_history_.size()) >= kTrailingWindowSize) {
+        double mean_ratio = 0.0;
+        Index ratio_count = 0;
+        for (Index i = 1; i < Index(diiserror_history_.size()); ++i) {
+          if (diiserror_history_[i - 1] > 1e-12) {
+            mean_ratio += diiserror_history_[i] / diiserror_history_[i - 1];
+            ++ratio_count;
+          }
+        }
+        if (ratio_count > 0) {
+          mean_ratio /= double(ratio_count);
+          // mean_ratio here is new/old (< 1 means genuine improvement,
+          // matching diiserror_history_'s own index order). ORCA's own
+          // manual is not fully explicit about which direction its own
+          // "mean grad ratio" convention uses -- this specific
+          // 1.0/kMeanRatioTolerance threshold was inferred from the
+          // manual's own single, concrete worked example ("decreased
+          // on average only by a factor 0.9" triggering the warning
+          // with tolerance=1.125): 0.9 > 1/1.125 (~=0.889) is
+          // consistent with THAT example specifically triggering, but
+          // this has not been independently verified against ORCA's
+          // own source code or a second example.
+          trailing_average_stalled = mean_ratio > (1.0 / kMeanRatioTolerance);
+        }
+      }
+      if ((consecutive_adiis_failures_ >= kMaxConsecutiveADIISFailures ||
+          trailing_average_stalled) &&
           !direct_min_floor_hit_) {
-        // Mirrors ORCA's own auto-TRAH trigger: after (A)DIIS has
-        // visibly, repeatedly failed rather than just being slow, fall
-        // back to a direct-minimization step instead of plain mixing --
-        // see this class's own header comment on DirectMinimizationRotation
+        // Mirrors ORCA's own AutoTRAH trigger, now via TWO independent
+        // conditions rather than one -- see this class's own header
+        // comment on DirectMinimizationRotation and diiserror_history_
         // for the full reasoning and the ORCA log this was validated
         // against directly.
         XTP_LOG(Log::warning, *log_)
             << TimeStamp() << " (A)DIIS failed " << consecutive_adiis_failures_
-            << " times in a row, switching to direct-minimization step"
-            << std::flush;
+            << " times in a row" << (trailing_average_stalled
+                                          ? " (or trailing average stalled)"
+                                          : "")
+            << ", switching to direct-minimization step" << std::flush;
         // Save the pre-step state so this step's actual effect can be
         // verified (and, if necessary, reverted) once its own energy
         // becomes available on the NEXT Iterate() call -- see the

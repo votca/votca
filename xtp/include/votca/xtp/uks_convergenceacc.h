@@ -358,6 +358,28 @@ class UKSConvergenceAcc {
   Index consecutive_adiis_failures_ = 0;
   static constexpr Index kMaxConsecutiveADIISFailures = 5;
 
+  // Trailing-average trigger for direct-minimization, ADDITIONAL to
+  // (not replacing) the consecutive-failures count above -- matches
+  // ORCA's own AutoTRAH design (confirmed directly from a real ORCA
+  // log's own resolved SCF settings: "Auto Start start iteration 50",
+  // "Auto Start num. interpolation iter. 10", "Auto Start mean grad.
+  // ratio tolernc. 1.125"). Rather than only reacting to N CONSECUTIVE
+  // ADIIS failures (which says nothing about whether progress is
+  // merely slow but real, or genuinely stalled), this tracks whether
+  // diiserror_ itself is failing to shrink fast enough ON AVERAGE over
+  // a trailing window, regardless of whether any individual ADIIS
+  // attempt in that window happened to "succeed" by its own tail-
+  // coefficient criterion. diiserror_history_ holds the trailing
+  // window (capped at kTrailingWindowSize entries, oldest dropped as
+  // new ones are added); the trigger itself only becomes eligible
+  // after kAutoStartIteration total iterations, matching ORCA's own
+  // deliberate delay before considering this criterion at all.
+  std::vector<double> diiserror_history_;
+  Index total_iteration_count_ = 0;
+  static constexpr Index kTrailingWindowSize = 10;
+  static constexpr Index kAutoStartIteration = 50;
+  static constexpr double kMeanRatioTolerance = 1.125;
+
   // Fletcher's trust-radius update (Helmich-Paris, J. Chem. Phys. 154,
   // 164104 (2021), Sec. II D -- ORCA's own TRAH-SCF paper, confirmed
   // directly by reading it rather than reconstructed from memory): the
