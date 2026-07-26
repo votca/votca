@@ -242,8 +242,8 @@ class HirshfeldPartition {
   /// Deliberately a standalone implementation reusing PulayGradient's
   /// own already-validated local_idx_to_atom bookkeeping pattern and
   /// exact sign convention (confirmed directly:
-  /// contribution = -weight * <potential> * temp(mu) *
-  /// ao.derivatives.row(mu), with <potential> = w_c(point) here in
+  /// contribution = -weight * \<potential\> * temp(mu) *
+  /// ao.derivatives.row(mu), with \<potential\> = w_c(point) here in
   /// place of xc.df_drho there), NOT a refactor of that function --
   /// same reasoning as GridWeightDerivativeContribution's own choice
   /// on this. Returns an Natoms x 3 matrix: these two terms'

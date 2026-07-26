@@ -297,7 +297,7 @@ class DFTEngine {
   std::map<std::string, Eigen::MatrixXd> ComputeHirshfeldReferenceDensities(
       const QMMolecule& mol) const;
 
-  /// Parsed directly from the <cdft> options block at Initialize()
+  /// Parsed directly from the \<cdft\> options block at Initialize()
   /// time -- atom indices and target charge only, NOT yet a full
   /// HirshfeldPartition::Constraint (which needs the reference
   /// densities/weight matrix, neither of which exist until Evaluate()
@@ -325,7 +325,7 @@ class DFTEngine {
   };
 
   /// Converts a parsed CDFTConstraintSpec (atom indices + relative
-  /// target charge, from Initialize()'s own <cdft> options parsing)
+  /// target charge, from Initialize()'s own \<cdft\> options parsing)
   /// into a fully-built HirshfeldPartition::Constraint, given the real
   /// molecule this calculation is actually running on. Builds the
   /// weight matrix as the SUM of BuildWeightMatrix over every atom in
