@@ -80,6 +80,22 @@ Eigen::MatrixXd UKSConvergenceAcc::UnflattenRotation(const Eigen::VectorXd& v_ov
   return kappa;
 }
 
+std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
+UKSConvergenceAcc::UnflattenCoupledRotation(const Eigen::VectorXd& v,
+                                            Index nao_alpha,
+                                            Index nocclevels_alpha,
+                                            Index nao_beta,
+                                            Index nocclevels_beta) const {
+  Index n_ov_alpha = nocclevels_alpha * (nao_alpha - nocclevels_alpha);
+  Eigen::VectorXd v_alpha = v.head(n_ov_alpha);
+  Eigen::VectorXd v_beta = v.tail(v.size() - n_ov_alpha);
+  Eigen::MatrixXd kappa_alpha =
+      UnflattenRotation(v_alpha, nao_alpha, nocclevels_alpha);
+  Eigen::MatrixXd kappa_beta =
+      UnflattenRotation(v_beta, nao_beta, nocclevels_beta);
+  return {kappa_alpha, kappa_beta};
+}
+
 Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
     const Eigen::VectorXd& v_ov, const Eigen::MatrixXd& C, Index nocclevels,
     const FockBuilder& fock_builder, const Eigen::MatrixXd& g_occ_virt,
@@ -155,6 +171,87 @@ Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
       double g_plus_ia = F_MO_plus(i, nocclevels + a);
       double g_minus_ia = F_MO_minus(i, nocclevels + a);
       sigma(i * nvirt + a) = (g_plus_ia - g_minus_ia) / (2.0 * finite_diff_step);
+    }
+  }
+  return sigma;
+}
+
+Eigen::VectorXd UKSConvergenceAcc::BuildCoupledSigmaVector(
+    const Eigen::VectorXd& v, const Eigen::MatrixXd& C_alpha,
+    Index nocclevels_alpha, const Eigen::MatrixXd& C_beta,
+    Index nocclevels_beta, const CoupledFockBuilder& coupled_fock_builder,
+    double finite_diff_step) const {
+  Index nao_alpha = C_alpha.rows();
+  Index nvirt_alpha = nao_alpha - nocclevels_alpha;
+  Index nao_beta = C_beta.rows();
+  Index nvirt_beta = nao_beta - nocclevels_beta;
+  Index n_ov_alpha = nocclevels_alpha * nvirt_alpha;
+  Index n_ov_beta = nocclevels_beta * nvirt_beta;
+
+  auto [kappa_alpha_trial, kappa_beta_trial] = UnflattenCoupledRotation(
+      v, nao_alpha, nocclevels_alpha, nao_beta, nocclevels_beta);
+  kappa_alpha_trial *= finite_diff_step;
+  kappa_beta_trial *= finite_diff_step;
+
+  // Same linearized-exponential + Lowdin-reorthonormalization approach
+  // as BuildSigmaVector's own EvaluateGradientAt -- but rotates BOTH
+  // channels together and builds BOTH new Fock matrices together in
+  // ONE coupled_fock_builder call, rather than one channel at a time
+  // with the other held fixed. This is what actually captures the
+  // alpha-beta coupling: the shared Coulomb potential and the XC
+  // kernel's cross-spin terms naturally see both perturbed densities
+  // together inside coupled_fock_builder, rather than needing this
+  // function to construct any cross-coupling term explicitly itself.
+  auto EvaluateBothGradientsAt =
+      [&](const Eigen::MatrixXd& kappa_alpha, const Eigen::MatrixXd& kappa_beta)
+      -> std::pair<Eigen::MatrixXd, Eigen::MatrixXd> {
+    Eigen::MatrixXd C_alpha_rot =
+        C_alpha * (Eigen::MatrixXd::Identity(nao_alpha, nao_alpha) + kappa_alpha);
+    Eigen::MatrixXd nonortho_alpha =
+        C_alpha_rot.transpose() * S_->Matrix() * C_alpha_rot;
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_alpha(nonortho_alpha);
+    C_alpha_rot = C_alpha_rot * es_alpha.operatorInverseSqrt();
+
+    Eigen::MatrixXd C_beta_rot =
+        C_beta * (Eigen::MatrixXd::Identity(nao_beta, nao_beta) + kappa_beta);
+    Eigen::MatrixXd nonortho_beta =
+        C_beta_rot.transpose() * S_->Matrix() * C_beta_rot;
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_beta(nonortho_beta);
+    C_beta_rot = C_beta_rot * es_beta.operatorInverseSqrt();
+
+    Eigen::MatrixXd C_alpha_occ_rot = C_alpha_rot.leftCols(nocclevels_alpha);
+    Eigen::MatrixXd D_alpha_rot = C_alpha_occ_rot * C_alpha_occ_rot.transpose();
+    Eigen::MatrixXd C_beta_occ_rot = C_beta_rot.leftCols(nocclevels_beta);
+    Eigen::MatrixXd D_beta_rot = C_beta_occ_rot * C_beta_occ_rot.transpose();
+
+    SpinFock H_rot = coupled_fock_builder(D_alpha_rot, D_beta_rot);
+    Eigen::MatrixXd F_MO_alpha_rot =
+        C_alpha_rot.transpose() * H_rot.alpha * C_alpha_rot;
+    Eigen::MatrixXd F_MO_beta_rot =
+        C_beta_rot.transpose() * H_rot.beta * C_beta_rot;
+    return {F_MO_alpha_rot, F_MO_beta_rot};
+  };
+
+  auto [F_MO_alpha_plus, F_MO_beta_plus] =
+      EvaluateBothGradientsAt(kappa_alpha_trial, kappa_beta_trial);
+  auto [F_MO_alpha_minus, F_MO_beta_minus] =
+      EvaluateBothGradientsAt(-kappa_alpha_trial, -kappa_beta_trial);
+
+  Eigen::VectorXd sigma(n_ov_alpha + n_ov_beta);
+  for (Index i = 0; i < nocclevels_alpha; ++i) {
+    for (Index a = 0; a < nvirt_alpha; ++a) {
+      double g_plus_ia = F_MO_alpha_plus(i, nocclevels_alpha + a);
+      double g_minus_ia = F_MO_alpha_minus(i, nocclevels_alpha + a);
+      sigma(i * nvirt_alpha + a) =
+          (g_plus_ia - g_minus_ia) / (2.0 * finite_diff_step);
+    }
+  }
+  for (Index i = 0; i < nocclevels_beta; ++i) {
+    for (Index a = 0; a < nvirt_beta; ++a) {
+      double g_plus_ia = F_MO_beta_plus(i, nocclevels_beta + a);
+      double g_minus_ia = F_MO_beta_minus(i, nocclevels_beta + a);
+      sigma(n_ov_alpha + i * nvirt_beta + a) =
+          (g_plus_ia - g_minus_ia) / (2.0 * finite_diff_step);
     }
   }
   return sigma;
