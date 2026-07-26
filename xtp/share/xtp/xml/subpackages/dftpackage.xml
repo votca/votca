@@ -53,6 +53,7 @@
       <error help="convergence error" default="1e-7" choices="float+" />
       <mixing help="mixing parameter for linear mixing of density matrices" default="0.7" choices="float+" />
       <mixing_end help="DIIS error below which mixing is disabled -- independent of ADIIS_start (see ORCA's own DampErr, kept independent of DIISStart for the same reason: difficult systems benefit from keeping mixing active well past the point where ADIIS/DIIS themselves start being tried, not exactly until that same point). Defaults to match ADIIS_start's own default (0.8) for backward compatibility -- existing configurations see identical behavior unless this is set explicitly." default="0.8" choices="float+" />
+      <mixing_max help="Ceiling mixing can adaptively ramp up toward as the SCF struggles (see consecutive ADIIS failures), rather than staying fixed at the base mixing value for an entire run. Matches ORCA's own DampMax (default 0.98, confirmed directly from a real ORCA log's own resolved SCF settings) -- ORCA ramps its own damping factor from a base (DampFac, 0.7 by default) up to this ceiling only when actually needed, rather than paying the cost of heavy damping throughout." default="0.98" choices="float+" />
     </convergence>
   </xtpdft>
 </dftpackage>

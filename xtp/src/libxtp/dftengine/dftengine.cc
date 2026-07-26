@@ -262,6 +262,10 @@ void DFTEngine::Initialize(tools::Property& options) {
   }
   conv_opt_.mixingparameter =
       options.get(key_xtpdft + ".convergence.mixing").as<double>();
+  // Ceiling for adaptive damping -- see the options struct's own
+  // comment (convergenceacc.h) for the full ORCA-derived reasoning.
+  conv_opt_.mixingmax =
+      options.get(key_xtpdft + ".convergence.mixing_max").as<double>();
   conv_opt_.levelshift =
       options.get(key_xtpdft + ".convergence.levelshift").as<double>();
   conv_opt_.levelshiftend =
