@@ -1164,20 +1164,27 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
           trailing_average_stalled = mean_ratio > (1.0 / kMeanRatioTolerance);
         }
       }
-      if ((consecutive_adiis_failures_ >= kMaxConsecutiveADIISFailures ||
-          trailing_average_stalled) &&
-          !direct_min_floor_hit_) {
-        // Mirrors ORCA's own AutoTRAH trigger, now via TWO independent
-        // conditions rather than one -- see this class's own header
-        // comment on DirectMinimizationRotation and diiserror_history_
-        // for the full reasoning and the ORCA log this was validated
-        // against directly.
+      // Deliberate experiment: trigger via the trailing-average
+      // criterion ONLY, matching ORCA's own AutoTRAH design exclusively
+      // -- consecutive_adiis_failures_ is still tracked and logged
+      // (useful diagnostic context), but no longer part of the trigger
+      // condition itself. Previously an OR of both criteria; every real
+      // run so far showed the consecutive-failures count reaching its
+      // own threshold (5) well before total_iteration_count_ ever
+      // reached kAutoStartIteration (50), meaning the trailing-average
+      // criterion never actually got the chance to be the deciding
+      // factor in practice -- this change tests what happens with
+      // ORCA's own, more patient design used exclusively, rather than
+      // continuing to let the faster-firing consecutive-count trigger
+      // dominate in an OR.
+      if (trailing_average_stalled && !direct_min_floor_hit_) {
+        // Mirrors ORCA's own AutoTRAH trigger.
         XTP_LOG(Log::warning, *log_)
-            << TimeStamp() << " (A)DIIS failed " << consecutive_adiis_failures_
-            << " times in a row" << (trailing_average_stalled
-                                          ? " (or trailing average stalled)"
-                                          : "")
-            << ", switching to direct-minimization step" << std::flush;
+            << TimeStamp() << " Trailing average stalled after "
+            << consecutive_adiis_failures_
+            << " consecutive (A)DIIS failures, switching to "
+               "direct-minimization step"
+            << std::flush;
         // Save the pre-step state so this step's actual effect can be
         // verified (and, if necessary, reverted) once its own energy
         // becomes available on the NEXT Iterate() call -- see the
