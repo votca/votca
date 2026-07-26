@@ -20,6 +20,8 @@
 // Local VOTCA includes
 #include "votca/xtp/uks_convergenceacc.h"
 
+#include <tuple>
+
 namespace votca {
 namespace xtp {
 
@@ -78,6 +80,22 @@ Eigen::MatrixXd UKSConvergenceAcc::UnflattenRotation(const Eigen::VectorXd& v_ov
     }
   }
   return kappa;
+}
+
+std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
+UKSConvergenceAcc::UnflattenCoupledRotation(const Eigen::VectorXd& v,
+                                            Index nao_alpha,
+                                            Index nocclevels_alpha,
+                                            Index nao_beta,
+                                            Index nocclevels_beta) const {
+  Index n_ov_alpha = nocclevels_alpha * (nao_alpha - nocclevels_alpha);
+  Eigen::VectorXd v_alpha = v.head(n_ov_alpha);
+  Eigen::VectorXd v_beta = v.tail(v.size() - n_ov_alpha);
+  Eigen::MatrixXd kappa_alpha =
+      UnflattenRotation(v_alpha, nao_alpha, nocclevels_alpha);
+  Eigen::MatrixXd kappa_beta =
+      UnflattenRotation(v_beta, nao_beta, nocclevels_beta);
+  return {kappa_alpha, kappa_beta};
 }
 
 Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
@@ -155,6 +173,87 @@ Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
       double g_plus_ia = F_MO_plus(i, nocclevels + a);
       double g_minus_ia = F_MO_minus(i, nocclevels + a);
       sigma(i * nvirt + a) = (g_plus_ia - g_minus_ia) / (2.0 * finite_diff_step);
+    }
+  }
+  return sigma;
+}
+
+Eigen::VectorXd UKSConvergenceAcc::BuildCoupledSigmaVector(
+    const Eigen::VectorXd& v, const Eigen::MatrixXd& C_alpha,
+    Index nocclevels_alpha, const Eigen::MatrixXd& C_beta,
+    Index nocclevels_beta, const CoupledFockBuilder& coupled_fock_builder,
+    double finite_diff_step) const {
+  Index nao_alpha = C_alpha.rows();
+  Index nvirt_alpha = nao_alpha - nocclevels_alpha;
+  Index nao_beta = C_beta.rows();
+  Index nvirt_beta = nao_beta - nocclevels_beta;
+  Index n_ov_alpha = nocclevels_alpha * nvirt_alpha;
+  Index n_ov_beta = nocclevels_beta * nvirt_beta;
+
+  auto [kappa_alpha_trial, kappa_beta_trial] = UnflattenCoupledRotation(
+      v, nao_alpha, nocclevels_alpha, nao_beta, nocclevels_beta);
+  kappa_alpha_trial *= finite_diff_step;
+  kappa_beta_trial *= finite_diff_step;
+
+  // Same linearized-exponential + Lowdin-reorthonormalization approach
+  // as BuildSigmaVector's own EvaluateGradientAt -- but rotates BOTH
+  // channels together and builds BOTH new Fock matrices together in
+  // ONE coupled_fock_builder call, rather than one channel at a time
+  // with the other held fixed. This is what actually captures the
+  // alpha-beta coupling: the shared Coulomb potential and the XC
+  // kernel's cross-spin terms naturally see both perturbed densities
+  // together inside coupled_fock_builder, rather than needing this
+  // function to construct any cross-coupling term explicitly itself.
+  auto EvaluateBothGradientsAt =
+      [&](const Eigen::MatrixXd& kappa_alpha, const Eigen::MatrixXd& kappa_beta)
+      -> std::pair<Eigen::MatrixXd, Eigen::MatrixXd> {
+    Eigen::MatrixXd C_alpha_rot =
+        C_alpha * (Eigen::MatrixXd::Identity(nao_alpha, nao_alpha) + kappa_alpha);
+    Eigen::MatrixXd nonortho_alpha =
+        C_alpha_rot.transpose() * S_->Matrix() * C_alpha_rot;
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_alpha(nonortho_alpha);
+    C_alpha_rot = C_alpha_rot * es_alpha.operatorInverseSqrt();
+
+    Eigen::MatrixXd C_beta_rot =
+        C_beta * (Eigen::MatrixXd::Identity(nao_beta, nao_beta) + kappa_beta);
+    Eigen::MatrixXd nonortho_beta =
+        C_beta_rot.transpose() * S_->Matrix() * C_beta_rot;
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_beta(nonortho_beta);
+    C_beta_rot = C_beta_rot * es_beta.operatorInverseSqrt();
+
+    Eigen::MatrixXd C_alpha_occ_rot = C_alpha_rot.leftCols(nocclevels_alpha);
+    Eigen::MatrixXd D_alpha_rot = C_alpha_occ_rot * C_alpha_occ_rot.transpose();
+    Eigen::MatrixXd C_beta_occ_rot = C_beta_rot.leftCols(nocclevels_beta);
+    Eigen::MatrixXd D_beta_rot = C_beta_occ_rot * C_beta_occ_rot.transpose();
+
+    SpinFock H_rot = coupled_fock_builder(D_alpha_rot, D_beta_rot);
+    Eigen::MatrixXd F_MO_alpha_rot =
+        C_alpha_rot.transpose() * H_rot.alpha * C_alpha_rot;
+    Eigen::MatrixXd F_MO_beta_rot =
+        C_beta_rot.transpose() * H_rot.beta * C_beta_rot;
+    return {F_MO_alpha_rot, F_MO_beta_rot};
+  };
+
+  auto [F_MO_alpha_plus, F_MO_beta_plus] =
+      EvaluateBothGradientsAt(kappa_alpha_trial, kappa_beta_trial);
+  auto [F_MO_alpha_minus, F_MO_beta_minus] =
+      EvaluateBothGradientsAt(-kappa_alpha_trial, -kappa_beta_trial);
+
+  Eigen::VectorXd sigma(n_ov_alpha + n_ov_beta);
+  for (Index i = 0; i < nocclevels_alpha; ++i) {
+    for (Index a = 0; a < nvirt_alpha; ++a) {
+      double g_plus_ia = F_MO_alpha_plus(i, nocclevels_alpha + a);
+      double g_minus_ia = F_MO_alpha_minus(i, nocclevels_alpha + a);
+      sigma(i * nvirt_alpha + a) =
+          (g_plus_ia - g_minus_ia) / (2.0 * finite_diff_step);
+    }
+  }
+  for (Index i = 0; i < nocclevels_beta; ++i) {
+    for (Index a = 0; a < nvirt_beta; ++a) {
+      double g_plus_ia = F_MO_beta_plus(i, nocclevels_beta + a);
+      double g_minus_ia = F_MO_beta_minus(i, nocclevels_beta + a);
+      sigma(n_ov_alpha + i * nvirt_beta + a) =
+          (g_plus_ia - g_minus_ia) / (2.0 * finite_diff_step);
     }
   }
   return sigma;
@@ -294,6 +393,51 @@ struct AugmentedHessianOperator {
       AV(0, col) = alpha_scale * g.dot(v_ov);
       Eigen::VectorXd sigma =
           self->BuildSigmaVector(v_ov, C, nocclevels, fock_builder, F_MO);
+      AV.block(1, col, g.size(), 1) = alpha_scale * g * v0 + sigma;
+    }
+    return AV;
+  }
+};
+}  // namespace
+
+namespace {
+// Coupled analogue of AugmentedHessianOperator: matches the SAME
+// DavidsonSolver MatrixReplacement interface, but for the augmented
+// Hessian over the COMBINED (alpha+beta) rotation space -- g and
+// diag_h are the concatenated, both-channel vectors, and each
+// operator* call rotates BOTH channels together via
+// UKSConvergenceAcc::BuildCoupledSigmaVector, capturing the genuine
+// alpha-beta coupling that two independent AugmentedHessianOperator
+// solves cannot.
+struct CoupledAugmentedHessianOperator {
+  const Eigen::VectorXd& g;
+  const Eigen::MatrixXd& C_alpha;
+  Index nocclevels_alpha;
+  const Eigen::MatrixXd& C_beta;
+  Index nocclevels_beta;
+  double alpha_scale;
+  const UKSConvergenceAcc::CoupledFockBuilder& coupled_fock_builder;
+  const UKSConvergenceAcc* self;
+  const Eigen::VectorXd& diag_h;
+
+  Index rows() const { return 1 + g.size(); }
+
+  Eigen::VectorXd diagonal() const {
+    Eigen::VectorXd d(1 + g.size());
+    d(0) = 0.0;
+    d.tail(g.size()) = diag_h;
+    return d;
+  }
+
+  Eigen::MatrixXd operator*(const Eigen::MatrixXd& V) const {
+    Eigen::MatrixXd AV = Eigen::MatrixXd::Zero(V.rows(), V.cols());
+    for (Index col = 0; col < V.cols(); ++col) {
+      double v0 = V(0, col);
+      Eigen::VectorXd v_ov = V.block(1, col, g.size(), 1);
+      AV(0, col) = alpha_scale * g.dot(v_ov);
+      Eigen::VectorXd sigma = self->BuildCoupledSigmaVector(
+          v_ov, C_alpha, nocclevels_alpha, C_beta, nocclevels_beta,
+          coupled_fock_builder);
       AV.block(1, col, g.size(), 1) = alpha_scale * g * v0 + sigma;
     }
     return AV;
@@ -570,6 +714,156 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
   return C_new * es_ortho.operatorInverseSqrt();
 }
 
+std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
+UKSConvergenceAcc::CoupledAugmentedHessianStep(
+    const Eigen::MatrixXd& H_AO_alpha, const tools::EigenSystem& MOs_alpha,
+    Index nocclevels_alpha, const Eigen::MatrixXd& H_AO_beta,
+    const tools::EigenSystem& MOs_beta, Index nocclevels_beta,
+    const CoupledFockBuilder& coupled_fock_builder, double trust_radius,
+    double& predicted_energy_change) const {
+  Index nao_alpha = MOs_alpha.eigenvectors().rows();
+  Index nvirt_alpha = nao_alpha - nocclevels_alpha;
+  Index n_ov_alpha = nocclevels_alpha * nvirt_alpha;
+  const Eigen::MatrixXd& C_alpha = MOs_alpha.eigenvectors();
+  const Eigen::VectorXd& eps_alpha = MOs_alpha.eigenvalues();
+
+  Index nao_beta = MOs_beta.eigenvectors().rows();
+  Index nvirt_beta = nao_beta - nocclevels_beta;
+  Index n_ov_beta = nocclevels_beta * nvirt_beta;
+  const Eigen::MatrixXd& C_beta = MOs_beta.eigenvectors();
+  const Eigen::VectorXd& eps_beta = MOs_beta.eigenvalues();
+
+  Index n_ov = n_ov_alpha + n_ov_beta;
+
+  Eigen::MatrixXd F_MO_alpha = C_alpha.transpose() * H_AO_alpha * C_alpha;
+  Eigen::MatrixXd F_MO_beta = C_beta.transpose() * H_AO_beta * C_beta;
+
+  // Combined gradient and diagonal-Hessian preconditioner: alpha's own
+  // block first, beta's immediately after -- matching
+  // UnflattenCoupledRotation/BuildCoupledSigmaVector's own layout
+  // convention. The diagonal preconditioner itself is still built
+  // per-channel from each channel's OWN orbital-energy gaps (same
+  // formula as AugmentedHessianStep's own diag_h) -- only the actual
+  // Hessian-VECTOR product (via BuildCoupledSigmaVector, inside
+  // CoupledAugmentedHessianOperator) captures the real cross-channel
+  // coupling; the preconditioner is only ever an approximate guide for
+  // the Davidson iteration, not the step itself, so this
+  // simplification (no explicit alpha-beta cross term in the
+  // preconditioner) does not undermine what this whole undertaking is
+  // actually meant to fix.
+  Eigen::VectorXd g(n_ov);
+  Eigen::VectorXd diag_h(n_ov);
+  constexpr double kMinGap = 1e-3;
+  for (Index i = 0; i < nocclevels_alpha; ++i) {
+    for (Index a = 0; a < nvirt_alpha; ++a) {
+      g(i * nvirt_alpha + a) = F_MO_alpha(i, nocclevels_alpha + a);
+      double gap = std::max(
+          std::abs(eps_alpha(nocclevels_alpha + a) - eps_alpha(i)), kMinGap);
+      diag_h(i * nvirt_alpha + a) = 2.0 * gap;
+    }
+  }
+  for (Index i = 0; i < nocclevels_beta; ++i) {
+    for (Index a = 0; a < nvirt_beta; ++a) {
+      g(n_ov_alpha + i * nvirt_beta + a) =
+          F_MO_beta(i, nocclevels_beta + a);
+      double gap = std::max(
+          std::abs(eps_beta(nocclevels_beta + a) - eps_beta(i)), kMinGap);
+      diag_h(n_ov_alpha + i * nvirt_beta + a) = 2.0 * gap;
+    }
+  }
+
+  double alpha_min = 1.0;
+  double alpha_max = 1000.0;
+  Eigen::VectorXd best_kappa_flat = Eigen::VectorXd::Zero(n_ov);
+  double best_mu = 0.0;
+
+  Eigen::MatrixXd initial_guess = Eigen::MatrixXd::Zero(1 + n_ov, 2);
+  initial_guess(0, 0) = 1.0;
+  double gnorm = g.norm();
+  if (gnorm > 1e-12) {
+    initial_guess.block(1, 1, n_ov, 1) = g / gnorm;
+  } else {
+    initial_guess(1, 1) = 1.0;
+  }
+
+  auto SolveForAlpha = [&](double alpha_try, Eigen::VectorXd& kappa_flat_out,
+                          double& mu_out) {
+    CoupledAugmentedHessianOperator op{
+        g, C_alpha, nocclevels_alpha, C_beta, nocclevels_beta,
+        alpha_try, coupled_fock_builder, this, diag_h};
+    DavidsonSolver solver(*log_);
+    solver.set_matrix_type("SYMM");
+    solver.set_tolerance("loose");
+    solver.set_iter_max(50);
+    solver.set_max_search_space(40);
+    solver.solve(op, 1, initial_guess);
+    Eigen::VectorXd eigvec = solver.eigenvectors().col(0);
+    mu_out = solver.eigenvalues()(0);
+    double v0 = eigvec(0);
+    if (std::abs(v0) < 1e-8) {
+      kappa_flat_out = Eigen::VectorXd::Zero(g.size());
+      return;
+    }
+    kappa_flat_out = eigvec.tail(g.size()) / v0;
+  };
+
+  double alpha_try = alpha_min;
+  constexpr int kMaxBisectionIters = 20;
+  for (int bisection_iter = 0; bisection_iter < kMaxBisectionIters;
+      ++bisection_iter) {
+    Eigen::VectorXd kappa_flat;
+    double mu;
+    SolveForAlpha(alpha_try, kappa_flat, mu);
+    double step_norm = kappa_flat.norm() / alpha_try;
+    best_kappa_flat = kappa_flat;
+    best_mu = mu;
+    if (std::abs(step_norm - trust_radius) < 0.01 * trust_radius) {
+      break;
+    }
+    if (step_norm > trust_radius) {
+      alpha_min = alpha_try;
+    } else {
+      alpha_max = alpha_try;
+    }
+    alpha_try = 0.5 * (alpha_min + alpha_max);
+  }
+
+  XTP_LOG(Log::warning, *log_)
+      << TimeStamp() << " CoupledAugmentedHessianStep bisection diagnostic: "
+         "final alpha_try="
+      << alpha_try << ", achieved step_norm="
+      << (best_kappa_flat.norm() / alpha_try)
+      << ", requested trust_radius=" << trust_radius << std::flush;
+
+  auto [kappa_alpha, kappa_beta] = UnflattenCoupledRotation(
+      best_kappa_flat, nao_alpha, nocclevels_alpha, nao_beta, nocclevels_beta);
+
+  // ONE, combined predicted energy change for the whole, coupled step
+  // -- same formula as AugmentedHessianStep's own (Q(kappa)-E0 =
+  // 0.5*(g^T*kappa + mu*||kappa||^2)), but now naturally a single
+  // number for both channels together, rather than needing to be
+  // summed from two separate calls the way Iterate's own decoupled
+  // AugmentedHessianStep path currently does.
+  predicted_energy_change =
+      0.5 * (g.dot(best_kappa_flat) + best_mu * best_kappa_flat.squaredNorm());
+
+  Eigen::MatrixXd C_alpha_new =
+      C_alpha * (Eigen::MatrixXd::Identity(nao_alpha, nao_alpha) + kappa_alpha);
+  Eigen::MatrixXd nonortho_alpha =
+      C_alpha_new.transpose() * S_->Matrix() * C_alpha_new;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_alpha(nonortho_alpha);
+  C_alpha_new = C_alpha_new * es_alpha.operatorInverseSqrt();
+
+  Eigen::MatrixXd C_beta_new =
+      C_beta * (Eigen::MatrixXd::Identity(nao_beta, nao_beta) + kappa_beta);
+  Eigen::MatrixXd nonortho_beta =
+      C_beta_new.transpose() * S_->Matrix() * C_beta_new;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_beta(nonortho_beta);
+  C_beta_new = C_beta_new * es_beta.operatorInverseSqrt();
+
+  return {C_alpha_new, C_beta_new};
+}
+
 Eigen::MatrixXd UKSConvergenceAcc::DensityMatrixGroundState_unres(
     const Eigen::MatrixXd& MOs, Index nocclevels) const {
   if (nocclevels == 0) {
@@ -844,13 +1138,35 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
         double predicted_change_beta = 0.0;
         Eigen::MatrixXd C_new_alpha;
         Eigen::MatrixXd C_new_beta;
-        // AugmentedHessianStep needs a Fock-builder callback (injected
-        // by DFTEngine via setFockBuilderAlpha/Beta) to evaluate its
-        // own finite-difference sigma vectors -- fall back to the
-        // simpler, diagonal-Hessian-only DirectMinimizationRotation for
-        // any caller that has not wired this up, rather than failing
-        // outright.
-        if (fock_builder_alpha_ && fock_builder_beta_) {
+        // Three-tier fallback, preferring the most robust option
+        // actually available: CoupledAugmentedHessianStep (captures
+        // the real alpha-beta coupling -- see the conversation this
+        // grew out of: a direct ORCA comparison on an identical
+        // geometry showed ORCA's own, fully-coupled TRAH converging
+        // where this class's own, decoupled AugmentedHessianStep did
+        // not, with finite-difference noise in the sigma vector
+        // already ruled out directly as the cause) if
+        // coupled_fock_builder_ has been injected; else the decoupled
+        // AugmentedHessianStep if the per-channel callbacks are
+        // available; else the simplest, diagonal-Hessian-only
+        // DirectMinimizationRotation for any caller that has wired up
+        // neither, rather than failing outright.
+        if (coupled_fock_builder_) {
+          double predicted_change_combined = 0.0;
+          std::tie(C_new_alpha, C_new_beta) = CoupledAugmentedHessianStep(
+              H.alpha, MOs_alpha, nocclevels_alpha_, H.beta, MOs_beta,
+              nocclevels_beta_, coupled_fock_builder_, trust_radius_current_,
+              predicted_change_combined);
+          // Split evenly between the two channels purely so the
+          // existing direct_min_predicted_change_ bookkeeping below
+          // (predicted_change_alpha + predicted_change_beta) keeps
+          // working unchanged -- the coupled step itself only ever
+          // produces ONE, already-combined value; this split has no
+          // physical meaning of its own, it is bookkeeping
+          // convenience only.
+          predicted_change_alpha = 0.5 * predicted_change_combined;
+          predicted_change_beta = 0.5 * predicted_change_combined;
+        } else if (fock_builder_alpha_ && fock_builder_beta_) {
           C_new_alpha = AugmentedHessianStep(
               H.alpha, MOs_alpha, nocclevels_alpha_, fock_builder_alpha_,
               trust_radius_current_, predicted_change_alpha);

@@ -1548,6 +1548,47 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
           return H_beta_new;
         });
 
+    // Coupled Fock builder: unlike the two callbacks just above, does
+    // NOT hold either channel fixed -- both new densities are used
+    // together, for BOTH the Coulomb/exchange terms and the XC
+    // potential, in a single call. This is what lets
+    // CoupledAugmentedHessianStep/BuildCoupledSigmaVector capture the
+    // real alpha-beta coupling (through the shared Coulomb potential
+    // and the XC kernel's cross-spin terms) that the two, deliberately
+    // decoupled callbacks above cannot -- see
+    // UKSConvergenceAcc::CoupledFockBuilder's own header comment.
+    // Mirrors the exact same H0 + Coulomb/exchange + XC sequence as
+    // the decoupled callbacks and the original H_alpha/H_beta build
+    // above, just evaluated for both new densities together rather
+    // than one new density against the other's fixed, current value.
+    conv_uks.setCoupledFockBuilder(
+        [this, &H0, &vxcpotential](
+            const Eigen::MatrixXd& alpha_new, const Eigen::MatrixXd& beta_new)
+            -> UKSConvergenceAcc::SpinFock {
+          UKSConvergenceAcc::SpinFock H_new;
+          H_new.alpha = H0.matrix();
+          H_new.beta = H0.matrix();
+          constexpr double kIntegralError = 1e-8;
+          if (ScaHFX_ > 0) {
+            std::array<Eigen::MatrixXd, 2> both_alpha_new = CalcERIs_EXX(
+                Eigen::MatrixXd::Zero(0, 0), alpha_new, kIntegralError);
+            std::array<Eigen::MatrixXd, 2> both_beta_new = CalcERIs_EXX(
+                Eigen::MatrixXd::Zero(0, 0), beta_new, kIntegralError);
+            Eigen::MatrixXd J_new = both_alpha_new[0] + both_beta_new[0];
+            H_new.alpha += J_new + ScaHFX_ * both_alpha_new[1];
+            H_new.beta += J_new + ScaHFX_ * both_beta_new[1];
+          } else {
+            Eigen::MatrixXd D_total_new = alpha_new + beta_new;
+            Eigen::MatrixXd J_new = CalcERIs(D_total_new, kIntegralError);
+            H_new.alpha += J_new;
+            H_new.beta += J_new;
+          }
+          auto vxc_new = vxcpotential.IntegrateVXCSpin(alpha_new, beta_new);
+          H_new.alpha += vxc_new.vxc_alpha;
+          H_new.beta += vxc_new.vxc_beta;
+          return H_new;
+        });
+
     Dspin = conv_uks.Iterate(Dspin, Hspin, MOs_alpha, MOs_beta, totenergy);
     if (force_uks_path_ && num_alpha_electrons_ == num_beta_electrons_) {
       MOs_beta = MOs_alpha;

@@ -24,6 +24,7 @@
 
 // Standard includes
 #include <functional>
+#include <utility>
 
 // VOTCA includes
 #include <votca/tools/linalg.h>
@@ -74,6 +75,28 @@ class UKSConvergenceAcc {
   /// approximation introduced only here.
   using FockBuilder = std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)>;
 
+  /// Given BOTH new spin densities together, returns BOTH new AO Fock
+  /// matrices together (H0 + Coulomb + exchange + XC, for each
+  /// channel) -- unlike FockBuilder above, does not hold either
+  /// channel fixed. Closer to VOTCA's own native Fock-build structure
+  /// than the decoupled FockBuilder is: Vxc_Potential::IntegrateVXCSpin
+  /// already computes vxc_alpha and vxc_beta together from both
+  /// densities in one call, so this callback does not need to
+  /// artificially split that the way the two separate,
+  /// one-channel-fixed FockBuilder callbacks do. Used by
+  /// CoupledAugmentedHessianStep/BuildCoupledSigmaVector to capture
+  /// the genuine alpha-beta coupling (through the shared Coulomb
+  /// potential and the XC kernel's cross-spin terms) that
+  /// AugmentedHessianStep's own, deliberately decoupled treatment
+  /// discards -- see the conversation this grew out of: a direct,
+  /// controlled comparison against ORCA on an identical geometry
+  /// showed ORCA's own, fully-coupled TRAH converging where the
+  /// decoupled approach here did not, with finite-difference noise in
+  /// the sigma vector itself already ruled out directly as the cause.
+  using CoupledFockBuilder =
+      std::function<SpinFock(const Eigen::MatrixXd& /*Dalpha_new*/,
+                             const Eigen::MatrixXd& /*Dbeta_new*/)>;
+
   void Configure(const options& opt_alpha, const options& opt_beta);
   void setLogger(Logger* log);
   void setOverlap(AOOverlap& S, double etol);
@@ -82,6 +105,9 @@ class UKSConvergenceAcc {
   }
   void setFockBuilderBeta(const FockBuilder& builder) {
     fock_builder_beta_ = builder;
+  }
+  void setCoupledFockBuilder(const CoupledFockBuilder& builder) {
+    coupled_fock_builder_ = builder;
   }
 
   SpinDensity DensityMatrix(const tools::EigenSystem& MOs_alpha,
@@ -149,6 +175,53 @@ class UKSConvergenceAcc {
                                    const FockBuilder& fock_builder,
                                    const Eigen::MatrixXd& g_occ_virt,
                                    double finite_diff_step = 1e-3) const;
+
+  /// Coupled analogue of UnflattenRotation: splits ONE combined vector
+  /// v (size n_ov_alpha + n_ov_beta -- alpha's own occ-virt block
+  /// first, beta's own immediately after) into TWO separate
+  /// antisymmetric rotation matrices, kappa_alpha (nao_alpha x
+  /// nao_alpha) and kappa_beta (nao_beta x nao_beta). Public for the
+  /// same reason as UnflattenRotation itself.
+  std::pair<Eigen::MatrixXd, Eigen::MatrixXd> UnflattenCoupledRotation(
+      const Eigen::VectorXd& v, Index nao_alpha, Index nocclevels_alpha,
+      Index nao_beta, Index nocclevels_beta) const;
+
+  /// Coupled analogue of BuildSigmaVector: rotates BOTH spin channels
+  /// SIMULTANEOUSLY by +-a small step (unlike BuildSigmaVector, which
+  /// rotates one channel while holding the other fixed), builds BOTH
+  /// new densities together, and calls coupled_fock_builder ONCE per
+  /// perturbation to get BOTH new Fock matrices together -- capturing
+  /// the genuine alpha-beta coupling (through the shared Coulomb
+  /// potential and the XC kernel's cross-spin terms) that
+  /// BuildSigmaVector's own, deliberately decoupled treatment
+  /// discards. Returns the combined sigma vector (alpha's own block
+  /// first, beta's immediately after, matching v's own layout).
+  /// Central difference, for the identical reason BuildSigmaVector
+  /// itself uses one (see that function's own header comment).
+  Eigen::VectorXd BuildCoupledSigmaVector(
+      const Eigen::VectorXd& v, const Eigen::MatrixXd& C_alpha,
+      Index nocclevels_alpha, const Eigen::MatrixXd& C_beta,
+      Index nocclevels_beta, const CoupledFockBuilder& coupled_fock_builder,
+      double finite_diff_step = 1e-3) const;
+
+  /// Coupled analogue of AugmentedHessianStep: solves ONE augmented-
+  /// Hessian eigenvalue problem over the COMBINED (alpha+beta)
+  /// rotation space, rather than two independent ones -- see this
+  /// class's own CoupledFockBuilder comment for the full motivation.
+  /// Returns BOTH new MO coefficient matrices together (as opposed to
+  /// AugmentedHessianStep, which returns one at a time and is called
+  /// once per channel), since a single, coupled step inherently
+  /// produces both simultaneously. predicted_energy_change (output):
+  /// the ONE, combined quadratic model's own predicted energy change
+  /// for this step -- Iterate's own Fletcher accept/reject logic uses
+  /// this directly, without needing to sum two separate values the
+  /// way it does for the decoupled AugmentedHessianStep path.
+  std::pair<Eigen::MatrixXd, Eigen::MatrixXd> CoupledAugmentedHessianStep(
+      const Eigen::MatrixXd& H_AO_alpha, const tools::EigenSystem& MOs_alpha,
+      Index nocclevels_alpha, const Eigen::MatrixXd& H_AO_beta,
+      const tools::EigenSystem& MOs_beta, Index nocclevels_beta,
+      const CoupledFockBuilder& coupled_fock_builder, double trust_radius,
+      double& predicted_energy_change) const;
 
   bool isConverged() const;
   double getDIIsError() const { return diiserror_; }
@@ -256,6 +329,7 @@ class UKSConvergenceAcc {
 
   FockBuilder fock_builder_alpha_;
   FockBuilder fock_builder_beta_;
+  CoupledFockBuilder coupled_fock_builder_;
 
   Index nocclevels_alpha_ = 0;
   Index nocclevels_beta_ = 0;
