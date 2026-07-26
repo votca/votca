@@ -20,6 +20,8 @@
 // Local VOTCA includes
 #include "votca/xtp/uks_convergenceacc.h"
 
+#include <tuple>
+
 namespace votca {
 namespace xtp {
 
@@ -1136,13 +1138,35 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
         double predicted_change_beta = 0.0;
         Eigen::MatrixXd C_new_alpha;
         Eigen::MatrixXd C_new_beta;
-        // AugmentedHessianStep needs a Fock-builder callback (injected
-        // by DFTEngine via setFockBuilderAlpha/Beta) to evaluate its
-        // own finite-difference sigma vectors -- fall back to the
-        // simpler, diagonal-Hessian-only DirectMinimizationRotation for
-        // any caller that has not wired this up, rather than failing
-        // outright.
-        if (fock_builder_alpha_ && fock_builder_beta_) {
+        // Three-tier fallback, preferring the most robust option
+        // actually available: CoupledAugmentedHessianStep (captures
+        // the real alpha-beta coupling -- see the conversation this
+        // grew out of: a direct ORCA comparison on an identical
+        // geometry showed ORCA's own, fully-coupled TRAH converging
+        // where this class's own, decoupled AugmentedHessianStep did
+        // not, with finite-difference noise in the sigma vector
+        // already ruled out directly as the cause) if
+        // coupled_fock_builder_ has been injected; else the decoupled
+        // AugmentedHessianStep if the per-channel callbacks are
+        // available; else the simplest, diagonal-Hessian-only
+        // DirectMinimizationRotation for any caller that has wired up
+        // neither, rather than failing outright.
+        if (coupled_fock_builder_) {
+          double predicted_change_combined = 0.0;
+          std::tie(C_new_alpha, C_new_beta) = CoupledAugmentedHessianStep(
+              H.alpha, MOs_alpha, nocclevels_alpha_, H.beta, MOs_beta,
+              nocclevels_beta_, coupled_fock_builder_, trust_radius_current_,
+              predicted_change_combined);
+          // Split evenly between the two channels purely so the
+          // existing direct_min_predicted_change_ bookkeeping below
+          // (predicted_change_alpha + predicted_change_beta) keeps
+          // working unchanged -- the coupled step itself only ever
+          // produces ONE, already-combined value; this split has no
+          // physical meaning of its own, it is bookkeeping
+          // convenience only.
+          predicted_change_alpha = 0.5 * predicted_change_combined;
+          predicted_change_beta = 0.5 * predicted_change_combined;
+        } else if (fock_builder_alpha_ && fock_builder_beta_) {
           C_new_alpha = AugmentedHessianStep(
               H.alpha, MOs_alpha, nocclevels_alpha_, fock_builder_alpha_,
               trust_radius_current_, predicted_change_alpha);
