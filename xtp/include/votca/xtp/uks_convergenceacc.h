@@ -397,7 +397,17 @@ class UKSConvergenceAcc {
   // per geometry step), not explicitly reset within one instance's
   // own lifetime.
   bool direct_min_floor_hit_ = false;
-  static constexpr double kMinTrustRadius = 1e-2;
+  // Lowered from 1e-2 to 3e-3 -- still 3x above BuildSigmaVector's own
+  // finite-difference resolution (kFiniteDiffStep = 1e-3), so the
+  // original justification for having a floor at all still holds, but
+  // a real run (He2+, the coupled alpha-beta path) showed
+  // actual_dE shrinking monotonically and r steadily climbing back
+  // toward the accept range (r=0) right up until it hit the OLD
+  // 1e-2 floor and fell back to mixing -- which then settled into a
+  // 2-period oscillation rather than converging. Giving that
+  // trajectory more room, rather than cutting it off exactly where it
+  // was still improving, is a direct, testable next step.
+  static constexpr double kMinTrustRadius = 3e-3;
 };
 
 }  // namespace xtp
