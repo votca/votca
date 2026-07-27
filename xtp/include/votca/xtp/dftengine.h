@@ -45,6 +45,21 @@ namespace xtp {
 class Orbitals;
 class DFTEngineTestAccess;
 
+/// True if the libint2 this was built against supports derivative
+/// integrals for every category the full forces pipeline needs
+/// (one-body, the two-center Coulomb metric, and three-center RI) --
+/// a compile-time check (LIBINT2_MAX_DERIV_ORDER and the
+/// LIBINT_INCLUDE_* guards, all resolved when libint2_derivative_calls.cc
+/// itself was compiled), not a runtime probe of the specific libint2
+/// library actually linked at runtime. Exposed here (defined in
+/// libint2_derivative_calls.cc) so callers -- including tests that want
+/// to skip force-dependent work cleanly, before running any expensive
+/// SCF/CDFT calculation, rather than discovering the lack of support
+/// only after Initialize() throws or a calculation completes without
+/// forces -- can check this directly, without needing compute_forces_
+/// already set and without needing to run anything first.
+bool HasLibint2DerivativeSupport();
+
 /**
  * \brief Electronic ground-state via Density-Functional Theory.
  *

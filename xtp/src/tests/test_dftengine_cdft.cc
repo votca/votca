@@ -327,6 +327,30 @@ BOOST_AUTO_TEST_CASE(rundcft_reaches_shifted_target_population) {
 // plain-DFT forces test already in this codebase).
 // ===========================================================================
 BOOST_AUTO_TEST_CASE(cdft_total_force_finite_difference) {
+  // Checked BEFORE libint2::initialize()/anything else runs, not
+  // after: this test runs THREE full, independent CDFT calculations
+  // (see this test's own comment below), each potentially as
+  // expensive as the direct-minimization fallback machinery
+  // elsewhere in this codebase -- discovering the lack of derivative
+  // support only after paying for one or more of those three would
+  // waste real CI time (or, worse, risk a CI timeout) for a
+  // calculation that could never produce forces regardless. CDFT
+  // forces build directly on the same underlying derivative
+  // machinery ordinary DFT forces need, so this should only run when
+  // that same, underlying support is actually present -- exactly the
+  // same condition DFTEngine::Initialize() itself already enforces
+  // (throwing if compute_forces_=true without it), just checked here
+  // proactively rather than by catching that throw after the fact.
+  if (!HasLibint2DerivativeSupport()) {
+    std::cout << "SKIPPING cdft_total_force_finite_difference: this "
+                 "libint2 build lacks derivative-integral support for "
+                 "one or more operator categories (one-body, ERI2, or "
+                 "ERI3) -- CDFT forces cannot be computed regardless of "
+                 "the CDFT machinery itself, so there is nothing this "
+                 "test could validate here."
+              << std::endl;
+    return;
+  }
   libint2::initialize();
   try {
     double bond_length = 1.13;  // Angstrom, roughly CO equilibrium
