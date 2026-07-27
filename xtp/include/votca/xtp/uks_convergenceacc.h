@@ -170,8 +170,7 @@ class UKSConvergenceAcc {
   /// dominant error source for this specific, difficult system -- see
   /// the conversation this grew out of.
   Eigen::VectorXd BuildSigmaVector(const Eigen::VectorXd& v_ov,
-                                   const Eigen::MatrixXd& C,
-                                   Index nocclevels,
+                                   const Eigen::MatrixXd& C, Index nocclevels,
                                    const FockBuilder& fock_builder,
                                    const Eigen::MatrixXd& g_occ_virt,
                                    double finite_diff_step = 1e-3) const;
@@ -282,7 +281,8 @@ class UKSConvergenceAcc {
   /// Hessian eigenvalue problem (Helmich-Paris, J. Chem. Phys. 154,
   /// 164104 (2021), Eq. 9 -- read in full from arXiv:2012.08306, not
   /// reconstructed from memory)
-  ///   [[0, alpha*g^T], [alpha*g, H]] * [1; kappa(alpha)] = mu * [1; kappa(alpha)]
+  ///   [[0, alpha*g^T], [alpha*g, H]] * [1; kappa(alpha)] = mu * [1;
+  ///   kappa(alpha)]
   /// for its LOWEST eigenvalue/eigenvector via the existing
   /// DavidsonSolver, which simultaneously determines both the level
   /// shift mu and the orbital rotation kappa -- correctly handling

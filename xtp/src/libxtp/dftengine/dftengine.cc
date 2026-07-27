@@ -33,7 +33,6 @@
 // Local VOTCA includes
 #include "votca/xtp/IncrementalFockBuilder.h"
 #include "votca/xtp/IndexParser.h"
-#include "votca/xtp/IndexParser.h"
 #include "votca/xtp/activedensitymatrix.h"
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/aopotential.h"
@@ -460,8 +459,7 @@ void DFTEngine::ComputeAndStoreForces(
     // storing forces, though Initialize()'s own check is the
     // preferred, much earlier place for this to actually be caught.
     XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << " Skipping force calculation: an ECP ('" << ecp_name_
+        << TimeStamp() << " Skipping force calculation: an ECP ('" << ecp_name_
         << "') was used for this SCF, but analytic nuclear forces do "
            "not yet include the ECP contribution to the force "
            "(d(V_ECP)/dR) -- computing forces in this configuration "
@@ -533,18 +531,14 @@ void DFTEngine::ComputeAndStoreForces(
     }
   }
 
-  Eigen::MatrixXd rij_term = DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_);
+  Eigen::MatrixXd rij_term =
+      DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_);
   Eigen::MatrixXd pulay_term = vxcpotential.PulayGradient(Dmat, dftbasis_);
   Eigen::MatrixXd weight_term = vxcpotential.GridWeightGradient(Dmat, mol);
   Eigen::MatrixXd nucrep_term = DFTGradient::NuclearRepulsionDerivative(mol);
 
-  Eigen::MatrixXd grad =
-      nucrep_term +
-      eone_grad +
-      overlap_pulay_grad +
-      rij_term +
-      pulay_term +
-      weight_term;
+  Eigen::MatrixXd grad = nucrep_term + eone_grad + overlap_pulay_grad +
+                         rij_term + pulay_term + weight_term;
 
   // Exact-exchange (RI-K) gradient -- hybrid functionals only. Skipped
   // entirely (not just multiplied by a zero ScaHFX_) when not needed,
@@ -580,8 +574,9 @@ void DFTEngine::ComputeAndStoreForces(
         << TimeStamp()
         << " WARNING: computed forces do not sum to zero across atoms "
            "(translational invariance check failed, max component="
-        << sum.cwiseAbs().maxCoeff() << ") -- treat these forces with "
-        "caution."
+        << sum.cwiseAbs().maxCoeff()
+        << ") -- treat these forces with "
+           "caution."
         << std::flush;
   }
 
@@ -606,11 +601,11 @@ void DFTEngine::ComputeAndStoreForces(
   // unrelated to this).
   XTP_LOG(Log::error, *pLog_) << " Forces [Ha/Bohr]" << std::flush;
   for (Index a = 0; a < natoms; ++a) {
-    std::string output = (boost::format(" %1$s"
-                                        "   %2$+1.6f %3$+1.6f %4$+1.6f") %
-                          mol[a].getElement() % force(a, 0) % force(a, 1) %
-                          force(a, 2))
-                             .str();
+    std::string output =
+        (boost::format(" %1$s"
+                       "   %2$+1.6f %3$+1.6f %4$+1.6f") %
+         mol[a].getElement() % force(a, 0) % force(a, 1) % force(a, 2))
+            .str();
     XTP_LOG(Log::error, *pLog_) << output << std::flush;
   }
 }
@@ -648,10 +643,9 @@ Eigen::MatrixXd DFTEngine::ComputeOverlapPulayGradientUKS(
   Eigen::MatrixXd C_beta_occ = MOs_beta.eigenvectors().leftCols(n_occ_beta);
   Eigen::VectorXd eps_alpha_occ = MOs_alpha.eigenvalues().head(n_occ_alpha);
   Eigen::VectorXd eps_beta_occ = MOs_beta.eigenvalues().head(n_occ_beta);
-  Eigen::MatrixXd W = C_alpha_occ * eps_alpha_occ.asDiagonal() *
-                          C_alpha_occ.transpose() +
-                      C_beta_occ * eps_beta_occ.asDiagonal() *
-                          C_beta_occ.transpose();
+  Eigen::MatrixXd W =
+      C_alpha_occ * eps_alpha_occ.asDiagonal() * C_alpha_occ.transpose() +
+      C_beta_occ * eps_beta_occ.asDiagonal() * C_beta_occ.transpose();
 
   Index natoms = mol.size();
   std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis_);
@@ -683,17 +677,17 @@ Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
   Eigen::MatrixXd eone_grad = Eigen::MatrixXd::Zero(natoms, 3);
   for (Index a = 0; a < natoms; ++a) {
     for (Index xyz = 0; xyz < 3; ++xyz) {
-      eone_grad(a, xyz) =
-          D_total.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
+      eone_grad(a, xyz) = D_total.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
     }
   }
 
   Eigen::MatrixXd overlap_pulay_grad =
       ComputeOverlapPulayGradientUKS(mol, MOs_alpha, MOs_beta);
 
-  Eigen::MatrixXd grad = DFTGradient::NuclearRepulsionDerivative(mol) +
-                         eone_grad + overlap_pulay_grad +
-                         DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
+  Eigen::MatrixXd grad =
+      DFTGradient::NuclearRepulsionDerivative(mol) + eone_grad +
+      overlap_pulay_grad +
+      DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
 
   // Exact exchange (RI-K), hybrids only. Factor of 0.5*ScaHFX_ (not
   // ScaHFX_ alone) -- confirmed both algebraically and numerically
@@ -751,8 +745,8 @@ void DFTEngine::ComputeAndStoreForcesUKS(
     // check) -- ECP forces are not implemented in either spin
     // channel's gradient assembly.
     XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << " Skipping UKS force calculation: an ECP ('" << ecp_name_
+        << TimeStamp() << " Skipping UKS force calculation: an ECP ('"
+        << ecp_name_
         << "') was used for this SCF, but analytic nuclear forces do "
            "not yet include the ECP contribution to the force "
            "(d(V_ECP)/dR) -- computing forces in this configuration "
@@ -784,8 +778,9 @@ void DFTEngine::ComputeAndStoreForcesUKS(
         << " WARNING: computed UKS forces do not sum to zero across "
            "atoms (translational invariance check failed, max "
            "component="
-        << sum.cwiseAbs().maxCoeff() << ") -- treat these forces with "
-        "caution."
+        << sum.cwiseAbs().maxCoeff()
+        << ") -- treat these forces with "
+           "caution."
         << std::flush;
   }
 
@@ -797,8 +792,7 @@ void DFTEngine::ComputeAndStoreForcesUKS(
   orb.setForces(force);
 
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp()
-      << " Computed and stored ground-state UKS nuclear forces."
+      << TimeStamp() << " Computed and stored ground-state UKS nuclear forces."
       << std::flush;
   // Same convention as ComputeAndStoreForces (RKS): atomic units
   // (Hartree/Bohr), matching what gets stored via setForces() above.
@@ -937,13 +931,13 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
       // population EvaluateMismatch itself computes inside RunCDFT).
       Eigen::MatrixXd density_total = Dspin[0] + Dspin[1];
 
-      Eigen::MatrixXd cdft_gradient_correction = Eigen::MatrixXd::Zero(
-          static_cast<Index>(orb.QMAtoms().size()), 3);
+      Eigen::MatrixXd cdft_gradient_correction =
+          Eigen::MatrixXd::Zero(static_cast<Index>(orb.QMAtoms().size()), 3);
       for (Index atom_index : cdft_constraint_spec_.atom_indices) {
         cdft_gradient_correction +=
             HirshfeldPartition::ComputeCDFTForceContribution(
-                atoms, atom_index, density_total, orb.QMAtoms(),
-                full_dftbasis, grid);
+                atoms, atom_index, density_total, orb.QMAtoms(), full_dftbasis,
+                grid);
       }
       // Physical force = -dE/dR (ComputeAndStoreForcesUKS's own,
       // already-established convention): the CDFT correction to the
@@ -1032,7 +1026,7 @@ bool DFTEngine::RunCDFT(Orbitals& orb,
     Index bracket_attempts = 0;
     constexpr Index kMaxBracketAttempts = 10;
     while (mismatch_lo * mismatch_hi > 0.0 &&
-          bracket_attempts < kMaxBracketAttempts) {
+           bracket_attempts < kMaxBracketAttempts) {
       double width = lambda_hi - lambda_lo;
       lambda_lo -= 0.5 * width;
       lambda_hi += 0.5 * width;
@@ -1056,13 +1050,13 @@ bool DFTEngine::RunCDFT(Orbitals& orb,
     }
 
     for (Index outer_iter = 0; outer_iter < max_cdft_iterations_;
-        ++outer_iter) {
+         ++outer_iter) {
       double lambda_mid = 0.5 * (lambda_lo + lambda_hi);
       double mismatch_mid = EvaluateMismatch(lambda_mid);
 
       XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " CDFT outer iteration " << outer_iter + 1
-          << " of " << max_cdft_iterations_ << ": lambda=" << lambda_mid
+          << TimeStamp() << " CDFT outer iteration " << outer_iter + 1 << " of "
+          << max_cdft_iterations_ << ": lambda=" << lambda_mid
           << " population mismatch=" << mismatch_mid << std::flush;
 
       if (std::abs(mismatch_mid) < cdft_population_tolerance_) {
@@ -1089,8 +1083,9 @@ bool DFTEngine::RunCDFT(Orbitals& orb,
   }
 
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " RunCDFT: outer bisection loop did not converge "
-                       "within "
+      << TimeStamp()
+      << " RunCDFT: outer bisection loop did not converge "
+         "within "
       << max_cdft_iterations_ << " iterations." << std::flush;
   constraint.lambda = 0.5 * (lambda_lo + lambda_hi);
   initial_guess_ = saved_initial_guess;
@@ -1567,8 +1562,8 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
     // than one new density against the other's fixed, current value.
     conv_uks.setCoupledFockBuilder(
         [this, &H0, &vxcpotential](
-            const Eigen::MatrixXd& alpha_new, const Eigen::MatrixXd& beta_new)
-            -> UKSConvergenceAcc::SpinFock {
+            const Eigen::MatrixXd& alpha_new,
+            const Eigen::MatrixXd& beta_new) -> UKSConvergenceAcc::SpinFock {
           UKSConvergenceAcc::SpinFock H_new;
           H_new.alpha = H0.matrix();
           H_new.beta = H0.matrix();
@@ -1862,41 +1857,74 @@ namespace {
 std::optional<std::pair<Index, Index>> HundsRuleAlphaBetaElectrons(
     Index nuclear_charge) {
   switch (nuclear_charge) {
-    case 1:  return std::make_pair(1, 0);    // H:  1s1
-    case 2:  return std::make_pair(1, 1);    // He: 1s2
-    case 3:  return std::make_pair(2, 1);    // Li: [He] 2s1
-    case 4:  return std::make_pair(2, 2);    // Be: 2s2
-    case 5:  return std::make_pair(3, 2);    // B:  2p1
-    case 6:  return std::make_pair(4, 2);    // C:  2p2 (2a)
-    case 7:  return std::make_pair(5, 2);    // N:  2p3 (3a)
-    case 8:  return std::make_pair(5, 3);    // O:  2p4 (3a+1b)
-    case 9:  return std::make_pair(5, 4);    // F:  2p5 (3a+2b)
-    case 10: return std::make_pair(5, 5);    // Ne: 2p6
-    case 11: return std::make_pair(6, 5);    // Na: [Ne] 3s1
-    case 12: return std::make_pair(6, 6);    // Mg: 3s2
-    case 13: return std::make_pair(7, 6);    // Al: 3p1
-    case 14: return std::make_pair(8, 6);    // Si: 3p2 (2a)
-    case 15: return std::make_pair(9, 6);    // P:  3p3 (3a)
-    case 16: return std::make_pair(9, 7);    // S:  3p4 (3a+1b)
-    case 17: return std::make_pair(9, 8);    // Cl: 3p5 (3a+2b)
-    case 18: return std::make_pair(9, 9);    // Ar: 3p6
-    case 19: return std::make_pair(10, 9);   // K:  [Ar] 4s1
-    case 20: return std::make_pair(10, 10);  // Ca: 4s2
+    case 1:
+      return std::make_pair(1, 0);  // H:  1s1
+    case 2:
+      return std::make_pair(1, 1);  // He: 1s2
+    case 3:
+      return std::make_pair(2, 1);  // Li: [He] 2s1
+    case 4:
+      return std::make_pair(2, 2);  // Be: 2s2
+    case 5:
+      return std::make_pair(3, 2);  // B:  2p1
+    case 6:
+      return std::make_pair(4, 2);  // C:  2p2 (2a)
+    case 7:
+      return std::make_pair(5, 2);  // N:  2p3 (3a)
+    case 8:
+      return std::make_pair(5, 3);  // O:  2p4 (3a+1b)
+    case 9:
+      return std::make_pair(5, 4);  // F:  2p5 (3a+2b)
+    case 10:
+      return std::make_pair(5, 5);  // Ne: 2p6
+    case 11:
+      return std::make_pair(6, 5);  // Na: [Ne] 3s1
+    case 12:
+      return std::make_pair(6, 6);  // Mg: 3s2
+    case 13:
+      return std::make_pair(7, 6);  // Al: 3p1
+    case 14:
+      return std::make_pair(8, 6);  // Si: 3p2 (2a)
+    case 15:
+      return std::make_pair(9, 6);  // P:  3p3 (3a)
+    case 16:
+      return std::make_pair(9, 7);  // S:  3p4 (3a+1b)
+    case 17:
+      return std::make_pair(9, 8);  // Cl: 3p5 (3a+2b)
+    case 18:
+      return std::make_pair(9, 9);  // Ar: 3p6
+    case 19:
+      return std::make_pair(10, 9);  // K:  [Ar] 4s1
+    case 20:
+      return std::make_pair(10, 10);  // Ca: 4s2
     // 21-30 (Sc-Zn): 3d block -- deliberately NOT covered.
-    case 31: return std::make_pair(16, 15);  // Ga: [Zn] 4p1
-    case 32: return std::make_pair(17, 15);  // Ge: 4p2 (2a)
-    case 33: return std::make_pair(18, 15);  // As: 4p3 (3a)
-    case 34: return std::make_pair(18, 16);  // Se: 4p4 (3a+1b)
-    case 35: return std::make_pair(18, 17);  // Br: 4p5 (3a+2b)
-    case 36: return std::make_pair(18, 18);  // Kr: 4p6
+    case 31:
+      return std::make_pair(16, 15);  // Ga: [Zn] 4p1
+    case 32:
+      return std::make_pair(17, 15);  // Ge: 4p2 (2a)
+    case 33:
+      return std::make_pair(18, 15);  // As: 4p3 (3a)
+    case 34:
+      return std::make_pair(18, 16);  // Se: 4p4 (3a+1b)
+    case 35:
+      return std::make_pair(18, 17);  // Br: 4p5 (3a+2b)
+    case 36:
+      return std::make_pair(18, 18);  // Kr: 4p6
     // 39-48 (Y-Cd): 4d block -- deliberately NOT covered.
-    case 49: return std::make_pair(25, 24);  // In: [Cd] 5p1
-    case 50: return std::make_pair(26, 24);  // Sn: 5p2 (2a)
-    case 51: return std::make_pair(27, 24);  // Sb: 5p3 (3a)
-    case 52: return std::make_pair(27, 25);  // Te: 5p4 (3a+1b)
-    case 53: return std::make_pair(27, 26);  // I:  5p5 (3a+2b)
-    case 54: return std::make_pair(27, 27);  // Xe: 5p6
-    default: return std::nullopt;
+    case 49:
+      return std::make_pair(25, 24);  // In: [Cd] 5p1
+    case 50:
+      return std::make_pair(26, 24);  // Sn: 5p2 (2a)
+    case 51:
+      return std::make_pair(27, 24);  // Sb: 5p3 (3a)
+    case 52:
+      return std::make_pair(27, 25);  // Te: 5p4 (3a+1b)
+    case 53:
+      return std::make_pair(27, 26);  // I:  5p5 (3a+2b)
+    case 54:
+      return std::make_pair(27, 27);  // Xe: 5p6
+    default:
+      return std::nullopt;
   }
 }
 }  // namespace
@@ -1949,8 +1977,9 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
       beta_e = hunds_rule->second;
     } else {
       XTP_LOG(Log::warning, *pLog_)
-          << TimeStamp() << " No Hund's-rule ground-state occupation table "
-                            "entry for nuclear charge "
+          << TimeStamp()
+          << " No Hund's-rule ground-state occupation table "
+             "entry for nuclear charge "
           << numofelectrons
           << " (d/f-block elements are not covered -- see "
              "HundsRuleAlphaBetaElectrons's own comment for why) -- "
@@ -2051,7 +2080,8 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   }
 
   tools::EigenSystem MOs_beta = conv_uks.SolveFockmatrix(H0);
-  UKSConvergenceAcc::SpinDensity Dspin = conv_uks.DensityMatrix(MOs_alpha, MOs_beta);
+  UKSConvergenceAcc::SpinDensity Dspin =
+      conv_uks.DensityMatrix(MOs_alpha, MOs_beta);
 
   Index maxiter = 80;
   for (Index this_iter = 0; this_iter < maxiter; this_iter++) {
@@ -2127,8 +2157,7 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
     }
   }
 
-  Eigen::MatrixXd avgmatrix =
-      SphericalAverageShells(Dspin.total(), dftbasis);
+  Eigen::MatrixXd avgmatrix = SphericalAverageShells(Dspin.total(), dftbasis);
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Atomic density Matrix for " << uniqueAtom.getElement()
       << " gives N=" << std::setprecision(9)
@@ -2179,12 +2208,11 @@ Eigen::MatrixXd DFTEngine::AtomicGuess(const QMMolecule& mol) const {
 }
 
 std::map<std::string, Eigen::MatrixXd>
-DFTEngine::ComputeHirshfeldReferenceDensities(const QMMolecule& mol) const {
+    DFTEngine::ComputeHirshfeldReferenceDensities(const QMMolecule& mol) const {
   std::vector<std::string> elements = mol.FindUniqueElements();
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Scanning molecule of size " << mol.size()
-      << " for unique elements (Hirshfeld reference densities)"
-      << std::flush;
+      << " for unique elements (Hirshfeld reference densities)" << std::flush;
 
   std::map<std::string, Eigen::MatrixXd> reference_densities;
   for (const std::string& element : elements) {
@@ -2195,8 +2223,8 @@ DFTEngine::ComputeHirshfeldReferenceDensities(const QMMolecule& mol) const {
     // use_hunds_rule_occupation=true unconditionally here -- this is
     // the one and only caller that should ever request it; AtomicGuess
     // just above, the pre-existing SAD-guess caller, never does.
-    reference_densities[element] =
-        RunAtomicDFT_unrestricted(unique_atom, /*use_hunds_rule_occupation=*/true);
+    reference_densities[element] = RunAtomicDFT_unrestricted(
+        unique_atom, /*use_hunds_rule_occupation=*/true);
   }
   return reference_densities;
 }
@@ -2222,7 +2250,7 @@ HirshfeldPartition::Constraint DFTEngine::BuildCDFTConstraint(
 
   HirshfeldPartition::Constraint constraint;
   constraint.weight_matrix = Eigen::MatrixXd::Zero(full_dftbasis.AOBasisSize(),
-                                                    full_dftbasis.AOBasisSize());
+                                                   full_dftbasis.AOBasisSize());
   double neutral_reference_population = 0.0;
   for (Index atom_index : spec.atom_indices) {
     if (atom_index < 0 || atom_index >= static_cast<Index>(mol.size())) {
@@ -2255,8 +2283,8 @@ HirshfeldPartition::Constraint DFTEngine::BuildCDFTConstraint(
   XTP_LOG(Log::error, *pLog_)
       << TimeStamp() << " CDFT constraint: " << spec.atom_indices.size()
       << " atom(s), neutral reference population="
-      << neutral_reference_population << ", requested relative charge="
-      << spec.target_charge
+      << neutral_reference_population
+      << ", requested relative charge=" << spec.target_charge
       << ", absolute target population=" << constraint.target_population
       << std::flush;
 
@@ -2525,7 +2553,7 @@ Eigen::MatrixXd DFTEngine::SphericalAverageShells(
 
 double DFTEngine::ExternalRepulsion(
     const QMMolecule& mol,
-    const std::vector<std::unique_ptr<StaticSite> >& multipoles) const {
+    const std::vector<std::unique_ptr<StaticSite>>& multipoles) const {
 
   if (multipoles.size() == 0) {
     return 0;
@@ -2564,7 +2592,7 @@ Eigen::MatrixXd DFTEngine::IntegrateExternalField(const QMMolecule& mol) const {
 
 Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
     const QMMolecule& mol,
-    const std::vector<std::unique_ptr<StaticSite> >& multipoles) const {
+    const std::vector<std::unique_ptr<StaticSite>>& multipoles) const {
 
   Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
   AOMultipole dftAOESP;
@@ -2733,8 +2761,8 @@ Orbitals DFTEngine::BuildDimerGuessFromMonomerFiles(
   // the atom ordering itself were wrong.
   if (nA + nB != dimer_mol.size()) {
     throw std::runtime_error(
-        "BuildDimerGuessFromMonomerFiles: monomer A (" +
-        std::to_string(nA) + " atoms) + monomer B (" + std::to_string(nB) +
+        "BuildDimerGuessFromMonomerFiles: monomer A (" + std::to_string(nA) +
+        " atoms) + monomer B (" + std::to_string(nB) +
         " atoms) does not equal this calculation's own molecule (" +
         std::to_string(dimer_mol.size()) +
         " atoms) -- wrong monomer file(s), or this calculation's molecule "
@@ -2745,8 +2773,8 @@ Orbitals DFTEngine::BuildDimerGuessFromMonomerFiles(
       throw std::runtime_error(
           "BuildDimerGuessFromMonomerFiles: monomer A's own atom " +
           std::to_string(i) + " (" + atomsA[i].getElement() +
-          ") does not match this calculation's own atom " +
-          std::to_string(i) + " (" + dimer_mol[i].getElement() +
+          ") does not match this calculation's own atom " + std::to_string(i) +
+          " (" + dimer_mol[i].getElement() +
           ") -- dimer_guess assumes monomer A occupies exactly the first "
           "N_A atoms of this calculation's molecule, in the same order.");
     }
@@ -2782,18 +2810,17 @@ Orbitals DFTEngine::BuildDimerGuessFromMonomerFiles(
       for (Index j = i + 1; j < n; ++j) {
         double monomer_distance =
             (monomer_atoms[i].getPos() - monomer_atoms[j].getPos()).norm();
-        double dimer_distance =
-            (dimer_mol[offset_in_dimer + i].getPos() -
-             dimer_mol[offset_in_dimer + j].getPos())
-                .norm();
+        double dimer_distance = (dimer_mol[offset_in_dimer + i].getPos() -
+                                 dimer_mol[offset_in_dimer + j].getPos())
+                                    .norm();
         double diff = std::abs(monomer_distance - dimer_distance);
         if (diff > kGeometryToleranceBohr) {
           throw std::runtime_error(
               "BuildDimerGuessFromMonomerFiles: " + label +
               "'s own internal geometry does not match this calculation's "
               "molecule -- distance between its own atoms " +
-              std::to_string(i) + " and " + std::to_string(j) +
-              " is " + std::to_string(monomer_distance) +
+              std::to_string(i) + " and " + std::to_string(j) + " is " +
+              std::to_string(monomer_distance) +
               " Bohr in the monomer file, but " +
               std::to_string(dimer_distance) +
               " Bohr in this calculation's own molecule (difference " +

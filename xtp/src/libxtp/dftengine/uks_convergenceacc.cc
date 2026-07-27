@@ -67,9 +67,8 @@ tools::EigenSystem UKSConvergenceAcc::SolveFockmatrix(
   return result;
 }
 
-Eigen::MatrixXd UKSConvergenceAcc::UnflattenRotation(const Eigen::VectorXd& v_ov,
-                                                     Index nao,
-                                                     Index nocclevels) const {
+Eigen::MatrixXd UKSConvergenceAcc::UnflattenRotation(
+    const Eigen::VectorXd& v_ov, Index nao, Index nocclevels) const {
   Index nvirt = nao - nocclevels;
   Eigen::MatrixXd kappa = Eigen::MatrixXd::Zero(nao, nao);
   for (Index i = 0; i < nocclevels; ++i) {
@@ -83,11 +82,11 @@ Eigen::MatrixXd UKSConvergenceAcc::UnflattenRotation(const Eigen::VectorXd& v_ov
 }
 
 std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
-UKSConvergenceAcc::UnflattenCoupledRotation(const Eigen::VectorXd& v,
-                                            Index nao_alpha,
-                                            Index nocclevels_alpha,
-                                            Index nao_beta,
-                                            Index nocclevels_beta) const {
+    UKSConvergenceAcc::UnflattenCoupledRotation(const Eigen::VectorXd& v,
+                                                Index nao_alpha,
+                                                Index nocclevels_alpha,
+                                                Index nao_beta,
+                                                Index nocclevels_beta) const {
   Index n_ov_alpha = nocclevels_alpha * (nao_alpha - nocclevels_alpha);
   Eigen::VectorXd v_alpha = v.head(n_ov_alpha);
   Eigen::VectorXd v_beta = v.tail(v.size() - n_ov_alpha);
@@ -105,8 +104,8 @@ Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
   Index nao = C.rows();
   Index nvirt = nao - nocclevels;
   (void)g_occ_virt;  // no longer needed for a CENTRAL difference -- kept
-                    // in the signature for interface stability with
-                    // AugmentedHessianOperator's own construction.
+                     // in the signature for interface stability with
+                     // AugmentedHessianOperator's own construction.
 
   // CENTRAL, not one-sided/forward, finite-difference Hessian-vector
   // product -- confirmed necessary, not just a nicety, by this
@@ -172,7 +171,8 @@ Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
     for (Index a = 0; a < nvirt; ++a) {
       double g_plus_ia = F_MO_plus(i, nocclevels + a);
       double g_minus_ia = F_MO_minus(i, nocclevels + a);
-      sigma(i * nvirt + a) = (g_plus_ia - g_minus_ia) / (2.0 * finite_diff_step);
+      sigma(i * nvirt + a) =
+          (g_plus_ia - g_minus_ia) / (2.0 * finite_diff_step);
     }
   }
   return sigma;
@@ -204,11 +204,12 @@ Eigen::VectorXd UKSConvergenceAcc::BuildCoupledSigmaVector(
   // kernel's cross-spin terms naturally see both perturbed densities
   // together inside coupled_fock_builder, rather than needing this
   // function to construct any cross-coupling term explicitly itself.
-  auto EvaluateBothGradientsAt =
-      [&](const Eigen::MatrixXd& kappa_alpha, const Eigen::MatrixXd& kappa_beta)
+  auto EvaluateBothGradientsAt = [&](const Eigen::MatrixXd& kappa_alpha,
+                                     const Eigen::MatrixXd& kappa_beta)
       -> std::pair<Eigen::MatrixXd, Eigen::MatrixXd> {
     Eigen::MatrixXd C_alpha_rot =
-        C_alpha * (Eigen::MatrixXd::Identity(nao_alpha, nao_alpha) + kappa_alpha);
+        C_alpha *
+        (Eigen::MatrixXd::Identity(nao_alpha, nao_alpha) + kappa_alpha);
     Eigen::MatrixXd nonortho_alpha =
         C_alpha_rot.transpose() * S_->Matrix() * C_alpha_rot;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_alpha(nonortho_alpha);
@@ -435,9 +436,9 @@ struct CoupledAugmentedHessianOperator {
       double v0 = V(0, col);
       Eigen::VectorXd v_ov = V.block(1, col, g.size(), 1);
       AV(0, col) = alpha_scale * g.dot(v_ov);
-      Eigen::VectorXd sigma = self->BuildCoupledSigmaVector(
-          v_ov, C_alpha, nocclevels_alpha, C_beta, nocclevels_beta,
-          coupled_fock_builder);
+      Eigen::VectorXd sigma =
+          self->BuildCoupledSigmaVector(v_ov, C_alpha, nocclevels_alpha, C_beta,
+                                        nocclevels_beta, coupled_fock_builder);
       AV.block(1, col, g.size(), 1) = alpha_scale * g * v0 + sigma;
     }
     return AV;
@@ -486,9 +487,10 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
     Eigen::VectorXd probe_sigma =
         BuildSigmaVector(probe_direction, C, nocclevels, fock_builder, F_MO);
     XTP_LOG(Log::warning, *log_)
-        << TimeStamp() << " AugmentedHessianStep diagnostic: ||g||="
-        << gnorm_diag << ", diag_h range=[" << diag_h.minCoeff() << ", "
-        << diag_h.maxCoeff() << "], ||sigma(g/||g||)||=" << probe_sigma.norm()
+        << TimeStamp()
+        << " AugmentedHessianStep diagnostic: ||g||=" << gnorm_diag
+        << ", diag_h range=[" << diag_h.minCoeff() << ", " << diag_h.maxCoeff()
+        << "], ||sigma(g/||g||)||=" << probe_sigma.norm()
         << ", max|sigma|=" << probe_sigma.cwiseAbs().maxCoeff() << std::flush;
 
     // Symmetry check (see the conversation this grew out of): a
@@ -503,16 +505,17 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
     // first unit basis vector) rather than random vectors, so this
     // is exactly reproducible run to run.
     Eigen::VectorXd u = probe_direction;
-    Eigen::VectorXd v = Eigen::VectorXd::Unit(n_ov, std::min<Index>(1, n_ov - 1));
+    Eigen::VectorXd v =
+        Eigen::VectorXd::Unit(n_ov, std::min<Index>(1, n_ov - 1));
     Eigen::VectorXd Hv = BuildSigmaVector(v, C, nocclevels, fock_builder, F_MO);
     Eigen::VectorXd Hu = probe_sigma;
     double u_dot_Hv = u.dot(Hv);
     double v_dot_Hu = v.dot(Hu);
     XTP_LOG(Log::warning, *log_)
-        << TimeStamp() << " AugmentedHessianStep symmetry check: u.(H*v)="
-        << u_dot_Hv << ", v.(H*u)=" << v_dot_Hu
-        << ", relative difference=" << std::abs(u_dot_Hv - v_dot_Hu) /
-                                        std::max(std::abs(u_dot_Hv), 1e-12)
+        << TimeStamp()
+        << " AugmentedHessianStep symmetry check: u.(H*v)=" << u_dot_Hv
+        << ", v.(H*u)=" << v_dot_Hu << ", relative difference="
+        << std::abs(u_dot_Hv - v_dot_Hu) / std::max(std::abs(u_dot_Hv), 1e-12)
         << std::flush;
 
     // Step-size (truncation vs. rounding/cancellation noise) check
@@ -543,14 +546,13 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
                                                 // here rather than
                                                 // redundantly recomputed,
                                                 // saving two Fock builds.
-    Eigen::VectorXd sigma_step2 =
-        BuildSigmaVector(probe_direction, C, nocclevels, fock_builder, F_MO,
-                         1e-4);
-    double step_relative_diff =
-        (sigma_step1 - sigma_step2).norm() /
-        std::max(sigma_step1.norm(), 1e-12);
+    Eigen::VectorXd sigma_step2 = BuildSigmaVector(
+        probe_direction, C, nocclevels, fock_builder, F_MO, 1e-4);
+    double step_relative_diff = (sigma_step1 - sigma_step2).norm() /
+                                std::max(sigma_step1.norm(), 1e-12);
     XTP_LOG(Log::warning, *log_)
-        << TimeStamp() << " AugmentedHessianStep step-size check: "
+        << TimeStamp()
+        << " AugmentedHessianStep step-size check: "
            "||sigma(1e-3)||="
         << sigma_step1.norm() << ", ||sigma(1e-4)||=" << sigma_step2.norm()
         << ", relative difference=" << step_relative_diff << std::flush;
@@ -590,9 +592,9 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
   }
 
   auto SolveForAlpha = [&](double alpha_try, Eigen::VectorXd& kappa_flat_out,
-                          double& mu_out) {
-    AugmentedHessianOperator op{g,      C,     nocclevels, alpha_try,
-                               fock_builder, F_MO, this,       diag_h};
+                           double& mu_out) {
+    AugmentedHessianOperator op{g,    C,    nocclevels, alpha_try, fock_builder,
+                                F_MO, this, diag_h};
     DavidsonSolver solver(*log_);
     solver.set_matrix_type("SYMM");
     // Loosened from "normal" (1e-4): each bisection trial's own
@@ -658,7 +660,7 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
   // that actually reaches its own target.
   constexpr int kMaxBisectionIters = 20;
   for (int bisection_iter = 0; bisection_iter < kMaxBisectionIters;
-      ++bisection_iter) {
+       ++bisection_iter) {
     Eigen::VectorXd kappa_flat;
     double mu;
     SolveForAlpha(alpha_try, kappa_flat, mu);
@@ -689,7 +691,8 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
   // alpha_try used and how close it sits to alpha_max, to confirm or
   // rule this out directly rather than continue guessing.
   XTP_LOG(Log::warning, *log_)
-      << TimeStamp() << " AugmentedHessianStep bisection diagnostic: "
+      << TimeStamp()
+      << " AugmentedHessianStep bisection diagnostic: "
          "final alpha_try="
       << alpha_try << ", original alpha_max ceiling=" << kOriginalAlphaMax
       << ", achieved step_norm=" << (best_kappa_flat.norm() / alpha_try)
@@ -715,12 +718,12 @@ Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
 }
 
 std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
-UKSConvergenceAcc::CoupledAugmentedHessianStep(
-    const Eigen::MatrixXd& H_AO_alpha, const tools::EigenSystem& MOs_alpha,
-    Index nocclevels_alpha, const Eigen::MatrixXd& H_AO_beta,
-    const tools::EigenSystem& MOs_beta, Index nocclevels_beta,
-    const CoupledFockBuilder& coupled_fock_builder, double trust_radius,
-    double& predicted_energy_change) const {
+    UKSConvergenceAcc::CoupledAugmentedHessianStep(
+        const Eigen::MatrixXd& H_AO_alpha, const tools::EigenSystem& MOs_alpha,
+        Index nocclevels_alpha, const Eigen::MatrixXd& H_AO_beta,
+        const tools::EigenSystem& MOs_beta, Index nocclevels_beta,
+        const CoupledFockBuilder& coupled_fock_builder, double trust_radius,
+        double& predicted_energy_change) const {
   Index nao_alpha = MOs_alpha.eigenvectors().rows();
   Index nvirt_alpha = nao_alpha - nocclevels_alpha;
   Index n_ov_alpha = nocclevels_alpha * nvirt_alpha;
@@ -764,8 +767,7 @@ UKSConvergenceAcc::CoupledAugmentedHessianStep(
   }
   for (Index i = 0; i < nocclevels_beta; ++i) {
     for (Index a = 0; a < nvirt_beta; ++a) {
-      g(n_ov_alpha + i * nvirt_beta + a) =
-          F_MO_beta(i, nocclevels_beta + a);
+      g(n_ov_alpha + i * nvirt_beta + a) = F_MO_beta(i, nocclevels_beta + a);
       double gap = std::max(
           std::abs(eps_beta(nocclevels_beta + a) - eps_beta(i)), kMinGap);
       diag_h(n_ov_alpha + i * nvirt_beta + a) = 2.0 * gap;
@@ -787,10 +789,16 @@ UKSConvergenceAcc::CoupledAugmentedHessianStep(
   }
 
   auto SolveForAlpha = [&](double alpha_try, Eigen::VectorXd& kappa_flat_out,
-                          double& mu_out) {
-    CoupledAugmentedHessianOperator op{
-        g, C_alpha, nocclevels_alpha, C_beta, nocclevels_beta,
-        alpha_try, coupled_fock_builder, this, diag_h};
+                           double& mu_out) {
+    CoupledAugmentedHessianOperator op{g,
+                                       C_alpha,
+                                       nocclevels_alpha,
+                                       C_beta,
+                                       nocclevels_beta,
+                                       alpha_try,
+                                       coupled_fock_builder,
+                                       this,
+                                       diag_h};
     DavidsonSolver solver(*log_);
     solver.set_matrix_type("SYMM");
     solver.set_tolerance("loose");
@@ -810,7 +818,7 @@ UKSConvergenceAcc::CoupledAugmentedHessianStep(
   double alpha_try = alpha_min;
   constexpr int kMaxBisectionIters = 20;
   for (int bisection_iter = 0; bisection_iter < kMaxBisectionIters;
-      ++bisection_iter) {
+       ++bisection_iter) {
     Eigen::VectorXd kappa_flat;
     double mu;
     SolveForAlpha(alpha_try, kappa_flat, mu);
@@ -829,10 +837,11 @@ UKSConvergenceAcc::CoupledAugmentedHessianStep(
   }
 
   XTP_LOG(Log::warning, *log_)
-      << TimeStamp() << " CoupledAugmentedHessianStep bisection diagnostic: "
+      << TimeStamp()
+      << " CoupledAugmentedHessianStep bisection diagnostic: "
          "final alpha_try="
-      << alpha_try << ", achieved step_norm="
-      << (best_kappa_flat.norm() / alpha_try)
+      << alpha_try
+      << ", achieved step_norm=" << (best_kappa_flat.norm() / alpha_try)
       << ", requested trust_radius=" << trust_radius << std::flush;
 
   auto [kappa_alpha, kappa_beta] = UnflattenCoupledRotation(
@@ -933,16 +942,16 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
   if (direct_min_pending_) {
     double actual_change = totE - direct_min_pre_energy_;
     double r = (std::abs(direct_min_predicted_change_) > 1e-14)
-                  ? actual_change / direct_min_predicted_change_
-                  : -1.0;  // treat a degenerate (~zero) predicted change
-                          // as an outright reject, same as r<0 below --
-                          // the model gave no useful information about
-                          // this step at all.
+                   ? actual_change / direct_min_predicted_change_
+                   : -1.0;  // treat a degenerate (~zero) predicted change
+                            // as an outright reject, same as r<0 below --
+                            // the model gave no useful information about
+                            // this step at all.
     XTP_LOG(Log::warning, *log_)
-        << TimeStamp() << " Direct-minimization step check: actual dE="
-        << actual_change << ", predicted dE=" << direct_min_predicted_change_
-        << ", r=" << r << ", trust radius=" << trust_radius_current_
-        << std::flush;
+        << TimeStamp()
+        << " Direct-minimization step check: actual dE=" << actual_change
+        << ", predicted dE=" << direct_min_predicted_change_ << ", r=" << r
+        << ", trust radius=" << trust_radius_current_ << std::flush;
     if (r < 0.0) {
       // Reject: the quadratic model was not applicable within the
       // given trust region (either the energy rose while predicted to
@@ -973,9 +982,11 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
       if (trust_radius_current_ < kMinTrustRadius) {
         direct_min_floor_hit_ = true;
         XTP_LOG(Log::warning, *log_)
-            << TimeStamp() << " Direct-minimization trust radius fell "
+            << TimeStamp()
+            << " Direct-minimization trust radius fell "
                "below its own finite-difference resolution floor ("
-            << kMinTrustRadius << ") without an accepted step -- "
+            << kMinTrustRadius
+            << ") without an accepted step -- "
                "falling back to mixing instead of continuing to shrink."
             << std::flush;
       }
@@ -1041,7 +1052,7 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
       // blocked, one iteration too late.
       if (consecutive_adiis_failures_ < kMaxConsecutiveADIISFailures - 1) {
         Levelshift(H.alpha, MOs_alpha.eigenvectors(), opt_alpha_,
-                  nocclevels_alpha_);
+                   nocclevels_alpha_);
       }
     }
   }
@@ -1054,7 +1065,7 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
         gap_beta < 1e-6) {
       if (consecutive_adiis_failures_ < kMaxConsecutiveADIISFailures - 1) {
         Levelshift(H.beta, MOs_beta.eigenvectors(), opt_beta_,
-                  nocclevels_beta_);
+                   nocclevels_beta_);
       }
     }
   }
@@ -1183,7 +1194,7 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
       // rarer failure mode it is built to catch (genuine, slow stall
       // without ADIIS ever outright "failing").
       if ((consecutive_adiis_failures_ >= kMaxConsecutiveADIISFailures ||
-          trailing_average_stalled) &&
+           trailing_average_stalled) &&
           !direct_min_floor_hit_) {
         // Mirrors ORCA's own AutoTRAH trigger, via two independent
         // conditions -- see this class's own header comment on
@@ -1192,9 +1203,9 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
         // directly.
         XTP_LOG(Log::warning, *log_)
             << TimeStamp() << " (A)DIIS failed " << consecutive_adiis_failures_
-            << " times in a row" << (trailing_average_stalled
-                                          ? " (or trailing average stalled)"
-                                          : "")
+            << " times in a row"
+            << (trailing_average_stalled ? " (or trailing average stalled)"
+                                         : "")
             << ", switching to direct-minimization step" << std::flush;
         // Save the pre-step state so this step's actual effect can be
         // verified (and, if necessary, reverted) once its own energy
@@ -1295,8 +1306,8 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
 
   SpinDensity dmatout = DensityMatrix(MOs_alpha, MOs_beta);
 
-  if (diiserror_ > opt_alpha_.mixingend || !opt_alpha_.usediis ||
-      diis_error || mathist_alpha_.size() <= 2) {
+  if (diiserror_ > opt_alpha_.mixingend || !opt_alpha_.usediis || diis_error ||
+      mathist_alpha_.size() <= 2) {
     // mixingend, not adiis_start -- deliberately decoupled (see the
     // options struct's own comment in convergenceacc.h): ORCA keeps
     // DampErr fully independent of DIISStart, and recommends making

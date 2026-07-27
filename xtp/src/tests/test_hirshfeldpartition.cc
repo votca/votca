@@ -86,8 +86,8 @@ namespace xtp {
 class DFTEngineTestAccess {
  public:
   static std::map<std::string, Eigen::MatrixXd>
-  ComputeHirshfeldReferenceDensities(const DFTEngine& e,
-                                     const QMMolecule& mol) {
+      ComputeHirshfeldReferenceDensities(const DFTEngine& e,
+                                         const QMMolecule& mol) {
     return e.ComputeHirshfeldReferenceDensities(mol);
   }
 };
@@ -111,108 +111,108 @@ BOOST_AUTO_TEST_SUITE(hirshfeldpartition_test)
 
 BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
   libint2::initialize();
- try {
-  QMMolecule mol = BuildCO(1.13);  // Angstrom, roughly CO equilibrium
+  try {
+    QMMolecule mol = BuildCO(1.13);  // Angstrom, roughly CO equilibrium
 
-  std::string xml_path = "/tmp/xtp_test_hirshfeldpartition.xml";
-  std::ofstream xml(xml_path);
-  xml << "<dftpackage>\n";
-  xml << "<spin>1</spin>\n";
-  xml << "<name>xtp</name>\n";
-  xml << "<charge>0</charge>\n";
-  xml << "<functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional>\n";
-  xml << "<basisset>" << XTP_TEST_DATA_FOLDER
-      << "/hirshfeldpartition/3-21G.xml</basisset>\n";
-  xml << "<auxbasisset>" << XTP_TEST_DATA_FOLDER
-      << "/diabatization/aux-def2-svp.xml</auxbasisset>\n";
-  xml << "<initial_guess>independent</initial_guess>\n";
-  xml << "<xtpdft>\n";
-  xml << "<screening_eps>1e-9</screening_eps>\n";
-  xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
-  xml << "<convergence>\n";
-  xml << "    <energy>1e-9</energy>\n";
-  xml << "    <method>DIIS</method>\n";
-  xml << "    <DIIS_start>0.002</DIIS_start>\n";
-  xml << "    <ADIIS_start>0.8</ADIIS_start>\n";
-  xml << "    <DIIS_length>20</DIIS_length>\n";
-  xml << "    <levelshift>0.0</levelshift>\n";
-  xml << "    <levelshift_end>0.2</levelshift_end>\n";
-  xml << "    <max_iterations>100</max_iterations>\n";
-  xml << "    <error>1e-8</error>\n";
-  xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
-  xml << "    <mixing>0.7</mixing>\n";
-  xml << "    <mixing_max>0.98</mixing_max>\n";
-  xml << "    <mixing_end>0.8</mixing_end>\n";
-  xml << "</convergence>\n";
-  // fine, not xcoarse: this test's own accuracy is limited by the
-  // SAME grid's own integration error (BuildWeightMatrix integrates
-  // over this exact grid), so a coarse grid would show up as a
-  // misleadingly large "failure" that is really just integration
-  // noise, not an implementation bug.
-  xml << "<integration_grid>fine</integration_grid>\n";
-  xml << "<max_iterations>200</max_iterations>\n";
-  xml << "</xtpdft>\n";
-  xml << "</dftpackage>\n";
-  xml.close();
+    std::string xml_path = "/tmp/xtp_test_hirshfeldpartition.xml";
+    std::ofstream xml(xml_path);
+    xml << "<dftpackage>\n";
+    xml << "<spin>1</spin>\n";
+    xml << "<name>xtp</name>\n";
+    xml << "<charge>0</charge>\n";
+    xml << "<functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional>\n";
+    xml << "<basisset>" << XTP_TEST_DATA_FOLDER
+        << "/hirshfeldpartition/3-21G.xml</basisset>\n";
+    xml << "<auxbasisset>" << XTP_TEST_DATA_FOLDER
+        << "/diabatization/aux-def2-svp.xml</auxbasisset>\n";
+    xml << "<initial_guess>independent</initial_guess>\n";
+    xml << "<xtpdft>\n";
+    xml << "<screening_eps>1e-9</screening_eps>\n";
+    xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
+    xml << "<convergence>\n";
+    xml << "    <energy>1e-9</energy>\n";
+    xml << "    <method>DIIS</method>\n";
+    xml << "    <DIIS_start>0.002</DIIS_start>\n";
+    xml << "    <ADIIS_start>0.8</ADIIS_start>\n";
+    xml << "    <DIIS_length>20</DIIS_length>\n";
+    xml << "    <levelshift>0.0</levelshift>\n";
+    xml << "    <levelshift_end>0.2</levelshift_end>\n";
+    xml << "    <max_iterations>100</max_iterations>\n";
+    xml << "    <error>1e-8</error>\n";
+    xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
+    xml << "    <mixing>0.7</mixing>\n";
+    xml << "    <mixing_max>0.98</mixing_max>\n";
+    xml << "    <mixing_end>0.8</mixing_end>\n";
+    xml << "</convergence>\n";
+    // fine, not xcoarse: this test's own accuracy is limited by the
+    // SAME grid's own integration error (BuildWeightMatrix integrates
+    // over this exact grid), so a coarse grid would show up as a
+    // misleadingly large "failure" that is really just integration
+    // noise, not an implementation bug.
+    xml << "<integration_grid>fine</integration_grid>\n";
+    xml << "<max_iterations>200</max_iterations>\n";
+    xml << "</xtpdft>\n";
+    xml << "</dftpackage>\n";
+    xml.close();
 
-  votca::tools::Property prop;
-  prop.LoadFromXML(xml_path);
+    votca::tools::Property prop;
+    prop.LoadFromXML(xml_path);
 
-  DFTEngine dft;
-  Logger log;
-  dft.setLogger(&log);
-  dft.Initialize(prop.get("dftpackage"));
+    DFTEngine dft;
+    Logger log;
+    dft.setLogger(&log);
+    dft.Initialize(prop.get("dftpackage"));
 
-  std::map<std::string, Eigen::MatrixXd> reference_densities =
-      DFTEngineTestAccess::ComputeHirshfeldReferenceDensities(dft, mol);
-  BOOST_REQUIRE_EQUAL(reference_densities.count("C"), 1);
-  BOOST_REQUIRE_EQUAL(reference_densities.count("O"), 1);
+    std::map<std::string, Eigen::MatrixXd> reference_densities =
+        DFTEngineTestAccess::ComputeHirshfeldReferenceDensities(dft, mol);
+    BOOST_REQUIRE_EQUAL(reference_densities.count("C"), 1);
+    BOOST_REQUIRE_EQUAL(reference_densities.count("O"), 1);
 
-  BasisSet basisset;
-  basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
-               "/hirshfeldpartition/3-21G.xml");
-  AOBasis full_basis;
-  full_basis.Fill(basisset, mol);
+    BasisSet basisset;
+    basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
+                  "/hirshfeldpartition/3-21G.xml");
+    AOBasis full_basis;
+    full_basis.Fill(basisset, mol);
 
-  Vxc_Grid grid;
-  grid.GridSetup("fine", mol, full_basis);
+    Vxc_Grid grid;
+    grid.GridSetup("fine", mol, full_basis);
 
-  std::vector<HirshfeldPartition::AtomicReference> atoms =
-      HirshfeldPartition::BuildAtomicReferences(
-          mol,
-          std::string(XTP_TEST_DATA_FOLDER) + "/hirshfeldpartition/3-21G.xml",
-          reference_densities);
-  BOOST_REQUIRE_EQUAL(atoms.size(), 2);
+    std::vector<HirshfeldPartition::AtomicReference> atoms =
+        HirshfeldPartition::BuildAtomicReferences(
+            mol,
+            std::string(XTP_TEST_DATA_FOLDER) + "/hirshfeldpartition/3-21G.xml",
+            reference_densities);
+    BOOST_REQUIRE_EQUAL(atoms.size(), 2);
 
-  Eigen::MatrixXd summed_weights =
-      Eigen::MatrixXd::Zero(full_basis.AOBasisSize(), full_basis.AOBasisSize());
-  for (Index i = 0; i < static_cast<Index>(atoms.size()); ++i) {
-    summed_weights +=
-        HirshfeldPartition::BuildWeightMatrix(atoms, i, full_basis, grid);
-  }
+    Eigen::MatrixXd summed_weights = Eigen::MatrixXd::Zero(
+        full_basis.AOBasisSize(), full_basis.AOBasisSize());
+    for (Index i = 0; i < static_cast<Index>(atoms.size()); ++i) {
+      summed_weights +=
+          HirshfeldPartition::BuildWeightMatrix(atoms, i, full_basis, grid);
+    }
 
-  AOOverlap overlap;
-  overlap.Fill(full_basis);
+    AOOverlap overlap;
+    overlap.Fill(full_basis);
 
-  double max_abs_diff =
-      (summed_weights - overlap.Matrix()).cwiseAbs().maxCoeff();
-  if (max_abs_diff > 1.e-3) {
-    std::cout << "NOTE: if this fails, first check whether max_abs_diff is "
-                 "merely large-ish (grid-integration error, expected to "
-                 "shrink with a finer integration_grid) or drastically "
-                 "wrong (an actual implementation bug -- indexing, basis "
-                 "re-centering, or the weight formula itself)."
+    double max_abs_diff =
+        (summed_weights - overlap.Matrix()).cwiseAbs().maxCoeff();
+    if (max_abs_diff > 1.e-3) {
+      std::cout << "NOTE: if this fails, first check whether max_abs_diff is "
+                   "merely large-ish (grid-integration error, expected to "
+                   "shrink with a finer integration_grid) or drastically "
+                   "wrong (an actual implementation bug -- indexing, basis "
+                   "re-centering, or the weight formula itself)."
+                << std::endl;
+      std::cout << "Sum of weight matrices:\n" << summed_weights << std::endl;
+      std::cout << "AO overlap matrix:\n" << overlap.Matrix() << std::endl;
+    }
+    BOOST_CHECK_SMALL(max_abs_diff, 1.e-3);
+  } catch (const std::runtime_error& e) {
+    std::cout << "SKIPPING weight_matrices_sum_to_overlap: " << e.what()
               << std::endl;
-    std::cout << "Sum of weight matrices:\n" << summed_weights << std::endl;
-    std::cout << "AO overlap matrix:\n" << overlap.Matrix() << std::endl;
+    libint2::finalize();
+    return;
   }
-  BOOST_CHECK_SMALL(max_abs_diff, 1.e-3);
- } catch (const std::runtime_error& e) {
-   std::cout << "SKIPPING weight_matrices_sum_to_overlap: " << e.what()
-             << std::endl;
-   libint2::finalize();
-   return;
- }
 
   libint2::finalize();
 }
@@ -240,170 +240,172 @@ BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
 // ===========================================================================
 BOOST_AUTO_TEST_CASE(cdft_force_finite_difference) {
   libint2::initialize();
- try {
-  double bond_length = 1.13;  // Angstrom, roughly CO equilibrium
-  double h = 1e-4;            // Angstrom
+  try {
+    double bond_length = 1.13;  // Angstrom, roughly CO equilibrium
+    double h = 1e-4;            // Angstrom
 
-  std::string basis_path =
-      std::string(XTP_TEST_DATA_FOLDER) + "/hirshfeldpartition/3-21G.xml";
-  BasisSet basisset;
-  basisset.Load(basis_path);
+    std::string basis_path =
+        std::string(XTP_TEST_DATA_FOLDER) + "/hirshfeldpartition/3-21G.xml";
+    BasisSet basisset;
+    basisset.Load(basis_path);
 
-  QMMolecule mol0 = BuildCO(bond_length);
-  AOBasis full_basis0;
-  full_basis0.Fill(basisset, mol0);
+    QMMolecule mol0 = BuildCO(bond_length);
+    AOBasis full_basis0;
+    full_basis0.Fill(basisset, mol0);
 
-  std::string xml_path = "/tmp/xtp_test_hirshfeldpartition_cdftforce.xml";
-  std::ofstream xml(xml_path);
-  xml << "<dftpackage>\n";
-  xml << "<spin>1</spin>\n";
-  xml << "<name>xtp</name>\n";
-  xml << "<charge>0</charge>\n";
-  xml << "<functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional>\n";
-  xml << "<basisset>" << basis_path << "</basisset>\n";
-  xml << "<auxbasisset>" << XTP_TEST_DATA_FOLDER
-      << "/diabatization/aux-def2-svp.xml</auxbasisset>\n";
-  xml << "<initial_guess>independent</initial_guess>\n";
-  xml << "<xtpdft>\n";
-  xml << "<screening_eps>1e-9</screening_eps>\n";
-  xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
-  xml << "<convergence>\n";
-  xml << "    <energy>1e-9</energy>\n";
-  xml << "    <method>DIIS</method>\n";
-  xml << "    <DIIS_start>0.002</DIIS_start>\n";
-  xml << "    <ADIIS_start>0.8</ADIIS_start>\n";
-  xml << "    <DIIS_length>20</DIIS_length>\n";
-  xml << "    <levelshift>0.0</levelshift>\n";
-  xml << "    <levelshift_end>0.2</levelshift_end>\n";
-  xml << "    <max_iterations>100</max_iterations>\n";
-  xml << "    <error>1e-8</error>\n";
-  xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
-  xml << "    <mixing>0.7</mixing>\n";
-  xml << "    <mixing_max>0.98</mixing_max>\n";
-  xml << "    <mixing_end>0.8</mixing_end>\n";
-  xml << "</convergence>\n";
-  xml << "<integration_grid>fine</integration_grid>\n";
-  xml << "<max_iterations>200</max_iterations>\n";
-  xml << "</xtpdft>\n";
-  xml << "</dftpackage>\n";
-  xml.close();
+    std::string xml_path = "/tmp/xtp_test_hirshfeldpartition_cdftforce.xml";
+    std::ofstream xml(xml_path);
+    xml << "<dftpackage>\n";
+    xml << "<spin>1</spin>\n";
+    xml << "<name>xtp</name>\n";
+    xml << "<charge>0</charge>\n";
+    xml << "<functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional>\n";
+    xml << "<basisset>" << basis_path << "</basisset>\n";
+    xml << "<auxbasisset>" << XTP_TEST_DATA_FOLDER
+        << "/diabatization/aux-def2-svp.xml</auxbasisset>\n";
+    xml << "<initial_guess>independent</initial_guess>\n";
+    xml << "<xtpdft>\n";
+    xml << "<screening_eps>1e-9</screening_eps>\n";
+    xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
+    xml << "<convergence>\n";
+    xml << "    <energy>1e-9</energy>\n";
+    xml << "    <method>DIIS</method>\n";
+    xml << "    <DIIS_start>0.002</DIIS_start>\n";
+    xml << "    <ADIIS_start>0.8</ADIIS_start>\n";
+    xml << "    <DIIS_length>20</DIIS_length>\n";
+    xml << "    <levelshift>0.0</levelshift>\n";
+    xml << "    <levelshift_end>0.2</levelshift_end>\n";
+    xml << "    <max_iterations>100</max_iterations>\n";
+    xml << "    <error>1e-8</error>\n";
+    xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
+    xml << "    <mixing>0.7</mixing>\n";
+    xml << "    <mixing_max>0.98</mixing_max>\n";
+    xml << "    <mixing_end>0.8</mixing_end>\n";
+    xml << "</convergence>\n";
+    xml << "<integration_grid>fine</integration_grid>\n";
+    xml << "<max_iterations>200</max_iterations>\n";
+    xml << "</xtpdft>\n";
+    xml << "</dftpackage>\n";
+    xml.close();
 
-  votca::tools::Property prop;
-  prop.LoadFromXML(xml_path);
-  DFTEngine dft;
-  Logger log;
-  dft.setLogger(&log);
-  dft.Initialize(prop.get("dftpackage"));
+    votca::tools::Property prop;
+    prop.LoadFromXML(xml_path);
+    DFTEngine dft;
+    Logger log;
+    dft.setLogger(&log);
+    dft.Initialize(prop.get("dftpackage"));
 
-  std::map<std::string, Eigen::MatrixXd> reference_densities =
-      DFTEngineTestAccess::ComputeHirshfeldReferenceDensities(dft, mol0);
+    std::map<std::string, Eigen::MatrixXd> reference_densities =
+        DFTEngineTestAccess::ComputeHirshfeldReferenceDensities(dft, mol0);
 
-  // Fixed, arbitrary, symmetric density matrix -- generated once and
-  // reused unchanged at every geometry. Same reasoning as
-  // test_dftgradient.cc's own analogous tests: its specific values do
-  // not matter here, only that it stays fixed while the geometry
-  // moves.
-  Index n_bf = full_basis0.AOBasisSize();
-  Eigen::MatrixXd density_random = Eigen::MatrixXd::Random(n_bf, n_bf);
-  Eigen::MatrixXd density = 0.5 * (density_random + density_random.transpose());
+    // Fixed, arbitrary, symmetric density matrix -- generated once and
+    // reused unchanged at every geometry. Same reasoning as
+    // test_dftgradient.cc's own analogous tests: its specific values do
+    // not matter here, only that it stays fixed while the geometry
+    // moves.
+    Index n_bf = full_basis0.AOBasisSize();
+    Eigen::MatrixXd density_random = Eigen::MatrixXd::Random(n_bf, n_bf);
+    Eigen::MatrixXd density =
+        0.5 * (density_random + density_random.transpose());
 
-  const Index kCarbonIndex = 0;
+    const Index kCarbonIndex = 0;
 
-  std::vector<HirshfeldPartition::AtomicReference> atoms0 =
-      HirshfeldPartition::BuildAtomicReferences(mol0, basis_path,
-                                                reference_densities);
-  Vxc_Grid grid0;
-  grid0.GridSetup("fine", mol0, full_basis0);
-
-  Eigen::MatrixXd analytic_grad = HirshfeldPartition::ComputeCDFTForceContribution(
-      atoms0, kCarbonIndex, density, mol0, full_basis0, grid0);
-  BOOST_REQUIRE_EQUAL(analytic_grad.rows(), 2);
-
-  // Sanity check independent of finite differences, same reasoning as
-  // the existing NuclearRepulsionDerivative/RIJGradient tests:
-  // Tr[D*W_c] cannot depend on where the whole molecule sits in
-  // absolute space, only its internal geometry, so its gradient
-  // summed over every atom must vanish.
-  Eigen::Vector3d total = analytic_grad.colwise().sum();
-  BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-6);
-
-  // Tr[D*W_c] with ONE atom's position displaced by "delta" along one
-  // Cartesian axis (0=x, 1=y, 2=z) from mol0's own base geometry,
-  // rebuilding everything geometry-dependent (atoms' own re-centered
-  // bases, the basis, the grid) but reusing the SAME reference_densities
-  // (isolated-atom SCF results do not depend on the molecule's own
-  // geometry at all) and the SAME fixed density matrix D throughout.
-  // delta is in Angstrom, matching BuildCO's own xyz-file convention.
-  auto trace_displaced = [&](Index atom_index, int axis, double delta) {
-    QMMolecule mol = BuildCO(bond_length);
-    Eigen::Vector3d pos = mol[atom_index].getPos();
-    pos(axis) += delta * 1.8897259886;  // Angstrom -> Bohr, matching
-                                        // this codebase's own internal
-                                        // (atomic) units throughout --
-                                        // getPos()/setPos() work in
-                                        // Bohr, unlike BuildCO's own
-                                        // xyz-file input, which LoadFromFile
-                                        // itself converts from Angstrom.
-    mol[atom_index].setPos(pos);
-    AOBasis full_basis;
-    full_basis.Fill(basisset, mol);
-    std::vector<HirshfeldPartition::AtomicReference> atoms =
-        HirshfeldPartition::BuildAtomicReferences(mol, basis_path,
+    std::vector<HirshfeldPartition::AtomicReference> atoms0 =
+        HirshfeldPartition::BuildAtomicReferences(mol0, basis_path,
                                                   reference_densities);
-    Vxc_Grid grid;
-    grid.GridSetup("fine", mol, full_basis);
-    Eigen::MatrixXd W = HirshfeldPartition::BuildWeightMatrix(
-        atoms, kCarbonIndex, full_basis, grid);
-    return density.cwiseProduct(W).sum();
-  };
+    Vxc_Grid grid0;
+    grid0.GridSetup("fine", mol0, full_basis0);
 
-  double h_bohr = h * 1.8897259886;
-  double max_mismatch = 0.0;
-  // Both atoms (0=Carbon, the constrained TARGET itself -- a
-  // genuinely different code path than atom 1, via the
-  // 1_{A==target_atom_index} indicator in EvaluateWeightGradient's
-  // own formula -- and 1=Oxygen, non-target), all three Cartesian
-  // axes -- deliberately not just the bond-length/z direction: CO is
-  // linear, so a pure bond-length displacement preserves the
-  // molecule's own cylindrical symmetry and could not by itself catch
-  // a bug specific to an off-axis (x/y) direction.
-  for (Index atom_index = 0; atom_index < 2; ++atom_index) {
-    for (int axis = 0; axis < 3; ++axis) {
-      double trace_plus = trace_displaced(atom_index, axis, h);
-      double trace_minus = trace_displaced(atom_index, axis, -h);
-      double numerical = (trace_plus - trace_minus) / (2.0 * h_bohr);
-      double analytic = analytic_grad(atom_index, axis);
-      double mismatch = std::abs(numerical - analytic);
-      max_mismatch = std::max(max_mismatch, mismatch);
-      std::cout << "atom " << atom_index << ", axis " << axis
-                << ": numerical=" << numerical << ", analytic=" << analytic
-                << ", mismatch=" << mismatch << std::endl;
-      if (mismatch > 1.e-4) {
-        std::cout << "NOTE: if this fails, first check whether the mismatch "
-                     "is merely large-ish (grid-integration/finite-"
-                     "difference-step error) or drastically wrong (a "
-                     "genuine bug in one or more of the four CDFT force "
-                     "terms -- check each of GridWeightDerivativeContribution"
-                     "/WeightFunctionDerivativeContribution/"
-                     "PulayAndTranslationContribution individually against "
-                     "its own finite difference before assuming the bug is "
-                     "in how they are summed). Also worth noting whether "
-                     "this specific failure is on atom 0 (the TARGET atom "
-                     "itself, exercising the 1_{A==target} indicator branch "
-                     "in EvaluateWeightGradient) versus atom 1 (non-target) "
-                     "-- a failure isolated to one of these but not the "
-                     "other would point specifically at that branch."
-                  << std::endl;
+    Eigen::MatrixXd analytic_grad =
+        HirshfeldPartition::ComputeCDFTForceContribution(
+            atoms0, kCarbonIndex, density, mol0, full_basis0, grid0);
+    BOOST_REQUIRE_EQUAL(analytic_grad.rows(), 2);
+
+    // Sanity check independent of finite differences, same reasoning as
+    // the existing NuclearRepulsionDerivative/RIJGradient tests:
+    // Tr[D*W_c] cannot depend on where the whole molecule sits in
+    // absolute space, only its internal geometry, so its gradient
+    // summed over every atom must vanish.
+    Eigen::Vector3d total = analytic_grad.colwise().sum();
+    BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-6);
+
+    // Tr[D*W_c] with ONE atom's position displaced by "delta" along one
+    // Cartesian axis (0=x, 1=y, 2=z) from mol0's own base geometry,
+    // rebuilding everything geometry-dependent (atoms' own re-centered
+    // bases, the basis, the grid) but reusing the SAME reference_densities
+    // (isolated-atom SCF results do not depend on the molecule's own
+    // geometry at all) and the SAME fixed density matrix D throughout.
+    // delta is in Angstrom, matching BuildCO's own xyz-file convention.
+    auto trace_displaced = [&](Index atom_index, int axis, double delta) {
+      QMMolecule mol = BuildCO(bond_length);
+      Eigen::Vector3d pos = mol[atom_index].getPos();
+      pos(axis) += delta * 1.8897259886;  // Angstrom -> Bohr, matching
+                                          // this codebase's own internal
+                                          // (atomic) units throughout --
+                                          // getPos()/setPos() work in
+                                          // Bohr, unlike BuildCO's own
+                                          // xyz-file input, which LoadFromFile
+                                          // itself converts from Angstrom.
+      mol[atom_index].setPos(pos);
+      AOBasis full_basis;
+      full_basis.Fill(basisset, mol);
+      std::vector<HirshfeldPartition::AtomicReference> atoms =
+          HirshfeldPartition::BuildAtomicReferences(mol, basis_path,
+                                                    reference_densities);
+      Vxc_Grid grid;
+      grid.GridSetup("fine", mol, full_basis);
+      Eigen::MatrixXd W = HirshfeldPartition::BuildWeightMatrix(
+          atoms, kCarbonIndex, full_basis, grid);
+      return density.cwiseProduct(W).sum();
+    };
+
+    double h_bohr = h * 1.8897259886;
+    double max_mismatch = 0.0;
+    // Both atoms (0=Carbon, the constrained TARGET itself -- a
+    // genuinely different code path than atom 1, via the
+    // 1_{A==target_atom_index} indicator in EvaluateWeightGradient's
+    // own formula -- and 1=Oxygen, non-target), all three Cartesian
+    // axes -- deliberately not just the bond-length/z direction: CO is
+    // linear, so a pure bond-length displacement preserves the
+    // molecule's own cylindrical symmetry and could not by itself catch
+    // a bug specific to an off-axis (x/y) direction.
+    for (Index atom_index = 0; atom_index < 2; ++atom_index) {
+      for (int axis = 0; axis < 3; ++axis) {
+        double trace_plus = trace_displaced(atom_index, axis, h);
+        double trace_minus = trace_displaced(atom_index, axis, -h);
+        double numerical = (trace_plus - trace_minus) / (2.0 * h_bohr);
+        double analytic = analytic_grad(atom_index, axis);
+        double mismatch = std::abs(numerical - analytic);
+        max_mismatch = std::max(max_mismatch, mismatch);
+        std::cout << "atom " << atom_index << ", axis " << axis
+                  << ": numerical=" << numerical << ", analytic=" << analytic
+                  << ", mismatch=" << mismatch << std::endl;
+        if (mismatch > 1.e-4) {
+          std::cout << "NOTE: if this fails, first check whether the mismatch "
+                       "is merely large-ish (grid-integration/finite-"
+                       "difference-step error) or drastically wrong (a "
+                       "genuine bug in one or more of the four CDFT force "
+                       "terms -- check each of GridWeightDerivativeContribution"
+                       "/WeightFunctionDerivativeContribution/"
+                       "PulayAndTranslationContribution individually against "
+                       "its own finite difference before assuming the bug is "
+                       "in how they are summed). Also worth noting whether "
+                       "this specific failure is on atom 0 (the TARGET atom "
+                       "itself, exercising the 1_{A==target} indicator branch "
+                       "in EvaluateWeightGradient) versus atom 1 (non-target) "
+                       "-- a failure isolated to one of these but not the "
+                       "other would point specifically at that branch."
+                    << std::endl;
+        }
+        BOOST_CHECK_SMALL(mismatch, 1.e-4);
       }
-      BOOST_CHECK_SMALL(mismatch, 1.e-4);
     }
+  } catch (const std::runtime_error& e) {
+    std::cout << "SKIPPING cdft_force_finite_difference: " << e.what()
+              << std::endl;
+    libint2::finalize();
+    return;
   }
- } catch (const std::runtime_error& e) {
-   std::cout << "SKIPPING cdft_force_finite_difference: " << e.what()
-             << std::endl;
-   libint2::finalize();
-   return;
- }
 
   libint2::finalize();
 }

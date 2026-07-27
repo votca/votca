@@ -29,8 +29,8 @@
 
 // Local VOTCA includes
 #include "ERIs.h"
-#include "hirshfeldpartition.h"
 #include "convergenceacc.h"
+#include "hirshfeldpartition.h"
 #include "uks_convergenceacc.h"
 
 #include "ecpaobasis.h"

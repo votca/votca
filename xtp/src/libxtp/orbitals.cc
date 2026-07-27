@@ -909,8 +909,7 @@ std::vector<Index> Orbitals::SortEnergiesAlpha() {
 }
 
 std::vector<Index> Orbitals::SortEnergiesBeta() {
-  std::vector<Index> index =
-      std::vector<Index>(mos_beta_.eigenvalues().size());
+  std::vector<Index> index = std::vector<Index>(mos_beta_.eigenvalues().size());
   std::iota(index.begin(), index.end(), 0);
   std::stable_sort(index.begin(), index.end(), [this](Index i1, Index i2) {
     return this->MOs_beta().eigenvalues()[i1] <
@@ -1064,11 +1063,11 @@ void Orbitals::PrepareDimerGuessMixedSpin(const Orbitals& orbitalsA,
   const Eigen::VectorXd& A_alpha_energies = orbitalsA.MOs().eigenvalues();
   const Eigen::VectorXd& A_beta_energies =
       orbitalsA.hasUnrestrictedOrbitals() ? orbitalsA.MOs_beta().eigenvalues()
-                                         : orbitalsA.MOs().eigenvalues();
+                                          : orbitalsA.MOs().eigenvalues();
   const Eigen::VectorXd& B_alpha_energies = orbitalsB.MOs().eigenvalues();
   const Eigen::VectorXd& B_beta_energies =
       orbitalsB.hasUnrestrictedOrbitals() ? orbitalsB.MOs_beta().eigenvalues()
-                                         : orbitalsB.MOs().eigenvalues();
+                                          : orbitalsB.MOs().eigenvalues();
 
   mos_.eigenvectors() = Eigen::MatrixXd::Zero(basisA + basisB, basisA + basisB);
   mos_.eigenvectors().block(0, 0, basisA, basisA) = A_alpha;
@@ -1085,8 +1084,7 @@ void Orbitals::PrepareDimerGuessMixedSpin(const Orbitals& orbitalsA,
   mos_beta_.eigenvalues().segment(0, basisA) = A_beta_energies;
   mos_beta_.eigenvalues().segment(basisA, basisB) = B_beta_energies;
 
-  Index alpha_electrons =
-      orbitalsA.getLumoAlpha() + orbitalsB.getLumoAlpha();
+  Index alpha_electrons = orbitalsA.getLumoAlpha() + orbitalsB.getLumoAlpha();
   Index beta_electrons = orbitalsA.getLumoBeta() + orbitalsB.getLumoBeta();
   this->setNumberOfOccupiedLevels(alpha_electrons);
   this->setNumberOfOccupiedLevelsBeta(beta_electrons);

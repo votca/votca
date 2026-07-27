@@ -99,9 +99,8 @@ bool DftGwBse::Run() {
   // (the PREVIOUS step's) is deliberately discarded, never touching
   // orbitals.QMAtoms() itself.
   if (!moguess_file_.empty()) {
-    XTP_LOG(Log::error, log_)
-        << "Reading MO guess (geometry unchanged) from " << moguess_file_
-        << std::flush;
+    XTP_LOG(Log::error, log_) << "Reading MO guess (geometry unchanged) from "
+                              << moguess_file_ << std::flush;
     Orbitals moguess_orbitals;
     moguess_orbitals.ReadFromCpt(moguess_file_);
     orbitals.MOs() = moguess_orbitals.MOs();

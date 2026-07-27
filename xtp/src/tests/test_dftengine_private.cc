@@ -17,8 +17,8 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE dftengine_private_test
 #include "xtp_libint2.h"
-#include <stdexcept>
 #include <boost/test/unit_test.hpp>
+#include <stdexcept>
 
 #include <Eigen/Core>
 
@@ -30,11 +30,11 @@
 
 #include <votca/xtp/basisset.h>
 
+#include <votca/xtp/ERIs.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/aopotential.h>
 #include <votca/xtp/dftengine.h>
-#include <votca/xtp/ERIs.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/qmmolecule.h>
 
@@ -121,15 +121,13 @@ class DFTEngineTestAccess {
   static Eigen::MatrixXd ComputeNonXCGradientUKS(
       const DFTEngine& e, const QMMolecule& mol,
       const UKSConvergenceAcc::SpinDensity& Dspin,
-      const tools::EigenSystem& MOs_alpha,
-      const tools::EigenSystem& MOs_beta) {
+      const tools::EigenSystem& MOs_alpha, const tools::EigenSystem& MOs_beta) {
     return e.ComputeNonXCGradientUKS(mol, Dspin, MOs_alpha, MOs_beta);
   }
 
   static Eigen::MatrixXd ComputeOverlapPulayGradientUKS(
       const DFTEngine& e, const QMMolecule& mol,
-      const tools::EigenSystem& MOs_alpha,
-      const tools::EigenSystem& MOs_beta) {
+      const tools::EigenSystem& MOs_alpha, const tools::EigenSystem& MOs_beta) {
     return e.ComputeOverlapPulayGradientUKS(mol, MOs_alpha, MOs_beta);
   }
 };
@@ -362,207 +360,213 @@ BOOST_AUTO_TEST_CASE(orthogonalize_guess_produces_s_orthonormal_vectors) {
 // STATUS: written but NOT yet run.
 BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
   libint2::initialize();
- try {
-  double h = 1e-3;  // Bohr -- matches test_dftengine_forces.cc's own
-                    // choice for an analogous reason: RI-fitted
-                    // integrals (LDLT solve precision, aux-basis
-                    // conditioning) introduce their own numerical noise
-                    // floor that a smaller h can be swamped by. A first
-                    // run at h=1e-4 with a 1e-4 relative tolerance
-                    // showed a small (~0.1-0.2%), consistent-sign
-                    // discrepancy in both the ScaHFX_=0 and
-                    // ScaHFX_=0.25 cases -- far smaller than the ~120%
-                    // discrepancy the missing overlap Pulay term caused
-                    // before that was isolated, consistent with
-                    // numerical noise rather than a remaining formula
-                    // error, but not yet directly confirmed.
+  try {
+    double h = 1e-3;  // Bohr -- matches test_dftengine_forces.cc's own
+                      // choice for an analogous reason: RI-fitted
+                      // integrals (LDLT solve precision, aux-basis
+                      // conditioning) introduce their own numerical noise
+                      // floor that a smaller h can be swamped by. A first
+                      // run at h=1e-4 with a 1e-4 relative tolerance
+                      // showed a small (~0.1-0.2%), consistent-sign
+                      // discrepancy in both the ScaHFX_=0 and
+                      // ScaHFX_=0.25 cases -- far smaller than the ~120%
+                      // discrepancy the missing overlap Pulay term caused
+                      // before that was isolated, consistent with
+                      // numerical noise rather than a remaining formula
+                      // error, but not yet directly confirmed.
 
-  auto build_system = [](double bond_length_bohr, double sca_hfx,
-                         const Eigen::MatrixXd& C_alpha_fixed,
-                         const Eigen::MatrixXd& C_beta_fixed) {
-    QMMolecule mol = MakeH2(bond_length_bohr);
-    BasisSet basisset;
-    basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
-                  "/threecenter_dft/3-21G.xml");
-    AOBasis dftbasis;
-    dftbasis.Fill(basisset, mol);
-
-    // Same basis used for both DFT and aux roles here, matching
-    // rij_gradient_finite_difference's setup in test_dftgradient.cc.
-    // NOTE: an earlier version of this test used a dedicated aux basis
-    // (diabatization/aux-def2-svp.xml) and showed a small, h-independent
-    // (~0.1-0.2%) discrepancy against finite differences -- confirmed
-    // via git history to be a numerical-precision artifact specific to
-    // that basis combined with this test's particular fixed, rank-2
-    // density matrix, NOT a bug in RIJGradient: the J matrix itself
-    // matched CalculateERIs_3c's output to machine precision regardless
-    // of aux basis choice, and switching to this same-basis setup makes
-    // the discrepancy disappear entirely, even at a tight 1e-4 relative
-    // tolerance. (test_dftengine_forces.cc separately confirms
-    // aux-def2-svp works correctly in production, with a real converged
-    // SCF density -- this was specific to the diagnostic setup here, not
-    // a general aux-def2-svp problem.)
-    AOBasis auxbasis;
-    auxbasis.Fill(basisset, mol);
-
-    AOKinetic kinetic;
-    kinetic.Fill(dftbasis);
-    AOMultipole esp;
-    esp.FillPotential(dftbasis, mol);
-    Eigen::MatrixXd H0 = kinetic.Matrix() + esp.Matrix();
-
-    UKSConvergenceAcc::SpinDensity Dspin;
-    Dspin.alpha = C_alpha_fixed * C_alpha_fixed.transpose();
-    Dspin.beta = C_beta_fixed * C_beta_fixed.transpose();
-    Eigen::MatrixXd D_total = Dspin.total();
-
-    static Logger log;
-    DFTEngine nuc_rep_engine;
-    nuc_rep_engine.setLogger(&log);
-    double E_nuc = DFTEngineTestAccess::NuclearRepulsion(nuc_rep_engine, mol);
-    double E_one = D_total.cwiseProduct(H0).sum();
-
-    ERIs eris;
-    eris.Initialize(dftbasis, auxbasis);
-    Eigen::MatrixXd J = eris.CalculateERIs_3c(D_total);
-
-    double E_coul = 0.5 * D_total.cwiseProduct(J).sum();
-
-    double E_exx = 0.0;
-    if (sca_hfx > 0.0) {
-      // CalculateEXX_dmat is private -- use the public
-      // CalculateERIs_EXX_3c wrapper with an empty occMos, matching
-      // EXACTLY how EvaluateUKS itself calls it
-      // (CalcERIs_EXX(Eigen::MatrixXd::Zero(0,0), Dspin.alpha/beta, ...)).
-      std::array<Eigen::MatrixXd, 2> JK_alpha =
-          eris.CalculateERIs_EXX_3c(Eigen::MatrixXd::Zero(0, 0), Dspin.alpha);
-      std::array<Eigen::MatrixXd, 2> JK_beta =
-          eris.CalculateERIs_EXX_3c(Eigen::MatrixXd::Zero(0, 0), Dspin.beta);
-      const Eigen::MatrixXd& K_alpha = JK_alpha[1];
-      const Eigen::MatrixXd& K_beta = JK_beta[1];
-      E_exx = 0.5 * sca_hfx *
-              (Dspin.alpha.cwiseProduct(K_alpha).sum() +
-               Dspin.beta.cwiseProduct(K_beta).sum());
-    }
-
-    struct Result {
-      double energy;
-      double E_nuc, E_one, E_coul, E_exx;
-      QMMolecule mol;
+    auto build_system = [](double bond_length_bohr, double sca_hfx,
+                           const Eigen::MatrixXd& C_alpha_fixed,
+                           const Eigen::MatrixXd& C_beta_fixed) {
+      QMMolecule mol = MakeH2(bond_length_bohr);
+      BasisSet basisset;
+      basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
+                    "/threecenter_dft/3-21G.xml");
       AOBasis dftbasis;
+      dftbasis.Fill(basisset, mol);
+
+      // Same basis used for both DFT and aux roles here, matching
+      // rij_gradient_finite_difference's setup in test_dftgradient.cc.
+      // NOTE: an earlier version of this test used a dedicated aux basis
+      // (diabatization/aux-def2-svp.xml) and showed a small, h-independent
+      // (~0.1-0.2%) discrepancy against finite differences -- confirmed
+      // via git history to be a numerical-precision artifact specific to
+      // that basis combined with this test's particular fixed, rank-2
+      // density matrix, NOT a bug in RIJGradient: the J matrix itself
+      // matched CalculateERIs_3c's output to machine precision regardless
+      // of aux basis choice, and switching to this same-basis setup makes
+      // the discrepancy disappear entirely, even at a tight 1e-4 relative
+      // tolerance. (test_dftengine_forces.cc separately confirms
+      // aux-def2-svp works correctly in production, with a real converged
+      // SCF density -- this was specific to the diagnostic setup here, not
+      // a general aux-def2-svp problem.)
       AOBasis auxbasis;
+      auxbasis.Fill(basisset, mol);
+
+      AOKinetic kinetic;
+      kinetic.Fill(dftbasis);
+      AOMultipole esp;
+      esp.FillPotential(dftbasis, mol);
+      Eigen::MatrixXd H0 = kinetic.Matrix() + esp.Matrix();
+
       UKSConvergenceAcc::SpinDensity Dspin;
-    };
-    return Result{E_nuc + E_one + E_coul + E_exx,
-                  E_nuc,      E_one, E_coul, E_exx,
-                  mol,        dftbasis, auxbasis, Dspin};
-  };
+      Dspin.alpha = C_alpha_fixed * C_alpha_fixed.transpose();
+      Dspin.beta = C_beta_fixed * C_beta_fixed.transpose();
+      Eigen::MatrixXd D_total = Dspin.total();
 
-  // Determine the actual DFT basis size once, up front, via a quick
-  // "probe" build (geometry-independent for a fixed molecule/basis-set
-  // pair) -- avoids guessing a size and rebuilding later.
-  {
-    QMMolecule probe_mol = MakeH2(1.4);
-    BasisSet probe_basisset;
-    probe_basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
-                        "/threecenter_dft/3-21G.xml");
-    AOBasis probe_basis;
-    probe_basis.Fill(probe_basisset, probe_mol);
-    Index actual_nbf = probe_basis.AOBasisSize();
+      static Logger log;
+      DFTEngine nuc_rep_engine;
+      nuc_rep_engine.setLogger(&log);
+      double E_nuc = DFTEngineTestAccess::NuclearRepulsion(nuc_rep_engine, mol);
+      double E_one = D_total.cwiseProduct(H0).sum();
 
-    for (double sca_hfx : {0.0, 0.25}) {
-      double bond_length = 1.4;  // Bohr, roughly H2 equilibrium
+      ERIs eris;
+      eris.Initialize(dftbasis, auxbasis);
+      Eigen::MatrixXd J = eris.CalculateERIs_3c(D_total);
 
-      // Fixed, arbitrary (not orthonormal, not SCF-converged) coefficient
-      // "columns" -- one occupied alpha orbital, one occupied beta
-      // orbital (minimal, but sufficient to exercise every term).
-      Eigen::MatrixXd C_alpha_fixed = Eigen::MatrixXd::Random(actual_nbf, 1);
-      Eigen::MatrixXd C_beta_fixed = Eigen::MatrixXd::Random(actual_nbf, 1);
-      Eigen::VectorXd eps_alpha_fixed = Eigen::VectorXd::Random(1);
-      Eigen::VectorXd eps_beta_fixed = Eigen::VectorXd::Random(1);
+      double E_coul = 0.5 * D_total.cwiseProduct(J).sum();
 
-      auto base = build_system(bond_length, sca_hfx, C_alpha_fixed,
-                               C_beta_fixed);
-
-      DFTEngine engine;
-      DFTEngineTestAccess::SetBasis(engine, base.dftbasis);
-      DFTEngineTestAccess::SetAuxBasis(engine, base.auxbasis);
-      DFTEngineTestAccess::SetElectronCounts(engine, 1, 1);
-      DFTEngineTestAccess::SetScaHFX(engine, sca_hfx);
-
-      tools::EigenSystem MOs_alpha;
-      MOs_alpha.eigenvectors() = C_alpha_fixed;
-      MOs_alpha.eigenvalues() = eps_alpha_fixed;
-      tools::EigenSystem MOs_beta;
-      MOs_beta.eigenvectors() = C_beta_fixed;
-      MOs_beta.eigenvalues() = eps_beta_fixed;
-
-      Eigen::MatrixXd analytic_grad =
-          DFTEngineTestAccess::ComputeNonXCGradientUKS(
-              engine, base.mol, base.Dspin, MOs_alpha, MOs_beta);
-
-      Eigen::Vector3d sum = analytic_grad.colwise().sum();
-      BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-6);
-
-      // The overlap Pulay term is deliberately EXCLUDED from this
-      // comparison -- confirmed directly (see git history: the first
-      // real run of this test failed by exactly the overlap Pulay
-      // term's own value, in both the ScaHFX_=0 and ScaHFX_=0.25 cases)
-      // that it is NOT checkable against a fixed-C finite difference: it
-      // specifically corrects for C's implicit R-dependence through the
-      // orthonormality constraint C^T S(R) C = I, valid only at a
-      // genuine SCF stationary point, which a fixed, arbitrary C held
-      // constant across displaced geometries never satisfies
-      // self-consistently. The other four terms (nuclear repulsion,
-      // one-electron, RI-J, RI-K) don't have this issue -- their
-      // stationarity arguments hold for ANY fixed C -- so this
-      // comparison still meaningfully validates them.
-      Eigen::MatrixXd overlap_pulay =
-          DFTEngineTestAccess::ComputeOverlapPulayGradientUKS(
-              engine, base.mol, MOs_alpha, MOs_beta);
-      Eigen::MatrixXd fixed_c_checkable_grad = analytic_grad - overlap_pulay;
-
-      auto plus = build_system(bond_length + h, sca_hfx, C_alpha_fixed,
-                               C_beta_fixed);
-      auto minus = build_system(bond_length - h, sca_hfx,
-                                C_alpha_fixed, C_beta_fixed);
-      double finite_diff_deriv = (plus.energy - minus.energy) / (2.0 * h);
-
-      std::cout << std::setprecision(10)
-                << "[test diagnostic, per-term finite differences]"
-                << "\n  d(E_nuc)/dx  = " << (plus.E_nuc - minus.E_nuc) / (2.0 * h)
-                << "\n  d(E_one)/dx  = " << (plus.E_one - minus.E_one) / (2.0 * h)
-                << "\n  d(E_coul)/dx = "
-                << (plus.E_coul - minus.E_coul) / (2.0 * h)
-                << "\n  d(E_exx)/dx  = " << (plus.E_exx - minus.E_exx) / (2.0 * h)
-                << std::endl;
-
-      // Atom 1 sits at (bond_length, 0, 0) -- the x-component carries the
-      // bond-stretch derivative.
-      double analytic = fixed_c_checkable_grad(1, 0);
-
-      bool matches =
-          std::abs(finite_diff_deriv - analytic) < 1e-4 * std::abs(analytic);
-      if (!matches) {
-        std::cout << "ScaHFX_=" << sca_hfx
-                  << " analytic dE/dx(atom1) [excluding overlap Pulay]="
-                  << analytic << " finite-difference=" << finite_diff_deriv
-                  << std::endl;
-        std::cout << "NOTE: if this fails only for sca_hfx=0.25 (not 0.0), "
-                     "the bug is isolated to the RI-K/0.5*ScaHFX_ factor "
-                     "specifically. If it fails for BOTH, the bug is in one "
-                     "of nuclear repulsion, one-electron, or RI-J."
-                  << std::endl;
+      double E_exx = 0.0;
+      if (sca_hfx > 0.0) {
+        // CalculateEXX_dmat is private -- use the public
+        // CalculateERIs_EXX_3c wrapper with an empty occMos, matching
+        // EXACTLY how EvaluateUKS itself calls it
+        // (CalcERIs_EXX(Eigen::MatrixXd::Zero(0,0), Dspin.alpha/beta, ...)).
+        std::array<Eigen::MatrixXd, 2> JK_alpha =
+            eris.CalculateERIs_EXX_3c(Eigen::MatrixXd::Zero(0, 0), Dspin.alpha);
+        std::array<Eigen::MatrixXd, 2> JK_beta =
+            eris.CalculateERIs_EXX_3c(Eigen::MatrixXd::Zero(0, 0), Dspin.beta);
+        const Eigen::MatrixXd& K_alpha = JK_alpha[1];
+        const Eigen::MatrixXd& K_beta = JK_beta[1];
+        E_exx = 0.5 * sca_hfx *
+                (Dspin.alpha.cwiseProduct(K_alpha).sum() +
+                 Dspin.beta.cwiseProduct(K_beta).sum());
       }
-      BOOST_CHECK_EQUAL(matches, true);
+
+      struct Result {
+        double energy;
+        double E_nuc, E_one, E_coul, E_exx;
+        QMMolecule mol;
+        AOBasis dftbasis;
+        AOBasis auxbasis;
+        UKSConvergenceAcc::SpinDensity Dspin;
+      };
+      return Result{E_nuc + E_one + E_coul + E_exx,
+                    E_nuc,
+                    E_one,
+                    E_coul,
+                    E_exx,
+                    mol,
+                    dftbasis,
+                    auxbasis,
+                    Dspin};
+    };
+
+    // Determine the actual DFT basis size once, up front, via a quick
+    // "probe" build (geometry-independent for a fixed molecule/basis-set
+    // pair) -- avoids guessing a size and rebuilding later.
+    {
+      QMMolecule probe_mol = MakeH2(1.4);
+      BasisSet probe_basisset;
+      probe_basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
+                          "/threecenter_dft/3-21G.xml");
+      AOBasis probe_basis;
+      probe_basis.Fill(probe_basisset, probe_mol);
+      Index actual_nbf = probe_basis.AOBasisSize();
+
+      for (double sca_hfx : {0.0, 0.25}) {
+        double bond_length = 1.4;  // Bohr, roughly H2 equilibrium
+
+        // Fixed, arbitrary (not orthonormal, not SCF-converged) coefficient
+        // "columns" -- one occupied alpha orbital, one occupied beta
+        // orbital (minimal, but sufficient to exercise every term).
+        Eigen::MatrixXd C_alpha_fixed = Eigen::MatrixXd::Random(actual_nbf, 1);
+        Eigen::MatrixXd C_beta_fixed = Eigen::MatrixXd::Random(actual_nbf, 1);
+        Eigen::VectorXd eps_alpha_fixed = Eigen::VectorXd::Random(1);
+        Eigen::VectorXd eps_beta_fixed = Eigen::VectorXd::Random(1);
+
+        auto base =
+            build_system(bond_length, sca_hfx, C_alpha_fixed, C_beta_fixed);
+
+        DFTEngine engine;
+        DFTEngineTestAccess::SetBasis(engine, base.dftbasis);
+        DFTEngineTestAccess::SetAuxBasis(engine, base.auxbasis);
+        DFTEngineTestAccess::SetElectronCounts(engine, 1, 1);
+        DFTEngineTestAccess::SetScaHFX(engine, sca_hfx);
+
+        tools::EigenSystem MOs_alpha;
+        MOs_alpha.eigenvectors() = C_alpha_fixed;
+        MOs_alpha.eigenvalues() = eps_alpha_fixed;
+        tools::EigenSystem MOs_beta;
+        MOs_beta.eigenvectors() = C_beta_fixed;
+        MOs_beta.eigenvalues() = eps_beta_fixed;
+
+        Eigen::MatrixXd analytic_grad =
+            DFTEngineTestAccess::ComputeNonXCGradientUKS(
+                engine, base.mol, base.Dspin, MOs_alpha, MOs_beta);
+
+        Eigen::Vector3d sum = analytic_grad.colwise().sum();
+        BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-6);
+
+        // The overlap Pulay term is deliberately EXCLUDED from this
+        // comparison -- confirmed directly (see git history: the first
+        // real run of this test failed by exactly the overlap Pulay
+        // term's own value, in both the ScaHFX_=0 and ScaHFX_=0.25 cases)
+        // that it is NOT checkable against a fixed-C finite difference: it
+        // specifically corrects for C's implicit R-dependence through the
+        // orthonormality constraint C^T S(R) C = I, valid only at a
+        // genuine SCF stationary point, which a fixed, arbitrary C held
+        // constant across displaced geometries never satisfies
+        // self-consistently. The other four terms (nuclear repulsion,
+        // one-electron, RI-J, RI-K) don't have this issue -- their
+        // stationarity arguments hold for ANY fixed C -- so this
+        // comparison still meaningfully validates them.
+        Eigen::MatrixXd overlap_pulay =
+            DFTEngineTestAccess::ComputeOverlapPulayGradientUKS(
+                engine, base.mol, MOs_alpha, MOs_beta);
+        Eigen::MatrixXd fixed_c_checkable_grad = analytic_grad - overlap_pulay;
+
+        auto plus =
+            build_system(bond_length + h, sca_hfx, C_alpha_fixed, C_beta_fixed);
+        auto minus =
+            build_system(bond_length - h, sca_hfx, C_alpha_fixed, C_beta_fixed);
+        double finite_diff_deriv = (plus.energy - minus.energy) / (2.0 * h);
+
+        std::cout
+            << std::setprecision(10)
+            << "[test diagnostic, per-term finite differences]"
+            << "\n  d(E_nuc)/dx  = " << (plus.E_nuc - minus.E_nuc) / (2.0 * h)
+            << "\n  d(E_one)/dx  = " << (plus.E_one - minus.E_one) / (2.0 * h)
+            << "\n  d(E_coul)/dx = " << (plus.E_coul - minus.E_coul) / (2.0 * h)
+            << "\n  d(E_exx)/dx  = " << (plus.E_exx - minus.E_exx) / (2.0 * h)
+            << std::endl;
+
+        // Atom 1 sits at (bond_length, 0, 0) -- the x-component carries the
+        // bond-stretch derivative.
+        double analytic = fixed_c_checkable_grad(1, 0);
+
+        bool matches =
+            std::abs(finite_diff_deriv - analytic) < 1e-4 * std::abs(analytic);
+        if (!matches) {
+          std::cout << "ScaHFX_=" << sca_hfx
+                    << " analytic dE/dx(atom1) [excluding overlap Pulay]="
+                    << analytic << " finite-difference=" << finite_diff_deriv
+                    << std::endl;
+          std::cout << "NOTE: if this fails only for sca_hfx=0.25 (not 0.0), "
+                       "the bug is isolated to the RI-K/0.5*ScaHFX_ factor "
+                       "specifically. If it fails for BOTH, the bug is in one "
+                       "of nuclear repulsion, one-electron, or RI-J."
+                    << std::endl;
+        }
+        BOOST_CHECK_EQUAL(matches, true);
+      }
     }
+  } catch (const std::runtime_error& e) {
+    std::cout << "SKIPPING compute_non_xc_gradient_uks_finite_difference: "
+              << e.what() << std::endl;
+    libint2::finalize();
+    return;
   }
- } catch (const std::runtime_error& e) {
-   std::cout << "SKIPPING compute_non_xc_gradient_uks_finite_difference: "
-             << e.what() << std::endl;
-   libint2::finalize();
-   return;
- }
 
   libint2::finalize();
 }
@@ -580,56 +584,58 @@ BOOST_AUTO_TEST_CASE(compute_non_xc_gradient_uks_finite_difference) {
 // STATUS: written but NOT yet run.
 BOOST_AUTO_TEST_CASE(overlap_pulay_gradient_uks_reduces_to_rks) {
   libint2::initialize();
- try {
-  QMMolecule mol = MakeH2(1.4);
-  BasisSet basisset;
-  basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
-                "/threecenter_dft/3-21G.xml");
-  AOBasis dftbasis;
-  dftbasis.Fill(basisset, mol);
-  Index n_bf = dftbasis.AOBasisSize();
+  try {
+    QMMolecule mol = MakeH2(1.4);
+    BasisSet basisset;
+    basisset.Load(std::string(XTP_TEST_DATA_FOLDER) +
+                  "/threecenter_dft/3-21G.xml");
+    AOBasis dftbasis;
+    dftbasis.Fill(basisset, mol);
+    Index n_bf = dftbasis.AOBasisSize();
 
-  DFTEngine engine;
-  DFTEngineTestAccess::SetBasis(engine, dftbasis);
-  DFTEngineTestAccess::SetElectronCounts(engine, 1, 1);
+    DFTEngine engine;
+    DFTEngineTestAccess::SetBasis(engine, dftbasis);
+    DFTEngineTestAccess::SetElectronCounts(engine, 1, 1);
 
-  Eigen::MatrixXd C_occ = Eigen::MatrixXd::Random(n_bf, 1);
-  Eigen::VectorXd eps_occ = Eigen::VectorXd::Random(1);
+    Eigen::MatrixXd C_occ = Eigen::MatrixXd::Random(n_bf, 1);
+    Eigen::VectorXd eps_occ = Eigen::VectorXd::Random(1);
 
-  tools::EigenSystem MOs_same;
-  MOs_same.eigenvectors() = C_occ;
-  MOs_same.eigenvalues() = eps_occ;
+    tools::EigenSystem MOs_same;
+    MOs_same.eigenvectors() = C_occ;
+    MOs_same.eigenvalues() = eps_occ;
 
-  // alpha == beta: same occupied orbital, same orbital energy, for
-  // both spins.
-  Eigen::MatrixXd uks_grad = DFTEngineTestAccess::ComputeOverlapPulayGradientUKS(
-      engine, mol, MOs_same, MOs_same);
+    // alpha == beta: same occupied orbital, same orbital energy, for
+    // both spins.
+    Eigen::MatrixXd uks_grad =
+        DFTEngineTestAccess::ComputeOverlapPulayGradientUKS(engine, mol,
+                                                            MOs_same, MOs_same);
 
-  // Independently-computed RKS-style reference: W_RKS = 2*C_occ*eps_occ*C_occ^T.
-  Eigen::MatrixXd W_rks =
-      2.0 * C_occ * eps_occ.asDiagonal() * C_occ.transpose();
-  std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis);
-  Index natoms = mol.size();
-  Eigen::MatrixXd rks_grad = Eigen::MatrixXd::Zero(natoms, 3);
-  for (Index a = 0; a < natoms; ++a) {
-    for (Index xyz = 0; xyz < 3; ++xyz) {
-      rks_grad(a, xyz) = -W_rks.cwiseProduct(dS[a][xyz]).sum();
+    // Independently-computed RKS-style reference: W_RKS =
+    // 2*C_occ*eps_occ*C_occ^T.
+    Eigen::MatrixXd W_rks =
+        2.0 * C_occ * eps_occ.asDiagonal() * C_occ.transpose();
+    std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis);
+    Index natoms = mol.size();
+    Eigen::MatrixXd rks_grad = Eigen::MatrixXd::Zero(natoms, 3);
+    for (Index a = 0; a < natoms; ++a) {
+      for (Index xyz = 0; xyz < 3; ++xyz) {
+        rks_grad(a, xyz) = -W_rks.cwiseProduct(dS[a][xyz]).sum();
+      }
     }
-  }
 
-  bool matches = uks_grad.isApprox(rks_grad, 1e-10);
-  if (!matches) {
-    std::cout << "UKS overlap Pulay (alpha==beta):\n" << uks_grad << std::endl;
-    std::cout << "RKS-style reference:\n" << rks_grad << std::endl;
+    bool matches = uks_grad.isApprox(rks_grad, 1e-10);
+    if (!matches) {
+      std::cout << "UKS overlap Pulay (alpha==beta):\n"
+                << uks_grad << std::endl;
+      std::cout << "RKS-style reference:\n" << rks_grad << std::endl;
+    }
+    BOOST_CHECK_EQUAL(matches, true);
+  } catch (const std::runtime_error& e) {
+    std::cout << "SKIPPING overlap_pulay_gradient_uks_reduces_to_rks: "
+              << e.what() << std::endl;
+    libint2::finalize();
+    return;
   }
-  BOOST_CHECK_EQUAL(matches, true);
- } catch (const std::runtime_error& e) {
-   std::cout << "SKIPPING overlap_pulay_gradient_uks_reduces_to_rks: "
-             << e.what() << std::endl;
-   libint2::finalize();
-   return;
- }
 
   libint2::finalize();
 }
-

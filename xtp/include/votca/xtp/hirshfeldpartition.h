@@ -109,8 +109,8 @@ class HirshfeldPartition {
   /// functions only), so that optimization, built for a full molecule's
   /// much larger basis, does not help here and would only add complexity.
   static double EvaluateAtomicDensity(const AOBasis& atom_basis,
-                                       const Eigen::MatrixXd& reference_density,
-                                       const Eigen::Vector3d& point);
+                                      const Eigen::MatrixXd& reference_density,
+                                      const Eigen::Vector3d& point);
 
   /// grad_r rho_i^free(point) -- the real-space GRADIENT of one
   /// isolated-atom reference density, needed for the CDFT force term
@@ -142,8 +142,8 @@ class HirshfeldPartition {
   /// negligible-denominator guard pattern already used for the SSW
   /// grid weights in GridWeightGradient (kNegligibleWOwner there).
   static double EvaluateWeight(const std::vector<AtomicReference>& atoms,
-                                Index target_atom_index,
-                                const Eigen::Vector3d& point);
+                               Index target_atom_index,
+                               const Eigen::Vector3d& point);
 
   /// d w_target(point) / d R_{differentiate_atom_index} -- the
   /// Hirshfeld weight-function-derivative term needed for CDFT forces.

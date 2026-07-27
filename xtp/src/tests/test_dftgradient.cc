@@ -48,11 +48,11 @@
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
+#include <votca/xtp/ERIs.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/dftgradient.h>
-#include <votca/xtp/ERIs.h>
 #include <votca/xtp/qmmolecule.h>
 
 using namespace votca::xtp;
@@ -111,13 +111,13 @@ double NuclearRepulsionEnergyReference(const QMMolecule& mol) {
 
 BOOST_AUTO_TEST_CASE(nuclear_repulsion_derivative_finite_difference) {
   double h = 1e-4;  // finite-difference step, Angstrom -- matching
-                     // BuildH2's convention in test_aoderivatives.cc
-                     // (confirmed empirically there that a bare .xyz
-                     // file with no explicit units line is interpreted
-                     // as Angstrom by QMMolecule::LoadFromFile, via the
-                     // Bohr/Angstrom bug found and fixed in that file;
-                     // reusing that same confirmed assumption here rather
-                     // than re-deriving it from scratch).
+                    // BuildH2's convention in test_aoderivatives.cc
+                    // (confirmed empirically there that a bare .xyz
+                    // file with no explicit units line is interpreted
+                    // as Angstrom by QMMolecule::LoadFromFile, via the
+                    // Bohr/Angstrom bug found and fixed in that file;
+                    // reusing that same confirmed assumption here rather
+                    // than re-deriving it from scratch).
 
   // NOTE: BuildTestMolecule's xyz file has no units line beyond the
   // standard xyz format, and QMMolecule::LoadFromFile's default unit
@@ -180,106 +180,108 @@ BOOST_AUTO_TEST_CASE(nuclear_repulsion_derivative_finite_difference) {
 // confirmed correct.
 BOOST_AUTO_TEST_CASE(rij_gradient_finite_difference) {
   libint2::initialize();
- try {
-  std::string basis_path =
-      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml";
-  double bond_length = 0.74;  // Angstrom
-  double h = 1e-4;            // Angstrom
+  try {
+    std::string basis_path =
+        std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml";
+    double bond_length = 0.74;  // Angstrom
+    double h = 1e-4;            // Angstrom
 
-  BasisSet basisset;
-  basisset.Load(basis_path);
+    BasisSet basisset;
+    basisset.Load(basis_path);
 
-  auto build_h2 = [](double bond_length_angstrom) {
-    QMMolecule mol(" ", 0);
-    std::string xyz_content =
-        "2\n\n"
-        "H 0.0 0.0 0.0\n"
-        "H 0.0 0.0 " +
-        std::to_string(bond_length_angstrom) + "\n";
-    std::string tmp_path = "/tmp/xtp_test_dftgradient_h2.xyz";
-    std::ofstream out(tmp_path);
-    out << xyz_content;
-    out.close();
-    mol.LoadFromFile(tmp_path);
-    return mol;
-  };
+    auto build_h2 = [](double bond_length_angstrom) {
+      QMMolecule mol(" ", 0);
+      std::string xyz_content =
+          "2\n\n"
+          "H 0.0 0.0 0.0\n"
+          "H 0.0 0.0 " +
+          std::to_string(bond_length_angstrom) + "\n";
+      std::string tmp_path = "/tmp/xtp_test_dftgradient_h2.xyz";
+      std::ofstream out(tmp_path);
+      out << xyz_content;
+      out.close();
+      mol.LoadFromFile(tmp_path);
+      return mol;
+    };
 
-  QMMolecule mol0 = build_h2(bond_length);
-  AOBasis dftbasis0;
-  dftbasis0.Fill(basisset, mol0);
-  AOBasis auxbasis0;
-  auxbasis0.Fill(basisset, mol0);  // same basis used for both, as in the
-                                    // three-center integral test
+    QMMolecule mol0 = build_h2(bond_length);
+    AOBasis dftbasis0;
+    dftbasis0.Fill(basisset, mol0);
+    AOBasis auxbasis0;
+    auxbasis0.Fill(basisset, mol0);  // same basis used for both, as in the
+                                     // three-center integral test
 
-  // Fixed, arbitrary, symmetric density matrix -- generated once and
-  // reused unchanged at every geometry. Its specific values don't
-  // matter for this test (see IMPORTANT note referenced above); what
-  // matters is that it stays FIXED while the geometry moves.
-  Index n_dft_bf = dftbasis0.AOBasisSize();
-  Eigen::MatrixXd density_random = Eigen::MatrixXd::Random(n_dft_bf, n_dft_bf);
-  Eigen::MatrixXd density = 0.5 * (density_random + density_random.transpose());
+    // Fixed, arbitrary, symmetric density matrix -- generated once and
+    // reused unchanged at every geometry. Its specific values don't
+    // matter for this test (see IMPORTANT note referenced above); what
+    // matters is that it stays FIXED while the geometry moves.
+    Index n_dft_bf = dftbasis0.AOBasisSize();
+    Eigen::MatrixXd density_random =
+        Eigen::MatrixXd::Random(n_dft_bf, n_dft_bf);
+    Eigen::MatrixXd density =
+        0.5 * (density_random + density_random.transpose());
 
-  Eigen::MatrixXd analytic_grad =
-      DFTGradient::RIJGradient(density, auxbasis0, dftbasis0);
+    Eigen::MatrixXd analytic_grad =
+        DFTGradient::RIJGradient(density, auxbasis0, dftbasis0);
 
-  // Sanity check independent of finite differences, same reasoning as
-  // the nuclear repulsion test: translational invariance of the total
-  // energy means the gradient must sum to zero across all atoms.
-  Eigen::Vector3d total = analytic_grad.colwise().sum();
-  BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-6);
+    // Sanity check independent of finite differences, same reasoning as
+    // the nuclear repulsion test: translational invariance of the total
+    // energy means the gradient must sum to zero across all atoms.
+    Eigen::Vector3d total = analytic_grad.colwise().sum();
+    BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-6);
 
-  auto rij_energy = [&](const AOBasis& auxbasis, const AOBasis& dftbasis) {
-    std::vector<Eigen::MatrixXd> tensor =
-        ComputeThreeCenterIntegrals(auxbasis, dftbasis);
-    Index n_aux_bf = auxbasis.AOBasisSize();
-    Eigen::VectorXd d(n_aux_bf);
-    for (Index p = 0; p < n_aux_bf; ++p) {
-      d(p) = (density.array() * tensor[p].array()).sum();
+    auto rij_energy = [&](const AOBasis& auxbasis, const AOBasis& dftbasis) {
+      std::vector<Eigen::MatrixXd> tensor =
+          ComputeThreeCenterIntegrals(auxbasis, dftbasis);
+      Index n_aux_bf = auxbasis.AOBasisSize();
+      Eigen::VectorXd d(n_aux_bf);
+      for (Index p = 0; p < n_aux_bf; ++p) {
+        d(p) = (density.array() * tensor[p].array()).sum();
+      }
+      AOCoulomb aocoulomb;
+      aocoulomb.Fill(auxbasis);
+      Eigen::VectorXd c = aocoulomb.Matrix().ldlt().solve(d);
+      return 0.5 * c.dot(d);
+    };
+
+    QMMolecule mol_plus = build_h2(bond_length + h);
+    AOBasis dftbasis_plus;
+    dftbasis_plus.Fill(basisset, mol_plus);
+    AOBasis auxbasis_plus;
+    auxbasis_plus.Fill(basisset, mol_plus);
+    double e_plus = rij_energy(auxbasis_plus, dftbasis_plus);
+
+    QMMolecule mol_minus = build_h2(bond_length - h);
+    AOBasis dftbasis_minus;
+    dftbasis_minus.Fill(basisset, mol_minus);
+    AOBasis auxbasis_minus;
+    auxbasis_minus.Fill(basisset, mol_minus);
+    double e_minus = rij_energy(auxbasis_minus, dftbasis_minus);
+
+    constexpr double kBohrPerAngstrom = 0.52917721090380;
+    double finite_diff_deriv =
+        (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+
+    double analytic = analytic_grad(1, 2);  // atom 1 (second H), z-component
+    bool matches =
+        std::abs(finite_diff_deriv - analytic) < 1e-4 * std::abs(analytic);
+    if (!matches) {
+      std::cout << "Analytic dE_J/dz(atom1): " << analytic << std::endl;
+      std::cout << "Finite-difference: " << finite_diff_deriv << std::endl;
+      std::cout << "NOTE: if this fails, the assembly logic (c=V^-1 d "
+                   "solve, or the term1/term2 contraction in "
+                   "DFTGradient::RIJGradient) is the first thing to check "
+                   "-- the underlying integrals it consumes are already "
+                   "separately validated in test_aoderivatives.cc."
+                << std::endl;
     }
-    AOCoulomb aocoulomb;
-    aocoulomb.Fill(auxbasis);
-    Eigen::VectorXd c = aocoulomb.Matrix().ldlt().solve(d);
-    return 0.5 * c.dot(d);
-  };
-
-  QMMolecule mol_plus = build_h2(bond_length + h);
-  AOBasis dftbasis_plus;
-  dftbasis_plus.Fill(basisset, mol_plus);
-  AOBasis auxbasis_plus;
-  auxbasis_plus.Fill(basisset, mol_plus);
-  double e_plus = rij_energy(auxbasis_plus, dftbasis_plus);
-
-  QMMolecule mol_minus = build_h2(bond_length - h);
-  AOBasis dftbasis_minus;
-  dftbasis_minus.Fill(basisset, mol_minus);
-  AOBasis auxbasis_minus;
-  auxbasis_minus.Fill(basisset, mol_minus);
-  double e_minus = rij_energy(auxbasis_minus, dftbasis_minus);
-
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
-
-  double analytic = analytic_grad(1, 2);  // atom 1 (second H), z-component
-  bool matches =
-      std::abs(finite_diff_deriv - analytic) < 1e-4 * std::abs(analytic);
-  if (!matches) {
-    std::cout << "Analytic dE_J/dz(atom1): " << analytic << std::endl;
-    std::cout << "Finite-difference: " << finite_diff_deriv << std::endl;
-    std::cout << "NOTE: if this fails, the assembly logic (c=V^-1 d "
-                 "solve, or the term1/term2 contraction in "
-                 "DFTGradient::RIJGradient) is the first thing to check "
-                 "-- the underlying integrals it consumes are already "
-                 "separately validated in test_aoderivatives.cc."
+    BOOST_CHECK_EQUAL(matches, true);
+  } catch (const std::runtime_error& e) {
+    std::cout << "SKIPPING rij_gradient_finite_difference: " << e.what()
               << std::endl;
+    libint2::finalize();
+    return;
   }
-  BOOST_CHECK_EQUAL(matches, true);
- } catch (const std::runtime_error& e) {
-   std::cout << "SKIPPING rij_gradient_finite_difference: " << e.what()
-             << std::endl;
-   libint2::finalize();
-   return;
- }
 
   libint2::finalize();
 }
@@ -301,109 +303,110 @@ BOOST_AUTO_TEST_CASE(rij_gradient_finite_difference) {
 // validated by) the RI-J test above.
 BOOST_AUTO_TEST_CASE(rik_gradient_finite_difference) {
   libint2::initialize();
- try {
-  std::string basis_path =
-      std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml";
-  double bond_length = 0.74;  // Angstrom
-  double h = 1e-4;            // Angstrom
+  try {
+    std::string basis_path =
+        std::string(XTP_TEST_DATA_FOLDER) + "/threecenter_dft/3-21G.xml";
+    double bond_length = 0.74;  // Angstrom
+    double h = 1e-4;            // Angstrom
 
-  BasisSet basisset;
-  basisset.Load(basis_path);
+    BasisSet basisset;
+    basisset.Load(basis_path);
 
-  auto build_h2 = [](double bond_length_angstrom) {
-    QMMolecule mol(" ", 0);
-    std::string xyz_content =
-        "2\n\n"
-        "H 0.0 0.0 0.0\n"
-        "H 0.0 0.0 " +
-        std::to_string(bond_length_angstrom) + "\n";
-    std::string tmp_path = "/tmp/xtp_test_dftgradient_h2_rik.xyz";
-    std::ofstream out(tmp_path);
-    out << xyz_content;
-    out.close();
-    mol.LoadFromFile(tmp_path);
-    return mol;
-  };
+    auto build_h2 = [](double bond_length_angstrom) {
+      QMMolecule mol(" ", 0);
+      std::string xyz_content =
+          "2\n\n"
+          "H 0.0 0.0 0.0\n"
+          "H 0.0 0.0 " +
+          std::to_string(bond_length_angstrom) + "\n";
+      std::string tmp_path = "/tmp/xtp_test_dftgradient_h2_rik.xyz";
+      std::ofstream out(tmp_path);
+      out << xyz_content;
+      out.close();
+      mol.LoadFromFile(tmp_path);
+      return mol;
+    };
 
-  QMMolecule mol0 = build_h2(bond_length);
-  AOBasis dftbasis0;
-  dftbasis0.Fill(basisset, mol0);
-  AOBasis auxbasis0;
-  auxbasis0.Fill(basisset, mol0);
+    QMMolecule mol0 = build_h2(bond_length);
+    AOBasis dftbasis0;
+    dftbasis0.Fill(basisset, mol0);
+    AOBasis auxbasis0;
+    auxbasis0.Fill(basisset, mol0);
 
-  // Fixed, arbitrary (nbf x 2) coefficient matrix -- generated once,
-  // reused unchanged at every geometry. Not orthonormal, not from any
-  // SCF -- deliberately, per the reasoning in the header comment (valid
-  // for testing the gradient FORMULA's correctness, even though it
-  // would not be physically meaningful as real occupied MOs).
-  Index n_dft_bf = dftbasis0.AOBasisSize();
-  Eigen::MatrixXd mo_coeffs = Eigen::MatrixXd::Random(n_dft_bf, 2);
+    // Fixed, arbitrary (nbf x 2) coefficient matrix -- generated once,
+    // reused unchanged at every geometry. Not orthonormal, not from any
+    // SCF -- deliberately, per the reasoning in the header comment (valid
+    // for testing the gradient FORMULA's correctness, even though it
+    // would not be physically meaningful as real occupied MOs).
+    Index n_dft_bf = dftbasis0.AOBasisSize();
+    Eigen::MatrixXd mo_coeffs = Eigen::MatrixXd::Random(n_dft_bf, 2);
 
-  Eigen::MatrixXd analytic_grad =
-      DFTGradient::RIKGradient(mo_coeffs, auxbasis0, dftbasis0);
+    Eigen::MatrixXd analytic_grad =
+        DFTGradient::RIKGradient(mo_coeffs, auxbasis0, dftbasis0);
 
-  Eigen::Vector3d total = analytic_grad.colwise().sum();
-  BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-6);
+    Eigen::Vector3d total = analytic_grad.colwise().sum();
+    BOOST_CHECK_SMALL(total.cwiseAbs().maxCoeff(), 1e-6);
 
-  // Reference energy via the REAL, production ERIs::CalculateEXX_mos --
-  // not a separately-defined, self-consistent-but-possibly-wrong toy
-  // formula. This is the decisive check: RIKGradient's energy
-  // convention (E_K = -sum_ij c_ij.d_ij, confirmed via direct numerical
-  // simulation of CalculateEXX_mos's own algorithm -- see the detailed
-  // history in dftgradient.h/.cc) should match this exactly.
-  auto rik_energy = [&](const AOBasis& auxbasis, const AOBasis& dftbasis) {
-    ERIs eris;
-    eris.Initialize(dftbasis, auxbasis);
-    Eigen::MatrixXd Dmat_local = 2.0 * mo_coeffs * mo_coeffs.transpose();
-    std::array<Eigen::MatrixXd, 2> JK =
-        eris.CalculateERIs_EXX_3c(mo_coeffs, Dmat_local);
-    const Eigen::MatrixXd& K = JK[1];
-    return 0.25 * Dmat_local.cwiseProduct(K).sum();  // ScaHFX=1 for this check
-  };
+    // Reference energy via the REAL, production ERIs::CalculateEXX_mos --
+    // not a separately-defined, self-consistent-but-possibly-wrong toy
+    // formula. This is the decisive check: RIKGradient's energy
+    // convention (E_K = -sum_ij c_ij.d_ij, confirmed via direct numerical
+    // simulation of CalculateEXX_mos's own algorithm -- see the detailed
+    // history in dftgradient.h/.cc) should match this exactly.
+    auto rik_energy = [&](const AOBasis& auxbasis, const AOBasis& dftbasis) {
+      ERIs eris;
+      eris.Initialize(dftbasis, auxbasis);
+      Eigen::MatrixXd Dmat_local = 2.0 * mo_coeffs * mo_coeffs.transpose();
+      std::array<Eigen::MatrixXd, 2> JK =
+          eris.CalculateERIs_EXX_3c(mo_coeffs, Dmat_local);
+      const Eigen::MatrixXd& K = JK[1];
+      return 0.25 *
+             Dmat_local.cwiseProduct(K).sum();  // ScaHFX=1 for this check
+    };
 
-  QMMolecule mol_plus = build_h2(bond_length + h);
-  AOBasis dftbasis_plus;
-  dftbasis_plus.Fill(basisset, mol_plus);
-  AOBasis auxbasis_plus;
-  auxbasis_plus.Fill(basisset, mol_plus);
-  double e_plus = rik_energy(auxbasis_plus, dftbasis_plus);
+    QMMolecule mol_plus = build_h2(bond_length + h);
+    AOBasis dftbasis_plus;
+    dftbasis_plus.Fill(basisset, mol_plus);
+    AOBasis auxbasis_plus;
+    auxbasis_plus.Fill(basisset, mol_plus);
+    double e_plus = rik_energy(auxbasis_plus, dftbasis_plus);
 
-  QMMolecule mol_minus = build_h2(bond_length - h);
-  AOBasis dftbasis_minus;
-  dftbasis_minus.Fill(basisset, mol_minus);
-  AOBasis auxbasis_minus;
-  auxbasis_minus.Fill(basisset, mol_minus);
-  double e_minus = rik_energy(auxbasis_minus, dftbasis_minus);
+    QMMolecule mol_minus = build_h2(bond_length - h);
+    AOBasis dftbasis_minus;
+    dftbasis_minus.Fill(basisset, mol_minus);
+    AOBasis auxbasis_minus;
+    auxbasis_minus.Fill(basisset, mol_minus);
+    double e_minus = rik_energy(auxbasis_minus, dftbasis_minus);
 
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_deriv =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+    constexpr double kBohrPerAngstrom = 0.52917721090380;
+    double finite_diff_deriv =
+        (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
 
-  double analytic = analytic_grad(1, 2);  // atom 1 (second H), z-component
-  bool matches =
-      std::abs(finite_diff_deriv - analytic) < 1e-4 * std::abs(analytic);
-  if (!matches) {
-    std::cout << "Analytic dE_K/dz(atom1): " << analytic << std::endl;
-    std::cout << "Finite-difference: " << finite_diff_deriv << std::endl;
-    std::cout << "NOTE: this compares against the REAL, production "
-                 "ERIs::CalculateEXX_mos energy (symmetric V^-1/2 RI "
-                 "fitting), not a self-consistent toy formula -- if this "
-                 "fails, first double check the factor of 2 and sign in "
-                 "RIKGradient's energy convention (E_K = "
-                 "-sum_ij c_ij.d_ij, see the detailed history in "
-                 "dftgradient.h/.cc, confirmed via a SEPARATE numerical "
-                 "simulation in Python before this C++ test was written -- "
-                 "worth re-checking that simulation's assumptions if this "
-                 "C++ test disagrees with it)."
+    double analytic = analytic_grad(1, 2);  // atom 1 (second H), z-component
+    bool matches =
+        std::abs(finite_diff_deriv - analytic) < 1e-4 * std::abs(analytic);
+    if (!matches) {
+      std::cout << "Analytic dE_K/dz(atom1): " << analytic << std::endl;
+      std::cout << "Finite-difference: " << finite_diff_deriv << std::endl;
+      std::cout << "NOTE: this compares against the REAL, production "
+                   "ERIs::CalculateEXX_mos energy (symmetric V^-1/2 RI "
+                   "fitting), not a self-consistent toy formula -- if this "
+                   "fails, first double check the factor of 2 and sign in "
+                   "RIKGradient's energy convention (E_K = "
+                   "-sum_ij c_ij.d_ij, see the detailed history in "
+                   "dftgradient.h/.cc, confirmed via a SEPARATE numerical "
+                   "simulation in Python before this C++ test was written -- "
+                   "worth re-checking that simulation's assumptions if this "
+                   "C++ test disagrees with it)."
+                << std::endl;
+    }
+    BOOST_CHECK_EQUAL(matches, true);
+  } catch (const std::runtime_error& e) {
+    std::cout << "SKIPPING rik_gradient_finite_difference: " << e.what()
               << std::endl;
+    libint2::finalize();
+    return;
   }
-  BOOST_CHECK_EQUAL(matches, true);
- } catch (const std::runtime_error& e) {
-   std::cout << "SKIPPING rik_gradient_finite_difference: " << e.what()
-             << std::endl;
-   libint2::finalize();
-   return;
- }
 
   libint2::finalize();
 }
