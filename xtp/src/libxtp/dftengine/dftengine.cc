@@ -1017,11 +1017,9 @@ bool DFTEngine::RunCDFT(Orbitals& orb,
     return population - constraint.target_population;
   };
 
-  double mismatch_lo;
-  double mismatch_hi;
   try {
-    mismatch_lo = EvaluateMismatch(lambda_lo);
-    mismatch_hi = EvaluateMismatch(lambda_hi);
+    double mismatch_lo = EvaluateMismatch(lambda_lo);
+    double mismatch_hi = EvaluateMismatch(lambda_hi);
 
     Index bracket_attempts = 0;
     constexpr Index kMaxBracketAttempts = 10;

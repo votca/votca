@@ -129,6 +129,24 @@ foreach(PROG ${test_cases} )
   set_tests_properties(unit_${PROG} PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
 endforeach(PROG)
 
+# unit_test_dftengine_cdft's own cdft_total_force_finite_difference case
+# runs THREE full, independent CDFT calculations (each potentially as
+# expensive as the direct-minimization fallback machinery elsewhere in
+# this codebase) specifically to validate analytic CDFT forces -- on a
+# runner where libint2 genuinely supports derivative integrals (e.g.
+# Fedora rawhide, confirmed directly: unit_test_dftengine_forces, a
+# single plain-DFT forces calculation, already takes ~72 sec there) this
+# is legitimately several times more expensive than that, and was
+# observed hitting the default CTest timeout (1500 sec) without
+# completing. On a runner where libint2 lacks derivative support (e.g.
+# openSUSE, confirmed directly: unit_test_dftengine_forces completes in
+# ~0.16 sec there via its own early, clean skip), this test's own
+# in-code HasLibint2DerivativeSupport() check (see
+# cdft_total_force_finite_difference's own comment) skips just as
+# quickly, so this longer timeout only ever matters on runners where the
+# calculation is genuinely running for real.
+set_tests_properties(unit_test_dftengine_cdft PROPERTIES TIMEOUT 3600)
+
 # build and run xtp integration tests
 if(RUN_XTP_INTEGRATIONTESTS)
   # xtp_map test
