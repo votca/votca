@@ -56,43 +56,23 @@ class UKSConvergenceAcc {
     Eigen::MatrixXd beta;
   };
 
-  /// Given a new density matrix for ONE spin channel, returns a new AO
-  /// Fock matrix for that SAME channel (H0 + Coulomb + exchange + XC),
-  /// holding the OTHER spin channel's own density fixed at whatever it
-  /// was when this callback was constructed. Injected from DFTEngine
-  /// (setFockBuilderAlpha/Beta below) since the actual integral/XC
-  /// machinery (CalcERIs/CalcERIs_EXX, Vxc_Potential::IntegrateVXCSpin)
-  /// lives there, not in this class -- matching the same
-  /// pointer-injection pattern already used for S_/log_.
-  ///
-  /// Deliberately holds the other spin fixed rather than modeling the
-  /// full alpha-beta coupling of the true augmented Hessian (which
-  /// would need a single, combined rotation vector over BOTH channels
-  /// together, since both spins see the same Coulomb potential and are
-  /// coupled through the XC kernel) -- matching
-  /// DirectMinimizationRotation's own, already-agreed simplification
-  /// of treating the two channels independently, not a new, separate
-  /// approximation introduced only here.
-  using FockBuilder = std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)>;
-
   /// Given BOTH new spin densities together, returns BOTH new AO Fock
   /// matrices together (H0 + Coulomb + exchange + XC, for each
-  /// channel) -- unlike FockBuilder above, does not hold either
-  /// channel fixed. Closer to VOTCA's own native Fock-build structure
-  /// than the decoupled FockBuilder is: Vxc_Potential::IntegrateVXCSpin
-  /// already computes vxc_alpha and vxc_beta together from both
-  /// densities in one call, so this callback does not need to
-  /// artificially split that the way the two separate,
-  /// one-channel-fixed FockBuilder callbacks do. Used by
+  /// channel). Closer to VOTCA's own native Fock-build structure:
+  /// Vxc_Potential::IntegrateVXCSpin already computes vxc_alpha and
+  /// vxc_beta together from both densities in one call. Used by
   /// CoupledAugmentedHessianStep/BuildCoupledSigmaVector to capture
   /// the genuine alpha-beta coupling (through the shared Coulomb
-  /// potential and the XC kernel's cross-spin terms) that
-  /// AugmentedHessianStep's own, deliberately decoupled treatment
-  /// discards -- see the conversation this grew out of: a direct,
-  /// controlled comparison against ORCA on an identical geometry
-  /// showed ORCA's own, fully-coupled TRAH converging where the
-  /// decoupled approach here did not, with finite-difference noise in
-  /// the sigma vector itself already ruled out directly as the cause.
+  /// potential and the XC kernel's cross-spin terms) that treating the
+  /// two channels independently would discard -- see the conversation
+  /// this grew out of: a direct, controlled comparison against ORCA on
+  /// an identical geometry showed ORCA's own, fully-coupled TRAH
+  /// converging where an earlier, decoupled implementation here did
+  /// not. Injected from DFTEngine (setCoupledFockBuilder below) since
+  /// the actual integral/XC machinery (CalcERIs/CalcERIs_EXX,
+  /// Vxc_Potential::IntegrateVXCSpin) lives there, not in this class --
+  /// matching the same pointer-injection pattern already used for
+  /// S_/log_.
   using CoupledFockBuilder =
       std::function<SpinFock(const Eigen::MatrixXd& /*Dalpha_new*/,
                              const Eigen::MatrixXd& /*Dbeta_new*/)>;
@@ -100,12 +80,6 @@ class UKSConvergenceAcc {
   void Configure(const options& opt_alpha, const options& opt_beta);
   void setLogger(Logger* log);
   void setOverlap(AOOverlap& S, double etol);
-  void setFockBuilderAlpha(const FockBuilder& builder) {
-    fock_builder_alpha_ = builder;
-  }
-  void setFockBuilderBeta(const FockBuilder& builder) {
-    fock_builder_beta_ = builder;
-  }
   void setCoupledFockBuilder(const CoupledFockBuilder& builder) {
     coupled_fock_builder_ = builder;
   }
@@ -125,55 +99,12 @@ class UKSConvergenceAcc {
   /// antisymmetric matrix (occ-virt/virt-occ blocks only, matching
   /// DirectMinimizationRotation's own convention) -- needed to
   /// actually apply a trial rotation direction when building the
-  /// finite-difference sigma vector. Public specifically so the
-  /// AugmentedHessianOperator helper (an anonymous-namespace struct in
-  /// uks_convergenceacc.cc, needed to match DavidsonSolver's own
-  /// MatrixReplacement template interface) can call it via a raw
-  /// pointer -- a friend declaration would need the struct to be
-  /// visible from this header, which an anonymous-namespace type
-  /// defined only in the .cc file cannot be.
+  /// finite-difference sigma vector. Public so it can be exercised
+  /// directly by unit tests (see test_uks_convergenceacc.cc), given how
+  /// cheaply this pure, self-contained math can be checked in isolation
+  /// compared to the SCF machinery that otherwise relies on it.
   Eigen::MatrixXd UnflattenRotation(const Eigen::VectorXd& v_ov, Index nao,
                                     Index nocclevels) const;
-
-  /// Sigma vector (H*v_ov) via a CENTRAL finite difference of the
-  /// orbital gradient: rotate the current MOs by +-a small step
-  /// (finite_diff_step * v_ov, unflattened via UnflattenRotation),
-  /// build the density for EACH rotated state, call fock_builder to
-  /// get a new AO Fock matrix for each (holding the OTHER spin channel
-  /// fixed -- captured inside fock_builder itself, not this function's
-  /// own concern), transform each to its OWN rotated MO basis, and
-  /// difference the two -- a standard, well-established technique for
-  /// approximating a Hessian-vector product without implementing the
-  /// exact analytic second-derivative response, reusing only the
-  /// ALREADY-EXISTING ordinary Fock-build machinery (via fock_builder)
-  /// rather than needing new, separate coupled-perturbed response
-  /// code. Deliberately CENTRAL rather than one-sided/forward
-  /// (costing one extra Fock build per call) -- confirmed necessary,
-  /// not just a nicety, by this class's own symmetry check (u.(H*v)
-  /// vs v.(H*u) on this exact system showed a complete, ~100%
-  /// relative mismatch with a one-sided difference): a forward
-  /// difference's leading error term is proportional to the THIRD
-  /// derivative of the energy, which does not respect the symmetry a
-  /// central difference's leading error term (now fourth-order) does.
-  /// g_occ_virt is unused by the central-difference formula itself
-  /// (the unperturbed gradient cancels out of it entirely) but kept in
-  /// the signature for interface stability with
-  /// AugmentedHessianOperator's own construction. Public for the same
-  /// reason as UnflattenRotation above.
-  /// finite_diff_step: defaults to 1e-3, matching every existing call
-  /// site's own previous, hardcoded value -- exposed as a parameter
-  /// specifically to let AugmentedHessianStep's own diagnostic run the
-  /// SAME evaluation at two different step sizes and compare them
-  /// directly, testing whether finite-difference truncation error or
-  /// rounding/cancellation noise (from fock_builder's own integral-
-  /// screening tolerance and the XC grid's own finite accuracy) is the
-  /// dominant error source for this specific, difficult system -- see
-  /// the conversation this grew out of.
-  Eigen::VectorXd BuildSigmaVector(const Eigen::VectorXd& v_ov,
-                                   const Eigen::MatrixXd& C, Index nocclevels,
-                                   const FockBuilder& fock_builder,
-                                   const Eigen::MatrixXd& g_occ_virt,
-                                   double finite_diff_step = 1e-3) const;
 
   /// Coupled analogue of UnflattenRotation: splits ONE combined vector
   /// v (size n_ov_alpha + n_ov_beta -- alpha's own occ-virt block
@@ -203,18 +134,15 @@ class UKSConvergenceAcc {
       Index nocclevels_beta, const CoupledFockBuilder& coupled_fock_builder,
       double finite_diff_step = 1e-3) const;
 
-  /// Coupled analogue of AugmentedHessianStep: solves ONE augmented-
-  /// Hessian eigenvalue problem over the COMBINED (alpha+beta)
-  /// rotation space, rather than two independent ones -- see this
-  /// class's own CoupledFockBuilder comment for the full motivation.
-  /// Returns BOTH new MO coefficient matrices together (as opposed to
-  /// AugmentedHessianStep, which returns one at a time and is called
-  /// once per channel), since a single, coupled step inherently
+  /// Solves ONE augmented-Hessian eigenvalue problem over the COMBINED
+  /// (alpha+beta) rotation space, rather than treating the two spin
+  /// channels independently -- see this class's own CoupledFockBuilder
+  /// comment for the full motivation. Returns BOTH new MO coefficient
+  /// matrices together, since a single, coupled step inherently
   /// produces both simultaneously. predicted_energy_change (output):
   /// the ONE, combined quadratic model's own predicted energy change
   /// for this step -- Iterate's own Fletcher accept/reject logic uses
-  /// this directly, without needing to sum two separate values the
-  /// way it does for the decoupled AugmentedHessianStep path.
+  /// this directly.
   std::pair<Eigen::MatrixXd, Eigen::MatrixXd> CoupledAugmentedHessianStep(
       const Eigen::MatrixXd& H_AO_alpha, const tools::EigenSystem& MOs_alpha,
       Index nocclevels_alpha, const Eigen::MatrixXd& H_AO_beta,
@@ -266,59 +194,17 @@ class UKSConvergenceAcc {
   /// once the caller has built a new Fock matrix from this step's own
   /// density and passed its energy back in).
   ///
-  /// STATUS as of this addition: superseded by AugmentedHessianStep
-  /// below whenever a Fock-builder callback has been injected (i.e.
-  /// DFTEngine has wired up setFockBuilderAlpha/Beta) -- kept as the
-  /// fallback for any caller that has not done so, and because
-  /// AugmentedHessianStep itself still uses this same diagonal
+  /// STATUS: superseded by CoupledAugmentedHessianStep below whenever a
+  /// coupled Fock-builder callback has been injected (i.e. DFTEngine
+  /// has wired up setCoupledFockBuilder) -- kept as the fallback for
+  /// any caller that has not done so (e.g.
+  /// DFTEngine::RunAtomicDFT_unrestricted), and because
+  /// CoupledAugmentedHessianStep itself still uses this same diagonal
   /// approximation as the Davidson preconditioner, exactly as the
   /// TRAH paper's own Sec. II B describes doing.
   Eigen::MatrixXd DirectMinimizationRotation(
       const Eigen::MatrixXd& H_AO, const tools::EigenSystem& MOs,
       Index nocclevels, double& predicted_energy_change) const;
-
-  /// The actual, proper direct-minimization step: solves the augmented-
-  /// Hessian eigenvalue problem (Helmich-Paris, J. Chem. Phys. 154,
-  /// 164104 (2021), Eq. 9 -- read in full from arXiv:2012.08306, not
-  /// reconstructed from memory)
-  ///   [[0, alpha*g^T], [alpha*g, H]] * [1; kappa(alpha)] = mu * [1;
-  ///   kappa(alpha)]
-  /// for its LOWEST eigenvalue/eigenvector via the existing
-  /// DavidsonSolver, which simultaneously determines both the level
-  /// shift mu and the orbital rotation kappa -- correctly handling
-  /// indefinite Hessian directions (confirmed directly to be the real
-  /// problem here: an independent ORCA run on this exact system showed
-  /// both strongly negative and near-zero HOMO-LUMO gaps repeatedly,
-  /// and DirectMinimizationRotation's own diagonal, always-positive
-  /// Hessian approximation was confirmed -- via this class's own
-  /// Fletcher accept/reject check -- to never find an accepted step at
-  /// all for this system, consistently predicting improvement where
-  /// the true energy surface delivered the opposite).
-  ///
-  /// The Hessian-vector product ("sigma vector") needed by the
-  /// Davidson solver is approximated via FINITE DIFFERENCES of the
-  /// orbital gradient (rather than the exact analytic response the
-  /// paper's own Appendix derives, which would need a second,
-  /// coupled-perturbed Fock build with the second XC functional
-  /// derivative -- a substantially larger, separate undertaking not
-  /// pursued here) -- see BuildSigmaVector's own header comment for
-  /// the exact recipe. Bisection over alpha keeps the resulting kappa
-  /// within trust_radius, per the paper's own Sec. II B.
-  ///
-  /// Deliberately treats the alpha and beta spin channels
-  /// INDEPENDENTLY (a separate augmented-Hessian solve per channel,
-  /// holding the other channel's density fixed) rather than the full,
-  /// coupled treatment the paper's own formulation implies (a single
-  /// rotation vector spanning both channels together, since they share
-  /// the same Coulomb potential and are coupled through the XC kernel)
-  /// -- matching DirectMinimizationRotation's own, already-agreed
-  /// simplification, not a new approximation introduced only here.
-  Eigen::MatrixXd AugmentedHessianStep(const Eigen::MatrixXd& H_AO,
-                                       const tools::EigenSystem& MOs,
-                                       Index nocclevels,
-                                       const FockBuilder& fock_builder,
-                                       double trust_radius,
-                                       double& predicted_energy_change) const;
 
   options opt_alpha_;
   options opt_beta_;
@@ -327,8 +213,6 @@ class UKSConvergenceAcc {
   Logger* log_ = nullptr;
   Eigen::MatrixXd Sminusahalf;
 
-  FockBuilder fock_builder_alpha_;
-  FockBuilder fock_builder_beta_;
   CoupledFockBuilder coupled_fock_builder_;
 
   Index nocclevels_alpha_ = 0;
@@ -350,7 +234,7 @@ class UKSConvergenceAcc {
 
   // Direct-minimization fallback bookkeeping. consecutive_adiis_failures_
   // tracks how many (A)DIIS attempts in a row have failed -- switching
-  // to DirectMinimizationRotation/AugmentedHessianStep after
+  // to DirectMinimizationRotation/CoupledAugmentedHessianStep after
   // kMaxConsecutiveADIISFailures deliberately mirrors ORCA's own
   // auto-TRAH trigger (switching away from DIIS-family methods after
   // they visibly struggle), rather than falling back to plain mixing
@@ -386,8 +270,8 @@ class UKSConvergenceAcc {
   // trust radius is no longer a fixed constant. direct_min_pending_
   // marks that the MOs/density just returned came from a direct-
   // minimization step (either DirectMinimizationRotation or
-  // AugmentedHessianStep) whose actual effect on the energy has not
-  // yet been verified -- checked at the START of the NEXT Iterate()
+  // CoupledAugmentedHessianStep) whose actual effect on the energy has
+  // not yet been verified -- checked at the START of the NEXT Iterate()
   // call (see this class's own header comment on
   // DirectMinimizationRotation for why it can only be checked then,
   // not within the same call that took the step).
@@ -412,8 +296,8 @@ class UKSConvergenceAcc {
   // precision the underlying finite-difference model was never built
   // to provide. direct_min_floor_hit_ marks that this floor has been
   // reached without an accepted step, at which point Iterate() stops
-  // retriggering AugmentedHessianStep/DirectMinimizationRotation and
-  // falls back to plain mixing instead -- reset naturally each time a
+  // retriggering CoupledAugmentedHessianStep/DirectMinimizationRotation
+  // and falls back to plain mixing instead -- reset naturally each time a
   // new UKSConvergenceAcc is constructed (a fresh instance per
   // DFTEngine::EvaluateUKS call, i.e. per outer CDFT lambda trial or
   // per geometry step), not explicitly reset within one instance's

@@ -97,87 +97,6 @@ std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
   return {kappa_alpha, kappa_beta};
 }
 
-Eigen::VectorXd UKSConvergenceAcc::BuildSigmaVector(
-    const Eigen::VectorXd& v_ov, const Eigen::MatrixXd& C, Index nocclevels,
-    const FockBuilder& fock_builder, const Eigen::MatrixXd& g_occ_virt,
-    double finite_diff_step) const {
-  Index nao = C.rows();
-  Index nvirt = nao - nocclevels;
-  (void)g_occ_virt;  // no longer needed for a CENTRAL difference -- kept
-                     // in the signature for interface stability with
-                     // AugmentedHessianOperator's own construction.
-
-  // CENTRAL, not one-sided/forward, finite-difference Hessian-vector
-  // product -- confirmed necessary, not just a nicety, by this
-  // class's own symmetry check (u.(H*v) vs v.(H*u), see the
-  // conversation this grew out of): a forward difference's leading
-  // error term is proportional to the THIRD derivative of the energy,
-  // which is not symmetric between u and v the way the true Hessian
-  // is, and empirically this asymmetry was found to be large (a
-  // complete, ~100% relative mismatch), not a small correction on an
-  // otherwise-good answer. A central difference cancels this leading,
-  // odd-order error term exactly, at the cost of one extra Fock build
-  // per sigma-vector evaluation (two perturbed gradient evaluations
-  // instead of one, since the UNPERTURBED gradient g_occ_virt is no
-  // longer needed at all for this formula).
-  //
-  // 1e-3, not the earlier 1e-2 -- though confirmed directly NOT to be
-  // the explanation for a real, observed "stuck" pattern (predicted/
-  // actual dE frozen identically across a dozen+ consecutive trust-
-  // radius shrinks): a real run at 1e-2 and another at 1e-3 both got
-  // stuck at the EXACT SAME trust radius (0.000465261027974) to many
-  // decimal places, which a genuine step-size-floor explanation would
-  // not produce (a 10x smaller step should have moved that threshold
-  // by a corresponding amount). Kept at the smaller, still-reasonable
-  // 1e-3 regardless, since there is no remaining reason to prefer the
-  // larger value -- but the actual "stuck" mechanism is now believed
-  // to be AugmentedHessianStep's own alpha_max=1000 bisection ceiling
-  // saturating, not this step size; see that function's own comment.
-  //
-  // Now a parameter, not a hardcoded constant: needed to run the same
-  // sigma-vector evaluation at two different step sizes and compare
-  // them directly, testing whether finite-difference truncation vs.
-  // rounding-error noise is the dominant error source here -- see the
-  // conversation this grew out of. Every existing call site continues
-  // to pass 1e-3 explicitly (via the default argument), so behavior is
-  // unchanged unless a caller deliberately requests a different value.
-  Eigen::MatrixXd kappa_trial =
-      finite_diff_step * UnflattenRotation(v_ov, nao, nocclevels);
-
-  // Same linearized-exponential + Lowdin-reorthonormalization approach
-  // as DirectMinimizationRotation's own orbital update -- valid here
-  // for the identical reason: finite_diff_step keeps kappa_trial small
-  // regardless of how large v_ov itself is (v_ov is a Davidson trial
-  // vector, not itself trust-radius bounded at this stage).
-  auto EvaluateGradientAt =
-      [&](const Eigen::MatrixXd& kappa) -> Eigen::MatrixXd {
-    Eigen::MatrixXd C_rot = C * (Eigen::MatrixXd::Identity(nao, nao) + kappa);
-    Eigen::MatrixXd nonortho = C_rot.transpose() * S_->Matrix() * C_rot;
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_ortho(nonortho);
-    C_rot = C_rot * es_ortho.operatorInverseSqrt();
-
-    Eigen::MatrixXd C_occ_rot = C_rot.leftCols(nocclevels);
-    Eigen::MatrixXd D_rot = C_occ_rot * C_occ_rot.transpose();
-
-    Eigen::MatrixXd F_AO_rot = fock_builder(D_rot);
-    return C_rot.transpose() * F_AO_rot * C_rot;
-  };
-
-  Eigen::MatrixXd F_MO_plus = EvaluateGradientAt(kappa_trial);
-  Eigen::MatrixXd F_MO_minus = EvaluateGradientAt(-kappa_trial);
-
-  Eigen::VectorXd sigma(nocclevels * nvirt);
-  for (Index i = 0; i < nocclevels; ++i) {
-    for (Index a = 0; a < nvirt; ++a) {
-      double g_plus_ia = F_MO_plus(i, nocclevels + a);
-      double g_minus_ia = F_MO_minus(i, nocclevels + a);
-      sigma(i * nvirt + a) =
-          (g_plus_ia - g_minus_ia) / (2.0 * finite_diff_step);
-    }
-  }
-  return sigma;
-}
-
 Eigen::VectorXd UKSConvergenceAcc::BuildCoupledSigmaVector(
     const Eigen::VectorXd& v, const Eigen::MatrixXd& C_alpha,
     Index nocclevels_alpha, const Eigen::MatrixXd& C_beta,
@@ -359,57 +278,12 @@ Eigen::MatrixXd UKSConvergenceAcc::DirectMinimizationRotation(
 namespace {
 // Local operator matching DavidsonSolver's own MatrixReplacement
 // template interface (.rows(), .diagonal(), operator*(MatrixXd)) for
-// the scaled augmented Hessian, Helmich-Paris Eq. 9:
-//   [[0, alpha*g^T], [alpha*g, H]]
-// H*v_ov itself is never built explicitly -- only ever applied to a
-// trial vector, via UKSConvergenceAcc::BuildSigmaVector's own finite-
-// difference approximation (see that function's own header comment).
-struct AugmentedHessianOperator {
-  const Eigen::VectorXd& g;
-  const Eigen::MatrixXd& C;
-  Index nocclevels;
-  double alpha_scale;
-  const UKSConvergenceAcc::FockBuilder& fock_builder;
-  const Eigen::MatrixXd& F_MO;
-  const UKSConvergenceAcc* self;
-  const Eigen::VectorXd& diag_h;  // approximate diagonal Hessian,
-                                  // reused as the Davidson
-                                  // preconditioner (Helmich-Paris
-                                  // Sec. II B) -- NOT the step itself.
-
-  Index rows() const { return 1 + g.size(); }
-
-  Eigen::VectorXd diagonal() const {
-    Eigen::VectorXd d(1 + g.size());
-    d(0) = 0.0;
-    d.tail(g.size()) = diag_h;
-    return d;
-  }
-
-  Eigen::MatrixXd operator*(const Eigen::MatrixXd& V) const {
-    Eigen::MatrixXd AV = Eigen::MatrixXd::Zero(V.rows(), V.cols());
-    for (Index col = 0; col < V.cols(); ++col) {
-      double v0 = V(0, col);
-      Eigen::VectorXd v_ov = V.block(1, col, g.size(), 1);
-      AV(0, col) = alpha_scale * g.dot(v_ov);
-      Eigen::VectorXd sigma =
-          self->BuildSigmaVector(v_ov, C, nocclevels, fock_builder, F_MO);
-      AV.block(1, col, g.size(), 1) = alpha_scale * g * v0 + sigma;
-    }
-    return AV;
-  }
-};
-}  // namespace
-
-namespace {
-// Coupled analogue of AugmentedHessianOperator: matches the SAME
-// DavidsonSolver MatrixReplacement interface, but for the augmented
-// Hessian over the COMBINED (alpha+beta) rotation space -- g and
-// diag_h are the concatenated, both-channel vectors, and each
+// the augmented Hessian over the COMBINED (alpha+beta) rotation space
+// -- g and diag_h are the concatenated, both-channel vectors, and each
 // operator* call rotates BOTH channels together via
 // UKSConvergenceAcc::BuildCoupledSigmaVector, capturing the genuine
-// alpha-beta coupling that two independent AugmentedHessianOperator
-// solves cannot.
+// alpha-beta coupling that treating the two channels independently
+// would not.
 struct CoupledAugmentedHessianOperator {
   const Eigen::VectorXd& g;
   const Eigen::MatrixXd& C_alpha;
@@ -446,277 +320,6 @@ struct CoupledAugmentedHessianOperator {
 };
 }  // namespace
 
-Eigen::MatrixXd UKSConvergenceAcc::AugmentedHessianStep(
-    const Eigen::MatrixXd& H_AO, const tools::EigenSystem& MOs,
-    Index nocclevels, const FockBuilder& fock_builder, double trust_radius,
-    double& predicted_energy_change) const {
-  Index nao = MOs.eigenvectors().rows();
-  Index nvirt = nao - nocclevels;
-  Index n_ov = nocclevels * nvirt;
-  const Eigen::MatrixXd& C = MOs.eigenvectors();
-  const Eigen::VectorXd& eps = MOs.eigenvalues();
-
-  Eigen::MatrixXd F_MO = C.transpose() * H_AO * C;
-
-  Eigen::VectorXd g(n_ov);
-  Eigen::VectorXd diag_h(n_ov);
-  constexpr double kMinGap = 1e-3;
-  for (Index i = 0; i < nocclevels; ++i) {
-    for (Index a = 0; a < nvirt; ++a) {
-      g(i * nvirt + a) = F_MO(i, nocclevels + a);
-      double gap = std::max(std::abs(eps(nocclevels + a) - eps(i)), kMinGap);
-      diag_h(i * nvirt + a) = 2.0 * gap;
-    }
-  }
-
-  // Temporary diagnostic (see the conversation this grew out of): a
-  // residual norm in the thousands, not decreasing, needs concrete
-  // magnitudes to actually locate rather than continued guessing.
-  // Probes BuildSigmaVector directly on the SAME normalized direction
-  // (g/||g||) used to build the Davidson initial guess below -- a
-  // well-behaved Hessian-vector product on a unit-norm input should
-  // itself be a reasonably-scaled vector, not thousands in magnitude.
-  {
-    double gnorm_diag = g.norm();
-    Eigen::VectorXd probe_direction;
-    if (gnorm_diag > 1e-12) {
-      probe_direction = g / gnorm_diag;
-    } else {
-      probe_direction = Eigen::VectorXd::Unit(n_ov, 0);
-    }
-    Eigen::VectorXd probe_sigma =
-        BuildSigmaVector(probe_direction, C, nocclevels, fock_builder, F_MO);
-    XTP_LOG(Log::warning, *log_)
-        << TimeStamp()
-        << " AugmentedHessianStep diagnostic: ||g||=" << gnorm_diag
-        << ", diag_h range=[" << diag_h.minCoeff() << ", " << diag_h.maxCoeff()
-        << "], ||sigma(g/||g||)||=" << probe_sigma.norm()
-        << ", max|sigma|=" << probe_sigma.cwiseAbs().maxCoeff() << std::flush;
-
-    // Symmetry check (see the conversation this grew out of): a
-    // genuinely symmetric operator must satisfy u.(H*v) == v.(H*u)
-    // exactly (up to floating-point noise) for ANY u, v -- the
-    // Davidson solver's own "SYMM" matrix-type assumption depends on
-    // this holding for whatever BuildSigmaVector actually computes,
-    // not just on the TRUE, analytic Hessian being symmetric (a
-    // finite-difference approximation to it has no guarantee of
-    // inheriting that property automatically). Uses two simple,
-    // distinct probe directions (the normalized gradient, and the
-    // first unit basis vector) rather than random vectors, so this
-    // is exactly reproducible run to run.
-    Eigen::VectorXd u = probe_direction;
-    Eigen::VectorXd v =
-        Eigen::VectorXd::Unit(n_ov, std::min<Index>(1, n_ov - 1));
-    Eigen::VectorXd Hv = BuildSigmaVector(v, C, nocclevels, fock_builder, F_MO);
-    Eigen::VectorXd Hu = probe_sigma;
-    double u_dot_Hv = u.dot(Hv);
-    double v_dot_Hu = v.dot(Hu);
-    XTP_LOG(Log::warning, *log_)
-        << TimeStamp()
-        << " AugmentedHessianStep symmetry check: u.(H*v)=" << u_dot_Hv
-        << ", v.(H*u)=" << v_dot_Hu << ", relative difference="
-        << std::abs(u_dot_Hv - v_dot_Hu) / std::max(std::abs(u_dot_Hv), 1e-12)
-        << std::flush;
-
-    // Step-size (truncation vs. rounding/cancellation noise) check
-    // (see the conversation this grew out of): a genuine, external
-    // ORCA comparison on this exact system found ORCA's own TRAH
-    // (using the EXACT analytic coupled-perturbed response, not a
-    // finite-difference approximation) converges where this class's
-    // own AugmentedHessianStep does not -- raising the question of
-    // whether the finite-difference sigma vector itself is simply too
-    // noisy for this specific, difficult system, rather than the
-    // deliberate alpha/beta decoupling simplification being the
-    // dominant gap. If BuildSigmaVector's own result is genuinely
-    // dominated by truncation error (the expected, well-behaved
-    // regime), shrinking the step should make consecutive evaluations
-    // agree MORE closely, converging toward some fixed answer. If
-    // instead the smaller step gives a WORSE, noisier result than the
-    // larger one, that specifically implicates rounding/cancellation
-    // noise (from fock_builder's own integral-screening tolerance and
-    // the XC grid's own finite quadrature accuracy) as dominant --
-    // direct, empirical evidence for exactly the general concern that
-    // Hessian-vector products via nested finite differences are
-    // especially sensitive to numerical noise, since this differences
-    // a quantity that is already itself a derivative.
-    Eigen::VectorXd sigma_step1 = probe_sigma;  // already computed above
-                                                // at the same direction
-                                                // and the same default
-                                                // (1e-3) step -- reused
-                                                // here rather than
-                                                // redundantly recomputed,
-                                                // saving two Fock builds.
-    Eigen::VectorXd sigma_step2 = BuildSigmaVector(
-        probe_direction, C, nocclevels, fock_builder, F_MO, 1e-4);
-    double step_relative_diff = (sigma_step1 - sigma_step2).norm() /
-                                std::max(sigma_step1.norm(), 1e-12);
-    XTP_LOG(Log::warning, *log_)
-        << TimeStamp()
-        << " AugmentedHessianStep step-size check: "
-           "||sigma(1e-3)||="
-        << sigma_step1.norm() << ", ||sigma(1e-4)||=" << sigma_step2.norm()
-        << ", relative difference=" << step_relative_diff << std::flush;
-  }
-
-  // Bisection over alpha (Helmich-Paris Sec. II B, Eq. 11) to keep the
-  // resulting step within the trust radius: ||kappa(alpha)||^2/alpha^2
-  // <= trust_radius^2. Bounds match the paper's own default
-  // [alpha_min, alpha_max] = [1, 1000] (Table I).
-  double alpha_min = 1.0;
-  double alpha_max = 1000.0;
-  const double kOriginalAlphaMax = alpha_max;  // alpha_max itself gets
-                                               // narrowed during the
-                                               // bisection loop below,
-                                               // so this is needed
-                                               // separately to check
-                                               // whether alpha_try
-                                               // actually approaches
-                                               // the ORIGINAL ceiling.
-  Eigen::VectorXd best_kappa_flat = Eigen::VectorXd::Zero(n_ov);
-  double best_mu = 0.0;
-
-  // The paper's own, deliberately problem-tailored starting vectors
-  // (Eq. 12): b0 separates out the pure level-shift direction, b1 the
-  // component parallel to the gradient -- NOT the Davidson solver's
-  // own generic, diagonal-based default starting guess (which has no
-  // reason to already reflect this specific, bordered-matrix
-  // structure, including the fixed, exact 0 in its own top-left
-  // element).
-  Eigen::MatrixXd initial_guess = Eigen::MatrixXd::Zero(1 + n_ov, 2);
-  initial_guess(0, 0) = 1.0;
-  double gnorm = g.norm();
-  if (gnorm > 1e-12) {
-    initial_guess.block(1, 1, n_ov, 1) = g / gnorm;
-  } else {
-    initial_guess(1, 1) = 1.0;
-  }
-
-  auto SolveForAlpha = [&](double alpha_try, Eigen::VectorXd& kappa_flat_out,
-                           double& mu_out) {
-    AugmentedHessianOperator op{g,    C,    nocclevels, alpha_try, fock_builder,
-                                F_MO, this, diag_h};
-    DavidsonSolver solver(*log_);
-    solver.set_matrix_type("SYMM");
-    // Loosened from "normal" (1e-4): each bisection trial's own
-    // Davidson solve is just one approximate step inside the outer
-    // Fletcher accept/reject loop (which already independently
-    // catches a bad step and retries with a smaller trust radius
-    // regardless), so it does not need to fully converge on every
-    // single one of up to kMaxBisectionIters trials -- a real,
-    // reported cost problem confirmed directly: ~1.4s per Davidson
-    // solve, times up to 20 bisection trials per spin channel, made a
-    // single AugmentedHessianStep call impractically slow.
-    solver.set_tolerance("loose");
-    // Increased from 16 -- a real run on this system got to within
-    // ~10x of the "loose" (1e-3) tolerance (residual 0.0108) by
-    // iteration 13 of 15, then ran out of budget before actually
-    // crossing it. Set generously higher rather than just enough to
-    // barely close that specific gap, so this does not need another
-    // round of incremental bumping if a slightly harder case needs a
-    // few more iterations than this one did.
-    solver.set_iter_max(50);
-    // Real, confirmed bug: DavidsonSolver defaults max_search_space_
-    // to neigen*5 = 1*5 = 5 whenever it is left unset (its own
-    // constructor initializes it to 0, and solve() itself falls back
-    // to neigen*5 in that case) -- far too small a subspace for this
-    // (1+n_ov)-dimensional problem (761 here), and confirmed directly
-    // to be why "Search Space" kept cycling 2->3->4->5->restart
-    // without ever accumulating enough information to converge (0.00%
-    // converged, every single trial, across every run so far).
-    solver.set_max_search_space(40);
-    solver.solve(op, 1, initial_guess);
-    Eigen::VectorXd eigvec = solver.eigenvectors().col(0);
-    mu_out = solver.eigenvalues()(0);
-    double v0 = eigvec(0);
-    // Guards against a degenerate eigenvector with (near-)zero
-    // leading component, for which Eq. 10's own kappa(alpha) =
-    // eigvec_tail/v0 normalization is ill-defined.
-    if (std::abs(v0) < 1e-8) {
-      kappa_flat_out = Eigen::VectorXd::Zero(g.size());
-      return;
-    }
-    kappa_flat_out = eigvec.tail(g.size()) / v0;
-  };
-
-  // Start from alpha_min (the gentlest, least aggressive alpha*g
-  // coupling), not the midpoint of [alpha_min, alpha_max] -- the paper
-  // itself notes alpha ends up AT alpha_min once things are
-  // well-behaved (Sec. II B), and starting the search at 500+ (the
-  // naive midpoint of [1, 1000]) makes the very first Davidson solve's
-  // own off-diagonal coupling alpha*g needlessly large before there is
-  // any reason yet to believe that is necessary.
-  double alpha_try = alpha_min;
-  // Increased from 8 -- a real run showed the bisection failing to
-  // actually converge within 8 iterations for at least some trials:
-  // requesting trust_radius=0.098 landed on achieved step_norm=0.1374,
-  // roughly 40% off target and identical to the PREVIOUS call's own
-  // achieved value for trust_radius=0.14 -- i.e. hitting the iteration
-  // cap without satisfying its own 1% convergence criterion at all,
-  // rather than genuinely tracking the shrinking trust radius. The
-  // interval-halving math (2^n shrink factor) says 8 should be enough
-  // for a well-behaved, monotonic step_norm(alpha); the real data says
-  // otherwise for at least part of this system's own trajectory, so
-  // this trades back some of the earlier cost reduction for a bisection
-  // that actually reaches its own target.
-  constexpr int kMaxBisectionIters = 20;
-  for (int bisection_iter = 0; bisection_iter < kMaxBisectionIters;
-       ++bisection_iter) {
-    Eigen::VectorXd kappa_flat;
-    double mu;
-    SolveForAlpha(alpha_try, kappa_flat, mu);
-    double step_norm = kappa_flat.norm() / alpha_try;
-    best_kappa_flat = kappa_flat;
-    best_mu = mu;
-    if (std::abs(step_norm - trust_radius) < 0.01 * trust_radius) {
-      break;
-    }
-    if (step_norm > trust_radius) {
-      // Step too long -- Sec. II B confirms larger alpha shrinks it.
-      alpha_min = alpha_try;
-    } else {
-      alpha_max = alpha_try;
-    }
-    alpha_try = 0.5 * (alpha_min + alpha_max);
-  }
-
-  // Temporary diagnostic (see the conversation this grew out of): a
-  // real run showed predicted/actual dE frozen identically across a
-  // dozen+ consecutive trust-radius shrinks, at the exact same
-  // threshold regardless of BuildSigmaVector's own finite-difference
-  // step size -- ruling that step size out as the cause and pointing
-  // instead at this bisection's own alpha_max=1000 ceiling possibly
-  // saturating (once alpha itself cannot grow any further, the
-  // resulting step cannot shrink any further either, no matter how
-  // small trust_radius itself becomes). Prints the actual final
-  // alpha_try used and how close it sits to alpha_max, to confirm or
-  // rule this out directly rather than continue guessing.
-  XTP_LOG(Log::warning, *log_)
-      << TimeStamp()
-      << " AugmentedHessianStep bisection diagnostic: "
-         "final alpha_try="
-      << alpha_try << ", original alpha_max ceiling=" << kOriginalAlphaMax
-      << ", achieved step_norm=" << (best_kappa_flat.norm() / alpha_try)
-      << ", requested trust_radius=" << trust_radius << std::flush;
-
-  Eigen::MatrixXd kappa = UnflattenRotation(best_kappa_flat, nao, nocclevels);
-
-  // Predicted energy change from the SAME quadratic model the
-  // augmented-Hessian eigenvalue problem itself is built from --
-  // Q(kappa)-E0 = g^T*kappa + 0.5*kappa^T*H*kappa. mu itself already
-  // equals g^T*kappa + kappa^T*H*kappa (the level-shifted stationarity
-  // condition, Eq. 8, dotted with kappa) at the exact solution, so
-  // 0.5*(g^T*kappa + mu*||kappa||^2) is the equivalent, cheaper-to-
-  // evaluate form -- avoids needing a further BuildSigmaVector call
-  // just to get this number.
-  predicted_energy_change =
-      0.5 * (g.dot(best_kappa_flat) + best_mu * best_kappa_flat.squaredNorm());
-
-  Eigen::MatrixXd C_new = C * (Eigen::MatrixXd::Identity(nao, nao) + kappa);
-  Eigen::MatrixXd nonortho = C_new.transpose() * S_->Matrix() * C_new;
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_ortho(nonortho);
-  return C_new * es_ortho.operatorInverseSqrt();
-}
-
 std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
     UKSConvergenceAcc::CoupledAugmentedHessianStep(
         const Eigen::MatrixXd& H_AO_alpha, const tools::EigenSystem& MOs_alpha,
@@ -746,7 +349,8 @@ std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
   // UnflattenCoupledRotation/BuildCoupledSigmaVector's own layout
   // convention. The diagonal preconditioner itself is still built
   // per-channel from each channel's OWN orbital-energy gaps (same
-  // formula as AugmentedHessianStep's own diag_h) -- only the actual
+  // formula as an earlier, decoupled AugmentedHessianStep
+  // implementation's own diag_h) -- only the actual
   // Hessian-VECTOR product (via BuildCoupledSigmaVector, inside
   // CoupledAugmentedHessianOperator) captures the real cross-channel
   // coupling; the preconditioner is only ever an approximate guide for
@@ -848,11 +452,12 @@ std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
       best_kappa_flat, nao_alpha, nocclevels_alpha, nao_beta, nocclevels_beta);
 
   // ONE, combined predicted energy change for the whole, coupled step
-  // -- same formula as AugmentedHessianStep's own (Q(kappa)-E0 =
+  // -- same formula as an earlier, decoupled AugmentedHessianStep
+  // implementation's own (Q(kappa)-E0 =
   // 0.5*(g^T*kappa + mu*||kappa||^2)), but now naturally a single
   // number for both channels together, rather than needing to be
-  // summed from two separate calls the way Iterate's own decoupled
-  // AugmentedHessianStep path currently does.
+  // summed from two separate calls the way that earlier, decoupled
+  // implementation's own path did.
   predicted_energy_change =
       0.5 * (g.dot(best_kappa_flat) + best_mu * best_kappa_flat.squaredNorm());
 
@@ -1025,14 +630,18 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
                        MOs_alpha.eigenvalues()(nocclevels_alpha_ - 1);
     // consecutive_adiis_failures_ < kMaxConsecutiveADIISFailures added
     // deliberately: a real run showed level shift catastrophically
-    // breaking AugmentedHessianStep's own Davidson solve (residual
-    // climbing past 395, far beyond any prior failure mode) once
-    // direct-minimization engaged. Root cause: Levelshift() modifies H
-    // in place, BEFORE AugmentedHessianStep/DirectMinimizationRotation
-    // ever see it -- and AugmentedHessianStep's own diagonal-Hessian
-    // preconditioner (diag_h) is built directly from eps(a)-eps(i),
-    // the raw orbital energy gap, which becomes systematically
-    // inflated by the shift for virtual orbitals. ADIIS/DIIS do not
+    // breaking the Davidson solve this class's own direct-minimization
+    // fallback depends on (residual climbing past 395, far beyond any
+    // prior failure mode) once direct-minimization engaged (originally
+    // discovered against an earlier, decoupled AugmentedHessianStep
+    // implementation; the same mechanism still applies to
+    // CoupledAugmentedHessianStep's own diagonal preconditioner below,
+    // which is built the same way). Root cause: Levelshift() modifies H
+    // in place, BEFORE CoupledAugmentedHessianStep/DirectMinimizationRotation
+    // ever see it -- and that preconditioner (diag_h) is built directly
+    // from eps(a)-eps(i), the raw orbital energy gap, which becomes
+    // systematically inflated by the shift for virtual orbitals.
+    // ADIIS/DIIS do not
     // have this problem (they operate on the Fock/density matrices
     // themselves, never deriving a separate quantity like an orbital
     // gap from the shifted eigenvalues), so level shift stays active
@@ -1221,19 +830,23 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
         double predicted_change_beta = 0.0;
         Eigen::MatrixXd C_new_alpha;
         Eigen::MatrixXd C_new_beta;
-        // Three-tier fallback, preferring the most robust option
-        // actually available: CoupledAugmentedHessianStep (captures
-        // the real alpha-beta coupling -- see the conversation this
-        // grew out of: a direct ORCA comparison on an identical
-        // geometry showed ORCA's own, fully-coupled TRAH converging
-        // where this class's own, decoupled AugmentedHessianStep did
-        // not, with finite-difference noise in the sigma vector
-        // already ruled out directly as the cause) if
-        // coupled_fock_builder_ has been injected; else the decoupled
-        // AugmentedHessianStep if the per-channel callbacks are
-        // available; else the simplest, diagonal-Hessian-only
-        // DirectMinimizationRotation for any caller that has wired up
-        // neither, rather than failing outright.
+        // Two-tier fallback: CoupledAugmentedHessianStep (captures the
+        // real alpha-beta coupling -- see the conversation this grew
+        // out of: a direct ORCA comparison on an identical geometry
+        // showed ORCA's own, fully-coupled TRAH converging where an
+        // earlier, decoupled AugmentedHessianStep implementation did
+        // not) if coupled_fock_builder_ has been injected (the only
+        // caller that ever does, DFTEngine::EvaluateUKS, always injects
+        // it); else the simplest, diagonal-Hessian-only
+        // DirectMinimizationRotation for any caller that has not (e.g.
+        // DFTEngine::RunAtomicDFT_unrestricted, which injects neither
+        // this nor a per-channel callback at all). Previously a
+        // three-tier fallback with a decoupled AugmentedHessianStep in
+        // between -- removed after confirming directly (Codecov's own
+        // patch-coverage report, and a direct grep across every caller)
+        // that no caller anywhere ever set the per-channel callbacks
+        // without also setting the coupled one, making that middle tier
+        // permanently unreachable dead code, not a genuine fallback.
         if (coupled_fock_builder_) {
           double predicted_change_combined = 0.0;
           std::tie(C_new_alpha, C_new_beta) = CoupledAugmentedHessianStep(
@@ -1249,13 +862,6 @@ UKSConvergenceAcc::SpinDensity UKSConvergenceAcc::Iterate(
           // convenience only.
           predicted_change_alpha = 0.5 * predicted_change_combined;
           predicted_change_beta = 0.5 * predicted_change_combined;
-        } else if (fock_builder_alpha_ && fock_builder_beta_) {
-          C_new_alpha = AugmentedHessianStep(
-              H.alpha, MOs_alpha, nocclevels_alpha_, fock_builder_alpha_,
-              trust_radius_current_, predicted_change_alpha);
-          C_new_beta = AugmentedHessianStep(
-              H.beta, MOs_beta, nocclevels_beta_, fock_builder_beta_,
-              trust_radius_current_, predicted_change_beta);
         } else {
           C_new_alpha = DirectMinimizationRotation(
               H.alpha, MOs_alpha, nocclevels_alpha_, predicted_change_alpha);
