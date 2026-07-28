@@ -181,6 +181,8 @@ void ConvergenceAcc::PrintConfigOptions() const {
       << "\t\t Levelshift end: " << opt_.levelshiftend << std::flush;
   XTP_LOG(Log::error, *log_)
       << "\t\t Mixing Parameter alpha: " << opt_.mixingparameter << std::flush;
+  XTP_LOG(Log::error, *log_)
+      << "\t\t Mixing end: " << opt_.mixingend << std::flush;
 }
 
 // Solve the generalized Roothaan-Hall problem

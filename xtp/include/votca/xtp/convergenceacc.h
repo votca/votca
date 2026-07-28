@@ -57,8 +57,31 @@ class ConvergenceAcc {
     double diis_start;
     double levelshift;
     double levelshiftend;
+    // Independent from adiis_start deliberately -- see
+    // UKSConvergenceAcc::Iterate's own comment on where this is used
+    // for the full reasoning: ORCA's own DampErr is kept fully
+    // separate from its own DIISStart, and their own guidance for
+    // difficult systems is to make DampErr much SMALLER than default
+    // (keeping damping active LONGER), independent of when DIIS
+    // itself engages. Reusing adiis_start for both purposes could not
+    // represent that independently.
+    double mixingend;
     Index numberofelectrons;
     double mixingparameter;
+    // Ceiling mixingparameter can adaptively ramp up toward as the SCF
+    // struggles, rather than staying fixed at mixingparameter (the
+    // BASE/starting value) for the whole run -- matches ORCA's own
+    // static-damping design directly (confirmed from a real ORCA log's
+    // own resolved SCF settings, not the manual's generic defaults):
+    // DampFac (the base, 0.7 by default) and DampMax (the ceiling, 0.98
+    // by default) are two separate parameters there, not one fixed
+    // value. Notably, 0.98 is exactly the value this session's own
+    // hand-tuning independently landed on for a difficult water dimer
+    // case -- this adaptive design is a more principled way to obtain
+    // that same benefit only when actually needed, rather than paying
+    // its cost (slower convergence on easy iterations) for an entire
+    // run regardless of whether the system is struggling at all.
+    double mixingmax;
     double Econverged;
     double error_converged;
     Index number_alpha_electrons = 0;

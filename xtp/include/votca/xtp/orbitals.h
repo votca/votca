@@ -587,9 +587,49 @@ class Orbitals {
   /// energy.
   void OrderMOsbyEnergy();
 
+  /// Same as OrderMOsbyEnergy, but operating on the ALPHA channel of an
+  /// unrestricted (UKS) system specifically -- OrderMOsbyEnergy/
+  /// SortEnergies only ever touch mos_ (the single restricted object)
+  /// and SortEnergies actively throws for hasUnrestrictedOrbitals()==true,
+  /// so neither can be reused here. Needed for PrepareDimerGuessMixedSpin,
+  /// which builds a genuinely unrestricted dimer guess from two monomers
+  /// of independently arbitrary charge/spin.
+  void OrderMOsbyEnergyAlpha();
+
+  /// Same as OrderMOsbyEnergyAlpha, but for the BETA channel (mos_beta_).
+  void OrderMOsbyEnergyBeta();
+
   /// Build a dimer starting guess by combining orbital information from two
   /// fragments.
   void PrepareDimerGuess(const Orbitals &orbitalsA, const Orbitals &orbitalsB);
+
+  /// Same purpose as PrepareDimerGuess, but for two monomers of
+  /// independently ARBITRARY charge and spin (restricted or unrestricted,
+  /// not just closed-shell singlets) -- e.g. a neutral singlet donor
+  /// paired with a charged doublet acceptor, exactly the case
+  /// PrepareDimerGuess itself explicitly refuses (it throws for any
+  /// input with spin != 1 or hasUnrestrictedOrbitals()==true).
+  ///
+  /// Deliberately a separate, new function rather than a generalization
+  /// of PrepareDimerGuess itself -- that function is already used by the
+  /// existing, production iqm.cc calculator, and touching it risks that
+  /// code path for no benefit it needs (iqm's own use case genuinely is
+  /// always two neutral singlet monomers).
+  ///
+  /// Builds a genuinely unrestricted dimer: the alpha and beta MO
+  /// coefficient blocks are constructed SEPARATELY (block-diagonal from
+  /// each monomer's own alpha and beta blocks respectively -- a
+  /// restricted monomer contributes the SAME block to both, since its
+  /// alpha and beta MOs are identical by construction), giving the
+  /// dimer real, unequal alpha/beta occupied counts whenever the two
+  /// monomers' own electron counts don't happen to match. This is the
+  /// whole point: each monomer's own, already-converged electronic
+  /// structure (including which one is charged/open-shell) is embedded
+  /// directly into the dimer's starting guess, rather than relying on
+  /// a generic guess (SAD, independent-electron, Huckel) to somehow
+  /// discover that asymmetry on its own.
+  void PrepareDimerGuessMixedSpin(const Orbitals &orbitalsA,
+                                  const Orbitals &orbitalsB);
 
   /// Compute transition dipoles for coupled excited states from the stored BSE
   /// data for the default restricted singlet BSE case.
@@ -733,6 +773,16 @@ class Orbitals {
 
   // returns indeces of a re-sorted vector of energies from lowest to highest
   std::vector<Index> SortEnergies();
+
+  // Same as SortEnergies, but for the ALPHA channel specifically -- unlike
+  // SortEnergies (which throws for hasUnrestrictedOrbitals()==true), this
+  // and SortEnergiesBeta below are meant to be called ON an unrestricted
+  // system, one channel at a time. Used by OrderMOsbyEnergyAlpha.
+  std::vector<Index> SortEnergiesAlpha();
+
+  // Same as SortEnergiesAlpha, but sorting mos_beta_.eigenvalues() instead.
+  // Used by OrderMOsbyEnergyBeta.
+  std::vector<Index> SortEnergiesBeta();
 
   void WriteToCpt(CheckpointFile &f) const;
 

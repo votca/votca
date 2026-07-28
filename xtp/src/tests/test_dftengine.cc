@@ -22,6 +22,7 @@
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
+#include <sstream>
 
 // Local VOTCA includes
 #include "votca/tools/eigenio_matrixmarket.h"
@@ -136,6 +137,8 @@ BOOST_AUTO_TEST_CASE(dft_full) {
   xml << "    <error>1e-7</error>\n";
   xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
   xml << "    <mixing>0.7</mixing>\n";
+  xml << "    <mixing_max>0.98</mixing_max>\n";
+  xml << "    <mixing_end>0.8</mixing_end>\n";
   xml << "</convergence>" << std::endl;
   xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
   xml << "<max_iterations>200</max_iterations>" << std::endl;
@@ -230,6 +233,8 @@ BOOST_AUTO_TEST_CASE(density_guess) {
   xml << "    <error>1e-7</error>\n";
   xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
   xml << "    <mixing>0.7</mixing>\n";
+  xml << "    <mixing_max>0.98</mixing_max>\n";
+  xml << "    <mixing_end>0.8</mixing_end>\n";
   xml << "</convergence>" << std::endl;
   xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
   xml << "<max_iterations>1</max_iterations>" << std::endl;
@@ -316,6 +321,8 @@ BOOST_AUTO_TEST_CASE(huckel_guess) {
   xml << "    <error>1e-7</error>\n";
   xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
   xml << "    <mixing>0.7</mixing>\n";
+  xml << "    <mixing_max>0.98</mixing_max>\n";
+  xml << "    <mixing_end>0.8</mixing_end>\n";
   xml << "</convergence>" << std::endl;
   xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
   xml << "<max_iterations>1</max_iterations>" << std::endl;
@@ -401,6 +408,8 @@ BOOST_AUTO_TEST_CASE(huckel_dft_guess) {
   xml << "    <error>1e-7</error>\n";
   xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
   xml << "    <mixing>0.7</mixing>\n";
+  xml << "    <mixing_max>0.98</mixing_max>\n";
+  xml << "    <mixing_end>0.8</mixing_end>\n";
   xml << "</convergence>" << std::endl;
   xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
   xml << "</xtpdft>" << std::endl;
@@ -485,6 +494,8 @@ BOOST_AUTO_TEST_CASE(dft_cation) {
   xml << "    <error>1e-7</error>\n";
   xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
   xml << "    <mixing>0.7</mixing>\n";
+  xml << "    <mixing_max>0.98</mixing_max>\n";
+  xml << "    <mixing_end>0.8</mixing_end>\n";
   xml << "</convergence>" << std::endl;
   xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
   xml << "</xtpdft>" << std::endl;
@@ -573,5 +584,6 @@ BOOST_AUTO_TEST_CASE(dft_cation) {
 
   libint2::finalize();
 }
+
 
 BOOST_AUTO_TEST_SUITE_END()

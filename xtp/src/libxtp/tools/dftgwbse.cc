@@ -56,6 +56,13 @@ void DftGwBse::ParseOptions(const tools::Property& options) {
     guess_file_ = options.get(".guess").as<std::string>();
   }
 
+  // check if a separate MO-only guess is requested (see this class's
+  // own header comment on moguess_file_ for why this is a distinct
+  // option from .guess, not a variant of it)
+  if (options.exists(".moguess")) {
+    moguess_file_ = options.get(".moguess").as<std::string>();
+  }
+
   // register all QM packages
   QMPackageFactory{};
 }
@@ -78,6 +85,39 @@ bool DftGwBse::Run() {
     XTP_LOG(Log::error, log_)
         << "Reading structure from " << xyzfile_ << std::flush;
     orbitals.QMAtoms().LoadFromFile(xyzfile_);
+  }
+
+  // Warm-start the MOs from a PREVIOUS geometry step's own, separate
+  // .orb file, while keeping the geometry just loaded above (the
+  // CURRENT step's own xyzfile_, or guess_file_'s geometry if that
+  // path was used instead) -- deliberately independent of guess_file_
+  // itself, which ties geometry and MOs together from the same file
+  // and therefore cannot represent this "new geometry, warm-started
+  // MOs" case a geometry optimization needs between steps. Loaded
+  // into a separate, temporary Orbitals object so only its own
+  // MOs()/MOs_beta() get copied in -- moguess_orbitals's own geometry
+  // (the PREVIOUS step's) is deliberately discarded, never touching
+  // orbitals.QMAtoms() itself.
+  if (!moguess_file_.empty()) {
+    XTP_LOG(Log::error, log_) << "Reading MO guess (geometry unchanged) from "
+                              << moguess_file_ << std::flush;
+    Orbitals moguess_orbitals;
+    moguess_orbitals.ReadFromCpt(moguess_file_);
+    orbitals.MOs() = moguess_orbitals.MOs();
+    if (moguess_orbitals.hasBetaMOs()) {
+      orbitals.MOs_beta() = moguess_orbitals.MOs_beta();
+    }
+    // Defensive, likely-redundant given charge/spin (and therefore the
+    // electron counts) should not change between geometry-optimization
+    // steps -- DFTEngine::Evaluate() itself may set these independently
+    // from package_options_ regardless of what orbitals already holds
+    // here. Kept as a safety net rather than removed outright, since
+    // this has not been confirmed either way by tracing through
+    // DFTEngine's own guess-path logic.
+    orbitals.setNumberOfAlphaElectrons(
+        moguess_orbitals.getNumberOfAlphaElectrons());
+    orbitals.setNumberOfBetaElectrons(
+        moguess_orbitals.getNumberOfBetaElectrons());
   }
 
   std::unique_ptr<QMPackage> qmpackage =

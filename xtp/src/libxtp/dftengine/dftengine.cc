@@ -22,6 +22,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <iostream>
+#include <map>
+#include <optional>
+#include <string>
 
 // VOTCA includes
 #include <votca/tools/constants.h>
@@ -166,7 +169,59 @@ void DFTEngine::Initialize(tools::Property& options) {
         "compute_forces until this is implemented.");
   }
 
+  if (options.exists(key_xtpdft + ".cdft.enabled")) {
+    cdft_enabled_ = options.get(key_xtpdft + ".cdft.enabled").as<bool>();
+  }
+  if (cdft_enabled_) {
+    // Deliberately parsed into a CDFTConstraintSpec (atom indices +
+    // charge, both directly from the options tree) here, at
+    // Initialize() time, rather than building the actual
+    // HirshfeldPartition::Constraint (which needs the reference
+    // densities and weight matrix) right away -- those need the
+    // molecule and basis, neither of which exist yet at this point;
+    // BuildCDFTConstraint (elsewhere in this file) does that
+    // conversion later, once Evaluate() actually has an Orbitals
+    // object with real QMAtoms to work with.
+    std::string indices_str =
+        options.get(key_xtpdft + ".cdft.indices").as<std::string>();
+    if (indices_str.empty()) {
+      throw std::runtime_error(
+          "cdft.enabled=true was requested, but cdft.indices is empty -- "
+          "specify which atoms (0-based, e.g. '1 3 13:17', same syntax "
+          "already used for diabatization.xml's own fragment indices) "
+          "make up the constrained fragment.");
+    }
+    cdft_constraint_spec_.atom_indices =
+        IndexParser().CreateIndexVector(indices_str);
+    cdft_constraint_spec_.target_charge =
+        options.get(key_xtpdft + ".cdft.charge").as<double>();
+    cdft_constraint_spec_.initial_lambda =
+        options.get(key_xtpdft + ".cdft.initial_lambda").as<double>();
+    max_cdft_iterations_ =
+        options.get(key_xtpdft + ".cdft.max_iterations").as<Index>();
+    cdft_population_tolerance_ =
+        options.get(key_xtpdft + ".cdft.population_tolerance").as<double>();
+    // Note: CDFT itself needs no derivative integral at all (it only
+    // ever builds ENERGY-level quantities -- reference densities,
+    // weight matrices, Fock-matrix potentials -- never the
+    // deriv_order=1 machinery compute_forces needs), so there is no
+    // separate HasLibint2DerivativeSupport() check needed here; if
+    // compute_forces were ALSO left enabled alongside cdft.enabled,
+    // the earlier compute_forces-specific check above already covers
+    // that combination.
+  }
+
   initial_guess_ = options.get(".initial_guess").as<std::string>();
+
+  if (initial_guess_ == "dimer_guess") {
+    dimer_guess_orbA_name_ = options.get(".dimer_guess_orbA").as<std::string>();
+    dimer_guess_orbB_name_ = options.get(".dimer_guess_orbB").as<std::string>();
+    if (dimer_guess_orbA_name_.empty() || dimer_guess_orbB_name_.empty()) {
+      throw std::runtime_error(
+          "initial_guess=dimer_guess requires both dimer_guess_orbA and "
+          "dimer_guess_orbB to be set to real monomer .orb file paths.");
+    }
+  }
 
   grid_name_ = options.get(key_xtpdft + ".integration_grid").as<std::string>();
   xc_functional_name_ = options.get(".functional").as<std::string>();
@@ -206,10 +261,19 @@ void DFTEngine::Initialize(tools::Property& options) {
   }
   conv_opt_.mixingparameter =
       options.get(key_xtpdft + ".convergence.mixing").as<double>();
+  // Ceiling for adaptive damping -- see the options struct's own
+  // comment (convergenceacc.h) for the full ORCA-derived reasoning.
+  conv_opt_.mixingmax =
+      options.get(key_xtpdft + ".convergence.mixing_max").as<double>();
   conv_opt_.levelshift =
       options.get(key_xtpdft + ".convergence.levelshift").as<double>();
   conv_opt_.levelshiftend =
       options.get(key_xtpdft + ".convergence.levelshift_end").as<double>();
+  // Independent from adiis_start -- see the options struct's own
+  // comment (convergenceacc.h) and UKSConvergenceAcc::Iterate's own
+  // mixing-trigger comment for the full reasoning.
+  conv_opt_.mixingend =
+      options.get(key_xtpdft + ".convergence.mixing_end").as<double>();
   conv_opt_.maxout =
       options.get(key_xtpdft + ".convergence.DIIS_maxout").as<bool>();
   conv_opt_.histlength =
@@ -395,8 +459,7 @@ void DFTEngine::ComputeAndStoreForces(
     // storing forces, though Initialize()'s own check is the
     // preferred, much earlier place for this to actually be caught.
     XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << " Skipping force calculation: an ECP ('" << ecp_name_
+        << TimeStamp() << " Skipping force calculation: an ECP ('" << ecp_name_
         << "') was used for this SCF, but analytic nuclear forces do "
            "not yet include the ECP contribution to the force "
            "(d(V_ECP)/dR) -- computing forces in this configuration "
@@ -468,18 +531,14 @@ void DFTEngine::ComputeAndStoreForces(
     }
   }
 
-  Eigen::MatrixXd rij_term = DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_);
+  Eigen::MatrixXd rij_term =
+      DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_);
   Eigen::MatrixXd pulay_term = vxcpotential.PulayGradient(Dmat, dftbasis_);
   Eigen::MatrixXd weight_term = vxcpotential.GridWeightGradient(Dmat, mol);
   Eigen::MatrixXd nucrep_term = DFTGradient::NuclearRepulsionDerivative(mol);
 
-  Eigen::MatrixXd grad =
-      nucrep_term +
-      eone_grad +
-      overlap_pulay_grad +
-      rij_term +
-      pulay_term +
-      weight_term;
+  Eigen::MatrixXd grad = nucrep_term + eone_grad + overlap_pulay_grad +
+                         rij_term + pulay_term + weight_term;
 
   // Exact-exchange (RI-K) gradient -- hybrid functionals only. Skipped
   // entirely (not just multiplied by a zero ScaHFX_) when not needed,
@@ -515,8 +574,9 @@ void DFTEngine::ComputeAndStoreForces(
         << TimeStamp()
         << " WARNING: computed forces do not sum to zero across atoms "
            "(translational invariance check failed, max component="
-        << sum.cwiseAbs().maxCoeff() << ") -- treat these forces with "
-        "caution."
+        << sum.cwiseAbs().maxCoeff()
+        << ") -- treat these forces with "
+           "caution."
         << std::flush;
   }
 
@@ -541,11 +601,11 @@ void DFTEngine::ComputeAndStoreForces(
   // unrelated to this).
   XTP_LOG(Log::error, *pLog_) << " Forces [Ha/Bohr]" << std::flush;
   for (Index a = 0; a < natoms; ++a) {
-    std::string output = (boost::format(" %1$s"
-                                        "   %2$+1.6f %3$+1.6f %4$+1.6f") %
-                          mol[a].getElement() % force(a, 0) % force(a, 1) %
-                          force(a, 2))
-                             .str();
+    std::string output =
+        (boost::format(" %1$s"
+                       "   %2$+1.6f %3$+1.6f %4$+1.6f") %
+         mol[a].getElement() % force(a, 0) % force(a, 1) % force(a, 2))
+            .str();
     XTP_LOG(Log::error, *pLog_) << output << std::flush;
   }
 }
@@ -583,10 +643,9 @@ Eigen::MatrixXd DFTEngine::ComputeOverlapPulayGradientUKS(
   Eigen::MatrixXd C_beta_occ = MOs_beta.eigenvectors().leftCols(n_occ_beta);
   Eigen::VectorXd eps_alpha_occ = MOs_alpha.eigenvalues().head(n_occ_alpha);
   Eigen::VectorXd eps_beta_occ = MOs_beta.eigenvalues().head(n_occ_beta);
-  Eigen::MatrixXd W = C_alpha_occ * eps_alpha_occ.asDiagonal() *
-                          C_alpha_occ.transpose() +
-                      C_beta_occ * eps_beta_occ.asDiagonal() *
-                          C_beta_occ.transpose();
+  Eigen::MatrixXd W =
+      C_alpha_occ * eps_alpha_occ.asDiagonal() * C_alpha_occ.transpose() +
+      C_beta_occ * eps_beta_occ.asDiagonal() * C_beta_occ.transpose();
 
   Index natoms = mol.size();
   std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis_);
@@ -618,17 +677,17 @@ Eigen::MatrixXd DFTEngine::ComputeNonXCGradientUKS(
   Eigen::MatrixXd eone_grad = Eigen::MatrixXd::Zero(natoms, 3);
   for (Index a = 0; a < natoms; ++a) {
     for (Index xyz = 0; xyz < 3; ++xyz) {
-      eone_grad(a, xyz) =
-          D_total.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
+      eone_grad(a, xyz) = D_total.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
     }
   }
 
   Eigen::MatrixXd overlap_pulay_grad =
       ComputeOverlapPulayGradientUKS(mol, MOs_alpha, MOs_beta);
 
-  Eigen::MatrixXd grad = DFTGradient::NuclearRepulsionDerivative(mol) +
-                         eone_grad + overlap_pulay_grad +
-                         DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
+  Eigen::MatrixXd grad =
+      DFTGradient::NuclearRepulsionDerivative(mol) + eone_grad +
+      overlap_pulay_grad +
+      DFTGradient::RIJGradient(D_total, auxbasis_, dftbasis_);
 
   // Exact exchange (RI-K), hybrids only. Factor of 0.5*ScaHFX_ (not
   // ScaHFX_ alone) -- confirmed both algebraically and numerically
@@ -686,8 +745,8 @@ void DFTEngine::ComputeAndStoreForcesUKS(
     // check) -- ECP forces are not implemented in either spin
     // channel's gradient assembly.
     XTP_LOG(Log::error, *pLog_)
-        << TimeStamp()
-        << " Skipping UKS force calculation: an ECP ('" << ecp_name_
+        << TimeStamp() << " Skipping UKS force calculation: an ECP ('"
+        << ecp_name_
         << "') was used for this SCF, but analytic nuclear forces do "
            "not yet include the ECP contribution to the force "
            "(d(V_ECP)/dR) -- computing forces in this configuration "
@@ -719,8 +778,9 @@ void DFTEngine::ComputeAndStoreForcesUKS(
         << " WARNING: computed UKS forces do not sum to zero across "
            "atoms (translational invariance check failed, max "
            "component="
-        << sum.cwiseAbs().maxCoeff() << ") -- treat these forces with "
-        "caution."
+        << sum.cwiseAbs().maxCoeff()
+        << ") -- treat these forces with "
+           "caution."
         << std::flush;
   }
 
@@ -732,8 +792,7 @@ void DFTEngine::ComputeAndStoreForcesUKS(
   orb.setForces(force);
 
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp()
-      << " Computed and stored ground-state UKS nuclear forces."
+      << TimeStamp() << " Computed and stored ground-state UKS nuclear forces."
       << std::flush;
   // Same convention as ComputeAndStoreForces (RKS): atomic units
   // (Hartree/Bohr), matching what gets stored via setForces() above.
@@ -816,6 +875,82 @@ tools::EigenSystem DFTEngine::ModelPotentialGuess(
 }
 
 bool DFTEngine::Evaluate(Orbitals& orb) {
+  if (cdft_enabled_) {
+    // Deliberately dispatched here, BEFORE any of the normal
+    // Prepare/SetupH0/SetupVxc/ConfigOrbfile setup below -- RunCDFT
+    // does that same setup internally itself (matching this
+    // function's own structure exactly), so doing it here too would
+    // just duplicate the work. BuildCDFTConstraint needs orb.QMAtoms()
+    // to already be set (the same requirement Evaluate() itself has,
+    // via SetupH0(orb.QMAtoms()) below), so this is not adding any new
+    // requirement on the caller.
+    HirshfeldPartition::Constraint constraint =
+        BuildCDFTConstraint(orb.QMAtoms(), cdft_constraint_spec_);
+    bool converged = RunCDFT(orb, constraint);
+
+    if (converged && orb.hasForces()) {
+      // RunCDFT's own final EvaluateUKS call already computed and
+      // stored the ordinary DFT force (via ComputeAndStoreForcesUKS,
+      // triggered internally whenever compute_forces_ is also set) --
+      // this adds the CDFT-specific correction on top of it. Done
+      // HERE, once, after RunCDFT's outer loop has fully converged --
+      // deliberately NOT inside ComputeAndStoreForcesUKS itself (which
+      // would otherwise redo this work, wastefully and riskily, at
+      // EVERY outer CDFT iteration, since RunCDFT calls EvaluateUKS
+      // repeatedly) and deliberately NOT by changing RunCDFT's own
+      // signature to pass through the original per-atom fragment
+      // indices (constraint only carries the already-SUMMED
+      // weight_matrix, not which atoms went into it -- rebuilding here
+      // instead, via cdft_constraint_spec_'s own atom_indices, avoids
+      // touching RunCDFT's own, already-validated signature/behavior
+      // at all).
+      //
+      // Rebuilds the same reference densities/atomic references/
+      // basis/grid BuildCDFTConstraint itself already built internally
+      // -- a redundant but cheap recomputation (no SCF involved),
+      // accepted deliberately for this reason.
+      std::map<std::string, Eigen::MatrixXd> reference_densities =
+          ComputeHirshfeldReferenceDensities(orb.QMAtoms());
+      AOBasis full_dftbasis;
+      {
+        BasisSet basisset;
+        basisset.Load(dftbasis_name_);
+        full_dftbasis.Fill(basisset, orb.QMAtoms());
+      }
+      Vxc_Grid grid;
+      grid.GridSetup(grid_name_, orb.QMAtoms(), full_dftbasis);
+      std::vector<HirshfeldPartition::AtomicReference> atoms =
+          HirshfeldPartition::BuildAtomicReferences(
+              orb.QMAtoms(), dftbasis_name_, reference_densities);
+
+      std::array<Eigen::MatrixXd, 2> Dspin =
+          orb.DensityMatrixGroundStateSpinResolved();
+      // Total (alpha+beta) density -- matches the charge constraint's
+      // own spin_alpha_coefficient=spin_beta_coefficient=+1.0
+      // convention exactly (Tr[(D_alpha+D_beta)*W] = the same
+      // population EvaluateMismatch itself computes inside RunCDFT).
+      Eigen::MatrixXd density_total = Dspin[0] + Dspin[1];
+
+      Eigen::MatrixXd cdft_gradient_correction =
+          Eigen::MatrixXd::Zero(static_cast<Index>(orb.QMAtoms().size()), 3);
+      for (Index atom_index : cdft_constraint_spec_.atom_indices) {
+        cdft_gradient_correction +=
+            HirshfeldPartition::ComputeCDFTForceContribution(
+                atoms, atom_index, density_total, orb.QMAtoms(), full_dftbasis,
+                grid);
+      }
+      // Physical force = -dE/dR (ComputeAndStoreForcesUKS's own,
+      // already-established convention): the CDFT correction to the
+      // GRADIENT is +lambda*d(Tr[D*W_c])/dR (added directly, matching
+      // ComputeCDFTForceContribution's own gradient-convention
+      // return), so the correction to the FORCE is -lambda times this
+      // same quantity.
+      orb.setForces(orb.getForces() -
+                    constraint.lambda * cdft_gradient_correction);
+    }
+    return converged;
+  }
+
   Prepare(orb);
   Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
   Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
@@ -831,6 +966,128 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     return EvaluateUKS(orb, H0, vxcpotential);
   }
   return EvaluateClosedShell(orb, H0, vxcpotential);
+}
+
+bool DFTEngine::RunCDFT(Orbitals& orb,
+                        HirshfeldPartition::Constraint& constraint) {
+  Prepare(orb);
+  Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
+  Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
+  ConfigOrbfile(orb);
+
+  // Restored on every exit path (converged or not) -- RunCDFT
+  // deliberately overrides this member's own value between outer
+  // iterations (to force the warm-start "orbfile" guess from the
+  // second iteration onward), so it must not leak whatever value the
+  // caller's own options actually specified.
+  std::string saved_initial_guess = initial_guess_;
+
+  constraints_ = {constraint};
+
+  // Bisection bracket for lambda -- deliberately not Newton's method:
+  // bisection needs only that the population is monotonic in lambda
+  // (true for a well-behaved CDFT problem: increasing lambda always
+  // pushes more density toward -- or away from, depending on sign --
+  // the constrained region), never an explicit dN/dlambda derivative,
+  // making this the more robust choice for a first implementation.
+  // Starts centered on the caller's own initial guess (constraint.lambda,
+  // 0.0 by default) and expands outward, doubling each time, until the
+  // mismatch changes sign across the bracket or a hard iteration limit
+  // is hit -- rather than assuming any single fixed bracket width is
+  // always wide enough for every system.
+  double lambda_lo = constraint.lambda - 0.1;
+  double lambda_hi = constraint.lambda + 0.1;
+
+  auto EvaluateMismatch = [&](double lambda) -> double {
+    constraints_[0].lambda = lambda;
+    bool scf_converged = EvaluateUKS(orb, H0, vxcpotential);
+    if (!scf_converged) {
+      throw std::runtime_error(
+          "RunCDFT: inner SCF did not converge at lambda=" +
+          std::to_string(lambda));
+    }
+    initial_guess_ = "orbfile";  // warm start every subsequent call
+    std::array<Eigen::MatrixXd, 2> Dspin =
+        orb.DensityMatrixGroundStateSpinResolved();
+    double population =
+        constraint.spin_alpha_coefficient *
+            Dspin[0].cwiseProduct(constraint.weight_matrix).sum() +
+        constraint.spin_beta_coefficient *
+            Dspin[1].cwiseProduct(constraint.weight_matrix).sum();
+    return population - constraint.target_population;
+  };
+
+  try {
+    double mismatch_lo = EvaluateMismatch(lambda_lo);
+    double mismatch_hi = EvaluateMismatch(lambda_hi);
+
+    Index bracket_attempts = 0;
+    constexpr Index kMaxBracketAttempts = 10;
+    while (mismatch_lo * mismatch_hi > 0.0 &&
+           bracket_attempts < kMaxBracketAttempts) {
+      double width = lambda_hi - lambda_lo;
+      lambda_lo -= 0.5 * width;
+      lambda_hi += 0.5 * width;
+      mismatch_lo = EvaluateMismatch(lambda_lo);
+      mismatch_hi = EvaluateMismatch(lambda_hi);
+      ++bracket_attempts;
+    }
+    if (mismatch_lo * mismatch_hi > 0.0) {
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp()
+          << " RunCDFT: could not bracket a root for the population "
+             "mismatch after "
+          << kMaxBracketAttempts
+          << " bracket-expansion attempts -- the target population may "
+             "be unreachable for this system, or the initial "
+             "lambda guess may be far from the actual root."
+          << std::flush;
+      initial_guess_ = saved_initial_guess;
+      constraints_.clear();
+      return false;
+    }
+
+    for (Index outer_iter = 0; outer_iter < max_cdft_iterations_;
+         ++outer_iter) {
+      double lambda_mid = 0.5 * (lambda_lo + lambda_hi);
+      double mismatch_mid = EvaluateMismatch(lambda_mid);
+
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " CDFT outer iteration " << outer_iter + 1 << " of "
+          << max_cdft_iterations_ << ": lambda=" << lambda_mid
+          << " population mismatch=" << mismatch_mid << std::flush;
+
+      if (std::abs(mismatch_mid) < cdft_population_tolerance_) {
+        constraint.lambda = lambda_mid;
+        initial_guess_ = saved_initial_guess;
+        XTP_LOG(Log::error, *pLog_)
+            << TimeStamp() << " CDFT converged after " << outer_iter + 1
+            << " outer iterations, lambda=" << lambda_mid << std::flush;
+        return true;
+      }
+
+      if (mismatch_mid * mismatch_lo < 0.0) {
+        lambda_hi = lambda_mid;
+        mismatch_hi = mismatch_mid;
+      } else {
+        lambda_lo = lambda_mid;
+        mismatch_lo = mismatch_mid;
+      }
+    }
+  } catch (const std::runtime_error&) {
+    initial_guess_ = saved_initial_guess;
+    constraints_.clear();
+    throw;
+  }
+
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp()
+      << " RunCDFT: outer bisection loop did not converge "
+         "within "
+      << max_cdft_iterations_ << " iterations." << std::flush;
+  constraint.lambda = 0.5 * (lambda_lo + lambda_hi);
+  initial_guess_ = saved_initial_guess;
+  return false;
 }
 
 // Restricted SCF loop. The total energy is assembled as
@@ -865,6 +1122,14 @@ bool DFTEngine::EvaluateClosedShell(
       MOs = ExtendedHuckelGuess(orb.QMAtoms());
     } else if (initial_guess_ == "huckel_dft") {
       MOs = ExtendedHuckelDFTGuess(H0, orb.QMAtoms(), vxcpotential);
+    } else if (initial_guess_ == "dimer_guess") {
+      throw std::runtime_error(
+          "initial_guess=dimer_guess is only meaningful for a genuinely "
+          "unrestricted (UKS) calculation -- it exists specifically to "
+          "combine two monomers of independently arbitrary charge/spin, "
+          "which by construction do not reduce to a single restricted "
+          "MO set. Use force_uks_path or an odd total electron count to "
+          "route through EvaluateUKS instead.");
     } else {
       throw std::runtime_error("Initial guess method not known/implemented");
     }
@@ -1080,6 +1345,16 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
           << std::flush;
       MOs_beta = MOs_alpha;
     }
+  } else if (initial_guess_ == "dimer_guess") {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp()
+        << " Building UKS guess from two monomer .orb files (dimer_guess)"
+        << std::flush;
+    Orbitals dimer_guess_orb = BuildDimerGuessFromMonomerFiles(orb.QMAtoms());
+    MOs_alpha = dimer_guess_orb.MOs();
+    MOs_alpha.eigenvectors() = OrthogonalizeGuess(MOs_alpha.eigenvectors());
+    MOs_beta = dimer_guess_orb.MOs_beta();
+    MOs_beta.eigenvectors() = OrthogonalizeGuess(MOs_beta.eigenvectors());
   } else {
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << " Setup UKS Initial Guess using: " << initial_guess_
@@ -1172,6 +1447,34 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
 
     double totenergy = H0.energy() + E_one + E_coul + E_xc + E_exx;
 
+    // CDFT constraint potential -- deliberately the LAST term added to
+    // either Fock matrix, and gated by a single, cheap .empty() check:
+    // for any standard, non-CDFT run (constraints_ left at its default,
+    // empty state), this entire block is skipped, and both H_alpha and
+    // H_beta are built exactly as they always were -- no measurable
+    // overhead, no behavior change whatsoever. Adds
+    // lambda_c * spin_alpha/beta_coefficient * W_c to the respective
+    // Fock matrix for every active constraint c (a charge constraint
+    // uses +1/+1, adding the identical potential to both channels; a
+    // future spin constraint would use +1/-1 -- see Constraint's own
+    // comment in hirshfeldpartition.h for why these are stored
+    // separately rather than this code assuming "charge" specifically),
+    // and the corresponding correction term to the reported total
+    // energy: E_CDFT = E_KS + sum_c lambda_c * (N_c^computed -
+    // N_c^target), the standard Wu-Van Voorhis Lagrangian.
+    if (!constraints_.empty()) {
+      for (const HirshfeldPartition::Constraint& c : constraints_) {
+        H_alpha += (c.lambda * c.spin_alpha_coefficient) * c.weight_matrix;
+        H_beta += (c.lambda * c.spin_beta_coefficient) * c.weight_matrix;
+        double population =
+            c.spin_alpha_coefficient *
+                Dspin.alpha.cwiseProduct(c.weight_matrix).sum() +
+            c.spin_beta_coefficient *
+                Dspin.beta.cwiseProduct(c.weight_matrix).sum();
+        totenergy += c.lambda * (population - c.target_population);
+      }
+    }
+
     XTP_LOG(Log::info, *pLog_) << TimeStamp() << " One particle energy "
                                << std::setprecision(12) << E_one << std::flush;
     XTP_LOG(Log::info, *pLog_) << TimeStamp() << " Coulomb contribution "
@@ -1188,6 +1491,44 @@ bool DFTEngine::EvaluateUKS(Orbitals& orb, const Mat_p_Energy& H0,
         << std::flush;
 
     UKSConvergenceAcc::SpinFock Hspin{H_alpha, H_beta};
+
+    // Coupled Fock builder: both new densities are used together, for
+    // BOTH the Coulomb/exchange terms and the XC potential, in a single
+    // call. This is what lets CoupledAugmentedHessianStep/
+    // BuildCoupledSigmaVector capture the real alpha-beta coupling
+    // (through the shared Coulomb potential and the XC kernel's
+    // cross-spin terms). Mirrors the exact same H0 + Coulomb/exchange +
+    // XC sequence already used to build H_alpha/H_beta themselves just
+    // above, so a perturbed density that happens to equal the current
+    // one reproduces the identical Fock matrix.
+    conv_uks.setCoupledFockBuilder(
+        [this, &H0, &vxcpotential](
+            const Eigen::MatrixXd& alpha_new,
+            const Eigen::MatrixXd& beta_new) -> UKSConvergenceAcc::SpinFock {
+          UKSConvergenceAcc::SpinFock H_new;
+          H_new.alpha = H0.matrix();
+          H_new.beta = H0.matrix();
+          constexpr double kIntegralError = 1e-8;
+          if (ScaHFX_ > 0) {
+            std::array<Eigen::MatrixXd, 2> both_alpha_new = CalcERIs_EXX(
+                Eigen::MatrixXd::Zero(0, 0), alpha_new, kIntegralError);
+            std::array<Eigen::MatrixXd, 2> both_beta_new = CalcERIs_EXX(
+                Eigen::MatrixXd::Zero(0, 0), beta_new, kIntegralError);
+            Eigen::MatrixXd J_new = both_alpha_new[0] + both_beta_new[0];
+            H_new.alpha += J_new + ScaHFX_ * both_alpha_new[1];
+            H_new.beta += J_new + ScaHFX_ * both_beta_new[1];
+          } else {
+            Eigen::MatrixXd D_total_new = alpha_new + beta_new;
+            Eigen::MatrixXd J_new = CalcERIs(D_total_new, kIntegralError);
+            H_new.alpha += J_new;
+            H_new.beta += J_new;
+          }
+          auto vxc_new = vxcpotential.IntegrateVXCSpin(alpha_new, beta_new);
+          H_new.alpha += vxc_new.vxc_alpha;
+          H_new.beta += vxc_new.vxc_beta;
+          return H_new;
+        });
+
     Dspin = conv_uks.Iterate(Dspin, Hspin, MOs_alpha, MOs_beta, totenergy);
     if (force_uks_path_ && num_alpha_electrons_ == num_beta_electrons_) {
       MOs_beta = MOs_alpha;
@@ -1426,8 +1767,111 @@ void DFTEngine::SetupInvariantMatrices() {
   return;
 }
 
+namespace {
+// Hund's-rule ground-state (alpha electrons, beta electrons) for the
+// main-group (s/p-block) elements most relevant to organic systems --
+// H through Kr, plus the heavier halogens (Br, I) via their own,
+// separately-computed period-5 entries. Explicitly does NOT cover
+// d-block (Sc-Zn, Y-Cd) or f-block elements: the d^n s^2 vs d^(n+1) s^1
+// (and worse, f-block) ground-state competition is genuinely subtle
+// and functional-dependent -- exactly why CP2K's own isolated-atom
+// ("ATOM") program requires explicit, manual per-subshell occupation
+// specification rather than trusting any automatic rule (confirmed
+// directly: HORTON's own CP2K pro-atom documentation states "The ATOM
+// program of CP2K does not simply follow the Aufbau rule to assign
+// orbital occupations"). Returns std::nullopt for anything not
+// explicitly covered, so callers can fall back to the existing,
+// simpler parity-based logic with a clear warning rather than silently
+// guessing.
+//
+// Method: standard Aufbau filling order (1s,2s,2p,3s,3p,4s,3d,4p,5s,
+// 4d,5p) up to (but explicitly skipping) each d-block range, applying
+// Hund's rule within any open p subshell (spread across all 3 p
+// orbitals with parallel/majority spin first, only pairing once every
+// orbital in that subshell already has one) -- for p^n, n<=3 gives n
+// alpha/0 beta in that subshell; n>3 gives 3 alpha/(n-3) beta. Every
+// entry below was computed by hand from this rule and can be checked
+// against any standard table of atomic ground-state term symbols
+// (all are unambiguous, textbook Hund's-rule cases for main-group
+// atoms -- no functional-dependent ambiguity of the kind that affects
+// d/f-block).
+std::optional<std::pair<Index, Index>> HundsRuleAlphaBetaElectrons(
+    Index nuclear_charge) {
+  switch (nuclear_charge) {
+    case 1:
+      return std::make_pair(1, 0);  // H:  1s1
+    case 2:
+      return std::make_pair(1, 1);  // He: 1s2
+    case 3:
+      return std::make_pair(2, 1);  // Li: [He] 2s1
+    case 4:
+      return std::make_pair(2, 2);  // Be: 2s2
+    case 5:
+      return std::make_pair(3, 2);  // B:  2p1
+    case 6:
+      return std::make_pair(4, 2);  // C:  2p2 (2a)
+    case 7:
+      return std::make_pair(5, 2);  // N:  2p3 (3a)
+    case 8:
+      return std::make_pair(5, 3);  // O:  2p4 (3a+1b)
+    case 9:
+      return std::make_pair(5, 4);  // F:  2p5 (3a+2b)
+    case 10:
+      return std::make_pair(5, 5);  // Ne: 2p6
+    case 11:
+      return std::make_pair(6, 5);  // Na: [Ne] 3s1
+    case 12:
+      return std::make_pair(6, 6);  // Mg: 3s2
+    case 13:
+      return std::make_pair(7, 6);  // Al: 3p1
+    case 14:
+      return std::make_pair(8, 6);  // Si: 3p2 (2a)
+    case 15:
+      return std::make_pair(9, 6);  // P:  3p3 (3a)
+    case 16:
+      return std::make_pair(9, 7);  // S:  3p4 (3a+1b)
+    case 17:
+      return std::make_pair(9, 8);  // Cl: 3p5 (3a+2b)
+    case 18:
+      return std::make_pair(9, 9);  // Ar: 3p6
+    case 19:
+      return std::make_pair(10, 9);  // K:  [Ar] 4s1
+    case 20:
+      return std::make_pair(10, 10);  // Ca: 4s2
+    // 21-30 (Sc-Zn): 3d block -- deliberately NOT covered.
+    case 31:
+      return std::make_pair(16, 15);  // Ga: [Zn] 4p1
+    case 32:
+      return std::make_pair(17, 15);  // Ge: 4p2 (2a)
+    case 33:
+      return std::make_pair(18, 15);  // As: 4p3 (3a)
+    case 34:
+      return std::make_pair(18, 16);  // Se: 4p4 (3a+1b)
+    case 35:
+      return std::make_pair(18, 17);  // Br: 4p5 (3a+2b)
+    case 36:
+      return std::make_pair(18, 18);  // Kr: 4p6
+    // 39-48 (Y-Cd): 4d block -- deliberately NOT covered.
+    case 49:
+      return std::make_pair(25, 24);  // In: [Cd] 5p1
+    case 50:
+      return std::make_pair(26, 24);  // Sn: 5p2 (2a)
+    case 51:
+      return std::make_pair(27, 24);  // Sb: 5p3 (3a)
+    case 52:
+      return std::make_pair(27, 25);  // Te: 5p4 (3a+1b)
+    case 53:
+      return std::make_pair(27, 26);  // I:  5p5 (3a+2b)
+    case 54:
+      return std::make_pair(27, 27);  // Xe: 5p6
+    default:
+      return std::nullopt;
+  }
+}
+}  // namespace
+
 Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
-    const QMAtom& uniqueAtom) const {
+    const QMAtom& uniqueAtom, bool use_hunds_rule_occupation) const {
   bool with_ecp = !ecp_name_.empty();
   if (uniqueAtom.getElement() == "H" || uniqueAtom.getElement() == "He") {
     with_ecp = false;
@@ -1456,12 +1900,43 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   Index alpha_e = 0;
   Index beta_e = 0;
 
-  if ((numofelectrons % 2) != 0) {
-    alpha_e = numofelectrons / 2 + numofelectrons % 2;
-    beta_e = numofelectrons / 2;
-  } else {
-    alpha_e = numofelectrons / 2;
-    beta_e = alpha_e;
+  // Deliberately opt-in, defaulting to false: this changes ONLY which
+  // total alpha/beta split is used for the reference atom's own SCF,
+  // not the SphericalAverageShells step below (kept unconditionally,
+  // for both modes) -- the existing SAD-initial-guess caller
+  // (AtomicGuess) is not changed at all by this parameter existing, and
+  // continues to use the simpler, parity-based split exactly as
+  // before. A physically correct free-atom ground state is not needed
+  // for a good SCF starting guess (the molecule's own overall spin
+  // state, and the SCF that follows, will reshape this regardless);
+  // it matters for the promolecular reference densities Hirshfeld-based
+  // CDFT will need instead, which is what this parameter exists for.
+  if (use_hunds_rule_occupation) {
+    auto hunds_rule = HundsRuleAlphaBetaElectrons(numofelectrons);
+    if (hunds_rule.has_value()) {
+      alpha_e = hunds_rule->first;
+      beta_e = hunds_rule->second;
+    } else {
+      XTP_LOG(Log::warning, *pLog_)
+          << TimeStamp()
+          << " No Hund's-rule ground-state occupation table "
+             "entry for nuclear charge "
+          << numofelectrons
+          << " (d/f-block elements are not covered -- see "
+             "HundsRuleAlphaBetaElectrons's own comment for why) -- "
+             "falling back to the simpler, parity-based alpha/beta split."
+          << std::flush;
+      use_hunds_rule_occupation = false;
+    }
+  }
+  if (!use_hunds_rule_occupation) {
+    if ((numofelectrons % 2) != 0) {
+      alpha_e = numofelectrons / 2 + numofelectrons % 2;
+      beta_e = numofelectrons / 2;
+    } else {
+      alpha_e = numofelectrons / 2;
+      beta_e = alpha_e;
+    }
   }
 
   AOOverlap dftAOoverlap;
@@ -1476,28 +1951,54 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   dftAOESP.FillPotential(dftbasis, atom);
   ERIs_atom.Initialize_4c(dftbasis);
 
-  ConvergenceAcc Convergence_alpha;
-  ConvergenceAcc Convergence_beta;
+  UKSConvergenceAcc conv_uks;
   ConvergenceAcc::options opt_alpha = conv_opt_;
   opt_alpha.mode = ConvergenceAcc::KSmode::open;
   opt_alpha.histlength = 20;
   opt_alpha.levelshift = 0.1;
   opt_alpha.levelshiftend = 0.0;
   opt_alpha.usediis = true;
-  opt_alpha.adiis_start = 0.0;
-  opt_alpha.diis_start = 0.0;
+  // adiis_start/diis_start deliberately NOT overridden here (previously
+  // both hardcoded to 0.0) -- confirmed via ConvergenceAcc::Iterate's
+  // own gating logic (the "diiserror_ < opt_.adiis_start ||
+  // diiserror_ < opt_.diis_start" check) that 0.0 makes this condition
+  // permanently false, since diiserror_ is a norm and can never be
+  // negative. That silently disabled BOTH DIIS and ADIIS for the
+  // entire atomic SCF regardless of usediis=true just above -- an
+  // internal inconsistency, not an intentional design choice -- and is
+  // the likely root cause of this function's own, separately reported
+  // slow convergence (falling back to plain, level-shift-damped linear
+  // mixing every single iteration, with no (A)DIIS extrapolation ever
+  // actually applied). Inheriting these two fields from conv_opt_
+  // (already the base for opt_alpha above, via "= conv_opt_") matches
+  // the main UKS SCF path's own behavior, which never overrides them
+  // at all.
   opt_alpha.numberofelectrons = alpha_e;
 
   ConvergenceAcc::options opt_beta = opt_alpha;
   opt_beta.numberofelectrons = beta_e;
 
   Logger log;
-  Convergence_alpha.Configure(opt_alpha);
-  Convergence_alpha.setLogger(&log);
-  Convergence_alpha.setOverlap(dftAOoverlap, 1e-8);
-  Convergence_beta.Configure(opt_beta);
-  Convergence_beta.setLogger(&log);
-  Convergence_beta.setOverlap(dftAOoverlap, 1e-8);
+  // Single, shared accelerator -- previously two fully independent
+  // ConvergenceAcc instances (Convergence_alpha, Convergence_beta),
+  // each with its own separate DIIS history/error tracking/coefficient
+  // calculation, with no coupling between the two spin channels at
+  // all. The main UKS SCF path (DFTEngine::EvaluateUKS) instead uses
+  // exactly this UKSConvergenceAcc class, which builds ONE combined
+  // error metric from both spin channels together and applies a
+  // single, jointly-derived set of (A)DIIS coefficients to both --
+  // confirmed directly from uks_convergenceacc.cc's own comment ("one
+  // shared DIIS/ADIIS history length") and its Iterate()'s own
+  // "diis_.Update(maxerrorindex_, err_alpha, err_beta)" call. This is
+  // the standard, textbook-correct formulation of UKS DIIS; the
+  // previous two-independent-accelerators approach was not wrong in
+  // the sense of being internally inconsistent (unlike the
+  // adiis_start/diis_start bug above), but it let each spin channel's
+  // extrapolation disagree with the other's, which is not how UKS DIIS
+  // is meant to work.
+  conv_uks.Configure(opt_alpha, opt_beta);
+  conv_uks.setLogger(&log);
+  conv_uks.setOverlap(dftAOoverlap, 1e-8);
 
   Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.Matrix();
   if (with_ecp) {
@@ -1505,15 +2006,23 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
     H0 += dftAOECP.Matrix();
   }
 
-  tools::EigenSystem MOs_alpha = Convergence_alpha.SolveFockmatrix(H0);
-  Eigen::MatrixXd dftAOdmat_alpha = Convergence_alpha.DensityMatrix(MOs_alpha);
+  tools::EigenSystem MOs_alpha = conv_uks.SolveFockmatrix(H0);
 
   if (uniqueAtom.getElement() == "H") {
-    return dftAOdmat_alpha;
+    // H has no beta electrons at all (beta_e=0 above) -- nocclevels_beta_
+    // will be 0 once Configure() runs, and
+    // DensityMatrixGroundState_unres already returns a zero matrix
+    // whenever nocclevels==0 regardless of what MOs are passed in, so
+    // reusing MOs_alpha as a dummy beta argument here is safe: only
+    // Dspin_H.alpha is ever used below.
+    UKSConvergenceAcc::SpinDensity Dspin_H =
+        conv_uks.DensityMatrix(MOs_alpha, MOs_alpha);
+    return Dspin_H.alpha;
   }
 
-  tools::EigenSystem MOs_beta = Convergence_beta.SolveFockmatrix(H0);
-  Eigen::MatrixXd dftAOdmat_beta = Convergence_beta.DensityMatrix(MOs_beta);
+  tools::EigenSystem MOs_beta = conv_uks.SolveFockmatrix(H0);
+  UKSConvergenceAcc::SpinDensity Dspin =
+      conv_uks.DensityMatrix(MOs_alpha, MOs_beta);
 
   Index maxiter = 80;
   for (Index this_iter = 0; this_iter < maxiter; this_iter++) {
@@ -1524,65 +2033,56 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
     double E_exx = 0.0;
     double E_xc = 0.0;
 
-    double integral_error = std::min(1e-5 * 0.5 *
-                                         (Convergence_alpha.getDIIsError() +
-                                          Convergence_beta.getDIIsError()),
-                                     1e-5);
+    // Matches EvaluateUKS's own formula exactly (a single combined
+    // DIIS error now, not an average of two independent ones).
+    double integral_error = std::min(conv_uks.getDIIsError() * 1e-5, 1e-5);
 
     if (ScaHFX_ > 0) {
       std::array<Eigen::MatrixXd, 2> both_alpha =
-          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_alpha, integral_error);
+          ERIs_atom.CalculateERIs_EXX_4c(Dspin.alpha, integral_error);
       std::array<Eigen::MatrixXd, 2> both_beta =
-          ERIs_atom.CalculateERIs_EXX_4c(dftAOdmat_beta, integral_error);
+          ERIs_atom.CalculateERIs_EXX_4c(Dspin.beta, integral_error);
 
       Eigen::MatrixXd Hartree = both_alpha[0] + both_beta[0];
       H_alpha += Hartree + ScaHFX_ * both_alpha[1];
       H_beta += Hartree + ScaHFX_ * both_beta[1];
 
-      E_coul =
-          0.5 * (dftAOdmat_alpha + dftAOdmat_beta).cwiseProduct(Hartree).sum();
+      E_coul = 0.5 * Dspin.total().cwiseProduct(Hartree).sum();
       E_exx = 0.5 * ScaHFX_ *
-              (both_alpha[1].cwiseProduct(dftAOdmat_alpha).sum() +
-               both_beta[1].cwiseProduct(dftAOdmat_beta).sum());
+              (both_alpha[1].cwiseProduct(Dspin.alpha).sum() +
+               both_beta[1].cwiseProduct(Dspin.beta).sum());
     } else {
-      Eigen::MatrixXd Hartree = ERIs_atom.CalculateERIs_4c(
-          dftAOdmat_alpha + dftAOdmat_beta, integral_error);
+      Eigen::MatrixXd Hartree =
+          ERIs_atom.CalculateERIs_4c(Dspin.total(), integral_error);
       H_alpha += Hartree;
       H_beta += Hartree;
-      E_coul =
-          0.5 * (dftAOdmat_alpha + dftAOdmat_beta).cwiseProduct(Hartree).sum();
+      E_coul = 0.5 * Dspin.total().cwiseProduct(Hartree).sum();
     }
 
-    auto vxc =
-        gridIntegration.IntegrateVXCSpin(dftAOdmat_alpha, dftAOdmat_beta);
+    auto vxc = gridIntegration.IntegrateVXCSpin(Dspin.alpha, Dspin.beta);
     H_alpha += vxc.vxc_alpha;
     H_beta += vxc.vxc_beta;
     E_xc = vxc.energy;
 
-    double E_one_alpha = dftAOdmat_alpha.cwiseProduct(H0).sum();
-    double E_one_beta = dftAOdmat_beta.cwiseProduct(H0).sum();
+    double E_one_alpha = Dspin.alpha.cwiseProduct(H0).sum();
+    double E_one_beta = Dspin.beta.cwiseProduct(H0).sum();
     double totenergy = E_one_alpha + E_one_beta + E_coul + E_exx + E_xc;
 
-    dftAOdmat_alpha = Convergence_alpha.Iterate(dftAOdmat_alpha, H_alpha,
-                                                MOs_alpha, totenergy);
-    dftAOdmat_beta =
-        Convergence_beta.Iterate(dftAOdmat_beta, H_beta, MOs_beta, totenergy);
+    UKSConvergenceAcc::SpinFock Hspin{H_alpha, H_beta};
+    Dspin = conv_uks.Iterate(Dspin, Hspin, MOs_alpha, MOs_beta, totenergy);
 
     XTP_LOG(Log::debug, *pLog_)
         << TimeStamp() << " Iter " << this_iter << " of " << maxiter << " Etot "
-        << totenergy << " diise_a " << Convergence_alpha.getDIIsError()
-        << " diise_b " << Convergence_beta.getDIIsError() << "\n\t\t a_gap "
+        << totenergy << " diise " << conv_uks.getDIIsError() << "\n\t\t a_gap "
         << MOs_alpha.eigenvalues()(alpha_e) -
                MOs_alpha.eigenvalues()(alpha_e - 1)
         << " b_gap "
         << MOs_beta.eigenvalues()(beta_e) - MOs_beta.eigenvalues()(beta_e - 1)
-        << " Nalpha="
-        << dftAOoverlap.Matrix().cwiseProduct(dftAOdmat_alpha).sum()
-        << " Nbeta=" << dftAOoverlap.Matrix().cwiseProduct(dftAOdmat_beta).sum()
+        << " Nalpha=" << dftAOoverlap.Matrix().cwiseProduct(Dspin.alpha).sum()
+        << " Nbeta=" << dftAOoverlap.Matrix().cwiseProduct(Dspin.beta).sum()
         << std::flush;
 
-    bool converged =
-        Convergence_alpha.isConverged() && Convergence_beta.isConverged();
+    bool converged = conv_uks.isConverged();
     if (converged || this_iter == maxiter - 1) {
       if (converged) {
         XTP_LOG(Log::info, *pLog_)
@@ -1592,16 +2092,13 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
         XTP_LOG(Log::info, *pLog_)
             << TimeStamp() << " Not converged after " << this_iter + 1
             << " iterations. Unconverged density.\n\t\t\t"
-            << " DIIsError_alpha=" << Convergence_alpha.getDIIsError()
-            << " DIIsError_beta=" << Convergence_beta.getDIIsError()
-            << std::flush;
+            << " DIIsError=" << conv_uks.getDIIsError() << std::flush;
       }
       break;
     }
   }
 
-  Eigen::MatrixXd avgmatrix =
-      SphericalAverageShells(dftAOdmat_alpha + dftAOdmat_beta, dftbasis);
+  Eigen::MatrixXd avgmatrix = SphericalAverageShells(Dspin.total(), dftbasis);
   XTP_LOG(Log::info, *pLog_)
       << TimeStamp() << " Atomic density Matrix for " << uniqueAtom.getElement()
       << " gives N=" << std::setprecision(9)
@@ -1649,6 +2146,90 @@ Eigen::MatrixXd DFTEngine::AtomicGuess(const QMMolecule& mol) const {
   }
 
   return guess;
+}
+
+std::map<std::string, Eigen::MatrixXd>
+    DFTEngine::ComputeHirshfeldReferenceDensities(const QMMolecule& mol) const {
+  std::vector<std::string> elements = mol.FindUniqueElements();
+  XTP_LOG(Log::info, *pLog_)
+      << TimeStamp() << " Scanning molecule of size " << mol.size()
+      << " for unique elements (Hirshfeld reference densities)" << std::flush;
+
+  std::map<std::string, Eigen::MatrixXd> reference_densities;
+  for (const std::string& element : elements) {
+    QMAtom unique_atom(0, element, Eigen::Vector3d::Zero());
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " Calculating Hirshfeld reference density for "
+        << element << std::flush;
+    // use_hunds_rule_occupation=true unconditionally here -- this is
+    // the one and only caller that should ever request it; AtomicGuess
+    // just above, the pre-existing SAD-guess caller, never does.
+    reference_densities[element] = RunAtomicDFT_unrestricted(
+        unique_atom, /*use_hunds_rule_occupation=*/true);
+  }
+  return reference_densities;
+}
+
+HirshfeldPartition::Constraint DFTEngine::BuildCDFTConstraint(
+    const QMMolecule& mol, const CDFTConstraintSpec& spec) const {
+  std::map<std::string, Eigen::MatrixXd> reference_densities =
+      ComputeHirshfeldReferenceDensities(mol);
+
+  AOBasis full_dftbasis;
+  {
+    BasisSet basisset;
+    basisset.Load(dftbasis_name_);
+    full_dftbasis.Fill(basisset, mol);
+  }
+
+  Vxc_Grid grid;
+  grid.GridSetup(grid_name_, mol, full_dftbasis);
+
+  std::vector<HirshfeldPartition::AtomicReference> atoms =
+      HirshfeldPartition::BuildAtomicReferences(mol, dftbasis_name_,
+                                                reference_densities);
+
+  HirshfeldPartition::Constraint constraint;
+  constraint.weight_matrix = Eigen::MatrixXd::Zero(full_dftbasis.AOBasisSize(),
+                                                   full_dftbasis.AOBasisSize());
+  double neutral_reference_population = 0.0;
+  for (Index atom_index : spec.atom_indices) {
+    if (atom_index < 0 || atom_index >= static_cast<Index>(mol.size())) {
+      throw std::runtime_error(
+          "BuildCDFTConstraint: cdft.indices contains atom index " +
+          std::to_string(atom_index) + ", but this molecule only has " +
+          std::to_string(mol.size()) +
+          " atoms (0-based indexing -- valid range is 0.." +
+          std::to_string(mol.size() - 1) + ").");
+    }
+    // Hirshfeld weights are additive across atoms in a fragment --
+    // w_fragment(r) = sum_{i in fragment} w_i(r) -- so the fragment's
+    // own weight matrix is just the sum of each atom's own
+    // BuildWeightMatrix result, and the neutral reference population
+    // (needed to convert the options file's charge-relative target
+    // into RunCDFT's own absolute-population convention) is just the
+    // sum of the fragment atoms' own nuclear charges.
+    constraint.weight_matrix += HirshfeldPartition::BuildWeightMatrix(
+        atoms, atom_index, full_dftbasis, grid);
+    neutral_reference_population +=
+        static_cast<double>(mol[atom_index].getNuccharge());
+  }
+
+  constraint.target_population =
+      neutral_reference_population - spec.target_charge;
+  constraint.lambda = spec.initial_lambda;
+  constraint.spin_alpha_coefficient = 1.0;
+  constraint.spin_beta_coefficient = 1.0;
+
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " CDFT constraint: " << spec.atom_indices.size()
+      << " atom(s), neutral reference population="
+      << neutral_reference_population
+      << ", requested relative charge=" << spec.target_charge
+      << ", absolute target population=" << constraint.target_population
+      << std::flush;
+
+  return constraint;
 }
 
 void DFTEngine::ConfigOrbfile(Orbitals& orb) {
@@ -1913,7 +2494,7 @@ Eigen::MatrixXd DFTEngine::SphericalAverageShells(
 
 double DFTEngine::ExternalRepulsion(
     const QMMolecule& mol,
-    const std::vector<std::unique_ptr<StaticSite> >& multipoles) const {
+    const std::vector<std::unique_ptr<StaticSite>>& multipoles) const {
 
   if (multipoles.size() == 0) {
     return 0;
@@ -1952,7 +2533,7 @@ Eigen::MatrixXd DFTEngine::IntegrateExternalField(const QMMolecule& mol) const {
 
 Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
     const QMMolecule& mol,
-    const std::vector<std::unique_ptr<StaticSite> >& multipoles) const {
+    const std::vector<std::unique_ptr<StaticSite>>& multipoles) const {
 
   Mat_p_Energy result(dftbasis_.AOBasisSize(), dftbasis_.AOBasisSize());
   AOMultipole dftAOESP;
@@ -2100,6 +2681,115 @@ tools::EigenSystem DFTEngine::ExtendedHuckelDFTGuess(
   }
 
   return conv_accelerator_.SolveFockmatrix(H);
+}
+
+Orbitals DFTEngine::BuildDimerGuessFromMonomerFiles(
+    const QMMolecule& dimer_mol) const {
+  Orbitals monomerA;
+  monomerA.ReadFromCpt(dimer_guess_orbA_name_);
+  Orbitals monomerB;
+  monomerB.ReadFromCpt(dimer_guess_orbB_name_);
+
+  const QMMolecule& atomsA = monomerA.QMAtoms();
+  const QMMolecule& atomsB = monomerB.QMAtoms();
+  Index nA = atomsA.size();
+  Index nB = atomsB.size();
+
+  // --- Sanity check 1: element count and sequence ---
+  // Deliberately checked BEFORE the geometry check below -- a clear
+  // "wrong element at index N" error is far more actionable than the
+  // generic "distance mismatch" the geometry check alone would give if
+  // the atom ordering itself were wrong.
+  if (nA + nB != dimer_mol.size()) {
+    throw std::runtime_error(
+        "BuildDimerGuessFromMonomerFiles: monomer A (" + std::to_string(nA) +
+        " atoms) + monomer B (" + std::to_string(nB) +
+        " atoms) does not equal this calculation's own molecule (" +
+        std::to_string(dimer_mol.size()) +
+        " atoms) -- wrong monomer file(s), or this calculation's molecule "
+        "is not simply the concatenation of these two monomers.");
+  }
+  for (Index i = 0; i < nA; ++i) {
+    if (atomsA[i].getElement() != dimer_mol[i].getElement()) {
+      throw std::runtime_error(
+          "BuildDimerGuessFromMonomerFiles: monomer A's own atom " +
+          std::to_string(i) + " (" + atomsA[i].getElement() +
+          ") does not match this calculation's own atom " + std::to_string(i) +
+          " (" + dimer_mol[i].getElement() +
+          ") -- dimer_guess assumes monomer A occupies exactly the first "
+          "N_A atoms of this calculation's molecule, in the same order.");
+    }
+  }
+  for (Index i = 0; i < nB; ++i) {
+    if (atomsB[i].getElement() != dimer_mol[nA + i].getElement()) {
+      throw std::runtime_error(
+          "BuildDimerGuessFromMonomerFiles: monomer B's own atom " +
+          std::to_string(i) + " (" + atomsB[i].getElement() +
+          ") does not match this calculation's own atom " +
+          std::to_string(nA + i) + " (" + dimer_mol[nA + i].getElement() +
+          ") -- dimer_guess assumes monomer B occupies exactly the "
+          "remaining atoms of this calculation's molecule (after monomer "
+          "A's own N_A atoms), in the same order.");
+    }
+  }
+
+  // --- Sanity check 2: internal geometry (translation/rotation
+  // invariant) ---
+  // Every pairwise interatomic distance WITHIN a monomer is unchanged
+  // by rigid translation or rotation of that monomer as a whole --
+  // exactly the operation that happens between a monomer's own,
+  // independent optimization and its placement into the dimer. So this
+  // checks the one thing that SHOULD be identical (internal geometry)
+  // rather than the one thing that is EXPECTED to differ (absolute
+  // position/orientation).
+  constexpr double kGeometryToleranceBohr = 1e-3;
+  auto CheckInternalGeometry = [&](const QMMolecule& monomer_atoms,
+                                   Index offset_in_dimer,
+                                   const std::string& label) {
+    Index n = monomer_atoms.size();
+    for (Index i = 0; i < n; ++i) {
+      for (Index j = i + 1; j < n; ++j) {
+        double monomer_distance =
+            (monomer_atoms[i].getPos() - monomer_atoms[j].getPos()).norm();
+        double dimer_distance = (dimer_mol[offset_in_dimer + i].getPos() -
+                                 dimer_mol[offset_in_dimer + j].getPos())
+                                    .norm();
+        double diff = std::abs(monomer_distance - dimer_distance);
+        if (diff > kGeometryToleranceBohr) {
+          throw std::runtime_error(
+              "BuildDimerGuessFromMonomerFiles: " + label +
+              "'s own internal geometry does not match this calculation's "
+              "molecule -- distance between its own atoms " +
+              std::to_string(i) + " and " + std::to_string(j) + " is " +
+              std::to_string(monomer_distance) +
+              " Bohr in the monomer file, but " +
+              std::to_string(dimer_distance) +
+              " Bohr in this calculation's own molecule (difference " +
+              std::to_string(diff) + " Bohr, tolerance " +
+              std::to_string(kGeometryToleranceBohr) +
+              " Bohr). This is checked as an INTERNAL, translation/"
+              "rotation-invariant distance specifically because the "
+              "monomer's absolute position/orientation is expected to "
+              "differ between its own standalone optimization and its "
+              "placement in the dimer -- only its internal geometry "
+              "should still match.");
+        }
+      }
+    }
+  };
+  CheckInternalGeometry(atomsA, 0, "Monomer A");
+  CheckInternalGeometry(atomsB, nA, "Monomer B");
+
+  Orbitals dimer_guess;
+  // PrepareDimerGuess/PrepareDimerGuessMixedSpin both call SetupDftBasis
+  // internally, which needs this->QMAtoms() already populated -- the
+  // SAME requirement iqm.cc's own, existing caller of PrepareDimerGuess
+  // already satisfies (orbitalsAB.QMAtoms() is set there well before its
+  // own PrepareDimerGuess call), confirmed directly by reading that
+  // code rather than assumed.
+  dimer_guess.QMAtoms() = dimer_mol;
+  dimer_guess.PrepareDimerGuessMixedSpin(monomerA, monomerB);
+  return dimer_guess;
 }
 
 }  // namespace xtp

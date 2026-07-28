@@ -27,6 +27,7 @@ list(APPEND test_cases test_bsecoupling)
 list(APPEND test_cases test_bse_operator)
 list(APPEND test_cases test_bseoperator_btda)
 list(APPEND test_cases test_convergenceacc)
+list(APPEND test_cases test_uks_convergenceacc)
 list(APPEND test_cases test_cubefile_writer)
 if(USE_CUDA)
   list(APPEND test_cases test_cudapipeline)
@@ -38,6 +39,11 @@ list(APPEND test_cases test_density_filter)
 list(APPEND test_cases test_densityintegration)
 list(APPEND test_cases test_dftcoupling)
 list(APPEND test_cases test_dftengine)
+# DRAFT/UNTESTED, slow (two test cases: one unconstrained run plus a
+# full bisection search, and a second running three FULL, independently
+# re-converged CDFT calculations for a total-force finite-difference
+# check) -- see file header comments before trusting this.
+list(APPEND test_cases test_dftengine_cdft)
 list(APPEND test_cases test_dftengine_private)
 # DRAFT/UNTESTED, slow (three full SCF runs) -- see file header comment.
 list(APPEND test_cases test_dftengine_forces)
@@ -59,6 +65,8 @@ list(APPEND test_cases test_gnode)
 list(APPEND test_cases test_grid)
 list(APPEND test_cases test_gw)
 list(APPEND test_cases test_hdf5)
+# DRAFT/UNTESTED -- see file header comment before trusting this.
+list(APPEND test_cases test_hirshfeldpartition)
 list(APPEND test_cases test_hist)
 list(APPEND test_cases test_incrementalfockbuilder)
 list(APPEND test_cases test_indexparser)
@@ -121,6 +129,24 @@ foreach(PROG ${test_cases} )
   add_test(NAME unit_${PROG} COMMAND $<TARGET_FILE:unit_${PROG}> WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
   set_tests_properties(unit_${PROG} PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
 endforeach(PROG)
+
+# unit_test_dftengine_cdft's own cdft_total_force_finite_difference case
+# runs THREE full, independent CDFT calculations (each potentially as
+# expensive as the direct-minimization fallback machinery elsewhere in
+# this codebase) specifically to validate analytic CDFT forces -- on a
+# runner where libint2 genuinely supports derivative integrals (e.g.
+# Fedora rawhide, confirmed directly: unit_test_dftengine_forces, a
+# single plain-DFT forces calculation, already takes ~72 sec there) this
+# is legitimately several times more expensive than that, and was
+# observed hitting the default CTest timeout (1500 sec) without
+# completing. On a runner where libint2 lacks derivative support (e.g.
+# openSUSE, confirmed directly: unit_test_dftengine_forces completes in
+# ~0.16 sec there via its own early, clean skip), this test's own
+# in-code HasLibint2DerivativeSupport() check (see
+# cdft_total_force_finite_difference's own comment) skips just as
+# quickly, so this longer timeout only ever matters on runners where the
+# calculation is genuinely running for real.
+set_tests_properties(unit_test_dftengine_cdft PROPERTIES TIMEOUT 3600)
 
 # build and run xtp integration tests
 if(RUN_XTP_INTEGRATIONTESTS)

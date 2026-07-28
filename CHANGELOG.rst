@@ -17,6 +17,7 @@ Version 2026-dev
 -  fixing bisection in QP solve (#1244)
 -  added quasiparticle self-consistent GW (#1245)
 -  implemented analytic DFT gradients (#1246)
+-  implemented Charge Constrained DFT (CDFT) (#1247)
 
 Version 2026 (released 09.03.26)
 ================================

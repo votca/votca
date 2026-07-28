@@ -140,6 +140,8 @@ Orbitals RunSCF(double bond_length_angstrom,
   xml << "    <error>1e-8</error>\n";
   xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
   xml << "    <mixing>0.7</mixing>\n";
+  xml << "    <mixing_max>0.98</mixing_max>\n";
+  xml << "    <mixing_end>0.8</mixing_end>\n";
   xml << "</convergence>\n";
   xml << "<integration_grid>xcoarse</integration_grid>\n";
   xml << "<max_iterations>200</max_iterations>\n";
@@ -162,89 +164,87 @@ Orbitals RunSCF(double bond_length_angstrom,
 
 BOOST_AUTO_TEST_CASE(forces_finite_difference) {
   libint2::initialize();
- try {
-  double bond_length = 0.74;  // Angstrom, roughly H2 equilibrium
-  double h = 1e-3;  // Angstrom -- larger than the fixed-density-matrix
-                     // tests elsewhere in this branch (which could afford
-                     // 1e-4 or smaller), since SCF reconvergence at each
-                     // displaced geometry introduces its own numerical
-                     // noise floor (convergence threshold, grid
-                     // discretization) that a too-small h would be
-                     // swamped by.
+  try {
+    double bond_length = 0.74;  // Angstrom, roughly H2 equilibrium
+    double h = 1e-3;  // Angstrom -- larger than the fixed-density-matrix
+                      // tests elsewhere in this branch (which could afford
+                      // 1e-4 or smaller), since SCF reconvergence at each
+                      // displaced geometry introduces its own numerical
+                      // noise floor (convergence threshold, grid
+                      // discretization) that a too-small h would be
+                      // swamped by.
 
-  Orbitals orb0 = RunSCF(bond_length);
-  // Deliberately a plain if-skip, not just a BOOST_REQUIRE, since
-  // hasForces()==false here has TWO genuinely different causes that
-  // need different responses: a real regression (the settings note
-  // above this test), or this libint2 build genuinely lacking
-  // derivative-integral support for one or more categories --
-  // DFTEngine::ComputeAndStoreForces(UKS) skips cleanly (no exception)
-  // in that second case, logging a WARNING via std::cerr rather than
-  // throwing, so there is no exception here to catch the way the
-  // other, throwing call sites elsewhere in this branch's test suite
-  // do. hasForces() is the only direct, reliable signal available.
-  if (!orb0.hasForces()) {
-    std::cout << "SKIPPING forces_finite_difference: orb0.hasForces() is "
-                 "false -- this libint2 build likely lacks derivative-"
-                 "integral support for one or more operator categories "
-                 "(see DFTEngine::Initialize's own WARNING, printed "
-                 "earlier, for which one)."
+    Orbitals orb0 = RunSCF(bond_length);
+    // Deliberately a plain if-skip, not just a BOOST_REQUIRE, since
+    // hasForces()==false here has TWO genuinely different causes that
+    // need different responses: a real regression (the settings note
+    // above this test), or this libint2 build genuinely lacking
+    // derivative-integral support for one or more categories --
+    // DFTEngine::ComputeAndStoreForces(UKS) skips cleanly (no exception)
+    // in that second case, logging a WARNING via std::cerr rather than
+    // throwing, so there is no exception here to catch the way the
+    // other, throwing call sites elsewhere in this branch's test suite
+    // do. hasForces() is the only direct, reliable signal available.
+    if (!orb0.hasForces()) {
+      std::cout << "SKIPPING forces_finite_difference: orb0.hasForces() is "
+                   "false -- this libint2 build likely lacks derivative-"
+                   "integral support for one or more operator categories "
+                   "(see DFTEngine::Initialize's own WARNING, printed "
+                   "earlier, for which one)."
+                << std::endl;
+      libint2::finalize();
+      return;
+    }
+    Eigen::MatrixXd forces = orb0.getForces();
+
+    std::cout << "H2 SCF forces:\n" << forces << std::endl;
+    std::cout << "H2 SCF energy: " << orb0.getDFTTotalEnergy() << std::endl;
+
+    // Translational invariance, independent of the finite-difference
+    // comparison below.
+    Eigen::Vector3d sum = forces.colwise().sum();
+    BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
+
+    Orbitals orb_plus = RunSCF(bond_length + h);
+    Orbitals orb_minus = RunSCF(bond_length - h);
+
+    double e_plus = orb_plus.getDFTTotalEnergy();
+    double e_minus = orb_minus.getDFTTotalEnergy();
+
+    constexpr double kBohrPerAngstrom = 0.52917721090380;
+    double finite_diff_dEdz = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+    // force = -dE/dR, matching ComputeAndStoreForces's own convention.
+    double finite_diff_force = -finite_diff_dEdz;
+
+    double analytic_force = forces(1, 2);  // second H, z-component
+
+    std::cout << "Analytic force on atom 1 (z): " << analytic_force
               << std::endl;
+    std::cout << "Finite-difference force on atom 1 (z): " << finite_diff_force
+              << std::endl;
+
+    bool matches = std::abs(finite_diff_force - analytic_force) <
+                   1e-2 * std::abs(analytic_force);
+    if (!matches) {
+      std::cout << "NOTE: if this fails, check individually: (1) whether "
+                   "orb0.hasForces() was even true (a scoping guard may "
+                   "have silently skipped force computation -- check the "
+                   "log for a 'Skipping force calculation' message), (2) "
+                   "whether the translational-invariance check above "
+                   "passed (if not, the bug is likely in the assembly/"
+                   "sign convention in ComputeAndStoreForces itself, not "
+                   "in any individual already-validated term), (3) "
+                   "whether tightening SCF convergence or h changes the "
+                   "result substantially (would suggest reconvergence "
+                   "noise rather than a real formula bug)."
+                << std::endl;
+    }
+    BOOST_CHECK_EQUAL(matches, true);
+  } catch (const std::runtime_error& e) {
+    std::cout << "SKIPPING forces_finite_difference: " << e.what() << std::endl;
     libint2::finalize();
     return;
   }
-  Eigen::MatrixXd forces = orb0.getForces();
-
-  std::cout << "H2 SCF forces:\n" << forces << std::endl;
-  std::cout << "H2 SCF energy: " << orb0.getDFTTotalEnergy() << std::endl;
-
-  // Translational invariance, independent of the finite-difference
-  // comparison below.
-  Eigen::Vector3d sum = forces.colwise().sum();
-  BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
-
-  Orbitals orb_plus = RunSCF(bond_length + h);
-  Orbitals orb_minus = RunSCF(bond_length - h);
-
-  double e_plus = orb_plus.getDFTTotalEnergy();
-  double e_minus = orb_minus.getDFTTotalEnergy();
-
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_dEdz =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
-  // force = -dE/dR, matching ComputeAndStoreForces's own convention.
-  double finite_diff_force = -finite_diff_dEdz;
-
-  double analytic_force = forces(1, 2);  // second H, z-component
-
-  std::cout << "Analytic force on atom 1 (z): " << analytic_force
-             << std::endl;
-  std::cout << "Finite-difference force on atom 1 (z): "
-             << finite_diff_force << std::endl;
-
-  bool matches = std::abs(finite_diff_force - analytic_force) <
-                 1e-2 * std::abs(analytic_force);
-  if (!matches) {
-    std::cout << "NOTE: if this fails, check individually: (1) whether "
-                 "orb0.hasForces() was even true (a scoping guard may "
-                 "have silently skipped force computation -- check the "
-                 "log for a 'Skipping force calculation' message), (2) "
-                 "whether the translational-invariance check above "
-                 "passed (if not, the bug is likely in the assembly/"
-                 "sign convention in ComputeAndStoreForces itself, not "
-                 "in any individual already-validated term), (3) "
-                 "whether tightening SCF convergence or h changes the "
-                 "result substantially (would suggest reconvergence "
-                 "noise rather than a real formula bug)."
-              << std::endl;
-  }
-  BOOST_CHECK_EQUAL(matches, true);
- } catch (const std::runtime_error& e) {
-   std::cout << "SKIPPING forces_finite_difference: " << e.what()
-             << std::endl;
-   libint2::finalize();
-   return;
- }
 
   libint2::finalize();
 }
@@ -266,69 +266,68 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference) {
 // STATUS: written but NOT yet run.
 BOOST_AUTO_TEST_CASE(forces_finite_difference_hybrid) {
   libint2::initialize();
- try {
-  double bond_length = 0.74;  // Angstrom
-  double h = 1e-3;            // Angstrom, same reasoning as above
-  const std::string functional = "XC_HYB_GGA_XC_PBEH";
+  try {
+    double bond_length = 0.74;  // Angstrom
+    double h = 1e-3;            // Angstrom, same reasoning as above
+    const std::string functional = "XC_HYB_GGA_XC_PBEH";
 
-  Orbitals orb0 = RunSCF(bond_length, functional);
-  if (!orb0.hasForces()) {
-    std::cout << "SKIPPING forces_finite_difference_hybrid: "
-                 "orb0.hasForces() is false -- this libint2 build likely "
-                 "lacks derivative-integral support for one or more "
-                 "operator categories (see DFTEngine::Initialize's own "
-                 "WARNING, printed earlier, for which one)."
+    Orbitals orb0 = RunSCF(bond_length, functional);
+    if (!orb0.hasForces()) {
+      std::cout << "SKIPPING forces_finite_difference_hybrid: "
+                   "orb0.hasForces() is false -- this libint2 build likely "
+                   "lacks derivative-integral support for one or more "
+                   "operator categories (see DFTEngine::Initialize's own "
+                   "WARNING, printed earlier, for which one)."
+                << std::endl;
+      libint2::finalize();
+      return;
+    }
+    Eigen::MatrixXd forces = orb0.getForces();
+
+    std::cout << "H2 hybrid SCF forces:\n" << forces << std::endl;
+    std::cout << "H2 hybrid SCF energy: " << orb0.getDFTTotalEnergy()
+              << std::endl;
+
+    Eigen::Vector3d sum = forces.colwise().sum();
+    BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
+
+    Orbitals orb_plus = RunSCF(bond_length + h, functional);
+    Orbitals orb_minus = RunSCF(bond_length - h, functional);
+
+    double e_plus = orb_plus.getDFTTotalEnergy();
+    double e_minus = orb_minus.getDFTTotalEnergy();
+
+    constexpr double kBohrPerAngstrom = 0.52917721090380;
+    double finite_diff_dEdz = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+    double finite_diff_force = -finite_diff_dEdz;
+
+    double analytic_force = forces(1, 2);
+
+    std::cout << "Analytic force on atom 1 (z): " << analytic_force
+              << std::endl;
+    std::cout << "Finite-difference force on atom 1 (z): " << finite_diff_force
+              << std::endl;
+
+    bool matches = std::abs(finite_diff_force - analytic_force) <
+                   1e-2 * std::abs(analytic_force);
+    if (!matches) {
+      std::cout << "NOTE: since the non-hybrid test above already "
+                   "validates everything except the RI-K term, a failure "
+                   "here most likely points at the ScaHFX_ * RIKGradient "
+                   "contribution specifically -- e.g. an issue with how "
+                   "C_occ (built for the overlap Pulay term, reused here) "
+                   "is threaded through, or a remaining scale/sign issue "
+                   "not caught by the FIXED-MO-matrix test in "
+                   "test_dftgradient.cc."
+                << std::endl;
+    }
+    BOOST_CHECK_EQUAL(matches, true);
+  } catch (const std::runtime_error& e) {
+    std::cout << "SKIPPING forces_finite_difference_hybrid: " << e.what()
               << std::endl;
     libint2::finalize();
     return;
   }
-  Eigen::MatrixXd forces = orb0.getForces();
-
-  std::cout << "H2 hybrid SCF forces:\n" << forces << std::endl;
-  std::cout << "H2 hybrid SCF energy: " << orb0.getDFTTotalEnergy()
-             << std::endl;
-
-  Eigen::Vector3d sum = forces.colwise().sum();
-  BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
-
-  Orbitals orb_plus = RunSCF(bond_length + h, functional);
-  Orbitals orb_minus = RunSCF(bond_length - h, functional);
-
-  double e_plus = orb_plus.getDFTTotalEnergy();
-  double e_minus = orb_minus.getDFTTotalEnergy();
-
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_dEdz =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
-  double finite_diff_force = -finite_diff_dEdz;
-
-  double analytic_force = forces(1, 2);
-
-  std::cout << "Analytic force on atom 1 (z): " << analytic_force
-             << std::endl;
-  std::cout << "Finite-difference force on atom 1 (z): "
-             << finite_diff_force << std::endl;
-
-  bool matches = std::abs(finite_diff_force - analytic_force) <
-                 1e-2 * std::abs(analytic_force);
-  if (!matches) {
-    std::cout << "NOTE: since the non-hybrid test above already "
-                 "validates everything except the RI-K term, a failure "
-                 "here most likely points at the ScaHFX_ * RIKGradient "
-                 "contribution specifically -- e.g. an issue with how "
-                 "C_occ (built for the overlap Pulay term, reused here) "
-                 "is threaded through, or a remaining scale/sign issue "
-                 "not caught by the FIXED-MO-matrix test in "
-                 "test_dftgradient.cc."
-              << std::endl;
-  }
-  BOOST_CHECK_EQUAL(matches, true);
- } catch (const std::runtime_error& e) {
-   std::cout << "SKIPPING forces_finite_difference_hybrid: " << e.what()
-             << std::endl;
-   libint2::finalize();
-   return;
- }
 
   libint2::finalize();
 }
@@ -352,76 +351,75 @@ BOOST_AUTO_TEST_CASE(forces_finite_difference_hybrid) {
 // STATUS: written but NOT yet run.
 BOOST_AUTO_TEST_CASE(forces_finite_difference_uks) {
   libint2::initialize();
- try {
-  double bond_length = 1.06;  // Angstrom, roughly H2+ equilibrium
-                              // (longer than neutral H2's ~0.74 A,
-                              // consistent with a weaker one-electron
-                              // bond)
-  double h = 1e-3;  // Angstrom, same reasoning as the RKS tests above
-  const std::string functional = "XC_GGA_X_PBE XC_GGA_C_PBE";
-  int spin = 2;    // doublet
-  int charge = 1;  // H2+
+  try {
+    double bond_length = 1.06;  // Angstrom, roughly H2+ equilibrium
+                                // (longer than neutral H2's ~0.74 A,
+                                // consistent with a weaker one-electron
+                                // bond)
+    double h = 1e-3;  // Angstrom, same reasoning as the RKS tests above
+    const std::string functional = "XC_GGA_X_PBE XC_GGA_C_PBE";
+    int spin = 2;    // doublet
+    int charge = 1;  // H2+
 
-  Orbitals orb0 = RunSCF(bond_length, functional, spin, charge);
-  if (!orb0.hasForces()) {
-    std::cout << "SKIPPING forces_finite_difference_uks: "
-                 "orb0.hasForces() is false -- this libint2 build likely "
-                 "lacks derivative-integral support for one or more "
-                 "operator categories (see DFTEngine::Initialize's own "
-                 "WARNING, printed earlier, for which one)."
+    Orbitals orb0 = RunSCF(bond_length, functional, spin, charge);
+    if (!orb0.hasForces()) {
+      std::cout << "SKIPPING forces_finite_difference_uks: "
+                   "orb0.hasForces() is false -- this libint2 build likely "
+                   "lacks derivative-integral support for one or more "
+                   "operator categories (see DFTEngine::Initialize's own "
+                   "WARNING, printed earlier, for which one)."
+                << std::endl;
+      libint2::finalize();
+      return;
+    }
+    Eigen::MatrixXd forces = orb0.getForces();
+
+    std::cout << "H2+ UKS SCF forces:\n" << forces << std::endl;
+    std::cout << "H2+ UKS SCF energy: " << orb0.getDFTTotalEnergy()
+              << std::endl;
+
+    Eigen::Vector3d sum = forces.colwise().sum();
+    BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
+
+    Orbitals orb_plus = RunSCF(bond_length + h, functional, spin, charge);
+    Orbitals orb_minus = RunSCF(bond_length - h, functional, spin, charge);
+
+    double e_plus = orb_plus.getDFTTotalEnergy();
+    double e_minus = orb_minus.getDFTTotalEnergy();
+
+    constexpr double kBohrPerAngstrom = 0.52917721090380;
+    double finite_diff_dEdz = (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
+    double finite_diff_force = -finite_diff_dEdz;
+
+    double analytic_force = forces(1, 2);
+
+    std::cout << "Analytic force on atom 1 (z): " << analytic_force
+              << std::endl;
+    std::cout << "Finite-difference force on atom 1 (z): " << finite_diff_force
+              << std::endl;
+
+    bool matches = std::abs(finite_diff_force - analytic_force) <
+                   1e-2 * std::abs(analytic_force);
+    if (!matches) {
+      std::cout << "NOTE: if this fails, check individually: (1) whether "
+                   "orb0.hasForces() was even true (a scoping guard may "
+                   "have silently skipped force computation), (2) whether "
+                   "the translational-invariance check above passed (if "
+                   "not, the bug is likely in the assembly/sign convention "
+                   "in ComputeAndStoreForcesUKS itself, not in any "
+                   "individual already-validated term), (3) whether "
+                   "tightening SCF convergence or h changes the result "
+                   "substantially (would suggest reconvergence noise "
+                   "rather than a real formula bug)."
+                << std::endl;
+    }
+    BOOST_CHECK_EQUAL(matches, true);
+  } catch (const std::runtime_error& e) {
+    std::cout << "SKIPPING forces_finite_difference_uks: " << e.what()
               << std::endl;
     libint2::finalize();
     return;
   }
-  Eigen::MatrixXd forces = orb0.getForces();
-
-  std::cout << "H2+ UKS SCF forces:\n" << forces << std::endl;
-  std::cout << "H2+ UKS SCF energy: " << orb0.getDFTTotalEnergy()
-             << std::endl;
-
-  Eigen::Vector3d sum = forces.colwise().sum();
-  BOOST_CHECK_SMALL(sum.cwiseAbs().maxCoeff(), 1e-4);
-
-  Orbitals orb_plus = RunSCF(bond_length + h, functional, spin, charge);
-  Orbitals orb_minus = RunSCF(bond_length - h, functional, spin, charge);
-
-  double e_plus = orb_plus.getDFTTotalEnergy();
-  double e_minus = orb_minus.getDFTTotalEnergy();
-
-  constexpr double kBohrPerAngstrom = 0.52917721090380;
-  double finite_diff_dEdz =
-      (e_plus - e_minus) / (2.0 * h) * kBohrPerAngstrom;
-  double finite_diff_force = -finite_diff_dEdz;
-
-  double analytic_force = forces(1, 2);
-
-  std::cout << "Analytic force on atom 1 (z): " << analytic_force
-             << std::endl;
-  std::cout << "Finite-difference force on atom 1 (z): "
-             << finite_diff_force << std::endl;
-
-  bool matches = std::abs(finite_diff_force - analytic_force) <
-                 1e-2 * std::abs(analytic_force);
-  if (!matches) {
-    std::cout << "NOTE: if this fails, check individually: (1) whether "
-                 "orb0.hasForces() was even true (a scoping guard may "
-                 "have silently skipped force computation), (2) whether "
-                 "the translational-invariance check above passed (if "
-                 "not, the bug is likely in the assembly/sign convention "
-                 "in ComputeAndStoreForcesUKS itself, not in any "
-                 "individual already-validated term), (3) whether "
-                 "tightening SCF convergence or h changes the result "
-                 "substantially (would suggest reconvergence noise "
-                 "rather than a real formula bug)."
-              << std::endl;
-  }
-  BOOST_CHECK_EQUAL(matches, true);
- } catch (const std::runtime_error& e) {
-   std::cout << "SKIPPING forces_finite_difference_uks: " << e.what()
-             << std::endl;
-   libint2::finalize();
-   return;
- }
 
   libint2::finalize();
 }
