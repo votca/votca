@@ -30,7 +30,17 @@
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
+#include "votca/tools/property.h"
+#include "votca/xtp/aobasis.h"
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/basisset.h"
+#include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/uks_convergenceacc.h"
+#include "xtp_libint2.h"
+
+#include <fstream>
+#include <tuple>
+#include <cmath>
 
 using namespace votca::xtp;
 using namespace votca;
@@ -153,5 +163,6 @@ BOOST_AUTO_TEST_CASE(unflatten_coupled_rotation_test) {
   BOOST_CHECK_SMALL((kappa_alpha - kappa_alpha_expected).norm(), 1e-10);
   BOOST_CHECK_SMALL((kappa_beta - kappa_beta_expected).norm(), 1e-10);
 }
+
 
 BOOST_AUTO_TEST_SUITE_END()

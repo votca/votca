@@ -22,6 +22,7 @@
 
 // Third party includes
 #include <boost/test/unit_test.hpp>
+#include <sstream>
 
 // Local VOTCA includes
 #include "votca/tools/eigenio_matrixmarket.h"
@@ -583,5 +584,6 @@ BOOST_AUTO_TEST_CASE(dft_cation) {
 
   libint2::finalize();
 }
+
 
 BOOST_AUTO_TEST_SUITE_END()
