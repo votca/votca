@@ -35,6 +35,19 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
     const AOBasis& aobasis);
 std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
     const AOBasis& auxbasis, const AOBasis& dftbasis);
+// Memory-efficient alternative to ComputeThreeCenterDerivatives above --
+// see that function's own header comment in libint2_derivative_calls.cc
+// for why this exists (the full-tensor version is catastrophically
+// memory-unscalable for anything beyond a small, toy-sized system).
+std::vector<Eigen::MatrixXd> ComputeThreeCenterDerivativeContraction(
+    const AOBasis& auxbasis, const AOBasis& dftbasis,
+    const Eigen::MatrixXd& density);
+// Per-atom alternative, for RIKGradient's own, different contraction
+// needs -- see that function's own header comment in
+// libint2_derivative_calls.cc for the full reasoning and the genuine
+// speed-for-memory trade-off this makes.
+ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
+    const AOBasis& auxbasis, const AOBasis& dftbasis, Index target_atom);
 std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
     const AOBasis& auxbasis, const AOBasis& dftbasis);
 
@@ -96,10 +109,20 @@ Eigen::MatrixXd DFTGradient::RIJGradient(const Eigen::MatrixXd& density,
   const Eigen::MatrixXd& V = aocoulomb.Matrix();
   Eigen::VectorXd c = V.ldlt().solve(d);
 
-  // Derivative tensors -- both already validated (finite-difference
-  // tested) in test_aoderivatives.cc.
-  std::vector<ThreeCenterDerivative> d3c =
-      ComputeThreeCenterDerivatives(auxbasis, dftbasis);
+  // Already-contracted against density (sum_{mu,nu} density(mu,nu) *
+  // d(mu,nu|p)/dR_a[xyz], not a per-(mu,nu) tensor) -- see this
+  // function's own header comment for why: the full-tensor
+  // ComputeThreeCenterDerivatives, previously used here, was confirmed
+  // to exhaust hundreds of GB of memory on a real, moderately-sized
+  // molecule (natoms*3*n_aux_bf separate, complete nao x nao matrices
+  // held simultaneously -- roughly 2.6 PETABYTES for a 53-atom, 943
+  // AO / 2320 auxiliary function system). ComputeThreeCenterDerivatives
+  // itself is left unchanged (still used, and still validated, by
+  // test_aoderivatives.cc and by RIKGradient below, which needs a
+  // genuinely different contraction of its own -- see that function's
+  // own comments).
+  std::vector<Eigen::MatrixXd> ddP_dR =
+      ComputeThreeCenterDerivativeContraction(auxbasis, dftbasis, density);
   std::vector<AOMatrixDerivative> dV =
       ComputeCoulombMetricDerivatives(auxbasis);
 
@@ -107,14 +130,13 @@ Eigen::MatrixXd DFTGradient::RIJGradient(const Eigen::MatrixXd& density,
   // d(d_P)/dR = sum_{mu,nu} P_{mu,nu} d(mu,nu|P)/dR (density held fixed --
   // see the "IMPORTANT" note on this function in dftgradient.h for why
   // that's valid regardless of whether density is a converged SCF
-  // density or an arbitrary fixed matrix).
+  // density or an arbitrary fixed matrix). ddP_dR[a](xyz, p) is exactly
+  // this quantity, already summed over mu,nu -- no further contraction
+  // against density needed here at all.
   Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
   for (Index a = 0; a < natoms; ++a) {
     for (Index xyz = 0; xyz < 3; ++xyz) {
-      double term1 = 0.0;
-      for (Index p = 0; p < n_aux_bf; ++p) {
-        term1 += c(p) * (density.array() * d3c[a][xyz][p].array()).sum();
-      }
+      double term1 = ddP_dR[a].row(xyz).dot(c);
       double term2 = 0.5 * c.dot(dV[a][xyz] * c);
       grad(a, xyz) = term1 - term2;
     }
@@ -137,8 +159,18 @@ Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
   const Eigen::MatrixXd& V = aocoulomb.Matrix();
   Eigen::LDLT<Eigen::MatrixXd> V_ldlt(V);
 
-  std::vector<ThreeCenterDerivative> d3c =
-      ComputeThreeCenterDerivatives(auxbasis, dftbasis);
+  // NOT computed upfront for all atoms at once, unlike the old
+  // approach -- see ComputeThreeCenterDerivativesForAtom's own header
+  // comment for why: even the per-atom version's own footprint
+  // (roughly 49.5 GB for the real, 53-atom/943-AO/2320-auxiliary
+  // system that originally motivated this whole fix) is too large to
+  // hold for every atom simultaneously. Computed instead inside the
+  // atom loop below, one atom at a time, going out of scope (and
+  // therefore being freed) before the next atom's own call -- at the
+  // real, genuine cost of re-evaluating the shell-triple integrals
+  // once per atom rather than once total (see that function's own
+  // comment for why this cannot be avoided: a single shell triple can
+  // contribute to up to three different atoms at once).
   std::vector<AOMatrixDerivative> dV =
       ComputeCoulombMetricDerivatives(auxbasis);
 
@@ -180,6 +212,8 @@ Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
   }
 
   for (Index a = 0; a < natoms; ++a) {
+    ThreeCenterDerivative d3c_atom =
+        ComputeThreeCenterDerivativesForAtom(auxbasis, dftbasis, a);
     for (Index xyz = 0; xyz < 3; ++xyz) {
       double energy_term = 0.0;
       double metric_term = 0.0;
@@ -189,7 +223,7 @@ Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
           Eigen::VectorXd dd(n_aux_bf);
           for (Index p = 0; p < n_aux_bf; ++p) {
             dd(p) =
-                occ_mo_coeffs.col(i).dot(d3c[a][xyz][p] * occ_mo_coeffs.col(j));
+                occ_mo_coeffs.col(i).dot(d3c_atom[xyz][p] * occ_mo_coeffs.col(j));
           }
           energy_term += c.dot(dd);
           metric_term += c.dot(dV[a][xyz] * c);
