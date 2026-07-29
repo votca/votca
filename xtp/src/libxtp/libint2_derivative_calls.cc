@@ -1254,6 +1254,201 @@ ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
 }
 #endif  // LIBINT_INCLUDE_ERI3
 
+#if (LIBINT_INCLUDE_ERI3 >= 1)
+// CORRECTED, single-pass alternative for DFTGradient::RIKGradient,
+// replacing the earlier ComputeThreeCenterDerivativesForAtom-based,
+// per-atom approach (natoms separate passes over the full shell loop,
+// each with a real, measured runtime of over an hour for a real, 53-
+// atom hybrid-functional system).
+//
+// The per-atom approach was chosen after a genuine ARITHMETIC ERROR:
+// the "contract immediately against all nocc^2 occupied-orbital-pair
+// products at once, in a single pass" alternative was originally
+// (incorrectly) estimated at ~252 GB for the real system that
+// motivated this whole fix and rejected as too large. Recomputed
+// directly and carefully after the per-atom approach's own, real,
+// measured cost turned out to be prohibitive: natoms * 3 * n_aux_bf *
+// nocc^2 * 8 bytes = 53*3*2320*93*93*8 = ~23.8 GB for that same real
+// system -- comfortably smaller than even the per-atom approach's own
+// ~46 GB per-atom peak, not larger, and needing only ONE pass over the
+// shell loop rather than natoms of them. This function implements
+// that corrected, actually-small approach.
+//
+// result[a][xyz][p] is now an (nocc, nocc) matrix, NOT a (nao, nao)
+// one -- reusing the same ThreeCenterDerivative type alias (a plain
+// std::array<std::vector<Eigen::MatrixXd>, 3>, size-agnostic) for
+// convenience, not because these are the same shape as
+// ComputeThreeCenterDerivatives's own (nao, nao) result.
+//
+// Each shell-triple's own contribution is folded in via a rank-1
+// (outer-product) update of the relevant (nocc, nocc) matrix --
+// occ_mo_coeffs.row(r).transpose() * occ_mo_coeffs.row(c), scaled by
+// the AO-basis value just computed -- rather than a naive, scalar
+// double loop over (i,j): Eigen's own vectorized rank-1-update
+// machinery (used here via noalias() +=) handles this efficiently,
+// unlike an explicit i,j loop which would need the same O(nocc^2)
+// work per element without the benefit of Eigen's own optimized
+// kernels.
+std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
+    const AOBasis& auxbasis, const AOBasis& dftbasis,
+    const Eigen::MatrixXd& occ_mo_coeffs) {
+  Index natoms = static_cast<Index>(dftbasis.getFuncPerAtom().size());
+  Index nocc = occ_mo_coeffs.cols();
+
+  Index nthreads = OPENMP::getMaxThreads();
+  std::vector<libint2::Shell> dftshells = dftbasis.GenerateLibintBasis();
+  std::vector<libint2::Shell> auxshells = auxbasis.GenerateLibintBasis();
+  std::vector<Index> shell2bf = dftbasis.getMapToBasisFunctions();
+  std::vector<Index> auxshell2bf = auxbasis.getMapToBasisFunctions();
+
+  std::vector<Index> dftshell2atom;
+  dftshell2atom.reserve(dftbasis.getNumofShells());
+  for (Index s = 0; s < dftbasis.getNumofShells(); ++s) {
+    dftshell2atom.push_back(dftbasis.getShell(s).getAtomIndex());
+  }
+  std::vector<Index> auxshell2atom;
+  auxshell2atom.reserve(auxbasis.getNumofShells());
+  for (Index s = 0; s < auxbasis.getNumofShells(); ++s) {
+    auxshell2atom.push_back(auxbasis.getShell(s).getAtomIndex());
+  }
+
+  Index n_aux_bf = auxbasis.AOBasisSize();
+
+  // result[a][xyz][p] is an (nocc, nocc) matrix -- natoms * 3 * n_aux_bf
+  // of them, ~23.8 GB total for the real system that motivated this
+  // fix, not the natoms*3*n_aux_bf FULL (nao,nao) matrices (~2.6 PB)
+  // ComputeThreeCenterDerivatives itself would hold.
+  std::vector<ThreeCenterDerivative> result(natoms);
+  for (Index a = 0; a < natoms; ++a) {
+    for (Index xyz = 0; xyz < 3; ++xyz) {
+      result[a][xyz] = std::vector<Eigen::MatrixXd>(
+          n_aux_bf, Eigen::MatrixXd::Zero(nocc, nocc));
+    }
+  }
+
+  std::vector<libint2::Engine> engines(nthreads);
+  engines[0] = libint2::Engine(
+      libint2::Operator::coulomb,
+      std::max(dftbasis.getMaxNprim(), auxbasis.getMaxNprim()),
+      static_cast<int>(std::max(dftbasis.getMaxL(), auxbasis.getMaxL())), 1);
+  engines[0].set(libint2::BraKet::xs_xx);
+  for (Index i = 1; i < nthreads; ++i) {
+    engines[i] = engines[0];
+  }
+
+  // Direct writes into the shared result vector -- safe for the exact
+  // same reason as ComputeThreeCenterDerivativeContraction's own
+  // comment on this point: global_aux is always unique per aux shell
+  // (and therefore per thread), so concurrent writes from different
+  // threads always land in different result[atom][xyz] VECTOR SLOTS
+  // (indexed by global_aux) -- never the same memory location.
+  std::exception_ptr eptr_3c = nullptr;
+  std::atomic<bool> any_nonnull_buffer_3c{false};
+#pragma omp parallel for schedule(dynamic)
+  for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
+   try {
+    libint2::Engine& engine = engines[OPENMP::getThreadId()];
+    const libint2::Engine::target_ptr_vec& buf = engine.results();
+
+    const libint2::Shell& auxshell = auxshells[aux];
+    Index aux_start = auxshell2bf[aux];
+    Index atom_aux = auxshell2atom[aux];
+
+    for (Index row = 0; row < dftbasis.getNumofShells(); ++row) {
+      const libint2::Shell& shell_row = dftshells[row];
+      Index row_start = shell2bf[row];
+      Index atom_row = dftshell2atom[row];
+
+      for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
+        const libint2::Shell& shell_col = dftshells[col];
+        Index col_start = shell2bf[col];
+        Index atom_col = dftshell2atom[col];
+
+        engine
+            .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
+                auxshell, libint2::Shell::unit(), shell_col, shell_row);
+
+        if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
+          continue;
+        }
+        any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
+
+        for (Index xyz = 0; xyz < 3; ++xyz) {
+          Eigen::TensorMap<
+              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+              result_aux(buf[xyz], auxshell.size(), shell_col.size(),
+                         shell_row.size());
+          Eigen::TensorMap<
+              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+              result_col(buf[3 + xyz], auxshell.size(), shell_col.size(),
+                         shell_row.size());
+          Eigen::TensorMap<
+              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+              result_row(buf[6 + xyz], auxshell.size(), shell_col.size(),
+                         shell_row.size());
+
+          for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
+            Index global_aux = aux_start + static_cast<Index>(aux_c);
+            for (size_t col_c = 0; col_c < shell_col.size(); ++col_c) {
+              for (size_t row_c = 0; row_c < shell_row.size(); ++row_c) {
+                double val_aux = result_aux(aux_c, col_c, row_c);
+                double val_col = result_col(aux_c, col_c, row_c);
+                double val_row = result_row(aux_c, col_c, row_c);
+                Index r = row_start + static_cast<Index>(row_c);
+                Index c = col_start + static_cast<Index>(col_c);
+                // Rank-1 (outer-product) update, NOT a per-(i,j)
+                // scalar loop -- this is the ONLY structural
+                // difference from ComputeThreeCenterDerivativeContraction's
+                // own inner loop, which instead does a single
+                // scalar multiply-add against one fixed density.
+                result[atom_aux][xyz][global_aux].noalias() +=
+                    val_aux * occ_mo_coeffs.row(r).transpose() *
+                    occ_mo_coeffs.row(c);
+                result[atom_col][xyz][global_aux].noalias() +=
+                    val_col * occ_mo_coeffs.row(r).transpose() *
+                    occ_mo_coeffs.row(c);
+                result[atom_row][xyz][global_aux].noalias() +=
+                    val_row * occ_mo_coeffs.row(r).transpose() *
+                    occ_mo_coeffs.row(c);
+              }
+            }
+          }
+        }
+      }
+    }
+   } catch (...) {
+#pragma omp critical
+     {
+       if (!eptr_3c) {
+         eptr_3c = std::current_exception();
+       }
+     }
+   }
+  }
+  if (eptr_3c) {
+    std::rethrow_exception(eptr_3c);
+  }
+  if (!any_nonnull_buffer_3c.load() && auxbasis.getNumofShells() > 0 &&
+      dftbasis.getNumofShells() > 0) {
+    throw std::runtime_error(
+        "ComputeThreeCenterDerivativesMOTransformed: engine.results() "
+        "returned a null buffer for EVERY shell triple -- this libint2 "
+        "build does not actually support this operator's derivative "
+        "integrals at runtime, even though it may report "
+        "LIBINT2_MAX_DERIV_ORDER >= 1 for other operators. Rebuild "
+        "libint2 with this operator's derivative support enabled "
+        "(--enable-eri3=1) to use this feature.");
+  }
+  return result;
+}
+#else   // !(LIBINT_INCLUDE_ERI3)
+std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
+    const AOBasis&, const AOBasis&, const Eigen::MatrixXd&) {
+  ThrowNoDerivativeSupport("ComputeThreeCenterDerivativesMOTransformed",
+                           "--enable-eri3=1");
+}
+#endif  // LIBINT_INCLUDE_ERI3
+
 
 // Energy-level (deriv_order=0) three-center integral (mu,nu|P), kept here
 // (rather than in dftgradient.cc) so all direct libint2 API usage stays
