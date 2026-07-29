@@ -471,6 +471,10 @@ void DFTEngine::ComputeAndStoreForces(
   const QMMolecule& mol = orb.QMAtoms();
   Index natoms = mol.size();
 
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Starting force calculation (" << natoms
+      << " atoms)" << std::flush;
+
   // One-electron (kinetic + nuclear attraction) contribution --
   // dEone/dR_A = Tr[Dmat . d(T+V_ne)/dR_A]. This was the piece
   // discovered MISSING from the total gradient by the first genuine
@@ -482,6 +486,9 @@ void DFTEngine::ComputeAndStoreForces(
   // libint2_derivative_calls.cc for the detailed derivation (sign
   // convention checked directly against AOMultipole's own,
   // already-validated energy-level code, not assumed).
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   Computing one-electron (kinetic + nuclear "
+                        "attraction) derivatives" << std::flush;
   std::vector<AOMatrixDerivative> dT = ComputeKineticDerivatives(dftbasis_);
   std::vector<AOMatrixDerivative> dVne =
       ComputeNuclearAttractionDerivatives(dftbasis_, mol);
@@ -491,6 +498,8 @@ void DFTEngine::ComputeAndStoreForces(
       eone_grad(a, xyz) = Dmat.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
     }
   }
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   One-electron derivatives done" << std::flush;
 
   // Overlap "Pulay force" -- a SECOND, genuinely distinct missing term,
   // found after the kinetic+nuclear-attraction fix improved but did not
@@ -523,6 +532,9 @@ void DFTEngine::ComputeAndStoreForces(
   Eigen::VectorXd eps_occ = orb.MOs().eigenvalues().head(n_occ);
   Eigen::MatrixXd W = 2.0 * C_occ * eps_occ.asDiagonal() * C_occ.transpose();
 
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   Computing overlap (Pulay) derivatives"
+      << std::flush;
   std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis_);
   Eigen::MatrixXd overlap_pulay_grad = Eigen::MatrixXd::Zero(natoms, 3);
   for (Index a = 0; a < natoms; ++a) {
@@ -530,12 +542,24 @@ void DFTEngine::ComputeAndStoreForces(
       overlap_pulay_grad(a, xyz) = -W.cwiseProduct(dS[a][xyz]).sum();
     }
   }
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   Overlap derivatives done" << std::flush;
 
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   Computing RI-J (Coulomb) gradient" << std::flush;
   Eigen::MatrixXd rij_term =
       DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_);
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   RI-J gradient done" << std::flush;
+
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   Computing XC grid (Pulay + weight) gradient terms"
+      << std::flush;
   Eigen::MatrixXd pulay_term = vxcpotential.PulayGradient(Dmat, dftbasis_);
   Eigen::MatrixXd weight_term = vxcpotential.GridWeightGradient(Dmat, mol);
   Eigen::MatrixXd nucrep_term = DFTGradient::NuclearRepulsionDerivative(mol);
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   XC grid gradient terms done" << std::flush;
 
   Eigen::MatrixXd grad = nucrep_term + eone_grad + overlap_pulay_grad +
                          rij_term + pulay_term + weight_term;
@@ -560,7 +584,16 @@ void DFTEngine::ComputeAndStoreForces(
   // limitation (hybrid functionals skipped entirely) -- see git history
   // for the full derivation/verification that led to this.
   if (ScaHFX_ > 0.0) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << "   Computing RI-K (exact exchange) gradient -- "
+                          "this re-evaluates the three-center derivative "
+                          "integrals once per atom (a deliberate memory-"
+                          "for-speed trade-off), so this is typically the "
+                          "single most expensive step in the whole force "
+                          "calculation" << std::flush;
     grad += ScaHFX_ * DFTGradient::RIKGradient(C_occ, auxbasis_, dftbasis_);
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << "   RI-K gradient done" << std::flush;
   }
 
   // Sanity check independent of the finite-difference tests already done
