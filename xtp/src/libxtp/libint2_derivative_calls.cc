@@ -1342,33 +1342,27 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
   // (and therefore per thread), so concurrent writes from different
   // threads always land in different result[atom][xyz] VECTOR SLOTS
   // (indexed by global_aux) -- never the same memory location.
-  Index max_shell_size = 0;
-  for (const libint2::Shell& s : dftshells) {
-    max_shell_size = std::max(max_shell_size, static_cast<Index>(s.size()));
-  }
-
   std::exception_ptr eptr_3c = nullptr;
   std::atomic<bool> any_nonnull_buffer_3c{false};
 #pragma omp parallel
   {
-    // Pre-allocated ONCE per thread, outside the hot shell-triple loop
-    // below, and reused across every iteration via .noalias()
-    // assignment (which writes into the existing buffer's own memory
-    // rather than allocating a new one) -- confirmed directly, from a
-    // real run, to matter: this function's own inner loop runs on the
-    // order of natoms*3 * (n_dft_shells^2) * (avg auxshell size)
-    // times (tens of millions, for the real system that motivated
-    // this whole fix), and allocating six fresh, small matrices on
-    // every single one of those iterations (as an earlier version of
-    // this function did) adds substantial heap-allocation overhead on
-    // top of the underlying arithmetic itself, independent of FLOP
-    // count. block_aux/col/row are sized at the largest possible
-    // shell pair up front and only ever read via .topLeftCorner(nrow,
-    // ncol) below -- never resized inside the loop, which would
-    // itself risk reallocating.
-    Eigen::MatrixXd block_aux(max_shell_size, max_shell_size);
-    Eigen::MatrixXd block_col(max_shell_size, max_shell_size);
-    Eigen::MatrixXd block_row(max_shell_size, max_shell_size);
+    // Reused across every iteration of the loop below via .noalias()
+    // (writing directly into this buffer's own memory, not allocating
+    // a fresh temporary for the matrix-multiply result) -- unlike
+    // block_aux/col/row just below, which are deliberately LEFT as
+    // exactly-sized, freshly-allocated matrices per iteration: an
+    // earlier attempt at this same optimization also reused
+    // block_aux/col/row via .topLeftCorner views into a larger,
+    // max-shell-size buffer, and this was confirmed, via a real run,
+    // to make things SLOWER, not faster (a regression, not a neutral
+    // change) -- almost certainly because a .topLeftCorner view has a
+    // non-contiguous memory stride whenever the actual shell is
+    // smaller than the buffer's own max size, hurting cache behavior
+    // and vectorization in the subsequent matrix multiply enough to
+    // outweigh the allocation savings. contrib_aux/col/row are always
+    // EXACTLY (nocc, nocc) -- never resized, so no striding concern
+    // applies to them at all, making them the safe part of that
+    // earlier, reverted optimization to keep.
     Eigen::MatrixXd contrib_aux(nocc, nocc);
     Eigen::MatrixXd contrib_col(nocc, nocc);
     Eigen::MatrixXd contrib_row(nocc, nocc);
@@ -1430,40 +1424,40 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
             Index global_aux = aux_start + static_cast<Index>(aux_c);
 
             // Extract this auxiliary function's own (nrow, ncol) raw
-            // block for each of the three terms, INTO the pre-
-            // allocated buffers above (via .topLeftCorner, never a
-            // fresh allocation), then contract against occ_mo_coeffs
-            // via TWO SMALL MATRIX MULTIPLICATIONS -- giving the full
-            // (nocc, nocc) contribution for this shell pair and
-            // auxiliary function in one shot, rather than nrow*ncol
-            // separate, full (nocc,nocc) rank-1 outer-product updates
-            // (the ORIGINAL version of this loop, confirmed directly,
-            // via a real run, to cost on the order of
-            // nao^2 * n_aux_bf * nocc^2 operations -- tens of
-            // trillions for the real system that motivated this whole
-            // fix).
-            auto block_aux_view = block_aux.topLeftCorner(nrow, ncol);
-            auto block_col_view = block_col.topLeftCorner(nrow, ncol);
-            auto block_row_view = block_row.topLeftCorner(nrow, ncol);
+            // block for each of the three terms, then contract against
+            // occ_mo_coeffs via TWO SMALL MATRIX MULTIPLICATIONS --
+            // giving the full (nocc, nocc) contribution for this shell
+            // pair and auxiliary function in one shot, rather than
+            // nrow*ncol separate, full (nocc,nocc) rank-1 outer-product
+            // updates (an earlier version of this loop, confirmed
+            // directly, via a real run, to cost on the order of
+            // nao^2 * n_aux_bf * nocc^2 operations -- tens of trillions
+            // for the real system that motivated this whole fix).
+            // block_aux/col/row deliberately fresh, exactly-sized
+            // allocations each iteration -- see this function's own
+            // header comment on contrib_aux/col/row above for why.
+            Eigen::MatrixXd block_aux(nrow, ncol);
+            Eigen::MatrixXd block_col(nrow, ncol);
+            Eigen::MatrixXd block_row(nrow, ncol);
             for (Index col_c = 0; col_c < ncol; ++col_c) {
               for (Index row_c = 0; row_c < nrow; ++row_c) {
-                block_aux_view(row_c, col_c) =
+                block_aux(row_c, col_c) =
                     result_aux(aux_c, static_cast<size_t>(col_c),
                               static_cast<size_t>(row_c));
-                block_col_view(row_c, col_c) =
+                block_col(row_c, col_c) =
                     result_col(aux_c, static_cast<size_t>(col_c),
                               static_cast<size_t>(row_c));
-                block_row_view(row_c, col_c) =
+                block_row(row_c, col_c) =
                     result_row(aux_c, static_cast<size_t>(col_c),
                               static_cast<size_t>(row_c));
               }
             }
             contrib_aux.noalias() =
-                mo_row_block.transpose() * block_aux_view * mo_col_block;
+                mo_row_block.transpose() * block_aux * mo_col_block;
             contrib_col.noalias() =
-                mo_row_block.transpose() * block_col_view * mo_col_block;
+                mo_row_block.transpose() * block_col * mo_col_block;
             contrib_row.noalias() =
-                mo_row_block.transpose() * block_row_view * mo_col_block;
+                mo_row_block.transpose() * block_row * mo_col_block;
             result[atom_aux][xyz][global_aux].noalias() += contrib_aux;
             result[atom_col][xyz][global_aux].noalias() += contrib_col;
             result[atom_row][xyz][global_aux].noalias() += contrib_row;
