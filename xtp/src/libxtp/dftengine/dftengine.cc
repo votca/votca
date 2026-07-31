@@ -915,14 +915,54 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     // requirement on the caller.
     HirshfeldPartition::Constraint constraint =
         BuildCDFTConstraint(orb.QMAtoms(), cdft_constraint_spec_);
+
+    // Suppresses the ordinary DFT force calculation during EVERY
+    // intermediate lambda-bisection trial inside RunCDFT (each of
+    // which internally calls EvaluateUKS, which would otherwise
+    // trigger the full, expensive ComputeAndStoreForcesUKS on each one
+    // -- confirmed directly, via a real run, to be a genuine,
+    // substantial waste: only the FINAL, converged lambda's own force
+    // is ever actually used). Restored unconditionally below,
+    // regardless of whether RunCDFT converges, so this never leaks a
+    // suppressed value back to the caller.
+    bool original_compute_forces = compute_forces_;
+    compute_forces_ = false;
     bool converged = RunCDFT(orb, constraint);
+    compute_forces_ = original_compute_forces;
+
+    if (converged && original_compute_forces) {
+      // ONE, explicit, final UKS evaluation to compute the ordinary
+      // DFT force for the now-converged, fixed CDFT density -- orb
+      // already holds the converged MOs from RunCDFT's own, final
+      // internal EvaluateUKS call, so this re-run starts from (and
+      // should remain at) that same fixed point, converging
+      // essentially immediately rather than as a fresh, cold SCF.
+      // Deliberately re-runs Prepare/SetupH0/SetupVxc/ConfigOrbfile
+      // (the same setup RunCDFT already did once, internally, at its
+      // own start) rather than threading H0/vxcpotential through
+      // RunCDFT's own signature to avoid this -- a real, accepted
+      // cost (this setup, not the SCF itself, is what gets redone),
+      // chosen specifically to avoid touching RunCDFT's own,
+      // already-validated signature/control flow at all.
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp()
+          << " CDFT converged -- computing the ordinary DFT force once, "
+             "for the final, converged density only"
+          << std::flush;
+      Prepare(orb);
+      Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
+      Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
+      ConfigOrbfile(orb);
+      EvaluateUKS(orb, H0, vxcpotential);
+    }
 
     if (converged && orb.hasForces()) {
-      // RunCDFT's own final EvaluateUKS call already computed and
-      // stored the ordinary DFT force (via ComputeAndStoreForcesUKS,
-      // triggered internally whenever compute_forces_ is also set) --
-      // this adds the CDFT-specific correction on top of it. Done
-      // HERE, once, after RunCDFT's outer loop has fully converged --
+      // The explicit, final EvaluateUKS call just above (not RunCDFT's
+      // own, internal ones, which now have forces suppressed -- see
+      // the comment on original_compute_forces above) computed and
+      // stored the ordinary DFT force; this adds the CDFT-specific
+      // correction on top of it. Done HERE, once, after RunCDFT's
+      // outer loop has fully converged --
       // deliberately NOT inside ComputeAndStoreForcesUKS itself (which
       // would otherwise redo this work, wastefully and riskily, at
       // EVERY outer CDFT iteration, since RunCDFT calls EvaluateUKS
