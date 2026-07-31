@@ -585,12 +585,8 @@ void DFTEngine::ComputeAndStoreForces(
   // for the full derivation/verification that led to this.
   if (ScaHFX_ > 0.0) {
     XTP_LOG(Log::error, *pLog_)
-        << TimeStamp() << "   Computing RI-K (exact exchange) gradient -- "
-                          "this re-evaluates the three-center derivative "
-                          "integrals once per atom (a deliberate memory-"
-                          "for-speed trade-off), so this is typically the "
-                          "single most expensive step in the whole force "
-                          "calculation" << std::flush;
+        << TimeStamp() << "   Computing RI-K (exact exchange) gradient"
+        << std::flush;
     grad += ScaHFX_ * DFTGradient::RIKGradient(C_occ, auxbasis_, dftbasis_);
     XTP_LOG(Log::error, *pLog_)
         << TimeStamp() << "   RI-K gradient done" << std::flush;

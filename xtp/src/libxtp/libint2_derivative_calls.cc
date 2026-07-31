@@ -1373,6 +1373,16 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
         }
         any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
 
+        // The relevant row-slices of occ_mo_coeffs for this shell pair
+        // -- sliced once per shell pair, reused for every auxiliary
+        // function and Cartesian direction within it.
+        Index nrow = static_cast<Index>(shell_row.size());
+        Index ncol = static_cast<Index>(shell_col.size());
+        Eigen::MatrixXd mo_row_block =
+            occ_mo_coeffs.middleRows(row_start, nrow);
+        Eigen::MatrixXd mo_col_block =
+            occ_mo_coeffs.middleRows(col_start, ncol);
+
         for (Index xyz = 0; xyz < 3; ++xyz) {
           Eigen::TensorMap<
               Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
@@ -1389,29 +1399,43 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
 
           for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
             Index global_aux = aux_start + static_cast<Index>(aux_c);
-            for (size_t col_c = 0; col_c < shell_col.size(); ++col_c) {
-              for (size_t row_c = 0; row_c < shell_row.size(); ++row_c) {
-                double val_aux = result_aux(aux_c, col_c, row_c);
-                double val_col = result_col(aux_c, col_c, row_c);
-                double val_row = result_row(aux_c, col_c, row_c);
-                Index r = row_start + static_cast<Index>(row_c);
-                Index c = col_start + static_cast<Index>(col_c);
-                // Rank-1 (outer-product) update, NOT a per-(i,j)
-                // scalar loop -- this is the ONLY structural
-                // difference from ComputeThreeCenterDerivativeContraction's
-                // own inner loop, which instead does a single
-                // scalar multiply-add against one fixed density.
-                result[atom_aux][xyz][global_aux].noalias() +=
-                    val_aux * occ_mo_coeffs.row(r).transpose() *
-                    occ_mo_coeffs.row(c);
-                result[atom_col][xyz][global_aux].noalias() +=
-                    val_col * occ_mo_coeffs.row(r).transpose() *
-                    occ_mo_coeffs.row(c);
-                result[atom_row][xyz][global_aux].noalias() +=
-                    val_row * occ_mo_coeffs.row(r).transpose() *
-                    occ_mo_coeffs.row(c);
+
+            // CORRECTED (see this function's own header comment):
+            // extract this auxiliary function's own (nrow, ncol) raw
+            // block for each of the three terms, then contract against
+            // occ_mo_coeffs via TWO SMALL MATRIX MULTIPLICATIONS --
+            // giving the full (nocc, nocc) contribution for this shell
+            // pair and auxiliary function in one shot, rather than
+            // nrow*ncol separate, full (nocc,nocc) rank-1 outer-product
+            // updates (the ORIGINAL version of this loop, confirmed
+            // directly, via a real run, to cost on the order of
+            // nao^2 * n_aux_bf * nocc^2 operations -- tens of trillions
+            // for the real system that motivated this whole fix, and
+            // the actual, real cause of a >50 minute runtime even
+            // though the OUTER shell-triple loop itself is already a
+            // single pass, not a per-atom one).
+            Eigen::MatrixXd block_aux(nrow, ncol);
+            Eigen::MatrixXd block_col(nrow, ncol);
+            Eigen::MatrixXd block_row(nrow, ncol);
+            for (Index col_c = 0; col_c < ncol; ++col_c) {
+              for (Index row_c = 0; row_c < nrow; ++row_c) {
+                block_aux(row_c, col_c) =
+                    result_aux(aux_c, static_cast<size_t>(col_c),
+                              static_cast<size_t>(row_c));
+                block_col(row_c, col_c) =
+                    result_col(aux_c, static_cast<size_t>(col_c),
+                              static_cast<size_t>(row_c));
+                block_row(row_c, col_c) =
+                    result_row(aux_c, static_cast<size_t>(col_c),
+                              static_cast<size_t>(row_c));
               }
             }
+            result[atom_aux][xyz][global_aux].noalias() +=
+                mo_row_block.transpose() * block_aux * mo_col_block;
+            result[atom_col][xyz][global_aux].noalias() +=
+                mo_row_block.transpose() * block_col * mo_col_block;
+            result[atom_row][xyz][global_aux].noalias() +=
+                mo_row_block.transpose() * block_row * mo_col_block;
           }
         }
       }
