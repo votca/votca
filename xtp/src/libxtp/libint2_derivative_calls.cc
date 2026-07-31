@@ -1344,30 +1344,7 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
   // (indexed by global_aux) -- never the same memory location.
   std::exception_ptr eptr_3c = nullptr;
   std::atomic<bool> any_nonnull_buffer_3c{false};
-#pragma omp parallel
-  {
-    // Reused across every iteration of the loop below via .noalias()
-    // (writing directly into this buffer's own memory, not allocating
-    // a fresh temporary for the matrix-multiply result) -- unlike
-    // block_aux/col/row just below, which are deliberately LEFT as
-    // exactly-sized, freshly-allocated matrices per iteration: an
-    // earlier attempt at this same optimization also reused
-    // block_aux/col/row via .topLeftCorner views into a larger,
-    // max-shell-size buffer, and this was confirmed, via a real run,
-    // to make things SLOWER, not faster (a regression, not a neutral
-    // change) -- almost certainly because a .topLeftCorner view has a
-    // non-contiguous memory stride whenever the actual shell is
-    // smaller than the buffer's own max size, hurting cache behavior
-    // and vectorization in the subsequent matrix multiply enough to
-    // outweigh the allocation savings. contrib_aux/col/row are always
-    // EXACTLY (nocc, nocc) -- never resized, so no striding concern
-    // applies to them at all, making them the safe part of that
-    // earlier, reverted optimization to keep.
-    Eigen::MatrixXd contrib_aux(nocc, nocc);
-    Eigen::MatrixXd contrib_col(nocc, nocc);
-    Eigen::MatrixXd contrib_row(nocc, nocc);
-
-#pragma omp for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
   for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
    try {
     libint2::Engine& engine = engines[OPENMP::getThreadId()];
@@ -1423,19 +1400,20 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
           for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
             Index global_aux = aux_start + static_cast<Index>(aux_c);
 
-            // Extract this auxiliary function's own (nrow, ncol) raw
+            // CORRECTED (see this function's own header comment):
+            // extract this auxiliary function's own (nrow, ncol) raw
             // block for each of the three terms, then contract against
             // occ_mo_coeffs via TWO SMALL MATRIX MULTIPLICATIONS --
             // giving the full (nocc, nocc) contribution for this shell
             // pair and auxiliary function in one shot, rather than
             // nrow*ncol separate, full (nocc,nocc) rank-1 outer-product
-            // updates (an earlier version of this loop, confirmed
+            // updates (the ORIGINAL version of this loop, confirmed
             // directly, via a real run, to cost on the order of
             // nao^2 * n_aux_bf * nocc^2 operations -- tens of trillions
-            // for the real system that motivated this whole fix).
-            // block_aux/col/row deliberately fresh, exactly-sized
-            // allocations each iteration -- see this function's own
-            // header comment on contrib_aux/col/row above for why.
+            // for the real system that motivated this whole fix, and
+            // the actual, real cause of a >50 minute runtime even
+            // though the OUTER shell-triple loop itself is already a
+            // single pass, not a per-atom one).
             Eigen::MatrixXd block_aux(nrow, ncol);
             Eigen::MatrixXd block_col(nrow, ncol);
             Eigen::MatrixXd block_row(nrow, ncol);
@@ -1452,15 +1430,12 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
                               static_cast<size_t>(row_c));
               }
             }
-            contrib_aux.noalias() =
+            result[atom_aux][xyz][global_aux].noalias() +=
                 mo_row_block.transpose() * block_aux * mo_col_block;
-            contrib_col.noalias() =
+            result[atom_col][xyz][global_aux].noalias() +=
                 mo_row_block.transpose() * block_col * mo_col_block;
-            contrib_row.noalias() =
+            result[atom_row][xyz][global_aux].noalias() +=
                 mo_row_block.transpose() * block_row * mo_col_block;
-            result[atom_aux][xyz][global_aux].noalias() += contrib_aux;
-            result[atom_col][xyz][global_aux].noalias() += contrib_col;
-            result[atom_row][xyz][global_aux].noalias() += contrib_row;
           }
         }
       }
@@ -1473,7 +1448,6 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
        }
      }
    }
-  }
   }
   if (eptr_3c) {
     std::rethrow_exception(eptr_3c);
