@@ -201,6 +201,8 @@ void DFTEngine::Initialize(tools::Property& options) {
         options.get(key_xtpdft + ".cdft.max_iterations").as<Index>();
     cdft_population_tolerance_ =
         options.get(key_xtpdft + ".cdft.population_tolerance").as<double>();
+    cdft_constraint_spec_.guess_strategy =
+        options.get(key_xtpdft + ".cdft.guess_strategy").as<std::string>();
     // Note: CDFT itself needs no derivative integral at all (it only
     // ever builds ENERGY-level quantities -- reference densities,
     // weight matrices, Fock-matrix potentials -- never the
@@ -282,6 +284,8 @@ void DFTEngine::Initialize(tools::Property& options) {
       options.get(key_xtpdft + ".convergence.DIIS_start").as<double>();
   conv_opt_.adiis_start =
       options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
+  conv_opt_.davidson_max_iter =
+      options.get(key_xtpdft + ".convergence.davidson_max_iter").as<Index>();
 
   if (options.exists(key_xtpdft + ".dft_in_dft.activeatoms")) {
     active_atoms_as_string_ =
@@ -1069,13 +1073,26 @@ bool DFTEngine::RunCDFT(Orbitals& orb,
 
   auto EvaluateMismatch = [&](double lambda) -> double {
     constraints_[0].lambda = lambda;
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " CDFT: starting inner SCF at lambda=" << lambda
+        << std::flush;
     bool scf_converged = EvaluateUKS(orb, H0, vxcpotential);
     if (!scf_converged) {
       throw std::runtime_error(
           "RunCDFT: inner SCF did not converge at lambda=" +
           std::to_string(lambda));
     }
-    initial_guess_ = "orbfile";  // warm start every subsequent call
+    if (cdft_constraint_spec_.guess_strategy == "warmstart") {
+      initial_guess_ = "orbfile";  // warm start every subsequent call
+    }
+    // "fresh": deliberately leave initial_guess_ untouched here, so it
+    // stays at whatever the calculation's own, original, top-level
+    // setting was for every trial -- see this option's own XML help
+    // text (dftpackage.xml) for why this can matter: if consecutive
+    // lambda trials correspond to substantially different electronic
+    // structures, warm-starting from the immediately preceding trial's
+    // own converged density could be a worse starting point than a
+    // fresh guess, not a better one.
     std::array<Eigen::MatrixXd, 2> Dspin =
         orb.DensityMatrixGroundStateSpinResolved();
     double population =
