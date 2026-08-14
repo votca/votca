@@ -5,7 +5,8 @@ from contextlib import redirect_stdout, redirect_stderr
 
 
 def capture_standard_output(function, *args, **kwargs):
-    """Capture standard output and standard error of a given function.
+    """
+    Capture standard output and standard error of a given function.
 
     If `function` raises, the output captured up to that point is
     printed directly (to the real, un-redirected stderr) before the

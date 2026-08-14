@@ -934,8 +934,8 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterDerivativeContraction(
   // auxiliary function index p -- the already-contracted
   // sum_{mu,nu} density(mu,nu) * d(mu,nu|p)/dR_a[xyz], not a per-(mu,nu)
   // tensor at all.
-  std::vector<Eigen::MatrixXd> result(
-      natoms, Eigen::MatrixXd::Zero(3, n_aux_bf));
+  std::vector<Eigen::MatrixXd> result(natoms,
+                                      Eigen::MatrixXd::Zero(3, n_aux_bf));
 
   std::vector<libint2::Engine> engines(nthreads);
   engines[0] = libint2::Engine(
@@ -960,80 +960,80 @@ std::vector<Eigen::MatrixXd> ComputeThreeCenterDerivativeContraction(
   std::atomic<bool> any_nonnull_buffer_3c{false};
 #pragma omp parallel for schedule(dynamic)
   for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
-   try {
-    libint2::Engine& engine = engines[OPENMP::getThreadId()];
-    const libint2::Engine::target_ptr_vec& buf = engine.results();
+    try {
+      libint2::Engine& engine = engines[OPENMP::getThreadId()];
+      const libint2::Engine::target_ptr_vec& buf = engine.results();
 
-    const libint2::Shell& auxshell = auxshells[aux];
-    Index aux_start = auxshell2bf[aux];
-    Index atom_aux = auxshell2atom[aux];
+      const libint2::Shell& auxshell = auxshells[aux];
+      Index aux_start = auxshell2bf[aux];
+      Index atom_aux = auxshell2atom[aux];
 
-    for (Index row = 0; row < dftbasis.getNumofShells(); ++row) {
-      const libint2::Shell& shell_row = dftshells[row];
-      Index row_start = shell2bf[row];
-      Index atom_row = dftshell2atom[row];
+      for (Index row = 0; row < dftbasis.getNumofShells(); ++row) {
+        const libint2::Shell& shell_row = dftshells[row];
+        Index row_start = shell2bf[row];
+        Index atom_row = dftshell2atom[row];
 
-      for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
-        const libint2::Shell& shell_col = dftshells[col];
-        Index col_start = shell2bf[col];
-        Index atom_col = dftshell2atom[col];
+        for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
+          const libint2::Shell& shell_col = dftshells[col];
+          Index col_start = shell2bf[col];
+          Index atom_col = dftshell2atom[col];
 
-        engine
-            .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
-                auxshell, libint2::Shell::unit(), shell_col, shell_row);
+          engine
+              .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
+                  auxshell, libint2::Shell::unit(), shell_col, shell_row);
 
-        if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
-          continue;
-        }
-        any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
+          if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
+            continue;
+          }
+          any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
 
-        for (Index xyz = 0; xyz < 3; ++xyz) {
-          Eigen::TensorMap<
-              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-              result_aux(buf[xyz], auxshell.size(), shell_col.size(),
-                         shell_row.size());
-          Eigen::TensorMap<
-              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-              result_col(buf[3 + xyz], auxshell.size(), shell_col.size(),
-                         shell_row.size());
-          Eigen::TensorMap<
-              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-              result_row(buf[6 + xyz], auxshell.size(), shell_col.size(),
-                         shell_row.size());
+          for (Index xyz = 0; xyz < 3; ++xyz) {
+            Eigen::TensorMap<
+                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                result_aux(buf[xyz], auxshell.size(), shell_col.size(),
+                           shell_row.size());
+            Eigen::TensorMap<
+                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                result_col(buf[3 + xyz], auxshell.size(), shell_col.size(),
+                           shell_row.size());
+            Eigen::TensorMap<
+                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                result_row(buf[6 + xyz], auxshell.size(), shell_col.size(),
+                           shell_row.size());
 
-          for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
-            Index global_aux = aux_start + static_cast<Index>(aux_c);
-            for (size_t col_c = 0; col_c < shell_col.size(); ++col_c) {
-              for (size_t row_c = 0; row_c < shell_row.size(); ++row_c) {
-                double val_aux = result_aux(aux_c, col_c, row_c);
-                double val_col = result_col(aux_c, col_c, row_c);
-                double val_row = result_row(aux_c, col_c, row_c);
-                Index r = row_start + static_cast<Index>(row_c);
-                Index c = col_start + static_cast<Index>(col_c);
-                // Immediate contraction against density, at exactly
-                // the (r, c) element just computed -- this is the
-                // ONLY structural difference from
-                // ComputeThreeCenterDerivatives's own inner loop,
-                // which instead scatters val_aux/val_col/val_row into
-                // a full, retained nao x nao matrix here.
-                double d_rc = density(r, c);
-                result[atom_aux](xyz, global_aux) += d_rc * val_aux;
-                result[atom_col](xyz, global_aux) += d_rc * val_col;
-                result[atom_row](xyz, global_aux) += d_rc * val_row;
+            for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
+              Index global_aux = aux_start + static_cast<Index>(aux_c);
+              for (size_t col_c = 0; col_c < shell_col.size(); ++col_c) {
+                for (size_t row_c = 0; row_c < shell_row.size(); ++row_c) {
+                  double val_aux = result_aux(aux_c, col_c, row_c);
+                  double val_col = result_col(aux_c, col_c, row_c);
+                  double val_row = result_row(aux_c, col_c, row_c);
+                  Index r = row_start + static_cast<Index>(row_c);
+                  Index c = col_start + static_cast<Index>(col_c);
+                  // Immediate contraction against density, at exactly
+                  // the (r, c) element just computed -- this is the
+                  // ONLY structural difference from
+                  // ComputeThreeCenterDerivatives's own inner loop,
+                  // which instead scatters val_aux/val_col/val_row into
+                  // a full, retained nao x nao matrix here.
+                  double d_rc = density(r, c);
+                  result[atom_aux](xyz, global_aux) += d_rc * val_aux;
+                  result[atom_col](xyz, global_aux) += d_rc * val_col;
+                  result[atom_row](xyz, global_aux) += d_rc * val_row;
+                }
               }
             }
           }
         }
       }
-    }
-   } catch (...) {
+    } catch (...) {
 #pragma omp critical
-     {
-       if (!eptr_3c) {
-         eptr_3c = std::current_exception();
-       }
-     }
-   }
+      {
+        if (!eptr_3c) {
+          eptr_3c = std::current_exception();
+        }
+      }
+    }
   }
   if (eptr_3c) {
     std::rethrow_exception(eptr_3c);
@@ -1140,95 +1140,95 @@ ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
   std::atomic<bool> any_nonnull_buffer_3c{false};
 #pragma omp parallel for schedule(dynamic)
   for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
-   try {
-    libint2::Engine& engine = engines[OPENMP::getThreadId()];
-    const libint2::Engine::target_ptr_vec& buf = engine.results();
+    try {
+      libint2::Engine& engine = engines[OPENMP::getThreadId()];
+      const libint2::Engine::target_ptr_vec& buf = engine.results();
 
-    const libint2::Shell& auxshell = auxshells[aux];
-    Index aux_start = auxshell2bf[aux];
-    Index atom_aux = auxshell2atom[aux];
+      const libint2::Shell& auxshell = auxshells[aux];
+      Index aux_start = auxshell2bf[aux];
+      Index atom_aux = auxshell2atom[aux];
 
-    for (Index row = 0; row < dftbasis.getNumofShells(); ++row) {
-      const libint2::Shell& shell_row = dftshells[row];
-      Index row_start = shell2bf[row];
-      Index atom_row = dftshell2atom[row];
+      for (Index row = 0; row < dftbasis.getNumofShells(); ++row) {
+        const libint2::Shell& shell_row = dftshells[row];
+        Index row_start = shell2bf[row];
+        Index atom_row = dftshell2atom[row];
 
-      for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
-        const libint2::Shell& shell_col = dftshells[col];
-        Index col_start = shell2bf[col];
-        Index atom_col = dftshell2atom[col];
+        for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
+          const libint2::Shell& shell_col = dftshells[col];
+          Index col_start = shell2bf[col];
+          Index atom_col = dftshell2atom[col];
 
-        // Skip entirely if none of the three shells in this triple are
-        // even centered on the target atom -- this triple contributes
-        // nothing to this atom's own result at all, so there is no
-        // need to run the (still genuinely expensive) integral
-        // evaluation itself.
-        if (atom_aux != target_atom && atom_col != target_atom &&
-            atom_row != target_atom) {
-          continue;
-        }
+          // Skip entirely if none of the three shells in this triple are
+          // even centered on the target atom -- this triple contributes
+          // nothing to this atom's own result at all, so there is no
+          // need to run the (still genuinely expensive) integral
+          // evaluation itself.
+          if (atom_aux != target_atom && atom_col != target_atom &&
+              atom_row != target_atom) {
+            continue;
+          }
 
-        engine
-            .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
-                auxshell, libint2::Shell::unit(), shell_col, shell_row);
+          engine
+              .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
+                  auxshell, libint2::Shell::unit(), shell_col, shell_row);
 
-        if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
-          continue;
-        }
-        any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
+          if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
+            continue;
+          }
+          any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
 
-        for (Index xyz = 0; xyz < 3; ++xyz) {
-          Eigen::TensorMap<
-              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-              result_aux(buf[xyz], auxshell.size(), shell_col.size(),
-                         shell_row.size());
-          Eigen::TensorMap<
-              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-              result_col(buf[3 + xyz], auxshell.size(), shell_col.size(),
-                         shell_row.size());
-          Eigen::TensorMap<
-              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-              result_row(buf[6 + xyz], auxshell.size(), shell_col.size(),
-                         shell_row.size());
+          for (Index xyz = 0; xyz < 3; ++xyz) {
+            Eigen::TensorMap<
+                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                result_aux(buf[xyz], auxshell.size(), shell_col.size(),
+                           shell_row.size());
+            Eigen::TensorMap<
+                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                result_col(buf[3 + xyz], auxshell.size(), shell_col.size(),
+                           shell_row.size());
+            Eigen::TensorMap<
+                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                result_row(buf[6 + xyz], auxshell.size(), shell_col.size(),
+                           shell_row.size());
 
-          for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
-            Index global_aux = aux_start + static_cast<Index>(aux_c);
-            for (size_t col_c = 0; col_c < shell_col.size(); ++col_c) {
-              for (size_t row_c = 0; row_c < shell_row.size(); ++row_c) {
-                Index r = row_start + static_cast<Index>(row_c);
-                Index c = col_start + static_cast<Index>(col_c);
-                // Only accumulate the term(s) whose own atom center
-                // actually matches target_atom -- e.g. if atom_aux ==
-                // target_atom but atom_col/atom_row do not, only
-                // val_aux contributes to this atom's own result; the
-                // other two terms belong to OTHER atoms' own results,
-                // which this call does not compute or return at all.
-                if (atom_aux == target_atom) {
-                  result[xyz][global_aux](r, c) +=
-                      result_aux(aux_c, col_c, row_c);
-                }
-                if (atom_col == target_atom) {
-                  result[xyz][global_aux](r, c) +=
-                      result_col(aux_c, col_c, row_c);
-                }
-                if (atom_row == target_atom) {
-                  result[xyz][global_aux](r, c) +=
-                      result_row(aux_c, col_c, row_c);
+            for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
+              Index global_aux = aux_start + static_cast<Index>(aux_c);
+              for (size_t col_c = 0; col_c < shell_col.size(); ++col_c) {
+                for (size_t row_c = 0; row_c < shell_row.size(); ++row_c) {
+                  Index r = row_start + static_cast<Index>(row_c);
+                  Index c = col_start + static_cast<Index>(col_c);
+                  // Only accumulate the term(s) whose own atom center
+                  // actually matches target_atom -- e.g. if atom_aux ==
+                  // target_atom but atom_col/atom_row do not, only
+                  // val_aux contributes to this atom's own result; the
+                  // other two terms belong to OTHER atoms' own results,
+                  // which this call does not compute or return at all.
+                  if (atom_aux == target_atom) {
+                    result[xyz][global_aux](r, c) +=
+                        result_aux(aux_c, col_c, row_c);
+                  }
+                  if (atom_col == target_atom) {
+                    result[xyz][global_aux](r, c) +=
+                        result_col(aux_c, col_c, row_c);
+                  }
+                  if (atom_row == target_atom) {
+                    result[xyz][global_aux](r, c) +=
+                        result_row(aux_c, col_c, row_c);
+                  }
                 }
               }
             }
           }
         }
       }
-    }
-   } catch (...) {
+    } catch (...) {
 #pragma omp critical
-     {
-       if (!eptr_3c) {
-         eptr_3c = std::current_exception();
-       }
-     }
-   }
+      {
+        if (!eptr_3c) {
+          eptr_3c = std::current_exception();
+        }
+      }
+    }
   }
   if (eptr_3c) {
     std::rethrow_exception(eptr_3c);
@@ -1247,8 +1247,9 @@ ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
   return result;
 }
 #else   // !(LIBINT_INCLUDE_ERI3)
-ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
-    const AOBasis&, const AOBasis&, Index) {
+ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(const AOBasis&,
+                                                           const AOBasis&,
+                                                           Index) {
   ThrowNoDerivativeSupport("ComputeThreeCenterDerivativesForAtom",
                            "--enable-eri3=1");
 }
@@ -1346,108 +1347,108 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
   std::atomic<bool> any_nonnull_buffer_3c{false};
 #pragma omp parallel for schedule(dynamic)
   for (Index aux = 0; aux < auxbasis.getNumofShells(); ++aux) {
-   try {
-    libint2::Engine& engine = engines[OPENMP::getThreadId()];
-    const libint2::Engine::target_ptr_vec& buf = engine.results();
+    try {
+      libint2::Engine& engine = engines[OPENMP::getThreadId()];
+      const libint2::Engine::target_ptr_vec& buf = engine.results();
 
-    const libint2::Shell& auxshell = auxshells[aux];
-    Index aux_start = auxshell2bf[aux];
-    Index atom_aux = auxshell2atom[aux];
+      const libint2::Shell& auxshell = auxshells[aux];
+      Index aux_start = auxshell2bf[aux];
+      Index atom_aux = auxshell2atom[aux];
 
-    for (Index row = 0; row < dftbasis.getNumofShells(); ++row) {
-      const libint2::Shell& shell_row = dftshells[row];
-      Index row_start = shell2bf[row];
-      Index atom_row = dftshell2atom[row];
+      for (Index row = 0; row < dftbasis.getNumofShells(); ++row) {
+        const libint2::Shell& shell_row = dftshells[row];
+        Index row_start = shell2bf[row];
+        Index atom_row = dftshell2atom[row];
 
-      for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
-        const libint2::Shell& shell_col = dftshells[col];
-        Index col_start = shell2bf[col];
-        Index atom_col = dftshell2atom[col];
+        for (Index col = 0; col < dftbasis.getNumofShells(); ++col) {
+          const libint2::Shell& shell_col = dftshells[col];
+          Index col_start = shell2bf[col];
+          Index atom_col = dftshell2atom[col];
 
-        engine
-            .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
-                auxshell, libint2::Shell::unit(), shell_col, shell_row);
+          engine
+              .compute2<libint2::Operator::coulomb, libint2::BraKet::xs_xx, 1>(
+                  auxshell, libint2::Shell::unit(), shell_col, shell_row);
 
-        if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
-          continue;
-        }
-        any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
+          if (buf[0] == nullptr || buf[3] == nullptr || buf[6] == nullptr) {
+            continue;
+          }
+          any_nonnull_buffer_3c.store(true, std::memory_order_relaxed);
 
-        // The relevant row-slices of occ_mo_coeffs for this shell pair
-        // -- sliced once per shell pair, reused for every auxiliary
-        // function and Cartesian direction within it.
-        Index nrow = static_cast<Index>(shell_row.size());
-        Index ncol = static_cast<Index>(shell_col.size());
-        Eigen::MatrixXd mo_row_block =
-            occ_mo_coeffs.middleRows(row_start, nrow);
-        Eigen::MatrixXd mo_col_block =
-            occ_mo_coeffs.middleRows(col_start, ncol);
+          // The relevant row-slices of occ_mo_coeffs for this shell pair
+          // -- sliced once per shell pair, reused for every auxiliary
+          // function and Cartesian direction within it.
+          Index nrow = static_cast<Index>(shell_row.size());
+          Index ncol = static_cast<Index>(shell_col.size());
+          Eigen::MatrixXd mo_row_block =
+              occ_mo_coeffs.middleRows(row_start, nrow);
+          Eigen::MatrixXd mo_col_block =
+              occ_mo_coeffs.middleRows(col_start, ncol);
 
-        for (Index xyz = 0; xyz < 3; ++xyz) {
-          Eigen::TensorMap<
-              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-              result_aux(buf[xyz], auxshell.size(), shell_col.size(),
-                         shell_row.size());
-          Eigen::TensorMap<
-              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-              result_col(buf[3 + xyz], auxshell.size(), shell_col.size(),
-                         shell_row.size());
-          Eigen::TensorMap<
-              Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
-              result_row(buf[6 + xyz], auxshell.size(), shell_col.size(),
-                         shell_row.size());
+          for (Index xyz = 0; xyz < 3; ++xyz) {
+            Eigen::TensorMap<
+                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                result_aux(buf[xyz], auxshell.size(), shell_col.size(),
+                           shell_row.size());
+            Eigen::TensorMap<
+                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                result_col(buf[3 + xyz], auxshell.size(), shell_col.size(),
+                           shell_row.size());
+            Eigen::TensorMap<
+                Eigen::Tensor<const double, 3, Eigen::RowMajor> const>
+                result_row(buf[6 + xyz], auxshell.size(), shell_col.size(),
+                           shell_row.size());
 
-          for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
-            Index global_aux = aux_start + static_cast<Index>(aux_c);
+            for (size_t aux_c = 0; aux_c < auxshell.size(); ++aux_c) {
+              Index global_aux = aux_start + static_cast<Index>(aux_c);
 
-            // CORRECTED (see this function's own header comment):
-            // extract this auxiliary function's own (nrow, ncol) raw
-            // block for each of the three terms, then contract against
-            // occ_mo_coeffs via TWO SMALL MATRIX MULTIPLICATIONS --
-            // giving the full (nocc, nocc) contribution for this shell
-            // pair and auxiliary function in one shot, rather than
-            // nrow*ncol separate, full (nocc,nocc) rank-1 outer-product
-            // updates (the ORIGINAL version of this loop, confirmed
-            // directly, via a real run, to cost on the order of
-            // nao^2 * n_aux_bf * nocc^2 operations -- tens of trillions
-            // for the real system that motivated this whole fix, and
-            // the actual, real cause of a >50 minute runtime even
-            // though the OUTER shell-triple loop itself is already a
-            // single pass, not a per-atom one).
-            Eigen::MatrixXd block_aux(nrow, ncol);
-            Eigen::MatrixXd block_col(nrow, ncol);
-            Eigen::MatrixXd block_row(nrow, ncol);
-            for (Index col_c = 0; col_c < ncol; ++col_c) {
-              for (Index row_c = 0; row_c < nrow; ++row_c) {
-                block_aux(row_c, col_c) =
-                    result_aux(aux_c, static_cast<size_t>(col_c),
-                              static_cast<size_t>(row_c));
-                block_col(row_c, col_c) =
-                    result_col(aux_c, static_cast<size_t>(col_c),
-                              static_cast<size_t>(row_c));
-                block_row(row_c, col_c) =
-                    result_row(aux_c, static_cast<size_t>(col_c),
-                              static_cast<size_t>(row_c));
+              // CORRECTED (see this function's own header comment):
+              // extract this auxiliary function's own (nrow, ncol) raw
+              // block for each of the three terms, then contract against
+              // occ_mo_coeffs via TWO SMALL MATRIX MULTIPLICATIONS --
+              // giving the full (nocc, nocc) contribution for this shell
+              // pair and auxiliary function in one shot, rather than
+              // nrow*ncol separate, full (nocc,nocc) rank-1 outer-product
+              // updates (the ORIGINAL version of this loop, confirmed
+              // directly, via a real run, to cost on the order of
+              // nao^2 * n_aux_bf * nocc^2 operations -- tens of trillions
+              // for the real system that motivated this whole fix, and
+              // the actual, real cause of a >50 minute runtime even
+              // though the OUTER shell-triple loop itself is already a
+              // single pass, not a per-atom one).
+              Eigen::MatrixXd block_aux(nrow, ncol);
+              Eigen::MatrixXd block_col(nrow, ncol);
+              Eigen::MatrixXd block_row(nrow, ncol);
+              for (Index col_c = 0; col_c < ncol; ++col_c) {
+                for (Index row_c = 0; row_c < nrow; ++row_c) {
+                  block_aux(row_c, col_c) =
+                      result_aux(aux_c, static_cast<size_t>(col_c),
+                                 static_cast<size_t>(row_c));
+                  block_col(row_c, col_c) =
+                      result_col(aux_c, static_cast<size_t>(col_c),
+                                 static_cast<size_t>(row_c));
+                  block_row(row_c, col_c) =
+                      result_row(aux_c, static_cast<size_t>(col_c),
+                                 static_cast<size_t>(row_c));
+                }
               }
+              result[atom_aux][xyz][global_aux].noalias() +=
+                  mo_row_block.transpose() * block_aux * mo_col_block;
+              result[atom_col][xyz][global_aux].noalias() +=
+                  mo_row_block.transpose() * block_col * mo_col_block;
+              result[atom_row][xyz][global_aux].noalias() +=
+                  mo_row_block.transpose() * block_row * mo_col_block;
             }
-            result[atom_aux][xyz][global_aux].noalias() +=
-                mo_row_block.transpose() * block_aux * mo_col_block;
-            result[atom_col][xyz][global_aux].noalias() +=
-                mo_row_block.transpose() * block_col * mo_col_block;
-            result[atom_row][xyz][global_aux].noalias() +=
-                mo_row_block.transpose() * block_row * mo_col_block;
           }
         }
       }
-    }
-   } catch (...) {
+    } catch (...) {
 #pragma omp critical
-     {
-       if (!eptr_3c) {
-         eptr_3c = std::current_exception();
-       }
-     }
-   }
+      {
+        if (!eptr_3c) {
+          eptr_3c = std::current_exception();
+        }
+      }
+    }
   }
   if (eptr_3c) {
     std::rethrow_exception(eptr_3c);
@@ -1472,7 +1473,6 @@ std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
                            "--enable-eri3=1");
 }
 #endif  // LIBINT_INCLUDE_ERI3
-
 
 // Energy-level (deriv_order=0) three-center integral (mu,nu|P), kept here
 // (rather than in dftgradient.cc) so all direct libint2 API usage stays

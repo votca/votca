@@ -3,7 +3,11 @@ Bibliography
 
 .. [Ahart:2022] Ahart, Rosso, and Blumberger, J. Chem. Theory Comput. 18, 4438 (2022)
 
+.. [Baumeier:2010] Baumeier, Kirkpatrick, and Andrienko, Phys. Chem. Chem. Phys. 12, 11103 (2010)
+
 .. [Chirlian:1987] Chirlian, Francl, J. Comput. Chem. 8, 894 (1987)
+
+.. [Ghan:2020] Ghan, Kunkel, Reuter, and Oberhofer, J. Chem. Theory Comput. 16, 7431 (2020)
 
 .. [Helmich-Paris:2021] Helmich-Paris, J. Chem. Phys. 154, 164104 (2021)
 

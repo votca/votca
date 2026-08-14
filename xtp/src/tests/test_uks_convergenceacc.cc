@@ -38,9 +38,9 @@
 #include "votca/xtp/uks_convergenceacc.h"
 #include "xtp_libint2.h"
 
+#include <cmath>
 #include <fstream>
 #include <tuple>
-#include <cmath>
 
 using namespace votca::xtp;
 using namespace votca;
@@ -117,12 +117,12 @@ BOOST_AUTO_TEST_CASE(unflatten_coupled_rotation_test) {
 
   Index nao_alpha = 5;
   Index nocclevels_alpha = 2;
-  Index nvirt_alpha = nao_alpha - nocclevels_alpha;  // 3
+  Index nvirt_alpha = nao_alpha - nocclevels_alpha;   // 3
   Index n_ov_alpha = nocclevels_alpha * nvirt_alpha;  // 6
 
   Index nao_beta = 4;
   Index nocclevels_beta = 1;
-  Index nvirt_beta = nao_beta - nocclevels_beta;  // 3
+  Index nvirt_beta = nao_beta - nocclevels_beta;   // 3
   Index n_ov_beta = nocclevels_beta * nvirt_beta;  // 3
 
   Eigen::VectorXd v_ov_alpha(n_ov_alpha);
@@ -163,6 +163,5 @@ BOOST_AUTO_TEST_CASE(unflatten_coupled_rotation_test) {
   BOOST_CHECK_SMALL((kappa_alpha - kappa_alpha_expected).norm(), 1e-10);
   BOOST_CHECK_SMALL((kappa_beta - kappa_beta_expected).norm(), 1e-10);
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()
