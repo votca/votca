@@ -168,9 +168,8 @@ class PODCoupling {
   // own, actual normalized shape -- the Mulliken weighting corrects
   // for this by explicitly accounting for overlap between AOs, the
   // same way ordinary Mulliken population analysis does.
-  std::string DescribeFragmentOrbitalComposition(bool fragment_A,
-                                                  Index level,
-                                                  Index top_n = 5) const;
+  std::string DescribeFragmentOrbitalComposition(bool fragment_A, Index level,
+                                                 Index top_n = 5) const;
 
  private:
   Orbitals& orbitals_;

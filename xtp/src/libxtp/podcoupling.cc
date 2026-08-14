@@ -391,16 +391,16 @@ Eigen::VectorXd PODCoupling::GetFragmentOrbital(bool fragment_A,
   return full_basis;
 }
 
-std::string PODCoupling::DescribeFragmentOrbitalComposition(
-    bool fragment_A, Index level, Index top_n) const {
+std::string PODCoupling::DescribeFragmentOrbitalComposition(bool fragment_A,
+                                                            Index level,
+                                                            Index top_n) const {
   const Eigen::MatrixXd& eigenvectors =
       fragment_A ? fragment_A_eigenvectors_ : fragment_B_eigenvectors_;
   const std::vector<Index>& ao_indices =
       fragment_A ? ao_indices_A_ : ao_indices_B_;
   const std::vector<Index>& fragment_atoms =
       fragment_A ? fragment_A_atoms_ : fragment_B_atoms_;
-  const std::pair<Index, Index>& range =
-      fragment_A ? Range_orbA_ : Range_orbB_;
+  const std::pair<Index, Index>& range = fragment_A ? Range_orbA_ : Range_orbB_;
 
   Index index = level - range.first;
   if (index < 0 || index >= range.second) {
@@ -468,10 +468,9 @@ std::string PODCoupling::DescribeFragmentOrbitalComposition(
     Index local_ao = order[size_t(rank)];
     Index full_ao = ao_indices[size_t(local_ao)];
     Index atom_index = ao_to_atom[size_t(full_ao)];
-    std::string element =
-        atom_index >= 0 ? mol[atom_index].getElement() : "?";
-    out << "\n  " << (rank + 1) << ". population="
-        << mulliken_population(local_ao)
+    std::string element = atom_index >= 0 ? mol[atom_index].getElement() : "?";
+    out << "\n  " << (rank + 1)
+        << ". population=" << mulliken_population(local_ao)
         << " (coeff=" << fragment_local(local_ao) << "), atom " << atom_index
         << " (" << element << ", fragment atom "
         << (std::find(fragment_atoms.begin(), fragment_atoms.end(),

@@ -194,8 +194,7 @@ bool PodCouplingTool::Run() {
       // never is one) -- it means a spatial tail from an AO on THIS
       // fragment, identified here directly.
       XTP_LOG(Log::error, log_)
-          << pod.DescribeFragmentOrbitalComposition(fragment_A, level)
-          << flush;
+          << pod.DescribeFragmentOrbitalComposition(fragment_A, level) << flush;
     };
     for (Index levelA = homoA - numberofstatesA_ + 1;
          levelA <= lumoA + numberofstatesA_ - 1; ++levelA) {

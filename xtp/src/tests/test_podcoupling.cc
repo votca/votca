@@ -336,19 +336,21 @@ BOOST_AUTO_TEST_CASE(pod_coupling_ethylene_dimer_consistency_checks) {
   std::vector<Index> fragment_A_contiguous = {0, 1, 2, 3, 4, 5};
   std::vector<Index> fragment_B_contiguous = {6, 7, 8, 9, 10, 11};
   double half_homo_gap = 0.0;
-  double coupling_contiguous = RunEthyleneDimerCoupling(
-      canonical_lines, fragment_A_contiguous, fragment_B_contiguous,
-      &half_homo_gap);
+  double coupling_contiguous =
+      RunEthyleneDimerCoupling(canonical_lines, fragment_A_contiguous,
+                               fragment_B_contiguous, &half_homo_gap);
   double coupling_scrambled = RunEthyleneDimerCoupling(
       scrambled_lines, fragment_A_scrambled, fragment_B_scrambled);
 
   std::cout << "PODCoupling ethylene dimer, scrambled-atom-order check: "
                "contiguous |J| = "
-            << coupling_contiguous << " eV, scrambled |J| = "
-            << coupling_scrambled << " eV" << std::endl;
+            << coupling_contiguous
+            << " eV, scrambled |J| = " << coupling_scrambled << " eV"
+            << std::endl;
   std::cout << "PODCoupling vs. half-HOMO-gap check: PODCoupling |J| = "
-            << coupling_contiguous << " eV, 0.5*(HOMO-HOMO-1) = "
-            << half_homo_gap << " eV" << std::endl;
+            << coupling_contiguous
+            << " eV, 0.5*(HOMO-HOMO-1) = " << half_homo_gap << " eV"
+            << std::endl;
 
   // These describe the exact same physical system (same geometry,
   // same separation, same two fragments -- only the order atoms
