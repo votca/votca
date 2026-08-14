@@ -156,6 +156,70 @@ CHELPG partial charges :math:`\{q_i\}` are derived by calculating the electrosta
 
 where :math:`j` runs over all grid points, :math:`\phi_{el}(\mathbf{g}_j)` is the respective potential at that grid point and :math:`N` is the number of atomic sites. :math:`\lambda` is a Lagrange multiplier to constrain the optimization to the desired total charge of the molecule :math:`q_{\text{mol}}`.
 
+Electronic Couplings
+*********************
+
+The electronic coupling :math:`J_{AB}` between two diabatic states :math:`\ket{A}` and :math:`\ket{B}`, introduced in :eq:`equ:theory:electroniccoupling`, cannot be evaluated directly, as the diabatic states themselves are, in general, not accessible from an ordinary electronic structure calculation. In practice :math:`J_{AB}` has to be approximated from quantities that quantum-chemistry codes do provide: the molecular orbitals and Fock/Kohn-Sham matrices of one or more auxiliary calculations. VOTCA provides two such projective schemes, DIPRO and POD2, differing in which auxiliary calculations they require and, consequently, in which pairs of fragments they are suited for.
+
+DIPRO
+=====
+
+DIPRO (dimer projection) [Baumeier:2010]_ approximates the diabatic states :math:`\ket{A}`, :math:`\ket{B}` by the frontier molecular orbitals :math:`\phi^A`, :math:`\phi^B` of the two, separately converged monomers :math:`A` and :math:`B`. Because the monomers are calculated in isolation, this approximation is only meaningful if the two fragments are not covalently bonded to each other, e.g. two neighboring molecules in a morphology.
+
+Since :math:`\phi^A` and :math:`\phi^B` are not eigenfunctions of the combined, dimer Hamiltonian :math:`\hat{H}^{AB}`, they are first projected onto the manifold of dimer molecular orbitals :math:`\{\psi_i^D\}`, obtained from a third, combined calculation on the dimer :math:`AB`:
+
+.. math::
+    :label: equ:theory:dipro_projection
+
+    \gamma_i^{A(B)}=\braket{\phi^{A(B)}}{\psi_i^D}
+
+The matrix element :math:`J_{AB}` then follows from inserting these projections into the dimer's own, diagonal Hamiltonian:
+
+.. math::
+    :label: equ:theory:dipro_JAB
+
+    J_{AB}=\sum_i \gamma_i^A \mathcal{E}_i \gamma_i^B
+
+with :math:`\mathcal{E}_i` the orbital energy of dimer molecular orbital :math:`\psi_i^D`. As :math:`\phi^A` and :math:`\phi^B` are, in general, not mutually orthogonal (:math:`S_{AB}=\braket{\phi^A}{\phi^B}\neq 0`), evaluating :math:`J_{AB}` and :math:`S_{AB}` this way does not by itself yield the electronic coupling in an orthogonal, diabatic basis. A Löwdin orthogonalization of the :math:`2\times2` subspace spanned by :math:`\phi^A`, :math:`\phi^B` removes this non-orthogonality and yields the effective coupling
+
+.. math::
+    :label: equ:theory:dipro_effective
+
+    t_{AB}=\frac{J_{AB}-\frac{1}{2}(e_A+e_B)S_{AB}}{1-S_{AB}^2}
+
+where :math:`e_{A(B)}=\braket{\phi^{A(B)}|\hat{H}^{AB}|\phi^{A(B)}}` are the site energies of the (raw, not yet orthogonalized) monomer states within the dimer. DIPRO thus requires three separate quantum-chemical calculations per pair (monomer :math:`A`, monomer :math:`B`, dimer :math:`AB`), which is the origin of its main practical limitation: it cannot represent a covalent bond crossing the boundary between fragments :math:`A` and :math:`B`, since such a bond does not exist in either isolated monomer calculation at all.
+
+POD2
+====
+
+Projection Operator Diabatization, in its POD2 variant [Ghan:2020]_, addresses exactly this limitation. Rather than combining two, separately converged monomer calculations, POD2 starts from a single, already self-consistent calculation on the intact, combined system, e.g. a single molecule containing both fragments :math:`A` and :math:`B` connected by a covalent bond. The converged Fock matrix :math:`F` of this single calculation, expressed in the atomic orbital (AO) basis, is partitioned into fragment blocks according to which fragment each AO basis function belongs to:
+
+.. math::
+
+    F=
+    \begin{pmatrix}
+    F_{AA} & F_{AB}\\
+    F_{BA} & F_{BB}
+    \end{pmatrix},
+    \qquad
+    S=
+    \begin{pmatrix}
+    S_{AA} & S_{AB}\\
+    S_{BA} & S_{BB}
+    \end{pmatrix}
+
+with :math:`S` the corresponding AO overlap matrix. Diagonalizing the diagonal blocks :math:`F_{AA}`, :math:`F_{BB}` separately, each as its own generalized eigenvalue problem against the corresponding overlap block,
+
+.. math::
+
+    F_{AA}\,\phi^A=S_{AA}\,\phi^A\,\epsilon^A,\qquad F_{BB}\,\phi^B=S_{BB}\,\phi^B\,\epsilon^B,
+
+yields fragment-localized orbitals :math:`\phi^A`, :math:`\phi^B` directly, without ever requiring a separate calculation on either fragment in isolation. This diagonalization is carried out in the original AO basis, rather than a globally Löwdin-orthogonalized one, as the latter was found to make the resulting couplings unstable with respect to the choice of basis set [Ghan:2020]_ -- this is the specific "2" distinguishing POD2 from the original POD scheme.
+
+As in DIPRO, the resulting fragment orbitals :math:`\phi^A`, :math:`\phi^B` are, in general, not mutually orthogonal, and the raw matrix element :math:`J_{AB}=\braket{\phi^A|F|\phi^B}` must be corrected via the same Löwdin transformation, :eq:`equ:theory:dipro_effective`, using :math:`S_{AB}=\braket{\phi^A}{\phi^B}` and the fragment orbital energies :math:`e_{A(B)}=\braket{\phi^{A(B)}|F|\phi^{A(B)}}`.
+
+Because POD2 only ever requires the single, combined-system calculation, the two fragments :math:`A` and :math:`B` need not partition the calculated system exhaustively; atoms belonging to neither fragment (e.g. a spacer or linker group) may simply be left unassigned. This, together with its ability to represent a genuine covalent bond crossing the fragment boundary, makes POD2 the appropriate choice for pairs of fragments within a single, covalently connected molecule, complementing DIPRO's own use for pairs of separate, non-bonded molecules.
+
 Reorganization energies
 ***********************
 
