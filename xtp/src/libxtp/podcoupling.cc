@@ -21,6 +21,8 @@
 #include "votca/xtp/aomatrix.h"
 #include "votca/xtp/basisset.h"
 #include <Eigen/Eigenvalues>
+#include <algorithm>
+#include <sstream>
 
 namespace votca {
 namespace xtp {
@@ -233,6 +235,12 @@ void PODCoupling::CalculateCouplings(Index numberofstatesA,
   ao_indices_A_ = ao_indices_A;
   ao_indices_B_ = ao_indices_B;
   nao_full_ = F.rows();
+  // Stored for DescribeFragmentOrbitalComposition's own use -- see
+  // its own header comment in podcoupling.h for why a Mulliken-style
+  // weighting (needing each fragment's own S explicitly) is used
+  // there instead of raw |coefficient|.
+  S_AA_ = S_AA;
+  S_BB_ = S_BB;
 
   Range_orbA_ = DetermineFragmentRangeOfStates(
       getFragmentAHomoIndex(), getFragmentALumoIndex(), numberofstatesA,
@@ -382,6 +390,97 @@ Eigen::VectorXd PODCoupling::GetFragmentOrbital(bool fragment_A,
     full_basis(ao_indices[size_t(i)]) = fragment_local(i);
   }
   return full_basis;
+}
+
+std::string PODCoupling::DescribeFragmentOrbitalComposition(
+    bool fragment_A, Index level, Index top_n) const {
+  const Eigen::MatrixXd& eigenvectors =
+      fragment_A ? fragment_A_eigenvectors_ : fragment_B_eigenvectors_;
+  const std::vector<Index>& ao_indices =
+      fragment_A ? ao_indices_A_ : ao_indices_B_;
+  const std::vector<Index>& fragment_atoms =
+      fragment_A ? fragment_A_atoms_ : fragment_B_atoms_;
+  const std::pair<Index, Index>& range =
+      fragment_A ? Range_orbA_ : Range_orbB_;
+
+  Index index = level - range.first;
+  if (index < 0 || index >= range.second) {
+    throw std::runtime_error(
+        "PODCoupling::DescribeFragmentOrbitalComposition: requested level=" +
+        std::to_string(level) +
+        " is outside the range covered by the most recent "
+        "CalculateCouplings call.");
+  }
+  Eigen::VectorXd fragment_local = eigenvectors.col(level);
+
+  // Full-molecule-AO-index -> (atom index, shell angular momentum L)
+  // lookup, built by re-constructing the same AOBasis
+  // CalculateCouplings itself already used (Orbitals itself does not
+  // persist a full-AO-index -> (atom, shell) map directly, so this is
+  // rebuilt here the same way CalculateCouplings' own F/S
+  // reconstruction already does, via getDFTbasisName()/QMAtoms()).
+  const QMMolecule& mol = orbitals_.QMAtoms();
+  AOBasis full_dftbasis;
+  {
+    BasisSet basisset;
+    basisset.Load(orbitals_.getDFTbasisName());
+    full_dftbasis.Fill(basisset, mol);
+  }
+  std::vector<Index> ao_to_atom(full_dftbasis.AOBasisSize(), -1);
+  std::vector<L> ao_to_L(full_dftbasis.AOBasisSize());
+  for (const AOShell& shell : full_dftbasis) {
+    Index offset = shell.getStartIndex();
+    for (Index k = 0; k < shell.getNumFunc(); ++k) {
+      ao_to_atom[size_t(offset + k)] = shell.getAtomIndex();
+      ao_to_L[size_t(offset + k)] = shell.getL();
+    }
+  }
+
+  // Mulliken population of each AO in this orbital: P_i = c_i*(S*c)_i
+  // (S being this fragment's own AO overlap sub-block, S_AA_/S_BB_) --
+  // sums to c^T*S*c = 1 over all AOs, since the generalized eigenvalue
+  // solve normalizes with respect to S, not the plain Euclidean norm.
+  // Ranking by |P_i| here, NOT |coefficient| -- see this method's own
+  // header comment in podcoupling.h for why the latter is actively
+  // misleading in a non-orthogonal basis (confirmed directly, from a
+  // real, misleading run, not just in principle).
+  const Eigen::MatrixXd& S_local = fragment_A ? S_AA_ : S_BB_;
+  Eigen::VectorXd mulliken_population =
+      fragment_local.cwiseProduct(S_local * fragment_local);
+
+  // Sort this fragment orbital's own AOs by |Mulliken population|,
+  // largest first -- ao_indices[i] (the full-molecule AO index for
+  // this fragment's own local AO i) is what actually indexes into
+  // ao_to_atom/ao_to_L above; fragment_local(i)/mulliken_population(i)
+  // are that same AO's own coefficient/population in THIS orbital.
+  std::vector<Index> order(fragment_local.size());
+  for (Index i = 0; i < fragment_local.size(); ++i) {
+    order[size_t(i)] = i;
+  }
+  std::sort(order.begin(), order.end(), [&](Index a, Index b) {
+    return std::abs(mulliken_population(a)) > std::abs(mulliken_population(b));
+  });
+
+  std::ostringstream out;
+  out << "Top " << std::min(top_n, Index(order.size()))
+      << " AO Mulliken populations for fragment " << (fragment_A ? "A" : "B")
+      << " orbital " << level << ":";
+  for (Index rank = 0; rank < std::min(top_n, Index(order.size())); ++rank) {
+    Index local_ao = order[size_t(rank)];
+    Index full_ao = ao_indices[size_t(local_ao)];
+    Index atom_index = ao_to_atom[size_t(full_ao)];
+    std::string element =
+        atom_index >= 0 ? mol[atom_index].getElement() : "?";
+    out << "\n  " << (rank + 1) << ". population="
+        << mulliken_population(local_ao)
+        << " (coeff=" << fragment_local(local_ao) << "), atom " << atom_index
+        << " (" << element << ", fragment atom "
+        << (std::find(fragment_atoms.begin(), fragment_atoms.end(),
+                      atom_index) -
+            fragment_atoms.begin())
+        << "), shell " << EnumToString(ao_to_L[size_t(full_ao)]);
+  }
+  return out.str();
 }
 
 }  // namespace xtp

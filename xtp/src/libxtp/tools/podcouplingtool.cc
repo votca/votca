@@ -187,6 +187,18 @@ bool PodCouplingTool::Run() {
       writer.WriteFile(filename, orbitals_copy,
                        QMState(QMStateType::KSstate, 0, false), false);
       XTP_LOG(Log::error, log_) << "  wrote " << filename << flush;
+      // Printed alongside every cube file, not behind a separate
+      // option -- cheap to compute (only ever sorts this fragment's
+      // own, modest-sized AO set), and directly explains what the
+      // cube file itself shows: which specific AO, on which atom,
+      // actually dominates this orbital, since large density visible
+      // on the OTHER fragment's own physical space in the rendered
+      // isosurface does NOT mean a nonzero coefficient there (there
+      // never is one) -- it means a spatial tail from an AO on THIS
+      // fragment, identified here directly.
+      XTP_LOG(Log::error, log_)
+          << pod.DescribeFragmentOrbitalComposition(fragment_A, level)
+          << flush;
     };
     for (Index levelA = homoA - numberofstatesA_ + 1;
         levelA <= lumoA + numberofstatesA_ - 1; ++levelA) {

@@ -146,6 +146,33 @@ class PODCoupling {
   // call, or this throws, matching getCouplingElement's own behavior.
   Eigen::VectorXd GetFragmentOrbital(bool fragment_A, Index level) const;
 
+  // Human-readable breakdown of which AOs actually dominate a given
+  // fragment orbital -- the top_n largest-|Mulliken population|
+  // AOs, each labeled by which atom (index + element) and shell type
+  // (s/p/d/...) it belongs to. Added directly to answer a real,
+  // concrete question: large electron density visible on the OTHER
+  // fragment's own physical space, in a cube-file rendering of a
+  // fragment orbital, does NOT mean a nonzero coefficient on the
+  // other fragment's own AOs -- there is never one, by construction
+  // (see GetFragmentOrbital's own comment above). It means a large
+  // contribution from THIS fragment's own AO, whose own basis
+  // function has a spatial tail reaching into the other fragment's
+  // space -- this shows directly which AO, on which atom, that
+  // actually is.
+  //
+  // Ranks by Mulliken population (c_i*(S*c)_i), NOT raw |coefficient|
+  // -- confirmed directly necessary, from a real, misleading run: in
+  // a non-orthogonal AO basis, several strongly-overlapping AOs (e.g.
+  // multiple contracted S-shells on nearby atoms) can develop huge,
+  // largely-cancelling raw coefficients that dominate a plain
+  // |coefficient| ranking while contributing little to the orbital's
+  // own, actual normalized shape -- the Mulliken weighting corrects
+  // for this by explicitly accounting for overlap between AOs, the
+  // same way ordinary Mulliken population analysis does.
+  std::string DescribeFragmentOrbitalComposition(bool fragment_A,
+                                                  Index level,
+                                                  Index top_n = 5) const;
+
  private:
   Orbitals& orbitals_;
   Logger* pLog_;
@@ -195,6 +222,21 @@ class PODCoupling {
   std::vector<Index> ao_indices_A_;
   std::vector<Index> ao_indices_B_;
   Index nao_full_ = 0;
+
+  // Each fragment's own AO overlap sub-block (S_AA/S_BB, already
+  // computed internally by CalculateCouplings for the generalized
+  // eigenvalue solve itself) -- stored here specifically for
+  // DescribeFragmentOrbitalComposition's own use: a plain, raw AO
+  // coefficient is NOT, on its own, a meaningful measure of that AO's
+  // real contribution to a normalized orbital in a non-orthogonal
+  // basis (confirmed directly, from a real, misleading run: several
+  // strongly-overlapping S-shells developed enormous, largely-
+  // cancelling raw coefficients that dominated a plain |coefficient|
+  // ranking while contributing little to the orbital's actual shape).
+  // The standard, correct fix is a Mulliken-style weighting,
+  // c_i*(S*c)_i, which needs this fragment's own S explicitly.
+  Eigen::MatrixXd S_AA_;
+  Eigen::MatrixXd S_BB_;
 };
 
 }  // namespace xtp
