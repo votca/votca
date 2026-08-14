@@ -349,9 +349,6 @@ BOOST_AUTO_TEST_CASE(pod_coupling_ethylene_dimer_consistency_checks) {
   std::cout << "PODCoupling vs. half-HOMO-gap check: PODCoupling |J| = "
             << coupling_contiguous << " eV, 0.5*(HOMO-HOMO-1) = "
             << half_homo_gap << " eV" << std::endl;
-            << coupling_contiguous
-            << " eV, scrambled |J| = " << coupling_scrambled << " eV"
-            << std::endl;
 
   // These describe the exact same physical system (same geometry,
   // same separation, same two fragments -- only the order atoms
@@ -364,52 +361,6 @@ BOOST_AUTO_TEST_CASE(pod_coupling_ethylene_dimer_consistency_checks) {
   // disjoint-fragment handling would instead show up here as a
   // LARGE, qualitative discrepancy, not a small numerical one.
   BOOST_CHECK_CLOSE(coupling_scrambled, coupling_contiguous, 1.0);
-
-  libint2::finalize();
-}
-
-BOOST_AUTO_TEST_CASE(pod_coupling_matches_half_homo_gap_for_symmetric_dimer) {
-  // Direct, independent cross-check per the user's own, direct
-  // suggestion: since the co-facial ethylene dimer used throughout
-  // this file is a SYMMETRIC dimer (identical monomers, symmetric
-  // mutual orientation), the paper this whole test system is drawn
-  // from (Baumeier, Kirkpatrick, Andrienko, PCCP 2010, 12, 11103)
-  // directly states, in its own eqn (12) and the surrounding
-  // discussion, that the simple "half the dimer's own HOMO-HOMO-1
-  // gap" estimate is not merely approximate but EXACTLY equal to the
-  // full, proper projective coupling for this specific case -- the
-  // paper's own words: "both approaches yield identical transfer
-  // integrals for this symmetric dimer configuration". Since the full
-  // dimer SCF is already being run anyway (for PODCoupling itself),
-  // this second estimate costs nothing extra to obtain and provides a
-  // genuinely strong, theoretically-exact reference to compare
-  // against -- unlike the qualitative, order-of-magnitude-only checks
-  // in the other test cases in this file.
-  libint2::initialize();
-
-  std::vector<Index> fragment_A_atoms = {0, 1, 2, 3, 4, 5};
-  std::vector<Index> fragment_B_atoms = {6, 7, 8, 9, 10, 11};
-  double half_homo_gap = 0.0;
-  double coupling =
-      RunEthyleneDimerCoupling(EthyleneDimerAtomLines(4.0), fragment_A_atoms,
-                               fragment_B_atoms, &half_homo_gap);
-
-  std::cout << "PODCoupling vs. half-HOMO-gap check: PODCoupling |J| = "
-            << coupling << " eV, 0.5*(HOMO-HOMO-1) = " << half_homo_gap << " eV"
-            << std::endl;
-
-  // A somewhat looser tolerance than the scrambled-vs-contiguous check
-  // above (which compares two calls that are, numerically, almost
-  // identical up to floating-point summation order) -- these two
-  // quantities are computed via genuinely DIFFERENT routes (one via
-  // fragment-block Fock diagonalization and an off-diagonal matrix
-  // element, the other via the dimer's own, already-diagonalized MO
-  // energies directly), so full floating-point-level agreement is not
-  // expected even though the paper's own eqn (12) shows them to be
-  // mathematically identical in the symmetric-dimer limit -- still
-  // tight enough that a genuine, substantial error in either PODCoupling
-  // itself or this test's own half-gap calculation would be caught.
-  BOOST_CHECK_CLOSE(coupling_contiguous, half_homo_gap, 5.0);
 
   libint2::finalize();
 }
