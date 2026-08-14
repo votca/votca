@@ -60,25 +60,21 @@ void PodCouplingTool::ParseOptions(const tools::Property& user_options) {
   // call, per direct agreement with the user to mirror DFTcoupling's
   // own, established behavior here rather than this tool's own,
   // earlier, single-orbital-pair-only interface.
-  numberofstatesA_ =
-      options.ifExistsReturnElseReturnDefault<Index>("levA", 1);
-  numberofstatesB_ =
-      options.ifExistsReturnElseReturnDefault<Index>("levB", 1);
+  numberofstatesA_ = options.ifExistsReturnElseReturnDefault<Index>("levA", 1);
+  numberofstatesB_ = options.ifExistsReturnElseReturnDefault<Index>("levB", 1);
 
-  XTP_LOG(Log::error, log_)
-      << "Fragment A: " << fragment_A_atoms_.size()
-      << " atoms, levA=" << numberofstatesA_ << flush;
-  XTP_LOG(Log::error, log_)
-      << "Fragment B: " << fragment_B_atoms_.size()
-      << " atoms, levB=" << numberofstatesB_ << flush;
+  XTP_LOG(Log::error, log_) << "Fragment A: " << fragment_A_atoms_.size()
+                            << " atoms, levA=" << numberofstatesA_ << flush;
+  XTP_LOG(Log::error, log_) << "Fragment B: " << fragment_B_atoms_.size()
+                            << " atoms, levB=" << numberofstatesB_ << flush;
 
   // Optional cube-file export -- option names (xsteps/ysteps/zsteps/
   // padding) deliberately matching gencube.xml's own exactly, since
   // these are the same underlying quantities (a real-space grid for
   // writing an orbital to a .cube file), not something specific to
   // this tool that would warrant its own, different naming.
-  write_cube_files_ = options.ifExistsReturnElseReturnDefault<bool>(
-      "write_cube_files", false);
+  write_cube_files_ =
+      options.ifExistsReturnElseReturnDefault<bool>("write_cube_files", false);
   if (write_cube_files_) {
     cube_steps_.x() =
         options.ifExistsReturnElseReturnDefault<Index>("xsteps", 25);
@@ -121,19 +117,19 @@ bool PodCouplingTool::Run() {
   // orbital's own, absolute (fragment-local) index -- see
   // PODCoupling::getFragmentAHomoIndex/etc.'s own header comment for
   // what "absolute" means here.
-  XTP_LOG(Log::error, log_)
-      << TimeStamp() << " Full coupling matrix [eV] (fragment A orbital "
-                        "index -> fragment B orbital index):"
-      << flush;
+  XTP_LOG(Log::error, log_) << TimeStamp()
+                            << " Full coupling matrix [eV] (fragment A orbital "
+                               "index -> fragment B orbital index):"
+                            << flush;
   for (Index levelA = homoA - numberofstatesA_ + 1;
-      levelA <= lumoA + numberofstatesA_ - 1; ++levelA) {
+       levelA <= lumoA + numberofstatesA_ - 1; ++levelA) {
     std::ostringstream row;
     row << "  A[" << levelA << (levelA == homoA ? "=HOMO" : "")
         << (levelA == lumoA ? "=LUMO" : "") << "]:";
     for (Index levelB = homoB - numberofstatesB_ + 1;
-        levelB <= lumoB + numberofstatesB_ - 1; ++levelB) {
-      double coupling_ev = pod.getCouplingElement(levelA, levelB) *
-                           votca::tools::conv::hrt2ev;
+         levelB <= lumoB + numberofstatesB_ - 1; ++levelB) {
+      double coupling_ev =
+          pod.getCouplingElement(levelA, levelB) * votca::tools::conv::hrt2ev;
       row << boost::format("  B[%1%]=%2$+1.6f") % levelB % coupling_ev;
     }
     XTP_LOG(Log::error, log_) << row.str() << flush;
@@ -172,8 +168,9 @@ bool PodCouplingTool::Run() {
   // already does for an ordinary MO.
   if (write_cube_files_) {
     XTP_LOG(Log::error, log_)
-        << TimeStamp() << " Writing cube files for the computed fragment "
-                          "orbitals..."
+        << TimeStamp()
+        << " Writing cube files for the computed fragment "
+           "orbitals..."
         << flush;
     CubeFile_Writer writer(cube_steps_, cube_padding_, log_);
     auto WriteFragmentOrbitalCube = [&](bool fragment_A, Index level,
@@ -201,11 +198,11 @@ bool PodCouplingTool::Run() {
           << flush;
     };
     for (Index levelA = homoA - numberofstatesA_ + 1;
-        levelA <= lumoA + numberofstatesA_ - 1; ++levelA) {
+         levelA <= lumoA + numberofstatesA_ - 1; ++levelA) {
       WriteFragmentOrbitalCube(true, levelA, "fragA");
     }
     for (Index levelB = homoB - numberofstatesB_ + 1;
-        levelB <= lumoB + numberofstatesB_ - 1; ++levelB) {
+         levelB <= lumoB + numberofstatesB_ - 1; ++levelB) {
       WriteFragmentOrbitalCube(false, levelB, "fragB");
     }
   }

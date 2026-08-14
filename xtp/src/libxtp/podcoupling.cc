@@ -45,10 +45,10 @@ std::vector<Index> MapAtomsToAOIndices(
   for (Index atom_index : atom_indices) {
     if (atom_index < 0 ||
         atom_index >= static_cast<Index>(func_per_atom.size())) {
-      throw std::runtime_error(
-          "MapAtomsToAOIndices: atom index " + std::to_string(atom_index) +
-          " is out of range (0.." +
-          std::to_string(func_per_atom.size() - 1) + ").");
+      throw std::runtime_error("MapAtomsToAOIndices: atom index " +
+                               std::to_string(atom_index) +
+                               " is out of range (0.." +
+                               std::to_string(func_per_atom.size() - 1) + ").");
     }
     // Each INDIVIDUAL atom's own AOs are appended as one, contiguous
     // run -- but successive atoms in atom_indices need not be
@@ -57,8 +57,7 @@ std::vector<Index> MapAtomsToAOIndices(
     // comment), so the OVERALL ao_indices returned here is not, in
     // general, a single contiguous range even though each atom's own
     // contribution to it is.
-    for (Index ao = ao_start[atom_index]; ao < ao_start[atom_index + 1];
-        ++ao) {
+    for (Index ao = ao_start[atom_index]; ao < ao_start[atom_index + 1]; ++ao) {
       ao_indices.push_back(ao);
     }
   }
@@ -141,9 +140,9 @@ Index CountFragmentElectrons(const QMMolecule& mol,
 // so this is also the fragment's own total number of orbitals
 // available from its own generalized eigenvalue solve).
 std::pair<Index, Index> DetermineFragmentRangeOfStates(Index homo_index,
-                                                        Index lumo_index,
-                                                        Index numberofstates,
-                                                        Index n_basis) {
+                                                       Index lumo_index,
+                                                       Index numberofstates,
+                                                       Index n_basis) {
   Index minimal = homo_index - numberofstates + 1;
   Index maximal = lumo_index + numberofstates - 1;
   if (minimal < 0 || maximal >= n_basis) {
@@ -242,27 +241,27 @@ void PODCoupling::CalculateCouplings(Index numberofstatesA,
   S_AA_ = S_AA;
   S_BB_ = S_BB;
 
-  Range_orbA_ = DetermineFragmentRangeOfStates(
-      getFragmentAHomoIndex(), getFragmentALumoIndex(), numberofstatesA,
-      F_AA.rows());
-  Range_orbB_ = DetermineFragmentRangeOfStates(
-      getFragmentBHomoIndex(), getFragmentBLumoIndex(), numberofstatesB,
-      F_BB.rows());
+  Range_orbA_ = DetermineFragmentRangeOfStates(getFragmentAHomoIndex(),
+                                               getFragmentALumoIndex(),
+                                               numberofstatesA, F_AA.rows());
+  Range_orbB_ = DetermineFragmentRangeOfStates(getFragmentBHomoIndex(),
+                                               getFragmentBLumoIndex(),
+                                               numberofstatesB, F_BB.rows());
   Index levelsA = Range_orbA_.second;
   Index levelsB = Range_orbB_.second;
 
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " PODCoupling: fragment A HOMO="
-      << getFragmentAHomoIndex() << ", LUMO=" << getFragmentALumoIndex()
-      << " (both estimated), range covers orbitals ["
-      << Range_orbA_.first << ", " << (Range_orbA_.first + levelsA - 1)
-      << "]" << std::flush;
+      << TimeStamp()
+      << " PODCoupling: fragment A HOMO=" << getFragmentAHomoIndex()
+      << ", LUMO=" << getFragmentALumoIndex()
+      << " (both estimated), range covers orbitals [" << Range_orbA_.first
+      << ", " << (Range_orbA_.first + levelsA - 1) << "]" << std::flush;
   XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " PODCoupling: fragment B HOMO="
-      << getFragmentBHomoIndex() << ", LUMO=" << getFragmentBLumoIndex()
-      << " (both estimated), range covers orbitals ["
-      << Range_orbB_.first << ", " << (Range_orbB_.first + levelsB - 1)
-      << "]" << std::flush;
+      << TimeStamp()
+      << " PODCoupling: fragment B HOMO=" << getFragmentBHomoIndex()
+      << ", LUMO=" << getFragmentBLumoIndex()
+      << " (both estimated), range covers orbitals [" << Range_orbB_.first
+      << ", " << (Range_orbB_.first + levelsB - 1) << "]" << std::flush;
 
   // The off-diagonal AO blocks themselves do not depend on which
   // specific orbital pair is being coupled -- gathered once, outside
@@ -302,8 +301,8 @@ void PODCoupling::CalculateCouplings(Index numberofstatesA,
       // DIPRO's own, analogous non-orthogonal monomer HOMOs, its own
       // eqn (10): t_AB = (J_AB - 0.5*(e_A+e_B)*S_AB) / (1-S_AB^2).
       double denominator = 1.0 - S_AB * S_AB;
-      JAB_(i, j) = (J_AB - 0.5 * (e_A_hartree + e_B_hartree) * S_AB) /
-                  denominator;
+      JAB_(i, j) =
+          (J_AB - 0.5 * (e_A_hartree + e_B_hartree) * S_AB) / denominator;
 
       // Per-pair diagnostic: S_AB and the Lowdin denominator (1-S_AB^2)
       // are worth watching on an ongoing basis, since a large |S_AB|
@@ -324,9 +323,10 @@ void PODCoupling::CalculateCouplings(Index numberofstatesA,
       // first validated against, and a large result is not itself a
       // red flag -- only S_AB itself getting close to +-1 would be.
       XTP_LOG(Log::error, *pLog_)
-          << TimeStamp() << " PODCoupling diagnostic: pair (A="
-          << (Range_orbA_.first + i) << ", B=" << (Range_orbB_.first + j)
-          << "): S_AB=" << S_AB << ", (1-S_AB^2)=" << denominator
+          << TimeStamp()
+          << " PODCoupling diagnostic: pair (A=" << (Range_orbA_.first + i)
+          << ", B=" << (Range_orbB_.first + j) << "): S_AB=" << S_AB
+          << ", (1-S_AB^2)=" << denominator
           << ", raw J_AB=" << (J_AB * 27.211386245988)
           << " eV, corrected=" << (JAB_(i, j) * 27.211386245988) << " eV"
           << std::flush;
@@ -354,8 +354,7 @@ Eigen::VectorXd PODCoupling::GetFragmentOrbital(bool fragment_A,
       fragment_A ? fragment_A_eigenvectors_ : fragment_B_eigenvectors_;
   const std::vector<Index>& ao_indices =
       fragment_A ? ao_indices_A_ : ao_indices_B_;
-  const std::pair<Index, Index>& range =
-      fragment_A ? Range_orbA_ : Range_orbB_;
+  const std::pair<Index, Index>& range = fragment_A ? Range_orbA_ : Range_orbB_;
 
   Index index = level - range.first;
   if (index < 0 || index >= range.second) {

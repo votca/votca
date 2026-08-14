@@ -114,46 +114,46 @@ BOOST_AUTO_TEST_CASE(weight_matrices_sum_to_overlap) {
   try {
     QMMolecule mol = BuildCO(1.13);  // Angstrom, roughly CO equilibrium
 
-  std::string xml_path = "/tmp/xtp_test_hirshfeldpartition.xml";
-  std::ofstream xml(xml_path);
-  xml << "<dftpackage>\n";
-  xml << "<spin>1</spin>\n";
-  xml << "<name>xtp</name>\n";
-  xml << "<charge>0</charge>\n";
-  xml << "<functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional>\n";
-  xml << "<basisset>" << XTP_TEST_DATA_FOLDER
-      << "/hirshfeldpartition/3-21G.xml</basisset>\n";
-  xml << "<auxbasisset>" << XTP_TEST_DATA_FOLDER
-      << "/diabatization/aux-def2-svp.xml</auxbasisset>\n";
-  xml << "<initial_guess>independent</initial_guess>\n";
-  xml << "<xtpdft>\n";
-  xml << "<screening_eps>1e-9</screening_eps>\n";
-  xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
-  xml << "<convergence>\n";
-  xml << "    <energy>1e-9</energy>\n";
-  xml << "    <method>DIIS</method>\n";
-  xml << "    <DIIS_start>0.002</DIIS_start>\n";
-  xml << "    <ADIIS_start>0.8</ADIIS_start>\n";
-  xml << "    <DIIS_length>20</DIIS_length>\n";
-  xml << "    <levelshift>0.0</levelshift>\n";
-  xml << "    <levelshift_end>0.2</levelshift_end>\n";
-  xml << "    <max_iterations>100</max_iterations>\n";
-  xml << "    <error>1e-8</error>\n";
-  xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
-  xml << "    <mixing>0.7</mixing>\n";
-  xml << "    <mixing_max>0.98</mixing_max>\n";
-  xml << "    <mixing_end>0.8</mixing_end>\n";
-  xml << "</convergence>\n";
-  // fine, not xcoarse: this test's own accuracy is limited by the
-  // SAME grid's own integration error (BuildWeightMatrix integrates
-  // over this exact grid), so a coarse grid would show up as a
-  // misleadingly large "failure" that is really just integration
-  // noise, not an implementation bug.
-  xml << "<integration_grid>fine</integration_grid>\n";
-  xml << "<max_iterations>200</max_iterations>\n";
-  xml << "</xtpdft>\n";
-  xml << "</dftpackage>\n";
-  xml.close();
+    std::string xml_path = "/tmp/xtp_test_hirshfeldpartition.xml";
+    std::ofstream xml(xml_path);
+    xml << "<dftpackage>\n";
+    xml << "<spin>1</spin>\n";
+    xml << "<name>xtp</name>\n";
+    xml << "<charge>0</charge>\n";
+    xml << "<functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional>\n";
+    xml << "<basisset>" << XTP_TEST_DATA_FOLDER
+        << "/hirshfeldpartition/3-21G.xml</basisset>\n";
+    xml << "<auxbasisset>" << XTP_TEST_DATA_FOLDER
+        << "/diabatization/aux-def2-svp.xml</auxbasisset>\n";
+    xml << "<initial_guess>independent</initial_guess>\n";
+    xml << "<xtpdft>\n";
+    xml << "<screening_eps>1e-9</screening_eps>\n";
+    xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
+    xml << "<convergence>\n";
+    xml << "    <energy>1e-9</energy>\n";
+    xml << "    <method>DIIS</method>\n";
+    xml << "    <DIIS_start>0.002</DIIS_start>\n";
+    xml << "    <ADIIS_start>0.8</ADIIS_start>\n";
+    xml << "    <DIIS_length>20</DIIS_length>\n";
+    xml << "    <levelshift>0.0</levelshift>\n";
+    xml << "    <levelshift_end>0.2</levelshift_end>\n";
+    xml << "    <max_iterations>100</max_iterations>\n";
+    xml << "    <error>1e-8</error>\n";
+    xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
+    xml << "    <mixing>0.7</mixing>\n";
+    xml << "    <mixing_max>0.98</mixing_max>\n";
+    xml << "    <mixing_end>0.8</mixing_end>\n";
+    xml << "</convergence>\n";
+    // fine, not xcoarse: this test's own accuracy is limited by the
+    // SAME grid's own integration error (BuildWeightMatrix integrates
+    // over this exact grid), so a coarse grid would show up as a
+    // misleadingly large "failure" that is really just integration
+    // noise, not an implementation bug.
+    xml << "<integration_grid>fine</integration_grid>\n";
+    xml << "<max_iterations>200</max_iterations>\n";
+    xml << "</xtpdft>\n";
+    xml << "</dftpackage>\n";
+    xml.close();
 
     votca::tools::Property prop;
     prop.LoadFromXML(xml_path);
@@ -253,40 +253,40 @@ BOOST_AUTO_TEST_CASE(cdft_force_finite_difference) {
     AOBasis full_basis0;
     full_basis0.Fill(basisset, mol0);
 
-  std::string xml_path = "/tmp/xtp_test_hirshfeldpartition_cdftforce.xml";
-  std::ofstream xml(xml_path);
-  xml << "<dftpackage>\n";
-  xml << "<spin>1</spin>\n";
-  xml << "<name>xtp</name>\n";
-  xml << "<charge>0</charge>\n";
-  xml << "<functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional>\n";
-  xml << "<basisset>" << basis_path << "</basisset>\n";
-  xml << "<auxbasisset>" << XTP_TEST_DATA_FOLDER
-      << "/diabatization/aux-def2-svp.xml</auxbasisset>\n";
-  xml << "<initial_guess>independent</initial_guess>\n";
-  xml << "<xtpdft>\n";
-  xml << "<screening_eps>1e-9</screening_eps>\n";
-  xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
-  xml << "<convergence>\n";
-  xml << "    <energy>1e-9</energy>\n";
-  xml << "    <method>DIIS</method>\n";
-  xml << "    <DIIS_start>0.002</DIIS_start>\n";
-  xml << "    <ADIIS_start>0.8</ADIIS_start>\n";
-  xml << "    <DIIS_length>20</DIIS_length>\n";
-  xml << "    <levelshift>0.0</levelshift>\n";
-  xml << "    <levelshift_end>0.2</levelshift_end>\n";
-  xml << "    <max_iterations>100</max_iterations>\n";
-  xml << "    <error>1e-8</error>\n";
-  xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
-  xml << "    <mixing>0.7</mixing>\n";
-  xml << "    <mixing_max>0.98</mixing_max>\n";
-  xml << "    <mixing_end>0.8</mixing_end>\n";
-  xml << "</convergence>\n";
-  xml << "<integration_grid>fine</integration_grid>\n";
-  xml << "<max_iterations>200</max_iterations>\n";
-  xml << "</xtpdft>\n";
-  xml << "</dftpackage>\n";
-  xml.close();
+    std::string xml_path = "/tmp/xtp_test_hirshfeldpartition_cdftforce.xml";
+    std::ofstream xml(xml_path);
+    xml << "<dftpackage>\n";
+    xml << "<spin>1</spin>\n";
+    xml << "<name>xtp</name>\n";
+    xml << "<charge>0</charge>\n";
+    xml << "<functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional>\n";
+    xml << "<basisset>" << basis_path << "</basisset>\n";
+    xml << "<auxbasisset>" << XTP_TEST_DATA_FOLDER
+        << "/diabatization/aux-def2-svp.xml</auxbasisset>\n";
+    xml << "<initial_guess>independent</initial_guess>\n";
+    xml << "<xtpdft>\n";
+    xml << "<screening_eps>1e-9</screening_eps>\n";
+    xml << "<fock_matrix_reset>5</fock_matrix_reset>\n";
+    xml << "<convergence>\n";
+    xml << "    <energy>1e-9</energy>\n";
+    xml << "    <method>DIIS</method>\n";
+    xml << "    <DIIS_start>0.002</DIIS_start>\n";
+    xml << "    <ADIIS_start>0.8</ADIIS_start>\n";
+    xml << "    <DIIS_length>20</DIIS_length>\n";
+    xml << "    <levelshift>0.0</levelshift>\n";
+    xml << "    <levelshift_end>0.2</levelshift_end>\n";
+    xml << "    <max_iterations>100</max_iterations>\n";
+    xml << "    <error>1e-8</error>\n";
+    xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
+    xml << "    <mixing>0.7</mixing>\n";
+    xml << "    <mixing_max>0.98</mixing_max>\n";
+    xml << "    <mixing_end>0.8</mixing_end>\n";
+    xml << "</convergence>\n";
+    xml << "<integration_grid>fine</integration_grid>\n";
+    xml << "<max_iterations>200</max_iterations>\n";
+    xml << "</xtpdft>\n";
+    xml << "</dftpackage>\n";
+    xml.close();
 
     votca::tools::Property prop;
     prop.LoadFromXML(xml_path);
