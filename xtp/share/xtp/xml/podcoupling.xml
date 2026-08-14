@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<options>
+<podcoupling help="Computes an electronic coupling between two fragments of a SINGLE, already-converged, ordinary (unconstrained, neutral) ground-state DFT calculation, via Projection Operator Diabatization (POD2, Ghan et al.) -- separately diagonalizing each fragment's own donor/acceptor Fock sub-block (in the original AO basis) and reading the coupling off the resulting off-diagonal block, with the paper's own eqn (10) Lowdin correction applied for the two fragment orbitals' own non-orthogonality. Suited specifically to COVALENTLY-BONDED fragment pairs, where neither CDFT (a self-consistent, constrained calculation on the intact system) nor FODFT (two separately-converged, ISOLATED fragment calculations, which cannot represent a bond crossing the fragment boundary at all) apply cleanly -- for non-bonded fragment pairs, the existing 'coupling' tool (DIPRO) remains the established, directly comparable choice. See Baumeier, Kirkpatrick, Andrienko, PCCP 2010, 12, 11103 for the closely related DIPRO method this eqn (10) correction is drawn from, and arXiv:1512.00200 for a direct comparison of POD/POD2 against FODFT and CDFT.">
+    <job_name help="Input file name without extension, also used for intermediate files" default="system"/>
+    <orb_file help="Input orb file -- a SINGLE, already-converged, ordinary (unconstrained, neutral) ground-state DFT calculation on the intact, covalently-bonded supermolecule" default="system.orb"/>
+    <fragment_A help="Atom indices (0-based) making up fragment A, e.g. '0:5' or '0 1 2 3 4 5' -- same syntax as cdft.indices and diabatization.xml's own fragment indices" default=""/>
+    <fragment_B help="Atom indices (0-based) making up fragment B -- disjoint from fragment_A, same syntax" default=""/>
+    <levA help="Number of orbitals to cover for fragment A, counting outward from its own HOMO/LUMO boundary, covering BOTH occupied (hole-transport) and virtual (electron-transport) orbitals together in one calculation -- same convention as DFTcoupling's own levA option exactly. 1 covers just {HOMO, LUMO}; 2 covers {HOMO-1, HOMO, LUMO, LUMO+1}; etc." default="1" choices="int+"/>
+    <levB help="Same as levA, for fragment B -- same convention as DFTcoupling's own levB option" default="1" choices="int+"/>
+</podcoupling>
+</options>

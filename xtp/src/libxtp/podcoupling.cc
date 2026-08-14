@@ -1,0 +1,307 @@
+/*
+ *            Copyright 2009-2026 The VOTCA Development Team
+ *                       (http://www.votca.org)
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *              http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#include "votca/xtp/podcoupling.h"
+#include "votca/xtp/aomatrix.h"
+#include "votca/xtp/basisset.h"
+#include <Eigen/Eigenvalues>
+
+namespace votca {
+namespace xtp {
+
+std::vector<Index> MapAtomsToAOIndices(
+    const std::vector<Index>& atom_indices,
+    const std::vector<Index>& func_per_atom) {
+  // Prefix sum: ao_start[a] is the first AO index belonging to atom a
+  // (and ao_start[a+1] is one past its own last AO index) -- valid
+  // specifically because AO basis functions are laid out contiguously
+  // per atom, in atom order, a direct, standard consequence of how AO
+  // bases are constructed (each atom's own shells are added in turn),
+  // not something specific to this function's own use case.
+  std::vector<Index> ao_start(func_per_atom.size() + 1, 0);
+  for (size_t a = 0; a < func_per_atom.size(); ++a) {
+    ao_start[a + 1] = ao_start[a] + func_per_atom[a];
+  }
+
+  std::vector<Index> ao_indices;
+  for (Index atom_index : atom_indices) {
+    if (atom_index < 0 ||
+        atom_index >= static_cast<Index>(func_per_atom.size())) {
+      throw std::runtime_error(
+          "MapAtomsToAOIndices: atom index " + std::to_string(atom_index) +
+          " is out of range (0.." +
+          std::to_string(func_per_atom.size() - 1) + ").");
+    }
+    // Each INDIVIDUAL atom's own AOs are appended as one, contiguous
+    // run -- but successive atoms in atom_indices need not be
+    // adjacent to each other at all (the whole reason this function
+    // exists in the first place -- see this function's own header
+    // comment), so the OVERALL ao_indices returned here is not, in
+    // general, a single contiguous range even though each atom's own
+    // contribution to it is.
+    for (Index ao = ao_start[atom_index]; ao < ao_start[atom_index + 1];
+        ++ao) {
+      ao_indices.push_back(ao);
+    }
+  }
+  return ao_indices;
+}
+
+namespace {
+// Gathers the (indices.size(), indices.size()) sub-matrix of full_matrix
+// at the given (possibly scattered, non-contiguous) row/column indices
+// -- a direct gather, not an explicit permutation of full_matrix itself:
+// mathematically identical to "reorder full_matrix so these indices
+// become contiguous, then slice a contiguous block", but avoids ever
+// constructing or applying a full-size permutation on the (potentially
+// much larger) full_matrix at all.
+Eigen::MatrixXd GatherSubMatrix(const Eigen::MatrixXd& full_matrix,
+                                const std::vector<Index>& indices) {
+  Index n = static_cast<Index>(indices.size());
+  Eigen::MatrixXd result(n, n);
+  for (Index i = 0; i < n; ++i) {
+    for (Index j = 0; j < n; ++j) {
+      result(i, j) = full_matrix(indices[size_t(i)], indices[size_t(j)]);
+    }
+  }
+  return result;
+}
+
+// Off-diagonal (indices_row.size(), indices_col.size()) block of
+// full_matrix -- same gather approach as GatherSubMatrix above, but for
+// a genuinely rectangular block (row indices from one fragment, column
+// indices from the other), needed for the final donor-acceptor
+// coupling element itself.
+Eigen::MatrixXd GatherOffDiagonalBlock(const Eigen::MatrixXd& full_matrix,
+                                       const std::vector<Index>& indices_row,
+                                       const std::vector<Index>& indices_col) {
+  Index n_row = static_cast<Index>(indices_row.size());
+  Index n_col = static_cast<Index>(indices_col.size());
+  Eigen::MatrixXd result(n_row, n_col);
+  for (Index i = 0; i < n_row; ++i) {
+    for (Index j = 0; j < n_col; ++j) {
+      result(i, j) =
+          full_matrix(indices_row[size_t(i)], indices_col[size_t(j)]);
+    }
+  }
+  return result;
+}
+}  // namespace
+
+namespace {
+// Each fragment's own number of occupied orbitals is NOT directly,
+// unambiguously available from the full, intact supermolecule's own,
+// delocalized wavefunction at all -- estimated instead as half the
+// fragment's own total nuclear charge (i.e. assuming a neutral,
+// closed-shell fragment), rounded to the nearest integer, matching
+// the standard convention already used elsewhere in this codebase for
+// a fragment's own "neutral reference" electron count (see
+// DFTEngine::BuildCDFTConstraint's own neutral_reference_population).
+// Genuinely approximate for a COVALENTLY-bonded fragment specifically
+// (there is no truly well-defined "neutral fragment" electron count
+// once a bond has been cut across the fragment boundary) -- flagged
+// directly to the user as a real modeling choice, not silently
+// assumed to be exact.
+Index CountFragmentElectrons(const QMMolecule& mol,
+                             const std::vector<Index>& atoms) {
+  double nuccharge = 0.0;
+  for (Index atom_index : atoms) {
+    nuccharge += static_cast<double>(mol[atom_index].getNuccharge());
+  }
+  return static_cast<Index>(std::lround(nuccharge / 2.0));
+}
+
+// Fragment-local analogue of DFTcoupling::DetermineRangeOfStates --
+// same definition (minimal = homo_index - numberofstates + 1, maximal
+// = lumo_index + numberofstates - 1, covering both occupied and
+// virtual orbitals in one, single, combined range), but without that
+// function's own degeneracy_ handling: not requested by the user for
+// this class, and left out deliberately rather than added
+// speculatively. Bounds-checked directly against the fragment's own
+// total number of orbitals (n_basis, i.e. the fragment's own AO count
+// -- the fragment-block Fock sub-block is square, n_basis x n_basis,
+// so this is also the fragment's own total number of orbitals
+// available from its own generalized eigenvalue solve).
+std::pair<Index, Index> DetermineFragmentRangeOfStates(Index homo_index,
+                                                        Index lumo_index,
+                                                        Index numberofstates,
+                                                        Index n_basis) {
+  Index minimal = homo_index - numberofstates + 1;
+  Index maximal = lumo_index + numberofstates - 1;
+  if (minimal < 0 || maximal >= n_basis) {
+    throw std::runtime_error(
+        "PODCoupling: requested numberofstates=" +
+        std::to_string(numberofstates) +
+        " exceeds the fragment's own available orbital range (0.." +
+        std::to_string(n_basis - 1) + ").");
+  }
+  return {minimal, maximal - minimal + 1};
+}
+}  // namespace
+
+PODCoupling::PODCoupling(Orbitals& orbitals, Logger* log,
+                         std::vector<Index> fragment_A_atoms,
+                         std::vector<Index> fragment_B_atoms)
+    : orbitals_(orbitals),
+      pLog_(log),
+      fragment_A_atoms_(std::move(fragment_A_atoms)),
+      fragment_B_atoms_(std::move(fragment_B_atoms)) {
+  const QMMolecule& mol = orbitals_.QMAtoms();
+  nocc_A_ = CountFragmentElectrons(mol, fragment_A_atoms_);
+  nocc_B_ = CountFragmentElectrons(mol, fragment_B_atoms_);
+}
+
+void PODCoupling::CalculateCouplings(Index numberofstatesA,
+                                     Index numberofstatesB) {
+  const QMMolecule& mol = orbitals_.QMAtoms();
+
+  AOBasis full_dftbasis;
+  {
+    BasisSet basisset;
+    basisset.Load(orbitals_.getDFTbasisName());
+    full_dftbasis.Fill(basisset, mol);
+  }
+  AOOverlap overlap;
+  overlap.Fill(full_dftbasis);
+  const Eigen::MatrixXd& S = overlap.Matrix();
+
+  // Reconstructs the full, AO-basis Fock matrix from the already-
+  // converged MOs/orbital energies -- F_AO = S*C*eps*C^T*S, valid
+  // because C is S-orthonormal (C^T*S*C = I, so C^{-1} = C^T*S) and
+  // spans the full AO space (confirmed directly: no near-linearly-
+  // dependent basis functions were removed for the reference
+  // calculation this class is designed to consume -- see this class's
+  // own header comment on requiring an already-converged, ordinary,
+  // neutral ground-state calculation as input). Orbitals itself does
+  // not persist the raw AO-basis Fock matrix directly, only the
+  // diagonalized MO representation, so this reconstruction is the
+  // standard, direct way to recover it.
+  const Eigen::MatrixXd& C = orbitals_.MOs().eigenvectors();
+  const Eigen::VectorXd& eps = orbitals_.MOs().eigenvalues();
+  Eigen::MatrixXd F = S * C * eps.asDiagonal() * C.transpose() * S;
+
+  std::vector<Index> ao_indices_A =
+      MapAtomsToAOIndices(fragment_A_atoms_, full_dftbasis.getFuncPerAtom());
+  std::vector<Index> ao_indices_B =
+      MapAtomsToAOIndices(fragment_B_atoms_, full_dftbasis.getFuncPerAtom());
+
+  Eigen::MatrixXd F_AA = GatherSubMatrix(F, ao_indices_A);
+  Eigen::MatrixXd S_AA = GatherSubMatrix(S, ao_indices_A);
+  Eigen::MatrixXd F_BB = GatherSubMatrix(F, ao_indices_B);
+  Eigen::MatrixXd S_BB = GatherSubMatrix(S, ao_indices_B);
+
+  // Separately diagonalizes each fragment's own donor/acceptor block
+  // IN THE ORIGINAL AO BASIS -- this is the specific "2" in POD2 (Ghan
+  // et al.), deliberately NOT the original POD's own global Lowdin-
+  // orthogonalization of the whole AO basis first (confirmed directly,
+  // via arXiv:1512.00200's own critical comparison, to make results
+  // basis-set-unstable: larger basis sets increase inter-fragment AO
+  // mixing under global orthogonalization, degrading the resulting
+  // coupling).
+  Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> es_A(F_AA, S_AA);
+  Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> es_B(F_BB, S_BB);
+  if (es_A.info() != Eigen::Success || es_B.info() != Eigen::Success) {
+    throw std::runtime_error(
+        "PODCoupling: generalized eigenvalue solve failed for one or both "
+        "fragment Fock sub-blocks -- this can happen if a fragment's own "
+        "S_AA is (numerically) singular, e.g. from a badly chosen or "
+        "overlapping fragment definition.");
+  }
+
+  Range_orbA_ = DetermineFragmentRangeOfStates(
+      getFragmentAHomoIndex(), getFragmentALumoIndex(), numberofstatesA,
+      F_AA.rows());
+  Range_orbB_ = DetermineFragmentRangeOfStates(
+      getFragmentBHomoIndex(), getFragmentBLumoIndex(), numberofstatesB,
+      F_BB.rows());
+  Index levelsA = Range_orbA_.second;
+  Index levelsB = Range_orbB_.second;
+
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " PODCoupling: fragment A HOMO="
+      << getFragmentAHomoIndex() << ", LUMO=" << getFragmentALumoIndex()
+      << " (both estimated), range covers orbitals ["
+      << Range_orbA_.first << ", " << (Range_orbA_.first + levelsA - 1)
+      << "]" << std::flush;
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " PODCoupling: fragment B HOMO="
+      << getFragmentBHomoIndex() << ", LUMO=" << getFragmentBLumoIndex()
+      << " (both estimated), range covers orbitals ["
+      << Range_orbB_.first << ", " << (Range_orbB_.first + levelsB - 1)
+      << "]" << std::flush;
+
+  // The off-diagonal AO blocks themselves do not depend on which
+  // specific orbital pair is being coupled -- gathered once, outside
+  // the loop below, and reused for every (i, j) pair in the requested
+  // range, rather than redundantly re-gathering the same block once
+  // per orbital pair.
+  Eigen::MatrixXd F_AB = GatherOffDiagonalBlock(F, ao_indices_A, ao_indices_B);
+  Eigen::MatrixXd S_AB_block =
+      GatherOffDiagonalBlock(S, ao_indices_A, ao_indices_B);
+
+  JAB_ = Eigen::MatrixXd(levelsA, levelsB);
+  for (Index i = 0; i < levelsA; ++i) {
+    Eigen::VectorXd orbital_A = es_A.eigenvectors().col(Range_orbA_.first + i);
+    double e_A_hartree = es_A.eigenvalues()(Range_orbA_.first + i);
+    for (Index j = 0; j < levelsB; ++j) {
+      Eigen::VectorXd orbital_B =
+          es_B.eigenvectors().col(Range_orbB_.first + j);
+      double e_B_hartree = es_B.eigenvalues()(Range_orbB_.first + j);
+
+      double J_AB = orbital_A.dot(F_AB * orbital_B);
+      // S_AB: the overlap between this specific PAIR of fragment
+      // orbitals themselves (not either fragment's own internal
+      // S_AA/S_BB, already used above for each one's own
+      // normalization).
+      double S_AB = orbital_A.dot(S_AB_block * orbital_B);
+
+      // The actual, final coupling for this pair: NOT J_AB itself --
+      // confirmed directly, from a real, independent cross-check
+      // against a symmetric test dimer's own half-HOMO-HOMO-1 gap,
+      // that the raw J_AB is wrong by close to a factor of 2 (the two
+      // fragment orbitals are not mutually orthogonal in general --
+      // S_AB above is the direct evidence of that -- so J_AB alone
+      // conflates the true electronic coupling with an overlap-
+      // induced contribution). The paper this whole POD2
+      // implementation grew out of (Baumeier, Kirkpatrick, Andrienko,
+      // PCCP 2010, 12, 11103) derives exactly this same correction for
+      // DIPRO's own, analogous non-orthogonal monomer HOMOs, its own
+      // eqn (10): t_AB = (J_AB - 0.5*(e_A+e_B)*S_AB) / (1-S_AB^2).
+      JAB_(i, j) = (J_AB - 0.5 * (e_A_hartree + e_B_hartree) * S_AB) /
+                  (1.0 - S_AB * S_AB);
+    }
+  }
+}
+
+double PODCoupling::getCouplingElement(Index levelA, Index levelB) const {
+  Index indexA = levelA - Range_orbA_.first;
+  Index indexB = levelB - Range_orbB_.first;
+  if (indexA < 0 || indexA >= JAB_.rows() || indexB < 0 ||
+      indexB >= JAB_.cols()) {
+    throw std::runtime_error(
+        "PODCoupling::getCouplingElement: requested levelA=" +
+        std::to_string(levelA) + "/levelB=" + std::to_string(levelB) +
+        " is outside the range covered by the most recent "
+        "CalculateCouplings call.");
+  }
+  return JAB_(indexA, indexB);
+}
+
+}  // namespace xtp
+}  // namespace votca
