@@ -392,8 +392,18 @@ std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
     initial_guess(1, 1) = 1.0;
   }
 
+  // Returns whether the Davidson solve itself actually converged
+  // (solver.info() == Eigen::ComputationInfo::Success) within its own
+  // iter_max_ budget -- confirmed necessary directly, from a real run
+  // on a genuinely difficult system (a -1 charge CDFT-constrained onto
+  // a 28-atom fragment): the solver's own diagnostic output showed
+  // "0.00% converged" repeated across dozens of iterations and several
+  // restarts, yet the ORIGINAL version of this lambda still
+  // unconditionally extracted eigenvectors()/eigenvalues() and used
+  // them as if the solve had succeeded -- there was no way for the
+  // caller to ever detect this had happened at all.
   auto SolveForAlpha = [&](double alpha_try, Eigen::VectorXd& kappa_flat_out,
-                           double& mu_out) {
+                           double& mu_out) -> bool {
     CoupledAugmentedHessianOperator op{g,
                                        C_alpha,
                                        nocclevels_alpha,
@@ -406,26 +416,47 @@ std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
     DavidsonSolver solver(*log_);
     solver.set_matrix_type("SYMM");
     solver.set_tolerance("loose");
-    solver.set_iter_max(50);
+    solver.set_iter_max(opt_alpha_.davidson_max_iter);
     solver.set_max_search_space(40);
     solver.solve(op, 1, initial_guess);
+    if (solver.info() != Eigen::ComputationInfo::Success) {
+      return false;
+    }
     Eigen::VectorXd eigvec = solver.eigenvectors().col(0);
     mu_out = solver.eigenvalues()(0);
     double v0 = eigvec(0);
     if (std::abs(v0) < 1e-8) {
       kappa_flat_out = Eigen::VectorXd::Zero(g.size());
-      return;
+      return true;
     }
     kappa_flat_out = eigvec.tail(g.size()) / v0;
+    return true;
   };
 
   double alpha_try = alpha_min;
   constexpr int kMaxBisectionIters = 20;
+  bool have_converged_once = false;
   for (int bisection_iter = 0; bisection_iter < kMaxBisectionIters;
        ++bisection_iter) {
     Eigen::VectorXd kappa_flat;
     double mu;
-    SolveForAlpha(alpha_try, kappa_flat, mu);
+    bool converged = SolveForAlpha(alpha_try, kappa_flat, mu);
+    if (!converged) {
+      // Never trust/store a failed solve's own kappa/mu at all -- see
+      // this function's own header comment on SolveForAlpha above for
+      // why the ORIGINAL version of this loop did exactly that, and
+      // the real, confirmed consequence. Treated the same way as
+      // step_norm > trust_radius: alpha_min moves up, since a LARGER
+      // alpha generally makes the augmented Hessian's own lowest
+      // eigenvalue more distinct from the rest of its spectrum --
+      // easier for Davidson to isolate, not harder -- so retrying at
+      // a larger alpha is a reasonable, physically-motivated response
+      // to a failed solve, not an arbitrary guess.
+      alpha_min = alpha_try;
+      alpha_try = 0.5 * (alpha_min + alpha_max);
+      continue;
+    }
+    have_converged_once = true;
     double step_norm = kappa_flat.norm() / alpha_try;
     best_kappa_flat = kappa_flat;
     best_mu = mu;
@@ -438,6 +469,22 @@ std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
       alpha_max = alpha_try;
     }
     alpha_try = 0.5 * (alpha_min + alpha_max);
+  }
+
+  if (!have_converged_once) {
+    // Every single bisection attempt's own Davidson solve failed to
+    // converge -- confirmed directly, from a real run, that silently
+    // proceeding here (with best_kappa_flat/best_mu left at whatever
+    // they were default-initialized to, never actually set by a
+    // genuine solve) is the wrong thing to do: there is no
+    // meaningful step to take at all, and the caller deserves to know
+    // this failed rather than silently receiving a zero/garbage step.
+    throw std::runtime_error(
+        "CoupledAugmentedHessianStep: DavidsonSolver failed to converge "
+        "for every bisection trial (all " +
+        std::to_string(kMaxBisectionIters) +
+        " attempts) -- no genuine augmented-Hessian step could be "
+        "computed at all.");
   }
 
   XTP_LOG(Log::warning, *log_)

@@ -18,6 +18,7 @@ Version 2026-dev
 -  added quasiparticle self-consistent GW (#1245)
 -  implemented analytic DFT gradients (#1246)
 -  implemented Charge Constrained DFT (CDFT) (#1247)
+-  reduced memory in analytic forces (#1248)
 
 Version 2026 (released 09.03.26)
 ================================

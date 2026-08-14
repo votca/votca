@@ -35,6 +35,29 @@ std::vector<AOMatrixDerivative> ComputeCoulombMetricDerivatives(
     const AOBasis& aobasis);
 std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivatives(
     const AOBasis& auxbasis, const AOBasis& dftbasis);
+// Memory-efficient alternative to ComputeThreeCenterDerivatives above --
+// see that function's own header comment in libint2_derivative_calls.cc
+// for why this exists (the full-tensor version is catastrophically
+// memory-unscalable for anything beyond a small, toy-sized system).
+std::vector<Eigen::MatrixXd> ComputeThreeCenterDerivativeContraction(
+    const AOBasis& auxbasis, const AOBasis& dftbasis,
+    const Eigen::MatrixXd& density);
+// CORRECTED, single-pass alternative for RIKGradient's own, different
+// contraction needs -- see that function's own header comment in
+// libint2_derivative_calls.cc for the full reasoning, including the
+// arithmetic error that led to an earlier, slower, per-atom approach
+// (ComputeThreeCenterDerivativesForAtom, kept below but no longer
+// used by RIKGradient) being chosen instead.
+std::vector<ThreeCenterDerivative> ComputeThreeCenterDerivativesMOTransformed(
+    const AOBasis& auxbasis, const AOBasis& dftbasis,
+    const Eigen::MatrixXd& occ_mo_coeffs);
+// Per-atom alternative -- superseded by
+// ComputeThreeCenterDerivativesMOTransformed above for RIKGradient's
+// own use (kept, unused by RIKGradient now, since deleting it would
+// remove a real, working, if slower, fallback with no compensating
+// benefit).
+ThreeCenterDerivative ComputeThreeCenterDerivativesForAtom(
+    const AOBasis& auxbasis, const AOBasis& dftbasis, Index target_atom);
 std::vector<Eigen::MatrixXd> ComputeThreeCenterIntegrals(
     const AOBasis& auxbasis, const AOBasis& dftbasis);
 
@@ -96,10 +119,20 @@ Eigen::MatrixXd DFTGradient::RIJGradient(const Eigen::MatrixXd& density,
   const Eigen::MatrixXd& V = aocoulomb.Matrix();
   Eigen::VectorXd c = V.ldlt().solve(d);
 
-  // Derivative tensors -- both already validated (finite-difference
-  // tested) in test_aoderivatives.cc.
-  std::vector<ThreeCenterDerivative> d3c =
-      ComputeThreeCenterDerivatives(auxbasis, dftbasis);
+  // Already-contracted against density (sum_{mu,nu} density(mu,nu) *
+  // d(mu,nu|p)/dR_a[xyz], not a per-(mu,nu) tensor) -- see this
+  // function's own header comment for why: the full-tensor
+  // ComputeThreeCenterDerivatives, previously used here, was confirmed
+  // to exhaust hundreds of GB of memory on a real, moderately-sized
+  // molecule (natoms*3*n_aux_bf separate, complete nao x nao matrices
+  // held simultaneously -- roughly 2.6 PETABYTES for a 53-atom, 943
+  // AO / 2320 auxiliary function system). ComputeThreeCenterDerivatives
+  // itself is left unchanged (still used, and still validated, by
+  // test_aoderivatives.cc and by RIKGradient below, which needs a
+  // genuinely different contraction of its own -- see that function's
+  // own comments).
+  std::vector<Eigen::MatrixXd> ddP_dR =
+      ComputeThreeCenterDerivativeContraction(auxbasis, dftbasis, density);
   std::vector<AOMatrixDerivative> dV =
       ComputeCoulombMetricDerivatives(auxbasis);
 
@@ -107,14 +140,13 @@ Eigen::MatrixXd DFTGradient::RIJGradient(const Eigen::MatrixXd& density,
   // d(d_P)/dR = sum_{mu,nu} P_{mu,nu} d(mu,nu|P)/dR (density held fixed --
   // see the "IMPORTANT" note on this function in dftgradient.h for why
   // that's valid regardless of whether density is a converged SCF
-  // density or an arbitrary fixed matrix).
+  // density or an arbitrary fixed matrix). ddP_dR[a](xyz, p) is exactly
+  // this quantity, already summed over mu,nu -- no further contraction
+  // against density needed here at all.
   Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
   for (Index a = 0; a < natoms; ++a) {
     for (Index xyz = 0; xyz < 3; ++xyz) {
-      double term1 = 0.0;
-      for (Index p = 0; p < n_aux_bf; ++p) {
-        term1 += c(p) * (density.array() * d3c[a][xyz][p].array()).sum();
-      }
+      double term1 = ddP_dR[a].row(xyz).dot(c);
       double term2 = 0.5 * c.dot(dV[a][xyz] * c);
       grad(a, xyz) = term1 - term2;
     }
@@ -137,12 +169,57 @@ Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
   const Eigen::MatrixXd& V = aocoulomb.Matrix();
   Eigen::LDLT<Eigen::MatrixXd> V_ldlt(V);
 
-  std::vector<ThreeCenterDerivative> d3c =
-      ComputeThreeCenterDerivatives(auxbasis, dftbasis);
   std::vector<AOMatrixDerivative> dV =
       ComputeCoulombMetricDerivatives(auxbasis);
 
+  // Single pass over ALL atoms at once -- see
+  // ComputeThreeCenterDerivativesMOTransformed's own header comment for
+  // the full reasoning (including the arithmetic error that had
+  // motivated a slower, per-atom approach instead): ~23.8 GB total for
+  // the real, 53-atom/943-AO/2320-auxiliary/93-occupied-orbital system
+  // that originally motivated this whole fix, smaller than even that
+  // per-atom approach's own ~46 GB peak, and needing only ONE pass over
+  // the expensive shell-triple loop rather than natoms of them.
+  std::vector<ThreeCenterDerivative> d3c_mo =
+      ComputeThreeCenterDerivativesMOTransformed(auxbasis, dftbasis,
+                                                 occ_mo_coeffs);
+
   Eigen::MatrixXd grad = Eigen::MatrixXd::Zero(natoms, 3);
+
+  // d_ij(P) = C_i^T tensor[P] C_j, c_ij = V^-1 d_ij (i,j both occupied
+  // MOs, all ordered pairs including i==j).
+  // E_K = -2 * sum_{i,j} [0.5 * c_ij . d_ij] = -sum_{i,j} c_ij . d_ij
+  // (matches ERIs::CalculateEXX_mos's real physical exchange energy
+  // exactly, confirmed numerically, not just up to an unknown scale).
+  //
+  // PERFORMANCE: confirmed directly, via a real run, to be a genuine
+  // bottleneck in its naive form -- computing tensor[p]*occ_mo_coeffs.col(j)
+  // (an O(nao^2) matrix-vector product) separately for every (i,j)
+  // pair recomputes the SAME result nocc times over (it does not
+  // depend on i at all). Factored out here: tensor[p]*occ_mo_coeffs
+  // (all occupied columns at once) is computed ONCE per p, and every
+  // d(p) for a given (i,j) is then a cheap O(nao) dot product against
+  // the appropriate column of that already-computed result -- reduces
+  // the dominant cost by roughly a factor of nocc. Purely a
+  // reordering of the SAME formula (see the "NOTE ON HISTORY" comment
+  // below for why changing the formula itself would be dangerous);
+  // mathematically identical to the original for every element, not a
+  // different computation.
+  std::vector<Eigen::MatrixXd> tensor_half(n_aux_bf);
+  for (Index p = 0; p < n_aux_bf; ++p) {
+    tensor_half[p] = tensor[p] * occ_mo_coeffs;  // (nao, nocc)
+  }
+  std::vector<std::vector<Eigen::VectorXd>> c_ij(
+      nocc, std::vector<Eigen::VectorXd>(nocc));
+  for (Index i = 0; i < nocc; ++i) {
+    for (Index j = 0; j < nocc; ++j) {
+      Eigen::VectorXd d(n_aux_bf);
+      for (Index p = 0; p < n_aux_bf; ++p) {
+        d(p) = occ_mo_coeffs.col(i).dot(tensor_half[p].col(j));
+      }
+      c_ij[i][j] = V_ldlt.solve(d);
+    }
+  }
 
   // NOTE ON HISTORY: an earlier revision of this function briefly
   // switched to a "half-transformed" structure (one index MO, one AO),
@@ -161,24 +238,14 @@ Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
   // a problem -- V^-1 and V^-1/2 fitting give identical energies
   // (|V^-1/2 x|^2 == x^T V^-1 x exactly, for symmetric positive-definite
   // V) -- the only real fix needed here was the missing factor of 2.
-  //
-  // d_ij(P) = C_i^T tensor[P] C_j, c_ij = V^-1 d_ij (i,j both occupied
-  // MOs, all ordered pairs including i==j).
-  // E_K = -2 * sum_{i,j} [0.5 * c_ij . d_ij] = -sum_{i,j} c_ij . d_ij
-  // (matches ERIs::CalculateEXX_mos's real physical exchange energy
-  // exactly, confirmed numerically, not just up to an unknown scale).
-  std::vector<std::vector<Eigen::VectorXd>> c_ij(
-      nocc, std::vector<Eigen::VectorXd>(nocc));
-  for (Index i = 0; i < nocc; ++i) {
-    for (Index j = 0; j < nocc; ++j) {
-      Eigen::VectorXd d(n_aux_bf);
-      for (Index p = 0; p < n_aux_bf; ++p) {
-        d(p) = occ_mo_coeffs.col(i).dot(tensor[p] * occ_mo_coeffs.col(j));
-      }
-      c_ij[i][j] = V_ldlt.solve(d);
-    }
-  }
+  // (NOTE: this history comment is about a DIFFERENT half-transformed
+  // structure than the one introduced just above -- that one changed
+  // the final FORMULA itself and gave a wrong physical answer; the one
+  // just above only reorders/factors the SAME formula's own
+  // computation and is mathematically identical to the original for
+  // every element, not a different computation at all.)
 
+#pragma omp parallel for
   for (Index a = 0; a < natoms; ++a) {
     for (Index xyz = 0; xyz < 3; ++xyz) {
       double energy_term = 0.0;
@@ -186,10 +253,15 @@ Eigen::MatrixXd DFTGradient::RIKGradient(const Eigen::MatrixXd& occ_mo_coeffs,
       for (Index i = 0; i < nocc; ++i) {
         for (Index j = 0; j < nocc; ++j) {
           const Eigen::VectorXd& c = c_ij[i][j];
+          // d3c_mo[a][xyz][p] is already the full (nocc, nocc)
+          // MO-transformed matrix -- (i, j) is read off directly, no
+          // further matrix-vector multiplication needed at all (unlike
+          // the old, per-atom AO-basis d3c_atom[xyz][p], which still
+          // needed occ_mo_coeffs.col(i).dot(d3c_atom[xyz][p] *
+          // occ_mo_coeffs.col(j)) for every (i,j) pair).
           Eigen::VectorXd dd(n_aux_bf);
           for (Index p = 0; p < n_aux_bf; ++p) {
-            dd(p) =
-                occ_mo_coeffs.col(i).dot(d3c[a][xyz][p] * occ_mo_coeffs.col(j));
+            dd(p) = d3c_mo[a][xyz][p](i, j);
           }
           energy_term += c.dot(dd);
           metric_term += c.dot(dV[a][xyz] * c);

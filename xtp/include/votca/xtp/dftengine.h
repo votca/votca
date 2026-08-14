@@ -337,6 +337,12 @@ class DFTEngine {
     // design discussion on this.
     double target_charge = 0.0;
     double initial_lambda = 0.0;
+    // "warmstart" (default) or "fresh" -- see this field's own XML
+    // help text (dftpackage.xml) for the full reasoning. Stored as
+    // the raw string, not a bool, so an invalid value (a typo, say)
+    // is caught by the XML schema's own choices="..." validation
+    // rather than silently defaulting to one behavior or the other.
+    std::string guess_strategy = "warmstart";
   };
 
   /// Converts a parsed CDFTConstraintSpec (atom indices + relative

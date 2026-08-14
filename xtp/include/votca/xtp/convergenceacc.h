@@ -86,6 +86,15 @@ class ConvergenceAcc {
     double error_converged;
     Index number_alpha_electrons = 0;
     Index number_beta_electrons = 0;
+    // Maximum iterations for the Davidson eigensolver used by
+    // CoupledAugmentedHessianStep's own direct-minimization fallback --
+    // NOT CDFT-specific, since that fallback can engage for any
+    // sufficiently difficult UKS SCF (see this field's own XML help
+    // text, dftpackage.xml, for the real case that motivated exposing
+    // this at all: a strong CDFT constraint over a large fragment left
+    // the solver still short of its own convergence tolerance at the
+    // previous, hardcoded default of 50).
+    Index davidson_max_iter = 50;
   };
 
   /// Spin-resolved density matrices returned for open-shell SCF updates.

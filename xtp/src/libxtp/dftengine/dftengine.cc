@@ -201,6 +201,8 @@ void DFTEngine::Initialize(tools::Property& options) {
         options.get(key_xtpdft + ".cdft.max_iterations").as<Index>();
     cdft_population_tolerance_ =
         options.get(key_xtpdft + ".cdft.population_tolerance").as<double>();
+    cdft_constraint_spec_.guess_strategy =
+        options.get(key_xtpdft + ".cdft.guess_strategy").as<std::string>();
     // Note: CDFT itself needs no derivative integral at all (it only
     // ever builds ENERGY-level quantities -- reference densities,
     // weight matrices, Fock-matrix potentials -- never the
@@ -282,6 +284,8 @@ void DFTEngine::Initialize(tools::Property& options) {
       options.get(key_xtpdft + ".convergence.DIIS_start").as<double>();
   conv_opt_.adiis_start =
       options.get(key_xtpdft + ".convergence.ADIIS_start").as<double>();
+  conv_opt_.davidson_max_iter =
+      options.get(key_xtpdft + ".convergence.davidson_max_iter").as<Index>();
 
   if (options.exists(key_xtpdft + ".dft_in_dft.activeatoms")) {
     active_atoms_as_string_ =
@@ -471,6 +475,10 @@ void DFTEngine::ComputeAndStoreForces(
   const QMMolecule& mol = orb.QMAtoms();
   Index natoms = mol.size();
 
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << " Starting force calculation (" << natoms
+      << " atoms)" << std::flush;
+
   // One-electron (kinetic + nuclear attraction) contribution --
   // dEone/dR_A = Tr[Dmat . d(T+V_ne)/dR_A]. This was the piece
   // discovered MISSING from the total gradient by the first genuine
@@ -482,6 +490,9 @@ void DFTEngine::ComputeAndStoreForces(
   // libint2_derivative_calls.cc for the detailed derivation (sign
   // convention checked directly against AOMultipole's own,
   // already-validated energy-level code, not assumed).
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   Computing one-electron (kinetic + nuclear "
+                        "attraction) derivatives" << std::flush;
   std::vector<AOMatrixDerivative> dT = ComputeKineticDerivatives(dftbasis_);
   std::vector<AOMatrixDerivative> dVne =
       ComputeNuclearAttractionDerivatives(dftbasis_, mol);
@@ -491,6 +502,8 @@ void DFTEngine::ComputeAndStoreForces(
       eone_grad(a, xyz) = Dmat.cwiseProduct(dT[a][xyz] + dVne[a][xyz]).sum();
     }
   }
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   One-electron derivatives done" << std::flush;
 
   // Overlap "Pulay force" -- a SECOND, genuinely distinct missing term,
   // found after the kinetic+nuclear-attraction fix improved but did not
@@ -523,6 +536,9 @@ void DFTEngine::ComputeAndStoreForces(
   Eigen::VectorXd eps_occ = orb.MOs().eigenvalues().head(n_occ);
   Eigen::MatrixXd W = 2.0 * C_occ * eps_occ.asDiagonal() * C_occ.transpose();
 
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   Computing overlap (Pulay) derivatives"
+      << std::flush;
   std::vector<AOMatrixDerivative> dS = ComputeOverlapDerivatives(dftbasis_);
   Eigen::MatrixXd overlap_pulay_grad = Eigen::MatrixXd::Zero(natoms, 3);
   for (Index a = 0; a < natoms; ++a) {
@@ -530,12 +546,24 @@ void DFTEngine::ComputeAndStoreForces(
       overlap_pulay_grad(a, xyz) = -W.cwiseProduct(dS[a][xyz]).sum();
     }
   }
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   Overlap derivatives done" << std::flush;
 
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   Computing RI-J (Coulomb) gradient" << std::flush;
   Eigen::MatrixXd rij_term =
       DFTGradient::RIJGradient(Dmat, auxbasis_, dftbasis_);
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   RI-J gradient done" << std::flush;
+
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   Computing XC grid (Pulay + weight) gradient terms"
+      << std::flush;
   Eigen::MatrixXd pulay_term = vxcpotential.PulayGradient(Dmat, dftbasis_);
   Eigen::MatrixXd weight_term = vxcpotential.GridWeightGradient(Dmat, mol);
   Eigen::MatrixXd nucrep_term = DFTGradient::NuclearRepulsionDerivative(mol);
+  XTP_LOG(Log::error, *pLog_)
+      << TimeStamp() << "   XC grid gradient terms done" << std::flush;
 
   Eigen::MatrixXd grad = nucrep_term + eone_grad + overlap_pulay_grad +
                          rij_term + pulay_term + weight_term;
@@ -560,7 +588,12 @@ void DFTEngine::ComputeAndStoreForces(
   // limitation (hybrid functionals skipped entirely) -- see git history
   // for the full derivation/verification that led to this.
   if (ScaHFX_ > 0.0) {
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << "   Computing RI-K (exact exchange) gradient"
+        << std::flush;
     grad += ScaHFX_ * DFTGradient::RIKGradient(C_occ, auxbasis_, dftbasis_);
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << "   RI-K gradient done" << std::flush;
   }
 
   // Sanity check independent of the finite-difference tests already done
@@ -886,14 +919,54 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
     // requirement on the caller.
     HirshfeldPartition::Constraint constraint =
         BuildCDFTConstraint(orb.QMAtoms(), cdft_constraint_spec_);
+
+    // Suppresses the ordinary DFT force calculation during EVERY
+    // intermediate lambda-bisection trial inside RunCDFT (each of
+    // which internally calls EvaluateUKS, which would otherwise
+    // trigger the full, expensive ComputeAndStoreForcesUKS on each one
+    // -- confirmed directly, via a real run, to be a genuine,
+    // substantial waste: only the FINAL, converged lambda's own force
+    // is ever actually used). Restored unconditionally below,
+    // regardless of whether RunCDFT converges, so this never leaks a
+    // suppressed value back to the caller.
+    bool original_compute_forces = compute_forces_;
+    compute_forces_ = false;
     bool converged = RunCDFT(orb, constraint);
+    compute_forces_ = original_compute_forces;
+
+    if (converged && original_compute_forces) {
+      // ONE, explicit, final UKS evaluation to compute the ordinary
+      // DFT force for the now-converged, fixed CDFT density -- orb
+      // already holds the converged MOs from RunCDFT's own, final
+      // internal EvaluateUKS call, so this re-run starts from (and
+      // should remain at) that same fixed point, converging
+      // essentially immediately rather than as a fresh, cold SCF.
+      // Deliberately re-runs Prepare/SetupH0/SetupVxc/ConfigOrbfile
+      // (the same setup RunCDFT already did once, internally, at its
+      // own start) rather than threading H0/vxcpotential through
+      // RunCDFT's own signature to avoid this -- a real, accepted
+      // cost (this setup, not the SCF itself, is what gets redone),
+      // chosen specifically to avoid touching RunCDFT's own,
+      // already-validated signature/control flow at all.
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp()
+          << " CDFT converged -- computing the ordinary DFT force once, "
+             "for the final, converged density only"
+          << std::flush;
+      Prepare(orb);
+      Mat_p_Energy H0 = SetupH0(orb.QMAtoms());
+      Vxc_Potential<Vxc_Grid> vxcpotential = SetupVxc(orb.QMAtoms());
+      ConfigOrbfile(orb);
+      EvaluateUKS(orb, H0, vxcpotential);
+    }
 
     if (converged && orb.hasForces()) {
-      // RunCDFT's own final EvaluateUKS call already computed and
-      // stored the ordinary DFT force (via ComputeAndStoreForcesUKS,
-      // triggered internally whenever compute_forces_ is also set) --
-      // this adds the CDFT-specific correction on top of it. Done
-      // HERE, once, after RunCDFT's outer loop has fully converged --
+      // The explicit, final EvaluateUKS call just above (not RunCDFT's
+      // own, internal ones, which now have forces suppressed -- see
+      // the comment on original_compute_forces above) computed and
+      // stored the ordinary DFT force; this adds the CDFT-specific
+      // correction on top of it. Done HERE, once, after RunCDFT's
+      // outer loop has fully converged --
       // deliberately NOT inside ComputeAndStoreForcesUKS itself (which
       // would otherwise redo this work, wastefully and riskily, at
       // EVERY outer CDFT iteration, since RunCDFT calls EvaluateUKS
@@ -1000,13 +1073,26 @@ bool DFTEngine::RunCDFT(Orbitals& orb,
 
   auto EvaluateMismatch = [&](double lambda) -> double {
     constraints_[0].lambda = lambda;
+    XTP_LOG(Log::error, *pLog_)
+        << TimeStamp() << " CDFT: starting inner SCF at lambda=" << lambda
+        << std::flush;
     bool scf_converged = EvaluateUKS(orb, H0, vxcpotential);
     if (!scf_converged) {
       throw std::runtime_error(
           "RunCDFT: inner SCF did not converge at lambda=" +
           std::to_string(lambda));
     }
-    initial_guess_ = "orbfile";  // warm start every subsequent call
+    if (cdft_constraint_spec_.guess_strategy == "warmstart") {
+      initial_guess_ = "orbfile";  // warm start every subsequent call
+    }
+    // "fresh": deliberately leave initial_guess_ untouched here, so it
+    // stays at whatever the calculation's own, original, top-level
+    // setting was for every trial -- see this option's own XML help
+    // text (dftpackage.xml) for why this can matter: if consecutive
+    // lambda trials correspond to substantially different electronic
+    // structures, warm-starting from the immediately preceding trial's
+    // own converged density could be a worse starting point than a
+    // fresh guess, not a better one.
     std::array<Eigen::MatrixXd, 2> Dspin =
         orb.DensityMatrixGroundStateSpinResolved();
     double population =
