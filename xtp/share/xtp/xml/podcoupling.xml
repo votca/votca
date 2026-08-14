@@ -7,5 +7,10 @@
     <fragment_B help="Atom indices (0-based) making up fragment B -- disjoint from fragment_A, same syntax" default=""/>
     <levA help="Number of orbitals to cover for fragment A, counting outward from its own HOMO/LUMO boundary, covering BOTH occupied (hole-transport) and virtual (electron-transport) orbitals together in one calculation -- same convention as DFTcoupling's own levA option exactly. 1 covers just {HOMO, LUMO}; 2 covers {HOMO-1, HOMO, LUMO, LUMO+1}; etc." default="1" choices="int+"/>
     <levB help="Same as levA, for fragment B -- same convention as DFTcoupling's own levB option" default="1" choices="int+"/>
+    <write_cube_files help="If true, writes a .cube file for each fragment orbital actually covered by levA/levB (both fragments), useful for visualizing/sanity-checking which orbitals the coupling calculation used" default="false" choices="bool"/>
+    <xsteps help="Gridpoints in x-direction for cube file export -- same option as gencube's own xsteps, only used if write_cube_files is true" default="25" choices="int+"/>
+    <ysteps help="Gridpoints in y-direction for cube file export -- same option as gencube's own ysteps, only used if write_cube_files is true" default="25" choices="int+"/>
+    <zsteps help="Gridpoints in z-direction for cube file export -- same option as gencube's own zsteps, only used if write_cube_files is true" default="25" choices="int+"/>
+    <padding help="How far the cube-file grid should start from the molecule, same option as gencube's own padding, only used if write_cube_files is true" unit="bohr" default="6.5" choices="float+"/>
 </podcoupling>
 </options>

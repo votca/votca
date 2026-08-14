@@ -129,6 +129,23 @@ class PODCoupling {
   Index getFragmentBHomoIndex() const { return nocc_B_ - 1; }
   Index getFragmentBLumoIndex() const { return nocc_B_; }
 
+  // Returns fragment A's (if fragment_A is true, else fragment B's)
+  // orbital at absolute index level -- same index convention as
+  // getCouplingElement's own levelA/levelB above -- EMBEDDED into the
+  // full, whole-molecule AO basis (i.e. a vector of length equal to
+  // the full molecule's own total number of AO basis functions, with
+  // zero coefficients everywhere outside this fragment's own AO
+  // indices). This is what visualizing a fragment orbital (e.g. via a
+  // cube file, which needs a coefficient for every AO of the full
+  // molecule the grid is built over) actually requires -- the
+  // fragment orbital's own, "native" representation (a much shorter
+  // vector, over only this fragment's own AOs) is what getCouplingElement's
+  // own internal computation uses, but is not, on its own, something a
+  // whole-molecule grid/cube-file writer can consume at all. Must be
+  // within the range covered by the most recent CalculateCouplings
+  // call, or this throws, matching getCouplingElement's own behavior.
+  Eigen::VectorXd GetFragmentOrbital(bool fragment_A, Index level) const;
+
  private:
   Orbitals& orbitals_;
   Logger* pLog_;
@@ -162,6 +179,22 @@ class PODCoupling {
   // block-diagonal by construction, so there is no equivalent
   // diagonal-block information to store here at all).
   Eigen::MatrixXd JAB_;
+
+  // Set by CalculateCouplings, needed by GetFragmentOrbital to embed a
+  // fragment orbital back into the full, whole-molecule AO basis: each
+  // fragment's own eigenvectors (from its own, separate generalized
+  // eigenvalue solve -- es_A/es_B in podcoupling.cc), each fragment's
+  // own AO indices within the full molecule (the same mapping
+  // MapAtomsToAOIndices already computes for CalculateCouplings' own,
+  // internal use), and the full molecule's own total AO count (to
+  // size the embedded, zero-padded result vector correctly). Cheap to
+  // store in full -- each is only ever fragment-sized
+  // (n_A x n_A/n_A), not full-molecule-sized.
+  Eigen::MatrixXd fragment_A_eigenvectors_;
+  Eigen::MatrixXd fragment_B_eigenvectors_;
+  std::vector<Index> ao_indices_A_;
+  std::vector<Index> ao_indices_B_;
+  Index nao_full_ = 0;
 };
 
 }  // namespace xtp

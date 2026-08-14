@@ -17,6 +17,8 @@
 
 #include "podcouplingtool.h"
 #include "votca/xtp/IndexParser.h"
+#include "votca/xtp/cubefile_writer.h"
+#include "votca/xtp/qmstate.h"
 #include <sstream>
 
 using std::flush;
@@ -69,6 +71,24 @@ void PodCouplingTool::ParseOptions(const tools::Property& user_options) {
   XTP_LOG(Log::error, log_)
       << "Fragment B: " << fragment_B_atoms_.size()
       << " atoms, levB=" << numberofstatesB_ << flush;
+
+  // Optional cube-file export -- option names (xsteps/ysteps/zsteps/
+  // padding) deliberately matching gencube.xml's own exactly, since
+  // these are the same underlying quantities (a real-space grid for
+  // writing an orbital to a .cube file), not something specific to
+  // this tool that would warrant its own, different naming.
+  write_cube_files_ = options.ifExistsReturnElseReturnDefault<bool>(
+      "write_cube_files", false);
+  if (write_cube_files_) {
+    cube_steps_.x() =
+        options.ifExistsReturnElseReturnDefault<Index>("xsteps", 25);
+    cube_steps_.y() =
+        options.ifExistsReturnElseReturnDefault<Index>("ysteps", 25);
+    cube_steps_.z() =
+        options.ifExistsReturnElseReturnDefault<Index>("zsteps", 25);
+    cube_padding_ =
+        options.ifExistsReturnElseReturnDefault<double>("padding", 6.5);
+  }
 }
 
 bool PodCouplingTool::Run() {
@@ -136,6 +156,47 @@ bool PodCouplingTool::Run() {
       << boost::format("POD2 Coupling, LUMO-LUMO (electron): %1$+1.12f eV") %
              lumo_lumo_ev
       << flush;
+
+  // Optional cube-file export of the fragment orbitals actually
+  // computed, per direct user request: reuses the existing
+  // CubeFile_Writer unmodified -- it only ever needs
+  // orb.MOs().eigenvectors().col(index) to contain the right
+  // coefficient vector (confirmed directly by reading
+  // CubeFile_Writer::CalculateValues' own implementation before
+  // relying on this), so each fragment orbital, once embedded into
+  // the full AO basis via PODCoupling::GetFragmentOrbital, is written
+  // into a throwaway COPY of the original orbitals object (never the
+  // original itself, which the rest of this function must not have
+  // mutated out from under it) as a single-column MOs() matrix, then
+  // handed to CubeFile_Writer exactly as gencube.cc's own Run()
+  // already does for an ordinary MO.
+  if (write_cube_files_) {
+    XTP_LOG(Log::error, log_)
+        << TimeStamp() << " Writing cube files for the computed fragment "
+                          "orbitals..."
+        << flush;
+    CubeFile_Writer writer(cube_steps_, cube_padding_, log_);
+    auto WriteFragmentOrbitalCube = [&](bool fragment_A, Index level,
+                                        const std::string& label) {
+      Eigen::VectorXd orbital = pod.GetFragmentOrbital(fragment_A, level);
+      Orbitals orbitals_copy = orbitals;
+      orbitals_copy.MOs().eigenvectors() = orbital;
+      orbitals_copy.MOs().eigenvalues() = Eigen::VectorXd::Zero(1);
+      std::string filename =
+          "podcoupling_" + label + "_orb" + std::to_string(level) + ".cube";
+      writer.WriteFile(filename, orbitals_copy,
+                       QMState(QMStateType::KSstate, 0, false), false);
+      XTP_LOG(Log::error, log_) << "  wrote " << filename << flush;
+    };
+    for (Index levelA = homoA - numberofstatesA_ + 1;
+        levelA <= lumoA + numberofstatesA_ - 1; ++levelA) {
+      WriteFragmentOrbitalCube(true, levelA, "fragA");
+    }
+    for (Index levelB = homoB - numberofstatesB_ + 1;
+        levelB <= lumoB + numberofstatesB_ - 1; ++levelB) {
+      WriteFragmentOrbitalCube(false, levelB, "fragB");
+    }
+  }
 
   std::cout << log_;
   // Explicit trailing newline: confirmed directly, from the user's

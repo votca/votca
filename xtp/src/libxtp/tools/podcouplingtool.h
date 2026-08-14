@@ -70,6 +70,16 @@ class PodCouplingTool final : public QMTool {
   // covers just each fragment's own {HOMO, LUMO}.
   Index numberofstatesA_;
   Index numberofstatesB_;
+
+  // Optional cube-file export of the fragment orbitals actually
+  // computed (the numberofstatesA_/B_ range above), per direct user
+  // request -- reuses the existing CubeFile_Writer, with its own
+  // steps/padding options matching gencube's own naming
+  // (xsteps/ysteps/zsteps/padding) directly, rather than inventing new
+  // option names for the same underlying quantities.
+  bool write_cube_files_;
+  Eigen::Array<Index, 3, 1> cube_steps_;
+  double cube_padding_;
 };
 
 }  // namespace xtp

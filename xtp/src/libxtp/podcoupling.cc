@@ -224,6 +224,16 @@ void PODCoupling::CalculateCouplings(Index numberofstatesA,
         "overlapping fragment definition.");
   }
 
+  // Stored for later use by GetFragmentOrbital -- see this member's
+  // own header comment in podcoupling.h for why (embedding a fragment
+  // orbital back into the full, whole-molecule AO basis, e.g. for
+  // visualization, needs exactly these ingredients).
+  fragment_A_eigenvectors_ = es_A.eigenvectors();
+  fragment_B_eigenvectors_ = es_B.eigenvectors();
+  ao_indices_A_ = ao_indices_A;
+  ao_indices_B_ = ao_indices_B;
+  nao_full_ = F.rows();
+
   Range_orbA_ = DetermineFragmentRangeOfStates(
       getFragmentAHomoIndex(), getFragmentALumoIndex(), numberofstatesA,
       F_AA.rows());
@@ -328,6 +338,50 @@ double PODCoupling::getCouplingElement(Index levelA, Index levelB) const {
         "CalculateCouplings call.");
   }
   return JAB_(indexA, indexB);
+}
+
+Eigen::VectorXd PODCoupling::GetFragmentOrbital(bool fragment_A,
+                                                Index level) const {
+  const Eigen::MatrixXd& eigenvectors =
+      fragment_A ? fragment_A_eigenvectors_ : fragment_B_eigenvectors_;
+  const std::vector<Index>& ao_indices =
+      fragment_A ? ao_indices_A_ : ao_indices_B_;
+  const std::pair<Index, Index>& range =
+      fragment_A ? Range_orbA_ : Range_orbB_;
+
+  Index index = level - range.first;
+  if (index < 0 || index >= range.second) {
+    throw std::runtime_error(
+        "PODCoupling::GetFragmentOrbital: requested level=" +
+        std::to_string(level) +
+        " is outside the range covered by the most recent "
+        "CalculateCouplings call.");
+  }
+
+  // Scatters the fragment-local coefficient vector (length equal to
+  // this fragment's own AO count) into the full, whole-molecule AO
+  // basis (length nao_full_) -- the direct inverse of
+  // MapAtomsToAOIndices/GatherSubMatrix's own gather: every AO NOT
+  // belonging to this fragment gets a zero coefficient, since the
+  // fragment orbital, by construction, has no amplitude there at all.
+  //
+  // Uses level DIRECTLY here, NOT the range-relative index computed
+  // above -- unlike JAB_ (only ever range-sized, levelsA x levelsB),
+  // eigenvectors_ stores ALL of this fragment's own columns (its full
+  // n_A x n_A eigenvector set), so level itself is already the
+  // correct, absolute column index into it. Confirmed directly by
+  // comparing against getCouplingElement's own code before writing
+  // this: using the range-relative index here instead would have
+  // silently returned the wrong orbital, offset by range.first
+  // columns, whenever range.first != 0 (i.e. whenever the fragment's
+  // own HOMO is not literally its lowest-energy orbital -- the normal
+  // case for any real molecule).
+  Eigen::VectorXd fragment_local = eigenvectors.col(level);
+  Eigen::VectorXd full_basis = Eigen::VectorXd::Zero(nao_full_);
+  for (Index i = 0; i < Index(ao_indices.size()); ++i) {
+    full_basis(ao_indices[size_t(i)]) = fragment_local(i);
+  }
+  return full_basis;
 }
 
 }  // namespace xtp
