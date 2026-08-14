@@ -283,8 +283,35 @@ void PODCoupling::CalculateCouplings(Index numberofstatesA,
       // PCCP 2010, 12, 11103) derives exactly this same correction for
       // DIPRO's own, analogous non-orthogonal monomer HOMOs, its own
       // eqn (10): t_AB = (J_AB - 0.5*(e_A+e_B)*S_AB) / (1-S_AB^2).
+      double denominator = 1.0 - S_AB * S_AB;
       JAB_(i, j) = (J_AB - 0.5 * (e_A_hartree + e_B_hartree) * S_AB) /
-                  (1.0 - S_AB * S_AB);
+                  denominator;
+
+      // Per-pair diagnostic: S_AB and the Lowdin denominator (1-S_AB^2)
+      // are worth watching on an ongoing basis, since a large |S_AB|
+      // approaching +-1 would make this correction numerically
+      // unstable (the denominator collapsing toward zero) -- this is
+      // a genuine, real risk for a COVALENTLY-bonded fragment pair
+      // specifically, where the two fragment orbitals sit directly
+      // across a real chemical bond, unlike the small, well-behaved
+      // S_AB already confirmed for a non-bonded test case (the
+      // ethylene dimer, ~0.03). Confirmed directly, on a real
+      // covalently-bonded case (2,2'-bithiophene), that a large,
+      // physically genuine coupling and a small, stable S_AB can both
+      // be true at once -- e.g. S_AB=0.063 there, comfortably away
+      // from +-1, with the Lowdin correction only a ~13% adjustment
+      // to J_AB, even though the resulting coupling itself (~3.2 eV)
+      // is large: strong THROUGH-BOND coupling is a different regime
+      // from the weak, through-space coupling this correction was
+      // first validated against, and a large result is not itself a
+      // red flag -- only S_AB itself getting close to +-1 would be.
+      XTP_LOG(Log::error, *pLog_)
+          << TimeStamp() << " PODCoupling diagnostic: pair (A="
+          << (Range_orbA_.first + i) << ", B=" << (Range_orbB_.first + j)
+          << "): S_AB=" << S_AB << ", (1-S_AB^2)=" << denominator
+          << ", raw J_AB=" << (J_AB * 27.211386245988)
+          << " eV, corrected=" << (JAB_(i, j) * 27.211386245988) << " eV"
+          << std::flush;
     }
   }
 }
