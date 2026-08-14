@@ -475,9 +475,8 @@ void DFTEngine::ComputeAndStoreForces(
   const QMMolecule& mol = orb.QMAtoms();
   Index natoms = mol.size();
 
-  XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << " Starting force calculation (" << natoms
-      << " atoms)" << std::flush;
+  XTP_LOG(Log::error, *pLog_) << TimeStamp() << " Starting force calculation ("
+                              << natoms << " atoms)" << std::flush;
 
   // One-electron (kinetic + nuclear attraction) contribution --
   // dEone/dR_A = Tr[Dmat . d(T+V_ne)/dR_A]. This was the piece
@@ -490,9 +489,10 @@ void DFTEngine::ComputeAndStoreForces(
   // libint2_derivative_calls.cc for the detailed derivation (sign
   // convention checked directly against AOMultipole's own,
   // already-validated energy-level code, not assumed).
-  XTP_LOG(Log::error, *pLog_)
-      << TimeStamp() << "   Computing one-electron (kinetic + nuclear "
-                        "attraction) derivatives" << std::flush;
+  XTP_LOG(Log::error, *pLog_) << TimeStamp()
+                              << "   Computing one-electron (kinetic + nuclear "
+                                 "attraction) derivatives"
+                              << std::flush;
   std::vector<AOMatrixDerivative> dT = ComputeKineticDerivatives(dftbasis_);
   std::vector<AOMatrixDerivative> dVne =
       ComputeNuclearAttractionDerivatives(dftbasis_, mol);

@@ -60,18 +60,18 @@ std::vector<std::string> EthyleneDimerAtomLines(double separation_angstrom) {
   std::ostringstream sep;
   sep << separation_angstrom;
   return {
-      "C -0.6625 0.0000 0.0000",          // A: C1  (canonical index 0)
-      "C 0.6625 0.0000 0.0000",           // A: C2  (canonical index 1)
-      "H -1.2332 0.9240 0.0000",          // A: H1a (canonical index 2)
-      "H -1.2332 -0.9240 0.0000",         // A: H1b (canonical index 3)
-      "H 1.2332 0.9240 0.0000",           // A: H2a (canonical index 4)
-      "H 1.2332 -0.9240 0.0000",          // A: H2b (canonical index 5)
-      "C -0.6625 0.0000 " + sep.str(),    // B: C1  (canonical index 6)
-      "C 0.6625 0.0000 " + sep.str(),     // B: C2  (canonical index 7)
-      "H -1.2332 0.9240 " + sep.str(),    // B: H1a (canonical index 8)
-      "H -1.2332 -0.9240 " + sep.str(),   // B: H1b (canonical index 9)
-      "H 1.2332 0.9240 " + sep.str(),     // B: H2a (canonical index 10)
-      "H 1.2332 -0.9240 " + sep.str(),    // B: H2b (canonical index 11)
+      "C -0.6625 0.0000 0.0000",         // A: C1  (canonical index 0)
+      "C 0.6625 0.0000 0.0000",          // A: C2  (canonical index 1)
+      "H -1.2332 0.9240 0.0000",         // A: H1a (canonical index 2)
+      "H -1.2332 -0.9240 0.0000",        // A: H1b (canonical index 3)
+      "H 1.2332 0.9240 0.0000",          // A: H2a (canonical index 4)
+      "H 1.2332 -0.9240 0.0000",         // A: H2b (canonical index 5)
+      "C -0.6625 0.0000 " + sep.str(),   // B: C1  (canonical index 6)
+      "C 0.6625 0.0000 " + sep.str(),    // B: C2  (canonical index 7)
+      "H -1.2332 0.9240 " + sep.str(),   // B: H1a (canonical index 8)
+      "H -1.2332 -0.9240 " + sep.str(),  // B: H1b (canonical index 9)
+      "H 1.2332 0.9240 " + sep.str(),    // B: H2a (canonical index 10)
+      "H 1.2332 -0.9240 " + sep.str(),   // B: H2b (canonical index 11)
   };
 }
 
@@ -193,9 +193,8 @@ double RunEthyleneDimerCoupling(const std::vector<std::string>& atom_lines,
   // earlier, single-orbital-pair-only interface.
   PODCoupling pod(orb, &log, fragment_A_atoms, fragment_B_atoms);
   pod.CalculateCouplings(1, 1);
-  double coupling_hartree =
-      pod.getCouplingElement(pod.getFragmentAHomoIndex(),
-                             pod.getFragmentBHomoIndex());
+  double coupling_hartree = pod.getCouplingElement(pod.getFragmentAHomoIndex(),
+                                                   pod.getFragmentBHomoIndex());
 
   // Logger only ever BUFFERS its own messages internally -- nothing
   // prints them anywhere on its own. Confirmed directly, from a real
@@ -385,12 +384,10 @@ BOOST_AUTO_TEST_CASE(pod_coupling_ethylene_dimer_scrambled_atom_order) {
   std::vector<Index> fragment_B_scrambled = {2, 6, 4, 8, 10, 0};
 
   double separation = 4.0;
-  std::vector<std::string> canonical_lines =
-      EthyleneDimerAtomLines(separation);
+  std::vector<std::string> canonical_lines = EthyleneDimerAtomLines(separation);
   std::vector<std::string> scrambled_lines(canonical_lines.size());
   for (size_t new_pos = 0; new_pos < scramble_order.size(); ++new_pos) {
-    scrambled_lines[new_pos] =
-        canonical_lines[size_t(scramble_order[new_pos])];
+    scrambled_lines[new_pos] = canonical_lines[size_t(scramble_order[new_pos])];
   }
 
   std::vector<Index> fragment_A_contiguous = {0, 1, 2, 3, 4, 5};
@@ -402,8 +399,9 @@ BOOST_AUTO_TEST_CASE(pod_coupling_ethylene_dimer_scrambled_atom_order) {
 
   std::cout << "PODCoupling ethylene dimer, scrambled-atom-order check: "
                "contiguous |J| = "
-            << coupling_contiguous << " eV, scrambled |J| = "
-            << coupling_scrambled << " eV" << std::endl;
+            << coupling_contiguous
+            << " eV, scrambled |J| = " << coupling_scrambled << " eV"
+            << std::endl;
 
   // These describe the exact same physical system (same geometry,
   // same separation, same two fragments -- only the order atoms
@@ -442,13 +440,13 @@ BOOST_AUTO_TEST_CASE(pod_coupling_matches_half_homo_gap_for_symmetric_dimer) {
   std::vector<Index> fragment_A_atoms = {0, 1, 2, 3, 4, 5};
   std::vector<Index> fragment_B_atoms = {6, 7, 8, 9, 10, 11};
   double half_homo_gap = 0.0;
-  double coupling = RunEthyleneDimerCoupling(EthyleneDimerAtomLines(4.0),
-                                             fragment_A_atoms,
-                                             fragment_B_atoms, &half_homo_gap);
+  double coupling =
+      RunEthyleneDimerCoupling(EthyleneDimerAtomLines(4.0), fragment_A_atoms,
+                               fragment_B_atoms, &half_homo_gap);
 
   std::cout << "PODCoupling vs. half-HOMO-gap check: PODCoupling |J| = "
-            << coupling << " eV, 0.5*(HOMO-HOMO-1) = " << half_homo_gap
-            << " eV" << std::endl;
+            << coupling << " eV, 0.5*(HOMO-HOMO-1) = " << half_homo_gap << " eV"
+            << std::endl;
 
   // A somewhat looser tolerance than the scrambled-vs-contiguous check
   // above (which compares two calls that are, numerically, almost

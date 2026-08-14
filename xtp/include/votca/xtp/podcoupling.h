@@ -49,9 +49,8 @@ namespace xtp {
 // own return value) rather than a full AOBasis -- makes this function
 // trivially unit-testable with a small, synthetic vector, with no need
 // to construct any real molecule/basis set at all.
-std::vector<Index> MapAtomsToAOIndices(
-    const std::vector<Index>& atom_indices,
-    const std::vector<Index>& func_per_atom);
+std::vector<Index> MapAtomsToAOIndices(const std::vector<Index>& atom_indices,
+                                       const std::vector<Index>& func_per_atom);
 
 // Projection Operator Diabatization, POD2 variant (Ghan et al., avoiding
 // the original POD's own global Lowdin-orthogonalization step, which
@@ -78,8 +77,8 @@ std::vector<Index> MapAtomsToAOIndices(
 class PODCoupling {
  public:
   PODCoupling(Orbitals& orbitals, Logger* log,
-             std::vector<Index> fragment_A_atoms,
-             std::vector<Index> fragment_B_atoms);
+              std::vector<Index> fragment_A_atoms,
+              std::vector<Index> fragment_B_atoms);
 
   // Computes the FULL, pairwise coupling matrix between a symmetric
   // range of fragment A's own orbitals and a symmetric range of
