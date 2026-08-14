@@ -33,6 +33,7 @@
 #include "votca/xtp/dftengine.h"
 #include "votca/xtp/podcoupling.h"
 #include "votca/xtp/qmmolecule.h"
+#include "votca/xtp/toolfactory.h"
 #include "xtp_libint2.h"
 
 #include <cmath>
@@ -104,7 +105,8 @@ std::vector<std::string> EthyleneDimerAtomLines(double separation_angstrom) {
 double RunEthyleneDimerCoupling(const std::vector<std::string>& atom_lines,
                                 const std::vector<Index>& fragment_A_atoms,
                                 const std::vector<Index>& fragment_B_atoms,
-                                double* half_homo_gap_ev_out = nullptr) {
+                                double* half_homo_gap_ev_out = nullptr,
+                                const std::string* write_orb_file = nullptr) {
   std::string tmp_path = "/tmp/xtp_test_podcoupling_ethylene_dimer.xyz";
   std::ofstream mol_out(tmp_path);
   mol_out << atom_lines.size() << "\n\n";
@@ -154,6 +156,18 @@ double RunEthyleneDimerCoupling(const std::vector<std::string>& atom_lines,
   dft.Initialize(prop.get("dftpackage"));
   bool converged = dft.Evaluate(orb);
   BOOST_REQUIRE_EQUAL(converged, true);
+
+  // Written here specifically so a separate, later test (exercising
+  // PodCouplingTool's own ParseOptions()/Run() directly, currently
+  // uncovered per Codecov) can reuse this SAME, already-converged
+  // calculation by reading it back from disk, rather than needing to
+  // run a fresh, separate, redundant SCF of its own -- directly
+  // avoiding adding another expensive DFT run to this file, given the
+  // user's own, immediately preceding request to CUT this file's own
+  // SCF count for CI runtime, not grow it again right after.
+  if (write_orb_file != nullptr) {
+    orb.WriteToCpt(*write_orb_file);
+  }
 
   if (half_homo_gap_ev_out != nullptr) {
     // Number of occupied (doubly-filled) dimer orbitals -- computed
@@ -336,9 +350,12 @@ BOOST_AUTO_TEST_CASE(pod_coupling_ethylene_dimer_consistency_checks) {
   std::vector<Index> fragment_A_contiguous = {0, 1, 2, 3, 4, 5};
   std::vector<Index> fragment_B_contiguous = {6, 7, 8, 9, 10, 11};
   double half_homo_gap = 0.0;
+  std::string orb_file_path =
+      "/tmp/xtp_test_podcoupling_ethylene_dimer_contiguous.orb";
   double coupling_contiguous =
       RunEthyleneDimerCoupling(canonical_lines, fragment_A_contiguous,
-                               fragment_B_contiguous, &half_homo_gap);
+                               fragment_B_contiguous, &half_homo_gap,
+                               &orb_file_path);
   double coupling_scrambled = RunEthyleneDimerCoupling(
       scrambled_lines, fragment_A_scrambled, fragment_B_scrambled);
 
@@ -364,7 +381,75 @@ BOOST_AUTO_TEST_CASE(pod_coupling_ethylene_dimer_consistency_checks) {
   // LARGE, qualitative discrepancy, not a small numerical one.
   BOOST_CHECK_CLOSE(coupling_scrambled, coupling_contiguous, 1.0);
 
+  // A somewhat looser tolerance than the scrambled-vs-contiguous check
+  // above (which compares two calls that are, numerically, almost
+  // identical up to floating-point summation order) -- these two
+  // quantities are computed via genuinely DIFFERENT routes (one via
+  // fragment-block Fock diagonalization and an off-diagonal matrix
+  // element, the other via the dimer's own, already-diagonalized MO
+  // energies directly), so full floating-point-level agreement is not
+  // expected even though the paper's own eqn (12) shows them to be
+  // mathematically identical in the symmetric-dimer limit -- still
+  // tight enough that a genuine, substantial error in either PODCoupling
+  // itself or this test's own half-gap calculation would be caught.
+  BOOST_CHECK_CLOSE(coupling_contiguous, half_homo_gap, 5.0);
+
   libint2::finalize();
+}
+
+BOOST_AUTO_TEST_CASE(podcouplingtool_run_end_to_end) {
+  // Directly exercises PodCouplingTool's own ParseOptions()/Run() --
+  // added specifically because Codecov flagged podcouplingtool.cc as
+  // uncovered (test_podcoupling.cc, until now, only ever tested the
+  // underlying PODCoupling class directly, matching this codebase's
+  // own, established convention -- test_diabatization.cc similarly
+  // only tests ERDiabatization/GMHDiabatization/FCDDiabatization
+  // directly, never the Diabatization tool itself -- confirmed
+  // directly, by reading it, before assuming this gap was specific to
+  // this new file).
+  //
+  // Deliberately reuses the .orb file the consistency-checks test case
+  // above already wrote out for its own contiguous-case SCF (same
+  // geometry, same fragments), rather than running a fresh SCF here --
+  // this test would otherwise need its own, additional DFT calculation
+  // just to have something for the tool to read, directly working
+  // against the user's own, immediately preceding request to cut this
+  // file's own SCF count for CI runtime. Depends on
+  // pod_coupling_ethylene_dimer_consistency_checks having already run
+  // (Boost.Test runs test cases within a suite in declaration order by
+  // default, and this test is declared after it in this same file) --
+  // if that file path is missing, this fails with a clear,
+  // Orbitals::ReadFromCpt-level error rather than silently skipping.
+  //
+  // Goes through the same, PUBLIC QMToolFactory interface the real
+  // xtp_tools binary itself uses (confirmed directly, by reading
+  // xtp_tools.cc, to be tool_ = xtp::QMToolFactory().Create(name); ...
+  // tool_->Initialize(options); ... tool_->Evaluate();) -- deliberately
+  // NOT constructing PodCouplingTool directly, since its own header
+  // lives in the libxtp/tools/ source directory (a private,
+  // implementation-internal location, not on this test executable's
+  // own include path), rather than a location publicly visible from
+  // xtp/src/tests/ at all.
+  std::ofstream xml("podcoupling_tool_test.xml");
+  xml << "<podcoupling>\n";
+  xml << "<job_name>podcoupling_tool_test</job_name>\n";
+  xml << "<orb_file>/tmp/xtp_test_podcoupling_ethylene_dimer_contiguous.orb"
+         "</orb_file>\n";
+  xml << "<fragment_A>0:5</fragment_A>\n";
+  xml << "<fragment_B>6:11</fragment_B>\n";
+  xml << "<levA>1</levA>\n";
+  xml << "<levB>1</levB>\n";
+  xml << "<write_cube_files>false</write_cube_files>\n";
+  xml << "</podcoupling>\n";
+  xml.close();
+  tools::Property prop;
+  prop.LoadFromXML("podcoupling_tool_test.xml");
+
+  std::unique_ptr<QMTool> tool = QMToolFactory().Create("podcoupling");
+  BOOST_REQUIRE(tool != nullptr);
+  tool->Initialize(prop.get("podcoupling"));
+  bool success = tool->Evaluate();
+  BOOST_CHECK_EQUAL(success, true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
