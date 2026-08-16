@@ -463,6 +463,14 @@ AtomContainer SegmentMapper<AtomContainer>::map(
         std::to_string(Result.size()));
   }
 
+  // Built incrementally, below, across all of this segment's own
+  // fragments -- deliberately spans the WHOLE segment, not just one
+  // fragment at a time, since a bonded partner can genuinely be in a
+  // different fragment of the same segment (used only by
+  // TransferBondedPartners, in a second pass after the main loop
+  // below, once this is complete for the whole segment).
+  std::map<Index, mapAtom*> md_id_to_map_atom;
+
   for (FragInfo& frag : seginfo.fragments) {
     for (atom_id& id : frag.mdatom_ids) {
       id.first += atomidoffset;
@@ -489,10 +497,34 @@ AtomContainer SegmentMapper<AtomContainer>::map(
       fragment_mdatoms.push_back(atom);
     }
 
+    for (Index i = 0; i < Index(fragment_mdatoms.size()); i++) {
+      md_id_to_map_atom[fragment_mdatoms[i]->getId()] = fragment_mapatoms[i];
+    }
+
     if (seginfo.map2md) {
       PlaceMapAtomonMD(fragment_mapatoms, fragment_mdatoms);
     } else {
       MapMapAtomonMD(frag, fragment_mapatoms, fragment_mdatoms);
+    }
+  }
+
+  // Second pass: now that md_id_to_map_atom is complete for the whole
+  // segment, translate each atom's own, raw, MD-level bonded-partner
+  // IDs into the corresponding QM-level ones. Deliberately a separate
+  // pass, after the main loop above, rather than done inline within
+  // it -- a bonded partner found while processing an earlier fragment
+  // might belong to a later fragment not yet added to the lookup at
+  // that point.
+  for (FragInfo& frag : seginfo.fragments) {
+    for (const atom_id& id : frag.mdatom_ids) {
+      const Atom* md_atom = seg.getAtom(id.first);
+      if (md_atom == nullptr) {
+        continue;
+      }
+      auto it = md_id_to_map_atom.find(id.first);
+      if (it != md_id_to_map_atom.end()) {
+        TransferBondedPartners(it->second, md_atom, md_id_to_map_atom);
+      }
     }
   }
 

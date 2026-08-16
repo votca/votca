@@ -18,7 +18,16 @@ target_link_libraries(Libint2_system INTERFACE Libint2::int2)
 get_target_property(_libint_incs Libint2::int2 INTERFACE_INCLUDE_DIRECTORIES)
 target_include_directories(Libint2_system SYSTEM INTERFACE ${_libint_incs})
 
-target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE Libxc::xc Libint2_system ECPINT::ecpint Boost::program_options Boost::timer)
+target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost::boost Eigen3::Eigen ${HDF5_LIBRARIES} PRIVATE Libxc::xc Libint2_system ECPINT::ecpint Boost::program_options Boost::timer openbabel)
+
+# OpenBabel3's own "openbabel" target is an older-style, unnamespaced
+# target (confirmed directly, from OpenBabel's own official CMake
+# example, doc/examples/static_executable/CMakeLists.txt, which links
+# against it this same way) -- unlike a modern imported target, it may
+# not automatically carry its own include directories, so these are
+# added explicitly here too, matching that same official example's own
+# separate include_directories(${OpenBabel3_INCLUDE_DIRS}) call.
+target_include_directories(votca_xtp PRIVATE ${OpenBabel3_INCLUDE_DIRS})
 
 if(USE_CUDA)
   target_link_libraries(votca_xtp PUBLIC ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})

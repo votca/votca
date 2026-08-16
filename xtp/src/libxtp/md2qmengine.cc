@@ -301,6 +301,24 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
             }
           }
 
+          // Records ALL of this bead's own, real, direct bonded
+          // partners (not just the ones crossing a segment boundary,
+          // unlike the external-bond-direction detection above, which
+          // deliberately stops at the first one found) -- needed for
+          // FragmentSaturator's own, planned OpenBabel-based
+          // relaxation step, which needs a fragment's own, full,
+          // internal connectivity to set up its own force field
+          // correctly at all (see Atom::getBondedPartnerIds's own
+          // header comment for why). These are RAW, MD-level partner
+          // IDs -- not yet translated into QM-level IDs here, matching
+          // the same "raw here, translated later, in SegmentMapper"
+          // split already used for the external-bond direction.
+          if (it != bead_bonded_partners.end()) {
+            for (Index partner_id : it->second) {
+              atom.AddBondedPartner(partner_id);
+            }
+          }
+
           this_segment.push_back(atom);
         }
       }

@@ -34,6 +34,15 @@ namespace xtp {
 class CptTable;
 class Atom {
  public:
+  // Real, direct MD-level bonded-partner atom IDs, up to this many --
+  // covers virtually all ordinary organic chemistry (a typical carbon
+  // has at most 4 bonded neighbors). A genuine atom with more bonded
+  // partners than this (extremely rare) is a real, known limitation --
+  // only the first kMaxBondedPartners found are recorded; this is not
+  // guarded against/flagged with a hard error anywhere, deliberately,
+  // to avoid making an already-rare edge case fatal.
+  static constexpr Index kMaxBondedPartners = 4;
+
   struct data {
     Index id;
     char* element;
@@ -46,6 +55,7 @@ class Atom {
     double ext_bond_dir_x;
     double ext_bond_dir_y;
     double ext_bond_dir_z;
+    Index bonded_partner_ids[kMaxBondedPartners];
   };
   Atom(Index resnr, std::string md_atom_name, Index atom_id,
        Eigen::Vector3d pos, std::string element);
@@ -92,6 +102,38 @@ class Atom {
     external_bond_direction_ = dir.normalized();
   }
 
+  // Real, direct MD-level bonded-partner atom IDs (topological
+  // connectivity, not geometry -- these are Atom::getId() values, MD
+  // atom IDs, not array indices), for EVERY atom, not just ones with
+  // an external bond -- unlike getExternalBondDirection() above, this
+  // is meant to cover a fragment's own, full, internal connectivity
+  // too (needed downstream for FragmentSaturator's own, planned
+  // OpenBabel-based relaxation step, which needs real, known bond
+  // connectivity for the whole fragment, not just the new bond, to
+  // set up its own force field correctly at all -- see
+  // FragmentSaturator's own header comment for why). Set directly by
+  // Md2QmEngine at mapping time, from the real, MD-level topology's
+  // own bond connectivity (the same source
+  // getExternalBondDirection()'s own raw input comes from) -- these
+  // IDs are NOT yet transformed/translated into QM-level IDs here;
+  // that translation happens later, in SegmentMapper, matching the
+  // same "raw here, transformed/translated later" split already used
+  // for the external-bond direction. Unused slots hold -1, matching
+  // this class's own, existing "-1 means unset" convention (id_'s own
+  // default).
+  const Index* getBondedPartnerIds() const { return bonded_partner_ids_; }
+  void AddBondedPartner(Index partner_id) {
+    for (Index& slot : bonded_partner_ids_) {
+      if (slot == -1) {
+        slot = partner_id;
+        return;
+      }
+    }
+    // All kMaxBondedPartners slots already full -- see this class's
+    // own, static kMaxBondedPartners comment above for why this is
+    // silently dropped rather than treated as a hard error.
+  }
+
   std::string identify() const { return "atom"; }
 
   friend std::ostream& operator<<(std::ostream& out, const Atom& atom) {
@@ -117,6 +159,7 @@ class Atom {
   Eigen::Vector3d pos_ = Eigen::Vector3d::Zero();
   bool has_external_bond_ = false;
   Eigen::Vector3d external_bond_direction_ = Eigen::Vector3d::Zero();
+  Index bonded_partner_ids_[kMaxBondedPartners] = {-1, -1, -1, -1};
 };
 
 }  // namespace xtp

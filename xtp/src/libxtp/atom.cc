@@ -97,6 +97,23 @@ void Atom::SetupCptTable(CptTable& table) {
   table.addCol<double>("ext_bond_dir.x", HOFFSET(data, ext_bond_dir_x));
   table.addCol<double>("ext_bond_dir.y", HOFFSET(data, ext_bond_dir_y));
   table.addCol<double>("ext_bond_dir.z", HOFFSET(data, ext_bond_dir_z));
+  // CptTable::addCol<U>() only supports fundamental types (confirmed
+  // directly by reading its own static_assert before relying on this
+  // -- no array support at all), so each of the kMaxBondedPartners
+  // slots needs its own, separate column, rather than one, single
+  // "array" column. Uses HOFFSET(data, bonded_partner_ids) + i *
+  // sizeof(Index), the offset of the array member itself plus a
+  // computed byte offset, rather than HOFFSET(data,
+  // bonded_partner_ids[i]) directly -- offsetof() into a specific
+  // array element is a known "gray area" (technically undefined
+  // behavior per the strict C++ standard, even though widely
+  // supported in practice), and this project's own -Wall -Wextra
+  // build flags make it worth avoiding rather than risking a warning.
+  for (Index i = 0; i < kMaxBondedPartners; i++) {
+    table.addCol<Index>(
+        "bonded_partner_id." + std::to_string(i),
+        HOFFSET(data, bonded_partner_ids) + size_t(i) * sizeof(Index));
+  }
 }
 
 void Atom::WriteData(data& d) const {
@@ -111,6 +128,9 @@ void Atom::WriteData(data& d) const {
   d.ext_bond_dir_x = external_bond_direction_[0];
   d.ext_bond_dir_y = external_bond_direction_[1];
   d.ext_bond_dir_z = external_bond_direction_[2];
+  for (Index i = 0; i < kMaxBondedPartners; i++) {
+    d.bonded_partner_ids[i] = bonded_partner_ids_[i];
+  }
 }
 
 void Atom::ReadData(const data& d) {
@@ -127,6 +147,9 @@ void Atom::ReadData(const data& d) {
   external_bond_direction_[0] = d.ext_bond_dir_x;
   external_bond_direction_[1] = d.ext_bond_dir_y;
   external_bond_direction_[2] = d.ext_bond_dir_z;
+  for (Index i = 0; i < kMaxBondedPartners; i++) {
+    bonded_partner_ids_[i] = d.bonded_partner_ids[i];
+  }
 }
 }  // namespace xtp
 }  // namespace votca

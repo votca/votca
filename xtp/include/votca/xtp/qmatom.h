@@ -38,6 +38,10 @@ class QMAtom {
   friend class ECPAOBasis;
 
  public:
+  // Same value as Atom::kMaxBondedPartners -- see its own comment
+  // (atom.h) for why 4.
+  static constexpr Index kMaxBondedPartners = 4;
+
   struct data {
     Index index;
     char* element;
@@ -50,6 +54,7 @@ class QMAtom {
     double ext_bond_dir_x;
     double ext_bond_dir_y;
     double ext_bond_dir_z;
+    Index bonded_partner_ids[kMaxBondedPartners];
   };
 
   QMAtom(Index index, std::string element, Eigen::Vector3d pos);
@@ -92,6 +97,30 @@ class QMAtom {
     external_bond_direction_ = dir.normalized();
   }
 
+  // Same meaning as Atom::getBondedPartnerIds() (a fragment's own,
+  // full, internal bond connectivity) -- but, unlike that one, these
+  // are already QM-LEVEL atom IDs (i.e. QMAtom::getId() values,
+  // matching this same QMMolecule's own atom numbering), NOT the raw,
+  // MD-level IDs Atom itself stores. Set directly by
+  // SegmentMapper::MapMapAtomonMD/PlaceMapAtomonMD, by translating
+  // each corresponding MD-level Atom's own, already-recorded, raw
+  // partner IDs into QM-level ones there, via the same
+  // mapatom_ids/mdatom_ids correspondence already used elsewhere in
+  // that same class -- never computed independently here. Same
+  // "-1 means unset" sentinel convention as Atom's own.
+  const Index* getBondedPartnerIds() const { return bonded_partner_ids_; }
+  void AddBondedPartner(Index partner_id) {
+    for (Index& slot : bonded_partner_ids_) {
+      if (slot == -1) {
+        slot = partner_id;
+        return;
+      }
+    }
+    // All kMaxBondedPartners slots already full -- see
+    // Atom::kMaxBondedPartners's own comment for why this is silently
+    // dropped rather than treated as a hard error.
+  }
+
   std::string identify() const { return "qmatom"; }
 
   friend std::ostream& operator<<(std::ostream& out, const QMAtom& atom) {
@@ -109,6 +138,7 @@ class QMAtom {
   Index ecpcharge_ = 0;  // ecp charge is set in ecpaobasis.fill
   bool has_external_bond_ = false;
   Eigen::Vector3d external_bond_direction_ = Eigen::Vector3d::Zero();
+  Index bonded_partner_ids_[kMaxBondedPartners] = {-1, -1, -1, -1};
 
  public:
   static void SetupCptTable(CptTable& table);
