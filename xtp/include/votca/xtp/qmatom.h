@@ -46,6 +46,10 @@ class QMAtom {
     double z;
     Index nuccharge;
     Index ecpcharge;
+    bool has_external_bond;
+    double ext_bond_dir_x;
+    double ext_bond_dir_y;
+    double ext_bond_dir_z;
   };
 
   QMAtom(Index index, std::string element, Eigen::Vector3d pos);
@@ -70,6 +74,24 @@ class QMAtom {
 
   Index getElementNumber() const { return nuccharge_; }
 
+  // Same meaning as Atom::hasExternalBond()/getExternalBondDirection()
+  // (a direction toward an MD-level atom this one was covalently
+  // bonded to, but which fell outside the mapped fragment) -- a
+  // SEPARATE field from Atom's own, since QMAtom does not inherit
+  // from Atom at all. Set directly by SegmentMapper::MapMapAtomonMD/
+  // PlaceMapAtomonMD, by transforming the corresponding MD-level
+  // Atom's own, already-recorded, raw direction through the exact
+  // same rigid-body transform already applied to every other atom in
+  // the fragment there -- never computed independently here.
+  bool hasExternalBond() const { return has_external_bond_; }
+  const Eigen::Vector3d& getExternalBondDirection() const {
+    return external_bond_direction_;
+  }
+  void setExternalBondDirection(const Eigen::Vector3d& dir) {
+    has_external_bond_ = true;
+    external_bond_direction_ = dir.normalized();
+  }
+
   std::string identify() const { return "qmatom"; }
 
   friend std::ostream& operator<<(std::ostream& out, const QMAtom& atom) {
@@ -85,6 +107,8 @@ class QMAtom {
   Eigen::Vector3d pos_;  // Bohr
   Index nuccharge_ = 0;
   Index ecpcharge_ = 0;  // ecp charge is set in ecpaobasis.fill
+  bool has_external_bond_ = false;
+  Eigen::Vector3d external_bond_direction_ = Eigen::Vector3d::Zero();
 
  public:
   static void SetupCptTable(CptTable& table);

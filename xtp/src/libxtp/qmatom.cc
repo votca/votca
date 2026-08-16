@@ -45,6 +45,10 @@ void QMAtom::SetupCptTable(CptTable& table) {
   table.addCol<double>("posZ", HOFFSET(data, z));
   table.addCol<Index>("nuccharge", HOFFSET(data, nuccharge));
   table.addCol<Index>("ecpcharge", HOFFSET(data, ecpcharge));
+  table.addCol<bool>("has_external_bond", HOFFSET(data, has_external_bond));
+  table.addCol<double>("ext_bond_dir.x", HOFFSET(data, ext_bond_dir_x));
+  table.addCol<double>("ext_bond_dir.y", HOFFSET(data, ext_bond_dir_y));
+  table.addCol<double>("ext_bond_dir.z", HOFFSET(data, ext_bond_dir_z));
 }
 
 void QMAtom::WriteData(data& d) const {
@@ -55,6 +59,10 @@ void QMAtom::WriteData(data& d) const {
   d.z = pos_[2];
   d.nuccharge = nuccharge_;
   d.ecpcharge = ecpcharge_;
+  d.has_external_bond = has_external_bond_;
+  d.ext_bond_dir_x = external_bond_direction_[0];
+  d.ext_bond_dir_y = external_bond_direction_[1];
+  d.ext_bond_dir_z = external_bond_direction_[2];
 }
 
 void QMAtom::ReadData(const data& d) {
@@ -66,6 +74,10 @@ void QMAtom::ReadData(const data& d) {
   pos_[2] = d.z;
   nuccharge_ = d.nuccharge;
   ecpcharge_ = d.ecpcharge;
+  has_external_bond_ = d.has_external_bond;
+  external_bond_direction_[0] = d.ext_bond_dir_x;
+  external_bond_direction_[1] = d.ext_bond_dir_y;
+  external_bond_direction_[2] = d.ext_bond_dir_z;
 }
 }  // namespace xtp
 }  // namespace votca

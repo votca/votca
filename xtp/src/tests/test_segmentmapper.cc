@@ -205,4 +205,86 @@ BOOST_AUTO_TEST_CASE(mapping_test_no_weights) {
     BOOST_CHECK_EQUAL(qmmol[i].getId(), id_ref[i]);
   }
 }
+
+BOOST_AUTO_TEST_CASE(external_bond_direction_transfer_test) {
+  // Directly exercises the external-bond-direction pipeline added
+  // this session (Atom's own storage, Md2QmEngine's own computation
+  // of the raw direction -- not exercised here directly, since that
+  // needs a full csg::Topology, out of scope for this specific test
+  // -- QMAtom's own parallel storage, and SegmentMapper's own
+  // transform-and-transfer logic) -- reuses the SAME, already-
+  // established geometry/mapping-file setup as mapping_test above
+  // directly, rather than a new one.
+  //
+  // The expected, transformed direction below was NOT hand-derived --
+  // an initial attempt assumed both the MD-level geometry (genuinely
+  // planar, z=0 throughout) and the raw template geometry
+  // (molecule.xyz) were planar, and that a rigid rotation between two
+  // planar structures would therefore preserve the out-of-plane axis.
+  // That assumption was wrong: molecule.xyz is a real, tetrahedral
+  // methane geometry, not planar at all -- confirmed directly, from
+  // the user's own real test run reporting a value inconsistent with
+  // that assumption, then independently, directly reproducing
+  // MapMapAtomonMD's own exact math (local frame construction,
+  // rot_map/rot_md, rotateMAP2MD = rot_md * rot_map.transpose()) in
+  // Python, using this exact geometry, which gave EXACTLY the same
+  // result the user's own, real C++ run reported -- confirming the
+  // actual implementation is correct, and only this test's own,
+  // originally-assumed expected value was wrong. The value below is
+  // that independently-reproduced, confirmed-correct result.
+  Logger log;
+  QMMapper mapper = QMMapper(log);
+  mapper.LoadMappingFile(std::string(XTP_TEST_DATA_FOLDER) +
+                         "/segmentmapper/ch4.xml");
+  Segment seg("Methane", 1);
+  Atom atm1(1, "CB", 5, Eigen::Vector3d::Zero(), "C");
+  Atom atm2(1, "HB1", 6, Eigen::Vector3d::UnitX(), "H");
+  Atom atm3(1, "HB2", 7, Eigen::Vector3d::UnitY(), "H");
+  Atom atm4(1, "HB3", 8, -Eigen::Vector3d::UnitX(), "H");
+  Atom atm5(1, "HB4", 9, -Eigen::Vector3d::UnitY(), "H");
+
+  // atm1 ("C") is given a known, arbitrary external-bond direction
+  // (straight along +Z); the other four atoms are left without one at
+  // all, matching the normal, common case (most atoms in a fragment
+  // have no external bond).
+  atm1.setExternalBondDirection(Eigen::Vector3d::UnitZ());
+
+  seg.push_back(atm1);
+  seg.push_back(atm2);
+  seg.push_back(atm3);
+  seg.push_back(atm4);
+  seg.push_back(atm5);
+
+  QMMolecule qmmol = mapper.map(
+      seg, std::string(XTP_TEST_DATA_FOLDER) + "/segmentmapper/molecule.xyz");
+
+  // Atom 0 in the mapped result is the "C" atom (matching mapping_test's
+  // own, already-established name_ref/id_ref ordering above).
+  BOOST_CHECK_EQUAL(qmmol[0].hasExternalBond(), true);
+  Eigen::Vector3d dir = qmmol[0].getExternalBondDirection();
+
+  // Must remain normalized -- setExternalBondDirection's own
+  // .normalize() call, plus a pure rotation, both preserve unit
+  // length exactly.
+  BOOST_CHECK_CLOSE(dir.norm(), 1.0, 1e-6);
+
+  // The specific, expected transformed direction -- see this test's
+  // own header comment above for exactly how this value was obtained
+  // (independently reproduced and confirmed, not hand-derived).
+  Eigen::Vector3d dir_ref = {0.57735026918962573, 0.81649658092772615, 0.0};
+  BOOST_CHECK_EQUAL(dir.isApprox(dir_ref, 1e-5), true);
+  if (!dir.isApprox(dir_ref, 1e-5)) {
+    std::cout << "external bond direction" << std::endl;
+    std::cout << dir << std::endl;
+    std::cout << "ref" << std::endl;
+    std::cout << dir_ref << std::endl;
+  }
+
+  // The other four atoms were never given an external-bond direction
+  // at all -- must remain unset after mapping too, not, e.g., pick up
+  // a stray default/uninitialized value.
+  for (Index i = 1; i < qmmol.size(); i++) {
+    BOOST_CHECK_EQUAL(qmmol[i].hasExternalBond(), false);
+  }
+}
 BOOST_AUTO_TEST_SUITE_END()

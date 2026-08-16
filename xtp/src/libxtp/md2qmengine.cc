@@ -196,6 +196,27 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
     SegsinMol[molname] = segnames;
   }
 
+  // Build a direct, one-time "bead ID -> directly-bonded partner bead
+  // IDs" lookup, from the MD-level topology's own real, actual bond
+  // connectivity (csg::Topology::BondedInteractions(), confirmed
+  // directly, by reading csg's own interaction.h/topology.h, to
+  // already exist and be available exactly here -- this is a purely
+  // *geometric* bond list, from the original MD topology itself, NOT
+  // yet aware of segment/fragment membership at all). Only 2-bead
+  // ("B"/IBond-style) interactions are relevant here -- angles (3-bead)
+  // and dihedrals (4-bead) do not represent a direct bond between two
+  // atoms at all, so BeadCount() != 2 entries are skipped.
+  std::map<Index, std::vector<Index>> bead_bonded_partners;
+  for (csg::Interaction* interaction : top.BondedInteractions()) {
+    if (interaction->BeadCount() != 2) {
+      continue;
+    }
+    Index id1 = interaction->getBeadId(0);
+    Index id2 = interaction->getBeadId(1);
+    bead_bonded_partners[id1].push_back(id2);
+    bead_bonded_partners[id2].push_back(id1);
+  }
+
   // go through all molecules in MD topology
   for (const csg::Molecule& mol : top.Molecules()) {
 
@@ -223,6 +244,63 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
         if (segname == MolToSegMap[mol.getName()][bead->getId() - IdOffset]) {
           Atom atom(bead->getResnr(), bead->getName(), bead->getId(),
                     bead->getPos() * tools::conv::nm2bohr, bead->getType());
+
+          // Check each of this bead's own, real, direct bonded
+          // partners (from the lookup built above): if a partner's
+          // own segment assignment differs from this atom's own
+          // segname (or the partner has no segment assignment at
+          // all -- e.g. an unmapped, non-charge-transport-relevant
+          // spectator atom), the bond crosses the segment boundary --
+          // record the direction toward it directly on this atom, for
+          // later use (H-saturation) once this direction has also
+          // been carried through SegmentMapper's own, later,
+          // rigid-body MD->QM-template transform. Only the first such
+          // partner found is recorded (an atom with more than one
+          // external bond is rare, and not handled specially here).
+          auto it = bead_bonded_partners.find(bead->getId());
+          if (it != bead_bonded_partners.end()) {
+            for (Index partner_id : it->second) {
+              const csg::Bead* partner_bead = top.getBead(partner_id);
+              // MoleculeByIndex() is not const-qualified (confirmed
+              // directly, from a real compile error), and this
+              // function only ever sees top as const -- so the
+              // partner's own parent molecule is found directly here
+              // instead, by matching getMoleculeId() against each
+              // molecule's own getId() (the same, canonical way this
+              // function itself already identifies molecules, per its
+              // own, pre-existing this_segment.AddMoleculeId(mol.getId())
+              // call above), via the const-compatible Molecules()
+              // overload -- this also sidesteps a second, separate
+              // uncertainty MoleculeByIndex() would have carried:
+              // whether its own index parameter expects a molecule ID
+              // or an array position, which are not necessarily the
+              // same thing.
+              const csg::Molecule* partner_mol = nullptr;
+              for (const csg::Molecule& candidate : top.Molecules()) {
+                if (candidate.getId() == partner_bead->getMoleculeId()) {
+                  partner_mol = &candidate;
+                  break;
+                }
+              }
+              if (partner_mol == nullptr) {
+                continue;
+              }
+              Index partner_offset =
+                  DetermineAtomNumOffset(partner_mol,
+                                         MolToAtomIds[partner_mol->getName()]);
+              std::string partner_segname =
+                  MolToSegMap[partner_mol->getName()][partner_bead->getId() -
+                                                       partner_offset];
+              if (partner_segname != segname) {
+                Eigen::Vector3d direction =
+                    (partner_bead->getPos() - bead->getPos()) *
+                    tools::conv::nm2bohr;
+                atom.setExternalBondDirection(direction);
+                break;
+              }
+            }
+          }
+
           this_segment.push_back(atom);
         }
       }

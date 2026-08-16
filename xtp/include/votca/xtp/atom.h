@@ -42,6 +42,10 @@ class Atom {
     double y;
     double z;
     Index resnr;
+    bool has_external_bond;
+    double ext_bond_dir_x;
+    double ext_bond_dir_y;
+    double ext_bond_dir_z;
   };
   Atom(Index resnr, std::string md_atom_name, Index atom_id,
        Eigen::Vector3d pos, std::string element);
@@ -66,6 +70,28 @@ class Atom {
   const Eigen::Vector3d& getPos() const { return pos_; }
   void setPos(const Eigen::Vector3d& r) { pos_ = r; }
 
+  // Direction (normalized, unitless) toward an atom this one was
+  // covalently bonded to at the MD level, but which fell outside the
+  // mapped segment/fragment -- i.e. a bond that was "cut" by the
+  // segment definition. Set directly by Md2QmEngine/SegmentMapper at
+  // mapping time, using the exact same rigid-body transform already
+  // applied to every other atom in the fragment (so this direction is
+  // consistent with the fragment's own, already-idealized geometry,
+  // not the raw, possibly out-of-plane/distorted MD-level direction).
+  // A given atom may have at most one such recorded direction; an atom
+  // with more than one external bond (rare) only retains the first one
+  // set. Never set for atoms with no external bond at all (the normal
+  // case for most atoms in most fragments) -- callers must check
+  // hasExternalBond() before using getExternalBondDirection() at all.
+  bool hasExternalBond() const { return has_external_bond_; }
+  const Eigen::Vector3d& getExternalBondDirection() const {
+    return external_bond_direction_;
+  }
+  void setExternalBondDirection(const Eigen::Vector3d& dir) {
+    has_external_bond_ = true;
+    external_bond_direction_ = dir.normalized();
+  }
+
   std::string identify() const { return "atom"; }
 
   friend std::ostream& operator<<(std::ostream& out, const Atom& atom) {
@@ -89,6 +115,8 @@ class Atom {
   std::string element_ = "";
   Index resnr_ = -1;
   Eigen::Vector3d pos_ = Eigen::Vector3d::Zero();
+  bool has_external_bond_ = false;
+  Eigen::Vector3d external_bond_direction_ = Eigen::Vector3d::Zero();
 };
 
 }  // namespace xtp

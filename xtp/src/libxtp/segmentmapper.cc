@@ -288,6 +288,12 @@ void SegmentMapper<AtomContainer>::PlaceMapAtomonMD(
     const Atom* a = fragment_mdatoms[i];
     mapAtom* b = fragment_mapatoms[i];
     b->setPos(a->getPos());
+    // No meaningful local frame/rotation exists in this case (that is
+    // exactly why this method, rather than MapMapAtomonMD, is being
+    // used at all) -- the identity is the natural, correct transform
+    // here, matching this method's own, existing, direct position
+    // copy (a->getPos(), no rotation applied to it either).
+    TransferExternalBondDirection(b, a, Eigen::Matrix3d::Identity());
   }
 }
 
@@ -374,7 +380,8 @@ void SegmentMapper<AtomContainer>::MapMapAtomonMD(
     rot_md.col(2) = z_md.normalized();
   }
   Eigen::Matrix3d rotateMAP2MD = rot_md * rot_map.transpose();
-  for (mapAtom* atom : fragment_mapatoms) {
+  for (Index i = 0; i < Index(fragment_mapatoms.size()); i++) {
+    mapAtom* atom = fragment_mapatoms[i];
     if (getRank(*atom) > 0 && symmetry < 3) {
       throw std::runtime_error(
           "Local frame has less than 3 atoms, thus higher rank multipoles "
@@ -382,6 +389,14 @@ void SegmentMapper<AtomContainer>::MapMapAtomonMD(
     }
     atom->Translate(shift_map2md);
     atom->Rotate(rotateMAP2MD, md_com);
+    // Direction is translation-invariant by construction (unlike an
+    // atom's own position), so only the rotation part of this
+    // fragment's own MD->QM-template transform applies here -- no
+    // shift_map2md/md_com involved at all, matching the same
+    // "rotate the difference only" principle Atom::Rotate/
+    // QMAtom::Rotate's own, existing implementation already uses for
+    // ordinary positions.
+    TransferExternalBondDirection(atom, fragment_mdatoms[i], rotateMAP2MD);
   }
 }
 template <class AtomContainer>

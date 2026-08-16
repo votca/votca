@@ -93,6 +93,10 @@ void Atom::SetupCptTable(CptTable& table) {
   table.addCol<double>("pos.y", HOFFSET(data, y));
   table.addCol<double>("pos.z", HOFFSET(data, z));
   table.addCol<Index>("resnr", HOFFSET(data, resnr));
+  table.addCol<bool>("has_external_bond", HOFFSET(data, has_external_bond));
+  table.addCol<double>("ext_bond_dir.x", HOFFSET(data, ext_bond_dir_x));
+  table.addCol<double>("ext_bond_dir.y", HOFFSET(data, ext_bond_dir_y));
+  table.addCol<double>("ext_bond_dir.z", HOFFSET(data, ext_bond_dir_z));
 }
 
 void Atom::WriteData(data& d) const {
@@ -103,6 +107,10 @@ void Atom::WriteData(data& d) const {
   d.y = pos_[1];
   d.z = pos_[2];
   d.resnr = resnr_;
+  d.has_external_bond = has_external_bond_;
+  d.ext_bond_dir_x = external_bond_direction_[0];
+  d.ext_bond_dir_y = external_bond_direction_[1];
+  d.ext_bond_dir_z = external_bond_direction_[2];
 }
 
 void Atom::ReadData(const data& d) {
@@ -115,6 +123,10 @@ void Atom::ReadData(const data& d) {
   pos_[2] = d.z;
   pos_[1] = d.y;
   resnr_ = d.resnr;
+  has_external_bond_ = d.has_external_bond;
+  external_bond_direction_[0] = d.ext_bond_dir_x;
+  external_bond_direction_[1] = d.ext_bond_dir_y;
+  external_bond_direction_[2] = d.ext_bond_dir_z;
 }
 }  // namespace xtp
 }  // namespace votca
