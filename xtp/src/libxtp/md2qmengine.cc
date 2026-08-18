@@ -295,7 +295,7 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
                 Eigen::Vector3d direction =
                     (partner_bead->getPos() - bead->getPos()) *
                     tools::conv::nm2bohr;
-                atom.setExternalBondDirection(direction);
+                atom.setExternalBondDirection(direction, partner_bead->getId());
                 break;
               }
             }
@@ -324,6 +324,45 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
       }
       // add segment to topology
       topology_segments.push_back(this_segment);
+    }
+  }
+
+  // Second pass: resolves each atom's own external-bond partner
+  // (recorded above only as a raw MD-level ATOM id,
+  // getExternalBondPartnerAtomId() -- deliberately transient, see its
+  // own header comment) to the actual SEGMENT that partner atom
+  // belongs to. Cannot be done inline, in the loop above -- at the
+  // point a given atom's own external bond is first detected, later
+  // segments (in molecule/segname iteration order) do not exist yet
+  // at all, so there is no way yet to know which segment a partner
+  // atom that happens to belong to one of them will end up in.
+  //
+  // First builds a direct "MD-level atom id -> segment id" lookup,
+  // spanning every segment in the whole, now-complete xtptop, then
+  // uses it to resolve every atom's own, already-recorded
+  // getExternalBondPartnerAtomId() into the real, actual, persisted
+  // getExternalBondPartnerSegmentId() -- needed downstream (a planned
+  // linking-segment graph, and the decision of whether a given
+  // external bond is already satisfied within an assembled
+  // supermolecule, worked through directly with the user before this
+  // was implemented) to identify not just THAT a given bond crosses a
+  // segment boundary, but SPECIFICALLY WHICH segment it crosses into.
+  std::map<Index, Index> md_atom_id_to_segment_id;
+  for (const Segment& seg : xtptop.Segments()) {
+    for (const Atom& segatom : seg) {
+      md_atom_id_to_segment_id[segatom.getId()] = seg.getId();
+    }
+  }
+  for (Segment& seg : xtptop.Segments()) {
+    for (Atom& segatom : seg) {
+      if (!segatom.hasExternalBond()) {
+        continue;
+      }
+      auto it =
+          md_atom_id_to_segment_id.find(segatom.getExternalBondPartnerAtomId());
+      if (it != md_atom_id_to_segment_id.end()) {
+        segatom.setExternalBondPartnerSegmentId(it->second);
+      }
     }
   }
 

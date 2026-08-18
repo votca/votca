@@ -247,7 +247,23 @@ BOOST_AUTO_TEST_CASE(external_bond_direction_transfer_test) {
   // (straight along +Z); the other four atoms are left without one at
   // all, matching the normal, common case (most atoms in a fragment
   // have no external bond).
-  atm1.setExternalBondDirection(Eigen::Vector3d::UnitZ());
+  // Placeholder partner atom id (999) -- this test only exercises the
+  // direction transform itself, not the whole partner-atom-id
+  // resolution machinery (that lives in Md2QmEngine, out of scope for
+  // this specific, SegmentMapper-focused test, and has its own,
+  // separate, dedicated test, test_md2qmengine.cc's own
+  // external_bond_direction_detection_test) -- 999 does not match any
+  // real atom id used in this test's own geometry (5-9) at all,
+  // deliberately, so it cannot be mistaken for one.
+  atm1.setExternalBondDirection(Eigen::Vector3d::UnitZ(), 999);
+  // A real, known partner SEGMENT id -- arbitrary but plausible (42,
+  // deliberately distinct from this test's own atom ids and the
+  // segment's own id, 1, above, so it cannot be mistaken for either).
+  // Unlike the direction itself, this value needs no transform at all
+  // to survive mapping correctly -- SegmentMapper's own
+  // TransferExternalBondDirection copies it straight across, so the
+  // check below expects it to come out completely unchanged.
+  atm1.setExternalBondPartnerSegmentId(42);
 
   seg.push_back(atm1);
   seg.push_back(atm2);
@@ -279,6 +295,11 @@ BOOST_AUTO_TEST_CASE(external_bond_direction_transfer_test) {
     std::cout << "ref" << std::endl;
     std::cout << dir_ref << std::endl;
   }
+
+  // The partner segment id itself needs no transform at all to
+  // survive mapping correctly (it is not a geometric quantity) --
+  // must come out completely unchanged.
+  BOOST_CHECK_EQUAL(qmmol[0].getExternalBondPartnerSegmentId(), 42);
 
   // The other four atoms were never given an external-bond direction
   // at all -- must remain unset after mapping too, not, e.g., pick up

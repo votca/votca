@@ -213,6 +213,12 @@ BOOST_AUTO_TEST_CASE(external_bond_direction_detection_test) {
     std::cout << expected_left_dir << std::endl;
   }
 
+  // Not just THAT an external bond exists, but WHICH segment it
+  // crosses into -- must be the real "ThiopheneRight" segment's own,
+  // actual, real id (right->getId()), not merely non-negative/set.
+  BOOST_CHECK_EQUAL(left_junction->getExternalBondPartnerSegmentId(),
+                    right->getId());
+
   // Symmetric check on atom 9 (ring-junction C, on "ThiopheneRight"),
   // pointing back toward atom 1.
   const Atom* right_junction = nullptr;
@@ -235,6 +241,11 @@ BOOST_AUTO_TEST_CASE(external_bond_direction_detection_test) {
     std::cout << "expected" << std::endl;
     std::cout << expected_right_dir << std::endl;
   }
+
+  // Symmetric check: must point back to the real "ThiopheneLeft"
+  // segment's own, actual id.
+  BOOST_CHECK_EQUAL(right_junction->getExternalBondPartnerSegmentId(),
+                    left->getId());
 
   // Every other atom, in either segment, has no real external bond at
   // all (every other bond in the structure stays within its own,

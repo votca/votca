@@ -97,6 +97,12 @@ void Atom::SetupCptTable(CptTable& table) {
   table.addCol<double>("ext_bond_dir.x", HOFFSET(data, ext_bond_dir_x));
   table.addCol<double>("ext_bond_dir.y", HOFFSET(data, ext_bond_dir_y));
   table.addCol<double>("ext_bond_dir.z", HOFFSET(data, ext_bond_dir_z));
+  // Deliberately only the SEGMENT id is persisted here -- the
+  // transient external_bond_partner_atom_id_ (see this class's own
+  // header comment for why) has no corresponding column at all, by
+  // design.
+  table.addCol<Index>("ext_bond_partner_segment_id",
+                      HOFFSET(data, ext_bond_partner_segment_id));
   // CptTable::addCol<U>() only supports fundamental types (confirmed
   // directly by reading its own static_assert before relying on this
   // -- no array support at all), so each of the kMaxBondedPartners
@@ -128,6 +134,7 @@ void Atom::WriteData(data& d) const {
   d.ext_bond_dir_x = external_bond_direction_[0];
   d.ext_bond_dir_y = external_bond_direction_[1];
   d.ext_bond_dir_z = external_bond_direction_[2];
+  d.ext_bond_partner_segment_id = external_bond_partner_segment_id_;
   for (Index i = 0; i < kMaxBondedPartners; i++) {
     d.bonded_partner_ids[i] = bonded_partner_ids_[i];
   }
@@ -147,6 +154,7 @@ void Atom::ReadData(const data& d) {
   external_bond_direction_[0] = d.ext_bond_dir_x;
   external_bond_direction_[1] = d.ext_bond_dir_y;
   external_bond_direction_[2] = d.ext_bond_dir_z;
+  external_bond_partner_segment_id_ = d.ext_bond_partner_segment_id;
   for (Index i = 0; i < kMaxBondedPartners; i++) {
     bonded_partner_ids_[i] = d.bonded_partner_ids[i];
   }

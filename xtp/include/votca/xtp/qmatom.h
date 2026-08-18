@@ -54,6 +54,7 @@ class QMAtom {
     double ext_bond_dir_x;
     double ext_bond_dir_y;
     double ext_bond_dir_z;
+    Index ext_bond_partner_segment_id;
     Index bonded_partner_ids[kMaxBondedPartners];
   };
 
@@ -97,6 +98,54 @@ class QMAtom {
     external_bond_direction_ = dir.normalized();
   }
 
+  // Marks this atom's own external bond as resolved/no longer
+  // needing saturation -- e.g. because, within a specific, assembled
+  // supermolecule, its own external-bond partner segment
+  // (getExternalBondPartnerSegmentId()) turns out to already be
+  // present too, so the bond is already satisfied there and does not
+  // need a new H at all. Deliberately resets has_external_bond_ to
+  // false entirely (not merely a separate "skip saturation" flag) --
+  // once a bond is known to be satisfied within a given, specific
+  // supermolecule, it genuinely is no longer "external" to it at all,
+  // so hasExternalBond() itself should honestly report false for it,
+  // not some separate, parallel notion of "external but exempt".
+  // Deliberately only ever affects THIS, specific, already-mapped
+  // QMAtom instance/copy -- SegmentMapper::map() constructs a
+  // brand-new QMMolecule from scratch on every call, re-deriving
+  // hasExternalBond()/getExternalBondPartnerSegmentId() fresh each
+  // time from the underlying MD-level Segment's own, persisted atom
+  // data (never from a previously-cleared copy) -- so clearing this
+  // on one, specific mapped copy (e.g. within one specific pair's own
+  // supermolecule) has no effect at all on any other, separate
+  // mapping of the same underlying segment (e.g. within a different
+  // pair).
+  void clearExternalBond() {
+    has_external_bond_ = false;
+    external_bond_direction_ = Eigen::Vector3d::Zero();
+    external_bond_partner_segment_id_ = -1;
+  }
+
+  // Same meaning as Atom::getExternalBondPartnerSegmentId() -- the
+  // Segment::getId() this external bond crosses into. Unlike the
+  // direction itself, a segment id needs no rigid-body transform at
+  // all (it is not a geometric quantity) -- SegmentMapper copies it
+  // straight across from the corresponding MD-level Atom, alongside
+  // the direction transform, rather than transforming it in any way.
+  // Only meaningful when hasExternalBond() is true (matches -1, this
+  // class's own "-1 means unset" convention, otherwise). Unlike
+  // Atom's own version, QMAtom needs no separate, transient "partner
+  // ATOM id" field at all -- that value only ever existed to let
+  // Md2QmEngine resolve it into this, real, final segment id in the
+  // first place (see Atom::getExternalBondPartnerAtomId's own header
+  // comment, atom.h); QMAtom only ever needs the already-resolved
+  // result.
+  Index getExternalBondPartnerSegmentId() const {
+    return external_bond_partner_segment_id_;
+  }
+  void setExternalBondPartnerSegmentId(Index segment_id) {
+    external_bond_partner_segment_id_ = segment_id;
+  }
+
   // Same meaning as Atom::getBondedPartnerIds() (a fragment's own,
   // full, internal bond connectivity) -- but, unlike that one, these
   // are already QM-LEVEL atom IDs (i.e. QMAtom::getId() values,
@@ -138,6 +187,7 @@ class QMAtom {
   Index ecpcharge_ = 0;  // ecp charge is set in ecpaobasis.fill
   bool has_external_bond_ = false;
   Eigen::Vector3d external_bond_direction_ = Eigen::Vector3d::Zero();
+  Index external_bond_partner_segment_id_ = -1;
   Index bonded_partner_ids_[kMaxBondedPartners] = {-1, -1, -1, -1};
 
  public:

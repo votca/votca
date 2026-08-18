@@ -99,9 +99,13 @@ class SegmentMapper {
   // principle Atom::Rotate/QMAtom::Rotate's own, existing
   // implementation already uses), transfers the MD atom's own,
   // already-recorded, raw external-bond direction onto the mapped
-  // atom, rotated into the mapped atom's own reference frame.
-  // Explicitly specialized for SegmentMapper<QMMolecule> below, where
-  // QMAtom actually does have this interface -- matching the same,
+  // atom, rotated into the mapped atom's own reference frame -- and,
+  // alongside it, the SEGMENT id (Atom::
+  // getExternalBondPartnerSegmentId()) that bond crosses into, copied
+  // straight across, unchanged (a segment id needs no rigid-body
+  // transform at all, it is not a geometric quantity). Explicitly
+  // specialized for SegmentMapper<QMMolecule> below, where QMAtom
+  // actually does have this interface -- matching the same,
   // already-established pattern this class already uses for
   // FillMap()/getRank() above.
   void TransferExternalBondDirection(mapAtom*, const Atom*,
@@ -177,6 +181,8 @@ inline void SegmentMapper<QMMolecule>::TransferExternalBondDirection(
   if (md_atom->hasExternalBond()) {
     map_atom->setExternalBondDirection(rot *
                                        md_atom->getExternalBondDirection());
+    map_atom->setExternalBondPartnerSegmentId(
+        md_atom->getExternalBondPartnerSegmentId());
   }
 }
 

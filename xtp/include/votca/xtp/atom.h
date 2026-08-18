@@ -55,6 +55,7 @@ class Atom {
     double ext_bond_dir_x;
     double ext_bond_dir_y;
     double ext_bond_dir_z;
+    Index ext_bond_partner_segment_id;
     Index bonded_partner_ids[kMaxBondedPartners];
   };
   Atom(Index resnr, std::string md_atom_name, Index atom_id,
@@ -93,13 +94,55 @@ class Atom {
   // set. Never set for atoms with no external bond at all (the normal
   // case for most atoms in most fragments) -- callers must check
   // hasExternalBond() before using getExternalBondDirection() at all.
+  //
+  // partner_atom_id is the raw, MD-level atom ID this external bond
+  // points to (Atom::getId() of the partner) -- known and set here,
+  // at the exact same point the direction itself is computed
+  // (Md2QmEngine's own, real, MD-level bond connectivity). This is
+  // deliberately transient/NOT persisted to the checkpoint file at
+  // all (no CptTable column, unlike everything else on this class) --
+  // it exists only to let Md2QmEngine look up, in a later, second
+  // pass within the same map() call (once every segment's own ID is
+  // known, which it is not yet at the point this direction is first
+  // computed -- segments are still being built), which SEGMENT that
+  // partner atom actually belongs to, and record that instead, via
+  // setExternalBondPartnerSegmentId() below -- the actually useful,
+  // persisted value. getExternalBondPartnerAtomId() is genuinely only
+  // meant to be read within that same Md2QmEngine::map() call, never
+  // afterward.
   bool hasExternalBond() const { return has_external_bond_; }
   const Eigen::Vector3d& getExternalBondDirection() const {
     return external_bond_direction_;
   }
-  void setExternalBondDirection(const Eigen::Vector3d& dir) {
+  Index getExternalBondPartnerAtomId() const {
+    return external_bond_partner_atom_id_;
+  }
+  void setExternalBondDirection(const Eigen::Vector3d& dir,
+                                Index partner_atom_id) {
     has_external_bond_ = true;
     external_bond_direction_ = dir.normalized();
+    external_bond_partner_atom_id_ = partner_atom_id;
+  }
+
+  // The SEGMENT ID (Segment::getId()) that this atom's own external-
+  // bond partner (see above) belongs to -- -1 (this class's own
+  // "-1 means unset" convention) until explicitly set. Unlike the
+  // direction itself, a segment ID needs no rigid-body transform at
+  // all (it is not a geometric quantity) -- SegmentMapper's own
+  // TransferExternalBondDirection copies this straight across onto
+  // the mapped QMAtom, alongside the direction transform, rather than
+  // transforming it in any way. This IS persisted (a real CptTable
+  // column, unlike getExternalBondPartnerAtomId() above) -- this is
+  // the value later consumers (a planned linking-segment graph, and
+  // the decision of whether a given external bond is already
+  // satisfied within an assembled supermolecule) are actually meant
+  // to read, from the checkpoint file, independently of
+  // Md2QmEngine::map() itself having ever run in the same process.
+  Index getExternalBondPartnerSegmentId() const {
+    return external_bond_partner_segment_id_;
+  }
+  void setExternalBondPartnerSegmentId(Index segment_id) {
+    external_bond_partner_segment_id_ = segment_id;
   }
 
   // Real, direct MD-level bonded-partner atom IDs (topological
@@ -159,6 +202,8 @@ class Atom {
   Eigen::Vector3d pos_ = Eigen::Vector3d::Zero();
   bool has_external_bond_ = false;
   Eigen::Vector3d external_bond_direction_ = Eigen::Vector3d::Zero();
+  Index external_bond_partner_atom_id_ = -1;
+  Index external_bond_partner_segment_id_ = -1;
   Index bonded_partner_ids_[kMaxBondedPartners] = {-1, -1, -1, -1};
 };
 

@@ -126,7 +126,19 @@ foreach(PROG ${test_cases} )
   set(VOTCASHARE_DIR ${XTP_SOURCE_DIR}/share)
   add_executable(unit_${PROG} ${PROG}.cc)
   target_compile_definitions(unit_${PROG} PRIVATE XTP_TEST_DATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/DataFiles")
-  target_link_libraries(unit_${PROG} votca_xtp Boost::unit_test_framework Libint2::int2 ECPINT::ecpint)
+  target_link_libraries(unit_${PROG} votca_xtp Boost::unit_test_framework Libint2::int2 ECPINT::ecpint openbabel)
+  # openbabel is a PRIVATE dependency of votca_xtp (xtp/src/libxtp/
+  # CMakeLists.txt), so its own include directories are not
+  # automatically propagated here via votca_xtp alone -- confirmed
+  # directly, from a real, direct compile error on the user's own
+  # actual machine ("openbabel/atom.h file not found"), that this is
+  # genuinely needed, matching the same, already-established pattern
+  # this same loop already uses for Libint2::int2/ECPINT::ecpint
+  # (both of which propagate their own include directories
+  # automatically, being proper, modern imported targets -- openbabel
+  # itself is the older-style, unnamespaced target confirmed earlier
+  # this session not to do so automatically).
+  target_include_directories(unit_${PROG} PRIVATE ${OpenBabel3_INCLUDE_DIRS})
   target_compile_definitions(unit_${PROG} PRIVATE BOOST_TEST_DYN_LINK)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
   add_test(NAME unit_${PROG} COMMAND $<TARGET_FILE:unit_${PROG}> WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
