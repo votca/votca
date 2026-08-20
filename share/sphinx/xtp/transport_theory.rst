@@ -20,6 +20,47 @@ In small molecule systems each molecule is typically chosen as a single conjugat
 After the system is partitioned into segments, these segments are additionally separated into rigid fragments, as depicted in :numref:`fig_theory_fragment_def`. These fragments are typically insensitive to thermal fluctuations, e.g., a thiophene or benzene ring stays planar even at elevated temperatures. Although the fragment definitions are theoretically not necessary for the calculation of rates, the molecular dynamics configurations of the rigid fragments are often replaced with quantum mechanically optimized rigid fragments, in order to *integrate out* fast degrees of freedom, e.g. the promoting modes, which are already described in the rate models. This has the additional benefit of removing some of the mismatch between quantum mechanically obtained geometries and molecular dynamics results.  
 
 
+H-Saturation of Cut Segment Boundaries
+***************************************
+
+Cutting a polymer chain into segments, as in :numref:`fig_theory_fragment_def` (c), necessarily
+cuts through one or more real, covalent bonds wherever a segment boundary falls between two
+bonded atoms -- e.g. between consecutive repeat units of a backbone, or between a backbone and a
+side chain mapped as its own, separate segment. Left alone, this leaves the corresponding
+boundary atom with a genuine dangling valence, which is not a physically meaningful starting
+point for a quantum calculation.
+
+The ``ipodcoupling`` calculator (an ``xtp_parallel`` job calculator, computing an electronic
+coupling between two neighbor-list segments via POD2, Projection Operator Diabatization)
+addresses this the same way standard QM/MM link-atom schemes do: every cut bond is automatically
+capped with a new hydrogen atom, placed along the original bond's own direction at a typical C-H
+bond length, then relaxed (holding every original, heavy atom fixed) via a constrained molecular-
+mechanics optimization, so the new atom's own local geometry is reasonable rather than merely
+geometrically placed. This saturation is applied only where a cut bond's own partner segment is
+not already part of the same calculation -- a bond to a segment that is genuinely included on
+both sides (e.g. the direct bond between the two neighbor-list segments themselves) is left
+untouched, since it is not actually cut within that specific pair's own supermolecule at all.
+
+Where the two neighbor-list segments are not directly bonded, but are instead connected through
+one or more intermediate segments along the same real, covalent chain (for instance, a polymer
+repeat unit bridging two segments that are themselves further apart along the backbone), these
+linking segments can optionally be included in the calculation too, positioned periodic-boundary-
+correctly along the real bond chain connecting them; their own atoms are not assigned to either
+of the two, principal donor/acceptor fragments used in the POD2 coupling itself.
+
+This whole mechanism depends entirely on the underlying MD topology actually carrying real bond
+connectivity of its own -- not every topology reader does: one that only ever provides atom
+positions (for instance, a structure sourced from elsewhere with only a "fake" topology attached)
+leaves ``ipodcoupling`` unable to detect any external bonds at all, and H-saturation silently
+does nothing. Both ``xtp_map`` and ``ipodcoupling`` warn directly if this is the case. For a
+topology that genuinely has no bond data of its own, ``xtp_map``'s ``--guess-bonds`` option can
+infer one instead: atom pairs within the same molecule are considered bonded if their separation
+is less than 60% of the sum of their van der Waals radii, the same simple heuristic VMD itself
+uses for visualization. This is never applied automatically, and every guessed bond is written to
+a real, inspectable report -- the heuristic is a known-imperfect approximation, and its result
+should be checked before being trusted for anything at all.
+
+
 Site Energies
 *************
 

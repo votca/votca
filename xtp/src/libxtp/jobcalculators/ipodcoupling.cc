@@ -308,6 +308,48 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
   const Segment* seg1 = pair->Seg1();
   Segment seg2 = pair->Seg2PbCopy();
 
+  // Real, direct, always-visible companion to Md2QmEngine::map's own,
+  // new, real warning (md2qmengine.cc) -- worked through directly
+  // with the user: that one fires once, at xtp_map time, and is easy
+  // to miss (terminal output only, not persisted anywhere else at
+  // all) by the time a user is actually running ipodcoupling itself,
+  // much later, and potentially separately at all. Checked here
+  // again, directly, right at the point it actually matters most --
+  // if neither seg1 nor seg2 has any real, actual MD-level bonded
+  // connectivity at all (Atom::getBondedPartnerIds(), the same, real
+  // underlying data external-bond detection itself, further above in
+  // Md2QmEngine::map, genuinely depends on), H-saturation for this
+  // specific pair can never actually fire at all, no matter what --
+  // real, direct, dangling valences may silently reach the DFT
+  // calculation instead, with no other, direct signal of this at all
+  // otherwise.
+  bool seg1_has_any_bonds = false;
+  for (const Atom& atom : *seg1) {
+    if (atom.getBondedPartnerIds()[0] != -1) {
+      seg1_has_any_bonds = true;
+      break;
+    }
+  }
+  bool seg2_has_any_bonds = false;
+  for (const Atom& atom : seg2) {
+    if (atom.getBondedPartnerIds()[0] != -1) {
+      seg2_has_any_bonds = true;
+      break;
+    }
+  }
+  if (!seg1_has_any_bonds && !seg2_has_any_bonds) {
+    XTP_LOG(Log::error, pLog)
+        << "WARNING: neither segment " << seg1->getId() << " nor segment "
+        << seg_B.getId()
+        << " has any real, actual MD-level bond connectivity at all -- "
+           "H-saturation of cut segment boundaries cannot detect anything "
+           "to saturate at all for this pair, and will silently do nothing. "
+           "This usually means the underlying topology reader used at "
+           "xtp_map time provided no real bond data at all -- check that "
+           "directly."
+        << std::flush;
+  }
+
   // LINKER SEGMENTS -- real, direct discovery + PBC-correct
   // positioning, per the design worked through directly with the
   // user (Topology::FindLinkingSegments/IPodCoupling::

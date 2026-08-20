@@ -217,6 +217,40 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
     bead_bonded_partners[id2].push_back(id1);
   }
 
+  // Real, direct, always-visible (not gated behind -v/verbose at all)
+  // warning, worked through directly with the user: if the underlying
+  // MD topology genuinely has no real bond connectivity at all (e.g.
+  // a topology reader that only ever provides atom positions, no real
+  // bond data at all -- this exact situation is exactly what this
+  // whole session's own real, direct debugging arc started from,
+  // csg::GMXTopologyReader itself never having read any real bonds at
+  // all, before that specific fix), external-bond detection itself
+  // (below) can never find anything at all, meaning
+  // IPodCoupling::EvalJob's own H-saturation at cut segment boundaries
+  // (see transport_theory.rst's own "H-Saturation of Cut Segment
+  // Boundaries" section) can never actually fire at all either --
+  // silently producing dangling valences at every cut segment
+  // boundary instead, with no other, direct signal of this at all
+  // until (if ever) a user separately, manually notices something is
+  // wrong much further downstream. Warning here instead, directly, at
+  // the earliest point this is actually knowable at all (right after
+  // bead_bonded_partners is built, genuinely reflecting the real,
+  // complete state of top.BondedInteractions() itself), gives a real,
+  // direct, upfront signal instead.
+  if (bead_bonded_partners.empty()) {
+    std::cout
+        << "\nWARNING: the MD topology being mapped contains no real bond "
+           "connectivity at all (no bonded interactions were found within "
+           "it) -- this topology reader may only provide atom positions, "
+           "not real, actual bond data. Automatic H-saturation of cut "
+           "segment boundaries (used by e.g. the ipodcoupling calculator) "
+           "will not be able to detect any external bonds at all, and will "
+           "silently do nothing at all, rather than saturating anything -- "
+           "check that the real, actual topology file/reader used here "
+           "genuinely provides real bond data, not just atom positions."
+        << std::endl;
+  }
+
   // go through all molecules in MD topology
   for (const csg::Molecule& mol : top.Molecules()) {
 
