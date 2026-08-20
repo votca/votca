@@ -169,6 +169,20 @@ class QMAtom {
     // Atom::kMaxBondedPartners's own comment for why this is silently
     // dropped rather than treated as a hard error.
   }
+  // Real, direct addition -- needed for QMMolecule::AddContainer()
+  // (qmmolecule.h) to be able to correctly offset an atom's own
+  // bonded_partner_ids_ when merging it into a larger QMMolecule
+  // (its own ids, as recorded, are local to the smaller QMMolecule
+  // it was originally mapped within -- a real, direct offset is
+  // needed once merged into a bigger one). AddBondedPartner() alone
+  // cannot do this: it only ever appends into the next available -1
+  // slot, never overwrites the whole array at once, so it cannot
+  // replace already-set values with their own, new, offset ones.
+  void setBondedPartnerIds(const Index (&ids)[kMaxBondedPartners]) {
+    for (Index i = 0; i < kMaxBondedPartners; i++) {
+      bonded_partner_ids_[i] = ids[i];
+    }
+  }
 
   std::string identify() const { return "qmatom"; }
 

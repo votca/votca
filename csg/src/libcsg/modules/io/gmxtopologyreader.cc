@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string>
 
+#include "../../../../include/votca/csg/interaction.h"
 #include "../../../../include/votca/csg/topology.h"
 
 #include "gmxtopologyreader.h"
@@ -25,6 +26,7 @@
 #include <gromacs/fileio/tpxio.h>
 #include <gromacs/mdtypes/inputrec.h>
 #include <gromacs/topology/atoms.h>
+#include <gromacs/topology/ifunc.h>
 #include <gromacs/topology/topology.h>
 #include <gromacs/version.h>
 
@@ -97,6 +99,57 @@ bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
         }
         top.InsertExclusion(top.getBead(iatom + ifirstatom), excl_list);
       }
+
+      // Real, direct, root-cause fix -- this function used to never
+      // read any real bond connectivity at all, from any .tpr file,
+      // regardless of its own actual content (confirmed directly,
+      // this same session, by reading this function in full, before
+      // this fix, and finding no mention of bonds/interactions
+      // anywhere in it at all) -- meaning top.BondedInteractions()
+      // was always empty for any topology loaded this way, silently
+      // breaking every downstream consumer relying on real bond
+      // connectivity (e.g. xtp's own external-bond-direction
+      // detection, Md2QmEngine::map, md2qmengine.cc, built and
+      // extensively tested earlier, against a hand-constructed bond
+      // map -- never against a real, actual GMXTopologyReader-loaded
+      // topology at all, until the user's own real run surfaced this
+      // real, direct gap).
+      //
+      // mol->ilist (InteractionLists, a real GROMACS type) holds one
+      // real, flat InteractionList per interaction type, indexed by
+      // InteractionFunction -- each real, individual interaction
+      // occupies interaction_function[ft].nratoms + 1 consecutive
+      // int entries within its own list's own iatoms array: the
+      // interaction TYPE index first, then nratoms real atom
+      // indices. Only InteractionFunction::Bonds and
+      // InteractionFunction::Constraints are read here -- covers
+      // ordinary bonds (regardless of any .mdp constraints setting;
+      // "constraints = h-bonds"/"all-bonds" converts some real bonds
+      // into Constraints entries specifically instead of Bonds, so
+      // both are checked) -- but NOT every other, less common,
+      // force-field-specific "bond-like" interaction type GROMACS
+      // itself supports (e.g. G96Bonds, Morse, Cubic, Connections) --
+      // a real, direct, honest limitation, worth being aware of for
+      // force fields that use one of those instead of ordinary
+      // harmonic bonds.
+      for (InteractionFunction ft :
+          {InteractionFunction::Bonds, InteractionFunction::Constraints}) {
+        const InteractionList &ilist = mol->ilist[ft];
+        Index nratoms = interaction_function[static_cast<int>(ft)].nratoms;
+        Index stride = nratoms + 1;
+        for (Index i = 0; i < Index(ilist.size()); i += stride) {
+          // ilist.iatoms[i] itself is the interaction TYPE index
+          // (into mtop.ffparams.iparams) -- not an atom index at
+          // all, and not needed here, since only real connectivity
+          // (which atoms are bonded), not the real bond's own force
+          // constant/equilibrium length, is wanted at this level.
+          Index atom1 = ilist.iatoms[i + 1];
+          Index atom2 = ilist.iatoms[i + 2];
+          top.AddBondedInteraction(
+              new IBond(Index(atom1 + ifirstatom), Index(atom2 + ifirstatom)));
+        }
+      }
+
       ifirstatom += natoms_mol;
     }
   }

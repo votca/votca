@@ -99,6 +99,15 @@ BOOST_AUTO_TEST_CASE(saturate_single_external_bond_test) {
     std::cout << expected_new_pos << std::endl;
   }
 
+  // Real, direct, new coverage for a real, direct bug fix: the new H
+  // atom's own bonded_partner_ids_ must record its own real parent
+  // (atom0), and atom0's own copy within result must, symmetrically,
+  // record the new H as one of its own real partners too -- both
+  // needed for RelaxNewAtoms's own OpenBabel-based connectivity to
+  // actually know these two atoms are bonded at all.
+  BOOST_CHECK_EQUAL(result[3].getBondedPartnerIds()[0], 0);
+  BOOST_CHECK_EQUAL(result[0].getBondedPartnerIds()[0], 3);
+
   // new_atom_parent_ids: -1 for every original atom (0-2), and atom0's
   // own id (0) -- the atom the new H is saturating -- for the new H
   // itself (index 3).

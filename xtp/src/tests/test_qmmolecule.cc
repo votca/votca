@@ -93,4 +93,58 @@ BOOST_AUTO_TEST_CASE(readwritehdf) {
   QMMolecule seg2(rr);
 }
 
+BOOST_AUTO_TEST_CASE(addcontainer_preserves_external_bond_and_offsets_ids_test) {
+  // Real, direct, new coverage for a real, direct bug fix, caught by
+  // the user's own real, direct diagnostic run: AddContainer used to
+  // reconstruct every merged-in atom from scratch (the (Index,
+  // element, pos) constructor), silently discarding
+  // hasExternalBond()/external_bond_direction_/
+  // external_bond_partner_segment_id_/bonded_partner_ids_ entirely
+  // for every atom it merged in this way.
+  QMMolecule mol_a("A", 0);
+  QMAtom a0(0, "C", Eigen::Vector3d::Zero());
+  mol_a.push_back(a0);
+
+  QMMolecule mol_b("B", 1);
+  QMAtom b0(0, "S", Eigen::Vector3d::UnitX());
+  b0.setExternalBondDirection(Eigen::Vector3d::UnitY());
+  b0.setExternalBondPartnerSegmentId(42);
+  b0.AddBondedPartner(1);
+  QMAtom b1(1, "H", 2 * Eigen::Vector3d::UnitX());
+  b1.AddBondedPartner(0);
+  mol_b.push_back(b0);
+  mol_b.push_back(b1);
+
+  mol_a.AddContainer(mol_b);
+
+  // mol_a now has 3 atoms: its own original atom0, plus mol_b's own
+  // b0/b1, merged in with their own ids offset by mol_a's own,
+  // original size (1) -- so b0 -> id 1, b1 -> id 2.
+  BOOST_CHECK_EQUAL(mol_a.size(), 3);
+  BOOST_CHECK_EQUAL(mol_a[1].getId(), 1);
+  BOOST_CHECK_EQUAL(mol_a[2].getId(), 2);
+
+  // hasExternalBond()/external_bond_direction_/
+  // external_bond_partner_segment_id_ -- none of these are ids that
+  // point at another atom within this same container at all, so none
+  // of them need any offsetting; they must simply, correctly survive
+  // the merge unchanged.
+  BOOST_CHECK_EQUAL(mol_a[1].hasExternalBond(), true);
+  BOOST_CHECK_EQUAL(
+      mol_a[1].getExternalBondDirection().isApprox(Eigen::Vector3d::UnitY()),
+      true);
+  BOOST_CHECK_EQUAL(mol_a[1].getExternalBondPartnerSegmentId(), 42);
+  BOOST_CHECK_EQUAL(mol_a[2].hasExternalBond(), false);
+
+  // bonded_partner_ids_, in contrast, genuinely are local ids
+  // (within mol_b alone, before the merge) -- these DO need the same
+  // offset applied to them, or they would silently point at the
+  // wrong atom entirely once merged. b0's own real partner was
+  // (local) id 1 -- must become 2 (1 + offset 1) within mol_a; b1's
+  // own real partner was (local) id 0 -- must become 1 (0 + offset
+  // 1).
+  BOOST_CHECK_EQUAL(mol_a[1].getBondedPartnerIds()[0], 2);
+  BOOST_CHECK_EQUAL(mol_a[2].getBondedPartnerIds()[0], 1);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

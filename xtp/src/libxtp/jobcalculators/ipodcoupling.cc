@@ -536,65 +536,115 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
   // from a previously-stored orbFileAB) -- final piece of the
   // six-step design worked through directly with the user at the
   // very start of this whole calculator.
+  //
+  // Real, direct bug fix: this whole block used to run
+  // unconditionally, with no do_podcoupling_ guard at all -- caught
+  // directly by the user's own real, direct run (tasks="input" only,
+  // to inspect the DFT input file directly): PODCoupling's own
+  // constructor genuinely needs a real, converged orbitalsAB with an
+  // actual basis set name set on it, which simply does not exist yet
+  // at all when only the DFT input file has been written (do_dft_run_/
+  // do_dft_parse_ both false) -- attempting it anyway threw a real,
+  // confusing "basis_sets/.xml" error (an empty basis set name) even
+  // though podcoupling was never requested as a task at all.
   tools::Property job_summary;
   tools::Property& job_output = job_summary.add("output", "");
-  try {
-    PODCoupling pod(orbitalsAB, &pLog, fragment_A_atoms, fragment_B_atoms);
-    pod.CalculateCouplings(numberofstatesA_, numberofstatesB_);
-
-    // Same, established per-pair output format as DFTcoupling's own
-    // WriteToProperty (dftcoupling.cc), confirmed directly by reading
-    // it before writing this, rather than invented separately --
-    // <coupling levelA="..." levelB="..." j="..."/> for every
-    // (levelA, levelB) pair within the requested range, matching
-    // DFTcoupling's own, backward-compatible core format exactly.
-    // Unlike DFTcoupling's own, more elaborate Addoutput (monomer
-    // energies, raw TB matrices, diagnostics), none of that is added
-    // here at all -- it genuinely does not apply to POD2 at all,
-    // which has no separate, isolated monomer calculation to compare
-    // against in the first place (the whole point of POD2, per this
-    // class's own header comment, podcoupling.h).
-    tools::Property& podcoupling_summary = job_output.add(Identify(), "");
-    Index homoA = pod.getFragmentAHomoIndex();
-    Index lumoA = pod.getFragmentALumoIndex();
-    Index homoB = pod.getFragmentBHomoIndex();
-    Index lumoB = pod.getFragmentBLumoIndex();
-    // homoA/homoB (lumoA/lumoB = homoA/homoB + 1, always -- see
-    // PODCoupling::getFragmentALumoIndex's own header comment,
-    // podcoupling.h) written directly as attributes on this same
-    // node, matching DFTcoupling::Addoutput's own, established
-    // pattern (dftcoupling.cc: dftcoupling.setAttribute("homoA",
-    // orbitalsA.getHomo())) exactly -- genuinely needed for
-    // ReadJobFile to be able to translate "the hole/electron
-    // coupling" into the actual, specific levelA/levelB pair among
-    // the (potentially many, if numberofstatesA_/B_ > 1) <coupling>
-    // elements written below.
-    podcoupling_summary.setAttribute("homoA", homoA);
-    podcoupling_summary.setAttribute("homoB", homoB);
-    for (Index levelA = homoA - numberofstatesA_ + 1;
-        levelA <= lumoA + numberofstatesA_ - 1; ++levelA) {
-      for (Index levelB = homoB - numberofstatesB_ + 1;
-          levelB <= lumoB + numberofstatesB_ - 1; ++levelB) {
-        double J_hartree = pod.getCouplingElement(levelA, levelB);
-        // Written in eV, not Hartree -- matching IQM::WriteToProperty's
-        // own, established convention exactly (confirmed directly by
-        // reading GetDFTCouplingFromProp, iqm.cc, which converts the
-        // read-back "j" value FROM eV back TO Hartree via
-        // tools::conv::ev2hrt -- meaning IQM's own "j" is written in
-        // eV, even though PODCoupling::getCouplingElement's own
-        // documented return unit, podcoupling.h, is Hartree). More
-        // human-readable too -- typical couplings are meV-scale, not
-        // the much smaller numbers raw Hartree would give.
-        double J_ev = J_hartree * tools::conv::hrt2ev;
-        tools::Property& coupling = podcoupling_summary.add("coupling", "");
-        coupling.setAttribute("levelA", levelA);
-        coupling.setAttribute("levelB", levelB);
-        coupling.setAttribute("j", (boost::format("%1$1.6e") % J_ev).str());
+  if (do_podcoupling_) {
+    try {
+      // Real, direct debug-level output, worked through directly with
+      // the user -- fragment_A_atoms/fragment_B_atoms (PODCoupling's
+      // own terminology for the same thing VOTCA itself calls a
+      // "segment") are otherwise entirely internal: unlike the DFT
+      // input file's own, directly-visible written coordinates, there
+      // is no other, direct way for a user to confirm which real atom
+      // indices actually ended up in which fragment at all, short of
+      // running a real, full, genuinely expensive DFT calculation
+      // first (do_podcoupling_ itself already requires a real,
+      // converged orbitalsAB with a real basis set name set on it --
+      // confirmed directly, earlier this same session, per the
+      // do_podcoupling_ guard fix). Printed at Log::debug specifically
+      // (not error/warning/info) -- confirmed directly, from
+      // application.cc, that this is exactly the level -v/--verbose2
+      // itself raises current_level to; the two milder --verbose/
+      // --verbose1 flags only ever reach warning/info, not this.
+      XTP_LOG(Log::debug, pLog)
+          << "PODCoupling: fragment_A_atoms (" << fragment_A_atoms.size()
+          << " atoms):" << std::flush;
+      for (Index a : fragment_A_atoms) {
+        XTP_LOG(Log::debug, pLog) << "  " << a << std::flush;
       }
+      XTP_LOG(Log::debug, pLog)
+          << "PODCoupling: fragment_B_atoms (" << fragment_B_atoms.size()
+          << " atoms):" << std::flush;
+      for (Index b : fragment_B_atoms) {
+        XTP_LOG(Log::debug, pLog) << "  " << b << std::flush;
+      }
+      if (!linker_atom_ids.empty()) {
+        XTP_LOG(Log::debug, pLog)
+            << "PODCoupling: linker_atom_ids, excluded from both fragments ("
+            << linker_atom_ids.size() << " atoms):" << std::flush;
+        for (Index l : linker_atom_ids) {
+          XTP_LOG(Log::debug, pLog) << "  " << l << std::flush;
+        }
+      }
+
+      PODCoupling pod(orbitalsAB, &pLog, fragment_A_atoms, fragment_B_atoms);
+      pod.CalculateCouplings(numberofstatesA_, numberofstatesB_);
+
+      // Same, established per-pair output format as DFTcoupling's own
+      // WriteToProperty (dftcoupling.cc), confirmed directly by reading
+      // it before writing this, rather than invented separately --
+      // <coupling levelA="..." levelB="..." j="..."/> for every
+      // (levelA, levelB) pair within the requested range, matching
+      // DFTcoupling's own, backward-compatible core format exactly.
+      // Unlike DFTcoupling's own, more elaborate Addoutput (monomer
+      // energies, raw TB matrices, diagnostics), none of that is added
+      // here at all -- it genuinely does not apply to POD2 at all,
+      // which has no separate, isolated monomer calculation to compare
+      // against in the first place (the whole point of POD2, per this
+      // class's own header comment, podcoupling.h).
+      tools::Property& podcoupling_summary = job_output.add(Identify(), "");
+      Index homoA = pod.getFragmentAHomoIndex();
+      Index lumoA = pod.getFragmentALumoIndex();
+      Index homoB = pod.getFragmentBHomoIndex();
+      Index lumoB = pod.getFragmentBLumoIndex();
+      // homoA/homoB (lumoA/lumoB = homoA/homoB + 1, always -- see
+      // PODCoupling::getFragmentALumoIndex's own header comment,
+      // podcoupling.h) written directly as attributes on this same
+      // node, matching DFTcoupling::Addoutput's own, established
+      // pattern (dftcoupling.cc: dftcoupling.setAttribute("homoA",
+      // orbitalsA.getHomo())) exactly -- genuinely needed for
+      // ReadJobFile to be able to translate "the hole/electron
+      // coupling" into the actual, specific levelA/levelB pair among
+      // the (potentially many, if numberofstatesA_/B_ > 1) <coupling>
+      // elements written below.
+      podcoupling_summary.setAttribute("homoA", homoA);
+      podcoupling_summary.setAttribute("homoB", homoB);
+      for (Index levelA = homoA - numberofstatesA_ + 1;
+          levelA <= lumoA + numberofstatesA_ - 1; ++levelA) {
+        for (Index levelB = homoB - numberofstatesB_ + 1;
+            levelB <= lumoB + numberofstatesB_ - 1; ++levelB) {
+          double J_hartree = pod.getCouplingElement(levelA, levelB);
+          // Written in eV, not Hartree -- matching IQM::WriteToProperty's
+          // own, established convention exactly (confirmed directly by
+          // reading GetDFTCouplingFromProp, iqm.cc, which converts the
+          // read-back "j" value FROM eV back TO Hartree via
+          // tools::conv::ev2hrt -- meaning IQM's own "j" is written in
+          // eV, even though PODCoupling::getCouplingElement's own
+          // documented return unit, podcoupling.h, is Hartree). More
+          // human-readable too -- typical couplings are meV-scale, not
+          // the much smaller numbers raw Hartree would give.
+          double J_ev = J_hartree * tools::conv::hrt2ev;
+          tools::Property& coupling = podcoupling_summary.add("coupling", "");
+          coupling.setAttribute("levelA", levelA);
+          coupling.setAttribute("levelB", levelB);
+          coupling.setAttribute("j", (boost::format("%1$1.6e") % J_ev).str());
+        }
+      }
+    } catch (std::runtime_error& error) {
+      SetJobToFailed(jres, pLog, std::string("PODCoupling: ") + error.what());
+      return jres;
     }
-  } catch (std::runtime_error& error) {
-    SetJobToFailed(jres, pLog, std::string("PODCoupling: ") + error.what());
-    return jres;
   }
 
   jres.setOutput(job_summary);

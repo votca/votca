@@ -455,12 +455,47 @@ AtomContainer SegmentMapper<AtomContainer>::map(
   AtomContainer Result(seg.getType(), seg.getId());
   Result.LoadFromFile(coordfilename);
 
-  if (Index(seginfo.mapatoms.size()) != Result.size()) {
+  // Real, direct fix -- worked through directly with the user, given
+  // this check's own earlier, exact equality requirement was
+  // genuinely too strict: only the number of atoms actually
+  // GENUINELY used later in this same function
+  // (Result[id.first], further below, for every real qmatoms index)
+  // needs to exist at all -- confirmed directly, by tracing every
+  // real use of Result throughout this same function, that
+  // correctness only ever genuinely requires each such index to be
+  // in range, not that every single atom in the coordinate file gets
+  // referenced by some qmatoms entry at all. A coordinate file with
+  // MORE atoms than are actually referenced is a real, legitimate use
+  // case (e.g. deliberately reusing the same, single template file
+  // across several, differently-truncated mappings of the same
+  // underlying fragment -- a real, direct case this exact check
+  // originally, wrongly rejected) -- only genuinely too FEW atoms in
+  // the file is a real, direct problem (a genuine, real
+  // out-of-bounds risk below).
+  if (Result.size() < Index(seginfo.mapatoms.size())) {
     throw std::runtime_error(
         mapatom_xml_.at("tag") + "Segment '" + seg.getType() +
-        "' does not contain the same number of atoms as mapping file: " +
-        std::to_string(seginfo.mapatoms.size()) + " vs. " +
+        "' does not contain enough atoms for the mapping file: needs at "
+        "least " +
+        std::to_string(seginfo.mapatoms.size()) + ", has " +
         std::to_string(Result.size()));
+  }
+  // The real, actual safety guarantee needed -- every individual,
+  // real qmatoms index referenced by the mapping file must itself be
+  // in range, regardless of the file's own total atom count (the
+  // check above alone does not guarantee this on its own, e.g. if the
+  // mapping file's own qmatoms indices were not simply 0..N-1 at all
+  // for some reason).
+  for (const atom_id& id : seginfo.mapatoms) {
+    if (id.first < 0 || id.first >= Result.size()) {
+      throw std::runtime_error(
+          mapatom_xml_.at("tag") + "Segment '" + seg.getType() +
+          "' references " + mapatom_xml_.at("atoms") + " index " +
+          std::to_string(id.first) +
+          ", which is out of range for the coordinate file '" +
+          coordfilename + "' (" + std::to_string(Result.size()) +
+          " atoms).");
+    }
   }
 
   // Built incrementally, below, across all of this segment's own
@@ -528,8 +563,63 @@ AtomContainer SegmentMapper<AtomContainer>::map(
     }
   }
 
-  Result.calcPos();
-  return Result;
+  // Real, direct fix for a real, direct mistake in the earlier
+  // relaxation of this function's own atom-count check (further
+  // above): that fix correctly confirmed every real qmatoms index is
+  // in range for Result[id.first] -- but missed that this function
+  // used to simply `return Result;` directly, the WHOLE loaded
+  // template file, not just the atoms actually referenced by
+  // seginfo.mapatoms. Before that check's own earlier, strict
+  // equality requirement was relaxed, this was harmless (equal
+  // counts implicitly meant "every atom is referenced" too) -- but
+  // once a coordinate file is legitimately allowed to have MORE
+  // atoms than are referenced (the whole point of that fix), simply
+  // returning Result directly leaks every genuinely unreferenced
+  // template atom straight into the final, real QMMolecule/
+  // StaticSegment/PolarSegment -- confirmed directly, this exact way,
+  // from the user's own real, direct mapchecker output: an extra,
+  // spurious H atom (single_thio.xyz's own 8th, deliberately
+  // unreferenced atom) showing up in the actual mapped
+  // "P3HTbackbone_1" segment, at exactly its own position.
+  //
+  // Fixed by building a real, separate, filtered AtomContainer
+  // containing only the atoms genuinely referenced by
+  // seginfo.mapatoms, in the SAME order the mapping file's own
+  // qmatoms entries actually appear in (matching mdatoms' own,
+  // already-established, canonical parallel order) -- but, critically
+  // (a real, direct, second mistake caught and fixed here, worked
+  // through directly with the user, in this same, real return-Result
+  // bug): NOT simply copying each atom's own, original id_ forward.
+  // The mapping file's own qmatoms entries are never required to be
+  // sequential OR contiguous at all -- reordering a fully-referenced
+  // set (e.g. 0:C 2:H 1:H 3:H, referencing every atom, just not in
+  // file order) is explicitly a real, intended, legitimate use of
+  // this same mapping mechanism, not merely the newer, adjacent
+  // "leave some atoms out" case. Simply copying id_ forward would
+  // silently give filtered[1] the atom whose own, original id was 2,
+  // not 1 -- breaking the getId()-matches-position invariant this
+  // whole codebase relies on elsewhere (e.g.
+  // IPodCoupling::EvalJob's own fragment-A/B classification, which
+  // compares atom.getId() directly against atom counts). Each copied
+  // atom's own id is therefore explicitly renumbered, via setID(), to
+  // match its own, real, new position within filtered -- not
+  // reconstructed from scratch, since that would be unsafe,
+  // generically, for StaticSite/PolarSite specifically (their own
+  // real ClassicalSegment::LoadFromFile, classicalsegment.cc,
+  // genuinely carries real multipole/rank data beyond plain
+  // element/position, which a from-scratch reconstruction would
+  // silently drop) -- setID() (added directly to StaticSite,
+  // staticsite.h, matching QMAtom's own, already-existing setID()
+  // naming exactly) preserves everything else about the atom exactly,
+  // mutating only its own id.
+  AtomContainer filtered(seg.getType(), seg.getId());
+  for (const atom_id& id : seginfo.mapatoms) {
+    mapAtom atom_copy = Result[id.first];
+    atom_copy.setID(filtered.size());
+    filtered.push_back(atom_copy);
+  }
+  filtered.calcPos();
+  return filtered;
 }
 
 template class SegmentMapper<QMMolecule>;

@@ -64,6 +64,33 @@ FragmentSaturator::SaturationResult FragmentSaturator::SaturateExternalBonds(
     Eigen::Vector3d new_pos =
         atom.getPos() + bond_length_bohr * atom.getExternalBondDirection();
     QMAtom new_h(new_index, "H", new_pos);
+    // Real, direct fix for a real, direct, separate bug -- confirmed
+    // directly from the user's own real, direct report: the new H
+    // atom used to be left with its own, default bonded_partner_ids_
+    // (all -1, unset) -- meaning RelaxNewAtoms's own OpenBabel-based
+    // connectivity building (fragmentsaturator.cc,
+    // getBondedPartnerIds()-driven) never knew this new H was bonded
+    // to anything at all, and relaxed it as a fully isolated,
+    // unbonded atom -- explaining the real, direct, badly wrong
+    // final position the user observed (van der Waals repulsion
+    // alone, no real bond-stretch term holding it near its own real
+    // parent at all).
+    //
+    // Fixed by recording this real, direct, single bond on both
+    // sides: the new H's own single real partner is its own parent
+    // (new_h.AddBondedPartner, starting from an entirely empty,
+    // fresh array, so this is always its own first, and only, real
+    // partner) -- and the parent's own, real, existing
+    // bonded_partner_ids_ (its own real MD-level connectivity, e.g.
+    // ring neighbors, already correctly set well before this point)
+    // needs the new H appended too, on result's own copy of it
+    // specifically (result[atom.getId()], not the original, const
+    // mol's own atom at all, which cannot be mutated here) -- found
+    // at the exact same index as its own original id, since every
+    // original atom is copied first, entirely unchanged, at its own,
+    // original index, directly above.
+    new_h.AddBondedPartner(atom.getId());
+    result[atom.getId()].AddBondedPartner(new_index);
     result.push_back(new_h);
     new_atom_parent_ids.push_back(atom.getId());
     new_index++;
