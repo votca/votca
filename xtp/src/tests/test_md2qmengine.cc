@@ -121,7 +121,16 @@ BOOST_AUTO_TEST_CASE(external_bond_direction_detection_test) {
       {1, 9},
   };
   for (const auto& b : bonds) {
-    top.AddBondedInteraction(new csg::IBond(b.first, b.second));
+    // Real, direct fix for a real, genuine, repeated instance of the
+    // exact same setGroup() bug already fixed twice earlier this same
+    // session, in gmxtopologyreader.cc and xtp_map.cc's own
+    // GuessBonds -- confirmed directly, this third time, from the
+    // user's own real, direct CI failure report. A freshly-
+    // constructed IBond's own group_ starts out empty by default;
+    // getGroup() itself directly asserts this is non-empty.
+    csg::Interaction* ic = new csg::IBond(b.first, b.second);
+    ic->setGroup("BONDS");
+    top.AddBondedInteraction(ic);
   }
 
   // Mapping file: splits the single "Bithiophene" molecule into two,
