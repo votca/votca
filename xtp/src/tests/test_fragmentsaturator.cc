@@ -69,8 +69,7 @@ BOOST_AUTO_TEST_CASE(saturate_single_external_bond_test) {
   // original indices.
   BOOST_CHECK_EQUAL(result[0].getElement(), "C");
   BOOST_CHECK_EQUAL(result[0].getId(), 0);
-  BOOST_CHECK_EQUAL(result[0].getPos().isApprox(Eigen::Vector3d::Zero()),
-                    true);
+  BOOST_CHECK_EQUAL(result[0].getPos().isApprox(Eigen::Vector3d::Zero()), true);
 
   BOOST_CHECK_EQUAL(result[1].getElement(), "H");
   BOOST_CHECK_EQUAL(result[1].getId(), 1);
@@ -315,9 +314,8 @@ BOOST_AUTO_TEST_CASE(relax_new_atom_timing_breakdown_test,
       OpenBabel::OBForceField::FindForceField("MMFF94");
   bool first_setup_ok = (pFF != nullptr) && pFF->Setup(obmol);
   auto t3 = clock::now();
-  std::cout << "[timing] FindForceField+Setup(no constraints): "
-            << ms(t3 - t2) << " ms (ok=" << first_setup_ok << ")"
-            << std::endl;
+  std::cout << "[timing] FindForceField+Setup(no constraints): " << ms(t3 - t2)
+            << " ms (ok=" << first_setup_ok << ")" << std::endl;
   BOOST_REQUIRE(first_setup_ok);
 
   // Step 4: constrained Setup.
@@ -341,8 +339,7 @@ BOOST_AUTO_TEST_CASE(relax_new_atom_timing_breakdown_test,
   // Step 6: GetCoordinates.
   pFF->GetCoordinates(obmol);
   auto t6 = clock::now();
-  std::cout << "[timing] GetCoordinates: " << ms(t6 - t5) << " ms"
-            << std::endl;
+  std::cout << "[timing] GetCoordinates: " << ms(t6 - t5) << " ms" << std::endl;
 
   std::cout << "[timing] TOTAL: " << ms(t6 - t_total_start) << " ms"
             << std::endl;

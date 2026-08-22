@@ -63,8 +63,8 @@ void IPodCoupling::ParseSpecificOptions(const tools::Property& options) {
   do_podcoupling_ =
       std::find(tasks.begin(), tasks.end(), "podcoupling") != tasks.end();
 
-  store_dft_ = options.ifExistsReturnElseReturnDefault<bool>(".store_dft",
-                                                             store_dft_);
+  store_dft_ =
+      options.ifExistsReturnElseReturnDefault<bool>(".store_dft", store_dft_);
   include_linkers_ = options.ifExistsReturnElseReturnDefault<bool>(
       ".include_linkers", include_linkers_);
 
@@ -205,8 +205,8 @@ std::vector<Segment> IPodCoupling::PositionLinkersAlongChain(
     // (curr_boundary), and r_j the position it needs to end up at
     // (expected_partner_pos) -- not the other way around, which would
     // silently give the exact opposite, negated shift instead.
-    Eigen::Vector3d shift = top.PbShortestConnect(curr_boundary.getPos(),
-                                                  expected_partner_pos);
+    Eigen::Vector3d shift =
+        top.PbShortestConnect(curr_boundary.getPos(), expected_partner_pos);
 
     Segment current_shifted = *current_raw;
     current_shifted.Translate(shift);
@@ -270,8 +270,7 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
   if (pair == nullptr) {
     SetJobToFailed(jres, pLog,
                    "No pair " + std::to_string(ID_A) + ":" +
-                       std::to_string(ID_B) +
-                       " found in the neighbor list.");
+                       std::to_string(ID_B) + " found in the neighbor list.");
     return jres;
   }
 
@@ -291,14 +290,12 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
   std::filesystem::path arg_path;
   std::string orbFileAB =
       (arg_path / ipodcoupling_work_dir / "pairs_ipodcoupling" / frame_dir /
-       (boost::format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B %
-        ".orb")
+       (boost::format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb")
            .str())
           .generic_string();
   std::string package_append = "workdir_" + Identify();
   std::string work_dir =
-      (arg_path / ipodcoupling_work_dir / package_append / frame_dir /
-       pair_dir)
+      (arg_path / ipodcoupling_work_dir / package_append / frame_dir / pair_dir)
           .generic_string();
 
   // Real, direct, PBC-correct positioning for the two, real pair
@@ -360,11 +357,9 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
   // outlive every use of segments for the rest of this function.
   std::vector<Segment> positioned_linkers;
   if (include_linkers_) {
-    std::vector<const Segment*> linkers =
-        top.FindLinkingSegments(*seg1, seg_B);
+    std::vector<const Segment*> linkers = top.FindLinkingSegments(*seg1, seg_B);
     if (!linkers.empty()) {
-      positioned_linkers =
-          PositionLinkersAlongChain(top, *seg1, linkers, seg2);
+      positioned_linkers = PositionLinkersAlongChain(top, *seg1, linkers, seg2);
     }
   }
 
@@ -445,16 +440,15 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
     if (!atom.hasExternalBond()) {
       continue;
     }
-    if (present_segment_ids.count(atom.getExternalBondPartnerSegmentId()) >
-        0) {
+    if (present_segment_ids.count(atom.getExternalBondPartnerSegmentId()) > 0) {
       atom.clearExternalBond();
     }
   }
 
   FragmentSaturator::SaturationResult saturation_result =
       FragmentSaturator::SaturateExternalBonds(qmmol);
-  QMMolecule relaxed = FragmentSaturator::RelaxNewAtoms(
-      saturation_result.mol, n_original_atoms);
+  QMMolecule relaxed =
+      FragmentSaturator::RelaxNewAtoms(saturation_result.mol, n_original_atoms);
 
   // fragment_A_atoms/fragment_B_atoms for PODCoupling's own
   // constructor -- every ORIGINAL atom's own fragment is already
@@ -474,8 +468,7 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
   for (const QMAtom& atom : relaxed) {
     Index owning_atom_id = atom.getId();
     if (owning_atom_id >= n_original_atoms) {
-      owning_atom_id =
-          saturation_result.new_atom_parent_ids[owning_atom_id];
+      owning_atom_id = saturation_result.new_atom_parent_ids[owning_atom_id];
     }
     if (linker_atom_ids.count(owning_atom_id) > 0) {
       continue;
@@ -497,8 +490,7 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
     dft_logger.setMultithreading(false);
     dft_logger.setPreface(Log::info, (boost::format("\nDFT INF ...")).str());
     dft_logger.setPreface(Log::error, (boost::format("\nDFT ERR ...")).str());
-    dft_logger.setPreface(Log::warning,
-                          (boost::format("\nDFT WAR ...")).str());
+    dft_logger.setPreface(Log::warning, (boost::format("\nDFT WAR ...")).str());
     dft_logger.setPreface(Log::debug, (boost::format("\nDFT DBG ...")).str());
     std::string package = dftpackage_options_.get("name").as<std::string>();
     std::unique_ptr<QMPackage> qmpackage = QMPackageFactory().Create(package);
@@ -536,8 +528,7 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
       XTP_LOG(Log::error, pLog) << "Running DFT" << std::flush;
       bool run_dft_status = qmpackage->Run();
       if (!run_dft_status) {
-        SetJobToFailed(jres, pLog,
-                       qmpackage->getPackageName() + " run failed");
+        SetJobToFailed(jres, pLog, qmpackage->getPackageName() + " run failed");
         WriteLoggerToFile(work_dir + "/dft.log", dft_logger);
         return jres;
       }
@@ -663,9 +654,9 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
       podcoupling_summary.setAttribute("homoA", homoA);
       podcoupling_summary.setAttribute("homoB", homoB);
       for (Index levelA = homoA - numberofstatesA_ + 1;
-          levelA <= lumoA + numberofstatesA_ - 1; ++levelA) {
+           levelA <= lumoA + numberofstatesA_ - 1; ++levelA) {
         for (Index levelB = homoB - numberofstatesB_ + 1;
-            levelB <= lumoB + numberofstatesB_ - 1; ++levelB) {
+             levelB <= lumoB + numberofstatesB_ - 1; ++levelB) {
           double J_hartree = pod.getCouplingElement(levelA, levelB);
           // Written in eV, not Hartree -- matching IQM::WriteToProperty's
           // own, established convention exactly (confirmed directly by
@@ -695,8 +686,7 @@ Job::JobResult IPodCoupling::EvalJob(const Topology& top, Job& job,
 }
 
 double IPodCoupling::GetPODCouplingFromProp(const tools::Property& podprop,
-                                            Index levelA,
-                                            Index levelB) const {
+                                            Index levelA, Index levelB) const {
   for (const tools::Property* state : podprop.Select("coupling")) {
     Index state1 = state->getAttribute<Index>("levelA");
     Index state2 = state->getAttribute<Index>("levelB");

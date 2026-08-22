@@ -129,8 +129,7 @@ class FragmentSaturator {
   // n_steps is the maximum number of conjugate-gradient steps
   // (OBForceField::ConjugateGradients's own argument, passed through
   // directly, unmodified).
-  static QMMolecule RelaxNewAtoms(const QMMolecule& mol,
-                                  Index n_original_atoms,
+  static QMMolecule RelaxNewAtoms(const QMMolecule& mol, Index n_original_atoms,
                                   Index n_steps = 500);
 };
 

@@ -492,9 +492,8 @@ AtomContainer SegmentMapper<AtomContainer>::map(
           mapatom_xml_.at("tag") + "Segment '" + seg.getType() +
           "' references " + mapatom_xml_.at("atoms") + " index " +
           std::to_string(id.first) +
-          ", which is out of range for the coordinate file '" +
-          coordfilename + "' (" + std::to_string(Result.size()) +
-          " atoms).");
+          ", which is out of range for the coordinate file '" + coordfilename +
+          "' (" + std::to_string(Result.size()) + " atoms).");
     }
   }
 

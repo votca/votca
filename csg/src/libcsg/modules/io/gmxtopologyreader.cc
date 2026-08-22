@@ -133,8 +133,9 @@ bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
       // already used, confirmed working, elsewhere in this same repo
       // (gmxtrajectoryreader.cc's own "#if GMX_VERSION >= 20230000").
 #if GMX_VERSION >= 20260000
-      std::array<int, 2> ftypes = {static_cast<int>(InteractionFunction::Bonds),
-                                    static_cast<int>(InteractionFunction::Constraints)};
+      std::array<int, 2> ftypes = {
+          static_cast<int>(InteractionFunction::Bonds),
+          static_cast<int>(InteractionFunction::Constraints)};
 #else
       std::array<int, 2> ftypes = {F_BONDS, F_CONSTR};
 #endif

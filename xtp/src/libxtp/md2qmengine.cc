@@ -319,12 +319,11 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
               if (partner_mol == nullptr) {
                 continue;
               }
-              Index partner_offset =
-                  DetermineAtomNumOffset(partner_mol,
-                                         MolToAtomIds[partner_mol->getName()]);
+              Index partner_offset = DetermineAtomNumOffset(
+                  partner_mol, MolToAtomIds[partner_mol->getName()]);
               std::string partner_segname =
-                  MolToSegMap[partner_mol->getName()][partner_bead->getId() -
-                                                       partner_offset];
+                  MolToSegMap[partner_mol->getName()]
+                             [partner_bead->getId() - partner_offset];
               if (partner_segname != segname) {
                 Eigen::Vector3d direction =
                     (partner_bead->getPos() - bead->getPos()) *
