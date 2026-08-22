@@ -138,7 +138,19 @@ foreach(PROG ${test_cases} )
   # automatically, being proper, modern imported targets -- openbabel
   # itself is the older-style, unnamespaced target confirmed earlier
   # this session not to do so automatically).
-  target_include_directories(unit_${PROG} PRIVATE ${OpenBabel3_INCLUDE_DIRS})
+  #
+  # SYSTEM added here too -- matching the exact same, real, direct fix
+  # just applied to xtp/src/libxtp/CMakeLists.txt's own equivalent
+  # call, for the exact same real reason, confirmed directly from a
+  # real CI compile failure (Ubuntu, gcc 16): OpenBabel3's own real
+  # headers trigger multiple, real -Werror-promoted warnings of their
+  # own that are entirely OpenBabel3's own, not this project's own
+  # code at all. Applied here to every real test executable (this
+  # whole loop, not just test_fragmentsaturator specifically) is
+  # genuinely harmless -- every other test simply never actually
+  # includes an OpenBabel header at all, so this only actually matters
+  # for the one that does.
+  target_include_directories(unit_${PROG} SYSTEM PRIVATE ${OpenBabel3_INCLUDE_DIRS})
   target_compile_definitions(unit_${PROG} PRIVATE BOOST_TEST_DYN_LINK)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})
   add_test(NAME unit_${PROG} COMMAND $<TARGET_FILE:unit_${PROG}> WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Run_unit_${PROG})

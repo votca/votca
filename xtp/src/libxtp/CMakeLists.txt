@@ -27,7 +27,19 @@ target_link_libraries(votca_xtp PUBLIC VOTCA::votca_csg VOTCA::votca_tools Boost
 # not automatically carry its own include directories, so these are
 # added explicitly here too, matching that same official example's own
 # separate include_directories(${OpenBabel3_INCLUDE_DIRS}) call.
-target_include_directories(votca_xtp PRIVATE ${OpenBabel3_INCLUDE_DIRS})
+#
+# Real, direct, genuine fix, confirmed directly from a real CI compile
+# failure (Ubuntu, gcc 16): SYSTEM added here -- the exact same,
+# already-established pattern this same file already uses, right
+# above, for Libint2_system, and for the exact same real reason ("to
+# treat libint as system to not trigger -Werror for library internal
+# warnings") -- OpenBabel3's own real headers (atom.h/base.h/
+# forcefield.h/plugin.h) trigger multiple, real -Werror-promoted
+# warnings of their own (unused-parameter/conversion/
+# deprecated-declarations/shadow) that are entirely OpenBabel3's own,
+# not this project's own code at all, and genuinely out of this
+# project's own control to fix directly.
+target_include_directories(votca_xtp SYSTEM PRIVATE ${OpenBabel3_INCLUDE_DIRS})
 
 if(USE_CUDA)
   target_link_libraries(votca_xtp PUBLIC ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
