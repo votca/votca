@@ -1,0 +1,766 @@
+<topology>
+  <molecules>
+    <molecule>
+      <name>P3HT_12mer</name>
+      <mdname>P3HT</mdname>
+      <segments>
+        <segment>
+          <name>P3HTbackbone_1</name>
+          <fragments>
+            <fragment>
+              <name>ring_1</name>
+              <mdatoms>1:ST1:0 1:CT2:1 1:CT3:2 1:CT4:3 1:HT4:4 1:CT5:5 1:HT5:6</mdatoms>
+              <qmatoms>0:S     1:C     2:C     3:C     4:H     5:C     6:H</qmatoms>
+              <weights>32 12 12 12 1 12 1</weights>
+              <localframe>0 2 5</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/backbone.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTsidechain_1</name>
+          <fragments>
+            <fragment>
+              <name>hexyl_1_0</name>
+              <mdatoms>1:C06:7 1:H06:8 1:H07:9</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_1_1</name>
+              <mdatoms>1:C07:10 1:H08:11 1:H09:12</mdatoms>
+              <qmatoms>3:C 4:H 5:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>3 4 5</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_1_2</name>
+              <mdatoms>1:C08:13 1:H10:14 1:H11:15</mdatoms>
+              <qmatoms>6:C 7:H 8:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>6 7 8</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_1_3</name>
+              <mdatoms>1:C09:16 1:H12:17 1:H13:18</mdatoms>
+              <qmatoms>9:C 10:H 11:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>9 10 11</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_1_4</name>
+              <mdatoms>1:C10:19 1:H14:20 1:H15:21</mdatoms>
+              <qmatoms>12:C 13:H 14:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>12 13 14</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_1_5</name>
+              <mdatoms>1:C11:22 1:H16:23 1:H17:24 1:H18:25</mdatoms>
+              <qmatoms>15:C 16:H 17:H 18:H</qmatoms>
+              <weights>12 1 1 1</weights>
+              <localframe>15 16 17</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/sidechain.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTbackbone_2</name>
+          <fragments>
+            <fragment>
+              <name>ring_2</name>
+              <mdatoms>2:ST1:26 2:CT2:27 2:CT3:28 2:CT4:29 2:HT4:30 2:CT5:31</mdatoms>
+              <qmatoms>0:S 1:C 2:C 3:C 4:H 5:C</qmatoms>
+              <weights>32 12 12 12 1 12</weights>
+              <localframe>0 2 5</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/backbone.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTsidechain_2</name>
+          <fragments>
+            <fragment>
+              <name>hexyl_2_0</name>
+              <mdatoms>2:C06:32 2:H06:33 2:H07:34</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_2_1</name>
+              <mdatoms>2:C07:35 2:H08:36 2:H09:37</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_2_2</name>
+              <mdatoms>2:C08:38 2:H10:39 2:H11:40</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_2_3</name>
+              <mdatoms>2:C09:41 2:H12:42 2:H13:43</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_2_4</name>
+              <mdatoms>2:C10:44 2:H14:45 2:H15:46</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_2_5</name>
+              <mdatoms>2:C11:47 2:H16:48 2:H17:49 2:H18:50</mdatoms>
+              <qmatoms>15:C 16:H 17:H 18:H</qmatoms>
+              <weights>12 1 1 1</weights>
+              <localframe>15 16 17</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/sidechain.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTbackbone_3</name>
+          <fragments>
+            <fragment>
+              <name>ring_3</name>
+              <mdatoms>3:ST1:51 3:CT2:52 3:CT3:53 3:CT4:54 3:HT4:55 3:CT5:56</mdatoms>
+              <qmatoms>0:S 1:C 2:C 3:C 4:H 5:C</qmatoms>
+              <weights>32 12 12 12 1 12</weights>
+              <localframe>0 2 5</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/backbone.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTsidechain_3</name>
+          <fragments>
+            <fragment>
+              <name>hexyl_3_0</name>
+              <mdatoms>3:C06:57 3:H06:58 3:H07:59</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_3_1</name>
+              <mdatoms>3:C07:60 3:H08:61 3:H09:62</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_3_2</name>
+              <mdatoms>3:C08:63 3:H10:64 3:H11:65</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_3_3</name>
+              <mdatoms>3:C09:66 3:H12:67 3:H13:68</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_3_4</name>
+              <mdatoms>3:C10:69 3:H14:70 3:H15:71</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_3_5</name>
+              <mdatoms>3:C11:72 3:H16:73 3:H17:74 3:H18:75</mdatoms>
+              <qmatoms>15:C 16:H 17:H 18:H</qmatoms>
+              <weights>12 1 1 1</weights>
+              <localframe>15 16 17</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/sidechain.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTbackbone_4</name>
+          <fragments>
+            <fragment>
+              <name>ring_4</name>
+              <mdatoms>4:ST1:76 4:CT2:77 4:CT3:78 4:CT4:79 4:HT4:80 4:CT5:81</mdatoms>
+              <qmatoms>0:S 1:C 2:C 3:C 4:H 5:C</qmatoms>
+              <weights>32 12 12 12 1 12</weights>
+              <localframe>0 2 5</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/backbone.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTsidechain_4</name>
+          <fragments>
+            <fragment>
+              <name>hexyl_4_0</name>
+              <mdatoms>4:C06:82 4:H06:83 4:H07:84</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_4_1</name>
+              <mdatoms>4:C07:85 4:H08:86 4:H09:87</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_4_2</name>
+              <mdatoms>4:C08:88 4:H10:89 4:H11:90</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_4_3</name>
+              <mdatoms>4:C09:91 4:H12:92 4:H13:93</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_4_4</name>
+              <mdatoms>4:C10:94 4:H14:95 4:H15:96</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_4_5</name>
+              <mdatoms>4:C11:97 4:H16:98 4:H17:99 4:H18:100</mdatoms>
+              <qmatoms>15:C 16:H 17:H 18:H</qmatoms>
+              <weights>12 1 1 1</weights>
+              <localframe>15 16 17</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/sidechain.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTbackbone_5</name>
+          <fragments>
+            <fragment>
+              <name>ring_5</name>
+              <mdatoms>5:ST1:101 5:CT2:102 5:CT3:103 5:CT4:104 5:HT4:105 5:CT5:106</mdatoms>
+              <qmatoms>0:S 1:C 2:C 3:C 4:H 5:C</qmatoms>
+              <weights>32 12 12 12 1 12</weights>
+              <localframe>0 2 5</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/backbone.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTsidechain_5</name>
+          <fragments>
+            <fragment>
+              <name>hexyl_5_0</name>
+              <mdatoms>5:C06:107 5:H06:108 5:H07:109</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_5_1</name>
+              <mdatoms>5:C07:110 5:H08:111 5:H09:112</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_5_2</name>
+              <mdatoms>5:C08:113 5:H10:114 5:H11:115</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_5_3</name>
+              <mdatoms>5:C09:116 5:H12:117 5:H13:118</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_5_4</name>
+              <mdatoms>5:C10:119 5:H14:120 5:H15:121</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_5_5</name>
+              <mdatoms>5:C11:122 5:H16:123 5:H17:124 5:H18:125</mdatoms>
+              <qmatoms>15:C 16:H 17:H 18:H</qmatoms>
+              <weights>12 1 1 1</weights>
+              <localframe>15 16 17</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/sidechain.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTbackbone_6</name>
+          <fragments>
+            <fragment>
+              <name>ring_6</name>
+              <mdatoms>6:ST1:126 6:CT2:127 6:CT3:128 6:CT4:129 6:HT4:130 6:CT5:131</mdatoms>
+              <qmatoms>0:S 1:C 2:C 3:C 4:H 5:C</qmatoms>
+              <weights>32 12 12 12 1 12</weights>
+              <localframe>0 2 5</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/backbone.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTsidechain_6</name>
+          <fragments>
+            <fragment>
+              <name>hexyl_6_0</name>
+              <mdatoms>6:C06:132 6:H06:133 6:H07:134</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_6_1</name>
+              <mdatoms>6:C07:135 6:H08:136 6:H09:137</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_6_2</name>
+              <mdatoms>6:C08:138 6:H10:139 6:H11:140</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_6_3</name>
+              <mdatoms>6:C09:141 6:H12:142 6:H13:143</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_6_4</name>
+              <mdatoms>6:C10:144 6:H14:145 6:H15:146</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_6_5</name>
+              <mdatoms>6:C11:147 6:H16:148 6:H17:149 6:H18:150</mdatoms>
+              <qmatoms>15:C 16:H 17:H 18:H</qmatoms>
+              <weights>12 1 1 1</weights>
+              <localframe>15 16 17</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/sidechain.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTbackbone_7</name>
+          <fragments>
+            <fragment>
+              <name>ring_7</name>
+              <mdatoms>7:ST1:151 7:CT2:152 7:CT3:153 7:CT4:154 7:HT4:155 7:CT5:156</mdatoms>
+              <qmatoms>0:S 1:C 2:C 3:C 4:H 5:C</qmatoms>
+              <weights>32 12 12 12 1 12</weights>
+              <localframe>0 2 5</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/backbone.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTsidechain_7</name>
+          <fragments>
+            <fragment>
+              <name>hexyl_7_0</name>
+              <mdatoms>7:C06:157 7:H06:158 7:H07:159</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_7_1</name>
+              <mdatoms>7:C07:160 7:H08:161 7:H09:162</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_7_2</name>
+              <mdatoms>7:C08:163 7:H10:164 7:H11:165</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_7_3</name>
+              <mdatoms>7:C09:166 7:H12:167 7:H13:168</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_7_4</name>
+              <mdatoms>7:C10:169 7:H14:170 7:H15:171</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_7_5</name>
+              <mdatoms>7:C11:172 7:H16:173 7:H17:174 7:H18:175</mdatoms>
+              <qmatoms>15:C 16:H 17:H 18:H</qmatoms>
+              <weights>12 1 1 1</weights>
+              <localframe>15 16 17</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/sidechain.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTbackbone_8</name>
+          <fragments>
+            <fragment>
+              <name>ring_8</name>
+              <mdatoms>8:ST1:176 8:CT2:177 8:CT3:178 8:CT4:179 8:HT4:180 8:CT5:181</mdatoms>
+              <qmatoms>0:S 1:C 2:C 3:C 4:H 5:C</qmatoms>
+              <weights>32 12 12 12 1 12</weights>
+              <localframe>0 2 5</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/backbone.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTsidechain_8</name>
+          <fragments>
+            <fragment>
+              <name>hexyl_8_0</name>
+              <mdatoms>8:C06:182 8:H06:183 8:H07:184</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_8_1</name>
+              <mdatoms>8:C07:185 8:H08:186 8:H09:187</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_8_2</name>
+              <mdatoms>8:C08:188 8:H10:189 8:H11:190</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_8_3</name>
+              <mdatoms>8:C09:191 8:H12:192 8:H13:193</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_8_4</name>
+              <mdatoms>8:C10:194 8:H14:195 8:H15:196</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_8_5</name>
+              <mdatoms>8:C11:197 8:H16:198 8:H17:199 8:H18:200</mdatoms>
+              <qmatoms>15:C 16:H 17:H 18:H</qmatoms>
+              <weights>12 1 1 1</weights>
+              <localframe>15 16 17</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/sidechain.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTbackbone_9</name>
+          <fragments>
+            <fragment>
+              <name>ring_9</name>
+              <mdatoms>9:ST1:201 9:CT2:202 9:CT3:203 9:CT4:204 9:HT4:205 9:CT5:206</mdatoms>
+              <qmatoms>0:S 1:C 2:C 3:C 4:H 5:C</qmatoms>
+              <weights>32 12 12 12 1 12</weights>
+              <localframe>0 2 5</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/backbone.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTsidechain_9</name>
+          <fragments>
+            <fragment>
+              <name>hexyl_9_0</name>
+              <mdatoms>9:C06:207 9:H06:208 9:H07:209</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_9_1</name>
+              <mdatoms>9:C07:210 9:H08:211 9:H09:212</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_9_2</name>
+              <mdatoms>9:C08:213 9:H10:214 9:H11:215</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_9_3</name>
+              <mdatoms>9:C09:216 9:H12:217 9:H13:218</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_9_4</name>
+              <mdatoms>9:C10:219 9:H14:220 9:H15:221</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_9_5</name>
+              <mdatoms>9:C11:222 9:H16:223 9:H17:224 9:H18:225</mdatoms>
+              <qmatoms>15:C 16:H 17:H 18:H</qmatoms>
+              <weights>12 1 1 1</weights>
+              <localframe>15 16 17</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/sidechain.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTbackbone_10</name>
+          <fragments>
+            <fragment>
+              <name>ring_10</name>
+              <mdatoms>10:ST1:226 10:CT2:227 10:CT3:228 10:CT4:229 10:HT4:230 10:CT5:231</mdatoms>
+              <qmatoms>0:S 1:C 2:C 3:C 4:H 5:C</qmatoms>
+              <weights>32 12 12 12 1 12</weights>
+              <localframe>0 2 5</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/backbone.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTsidechain_10</name>
+          <fragments>
+            <fragment>
+              <name>hexyl_10_0</name>
+              <mdatoms>10:C06:232 10:H06:233 10:H07:234</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_10_1</name>
+              <mdatoms>10:C07:235 10:H08:236 10:H09:237</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_10_2</name>
+              <mdatoms>10:C08:238 10:H10:239 10:H11:240</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_10_3</name>
+              <mdatoms>10:C09:241 10:H12:242 10:H13:243</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_10_4</name>
+              <mdatoms>10:C10:244 10:H14:245 10:H15:246</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_10_5</name>
+              <mdatoms>10:C11:247 10:H16:248 10:H17:249 10:H18:250</mdatoms>
+              <qmatoms>15:C 16:H 17:H 18:H</qmatoms>
+              <weights>12 1 1 1</weights>
+              <localframe>15 16 17</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/sidechain.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTbackbone_11</name>
+          <fragments>
+            <fragment>
+              <name>ring_11</name>
+              <mdatoms>11:ST1:251 11:CT2:252 11:CT3:253 11:CT4:254 11:HT4:255 11:CT5:256</mdatoms>
+              <qmatoms>0:S 1:C 2:C 3:C 4:H 5:C</qmatoms>
+              <weights>32 12 12 12 1 12</weights>
+              <localframe>0 2 5</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/backbone.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTsidechain_11</name>
+          <fragments>
+            <fragment>
+              <name>hexyl_11_0</name>
+              <mdatoms>11:C06:257 11:H06:258 11:H07:259</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_11_1</name>
+              <mdatoms>11:C07:260 11:H08:261 11:H09:262</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_11_2</name>
+              <mdatoms>11:C08:263 11:H10:264 11:H11:265</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_11_3</name>
+              <mdatoms>11:C09:266 11:H12:267 11:H13:268</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_11_4</name>
+              <mdatoms>11:C10:269 11:H14:270 11:H15:271</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_11_5</name>
+              <mdatoms>11:C11:272 11:H16:273 11:H17:274 11:H18:275</mdatoms>
+              <qmatoms>15:C 16:H 17:H 18:H</qmatoms>
+              <weights>12 1 1 1</weights>
+              <localframe>15 16 17</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/sidechain.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTbackbone_12</name>
+          <fragments>
+            <fragment>
+              <name>ring_12</name>
+              <mdatoms>12:ST1:276 12:CT2:277 12:HT2:278 12:CT3:279 12:CT4:280 12:HT4:281 12:CT5:282</mdatoms>
+              <qmatoms>0:S 1:C 7:H 2:C 3:C 4:H 5:C</qmatoms>
+              <weights>32 12 1 12 12 1 12</weights>
+              <localframe>0 3 5</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/backbone.xyz</qmcoords_n>
+        </segment>
+        <segment>
+          <name>P3HTsidechain_12</name>
+          <fragments>
+            <fragment>
+              <name>hexyl_12_0</name>
+              <mdatoms>12:C06:283 12:H06:284 12:H07:285</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_12_1</name>
+              <mdatoms>12:C07:286 12:H08:287 12:H09:288</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_12_2</name>
+              <mdatoms>12:C08:289 12:H10:290 12:H11:291</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_12_3</name>
+              <mdatoms>12:C09:292 12:H12:293 12:H13:294</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_12_4</name>
+              <mdatoms>12:C10:295 12:H14:296 12:H15:297</mdatoms>
+              <qmatoms>0:C 1:H 2:H</qmatoms>
+              <weights>12 1 1</weights>
+              <localframe>0 1 2</localframe>
+            </fragment>
+            <fragment>
+              <name>hexyl_12_5</name>
+              <mdatoms>12:C11:298 12:H16:299 12:H17:300 12:H18:301</mdatoms>
+              <qmatoms>15:C 16:H 17:H 18:H</qmatoms>
+              <weights>12 1 1 1</weights>
+              <localframe>15 16 17</localframe>
+            </fragment>
+          </fragments>
+          <map2md>0</map2md>
+          <qmcoords_n>QC_FILES/sidechain.xyz</qmcoords_n>
+        </segment>
+      </segments>
+    </molecule>
+</molecules>
+</topology>

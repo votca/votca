@@ -1,0 +1,21 @@
+<jobs>
+	<job>
+		<id>0</id>
+		<tag></tag>
+		<input>
+			<segment id="0" type="P3HTbackbone_1">0</segment>
+			<segment id="2" type="P3HTbackbone_2">2</segment>
+		</input>
+		<status>COMPLETE</status>
+		<host>TUE033322:78939</host>
+		<time>22:34:29</time>
+		<output>
+			<ipodcoupling homoA="21" homoB="21">
+				<coupling j="8.159307e-01" levelA="21" levelB="21"/>
+				<coupling j="1.099332e+00" levelA="21" levelB="22"/>
+				<coupling j="8.754470e-01" levelA="22" levelB="21"/>
+				<coupling j="8.913361e-01" levelA="22" levelB="22"/>
+			</ipodcoupling>
+		</output>
+	</job>
+</jobs>

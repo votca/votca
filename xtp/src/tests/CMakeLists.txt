@@ -488,6 +488,19 @@ if(RUN_XTP_INTEGRATIONTESTS)
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_tools_dftgwbse_ch4_gw_brent (votca_compare_hdf5 not found)")
   endif()
 
+  # xtp_map test for ipodcoupling
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_map_ipodcoupling)
+  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/DataFiles/xtp_ipodcoupling_integration_tests)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
+  add_test(NAME integration_Run_xtp_map_ipodcoupling COMMAND xtp_map -t MD_FILES/topol.tpr -c MD_FILES/p3ht_single.gro -s system.xml -f state_map.hdf5 WORKING_DIRECTORY ${RUNPATH})
+  if(HAS_HDF5_COMPARE)
+    add_test(NAME integration_Compare_xtp_map_ipodcoupling_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --atol 1e-12 --rtol 1e-8 ${REFPATH}/state_map.hdf5 ${RUNPATH}/state_map.hdf5 WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(integration_Compare_xtp_map_ipodcoupling_output PROPERTIES DEPENDS integration_Run_xtp_map_ipodcoupling)
+  else()
+    message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_map_ipodcoupling (votca_compare_hdf5 not found)")
+  endif()
 
 endif()
 
