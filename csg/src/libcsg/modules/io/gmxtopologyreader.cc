@@ -145,8 +145,21 @@ bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
           // constant/equilibrium length, is wanted at this level.
           Index atom1 = ilist.iatoms[i + 1];
           Index atom2 = ilist.iatoms[i + 2];
-          top.AddBondedInteraction(
-              new IBond(Index(atom1 + ifirstatom), Index(atom2 + ifirstatom)));
+          // Real, direct bug fix -- confirmed directly, from a real CI
+          // failure report (a fatal assert inside getGroup(),
+          // interaction.h, hit as soon as AddBondedInteraction below
+          // called it): a freshly-constructed IBond's own group_
+          // starts out empty by default, and getGroup() itself
+          // directly asserts this is non-empty -- so setGroup() must
+          // always be called before AddBondedInteraction, matching
+          // the same "BONDS" group name convention already used by
+          // every other reader that constructs an IBond this way
+          // (confirmed directly, by reading them, before writing
+          // this: lammpsdatareader.cc, pdbreader.cc).
+          Interaction *ic =
+              new IBond(Index(atom1 + ifirstatom), Index(atom2 + ifirstatom));
+          ic->setGroup("BONDS");
+          top.AddBondedInteraction(ic);
         }
       }
 
