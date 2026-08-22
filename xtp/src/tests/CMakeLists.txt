@@ -175,18 +175,20 @@ endforeach(PROG)
 # calculation is genuinely running for real.
 set_tests_properties(unit_test_dftengine_cdft PROPERTIES TIMEOUT 3600)
 
-# Real, direct new QMAtom fields (external-bond/H-saturation support,
-# added this same session -- QMAtom::WriteToCpt) that a reference
-# .orb/.hdf5 file predating this feature genuinely does not have at
-# all within its own /QMdata/qmmolecule/qmatoms dataset. Confirmed
-# directly, from a real CI failure report, that votca_compare_hdf5's
-# own --ignore-dataset-regex would be too blunt a fix here (it would
-# skip the WHOLE qmatoms dataset, including position/element data that
-# should still genuinely be compared) -- --ignore-field (added
-# directly to votca_compare_hdf5 alongside this fix) instead drops
-# only these specific field names from the comparison, while every
-# other field within the same dataset is still genuinely compared.
-set(QMATOM_EXTERNAL_BOND_IGNORE_FIELDS
+# Real, direct new external-bond/H-saturation support fields, added
+# this same session to both QMAtom::WriteToCpt (/QMdata/qmmolecule/
+# qmatoms) and MD-level Atom::WriteToCpt (/frame_N/segments/*/atoms)
+# -- the same field names in both cases -- that a reference .orb/
+# .hdf5 file predating this feature genuinely does not have at all.
+# Confirmed directly, from a real CI failure report, that
+# votca_compare_hdf5's own --ignore-dataset-regex would be too blunt a
+# fix here (it would skip the WHOLE dataset, including position/
+# element data that should still genuinely be compared) --
+# --ignore-field (added directly to votca_compare_hdf5 alongside this
+# fix) instead drops only these specific field names from the
+# comparison, while every other field within the same dataset is
+# still genuinely compared.
+set(EXTERNAL_BOND_IGNORE_FIELDS
   --ignore-field has_external_bond
   --ignore-field ext_bond_dir.x --ignore-field ext_bond_dir.y --ignore-field ext_bond_dir.z
   --ignore-field ext_bond_partner_segment_id
@@ -203,7 +205,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
   add_test(NAME integration_Run_xtp_map COMMAND xtp_map -t MD_FILES/topol.tpr -c MD_FILES/conf.gro -s system.xml -f state_map.hdf5 WORKING_DIRECTORY ${RUNPATH})
   if(HAS_HDF5_COMPARE)
-    add_test(NAME integration_Compare_xtp_map_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --atol 1e-12 --rtol 1e-8 ${REFPATH}/state_map.hdf5 ${RUNPATH}/state_map.hdf5 WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_map_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion ${EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-12 --rtol 1e-8 ${REFPATH}/state_map.hdf5 ${RUNPATH}/state_map.hdf5 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_map_output PROPERTIES DEPENDS integration_Run_xtp_map)
   else()
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_map (votca_compare_hdf5 not found)")
@@ -232,7 +234,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   add_test(NAME integration_Run_xtp_run_neighborlist COMMAND xtp_run -e neighborlist -o neighborlist.xml -f state.hdf5  WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Run_xtp_run_neighborlist PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
   if(HAS_HDF5_COMPARE)
-    add_test(NAME integration_Compare_xtp_run_neighborlist_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --atol 1e-8 --rtol 1e-6 ${REFPATH}/state_neighborlist.hdf5 ${RUNPATH}/state.hdf5 WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_run_neighborlist_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion ${EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-8 --rtol 1e-6 ${REFPATH}/state_neighborlist.hdf5 ${RUNPATH}/state.hdf5 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_run_neighborlist_output PROPERTIES DEPENDS integration_Run_xtp_run_neighborlist)
   else()
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_run_neighborlist (votca_compare_hdf5 not found)")
@@ -246,7 +248,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   add_test(NAME integration_Run_xtp_run_einternal COMMAND xtp_run -e einternal -c energies_file=system.xml -f state.hdf5 WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Run_xtp_run_einternal PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
   if(HAS_HDF5_COMPARE)
-    add_test(NAME integration_Compare_xtp_run_einternal_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --atol 1e-12 --rtol 1e-8 ${REFPATH}/state_einternal.hdf5 ${RUNPATH}/state.hdf5 WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_run_einternal_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion ${EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-12 --rtol 1e-8 ${REFPATH}/state_einternal.hdf5 ${RUNPATH}/state.hdf5 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_run_einternal_output PROPERTIES DEPENDS integration_Run_xtp_run_einternal)
   else()
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_run_einternal (votca_compare_hdf5 not found)")
@@ -299,7 +301,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   add_test(NAME integration_Run_xtp_parallel_qmmm_read COMMAND xtp_parallel -e qmmm -o qmmm_mm.xml -f state.hdf5 -x 1 -t 1 -j read WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Run_xtp_parallel_qmmm_read PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
   if(HAS_HDF5_COMPARE)
-    add_test(NAME integration_Compare_xtp_parallel_qmmm_read_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --atol 1e-12 --rtol 1e-8 ${REFPATH}/state_qmmm.hdf5 ${RUNPATH}/state.hdf5 WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_parallel_qmmm_read_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion ${EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-12 --rtol 1e-8 ${REFPATH}/state_qmmm.hdf5 ${RUNPATH}/state.hdf5 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_parallel_qmmm_read_output PROPERTIES DEPENDS integration_Run_xtp_parallel_qmmm_read)
   else()
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_parallel_qmmm_read (votca_compare_hdf5 not found)")
@@ -342,8 +344,8 @@ if(RUN_XTP_INTEGRATIONTESTS)
     message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_eqm_run (votca_compare_xml not found)")
   endif()
   if(HAS_HDF5_COMPARE)
-    add_test(NAME integration_Compare_xtp_parallel_eqm_run_output2 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-attr useTDA --ignore-path /QMdata/forces ${QMATOM_EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPpert_energies:1e-06:1e-04 --td-atol 1e-3 ${REFPATH}/OR_FILES/molecules/frame_0/molecule_0.orb ${RUNPATH}/OR_FILES/molecules/frame_0/molecule_0.orb WORKING_DIRECTORY ${RUNPATH})
-    add_test(NAME integration_Compare_xtp_parallel_eqm_run_output3 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-attr useTDA --ignore-path /QMdata/forces ${QMATOM_EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPpert_energies:1e-06:1e-04 --td-atol 1e-3 ${REFPATH}/OR_FILES/molecules/frame_0/molecule_1.orb ${RUNPATH}/OR_FILES/molecules/frame_0/molecule_1.orb WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_parallel_eqm_run_output2 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-attr useTDA --ignore-path /QMdata/forces ${EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPpert_energies:1e-06:1e-04 --td-atol 1e-3 ${REFPATH}/OR_FILES/molecules/frame_0/molecule_0.orb ${RUNPATH}/OR_FILES/molecules/frame_0/molecule_0.orb WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_parallel_eqm_run_output3 COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-attr useTDA --ignore-path /QMdata/forces ${EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPpert_energies:1e-06:1e-04 --td-atol 1e-3 ${REFPATH}/OR_FILES/molecules/frame_0/molecule_1.orb ${RUNPATH}/OR_FILES/molecules/frame_0/molecule_1.orb WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_parallel_eqm_run_output2 PROPERTIES DEPENDS integration_Run_xtp_parallel_eqm_run)
     set_tests_properties(integration_Compare_xtp_parallel_eqm_run_output3 PROPERTIES DEPENDS integration_Run_xtp_parallel_eqm_run)
   else()
@@ -398,7 +400,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   add_test(NAME integration_Run_xtp_parallel_iqm_read COMMAND xtp_parallel -e iqm -o iqm.xml -f state.hdf5 -x 1 -t 1 -j read WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Run_xtp_parallel_iqm_read PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
   if(HAS_HDF5_COMPARE)
-    add_test(NAME integration_Compare_xtp_parallel_iqm_read_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --atol 1e-6 --rtol 1e-7  --td-atol 3e-6 ${REFPATH}/state_iqm.hdf5 ${RUNPATH}/state.hdf5 WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_parallel_iqm_read_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion ${EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7  --td-atol 3e-6 ${REFPATH}/state_iqm.hdf5 ${RUNPATH}/state.hdf5 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_parallel_iqm_read_output PROPERTIES DEPENDS integration_Run_xtp_parallel_iqm_read)
   else()
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_parallel_iqm_read (votca_compare_hdf5 not found)")
@@ -414,7 +416,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   add_test(NAME integration_Run_xtp_tools_dftgwbse_neutral_tda COMMAND xtp_tools -e dftgwbse -o dftgwbse_neutral_tda.xml WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Run_xtp_tools_dftgwbse_neutral_tda PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
   if(HAS_HDF5_COMPARE)
-    add_test(NAME integration_Compare_xtp_tools_dftgwbse_neutral_tda_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-path /QMdata/forces ${QMATOM_EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag/eigenvalues:1e-06:1e-05 --path-tol /QMdata/BSE_singlet_dynamic:1e-06:1e-04 --path-tol /QMdata/BSE_singlet/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPpert_energies:1e-06:1e-05 --td-atol 1e-4 ${REFPATH}/molecule_neutral_tda.orb ${RUNPATH}/molecule_neutral_tda.orb WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_tools_dftgwbse_neutral_tda_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-path /QMdata/forces ${EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag/eigenvalues:1e-06:1e-05 --path-tol /QMdata/BSE_singlet_dynamic:1e-06:1e-04 --path-tol /QMdata/BSE_singlet/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPpert_energies:1e-06:1e-05 --td-atol 1e-4 ${REFPATH}/molecule_neutral_tda.orb ${RUNPATH}/molecule_neutral_tda.orb WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_tools_dftgwbse_neutral_tda_output PROPERTIES DEPENDS integration_Run_xtp_tools_dftgwbse_neutral_tda)
   else()
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_tools_dftgwbse_neutral_tda (votca_compare_hdf5 not found)")
@@ -430,7 +432,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   add_test(NAME integration_Run_xtp_tools_dftgwbse_neutral COMMAND xtp_tools -e dftgwbse -o dftgwbse_neutral.xml WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Run_xtp_tools_dftgwbse_neutral PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
   if(HAS_HDF5_COMPARE)
-    add_test(NAME integration_Compare_xtp_tools_dftgwbse_neutral_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-path /QMdata/forces ${QMATOM_EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag/eigenvalues:1e-06:1e-05 --path-tol /QMdata/BSE_singlet_dynamic:1e-06:1e-04 --path-tol /QMdata/BSE_singlet/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPpert_energies:1e-06:1e-05 --td-atol 1e-4 ${REFPATH}/molecule_neutral.orb ${RUNPATH}/molecule_neutral.orb WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_tools_dftgwbse_neutral_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-path /QMdata/forces ${EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag/eigenvalues:1e-06:1e-05 --path-tol /QMdata/BSE_singlet_dynamic:1e-06:1e-04 --path-tol /QMdata/BSE_singlet/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPpert_energies:1e-06:1e-05 --td-atol 1e-4 ${REFPATH}/molecule_neutral.orb ${RUNPATH}/molecule_neutral.orb WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_tools_dftgwbse_neutral_output PROPERTIES DEPENDS integration_Run_xtp_tools_dftgwbse_neutral)
   else()
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_tools_dftgwbse_neutral (votca_compare_hdf5 not found)")
@@ -446,7 +448,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   add_test(NAME integration_Run_xtp_tools_dftgwbse_cation_tda COMMAND xtp_tools -e dftgwbse -o dftgwbse_cation_tda.xml WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Run_xtp_tools_dftgwbse_cation_tda PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
   if(HAS_HDF5_COMPARE)
-    add_test(NAME integration_Compare_xtp_tools_dftgwbse_cation_tda_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-path /QMdata/forces ${QMATOM_EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag_beta/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPdiag_alpha/eigenvalues:1e-06:1e-03 --path-tol /QMdata/BSE_uks_dynamic:1e-06:1e-04 --path-tol /QMdata/QPpert_energies_beta:1e-06:1e-04 --path-tol /QMdata/BSE_uks/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPdiag_alpha/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPpert_energies_alpha:1e-06:1e-04 --td-atol 1e-3 ${REFPATH}/molecule_cation_tda.orb ${RUNPATH}/molecule_cation_tda.orb WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_tools_dftgwbse_cation_tda_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-path /QMdata/forces ${EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag_beta/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPdiag_alpha/eigenvalues:1e-06:1e-03 --path-tol /QMdata/BSE_uks_dynamic:1e-06:1e-04 --path-tol /QMdata/QPpert_energies_beta:1e-06:1e-04 --path-tol /QMdata/BSE_uks/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPdiag_alpha/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPpert_energies_alpha:1e-06:1e-04 --td-atol 1e-3 ${REFPATH}/molecule_cation_tda.orb ${RUNPATH}/molecule_cation_tda.orb WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_tools_dftgwbse_cation_tda_output PROPERTIES DEPENDS integration_Run_xtp_tools_dftgwbse_cation_tda)
   else()
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_tools_dftgwbse_cation_tda (votca_compare_hdf5 not found)")
@@ -463,7 +465,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   add_test(NAME integration_Run_xtp_tools_dftgwbse_cation COMMAND xtp_tools -e dftgwbse -o dftgwbse_cation.xml WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Run_xtp_tools_dftgwbse_cation PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
   if(HAS_HDF5_COMPARE)
-    add_test(NAME integration_Compare_xtp_tools_dftgwbse_cation_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-path /QMdata/forces ${QMATOM_EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag_beta/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPdiag_alpha/eigenvalues:1e-06:1e-03 --path-tol /QMdata/BSE_uks_dynamic:1e-06:3e-06 --path-tol /QMdata/QPpert_energies_beta:1e-06:1e-04 --path-tol /QMdata/BSE_uks/eigenvalues:1e-06:1e-05 --path-tol /QMdata/QPpert_energies_alpha:1e-06:1e-04 --td-atol 1e-3 ${REFPATH}/molecule_cation.orb ${RUNPATH}/molecule_cation.orb WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_tools_dftgwbse_cation_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-path /QMdata/forces ${EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag_beta/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPdiag_alpha/eigenvalues:1e-06:1e-03 --path-tol /QMdata/BSE_uks_dynamic:1e-06:3e-06 --path-tol /QMdata/QPpert_energies_beta:1e-06:1e-04 --path-tol /QMdata/BSE_uks/eigenvalues:1e-06:1e-05 --path-tol /QMdata/QPpert_energies_alpha:1e-06:1e-04 --td-atol 1e-3 ${REFPATH}/molecule_cation.orb ${RUNPATH}/molecule_cation.orb WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_tools_dftgwbse_cation_output PROPERTIES DEPENDS integration_Run_xtp_tools_dftgwbse_cation)
   else()
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_tools_dftgwbse_cation (votca_compare_hdf5 not found)")
@@ -480,7 +482,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
   add_test(NAME integration_Run_xtp_tools_dftgwbse_ch4_gw_brent COMMAND xtp_tools -e dftgwbse -o dftgwbse_ch4_cation.xml WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Run_xtp_tools_dftgwbse_ch4_gw_brent PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
   if(HAS_HDF5_COMPARE)
-    add_test(NAME integration_Compare_xtp_tools_dftgwbse_ch4_gw_brent_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-path /QMdata/forces ${QMATOM_EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag_beta/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPdiag_alpha/eigenvalues:1e-06:1e-03 --path-tol /QMdata/BSE_uks_dynamic:1e-06:3e-06 --path-tol /QMdata/QPpert_energies_beta:1e-06:1e-04 --path-tol /QMdata/BSE_uks/eigenvalues:1e-06:1e-05 --path-tol /QMdata/QPpert_energies_alpha:1e-06:1e-04 --td-atol 1e-3 ${REFPATH}/molecule_ch4.orb ${RUNPATH}/molecule_ch4.orb WORKING_DIRECTORY ${RUNPATH})
+    add_test(NAME integration_Compare_xtp_tools_dftgwbse_ch4_gw_brent_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-path /QMdata/forces ${EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag_beta/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPdiag_alpha/eigenvalues:1e-06:1e-03 --path-tol /QMdata/BSE_uks_dynamic:1e-06:3e-06 --path-tol /QMdata/QPpert_energies_beta:1e-06:1e-04 --path-tol /QMdata/BSE_uks/eigenvalues:1e-06:1e-05 --path-tol /QMdata/QPpert_energies_alpha:1e-06:1e-04 --td-atol 1e-3 ${REFPATH}/molecule_ch4.orb ${RUNPATH}/molecule_ch4.orb WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_tools_dftgwbse_ch4_gw_brent_output PROPERTIES DEPENDS integration_Run_xtp_tools_dftgwbse_ch4_gw_brent)
   else()
     message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_tools_dftgwbse_ch4_gw_brent (votca_compare_hdf5 not found)")
