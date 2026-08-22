@@ -114,7 +114,7 @@ class Topology {
   // convention. Returns an empty vector too if seg1 and seg2 are
   // DIRECTLY bonded (no genuine linker in between at all).
   std::vector<const Segment *> FindLinkingSegments(const Segment &seg1,
-                                                    const Segment &seg2) const;
+                                                   const Segment &seg2) const;
 
  private:
   std::vector<Segment> segments_;

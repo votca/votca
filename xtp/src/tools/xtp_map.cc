@@ -162,8 +162,7 @@ void GuessBonds(CSG::Topology& top) {
         // here, so the exact direction/order does not matter at all
         // for this specific use.
         double distance_nm =
-            top.BCShortestConnection(bead1->getPos(), bead2->getPos())
-                .norm();
+            top.BCShortestConnection(bead1->getPos(), bead2->getPos()).norm();
         double distance_ang = distance_nm * votca::tools::conv::nm2ang;
         double cutoff_ang = 0.6 * (it1->second + it2->second);
         if (distance_ang < cutoff_ang) {
@@ -173,15 +172,14 @@ void GuessBonds(CSG::Topology& top) {
           // default, and Topology::AddBondedInteraction's own call to
           // getGroup() (topology.cc) directly asserts this is
           // non-empty -- so setGroup() must always be called first.
-          CSG::Interaction *ic =
-              new CSG::IBond(bead1->getId(), bead2->getId());
+          CSG::Interaction* ic = new CSG::IBond(bead1->getId(), bead2->getId());
           ic->setGroup("BONDS");
           top.AddBondedInteraction(ic);
           report << "  " << mol.getId() << "  " << bead1->getId() << "  "
-                << bead1->getName() << "  " << bead2->getId() << "  "
-                << bead2->getName() << "  "
-                << (boost::format("%1$.3f") % distance_ang).str() << "  "
-                << (boost::format("%1$.3f") % cutoff_ang).str() << "\n";
+                 << bead1->getName() << "  " << bead2->getId() << "  "
+                 << bead2->getName() << "  "
+                 << (boost::format("%1$.3f") % distance_ang).str() << "  "
+                 << (boost::format("%1$.3f") % cutoff_ang).str() << "\n";
           guessed_count++;
         }
       }

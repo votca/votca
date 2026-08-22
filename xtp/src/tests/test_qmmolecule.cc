@@ -93,7 +93,8 @@ BOOST_AUTO_TEST_CASE(readwritehdf) {
   QMMolecule seg2(rr);
 }
 
-BOOST_AUTO_TEST_CASE(addcontainer_preserves_external_bond_and_offsets_ids_test) {
+BOOST_AUTO_TEST_CASE(
+    addcontainer_preserves_external_bond_and_offsets_ids_test) {
   // Real, direct, new coverage for a real, direct bug fix, caught by
   // the user's own real, direct diagnostic run: AddContainer used to
   // reconstruct every merged-in atom from scratch (the (Index,

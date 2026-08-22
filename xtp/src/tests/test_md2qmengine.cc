@@ -104,8 +104,8 @@ BOOST_AUTO_TEST_CASE(external_bond_direction_detection_test) {
 
   for (Index i = 0; i < Index(beads.size()); i++) {
     const BeadSpec& b = beads[size_t(i)];
-    csg::Bead* bead = top.CreateBead(csg::Bead::spherical, b.element,
-                                     b.element, 1, 1.0, 0.0);
+    csg::Bead* bead =
+        top.CreateBead(csg::Bead::spherical, b.element, b.element, 1, 1.0, 0.0);
     // Angstrom -> nm (Md2QmEngine::map() itself converts nm -> bohr).
     bead->setPos(b.pos_angstrom * 0.1);
     mol->AddBead(bead, b.element);
@@ -113,9 +113,23 @@ BOOST_AUTO_TEST_CASE(external_bond_direction_detection_test) {
 
   std::vector<std::pair<Index, Index>> bonds = {
       // Ring A (atoms 0-7)
-      {0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 0}, {2, 5}, {3, 6}, {4, 7},
+      {0, 1},
+      {1, 2},
+      {2, 3},
+      {3, 4},
+      {4, 0},
+      {2, 5},
+      {3, 6},
+      {4, 7},
       // Ring B (atoms 8-15)
-      {8, 9}, {9, 10}, {10, 11}, {11, 12}, {12, 8}, {10, 13}, {11, 14}, {12, 15},
+      {8, 9},
+      {9, 10},
+      {10, 11},
+      {11, 12},
+      {12, 8},
+      {10, 13},
+      {11, 14},
+      {12, 15},
       // The one, real, inter-ring bond -- the only one crossing a
       // segment boundary in this test's own mapping below.
       {1, 9},
@@ -241,8 +255,7 @@ BOOST_AUTO_TEST_CASE(external_bond_direction_detection_test) {
 
   Eigen::Vector3d expected_right_dir =
       (beads[1].pos_angstrom - beads[9].pos_angstrom).normalized();
-  Eigen::Vector3d actual_right_dir =
-      right_junction->getExternalBondDirection();
+  Eigen::Vector3d actual_right_dir = right_junction->getExternalBondDirection();
   BOOST_CHECK_EQUAL(actual_right_dir.isApprox(expected_right_dir, 1e-5), true);
   if (!actual_right_dir.isApprox(expected_right_dir, 1e-5)) {
     std::cout << "right junction direction" << std::endl;
