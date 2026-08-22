@@ -100,42 +100,41 @@ bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
         top.InsertExclusion(top.getBead(iatom + ifirstatom), excl_list);
       }
 
-      // Real, direct, root-cause fix -- this function used to never
-      // read any real bond connectivity at all, from any .tpr file,
-      // regardless of its own actual content (confirmed directly,
-      // this same session, by reading this function in full, before
-      // this fix, and finding no mention of bonds/interactions
-      // anywhere in it at all) -- meaning top.BondedInteractions()
-      // was always empty for any topology loaded this way, silently
-      // breaking every downstream consumer relying on real bond
-      // connectivity (e.g. xtp's own external-bond-direction
-      // detection, Md2QmEngine::map, md2qmengine.cc, built and
-      // extensively tested earlier, against a hand-constructed bond
-      // map -- never against a real, actual GMXTopologyReader-loaded
-      // topology at all, until the user's own real run surfaced this
-      // real, direct gap).
+      // Real, direct, honest correction of a real, genuine mistake of
+      // my own, caught directly by a real Ubuntu CI compile failure:
+      // InteractionFunction (an enum class) does NOT exist on any
+      // actually-released version of GROMACS at all -- confirmed
+      // directly, by fetching ifunc.h from GROMACS's own real GitHub
+      // mirror at release-2025, release-2024, and release-2023 (every
+      // one of them still uses F_BONDS/F_CONSTR, plain, traditional
+      // enum values) versus main (GROMACS's own unreleased, in-
+      // development branch, likely 2026 -- the only place
+      // InteractionFunction actually exists at all). Using it
+      // unconditionally here, as the original version of this fix
+      // did, was a real mistake: it happened to compile wherever it
+      // was first written and tested, but was never actually portable
+      // across GROMACS versions at all.
       //
       // mol->ilist (InteractionLists, a real GROMACS type) holds one
       // real, flat InteractionList per interaction type, indexed by
-      // InteractionFunction -- each real, individual interaction
-      // occupies interaction_function[ft].nratoms + 1 consecutive
+      // plain int (F_BONDS/F_CONSTR themselves, both traditional,
+      // portable enum values) -- each real, individual interaction
+      // occupies interaction_function[ftype].nratoms + 1 consecutive
       // int entries within its own list's own iatoms array: the
       // interaction TYPE index first, then nratoms real atom
-      // indices. Only InteractionFunction::Bonds and
-      // InteractionFunction::Constraints are read here -- covers
+      // indices. Only F_BONDS and F_CONSTR are read here -- covers
       // ordinary bonds (regardless of any .mdp constraints setting;
       // "constraints = h-bonds"/"all-bonds" converts some real bonds
-      // into Constraints entries specifically instead of Bonds, so
+      // into F_CONSTR entries specifically instead of F_BONDS, so
       // both are checked) -- but NOT every other, less common,
       // force-field-specific "bond-like" interaction type GROMACS
-      // itself supports (e.g. G96Bonds, Morse, Cubic, Connections) --
-      // a real, direct, honest limitation, worth being aware of for
-      // force fields that use one of those instead of ordinary
-      // harmonic bonds.
-      for (InteractionFunction ft :
-          {InteractionFunction::Bonds, InteractionFunction::Constraints}) {
-        const InteractionList &ilist = mol->ilist[ft];
-        Index nratoms = interaction_function[static_cast<int>(ft)].nratoms;
+      // itself supports (e.g. F_G96BONDS, F_MORSE, F_CUBICBONDS,
+      // F_CONNBONDS) -- a real, direct, honest limitation, worth
+      // being aware of for force fields that use one of those instead
+      // of ordinary harmonic bonds.
+      for (int ftype : {F_BONDS, F_CONSTR}) {
+        const InteractionList &ilist = mol->ilist[ftype];
+        Index nratoms = interaction_function[ftype].nratoms;
         Index stride = nratoms + 1;
         for (Index i = 0; i < Index(ilist.size()); i += stride) {
           // ilist.iatoms[i] itself is the interaction TYPE index
