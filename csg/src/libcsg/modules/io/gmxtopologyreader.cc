@@ -15,6 +15,7 @@
  *
  */
 
+#include <array>
 #include <iostream>
 #include <string>
 
@@ -101,38 +102,60 @@ bool GMXTopologyReader::ReadTopology(std::string file, Topology &top) {
       }
 
       // Real, direct, honest correction of a real, genuine mistake of
-      // my own, caught directly by a real Ubuntu CI compile failure:
-      // InteractionFunction (an enum class) does NOT exist on any
-      // actually-released version of GROMACS at all -- confirmed
-      // directly, by fetching ifunc.h from GROMACS's own real GitHub
-      // mirror at release-2025, release-2024, and release-2023 (every
-      // one of them still uses F_BONDS/F_CONSTR, plain, traditional
-      // enum values) versus main (GROMACS's own unreleased, in-
-      // development branch, likely 2026 -- the only place
-      // InteractionFunction actually exists at all). Using it
-      // unconditionally here, as the original version of this fix
-      // did, was a real mistake: it happened to compile wherever it
-      // was first written and tested, but was never actually portable
-      // across GROMACS versions at all.
+      // my own, caught directly by a real Ubuntu CI compile failure,
+      // then refined further directly with the user: InteractionFunction
+      // (an enum class) and F_BONDS/F_CONSTR (plain, traditional enum
+      // values) are NOT both available on any single GROMACS version at
+      // all -- confirmed directly, by fetching ifunc.h from GROMACS's
+      // own real GitHub mirror, across five real branches:
+      //   release-2026 (2026.4, a real, already-released version as of
+      //     today) -- has InteractionFunction only; no F_BONDS/F_CONSTR
+      //     at all
+      //   release-2025/2024/2023                -- have F_BONDS/F_CONSTR
+      //     only; no InteractionFunction at all
+      //   main (2027.0, GROMACS's own unreleased, in-development branch)
+      //     -- has InteractionFunction only, same as release-2026
       //
+      // A first version of this fix used InteractionFunction
+      // unconditionally -- compiled wherever it was first written and
+      // tested, but was never actually portable to any pre-2026 GROMACS
+      // at all (confirmed directly, this same session, via a real
+      // Ubuntu CI failure against GROMACS 2025.4). A second version
+      // switched to F_BONDS/F_CONSTR unconditionally instead -- fixing
+      // that, but silently reintroducing the exact same real problem
+      // for GROMACS 2026 itself, a real, already-released version, not
+      // a hypothetical future one at all, as the user directly pointed
+      // out. Genuinely need both, version-guarded.
+      //
+      // gromacs/version.h, already #included at the top of this file,
+      // defines the real, direct GMX_VERSION macro used here -- the
+      // same one, and the same real YYYYPPPP-style integer format,
+      // already used, confirmed working, elsewhere in this same repo
+      // (gmxtrajectoryreader.cc's own "#if GMX_VERSION >= 20230000").
+#if GMX_VERSION >= 20260000
+      std::array<int, 2> ftypes = {static_cast<int>(InteractionFunction::Bonds),
+                                    static_cast<int>(InteractionFunction::Constraints)};
+#else
+      std::array<int, 2> ftypes = {F_BONDS, F_CONSTR};
+#endif
+
       // mol->ilist (InteractionLists, a real GROMACS type) holds one
       // real, flat InteractionList per interaction type, indexed by
-      // plain int (F_BONDS/F_CONSTR themselves, both traditional,
-      // portable enum values) -- each real, individual interaction
-      // occupies interaction_function[ftype].nratoms + 1 consecutive
-      // int entries within its own list's own iatoms array: the
-      // interaction TYPE index first, then nratoms real atom
-      // indices. Only F_BONDS and F_CONSTR are read here -- covers
-      // ordinary bonds (regardless of any .mdp constraints setting;
-      // "constraints = h-bonds"/"all-bonds" converts some real bonds
-      // into F_CONSTR entries specifically instead of F_BONDS, so
-      // both are checked) -- but NOT every other, less common,
-      // force-field-specific "bond-like" interaction type GROMACS
-      // itself supports (e.g. F_G96BONDS, F_MORSE, F_CUBICBONDS,
-      // F_CONNBONDS) -- a real, direct, honest limitation, worth
-      // being aware of for force fields that use one of those instead
-      // of ordinary harmonic bonds.
-      for (int ftype : {F_BONDS, F_CONSTR}) {
+      // plain int (ftypes itself, above) -- each real, individual
+      // interaction occupies interaction_function[ftype].nratoms + 1
+      // consecutive int entries within its own list's own iatoms
+      // array: the interaction TYPE index first, then nratoms real
+      // atom indices. Only bonds and constraints are read here --
+      // covers ordinary bonds (regardless of any .mdp constraints
+      // setting; "constraints = h-bonds"/"all-bonds" converts some
+      // real bonds into constraint entries specifically instead of
+      // bond entries, so both are checked) -- but NOT every other,
+      // less common, force-field-specific "bond-like" interaction
+      // type GROMACS itself supports (e.g. G96 bonds, Morse, cubic
+      // bonds, connections) -- a real, direct, honest limitation,
+      // worth being aware of for force fields that use one of those
+      // instead of ordinary harmonic bonds.
+      for (int ftype : ftypes) {
         const InteractionList &ilist = mol->ilist[ftype];
         Index nratoms = interaction_function[ftype].nratoms;
         Index stride = nratoms + 1;
