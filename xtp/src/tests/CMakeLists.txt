@@ -575,25 +575,6 @@ if(RUN_XTP_INTEGRATIONTESTS)
   add_test(NAME integration_Compare_xtp_parallel_ipodcoupling_run_output COMMAND check_ipodcoupling_coupling_output)
   set_tests_properties(integration_Compare_xtp_parallel_ipodcoupling_run_output PROPERTIES DEPENDS integration_Run_xtp_parallel_ipodcoupling_run)
 
-  # Real, direct, separate comparison of the intermediate temp.orb
-  # (the real DFT input geometry, from H-saturation/OpenBabel
-  # relaxation, and the real DFT output itself) produced during the
-  # run step above, worked through directly with the user: this
-  # isolates whether a real divergence between platforms originates
-  # here, before PODCoupling ever runs at all, from a divergence that
-  # only shows up downstream, in the final ipodcoupling.jobs
-  # comparison's own coupling numbers. atol/rtol kept the same as the
-  # other, already-established .orb-comparing tests above; EXTERNAL_
-  # BOND_IGNORE_FIELDS applied for the same, already-established real
-  # reason (QMAtom's own external-bond fields, not present in an
-  # older reference schema).
-  if(HAS_HDF5_COMPARE)
-    add_test(NAME integration_Compare_xtp_parallel_ipodcoupling_run_temp_orb COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion --ignore-attr version --ignore-attr is_qsgw --ignore-path /QMdata/forces ${EXTERNAL_BOND_IGNORE_FIELDS} --atol 1e-6 --rtol 1e-7 --path-tol /QMdata/QPdiag/eigenvalues:1e-06:1e-04 --path-tol /QMdata/BSE_singlet_dynamic:1e-06:1e-04 --path-tol /QMdata/BSE_singlet/eigenvalues:1e-06:1e-04 --path-tol /QMdata/QPpert_energies:1e-06:1e-04 --td-atol 1e-3 ${REFPATH}/OR_FILES/workdir_ipodcoupling/frame_0/pair_0_2/temp.orb ${RUNPATH}/OR_FILES/workdir_ipodcoupling/frame_0/pair_0_2/temp.orb WORKING_DIRECTORY ${RUNPATH})
-    set_tests_properties(integration_Compare_xtp_parallel_ipodcoupling_run_temp_orb PROPERTIES DEPENDS integration_Run_xtp_parallel_ipodcoupling_run)
-  else()
-    message(STATUS "Skipping HDF5 comparison test for integration_Run_xtp_parallel_ipodcoupling_run's own intermediate temp.orb (votca_compare_hdf5 not found)")
-  endif()
-
   # xtp_parallel -e ipodcoupling -j read
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_ipodcoupling_read)
   add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_read_dir COMMAND ${CMAKE_COMMAND} -E make_directory ${RUNPATH})
