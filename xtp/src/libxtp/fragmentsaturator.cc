@@ -20,6 +20,7 @@
 // VOTCA includes
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
 
@@ -228,16 +229,34 @@ QMMolecule FragmentSaturator::RelaxNewAtoms(const QMMolecule& mol,
   // overhead itself small relative to the real steps it can now skip.
   const Index check_interval = 10;
   bool still_running = true;
-  for (Index step = 0; step < n_steps && still_running;
-       step += check_interval) {
+  Index step = 0;
+  bool converged = false;
+  for (; step < n_steps && still_running; step += check_interval) {
     Index steps_this_round = std::min(check_interval, n_steps - step);
     still_running = pFF->ConjugateGradientsTakeNSteps(int(steps_this_round));
     double e_now = pFF->Energy();
     if (std::abs(e_now - e_prev) < econv) {
+      converged = true;
+      step += steps_this_round;
       break;
     }
     e_prev = e_now;
   }
+  // Real, direct, temporary diagnostic, worked through directly with
+  // the user -- RelaxNewAtoms is static (no Logger available at all,
+  // confirmed directly by reading its own real header declaration),
+  // so std::cerr is used directly here instead of XTP_LOG. Confirmed
+  // directly, from the user's own real CI failure log, that this
+  // test's own stdout/stderr is already visible in CI output
+  // regardless of pass/fail (the log already showed real, direct
+  // XTP_LOG-style "PODCoupling diagnostic" lines from the same, real,
+  // passing Run test) -- so this should show up there the same way.
+  std::cerr << "[RelaxNewAtoms] took " << step << "/" << n_steps
+            << " conjugate-gradient steps ("
+            << (converged ? "converged early"
+                          : (still_running ? "exhausted full budget"
+                                            : "OpenBabel itself stopped"))
+            << ")" << std::endl;
   pFF->GetCoordinates(obmol);
 
   // Build the resulting, relaxed QMMolecule -- same element/ID for

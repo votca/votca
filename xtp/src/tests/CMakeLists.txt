@@ -504,14 +504,35 @@ if(RUN_XTP_INTEGRATIONTESTS)
 
   # xtp_parallel -e ipodcopuling -j write
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_ipodcoupling_write)
-  file(MAKE_DIRECTORY ${RUNPATH})
-  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_nbl.hdf5 ${RUNPATH}/state.hdf5)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/ipodcoupling.xml ${RUNPATH}/ipodcoupling.xml)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  # Real, direct, honest correction of a real, genuine cycle error,
+  # caught directly by the user's own real CTest run: a setup test
+  # cannot list the same fixture it itself sets up in its own
+  # FIXTURES_REQUIRED property -- confirmed directly, from CMake's own
+  # official documentation, that this is exactly, explicitly
+  # documented as an error case ("cannot require same fixture as
+  # setup"), since it is, by definition, a real, direct, self-
+  # referential circular dependency. Removed FIXTURES_REQUIRED from
+  # every one of these setup tests below -- each keeps only
+  # FIXTURES_SETUP -- and used the standard, official DEPENDS test
+  # property instead (CMake's own documented, correct way to order
+  # multiple setup tests for the same real fixture) to enforce the one
+  # real ordering need that actually exists here: MAKE_DIRECTORY must
+  # genuinely run before any real symlink/copy into that same real
+  # directory at all.
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_write_dir COMMAND ${CMAKE_COMMAND} -E make_directory ${RUNPATH})
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_write_dir PROPERTIES FIXTURES_SETUP ipodcoupling_write)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_write_system_xml COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_write_system_xml PROPERTIES FIXTURES_SETUP ipodcoupling_write DEPENDS integration_Setup_xtp_parallel_ipodcoupling_write_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_write_ipodcoupling_xml COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/ipodcoupling.xml ${RUNPATH}/ipodcoupling.xml)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_write_ipodcoupling_xml PROPERTIES FIXTURES_SETUP ipodcoupling_write DEPENDS integration_Setup_xtp_parallel_ipodcoupling_write_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_write_md_files COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_write_md_files PROPERTIES FIXTURES_SETUP ipodcoupling_write DEPENDS integration_Setup_xtp_parallel_ipodcoupling_write_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_write_qc_files COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_write_qc_files PROPERTIES FIXTURES_SETUP ipodcoupling_write DEPENDS integration_Setup_xtp_parallel_ipodcoupling_write_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_write_state COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_nbl.hdf5 ${RUNPATH}/state.hdf5)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_write_state PROPERTIES FIXTURES_SETUP ipodcoupling_write DEPENDS integration_Setup_xtp_parallel_ipodcoupling_write_dir)
   add_test(NAME integration_Run_xtp_parallel_ipodcoupling_write COMMAND xtp_parallel -e ipodcoupling -o ipodcoupling.xml -f state.hdf5 -x 1 -t 1 -j write WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_write PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_write PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED ipodcoupling_write)
   if(HAS_XML_COMPARE)
     add_test(NAME integration_Compare_xtp_parallel_ipodcoupling_write_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/ipodcoupling.jobs.write ${RUNPATH}/ipodcoupling.jobs --atol 1e-12 --rtol 1e-8 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_parallel_ipodcoupling_write_output PROPERTIES DEPENDS integration_Run_xtp_parallel_ipodcoupling_write)
@@ -521,15 +542,27 @@ if(RUN_XTP_INTEGRATIONTESTS)
 
   # xtp_parallel -e ipodcoupling -j run
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_ipodcoupling_run)
-  file(MAKE_DIRECTORY ${RUNPATH})
-  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_nbl.hdf5 ${RUNPATH}/state.hdf5)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/ipodcoupling.jobs.write ${RUNPATH}/ipodcoupling.jobs)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/ipodcoupling.xml ${RUNPATH}/ipodcoupling.xml)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_dir COMMAND ${CMAKE_COMMAND} -E make_directory ${RUNPATH})
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_dir PROPERTIES FIXTURES_SETUP ipodcoupling_run)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_system_xml COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_system_xml PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_ipodcoupling_xml COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/ipodcoupling.xml ${RUNPATH}/ipodcoupling.xml)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_ipodcoupling_xml PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_md_files COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_md_files PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_qc_files COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_qc_files PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
+  # state.hdf5/ipodcoupling.jobs specifically: both real, direct,
+  # mutable inputs -- ipodcoupling.jobs is the exact real file whose
+  # own real status the user directly diagnosed getting mutated
+  # AVAILABLE -> COMPLETE in place, the real, direct root cause this
+  # whole fixture mechanism originally addressed.
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_state COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_nbl.hdf5 ${RUNPATH}/state.hdf5)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_state PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/ipodcoupling.jobs.write ${RUNPATH}/ipodcoupling.jobs)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_jobs PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
   add_test(NAME integration_Run_xtp_parallel_ipodcoupling_run COMMAND xtp_parallel -e ipodcoupling -o ipodcoupling.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED ipodcoupling_run)
   if(HAS_XML_COMPARE)
     add_test(NAME integration_Compare_xtp_parallel_ipodcoupling_run_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_xml> ${REFPATH}/ipodcoupling.jobs.run ${RUNPATH}/ipodcoupling.jobs  --ignore-tag Compute_Time --ignore-tag host --ignore-tag time --rtol 1e-5 --atol 1e-6 --signflip-tag Trdipole --tag-tol coupling:1e-5:1e-3 --signflip-attr j --signflip-attr j_diag --signflip-attr j_pert WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_parallel_ipodcoupling_run_output PROPERTIES DEPENDS integration_Run_xtp_parallel_ipodcoupling_run)
@@ -558,13 +591,18 @@ if(RUN_XTP_INTEGRATIONTESTS)
 
   # xtp_parallel -e ipodcoupling -j read
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_ipodcoupling_read)
-  file(MAKE_DIRECTORY ${RUNPATH})
-  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_nbl.hdf5 ${RUNPATH}/state.hdf5)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/ipodcoupling.jobs.run ${RUNPATH}/ipodcoupling.jobs)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/ipodcoupling.xml ${RUNPATH}/ipodcoupling.xml)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_read_dir COMMAND ${CMAKE_COMMAND} -E make_directory ${RUNPATH})
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_read_dir PROPERTIES FIXTURES_SETUP ipodcoupling_read)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_read_system_xml COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_read_system_xml PROPERTIES FIXTURES_SETUP ipodcoupling_read DEPENDS integration_Setup_xtp_parallel_ipodcoupling_read_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_read_ipodcoupling_xml COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/ipodcoupling.xml ${RUNPATH}/ipodcoupling.xml)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_read_ipodcoupling_xml PROPERTIES FIXTURES_SETUP ipodcoupling_read DEPENDS integration_Setup_xtp_parallel_ipodcoupling_read_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_read_state COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_nbl.hdf5 ${RUNPATH}/state.hdf5)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_read_state PROPERTIES FIXTURES_SETUP ipodcoupling_read DEPENDS integration_Setup_xtp_parallel_ipodcoupling_read_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_read_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/ipodcoupling.jobs.run ${RUNPATH}/ipodcoupling.jobs)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_read_jobs PROPERTIES FIXTURES_SETUP ipodcoupling_read DEPENDS integration_Setup_xtp_parallel_ipodcoupling_read_dir)
   add_test(NAME integration_Run_xtp_parallel_ipodcoupling_read COMMAND xtp_parallel -e ipodcoupling -o ipodcoupling.xml -f state.hdf5 -x 1 -t 1 -j read WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_read PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}")
+  set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_read PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED ipodcoupling_read)
   if(HAS_HDF5_COMPARE)
     add_test(NAME integration_Compare_xtp_parallel_ipodcoupling_read_output COMMAND ${Python_EXECUTABLE} $<TARGET_FILE:VOTCA::votca_compare_hdf5> --ignore-attr XTPVersion  --atol 1e-6 --rtol 1e-7  --td-atol 3e-6 ${REFPATH}/state_ipod.hdf5 ${RUNPATH}/state.hdf5 WORKING_DIRECTORY ${RUNPATH})
     set_tests_properties(integration_Compare_xtp_parallel_ipodcoupling_read_output PROPERTIES DEPENDS integration_Run_xtp_parallel_ipodcoupling_read)
