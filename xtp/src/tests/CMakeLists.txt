@@ -550,7 +550,32 @@ if(RUN_XTP_INTEGRATIONTESTS)
   add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/ipodcoupling.jobs.write ${RUNPATH}/ipodcoupling.jobs)
   set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_jobs PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
   add_test(NAME integration_Run_xtp_parallel_ipodcoupling_run COMMAND xtp_parallel -e ipodcoupling -o ipodcoupling.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED ipodcoupling_run)
+  # Real, direct, honest correction, worked through directly with the
+  # user, of a real, genuine gap the user themselves correctly
+  # identified: DEPENDS alone (used further below, on the real
+  # downstream Compare test) only ever orders tests -- confirmed
+  # directly, from the user's own real, direct debug-build timeout
+  # log, that the real Compare test still genuinely ran (and failed,
+  # with a real, but genuinely misleading, "no coupling elements at
+  # all" error) even after the real Run test above had already timed
+  # out entirely. Fixed by tagging this same real Run test with a new,
+  # real, direct FIXTURES_SETUP too -- confirmed directly, against
+  # CMake's own official fixtures documentation, that any real test
+  # (not only a dedicated Setup test) can genuinely be tagged this way
+  # -- so the real downstream Compare test below, once tagged with
+  # FIXTURES_REQUIRED for this same new fixture, is genuinely,
+  # correctly skipped by CTest's own real, documented behavior if this
+  # real Run test itself fails (including a real timeout) at all,
+  # rather than running anyway and reporting a real, but misleading,
+  # secondary failure of its own.
+  #
+  # TIMEOUT 3600 added too, matching the same, already-established
+  # real precedent in this same file (unit_test_dftengine_cdft,
+  # TIMEOUT 3600) -- confirmed directly, from the user's own real,
+  # direct debug-build log, that a real, actual DFT calculation, run
+  # in a real debug build (no optimization at all), genuinely exceeded
+  # the default 1500s timeout.
+  set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_run PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED ipodcoupling_run FIXTURES_SETUP ipodcoupling_run_done TIMEOUT 3600)
   # Real, direct, standalone executable (not another
   # votca_compare_xml-based comparison at all), worked through
   # directly with the user, in direct response to real, confirmed
@@ -573,7 +598,7 @@ if(RUN_XTP_INTEGRATIONTESTS)
     IPODCOUPLING_RUN_JOBS_FILE="${RUNPATH}/ipodcoupling.jobs"
     IPODCOUPLING_RUN_JOBS_REFERENCE_FILE="${REFPATH}/ipodcoupling.jobs.run")
   add_test(NAME integration_Compare_xtp_parallel_ipodcoupling_run_output COMMAND check_ipodcoupling_coupling_output)
-  set_tests_properties(integration_Compare_xtp_parallel_ipodcoupling_run_output PROPERTIES DEPENDS integration_Run_xtp_parallel_ipodcoupling_run)
+  set_tests_properties(integration_Compare_xtp_parallel_ipodcoupling_run_output PROPERTIES DEPENDS integration_Run_xtp_parallel_ipodcoupling_run FIXTURES_REQUIRED ipodcoupling_run_done)
 
   # xtp_parallel -e ipodcoupling -j read
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_ipodcoupling_read)
