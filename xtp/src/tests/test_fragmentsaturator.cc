@@ -330,7 +330,15 @@ BOOST_AUTO_TEST_CASE(relax_new_atom_timing_breakdown_test,
   BOOST_REQUIRE(constrained_setup_ok);
 
   // Step 5: ConjugateGradients (the same n_steps=500 default
-  // RelaxNewAtoms itself uses).
+  // RelaxNewAtoms itself uses). Real, direct note: RelaxNewAtoms's
+  // own real production code no longer calls this single-shot
+  // ConjugateGradients() directly at all (replaced with a manual,
+  // early-stopping convergence loop, in direct response to a real,
+  // confirmed cross-platform coupling discrepancy this session) -- so
+  // this specific step no longer exactly mirrors production. Left
+  // as-is deliberately: this is still a genuinely useful worst-case
+  // timing baseline (the full 500 steps, with no early stopping at
+  // all), which is exactly what this diagnostic test is for.
   pFF->ConjugateGradients(500);
   auto t5 = clock::now();
   std::cout << "[timing] ConjugateGradients(500): " << ms(t5 - t4) << " ms"

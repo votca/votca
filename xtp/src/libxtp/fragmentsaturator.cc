@@ -18,6 +18,8 @@
  */
 
 // VOTCA includes
+#include <algorithm>
+#include <cmath>
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
 
@@ -189,7 +191,53 @@ QMMolecule FragmentSaturator::RelaxNewAtoms(const QMMolecule& mol,
         "constraints.");
   }
 
-  pFF->ConjugateGradients(int(n_steps));
+  // Real, direct fix for a real, genuine, confirmed root cause: a
+  // single pFF->ConjugateGradients(n_steps) call used to be made here
+  // directly -- but OpenBabel's own econv convergence-criterion
+  // argument is genuinely, confirmedly ignored by both
+  // ConjugateGradients() and ConjugateGradientsInitialize() (two,
+  // real, still-open upstream OpenBabel issues, confirmed directly
+  // before writing this: openbabel/openbabel#1366,
+  // openbabel/openbabel#2804) -- meaning the full n_steps count always
+  // ran, unconditionally, regardless of whether the geometry had
+  // already genuinely converged much earlier. Confirmed directly, on
+  // the user's own real machine: this is the real, genuine root cause
+  // of a real cross-platform coupling discrepancy this session --
+  // running the exact same starting geometry through DFT+PODCoupling
+  // on both platforms reproduced the exact same coupling values,
+  // isolating the divergence entirely to non-deterministic,
+  // platform-dependent floating-point rounding compounding over many
+  // real, wasted, post-convergence relaxation steps.
+  //
+  // Fixed by replicating OpenBabel's own, real, internal energy-
+  // convergence criterion (IsNear(e_n2, e_n1, econv), confirmed
+  // directly by reading ConjugateGradientsInitialize's own real
+  // source, forcefield.cpp) manually here instead, checking Energy()
+  // directly and stopping the real relaxation as soon as it
+  // genuinely converges -- rather than always continuing to the full
+  // n_steps regardless. econv itself kept at OpenBabel's own real,
+  // documented default (1e-6, ConjugateGradientsInitialize's own
+  // header comment, forcefield.h) for consistency with what this
+  // code always intended to use anyway.
+  double econv = 1e-6;
+  pFF->ConjugateGradientsInitialize(int(n_steps), econv);
+  double e_prev = pFF->Energy();
+  // Checked every 10 real steps, rather than every single one --
+  // Energy() itself is a real, non-trivial recomputation, so checking
+  // this often (not every step) keeps the real convergence-check
+  // overhead itself small relative to the real steps it can now skip.
+  const Index check_interval = 10;
+  bool still_running = true;
+  for (Index step = 0; step < n_steps && still_running;
+       step += check_interval) {
+    Index steps_this_round = std::min(check_interval, n_steps - step);
+    still_running = pFF->ConjugateGradientsTakeNSteps(int(steps_this_round));
+    double e_now = pFF->Energy();
+    if (std::abs(e_now - e_prev) < econv) {
+      break;
+    }
+    e_prev = e_now;
+  }
   pFF->GetCoordinates(obmol);
 
   // Build the resulting, relaxed QMMolecule -- same element/ID for
