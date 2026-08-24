@@ -20,6 +20,7 @@ Version 2026-dev
 -  implemented Charge Constrained DFT (CDFT) (#1247)
 -  reduced memory in analytic forces (#1248)
 -  implemented POD2 electronic coupling method and standalone podcoupling tool (#1249)
+-  POD2 coupling for morphology with automated H saturation (#1250)
 
 Version 2026 (released 09.03.26)
 ================================
