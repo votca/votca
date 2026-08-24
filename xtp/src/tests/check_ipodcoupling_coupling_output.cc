@@ -18,32 +18,41 @@
  */
 
 // Real, direct, standalone check (not a votca_compare_xml-based
-// comparison test at all) worked through directly with the user, in
-// direct response to the real, confirmed platform-to-platform
-// numerical noise in ipodcoupling's own PODCoupling j (coupling)
-// values -- itself confirmed, directly, this same session, to
-// genuinely originate from real differences between OpenBabel
-// versions across platforms (3.1.1, the CI/Docker image's own real
-// package version, vs. 3.2.0, the user's own real local Homebrew
-// version), not a real, direct bug in this project's own code at all,
-// and not something this project's own code can control at all.
+// comparison test at all), worked through directly with the user.
 //
-// Rather than continue chasing bit-for-bit determinism that genuinely
-// is not achievable given this real, external dependency landscape,
-// this check does two, real, separate things instead: (1) directly,
-// genuinely REQUIRES that every real coupling element in the actual,
-// real ipodcoupling.jobs output genuinely has its own real j
-// attribute at all (a real, direct, fatal check -- via BOOST_REQUIRE
-// -- since a genuinely missing j value would mean PODCoupling itself
-// never actually ran, or genuinely crashed, an entirely different,
-// real, and much more serious problem than mere numerical drift); and
-// (2) only ever WARNS (via BOOST_WARN_MESSAGE, non-fatal -- does not
-// fail this test at all) if a real j value's own real magnitude
-// deviates from the real, checked-in reference by more than a real,
-// direct, generous threshold, so a genuinely large, real regression
-// is still visible directly in real test output, without the real
-// platform-dependent noise this session already worked through
-// directly turning every real CI/local run red.
+// History, for the real, full context: the real, confirmed cross-
+// platform numerical noise this same session originally worked
+// through in ipodcoupling's own PODCoupling j (coupling) values
+// traced back to real OpenBabel version differences across platforms
+// (3.1.1 vs. 3.2.0) affecting RelaxNewAtoms's own H-saturation
+// geometry, which a real, downstream DFT calculation then amplified.
+// Rather than continue chasing bit-for-bit cross-platform determinism
+// through that real DFT step, this test's own run stage
+// (xtp/src/tests/CMakeLists.txt) was redesigned, worked through
+// directly with the user, to pre-seed a real, checked-in reference
+// orbFileAB (containing already-converged DFT orbitals) directly,
+// with tasks="podcoupling" only -- so PODCoupling itself now runs on
+// genuinely bit-identical input on every real platform, entirely
+// sidestepping the real DFT step (and its own real OpenBabel-version
+// dependency) for this specific comparison. A real, direct, separate,
+// much cheaper test (check_ipodcoupling_input_geometry.cc) checks the
+// H-saturation geometry itself, with a real, direct, small tolerance,
+// instead.
+//
+// Given that redesign, this check now does two, real, separate
+// things: (1) directly, genuinely REQUIRES that every real coupling
+// element in the actual, real ipodcoupling.jobs output genuinely has
+// its own real j attribute at all (a real, direct, fatal check -- via
+// BOOST_REQUIRE -- since a genuinely missing j value would mean
+// PODCoupling itself never actually ran, or genuinely crashed); and
+// (2) genuinely REQUIRES (BOOST_CHECK, fatal, not merely a warning)
+// that a real j value's own real magnitude agrees with the real,
+// checked-in reference within a real, direct, tight tolerance --
+// tight enough to catch a real, genuine regression, but still loose
+// enough to tolerate ordinary floating-point rounding differences
+// across real compilers/BLAS implementations/threading, since even
+// bit-identical input can still produce very slightly different
+// real floating-point results across those.
 
 #define BOOST_TEST_MAIN
 
@@ -51,7 +60,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include <cmath>
-#include <iostream>
 #include <map>
 #include <string>
 #include <utility>
@@ -63,7 +71,7 @@ using namespace votca;
 
 BOOST_AUTO_TEST_SUITE(check_ipodcoupling_coupling_output_test)
 
-BOOST_AUTO_TEST_CASE(check_j_values_present_and_reasonable) {
+BOOST_AUTO_TEST_CASE(check_j_values_present_and_agree_with_reference) {
 
   // Real, direct paths -- both known at real CMake configure time
   // already (REFPATH/RUNPATH, xtp/src/tests/CMakeLists.txt's own real
@@ -75,16 +83,16 @@ BOOST_AUTO_TEST_CASE(check_j_values_present_and_reasonable) {
   std::string actual_file = IPODCOUPLING_RUN_JOBS_FILE;
   std::string reference_file = IPODCOUPLING_RUN_JOBS_REFERENCE_FILE;
 
-  // Real, direct, generous threshold, worked through directly with
-  // the user: sized off the real, actual, observed cross-platform
-  // spread this same session already directly measured (up to ~0.24
-  // eV, between a real macOS/Homebrew OpenBabel 3.2.0 run and a real
-  // Ubuntu/apt OpenBabel 3.1.1 run, same starting geometry, same real
-  // DFT/PODCoupling code) -- kept deliberately looser than that real,
-  // observed spread itself, so this warns on a genuinely new,
-  // real regression, without itself becoming another real source of
-  // noisy, platform-dependent warnings.
-  double warn_threshold_eV = 0.5;
+  // Real, direct, tight tolerance, worked through directly with the
+  // user: now that PODCoupling itself runs on genuinely bit-identical
+  // input on every real platform (the real DFT step, and its own real
+  // OpenBabel-version dependency, is sidestepped entirely by this
+  // test's own pre-seeded reference orbFileAB), this only needs to
+  // tolerate ordinary real floating-point rounding differences
+  // (compiler/BLAS/threading), not real, genuine geometry
+  // differences -- so kept far tighter than this file's own earlier,
+  // now-stale 0.5 eV warn-only threshold.
+  double tolerance_eV = 1e-4;
 
   tools::Property actual_xml;
   actual_xml.LoadFromXML(actual_file);
@@ -140,35 +148,22 @@ BOOST_AUTO_TEST_CASE(check_j_values_present_and_reasonable) {
     double j_actual = actual_coupling->getAttribute<double>("j");
 
     auto it = reference_by_level.find({levelA, levelB});
-    if (it == reference_by_level.end()) {
-      // Real, direct, non-fatal warning only -- a genuinely new
-      // (levelA, levelB) pair, not present in the reference at all,
-      // is worth a human's own real, direct attention, but should not
-      // itself fail this test outright.
-      BOOST_WARN_MESSAGE(
-          false, "coupling element (levelA="
-                    << levelA << ", levelB=" << levelB
-                    << ") has no matching reference entry at all to "
-                       "compare against.");
-      continue;
-    }
+    BOOST_REQUIRE_MESSAGE(
+        it != reference_by_level.end(),
+        "coupling element (levelA="
+            << levelA << ", levelB=" << levelB
+            << ") has no matching reference entry at all to compare "
+               "against.");
 
     double j_reference = it->second;
     double deviation_eV = std::abs(j_actual - j_reference);
-    BOOST_WARN_MESSAGE(
-        deviation_eV <= warn_threshold_eV,
+    BOOST_CHECK_MESSAGE(
+        deviation_eV <= tolerance_eV,
         "coupling (levelA=" << levelA << ", levelB=" << levelB
                             << ") deviates from the reference by "
                             << deviation_eV << " eV (actual=" << j_actual
                             << ", reference=" << j_reference
-                            << ", warn_threshold=" << warn_threshold_eV
-                            << " eV) -- likely real, genuine, "
-                               "platform-dependent OpenBabel-version "
-                               "numerical noise (see this file's own "
-                               "header comment), not necessarily a "
-                               "real, direct regression, but worth a "
-                               "human's own direct review if this "
-                               "grows significantly over time.");
+                            << ", tolerance=" << tolerance_eV << " eV).");
   }
 }
 

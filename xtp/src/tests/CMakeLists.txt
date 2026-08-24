@@ -528,6 +528,45 @@ if(RUN_XTP_INTEGRATIONTESTS)
     message(STATUS "Skipping XML comparison test for integration_Run_xtp_parallel_ipodcoupling_write (votca_compare_xml not found)")
   endif()
 
+  # xtp_parallel -e ipodcoupling -j run, but tasks="input" only, and
+  # dftpackage.name="orca" (via the separate, real, direct,
+  # orca-flavored reference ipodcoupling_orca_input.xml), worked
+  # through directly with the user: writes a real, direct, plain text
+  # temp.inp file (Orca::WriteCoordinates), containing the
+  # H-saturated, OpenBabel-relaxed geometry, without ever genuinely
+  # running any real DFT calculation at all -- much cheaper than the
+  # combined DFT+PODCoupling run stage below, and does not itself
+  # need a real ORCA installation at all (Orca::WriteInputFile itself
+  # never invokes the real orca binary -- confirmed directly, by
+  # reading it, before using this design). See this test's own real,
+  # direct C++ checker (check_ipodcoupling_input_geometry.cc) for the
+  # full, real reasoning.
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_ipodcoupling_orca_input)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_orca_input_dir COMMAND ${CMAKE_COMMAND} -E make_directory ${RUNPATH})
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_orca_input_dir PROPERTIES FIXTURES_SETUP ipodcoupling_orca_input)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_orca_input_system_xml COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/system.xml ${RUNPATH}/system.xml)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_orca_input_system_xml PROPERTIES FIXTURES_SETUP ipodcoupling_orca_input DEPENDS integration_Setup_xtp_parallel_ipodcoupling_orca_input_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_orca_input_ipodcoupling_xml COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/ipodcoupling_orca_input.xml ${RUNPATH}/ipodcoupling.xml)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_orca_input_ipodcoupling_xml PROPERTIES FIXTURES_SETUP ipodcoupling_orca_input DEPENDS integration_Setup_xtp_parallel_ipodcoupling_orca_input_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_orca_input_md_files COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/MD_FILES ${RUNPATH}/MD_FILES)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_orca_input_md_files PROPERTIES FIXTURES_SETUP ipodcoupling_orca_input DEPENDS integration_Setup_xtp_parallel_ipodcoupling_orca_input_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_orca_input_qc_files COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/QC_FILES ${RUNPATH}/QC_FILES)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_orca_input_qc_files PROPERTIES FIXTURES_SETUP ipodcoupling_orca_input DEPENDS integration_Setup_xtp_parallel_ipodcoupling_orca_input_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_orca_input_state COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/state_nbl.hdf5 ${RUNPATH}/state.hdf5)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_orca_input_state PROPERTIES FIXTURES_SETUP ipodcoupling_orca_input DEPENDS integration_Setup_xtp_parallel_ipodcoupling_orca_input_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_orca_input_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/ipodcoupling.jobs.write ${RUNPATH}/ipodcoupling.jobs)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_orca_input_jobs PROPERTIES FIXTURES_SETUP ipodcoupling_orca_input DEPENDS integration_Setup_xtp_parallel_ipodcoupling_orca_input_dir)
+  add_test(NAME integration_Run_xtp_parallel_ipodcoupling_orca_input COMMAND xtp_parallel -e ipodcoupling -o ipodcoupling.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_orca_input PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED ipodcoupling_orca_input FIXTURES_SETUP ipodcoupling_orca_input_done)
+  add_executable(check_ipodcoupling_input_geometry check_ipodcoupling_input_geometry.cc)
+  target_link_libraries(check_ipodcoupling_input_geometry Boost::unit_test_framework)
+  target_compile_definitions(check_ipodcoupling_input_geometry PRIVATE
+    BOOST_TEST_DYN_LINK
+    IPODCOUPLING_INPUT_TEMP_INP_FILE="${RUNPATH}/OR_FILES/workdir_ipodcoupling/frame_0/pair_0_2/temp.inp"
+    IPODCOUPLING_INPUT_TEMP_INP_REFERENCE_FILE="${REFPATH}/OR_FILES/workdir_ipodcoupling/frame_0/pair_0_2/temp.inp")
+  add_test(NAME integration_Compare_xtp_parallel_ipodcoupling_orca_input_output COMMAND check_ipodcoupling_input_geometry)
+  set_tests_properties(integration_Compare_xtp_parallel_ipodcoupling_orca_input_output PROPERTIES DEPENDS integration_Run_xtp_parallel_ipodcoupling_orca_input FIXTURES_REQUIRED ipodcoupling_orca_input_done)
+
   # xtp_parallel -e ipodcoupling -j run
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_xtp_parallel_ipodcoupling_run)
   add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_dir COMMAND ${CMAKE_COMMAND} -E make_directory ${RUNPATH})
@@ -549,6 +588,24 @@ if(RUN_XTP_INTEGRATIONTESTS)
   set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_state PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
   add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_jobs COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/ipodcoupling.jobs.write ${RUNPATH}/ipodcoupling.jobs)
   set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_jobs PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
+  # Real, direct, pre-seeded orbFileAB, worked through directly with
+  # the user: tasks="podcoupling" (this shared reference
+  # ipodcoupling.xml's own tasks value, changed above) reads this
+  # exact, real, pre-existing file directly (IPodCoupling::EvalJob's
+  # own, already-established else { orbitalsAB.ReadFromCpt(orbFileAB);
+  # } branch) rather than genuinely computing it via a real DFT
+  # calculation at all -- confirmed directly, this same session, that
+  # temp.orb and orbFileAB are the exact same, real format (both
+  # Orbitals::WriteToCpt/ReadFromCpt), just different real paths. Both
+  # real platforms now run PODCoupling itself on genuinely
+  # bit-identical input, entirely eliminating the real, confirmed
+  # cross-platform OpenBabel-version numerical noise (see
+  # check_ipodcoupling_coupling_output.cc's own header comment) for
+  # this specific real coupling-value comparison.
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_orb COMMAND ${CMAKE_COMMAND} -E make_directory ${RUNPATH}/OR_FILES/pairs_ipodcoupling/frame_0)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_orb PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_dir)
+  add_test(NAME integration_Setup_xtp_parallel_ipodcoupling_run_orb_copy COMMAND ${CMAKE_COMMAND} -E copy ${REFPATH}/OR_FILES/pairs_ipodcoupling/frame_0/pair_0_2.orb ${RUNPATH}/OR_FILES/pairs_ipodcoupling/frame_0/pair_0_2.orb)
+  set_tests_properties(integration_Setup_xtp_parallel_ipodcoupling_run_orb_copy PROPERTIES FIXTURES_SETUP ipodcoupling_run DEPENDS integration_Setup_xtp_parallel_ipodcoupling_run_orb)
   add_test(NAME integration_Run_xtp_parallel_ipodcoupling_run COMMAND xtp_parallel -e ipodcoupling -o ipodcoupling.xml -f state.hdf5 -x 1 -t 1 -j run WORKING_DIRECTORY ${RUNPATH})
   # Real, direct, honest correction, worked through directly with the
   # user, of a real, genuine gap the user themselves correctly

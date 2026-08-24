@@ -1,14 +1,15 @@
 <options>
-<ipodcoupling help="Computes an electronic coupling between two, real, neighbor-list segments via POD2 (Projection Operator Diabatization), on a single, real, converged ground-state DFT calculation of the H-saturated supermolecule assembled from them -- mirrors IQM's own overall workflow (mapping, saturation-eligibility, H-saturation, relaxation, DFT), then hands off to PODCoupling for the actual coupling itself, instead of IQM's own dftcoupling/bsecoupling. See podcoupling.xml's own help text for the underlying POD2 method itself." section="sec:ipodcoupling">
+<ipodcoupling help="Computes an electronic coupling between two, real, neighbor-list segments via POD2 (Projection Operator Diabatization), on a single, real, converged ground-state DFT calculation of the H-saturated supermolecule assembled from them -- mirrors IQM's own overall workflow (mapping, saturation-eligibility, H-saturation, relaxation, DFT), then hands off to PODCoupling for the actual coupling itself, instead of IQM's own dftcoupling/bsecoupling. See podcoupling.xml's own help text for the underlying POD2 method itself. Real, direct, orca-flavored variant, worked through directly with the user, distinct from this same directory's own ipodcoupling.xml (xtp-flavored): used specifically by the input-only geometry-check test -- Orca::WriteInputFile itself, unlike XTPDFT::WriteInputFile, genuinely writes a real, direct, plain text temp.inp file (Orca::WriteCoordinates), containing the exact same H-saturated, OpenBabel-relaxed geometry, without ever genuinely running any real DFT calculation, or requiring a real ORCA installation, at all (WriteInputFile itself never invokes the real orca binary -- confirmed directly, by reading it, before using this design)." section="sec:ipodcoupling">
 	<job_file default="ipodcoupling.jobs" help="name of jobfile to which jobs are written">ipodcoupling.jobs</job_file>
 	<map_file default="votca_map.xml" help="xml file with segment definition">system.xml</map_file>
-	<tasks choices="[input,dft,parse,podcoupling]" default="input,dft,parse,podcoupling" help="tasks to perform during calculation">podcoupling</tasks>
+	<tasks choices="[input,dft,parse,podcoupling]" default="input,dft,parse,podcoupling" help="tasks to perform during calculation">input</tasks>
 	<dftpackage help="options for dftpackages">
-		<name choices="xtp,orca" default="xtp" help="Name of the DFT package">xtp</name>
+		<name choices="xtp,orca" default="xtp" help="Name of the DFT package">orca</name>
 		<charge choices="int" default="0" help="Molecular charge">0</charge>
 		<spin choices="int+" default="1" help="Molecular multiplicity">1</spin>
 		<basisset default="def2-tzvp" help="Basis set for MOs">3-21G</basisset>
 		<auxbasisset default="OPTIONAL" help="Auxiliary basis set for RI">aux-def2-svp</auxbasisset>
+		<executable>/opt/orca/orca</executable>
 		<functional default="XC_HYB_GGA_XC_PBEH" help="Exchange correlation functional used. You can also specify an exchange and a correlation functional">XC_HYB_GGA_XC_PBEH</functional>
 	</dftpackage>
 	<store_dft choices="bool" default="false" help="If true, writes the converged orb file (the full, H-saturated supermolecule) to disk after the DFT step">false</store_dft>
@@ -19,4 +20,3 @@
 	</podcoupling>
 </ipodcoupling>
 </options>
-
