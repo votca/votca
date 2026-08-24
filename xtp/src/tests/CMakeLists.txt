@@ -560,6 +560,19 @@ if(RUN_XTP_INTEGRATIONTESTS)
   set_tests_properties(integration_Run_xtp_parallel_ipodcoupling_orca_input PROPERTIES ENVIRONMENT "VOTCASHARE=${VOTCASHARE_DIR}" FIXTURES_REQUIRED ipodcoupling_orca_input FIXTURES_SETUP ipodcoupling_orca_input_done)
   add_executable(check_ipodcoupling_input_geometry check_ipodcoupling_input_geometry.cc)
   target_link_libraries(check_ipodcoupling_input_geometry Boost::unit_test_framework)
+  # Real, direct, explicit C++17 requirement -- confirmed directly,
+  # this same session, as the real, actual root cause of a real
+  # macOS-14 CI build failure (constexpr/noexcept both genuinely
+  # failing to parse at all, deep inside Boost.Test's own headers):
+  # unlike check_ipodcoupling_coupling_output (links votca_tools) and
+  # every unit_${PROG} test above (links votca_xtp), both of which set
+  # target_compile_features(... PUBLIC cxx_std_17) and so
+  # automatically propagate C++17 to anything linking against them,
+  # this target links against neither at all, so it never genuinely
+  # inherited C++17 from anywhere -- falling back instead to CMake's
+  # own real, actual compiler default, which predates both constexpr
+  # and noexcept entirely on this real toolchain.
+  target_compile_features(check_ipodcoupling_input_geometry PRIVATE cxx_std_17)
   target_compile_definitions(check_ipodcoupling_input_geometry PRIVATE
     BOOST_TEST_DYN_LINK
     IPODCOUPLING_INPUT_TEMP_INP_FILE="${RUNPATH}/OR_FILES/workdir_ipodcoupling/frame_0/pair_0_2/temp.inp"
