@@ -39,26 +39,35 @@
 // H-saturation geometry itself, with a real, direct, small tolerance,
 // instead.
 //
-// Given that redesign, this check now does two, real, separate
+// Given that redesign, this check now does three, real, separate
 // things: (1) directly, genuinely REQUIRES that every real coupling
 // element in the actual, real ipodcoupling.jobs output genuinely has
 // its own real j attribute at all (a real, direct, fatal check -- via
 // BOOST_REQUIRE -- since a genuinely missing j value would mean
-// PODCoupling itself never actually ran, or genuinely crashed); and
-// (2) genuinely REQUIRES (BOOST_CHECK, fatal, not merely a warning)
-// that a real j value's own real magnitude agrees with the real,
-// checked-in reference within a real, direct, tight tolerance --
-// tight enough to catch a real, genuine regression, but still loose
-// enough to tolerate ordinary floating-point rounding differences
-// across real compilers/BLAS implementations/threading, since even
-// bit-identical input can still produce very slightly different
-// real floating-point results across those.
+// PODCoupling itself never actually ran, or genuinely crashed); (2)
+// allows for the real, well-known sign ambiguity in coupling matrix
+// elements (an arbitrary real MO phase choice -- a real feature of
+// electronic-structure theory, not a real bug, confirmed directly,
+// this same session, from a real, direct CI failure showing an
+// actual value equal in magnitude but opposite in sign to the
+// reference), the same way the earlier, now-replaced
+// votca_compare_xml-based version of this same test already handled
+// it directly (--signflip-attr j); and (3) genuinely REQUIRES
+// (BOOST_CHECK, fatal, not merely a warning) that a real j value's
+// own real magnitude agrees with the real, checked-in reference
+// within a real, direct, tight tolerance -- tight enough to catch a
+// real, genuine regression, but still loose enough to tolerate
+// ordinary floating-point rounding differences across real
+// compilers/BLAS implementations/threading, since even bit-identical
+// input can still produce very slightly different real floating-point
+// results across those.
 
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE check_ipodcoupling_coupling_output_test
 #include <boost/test/unit_test.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <map>
 #include <string>
@@ -156,11 +165,23 @@ BOOST_AUTO_TEST_CASE(check_j_values_present_and_agree_with_reference) {
                "against.");
 
     double j_reference = it->second;
-    double deviation_eV = std::abs(j_actual - j_reference);
+    // Real, direct, fatal correction of a real, genuine bug the user
+    // themselves caught: coupling matrix elements genuinely have an
+    // arbitrary sign, determined by an arbitrary real MO phase choice
+    // -- a real, well-known feature of electronic-structure theory,
+    // not a real bug. The earlier, now-replaced votca_compare_xml-
+    // based version of this same test already handled this directly
+    // (--signflip-attr j) -- this C++ rewrite had dropped that
+    // handling entirely. Fixed the same way here: compare against
+    // whichever of the direct or sign-flipped deviation is smaller.
+    double deviation_eV =
+        std::min(std::abs(j_actual - j_reference),
+                 std::abs(j_actual + j_reference));
     BOOST_CHECK_MESSAGE(
         deviation_eV <= tolerance_eV,
         "coupling (levelA=" << levelA << ", levelB=" << levelB
-                            << ") deviates from the reference by "
+                            << ") deviates from the reference (allowing "
+                               "for an arbitrary overall sign) by "
                             << deviation_eV << " eV (actual=" << j_actual
                             << ", reference=" << j_reference
                             << ", tolerance=" << tolerance_eV << " eV).");
