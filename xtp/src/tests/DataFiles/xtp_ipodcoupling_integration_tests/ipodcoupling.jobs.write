@@ -1,0 +1,11 @@
+<jobs>
+	<job>
+		<id>0</id>
+		<tag></tag>
+		<input>
+			<segment id="0" type="P3HTbackbone_1">0</segment>
+			<segment id="2" type="P3HTbackbone_2">2</segment>
+		</input>
+		<status>AVAILABLE</status>
+	</job>
+</jobs>

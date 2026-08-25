@@ -1,0 +1,11 @@
+<options>
+<neighborlist help="Determines neighbouring pairs for exciton transport" section="sec:neighborlist">
+	<segmentpairs default="OPTIONAL" help="list of pairs of molecules for which to create pairs" list="pair">
+		<pair help="Definition of one pair">
+			<type default="REQUIRED" help="names of two segmenttypes to create a pair">P3HTbackbone_1 P3HTbackbone_2</type>
+			<cutoff default="REQUIRED" help="cutoff value if the segmentname method is used" unit="nm">0.6</cutoff>
+		</pair>
+	</segmentpairs>
+</neighborlist>
+</options>
+

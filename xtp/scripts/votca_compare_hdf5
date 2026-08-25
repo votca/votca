@@ -138,6 +138,7 @@ def compare_arrays_generic(
     rtol: float,
     atol: float,
     max_report: int,
+    ignore_fields: Set[str] = frozenset(),
 ) -> None:
     if a.shape != b.shape:
         diffs.append(Diff(path, "shape", f"Shape differs: A {a.shape} vs B {b.shape}"))
@@ -164,11 +165,25 @@ def compare_arrays_generic(
             diffs.append(Diff(path, "dtype", f"Structured dtype detection mismatch: A {a.dtype} vs B {b.dtype}"))
             return
 
-        if a.dtype.names != b.dtype.names:
-            diffs.append(Diff(path, "dtype", f"Field names differ: A {a.dtype.names} vs B {b.dtype.names}"))
+        # Real, direct field-level ignore support -- distinct from
+        # --ignore-attr (which only ever covers HDF5 attributes, not
+        # fields within a structured dataset's own dtype at all) and
+        # from --ignore-dataset-regex (which drops an entire dataset,
+        # too blunt when only some of a structured dtype's own fields
+        # -- e.g. newly-added ones a schema migration introduced --
+        # should be excluded, while still genuinely comparing every
+        # other field the dataset already had). Applied here, before
+        # the field-name-equality check itself, so a reference file
+        # missing a newly-added field entirely (rather than merely
+        # having a different value for it) compares cleanly too.
+        a_names_eff = tuple(n for n in a.dtype.names if n not in ignore_fields)
+        b_names_eff = tuple(n for n in b.dtype.names if n not in ignore_fields)
+
+        if a_names_eff != b_names_eff:
+            diffs.append(Diff(path, "dtype", f"Field names differ: A {a_names_eff} vs B {b_names_eff}"))
             return
 
-        for name in a.dtype.names:
+        for name in a_names_eff:
             try:
                 af = a[name]
                 bf = b[name]
@@ -182,7 +197,7 @@ def compare_arrays_generic(
                         _report_first_mismatches(diffs, f"{path}:{name}", "value", coords, afn, bfn, max_report)
                     continue
 
-                compare_arrays_generic(af, bf, f"{path}:{name}", diffs, rtol, atol, max_report)
+                compare_arrays_generic(af, bf, f"{path}:{name}", diffs, rtol, atol, max_report, ignore_fields)
             except Exception as e:
                 diffs.append(Diff(f"{path}:{name}", "compare_error", f"Error comparing field '{name}': {e}"))
         return
@@ -329,6 +344,7 @@ def compare_dataset(
     td_rtol: float,
     td_atol: float,
     max_report: int,
+    ignore_fields: Set[str] = frozenset(),
 ) -> None:
     if a_ds.shape != b_ds.shape:
         diffs.append(Diff(path, "shape", f"Shape differs: A {a_ds.shape} vs B {b_ds.shape}"))
@@ -349,7 +365,7 @@ def compare_dataset(
         compare_transition_dipoles_allow_sign(a_arr, b_arr, path, diffs, td_rtol, td_atol, max_report)
         return
 
-    compare_arrays_generic(a_arr, b_arr, path, diffs, rtol, atol, max_report)
+    compare_arrays_generic(a_arr, b_arr, path, diffs, rtol, atol, max_report, ignore_fields)
 
 
 def walk_and_compare(
@@ -366,6 +382,7 @@ def walk_and_compare(
     path_tols: Dict[str, Tuple[float, float]],
     max_report: int,
     diffs: List[Diff],
+    ignore_fields: Set[str] = frozenset(),
 ) -> None:
     def recurse(path: str) -> None:
         if should_ignore_path(path, ignore_paths):
@@ -418,7 +435,7 @@ def walk_and_compare(
                     return
 
             ds_rtol, ds_atol = path_tols.get(path, (rtol, atol))
-            compare_dataset(a_obj, b_obj, path, diffs, ds_rtol, ds_atol, td_rtol, td_atol, max_report)
+            compare_dataset(a_obj, b_obj, path, diffs, ds_rtol, ds_atol, td_rtol, td_atol, max_report, ignore_fields)
 
     recurse("/")
 
@@ -445,6 +462,12 @@ def main() -> int:
                     help="HDF5 path subtree to ignore (repeatable)")
     ap.add_argument("--ignore-dataset-regex", action="append", default=[],
                     help="Regex to ignore dataset paths (repeatable)")
+    ap.add_argument("--ignore-field", action="append", default=[],
+                    help="Field name within a structured dataset's own dtype to ignore "
+                         "(repeatable) -- e.g. a newly-added field a schema migration "
+                         "introduced, present on one side only, or on both but not "
+                         "meaningfully comparable. Unlike --ignore-dataset-regex, every "
+                         "other field within the same dataset is still genuinely compared.")
     ap.add_argument("--verbose-skips", action="store_true", help="Print skipped datasets to stderr.")
 
     ap.add_argument("--max-report", type=int, default=20)
@@ -481,6 +504,7 @@ def main() -> int:
                 path_tols=path_tols,
                 max_report=args.max_report,
                 diffs=diffs,
+                ignore_fields=set(args.ignore_field),
             )
     except OSError as e:
         print(f"[compare_h5] ERROR opening files: {e}", file=sys.stderr)

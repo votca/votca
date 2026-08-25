@@ -352,10 +352,9 @@ BOOST_AUTO_TEST_CASE(pod_coupling_ethylene_dimer_consistency_checks) {
   double half_homo_gap = 0.0;
   std::string orb_file_path =
       "/tmp/xtp_test_podcoupling_ethylene_dimer_contiguous.orb";
-  double coupling_contiguous =
-      RunEthyleneDimerCoupling(canonical_lines, fragment_A_contiguous,
-                               fragment_B_contiguous, &half_homo_gap,
-                               &orb_file_path);
+  double coupling_contiguous = RunEthyleneDimerCoupling(
+      canonical_lines, fragment_A_contiguous, fragment_B_contiguous,
+      &half_homo_gap, &orb_file_path);
   double coupling_scrambled = RunEthyleneDimerCoupling(
       scrambled_lines, fragment_A_scrambled, fragment_B_scrambled);
 

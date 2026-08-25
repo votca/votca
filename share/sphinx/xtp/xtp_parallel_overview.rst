@@ -9,6 +9,7 @@ help
 .. toctree::
    eqm
    iexcitoncl
+   ipodcoupling
    iqm
    qmmm
    

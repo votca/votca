@@ -1,0 +1,239 @@
+
+DFT ERR ... 2026-8-22 22:34:16 Using 1 threads
+DFT ERR ... 2026-8-22 22:34:16 Using native Eigen implementation, no BLAS overload 
+DFT ERR ...  Molecule Coordinates [A] 
+DFT ERR ...   S   +96.3700 +291.0500 +36.3100
+DFT ERR ...   C   +94.8700 +291.8700 +36.0500
+DFT ERR ...   C   +95.0700 +292.9000 +35.1600
+DFT ERR ...   C   +96.4300 +293.0000 +34.7700
+DFT ERR ...   H   +96.8500 +293.8500 +34.2500
+DFT ERR ...   C   +97.3200 +292.1500 +35.3700
+DFT ERR ...   H   +98.3900 +292.2400 +35.4700
+DFT ERR ...   S   +92.1487 +292.0651 +36.5088
+DFT ERR ...   C   +91.3592 +290.9582 +37.5773
+DFT ERR ...   C   +92.3114 +290.2465 +38.2699
+DFT ERR ...   C   +93.6253 +290.6007 +37.8701
+DFT ERR ...   H   +94.5095 +290.0324 +38.1240
+DFT ERR ...   C   +93.7494 +291.4975 +36.8430
+DFT ERR ...   H   +94.2904 +293.5821 +34.8437
+DFT ERR ...   H   +90.2902 +290.9121 +37.7105
+DFT ERR ...   H   +92.1003 +289.4838 +39.0028
+DFT ERR ... 2026-8-22 22:34:16 Loaded DFT Basis Set 3-21G with 110 functions
+DFT ERR ... 2026-8-22 22:34:16 Loaded AUX Basis Set aux-def2-svp with 592 functions
+DFT ERR ... 2026-8-22 22:34:16 Total number of electrons: 86 (charge=0, multiplicity=1, alpha=43, beta=43, docc=43, socc=0)
+DFT ERR ... 2026-8-22 22:34:16 Smallest value of AOOverlap matrix is 0.00330787
+DFT ERR ... 2026-8-22 22:34:16 Removed 0 basisfunction from inverse overlap matrix
+DFT ERR ... 2026-8-22 22:34:16 Convergence Options:
+DFT ERR ... 		 Delta E [Ha]: 1e-07
+DFT ERR ... 		 DIIS max error: 1e-07
+DFT ERR ... 		 DIIS histlength: 20
+DFT ERR ... 		 ADIIS start: 0.8
+DFT ERR ... 		 DIIS start: 0.002
+DFT ERR ... 		 Deleting oldest element from DIIS hist
+DFT ERR ... 		 Levelshift[Ha]: 0
+DFT ERR ... 		 Levelshift end: 0.2
+DFT ERR ... 		 Mixing Parameter alpha: 0.7
+DFT ERR ... 		 Mixing end: 0.8
+DFT ERR ... 2026-8-22 22:34:16 Setup invariant parts of Electron Repulsion integrals 
+DFT ERR ... 2026-8-22 22:34:16 Constructed independent particle hamiltonian 
+DFT ERR ... 2026-8-22 22:34:16 Nuclear Repulsion Energy is 634.343098
+DFT ERR ... 2026-8-22 22:34:16 Using hybrid functional with alpha=0.25
+DFT ERR ... 2026-8-22 22:34:16 Setup numerical integration grid medium for vxc functional XC_HYB_GGA_XC_PBEH
+DFT ERR ... 2026-8-22 22:34:16 Setup Initial Guess using: atom
+DFT ERR ... 2026-8-22 22:34:16 Calculating atom density for S
+DFT ERR ... 2026-8-22 22:34:17 Calculating atom density for C
+DFT ERR ... 2026-8-22 22:34:17 Calculating atom density for H
+DFT ERR ... 2026-8-22 22:34:18 STARTING SCF cycle
+DFT ERR ...  --------------------------------------------------------------------------
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:18 Iteration 1 of 100
+DFT ERR ... 2026-8-22 22:34:19 Total Energy -1099.10496388
+DFT ERR ... 2026-8-22 22:34:19 DIIs error 0.191359667554
+DFT ERR ... 2026-8-22 22:34:19 Delta Etot 0
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:19 Iteration 2 of 100
+DFT ERR ... 2026-8-22 22:34:20 Total Energy -1099.18565351
+DFT ERR ... 2026-8-22 22:34:20 DIIs error 0.121833463543
+DFT ERR ... 2026-8-22 22:34:20 Delta Etot -0.0806896304855
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:20 Iteration 3 of 100
+DFT ERR ... 2026-8-22 22:34:20 Total Energy -1099.23034316
+DFT ERR ... 2026-8-22 22:34:20 DIIs error 0.0835633044766
+DFT ERR ... 2026-8-22 22:34:20 Delta Etot -0.0446896468504
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:20 Iteration 4 of 100
+DFT ERR ... 2026-8-22 22:34:21 Total Energy -1099.32355287
+DFT ERR ... 2026-8-22 22:34:21 DIIs error 0.0154503766729
+DFT ERR ... 2026-8-22 22:34:21 Delta Etot -0.0932097137033
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:21 Iteration 5 of 100
+DFT ERR ... 2026-8-22 22:34:22 Total Energy -1099.32483409
+DFT ERR ... 2026-8-22 22:34:22 DIIs error 0.0121907734844
+DFT ERR ... 2026-8-22 22:34:22 Delta Etot -0.00128121327134
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:22 Iteration 6 of 100
+DFT ERR ... 2026-8-22 22:34:23 Total Energy -1099.32674425
+DFT ERR ... 2026-8-22 22:34:23 DIIs error 0.00334332939769
+DFT ERR ... 2026-8-22 22:34:23 Delta Etot -0.00191016100462
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:23 Iteration 7 of 100
+DFT ERR ... 2026-8-22 22:34:23 Total Energy -1099.32641167
+DFT ERR ... 2026-8-22 22:34:23 DIIs error 0.00610693678868
+DFT ERR ... 2026-8-22 22:34:23 Delta Etot 0.000332571764602
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:23 Iteration 8 of 100
+DFT ERR ... 2026-8-22 22:34:24 Total Energy -1099.32700642
+DFT ERR ... 2026-8-22 22:34:24 DIIs error 0.00100565361856
+DFT ERR ... 2026-8-22 22:34:24 Delta Etot -0.000594750116079
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:24 Iteration 9 of 100
+DFT ERR ... 2026-8-22 22:34:25 Total Energy -1099.32702263
+DFT ERR ... 2026-8-22 22:34:25 DIIs error 5.5937574619e-05
+DFT ERR ... 2026-8-22 22:34:25 Delta Etot -1.62053395343e-05
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:25 Iteration 10 of 100
+DFT ERR ... 2026-8-22 22:34:26 Total Energy -1099.32702266
+DFT ERR ... 2026-8-22 22:34:26 DIIs error 1.07632623553e-05
+DFT ERR ... 2026-8-22 22:34:26 Delta Etot -3.07866230287e-08
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:26 Iteration 11 of 100
+DFT ERR ... 2026-8-22 22:34:26 Total Energy -1099.32702266
+DFT ERR ... 2026-8-22 22:34:26 DIIs error 7.65122268579e-06
+DFT ERR ... 2026-8-22 22:34:26 Delta Etot -9.32686816668e-10
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:26 Iteration 12 of 100
+DFT ERR ... 2026-8-22 22:34:27 Total Energy -1099.32702266
+DFT ERR ... 2026-8-22 22:34:27 DIIs error 1.39299564213e-06
+DFT ERR ... 2026-8-22 22:34:27 Delta Etot -7.91260390542e-10
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:27 Iteration 13 of 100
+DFT ERR ... 2026-8-22 22:34:28 Total Energy -1099.32702266
+DFT ERR ... 2026-8-22 22:34:28 DIIs error 6.93509204693e-07
+DFT ERR ... 2026-8-22 22:34:28 Delta Etot -1.20508047985e-11
+DFT ERR ... 
+DFT ERR ... 2026-8-22 22:34:28 Iteration 14 of 100
+DFT ERR ... 2026-8-22 22:34:29 Total Energy -1099.32702266
+DFT ERR ... 2026-8-22 22:34:29 DIIs error 2.137487883e-08
+DFT ERR ... 2026-8-22 22:34:29 Delta Etot -5.68434188608e-12
+DFT ERR ... 2026-8-22 22:34:29 Total Energy has converged to -5.68434189e-12[Ha] after 14 iterations. DIIS error is converged up to 2.13748788e-08
+DFT ERR ... 2026-8-22 22:34:29 Final Single Point Energy -1099.32702266 Ha
+DFT ERR ... 2026-8-22 22:34:29 Final Local Exc contribution -72.7997000668 Ha
+DFT ERR ... 2026-8-22 22:34:29 Final Non Local Ex contribution -22.8884418079 Ha
+DFT ERR ...   Orbital energies: 
+DFT ERR ...   index occupation energy(Hartree) 
+DFT ERR ...      0      2   -88.9795799222
+DFT ERR ...      1      2   -88.9780450986
+DFT ERR ...      2      2   -10.2384632948
+DFT ERR ...      3      2   -10.2353907570
+DFT ERR ...      4      2   -10.2222480028
+DFT ERR ...      5      2   -10.2194894756
+DFT ERR ...      6      2   -10.1965645018
+DFT ERR ...      7      2   -10.1950916555
+DFT ERR ...      8      2   -10.1925886148
+DFT ERR ...      9      2   -10.1911321704
+DFT ERR ...     10      2   -7.9943974843
+DFT ERR ...     11      2   -7.9931117306
+DFT ERR ...     12      2   -5.9047941356
+DFT ERR ...     13      2   -5.9035762765
+DFT ERR ...     14      2   -5.8997556557
+DFT ERR ...     15      2   -5.8985339202
+DFT ERR ...     16      2   -5.8940752082
+DFT ERR ...     17      2   -5.8927979507
+DFT ERR ...     18      2   -0.9509199945
+DFT ERR ...     19      2   -0.9285079184
+DFT ERR ...     20      2   -0.8108306247
+DFT ERR ...     21      2   -0.7778934650
+DFT ERR ...     22      2   -0.7631550650
+DFT ERR ...     23      2   -0.7410815364
+DFT ERR ...     24      2   -0.6361070563
+DFT ERR ...     25      2   -0.6076705711
+DFT ERR ...     26      2   -0.5724399282
+DFT ERR ...     27      2   -0.5517787562
+DFT ERR ...     28      2   -0.5473103349
+DFT ERR ...     29      2   -0.5086393041
+DFT ERR ...     30      2   -0.4533319680
+DFT ERR ...     31      2   -0.4422819450
+DFT ERR ...     32      2   -0.4326290213
+DFT ERR ...     33      2   -0.4279119870
+DFT ERR ...     34      2   -0.4180969103
+DFT ERR ...     35      2   -0.3959176373
+DFT ERR ...     36      2   -0.3933503632
+DFT ERR ...     37      2   -0.3555178148
+DFT ERR ...     38      2   -0.3411176926
+DFT ERR ...     39      2   -0.2992384780
+DFT ERR ...     40      2   -0.2732582836
+DFT ERR ...     41      2   -0.2668103553
+DFT ERR ...     42      2   -0.2227530028
+DFT ERR ...     43      0   -0.0508553576
+DFT ERR ...     44      0   +0.0210306612
+DFT ERR ...     45      0   +0.0541402418
+DFT ERR ...     46      0   +0.0580430140
+DFT ERR ...     47      0   +0.0690997725
+DFT ERR ...     48      0   +0.0851350814
+DFT ERR ...     49      0   +0.1159684011
+DFT ERR ...     50      0   +0.1312260133
+DFT ERR ...     51      0   +0.1434781646
+DFT ERR ...     52      0   +0.1495821438
+DFT ERR ...     53      0   +0.1988973239
+DFT ERR ...     54      0   +0.2075977666
+DFT ERR ...     55      0   +0.2177037402
+DFT ERR ...     56      0   +0.2371146591
+DFT ERR ...     57      0   +0.2777224957
+DFT ERR ...     58      0   +0.2946319611
+DFT ERR ...     59      0   +0.3118620275
+DFT ERR ...     60      0   +0.3803952152
+DFT ERR ...     61      0   +0.3977874800
+DFT ERR ...     62      0   +0.4376162093
+DFT ERR ...     63      0   +0.4498710904
+DFT ERR ...     64      0   +0.4838393143
+DFT ERR ...     65      0   +0.4899974351
+DFT ERR ...     66      0   +0.5300040769
+DFT ERR ...     67      0   +0.5323668133
+DFT ERR ...     68      0   +0.5451104837
+DFT ERR ...     69      0   +0.5604103706
+DFT ERR ...     70      0   +0.5809935219
+DFT ERR ...     71      0   +0.6136465311
+DFT ERR ...     72      0   +0.6761316741
+DFT ERR ...     73      0   +0.7220183788
+DFT ERR ...     74      0   +0.7280324890
+DFT ERR ...     75      0   +0.7390324539
+DFT ERR ...     76      0   +0.7540254719
+DFT ERR ...     77      0   +0.7553367656
+DFT ERR ...     78      0   +0.7614543564
+DFT ERR ...     79      0   +0.7983722298
+DFT ERR ...     80      0   +0.8101501729
+DFT ERR ...     81      0   +0.8157194903
+DFT ERR ...     82      0   +0.8353017953
+DFT ERR ...     83      0   +0.8405053578
+DFT ERR ...     84      0   +0.8796736536
+DFT ERR ...     85      0   +0.9079496676
+DFT ERR ...     86      0   +0.9533847900
+DFT ERR ...     87      0   +0.9920801192
+DFT ERR ...     88      0   +0.9994645782
+DFT ERR ...     89      0   +1.0120284726
+DFT ERR ...     90      0   +1.0266839074
+DFT ERR ...     91      0   +1.0376254500
+DFT ERR ...     92      0   +1.0647130995
+DFT ERR ...     93      0   +1.0800130280
+DFT ERR ...     94      0   +1.1490941165
+DFT ERR ...     95      0   +1.2406020301
+DFT ERR ...     96      0   +1.2578293801
+DFT ERR ...     97      0   +1.3057115206
+DFT ERR ...     98      0   +1.3658574237
+DFT ERR ...     99      0   +1.3697254806
+DFT ERR ...    100      0   +1.3850833143
+DFT ERR ...    101      0   +1.4047359817
+DFT ERR ...    102      0   +1.4892841586
+DFT ERR ...    103      0   +1.5459281752
+DFT ERR ...    104      0   +1.5727709812
+DFT ERR ...    105      0   +1.6669250160
+DFT ERR ...    106      0   +1.8158722133
+DFT ERR ...    107      0   +1.9079263064
+DFT ERR ...    108      0   +1.9981066388
+DFT ERR ...    109      0   +2.0407637363
+DFT ERR ... 2026-8-22 22:34:29 Electric Dipole is[e*bohr]:
+		 dx=0.0323959495873
+		 dy=0.0872930188078
+		 dz=0.153914069561
+DFT ERR ... Writing result to temp.orb
+DFT ERR ... 2026-8-22 22:34:29 DFT calculation took 12.900924 seconds.

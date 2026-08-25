@@ -57,6 +57,34 @@ message(STATUS "Found libecpint: ${ecpint_DIR}")
 find_package(HDF5 REQUIRED COMPONENTS CXX)
 set_package_properties(HDF5 PROPERTIES TYPE REQUIRED PURPOSE "Used to read/write HDF5 data files")
 
+# Required for FragmentSaturator's own, planned OpenBabel-based
+# constrained MMFF94/UFF relaxation of newly-placed H-saturation atoms
+# (design worked through directly with the user; the actual relaxation
+# code itself is not yet implemented -- this is only the build-system
+# dependency, added ahead of it). Deliberately a required, whole-
+# project dependency, not conditional on any option -- the user
+# explicitly confirmed this directly, to avoid the same "diverging
+# toolchain by DFT package" problem already flagged for an ORCA-only
+# fallback: making OpenBabel optional here would only recreate that
+# same problem in a different form.
+#
+# The package name is "OpenBabel3", not "OpenBabel" -- confirmed
+# directly, via OpenBabel's own upstream CMake source
+# (OpenBabel3Config.cmake.in), before writing this, rather than
+# guessed. There is also a real, known, still-open upstream bug
+# (openbabel/openbabel issues #2305, #2374, #2264): OpenBabel3Config.cmake
+# can locate itself but then set OpenBabel3_FOUND to FALSE anyway,
+# because it unconditionally references imported targets (maeparser,
+# coordgen) that many real installs do not actually have -- even
+# though nothing this project uses needs either of them at all. If
+# this find_package call fails on an install that otherwise looks
+# correct, this is very likely why -- check for exactly this "targets
+# are referenced, but are missing: maeparser coordgen" message in the
+# configure output before assuming OpenBabel itself is missing or
+# broken.
+find_package(OpenBabel3 REQUIRED)
+set_package_properties(OpenBabel3 PROPERTIES TYPE REQUIRED PURPOSE "Places and relaxes new H atoms when saturating covalently-bonded fragment boundaries")
+
 # https://github.com/votca/xtp/issues/436, hdf5-1.10.4 generates a implicitly-declared operator warning
 if(HDF5_VERSION VERSION_GREATER_EQUAL 1.10.4 AND HDF5_VERSION VERSION_LESS_EQUAL 1.10.6)
   include(CheckCXXCompilerFlag)

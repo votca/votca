@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<options>
+  <ipodcoupling help="Computes an electronic coupling between two, real, neighbor-list segments via POD2 (Projection Operator Diabatization), on a single, real, converged ground-state DFT calculation of the H-saturated supermolecule assembled from them -- mirrors IQM's own overall workflow (mapping, saturation-eligibility, H-saturation, relaxation, DFT), then hands off to PODCoupling for the actual coupling itself, instead of IQM's own dftcoupling/bsecoupling. See podcoupling.xml's own help text for the underlying POD2 method itself." section="sec:ipodcoupling">
+    <job_file help="name of jobfile to which jobs are written" default="ipodcoupling.jobs"/>
+    <map_file help="xml file with segment definition" default="votca_map.xml"/>
+    <tasks help="tasks to perform during calculation" default="input,dft,parse,podcoupling" choices="[input,dft,parse,podcoupling]"/>
+    <dftpackage link="dftpackage.xml"/>
+    <store_dft help="If true, writes the converged orb file (the full, H-saturated supermolecule) to disk after the DFT step" default="false" choices="bool"/>
+    <include_linkers help="If true, looks for real, actual linker segments genuinely, covalently connecting the two, real, neighbor-list segments (via Topology::FindLinkingSegments, real bond connectivity only -- no segment-type whitelist at all, unlike IQM's own linker_names), PBC-correctly positions them, and includes them in the supermolecule -- their own atoms belong to NEITHER fragment_A_atoms nor fragment_B_atoms in the resulting PODCoupling calculation. Default off, matching IQM's own default-off linker behavior." default="false" choices="bool"/>
+    <podcoupling help="Options for the actual POD2 coupling calculation itself, once the H-saturated supermolecule's own DFT is converged">
+      <levA help="Number of orbitals to cover for fragment A, counting outward from its own HOMO/LUMO boundary, covering BOTH occupied (hole-transport) and virtual (electron-transport) orbitals together in one calculation -- same convention as DFTcoupling's own levA/podcoupling.xml's own levA exactly. 1 covers just {HOMO, LUMO}; 2 covers {HOMO-1, HOMO, LUMO, LUMO+1}; etc." default="1" choices="int+"/>
+      <levB help="Same as levA, for fragment B" default="1" choices="int+"/>
+    </podcoupling>
+  </ipodcoupling>
+</options>

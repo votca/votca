@@ -93,6 +93,33 @@ void Atom::SetupCptTable(CptTable& table) {
   table.addCol<double>("pos.y", HOFFSET(data, y));
   table.addCol<double>("pos.z", HOFFSET(data, z));
   table.addCol<Index>("resnr", HOFFSET(data, resnr));
+  table.addCol<bool>("has_external_bond", HOFFSET(data, has_external_bond));
+  table.addCol<double>("ext_bond_dir.x", HOFFSET(data, ext_bond_dir_x));
+  table.addCol<double>("ext_bond_dir.y", HOFFSET(data, ext_bond_dir_y));
+  table.addCol<double>("ext_bond_dir.z", HOFFSET(data, ext_bond_dir_z));
+  // Deliberately only the SEGMENT id is persisted here -- the
+  // transient external_bond_partner_atom_id_ (see this class's own
+  // header comment for why) has no corresponding column at all, by
+  // design.
+  table.addCol<Index>("ext_bond_partner_segment_id",
+                      HOFFSET(data, ext_bond_partner_segment_id));
+  // CptTable::addCol<U>() only supports fundamental types (confirmed
+  // directly by reading its own static_assert before relying on this
+  // -- no array support at all), so each of the kMaxBondedPartners
+  // slots needs its own, separate column, rather than one, single
+  // "array" column. Uses HOFFSET(data, bonded_partner_ids) + i *
+  // sizeof(Index), the offset of the array member itself plus a
+  // computed byte offset, rather than HOFFSET(data,
+  // bonded_partner_ids[i]) directly -- offsetof() into a specific
+  // array element is a known "gray area" (technically undefined
+  // behavior per the strict C++ standard, even though widely
+  // supported in practice), and this project's own -Wall -Wextra
+  // build flags make it worth avoiding rather than risking a warning.
+  for (Index i = 0; i < kMaxBondedPartners; i++) {
+    table.addCol<Index>(
+        "bonded_partner_id." + std::to_string(i),
+        HOFFSET(data, bonded_partner_ids) + size_t(i) * sizeof(Index));
+  }
 }
 
 void Atom::WriteData(data& d) const {
@@ -103,6 +130,14 @@ void Atom::WriteData(data& d) const {
   d.y = pos_[1];
   d.z = pos_[2];
   d.resnr = resnr_;
+  d.has_external_bond = has_external_bond_;
+  d.ext_bond_dir_x = external_bond_direction_[0];
+  d.ext_bond_dir_y = external_bond_direction_[1];
+  d.ext_bond_dir_z = external_bond_direction_[2];
+  d.ext_bond_partner_segment_id = external_bond_partner_segment_id_;
+  for (Index i = 0; i < kMaxBondedPartners; i++) {
+    d.bonded_partner_ids[i] = bonded_partner_ids_[i];
+  }
 }
 
 void Atom::ReadData(const data& d) {
@@ -115,6 +150,14 @@ void Atom::ReadData(const data& d) {
   pos_[2] = d.z;
   pos_[1] = d.y;
   resnr_ = d.resnr;
+  has_external_bond_ = d.has_external_bond;
+  external_bond_direction_[0] = d.ext_bond_dir_x;
+  external_bond_direction_[1] = d.ext_bond_dir_y;
+  external_bond_direction_[2] = d.ext_bond_dir_z;
+  external_bond_partner_segment_id_ = d.ext_bond_partner_segment_id;
+  for (Index i = 0; i < kMaxBondedPartners; i++) {
+    bonded_partner_ids_[i] = d.bonded_partner_ids[i];
+  }
 }
 }  // namespace xtp
 }  // namespace votca

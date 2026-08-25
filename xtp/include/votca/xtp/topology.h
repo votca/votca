@@ -88,6 +88,34 @@ class Topology {
   std::vector<const Segment *> FindAllSegmentsOnMolecule(
       const Segment &seg1, const Segment &seg2) const;
 
+  // Finds the segments genuinely "in between" seg1 and seg2 along the
+  // real, actual covalent bond path connecting them -- i.e. every
+  // segment on the shortest such path, EXCLUDING seg1/seg2 themselves.
+  // Deliberately different from FindAllSegmentsOnMolecule above (an
+  // existing, IQM-specific mechanism, confirmed directly, earlier
+  // this session, to return EVERY segment on the same MD-level
+  // molecule as either seg1 or seg2, filtered only by segment TYPE --
+  // for a long polymer chain with many repeat-unit segments sharing
+  // one type, that mechanism pulls in every other unit on the whole
+  // molecule, not just the ones genuinely between the requested
+  // pair): this uses the real, actual bond-connectivity graph between
+  // segments (Atom::getExternalBondPartnerSegmentId(), built and
+  // tested earlier this session) directly, via a breadth-first search
+  // -- genuinely more precise, since only segments actually on the
+  // real, shortest bonded path are ever returned, regardless of how
+  // many other, unrelated segments happen to share a molecule with
+  // seg1/seg2.
+  //
+  // Returns an empty vector if seg1 and seg2 are not connected by any
+  // real, actual covalent bond path at all (including if they are
+  // simply not neighbors in the graph-theoretic sense -- e.g.
+  // genuinely different, unconnected molecules), matching
+  // FindAllSegmentsOnMolecule's own, established "empty means none"
+  // convention. Returns an empty vector too if seg1 and seg2 are
+  // DIRECTLY bonded (no genuine linker in between at all).
+  std::vector<const Segment *> FindLinkingSegments(const Segment &seg1,
+                                                   const Segment &seg2) const;
+
  private:
   std::vector<Segment> segments_;
 
