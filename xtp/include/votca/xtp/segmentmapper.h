@@ -89,6 +89,48 @@ class SegmentMapper {
                       const std::vector<mapAtom*>& fragment_mapatoms,
                       const std::vector<const Atom*>& fragment_mdatoms) const;
 
+  // Default, no-op implementation for AtomContainer types whose own
+  // mapAtom type has no hasExternalBond()/setExternalBondDirection()
+  // interface at all (StaticSegment/PolarSegment's own atom types --
+  // this feature is currently QM-specific only). Given an already-
+  // computed rotation (rot, no translation -- a direction is
+  // translation-invariant by construction, matching the same
+  // "rotate the position-minus-reference-point difference only"
+  // principle Atom::Rotate/QMAtom::Rotate's own, existing
+  // implementation already uses), transfers the MD atom's own,
+  // already-recorded, raw external-bond direction onto the mapped
+  // atom, rotated into the mapped atom's own reference frame -- and,
+  // alongside it, the SEGMENT id (Atom::
+  // getExternalBondPartnerSegmentId()) that bond crosses into, copied
+  // straight across, unchanged (a segment id needs no rigid-body
+  // transform at all, it is not a geometric quantity). Explicitly
+  // specialized for SegmentMapper<QMMolecule> below, where QMAtom
+  // actually does have this interface -- matching the same,
+  // already-established pattern this class already uses for
+  // FillMap()/getRank() above.
+  void TransferExternalBondDirection(mapAtom*, const Atom*,
+                                     const Eigen::Matrix3d&) const {}
+
+  // Same default, no-op/specialization pattern as
+  // TransferExternalBondDirection above, for the same reason
+  // (StaticSegment/PolarSegment's own atom types have no
+  // getBondedPartnerIds()/AddBondedPartner() interface at all).
+  // Given a "MD-level atom ID -> mapped atom" lookup covering the
+  // WHOLE segment (not just this one fragment -- a bonded partner can
+  // genuinely be in a different fragment of the same segment), and
+  // the corresponding MD-level Atom whose own, raw, MD-level partner
+  // IDs need translating, looks each one up in that lookup and, if
+  // found (i.e. the partner is itself part of this same segment --
+  // if not found, the partner belongs to a genuinely different
+  // segment, and is silently skipped, since that partner has no
+  // corresponding mapped atom within this call's own Result at all,
+  // matching this class's own, existing convention of never crossing
+  // segment boundaries within a single map() call), adds its own
+  // mapped ID onto map_atom directly. Explicitly specialized for
+  // SegmentMapper<QMMolecule> below.
+  void TransferBondedPartners(mapAtom*, const Atom*,
+                              const std::map<Index, mapAtom*>&) const {}
+
   Logger& log_;
   std::pair<Index, Index> CalcAtomIdRange(const Segment& seg) const;
   std::pair<Index, Index> CalcAtomIdRange(const std::vector<Index>& seg) const;
@@ -131,6 +173,33 @@ inline void SegmentMapper<QMMolecule>::FillMap() {
 template <>
 inline Index SegmentMapper<QMMolecule>::getRank(const QMAtom&) const {
   return 0;
+}
+
+template <>
+inline void SegmentMapper<QMMolecule>::TransferExternalBondDirection(
+    QMAtom* map_atom, const Atom* md_atom, const Eigen::Matrix3d& rot) const {
+  if (md_atom->hasExternalBond()) {
+    map_atom->setExternalBondDirection(rot *
+                                       md_atom->getExternalBondDirection());
+    map_atom->setExternalBondPartnerSegmentId(
+        md_atom->getExternalBondPartnerSegmentId());
+  }
+}
+
+template <>
+inline void SegmentMapper<QMMolecule>::TransferBondedPartners(
+    QMAtom* map_atom, const Atom* md_atom,
+    const std::map<Index, QMAtom*>& md_id_to_map_atom) const {
+  for (Index i = 0; i < Atom::kMaxBondedPartners; i++) {
+    Index partner_md_id = md_atom->getBondedPartnerIds()[i];
+    if (partner_md_id == -1) {
+      continue;
+    }
+    auto it = md_id_to_map_atom.find(partner_md_id);
+    if (it != md_id_to_map_atom.end()) {
+      map_atom->AddBondedPartner(it->second->getId());
+    }
+  }
 }
 
 using QMMapper = SegmentMapper<QMMolecule>;

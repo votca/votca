@@ -25,6 +25,8 @@
     <error>1e-6</error>
     <DIIS_maxout>false</DIIS_maxout>
     <mixing>0.7</mixing>
+    <mixing_max>0.98</mixing_max>
+    <mixing_end>0.8</mixing_end>
 </convergence>
 <integration_grid>medium</integration_grid>
 </xtpdft>

@@ -163,6 +163,9 @@ BOOST_AUTO_TEST_CASE(dft_active) {
   xml << "    <error>1e-7</error>\n";
   xml << "    <DIIS_maxout>false</DIIS_maxout>\n";
   xml << "    <mixing>0.7</mixing>\n";
+  xml << "    <mixing_max>0.98</mixing_max>\n";
+  xml << "    <mixing_end>0.8</mixing_end>\n";
+  xml << "    <davidson_max_iter>50</davidson_max_iter>\n";
   xml << "</convergence>" << std::endl;
   xml << "<integration_grid>xcoarse</integration_grid>" << std::endl;
   xml << "<max_iterations>100</max_iterations>" << std::endl;

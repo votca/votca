@@ -45,6 +45,15 @@ class DftGwBse final : public QMTool {
 
  private:
   std::string guess_file_;
+  // Separate from guess_file_ above: guess_file_ loads BOTH geometry
+  // and MOs from the same .orb checkpoint (via Orbitals::ReadFromCpt),
+  // which cannot represent "new geometry, but warm-started MOs from a
+  // previous, different geometry" -- exactly what a geometry
+  // optimization needs between steps. moguess_file_ loads ONLY the
+  // MOs from a separate .orb file, leaving the geometry itself to come
+  // from xyzfile_ as usual. See this class's own Run() for how the
+  // two are combined.
+  std::string moguess_file_;
   std::string mpsfile_;
 
   std::string xyzfile_;

@@ -20,6 +20,47 @@ In small molecule systems each molecule is typically chosen as a single conjugat
 After the system is partitioned into segments, these segments are additionally separated into rigid fragments, as depicted in :numref:`fig_theory_fragment_def`. These fragments are typically insensitive to thermal fluctuations, e.g., a thiophene or benzene ring stays planar even at elevated temperatures. Although the fragment definitions are theoretically not necessary for the calculation of rates, the molecular dynamics configurations of the rigid fragments are often replaced with quantum mechanically optimized rigid fragments, in order to *integrate out* fast degrees of freedom, e.g. the promoting modes, which are already described in the rate models. This has the additional benefit of removing some of the mismatch between quantum mechanically obtained geometries and molecular dynamics results.  
 
 
+H-Saturation of Cut Segment Boundaries
+***************************************
+
+Cutting a polymer chain into segments, as in :numref:`fig_theory_fragment_def` (c), necessarily
+cuts through one or more real, covalent bonds wherever a segment boundary falls between two
+bonded atoms -- e.g. between consecutive repeat units of a backbone, or between a backbone and a
+side chain mapped as its own, separate segment. Left alone, this leaves the corresponding
+boundary atom with a genuine dangling valence, which is not a physically meaningful starting
+point for a quantum calculation.
+
+The ``ipodcoupling`` calculator (an ``xtp_parallel`` job calculator, computing an electronic
+coupling between two neighbor-list segments via POD2, Projection Operator Diabatization)
+addresses this the same way standard QM/MM link-atom schemes do: every cut bond is automatically
+capped with a new hydrogen atom, placed along the original bond's own direction at a typical C-H
+bond length, then relaxed (holding every original, heavy atom fixed) via a constrained molecular-
+mechanics optimization, so the new atom's own local geometry is reasonable rather than merely
+geometrically placed. This saturation is applied only where a cut bond's own partner segment is
+not already part of the same calculation -- a bond to a segment that is genuinely included on
+both sides (e.g. the direct bond between the two neighbor-list segments themselves) is left
+untouched, since it is not actually cut within that specific pair's own supermolecule at all.
+
+Where the two neighbor-list segments are not directly bonded, but are instead connected through
+one or more intermediate segments along the same real, covalent chain (for instance, a polymer
+repeat unit bridging two segments that are themselves further apart along the backbone), these
+linking segments can optionally be included in the calculation too, positioned periodic-boundary-
+correctly along the real bond chain connecting them; their own atoms are not assigned to either
+of the two, principal donor/acceptor fragments used in the POD2 coupling itself.
+
+This whole mechanism depends entirely on the underlying MD topology actually carrying real bond
+connectivity of its own -- not every topology reader does: one that only ever provides atom
+positions (for instance, a structure sourced from elsewhere with only a "fake" topology attached)
+leaves ``ipodcoupling`` unable to detect any external bonds at all, and H-saturation silently
+does nothing. Both ``xtp_map`` and ``ipodcoupling`` warn directly if this is the case. For a
+topology that genuinely has no bond data of its own, ``xtp_map``'s ``--guess-bonds`` option can
+infer one instead: atom pairs within the same molecule are considered bonded if their separation
+is less than 60% of the sum of their van der Waals radii, the same simple heuristic VMD itself
+uses for visualization. This is never applied automatically, and every guessed bond is written to
+a real, inspectable report -- the heuristic is a known-imperfect approximation, and its result
+should be checked before being trusted for anything at all.
+
+
 Site Energies
 *************
 
@@ -155,6 +196,70 @@ CHELPG partial charges :math:`\{q_i\}` are derived by calculating the electrosta
 
 
 where :math:`j` runs over all grid points, :math:`\phi_{el}(\mathbf{g}_j)` is the respective potential at that grid point and :math:`N` is the number of atomic sites. :math:`\lambda` is a Lagrange multiplier to constrain the optimization to the desired total charge of the molecule :math:`q_{\text{mol}}`.
+
+Electronic Couplings
+*********************
+
+The electronic coupling :math:`J_{AB}` between two diabatic states :math:`\ket{A}` and :math:`\ket{B}`, introduced in :eq:`equ:theory:electroniccoupling`, cannot be evaluated directly, as the diabatic states themselves are, in general, not accessible from an ordinary electronic structure calculation. In practice :math:`J_{AB}` has to be approximated from quantities that quantum-chemistry codes do provide: the molecular orbitals and Fock/Kohn-Sham matrices of one or more auxiliary calculations. VOTCA provides two such projective schemes, DIPRO and POD2, differing in which auxiliary calculations they require and, consequently, in which pairs of fragments they are suited for.
+
+DIPRO
+=====
+
+DIPRO (dimer projection) [Baumeier:2010]_ approximates the diabatic states :math:`\ket{A}`, :math:`\ket{B}` by the frontier molecular orbitals :math:`\phi^A`, :math:`\phi^B` of the two, separately converged monomers :math:`A` and :math:`B`. Because the monomers are calculated in isolation, this approximation is only meaningful if the two fragments are not covalently bonded to each other, e.g. two neighboring molecules in a morphology.
+
+Since :math:`\phi^A` and :math:`\phi^B` are not eigenfunctions of the combined, dimer Hamiltonian :math:`\hat{H}^{AB}`, they are first projected onto the manifold of dimer molecular orbitals :math:`\{\psi_i^D\}`, obtained from a third, combined calculation on the dimer :math:`AB`:
+
+.. math::
+    :label: equ:theory:dipro_projection
+
+    \gamma_i^{A(B)}=\braket{\phi^{A(B)}}{\psi_i^D}
+
+The matrix element :math:`J_{AB}` then follows from inserting these projections into the dimer's own, diagonal Hamiltonian:
+
+.. math::
+    :label: equ:theory:dipro_JAB
+
+    J_{AB}=\sum_i \gamma_i^A \mathcal{E}_i \gamma_i^B
+
+with :math:`\mathcal{E}_i` the orbital energy of dimer molecular orbital :math:`\psi_i^D`. As :math:`\phi^A` and :math:`\phi^B` are, in general, not mutually orthogonal (:math:`S_{AB}=\braket{\phi^A}{\phi^B}\neq 0`), evaluating :math:`J_{AB}` and :math:`S_{AB}` this way does not by itself yield the electronic coupling in an orthogonal, diabatic basis. A Löwdin orthogonalization of the :math:`2\times2` subspace spanned by :math:`\phi^A`, :math:`\phi^B` removes this non-orthogonality and yields the effective coupling
+
+.. math::
+    :label: equ:theory:dipro_effective
+
+    t_{AB}=\frac{J_{AB}-\frac{1}{2}(e_A+e_B)S_{AB}}{1-S_{AB}^2}
+
+where :math:`e_{A(B)}=\braket{\phi^{A(B)}|\hat{H}^{AB}|\phi^{A(B)}}` are the site energies of the (raw, not yet orthogonalized) monomer states within the dimer. DIPRO thus requires three separate quantum-chemical calculations per pair (monomer :math:`A`, monomer :math:`B`, dimer :math:`AB`), which is the origin of its main practical limitation: it cannot represent a covalent bond crossing the boundary between fragments :math:`A` and :math:`B`, since such a bond does not exist in either isolated monomer calculation at all.
+
+POD2
+====
+
+Projection Operator Diabatization, in its POD2 variant [Ghan:2020]_, addresses exactly this limitation. Rather than combining two, separately converged monomer calculations, POD2 starts from a single, already self-consistent calculation on the intact, combined system, e.g. a single molecule containing both fragments :math:`A` and :math:`B` connected by a covalent bond. The converged Fock matrix :math:`F` of this single calculation, expressed in the atomic orbital (AO) basis, is partitioned into fragment blocks according to which fragment each AO basis function belongs to:
+
+.. math::
+
+    F=
+    \begin{pmatrix}
+    F_{AA} & F_{AB}\\
+    F_{BA} & F_{BB}
+    \end{pmatrix},
+    \qquad
+    S=
+    \begin{pmatrix}
+    S_{AA} & S_{AB}\\
+    S_{BA} & S_{BB}
+    \end{pmatrix}
+
+with :math:`S` the corresponding AO overlap matrix. Diagonalizing the diagonal blocks :math:`F_{AA}`, :math:`F_{BB}` separately, each as its own generalized eigenvalue problem against the corresponding overlap block,
+
+.. math::
+
+    F_{AA}\,\phi^A=S_{AA}\,\phi^A\,\epsilon^A,\qquad F_{BB}\,\phi^B=S_{BB}\,\phi^B\,\epsilon^B,
+
+yields fragment-localized orbitals :math:`\phi^A`, :math:`\phi^B` directly, without ever requiring a separate calculation on either fragment in isolation. This diagonalization is carried out in the original AO basis, rather than a globally Löwdin-orthogonalized one, as the latter was found to make the resulting couplings unstable with respect to the choice of basis set [Ghan:2020]_ -- this is the specific "2" distinguishing POD2 from the original POD scheme.
+
+As in DIPRO, the resulting fragment orbitals :math:`\phi^A`, :math:`\phi^B` are, in general, not mutually orthogonal, and the raw matrix element :math:`J_{AB}=\braket{\phi^A|F|\phi^B}` must be corrected via the same Löwdin transformation, :eq:`equ:theory:dipro_effective`, using :math:`S_{AB}=\braket{\phi^A}{\phi^B}` and the fragment orbital energies :math:`e_{A(B)}=\braket{\phi^{A(B)}|F|\phi^{A(B)}}`.
+
+Because POD2 only ever requires the single, combined-system calculation, the two fragments :math:`A` and :math:`B` need not partition the calculated system exhaustively; atoms belonging to neither fragment (e.g. a spacer or linker group) may simply be left unassigned. This, together with its ability to represent a genuine covalent bond crossing the fragment boundary, makes POD2 the appropriate choice for pairs of fragments within a single, covalently connected molecule, complementing DIPRO's own use for pairs of separate, non-bonded molecules.
 
 Reorganization energies
 ***********************

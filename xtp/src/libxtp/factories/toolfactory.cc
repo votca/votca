@@ -35,6 +35,7 @@
 #include "tools/orb2fchk.h"
 #include "tools/orb2mol.h"
 #include "tools/partialcharges.h"
+#include "tools/podcouplingtool.h"
 #include "tools/spectrum.h"
 
 namespace votca {
@@ -55,6 +56,7 @@ void QMToolFactory::RegisterAll() {
   this->Register<Mol2Orb>("mol2orb");
   this->Register<Orb2Mol>("orb2mol");
   this->Register<Diabatization>("diabatization");
+  this->Register<PodCouplingTool>("podcoupling");
   this->Register<Orb2Fchk>("orb2fchk");
   this->Register<GPUBenchmark>("gpu_benchmark");
 }

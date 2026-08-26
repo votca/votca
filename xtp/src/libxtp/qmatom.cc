@@ -45,6 +45,24 @@ void QMAtom::SetupCptTable(CptTable& table) {
   table.addCol<double>("posZ", HOFFSET(data, z));
   table.addCol<Index>("nuccharge", HOFFSET(data, nuccharge));
   table.addCol<Index>("ecpcharge", HOFFSET(data, ecpcharge));
+  table.addCol<bool>("has_external_bond", HOFFSET(data, has_external_bond));
+  table.addCol<double>("ext_bond_dir.x", HOFFSET(data, ext_bond_dir_x));
+  table.addCol<double>("ext_bond_dir.y", HOFFSET(data, ext_bond_dir_y));
+  table.addCol<double>("ext_bond_dir.z", HOFFSET(data, ext_bond_dir_z));
+  table.addCol<Index>("ext_bond_partner_segment_id",
+                      HOFFSET(data, ext_bond_partner_segment_id));
+  // Same reasoning as Atom::SetupCptTable's own, identical block:
+  // CptTable::addCol<U>() only supports fundamental types (no array
+  // support), so each slot needs its own column; HOFFSET(data,
+  // bonded_partner_ids) + i*sizeof(Index) is used rather than
+  // HOFFSET(data, bonded_partner_ids[i]) directly, to avoid a known
+  // "gray area" (offsetof into a specific array element) under this
+  // project's own -Wall -Wextra build flags.
+  for (Index i = 0; i < kMaxBondedPartners; i++) {
+    table.addCol<Index>(
+        "bonded_partner_id." + std::to_string(i),
+        HOFFSET(data, bonded_partner_ids) + size_t(i) * sizeof(Index));
+  }
 }
 
 void QMAtom::WriteData(data& d) const {
@@ -55,6 +73,14 @@ void QMAtom::WriteData(data& d) const {
   d.z = pos_[2];
   d.nuccharge = nuccharge_;
   d.ecpcharge = ecpcharge_;
+  d.has_external_bond = has_external_bond_;
+  d.ext_bond_dir_x = external_bond_direction_[0];
+  d.ext_bond_dir_y = external_bond_direction_[1];
+  d.ext_bond_dir_z = external_bond_direction_[2];
+  d.ext_bond_partner_segment_id = external_bond_partner_segment_id_;
+  for (Index i = 0; i < kMaxBondedPartners; i++) {
+    d.bonded_partner_ids[i] = bonded_partner_ids_[i];
+  }
 }
 
 void QMAtom::ReadData(const data& d) {
@@ -66,6 +92,14 @@ void QMAtom::ReadData(const data& d) {
   pos_[2] = d.z;
   nuccharge_ = d.nuccharge;
   ecpcharge_ = d.ecpcharge;
+  has_external_bond_ = d.has_external_bond;
+  external_bond_direction_[0] = d.ext_bond_dir_x;
+  external_bond_direction_[1] = d.ext_bond_dir_y;
+  external_bond_direction_[2] = d.ext_bond_dir_z;
+  external_bond_partner_segment_id_ = d.ext_bond_partner_segment_id;
+  for (Index i = 0; i < kMaxBondedPartners; i++) {
+    bonded_partner_ids_[i] = d.bonded_partner_ids[i];
+  }
 }
 }  // namespace xtp
 }  // namespace votca

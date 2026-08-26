@@ -16,6 +16,11 @@ Version 2026-dev
 -  use IEEE data types in HDF5 (#1241, #1242)
 -  fixing bisection in QP solve (#1244)
 -  added quasiparticle self-consistent GW (#1245)
+-  implemented analytic DFT gradients (#1246)
+-  implemented Charge Constrained DFT (CDFT) (#1247)
+-  reduced memory in analytic forces (#1248)
+-  implemented POD2 electronic coupling method and standalone podcoupling tool (#1249)
+-  POD2 coupling for morphology with automated H saturation (#1250)
 
 Version 2026 (released 09.03.26)
 ================================

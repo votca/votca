@@ -339,7 +339,6 @@ BOOST_AUTO_TEST_CASE(gw_full_QP_grid_brent_matches_bisection) {
   libint2::finalize();
 }
 
-
 BOOST_AUTO_TEST_CASE(qsgw_ppm) {
   // QSGW self-consistency with PPM sigma on methane/3-21G.
   // Uses qpmax=16 with qsgw_max_virt_correction=0.35 Ha to auto-trim level 16.
@@ -369,12 +368,12 @@ BOOST_AUTO_TEST_CASE(qsgw_ppm) {
   aobasis.Fill(basis, orbitals.QMAtoms());
 
   GW::options opt = MakeGWTestOptions();
-  opt.do_qsgw                  = true;
-  opt.qsgw_max_iterations      = 50;
-  opt.qsgw_sc_limit            = 1e-5;
-  opt.gw_mixing_order          = 20;
-  opt.gw_mixing_alpha          = 0.2;
-  opt.qpmax                    = 13;
+  opt.do_qsgw = true;
+  opt.qsgw_max_iterations = 50;
+  opt.qsgw_sc_limit = 1e-5;
+  opt.gw_mixing_order = 20;
+  opt.gw_mixing_alpha = 0.2;
+  opt.qpmax = 13;
   opt.qsgw_max_virt_correction = 0.35;
 
   // G0W0 seed
@@ -385,8 +384,8 @@ BOOST_AUTO_TEST_CASE(qsgw_ppm) {
   Mmn1.Fill(aobasis, aobasis, mo_eigenvectors);
   // Slice vxc to QP window — gwbse.cc does this before constructing GW
   const votca::Index qptotal_gw = opt.qpmax - opt.qpmin + 1;
-  Eigen::MatrixXd vxc_gw = vxc.block(opt.qpmin, opt.qpmin,
-                                       qptotal_gw, qptotal_gw);
+  Eigen::MatrixXd vxc_gw =
+      vxc.block(opt.qpmin, opt.qpmin, qptotal_gw, qptotal_gw);
   GW gw1(log1, Mmn1, vxc_gw, mo_eigenvalues);
   gw1.configure(opt);
   gw1.CalculateGWPerturbation();
@@ -459,19 +458,19 @@ BOOST_AUTO_TEST_CASE(qsgw_virtual_threshold) {
   Mmn.Fill(aobasis, aobasis, mo_eigenvectors);
 
   GW::options opt = MakeGWTestOptions();
-  opt.do_qsgw                  = true;
-  opt.qsgw_max_iterations      = 50;
-  opt.qsgw_sc_limit            = 1e-5;
-  opt.gw_mixing_order          = 20;
-  opt.gw_mixing_alpha          = 0.2;
-  opt.gw_sc_max_iterations     = 1;
-  opt.qpmax                    = 16;
+  opt.do_qsgw = true;
+  opt.qsgw_max_iterations = 50;
+  opt.qsgw_sc_limit = 1e-5;
+  opt.gw_mixing_order = 20;
+  opt.gw_mixing_alpha = 0.2;
+  opt.gw_sc_max_iterations = 1;
+  opt.qpmax = 16;
   opt.qsgw_max_virt_correction = 0.2;
 
   // Slice vxc to QP window
   const votca::Index qptotal_vt = opt.qpmax - opt.qpmin + 1;
-  Eigen::MatrixXd vxc_vt = vxc.block(opt.qpmin, opt.qpmin,
-                                       qptotal_vt, qptotal_vt);
+  Eigen::MatrixXd vxc_vt =
+      vxc.block(opt.qpmin, opt.qpmin, qptotal_vt, qptotal_vt);
   GW gw(log, Mmn, vxc_vt, mo_eigenvalues);
   gw.configure(opt);
   gw.CalculateGWPerturbation();
@@ -495,8 +494,7 @@ BOOST_AUTO_TEST_CASE(qsgw_virtual_threshold) {
   BOOST_CHECK_CLOSE(U(16, 16), 1.0, 1e-6);
 
   const Eigen::VectorXd& seed_energies = gw.getQSGWSeedEnergies();
-  BOOST_CHECK_EQUAL(seed_energies.size(),17);
-
+  BOOST_CHECK_EQUAL(seed_energies.size(), 17);
 
   libint2::finalize();
 }

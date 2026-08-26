@@ -139,7 +139,6 @@ BOOST_AUTO_TEST_CASE(rpa_full) {
   libint2::finalize();
 }
 
-
 BOOST_AUTO_TEST_CASE(rpa_qsgw_rotation) {
   // Test the QSGW m-rotation code path in rpa.cc (Calculate_H2p_ApB).
   // With U = Identity the dielectric matrix must match the non-QSGW result.
@@ -154,9 +153,8 @@ BOOST_AUTO_TEST_CASE(rpa_qsgw_rotation) {
 
   Eigen::VectorXd eigenvals = votca::tools::EigenIO_MatrixMarket::ReadVector(
       std::string(XTP_TEST_DATA_FOLDER) + "/rpa/eigenvals.mm");
-  Eigen::MatrixXd eigenvectors =
-      votca::tools::EigenIO_MatrixMarket::ReadMatrix(
-          std::string(XTP_TEST_DATA_FOLDER) + "/rpa/eigenvectors.mm");
+  Eigen::MatrixXd eigenvectors = votca::tools::EigenIO_MatrixMarket::ReadMatrix(
+      std::string(XTP_TEST_DATA_FOLDER) + "/rpa/eigenvectors.mm");
 
   Logger log;
   TCMatrix_gwbse Mmn;
@@ -181,7 +179,8 @@ BOOST_AUTO_TEST_CASE(rpa_qsgw_rotation) {
 
   bool check = e_i_ref.isApprox(e_i_qsgw, 1e-5);
   if (!check) {
-    cout << "epsilon_i with identity QSGW rotation differs from reference" << endl;
+    cout << "epsilon_i with identity QSGW rotation differs from reference"
+         << endl;
     cout << "Max diff: " << (e_i_qsgw - e_i_ref).cwiseAbs().maxCoeff() << endl;
   }
   BOOST_CHECK_EQUAL(check, true);

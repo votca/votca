@@ -5,6 +5,7 @@
     <dftpackage link="dftpackage.xml"/>
     <mpsfile help="MPS file to read from with external multipoles for embedding" default="OPTIONAL"/>
     <guess help="File to read the wave function if the use guess flag is set to true" default="OPTIONAL"/>
+    <moguess help="Orb file to read ONLY the MOs from (geometry still comes from job_name.xyz, or from guess if that is also set) -- for warm-starting a geometry optimization step's own SCF from a PREVIOUS step's converged wavefunction at a different geometry, which guess itself cannot represent since it loads geometry and MOs together from the same file." default="OPTIONAL"/>
     <tasks help="task to compute" default="input,dft,parse,gwbse" choices="[guess,input,dft,parse,gwbse,localize,dft_in_dft]"/>
     <gwbse link="gwbse.xml"/>
     <localize link="localize.xml"/>

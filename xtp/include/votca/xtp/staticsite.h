@@ -79,6 +79,23 @@ class StaticSite {
   const std::string& getElement() const { return element_; }
   const Eigen::Vector3d& getPos() const { return pos_; }
 
+  // Real, direct addition -- needed for SegmentMapper<T>::map() itself
+  // (segmentmapper.cc) to be able to renumber a copied atom's own id,
+  // to match its own real, actual position within a newly-built,
+  // filtered container, while preserving everything else about it
+  // exactly (multipole/rank data included) -- a real, direct
+  // requirement worked through directly with the user, given no
+  // reconstruct-from-scratch approach can safely do this, generically,
+  // across StaticSite/PolarSite at all (their own real
+  // ClassicalSegment::LoadFromFile, classicalsegment.cc, genuinely
+  // does carry real multipole/rank data beyond plain element/position,
+  // unlike QMAtom's own, simpler qmcoords .xyz loading). Named
+  // setID(), NOT setId(), matching QMAtom's own, existing, already-
+  // established naming exactly (qmatom.h) -- generic template code
+  // calling this needs the identical method name across both atom
+  // types.
+  void setID(Index id) { id_ = id; }
+
   void setMultipole(const Vector9d& multipole, Index rank) {
     Q_ = multipole;
     rank_ = rank;

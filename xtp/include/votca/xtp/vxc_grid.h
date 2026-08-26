@@ -56,6 +56,12 @@ class Vxc_Grid {
     return grid_boxes_.end();
   }
 
+  // Made public (was private) so Vxc_Potential::GridWeightGradient can
+  // reuse the exact same Rij convention used at grid-setup time, rather
+  // than duplicating this logic. Pure function of atom positions, no
+  // internal state dependency -- safe to expose.
+  Eigen::MatrixXd CalcInverseAtomDist(const QMMolecule& atoms) const;
+
  private:
   void FindSignificantShells(const AOBasis& basis);
 
@@ -65,7 +71,6 @@ class Vxc_Grid {
       const std::vector<std::vector<GridContainers::Cartesian_gridpoint> >&
           grid);
 
-  Eigen::MatrixXd CalcInverseAtomDist(const QMMolecule& atoms) const;
   Index UpdateOrder(LebedevGrid& sphericalgridofElement, Index maxorder,
                     std::vector<double>& PruningIntervals, double r) const;
 

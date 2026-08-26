@@ -119,7 +119,6 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   libint2::finalize();
 }
 
-
 BOOST_AUTO_TEST_CASE(sigma_exact_qsgw_rotation) {
   // Test that the QSGW m-rotation code path in sigma_exact is exercised.
   // With U = Identity the results must match the non-QSGW case exactly.
@@ -178,7 +177,8 @@ BOOST_AUTO_TEST_CASE(sigma_exact_qsgw_rotation) {
 
   bool check_c = c_qsgw.isApprox(c_ref, 1e-5);
   if (!check_c) {
-    cout << "Sigma C with identity QSGW rotation differs from reference" << endl;
+    cout << "Sigma C with identity QSGW rotation differs from reference"
+         << endl;
     cout << "Max diff: " << (c_qsgw - c_ref).cwiseAbs().maxCoeff() << endl;
   }
   BOOST_CHECK_EQUAL(check_c, true);

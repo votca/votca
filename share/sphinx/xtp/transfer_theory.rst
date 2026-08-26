@@ -79,6 +79,8 @@ As all terms containing the non-adiabicity operator vanish, electronic coupling 
 
     J_{AB}(\xi)=\bra{A}\hat{H}_\text{el}(\xi)\ket{B}
 
+As the diabatic states :math:`\ket{A}`, :math:`\ket{B}` are themselves not directly accessible, :math:`J_{AB}` has to be approximated in practice; the Electronic Couplings section of :doc:`transport_theory` describes the projective schemes (DIPRO, POD2) VOTCA provides for this purpose.
+
 If the system is in one of the diabatic states :math:`\ket{A}` or :math:`\ket{B}`, the nuclear dynamics are described by the following Hamiltonian:
 
 .. math::

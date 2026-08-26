@@ -35,16 +35,62 @@ message(STATUS "Python install libriary to: ${CMAKE_INSTALL_PYTHON_LIBDIR}")
 install(TARGETS xtp_binds LIBRARY DESTINATION ${CMAKE_INSTALL_PYTHON_LIBDIR}/pyxtp_binds)
 add_library(VOTCA::xtp_binds ALIAS xtp_binds)
 
-install (CODE "
-    message(STATUS \"Installing Python package with pip from ${CMAKE_CURRENT_SOURCE_DIR} to ${CMAKE_INSTALL_PYTHON_LIBDIR}...\")
-    execute_process(
-    COMMAND ${Python_EXECUTABLE} -m pip install --upgrade --target ${CMAKE_INSTALL_PYTHON_LIBDIR} ${CMAKE_CURRENT_SOURCE_DIR}
-    RESULT_VARIABLE _pip_result
+# Real, direct, genuine detection of all five of pyxtp's own real,
+# actual runtime dependencies (xtp/src/pyxtp/pyproject.toml's own
+# dependencies list), worked through directly with the user, following
+# a real, direct rawhide CI failure: pyxtp's own real pyproject.toml
+# genuinely lists rdkit as a hard dependency, but this file's own pip
+# install step below used to run unconditionally at install time,
+# regardless of whether rdkit was genuinely importable at all on this
+# real system -- so it genuinely failed outright whenever rdkit itself
+# was not actually installable (confirmed directly, this same session,
+# that rdkit is currently genuinely blocked in Fedora rawhide's own
+# build system, and has no real PyPI wheel for python3.15 either).
+# Worked through directly with the user afterward: extended to all
+# five real dependencies together, deliberately all-or-nothing rather
+# than per-package -- pip install either proceeds with every real
+# dependency genuinely present, or is skipped entirely; never silently
+# partial, which would otherwise leave a real, broken pyxtp install
+# that looks installed but fails later, less obviously, the moment
+# something actually imports whichever dependency was genuinely
+# missing. Matches the same, already-established real detection
+# pattern this whole repo already uses elsewhere for exactly this
+# purpose (xtp/scripts/CMakeLists.txt's own PY${_pkg}_FOUND cache
+# variable, checked via the same real execute_process(COMMAND
+# ${Python_EXECUTABLE} -c "import ${_pkg}") pattern) -- reused
+# directly here rather than duplicated, since PY${_pkg}_FOUND is a
+# real CACHE INTERNAL variable already, shared across this whole real
+# CMake configure run regardless of directory. All five real package
+# names here genuinely match their own real import names, confirmed
+# directly before reusing the same string for both.
+set(PYXTP_ALL_DEPS_FOUND TRUE)
+foreach(_pkg ase xmltodict h5py lxml rdkit)
+  if(NOT PY${_pkg}_FOUND)
+    execute_process(COMMAND ${Python_EXECUTABLE} -c "import ${_pkg}" RESULT_VARIABLE IMPORT_py${_pkg})
+    if(IMPORT_py${_pkg} EQUAL 0)
+      set(PY${_pkg}_FOUND TRUE CACHE INTERNAL "")
+      message(STATUS "Found python module ${_pkg}")
+    endif()
+  endif()
+  if(NOT PY${_pkg}_FOUND)
+    set(PYXTP_ALL_DEPS_FOUND FALSE)
+  endif()
+endforeach()
+
+if(PYXTP_ALL_DEPS_FOUND)
+  install (CODE "
+      message(STATUS \"Installing Python package with pip from ${CMAKE_CURRENT_SOURCE_DIR} to ${CMAKE_INSTALL_PYTHON_LIBDIR}...\")
+      execute_process(
+      COMMAND ${Python_EXECUTABLE} -m pip install --upgrade --target ${CMAKE_INSTALL_PYTHON_LIBDIR} ${CMAKE_CURRENT_SOURCE_DIR}
+      RESULT_VARIABLE _pip_result
+    )
+    if(NOT _pip_result EQUAL 0)
+      message(FATAL_ERROR \"pip install failed with code \${_pip_result}\")
+    endif()"
   )
-  if(NOT _pip_result EQUAL 0)
-    message(FATAL_ERROR \"pip install failed with code \${_pip_result}\")
-  endif()"
-)
+else()
+  message(STATUS "Skipping pyxtp pip install (not every one of its own required python modules -- ase, xmltodict, h5py, lxml, rdkit -- was found)")
+endif()
 
 # copy pyxtp to build dir as well.
 add_custom_target(pyxtp_bindir_copy COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/pyxtp ${CMAKE_CURRENT_BINARY_DIR})
