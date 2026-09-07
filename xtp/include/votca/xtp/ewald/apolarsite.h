@@ -185,6 +185,25 @@ class APolarSite {
   }
   matrix &getPs(int state) { return _Ps[state + 1]; }
   double getIsoP() { return pow((Pxx * Pyy * Pzz), 1. / 3.); }
+  // Debug/experimental, added specifically for
+  // _debug_dump_first_iteration_and_stop's own extended dump (Pxx/Pyy/
+  // Pzz alongside F_perm and mu_1, for isolating a genuine mu_1 =
+  // wSOR*P*F_perm discrepancy against the "new" (non-legacy) code to
+  // F_perm, P, or their combination) -- Pxx/Pyy/Pzz are themselves
+  // private (this class's own friend-class list does not include
+  // PolarBackground), so a public accessor for the individual diagonal
+  // entries did not already exist; getIsoP just above returns only
+  // their isotropic average (cube root of the product), not the
+  // individual components a genuine tensor-level comparison needs.
+  vec getPDiag() { return vec(Pxx, Pyy, Pzz); }
+  // Off-diagonal terms, added after this session's own data revealed
+  // that a diagonal-only mu = wSOR*(-P)*F_perm reconstruction genuinely
+  // fails for real production data -- APolarSite::Induce's own formula
+  // (see its own source) uses the FULL tensor (e.g. U1x's own update
+  // includes -Pxy*(FPy+FUy) and -Pxz*(FPz+FUz), not just -Pxx*(FPx+
+  // FUx)), and Pxx==Pyy==Pzz does not itself imply zero off-diagonal
+  // terms for a general symmetric tensor.
+  vec getPOffDiag() { return vec(Pxy, Pxz, Pyz); }
   double getProjP(vec &dir);
   // FIELDS & INDUCED MOMENTS
   vec getFieldP() { return vec(FPx, FPy, FPz); }  // Only IOP

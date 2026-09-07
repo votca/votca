@@ -1,0 +1,74 @@
+<options>
+        <ewaldbackground help="Converges the self-consistent polarized background of a periodic system, using the new (non-legacy) Ewald machinery" section="sec:ewaldbackground">
+                <multipoles>system.xml</multipoles>
+                <output>
+                        <checkpoint>ewaldbackground.hdf5</checkpoint>
+                </output>
+                <coulombmethod>
+                        <!-- alpha and k_max are optional: both are
+                             derived at runtime from the box size (alpha,
+                             nm^-1) and from alpha itself (k_max, nm^-1)
+                             unless explicitly set. default="OPTIONAL" is
+                             VOTCA's own mechanism for this, not simply
+                             omitting the tag: OptionsHandler::
+                             CheckUserInput requires every key a user
+                             might override to already exist in this
+                             default file's own schema (an unrecognized
+                             key throws "Votca has no option: ...", a
+                             real, confirmed failure mode this comment
+                             replaces, not a hypothetical one), so the
+                             keys must be present here. default="OPTIONAL"
+                             marks them present for that check while
+                             still letting OptionsHandler::RemoveOptional
+                             strip them from the final options tree
+                             entirely when the user doesn't set them.
+                             This is what makes ParseOptions's own
+                             opt.exists(...) check correctly distinguish
+                             "user set this" from "using the derived
+                             default" in the first place. Do not revert
+                             this to a plain omitted tag or a hardcoded
+                             value; either breaks one of these two
+                             things. -->
+                        <alpha default="OPTIONAL"/>
+                        <k_max default="OPTIONAL"/>
+                        <shape>cube</shape>
+                </coulombmethod>
+                <realspace>
+                        <r_min>1.0</r_min>  <!-- nm (user-facing); converted
+                                                 to bohr in ParseOptions -->
+                        <field_tol>1e-8</field_tol>
+                </realspace>
+                <polarmethod>
+                        <thole_a>0.39</thole_a>
+                        <induce>true</induce>
+                        <max_iter>200</max_iter>
+                        <tolerance>1e-8</tolerance>
+                        <!-- Debug-only, no legacy counterpart, see
+                             EwaldBackground's own
+                             apply_shape_correction_to_induced_ member
+                             for what this is for. Not meant to be a
+                             permanent, documented option; kept out of
+                             the help text on that basis. -->
+                        <debug_apply_shape_correction>true</debug_apply_shape_correction>
+                        <!-- Same purpose and pattern as the shape one
+                             immediately above, but for the self-field
+                             (atomic self-interaction) correction
+                             instead. -->
+                        <debug_apply_self_field_correction>true</debug_apply_self_field_correction>
+                        <!-- Same purpose and pattern as the two above,
+                             but for AddIntraSegmentCoupling's own
+                             Thole-damping term instead. -->
+                        <debug_apply_thole_damping_intramolecular>true</debug_apply_thole_damping_intramolecular>
+                        <!-- Debug/experimental, no legacy counterpart 
+                             see EwaldBlockJacobiPreconditioner's own
+                             class documentation. Not yet validated
+                             against a real system this size. -->
+                        <debug_use_block_jacobi_preconditioner>false</debug_use_block_jacobi_preconditioner>
+			<debug_use_jor>false</debug_use_jor>
+			<debug_jor_omega>0.35</debug_jor_omega>
+			<debug_dump_first_iteration_and_stop>false</debug_dump_first_iteration_and_stop>
+			<debug_apply_realspace_intermolecular_coupling>true</debug_apply_realspace_intermolecular_coupling>
+			<debug_apply_reciprocal_coupling>true</debug_apply_reciprocal_coupling>
+                </polarmethod>
+        </ewaldbackground>
+</options>

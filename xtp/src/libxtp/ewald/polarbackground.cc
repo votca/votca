@@ -66,6 +66,14 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop,
     _polar_aDamp = opt.get(pfx + ".polarmethod.aDamp").as<double>();
   else
     _polar_aDamp = 0.390;
+  // Debug/experimental, see _debug_dump_first_iteration_and_stop's own
+  // declaration.
+  if (opt.exists(pfx + ".polarmethod.debug_dump_first_iteration_and_stop"))
+    _debug_dump_first_iteration_and_stop =
+        opt.get(pfx + ".polarmethod.debug_dump_first_iteration_and_stop")
+            .as<bool>();
+  else
+    _debug_dump_first_iteration_and_stop = false;
   // Checkpointing
   if (opt.exists(pfx + ".control.checkpointing"))
     _do_checkpointing = opt.get(pfx + ".control.checkpointing").as<bool>();
@@ -406,6 +414,81 @@ void PolarBackground::Polarize(int n_threads = 1) {
       }
     }
 
+    // Debug/experimental, no counterpart other than a matching flag
+    // added to the "new" (non-legacy) Ewald code this session -- see
+    // _debug_dump_first_iteration_and_stop's own declaration for what
+    // this exists for. Placed HERE, right after InduceDirect() and
+    // before the main iteration loop, not inside that loop's own first
+    // pass (where an earlier version of this dump lived) -- confirmed
+    // directly this session that the main loop's own first "Induce
+    // again" call is NOT the genuine no-coupling-yet baseline it looks
+    // like: InduceDirect() already set every site's own U1 to a real,
+    // nonzero value beforehand, so by the time the main loop's own
+    // first "(Re-)generate induction fields (FU)" step runs, FU is
+    // already nonzero (a genuine dipole-dipole field from those already-
+    // set U1 values, via FU12_ERFC_At_By), not the clean, coupling-free
+    // ground state the "new" code's own JOR genuinely starts from
+    // (x=0). InduceDirect() itself, by contrast, IS that clean
+    // baseline: mu = -P*F_perm, no wSOR relaxation, no FU term at all
+    // (FUx=FUy=FUz are still their own zero-initialized default here).
+    if (_debug_dump_first_iteration_and_stop) {
+      std::ofstream dump("legacy_iteration1_dump.csv");
+      dump << "segment_id,site_index,pos_x_bohr,pos_y_bohr,pos_z_bohr,"
+              "mu_x_bohr,mu_y_bohr,mu_z_bohr,mu_x_enm,mu_y_enm,mu_z_enm,"
+              "Fperm_x_native,Fperm_y_native,Fperm_z_native,"
+              "Pxx_native,Pyy_native,Pzz_native,"
+              "Pxy_native,Pxz_native,Pyz_native\n";
+      // votca::tools::conv (bohr2nm/nm2bohr) is not accessible from this
+      // legacy code path (a different, older unit-constants convention
+      // is used throughout this file already -- see e.g. int2V_m just
+      // above); legacy's own internal positions/dipoles are already in
+      // nm directly (see this class's own header comments and its own
+      // "e*nm" convention, confirmed directly against APolarSite::
+      // HistdU's own source this session), so the nm columns need no
+      // conversion at all here, and the bohr columns are the ones
+      // computed via nm2bohr -- the opposite direction from the new
+      // code's own dump, which starts in bohr and converts to nm.
+      //
+      // Fperm/P are dumped in legacy's own NATIVE units, unconverted --
+      // deliberately not run through nm2bohr (a linear length
+      // conversion), since field and polarizability are DIFFERENT
+      // powers of length than dipole moment (E ~ 1/length^2,
+      // polarizability ~ length^3), and applying a linear dipole-moment
+      // conversion factor to either would be wrong, not just imprecise.
+      // The precise name of legacy's own native field/polarizability
+      // unit convention was not independently confirmed this session
+      // (unlike the "e*nm" dipole convention, confirmed directly
+      // against APolarSite::HistdU's own source) -- "native" is an
+      // honest label given that, not a claim about what unit it
+      // actually is.
+      const double nm2bohr = 18.897259886;
+      for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+        int site_index = 0;
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+          vec pos = (*pit1)->getPos();
+          vec mu_enm = (*pit1)->getU1();
+          vec f_perm = (*pit1)->getFieldP();
+          vec p_diag = (*pit1)->getPDiag();
+          vec p_offdiag = (*pit1)->getPOffDiag();
+          dump << (*sit1)->getId() << "," << site_index << ","
+               << pos.x() * nm2bohr << "," << pos.y() * nm2bohr << ","
+               << pos.z() * nm2bohr << "," << mu_enm.x() * nm2bohr << ","
+               << mu_enm.y() * nm2bohr << "," << mu_enm.z() * nm2bohr << ","
+               << mu_enm.x() << "," << mu_enm.y() << "," << mu_enm.z()
+               << "," << f_perm.x() << "," << f_perm.y() << ","
+               << f_perm.z() << "," << p_diag.x() << "," << p_diag.y()
+               << "," << p_diag.z() << "," << p_offdiag.x() << ","
+               << p_offdiag.y() << "," << p_offdiag.z() << "\n";
+          ++site_index;
+        }
+      }
+      dump.close();
+      // Deliberately does NOT throw/stop here anymore -- see the
+      // second dump point (right after this main loop's own first
+      // "III.C Induce again" call) for why this run continues one
+      // more step before stopping.
+    }
+
     // Checkpointing for potential restart
     if (_do_checkpointing) this->Checkpoint(0, false);
   } else {
@@ -445,6 +528,20 @@ void PolarBackground::Polarize(int n_threads = 1) {
     // III.B (Re-)generate induction fields FU
     XTP_LOG(Log::debug, log)
         << "  o (Re-)generate induction fields" << std::flush;
+    // Debug/experimental, staged FU capture -- see
+    // _debug_dump_first_iteration_and_stop's own declaration. FU is
+    // captured cumulatively after each of the five stages below
+    // (intramolecular, real-space intermolecular, reciprocal-space,
+    // shape, self-interaction), in site-visitation order, so that a
+    // later cross-codebase comparison can isolate exactly which stage
+    // a real discrepancy enters at, rather than only seeing it already
+    // mixed into the final summed FU -- deliberately not attempting to
+    // separate the two real-space contributions (intramolecular here,
+    // intermolecular in FX_RealSpace) any further than this, since
+    // FX_RealSpace's own internal structure is not something this
+    // session inspected directly.
+    std::vector<vec> fu_stage_a, fu_stage_b, fu_stage_c, fu_stage_d,
+        fu_stage_e;
     // (1) Real-space intramolecular contribution
     XTP_LOG(Log::debug, log) << "  o Real-space, intramolecular" << std::flush;
     for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
@@ -457,18 +554,38 @@ void PolarBackground::Polarize(int n_threads = 1) {
         }
       }
     }
+    if (_debug_dump_first_iteration_and_stop) {
+      for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1)
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1)
+          fu_stage_a.push_back((*pit1)->getFieldU());
+    }
     // (2) Real-space intermolecular contribution
     bool do_setup_nbs = (iter == setup_nbs_iter) ? true : false;
     bool generate_kvecs = (iter == generate_kvecs_iter) ? true : false;
     this->FX_RealSpace("FU_MODE", do_setup_nbs);
+    if (_debug_dump_first_iteration_and_stop) {
+      for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1)
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1)
+          fu_stage_b.push_back((*pit1)->getFieldU());
+    }
     if (!_do_use_cutoff) {
       // (3) Reciprocal-space contribution
       XTP_LOG(Log::debug, log) << "  o Reciprocal-space" << std::flush;
       this->FX_ReciprocalSpace("SU_MODE", "FU_MODE", generate_kvecs);
+      if (_debug_dump_first_iteration_and_stop) {
+        for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1)
+          for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1)
+            fu_stage_c.push_back((*pit1)->getFieldU());
+      }
       // (4) Calculate shape fields
       XTP_LOG(Log::debug, log)
           << "  o Shape fields ('" << _shape << "')" << std::flush;
       _ewdactor.FU12_ShapeField_At_By(_bg_P, _bg_P, _shape, _LxLyLz);
+      if (_debug_dump_first_iteration_and_stop) {
+        for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1)
+          for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1)
+            fu_stage_d.push_back((*pit1)->getFieldU());
+      }
       // (5) Apply atomic ERF self-interaction correction
       XTP_LOG(Log::debug, log) << "  o Atomic SI correction" << std::flush;
       rms = 0.0;
@@ -480,6 +597,11 @@ void PolarBackground::Polarize(int n_threads = 1) {
         }
       }
       rms = sqrt(rms / rms_count) * int2V_m;
+      if (_debug_dump_first_iteration_and_stop) {
+        for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1)
+          for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1)
+            fu_stage_e.push_back((*pit1)->getFieldU());
+      }
     }
 
     // TEASER OUTPUT INDUCTION FIELDS
@@ -514,6 +636,71 @@ void PolarBackground::Polarize(int n_threads = 1) {
       for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
         (*pit1)->Induce(_polar_wSOR_N);
       }
+    }
+
+    // Debug/experimental, second of two dump points -- see the first
+    // (right after InduceDirect(), before this loop even starts) for
+    // the base rationale. This one exists specifically to test where
+    // induced-induced coupling first enters: mu_1 (this site's own
+    // pre-Induce value, from InduceDirect() and already dumped
+    // separately to legacy_iteration1_dump.csv) is confirmed to match
+    // the "new" code's own mu_1 (once compared correctly, up to the
+    // already-understood wSOR-vs-unrelaxed scaling); mu_2 here (this
+    // call's own result) and FU (the field that produced it, via
+    // getFieldU(), computed from every OTHER site's own mu_1 through
+    // FU12_ERFC_At_By and the intermolecular/reciprocal/shape
+    // contributions above) are the genuinely new information. A first,
+    // aggregate comparison this session found a real (scattered, not a
+    // clean scalar) mismatch here -- fu_stage_a..e (captured above,
+    // cumulatively, right after each of the five physical contributions
+    // to FU) exist so a follow-up comparison can isolate exactly which
+    // stage that mismatch enters at, rather than only seeing it already
+    // mixed into the final summed FU.
+    if (_debug_dump_first_iteration_and_stop) {
+      if (_do_use_cutoff) {
+        throw std::runtime_error(
+            "PolarBackground: debug_dump_first_iteration_and_stop's own "
+            "staged FU capture (fu_stage_c/d/e) assumes the non-cutoff "
+            "Ewald path (reciprocal-space/shape/self-interaction all "
+            "run) -- this run has _do_use_cutoff=true, where those "
+            "stages never execute, so those columns would be empty.");
+      }
+      std::ofstream dump("legacy_iteration2_dump.csv");
+      dump << "segment_id,site_index,"
+              "mu2_x_enm,mu2_y_enm,mu2_z_enm,"
+              "FU_x_native,FU_y_native,FU_z_native,"
+              "FUa_x_native,FUa_y_native,FUa_z_native,"
+              "FUb_x_native,FUb_y_native,FUb_z_native,"
+              "FUc_x_native,FUc_y_native,FUc_z_native,"
+              "FUd_x_native,FUd_y_native,FUd_z_native,"
+              "FUe_x_native,FUe_y_native,FUe_z_native\n";
+      std::size_t n = 0;
+      for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
+        int site_index = 0;
+        for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
+          vec mu2_enm = (*pit1)->getU1();
+          vec fu = (*pit1)->getFieldU();
+          dump << (*sit1)->getId() << "," << site_index << ","
+               << mu2_enm.x() << "," << mu2_enm.y() << "," << mu2_enm.z()
+               << "," << fu.x() << "," << fu.y() << "," << fu.z() << ","
+               << fu_stage_a[n].x() << "," << fu_stage_a[n].y() << ","
+               << fu_stage_a[n].z() << "," << fu_stage_b[n].x() << ","
+               << fu_stage_b[n].y() << "," << fu_stage_b[n].z() << ","
+               << fu_stage_c[n].x() << "," << fu_stage_c[n].y() << ","
+               << fu_stage_c[n].z() << "," << fu_stage_d[n].x() << ","
+               << fu_stage_d[n].y() << "," << fu_stage_d[n].z() << ","
+               << fu_stage_e[n].x() << "," << fu_stage_e[n].y() << ","
+               << fu_stage_e[n].z() << "\n";
+          ++site_index;
+          ++n;
+        }
+      }
+      dump.close();
+      throw std::runtime_error(
+          "PolarBackground: stopped after dumping iteration-2 induced "
+          "dipoles/coupling field to legacy_iteration2_dump.csv "
+          "(debug_dump_first_iteration_and_stop was set) -- this is not "
+          "a real failure, just the requested early stop.");
     }
 
     // III.D Check for convergence

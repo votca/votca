@@ -228,6 +228,16 @@ class PolarBackground {
   double _polar_aDamp;
   double _polar_wSOR_N;
   double _polar_cutoff;
+  // Debug/experimental, no counterpart in the "new" (non-legacy) Ewald
+  // code except a matching temporary flag added there this session --
+  // see that flag's own documentation for what this exists for. Now
+  // dumps twice: legacy_iteration1_dump.csv right after InduceDirect()
+  // (the coupling-free mu = -P*F_perm baseline), then continues one
+  // more step and dumps legacy_iteration2_dump.csv right after the
+  // main loop's own first "Induce again" call (mu_2 and the coupling
+  // field FU that produced it), then stops -- matching the "new" code's
+  // own jor_iteration1_dump.csv / jor_iteration2_dump.csv pair.
+  bool _debug_dump_first_iteration_and_stop = false;
 
   // LATTICE (REAL, RECIPROCAL)
   vec _a;
