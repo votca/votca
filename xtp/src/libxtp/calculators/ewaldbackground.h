@@ -785,6 +785,23 @@ JorResult SolveWithJOR(const EwaldPeriodicDipoleOperator& op,
                      "field_z_bohr\n";
       }
       op.DumpPerPairIntermolecularField(0, "new_perpairfield_dump.csv");
+      // Debug/experimental -- see DumpPerPairIntermolecularStaticField's
+      // own declaration. Isolates ApplyStaticField's own contribution
+      // (F_perm's own generation, and half of what AddFieldAt/
+      // DumpStagedCoupling's own stage B actually compute) -- added
+      // after the induced-only comparison above came back clean but
+      // the CUMULATIVE FUb comparison against legacy still showed a
+      // large mismatch, meaning the static half (never independently
+      // re-checked on the current, real-space-minimum-image-fixed
+      // code) needed the same direct treatment.
+      {
+        std::ofstream pps_header("new_perpairstaticfield_dump.csv");
+        pps_header << "target_segment_id,source_segment_id,source_site_index,"
+                      "t_x_bohr,t_y_bohr,t_z_bohr,field_x_bohr,field_y_bohr,"
+                      "field_z_bohr\n";
+      }
+      op.DumpPerPairIntermolecularStaticField(
+          0, "new_perpairstaticfield_dump.csv");
     }
 
     if (i == 1 && debug_dump_first_iteration_and_stop) {

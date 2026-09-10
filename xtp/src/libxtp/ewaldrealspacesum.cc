@@ -197,41 +197,9 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
       const Eigen::Vector3d baseline_shift =
           raw_offset - min_image_offset;
 
-      // TEMPORARY debug instrumentation (this session, tracking down a
-      // real discrepancy between what AddFieldAt's own cache ends up
-      // containing and what a fresh, independent search finds for the
-      // same target/source pair -- static reading of this exact
-      // computation, and everything around it, found nothing wrong, so
-      // this prints the ACTUAL runtime values for the one specific pair
-      // already confirmed to diverge, to see whether the computation
-      // itself is wrong at runtime or something downstream (cache
-      // storage, or the dump's own read-back) loses/corrupts it. Not
-      // meant to stay -- remove once this is resolved.
-      if (target_segment_id == 0 && source_id == 1) {
-        std::cerr << "[DEBUG AddFieldAt] target_segment_id=" << target_segment_id
-                  << " source_id=" << source_id
-                  << " target.getPos()=" << target.getPos().transpose()
-                  << " source_segment.getPos()=" << source_segment.getPos().transpose()
-                  << " raw_offset=" << raw_offset.transpose()
-                  << " frac=" << frac.transpose()
-                  << " wrapped_frac=" << wrapped_frac.transpose()
-                  << " min_image_offset=" << min_image_offset.transpose()
-                  << " baseline_shift=" << baseline_shift.transpose()
-                  << " shell_start=" << shell_start
-                  << " shell_end=" << shell_end
-                  << std::endl;
-      }
-
       for (Index idx = shell_start; idx < shell_end; ++idx) {
         visited_pairs.emplace_back(source_id, idx, baseline_shift);
         const Eigen::Vector3d t = baseline_shift + translations_[idx].t;
-        if (target_segment_id == 0 && source_id == 1) {
-          std::cerr << "[DEBUG AddFieldAt]   idx=" << idx
-                    << " translations_[idx].t=" << translations_[idx].t.transpose()
-                    << " t=" << t.transpose()
-                    << " |t|=" << t.norm()
-                    << std::endl;
-        }
         for (const PolarSite& source_site : source_segment) {
           PolarSite shifted = source_site;
           shifted.setPos(source_site.getPos() + t);
@@ -421,6 +389,88 @@ void EwaldRealSpaceSum::DumpPerPairFieldAppend(
 
           const Eigen::Vector3d before_pair = target.V();
           interactor_.ApplyInducedField<Estatic::V>(shifted, target);
+          const Eigen::Vector3d pair_field = target.V() - before_pair;
+
+          dump << target_segment_id << "," << source_id << ","
+               << site_idx << "," << t.x() << "," << t.y() << "," << t.z()
+               << "," << pair_field.x() << "," << pair_field.y() << ","
+               << pair_field.z() << "\n";
+          ++site_idx;
+        }
+      }
+    }
+    (void)before_shell;
+
+    const double shell_radius =
+        translations_[shell_end > shell_start ? shell_end - 1 : shell_start]
+            .r;
+    if (shell_radius >= r_min_) {
+      converged = true;
+      break;
+    }
+    shell_start = shell_end;
+  }
+  (void)converged;
+
+  target.V() = original_V;
+  dump.close();
+}
+
+void EwaldRealSpaceSum::DumpPerPairStaticFieldAppend(
+    Index target_segment_id, PolarSite& target, EwaldChargeState source_state,
+    const std::string& filename) const {
+  // See this method's own declaration for what this is for and why --
+  // identical structure to DumpPerPairFieldAppend, just isolating
+  // ApplyStaticField's own contribution instead of ApplyInducedField's.
+  std::ofstream dump(filename, std::ios::app);
+  dump.precision(15);
+
+  const Eigen::Vector3d original_V = target.V();
+
+  Index shell_start = 0;
+  double shell_edge = 0.0;
+  bool converged = false;
+
+  while (shell_start < Index(translations_.size())) {
+    shell_edge = translations_[shell_start].r +
+                (shell_edge > translations_[shell_start].r ? 0.0
+                                                            : shell_width_);
+    Index shell_end = shell_start;
+    while (shell_end < Index(translations_.size()) &&
+          translations_[shell_end].r <= shell_edge) {
+      ++shell_end;
+    }
+
+    const Eigen::Vector3d before_shell = target.V();
+
+    for (Index source_id : registry_.AllIds()) {
+      if (source_id == target_segment_id) {
+        continue;
+      }
+      if (!registry_.Has(source_id, source_state)) {
+        continue;
+      }
+      const PolarSegment& source_segment =
+          registry_.Get(source_id, source_state);
+
+      const Eigen::Vector3d raw_offset =
+          target.getPos() - source_segment.getPos();
+      const Eigen::Vector3d frac = box_.inverse() * raw_offset;
+      const Eigen::Vector3d wrapped_frac =
+          frac - frac.array().round().matrix();
+      const Eigen::Vector3d min_image_offset = box_ * wrapped_frac;
+      const Eigen::Vector3d baseline_shift = raw_offset - min_image_offset;
+
+      for (Index idx = shell_start; idx < shell_end; ++idx) {
+        const Eigen::Vector3d t = baseline_shift + translations_[idx].t;
+        Index site_idx = 0;
+        for (const PolarSite& source_site : source_segment) {
+          PolarSite shifted = source_site;
+          shifted.setPos(source_site.getPos() + t);
+
+          const Eigen::Vector3d before_pair = target.V();
+          interactor_.ApplyStaticField<PolarSite, Estatic::V>(shifted,
+                                                               target);
           const Eigen::Vector3d pair_field = target.V() - before_pair;
 
           dump << target_segment_id << "," << source_id << ","

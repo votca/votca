@@ -439,6 +439,14 @@ void EwaldPeriodicDipoleOperator::DumpPerPairIntermolecularField(
                                    EwaldChargeState::Neutral, filename);
 }
 
+void EwaldPeriodicDipoleOperator::DumpPerPairIntermolecularStaticField(
+    Index target_segment_id, const std::string& filename) const {
+  PolarSegment& target_segment =
+      registry_.Get(target_segment_id, EwaldChargeState::Neutral);
+  real_sum_.DumpPerPairStaticFieldAppend(target_segment_id, target_segment[0],
+                                        EwaldChargeState::Neutral, filename);
+}
+
 void EwaldPeriodicDipoleOperator::DumpCachedNeighborList(
     Index target_segment_id, const std::string& filename) const {
   const PolarSegment& target_segment =

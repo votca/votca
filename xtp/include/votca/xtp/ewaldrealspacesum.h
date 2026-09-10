@@ -175,6 +175,22 @@ class EwaldRealSpaceSum {
                               EwaldChargeState source_state,
                               const std::string& filename) const;
 
+  // Debug/experimental. Same as DumpPerPairFieldAppend, but isolates
+  // ApplyStaticField's own contribution (the permanent/static-multipole
+  // field, i.e. what accumulates into F_perm) instead of
+  // ApplyInducedField's. Added after DumpPerPairFieldAppend's own
+  // induced-only comparison came back clean, but AddFieldAt (used for
+  // BOTH F_perm's own generation and DumpStagedCoupling's own stage B)
+  // calls ApplyStaticField too -- and that half was never independently
+  // re-checked against legacy on the CURRENT code, after the real-space
+  // minimum-image fix, even though an earlier-session F_perm validation
+  // had passed at ~0.005% before that fix existed. Same
+  // non-destructive/append/header contract as DumpPerPairFieldAppend.
+  void DumpPerPairStaticFieldAppend(Index target_segment_id,
+                                    PolarSite& target,
+                                    EwaldChargeState source_state,
+                                    const std::string& filename) const;
+
   // Debug/experimental. Dumps whatever is CURRENTLY in neighbor_cache_
   // for this exact target pointer (source_segment_id, translation_idx,
   // baseline_shift, resolved translation vector, and the CURRENT

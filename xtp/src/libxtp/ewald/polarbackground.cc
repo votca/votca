@@ -910,9 +910,46 @@ void PolarBackground::RThread::FP_FieldCalc() {
           // Interact taking into account shift
           for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
             for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
+              // Debug/experimental -- per-pair STATIC field dump,
+              // mirroring FU_FieldCalc's own equivalent
+              // legacy_perpairfield_dump.csv addition (see that one's
+              // own comment for why), but for FP12_ERFC_At_By (this
+              // pair's own contribution to the PERMANENT field, FPx/
+              // FPy/FPz) instead of FU12_ERFC_At_By's own induced-field
+              // one. Added specifically to let a direct per-pair
+              // comparison isolate whether ApplyStaticField's own
+              // new-code counterpart (already checked against
+              // ApplyInducedField's own equivalent, which came back
+              // clean) is where a real, still-unexplained discrepancy
+              // in the AGGREGATE F_perm/FUb comparison actually lives.
+              vec fp_before = (*pit1)->getFieldP();
               shell_rms +=
                   _ewdactor.FP12_ERFC_At_By(*(*pit1), *(*pit2), (*nit)->getS());
               shell_rms_count += 1;
+              if (_master->_debug_dump_first_iteration_and_stop &&
+                  pseg1->getId() == 0) {
+                vec fp_after = (*pit1)->getFieldP();
+                vec pair_field = fp_after - fp_before;
+                static std::once_flag pps_dump_header_once;
+                static std::mutex pps_dump_mutex;
+                static std::ofstream pps_dump;
+                std::call_once(pps_dump_header_once, []() {
+                  pps_dump.open("legacy_perpairstaticfield_dump.csv",
+                              std::ios::trunc);
+                  pps_dump.precision(15);
+                  pps_dump << "target_segment_id,target_site_index,"
+                              "source_segment_id,source_site_index,"
+                              "field_x_native,field_y_native,"
+                              "field_z_native\n";
+                });
+                std::lock_guard<std::mutex> lock(pps_dump_mutex);
+                pps_dump << pseg1->getId() << ","
+                       << (pit1 - pseg1->begin()) << ","
+                       << pseg2->getId() << ","
+                       << (pit2 - pseg2->begin()) << ","
+                       << pair_field.x() << "," << pair_field.y()
+                       << "," << pair_field.z() << "\n";
+              }
             }
           }
         }

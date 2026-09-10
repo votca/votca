@@ -468,6 +468,15 @@ class EwaldPeriodicDipoleOperator
                                       const std::string& filename) const;
 
   // Debug/experimental. Wraps EwaldRealSpaceSum::
+  // DumpPerPairStaticFieldAppend the same way
+  // DumpPerPairIntermolecularField wraps DumpPerPairFieldAppend -- see
+  // that method's own comment for why this wrapper exists, and
+  // DumpPerPairStaticFieldAppend's own declaration for why this
+  // specific (static-field, not induced-field) variant exists.
+  void DumpPerPairIntermolecularStaticField(Index target_segment_id,
+                                            const std::string& filename) const;
+
+  // Debug/experimental. Wraps EwaldRealSpaceSum::
   // DumpCachedNeighborListAppend the same way
   // DumpPerPairIntermolecularField wraps DumpPerPairFieldAppend -- see
   // that method's own comment for why this wrapper exists. Call this
