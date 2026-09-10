@@ -22,6 +22,8 @@
 #define VOTCA_XTP_EWALDREALSPACESUM_H
 
 // Standard includes
+#include <string>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -125,6 +127,72 @@ class EwaldRealSpaceSum {
   void AddFieldAt(Index target_segment_id, PolarSite& target,
                   EwaldChargeState source_state) const;
 
+  // Debug/experimental. Appends, for one target site, every
+  // (source_segment_id, r, translation_vector) triple this class's own
+  // AddFieldAt would visit for it -- the actual neighbor set, at
+  // segment granularity (matching legacy's own PolarNb, which wraps a
+  // whole segment, not individual sites), rather than any assembled
+  // field. Added specifically to let a direct comparison against
+  // legacy's own matching neighbor-list dump isolate whether a
+  // discrepancy comes from which images get summed (this) rather than
+  // the per-pair field formula (already validated elsewhere this
+  // session). Runs the same shell-by-shell search AddFieldAt's own
+  // slow path does -- does not use or populate neighbor_cache_. Always
+  // appends (never truncates) -- the caller is responsible for writing
+  // the file's own header and truncating it once, before the first
+  // call, since this is meant to be called once per target across a
+  // whole system into the SAME file (matching legacy's own equivalent
+  // dump, which similarly writes every target segment into one file,
+  // after a first version of this restricted to a single segment risked
+  // hiding a genuine PBC-scheme discrepancy that only shows up for
+  // segments in a different geometric relationship to the box).
+  void DumpNeighborListAppend(Index target_segment_id,
+                              const PolarSite& target,
+                              EwaldChargeState source_state,
+                              const std::string& filename) const;
+
+  // Debug/experimental. Appends, for one target SITE (not segment --
+  // this is per-site, since that's the granularity field contributions
+  // are actually computed and summed at), every
+  // (source_segment_id, source_site_index, translation, field_x/y/z)
+  // row this class's own AddFieldAt would visit and accumulate for it.
+  // Isolates each individual pair's own induced-field contribution by
+  // differencing target.V() before/after that one pair's own
+  // ApplyInducedField call -- mirroring AddFieldAt's own before/after
+  // shell diffing, but per pair here rather than per shell. Added
+  // after DumpNeighborListAppend and DumpStagedCoupling showed a real
+  // discrepancy in the SUMMED intermolecular field despite the
+  // neighbor SET itself (DumpNeighborListAppend) and the per-pair
+  // FORMULA (ApplyInducedField, checked directly elsewhere this
+  // session) both already being confirmed correct -- meaning whatever
+  // remains must be in the accumulation across pairs itself, which
+  // this dump exists to isolate pair by pair. Non-destructive: target's
+  // own V()/induced dipole are restored to their original values
+  // before returning, so calling this doesn't disturb whatever state
+  // the caller had target in. Always appends -- same header/truncation
+  // contract as DumpNeighborListAppend.
+  void DumpPerPairFieldAppend(Index target_segment_id, PolarSite& target,
+                              EwaldChargeState source_state,
+                              const std::string& filename) const;
+
+  // Debug/experimental. Dumps whatever is CURRENTLY in neighbor_cache_
+  // for this exact target pointer (source_segment_id, translation_idx,
+  // baseline_shift, resolved translation vector, and the CURRENT
+  // shell-derived r), or a single "NOT CACHED" row if this target has
+  // no cache entry yet. Added specifically to compare, on the real,
+  // full-scale system where a real discrepancy was found between
+  // DumpStagedCoupling (uses AddFieldAt, which may hit the CACHED
+  // path) and DumpPerPairFieldAppend (always a fresh, uncached search)
+  // -- a discrepancy that could not be reproduced on any small local
+  // test built to replicate the same call sequence. Call this AFTER
+  // whatever earlier call (e.g. AddFieldAt via DumpStagedCoupling's own
+  // stage B) is suspected of populating -- or failing to populate, or
+  // populating differently than expected -- the cache for this target.
+  void DumpCachedNeighborListAppend(Index target_segment_id,
+                                    const PolarSite& target,
+                                    EwaldChargeState source_state,
+                                    const std::string& filename) const;
+
  private:
   // One periodic image translation vector, tagged with its distance from
   // the origin so shells can be built by sorting once.
@@ -174,9 +242,9 @@ class EwaldRealSpaceSum {
   // exercised by anything in this codebase today, but the key is chosen
   // to be genuinely correct rather than correct only for the one
   // access pattern that happens to exist right now.
-  mutable std::unordered_map<std::pair<const PolarSite*, EwaldChargeState>,
-                             std::vector<std::pair<Index, Index>>,
-                             PairHash>
+  mutable std::unordered_map<
+      std::pair<const PolarSite*, EwaldChargeState>,
+      std::vector<std::tuple<Index, Index, Eigen::Vector3d>>, PairHash>
       neighbor_cache_;
 };
 

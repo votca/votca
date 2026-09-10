@@ -201,6 +201,12 @@ class EwaldBackground final : public QMCalculator {
   // on APolarSite::Induce's own signature, which this calculator
   // overrides).
   double jor_omega_ = 0.35;
+  // Debug/experimental. See SolveWithJOR's own declaration for what
+  // this does and why it exists (literally replicating legacy's own
+  // two-phase unrelaxed-then-relaxed structure, rather than relying on
+  // an unverified assumption to relate this codebase's own JOR
+  // recursion to legacy's).
+  bool match_legacy_first_step_ = false;
   // Debug/experimental, no legacy counterpart, temporary -- exists to
   // support a direct, deterministic comparison against legacy at two
   // points in the solve where both codes compute well-defined
@@ -326,6 +332,8 @@ inline void EwaldBackground::ParseOptions(const tools::Property& opt) {
       "polarmethod.debug_use_jor", use_jor_);
   jor_omega_ = opt.ifExistsReturnElseReturnDefault<double>(
       "polarmethod.debug_jor_omega", jor_omega_);
+  match_legacy_first_step_ = opt.ifExistsReturnElseReturnDefault<bool>(
+      "polarmethod.debug_match_legacy_first_step", match_legacy_first_step_);
   debug_dump_first_iteration_and_stop_ =
       opt.ifExistsReturnElseReturnDefault<bool>(
           "polarmethod.debug_dump_first_iteration_and_stop",
@@ -631,6 +639,27 @@ double SiteRelativeDipoleChange(const Eigen::Vector3d& U0,
 // still computed and logged every iteration (informational only -- it
 // is a genuinely different quantity, not proportional to max_dU/avg_dU
 // in general, and no longer decides when this function itself stops).
+//
+// match_legacy_first_step, when true, uses omega=1.0 (fully unrelaxed)
+// for iteration 0 only, then the configured omega for every iteration
+// after -- literally replicating legacy's own two-phase structure
+// (InduceDirect(), fully unrelaxed, THEN the main loop's own wSOR-
+// relaxed Induce() calls) rather than applying the same omega-relaxed
+// step from x=0 that legacy never does. Added after this session's own
+// attempt to algebraically relate the two codebases' differing
+// recursions (legacy: mu2 = mu1 - wSOR*P*FU(mu1), coefficient 1 on
+// mu1, since legacy's own mu1 is already fully unrelaxed; this
+// function's own un-adjusted recursion: x2 = (2-omega)*x1 +
+// omega*P*C*x1, a different coefficient, purely because THIS x1 was
+// only omega-relaxed to begin with) turned out to rest on an
+// unverified assumption (that C, this class's own leftover-from-D
+// coupling operator, equals legacy's own FU field) that was never
+// independently confirmed -- this flag sidesteps that assumption
+// entirely by making the two codebases' own x1/mu1 and x2/mu2 directly,
+// literally comparable (same relaxation history on both sides), so a
+// comparison needs only the same simple bohr<->nm dipole conversion
+// already validated for x1 vs mu1, not any field-specific conversion
+// or unverified operator decomposition.
 JorResult SolveWithJOR(const EwaldPeriodicDipoleOperator& op,
                        const EwaldSitePolarizabilityBlocks& site_p,
                        const Eigen::VectorXd& b, Index max_iter,
@@ -638,7 +667,8 @@ JorResult SolveWithJOR(const EwaldPeriodicDipoleOperator& op,
                        std::chrono::steady_clock::time_point t_start,
                        const EwaldRegistry& registry,
                        const std::vector<Index>& ids,
-                       bool debug_dump_first_iteration_and_stop) {
+                       bool debug_dump_first_iteration_and_stop,
+                       bool match_legacy_first_step) {
   auto elapsed_s = [&]() {
     return std::chrono::duration<double>(std::chrono::steady_clock::now() -
                                          t_start)
@@ -657,12 +687,14 @@ JorResult SolveWithJOR(const EwaldPeriodicDipoleOperator& op,
     Eigen::VectorXd residual_vec = b - op * x;
     const double residual_norm = residual_vec.norm();
     const Eigen::VectorXd x_old = x;
-    x = x_old + omega * site_p.Apply(residual_vec);
+    const double this_step_omega =
+        (i == 0 && match_legacy_first_step) ? 1.0 : omega;
+    x = x_old + this_step_omega * site_p.Apply(residual_vec);
 
     if (i == 0 && debug_dump_first_iteration_and_stop) {
       // See debug_dump_first_iteration_and_stop_'s own declaration for
       // why this exists and what it's for. x at this point is exactly
-      // mu_1 = omega * P * F_perm (x_old is still zero here, so
+      // this_step_omega * P * F_perm (x_old is still zero here, so
       // site_p.Apply(residual_vec) IS the whole update -- no induced-
       // induced coupling has entered yet, on either this codebase's own
       // side or legacy's, since neither has performed a second field
@@ -717,6 +749,42 @@ JorResult SolveWithJOR(const EwaldPeriodicDipoleOperator& op,
         }
       }
       dump.close();
+      // Debug/experimental -- see DumpStagedCoupling's own declaration.
+      // x here IS x1 (this loop's own i==0 update, captured before any
+      // later iteration overwrites it) -- matching legacy's own FUa-FUe,
+      // all computed from mu_1, not from a later, already-relaxed
+      // iterate.
+      op.DumpStagedCoupling(x, "new_staged_coupling_dump.csv");
+      // Debug/experimental -- see DumpCachedNeighborList's own
+      // declaration. Called here, right after DumpStagedCoupling's own
+      // stage B (which calls AddFieldAt for this same target), to
+      // capture exactly what that specific call visited/cached --
+      // added after a real discrepancy was found, on the real system,
+      // between DumpStagedCoupling and DumpPerPairIntermolecularField,
+      // that no local reproduction attempt (small test systems,
+      // various call orderings) could reproduce.
+      {
+        std::ofstream cache_header("new_cachedneighborlist_dump.csv");
+        cache_header << "target_segment_id,source_segment_id,"
+                        "translation_idx,t_x_bohr,t_y_bohr,t_z_bohr,r_bohr\n";
+      }
+      op.DumpCachedNeighborList(0, "new_cachedneighborlist_dump.csv");
+      // Debug/experimental -- see DumpPerPairIntermolecularField's own
+      // declaration. x's own dipoles are already set on every site by
+      // DumpStagedCoupling's own internal setup, right above -- this
+      // call relies on that already having happened, per its own
+      // documented contract of not setting any dipole state itself.
+      // Restricted to segment 0 to match legacy's own equivalent dump
+      // (also gated to a single target, given the far finer per-pair
+      // granularity here compared to the earlier per-segment
+      // neighbor-list dump, which could afford to cover every target).
+      {
+        std::ofstream pp_header("new_perpairfield_dump.csv");
+        pp_header << "target_segment_id,source_segment_id,source_site_index,"
+                     "t_x_bohr,t_y_bohr,t_z_bohr,field_x_bohr,field_y_bohr,"
+                     "field_z_bohr\n";
+      }
+      op.DumpPerPairIntermolecularField(0, "new_perpairfield_dump.csv");
     }
 
     if (i == 1 && debug_dump_first_iteration_and_stop) {
@@ -917,6 +985,8 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
       << (use_block_jacobi_preconditioner_ ? "true" : "false")
       << ", debug_use_jor=" << (use_jor_ ? "true" : "false")
       << ", debug_jor_omega=" << jor_omega_
+      << ", debug_match_legacy_first_step="
+      << (match_legacy_first_step_ ? "true" : "false")
       << ", debug_dump_first_iteration_and_stop="
       << (debug_dump_first_iteration_and_stop_ ? "true" : "false")
       << std::flush;
@@ -1040,6 +1110,33 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
                                    apply_thole_damping_intramolecular_,
                                    apply_realspace_intermolecular_coupling_,
                                    apply_reciprocal_coupling_);
+    // Debug/experimental -- see DumpIntraPairThole's own declaration.
+    // Called here, right after op's own construction and before the
+    // solve itself, since this data depends only on geometry and
+    // polarizability, not on anything the solve computes.
+    if (debug_dump_first_iteration_and_stop_) {
+      op.DumpIntraPairThole("new_intrapair_dump.csv");
+      // Debug/experimental -- see EwaldRealSpaceSum::DumpNeighborList's
+      // own declaration. Dumps every ids segment as its own target (a
+      // first version of this restricted to a single segment risked
+      // hiding a genuine PBC-scheme discrepancy that only shows up for
+      // segments in a different geometric relationship to the box), so
+      // target_segment_id is written as its own column -- matching
+      // legacy's own equivalent dump's own choice, made for the same
+      // reason.
+      {
+        std::ofstream nb_header("new_neighborlist_dump.csv");
+        nb_header << "target_segment_id,source_segment_id,r_bohr,t_x_bohr,"
+                     "t_y_bohr,t_z_bohr\n";
+      }
+      for (Index id : ids) {
+        const PolarSegment& segment =
+            registry.Get(id, EwaldChargeState::Neutral);
+        real_sum.DumpNeighborListAppend(id, segment[0],
+                                       EwaldChargeState::Neutral,
+                                       "new_neighborlist_dump.csv");
+      }
+    }
     Eigen::VectorXd x;
     Index iterations;
     double residual;
@@ -1059,7 +1156,8 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
       EwaldSitePolarizabilityBlocks site_p(registry, ids);
       auto result =
           SolveWithJOR(op, site_p, b, max_iter_, jor_omega_, log, t_pcg,
-                      registry, ids, debug_dump_first_iteration_and_stop_);
+                      registry, ids, debug_dump_first_iteration_and_stop_,
+                      match_legacy_first_step_);
       x = result.x;
       iterations = result.iterations;
       residual = result.residual;

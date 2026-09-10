@@ -19,6 +19,7 @@
 
 // Standard includes
 #include <algorithm>
+#include <fstream>
 #include <stdexcept>
 
 // Local VOTCA includes
@@ -294,6 +295,157 @@ void EwaldPeriodicDipoleOperator::AddIntraSegmentCoupling(
 Eigen::VectorXd EwaldPeriodicDipoleOperator::multiply(
     const Eigen::VectorXd& v) const {
   return RawMultiply(v) - baseline_;
+}
+
+void EwaldPeriodicDipoleOperator::DumpIntraPairThole(
+    const std::string& filename) const {
+  // See this method's own declaration for what this is for. Mirrors
+  // AddIntraSegmentCoupling's own loop exactly (same pair set, same
+  // r_vec convention, same ComputeB/ComputeThole calls) -- deliberately
+  // NOT reading anything from that method's own tensor-assembly step,
+  // so this dump is independent of whatever that step does with these
+  // scalars.
+  std::ofstream dump(filename);
+  dump.precision(15);
+  dump << "segment_id,site_i,site_j,r_bohr,B0,B1,B2,l3,l5\n";
+  for (std::size_t n = 0; n < ids_.size(); ++n) {
+    const PolarSegment& segment =
+        registry_.Get(ids_[n], EwaldChargeState::Neutral);
+    Index n_sites = segment.size();
+    if (n_sites < 2) {
+      continue;
+    }
+    for (Index i = 0; i < n_sites; ++i) {
+      const PolarSite& site_i = segment[i];
+      for (Index j = i + 1; j < n_sites; ++j) {
+        const PolarSite& site_j = segment[j];
+        const Eigen::Vector3d r_vec = site_i.getPos() - site_j.getPos();
+        const double r = r_vec.norm();
+        const EwaldRealSpaceInteractor::BFunctions b =
+            intra_interactor_.ComputeB(r);
+        const EwaldRealSpaceInteractor::TholeFactors t =
+            intra_interactor_.ComputeThole(r, site_j, site_i);
+        dump << ids_[n] << "," << i << "," << j << "," << r << "," << b.B0
+             << "," << b.B1 << "," << b.B2 << "," << t.l3 << "," << t.l5
+             << "\n";
+      }
+    }
+  }
+  dump.close();
+}
+
+void EwaldPeriodicDipoleOperator::DumpStagedCoupling(
+    const Eigen::VectorXd& v, const std::string& filename) const {
+  // See this method's own declaration for what this is for and why.
+  std::vector<std::pair<Index, PolarSite*>> targets;
+  targets.reserve(std::size_t(size_ / 3));
+  for (std::size_t n = 0; n < ids_.size(); ++n) {
+    PolarSegment& segment = registry_.Get(ids_[n], EwaldChargeState::Neutral);
+    Index base = offsets_[n];
+    for (Index s = 0; s < segment.size(); ++s) {
+      PolarSite& site = segment[s];
+      site.setInduced_Dipole(v.segment<3>(base + 3 * s));
+      site.Reset();
+      targets.push_back({ids_[n], &site});
+    }
+  }
+
+  // Stage A: intramolecular only. AddIntraSegmentCoupling writes into a
+  // plain Eigen::VectorXd (result), NOT into site.V() -- unlike every
+  // other stage below -- so it's captured separately here, into fu_a,
+  // rather than read off site.V() like the rest.
+  Eigen::VectorXd fu_a = Eigen::VectorXd::Zero(size_);
+  AddIntraSegmentCoupling(v, fu_a);
+
+  auto site_v = [&]() {
+    Eigen::VectorXd out(size_);
+    Index idx = 0;
+    for (std::size_t n = 0; n < ids_.size(); ++n) {
+      PolarSegment& segment =
+          registry_.Get(ids_[n], EwaldChargeState::Neutral);
+      for (Index s = 0; s < segment.size(); ++s) {
+        out.segment<3>(idx) = segment[s].V();
+        idx += 3;
+      }
+    }
+    return out;
+  };
+
+  // Stage B: + real-space intermolecular.
+  for (const auto& entry : targets) {
+    real_sum_.AddFieldAt<Estatic::V>(entry.first, *entry.second,
+                                     EwaldChargeState::Neutral);
+  }
+  const Eigen::VectorXd fu_b = fu_a + site_v();
+
+  // Stage C: + reciprocal.
+  std::vector<PolarSite*> recip_targets;
+  recip_targets.reserve(targets.size());
+  for (const auto& entry : targets) {
+    recip_targets.push_back(entry.second);
+  }
+  recip_sum_.AddFieldAtMany<Estatic::V>(recip_targets,
+                                        EwaldChargeState::Neutral);
+  const Eigen::VectorXd fu_c = fu_a + site_v();
+
+  // Stage D: + shape.
+  for (const auto& entry : targets) {
+    shape_.AddFieldAt<Estatic::V>(*entry.second, EwaldChargeState::Neutral);
+  }
+  const Eigen::VectorXd fu_d = fu_a + site_v();
+
+  // Stage E: + self-field. Added directly (matches RawMultiply's own
+  // self_field_matrix_ * v term), not via site.V().
+  Eigen::VectorXd fu_e = fu_d;
+  Index idx = 0;
+  for (std::size_t n = 0; n < ids_.size(); ++n) {
+    PolarSegment& segment = registry_.Get(ids_[n], EwaldChargeState::Neutral);
+    for (Index s = 0; s < segment.size(); ++s) {
+      fu_e.segment<3>(idx) += self_field_matrix_ * v.segment<3>(idx);
+      idx += 3;
+    }
+  }
+
+  std::ofstream dump(filename);
+  dump.precision(15);
+  dump << "segment_id,site_index,FUa_x_bohr,FUa_y_bohr,FUa_z_bohr,"
+          "FUb_x_bohr,FUb_y_bohr,FUb_z_bohr,FUc_x_bohr,FUc_y_bohr,"
+          "FUc_z_bohr,FUd_x_bohr,FUd_y_bohr,FUd_z_bohr,FUe_x_bohr,"
+          "FUe_y_bohr,FUe_z_bohr\n";
+  idx = 0;
+  for (std::size_t n = 0; n < ids_.size(); ++n) {
+    const PolarSegment& segment =
+        registry_.Get(ids_[n], EwaldChargeState::Neutral);
+    for (Index s = 0; s < segment.size(); ++s) {
+      dump << ids_[n] << "," << s;
+      for (const Eigen::VectorXd* stage :
+           std::initializer_list<const Eigen::VectorXd*>{&fu_a, &fu_b, &fu_c,
+                                                          &fu_d, &fu_e}) {
+        dump << "," << (*stage)(idx) << "," << (*stage)(idx + 1) << ","
+             << (*stage)(idx + 2);
+      }
+      dump << "\n";
+      idx += 3;
+    }
+  }
+  dump.close();
+}
+
+void EwaldPeriodicDipoleOperator::DumpPerPairIntermolecularField(
+    Index target_segment_id, const std::string& filename) const {
+  PolarSegment& target_segment =
+      registry_.Get(target_segment_id, EwaldChargeState::Neutral);
+  real_sum_.DumpPerPairFieldAppend(target_segment_id, target_segment[0],
+                                   EwaldChargeState::Neutral, filename);
+}
+
+void EwaldPeriodicDipoleOperator::DumpCachedNeighborList(
+    Index target_segment_id, const std::string& filename) const {
+  const PolarSegment& target_segment =
+      registry_.Get(target_segment_id, EwaldChargeState::Neutral);
+  real_sum_.DumpCachedNeighborListAppend(
+      target_segment_id, target_segment[0], EwaldChargeState::Neutral,
+      filename);
 }
 
 }  // namespace xtp

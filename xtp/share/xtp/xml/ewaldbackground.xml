@@ -66,6 +66,10 @@
                         <debug_use_block_jacobi_preconditioner>false</debug_use_block_jacobi_preconditioner>
 			<debug_use_jor>false</debug_use_jor>
 			<debug_jor_omega>0.35</debug_jor_omega>
+			<!-- Debug/experimental: see match_legacy_first_step_'s own
+			     declaration. Literally replicates legacy's own
+			     two-phase unrelaxed-then-relaxed structure. -->
+			<debug_match_legacy_first_step>false</debug_match_legacy_first_step>
 			<debug_dump_first_iteration_and_stop>false</debug_dump_first_iteration_and_stop>
 			<debug_apply_realspace_intermolecular_coupling>true</debug_apply_realspace_intermolecular_coupling>
 			<debug_apply_reciprocal_coupling>true</debug_apply_reciprocal_coupling>

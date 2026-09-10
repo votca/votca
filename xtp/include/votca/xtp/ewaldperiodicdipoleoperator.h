@@ -22,6 +22,7 @@
 #define VOTCA_XTP_EWALDPERIODICDIPOLEOPERATOR_H
 
 // Standard includes
+#include <string>
 #include <vector>
 
 // Local VOTCA includes
@@ -420,6 +421,61 @@ class EwaldPeriodicDipoleOperator
                              bool apply_realspace_intermolecular_coupling =
                                  true,
                              bool apply_reciprocal_coupling = true);
+
+  // Debug/experimental. Dumps, for every intramolecular pair this
+  // class's own AddIntraSegmentCoupling would visit, the raw damping
+  // scalars (r, B0, B1, B2, l3, l5) -- not the assembled field tensor
+  // (already checked, this session, and found consistent with legacy's
+  // own via ApplyInducedField) -- so a per-pair comparison against
+  // legacy's own matching EwdInteractor::GetDebugPairState dump can
+  // isolate the raw damping computation itself, independent of tensor
+  // assembly or vector algebra around it. Depends only on geometry and
+  // each site's own polarizability, not on any induced-dipole state, so
+  // this can be called at any time (before a solve even starts) and
+  // will give the same result throughout.
+  void DumpIntraPairThole(const std::string& filename) const;
+
+  // Debug/experimental. Computes op*v's own field contribution to each
+  // ids_ target site, staged cumulatively in LEGACY's own order (FUa =
+  // intramolecular only, FUb = +real-space intermolecular, FUc =
+  // +reciprocal, FUd = +shape, FUe = +self-field), NOT this class's own
+  // internal RawMultiply order (real-inter, recip, shape, self-field,
+  // THEN intramolecular last) -- added specifically to let a per-stage
+  // comparison against legacy's own matching stagedFU dump isolate
+  // whether a discrepancy comes from field computation (would show up
+  // at the specific stage it enters) or from the induction response
+  // built on top of it (would show up equally at every stage, since
+  // the same v is used for all five here). All five stages act on the
+  // SAME input v (deliberately, to match legacy's own FUa-FUe, which
+  // are all computed from the same mu_1) -- this is not RawMultiply's
+  // own op*v (which mixes in P^-1*v and is gated by the constructor's
+  // own toggles); every stage here is always computed and dumped,
+  // regardless of this object's own apply_*_ flags, since the entire
+  // point is to see every stage side by side.
+  void DumpStagedCoupling(const Eigen::VectorXd& v,
+                          const std::string& filename) const;
+
+  // Debug/experimental. Wraps EwaldRealSpaceSum::DumpPerPairFieldAppend
+  // for a single target segment's own first site, so the calculator
+  // (which has no direct access to real_sum_, a private member here)
+  // can trigger it without needing its own accessor for the whole
+  // real_sum_ object. Caller is responsible for having already set
+  // every site's own induced dipole to whatever state (e.g. x1) the
+  // comparison is meant to reflect -- this wrapper does not set any
+  // dipole state itself, matching DumpPerPairFieldAppend's own
+  // contract.
+  void DumpPerPairIntermolecularField(Index target_segment_id,
+                                      const std::string& filename) const;
+
+  // Debug/experimental. Wraps EwaldRealSpaceSum::
+  // DumpCachedNeighborListAppend the same way
+  // DumpPerPairIntermolecularField wraps DumpPerPairFieldAppend -- see
+  // that method's own comment for why this wrapper exists. Call this
+  // AFTER whatever call is suspected of populating (or not populating,
+  // or populating differently than expected) real_sum_'s own neighbor
+  // cache for this target -- e.g. right after DumpStagedCoupling.
+  void DumpCachedNeighborList(Index target_segment_id,
+                              const std::string& filename) const;
 
   class InnerIterator {
    public:

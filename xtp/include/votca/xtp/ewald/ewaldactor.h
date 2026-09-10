@@ -256,6 +256,37 @@ class EwdInteractor {
   EWD::triple<EWD::cmplx> S1S2(const vec &k, std::vector<PolarSeg *> &s1,
                                std::vector<PolarSeg *> &s2);
 
+  // Debug/experimental. Exposes this interactor's own current internal
+  // state (as set by the most recent ApplyBiasPolar + UpdateAllBls
+  // call, e.g. from within FU12_ERFC_At_By) -- added specifically to
+  // support a direct, per-pair numeric comparison against the "new"
+  // (non-legacy) Ewald code's own ComputeB/ComputeThole, isolating the
+  // raw damping scalars themselves from the field-tensor assembly and
+  // vector algebra around them (both of which were already checked,
+  // this session, and found consistent between the two codebases).
+  struct DebugPairState {
+    double r = 0.0;
+    double tu3 = 0.0;
+    double ta1_tu3 = 0.0;
+    double l3 = 0.0;
+    double l5 = 0.0;
+    double B0 = 0.0;
+    double B1 = 0.0;
+    double B2 = 0.0;
+  };
+  DebugPairState GetDebugPairState() const {
+    DebugPairState s;
+    s.r = R1;
+    s.tu3 = tu3;
+    s.ta1_tu3 = ta1 * tu3;
+    s.l3 = l3;
+    s.l5 = l5;
+    s.B0 = B0;
+    s.B1 = B1;
+    s.B2 = B2;
+    return s;
+  }
+
  private:
   // Thole sharpness parameter & reduced interaction distance
   double ta1, ta2, ta3;

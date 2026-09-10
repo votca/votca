@@ -1,6 +1,7 @@
 #include "votca/xtp/ewald/polarbackground.h"
 #include "votca/tools/property.h"
 #include <boost/format.hpp>
+#include <mutex>
 #include <votca/tools/globals.h>
 
 namespace votca {
@@ -433,6 +434,7 @@ void PolarBackground::Polarize(int n_threads = 1) {
     // (FUx=FUy=FUz are still their own zero-initialized default here).
     if (_debug_dump_first_iteration_and_stop) {
       std::ofstream dump("legacy_iteration1_dump.csv");
+      dump.precision(15);
       dump << "segment_id,site_index,pos_x_bohr,pos_y_bohr,pos_z_bohr,"
               "mu_x_bohr,mu_y_bohr,mu_z_bohr,mu_x_enm,mu_y_enm,mu_z_enm,"
               "Fperm_x_native,Fperm_y_native,Fperm_z_native,"
@@ -544,10 +546,34 @@ void PolarBackground::Polarize(int n_threads = 1) {
         fu_stage_e;
     // (1) Real-space intramolecular contribution
     XTP_LOG(Log::debug, log) << "  o Real-space, intramolecular" << std::flush;
+    std::ofstream intrapair_dump;
+    if (_debug_dump_first_iteration_and_stop) {
+      intrapair_dump.open("legacy_intrapair_dump.csv");
+      intrapair_dump.precision(15);
+      intrapair_dump << "segment_id,site_i,site_j,r_native,tu3,ta1_tu3,l3,l5,"
+                        "B0,B1,B2\n";
+    }
     for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1) {
       for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
         for (pit2 = pit1 + 1; pit2 < (*sit1)->end(); ++pit2) {
           _ewdactor.FU12_ERFC_At_By(*(*pit1), *(*pit2));
+          // Debug/experimental -- see EwdInteractor::GetDebugPairState's
+          // own declaration. Captured here, right after this specific
+          // call, since FU12_ERFC_At_By's own ApplyBiasPolar +
+          // UpdateAllBls calls are what set _ewdactor's own internal
+          // r/tu3/l3/l5/B0/B1/B2 state for THIS (pit1, pit2) pair -- the
+          // very next line's own call (pit2, pit1) overwrites that same
+          // state with the pair's own reverse-direction values before
+          // this dump would otherwise see it.
+          if (_debug_dump_first_iteration_and_stop) {
+            auto ds = _ewdactor.GetDebugPairState();
+            intrapair_dump << (*sit1)->getId() << ","
+                          << std::distance((*sit1)->begin(), pit1) << ","
+                          << std::distance((*sit1)->begin(), pit2) << ","
+                          << ds.r << "," << ds.tu3 << "," << ds.ta1_tu3 << ","
+                          << ds.l3 << "," << ds.l5 << "," << ds.B0 << ","
+                          << ds.B1 << "," << ds.B2 << "\n";
+          }
           _ewdactor.FU12_ERFC_At_By(*(*pit2), *(*pit1));
           //_actor.BiasIndu(*(*pit1),*(*pit2));
           //_actor.FieldIndu(*(*pit1),*(*pit2));
@@ -555,6 +581,7 @@ void PolarBackground::Polarize(int n_threads = 1) {
       }
     }
     if (_debug_dump_first_iteration_and_stop) {
+      intrapair_dump.close();
       for (sit1 = _bg_P.begin(); sit1 < _bg_P.end(); ++sit1)
         for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1)
           fu_stage_a.push_back((*pit1)->getFieldU());
@@ -666,6 +693,7 @@ void PolarBackground::Polarize(int n_threads = 1) {
             "stages never execute, so those columns would be empty.");
       }
       std::ofstream dump("legacy_iteration2_dump.csv");
+      dump.precision(15);
       dump << "segment_id,site_index,"
               "mu2_x_enm,mu2_y_enm,mu2_z_enm,"
               "FU_x_native,FU_y_native,FU_z_native,"
@@ -1018,6 +1046,53 @@ void PolarBackground::RThread::FU_FieldCalc() {
               shelled_nbs[shell_idx].push_back(
                   new PolarNb(pseg2, dr12_pbc_L, s22x_L));
               allocated_count += 1;
+              // Debug/experimental -- see this session's own added
+              // EwaldRealSpaceSum::DumpNeighborList (new-code side) for
+              // what this is for. Dumps every pseg1 (not just one target
+              // segment -- a first version of this restricted to a
+              // single segment risked hiding a genuine PBC-scheme
+              // discrepancy that only shows up for segments in a
+              // different geometric relationship to the box, e.g. near
+              // a boundary rather than deep in the interior), so
+              // target_segment_id is written as its own column. Every
+              // pseg1 hits its own "first write for this pseg1" moment
+              // (allocated_count==1), so a std::call_once guards the
+              // one-time file truncation + header (never more than
+              // once, regardless of which pseg1/thread reaches it
+              // first) and a mutex guards every individual row write
+              // against concurrent multi-thread corruption (this loop
+              // runs inside a genuinely multi-threaded worker -- see
+              // FX_RealSpace's own ThreadForce setup).
+              // CRITICAL: the stream itself is opened exactly once (a
+              // static, function-local std::ofstream, left open for the
+              // rest of the process's own lifetime) and reused for
+              // every row -- an earlier version of this opened a fresh
+              // std::ofstream on EVERY row, under the same mutex,
+              // serializing every worker thread onto a full file
+              // open+seek-to-end+close for each individual neighbor
+              // pair; for a real system this made the whole run many
+              // orders of magnitude slower (observed: unfinished after
+              // 24 hours) than the underlying physics warrants.
+              if (_master->_debug_dump_first_iteration_and_stop) {
+                static std::once_flag nb_dump_header_once;
+                static std::mutex nb_dump_mutex;
+                static std::ofstream nb_dump;
+                std::call_once(nb_dump_header_once, []() {
+                  nb_dump.open("legacy_neighborlist_dump.csv",
+                              std::ios::trunc);
+                  nb_dump.precision(15);
+                  nb_dump << "target_segment_id,source_segment_id,"
+                             "r_nm,t_x_nm,t_y_nm,t_z_nm\n";
+                });
+                std::lock_guard<std::mutex> lock(nb_dump_mutex);
+                nb_dump << pseg1->getId() << "," << pseg2->getId() << ","
+                       << R << "," << dr12_pbc_L.x() << ","
+                       << dr12_pbc_L.y() << "," << dr12_pbc_L.z() << "\n";
+                static std::size_t nb_dump_row_count = 0;
+                if (++nb_dump_row_count % 10000 == 0) {
+                  nb_dump.flush();
+                }
+              }
             }
           }
         }
@@ -1049,9 +1124,50 @@ void PolarBackground::RThread::FU_FieldCalc() {
             // Interact taking into account shift
             for (pit1 = pseg1->begin(); pit1 < pseg1->end(); ++pit1) {
               for (pit2 = pseg2->begin(); pit2 < pseg2->end(); ++pit2) {
+                // Debug/experimental -- per-pair field dump, mirroring
+                // this session's own EwaldRealSpaceSum::
+                // DumpPerPairFieldAppend (new-code side). Isolates each
+                // individual pair's own field contribution by
+                // differencing pit1's own FUx/FUy/FUz before/after this
+                // one FU12_ERFC_At_By call -- the SAME call already
+                // confirmed (via the !_do_use_cutoff branch check) to
+                // be the one this run's own config actually executes,
+                // after an earlier turn this session mistakenly looked
+                // at the OTHER (_do_use_cutoff-only, dead-for-this-run)
+                // branch's own _actor/XInteractor calls instead.
+                // Restricted to a single target segment (id 0) to keep
+                // file size manageable at this per-pair granularity --
+                // unlike the earlier per-segment neighbor-list dump,
+                // which dumped every target since segment-level
+                // granularity kept it small.
+                vec fu_before = (*pit1)->getFieldU();
                 shell_rms += _ewdactor.FU12_ERFC_At_By(*(*pit1), *(*pit2),
                                                        (*nit)->getS());
                 shell_rms_count += 1;
+                if (_master->_debug_dump_first_iteration_and_stop &&
+                    pseg1->getId() == 0) {
+                  vec fu_after = (*pit1)->getFieldU();
+                  vec pair_field = fu_after - fu_before;
+                  static std::once_flag pp_dump_header_once;
+                  static std::mutex pp_dump_mutex;
+                  static std::ofstream pp_dump;
+                  std::call_once(pp_dump_header_once, []() {
+                    pp_dump.open("legacy_perpairfield_dump.csv",
+                                std::ios::trunc);
+                    pp_dump.precision(15);
+                    pp_dump << "target_segment_id,target_site_index,"
+                               "source_segment_id,source_site_index,"
+                               "field_x_native,field_y_native,"
+                               "field_z_native\n";
+                  });
+                  std::lock_guard<std::mutex> lock(pp_dump_mutex);
+                  pp_dump << pseg1->getId() << ","
+                         << (pit1 - pseg1->begin()) << ","
+                         << pseg2->getId() << ","
+                         << (pit2 - pseg2->begin()) << ","
+                         << pair_field.x() << "," << pair_field.y()
+                         << "," << pair_field.z() << "\n";
+                }
               }
             }
           }
