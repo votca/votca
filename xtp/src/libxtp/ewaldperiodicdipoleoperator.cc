@@ -389,10 +389,60 @@ void EwaldPeriodicDipoleOperator::DumpStagedCoupling(
   const Eigen::VectorXd fu_c = fu_a + site_v();
 
   // Stage D: + shape.
+  //
+  // BUG FIX (this session): EwaldShapeCorrection::TotalDipoleMoment
+  // always sums charge*pos + static_dipole + induced_dipole from the
+  // REAL registry state, regardless of context -- correct for the
+  // PRODUCTION JOR solve (RawMultiply/multiply), where the v-
+  // independent part (charge*pos + static_dipole) contributes
+  // identically at v=0 and at every other v, so it's captured once in
+  // baseline_ and cancels out via multiply(v) = RawMultiply(v) -
+  // baseline_ (see that subtraction's own documentation). This
+  // diagnostic dump has no such baseline subtraction of its own,
+  // though, so without this fix fu_d (and fu_e, built on top of it)
+  // would include that same v-independent contribution directly --
+  // something legacy's own matching, induced-dipole-only stage
+  // (FU12_ShapeField_At_By, which sums only U1x/y/z, no
+  // charge/position/static-dipole term at all) never includes, making
+  // a direct comparison invalid without this correction.
+  //
+  // An earlier version of this fix used a throwaway probe site as the
+  // TARGET for a separate shape_.AddFieldAt call, reasoning that
+  // TotalDipoleMoment doesn't depend on the target's own position --
+  // true, but irrelevant: TotalDipoleMoment sums over the REAL
+  // registry's own sites regardless of which site is the target, so
+  // that probe's own resulting field was the SAME full M (with the
+  // real v already included) as what every real site already got, not
+  // an isolated v-independent piece at all -- confirmed when a direct
+  // numerical check came back with fu_d-fu_c exactly zero rather than
+  // the small, genuinely nonzero value it should be.
+  //
+  // Correct approach: temporarily zero every real site's own induced
+  // dipole (saving the real values first), compute the shape field
+  // this now-v-independent-only registry state produces for a real
+  // target, then restore the real induced dipoles immediately after --
+  // this genuinely isolates the v-independent part, since
+  // TotalDipoleMoment now has literally nothing else to sum.
+  std::vector<Eigen::Vector3d> saved_induced_dipoles;
+  saved_induced_dipoles.reserve(targets.size());
+  for (const auto& entry : targets) {
+    saved_induced_dipoles.push_back(entry.second->getInducedDipole());
+    entry.second->setInduced_Dipole(Eigen::Vector3d::Zero());
+  }
+  PolarSite v_independent_probe(-1, "X", Eigen::Vector3d::Zero());
+  shape_.AddFieldAt<Estatic::V>(v_independent_probe, EwaldChargeState::Neutral);
+  const Eigen::Vector3d v_independent_shape_field = v_independent_probe.V();
+  for (std::size_t n = 0; n < targets.size(); ++n) {
+    targets[n].second->setInduced_Dipole(saved_induced_dipoles[n]);
+  }
+
   for (const auto& entry : targets) {
     shape_.AddFieldAt<Estatic::V>(*entry.second, EwaldChargeState::Neutral);
   }
-  const Eigen::VectorXd fu_d = fu_a + site_v();
+  Eigen::VectorXd fu_d = fu_a + site_v();
+  for (Index n = 0; n < fu_d.size() / 3; ++n) {
+    fu_d.segment<3>(3 * n) -= v_independent_shape_field;
+  }
 
   // Stage E: + self-field. Added directly (matches RawMultiply's own
   // self_field_matrix_ * v term), not via site.V().

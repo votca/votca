@@ -2,6 +2,7 @@
 #include "votca/tools/property.h"
 #include <boost/format.hpp>
 #include <mutex>
+#include <set>
 #include <votca/tools/globals.h>
 
 namespace votca {
@@ -9,6 +10,20 @@ namespace xtp {
 namespace EWD {
 
 using boost::format;
+
+namespace {
+// Debug/experimental (this session). Shared by both the per-pair
+// static- and induced-field dumps below -- see their own gate's
+// context (search this file for IsPerPairDumpTarget) for what this is
+// for. Matches the same target sample used on the new (non-legacy)
+// code's own equivalent extension, so the two can be compared
+// directly, site by site.
+bool IsPerPairDumpTarget(votca::Index segment_id) {
+  static const std::set<votca::Index> sample_targets = {
+      0, 100, 200, 300, 400, 500, 600, 700, 800, 900};
+  return sample_targets.count(segment_id) > 0;
+}
+}  // namespace
 
 PolarBackground::PolarBackground(Topology *top, PolarTop *ptop,
                                  tools::Property opt, Logger *log)
@@ -927,7 +942,7 @@ void PolarBackground::RThread::FP_FieldCalc() {
                   _ewdactor.FP12_ERFC_At_By(*(*pit1), *(*pit2), (*nit)->getS());
               shell_rms_count += 1;
               if (_master->_debug_dump_first_iteration_and_stop &&
-                  pseg1->getId() == 0) {
+                  IsPerPairDumpTarget(pseg1->getId())) {
                 vec fp_after = (*pit1)->getFieldP();
                 vec pair_field = fp_after - fp_before;
                 static std::once_flag pps_dump_header_once;
@@ -1182,7 +1197,7 @@ void PolarBackground::RThread::FU_FieldCalc() {
                                                        (*nit)->getS());
                 shell_rms_count += 1;
                 if (_master->_debug_dump_first_iteration_and_stop &&
-                    pseg1->getId() == 0) {
+                    IsPerPairDumpTarget(pseg1->getId())) {
                   vec fu_after = (*pit1)->getFieldU();
                   vec pair_field = fu_after - fu_before;
                   static std::once_flag pp_dump_header_once;
@@ -1603,6 +1618,13 @@ void PolarBackground::FX_ReciprocalSpace(std::string mode1, std::string mode2,
     crit_grade *= 0.1;
   }
 
+  // Debug/experimental -- see this session's own log-line addition
+  // right after _field_converged_K's own assignment for what this is
+  // for. Captured here, before kit gets reassigned for the 0-0 group
+  // right below, since it's the SAME iterator/cursor reused for both
+  // groups.
+  const Index kvecs_1_0_used = Index(std::distance(_kvecs_1_0.begin(), kit));
+
   // ZERO COMPONENTS ZERO, THREE NON-ZERO
   XTP_LOG(Log::debug, *_log)
       << "  o Zero components zero, three non-zero" << std::flush;
@@ -1665,6 +1687,29 @@ void PolarBackground::FX_ReciprocalSpace(std::string mode1, std::string mode2,
   }
 
   _field_converged_K = converged10 && converged00;
+
+  // Debug/experimental (this session): reports the ACTUAL number of
+  // k-vectors this run consumed before declaring convergence -- not
+  // K_co (an outer safety bound this adaptive, grade-sorted scheme
+  // rarely if ever fully exhausts) and not the total candidate set
+  // GenerateKVectors built (which also just reflects K_co, not actual
+  // usage). Added to let a direct, apples-to-apples comparison against
+  // the new (non-legacy) code's own NumKVectors() -- which DOES always
+  // fully evaluate its own k_max sphere, no adaptive stopping -- be
+  // possible, after a raw K_co-vs-k_max comparison was correctly
+  // pointed out as not meaningful on its own, precisely because of
+  // this adaptive stopping behavior.
+  const Index kvecs_0_0_used = Index(std::distance(_kvecs_0_0.begin(), kit));
+  const Index kvecs_total_used =
+      Index(_kvecs_2_0.size()) + kvecs_1_0_used + kvecs_0_0_used;
+  XTP_LOG(Log::debug, *_log)
+      << (format("  o K-vectors actually used (this run): 2-0=%1$d (all, "
+                 "no convergence check) + 1-0=%2$d (of %3$d candidates) + "
+                 "0-0=%4$d (of %5$d candidates) = %6$d total") %
+          _kvecs_2_0.size() % kvecs_1_0_used % _kvecs_1_0.size() %
+          kvecs_0_0_used % _kvecs_0_0.size() % kvecs_total_used)
+             .str()
+      << std::flush;
 
   if (_field_converged_K) {
     XTP_LOG(Log::debug, *_log)

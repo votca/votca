@@ -30,6 +30,40 @@
 namespace votca {
 namespace xtp {
 
+namespace {
+// BUG FIX (this session): PolarSegment::getPos() (via AtomContainer<T>::
+// calcPos()) is a MASS-weighted center of mass. Legacy's own equivalent
+// (PolarSeg::CalcPos()) is a plain, UNWEIGHTED arithmetic mean of site
+// positions instead -- confirmed by direct comparison of the two
+// implementations. Since this position feeds directly into the
+// minimum-image PBC wrap below (raw_offset = target - source's own
+// representative position), even a small difference between the two
+// definitions can flip which periodic image is chosen as the true
+// minimum for a given pair -- a discrete, not continuous, effect,
+// consistent with the scattered (not uniformly scaled) per-site
+// mismatch pattern that motivated this fix, rather than a smooth
+// site-by-site drift.
+//
+// Deliberately NOT fixed by changing calcPos() itself: that's a shared
+// AtomContainer<T> method used well beyond this file (md2qmengine,
+// segmentmapper), where a genuine physical mass-weighted center of mass
+// may be exactly what's wanted. This local helper instead gives THIS
+// file its own, legacy-matching definition, without touching shared
+// code any other caller depends on.
+Eigen::Vector3d UnweightedCentroid(const PolarSegment& seg) {
+  Eigen::Vector3d pos = Eigen::Vector3d::Zero();
+  Index n = 0;
+  for (const PolarSite& site : seg) {
+    pos += site.getPos();
+    ++n;
+  }
+  if (n > 0) {
+    pos /= double(n);
+  }
+  return pos;
+}
+}  // namespace
+
 EwaldRealSpaceSum::EwaldRealSpaceSum(const Eigen::Matrix3d& box,
                                      const EwaldRegistry& registry,
                                      double alpha, double thole_a,
@@ -189,7 +223,7 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
       // never wrong in isolation -- it was being applied to the wrong
       // starting point).
       const Eigen::Vector3d raw_offset =
-          target.getPos() - source_segment.getPos();
+          target.getPos() - UnweightedCentroid(source_segment);
       const Eigen::Vector3d frac = box_.inverse() * raw_offset;
       const Eigen::Vector3d wrapped_frac =
           frac - frac.array().round().matrix();
@@ -302,7 +336,7 @@ void EwaldRealSpaceSum::DumpNeighborListAppend(
       // didn't carry the same fix as the method it's diagnosing would
       // stop being representative of what AddFieldAt actually does.
       const Eigen::Vector3d raw_offset =
-          target.getPos() - source_segment.getPos();
+          target.getPos() - UnweightedCentroid(source_segment);
       const Eigen::Vector3d frac = box_.inverse() * raw_offset;
       const Eigen::Vector3d wrapped_frac =
           frac - frac.array().round().matrix();
@@ -373,7 +407,7 @@ void EwaldRealSpaceSum::DumpPerPairFieldAppend(
       // with it deliberately, for the same reason given in
       // DumpNeighborListAppend's own matching comment.
       const Eigen::Vector3d raw_offset =
-          target.getPos() - source_segment.getPos();
+          target.getPos() - UnweightedCentroid(source_segment);
       const Eigen::Vector3d frac = box_.inverse() * raw_offset;
       const Eigen::Vector3d wrapped_frac =
           frac - frac.array().round().matrix();
@@ -454,7 +488,7 @@ void EwaldRealSpaceSum::DumpPerPairStaticFieldAppend(
           registry_.Get(source_id, source_state);
 
       const Eigen::Vector3d raw_offset =
-          target.getPos() - source_segment.getPos();
+          target.getPos() - UnweightedCentroid(source_segment);
       const Eigen::Vector3d frac = box_.inverse() * raw_offset;
       const Eigen::Vector3d wrapped_frac =
           frac - frac.array().round().matrix();
