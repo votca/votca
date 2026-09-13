@@ -4,7 +4,19 @@
 #include <boost/filesystem.hpp>
 #include <votca/tools/tokenizer.h>
 #include <votca/xtp/ewald/polarbackground.h>
-#include <votca/xtp/ewald/qmthread.h>
+// The real QMThread, not the legacy ewald/qmthread.h that used to be
+// included here. That header declared a SECOND, different class also
+// called votca::xtp::QMThread (int _id vs Index id_, so Logger sat at a
+// different offset, plus a non-virtual destructor and getLogger()
+// returning a pointer rather than a reference). Having both definitions
+// of one name linked into libvotca_xtp was an ODR violation: the linker
+// kept a single copy of the inline members and vtable, so TUs compiled
+// against the other layout read Logger from the wrong offset. That
+// surfaced as a bus error / SEGV inside ParallelXJobCalc::Evaluate for
+// every calculator that uses QMThread (qmmm, eqm, iqm, ipodcoupling) --
+// far from the Ewald code, and only once the legacy Ewald calculators
+// were registered in the factories and thus linked in.
+#include <votca/xtp/qmthread.h>
 // #include <votca/xtp/ewald/xmapper.h>
 #include "votca/xtp/backgroundregion.h"
 #include "votca/xtp/ewald/polarseg.h"
@@ -89,13 +101,13 @@ void EwaldBgPolarizer::ParseOptions(const tools::Property &opt) {
 bool EwaldBgPolarizer::Evaluate(Topology &top) {
 
   QMThread master;
-  master.getLogger()->setReportLevel(Log::debug);
-  master.getLogger()->setMultithreading(true);
-  master.getLogger()->setPreface(Log::info, "\nMST INF");
-  master.getLogger()->setPreface(Log::error, "\nMST ERR");
-  master.getLogger()->setPreface(Log::warning, "\nMST WAR");
-  master.getLogger()->setPreface(Log::debug, "\nMST DBG");
-  Logger &log = *master.getLogger();
+  master.getLogger().setReportLevel(Log::debug);
+  master.getLogger().setMultithreading(true);
+  master.getLogger().setPreface(Log::info, "\nMST INF");
+  master.getLogger().setPreface(Log::error, "\nMST ERR");
+  master.getLogger().setPreface(Log::warning, "\nMST WAR");
+  master.getLogger().setPreface(Log::debug, "\nMST DBG");
+  Logger &log = master.getLogger();
 
   // Store as PolarTop
   PolarTop ptop(&top);
