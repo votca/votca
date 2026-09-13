@@ -109,9 +109,11 @@ ScreenedPotentialField EvaluateSource(
 }  // namespace
 
 template <class T, enum Estatic CE>
-double EwaldRealSpaceInteractor::ApplyStaticField(const T& site1,
-                                                   PolarSite& site2) const {
-  const Eigen::Vector3d r_vec = site2.getPos() - site1.getPos();
+double EwaldRealSpaceInteractor::ApplyStaticField(
+    const T& site1, PolarSite& site2,
+    const Eigen::Vector3d& source_shift) const {
+  const Eigen::Vector3d r_vec =
+      site2.getPos() - (site1.getPos() + source_shift);
   const double r = r_vec.norm();
   const BFunctions b = ComputeB(r);
 
@@ -155,9 +157,11 @@ void EwaldRealSpaceInteractor::ApplyIntramolecularStaticCorrection(
 }
 
 template <enum Estatic CE>
-double EwaldRealSpaceInteractor::ApplyInducedField(const PolarSite& site1,
-                                                    PolarSite& site2) const {
-  const Eigen::Vector3d r_vec = site2.getPos() - site1.getPos();
+double EwaldRealSpaceInteractor::ApplyInducedField(
+    const PolarSite& site1, PolarSite& site2,
+    const Eigen::Vector3d& source_shift) const {
+  const Eigen::Vector3d r_vec =
+      site2.getPos() - (site1.getPos() + source_shift);
   const double r = r_vec.norm();
   const BFunctions b = ComputeB(r);
   const TholeFactors t = ComputeThole(r, site1, site2);
@@ -217,16 +221,16 @@ double EwaldRealSpaceInteractor::CalcInducedEnergy(
 // Explicit instantiations for the source types actually used.
 template double EwaldRealSpaceInteractor::ApplyStaticField<StaticSite,
                                                             Estatic::V>(
-    const StaticSite&, PolarSite&) const;
+    const StaticSite&, PolarSite&, const Eigen::Vector3d&) const;
 template double EwaldRealSpaceInteractor::ApplyStaticField<StaticSite,
                                                             Estatic::noE_V>(
-    const StaticSite&, PolarSite&) const;
+    const StaticSite&, PolarSite&, const Eigen::Vector3d&) const;
 template double EwaldRealSpaceInteractor::ApplyStaticField<PolarSite,
                                                             Estatic::V>(
-    const PolarSite&, PolarSite&) const;
+    const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
 template double EwaldRealSpaceInteractor::ApplyStaticField<PolarSite,
                                                             Estatic::noE_V>(
-    const PolarSite&, PolarSite&) const;
+    const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
 
 template void
 EwaldRealSpaceInteractor::ApplyIntramolecularStaticCorrection<StaticSite,
@@ -244,9 +248,9 @@ EwaldRealSpaceInteractor::ApplyIntramolecularStaticCorrection<
     PolarSite, Estatic::noE_V>(const PolarSite&, PolarSite&) const;
 
 template double EwaldRealSpaceInteractor::ApplyInducedField<Estatic::V>(
-    const PolarSite&, PolarSite&) const;
+    const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
 template double EwaldRealSpaceInteractor::ApplyInducedField<Estatic::noE_V>(
-    const PolarSite&, PolarSite&) const;
+    const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
 
 template double EwaldRealSpaceInteractor::CalcStaticEnergy<StaticSite,
                                                             StaticSite>(

@@ -110,10 +110,29 @@ class EwaldRealSpaceSum {
   //   with |na|,|nb|,|nc| <= n_max are considered candidates). If
   //   convergence is not reached within this box, FieldAt() throws rather
   //   than silently returning an unconverged result.
+  // screening_factor: sets the real-space distance cutoff to
+  //   screening_factor / alpha. A pair separated by more than that
+  //   contributes at most ~erfc(screening_factor) of the local field, so
+  //   the default 6.0 truncates at ~2e-17 per pair -- far below any
+  //   realistic field_tol, while discarding the large majority of
+  //   (source segment, translation) pairs a periodic sum would otherwise
+  //   evaluate (measured: 78.7% on a 1000-segment box, a 4.5x saving in
+  //   real-space cost with the converged dipoles unchanged in every
+  //   printed digit). Raise it to tighten the truncation at
+  //   proportionally greater cost -- the number of surviving pairs grows
+  //   as the cube -- or lower it to trade accuracy for speed
+  //   deliberately. Values below ~4 start to matter at the 1e-11 level
+  //   and should be checked against a reference before use.
+  //
+  // screening_factor is deliberately the LAST parameter rather than
+  // sitting next to the other accuracy controls it belongs with: adding
+  // it mid-signature silently reinterpreted the positional shell_width
+  // and n_max arguments of existing callers, which still compiled and
+  // then culled every pair. Keep new parameters at the end.
   EwaldRealSpaceSum(const Eigen::Matrix3d& box, const EwaldRegistry& registry,
                     double alpha, double thole_a, double r_min,
                     double field_tol, double shell_width = 0.945,
-                    Index n_max = 15);
+                    Index n_max = 15, double screening_factor = 6.0);
 
   // Accumulates the total intermolecular real-space field into target's
   // own V()/V_noE() accumulators (via EwaldRealSpaceInteractor, matching
@@ -123,91 +142,59 @@ class EwaldRealSpaceSum {
   // as the field evaluation point; target itself need not already be
   // registered in registry_. Throws std::runtime_error if convergence is
   // not reached within n_max shells.
+  //
+  // include_static selects whether each source's PERMANENT multipole
+  // field is accumulated alongside its induced-dipole field. It exists
+  // for the iterative solver: the permanent contribution does not depend
+  // on the induced dipoles, so EwaldPeriodicDipoleOperator's own
+  // RawMultiply recomputes an identical constant on every iteration,
+  // which its multiply() = RawMultiply(v) - baseline_ then cancels
+  // exactly. Passing false there drops that work with no effect on the
+  // result (both RawMultiply(v) and baseline_ shift by the same
+  // constant). Measured at ~53% of this class's own per-pair real-space
+  // cost, i.e. the single largest avoidable cost in the solve.
+  //
+  // Defaults to true, so the permanent-field pass that builds the
+  // solver's own right-hand side (which genuinely needs it) is
+  // unaffected.
   template <enum Estatic CE>
   void AddFieldAt(Index target_segment_id, PolarSite& target,
-                  EwaldChargeState source_state) const;
+                  EwaldChargeState source_state,
+                  bool include_static = true) const;
 
-  // Debug/experimental. Appends, for one target site, every
-  // (source_segment_id, r, translation_vector) triple this class's own
-  // AddFieldAt would visit for it -- the actual neighbor set, at
-  // segment granularity (matching legacy's own PolarNb, which wraps a
-  // whole segment, not individual sites), rather than any assembled
-  // field. Added specifically to let a direct comparison against
-  // legacy's own matching neighbor-list dump isolate whether a
-  // discrepancy comes from which images get summed (this) rather than
-  // the per-pair field formula (already validated elsewhere this
-  // session). Runs the same shell-by-shell search AddFieldAt's own
-  // slow path does -- does not use or populate neighbor_cache_. Always
-  // appends (never truncates) -- the caller is responsible for writing
-  // the file's own header and truncating it once, before the first
-  // call, since this is meant to be called once per target across a
-  // whole system into the SAME file (matching legacy's own equivalent
-  // dump, which similarly writes every target segment into one file,
-  // after a first version of this restricted to a single segment risked
-  // hiding a genuine PBC-scheme discrepancy that only shows up for
-  // segments in a different geometric relationship to the box).
-  void DumpNeighborListAppend(Index target_segment_id,
-                              const PolarSite& target,
-                              EwaldChargeState source_state,
-                              const std::string& filename) const;
+  // Builds the neighbour cache for every target in one serial pass,
+  // WITHOUT applying any field (each target's own V()/V_noE() are
+  // restored before returning). Exists so callers can parallelize over
+  // targets afterwards: neighbor_cache_ and the statistics counters are
+  // mutable and written only while a target's list is being built, so
+  // once every list exists AddFieldAt is read-only with respect to this
+  // object and safe to call concurrently for distinct targets. Calling
+  // this is optional -- AddFieldAt still builds its own list on demand
+  // -- but a caller that skips it must not run AddFieldAt in parallel.
+  void PrepareNeighborCache(
+      const std::vector<std::pair<Index, PolarSite*>>& targets,
+      EwaldChargeState source_state) const;
 
-  // Debug/experimental. Appends, for one target SITE (not segment --
-  // this is per-site, since that's the granularity field contributions
-  // are actually computed and summed at), every
-  // (source_segment_id, source_site_index, translation, field_x/y/z)
-  // row this class's own AddFieldAt would visit and accumulate for it.
-  // Isolates each individual pair's own induced-field contribution by
-  // differencing target.V() before/after that one pair's own
-  // ApplyInducedField call -- mirroring AddFieldAt's own before/after
-  // shell diffing, but per pair here rather than per shell. Added
-  // after DumpNeighborListAppend and DumpStagedCoupling showed a real
-  // discrepancy in the SUMMED intermolecular field despite the
-  // neighbor SET itself (DumpNeighborListAppend) and the per-pair
-  // FORMULA (ApplyInducedField, checked directly elsewhere this
-  // session) both already being confirmed correct -- meaning whatever
-  // remains must be in the accumulation across pairs itself, which
-  // this dump exists to isolate pair by pair. Non-destructive: target's
-  // own V()/induced dipole are restored to their original values
-  // before returning, so calling this doesn't disturb whatever state
-  // the caller had target in. Always appends -- same header/truncation
-  // contract as DumpNeighborListAppend.
-  void DumpPerPairFieldAppend(Index target_segment_id, PolarSite& target,
-                              EwaldChargeState source_state,
-                              const std::string& filename) const;
-
-  // Debug/experimental. Same as DumpPerPairFieldAppend, but isolates
-  // ApplyStaticField's own contribution (the permanent/static-multipole
-  // field, i.e. what accumulates into F_perm) instead of
-  // ApplyInducedField's. Added after DumpPerPairFieldAppend's own
-  // induced-only comparison came back clean, but AddFieldAt (used for
-  // BOTH F_perm's own generation and DumpStagedCoupling's own stage B)
-  // calls ApplyStaticField too -- and that half was never independently
-  // re-checked against legacy on the CURRENT code, after the real-space
-  // minimum-image fix, even though an earlier-session F_perm validation
-  // had passed at ~0.005% before that fix existed. Same
-  // non-destructive/append/header contract as DumpPerPairFieldAppend.
-  void DumpPerPairStaticFieldAppend(Index target_segment_id,
-                                    PolarSite& target,
-                                    EwaldChargeState source_state,
-                                    const std::string& filename) const;
-
-  // Debug/experimental. Dumps whatever is CURRENTLY in neighbor_cache_
-  // for this exact target pointer (source_segment_id, translation_idx,
-  // baseline_shift, resolved translation vector, and the CURRENT
-  // shell-derived r), or a single "NOT CACHED" row if this target has
-  // no cache entry yet. Added specifically to compare, on the real,
-  // full-scale system where a real discrepancy was found between
-  // DumpStagedCoupling (uses AddFieldAt, which may hit the CACHED
-  // path) and DumpPerPairFieldAppend (always a fresh, uncached search)
-  // -- a discrepancy that could not be reproduced on any small local
-  // test built to replicate the same call sequence. Call this AFTER
-  // whatever earlier call (e.g. AddFieldAt via DumpStagedCoupling's own
-  // stage B) is suspected of populating -- or failing to populate, or
-  // populating differently than expected -- the cache for this target.
-  void DumpCachedNeighborListAppend(Index target_segment_id,
-                                    const PolarSite& target,
-                                    EwaldChargeState source_state,
-                                    const std::string& filename) const;
+  // Neighbour-list statistics over every target whose list has been
+  // built so far. entries is the total number of (source segment,
+  // translation) pairs kept; culled is how many were rejected by the
+  // distance cutoff. Both are zero until the first AddFieldAt call.
+  struct NeighborStats {
+    Index targets;
+    Index entries;
+    Index culled;
+    double entries_per_target() const {
+      return targets > 0 ? double(entries) / double(targets) : 0.0;
+    }
+    double culled_fraction() const {
+      const Index seen = entries + culled;
+      return seen > 0 ? double(culled) / double(seen) : 0.0;
+    }
+  };
+  NeighborStats GetNeighborStats() const {
+    return {cached_targets_, cached_entries_, culled_entries_};
+  }
+  double RealSpaceCutoff() const { return real_space_cutoff_; }
 
  private:
   // One periodic image translation vector, tagged with its distance from
@@ -228,6 +215,27 @@ class EwaldRealSpaceSum {
             (std::hash<EwaldChargeState>()(key.second) << 1);
     }
   };
+
+  // Real-space screening cutoff: the separation beyond which a pair's
+  // erfc(alpha*r)-screened contribution is negligible, set to
+  // screening_factor / alpha (see the constructor). This is a cost
+  // cutoff only: it never extends the sum, and r_min_/field_tol_ still
+  // govern how far the shell search goes.
+  double real_space_cutoff_;
+  // Neighbour-list statistics, accumulated as the cache is built. The
+  // cached list is the real cost driver of the whole solve: every entry
+  // is one (source segment, periodic translation) pair, re-evaluated
+  // against every one of the target's own sites on every iteration.
+  // Reported once per run so the effect of alpha, r_min and the
+  // distance cull on that cost is visible directly, rather than being
+  // inferred from wall-clock.
+  mutable Index cached_targets_ = 0;
+  mutable Index cached_entries_ = 0;
+  mutable Index culled_entries_ = 0;
+  // Largest site-to-centroid distance over every registered segment,
+  // used as the margin when the cutoff (a per-site-pair quantity) is
+  // applied at segment granularity.
+  double segment_radius_;
 
   Eigen::Matrix3d box_;
   const EwaldRegistry& registry_;
@@ -258,9 +266,21 @@ class EwaldRealSpaceSum {
   // exercised by anything in this codebase today, but the key is chosen
   // to be genuinely correct rather than correct only for the one
   // access pattern that happens to exist right now.
+  // The first tuple element is a direct pointer to the source segment,
+  // not its id: resolving an id through registry_ costs a Has() plus a
+  // Get(), i.e. two std::map lookups, and this list is walked once per
+  // (target site, neighbour) pair -- ~3e7 times per solver iteration on
+  // a 1000-segment system, measured at ~59ns per entry against ~3ns for
+  // a stored pointer. Legacy's own PolarNb stores the neighbour segment
+  // by pointer for the same reason. Safe because the registry outlives
+  // this object (see the class documentation) and its segments are
+  // stored in a std::map, whose elements keep stable addresses; the same
+  // stability argument this cache already relies on for target site
+  // addresses being usable as keys.
   mutable std::unordered_map<
       std::pair<const PolarSite*, EwaldChargeState>,
-      std::vector<std::tuple<Index, Index, Eigen::Vector3d>>, PairHash>
+      std::vector<std::tuple<const PolarSegment*, Index, Eigen::Vector3d>>,
+      PairHash>
       neighbor_cache_;
 };
 

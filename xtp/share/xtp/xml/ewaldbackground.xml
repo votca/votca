@@ -37,42 +37,46 @@
                         <r_min>1.0</r_min>  <!-- nm (user-facing); converted
                                                  to bohr in ParseOptions -->
                         <field_tol>1e-8</field_tol>
+                        <!-- Dimensionless. Sets the real-space distance
+                             cutoff to screening_factor/alpha: a pair
+                             farther apart than that contributes at most
+                             about erfc(screening_factor) of the local
+                             field, so the default 6.0 truncates at
+                             ~2e-17 per pair. This is purely a cost
+                             control - the surviving pair count grows as
+                             its cube, and on a 1000-segment box the
+                             default discards 78.7% of pairs for a 4.5x
+                             saving in real-space time with the converged
+                             dipoles unchanged in every printed digit.
+                             Lower it only deliberately, and check the
+                             result against a reference. -->
+                        <screening_factor>6.0</screening_factor>
                 </realspace>
                 <polarmethod>
                         <thole_a>0.39</thole_a>
                         <induce>true</induce>
                         <max_iter>200</max_iter>
                         <tolerance>1e-8</tolerance>
-                        <!-- Debug-only, no legacy counterpart, see
-                             EwaldBackground's own
-                             apply_shape_correction_to_induced_ member
-                             for what this is for. Not meant to be a
-                             permanent, documented option; kept out of
-                             the help text on that basis. -->
-                        <debug_apply_shape_correction>true</debug_apply_shape_correction>
-                        <!-- Same purpose and pattern as the shape one
-                             immediately above, but for the self-field
-                             (atomic self-interaction) correction
-                             instead. -->
-                        <debug_apply_self_field_correction>true</debug_apply_self_field_correction>
-                        <!-- Same purpose and pattern as the two above,
-                             but for AddIntraSegmentCoupling's own
-                             Thole-damping term instead. -->
-                        <debug_apply_thole_damping_intramolecular>true</debug_apply_thole_damping_intramolecular>
-                        <!-- Debug/experimental, no legacy counterpart 
-                             see EwaldBlockJacobiPreconditioner's own
-                             class documentation. Not yet validated
-                             against a real system this size. -->
-                        <debug_use_block_jacobi_preconditioner>false</debug_use_block_jacobi_preconditioner>
-			<debug_use_jor>false</debug_use_jor>
-			<debug_jor_omega>0.35</debug_jor_omega>
-			<!-- Debug/experimental: see match_legacy_first_step_'s own
-			     declaration. Literally replicates legacy's own
-			     two-phase unrelaxed-then-relaxed structure. -->
-			<debug_match_legacy_first_step>false</debug_match_legacy_first_step>
-			<debug_dump_first_iteration_and_stop>false</debug_dump_first_iteration_and_stop>
-			<debug_apply_realspace_intermolecular_coupling>true</debug_apply_realspace_intermolecular_coupling>
-			<debug_apply_reciprocal_coupling>true</debug_apply_reciprocal_coupling>
+                        <!-- Induction solver. Jacobi over-relaxation
+                             (use_jor=true, with jor_omega) reproduces
+                             legacy's own SOR scheme and is kept for
+                             direct comparison against it; preconditioned
+                             conjugate gradient (the default) converges
+                             the same system in far fewer iterations. -->
+                        <use_jor>false</use_jor>
+                        <jor_omega>0.35</jor_omega>
+                        <!-- Block-Jacobi preconditioner for the PCG
+                             solve: each segment's own local block
+                             (P^-1 minus its intramolecular coupling),
+                             factorized once, applied every iteration.
+                             Ignored when use_jor is true. -->
+                        <use_block_jacobi_preconditioner>false</use_block_jacobi_preconditioner>
+                        <!-- Debug/experimental: see
+                             match_legacy_first_step_'s own declaration.
+                             Replicates legacy's own two-phase
+                             unrelaxed-then-relaxed first step, for
+                             iteration-by-iteration comparison. -->
+                        <debug_match_legacy_first_step>false</debug_match_legacy_first_step>
                 </polarmethod>
         </ewaldbackground>
 </options>

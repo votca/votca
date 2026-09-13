@@ -19,6 +19,8 @@
 
 // Standard includes
 #include <algorithm>
+#include <chrono>
+#include <array>
 #include <fstream>
 #include <stdexcept>
 
@@ -32,29 +34,18 @@ EwaldPeriodicDipoleOperator::EwaldPeriodicDipoleOperator(
     EwaldRegistry& registry, const EwaldRealSpaceSum& real_sum,
     const EwaldReciprocalSpaceSum& recip_sum,
     const EwaldShapeCorrection& shape, std::vector<Index> ids,
-    double alpha_ewald, double thole_a, bool apply_shape_correction,
-    bool apply_self_field_correction,
-    bool apply_thole_damping_intramolecular,
-    bool apply_realspace_intermolecular_coupling,
-    bool apply_reciprocal_coupling)
+    double alpha_ewald, double thole_a)
     : registry_(registry),
       real_sum_(real_sum),
       recip_sum_(recip_sum),
       shape_(shape),
-      apply_shape_correction_(apply_shape_correction),
       ids_(std::move(ids)),
       // Real thole_a now, not a placeholder -- AddIntraSegmentCoupling
       // genuinely calls ComputeThole. See this class's own constructor
       // documentation and AddIntraSegmentCoupling's own documentation
       // for why.
       intra_interactor_(alpha_ewald, thole_a),
-      self_field_matrix_(recip_sum.SelfFieldMatrix()),
-      apply_self_field_correction_(apply_self_field_correction),
-      apply_thole_damping_intramolecular_(
-          apply_thole_damping_intramolecular),
-      apply_realspace_intermolecular_coupling_(
-          apply_realspace_intermolecular_coupling),
-      apply_reciprocal_coupling_(apply_reciprocal_coupling) {
+      self_field_matrix_(recip_sum.SelfFieldMatrix()) {
   offsets_.reserve(ids_.size() + 1);
   offsets_.push_back(0);
   for (Index id : ids_) {
@@ -78,6 +69,26 @@ EwaldPeriodicDipoleOperator::EwaldPeriodicDipoleOperator(
   // multiply() call. Without this, multiply(0) != 0, which silently
   // breaks the linearity ConjugateGradient requires -- confirmed the hard
   // way, by a failing test (see test_ewaldperiodicdipoleoperator.cc).
+  // Build every target's real-space neighbour list up front, serially.
+  // RawMultiply parallelizes over targets, and the cache (plus its
+  // statistics counters) is written only while a list is being built --
+  // so this pass is what makes that parallel loop safe. Done here rather
+  // than lazily on first use so there is exactly one place where the
+  // ordering guarantee lives. See
+  // EwaldRealSpaceSum::PrepareNeighborCache.
+  {
+    std::vector<std::pair<Index, PolarSite*>> cache_targets;
+    cache_targets.reserve(std::size_t(size_ / 3));
+    for (std::size_t n = 0; n < ids_.size(); ++n) {
+      PolarSegment& segment =
+          registry_.Get(ids_[n], EwaldChargeState::Neutral);
+      for (Index s = 0; s < segment.size(); ++s) {
+        cache_targets.push_back({ids_[n], &segment[s]});
+      }
+    }
+    real_sum_.PrepareNeighborCache(cache_targets, EwaldChargeState::Neutral);
+  }
+
   baseline_ = RawMultiply(Eigen::VectorXd::Zero(size_));
 }
 
@@ -111,6 +122,18 @@ double EwaldPeriodicDipoleOperator::operator()(Index i, Index j) const {
 
 Eigen::VectorXd EwaldPeriodicDipoleOperator::RawMultiply(
     const Eigen::VectorXd& v) const {
+  // Phase timers -- see RawMultiplyTimings' own declaration. clk() is
+  // only called a handful of times per matvec, against ~1e8 pair
+  // evaluations inside it, so the instrumentation itself is far below
+  // the resolution of what it measures.
+  using clock = std::chrono::steady_clock;
+  auto clk = []() { return clock::now(); };
+  auto secs = [](clock::time_point a, clock::time_point b) {
+    return std::chrono::duration<double>(b - a).count();
+  };
+  ++timings_.n_calls;
+  auto t_phase = clk();
+
   std::vector<std::pair<Index, PolarSite*>> targets;
   targets.reserve(std::size_t(size_ / 3));
 
@@ -126,29 +149,44 @@ Eigen::VectorXd EwaldPeriodicDipoleOperator::RawMultiply(
     }
   }
 
-  // Gated by apply_realspace_intermolecular_coupling_ -- debug-only, see
-  // this class's own constructor documentation.
-  if (apply_realspace_intermolecular_coupling_) {
-    for (const auto& entry : targets) {
-      real_sum_.AddFieldAt<Estatic::V>(entry.first, *entry.second,
-                                       EwaldChargeState::Neutral);
+  timings_.setup += secs(t_phase, clk());
+  t_phase = clk();
+
+  // Parallel over targets. Safe because each iteration touches only its
+  // own target's accumulators, and real_sum_'s neighbour cache was built
+  // in full by PrepareNeighborCache in this class's own constructor, so
+  // AddFieldAt is read-only with respect to real_sum_ here. Without that
+  // prepass the first call would race on the cache and its counters.
+  //
+  // include_static = false: the permanent-multipole field is independent
+  // of v, so it is identical here and in baseline_ = RawMultiply(0), and
+  // cancels exactly in multiply().
+  {
+    const Index n_targets = Index(targets.size());
+#pragma omp parallel for schedule(dynamic, 16)
+    for (Index i = 0; i < n_targets; ++i) {
+      real_sum_.AddFieldAt<Estatic::V>(targets[std::size_t(i)].first,
+                                       *targets[std::size_t(i)].second,
+                                       EwaldChargeState::Neutral, false);
     }
   }
   // EwaldReciprocalSpaceSum no longer takes a segment id at all -- it
   // never excludes anything (see its own class documentation, and this
   // class's own documentation for why that matters here specifically) --
+  timings_.real_space += secs(t_phase, clk());
+  t_phase = clk();
+
   // so only the bare site pointers are needed for this call.
   std::vector<PolarSite*> recip_targets;
   recip_targets.reserve(targets.size());
   for (const auto& entry : targets) {
     recip_targets.push_back(entry.second);
   }
-  // Gated by apply_reciprocal_coupling_ -- debug-only, see this class's
-  // own constructor documentation.
-  if (apply_reciprocal_coupling_) {
-    recip_sum_.AddFieldAtMany<Estatic::V>(recip_targets,
-                                          EwaldChargeState::Neutral);
-  }
+  recip_sum_.AddFieldAtMany<Estatic::V>(recip_targets,
+                                        EwaldChargeState::Neutral);
+  timings_.reciprocal += secs(t_phase, clk());
+  t_phase = clk();
+
   // Shape/surface correction: legacy applies this unconditionally every
   // induction iteration (FU12_ShapeField_At_By, using each site's own
   // CURRENT induced dipole -- see this class's own constructor
@@ -162,14 +200,26 @@ Eigen::VectorXd EwaldPeriodicDipoleOperator::RawMultiply(
   // static dipoles) contributes identically at every call, including
   // v=0, so it is captured once in baseline_ exactly like the real- and
   // reciprocal-space terms above, not something this method needs to
-  // handle specially. See this method's own apply_shape_correction_
-  // documentation (on this class's own constructor) for why this call
-  // is conditional -- debug-only, not a genuine design choice.
-  if (apply_shape_correction_) {
+  // handle specially.
+  //
+  // The shape/surface field does not depend on the target at all -- it
+  // is -(4*pi/3V)*M for every site, with M the registry's own total
+  // dipole moment. EwaldShapeCorrection::AddFieldAt recomputes that
+  // whole-system sum per target, so calling it once per site made this
+  // O(N^2): 5000 sums over 5000 sites to produce 5000 copies of one
+  // vector, measured at 0.451s per matvec. Computed once here instead
+  // and added directly.
+  {
+    PolarSite shape_probe(-1, "X", Eigen::Vector3d::Zero());
+    shape_.AddFieldAt<Estatic::V>(shape_probe, EwaldChargeState::Neutral);
+    const Eigen::Vector3d shape_field = shape_probe.V();
     for (const auto& entry : targets) {
-      shape_.AddFieldAt<Estatic::V>(*entry.second, EwaldChargeState::Neutral);
+      entry.second->V() += shape_field;
     }
   }
+
+  timings_.shape += secs(t_phase, clk());
+  t_phase = clk();
 
   Eigen::VectorXd result(size_);
   for (std::size_t n = 0; n < ids_.size(); ++n) {
@@ -178,27 +228,52 @@ Eigen::VectorXd EwaldPeriodicDipoleOperator::RawMultiply(
     Index base = offsets_[n];
     for (Index s = 0; s < segment.size(); ++s) {
       const PolarSite& site = segment[s];
+      // BUG FIX (this session): the coupling field enters with a MINUS
+      // here. The system being solved is mu = P*(F_perm + FU(mu)), i.e.
+      // (P^-1 - C)*mu = F_perm where C*mu is the induced-coupling field
+      // FU. This used to build P^-1*v + V + M*v, i.e. the operator
+      // P^-1 + C, which is the wrong sign on the coupling block.
+      //
+      // It went unnoticed for a long time because it cannot show up at
+      // the first iteration: x starts at zero, so the first JOR update
+      // is x1 = omega * P * b with no coupling term involved at all, and
+      // x1 (and F_perm, and P) all matched legacy. The sign only bites
+      // from the second iteration onward. Measured directly: legacy
+      // satisfies mu2 = mu1 + 0.35*P*FU to 2e-15, while this code was
+      // producing mu2 = mu1 - 0.35*P*FU -- and feeding this code's OWN
+      // mu1 and FU into the correct (+) rule reproduced legacy's mu2 to
+      // 1.3e-6, confirming every computed ingredient was already right
+      // and only this sign was wrong.
+      //
+      // Both terms flip together: site.V() and the self-field correction
+      // are two parts of the same coupling field (the correction cancels
+      // a spurious self-term inside site.V(), see below), so they must
+      // carry the same sign.
+      //
       // site.V() already includes the true (negative) self-field
       // -self_field_matrix_*v_i, via recip_sum_'s own unconditional
-      // (nothing-excluded) sum -- adding +self_field_matrix_*v_i here
+      // (nothing-excluded) sum -- the self_field_matrix_*v_i term below
       // cancels that leak, matching legacy's own atomic self-interaction
       // correction (see self_field_matrix_'s own class documentation).
-      // Gated by apply_self_field_correction_ -- debug-only, see this
-      // class's own constructor documentation. Written as a plain if,
-      // not a ?: -- Eigen's own Product<> (self_field_matrix_ * v...)
-      // and ZeroReturnType (Vector3d::Zero()) are different lazy
-      // expression-template types with no implicit common type, so a
-      // ternary combining them fails to compile; a real, not
-      // hypothetical, error caught by an actual build.
       result.segment<3>(base + 3 * s) =
-          site.getPInv() * v.segment<3>(base + 3 * s) + site.V();
-      if (apply_self_field_correction_) {
-        result.segment<3>(base + 3 * s) +=
-            self_field_matrix_ * v.segment<3>(base + 3 * s);
-      }
+          site.getPInv() * v.segment<3>(base + 3 * s) - site.V() -
+          self_field_matrix_ * v.segment<3>(base + 3 * s);
     }
   }
-  AddIntraSegmentCoupling(v, result);
+  // Intramolecular coupling is part of the same C block as site.V()
+  // above and carries the same minus (see the sign-fix note there).
+  // Subtracted here rather than by changing AddIntraSegmentCoupling's
+  // own convention, because DumpStagedCoupling uses that method
+  // directly to build its FUa stage and needs it to keep producing the
+  // field itself, with legacy's own sign, not the operator block.
+  timings_.assemble += secs(t_phase, clk());
+  t_phase = clk();
+
+  Eigen::VectorXd intra = Eigen::VectorXd::Zero(size_);
+  AddIntraSegmentCoupling(v, intra);
+  result -= intra;
+
+  timings_.intra += secs(t_phase, clk());
   return result;
 }
 
@@ -246,29 +321,8 @@ void EwaldPeriodicDipoleOperator::AddIntraSegmentCoupling(
         const double r = r_vec.norm();
         const EwaldRealSpaceInteractor::BFunctions b =
             intra_interactor_.ComputeB(r);
-        // Gated by apply_thole_damping_intramolecular_ -- debug-only,
-        // see this class's own constructor documentation. When false,
-        // l3=l5=1.0 (fully undamped) is used instead of ComputeThole's
-        // own result, reverting to this method's own SECOND (also
-        // wrong, see this method's own documentation above) prior
-        // version's behavior -- kept only to isolate whether the Thole-
-        // damping fix itself is a cause of a real, large PCG
-        // divergence found once it, the shape-correction fix, and the
-        // self-field-correction fix were all added in the same
-        // session; the other two have since been ruled out via their
-        // own matching debug flags (see EwaldBackground's own
-        // apply_shape_correction_to_induced_/
-        // apply_self_field_correction_to_induced_ members for that
-        // account), leaving this the last untested mechanism added
-        // since the point in that same session where the system still
-        // converged, if slowly.
-        EwaldRealSpaceInteractor::TholeFactors t;
-        if (apply_thole_damping_intramolecular_) {
-          t = intra_interactor_.ComputeThole(r, site_j, site_i);
-        } else {
-          t.l3 = 1.0;
-          t.l5 = 1.0;
-        }
+        const EwaldRealSpaceInteractor::TholeFactors t =
+            intra_interactor_.ComputeThole(r, site_j, site_i);
         // Same l3*B1 / l5*B2 combination ApplyInducedField itself uses
         // (see that method's own comment on why there is no separate
         // 3.0* factor here -- B2 already carries it). Not symmetric in
@@ -297,214 +351,10 @@ Eigen::VectorXd EwaldPeriodicDipoleOperator::multiply(
   return RawMultiply(v) - baseline_;
 }
 
-void EwaldPeriodicDipoleOperator::DumpIntraPairThole(
-    const std::string& filename) const {
-  // See this method's own declaration for what this is for. Mirrors
-  // AddIntraSegmentCoupling's own loop exactly (same pair set, same
-  // r_vec convention, same ComputeB/ComputeThole calls) -- deliberately
-  // NOT reading anything from that method's own tensor-assembly step,
-  // so this dump is independent of whatever that step does with these
-  // scalars.
-  std::ofstream dump(filename);
-  dump.precision(15);
-  dump << "segment_id,site_i,site_j,r_bohr,B0,B1,B2,l3,l5\n";
-  for (std::size_t n = 0; n < ids_.size(); ++n) {
-    const PolarSegment& segment =
-        registry_.Get(ids_[n], EwaldChargeState::Neutral);
-    Index n_sites = segment.size();
-    if (n_sites < 2) {
-      continue;
-    }
-    for (Index i = 0; i < n_sites; ++i) {
-      const PolarSite& site_i = segment[i];
-      for (Index j = i + 1; j < n_sites; ++j) {
-        const PolarSite& site_j = segment[j];
-        const Eigen::Vector3d r_vec = site_i.getPos() - site_j.getPos();
-        const double r = r_vec.norm();
-        const EwaldRealSpaceInteractor::BFunctions b =
-            intra_interactor_.ComputeB(r);
-        const EwaldRealSpaceInteractor::TholeFactors t =
-            intra_interactor_.ComputeThole(r, site_j, site_i);
-        dump << ids_[n] << "," << i << "," << j << "," << r << "," << b.B0
-             << "," << b.B1 << "," << b.B2 << "," << t.l3 << "," << t.l5
-             << "\n";
-      }
-    }
-  }
-  dump.close();
-}
 
-void EwaldPeriodicDipoleOperator::DumpStagedCoupling(
-    const Eigen::VectorXd& v, const std::string& filename) const {
-  // See this method's own declaration for what this is for and why.
-  std::vector<std::pair<Index, PolarSite*>> targets;
-  targets.reserve(std::size_t(size_ / 3));
-  for (std::size_t n = 0; n < ids_.size(); ++n) {
-    PolarSegment& segment = registry_.Get(ids_[n], EwaldChargeState::Neutral);
-    Index base = offsets_[n];
-    for (Index s = 0; s < segment.size(); ++s) {
-      PolarSite& site = segment[s];
-      site.setInduced_Dipole(v.segment<3>(base + 3 * s));
-      site.Reset();
-      targets.push_back({ids_[n], &site});
-    }
-  }
 
-  // Stage A: intramolecular only. AddIntraSegmentCoupling writes into a
-  // plain Eigen::VectorXd (result), NOT into site.V() -- unlike every
-  // other stage below -- so it's captured separately here, into fu_a,
-  // rather than read off site.V() like the rest.
-  Eigen::VectorXd fu_a = Eigen::VectorXd::Zero(size_);
-  AddIntraSegmentCoupling(v, fu_a);
 
-  auto site_v = [&]() {
-    Eigen::VectorXd out(size_);
-    Index idx = 0;
-    for (std::size_t n = 0; n < ids_.size(); ++n) {
-      PolarSegment& segment =
-          registry_.Get(ids_[n], EwaldChargeState::Neutral);
-      for (Index s = 0; s < segment.size(); ++s) {
-        out.segment<3>(idx) = segment[s].V();
-        idx += 3;
-      }
-    }
-    return out;
-  };
 
-  // Stage B: + real-space intermolecular.
-  for (const auto& entry : targets) {
-    real_sum_.AddFieldAt<Estatic::V>(entry.first, *entry.second,
-                                     EwaldChargeState::Neutral);
-  }
-  const Eigen::VectorXd fu_b = fu_a + site_v();
-
-  // Stage C: + reciprocal.
-  std::vector<PolarSite*> recip_targets;
-  recip_targets.reserve(targets.size());
-  for (const auto& entry : targets) {
-    recip_targets.push_back(entry.second);
-  }
-  recip_sum_.AddFieldAtMany<Estatic::V>(recip_targets,
-                                        EwaldChargeState::Neutral);
-  const Eigen::VectorXd fu_c = fu_a + site_v();
-
-  // Stage D: + shape.
-  //
-  // BUG FIX (this session): EwaldShapeCorrection::TotalDipoleMoment
-  // always sums charge*pos + static_dipole + induced_dipole from the
-  // REAL registry state, regardless of context -- correct for the
-  // PRODUCTION JOR solve (RawMultiply/multiply), where the v-
-  // independent part (charge*pos + static_dipole) contributes
-  // identically at v=0 and at every other v, so it's captured once in
-  // baseline_ and cancels out via multiply(v) = RawMultiply(v) -
-  // baseline_ (see that subtraction's own documentation). This
-  // diagnostic dump has no such baseline subtraction of its own,
-  // though, so without this fix fu_d (and fu_e, built on top of it)
-  // would include that same v-independent contribution directly --
-  // something legacy's own matching, induced-dipole-only stage
-  // (FU12_ShapeField_At_By, which sums only U1x/y/z, no
-  // charge/position/static-dipole term at all) never includes, making
-  // a direct comparison invalid without this correction.
-  //
-  // An earlier version of this fix used a throwaway probe site as the
-  // TARGET for a separate shape_.AddFieldAt call, reasoning that
-  // TotalDipoleMoment doesn't depend on the target's own position --
-  // true, but irrelevant: TotalDipoleMoment sums over the REAL
-  // registry's own sites regardless of which site is the target, so
-  // that probe's own resulting field was the SAME full M (with the
-  // real v already included) as what every real site already got, not
-  // an isolated v-independent piece at all -- confirmed when a direct
-  // numerical check came back with fu_d-fu_c exactly zero rather than
-  // the small, genuinely nonzero value it should be.
-  //
-  // Correct approach: temporarily zero every real site's own induced
-  // dipole (saving the real values first), compute the shape field
-  // this now-v-independent-only registry state produces for a real
-  // target, then restore the real induced dipoles immediately after --
-  // this genuinely isolates the v-independent part, since
-  // TotalDipoleMoment now has literally nothing else to sum.
-  std::vector<Eigen::Vector3d> saved_induced_dipoles;
-  saved_induced_dipoles.reserve(targets.size());
-  for (const auto& entry : targets) {
-    saved_induced_dipoles.push_back(entry.second->getInducedDipole());
-    entry.second->setInduced_Dipole(Eigen::Vector3d::Zero());
-  }
-  PolarSite v_independent_probe(-1, "X", Eigen::Vector3d::Zero());
-  shape_.AddFieldAt<Estatic::V>(v_independent_probe, EwaldChargeState::Neutral);
-  const Eigen::Vector3d v_independent_shape_field = v_independent_probe.V();
-  for (std::size_t n = 0; n < targets.size(); ++n) {
-    targets[n].second->setInduced_Dipole(saved_induced_dipoles[n]);
-  }
-
-  for (const auto& entry : targets) {
-    shape_.AddFieldAt<Estatic::V>(*entry.second, EwaldChargeState::Neutral);
-  }
-  Eigen::VectorXd fu_d = fu_a + site_v();
-  for (Index n = 0; n < fu_d.size() / 3; ++n) {
-    fu_d.segment<3>(3 * n) -= v_independent_shape_field;
-  }
-
-  // Stage E: + self-field. Added directly (matches RawMultiply's own
-  // self_field_matrix_ * v term), not via site.V().
-  Eigen::VectorXd fu_e = fu_d;
-  Index idx = 0;
-  for (std::size_t n = 0; n < ids_.size(); ++n) {
-    PolarSegment& segment = registry_.Get(ids_[n], EwaldChargeState::Neutral);
-    for (Index s = 0; s < segment.size(); ++s) {
-      fu_e.segment<3>(idx) += self_field_matrix_ * v.segment<3>(idx);
-      idx += 3;
-    }
-  }
-
-  std::ofstream dump(filename);
-  dump.precision(15);
-  dump << "segment_id,site_index,FUa_x_bohr,FUa_y_bohr,FUa_z_bohr,"
-          "FUb_x_bohr,FUb_y_bohr,FUb_z_bohr,FUc_x_bohr,FUc_y_bohr,"
-          "FUc_z_bohr,FUd_x_bohr,FUd_y_bohr,FUd_z_bohr,FUe_x_bohr,"
-          "FUe_y_bohr,FUe_z_bohr\n";
-  idx = 0;
-  for (std::size_t n = 0; n < ids_.size(); ++n) {
-    const PolarSegment& segment =
-        registry_.Get(ids_[n], EwaldChargeState::Neutral);
-    for (Index s = 0; s < segment.size(); ++s) {
-      dump << ids_[n] << "," << s;
-      for (const Eigen::VectorXd* stage :
-           std::initializer_list<const Eigen::VectorXd*>{&fu_a, &fu_b, &fu_c,
-                                                          &fu_d, &fu_e}) {
-        dump << "," << (*stage)(idx) << "," << (*stage)(idx + 1) << ","
-             << (*stage)(idx + 2);
-      }
-      dump << "\n";
-      idx += 3;
-    }
-  }
-  dump.close();
-}
-
-void EwaldPeriodicDipoleOperator::DumpPerPairIntermolecularField(
-    Index target_segment_id, const std::string& filename) const {
-  PolarSegment& target_segment =
-      registry_.Get(target_segment_id, EwaldChargeState::Neutral);
-  real_sum_.DumpPerPairFieldAppend(target_segment_id, target_segment[0],
-                                   EwaldChargeState::Neutral, filename);
-}
-
-void EwaldPeriodicDipoleOperator::DumpPerPairIntermolecularStaticField(
-    Index target_segment_id, const std::string& filename) const {
-  PolarSegment& target_segment =
-      registry_.Get(target_segment_id, EwaldChargeState::Neutral);
-  real_sum_.DumpPerPairStaticFieldAppend(target_segment_id, target_segment[0],
-                                        EwaldChargeState::Neutral, filename);
-}
-
-void EwaldPeriodicDipoleOperator::DumpCachedNeighborList(
-    Index target_segment_id, const std::string& filename) const {
-  const PolarSegment& target_segment =
-      registry_.Get(target_segment_id, EwaldChargeState::Neutral);
-  real_sum_.DumpCachedNeighborListAppend(
-      target_segment_id, target_segment[0], EwaldChargeState::Neutral,
-      filename);
-}
 
 }  // namespace xtp
 }  // namespace votca

@@ -164,14 +164,35 @@ BOOST_AUTO_TEST_CASE(induced_dipole_aligns_with_external_field) {
   //     shape_coeff = -4*pi/(3*volume) multiplying mu, added to the
   //     diagonal alongside D = getPInv() = (1/alpha_pol)*I.
   //
-  // So the correct equation is (D + shape_coeff*I)*mu = V_permanent --
-  // not the plain mu=alpha*E this test expected before the shape fix
-  // (when RawMultiply had no shape term to contribute a nonzero
-  // coefficient here at all).
-  const double shape_coeff = -4.0 * M_PI / (3.0 * volume);
-  Eigen::Matrix3d A =
-      Eigen::Matrix3d::Identity() / alpha_pol +
-      shape_coeff * Eigen::Matrix3d::Identity();
+  // So for this single-site case the equation is simply
+  // D*mu = V_permanent, with D = getPInv() = (1/alpha_pol)*I -- the
+  // plain mu = alpha*E result after all, but for a non-obvious reason
+  // worth recording, since this expectation has now been revised twice
+  // in opposite directions.
+  //
+  // The three v-dependent terms the operator contributes here cancel
+  // exactly:
+  //
+  //     reciprocal self-term (the site's own dipole, via the
+  //       unconditional k-sum)
+  //   + shape/surface term (shape_coeff * mu)
+  //   + analytic self-field correction (subtracted by RawMultiply)
+  //   = 0
+  //
+  // Measured on this geometry: -0.0202453751608 + (-6.54498469e-05)
+  // = -0.0203108250077, which is exactly minus SelfFieldMatrix()'s own
+  // +0.0203108250077. So A comes out as (1/alpha_pol)*I to machine
+  // precision and no shape coefficient survives.
+  //
+  // That cancellation is a property of the ANALYTIC self-field term.
+  // An earlier version of this test added shape_coeff to the diagonal,
+  // which was right back when SelfFieldMatrix() returned the discrete
+  // k-lattice sum: that sum is ~1.6% off the analytic value, so the
+  // terms did not cancel and the remainder looked like a shape
+  // coefficient. This assertion therefore doubles as a check on that
+  // term -- if SelfFieldMatrix() ever reverts to a lattice sum, the
+  // cancellation breaks and this fails.
+  Eigen::Matrix3d A = Eigen::Matrix3d::Identity() / alpha_pol;
   Eigen::Vector3d expected = A.fullPivLu().solve(V_permanent);
   BOOST_CHECK(x.isApprox(expected, 1e-6));
   // Sanity: not vacuously passing because both are ~zero.

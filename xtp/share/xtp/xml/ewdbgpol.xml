@@ -6,6 +6,14 @@
                         <pdb_check>1</pdb_check>
                         <ptop_check>1</ptop_check>
                         <restart_from/>
+                        <!-- Induction convergence threshold. Was a
+                             hardcoded 1e-3 in PolarBackground::Polarize();
+                             exposed here so a run can be converged
+                             further without a rebuild. Convergence is
+                             declared when every site's own dU is below
+                             this, or when the average dU is below one
+                             tenth of it. -->
+                        <epstol>1e-3</epstol>
                 </control>
                 <coulombmethod>
                         <method>ewald</method>

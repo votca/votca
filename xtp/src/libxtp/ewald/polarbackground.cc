@@ -1,6 +1,7 @@
 #include "votca/xtp/ewald/polarbackground.h"
 #include "votca/tools/property.h"
 #include <boost/format.hpp>
+#include <chrono>
 #include <mutex>
 #include <set>
 #include <votca/tools/globals.h>
@@ -95,6 +96,10 @@ PolarBackground::PolarBackground(Topology *top, PolarTop *ptop,
     _do_checkpointing = opt.get(pfx + ".control.checkpointing").as<bool>();
   else
     _do_checkpointing = false;
+  if (opt.exists(pfx + ".control.epstol"))
+    _epstol = opt.get(pfx + ".control.epstol").as<double>();
+  else
+    _epstol = 1e-3;  // the value this was hardcoded to before
   if (opt.exists(pfx + ".control.max_iter"))
     _max_iter = opt.get(pfx + ".control.max_iter").as<int>();
   else
@@ -530,7 +535,17 @@ void PolarBackground::Polarize(int n_threads = 1) {
                            << generate_kvecs_iter << std::flush;
 
   int max_iter = iter + _max_iter;
-  double epstol = 1e-3;
+  double epstol = _epstol;
+  XTP_LOG(Log::info, log)
+      << (format("Induction convergence threshold epstol = %1$1.3e") % epstol)
+             .str()
+      << std::flush;
+  // Wall-clock instrumentation (this session): reports per-iteration and
+  // cumulative time, so this code's own cost can be compared directly
+  // against the timings the replacement implementation already logs.
+  const std::chrono::steady_clock::time_point t_polarize_start =
+      std::chrono::steady_clock::now();
+  std::chrono::steady_clock::time_point t_prev_iter = t_polarize_start;
   for (; iter != max_iter; ++iter) {
     XTP_LOG(Log::debug, log) << std::flush;
     XTP_LOG(Log::debug, log) << "Iter " << iter << " started" << std::flush;
@@ -768,6 +783,26 @@ void PolarBackground::Polarize(int n_threads = 1) {
     avgdU /= baseN;
     if (avgdU < epstol * 0.1) {
       converged = true;
+    }
+
+    // Wall-clock instrumentation (this session) -- see the timer's own
+    // setup at the top of this loop. maxdU/avgdU are logged alongside so
+    // the convergence trace can be read against the replacement
+    // implementation's own equivalent per-iteration line.
+    {
+      const std::chrono::steady_clock::time_point t_now =
+          std::chrono::steady_clock::now();
+      const double dt =
+          std::chrono::duration<double>(t_now - t_prev_iter).count();
+      const double total =
+          std::chrono::duration<double>(t_now - t_polarize_start).count();
+      t_prev_iter = t_now;
+      XTP_LOG(Log::info, log)
+          << (format("  o Iter %1$d: maxdU=%2$1.6e avgdU=%3$1.6e "
+                     "(%4$1.3fs this iteration, %5$1.3fs cumulative)") %
+              iter % maxdU % avgdU % dt % total)
+                 .str()
+          << std::flush;
     }
     if (_do_checkpointing) this->Checkpoint(iter, converged);
     if (converged) {

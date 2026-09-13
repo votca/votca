@@ -189,6 +189,14 @@ class PolarBackground {
   bool _do_restart;
   int _restart_from_iter;
   int _max_iter;
+  // Induction convergence threshold (was a hardcoded 1e-3 literal in
+  // Polarize()). Exposed as ewdbgpol.control.epstol so a run can be
+  // converged further than the default without a rebuild -- needed to
+  // compare converged dipoles against a solver that converges to a much
+  // tighter residual, where the default leaves this code ~3e-4 short of
+  // its own fixed point and that gap, not any physics difference,
+  // dominates the comparison.
+  double _epstol;
   bool _converged;
 
   // PERIODIC BOUNDARY

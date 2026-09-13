@@ -200,12 +200,19 @@ class EwaldBlockJacobiPreconditioner {
     size_ = offsets_.back();
   }
 
-  // Builds and factorizes every segment's own local block. Mirrors
-  // EwaldPeriodicDipoleOperator::AddIntraSegmentCoupling's own B-
-  // function/ComputeThole calls and sign convention exactly, so this
-  // class's own local block is genuinely the same intramolecular
-  // physics that operator adds, not a re-derivation that could
-  // silently diverge from it over time.
+  // Builds and factorizes every segment's own local block, matching
+  // EwaldPeriodicDipoleOperator's own intramolecular term: the same
+  // B-function/ComputeThole calls, and the same sign it enters the
+  // OPERATOR with -- i.e. subtracted, since RawMultiply forms
+  // A = P^-1 - C. Note this is the opposite sign to
+  // AddIntraSegmentCoupling's own internal accumulation, which builds
+  // the coupling field itself (a positive quantity) that RawMultiply
+  // then subtracts. An earlier version of this comment claimed to
+  // mirror that method's sign convention "exactly", and the code did --
+  // which is precisely why this was wrong, and why it survived the
+  // operator's own sign fix without being noticed. Compare against the
+  // operator's assembled block, not against AddIntraSegmentCoupling in
+  // isolation.
   void FactorizeBlocks() {
     factorizations_.reserve(ids_.size());
     for (std::size_t n = 0; n < ids_.size(); ++n) {
@@ -233,8 +240,23 @@ class EwaldBlockJacobiPreconditioner {
             const Eigen::Matrix3d coupling =
                 t.l5 * b.B2 * (r_vec * r_vec.transpose()) -
                 t.l3 * b.B1 * Eigen::Matrix3d::Identity();
-            block.block<3, 3>(3 * i, 3 * j) += coupling;
-            block.block<3, 3>(3 * j, 3 * i) += coupling.transpose();
+            // BUG FIX (this session): MINUS, not plus. The operator
+            // being preconditioned is A = P^-1 - C: RawMultiply builds
+            // the intramolecular term with exactly the `coupling`
+            // expression above and then subtracts it (result -= intra).
+            // This class assembled it with a plus, so it was
+            // factorizing P^-1 + C_intra -- the operator as it stood
+            // BEFORE the coupling-sign fix, which this file was written
+            // against and which never propagated here.
+            //
+            // The consequence was not a wrong answer (a preconditioner
+            // cannot change the fixed point, only the path to it) but a
+            // markedly worse one: on a real 5000-site solve this took
+            // PCG from 16 iterations to 29, with a visibly
+            // non-monotonic p.A.p curvature trace, versus a smoothly
+            // decreasing one unpreconditioned.
+            block.block<3, 3>(3 * i, 3 * j) -= coupling;
+            block.block<3, 3>(3 * j, 3 * i) -= coupling.transpose();
           }
         }
       }

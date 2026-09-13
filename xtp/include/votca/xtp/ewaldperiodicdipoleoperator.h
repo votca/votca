@@ -362,129 +362,35 @@ class EwaldPeriodicDipoleOperator
   //   needed here -- only a new call site, added inside RawMultiply
   //   itself (see there for why this is genuinely linear in v and does
   //   not disturb baseline_'s own established v=0 subtraction pattern).
-  // apply_shape_correction: debug-only, defaults to true (matches
-  //   legacy). Exists ONLY to isolate whether the shape term above is
-  //   the cause of a real, large PCG iteration-count regression found
-  //   once it and the Thole-damping fix were both added in the same
-  //   session -- an open question when this parameter was added, not a
-  //   genuine design choice; see EwaldBackground's own
-  //   apply_shape_correction_to_induced_ member for the fuller account
-  //   and why this has no legacy counterpart or XML schema entry.
-  //   Setting this false is a deliberate DEPARTURE from matching legacy
-  //   (which always applies its own FU12_ShapeField_At_By
-  //   unconditionally) -- never meant to ship as a real option.
-  // apply_self_field_correction: debug-only, same purpose and pattern as
-  //   apply_shape_correction immediately above -- added alongside it so
-  //   the same regression can be isolated against self_field_matrix_
-  //   (see that member's own documentation) independently, and against
-  //   both together, rather than leaving this one variable untested.
-  //   Setting this false is a deliberate DEPARTURE from matching legacy
-  //   (which always applies its own atomic self-interaction correction,
-  //   FU12_ERF_At_By called with the same site as both arguments) --
-  //   never meant to ship as a real option, same as
-  //   apply_shape_correction.
-  // apply_thole_damping_intramolecular: debug-only, same purpose and
-  //   pattern as the two above -- added once both of those were ruled
-  //   out (via their own matching debug flags, confirmed to leave a real
-  //   PCG divergence entirely unaffected when disabled) as the cause of
-  //   a real, large divergence found once this session's own changes
-  //   were all in place together, making this the last untested
-  //   mechanism from that same session. Gates
-  //   AddIntraSegmentCoupling's own use of ComputeThole -- see that
-  //   method's own documentation for the fuller history of two earlier,
-  //   different mistakes in that same term. Setting this false is a
-  //   deliberate DEPARTURE from matching legacy (which applies Thole
-  //   damping to intramolecular induced-induced pairs unconditionally,
-  //   same as intermolecular ones) -- never meant to ship as a real
-  //   option, same as the other two.
-  // apply_realspace_intermolecular_coupling / apply_reciprocal_coupling:
-  //   debug-only, same purpose and pattern as the three above -- added
-  //   after those three turned out to be small contributions on both
-  //   this codebase's own side and legacy's own, leaving a real,
-  //   substantial coupling-term mismatch found this session unlocalized
-  //   any further than "somewhere in {thole, real-space intermolecular,
-  //   reciprocal-space} combined". Gate real_sum_.AddFieldAt and
-  //   recip_sum_.AddFieldAtMany respectively inside RawMultiply. Setting
-  //   either false is a deliberate DEPARTURE from matching legacy
-  //   (which always applies its own FX_RealSpace/FX_ReciprocalSpace
-  //   unconditionally) -- never meant to ship as a real option, same as
-  //   the other three.
   EwaldPeriodicDipoleOperator(EwaldRegistry& registry,
                              const EwaldRealSpaceSum& real_sum,
                              const EwaldReciprocalSpaceSum& recip_sum,
                              const EwaldShapeCorrection& shape,
                              std::vector<Index> ids, double alpha_ewald,
-                             double thole_a,
-                             bool apply_shape_correction = true,
-                             bool apply_self_field_correction = true,
-                             bool apply_thole_damping_intramolecular = true,
-                             bool apply_realspace_intermolecular_coupling =
-                                 true,
-                             bool apply_reciprocal_coupling = true);
+                             double thole_a);
 
-  // Debug/experimental. Dumps, for every intramolecular pair this
-  // class's own AddIntraSegmentCoupling would visit, the raw damping
-  // scalars (r, B0, B1, B2, l3, l5) -- not the assembled field tensor
-  // (already checked, this session, and found consistent with legacy's
-  // own via ApplyInducedField) -- so a per-pair comparison against
-  // legacy's own matching EwdInteractor::GetDebugPairState dump can
-  // isolate the raw damping computation itself, independent of tensor
-  // assembly or vector algebra around it. Depends only on geometry and
-  // each site's own polarizability, not on any induced-dipole state, so
-  // this can be called at any time (before a solve even starts) and
-  // will give the same result throughout.
-  void DumpIntraPairThole(const std::string& filename) const;
-
-  // Debug/experimental. Computes op*v's own field contribution to each
-  // ids_ target site, staged cumulatively in LEGACY's own order (FUa =
-  // intramolecular only, FUb = +real-space intermolecular, FUc =
-  // +reciprocal, FUd = +shape, FUe = +self-field), NOT this class's own
-  // internal RawMultiply order (real-inter, recip, shape, self-field,
-  // THEN intramolecular last) -- added specifically to let a per-stage
-  // comparison against legacy's own matching stagedFU dump isolate
-  // whether a discrepancy comes from field computation (would show up
-  // at the specific stage it enters) or from the induction response
-  // built on top of it (would show up equally at every stage, since
-  // the same v is used for all five here). All five stages act on the
-  // SAME input v (deliberately, to match legacy's own FUa-FUe, which
-  // are all computed from the same mu_1) -- this is not RawMultiply's
-  // own op*v (which mixes in P^-1*v and is gated by the constructor's
-  // own toggles); every stage here is always computed and dumped,
-  // regardless of this object's own apply_*_ flags, since the entire
-  // point is to see every stage side by side.
-  void DumpStagedCoupling(const Eigen::VectorXd& v,
-                          const std::string& filename) const;
-
-  // Debug/experimental. Wraps EwaldRealSpaceSum::DumpPerPairFieldAppend
-  // for a single target segment's own first site, so the calculator
-  // (which has no direct access to real_sum_, a private member here)
-  // can trigger it without needing its own accessor for the whole
-  // real_sum_ object. Caller is responsible for having already set
-  // every site's own induced dipole to whatever state (e.g. x1) the
-  // comparison is meant to reflect -- this wrapper does not set any
-  // dipole state itself, matching DumpPerPairFieldAppend's own
-  // contract.
-  void DumpPerPairIntermolecularField(Index target_segment_id,
-                                      const std::string& filename) const;
-
-  // Debug/experimental. Wraps EwaldRealSpaceSum::
-  // DumpPerPairStaticFieldAppend the same way
-  // DumpPerPairIntermolecularField wraps DumpPerPairFieldAppend -- see
-  // that method's own comment for why this wrapper exists, and
-  // DumpPerPairStaticFieldAppend's own declaration for why this
-  // specific (static-field, not induced-field) variant exists.
-  void DumpPerPairIntermolecularStaticField(Index target_segment_id,
-                                            const std::string& filename) const;
-
-  // Debug/experimental. Wraps EwaldRealSpaceSum::
-  // DumpCachedNeighborListAppend the same way
-  // DumpPerPairIntermolecularField wraps DumpPerPairFieldAppend -- see
-  // that method's own comment for why this wrapper exists. Call this
-  // AFTER whatever call is suspected of populating (or not populating,
-  // or populating differently than expected) real_sum_'s own neighbor
-  // cache for this target -- e.g. right after DumpStagedCoupling.
-  void DumpCachedNeighborList(Index target_segment_id,
-                              const std::string& filename) const;
+  // Debug/experimental. Accumulated wall-clock spent inside RawMultiply,
+  // split by phase, across every call for the lifetime of this object.
+  // Added to attribute the per-iteration cost of the solve without a
+  // sampling profiler: the phases below are each a single loop, so a
+  // deterministic accumulator answers "where does the matvec time go"
+  // exactly, where sampling an inlined hot function tends to report
+  // little beyond "in AddFieldAt". Times are in seconds; n_calls is the
+  // number of RawMultiply invocations they are summed over (one per
+  // solver iteration, plus one for the baseline_ construction).
+  struct RawMultiplyTimings {
+    double setup = 0.0;       // dipole set + Reset over every site
+    double real_space = 0.0;  // EwaldRealSpaceSum::AddFieldAt
+    double reciprocal = 0.0;  // EwaldReciprocalSpaceSum::AddFieldAtMany
+    double shape = 0.0;       // EwaldShapeCorrection::AddFieldAt
+    double assemble = 0.0;    // P^-1*v - V - M*v result assembly
+    double intra = 0.0;       // AddIntraSegmentCoupling
+    Index n_calls = 0;
+    double total() const {
+      return setup + real_space + reciprocal + shape + assemble + intra;
+    }
+  };
+  const RawMultiplyTimings& Timings() const { return timings_; }
 
   class InnerIterator {
    public:
@@ -555,8 +461,6 @@ class EwaldPeriodicDipoleOperator
   const EwaldRealSpaceSum& real_sum_;
   const EwaldReciprocalSpaceSum& recip_sum_;
   const EwaldShapeCorrection& shape_;
-  // Debug-only, see this class's own constructor documentation.
-  bool apply_shape_correction_;
   std::vector<Index> ids_;
   // Used for its own public ComputeB (erfc-screened B-functions) AND
   // ComputeThole (Thole damping factors), constructed with the REAL
@@ -572,6 +476,7 @@ class EwaldPeriodicDipoleOperator
   std::vector<Index> offsets_;
   Index size_;
   Eigen::VectorXd baseline_;
+  mutable RawMultiplyTimings timings_;
   // The position-independent 3x3 matrix M such that a site's own trial
   // dipole v_i produces a spurious reciprocal-space self-field -M*v_i at
   // its own position (see EwaldReciprocalSpaceSum::SelfFieldMatrix's own
@@ -590,45 +495,6 @@ class EwaldPeriodicDipoleOperator
   // never excludes anything, self included -- see its own class
   // documentation).
   Eigen::Matrix3d self_field_matrix_;
-  // Debug-only, no legacy counterpart, same purpose and pattern as
-  // apply_shape_correction_ above -- see this class's own constructor
-  // documentation. Gates whether self_field_matrix_ above is added back
-  // in RawMultiply; false is a deliberate DEPARTURE from matching legacy
-  // (which always applies its own atomic self-interaction correction),
-  // never a default.
-  bool apply_self_field_correction_;
-  // Debug-only, same purpose and pattern as apply_shape_correction_ and
-  // apply_self_field_correction_ above, but for AddIntraSegmentCoupling's
-  // own Thole-damping term instead -- see that method's own
-  // documentation for why this was added, and its own constructor
-  // documentation entry immediately below for the fuller account.
-  bool apply_thole_damping_intramolecular_;
-  // Debug-only, same purpose and pattern as the three above -- added
-  // this session specifically because those three (thole, shape, self-
-  // field) turned out to be small contributions on both this codebase's
-  // own side and legacy's own (confirmed directly: legacy's own FUc,
-  // FUd, FUe stages -- +reciprocal, +shape, +self-interaction
-  // respectively -- differ only slightly from each other, and toggling
-  // shape/self-field off here changed residual2 by only ~0.3% in a real
-  // run), meaning a real, substantial mismatch found in a coupling-term
-  // comparison against legacy this session could not be localized any
-  // further than "somewhere in {thole, real-space intermolecular,
-  // reciprocal-space} combined" with only those three toggles. Gates
-  // real_sum_.AddFieldAt inside RawMultiply -- see that method's own
-  // documentation. Setting this false is a deliberate DEPARTURE from
-  // matching legacy (which always applies its own FX_RealSpace
-  // unconditionally) -- never meant to ship as a real option, same as
-  // the three above.
-  bool apply_realspace_intermolecular_coupling_;
-  // Debug-only, same purpose and pattern as apply_realspace_
-  // intermolecular_coupling_ immediately above -- added alongside it so
-  // the two can be isolated independently (real-space intermolecular
-  // vs. reciprocal-space) as well as together. Gates
-  // recip_sum_.AddFieldAtMany inside RawMultiply. Setting this false is
-  // a deliberate DEPARTURE from matching legacy (which always applies
-  // its own FX_ReciprocalSpace unconditionally, when !_do_use_cutoff)
-  // -- never meant to ship as a real option, same as the others.
-  bool apply_reciprocal_coupling_;
 };
 
 }  // namespace xtp

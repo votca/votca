@@ -324,13 +324,23 @@ BOOST_AUTO_TEST_CASE(intramolecular_coupling_matches_direct_solve) {
   // 3x3 coefficient block belongs in all four blocks of A_dense.
   const double shape_coeff = -4.0 * M_PI / (3.0 * volume);
   Eigen::Matrix3d shape_block = shape_coeff * Eigen::Matrix3d::Identity();
+  // The operator is A = P^-1 - C, where C is the whole induced-coupling
+  // block (real-space intramolecular, reciprocal, shape, and the
+  // self-field correction). RawMultiply builds exactly that: P^-1*v
+  // minus the accumulated coupling field, minus self_field_matrix_*v.
+  // This reference therefore SUBTRACTS every coupling term from the
+  // P^-1 diagonal. An earlier version of this test added them, matching
+  // an earlier operator that had the coupling sign inverted -- the same
+  // sign error that made mu2 disagree with legacy while mu1 matched,
+  // since the first iteration never exercises the coupling block at all.
   Eigen::Matrix<double, 6, 6> A_dense = Eigen::Matrix<double, 6, 6>::Zero();
   A_dense.block<3, 3>(0, 0) =
-      mseg[0].getPInv() + recip_a_a + self_field + shape_block;
+      mseg[0].getPInv() - recip_a_a - self_field - shape_block;
   A_dense.block<3, 3>(3, 3) =
-      mseg[1].getPInv() + recip_b_b + self_field + shape_block;
-  A_dense.block<3, 3>(0, 3) = erfc_block + recip_a_b + shape_block;
-  A_dense.block<3, 3>(3, 0) = erfc_block.transpose() + recip_b_a + shape_block;
+      mseg[1].getPInv() - recip_b_b - self_field - shape_block;
+  A_dense.block<3, 3>(0, 3) = -erfc_block - recip_a_b - shape_block;
+  A_dense.block<3, 3>(3, 0) =
+      -erfc_block.transpose() - recip_b_a - shape_block;
   Eigen::VectorXd x_reference = A_dense.fullPivLu().solve(b);
 
   EwaldPeriodicDipoleOperator op(registry, real_sum, recip_sum, shape,

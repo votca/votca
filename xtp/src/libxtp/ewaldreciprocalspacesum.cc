@@ -43,13 +43,43 @@ EwaldReciprocalSpaceSum::EwaldReciprocalSpaceSum(const Eigen::Matrix3d& box,
 }
 
 Eigen::Matrix3d EwaldReciprocalSpaceSum::SelfFieldMatrix() const {
-  Eigen::Matrix3d M = Eigen::Matrix3d::Zero();
-  const double prefactor = 4.0 * kPi / volume_;
-  for (const KVector& kv : kvectors_) {
-    double weight = std::exp(-kv.k2 / (4.0 * alpha_ * alpha_)) / kv.k2;
-    M += prefactor * weight * (kv.k * kv.k.transpose());
-  }
-  return M;
+  // BUG FIX (this session): this used to evaluate the discrete k-lattice
+  // sum (4*pi/V) * sum_{k!=0} exp(-k^2/4*alpha^2)/k^2 * k k^T over this
+  // class's own k-vector set, on the reasoning that doing so reproduces
+  // exactly the self-term this class's own sum numerically produces.
+  // That reasoning is wrong, for a reason that has nothing to do with
+  // k_max: evaluated at r = 0, that sum is the erf-screened field a site
+  // feels from itself AND from every one of its own periodic images. Only
+  // the n = 0 piece is the spurious self-interaction that wants removing;
+  // the n != 0 image terms are real physical interactions that must be
+  // kept. Subtracting the whole lattice sum therefore removes genuine
+  // physics along with the artifact.
+  //
+  // The quantity actually wanted is the r -> 0 limit of the erf-screened
+  // dipole field, i.e. the standard analytic Ewald self-term below, which
+  // is what legacy applies too (EwdInteractor::FU12_ERF_At_By's own
+  // R1 < 1e-2 branch: 4/3 * a3 * rSqrtPi * U1). An earlier version of
+  // this comment claimed, from a trace of legacy's reciprocal-space code,
+  // that legacy applies no self-correction at all -- that was simply
+  // wrong: legacy applies it in real space, as a separate "atomic ERF
+  // self-interaction correction" pass (PolarBackground's own step (5)),
+  // which a reciprocal-space-only trace never reaches.
+  //
+  // The two differ badly at realistic box sizes, and NOT by a small
+  // amount that tightening k_max would fix. The lattice sum approaches
+  // the analytic value only when the k-lattice resolves the Gaussian
+  // exp(-k^2/4*alpha^2); with spacing 2*pi/L against width 2*alpha that
+  // needs L*alpha/pi >> 1. For a measured case (L = 66.1 bohr, alpha =
+  // 0.1058 bohr^-1) there are only ~2.2 k-points per Gaussian width and
+  // the lattice sum comes out 1.63% low -- which matched, to five
+  // digits, a directly measured 1.63% deficit in this term against
+  // legacy across 5000 sites, with the small residual anisotropy of the
+  // discrete sum showing up as a cos(angle) of 0.999993 rather than 1.
+  //
+  // Isotropic by construction, so no anisotropy artifact remains.
+  const double self_term =
+      (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / std::sqrt(kPi);
+  return self_term * Eigen::Matrix3d::Identity();
 }
 
 std::vector<EwaldReciprocalSpaceSum::KVector>
@@ -91,49 +121,62 @@ EwaldReciprocalSpaceSum::TotalStructureFactors(
     EwaldChargeState source_state, const ProgressCallback& progress) const {
   std::vector<std::complex<double>> S(kvectors_.size(),
                                       std::complex<double>(0.0, 0.0));
-  const std::complex<double> i(0.0, 1.0);
 
-  // Count total sites upfront, purely for progress reporting (this is
-  // the O(N_k * N_sites) loop -- the dominant cost of a reciprocal-space
-  // evaluation -- so it is the one place worth reporting progress from).
-  std::size_t total_sites = 0;
-  if (progress) {
-    for (Index source_id : registry_.AllIds()) {
-      if (registry_.Has(source_id, source_state)) {
-        total_sites +=
-            std::size_t(registry_.Get(source_id, source_state).size());
-      }
-    }
-  }
-  std::size_t sites_done = 0;
-  // Report at most ~20 times over the whole loop, regardless of how many
-  // sites there are, so the callback itself never becomes the bottleneck.
-  const std::size_t report_every =
-      std::max<std::size_t>(1, total_sites / 20);
-
+  // Flatten every source site into contiguous arrays first. Two reasons:
+  // the k-vector loop below is parallelized over k rather than over
+  // sites, so it needs random access to the site data rather than a
+  // nested registry walk; and streaming three packed arrays is far
+  // friendlier to cache than chasing segment objects through a std::map
+  // for each of ~1e4 k-vectors.
+  std::vector<double> q_flat;
+  std::vector<Eigen::Vector3d> mu_flat;
+  std::vector<Eigen::Vector3d> pos_flat;
   for (Index source_id : registry_.AllIds()) {
     if (!registry_.Has(source_id, source_state)) {
       continue;
     }
     const PolarSegment& segment = registry_.Get(source_id, source_state);
     for (const PolarSite& site : segment) {
-      const double q = site.getCharge();
-      const Eigen::Vector3d mu =
-          site.getStaticDipole() + site.getInducedDipole();
-      const Eigen::Vector3d& pos = site.getPos();
-      for (std::size_t idx = 0; idx < kvectors_.size(); ++idx) {
-        const Eigen::Vector3d& k = kvectors_[idx].k;
-        const double kr = k.dot(pos);
-        const std::complex<double> phase = std::exp(-i * kr);
-        const double k_dot_mu = k.dot(mu);
-        S[idx] += (q - i * k_dot_mu) * phase;
+      q_flat.push_back(site.getCharge());
+      mu_flat.push_back(site.getStaticDipole() + site.getInducedDipole());
+      pos_flat.push_back(site.getPos());
+    }
+  }
+  const Index n_sites = Index(q_flat.size());
+  const Index n_k = Index(kvectors_.size());
+
+  // Parallelized over K-VECTORS, not over sites. The natural reading --
+  // sites outer, k inner -- makes S[idx] a reduction target shared by
+  // every thread, needing either atomics or per-thread copies of the
+  // whole S array. Inverting the loops gives each thread sole ownership
+  // of the S entries it writes, so no reduction, no atomics, and the
+  // sum over sites for a given k happens in a fixed order regardless of
+  // thread count -- the result is bitwise identical however many
+  // threads run it.
+  //
+  // The k-loop is chunked so the progress callback can still be invoked
+  // between chunks, from the serial region: calling it from inside the
+  // parallel loop would need the callback itself to be thread-safe,
+  // which is not part of its contract.
+  const Index chunk = std::max<Index>(1, n_k / 20);
+  for (Index k_begin = 0; k_begin < n_k; k_begin += chunk) {
+    const Index k_end = std::min(n_k, k_begin + chunk);
+#pragma omp parallel for schedule(static)
+    for (Index idx = k_begin; idx < k_end; ++idx) {
+      const Eigen::Vector3d& k = kvectors_[std::size_t(idx)].k;
+      std::complex<double> acc(0.0, 0.0);
+      for (Index n = 0; n < n_sites; ++n) {
+        const double kr = k.dot(pos_flat[std::size_t(n)]);
+        // exp(-i*kr) with |exp| == 1: std::polar avoids the redundant
+        // std::exp(0) that std::exp(std::complex) would evaluate.
+        const std::complex<double> phase = std::polar(1.0, -kr);
+        const double k_dot_mu = k.dot(mu_flat[std::size_t(n)]);
+        acc += std::complex<double>(q_flat[std::size_t(n)], -k_dot_mu) * phase;
       }
-      if (progress) {
-        ++sites_done;
-        if (sites_done % report_every == 0 || sites_done == total_sites) {
-          progress(sites_done, total_sites);
-        }
-      }
+      S[std::size_t(idx)] = acc;
+    }
+    if (progress) {
+      progress(std::size_t(k_end), std::size_t(n_k));
     }
   }
   return S;
@@ -155,8 +198,16 @@ void EwaldReciprocalSpaceSum::AddFieldAtMany(
   const std::complex<double> i(0.0, 1.0);
   const double prefactor = 4.0 * kPi / volume_;
 
-  for (PolarSite* target_ptr : targets) {
-    PolarSite& target = *target_ptr;
+  // Parallel over targets. The structure factors S were reduced over
+  // every site above and are read-only here, and each iteration writes
+  // only to its own target's accumulator, so distinct targets cannot
+  // collide. The progress callback is deliberately not invoked from
+  // inside this loop -- it is called during TotalStructureFactors, which
+  // stays serial.
+  const Index n_targets = Index(targets.size());
+#pragma omp parallel for schedule(static)
+  for (Index t_i = 0; t_i < n_targets; ++t_i) {
+    PolarSite& target = *targets[std::size_t(t_i)];
 
     const Eigen::Vector3d r = target.getPos();
     Eigen::Vector3d field = Eigen::Vector3d::Zero();
@@ -168,7 +219,7 @@ void EwaldReciprocalSpaceSum::AddFieldAtMany(
       // E(r) = (4*pi/V) * sum_{k!=0} (k/k^2) * exp(-k^2/4a^2) *
       //        Im[ S(k) * exp(i*k.r) ]
       // See class documentation for the derivation.
-      std::complex<double> phase = std::exp(i * kv.k.dot(r));
+      const std::complex<double> phase = std::polar(1.0, kv.k.dot(r));
       double im_part = (S[idx] * phase).imag();
       field += prefactor * weight * im_part * kv.k;
     }

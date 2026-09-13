@@ -146,20 +146,30 @@ class EwaldReciprocalSpaceSum {
   // correction it enables, only ever matters for dipoles (static or
   // induced), never for bare charges.
   //
-  // M_ab = (4*pi/V) * sum_{k!=0} (k_a*k_b/k^2) * exp(-k^2/4*alpha^2)
+  // M_ab = (4/3) * alpha^3 / sqrt(pi) * delta_ab
   //
-  // -- the same k-vector set, weight, and prefactor AddFieldAtMany itself
-  // uses, so M is exactly the numerical self-term this class's own sum
-  // actually produces (not an analytic/closed-form approximation to it,
-  // which would generally differ once k_max is finite rather than
-  // infinite). Symmetric by construction (k_a*k_b = k_b*k_a). Neither
-  // this class nor EwaldRealSpaceSum currently subtracts this
-  // contribution automatically anywhere -- confirmed (by tracing its own
-  // reciprocal-space code directly) that legacy PolarBackground does not
-  // either, so the two remain consistent with each other as they
-  // currently stand. A caller wanting the physically-corrected (self-
-  // interaction-free) field must subtract SelfFieldMatrix()*mu itself,
-  // for whichever site's own dipole moment mu is being evaluated.
+  // -- the standard analytic Ewald self-term, i.e. the r -> 0 limit of
+  // the erf-screened dipole field, and hence isotropic. Legacy applies
+  // exactly this too (EwdInteractor::FU12_ERF_At_By's own R1 < 1e-2
+  // branch), though it does so in REAL space, as a separate "atomic ERF
+  // self-interaction correction" pass rather than anywhere in its
+  // reciprocal-space code -- worth knowing, since an earlier version of
+  // this comment concluded from a reciprocal-space-only trace that
+  // legacy applied no self-correction at all, which is false.
+  //
+  // This deliberately is NOT the discrete k-lattice sum over this
+  // class's own k-vector set, even though that sum is what AddFieldAtMany
+  // numerically produces at r = 0. That sum is the site's erf-screened
+  // field from itself AND all its own periodic images; only the n = 0
+  // part is the artifact to remove, and the image terms are real physics.
+  // See SelfFieldMatrix's own definition for the measured size of the
+  // difference (1.63% in a realistic box) and why tightening k_max does
+  // not reduce it.
+  //
+  // Neither this class nor EwaldRealSpaceSum subtracts this contribution
+  // automatically anywhere. A caller wanting the physically-corrected
+  // (self-interaction-free) field must subtract SelfFieldMatrix()*mu
+  // itself, for whichever site's own dipole moment mu is being evaluated.
   Eigen::Matrix3d SelfFieldMatrix() const;
 
   // Progress callback signature: called as (k_vectors_done,
