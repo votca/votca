@@ -22,6 +22,7 @@
 
 // Local VOTCA includes
 #include "votca/xtp/polarregion.h"
+#include "votca/xtp/ewaldregion.h"
 #include "votca/xtp/qmregion.h"
 #include "votca/xtp/region.h"
 #include "votca/xtp/staticregion.h"
@@ -41,6 +42,7 @@ std::vector<double> Region::ApplyInfluenceOfOtherRegions(
     QMRegion QMdummy(0, log_, "");
     StaticRegion Staticdummy(0, log_);
     PolarRegion Polardummy(0, log_);
+    EwaldRegion Ewalddummy(0, log_);
     XTP_LOG(Log::error, log_)
         << TimeStamp() << " Evaluating interaction between " << this->identify()
         << " " << this->getId() << " and " << reg->identify() << " "
@@ -54,6 +56,9 @@ std::vector<double> Region::ApplyInfluenceOfOtherRegions(
     } else if (reg->identify() == Polardummy.identify()) {
       PolarRegion* polarregion = dynamic_cast<PolarRegion*>(reg.get());
       energies[id] = InteractwithPolarRegion(*polarregion);
+    } else if (reg->identify() == Ewalddummy.identify()) {
+      EwaldRegion* ewaldregion = dynamic_cast<EwaldRegion*>(reg.get());
+      energies[id] = InteractwithEwaldRegion(*ewaldregion);
     } else {
       throw std::runtime_error(
           "Interaction of regions with types:" + this->identify() + " and " +

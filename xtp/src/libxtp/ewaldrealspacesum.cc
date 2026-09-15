@@ -69,7 +69,10 @@ EwaldRealSpaceSum::EwaldRealSpaceSum(const Eigen::Matrix3d& box,
                                      double alpha, double thole_a,
                                      double r_min, double field_tol,
                                      double shell_width, Index n_max,
-                                     double screening_factor)
+                                     double screening_factor,
+                                     const std::vector<
+                                         std::pair<Index, Eigen::Vector3d>>&
+                                         foreground)
     : real_space_cutoff_(screening_factor / alpha),
       segment_radius_(0.0),
       box_(box),
@@ -80,6 +83,10 @@ EwaldRealSpaceSum::EwaldRealSpaceSum(const Eigen::Matrix3d& box,
       shell_width_(shell_width),
       n_max_(n_max) {
   translations_ = GenerateSortedTranslations();
+
+  for (const auto& entry : foreground) {
+    foreground_[entry.first].push_back(entry.second);
+  }
 
   // Largest site-to-centroid distance anywhere in the registry -- the
   // margin the segment-granular distance cull needs (see AddFieldAt).
@@ -249,8 +256,9 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
       // shell_radius >= r_min_ stopping criterion is now sound (it was
       // never wrong in isolation -- it was being applied to the wrong
       // starting point).
-      const Eigen::Vector3d raw_offset =
-          target.getPos() - UnweightedCentroid(source_segment);
+      const Eigen::Vector3d source_centroid =
+          UnweightedCentroid(source_segment);
+      const Eigen::Vector3d raw_offset = target.getPos() - source_centroid;
       const Eigen::Vector3d frac = box_.inverse() * raw_offset;
       const Eigen::Vector3d wrapped_frac =
           frac - frac.array().round().matrix();
@@ -291,8 +299,33 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
           ++culled_entries_;
           continue;
         }
-        visited_pairs.emplace_back(&source_segment, idx, baseline_shift);
         const Eigen::Vector3d t = baseline_shift + translations_[idx].t;
+
+        // Foreground suppression. This one periodic copy of this segment
+        // is handled explicitly elsewhere (a polar region), so it must
+        // not also appear in the periodic background -- see the
+        // constructor's own foreground documentation. Only the copy
+        // sitting at the recorded position is dropped; the segment's
+        // other lattice images stay in the sum.
+        if (!foreground_.empty()) {
+          auto fg = foreground_.find(source_id);
+          if (fg != foreground_.end()) {
+            const Eigen::Vector3d shifted_centroid = source_centroid + t;
+            bool suppressed = false;
+            for (const Eigen::Vector3d& fg_pos : fg->second) {
+              if ((shifted_centroid - fg_pos).norm() < kForegroundMatchTol) {
+                suppressed = true;
+                break;
+              }
+            }
+            if (suppressed) {
+              ++foreground_entries_;
+              continue;
+            }
+          }
+        }
+
+        visited_pairs.emplace_back(&source_segment, idx, baseline_shift);
         for (const PolarSite& source_site : source_segment) {
           if (include_static) {
             interactor_.ApplyStaticField<PolarSite, CE>(source_site, target, t);

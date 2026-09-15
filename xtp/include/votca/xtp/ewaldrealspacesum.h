@@ -22,7 +22,9 @@
 #define VOTCA_XTP_EWALDREALSPACESUM_H
 
 // Standard includes
+#include <map>
 #include <string>
+#include <utility>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
@@ -129,10 +131,35 @@ class EwaldRealSpaceSum {
   // it mid-signature silently reinterpreted the positional shell_width
   // and n_max arguments of existing callers, which still compiled and
   // then culled every pair. Keep new parameters at the end.
-  EwaldRealSpaceSum(const Eigen::Matrix3d& box, const EwaldRegistry& registry,
-                    double alpha, double thole_a, double r_min,
-                    double field_tol, double shell_width = 0.945,
-                    Index n_max = 15, double screening_factor = 6.0);
+  //
+  // foreground: (segment id, segment centroid position) pairs that are
+  //   handled EXPLICITLY by a polar region rather than by this periodic
+  //   sum, and so must be removed from it -- the "carving out" an MM/MM
+  //   or QM/MM job performs. Each entry suppresses exactly the one
+  //   periodic copy of that segment sitting at the given position; every
+  //   OTHER lattice image of the same segment remains part of the
+  //   background and is still summed.
+  //
+  //   Matched by position rather than by "is this the minimum image",
+  //   deliberately. Two foreground segments can be separated by up to
+  //   twice the region cutoff, so for a target near the edge of the
+  //   foreground the minimum image of another foreground segment can be
+  //   a DIFFERENT copy than the one the polar region actually holds --
+  //   in which case a minimum-image rule would exclude the wrong one and
+  //   silently double-count. Legacy sidesteps the same trap by keying
+  //   its own ForegroundTable on explicit (id, na, nb, nc) rather than
+  //   on nearest-image. Positions come from JobTopology, which has
+  //   already centred them, so an exact-coordinate match is meaningful;
+  //   kForegroundMatchTol only absorbs round-off, and is orders of
+  //   magnitude below any real inter-segment separation.
+  //
+  //   Empty by default, which is the plain periodic background.
+  EwaldRealSpaceSum(
+      const Eigen::Matrix3d& box, const EwaldRegistry& registry, double alpha,
+      double thole_a, double r_min, double field_tol,
+      double shell_width = 0.945, Index n_max = 15,
+      double screening_factor = 6.0,
+      const std::vector<std::pair<Index, Eigen::Vector3d>>& foreground = {});
 
   // Accumulates the total intermolecular real-space field into target's
   // own V()/V_noE() accumulators (via EwaldRealSpaceInteractor, matching
@@ -183,6 +210,7 @@ class EwaldRealSpaceSum {
     Index targets;
     Index entries;
     Index culled;
+    Index foreground;
     double entries_per_target() const {
       return targets > 0 ? double(entries) / double(targets) : 0.0;
     }
@@ -192,7 +220,8 @@ class EwaldRealSpaceSum {
     }
   };
   NeighborStats GetNeighborStats() const {
-    return {cached_targets_, cached_entries_, culled_entries_};
+    return {cached_targets_, cached_entries_, culled_entries_,
+            foreground_entries_};
   }
   double RealSpaceCutoff() const { return real_space_cutoff_; }
 
@@ -222,6 +251,12 @@ class EwaldRealSpaceSum {
   // cutoff only: it never extends the sum, and r_min_/field_tol_ still
   // govern how far the shell search goes.
   double real_space_cutoff_;
+  // Tolerance for deciding that a shifted source segment coincides with a
+  // foreground segment. Round-off only -- see the constructor.
+  static constexpr double kForegroundMatchTol = 1e-4;
+  // Foreground copies to suppress, grouped by segment id. Most segments
+  // have no entry at all; those that do usually have exactly one.
+  std::map<Index, std::vector<Eigen::Vector3d>> foreground_;
   // Neighbour-list statistics, accumulated as the cache is built. The
   // cached list is the real cost driver of the whole solve: every entry
   // is one (source segment, periodic translation) pair, re-evaluated
@@ -232,6 +267,8 @@ class EwaldRealSpaceSum {
   mutable Index cached_targets_ = 0;
   mutable Index cached_entries_ = 0;
   mutable Index culled_entries_ = 0;
+  // How many (segment, image) pairs were suppressed as foreground.
+  mutable Index foreground_entries_ = 0;
   // Largest site-to-centroid distance over every registered segment,
   // used as the margin when the cutoff (a per-site-pair quantity) is
   // applied at segment granularity.

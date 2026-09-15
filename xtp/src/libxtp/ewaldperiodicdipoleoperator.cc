@@ -287,7 +287,7 @@ void EwaldPeriodicDipoleOperator::AddIntraSegmentCoupling(
   // UNDAMPED by Thole -- matching, it seemed, legacy's own permanent-
   // field intramolecular treatment (which genuinely has no real-space
   // loop at all, only a reciprocal-space erf compensation -- see
-  // EwaldRealSpaceInteractor::ApplyIntramolecularStaticCorrection). That
+  // EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection). That
   // second version was ALSO wrong, for the induced case specifically:
   // legacy's own FU12_ERFC_At_By -- the SAME method used for both
   // intermolecular (confirmed at PolarBackground's own line ~954) and

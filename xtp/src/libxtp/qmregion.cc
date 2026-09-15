@@ -30,6 +30,8 @@
 #include "votca/xtp/staticregion.h"
 #include "votca/xtp/vxc_grid.h"
 
+#include <stdexcept>
+
 namespace votca {
 namespace xtp {
 
@@ -532,6 +534,17 @@ void QMRegion::ReadFromCpt(CheckpointReader& r) {
     CheckpointReader rr4 = r.openChild("statefilter");
     statetracker_.ReadFromCpt(rr4);
   }
+}
+
+
+double QMRegion::InteractwithEwaldRegion(const EwaldRegion&) {
+  // Receiving the periodic background's field is the point of this
+  // override, and it is not written yet. Throwing rather than returning
+  // 0.0 on purpose: a silent zero here is indistinguishable from "the
+  // background contributes nothing", which would be a wrong answer that
+  // no test could catch.
+  throw std::runtime_error(
+      "QMRegion::InteractwithEwaldRegion is not implemented yet.");
 }
 
 }  // namespace xtp

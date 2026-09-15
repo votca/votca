@@ -40,6 +40,7 @@ namespace xtp {
 class QMRegion;
 class PolarRegion;
 class StaticRegion;
+class EwaldRegion;
 class BackgroundRegion;
 
 class PolarRegion : public MMRegion<PolarSegment> {
@@ -67,6 +68,7 @@ class PolarRegion : public MMRegion<PolarSegment> {
   double InteractwithQMRegion(const QMRegion& region) override;
   double InteractwithPolarRegion(const PolarRegion& region) override;
   double InteractwithStaticRegion(const StaticRegion& region) override;
+  double InteractwithEwaldRegion(const EwaldRegion& region) override;
 
  private:
   void CalcInducedDipoles();

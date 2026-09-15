@@ -25,6 +25,7 @@
 #include <boost/test/unit_test.hpp>
 
 // Local VOTCA includes
+#include "votca/xtp/ewaldrealspaceinteractor.h"
 #include "votca/xtp/ewaldrealspacesum.h"
 
 using namespace votca::xtp;
@@ -161,6 +162,99 @@ BOOST_AUTO_TEST_CASE(periodic_images_match_manual_sum) {
     std::cout << "AddFieldAt: " << target.V().transpose() << std::endl;
     std::cout << "manual sum: " << target_ref.V().transpose() << std::endl;
   }
+}
+
+
+// Declaring a foreground copy must remove EXACTLY that copy's
+// contribution from the periodic background -- the "carving out" an
+// MM/MM or QM/MM job performs before handling those segments explicitly.
+//
+// Asserted as an identity against a directly computed pair sum, not
+// against stored numbers: the removed amount is independently
+// recomputable, so a reference cannot agree with a mistake in the
+// exclusion logic. The entry count is checked too, because a correct
+// TOTAL could still hide removing one image while adding another.
+BOOST_AUTO_TEST_CASE(foreground_suppression_removes_exactly_one_copy) {
+  const double alpha = 0.3;
+  const double thole = 0.39;
+  const double L = 14.0;
+  const Eigen::Matrix3d box = L * Eigen::Matrix3d::Identity();
+
+  EwaldRegistry registry;
+  const Index n = 2;
+  const double d = L / double(n);
+  Index id = 0;
+  for (Index a = 0; a < n; ++a) {
+    for (Index b = 0; b < n; ++b) {
+      for (Index c = 0; c < n; ++c) {
+        const Eigen::Vector3d centre(double(a) * d, double(b) * d,
+                                     double(c) * d);
+        PolarSegment seg("seg", id);
+        const double t = 0.63;
+        const Eigen::Vector3d offsets[5] = {{0.0, 0.0, 0.0},
+                                            {t, t, t},
+                                            {t, -t, -t},
+                                            {-t, t, -t},
+                                            {-t, -t, t}};
+        for (Index j = 0; j < 5; ++j) {
+          PolarSite site(j, (j == 0) ? "C" : "H", centre + offsets[j]);
+          site.setpolarization(((j == 0) ? 8.0 : 3.0) *
+                               Eigen::Matrix3d::Identity());
+          site.setCharge((j == 0) ? -0.4 : 0.1);
+          site.setStaticDipole(
+              Eigen::Vector3d(1e-2 * double(j + 1), -5e-3, 2e-3 * double(j)));
+          site.setInduced_Dipole(Eigen::Vector3d(1e-3, -5e-4, 7e-4) *
+                                 (1.0 + 0.1 * double(j)));
+          seg.push_back(site);
+        }
+        registry.Register(id, EwaldChargeState::Neutral, seg);
+        ++id;
+      }
+    }
+  }
+
+  const Index target_id = 0;
+  const Index fg_id = 3;
+  PolarSegment& fg_seg = registry.Get(fg_id, EwaldChargeState::Neutral);
+  Eigen::Vector3d fg_pos = Eigen::Vector3d::Zero();
+  Index n_sites = 0;
+  for (const PolarSite& site : fg_seg) {
+    fg_pos += site.getPos();
+    ++n_sites;
+  }
+  fg_pos /= double(n_sites);
+
+  EwaldRealSpaceSum plain(box, registry, alpha, thole, 12.0, 1e-12);
+  PolarSite t_plain = registry.Get(target_id, EwaldChargeState::Neutral)[0];
+  t_plain.Reset();
+  plain.AddFieldAt<Estatic::V>(target_id, t_plain, EwaldChargeState::Neutral);
+
+  std::vector<std::pair<Index, Eigen::Vector3d>> foreground{{fg_id, fg_pos}};
+  EwaldRealSpaceSum carved(box, registry, alpha, thole, 12.0, 1e-12, 0.945, 15,
+                           6.0, foreground);
+  PolarSite t_carved = registry.Get(target_id, EwaldChargeState::Neutral)[0];
+  t_carved.Reset();
+  carved.AddFieldAt<Estatic::V>(target_id, t_carved,
+                                EwaldChargeState::Neutral);
+
+  // The contribution of exactly that copy, computed directly.
+  EwaldRealSpaceInteractor interactor(alpha, thole);
+  PolarSite t_direct = registry.Get(target_id, EwaldChargeState::Neutral)[0];
+  t_direct.Reset();
+  for (const PolarSite& source : fg_seg) {
+    interactor.ApplyStaticField<PolarSite, Estatic::V>(source, t_direct);
+    interactor.ApplyInducedField<Estatic::V>(source, t_direct);
+  }
+
+  const Eigen::Vector3d removed = t_plain.V() - t_carved.V();
+  BOOST_CHECK_SMALL((removed - t_direct.V()).norm() / t_direct.V().norm(),
+                    1e-12);
+
+  const auto s_plain = plain.GetNeighborStats();
+  const auto s_carved = carved.GetNeighborStats();
+  BOOST_CHECK_GT(s_carved.foreground, 0);
+  // One copy suppressed, and nothing else gained or lost with it.
+  BOOST_CHECK_EQUAL(s_plain.entries - s_carved.entries, s_carved.foreground);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

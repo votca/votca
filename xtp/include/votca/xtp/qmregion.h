@@ -41,6 +41,7 @@ namespace xtp {
 
 class PolarRegion;
 class StaticRegion;
+class EwaldRegion;
 class QMRegion : public Region {
 
  public:
@@ -147,6 +148,7 @@ class QMRegion : public Region {
   double InteractwithQMRegion(const QMRegion& region) override;
   double InteractwithPolarRegion(const PolarRegion& region) override;
   double InteractwithStaticRegion(const StaticRegion& region) override;
+  double InteractwithEwaldRegion(const EwaldRegion& region) override;
 
  private:
   void AddNucleiFields(std::vector<PolarSegment>& segments,

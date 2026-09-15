@@ -236,4 +236,190 @@ BOOST_AUTO_TEST_CASE(induced_thole_damping_short_vs_long_range) {
   BOOST_CHECK_CLOSE(e_far, e_undamped_far, 1e-3);
 }
 
+
+// The erf- and erfc-screened B-functions are complements by construction:
+// together they must reconstruct the bare Coulomb derivatives. Asserted
+// as an identity rather than against stored numbers, so it cannot be
+// satisfied by a reference that mirrors a mistake in either branch.
+BOOST_AUTO_TEST_CASE(erf_and_erfc_bfunctions_are_complementary) {
+  EwaldRealSpaceInteractor interactor(0.3, 0.39);
+  double worst = 0.0;
+  for (double r : {0.5, 1.0, 2.5, 7.0, 15.0}) {
+    const auto bc = interactor.ComputeB(r);
+    const auto be = interactor.ComputeErfB(r);
+    worst = std::max(worst, std::abs(bc.B0 + be.B0 - 1.0 / r) * r);
+    worst = std::max(worst,
+                     std::abs(bc.B1 + be.B1 - 1.0 / std::pow(r, 3)) *
+                         std::pow(r, 3));
+    worst = std::max(worst,
+                     std::abs(bc.B2 + be.B2 - 3.0 / std::pow(r, 5)) *
+                         std::pow(r, 5) / 3.0);
+  }
+  BOOST_CHECK_SMALL(worst, 1e-12);
+}
+
+// The same complementarity, one level up: the erfc-screened induced field
+// plus the erf-screened correction must equal the BARE dipole field.
+//
+// This is the check that pins the correction's sign convention without
+// re-deriving it. A sign error in ApplyErfInducedFieldCorrection cannot
+// pass this, whereas comparing against a hand-written expected vector
+// could -- if that vector were derived the same (wrong) way.
+//
+// The separation is chosen so Thole damping is inactive (au3 >= 40),
+// because the erf correction is deliberately undamped: the
+// reciprocal-space contribution it removes has no damping of its own.
+BOOST_AUTO_TEST_CASE(erf_correction_completes_the_bare_induced_field) {
+  const double alpha = 0.3;
+  const double thole = 0.39;
+  EwaldRealSpaceInteractor interactor(alpha, thole);
+
+  auto make_site = [](const Eigen::Vector3d& pos) {
+    PolarSite site(0, "C", pos);
+    site.setpolarization(2.0 * Eigen::Matrix3d::Identity());
+    return site;
+  };
+
+  PolarSite source = make_site(Eigen::Vector3d::Zero());
+  const Eigen::Vector3d mu(3e-3, -1e-3, 2e-3);
+  source.setInduced_Dipole(mu);
+  const Eigen::Vector3d target_pos(6.0, 2.0, -1.0);
+
+  PolarSite screened = make_site(target_pos);
+  screened.Reset();
+  interactor.ApplyInducedField<Estatic::V>(source, screened);
+
+  PolarSite correction = make_site(target_pos);
+  correction.Reset();
+  interactor.ApplyErfInducedFieldCorrection<Estatic::V>(source, correction);
+
+  const double r = target_pos.norm();
+  const double au3 = thole * std::pow(r, 3) *
+                     source.getSqrtInvEigenDamp() *
+                     screened.getSqrtInvEigenDamp();
+  BOOST_REQUIRE_GT(au3, 40.0);  // Thole must be inactive for this identity
+
+  const Eigen::Vector3d bare =
+      mu.dot(target_pos) * (3.0 / std::pow(r, 5)) * target_pos -
+      (1.0 / std::pow(r, 3)) * mu;
+
+  // The correction is stored negated (it is subtracted), so recombining
+  // means screened MINUS correction.
+  const Eigen::Vector3d recombined = screened.V() - correction.V();
+  BOOST_CHECK_SMALL((recombined - bare).norm() / bare.norm(), 1e-12);
+}
+
+// Passing a periodic-image shift must be identical to physically moving
+// the source, for the correction as much as for the screened field.
+BOOST_AUTO_TEST_CASE(erf_correction_shift_matches_moving_the_source) {
+  EwaldRealSpaceInteractor interactor(0.3, 0.39);
+  const Eigen::Vector3d mu(3e-3, -1e-3, 2e-3);
+  const Eigen::Vector3d target_pos(6.0, 2.0, -1.0);
+
+  auto make_site = [](const Eigen::Vector3d& pos) {
+    PolarSite site(0, "C", pos);
+    site.setpolarization(2.0 * Eigen::Matrix3d::Identity());
+    return site;
+  };
+
+  PolarSite at_origin = make_site(Eigen::Vector3d::Zero());
+  at_origin.setInduced_Dipole(mu);
+  PolarSite moved = make_site(Eigen::Vector3d(-4.0, 1.5, 3.0));
+  moved.setInduced_Dipole(mu);
+  const Eigen::Vector3d shift(4.0, -1.5, -3.0);
+
+  PolarSite a = make_site(target_pos);
+  a.Reset();
+  interactor.ApplyErfInducedFieldCorrection<Estatic::V>(at_origin, a);
+  PolarSite b = make_site(target_pos);
+  b.Reset();
+  interactor.ApplyErfInducedFieldCorrection<Estatic::V>(moved, b, shift);
+
+  BOOST_CHECK_SMALL((a.V() - b.V()).norm() / a.V().norm(), 1e-14);
+}
+
+
+// The energy counterpart of erf_correction_completes_the_bare_induced_field:
+// the erfc- and erf-screened permanent-multipole energies must sum to the
+// bare Coulomb energy. The reference is derived here from the multipole
+// expansion directly, NOT from the interactor, so it cannot agree with a
+// mistake in either screened branch.
+BOOST_AUTO_TEST_CASE(erfc_and_erf_static_energies_sum_to_bare) {
+  EwaldRealSpaceInteractor interactor(0.3, 0.39);
+
+  auto make = [](const Eigen::Vector3d& pos, double q,
+                 const Eigen::Vector3d& mu) {
+    PolarSite site(0, "C", pos);
+    site.setpolarization(2.0 * Eigen::Matrix3d::Identity());
+    site.setCharge(q);
+    site.setStaticDipole(mu);
+    return site;
+  };
+
+  PolarSite a = make(Eigen::Vector3d::Zero(), 0.35,
+                     Eigen::Vector3d(2e-2, -1e-2, 5e-3));
+  PolarSite b = make(Eigen::Vector3d(4.0, 1.5, -2.0), -0.22,
+                     Eigen::Vector3d(-8e-3, 4e-3, 1e-2));
+
+  const double e_erfc = interactor.CalcStaticEnergy<PolarSite, PolarSite>(a, b);
+  const double e_erf =
+      interactor.CalcErfStaticEnergy<PolarSite, PolarSite>(a, b);
+
+  const Eigen::Vector3d r = b.getPos() - a.getPos();
+  const double R = r.norm();
+  const double R3 = R * R * R;
+  const double R5 = R3 * R * R;
+  const Eigen::Vector3d m1 = a.getStaticDipole();
+  const Eigen::Vector3d m2 = b.getStaticDipole();
+  const double bare =
+      a.getCharge() * b.getCharge() / R +
+      (b.getCharge() * m1.dot(r) - a.getCharge() * m2.dot(r)) / R3 +
+      (m1.dot(m2) / R3 - 3.0 * m1.dot(r) * m2.dot(r) / R5);
+
+  BOOST_CHECK_SMALL(std::abs(e_erfc + e_erf - bare) / std::abs(bare), 1e-12);
+}
+
+// Coincident sites are the common case for the energy correction, not an
+// edge case: every foreground target sits inside a copy being removed.
+// The erf-screened energy must take its analytic r -> 0 limit there
+// rather than dividing by zero.
+BOOST_AUTO_TEST_CASE(erf_static_energy_is_finite_for_coincident_sites) {
+  EwaldRealSpaceInteractor interactor(0.3, 0.39);
+  PolarSite site(0, "C", Eigen::Vector3d::Zero());
+  site.setpolarization(2.0 * Eigen::Matrix3d::Identity());
+  site.setCharge(0.35);
+  site.setStaticDipole(Eigen::Vector3d(2e-2, -1e-2, 5e-3));
+
+  const double e =
+      interactor.CalcErfStaticEnergy<PolarSite, PolarSite>(site, site);
+  BOOST_CHECK(std::isfinite(e));
+
+  // The charge-charge part is q^2 * 2*alpha/sqrt(pi); with a dipole also
+  // present the total must still be dominated by it and positive here.
+  BOOST_CHECK_GT(e, 0.0);
+}
+
+// A periodic-image shift must be equivalent to moving the source, for the
+// energy as much as for the field.
+BOOST_AUTO_TEST_CASE(static_energy_shift_matches_moving_the_source) {
+  EwaldRealSpaceInteractor interactor(0.3, 0.39);
+  auto make = [](const Eigen::Vector3d& pos) {
+    PolarSite site(0, "C", pos);
+    site.setpolarization(2.0 * Eigen::Matrix3d::Identity());
+    site.setCharge(0.35);
+    site.setStaticDipole(Eigen::Vector3d(2e-2, -1e-2, 5e-3));
+    return site;
+  };
+  PolarSite target = make(Eigen::Vector3d(4.0, 1.5, -2.0));
+  PolarSite at_origin = make(Eigen::Vector3d::Zero());
+  PolarSite moved = make(Eigen::Vector3d(-7.0, 3.0, 5.0));
+  const Eigen::Vector3d shift(7.0, -3.0, -5.0);
+
+  const double direct =
+      interactor.CalcStaticEnergy<PolarSite, PolarSite>(at_origin, target);
+  const double shifted =
+      interactor.CalcStaticEnergy<PolarSite, PolarSite>(moved, target, shift);
+  BOOST_CHECK_SMALL(std::abs(shifted - direct) / std::abs(direct), 1e-14);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

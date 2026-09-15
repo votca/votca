@@ -386,8 +386,6 @@ JorResult SolveWithJOR(const EwaldPeriodicDipoleOperator& op,
                        const Eigen::VectorXd& b, Index max_iter,
                        double omega, Logger& log,
                        std::chrono::steady_clock::time_point t_start,
-                       const EwaldRegistry& registry,
-                       const std::vector<Index>& ids,
                        bool match_legacy_first_step) {
   auto elapsed_s = [&]() {
     return std::chrono::duration<double>(std::chrono::steady_clock::now() -

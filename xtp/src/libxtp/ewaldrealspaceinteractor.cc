@@ -134,10 +134,36 @@ double EwaldRealSpaceInteractor::ApplyStaticField(
 }
 
 template <class T, enum Estatic CE>
-void EwaldRealSpaceInteractor::ApplyIntramolecularStaticCorrection(
-    const T& site1, PolarSite& site2) const {
-  const Eigen::Vector3d r_vec = site2.getPos() - site1.getPos();
+void EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection(
+    const T& site1, PolarSite& site2,
+    const Eigen::Vector3d& source_shift) const {
+  const Eigen::Vector3d r_vec =
+      site2.getPos() - (site1.getPos() + source_shift);
   const double r = r_vec.norm();
+
+  // Coincident sites. The erf-screened functions are singular at r = 0
+  // in form only: erf(ar)/r tends to 2a/sqrt(pi), and the dipole field
+  // tends to the analytic Ewald self-term below. This case is reached
+  // whenever the correction is applied to a foreground copy that
+  // contains the target itself, which happens for every target -- so it
+  // is the common path, not an edge case. Legacy guards it identically
+  // (EwdInteractor::FP12_ERF_At_By / FU12_ERF_At_By, R1 < 1e-2 branch),
+  // with the same 4/3 * alpha^3 / sqrt(pi) coefficient that
+  // EwaldReciprocalSpaceSum::SelfFieldMatrix returns.
+  //
+  // A charge contributes no field to itself (no direction), so only the
+  // dipole term survives.
+  if (r < kCoincidenceTol) {
+    const double self_coeff =
+        (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / std::sqrt(votca::tools::conv::Pi);
+    const Eigen::Vector3d self_field = self_coeff * site1.getStaticDipole();
+    if (CE == Estatic::noE_V) {
+      site2.V_noE() -= self_field;
+    } else {
+      site2.V() -= self_field;
+    }
+    return;
+  }
   const BFunctions b = ComputeErfB(r);
 
   const double q1 = site1.getCharge();
@@ -149,6 +175,55 @@ void EwaldRealSpaceInteractor::ApplyIntramolecularStaticCorrection(
   // (-)" comment) for why: this removes the reciprocal-space leak for
   // this intramolecular pair, it does not add a genuine field
   // contribution of its own.
+  if (CE == Estatic::noE_V) {
+    site2.V_noE() -= src.field;
+  } else {
+    site2.V() -= src.field;
+  }
+}
+
+template <enum Estatic CE>
+void EwaldRealSpaceInteractor::ApplyErfInducedFieldCorrection(
+    const PolarSite& site1, PolarSite& site2,
+    const Eigen::Vector3d& source_shift) const {
+  const Eigen::Vector3d r_vec =
+      site2.getPos() - (site1.getPos() + source_shift);
+  const double r = r_vec.norm();
+
+  // Coincident sites. The erf-screened functions are singular at r = 0
+  // in form only: erf(ar)/r tends to 2a/sqrt(pi), and the dipole field
+  // tends to the analytic Ewald self-term below. This case is reached
+  // whenever the correction is applied to a foreground copy that
+  // contains the target itself, which happens for every target -- so it
+  // is the common path, not an edge case. Legacy guards it identically
+  // (EwdInteractor::FP12_ERF_At_By / FU12_ERF_At_By, R1 < 1e-2 branch),
+  // with the same 4/3 * alpha^3 / sqrt(pi) coefficient that
+  // EwaldReciprocalSpaceSum::SelfFieldMatrix returns.
+  //
+  // A charge contributes no field to itself (no direction), so only the
+  // dipole term survives.
+  if (r < kCoincidenceTol) {
+    const double self_coeff =
+        (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / std::sqrt(votca::tools::conv::Pi);
+    const Eigen::Vector3d self_field = self_coeff * site1.getInducedDipole();
+    if (CE == Estatic::noE_V) {
+      site2.V_noE() -= self_field;
+    } else {
+      site2.V() -= self_field;
+    }
+    return;
+  }
+  const BFunctions b = ComputeErfB(r);
+
+  // Charge deliberately zero: this removes the field of site1's INDUCED
+  // dipole only. Its permanent multipoles are handled by
+  // ApplyErfStaticFieldCorrection, and passing them here too would
+  // remove them twice.
+  //
+  // No ComputeThole call -- see this method's own header documentation.
+  const ScreenedPotentialField src =
+      EvaluateSource(0.0, site1.getInducedDipole(), r_vec, r, b);
+
   if (CE == Estatic::noE_V) {
     site2.V_noE() -= src.field;
   } else {
@@ -187,9 +262,11 @@ double EwaldRealSpaceInteractor::ApplyInducedField(
 }
 
 template <class S1, class S2>
-double EwaldRealSpaceInteractor::CalcStaticEnergy(const S1& site1,
-                                                   const S2& site2) const {
-  const Eigen::Vector3d r_vec = site2.getPos() - site1.getPos();
+double EwaldRealSpaceInteractor::CalcStaticEnergy(
+    const S1& site1, const S2& site2,
+    const Eigen::Vector3d& source_shift) const {
+  const Eigen::Vector3d r_vec =
+      site2.getPos() - (site1.getPos() + source_shift);
   const double r = r_vec.norm();
   const BFunctions b = ComputeB(r);
 
@@ -199,6 +276,40 @@ double EwaldRealSpaceInteractor::CalcStaticEnergy(const S1& site1,
 
   const double q2 = site2.getCharge();
   const Eigen::Vector3d mu2 = site2.getStaticDipole();
+  return q2 * src.phi - mu2.dot(src.field);
+}
+
+template <class S1, class S2>
+double EwaldRealSpaceInteractor::CalcErfStaticEnergy(
+    const S1& site1, const S2& site2,
+    const Eigen::Vector3d& source_shift) const {
+  const Eigen::Vector3d r_vec =
+      site2.getPos() - (site1.getPos() + source_shift);
+  const double r = r_vec.norm();
+
+  const double q1 = site1.getCharge();
+  const Eigen::Vector3d mu1 = site1.getStaticDipole();
+  const double q2 = site2.getCharge();
+  const Eigen::Vector3d mu2 = site2.getStaticDipole();
+
+  // Coincident sites. As in the field corrections, the erf-screened
+  // functions are singular in form only at r = 0: erf(ar)/r tends to
+  // 2a/sqrt(pi), and the dipole-dipole term to the analytic Ewald
+  // self-value. Reached for every foreground target, since each sits
+  // inside a copy that is being removed.
+  if (r < kCoincidenceTol) {
+    const double sqrt_pi = std::sqrt(votca::tools::conv::Pi);
+    const double phi_self = 2.0 * alpha_ / sqrt_pi;
+    const double dip_self =
+        (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / sqrt_pi;
+    // Charge-charge through the self-potential, dipole-dipole through
+    // the self-field. The cross terms vanish: a charge produces no field
+    // at its own position, and a dipole no potential.
+    return q2 * q1 * phi_self - mu2.dot(dip_self * mu1);
+  }
+
+  const BFunctions b = ComputeErfB(r);
+  const ScreenedPotentialField src = EvaluateSource(q1, mu1, r_vec, r, b);
   return q2 * src.phi - mu2.dot(src.field);
 }
 
@@ -233,19 +344,28 @@ template double EwaldRealSpaceInteractor::ApplyStaticField<PolarSite,
     const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
 
 template void
-EwaldRealSpaceInteractor::ApplyIntramolecularStaticCorrection<StaticSite,
-                                                              Estatic::V>(
-    const StaticSite&, PolarSite&) const;
+EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection<StaticSite,
+                                                        Estatic::V>(
+    const StaticSite&, PolarSite&, const Eigen::Vector3d&) const;
 template void
-EwaldRealSpaceInteractor::ApplyIntramolecularStaticCorrection<
-    StaticSite, Estatic::noE_V>(const StaticSite&, PolarSite&) const;
+EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection<
+    StaticSite, Estatic::noE_V>(const StaticSite&, PolarSite&,
+                                const Eigen::Vector3d&) const;
 template void
-EwaldRealSpaceInteractor::ApplyIntramolecularStaticCorrection<PolarSite,
-                                                              Estatic::V>(
-    const PolarSite&, PolarSite&) const;
+EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection<PolarSite,
+                                                        Estatic::V>(
+    const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
 template void
-EwaldRealSpaceInteractor::ApplyIntramolecularStaticCorrection<
-    PolarSite, Estatic::noE_V>(const PolarSite&, PolarSite&) const;
+EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection<
+    PolarSite, Estatic::noE_V>(const PolarSite&, PolarSite&,
+                               const Eigen::Vector3d&) const;
+
+template void
+EwaldRealSpaceInteractor::ApplyErfInducedFieldCorrection<Estatic::V>(
+    const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
+template void
+EwaldRealSpaceInteractor::ApplyErfInducedFieldCorrection<Estatic::noE_V>(
+    const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
 
 template double EwaldRealSpaceInteractor::ApplyInducedField<Estatic::V>(
     const PolarSite&, PolarSite&, const Eigen::Vector3d&) const;
@@ -254,16 +374,29 @@ template double EwaldRealSpaceInteractor::ApplyInducedField<Estatic::noE_V>(
 
 template double EwaldRealSpaceInteractor::CalcStaticEnergy<StaticSite,
                                                             StaticSite>(
-    const StaticSite&, const StaticSite&) const;
+    const StaticSite&, const StaticSite&, const Eigen::Vector3d&) const;
 template double EwaldRealSpaceInteractor::CalcStaticEnergy<StaticSite,
                                                             PolarSite>(
-    const StaticSite&, const PolarSite&) const;
+    const StaticSite&, const PolarSite&, const Eigen::Vector3d&) const;
 template double EwaldRealSpaceInteractor::CalcStaticEnergy<PolarSite,
                                                             StaticSite>(
-    const PolarSite&, const StaticSite&) const;
+    const PolarSite&, const StaticSite&, const Eigen::Vector3d&) const;
 template double EwaldRealSpaceInteractor::CalcStaticEnergy<PolarSite,
                                                             PolarSite>(
-    const PolarSite&, const PolarSite&) const;
+    const PolarSite&, const PolarSite&, const Eigen::Vector3d&) const;
+
+template double EwaldRealSpaceInteractor::CalcErfStaticEnergy<StaticSite,
+                                                              StaticSite>(
+    const StaticSite&, const StaticSite&, const Eigen::Vector3d&) const;
+template double EwaldRealSpaceInteractor::CalcErfStaticEnergy<StaticSite,
+                                                              PolarSite>(
+    const StaticSite&, const PolarSite&, const Eigen::Vector3d&) const;
+template double EwaldRealSpaceInteractor::CalcErfStaticEnergy<PolarSite,
+                                                              StaticSite>(
+    const PolarSite&, const StaticSite&, const Eigen::Vector3d&) const;
+template double EwaldRealSpaceInteractor::CalcErfStaticEnergy<PolarSite,
+                                                              PolarSite>(
+    const PolarSite&, const PolarSite&, const Eigen::Vector3d&) const;
 
 }  // namespace xtp
 }  // namespace votca

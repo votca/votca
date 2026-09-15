@@ -41,6 +41,7 @@
 #include "votca/xtp/ewaldrealspacesum.h"
 #include "votca/xtp/ewaldreciprocalspacesum.h"
 #include "votca/xtp/ewaldregistry.h"
+#include "votca/xtp/ewaldparameters.h"
 #include "votca/xtp/ewaldshapecorrection.h"
 #include "votca/xtp/ewaldsolvers.h"
 #include "votca/xtp/qmcalculator.h"
@@ -436,7 +437,7 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   // "Note the (-): This is a compensation term" comment) so that the net
   // static-static intramolecular contribution comes out to genuinely
   // zero, not the un-cancelled reciprocal-space leak alone -- see
-  // EwaldRealSpaceInteractor::ApplyIntramolecularStaticCorrection's own
+  // EwaldRealSpaceInteractor::ApplyErfStaticFieldCorrection's own
   // documentation for the fuller account of why (a real mechanism in
   // legacy's own code, missed on an earlier pass through it, not a new
   // design decision here). Every ordered pair within a segment
@@ -455,7 +456,7 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
           continue;
         }
         erf_interactor
-            .ApplyIntramolecularStaticCorrection<PolarSite, Estatic::V>(
+            .ApplyErfStaticFieldCorrection<PolarSite, Estatic::V>(
                 segment[j], segment[i]);
       }
     }
@@ -507,7 +508,6 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
       EwaldSitePolarizabilityBlocks site_p(registry, ids);
       auto result =
           SolveWithJOR(op, site_p, b, max_iter_, jor_omega_, log, t_pcg,
-                      registry, ids,
                       match_legacy_first_step_);
       x = result.x;
       iterations = result.iterations;
@@ -695,6 +695,26 @@ inline bool EwaldBackground::Evaluate(Topology& top) {
   CheckpointFile cpf(checkpoint_file_, CheckpointAccessLevel::CREATE);
   CheckpointWriter w = cpf.getWriter();
   registry.WriteToCpt(w);
+
+  // The convergence parameters travel with the converged state. A job
+  // that later embeds a foreground in this background must use the same
+  // alpha, k_max and shape -- alpha in particular decides how the
+  // interaction is split between the real- and reciprocal-space sums, so
+  // a different value is not the same physics, and nothing about the
+  // mismatch would be visible at run time. See EwaldParameters.
+  {
+    EwaldParameters params;
+    params.alpha = alpha_;
+    params.k_max = k_max_;
+    params.r_min = r_min_;
+    params.field_tol = field_tol_;
+    params.thole_a = thole_a_;
+    params.screening_factor = screening_factor_;
+    params.shape = shape_;
+    params.box = box;
+    CheckpointWriter wp = w.openChild("ewald_parameters");
+    params.WriteToCpt(wp);
+  }
 
   XTP_LOG(Log::info, log)
       << TimeStamp() << " Checkpoint written to " << checkpoint_file_

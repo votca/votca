@@ -243,8 +243,7 @@ BOOST_AUTO_TEST_CASE(jor_and_pcg_agree) {
 
   EwaldSitePolarizabilityBlocks site_p(registry, ids);
   auto jor = SolveWithJOR(op, site_p, b, /*max_iter=*/20000, /*omega=*/0.35,
-                          log, t0, registry, ids,
-                          /*match_legacy_first_step=*/false);
+                          log, t0, /*match_legacy_first_step=*/false);
 
   // JOR stops on a per-site dipole-change criterion with a hardcoded
   // 1e-3 threshold (matching legacy's own epstol), NOT on a residual, so

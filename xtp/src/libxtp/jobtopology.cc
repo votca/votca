@@ -27,6 +27,7 @@
 #include "votca/tools/property.h"
 #include "votca/tools/version.h"
 #include "votca/xtp/checkpoint.h"
+#include "votca/xtp/ewaldregion.h"
 #include "votca/xtp/jobtopology.h"
 #include "votca/xtp/polarregion.h"
 #include "votca/xtp/qmregion.h"
@@ -173,6 +174,7 @@ void JobTopology::CreateRegions(
     QMRegion QMdummy(0, log_, "");
     StaticRegion Staticdummy(0, log_);
     PolarRegion Polardummy(0, log_);
+    EwaldRegion Ewalddummy(0, log_);
     if (type == QMdummy.identify()) {
       std::unique_ptr<QMRegion> qmregion =
           std::make_unique<QMRegion>(id, log_, workdir_);
@@ -215,6 +217,12 @@ void JobTopology::CreateRegions(
       }
       region = std::move(staticregion);
 
+    } else if (type == Ewalddummy.identify()) {
+      // Owns no segments of the job's topology: it represents the whole
+      // periodic cell, loaded from the background calculator's own
+      // checkpoint by its Initialize below. seg_ids is empty for it by
+      // construction (see CreateRegionSegIds).
+      region = std::make_unique<EwaldRegion>(id, log_);
     } else {
       throw std::runtime_error("Region type not known!");
     }
@@ -246,10 +254,21 @@ std::vector<std::vector<SegId>> JobTopology::PartitionRegions(
       std::vector<bool>(top.Segments().size(), false);
   for (const tools::Property* region_def : sorted_regions) {
 
-    if (!region_def->exists("segments") && !region_def->exists("cutoff")) {
+    // An ewaldregion is the exception: it takes no segments from this
+    // topology at all. Its content is the periodic background written by
+    // the ewaldbackground calculator, which it loads from a checkpoint,
+    // so demanding segments or a cutoff for it would be meaningless.
+    EwaldRegion Ewalddummy(0, log_);
+    const bool is_ewald = region_def->name() == Ewalddummy.identify();
+    if (!is_ewald && !region_def->exists("segments") &&
+        !region_def->exists("cutoff")) {
       throw std::runtime_error(
           "Region definition needs either segments or a cutoff to find "
           "segments");
+    }
+    if (is_ewald) {
+      segids_per_region.push_back(std::vector<SegId>());
+      continue;
     }
     std::vector<SegId> seg_ids;
     if (region_def->exists("segments")) {

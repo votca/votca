@@ -29,6 +29,7 @@ namespace xtp {
 class QMRegion;
 class PolarRegion;
 class StaticRegion;
+class EwaldRegion;
 class BackgroundRegion;
 
 class StaticRegion : public MMRegion<StaticSegment> {
@@ -52,6 +53,9 @@ class StaticRegion : public MMRegion<StaticSegment> {
   double InteractwithQMRegion(const QMRegion&) override { return 0.0; }
   double InteractwithPolarRegion(const PolarRegion&) override { return 0.0; }
   double InteractwithStaticRegion(const StaticRegion&) override { return 0.0; }
+  // A static region has no polarizability, so the background's field
+  // does no work on it. Genuinely zero, like the three above.
+  double InteractwithEwaldRegion(const EwaldRegion&) override { return 0.0; }
 
  private:
 };

@@ -108,7 +108,7 @@
  *      EwaldRealSpaceInteractor::ComputeB directly, deliberately
  *      UNDAMPED by Thole -- reasoning by analogy from the PERMANENT-
  *      field case (EwaldRealSpaceInteractor::
- *      ApplyIntramolecularStaticCorrection, which genuinely has no
+ *      ApplyErfStaticFieldCorrection, which genuinely has no
  *      Thole factor, because legacy's own static intramolecular
  *      treatment has no real-space loop at all, only a reciprocal-space
  *      erf compensation). That analogy does not transfer: legacy's

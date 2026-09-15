@@ -43,6 +43,7 @@ namespace xtp {
 class QMRegion;
 class PolarRegion;
 class StaticRegion;
+class EwaldRegion;
 class BackgroundRegion;
 
 class Region {
@@ -96,6 +97,11 @@ class Region {
   virtual double InteractwithQMRegion(const QMRegion& region) = 0;
   virtual double InteractwithPolarRegion(const PolarRegion& region) = 0;
   virtual double InteractwithStaticRegion(const StaticRegion& region) = 0;
+  // The periodic Ewald background. Unlike the three above, the
+  // relationship is one-way: EwaldRegion is frozen, so its own
+  // Interactwith* overrides all return 0.0, while every other region
+  // implements this to receive the background's field.
+  virtual double InteractwithEwaldRegion(const EwaldRegion& region) = 0;
 
   Index id_ = -1;
   Logger& log_;

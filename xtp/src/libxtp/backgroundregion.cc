@@ -29,6 +29,8 @@
 #include "votca/xtp/qmregion.h"
 #include "votca/xtp/staticregion.h"
 
+#include <stdexcept>
+
 namespace votca {
 namespace xtp {
 
@@ -376,6 +378,17 @@ void BackgroundRegion::WriteToCpt(CheckpointWriter& w) const {
 
 void BackgroundRegion::ReadFromCpt(CheckpointReader& r) {
   MMRegion<PolarSegment>::ReadFromCpt(r);
+}
+
+
+double BackgroundRegion::InteractwithEwaldRegion(const EwaldRegion&) {
+  // Receiving the periodic background's field is the point of this
+  // override, and it is not written yet. Throwing rather than returning
+  // 0.0 on purpose: a silent zero here is indistinguishable from "the
+  // background contributes nothing", which would be a wrong answer that
+  // no test could catch.
+  throw std::runtime_error(
+      "BackgroundRegion::InteractwithEwaldRegion is not implemented yet.");
 }
 
 }  // namespace xtp
