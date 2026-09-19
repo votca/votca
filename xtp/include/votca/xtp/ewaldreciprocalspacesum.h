@@ -201,6 +201,64 @@ class EwaldReciprocalSpaceSum {
                       EwaldChargeState source_state,
                       const ProgressCallback& progress = ProgressCallback()) const;
 
+  // Reciprocal-space PERMANENT-multipole interaction energy between a
+  // supplied set of sites (the foreground) and the rest of the periodic
+  // cell (the background):
+  //
+  //   E = sum_k (4*pi/V) * exp(-k^2/4*alpha^2)/k^2 * Re[ S_fg*(k) . S_bg(k) ]
+  //
+  // `foreground` lists the sites whose moments enter S_fg, together with
+  // the position each one occupies. These are the foreground's OWN sites
+  // -- in the job's own charge state -- not the background copies they
+  // were carved from. That distinction is the whole point of the cross
+  // term: the interaction being computed is the one the job's charge
+  // state actually has with the medium, so taking the moments from the
+  // neutral background copies instead would make a charged job report
+  // the neutral job's reciprocal energy, and the difference between
+  // charge states -- the one quantity a site-energy calculation is
+  // after -- would silently lose this contribution altogether.
+  //
+  // `background_exclusions` is therefore supplied separately: which
+  // sites carry the foreground's moments and which registered sites must
+  // be held out of S_bg are two different questions, and conflating them
+  // is what produced the bug just described. Identity is by address.
+  //
+  // S_fg and S_bg are accumulated SEPARATELY rather than obtaining S_bg
+  // by subtracting S_fg from the total. The foreground is a tiny
+  // fraction of the cell, so that subtraction would difference two large
+  // nearly-equal numbers and lose exactly the precision the cross term
+  // needs.
+  //
+  // Permanent multipoles only, matching EwaldRealSpaceSum's own
+  // CalcStaticEnergyAt: the induced contribution reaches the polar
+  // region through the field, and adding it here too would double-count.
+  double CalcStaticEnergyBetween(
+      const std::vector<std::pair<const PolarSite*, Eigen::Vector3d>>&
+          foreground,
+      const std::vector<const PolarSite*>& background_exclusions,
+      EwaldChargeState source_state) const;
+
+  // The same reciprocal cross sum, but with the background entering
+  // through its INDUCED dipoles instead of its permanent moments:
+  //
+  //   S_bg(k) = sum_bg (-i k.mu_ind) exp(-i k.r)
+  //
+  // while the foreground still contributes its permanent moments. This
+  // is the reciprocal partner of
+  // EwaldRealSpaceSum::CalcInducedSourceEnergyAt; see
+  // EwaldRealSpaceInteractor::CalcInducedSourceEnergy for what the term
+  // is and why it exists.
+  //
+  // No Thole damping, deliberately: damping is a short-range correction
+  // and a reciprocal-space sum has no short range to correct. Its
+  // real-space partner IS damped, which is legacy's convention too and
+  // is why the two together are only approximately alpha-independent.
+  double CalcInducedSourceEnergyBetween(
+      const std::vector<std::pair<const PolarSite*, Eigen::Vector3d>>&
+          foreground,
+      const std::vector<const PolarSite*>& background_exclusions,
+      EwaldChargeState source_state) const;
+
  private:
   struct KVector {
     Eigen::Vector3d k;

@@ -257,4 +257,113 @@ BOOST_AUTO_TEST_CASE(foreground_suppression_removes_exactly_one_copy) {
   BOOST_CHECK_EQUAL(s_plain.entries - s_carved.entries, s_carved.foreground);
 }
 
+
+// The accumulated Q-Q energy must use exactly the neighbour set the
+// field used: same foreground suppression, same distance cull. Checked
+// by suppressing one copy and requiring the energy to drop by precisely
+// that copy's erfc-screened energy -- independently recomputed through
+// the interactor, so a reference cannot agree with a mistake in the
+// accumulation.
+//
+// Note the energy drops by the ERFC part only, not the bare part. That
+// is correct and worth stating: suppression removes the copy from the
+// real-space sum, while its reciprocal-space (erf) share is removed
+// separately by the erf energy correction, exactly as for the field.
+BOOST_AUTO_TEST_CASE(static_energy_uses_the_same_suppressed_neighbour_set) {
+  const double alpha = 0.3;
+  const double thole = 0.39;
+  const double L = 14.0;
+  const Eigen::Matrix3d box = L * Eigen::Matrix3d::Identity();
+
+  EwaldRegistry registry;
+  const Index n = 2;
+  const double d = L / double(n);
+  Index id = 0;
+  for (Index a = 0; a < n; ++a) {
+    for (Index b = 0; b < n; ++b) {
+      for (Index c = 0; c < n; ++c) {
+        const Eigen::Vector3d centre(double(a) * d, double(b) * d,
+                                     double(c) * d);
+        PolarSegment seg("seg", id);
+        const double t = 0.63;
+        const Eigen::Vector3d offsets[5] = {{0.0, 0.0, 0.0},
+                                            {t, t, t},
+                                            {t, -t, -t},
+                                            {-t, t, -t},
+                                            {-t, -t, t}};
+        for (Index j = 0; j < 5; ++j) {
+          PolarSite site(j, (j == 0) ? "C" : "H", centre + offsets[j]);
+          site.setpolarization(((j == 0) ? 8.0 : 3.0) *
+                               Eigen::Matrix3d::Identity());
+          site.setCharge((j == 0) ? -0.4 : 0.1);
+          site.setStaticDipole(
+              Eigen::Vector3d(1e-2 * double(j + 1), -5e-3, 2e-3 * double(j)));
+          site.setInduced_Dipole(Eigen::Vector3d(1e-3, -5e-4, 7e-4));
+          seg.push_back(site);
+        }
+        registry.Register(id, EwaldChargeState::Neutral, seg);
+        ++id;
+      }
+    }
+  }
+
+  const Index target_id = 0;
+  const Index fg_id = 3;
+  const PolarSegment& fg_seg = registry.Get(fg_id, EwaldChargeState::Neutral);
+  Eigen::Vector3d fg_pos = Eigen::Vector3d::Zero();
+  Index n_sites = 0;
+  for (const PolarSite& site : fg_seg) {
+    fg_pos += site.getPos();
+    ++n_sites;
+  }
+  fg_pos /= double(n_sites);
+
+  EwaldRealSpaceSum plain(box, registry, alpha, thole, 12.0, 1e-12);
+  PolarSite t_plain = registry.Get(target_id, EwaldChargeState::Neutral)[0];
+  t_plain.Reset();
+  plain.AddFieldAt<Estatic::V>(target_id, t_plain, EwaldChargeState::Neutral);
+  const double e_plain =
+      plain.CalcStaticEnergyAt(t_plain, EwaldChargeState::Neutral);
+
+  std::vector<std::pair<Index, Eigen::Vector3d>> foreground{{fg_id, fg_pos}};
+  EwaldRealSpaceSum carved(box, registry, alpha, thole, 12.0, 1e-12, 0.945, 15,
+                           6.0, foreground);
+  PolarSite t_carved = registry.Get(target_id, EwaldChargeState::Neutral)[0];
+  t_carved.Reset();
+  carved.AddFieldAt<Estatic::V>(target_id, t_carved,
+                                EwaldChargeState::Neutral);
+  const double e_carved =
+      carved.CalcStaticEnergyAt(t_carved, EwaldChargeState::Neutral);
+
+  EwaldRealSpaceInteractor interactor(alpha, thole);
+  double e_copy = 0.0;
+  for (const PolarSite& source : fg_seg) {
+    e_copy +=
+        interactor.CalcStaticEnergy<PolarSite, PolarSite>(source, t_carved);
+  }
+
+  BOOST_CHECK_SMALL(std::abs((e_plain - e_carved) - e_copy) / std::abs(e_copy),
+                    1e-12);
+}
+
+// Querying the energy without a neighbour list must fail loudly rather
+// than silently building one: that would turn a cheap query into the
+// full shell search, and make the cost depend on call order.
+BOOST_AUTO_TEST_CASE(static_energy_requires_an_existing_neighbour_list) {
+  const double L = 14.0;
+  const Eigen::Matrix3d box = L * Eigen::Matrix3d::Identity();
+  EwaldRegistry registry;
+  PolarSegment seg("seg", 0);
+  PolarSite site(0, "C", Eigen::Vector3d::Zero());
+  site.setpolarization(Eigen::Matrix3d::Identity());
+  site.setCharge(-0.4);
+  seg.push_back(site);
+  registry.Register(0, EwaldChargeState::Neutral, seg);
+
+  EwaldRealSpaceSum sum(box, registry, 0.3, 0.39, 12.0, 1e-12);
+  PolarSite probe = registry.Get(0, EwaldChargeState::Neutral)[0];
+  BOOST_CHECK_THROW(sum.CalcStaticEnergyAt(probe, EwaldChargeState::Neutral),
+                    std::exception);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

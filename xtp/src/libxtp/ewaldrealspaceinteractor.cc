@@ -313,6 +313,34 @@ double EwaldRealSpaceInteractor::CalcErfStaticEnergy(
   return q2 * src.phi - mu2.dot(src.field);
 }
 
+double EwaldRealSpaceInteractor::CalcErfInducedSourceEnergy(
+    const PolarSite& site1, const PolarSite& site2,
+    const Eigen::Vector3d& source_shift) const {
+  // See this method's own declaration. Mirrors CalcErfStaticEnergy, with
+  // the source's INDUCED dipole in place of its permanent moments and no
+  // Thole damping.
+  const Eigen::Vector3d r_vec =
+      site2.getPos() - (site1.getPos() + source_shift);
+  const double r = r_vec.norm();
+
+  const Eigen::Vector3d mu1 = site1.getInducedDipole();
+  const double q2 = site2.getCharge();
+  const Eigen::Vector3d mu2 = site2.getStaticDipole();
+
+  if (r < kCoincidenceTol) {
+    const double sqrt_pi = std::sqrt(votca::tools::conv::Pi);
+    const double dip_self =
+        (4.0 / 3.0) * alpha_ * alpha_ * alpha_ / sqrt_pi;
+    // A dipole produces no potential at its own position, so the
+    // charge-dipole cross term drops; only dipole-dipole survives.
+    return -mu2.dot(dip_self * mu1);
+  }
+
+  const BFunctions b = ComputeErfB(r);
+  const ScreenedPotentialField src = EvaluateSource(0.0, mu1, r_vec, r, b);
+  return q2 * src.phi - mu2.dot(src.field);
+}
+
 double EwaldRealSpaceInteractor::CalcInducedEnergy(
     const PolarSite& site1, const PolarSite& site2) const {
   const Eigen::Vector3d r_vec = site2.getPos() - site1.getPos();
@@ -327,6 +355,36 @@ double EwaldRealSpaceInteractor::CalcInducedEnergy(
   const Eigen::Vector3d field1 =
       mu1_dot_r * (t.l5 * b.B2) * r_vec - (t.l3 * b.B1) * mu1;
   return -mu2.dot(field1);
+}
+
+double EwaldRealSpaceInteractor::CalcInducedSourceEnergy(
+    const PolarSite& site1, const PolarSite& site2,
+    const Eigen::Vector3d& source_shift) const {
+  // See this method's own declaration for what this term is, why it
+  // needs a home of its own, and why it is damped.
+  const Eigen::Vector3d r_vec =
+      site2.getPos() - (site1.getPos() + source_shift);
+  const double r = r_vec.norm();
+  const BFunctions b = ComputeB(r);
+  const TholeFactors t = ComputeThole(r, site1, site2);
+
+  const Eigen::Vector3d mu1 = site1.getInducedDipole();
+  const double mu_dot_r = mu1.dot(r_vec);
+
+  // Potential and field of a screened, damped point dipole. The field
+  // is character-for-character ApplyInducedField's own expression; the
+  // potential is its r^-3 partner, phi = (mu . r_vec) * B1, carrying
+  // the same l3 that the field's mu term does. Writing them together
+  // here keeps the two from drifting apart.
+  const double phi = t.l3 * mu_dot_r * b.B1;
+  const Eigen::Vector3d field =
+      mu_dot_r * (t.l5 * b.B2) * r_vec - (t.l3 * b.B1) * mu1;
+
+  // Target's PERMANENT moments only: its induced dipole is PolarRegion's
+  // business, via the field this code separately delivers.
+  const double q2 = site2.getCharge();
+  const Eigen::Vector3d mu2 = site2.getStaticDipole();
+  return q2 * phi - mu2.dot(field);
 }
 
 // Explicit instantiations for the source types actually used.

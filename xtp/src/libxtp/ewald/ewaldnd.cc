@@ -57,7 +57,15 @@ Ewald3DnD::Ewald3DnD(const Topology *top, PolarTop *ptop, tools::Property *opt,
     _is_qmewald = false;  // default
   }
 
-  _qmregion_def = opt->get("qmregion");
+  // Guarded, unlike before. This is only ever CONSUMED inside the
+  // explicit-QM branch of EvaluateEnergyQMMM, but the read itself was
+  // unconditional -- so a purely classical job (explicit_qm = false),
+  // whose options file has no reason to carry a <qmregion> block, died
+  // here with "property not found: qmregion" before doing any work.
+  // Every other option in this constructor is already exists()-guarded.
+  if (opt->exists("qmregion")) {
+    _qmregion_def = opt->get("qmregion");
+  }
 
   // Multipoles: started from archive?
   if (opt->exists(pfx + ".multipoles.polar_bg")) {

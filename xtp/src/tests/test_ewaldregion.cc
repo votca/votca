@@ -97,14 +97,45 @@ tools::Property RegionDefinition(const std::string& file) {
 // builds neutral multi-site segments, which is right for the load tests
 // but useless for pinning a sign.
 void WriteSingleCharge(const std::string& file, double charge,
-                       const Eigen::Vector3d& position) {
+                       const Eigen::Vector3d& position,
+                       Index probe_id,
+                       const Eigen::Vector3d& probe_position) {
   EwaldRegistry registry;
+  // +q at `position` and -q mirrored through the probe. Two reasons, both
+  // necessary:
+  //
+  //  * the cell must be NEUTRAL. The reciprocal sum omits k = 0, which
+  //    is only legitimate for a neutral cell; a lone charge would make
+  //    the periodic problem ill-posed and the field it produces
+  //    meaningless to assert anything about.
+  //  * mirroring makes the two contributions ADD at the probe rather
+  //    than cancel: the field from +q points away from it, and the field
+  //    from -q points towards it, which is the same direction. So the
+  //    direction being tested is unambiguous and the signal is doubled.
   PolarSegment seg("chg", 0);
   PolarSite site(0, "H", position);
   site.setpolarization(1e-6 * Eigen::Matrix3d::Identity());
   site.setCharge(charge);
   seg.push_back(site);
+  PolarSite counter(1, "H", 2.0 * probe_position - position);
+  counter.setpolarization(1e-6 * Eigen::Matrix3d::Identity());
+  counter.setCharge(-charge);
+  seg.push_back(counter);
   registry.Register(0, EwaldChargeState::Neutral, seg);
+
+  // The probe's own segment must also exist in the background: a
+  // foreground is CARVED OUT of the background, so every foreground
+  // segment has a counterpart there, and EwaldRegion rightly refuses a
+  // foreground that does not. Given zero multipoles so it contributes
+  // nothing to the field being measured -- its copy is suppressed from
+  // the real-space sum and its (zero) erf share is removed, both
+  // identically zero, leaving only the charge above.
+  PolarSegment probe_seg("probe", probe_id);
+  PolarSite probe_site(0, "C", probe_position);
+  probe_site.setpolarization(8.0 * Eigen::Matrix3d::Identity());
+  probe_site.setCharge(0.0);
+  probe_seg.push_back(probe_site);
+  registry.Register(probe_id, EwaldChargeState::Neutral, probe_seg);
 
   EwaldParameters params = ReferenceParameters();
   params.shape = EwaldShape::Cube;
@@ -282,7 +313,7 @@ BOOST_AUTO_TEST_CASE(field_is_handed_over_in_the_polar_region_convention) {
   const std::string file = "ewaldregion_test_sign.hdf5";
   const Eigen::Vector3d charge_pos(10.0, 0.0, 0.0);
   const Eigen::Vector3d probe_pos = Eigen::Vector3d::Zero();
-  WriteSingleCharge(file, +1.0, charge_pos);
+  WriteSingleCharge(file, +1.0, charge_pos, 5, probe_pos);
 
   Logger log;
   log.setReportLevel(Log::error);
@@ -318,7 +349,7 @@ BOOST_AUTO_TEST_CASE(field_reverses_with_the_background_charge) {
 
   auto field_for = [&](double q) {
     const std::string file = "ewaldregion_test_flip.hdf5";
-    WriteSingleCharge(file, q, charge_pos);
+    WriteSingleCharge(file, q, charge_pos, 5, probe_pos);
     Logger log;
     log.setReportLevel(Log::error);
     EwaldRegion region(1, log);

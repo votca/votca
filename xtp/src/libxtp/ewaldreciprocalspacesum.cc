@@ -182,6 +182,182 @@ EwaldReciprocalSpaceSum::TotalStructureFactors(
   return S;
 }
 
+double EwaldReciprocalSpaceSum::CalcStaticEnergyBetween(
+    const std::vector<std::pair<const PolarSite*, Eigen::Vector3d>>&
+        foreground,
+    const std::vector<const PolarSite*>& background_exclusions,
+    EwaldChargeState source_state) const {
+  // See this method's own declaration for the formula, for why the two
+  // structure factors are accumulated separately, and for why the
+  // exclusion list is a separate argument rather than being read off the
+  // foreground.
+
+  // Foreground moments, taken from the sites themselves and so in the
+  // job's own charge state, at the positions they actually occupy. The
+  // positions are supplied rather than read off the sites because a
+  // foreground segment sits at one particular periodic image and the
+  // phase factor must use that image's position.
+  std::vector<double> q_fg;
+  std::vector<Eigen::Vector3d> mu_fg;
+  std::vector<Eigen::Vector3d> pos_fg;
+  q_fg.reserve(foreground.size());
+  mu_fg.reserve(foreground.size());
+  pos_fg.reserve(foreground.size());
+  for (const auto& entry : foreground) {
+    const PolarSite& site = *entry.first;
+    q_fg.push_back(site.getCharge());
+    mu_fg.push_back(site.getStaticDipole());
+    pos_fg.push_back(entry.second);
+  }
+
+  // Background sites: every registered site EXCEPT the ones the caller
+  // named. Identity is by address, so a listed site is held out exactly
+  // once.
+  const std::vector<const PolarSite*>& fg_sites = background_exclusions;
+  std::vector<double> q_bg;
+  std::vector<Eigen::Vector3d> mu_bg;
+  std::vector<Eigen::Vector3d> pos_bg;
+  for (Index source_id : registry_.AllIds()) {
+    if (!registry_.Has(source_id, source_state)) {
+      continue;
+    }
+    const PolarSegment& segment = registry_.Get(source_id, source_state);
+    for (const PolarSite& site : segment) {
+      bool is_foreground = false;
+      for (const PolarSite* fg : fg_sites) {
+        if (fg == &site) {
+          is_foreground = true;
+          break;
+        }
+      }
+      if (is_foreground) {
+        continue;
+      }
+      q_bg.push_back(site.getCharge());
+      mu_bg.push_back(site.getStaticDipole());
+      pos_bg.push_back(site.getPos());
+    }
+  }
+
+  const Index n_fg = Index(q_fg.size());
+  const Index n_bg = Index(q_bg.size());
+  const Index n_k = Index(kvectors_.size());
+  const double prefactor = 4.0 * kPi / volume_;
+
+  // Parallel over k-vectors, as TotalStructureFactors is and for the
+  // same reason: each thread owns its own k and the sum over sites for a
+  // given k happens in a fixed order, so the result does not depend on
+  // thread count.
+  double energy = 0.0;
+#pragma omp parallel for schedule(static) reduction(+ : energy)
+  for (Index idx = 0; idx < n_k; ++idx) {
+    const Eigen::Vector3d& k = kvectors_[std::size_t(idx)].k;
+    const double k2 = kvectors_[std::size_t(idx)].k2;
+
+    std::complex<double> s_fg(0.0, 0.0);
+    for (Index n = 0; n < n_fg; ++n) {
+      const double kr = k.dot(pos_fg[std::size_t(n)]);
+      const std::complex<double> phase = std::polar(1.0, -kr);
+      const double k_dot_mu = k.dot(mu_fg[std::size_t(n)]);
+      s_fg += std::complex<double>(q_fg[std::size_t(n)], -k_dot_mu) * phase;
+    }
+
+    std::complex<double> s_bg(0.0, 0.0);
+    for (Index n = 0; n < n_bg; ++n) {
+      const double kr = k.dot(pos_bg[std::size_t(n)]);
+      const std::complex<double> phase = std::polar(1.0, -kr);
+      const double k_dot_mu = k.dot(mu_bg[std::size_t(n)]);
+      s_bg += std::complex<double>(q_bg[std::size_t(n)], -k_dot_mu) * phase;
+    }
+
+    const double weight = std::exp(-k2 / (4.0 * alpha_ * alpha_)) / k2;
+    energy += prefactor * weight * (std::conj(s_fg) * s_bg).real();
+  }
+  return energy;
+}
+
+double EwaldReciprocalSpaceSum::CalcInducedSourceEnergyBetween(
+    const std::vector<std::pair<const PolarSite*, Eigen::Vector3d>>& foreground,
+    const std::vector<const PolarSite*>& background_exclusions,
+    EwaldChargeState source_state) const {
+  // See this method's own declaration. Structurally identical to
+  // CalcStaticEnergyBetween above, with one difference: the background
+  // contributes its INDUCED dipoles and no charge, rather than its
+  // permanent moments.
+
+  // Foreground: permanent moments, at the positions actually occupied.
+  std::vector<double> q_fg;
+  std::vector<Eigen::Vector3d> mu_fg;
+  std::vector<Eigen::Vector3d> pos_fg;
+  q_fg.reserve(foreground.size());
+  mu_fg.reserve(foreground.size());
+  pos_fg.reserve(foreground.size());
+  for (const auto& entry : foreground) {
+    const PolarSite& site = *entry.first;
+    q_fg.push_back(site.getCharge());
+    mu_fg.push_back(site.getStaticDipole());
+    pos_fg.push_back(entry.second);
+  }
+
+  // Background: induced dipoles only. No charge term -- an induced
+  // dipole carries none, and the background's permanent charges are
+  // already accounted for by CalcStaticEnergyBetween.
+  std::vector<Eigen::Vector3d> mu_bg;
+  std::vector<Eigen::Vector3d> pos_bg;
+  for (Index source_id : registry_.AllIds()) {
+    if (!registry_.Has(source_id, source_state)) {
+      continue;
+    }
+    const PolarSegment& segment = registry_.Get(source_id, source_state);
+    for (const PolarSite& site : segment) {
+      bool is_excluded = false;
+      for (const PolarSite* skip : background_exclusions) {
+        if (skip == &site) {
+          is_excluded = true;
+          break;
+        }
+      }
+      if (is_excluded) {
+        continue;
+      }
+      mu_bg.push_back(site.getInducedDipole());
+      pos_bg.push_back(site.getPos());
+    }
+  }
+
+  const Index n_fg = Index(q_fg.size());
+  const Index n_bg = Index(mu_bg.size());
+  const Index n_k = Index(kvectors_.size());
+  const double prefactor = 4.0 * kPi / volume_;
+
+  double energy = 0.0;
+#pragma omp parallel for schedule(static) reduction(+ : energy)
+  for (Index idx = 0; idx < n_k; ++idx) {
+    const Eigen::Vector3d& k = kvectors_[std::size_t(idx)].k;
+    const double k2 = kvectors_[std::size_t(idx)].k2;
+
+    std::complex<double> s_fg(0.0, 0.0);
+    for (Index n = 0; n < n_fg; ++n) {
+      const double kr = k.dot(pos_fg[std::size_t(n)]);
+      const std::complex<double> phase = std::polar(1.0, -kr);
+      const double k_dot_mu = k.dot(mu_fg[std::size_t(n)]);
+      s_fg += std::complex<double>(q_fg[std::size_t(n)], -k_dot_mu) * phase;
+    }
+
+    std::complex<double> s_bg(0.0, 0.0);
+    for (Index n = 0; n < n_bg; ++n) {
+      const double kr = k.dot(pos_bg[std::size_t(n)]);
+      const std::complex<double> phase = std::polar(1.0, -kr);
+      const double k_dot_mu = k.dot(mu_bg[std::size_t(n)]);
+      s_bg += std::complex<double>(0.0, -k_dot_mu) * phase;
+    }
+
+    const double weight = std::exp(-k2 / (4.0 * alpha_ * alpha_)) / k2;
+    energy += prefactor * weight * (std::conj(s_fg) * s_bg).real();
+  }
+  return energy;
+}
+
 template <enum Estatic CE>
 void EwaldReciprocalSpaceSum::AddFieldAt(PolarSite& target,
                                          EwaldChargeState source_state) const {

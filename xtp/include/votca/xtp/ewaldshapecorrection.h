@@ -21,6 +21,10 @@
 #ifndef VOTCA_XTP_EWALDSHAPECORRECTION_H
 #define VOTCA_XTP_EWALDSHAPECORRECTION_H
 
+// Standard includes
+#include <utility>
+#include <vector>
+
 // Local VOTCA includes
 #include "eeinteractor.h"
 #include "eigen.h"
@@ -75,8 +79,112 @@ class EwaldShapeCorrection {
   template <enum Estatic CE>
   void AddFieldAt(PolarSite& target, EwaldChargeState source_state) const;
 
+  // Shape/surface contribution to the PERMANENT-multipole interaction
+  // energy between a supplied foreground (1) and the rest of the cell
+  // (2). With
+  //
+  //   Q0 = sum_i q_i                                (net charge)
+  //   Q1 = sum_i (q_i r_i + mu_i)                   (dipole moment)
+  //   Q2 = sum_i (0.5 q_i r_i r_i^T + mu_i r_i^T)   (second moment)
+  //
+  // the cube/sphere and slab forms are
+  //
+  //   E = -(4*pi/(3*V)) * [ Q0_1 TrQ2_2 + Q0_2 TrQ2_1 - Q1_1 . Q1_2 ]
+  //   E = -(4*pi/V)     * [ Q0_1 Q2_2zz + Q0_2 Q2_1zz - Q1_1z Q1_2z ]
+  //
+  // THE SECOND-MOMENT TERMS ARE NOT OPTIONAL. An earlier version of this
+  // method kept only the Q1.Q1 piece, reasoning that the shape energy is
+  // the shape FIELD contracted with the foreground's moments. That
+  // reasoning holds only for a NEUTRAL foreground. As soon as Q0_1 is
+  // nonzero, Q1_1 depends on where the origin is put, and so did that
+  // energy -- which is a statement about a missing term, not about
+  // physics. The full expression above is exactly origin-invariant:
+  // under r -> r + a,
+  //
+  //   Q1    -> Q1 + Q0 a
+  //   TrQ2  -> TrQ2 + Q1 . a + 0.5 Q0 a^2
+  //
+  // and the three pieces cancel to all orders in a. A unit test shifts
+  // every position by an arbitrary vector and requires the answer not to
+  // move; that test is the real guarantee here, and it fails on the
+  // Q1.Q1-only form. This matches the legacy code's own U12_ShapeTerm,
+  // which carries the same three pieces.
+  //
+  // PERMANENT moments only, on BOTH sides. The induced part of this
+  // interaction is not missing; it belongs to the polar region, which
+  // accounts for it as sum(mu_ind . V) from the field AddFieldAt
+  // delivers. Including it here as well would count it twice. That is
+  // the division of labour the real- and reciprocal-space energies
+  // already follow, and it is why TotalDipoleMoment -- which does
+  // include induced dipoles, correctly, for the FIELD -- is not reused.
+  // Legacy splits the same way, into its _pp, _pu and _uu channels; this
+  // is its _pp.
+  //
+  // Rank is capped at 1 (charge and dipole) because every other sum in
+  // this Ewald implementation is: the real-space interactor and the
+  // reciprocal structure factors both stop at the dipole. Legacy adds
+  // the sites' intrinsic quadrupoles into Q2 as well. That difference
+  // does not affect origin-invariance -- an intrinsic quadrupole is
+  // itself translation-invariant -- but it is a real numerical
+  // difference wherever the multipole files carry rank-2 moments.
+  //
+  // `background_exclusions` holds the foreground's own background copies
+  // out of the background moments, matching the suppression the other
+  // two sums apply.
+  double CalcStaticEnergyBetween(
+      const std::vector<std::pair<const PolarSite*, Eigen::Vector3d>>&
+          foreground,
+      const std::vector<const PolarSite*>& background_exclusions,
+      EwaldChargeState source_state) const;
+
+  // The same shape/surface cross term, with the background entering
+  // through its INDUCED dipoles instead of its permanent moments. An
+  // induced dipole carries no charge, so the background's moments
+  // reduce to
+  //
+  //   Q0_bg = 0,  Q1_bg = sum mu_ind,  Q2_bg = sum mu_ind r^T
+  //
+  // and the bracket loses its Q0_bg TrQ2_fg piece. The foreground still
+  // contributes its permanent moments, all three of them -- Q0_fg
+  // TrQ2_bg survives and is the piece that matters for a charged
+  // foreground, exactly as in the permanent case.
+  //
+  // This is the shape partner of
+  // EwaldRealSpaceSum::CalcInducedSourceEnergyAt; see
+  // EwaldRealSpaceInteractor::CalcInducedSourceEnergy for what the term
+  // is. Undamped, like every shape contribution: this is a boundary
+  // condition on an infinite sum, not a short-range interaction.
+  double CalcInducedSourceEnergyBetween(
+      const std::vector<std::pair<const PolarSite*, Eigen::Vector3d>>&
+          foreground,
+      const std::vector<const PolarSite*>& background_exclusions,
+      EwaldChargeState source_state) const;
+
  private:
   Eigen::Vector3d TotalDipoleMoment(EwaldChargeState source_state) const;
+
+  // The three permanent moments the shape energy is built from, to rank
+  // 1. See CalcStaticEnergyBetween for the definitions and for why all
+  // three are needed.
+  struct Moments {
+    double q0 = 0.0;
+    Eigen::Vector3d q1 = Eigen::Vector3d::Zero();
+    Eigen::Matrix3d q2 = Eigen::Matrix3d::Zero();
+  };
+
+  static void Accumulate(Moments& m, const PolarSite& site,
+                         const Eigen::Vector3d& pos);
+
+  // Permanent moments of every registered site at source_state, with the
+  // listed sites held out.
+  Moments BackgroundMoments(
+      EwaldChargeState source_state,
+      const std::vector<const PolarSite*>& exclusions) const;
+
+  // As BackgroundMoments, but built from the sites' INDUCED dipoles.
+  Moments BackgroundInducedMoments(
+      EwaldChargeState source_state,
+      const std::vector<const PolarSite*>& exclusions) const;
 
   double volume_;
   const EwaldRegistry& registry_;

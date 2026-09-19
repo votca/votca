@@ -194,6 +194,48 @@ class EwaldRealSpaceInteractor {
   double CalcInducedEnergy(const PolarSite& site1,
                            const PolarSite& site2) const;
 
+  // erfc-screened, Thole-damped interaction energy between site1's
+  // INDUCED dipole (as source) and site2's PERMANENT moments (as
+  // target) -- the [background induced] x [foreground permanent] term.
+  //
+  // This is the half of legacy's _pu channel that nothing else in this
+  // code path covers. PolarRegion's own E_polar_ext contracts the
+  // FOREGROUND's induced dipoles against the delivered field, which
+  // gives [fg induced] x [bg permanent + bg induced]; the permanent
+  // energies here give [fg permanent] x [bg permanent]. The remaining
+  // corner, [fg permanent] x [bg induced], has no other home, and its
+  // absence was measurable: it accounts for the factor ~1.9 by which
+  // the neutral job's induced energy fell short of legacy's.
+  //
+  // Damped, unlike the permanent-multipole energies, because the source
+  // is an induced dipole and Thole damping is exactly the short-range
+  // correction to induced-dipole interactions. l3 multiplies the r^-3
+  // terms (the potential, and the field's mu term), l5 the r^-5 term,
+  // matching ApplyInducedField's own combination so the two cannot
+  // drift apart.
+  //
+  // NOTE that this makes the total mildly alpha-dependent, since the
+  // reciprocal-space partner carries no damping (a long-range sum has
+  // no short-range correction to apply). Legacy has the identical
+  // structure -- FU12_ERFC_At_By damps, FU12_ERF_At_By does not -- so
+  // this reproduces its convention rather than improving on it. The
+  // decomposition IS exactly alpha-independent once damping is switched
+  // off, which is how the unit test pins it down.
+  double CalcInducedSourceEnergy(
+      const PolarSite& site1, const PolarSite& site2,
+      const Eigen::Vector3d& source_shift = Eigen::Vector3d::Zero()) const;
+
+  // The erf-screened counterpart of CalcInducedSourceEnergy, used to
+  // remove a coincident foreground copy from the reciprocal side, just
+  // as CalcErfStaticEnergy does for the permanent channel.
+  //
+  // UNDAMPED, matching ApplyErfInducedFieldCorrection: the
+  // reciprocal-space contribution this removes carries no Thole damping,
+  // so damping the removal would not cancel what was actually added.
+  double CalcErfInducedSourceEnergy(
+      const PolarSite& site1, const PolarSite& site2,
+      const Eigen::Vector3d& source_shift = Eigen::Vector3d::Zero()) const;
+
   // The screened-Coulomb derivative functions B0, B1, B2 for separation r:
   //   B0 = erfc(alpha*r) / r
   //   B_l = [ (2l-1)*B_{l-1} + (2*alpha)^(2l-1) / sqrt(pi) * exp(-alpha^2 r^2) ] / r^2

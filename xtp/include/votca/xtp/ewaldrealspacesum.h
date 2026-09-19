@@ -189,6 +189,44 @@ class EwaldRealSpaceSum {
                   EwaldChargeState source_state,
                   bool include_static = true) const;
 
+  // The erfc-screened PERMANENT-multipole interaction energy between one
+  // target site and every background source this class would sum a field
+  // from -- the same neighbour set, with the same foreground copies
+  // suppressed and the same distance cull applied, so the energy and the
+  // field are guaranteed to describe the same system.
+  //
+  // Permanent multipoles on BOTH sides. Neither side's induced dipoles
+  // enter: the foreground's are PolarRegion's business (E_polar_ext),
+  // and the background's belong to CalcInducedSourceEnergyAt below.
+  //
+  // Requires the neighbour cache to exist, i.e. AddFieldAt or
+  // PrepareNeighborCache must have run for this target first. It does
+  // not build the cache itself, because doing so would make an energy
+  // query silently expensive and, worse, order-dependent.
+  // No target_segment_id parameter, unlike AddFieldAt: the neighbour
+  // list is keyed on the target site itself, and the exclusion of the
+  // target's own segment is already baked into the cached list, so the
+  // id would be dead weight here.
+  double CalcStaticEnergyAt(const PolarSite& target,
+                            EwaldChargeState source_state) const;
+
+  // The erfc-screened, Thole-damped energy between the BACKGROUND's
+  // induced dipoles (sources) and one foreground target's PERMANENT
+  // moments -- over exactly the neighbour set CalcStaticEnergyAt uses,
+  // for the same reason: the energy and the field must describe the
+  // same system.
+  //
+  // This is the [fg permanent] x [bg induced] corner of the
+  // permanent/induced product. See
+  // EwaldRealSpaceInteractor::CalcInducedSourceEnergy for why it has no
+  // other home, and why it is damped where the permanent energies are
+  // not.
+  //
+  // Same cache requirement as CalcStaticEnergyAt, and for the same
+  // reason.
+  double CalcInducedSourceEnergyAt(const PolarSite& target,
+                                   EwaldChargeState source_state) const;
+
   // Builds the neighbour cache for every target in one serial pass,
   // WITHOUT applying any field (each target's own V()/V_noE() are
   // restored before returning). Exists so callers can parallelize over

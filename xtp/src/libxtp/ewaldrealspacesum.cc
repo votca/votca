@@ -364,6 +364,67 @@ void EwaldRealSpaceSum::AddFieldAt(Index target_segment_id, PolarSite& target,
   neighbor_cache_.emplace(cache_key, std::move(visited_pairs));
 }
 
+double EwaldRealSpaceSum::CalcStaticEnergyAt(
+    const PolarSite& target, EwaldChargeState source_state) const {
+  // See this method's own declaration for what is and is not included.
+  const std::pair<const PolarSite*, EwaldChargeState> cache_key(&target,
+                                                                 source_state);
+  auto cached = neighbor_cache_.find(cache_key);
+  if (cached == neighbor_cache_.end()) {
+    throw std::runtime_error(
+        "EwaldRealSpaceSum::CalcStaticEnergyAt: no neighbour list for this "
+        "target. AddFieldAt or PrepareNeighborCache must run first -- this "
+        "method deliberately does not build one, so that an energy query "
+        "cannot silently become the expensive shell search.");
+  }
+
+  double energy = 0.0;
+  for (const auto& entry : cached->second) {
+    const PolarSegment& source_segment = *std::get<0>(entry);
+    const Index translation_idx = std::get<1>(entry);
+    const Eigen::Vector3d& baseline_shift = std::get<2>(entry);
+    const Eigen::Vector3d t =
+        baseline_shift + translations_[translation_idx].t;
+    for (const PolarSite& source_site : source_segment) {
+      energy += interactor_.CalcStaticEnergy<PolarSite, PolarSite>(
+          source_site, target, t);
+    }
+  }
+  return energy;
+}
+
+double EwaldRealSpaceSum::CalcInducedSourceEnergyAt(
+    const PolarSite& target, EwaldChargeState source_state) const {
+  // Deliberately a near-copy of CalcStaticEnergyAt above rather than a
+  // shared template over the interactor call: the two differ only in
+  // which moments they contract, but they are validated separately and
+  // against different legacy channels (_pp and half of _pu), and a
+  // shared body would let a change to one silently move the other.
+  const std::pair<const PolarSite*, EwaldChargeState> cache_key(&target,
+                                                                 source_state);
+  auto cached = neighbor_cache_.find(cache_key);
+  if (cached == neighbor_cache_.end()) {
+    throw std::runtime_error(
+        "EwaldRealSpaceSum::CalcInducedSourceEnergyAt: no neighbour list for "
+        "this target. AddFieldAt or PrepareNeighborCache must run first -- "
+        "this method deliberately does not build one, so that an energy "
+        "query cannot silently become the expensive shell search.");
+  }
+
+  double energy = 0.0;
+  for (const auto& entry : cached->second) {
+    const PolarSegment& source_segment = *std::get<0>(entry);
+    const Index translation_idx = std::get<1>(entry);
+    const Eigen::Vector3d& baseline_shift = std::get<2>(entry);
+    const Eigen::Vector3d t =
+        baseline_shift + translations_[translation_idx].t;
+    for (const PolarSite& source_site : source_segment) {
+      energy += interactor_.CalcInducedSourceEnergy(source_site, target, t);
+    }
+  }
+  return energy;
+}
+
 void EwaldRealSpaceSum::PrepareNeighborCache(
     const std::vector<std::pair<Index, PolarSite*>>& targets,
     EwaldChargeState source_state) const {
