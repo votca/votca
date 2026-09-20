@@ -18,6 +18,7 @@
  */
 
 // Standard includes
+#include <sstream>
 #include <stdexcept>
 
 // VOTCA includes
@@ -139,6 +140,7 @@ void EwaldRegion::ReadFromCpt(CheckpointReader& r) {
   shape_.reset();
   interactor_.reset();
   foreground_copies_.clear();
+  built_foreground_.clear();
 }
 
 void EwaldRegion::WritePDB(csg::PDBWriter&) const {
@@ -171,13 +173,87 @@ Eigen::Vector3d Centroid(const PolarSegment& seg) {
 }
 }  // namespace
 
-void EwaldRegion::BuildSums(const std::vector<PolarSegment>& foreground) const {
+void EwaldRegion::RegisterForeground(
+    const std::vector<std::pair<Index, Eigen::Vector3d>>& foreground) {
+  // The union is disjoint by construction -- PartitionRegions marks each
+  // segment as it assigns it -- but that guarantee lives far from the
+  // code relying on it, and a repeated id would suppress the same
+  // background copy twice.
+  for (std::size_t i = 0; i < foreground.size(); ++i) {
+    for (std::size_t j = i + 1; j < foreground.size(); ++j) {
+      if (foreground[i].first == foreground[j].first) {
+        std::stringstream message;
+        message << "EwaldRegion::RegisterForeground: segment "
+                << foreground[i].first
+                << " was declared twice. The foreground is the disjoint "
+                   "union of the regions that own segments.";
+        throw std::runtime_error(message.str());
+      }
+    }
+  }
+  registered_foreground_ = foreground;
+  // Anything built before the declaration was built from the wrong
+  // foreground.
+  real_sum_.reset();
+  recip_sum_.reset();
+  shape_.reset();
+  interactor_.reset();
   foreground_copies_.clear();
+  built_foreground_.clear();
+}
+
+void EwaldRegion::CheckForegroundIsSubset(
+    const std::vector<PolarSegment>& foreground) const {
+  // The same 1e-4 bohr EwaldRealSpaceSum uses to recognise a copy
+  // (kForegroundMatchTol, private there, so restated rather than
+  // shared): it absorbs round-off, nothing larger. A foreground's
+  // positions do not move between calls within a job, so any difference
+  // above this is a different segment, not drift.
+  constexpr double kTol = 1e-4;
   for (const PolarSegment& seg : foreground) {
-    if (!registry_.Has(seg.getId(), EwaldChargeState::Neutral)) {
+    const Eigen::Vector3d centroid = Centroid(seg);
+    bool found = false;
+    for (const auto& entry : built_foreground_) {
+      if (entry.first == seg.getId() &&
+          (centroid - entry.second).norm() <= kTol) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      std::stringstream message;
+      message << "EwaldRegion: asked about segment " << seg.getId()
+              << ", which is not part of the foreground these sums were "
+                 "built for. The suppression list and the real-space "
+                 "neighbour cache belong to that foreground, so answering "
+                 "would drop the wrong background copies and subtract erf "
+                 "corrections for copies that were never dropped -- a wrong "
+                 "energy with no symptom. JobTopology declares the whole "
+                 "foreground with RegisterForeground before any region is "
+                 "evaluated; if this fires, that declaration is missing or "
+                 "incomplete.";
+      throw std::runtime_error(message.str());
+    }
+  }
+}
+
+void EwaldRegion::BuildSums(const std::vector<PolarSegment>& fallback) const {
+  std::vector<std::pair<Index, Eigen::Vector3d>> source =
+      registered_foreground_;
+  if (source.empty()) {
+    for (const PolarSegment& seg : fallback) {
+      source.push_back({seg.getId(), Centroid(seg)});
+    }
+  }
+
+  foreground_copies_.clear();
+  built_foreground_ = source;
+  for (const auto& entry : source) {
+    const Index seg_id = entry.first;
+    if (!registry_.Has(seg_id, EwaldChargeState::Neutral)) {
       throw std::runtime_error(
-          "EwaldRegion: the polar region contains segment " +
-          std::to_string(seg.getId()) +
+          "EwaldRegion: the foreground contains segment " +
+          std::to_string(seg_id) +
           ", which is absent from the periodic background. The foreground "
           "must be carved out of the same system the background was "
           "converged on.");
@@ -205,9 +281,9 @@ void EwaldRegion::BuildSums(const std::vector<PolarSegment>& foreground) const {
     // exact hit also makes this robust to any future geometry that
     // differs between charge states.
     const PolarSegment& bg_copy =
-        registry_.Get(seg.getId(), EwaldChargeState::Neutral);
+        registry_.Get(seg_id, EwaldChargeState::Neutral);
     const Eigen::Vector3d bg_centroid = Centroid(bg_copy);
-    const Eigen::Vector3d delta = Centroid(seg) - bg_centroid;
+    const Eigen::Vector3d delta = entry.second - bg_centroid;
     const Eigen::Vector3d fractional = params_.box.inverse() * delta;
     const Eigen::Vector3d image = params_.box * fractional.array().round().matrix();
     const Eigen::Vector3d residual = delta - image;
@@ -219,7 +295,7 @@ void EwaldRegion::BuildSums(const std::vector<PolarSegment>& foreground) const {
     constexpr double kResidualWarn = 5.0;  // bohr
     if (residual.norm() > kResidualWarn) {
       XTP_LOG(Log::error, log_)
-          << TimeStamp() << " WARNING: foreground segment " << seg.getId()
+          << TimeStamp() << " WARNING: foreground segment " << seg_id
           << " sits " << residual.norm()
           << " bohr from the nearest periodic image of its background "
              "copy. That is too far to be geometry relaxation, so the "
@@ -228,7 +304,7 @@ void EwaldRegion::BuildSums(const std::vector<PolarSegment>& foreground) const {
           << std::flush;
     }
 
-    foreground_copies_.push_back({seg.getId(), bg_centroid + image});
+    foreground_copies_.push_back({seg_id, bg_centroid + image});
   }
 
   real_sum_ = std::make_unique<EwaldRealSpaceSum>(
@@ -250,6 +326,10 @@ double EwaldRegion::ApplyFieldTo(std::vector<PolarSegment>& foreground) const {
   if (!real_sum_) {
     BuildSums(foreground);
   }
+  // Also on the first call: with a registered foreground BuildSums ignores
+  // its argument, so this is what catches a client asking about a segment
+  // nobody declared.
+  CheckForegroundIsSubset(foreground);
 
   // Flat target list: the reciprocal sum takes them in one batch, which
   // is what makes its structure factors worth computing once.

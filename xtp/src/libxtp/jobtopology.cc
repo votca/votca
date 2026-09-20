@@ -37,6 +37,23 @@
 namespace votca {
 namespace xtp {
 
+namespace {
+// Unweighted mean of a mapped molecule's own atom positions, matching
+// EwaldRegion's own Centroid (and legacy's PolarSeg::CalcPos). Only the
+// lattice image is taken from it there, so staying consistent with the
+// background's convention matters more than the choice itself.
+template <class T>
+Eigen::Vector3d UnweightedCentroid(const T& mol) {
+  Eigen::Vector3d pos = Eigen::Vector3d::Zero();
+  Index n = 0;
+  for (const auto& atom : mol) {
+    pos += atom.getPos();
+    ++n;
+  }
+  return (n > 0) ? Eigen::Vector3d(pos / double(n)) : pos;
+}
+}  // namespace
+
 std::vector<const tools::Property*> JobTopology::SortRegionsDefbyId(
     const tools::Property& regions_def) const {
   std::vector<const tools::Property*> view;
@@ -166,6 +183,16 @@ void JobTopology::CreateRegions(
   // around this point the whole jobtopology will be centered for removing pbc
   Eigen::Vector3d center = top.getSegment(region_seg_ids[0][0].Id()).getPos();
 
+  // The union of every segment carved out of the periodic cell, collected
+  // as each molecule is mapped and shifted. An EwaldRegion needs the whole
+  // union to know which background copies to suppress, and no single
+  // client region knows it -- see EwaldRegion::RegisterForeground. Built
+  // from the region types generically rather than naming qm and polar,
+  // because every region here draws its segments from the same Topology
+  // the background was converged on, so anything it owns is genuinely
+  // carved out of the cell.
+  std::vector<std::pair<Index, Eigen::Vector3d>> foreground_union;
+
   for (const tools::Property& region_def : options.second) {
     Index id = region_def.get("id").as<Index>();
     const std::vector<SegId>& seg_ids = region_seg_ids[id];
@@ -185,6 +212,7 @@ void JobTopology::CreateRegions(
         QMMolecule mol = qmmapper.map(segment, seg_index);
         mol.setType("qm" + std::to_string(id));
         ShiftPBC(top, center, mol);
+        foreground_union.push_back({seg_index.Id(), UnweightedCentroid(mol)});
         qmregion->push_back(mol);
       }
       region = std::move(qmregion);
@@ -200,6 +228,7 @@ void JobTopology::CreateRegions(
 
         ShiftPBC(top, center, mol);
         mol.setType("mm" + std::to_string(id));
+        foreground_union.push_back({seg_index.Id(), UnweightedCentroid(mol)});
         polarregion->push_back(mol);
       }
       region = std::move(polarregion);
@@ -213,6 +242,7 @@ void JobTopology::CreateRegions(
         StaticSegment mol = staticmap.map(segment, seg_index);
         mol.setType("mm" + std::to_string(id));
         ShiftPBC(top, center, mol);
+        foreground_union.push_back({seg_index.Id(), UnweightedCentroid(mol)});
         staticregion->push_back(mol);
       }
       region = std::move(staticregion);
@@ -228,6 +258,15 @@ void JobTopology::CreateRegions(
     }
     region->Initialize(region_def);
     regions_.push_back(std::move(region));
+  }
+
+  // After every region exists, so the declaration covers the complete
+  // union, and before any of them is evaluated.
+  for (std::unique_ptr<Region>& reg : regions_) {
+    EwaldRegion* ewald = dynamic_cast<EwaldRegion*>(reg.get());
+    if (ewald != nullptr) {
+      ewald->RegisterForeground(foreground_union);
+    }
   }
 }
 
@@ -359,6 +398,21 @@ void JobTopology::CheckEnumerationOfRegions(
         "Region id definitions are not clear. You must start at id 0 and "
         "then "
         "ascending order. i.e. 0 1 2 3.");
+  }
+
+  // The whole job topology is centred on region 0's FIRST segment, and an
+  // ewaldregion owns none -- its entry in region_seg_ids is empty by
+  // construction. Reading element zero of it is undefined behaviour, so
+  // the rule is stated here rather than left to a crash far downstream.
+  EwaldRegion Ewalddummy(0, log_);
+  for (const tools::Property& region_def : regions_def) {
+    if (region_def.name() == Ewalddummy.identify() &&
+        region_def.get("id").as<Index>() == 0) {
+      throw std::runtime_error(
+          "An ewaldregion cannot be region 0: it owns no segments of the "
+          "job's topology, and the job is centred on region 0's first "
+          "segment.");
+    }
   }
 }
 

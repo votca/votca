@@ -151,6 +151,26 @@ class EwaldRegion : public Region {
   // emits on first use).
   double ApplyFieldTo(std::vector<PolarSegment>& foreground) const;
 
+  // Declares the COMPLETE foreground: the union of every region that owns
+  // segments of the job's topology. JobTopology calls this once, after it
+  // has built the regions and before any of them is evaluated.
+  //
+  // Why it cannot be left to ApplyFieldTo's argument. Each client region
+  // asks for its own segments, but the background copies that must be
+  // suppressed are those of the WHOLE carved-out cluster. In a QM + polar
+  // job the QM region holds the central segment, so the polar region
+  // hands over everything except it -- and its neutral background copy
+  // would be left sitting underneath the QM density, a ghost molecule in
+  // every sum, with no symptom to notice it by.
+  //
+  // Positions are the job-local ones, after JobTopology::ShiftPBC: the
+  // background registry is in cell coordinates and the job is recentred,
+  // so the two frames differ by a lattice vector. BuildSums snaps that
+  // out. Only the lattice image is taken from these centroids, so any
+  // reasonable centre of a segment will do.
+  void RegisterForeground(
+      const std::vector<std::pair<Index, Eigen::Vector3d>>& foreground);
+
  private:
   // Built once, on first use, from the calling region's geometry. The
   // foreground's positions are fixed for the whole job even though its
@@ -158,7 +178,24 @@ class EwaldRegion : public Region {
   // cache inside the real-space one -- stay valid throughout. Mutable
   // for the same reason EwaldRealSpaceSum's own cache is: this is lazily
   // built state behind a const interface, not mutable physics.
-  void BuildSums(const std::vector<PolarSegment>& foreground) const;
+  //
+  // What is cached is specific to the foreground it was built for:
+  // foreground_copies_ decides which background copies the real-space sum
+  // suppresses, and that list is baked into real_sum_'s constructor along
+  // with a neighbour cache keyed to those positions.
+  //
+  // Built from registered_foreground_ when RegisterForeground has been
+  // called, which is the case inside a JobTopology. The argument is a
+  // FALLBACK for direct use of this class without one -- the unit tests,
+  // and any single-client setup -- and is only correct when there is
+  // exactly one client region. Either way every later call is checked
+  // against what was built.
+  void BuildSums(const std::vector<PolarSegment>& fallback) const;
+  // Every segment a client asks about must be part of the foreground the
+  // sums were built for. A subset, not an equality: each client region
+  // asks only about its own share of the union.
+  void CheckForegroundIsSubset(
+      const std::vector<PolarSegment>& foreground) const;
 
   mutable std::unique_ptr<EwaldRealSpaceSum> real_sum_;
   mutable std::unique_ptr<EwaldReciprocalSpaceSum> recip_sum_;
@@ -168,6 +205,15 @@ class EwaldRegion : public Region {
   // erf correction removes exactly the copies the real-space sum
   // dropped.
   mutable std::vector<std::pair<Index, Eigen::Vector3d>> foreground_copies_;
+  // (segment id, centroid) of the foreground the sums were built for.
+  // Keyed on the FOREGROUND's own centroid, not the background copy's:
+  // foreground_copies_ holds the latter, which is derived from the id
+  // alone, so two different foregrounds sharing a segment id would look
+  // identical there.
+  mutable std::vector<std::pair<Index, Eigen::Vector3d>> built_foreground_;
+  // What RegisterForeground was told. Empty means nobody declared a
+  // foreground and BuildSums falls back to its argument.
+  std::vector<std::pair<Index, Eigen::Vector3d>> registered_foreground_;
   mutable bool warned_no_energy_ = false;
 
   std::string checkpoint_file_;
