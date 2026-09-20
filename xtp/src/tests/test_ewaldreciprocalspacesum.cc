@@ -19,6 +19,8 @@
 
 // Standard includes
 #include <iostream>
+#include <memory>
+#include <vector>
 
 // Third party includes
 #include <boost/test/tools/floating_point_comparison.hpp>
@@ -705,6 +707,190 @@ BOOST_AUTO_TEST_CASE(charged_multisegment_foreground_splitting) {
         BOOST_CHECK_SMALL(std::abs(total - reference) / std::abs(reference),
                           1e-5);
       }
+    }
+  }
+}
+
+// ORACLE FOR EwaldRegion::PotentialAt.
+//
+// The potential at a point is what a UNIT TEST CHARGE placed there would
+// report as its own energy: with q = 1 and mu = 0, every energy routine
+// in this machinery reduces to q*phi - mu.E = phi. That is not a
+// convenience -- it is what pins phi's gauge. phi carries an arbitrary
+// additive constant (the k = 0 term is omitted, i.e. the uniform
+// neutralising background), and a charged region embedded in it shifts
+// by q * phi_0. Defining phi through the same expressions the energy
+// already uses fixes that constant to the one every validated number in
+// this code was computed with, instead of leaving it to be rediscovered
+// as an unexplained offset once a QM density is sitting in the hole.
+//
+// So this case asserts the round trip: phi and E sampled at each
+// foreground site with a unit probe, recombined as sum_i [q_i phi_i -
+// mu_i . E_i], must reproduce the energy assembled directly from those
+// sites. Two different entry points into the same sums; agreement to
+// round-off or one of them is wrong.
+//
+// PROBES MUST HAVE DISTINCT, STABLE ADDRESSES. EwaldRealSpaceSum keys
+// its neighbour cache on the target's address and writes an entry on
+// first use, so a probe built on the stack inside a loop -- reusing one
+// address for a succession of different positions -- gets the first
+// point's neighbour list for every later point, silently. Held in
+// unique_ptrs here for exactly that reason; the same constraint is why
+// PotentialAt cannot be implemented by walking a DFT grid with a probe.
+BOOST_AUTO_TEST_CASE(unit_probe_potential_reproduces_the_static_energy) {
+  const double L = 20.0;
+  const double thole = 0.39;
+  const Eigen::Matrix3d box = L * Eigen::Matrix3d::Identity();
+
+  // The lattice of static_energy_is_independent_of_the_splitting, but
+  // with dipoles at the magnitude a real rank-1 .mps carries, so the
+  // dipole half of phi is actually exercised.
+  EwaldRegistry registry;
+  const Index n = 3;
+  const double d = L / double(n);
+  Index id = 0;
+  for (Index a = 0; a < n; ++a) {
+    for (Index b = 0; b < n; ++b) {
+      for (Index c = 0; c < n; ++c) {
+        const Eigen::Vector3d centre(double(a) * d, double(b) * d,
+                                     double(c) * d);
+        PolarSegment seg("seg", id);
+        const double t = 0.63;
+        const Eigen::Vector3d offsets[3] = {
+            {0.0, 0.0, 0.0}, {t, t, t}, {-t, -t, t}};
+        const double charges[3] = {-0.4, 0.2, 0.2};
+        for (Index j = 0; j < 3; ++j) {
+          PolarSite site(j, (j == 0) ? "C" : "H", centre + offsets[j]);
+          site.setpolarization(3.0 * Eigen::Matrix3d::Identity());
+          site.setCharge(charges[j]);
+          site.setStaticDipole(Eigen::Vector3d(0.15 * double(j + 1) +
+                                                   1e-2 * double(a),
+                                               -0.10 + 1e-2 * double(b),
+                                               0.05 * double(j) -
+                                                   1e-2 * double(c)));
+          seg.push_back(site);
+        }
+        registry.Register(id, EwaldChargeState::Neutral, seg);
+        ++id;
+      }
+    }
+  }
+
+  const Index fg_id = 0;
+  const PolarSegment& fg_seg = registry.Get(fg_id, EwaldChargeState::Neutral);
+  Eigen::Vector3d fg_pos = Eigen::Vector3d::Zero();
+  Index n_sites = 0;
+  for (const PolarSite& site : fg_seg) {
+    fg_pos += site.getPos();
+    ++n_sites;
+  }
+  fg_pos /= double(n_sites);
+  const std::vector<std::pair<Index, Eigen::Vector3d>> foreground{
+      {fg_id, fg_pos}};
+
+  // Well away from the foreground segment, where phi has no business
+  // depending on the splitting either.
+  const Eigen::Vector3d far_point(0.5 * d, 0.37 * d, 0.71 * d);
+  double phi_far_reference = 0.0;
+  bool have_far = false;
+
+  for (double alpha : {0.20, 0.25, 0.30, 0.35}) {
+    const double k_max = 14.0 * alpha;
+    const double r_min = 6.0 / alpha;
+
+    EwaldRealSpaceSum real_sum(box, registry, alpha, thole, r_min, 1e-14,
+                               0.945, 25, 6.0, foreground);
+    EwaldReciprocalSpaceSum recip_sum(box, registry, alpha, k_max);
+    EwaldRealSpaceInteractor inter(alpha, thole);
+    const std::vector<const PolarSite*> no_exclusions;
+
+    // ---- reference: assembled from the real foreground sites, exactly
+    // as EwaldRegion does it (shape omitted, as in the sibling case --
+    // it is alpha-independent and common to both sides here).
+    std::vector<std::pair<const PolarSite*, Eigen::Vector3d>> fg_sites;
+    std::vector<std::unique_ptr<PolarSite>> site_probes;
+    site_probes.reserve(std::size_t(n_sites));
+    double e_real = 0.0;
+    for (const PolarSite& site : fg_seg) {
+      site_probes.push_back(std::make_unique<PolarSite>(site));
+      PolarSite& probe = *site_probes.back();
+      probe.Reset();
+      real_sum.AddFieldAt<Estatic::V>(fg_id, probe, EwaldChargeState::Neutral);
+      e_real += real_sum.CalcStaticEnergyAt(probe, EwaldChargeState::Neutral);
+      fg_sites.push_back({&site, site.getPos()});
+    }
+    const double e_recip = recip_sum.CalcStaticEnergyBetween(
+        fg_sites, no_exclusions, EwaldChargeState::Neutral);
+    double e_erf = 0.0;
+    for (const PolarSite& source : fg_seg) {
+      for (const auto& entry : fg_sites) {
+        e_erf += inter.CalcErfStaticEnergy<PolarSite, PolarSite>(
+            source, *entry.first, Eigen::Vector3d::Zero());
+      }
+    }
+    const double reference = e_real + e_recip - e_erf;
+
+    // ---- oracle: phi and E sampled with unit probes.
+    //
+    // The segment id handed to AddFieldAt is a FOREGROUND one on purpose.
+    // It only decides whether the zero-translation self-pair is skipped,
+    // and that skip is disabled for sources that have a foreground copy
+    // -- which is the behaviour a point that is not a site of its own
+    // wants, and what makes this reproduce the reference.
+    std::vector<std::unique_ptr<PolarSite>> unit_probes;
+    unit_probes.reserve(std::size_t(n_sites) + 1);
+    auto sample = [&](const Eigen::Vector3d& point, Eigen::Vector3d& field) {
+      unit_probes.push_back(std::make_unique<PolarSite>(0, "H", point));
+      PolarSite& probe = *unit_probes.back();
+      probe.Reset();
+      probe.setCharge(1.0);
+      probe.setStaticDipole(Eigen::Vector3d::Zero());
+      probe.setInduced_Dipole(Eigen::Vector3d::Zero());
+
+      real_sum.AddFieldAt<Estatic::V>(fg_id, probe, EwaldChargeState::Neutral);
+      double phi =
+          real_sum.CalcStaticEnergyAt(probe, EwaldChargeState::Neutral);
+
+      recip_sum.AddFieldAt<Estatic::V>(probe, EwaldChargeState::Neutral);
+      const std::vector<std::pair<const PolarSite*, Eigen::Vector3d>> one{
+          {&probe, point}};
+      phi += recip_sum.CalcStaticEnergyBetween(one, no_exclusions,
+                                               EwaldChargeState::Neutral);
+
+      // Subtracted for phi; ApplyErfStaticFieldCorrection already carries
+      // the minus for the field, so V() ends up holding the same
+      // combination.
+      for (const PolarSite& source : fg_seg) {
+        phi -= inter.CalcErfStaticEnergy<PolarSite, PolarSite>(
+            source, probe, Eigen::Vector3d::Zero());
+        inter.ApplyErfStaticFieldCorrection<PolarSite, Estatic::V>(
+            source, probe, Eigen::Vector3d::Zero());
+      }
+      field = probe.V();
+      return phi;
+    };
+
+    double oracle = 0.0;
+    for (const PolarSite& site : fg_seg) {
+      Eigen::Vector3d field;
+      const double phi = sample(site.getPos(), field);
+      oracle += site.getCharge() * phi - site.getStaticDipole().dot(field);
+    }
+
+    BOOST_REQUIRE_GT(std::abs(reference), 1e-10);
+    BOOST_CHECK_SMALL(std::abs(oracle - reference) / std::abs(reference),
+                      1e-10);
+
+    Eigen::Vector3d far_field;
+    const double phi_far = sample(far_point, far_field);
+    if (!have_far) {
+      phi_far_reference = phi_far;
+      have_far = true;
+      BOOST_REQUIRE_GT(std::abs(phi_far), 1e-10);
+    } else {
+      BOOST_CHECK_SMALL(
+          std::abs(phi_far - phi_far_reference) / std::abs(phi_far_reference),
+          1e-8);
     }
   }
 }
